@@ -251,9 +251,9 @@ if there is no suitable block.
 _`.impl.find-largest`: ``CBSFindLargest()`` simply finds out the size
 of the largest block in the CBS from the root of the tree, using
 ``SplayRoot()``, and does ``SplayFindFirst()`` for a block of that
-size. This is O(log *n*) in the size of the free list, so it's about
-the best you can do without maintaining a separate priority queue,
-just to do ``CBSFindLargest()``.
+size. This takes time proportional to the logarithm of the size of the
+free list, so it's about the best you can do without maintaining a
+separate priority queue, just to do ``CBSFindLargest()``.
 
 
 Low memory behaviour
@@ -366,7 +366,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 1998-2013 Ravenbrook Limited. All rights reserved. 
+Copyright © 1998-2014 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
@@ -374,14 +374,14 @@ Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:
 
-1. Redistributions of source code must retain the above copyright
+#. Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-2. Redistributions in binary form must reproduce the above copyright
+#. Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
-3. Redistributions in any form must be accompanied by information on how
+#. Redistributions in any form must be accompanied by information on how
    to obtain complete source code for this software and any
    accompanying software that uses this software.  The source code must
    either be included in the distribution or be available for no more than

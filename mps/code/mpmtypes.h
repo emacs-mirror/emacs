@@ -223,6 +223,8 @@ typedef Res (*PoolFramePopMethod)(Pool pool, Buffer buf,
                                   AllocFrame frame);
 typedef void (*PoolFramePopPendingMethod)(Pool pool, Buffer buf,
                                           AllocFrame frame);
+typedef Res (*PoolAddrObjectMethod)(Addr *pReturn,
+                                    Pool pool, Seg seg, Addr addr);
 typedef void (*PoolWalkMethod)(Pool pool, Seg seg,
                                FormattedObjectsStepMethod f,
                                void *v, size_t s);

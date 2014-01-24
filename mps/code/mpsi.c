@@ -1,7 +1,7 @@
 /* mpsi.c: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
  * $Id$
- * Copyright (c) 2001-2003, 2006 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -753,7 +753,6 @@ void mps_free(mps_pool_t pool, mps_addr_t p, size_t size)
   ArenaEnter(arena);
 
   AVERT(Pool, pool);
-  AVER(PoolHasRange(pool, p, AddrAdd(p, size)));
   AVER(size > 0);
   /* Note: class may allow unaligned size, see */
   /* <design/class-interface/#alloc.size.align>. */
@@ -1481,6 +1480,15 @@ mps_bool_t mps_ld_isstale(mps_ld_t ld, mps_arena_t arena,
   return (mps_bool_t)b;
 }
 
+mps_bool_t mps_ld_isstale_any(mps_ld_t ld, mps_arena_t arena)
+{
+  Bool b;
+
+  b = LDIsStaleAny(ld, arena);
+
+  return (mps_bool_t)b;
+}
+
 mps_res_t mps_fix(mps_ss_t mps_ss, mps_addr_t *ref_io)
 {
   mps_res_t res;
@@ -1942,7 +1950,7 @@ void mps_chain_destroy(mps_chain_t chain)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003, 2006, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

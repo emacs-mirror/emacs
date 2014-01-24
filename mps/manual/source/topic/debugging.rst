@@ -66,8 +66,8 @@ allows it to specify patterns:
 For example::
 
     mps_pool_debug_option_s debug_options = {
-       (void *)"postpost", 8,
-       (void *)"freefree", 8,
+       (const void *)"postpost", 8,
+       (const void *)"freefree", 8,
     };
     mps_pool_t pool;
     mps_res_t res;
@@ -89,9 +89,9 @@ For example::
     class`. ::
 
         typedef struct mps_pool_debug_option_s {
-            void  *fence_template;
+            const void *fence_template;
             size_t fence_size;
-            void  *free_template;
+            const void *free_template;
             size_t free_size;
         } mps_pool_debug_option_s;
 

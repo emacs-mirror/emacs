@@ -1,7 +1,7 @@
 /* teletest.c: TELEMETRY TEST
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .source: The command parser here was taken and adapted from bttest.c.
  */
@@ -121,7 +121,7 @@ static void doHelp(void)
 
 
 static struct commandShapeStruct {
-  char *name;
+  const char *name;
   Count int_args;
   mps_bool_t string_arg;
   void (*fun)(void);
@@ -147,7 +147,7 @@ static void obeyCommand(char *command)
 {
   commandShape shape = commandShapes;
   while(shape->name != NULL) {
-    char *csp = shape->name;
+    const char *csp = shape->name;
     char *p = command;
     while (*csp == *p) {
       csp++;
@@ -223,7 +223,7 @@ extern int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

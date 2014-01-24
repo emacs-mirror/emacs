@@ -661,6 +661,7 @@ extern void mps_ld_reset(mps_ld_t, mps_arena_t);
 extern void mps_ld_add(mps_ld_t, mps_arena_t, mps_addr_t);
 extern void mps_ld_merge(mps_ld_t, mps_arena_t, mps_ld_t);
 extern mps_bool_t mps_ld_isstale(mps_ld_t, mps_arena_t, mps_addr_t);
+extern mps_bool_t mps_ld_isstale_any(mps_ld_t, mps_arena_t);
 
 extern mps_word_t mps_collections(mps_arena_t);
 
@@ -736,15 +737,15 @@ extern void mps_arena_roots_walk(mps_arena_t,
 
 
 typedef struct mps_pool_debug_option_s {
-  void* fence_template;
+  const void *fence_template;
   size_t fence_size;
-  void*  free_template;
+  const void *free_template;
   size_t free_size;
 } mps_pool_debug_option_s;
 
 extern const struct mps_key_s _mps_key_pool_debug_options;
 #define MPS_KEY_POOL_DEBUG_OPTIONS (&_mps_key_pool_debug_options)
-#define MPS_KEY_VAL_POOL_DEBUG_OPTIONS pool_debug_options
+#define MPS_KEY_POOL_DEBUG_OPTIONS_FIELD pool_debug_options
 
 extern void mps_pool_check_fenceposts(mps_pool_t);
 extern void mps_pool_check_free_space(mps_pool_t);

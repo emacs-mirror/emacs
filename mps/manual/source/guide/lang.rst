@@ -44,9 +44,9 @@ of its versions:
 This simple interpreter allocates two kinds of objects on the
 :term:`heap`:
 
-1. All Scheme objects (there are no :term:`unboxed` objects).
+#. All Scheme objects (there are no :term:`unboxed` objects).
 
-2. The global symbol table: a hash table consisting of a vector of
+#. The global symbol table: a hash table consisting of a vector of
    pointers to strings.
 
 A Scheme object (whose type is not necessarily known) is represented by
@@ -274,11 +274,11 @@ alignment is hard to do portably, because it depends on the target
 architecture and on the way the compiler lays out its structures in
 memory. Here are some things you might try:
 
-1. Some modern compilers support the ``alignof`` operator::
+#. Some modern compilers support the ``alignof`` operator::
 
         #define ALIGNMENT alignof(obj_s)
 
-2. On older compilers you may be able to use this trick::
+#. On older compilers you may be able to use this trick::
 
         #define ALIGNMENT offsetof(struct {char c; obj_s obj;}, obj)
 
@@ -287,7 +287,7 @@ memory. Here are some things you might try:
    circumstances (for example, GCC if the ``-fstruct-pack`` option is
    specified).
 
-3. The MPS interface provides the type :c:type:`mps_word_t`, which is
+#. The MPS interface provides the type :c:type:`mps_word_t`, which is
    an unsigned integral type that is the same size as the platform's
    :term:`object pointer` types.
 
@@ -339,10 +339,10 @@ Here's the scan method for the toy Scheme interpreter::
                 case TYPE_PAIR:
                     FIX(CAR(obj));
                     FIX(CDR(obj));
-                    base = (char *)base + ALIGN(sizeof(pair_s));
+                    base = (char *)base + ALIGN_OBJ(sizeof(pair_s));
                     break;
                 case TYPE_INTEGER:
-                    base = (char *)base + ALIGN(sizeof(integer_s));
+                    base = (char *)base + ALIGN_OBJ(sizeof(integer_s));
                     break;
                 /* ... and so on for the other types ... */
                 default:
@@ -430,10 +430,10 @@ Here's the skip method for the toy Scheme interpreter::
         obj_t obj = base;
         switch (TYPE(obj)) {
         case TYPE_PAIR:
-            base = (char *)base + ALIGN(sizeof(pair_s));
+            base = (char *)base + ALIGN_OBJ(sizeof(pair_s));
             break;
         case TYPE_INTEGER:
-            base = (char *)base + ALIGN(sizeof(integer_s));
+            base = (char *)base + ALIGN_OBJ(sizeof(integer_s));
             break;
         /* ... and so on for the other types ... */
         default:
@@ -477,13 +477,14 @@ object, and its task is to replace the old object with a
 
 The forwarding object must satisfy these properties:
 
-1. It must be scannable and skippable, and so it will need to have a
+#. It must be scannable and skippable, and so it will need to have a
    type field to distinguish it from other Scheme objects.
 
-2. It must contain a pointer to the new location of the object (a
+#. It must contain a pointer to the new location of the object (a
    :term:`forwarding pointer`).
 
-3. The :ref:`scan method <guide-lang-scan>` and the :ref:`skip method
+#. It must be the same size as the old object. This means that the
+   :ref:`scan method <guide-lang-scan>` and the :ref:`skip method
    <guide-lang-skip>` will both need to know the length of the
    forwarding object. This can be arbitrarily long (in the case of
    string objects, for example) so it must contain a length field.
@@ -516,8 +517,8 @@ Here's the forward method for the toy Scheme interpreter::
         obj_t obj = old;
         mps_addr_t limit = obj_skip(old);
         size_t size = (char *)limit - (char *)old;
-        assert(size >= ALIGN_UP(sizeof(fwd2_s)));
-        if (size == ALIGN_UP(sizeof(fwd2_s))) {
+        assert(size >= ALIGN_WORD(sizeof(fwd2_s)));
+        if (size == ALIGN_WORD(sizeof(fwd2_s))) {
             TYPE(obj) = TYPE_FWD2;
             obj->fwd2.fwd = new;
         } else {
@@ -534,10 +535,10 @@ The forwarding objects must be scannable and skippable, so the
 following code must be added to ``obj_scan`` and ``obj_skip``::
 
     case TYPE_FWD:
-        base = (char *)base + ALIGN_UP(obj->fwd.size);
+        base = (char *)base + ALIGN_WORD(obj->fwd.size);
         break;
     case TYPE_FWD2:
-        base = (char *)base + ALIGN_UP(sizeof(fwd2_s));
+        base = (char *)base + ALIGN_WORD(sizeof(fwd2_s));
         break;
 
 .. note::
@@ -646,8 +647,8 @@ Here's the padding method::
     static void obj_pad(mps_addr_t addr, size_t size)
     {
         obj_t obj = addr;
-        assert(size >= ALIGN(sizeof(pad1_s)));
-        if (size == ALIGN(sizeof(pad1_s))) {
+        assert(size >= ALIGN_OBJ(sizeof(pad1_s)));
+        if (size == ALIGN_OBJ(sizeof(pad1_s))) {
             TYPE(obj) = TYPE_PAD1;
         } else {
             TYPE(obj) = TYPE_PAD;
@@ -661,10 +662,10 @@ The padding objects must be scannable and skippable, so the following
 code must be added to ``obj_scan`` and ``obj_skip``::
 
     case TYPE_PAD:
-        base = (char *)base + ALIGN(obj->pad.size);
+        base = (char *)base + ALIGN_OBJ(obj->pad.size);
         break;
     case TYPE_PAD1:
-        base = (char *)base + ALIGN(sizeof(pad1_s));
+        base = (char *)base + ALIGN_OBJ(sizeof(pad1_s));
         break;
 
 .. topics::
@@ -735,18 +736,16 @@ the pool creation code. First, the header for the AMC pool class::
 
 Second, the :term:`object format`::
 
-    struct mps_fmt_A_s obj_fmt_s = {
-        sizeof(mps_word_t),
-        obj_scan,
-        obj_skip,
-        NULL,
-        obj_fwd,
-        obj_isfwd,
-        obj_pad,
-    };
-
-    mps_fmt_t obj_fmt;
-    res = mps_fmt_create_A(&obj_fmt, arena, &obj_fmt_s);
+    MPS_ARGS_BEGIN(args) {
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, ALIGNMENT);
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_SCAN, obj_scan);
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_SKIP, obj_skip);
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_FWD, obj_fwd);
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_ISFWD, obj_isfwd);
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_PAD, obj_pad);
+        MPS_ARGS_DONE(args);
+        res = mps_fmt_create_k(&obj_fmt, arena, args);
+    } MPS_ARGS_END(args);
     if (res != MPS_RES_OK) error("Couldn't create obj format");
 
 Third, the :term:`generation chain`::
@@ -864,11 +863,11 @@ The third argument (here :c:func:`mps_rank_exact`) is the :term:`rank`
 of references in the root. ":term:`Exact <exact reference>`" means
 that:
 
-1. each reference in the root is a genuine pointer to another object
+#. each reference in the root is a genuine pointer to another object
    managed by the MPS, or else a null pointer (unlike :term:`ambiguous
    references`); and
 
-2. each reference keeps the target of the reference alive (unlike
+#. each reference keeps the target of the reference alive (unlike
    :term:`weak references (1)`).
 
 The fourth argument is the :term:`root mode`, which tells the MPS
@@ -996,10 +995,10 @@ Even in a single-threaded environment (like the toy Scheme
 interpreter) it may also be necessary to register the (only) thread if
 either of these conditions apply:
 
-1. you are using :term:`moving garbage collection <moving garbage
+#. you are using :term:`moving garbage collection <moving garbage
    collector>` (as with the :ref:`pool-amc` pool);
 
-2. the thread's :term:`registers` and :term:`control stack`
+#. the thread's :term:`registers` and :term:`control stack`
    constitute a :term:`root` (that is, objects may be kept alive via
    references in local variables: this is almost always the case for
    programs written in :term:`C`).
@@ -1100,7 +1099,7 @@ And then the constructor can be implemented like this::
     {
         obj_t obj;
         mps_addr_t addr;
-        size_t size = ALIGN(sizeof(pair_s));
+        size_t size = ALIGN_OBJ(sizeof(pair_s));
         do {
             mps_res_t res = mps_reserve(&addr, obj_ap, size);
             if (res != MPS_RES_OK) error("out of memory in make_pair");
@@ -1169,20 +1168,20 @@ point in time (potentially, between any pair of instructions in your
 program). So you must make sure that your data structures always obey
 these rules:
 
-1. A :term:`root` must be scannable by its root scanning function as
+#. A :term:`root` must be scannable by its root scanning function as
    soon as it has been registered.
 
    See the discussion of the :ref:`global symbol table
    <guide-lang-roots-rehash>` in the toy Scheme interpreter.
 
-2. A :term:`formatted object` must be scannable by the :term:`scan
+#. A :term:`formatted object` must be scannable by the :term:`scan
    method` as soon as it has been :term:`committed (2)` by calling
    :c:func:`mps_commit`.
 
    See the discussion of the :ref:`pair constructor
    <guide-lang-allocation>` in the toy Scheme interpreter.
 
-3. All objects in automatically managed pools that are
+#. All objects in automatically managed pools that are
    :term:`reachable` by your code must always be provably reachable
    from a root via a chain of :term:`references` that are
    :term:`fixed <fix>` by a scanning function.
@@ -1190,7 +1189,7 @@ these rules:
    See the discussion of the :ref:`global symbol table
    <guide-lang-roots-rehash>` in the toy Scheme interpreter.
 
-4. Formatted objects must remain scannable throughout their
+#. Formatted objects must remain scannable throughout their
    :term:`lifetime`.
 
    .. fixme: refer to example here when written.

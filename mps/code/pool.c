@@ -1,7 +1,7 @@
 /* pool.c: POOL IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2001 Global Graphics Software.
  *
  * DESIGN
@@ -68,6 +68,7 @@ Bool PoolClassCheck(PoolClass class)
   CHECKL(FUNCHECK(class->framePush));
   CHECKL(FUNCHECK(class->framePop));
   CHECKL(FUNCHECK(class->framePopPending));
+  CHECKL(FUNCHECK(class->addrObject));
   CHECKL(FUNCHECK(class->walk));
   CHECKL(FUNCHECK(class->freewalk));
   CHECKL(FUNCHECK(class->bufferClass));
@@ -320,6 +321,8 @@ void PoolFree(Pool pool, Addr old, Size size)
   AVER(old != NULL);
   /* The pool methods should check that old is in pool. */
   AVER(size > 0);
+  AVER(PoolHasRange(pool, old, AddrAdd(old, size)));
+
   (*pool->class->free)(pool, old, size);
  
   EVENT3(PoolFree, pool, old, size);
@@ -469,6 +472,23 @@ void PoolTraceEnd(Pool pool, Trace trace)
   AVER(pool->arena == trace->arena);
 
   (*pool->class->traceEnd)(pool, trace);
+}
+
+
+/* PoolAddrObject -- find client pointer to object containing addr
+ * See user documentation for mps_addr_object.
+ * addr is known to belong to seg, which belongs to pool.
+ * See job003589.
+ */
+
+Res PoolAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
+{
+  AVER(pReturn != NULL);
+  AVERT(Pool, pool);
+  AVERT(Seg, seg);
+  AVER(pool == SegPool(seg));
+  AVER(SegBase(seg) <= addr && addr < SegLimit(seg));
+  return (*pool->class->addrObject)(pReturn, pool, seg, addr);
 }
 
 
@@ -663,7 +683,7 @@ Bool PoolHasRange(Pool pool, Addr base, Addr limit)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

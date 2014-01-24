@@ -20,12 +20,12 @@ results.
 implemented in the form of a :term:`message queue` attached to each
 :term:`arena`.
 
-The client program must enable each message type that they are
-prepared to handle, by calling :c:func:`mps_message_type_enable`. Then
-it must poll the message queue at regular intervals when it is
-convenient to do so, calling :c:func:`mps_message_get` to retrieve
-each message from the queue, and then calling
-:c:func:`mps_message_discard` when it is done with it.
+The client program must enable each message type that it is prepared
+to handle, by calling :c:func:`mps_message_type_enable`. Then it must
+poll the message queue at regular intervals when it is convenient to
+do so, calling :c:func:`mps_message_get` to retrieve each message from
+the queue, and finally calling :c:func:`mps_message_discard` when done
+with the message.
 
 Messages are thus :term:`manually managed <manual memory management>`:
 if the client program enables one or more message types, and then

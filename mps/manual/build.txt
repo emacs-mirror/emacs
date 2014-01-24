@@ -140,6 +140,7 @@ Platform     OS          Architecture    Compiler      Makefile
 ``fri6gc``   FreeBSD     x86_64          GCC           ``fri6gc.gmk``
 ``lii3gc``   Linux       IA-32           GCC           ``lii3gc.gmk``
 ``lii6gc``   Linux       x86_64          GCC           ``lii6gc.gmk``
+``lii6ll``   Linux       x86_64          Clang         ``lii6ll.gmk``
 ``xci3ll``   Mac OS X    IA-32           Clang         ``mps.xcodeproj``
 ``xci6ll``   Mac OS X    x86_64          Clang         ``mps.xcodeproj``
 ``xci3gc``   Mac OS X    IA-32           GCC (legacy)  ``xci3gc.gmk``

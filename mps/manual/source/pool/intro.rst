@@ -35,13 +35,13 @@ Choosing an automatic pool class
 
 Answer these questions about your data:
 
-1. Is it acceptable for the MPS to :term:`move <moving memory
+#. Is it acceptable for the MPS to :term:`move <moving memory
    manager>` blocks in memory and to place :term:`barriers (1)` on
    blocks? (For example, it might not be acceptable to move a block if
    it has been passed to :term:`foreign code` that remembered its
    location.)
 
-2. Do your blocks contain :term:`references` to blocks stored in
+#. Do your blocks contain :term:`references` to blocks stored in
    automatically managed pools (including references to other blocks
    in the same pool, if it's automatically managed)? And if so, are
    these references :term:`exact <exact reference>` or :term:`weak
@@ -69,14 +69,14 @@ Choosing a manual pool class
 
 Answer these questions about your data:
 
-1. Are the blocks fixed in size? If so, use :ref:`pool-mfs`.
+#. Are the blocks fixed in size? If so, use :ref:`pool-mfs`.
 
-2. Are the lifetimes of blocks predictable? If so, use
+#. Are the lifetimes of blocks predictable? If so, use
    :ref:`pool-mvt`, and arrange that objects that are predicted to die
    at about the same time are allocated from the same
    :term:`allocation point`.
 
-3. Otherwise, use :ref:`pool-mvff`.
+#. Otherwise, use :ref:`pool-mvff`.
 
 
 .. Sources:

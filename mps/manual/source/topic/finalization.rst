@@ -115,11 +115,11 @@ either behaviour.
 Cautions
 --------
 
-1.  Don't rely on finalization for your program to work. Treat it as an
+#.  Don't rely on finalization for your program to work. Treat it as an
     optimization that enables the freeing of resources that the
     garbage collector can prove are unreachable.
 
-2.  The MPS provides no guarantees about the promptness of
+#.  The MPS provides no guarantees about the promptness of
     finalization. The MPS does not finalize a block until it
     determines that the block is finalizable, which may require a full
     garbage collection in the worst case, and such a collection may
@@ -130,7 +130,7 @@ Cautions
     it remains reachable through a reference, even if that reference
     might never be used.
 
-3.  Even when blocks are finalized in a reasonably timely fashion, the
+#.  Even when blocks are finalized in a reasonably timely fashion, the
     client needs to process the finalization messages in time to avoid
     the resource running out. For example, in the Scheme interpreter,
     finalization messages are only processed at the end of the
@@ -159,7 +159,7 @@ Cautions
     created port has :term:`dynamic extent` (and so can be closed as
     soon as the procedure exits).
 
-4.  The MPS does not finalize objects in the context of
+#.  The MPS does not finalize objects in the context of
     :c:func:`mps_arena_destroy` or :c:func:`mps_pool_destroy`.
     :c:func:`mps_pool_destroy` should therefore not be invoked on pools
     containing objects registered for finalization.
@@ -192,7 +192,7 @@ Cautions
         over the list at an appropriate point and finalize any
         remaining objects yourself.
 
-4.  Not all :term:`pool classes` support finalization. In general, only
+#.  Not all :term:`pool classes` support finalization. In general, only
     pools that manage objects whose liveness is determined by garbage
     collection do so. See the :ref:`pool`.
 

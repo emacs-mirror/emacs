@@ -134,7 +134,6 @@ div.body h1 {
 
 dl.glossary dt, dl.type dt, dl.function dt, dl.macro dt {
     font-family: {{ theme_headfont }};
-    width:100%;
     border-bottom: none;
     padding-bottom: 1px;
     margin-top: 2em;

@@ -95,7 +95,7 @@ extern void TractFinish(Tract tract);
 enum {PageTypeSpare=1, PageTypeFree};
 
 typedef struct PageStruct {     /* page structure */
-  union {
+  union PageStructUnion {
     TractStruct tractStruct;    /* allocated tract */
     struct {
       Pool pool;                /* NULL, must be first field (.page) */
@@ -111,7 +111,7 @@ typedef struct PageStruct {     /* page structure */
 
 /* PageOfTract -- VM page descriptor from arena tract */
 
-#define PageOfTract(tract) PARENT(PageStruct, the.tractStruct, (tract))
+#define PageOfTract(tract) PARENT(PageStruct, the, PARENT(union PageStructUnion, tractStruct, (tract)))
 
 /* PagePool -- pool field of a page */
 

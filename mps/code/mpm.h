@@ -1,12 +1,13 @@
 /* mpm.h: MEMORY POOL MANAGER DEFINITIONS
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .trans.bufferinit: The Buffer data structure has an Init field and
  * an Init method, there's a name clash.  We resolve this by calling the
- * accessor BufferGetInit. */
+ * accessor BufferGetInit.
+ */
 
 #ifndef mpm_h
 #define mpm_h
@@ -210,6 +211,7 @@ extern Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
 extern void PoolTraceEnd(Pool pool, Trace trace);
+extern Res PoolAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr);
 extern void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
                      void *v, size_t s);
 extern void PoolFreeWalk(Pool pool, FreeBlockStepMethod f, void *p);
@@ -259,6 +261,7 @@ extern Res PoolTrivFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf);
 extern Res PoolNoFramePop(Pool pool, Buffer buf, AllocFrame frame);
 extern Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame);
 extern void PoolNoFramePopPending(Pool pool, Buffer buf, AllocFrame frame);
+extern Res PoolNoAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr);
 extern void PoolNoWalk(Pool pool, Seg seg, FormattedObjectsStepMethod step,
                        void *p, size_t s);
 extern void PoolNoFreeWalk(Pool pool, FreeBlockStepMethod f, void *p);
@@ -497,8 +500,6 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaGlobals(arena) (&(arena)->globals)
 #define GlobalsArena(glob) PARENT(ArenaStruct, globals, glob)
 
-#define ArenaRootRing(arena)    (&(arena)->rootRing)
-#define ArenaTraceRing(arena)   (&(arena)->traceRing)
 #define ArenaThreadRing(arena)  (&(arena)->threadRing)
 #define ArenaEpoch(arena)       ((arena)->epoch) /* .epoch.ts */
 #define ArenaTrace(arena, ti)   (&(arena)->trace[ti])
@@ -534,6 +535,7 @@ extern void ArenaRestoreProtection(Globals globals);
 extern Res ArenaStartCollect(Globals globals, int why);
 extern Res ArenaCollect(Globals globals, int why);
 extern Bool ArenaHasAddr(Arena arena, Addr addr);
+extern Res ArenaAddrObject(Addr *pReturn, Arena arena, Addr addr);
 
 extern void ArenaSetEmergency(Arena arena, Bool emergency);
 extern Bool ArenaEmergency(Arena arean);
@@ -907,6 +909,7 @@ extern Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc);
 
 extern void LDReset(mps_ld_t ld, Arena arena);
 extern void LDAdd(mps_ld_t ld, Arena arena, Addr addr);
+extern Bool LDIsStaleAny(mps_ld_t ld, Arena arena);
 extern Bool LDIsStale(mps_ld_t ld, Arena arena, Addr addr);
 extern void LDAge(Arena arena, RefSet moved);
 extern void LDMerge(mps_ld_t ld, Arena arena, mps_ld_t from);
@@ -1016,7 +1019,7 @@ extern void StackProbe(Size depth);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

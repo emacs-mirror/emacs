@@ -421,6 +421,8 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
     } while (SegNext(&seg, arena, base));
   }
 
+  EVENT3(TraceCondemnZones, trace, condemnedSet, trace->white);
+
   /* The trace's white set must be a subset of the condemned set */
   AVER(ZoneSetSuper(condemnedSet, trace->white));
 
@@ -810,14 +812,21 @@ static void traceReclaim(Trace trace)
   Arena arena;
   Seg seg;
   Ring node, nextNode;
+  Size reclaimed = 0;
 
   AVER(trace->state == TraceRECLAIM);
+  /* FIXME: These should be enabled and we shouldn't reach here with an
+            empty trace.
+  AVER(trace->white != 0);
+  AVER(trace->condemned != 0);
+  */
 
   EVENT1(TraceReclaim, trace);
   arena = trace->arena;
-  if(SegFirst(&seg, arena)) {
+  if(reclaimed < trace->condemned && SegFirst(&seg, arena)) {
     Addr base;
     do {
+      reclaimed += SegSize(seg);
       base = SegBase(seg);
       /* There shouldn't be any grey stuff left for this trace. */
       AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace));
@@ -841,7 +850,7 @@ static void traceReclaim(Trace trace)
           UNUSED(nonWhiteSeg); /* <code/mpm.c#check.unused> */
         }
       }
-    } while(SegNext(&seg, arena, base));
+    } while(reclaimed < trace->condemned && SegNext(&seg, arena, base));
   }
 
   trace->state = TraceFINISHED;
@@ -1809,6 +1818,8 @@ Size TracePoll(Globals globals)
 
   AVERT(Globals, globals);
   arena = GlobalsArena(globals);
+  
+  if (RingIsSingle(&arena->chainRing)) return 0;
 
   scannedSize = (Size)0;
   if(arena->busyTraces == TraceSetEMPTY) {

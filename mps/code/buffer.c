@@ -1,7 +1,7 @@
 /* buffer.c: ALLOCATION BUFFER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
  * Several macros which also form part of the implementation are in
@@ -22,7 +22,8 @@
  * .trans.mod: There are several instances where pool structures are
  * directly accessed by this module because <code/pool.c> does not provide
  * an adequate (or adequately documented) interface.  They bear this
- * tag.  */
+ * tag.
+ */
 
 #include "mpm.h"
 
@@ -409,9 +410,9 @@ void BufferFinish(Buffer buffer)
 
 /* BufferIsReset -- test whether a buffer is in the "reset" state
  *
- * A buffer is "reset" when it is not attached.  In this state all of
- * the pointers into the region are zero.  This condition is checked by
- * BufferCheck.  */
+ * A buffer is "reset" when it is not attached. In this state, the
+ * base, init, alloc, and limit pointers are all zero. This condition
+ * is checked by BufferCheck. */
 
 Bool BufferIsReset(Buffer buffer)
 {
@@ -1283,7 +1284,7 @@ static Res segBufInit(Buffer buffer, Pool pool, ArgList args)
   segbuf->seg = NULL;
   segbuf->sig = SegBufSig;
   segbuf->rankSet = RankSetEMPTY;
-
+  
   AVERT(SegBuf, segbuf);
   EVENT3(BufferInitSeg, buffer, pool, buffer->isMutator);
   return ResOK;
@@ -1486,12 +1487,11 @@ static void rankBufVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   AVER(ArgListCheck(args));
 }
 
-
 /* rankBufInit -- RankBufClass init method */
 
 static Res rankBufInit(Buffer buffer, Pool pool, ArgList args)
 {
-  Rank rank;
+  Rank rank = BUFFER_RANK_DEFAULT;
   BufferClass super;
   Res res;
   ArgStruct arg;
@@ -1499,8 +1499,8 @@ static Res rankBufInit(Buffer buffer, Pool pool, ArgList args)
   AVERT(Buffer, buffer);
   AVERT(Pool, pool);
   AVER(ArgListCheck(args));
-  ArgRequire(&arg, args, MPS_KEY_RANK);
-  rank = arg.val.rank;
+  if (ArgPick(&arg, args, MPS_KEY_RANK))
+    rank = arg.val.rank;
   AVER(RankCheck(rank));
 
   /* Initialize the superclass fields first via next-method call */
@@ -1536,7 +1536,7 @@ DEFINE_CLASS(RankBufClass, class)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -1,7 +1,7 @@
 /* bttest.c: BIT TABLE TEST
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  */
 
 
@@ -240,7 +240,7 @@ static void help(void)
 
 
 static struct commandShapeStruct {
-  char *name;
+  const char *name;
   Count min_args;
   Count max_args;
   void (*fun)(void);
@@ -266,12 +266,12 @@ static struct commandShapeStruct {
 typedef struct commandShapeStruct *commandShape;
 
 
-static void obeyCommand(char *command)
+static void obeyCommand(const char *command)
 {
   commandShape shape = commandShapes;
   while(shape->name != NULL) {
-    char *csp = shape->name;
-    char *p = command;
+    const char *csp = shape->name;
+    const char *p = command;
     while (*csp == *p) {
       csp++;
       p++;
@@ -387,7 +387,7 @@ extern int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

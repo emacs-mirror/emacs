@@ -134,6 +134,9 @@ ifeq ($(VARIETY),cool)
 CFLAGS=$(CFLAGSCOMMON) $(CFCOOL)
 CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFCOOL)
 else
+ifneq ($(VARIETY),)
+$(error Variety "$(VARIETY)" not recognized: must be rash/hot/cool)
+endif
 endif
 endif
 endif
@@ -160,7 +163,7 @@ FMTDY = fmtdy.c fmtno.c
 FMTDYTST = fmtdy.c fmtno.c fmtdytst.c
 FMTHETST = fmthe.c fmtdy.c fmtno.c fmtdytst.c
 PLINTH = mpsliban.c mpsioan.c
-EVENTPROC = eventcnv.c eventpro.c table.c
+EVENTPROC = eventcnv.c table.c
 MPMCOMMON = abq.c arena.c arenacl.c arenavm.c arg.c boot.c bt.c         \
     buffer.c cbs.c dbgpool.c dbgpooli.c event.c format.c         \
     freelist.c global.c ld.c locus.c message.c meter.c mpm.c mpsi.c     \
@@ -221,19 +224,18 @@ LIB_TARGETS=mps.a mpsplan.a
 # If it is suitable for running regularly (for example, after every
 # build) as an automated test case, add it to AUTO_TEST_TARGETS.
 
-AUTO_TEST_TARGETS=abqtest amcss amcsshe amsss amssshe apss      \
-    arenacv awlut awluthe btcv exposet0 expt825 fbmtest finalcv         \
+AUTO_TEST_TARGETS=abqtest amcss amcsshe amcssth amsss amssshe apss      \
+    arenacv awlut awluthe awlutth btcv exposet0 expt825 fbmtest finalcv \
     finaltest fotest lockcov locv messtest mpmss mpsicv mv2test         \
     poolncv qs sacss segsmss steptest walkt0 zmess
 
 # If it is not runnable as an automated test case, but is buildable,
 # add it to OTHER_TEST_TARGETS with a note.
 #
-# awlutth -- fails (job003506).
 # bttest and teletest -- interactive and so cannot be run unattended.
 # zcoll -- takes too long to be useful as a regularly run smoke test.
 
-OTHER_TEST_TARGETS=awlutth bttest teletest zcoll
+OTHER_TEST_TARGETS=bttest teletest zcoll
 
 # This target records programs that we were once able to build but
 # can't at the moment:
@@ -439,7 +441,7 @@ $(PFM)/$(VARIETY)/zmess: $(PFM)/$(VARIETY)/zmess.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpseventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
-  $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/mps.a
+  $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpseventtxt: $(PFM)/$(VARIETY)/eventtxt.o \
   $(PFM)/$(VARIETY)/mps.a
@@ -449,7 +451,7 @@ $(PFM)/$(VARIETY)/mpseventsql: $(PFM)/$(VARIETY)/eventsql.o \
 
 $(PFM)/$(VARIETY)/replay: $(PFM)/$(VARIETY)/replay.o \
   $(PFM)/$(VARIETY)/eventrep.o \
-  $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o \
+  $(PFM)/$(VARIETY)/table.o \
   $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpsplan.a: $(PLINTHOBJ)

@@ -3,7 +3,7 @@
 # gp.gmk: GNUMAKEFILE FRAGMENT FOR GNU CC/GPROF
 #
 # $Id$
-# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
 #
 # This file is included by platform makefiles that use the GNU CC
 # compiler with gprof.  It defines the compiler specific variables
@@ -12,10 +12,10 @@
 
 CC = gcc
 CFLAGSCOMPILER = \
-	-ansi -pedantic -Wall -Werror -Wpointer-arith \
+	-ansi -pedantic -Wall -Wextra -Werror -Wpointer-arith \
 	-Wstrict-prototypes -Wmissing-prototypes \
 	-Winline -Waggregate-return -Wnested-externs \
-	-Wcast-qual -Wshadow -pg
+	-Wcast-qual -Wshadow -Wwrite-strings -pg
 CFLAGSDEBUG = -g -ggdb3
 CFLAGSOPT = -O -g -ggdb3
 
@@ -35,7 +35,7 @@ include comm.gmk
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

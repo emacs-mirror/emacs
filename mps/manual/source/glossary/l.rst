@@ -239,8 +239,8 @@ Memory Management Glossary: L
             :term:`references` (and not merely on the
             identity of the :term:`block` to which the reference
             refers), and provides a function
-            (:c:func:`mps_ld_isstale`) to find out whether any of
-            these references have been changed because a block has
+            (:c:func:`mps_ld_isstale`) to find out whether a
+            reference might have been changed because a block has
             been :term:`moved <moving garbage collector>`. See
             :ref:`topic-location`.
 

@@ -1,47 +1,33 @@
-/* eventpro.h: Interface for event processing routines
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+/* spw3i6mv.c: STACK PROBE FOR 64-BIT WINDOWS
  *
  * $Id$
+ * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
+ *
+ * The function StackProbe ensures that the stack has at least depth
+ * words available. It achieves this by exploiting an obscure but
+ * documented feature of Microsoft's function _alloca: "A stack
+ * overflow exception is generated if the space cannot be allocated."
+ * _alloca: http://msdn.microsoft.com/en-us/library/wb1s57t5.aspx
+ *
+ * The purpose of this function to ensure that the stack overflow
+ * exception is generated here (before taking the arena lock) where it
+ * can be handled safely rather than at some later point where the
+ * arena lock is held and so handling the exception may cause the MPS
+ * to be entered recursively.
  */
 
-#ifndef eventpro_h
-#define eventpro_h
+#include "mpm.h"
+#include <malloc.h>
 
-#include "config.h"
-
-#include "eventcom.h"
-#include "mpmtypes.h"
-
-
-typedef struct EventProcStruct *EventProc;
-typedef Res (*EventProcReader)(void *, void *, size_t);
-
-
-extern EventCode EventName2Code(char *name);
-extern char *EventCode2Name(EventCode code);
-extern char *EventCode2Format(EventCode code);
-extern Bool EventCodeIsValid(EventCode code);
-
-extern Word AddrLabel(EventProc proc, Addr addr);
-extern char *LabelText(EventProc proc, Word label);
-
-extern Res EventRead(Event *eventReturn, EventProc proc);
-extern void EventDestroy(EventProc proc, Event event);
-
-extern Res EventRecord(EventProc proc, Event event, EventClock etime);
-
-extern Res EventProcCreate(EventProc *procReturn,
-                           EventProcReader reader,
-                           void *readerP);
-extern void EventProcDestroy(EventProc proc);
-
-
-#endif /* eventpro_h */
+void StackProbe(Size depth)
+{
+  _alloca(depth*sizeof(Word));
+}
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

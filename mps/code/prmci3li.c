@@ -36,8 +36,8 @@ SRCID(prmci3li, "$Id$");
 
 MRef Prmci3AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 {
+  AVER(NONNEGATIVE(regnum));
   AVER(regnum <= 7);
-  AVER(regnum >= 0);
 
   /* .source.i486 */
   /* .assume.regref */
