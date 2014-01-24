@@ -764,27 +764,35 @@ with an indented sample file.
 
 ** New Term mode option `term-suppress-hard-newline'.
 
++++
 ** Todo mode has been rewritten and enhanced.
-New features include:
-*** Support for multiple todo files and archive files of done items
-*** Renaming, reordering, moving, merging, and deleting categories
-*** Sortable tabular summaries of categories and the types of items they contain
-*** Cross-category lists of items filtered by specific criteria
-*** More fine-grained interaction with the Emacs diary, by being able to decide
-  for each todo item whether it appears in the Fancy Diary display
-*** Highly flexible new item insertion and item editing
-*** Moving items between categories, storing done items in their category or in
-  archive files, undoing or unarchiving done items
-*** Reprioritizing items by inputting a numerical priority
-*** Extensive customizability of operation and display, including numerous faces
-
 The Todo mode user manual describes all commands and most user
 options.  To support some of these features, a new file format is
 used, which is incompatible with the old format; however, you can
 convert old todo and done item files to the new format on initializing
 the first new todo file, or at any later time with the provided
 conversion command.  The previous version of todo-mode.el has been
-renamed to otodo-mode.el and is now obsolete.
+renamed to otodo-mode.el and is now obsolete.  New features include:
+
+*** Support for multiple todo files and archive files of done items.
+
+*** Renaming, reordering, moving, merging, and deleting categories.
+
+*** Sortable tabular summaries of categories and the item types they contain.
+
+*** Cross-category lists of items filtered by specific criteria.
+
+*** More fine-grained interaction with the Emacs diary, by being able to
+decide for each todo item whether it appears in the Fancy Diary display.
+
+*** Highly flexible new item insertion and item editing.
+
+*** Moving items between categories, storing done items in their category
+or in archive files, undoing or unarchiving done items.
+
+*** Reprioritizing items by inputting a numerical priority.
+
+*** Extensive customizability of operation and display, including many faces.
 
 ** trace-function
 
@@ -867,6 +875,7 @@ are obsolete.  Customize the `woman-*' faces instead.
 ---
 *** terminal.el is obsolete; use term.el instead.
 
+---
 *** The previous version of todo-mode.el is obsolete and renamed otodo-mode.el.
 
 ---
