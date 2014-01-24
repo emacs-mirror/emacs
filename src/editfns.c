@@ -646,7 +646,7 @@ also considered to be `on the boundary'.
 
 If the optional argument ONLY-IN-LINE is non-nil and constraining
 NEW-POS would move it to a different line, NEW-POS is returned
-unconstrained.  This useful for commands that move by line, like
+unconstrained.  This is useful for commands that move by line, like
 \\[next-line] or \\[beginning-of-line], which should generally respect field boundaries
 only in the case where they can still move to the right line.
 
