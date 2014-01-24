@@ -2853,8 +2853,7 @@ To make a terminfo entry for @samp{emacs}, use @code{tic} or
 @file{/usr/lib/terminfo/d/dumb} to @file{/usr/lib/terminfo/e/emacs}.
 
 Having a termcap/terminfo entry will not enable the use of full screen
-programs in shell buffers.  Use @kbd{M-x terminal-emulator} for that
-instead.
+programs in shell buffers.  Use @kbd{M-x term} for that instead.
 
 A workaround to the problem of missing termcap/terminfo entries is to
 change terminal type @samp{emacs} to type @samp{dumb} or @samp{unknown}

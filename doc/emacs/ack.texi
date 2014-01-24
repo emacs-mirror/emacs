@@ -818,9 +818,12 @@ command with its arguments.
 Richard Mlynarik wrote @file{cl-indent.el}, a package for indenting
 Common Lisp code; @file{ebuff-menu.el}, an ``electric'' browser for
 buffer listings; @file{ehelp.el}, bindings for browsing help screens;
-@file{rfc822.el}, a parser for E-mail addresses in the RFC-822 format,
-used in mail messages and news articles; and @file{terminal.el}, a
-terminal emulator for Emacs subprocesses.
+and @file{rfc822.el}, a parser for E-mail addresses in the RFC-822 format,
+used in mail messages and news articles.
+@ignore
+@c Obsolete since 24.4
+; and @file{terminal.el}, a terminal emulator for Emacs subprocesses.
+@end ignore.
 
 @item
 Gerd Möllmann was the Emacs maintainer from the beginning of Emacs 21

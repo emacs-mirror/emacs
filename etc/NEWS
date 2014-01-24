@@ -864,6 +864,7 @@ are obsolete.  Customize the `woman-*' faces instead.
 +++
 *** sup-mouse.el.
 
+---
 *** terminal.el is obsolete; use term.el instead.
 
 *** The previous version of todo-mode.el is obsolete and renamed otodo-mode.el.

@@ -1,5 +1,8 @@
 2014-01-24  Glenn Morris  <rgm@gnu.org>
 
+	* efaq.texi (Termcap/Terminfo entries for Emacs):
+	Use M-x term rather than M-x terminal-emulator.
+
 	* emacs-mime.texi (time-date): Use float-time.
 
 2014-01-22  David Engster  <deng@randomsample.de>
