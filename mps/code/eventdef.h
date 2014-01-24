@@ -38,7 +38,7 @@
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
 #define EVENT_VERSION_MEDIAN ((unsigned)1)
-#define EVENT_VERSION_MINOR  ((unsigned)4)
+#define EVENT_VERSION_MINOR  ((unsigned)6)
 
 
 /* EVENT_LIST -- list of event types and general properties
@@ -68,7 +68,7 @@
  */
  
 #define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x0082)
+#define EventCodeMAX ((EventCode)0x0086)
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \
@@ -176,7 +176,7 @@
   EVENT(X, MessagesDropped    , 0x006D,  TRUE, Arena) \
   EVENT(X, MessagesExist      , 0x006E,  TRUE, Arena) \
   EVENT(X, ChainCondemnAuto   , 0x006F,  TRUE, Trace) \
-  EVENT(X, TraceFindGrey      , 0x0070,  TRUE, Trace) \
+  EVENT(X, TraceFindGrey      , 0x0070,  TRUE, Seg) \
   EVENT(X, TraceBandAdvance   , 0x0071,  TRUE, Trace) \
   EVENT(X, AWLDeclineTotal    , 0x0072,  TRUE, Trace) \
   EVENT(X, AWLDeclineSeg      , 0x0073,  TRUE, Trace) \
@@ -188,7 +188,12 @@
   EVENT(X, VMCompact          , 0x0079,  TRUE, Arena) \
   EVENT(X, amcScanNailed      , 0x0080,  TRUE, Seg) \
   EVENT(X, AMCTraceEnd        , 0x0081,  TRUE, Trace) \
-  EVENT(X, TraceStartPoolGen  , 0x0082,  TRUE, Trace)
+  EVENT(X, TraceStartPoolGen  , 0x0082,  TRUE, Trace) \
+  /* new events for performance analysis of large heaps. */ \
+  EVENT(X, TraceCondemnZones  , 0x0083,  TRUE, Trace) \
+  EVENT(X, ArenaGenZoneAdd    , 0x0084,  TRUE, Arena) \
+  EVENT(X, ArenaUseFreeZone   , 0x0085,  TRUE, Arena) \
+  EVENT(X, ArenaBlacklistZone , 0x0086,  TRUE, Arena)
   
 
 /* Remember to update EventNameMAX and EventCodeMAX above! 
@@ -720,6 +725,24 @@
   PARAM(X,  8, W, serial)       /* pool gen serial number */ \
   PARAM(X,  9, W, totalSize)    /* total size of pool gen */ \
   PARAM(X, 10, W, newSizeAtCreate) /* new size of pool gen at trace create */
+
+#define EVENT_TraceCondemnZones_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, trace)        /* the trace */ \
+  PARAM(X,  1, W, condemnedSet) /* the condemned zoneSet */ \
+  PARAM(X,  2, W, white)        /* the trace's white zoneSet */
+
+#define EVENT_ArenaGenZoneAdd_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena)        /* the arena */ \
+  PARAM(X,  1, W, gen)          /* the generation number */ \
+  PARAM(X,  2, W, zoneSet)      /* the new zoneSet */
+
+#define EVENT_ArenaUseFreeZone_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena)        /* the arena */ \
+  PARAM(X,  1, W, zoneSet)      /* zones that aren't free any longer */
+
+#define EVENT_ArenaBlacklistZone_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena)        /* the arena */ \
+  PARAM(X,  1, W, zoneSet)      /* the blacklist zoneset */
 
 
 #endif /* eventdef_h */

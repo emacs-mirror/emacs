@@ -1,7 +1,7 @@
 /* poolmv2.c: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: A manual-variable pool designed to take advantage of
  * placement according to predicted deathtime.
@@ -39,14 +39,14 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
 static void MVTBufferEmpty(Pool pool, Buffer buffer, Addr base, Addr limit);
 static void MVTFree(Pool pool, Addr base, Size size);
 static Res MVTDescribe(Pool pool, mps_lib_FILE *stream);
-static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size, Pool pool,
+static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
                        Bool withReservoirPermit);
 
 static void MVTSegFree(MVT mvt, Seg seg);
 static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena);
 static Res MVTInsert(MVT mvt, Addr base, Addr limit);
 static Res MVTDelete(MVT mvt, Addr base, Addr limit);
-static void MVTRefillIfNecessary(MVT mvt, Size size);
+static void MVTRefillABQIfEmpty(MVT mvt, Size size);
 static Res MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
                                 MVT mvt, Size min);
 static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena);
@@ -425,13 +425,257 @@ static void MVTFinish(Pool pool)
   /* Free the segments in the pool */
   ring = PoolSegRing(pool);
   RING_FOR(node, ring, nextNode) {
-    MVTSegFree(mvt, SegOfPoolRing(node));
+    /* We mustn't call MVTSegFree, because we don't know whether or not
+     * there was any fragmented (unavailable) space in this segment,
+     * and so we can't keep the accounting correct. */
+    SegFree(SegOfPoolRing(node));
   }
 
   /* Finish the Freelist, ABQ and CBS structures */
   FreelistFinish(MVTFreelist(mvt));
   ABQFinish(arena, MVTABQ(mvt));
   CBSFinish(MVTCBS(mvt));
+}
+
+
+/* SURELY(expr) -- evaluate expr and AVER that the result is true */
+
+#define SURELY(expr) \
+  BEGIN \
+    Bool _b = (expr); \
+    AVER(_b); \
+    UNUSED(_b); \
+  END
+
+
+/* MUST(expr) -- evaluate expr and AVER that the result is ResOK */
+
+#define MUST(expr) \
+  BEGIN \
+    Res _res = (expr); \
+    AVER(_res == ResOK); \
+    UNUSED(_res); \
+  END
+
+
+/* MVTNoteFill -- record that a buffer fill has occurred */
+
+static void MVTNoteFill(MVT mvt, Addr base, Addr limit, Size minSize) {
+  mvt->available -= AddrOffset(base, limit);
+  mvt->allocated += AddrOffset(base, limit);
+  AVER(mvt->size == mvt->allocated + mvt->available + mvt->unavailable);
+  METER_ACC(mvt->poolUtilization, mvt->allocated * 100 / mvt->size);
+  METER_ACC(mvt->poolUnavailable, mvt->unavailable);
+  METER_ACC(mvt->poolAvailable, mvt->available);
+  METER_ACC(mvt->poolAllocated, mvt->allocated);
+  METER_ACC(mvt->poolSize, mvt->size);
+  METER_ACC(mvt->bufferFills, AddrOffset(base, limit));
+  AVER(AddrOffset(base, limit) >= minSize);
+}
+
+
+/* MVTOversizeFill -- try to fill a request for a large object
+ *
+ * When a request exceeds mvt->fillSize, we allocate it on a segment of
+ * its own.
+ */
+static Res MVTOversizeFill(Addr *baseReturn,
+                           Addr *limitReturn,
+                           MVT mvt,
+                           Size minSize,
+                           Bool withReservoirPermit)
+{
+  Res res;
+  Seg seg;
+  Addr base, limit;
+  Size alignedSize;
+
+  alignedSize = SizeAlignUp(minSize, ArenaAlign(PoolArena(MVT2Pool(mvt))));
+
+  res = MVTSegAlloc(&seg, mvt, alignedSize, withReservoirPermit);
+  if (res != ResOK)
+    return res;
+
+  /* Just exactly fill the buffer so that only this allocation comes from
+     the segment. */
+  base = SegBase(seg);
+  limit = AddrAdd(SegBase(seg), minSize);
+
+  /* The rest of the segment was lost to fragmentation, so transfer it
+   * to the unavailable total. (We deliberately lose these fragments
+   * now so as to avoid the more severe fragmentation that we believe
+   * would result if we used these for allocation. See
+   * design.mps.poolmvt.arch.fragmentation.internal and
+   * design.mps.poolmvt.anal.policy.size.)
+   */
+  mvt->available -= alignedSize - minSize;
+  mvt->unavailable += alignedSize - minSize;
+
+  METER_ACC(mvt->exceptions, minSize);
+  METER_ACC(mvt->exceptionSplinters, alignedSize - minSize);
+
+  MVTNoteFill(mvt, base, limit, minSize);
+  *baseReturn = base;
+  *limitReturn = limit;
+  return ResOK;
+}
+
+
+/* MVTSplinterFill -- try to fill a request from the splinter */
+
+static Bool MVTSplinterFill(Addr *baseReturn, Addr *limitReturn,
+                            MVT mvt, Size minSize)
+{
+  Addr base, limit;
+
+  if (!mvt->splinter ||
+      AddrOffset(mvt->splinterBase, mvt->splinterLimit) < minSize)
+    return FALSE;
+
+  base = mvt->splinterBase;
+  limit = mvt->splinterLimit;
+  mvt->splinter = FALSE;
+
+  METER_ACC(mvt->splintersUsed, AddrOffset(base, limit));
+
+  MVTNoteFill(mvt, base, limit, minSize);
+  *baseReturn = base;
+  *limitReturn = limit;
+  return TRUE;
+}
+
+
+/* MVTOneSegOnly -- restrict a buffer fill to a single segment
+ *
+ * After a block has been found, this is applied so that the block
+ * used to fill the buffer does not span multiple segments. (This
+ * makes it more likely that when we free the objects that were
+ * allocated from the block, that this will free the whole segment,
+ * and so we'll be able to return the segment to the arena. A block
+ * that spanned two segments would keep both segments allocated,
+ * possibly unnecessarily.)
+ */
+static void MVTOneSegOnly(Addr *baseIO, Addr *limitIO, MVT mvt, Size minSize)
+{
+  Addr base, limit, segLimit;
+  Seg seg;
+  Arena arena;
+  
+  base = *baseIO;
+  limit = *limitIO;
+  
+  arena = PoolArena(MVT2Pool(mvt));
+
+  SURELY(SegOfAddr(&seg, arena, base));
+  segLimit = SegLimit(seg);
+  if (limit <= segLimit) {
+    /* perfect fit */
+    METER_ACC(mvt->perfectFits, AddrOffset(base, limit));
+  } else if (AddrOffset(base, segLimit) >= minSize) {
+    /* fit in 1st segment */
+    limit = segLimit;
+    METER_ACC(mvt->firstFits, AddrOffset(base, limit));
+  } else {
+    /* fit in 2nd segment */
+    base = segLimit;
+    SURELY(SegOfAddr(&seg, arena, base));
+    segLimit = SegLimit(seg);
+    if (limit > segLimit)
+      limit = segLimit;
+    METER_ACC(mvt->secondFits, AddrOffset(base, limit));
+  }
+
+  *baseIO = base;
+  *limitIO = limit;
+}
+
+
+/* MVTABQFill -- try to fill a request from the available block queue */
+
+static Bool MVTABQFill(Addr *baseReturn, Addr *limitReturn,
+                       MVT mvt, Size minSize)
+{
+  Addr base, limit;
+  RangeStruct range;
+  Res res;
+
+  MVTRefillABQIfEmpty(mvt, minSize);
+
+  if (!ABQPeek(MVTABQ(mvt), &range))
+    return FALSE;
+  /* Check that the range was stored and retrieved correctly by the ABQ. */
+  AVERT(Range, &range);
+
+  base = RangeBase(&range);
+  limit = RangeLimit(&range);
+  MVTOneSegOnly(&base, &limit, mvt, minSize);
+
+  METER_ACC(mvt->finds, minSize);
+
+  res = MVTDelete(mvt, base, limit);
+  if (res != ResOK) {
+    return FALSE;
+  }
+
+  MVTNoteFill(mvt, base, limit, minSize);
+  *baseReturn = base;
+  *limitReturn = limit;
+  return TRUE;
+}
+
+
+/* MVTContingencyFill -- try to fill a request from the CBS or Freelist
+ *
+ * (The CBS and Freelist are lumped together under the heading of
+ * "contingency" for historical reasons: the Freelist used to be part
+ * of the CBS. There is no principled reason why these two are
+ * searched at the same time: if it should prove convenient to
+ * separate them, go ahead.)
+ */
+static Bool MVTContingencyFill(Addr *baseReturn, Addr *limitReturn,
+                               MVT mvt, Size minSize)
+{
+  Res res;
+  Addr base, limit;
+
+  if (!MVTContingencySearch(&base, &limit, mvt, minSize))
+    return FALSE;
+
+  MVTOneSegOnly(&base, &limit, mvt, minSize);
+
+  res = MVTDelete(mvt, base, limit);
+  if (res != ResOK)
+    return FALSE;
+
+  MVTNoteFill(mvt, base, limit, minSize);
+  *baseReturn = base;
+  *limitReturn = limit;
+  return TRUE;
+}
+
+
+/* MVTSegFill -- try to fill a request with a new segment */
+
+static Res MVTSegFill(Addr *baseReturn, Addr *limitReturn,
+                      MVT mvt, Size fillSize,
+                      Size minSize,
+                      Bool withReservoirPermit)
+{
+  Res res;
+  Seg seg;
+  Addr base, limit;
+
+  res = MVTSegAlloc(&seg, mvt, fillSize, withReservoirPermit);
+  if (res != ResOK)
+    return res;
+
+  base = SegBase(seg);
+  limit = SegLimit(seg);
+
+  MVTNoteFill(mvt, base, limit, minSize);
+  *baseReturn = base;
+  *limitReturn = limit;
+  return ResOK;
 }
 
 
@@ -443,13 +687,8 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size minSize,
                          Bool withReservoirPermit)
 {
-  Seg seg;
   MVT mvt;
   Res res;
-  Addr base = NULL, limit = NULL;
-  Arena arena;
-  Size alignedSize, fillSize;
-  RangeStruct range;
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
@@ -462,136 +701,51 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(SizeIsAligned(minSize, pool->alignment));
   AVER(BoolCheck(withReservoirPermit));
 
-  arena = PoolArena(pool);
-  fillSize = mvt->fillSize;
-  alignedSize = SizeAlignUp(minSize, ArenaAlign(arena));
-
-  /* <design/poolmvt/#arch.ap.no-fit.oversize> */
-  /* Allocate oversize blocks exactly, directly from the arena */
-  if (minSize > fillSize) {
-    res = MVTSegAlloc(&seg, mvt, alignedSize, pool, withReservoirPermit);
-    if (res == ResOK) {
-      base = SegBase(seg);
-      /* only allocate this block in the segment */
-      limit = AddrAdd(base, minSize);
-      mvt->available -= alignedSize - minSize;
-      mvt->unavailable += alignedSize - minSize;
-      AVER(mvt->size == mvt->allocated + mvt->available +
-           mvt->unavailable);
-      METER_ACC(mvt->exceptions, minSize);
-      METER_ACC(mvt->exceptionSplinters, alignedSize - minSize);
-      goto done;
-    }
-    /* --- There cannot be a segment big enough to hold this object in
-       the free list, although there may be segments that could be
-       coalesced to do so. */
-    AVER(res != ResOK);
-    return res;
+  /* Allocate oversize blocks exactly, directly from the arena.
+     <design/poolmvt/#arch.ap.no-fit.oversize> */
+  if (minSize > mvt->fillSize) {
+    return MVTOversizeFill(baseReturn, limitReturn, mvt,
+                           minSize, withReservoirPermit);
   }
 
-  /* <design/poolmvt/#arch.ap.no-fit.return> */
-  /* Use any splinter, if available */
-  if (mvt->splinter) {
-    base = mvt->splinterBase;
-    limit = mvt->splinterLimit;
-    if(AddrOffset(base, limit) >= minSize) {
-      seg = mvt->splinterSeg;
-      mvt->splinter = FALSE;
-      METER_ACC(mvt->splintersUsed, AddrOffset(base, limit));
-      goto done;
-    }
-  }
- 
-  /* Attempt to retrieve a free block from the ABQ */
-  MVTRefillIfNecessary(mvt, minSize);
-  res = ABQPeek(MVTABQ(mvt), &range);
-  if (res != ResOK) {
-    METER_ACC(mvt->underflows, minSize);
-    /* <design/poolmvt/#arch.contingency.fragmentation-limit> */
-    if (mvt->available >=  mvt->availLimit) {
-      METER_ACC(mvt->fragLimitContingencies, minSize);
-      res = MVTContingencySearch(&base, &limit, mvt, minSize);
-    }
-  } else {
-    AVERT(Range, &range);
-    base = RangeBase(&range);
-    limit = RangeLimit(&range);
-    METER_ACC(mvt->finds, minSize);
-  }
-found:
-  if (res == ResOK) {
-    {
-      Bool b = SegOfAddr(&seg, arena, base);
-      AVER(b);
-      UNUSED(b); /* <code/mpm.c#check.unused> */
-    }
-    /* Only pass out segments - may not be the best long-term policy. */
-    {
-      Addr segLimit = SegLimit(seg);
+  /* Use any splinter, if available.
+     <design/poolmvt/#arch.ap.no-fit.return> */
+  if (MVTSplinterFill(baseReturn, limitReturn, mvt, minSize))
+    return ResOK;
+  
+  /* Attempt to retrieve a free block from the ABQ. */
+  if (MVTABQFill(baseReturn, limitReturn, mvt, minSize))
+    return ResOK;
 
-      if (limit <= segLimit) {
-        /* perfect fit */
-        METER_ACC(mvt->perfectFits, AddrOffset(base, limit));
-      } else if (AddrOffset(base, segLimit) >= minSize) {
-        /* fit in 1st segment */
-        limit = segLimit;
-        METER_ACC(mvt->firstFits, AddrOffset(base, limit));
-      } else {
-        /* fit in 2nd second segment */
-        base = segLimit;
-        {
-          Bool b = SegOfAddr(&seg, arena, base);
-          AVER(b);
-          UNUSED(b); /* <code/mpm.c#check.unused> */
-        }
-        segLimit = SegLimit(seg);
-        if (limit > segLimit)
-          limit = segLimit;
-        METER_ACC(mvt->secondFits, AddrOffset(base, limit));
-      }
-    }
-    {
-      Res r = MVTDelete(mvt, base, limit);
-      AVER(r == ResOK);
-      UNUSED(r); /* <code/mpm.c#check.unused> */
-    }
-    goto done;
+  METER_ACC(mvt->underflows, minSize);
+
+  /* If fragmentation is acceptable, attempt to find a free block from
+     the CBS or Freelist.
+     <design/poolmvt/#arch.contingency.fragmentation-limit> */
+  if (mvt->available >= mvt->availLimit) {
+    METER_ACC(mvt->fragLimitContingencies, minSize);
+    if (MVTContingencyFill(baseReturn, limitReturn, mvt, minSize))
+      return ResOK;
   }
- 
-  /* Attempt to request a block from the arena */
-  /* see <design/poolmvt/#impl.c.free.merge.segment> */
-  res = MVTSegAlloc(&seg, mvt, fillSize, pool, withReservoirPermit);
-  if (res == ResOK) {
-    base = SegBase(seg);
-    limit = SegLimit(seg);
-    goto done;
-  }
- 
-  /* Try contingency */
-  METER_ACC(mvt->emergencyContingencies, minSize);
-  res = MVTContingencySearch(&base, &limit, mvt, minSize);
+
+  /* Attempt to request a block from the arena.
+     <design/poolmvt/#impl.c.free.merge.segment> */
+  res = MVTSegFill(baseReturn, limitReturn,
+                   mvt, mvt->fillSize, minSize, withReservoirPermit);
   if (res == ResOK)
-    goto found;
+    return ResOK;
+
+  /* Things are looking pretty desperate.  Try the contingencies again,
+     disregarding fragmentation limits. */
+  if (ResIsAllocFailure(res)) {
+    METER_ACC(mvt->emergencyContingencies, minSize);
+    if (MVTContingencyFill(baseReturn, limitReturn, mvt, minSize))
+      return ResOK;
+  }
 
   METER_ACC(mvt->failures, minSize);
   AVER(res != ResOK);
   return res;
- 
-done:
-  *baseReturn = base;
-  *limitReturn = limit;
-  mvt->available -= AddrOffset(base, limit);
-  mvt->allocated += AddrOffset(base, limit);
-  AVER(mvt->size == mvt->allocated + mvt->available +
-       mvt->unavailable);
-  METER_ACC(mvt->poolUtilization, mvt->allocated * 100 / mvt->size);
-  METER_ACC(mvt->poolUnavailable, mvt->unavailable);
-  METER_ACC(mvt->poolAvailable, mvt->available);
-  METER_ACC(mvt->poolAllocated, mvt->allocated);
-  METER_ACC(mvt->poolSize, mvt->size);
-  METER_ACC(mvt->bufferFills, AddrOffset(base, limit));
-  AVER(AddrOffset(base, limit) >= minSize);
-  return ResOK;
 }
 
 
@@ -623,25 +777,22 @@ static Bool MVTDeleteOverlapping(Bool *deleteReturn, void *element,
  */
 static Res MVTReserve(MVT mvt, Range range)
 {
-  Res res;
   AVERT(MVT, mvt);
   AVERT(Range, range);
   AVER(RangeSize(range) >= mvt->reuseSize);
 
-  res = ABQPush(MVTABQ(mvt), range);
-
   /* See <design/poolmvt/#impl.c.free.merge> */
-  if (res != ResOK) {
+  if (!ABQPush(MVTABQ(mvt), range)) {
     Arena arena = PoolArena(MVT2Pool(mvt));
     RangeStruct oldRange;
-    res = ABQPeek(MVTABQ(mvt), &oldRange);
-    AVER(res == ResOK);
+    /* We just failed to push, so the ABQ must be full, and so surely
+     * the peek will succeed. */
+    SURELY(ABQPeek(MVTABQ(mvt), &oldRange));
     AVERT(Range, &oldRange);
     if (!MVTReturnSegs(mvt, &oldRange, arena))
       goto failOverflow;
     METER_ACC(mvt->returns, RangeSize(&oldRange));
-    res = ABQPush(MVTABQ(mvt), range);
-    if (res != ResOK)
+    if (!ABQPush(MVTABQ(mvt), range))
       goto failOverflow;
   }
 
@@ -851,11 +1002,7 @@ static void MVTFree(Pool pool, Addr base, Size size)
   /* Return exceptional blocks directly to arena */
   if (size > mvt->fillSize) {
     Seg seg;
-    {
-      Bool b = SegOfAddr(&seg, PoolArena(pool), base);
-      AVER(b);
-      UNUSED(b); /* <code/mpm.c#check.unused> */
-    }
+    SURELY(SegOfAddr(&seg, PoolArena(pool), base));
     AVER(base == SegBase(seg));
     AVER(limit <= SegLimit(seg));
     mvt->available += SegSize(seg) - size;
@@ -869,11 +1016,7 @@ static void MVTFree(Pool pool, Addr base, Size size)
     return;
   }
  
-  {
-    Res res = MVTInsert(mvt, base, limit);
-    AVER(res == ResOK);
-    UNUSED(res); /* <code/mpm.c#check.unused> */
-  }
+  MUST(MVTInsert(mvt, base, limit));
 }
 
 
@@ -1054,12 +1197,12 @@ size_t mps_mvt_free_size(mps_pool_t mps_pool)
  * metering
  */
 static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
-                       Pool pool, Bool withReservoirPermit)
+                       Bool withReservoirPermit)
 {
   /* Can't use plain old SegClass here because we need to call
    * SegBuffer() in MVTFree(). */
   Res res = SegAlloc(segReturn, GCSegClassGet(),
-                     MVTSegPref(mvt), size, pool, withReservoirPermit,
+                     MVTSegPref(mvt), size, MVT2Pool(mvt), withReservoirPermit,
                      argsNone);
 
   if (res == ResOK) {
@@ -1083,6 +1226,7 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
 static void MVTSegFree(MVT mvt, Seg seg)
 {
   Size size = SegSize(seg);
+  AVER(mvt->available >= size);
 
   mvt->available -= size;
   mvt->size -= size;
@@ -1106,19 +1250,12 @@ static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena)
   while (base < limit) {
     Seg seg;
     Addr segBase, segLimit;
-     
-    {
-      Bool b = SegOfAddr(&seg, arena, base);
-      AVER(b);
-      UNUSED(b); /* <code/mpm.c#check.unused> */
-    }
+    
+    SURELY(SegOfAddr(&seg, arena, base));
     segBase = SegBase(seg);
     segLimit = SegLimit(seg);
     if (base <= segBase && limit >= segLimit) {
-      Res r = MVTDelete(mvt, segBase, segLimit);
-
-      AVER(r == ResOK);
-      UNUSED(r); /* <code/mpm.c#check.unused> */
+      MUST(MVTDelete(mvt, segBase, segLimit));
       MVTSegFree(mvt, seg);
       success = TRUE;
     }
@@ -1130,7 +1267,7 @@ static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena)
 
 
 /* MVTRefillCallback -- called from CBSIterate or FreelistIterate at
- * the behest of MVTRefillIfNecessary
+ * the behest of MVTRefillABQIfEmpty
  */
 static Bool MVTRefillCallback(MVT mvt, Range range)
 {
@@ -1173,14 +1310,19 @@ static Bool MVTFreelistRefillCallback(Bool *deleteReturn, Range range,
   return MVTRefillCallback(mvt, range);
 }
 
-/* MVTRefillIfNecessary -- refill the ABQ from the CBS and the
- * Freelist if it had overflowed and is now empty.
+/* MVTRefillABQIfEmpty -- refill the ABQ from the CBS and the Freelist if
+ * it is empty
  */
-static void MVTRefillIfNecessary(MVT mvt, Size size)
+static void MVTRefillABQIfEmpty(MVT mvt, Size size)
 {
   AVERT(MVT, mvt);
   AVER(size > 0);
 
+  /* If there have never been any overflows from the ABQ back to the
+   * CBS/Freelist, then there cannot be any blocks in the CBS/Freelist
+   * that are worth adding to the ABQ. So as an optimization, we don't
+   * bother to look.
+   */
   if (mvt->abqOverflow && ABQIsEmpty(MVTABQ(mvt))) {
     mvt->abqOverflow = FALSE;
     METER_ACC(mvt->refills, size);
@@ -1269,8 +1411,8 @@ static Bool MVTFreelistContingencyCallback(Bool *deleteReturn, Range range,
 /* MVTContingencySearch -- search the CBS and the Freelist for a block
  * of size min */
 
-static Res MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
-                                MVT mvt, Size min)
+static Bool MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
+                                 MVT mvt, Size min)
 {
   MVTContigencyStruct cls;
 
@@ -1286,18 +1428,17 @@ static Res MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
   CBSIterate(MVTCBS(mvt), MVTCBSContingencyCallback, (void *)&cls, 0);
   FreelistIterate(MVTFreelist(mvt), MVTFreelistContingencyCallback,
                   (void *)&cls, 0);
-  if (cls.found) {
-    AVER(RangeSize(&cls.range) >= min);
-    METER_ACC(mvt->contingencySearches, cls.steps);
-    if (cls.hardSteps) {
-      METER_ACC(mvt->contingencyHardSearches, cls.hardSteps);
-    }
-    *baseReturn = RangeBase(&cls.range);
-    *limitReturn = RangeLimit(&cls.range);
-    return ResOK;
+  if (!cls.found)
+    return FALSE;
+
+  AVER(RangeSize(&cls.range) >= min);
+  METER_ACC(mvt->contingencySearches, cls.steps);
+  if (cls.hardSteps) {
+    METER_ACC(mvt->contingencyHardSearches, cls.hardSteps);
   }
-   
-  return ResFAIL;
+  *baseReturn = RangeBase(&cls.range);
+  *limitReturn = RangeLimit(&cls.range);
+  return TRUE;
 }
 
 
@@ -1309,11 +1450,7 @@ static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena)
   Seg seg;
   Addr segLimit;
 
-  {
-    Bool b = SegOfAddr(&seg, arena, base);
-    AVER(b);
-    UNUSED(b); /* <code/mpm.c#check.unused> */
-  }
+  SURELY(SegOfAddr(&seg, arena, base));
   segLimit = SegLimit(seg);
 
   if (limit <= segLimit) {
@@ -1325,11 +1462,7 @@ static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena)
     return TRUE;
 
   base = segLimit;
-  {
-    Bool b = SegOfAddr(&seg, arena, base);
-    AVER(b);
-    UNUSED(b); /* <code/mpm.c#check.unused> */
-  }
+  SURELY(SegOfAddr(&seg, arena, base));
   segLimit = SegLimit(seg);
 
   if (AddrOffset(base, limit < segLimit ? limit : segLimit) >= min)
@@ -1357,7 +1490,7 @@ CBS _mps_mvt_cbs(mps_pool_t mps_pool) {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

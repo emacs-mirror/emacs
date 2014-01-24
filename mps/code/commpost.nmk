@@ -61,6 +61,7 @@ mpsicv.cov:
 
 testrun: $(AUTO_TEST_TARGETS)
 !IFDEF VARIETY
+	set MPS_TESTLIB_NOABORT=true
 	..\tool\testrun.bat $(PFM) $(VARIETY) $(AUTO_TEST_TARGETS)
 !ELSE
 	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot testrun
@@ -152,6 +153,9 @@ $(PFM)\$(VARIETY)\btcv.exe: $(PFM)\$(VARIETY)\btcv.obj \
 $(PFM)\$(VARIETY)\bttest.exe: $(PFM)\$(VARIETY)\bttest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
+$(PFM)\$(VARIETY)\cvmicv.exe: $(PFM)\$(VARIETY)\cvmicv.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
 $(PFM)\$(VARIETY)\exposet0.exe: $(PFM)\$(VARIETY)\exposet0.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)	
 
@@ -219,15 +223,16 @@ $(PFM)\$(VARIETY)\walkt0.exe: $(PFM)\$(VARIETY)\walkt0.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)	
 
 $(PFM)\$(VARIETY)\zcoll.exe: $(PFM)\$(VARIETY)\zcoll.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) \
-	$(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\zmess.exe: $(PFM)\$(VARIETY)\zmess.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) \
-	$(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\ztfm.exe: $(PFM)\$(VARIETY)\ztfm.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mpseventcnv.exe: $(PFM)\$(VARIETY)\eventcnv.obj \
-	$(PFM)\$(VARIETY)\eventpro.obj $(PFM)\$(VARIETY)\mps.lib
+	$(PFM)\$(VARIETY)\mps.lib
 
 $(PFM)\$(VARIETY)\mpseventtxt.exe: $(PFM)\$(VARIETY)\eventtxt.obj \
 	$(PFM)\$(VARIETY)\mps.lib
@@ -237,7 +242,7 @@ $(PFM)\$(VARIETY)\mpseventsql.exe: $(PFM)\$(VARIETY)\eventsql.obj \
 
 $(PFM)\$(VARIETY)\replay.exe: $(PFM)\$(VARIETY)\replay.obj \
   $(PFM)\$(VARIETY)\eventrep.obj \
-  $(PFM)\$(VARIETY)\eventpro.obj $(PFM)\$(VARIETY)\table.obj \
+  $(PFM)\$(VARIETY)\table.obj \
   $(PFM)\$(VARIETY)\mps.lib
 
 # Have to rename the object file, because the names must match, or

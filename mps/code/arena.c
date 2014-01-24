@@ -763,6 +763,26 @@ Bool ArenaHasAddr(Arena arena, Addr addr)
 }
 
 
+/* ArenaAddrObject -- find client pointer to object containing addr
+ * See job003589.
+ */
+
+Res ArenaAddrObject(Addr *pReturn, Arena arena, Addr addr)
+{
+  Seg seg;
+  Pool pool;
+
+  AVER(pReturn != NULL);
+  AVERT(Arena, arena);
+  
+  if (!SegOfAddr(&seg, arena, addr)) {
+    return ResFAIL;
+  }
+  pool = SegPool(seg);
+  return PoolAddrObject(pReturn, pool, seg, addr);
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.

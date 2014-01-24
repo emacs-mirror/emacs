@@ -56,40 +56,49 @@ For simplicity, we recommend that a thread must be registered with an
 However, some automatically managed pool classes may be more liberal
 than this. See the documentation for the pool class.
 
-.. warning::
-
-    On Unix platforms, the MPS suspends and resumes threads by sending
-    them signals. There's a shortage of available signals that aren't
-    already dedicated to other purposes (for example, LinuxThreads
-    uses ``SIGUSR1`` and ``SIGUSR2``), so the MPS uses ``SIGXCPU`` and
-    ``SIGXFSZ``. This means that a program that handles these signals
-    needs to co-operate with the MPS.
-
-    The mechanism for co-operation is currently undocumented: please
-    :ref:`contact us <contact>`.
-
 
 .. index::
    single: signal; handling
+   single: exception; handling
    single: thread; signal handling
+   single: thread; exception handling
 
-Signal handling issues
-----------------------
+.. _topic-thread-signal:
 
-The MPS uses :term:`barriers (1)` to :term:`protect <protection>`
-memory from the :term:`client program` and handles the signals that
-result from barrier hits.
+Signal and exception handling issues
+------------------------------------
 
 .. warning::
 
-    The use of barriers has the consequence that a program that
-    handles ``SIGBUS`` (on OS X), ``SIGSEGV`` (on FreeBSD or Linux),
-    or first-chance exceptions (on Windows) needs to co-operate with
-    the MPS.
+    On Unix platforms (except OS X), the MPS suspends and resumes
+    threads by sending them signals. There's a shortage of available
+    signals that aren't already dedicated to other purposes (for
+    example, ValGrind uses ``SIGUSR1`` and ``SIGUSR2``), so the MPS uses
+    ``SIGXCPU`` and ``SIGXFSZ``. This means that programs must not mask
+    these two signals.
 
-    The mechanism for co-operation is currently undocumented: please
+    If your program needs to handle these signals, then it must
+    co-operate with the MPS. At present, there's no documented
+    mechanism for co-operating: if you are in this situation, please
     :ref:`contact us <contact>`.
 
+.. warning::
+
+    The MPS uses :term:`barriers (1)` to :term:`protect <protection>`
+    memory from the :term:`client program` and handles the signals that
+    result from barrier hits.
+
+    * On Linux and FreeBSD, your program must not mask or handle ``SIGSEGV``.
+    
+    * On Windows, you must not install a first-chance exception handler.
+    
+    * On OS X, you must not install a thread-local Mach exception handler
+      for ``EXC_BAD_ACCESS`` exceptions.
+
+    All of these things are, in fact, possible, but your program must
+    co-operate with the MPS. At present, there's no documented mechanism
+    for co-operating: if you are in this situation, please :ref:`contact
+    us <contact>`.
 
 .. index::
    single: thread; interface
@@ -184,8 +193,8 @@ Thread interface
     managed by the MPS, each thread must execute such code inside a
     call to :c:func:`mps_tramp`.
     
-    Since version 1.111, this is not required on any of operating
-    systems supported by the MPS.
+    Starting with version 1.111, this is not required on any operating
+    system supported by the MPS.
 
 
 .. index::

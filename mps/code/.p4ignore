@@ -1,13 +1,14 @@
 # code/.p4ignore -- Perforce files to ignore list
 # $Id$
 # Make output
-xci3gc
-w3i3mv
-w3i6mv
-lii6gc
-lii3gc
 fri3gc
 fri6gc
+lii3gc
+lii6gc
+lii6ll
+w3i3mv
+w3i6mv
+xci3gc
 # Visual Studio junk
 Debug
 Release
@@ -15,9 +16,9 @@ Release
 *.user
 *.suo
 # Telemetry event logs
-mpsio.log
 mpsio*.log
-mpsio.log.txt
+mpsio*.sql
+mpsio*.txt
 # Build products
 *.o
 *.obj

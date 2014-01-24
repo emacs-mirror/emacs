@@ -1,7 +1,7 @@
 /* mps.c: MEMORY POOL SYSTEM ALL-IN-ONE TRANSLATION UNIT
  *
  * $Id$
- * Copyright (C) 2012 Ravenbrook Limited.  See end of file for license.
+ * Copyright (C) 2012-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This file can be compiled to create the complete MPS library in
  * a single compilation, allowing the compiler to apply global optimizations
@@ -98,11 +98,12 @@
 #if defined(MPS_PF_XCI3LL) || defined(MPS_PF_XCI3GC)
 
 #include "lockix.c"     /* Posix locks */
-#include "than.c"       /* generic single threading */
+#include "thxc.c"       /* OS X Mach threading */
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
-#include "protsgix.c"   /* Posix signal handling */
-#include "prmcan.c"     /* generic mutator context */
+#include "protxc.c"     /* OS X Mach exception handling */
+#include "proti3.c"     /* 32-bit Intel mutator context decoding */
+#include "prmci3xc.c"   /* 32-bit Intel for Mac OS X mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
 
@@ -111,11 +112,12 @@
 #elif defined(MPS_PF_XCI6LL) || defined(MPS_PF_XCI6GC)
 
 #include "lockix.c"     /* Posix locks */
-#include "than.c"       /* generic single threading */
+#include "thxc.c"       /* OS X Mach threading */
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
-#include "protsgix.c"   /* Posix signal handling */
-#include "prmcan.c"     /* generic mutator context */
+#include "protxc.c"     /* OS X Mach exception handling */
+#include "proti6.c"     /* 64-bit Intel mutator context decoding */
+#include "prmci6xc.c"   /* 64-bit Intel for Mac OS X mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
@@ -164,9 +166,9 @@
 #include "span.c"       /* generic stack probe */
 #include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
 
-/* Linux on 64-bit Intel with GCC */
+/* Linux on 64-bit Intel with GCC or Clang */
 
-#elif defined(MPS_PF_LII6GC)
+#elif defined(MPS_PF_LII6GC) || defined(MPS_PF_LII6LL)
 
 #include "lockli.c"     /* Linux locks */
 #include "thix.c"       /* Posix threading */
@@ -191,7 +193,7 @@
 #include "proti3.c"     /* 32-bit Intel mutator context decoding */
 #include "prmci3w3.c"   /* Windows on 32-bit Intel mutator context */
 #include "ssw3i3mv.c"   /* Windows on 32-bit stack scan for Microsoft C */
-#include "spi3.c"       /* Intel stack probe */
+#include "spw3i3mv.c"   /* Windows on 32-bit stack probe for Microsoft C */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
 /* Windows on 64-bit Intel with Microsoft Visual Studio */
@@ -207,7 +209,7 @@
 #include "proti6.c"     /* 64-bit Intel mutator context decoding */
 #include "prmci6w3.c"   /* Windows on 64-bit Intel mutator context */
 #include "ssw3i6mv.c"   /* Windows on 64-bit stack scan for Microsoft C */
-#include "span.c"       /* generic stack probe FIXME: Is this correct? */
+#include "spw3i6mv.c"   /* Windows on 64-bit stack probe for Microsoft C */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
 #else
@@ -220,7 +222,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2012 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2012-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

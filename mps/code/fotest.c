@@ -32,7 +32,7 @@
 
 
 #define testArenaSIZE   ((((size_t)3)<<24) - 4)
-#define testSetSIZE 2000
+#define testSetSIZE 200
 #define testLOOPS 10
 
 

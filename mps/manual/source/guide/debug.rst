@@ -27,10 +27,10 @@ re-allocated for some time.
 General debugging advice
 ------------------------
 
-1. Compile with debugging information turned on (``-g`` on the GCC or
+#. Compile with debugging information turned on (``-g`` on the GCC or
    Clang command line).
 
-2. .. index::
+#. .. index::
       single: cool variety
       single: variety; cool
 
@@ -42,7 +42,7 @@ General debugging advice
    in production), and can generate profiling output in the form of
    the :term:`telemetry stream`.
 
-3. .. index::
+#. .. index::
       single: ASLR
       single: address space layout randomization
 
@@ -68,7 +68,7 @@ General debugging advice
    :c:func:`mps_arena_release`), perhaps as frequently as every
    allocation.
 
-4. .. index::
+#. .. index::
       single: debugger
       single: abort
       single: barrier; handling in debugger
@@ -82,14 +82,11 @@ General debugging advice
    :term:`barrier (1)` hits (because the MPS uses barriers to protect
    parts of memory, and barrier hits are common and expected).
 
-   If you are using GDB on OS X, run these commands::
-
-        set dont-handle-bad-access 1
-        handle SIGBUS pass nostop noprint
-
    If you are using GDB on Linux or FreeBSD, run this command::
 
         handle SIGSEGV pass nostop noprint
+
+   On OS X barrier hits do not use signals and so do not enter the debugger.
 
    (On these operating systems, you can add these commands to your
    ``.gdbinit`` if you always want them to be run.)
@@ -115,7 +112,7 @@ might have forgotten to fix the first element of a pair:
     case TYPE_PAIR:
       /* oops, forgot: FIX(CAR(obj)); */
       FIX(CDR(obj));
-      base = (char *)base + ALIGN(sizeof(pair_s));
+      base = (char *)base + ALIGN_OBJ(sizeof(pair_s));
       break;
 
 This means that as far as the MPS is concerned, the first element of
@@ -234,7 +231,7 @@ leading to the allocation of string objects with the wrong size:
     {
       obj_t obj;
       mps_addr_t addr;
-      size_t size = ALIGN(offsetof(string_s, string) + length/* oops, forgot: +1 */);
+      size_t size = ALIGN_OBJ(offsetof(string_s, string) + length/* oops, forgot: +1 */);
       do {
         mps_res_t res = mps_reserve(&addr, obj_ap, size);
         if (res != MPS_RES_OK) error("out of memory in make_string");
@@ -302,7 +299,7 @@ And here's how it shows up in the debugger:
     (gdb) list
     2935	    break;
     2936	  case TYPE_PAD1:
-    2937	    base = (char *)base + ALIGN(sizeof(pad1_s));
+    2937	    base = (char *)base + ALIGN_OBJ(sizeof(pad1_s));
     2938	    break;
     2939	  default:
     2940	    assert(0);

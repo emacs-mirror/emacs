@@ -1,7 +1,7 @@
 /* meter.h: METER INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: mps.design.metrics.
  *
@@ -24,7 +24,7 @@ typedef struct MeterStruct *Meter;
 
 typedef struct MeterStruct
 {
-  char *name;
+  const char *name;
   Count count;
   double total;
   double meanSquared;
@@ -33,7 +33,7 @@ typedef struct MeterStruct
 } MeterStruct;
 
 
-extern void MeterInit(Meter meter, char* name, void *owner);
+extern void MeterInit(Meter meter, const char *name, void *owner);
 extern void MeterAccumulate(Meter meter, Size amount);
 extern Res MeterWrite(Meter meter, mps_lib_FILE *stream);
 extern void MeterEmit(Meter meter);
@@ -59,7 +59,7 @@ extern void MeterEmit(Meter meter);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

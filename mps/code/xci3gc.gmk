@@ -9,8 +9,8 @@
 
 PFM = xci3gc
 
-MPMPF = lockix.c than.c vmix.c \
-        protix.c protsgix.c prmcan.c span.c ssixi3.c
+MPMPF = lockix.c thxc.c vmix.c protix.c proti3.c prmci3xc.c span.c ssixi3.c \
+        protxc.c
 
 LIBS =
 

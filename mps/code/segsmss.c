@@ -58,7 +58,7 @@ typedef struct AMSTStruct {
 
 typedef struct AMSTStruct *AMST;
 
-#define Pool2AMST(pool) PARENT(AMSTStruct, amsStruct.poolStruct, (pool))
+#define Pool2AMST(pool) PARENT(AMSTStruct, amsStruct, PARENT(AMSStruct, poolStruct, (pool)))
 #define AMST2AMS(amst)  (&(amst)->amsStruct)
 
 
@@ -670,7 +670,7 @@ DEFINE_POOL_CLASS(AMSTPoolClass, this)
   INHERIT_CLASS(this, AMSPoolClass);
   this->name = "AMST";
   this->size = sizeof(AMSTStruct);
-  this->offset = offsetof(AMSTStruct, amsStruct.poolStruct);
+  this->offset = offsetof(AMSTStruct, amsStruct) + offsetof(AMSStruct, poolStruct);
   this->init = AMSTInit;
   this->finish = AMSTFinish;
   this->bufferFill = AMSTBufferFill;
@@ -758,7 +758,7 @@ static void *test(void *arg, size_t s)
   unsigned long objs;
   mps_ap_t busy_ap;
   mps_addr_t busy_init;
-  char *indent = "    ";
+  const char *indent = "    ";
 
   arena = (mps_arena_t)arg;
   (void)s; /* unused */

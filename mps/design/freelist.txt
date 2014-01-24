@@ -29,10 +29,11 @@ situations, when memory is not available for the control structures
 needed by other allocators. In these situations the free list allocator
 ensures that memory is not lost, but with several disadvantages:
 
-1. operations on the free list are O(n) in the number of free blocks;
-2. the data structures are stored in client memory and so are
+#. operations on the free list take time proportional to the number of
+   free blocks;
+#. the data structures are stored in client memory and so are
    vulnerable to corruption;
-3. the data structures have poor locality (and thus potentially poor
+#. the data structures have poor locality (and thus potentially poor
    cache performance).
 
 When memory becomes available again to allocate control structures,
@@ -43,10 +44,10 @@ _`.bg`: The free list allocator was formerly part of the Coalescing
 Block Structure module (see design.mps.cbs) but it was split into its
 own module because this makes it:
 
-1. simpler (no need to interact with CBS) and thus more maintainable;
-2. possible to test directly (no need to create a CBS and then force
+#. simpler (no need to interact with CBS) and thus more maintainable;
+#. possible to test directly (no need to create a CBS and then force
    its control pool to run out of memory); and
-3. usable as a fallback allocator in other pools (not just in pools
+#. usable as a fallback allocator in other pools (not just in pools
    that use CBS).
 
 
@@ -270,7 +271,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013 Ravenbrook Limited. All rights reserved. 
+Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
@@ -278,14 +279,14 @@ Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:
 
-1. Redistributions of source code must retain the above copyright
+#. Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-2. Redistributions in binary form must reproduce the above copyright
+#. Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
-3. Redistributions in any form must be accompanied by information on how
+#. Redistributions in any form must be accompanied by information on how
    to obtain complete source code for this software and any
    accompanying software that uses this software.  The source code must
    either be included in the distribution or be available for no more than

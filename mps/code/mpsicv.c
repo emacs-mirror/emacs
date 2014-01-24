@@ -468,6 +468,7 @@ static void *test(void *arg, size_t s)
   mps_ld_add(&ld, arena, obj);
 
   if (mps_ld_isstale(&ld, arena, obj)) {
+    cdie(mps_ld_isstale_any(&ld, arena), "mps_ld_isstale_any");
     mps_ld_reset(&ld, arena);
     mps_ld_add(&ld, arena, obj);
   }

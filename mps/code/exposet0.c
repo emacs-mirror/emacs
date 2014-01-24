@@ -178,7 +178,7 @@ static void *test(void *arg, size_t s)
   collections = 0;
   objs = 0;
   while (collections < collectionsCOUNT) {
-    unsigned long c;
+    mps_word_t c;
     size_t r;
 
     c = mps_collections(arena);

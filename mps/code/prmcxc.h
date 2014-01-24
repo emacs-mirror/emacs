@@ -1,31 +1,33 @@
-/* spi3.c: STACK PROBE
+/* prmcxc.h: PROTECTION MUTATOR CONTEXT FOR OS X MACH
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
- * Portions copyright (C) 2001 Global Graphics Software.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
- *  This function reads a location that is probeDepth words beyond
- *  the current stack pointer.  On intel platforms the stack grows
- *  downwards so this means reading from a location with a lesser address.
+ * .readership: MPS developers.
  */
 
+#ifndef prmcxc_h
+#define prmcxc_h
 
 #include "mpm.h"
 
+#include <mach/mach_types.h>
+#include <mach/i386/thread_status.h>
 
-void StackProbe(Size depth)
-{
-  __asm {
-    mov  eax, depth
-    neg  eax
-    mov  eax, [esp+eax*4] /* do the actual probe */
-  }
-}
+typedef struct MutatorFaultContextStruct { /* Protection fault context data */
+  Addr address;
+  THREAD_STATE_S *threadState;
+  /* FIXME: Might need to get the floats in case the compiler stashes
+     intermediate values in them. */
+} MutatorFaultContextStruct;
+
+
+#endif /* prmcxc_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

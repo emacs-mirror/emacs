@@ -1,25 +1,19 @@
-/* osxc.h: MacOS X (Carbon-compatible) system header hacks
+/* protxc.h: PROTECTION EXCPETION HANDLER FOR OS X MACH
  *
  * $Id$
- * Copyright (c) 2005 Ravenbrook Limited.  See end of file for license.
- *
- * .purpose: This header fixes bugs in the system headers.
+ * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
  */
 
+#ifndef protxc_h
+#define protxc_h
 
-#ifndef osxc_h
-#define osxc_h
+extern void ProtThreadRegister(Bool setup);
 
-
-/* There's nothing to fix. */
-
-
-#endif /* osxc_h */
-
+#endif /* protxc_h */
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2005 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

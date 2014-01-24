@@ -48,8 +48,8 @@ LO properties
   via :c:func:`mps_free`.
 
 * Supports allocation via :term:`allocation points`. If an allocation
-  point is created in a LO pool, the call to :c:func:`mps_ap_create`
-  takes no additional parameters.
+  point is created in a LO pool, the call to
+  :c:func:`mps_ap_create_k` takes no keyword arguments.
 
 * Supports :term:`allocation frames` but does not use them to improve
   the efficiency of stack-like allocation.

@@ -102,7 +102,7 @@ Bool ArgCheckdouble(Arg arg) {
 
 ARG_DEFINE_KEY(args_end, Shouldnt);
 
-ArgStruct mps_args_none[] = {{MPS_KEY_ARGS_END}};
+ArgStruct mps_args_none[] = {{MPS_KEY_ARGS_END, {0}}};
 
 
 /* KeyCheck -- check the validity of an argument key */

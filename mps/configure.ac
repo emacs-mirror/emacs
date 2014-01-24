@@ -28,6 +28,9 @@ AC_PROG_CC
 AC_LANG_C
 AC_PROG_INSTALL
 
+# Check for Clang/LLVM.
+AC_CHECK_DECL([__clang__],[CLANG=yes],[CLANG=no])
+
 # These flags aren't used for building the MPS, but for sample programs.
 CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
            -Wstrict-prototypes -Wmissing-prototypes \
@@ -41,18 +44,23 @@ BUILD_TARGET=build-via-make
 CLEAN_TARGET=clean-make-build
 INSTALL_TARGET=install-make-build
 TEST_TARGET=test-make-build
-case $host in
-  i*86-*-linux*)
+case $host/$CLANG in
+  i*86-*-linux*/no)
       AC_MSG_RESULT([Linux x86])
       MPS_TARGET_NAME=lii3gc
       PFMCFLAGS="$CFLAGS_GC"
     ;;
-  x86_64-*-linux*)
+  x86_64-*-linux*/no)
       AC_MSG_RESULT([Linux x86_64])
       MPS_TARGET_NAME=lii6gc
       PFMCFLAGS="$CFLAGS_GC"
     ;;
-  i*86-*-darwin*)
+  x86_64-*-linux*/yes)
+      AC_MSG_RESULT([Linux x86_64])
+      MPS_TARGET_NAME=lii6ll
+      PFMCFLAGS="$CFLAGS_LL"
+    ;;
+  i*86-*-darwin*/*)
       AC_MSG_RESULT([Mac OS X x86])
       MPS_TARGET_NAME=xci3ll
       BUILD_TARGET=build-via-xcode
@@ -61,7 +69,7 @@ case $host in
       TEST_TARGET=test-xcode-build
       PFMCFLAGS="$CFLAGS_LL"
     ;;
-  x86_64-apple-darwin*)
+  x86_64-apple-darwin*/*)
       AC_MSG_RESULT([Mac OS X x86_64])
       MPS_TARGET_NAME=xci6ll
       BUILD_TARGET=build-via-xcode
@@ -70,7 +78,7 @@ case $host in
       TEST_TARGET=test-xcode-build
       PFMCFLAGS="$CFLAGS_LL"
     ;;
-  i*86-*-freebsd*)
+  i*86-*-freebsd*/no)
       AC_MSG_RESULT([FreeBSD x86])
       MPS_TARGET_NAME=fri3gc
       # Need /usr/local/include in order to find sqlite3.h
@@ -78,7 +86,7 @@ case $host in
       CPP="$CC -I/usr/local/include -E"
       PFMCFLAGS="$CFLAGS_GC"
     ;;
-  amd64-*-freebsd* | x86_64-*-freebsd*)
+  amd64-*-freebsd*/no | x86_64-*-freebsd*/no)
       AC_MSG_RESULT([FreeBSD x86_64])
       MPS_TARGET_NAME=fri6gc
       # Need /usr/local/include in order to find sqlite3.h

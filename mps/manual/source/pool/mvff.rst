@@ -63,7 +63,7 @@ MVFF properties
 
 * Supports allocation via :term:`allocation points`. If an allocation
   point is created in an MVFF pool, the call to
-  :c:func:`mps_ap_create` takes no additional parameters.
+  :c:func:`mps_ap_create_k` takes no keyword arguments.
 
 * Supports deallocation via :c:func:`mps_free`.
 
@@ -181,8 +181,8 @@ MVFF interface
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
                                       mps_class_t mps_class_mvff(),
-                                      mps_size_t extend_size,
-                                      mps_size_t average_size,
+                                      size_t extend_size,
+                                      size_t average_size,
                                       mps_align_t alignment,
                                       mps_bool_t slot_high,
                                       mps_bool_t arena_high,
@@ -212,8 +212,8 @@ MVFF interface
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
                                       mps_class_t mps_class_mvff_debug(),
                                       mps_debug_option_s debug_option,
-                                      mps_size_t extend_size,
-                                      mps_size_t average_size,
+                                      size_t extend_size,
+                                      size_t average_size,
                                       mps_align_t alignment,
                                       mps_bool_t slot_high,
                                       mps_bool_t arena_high,

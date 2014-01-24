@@ -199,7 +199,7 @@ initialize it again from scratch.
 
 The allocation point protocol is as follows:
 
-1. Call :c:func:`mps_reserve` to reserve a block of memory on an
+#. Call :c:func:`mps_reserve` to reserve a block of memory on an
    allocation point. The size of the block must be a multiple of the
    :term:`alignment` of the pool in which the allocation point was
    created.
@@ -209,7 +209,7 @@ The allocation point protocol is as follows:
    Otherwise, the block cannot be reserved (this might happen if the
    MPS is out of memory).
 
-2. Initialize the block. During this step the block must not be
+#. Initialize the block. During this step the block must not be
    referenced by an :term:`exact reference`, and references stored in
    it must not be followed.
 
@@ -218,7 +218,7 @@ The allocation point protocol is as follows:
    must be capable of being passed to the format's :term:`scan method`
    and :term:`skip method`.
 
-3. Call :c:func:`mps_commit` to attempt to commit the object to the
+#. Call :c:func:`mps_commit` to attempt to commit the object to the
    care of the MPS.
 
    If :c:func:`mps_commit` returns true, this means that the object is
@@ -243,18 +243,28 @@ is thus::
 
     mps_addr_t p;
     obj_t obj;
+    size_t aligned_size = ALIGN(size); /* see note 1 */
     do {
-        mps_res_t res = mps_reserve(&p, ap, size);
+        mps_res_t res = mps_reserve(&p, ap, aligned_size);
         if (res != MPS_RES_OK) /* handle the error */;
         /* p is now an ambiguous reference to the reserved block */
         obj = p;
         /* initialize obj */
-    } while (!mps_commit(ap, p, size));
+    } while (!mps_commit(ap, p, aligned_size)); /* see note 2 */
     /* obj is now valid and managed by the MPS */
 
-It is not necessary to worry about going around this loop many times:
-:c:func:`mps_commit` can fail at most once per thread per
-:term:`flip`.
+.. note::
+
+    1. Here :c:func:`ALIGN` represents a function or macro that
+       rounds ``size`` up to the necessary alignment, which should be
+       at least as big as the alignment of the pool. (The reason that
+       the MPS does not do this rounding up for you is to provide more
+       opportunities for optimization: in many cases the required
+       alignment will be a constant that's known at compilation time.)
+
+    2. :c:func:`mps_commit` returns false only if a garbage collection
+       :term:`flip` occurs after :c:func:`mps_reserve`.  This is a very
+       rare event, especially if the object initialization is short.
 
 
 .. c:function:: mps_res_t mps_reserve(mps_addr_t *p_o, mps_ap_t ap, size_t size)
@@ -398,12 +408,12 @@ Cautions
 
 While a block is reserved but not yet committed:
 
-1.  The client program must not create an :term:`exact reference` to
+#.  The client program must not create an :term:`exact reference` to
     the reserved block (for example, by referring to the reserved block
     from a :term:`formatted object`). All references to it must be
     ambiguous (for example, local variables).
 
-2.  Similar restrictions apply to a reference that has been stored in
+#.  Similar restrictions apply to a reference that has been stored in
     the reserved block. Such a reference might be invalid, and must
     not be copied to an :term:`exact reference` or dereferenced. It is
     safe to copy such a reference if it remains ambiguous (for
@@ -412,18 +422,18 @@ While a block is reserved but not yet committed:
 
 Before calling :c:func:`mps_commit`:
 
-1.  The new block must be validly formatted. If it belongs to an
+#.  The new block must be validly formatted. If it belongs to an
     :term:`object format`, then it must be correctly recognized by the
     format methods (the :term:`skip method` must return the object's
     correct size; the :term:`scan method` must scan it; the
     :term:`is-forwarded method` must report that it is not a
     forwarding object, and so on).
 
-2.  All exact references in the new block (references that are
+#.  All exact references in the new block (references that are
     :term:`fixed` by scanning functions) must contain valid
     references or null pointers.
 
-3.  The new object must be ambiguously :term:`reachable`.
+#.  The new object must be ambiguously :term:`reachable`.
 
 You do not have to initialize the whole block so long as you satisfy
 these conditions. For example, it is permissible to defer
@@ -490,16 +500,16 @@ This example contains several mistakes. See the highlighted lines:
 
 The mistakes are:
 
-1. Dereferencing a reference (here, ``link->prev``) that was stored in
+#. Dereferencing a reference (here, ``link->prev``) that was stored in
    the reserved block.
 
-2. Making an exact reference to the reserved block (here,
+#. Making an exact reference to the reserved block (here,
    ``head->next`` becomes an exact reference to ``link``). This must
    be deferred until after a successful commit.
 
-3. This line makes both mistakes made by lines (1) and (2).
+#. This line makes both mistakes made by lines (1) and (2).
 
-4. The ``obj`` slot contains an exact reference that gets fixed by the
+#. The ``obj`` slot contains an exact reference that gets fixed by the
    scan method, so it must be initialized before the call to commit.
 
 A correct version of ``insert_link`` looks like this::

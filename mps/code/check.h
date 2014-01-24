@@ -1,7 +1,7 @@
 /* check.h: ASSERTION INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .aver: This header defines a family of AVER and NOTREACHED macros.
@@ -309,12 +309,25 @@ extern unsigned CheckLevel;
    COMPATLVALUE(((s1 *)0)->f1, ((s2 *)0)->f2))
 
 
+/* NONNEGATIVE -- test that value is greater than or equal to zero
+ *
+ * We'd like to write "x >= 0" but when x belongs to an unsigned
+ * integral type then this results in a "comparison of unsigned
+ * expression >= 0 is always true" warning from GCC if -Wextra is
+ * specified. We also don't want to remove these assertions because
+ * they protect us against errors if the type of x should ever be
+ * changed to a signed type on some platform.
+ *
+ * Note that this macro evaluates its argument twice.
+ */
+#define NONNEGATIVE(x) ((x) == 0 || (x) > 0)
+
 #endif /* check_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

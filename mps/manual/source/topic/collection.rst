@@ -167,11 +167,11 @@ The predicted mortality is used to estimate how long the collection
 will take, and this is used in turn to decide how much work the
 collector will do each time it has an opportunity to do some work. The constraints here are:
 
-1. The :term:`client program` might have specified a limit on the
+#. The :term:`client program` might have specified a limit on the
    acceptable length of the pause if the work is being done inside
    :c:func:`mps_arena_step`.
 
-2. The collector needs to keep up with the :term:`client program`:
+#. The collector needs to keep up with the :term:`client program`:
    that is, it has to collect garbage at least as fast as the client
    is producing it, otherwise the amount of garbage will grow without
    bound.

@@ -1,7 +1,7 @@
 /* ld.c: LOCATION DEPENDENCY IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .def: A location dependency records the fact that the bit-patterns
  * of some references will be used directly (most likely for
@@ -102,7 +102,7 @@ void LDAdd(mps_ld_t ld, Arena arena, Addr addr)
 }
 
 
-/* LDIsStale -- check whether a dependency is stale
+/* LDIsStaleAny -- check whether any dependency is stale
  *
  * .stale.thread-safe: This function is thread safe.  It will return a
  * correct (but possibly conservative) answer regardless of the number
@@ -122,11 +122,9 @@ void LDAdd(mps_ld_t ld, Arena arena, Addr addr)
  * .stale.old: Otherwise, if the dependency is older than the length
  * of the history, check it against all movement that has ever occured.
  */
-Bool LDIsStale(mps_ld_t ld, Arena arena, Addr addr)
+Bool LDIsStaleAny(mps_ld_t ld, Arena arena)
 {
   RefSet rs;
-
-  UNUSED(addr);
 
   AVER(ld->_epoch <= arena->epoch);
   /* AVERT(Arena, arena) -- .stale.thread-safe */
@@ -145,6 +143,19 @@ Bool LDIsStale(mps_ld_t ld, Arena arena, Addr addr)
   }
 
   return RefSetInter(ld->_rs, rs) != RefSetEMPTY;
+}
+
+
+/* LDIsStale -- check whether a particular dependency is stale
+ *
+ * .stale.conservative: In fact we just ignore the address and test if
+ * any dependency is stale. This is conservatively correct (no false
+ * negatives) but provides a hook for future improvement.
+ */
+Bool LDIsStale(mps_ld_t ld, Arena arena, Addr addr)
+{
+  UNUSED(addr);
+  return LDIsStaleAny(ld, arena);
 }
 
 
@@ -212,7 +223,7 @@ void LDMerge(mps_ld_t ld, Arena arena, mps_ld_t from)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
