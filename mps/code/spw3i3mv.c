@@ -1,73 +1,32 @@
-/* libcbt: MPS LIBRARY CALLBACK TEST
+/* spw3i3mv.c: STACK PROBE FOR 32-BIT WINDOWS
  *
- * $Header$
- * Copyright (C) 2005 Ravenbrook Limited.  See end of file for license.
+ * $Id$
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Portions copyright (C) 2001 Global Graphics Software.
  *
- * This is a simple test of the MPS Library Callback interface
- * (mpslibcb.h). */
+ * This function reads a location that is depth words beyond the
+ * current stack pointer. On Intel platforms, the stack grows
+ * downwards, so this means reading from a location with a lesser
+ * address.
+ */
 
-#include "mps.h"
-#include "mpsavm.h"
-#include "mpslib.h"
-#include "mpslibcb.h"
 
-#include "testlib.h"
-#include "mpslib.h"
+#include "mpm.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 
-void libcbt_assert_fail(const char *);
-mps_clock_t libcbt_clock(void);
-
-int main(int argc, char *argv[])
+void StackProbe(Size depth)
 {
-  int res;
-  mps_arena_t arena;
-
-  res = mps_lib_callback_register("not a callback", (void(*)(void))0);
-  if(MPS_RES_OK == res) {
-    error("mps_lib_callback_register claims to successfully register\n"
-          "an interface that does not exist.\n");
+  __asm {
+    mov  eax, depth
+    neg  eax
+    mov  eax, [esp+eax*4] /* do the actual probe */
   }
-  die(mps_lib_callback_register("mps_lib_assert_fail",
-    (void(*)(void))libcbt_assert_fail),
-    "register assert_fail");
-  /* The following functions are registered in the order that you get by
-   * providing no functions and then providing functions as they are
-   * required by assertionn failures.
-   * Interestingly, for this very simple test, only mps_clock is
-   * required. */
-  die(mps_lib_callback_register("mps_clock",
-    (mps_lib_function_t)libcbt_clock),
-    "register clock");
-  die(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)1000*1000),
-    "mps_arena_create");
-
-  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
-  return 0;
-}
-
-void libcbt_assert_fail(const char *message)
-{
-  fflush(stdout);
-  fprintf(stderr, "\nMPS ASSERTION FAILURE (TEST): %s\n", message);
-  fflush(stderr);
-  abort();
-}
-
-mps_clock_t libcbt_clock(void)
-{
-  static mps_clock_t c = 0;
-
-  ++ c;
-  return c;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2005-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

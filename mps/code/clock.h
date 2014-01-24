@@ -78,8 +78,17 @@ typedef union EventClockUnion {
 
 #elif defined(MPS_ARCH_I6)
 
+#if defined(MPS_BUILD_MV)
+
+#define EVENT_CLOCK_PRINT(stream, clock) \
+  fprintf(stream, "%016llX", (clock));
+
+#else
+
 #define EVENT_CLOCK_PRINT(stream, clock) \
   fprintf(stream, "%016lX", (clock));
+
+#endif
 
 #define EVENT_CLOCK_WRITE(stream, clock) \
   WriteF(stream, "$W", (WriteFW)(clock), NULL)

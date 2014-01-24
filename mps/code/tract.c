@@ -1,7 +1,7 @@
 /* tract.c: PAGE TABLES
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .ullagepages: Pages whose page index is < allocBase are recorded as
  * free but never allocated as alloc starts searching after the tables.
@@ -142,8 +142,8 @@ Bool ChunkCheck(Chunk chunk)
   CHECKL((Addr)chunk->pageTable >= chunk->base);
   CHECKL((Addr)&chunk->pageTable[chunk->pageTablePages]
          <= PageIndexBase(chunk, chunk->allocBase));
+  CHECKL(NONNEGATIVE(INDEX_OF_ADDR(chunk, (Addr)chunk->pageTable)));
   /* check there's enough space in the page table */
-  CHECKL(INDEX_OF_ADDR(chunk, (Addr)chunk->pageTable) >= 0);
   CHECKL(INDEX_OF_ADDR(chunk, AddrSub(chunk->limit, 1)) < chunk->pages);
   CHECKL(chunk->pageTablePages < chunk->pages);
 
@@ -649,7 +649,7 @@ void PageFree(Chunk chunk, Index pi)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

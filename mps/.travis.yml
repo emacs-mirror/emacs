@@ -2,6 +2,9 @@
 # $Id$
 # See <http://about.travis-ci.org/docs/user/languages/c/>.
 language: c
+compiler:
+  - clang
+  - gcc
 notifications:
   email:
     - mps-travis@ravenbrook.com

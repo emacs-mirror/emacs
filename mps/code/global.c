@@ -518,6 +518,10 @@ void arenaEnterLock(Arena arena, int recursive)
      the client if so. */
   AVER(TESTT(Arena, arena));
 
+  /* It's critical that the stack probe is outside the lock, because
+   * the stack probe may cause arbitrary code to run (via a signal or
+   * exception handler) and that code may enter the MPS. If we took
+   * the lock first then this would deadlock. */
   StackProbe(StackProbeDEPTH);
   lock = ArenaGlobals(arena)->lock;
   if(recursive) {
@@ -626,13 +630,17 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
     if (SegOfAddr(&seg, arena, addr)) {
       mps_exception_info = NULL;
       arenaReleaseRingLock();
-      /* An access in a different thread may have already caused the
-       * protection to be cleared.  This avoids calling TraceAccess on
-       * protection that has already been cleared on a separate thread.  */
+      /* An access in a different thread (or even in the same thread,
+       * via a signal or exception handler) may have already caused
+       * the protection to be cleared. This avoids calling TraceAccess
+       * on protection that has already been cleared on a separate
+       * thread. */
       mode &= SegPM(seg);
       if (mode != AccessSetEMPTY) {
         res = PoolAccess(SegPool(seg), seg, addr, mode, context);
         AVER(res == ResOK); /* Mutator can't continue unless this succeeds */
+      } else {
+        /* Protection was already cleared: nothing to do now. */
       }
       EVENT4(ArenaAccess, arena, count, addr, mode);
       ArenaLeave(arena);
@@ -646,6 +654,11 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
       EVENT4(ArenaAccess, arena, count, addr, mode);
       ArenaLeave(arena);
       return TRUE;
+    } else {
+      /* No segment or root was found at the address: this must mean
+       * that activity in another thread (or even in the same thread,
+       * via a signal or exception handler) caused the segment or root
+       * to go away. So there's nothing to do now. */
     }
 
     ArenaLeave(arena);

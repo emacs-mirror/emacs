@@ -68,7 +68,7 @@ Interface
       field in the objects, and it must not be larger than the pool
       alignment.
 
-    * :c:macro:`MPS_KEY_FMT_HEADER_SIZE` (type :c:type:`mps_size_t`,
+    * :c:macro:`MPS_KEY_FMT_HEADER_SIZE` (type :c:type:`size_t`,
       default 0) is an integer value specifying the header size for
       objects with :term:`in-band headers`. See
       :ref:`topic-format-headers` below.
@@ -155,27 +155,29 @@ relation to the memory block.
 If you have one of these use cases, you should pass the
 :c:macro:`MPS_KEY_FMT_HEADER_SIZE` :term:`keyword argument` to
 :c:func:`mps_fmt_create_k`, specifying the size of the header: that
-is, the offset of a client pointer from the base of the memory block.
+is, the offset of a :term:`client pointer` from the base of the memory
+block.
 
 There are some cautions to be observed when using in-band headers:
 
-1. The format methods (other than the :term:`padding method`) receive
-   *client pointers* (that is, pointers past the header) but all other
-   MPS functions expect to receive and return *base pointers* (that
-   is, pointers to the base of the block where the header is stored).
+#. The format methods (other than the :term:`padding method`) receive
+   :term:`client pointers` (that is, pointers past the header) but all
+   other MPS functions expect to receive and return :term:`base
+   pointers` (that is, pointers to the base of the block where the
+   header is stored).
 
    In particular, :c:func:`mps_reserve` and :c:func:`mps_alloc` always
    hand out base pointers, and :c:func:`mps_free` expects to receive
    one.
 
-2. Formatted objects must be longer than the header. In other words,
+#. Formatted objects must be longer than the header. In other words,
    objects consisting of only a header are not supported.
 
-3. Even if the header size is larger than or equal to
+#. Even if the header size is larger than or equal to
    :term:`alignment`, the :term:`padding method` must still be able to
    create :term:`padding objects` down to the alignment size.
 
-4. Not all :term:`pool classes` support objects with in-band headers.
+#. Not all :term:`pool classes` support objects with in-band headers.
    See the documentation for the pool class.
 
 
@@ -187,13 +189,13 @@ There are some cautions to be observed when using in-band headers:
 Cautions
 --------
 
-1. The MPS guarantees that format methods have exclusive access to the
+#. The MPS guarantees that format methods have exclusive access to the
    object for the duration of the call. This guarantee may entail
    suspending arbitrary threads. The methods that manipulate the
    object must not perform any sort of inter-thread locking or
    communication.
 
-2. The MPS may call format methods in the context of an exception
+#. The MPS may call format methods in the context of an exception
    handler or a signal handler. For example, the following sequence of
    events is common:
 
@@ -215,9 +217,9 @@ Cautions
    including asynchronously or in parallel with the rest of the
    program.
 
-3. Format methods must be re-entrant.
+#. Format methods must be re-entrant.
 
-4. Format methods must not:
+#. Format methods must not:
 
    a. call library code;
 
@@ -231,7 +233,7 @@ Cautions
    see :c:func:`MPS_FIX_CALL` for a restriction on passing the
    :term:`scan state`.
 
-5. Subject to the above constraints, format methods can freely access:
+#. Subject to the above constraints, format methods can freely access:
 
    a. memory inside the object or block that they have been asked to
       look at;
@@ -283,8 +285,10 @@ Format methods
        and so on) with the address of a forwarding marker as the
        argument.
 
-    2. The forwarding marker must not be bigger than the original
-       object.
+    2. The forwarding marker must be the same size as the old object.
+       That is, when the :term:`skip method` is called on the
+       forwarding marker, it must return the same address as when it
+       was called on the old object.
 
     3. It must be possible for the :term:`is-forwarded method` of the
        object format to distinguish the forwarding marker from
@@ -388,10 +392,10 @@ Format methods
     ``addr`` is the address of the object to be skipped.
 
     Returns the address of the "next object". In an object format
-    without headers (for example, a format of variant A), this is the
-    address just past the end of this object. In an object format with
-    :term:`in-band headers`, it's the address just past where the
-    header of next object would be, if there were one.
+    without :term:`in-band headers`, this is the address just past the
+    end of this object. In an object format with in-band headers, it's
+    the address just past where the header of next object would be, if
+    there were one.
 
     .. note::
 
@@ -531,7 +535,7 @@ format in the form of a *format variant structure*.
 There are four format variants.
 
 * Variant A (:c:type:`mps_fmt_A_s`): for objects without
-  :term:`headers <in-band header>`.
+  :term:`in-band headers`.
 
 * Variant B (:c:type:`mps_fmt_B_s`): as variant A, but with the
   addition of a class method.

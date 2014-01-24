@@ -1,5 +1,5 @@
 /* eventcnv.c: Simple event log converter
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * This is a command-line tool that converts a binary format telemetry output
  * stream from the MPS into a more-portable textual format.
@@ -37,7 +37,6 @@
 #include "config.h"
 #include "eventdef.h"
 #include "eventcom.h"
-#include "eventpro.h"
 #include "testlib.h" /* for ulongest_t and associated print formats */
 
 #include <stddef.h> /* for size_t */
@@ -57,7 +56,7 @@
 #define TELEMETRY_FILENAME_ENVAR   "MPS_TELEMETRY_FILENAME"
 
 static EventClock eventTime; /* current event time */
-static char *prog; /* program name */
+static const char *prog; /* program name */
 
 /* Errors and Warnings */
 
@@ -183,19 +182,63 @@ static void printParamS(const char *str)
   putchar('"');
 }
 
+
+/* EventRead -- read one event from the file */
+
+static Res eventRead(Bool *eofOut, EventUnion *event, FILE *stream)
+{
+  size_t n;
+  size_t rest;
+
+  /* Read the prefix common to all event structures, in order to decode the
+     event size. */
+  n = fread(&event->any, sizeof(event->any), 1, stream);
+  if (n < 1) {
+    if (feof(stream)) {
+      *eofOut = TRUE;
+      return ResOK;
+    }
+    return ResIO;
+  }
+
+  /* Read the rest of the event. */
+  rest = event->any.size - sizeof(event->any);
+  if (rest > 0) {
+    n = fread((char *)event + sizeof(event->any), rest, 1, stream);
+    if (n < 1) {
+      if (feof(stream))
+        return ResFAIL; /* truncated event */
+      else
+        return ResIO;
+    }
+  }
+
+  *eofOut = FALSE;
+  return ResOK;
+}
+
 /* readLog -- read and parse log */
 
-static void readLog(EventProc proc)
+static void readLog(FILE *stream)
 {
-  while (TRUE) { /* loop for each event */
-    Event event;
+  for(;;) { /* loop for each event */
+    EventUnion eventUnion;
+    Event event = &eventUnion;
     EventCode code;
     Res res;
+    Bool eof = FALSE; /* suppress warnings about uninitialized use */
 
     /* Read and parse event. */
-    res = EventRead(&event, proc);
-    if (res == ResFAIL) break; /* eof */
-    if (res != ResOK) everror("Truncated log");
+    res = eventRead(&eof, event, stream);
+    if (res == ResFAIL)
+      everror("Truncated log");
+    else if (res == ResIO)
+      everror("I/O error reading log");
+    else if (res != ResOK)
+      everror("Unknown error reading log");
+    if (eof)
+      break;
+
     eventTime = event->any.clock;
     code = event->any.code;
     
@@ -244,20 +287,7 @@ static void readLog(EventProc proc)
 
     putchar('\n');
     fflush(stdout);
-    EventDestroy(proc, event);
   } /* while(!feof(input)) */
-}
-
-/* logReader -- reader function for a file log */
-
-static FILE *input;
-
-static Res logReader(void *file, void *p, size_t len)
-{
-  size_t n;
-
-  n = fread(p, 1, len, (FILE *)file);
-  return (n < len) ? (feof((FILE *)file) ? ResFAIL : ResIO) : ResOK;
 }
 
 
@@ -271,9 +301,8 @@ static Res logReader(void *file, void *p, size_t len)
 
 int main(int argc, char *argv[])
 {
-  char *filename;
-  EventProc proc;
-  Res res;
+  const char *filename;
+  FILE *input;
 
   assert(CHECKCONV(ulongest_t, Word));
   assert(CHECKCONV(ulongest_t, Addr));
@@ -295,20 +324,15 @@ int main(int argc, char *argv[])
       everror("unable to open \"%s\"\n", filename);
   }
 
-  res = EventProcCreate(&proc, logReader, (void *)input);
-  if (res != ResOK)
-    everror("Can't init EventProc module: error %d.", res);
+  readLog(input);
 
-  readLog(proc);
-
-  EventProcDestroy(proc);
   return EXIT_SUCCESS;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2012 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

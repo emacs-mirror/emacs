@@ -316,9 +316,9 @@ to the arena, rather than reused.
 _`.arch.abq.return`: When the MPS supports it, the pool will be able
 to return free blocks from the ABQ to the arena on demand.
 
-_`.arch.return.segment`: arch.abq.return can be guaranteed to be able
-to return a segment by setting reuse size to twice the size of the
-segments the pool requests from the arena.
+_`.arch.abq.return.segment`: `.arch.abq.return`_ can be guaranteed to
+be able to return a segment by setting reuse size to twice the size of
+the segments the pool requests from the arena.
 
 _`.arch.cbs`: The coalescing block structure holds blocks that have
 been freed by the client.
@@ -401,8 +401,9 @@ will be searched oldest-fit before requesting additional segments from
 the arena.
 
 _`.arch.contingency.alternative`: We also plan to implement
-`.mech.free-list.cartesian-tree`_ as an alternative free block manager,
-which would permit more efficient searching of the free blocks.
+`.sol.mech.free-list.cartesian-tree`_ as an alternative free block
+manager, which would permit more efficient searching of the free
+blocks.
 
 _`.arch.parameters`: The architecture supports several parameters so
 that multiple pools may be instantiated and tuned to support different
@@ -415,7 +416,7 @@ the pool are the minimum object size, the mean object size, the
 maximum object size, the reserve depth and fragmentation limit. The
 minimum object size determines when a splinter is kept on the head of
 the ABQ (`.arch.ap.no-fit.splinter`_). The maximum object size
-determines the fill size (`.arch.ap.fill-size`_) and hence when a
+determines the fill size (`.arch.ap.fill.size`_) and hence when a
 block is allocated exceptionally (`.arch.ap.no-fit.oversize`_). The
 mean object size is the most likely object size. The reserve depth is
 a measure of the hysteresis of the object population. The mean object
@@ -503,8 +504,8 @@ application and tuning the allocator according to those profiles.
 Although we intend to support such tuning, we do not want to require
 it.
 
-_`.anal.policy.reallocate`: For reallocation, `.fun.suballocate`_ can
-be used to free the remainder if a block is made smaller. Doing so
+_`.anal.policy.reallocate`: For reallocation, `.req.fun.suballocate`_
+can be used to free the remainder if a block is made smaller. Doing so
 will cause the freed block to obey `.sol.policy.allocate`_ (that is,
 the freed block will not be treated specially, it will be subject to
 the normal policy on reuse). Copying can be used if a block is made
@@ -599,8 +600,8 @@ _`.sol.policy.reuse`: Defer reusing blocks, to encourage coalescing.
 _`.sol.policy.split`: When a block is split to satisfy an allocation,
 use the remainder as soon as possible.
 
-_`.sol.policy.size`: Prevent `.policy.reuse`_ from consuming all of
-memory by choosing a (coalesced) block for reuse when it reaches a
+_`.sol.policy.size`: Prevent `.sol.policy.reuse`_ from consuming all
+of memory by choosing a (coalesced) block for reuse when it reaches a
 minimum size.
 
 _`.sol.policy.size.fixed`: Use the quantum of virtual memory (e.g.,
@@ -656,7 +657,7 @@ be re-accessed quickly. This data structure is used in the System Vr4
 malloc (paper.vo96(0)). (For a complete analysis of the splay tree
 algorithm time bounds see paper.st85(0).)
 
-_`.sol.mech.free-list.bit-map`: Using address as an index and
+_`.sol.mech.free-list.bitmap`: Using address as an index and
 fix-sized blocks, the booleans can represent whether a block is free
 or not. Adjacent blocks can be used to construct larger blocks.
 Efficient algorithms for searching for runs in a vector are known.
@@ -743,6 +744,15 @@ Implementation
 The implementation consists of the following separable modules:
 
 
+Splay Tree
+..........
+
+_`.impl.c.splay`: The implementation of
+`.sol.mech.free-list.splay-tree`_. See design.mps.splay_.
+
+.. _design.mps.splay: splay.txt
+
+
 Coalescing Block Structure
 ..........................
 
@@ -756,8 +766,9 @@ by key of type Addr. Must support finding left and right neighbors of
 a failed search for a key. Must support iterating over the elements of
 the tree with reasonable efficiency. Must support storing and
 retrieving a value of type Size associated with the key. Standard
-checking and description should be provided. See design.mps.splay(0)
-and design.mps.cbs(0).
+checking and description should be provided. See design.mps.cbs_.
+
+.. _design.mps.cbs: cbs.txt
 
 
 Fail-over to address-ordered free list
@@ -770,8 +781,10 @@ this happen MVT fails over to an address-ordered singly linked free
 list. This uses in-band storage and so cannot run out of memory, but
 it has much worse performance than the CBS. Therefore MVT eagerly
 attempts to flush blocks from the free list back to the CBS. See
-design.mps.freelist for the design and implementation of the free
+design.mps.freelist_ for the design and implementation of the free
 list.
+
+.. _design.mps.freelist: freelist.txt
 
 
 Available Block Queue
@@ -783,7 +796,9 @@ support creation and destruction of an empty queue. Must support
 insertion at the head or tail of the queue (failing if full), peeking
 at the head of the queue, and removal of the head (failing if empty)
 or any element of the queue (found by a search). Standard checking and
-description should be provided. See design.mps.abq.
+description should be provided. See design.mps.abq_.
+
+.. _design.mps.abq: abq.txt
 
 
 Pool implementation
@@ -966,7 +981,7 @@ B. Document History
 - 1998-04-01 PTW Revised in response to e-mail request for comments.
   See thread starting with mail.ptw.1998-03-23.20-43(0).
 
-_ 1998-04-15 PTW Revised in response to e-mail request for comments.
+- 1998-04-15 PTW Revised in response to e-mail request for comments.
   See thread starting with mail.ptw.1998-04-13.21-40(0).
 
 - 1998-05-06 PTW Revised in response to review
@@ -983,7 +998,7 @@ _ 1998-04-15 PTW Revised in response to e-mail request for comments.
 C. Copyright and License
 ------------------------
 
-Copyright (C) 2002-2013 Ravenbrook Limited. All rights reserved.
+Copyright (C) 2002-2014 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
@@ -991,14 +1006,14 @@ Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:
 
-1. Redistributions of source code must retain the above copyright
+#. Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-2. Redistributions in binary form must reproduce the above copyright
+#. Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
-3. Redistributions in any form must be accompanied by information on how
+#. Redistributions in any form must be accompanied by information on how
    to obtain complete source code for this software and any
    accompanying software that uses this software.  The source code must
    either be included in the distribution or be available for no more than

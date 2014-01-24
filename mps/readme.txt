@@ -1,5 +1,11 @@
 Memory Pool System Kit Readme
 =============================
+:author: Richard Brooksby
+:organization: Ravenbrook Limited
+:date: 2002-05-20
+:revision: $Id$
+:confidentiality: public
+
 
 This is the Memory Pool System Kit -- a complete set of sources for
 using, modifying, and adapting the MPS.  This document will give you a
@@ -20,7 +26,7 @@ implementing specialized memory management policies.
 The MPS has been in development since 1994 and deployed in successful
 commercial products since 1997. Bugs are almost unknown in production.
 It is under continuous development and support by `Ravenbrook
-<http://www.ravenbrook.com>`_.
+<http://www.ravenbrook.com/>`__.
 
 The MPS is distributed under an open source license (see
 `<license.txt>`_). The license is designed to make it possible for you
@@ -30,8 +36,8 @@ distribute your product, or your product is open source too.
 If the licensing terms aren't suitable for you (for example, you're
 developing a closed-source commercial product or a compiler run-time
 system) you can easily license the MPS under different terms from
-Ravenbrook. Please write to us at `mps-questions@ravenbrook.com
-<mailto:mps-questions@ravenbrook.com>`_ for more information.
+Ravenbrook. Please write to us at mps-questions@ravenbrook.com
+for more information.
 
 
 Getting started
@@ -40,11 +46,11 @@ Getting started
 The MPS Kit is a complete set of sources and documentation to enable
 you to use, modify, and adapt the MPS: source code, manuals,
 procedures, design documentation, and so on. See
-`<manual/index.html>`_ for an index.
+`<manual/html/index.html>`_ for an index.
 
 The MPS Kit is distributed in source form.  You need to build it before
 using it.  The basic case is straightforward on supported platforms
-(see below).
+(see below)::
 
     cd code
     cc -O2 -c mps.c     Unix / Mac OS X (with Xcode command line)
@@ -58,7 +64,7 @@ For an example of using the MPS, see the `Scheme interpreter
 example <example/scheme/>`_.
 
 Then, to program and integrate the MPS you'll definitely need to read
-the `manual <manual/index.html>`_.
+the `manual <manual/html/index.html>`_.
 
 
 Supported target platforms
@@ -68,16 +74,19 @@ The MPS is currently supported for deployment on:
 
 - Windows XP or later on IA-32 and x86-64, using Microsoft Visual C/C++;
 
-- Linux (Ubuntu 11 and RHEL 6.3 known good, otherwise YMMV) on IA-32 and x86-64, using GCC;
+- Linux (Ubuntu 11 and RHEL 6.3 known good, otherwise YMMV) on IA-32
+  using GCC and on x86-64 using GCC or Clang/LLVM;
 
 - FreeBSD 7 or later, on IA-32 and x86-64, using GCC;
 
-- Mac OS X 10.4 or later, on IA-32 and x86-64 (single threaded only), using Clang/LLVM.
+- Mac OS X 10.4 or later, on IA-32 and x86-64, using Clang/LLVM.
 
 The MPS will *not* work in a multi-threaded 32-bit application on 64-bit
 Windows 7.  This is due to a serious fault in Microsoft's WOW64 emulator
 that we are powerless to correct.  It is due to be fixed in Windows 8.
-(See `WOW64 bug: GetThreadContext() may return stale contents <http://zachsaw.blogspot.co.uk/2010/11/wow64-bug-getthreadcontext-may-return.html>`_.)
+(See `WOW64 bug: GetThreadContext() may return stale contents
+<http://zachsaw.blogspot.co.uk/2010/11/wow64-bug-getthreadcontext-may-
+return.html>`__.)
 
 The MPS is highly portable and has run on many other processors and
 operating systems in the past (see `Building the MPS
@@ -88,43 +97,50 @@ ANSI C and compiles without warnings on anything.
 Getting help
 ------------
 
-You can obtain expert professional support for the MPS from
-`Ravenbrook Limited <http://www.ravenbrook.com/>`_, the developers of
-the MPS, who have many years of experience in commercial memory
-management systems. Write to us at `mps-questions@ravenbrook.com
-<mailto:mps-questions@ravenbrook.com>`_ for more information.
+You can obtain expert professional support for the MPS from `Ravenbrook
+Limited <http://www.ravenbrook.com/>`__, the developers of the MPS, who
+have many years of experience in commercial memory management systems.
+Write to us at mps-questions@ravenbrook.com for more information.
 
 You might also want to join the MPS discussion mailing list.  To join,
-visit `<http://mailman.ravenbrook.com/mailman/listinfo/mps-discussion>`_.
+visit http://mailman.ravenbrook.com/mailman/listinfo/mps-discussion .
 
 
 Document History
 ----------------
 
-- 2002-05-20  RB    Original author: Richard Brooksby, Ravenbrook Limited.
-- 2002-05-20  RB    Created based on template from P4DTI project.
-- 2002-06-18  NB    Minor updates and corrections.
-- 2002-06-18  RB    Removed obsolete requirement for MASM.
-- 2002-06-19  NB    Added note on self-extracting archive
-- 2006-01-30  RHSK  Update from "1.100.1" to "1.106.1".
-- 2006-03-30  RHSK  Add section 2: What's new.
-- 2006-04-11  RHSK  Update from "1.106.1" to "1.106.2".
-- 2006-04-14  RHSK  Merge updates from version/1.106 back to master.
-- 2006-06-29  RHSK  Note fixed job001421, job001455.
-- 2006-12-13  RHSK  Release 1.107.0
-- 2007-07-05  RHSK  Release 1.108.0
-- 2007-12-21  RHSK  Release 1.108.1
-- 2008-05-01  RHSK  Release 1.108.2
-- 2010-03-03  RHSK  Release 1.109.0
-- 2012-08-14  RB    Updating build instructions for new platforms.
-- 2012-09-05  RB    Considerably reduced ready for version 1.110.  Now
-  brought to you in glorious reStructuredText.
+==========  =====  ======================================================
+2002-05-20  RB_    Original author: Richard Brooksby, Ravenbrook Limited.
+2002-05-20  RB_    Created based on template from P4DTI project.
+2002-06-18  NB_    Minor updates and corrections.
+2002-06-18  RB_    Removed obsolete requirement for MASM.
+2002-06-19  NB_    Added note on self-extracting archive
+2006-01-30  RHSK_  Update from "1.100.1" to "1.106.1".
+2006-03-30  RHSK_  Add section 2: What's new.
+2006-04-11  RHSK_  Update from "1.106.1" to "1.106.2".
+2006-04-14  RHSK_  Merge updates from version/1.106 back to master.
+2006-06-29  RHSK_  Note fixed job001421, job001455.
+2006-12-13  RHSK_  Release 1.107.0
+2007-07-05  RHSK_  Release 1.108.0
+2007-12-21  RHSK_  Release 1.108.1
+2008-05-01  RHSK_  Release 1.108.2
+2010-03-03  RHSK_  Release 1.109.0
+2012-08-14  RB_    Updating build instructions for new platforms.
+2012-09-05  RB_    Considerably reduced ready for version 1.110.  Now 
+                   brought to you in glorious reStructuredText.
+2014-01-13  GDR_   Updated supported platforms.
+==========  =====  ======================================================
+
+.. _GDR: mailto:gdr@ravenbrook.com
+.. _NB: mailto:nb@ravenbrook.com
+.. _RB: mailto:rb@ravenbrook.com
+.. _RHSK: mailto:rhsk@ravenbrook.com
 
 
 Copyright and Licence
 ---------------------
 
-Copyright (C) 2001-2013 Ravenbrook Limited. All rights reserved. 
+Copyright (C) 2001-2014 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
@@ -150,16 +166,15 @@ met:
    accompany the major components of the operating system on which the
    executable file runs.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
-COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed. In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

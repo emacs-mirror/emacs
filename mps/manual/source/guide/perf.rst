@@ -76,17 +76,17 @@ Generations  Capacity  Mortality  Execution time (user+sys)
 
 These tables suggest that:
 
-1. The improvement in performance to be gained by getting generation
+#. The improvement in performance to be gained by getting generation
    sizes right is dramatic: much bigger than the small improvements to
    gained from other techniques.
 
-2. The predicted mortality doesn't make much difference to the overall
+#. The predicted mortality doesn't make much difference to the overall
    execution time (it does affect the distribution of pause times,
    however: see :ref:`topic-collection-schedule`.)
 
-3. You can make generations too big as well as too small.
+#. You can make generations too big as well as too small.
 
-4. There are rapidly diminishing returns to be gained from adding
+#. There are rapidly diminishing returns to be gained from adding
    generations.
 
 .. note::

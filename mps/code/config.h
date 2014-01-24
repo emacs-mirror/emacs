@@ -1,7 +1,7 @@
 /* config.h: MPS CONFIGURATION
  *
  * $Id$
- * Copyright (c) 2001-2003, 2006 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * PURPOSE
@@ -219,6 +219,11 @@
 #define EPVMDefaultSubsequentSegSIZE ((Size)64 * 1024)
 
 
+/* Buffer Configuration -- see <code/buffer.c> */
+
+#define BUFFER_RANK_DEFAULT (mps_rank_exact())
+
+
 /* CBS Configuration -- see <code/cbs.c> */
 
 #define CBS_EXTEND_BY_DEFAULT ((Size)4096)
@@ -234,6 +239,11 @@
 #define FMT_ISFWD_DEFAULT (&FormatNoIsMoved)
 #define FMT_PAD_DEFAULT (&FormatNoPad)
 #define FMT_CLASS_DEFAULT (&FormatDefaultClass)
+
+
+/* Pool AMS Configuration -- see <code/poolams.c> */
+
+#define AMS_SUPPORT_AMBIGUOUS_DEFAULT FALSE
 
 
 /* Pool MV Configuration -- see <code/poolmv.c> */
@@ -312,9 +322,11 @@
  */
 #if defined(MPS_ARCH_I3) && defined(MPS_BUILD_MV)
 #define StackProbeDEPTH ((Size)500)
+#elif defined(MPS_PF_W3I6MV)
+#define StackProbeDEPTH ((Size)500)
 #else
 #define StackProbeDEPTH ((Size)0)
-#endif /* MPS_ARCH_I3 */
+#endif
 
 
 /* Shield Configuration -- see <code/shield.c> */
@@ -344,19 +356,46 @@
  * pthrdext.c  sigaction etc.            <signal.h>    _XOPEN_SOURCE
  * vmix.c      MAP_ANON                  <sys/mman.h>  _GNU_SOURCE
  *
- * Unfortunately it's not possible to localize these feature
- * specifications around the individual headers: all headers share a
- * common set of features (via <feature.h>) and so all sources in the
- * same compilation unit must turn on the same set of features.
+ * It is not possible to localize these feature specifications around
+ * the individual headers: all headers share a common set of features
+ * (via <feature.h>) and so all sources in the same compilation unit
+ * must turn on the same set of features.
  *
- * See "Feature Test Macros" in the GCC Manual:
+ * See "Feature Test Macros" in the Glibc Manual:
  * <http://www.gnu.org/software/libc/manual/html_node/Feature-Test-Macros.html>
  */
 
 #if defined(MPS_OS_LI)
 
 #define _XOPEN_SOURCE 500
+
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
+
+#endif
+
+
+/* .feature.xc: OS X feature specification
+ *
+ * The MPS needs the following symbols which are not defined by default
+ *
+ * Source      Symbols                   Header        Feature
+ * =========== ========================= ============= ====================
+ * prmci3li.c  __eax etc.                <ucontext.h>  _XOPEN_SOURCE
+ * prmci6li.c  __rax etc.                <ucontext.h>  _XOPEN_SOURCE
+ *
+ * It is not possible to localize these feature specifications around
+ * the individual headers: all headers share a common set of features
+ * (via <sys/cdefs.h>) and so all sources in the same compilation unit
+ * must turn on the same set of features.
+ */
+
+#if defined(MPS_OS_XC)
+
+#if !defined(_XOPEN_SOURCE)
+#define _XOPEN_SOURCE
+#endif
 
 #endif
 
@@ -369,15 +408,38 @@
 
 #if defined(MPS_OS_FR)
 #define PROT_SIGNAL (SIGSEGV)
-#elif defined(MPS_OS_XC)
-#define PROT_SIGNAL (SIGBUS)
 #endif
 
-#if defined(MPS_OS_XC)
-#define PROT_SIGINFO_GOOD(info) (1)
-#elif defined(MPS_OS_FR)
+#if defined(MPS_OS_FR)
 #define PROT_SIGINFO_GOOD(info) ((info)->si_code == SEGV_ACCERR)
 #endif
+
+
+/* Almost all of protxc.c etc. are architecture-independent, but unfortunately
+   the Mach headers don't provide architecture neutral symbols for simple
+   things like thread states.  These definitions fix that. */
+
+#if defined(MPS_OS_XC)
+#if defined(MPS_ARCH_I6)
+
+#define THREAD_STATE_COUNT x86_THREAD_STATE64_COUNT
+#define THREAD_STATE_FLAVOR x86_THREAD_STATE64
+#define THREAD_STATE_S x86_thread_state64_t
+
+#elif defined(MPS_ARCH_I3)
+
+#define THREAD_STATE_COUNT x86_THREAD_STATE32_COUNT
+#define THREAD_STATE_FLAVOR x86_THREAD_STATE32
+#define THREAD_STATE_S x86_thread_state32_t
+
+#else
+
+#error "Unknown OS X architecture"
+
+#endif
+#endif
+
+
 
 
 /* Tracer Configuration -- see <code/trace.c> */
@@ -458,7 +520,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003, 2006 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *
