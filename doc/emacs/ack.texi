@@ -51,8 +51,12 @@ files.
 @item
 Michael Albinus wrote @file{dbus.el}, a package that implements the
 D-Bus message bus protocol; @file{zeroconf.el}, a mode for browsing
-Avahi services; @file{xesam.el}, a Xesam-based search engine
-interface; and @file{secrets.el}, an interface to keyring daemons for
+Avahi services;
+@ignore
+@c obsolete
+@file{xesam.el}, a Xesam-based search engine interface;
+@end ignore
+and @file{secrets.el}, an interface to keyring daemons for
 storing confidential data.  He and Kai Großjohann wrote the Tramp package, which
 provides transparent remote file editing using rcp, ssh, ftp, and
 other network protocols.  He and Daniel Pittman wrote

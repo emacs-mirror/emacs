@@ -949,7 +949,7 @@ or different fonts."
 
 (defun woman-default-faces ()
   "Set foreground colors of italic and bold faces to their default values."
-  (declare (obsolete choose-completion-guess-base-position "23.2"))
+  (declare (obsolete "customize the woman-* faces instead." "24.4"))
   (interactive)
   (face-spec-set 'woman-italic (face-user-default-spec 'woman-italic))
   (face-spec-set 'woman-bold (face-user-default-spec 'woman-bold)))
@@ -957,7 +957,7 @@ or different fonts."
 (defun woman-monochrome-faces ()
   "Set foreground colors of italic and bold faces to that of the default face.
 This is usually either black or white."
-  (declare (obsolete choose-completion-guess-base-position "23.2"))
+  (declare (obsolete "customize the woman-* faces instead." "24.4"))
   (interactive)
   (set-face-foreground 'woman-italic 'unspecified)
   (set-face-foreground 'woman-bold 'unspecified))

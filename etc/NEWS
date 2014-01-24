@@ -851,6 +851,7 @@ because it is moved to vc-cvs.el.
 ---
 *** New commands: `vhdl-fix-statement-region', `vhdl-fix-statement-buffer'.
 
+---
 ** The Woman commands `woman-default-faces' and `woman-monochrome-faces'
 are obsolete.  Customize the `woman-*' faces instead.
 
@@ -867,6 +868,7 @@ are obsolete.  Customize the `woman-*' faces instead.
 
 *** The previous version of todo-mode.el is obsolete and renamed otodo-mode.el.
 
+---
 *** xesam.el is obsolete, because the XESAM project has been canceled.
 
 +++
@@ -1293,6 +1295,7 @@ meant to be used by other packages.
 
 * Changes in Emacs 24.4 on Non-Free Operating Systems
 
+---
 ** The procedure for building Emacs on MS-Windows has changed.
 It is now built by running the same configure script as on all other
 platforms.  This requires the MSYS environment and MinGW development

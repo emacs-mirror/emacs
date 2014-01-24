@@ -8,6 +8,9 @@
 
 2014-01-24  Glenn Morris  <rgm@gnu.org>
 
+	* woman.el (woman-default-faces, woman-monochrome-faces):
+	Fix obsolescence specification.
+
 	* subr.el (with-demoted-errors): Doc fix.
 
 2014-01-23  Stefan Monnier  <monnier@iro.umontreal.ca>

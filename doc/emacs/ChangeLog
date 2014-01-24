@@ -1,5 +1,7 @@
 2014-01-24  Glenn Morris  <rgm@gnu.org>
 
+	* ack.texi (Acknowledgments): No longer mention obsolete xesam.el.
+
 	* files.texi (Interlocking): Copyedit.
 
 2014-01-23  Glenn Morris  <rgm@gnu.org>
