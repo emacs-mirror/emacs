@@ -236,6 +236,16 @@ double rnd_double(void)
 }
 
 
+rnd_state_t rnd_seed(void)
+{
+  /* Initialize seed based on seconds since epoch and on processor
+   * cycle count. */
+  EventClock t2;
+  EVENT_CLOCK(t2);
+  return 1 + ((unsigned long)time(NULL) + (unsigned long)t2) % (R_m - 1);
+}
+
+
 /* randomize -- randomize the generator, or initialize to replay
  *
  * There have been 3 versions of the rnd-states reported by this 
@@ -270,11 +280,7 @@ void randomize(int argc, char *argv[])
            argv[0], seed0);
     rnd_state_set(seed0);
   } else {
-    /* Initialize seed based on seconds since epoch and on processor
-     * cycle count. */
-    EventClock t2;
-    EVENT_CLOCK(t2);
-    seed0 = 1 + ((unsigned long)time(NULL) + (unsigned long)t2) % (R_m - 1);
+    seed0 = rnd_seed();
     printf("%s: randomize(): choosing initial state (v3): %lu.\n",
            argv[0], seed0);
     rnd_state_set(seed0);
