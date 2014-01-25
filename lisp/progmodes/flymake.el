@@ -690,7 +690,7 @@ line number outside the file being compiled."
 (defun flymake-make-overlay (beg end tooltip-text face bitmap)
   "Allocate a flymake overlay in range BEG and END."
   (when (not (flymake-region-has-flymake-overlays beg end))
-    (let ((ov (make-overlay beg end nil t t))
+    (let ((ov (make-overlay beg end nil t))
 	  (fringe (and flymake-fringe-indicator-position
 		       (propertize "!" 'display
 				   (cons flymake-fringe-indicator-position
