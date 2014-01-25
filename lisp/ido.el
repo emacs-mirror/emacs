@@ -337,7 +337,9 @@
   :group 'convenience
   :version "22.1"
   :link '(emacs-commentary-link :tag "Commentary" "ido.el")
-  :link '(emacs-library-link :tag "Lisp File" "ido.el"))
+  :link '(emacs-library-link :tag "Lisp File" "ido.el")
+  :link '(custom-manual "(ido) Top")
+  :link '(info-link "(ido) Customization"))
 
 ;;;###autoload
 (defcustom ido-mode nil

@@ -1,3 +1,7 @@
+2014-01-25  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* url-vars.el (url): Link to info manual.
+
 2014-01-08  Jarosław Rzeszótko  <sztywny@gmail.com>  (tiny change)
 
 	* url-http.el (url-http-create-request): Don't add extra \r\n after

@@ -67,6 +67,7 @@
   "Simple Emacs Spreadsheet."
   :tag "SES"
   :group  'applications
+  :link '(custom-manual "(ses) Top")
   :prefix "ses-"
   :version "21.1")
 

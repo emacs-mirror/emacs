@@ -46,6 +46,7 @@
 
 (defgroup nxml nil
   "New XML editing mode."
+  :link '(custom-manual "(nxml-mode) Top")
   :group 'languages)
 
 (defgroup nxml-faces nil

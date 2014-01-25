@@ -40,6 +40,7 @@
 (defgroup flymake nil
   "Universal on-the-fly syntax checker."
   :version "23.1"
+  :link '(custom-manual "(flymake) Top")
   :group 'tools)
 
 (defcustom flymake-error-bitmap '(exclamation-mark error)

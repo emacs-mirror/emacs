@@ -135,17 +135,21 @@ this version is not backward compatible to 0.14 or earlier.")
   :group 'etags
   :group 'tools
   :group 'convenience
+  :link '(custom-manual "(speedbar) Top")
+  :link '(info-link "(speedbar) Customizing")
 ;  :version "20.3"
   )
 
 (defgroup speedbar-faces nil
   "Faces used in speedbar."
   :prefix "speedbar-"
+  :link '(info-link "(speedbar) Frames and Faces")
   :group 'speedbar
   :group 'faces)
 
 (defgroup speedbar-vc nil
   "Version control display in speedbar."
+  :link '(info-link "(speedbar) Version Control")
   :prefix "speedbar-"
   :group 'speedbar)
 

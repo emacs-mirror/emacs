@@ -1,3 +1,17 @@
+2014-01-25  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* progmodes/ada-mode.el (ada):
+	* woman.el (woman): Link to info manual and Commentary section.
+
+	* progmodes/flymake.el (flymake):
+	* nxml/nxml-mode.el (nxml):
+	* net/eww.el (eww):
+	* speedbar.el (speedbar, speedbar-faces, speedbar-vc):
+	* htmlfontify.el (htmlfontify):
+	* ses.el (ses):
+	* epa.el (epa):
+	* ido.el (ido): Link to info manual.
+
 2014-01-25  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/flymake.el (flymake-make-overlay): No rear advance.

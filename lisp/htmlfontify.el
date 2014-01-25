@@ -146,6 +146,8 @@ main-content <=MAIN_CONTENT;\\n\" rtfm-section file style rtfm-section file))
   "Convert buffers and files to HTML."
   :group  'applications
   :link '(variable-link htmlfontify-manual)
+  :link '(custom-manual "(htmlfontify) Top")
+  :link '(info-link "(htmlfontify) Customization")
   :prefix "hfy-")
 
 (defcustom hfy-page-header 'hfy-default-header

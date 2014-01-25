@@ -495,6 +495,8 @@ As a special case, if PATHS is nil then replace it by calling
 (defgroup woman nil
   "Browse UNIX manual pages `wo (without) man'."
   :tag "WoMan"
+  :link '(custom-manual "(woman) Top")
+  :link '(emacs-commentary-link :tag "Commentary" "woman.el")
   :group 'help)
 
 (defcustom woman-show-log nil

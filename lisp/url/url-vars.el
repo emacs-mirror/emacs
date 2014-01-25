@@ -28,6 +28,8 @@
 (defgroup url nil
   "Uniform Resource Locator tool."
   :version "22.1"
+  :link '(custom-manual "(url) Top")
+  :link '(info-link "(url) Customization")
   :group 'comm)
 
 (defgroup url-file nil

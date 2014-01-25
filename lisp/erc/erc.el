@@ -81,6 +81,7 @@
 (defgroup erc nil
   "Emacs Internet Relay Chat client."
   :link '(url-link "http://www.emacswiki.org/cgi-bin/wiki/ERC")
+  :link '(custom-manual "(erc) Top")
   :prefix "erc-"
   :group 'applications)
 

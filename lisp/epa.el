@@ -31,6 +31,7 @@
 (defgroup epa nil
   "The EasyPG Assistant"
   :version "23.1"
+  :link '(custom-manual "(epa) Top")
   :group 'epg)
 
 (defcustom epa-popup-info-window t
