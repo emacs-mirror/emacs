@@ -100,6 +100,7 @@ typedef struct PageStruct {     /* page structure */
     struct {
       Pool pool;                /* NULL, must be first field (.page) */
       int type;                 /* see .states */
+      RingStruct spareRing;
     } rest;                     /* other (non-allocated) page */
   } the;
 } PageStruct;
@@ -127,6 +128,9 @@ typedef struct PageStruct {     /* page structure */
 /* PageType -- type of page */
 
 #define PageType(page) ((page)->the.rest.type)
+
+#define PageSpareRing(page) (&(page)->the.rest.spareRing)
+#define PageOfSpareRing(node) RING_ELT(Page, the.rest.spareRing, node)
 
 
 /* Chunks */

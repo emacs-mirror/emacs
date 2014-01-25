@@ -48,6 +48,7 @@ typedef struct VMChunkStruct {
   Addr overheadMappedLimit;           /* limit of pages mapped for overhead */
   BT pageTableMapped;           /* indicates mapped state of page table */
   BT noSparePages;             /* 1 bit per page of pageTable */
+  RingStruct spareRing;
   Sig sig;                      /* <design/sig/> */
 } VMChunkStruct;
 
@@ -120,6 +121,8 @@ static Bool VMChunkCheck(VMChunk vmchunk)
   CHECKL(AddrAdd((Addr)vmchunk->noSparePages, BTSize(chunk->pageTablePages))
          <= vmchunk->overheadMappedLimit);
   /* .improve.check-table: Could check the consistency of the tables. */
+  CHECKL(RingCheck(&vmchunk->spareRing));
+  
   return TRUE;
 }
 
@@ -404,6 +407,8 @@ static Res VMChunkInit(Chunk chunk, BootBlock boot)
 
   BTResRange(vmChunk->pageTableMapped, 0, chunk->pageTablePages);
   BTSetRange(vmChunk->noSparePages, 0, chunk->pageTablePages);
+  RingInit(&vmChunk->spareRing);
+
   return ResOK;
 
   /* .no-clean: No clean-ups needed for boot, as we will discard the chunk. */
@@ -426,6 +431,7 @@ static void vmChunkDestroy(Chunk chunk)
   AVERT(VMChunk, vmChunk);
   AVER(BTIsSetRange(vmChunk->noSparePages, 0, chunk->pageTablePages));
   AVER(BTIsResRange(vmChunk->pageTableMapped, 0, chunk->pageTablePages));
+  AVER(RingIsSingle(&vmChunk->spareRing));
 
   vmChunk->sig = SigInvalid;
   vm = vmChunk->vm;
@@ -1307,6 +1313,7 @@ static void sparePageRelease(VMChunk vmChunk, Index pi)
   AVER(PageType(&chunk->pageTable[pi]) == PageTypeSpare);
   AVER(arena->spareCommitted >= ChunkPageSize(chunk));
   arena->spareCommitted -= ChunkPageSize(chunk);
+  RingRemove(PageSpareRing(&chunk->pageTable[pi]));
   return;
 }
 
@@ -1587,12 +1594,66 @@ static void vmArenaUnmapSpareRange(VMChunk vmChunk,
  */
 static void sparePagesPurge(VMArena vmArena)
 {
-  Ring node, next;
+  Ring chunkNode, chunkNext;
   Arena arena = VMArena2Arena(vmArena);
+  Count excess;
+  
+  if (arena->spareCommitted > arena->spareCommitLimit) {
+    Size size = arena->spareCommitted - arena->spareCommitLimit;
+    AVER(SizeIsAligned(size, ArenaAlign(arena)));
+    excess = size / ArenaAlign(arena);
+  } else
+    return;
 
-  RING_FOR(node, &arena->chunkRing, next) {
-    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
+  RING_FOR(chunkNode, &arena->chunkRing, chunkNext) {
+    Chunk chunk = RING_ELT(Chunk, chunkRing, chunkNode);
     VMChunk vmChunk = Chunk2VMChunk(chunk);
+    
+    /* Start by looking at the oldest page on the spare ring, to try to
+       get some LRU behaviour from the spare pages cache. */
+    /* FIXME: This is only LRU within a chunk! */
+    while (!RingIsSingle(&vmChunk->spareRing)) {
+      Page page = PageOfSpareRing(RingNext(&vmChunk->spareRing));
+      Index pi = (Index)(page - chunk->pageTable);
+      Index pj = pi;
+
+      /* To avoid excessive calls to the OS, coalesce with spare pages above
+         and below, even though these may be recent. */
+      do {
+        sparePageRelease(vmChunk, pj);
+        PageInit(chunk, pj);
+        ++pj;
+        --excess;
+      } while (excess > 0  &&
+               pj < chunk->pages &&
+               pageIsSpare(&chunk->pageTable[pj]));
+      while (excess > 0 &&
+             pi > 0 &&
+             pageIsSpare(&chunk->pageTable[pi - 1])) {
+        --pi;
+        --excess;
+        sparePageRelease(vmChunk, pi);
+        PageInit(chunk, pi);
+      }
+
+      vmArenaUnmap(VMChunkVMArena(vmChunk),
+                   vmChunk->vm,
+                   PageIndexBase(chunk, pi),
+                   PageIndexBase(chunk, pj));
+
+      if (excess == 0) {
+        AVER(arena->spareCommitted == arena->spareCommitLimit);
+        return;
+      }
+    }
+  }
+
+  NOTREACHED; /* excess should've reached zero */
+}
+
+
+
+#if 0
     Index spareBaseIndex, spareLimitIndex;
     Index tablePageCursor = 0;
 
@@ -1654,6 +1715,7 @@ static void sparePagesPurge(VMArena vmArena)
   AVER(arena->spareCommitted == 0);
   return;
 }
+#endif
 
 
 /* VMFree -- free a region in the arena */
@@ -1703,6 +1765,10 @@ static void VMFree(Addr base, Size size, Pool pool)
     TractFinish(tract);
     PagePool(page) = NULL;
     PageType(page) = PageTypeSpare;
+    /* We must init the page's spare ring because it is a union with the
+       tract and will contain junk. */
+    RingInit(PageSpareRing(page));
+    RingAppend(&vmChunk->spareRing, PageSpareRing(page));
   }
   arena->spareCommitted += ChunkPagesToSize(chunk, piLimit - piBase);
   BTResRange(chunk->allocTable, piBase, piLimit);
