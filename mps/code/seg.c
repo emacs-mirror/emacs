@@ -436,22 +436,52 @@ Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr)
  * This is used to start an iteration over all segs in the arena.
  */
 
+static Bool PoolFirst(Pool *poolReturn, Arena arena)
+{
+  AVER(poolReturn != NULL);
+  AVERT(Arena, arena);
+  if (RingIsSingle(ArenaPoolRing(arena)))
+    return FALSE;
+  *poolReturn = PoolOfArenaRing(RingNext(ArenaPoolRing(arena)));
+  return TRUE;
+}
+
+static Bool PoolNext(Pool *poolReturn, Arena arena, Pool pool)
+{
+  /* Was that the last pool? */
+  if (RingNext(PoolArenaRing(pool)) == ArenaPoolRing(arena))
+    return FALSE;
+  *poolReturn = PoolOfArenaRing(RingNext(PoolArenaRing(pool)));
+  return TRUE;
+}
+
+static Bool PoolWithSegs(Pool *poolReturn, Arena arena, Pool pool)
+{
+  AVER(poolReturn != NULL);
+  AVERT(Arena, arena);
+  AVERT(Pool, pool);
+  
+  while (RingIsSingle(PoolSegRing(pool)))
+    if (!PoolNext(&pool, arena, pool))
+      return FALSE;
+
+  *poolReturn = pool;
+  return TRUE;
+}
+
 Bool SegFirst(Seg *segReturn, Arena arena)
 {
-  Tract tract;
+  Pool pool;
+
   AVER(segReturn != NULL);
   AVERT(Arena, arena);
 
-  if (TractFirst(&tract, arena)) {
-    do {
-      Seg seg;
-      if (TRACT_SEG(&seg, tract)) {
-        *segReturn = seg;
-        return TRUE;
-      }
-    } while (TractNext(&tract, arena, TractBase(tract)));
-  }
-  return FALSE;
+  if (!PoolFirst(&pool, arena) || /* unlikely, but still... */
+      !PoolWithSegs(&pool, arena, pool))
+    return FALSE;
+
+  *segReturn = SegOfPoolRing(RingNext(PoolSegRing(pool)));
+  return TRUE;
 }
 
 
@@ -460,12 +490,46 @@ Bool SegFirst(Seg *segReturn, Arena arena)
  * This is used as the iteration step when iterating over all
  * segs in the arena.
  *
- * SegNext finds the seg with the lowest base address which is
+ * Pool is the pool of the previous segment, and next is the
+ * RingNext(SegPoolRing(seg)) of the previous segment.  This allows for
+ * segment deletion during iteration.
+ */
+
+Bool SegNextOfRing(Seg *segReturn, Arena arena, Pool pool, Ring next)
+{
+  AVER_CRITICAL(segReturn != NULL); /* .seg.critical */
+  AVERT_CRITICAL(Arena, arena);
+  AVERT_CRITICAL(Pool, pool);
+  AVER_CRITICAL(RingCheck(next));
+  
+  if (next == PoolSegRing(pool)) {
+    if (!PoolNext(&pool, arena, pool) ||
+        !PoolWithSegs(&pool, arena, pool))
+      return FALSE;
+    *segReturn = SegOfPoolRing(RingNext(PoolSegRing(pool)));
+    return TRUE;
+  }
+  
+  *segReturn = SegOfPoolRing(next);
+  return TRUE;
+}
+
+Bool SegNext(Seg *segReturn, Arena arena, Seg seg)
+{
+  AVERT_CRITICAL(Seg, seg);
+  return SegNextOfRing(segReturn, arena,
+                       SegPool(seg), RingNext(SegPoolRing(seg)));
+}
+
+
+/* SegFindAboveAddr -- return the "next" seg in the arena
+ *
+ * Finds the seg with the lowest base address which is
  * greater than a specified address.  The address must be (or once
  * have been) the base address of a seg.
  */
 
-Bool SegNext(Seg *segReturn, Arena arena, Addr addr)
+Bool SegFindAboveAddr(Seg *segReturn, Arena arena, Addr addr)
 {
   Tract tract;
   Addr base = addr;
@@ -493,7 +557,6 @@ Bool SegNext(Seg *segReturn, Arena arena, Addr addr)
   }
   return FALSE;
 }
-
 
 
 /* SegMerge -- Merge two adjacent segments

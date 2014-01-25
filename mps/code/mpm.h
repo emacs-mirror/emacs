@@ -181,6 +181,8 @@ extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream);
 #define PoolArena(pool)         ((pool)->arena)
 #define PoolAlignment(pool)     ((pool)->alignment)
 #define PoolSegRing(pool)       (&(pool)->segRing)
+#define PoolArenaRing(pool) (&(pool)->arenaRing)
+#define PoolOfArenaRing(node) RING_ELT(Pool, arenaRing, node)
 
 extern Bool PoolFormat(Format *formatReturn, Pool pool);
 
@@ -506,7 +508,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaZoneShift(arena)   ((arena)->zoneShift)
 #define ArenaAlign(arena)       ((arena)->alignment)
 #define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
-
+#define ArenaPoolRing(arena) (&ArenaGlobals(arena)->poolRing)
 
 extern void (ArenaEnter)(Arena arena);
 extern void (ArenaLeave)(Arena arena);
@@ -640,7 +642,9 @@ extern Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
 extern void SegFree(Seg seg);
 extern Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr);
 extern Bool SegFirst(Seg *segReturn, Arena arena);
-extern Bool SegNext(Seg *segReturn, Arena arena, Addr addr);
+extern Bool SegNext(Seg *segReturn, Arena arena, Seg seg);
+extern Bool SegNextOfRing(Seg *segReturn, Arena arena, Pool pool, Ring next);
+extern Bool SegFindAboveAddr(Seg *segReturn, Arena arena, Addr addr);
 extern void SegSetWhite(Seg seg, TraceSet white);
 extern void SegSetGrey(Seg seg, TraceSet grey);
 extern void SegSetRankSet(Seg seg, RankSet rankSet);
@@ -688,6 +692,7 @@ extern Addr (SegLimit)(Seg seg);
 #define SegGrey(seg)            ((TraceSet)(seg)->grey)
 #define SegWhite(seg)           ((TraceSet)(seg)->white)
 #define SegNailed(seg)          ((TraceSet)(seg)->nailed)
+#define SegPoolRing(seg)        (&(seg)->poolRing)
 #define SegOfPoolRing(node)     (RING_ELT(Seg, poolRing, (node)))
 #define SegOfGreyRing(node)     (&(RING_ELT(GCSeg, greyRing, (node)) \
                                    ->segStruct))
