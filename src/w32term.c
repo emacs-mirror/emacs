@@ -4841,6 +4841,10 @@ w32_read_socket (struct terminal *terminal,
 	  if (f)
 	    {
 	      dpyinfo->n_cbits = msg.msg.wParam;
+	      /* The new display could have a different resolution, in
+		 which case we must reconsider what fullscreen
+		 means.  */
+	      x_check_fullscreen (f);
 	      DebPrint (("display change: %d %d\n",
 			 (short) LOWORD (msg.msg.lParam),
 			 (short) HIWORD (msg.msg.lParam)));

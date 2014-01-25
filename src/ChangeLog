@@ -1,3 +1,9 @@
+2014-01-25  Fabrice Popineau  <fabrice.popineau@gmail.com>
+
+	* w32term.c (w32_read_socket): When the WM_DISPLAYCHANGE message
+	arrives, call x_check_fullscreen, in case the new display has a
+	different resolution.  (Bug#16517)
+
 2014-01-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* term.c (read_menu_input): If the selected frame changes, exit
