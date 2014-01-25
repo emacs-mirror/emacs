@@ -734,7 +734,7 @@ void ArenaExposeRemember(Globals globals, int remember)
         SegSetSummary(seg, RefSetUNIV);
         AVER(SegSM(seg) == AccessSetEMPTY);
       }
-    } while(SegNext(&seg, arena, base));
+    } while(SegNext(&seg, arena, seg));
   }
 }
 
