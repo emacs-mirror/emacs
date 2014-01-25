@@ -3124,7 +3124,11 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
       tty->showing_menu = 0;
       do_mouse_tracking = saved_mouse_tracking;
 
-      if (EQ (cmd, Qt) || EQ (cmd, Qtty_menu_exit))
+      if (EQ (cmd, Qt) || EQ (cmd, Qtty_menu_exit)
+	  /* If some input switched frames under our feet, exit the
+	     menu, since the menu faces are no longer valid, and the
+	     menu is no longer relevant anyway.  */
+	  || sf != SELECTED_FRAME ())
 	return MI_QUIT_MENU;
       if (EQ (cmd, Qtty_menu_mouse_movement))
 	mouse_get_xy (x, y);
@@ -3791,6 +3795,11 @@ tty_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
     case TTYM_IA_SELECT:
       break;
     case TTYM_NO_SELECT:
+      /* If the selected frame was changed while we displayed a menu,
+	 throw to top level in order to undo any temporary settings
+	 made by TTY menu code.  */
+      if (f != SELECTED_FRAME ())
+	Ftop_level ();
       /* Make "Cancel" equivalent to C-g unless FOR_CLICK (which means
 	 the menu was invoked with a mouse event as POSITION).  */
       if (! for_click)

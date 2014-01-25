@@ -1,3 +1,10 @@
+2014-01-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (read_menu_input): If the selected frame changes, exit
+	the menu.
+	(tty_menu_show): If the selected frame changes while we displayed
+	a menu, throw to top level.  (Bug#16479)
+
 2014-01-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fsignal): Fix `debug' handling to match 2013-10-03 change.
