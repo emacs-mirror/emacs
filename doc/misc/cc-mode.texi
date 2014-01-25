@@ -1173,7 +1173,7 @@ You can toggle each of these minor modes on and off, and you can
 configure @ccmode{} so that it starts up with your favorite
 combination of them (@pxref{Sample Init File}).  By default, when
 you initialize a buffer, electric mode and syntactic-indentation mode
-are enabled but the other two modes are disabled.
+are enabled but the other three modes are disabled.
 
 @ccmode{} displays the current state of the first four of these minor
 modes on the modeline by appending letters to the major mode's name,
