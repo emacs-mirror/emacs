@@ -1533,8 +1533,8 @@ See also the function `condition-case'.  */)
 	  || NILP (clause)
 	  /* A `debug' symbol in the handler list disables the normal
 	     suppression of the debugger.  */
-	  || (CONSP (clause) && CONSP (XCAR (clause))
-	      && !NILP (Fmemq (Qdebug, XCAR (clause))))
+	  || (CONSP (clause) && CONSP (clause)
+	      && !NILP (Fmemq (Qdebug, clause)))
 	  /* Special handler that means "print a message and run debugger
 	     if requested".  */
 	  || EQ (h->tag_or_ch, Qerror)))

@@ -1,3 +1,7 @@
+2014-01-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fsignal): Fix `debug' handling to match 2013-10-03 change.
+
 2014-01-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix bool-vector-count-population bug on MinGW64 (Bug#16535).

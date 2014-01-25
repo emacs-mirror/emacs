@@ -2804,8 +2804,9 @@ init_iterator (struct it *it, struct window *w,
     it->redisplay_end_trigger_charpos
       = marker_position (w->redisplay_end_trigger);
   else if (INTEGERP (w->redisplay_end_trigger))
-    it->redisplay_end_trigger_charpos =
-      clip_to_bounds (PTRDIFF_MIN, XINT (w->redisplay_end_trigger), PTRDIFF_MAX);
+    it->redisplay_end_trigger_charpos
+      = clip_to_bounds (PTRDIFF_MIN, XINT (w->redisplay_end_trigger),
+			PTRDIFF_MAX);
 
   it->tab_width = SANE_TAB_WIDTH (current_buffer);
 
