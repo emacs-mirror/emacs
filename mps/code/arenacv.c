@@ -209,7 +209,7 @@ static Bool nextAsSeg(AllocInfoStruct *nextReturn, AllocInfo ai,
 {
   Bool res;
   Seg seg;
-  res = SegNext(&seg, arena, SegBase(ai->the.segData.seg));
+  res = SegNext(&seg, arena, ai->the.segData.seg);
   if (res) {
     nextReturn->the.segData.seg = seg;
   }

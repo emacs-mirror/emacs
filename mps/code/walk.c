@@ -84,7 +84,7 @@ static void ArenaFormattedObjectsWalk(Arena arena, FormattedObjectsStepMethod f,
         PoolWalk(pool, seg, f, p, s);
         ShieldCover(arena, seg);
       }
-    } while(SegNext(&seg, arena, base));
+    } while(SegNext(&seg, arena, seg));
   }
 }
 
@@ -314,7 +314,7 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
       if ((SegPool(seg)->class->attr & AttrGC) != 0) {
         TraceAddWhite(trace, seg);
       }
-    } while (SegNext(&seg, arena, base));
+    } while (SegNext(&seg, arena, seg));
   }
 
   /* Make the roots grey so that they are scanned */
