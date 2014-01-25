@@ -4418,12 +4418,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* With FRAME_DISPLAY_INFO set up, this unwind-protect is safe.  */
   record_unwind_protect (do_unwind_create_frame, frame);
 
-  /* Avoid calling window-configuration-change-hook; otherwise we could
-     get into all kinds of nasty things like an infloop in next_frame or
-     violating a (height >= 0) assertion in window_box_height.  */
-  record_unwind_protect (unwind_create_frame_1, inhibit_lisp_code);
-  inhibit_lisp_code = Qt;
-
 #ifdef GLYPH_DEBUG
   image_cache_refcount =
     FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
@@ -4518,17 +4512,40 @@ This function is an internal primitive--use `make-frame' instead.  */)
      happen.  */
   init_frame_faces (f);
 
-  /* The X resources controlling the menu-bar and tool-bar are
-     processed specially at startup, and reflected in the mode
-     variables; ignore them here.  */
-  x_default_parameter (f, parameters, Qmenu_bar_lines,
-		       NILP (Vmenu_bar_mode)
-		       ? make_number (0) : make_number (1),
-		       NULL, NULL, RES_TYPE_NUMBER);
-  x_default_parameter (f, parameters, Qtool_bar_lines,
-		       NILP (Vtool_bar_mode)
-		       ? make_number (0) : make_number (1),
-		       NULL, NULL, RES_TYPE_NUMBER);
+  /* Avoid calling window-configuration-change-hook; otherwise we
+     could get an infloop in next_frame since the frame is not yet in
+     Vframe_list.  */
+  {
+    ptrdiff_t count2 = SPECPDL_INDEX ();
+
+    record_unwind_protect (unwind_create_frame_1, inhibit_lisp_code);
+    inhibit_lisp_code = Qt;
+
+    /* PXW: This is a duplicate from below.  We have to do it here since
+       otherwise x_set_tool_bar_lines will work with the character sizes
+       installed by init_frame_faces while the frame's pixel size is still
+       calculated from a character size of 1 and we subsequently hit the
+       eassert (height >= 0) assertion in window_box_height.  The
+       non-pixelwise code apparently worked around this because it had one
+       frame line vs one toolbar line which left us with a zero root
+       window height which was obviously wrong as well ...  */
+    change_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
+		       FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 1, 0, 0, 1);
+
+    /* The X resources controlling the menu-bar and tool-bar are
+       processed specially at startup, and reflected in the mode
+       variables; ignore them here.  */
+    x_default_parameter (f, parameters, Qmenu_bar_lines,
+			 NILP (Vmenu_bar_mode)
+			 ? make_number (0) : make_number (1),
+			 NULL, NULL, RES_TYPE_NUMBER);
+    x_default_parameter (f, parameters, Qtool_bar_lines,
+			 NILP (Vtool_bar_mode)
+			 ? make_number (0) : make_number (1),
+			 NULL, NULL, RES_TYPE_NUMBER);
+
+    unbind_to (count2, Qnil);
+  }
 
   x_default_parameter (f, parameters, Qbuffer_predicate, Qnil,
 		       "bufferPredicate", "BufferPredicate", RES_TYPE_SYMBOL);

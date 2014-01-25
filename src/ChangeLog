@@ -1,3 +1,10 @@
+2014-01-25  Martin Rudalics  <rudalics@gmx.at>
+
+	Fix handling of face attributes in Fx_create_frame (Bug#16529).
+	* w32fns.c (Fx_create_frame): Don't inhibit running Lisp code
+	too early.  Again run change_frame_size before assigning menu-
+	and tool-bar-lines.
+
 2014-01-25  Fabrice Popineau  <fabrice.popineau@gmail.com>
 
 	* w32term.c (w32_read_socket): When the WM_DISPLAYCHANGE message
