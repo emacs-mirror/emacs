@@ -199,7 +199,7 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
     if (segLimit == limit) /* segment ends at end of range */
       break;
 
-    b = SegNext(&seg, arena, segBase);
+    b = SegFindAboveAddr(&seg, arena, segBase);
     AVER(b);
     segBase = SegBase(seg);
     segLimit = SegLimit(seg);

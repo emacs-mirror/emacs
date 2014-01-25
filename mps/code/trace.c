@@ -418,7 +418,7 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
         if(res != ResOK)
           return res;
       }
-    } while (SegNext(&seg, arena, base));
+    } while (SegNext(&seg, arena, seg));
   }
 
   EVENT3(TraceCondemnZones, trace, condemnedSet, trace->white);
@@ -818,16 +818,20 @@ static void traceReclaim(Trace trace)
   EVENT1(TraceReclaim, trace);
   arena = trace->arena;
   if(SegFirst(&seg, arena)) {
-    Addr base;
+    Pool pool;
+    Ring next;
     do {
-      base = SegBase(seg);
+      Addr base = SegBase(seg);
+      pool = SegPool(seg);
+      next = RingNext(SegPoolRing(seg));
+
       /* There shouldn't be any grey stuff left for this trace. */
       AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace));
 
       if(TraceSetIsMember(SegWhite(seg), trace)) {
-        AVER_CRITICAL((SegPool(seg)->class->attr & AttrGC) != 0);
+        AVER_CRITICAL((pool->class->attr & AttrGC) != 0);
         STATISTIC(++trace->reclaimCount);
-        PoolReclaim(SegPool(seg), trace, seg);
+        PoolReclaim(pool, trace, seg);
 
         /* If the segment still exists, it should no longer be white. */
         /* Note that the seg returned by this SegOfAddr may not be */
@@ -843,7 +847,7 @@ static void traceReclaim(Trace trace)
           UNUSED(nonWhiteSeg); /* <code/mpm.c#check.unused> */
         }
       }
-    } while(SegNext(&seg, arena, base));
+    } while(SegNextOfRing(&seg, arena, pool, next));
   }
 
   trace->state = TraceFINISHED;
@@ -1589,7 +1593,6 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
   Arena arena;
   Res res;
   Seg seg;
-  Size size;
 
   AVERT(Trace, trace);
   AVER(trace->state == TraceINIT);
@@ -1608,10 +1611,8 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
   /* dynamically which method to use. */
 
   if(SegFirst(&seg, arena)) {
-    Addr base;
     do {
-      base = SegBase(seg);
-      size = SegSize(seg);
+      Size size = SegSize(seg);
       AVER(!TraceSetIsMember(SegGrey(seg), trace));
 
       /* A segment can only be grey if it contains some references. */
@@ -1640,7 +1641,7 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
           trace->notCondemned += size;
         }
       }
-    } while (SegNext(&seg, arena, base));
+    } while (SegNext(&seg, arena, seg));
   }
 
   STATISTIC_BEGIN {
