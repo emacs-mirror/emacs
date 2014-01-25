@@ -1228,7 +1228,9 @@ The preference is a float determined from `shr-prefer-media-type'."
 	  (put-text-property start (point) 'image-url url)
 	  (put-text-property start (point) 'image-displayer
 			     (shr-image-displayer shr-content-function))
-	  (put-text-property start (point) 'help-echo alt))
+	  (put-text-property start (point) 'help-echo
+			     (or (cdr (assq :title cont))
+				 alt)))
 	(setq shr-state 'image)))))
 
 (defun shr-tag-pre (cont)

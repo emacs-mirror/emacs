@@ -1,3 +1,8 @@
+2014-01-25  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* net/shr.el (shr-tag-img): Prefer the title over the alt text
+	(bug#16537).
+
 2014-01-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/eww.el (eww-download-callback):
