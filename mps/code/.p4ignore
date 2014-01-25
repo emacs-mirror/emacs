@@ -26,6 +26,7 @@ mpsio*.txt
 *.so
 *.lib
 *.exe
+a.out
 # Xcode junk
 xc
 mps.xcodeproj/xcuserdata
