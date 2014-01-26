@@ -201,7 +201,9 @@ TIMEOUT is the maximum time to wait for."
   "Check file creation/removal notifications."
   ;; Bug#16519.
   :expected-result
-  (if (and noninteractive (memq file-notify--library '(gfilenotify w32notify)))
+  (if (and noninteractive
+	   (not (file-notify--test-remote-enabled))
+	   (memq file-notify--library '(gfilenotify w32notify)))
       :failed :passed)
   (skip-unless (file-notify--test-local-enabled))
   (let (desc)
