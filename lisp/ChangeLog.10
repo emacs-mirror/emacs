@@ -7680,7 +7680,7 @@
 
 2002-12-08  Nick Roberts  <nick@nick.uklinux.net>
 
-	* gdb-ui.el : Remove inappropriate key-bindings.
+	* gdb-ui.el: Remove inappropriate key-bindings.
 	(gdb-info-breakpoints-custom, gdb-goto-bp-this-line):
 	Parse correctly when breakpoint has no line number.
 	(def-gdb-auto-update-handler, gdb-info-locals-handler)
@@ -8116,7 +8116,7 @@
 
 2002-11-21  Nick Roberts  <nick@nick.uklinux.net>
 
-	* gdb-ui.el : General tidying.  Patches from Stefan Monnier.
+	* gdb-ui.el: General tidying.  Patches from Stefan Monnier.
 
 2002-11-20  Simon Josefsson  <jas@extundo.com>
 

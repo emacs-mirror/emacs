@@ -168,7 +168,7 @@
 	Bind open-paren-in-column-0-is-defun-start to nil at some entry
 	points.
 	* progmodes/cc-engine.el (c-invalidate-state-cache-1)
-	(c-parse-state-1, c-guess-basic-syntax):  Bind it here.
+	(c-parse-state-1, c-guess-basic-syntax): Bind it here.
 	* progmodes/cc-mode.el (c-before-change, c-after-change)
 	(c-font-lock-fontify-region): Bind it here.
 
@@ -662,7 +662,7 @@
 
 2014-01-05  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
 
-	* net/eww.el (eww):  Support single/double quote for search.
+	* net/eww.el (eww): Support single/double quote for search.
 	* net/eww.el (eww-list-histories,eww-history-browse): Fixup.
 	(eww-history-quit): Delete and use quit-window.
 	(eww-history-kill): Delete, because it doesn't work well and
@@ -725,7 +725,7 @@
 	* mail/rmail.el (rmail-mime-message-p): Move from rmailmm.el.
 	(rmail-epa-decrypt): Turn off mime processing.
 
-	* mail/rmail.el	(rmail-make-in-reply-to-field):
+	* mail/rmail.el (rmail-make-in-reply-to-field):
 	Add parens in message-id.
 
 	* mail/rmail.el (rmail-get-coding-function): Variable.
@@ -6532,7 +6532,7 @@
 	Silence byte-compiler warning.
 
 	* frameset.el (frameset-p): Don't check non-nullness of the `properties'
-	slot , which can indeed be nil.
+	slot, which can indeed be nil.
 	(frameset-live-filter-alist, frameset-persistent-filter-alist):
 	Move entry for `left' from persistent to live filter alist.
 	(frameset-filter-alist, frameset--minibufferless-last-p, frameset-save):
@@ -7986,8 +7986,8 @@
 
 	Add `remember-notes' function to store random notes across Emacs
 	restarts.
-	* textmodes/remember.el (remember-data-file): Add :set callback to affect
-	notes buffer (if any).
+	* textmodes/remember.el (remember-data-file): Add :set callback to
+	affect notes buffer (if any).
 	(remember-notes): New command.
 	(remember-notes-buffer-name, bury-remember-notes-on-kill):
 	New defcustoms for the `remember-notes' function.

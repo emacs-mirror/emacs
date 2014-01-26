@@ -1223,7 +1223,7 @@
 	(mh-show-subject, mh-show-to, mh-show-xface)
 	(mh-speedbar-folder, mh-speedbar-folder-with-unseen-messages)
 	(mh-speedbar-selected-folder)
-	(mh-speedbar-selected-folder-with-unseen-messages): : Add
+	(mh-speedbar-selected-folder-with-unseen-messages): Add
 	:package-version keyword to these faces (closes SF #1452724).
 
 	* mh-tool-bar.el (mh-tool-bar-define): Add commented-out

@@ -5255,7 +5255,7 @@
 	(x_set_window_size, ns_draw_fringe_bitmap, judge): Move declarations
 	before code.
 
-	* nsterm.h : Include sysselect.h.
+	* nsterm.h: Include sysselect.h.
 	(x_sync, x_get_focus_frame, x_set_mouse_position)
 	(x_set_mouse_pixel_position, x_make_frame_visible)
 	(x_make_frame_invisible, x_iconify_frame, x_char_width, x_char_height)
@@ -18934,7 +18934,7 @@
 	(ftfont_spec_pattern): Don't check QCfc_unknown_spec and QCname.
 	(ftfont_list) [FC_FONTFORMAT]: Include FC_FONTFORMAT in objset.
 
-	* xftfont.c (QChinting , QCautohint, QChintstyle, QCrgba)
+	* xftfont.c (QChinting, QCautohint, QChintstyle, QCrgba)
 	(QCembolden): New variables.
 	(syms_of_xftfont): DEFSYM them.
 	(xftfont_open): Call XftFontMatch.  Don't trust the result of

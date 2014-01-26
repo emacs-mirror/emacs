@@ -6502,7 +6502,7 @@
 	"29.03 16:40".
 
 	* org-element.el (org-element-center-block-parser)
-	(org-element-drawer-parser, , org-element-footnote-definition-parser)
+	(org-element-drawer-parser, org-element-footnote-definition-parser)
 	(org-element-inlinetask-parser, org-element-plain-list-parser)
 	(org-element-quote-block-parser, org-element-special-block-parser)
 	(org-element-babel-call-parser, org-element-clock-parser)
@@ -21490,7 +21490,7 @@
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-list.el : Removed unused variable
+	* org-list.el: Removed unused variable
 	`org-suppress-item-indentation'.
 
 	* org-list.el (org-renumber-ordered-list): Skip item if bullet

@@ -12520,7 +12520,7 @@
 	(gdb-update-flag): New variables.
 	(gdb-var-update, gdb-var-update-handler,gdb-var-delete)
 	(gdb-speedbar-expand-node, gdb-var-evaluate-expression-handler)
-	(gud-watch, gdb-var-create-handler) : New functions.
+	(gud-watch, gdb-var-create-handler): New functions.
 	(gdb-var-list-children, gdb-var-list-children-handler)
 	(gdb-var-create-regexp, gdb-var-update-regexp)
 	(gdb-var-list-children-regexp): New constants.
