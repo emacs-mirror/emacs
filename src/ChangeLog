@@ -1,5 +1,13 @@
 2014-01-26  Paul Eggert  <eggert@cs.ucla.edu>
 
+	When decoding, prefer ptrdiff_t to int for buffer positions etc.
+	* coding.c (detect_coding_utf_8, emacs_mule_char)
+	(detect_coding_iso_2022, encode_coding_iso_2022, check_ascii)
+	(check_utf_8, decode_coding):
+	* coding.h (struct coding_system.errors):
+	Use ptrdiff_t, not int, for integer values derived from buffer and
+	string positions.
+
 	Fix crash with insert-file-contents and misdecoded text (Bug#16286).
 	* fileio.c (Finsert_file_contents): Set CODING_MODE_LAST_BLOCK
 	before invoking decode_coding_gap, since there's just one block.

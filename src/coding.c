@@ -1202,7 +1202,7 @@ detect_coding_utf_8 (struct coding_system *coding,
   bool multibytep = coding->src_multibyte;
   ptrdiff_t consumed_chars = 0;
   bool bom_found = 0;
-  int nchars = coding->head_ascii;
+  ptrdiff_t nchars = coding->head_ascii;
   int eol_seen = coding->eol_seen;
 
   detect_info->checked |= CATEGORY_MASK_UTF_8;
@@ -2013,7 +2013,7 @@ emacs_mule_char (struct coding_system *coding, const unsigned char *src,
   int charset_ID;
   unsigned code;
   int c;
-  int consumed_chars = 0;
+  ptrdiff_t consumed_chars = 0;
   bool mseq_found = 0;
 
   ONE_MORE_BYTE (c);
@@ -3190,7 +3190,7 @@ detect_coding_iso_2022 (struct coding_system *coding,
 	      if (! single_shifting
 		  && ! (rejected & CATEGORY_MASK_ISO_8_2))
 		{
-		  int len = 1;
+		  ptrdiff_t len = 1;
 		  while (src < src_end)
 		    {
 		      src_base = src;
@@ -4456,7 +4456,7 @@ encode_coding_iso_2022 (struct coding_system *coding)
 	{
 	  /* We have to produce designation sequences if any now.  */
 	  unsigned char desig_buf[16];
-	  int nbytes;
+	  ptrdiff_t nbytes;
 	  ptrdiff_t offset;
 
 	  charset_map_loaded = 0;
@@ -6211,7 +6211,7 @@ static Lisp_Object adjust_coding_eol_type (struct coding_system *coding,
    EOL_SEEN_LF, EOL_SEEN_CR, and EOL_SEEN_CRLF, but the value is
    reliable only when all the source bytes are ASCII.  */
 
-static int
+static ptrdiff_t
 check_ascii (struct coding_system *coding)
 {
   const unsigned char *src, *end;
@@ -6283,12 +6283,12 @@ check_ascii (struct coding_system *coding)
    the value is reliable only when all the source bytes are valid
    UTF-8.  */
 
-static int
+static ptrdiff_t
 check_utf_8 (struct coding_system *coding)
 {
   const unsigned char *src, *end;
   int eol_seen;
-  int nchars = coding->head_ascii;
+  ptrdiff_t nchars = coding->head_ascii;
 
   if (coding->head_ascii < 0)
     check_ascii (coding);
@@ -7414,7 +7414,7 @@ decode_coding (struct coding_system *coding)
   coding->carryover_bytes = 0;
   if (coding->consumed < coding->src_bytes)
     {
-      int nbytes = coding->src_bytes - coding->consumed;
+      ptrdiff_t nbytes = coding->src_bytes - coding->consumed;
       const unsigned char *src;
 
       coding_set_source (coding);

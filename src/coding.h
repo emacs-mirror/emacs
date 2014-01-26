@@ -477,7 +477,7 @@ struct coding_system
   ptrdiff_t produced, produced_char, consumed, consumed_char;
 
   /* Number of error source data found in a decoding routine.  */
-  int errors;
+  ptrdiff_t errors;
 
   /* Store the positions of error source data.  */
   ptrdiff_t *error_positions;
