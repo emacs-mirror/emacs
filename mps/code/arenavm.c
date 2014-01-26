@@ -47,7 +47,6 @@ typedef struct VMChunkStruct {
   VM vm;                        /* virtual memory handle */
   Addr overheadMappedLimit;           /* limit of pages mapped for overhead */
   BT pageTableMapped;           /* indicates mapped state of page table */
-  BT noSparePages;             /* 1 bit per page of pageTable */
   RingStruct spareRing;
   Sig sig;                      /* <design/sig/> */
 } VMChunkStruct;
@@ -92,7 +91,8 @@ typedef struct VMArenaStruct {  /* VM arena structure */
 
 /* Forward declarations */
 
-static void sparePagesPurge(VMArena vmArena);
+static Size arenaUnmapSpare(Arena arena, Size size);
+static Size chunkUnmapSpare(Chunk chunk, Size size);
 extern ArenaClass VMArenaClassGet(void);
 extern ArenaClass VMNZArenaClassGet(void);
 static void VMCompact(Arena arena, Trace trace);
@@ -114,11 +114,6 @@ static Bool VMChunkCheck(VMChunk vmchunk)
   CHECKL(vmchunk->pageTableMapped != NULL);
   CHECKL((Addr)vmchunk->pageTableMapped >= chunk->base);
   CHECKL(AddrAdd((Addr)vmchunk->pageTableMapped, BTSize(chunk->pageTablePages))
-         <= vmchunk->overheadMappedLimit);
-  /* check noSparePages table */
-  CHECKL(vmchunk->noSparePages != NULL);
-  CHECKL((Addr)vmchunk->noSparePages >= chunk->base);
-  CHECKL(AddrAdd((Addr)vmchunk->noSparePages, BTSize(chunk->pageTablePages))
          <= vmchunk->overheadMappedLimit);
   /* .improve.check-table: Could check the consistency of the tables. */
   CHECKL(RingCheck(&vmchunk->spareRing));
@@ -157,12 +152,6 @@ static Bool VMChunkCheck(VMChunk vmchunk)
  */
 #define TablePageIndexBase(chunk, index) \
   AddrAdd((Addr)(chunk)->pageTable, ChunkPagesToSize(chunk, index))
-
-
-/* pageIsSpare -- is page spare (free and mapped)? */
-
-#define pageIsSpare(page) \
-  ((page)->the.rest.pool == NULL && (page)->the.rest.type == PageTypeSpare)
 
 
 /* VMArenaCheck -- check the consistency of an arena structure */
@@ -389,10 +378,6 @@ static Res VMChunkInit(Chunk chunk, BootBlock boot)
   if (res != ResOK)
     goto failPageTableMapped;
   vmChunk->pageTableMapped = p;
-  res = BootAlloc(&p, boot, btSize, MPS_PF_ALIGN);
-  if (res != ResOK)
-    goto failnoSparePages;
-  vmChunk->noSparePages = p;
 
   /* Actually commit all the tables. <design/arenavm/>.@@@@ */
   overheadLimit = AddrAdd(chunk->base, (Size)BootAllocated(boot));
@@ -406,14 +391,12 @@ static Res VMChunkInit(Chunk chunk, BootBlock boot)
   }
 
   BTResRange(vmChunk->pageTableMapped, 0, chunk->pageTablePages);
-  BTSetRange(vmChunk->noSparePages, 0, chunk->pageTablePages);
   RingInit(&vmChunk->spareRing);
 
   return ResOK;
 
   /* .no-clean: No clean-ups needed for boot, as we will discard the chunk. */
 failTableMap:
-failnoSparePages:
 failPageTableMapped:
   return res;
 }
@@ -429,7 +412,9 @@ static void vmChunkDestroy(Chunk chunk)
   AVERT(Chunk, chunk);
   vmChunk = Chunk2VMChunk(chunk);
   AVERT(VMChunk, vmChunk);
-  AVER(BTIsSetRange(vmChunk->noSparePages, 0, chunk->pageTablePages));
+  
+  chunkUnmapSpare(chunk, AddrOffset(chunk->base, chunk->limit));
+  
   AVER(BTIsResRange(vmChunk->pageTableMapped, 0, chunk->pageTablePages));
   AVER(RingIsSingle(&vmChunk->spareRing));
 
@@ -642,7 +627,6 @@ static void VMArenaFinish(Arena arena)
   AVERT(VMArena, vmArena);
   arenaVM = vmArena->vm;
 
-  sparePagesPurge(vmArena);
   /* destroy all chunks, including the primary */
   arena->primary = NULL;
   RING_FOR(node, &arena->chunkRing, next) {
@@ -679,7 +663,11 @@ static Size VMArenaReserved(Arena arena)
 }
 
 
-/* VMArenaSpareCommitExceeded -- handle excess spare pages */
+/* VMArenaSpareCommitExceeded -- handle excess spare pages
+ *
+ * TODO: Chunks are only destroyed when ArenaCompact is called, and that is
+ * only called from TraceReclaim.  Should consider destroying chunks here.
+ */
 
 static void VMArenaSpareCommitExceeded(Arena arena)
 {
@@ -688,8 +676,9 @@ static void VMArenaSpareCommitExceeded(Arena arena)
   vmArena = Arena2VMArena(arena);
   AVERT(VMArena, vmArena);
 
-  sparePagesPurge(vmArena);
-  return;
+  if (arena->spareCommitted > arena->spareCommitLimit)
+    (void)arenaUnmapSpare(arena,
+                          arena->spareCommitted - arena->spareCommitLimit);
 }
 
 
@@ -892,7 +881,6 @@ static void tablePagesUnmapUnused(VMChunk vmChunk,
     if (!tablePageInUse(chunk, cursor)) {
       vmArenaUnmap(VMChunkVMArena(vmChunk), vmChunk->vm,
                    cursor, AddrAdd(cursor, pageSize));
-      AVER(BTGet(vmChunk->noSparePages, PageTablePageIndex(chunk, cursor)));
       AVER(BTGet(vmChunk->pageTableMapped, PageTablePageIndex(chunk, cursor)));
       BTRes(vmChunk->pageTableMapped, PageTablePageIndex(chunk, cursor));
     }
@@ -1270,13 +1258,16 @@ static Res VMNZAllocPolicy(Index *baseIndexReturn, VMChunk *chunkReturn,
 }
 
 
-/* pageIsMapped -- checks whether a free page is mapped or not. */
+/* pageType -- determine page type
+ *
+ * Parts of the page table may be unmapped if their corresponding pages are
+ * free.
+ */
 
-static Bool pageIsMapped(VMChunk vmChunk, Index pi)
+static int pageType(VMChunk vmChunk, Index pi)
 {
   Index pageTableBaseIndex;
   Index pageTableLimitIndex;
-  int pageType;
   Chunk chunk = VMChunk2Chunk(vmChunk);
 
   /* Note that unless the pi'th PageStruct crosses a page boundary */
@@ -1290,13 +1281,9 @@ static Bool pageIsMapped(VMChunk vmChunk, Index pi)
   /* We can examine the PageStruct descriptor iff both table pages */
   /* are mapped. */
   if (BTGet(vmChunk->pageTableMapped, pageTableBaseIndex)
-      && BTGet(vmChunk->pageTableMapped, pageTableLimitIndex - 1)) {
-    pageType = PageType(&chunk->pageTable[pi]);
-    if (pageType == PageTypeSpare)
-      return TRUE;
-    AVER(pageType == PageTypeFree);
-  }
-  return FALSE;
+      && BTGet(vmChunk->pageTableMapped, pageTableLimitIndex - 1))
+    return PageType(&chunk->pageTable[pi]);
+  return PageTypeFree;
 }
 
 
@@ -1309,12 +1296,13 @@ static void sparePageRelease(VMChunk vmChunk, Index pi)
 {
   Chunk chunk = VMChunk2Chunk(vmChunk);
   Arena arena = ChunkArena(chunk);
+  Page page = &chunk->pageTable[pi];
 
-  AVER(PageType(&chunk->pageTable[pi]) == PageTypeSpare);
+  AVER(PageType(page) == PageTypeSpare);
   AVER(arena->spareCommitted >= ChunkPageSize(chunk));
+
   arena->spareCommitted -= ChunkPageSize(chunk);
-  RingRemove(PageSpareRing(&chunk->pageTable[pi]));
-  return;
+  RingRemove(PageSpareRing(page));
 }
 
 
@@ -1323,10 +1311,7 @@ static void sparePageRelease(VMChunk vmChunk, Index pi)
 static Res pagesMarkAllocated(VMArena vmArena, VMChunk vmChunk,
                               Index baseIndex, Count pages, Pool pool)
 {
-  Index i;
-  Index limitIndex;
-  Index mappedBase, mappedLimit;
-  Index unmappedBase, unmappedLimit;
+  Index i, mappedLimit, limitIndex;
   Chunk chunk = VMChunk2Chunk(vmChunk);
   Res res;
 
@@ -1336,48 +1321,44 @@ static Res pagesMarkAllocated(VMArena vmArena, VMChunk vmChunk,
   if (res != ResOK)
     goto failTableMap;
 
-  mappedBase = baseIndex;
-  mappedLimit = mappedBase;
+  /* We're not expecting zero-sized allocations. */
+  AVER(baseIndex < limitIndex);
 
-  do {
-    while(pageIsMapped(vmChunk, mappedLimit)) {
-      ++mappedLimit;
-      if (mappedLimit >= limitIndex)
-        break;
-    }
-    AVER(mappedLimit <= limitIndex);
-    /* NB for loop will loop 0 times iff first page is not mapped */
-    for(i = mappedBase; i < mappedLimit; ++i) {
+  i = baseIndex;
+  mappedLimit = baseIndex;
+  while (i < limitIndex) {
+    Addr freeBase;
+
+    /* Allocate a run of spare pages. */
+    while(i < limitIndex && PageType(&chunk->pageTable[i]) == PageTypeSpare) {
       sparePageRelease(vmChunk, i);
       PageAlloc(chunk, i, pool);
+      ++i;
     }
-    if (mappedLimit >= limitIndex)
-      break;
-    unmappedBase = mappedLimit;
-    unmappedLimit = unmappedBase;
-    while(!pageIsMapped(vmChunk, unmappedLimit)) {
-      ++unmappedLimit;
-      if (unmappedLimit >= limitIndex)
-        break;
+    
+    if (i >= limitIndex)
+      return ResOK;
+
+    /* Allocate a run of free pages. */
+    freeBase = PageIndexBase(chunk, i);
+    AVER(PageType(&chunk->pageTable[i]) == PageTypeFree);
+    while (i < limitIndex && PageType(&chunk->pageTable[i]) == PageTypeFree) {
+      PageAlloc(chunk, i, pool);
+      ++i;
     }
-    AVER(unmappedLimit <= limitIndex);
-    res = vmArenaMap(vmArena, vmChunk->vm,
-                     PageIndexBase(chunk, unmappedBase),
-                     PageIndexBase(chunk, unmappedLimit));
+
+    /* Map the memory for those free pages. */
+    res = vmArenaMap(vmArena, vmChunk->vm, freeBase, PageIndexBase(chunk, i));
     if (res != ResOK)
       goto failPagesMap;
-    for(i = unmappedBase; i < unmappedLimit; ++i) {
-      PageAlloc(chunk, i, pool);
-    }
-    mappedBase = unmappedLimit;
-    mappedLimit = mappedBase;
-  } while(mappedLimit < limitIndex);
-  AVER(mappedLimit == limitIndex);
+    mappedLimit = i;
+  }
 
   return ResOK;
 
 failPagesMap:
   /* region from baseIndex to mappedLimit needs unmapping */
+  /* TODO: Consider making them spare instead, then purging. */
   if (baseIndex < mappedLimit) {
     vmArenaUnmap(vmArena, vmChunk->vm,
                  PageIndexBase(chunk, baseIndex),
@@ -1388,16 +1369,7 @@ failPagesMap:
       PageFree(chunk, i);
     }
   }
-  {
-    Index pageTableBaseIndex, pageTableLimitIndex;
-    /* find which pages of page table were affected */
-    tablePagesUsed(&pageTableBaseIndex, &pageTableLimitIndex,
-                   chunk, baseIndex, limitIndex);
-    /* Resetting the noSparePages bits is lazy, it means that */
-    /* we don't have to bother trying to unmap unused portions */
-    /* of the pageTable. */
-    BTResRange(vmChunk->noSparePages, pageTableBaseIndex, pageTableLimitIndex);
-  }
+  /* FIXME: What about page table pages we've mapped but not used? */
 failTableMap:
   return res;
 }
@@ -1462,16 +1434,14 @@ static Res vmAllocComm(Addr *baseReturn, Tract *baseTractReturn,
   pages = ChunkSizeToPages(chunk, size);
 
   res = pagesMarkAllocated(vmArena, vmChunk, baseIndex, pages, pool);
-  if (res != ResOK) {
-    if (arena->spareCommitted > 0) {
-      sparePagesPurge(vmArena);
-      res = pagesMarkAllocated(vmArena, vmChunk, baseIndex, pages, pool);
-      if (res != ResOK)
-        goto failPagesMap;
-      /* win! */
-    } else {
+  while (res != ResOK) {
+    /* Try purging spare pages in the hope that the OS will give them back
+       at the new address. */
+    /* TODO: Investigate implementing VMRemap so that we can guarantee
+       success if we have enough spare pages. */
+    if (arenaUnmapSpare(arena, size) == 0)
       goto failPagesMap;
-    }
+    res = pagesMarkAllocated(vmArena, vmChunk, baseIndex, pages, pool);
   }
 
   base = PageIndexBase(chunk, baseIndex);
@@ -1522,200 +1492,101 @@ static Res VMNZAlloc(Addr *baseReturn, Tract *baseTractReturn,
 }
 
 
-/* spareRangesMap -- map a function over spare ranges
+/* chunkUnmapSpare -- return spare pages within a chunk to the OS
  *
- * The function f is called on the ranges of spare pages which are
- * within the range of pages from base to limit.  PageStruct descriptors
- * from base to limit should be mapped in the page table before calling
- * this function.
+ * The size is the desired amount to purge, and the amount that was purged is
+ * returned.
  */
-typedef void (*spareRangesFn)(VMChunk, Index, Index, void *);
 
-static void spareRangesMap(VMChunk vmChunk, Index base, Index limit,
-                           spareRangesFn f, void *p)
+static Size chunkUnmapSpare(Chunk chunk, Size size)
 {
-  Index spareBase, spareLimit;
-  Chunk chunk = VMChunk2Chunk(vmChunk);
+  VMChunk vmChunk;
+  Size purged = 0;
+  Size pageSize;
 
-  AVER(base < limit);
+  AVERT(Chunk, chunk);
+  vmChunk = Chunk2VMChunk(chunk);
+  AVERT(VMChunk, vmChunk);
+  /* max is arbitrary */
 
-  spareBase = base;
-  do {
-    while(!pageIsSpare(&chunk->pageTable[spareBase])) {
-      ++spareBase;
-      if (spareBase >= limit)
-        goto done;
-    }
-    spareLimit = spareBase;
-    while(pageIsSpare(&chunk->pageTable[spareLimit])) {
-      ++spareLimit;
-      if (spareLimit >= limit)
-        break;
-    }
-    f(vmChunk, spareBase, spareLimit, p);
-    spareBase = spareLimit;
-  } while(spareBase < limit);
-done:
-  AVER(spareBase == limit);
+  pageSize = ChunkPageSize(chunk);
 
-  return;
-}
-
-
-/* vmArenaUnmapSpareRange
- *
- * Takes a range of spare pages and unmaps them, turning them into free pages.
- */
-static void vmArenaUnmapSpareRange(VMChunk vmChunk,
-                                   Index rangeBase, Index rangeLimit, void *p)
-{
-  Index i;
-  Chunk chunk = VMChunk2Chunk(vmChunk);
-
-  UNUSED(p);
-  for(i = rangeBase; i < rangeLimit; ++i) {
-    sparePageRelease(vmChunk, i);
-    PageInit(chunk, i);
-  }
-  vmArenaUnmap(VMChunkVMArena(vmChunk), vmChunk->vm,
-               PageIndexBase(chunk, rangeBase),
-               PageIndexBase(chunk, rangeLimit));
-
-  return;
-}
- 
-
-/* sparePagesPurge -- all spare pages are found and purged (unmapped)
- *
- * This is currently the only way the spare pages are reduced.
- *
- * It uses the noSparePages bits to determine which areas of the
- * pageTable to examine.
- */
-static void sparePagesPurge(VMArena vmArena)
-{
-  Ring chunkNode, chunkNext;
-  Arena arena = VMArena2Arena(vmArena);
-  Count excess;
+  /* Not required by this code, but expected. */
+  AVER(SizeIsAligned(size, pageSize));
   
-  if (arena->spareCommitted > arena->spareCommitLimit) {
-    Size size = arena->spareCommitted - arena->spareCommitLimit;
-    AVER(SizeIsAligned(size, ArenaAlign(arena)));
-    excess = size / ArenaAlign(arena);
-  } else
-    return;
+  /* Start by looking at the oldest page on the spare ring, to try to
+     get some LRU behaviour from the spare pages cache. */
+  while (purged < size && !RingIsSingle(&vmChunk->spareRing)) {
+    Page page = PageOfSpareRing(RingNext(&vmChunk->spareRing));
+    Index basePage = (Index)(page - chunk->pageTable);
+    Index limitPage = basePage;
 
-  RING_FOR(chunkNode, &arena->chunkRing, chunkNext) {
-    Chunk chunk = RING_ELT(Chunk, chunkRing, chunkNode);
-    VMChunk vmChunk = Chunk2VMChunk(chunk);
-    
-    /* Start by looking at the oldest page on the spare ring, to try to
-       get some LRU behaviour from the spare pages cache. */
-    /* FIXME: This is only LRU within a chunk! */
-    while (!RingIsSingle(&vmChunk->spareRing)) {
-      Page page = PageOfSpareRing(RingNext(&vmChunk->spareRing));
-      Index pi = (Index)(page - chunk->pageTable);
-      Index pj = pi;
+    /* To avoid excessive calls to the OS, coalesce with spare pages above
+       and below, even though these may be recent. */
+    do {
+      sparePageRelease(vmChunk, limitPage);
+      PageInit(chunk, limitPage);
+      ++limitPage;
+      purged += pageSize;
+    } while (purged < size &&
+             limitPage < chunk->pages &&
+             pageType(vmChunk, limitPage) == PageTypeSpare);
+    while (purged < size &&
+           basePage > 0 &&
+           pageType(vmChunk, basePage - 1) == PageTypeSpare) {
+      --basePage;
+      sparePageRelease(vmChunk, basePage);
+      PageInit(chunk, basePage);
+      purged += pageSize;
+    }
 
-      /* To avoid excessive calls to the OS, coalesce with spare pages above
-         and below, even though these may be recent. */
-      do {
-        sparePageRelease(vmChunk, pj);
-        PageInit(chunk, pj);
-        ++pj;
-        --excess;
-      } while (excess > 0  &&
-               pj < chunk->pages &&
-               pageIsSpare(&chunk->pageTable[pj]));
-      while (excess > 0 &&
-             pi > 0 &&
-             pageIsSpare(&chunk->pageTable[pi - 1])) {
-        --pi;
-        --excess;
-        sparePageRelease(vmChunk, pi);
-        PageInit(chunk, pi);
-      }
+    vmArenaUnmap(VMChunkVMArena(vmChunk),
+                 vmChunk->vm,
+                 PageIndexBase(chunk, basePage),
+                 PageIndexBase(chunk, limitPage));
 
-      vmArenaUnmap(VMChunkVMArena(vmChunk),
-                   vmChunk->vm,
-                   PageIndexBase(chunk, pi),
-                   PageIndexBase(chunk, pj));
-
-      if (excess == 0) {
-        AVER(arena->spareCommitted == arena->spareCommitLimit);
-        return;
-      }
+    /* Unmap parts of the page table that are no longer in use. */
+    /* FIXME: This is wrong somehow! */
+    if (FALSE) {
+      Index tableBase, tableLimit;
+      tablePagesUsed(&tableBase, &tableLimit, chunk, basePage, limitPage);
+      tablePagesUnmapUnused(vmChunk,
+                            TablePageIndexBase(chunk, tableBase),
+                            TablePageIndexBase(chunk, tableLimit));
     }
   }
 
-  NOTREACHED; /* excess should've reached zero */
+  return purged;
 }
 
 
+/* arenaUnmapSpare -- return spare pages to the OS
+ *
+ * The size is the desired amount to purge, and the amount that was purged is
+ * returned.
+ *
+ * TODO: This is only an LRU algorithm within each chunk, and will tend to
+ * purge more pages from the first chunk in the ring.
+ */
 
-#if 0
-    Index spareBaseIndex, spareLimitIndex;
-    Index tablePageCursor = 0;
+#define ArenaChunkRing(arena) (&(arena)->chunkRing)
 
-    while(BTFindLongResRange(&spareBaseIndex, &spareLimitIndex,
-                             vmChunk->noSparePages,
-                             tablePageCursor, chunk->pageTablePages,
-                             1)) {
-      Addr spareTableBase, spareTableLimit;
-      Index pageBase, pageLimit;
-      Index tablePage;
+static Size arenaUnmapSpare(Arena arena, Size size)
+{
+  Ring node, next;
+  Size purged = 0;
 
-      spareTableBase = TablePageIndexBase(chunk, spareBaseIndex);
-      spareTableLimit = TablePageIndexBase(chunk, spareLimitIndex);
-      /* Determine whether to use initial overlapping PageStruct. */
-      if (spareBaseIndex > 0
-          && !BTGet(vmChunk->pageTableMapped, spareBaseIndex - 1)) {
-        pageBase = tablePageWholeBaseIndex(chunk, spareTableBase);
-      } else {
-        pageBase = tablePageBaseIndex(chunk, spareTableBase);
-      }
-      for(tablePage = spareBaseIndex; tablePage < spareLimitIndex;
-          ++tablePage) {
-        /* Determine whether to use final overlapping PageStruct. */
-        if (tablePage == spareLimitIndex - 1
-            && spareLimitIndex < chunk->pageTablePages
-            && !BTGet(vmChunk->pageTableMapped, spareLimitIndex)) {
-          pageLimit =
-            tablePageWholeLimitIndex(chunk,
-                                     TablePageIndexBase(chunk, tablePage));
-        } else if (tablePage == chunk->pageTablePages - 1) {
-          pageLimit = chunk->pages;
-        } else {
-          pageLimit =
-            tablePageLimitIndex(chunk, TablePageIndexBase(chunk, tablePage));
-        }
-        if (pageBase < pageLimit) {
-          spareRangesMap(vmChunk, pageBase, pageLimit,
-                         vmArenaUnmapSpareRange, NULL);
-        } else {
-          /* Only happens for last page occupied by the page table */
-          /* and only then when that last page has just the tail end */
-          /* part of the last page descriptor and nothing more. */
-          AVER(pageBase == pageLimit);
-          AVER(tablePage == chunk->pageTablePages - 1);
-        }
-        BTSet(vmChunk->noSparePages, tablePage);
-        pageBase = pageLimit;
-      }
-      tablePagesUnmapUnused(vmChunk, spareTableBase, spareTableLimit);
-      tablePageCursor = spareLimitIndex;
-      if (tablePageCursor >= chunk->pageTablePages) {
-        AVER(tablePageCursor == chunk->pageTablePages);
-        break;
-      }
-    }
+  AVERT(Arena, arena);
 
+  RING_FOR(node, ArenaChunkRing(arena), next) {
+    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
+    if (purged >= size)
+      break;
+    purged += chunkUnmapSpare(chunk, size);
   }
 
-  AVER(arena->spareCommitted == 0);
-  return;
+  return purged;
 }
-#endif
 
 
 /* VMFree -- free a region in the arena */
@@ -1728,8 +1599,6 @@ static void VMFree(Addr base, Size size, Pool pool)
   Chunk chunk = NULL;           /* suppress "may be used uninitialized" */
   Count pages;
   Index pi, piBase, piLimit;
-  Index pageTableBase;
-  Index pageTableLimit;
   Bool foundChunk;
 
   AVER(base != NULL);
@@ -1773,16 +1642,8 @@ static void VMFree(Addr base, Size size, Pool pool)
   arena->spareCommitted += ChunkPagesToSize(chunk, piLimit - piBase);
   BTResRange(chunk->allocTable, piBase, piLimit);
 
-  tablePagesUsed(&pageTableBase, &pageTableLimit, chunk, piBase, piLimit);
-  BTResRange(vmChunk->noSparePages, pageTableBase, pageTableLimit);
-
-  if (arena->spareCommitted > arena->spareCommitLimit) {
-    sparePagesPurge(vmArena);
-  }
-
-  /* Chunks are only freed when ArenaCompact is called. */
-
-  return;
+  /* Consider returning memory to the OS. */
+  VMArenaSpareCommitExceeded(arena);
 }
 
 
@@ -1809,7 +1670,12 @@ static void VMCompact(Arena arena, Trace trace)
       Addr base = chunk->base;
       Size size = AddrOffset(chunk->base, chunk->limit);
 
-      sparePagesPurge(vmArena);
+      /* Ensure there are no spare (mapped) pages left in the chunk.
+         This could be short-cut if we're about to destroy the chunk,
+         provided we can do the correct accounting in the arena. */
+      chunkUnmapSpare(chunk, size);
+      AVER(RingIsSingle(&Chunk2VMChunk(chunk)->spareRing));
+
       vmChunkDestroy(chunk);
 
       vmArena->contracted(arena, base, size);

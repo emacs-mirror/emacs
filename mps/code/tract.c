@@ -604,6 +604,7 @@ void PageAlloc(Chunk chunk, Index pi, Pool pool)
 {
   Tract tract;
   Addr base;
+  Page page;
 
   AVERT(Chunk, chunk);
   AVER(pi >= chunk->allocBase);
@@ -611,11 +612,15 @@ void PageAlloc(Chunk chunk, Index pi, Pool pool)
   AVER(!BTGet(chunk->allocTable, pi));
   AVERT(Pool, pool);
 
-  tract = PageTract(&chunk->pageTable[pi]);
+  page = &chunk->pageTable[pi];
+  if (PageType(page) != PageTypeFree) {
+    AVER(PageType(page) == PageTypeSpare);
+    AVER(RingIsSingle(PageSpareRing(page)));
+  }
+  tract = PageTract(page);
   base = PageIndexBase(chunk, pi);
   BTSet(chunk->allocTable, pi);
   TractInit(tract, pool, base);
-  return;
 }
 
 

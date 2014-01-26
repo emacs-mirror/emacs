@@ -121,7 +121,8 @@ Bool ArenaCheck(Arena arena)
 
   CHECKL(arena->committed <= arena->commitLimit);
   CHECKL(arena->spareCommitted <= arena->committed);
-  CHECKL(arena->spareCommitted <= arena->spareCommitLimit);
+  /* The following condition is only true nearly all the time. */
+  /* CHECKL(arena->spareCommitted <= arena->spareCommitLimit); */
 
   CHECKL(ShiftCheck(arena->zoneShift));
   CHECKL(AlignCheck(arena->alignment));
