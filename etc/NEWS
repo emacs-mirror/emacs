@@ -312,12 +312,10 @@ macros in registers.
 *** New command `C-x r f' (`frameset-to-register').
 See Changes in Emacs 24.4, above.
 
++++
 ** New command `delete-duplicate-lines'.
-When its arg ADJACENT is non-nil (when called interactively with C-u
-C-u) it works like the utility `uniq'.  Otherwise by default it
-deletes duplicate lines everywhere in the region without regard to
-adjacency.  When its arg KEEP-BLANKS is non-nil (when called
-interactively with C-u C-u C-u), duplicate blank lines are preserved.
+This searches the region for identical lines, and removes all but one
+copy of each repeated line.  The lines need not be sorted.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.4

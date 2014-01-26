@@ -136,6 +136,17 @@ the current line).  On a solitary blank line, it deletes that line.
 previous line, by deleting a newline and all surrounding spaces, usually
 leaving a single space.  @xref{Indentation,M-^}.
 
+@c Not really sure where to put this...
+@findex delete-duplicate-lines
+  The command @code{delete-duplicate-lines} searches the region for
+identical lines, and removes all but one copy of each.  Normally it
+keeps the first instance of each repeated line, but with a @kbd{C-u}
+prefix argument it keeps the last.  With a @kbd{C-u C-u} prefix
+argument, it only searches for adjacent identical lines.  This is a
+more efficient mode of operation, useful when the lines have already
+been sorted.  With a @kbd{C-u C-u C-u} prefix argument, it retains
+repeated blank lines.
+
 @node Killing by Lines
 @subsection Killing by Lines
 

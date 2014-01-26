@@ -570,25 +570,23 @@ From a program takes two point or marker arguments, BEG and END."
 ;;;###autoload
 (defun delete-duplicate-lines (beg end &optional reverse adjacent keep-blanks
                                interactive)
-  "Delete duplicate lines in the region between BEG and END.
+  "Delete all but one copy of any identical lines in the region.
+Non-interactively, arguments BEG and END delimit the region.
+Normally it searches forwards, keeping the first instance of
+each identical line.  If REVERSE is non-nil (interactively, with
+a C-u prefix), it searches backwards and keeps the last instance of
+each repeated line.
 
-If REVERSE is nil, search and delete duplicates forward keeping the first
-occurrence of duplicate lines.  If REVERSE is non-nil (when called
-interactively with C-u prefix), search and delete duplicates backward
-keeping the last occurrence of duplicate lines.
+Identical lines need not be adjacent, unless the argument
+ADJACENT is non-nil (interactively, with a C-u C-u prefix).
+This is a more efficient mode of operation, and may be useful
+on large regions that have already been sorted.
 
-If ADJACENT is non-nil (when called interactively with two C-u prefixes),
-delete repeated lines only if they are adjacent.  It works like the utility
-`uniq' and is useful when lines are already sorted in a large file since
-this is more efficient in performance and memory usage than when ADJACENT
-is nil that uses additional memory to remember previous lines.
+If the argument KEEP-BLANKS is non-nil (interactively, with a
+C-u C-u C-u prefix), it retains repeated blank lines.
 
-If KEEP-BLANKS is non-nil (when called interactively with three C-u prefixes),
-duplicate blank lines are preserved.
-
-When called from Lisp and INTERACTIVE is omitted or nil, return the number
-of deleted duplicate lines, do not print it; if INTERACTIVE is t, the
-function behaves in all respects as if it had been called interactively."
+Returns the number of deleted lines.  Interactively, or if INTERACTIVE
+is non-nil, it also prints a message describing the number of deletions."
   (interactive
    (progn
      (barf-if-buffer-read-only)

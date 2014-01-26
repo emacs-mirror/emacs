@@ -1,3 +1,7 @@
+2014-01-26  Glenn Morris  <rgm@gnu.org>
+
+	* sort.el (delete-duplicate-lines): Doc fix.
+
 2014-01-25  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* progmodes/ada-mode.el (ada):
