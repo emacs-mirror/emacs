@@ -1,3 +1,7 @@
+2014-01-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_focus_changed): Check for non-X terminal-frame (Bug#16540)
+
 2014-01-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	When decoding, prefer ptrdiff_t to int for buffer positions etc.
