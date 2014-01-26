@@ -1,5 +1,7 @@
 2014-01-26  Glenn Morris  <rgm@gnu.org>
 
+	* misc.texi (Sorting): Add findex for reverse-region.
+
 	* killing.texi (Deletion): Mention delete-duplicate-lines.
 
 2014-01-24  Glenn Morris  <rgm@gnu.org>

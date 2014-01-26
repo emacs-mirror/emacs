@@ -1994,6 +1994,7 @@ Like @kbd{M-x sort-fields} except that the text within each line
 used for comparison comes from a fixed range of columns.  See below
 for an explanation.
 
+@findex reverse-region
 @item M-x reverse-region
 Reverse the order of the lines in the region.  This is useful for
 sorting into descending order by fields or columns, since those sort
