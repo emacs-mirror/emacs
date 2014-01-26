@@ -1746,7 +1746,6 @@ static void VMCompact(Arena arena, Trace trace)
   vmem1 = VMArenaReserved(arena);
 
   /* Destroy any empty chunks (except the primary). */
-  sparePagesPurge(vmArena);
   RING_FOR(node, &arena->chunkRing, next) {
     Chunk chunk = RING_ELT(Chunk, chunkRing, node);
     if(chunk != arena->primary
@@ -1754,6 +1753,7 @@ static void VMCompact(Arena arena, Trace trace)
       Addr base = chunk->base;
       Size size = AddrOffset(chunk->base, chunk->limit);
 
+      sparePagesPurge(vmArena);
       vmChunkDestroy(chunk);
 
       vmArena->contracted(arena, base, size);
