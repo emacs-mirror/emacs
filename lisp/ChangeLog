@@ -1,5 +1,9 @@
 2014-01-26  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/opascal.el (opascal-tab-always-indents, opascal-tab):
+	Doc fix.  Make obsolete.
+	(opascal-mode): No longer mention opascal-tab-always-indents in doc.
+
 	* sort.el (delete-duplicate-lines): Doc fix.
 
 2014-01-25  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>

@@ -106,9 +106,13 @@ end;                            end;"
 (define-obsolete-variable-alias
   'delphi-tab-always-indents 'opascal-tab-always-indents "24.4")
 (defcustom opascal-tab-always-indents tab-always-indent
-  "Non-nil means TAB in OPascal mode should always reindent the current line,
-regardless of where in the line point is when the TAB command is used."
+  "Non-nil means `opascal-tab' should always reindent the current line.
+That is, regardless of where in the line point is at the time."
   :type 'boolean)
+
+(make-obsolete-variable 'opascal-tab-always-indents
+                        "use `indent-for-tab-command' and `tab-always-indent'."
+                        "24.4")
 
 (defconst opascal-directives
   '(absolute abstract assembler automated cdecl default dispid dynamic
@@ -1447,8 +1451,8 @@ If before the indent, the point is moved to the indent."
 
 
 (defun opascal-tab ()
-  "Indent the region, when Transient Mark mode is enabled and the region is
-active.  Otherwise, indent the current line or insert a TAB, depending on the
+  "Indent the region, if Transient Mark mode is on and the region is active.
+Otherwise, indent the current line or insert a TAB, depending on the
 value of `opascal-tab-always-indents' and the current line position."
   (interactive)
   (cond ((use-region-p)
@@ -1465,6 +1469,7 @@ value of `opascal-tab-always-indents' and the current line position."
          ;; Otherwise, insert a tab character.
          (insert "\t"))))
 
+(make-obsolete 'opascal-tab 'indent-for-tab-command "24.4")
 
 (defun opascal-is-directory (path)
   ;; True if the specified path is an existing directory.
@@ -1754,9 +1759,6 @@ Customization:
     Extra indentation for blocks in compound statements.
  `opascal-case-label-indent'           (default 0)
     Extra indentation for case statement labels.
- `opascal-tab-always-indents'          (default `tab-always-indents')
-    Non-nil means TAB in OPascal mode should always reindent the current line,
-    regardless of where in the line point is when the TAB command is used.
  `opascal-search-path'                 (default .)
     Directories to search when finding external units.
  `opascal-verbose'                     (default nil)

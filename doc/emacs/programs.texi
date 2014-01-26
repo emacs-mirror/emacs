@@ -75,17 +75,17 @@ mode for the C programming language is @code{c-mode}.
 @cindex VHDL mode
 @cindex M4 mode
 @cindex Shell-script mode
-@cindex Delphi mode
+@cindex OPascal mode
 @cindex PostScript mode
 @cindex Conf mode
 @cindex DNS mode
 @cindex Javascript mode
   Emacs has programming language modes for Lisp, Scheme, the
-Scheme-based DSSSL expression language, Ada, ASM, AWK, C, C++, Delphi,
+Scheme-based DSSSL expression language, Ada, ASM, AWK, C, C++,
 Fortran, Icon, IDL (CORBA), IDLWAVE, Java, Javascript, Metafont
-(@TeX{}'s companion for font creation), Modula2, Objective-C, Octave,
-Pascal, Perl, Pike, PostScript, Prolog, Python, Ruby, Simula, Tcl, and
-VHDL@.  An alternative mode for Perl is called CPerl mode.  Modes are
+(@TeX{}'s companion for font creation), Modula2, Object Pascal, Objective-C,
+Octave, Pascal, Perl, Pike, PostScript, Prolog, Python, Ruby, Simula, Tcl,
+and VHDL@.  An alternative mode for Perl is called CPerl mode.  Modes are
 also available for the scripting languages of the common GNU and Unix
 shells, VMS DCL, and MS-DOS/MS-Windows @samp{BAT} files, and for
 makefiles, DNS master files, and various sorts of configuration files.

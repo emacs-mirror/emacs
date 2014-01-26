@@ -634,14 +634,19 @@ See MH-E-NEWS for details.
 
 *** Documentation lookup/search.
 
-** OPascal mode is the new name for Delphi mode.
++++
+** OPascal mode is the new name for Delphi mode
 
+---
 *** All delphi-* variables and functions have been renamed to opascal-*.
+Obsolete aliases exist for those likely to have been used externally.
 
-*** `delphi-newline-always-indents' is not supported any more.
+---
+*** The option `delphi-newline-always-indents' has been removed.
 Use `electric-indent-mode' instead.
 
-*** `delphi-tab' is gone, replaced by `indent-for-tab-command'.
+---
+*** The TAB key runs the standard `indent-for-tab-command', not `delphi-tab'.
 
 ** Package
 
@@ -690,17 +695,23 @@ rather than mboxo.  Customize `unrmail-mbox-format' to change this.
 
 ** Ruby mode
 
-*** New option `ruby-encoding-magic-comment-style'.
-
-*** New option `ruby-custom-encoding-magic-comment-template'.
-
+---
 *** Improved syntax highlighting and indentation.
 
-*** More Ruby file types have been added to `auto-mode-alist'.
+---
+*** New `electric-indent-mode' integration.
 
+---
+*** New option `ruby-encoding-magic-comment-style'.
+
+---
+*** New option `ruby-custom-encoding-magic-comment-template'.
+
+---
 *** New option `ruby-align-to-stmt-keywords'.
 
-*** New `electric-indent-mode' integration.
+---
+*** More Ruby file types have been added to `auto-mode-alist'.
 
 ** Search and Replace
 
@@ -760,6 +771,7 @@ All non-ancient Bash versions support this option.
 Emacs can learn the appropriate indentation settings if you provide it
 with an indented sample file.
 
+---
 ** New Term mode option `term-suppress-hard-newline'.
 
 +++

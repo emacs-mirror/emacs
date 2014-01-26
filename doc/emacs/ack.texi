@@ -126,8 +126,8 @@ by Oliver Seidel), a package for maintaining @file{TODO} list files.
 Anna M. Bigatti wrote @file{cal-html.el}, which produces HTML calendars.
 
 @item
-Ray Blaak and Simon South wrote @file{delphi.el}, a mode for editing
-Delphi (Object Pascal) source code.
+Ray Blaak and Simon South wrote @file{opascal.el}, a mode for editing
+Object Pascal source code.
 
 @item
 Martin Blais, Stefan Merten, and David Goodger wrote @file{rst.el}, a
