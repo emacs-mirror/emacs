@@ -9,6 +9,7 @@
 #include "poolmv.h"
 #include "mpm.h"
 #include "cbs.h"
+#include "bt.h"
 
 
 SRCID(arena, "$Id$");
@@ -22,6 +23,7 @@ SRCID(arena, "$Id$");
 /* Forward declarations */
 
 static void ArenaTrivCompact(Arena arena, Trace trace);
+static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool);
 
 
 /* ArenaTrivDescribe -- produce trivial description of an arena */
@@ -263,7 +265,7 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
     Chunk chunk = arena->primary;
 
     MPS_ARGS_BEGIN(cbsiArgs) {
-      MPS_ARGS_ADD(cbsiArgs, MPS_KEY_CBS_EXTEND_BY, chunk->pageSize);
+      MPS_ARGS_ADD(cbsiArgs, MPS_KEY_CBS_EXTEND_BY, arena->alignment);
       MPS_ARGS_ADD(cbsiArgs, MFSExtendSelf, FALSE); /* FIXME: Explain why */
       MPS_ARGS_DONE(cbsiArgs);
       res = CBSInit(arena, &arena->freeCBS, arena, arena->alignment, TRUE, cbsiArgs);
@@ -271,30 +273,27 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
     if (res != ResOK)
       goto failCBSInit;
 
-    /* FIXME: Arena alignment is global and should be queried from tract,
-       not per-chunk. */
-    arena->freeCBS.alignment = chunk->pageSize;
-
     RangeInit(&range, PageIndexBase(chunk, chunk->allocBase), chunk->limit);
     res = CBSInsert(&range, &arena->freeCBS, &range);
 
     if (res == ResLIMIT) {
-      Addr freeBase;
+      Addr pageBase;
 
-      /* Hand-allocate a page for the CBS block structures so that we can
-         insert into the freeCBS.  FIXME: Since this CBS is shared, this
-         will cause fragmentation of the CBS blocks across chunks, making it
-         nearly impossible to remove chunks.  Maybe only allocate these
-         pages from the primary chunk. */
-      res = (*class->pagesMarkAllocated)(arena, chunk, chunk->allocBase, 1, pool);
+      res = arenaAllocPage(&pageBase, arena, pool);
       if (res != ResOK)
         goto failCBSInsert;
-      MFSExtend(pool, PageIndexBase(chunk, chunk->allocBase), chunk->pageSize);
 
-      /* Don't include the page we just allocated to the freeCBS. */
-      freeBase = AddrAdd(PageIndexBase(chunk, chunk->allocBase), chunk->pageSize);
-      RangeInit(&range, freeBase, chunk->limit);
+      MFSExtend(pool, pageBase, arena->alignment);
+
+      /* Add the chunk's whole free area to the arena's CBS. */
       res = CBSInsert(&range, &arena->freeCBS, &range);
+      AVER(res == ResOK); /* we just gave memory to the CBS */
+
+      /* Exclude the page we specially allocated for the MFS from the CBS
+         so that it doesn't get reallocated. */
+      RangeInit(&range, pageBase, AddrAdd(pageBase, arena->alignment));
+      res = CBSDelete(&range, &arena->freeCBS, &range);
+      AVER(res == ResOK); /* we just gave memory to the CBS */
     }
 
     /* There's no reason for CBSInsert to fail if there is memory in the
@@ -581,6 +580,60 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream)
 
   res = PoolDescribe(ArenaControlPool(arena), stream);
 
+  return res;
+}
+
+
+/* arenaAllocPage -- allocate one page from the arena
+ *
+ * This is a primitive allocator used to allocate pages for the arena CBS.
+ * It is called rarely and can use a simple search.  It may not use the
+ * CBS or any pool, because it is used as part of the bootstrap.
+ */
+
+static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
+{
+  Res res;
+  Index basePageIndex, limitPageIndex;
+  Arena arena;
+
+  AVER(baseReturn != NULL);
+  AVERT(Chunk, chunk);
+  arena = ChunkArena(chunk);
+  
+  if (!BTFindShortResRange(&basePageIndex, &limitPageIndex,
+                           chunk->allocTable,
+                           chunk->allocBase, chunk->pages, 1))
+    return ResRESOURCE;
+  
+  res = (*arena->class->pagesMarkAllocated)(arena, chunk,
+                                            basePageIndex, limitPageIndex,
+                                            pool);
+  if (res != ResOK)
+    return res;
+  
+  *baseReturn = PageIndexBase(chunk, basePageIndex);
+  return ResOK;
+}
+
+static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
+{
+  Res res;
+  
+  /* Favour the primary pool, because pages allocated this way aren't
+     currently freed, and we don't want to prevent chunks being destroyed. */
+  res = arenaAllocPageInChunk(baseReturn, arena->primary, pool);
+  if (res != ResOK) {
+    Ring node, next;
+    RING_FOR(node, &arena->chunkRing, next) {
+      Chunk chunk = RING_ELT(Chunk, chunkRing, node);
+      if (chunk != arena->primary) {
+        res = arenaAllocPageInChunk(baseReturn, chunk, pool);
+        if (res == ResOK)
+          break;
+      }
+    }
+  }
   return res;
 }
 
