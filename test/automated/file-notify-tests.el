@@ -199,6 +199,10 @@ TIMEOUT is the maximum time to wait for."
 
 (ert-deftest file-notify-test02-events ()
   "Check file creation/removal notifications."
+  ;; Bug#16519.
+  :expected-result
+  (if (and noninteractive (memq file-notify--library '(gfilenotify w32notify)))
+      :failed :passed)
   (skip-unless (file-notify--test-local-enabled))
   (let (desc)
     (unwind-protect
@@ -237,9 +241,7 @@ TIMEOUT is the maximum time to wait for."
       (ignore-errors (delete-file file-notify--test-tmpfile))
       (ignore-errors (delete-file file-notify--test-tmpfile1))))
 
-  (should
-   (or file-notify--test-results
-       (and noninteractive (eq file-notify--library 'gfilenotify)))) ;; Bug#16519.
+  (should file-notify--test-results)
   (dolist (result file-notify--test-results)
     ;(message "%s" (ert-test-result-messages result))
     (when (ert-test-failed-p result)
