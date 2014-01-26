@@ -1,3 +1,9 @@
+2014-01-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix crash with insert-file-contents and misdecoded text (Bug#16286).
+	* fileio.c (Finsert_file_contents): Set CODING_MODE_LAST_BLOCK
+	before invoking decode_coding_gap, since there's just one block.
+
 2014-01-25  Martin Rudalics  <rudalics@gmx.at>
 
 	Fix handling of face attributes in Fx_create_frame (Bug#16529).
