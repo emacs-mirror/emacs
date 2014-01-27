@@ -102,11 +102,6 @@ being the result.")
 	     file-notify-test-remote-temporary-file-directory)
 	    (ert-test (ert-get-test ',test)))
        (skip-unless (file-notify--test-remote-enabled))
-       ;; The local test could have passed, skipped, or quit.  All of
-       ;; these results should not prevent us to run the remote test.
-       ;; That's why we skip only for failed local tests.
-       (skip-unless
-	(not (ert-test-failed-p (ert-test-most-recent-result ert-test))))
        (tramp-cleanup-connection
 	(tramp-dissect-file-name temporary-file-directory) nil 'keep-password)
        (funcall (ert-test-body ert-test)))))
@@ -189,20 +184,18 @@ Save the result in `file-notify--test-results', for later analysis."
 
 (defmacro file-notify--wait-for-events (timeout until)
   "Wait for file notification events until form UNTIL is true.
-TIMEOUT is the maximum time to wait for."
+TIMEOUT is the maximum time to wait for, in seconds."
   `(with-timeout (,timeout (ignore))
      (while (null ,until)
-       ;; glib events, and remote events.
-       (accept-process-output nil 0.1)
-       ;; inotify events.
-       (read-event nil nil 0.1))))
+       (let (noninteractive)
+	 (sit-for 0.1 'nodisplay)))))
 
 (ert-deftest file-notify-test02-events ()
   "Check file creation/removal notifications."
   ;; Bug#16519.
   :expected-result
   (if (and noninteractive
-	   (not (file-notify--test-remote-enabled))
+	   (not (file-remote-p temporary-file-directory))
 	   (memq file-notify--library '(gfilenotify w32notify)))
       :failed :passed)
   (skip-unless (file-notify--test-local-enabled))
