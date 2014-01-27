@@ -378,18 +378,18 @@ and `calendar-month-header'.
 
 ** Calc
 
++++
 *** Calc by default now uses the Gregorian calendar for all dates, and
 uses January 1, 1 AD as its day number 1.  Previously Calc used the
 Julian calendar for dates before September 14, 1752, and it used
 December 31, 1 BC as its day number 1; the new scheme is more
 consistent with Calendar's calendrical system and day numbering.
 
-*** The new variable `calc-gregorian-switch' lets you configure the
-date when Calc switches from the Julian to the Gregorian calendar.
-Nil, the default value, means to always use the Gregorian calendar.
-The value (YEAR MONTH DAY) means to start using the Gregorian calendar
-on the given date.
++++
+*** The new option `calc-gregorian-switch' lets you configure if
+(and when) Calc switches from the Julian to the Gregorian calendar.
 
++++
 *** Support for ISO 8601 dates.
 
 ** CEDET
