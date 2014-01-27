@@ -1,5 +1,8 @@
 2014-01-27  Glenn Morris  <rgm@gnu.org>
 
+	* dired.el (dired-hide-details-mode): Don't autoload it,
+	since it cannot be used outside Dired buffers anyway.
+
 	* emulation/cua-base.el (cua-mode): Doc fix.
 
 	* dired.el (dired-hide-details-hide-symlink-targets)

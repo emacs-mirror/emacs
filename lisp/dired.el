@@ -2267,7 +2267,6 @@ unchanged."
       (substring file (match-end 0))
     file))
 
-;;;###autoload
 (define-minor-mode dired-hide-details-mode
   "Toggle visibility of detailed information in current Dired buffer.
 When this minor mode is enabled, details such as file ownership and
