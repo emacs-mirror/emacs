@@ -609,17 +609,19 @@ entries displayed by `Info-index-next', `Info-virtual-index' and
 
 ** JS Mode
 
+---
+*** New option `js-switch-indent-offset'.
+
+---
 *** Better indentation of multiple-variable declarations.
-If declaration spans several lines, variables on the following lines
+If a declaration spans several lines, variables on the following lines
 are lined up to the first one.
 
-*** We now recognize and better indent continuations in array
-comprehensions.
+---
+*** Recognition and better indentation of continuations in array comprehensions.
 
-*** New option `js-switch-indent-offset`.
-
-** MH-E has been updated to MH-E version 8.5.
-See MH-E-NEWS for details.
++++
+** MH-E has been updated to version 8.5 - see separate MH-E-NEWS file.
 
 +++
 ** Octave mode
@@ -1113,10 +1115,10 @@ This is like the old `eval-after-load', but better behaved.
 ** New library subr-x.el with miscellaneous small utility functions
 *** `hash-table-keys'
 *** `hash-table-values'
-*** `string-blank-p`
-*** `string-empty-p`
-*** `string-join`
-*** `string-reverse`
+*** `string-blank-p'
+*** `string-empty-p'
+*** `string-join'
+*** `string-reverse'
 *** `string-trim-left'
 *** `string-trim-right'
 *** `string-trim'
@@ -3363,7 +3365,7 @@ means you can just remove all calls to the function in question):
 *** `frame-update-faces' (not needed)
 *** `frame-update-face-colors' (`frame-set-background-mode')
 *** `x-frob-font-weight' and `x-frob-font-slant' (`make-face-*' functions)
-*** `x-make-font-bold and x-make-font-demibold (`make-face-bold')
+*** `x-make-font-bold' and `x-make-font-demibold' (`make-face-bold')
 *** `x-make-font-italic' and `x-make-font-oblique' (`make-face-italic')
 *** `x-make-font-bold-italic' (`make-face-bold-italic')
 *** `x-make-font-unbold' (`make-face-unbold')
