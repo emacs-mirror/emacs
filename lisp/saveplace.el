@@ -70,6 +70,7 @@ following code in your init file:
 
 (defcustom save-place-file (locate-user-emacs-file "places" ".emacs-places")
   "Name of the file that records `save-place-alist' value."
+  :version "24.4"                       ; added locate-user-emacs-file
   :type 'file
   :group 'save-place)
 

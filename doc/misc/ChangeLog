@@ -1,3 +1,12 @@
+2014-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* idlwave.texi (Lesson III---User Catalog, Online Help)
+	(Starting the Shell, Catalogs, User Catalog):
+	* remember.texi (Quick Start):
+	* viper.texi:
+	* vip.texi (Customization, Customizing Constants)
+	(Customizing Key Bindings): Update for files being in ~/.emacs.d/.
+
 2014-01-25  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* cc-mode.texi (Minor Modes): Minor fix.

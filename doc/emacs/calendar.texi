@@ -1616,11 +1616,11 @@ you.  You can, however, customize the value of the variable
 then, only an explicit @kbd{M-x timeclock-out} or @kbd{M-x
 timeclock-change} will tell Emacs that the current interval is over.
 
-@cindex @file{.timelog} file
+@cindex @file{timelog} file
 @vindex timeclock-file
 @findex timeclock-reread-log
   The timeclock functions work by accumulating the data in a file
-called @file{.timelog} in your home directory.  You can specify a
+called @file{~/.emacs.d/timelog}.  You can specify a
 different name for this file by customizing the variable
 @code{timeclock-file}.  If you edit the timeclock file manually, or if
 you change the value of any of timeclock's customizable variables, you

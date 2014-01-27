@@ -320,6 +320,7 @@ copy of each repeated line.  The lines need not be sorted.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
++++
 ** More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
 Affected files:
 ~/.emacs.d/timelog	replaces  ~/.timelog
@@ -328,7 +329,7 @@ Affected files:
 ~/.emacs.d/ido.last	replaces  ~/.ido.last
 ~/.emacs.d/kkcrc	replaces  ~/.kkcrc
 ~/.emacs.d/quickurls	replaces  ~/.quickurls
-~/.emacs.d/idlwave	replaces  ~/.idlwave
+~/.emacs.d/idlwave/	replaces  ~/.idlwave/
 ~/.emacs.d/bdfcache.el	replaces  ~/.bdfcache.el
 ~/.emacs.d/places	replaces  ~/.emacs-places
 ~/.emacs.d/shadows	replaces  ~/.shadows
@@ -353,14 +354,11 @@ you access lexical variables.
 *** New minor mode `jit-lock-debug-mode' lets you use the debuggers on
 code run via JIT Lock.
 
-** Battery
+---
+** Battery information can now be retrieved from BSD's `apm' utility.
 
 ---
-*** Battery information via the BSD `apm' utility is now supported.
-
-** Buffer Menu
-
-*** `M-s a C-o' shows lines matching a regexp in marked buffers using Occur.
+** In the Buffer Menu, `M-s a C-o' shows matches for a regexp in marked buffers.
 
 ** Calendar and Diary
 

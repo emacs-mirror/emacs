@@ -1,3 +1,22 @@
+2014-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* shadowfile.el (shadow-info-file, shadow-todo-file): Doc fix.
+	* strokes.el (strokes-file): Doc fix.  Bump :version.
+	(strokes-help): Doc fix.
+	* emulation/viper-init.el (viper-vi-style-in-minibuffer): Doc fix.
+	* emulation/viper.el (viper): Doc fix for custom group.
+	(top-level): Remove oh-so-no-longer-relevant text about vip.
+	* obsolete/otodo-mode.el (todo-prefix): Doc fix.
+
+	* ido.el (ido-save-directory-list-file):
+	* saveplace.el (save-place-file):
+	* calendar/timeclock.el (timeclock-file):
+	* net/quickurl.el (quickurl-url-file):
+	* obsolete/otodo-mode.el (todo-file-do, todo-file-done, todo-file-top):
+	* progmodes/idlwave.el (idlwave-config-directory):
+	* textmodes/remember.el (remember-data-file):
+	Bump :version.
+
 2014-01-26  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/opascal.el (opascal-tab-always-indents, opascal-tab):

@@ -322,7 +322,8 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 ;; More general definitions are inherited by more specific scopes:
 ;; global->major mode->buffer. More specific definitions override more general
 (defun viper-record-kbd-macro (macro-name state macro-body &optional scope)
-  "Record a Vi macro.  Can be used in `.viper' file to define permanent macros.
+  "Record a Vi macro.
+Can be used in `viper-custom-file-name' to define permanent macros.
 MACRO-NAME is a string of characters or a vector of keys.  STATE is
 either `vi-state' or `insert-state'.  It specifies the Viper state in which to
 define the macro.  MACRO-BODY is a string that represents the keyboard macro.
@@ -351,8 +352,8 @@ If SCOPE is nil, the user is asked to specify the scope."
 	(error "Can't map an empty macro name"))
 
     ;; Macro-name is usually a vector.  However, command history or macros
-    ;; recorded in ~/.viper may be recorded as strings.  So, convert to
-    ;; vectors.
+    ;; recorded in viper-custom-file-name may be recorded as strings.
+    ;; So, convert to vectors.
     (setq macro-name (viper-fixup-macro macro-name))
     (if (viper-char-array-p macro-name)
 	(setq macro-name (viper-char-array-to-macro macro-name)))
@@ -422,7 +423,7 @@ If SCOPE is nil, the user is asked to specify the scope."
 		       ;; if we don't let vector macro-body through %S,
 		       ;; the symbols `\.' `\[' etc will be converted into
 		       ;; characters, causing invalid read  error on recorded
-		       ;; macros in .viper.
+		       ;; macros in viper-custom-file-name.
 		       ;; I am not sure is macro-body can still be a string at
 		       ;; this point, but I am preserving this option anyway.
 		       (if (vectorp macro-body)
@@ -483,11 +484,11 @@ If SCOPE is nil, the user is asked to specify the scope."
 ;; in effect
 (defun viper-unrecord-kbd-macro (macro-name state)
   "Delete macro MACRO-NAME from Viper STATE.
-MACRO-NAME must be a vector of viper-style keys.  This command is used by Viper
-internally, but the user can also use it in ~/.viper to delete pre-defined
-macros supplied with Viper.  The best way to avoid mistakes in macro names to
-be passed to this function is to use viper-describe-kbd-macros and copy the
-name from there."
+MACRO-NAME must be a vector of viper-style keys.  This command is used
+by Viper internally, but you can also use it in `viper-custom-file-name'
+to delete pre-defined macros supplied with Viper.  The best way to avoid
+mistakes in macro names to be passed to this function is to use
+`viper-describe-kbd-macros' and copy the name from there."
   (let* (state-name keymap
 	 (macro-alist-var
 	  (cond ((eq state 'vi-state)
@@ -507,7 +508,8 @@ name from there."
 	 macro-pair macro-entry)
 
     ;; Macro-name is usually a vector.  However, command history or macros
-    ;; recorded in ~/.viper may appear as strings.  So, convert to vectors.
+    ;; recorded in viper-custom-file-name may appear as strings.
+    ;; So, convert to vectors.
     (setq macro-name (viper-fixup-macro macro-name))
     (if (viper-char-array-p macro-name)
 	(setq macro-name (viper-char-array-to-macro macro-name)))

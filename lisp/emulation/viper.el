@@ -153,9 +153,9 @@
 ;;
 ;;  The last viper-vi-basic-minor-mode contains most of the usual Vi bindings
 ;;  in its edit mode.  This mode provides access to all Emacs facilities.
-;;  Novice users, however, may want to set their viper-expert-level to 1
-;;  in their .viper file.  This will enable viper-vi-diehard-minor-mode.  This
-;;  minor mode's bindings make Viper simulate the usual Vi very closely.
+;;  Novice users, however, may want to set their viper-expert-level to 1 in
+;;  their viper-custom-file-name.  This will enable viper-vi-diehard-minor-mode.
+;;  This minor mode's bindings make Viper simulate the usual Vi very closely.
 ;;  For instance,  C-c will not have its standard Emacs binding
 ;;  and so many of the goodies of Emacs are not available.
 ;;
@@ -165,12 +165,12 @@
 ;;
 ;;  Viper gurus should have at least
 ;;      (setq viper-expert-level 4)
-;;  in their ~/.viper files.  This will unsuppress all Emacs keys that are not
-;;  essential for VI-style editing.
+;;  in their viper-custom-file-name.  This will unsuppress all Emacs keys
+;;  that are not essential for VI-style editing.
 ;;  Pick-and-choose users may want to put
 ;;      (setq viper-expert-level 5)
-;;  in ~/.viper.  Viper will then leave it up to the user to set the variables
-;;  viper-want-*  See viper-set-expert-level for details.
+;;  in viper-custom-file-name.  Viper will then leave it up to the user to
+;;  set the variables viper-want-*  See viper-set-expert-level for details.
 ;;
 ;;  The very first minor mode, viper-vi-intercept-minor-mode, is of no
 ;;  concern for the user.  It is needed to bind Viper's vital keys, such as
@@ -319,8 +319,7 @@ If set by the user, this must be done _before_ Viper is loaded in `~/.emacs'.")
 
 (defgroup viper nil
   "Vi emulation within Emacs.
-NOTE: Viper customization should be saved in `viper-custom-file-name', which
-defaults to `~/.viper'."
+NOTE: Viper customization should be saved in `viper-custom-file-name'."
   :prefix "viper-"
   :group 'emulations)
 
@@ -1222,11 +1221,7 @@ If you wish to Viperize AND make this your way of life, please put
 	(require 'viper)
 
 in your init file (preferably, close to the top).
-These two lines must come in the order given.
-
-** Viper users:
-	**** The startup file name has been changed from .vip to .viper
-	**** All vip-* style names have been converted to viper-* style."))
+These two lines must come in the order given."))
 	 (if (y-or-n-p "Viperize? ")
 	     (setq viper-mode t)
 	   (setq viper-mode nil))
@@ -1268,8 +1263,8 @@ These two lines must come in the order given.
 
 
 ;; Set some useful macros, advices
-;; These must be BEFORE ~/.viper is loaded,
-;; so the user can unrecord them in ~/.viper.
+;; These must be BEFORE viper-custom-file-name is loaded,
+;; so the user can unrecord them in viper-custom-file-name.
 (if viper-mode
     (progn
       ;; set advices and some variables that give emacs Vi look.
@@ -1289,7 +1284,7 @@ These two lines must come in the order given.
       ;; Make %%% toggle parsing comments for matching parentheses
       (viper-set-parsing-style-toggling-macro nil)
 
-      ;; ~/.viper is loaded if exists
+      ;; viper-custom-file-name is loaded if exists
       (viper-load-custom-file)
 
       ;; should be after loading custom file to avoid the pesky msg that
@@ -1300,7 +1295,7 @@ These two lines must come in the order given.
 
 
 
-;; Applying Viper customization -- runs after (load .viper)
+;; Applying Viper customization -- runs after (load viper-custom-file-name)
 
 ;; Save user settings or Viper defaults for vars controlled by
 ;; viper-expert-level
@@ -1350,7 +1345,7 @@ These two lines must come in the order given.
 
 
 ;; Intercept maps could go in viper-keym.el
-;; We keep them here in case someone redefines them in ~/.viper
+;; We keep them here in case someone redefines them in viper-custom-file-name
 
 (define-key viper-vi-intercept-map viper-ESC-key 'viper-intercept-ESC-key)
 (define-key viper-insert-intercept-map viper-ESC-key 'viper-intercept-ESC-key)

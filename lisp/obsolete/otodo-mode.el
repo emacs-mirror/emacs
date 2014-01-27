@@ -272,7 +272,7 @@
 
 This is useful in conjunction with `calendar' and `diary' if you use
 
-#include \"~/.todo-do\"
+#include \"~/.emacs.d/todo-do\"
 
 in your diary file to include your todo list file as part of your
 diary.  With the default value \"*/*\" the diary displays each entry
@@ -284,10 +284,12 @@ the diary file somewhat."
   :group 'todo)
 (defcustom todo-file-do    (locate-user-emacs-file "todo-do" ".todo-do")
   "TODO mode list file."
+  :version "24.4"                       ; added locate-user-emacs-file
   :type 'file
   :group 'todo)
 (defcustom todo-file-done  (locate-user-emacs-file "todo-done" ".todo-done")
   "TODO mode archive file."
+  :version "24.4"                       ; added locate-user-emacs-file
   :type 'file
   :group 'todo)
 (defcustom todo-mode-hook  nil
@@ -321,6 +323,7 @@ window."
 
 Not in TODO format, but diary compatible.
 Automatically generated when `todo-save-top-priorities' is non-nil."
+  :version "24.4"                       ; added locate-user-emacs-file
   :type 'string
   :group 'todo)
 
@@ -916,7 +919,7 @@ If INCLUDE-SEP is non-nil, return point after the separator."
                     ["Quit"                 todo-quit t]
                     ))
 
-;; As calendar reads .todo-do before todo-mode is loaded.
+;; As calendar reads todo-file-do before todo-mode is loaded.
 ;;;###autoload
 (define-derived-mode todo-mode nil "TODO"
   "Major mode for editing TODO lists."

@@ -203,7 +203,7 @@ Type @kbd{C-c C-c} (@code{remember-finalize}) to save the note and close
 the @samp{*Remember*} buffer.
 @end itemize
 
-By default, @code{remember-finalize} saves the note in @file{~/.notes}.
+By default, @code{remember-finalize} saves the note in @file{~/emacs.d/notes}.
 You can edit it now to see the remembered and timestamped note. You
 can edit this file however you want. New entries will always be added
 to the end.
@@ -213,7 +213,7 @@ remember} displays a @samp{*Remember*} buffer with the region as the
 initial contents.
 
 As a simple beginning, you can start by using the Text File backend,
-keeping your @file{~/.notes} file in outline-mode format, with a final
+keeping your @file{~/.emacs.d/notes} file in outline-mode format, with a final
 entry called @samp{* Raw data}. Remembered data will be added to the
 end of the file. Every so often, you can move the data that gets
 appended there into other files, or reorganize your document.

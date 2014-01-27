@@ -1887,7 +1887,8 @@ Please contact your system administrator. "
 			    (if (featurep 'xemacs) "X" "")
 			    ))))))
 
-;; Ex source command.  Loads the file specified as argument or `~/.viper'
+;; Ex source command.
+;; Loads the file specified as argument or viper-custom-file-name.
 (defun ex-source ()
   (viper-get-ex-file)
   (if (string= ex-file "")

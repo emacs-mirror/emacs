@@ -118,8 +118,7 @@
 
 ;; > M-x strokes-prompt-user-save-strokes
 
-;; and it will save your strokes in ~/.strokes, or you may wish to change
-;; this by setting the variable `strokes-file'.
+;; and it will save your strokes in your `strokes-file'.
 
 ;; Note that internally, all of the routines that are part of this
 ;; package are able to deal with complex strokes, as they are a superset
@@ -261,7 +260,8 @@ WARNING: Changing the value of this variable will gravely affect the
   :group 'strokes)
 
 (defcustom strokes-file (locate-user-emacs-file "strokes" ".strokes")
-  "File containing saved strokes for Strokes mode (default is ~/.strokes)."
+  "File containing saved strokes for Strokes mode."
+  :version "24.4"                       ; added locate-user-emacs-file
   :type 'file
   :group 'strokes)
 
@@ -991,11 +991,10 @@ down, then use a prefix argument:
 
 > C-u M-x strokes-list-strokes
 
-Your strokes are stored as you enter them.  They get saved in a file
-called ~/.strokes, along with other strokes configuration variables.
-You can change this location by setting the variable `strokes-file'.
-You will be prompted to save them when you exit Emacs, or you can save
-them with
+Your strokes are stored as you enter them.  They get saved into the
+file specified by the `strokes-file' variable, along with other strokes
+configuration variables.  You will be prompted to save them when
+you exit Emacs, or you can save them with
 
 > M-x strokes-prompt-user-save-strokes
 

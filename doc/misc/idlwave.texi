@@ -689,8 +689,8 @@ you want; directories with existing library catalogs will not be
 selected by default) and click on the @samp{Scan&Save} button.  Then
 go for a cup of coffee while IDLWAVE collects information for each and
 every IDL routine on your search path.  All this information is
-written to the file @file{.idlwave/idlusercat.el} in your home
-directory and will from now on automatically load whenever you use
+written to the file @file{~/.emacs.d/idlwave/idlusercat.el}
+and will from now on automatically load whenever you use
 IDLWAVE@.  You may find it necessary to rebuild the catalog on occasion
 as your local libraries change, or build a library catalog for those
 directories instead.  Invoke routine info (@kbd{C-c ?}) or completion
@@ -1262,7 +1262,7 @@ directly with IDL, along with an XML-based catalog of routine
 information.  By default, IDLWAVE automatically attempts to convert this
 XML catalog into a format Emacs can more easily understand, and caches
 this information in your @code{idlwave_config_directory}
-(@file{~/.idlwave/}, by default).  It also re-scans the XML catalog if
+(@file{~/.emacs.d/idlwave/}, by default).  It also re-scans the XML catalog if
 it is newer than the current cached version.  You can force rescan with
 the menu entry @code{IDLWAVE->Routine Info->Rescan XML Help Catalog}.
 
@@ -2466,7 +2466,7 @@ Initial commands, separated by newlines, to send to IDL.
 Non-@code{nil} means preserve command history between sessions.
 @end defopt
 
-@defopt idlwave-shell-command-history-file (@file{~/.idlwave/.idlwhist})
+@defopt idlwave-shell-command-history-file (@file{~/.emacs.d/idlwave/.idlwhist})
 The file in which the command history of the idlwave shell is saved.
 Unless it's an absolute path, it goes in
 @code{idlwave-config-directory}.
@@ -3518,7 +3518,7 @@ information (e.g., Windows), a library path must be specified in
 to setup directories for user catalog scan (@pxref{User Catalog} for
 more on this variable).  Note that, before the shell is running, IDLWAVE
 can only know about the IDL search path by consulting the file pointed
-to by @code{idlwave-path-file} (@file{~/.idlwave/idlpath.el}, by
+to by @code{idlwave-path-file} (@file{~/.emacs.d/idlwave/idlpath.el}, by
 default).  If @code{idlwave-auto-write-path} is enabled (which is the
 default), the paths are written out whenever the IDLWAVE shell is
 started.
@@ -3540,7 +3540,7 @@ locating HTML help and the IDL Assistant for IDL v6.2 and later.  Under
 Unix/MacOSX, will be obtained from the Shell and recorded, if run.
 @end defopt
 
-@defopt idlwave-config-directory (@file{~/.idlwave})
+@defopt idlwave-config-directory (@file{~/.emacs.d/idlwave})
 Default path where IDLWAVE saves configuration information, a user
 catalog (if any), and a cached scan of the XML catalog (IDL v6.2 and
 later).
@@ -3629,7 +3629,7 @@ performance is a problem and/or the catalogs are not needed.
 
 The user catalog is the old routine catalog system.  It is produced
 within Emacs, and stored in a single file in the user's home directory
-(@file{.idlwave/idlusercat.el} by default).  Although library catalogs
+(@file{.emacs.d/idlwave/idlusercat.el} by default).  Although library catalogs
 are more flexible, there may be reasons to prefer a user catalog
 instead, including:
 

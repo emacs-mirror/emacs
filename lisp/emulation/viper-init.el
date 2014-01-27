@@ -922,7 +922,7 @@ value refers to the number of characters affected."
 
 (defcustom viper-vi-style-in-minibuffer t
   "If t, use vi-style editing in minibuffer.
-Should be set in `~/.viper' file."
+Should be set in `viper-custom-file-name'."
   :type 'boolean
   :group 'viper)
 
