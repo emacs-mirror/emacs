@@ -1,3 +1,8 @@
+2014-01-27  Reuben Thomas  <rrt@sc3d.org>
+
+	* whitespace.el (whitespace-enable-predicate): fix sense of comment.
+	Fixes bug #16564, from change of 2013-03-10.
+
 2014-01-27  Glenn Morris  <rgm@gnu.org>
 
 	* shadowfile.el (shadow-info-file, shadow-todo-file): Doc fix.
