@@ -1,9 +1,10 @@
-2014-01-27  Reuben Thomas  <rrt@sc3d.org>
-
-	* whitespace.el (whitespace-enable-predicate): fix sense of comment.
-	Fixes bug #16564, from change of 2013-03-10.
-
 2014-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/cua-base.el (cua-mode): Doc fix.
+
+	* dired.el (dired-hide-details-hide-symlink-targets)
+	(dired-hide-details-hide-information-lines)
+	(dired-hide-details-mode): Doc fixes.
 
 	* shadowfile.el (shadow-info-file, shadow-todo-file): Doc fix.
 	* strokes.el (strokes-file): Doc fix.  Bump :version.

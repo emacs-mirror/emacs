@@ -1382,7 +1382,7 @@ file, the search wraps around to the first marked file.  The command
 a regular expression search.  @xref{Repeat Isearch}, for information
 about search repetition.
 
-@cindex Adding to the kill ring in Dired.
+@cindex adding to the kill ring in Dired
 @kindex w @r{(Dired)}
 @findex dired-copy-filename-as-kill
   The command @kbd{w} (@code{dired-copy-filename-as-kill}) puts the
@@ -1402,6 +1402,19 @@ ignored in this case.
 names into arguments for other Emacs commands.  It also displays what
 it added to the kill ring, so you can use it to display the list of
 currently marked files in the echo area.
+
+@kindex ( @r{(Dired)}
+@findex dired-hide-details-mode
+@vindex dired-hide-details-hide-symlink-targets
+@vindex dired-hide-details-hide-information-lines
+@cindex hiding details in Dired
+  The command @kbd{(} (@code{dired-hide-details-mode}) toggles whether
+details, such as ownership or file permissions, are visible in the
+current Dired buffer.  By default, it also hides the targets of
+symbolic links, and all lines other than the header line and
+file/directory listings.  To change this, customize the options
+@code{dired-hide-details-hide-symlink-targets} and
+@code{dired-hide-details-hide-information-lines}, respectively.
 
 @cindex Dired and version control
   If the directory you are visiting is under version control
@@ -1440,18 +1453,3 @@ it onto a Dired buffer; this either moves, copies, or creates a link
 to the file in that directory.  Precisely which action is taken is
 determined by the originating program.  Dragging files out of a Dired
 buffer is currently not supported.
-
-@kindex ( @r{(Dired)}
-@c )
-@findex dired-hide-details-mode
-@vindex dired-hide-details-hide-symlink-targets
-@vindex dired-hide-details-hide-information-lines
-@cindex Hide details in Dired.
-  The command @kbd{(} (@code{dired-hide-details-mode}) toggles whether
-details, such as ownership or file permissions, are hidden.  If the
-variable @code{dired-hide-details-hide-symlink-targets} is
-non-@code{nil} then targets of symbolic links are hidden as well.  A
-non-@code{nil} value for the variable
-@code{dired-hide-details-hide-information-lines} means that all lines
-other than the header and lines containing files and directories are
-hidden.

@@ -432,6 +432,7 @@ For example, this enables parsing of macros which open new namespaces.
 Hence, you can now enable it independently from `transient-mark-mode',
 `delete-selection-mode', and `shift-select-mode'.
 
+---
 *** `cua-highlight-region-shift-only' is now obsolete.
 You can disable `transient-mark-mode' to get the same result.
 
@@ -458,9 +459,8 @@ restoring the frame/window configuration (frameset).  Additional options
 and `desktop-restore-forces-onscreen' offer further customization.
 
 +++
-** Dired
-
-*** New minor mode `dired-hide-details-mode' hides details.
+** New Dired minor mode `dired-hide-details-mode' toggles whether details,
+such as file ownership or permissions, are visible.
 
 ** Eldoc Mode works properly in the minibuffer.
 

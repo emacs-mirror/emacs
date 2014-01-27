@@ -1,5 +1,7 @@
 2014-01-27  Glenn Morris  <rgm@gnu.org>
 
+	* dired.texi (Misc Dired Features): Copyedits for hide-details.
+
 	* buffers.texi (List Buffers): Tiny edit.
 
 	* calendar.texi (Time Intervals): Update for files in ~/.emacs.d/.
