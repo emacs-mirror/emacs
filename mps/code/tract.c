@@ -218,9 +218,16 @@ Res ChunkInit(Chunk chunk, Arena arena,
 
   chunk->sig = ChunkSig;
   AVERT(Chunk, chunk);
+
+  /* As part of the bootstrap, the first created chunk becomes the primary
+     chunk.  This step allows AreaFreeCBSInsert to allocate pages. */
+  if (arena->primary == NULL)
+    arena->primary = chunk;
+
   return ResOK;
 
-  /* .no-clean: No clean-ups needed for boot, as we will discard the chunk. */
+  /* .no-clean: No clean-ups needed past this point for boot, as we will
+     discard the chunk. */
 failAllocPageTable:
   (arena->class->chunkFinish)(chunk);
 failClassInit:
@@ -238,6 +245,8 @@ void ChunkFinish(Chunk chunk)
   ChunkDecache(chunk->arena, chunk);
   chunk->sig = SigInvalid;
   RingRemove(&chunk->chunkRing);
+  if (chunk->arena->primary == chunk)
+    chunk->arena->primary = NULL;
   /* Finish all other fields before class finish, because they might be */
   /* unmapped there. */
   (chunk->arena->class->chunkFinish)(chunk);

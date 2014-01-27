@@ -23,7 +23,6 @@ SRCID(arena, "$Id$");
 /* Forward declarations */
 
 static void ArenaTrivCompact(Arena arena, Trace trace);
-static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool);
 
 
 /* ArenaTrivDescribe -- produce trivial description of an arena */
@@ -162,7 +161,7 @@ Bool ArenaCheck(Arena arena)
  * methods, not the generic Create.  This is because the class is
  * responsible for allocating the descriptor.  */
 
-Res ArenaInit(Arena arena, ArenaClass class)
+Res ArenaInit(Arena arena, ArenaClass class, Align alignment)
 {
   Res res;
 
@@ -178,8 +177,7 @@ Res ArenaInit(Arena arena, ArenaClass class)
   arena->commitLimit = (Size)-1;
   arena->spareCommitted = (Size)0;
   arena->spareCommitLimit = ARENA_INIT_SPARE_COMMIT_LIMIT;
-  /* alignment is usually overridden by init */
-  arena->alignment = (Align)1 << ARENA_ZONESHIFT;
+  arena->alignment = alignment;
   /* zoneShift is usually overridden by init */
   arena->zoneShift = ARENA_ZONESHIFT;
   arena->poolReady = FALSE;     /* <design/arena/#pool.ready> */
@@ -198,8 +196,17 @@ Res ArenaInit(Arena arena, ArenaClass class)
     goto failGlobalsInit;
 
   arena->sig = ArenaSig;
-  
-  /* freeCBS initialisation is deferred to ArenaCreate */
+
+  /* Initialise the freeCBS after the rest is initialised so that the CBS
+     code can check the arena and pick up the alignment. */
+  MPS_ARGS_BEGIN(cbsiArgs) {
+    MPS_ARGS_ADD(cbsiArgs, MPS_KEY_CBS_EXTEND_BY, arena->alignment);
+    MPS_ARGS_ADD(cbsiArgs, MFSExtendSelf, FALSE); /* FIXME: Explain why */
+    MPS_ARGS_DONE(cbsiArgs);
+    res = CBSInit(arena, &arena->freeCBS, arena, arena->alignment, TRUE, cbsiArgs);
+  } MPS_ARGS_END(cbsiArgs);
+  if (res != ResOK)
+    goto failCBSInit;
 
   /* initialize the reservoir, <design/reservoir/> */
   res = ReservoirInit(&arena->reservoirStruct, arena);
@@ -211,7 +218,8 @@ Res ArenaInit(Arena arena, ArenaClass class)
 
 failReservoirInit:
   CBSFinish(&arena->freeCBS);
- GlobalsFinish(ArenaGlobals(arena));
+failCBSInit:
+  GlobalsFinish(ArenaGlobals(arena));
 failGlobalsInit:
   return res;
 }
@@ -257,52 +265,6 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
     goto failStripeSize;
   }
 
-  /* Add the chunk's free address space to the arena's freeCBS.  FIXME: This
-     needs to happen for every chunk extension, not just the first chunk. */
-  {
-    Pool pool = &arena->freeCBS.blockPoolStruct.poolStruct;
-    RangeStruct range;
-    Chunk chunk = arena->primary;
-
-    MPS_ARGS_BEGIN(cbsiArgs) {
-      MPS_ARGS_ADD(cbsiArgs, MPS_KEY_CBS_EXTEND_BY, arena->alignment);
-      MPS_ARGS_ADD(cbsiArgs, MFSExtendSelf, FALSE); /* FIXME: Explain why */
-      MPS_ARGS_DONE(cbsiArgs);
-      res = CBSInit(arena, &arena->freeCBS, arena, arena->alignment, TRUE, cbsiArgs);
-    } MPS_ARGS_END(cbsiArgs);
-    if (res != ResOK)
-      goto failCBSInit;
-
-    RangeInit(&range, PageIndexBase(chunk, chunk->allocBase), chunk->limit);
-    res = CBSInsert(&range, &arena->freeCBS, &range);
-
-    if (res == ResLIMIT) {
-      Addr pageBase;
-
-      res = arenaAllocPage(&pageBase, arena, pool);
-      if (res != ResOK)
-        goto failCBSInsert;
-
-      MFSExtend(pool, pageBase, arena->alignment);
-
-      /* Add the chunk's whole free area to the arena's CBS. */
-      res = CBSInsert(&range, &arena->freeCBS, &range);
-      AVER(res == ResOK); /* we just gave memory to the CBS */
-
-      /* Exclude the page we specially allocated for the MFS from the CBS
-         so that it doesn't get reallocated. */
-      RangeInit(&range, pageBase, AddrAdd(pageBase, arena->alignment));
-      res = CBSDelete(&range, &arena->freeCBS, &range);
-      AVER(res == ResOK); /* we just gave memory to the CBS */
-    }
-
-    /* There's no reason for CBSInsert to fail if there is memory in the
-       CBS' MFS pool. */
-    AVER(res == ResOK);
-    if (res != ResOK)
-      goto failCBSInsert;
-  }
-
   res = ControlInit(arena);
   if (res != ResOK)
     goto failControlInit;
@@ -318,8 +280,6 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 failGlobalsCompleteCreate:
   ControlFinish(arena);
 failControlInit:
-failCBSInit:
-failCBSInsert:
 failStripeSize:
   (*class->finish)(arena);
 failInit:
@@ -607,7 +567,7 @@ static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
     return ResRESOURCE;
   
   res = (*arena->class->pagesMarkAllocated)(arena, chunk,
-                                            basePageIndex, limitPageIndex,
+                                            basePageIndex, 1,
                                             pool);
   if (res != ResOK)
     return res;
@@ -635,6 +595,44 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
     }
   }
   return res;
+}
+
+
+/* arenaFreeCBSInsert -- add block to free CBS, extending pool if necessary
+ *
+ * The arena's freeCBS can't get memory in the usual way because it is used
+ * in the basic allocator, so we allocate pages specially.
+ */
+
+Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit)
+{
+  Pool pool = &arena->freeCBS.blockPoolStruct.poolStruct;
+  RangeStruct range;
+  Res res;
+
+  RangeInit(&range, base, limit);
+  res = CBSInsert(&range, &arena->freeCBS, &range);
+  if (res == ResLIMIT) { /* freeCBS MFS pool ran out of blocks */
+    Addr pageBase;
+
+    res = arenaAllocPage(&pageBase, arena, pool);
+    if (res != ResOK)
+      return res;
+
+    MFSExtend(pool, pageBase, arena->alignment);
+
+    /* Add the chunk's whole free area to the arena's CBS. */
+    res = CBSInsert(&range, &arena->freeCBS, &range);
+    AVER(res == ResOK); /* we just gave memory to the CBS */
+
+    /* Exclude the page we specially allocated for the MFS from the CBS
+       so that it doesn't get reallocated. */
+    RangeInit(&range, pageBase, AddrAdd(pageBase, arena->alignment));
+    res = CBSDelete(&range, &arena->freeCBS, &range);
+    AVER(res == ResOK); /* we just gave memory to the CBS */
+  }
+  
+  return ResOK;
 }
 
 

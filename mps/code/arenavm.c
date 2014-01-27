@@ -330,9 +330,24 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
 
   vmChunk->sig = VMChunkSig;
   AVERT(VMChunk, vmChunk);
+
+  /* Add the chunk's free address space to the arena's freeCBS, so that
+     we can allocate from it. */
+  {
+    Arena arena = VMArena2Arena(vmArena);
+    Chunk chunk = VMChunk2Chunk(vmChunk);
+    res = ArenaFreeCBSInsert(arena,
+                             PageIndexBase(chunk, chunk->allocBase),
+                             chunk->limit);
+    if (res != ResOK)
+        goto failCBSInsert;
+  }
+
   *chunkReturn = VMChunk2Chunk(vmChunk);
   return ResOK;
 
+failCBSInsert:
+  ChunkFinish(VMChunk2Chunk(vmChunk));
 failChunkInit:
   /* No need to unmap, as we're destroying the VM. */
 failChunkMap:
@@ -511,7 +526,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   arena = VMArena2Arena(vmArena);
   /* <code/arena.c#init.caller> */
-  res = ArenaInit(arena, class);
+  res = ArenaInit(arena, class, VMAlign(arenaVM));
   if (res != ResOK)
     goto failArenaInit;
   arena->committed = VMMapped(arenaVM);
@@ -564,7 +579,6 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   res = VMChunkCreate(&chunk, vmArena, userSize);
   if (res != ResOK)
     goto failChunkCreate;
-  arena->primary = chunk;
 
   /* .zoneshift: Set the zone shift to divide the chunk into the same */
   /* number of stripes as will fit into a reference set (the number of */
@@ -573,7 +587,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   /* the size is not a power of 2.  See <design/arena/#class.fields>. */
   chunkSize = AddrOffset(chunk->base, chunk->limit);
   arena->zoneShift = SizeFloorLog2(chunkSize >> MPS_WORD_SHIFT);
-  arena->alignment = chunk->pageSize;
+  AVER(chunk->pageSize == arena->alignment);
 
   AVERT(VMArena, vmArena);
   if ((ArenaClass)mps_arena_class_vm() == class)
