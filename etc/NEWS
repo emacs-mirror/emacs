@@ -429,8 +429,8 @@ For example, this enables parsing of macros which open new namespaces.
 ** CUA mode
 
 *** CUA mode now uses `delete-selection-mode' and `shift-select-mode'.
-Hence, you can now enable it independently from `transient-mark-mode',
-`delete-selection-mode', and `shift-select-mode'.
+Hence, you can now enable it independently from those modes, and from
+`transient-mark-mode'.
 
 ---
 *** `cua-highlight-region-shift-only' is now obsolete.
@@ -440,11 +440,13 @@ You can disable `transient-mark-mode' to get the same result.
 
 ** CFEngine mode
 
+---
 *** Support for completion, ElDoc, and Flycheck has been added.
 
+---
 *** The current CFEngine syntax is parsed from "cf-promises -s json".
 There is a fallback syntax available if you don't have cf-promises or
-if it doesn't support that option.
+if your version doesn't support that option.  See option `cfengine-cf-promises'.
 
 ** Delete Selection mode can now be used without `transient-mark-mode'.
 
