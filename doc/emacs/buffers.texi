@@ -174,7 +174,7 @@ List the existing buffers (@code{list-buffers}).
 @kindex C-x C-b
 @findex list-buffers
   To display a list of existing buffers, type @kbd{C-x C-b}.  Each
-line in the list shows one buffer's name, major mode and visited file.
+line in the list shows one buffer's name, size, major mode and visited file.
 The buffers are listed in the order that they were current; the
 buffers that were current most recently come first.
 
