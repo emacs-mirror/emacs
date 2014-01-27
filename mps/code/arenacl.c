@@ -241,7 +241,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   arena = ClientArena2Arena(clientArena);
   /* <code/arena.c#init.caller> */
-  res = ArenaInit(arena, class);
+  res = ArenaInit(arena, class, ARENA_CLIENT_PAGE_SIZE);
   if (res != ResOK)
     return res;
 
@@ -258,7 +258,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   /* bits in a word). Note that some zones are discontiguous in the */
   /* arena if the size is not a power of 2. */
   arena->zoneShift = SizeFloorLog2(size >> MPS_WORD_SHIFT);
-  arena->alignment = ChunkPageSize(arena->primary);
+  AVER(arena->alignment == ChunkPageSize(arena->primary));
 
   EVENT3(ArenaCreateCL, arena, size, base);
   AVERT(ClientArena, clientArena);
