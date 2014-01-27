@@ -148,7 +148,7 @@ viper-insert-basic-map.  Not recommended, except for novice users.")
 
 ;; This was the main Vi mode in old versions of VIP which may have been
 ;; extensively used by VIP users.  We declare it as a global var and, after
-;; viper-custom-file-name is loaded, we add this keymapto viper-vi-basic-map.
+;; viper-custom-file-name is loaded, we add this keymap to viper-vi-basic-map.
 (defvar viper-mode-map (make-sparse-keymap))
 
 ;; Some important keys used in viper
