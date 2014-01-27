@@ -3938,7 +3938,8 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
 
 /* Return the symbol in OBARRAY whose names matches the string
    of SIZE characters (SIZE_BYTE bytes) at PTR.
-   If there is no such symbol in OBARRAY, return nil.
+   If there is no such symbol, return the integer bucket number of
+   where the symbol would be if it were present.
 
    Also store the bucket number in oblookup_last_bucket_number.  */
 
