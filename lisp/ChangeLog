@@ -1,3 +1,17 @@
+2014-01-28  Luke Lee  <luke.yx.lee@gmail.com>
+
+	* progmodes/hideif.el: Extend to full CPP expression syntax.
+	(hif-token-alist): Add missing tokens.
+	(hif-token-regexp): Add support for float/octal/hex immediates.
+	(hif-string-literal-regexp): New const.
+	(hif-tokenize): Recognize strings and float/octal/hex immediates.
+	(hif-exprlist): New function.
+	(hif-parse-if-exp): Use it.
+	(hif-logior-expr, hif-logxor-expr, hif-logand-expr, hif-comp-expr)
+	(hif-logshift-expr, hif-muldiv-expr, hif-lognot, hif-shiftleft)
+	(hif-shiftright, hif-multiply, hif-divide, hif-modulo, hif-equal)
+	(hif-logxor, hif-comma): New functions.
+
 2014-01-28  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/fill.el (fill-single-char-nobreak-p): Doc tweak.
