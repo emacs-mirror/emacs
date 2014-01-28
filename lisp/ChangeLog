@@ -1,5 +1,7 @@
 2014-01-28  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/fill.el (fill-single-char-nobreak-p): Doc tweak.
+
 	* indent.el (tab-stop-list): Doc fix.  Add :version.
 
 	* vc/pcvs.el (vc-editable-p, vc-checkout): Remove unused declarations.

@@ -1,5 +1,7 @@
 2014-01-28  Glenn Morris  <rgm@gnu.org>
 
+	* text.texi (Fill Commands): Mention fill-single-char-nobreak-p.
+
 	* indent.texi (Tab Stops): Updates for new tab-stop behavior.
 
 2014-01-27  Glenn Morris  <rgm@gnu.org>

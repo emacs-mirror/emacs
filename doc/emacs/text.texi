@@ -562,10 +562,11 @@ customize the abnormal hook variable @code{fill-nobreak-predicate}
 (@pxref{Hooks}).  Each function in this hook is called with no
 arguments, with point positioned where Emacs is considering breaking a
 line.  If a function returns a non-@code{nil} value, Emacs will not
-break the line there.  Two functions you can use are
+break the line there.  Functions you can use there include:
 @code{fill-single-word-nobreak-p} (don't break after the first word of
-a sentence or before the last) and @code{fill-french-nobreak-p} (don't
-break after @samp{(} or before @samp{)}, @samp{:} or @samp{?}).
+a sentence or before the last); @code{fill-single-char-nobreak-p}
+(don't break after a one-letter word); and @code{fill-french-nobreak-p}
+(don't break after @samp{(} or before @samp{)}, @samp{:} or @samp{?}).
 
 @node Fill Prefix
 @subsection The Fill Prefix

@@ -330,10 +330,10 @@ places."
 		   (eq (char-syntax (following-char)) ?w)))))))
 
 (defun fill-single-char-nobreak-p ()
-  "Return t if point is placed just after a 1-letter word.
-This is used in `fill-nobreak-predicate' to prevent breaking line just
-after a 1-letter word (usually conjunction or preposition) which is
-considered composition error in Polish and Czech typography."
+  "Return non-nil if a one-letter word is before point.
+This function is suitable for adding to the hook `fill-nobreak-predicate',
+to prevent the breaking of a line just after a one-letter word,
+which is an error according to some rules of typography."
   (save-excursion
     (skip-chars-backward " \t")
     (backward-char 2)
