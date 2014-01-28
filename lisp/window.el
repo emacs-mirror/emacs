@@ -6864,20 +6864,30 @@ FRAME."
 	     ;; Handle margins.
 	     (margins (or (frame-parameter frame 'fit-frame-to-buffer-margins)
 			  fit-frame-to-buffer-margins))
-	     (left-margin (or (window--sanitize-margin
-			       (nth 0 margins) 0 display-width)
-			      (nth 0 workarea)))
-	     (top-margin (or (window--sanitize-margin
-			      (nth 1 margins) 0 display-height)
-			     (nth 1 workarea)))
+	     (left-margin (if (nth 0 margins)
+			      (or (window--sanitize-margin
+				   (nth 0 margins) 0 display-width)
+				  0)
+			    (nth 0 workarea)))
+	     (top-margin (if (nth 1 margins)
+			     (or (window--sanitize-margin
+				  (nth 1 margins) 0 display-height)
+				 0)
+			   (nth 1 workarea)))
 	     (workarea-width (nth 2 workarea))
-	     (right-margin (or (window--sanitize-margin
-				(nth 2 margins) left-margin display-width)
-			       (+ left-margin workarea-width)))
+	     (right-margin (if (nth 2 margins)
+			       (- display-width
+				  (or (window--sanitize-margin
+				       (nth 2 margins) left-margin display-width)
+				      0))
+			     (nth 2 workarea)))
 	     (workarea-height (nth 3 workarea))
-	     (bottom-margin (or (window--sanitize-margin
-				 (nth 3 margins) top-margin display-height)
-				(+ top-margin workarea-height)))
+	     (bottom-margin (if (nth 3 margins)
+				(- display-height
+				   (or (window--sanitize-margin
+					(nth 3 margins) top-margin display-height)
+				       0))
+			      (nth 3 workarea)))
 	     ;; The pixel width of FRAME (which does not include the
 	     ;; window manager's decorations).
 	     (frame-width (frame-pixel-width))
@@ -6927,11 +6937,7 @@ FRAME."
 			    (not (zerop lines)))
 		       (1- lines)
 		     0))))
-	     ;; The maximum height we can use for fitting.
-	     (fit-height
-	      (- workarea-height extra-height toolbar-extra-height))
-	     ;; The pixel position of FRAME's top border.  We usually
-	     ;; try to leave this alone.
+	     ;; The pixel position of FRAME's top border.
 	     (top
 	      (let ((top (frame-parameter nil 'top)))
 		(if (consp top)
@@ -6943,7 +6949,8 @@ FRAME."
 	     (max-height
 	      (cond
 	       ((numberp (nth 0 sizes)) (* (nth 0 sizes) char-height))
-	       ((numberp max-height) (* max-height char-height))))
+	       ((numberp max-height) (* max-height char-height))
+	       (t display-height)))
 	     (min-height
 	      (cond
 	       ((numberp (nth 1 sizes)) (* (nth 1 sizes) char-height))
@@ -6954,7 +6961,8 @@ FRAME."
 	       ((numberp (nth 2 sizes))
 		(- (* (nth 2 sizes) char-width) window-extra-width))
 	       ((numberp max-width)
-		(- (* max-width char-width) window-extra-width))))
+		(- (* max-width char-width) window-extra-width))
+	       (t display-height)))
 	     (min-width
 	      (cond
 	       ((numberp (nth 3 sizes))
@@ -6967,59 +6975,48 @@ FRAME."
 	     (value (window-text-pixel-size
 		     nil t t workarea-width workarea-height t))
 	     (width (+ (car value) (window-right-divider-width)))
-	     (height (+ (cdr value) (window-bottom-divider-width)))
-	     remainder)
-	(unless frame-resize-pixelwise
-	  ;; Round sizes to character sizes.
-	  (setq remainder (% width char-width))
-	  (unless (zerop remainder)
-	    (setq width (+ width (- char-width remainder))))
-	  (setq remainder (% height char-height))
-	  (setq height (+ height (- char-height remainder))))
-	;; Now make sure that we don't get larger than our rounded
-	;; maximum lines and columns.
-	(when (> width fit-width)
-	  (setq width (- fit-width (% fit-width char-width))))
-	(when (> height fit-height)
-	  (setq height (- fit-height (% fit-height char-height))))
+	     (height (+ (cdr value) (window-bottom-divider-width))))
 	;; Don't change height or width when the window's size is fixed
 	;; in either direction.
 	(cond
-	 ((eq window-size-fixed 'height)
-	  (setq height nil))
 	 ((eq window-size-fixed 'width)
+	  (setq width nil))
+	 ((eq window-size-fixed 'height)
 	  (setq height nil)))
+	;; Fit width to constraints.
 	(when width
+	  (unless frame-resize-pixelwise
+	    ;; Round to character sizes.
+	    (setq width (* (/ (+ width char-width -1) char-width)
+			   char-width)))
 	  ;; Fit to maximum and minimum widths.
-	  (when max-width
-	    (setq width (min width max-width)))
-	  (when min-width
-	    (setq width (max width min-width)))
+	  (setq width (max (min width max-width) min-width))
 	  ;; Add extra width.
 	  (setq width (+ width extra-width))
-	  ;; Preserve right margin.
-	  (let ((right (+ left width extra-width)))
+	  ;; Preserve margins.
+	  (let ((right (+ left width)))
 	    (cond
 	     ((> right right-margin)
 	      ;; Move frame to left (we don't know its real width).
-	      (setq left (min (- right-margin display-width) -1)))
+	      (setq left (max left-margin (- left (- right right-margin)))))
 	     ((< left left-margin)
 	      ;; Move frame to right.
 	      (setq left left-margin)))))
+	;; Fit height to constraints.
 	(when height
+	  (unless frame-resize-pixelwise
+	    (setq height (* (/ (+ height char-height -1) char-height)
+			    char-height)))
 	  ;; Fit to maximum and minimum heights.
-	  (when max-height
-	    (setq height (min height max-height)))
-	  (when min-height
-	    (setq height (max height min-height)))
+	  (setq height (max (min height max-height) min-height))
 	  ;; Add extra height.
 	  (setq height (+ height extra-height))
-	  ;; Preserve bottom and top margins.
-	  (let ((bottom (+ top height extra-height)))
+	  ;; Preserve margins.
+	  (let ((bottom (+ top height)))
 	    (cond
 	     ((> bottom bottom-margin)
 	      ;; Move frame up (we don't know its real height).
-	      (setq top (min (- bottom-margin display-height) -1)))
+	      (setq top (max top-margin (- top (- bottom bottom-margin)))))
 	     ((< top top-margin)
 	      ;; Move frame down.
 	      (setq top top-margin)))))

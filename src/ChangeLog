@@ -1,3 +1,13 @@
+2014-01-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* xdisp.c (last_max_ascent): Re-remove after erroneously
+	reintroducing it on 2013-11-30 and abolishing Dmitry's removal
+	from 2013-03-29.
+	(move_it_to): Re-remove reference to last_max_ascent.
+	(Fwindow_text_pixel_size): Add iterator's max_ascent and
+	max_descent here instead of calling line_bottom_y.  Fix
+	doc-string.
+
 2014-01-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* terminal.c (initial_free_frame_resources): New function.

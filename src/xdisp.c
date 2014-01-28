@@ -571,7 +571,7 @@ static struct glyph scratch_glyphs[MAX_SCRATCH_GLYPHS];
 
 /* Ascent and height of the last line processed by move_it_to.  */
 
-static int last_max_ascent, last_height;
+static int last_height;
 
 /* Non-zero if there's a help-echo in the echo area.  */
 
@@ -9099,7 +9099,6 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
       it->current_y += it->max_ascent + it->max_descent;
       ++it->vpos;
       last_height = it->max_ascent + it->max_descent;
-      last_max_ascent = it->max_ascent;
       it->max_ascent = it->max_descent = 0;
     }
 
@@ -9126,7 +9125,6 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
       it->current_y += it->max_ascent + it->max_descent;
       ++it->vpos;
       last_height = it->max_ascent + it->max_descent;
-      last_max_ascent = it->max_ascent;
     }
 
   if (backup_data)
@@ -9511,7 +9509,7 @@ Optional argument MODE_AND_HEADER_LINE nil or omitted means do not
 include the height of the mode- or header-line of WINDOW in the return
 value.  If it is either the symbol `mode-line' or `header-line', include
 only the height of that line, if present, in the return value.  If t,
-include the height of any of these lines in the return value.  */)
+include the height of both, if present, in the return value.  */)
   (Lisp_Object window, Lisp_Object from, Lisp_Object to, Lisp_Object x_limit, Lisp_Object y_limit,
    Lisp_Object mode_and_header_line)
 {
@@ -9579,7 +9577,6 @@ include the height of any of these lines in the return value.  */)
   SET_TEXT_POS (startp, start, CHAR_TO_BYTE (start));
   start_display (&it, w, startp);
 
-  /**   move_it_vertically_backward (&it, 0); **/
   if (NILP (x_limit))
     x = move_it_to (&it, end, -1, max_y, -1, MOVE_TO_POS | MOVE_TO_Y);
   else
@@ -9593,14 +9590,7 @@ include the height of any of these lines in the return value.  */)
 		      MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
     }
 
-  if (start == end)
-    y = it.current_y;
-  else
-    {
-      /* Count last line.  */
-      last_height = 0;
-      y = line_bottom_y (&it); /* - y; */
-    }
+  y = it.current_y + it.max_ascent + it.max_descent;
 
   if (!EQ (mode_and_header_line, Qheader_line)
       && !EQ (mode_and_header_line, Qt))
