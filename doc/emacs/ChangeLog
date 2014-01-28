@@ -1,3 +1,7 @@
+2014-01-28  Glenn Morris  <rgm@gnu.org>
+
+	* indent.texi (Tab Stops): Updates for new tab-stop behavior.
+
 2014-01-27  Glenn Morris  <rgm@gnu.org>
 
 	* dired.texi (Misc Dired Features): Copyedits for hide-details.

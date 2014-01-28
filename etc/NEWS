@@ -268,6 +268,7 @@ normal editing behavior.
 
 *** `electric-indent-mode' is enabled by default.
 
++++
 *** `tab-stop-list' is now implicitly extended to infinity by repeating
 the last step.  Its default value is changed to nil, which means a tab
 stop every `tab-width' columns.
