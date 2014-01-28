@@ -181,7 +181,7 @@ To install changes, type C-c C-c
 @noindent
 The first line contains a colon at each tab stop.  The numbers on the
 next two lines are present just to indicate where the colons are.
-If the value @code{tab-stop-list} is @code{nil}, as it is by default,
+If the value of @code{tab-stop-list} is @code{nil}, as it is by default,
 no colons are displayed initially.
 
   You can edit this buffer to specify different tab stops by placing
