@@ -636,6 +636,92 @@ Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit)
 }
 
 
+/* arenaAllocFromCBS -- allocate memory using the free CBS
+ *
+ * The free CBS contains all the free address space we have in chunks,
+ * so this is the primary method of allocation.
+ */
+
+static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones,
+                             Size size, Pool pool)
+{
+  Arena arena;
+  RangeStruct range, oldRange;
+  Chunk chunk;
+  Bool b;
+  Index baseIndex;
+  Count pages;
+  Res res;
+
+  AVER(tractReturn != NULL);
+  /* ZoneSet is arbitrary */
+  AVER(size > (Size)0);
+  AVERT(Pool, pool);
+  arena = PoolArena(pool);
+  AVER(SizeIsAligned(size, arena->alignment));
+  
+  /* TODO: What about a range that crosses chunks?! Every chunk has
+     some unallocated space at the beginning with page tables in it.
+     This assumption needs documenting and asserting! */
+
+  if (!CBSFindFirstInZones(&range, &oldRange, &arena->freeCBS, size,
+                           arena, zones))
+    return ResRESOURCE;
+  
+  b = CHUNK_OF_ADDR(&chunk, arena, range.base);
+  AVER(b);
+  AVER(RangeIsAligned(&range, ChunkPageSize(chunk)));
+  baseIndex = INDEX_OF_ADDR(chunk, range.base);
+  pages = ChunkSizeToPages(chunk, RangeSize(&range));
+  res = (*arena->class->pagesMarkAllocated)(arena, chunk, baseIndex, pages, pool);
+  if (res != ResOK)
+    goto failMark;
+
+  *tractReturn = PageTract(&chunk->pageTable[baseIndex]); /* FIXME: method for this? */
+  return ResOK;
+
+failMark:
+   {
+     Res insertRes = CBSInsert(&oldRange, &arena->freeCBS, &range);
+     AVER(insertRes == ResOK); /* We only just deleted it. */
+     /* If the insert does fail, we lose some address space permanently. */
+   }
+   return res;
+}
+
+
+/* arenaAllocPolicy -- arena allocation policy implementation
+ *
+ * This is the code responsible for making decisions about where to allocate
+ * memory.  Avoid distributing code for doing this elsewhere, so that policy
+ * can be maintained and adjusted.
+ */
+
+static Res arenaAllocPolicy(Tract *tractReturn, SegPref pref,
+                            Size size, Pool pool)
+{
+  Res res;
+  Tract tract;
+
+  AVER(tractReturn != NULL);
+  AVERT(SegPref, pref);
+  AVER(size > (Size)0);
+  AVERT(Pool, pool);
+
+  /* Plan A: allocate from the free CBS in the requested zones */
+  /* FIXME: Takes no account of other zones fields */
+  res = arenaAllocFromCBS(&tract, pref->zones, size, pool);
+  if (res == ResOK) {
+    *tractReturn = tract;
+    return ResOK;
+  }
+
+  /* Plan B: extend the arena */
+  /* FIXME: unimplemented! */
+  return ResUNIMPL;
+}
+
+
 /* ArenaAlloc -- allocate some tracts from the arena */
 
 Res ArenaAlloc(Addr *baseReturn, SegPref pref, Size size, Pool pool,
@@ -644,7 +730,7 @@ Res ArenaAlloc(Addr *baseReturn, SegPref pref, Size size, Pool pool,
   Res res;
   Arena arena;
   Addr base;
-  Tract baseTract;
+  Tract tract;
   Reservoir reservoir;
 
   AVER(baseReturn != NULL);
@@ -667,71 +753,31 @@ Res ArenaAlloc(Addr *baseReturn, SegPref pref, Size size, Pool pool,
         return res;
     }
   }
+
+  res = arenaAllocPolicy(&tract, pref, size, pool);
+  if (res != ResOK) {
+    if (withReservoirPermit) {
+      Res resRes = ReservoirWithdraw(&base, &tract, reservoir, size, pool);
+      if (resRes != ResOK)
+        goto allocFail;
+    } else
+      goto allocFail;
+  }
   
-  {
-    RangeStruct rangeStruct, oldRangeStruct;
-    /* FIXME: Needs to fall back if nothing is available in the right zones */
-    if (CBSFindFirstInZones(&rangeStruct, &oldRangeStruct,
-                            &arena->freeCBS, size,
-                            arena, pref->zones)) {
-      Chunk chunk;
-      Bool b;
-      Index baseIndex;
-      Count pages;
-      b = CHUNK_OF_ADDR(&chunk, arena, rangeStruct.base);
-      AVER(b);
-      AVER(RangeIsAligned(&rangeStruct, ChunkPageSize(chunk)));
-      /* FIXME: What about a range that crosses chunks?! Every chunk has
-         some unallocated space at the beginning with page tables in it.
-         This assumption needs documenting and asserting! */
-      baseIndex = INDEX_OF_ADDR(chunk, rangeStruct.base);
-      pages = ChunkSizeToPages(chunk, RangeSize(&rangeStruct));
-      res = (*arena->class->pagesMarkAllocated)(arena, chunk, baseIndex, pages, pool);
-      if (res != ResOK) {
-         Res insertRes = CBSInsert(&oldRangeStruct, &arena->freeCBS, &rangeStruct);
-         AVER(insertRes == ResOK); /* FIXME: Is this true? We just deleted it. */
-         /* If the insert does fail, we lose some address space permanently. */
-         EVENT3(ArenaAllocFail, arena, size, pool); /* FIXME: Should have res? */
-         return res;
-      }
+  base = TractBase(tract);
 
-      baseTract = PageTract(&chunk->pageTable[baseIndex]); /* FIXME: method for this? */
-      base = RangeBase(&rangeStruct);
-
-      /* cache the tract - <design/arena/#tract.cache> */
-      arena->lastTract = baseTract;
-      arena->lastTractBase = base;
-
-      EVENT5(ArenaAlloc, arena, baseTract, base, size, pool);
-      *baseReturn = base;
-      return ResOK;
-    }
-    /* FIXME: Extend arena? */
-    return ResUNIMPL;
-  }
-
-#if 0
-  res = (*arena->class->alloc)(&base, &baseTract, pref, size, pool);
-  if (res == ResOK) {
-    goto goodAlloc;
-  } else if (withReservoirPermit) {
-    AVER(ResIsAllocFailure(res));
-    res = ReservoirWithdraw(&base, &baseTract, reservoir, size, pool);
-    if (res == ResOK)
-      goto goodAlloc;
-  }
-  EVENT3(ArenaAllocFail, arena, size, pool);
-  return res;
-
-goodAlloc:
   /* cache the tract - <design/arena/#tract.cache> */
-  arena->lastTract = baseTract;
+  arena->lastTract = tract;
   arena->lastTractBase = base;
 
-  EVENT5(ArenaAlloc, arena, baseTract, base, size, pool);
+  EVENT5(ArenaAlloc, arena, tract, base, size, pool);
+
   *baseReturn = base;
   return ResOK;
-#endif
+
+allocFail:
+   EVENT3(ArenaAllocFail, arena, size, pool); /* TODO: Should have res? */
+   return res;
 }
 
 
