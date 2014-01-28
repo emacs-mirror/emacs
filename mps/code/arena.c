@@ -697,7 +697,7 @@ failMark:
  * can be maintained and adjusted.
  */
 
-static Res arenaAllocPolicy(Tract *tractReturn, SegPref pref,
+static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
                             Size size, Pool pool)
 {
   Res res;
@@ -707,6 +707,16 @@ static Res arenaAllocPolicy(Tract *tractReturn, SegPref pref,
   AVERT(SegPref, pref);
   AVER(size > (Size)0);
   AVERT(Pool, pool);
+
+  /* Don't attempt to allocate if doing so would definitely exceed the
+     commit limit. */
+  if (arena->spareCommitted < size) {
+    Size necessaryCommitIncrease = size - arena->spareCommitted;
+    if (arena->committed + necessaryCommitIncrease > arena->commitLimit
+        || arena->committed + necessaryCommitIncrease < arena->committed) {
+      return ResCOMMIT_LIMIT;
+    }
+  }
 
   /* Plan A: allocate from the free CBS in the requested zones */
   /* FIXME: Takes no account of other zones fields */
@@ -754,7 +764,7 @@ Res ArenaAlloc(Addr *baseReturn, SegPref pref, Size size, Pool pool,
     }
   }
 
-  res = arenaAllocPolicy(&tract, pref, size, pool);
+  res = arenaAllocPolicy(&tract, arena, pref, size, pool);
   if (res != ResOK) {
     if (withReservoirPermit) {
       Res resRes = ReservoirWithdraw(&base, &tract, reservoir, size, pool);
