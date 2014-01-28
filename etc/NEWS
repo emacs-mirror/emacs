@@ -42,8 +42,7 @@ of _any_ files during installation.
 
 ---
 ** The configure option `--with-crt-dir' has been removed.
-It is no longer needed, as the crt*.o files are no longer linked
-specially.
+It is no longer needed, as the crt*.o files are no longer linked specially.
 
 ---
 ** Directories passed to configure option `--enable-locallisppath' are
@@ -242,17 +241,15 @@ and this variable has been marked obsolete.
 ** `emacs-bzr-version' has been renamed to `emacs-repository-version',
 and works for git too, if you fetch the repository notes.
 
-** New user options:
-
-*** `read-regexp-defaults-function' defines a function to read regexps,
+** `read-regexp-defaults-function' defines a function to read regexps,
 used by commands like `rgrep', `lgrep' `occur', `highlight-regexp', etc.
 You can customize this to specify a function that provides a default
 value from the regexp last history element, or from the symbol found
 at point.
 
 +++
-*** `load-prefer-newer' affects how the `load' function chooses the
-file to load.  If this is non-nil, then when both .el and .elc
+** New option `load-prefer-newer' affects how the `load' function chooses
+the file to load.  If this is non-nil, then when both .el and .elc
 versions of a file exist, and the caller did not explicitly specify
 which one to load, then the newer file is loaded.  The default, nil,
 means to always load the .elc file.
@@ -409,13 +406,13 @@ target architecture auto-detection.
 **** Improved detection of used namespaces in current scope in C++.
 
 **** Parsing of default values for variables and function arguments in C/C++.
-They are also displayed by the summarize feature in the modeline.
+They are also displayed by the summarize feature in the mode line.
 
 **** Improved parsing of function pointers in C/C++.
 This also includes parsing of function pointers as function arguments.
 
-**** Parsing of C/C++ preprocessor macros which open new scope.
-For example, this enables parsing of macros which open new namespaces.
+**** Parsing of C/C++ preprocessor macros that open new scope.
+For example, this enables parsing of macros that open new namespaces.
 
 **** Support for 'this' pointer in inline member functions in C++.
 
@@ -757,7 +754,7 @@ The same rules are now applied to the symbol search with the difference
 that it matches symbols, and non-symbol characters between symbols.
 
 +++
-** New SES command `ses-rename-cell' allows assigning names to SES cells.
+** New SES command `ses-rename-cell' allows assignment of names to SES cells.
 
 ---
 ** The shell.el option `explicit-bash-args' includes --noediting by default.
@@ -765,9 +762,11 @@ All non-ancient Bash versions support this option.
 
 ** Shell Script mode
 
-*** `sh-mode' now has its own setting for `add-log-current-defun-function'.
+---
+*** The SMIE indentation engine is now used by default - see `sh-use-smie'.
 
-*** The SMIE indentation engine is now used by default.
+---
+*** `sh-mode' now has its own setting for `add-log-current-defun-function'.
 
 ** SMIE indentation can be customized via `smie-config'.
 Emacs can learn the appropriate indentation settings if you provide it
@@ -859,10 +858,6 @@ received with a pull operation.
 under current version control system.  When called with a prefix
 argument, you can remove a file from the ignored file list.
 
----
-*** `cvs-append-to-ignore' has been renamed to `vc-cvs-append-to-ignore'
-because it is moved to vc-cvs.el.
-
 ** VHDL mode
 
 ---
@@ -875,7 +870,7 @@ because it is moved to vc-cvs.el.
 ** The Woman commands `woman-default-faces' and `woman-monochrome-faces'
 are obsolete.  Customize the `woman-*' faces instead.
 
-** Obsolete packages:
+** Obsolete packages
 
 *** Iswitchb is made obsolete by icomplete-mode.
 
@@ -1086,7 +1081,7 @@ displaying the buffer in a window.
 ** New hook `pre-redisplay-function'.
 
 +++
-** New bool-vector set operation functions:
+** New bool-vector set operation functions
 *** `bool-vector-exclusive-or'
 *** `bool-vector-union'
 *** `bool-vector-intersection'
@@ -1126,7 +1121,7 @@ This is like the old `eval-after-load', but better behaved.
 *** `string-remove-suffix'
 
 +++
-** Obsoleted functions:
+** Obsoleted functions
 *** `log10'
 *** `dont-compile'
 *** `lisp-complete-symbol'

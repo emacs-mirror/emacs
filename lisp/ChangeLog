@@ -1,3 +1,8 @@
+2014-01-28  Glenn Morris  <rgm@gnu.org>
+
+	* vc/pcvs.el (vc-editable-p, vc-checkout): Remove unused declarations.
+	(cvs-append-to-ignore): Add compatibility alias.
+
 2014-01-27  Glenn Morris  <rgm@gnu.org>
 
 	* dired.el (dired-hide-details-mode): Don't autoload it,

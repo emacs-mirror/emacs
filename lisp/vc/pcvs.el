@@ -1976,8 +1976,9 @@ This command ignores files that are not flagged as `Unknown'."
     (setf (cvs-fileinfo->type fi) 'DEAD))
   (cvs-cleanup-collection cvs-cookies nil nil nil))
 
-(declare-function vc-editable-p "vc" (file))
-(declare-function vc-checkout "vc" (file &optional writable rev))
+(define-obsolete-function-alias 'cvs-append-to-ignore 'vc-cvs-append-to-ignore
+  "24.4")
+
 
 (defun cvs-mode-find-file-other-window (e)
   "Select a buffer containing the file in another window."
