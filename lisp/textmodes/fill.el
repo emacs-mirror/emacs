@@ -333,7 +333,7 @@ places."
   "Return non-nil if a one-letter word is before point.
 This function is suitable for adding to the hook `fill-nobreak-predicate',
 to prevent the breaking of a line just after a one-letter word,
-which is an error according to some rules of typography."
+which is an error according to some typographical conventions."
   (save-excursion
     (skip-chars-backward " \t")
     (backward-char 2)

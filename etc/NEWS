@@ -282,8 +282,8 @@ leave different number of spaces.
 
 +++
 *** `fill-single-char-nobreak-p' prevents fill from breaking a line after
-a one-letter word, which is an error according to some rules of typography.
-To use it, add it to the `fill-nobreak-predicate' hook.
+a one-letter word, which is an error according to some typographical
+conventions.  To use it, add it to the `fill-nobreak-predicate' hook.
 
 +++
 ** Uniquify is enabled by default, with `post-forward-angle-brackets' style.
