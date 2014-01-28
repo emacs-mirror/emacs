@@ -694,7 +694,8 @@ init_frame_faces (struct frame *f)
 }
 
 
-/* Free face cache of frame F.  Called from delete_frame.  */
+/* Free face cache of frame F.  Called from frame-dependent
+   resource freeing function, e.g. (x|tty)_free_frame_resources.  */
 
 void
 free_frame_faces (struct frame *f)
