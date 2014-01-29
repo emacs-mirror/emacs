@@ -1,3 +1,7 @@
+2014-01-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xmenu.c (create_and_show_popup_menu): Port comment to C89.
+
 2014-01-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit (xprintstr, xprintbytestr): Don't use repetition count
