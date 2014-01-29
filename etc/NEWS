@@ -491,9 +491,7 @@ You can customize `electric-pair-text-pairs' and
 `electric-pair-text-syntax-table' to tweak pairing behavior inside
 strings and comments.
 
-** EPA
-
-*** New option `epa-mail-aliases'.
+** New EPA option `epa-mail-aliases'.
 You can set this to a list of alias expansions for keys to use
 in `epa-mail-encrypt'.
 
@@ -506,9 +504,7 @@ that means: when one of the recipients of the message being encrypted
 is `foo@bar.com', ignore that name as regards encryption.
 This is useful to avoid a query when you have no key for that name.
 
-** ERC
-
-*** New option `erc-accidental-paste-threshold-seconds'.
+** New ERC option `erc-accidental-paste-threshold-seconds'.
 If set to a number, this can be used to avoid accidentally pasting large
 amounts of data into the ERC input.
 
@@ -537,9 +533,8 @@ External su and sudo commands are now the default; the internal,
 Tramp-using variants can still be used by enabling the eshell-tramp
 module.
 
-** F90 mode
 ---
-*** New option `f90-smart-end-names'.
+** New F90 mode option `f90-smart-end-names'.
 
 ** Icomplete is a bit more like Ido.
 
