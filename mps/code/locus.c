@@ -342,6 +342,7 @@ Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace)
     genNewSize = GenDescNewSize(gen);
   } while (genNewSize >= gen->capacity * (Size)1024);
   
+  AVER(condemnedSet != ZoneSetEMPTY || condemnedSize == 0);
   EVENT3(ChainCondemnAuto, chain, topCondemnedGenSerial, chain->genCount);
   UNUSED(topCondemnedGenSerial); /* only used for EVENT */
   

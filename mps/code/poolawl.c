@@ -48,9 +48,6 @@ SRCID(poolawl, "$Id$");
 
 #define AWLSig ((Sig)0x519B7A37) /* SIGnature PooL AWL */
 
-#define AWLGen ((Serial)1) /* "generation" for AWL pools */
-/* This and the dynamic criterion are the only ways AWL will get collected. */
-
 
 /* awlStat* -- Statistics gathering about instruction emulation
  *
@@ -90,7 +87,6 @@ typedef struct AWLStruct {
   Chain chain;              /* dummy chain */
   PoolGenStruct pgen;       /* generation representing the pool */
   Size size;                /* allocated size in bytes */
-  Serial gen;               /* associated generation (for SegAlloc) */
   Count succAccesses;       /* number of successive single accesses */
   FindDependentMethod findDependent; /*  to find a dependent object */
   awlStatTotalStruct stats;
@@ -470,9 +466,10 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
   if (size == 0)
     return ResMEMORY;
   MPS_ARGS_BEGIN(args) {
+    Serial gen = 0; /* AWL only has one generation in its chain */
     MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u, rankSet);
     MPS_ARGS_DONE(args);
-    res = ChainAlloc(&seg, awl->chain, awl->gen, AWLSegClassGet(),
+    res = ChainAlloc(&seg, awl->chain, gen, AWLSegClassGet(),
                      size, pool, reservoirPermit, args);
   } MPS_ARGS_END(args);
   if (res != ResOK)
@@ -569,7 +566,6 @@ static Res AWLInit(Pool pool, ArgList args)
     goto failGenInit;
 
   awl->alignShift = SizeLog2(pool->alignment);
-  awl->gen = AWLGen;
   awl->size = (Size)0;
 
   awl->succAccesses = 0;
@@ -1300,9 +1296,6 @@ static Bool AWLCheck(AWL awl)
   CHECKL(awl->poolStruct.class == AWLPoolClassGet());
   CHECKL((Align)1 << awl->alignShift == awl->poolStruct.alignment);
   CHECKD(Chain, awl->chain);
-  CHECKL(NONNEGATIVE(awl->gen));
-  /* 30 is just a sanity check really, not a constraint. */
-  CHECKL(awl->gen <= 30);
   /* Nothing to check about succAccesses. */
   CHECKL(FUNCHECK(awl->findDependent));
   /* Don't bother to check stats. */

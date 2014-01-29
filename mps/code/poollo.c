@@ -15,9 +15,6 @@
 SRCID(poollo, "$Id$");
 
 
-#define LOGen ((Serial)1)
-
-
 /* LOStruct -- leaf object pool instance structure */
 
 #define LOSig           ((Sig)0x51970B07) /* SIGnature LO POoL */
@@ -27,7 +24,6 @@ typedef struct LOStruct *LO;
 typedef struct LOStruct {
   PoolStruct poolStruct;        /* generic pool structure */
   Shift alignShift;             /* log_2 of pool alignment */
-  Serial gen;                   /* generation for placement */
   Chain chain;                  /* chain used by this pool */
   PoolGenStruct pgen;           /* generation representing the pool */
   Sig sig;
@@ -286,6 +282,7 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
   LO lo;
   Seg seg;
   Res res;
+  Serial gen;
 
   AVER(loSegReturn != NULL);
   AVERT(Pool, pool);
@@ -294,7 +291,8 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
-  res = ChainAlloc(&seg, lo->chain, lo->gen, EnsureLOSegClass(),
+  gen = 0; /* LO only has one generation in its chain */
+  res = ChainAlloc(&seg, lo->chain, gen, EnsureLOSegClass(),
                    SizeAlignUp(size, ArenaAlign(PoolArena(pool))),
                    pool, withReservoirPermit, argsNone);
   if (res != ResOK)
@@ -494,7 +492,6 @@ static Res LOInit(Pool pool, ArgList args)
   lo->poolStruct.alignment = format->alignment;
   lo->alignShift =
     SizeLog2((Size)PoolAlignment(&lo->poolStruct));
-  lo->gen = LOGen; /* may be modified in debugger */
   res = ChainCreate(&lo->chain, arena, 1, &loGenParam);
   if (res != ResOK)
     return res;
