@@ -1,5 +1,8 @@
 2014-01-29  Eli Zaretskii  <eliz@gnu.org>
 
+	* .gdbinit (xprintstr, xprintbytestr): Don't use repetition count
+	of zero to print strings, GDB doesn't like it.
+
 	* print.c (print_object): Use FETCH_STRING_CHAR_ADVANCE, not
 	STRING_CHAR_AND_LENGTH, so that if the string is relocated by GC,
 	we still use correct addresses.  (Bug#16576)

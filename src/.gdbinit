@@ -1072,7 +1072,13 @@ end
 
 define xprintstr
   set $data = (char *) $arg0->data
-  output ($arg0->size > 1000) ? 0 : ($data[0])@($arg0->size_byte < 0 ? $arg0->size & ~ARRAY_MARK_FLAG : $arg0->size_byte)
+  set $strsize = ($arg0->size_byte < 0) ? ($arg0->size & ~ARRAY_MARK_FLAG) : $arg0->size_byte
+  # GDB doesn't like zero repetition counts
+  if $strsize == 0
+    output ""
+  else
+    output ($arg0->size > 1000) ? 0 : ($data[0])@($strsize)
+  end
 end
 
 define xprintsym
@@ -1184,8 +1190,13 @@ end
 
 define xprintbytestr
   set $data = (char *) $arg0->data
+  set $bstrsize = ($arg0->size_byte < 0) ? ($arg0->size & ~ARRAY_MARK_FLAG) : $arg0->size_byte
   printf "Bytecode: "
-  output/u ($arg0->size > 1000) ? 0 : ($data[0])@($arg0->size_byte < 0 ? $arg0->size & ~ARRAY_MARK_FLAG : $arg0->size_byte)
+  if $bstrsize > 0
+    output/u ($arg0->size > 1000) ? 0 : ($data[0])@($bvsize)
+  else
+    printf ""
+  end
 end
 document xprintbytestr
   Print a string of byte code.
