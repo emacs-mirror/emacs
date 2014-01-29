@@ -954,7 +954,7 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
 
   /* No suitable segment found; make a new one. */
-  segPrefStruct = *SegPrefDefault();
+  SegPrefInit(&segPrefStruct);
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
   res = AMSSegCreate(&seg, pool, size, &segPrefStruct, rankSet,
                      withReservoirPermit);

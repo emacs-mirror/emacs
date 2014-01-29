@@ -261,11 +261,13 @@ static void testAllocAndIterate(Arena arena, Pool pool,
                                 AllocatorClass allocator)
 {
   AllocInfoStruct offsetRegion, gapRegion, newRegion, topRegion;
-  SegPrefStruct pref = *SegPrefDefault();
+  SegPrefStruct pref;
   Count offset, gap, new;
   ZoneSet zone = (ZoneSet)2;
   int i;
 
+  SegPrefInit(&pref);
+  
   /* Testing the behaviour with various sizes of gaps in the page table. */
 
   /* Assume the allocation strategy is first-fit.  The idea of the tests is */

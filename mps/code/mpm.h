@@ -626,6 +626,7 @@ extern Res ArenaNoExtend(Arena arena, Addr base, Size size);
 
 extern Bool SegPrefCheck(SegPref pref);
 extern SegPref SegPrefDefault(void);
+extern void SegPrefInit(SegPref pref);
 extern void SegPrefExpress(SegPref pref, SegPrefKind kind, void *p);
 
 extern void LocusInit(Arena arena);

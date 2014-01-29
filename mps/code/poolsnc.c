@@ -391,7 +391,7 @@ static Res SNCInit(Pool pool, ArgList args)
   snc->freeSegs = NULL;
   /* Use the default segpref for the pool. At least this should avoid */
   /* clashes with collected pools */
-  snc->segPrefStruct = *SegPrefDefault();
+  SegPrefInit(&snc->segPrefStruct);
   snc->sig = SNCSig;
 
   AVERT(SNC, snc);
