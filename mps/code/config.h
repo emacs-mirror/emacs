@@ -513,6 +513,19 @@
 #define AWL_TOTAL_SA_LIMIT      0
 
 
+/* Default chain for GC pools
+ *
+ * TODO: The default should be to measure liveness and make sensible
+ * decisions.
+ */
+
+#define ChainDEFAULT \
+  { \
+    { 2 * 1024, 0.85 }, /* 2MiB nursery */ \
+    { 8 * 1024, 0.45 }  /* 8MiB second gen, after which dynamic */ \
+  }
+
+
 #endif /* config_h */
 
 
