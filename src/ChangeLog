@@ -1,3 +1,8 @@
+2014-01-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32fns.c (x_set_tool_bar_lines): Don't clear area on frames
+	that are not visible.
+
 2014-01-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (create_and_show_popup_menu): Handle case when no key
