@@ -1,3 +1,16 @@
+2014-01-27  K. Handa  <handa@gnu.org>
+
+	Fix bug#16286 by the different way than revno:116158 to preserve
+	the code detection behavior of 24.3.
+
+	* coding.h (struct coding_system): New member detected_utf8_bytes.
+
+	* coding.c (detect_coding_utf_8): Set coding->detected_utf8_bytes.
+	(decode_coding_gap): Use short cut for UTF-8 file reading only
+	when coding->detected_utf8_bytes equals to coding->src_bytes.
+
+	* fileio.c (Finsert_file_contents): Cancel the previous change.
+
 2014-01-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_focus_changed): Check for non-X terminal-frame (Bug#16540)

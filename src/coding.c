@@ -1300,6 +1300,7 @@ detect_coding_utf_8 (struct coding_system *coding,
 	   means that we found a valid non-ASCII characters.  */
 	detect_info->found |= CATEGORY_MASK_UTF_8_AUTO | CATEGORY_MASK_UTF_8_NOSIG;
     }
+  coding->detected_utf8_bytes = src_base - coding->source;
   coding->detected_utf8_chars = nchars;
   return 1;
 }
@@ -7890,7 +7891,7 @@ decode_coding_gap (struct coding_system *coding,
   coding->dst_multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
 
   coding->head_ascii = -1;
-  coding->detected_utf8_chars = -1;
+  coding->detected_utf8_bytes = coding->detected_utf8_chars = -1;
   coding->eol_seen = EOL_SEEN_NONE;
   if (CODING_REQUIRE_DETECTION (coding))
     detect_coding (coding);
@@ -7907,7 +7908,8 @@ decode_coding_gap (struct coding_system *coding,
       if (chars != bytes)
 	{
 	  /* There exists a non-ASCII byte.  */
-	  if (EQ (CODING_ATTR_TYPE (attrs), Qutf_8))
+	  if (EQ (CODING_ATTR_TYPE (attrs), Qutf_8)
+	      && coding->detected_utf8_bytes == coding->src_bytes)
 	    {
 	      if (coding->detected_utf8_chars >= 0)
 		chars = coding->detected_utf8_chars;
