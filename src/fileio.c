@@ -4298,7 +4298,6 @@ by calling `format-decode', which see.  */)
       Z_BYTE -= inserted;
       ZV -= inserted;
       Z -= inserted;
-      coding.mode |= CODING_MODE_LAST_BLOCK;
       decode_coding_gap (&coding, inserted, inserted);
       inserted = coding.produced_char;
       coding_system = CODING_ID_NAME (coding.id);
