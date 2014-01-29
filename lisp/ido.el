@@ -956,6 +956,7 @@ ido is running.  Copied from `icomplete-minibuffer-setup-hook'."
 Variables stored are: `ido-last-directory-list', `ido-work-directory-list',
 `ido-work-file-list', and `ido-dir-file-cache'.
 Must be set before enabling ido mode."
+  :version "24.4"                       ; added locate-user-emacs-file
   :type 'string
   :group 'ido)
 

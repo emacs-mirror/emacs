@@ -109,12 +109,11 @@ number of characters.  If the numeric argument is omitted or one, they
 delete all the text in the region if it is active (@pxref{Using
 Region}).
 
-@c FIXME: `cycle-spacing' should be documented, too.  (Maybe not in
-@c this node, tho.)  --xfq
 @kindex M-\
 @findex delete-horizontal-space
 @kindex M-SPC
 @findex just-one-space
+@findex cycle-spacing
   The other delete commands are those that delete only whitespace
 characters: spaces, tabs and newlines.  @kbd{M-\}
 (@code{delete-horizontal-space}) deletes all the spaces and tab
@@ -125,7 +124,11 @@ point, regardless of the number of spaces that existed previously
 (even if there were none before).  With a numeric argument @var{n}, it
 leaves @var{n} spaces before point if @var{n} is positive; if @var{n}
 is negative, it deletes newlines in addition to spaces and tabs,
-leaving @var{-n} spaces before point.
+leaving @var{-n} spaces before point.  The command @code{cycle-spacing}
+acts like a more flexible version of @code{just-one-space}.  It
+does different things if you call it repeatedly in succession.
+The first call acts like @code{just-one-space}, the next removes
+all whitespace, and a third call restores the original whitespace.
 
   @kbd{C-x C-o} (@code{delete-blank-lines}) deletes all blank lines
 after the current line.  If the current line is blank, it deletes all

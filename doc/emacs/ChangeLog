@@ -1,3 +1,21 @@
+2014-01-29  Glenn Morris  <rgm@gnu.org>
+
+	* killing.texi (Deletion): Mention cycle-spacing.
+
+2014-01-28  Glenn Morris  <rgm@gnu.org>
+
+	* text.texi (Fill Commands): Mention fill-single-char-nobreak-p.
+
+	* indent.texi (Tab Stops): Updates for new tab-stop behavior.
+
+2014-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* dired.texi (Misc Dired Features): Copyedits for hide-details.
+
+	* buffers.texi (List Buffers): Tiny edit.
+
+	* calendar.texi (Time Intervals): Update for files in ~/.emacs.d/.
+
 2014-01-26  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments):

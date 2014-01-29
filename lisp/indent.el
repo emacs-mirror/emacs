@@ -586,16 +586,17 @@ See also `indent-relative-maybe'."
 	  (move-marker opoint nil))
       (tab-to-tab-stop))))
 
-(defcustom tab-stop-list
-  nil
+(defcustom tab-stop-list nil
   "List of tab stop positions used by `tab-to-tab-stop'.
-This should be a list of integers, ordered from smallest to largest.
-It implicitly extends to infinity by repeating the last step (e.g. '(1 2 5)
-is equivalent to '(1 2 5 8 11)).
-If the list has less than 2 elements, `tab-width' is used as the \"last step\"."
+This should be nil, or a list of integers, ordered from smallest to largest.
+It implicitly extends to infinity through repetition of the last step.
+For example, '(1 2 5) is equivalent to '(1 2 5 8 11 ...).  If the list has
+fewer than 2 elements, `tab-width' is used as the \"last step\".
+A value of nil means a tab stop every `tab-width' columns."
   :group 'indent
+  :version "24.4"                       ; from explicit list to nil
+  :safe 'listp
   :type '(repeat integer))
-(put 'tab-stop-list 'safe-local-variable 'listp)
 
 (defvar edit-tab-stops-map
   (let ((map (make-sparse-keymap)))

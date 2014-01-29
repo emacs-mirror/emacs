@@ -1225,6 +1225,9 @@ systems for HTML/XML files automatically."
    More specifically do what's needed to make ibuffer.el the default,
    or just an extension of buff-menu.el.
 
+** Replace linum.el with nlinum.el
+   http://lists.gnu.org/archive/html/emacs-devel/2013-08/msg00379.html
+
 ** Use pcomplete by default in shell-mode.
    This means to make it behave (by default) more like the current code.
    Use it also for read-shell-command, M-x compile, ...

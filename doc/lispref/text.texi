@@ -771,6 +771,9 @@ space, or @var{n} spaces if @var{n} is specified.  It returns
 @code{nil}.
 @end deffn
 
+@c There is also cycle-spacing, but I cannot see it being useful in
+@c Lisp programs, so it is not mentioned here.
+
 @deffn Command delete-blank-lines
 This function deletes blank lines surrounding point.  If point is on a
 blank line with one or more blank lines before or after it, then all but
@@ -2460,19 +2463,19 @@ stop feature only in a few major modes, such as Text mode.
 
 @deffn Command tab-to-tab-stop
 This command inserts spaces or tabs before point, up to the next tab
-stop column defined by @code{tab-stop-list}.  It searches the list for
-an element greater than the current column number, and uses that element
-as the column to indent to.  It does nothing if no such element is
-found.
+stop column defined by @code{tab-stop-list}.
 @end deffn
 
 @defopt tab-stop-list
-This variable is the list of tab stop columns used by
-@code{tab-to-tab-stops}.  The elements should be integers in increasing
-order.  The tab stop columns need not be evenly spaced.
+This variable defines the tab stop columns used by @code{tab-to-tab-stop}.
+It should be either @code{nil}, or a list of increasing integers,
+which need not be evenly spaced.  The list is implicitly
+extended to infinity through repetition of the interval between the
+last and penultimate elements (or @code{tab-width} if the list has
+fewer than two elements).  A value of @code{nil} means a tab stop
+every @code{tab-width} columns.
 
-Use @kbd{M-x edit-tab-stops} to edit the location of tab stops
-interactively.
+Use @kbd{M-x edit-tab-stops} to edit the location of tab stops interactively.
 @end defopt
 
 @node Motion by Indent

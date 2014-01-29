@@ -241,13 +241,13 @@ new Dired buffers."
   :group 'dired)
 
 (defcustom dired-hide-details-hide-symlink-targets t
-  "If non-nil, `dired-hide-details-mode' hides symbolic link targets."
+  "Non-nil means `dired-hide-details-mode' hides symbolic link targets."
   :type 'boolean
   :version "24.4"
   :group 'dired)
 
 (defcustom dired-hide-details-hide-information-lines t
-  "Non-nil means hide lines other than header and file/dir lines."
+  "Non-nil means `dired-hide-details-mode' hides all but header and file lines."
   :type 'boolean
   :version "24.4"
   :group 'dired)
@@ -2267,10 +2267,13 @@ unchanged."
       (substring file (match-end 0))
     file))
 
-;;; Minor mode for hiding details
-;;;###autoload
 (define-minor-mode dired-hide-details-mode
-  "Hide details in Dired mode."
+  "Toggle visibility of detailed information in current Dired buffer.
+When this minor mode is enabled, details such as file ownership and
+permissions are hidden from view.
+
+See options: `dired-hide-details-hide-symlink-targets' and
+`dired-hide-details-hide-information-lines'."
   :group 'dired
   (unless (derived-mode-p 'dired-mode)
     (error "Not a Dired buffer"))

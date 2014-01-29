@@ -500,7 +500,15 @@ selected frame's terminal).  */)
   return store_terminal_param (t, parameter, value);
 }
 
-
+/* Initial frame has no device-dependent output data, but has
+   face cache which should be freed when the frame is deleted.  */
+
+static void
+initial_free_frame_resources (struct frame *f)
+{
+  eassert (FRAME_INITIAL_P (f));
+  free_frame_faces (f);
+}
 
 /* Create the bootstrap display terminal for the initial frame.
    Returns a terminal of type output_initial.  */
@@ -516,6 +524,7 @@ init_initial_terminal (void)
   initial_terminal->name = xstrdup ("initial_terminal");
   initial_terminal->kboard = initial_kboard;
   initial_terminal->delete_terminal_hook = &delete_initial_terminal;
+  initial_terminal->delete_frame_hook = &initial_free_frame_resources;
   /* All other hooks are NULL. */
 
   return initial_terminal;

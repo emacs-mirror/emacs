@@ -1,3 +1,63 @@
+2014-01-29  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (just-one-space, cycle-spacing): Doc fixes.
+
+2014-01-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (fit-frame-to-buffer): Fix calculations for margins and
+	height constraints.
+
+2014-01-28  Luke Lee  <luke.yx.lee@gmail.com>
+
+	* progmodes/hideif.el: Extend to full CPP expression syntax.
+	(hif-token-alist): Add missing tokens.
+	(hif-token-regexp): Add support for float/octal/hex immediates.
+	(hif-string-literal-regexp): New const.
+	(hif-tokenize): Recognize strings and float/octal/hex immediates.
+	(hif-exprlist): New function.
+	(hif-parse-if-exp): Use it.
+	(hif-logior-expr, hif-logxor-expr, hif-logand-expr, hif-comp-expr)
+	(hif-logshift-expr, hif-muldiv-expr, hif-lognot, hif-shiftleft)
+	(hif-shiftright, hif-multiply, hif-divide, hif-modulo, hif-equal)
+	(hif-logxor, hif-comma): New functions.
+
+2014-01-28  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/fill.el (fill-single-char-nobreak-p): Doc tweak.
+
+	* indent.el (tab-stop-list): Doc fix.  Add :version.
+
+	* vc/pcvs.el (vc-editable-p, vc-checkout): Remove unused declarations.
+	(cvs-append-to-ignore): Add compatibility alias.
+
+2014-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-hide-details-mode): Don't autoload it,
+	since it cannot be used outside Dired buffers anyway.
+
+	* emulation/cua-base.el (cua-mode): Doc fix.
+
+	* dired.el (dired-hide-details-hide-symlink-targets)
+	(dired-hide-details-hide-information-lines)
+	(dired-hide-details-mode): Doc fixes.
+
+	* shadowfile.el (shadow-info-file, shadow-todo-file): Doc fix.
+	* strokes.el (strokes-file): Doc fix.  Bump :version.
+	(strokes-help): Doc fix.
+	* emulation/viper-init.el (viper-vi-style-in-minibuffer): Doc fix.
+	* emulation/viper.el (viper): Doc fix for custom group.
+	(top-level): Remove oh-so-no-longer-relevant text about vip.
+	* obsolete/otodo-mode.el (todo-prefix): Doc fix.
+
+	* ido.el (ido-save-directory-list-file):
+	* saveplace.el (save-place-file):
+	* calendar/timeclock.el (timeclock-file):
+	* net/quickurl.el (quickurl-url-file):
+	* obsolete/otodo-mode.el (todo-file-do, todo-file-done, todo-file-top):
+	* progmodes/idlwave.el (idlwave-config-directory):
+	* textmodes/remember.el (remember-data-file):
+	Bump :version.
+
 2014-01-26  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/opascal.el (opascal-tab-always-indents, opascal-tab):

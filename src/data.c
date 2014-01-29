@@ -2523,12 +2523,12 @@ NUMBER may be an integer or a floating point number.  */)
 
 DEFUN ("string-to-number", Fstring_to_number, Sstring_to_number, 1, 2, 0,
        doc: /* Parse STRING as a decimal number and return the number.
-This parses both integers and floating point numbers.
-It ignores leading spaces and tabs, and all trailing chars.
+Ignore leading spaces and tabs, and all trailing chars.  Return 0 if
+STRING cannot be parsed as an integer or floating point number.
 
 If BASE, interpret STRING as a number in that base.  If BASE isn't
 present, base 10 is used.  BASE must be between 2 and 16 (inclusive).
-If the base used is not 10, STRING is always parsed as integer.  */)
+If the base used is not 10, STRING is always parsed as an integer.  */)
   (register Lisp_Object string, Lisp_Object base)
 {
   register char *p;

@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Anders Holst <aho@sans.kth.se>
-;; Last change: 3 March 1998
+;; Maintainer: FSF
 ;; Version: 1.6
 ;; Keywords: abbrev convenience
 

@@ -1084,7 +1084,7 @@ See also `whitespace-style', `whitespace-newline' and
                (not (memq major-mode (cdr whitespace-global-modes)))
              (memq major-mode whitespace-global-modes)))
           (t nil))
-         ;; ...we have a display (we're running a batch job)
+         ;; ...we have a display (not running a batch job)
          (not noninteractive)
          ;; ...the buffer is not internal (name starts with a space)
          (not (eq (aref (buffer-name) 0) ?\ ))

@@ -157,10 +157,12 @@ C-u -999 C-x @key{TAB}
   Emacs defines certain column numbers to be @dfn{tab stops}.  These
 are used as stopping points by @key{TAB} when inserting whitespace in
 Text mode and related modes (@pxref{Indentation}), and by commands
-like @kbd{M-i} (@pxref{Indentation Commands}).  By default, tab stops
-are located every 8 columns.  These positions are stored in the
-variable @code{tab-stop-list}, whose value is a list of column numbers
-in increasing order.
+like @kbd{M-i} (@pxref{Indentation Commands}).  The variable
+@code{tab-stop-list} controls these positions.  The default value
+is @code{nil}, which means a tab stop every 8 columns.  The value
+can also be a list of column numbers (in increasing order) at which to
+place tab stops.  Emacs extends the list forever by repeating the
+difference between the last and next-to-last elements.
 
 @findex edit-tab-stops
 @kindex C-c C-c @r{(Edit Tab Stops)}
@@ -178,12 +180,15 @@ To install changes, type C-c C-c
 
 @noindent
 The first line contains a colon at each tab stop.  The numbers on the
-next two lines are present just to indicate where the colons are.  It
-is implicitly extended to infinity by repeating the last step.
+next two lines are present just to indicate where the colons are.
+If the value of @code{tab-stop-list} is @code{nil}, as it is by default,
+no colons are displayed initially.
 
   You can edit this buffer to specify different tab stops by placing
 colons on the desired columns.  The buffer uses Overwrite mode
-(@pxref{Minor Modes}).  When you are done, type @kbd{C-c C-c} to make
+(@pxref{Minor Modes}).  Remember that Emacs will extend the list of
+tab stops forever by repeating the difference between the last two
+explicit stops that you place.  When you are done, type @kbd{C-c C-c} to make
 the new tab stops take effect.  Normally, the new tab stop settings
 apply to all buffers.  However, if you have made the
 @code{tab-stop-list} variable local to the buffer where you called

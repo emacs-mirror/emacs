@@ -118,7 +118,7 @@
 ;;
 ;; * Using "remember"
 ;;
-;; As a rough beginning, what I do is to keep my .notes file in
+;; As a rough beginning, what I do is to keep my `remember-data-file' in
 ;; outline-mode format, with a final entry called "* Raw data".  Then,
 ;; at intervals, I can move the data that gets appended there into
 ;; other places.  But certainly this should evolve into an intuitive
@@ -386,6 +386,7 @@ Subject: %s\n\n"
   "The file in which to store unprocessed data.
 When set via customize, visited file of the notes buffer (if it
 exists) might be changed."
+  :version "24.4"                       ; added locate-user-emacs-file
   :type 'file
   :set (lambda (symbol value)
          (let ((buf (find-buffer-visiting (default-value symbol))))

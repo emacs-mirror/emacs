@@ -42,8 +42,7 @@ of _any_ files during installation.
 
 ---
 ** The configure option `--with-crt-dir' has been removed.
-It is no longer needed, as the crt*.o files are no longer linked
-specially.
+It is no longer needed, as the crt*.o files are no longer linked specially.
 
 ---
 ** Directories passed to configure option `--enable-locallisppath' are
@@ -242,17 +241,15 @@ and this variable has been marked obsolete.
 ** `emacs-bzr-version' has been renamed to `emacs-repository-version',
 and works for git too, if you fetch the repository notes.
 
-** New user options:
-
-*** `read-regexp-defaults-function' defines a function to read regexps,
+** `read-regexp-defaults-function' defines a function to read regexps,
 used by commands like `rgrep', `lgrep' `occur', `highlight-regexp', etc.
 You can customize this to specify a function that provides a default
 value from the regexp last history element, or from the symbol found
 at point.
 
 +++
-*** `load-prefer-newer' affects how the `load' function chooses the
-file to load.  If this is non-nil, then when both .el and .elc
+** New option `load-prefer-newer' affects how the `load' function chooses
+the file to load.  If this is non-nil, then when both .el and .elc
 versions of a file exist, and the caller did not explicitly specify
 which one to load, then the newer file is loaded.  The default, nil,
 means to always load the .elc file.
@@ -271,22 +268,20 @@ normal editing behavior.
 
 *** `electric-indent-mode' is enabled by default.
 
++++
 *** `tab-stop-list' is now implicitly extended to infinity by repeating
 the last step.  Its default value is changed to nil, which means a tab
 stop every `tab-width' columns.
 
-** Filling changes
++++
+** New command `cycle-spacing' acts like a smarter `just-one-space'.
+When called in succession, it cycles between spacing conventions:
+one space, no spaces, original spacing.
 
-*** New command `cycle-spacing' cycles between spacing conventions:
-having just one space, no spaces, or reverting to the original
-spacing.  Like `just-one-space', it can handle or ignore newlines and
-leave different number of spaces.
-
-*** `fill-single-char-nobreak-p' prevents fill from breaking a line after
-a 1-letter word, which is an error according to Polish and
-Czech typography rules.  To globally enable this feature, evaluate:
-
-  (add-hook 'fill-nobreak-predicate 'fill-single-char-nobreak-p)
++++
+** The new function `fill-single-char-nobreak-p' can stop fill from breaking
+a line after a one-letter word, which is an error in some typographical
+conventions.  To use it, add it to the `fill-nobreak-predicate' hook.
 
 +++
 ** Uniquify is enabled by default, with `post-forward-angle-brackets' style.
@@ -320,6 +315,7 @@ copy of each repeated line.  The lines need not be sorted.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
++++
 ** More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
 Affected files:
 ~/.emacs.d/timelog	replaces  ~/.timelog
@@ -328,7 +324,7 @@ Affected files:
 ~/.emacs.d/ido.last	replaces  ~/.ido.last
 ~/.emacs.d/kkcrc	replaces  ~/.kkcrc
 ~/.emacs.d/quickurls	replaces  ~/.quickurls
-~/.emacs.d/idlwave	replaces  ~/.idlwave
+~/.emacs.d/idlwave/	replaces  ~/.idlwave/
 ~/.emacs.d/bdfcache.el	replaces  ~/.bdfcache.el
 ~/.emacs.d/places	replaces  ~/.emacs-places
 ~/.emacs.d/shadows	replaces  ~/.shadows
@@ -353,14 +349,11 @@ you access lexical variables.
 *** New minor mode `jit-lock-debug-mode' lets you use the debuggers on
 code run via JIT Lock.
 
-** Battery
+---
+** Battery information can now be retrieved from BSD's `apm' utility.
 
 ---
-*** Battery information via the BSD `apm' utility is now supported.
-
-** Buffer Menu
-
-*** `M-s a C-o' shows lines matching a regexp in marked buffers using Occur.
+** In the Buffer Menu, `M-s a C-o' shows matches for a regexp in marked buffers.
 
 ** Calendar and Diary
 
@@ -380,18 +373,18 @@ and `calendar-month-header'.
 
 ** Calc
 
++++
 *** Calc by default now uses the Gregorian calendar for all dates, and
 uses January 1, 1 AD as its day number 1.  Previously Calc used the
 Julian calendar for dates before September 14, 1752, and it used
 December 31, 1 BC as its day number 1; the new scheme is more
 consistent with Calendar's calendrical system and day numbering.
 
-*** The new variable `calc-gregorian-switch' lets you configure the
-date when Calc switches from the Julian to the Gregorian calendar.
-Nil, the default value, means to always use the Gregorian calendar.
-The value (YEAR MONTH DAY) means to start using the Gregorian calendar
-on the given date.
++++
+*** The new option `calc-gregorian-switch' lets you configure if
+(and when) Calc switches from the Julian to the Gregorian calendar.
 
++++
 *** Support for ISO 8601 dates.
 
 ** CEDET
@@ -411,13 +404,13 @@ target architecture auto-detection.
 **** Improved detection of used namespaces in current scope in C++.
 
 **** Parsing of default values for variables and function arguments in C/C++.
-They are also displayed by the summarize feature in the modeline.
+They are also displayed by the summarize feature in the mode line.
 
 **** Improved parsing of function pointers in C/C++.
 This also includes parsing of function pointers as function arguments.
 
-**** Parsing of C/C++ preprocessor macros which open new scope.
-For example, this enables parsing of macros which open new namespaces.
+**** Parsing of C/C++ preprocessor macros that open new scope.
+For example, this enables parsing of macros that open new namespaces.
 
 **** Support for 'this' pointer in inline member functions in C++.
 
@@ -431,9 +424,10 @@ For example, this enables parsing of macros which open new namespaces.
 ** CUA mode
 
 *** CUA mode now uses `delete-selection-mode' and `shift-select-mode'.
-Hence, you can now enable it independently from `transient-mark-mode',
-`delete-selection-mode', and `shift-select-mode'.
+Hence, you can now enable it independently from those modes, and from
+`transient-mark-mode'.
 
+---
 *** `cua-highlight-region-shift-only' is now obsolete.
 You can disable `transient-mark-mode' to get the same result.
 
@@ -441,11 +435,13 @@ You can disable `transient-mark-mode' to get the same result.
 
 ** CFEngine mode
 
+---
 *** Support for completion, ElDoc, and Flycheck has been added.
 
+---
 *** The current CFEngine syntax is parsed from "cf-promises -s json".
 There is a fallback syntax available if you don't have cf-promises or
-if it doesn't support that option.
+if your version doesn't support that option.  See option `cfengine-cf-promises'.
 
 ** Delete Selection mode can now be used without `transient-mark-mode'.
 
@@ -460,9 +456,8 @@ restoring the frame/window configuration (frameset).  Additional options
 and `desktop-restore-forces-onscreen' offer further customization.
 
 +++
-** Dired
-
-*** New minor mode `dired-hide-details-mode' hides details.
+** New Dired minor mode `dired-hide-details-mode' toggles whether details,
+such as file ownership or permissions, are visible.
 
 ** Eldoc Mode works properly in the minibuffer.
 
@@ -496,9 +491,7 @@ You can customize `electric-pair-text-pairs' and
 `electric-pair-text-syntax-table' to tweak pairing behavior inside
 strings and comments.
 
-** EPA
-
-*** New option `epa-mail-aliases'.
+** New EPA option `epa-mail-aliases'.
 You can set this to a list of alias expansions for keys to use
 in `epa-mail-encrypt'.
 
@@ -511,9 +504,7 @@ that means: when one of the recipients of the message being encrypted
 is `foo@bar.com', ignore that name as regards encryption.
 This is useful to avoid a query when you have no key for that name.
 
-** ERC
-
-*** New option `erc-accidental-paste-threshold-seconds'.
+** New ERC option `erc-accidental-paste-threshold-seconds'.
 If set to a number, this can be used to avoid accidentally pasting large
 amounts of data into the ERC input.
 
@@ -542,9 +533,8 @@ External su and sudo commands are now the default; the internal,
 Tramp-using variants can still be used by enabling the eshell-tramp
 module.
 
-** F90 mode
 ---
-*** New option `f90-smart-end-names'.
+** New F90 mode option `f90-smart-end-names'.
 
 ** Icomplete is a bit more like Ido.
 
@@ -609,17 +599,19 @@ entries displayed by `Info-index-next', `Info-virtual-index' and
 
 ** JS Mode
 
+---
+*** New option `js-switch-indent-offset'.
+
+---
 *** Better indentation of multiple-variable declarations.
-If declaration spans several lines, variables on the following lines
+If a declaration spans several lines, variables on the following lines
 are lined up to the first one.
 
-*** We now recognize and better indent continuations in array
-comprehensions.
+---
+*** Recognition and better indentation of continuations in array comprehensions.
 
-*** New option `js-switch-indent-offset`.
-
-** MH-E has been updated to MH-E version 8.5.
-See MH-E-NEWS for details.
++++
+** MH-E has been updated to version 8.5 - see separate MH-E-NEWS file.
 
 +++
 ** Octave mode
@@ -755,7 +747,7 @@ The same rules are now applied to the symbol search with the difference
 that it matches symbols, and non-symbol characters between symbols.
 
 +++
-** New SES command `ses-rename-cell' allows assigning names to SES cells.
+** New SES command `ses-rename-cell' allows assignment of names to SES cells.
 
 ---
 ** The shell.el option `explicit-bash-args' includes --noediting by default.
@@ -763,9 +755,11 @@ All non-ancient Bash versions support this option.
 
 ** Shell Script mode
 
-*** `sh-mode' now has its own setting for `add-log-current-defun-function'.
+---
+*** The SMIE indentation engine is now used by default - see `sh-use-smie'.
 
-*** The SMIE indentation engine is now used by default.
+---
+*** `sh-mode' now has its own setting for `add-log-current-defun-function'.
 
 ** SMIE indentation can be customized via `smie-config'.
 Emacs can learn the appropriate indentation settings if you provide it
@@ -857,10 +851,6 @@ received with a pull operation.
 under current version control system.  When called with a prefix
 argument, you can remove a file from the ignored file list.
 
----
-*** `cvs-append-to-ignore' has been renamed to `vc-cvs-append-to-ignore'
-because it is moved to vc-cvs.el.
-
 ** VHDL mode
 
 ---
@@ -873,7 +863,7 @@ because it is moved to vc-cvs.el.
 ** The Woman commands `woman-default-faces' and `woman-monochrome-faces'
 are obsolete.  Customize the `woman-*' faces instead.
 
-** Obsolete packages:
+** Obsolete packages
 
 *** Iswitchb is made obsolete by icomplete-mode.
 
@@ -1084,7 +1074,7 @@ displaying the buffer in a window.
 ** New hook `pre-redisplay-function'.
 
 +++
-** New bool-vector set operation functions:
+** New bool-vector set operation functions
 *** `bool-vector-exclusive-or'
 *** `bool-vector-union'
 *** `bool-vector-intersection'
@@ -1113,10 +1103,10 @@ This is like the old `eval-after-load', but better behaved.
 ** New library subr-x.el with miscellaneous small utility functions
 *** `hash-table-keys'
 *** `hash-table-values'
-*** `string-blank-p`
-*** `string-empty-p`
-*** `string-join`
-*** `string-reverse`
+*** `string-blank-p'
+*** `string-empty-p'
+*** `string-join'
+*** `string-reverse'
 *** `string-trim-left'
 *** `string-trim-right'
 *** `string-trim'
@@ -1124,7 +1114,7 @@ This is like the old `eval-after-load', but better behaved.
 *** `string-remove-suffix'
 
 +++
-** Obsoleted functions:
+** Obsoleted functions
 *** `log10'
 *** `dont-compile'
 *** `lisp-complete-symbol'
@@ -3363,7 +3353,7 @@ means you can just remove all calls to the function in question):
 *** `frame-update-faces' (not needed)
 *** `frame-update-face-colors' (`frame-set-background-mode')
 *** `x-frob-font-weight' and `x-frob-font-slant' (`make-face-*' functions)
-*** `x-make-font-bold and x-make-font-demibold (`make-face-bold')
+*** `x-make-font-bold' and `x-make-font-demibold' (`make-face-bold')
 *** `x-make-font-italic' and `x-make-font-oblique' (`make-face-italic')
 *** `x-make-font-bold-italic' (`make-face-bold-italic')
 *** `x-make-font-unbold' (`make-face-unbold')

@@ -449,6 +449,7 @@ value of `!DIR'.  See also `idlwave-library-path'."
 (defcustom idlwave-config-directory
   (locate-user-emacs-file "idlwave" ".idlwave")
   "Directory for configuration files and user-library catalog."
+  :version "24.4"			; added locate-user-emacs-file
   :group 'idlwave-routine-info
   :type 'file)
 

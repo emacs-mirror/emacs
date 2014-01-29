@@ -11,6 +11,39 @@
 
 	* fileio.c (Finsert_file_contents): Cancel the previous change.
 
+2014-01-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32fns.c (x_set_tool_bar_lines): Don't clear area on frames
+	that are not visible.
+
+2014-01-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (create_and_show_popup_menu): Handle case when no key
+	is grabbed (Bug#16565).
+
+2014-01-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* xdisp.c (last_max_ascent): Re-remove after erroneously
+	reintroducing it on 2013-11-30 and abolishing Dmitry's removal
+	from 2013-03-29.
+	(move_it_to): Re-remove reference to last_max_ascent.
+	(Fwindow_text_pixel_size): Add iterator's max_ascent and
+	max_descent here instead of calling line_bottom_y.  Fix
+	doc-string.
+
+2014-01-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* terminal.c (initial_free_frame_resources): New function.
+	(init_initial_terminal): Install new hook to free face cache
+	on initial frame and avoid memory leak.  For details, see
+	<http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01974.html>.
+	* xfaces.c (free_frame_faces): Adjust comment.
+
+2014-01-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* data.c (Fstring_to_number): Document results if unparsable
+	(Bug#16551).
+
 2014-01-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_focus_changed): Check for non-X terminal-frame (Bug#16540)

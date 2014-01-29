@@ -97,6 +97,7 @@
 (defcustom quickurl-url-file
   (locate-user-emacs-file "quickurls" ".quickurls")
   "File that contains the URL list."
+  :version "24.4"                       ; added locate-user-emacs-file
   :type  'file
   :group 'quickurl)
 

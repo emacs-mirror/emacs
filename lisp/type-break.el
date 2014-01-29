@@ -1,7 +1,6 @@
 ;;; type-break.el --- encourage rests from typing at appropriate intervals  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1995, 1997, 2000-2014 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1994-1995, 1997, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman
 ;; Maintainer: Noah Friedman <friedman@splode.com>
@@ -208,6 +207,7 @@ key is pressed."
   (locate-user-emacs-file "type-break" ".type-break")
   "Name of file used to save state across sessions.
 If this is nil, no data will be saved across sessions."
+  :version "24.4"                       ; added locate-user
   :type 'file)
 
 (defvar type-break-post-command-hook '(type-break-check)

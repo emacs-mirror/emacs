@@ -1863,7 +1863,7 @@ The following Ex commands are available in Vi, but not implemented in VIP.
 @node Customization
 @chapter Customization
 
-If you have a file called @file{.vip} in your home directory, then it
+If you have a file called @file{~/.emacs.d/vip} (or @file{~/.vip}), then it
 will also be loaded when VIP is loaded.  This file is thus useful for
 customizing VIP.
 
@@ -1903,7 +1903,7 @@ if @code{nil} then it sis bound to @code{delete-backward-char}.
 @end table
 @noindent
 You can reset these constants in VIP by the Ex command @kbd{set}.  Or you
-can include a line like this in your @file{.vip} file:
+can include a line like this in your @file{~/.emacs.d/vip} file:
 @example
 (setq vip-case-fold-search t)
 @end example
@@ -1916,8 +1916,8 @@ can include a line like this in your @file{.vip} file:
 VIP uses @code{vip-command-mode-map} as the @dfn{local keymap} for vi mode.
 For example, in vi mode, @key{SPC} is bound to the function
 @code{vip-scroll}.  But, if you wish to make @key{SPC} and some other keys
- behave like Vi, you can include the following lines in your @file{.vip}
-file.
+ behave like Vi, you can include the following lines in your
+@file{~/.emacs.d/vip} file.
 
 @example
 (define-key vip-command-mode-map "\C-g" 'vip-info-on-file)
