@@ -313,8 +313,6 @@ typedef struct SegPrefStruct {  /* segment placement preferences */
   Bool high;                    /* high or low */
   ZoneSet zones;                /* preferred zones */
   Bool isCollected;             /* whether segment will be collected */
-  Bool isGen;                   /* whether gen is set */
-  Serial gen;                   /* associated geneation */
 } SegPrefStruct;
 
 
