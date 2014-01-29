@@ -166,47 +166,14 @@ automatic-pool segment in any zone in the zoneset.  It is not limited
 to the segments actually associated with the condemned generation(s).
 
 An attempt is made to use distinct zonesets for different generations.
-Whenever a segment is allocated (``AMCBufferFill()``), a
-``SegPref`` is created containing the generation number
-(obtained from ``amcBuf->gen->pgen->nr``) and passed to
-``SegAlloc()``.  The arena keeps a zoneset for each generation
-number (up to ``VMArenaGenCount``, defined in
-``arenavm.c`` to be ``MPS_WORD_WIDTH/2``), and a
-``freeSet``.  The zoneset for each generation number starts out
-empty, and the ``freeSet`` starts out ``ZoneSetUNIV``.
-When a segment is allocated with a ``SegPref`` with a generation
-number, an attempt is made to allocate it in the corresponding zoneset
-(``pagesFindFreeInZones()``).  If the zoneset is empty, an
-attempt is made to allocate it in the ``freeSet`` zoneset.
-After it is allocated, the zones it occupies are removed from the
-``freeSet`` and (if there's a generation ``SegPref``)
-added to the zoneset for that generation number.
+Segments are allocated from ``AMCBufferFill()`` using ``ChainAlloc()``
+which creates a ``SegPref`` using the zoneset from the generation's
+``GenDesc``.  The zoneset for each generation number starts out
+empty.  If the zoneset is empty, an attempt is made to allocate from a
+free zone.  The ``GenDesc`` zoneset is augmented with whichever zones the
+new segment occupies.
 
-Note that this zone placement code knows nothing of chains,
-generations, pool classes, etc.  It is based solely on the generation
-*number*, so generations with the same number from different chains
-share a zoneset preference for the purpose of placing newly allocated
-segments.  Combined with the fact that condemnation is per-zone, this
-effectively means that generations in distinct chains are collected
-together.  One consequence of this is that we don't have a very fine
-granularity of control over collection: a garbage collection of all
-chains together is triggered by the most eager chain.  There's no way
-for a library or other small part of a client program to arrange
-independent collection of a separate pool or chain.
-
-When ``AMCBufferFill()`` gets the allocated segment back, it
-adds it to the zoneset associated with that generation in the pool's
-controlling chain.  Note that a chain's per-generation zonesets, which
-represent the zones in which segments for that generation in that
-chain have been placed, are quite distinct from the arena-wide
-per-generation-number zonesets, which represent the zones in which
-segments for that generation number in any chain have been placed.
-The arena-wide per-generation-number zoneset
-``vmArena->genZoneSet[N]`` is augmented in
-``vmAllocComm()``.  The per-chain per-generation zoneset
-``chain->gen[N].zones`` is augmented in
-``PoolGenUpdateZones()``.  Neither kind of zoneset can ever
-shrink.
+Note that this zoneset can never shrink.
 
 Accounting
 ..........
@@ -413,10 +380,12 @@ TODO: When do we do some tracing work?  How much tracing work do we do?
 
 Document History
 ----------------
-- 2013-06-04 NB Checked this in although it's far from complete.
+- 2013-06-04 NB_ Checked this in although it's far from complete.
   Pasted in my 'ramping notes' from email, which mention some bugs
   which I may have fixed (TODO: check this).
+- 2014-01-29    RB_     The arena no longer manages generation zonesets.
 
+.. _RB: http://www.ravenbrook.com/consultants/rb
 .. _NB: http://www.ravenbrook.com/consultants/nb/
 
 
