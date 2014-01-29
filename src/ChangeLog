@@ -1,3 +1,8 @@
+2014-01-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (create_and_show_popup_menu): Handle case when no key
+	is grabbed (Bug#16565).
+
 2014-01-28  Martin Rudalics  <rudalics@gmx.at>
 
 	* xdisp.c (last_max_ascent): Re-remove after erroneously
