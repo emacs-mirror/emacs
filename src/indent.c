@@ -700,7 +700,7 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol, ptrdiff_t *prevcol)
     *prevcol = prev_col;
 }
 
-/* Return the column number of position POS
+/* Return the column number of point
    by scanning forward from the beginning of the line.
    This function handles characters that are invisible
    due to text properties or overlays.  */
