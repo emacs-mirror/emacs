@@ -39,6 +39,13 @@ SegPref SegPrefDefault(void)
   return &segPrefDefault;
 }
 
+/* SegPrefInit -- initialise a segment preference to the defaults */
+
+void SegPrefInit(SegPref pref)
+{
+  mps_lib_memcpy(pref, &segPrefDefault, sizeof(SegPrefStruct));
+}
+
 
 /* SegPrefExpress -- express a segment preference */
 
@@ -253,7 +260,7 @@ Res ChainAlloc(Seg *segReturn, Chain chain, Serial genNr, SegClass class,
   else
     zones = arena->topGen.zones;
 
-  pref = *SegPrefDefault(); /* FIXME: Ugh.  Should have SegPrefInit. */
+  SegPrefInit(&pref);
   SegPrefExpress(&pref, SegPrefCollected, NULL);
   SegPrefExpress(&pref, SegPrefZoneSet, &zones);
   res = SegAlloc(&seg, class, &pref, size, pool, withReservoirPermit, args);
