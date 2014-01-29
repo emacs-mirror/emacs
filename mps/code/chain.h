@@ -71,7 +71,6 @@ typedef struct mps_chain_s {
   TraceSet activeTraces; /* set of traces collecting this chain */
   size_t genCount; /* number of generations */
   GenDescStruct *gens; /* the array of generations */
-  ZoneSet topGenZones; /* zone set of top sentinel generation */
 } ChainStruct;
 
 

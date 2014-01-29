@@ -169,7 +169,6 @@ Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
   chain->activeTraces = TraceSetEMPTY;
   chain->genCount = genCount;
   chain->gens = gens;
-  chain->topGenZones = ZoneSetEMPTY;
   chain->sig = ChainSig;
 
   RingAppend(&arena->chainRing, &chain->chainRing);
@@ -197,7 +196,6 @@ Bool ChainCheck(Chain chain)
   for (i = 0; i < chain->genCount; ++i) {
     CHECKD(GenDesc, &chain->gens[i]);
   }
-  /* topGenZones is arbitrary */
   return TRUE;
 }
 
@@ -253,7 +251,7 @@ Res ChainAlloc(Seg *segReturn, Chain chain, Serial genNr, SegClass class,
   if (genNr < chain->genCount)
     zones = chain->gens[genNr].zones;
   else
-    zones = chain->topGenZones;
+    zones = arena->topGen.zones;
 
   pref = *SegPrefDefault(); /* FIXME: Ugh.  Should have SegPrefInit. */
   SegPrefExpress(&pref, SegPrefCollected, NULL);
@@ -274,7 +272,7 @@ Res ChainAlloc(Seg *segReturn, Chain chain, Serial genNr, SegClass class,
   if (genNr < chain->genCount)
     chain->gens[genNr].zones = moreZones;
   else
-    chain->topGenZones = moreZones;
+    chain->arena->topGen.zones = moreZones;
 
   *segReturn = seg;
   return ResOK;
@@ -472,7 +470,7 @@ void LocusInit(Arena arena)
 
   gen->zones = ZoneSetEMPTY;
   gen->capacity = 0; /* unused */
-  gen->mortality = TraceTopGenMortality; /* @@@@ unused ATM */
+  gen->mortality = 0.51; /* FIXME: Justify this estimate */
   gen->proflow = 0.0;
   RingInit(&gen->locusRing);
   gen->sig = GenDescSig;
