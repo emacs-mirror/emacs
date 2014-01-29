@@ -303,8 +303,6 @@
   TRUE,                /* high */ \
   ArenaDefaultZONESET, /* zoneSet */ \
   FALSE,               /* isCollected */ \
-  FALSE,               /* isGen */ \
-  (Serial)0,           /* gen */ \
 }
 
 #define LDHistoryLENGTH ((Size)4)

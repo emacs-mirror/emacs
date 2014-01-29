@@ -71,6 +71,7 @@ typedef struct mps_chain_s {
   TraceSet activeTraces; /* set of traces collecting this chain */
   size_t genCount; /* number of generations */
   GenDescStruct *gens; /* the array of generations */
+  ZoneSet topGenZones; /* zone set of top sentinel generation */
 } ChainStruct;
 
 
@@ -85,14 +86,15 @@ extern Res ChainCondemnAll(Chain chain, Trace trace);
 extern void ChainStartGC(Chain chain, Trace trace);
 extern void ChainEndGC(Chain chain, Trace trace);
 extern size_t ChainGens(Chain chain);
-
+extern Res ChainAlloc(Seg *segReturn, Chain chain, Serial genNr,
+                      SegClass class, Size size, Pool pool,
+                      Bool withReservoirPermit, ArgList args);
 
 extern Bool PoolGenCheck(PoolGen gen);
 extern Res PoolGenInit(PoolGen gen, Chain chain, Serial nr, Pool pool);
 extern void PoolGenFinish(PoolGen gen);
 extern void PoolGenFlip(PoolGen gen);
 #define PoolGenNr(gen) ((gen)->nr)
-extern void PoolGenUpdateZones(PoolGen gen, Seg seg);
 
 
 #endif /* chain_h */

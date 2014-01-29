@@ -1161,8 +1161,6 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   Arena arena;
   Size alignedSize;
   amcGen gen;
-  Serial genNr;
-  SegPrefStruct segPrefStruct;
   PoolGen pgen;
   amcBuf amcbuf;
   Bool isRamping;
@@ -1178,28 +1176,22 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
   AVERT(Bool, withReservoirPermit);
 
+  arena = PoolArena(pool);
   gen = amcBufGen(buffer);
   AVERT(amcGen, gen);
-
-  pgen = &gen->pgen;
-
   amcbuf = Buffer2amcBuf(buffer);
   AVERT(amcBuf, amcbuf);
+  pgen = &gen->pgen;
 
   /* Create and attach segment.  The location of this segment is */
   /* expressed as a generation number.  We rely on the arena to */
   /* organize locations appropriately.  */
-  arena = PoolArena(pool);
   alignedSize = SizeAlignUp(size, ArenaAlign(arena));
-  segPrefStruct = *SegPrefDefault();
-  SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
-  genNr = PoolGenNr(pgen);
-  SegPrefExpress(&segPrefStruct, SegPrefGen, &genNr);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, amcKeySegType, p, &gen->type); /* .segtype */
     MPS_ARGS_DONE(args);
-    res = SegAlloc(&seg, amcSegClassGet(), &segPrefStruct,
-                   alignedSize, pool, withReservoirPermit, args);
+    res = ChainAlloc(&seg, amc->chain, PoolGenNr(pgen), amcSegClassGet(),
+                     alignedSize, pool, withReservoirPermit, args);
   } MPS_ARGS_END(args);
   if(res != ResOK)
     return res;
@@ -1225,7 +1217,6 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   } else {
     pgen->newSize += alignedSize;
   }
-  PoolGenUpdateZones(pgen, seg);
 
   base = SegBase(seg);
   *baseReturn = base;
