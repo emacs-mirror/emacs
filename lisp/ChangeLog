@@ -1,3 +1,7 @@
+2014-01-29  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (just-one-space, cycle-spacing): Doc fixes.
+
 2014-01-28  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (fit-frame-to-buffer): Fix calculations for margins and

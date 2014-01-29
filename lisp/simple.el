@@ -794,7 +794,8 @@ If BACKWARD-ONLY is non-nil, only delete them before point."
 
 (defun just-one-space (&optional n)
   "Delete all spaces and tabs around point, leaving one space (or N spaces).
-If N is negative, delete newlines as well, leaving -N spaces."
+If N is negative, delete newlines as well, leaving -N spaces.
+See also `cycle-spacing'."
   (interactive "*p")
   (cycle-spacing n nil t))
 
@@ -805,31 +806,22 @@ position and original spacing around the point in this
 variable.")
 
 (defun cycle-spacing (&optional n preserve-nl-back single-shot)
-  "Manipulate spaces around the point in a smart way.
+  "Manipulate whitespace around point in a smart way.
+In interactive use, this function behaves differently in successive
+consecutive calls.
 
-When run as an interactive command, the first time it's called
-in a sequence, deletes all spaces and tabs around point leaving
-one (or N spaces).  If this does not change content of the
-buffer, skips to the second step:
+The first call in a sequence acts like `just-one-space'.
+It deletes all spaces and tabs around point, leaving one space
+\(or N spaces).  N is the prefix argument.  If N is negative,
+it deletes newlines as well, leaving -N spaces.
+\(If PRESERVE-NL-BACK is non-nil, it does not delete newlines before point.)
 
-When run for the second time in a sequence, deletes all the
-spaces it has previously inserted.
+The second call in a sequence (or the first call if the above does
+not result in any changes) deletes all spaces.
 
-When run for the third time, returns the whitespace and point in
-a state encountered when it had been run for the first time.
+The third call in a sequence restores the original whitespace (and point).
 
-For example, if buffer contains \"foo ^ bar\" with \"^\" denoting the
-point, calling `cycle-spacing' command will replace two spaces with
-a single space, calling it again immediately after, will remove all
-spaces, and calling it for the third time will bring two spaces back
-together.
-
-If N is negative, delete newlines as well.  However, if
-PRESERVE-NL-BACK is t new line characters prior to the point
-won't be removed.
-
-If SINGLE-SHOT is non-nil, will only perform the first step.  In
-other words, it will work just like `just-one-space' command."
+If SINGLE-SHOT is non-nil, it only performs the first step in the sequence."
   (interactive "*p")
   (let ((orig-pos	 (point))
 	(skip-characters (if (and n (< n 0)) " \t\n\r" " \t"))

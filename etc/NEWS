@@ -273,16 +273,14 @@ normal editing behavior.
 the last step.  Its default value is changed to nil, which means a tab
 stop every `tab-width' columns.
 
-** Filling changes
-
-*** New command `cycle-spacing' cycles between spacing conventions:
-having just one space, no spaces, or reverting to the original
-spacing.  Like `just-one-space', it can handle or ignore newlines and
-leave different number of spaces.
++++
+** New command `cycle-spacing' acts like a smarter `just-one-space'.
+When called in succession, it cycles between spacing conventions:
+one space, no spaces, original spacing.
 
 +++
-*** `fill-single-char-nobreak-p' prevents fill from breaking a line after
-a one-letter word, which is an error according to some typographical
+** The new function `fill-single-char-nobreak-p' can stop fill from breaking
+a line after a one-letter word, which is an error in some typographical
 conventions.  To use it, add it to the `fill-nobreak-predicate' hook.
 
 +++

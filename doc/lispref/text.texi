@@ -771,6 +771,9 @@ space, or @var{n} spaces if @var{n} is specified.  It returns
 @code{nil}.
 @end deffn
 
+@c There is also cycle-spacing, but I cannot see it being useful in
+@c Lisp programs, so it is not mentioned here.
+
 @deffn Command delete-blank-lines
 This function deletes blank lines surrounding point.  If point is on a
 blank line with one or more blank lines before or after it, then all but
