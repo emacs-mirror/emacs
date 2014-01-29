@@ -406,7 +406,6 @@ extern void TraceIdMessagesDestroy(Arena arena, TraceId ti);
 
 /* Collection control parameters */
 
-extern double TraceTopGenMortality;
 extern double TraceWorkFactor;
 
 
