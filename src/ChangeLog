@@ -1,3 +1,9 @@
+2014-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* print.c (print_object): Use FETCH_STRING_CHAR_ADVANCE, not
+	STRING_CHAR_AND_LENGTH, so that if the string is relocated by GC,
+	we still use correct addresses.  (Bug#16576)
+
 2014-01-27  K. Handa  <handa@gnu.org>
 
 	Fix bug#16286 by the different way than revno:116158 to preserve
