@@ -25,9 +25,7 @@ Bool SegPrefCheck(SegPref pref)
   CHECKS(SegPref, pref);
   CHECKL(BoolCheck(pref->high));
   /* zones can't be checked because it's arbitrary. */
-  CHECKL(BoolCheck(pref->isGen));
   CHECKL(BoolCheck(pref->isCollected));
-  /* gen is an arbitrary serial */
   return TRUE;
 }
 
@@ -68,12 +66,6 @@ void SegPrefExpress(SegPref pref, SegPrefKind kind, void *p)
   case SegPrefCollected:
     AVER(p == NULL);
     pref->isCollected = TRUE;
-    break;
-
-  case SegPrefGen:
-    AVER(p != NULL);
-    pref->isGen = TRUE;
-    pref->gen = *(Serial *)p;
     break;
 
   default:
@@ -177,6 +169,7 @@ Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
   chain->activeTraces = TraceSetEMPTY;
   chain->genCount = genCount;
   chain->gens = gens;
+  chain->topGenZones = ZoneSetEMPTY;
   chain->sig = ChainSig;
 
   RingAppend(&arena->chainRing, &chain->chainRing);
@@ -204,6 +197,7 @@ Bool ChainCheck(Chain chain)
   for (i = 0; i < chain->genCount; ++i) {
     CHECKD(GenDesc, &chain->gens[i]);
   }
+  /* topGenZones is arbitrary */
   return TRUE;
 }
 
@@ -238,6 +232,54 @@ size_t ChainGens(Chain chain)
   AVERT(Chain, chain);
   return chain->genCount;
 }
+
+
+/* ChainAlloc -- allocate tracts in a generation */
+
+Res ChainAlloc(Seg *segReturn, Chain chain, Serial genNr, SegClass class,
+               Size size, Pool pool, Bool withReservoirPermit,
+               ArgList args)
+{
+  SegPrefStruct pref;
+  Res res;
+  Seg seg;
+  ZoneSet zones, moreZones;
+  Arena arena;
+
+  AVERT(Chain, chain);
+  AVER(genNr <= chain->genCount);
+
+  arena = chain->arena;
+  if (genNr < chain->genCount)
+    zones = chain->gens[genNr].zones;
+  else
+    zones = chain->topGenZones;
+
+  pref = *SegPrefDefault(); /* FIXME: Ugh.  Should have SegPrefInit. */
+  SegPrefExpress(&pref, SegPrefCollected, NULL);
+  SegPrefExpress(&pref, SegPrefZoneSet, &zones);
+  res = SegAlloc(&seg, class, &pref, size, pool, withReservoirPermit, args);
+  if (res != ResOK)
+    return res;
+
+  moreZones = ZoneSetUnion(zones, ZoneSetOfSeg(arena, seg));
+  
+  if (!ZoneSetSuper(zones, moreZones)) {
+    /* Tracking the whole zoneset for each generation number gives
+     * more understandable telemetry than just reporting the added
+     * zones. */
+    EVENT3(ArenaGenZoneAdd, arena, genNr, moreZones);
+  }
+
+  if (genNr < chain->genCount)
+    chain->gens[genNr].zones = moreZones;
+  else
+    chain->topGenZones = moreZones;
+
+  *segReturn = seg;
+  return ResOK;
+}
+
 
 
 /* ChainDeferral -- time until next ephemeral GC for this chain */
@@ -417,27 +459,6 @@ Bool PoolGenCheck(PoolGen gen)
   CHECKL(RingCheck(&gen->genRing));
   CHECKL(gen->newSize <= gen->totalSize);
   return TRUE;
-}
-
-
-/* PoolGenUpdateZones -- update the zone of the generation
- *
- * This is a temporary i/f: eventually the locus manager will update
- * these directly.
- */
-void PoolGenUpdateZones(PoolGen gen, Seg seg)
-{
-  Chain chain;
-
-  AVERT(PoolGen, gen);
-  AVERT(Seg, seg);
-
-  chain = gen->chain;
-  AVERT(Chain, chain);
-  if (gen->nr != chain->genCount)
-    chain->gens[gen->nr].zones =
-      ZoneSetUnion(chain->gens[gen->nr].zones, ZoneSetOfSeg(chain->arena, seg));
-  /* No need to keep track of dynamic gen zoneset. */
 }
 
 

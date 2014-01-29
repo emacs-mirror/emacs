@@ -286,10 +286,6 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
   LO lo;
   Seg seg;
   Res res;
-  SegPrefStruct segPrefStruct;
-  Serial gen;
-  Arena arena;
-  Size asize;           /* aligned size */
 
   AVER(loSegReturn != NULL);
   AVERT(Pool, pool);
@@ -298,17 +294,11 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
-  arena = PoolArena(pool);
-  asize = SizeAlignUp(size, ArenaAlign(arena));
-  segPrefStruct = *SegPrefDefault();
-  gen = lo->gen;
-  SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
-  SegPrefExpress(&segPrefStruct, SegPrefGen, &gen);
-  res = SegAlloc(&seg, EnsureLOSegClass(), &segPrefStruct,
-                 asize, pool, withReservoirPermit, argsNone);
+  res = ChainAlloc(&seg, lo->chain, lo->gen, EnsureLOSegClass(),
+                   SizeAlignUp(size, ArenaAlign(PoolArena(pool))),
+                   pool, withReservoirPermit, argsNone);
   if (res != ResOK)
     return res;
-  PoolGenUpdateZones(&lo->pgen, seg);
 
   *loSegReturn = SegLOSeg(seg);
   return ResOK;

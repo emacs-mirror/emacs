@@ -452,7 +452,6 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
   AWLSeg awlseg;
   Res res;
   Arena arena;
-  SegPrefStruct segPrefStruct;
 
   AVER(awlsegReturn != NULL);
   AVER(RankSetCheck(rankSet));
@@ -470,14 +469,11 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
   /* beware of large sizes overflowing upon rounding */
   if (size == 0)
     return ResMEMORY;
-  segPrefStruct = *SegPrefDefault();
-  SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
-  SegPrefExpress(&segPrefStruct, SegPrefGen, &awl->gen);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u, rankSet);
     MPS_ARGS_DONE(args);
-    res = SegAlloc(&seg, AWLSegClassGet(), &segPrefStruct, size, pool,
-                   reservoirPermit, args);
+    res = ChainAlloc(&seg, awl->chain, awl->gen, AWLSegClassGet(),
+                     size, pool, reservoirPermit, args);
   } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
