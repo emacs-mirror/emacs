@@ -244,6 +244,17 @@
 /* Pool AMS Configuration -- see <code/poolams.c> */
 
 #define AMS_SUPPORT_AMBIGUOUS_DEFAULT FALSE
+#define AMS_GEN_DEFAULT       0
+
+
+/* Pool AWL Configuration -- see <code/poolawl.c> */
+
+#define AWL_GEN_DEFAULT       0
+
+
+/* Pool LO Configuration -- see <code/poollo.c> */
+
+#define LO_GEN_DEFAULT       0
 
 
 /* Pool MV Configuration -- see <code/poolmv.c> */
