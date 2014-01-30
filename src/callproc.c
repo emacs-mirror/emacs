@@ -677,6 +677,10 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
       /* Emacs ignores SIGPIPE, but the child should not.  */
       signal (SIGPIPE, SIG_DFL);
+      /* Likewise for SIGPROF.  */
+#ifdef SIGPROF
+      signal (SIGPROF, SIG_DFL);
+#endif
 
       child_setup (filefd, fd_output, fd_error, new_argv, 0, current_dir);
     }

@@ -1,3 +1,8 @@
+2014-01-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (create_process): Reset SIGPROF handler in the child.
+	* callproc.c (call_process): Likewise.
+
 2014-01-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xmenu.c (create_and_show_popup_menu): Port comment to C89.

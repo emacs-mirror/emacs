@@ -1841,6 +1841,9 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
       signal (SIGINT, SIG_DFL);
       signal (SIGQUIT, SIG_DFL);
+#ifdef SIGPROF
+      signal (SIGPROF, SIG_DFL);
+#endif
 
       /* Emacs ignores SIGPIPE, but the child should not.  */
       signal (SIGPIPE, SIG_DFL);
