@@ -118,7 +118,7 @@ such as `edebug-defun' to work with such inputs."
 
 (defcustom ielm-mode-hook nil
   "Hooks to be run when IELM (`inferior-emacs-lisp-mode') is started."
-  :options '(turn-on-eldoc-mode)
+  :options '(eldoc-mode)
   :type 'hook
   :group 'ielm)
 (defvaralias 'inferior-emacs-lisp-mode-hook 'ielm-mode-hook)

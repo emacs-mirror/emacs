@@ -1,3 +1,12 @@
+2014-01-30  Glenn Morris  <rgm@gnu.org>
+
+	* hexl.el (hexl-mode-hook):
+	* ielm.el (ielm-mode-hook):
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-hook)
+	(lisp-interaction-mode-hook):
+	* progmodes/cfengine.e (cfengine3-documentation-function):
+	Replace obsolete alias `turn-on-eldoc-mode' with `eldoc-mode'.
+
 2014-01-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/eieio-opt.el (eieio-help-generic): Don't assume `generic'
