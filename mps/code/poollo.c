@@ -474,6 +474,7 @@ static Res LOInit(Pool pool, ArgList args)
   Arena arena;
   Res res;
   ArgStruct arg;
+  unsigned gen = LO_GEN_DEFAULT;
 
   AVERT(Pool, pool);
 
@@ -485,18 +486,21 @@ static Res LOInit(Pool pool, ArgList args)
   pool->format = arg.val.format;
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     lo->chain = arg.val.chain;
-  else
+  else {
     lo->chain = ArenaGlobals(arena)->defaultChain;
+    gen = 1; /* avoid the nursery of the default chain by default */
+  }
+  if (ArgPick(&arg, args, MPS_KEY_GEN))
+    gen = arg.val.u;
   
   AVERT(Format, pool->format);
   AVERT(Chain, lo->chain);
+  AVER(gen <= ChainGens(lo->chain));
 
   pool->alignment = pool->format->alignment;
   lo->alignShift = SizeLog2((Size)PoolAlignment(pool));
 
-  /* TODO: Accept a keyword parameter specifying which generation of the
-     chain to allocate in. */
-  res = PoolGenInit(&lo->pgen, lo->chain, 0, pool);
+  res = PoolGenInit(&lo->pgen, lo->chain, gen, pool);
   if (res != ResOK)
     goto failGenInit;
 

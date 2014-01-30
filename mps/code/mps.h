@@ -158,6 +158,9 @@ extern const struct mps_key_s _mps_key_format;
 extern const struct mps_key_s _mps_key_chain;
 #define MPS_KEY_CHAIN           (&_mps_key_chain)
 #define MPS_KEY_CHAIN_FIELD     chain
+extern const struct mps_key_s _mps_key_gen;
+#define MPS_KEY_GEN             (&_mps_key_gen)
+#define MPS_KEY_GEN_FIELD       u
 extern const struct mps_key_s _mps_key_rank;
 #define MPS_KEY_RANK            (&_mps_key_rank)
 #define MPS_KEY_RANK_FIELD      rank

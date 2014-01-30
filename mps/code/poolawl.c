@@ -537,6 +537,7 @@ static Res AWLInit(Pool pool, ArgList args)
   Chain chain;
   Res res;
   ArgStruct arg;
+  unsigned gen = AWL_GEN_DEFAULT;
 
   /* Weak check, as half-way through initialization. */
   AVER(pool != NULL);
@@ -549,8 +550,12 @@ static Res AWLInit(Pool pool, ArgList args)
   findDependent = (FindDependentMethod)arg.val.addr_method;
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
-  else
+  else {
     chain = ArenaGlobals(PoolArena(pool))->defaultChain;
+    gen = 1; /* avoid the nursery of the default chain by default */
+  }
+  if (ArgPick(&arg, args, MPS_KEY_GEN))
+    gen = arg.val.u;
 
   AVERT(Format, format);
   pool->format = format;
@@ -559,11 +564,10 @@ static Res AWLInit(Pool pool, ArgList args)
   awl->findDependent = findDependent;
 
   AVERT(Chain, chain);
+  AVER(gen <= ChainGens(chain));
   awl->chain = chain;
 
-  /* TODO: Accept a keyword parameter specifying which generation of the
-     chain to allocate in. */
-  res = PoolGenInit(&awl->pgen, chain, 0, pool);
+  res = PoolGenInit(&awl->pgen, chain, gen, pool);
   if (res != ResOK)
     goto failGenInit;
 

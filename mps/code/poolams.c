@@ -761,6 +761,7 @@ static Res AMSInit(Pool pool, ArgList args)
   Format format;
   Chain chain;
   Bool supportAmbiguous = AMS_SUPPORT_AMBIGUOUS_DEFAULT;
+  unsigned gen = AMS_GEN_DEFAULT;
   ArgStruct arg;
 
   AVERT(Pool, pool);
@@ -768,8 +769,12 @@ static Res AMSInit(Pool pool, ArgList args)
 
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
-  else
+  else {
     chain = ArenaGlobals(PoolArena(pool))->defaultChain;
+    gen = 1; /* avoid the nursery of the default chain by default */
+  }
+  if (ArgPick(&arg, args, MPS_KEY_GEN))
+    gen = arg.val.u;
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
   if (ArgPick(&arg, args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS))
@@ -777,7 +782,7 @@ static Res AMSInit(Pool pool, ArgList args)
 
   /* .ambiguous.noshare: If the pool is required to support ambiguous */
   /* references, the alloc and white tables cannot be shared. */
-  res = AMSInitInternal(Pool2AMS(pool), format, chain, !supportAmbiguous);
+  res = AMSInitInternal(Pool2AMS(pool), format, chain, gen, !supportAmbiguous);
   if (res == ResOK) {
     EVENT3(PoolInitAMS, pool, PoolArena(pool), format);
   }
@@ -787,7 +792,8 @@ static Res AMSInit(Pool pool, ArgList args)
 
 /* AMSInitInternal -- initialize an AMS pool, given the format and the chain */
 
-Res AMSInitInternal(AMS ams, Format format, Chain chain, Bool shareAllocTable)
+Res AMSInitInternal(AMS ams, Format format, Chain chain, unsigned gen,
+                    Bool shareAllocTable)
 {
   Pool pool;
   Res res;
@@ -795,6 +801,7 @@ Res AMSInitInternal(AMS ams, Format format, Chain chain, Bool shareAllocTable)
   /* Can't check ams, it's not initialized. */
   AVERT(Format, format);
   AVERT(Chain, chain);
+  AVER(gen <= ChainGens(chain));
 
   pool = AMS2Pool(ams);
   AVERT(Pool, pool);
@@ -805,7 +812,7 @@ Res AMSInitInternal(AMS ams, Format format, Chain chain, Bool shareAllocTable)
   /* TODO: Accept a keyword parameter specifying which generation of the
      chain to allocate in. */
   ams->chain = chain;
-  res = PoolGenInit(&ams->pgen, ams->chain, 0, pool);
+  res = PoolGenInit(&ams->pgen, ams->chain, gen, pool);
   if (res != ResOK)
     return res;
 
