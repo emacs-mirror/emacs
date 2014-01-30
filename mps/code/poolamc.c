@@ -999,8 +999,10 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
 
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   pool->format = arg.val.format;
-  ArgRequire(&arg, args, MPS_KEY_CHAIN);
-  amc->chain = arg.val.chain;
+  if (ArgPick(&arg, args, MPS_KEY_CHAIN))
+    amc->chain = arg.val.chain;
+  else
+    amc->chain = ArenaGlobals(arena)->defaultChain;
   
   AVERT(Format, pool->format);
   AVERT(Chain, amc->chain);
