@@ -39,6 +39,7 @@
 ;;      (add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
 ;;      (add-hook 'lisp-interaction-mode-hook 'eldoc-mode)
 ;;      (add-hook 'ielm-mode-hook 'eldoc-mode)
+;;      (add-hook 'eval-expression-minibuffer-setup-hook 'eldoc-mode)
 
 ;; Major modes for other languages may use ElDoc by defining an
 ;; appropriate function as the buffer-local value of
