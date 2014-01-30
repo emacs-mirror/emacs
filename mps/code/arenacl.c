@@ -100,7 +100,7 @@ static Res clientChunkCreate(Chunk *chunkReturn, Addr base, Addr limit,
 
   AVER(chunkReturn != NULL);
   AVER(base != (Addr)0);
-  /* @@@@ Should refuse on small chunks, instead of AVERring. */
+  /* TODO: Should refuse on small chunks, instead of AVERring. */
   AVER(limit != (Addr)0);
   AVER(limit > base);
 
@@ -113,7 +113,7 @@ static Res clientChunkCreate(Chunk *chunkReturn, Addr base, Addr limit,
     goto failBootInit;
 
   /* Allocate the chunk. */
-  /* See <design/arena/>.@@@@ */
+  /* TODO: Add reference to design. */
   res = BootAlloc(&p, boot, sizeof(ClientChunkStruct), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failChunkAlloc;
@@ -152,7 +152,9 @@ static Res ClientChunkInit(Chunk chunk, BootBlock boot)
   AVERT(BootBlock, boot);
   UNUSED(boot);
 
-  clChunk->freePages = chunk->pages; /* too large @@@@ */
+  /* TODO: An old comment claimed this is too large.
+     Does it fail to exclude the page table or something? */
+  clChunk->freePages = chunk->pages;
 
   return ResOK;
 }
