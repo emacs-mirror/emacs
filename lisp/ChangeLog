@@ -1,3 +1,9 @@
+2014-01-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* mouse.el (mouse-drag-line): When window-resize-pixelwise is
+	nil call adjust-window-trailing-edge with suitable arguments
+	(Bug#16594).
+
 2014-01-30  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (eval-expression): Doc fix.

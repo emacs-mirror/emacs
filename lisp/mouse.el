@@ -475,8 +475,11 @@ must be one of the symbols `header', `mode', or `vertical'."
 			  (nth 2 (window-pixel-edges window))
 			  -1))
 	  (unless (zerop growth)
+	    (unless window-resize-pixelwise
+	      (setq growth (min (/ growth (frame-char-width frame)) 1)))
 	    (setq dragged t)
-	    (adjust-window-trailing-edge window growth t t)))
+	    (adjust-window-trailing-edge
+	     window growth t window-resize-pixelwise)))
 	 (draggable
 	  ;; Drag horizontal divider.
 	  (setq growth
@@ -487,9 +490,12 @@ must be one of the symbols `header', `mode', or `vertical'."
 		  (- (+ (nth 3 (window-pixel-edges window)) height)
 		     (cddr position))))
 	  (unless (zerop growth)
+	    (unless window-resize-pixelwise
+	      (setq growth (min (/ growth (frame-char-height frame)) 1)))
 	    (setq dragged t)
 	    (adjust-window-trailing-edge
-	     window (if (eq line 'mode) growth (- growth)) nil t))))))
+	     window (if (eq line 'mode) growth (- growth)) nil
+	     window-resize-pixelwise))))))
     ;; Process the terminating event.
     (when (and (mouse-event-p event) on-link (not dragged)
 	       (mouse--remap-link-click-p start-event event))
