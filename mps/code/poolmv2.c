@@ -53,7 +53,6 @@ static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena);
 static ABQ MVTABQ(MVT mvt);
 static CBS MVTCBS(MVT mvt);
 static Freelist MVTFreelist(MVT mvt);
-static SegPref MVTSegPref(MVT mvt);
 
 
 /* Types */
@@ -182,12 +181,6 @@ static Freelist MVTFreelist(MVT mvt)
 }
 
 
-static SegPref MVTSegPref(MVT mvt)
-{
-  return &mvt->segPrefStruct;
-}
-
-
 /* Methods */
 
 
@@ -286,14 +279,6 @@ static Res MVTInit(Pool pool, ArgList args)
     goto failABQ;
 
   FreelistInit(MVTFreelist(mvt), align);
-
-  {
-    ZoneSet zones;
-    /* --- Loci needed here, what should the pref be? */
-    SegPrefInit(MVTSegPref(mvt));
-    zones = ZoneSetComp(ArenaDefaultZONESET);
-    SegPrefExpress(MVTSegPref(mvt), SegPrefZoneSet, (void *)&zones);
-  }
 
   pool->alignment = align;
   mvt->reuseSize = reuseSize;
@@ -1202,7 +1187,7 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
   /* Can't use plain old SegClass here because we need to call
    * SegBuffer() in MVTFree(). */
   Res res = SegAlloc(segReturn, GCSegClassGet(),
-                     MVTSegPref(mvt), size, MVT2Pool(mvt), withReservoirPermit,
+                     SegPrefDefault(), size, MVT2Pool(mvt), withReservoirPermit,
                      argsNone);
 
   if (res == ResOK) {
