@@ -315,8 +315,6 @@ typedef struct SegPrefStruct {  /* segment placement preferences */
   Bool high;                    /* high or low */
   ZoneSet zones;                /* preferred zones */
   Bool isCollected;             /* whether segment will be collected */
-  Bool isGen;                   /* whether gen is set */
-  Serial gen;                   /* associated geneation */
 } SegPrefStruct;
 
 
@@ -600,6 +598,9 @@ typedef struct GlobalsStruct {
   /* index into next free slot in block.  0 means that a new
      block should be allocated and appended. */
   Index rememberedSummaryIndex;
+  
+  /* locus (<code/locus.c>) */
+  Chain defaultChain;           /* default chain for GC pool */
 } GlobalsStruct;
 
 

@@ -174,7 +174,8 @@ static void table_link(mps_word_t *t1, mps_word_t *t2)
 }
 
 
-static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
+static void test(mps_arena_t arena,
+                 mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
                  mps_ap_t bogusap)
 {
   mps_word_t *weaktable;
@@ -208,12 +209,15 @@ static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
     string = alloc_string("iamexact", leafap);
     set_table_slot(exacttable, i, string);
   }
-
+  
   for(j = 0; j < ITERATIONS; ++j) {
     for(i = 0; i < TABLE_SLOTS; ++i) {
       (void)alloc_string("spong", leafap);
     }
   }
+  
+  mps_arena_collect(arena);
+  mps_arena_release(arena);
 
   for(i = 0; i < TABLE_SLOTS; ++i) {
     if (preserve[i] == 0) {
@@ -269,8 +273,15 @@ static void *setup(void *v, size_t s)
       "Format Create\n");
   die(mps_fmt_create_A(&dylanweakfmt, arena, dylan_fmt_A_weak()),
       "Format Create (weak)\n");
-  die(mps_pool_create(&leafpool, arena, mps_class_lo(), dylanfmt),
-      "Leaf Pool Create\n");
+  MPS_ARGS_BEGIN(args) {
+    /* Ask the leafpool to allocate in the nursery, as we're using it to test
+       weaknesss and want things to die in it promptly. */
+    MPS_ARGS_ADD(args, MPS_KEY_GEN, 0);
+    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, dylanfmt);
+    MPS_ARGS_DONE(args);
+    die(mps_pool_create_k(&leafpool, arena, mps_class_lo(), args),
+        "Leaf Pool Create\n");
+  } MPS_ARGS_END(args);
   die(mps_pool_create(&tablepool, arena, mps_class_awl(), dylanweakfmt,
                       dylan_weak_dependent),
       "Table Pool Create\n");
@@ -283,7 +294,7 @@ static void *setup(void *v, size_t s)
   die(mps_ap_create(&bogusap, tablepool, mps_rank_exact()),
       "Bogus AP Create\n");
 
-  test(leafap, exactap, weakap, bogusap);
+  test(arena, leafap, exactap, weakap, bogusap);
 
   mps_ap_destroy(bogusap);
   mps_ap_destroy(weakap);

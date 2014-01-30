@@ -32,12 +32,6 @@
 SRCID(arenavm, "$Id$");
 
 
-/* @@@@ Arbitrary calculation for the maximum number of distinct */
-/* object sets for generations.  Should be in config.h. */
-/* .gencount.const: Must be a constant suitable for use as an */
-/* array size. */
-#define VMArenaGenCount ((Count)(MPS_WORD_WIDTH/2))
-
 /* VMChunk -- chunks for VM arenas */
 
 typedef struct VMChunkStruct *VMChunk;
@@ -78,7 +72,6 @@ typedef struct VMArenaStruct {  /* VM arena structure */
   char vmParams[VMParamSize];   /* VM parameter block */
   Size spareSize;              /* total size of spare pages */
   ZoneSet blacklist;             /* zones to use last */
-  ZoneSet genZoneSet[VMArenaGenCount]; /* .gencount.const */
   ZoneSet freeSet;               /* unassigned zones */
   Size extendBy;                /* desired arena increment */
   Size extendMin;               /* minimum arena increment */
@@ -168,8 +161,6 @@ static Bool VMChunkCheck(VMChunk vmchunk)
 
 static Bool VMArenaCheck(VMArena vmArena)
 {
-  Index gen;
-  ZoneSet allocSet;
   Arena arena;
   VMChunk primary;
 
@@ -180,11 +171,7 @@ static Bool VMArenaCheck(VMArena vmArena)
   CHECKL(vmArena->spareSize <= arena->committed);
   CHECKL(vmArena->blacklist != ZoneSetUNIV);
 
-  allocSet = ZoneSetEMPTY;
-  for(gen = (Index)0; gen < VMArenaGenCount; ++gen) {
-    allocSet = ZoneSetUnion(allocSet, vmArena->genZoneSet[gen]);
-  }
-  CHECKL(ZoneSetInter(allocSet, vmArena->freeSet) == ZoneSetEMPTY);
+  /* FIXME: Test for vmArena->freeSet? */
   CHECKL(vmArena->extendBy > 0);
   CHECKL(vmArena->extendMin <= vmArena->extendBy);
 
@@ -208,7 +195,6 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
 {
   Res res;
   VMArena vmArena;
-  Index gen;
 
   if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
@@ -225,17 +211,6 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
    *
   */
 
-  for(gen = (Index)0; gen < VMArenaGenCount; gen++) {
-    if(vmArena->genZoneSet[gen] != ZoneSetEMPTY) {
-      res = WriteF(stream,
-                   "  genZoneSet[$U]: $B\n",
-                   (WriteFU)gen, (WriteFB)vmArena->genZoneSet[gen],
-                   NULL);
-      if(res != ResOK)
-        return res;
-    }
-  }
-  
   res = WriteF(stream,
                "  freeSet:       $B\n", (WriteFB)vmArena->freeSet,
                "  blacklist:     $B\n", (WriteFB)vmArena->blacklist,
@@ -503,7 +478,6 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   Res res;
   VMArena vmArena;
   Arena arena;
-  Index gen;
   VM arenaVM;
   Chunk chunk;
   mps_arg_s arg;
@@ -572,9 +546,6 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   }
   EVENT2(ArenaBlacklistZone, vmArena, vmArena->blacklist);
   
-  for(gen = (Index)0; gen < VMArenaGenCount; gen++) {
-    vmArena->genZoneSet[gen] = ZoneSetEMPTY;
-  }
   vmArena->freeSet = ZoneSetUNIV; /* includes blacklist */
   /* <design/arena/#coop-vm.struct.vmarena.extendby.init> */
   vmArena->extendBy = userSize;
@@ -1036,23 +1007,6 @@ static Bool pagesFindFreeInZones(Index *baseReturn, VMChunk *chunkReturn,
 }
 
 
-/* vmGenOfSegPref -- return generation specified by a segment preference */
-
-static Serial vmGenOfSegPref(VMArena vmArena, SegPref pref)
-{
-  Serial gen;
-
-  AVER(pref->isGen);
-  UNUSED(vmArena);
-
-  gen = pref->gen;
-  if (gen >= VMArenaGenCount) {
-    gen = VMArenaGenCount - 1;
-  }
-  return gen;
-}
-
-
 /* pagesFindFreeWithSegPref -- find a range of free pages with given preferences
  *
  * Note this does not create or allocate any pages.
@@ -1072,15 +1026,6 @@ static Bool pagesFindFreeWithSegPref(Index *baseReturn, VMChunk *chunkReturn,
                                      VMArena vmArena, SegPref pref, Size size,
                                      Bool barge)
 {
-  ZoneSet preferred;
-
-  if (pref->isGen) {
-    Serial gen = vmGenOfSegPref(vmArena, pref);
-    preferred = vmArena->genZoneSet[gen];
-  } else {
-    preferred = pref->zones;
-  }
-
   /* @@@@ Some of these tests might be duplicates.  If we're about */
   /* to run out of virtual address space, then slow allocation is */
   /* probably the least of our worries. */
@@ -1102,10 +1047,10 @@ static Bool pagesFindFreeWithSegPref(Index *baseReturn, VMChunk *chunkReturn,
     /* blacklisted zones have been allocated (or the default */
     /* is used). */
     if (pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
-                             ZoneSetDiff(preferred, vmArena->blacklist),
+                             ZoneSetDiff(pref->zones, vmArena->blacklist),
                              pref->high)
         || pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
-                                ZoneSetUnion(preferred,
+                                ZoneSetUnion(pref->zones,
                                              ZoneSetDiff(vmArena->freeSet,
                                                          vmArena->blacklist)),
                                 pref->high)) {
@@ -1130,12 +1075,12 @@ static Bool pagesFindFreeWithSegPref(Index *baseReturn, VMChunk *chunkReturn,
     /* Note that each is a superset of the previous, unless */
     /* blacklisted zones have been allocated. */
     if (pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
-                             ZoneSetInter(preferred, vmArena->blacklist),
+                             ZoneSetInter(pref->zones, vmArena->blacklist),
                              pref->high)
         || pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
-                                preferred, pref->high)
+                                pref->zones, pref->high)
         || pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
-                                ZoneSetUnion(preferred, vmArena->blacklist),
+                                ZoneSetUnion(pref->zones, vmArena->blacklist),
                                 pref->high)
         || pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
                                 ZoneSetUNIV, pref->high)) {
@@ -1485,18 +1430,6 @@ static Res vmAllocComm(Addr *baseReturn, Tract *baseTractReturn,
   limit = AddrAdd(base, size);
   zones = ZoneSetOfRange(arena, base, limit);
 
-  if (pref->isGen) {
-    Serial gen = vmGenOfSegPref(vmArena, pref);
-    if (!ZoneSetSuper(vmArena->genZoneSet[gen], zones)) {
-      /* Tracking the whole zoneset for each generation number gives
-       * more understandable telemetry than just reporting the added
-       * zones. */
-      EVENT3(ArenaGenZoneAdd, arena, gen, ZoneSetUnion(vmArena->genZoneSet[gen], zones));
-    }
-            
-    vmArena->genZoneSet[gen] = ZoneSetUnion(vmArena->genZoneSet[gen], zones);
-  }
-
   if (ZoneSetInter(vmArena->freeSet, zones) != ZoneSetEMPTY) {
       EVENT2(ArenaUseFreeZone, arena, ZoneSetInter(vmArena->freeSet, zones));
   }
@@ -1745,7 +1678,6 @@ static void VMCompact(Arena arena, Trace trace)
 
   vmem1 = VMArenaReserved(arena);
 
-  /* Destroy any empty chunks (except the primary). */
   RING_FOR(node, &arena->chunkRing, next) {
     Chunk chunk = RING_ELT(Chunk, chunkRing, node);
     if(chunk != arena->primary
