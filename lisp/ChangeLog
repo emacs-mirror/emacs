@@ -1,5 +1,7 @@
 2014-01-30  Glenn Morris  <rgm@gnu.org>
 
+	* simple.el (eval-expression): Doc fix.
+
 	* hexl.el (hexl-mode-hook):
 	* ielm.el (ielm-mode-hook):
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-hook)

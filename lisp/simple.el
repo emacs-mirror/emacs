@@ -1401,6 +1401,9 @@ however, there is no such truncation.  Such a prefix argument
 also causes integers to be printed in several additional formats
 \(octal, hexadecimal, and character).
 
+Runs the hook `eval-expression-minibuffer-setup-hook' on entering the
+minibuffer.
+
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger."
   (interactive

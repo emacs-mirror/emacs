@@ -221,6 +221,9 @@ equivalent to setting `(eval-expression-)print-length' and
 `(eval-expression-)print-level' to nil.  Additionally, it causes integers
 to be printed in other formats (octal, hexadecimal, and character).
 
+*** New hook `eval-expression-minibuffer-setup-hook' run by
+`eval-expression' on entering the minibuffer.
+
 ---
 ** `write-region-inhibit-fsync' now defaults to t in batch mode.
 
