@@ -416,11 +416,11 @@ Customize the system include path for the current major mode (or
 @var{mode}).
 @end deffn
 
-@defun semanticdb-implied-include-tags
+@defvar semanticdb-implied-include-tags
 Include tags implied for all files of a given mode.  You can set this
 variable with @code{defvar-mode-local} for a particular mode so that
 any symbols that exist for all files for that mode are included.
-@end defun
+@end defvar
 
 @c @xref{Search Optimization}, for more information on include paths.
 
