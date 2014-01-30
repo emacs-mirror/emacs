@@ -1,3 +1,8 @@
+2014-01-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio-opt.el (eieio-help-generic): Don't assume `generic'
+	is a symbol (bug#16584).
+
 2014-01-30  Glenn Morris  <rgm@gnu.org>
 
 	* help.el (help-for-help-internal): Add "P" to text.

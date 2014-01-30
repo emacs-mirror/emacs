@@ -315,7 +315,7 @@ are not abstract."
 ;;;###autoload
 (defun eieio-help-generic (generic)
   "Describe GENERIC if it is a generic function."
-  (when (generic-p generic)
+  (when (and symbolp generic) (generic-p generic))
     (save-excursion
       (goto-char (point-min))
       (when (re-search-forward " in `.+'.$" nil t)
