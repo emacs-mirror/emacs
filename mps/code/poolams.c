@@ -766,8 +766,10 @@ static Res AMSInit(Pool pool, ArgList args)
   AVERT(Pool, pool);
   AVER(ArgListCheck(args));
 
-  ArgRequire(&arg, args, MPS_KEY_CHAIN);
-  chain = arg.val.chain;
+  if (ArgPick(&arg, args, MPS_KEY_CHAIN))
+    chain = arg.val.chain;
+  else
+    chain = ArenaGlobals(PoolArena(pool))->defaultChain;
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
   if (ArgPick(&arg, args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS))
@@ -800,8 +802,8 @@ Res AMSInitInternal(AMS ams, Format format, Chain chain, Bool shareAllocTable)
   pool->alignment = pool->format->alignment;
   ams->grainShift = SizeLog2(PoolAlignment(pool));
 
-  if (ChainGens(chain) != 1)
-    return ResPARAM;
+  /* TODO: Accept a keyword parameter specifying which generation of the
+     chain to allocate in. */
   ams->chain = chain;
   res = PoolGenInit(&ams->pgen, ams->chain, 0, pool);
   if (res != ResOK)

@@ -218,6 +218,8 @@ int main(int argc, char *argv[])
   die(mps_fmt_create_A(&format, arena, dylan_fmt_A()), "fmt_create");
   die(mps_chain_create(&chain, arena, 1, testChain), "chain_create");
 
+  /* TODO: Add tests using the arena default chain. */
+
   printf("\n\n****************************** Testing AMS Debug\n");
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
