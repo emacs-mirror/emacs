@@ -681,7 +681,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
 
 (defcustom emacs-lisp-mode-hook nil
   "Hook run when entering Emacs Lisp mode."
-  :options '(turn-on-eldoc-mode imenu-add-menubar-index checkdoc-minor-mode)
+  :options '(eldoc-mode imenu-add-menubar-index checkdoc-minor-mode)
   :type 'hook
   :group 'lisp)
 
@@ -693,7 +693,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
 
 (defcustom lisp-interaction-mode-hook nil
   "Hook run when entering Lisp Interaction mode."
-  :options '(turn-on-eldoc-mode)
+  :options '(eldoc-mode)
   :type 'hook
   :group 'lisp)
 

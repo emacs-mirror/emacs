@@ -1389,9 +1389,8 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	print_string (obj, printcharfun);
       else
 	{
-	  register ptrdiff_t i_byte;
+	  register ptrdiff_t i, i_byte;
 	  struct gcpro gcpro1;
-	  unsigned char *str;
 	  ptrdiff_t size_byte;
 	  /* 1 means we must ensure that the next character we output
 	     cannot be taken as part of a hex character escape.  */
@@ -1410,23 +1409,15 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	    }
 
 	  PRINTCHAR ('\"');
-	  str = SDATA (obj);
 	  size_byte = SBYTES (obj);
 
-	  for (i_byte = 0; i_byte < size_byte;)
+	  for (i = 0, i_byte = 0; i_byte < size_byte;)
 	    {
 	      /* Here, we must convert each multi-byte form to the
 		 corresponding character code before handing it to PRINTCHAR.  */
-	      int len;
 	      int c;
 
-	      if (multibyte)
-		{
-		  c = STRING_CHAR_AND_LENGTH (str + i_byte, len);
-		  i_byte += len;
-		}
-	      else
-		c = str[i_byte++];
+	      FETCH_STRING_CHAR_ADVANCE (c, obj, i, i_byte);
 
 	      QUIT;
 

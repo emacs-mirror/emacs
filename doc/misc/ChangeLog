@@ -1,3 +1,7 @@
+2014-01-30  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* sem-user.texi (Include paths): Fix a Texinfo command.
+
 2014-01-27  Glenn Morris  <rgm@gnu.org>
 
 	* idlwave.texi (Lesson III---User Catalog, Online Help)

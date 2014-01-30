@@ -47,7 +47,7 @@
 
 ;; It's *highly* recommended that you enable the eldoc minor mode:
 
-;; (add-hook 'cfengine3-mode-hook 'turn-on-eldoc-mode)
+;; (add-hook 'cfengine3-mode-hook 'eldoc-mode)
 
 ;; This is not the same as the mode written by Rolf Ebert
 ;; <ebert@waporo.muc.de>, distributed with cfengine-2.0.5.  It does
@@ -1257,8 +1257,8 @@ Calls `cfengine-cf-promises' with \"-s json\""
 
 (defun cfengine3-documentation-function ()
   "Document CFengine 3 functions around point.
-Intended as the value of `eldoc-documentation-function', which
-see.  Use it by executing `turn-on-eldoc-mode'."
+Intended as the value of `eldoc-documentation-function', which see.
+Use it by enabling `eldoc-mode'."
   (let ((fdef (cfengine3--current-function)))
     (when fdef
       (cfengine3-format-function-docstring fdef))))
