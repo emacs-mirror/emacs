@@ -862,6 +862,7 @@ extern ZoneSet ZoneSetOfSeg(Arena arena, Seg seg);
 extern Bool RangeInZoneSet(Addr *baseReturn, Addr *limitReturn,
                            Addr base, Addr limit,
                            Arena arena, ZoneSet zoneSet, Size size);
+extern ZoneSet ZoneSetBlacklist(Arena arena);
 
 
 /* Shield Interface -- see <code/shield.c> */
