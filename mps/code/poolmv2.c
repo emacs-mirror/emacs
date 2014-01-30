@@ -290,7 +290,7 @@ static Res MVTInit(Pool pool, ArgList args)
   {
     ZoneSet zones;
     /* --- Loci needed here, what should the pref be? */
-    *MVTSegPref(mvt) = *SegPrefDefault();
+    SegPrefInit(MVTSegPref(mvt));
     zones = ZoneSetComp(ArenaDefaultZONESET);
     SegPrefExpress(MVTSegPref(mvt), SegPrefZoneSet, (void *)&zones);
   }
