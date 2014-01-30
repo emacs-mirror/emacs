@@ -536,7 +536,6 @@ static Res AWLInit(Pool pool, ArgList args)
   FindDependentMethod findDependent;
   Chain chain;
   Res res;
-  static GenParamStruct genParam = { SizeMAX, 0.5 /* dummy */ };
   ArgStruct arg;
 
   /* Weak check, as half-way through initialization. */
@@ -548,6 +547,10 @@ static Res AWLInit(Pool pool, ArgList args)
   format = arg.val.format;
   ArgRequire(&arg, args, MPS_KEY_AWL_FIND_DEPENDENT);
   findDependent = (FindDependentMethod)arg.val.addr_method;
+  if (ArgPick(&arg, args, MPS_KEY_CHAIN))
+    chain = arg.val.chain;
+  else
+    chain = ArenaGlobals(PoolArena(pool))->defaultChain;
 
   AVERT(Format, format);
   pool->format = format;
@@ -555,13 +558,12 @@ static Res AWLInit(Pool pool, ArgList args)
   AVER(FUNCHECK(findDependent));
   awl->findDependent = findDependent;
 
-  res = ChainCreate(&chain, pool->arena, 1, &genParam);
-  if (res != ResOK)
-    return res;
+  AVERT(Chain, chain);
   awl->chain = chain;
-  /* .gen: This must be the nursery in the chain, because it's the only */
-  /* generation.  awl->gen is just a hack for segment placement. */
-  res = PoolGenInit(&awl->pgen, chain, 0 /* .gen */, pool);
+
+  /* TODO: Accept a keyword parameter specifying which generation of the
+     chain to allocate in. */
+  res = PoolGenInit(&awl->pgen, chain, 0, pool);
   if (res != ResOK)
     goto failGenInit;
 
@@ -577,7 +579,6 @@ static Res AWLInit(Pool pool, ArgList args)
   return ResOK;
 
 failGenInit:
-  ChainDestroy(chain);
   AVER(res != ResOK);
   return res;
 }
@@ -603,7 +604,6 @@ static void AWLFinish(Pool pool)
   }
   awl->sig = SigInvalid;
   PoolGenFinish(&awl->pgen);
-  ChainDestroy(awl->chain);
 }
 
 

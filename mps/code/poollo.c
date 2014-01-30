@@ -470,44 +470,42 @@ static void LOVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 static Res LOInit(Pool pool, ArgList args)
 {
-  Format format;
   LO lo;
   Arena arena;
   Res res;
-  static GenParamStruct loGenParam = { 1024, 0.2 };
   ArgStruct arg;
 
   AVERT(Pool, pool);
 
   arena = PoolArena(pool);
   
-  ArgRequire(&arg, args, MPS_KEY_FORMAT);
-  format = arg.val.format;
-  
-  AVERT(Format, format);
-
   lo = PoolPoolLO(pool);
 
-  pool->format = format;
-  lo->poolStruct.alignment = format->alignment;
-  lo->alignShift =
-    SizeLog2((Size)PoolAlignment(&lo->poolStruct));
-  res = ChainCreate(&lo->chain, arena, 1, &loGenParam);
-  if (res != ResOK)
-    return res;
-  /* .gen: This must be the nursery in the chain, because it's the only */
-  /* generation.  lo->gen is just a hack for segment placement. */
-  res = PoolGenInit(&lo->pgen, lo->chain, 0 /* .gen */, pool);
+  ArgRequire(&arg, args, MPS_KEY_FORMAT);
+  pool->format = arg.val.format;
+  if (ArgPick(&arg, args, MPS_KEY_CHAIN))
+    lo->chain = arg.val.chain;
+  else
+    lo->chain = ArenaGlobals(arena)->defaultChain;
+  
+  AVERT(Format, pool->format);
+  AVERT(Chain, lo->chain);
+
+  pool->alignment = pool->format->alignment;
+  lo->alignShift = SizeLog2((Size)PoolAlignment(pool));
+
+  /* TODO: Accept a keyword parameter specifying which generation of the
+     chain to allocate in. */
+  res = PoolGenInit(&lo->pgen, lo->chain, 0, pool);
   if (res != ResOK)
     goto failGenInit;
 
   lo->sig = LOSig;
   AVERT(LO, lo);
-  EVENT2(PoolInitLO, pool, format);
+  EVENT2(PoolInitLO, pool, pool->format);
   return ResOK;
 
 failGenInit:
-  ChainDestroy(lo->chain);
   AVER(res != ResOK);
   return res;
 }
@@ -533,7 +531,6 @@ static void LOFinish(Pool pool)
     SegFree(seg);
   }
   PoolGenFinish(&lo->pgen);
-  ChainDestroy(lo->chain);
 
   lo->sig = SigInvalid;
 }
