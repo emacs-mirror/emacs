@@ -1,3 +1,7 @@
+2014-01-30  Glenn Morris  <rgm@gnu.org>
+
+	* help.el (help-for-help-internal): Add "P" to text.
+
 2014-01-29  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (just-one-space, cycle-spacing): Doc fixes.

@@ -214,6 +214,7 @@ m           Display documentation of current minor modes and current major mode,
               including their special commands.
 n           Display news of recent Emacs changes.
 p TOPIC     Find packages matching a given topic keyword.
+P PACKAGE   Describe the given Emacs Lisp package.
 r           Display the Emacs manual in Info mode.
 s           Display contents of current syntax table, plus explanations.
 S SYMBOL    Show the section for the given symbol in the on-line manual
