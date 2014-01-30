@@ -305,6 +305,7 @@
 
 #define ArenaDefaultZONESET (ZoneSetUNIV << (MPS_WORD_WIDTH / 2))
 /* @@@@ knows the implementation of ZoneSets */
+/* FIXME: There's no particular reason to think this will avoid GC segments. */
 
 /* .segpref.default: For EPcore, non-DL segments should be placed high */
 /* to reduce fragmentation of DL pools (see request.epcore.170193_). */
@@ -313,7 +314,7 @@
   SegPrefSig,          /* sig */ \
   TRUE,                /* high */ \
   ArenaDefaultZONESET, /* zoneSet */ \
-  FALSE,               /* isCollected */ \
+  ZoneSetEMPTY,        /* avoid */ \
 }
 
 #define LDHistoryLENGTH ((Size)4)

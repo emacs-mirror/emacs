@@ -314,7 +314,7 @@ typedef struct SegPrefStruct {  /* segment placement preferences */
   Sig sig;                      /* <code/misc.h#sig> */
   Bool high;                    /* high or low */
   ZoneSet zones;                /* preferred zones */
-  Bool isCollected;             /* whether segment will be collected */
+  ZoneSet avoid;                /* zones to avoid */
 } SegPrefStruct;
 
 
@@ -659,6 +659,7 @@ typedef struct mps_arena_s {
   ChunkCacheEntryStruct chunkCache; /* just one entry */
   
   CBSStruct freeCBS;            /* CBS of free address space */
+  ZoneSet freeZones;            /* zones not yet allocated */
 
   /* locus fields (<code/locus.c>) */
   GenDescStruct topGen;         /* generation descriptor for dynamic gen */

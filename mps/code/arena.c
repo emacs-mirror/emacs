@@ -183,6 +183,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment)
   arena->poolReady = FALSE;     /* <design/arena/#pool.ready> */
   arena->lastTract = NULL;
   arena->lastTractBase = NULL;
+  arena->freeZones = ZoneSetUNIV;
 
   arena->primary = NULL;
   RingInit(&arena->chunkRing);
@@ -264,7 +265,7 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
     res = ResMEMORY; /* size was too small */
     goto failStripeSize;
   }
-
+  
   res = ControlInit(arena);
   if (res != ResOK)
     goto failControlInit;
@@ -640,6 +641,7 @@ Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit)
  *
  * The free CBS contains all the free address space we have in chunks,
  * so this is the primary method of allocation.
+ * FIXME: Needs to take a "high" option to use CBSFindLastInZones.
  */
 
 static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones,
@@ -677,6 +679,9 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones,
   if (res != ResOK)
     goto failMark;
 
+  arena->freeZones = ZoneSetDiff(arena->freeZones,
+                                 ZoneSetOfRange(arena, range.base, range.limit));
+
   *tractReturn = PageTract(&chunk->pageTable[baseIndex]); /* FIXME: method for this? */
   return ResOK;
 
@@ -697,11 +702,20 @@ failMark:
  * can be maintained and adjusted.
  */
 
+static Res arenaExtend(Arena arena, SegPref pref, Size size)
+{
+  UNUSED(arena);
+  UNUSED(pref);
+  UNUSED(size);
+  return ResUNIMPL;
+}
+
 static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
                             Size size, Pool pool)
 {
   Res res;
   Tract tract;
+  ZoneSet zones, moreZones, evenMoreZones;
 
   AVER(tractReturn != NULL);
   AVERT(SegPref, pref);
@@ -717,18 +731,71 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
       return ResCOMMIT_LIMIT;
     }
   }
-
+  
   /* Plan A: allocate from the free CBS in the requested zones */
   /* FIXME: Takes no account of other zones fields */
-  res = arenaAllocFromCBS(&tract, pref->zones, size, pool);
-  if (res == ResOK) {
-    *tractReturn = tract;
-    return ResOK;
+  zones = pref->zones;
+  if (zones != ZoneSetEMPTY) {
+    res = arenaAllocFromCBS(&tract, zones, size, pool);
+    if (res == ResOK)
+      goto found;
   }
 
-  /* Plan B: extend the arena */
-  /* FIXME: unimplemented! */
-  return ResUNIMPL;
+  /* Plan B: add free zones that aren't blacklisted */
+  /* TODO: Pools without ambiguous roots might not care about the blacklist. */
+  /* TODO: zones are precious and (currently) never deallocated, so we
+     should consider extending the arena first if address space is plentiful */
+  moreZones = ZoneSetUnion(zones, ZoneSetDiff(arena->freeZones, pref->avoid));
+  if (moreZones != zones) {
+    res = arenaAllocFromCBS(&tract, moreZones, size, pool);
+    if (res == ResOK)
+      goto found;
+  }
+  
+  /* Plan C: Extend the arena, then try A and B again. */
+  if (moreZones != ZoneSetEMPTY) {
+    res = arenaExtend(arena, pref, size);
+    if (res != ResOK)
+      return res;
+    zones = pref->zones;
+    if (zones != ZoneSetEMPTY) {
+      res = arenaAllocFromCBS(&tract, zones, size, pool);
+      if (res == ResOK)
+        goto found;
+    }
+    if (moreZones != zones) {
+      zones = ZoneSetUnion(zones, ZoneSetDiff(arena->freeZones, pref->avoid));
+      res = arenaAllocFromCBS(&tract, moreZones, size, pool);
+      if (res == ResOK)
+        goto found;
+    }
+  }
+
+  /* Plan D: add every zone that isn't blacklisted.  This might mix GC'd
+     objects with those from other generations, causing the zone check
+     to give false positives and slowing down the collector. */
+  /* TODO: log an event for this */
+  evenMoreZones = ZoneSetUnion(moreZones, ZoneSetDiff(ZoneSetUNIV, pref->avoid));
+  if (evenMoreZones != moreZones) {
+    res = arenaAllocFromCBS(&tract, evenMoreZones, size, pool);
+    if (res == ResOK)
+      goto found;
+  }
+
+  /* Last resort: try anywhere.  This might put GC'd objects in zones where
+     common ambiguous bit patterns pin them down, causing the zone check
+     to give even more false positives permanently, and possibly retaining
+     garbage indefinitely. */
+  res = arenaAllocFromCBS(&tract, ZoneSetUNIV, size, pool);
+  if (res == ResOK)
+    goto found;
+
+  /* Uh oh. */
+  return res;
+
+found:
+  *tractReturn = tract;
+  return ResOK;
 }
 
 

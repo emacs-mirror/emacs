@@ -884,6 +884,7 @@ static void tablePagesUnmapUnused(VMChunk vmChunk,
 }
 
 
+#if 0
 /* pagesFindFreeInArea -- find a range of free pages in a given address range
  *
  * Search for a free run of pages in the free table, between the given
@@ -1019,7 +1020,6 @@ static Bool pagesFindFreeInZones(Index *baseReturn, VMChunk *chunkReturn,
 
   return FALSE;
 }
-
 
 /* pagesFindFreeWithSegPref -- find a range of free pages with given preferences
  *
@@ -1223,6 +1223,7 @@ static Res VMNZAllocPolicy(Index *baseIndexReturn, VMChunk *chunkReturn,
   }
   return ResRESOURCE;
 }
+#endif
 
 
 /* pageIsMapped -- checks whether a free page is mapped or not. */
@@ -1367,7 +1368,7 @@ static Res VMPagesMarkAllocated(Arena arena, Chunk chunk,
 }
 
 
-
+#if 0
 /* vmAllocComm -- allocate a region from the arena
  *
  * Common code used by mps_arena_class_vm and
@@ -1457,7 +1458,6 @@ failPagesMap:
   return res;
 }
 
-
 static Res VMAlloc(Addr *baseReturn, Tract *baseTractReturn,
                    SegPref pref, Size size, Pool pool)
 {
@@ -1473,6 +1473,32 @@ static Res VMNZAlloc(Addr *baseReturn, Tract *baseTractReturn,
   return vmAllocComm(baseReturn, baseTractReturn,
                      VMNZAllocPolicy, pref, size, pool);
 }
+
+#else
+
+static Res VMAlloc(Addr *baseReturn, Tract *baseTractReturn,
+                   SegPref pref, Size size, Pool pool)
+{
+  UNUSED(baseReturn);
+  UNUSED(baseTractReturn);
+  UNUSED(pref);
+  UNUSED(size);
+  UNUSED(pool);
+  return ResUNIMPL;
+}
+
+static Res VMNZAlloc(Addr *baseReturn, Tract *baseTractReturn,
+                     SegPref pref, Size size, Pool pool)
+{
+  UNUSED(baseReturn);
+  UNUSED(baseTractReturn);
+  UNUSED(pref);
+  UNUSED(size);
+  UNUSED(pool);
+  return ResUNIMPL;
+}
+
+#endif
 
 
 /* spareRangesMap -- map a function over spare ranges

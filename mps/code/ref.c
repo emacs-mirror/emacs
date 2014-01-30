@@ -169,6 +169,43 @@ Bool RangeInZoneSet(Addr *baseReturn, Addr *limitReturn,
 }
 
 
+/* ZoneSetBlacklist() -- calculate a zone set of likely false positives
+ *
+ * We blacklist the zones that could be referenced by values likely to be
+ * found in ambiguous roots (such as the stack) and misinterpreted as
+ * references, in order to avoid nailing down objects.  This isn't a
+ * perfect simulation, but it should catch the common cases.
+ */
+
+ZoneSet ZoneSetBlacklist(Arena arena)
+{
+  ZoneSet blacklist;
+  union {
+    mps_word_t word;
+    mps_addr_t addr;
+    int i;
+    long l;
+  } nono;
+
+  AVERT(Arena, arena);
+
+  blacklist = ZoneSetEMPTY;
+  nono.word = 0;
+  nono.i = 1;
+  blacklist = ZoneSetAdd(arena, blacklist, nono.addr);
+  nono.i = -1;
+  blacklist = ZoneSetAdd(arena, blacklist, nono.addr);
+  nono.l = 1;
+  blacklist = ZoneSetAdd(arena, blacklist, nono.addr);
+  nono.l = -1;
+  blacklist = ZoneSetAdd(arena, blacklist, nono.addr);
+
+  return blacklist;
+}
+
+
+
+
 
 
 /* C. COPYRIGHT AND LICENSE
