@@ -179,7 +179,8 @@ static void table_link(mps_word_t *t1, mps_word_t *t2)
 }
 
 
-static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
+static void test(mps_arena_t arena,
+                 mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
                  mps_ap_t bogusap)
 {
   mps_word_t *weaktable;
@@ -198,7 +199,11 @@ static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
 
   for(i = 0; i < TABLE_SLOTS; ++i) {
     mps_word_t *string;
-    if (rnd() % 2 == 0) {
+    /* Ensure that the last entry in the table is preserved, so that
+     * we don't get a false positive due to the local variable
+     * 'string' keeping this entry alive (see job003436).
+     */
+    if (rnd() % 2 == 0 || i + 1 == TABLE_SLOTS) {
       string = alloc_string("iamalive", leafap);
       preserve[i] = string;
     } else {
@@ -215,6 +220,9 @@ static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
       (void)alloc_string("spong", leafap);
     }
   }
+
+  mps_arena_collect(arena);
+  mps_arena_release(arena);
 
   for(i = 0; i < TABLE_SLOTS; ++i) {
     if (preserve[i] == 0) {
@@ -268,8 +276,15 @@ static void *setup(void *v, size_t s)
       "Root Create\n");
   EnsureHeaderFormat(&dylanfmt, arena);
   EnsureHeaderWeakFormat(&dylanweakfmt, arena);
-  die(mps_pool_create(&leafpool, arena, mps_class_lo(), dylanfmt),
-      "Leaf Pool Create\n");
+  MPS_ARGS_BEGIN(args) {
+    /* Ask the leafpool to allocate in the nursery, as we're using it to test
+       weaknesss and want things to die in it promptly. */
+    MPS_ARGS_ADD(args, MPS_KEY_GEN, 0);
+    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, dylanfmt);
+    MPS_ARGS_DONE(args);
+    die(mps_pool_create_k(&leafpool, arena, mps_class_lo(), args),
+        "Leaf Pool Create\n");
+  } MPS_ARGS_END(args);
   die(mps_pool_create(&tablepool, arena, mps_class_awl(), dylanweakfmt,
                       dylan_weak_dependent),
       "Table Pool Create\n");
@@ -282,7 +297,7 @@ static void *setup(void *v, size_t s)
   die(mps_ap_create(&bogusap, tablepool, mps_rank_exact()),
       "Bogus AP Create\n");
 
-  test(leafap, exactap, weakap, bogusap);
+  test(arena, leafap, exactap, weakap, bogusap);
 
   mps_ap_destroy(bogusap);
   mps_ap_destroy(weakap);

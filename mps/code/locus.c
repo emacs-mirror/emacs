@@ -25,9 +25,7 @@ Bool SegPrefCheck(SegPref pref)
   CHECKS(SegPref, pref);
   CHECKL(BoolCheck(pref->high));
   /* zones can't be checked because it's arbitrary. */
-  CHECKL(BoolCheck(pref->isGen));
   CHECKL(BoolCheck(pref->isCollected));
-  /* gen is an arbitrary serial */
   return TRUE;
 }
 
@@ -39,6 +37,13 @@ static SegPrefStruct segPrefDefault = SegPrefDEFAULT;
 SegPref SegPrefDefault(void)
 {
   return &segPrefDefault;
+}
+
+/* SegPrefInit -- initialise a segment preference to the defaults */
+
+void SegPrefInit(SegPref pref)
+{
+  mps_lib_memcpy(pref, &segPrefDefault, sizeof(SegPrefStruct));
 }
 
 
@@ -68,12 +73,6 @@ void SegPrefExpress(SegPref pref, SegPrefKind kind, void *p)
   case SegPrefCollected:
     AVER(p == NULL);
     pref->isCollected = TRUE;
-    break;
-
-  case SegPrefGen:
-    AVER(p != NULL);
-    pref->isGen = TRUE;
-    pref->gen = *(Serial *)p;
     break;
 
   default:
@@ -240,6 +239,54 @@ size_t ChainGens(Chain chain)
 }
 
 
+/* ChainAlloc -- allocate tracts in a generation */
+
+Res ChainAlloc(Seg *segReturn, Chain chain, Serial genNr, SegClass class,
+               Size size, Pool pool, Bool withReservoirPermit,
+               ArgList args)
+{
+  SegPrefStruct pref;
+  Res res;
+  Seg seg;
+  ZoneSet zones, moreZones;
+  Arena arena;
+
+  AVERT(Chain, chain);
+  AVER(genNr <= chain->genCount);
+
+  arena = chain->arena;
+  if (genNr < chain->genCount)
+    zones = chain->gens[genNr].zones;
+  else
+    zones = arena->topGen.zones;
+
+  SegPrefInit(&pref);
+  SegPrefExpress(&pref, SegPrefCollected, NULL);
+  SegPrefExpress(&pref, SegPrefZoneSet, &zones);
+  res = SegAlloc(&seg, class, &pref, size, pool, withReservoirPermit, args);
+  if (res != ResOK)
+    return res;
+
+  moreZones = ZoneSetUnion(zones, ZoneSetOfSeg(arena, seg));
+  
+  if (!ZoneSetSuper(zones, moreZones)) {
+    /* Tracking the whole zoneset for each generation number gives
+     * more understandable telemetry than just reporting the added
+     * zones. */
+    EVENT3(ArenaGenZoneAdd, arena, genNr, moreZones);
+  }
+
+  if (genNr < chain->genCount)
+    chain->gens[genNr].zones = moreZones;
+  else
+    chain->arena->topGen.zones = moreZones;
+
+  *segReturn = seg;
+  return ResOK;
+}
+
+
+
 /* ChainDeferral -- time until next ephemeral GC for this chain */
 
 double ChainDeferral(Chain chain)
@@ -295,6 +342,7 @@ Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace)
     genNewSize = GenDescNewSize(gen);
   } while (genNewSize >= gen->capacity * (Size)1024);
   
+  AVER(condemnedSet != ZoneSetEMPTY || condemnedSize == 0);
   EVENT3(ChainCondemnAuto, chain, topCondemnedGenSerial, chain->genCount);
   UNUSED(topCondemnedGenSerial); /* only used for EVENT */
   
@@ -420,27 +468,6 @@ Bool PoolGenCheck(PoolGen gen)
 }
 
 
-/* PoolGenUpdateZones -- update the zone of the generation
- *
- * This is a temporary i/f: eventually the locus manager will update
- * these directly.
- */
-void PoolGenUpdateZones(PoolGen gen, Seg seg)
-{
-  Chain chain;
-
-  AVERT(PoolGen, gen);
-  AVERT(Seg, seg);
-
-  chain = gen->chain;
-  AVERT(Chain, chain);
-  if (gen->nr != chain->genCount)
-    chain->gens[gen->nr].zones =
-      ZoneSetUnion(chain->gens[gen->nr].zones, ZoneSetOfSeg(chain->arena, seg));
-  /* No need to keep track of dynamic gen zoneset. */
-}
-
-
 /* LocusInit -- initialize the locus module */
 
 void LocusInit(Arena arena)
@@ -451,7 +478,7 @@ void LocusInit(Arena arena)
 
   gen->zones = ZoneSetEMPTY;
   gen->capacity = 0; /* unused */
-  gen->mortality = TraceTopGenMortality; /* @@@@ unused ATM */
+  gen->mortality = 0.51; /* FIXME: Justify this estimate */
   gen->proflow = 0.0;
   RingInit(&gen->locusRing);
   gen->sig = GenDescSig;

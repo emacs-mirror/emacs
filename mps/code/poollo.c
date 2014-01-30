@@ -15,9 +15,6 @@
 SRCID(poollo, "$Id$");
 
 
-#define LOGen ((Serial)1)
-
-
 /* LOStruct -- leaf object pool instance structure */
 
 #define LOSig           ((Sig)0x51970B07) /* SIGnature LO POoL */
@@ -27,7 +24,6 @@ typedef struct LOStruct *LO;
 typedef struct LOStruct {
   PoolStruct poolStruct;        /* generic pool structure */
   Shift alignShift;             /* log_2 of pool alignment */
-  Serial gen;                   /* generation for placement */
   Chain chain;                  /* chain used by this pool */
   PoolGenStruct pgen;           /* generation representing the pool */
   Sig sig;
@@ -286,10 +282,7 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
   LO lo;
   Seg seg;
   Res res;
-  SegPrefStruct segPrefStruct;
   Serial gen;
-  Arena arena;
-  Size asize;           /* aligned size */
 
   AVER(loSegReturn != NULL);
   AVERT(Pool, pool);
@@ -298,17 +291,12 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
-  arena = PoolArena(pool);
-  asize = SizeAlignUp(size, ArenaAlign(arena));
-  segPrefStruct = *SegPrefDefault();
-  gen = lo->gen;
-  SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
-  SegPrefExpress(&segPrefStruct, SegPrefGen, &gen);
-  res = SegAlloc(&seg, EnsureLOSegClass(), &segPrefStruct,
-                 asize, pool, withReservoirPermit, argsNone);
+  gen = 0; /* LO only has one generation in its chain */
+  res = ChainAlloc(&seg, lo->chain, gen, EnsureLOSegClass(),
+                   SizeAlignUp(size, ArenaAlign(PoolArena(pool))),
+                   pool, withReservoirPermit, argsNone);
   if (res != ResOK)
     return res;
-  PoolGenUpdateZones(&lo->pgen, seg);
 
   *loSegReturn = SegLOSeg(seg);
   return ResOK;
@@ -482,45 +470,46 @@ static void LOVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 static Res LOInit(Pool pool, ArgList args)
 {
-  Format format;
   LO lo;
   Arena arena;
   Res res;
-  static GenParamStruct loGenParam = { 1024, 0.2 };
   ArgStruct arg;
+  unsigned gen = LO_GEN_DEFAULT;
 
   AVERT(Pool, pool);
 
   arena = PoolArena(pool);
   
-  ArgRequire(&arg, args, MPS_KEY_FORMAT);
-  format = arg.val.format;
-  
-  AVERT(Format, format);
-
   lo = PoolPoolLO(pool);
 
-  pool->format = format;
-  lo->poolStruct.alignment = format->alignment;
-  lo->alignShift =
-    SizeLog2((Size)PoolAlignment(&lo->poolStruct));
-  lo->gen = LOGen; /* may be modified in debugger */
-  res = ChainCreate(&lo->chain, arena, 1, &loGenParam);
-  if (res != ResOK)
-    return res;
-  /* .gen: This must be the nursery in the chain, because it's the only */
-  /* generation.  lo->gen is just a hack for segment placement. */
-  res = PoolGenInit(&lo->pgen, lo->chain, 0 /* .gen */, pool);
+  ArgRequire(&arg, args, MPS_KEY_FORMAT);
+  pool->format = arg.val.format;
+  if (ArgPick(&arg, args, MPS_KEY_CHAIN))
+    lo->chain = arg.val.chain;
+  else {
+    lo->chain = ArenaGlobals(arena)->defaultChain;
+    gen = 1; /* avoid the nursery of the default chain by default */
+  }
+  if (ArgPick(&arg, args, MPS_KEY_GEN))
+    gen = arg.val.u;
+  
+  AVERT(Format, pool->format);
+  AVERT(Chain, lo->chain);
+  AVER(gen <= ChainGens(lo->chain));
+
+  pool->alignment = pool->format->alignment;
+  lo->alignShift = SizeLog2((Size)PoolAlignment(pool));
+
+  res = PoolGenInit(&lo->pgen, lo->chain, gen, pool);
   if (res != ResOK)
     goto failGenInit;
 
   lo->sig = LOSig;
   AVERT(LO, lo);
-  EVENT2(PoolInitLO, pool, format);
+  EVENT2(PoolInitLO, pool, pool->format);
   return ResOK;
 
 failGenInit:
-  ChainDestroy(lo->chain);
   AVER(res != ResOK);
   return res;
 }
@@ -546,7 +535,6 @@ static void LOFinish(Pool pool)
     SegFree(seg);
   }
   PoolGenFinish(&lo->pgen);
-  ChainDestroy(lo->chain);
 
   lo->sig = SigInvalid;
 }

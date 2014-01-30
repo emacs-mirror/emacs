@@ -316,7 +316,6 @@ enum {
   SegPrefHigh = 1,
   SegPrefLow, 
   SegPrefZoneSet,
-  SegPrefGen,
   SegPrefCollected,
   SegPrefLIMIT
 };
