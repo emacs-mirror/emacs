@@ -592,6 +592,7 @@ extern Res ArenaSetCommitLimit(Arena arena, Size limit);
 extern Size ArenaSpareCommitLimit(Arena arena);
 extern void ArenaSetSpareCommitLimit(Arena arena, Size limit);
 extern void ArenaNoSpareCommitExceeded(Arena arena);
+extern Res ArenaNoGrow(Arena arena, SegPref pref, Size size);
 
 extern double ArenaMutatorAllocSize(Arena arena);
 extern Size ArenaAvail(Arena arena);
