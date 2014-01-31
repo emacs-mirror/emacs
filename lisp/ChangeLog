@@ -1,3 +1,10 @@
+2014-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* mail/reporter.el (reporter-dump-variable): In case of void-variable,
+	do not mess with mail-buffer position (fixes 2009-11-03 change).
+	* progmodes/cc-mode.el (c-submit-bug-report):
+	Check auto-fill-mode is bound.  (Bug#16592)
+
 2014-01-31  Darren Hoo  <darren.hoo@gmail.com>
 
 	* startup.el (fancy-splash-image-file): New function,

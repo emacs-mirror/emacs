@@ -200,9 +200,10 @@ MAILBUF is the mail buffer being composed."
 	(insert "\n"))
     (void-variable
      (with-current-buffer mailbuf
-       (mail-position-on-field "X-Reporter-Void-Vars-Found")
-       (end-of-line)
-       (insert (symbol-name varsym) " ")))
+       (save-excursion
+	 (mail-position-on-field "X-Reporter-Void-Vars-Found")
+	 (end-of-line)
+	 (insert (symbol-name varsym) " "))))
     (error
      (error ""))))
 
