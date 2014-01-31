@@ -90,9 +90,11 @@ text."
 		 (character :tag "Use register" :value ?+)))
 
 (defcustom register-preview-delay 1
-  "If non-nil delay in seconds to pop up the preview window."
+  "If non-nil, time to wait in seconds before popping up a preview window.
+If nil, do not show register previews, unless `help-char' (or a member of
+`help-event-list') is pressed."
   :version "24.4"
-  :type '(choice number (const :tag "Indefinitely" nil))
+  :type '(choice number (const :tag "No preview unless requested" nil))
   :group 'register)
 
 (defun get-register (register)
@@ -140,10 +142,11 @@ If SHOW-EMPTY is non-nil show the window even if no registers."
 	register-alist)))))
 
 (defun register-read-with-preview (prompt)
-  "Read an event with register preview using PROMPT.
-Pop up a register preview window if the input is a help char but
-is not a register. Alternatively if `register-preview-delay' is a
-number the preview window is popped up after some delay."
+  "Read and return an event, prompting with PROMPT, possibly showing a preview.
+If `register-alist' and `register-preview-delay' are both non-nil,
+display a window listing registers after `register-preview-delay' seconds.
+If `help-char' (or a member of `help-event-list') is pressed, display
+such a window regardless."
   (let* ((buffer "*Register Preview*")
 	 (timer (when (numberp register-preview-delay)
 		  (run-with-timer register-preview-delay nil

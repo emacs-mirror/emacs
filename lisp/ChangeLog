@@ -1,5 +1,8 @@
 2014-01-31  Glenn Morris  <rgm@gnu.org>
 
+	* register.el (register-preview-delay, register-read-with-preview):
+	Doc fixes.
+
 	* mail/reporter.el (reporter-dump-variable): In case of void-variable,
 	do not mess with mail-buffer position (fixes 2009-11-03 change).
 	* progmodes/cc-mode.el (c-submit-bug-report):

@@ -301,7 +301,9 @@ bidirectional context.
 
 ** Register changes
 
-*** All register commands can now show help with preview.
+*** All interactive commands that read a register (`copy-to-register', etc.)
+now display a temporary window after `register-preview-delay' seconds
+that summarizes existing registers.  To disable this, set that option to nil.
 
 +++
 *** New command `C-x C-k x' (`kmacro-to-register') stores keyboard
