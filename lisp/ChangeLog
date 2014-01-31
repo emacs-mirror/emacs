@@ -2,6 +2,8 @@
 
 	* net/shr.el (shr-generic): Make into a defsubst to make the stack
 	depth shallower (bug#16587).
+	(shr-tag-svg): Respect `shr-inhibit-images'.
+	(shr-dom-to-xml): Respect `shr-blocked-images' (bug#15882).
 
 2014-01-31  Dmitry Gutov  <dgutov@yandex.ru>
 

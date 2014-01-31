@@ -972,11 +972,18 @@ ones, in case fg and bg are nil."
 (defun shr-dom-to-xml (dom)
   "Convert DOM into a string containing the xml representation."
   (let ((arg " ")
-        (text ""))
+        (text "")
+	url)
     (dolist (sub (cdr dom))
       (cond
        ((listp (cdr sub))
-        (setq text (concat text (shr-dom-to-xml sub))))
+	;; Ignore external image definitions if required.
+	;; <image xlink:href="http://TRACKING_URL/"/>
+	(when (or (not (eq (car sub) 'image))
+		  (not (setq url (cdr (assq ':xlink:href (cdr sub)))))
+		  (not shr-blocked-images)
+		  (not (string-match shr-blocked-images url)))
+	  (setq text (concat text (shr-dom-to-xml sub)))))
        ((eq (car sub) 'text)
         (setq text (concat text (cdr sub))))
        (t
@@ -990,7 +997,8 @@ ones, in case fg and bg are nil."
             (car dom))))
 
 (defun shr-tag-svg (cont)
-  (when (image-type-available-p 'svg)
+  (when (and (image-type-available-p 'svg)
+	     (not shr-inhibit-images))
     (funcall shr-put-image-function
              (shr-dom-to-xml (cons 'svg cont))
              "SVG Image")))
