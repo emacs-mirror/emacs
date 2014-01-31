@@ -719,6 +719,9 @@ rather than mboxo.  Customize `unrmail-mbox-format' to change this.
 *** New option `ruby-align-to-stmt-keywords'.
 
 ---
+*** New option `ruby-align-chained-calls'.
+
+---
 *** More Ruby file types have been added to `auto-mode-alist'.
 
 ** Search and Replace

@@ -265,13 +265,16 @@ Only has effect when `ruby-use-smie' is t.
   :version "24.4")
 
 (defcustom ruby-align-chained-calls nil
-  "If non-nil, chained method calls on multiple lines will be
-aligned to the same column.
+  "If non-nil, align chained method calls.
+
+Each method call on a separate line will be aligned to the column
+of its parent.
 
 Only has effect when `ruby-use-smie' is t."
   :type 'boolean
   :group 'ruby
-  :safe 'booleanp)
+  :safe 'booleanp
+  :version "24.4")
 
 (defcustom ruby-deep-arglist t
   "Deep indent lists in parenthesis when non-nil.

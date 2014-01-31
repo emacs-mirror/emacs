@@ -1,3 +1,7 @@
+2014-01-31  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* NEWS: Mention `ruby-align-chained-calls'.
+
 2014-01-31  Alex Schroeder  <alex@gnu.org>  (tiny change)
 
 	* gnus-tut.txt (Message-ID): Typo fix (bug#15556).
