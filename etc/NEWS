@@ -244,11 +244,11 @@ and this variable has been marked obsolete.
 ** `emacs-bzr-version' has been renamed to `emacs-repository-version',
 and works for git too, if you fetch the repository notes.
 
-** `read-regexp-defaults-function' defines a function to read regexps,
-used by commands like `rgrep', `lgrep' `occur', `highlight-regexp', etc.
-You can customize this to specify a function that provides a default
-value from the regexp last history element, or from the symbol found
-at point.
+** `read-regexp-defaults-function' defines a function to provide default
+values for reading regexps by commands like `rgrep', `lgrep' `occur',
+`highlight-regexp', etc.  You can customize this to specify a function
+that provides a default value from the regexp last history element,
+or from the symbol found at point.
 
 +++
 ** New option `load-prefer-newer' affects how the `load' function chooses

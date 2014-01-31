@@ -595,7 +595,7 @@ is non-nil, it also prints a message describing the number of deletions."
 	   (equal current-prefix-arg '(16))
 	   (equal current-prefix-arg '(64))
 	   t)))
-  (let ((lines (unless adjacent (make-hash-table :weakness 'key :test 'equal)))
+  (let ((lines (unless adjacent (make-hash-table :test 'equal)))
 	line prev-line
 	(count 0)
 	(beg (copy-marker beg))

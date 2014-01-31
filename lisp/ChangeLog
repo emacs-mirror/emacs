@@ -1,3 +1,11 @@
+2014-01-31  Juri Linkov  <juri@jurta.org>
+
+	* sort.el (delete-duplicate-lines): Remove `:weakness 'key'
+	from `make-hash-table'.
+
+	* textmodes/ispell.el (ispell-init-process): Change message format
+	to be consistent with other messages.
+
 2014-01-31  Glenn Morris  <rgm@gnu.org>
 
 	* delsel.el (delete-selection-mode): Doc fix.
