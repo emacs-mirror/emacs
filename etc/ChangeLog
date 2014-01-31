@@ -1,3 +1,7 @@
+2014-01-31  Alex Schroeder  <alex@gnu.org>  (tiny change)
+
+	* gnus-tut.txt (Message-ID): Typo fix (bug#15556).
+
 2014-01-16  Fabrice Niessen  <fniessen@pirilampo.org>
 
 	* themes/leuven-theme.el: Updates.  (Bug#16442)

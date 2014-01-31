@@ -1430,12 +1430,14 @@ See the documentation for the variable `nnmail-split-fancy' for details."
      ;; Check the cache for the regexp for this split.
      ((setq cached-pair (assq split nnmail-split-cache))
       (let (split-result
+	    match-data
 	    (end-point (point-max))
 	    (value (nth 1 split)))
 	(if (symbolp value)
 	    (setq value (cdr (assq value nnmail-split-abbrev-alist))))
 	(while (and (goto-char end-point)
 		    (re-search-backward (cdr cached-pair) nil t))
+	  (setq match-data (match-data))
 	  (when nnmail-split-tracing
 	    (push split nnmail-split-trace))
 	  (let ((split-rest (cddr split))
@@ -1464,12 +1466,9 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 		(setq split-rest (cddr split-rest))))
 	    (when split-rest
 	      (goto-char end)
-	      (let ((value (nth 1 split)))
-		(if (symbolp value)
-		    (setq value (cdr (assq value nnmail-split-abbrev-alist))))
-		;; Someone might want to do a \N sub on this match, so get the
-		;; correct match positions.
-		(re-search-backward value start-of-value))
+	      ;; Someone might want to do a \N sub on this match, so
+	      ;; restore the match data.
+	      (set-match-data match-data)
 	      (dolist (sp (nnmail-split-it (car split-rest)))
 		(unless (member sp split-result)
 		  (push sp split-result))))))

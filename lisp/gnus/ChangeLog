@@ -1,3 +1,25 @@
+2014-01-31  Dave Abrahams  <dave@boostpro.com>
+
+	* gnus-salt.el (gnus-tree-highlight-article): Don't move point around
+	in the summary buffer (bug#13769).
+
+2014-01-31  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-setup-buffer): Refresh the summary buffer
+	name if we're using a single article buffer.  Otherwise, it may point
+	to a killed buffer (bug#13756).
+
+2014-01-30  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnmail.el (nnmail-split-it): Instead of redoing the search to restore
+	the match data, just save and restore it explictly (bug#12375).
+
+	* gnus-sum.el (gnus-summary-read-group-1): Initialize the spam code if
+	that's needed.
+
+	* spam.el (spam-initialize): Allow calling repeatedly, but only run the
+	the code once (bug#9069).
+
 2014-01-18  Steinar Bang  <sb@dod.no>
 
 	* gnus-setup.el (gnus-use-sendmail): We never use sendmail for mail
