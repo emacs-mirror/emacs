@@ -832,8 +832,8 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
 
   if (RangeSize(&newRange) >= mvt->reuseSize) {
     /* The new range is big enough that it might have been coalesced
-     * with ranges on the ABQ, so ensure that they are removed before
-     * reserving the new range.
+     * with ranges on the ABQ, so ensure that the corresponding ranges
+     * are coalesced on the ABQ.
      */
     ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &newRange, 0);
     MVTReserve(mvt, &newRange);
