@@ -1103,17 +1103,27 @@ static Bool pagesFindFreeWithSegPref(Index *baseReturn, VMChunk *chunkReturn,
   }
   return FALSE;
 }
+#endif
 
 
-/* vmArenaExtend -- Extend the arena by making a new chunk
+/* vmArenaGrow -- Extend the arena by making a new chunk
  *
  * The size arg specifies how much we wish to allocate after the extension.
  */
-static Res vmArenaExtend(VMArena vmArena, Size size)
+static Res vmArenaGrow(Arena arena, SegPref pref, Size size)
 {
   Chunk newChunk;
   Size chunkSize;
   Res res;
+  VMArena vmArena;
+  
+  AVERT(Arena, arena);
+  vmArena = Arena2VMArena(arena);
+  AVERT(VMArena, vmArena);
+  
+  /* TODO: Ensure that extended arena will be able to satisfy pref. */
+  AVERT(SegPref, pref);
+  UNUSED(pref);
 
   /* Choose chunk size. */
   /* .vmchunk.overhead: This code still lacks a proper estimate of */
@@ -1170,12 +1180,12 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
         }
         res = VMChunkCreate(&newChunk, vmArena, chunkSize);
         if(res == ResOK)
-          goto vmArenaExtend_Done;
+          goto vmArenaGrow_Done;
       }
     }
   }
 
-vmArenaExtend_Done:
+vmArenaGrow_Done:
   EVENT2(vmArenaExtendDone, chunkSize, VMArenaReserved(VMArena2Arena(vmArena)));
   vmArena->extended(VMArena2Arena(vmArena),
 		    newChunk->base,
@@ -1185,6 +1195,7 @@ vmArenaExtend_Done:
 }
 
 
+#if 0
 /* VM*AllocPolicy -- allocation policy methods */
 
 
@@ -1197,7 +1208,7 @@ static Res VMAllocPolicy(Index *baseIndexReturn, VMChunk *chunkReturn,
   if (!pagesFindFreeWithSegPref(baseIndexReturn, chunkReturn,
                                 vmArena, pref, size, FALSE)) {
     /* try and extend, but don't worry if we can't */
-    (void)vmArenaExtend(vmArena, size);
+    (void)vmArenaGrow(vmArena, size);
 
     /* We may or may not have a new chunk at this point */
     /* we proceed to try the allocation again anyway. */
@@ -1789,6 +1800,7 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
   this->finish = VMArenaFinish;
   this->reserved = VMArenaReserved;
   this->spareCommitExceeded = VMArenaSpareCommitExceeded;
+  this->grow = vmArenaGrow;
   this->alloc = VMAlloc;
   this->free = VMFree;
   this->chunkInit = VMChunkInit;
