@@ -5190,11 +5190,10 @@ If that function has never been called, the value is 0.")
 
 (defcustom erc-accidental-paste-threshold-seconds nil
   "Minimum time, in seconds, before sending new lines via IRC.
-If the value is a number, `erc-send-current-line' signals an
-error if its previous invocation was less than this much time
-ago.  This is useful so that if you accidentally enter large
-amounts of text into the ERC buffer, that text is not sent to the
-IRC server.
+If the value is a number, `erc-send-current-line' signals an error
+if its previous invocation was fewer than this many seconds ago.
+This is useful so that if you accidentally enter large amounts of text
+into the ERC buffer, that text is not sent to the IRC server.
 
 If the value is nil, `erc-send-current-line' always considers any
 submitted line to be intentional."

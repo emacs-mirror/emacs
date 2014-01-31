@@ -512,6 +512,7 @@ that means: when one of the recipients of the message being encrypted
 is `foo@bar.com', ignore that name as regards encryption.
 This is useful to avoid a query when you have no key for that name.
 
+---
 ** New ERC option `erc-accidental-paste-threshold-seconds'.
 If set to a number, this can be used to avoid accidentally pasting large
 amounts of data into the ERC input.
