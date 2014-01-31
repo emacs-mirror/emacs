@@ -359,6 +359,14 @@ size, and full-buffer size."
 	(push (shr-transform-dom sub) result)))
     (nreverse result)))
 
+(defsubst shr-generic (cont)
+  (dolist (sub cont)
+    (cond
+     ((eq (car sub) 'text)
+      (shr-insert (cdr sub)))
+     ((listp (cdr sub))
+      (shr-descend sub)))))
+
 (defun shr-descend (dom)
   (let ((function
 	 (or
@@ -391,14 +399,6 @@ size, and full-buffer size."
 	(shr-colorize-region start (point)
 			     (cdr (assq 'color shr-stylesheet))
 			     (cdr (assq 'background-color shr-stylesheet)))))))
-
-(defun shr-generic (cont)
-  (dolist (sub cont)
-    (cond
-     ((eq (car sub) 'text)
-      (shr-insert (cdr sub)))
-     ((listp (cdr sub))
-      (shr-descend sub)))))
 
 (defmacro shr-char-breakable-p (char)
   "Return non-nil if a line can be broken before and after CHAR."
