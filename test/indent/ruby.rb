@@ -257,8 +257,8 @@ foo ^
   bar
 
 foo_bar_tee(1, 2, 3)
-  .qux
-  .bar
+  .qux.bar
+  .tee
 
 foo do
   bar
@@ -338,7 +338,7 @@ end
 %^abc^
 ddd
 
-qux = foo ?
+qux = foo.fee ?
         bar :
         tee
 
@@ -348,7 +348,7 @@ zoo.keep.bar!(
 
 zoo
   .lose(
-  q, p)
+    q, p)
 
 foo(bar:
       tee)

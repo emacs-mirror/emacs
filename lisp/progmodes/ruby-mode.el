@@ -264,6 +264,15 @@ Only has effect when `ruby-use-smie' is t.
   :safe 'listp
   :version "24.4")
 
+(defcustom ruby-align-chained-calls nil
+  "If non-nil, chained method calls on multiple lines will be
+aligned to the same column.
+
+Only has effect when `ruby-use-smie' is t."
+  :type 'boolean
+  :group 'ruby
+  :safe 'booleanp)
+
 (defcustom ruby-deep-arglist t
   "Deep indent lists in parenthesis when non-nil.
 Also ignores spaces after parenthesis when `space'.
@@ -350,10 +359,10 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
              ;; but avoids lots of conflicts:
              (exp "and" exp) (exp "or" exp))
        (exp  (exp1) (exp "," exp) (exp "=" exp)
-             (id " @ " exp)
-             (exp "." id))
+             (id " @ " exp))
        (exp1 (exp2) (exp2 "?" exp1 ":" exp1))
-       (exp2 ("def" insts "end")
+       (exp2 (exp3) (exp3 "." exp2))
+       (exp3 ("def" insts "end")
              ("begin" insts-rescue-insts "end")
              ("do" insts "end")
              ("class" insts "end") ("module" insts "end")
@@ -380,7 +389,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
        (ielsei (itheni) (itheni "else" insts))
        (if-body (ielsei) (if-body "elsif" if-body)))
      '((nonassoc "in") (assoc ";") (right " @ ")
-       (assoc ",") (right "=") (assoc "."))
+       (assoc ",") (right "="))
      '((assoc "when"))
      '((assoc "elsif"))
      '((assoc "rescue" "ensure"))
@@ -399,7 +408,8 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
        (nonassoc ">" ">=" "<" "<=")
        (nonassoc "==" "===" "!=")
        (nonassoc "=~" "!~")
-       (left "<<" ">>"))))))
+       (left "<<" ">>")
+       (right "."))))))
 
 (defun ruby-smie--bosp ()
   (save-excursion (skip-chars-backward " \t")
@@ -609,7 +619,18 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
         ;; When after `.', let's always de-indent,
         ;; because when `.' is inside the line, the
         ;; additional indentation from it looks out of place.
-        ((smie-rule-parent-p ".") (smie-rule-parent (- ruby-indent-level)))
+        ((smie-rule-parent-p ".")
+         (let (smie--parent)
+           (save-excursion
+             ;; Traverse up the parents until the parent is "." at
+             ;; indentation, or any other token.
+             (while (and (progn
+                           (goto-char (1- (cadr (smie-indent--parent))))
+                           (not (ruby-smie--bosp)))
+                         (progn
+                           (setq smie--parent nil)
+                           (smie-rule-parent-p "."))))
+             (smie-rule-parent))))
         (t (smie-rule-parent))))))
     (`(:after . ,(or `"(" "[" "{"))
      ;; FIXME: Shouldn't this be the default behavior of
@@ -622,7 +643,10 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
        (unless (or (eolp) (forward-comment 1))
          (cons 'column (current-column)))))
     (`(:before . "do") (ruby-smie--indent-to-stmt))
-    (`(:before . ".") ruby-indent-level)
+    (`(:before . ".")
+     (if (smie-rule-sibling-p)
+         (and ruby-align-chained-calls 0)
+       ruby-indent-level))
     (`(:after . "=>") ruby-indent-level)
     (`(:before . ,(or `"else" `"then" `"elsif" `"rescue" `"ensure"))
      (smie-rule-parent))

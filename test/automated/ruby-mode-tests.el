@@ -333,6 +333,20 @@ VALUES-PLIST is a list with alternating index and value elements."
      |      42
      |    end")))
 
+(ert-deftest ruby-align-chained-calls ()
+  (let ((ruby-align-chained-calls t))
+    (ruby-should-indent-buffer
+     "one.two.three
+     |       .four
+     |
+     |my_array.select { |str| str.size > 5 }
+     |        .map    { |str| str.downcase }"
+     "one.two.three
+     |  .four
+     |
+     |my_array.select { |str| str.size > 5 }
+     |   .map    { |str| str.downcase }")))
+
 (ert-deftest ruby-move-to-block-stops-at-indentation ()
   (ruby-with-temp-buffer "def f\nend"
     (beginning-of-line)
