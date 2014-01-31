@@ -31,10 +31,6 @@ following tendencies will be efficiently exploited by an AMC pool:
 
 - objects that don't die young will live a long time.
 
-In the pool's :term:`generation chain`, specify the capacity and
-mortality of generations 0 to *n*\−1. Survivors from generation *n*\−1
-get promoted into an arena-wide "top" generation.
-
 
 .. index::
    single: AMC; properties
@@ -56,6 +52,9 @@ AMC properties
 
 * Garbage collections are scheduled automatically. See
   :ref:`topic-collection-schedule`.
+
+* Uses :term:`generational garbage collection`: blocks are promoted
+  from generation to generation in the pool's chain.
 
 * Blocks may contain :term:`exact references` to blocks in the same or
   other pools (but may not contain :term:`ambiguous references` or
@@ -106,7 +105,7 @@ AMC interface
     Mostly-Copying) :term:`pool`.
 
     When creating an AMC pool, :c:func:`mps_pool_create_k` requires
-    two :term:`keyword arguments`:
+    one :term:`keyword argument`:
 
     * :c:macro:`MPS_KEY_FORMAT` (type :c:type:`mps_fmt_t`) specifies
       the :term:`object format` for the objects allocated in the pool.
@@ -114,13 +113,15 @@ AMC interface
       method`, a :term:`forward method`, an :term:`is-forwarded
       method` and a :term:`padding method`.
 
+    It accepts one optional keyword argument:
+
     * :c:macro:`MPS_KEY_CHAIN` (type :c:type:`mps_chain_t`) specifies
-      the :term:`generation chain` for the pool.
+      the :term:`generation chain` for the pool. If not specified, the
+      pool will use the arena's default chain.
 
     For example::
 
         MPS_ARGS_BEGIN(args) {
-            MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
             MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
             MPS_ARGS_DONE(args);
             res = mps_pool_create_k(&pool, arena, mps_class_amc(), args);

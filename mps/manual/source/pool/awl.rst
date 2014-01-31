@@ -70,6 +70,9 @@ AWL properties
 * Garbage collections are scheduled automatically. See
   :ref:`topic-collection-schedule`.
 
+* Does not use :term:`generational garbage collection`, so blocks are
+  never promoted out of the generation in which they are allocated.
+
 * Blocks may contain :term:`exact references` or :term:`weak
   references (1)` to blocks in the same or other pools (but may not
   contain :term:`ambiguous references`, and may not use :term:`remote
@@ -322,6 +325,21 @@ AWL interface
       :c:type:`mps_awl_find_dependent_t`) is a function that specifies
       how to find the :term:`dependent object` for an object in the
       pool.
+
+    It accepts two optional keyword arguments:
+
+    * :c:macro:`MPS_KEY_CHAIN` (type :c:type:`mps_chain_t`) specifies
+      the :term:`generation chain` for the pool. If not specified, the
+      pool will use the arena's default chain.
+
+    * :c:macro:`MPS_KEY_GEN` (type :c:type:`unsigned`) specifies the
+      :term:`generation` in the chain into which new objects will be
+      allocated. If you pass your own chain, then this defaults to
+      ``0``, but if you didn't (and so use the arena's default chain),
+      then an appropriate generation is used.
+
+      Note that AWL does not use generational garbage collection, so
+      blocks remain in this generation and are not promoted.
 
     For example::
 
