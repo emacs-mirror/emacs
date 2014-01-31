@@ -32,9 +32,9 @@
 
 ;; Introduction:
 ;; =============
-;; A simple trace package that utilizes advice.el. It generates trace
+;; A simple trace package that utilizes nadvice.el.  It generates trace
 ;; information in a Lisp-style fashion and inserts it into a trace output
-;; buffer. Tracing can be done in the background (or silently) so that
+;; buffer.  Tracing can be done in the background (or silently) so that
 ;; generation of trace output won't interfere with what you are currently
 ;; doing.
 
@@ -48,15 +48,14 @@
 ;;   + Compiled calls to subrs that have special byte-codes associated
 ;;     with them (e.g., car, cdr, ...)
 ;;   + Macros that were expanded during compilation
-;; - All the restrictions that apply to advice.el
+;; - All the restrictions that apply to nadvice.el
 
 ;; Usage:
 ;; ======
-;; - To trace a function say `M-x trace-function' which will ask you for the
-;;   name of the function/subr/macro to trace, as well as for the buffer
-;;   into which trace output should go.
+;; - To trace a function say `M-x trace-function', which will ask you for the
+;;   name of the function/subr/macro to trace.
 ;; - If you want to trace a function that switches buffers or does other
-;;   display oriented stuff use `M-x trace-function-background' which will
+;;   display oriented stuff use `M-x trace-function-background', which will
 ;;   generate the trace output silently in the background without popping
 ;;   up windows and doing other irritating stuff.
 ;; - To untrace a function say `M-x untrace-function'.
@@ -262,6 +261,9 @@ be printed along with the arguments in the trace."
   (advice-member-p trace-advice-name function))
 
 (defun trace--read-args (prompt)
+  "Read a function name, prompting with string PROMPT.
+If `current-prefix-arg' is non-nil, also read a buffer and a \"context\"
+\(Lisp expression).  Return (FUNCTION BUFFER FUNCTION-CONTEXT)."
   (cons
    (let ((default (function-called-at-point))
          (beg (string-match ":[ \t]*\\'" prompt)))
@@ -288,23 +290,30 @@ be printed along with the arguments in the trace."
 
 ;;;###autoload
 (defun trace-function-foreground (function &optional buffer context)
-  "Traces FUNCTION with trace output going to BUFFER.
-For every call of FUNCTION Lisp-style trace messages that display argument
-and return values will be inserted into BUFFER.  This function generates the
-trace advice for FUNCTION and activates it together with any other advice
-there might be!!  The trace BUFFER will popup whenever FUNCTION is called.
-Do not use this to trace functions that switch buffers or do any other
-display oriented stuff, use `trace-function-background' instead.
+  "Trace calls to function FUNCTION.
+With a prefix argument, also prompt for the trace buffer (default
+`trace-buffer'), and a Lisp expression CONTEXT.
 
-To untrace a function, use `untrace-function' or `untrace-all'."
+Tracing a function causes every call to that function to insert
+into BUFFER Lisp-style trace messages that display the function's
+arguments and return values.  It also evaluates CONTEXT, if that is
+non-nil, and inserts its value too.  For example, you can use this
+to track the current buffer, or position of point.
+
+This function creates BUFFER if it does not exist.  This buffer will
+popup whenever FUNCTION is called.  Do not use this function to trace
+functions that switch buffers, or do any other display-oriented
+stuff - use `trace-function-background' instead.
+
+To stop tracing a function, use `untrace-function' or `untrace-all'."
   (interactive (trace--read-args "Trace function: "))
   (trace-function-internal function buffer nil context))
 
 ;;;###autoload
 (defun trace-function-background (function &optional buffer context)
-  "Traces FUNCTION with trace output going quietly to BUFFER.
-Like `trace-function-foreground' but without popping up the trace BUFFER or
-changing the window configuration."
+  "Trace calls to function FUNCTION, quietly.
+This is like `trace-function-foreground', but without popping up
+the output buffer or changing the window configuration."
   (interactive (trace--read-args "Trace function in background: "))
   (trace-function-internal function buffer t context))
 

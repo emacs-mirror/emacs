@@ -813,14 +813,18 @@ or in archive files, undoing or unarchiving done items.
 
 *** Extensive customizability of operation and display, including many faces.
 
-** trace-function
+** Trace
 
-*** No prompting for the destination buffer, unless a prefix argument is used.
+---
+*** `trace-function' and `trace-function-background' no longer prompt for
+the output buffer.  Unless you use a prefix argument, they output to
+`trace-buffer'.
 
-*** With a prefix argument, you can enter a "context"; i.e., a Lisp
-expression whose value at the time the function is entered/exited will
-be printed along with the function name and arguments.  For example,
-you can use this to trace the value of current-buffer or point.
+---
+*** With a prefix argument, `trace-function' and `trace-function-background'
+will prompt for a "context".  This is a Lisp expression, whose value at the
+time the function is entered/exited is printed along with the function's
+name and arguments.
 
 ** Tramp
 
