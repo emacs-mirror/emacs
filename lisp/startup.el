@@ -1590,24 +1590,26 @@ a face or button specification."
 
 (declare-function image-size "image.c" (spec &optional pixels frame))
 
+(defun fancy-splash-image-file ()
+  (cond ((stringp fancy-splash-image) fancy-splash-image)
+	((display-color-p)
+	 (cond ((<= (display-planes) 8)
+		(if (image-type-available-p 'xpm)
+		    "splash.xpm"
+		  "splash.pbm"))
+	       ((or (image-type-available-p 'svg)
+		    (image-type-available-p 'imagemagick))
+		"splash.svg")
+	       ((image-type-available-p 'png)
+		"splash.png")
+	       ((image-type-available-p 'xpm)
+		"splash.xpm")
+	       (t "splash.pbm")))
+	(t "splash.pbm")))
+
 (defun fancy-splash-head ()
   "Insert the head part of the splash screen into the current buffer."
-  (let* ((image-file (cond ((stringp fancy-splash-image)
-			    fancy-splash-image)
-			   ((display-color-p)
-			    (cond ((<= (display-planes) 8)
-				   (if (image-type-available-p 'xpm)
-				       "splash.xpm"
-				     "splash.pbm"))
-				  ((or (image-type-available-p 'svg)
-				       (image-type-available-p 'imagemagick))
-				   "splash.svg")
-				  ((image-type-available-p 'png)
-				   "splash.png")
-				  ((image-type-available-p 'xpm)
-				   "splash.xpm")
-				  (t "splash.pbm")))
-			   (t "splash.pbm")))
+  (let* ((image-file (fancy-splash-image-file))
 	 (img (create-image image-file))
 	 (image-width (and img (car (image-size img))))
 	 (window-width (window-width)))
@@ -1811,10 +1813,7 @@ we put it on this frame."
                  (image-type-available-p 'pbm)))
     (let ((frame (fancy-splash-frame)))
       (when frame
-	(let* ((img (create-image (or fancy-splash-image
-				      (if (and (display-color-p)
-					       (image-type-available-p 'xpm))
-					  "splash.xpm" "splash.pbm"))))
+	(let* ((img (create-image (fancy-splash-image-file)))
 	       (image-height (and img (cdr (image-size img nil frame))))
 	       ;; We test frame-height so that, if the frame is split
 	       ;; by displaying a warning, that doesn't cause the normal

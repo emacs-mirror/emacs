@@ -1,3 +1,10 @@
+2014-01-31  Darren Hoo  <darren.hoo@gmail.com>
+
+	* startup.el (fancy-splash-image-file): New function,
+	split from fancy-splash-head.
+	(fancy-splash-head, use-fancy-splash-screens-p): Use it,
+	so that we are both using the same image.  (Bug#16574)
+
 2014-01-30  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (eval-expression): Doc fix.
