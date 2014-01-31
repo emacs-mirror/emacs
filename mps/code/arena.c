@@ -68,6 +68,7 @@ DEFINE_CLASS(AbstractArenaClass, class)
   class->reserved = NULL;
   class->spareCommitExceeded = ArenaNoSpareCommitExceeded;
   class->extend = ArenaNoExtend;
+  class->grow = ArenaNoGrow;
   class->alloc = NULL;
   class->free = NULL;
   class->chunkInit = NULL;
@@ -702,14 +703,6 @@ failMark:
  * can be maintained and adjusted.
  */
 
-static Res arenaExtend(Arena arena, SegPref pref, Size size)
-{
-  UNUSED(arena);
-  UNUSED(pref);
-  UNUSED(size);
-  return ResUNIMPL;
-}
-
 static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
                             Size size, Pool pool)
 {
@@ -754,7 +747,7 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
   
   /* Plan C: Extend the arena, then try A and B again. */
   if (moreZones != ZoneSetEMPTY) {
-    res = arenaExtend(arena, pref, size);
+    res = arena->class->grow(arena, pref, size);
     if (res != ResOK)
       return res;
     zones = pref->zones;
@@ -983,6 +976,15 @@ void ArenaNoSpareCommitExceeded(Arena arena)
 {
   AVERT(Arena, arena);
   return;
+}
+
+
+Res ArenaNoGrow(Arena arena, SegPref pref, Size size)
+{
+  AVERT(Arena, arena);
+  AVERT(SegPref, pref);
+  UNUSED(size);
+  return ResRESOURCE;
 }
 
 
