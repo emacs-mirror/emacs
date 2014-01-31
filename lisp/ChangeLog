@@ -4347,7 +4347,7 @@
 
 2013-10-08  Bastien Guerry  <bzg@gnu.org>
 
-	* register.el (insert-register): Fix revno:114543.
+	* register.el (insert-register): Fix 2013-10-07 change.
 
 2013-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
