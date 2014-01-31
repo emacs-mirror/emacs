@@ -216,7 +216,7 @@ textual parts.")
 		  ;; Start of the header section.
 		  (or (re-search-forward "] {[0-9]+}\r?\n" nil t)
 		      ;; Start of the next FETCH.
-		      (re-search-forward "\\* [0-9]+ FETCH" nil t)
+		      (re-search-forward "\\* [0-9]+ \\(UID \\)? FETCH" nil t)
 		      (point-max)))
 		t)
 	  (setq size (string-to-number (match-string 1)))
@@ -255,7 +255,9 @@ textual parts.")
 	  (insert (format "Chars: %s\n" size)))
 	(when lines
 	  (insert (format "Lines: %s\n" lines)))
-	(unless (re-search-forward "^\r$" nil t)
+	;; Most servers have a blank line after the headers, but
+	;; Davmail doesn't.
+	(unless (re-search-forward "^\r$\\|^)\r?$" nil t)
 	  (goto-char (point-max)))
 	(delete-region (line-beginning-position) (line-end-position))
 	(insert ".")
