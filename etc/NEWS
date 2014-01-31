@@ -448,7 +448,8 @@ You can disable `transient-mark-mode' to get the same result.
 There is a fallback syntax available if you don't have cf-promises or
 if your version doesn't support that option.  See option `cfengine-cf-promises'.
 
-** Delete Selection mode can now be used without `transient-mark-mode'.
+---
+** Delete Selection mode can now be used without Transient Mark mode.
 
 ** Desktop
 

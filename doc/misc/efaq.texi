@@ -1578,10 +1578,9 @@ According to the documentation string for @code{delete-selection-mode}
 delete-selection-mode @key{RET}}):
 
 @quotation
-When Delete Selection mode is enabled, Transient Mark mode is also
-enabled and typed text replaces the selection if the selection is
-active.  Otherwise, typed text is just inserted at point regardless of
-any selection.
+When Delete Selection mode is enabled, typed text replaces the selection
+if the selection is active.  Otherwise, typed text is just inserted at
+point regardless of any selection.
 @end quotation
 
 This mode also allows you to delete (not kill) the highlighted region by

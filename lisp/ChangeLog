@@ -1,5 +1,7 @@
 2014-01-31  Glenn Morris  <rgm@gnu.org>
 
+	* delsel.el (delete-selection-mode): Doc fix.
+
 	* emacs-lisp/trace.el (trace--read-args, trace-function-foreground)
 	(trace-function-background): Doc fixes.
 
