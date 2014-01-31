@@ -399,9 +399,7 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
   arena = trace->arena;
 
   if(SegFirst(&seg, arena)) {
-    Addr base;
     do {
-      base = SegBase(seg);
       /* Segment should be black now. */
       AVER(!TraceSetIsMember(SegGrey(seg), trace));
       AVER(!TraceSetIsMember(SegWhite(seg), trace));
