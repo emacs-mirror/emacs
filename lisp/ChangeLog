@@ -1,5 +1,8 @@
 2014-01-31  Glenn Morris  <rgm@gnu.org>
 
+	* ido.el (ido-use-virtual-buffers): Doc fix.
+	Reset :version, since the default value has not changed.
+
 	* register.el (register-preview-delay, register-read-with-preview):
 	Doc fixes.
 

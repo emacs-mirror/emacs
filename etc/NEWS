@@ -558,11 +558,17 @@ will revert to the old behavior.
 
 ** Ido
 
-*** Ido has a manual now.
++++
+*** An Ido user manual is now included.
 
-*** `ido-use-virtual-buffers' takes a new value 'auto.
+---
+*** The option `ido-use-virtual-buffers' can now take the value `auto'.
+This means to use virtual buffers if the current ido input does not match
+an existing buffer.
 
-*** `ido-decorations' has been slightly extended to give a bit more control.
+---
+*** The variable `ido-decorations' can optionally have two new elements,
+which are the brackets to use around the sole remaining completion.
 
 ** Image mode
 
