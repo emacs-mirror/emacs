@@ -1,3 +1,9 @@
+2014-02-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Fw32_shell_execute): Don't call file-exists-p for
+	DOCUMENT that is a "remote" file name, i.e. a file-handler exists
+	for it.  (Bug#16558)
+
 2014-01-30  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* process.c (create_process): Reset SIGPROF handler in the child.

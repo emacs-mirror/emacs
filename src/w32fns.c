@@ -6892,7 +6892,8 @@ an integer representing a ShowWindow flag:
 #ifndef CYGWIN
   int use_unicode = w32_unicode_filenames;
   char *doc_a = NULL, *params_a = NULL, *ops_a = NULL;
-  Lisp_Object absdoc;
+  Lisp_Object absdoc, handler;
+  struct gcpro gcpro1;
 #endif
 
   CHECK_STRING (document);
@@ -6927,10 +6928,24 @@ an integer representing a ShowWindow flag:
      does not have to be a file, it can be a URL, for example.  So we
      make it absolute only if it is an existing file; if it is a file
      that does not exist, tough.  */
+  GCPRO1 (absdoc);
   absdoc = Fexpand_file_name (document, Qnil);
-  if (!NILP (Ffile_exists_p (absdoc)))
-    document = absdoc;
-  document = ENCODE_FILE (document);
+  /* Don't call file handlers for file-exists-p, since they might
+     attempt to access the file, which could fail or produce undesired
+     consequences, see bug#16558 for an example.  */
+  handler = Ffind_file_name_handler (absdoc, Qfile_exists_p);
+  if (NILP (handler))
+    {
+      Lisp_Object absdoc_encoded = ENCODE_FILE (absdoc);
+
+      if (faccessat (AT_FDCWD, SSDATA (absdoc_encoded), F_OK, AT_EACCESS) == 0)
+	document = absdoc_encoded;
+      else
+	document = ENCODE_FILE (document);
+    }
+  else
+    document = ENCODE_FILE (document);
+  UNGCPRO;
   if (use_unicode)
     {
       wchar_t document_w[MAX_PATH], current_dir_w[MAX_PATH];
