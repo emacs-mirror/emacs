@@ -135,6 +135,13 @@ end
 # Bug#15208
 if something == :==
   do_something
+
+  return false unless method == :+
+  x = y + z # Bug#16609
+
+  a = 1 ? 2 :(
+    2 + 3
+  )
 end
 
 # Example from http://www.ruby-doc.org/docs/ProgrammingRuby/html/language.html

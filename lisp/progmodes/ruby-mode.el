@@ -422,14 +422,17 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
   (save-excursion
     (skip-chars-backward " \t")
     (not (or (bolp)
+             (memq (char-before) '(?\[ ?\())
              (and (memq (char-before)
-                        '(?\; ?- ?+ ?* ?/ ?: ?. ?, ?\[ ?\( ?\\ ?& ?> ?< ?%
-                          ?~ ?^))
+                        '(?\; ?- ?+ ?* ?/ ?: ?. ?, ?\\ ?& ?> ?< ?% ?~ ?^))
+                  ;; Not a binary operator symbol.
+                  (not (eq (char-before (1- (point))) ?:))
                   ;; Not the end of a regexp or a percent literal.
                   (not (memq (car (syntax-after (1- (point)))) '(7 15))))
              (and (eq (char-before) ?\?)
                   (equal (save-excursion (ruby-smie--backward-token)) "?"))
              (and (eq (char-before) ?=)
+                  ;; Not a symbol :==, :!=, or a foo= method.
                   (string-match "\\`\\s." (save-excursion
                                             (ruby-smie--backward-token))))
              (and (eq (char-before) ?|)

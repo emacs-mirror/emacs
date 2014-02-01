@@ -1,3 +1,10 @@
+2014-02-01  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie--implicit-semi-p): Check for
+	`:' before binary operators (bug#16609).  Don't check for `:'
+	before `[' and `(', or their syntax status.  A percent literal
+	can't end with either.
+
 2014-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* subr.el (butlast): Document what an omitted N means (bug#13437).
