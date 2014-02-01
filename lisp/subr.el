@@ -364,12 +364,15 @@ If N is bigger than the length of LIST, return LIST."
          (nthcdr (1- (safe-length list)) list))))
 
 (defun butlast (list &optional n)
-  "Return a copy of LIST with the last N elements removed."
+  "Return a copy of LIST with the last N elements removed.
+If N is omitted or nil, the last element is removed from the
+copy."
   (if (and n (<= n 0)) list
     (nbutlast (copy-sequence list) n)))
 
 (defun nbutlast (list &optional n)
-  "Modifies LIST to remove the last N elements."
+  "Modifies LIST to remove the last N elements.
+If N is omitted or nil, remove the last element."
   (let ((m (length list)))
     (or n (setq n 1))
     (and (< n m)
