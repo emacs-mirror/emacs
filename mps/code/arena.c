@@ -333,7 +333,11 @@ void ArenaDestroy(Arena arena)
     }
     arena->freeCBS.blockPoolStruct.tractList = NULL;
   }
-
+  
+  /* FIXME: Chunks remove their address ranges from the CBS when destroyed,
+     so this is too early.  On the other hand, destroying all the chunks
+     also destroys the CBS's own memory, which might be scattered across
+     chunks by this time, so perhaps this can't be torn down neatly. */
   CBSFinish(&arena->freeCBS);
 
   /* Call class-specific finishing.  This will call ArenaFinish. */
@@ -635,6 +639,29 @@ Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit)
   }
   
   return ResOK;
+}
+
+
+/* ArenaFreeCBSDelete -- remove a block from free CBS, extending pool if necessary
+ *
+ * See ArenaFreeCBSInsert.
+ */
+
+void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit)
+{
+  RangeStruct range;
+  Res res;
+  Count nodes;
+
+  RangeInit(&range, base, limit);
+  nodes = arena->freeCBS.splayTreeSize;
+  res = CBSDelete(&range, &arena->freeCBS, &range);
+  
+  /* This should never fail because it is only used to delete whole chunks
+     that are represented by single nodes in the CBS tree. */
+  /* FIXME: Need a better way of checking this. */
+  STATISTIC_STAT(AVER(arena->freeCBS.splayTreeSize == nodes - 1));
+  AVER(res == ResOK);
 }
 
 

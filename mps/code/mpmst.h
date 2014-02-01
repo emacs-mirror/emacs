@@ -614,7 +614,7 @@ typedef struct GlobalsStruct {
 
 typedef struct CBSStruct {
   SplayTreeStruct splayTree;
-  Count splayTreeSize;
+  STATISTIC_DECL(Count splayTreeSize);
   MFSStruct blockPoolStruct;    /* FIXME: ref to why this is inlined */
   Align alignment;
   Bool fastFind;

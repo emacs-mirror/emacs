@@ -490,6 +490,7 @@ extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream);
 extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream);
 extern Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context);
 extern Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit);
+extern void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit);
 
 
 extern Bool GlobalsCheck(Globals arena);
