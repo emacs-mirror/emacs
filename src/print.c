@@ -709,17 +709,36 @@ You can call print while debugging emacs, and pass it this function
 to make it write to the debugging output.  */)
   (Lisp_Object character)
 {
-  CHECK_NUMBER (character);
-  putc (XINT (character) & 0xFF, stderr);
+  unsigned int ch;
 
-#ifdef WINDOWSNT
-  /* Send the output to a debugger (nothing happens if there isn't one).  */
-  if (print_output_debug_flag)
+  CHECK_NUMBER (character);
+  ch = XINT (character);
+  if (ASCII_CHAR_P (ch))
     {
-      char buf[2] = {(char) XINT (character), '\0'};
-      OutputDebugString (buf);
-    }
+      putc (ch, stderr);
+#ifdef WINDOWSNT
+      /* Send the output to a debugger (nothing happens if there isn't
+	 one).  */
+      if (print_output_debug_flag)
+	{
+	  char buf[2] = {(char) XINT (character), '\0'};
+	  OutputDebugString (buf);
+	}
 #endif
+    }
+  else
+    {
+      unsigned char mbstr[MAX_MULTIBYTE_LENGTH];
+      ptrdiff_t len = CHAR_STRING (ch, mbstr);
+      Lisp_Object encoded_ch =
+	ENCODE_SYSTEM (make_multibyte_string (mbstr, 1, len));
+
+      fwrite (SSDATA (encoded_ch), SBYTES (encoded_ch), 1, stderr);
+#ifdef WINDOWSNT
+      if (print_output_debug_flag)
+	OutputDebugString (SSDATA (encoded_ch));
+#endif
+    }
 
   return character;
 }

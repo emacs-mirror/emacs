@@ -1,5 +1,9 @@
 2014-02-01  Eli Zaretskii  <eliz@gnu.org>
 
+	* print.c (Fexternal_debugging_output): If the argument character
+	is non-ASCII, encode it with the current locale's encoding before
+	writing the result to the terminal.  (Bug#16448)
+
 	* w32fns.c (Fw32_shell_execute): Don't call file-exists-p for
 	DOCUMENT that is a "remote" file name, i.e. a file-handler exists
 	for it.  (Bug#16558)
