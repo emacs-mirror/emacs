@@ -2017,27 +2017,17 @@ See `font-lock-syntax-table'.")
           "yield")
         'symbols))
      (1 font-lock-keyword-face))
-    ;; Some core methods.
+    ;; Core methods that have required arguments.
     (,(concat
        ruby-font-lock-keyword-beg-re
        (regexp-opt
         '( ;; built-in methods on Kernel
-          "__callee__"
-          "__dir__"
-          "__method__"
-          "abort"
           "at_exit"
           "autoload"
           "autoload?"
-          "binding"
-          "block_given?"
-          "caller"
           "catch"
           "eval"
           "exec"
-          "exit"
-          "exit!"
-          "fail"
           "fork"
           "format"
           "lambda"
@@ -2050,19 +2040,12 @@ See `font-lock-syntax-table'.")
           "proc"
           "putc"
           "puts"
-          "raise"
-          "rand"
-          "readline"
-          "readlines"
           "require"
           "require_relative"
-          "sleep"
           "spawn"
           "sprintf"
-          "srand"
           "syscall"
           "system"
-          "throw"
           "trap"
           "warn"
           ;; keyword-like private methods on Module
@@ -2081,6 +2064,31 @@ See `font-lock-syntax-table'.")
           "public"
           "refine"
           "using")
+        'symbols))
+     (1 (unless (looking-at " *\\(?:[]|,.)}]\\|$\\)")
+          font-lock-builtin-face)))
+    ;; Kernel methods that have no required arguments.
+    (,(concat
+       ruby-font-lock-keyword-beg-re
+       (regexp-opt
+        '("__callee__"
+          "__dir__"
+          "__method__"
+          "abort"
+          "at_exit"
+          "binding"
+          "block_given?"
+          "caller"
+          "exit"
+          "exit!"
+          "fail"
+          "raise"
+          "rand"
+          "readline"
+          "readlines"
+          "sleep"
+          "srand"
+          "throw")
         'symbols))
      (1 font-lock-builtin-face))
     ;; Here-doc beginnings.

@@ -4,6 +4,9 @@
 	`:' before binary operators (bug#16609).  Don't check for `:'
 	before `[' and `(', or their syntax status.  A percent literal
 	can't end with either.
+	(ruby-font-lock-keywords): For built-ins that require arguments,
+	check that they're followed by something that looks like argument
+	(bug#16610).
 
 2014-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
 
