@@ -7461,12 +7461,12 @@ If the underlying system call fails, value is nil.  */)
      added rather late on.  */
   {
     HMODULE hKernel = GetModuleHandle ("kernel32");
-    BOOL (*pfn_GetDiskFreeSpaceExW)
+    BOOL (WINAPI *pfn_GetDiskFreeSpaceExW)
       (wchar_t *, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER)
-      = (void *) GetProcAddress (hKernel, "GetDiskFreeSpaceExW");
-    BOOL (*pfn_GetDiskFreeSpaceExA)
+      = GetProcAddress (hKernel, "GetDiskFreeSpaceExW");
+    BOOL (WINAPI *pfn_GetDiskFreeSpaceExA)
       (char *, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER)
-      = (void *) GetProcAddress (hKernel, "GetDiskFreeSpaceExA");
+      = GetProcAddress (hKernel, "GetDiskFreeSpaceExA");
     bool have_pfn_GetDiskFreeSpaceEx =
       (w32_unicode_filenames && pfn_GetDiskFreeSpaceExW
        || !w32_unicode_filenames && pfn_GetDiskFreeSpaceExA);

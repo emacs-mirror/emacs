@@ -1,5 +1,8 @@
 2014-02-01  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32fns.c (Ffile_system_info): Use WINAPI in the function
+	pointers that get the address of GetDiskFreeSpaceEx.  (Bug#16615)
+
 	* print.c (Fexternal_debugging_output): If the argument character
 	is non-ASCII, encode it with the current locale's encoding before
 	writing the result to the terminal.  (Bug#16448)
