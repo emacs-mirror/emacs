@@ -1,5 +1,9 @@
 2014-02-02  Daniel Colascione  <dancol@dancol.org>
 
+	* progmodes/cc-defs.el (c-find-assignment-for-mode): Make loading cc-mode silent.
+
+2014-02-02  Daniel Colascione  <dancol@dancol.org>
+
 	* comint.el (comint-prompt-read-only): Change doc to suggest remap keybinding.
 
 2014-02-02  Glenn Morris  <rgm@gnu.org>

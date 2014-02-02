@@ -2215,7 +2215,7 @@ quoted."
 		     ;;(message (concat "Loading %s to get the source "
 		     ;;			"value for language constant %s")
 		     ;;		file name)
-		     (load file))
+		     (load file nil t))
 
 		   (unless (setq assignment-entry (cdar file-entry))
 		     ;; The load didn't fill in the source for the
