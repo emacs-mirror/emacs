@@ -1,3 +1,11 @@
+2014-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* register.el (register-read-with-preview, point-to-register)
+	(window-configuration-to-register, frame-configuration-to-register)
+	(jump-to-register, number-to-register, view-register, insert-register)
+	(copy-to-register, append-to-register, prepend-to-register)
+	(copy-rectangle-to-register): Doc fixes.
+
 2014-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help-fns.el (help-C-file-name): Handle advised functions (bug#16478).
