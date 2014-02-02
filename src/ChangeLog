@@ -1,3 +1,8 @@
+2014-02-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32fns.c (Fx_create_frame): Process frame alpha earlier.
+	(Bug#16619)
+
 2014-02-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (Ffile_system_info): Use WINAPI in the function
