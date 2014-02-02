@@ -29,6 +29,15 @@ you store something else in that register.  To see what register
 Display a description of what register @var{r} contains.
 @end table
 
+@vindex register-preview-delay
+@cindex preview of registers
+  All of the commands that prompt for a register will display a
+``preview'' window that lists the existing registers (if there are
+any) after a short delay.  To change the length of the delay,
+customize @code{register-preview-delay}.  To prevent this display, set
+that option to @code{nil}.  You can explicitly request a preview
+window by pressing @kbd{C-h} or @key{F1}.
+
   @dfn{Bookmarks} record files and positions in them, so you can
 return to those positions when you look at the file again.  Bookmarks
 are similar in spirit to registers, so they are also documented in

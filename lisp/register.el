@@ -119,11 +119,21 @@ See the documentation of the variable `register-alist' for possible VALUEs."
         (substring d (match-end 0))
       d)))
 
-(defvar register-preview-functions nil)
+(defun register-preview-default (r)
+  "Default function for the variable `register-preview-function'."
+  (format "%s %s\n"
+	  (concat (single-key-description (car r)) ":")
+	  (register-describe-oneline (car r))))
+
+(defvar register-preview-function #'register-preview-default
+  "Function to format a register for previewing.
+Takes one argument, a cons (NAME . CONTENTS) as found in `register-alist'.
+Returns a string.")
 
 (defun register-preview (buffer &optional show-empty)
   "Pop up a window to show register preview in BUFFER.
-If SHOW-EMPTY is non-nil show the window even if no registers."
+If SHOW-EMPTY is non-nil show the window even if no registers.
+Format of each entry is controlled by the variable `register-preview-function'."
   (when (or show-empty (consp register-alist))
     (with-temp-buffer-window
      buffer
@@ -132,14 +142,7 @@ If SHOW-EMPTY is non-nil show the window even if no registers."
      nil
      (with-current-buffer standard-output
        (setq cursor-in-non-selected-windows nil)
-       (mapc
-	(lambda (r)
-	  (insert (or (run-hook-with-args-until-success
-		       'register-preview-functions r)
-		      (format "%s %s\n"
-			      (concat (single-key-description (car r)) ":")
-			      (register-describe-oneline (car r))))))
-	register-alist)))))
+       (insert (mapconcat register-preview-function register-alist ""))))))
 
 (defun register-read-with-preview (prompt)
   "Read and return an event, prompting with PROMPT, possibly showing a preview.
@@ -162,7 +165,8 @@ such a window regardless."
 		       help-chars)
 	    (unless (get-buffer-window buffer)
 	      (register-preview buffer 'show-empty)))
-	  last-input-event)
+	  (if (characterp last-input-event) last-input-event
+	    (error "Non-character input-event")))
       (and (timerp timer) (cancel-timer timer))
       (let ((w (get-buffer-window buffer)))
         (and (window-live-p w) (delete-window w)))

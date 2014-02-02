@@ -1,3 +1,7 @@
+2014-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* regs.texi (Registers): Mention previewing.
+
 2014-01-29  Glenn Morris  <rgm@gnu.org>
 
 	* killing.texi (Deletion): Mention cycle-spacing.

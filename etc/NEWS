@@ -301,6 +301,7 @@ bidirectional context.
 
 ** Register changes
 
++++
 *** All interactive commands that read a register (`copy-to-register', etc.)
 now display a temporary window after `register-preview-delay' seconds
 that summarizes existing registers.  To disable this, set that option to nil.
@@ -930,7 +931,7 @@ It is layered as:
 function-carrying place, such as process-filters or `<foo>-function' hooks.
 
 *** advice-add/advice-remove to add/remove a piece of advice on a named
-function,much like `defadvice' does.
+function, much like `defadvice' does.
 
 ** New package frameset.el.
 It provides a set of operations to save a frameset (the state of all

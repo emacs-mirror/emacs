@@ -1,3 +1,12 @@
+2014-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* register.el (register-preview-default): New function,
+	split from register-preview.
+	(register-preview-function): Rename from register-preview-functions,
+	make it not a hook.
+	(register-preview): Use register-preview-function.
+	(register-read-with-preview): Error on non-character event.  (Bug#16595)
+
 2014-02-01  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie--implicit-semi-p): Check for
