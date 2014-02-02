@@ -186,8 +186,8 @@ wish to put something like the following in your init file:
 
 \(add-hook 'comint-mode-hook
 	  (lambda ()
-	    (define-key comint-mode-map \"\\C-w\" 'comint-kill-region)
-	    (define-key comint-mode-map [C-S-backspace]
+	    (define-key comint-mode-map [remap kill-region] 'comint-kill-region)
+	    (define-key comint-mode-map [remap kill-whole-line]
 	      'comint-kill-whole-line)))
 
 If you sometimes use comint-mode on text-only terminals or with `emacs -nw',
