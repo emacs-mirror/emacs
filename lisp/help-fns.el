@@ -187,7 +187,7 @@ KIND should be `var' for a variable or `subr' for a subroutine."
   (let ((docbuf (get-buffer-create " *DOC*"))
 	(name (if (eq 'var kind)
 		  (concat "V" (symbol-name subr-or-var))
-		(concat "F" (subr-name subr-or-var)))))
+		(concat "F" (subr-name (advice--cd*r subr-or-var))))))
     (with-current-buffer docbuf
       (goto-char (point-min))
       (if (eobp)
@@ -542,11 +542,7 @@ FILE is the file where FUNCTION was probably defined."
 	 ;; real definition, if that symbol is already set up.
 	 (real-function
 	  (or (and advised
-		   (let* ((advised-fn (advice--cdr
-				       (advice--symbol-function function))))
-		     (while (advice--p advised-fn)
-		       (setq advised-fn (advice--cdr advised-fn)))
-		     advised-fn))
+                   (advice--cd*r (advice--symbol-function function)))
 	      function))
 	 ;; Get the real definition.
 	 (def (if (symbolp real-function)
@@ -660,9 +656,9 @@ FILE is the file where FUNCTION was probably defined."
                   (or doc "Not documented.")))))))
 
 ;; Add defaults to `help-fns-describe-function-functions'.
-(add-hook 'help-fns-describe-function-functions 'help-fns--obsolete)
-(add-hook 'help-fns-describe-function-functions 'help-fns--parent-mode)
-(add-hook 'help-fns-describe-function-functions 'help-fns--compiler-macro)
+(add-hook 'help-fns-describe-function-functions #'help-fns--obsolete)
+(add-hook 'help-fns-describe-function-functions #'help-fns--parent-mode)
+(add-hook 'help-fns-describe-function-functions #'help-fns--compiler-macro)
 
 
 ;; Variables

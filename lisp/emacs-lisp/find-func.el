@@ -219,7 +219,7 @@ TYPE should be nil to find a function, or `defvar' to find a variable."
 			 (regexp-quote (symbol-name fun-or-var))
 			 "\"")
 	       (concat "DEFUN[ \t\n]*([ \t\n]*\""
-		       (regexp-quote (subr-name fun-or-var))
+		       (regexp-quote (subr-name (advice--cd*r fun-or-var)))
 		       "\""))
 	     nil t)
       (error "Can't find source for %s" fun-or-var))

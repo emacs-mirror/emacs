@@ -1,3 +1,10 @@
+2014-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el (help-C-file-name): Handle advised functions (bug#16478).
+	* emacs-lisp/find-func.el (find-function-C-source): Idem.
+	* emacs-lisp/nadvice.el (advice--cd*r): New function.
+	* help-fns.el (describe-function-1): Use it.
+
 2014-02-02  Glenn Morris  <rgm@gnu.org>
 
 	* register.el (register-preview-default): New function,
@@ -35,8 +42,8 @@
 	(ruby-smie-grammar): Make "." right-associative.  Make its priority
 	lower than the ternary and all binary operators.
 	(ruby-smie-rules): Indent "(" relative to the first non-"."
-	parent, or the first "." parent at indentation.  Use
-	`ruby-align-chained-calls' for indentation of "." tokens.
+	parent, or the first "." parent at indentation.
+	Use `ruby-align-chained-calls' for indentation of "." tokens.
 	(Bug#16593)
 
 2014-01-31  Juri Linkov  <juri@jurta.org>

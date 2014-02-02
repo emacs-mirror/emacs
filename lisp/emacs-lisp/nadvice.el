@@ -67,6 +67,11 @@ Each element has the form (WHERE BYTECODE STACK) where:
 (defsubst advice--cdr   (f) (aref (aref f 2) 2))
 (defsubst advice--props (f) (aref (aref f 2) 3))
 
+(defun advice--cd*r (f)
+  (while (advice--p f)
+    (setq f (advice--cdr f)))
+  f)
+
 (defun advice--make-docstring (function)
   "Build the raw docstring for FUNCTION, presumably advised."
   (let ((flist (indirect-function function))
