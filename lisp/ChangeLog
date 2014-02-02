@@ -1,3 +1,19 @@
+2014-02-02  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	c-parse-state.  Don't "append-lower-brace-pair" in certain
+	circumstances.  Also fix an obscure bug where "\\s!" shouldn't be
+	recognised as a comment.
+
+	* progmodes/cc-engine.el (c-state-pp-to-literal): Check for "\\s!"
+	as well as normal comment starter.
+	(c-parse-state-get-strategy): Extra return possibility
+	'back-and-forward.
+	(c-remove-stale-state-cache): Extra element CONS-SEPARATED in
+	return value list to indicate replacement of a brace-pair cons
+	with its car.
+	(c-parse-state-1): With 'back-and-forward, only call
+	c-append-lower-brace-pair-to state-cache when cons-separated.
+
 2014-02-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/ns-win.el (ns-suspend-error): New function.
