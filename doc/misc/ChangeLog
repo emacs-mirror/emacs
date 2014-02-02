@@ -1,3 +1,7 @@
+2014-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* efaq-w32.texi (Tramp ssh): Remove deleted tramp methods.
+
 2014-01-31  Glenn Morris  <rgm@gnu.org>
 
 	* efaq.texi (Replacing highlighted text):

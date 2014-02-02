@@ -833,6 +833,7 @@ name and arguments.
 
 ** Tramp
 
++++
 *** The experimental url syntax for remote file names has been removed.
 
 +++
@@ -840,10 +841,11 @@ name and arguments.
 devices by the Android Debug Bridge.  The variable `tramp-adb-program'
 can be used to adapt the path of the "adb" program, if needed.
 
++++
 *** The connection methods "plink1", "ssh1", "ssh2", "scp1", "scp2",
 "scpc" and "rsyncc" are discontinued.  The ssh option
 "ControlMaster=auto" is set automatically in all ssh-based methods,
-when possible.
+when possible.  See `tramp-use-ssh-controlmaster-options'.
 
 +++
 *** Handlers for `file-acl' and `set-file-acl' for remote machines
