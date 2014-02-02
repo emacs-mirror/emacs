@@ -2,7 +2,7 @@
 
 class foo {
   foo *member;
-  char[10] anArray;
+  char anArray[10];
 };
 
 void func()
