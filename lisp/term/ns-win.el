@@ -863,6 +863,12 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
      (t
       nil))))
 
+(defun ns-suspend-error ()
+  ;; Don't allow suspending if any of the frames are NS frames.
+  (if (memq 'ns (mapcar 'window-system (frame-list)))
+      (error "Cannot suspend Emacs while running under NS")))
+
+
 ;; Set some options to be as Nextstep-like as possible.
 (setq frame-title-format t
       icon-title-format t)
@@ -944,6 +950,10 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   (ns-set-resource nil "ApplePressAndHoldEnabled" "NO")
 
   (x-apply-session-resources)
+
+  ;; Don't let Emacs suspend under NS.
+  (add-hook 'suspend-hook 'ns-suspend-error)
+
   (setq ns-initialized t))
 
 ;; Any display name is OK.

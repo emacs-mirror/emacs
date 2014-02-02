@@ -1,3 +1,9 @@
+2014-02-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (ns-suspend-error): New function.
+	(ns-initialize-window-system): Add ns-suspend-error to
+	suspend-hook (Bug#16612).
+
 2014-02-02  Daniel Colascione  <dancol@dancol.org>
 
 	* progmodes/cc-defs.el (c-find-assignment-for-mode): Make loading cc-mode silent.
