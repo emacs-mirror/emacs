@@ -1,3 +1,8 @@
+2014-02-02  Daniel Colascione  <dancol@dancol.org>
+
+	* help-at-pt.el (help-at-pt-string,help-at-pt-maybe-display): Also
+	try to display local help from just before point.
+
 2014-02-02  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
 	c-parse-state.  Don't "append-lower-brace-pair" in certain
