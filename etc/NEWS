@@ -424,7 +424,9 @@ For example, this enables parsing of macros that open new namespaces.
 
 ** cl-lib
 
++++
 *** New macro `cl-tagbody'.
+This executes statements while allowing for control transfer to labels.
 
 +++
 *** letf is now just an alias for cl-letf.

@@ -1556,6 +1556,19 @@ Common Lisp loops like @code{cl-do} and @code{cl-dolist} implicitly enclose
 themselves in @code{nil} blocks.
 @end defmac
 
+@c FIXME?  Maybe this should be in a separate section?
+@defmac cl-tagbody &rest labels-or-statements
+This macro executes statements while allowing for control transfer to
+user-defined labels.  Each element of @var{labels-or-statements} can
+be either a label (an integer or a symbol), or a cons-cell
+(a statement).  This distinction is made before macroexpansion.
+Statements are executed in sequence, discarding any return value.
+Any statement can transfer control at any time to the statements that follow
+one of the labels with the special form @code{(go LABEL)}.
+Labels have lexical scope and dynamic extent.
+@end defmac
+
+
 @node Iteration
 @section Iteration
 
