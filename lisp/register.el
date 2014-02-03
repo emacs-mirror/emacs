@@ -296,8 +296,11 @@ If REGISTER contains a number, add `prefix-numeric-value' of
 PREFIX to it.
 
 If REGISTER is empty or if it contains text, call
-`append-to-register' with `delete-flag' set to PREFIX."
-  (interactive "P\ncIncrement register: ")
+`append-to-register' with `delete-flag' set to PREFIX.
+
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive (list current-prefix-arg
+		     (register-read-with-preview "Increment register: ")))
   (let ((register-val (get-register register)))
     (cond
      ((numberp register-val)

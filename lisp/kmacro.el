@@ -845,11 +845,13 @@ Such a \"function\" cannot be called from Lisp, but it is a valid editor command
   (kmacro-call-macro current-prefix-arg nil nil k))
 
 (defun kmacro-to-register (r)
-  "Store the last keyboard macro in register R."
+  "Store the last keyboard macro in register R.
+
+Interactively, reads the register using `register-read-with-preview'."
   (interactive
    (progn
      (or last-kbd-macro (error "No keyboard macro defined"))
-     (list (read-char "Save to register: "))))
+     (list (register-read-with-preview "Save to register: "))))
   (set-register r (registerv-make
 		   last-kbd-macro
 		   :jump-func 'kmacro-execute-from-register

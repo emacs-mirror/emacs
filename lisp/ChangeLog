@@ -1,3 +1,17 @@
+2014-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* frameset.el (frameset-to-register):
+	* kmacro.el (kmacro-to-register):
+	* register.el (increment-register):
+	* calc/calc-yank.el (calc-copy-to-register, calc-insert-register)
+	(calc-append-to-register, calc-prepend-to-register):
+	* play/gametree.el (gametree-layout-to-register)
+	(gametree-apply-register-layout):
+	* textmodes/picture.el (picture-clear-rectangle-to-register)
+	(picture-yank-rectangle-from-register):
+	* vc/emerge.el (emerge-combine-versions-register):
+	Use register-read-with-preview to read registers.
+
 2014-02-03  João Távora  <joaotavora@gmail.com>
 
 	* elec-pair.el (electric-pair-backward-delete-char): Don't error

@@ -531,8 +531,10 @@ Subnodes which have been manually scored are honored."
 (defun gametree-layout-to-register (register)
   "Store current tree layout in register REGISTER.
 Use \\[gametree-apply-register-layout] to restore that configuration.
-Argument is a character, naming the register."
-  (interactive "cLayout to register: ")
+Argument is a character, naming the register.
+
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive (list (register-read-with-preview "Layout to register: ")))
   (save-excursion
     (goto-char (point-min))
     (set-register register
@@ -540,8 +542,13 @@ Argument is a character, naming the register."
 
 (defun gametree-apply-register-layout (char)
   "Return to a tree layout stored in a register.
-Argument is a character, naming the register."
-  (interactive "*cApply layout from register: ")
+Argument is a character, naming the register.
+
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive
+   (progn
+     (barf-if-buffer-read-only)
+     (list (register-read-with-preview "Apply layout from register: "))))
   (save-excursion
     (goto-char (point-min))
     (gametree-apply-layout (get-register char) 0 t)))

@@ -1,3 +1,8 @@
+2014-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/senator.el (senator-copy-tag-to-register):
+	Use register-read-with-preview, if available.
+
 2014-01-13  Eric Ludlam  <zappo@gnu.org>
 
 	* semantic/analyze/refs.el (semantic-analyze-refs-impl): Fix typo

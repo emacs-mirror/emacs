@@ -1618,6 +1618,8 @@ Optional string argument KEYS will force using it as the keys entered."
              (setq s (match-string 1 s)))
            (kill-new s)))))
 
+;; FIXME this should use register-read-with-preview, but it
+;; uses calculator-registers rather than register-alist.
 (defun calculator-set-register (reg)
   "Set a register value for REG."
   (interactive "cRegister to store into: ")
@@ -1660,6 +1662,8 @@ Used by `calculator-paste' and `get-register'."
                             (or (match-string 3 str) ""))))
      (ignore-errors (calculator-string-to-number str)))))
 
+;; FIXME this should use register-read-with-preview, but it
+;; uses calculator-registers rather than register-alist.
 (defun calculator-get-register (reg)
   "Get a value from a register REG."
   (interactive "cRegister to get value from: ")

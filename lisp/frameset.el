@@ -1223,8 +1223,11 @@ Called from `jump-to-register'.  Internal use only."
 (defun frameset-to-register (register &optional _arg)
   "Store the current frameset in register REGISTER.
 Use \\[jump-to-register] to restore the frameset.
-Argument is a character, naming the register."
-  (interactive "cFrameset to register: \nP")
+Argument is a character, naming the register.
+
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive (list (register-read-with-preview "Frameset to register: ")
+		     current-prefix-arg))
   (set-register register
 		(registerv-make
 		 (vector (frameset-save nil
