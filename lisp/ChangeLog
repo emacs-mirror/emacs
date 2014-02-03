@@ -1,3 +1,8 @@
+2014-02-03  João Távora  <joaotavora@gmail.com>
+
+	* elec-pair.el (electric-pair-backward-delete-char): Don't error
+	when at beginning of (possibly narrowed) buffer.
+
 2014-02-02  Daniel Colascione  <dancol@dancol.org>
 
 	* help-at-pt.el (help-at-pt-string,help-at-pt-maybe-display): Also
