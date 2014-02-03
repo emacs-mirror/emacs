@@ -731,7 +731,7 @@ to make it write to the debugging output.  */)
       unsigned char mbstr[MAX_MULTIBYTE_LENGTH];
       ptrdiff_t len = CHAR_STRING (ch, mbstr);
       Lisp_Object encoded_ch =
-	ENCODE_SYSTEM (make_multibyte_string (mbstr, 1, len));
+	ENCODE_SYSTEM (make_multibyte_string ((char *) mbstr, 1, len));
 
       fwrite (SSDATA (encoded_ch), SBYTES (encoded_ch), 1, stderr);
 #ifdef WINDOWSNT
