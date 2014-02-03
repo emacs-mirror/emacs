@@ -2059,9 +2059,6 @@ See `font-lock-syntax-table'.")
           "include"
           "module_function"
           "prepend"
-          "private"
-          "protected"
-          "public"
           "refine"
           "using")
         'symbols))
@@ -2082,6 +2079,9 @@ See `font-lock-syntax-table'.")
           "exit"
           "exit!"
           "fail"
+          "private"
+          "protected"
+          "public"
           "raise"
           "rand"
           "readline"

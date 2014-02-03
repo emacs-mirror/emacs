@@ -1,3 +1,8 @@
+2014-02-03  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): `private',
+	`protected' and `public' can also be called without arguments.
+
 2014-02-03  Glenn Morris  <rgm@gnu.org>
 
 	* register.el (window-configuration-to-register)
