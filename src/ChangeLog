@@ -2,6 +2,9 @@
 
 	* print.c (Fexternal_debugging_output): Add cast to pacify
 	--enable-gcc-warnings.
+	* eval.c (call_debugger): Grow specpdl if the debugger was
+	entered due to specpdl overflow (Bug#16603) and allow more
+	specpdl space for the debugger itself.
 
 2014-02-02  Martin Rudalics  <rudalics@gmx.at>
 
