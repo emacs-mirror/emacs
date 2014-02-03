@@ -201,6 +201,10 @@ Interactively, reads the register using `register-read-with-preview'."
   ;; of point in the current buffer, so record that separately.
   (set-register register (list (current-window-configuration) (point-marker))))
 
+;; It has had the optional arg for ages, but never used it.
+(set-advertised-calling-convention 'window-configuration-to-register
+				   '(register) "24.4")
+
 (defun frame-configuration-to-register (register &optional _arg)
   "Store the window configuration of all frames in register REGISTER.
 Use \\[jump-to-register] to restore the configuration.
@@ -213,6 +217,10 @@ Interactively, reads the register using `register-read-with-preview'."
   ;; current-frame-configuration does not include the value
   ;; of point in the current buffer, so record that separately.
   (set-register register (list (current-frame-configuration) (point-marker))))
+
+;; It has had the optional arg for ages, but never used it.
+(set-advertised-calling-convention 'frame-configuration-to-register
+				   '(register) "24.4")
 
 (defalias 'register-to-point 'jump-to-register)
 (defun jump-to-register (register &optional delete)
