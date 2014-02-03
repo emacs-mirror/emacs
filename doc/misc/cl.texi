@@ -1564,7 +1564,7 @@ be either a label (an integer or a symbol), or a cons-cell
 (a statement).  This distinction is made before macroexpansion.
 Statements are executed in sequence, discarding any return value.
 Any statement can transfer control at any time to the statements that follow
-one of the labels with the special form @code{(go LABEL)}.
+one of the labels with the special form @code{(go @var{label})}.
 Labels have lexical scope and dynamic extent.
 @end defmac
 
