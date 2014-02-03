@@ -160,7 +160,9 @@ the mode if ARG is omitted or nil.
 
 If Desktop Save mode is enabled, the state of Emacs is saved from
 one session to another.  See variable `desktop-save' and function
-`desktop-read' for details."
+`desktop-read' for details.
+
+For options you can set, browse the `desktop' customization group."
   :global t
   :group 'desktop)
 

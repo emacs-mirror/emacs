@@ -1,5 +1,7 @@
 2014-02-03  Glenn Morris  <rgm@gnu.org>
 
+	* desktop.el (desktop-save-mode): Doc fix.
+
 	* frameset.el (frameset-to-register):
 	* kmacro.el (kmacro-to-register):
 	* register.el (increment-register):
