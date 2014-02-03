@@ -2141,8 +2141,7 @@ subsequent Emacs sessions reload the saved desktop.
 @vindex desktop-save-mode
   You can save the desktop manually with the command @kbd{M-x
 desktop-save}.  You can also enable automatic saving of the desktop
-at regular intervals and when you exit Emacs, and automatic restoration
-of the last saved
+when you exit Emacs, and automatic restoration of the last saved
 desktop when Emacs starts: use the Customization buffer (@pxref{Easy
 Customization}) to set @code{desktop-save-mode} to @code{t} for future
 sessions, or add this line in your init file (@pxref{Init File}):
@@ -2150,11 +2149,6 @@ sessions, or add this line in your init file (@pxref{Init File}):
 @example
 (desktop-save-mode 1)
 @end example
-
-@vindex desktop-auto-save-timeout
-@noindent
-Emacs then auto-saves the desktop every @code{desktop-auto-save-timeout}
-seconds, if that is non-@code{nil} and non-zero.
 
 @findex desktop-change-dir
 @findex desktop-revert

@@ -458,9 +458,8 @@ if your version doesn't support that option.  See option `cfengine-cf-promises'.
 
 ** Desktop
 
-+++
-*** By default, the desktop is now auto-saved after `desktop-auto-save-timeout'.
-To disable this, customize that option to nil (or zero).
+*** `desktop-auto-save-timeout' defines the number of seconds idle time
+before auto-save of the desktop.
 
 *** `desktop-restore-frames', enabled by default, allows saving and
 restoring the frame/window configuration (frameset).  Additional options

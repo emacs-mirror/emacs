@@ -1,7 +1,3 @@
-2014-02-03  Glenn Morris  <rgm@gnu.org>
-
-	* misc.texi (Saving Emacs Sessions): Mention desktop-auto-save-timeout.
-
 2014-02-02  Glenn Morris  <rgm@gnu.org>
 
 	* regs.texi (Registers): Mention previewing.
