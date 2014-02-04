@@ -63,7 +63,6 @@ typedef struct MVTStruct
   CBSStruct cbsStruct;          /* The coalescing block structure */
   FreelistStruct flStruct;      /* The emergency free list structure */
   ABQStruct abqStruct;          /* The available block queue */
-  SegPrefStruct segPrefStruct;  /* The preferences for segments */
   /* <design/poolmvt/#arch.parameters> */
   Size minSize;                 /* Pool parameter */
   Size meanSize;                /* Pool parameter */
@@ -363,7 +362,6 @@ static Bool MVTCheck(MVT mvt)
   CHECKD(ABQ, &mvt->abqStruct);
   /* CHECKL(ABQCheck(MVTABQ(mvt))); */
   CHECKD(Freelist, &mvt->flStruct);
-  CHECKD(SegPref, &mvt->segPrefStruct);
   CHECKL(mvt->reuseSize >= 2 * mvt->fillSize);
   CHECKL(mvt->fillSize >= mvt->maxSize);
   CHECKL(mvt->maxSize >= mvt->meanSize);
