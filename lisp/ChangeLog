@@ -1,9 +1,12 @@
+2014-02-04  Anders Lindgren  <andlind@gmail.com>
+
+	* emacs-lisp/ert.el (ert--activate-font-lock-keywords): Allow dashes in
+	the names (bug#16620).
+
 2014-02-03  Martin Rudalics  <rudalics@gmx.at>
 
-	* faces.el (window-divider): New default value.  Rewrite
-	doc-string.
-	(window-divider-first-pixel, window-divider-last-pixel): New
-	faces.
+	* faces.el (window-divider): New default value.  Rewrite doc-string.
+	(window-divider-first-pixel, window-divider-last-pixel): New faces.
 
 2014-02-03  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -34,8 +37,8 @@
 
 2014-02-02  Daniel Colascione  <dancol@dancol.org>
 
-	* help-at-pt.el (help-at-pt-string,help-at-pt-maybe-display): Also
-	try to display local help from just before point.
+	* help-at-pt.el (help-at-pt-string,help-at-pt-maybe-display):
+	Also try to display local help from just before point.
 
 2014-02-02  Alan Mackenzie  <bug-cc-mode@gnu.org>
 

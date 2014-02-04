@@ -1469,7 +1469,7 @@ the tests)."
   "Activate font-lock keywords for some of ERT's symbols."
   (font-lock-add-keywords
    nil
-   '(("(\\(\\<ert-deftest\\)\\>\\s *\\(\\sw+\\)?"
+   '(("(\\(\\<ert-deftest\\)\\>\\s *\\(\\(?:\\sw\\|\\s_\\)+\\)?"
       (1 font-lock-keyword-face nil t)
       (2 font-lock-function-name-face nil t)))))
 
