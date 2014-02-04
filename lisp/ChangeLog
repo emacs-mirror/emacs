@@ -1,3 +1,8 @@
+2014-02-04  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-shell-send-string):
+	(python-shell-send-string-no-output): Fix docstring (Bug#16547).
+
 2014-02-04  Anders Lindgren  <andlind@gmail.com>
 
 	* emacs-lisp/ert.el (ert--activate-font-lock-keywords): Allow dashes in

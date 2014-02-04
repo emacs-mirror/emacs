@@ -2118,8 +2118,7 @@ there for compatibility with CEDET.")
     temp-file-name))
 
 (defun python-shell-send-string (string &optional process)
-  "Send STRING to inferior Python PROCESS.
-When MSG is non-nil messages the first line of STRING."
+  "Send STRING to inferior Python PROCESS."
   (interactive "sPython command: ")
   (let ((process (or process (python-shell-get-or-create-process))))
     (if (string-match ".\n+." string)   ;Multiline.
@@ -2168,8 +2167,7 @@ detecting a prompt at the end of the buffer."
 
 (defun python-shell-send-string-no-output (string &optional process)
   "Send STRING to PROCESS and inhibit output.
-When MSG is non-nil messages the first line of STRING.  Return
-the output."
+Return the output."
   (let ((process (or process (python-shell-get-or-create-process)))
         (comint-preoutput-filter-functions
          '(python-shell-output-filter))
