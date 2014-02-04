@@ -187,17 +187,10 @@ Save the result in `file-notify--test-results', for later analysis."
 TIMEOUT is the maximum time to wait for, in seconds."
   `(with-timeout (,timeout (ignore))
      (while (null ,until)
-       (let (noninteractive)
-	 (sit-for 0.1 'nodisplay)))))
+       (read-event nil nil 0.1))))
 
 (ert-deftest file-notify-test02-events ()
   "Check file creation/removal notifications."
-  ;; Bug#16519.
-  :expected-result
-  (if (and noninteractive
-	   (not (file-remote-p temporary-file-directory))
-	   (memq file-notify--library '(gfilenotify w32notify)))
-      :failed :passed)
   (skip-unless (file-notify--test-local-enabled))
   (let (desc)
     (unwind-protect
@@ -214,7 +207,7 @@ TIMEOUT is the maximum time to wait for, in seconds."
 	  (write-region
 	   "any text" nil file-notify--test-tmpfile nil 'no-message)
 	  (delete-file file-notify--test-tmpfile)
-	  (sit-for 0.1 'nodisplay)
+	  (sleep-for 0.1)
 
 	  ;; Check copy and rename.
 	  (write-region
@@ -222,13 +215,13 @@ TIMEOUT is the maximum time to wait for, in seconds."
 	  (copy-file file-notify--test-tmpfile file-notify--test-tmpfile1)
 	  (delete-file file-notify--test-tmpfile)
 	  (delete-file file-notify--test-tmpfile1)
-	  (sit-for 0.1 'nodisplay)
+	  (sleep-for 0.1)
 
 	  (write-region
 	   "any text" nil file-notify--test-tmpfile nil 'no-message)
 	  (rename-file file-notify--test-tmpfile file-notify--test-tmpfile1)
 	  (delete-file file-notify--test-tmpfile1)
-	  (sit-for 0.1 'nodisplay))
+	  (sleep-for 0.1))
 
       ;; Wait for events, and exit.
       (file-notify--wait-for-events 5 file-notify--test-results)
@@ -274,7 +267,7 @@ This test is skipped in batch mode."
 	    ;; `auto-revert-buffers' runs every 5".
 	    (with-timeout (timeout (ignore))
 	      (while (null auto-revert-notify-watch-descriptor)
-		(sit-for 1 'nodisplay)))
+		(sleep-for 1)))
 
 	    ;; Check, that file notification has been used.
 	    (should auto-revert-mode)
@@ -283,7 +276,7 @@ This test is skipped in batch mode."
 
 	    ;; Modify file.  We wait for a second, in order to
 	    ;; have another timestamp.
-	    (sit-for 1)
+	    (sleep-for 1)
 	    (shell-command
 	     (format "echo -n 'another text' >%s"
 		     (or (file-remote-p file-notify--test-tmpfile 'localname)
