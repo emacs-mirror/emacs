@@ -202,7 +202,9 @@ int main(int argc, char *argv[])
   randomize(argc, argv);
 
   stress_with_arena_class(mps_arena_class_vm());
+#if 0 /* FIXME: Restore when arena can take an option */
   stress_with_arena_class(mps_arena_class_vmnz());
+#endif
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;

@@ -37,7 +37,6 @@ SRCID(poolsnc, "$Id$");
 typedef struct SNCStruct {
   PoolStruct poolStruct;
   Seg freeSegs;
-  SegPrefStruct segPrefStruct;
   Sig sig;
 } SNCStruct, *SNC;
 
@@ -389,9 +388,6 @@ static Res SNCInit(Pool pool, ArgList args)
   AVERT(Format, format);
   pool->format = format;
   snc->freeSegs = NULL;
-  /* Use the default segpref for the pool. At least this should avoid */
-  /* clashes with collected pools */
-  SegPrefInit(&snc->segPrefStruct);
   snc->sig = SNCSig;
 
   AVERT(SNC, snc);
@@ -449,7 +445,7 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   /* No free seg, so create a new one */
   arena = PoolArena(pool);
   asize = SizeAlignUp(size, ArenaAlign(arena));
-  res = SegAlloc(&seg, SNCSegClassGet(), &snc->segPrefStruct,
+  res = SegAlloc(&seg, SNCSegClassGet(), SegPrefDefault(),
                  asize, pool, withReservoirPermit, argsNone);
   if (res != ResOK)
     return res;
@@ -701,7 +697,6 @@ static Bool SNCCheck(SNC snc)
 {
   CHECKS(SNC, snc);
   CHECKD(Pool, &snc->poolStruct);
-  CHECKD(SegPref, &snc->segPrefStruct);
   CHECKL(snc->poolStruct.class == SNCPoolClassGet());
   if (snc->freeSegs != NULL) {
     CHECKL(SegCheck(snc->freeSegs));

@@ -199,10 +199,12 @@ int main(int argc, char *argv[])
   testInArena(arena, &fenceOptions);
   mps_arena_destroy(arena);
 
+#if 0 /* FIXME: Restore when arena can take an option */
   die(mps_arena_create(&arena, mps_arena_class_vmnz(), 2*testArenaSIZE),
       "mps_arena_create");
   testInArena(arena, bothOptions);
   mps_arena_destroy(arena);
+#endif
 
   die(mps_arena_create(&arena, mps_arena_class_cl(),
                        testArenaSIZE, malloc(testArenaSIZE)),
