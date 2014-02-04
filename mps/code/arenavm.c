@@ -1268,30 +1268,38 @@ static void tablePagesUnmap(VMChunk vmChunk, Index basePage, Index limitPage)
      also catch any adjacent unused pages, though they ought to have
      been caught by previous scans. */
 
+  /* Lower basePage until we reach a desciptor we can't unmap, or the
+     beginning of the table. */
   while (basePage > 0 &&
          pageDescIsMapped(vmChunk, basePage) &&
-         pageType(vmChunk, basePage) == PageTypeFree)
+         PageType(&chunk->pageTable[basePage]) == PageTypeFree)
     --basePage;
-  /* basePage is zero or the lowest page whose descritor we can't unmap */
 
+  /* Raise limitPage until we reach a descriptor we can't unmap, or the end
+     of the table. */
   while (limitPage < chunk->pages &&
          pageDescIsMapped(vmChunk, limitPage) &&
-         pageType(vmChunk, limitPage) == PageTypeFree)
+         PageType(&chunk->pageTable[limitPage]) == PageTypeFree)
     ++limitPage;
-  /* limitPage is chunk->pages or the highest page whose descriptor we
-     can't unmap */
 
+  /* Calculate the range of pages in the page table. */
   tablePagesUsed(&basePTI, &limitPTI, chunk, basePage, limitPage);
   base = TablePageIndexBase(chunk, basePTI);
   limit = TablePageIndexBase(chunk, limitPTI);
+
+  /* If we can't unmap the base page, step up. */
   if (!pageDescIsMapped(vmChunk, basePage) ||
-      pageType(vmChunk, basePage) != PageTypeFree)
+      PageType(&chunk->pageTable[basePage]) != PageTypeFree)
     base = AddrAdd(base, chunk->pageSize);
+  /* If that leaves any pages, then if the limit page contains a desciptor
+     we can't unmap, step down.  Note, limit is the base of the page table
+     page *after* the one containing the desc for limitPage. */
   if (base < limit) {
     if (limitPage < chunk->pages &&
         pageType(vmChunk, limitPage) != PageTypeFree)
       limit = AddrSub(limit, chunk->pageSize);
-    if (base < limit) { /* might be nothing left to unmap */
+    /* If that leaves any pages, unmap them. */
+    if (base < limit) {
       vmArenaUnmap(VMChunkVMArena(vmChunk), vmChunk->vm, base, limit);
       BTResRange(vmChunk->pageTableMapped,
                  PageTablePageIndex(chunk, base),
