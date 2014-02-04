@@ -29277,7 +29277,8 @@ x_draw_right_divider (struct window *w)
       int x0 = WINDOW_RIGHT_EDGE_X (w) - WINDOW_RIGHT_DIVIDER_WIDTH (w);
       int x1 = WINDOW_RIGHT_EDGE_X (w);
       int y0 = WINDOW_TOP_EDGE_Y (w);
-      int y1 = WINDOW_BOTTOM_EDGE_Y (w);
+      /* The bottom divider prevails.  */
+      int y1 = WINDOW_BOTTOM_EDGE_Y (w) - WINDOW_BOTTOM_DIVIDER_WIDTH (w);
 
       FRAME_RIF (f)->draw_window_divider (w, x0, x1, y0, y1);
     }

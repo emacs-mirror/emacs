@@ -1,3 +1,18 @@
+2014-02-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* dispextern.h (face_id): Add WINDOW_DIVIDER_FIRST_PIXEL_FACE_ID
+	and WINDOW_DIVIDER_LAST_PIXEL_FACE_ID.
+	* w32term.c (w32_draw_window_divider): Handle first and last
+	pixels specially.
+	* w32term.h (w32_fill_area_abs): New function.
+	* xdisp.c (x_draw_right_divider): Don't draw over bottom
+	divider.
+	* xfaces.c (realize_basic_faces): Handle new face ids.
+	* xfns.c (Fx_create_frame): Call x_default_parameter for right
+	and bottom divider width.
+	* xterm.c (x_draw_window_divider): Handle first and last pixels
+	specially.
+
 2014-02-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* print.c (Fexternal_debugging_output): Add cast to pacify

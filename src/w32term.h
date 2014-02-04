@@ -537,6 +537,16 @@ do { \
     w32_fill_rect (f,hdc,pix,&rect); \
 } while (0)
 
+#define w32_fill_area_abs(f,hdc,pix,x0,y0,x1,y1) \
+do { \
+    RECT rect; \
+    rect.left = x0; \
+    rect.top = y0; \
+    rect.right = x1; \
+    rect.bottom = y1; \
+    w32_fill_rect (f,hdc,pix,&rect); \
+} while (0)
+
 #define w32_clear_rect(f,hdc,lprect) \
   w32_fill_rect (f, hdc, FRAME_BACKGROUND_PIXEL (f), lprect)
 

@@ -1,3 +1,10 @@
+2014-02-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* faces.el (window-divider): New default value.  Rewrite
+	doc-string.
+	(window-divider-first-pixel, window-divider-last-pixel): New
+	faces.
+
 2014-02-03  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): `private',
