@@ -1,3 +1,11 @@
+2014-02-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* keyboard.c (kbd_buffer_get_event): Read file notification events
+	also in batch mode.
+
+	* xgselect.c (xg_select): Read glib events in any case, even if
+	there are no file descriptors to watch for.  (Bug#16519)
+
 2014-02-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* dispextern.h (face_id): Add WINDOW_DIVIDER_FIRST_PIXEL_FACE_ID

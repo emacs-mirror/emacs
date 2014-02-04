@@ -124,23 +124,19 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
         }
     }
 
-  if (our_fds > 0 || (nfds == 0 && tmop == &tmo))
-    {
-
-      /* If Gtk+ is in use eventually gtk_main_iteration will be called,
-         unless retval is zero.  */
+  /* If Gtk+ is in use eventually gtk_main_iteration will be called,
+     unless retval is zero.  */
 #ifdef USE_GTK
-      if (retval == 0)
+  if (retval == 0)
 #endif
-        while (g_main_context_pending (context))
-          g_main_context_dispatch (context);
+    while (g_main_context_pending (context))
+      g_main_context_dispatch (context);
 
-      /* To not have to recalculate timeout, return like this.  */
-      if (retval == 0)
-        {
-          retval = -1;
-          errno = EINTR;
-        }
+  /* To not have to recalculate timeout, return like this.  */
+  if ((our_fds > 0 || (nfds == 0 && tmop == &tmo)) && (retval == 0))
+    {
+      retval = -1;
+      errno = EINTR;
     }
 
   return retval;
