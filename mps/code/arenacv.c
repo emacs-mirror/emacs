@@ -403,7 +403,9 @@ int main(int argc, char *argv[])
   testlib_unused(argc);
 
   testPageTable((ArenaClass)mps_arena_class_vm(), TEST_ARENA_SIZE, 0);
+#if 0 /* FIXME: Restore when arena can take an option */
   testPageTable((ArenaClass)mps_arena_class_vmnz(), TEST_ARENA_SIZE, 0);
+#endif
 
   block = malloc(TEST_ARENA_SIZE);
   cdie(block != NULL, "malloc");

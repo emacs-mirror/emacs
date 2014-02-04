@@ -69,7 +69,6 @@ DEFINE_CLASS(AbstractArenaClass, class)
   class->spareCommitExceeded = ArenaNoSpareCommitExceeded;
   class->extend = ArenaNoExtend;
   class->grow = ArenaNoGrow;
-  class->alloc = NULL;
   class->free = NULL;
   class->chunkInit = NULL;
   class->chunkFinish = NULL;
@@ -97,7 +96,6 @@ Bool ArenaClassCheck(ArenaClass class)
   CHECKL(FUNCHECK(class->reserved));
   CHECKL(FUNCHECK(class->spareCommitExceeded));
   CHECKL(FUNCHECK(class->extend));
-  CHECKL(FUNCHECK(class->alloc));
   CHECKL(FUNCHECK(class->free));
   CHECKL(FUNCHECK(class->chunkInit));
   CHECKL(FUNCHECK(class->chunkFinish));
@@ -741,6 +739,9 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
   AVERT(SegPref, pref);
   AVER(size > (Size)0);
   AVERT(Pool, pool);
+  
+  /* FIXME: Allow arena to take an option to ignore zones. */
+  /* FIXME: Respect pref->high and other fields */
 
   /* Don't attempt to allocate if doing so would definitely exceed the
      commit limit. */

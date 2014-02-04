@@ -335,97 +335,6 @@ static Size ClientArenaReserved(Arena arena)
 }
 
 
-/* chunkAlloc -- allocate some tracts in a chunk */
-
-static Res chunkAlloc(Addr *baseReturn, Tract *baseTractReturn,
-                      SegPref pref, Size pages, Pool pool, Chunk chunk)
-{
-  Index baseIndex, limitIndex, indx;
-  Bool b;
-  Arena arena;
-  ClientChunk clChunk;
-
-  AVER(baseReturn != NULL);
-  AVER(baseTractReturn != NULL);
-  clChunk = Chunk2ClientChunk(chunk);
-
-  if (pages > clChunk->freePages)
-    return ResRESOURCE;
-
-  arena = chunk->arena;
-
-  if (pref->high)
-    b = BTFindShortResRangeHigh(&baseIndex, &limitIndex, chunk->allocTable,
-                                chunk->allocBase, chunk->pages, pages);
-  else
-    b = BTFindShortResRange(&baseIndex, &limitIndex, chunk->allocTable,
-                            chunk->allocBase, chunk->pages, pages);
-
-  if (!b)
-    return ResRESOURCE;
-
-  /* Check commit limit.  Note that if there are multiple reasons */
-  /* for failing the allocation we attempt to return other result codes */
-  /* in preference to ResCOMMIT_LIMIT.  See <design/arena/#commit-limit> */
-  if (ArenaCommitted(arena) + pages * ChunkPageSize(chunk)
-      > arena->commitLimit) {
-    return ResCOMMIT_LIMIT;
-  }
-
-  /* Initialize the generic tract structures. */
-  AVER(limitIndex > baseIndex);
-  for(indx = baseIndex; indx < limitIndex; ++indx) {
-    PageAlloc(chunk, indx, pool);
-  }
-
-  clChunk->freePages -= pages;
-
-  *baseReturn = PageIndexBase(chunk, baseIndex);
-  *baseTractReturn = PageTract(&chunk->pageTable[baseIndex]);
-
-  return ResOK;
-}
-
-
-/* ClientAlloc -- allocate a region from the arena */
-
-static Res ClientAlloc(Addr *baseReturn, Tract *baseTractReturn,
-                       SegPref pref, Size size, Pool pool)
-{
-  Arena arena;
-  Res res;
-  Ring node, nextNode;
-  Size pages;
-
-  AVER(baseReturn != NULL);
-  AVER(baseTractReturn != NULL);
-  AVERT(SegPref, pref);
-  AVER(size > 0);
-  AVERT(Pool, pool);
-
-  arena = PoolArena(pool);
-  AVERT(Arena, arena);
-  /* All chunks have same pageSize. */
-  AVER(SizeIsAligned(size, ChunkPageSize(arena->primary)));
-  /* NULL is used as a discriminator (see */
-  /* <design/arenavm/#table.disc>), therefore the real pool */
-  /* must be non-NULL. */
-  AVER(pool != NULL);
-
-  pages = ChunkSizeToPages(arena->primary, size);
-
-  /* .req.extend.slow */
-  RING_FOR(node, &arena->chunkRing, nextNode) {
-    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
-    res = chunkAlloc(baseReturn, baseTractReturn, pref, pages, pool, chunk);
-    if (res == ResOK || res == ResCOMMIT_LIMIT) {
-      return res;
-    }
-  }
-  return ResRESOURCE;
-}
-
-
 /* ClientFree - free a region in the arena */
 
 static void ClientFree(Addr base, Size size, Pool pool)
@@ -487,7 +396,6 @@ DEFINE_ARENA_CLASS(ClientArenaClass, this)
   this->finish = ClientArenaFinish;
   this->reserved = ClientArenaReserved;
   this->extend = ClientArenaExtend;
-  this->alloc = ClientAlloc;
   this->free = ClientFree;
   this->chunkInit = ClientChunkInit;
   this->chunkFinish = ClientChunkFinish;
