@@ -330,24 +330,9 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
   vmChunk->sig = VMChunkSig;
   AVERT(VMChunk, vmChunk);
 
-  /* Add the chunk's free address space to the arena's freeCBS, so that
-     we can allocate from it. */
-  /* FIXME: Should be in generic ChunkInit so other arenas get the effect. */
-  {
-    Arena arena = VMArena2Arena(vmArena);
-    Chunk chunk = VMChunk2Chunk(vmChunk);
-    res = ArenaFreeCBSInsert(arena,
-                             PageIndexBase(chunk, chunk->allocBase),
-                             chunk->limit);
-    if (res != ResOK)
-        goto failCBSInsert;
-  }
-
   *chunkReturn = VMChunk2Chunk(vmChunk);
   return ResOK;
 
-failCBSInsert:
-  ChunkFinish(VMChunk2Chunk(vmChunk));
 failChunkInit:
   /* No need to unmap, as we're destroying the VM. */
 failChunkMap:
@@ -418,11 +403,6 @@ static void vmChunkDestroy(Chunk chunk)
   AVERT(VMChunk, vmChunk);
   AVER(BTIsSetRange(vmChunk->noSparePages, 0, chunk->pageTablePages));
   AVER(BTIsResRange(vmChunk->pageTableMapped, 0, chunk->pageTablePages));
-
-  /* FIXME: Should be in generic ChunkFinish so other arenas get the effect. */
-  ArenaFreeCBSDelete(ChunkArena(chunk),
-                     PageIndexBase(chunk, chunk->allocBase),
-                     chunk->limit);
 
   vmChunk->sig = SigInvalid;
   vm = vmChunk->vm;

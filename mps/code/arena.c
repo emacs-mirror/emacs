@@ -182,6 +182,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment)
   arena->poolReady = FALSE;     /* <design/arena/#pool.ready> */
   arena->lastTract = NULL;
   arena->lastTractBase = NULL;
+  arena->hasFreeCBS = FALSE;
   arena->freeZones = ZoneSetUNIV;
 
   arena->primary = NULL;
@@ -207,6 +208,8 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment)
   } MPS_ARGS_END(cbsiArgs);
   if (res != ResOK)
     goto failCBSInit;
+  /* Note that although freeCBS is initialised, it doesn't have any memory
+     for its blocks, so hasFreeCBS remains FALSE until later. */
 
   /* initialize the reservoir, <design/reservoir/> */
   res = ReservoirInit(&arena->reservoirStruct, arena);
@@ -264,6 +267,16 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
     res = ResMEMORY; /* size was too small */
     goto failStripeSize;
   }
+
+  /* With the primary chunk initialised we can add page memory to the freeCBS
+     that describes the free address space in the primary chunk. */
+  arena->hasFreeCBS = TRUE;
+  res = ArenaFreeCBSInsert(arena,
+                           PageIndexBase(arena->primary,
+                                         arena->primary->allocBase),
+                           arena->primary->limit);
+  if (res != ResOK)
+    goto failPrimaryCBS;
   
   res = ControlInit(arena);
   if (res != ResOK)
@@ -280,6 +293,7 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 failGlobalsCompleteCreate:
   ControlFinish(arena);
 failControlInit:
+failPrimaryCBS:
 failStripeSize:
   (*class->finish)(arena);
 failInit:
@@ -316,7 +330,11 @@ void ArenaDestroy(Arena arena)
 
   arena->poolReady = FALSE;
   ControlFinish(arena);
-  
+
+  /* We must tear down the freeCBS before the chunks, because pages
+     containing CBS blocks might be allocated in those chunks. */
+  AVER(arena->hasFreeCBS);
+  arena->hasFreeCBS = FALSE;
   /* FIXME: The CBS MFS can't free via ArenaFree because that'll use the CBS,
      so manually get rid of all its tracts first.  Ought to reset the
      CBS tree first, so that there are no dangling pointers. */
@@ -331,11 +349,6 @@ void ArenaDestroy(Arena arena)
     }
     arena->freeCBS.blockPoolStruct.tractList = NULL;
   }
-  
-  /* FIXME: Chunks remove their address ranges from the CBS when destroyed,
-     so this is too early.  On the other hand, destroying all the chunks
-     also destroys the CBS's own memory, which might be scattered across
-     chunks by this time, so perhaps this can't be torn down neatly. */
   CBSFinish(&arena->freeCBS);
 
   /* Call class-specific finishing.  This will call ArenaFinish. */

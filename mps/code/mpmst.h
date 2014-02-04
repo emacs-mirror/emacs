@@ -658,6 +658,7 @@ typedef struct mps_arena_s {
   Serial chunkSerial;           /* next chunk number */
   ChunkCacheEntryStruct chunkCache; /* just one entry */
   
+  Bool hasFreeCBS;              /* Is freeCBS available? */
   CBSStruct freeCBS;            /* CBS of free address space */
   ZoneSet freeZones;            /* zones not yet allocated */
 
