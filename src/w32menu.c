@@ -98,7 +98,7 @@ AppendMenuW_Proc unicode_append_menu = NULL;
 MessageBoxW_Proc unicode_message_box = NULL;
 #endif /* NTGUI_UNICODE */
 
-Lisp_Object Qdebug_on_next_call;
+Lisp_Object Qdebug_on_next_call, Qunsupported__w32_dialog;
 
 void set_frame_menubar (struct frame *, bool, bool);
 
@@ -114,34 +114,44 @@ static int fill_in_menu (HMENU, widget_value *);
 
 void w32_free_menu_strings (HWND);
 
-#ifdef HAVE_DIALOGS
 Lisp_Object
 w32_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
 {
-  Lisp_Object title;
-  char *error_name;
-  Lisp_Object selection;
 
   check_window_system (f);
 
-  /* Decode the dialog items from what was specified.  */
-  title = Fcar (contents);
-  CHECK_STRING (title);
+#ifndef HAVE_DIALOGS
 
-  list_of_panes (Fcons (contents, Qnil));
+  /* Handle simple Yes/No choices as MessageBox popups.  */
+  if (is_simple_dialog (contents))
+    return simple_dialog_show (f, contents, header);
+  else
+    return Qunsupported__w32_dialog;
+#else  /* HAVE_DIALOGS */
+    {
+      Lisp_Object title;
+      char *error_name;
+      Lisp_Object selection;
 
-  /* Display them in a dialog box.  */
-  block_input ();
-  selection = w32_dialog_show (f, 0, title, header, &error_name);
-  unblock_input ();
+      /* Decode the dialog items from what was specified.  */
+      title = Fcar (contents);
+      CHECK_STRING (title);
 
-  discard_menu_items ();
-  FRAME_DISPLAY_INFO (f)->grabbed = 0;
+      list_of_panes (Fcons (contents, Qnil));
 
-  if (error_name) error (error_name);
-  return selection;
-}
+      /* Display them in a dialog box.  */
+      block_input ();
+      selection = w32_dialog_show (f, 0, title, header, &error_name);
+      unblock_input ();
+
+      discard_menu_items ();
+      FRAME_DISPLAY_INFO (f)->grabbed = 0;
+
+      if (error_name) error (error_name);
+      return selection;
+    }
 #endif /* HAVE_DIALOGS */
+}
 
 /* Activate the menu bar of frame F.
    This is called from keyboard.c when it gets the
@@ -1621,6 +1631,7 @@ syms_of_w32menu (void)
   current_popup_menu = NULL;
 
   DEFSYM (Qdebug_on_next_call, "debug-on-next-call");
+  DEFSYM (Qunsupported__w32_dialog, "unsupported--w32-dialog");
 
   defsubr (&Smenu_or_popup_active_p);
 }

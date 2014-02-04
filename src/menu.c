@@ -1566,9 +1566,15 @@ for instance using the window manager, then this produces a quit and
     return xw_popup_dialog (f, header, contents);
   else
 #endif
-#if defined (HAVE_NTGUI) && defined (HAVE_DIALOGS)
+#if defined (HAVE_NTGUI)
   if (FRAME_W32_P (f))
-    return w32_popup_dialog (f, header, contents);
+    {
+      Lisp_Object selection = w32_popup_dialog (f, header, contents);
+
+      if (!EQ (selection, Qunsupported__w32_dialog))
+	return selection;
+      goto dialog_via_menu;
+    }
   else
 #endif
 #ifdef HAVE_NS
@@ -1581,6 +1587,8 @@ for instance using the window manager, then this produces a quit and
   {
     Lisp_Object x, y, frame, newpos, prompt;
     int x_coord, y_coord;
+
+  dialog_via_menu:
 
     prompt = Fcar (contents);
     if (FRAME_WINDOW_P (f))

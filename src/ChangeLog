@@ -1,3 +1,23 @@
+2014-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32menu.c (w32_popup_dialog): Don't condition the whole function
+	on HAVE_DIALOGS.  If the dialog is "simple", pop up a message box
+	to show it; otherwise return 'unsupported--w32-dialog' to signal
+	to the caller that emulation with menus is necessary.  This
+	resurrects code inadvertently deleted by the 2013-10-08 commit.
+	(Bug#16636)
+	(syms_of_w32menu): DEFSYM Qunsupported__w32_dialog.
+
+	* w32term.h (w32_popup_dialog): Prototype is no longer conditioned
+	by HAVE_DIALOGS.
+
+	* menu.c (Fx_popup_dialog): Don't condition the call to
+	w32_popup_dialog on HAVE_DIALOGS.  If w32_popup_dialog returns a
+	special symbol 'unsupported--w32-dialog', emulate the dialog with
+	a menu by calling x-popup-menu.
+
+	* menu.h (Qunsupported__w32_dialog): New extern variable.
+
 2014-02-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* keyboard.c (kbd_buffer_get_event): Read file notification events
