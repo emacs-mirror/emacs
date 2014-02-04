@@ -1561,34 +1561,29 @@ for instance using the window manager, then this produces a quit and
      Do this before creating the widget value that points to Lisp
      string contents, because Fredisplay may GC and relocate them.  */
   Fredisplay (Qt);
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
+
+#if defined USE_X_TOOLKIT || defined USE_GTK
   if (FRAME_WINDOW_P (f))
     return xw_popup_dialog (f, header, contents);
-  else
 #endif
-#if defined (HAVE_NTGUI)
+#ifdef HAVE_NTGUI
   if (FRAME_W32_P (f))
     {
       Lisp_Object selection = w32_popup_dialog (f, header, contents);
 
       if (!EQ (selection, Qunsupported__w32_dialog))
 	return selection;
-      goto dialog_via_menu;
     }
-  else
 #endif
 #ifdef HAVE_NS
   if (FRAME_NS_P (f))
     return ns_popup_dialog (position, header, contents);
-  else
 #endif
   /* Display a menu with these alternatives
      in the middle of frame F.  */
   {
     Lisp_Object x, y, frame, newpos, prompt;
     int x_coord, y_coord;
-
-  dialog_via_menu:
 
     prompt = Fcar (contents);
     if (FRAME_WINDOW_P (f))

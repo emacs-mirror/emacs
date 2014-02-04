@@ -1,3 +1,9 @@
+2014-02-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* menu.c (Fx_popup_dialog): Remove label 'dialog_via_menu'.
+	It prompted a compile-time diagnostic on GNU/Linux.
+	Simplify to remove the need for the label.
+
 2014-02-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32menu.c (w32_popup_dialog): Don't condition the whole function
