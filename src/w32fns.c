@@ -6924,11 +6924,12 @@ an integer representing a ShowWindow flag:
 #else  /* !CYGWIN */
   current_dir = ENCODE_FILE (current_dir);
   /* We have a situation here.  If DOCUMENT is a relative file name,
-     and is not in CURRENT_DIR, ShellExecute below will fail to find
-     it.  So we need to make the file name absolute.  But DOCUMENT
-     does not have to be a file, it can be a URL, for example.  So we
-     make it absolute only if it is an existing file; if it is a file
-     that does not exist, tough.  */
+     but its name includes leading directories, i.e. it lives not in
+     CURRENT_DIR, but in its subdirectory, then ShellExecute below
+     will fail to find it.  So we need to make the file name is
+     absolute.  But DOCUMENT does not have to be a file, it can be a
+     URL, for example.  So we make it absolute only if it is an
+     existing file; if it is a file that does not exist, tough.  */
   GCPRO1 (absdoc);
   absdoc = Fexpand_file_name (document, Qnil);
   /* Don't call file handlers for file-exists-p, since they might
