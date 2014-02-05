@@ -32,7 +32,7 @@ configure option `--disable-acl'.
 ** Emacs can now be compiled with file notification support.
 This happens by default if a suitable system library is found at
 build time.  To prevent this, use the configure option
-`--with-file-notification-no'.  See below for file-notify features.
+`--without-file-notification'.  See below for file-notify features.
 FIXME?  This feature is not available for the Nextstep port. (?)
 
 ---
