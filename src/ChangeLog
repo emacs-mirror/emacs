@@ -5,6 +5,9 @@
 
 2014-02-05  Martin Rudalics  <rudalics@gmx.at>
 
+	* fringe.c (draw_fringe_bitmap_1): Don't draw a fringe if it's
+	outside the window (Bug#16649).
+
 	* xdisp.c (note_mouse_highlight): When entering a margin area show
 	a non-text cursor (Bug#16647).
 
