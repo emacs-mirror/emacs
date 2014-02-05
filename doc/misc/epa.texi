@@ -63,6 +63,9 @@ called EasyPG Library.
 * Caching Passphrases::
 * Bug Reports::
 * GNU Free Documentation License::  The license for this documentation.
+* Key Index::
+* Function Index::
+* Variable Index::
 @end menu
 
 @node  Overview
@@ -492,6 +495,18 @@ buffer name is a whitespace.
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
+
+@node Key Index
+@unnumbered Key Index
+@printindex ky
+
+@node Function Index
+@unnumbered Function Index
+@printindex fn
+
+@node Variable Index
+@unnumbered Variable Index
+@printindex vr
 
 @bye
 
