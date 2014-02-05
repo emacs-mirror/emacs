@@ -1485,7 +1485,7 @@ and the function returns nil.  Field boundaries are not noticed if
 
   /* Avoid jumping out of an input field.  */
   tmp = Fconstrain_to_field (make_number (val), make_number (PT),
-			     Qt, Qnil, Qnil);
+			     Qnil, Qnil, Qnil);
   val = XFASTINT (tmp);
 
   SET_PT (val);

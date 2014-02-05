@@ -1,3 +1,8 @@
+2014-02-05  Bastien Guerry  <bzg@gnu.org>
+
+	* syntax.c (Fforward_word): Call Fconstrain_to_field with
+	ESCAPE-FROM-EDGE set to `nil' (Bug#16453).
+
 2014-02-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* xdisp.c (note_mouse_highlight): When entering a margin area show
