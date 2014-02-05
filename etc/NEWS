@@ -518,17 +518,8 @@ You can customize `electric-pair-text-pairs' and
 strings and comments.
 
 ** New EPA option `epa-mail-aliases'.
-You can set this to a list of alias expansions for keys to use
-in `epa-mail-encrypt'.
-
-If one element of the variable's value is ("foo@bar.com" "foo@hello.org"),
-that means: when one of the recipients of the message being encrypted
-is `foo@bar.com', encrypt the message for `foo@hello.org' instead.
-
-If one element of the variable's value is ("foo@bar.com"),
-that means: when one of the recipients of the message being encrypted
-is `foo@bar.com', ignore that name as regards encryption.
-This is useful to avoid a query when you have no key for that name.
+You can set this to a list of email address aliases for keys to use
+`epa-mail-encrypt'.
 
 ---
 ** New ERC option `erc-accidental-paste-threshold-seconds'.

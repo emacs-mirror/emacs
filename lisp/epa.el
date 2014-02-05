@@ -51,13 +51,14 @@
 
 (defcustom epa-mail-aliases nil
   "Alist of aliases of email addresses that stand for encryption keys.
-Each element is (ALIAS EXPANSIONS...).
-It means that when a message is addressed to ALIAS,
+Each element is a list of email addresses (ALIAS EXPANSIONS...).
+When one of the recipients of a message being encrypted is ALIAS,
 instead of encrypting it for ALIAS, encrypt it for EXPANSIONS...
+
 If EXPANSIONS is empty, ignore ALIAS as regards encryption.
-That is a handy way to avoid warnings about addresses
-that you don't have any key for."
-  :type '(repeat (cons (string :tag "Alias") (repeat '(string :tag "Expansion"))))
+This is a handy way to avoid warnings about addresses that you don't
+have any key for."
+  :type '(repeat (cons (string :tag "Alias") (repeat (string :tag "Expansion"))))
   :group 'epa
   :version "24.4")
 

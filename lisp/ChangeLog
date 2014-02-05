@@ -1,3 +1,7 @@
+2014-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* epa.el (epa-mail-aliases): Fic custom type.  Doc tweak.
+
 2014-02-04  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el (python-shell-send-string):
