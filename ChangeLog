@@ -1,3 +1,9 @@
+2014-02-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2014-01-23 pthread: work around winpthread header pollution on mingw
+	* lib/time.in.h: Update from gnulib.
+
 2014-01-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

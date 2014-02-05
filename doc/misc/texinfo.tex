@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2014-01-16.10}
+\def\texinfoversion{2014-01-30.15}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -4649,6 +4649,16 @@ end
   \definedummyword\verb
   \definedummyword\w
   \definedummyword\xref
+  %
+  % Consider:
+  %   @macro mkind{arg1,arg2}
+  %   @cindex \arg2\
+  %   @end macro
+  %   @mkind{foo, bar}
+  % The space after the comma will end up in the temporary definition
+  % that we make for arg2 (see \parsemargdef ff.).  We want all this to be
+  % expanded for the sake of the index, so we end up just seeing "bar".
+  \let\xeatspaces = \eatspaces
 }
 
 % \indexnofonts is used when outputting the strings to sort the index
@@ -7474,7 +7484,7 @@ end
 
 % Parse the optional {params} list.  Set up \paramno and \paramlist
 % so \defmacro knows what to do.  Define \macarg.BLAH for each BLAH
-% in the params list to some hook where the argument si to be expanded.  If
+% in the params list to some hook where the argument is to be expanded.  If
 % there are less than 10 arguments that hook is to be replaced by ##N where N
 % is the position in that list, that is to say the macro arguments are to be
 % defined `a la TeX in the macro body.  
