@@ -1,3 +1,7 @@
+2014-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* url.texi (Cookies): Mention url-cookie-list command.
+
 2014-02-03  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi (Blocks and Exits): Mention cl-tagbody.

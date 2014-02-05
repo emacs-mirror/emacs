@@ -871,8 +871,9 @@ which support POSIX ACLs.
 *** Handlers for `file-notify-add-watch' and `file-notify-rm-watch'
 for remote machines which support filesystem notifications.
 
-** New command `url-cookie-list' displays all the current cookies, and
-allows deleting selected cookies.
++++
+** New URL command `url-cookie-list' displays the current cookies,
+and allows you to interactively remove cookies.
 
 ** VC and related modes
 
