@@ -1,6 +1,14 @@
+2014-02-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-end-of-heredoc): New defconst.
+	(tramp-sh-handle-set-file-acl)
+	(tramp-sh-handle-start-file-process)
+	(tramp-sh-handle-write-region, tramp-sh-handle-vc-registered)
+	(tramp-find-executable, tramp-send-command): Use it.
+
 2014-02-05  Glenn Morris  <rgm@gnu.org>
 
-	* epa.el (epa-mail-aliases): Fic custom type.  Doc tweak.
+	* epa.el (epa-mail-aliases): Fix custom type.  Doc tweak.
 
 2014-02-04  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 

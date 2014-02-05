@@ -79,6 +79,9 @@ detected as prompt when being sent on echoing hosts, therefore.")
 (defconst tramp-initial-end-of-output "#$ "
   "Prompt when establishing a connection.")
 
+(defconst tramp-end-of-heredoc (md5 tramp-end-of-output)
+  "String used to recognize end of heredoc strings.")
+
 ;; Initialize `tramp-methods' with the supported methods.
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
@@ -1443,8 +1446,11 @@ be non-negative integers."
     (if (and (stringp acl-string) (tramp-remote-acl-p v)
 	     (progn
 	       (tramp-send-command
-		v (format "setfacl --set-file=- %s <<'EOF'\n%s\nEOF\n"
-			  (tramp-shell-quote-argument localname) acl-string))
+		v (format "setfacl --set-file=- %s <<'%s'\n%s\n%s\n"
+			  (tramp-shell-quote-argument localname)
+			  tramp-end-of-heredoc
+			  acl-string
+			  tramp-end-of-heredoc))
 	       (tramp-send-command-and-check v nil)))
 	;; Success.
 	(progn
@@ -2707,14 +2713,15 @@ the result will be a local, non-Tramp, filename."
 	    (when (stringp program)
 	      (format "cd %s; exec %s env PS1=%s %s"
 		      (tramp-shell-quote-argument localname)
-		      (if heredoc "<<EOF" "")
+		      (if heredoc (format "<<'%s'" tramp-end-of-heredoc) "")
 		      ;; Use a human-friendly prompt, for example for `shell'.
 		      (tramp-shell-quote-argument
 		       (format "%s %s"
 			       (file-remote-p default-directory)
 			       tramp-initial-end-of-output))
 		      (if heredoc
-			  (format "%s\n%s\nEOF" program (car args))
+			  (format "%s\n%s\n%s"
+				  program (car args) tramp-end-of-heredoc)
 			(mapconcat 'tramp-shell-quote-argument
 				   (cons program args) " ")))))
 	   (tramp-process-connection-type
@@ -3182,9 +3189,11 @@ the result will be a local, non-Tramp, filename."
 		      (tramp-send-command
 		       v
 		       (format
-			(concat rem-dec " <<'EOF'\n%sEOF")
+			(concat rem-dec " <<'%s'\n%s%s")
 			(tramp-shell-quote-argument localname)
-			(buffer-string)))
+			tramp-end-of-heredoc
+			(buffer-string)
+			tramp-end-of-heredoc))
 		      (tramp-barf-unless-okay
 		       v nil
 		       "Couldn't write region to `%s', decode using `%s' failed"
@@ -3302,10 +3311,12 @@ the result will be a local, non-Tramp, filename."
 		 (tramp-send-command-and-read
 		  v
 		  (format
-		   "tramp_vc_registered_read_file_names <<'EOF'\n%s\nEOF\n"
+		   "tramp_vc_registered_read_file_names <<'%s'\n%s\n%s\n"
+		   tramp-end-of-heredoc
 		   (mapconcat 'tramp-shell-quote-argument
 			      tramp-vc-registered-file-names
-			      "\n"))))
+			      "\n")
+		   tramp-end-of-heredoc)))
 
 	      (tramp-set-file-property
 	       v (car elt) (cadr elt) (cadr (cdr elt))))))
@@ -3580,9 +3591,12 @@ This function expects to be in the right *tramp* buffer."
 	 (format (concat "while read d; "
 			 "do if test -x $d/%s -a -f $d/%s; "
 			 "then echo tramp_executable $d/%s; "
-			 "break; fi; done <<'EOF'\n"
-			 "%s\nEOF")
-		 progname progname progname (mapconcat 'identity dirlist "\n")))
+			 "break; fi; done <<'%s'\n"
+			 "%s\n%s")
+		 progname progname progname
+		 tramp-end-of-heredoc
+		 (mapconcat 'identity dirlist "\n")
+		 tramp-end-of-heredoc))
 	(goto-char (point-max))
 	(when (search-backward "tramp_executable " nil t)
 	  (skip-chars-forward "^ ")
@@ -4560,7 +4574,7 @@ function waits for output unless NOOUTPUT is set."
     ;; Some busyboxes tend to close the connection when we use the
     ;; following syntax for here-documents.  This we cannot test; it
     ;; shall be set via `tramp-connection-properties'.
-    (when (and (string-match "<<'EOF'" command)
+    (when (and (string-match (format "<<'%s'" tramp-end-of-heredoc) command)
 	       (not (tramp-get-connection-property vec "busybox" nil)))
       ;; Unset $PS1 when using here documents, in order to avoid
       ;; multiple prompts.
