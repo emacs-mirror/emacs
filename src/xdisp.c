@@ -28569,6 +28569,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
     {
       note_mode_line_or_margin_highlight (window, x, y, part);
 
+#ifdef HAVE_WINDOW_SYSTEM
       if (part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
 	{
 	  cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
@@ -28576,6 +28577,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	  goto set_cursor;
 	}
       else
+#endif
 	return;
     }
 
