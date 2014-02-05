@@ -1405,7 +1405,7 @@ w32_valid_pointer_p (void *p, int size)
    conversion back and forth from UTF-8 to UTF-16, then don't: first,
    it was measured to take only a few microseconds on a not-so-fast
    machine, and second, that's exactly what the ANSI APIs we used
-   before do anyway, because they are just thin wrappers around the
+   before did anyway, because they are just thin wrappers around the
    Unicode APIs.)
 
    The variables file-name-coding-system and default-file-name-coding-system
@@ -1432,8 +1432,8 @@ w32_valid_pointer_p (void *p, int size)
 
      For the same reasons, no CRT function or Win32 API can be called
      directly in Emacs sources, without either converting the file
-     name sfrom UTF-8 to either UTF-16 or ANSI codepage, or going
-     through some shadowing function defined here.
+     names from UTF-8 to UTF-16 or ANSI codepage, or going through
+     some shadowing function defined here.
 
    . Environment variables stored in Vprocess_environment are encoded
      in the ANSI codepage, so if getenv/egetenv is used for a variable
@@ -1454,7 +1454,7 @@ w32_valid_pointer_p (void *p, int size)
    . Running subprocesses in non-ASCII directories and with non-ASCII
      file arguments is limited to the current codepage (even though
      Emacs is perfectly capable of finding an executable program file
-     even in a directory whose name cannot be encoded in the current
+     in a directory whose name cannot be encoded in the current
      codepage).  This is because the command-line arguments are
      encoded _before_ they get to the w32-specific level, and the
      encoding is not known in advance (it doesn't have to be the
@@ -1472,8 +1472,8 @@ w32_valid_pointer_p (void *p, int size)
      the current codepage.
 
    . Turning on w32-unicode-filename on Windows 9X (if it at all
-     works) requires UNICOWS.DLL, which is currently loaded only in a
-     GUI session.  */
+     works) requires UNICOWS.DLL, which is thus a requirement even in
+     non-GUI sessions, something the we previously avoided.  */
 
 
 
