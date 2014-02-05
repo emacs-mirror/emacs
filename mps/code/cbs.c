@@ -27,6 +27,7 @@ typedef struct CBSBlockStruct {
   Addr base;
   Addr limit;
   Size maxSize; /* accurate maximum block size of sub-tree */
+  ZoneSet zones; /* union zone set of all ranges in sub-tree */
 } CBSBlockStruct;
 
 #define CBSBlockBase(block) ((block)->base)
@@ -78,6 +79,7 @@ Bool CBSCheck(CBS cbs)
   CHECKL(SplayTreeCheck(splayTreeOfCBS(cbs)));
   /* nothing to check about splayTreeSize */
   CHECKD(MFS, &cbs->blockPoolStruct);
+  CHECKU(Arena, cbs->arena);
   CHECKL(BoolCheck(cbs->fastFind));
   CHECKL(BoolCheck(cbs->inCBS));
   /* No MeterCheck */
@@ -176,7 +178,9 @@ static void cbsUpdateNode(SplayTree tree, SplayNode node,
                           SplayNode leftChild, SplayNode rightChild)
 {
   Size maxSize;
+  ZoneSet zones;
   CBSBlock block;
+  Arena arena;
 
   AVERT(SplayTree, tree);
   AVERT(SplayNode, node);
@@ -188,20 +192,25 @@ static void cbsUpdateNode(SplayTree tree, SplayNode node,
 
   block = cbsBlockOfSplayNode(node);
   maxSize = CBSBlockSize(block);
+  arena = cbsOfSplayTree(tree)->arena;
+  zones = ZoneSetOfRange(arena, CBSBlockBase(block), CBSBlockLimit(block));
 
   if (leftChild != NULL) {
     Size size = cbsBlockOfSplayNode(leftChild)->maxSize;
     if (size > maxSize)
       maxSize = size;
+    zones = ZoneSetUnion(zones, cbsBlockOfSplayNode(leftChild)->zones);
   }
 
   if (rightChild != NULL) {
     Size size = cbsBlockOfSplayNode(rightChild)->maxSize;
     if (size > maxSize)
       maxSize = size;
+    zones = ZoneSetUnion(zones, cbsBlockOfSplayNode(rightChild)->zones);
   }
 
   block->maxSize = maxSize;
+  block->zones = zones;
 }
 
 
@@ -227,6 +236,7 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
   if (ArgPick(&arg, args, MFSExtendSelf))
     extendSelf = arg.val.b;
 
+  cbs->arena = arena;
   SplayTreeInit(splayTreeOfCBS(cbs), &cbsSplayCompare,
                 fastFind ? &cbsUpdateNode : NULL);
   MPS_ARGS_BEGIN(piArgs) {
@@ -804,6 +814,20 @@ static Bool cbsTestNodeInZones(SplayTree tree, SplayNode node,
                         closure->arena, closure->zoneSet, closure->size);
 }
 
+static Bool cbsTestTreeInZones(SplayTree tree, SplayNode node,
+                               void *closureP, Size closureSize)
+{
+  CBSBlock block = cbsBlockOfSplayNode(node);
+  cbsTestNodeInZonesClosure closure = closureP;
+  
+  UNUSED(tree);
+  AVER(closureSize == sizeof(cbsTestNodeInZonesClosureStruct));
+  UNUSED(closureSize);
+  
+  return block->maxSize >= closure->size &&
+         ZoneSetInter(block->zones, closure->zoneSet) != ZoneSetEMPTY;
+}
+
 Bool CBSFindFirstInZones(Range rangeReturn, Range oldRangeReturn,
                          CBS cbs, Size size,
                          Arena arena, ZoneSet zoneSet)
@@ -845,7 +869,7 @@ Bool CBSFindFirstInZones(Range rangeReturn, Range oldRangeReturn,
   closure.size = size;
   found = SplayFindFirst(&node, splayTreeOfCBS(cbs),
                          &cbsTestNodeInZones,
-                         &cbsTestTree,
+                         &cbsTestTreeInZones,
                          &closure, sizeof(closure));
   if (found) {
     CBSBlock block = cbsBlockOfSplayNode(node);

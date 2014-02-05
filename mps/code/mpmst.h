@@ -615,6 +615,7 @@ typedef struct CBSStruct {
   SplayTreeStruct splayTree;
   STATISTIC_DECL(Count splayTreeSize);
   MFSStruct blockPoolStruct;    /* FIXME: ref to why this is inlined */
+  Arena arena;                  /* needed by update method */
   Align alignment;
   Bool fastFind;
   Bool inCBS;                   /* prevent reentrance */
