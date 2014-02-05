@@ -1,3 +1,8 @@
+2014-02-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* xdisp.c (note_mouse_highlight): When entering a margin area show
+	a non-text cursor (Bug#16647).
+
 2014-02-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* menu.c (Fx_popup_dialog): Remove label 'dialog_via_menu'.
