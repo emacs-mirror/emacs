@@ -28572,7 +28572,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
       if (part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
 	{
 	  cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
-	  /* Sho non-text cursor (Bug#16647).  */
+	  /* Show non-text cursor (Bug#16647).  */
 	  goto set_cursor;
 	}
       else
