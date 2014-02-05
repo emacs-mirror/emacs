@@ -197,16 +197,19 @@
                                       (get-binding-description was-command)))
                (at-present-desc (get-binding-description at-present))
                )
-          (princ
-           (format
-            "%-18s%-40s%s\n"
-            key-name (format "`%s\'" command-desc)
-            (if (string= command-desc at-present-desc)
-                (if (or (null was-command)
-                        (string= command-desc was-command-desc))
-                    ""
-                  (format "was `%s\'" was-command-desc))
-              (format "[now: `%s\']" at-present)))))
+          (let ((line
+                 (format
+                  "%-18s%-40s%s\n"
+                  key-name (format "`%s\'" command-desc)
+                  (if (string= command-desc at-present-desc)
+                      (if (or (null was-command)
+                              (string= command-desc was-command-desc))
+                          ""
+                        (format "was `%s\'" was-command-desc))
+                    (format "[now: `%s\']" at-present)))))
+            (princ (if (string-match "[ \t]+\n" line)
+                       (replace-match "\n" t t line)
+                     line))))
 
         (setq last-binding binding)))))
 
