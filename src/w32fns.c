@@ -6850,40 +6850,52 @@ handler application, but typically it is one of the following common
 operations:
 
  \"open\"    - open DOCUMENT, which could be a file, a directory, or an
-               executable program.  If it is an application, that
-               application is launched in the current buffer's default
+               executable program (application).  If it is an application,
+               that application is launched in the current buffer's default
                directory.  Otherwise, the application associated with
                DOCUMENT is launched in the buffer's default directory.
- \"print\"   - print DOCUMENT, which must be a file
- \"explore\" - start the Windows Explorer on DOCUMENT
+ \"opennew\" - like \"open\", but instruct the application to open
+               DOCUMENT in a new window.
+ \"openas\"  - open the \"Open With\" dialog for DOCUMENT.
+ \"print\"   - print DOCUMENT, which must be a file.
+ \"printto\" - print DOCUMENT, which must be a file, to a specified printer.
+               The printer should be provided in PARAMETERS, see below.
+ \"explore\" - start the Windows Explorer on DOCUMENT.
  \"edit\"    - launch an editor and open DOCUMENT for editing; which
                editor is launched depends on the association for the
-               specified DOCUMENT
- \"find\"    - initiate search starting from DOCUMENT which must specify
-               a directory
+               specified DOCUMENT.
+ \"find\"    - initiate search starting from DOCUMENT, which must specify
+               a directory.
  \"runas\"   - run DOCUMENT, which must be an excutable file, with
                elevated privileges (a.k.a. \"as Administrator\").
+ \"properties\"
+           - open the the property sheet dialog for DOCUMENT; works
+               for *.lnk desktop shortcuts, and little or nothing else.
  nil       - invoke the default OPERATION, or \"open\" if default is
-               not defined or unavailable
+               not defined or unavailable.
 
 DOCUMENT is typically the name of a document file or a URL, but can
-also be a program executable to run, or a directory to open in the
+also be an executable program to run, or a directory to open in the
 Windows Explorer.  If it is a file, it must be a local one; this
 function does not support remote file names.
 
-If DOCUMENT is a program executable, the optional third arg PARAMETERS
+If DOCUMENT is an executable program, the optional third arg PARAMETERS
 can be a string containing command line parameters that will be passed
-to the program; otherwise, PARAMETERS should be nil or unspecified.
+to the program.  Some values of OPERATION also require parameters (e.g.,
+\"printto\" requires the printer address).  Otherwise, PARAMETERS should
+be nil or unspecified.
 
 Optional fourth argument SHOW-FLAG can be used to control how the
 application will be displayed when it is invoked.  If SHOW-FLAG is nil
-or unspecified, the application is displayed normally, otherwise it is
-an integer representing a ShowWindow flag:
+or unspecified, the application is displayed as if SHOW-FLAG of 10 was
+specified, otherwise it is an integer between 0 and 11 representing
+a ShowWindow flag:
 
   0 - start hidden
-  1 - start normally
-  3 - start maximized
-  6 - start minimized  */)
+  1 - start as normal-size window
+  3 - start in a maximized window
+  6 - start in a minimized window
+ 10 - start as the application itself specifies; this is the default.  */)
   (Lisp_Object operation, Lisp_Object document, Lisp_Object parameters, Lisp_Object show_flag)
 {
   char *errstr;
