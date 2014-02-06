@@ -1,11 +1,17 @@
+2014-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Symbols don't start
+	with a space (bug#16664).  Limit the symbols considered to the ones
+	that are bound or fbound (bug#16646).
+
 2014-02-06  Glenn Morris  <rgm@gnu.org>
 
 	* epa.el (epa-mail-aliases): Doc fix.
 
 2014-02-06  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* emacs-lisp/lisp.el (lisp-completion-at-point): Use
-	`completion-table-merge' instead of `completion-table-in-turn'
+	* emacs-lisp/lisp.el (lisp-completion-at-point):
+	Use `completion-table-merge' instead of `completion-table-in-turn'
 	(bug#16604).
 
 	* minibuffer.el (completion-table-merge): New function.

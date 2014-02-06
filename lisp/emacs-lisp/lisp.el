@@ -815,7 +815,8 @@ considered."
 		  (scan-error pos)))
 	   (end
 	    (unless (or (eq beg (point-max))
-			(member (char-syntax (char-after beg)) '(?\" ?\( ?\))))
+			(member (char-syntax (char-after beg))
+                                '(?\s ?\" ?\( ?\))))
 	      (condition-case nil
 		  (save-excursion
 		    (goto-char beg)
@@ -832,7 +833,15 @@ considered."
                 ;; the macro/function being called.
                 (list nil (completion-table-merge
                            lisp--local-variables-completion-table
-                           obarray)       ;Could be anything.
+                           (apply-partially #'completion-table-with-predicate
+                                            obarray
+                                            ;; Don't include all symbols
+                                            ;; (bug#16646).
+                                            (lambda (sym)
+                                              (or (boundp sym)
+                                                  (fboundp sym)
+                                                  (symbol-plist sym)))
+                                            'strict))
                       :annotation-function
                       (lambda (str) (if (fboundp (intern-soft str)) " <f>"))
                       :company-doc-buffer #'lisp--company-doc-buffer
