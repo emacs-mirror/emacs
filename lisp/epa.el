@@ -57,7 +57,9 @@ instead of encrypting it for ALIAS, encrypt it for EXPANSIONS...
 
 If EXPANSIONS is empty, ignore ALIAS as regards encryption.
 This is a handy way to avoid warnings about addresses that you don't
-have any key for."
+have any key for.
+
+The command `epa-mail-encrypt' uses this."
   :type '(repeat (cons (string :tag "Alias") (repeat (string :tag "Expansion"))))
   :group 'epa
   :version "24.4")

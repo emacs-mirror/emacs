@@ -1,3 +1,7 @@
+2014-02-06  Glenn Morris  <rgm@gnu.org>
+
+	* epa.el (epa-mail-aliases): Doc fix.
+
 2014-02-06  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* emacs-lisp/lisp.el (lisp-completion-at-point): Use

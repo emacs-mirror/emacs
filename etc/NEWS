@@ -517,9 +517,10 @@ You can customize `electric-pair-text-pairs' and
 `electric-pair-text-syntax-table' to tweak pairing behavior inside
 strings and comments.
 
++++
 ** New EPA option `epa-mail-aliases'.
-You can set this to a list of email address aliases for keys to use
-in `epa-mail-encrypt'.
+You can set this to a list of email address aliases that `epa-mail-encrypt'
+should use to find keys.
 
 ---
 ** New ERC option `erc-accidental-paste-threshold-seconds'.

@@ -1,5 +1,7 @@
 2014-02-06  Glenn Morris  <rgm@gnu.org>
 
+	* epa.texi (Mail-mode integration): Mention epa-mail-aliases.
+
 	* mh-e.texi, viper.texi: Do not use colons in index entries.
 
 2014-02-05  Paul Eggert  <eggert@cs.ucla.edu>
