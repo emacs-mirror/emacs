@@ -1465,10 +1465,10 @@ appropriate function to a function key on the keyboard and use that key.
 @xref{Viper Specials}, for details.
 
 @item Ex commands
-@findex  @kbd{:args}
-@findex  @kbd{:n}
-@findex  @kbd{:pwd}
-@findex  @kbd{:pre}
+@findex  @kbd{Ex args}
+@findex  @kbd{Ex n}
+@findex  @kbd{Ex pwd}
+@findex  @kbd{Ex pre}
 The commands @kbd{:args}, @kbd{:next}, @kbd{:pre} behave
 differently.  @kbd{:pwd} exists to get current directory.
 The commands @kbd{:b} and @kbd{:B} switch buffers around.  @xref{File and
@@ -1476,8 +1476,8 @@ Buffer Handling}, for details.
 There are also the new commands @kbd{:RelatedFile} and
 @kbd{PreviousRelatedFile} (which abbreviate to @kbd{R} and @kbd{P},
 respectively.  @xref{Viper Specials}, for details.
-@findex @kbd{:RelatedFile}
-@findex @kbd{:PreviousRelatedFile}
+@findex @kbd{Ex RelatedFile}
+@findex @kbd{Ex PreviousRelatedFile}
 @end table
 
 Apart from the new commands, many old commands have been enhanced.  Most
@@ -1587,7 +1587,7 @@ you are doing.  Only two variables, @code{viper-mode} and
 @code{viper-custom-file-name}, are supposed to be customized in @file{.emacs},
 prior to loading Viper (i.e., prior to @code{(require 'viper)} command.
 @item
-@cindex :customize
+@cindex Ex customize
 By executing the @kbd{:customize} Ex command. This takes you to the Emacs
 customization widget, which lets you change the values of Viper
 customizable variables easily. This method is good for novice and
@@ -1616,7 +1616,7 @@ cases, examples are provided that you can use directly.
 
 @cindex setting variables
 @cindex variables for customization
-@findex @kbd{:set}
+@findex @kbd{Ex set}
 
 An easy way to customize Viper is to change the values of constants used in
 Viper.  Here is the list of the constants used in Viper and their default
@@ -2111,7 +2111,7 @@ bound to, unless these keys are typed in quick succession.  So, with macros,
 one can use the normal keys alongside with the macros.  If per-mode
 modifications are needed, the user can try both ways and see which one is
 more convenient.
-@findex @kbd{:map}
+@findex @kbd{Ex map}
 @xref{Vi Macros}, for details.
 
 Note: in major modes that come up in @emph{Emacs state} by default, the
@@ -2551,8 +2551,8 @@ be associated with the master file.  Then, the new Ex command
 another, so you can edit them.  If a file is not in any Emacs buffer, it
 will be visited.  The command @kbd{PreviousRelatedFile} (abbr., @kbd{:P})
 goes through the file list in the opposite direction.
-@findex @kbd{:RelatedFile}
-@findex @kbd{:PreviousRelatedFile}
+@findex @kbd{Ex RelatedFile}
+@findex @kbd{Ex PreviousRelatedFile}
 
 These commands are akin to @kbd{:n} and @kbd{:N}, but they allow the user to
 focus on relevant files only.
@@ -3480,8 +3480,8 @@ Go to specified Viper mark and go to the first CHAR on line.
 @kindex @kbd{m<}
 @kindex @kbd{m,}
 @kindex @kbd{m^}
-@findex @kbd{:mark}
-@findex @kbd{:k}
+@findex @kbd{Ex mark}
+@findex @kbd{Ex k}
 @kindex @kbd{''}
 @kindex @kbd{``}
 @kindex @kbd{`<a-z>}
@@ -3730,11 +3730,11 @@ destructive Vi commands.
 @kindex @kbd{#c<move>}
 @kindex @kbd{&}
 @kindex @kbd{\&}
-@findex @kbd{:substitute/<pat>/<repl>/<f>}
-@findex @kbd{:s/<pat>/<repl>/<f>}
-@findex @kbd{:copy [z]}
-@findex @kbd{:t [z]}
-@findex @kbd{:move [z]}
+@findex @kbd{Ex substitute/<pat>/<repl>/<f>}
+@findex @kbd{Ex s/<pat>/<repl>/<f>}
+@findex @kbd{Ex copy [z]}
+@findex @kbd{Ex t [z]}
+@findex @kbd{Ex move [z]}
 @kindex @kbd{J}
 @kindex @kbd{~}
 @kindex @kbd{=<move>}
@@ -3814,14 +3814,14 @@ Execute <ex-command> on all lines that match <pattern>.
 Execute <ex-command> on all lines that do not match <pattern>.
 @end table
 @kindex @kbd{&}
-@findex @kbd{:substitute/<pat>/<repl>/<f>}
+@findex @kbd{Ex substitute/<pat>/<repl>/<f>}
 @kindex @kbd{Q}
 @kindex @kbd{#g<move>}
-@findex @kbd{:v}
-@findex @kbd{:g}
-@findex @kbd{:global}
-@findex @kbd{:vglobal}
-@findex @kbd{:tag <name>}
+@findex @kbd{Ex v}
+@findex @kbd{Ex g}
+@findex @kbd{Ex global}
+@findex @kbd{Ex vglobal}
+@findex @kbd{Ex tag <name>}
 @kindex @kbd{%}
 @kindex @kbd{N}
 @kindex @kbd{n}
@@ -3874,7 +3874,7 @@ Put the contents of the (default undo) buffer
 @kindex @kbd{"<a-z>y<move>}
 @kindex @kbd{y<move>}
 @kindex @kbd{yank}
-@findex @kbd{:yank}
+@findex @kbd{Ex yank}
 
 @node Undoing
 @subsection Undoing
@@ -3895,9 +3895,9 @@ Re-edit a messed-up file.
 Recover file from autosave.  Viper also creates backup files
 that have a @samp{~} appended to them.
 @end table
-@findex @kbd{:rec}
-@findex @kbd{:e!}
-@findex @kbd{:q!}
+@findex @kbd{Ex rec}
+@findex @kbd{Ex e!}
+@findex @kbd{Ex q!}
 @kindex @kbd{.}
 @kindex @kbd{U}
 @kindex @kbd{u}
@@ -4076,42 +4076,42 @@ is typed in minibuffer.  File completion and history are supported.
 @end table
 @kindex @kbd{v}
 @kindex @kbd{V}
-@findex @kbd{:args}
-@findex @kbd{:rew}
+@findex @kbd{Ex args}
+@findex @kbd{Ex rew}
 @kindex @kbd{C-^}
-@findex @kbd{:e!@: [<files>]}
-@findex @kbd{:e [<files>]}
-@findex @kbd{:edit [<files>]}
-@findex @kbd{:edit!@: [<files>]}
-@findex @kbd{:q!}
-@findex @kbd{:q}
-@findex @kbd{:quit}
-@findex @kbd{:quit!}
-@findex @kbd{:f}
-@findex @kbd{:rec}
-@findex @kbd{:r}
-@findex @kbd{:read}
-@findex @kbd{:pre}
+@findex @kbd{Ex e!@: [<files>]}
+@findex @kbd{Ex e [<files>]}
+@findex @kbd{Ex edit [<files>]}
+@findex @kbd{Ex edit!@: [<files>]}
+@findex @kbd{Ex q!}
+@findex @kbd{Ex q}
+@findex @kbd{Ex quit}
+@findex @kbd{Ex quit!}
+@findex @kbd{Ex f}
+@findex @kbd{Ex rec}
+@findex @kbd{Ex r}
+@findex @kbd{Ex read}
+@findex @kbd{Ex pre}
 @kindex @kbd{ZZ}
-@findex @kbd{:wq}
-@findex @kbd{:w <file>}
-@findex @kbd{:w!@: <file>}
-@findex @kbd{:w >> <file>}
-@findex @kbd{:write <file>}
-@findex @kbd{:write!@: <file>}
-@findex @kbd{:write >> <file>}
-@findex @kbd{:W}
-@findex @kbd{:WW}
-@findex @kbd{:Write}
-@findex @kbd{:WWrite}
-@findex @kbd{:WWrite}
-@findex @kbd{:x}
-@findex @kbd{:x!}
-@findex @kbd{:suspend}
-@findex @kbd{:stop}
-@findex @kbd{:n [<count> | <file>]}
-@findex @kbd{:cd [<dir>]}
-@findex @kbd{:pwd}
+@findex @kbd{Ex wq}
+@findex @kbd{Ex w <file>}
+@findex @kbd{Ex w!@: <file>}
+@findex @kbd{Ex w >> <file>}
+@findex @kbd{Ex write <file>}
+@findex @kbd{Ex write!@: <file>}
+@findex @kbd{Ex write >> <file>}
+@findex @kbd{Ex W}
+@findex @kbd{Ex WW}
+@findex @kbd{Ex Write}
+@findex @kbd{Ex WWrite}
+@findex @kbd{Ex WWrite}
+@findex @kbd{Ex x}
+@findex @kbd{Ex x!}
+@findex @kbd{Ex suspend}
+@findex @kbd{Ex stop}
+@findex @kbd{Ex n [<count> | <file>]}
+@findex @kbd{Ex cd [<dir>]}
+@findex @kbd{Ex pwd}
 
 @node Mapping
 @section Mapping
@@ -4175,10 +4175,10 @@ Show contents of register.
 @kindex @kbd{@@#}
 @kindex @kbd{@@@@}
 @kindex @kbd{@@<a-z>}
-@findex @kbd{:unmap <char>}
-@findex @kbd{:map <char> <seq>}
-@findex @kbd{:unmap!@: <char>}
-@findex @kbd{:map!@: <char> <seq>}
+@findex @kbd{Ex unmap <char>}
+@findex @kbd{Ex map <char> <seq>}
+@findex @kbd{Ex unmap!@: <char>}
+@findex @kbd{Ex map!@: <char> <seq>}
 
 @node Shell Commands
 @section Shell Commands
@@ -4234,17 +4234,17 @@ current).
 @item :make
 Run the make command in the current directory.
 @end table
-@findex @kbd{:<address>r <name>}
-@findex @kbd{:<address>r !<cmd>}
+@findex @kbd{Ex <address>r <name>}
+@findex @kbd{Ex <address>r !<cmd>}
 @findex @kbd{!<cmd>}
 @findex @kbd{!!<cmd>}
 @findex @kbd{!<move><cmd>}
-@findex @kbd{:w !<cmd>}
-@findex @kbd{:x,y w !<cmd>}
-@findex @kbd{:!!@: <args>}
-@findex @kbd{:!<cmd>}
-@findex @kbd{:sh}
-@findex @kbd{:make}
+@findex @kbd{Ex w !<cmd>}
+@findex @kbd{Ex x,y w !<cmd>}
+@findex @kbd{Ex !!@: <args>}
+@findex @kbd{Ex !<cmd>}
+@findex @kbd{Ex sh}
+@findex @kbd{Ex make}
 
 @node Options
 @section Options
@@ -4343,29 +4343,29 @@ Turn <option> off.
 @item :set <option>=<value>
 Set <option> to <value>.
 @end table
-@findex @kbd{:set <option>=<value>}
-@findex @kbd{:set no<option>}
-@findex @kbd{:set <option>}
-@findex @kbd{:set ws}
-@findex @kbd{:set wrapscan}
-@findex @kbd{:set wm=<count>}
-@findex @kbd{:set wrapmargin=<count>}
-@findex @kbd{:set ts=<count>}
-@findex @kbd{:set tabstop=<count>}
-@findex @kbd{:set tab-stop-local=<count>}
-@findex @kbd{:set sm}
-@findex @kbd{:set showmatch}
-@findex @kbd{:set sw=<count>}
-@findex @kbd{:set shiftwidth=<count>}
-@findex @kbd{:set sh=<string>}
-@findex @kbd{:set shell=<string>}
-@findex @kbd{:set ro}
-@findex @kbd{:set readonly}
-@findex @kbd{:set magic}
-@findex @kbd{:set ic}
-@findex @kbd{:set ignorecase}
-@findex @kbd{:set ai}
-@findex @kbd{:set autoindent}
+@findex @kbd{Ex set <option>=<value>}
+@findex @kbd{Ex set no<option>}
+@findex @kbd{Ex set <option>}
+@findex @kbd{Ex set ws}
+@findex @kbd{Ex set wrapscan}
+@findex @kbd{Ex set wm=<count>}
+@findex @kbd{Ex set wrapmargin=<count>}
+@findex @kbd{Ex set ts=<count>}
+@findex @kbd{Ex set tabstop=<count>}
+@findex @kbd{Ex set tab-stop-local=<count>}
+@findex @kbd{Ex set sm}
+@findex @kbd{Ex set showmatch}
+@findex @kbd{Ex set sw=<count>}
+@findex @kbd{Ex set shiftwidth=<count>}
+@findex @kbd{Ex set sh=<string>}
+@findex @kbd{Ex set shell=<string>}
+@findex @kbd{Ex set ro}
+@findex @kbd{Ex set readonly}
+@findex @kbd{Ex set magic}
+@findex @kbd{Ex set ic}
+@findex @kbd{Ex set ignorecase}
+@findex @kbd{Ex set ai}
+@findex @kbd{Ex set autoindent}
 
 @node Emacs Related Commands
 @section Emacs Related Commands

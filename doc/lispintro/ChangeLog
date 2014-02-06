@@ -1,3 +1,8 @@
+2014-02-06  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (Recursive Patterns):
+	Do not use colons in index entries.
+
 2014-01-23  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp-intro.texi (lengths-list-file): Fix textual parentheses.

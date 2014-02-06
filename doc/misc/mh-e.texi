@@ -572,10 +572,10 @@ you need to know about MH to use MH-E, but the more you know about MH,
 the more you can leverage its power. See the
 @uref{@value{MH-BOOK-HOME}/../, MH book} to learn more about MH.
 
-@cindex @samp{Path:} MH profile component
+@cindex @samp{Path} MH profile component
 @cindex MH profile
 @cindex MH profile component
-@cindex MH profile component, @samp{Path:}
+@cindex MH profile component, @samp{Path}
 
 Your MH environment includes your @dfn{MH profile} which is found in
 the file @file{~/.mh_profile}, or the file named in the environment
@@ -628,14 +628,14 @@ actually cause problems.
 @end quotation
 @sp 1
 
-@cindex MH profile component, @samp{Draft-Folder:}
-@cindex MH profile component, @samp{Path:}
-@cindex MH profile component, @samp{Previous-Sequence:}
-@cindex MH profile component, @samp{Unseen-Sequence:}
-@cindex @samp{Draft-Folder:} MH profile component
-@cindex @samp{Path:} MH profile component
-@cindex @samp{Previous-Sequence:} MH profile component
-@cindex @samp{Unseen-Sequence:} MH profile component
+@cindex MH profile component, @samp{Draft-Folder}
+@cindex MH profile component, @samp{Path}
+@cindex MH profile component, @samp{Previous-Sequence}
+@cindex MH profile component, @samp{Unseen-Sequence}
+@cindex @samp{Draft-Folder} MH profile component
+@cindex @samp{Path} MH profile component
+@cindex @samp{Previous-Sequence} MH profile component
+@cindex @samp{Unseen-Sequence} MH profile component
 @findex mh-find-path
 @vindex mh-draft-folder
 @vindex mh-find-path-hook
@@ -2077,12 +2077,12 @@ entire class of fields that start with the same prefix. If you think a
 header field should be generally ignored, please update
 @uref{https://sourceforge.net/p/mh-e/bugs/245/, SF #245}.
 
-@cindex header field, @samp{Face:}
-@cindex header field, @samp{X-Face:}
-@cindex header field, @samp{X-Image-URL:}
-@cindex @samp{Face:} header field
-@cindex @samp{X-Face:} header field
-@cindex @samp{X-Image-URL:} header field
+@cindex header field, @samp{Face}
+@cindex header field, @samp{X-Face}
+@cindex header field, @samp{X-Image-URL}
+@cindex @samp{Face} header field
+@cindex @samp{X-Face} header field
+@cindex @samp{X-Image-URL} header field
 @vindex mh-show-use-xface-flag
 
 MH-E can display the content of @samp{Face:}, @samp{X-Face:}, and
@@ -2453,9 +2453,9 @@ permanently by turning on the option
 MH-E cannot display all attachments inline however. It can display
 text (including @sc{html}) and images.
 
-@cindex header field, @samp{Content-Disposition:}
+@cindex header field, @samp{Content-Disposition}
 @cindex inline images
-@cindex @samp{Content-Disposition:} header field
+@cindex @samp{Content-Disposition} header field
 @vindex mh-max-inline-image-height
 @vindex mh-max-inline-image-width
 
@@ -3758,8 +3758,8 @@ Use this hook with care. If there is a bug in your hook which returns
 @cindex @file{.mh_profile}
 @cindex files, @file{.mh_profile}
 @cindex MH commands, @command{sortm}
-@cindex MH profile component, @samp{sortm:}
-@cindex @samp{sortm:} MH profile component
+@cindex MH profile component, @samp{sortm}
+@cindex @samp{sortm} MH profile component
 @kindex F S
 @vindex mh-sortm-args
 
@@ -4045,8 +4045,8 @@ If you prefer to be prompted for the recipient and subject fields
 before the MH-Letter buffer appears, turn on the option
 @code{mh-compose-prompt-flag}.
 
-@cindex header field, @samp{X-Mailer:}
-@cindex @samp{X-Mailer:} header field
+@cindex header field, @samp{X-Mailer}
+@cindex @samp{X-Mailer} header field
 @vindex mh-insert-x-mailer-flag
 
 MH-E adds an @samp{X-Mailer:} header field to the header that includes
@@ -4174,8 +4174,8 @@ reply to a message, you can change the option
 @samp{Prompt} to one of the choices listed above. You can always edit
 the recipients in the draft.
 
-@cindex @samp{repl:} MH profile component
-@cindex MH profile component, @samp{repl:}
+@cindex @samp{repl} MH profile component
+@cindex MH profile component, @samp{repl}
 @cindex MH-Letter mode
 @cindex MH-Show mode
 @cindex draft
@@ -4237,8 +4237,8 @@ hook @code{mh-forward-hook} is called on the draft.
 
 @cindex @file{.mh_profile}
 @cindex files, @file{.mh_profile}
-@cindex MH profile component, @samp{forw:}
-@cindex @samp{forw:} MH profile component
+@cindex MH profile component, @samp{forw}
+@cindex @samp{forw} MH profile component
 @vindex mh-compose-forward-as-mime-flag
 
 By default, the option @code{mh-compose-forward-as-mime-flag} is on
@@ -4750,25 +4750,25 @@ detail in the following sections.
 @node Editing Message, Inserting Letter, Editing Drafts, Editing Drafts
 @section Editing the Message
 
-@cindex @samp{Bcc:} header field
-@cindex @samp{Cc:} header field
-@cindex @samp{Dcc:} header field
-@cindex @samp{From:} header field
-@cindex @samp{Mail-Followup-To:} header field
-@cindex @samp{Mail-Reply-To:} header field
-@cindex @samp{Reply-To:} header field
-@cindex @samp{Subject:} header field
-@cindex @samp{To:} header field
+@cindex @samp{Bcc} header field
+@cindex @samp{Cc} header field
+@cindex @samp{Dcc} header field
+@cindex @samp{From} header field
+@cindex @samp{Mail-Followup-To} header field
+@cindex @samp{Mail-Reply-To} header field
+@cindex @samp{Reply-To} header field
+@cindex @samp{Subject} header field
+@cindex @samp{To} header field
 @cindex editing header
-@cindex header field, @samp{Bcc:}
-@cindex header field, @samp{Cc:}
-@cindex header field, @samp{Dcc:}
-@cindex header field, @samp{From:}
-@cindex header field, @samp{Mail-Followup-To:}
-@cindex header field, @samp{Mail-Reply-To:}
-@cindex header field, @samp{Reply-To:}
-@cindex header field, @samp{Subject:}
-@cindex header field, @samp{To:}
+@cindex header field, @samp{Bcc}
+@cindex header field, @samp{Cc}
+@cindex header field, @samp{Dcc}
+@cindex header field, @samp{From}
+@cindex header field, @samp{Mail-Followup-To}
+@cindex header field, @samp{Mail-Reply-To}
+@cindex header field, @samp{Reply-To}
+@cindex header field, @samp{Subject}
+@cindex header field, @samp{To}
 @findex mh-to-field
 @kindex C-c C-f C-t
 @kindex C-c C-f t
@@ -5142,12 +5142,12 @@ mail user agent is sophisticated enough. In MH-E, this is done by
 placing your image in the file named by the option
 @code{mh-x-face-file} which is @file{~/.face} by default.
 
-@cindex @samp{Face:} header field
-@cindex @samp{X-Face:} header field
-@cindex @samp{X-Image-URL:} header field
-@cindex header field, @samp{Face:}
-@cindex header field, @samp{X-Face:}
-@cindex header field, @samp{X-Image-URL:}
+@cindex @samp{Face} header field
+@cindex @samp{X-Face} header field
+@cindex @samp{X-Image-URL} header field
+@cindex header field, @samp{Face}
+@cindex header field, @samp{X-Face}
+@cindex header field, @samp{X-Image-URL}
 
 If the file starts with either of the strings @samp{X-Face:},
 @samp{Face:} or @samp{X-Image-URL:} then the contents are added to the
@@ -5605,8 +5605,8 @@ See
 @cite{The PGG Manual}}.
 @end ifhtml
 
-@cindex header field, @samp{Fcc:}
-@cindex @samp{Fcc:} header field
+@cindex header field, @samp{Fcc}
+@cindex @samp{Fcc} header field
 @vindex pgg-encrypt-for-me
 
 In particular, I turn on the option @code{pgg-encrypt-for-me} so that
@@ -5841,9 +5841,9 @@ Recipients}.
 
 @cindex @command{ali}
 @cindex @file{/etc/nmh/MailAliases}
-@cindex @samp{Aliasfile:} MH profile component
+@cindex @samp{Aliasfile} MH profile component
 @cindex MH commands, @command{ali}
-@cindex MH profile component, @samp{Aliasfile:}
+@cindex MH profile component, @samp{Aliasfile}
 @cindex files, @file{/etc/nmh/MailAliases}
 
 MH-E loads aliases for completion and folder name hints from various
@@ -6085,8 +6085,8 @@ the @samp{INS} button with the label @samp{Add at least one item
 below}. The @samp{Value Menu} has the following menu items:
 
 @table @samp
-@cindex header field, @samp{From:}
-@cindex @samp{From:} header field
+@cindex header field, @samp{From}
+@cindex @samp{From} header field
 @item From Field
 Specify an alternate @samp{From:} header field. You must include a
 valid email address. A standard format is @samp{First Last
@@ -6094,8 +6094,8 @@ valid email address. A standard format is @samp{First Last
 must quote your name as in @samp{"First I. Last"
 <login@@host.domain>}.
 @c -------------------------
-@cindex header field, @samp{Organization:}
-@cindex @samp{Organization:} header field
+@cindex header field, @samp{Organization}
+@cindex @samp{Organization} header field
 @item Organization Field
 People usually list the name of the company where they work here.
 @c -------------------------
@@ -6173,15 +6173,15 @@ Select an identity from those configured in @code{mh-identity-list}.
 All of the information for that identity will be added if the
 recipient matches.
 @c -------------------------
-@cindex @samp{Fcc:} header field
-@cindex header field, @samp{Fcc:}
+@cindex @samp{Fcc} header field
+@cindex header field, @samp{Fcc}
 @item Fcc Field
 Insert an @samp{Fcc:} header field with the folder you provide. When
 you send the message, MH will put a copy of your message in this
 folder.
 @c -------------------------
-@cindex @samp{Mail-Followup-To:} header field
-@cindex header field, @samp{Mail-Followup-To:}
+@cindex @samp{Mail-Followup-To} header field
+@cindex header field, @samp{Mail-Followup-To}
 @item Mail-Followup-To Field
 Insert an @samp{Mail-Followup-To:} header field with the recipients
 you provide. If the recipient's mail user agent supports this header
@@ -6793,8 +6793,8 @@ argument.
 
 @cindex @command{procmail}
 @cindex Unix commands, @command{procmail}
-@cindex @samp{X-MHE-Checksum:} header field
-@cindex header field, @samp{X-MHE-Checksum:}
+@cindex @samp{X-MHE-Checksum} header field
+@cindex header field, @samp{X-MHE-Checksum}
 
 Note: This command uses an @samp{X-MHE-Checksum:} header field to
 cache the MD5 checksum of a message. This means that if an incoming
@@ -7457,9 +7457,9 @@ folder (default is current folder) with @kbd{S l}
 (@code{mh-list-sequences}). The list appears in a buffer named
 @samp{*MH-E Sequences*} (@pxref{Miscellaneous}).
 
-@cindex MH profile component, @samp{Previous-Sequence:}
+@cindex MH profile component, @samp{Previous-Sequence}
 @cindex @samp{cur} sequence
-@cindex @samp{Previous-Sequence:} MH profile component
+@cindex @samp{Previous-Sequence} MH profile component
 @cindex sequence, @samp{cur}
 @cindex sequence, @samp{Previous-Sequence}
 @vindex mh-refile-preserves-sequences-flag
@@ -7484,10 +7484,10 @@ this deletes only the sequence, not the messages in the sequence. If
 you want to delete the messages, use @kbd{C-u d} (@pxref{Reading
 Mail}).
 
-@cindex @samp{Unseen-Sequence:} MH profile component
+@cindex @samp{Unseen-Sequence} MH profile component
 @cindex @samp{cur} sequence
 @cindex @samp{tick} sequence
-@cindex MH profile component, @samp{Unseen-Sequence:}
+@cindex MH profile component, @samp{Unseen-Sequence}
 @cindex sequence, @samp{Unseen-Sequence}
 @cindex sequence, @samp{cur}
 @cindex sequence, @samp{tick}
@@ -7663,9 +7663,9 @@ reclassifies a range of messages (@pxref{Ranges}) as ham if it were
 incorrectly classified as spam. It then refiles the message into the
 @file{+inbox} folder.
 
-@cindex MH profile component, @samp{Previous-Sequence:}
+@cindex MH profile component, @samp{Previous-Sequence}
 @cindex @samp{cur} sequence
-@cindex @samp{Previous-Sequence:} MH profile component
+@cindex @samp{Previous-Sequence} MH profile component
 @cindex sequence, @samp{cur}
 @cindex sequence, @samp{Previous-Sequence}
 @vindex mh-whitelist-preserves-sequences-flag
@@ -7708,10 +7708,10 @@ it from your local distribution or from the
 To use SpamAssassin, add the following recipes to @file{~/.procmailrc}:
 
 @cindex @command{spamc}
-@cindex @samp{X-Spam-Level:} header field
-@cindex @samp{X-Spam-Status:} header field
-@cindex header field, @samp{X-Spam-Level:}
-@cindex header field, @samp{X-Spam-Status:}
+@cindex @samp{X-Spam-Level} header field
+@cindex @samp{X-Spam-Status} header field
+@cindex header field, @samp{X-Spam-Level}
+@cindex header field, @samp{X-Spam-Status}
 
 @smallexample
 PATH=$PATH:/usr/bin/mh
@@ -7833,8 +7833,8 @@ each type of message to start doing a good job.
 
 To use bogofilter, add the following recipes to @file{~/.procmailrc}:
 
-@cindex @samp{X-Bogosity:} header field
-@cindex header field, @samp{X-Bogosity:}
+@cindex @samp{X-Bogosity} header field
+@cindex header field, @samp{X-Bogosity}
 
 @smallexample
 PATH=$PATH:/usr/bin/mh
@@ -7886,8 +7886,8 @@ SpamProbe web site}.
 To use SpamProbe, add the following recipes to @file{~/.procmailrc}:
 
 @cindex @command{formail}
-@cindex @samp{X-SpamProbe:} header field
-@cindex header field, @samp{X-SpamProbe:}
+@cindex @samp{X-SpamProbe} header field
+@cindex header field, @samp{X-SpamProbe}
 
 @smallexample
 PATH=$PATH:/usr/bin/mh
@@ -7922,12 +7922,12 @@ eliminate any message with a Windows executable (which is most likely
 a virus). The second is to eliminate mail in character sets that you
 can't read.
 
-@cindex @samp{Content-Transfer-Encoding:} header field
-@cindex @samp{Content-Type:} header field
-@cindex @samp{Subject:} header field
-@cindex header field, @samp{Content-Transfer-Encoding:}
-@cindex header field, @samp{Content-Type:}
-@cindex header field, @samp{Subject:}
+@cindex @samp{Content-Transfer-Encoding} header field
+@cindex @samp{Content-Type} header field
+@cindex @samp{Subject} header field
+@cindex header field, @samp{Content-Transfer-Encoding}
+@cindex header field, @samp{Content-Type}
+@cindex header field, @samp{Subject}
 
 @smallexample
 PATH=$PATH:/usr/bin/mh
@@ -8579,8 +8579,8 @@ anything to my knowledge@footnote{See
 Savannah issue #4361} to see if @command{rcvstore} locking is still an
 issue.}.
 
-@cindex @samp{Unseen-Sequence:} MH profile component
-@cindex MH profile component, @samp{Unseen-Sequence:}
+@cindex @samp{Unseen-Sequence} MH profile component
+@cindex MH profile component, @samp{Unseen-Sequence}
 
 Line 16 uses the following script, @code{myrcvstore}, to massage the
 message as described in the comment and file the message in the given

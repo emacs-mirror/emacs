@@ -11610,7 +11610,7 @@ and this provides a sense of its primal capabilities.
 @node Every
 @unnumberedsubsubsec Recursive Pattern: @emph{every}
 @cindex Every, type of recursive pattern
-@cindex Recursive pattern: every
+@cindex Recursive pattern - every
 
 In the @code{every} recursive pattern, an action is performed on every
 element of a list.
@@ -11709,7 +11709,7 @@ But when the list has at least one element,
 @node Accumulate
 @unnumberedsubsubsec Recursive Pattern: @emph{accumulate}
 @cindex Accumulate, type of recursive pattern
-@cindex Recursive pattern: accumulate
+@cindex Recursive pattern - accumulate
 
 Another recursive pattern is called the @code{accumulate} pattern.  In
 the @code{accumulate} recursive pattern, an action is performed on
@@ -11760,7 +11760,7 @@ accumulate pattern.
 @node Keep
 @unnumberedsubsubsec Recursive Pattern: @emph{keep}
 @cindex Keep, type of recursive pattern
-@cindex Recursive pattern: keep
+@cindex Recursive pattern - keep
 
 A third recursive pattern is called the @code{keep} pattern.
 In the @code{keep} recursive pattern, each element of a list is tested;
