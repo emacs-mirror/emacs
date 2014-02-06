@@ -1,3 +1,9 @@
+2014-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-summary-cancel-article): `user-mail-address' is
+	buffer-local in some buffers, so bind it explicitly in the buffer we're
+	trying to cancel the article in (bug#10808).
+
 2014-02-05  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-int.el (gnus-request-accept-article): Doc fix.
