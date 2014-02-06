@@ -107,8 +107,8 @@ first menu-bar menu by typing F10, which invokes `menu-bar-open'.
 
 If you want the previous behavior, whereby F10 invoked `tmm-menubar',
 customize the option `tty-menu-open-use-tmm' to a non-nil value.
-(Typing M-` will always invoke `tmm-menubar', even if
-`tty-menu-open-use-tmm' is nil.)
+(Typing M-` always invokes `tmm-menubar', even if `tty-menu-open-use-tmm'
+is nil.)
 
 +++
 ** The *Messages* buffer is created in `messages-buffer-mode',
@@ -519,7 +519,7 @@ strings and comments.
 
 ** New EPA option `epa-mail-aliases'.
 You can set this to a list of email address aliases for keys to use
-`epa-mail-encrypt'.
+in `epa-mail-encrypt'.
 
 ---
 ** New ERC option `erc-accidental-paste-threshold-seconds'.
@@ -1078,6 +1078,12 @@ around the comma.
 Either use `completion-all-completions', which returns highlighted
 strings (including for partial or substring completion), or call
 `completion-hilit-commonality' to add the highlight.
+
+*** New function `completion-table-with-cache' is a wrapper for
+`completion-table-dynamic' that caches the result of the last lookup.
+
+*** New function `completion-table-merge' to combine several
+completion tables by merging their completions.
 
 ** New minor modes `prettify-symbols-mode' and `global-prettify-symbols-mode'
 let you enable symbol prettification (replacing a string like "lambda" with
@@ -2199,12 +2205,6 @@ in the presence of quoting, such as file completion in shell buffers.
 
 *** New function `completion-table-subvert' to use an existing completion
 table, but with a different prefix.
-
-*** New function `completion-table-with-cache' is a wrapper for
-`completion-table-dynamic' that caches the result of the last lookup.
-
-*** New function `completion-table-merge' to combine several
-completion tables by merging their completions.
 
 ** Debugger
 
