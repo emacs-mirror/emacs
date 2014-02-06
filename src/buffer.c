@@ -6130,6 +6130,8 @@ If the value of the variable is t, undo information is not recorded.  */);
   DEFVAR_PER_BUFFER ("cache-long-scans", &BVAR (current_buffer, cache_long_scans), Qnil,
 		     doc: /* Non-nil means that Emacs should use caches in attempt to speedup buffer scans.
 
+There is no reason to set this to nil except for debugging purposes.
+
 Normally, the line-motion functions work by scanning the buffer for
 newlines.  Columnar operations (like `move-to-column' and
 `compute-motion') also work by scanning the buffer, summing character

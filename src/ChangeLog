@@ -1,3 +1,7 @@
+2014-02-06  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (cache-long-scans): Doc fix.
+
 2014-02-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (Fw32_shell_execute): Doc fix.

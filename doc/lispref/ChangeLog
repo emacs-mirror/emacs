@@ -1,3 +1,8 @@
+2014-02-06  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Truncation):
+	* positions.texi (Screen Lines): Do not mention cache-long-scans.
+
 2014-01-31  Juri Linkov  <juri@jurta.org>
 
 	* searching.texi (String Search): Incremental word search fixes.

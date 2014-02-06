@@ -486,9 +486,11 @@ flag, and display table may vary between windows).  @xref{Usual
 Display}.
 
   These functions scan text to determine where screen lines break, and
-thus take time proportional to the distance scanned.  If you intend to
-use them heavily, Emacs provides caches which may improve the
-performance of your code.  @xref{Truncation, cache-long-scans}.
+thus take time proportional to the distance scanned.
+@ignore
+If you intend to use them heavily, Emacs provides caches which may
+improve the performance of your code.  @xref{Truncation, cache-long-scans}.
+@end ignore
 
 @defun vertical-motion count &optional window
 This function moves point to the start of the screen line @var{count}

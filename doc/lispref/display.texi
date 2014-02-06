@@ -214,6 +214,7 @@ A line prefix may also be specified for regions of text using the
 over the @code{line-prefix} variable.  @xref{Special Properties}.
 @end defvar
 
+@ignore
   If your buffer contains only very short lines, you might find it
 advisable to set @code{cache-long-scans} to @code{nil}.
 
@@ -227,6 +228,7 @@ Turning off the cache speeds up processing of short lines somewhat.
 
 This variable is automatically buffer-local in every buffer.
 @end defvar
+@end ignore
 
 @node The Echo Area
 @section The Echo Area

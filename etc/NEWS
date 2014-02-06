@@ -240,9 +240,9 @@ to be printed in other formats (octal, hexadecimal, and character).
 ** `write-region-inhibit-fsync' now defaults to t in batch mode.
 
 +++
-** `cache-long-line-scans' has been renamed to `cache-long-scans'
+** `cache-long-line-scans' is now non-nil, and renamed to `cache-long-scans',
 because it affects caching of paragraph scanning results as well.
-Also, it is now enabled by default.
+There is no reason to set this to nil except for debugging purposes.
 
 ---
 ** The option `set-mark-default-inactive' has been deleted.
