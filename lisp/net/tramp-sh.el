@@ -2711,7 +2711,7 @@ the result will be a local, non-Tramp, filename."
 		   (cdr args)))
 	   (command
 	    (when (stringp program)
-	      (format "cd %s; exec %s env PS1=%s %s"
+	      (format "cd %s && exec %s env PS1=%s %s"
 		      (tramp-shell-quote-argument localname)
 		      (if heredoc (format "<<'%s'" tramp-end-of-heredoc) "")
 		      ;; Use a human-friendly prompt, for example for `shell'.
@@ -2720,7 +2720,7 @@ the result will be a local, non-Tramp, filename."
 			       (file-remote-p default-directory)
 			       tramp-initial-end-of-output))
 		      (if heredoc
-			  (format "%s\n%s\n%s"
+			  (format "%s\n(\n%s\n) </dev/tty\n%s"
 				  program (car args) tramp-end-of-heredoc)
 			(mapconcat 'tramp-shell-quote-argument
 				   (cons program args) " ")))))
@@ -4571,14 +4571,6 @@ function waits for output unless NOOUTPUT is set."
       ;; We mark the command string that it can be erased in the output buffer.
       (tramp-set-connection-property p "check-remote-echo" t)
       (setq command (format "%s%s%s" tramp-echo-mark command tramp-echo-mark)))
-    ;; Some busyboxes tend to close the connection when we use the
-    ;; following syntax for here-documents.  This we cannot test; it
-    ;; shall be set via `tramp-connection-properties'.
-    (when (and (string-match (format "<<'%s'" tramp-end-of-heredoc) command)
-	       (not (tramp-get-connection-property vec "busybox" nil)))
-      ;; Unset $PS1 when using here documents, in order to avoid
-      ;; multiple prompts.
-      (setq command (concat "(PS1= ; " command "\n)")))
     ;; Send the command.
     (tramp-message vec 6 "%s" command)
     (tramp-send-string vec command)
