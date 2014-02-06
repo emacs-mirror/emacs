@@ -6396,6 +6396,14 @@ if (cols > 0 && rows > 0)
 
   if (fs_state != FULLSCREEN_BOTH)
     {
+      NSScreen *screen = [w screen];
+
+#if defined (NS_IMPL_COCOA) && \
+  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
+      /* Hide ghost menu bar on secondary monitor? */
+      if (! onFirstScreen)
+        onFirstScreen = [NSScreen screensHaveSeparateSpaces];
+#endif
       /* Hide dock and menubar if we are on the primary screen.  */
       if (onFirstScreen)
         {
@@ -6416,7 +6424,7 @@ if (cols > 0 && rows > 0)
                                  styleMask:NSBorderlessWindowMask
                                    backing:NSBackingStoreBuffered
                                      defer:YES
-                                    screen:[w screen]];
+                                    screen:screen];
 
       [fw setContentView:[w contentView]];
       [fw setTitle:[w title]];
@@ -6439,7 +6447,7 @@ if (cols > 0 && rows > 0)
       [fw makeKeyAndOrderFront:NSApp];
       [fw makeFirstResponder:self];
       [w orderOut:self];
-      r = [fw frameRectForContentRect:[[fw screen] frame]];
+      r = [fw frameRectForContentRect:[screen frame]];
       [fw setFrame: r display:YES animate:YES];
       [self windowDidEnterFullScreen:nil];
       [fw display];

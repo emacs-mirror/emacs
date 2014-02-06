@@ -1,3 +1,9 @@
+2014-02-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (toggleFullScreen:): Hide menubar on secondary monitor
+	for OSX >= 10.9 if separate spaces are used.
+	(toggleFullScreen:): Use screen of w instead of fw (Bug#16659).
+
 2014-02-06  Glenn Morris  <rgm@gnu.org>
 
 	* buffer.c (cache-long-scans): Doc fix.
