@@ -617,10 +617,16 @@ using the next face automatically.
 
 ** New Imenu option `imenu-generic-skip-comments-and-strings'.
 
+** Info
+
 ---
-** New Info face `info-index-match', used to highlight matches in index
+*** New Info face `info-index-match', used to highlight matches in index
 entries displayed by `Info-index-next', `Info-virtual-index' and
 `info-apropos'.
+
+---
+*** The Info-edit command is obsolete.  Editing Info nodes by hand
+has not been relevant for some time.
 
 ** JS Mode
 
@@ -900,28 +906,25 @@ are obsolete.  Customize the `woman-*' faces instead.
 
 ** Obsolete packages
 
-*** Iswitchb is made obsolete by icomplete-mode.
+*** Iswitchb; use icomplete-mode.
 
-*** longlines.el is obsolete; use visual-line-mode instead.
+---
+*** longlines.el; use visual-line-mode.
 
 +++
 *** sup-mouse.el.
 
 ---
-*** terminal.el is obsolete; use term.el instead.
+*** terminal.el; use term.el instead.
 
 ---
-*** The previous version of todo-mode.el is obsolete and renamed otodo-mode.el.
+*** the old version of todo-mode.el (now renamed to otodo-mode.el).
 
 ---
-*** xesam.el is obsolete, because the XESAM project has been canceled.
+*** xesam.el (owing to the cancellation of the XESAM project).
 
 +++
-*** yow.el is obsolete; use fortune.el or cookie1.el instead.
-
----
-*** The Info-edit command is obsolete.  Editing Info nodes by hand
-has not been relevant for some time.
+*** yow.el; use fortune.el or cookie1.el instead.
 
 
 * New Modes and Packages in Emacs 24.4
