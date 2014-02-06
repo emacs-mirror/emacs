@@ -1,3 +1,11 @@
+2014-02-06  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Use
+	`completion-table-merge' instead of `completion-table-in-turn'
+	(bug#16604).
+
+	* minibuffer.el (completion-table-merge): New function.
+
 2014-02-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-end-of-heredoc): New defconst.

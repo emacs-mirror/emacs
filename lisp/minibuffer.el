@@ -388,10 +388,36 @@ Note: TABLE needs to be a proper completion table which obeys predicates."
   "Create a completion table that tries each table in TABLES in turn."
   ;; FIXME: the boundaries may come from TABLE1 even when the completion list
   ;; is returned by TABLE2 (because TABLE1 returned an empty list).
+  ;; Same potential problem if any of the tables use quoting.
   (lambda (string pred action)
     (completion--some (lambda (table)
                         (complete-with-action action table string pred))
                       tables)))
+
+(defun completion-table-merge (&rest tables)
+  "Create a completion table that collects completions from all TABLES."
+  ;; FIXME: same caveats as in `completion-table-in-turn'.
+  (lambda (string pred action)
+    (cond
+     ((null action)
+      (let ((retvals (mapcar (lambda (table)
+                               (try-completion string table pred))
+                             tables)))
+        (if (member string retvals)
+            string
+          (try-completion string
+                          (mapcar (lambda (value)
+                                    (if (eq value t) string value))
+                                  (delq nil retvals))
+                          pred))))
+     ((eq action t)
+      (apply #'append (mapcar (lambda (table)
+                                (all-completions string table pred))
+                              tables)))
+     (t
+      (completion--some (lambda (table)
+                          (complete-with-action action table string pred))
+                        tables)))))
 
 (defun completion-table-with-quoting (table unquote requote)
   ;; A difficult part of completion-with-quoting is to map positions in the

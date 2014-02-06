@@ -830,7 +830,7 @@ considered."
                 ;; use it to provide a more specific completion table in some
                 ;; cases.  E.g. filter out keywords that are not understood by
                 ;; the macro/function being called.
-                (list nil (completion-table-in-turn
+                (list nil (completion-table-merge
                            lisp--local-variables-completion-table
                            obarray)       ;Could be anything.
                       :annotation-function

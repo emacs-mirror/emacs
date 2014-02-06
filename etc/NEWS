@@ -2200,6 +2200,12 @@ in the presence of quoting, such as file completion in shell buffers.
 *** New function `completion-table-subvert' to use an existing completion
 table, but with a different prefix.
 
+*** New function `completion-table-with-cache' is a wrapper for
+`completion-table-dynamic' that caches the result of the last lookup.
+
+*** New function `completion-table-merge' to combine several
+completion tables by merging their completions.
+
 ** Debugger
 
 *** New error type and new function `user-error'.
