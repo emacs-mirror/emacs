@@ -1991,7 +1991,7 @@ start_polling (void)
 	 been turned off in process.c.  */
       turn_on_atimers (1);
 
-      /* If poll timer doesn't exist, are we need one with
+      /* If poll timer doesn't exist, or we need one with
 	 a different interval, start a new one.  */
       if (poll_timer == NULL
 	  || poll_timer->interval.tv_sec != polling_period)
