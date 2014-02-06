@@ -6538,13 +6538,13 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	    if (errno == ENOENT && filename_buf_w[MAX_PATH - 1] != 0)
 	      report_file_error ("filename too long", default_filename);
 	  }
-	len = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
-				   SSDATA (prompt), -1, NULL, 0);
+	len = pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+				    SSDATA (prompt), -1, NULL, 0);
 	if (len > 32768)
 	  len = 32768;
 	prompt_w = alloca (len * sizeof (wchar_t));
-	MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
-			     SSDATA (prompt), -1, prompt_w, len);
+	pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+			      SSDATA (prompt), -1, prompt_w, len);
       }
     else
       {
@@ -6556,18 +6556,18 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	    if (errno == ENOENT && filename_buf_a[MAX_PATH - 1] != 0)
 	      report_file_error ("filename too long", default_filename);
 	  }
-	len = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
-				   SSDATA (prompt), -1, NULL, 0);
+	len = pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+				    SSDATA (prompt), -1, NULL, 0);
 	if (len > 32768)
 	  len = 32768;
 	prompt_w = alloca (len * sizeof (wchar_t));
-	MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
-			     SSDATA (prompt), -1, prompt_w, len);
-	len = WideCharToMultiByte (CP_ACP, 0, prompt_w, -1, NULL, 0, NULL, NULL);
+	pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+			      SSDATA (prompt), -1, prompt_w, len);
+	len = pWideCharToMultiByte (CP_ACP, 0, prompt_w, -1, NULL, 0, NULL, NULL);
 	if (len > 32768)
 	  len = 32768;
 	prompt_a = alloca (len);
-	WideCharToMultiByte (CP_ACP, 0, prompt_w, -1, prompt_a, len, NULL, NULL);
+	pWideCharToMultiByte (CP_ACP, 0, prompt_w, -1, prompt_a, len, NULL, NULL);
       }
 #endif /* NTGUI_UNICODE */
 
@@ -6974,13 +6974,13 @@ a ShowWindow flag:
 	  int len;
 
 	  parameters = ENCODE_SYSTEM (parameters);
-	  len = MultiByteToWideChar (CP_ACP, MB_ERR_INVALID_CHARS,
-				     SSDATA (parameters), -1, NULL, 0);
+	  len = pMultiByteToWideChar (CP_ACP, MB_ERR_INVALID_CHARS,
+				      SSDATA (parameters), -1, NULL, 0);
 	  if (len > 32768)
 	    len = 32768;
 	  params_w = alloca (len * sizeof (wchar_t));
-	  MultiByteToWideChar (CP_ACP, MB_ERR_INVALID_CHARS,
-			       SSDATA (parameters), -1, params_w, len);
+	  pMultiByteToWideChar (CP_ACP, MB_ERR_INVALID_CHARS,
+				SSDATA (parameters), -1, params_w, len);
 	}
       if (STRINGP (operation))
 	{

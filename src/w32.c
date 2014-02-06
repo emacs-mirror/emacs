@@ -478,6 +478,9 @@ typedef DWORD (WINAPI *GetAdaptersInfo_Proc) (
     PIP_ADAPTER_INFO pAdapterInfo,
     PULONG pOutBufLen);
 
+int (WINAPI *pMultiByteToWideChar)(UINT,DWORD,LPCSTR,int,LPWSTR,int);
+int (WINAPI *pWideCharToMultiByte)(UINT,DWORD,LPCWSTR,int,LPSTR,int,LPCSTR,LPBOOL);
+
   /* ** A utility function ** */
 static BOOL
 is_windows_9x (void)
@@ -1543,8 +1546,8 @@ codepage_for_filenames (CPINFO *cp_info)
 int
 filename_to_utf16 (const char *fn_in, wchar_t *fn_out)
 {
-  int result = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, fn_in, -1,
-				    fn_out, MAX_PATH);
+  int result = pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, fn_in, -1,
+				     fn_out, MAX_PATH);
 
   if (!result)
     {
@@ -1570,8 +1573,8 @@ filename_to_utf16 (const char *fn_in, wchar_t *fn_out)
 int
 filename_from_utf16 (const wchar_t *fn_in, char *fn_out)
 {
-  int result = WideCharToMultiByte (CP_UTF8, 0, fn_in, -1,
-				    fn_out, MAX_UTF8_PATH, NULL, NULL);
+  int result = pWideCharToMultiByte (CP_UTF8, 0, fn_in, -1,
+				     fn_out, MAX_UTF8_PATH, NULL, NULL);
 
   if (!result)
     {
@@ -1604,8 +1607,8 @@ filename_to_ansi (const char *fn_in, char *fn_out)
       int result;
       int codepage = codepage_for_filenames (NULL);
 
-      result  = WideCharToMultiByte (codepage, 0, fn_utf16, -1,
-				     fn_out, MAX_PATH, NULL, NULL);
+      result  = pWideCharToMultiByte (codepage, 0, fn_utf16, -1,
+				      fn_out, MAX_PATH, NULL, NULL);
       if (!result)
 	{
 	  DWORD err = GetLastError ();
@@ -1634,8 +1637,8 @@ filename_from_ansi (const char *fn_in, char *fn_out)
 {
   wchar_t fn_utf16[MAX_PATH];
   int codepage = codepage_for_filenames (NULL);
-  int result = MultiByteToWideChar (codepage, MB_ERR_INVALID_CHARS, fn_in, -1,
-				    fn_utf16, MAX_PATH);
+  int result = pMultiByteToWideChar (codepage, MB_ERR_INVALID_CHARS, fn_in, -1,
+				     fn_utf16, MAX_PATH);
 
   if (!result)
     {
@@ -4033,8 +4036,8 @@ sys_link (const char * old, const char * new)
       /* We used to pass MB_PRECOMPOSED as the 2nd arg here, but MSDN
 	 indicates that flag is unsupported for CP_UTF8, and OTOH says
 	 it is the default anyway.  */
-      wlen = MultiByteToWideChar (CP_UTF8, 0, newname, -1,
-				  data.wid.cStreamName, MAX_PATH);
+      wlen = pMultiByteToWideChar (CP_UTF8, 0, newname, -1,
+				   data.wid.cStreamName, MAX_PATH);
       if (wlen > 0)
 	{
 	  LPVOID context = NULL;
@@ -8749,22 +8752,22 @@ check_windows_init_file (void)
 		   "not unpacked properly.\nSee the README.W32 file in the "
 		   "top-level Emacs directory for more information.",
 		   init_file_name, load_path);
-	  needed = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, buffer,
-					-1, NULL, 0);
+	  needed = pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, buffer,
+					 -1, NULL, 0);
 	  if (needed > 0)
 	    {
 	      wchar_t *msg_w = alloca ((needed + 1) * sizeof (wchar_t));
 
-	      MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, buffer, -1,
-				   msg_w, needed);
-	      needed = WideCharToMultiByte (CP_ACP, 0, msg_w, -1,
-					    NULL, 0, NULL, NULL);
+	      pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, buffer, -1,
+				    msg_w, needed);
+	      needed = pWideCharToMultiByte (CP_ACP, 0, msg_w, -1,
+					     NULL, 0, NULL, NULL);
 	      if (needed > 0)
 		{
 		  char *msg_a = alloca (needed + 1);
 
-		  WideCharToMultiByte (CP_ACP, 0, msg_w, -1, msg_a, needed,
-				       NULL, NULL);
+		  pWideCharToMultiByte (CP_ACP, 0, msg_w, -1, msg_a, needed,
+					NULL, NULL);
 		  msg = msg_a;
 		}
 	    }
@@ -8932,7 +8935,17 @@ maybe_load_unicows_dll (void)
     {
       HANDLE ret = LoadLibrary ("Unicows.dll");
       if (ret)
-	return ret;
+	{
+	  /* These two functions are present on Windows 9X as stubs
+	     that always fail.  We need the real implementations from
+	     UNICOWS.DLL, so we must call these functions through
+	     pointers, and assign the correct addresses to these
+	     pointers at program startup (see emacs.c, which calls
+	     this function early on).  */
+	  pMultiByteToWideChar = GetProcAddress (ret, "MultiByteToWideChar");
+	  pWideCharToMultiByte = GetProcAddress (ret, "WideCharToMultiByte");
+	  return ret;
+	}
       else
 	{
 	  int button;
@@ -8954,7 +8967,14 @@ maybe_load_unicows_dll (void)
 	}
     }
   else
-    return LoadLibrary ("Gdi32.dll");
+    {
+      /* On NT family of Windows, these two functions are always
+	 linked in, so we just assign their addresses to the 2
+	 pointers; no need for the LoadLibrary dance.  */
+      pMultiByteToWideChar = MultiByteToWideChar;
+      pWideCharToMultiByte = WideCharToMultiByte;
+      return LoadLibrary ("Gdi32.dll");
+    }
 }
 
 /*

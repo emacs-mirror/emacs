@@ -1,3 +1,22 @@
+2014-02-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (pMultiByteToWideChar, pWideCharToMultiByte): New
+	variables: pointers through which to call the respective APIs.
+	(filename_to_utf16, filename_from_utf16, filename_to_ansi)
+	(filename_from_ansi, sys_link, check_windows_init_file): Call
+	MultiByteToWideChar and WideCharToMultiByte through pointers.
+	This is required on Windows 9X, where we dynamically load
+	UNICOWS.DLL which has their non-stub implementations.
+	(maybe_load_unicows_dll): Assign addresses to these 2 function
+	pointers after loading UNICOWS.DLL.
+
+	* w32fns.c (Fx_file_dialog, Fw32_shell_execute) [!CYGWIN]: Call
+	MultiByteToWideChar and WideCharToMultiByte through function
+	pointers.
+
+	* w32.h (pMultiByteToWideChar, pWideCharToMultiByte): New
+	declarations.
+
 2014-02-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (toggleFullScreen:): Hide menubar on secondary monitor

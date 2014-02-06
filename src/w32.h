@@ -175,6 +175,9 @@ extern int _sys_wait_accept (int fd);
 extern Lisp_Object QCloaded_from;
 extern HMODULE w32_delayed_load (Lisp_Object);
 
+extern int (WINAPI *pMultiByteToWideChar)(UINT,DWORD,LPCSTR,int,LPWSTR,int);
+extern int (WINAPI *pWideCharToMultiByte)(UINT,DWORD,LPCWSTR,int,LPSTR,int,LPCSTR,LPBOOL);
+
 extern void init_environment (char **);
 extern void check_windows_init_file (void);
 extern void syms_of_ntproc (void);
