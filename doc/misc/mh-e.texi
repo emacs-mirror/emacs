@@ -246,7 +246,8 @@ If more information is needed, you can go to the Unix manual pages of
 the individual MH commands. When the name is not obvious, I'll guide
 you to a relevant MH manual page that describes the action more fully.
 
-@cindex @cite{MH & nmh: Email for Users & Programmers}
+@c ":" does not work in index entries in Info.
+@cindex @cite{MH & nmh - Email for Users & Programmers}
 @cindex MH book
 @cindex info
 @kindex C-h i
