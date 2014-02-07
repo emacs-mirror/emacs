@@ -136,9 +136,9 @@ patterns."
 (put 'hi-lock-file-patterns-policy 'risky-local-variable t)
 
 (defcustom hi-lock-auto-select-face nil
-  "Non-nil if highlighting commands should not prompt for face names.
-When non-nil, each hi-lock command will cycle through faces in
-`hi-lock-face-defaults' without prompting."
+  "Non-nil means highlighting commands do not prompt for the face to use.
+Instead, each hi-lock command will cycle through the faces in
+`hi-lock-face-defaults'."
   :type 'boolean
   :version "24.4")
 
@@ -410,9 +410,8 @@ versions before 22 use the following in your init file:
 ;;;###autoload
 (defun hi-lock-line-face-buffer (regexp &optional face)
   "Set face of all lines containing a match of REGEXP to FACE.
-Interactively, prompt for REGEXP then FACE.  Use
-`read-regexp-defaults-function' to customize default
-value(s) of REGEXP.  Use the global history list for FACE.
+Interactively, prompt for REGEXP using `read-regexp', then FACE.
+Use the global history list for FACE.
 
 Use Font lock mode, if enabled, to highlight REGEXP.  Otherwise,
 use overlays for highlighting.  If overlays are used, the
@@ -435,9 +434,8 @@ highlighting will not update as you type."
 ;;;###autoload
 (defun hi-lock-face-buffer (regexp &optional face)
   "Set face of each match of REGEXP to FACE.
-Interactively, prompt for REGEXP then FACE.  Use
-`read-regexp-defaults-function' to customize default
-value(s) of REGEXP.  Use the global history list for FACE.
+Interactively, prompt for REGEXP using `read-regexp', then FACE.
+Use the global history list for FACE.
 
 Use Font lock mode, if enabled, to highlight REGEXP.  Otherwise,
 use overlays for highlighting.  If overlays are used, the
@@ -456,12 +454,12 @@ highlighting will not update as you type."
 ;;;###autoload
 (defun hi-lock-face-phrase-buffer (regexp &optional face)
   "Set face of each match of phrase REGEXP to FACE.
-Interactively, prompt for REGEXP then FACE.  Use
-`read-regexp-defaults-function' to customize default
-value(s) of REGEXP.  Use the global history list for FACE.  When
-called interactively, replace whitespace in user provided regexp
-with arbitrary whitespace and make initial lower-case letters
-case-insensitive before highlighting with `hi-lock-set-pattern'.
+Interactively, prompt for REGEXP using `read-regexp', then FACE.
+Use the global history list for FACE.
+
+When called interactively, replace whitespace in user-provided
+regexp with arbitrary whitespace, and make initial lower-case
+letters case-insensitive, before highlighting with `hi-lock-set-pattern'.
 
 Use Font lock mode, if enabled, to highlight REGEXP.  Otherwise,
 use overlays for highlighting.  If overlays are used, the
@@ -480,14 +478,13 @@ highlighting will not update as you type."
 (defalias 'highlight-symbol-at-point 'hi-lock-face-symbol-at-point)
 ;;;###autoload
 (defun hi-lock-face-symbol-at-point ()
-  "Set face of each match of the symbol at point.
-Use `find-tag-default-as-symbol-regexp' to retrieve the symbol at point.
-Use non-nil `hi-lock-auto-select-face' to retrieve the next face
-from `hi-lock-face-defaults' automatically.
+  "Highlight each instance of the symbol at point.
+Uses the next face from `hi-lock-face-defaults' without prompting,
+unless you use a prefix argument.
+Uses `find-tag-default-as-symbol-regexp' to retrieve the symbol at point.
 
-Use Font lock mode, if enabled, to highlight symbol at point.
-Otherwise, use overlays for highlighting.  If overlays are used,
-the highlighting will not update as you type."
+This uses Font lock mode if it is enabled; otherwise it uses overlays,
+in which case the highlighting will not update as you type."
   (interactive)
   (let* ((regexp (hi-lock-regexp-okay
 		  (find-tag-default-as-symbol-regexp)))
@@ -663,7 +660,8 @@ not suitable."
 (defun hi-lock-read-face-name ()
   "Return face for interactive highlighting.
 When `hi-lock-auto-select-face' is non-nil, just return the next face.
-Otherwise, read face name from minibuffer with completion and history."
+Otherwise, or with a prefix argument, read a face from the minibuffer
+with completion and history."
   (unless hi-lock-interactive-patterns
     (setq hi-lock--unused-faces hi-lock-face-defaults))
   (let* ((last-used-face

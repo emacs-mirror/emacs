@@ -1,5 +1,8 @@
 2014-02-07  Glenn Morris  <rgm@gnu.org>
 
+	* display.texi (Highlight Interactively):
+	Mention hi-lock-auto-select-face.
+
 	* anti.texi (Antinews): Fix typo.
 
 	* ack.texi (Acknowledgments): No longer mention obsolete files.

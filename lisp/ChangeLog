@@ -1,5 +1,9 @@
 2014-02-07  Glenn Morris  <rgm@gnu.org>
 
+	* hi-lock.el (hi-lock-auto-select-face, hi-lock-line-face-buffer)
+	(hi-lock-face-buffer, hi-lock-face-phrase-buffer)
+	(hi-lock-face-symbol-at-point, hi-lock-read-face-name): Doc tweaks.
+
 	* obsolete/iswitchb.el: Move to obsolete/.
 	* simple.el (iswitchb-mode): Add manual autoloads to ease transition,
 	since obsolete/ is not scanned for autoloads.

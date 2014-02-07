@@ -607,13 +607,13 @@ callers to fit the image to a frame other than the selected frame.
 
 ** Hi-Lock
 
-*** New option `hi-lock-auto-select-face'.  When non-nil, hi-lock commands
-will cycle through faces in `hi-lock-face-defaults' without prompting.
++++
+*** New global command `M-s h .' (`highlight-symbol-at-point') highlights
+the symbol found near point.
 
 +++
-*** New global command `M-s h .' (`highlight-symbol-at-point')
-highlights the symbol found near point without prompting,
-using the next face automatically.
+*** New option `hi-lock-auto-select-face'.  When non-nil, hi-lock commands
+will cycle through faces in `hi-lock-face-defaults' without prompting.
 
 ** New Imenu option `imenu-generic-skip-comments-and-strings'.
 
