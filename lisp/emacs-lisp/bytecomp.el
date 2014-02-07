@@ -356,7 +356,7 @@ else the global value will be modified."
 (defvar byte-compile-interactive-only-functions nil
   "List of commands that are not meant to be called from Lisp.")
 (make-obsolete-variable 'byte-compile-interactive-only-functions
-			"use the `interactive-only' symbol property instead"
+			"use the `interactive-only' symbol property instead."
 			"24.4")
 
 (defvar byte-compile-not-obsolete-vars nil

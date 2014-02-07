@@ -95,7 +95,7 @@ Uses the same syntax as `nnmail-split-methods'.")
 (defvoo nnimap-unsplittable-articles '(%Deleted %Seen)
   "Articles with the flags in the list will not be considered when splitting.")
 
-(make-obsolete-variable 'nnimap-split-rule "see `nnimap-split-methods'"
+(make-obsolete-variable 'nnimap-split-rule "see `nnimap-split-methods'."
 			"Emacs 24.1")
 
 (defvoo nnimap-authenticator nil
