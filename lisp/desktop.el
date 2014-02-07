@@ -353,11 +353,11 @@ modes are restored automatically; they should not be listed here."
   :type '(repeat symbol)
   :group 'desktop)
 
-(defcustom desktop-buffers-not-to-save nil
+(defcustom desktop-buffers-not-to-save "\\` "
   "Regexp identifying buffers that are to be excluded from saving."
   :type '(choice (const :tag "None" nil)
 		 regexp)
-  :version "23.2"                       ; set to nil
+  :version "24.4"		    ; skip invisible temporary buffers
   :group 'desktop)
 
 ;; Skip tramp and ange-ftp files

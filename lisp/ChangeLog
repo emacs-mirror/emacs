@@ -1,5 +1,10 @@
 2014-02-07  Juri Linkov  <juri@jurta.org>
 
+	* desktop.el (desktop-buffers-not-to-save): Change default from nil
+	to "\\` ".  (Bug#16651)
+
+2014-02-07  Juri Linkov  <juri@jurta.org>
+
 	* desktop.el (desktop-save-mode): Call `desktop-auto-save-set-timer'
 	when enabling, and `desktop-auto-save-cancel-timer' when disabling.
 	(desktop-auto-save-cancel-timer): New function with some code from
