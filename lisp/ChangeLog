@@ -62,6 +62,7 @@
 	(frame-configuration-to-register): Unadvertise unused argument.
 	* frameset.el (frameset-to-register): Remove unused argument.
 
+	* frameset.el (frameset-to-register):
 	* kmacro.el (kmacro-to-register):
 	* register.el (increment-register):
 	* calc/calc-yank.el (calc-copy-to-register, calc-insert-register)
