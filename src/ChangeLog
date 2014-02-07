@@ -1,3 +1,7 @@
+2014-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* nsterm.m (syms_of_nsterm): Doc fix.
+
 2014-02-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (pMultiByteToWideChar, pWideCharToMultiByte): New

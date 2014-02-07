@@ -7645,7 +7645,7 @@ Only works on OSX 10.6 or later.  */);
      doc: /*Non-nil means to use native fullscreen on OSX >= 10.7.
 Nil means use fullscreen the old (< 10.7) way.  The old way works better with
 multiple monitors, but lacks tool bar.  This variable is ignored on OSX < 10.7.
-Default is t for OSX >= 10.7, nil otherwise. */);
+Default is t for OSX >= 10.7, nil otherwise.  */);
 #ifdef HAVE_NATIVE_FS
   ns_use_native_fullscreen = YES;
 #else
@@ -7656,7 +7656,7 @@ Default is t for OSX >= 10.7, nil otherwise. */);
   DEFVAR_BOOL ("ns-use-srgb-colorspace", ns_use_srgb_colorspace,
      doc: /*Non-nil means to use sRGB colorspace on OSX >= 10.7.
 Note that this does not apply to images.
-This variable is ignored on OSX < 10.7 and GNUstep.  Default is t. */);
+This variable is ignored on OSX < 10.7 and GNUstep.  */);
   ns_use_srgb_colorspace = YES;
 
   /* TODO: move to common code */
