@@ -1019,23 +1019,25 @@ window_text_bottom_y (struct window *w)
 int
 window_box_width (struct window *w, enum glyph_row_area area)
 {
-  int pixels = w->pixel_width;
+  int width = w->pixel_width;
 
   if (!w->pseudo_window_p)
     {
-      pixels -= WINDOW_SCROLL_BAR_AREA_WIDTH (w);
-      pixels -= WINDOW_RIGHT_DIVIDER_WIDTH (w);
+      width -= WINDOW_SCROLL_BAR_AREA_WIDTH (w);
+      width -= WINDOW_RIGHT_DIVIDER_WIDTH (w);
 
       if (area == TEXT_AREA)
-	pixels -= (WINDOW_MARGINS_WIDTH (w)
+	width -= (WINDOW_MARGINS_WIDTH (w)
 		   + WINDOW_FRINGES_WIDTH (w));
       else if (area == LEFT_MARGIN_AREA)
-	pixels = WINDOW_LEFT_MARGIN_WIDTH (w);
+	width = WINDOW_LEFT_MARGIN_WIDTH (w);
       else if (area == RIGHT_MARGIN_AREA)
-	pixels = WINDOW_RIGHT_MARGIN_WIDTH (w);
+	width = WINDOW_RIGHT_MARGIN_WIDTH (w);
     }
 
-  return pixels;
+  /* With wide margins, fringes, etc. we might end up with a negative
+     width, correct that here.  */
+  return max (0, width);
 }
 
 
@@ -1115,7 +1117,8 @@ window_box_left_offset (struct window *w, enum glyph_row_area area)
 	   && WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w))
     x += WINDOW_LEFT_FRINGE_WIDTH (w);
 
-  return x;
+  /* Don't return more than the window's pixel width.  */
+  return min (x, w->pixel_width);
 }
 
 
@@ -1126,7 +1129,9 @@ window_box_left_offset (struct window *w, enum glyph_row_area area)
 int
 window_box_right_offset (struct window *w, enum glyph_row_area area)
 {
-  return window_box_left_offset (w, area) + window_box_width (w, area);
+  /* Don't return more than the window's pixel width.  */
+  return min (window_box_left_offset (w, area) + window_box_width (w, area),
+	      w->pixel_width);
 }
 
 /* Return the frame-relative coordinate of the left edge of display
