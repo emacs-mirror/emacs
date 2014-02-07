@@ -1108,7 +1108,7 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
 	    (setq desktop-file-modtime (nth 5 (file-attributes (desktop-full-file-name))))
 	    ;; If it wasn't already, mark it as in-use, to bother other
 	    ;; desktop instances.
-	    (unless owner
+	    (unless (eq (emacs-pid) owner)
 	      (condition-case nil
 		  (desktop-claim-lock)
 		(file-error (message "Couldn't record use of desktop file")
