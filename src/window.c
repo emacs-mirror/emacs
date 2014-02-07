@@ -3923,8 +3923,11 @@ window_resize_apply (struct window *w, bool horflag)
 	}
     }
   else
-    /* Bug#15957.  */
-    w->window_end_valid = 0;
+    {
+      adjust_window_margins (w);
+      /* Bug#15957.  */
+      w->window_end_valid = 0;
+    }
 }
 
 
