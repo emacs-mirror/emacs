@@ -866,7 +866,11 @@ window_body_height (struct window *w, bool pixelwise)
 		- WINDOW_MODE_LINE_HEIGHT (w)
 		- WINDOW_BOTTOM_DIVIDER_WIDTH (w));
 
-  return pixelwise ? height : height / FRAME_LINE_HEIGHT (WINDOW_XFRAME (w));
+  /* Don't return a negative value.  */
+  return max (pixelwise
+	      ? height
+	      : height / FRAME_LINE_HEIGHT (WINDOW_XFRAME (w)),
+	      0);
 }
 
 /* Return the number of columns/pixels of W's body.  Don't count columns
@@ -893,7 +897,11 @@ window_body_width (struct window *w, bool pixelwise)
 		   ? WINDOW_FRINGES_WIDTH (w)
 		   : 0));
 
-  return pixelwise ? width : width / FRAME_COLUMN_WIDTH (WINDOW_XFRAME (w));
+  /* Don't return a negative value.  */
+  return max (pixelwise
+	      ? width
+	      : width / FRAME_COLUMN_WIDTH (WINDOW_XFRAME (w)),
+	      0);
 }
 
 DEFUN ("window-body-height", Fwindow_body_height, Swindow_body_height, 0, 2, 0,

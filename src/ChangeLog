@@ -1,9 +1,11 @@
 2014-02-07  Martin Rudalics  <rudalics@gmx.at>
 
-	Constrain window box sizes (Bug#16649).
+	Constrain window box and body sizes (Bug#16649).
 	* xdisp.c (window_box_width): Don't return less than zero.
 	(window_box_left_offset, window_box_right_offset): Don't return
 	more than the window's pixel width.
+	* window.c (window_body_height, window_body_width): Don't return
+	negative value.
 
 2014-02-07  Glenn Morris  <rgm@gnu.org>
 
