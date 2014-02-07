@@ -1084,8 +1084,14 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should-not (zerop (process-file "binary-does-not-exist")))
 	  (with-temp-buffer
 	    (write-region "foo" nil tmp-name)
-	    (should (zerop (process-file "ls" nil t)))
-	    (should (> (point-max) (point-min)))))
+	    (should (file-exists-p tmp-name))
+	    (should
+	     (zerop
+	      (process-file "ls" nil t nil (file-name-nondirectory tmp-name))))
+	    (should
+	     (string-equal
+	      (format "%s\n" (file-name-nondirectory tmp-name))
+	      (buffer-string)))))
       (ignore-errors (delete-file tmp-name)))))
 
 (ert-deftest tramp-test27-start-file-process ()
@@ -1130,7 +1136,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should (processp proc))
 	  (should (equal (process-status proc) 'run))
 	  (set-process-filter
-	   proc (lambda (p s) (should (string-equal s "foo"))))
+	   proc (lambda (_p s) (should (string-equal s "foo"))))
 	  (process-send-string proc "foo")
 	  (process-send-eof proc)
 	  (accept-process-output proc 1))
@@ -1147,9 +1153,39 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	(default-directory tramp-test-temporary-file-directory))
     (unwind-protect
 	(with-temp-buffer
-	  (write-region "foo" nil tmp-name)
-	  (shell-command "ls" (current-buffer))
-	  (should (> (point-max) (point-min))))
+	  (write-region "foo" nil tmp-name nil)
+	  (should (file-exists-p tmp-name))
+	  (shell-command
+	   (format "ls %s" (file-name-nondirectory tmp-name)) (current-buffer))
+	  (should
+	   (string-equal
+	    (format "%s\n" (file-name-nondirectory tmp-name)) (buffer-string))))
+      (ignore-errors (delete-file tmp-name)))
+
+    (unwind-protect
+        (with-temp-buffer
+          (write-region "foo" nil tmp-name nil)
+	  (should (file-exists-p tmp-name))
+          (async-shell-command
+	   (format "ls %s" (file-name-nondirectory tmp-name)) (current-buffer))
+	  (sit-for 1 'nodisplay)
+	  (should
+	   (string-equal
+	    (format "%s\n" (file-name-nondirectory tmp-name)) (buffer-string))))
+      (ignore-errors (delete-file tmp-name)))
+
+    (unwind-protect
+	(with-temp-buffer
+          (write-region "foo" nil tmp-name)
+	  (should (file-exists-p tmp-name))
+	  (async-shell-command "read line; ls $line" (current-buffer))
+	  (process-send-string
+	   (get-buffer-process (current-buffer))
+	   (format "%s\n" (file-name-nondirectory tmp-name)))
+	  (sit-for 1 'nodisplay)
+	  (should
+	   (string-equal
+	    (format "%s\n" (file-name-nondirectory tmp-name)) (buffer-string))))
       (ignore-errors (delete-file tmp-name)))))
 
 (ert-deftest tramp-test29-utf8 ()
