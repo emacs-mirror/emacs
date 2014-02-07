@@ -1153,7 +1153,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	(default-directory tramp-test-temporary-file-directory))
     (unwind-protect
 	(with-temp-buffer
-	  (write-region "foo" nil tmp-name nil)
+	  (write-region "foo" nil tmp-name)
 	  (should (file-exists-p tmp-name))
 	  (shell-command
 	   (format "ls %s" (file-name-nondirectory tmp-name)) (current-buffer))
@@ -1164,7 +1164,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
     (unwind-protect
         (with-temp-buffer
-          (write-region "foo" nil tmp-name nil)
+          (write-region "foo" nil tmp-name)
 	  (should (file-exists-p tmp-name))
           (async-shell-command
 	   (format "ls %s" (file-name-nondirectory tmp-name)) (current-buffer))
