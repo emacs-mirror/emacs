@@ -1,3 +1,8 @@
+2014-02-07  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* ietf-drums.el (ietf-drums-parse-address): Don't bug out when called
+	with an empty string.
+
 2014-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-msg.el (gnus-summary-cancel-article): `user-mail-address' is
