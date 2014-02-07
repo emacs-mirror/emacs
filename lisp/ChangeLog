@@ -1,3 +1,8 @@
+2014-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* obsolete/meese.el: Restore as obsolete (deleted 2014-01-11).
+	Disable now non-functional find-file-hook.
+
 2014-02-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-start-file-process): Use "&&"
