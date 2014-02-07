@@ -906,10 +906,14 @@ are obsolete.  Customize the `woman-*' faces instead.
 
 ** Obsolete packages
 
-*** Iswitchb; use icomplete-mode.
++++
+*** iswitchb.el; use icomplete-mode.
 
 ---
 *** longlines.el; use visual-line-mode.
+
+---
+*** meese.el.
 
 +++
 *** sup-mouse.el.
@@ -918,7 +922,7 @@ are obsolete.  Customize the `woman-*' faces instead.
 *** terminal.el; use term.el instead.
 
 ---
-*** the old version of todo-mode.el (now renamed to otodo-mode.el).
+*** the old version of todo-mode.el (renamed to otodo-mode.el).
 
 ---
 *** xesam.el (owing to the cancellation of the XESAM project).

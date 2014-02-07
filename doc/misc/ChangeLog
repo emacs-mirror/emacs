@@ -1,3 +1,7 @@
+2014-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* viper.texi (File and Buffer Handling): Prefer ido to iswitchb.
+
 2014-02-06  Glenn Morris  <rgm@gnu.org>
 
 	* epa.texi (Mail-mode integration): Mention epa-mail-aliases.

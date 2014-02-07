@@ -4064,7 +4064,7 @@ switch in another window.  Buffer completion is supported.
 The variable @var{viper-read-buffer-function} controls which function is
 actually used to read the buffer name. The default is @code{read-buffer},
 but better alternatives are also available in Emacs (e.g.,
-@code{iswitchb-read-buffer}).
+@code{ido-read-buffer}).
 @vindex @var{viper-read-buffer-function}
 @item :B
 Like @kbd{:b}, but the meaning of @var{ex-cycle-other-window} is reversed.

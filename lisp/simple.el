@@ -7766,6 +7766,33 @@ contains the list of implementations currently supported for this command."
            (message ,(format "No implementation selected for command `%s'"
                              command-name)))))))
 
+
+;; This is here because files in obsolete/ are not scanned for autoloads.
+
+(defvar iswitchb-mode nil "\
+Non-nil if Iswitchb mode is enabled.
+See the command `iswitchb-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `iswitchb-mode'.")
+
+(custom-autoload 'iswitchb-mode "iswitchb" nil)
+
+(autoload 'iswitchb-mode "iswitchb" "\
+Toggle Iswitchb mode.
+With a prefix argument ARG, enable Iswitchb mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Iswitchb mode is a global minor mode that enables switching
+between buffers using substrings.  See `iswitchb' for details.
+
+\(fn &optional ARG)" t nil)
+
+(make-obsolete 'iswitchb-mode
+               "use `icomplete-mode' or `ido-mode' instead." "24.4")
+
+
 (provide 'simple)
 
 ;;; simple.el ends here

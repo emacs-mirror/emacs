@@ -1,5 +1,11 @@
 2014-02-07  Glenn Morris  <rgm@gnu.org>
 
+	* obsolete/iswitchb.el: Move to obsolete/.
+	* simple.el (iswitchb-mode): Add manual autoloads to ease transition,
+	since obsolete/ is not scanned for autoloads.
+	* emacs-lisp/authors.el (authors-valid-file-names):
+	Add iswitchb.el.
+
 	* obsolete/meese.el: Restore as obsolete (deleted 2014-01-11).
 	Disable now non-functional find-file-hook.
 

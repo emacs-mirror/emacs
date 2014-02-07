@@ -626,7 +626,7 @@ Changes to files in this list are not listed.")
     "erc-hecomplete.el"
     "eshell/esh-maint.el"
     "language/persian.el"
-    "meese.el"
+    "meese.el" "iswitchb.el"
     "mh-exec.el" "mh-init.el" "mh-customize.el"
     "net/zone-mode.el" "xesam.el"
     "term/mac-win.el" "sup-mouse.el"
