@@ -1,3 +1,7 @@
+2014-02-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (quoted-insert): Check character validity (bug#16677).
+
 2014-02-07  Juri Linkov  <juri@jurta.org>
 
 	* desktop.el (desktop-read): Claim the lock when the owner is not

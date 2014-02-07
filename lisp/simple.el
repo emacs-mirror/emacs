@@ -738,6 +738,9 @@ useful for editing binary files."
     ;;          (>= char ?\240)
     ;;          (<= char ?\377))
     ;;     (setq char (unibyte-char-to-multibyte char)))
+    (unless (characterp char)
+      (user-error "%s is not a valid character"
+		  (key-description (vector char))))
     (if (> arg 0)
 	(if (eq overwrite-mode 'overwrite-mode-binary)
 	    (delete-char arg)))
