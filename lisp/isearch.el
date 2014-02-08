@@ -2301,6 +2301,9 @@ before the command is executed globally with terminated Isearch."
 With argument, add COUNT copies of the character."
   (interactive "p")
   (let ((char (read-quoted-char (isearch-message t))))
+    (unless (characterp char)
+      (user-error "%s is not a valid character"
+		  (key-description (vector char))))
     ;; Assume character codes 0200 - 0377 stand for characters in some
     ;; single-byte character set, and convert them to Emacs
     ;; characters.
