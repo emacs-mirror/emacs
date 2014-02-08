@@ -159,9 +159,11 @@ under another name, you get the existing buffer instead of a new buffer."
   :group 'find-file)
 
 (defcustom find-file-visit-truename nil
-  "Non-nil means visit a file under its truename.
-The truename of a file is found by chasing all links
-both at the file level and at the levels of the containing directories."
+  "Non-nil means visiting a file uses its truename as the visited-file name.
+That is, the buffer visiting the file has the truename as the
+value of `buffer-file-name'.  The truename of a file is found by
+chasing all links both at the file level and at the levels of the
+containing directories."
   :type 'boolean
   :group 'find-file)
 (put 'find-file-visit-truename 'safe-local-variable 'booleanp)

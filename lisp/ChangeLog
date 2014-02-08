@@ -1,5 +1,7 @@
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* files.el (find-file-visit-truename): Doc clarification (bug#14697).
+
 	* isearch.el (isearch-hide-immediately): Doc clarification
 	(bug#14723).
 
