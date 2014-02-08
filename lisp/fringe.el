@@ -152,12 +152,11 @@ See `fringe-mode' for possible values and their effect."
     ("minimal" . (1 . 1)))
   "Alist mapping fringe mode names to fringe widths.
 Each list element has the form (NAME . WIDTH), where NAME is a
-mnemonic fringe mode name (a symbol) and WIDTH is one of the
-following:
+mnemonic fringe mode name and WIDTH is one of the following:
 - nil, which means the default width (8 pixels).
 - a cons cell (LEFT . RIGHT), where LEFT and RIGHT are
   respectively the left and right fringe widths in pixels, or
-  nil (meaning to disable that fringe).
+  nil (meaning the default width).
 - a single integer, which specifies the pixel widths of both
   fringes.")
 
@@ -167,7 +166,7 @@ The Lisp value should be one of the following:
 - nil, which means the default width (8 pixels).
 - a cons cell (LEFT . RIGHT), where LEFT and RIGHT are
   respectively the left and right fringe widths in pixels, or
-  nil (meaning to disable that fringe).
+  nil (meaning the default width).
 - a single integer, which specifies the pixel widths of both
   fringes.
 Note that the actual width may be rounded up to ensure that the
@@ -238,7 +237,7 @@ When used in a Lisp program, MODE should be one of these:
 - nil, which means the default width (8 pixels).
 - a cons cell (LEFT . RIGHT), where LEFT and RIGHT are
   respectively the left and right fringe widths in pixels, or
-  nil (meaning to disable that fringe).
+  nil (meaning the default width).
 - a single integer, which specifies the pixel widths of both
   fringes.
 This command may round up the left and right width specifications
@@ -263,7 +262,7 @@ When used in a Lisp program, MODE should be one of these:
 - nil, which means the default width (8 pixels).
 - a cons cell (LEFT . RIGHT), where LEFT and RIGHT are
   respectively the left and right fringe widths in pixels, or
-  nil (meaning to disable that fringe).
+  nil (meaning the default width).
 - a single integer, which specifies the pixel widths of both
   fringes.
 This command may round up the left and right width specifications

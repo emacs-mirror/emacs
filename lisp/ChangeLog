@@ -1,5 +1,7 @@
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* fringe.el (fringe-styles): Doc fix (bug#15239).
+
 	* isearch.el (isearch-filter-predicate): Documentation typo fix
 	(bug#15474).
 
