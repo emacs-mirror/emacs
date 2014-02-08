@@ -254,7 +254,7 @@ See `find-name-arg' to customize the arguments."
 (defalias 'lookfor-dired 'find-grep-dired)
 ;;;###autoload
 (defun find-grep-dired (dir regexp)
-  "Find files in DIR containing a regexp REGEXP and start Dired on output.
+  "Find files in DIR matching a regexp REGEXP and start Dired on output.
 The command run (after changing into DIR) is
 
   find . \\( -type f -exec `grep-program' `find-grep-options' \\

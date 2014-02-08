@@ -1,6 +1,7 @@
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* find-dired.el (find-name-dired): Doc fix (bug#14290).
+	(find-grep-dired): Doc fix (bug#14288).
 
 2014-02-08  Juri Linkov  <juri@jurta.org>
 
