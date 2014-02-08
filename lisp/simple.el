@@ -6986,12 +6986,10 @@ With prefix argument N, move N items (negative N means move backward)."
 
 (defvar choose-completion-string-functions nil
   "Functions that may override the normal insertion of a completion choice.
-These functions are called in order with four arguments:
+These functions are called in order with three arguments:
 CHOICE - the string to insert in the buffer,
 BUFFER - the buffer in which the choice should be inserted,
-MINI-P - non-nil if BUFFER is a minibuffer, and
-BASE-SIZE - the number of characters in BUFFER before
-the string being completed.
+BASE-POSITION - where to insert the completion.
 
 If a function in the list returns non-nil, that function is supposed
 to have inserted the CHOICE in the BUFFER, and possibly exited
