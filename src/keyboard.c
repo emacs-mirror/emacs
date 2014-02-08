@@ -807,9 +807,13 @@ force_auto_save_soon (void)
 
 DEFUN ("recursive-edit", Frecursive_edit, Srecursive_edit, 0, 0, "",
        doc: /* Invoke the editor command loop recursively.
-To get out of the recursive edit, a command can do `(throw 'exit nil)';
-that tells this function to return.
-Alternatively, `(throw 'exit t)' makes this function signal an error.
+To get out of the recursive edit, a command can throw to `exit' -- for
+instance `(throw 'exit nil)'.
+If you throw a value other than t, `recursive-edit' returns normally
+to the function that called it.  Throwing a t value causes
+`recursive-edit' to quit, so that control returns to the command loop
+one level up
+
 This function is called by the editor initialization to begin editing.  */)
   (void)
 {
