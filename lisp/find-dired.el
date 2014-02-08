@@ -236,9 +236,11 @@ use in place of \"-ls\" as the final argument."
   "Search DIR recursively for files matching the globbing pattern PATTERN,
 and run dired on those files.
 PATTERN is a shell wildcard (not an Emacs regexp) and need not be quoted.
-The command run (after changing into DIR) is
+The default command run (after changing into DIR) is
 
-    find . -name 'PATTERN' -ls"
+    find . -name 'PATTERN' -ls
+
+See `find-name-arg' to customize the arguments."
   (interactive
    "DFind-name (directory): \nsFind-name (filename wildcard): ")
   (find-dired dir (concat find-name-arg " " (shell-quote-argument pattern))))
