@@ -569,8 +569,8 @@ matches literally, against one space.  You can toggle the value of this
 variable by the command `isearch-toggle-lax-whitespace'.")
 
 (defvar isearch-cmds nil
-  "Stack of search status sets.
-Each set is a vector of the form:
+  "Stack of search status elements.
+Each element is an `isearch--state' struct where the slots are
  [STRING MESSAGE POINT SUCCESS FORWARD OTHER-END WORD
   INVALID-REGEXP WRAPPED BARRIER WITHIN-BRACKETS CASE-FOLD-SEARCH]")
 
