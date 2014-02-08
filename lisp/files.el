@@ -4469,6 +4469,8 @@ Uses `backup-directory-alist' in the same way as does
   "Convert FILENAME to be relative to DIRECTORY (default: `default-directory').
 This function returns a relative file name which is equivalent to FILENAME
 when used with that default directory as the default.
+If FILENAME is a relative file name, it will be interpreted as existing in
+`default-directory'.
 If FILENAME and DIRECTORY lie on different machines or on different drives
 on a DOS/Windows machine, it returns FILENAME in expanded form."
   (save-match-data
