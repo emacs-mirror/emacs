@@ -233,16 +233,9 @@ If the value is a function, debug messages are logged by calling
 
 (defcustom auth-sources '("~/.authinfo" "~/.authinfo.gpg" "~/.netrc")
   "List of authentication sources.
-
-The default will get login and password information from
-\"~/.authinfo.gpg\", which you should set up with the EPA/EPG
-packages to be encrypted.  If that file doesn't exist, it will
-try the unencrypted version \"~/.authinfo\" and the famous
-\"~/.netrc\" file.
-
-See the auth.info manual for details.
-
 Each entry is the authentication type with optional properties.
+Entries are tried in the order in which they appear.
+See Info node `(auth)Help for users' for details.
 
 It's best to customize this with `M-x customize-variable' because the choices
 can get pretty complex."

@@ -470,10 +470,10 @@ It returns the number of items forgotten.
 @node GnuPG and EasyPG Assistant Configuration
 @appendix GnuPG and EasyPG Assistant Configuration
 
-If you don't customize @code{auth-sources}, the auth-source library
-reads @file{~/.authinfo.gpg}, which is a GnuPG encrypted file.  Then
-it will check @file{~/.authinfo} but it's not recommended to use such
-an unencrypted file.
+If the @code{auth-sources} variable contains @file{~/.authinfo.gpg}
+before @file{~/.authinfo}, the auth-source library will try to
+read the GnuPG encrypted @file{.gpg} file first, before
+the unencrypted file.
 
 In Emacs 23 or later there is an option @code{auto-encryption-mode} to
 automatically decrypt @file{*.gpg} files.  It is enabled by default.
