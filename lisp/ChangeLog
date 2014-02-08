@@ -1,3 +1,8 @@
+2014-02-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-start-file-process):
+	Insert output at end of buffer.  (Bug#16120)
+
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* simple.el (choose-completion-string-functions): Document new

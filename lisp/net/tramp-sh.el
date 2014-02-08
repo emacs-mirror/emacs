@@ -2758,7 +2758,7 @@ the result will be a local, non-Tramp, filename."
 		;; `verify-visited-file-modtime'.
 		(let ((buffer-undo-list t)
 		      (buffer-read-only nil)
-		      (mark (point)))
+		      (mark (point-max)))
 		  (clear-visited-file-modtime)
 		  (narrow-to-region (point-max) (point-max))
 		  ;; We call `tramp-maybe-open-connection', in order
