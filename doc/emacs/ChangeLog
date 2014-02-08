@@ -1,5 +1,8 @@
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* regs.texi (File Registers): Clarify metasyntactical variables
+	(bug#13565).
+
 	* search.texi (Search Case): Rearrange text slightly to make it
 	obvious that `M-c' also toggles sensitivity if `case-fold-search'
 	is nil (bug#14726).

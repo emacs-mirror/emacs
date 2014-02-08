@@ -240,10 +240,10 @@ numeric argument stores zero in the register.
 
   If you visit certain file names frequently, you can visit them more
 conveniently if you put their names in registers.  Here's the Lisp code
-used to put a file name in a register:
+used to put a file @var{name} into register @var{r}:
 
 @smallexample
-(set-register ?@var{r} '(file . @var{name}))
+(set-register @var{r} '(file . @var{name}))
 @end smallexample
 
 @need 3000
