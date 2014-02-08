@@ -1785,22 +1785,22 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map
       [menu-bar operate epa-dired-do-decrypt]
       '(menu-item "Decrypt..." epa-dired-do-decrypt
-		  :help "Decrypt file at cursor"))
+		  :help "Decrypt current or marked files"))
 
     (define-key map
       [menu-bar operate epa-dired-do-verify]
       '(menu-item "Verify" epa-dired-do-verify
-		  :help "Verify digital signature of file at cursor"))
+		  :help "Verify digital signature of current or marked files"))
 
     (define-key map
       [menu-bar operate epa-dired-do-sign]
       '(menu-item "Sign..." epa-dired-do-sign
-		  :help "Create digital signature of file at cursor"))
+		  :help "Create digital signature of current or marked files"))
 
     (define-key map
       [menu-bar operate epa-dired-do-encrypt]
       '(menu-item "Encrypt..." epa-dired-do-encrypt
-		  :help "Encrypt file at cursor"))
+		  :help "Encrypt current or marked files"))
 
     (define-key map [menu-bar operate dashes-3]
       '("--"))
