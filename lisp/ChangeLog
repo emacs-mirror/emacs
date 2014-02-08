@@ -1,3 +1,9 @@
+2014-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* help-fns.el (describe-variable):
+	Check {file,dir}-local-variables-alist, and buffer-file-name,
+	in the correct buffer.
+
 2014-02-08  Ingo Lohmar  <i.lohmar@gmail.com>
 
 	* help-fns.el (describe-variable): Fix the case where

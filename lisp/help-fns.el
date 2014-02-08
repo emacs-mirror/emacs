@@ -911,13 +911,18 @@ if it is given a local binding.\n")))
 			     (t ".")))
                 (terpri))
 
-	      (when (member (cons variable val) file-local-variables-alist)
+	      (when (member (cons variable val)
+                            (with-current-buffer buffer
+                              file-local-variables-alist))
 		(setq extra-line t)
-		(if (member (cons variable val) dir-local-variables-alist)
-		    (let ((file (and (buffer-file-name)
-                                      (not (file-remote-p (buffer-file-name)))
+		(if (member (cons variable val)
+                             (with-current-buffer buffer
+                               dir-local-variables-alist))
+		    (let ((file (and (buffer-file-name buffer)
+                                      (not (file-remote-p
+                                            (buffer-file-name buffer)))
                                       (dir-locals-find-file
-                                       (buffer-file-name))))
+                                       (buffer-file-name buffer))))
                           (dir-file t))
 		      (princ "  This variable's value is directory-local")
 		      (if (null file)
