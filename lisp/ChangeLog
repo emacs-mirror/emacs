@@ -1,5 +1,7 @@
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* minibuffer.el (read-file-name): Doc clarification (bug#15096).
+
 	* files.el (file-relative-name): Doc fix (bug#15159).
 
 	* fringe.el (fringe-styles): Doc fix (bug#15239).

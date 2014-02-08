@@ -2395,7 +2395,7 @@ such as making the current buffer visit no file in the case of
 
 (defun read-file-name (prompt &optional dir default-filename mustmatch initial predicate)
   "Read file name, prompting with PROMPT and completing in directory DIR.
-Value is not expanded---you must call `expand-file-name' yourself.
+The return value is not expanded---you must call `expand-file-name' yourself.
 
 DIR is the directory to use for completing relative file names.
 It should be an absolute directory name, or nil (which means the
