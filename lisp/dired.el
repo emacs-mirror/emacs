@@ -3140,7 +3140,9 @@ argument or confirmation)."
   (save-excursion (not (dired-move-to-filename))))
 
 (defun dired-next-marked-file (arg &optional wrap opoint)
-  "Move to the next marked file, wrapping around the end of the buffer."
+  "Move to the next marked file.
+If WRAP is non-nil, wrap around to the beginning of the buffer if
+we reach the end."
   (interactive "p\np")
   (or opoint (setq opoint (point)));; return to where interactively started
   (if (if (> arg 0)
@@ -3157,7 +3159,9 @@ argument or confirmation)."
       (dired-next-marked-file arg nil opoint))))
 
 (defun dired-prev-marked-file (arg &optional wrap)
-  "Move to the previous marked file, wrapping around the end of the buffer."
+  "Move to the previous marked file.
+If WRAP is non-nil, wrap around to the end of the buffer if we
+reach the beginning of the buffer."
   (interactive "p\np")
   (dired-next-marked-file (- arg) wrap))
 

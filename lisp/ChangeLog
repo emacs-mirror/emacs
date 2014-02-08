@@ -1,6 +1,7 @@
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* dired.el (dired-mode-map): Make :help text more accurate (bug#14893).
+	(dired-prev-marked-file): Doc fix (bug#14855).
 
 	* minibuffer.el (read-file-name): Doc clarification (bug#15096).
 
