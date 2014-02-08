@@ -1567,13 +1567,11 @@ If the value is non-nil and not a number, we wait 2 seconds."
 (defun execute-extended-command (prefixarg &optional command-name)
   ;; Based on Fexecute_extended_command in keyboard.c of Emacs.
   ;; Aaron S. Hawley <aaron.s.hawley(at)gmail.com> 2009-08-24
-  "Read function name, then read its arguments and call it.
-
-To pass a numeric argument to the command you are invoking, specify
-the numeric argument to this command.
-
+  "Read a command name, then read the arguments and call the command.
+Interactively, to pass a prefix argument to the command you are
+invoking, give a prefix argument to `execute-extended-command'.
 Noninteractively, the argument PREFIXARG is the prefix argument to
-give to the command you invoke, if it asks for an argument."
+give to the command you invoke."
   (interactive (list current-prefix-arg (read-extended-command)))
   ;; Emacs<24 calling-convention was with a single `prefixarg' argument.
   (if (null command-name)

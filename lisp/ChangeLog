@@ -2,6 +2,7 @@
 
 	* simple.el (choose-completion-string-functions): Document new
 	calling convention (bug#14153).
+	(execute-extended-command): Clarify doc string (bug#13373).
 
 	* kmacro.el (kmacro-exec-ring-item): Doc fix (bug#14198).
 
