@@ -185,6 +185,9 @@ See the end of the file for license conditions.
 
 * GnuTLS support
 
+  GnuTLS provides SSL/TLS network support for Emacs (https, imaps and
+  so on.)
+
   In order to support GnuTLS at runtime, Emacs must be able to find
   the relevant DLLs during startup; failure to do so is not an error,
   but GnuTLS won't be available to the running session.
@@ -193,6 +196,9 @@ See the end of the file for license conditions.
   http://sourceforge.net/projects/ezwinports/files/.
 
 * libxml2 support
+
+  libxml2 provides HTML parsing support for Emacs, which is necessary
+  to use the built-in eww browser.
 
   In order to support libxml2 at runtime, a libxml2-enabled Emacs must
   be able to find the relevant DLLs during startup; failure to do so

@@ -1,3 +1,7 @@
+2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* README.W32: Say what GnuTLS and libxml2 does (bug#14762).
+
 2014-01-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* runemacs.c (ensure_unicows_dll): Don't tell in the message box
