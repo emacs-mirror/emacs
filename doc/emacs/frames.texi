@@ -136,7 +136,7 @@ the position where you clicked and inserts the contents of the primary
 selection (@code{mouse-yank-primary}).  @xref{Primary Selection}.
 This behavior is consistent with other X applications.  Alternatively,
 you can rebind @kbd{Mouse-2} to @code{mouse-yank-at-click}, which
-performs a yank at point.
+performs a yank at the position you click.
 
 @vindex mouse-yank-at-point
   If you change the variable @code{mouse-yank-at-point} to a
