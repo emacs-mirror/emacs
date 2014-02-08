@@ -1,5 +1,8 @@
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* replace.el (replace-match-maybe-edit): Doc clarification
+	(bug#15632).
+
 	* subr.el (add-to-list): Refill the paragraphs (bug#15791).
 
 	* macros.el (insert-kbd-macro): Doc fix (bug#16025).
