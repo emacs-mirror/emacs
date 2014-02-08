@@ -2169,6 +2169,7 @@ font matching those wildcards.  Specifying this attribute also changes
 the values of the @code{:family}, @code{:foundry}, @code{:width},
 @code{:height}, @code{:weight}, and @code{:slant} attributes.
 
+@cindex inheritance, for faces
 @item :inherit
 The name of a face from which to inherit attributes, or a list of face
 names.  Attributes from inherited faces are merged into the face like

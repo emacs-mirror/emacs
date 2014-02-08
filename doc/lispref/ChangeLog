@@ -1,5 +1,7 @@
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* display.texi (Face Attributes): Add an index (bug#14924).
+
 	* keymaps.texi (Menu Bar): Minor clarification (bug#15657).
 
 2014-02-06  Glenn Morris  <rgm@gnu.org>
