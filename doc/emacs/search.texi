@@ -1038,12 +1038,6 @@ the search case-sensitive.  Thus, searching for @samp{Foo} does not find
 well as to string search.  The effect ceases if you delete the
 upper-case letter from the search string.
 
-  Typing @kbd{M-c} within an incremental search toggles the case
-sensitivity of that search.  The effect does not extend beyond the
-current incremental search to the next one, but it does override the
-effect of adding or removing an upper-case letter in the current
-search.
-
 @vindex case-fold-search
   If you set the variable @code{case-fold-search} to @code{nil}, then
 all letters must match exactly, including case.  This is a per-buffer
@@ -1052,6 +1046,12 @@ unless you change its default value.  @xref{Locals}.
 This variable applies to nonincremental searches also, including those
 performed by the replace commands (@pxref{Replace}) and the minibuffer
 history matching commands (@pxref{Minibuffer History}).
+
+  Typing @kbd{M-c} within an incremental search toggles the case
+sensitivity of that search.  The effect does not extend beyond the
+current incremental search to the next one, but it does override the
+effect of adding or removing an upper-case letter in the current
+search.
 
   Several related variables control case-sensitivity of searching and
 matching for specific commands or activities.  For instance,

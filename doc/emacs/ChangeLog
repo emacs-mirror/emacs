@@ -1,5 +1,9 @@
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* search.texi (Search Case): Rearrange text slightly to make it
+	obvious that `M-c' also toggles sensitivity if `case-fold-search'
+	is nil (bug#14726).
+
 	* frames.texi (Mouse Commands): Clarify `mouse-yank-at-click'
 	(bug#16376).
 
