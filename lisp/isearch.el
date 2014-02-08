@@ -188,7 +188,7 @@ or to the end of the buffer for a backward search.")
 to the search status stack.")
 
 (defvar isearch-filter-predicate #'isearch-filter-visible
-  "Predicate that filter the search hits that would normally be available.
+  "Predicate that filters the search hits that would normally be available.
 Search hits that dissatisfy the predicate are skipped.  The function
 has two arguments: the positions of start and end of text matched by
 the search.  If this function returns nil, continue searching without
