@@ -1,5 +1,7 @@
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* info-look.el (info-lookup-symbol): Document MODE (bug#15498).
+
 	* isearch.el (isearch-cmds): Doc clarification (bug#15547).
 
 	* replace.el (replace-match-maybe-edit): Doc clarification
