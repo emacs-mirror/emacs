@@ -930,7 +930,8 @@ if it is given a local binding.\n")))
                                 (setq file (expand-file-name
                                             dir-locals-file (car file)))
                               ;; Otherwise, assume it was set directly.
-                              (setq dir-file nil)))
+                              (setq file (car file)
+                                    dir-file nil)))
 			(princ (if dir-file
 				   "by the file\n  `"
 				 "for the directory\n  `"))
