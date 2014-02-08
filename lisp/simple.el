@@ -5113,6 +5113,12 @@ The value is a floating-point number."
 ;; a cleaner solution to the problem of making C-n do something
 ;; useful given a tall image.
 (defun line-move (arg &optional noerror to-end try-vscroll)
+  "Move forward ARG lines.
+If NOERROR, don't signal an error if we can't move ARG lines.
+TO-END is unused.
+TRY-VSCROLL controls whether to vscroll tall lines: if either
+`auto-window-vscroll' or TRY-VSCROLL is nil, this function will
+not vscroll."
   (if noninteractive
       (forward-line arg)
     (unless (and auto-window-vscroll try-vscroll
@@ -5162,6 +5168,8 @@ The value is a floating-point number."
 ;; Arg says how many lines to move.  The value is t if we can move the
 ;; specified number of lines.
 (defun line-move-visual (arg &optional noerror)
+  "Move ARG lines forward.
+If NOERROR, don't signal an error if we can't move that many lines."
   (let ((opoint (point))
 	(hscroll (window-hscroll))
 	target-hscroll)

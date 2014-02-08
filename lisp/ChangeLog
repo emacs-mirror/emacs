@@ -1,5 +1,8 @@
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* simple.el (line-move): Document utility function used many
+	places in the Emacs sources (bug#14843).
+
 	* dired.el (dired-mode-map): Make :help text more accurate (bug#14893).
 	(dired-prev-marked-file): Doc fix (bug#14855).
 	(dired-up-directory): Doc fix (bug#14848).
