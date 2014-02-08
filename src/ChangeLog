@@ -1,5 +1,7 @@
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* syntax.c (Fskip_syntax_backward): Doc clarification (bug#15115).
+
 	* minibuf.c (Fread_string): Doc clarification (bug#15422).
 
 	* buffer.c (Fmake_overlay): Doc clarification (bug#15489).
