@@ -812,7 +812,7 @@ instance `(throw 'exit nil)'.
 If you throw a value other than t, `recursive-edit' returns normally
 to the function that called it.  Throwing a t value causes
 `recursive-edit' to quit, so that control returns to the command loop
-one level up
+one level up.
 
 This function is called by the editor initialization to begin editing.  */)
   (void)
