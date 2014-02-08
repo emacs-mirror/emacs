@@ -568,6 +568,14 @@ Windows 9X as well).
   libraries that are known to be compatible with the version given by
   `libgif-version'.
 
+  For JPEG images, you will need libjpeg 6b or later, which will be
+  called libjpeg-N.dll, jpeg62.dll, libjpeg.dll, or jpeg.dll.  You can
+  find these on the ezwinports site.
+
+  TIFF images require libTIFF 3.0 or later, which will be called
+  libtiffN.dll or libtiff-N.dll or libtiff.dll.  These can be found on
+  the ezwinports site.
+
   Pre-built versions of librsvg and its dependencies can be found in
   one of these places:
 

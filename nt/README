@@ -25,15 +25,17 @@
   Building and installing Emacs will produce the following executable
   files in the bin directory.
 
-  + emacs.exe - The main Emacs executable. As this is designed to run
+  + emacs.exe - The main Emacs executable.  As this is designed to run
     as both a text-mode application (emacs -nw) and as a GUI application,
     it will pop up a command prompt window if run directly from Explorer.
 
   + runemacs.exe - A wrapper for running Emacs as a GUI application
-    without popping up a command prompt window.
+    without popping up a command prompt window.  If you create a
+    desktop shortcut for invoking Emacs, make it point to this
+    executable, not to emacs.exe.
 
   + emacsclient.exe - A command-line client program that can
-    communicate with a running Emacs process. See the `Emacs Server'
+    communicate with a running Emacs process.  See the `Emacs Server'
     node of the Emacs manual.
 
   + emacsclientw.exe - A version of emacsclient that does not open
@@ -42,14 +44,17 @@
   + addpm.exe - A basic installer that creates Start Menu icons for Emacs.
     Running this is optional.
 
-  + cmdproxy.exe - Used internally by Emacs to work around problems with
-    the native shells in various versions of Windows.
-
   + ctags.exe, etags.exe - Tools for generating tag files.  See the
-  `Tags' node of the Emacs manual.
+    `Tags' node of the Emacs manual.
 
   + ebrowse.exe - A tool for generating C++ browse information.  See the
     `Ebrowse' manual.
+
+  Several helper programs are installed in a version-specific
+  subdirectory of the libexec directory:
+
+  + cmdproxy.exe - Used internally by Emacs to work around problems with
+    the native shells in various versions of Windows.
 
   + ddeclient.exe - A tool for interacting with DDE servers.  To be
     invoked as "ddeclient SERVER [TOPIC]", where SERVER is the DDE
@@ -58,12 +63,18 @@
     supposed to be invoked via the 'call-process-region' Emacs
     primitive.
 
-  + hexl.exe - A tool for converting files to hex dumps.  See the
+  + hexl.exe - A tool for producing hex dumps of binary files.  See the
     `Editing Binary Files' node of the Emacs manual.
 
   + movemail.exe - A helper application for safely moving mail from
     a mail spool or POP server to a local user mailbox.  See the
     `Movemail' node of the Emacs manual.
+
+  + profile.exe - A helper program that generates periodic events for
+    profiling Emacs Lisp code.
+
+  + update-game-score.exe - A utility for updating the score files of
+    Emacs games.
 
 * Further information
 
