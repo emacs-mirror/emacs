@@ -1,5 +1,7 @@
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* minibuf.c (Fread_string): Doc clarification (bug#15422).
+
 	* buffer.c (Fmake_overlay): Doc clarification (bug#15489).
 
 2014-02-08  Juanma Barranquero  <lekktu@gmail.com>
