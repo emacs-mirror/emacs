@@ -147,9 +147,9 @@ whenever point is in one of them."
 (defcustom isearch-hide-immediately t
   "If non-nil, re-hide an invisible match right away.
 This variable makes a difference when `search-invisible' is set to `open'.
-It means that after search makes some invisible text visible
-to show the match, it makes the text invisible again when the match moves.
-Ordinarily the text becomes invisible again at the end of the search."
+If nil then do not re-hide opened invisible text when the match moves.
+Whatever the value, all opened invisible text is hidden again after exiting
+the search."
   :type 'boolean
   :group 'isearch)
 
