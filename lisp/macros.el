@@ -51,7 +51,8 @@ Such a \"function\" cannot be called from Lisp, but it is a valid editor command
 
 ;;;###autoload
 (defun insert-kbd-macro (macroname &optional keys)
-  "Insert in buffer the definition of kbd macro NAME, as Lisp code.
+  "Insert in buffer the definition of kbd macro MACRONAME, as Lisp code.
+MACRONAME should be a symbol.
 Optional second arg KEYS means also record the keys it is on
 \(this is the prefix argument, when calling interactively).
 
