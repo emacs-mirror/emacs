@@ -3830,7 +3830,7 @@ DEFUN ("overlayp", Foverlayp, Soverlayp, 1, 1, 0,
 }
 
 DEFUN ("make-overlay", Fmake_overlay, Smake_overlay, 2, 5, 0,
-       doc: /* Create a new overlay with range BEG to END in BUFFER.
+       doc: /* Create a new overlay with range BEG to END in BUFFER and return it.
 If omitted, BUFFER defaults to the current buffer.
 BEG and END may be integers or markers.
 The fourth arg FRONT-ADVANCE, if non-nil, makes the marker
