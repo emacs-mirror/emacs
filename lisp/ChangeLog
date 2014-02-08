@@ -1,3 +1,8 @@
+2014-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* abbrev.el (edit-abbrevs-mode):
+	Derive from fundamental-mode.  (Bug#16682)
+
 2014-02-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* simple.el (quoted-insert): Check character validity (bug#16677).
