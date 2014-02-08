@@ -1500,8 +1500,8 @@ FUN is then called once."
 
 (defun add-to-list (list-var element &optional append compare-fn)
   "Add ELEMENT to the value of LIST-VAR if it isn't there yet.
-The test for presence of ELEMENT is done with `equal',
-or with COMPARE-FN if that's non-nil.
+The test for presence of ELEMENT is done with `equal', or with
+COMPARE-FN if that's non-nil.
 If ELEMENT is added, it is added at the beginning of the list,
 unless the optional argument APPEND is non-nil, in which case
 ELEMENT is added at the end.
@@ -1509,14 +1509,15 @@ ELEMENT is added at the end.
 The return value is the new value of LIST-VAR.
 
 This is handy to add some elements to configuration variables,
-but please do not abuse it in Elisp code, where you are usually better off
-using `push' or `cl-pushnew'.
+but please do not abuse it in Elisp code, where you are usually
+better off using `push' or `cl-pushnew'.
 
-If you want to use `add-to-list' on a variable that is not defined
-until a certain package is loaded, you should put the call to `add-to-list'
-into a hook function that will be run only after loading the package.
-`eval-after-load' provides one way to do this.  In some cases
-other hooks, such as major mode hooks, can do the job."
+If you want to use `add-to-list' on a variable that is not
+defined until a certain package is loaded, you should put the
+call to `add-to-list' into a hook function that will be run only
+after loading the package.  `eval-after-load' provides one way to
+do this.  In some cases other hooks, such as major mode hooks,
+can do the job."
   (declare
    (compiler-macro
     (lambda (exp)
