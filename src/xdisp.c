@@ -30138,8 +30138,8 @@ Bind this around calls to `message' to let it take effect.  */);
   DEFVAR_LISP ("menu-bar-update-hook",  Vmenu_bar_update_hook,
     doc: /* Normal hook run to update the menu bar definitions.
 Redisplay runs this hook before it redisplays the menu bar.
-This is used to update submenus such as Buffers,
-whose contents depend on various data.  */);
+This is used to update menus such as Buffers, whose contents depend on
+various data.  */);
   Vmenu_bar_update_hook = Qnil;
 
   DEFVAR_LISP ("menu-updating-frame", Vmenu_updating_frame,

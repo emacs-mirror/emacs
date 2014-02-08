@@ -1,5 +1,7 @@
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* xdisp.c (syms_of_xdisp): Doc clarification (bug#15657).
+
 	* keyboard.c (Frecursive_edit): Say more precicely how throwing
 	`exit' works (bug#15865).
 

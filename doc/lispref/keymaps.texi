@@ -2559,7 +2559,7 @@ at the end of the menu bar, following local menu items.
 
 @defvar menu-bar-update-hook
 This normal hook is run by redisplay to update the menu bar contents,
-before redisplaying the menu bar.  You can use it to update submenus
+before redisplaying the menu bar.  You can use it to update menus
 whose contents should vary.  Since this hook is run frequently, we
 advise you to ensure that the functions it calls do not take much time
 in the usual case.
