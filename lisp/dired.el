@@ -2045,7 +2045,9 @@ Optional prefix ARG says how many lines to move; default is one line."
 (defun dired-up-directory (&optional other-window)
   "Run Dired on parent directory of current directory.
 Find the parent directory either in this buffer or another buffer.
-Creates a buffer if necessary."
+Creates a buffer if necessary.
+If OTHER-WINDOW (the optional prefix arg), display the parent
+directory in another window."
   (interactive "P")
   (let* ((dir (dired-current-directory))
 	 (up (file-name-directory (directory-file-name dir))))

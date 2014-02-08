@@ -2,6 +2,7 @@
 
 	* dired.el (dired-mode-map): Make :help text more accurate (bug#14893).
 	(dired-prev-marked-file): Doc fix (bug#14855).
+	(dired-up-directory): Doc fix (bug#14848).
 
 	* minibuffer.el (read-file-name): Doc clarification (bug#15096).
 
