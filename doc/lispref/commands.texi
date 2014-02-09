@@ -1934,9 +1934,12 @@ must be the last element of the list.  For example,
 @node Accessing Mouse
 @subsection Accessing Mouse Events
 @cindex mouse events, data in
+@cindex keyboard events, data in
 
   This section describes convenient functions for accessing the data in
-a mouse button or motion event.
+a mouse button or motion event.  Keyboard event data can be accessed
+using the same functions, but data elements that aren't applicable to
+keyboard events are zero or @code{nil}.
 
   The following two functions return a mouse position list
 (@pxref{Click Events}), specifying the position of a mouse event.

@@ -1019,38 +1019,36 @@ in the current Emacs session, then this function may return nil."
 
 (defun event-start (event)
   "Return the starting position of EVENT.
-EVENT should be a click, drag, or key press event.
-If it is a key press event, the return value has the form
-    (WINDOW POS (0 . 0) 0)
-If it is a click or drag event, it has the form
-   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
-    IMAGE (DX . DY) (WIDTH . HEIGHT))
-The `posn-' functions access elements of such lists.
-For more information, see Info node `(elisp)Click Events'.
+EVENT should be a mouse click, drag, or key press event.
 
-If EVENT is a mouse or key press or a mouse click, this is the
-position of the event.  If EVENT is a drag, this is the starting
-position of the drag."
+The following accessor functions are used to access the elements
+of the position:
+
+`posn-window': The window the event is in.
+`posn-area': A symbol identifying the area the event occurred in,
+or nil if the event occurred in the text area.
+`posn-point': The buffer position of the event.
+`posn-x-y': The pixel-based coordiates of the event.
+`posn-col-row': The estimated column and row corresponding to the
+position of the event.
+`posn-actual-col-row': The actual column and row corresponding to the
+position of the event.
+`posn-string': The string object of the event, which is either
+nil or (STRING . POSITION)'.
+`posn-image': The image object of the event, if any.
+`posn-object': The image or string object of the event, if any.
+`posn-timestamp': The time the event occurred, in milliseconds.
+
+For more information, see Info node `(elisp)Click Events'."
   (if (consp event) (nth 1 event)
     (or (posn-at-point)
         (list (selected-window) (point) '(0 . 0) 0))))
 
 (defun event-end (event)
-  "Return the ending location of EVENT.
+  "Return the ending position of EVENT.
 EVENT should be a click, drag, or key press event.
-If EVENT is a key press event, the return value has the form
-    (WINDOW POS (0 . 0) 0)
-If EVENT is a click event, this function is the same as
-`event-start'.  For click and drag events, the return value has
-the form
-   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
-    IMAGE (DX . DY) (WIDTH . HEIGHT))
-The `posn-' functions access elements of such lists.
-For more information, see Info node `(elisp)Click Events'.
 
-If EVENT is a mouse or key press or a mouse click, this is the
-position of the event.  If EVENT is a drag, this is the starting
-position of the drag."
+See `event-start' for a description of the value returned."
   (if (consp event) (nth (if (consp (nth 2 event)) 2 1) event)
     (or (posn-at-point)
         (list (selected-window) (point) '(0 . 0) 0))))

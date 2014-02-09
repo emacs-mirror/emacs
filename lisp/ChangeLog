@@ -1,3 +1,8 @@
+2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* subr.el (event-start): Doc fix (bug#14228).
+	(event-end): Ditto.
+
 2014-02-09  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/warnings.el (lwarn):
