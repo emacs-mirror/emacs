@@ -1,3 +1,9 @@
+2014-02-09  Alan Mackenzie  <acm@muc.de>
+
+	Fix c-invalidate-state-cache on narrowed buffers.
+	* progmodes/cc-defs.el (c-with-all-but-one-cpps-commented-out):
+	Widen when setting and clearing the CPP delimiter properties.
+
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* help.el (describe-bindings): Doc fix (bug#9888).
