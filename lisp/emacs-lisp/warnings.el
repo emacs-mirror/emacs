@@ -306,9 +306,12 @@ See also `warning-series', `warning-prefix-function' and
 		       (set-window-start window warning-series))
 		     (sit-for 0))))))))
 
+;; Use \\<special-mode-map> so that help-enable-auto-load can do its thing.
+;; Any keymap that is defined will do.
 ;;;###autoload
 (defun lwarn (type level message &rest args)
   "Display a warning message made from (format MESSAGE ARGS...).
+\\<special-mode-map>
 Aside from generating the message with `format',
 this is equivalent to `display-warning'.
 
