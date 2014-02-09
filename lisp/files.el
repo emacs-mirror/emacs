@@ -1910,10 +1910,12 @@ the various files."
 			      (eq read-only buffer-file-read-only)
 			      (eq read-only buffer-read-only))
 		    (when (or nowarn
-			      (let ((question
-				     (format "File %s is %s on disk.  Change buffer mode? "
-					     buffer-file-name
-					     (if read-only "read-only" "writable"))))
+			      (let* ((new-status
+				      (if read-only "read-only" "writable"))
+				     (question
+				      (format "File %s is %s on disk.  Make buffer %s, too? "
+					      buffer-file-name
+					      new-status new-status)))
 				(y-or-n-p question)))
 		      (setq buffer-read-only read-only)))
 		  (setq buffer-file-read-only read-only))

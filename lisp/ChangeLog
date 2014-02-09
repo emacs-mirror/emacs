@@ -1,5 +1,8 @@
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* files.el (find-file-noselect): Clarify prompt when changing
+	readedness (bug#13261).
+
 	* dired.el (dired-internal-do-deletions): Don't say "Deleting..."
 	before we actually start to delete things (bug#16331).
 
