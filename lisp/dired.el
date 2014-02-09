@@ -2905,11 +2905,7 @@ non-empty directories is allowed."
   (let* ((files (mapcar (function car) l))
 	 (count (length l))
 	 (succ 0)
-	 (trashing (and trash delete-by-moving-to-trash))
-	 (progress-reporter
-	  (make-progress-reporter
-	   (if trashing "Trashing..." "Deleting...")
-	   succ count)))
+	 (trashing (and trash delete-by-moving-to-trash)))
     ;; canonicalize file list for pop up
     (setq files (nreverse (mapcar (function dired-make-relative) files)))
     (if (dired-mark-pop-up
@@ -2918,7 +2914,11 @@ non-empty directories is allowed."
 		 (if trashing "Trash" "Delete")
 		 (dired-mark-prompt arg files)))
 	(save-excursion
-	  (let (failures);; files better be in reverse order for this loop!
+	  (let ((progress-reporter
+		 (make-progress-reporter
+		  (if trashing "Trashing..." "Deleting...")
+		  succ count))
+		failures) ;; files better be in reverse order for this loop!
 	    (while l
 	      (goto-char (cdr (car l)))
 	      (let ((inhibit-read-only t))
@@ -2931,7 +2931,7 @@ non-empty directories is allowed."
 		      (dired-fun-in-all-buffers
 		       (file-name-directory fn) (file-name-nondirectory fn)
 		       (function dired-delete-entry) fn))
-		  (error;; catch errors from failed deletions
+		  (error ;; catch errors from failed deletions
 		   (dired-log "%s\n" err)
 		   (setq failures (cons (car (car l)) failures)))))
 	      (setq l (cdr l)))

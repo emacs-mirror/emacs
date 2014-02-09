@@ -1,5 +1,8 @@
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* dired.el (dired-internal-do-deletions): Don't say "Deleting..."
+	before we actually start to delete things (bug#16331).
+
 	* subr.el (event-start): Doc fix (bug#14228).
 	(event-end): Ditto.
 
