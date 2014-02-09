@@ -1530,7 +1530,8 @@ not for everybody."
 Optional NAME is the name of the buffer.
 OPTIONS should be an alist of the form ((SYMBOL WIDGET)...), where
 SYMBOL is a customization option, and WIDGET is a widget for editing
-that option."
+that option.
+DESCRIPTION is unused."
   (pop-to-buffer-same-window (custom-get-fresh-buffer (or name "*Customization*")))
   (custom-buffer-create-internal options description))
 
