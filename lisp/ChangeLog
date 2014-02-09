@@ -4,6 +4,7 @@
 	readedness (bug#13261).
 	(locate-file): Suffixes aren't returned, so don't say that they
 	are (bug#12674).
+	(backup-inhibited): Doc clarification (bug#12525).
 
 	* dired.el (dired-internal-do-deletions): Don't say "Deleting..."
 	before we actually start to delete things (bug#16331).

@@ -96,9 +96,9 @@ The choice of renaming or copying is controlled by the variables
 ;; Do this so that local variables based on the file name
 ;; are not overridden by the major mode.
 (defvar backup-inhibited nil
-  "Non-nil means don't make a backup, regardless of the other parameters.
-This variable is intended for use by making it local to a buffer.
-But it is local only if you make it local.")
+  "If non-nil, backups will be inhibited.
+This variable is intended for use by making it local to a buffer,
+but it is not an automatically buffer-local variable.")
 (put 'backup-inhibited 'permanent-local t)
 
 (defcustom backup-by-copying nil
