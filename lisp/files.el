@@ -4539,7 +4539,7 @@ on a DOS/Windows machine, it returns FILENAME in expanded form."
             ;; We matched FILENAME's directory equivalent.
             ancestor))))))
 
-(defun save-buffer (&optional args)
+(defun save-buffer (&optional arg)
   "Save current buffer in visited file if modified.
 Variations are described below.
 
@@ -4577,9 +4577,9 @@ If `vc-make-backup-files' is nil, which is the default,
 See the subroutine `basic-save-buffer' for more information."
   (interactive "p")
   (let ((modp (buffer-modified-p))
-	(make-backup-files (or (and make-backup-files (not (eq args 0)))
-			       (memq args '(16 64)))))
-    (and modp (memq args '(16 64)) (setq buffer-backed-up nil))
+	(make-backup-files (or (and make-backup-files (not (eq arg 0)))
+			       (memq arg '(16 64)))))
+    (and modp (memq arg '(16 64)) (setq buffer-backed-up nil))
     ;; We used to display the message below only for files > 50KB, but
     ;; then Rmail-mbox never displays it due to buffer swapping.  If
     ;; the test is ever re-introduced, be sure to handle saving of
@@ -4587,7 +4587,7 @@ See the subroutine `basic-save-buffer' for more information."
     (if (and modp (buffer-file-name))
 	(message "Saving file %s..." (buffer-file-name)))
     (basic-save-buffer)
-    (and modp (memq args '(4 64)) (setq buffer-backed-up nil))))
+    (and modp (memq arg '(4 64)) (setq buffer-backed-up nil))))
 
 (defun delete-auto-save-file-if-necessary (&optional force)
   "Delete auto-save file for current buffer if `delete-auto-save-files' is t.

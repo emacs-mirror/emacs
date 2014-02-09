@@ -1,5 +1,8 @@
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* files.el (save-buffer): Use ARG as the parameter name for
+	consistency (bug#10346).
+
 	* cus-edit.el (customize-apropos): Fix error string.
 	(custom-buffer-create): Doc fix (bug#11122).
 	(custom-sort-items): Doc fix (bug#11121).
