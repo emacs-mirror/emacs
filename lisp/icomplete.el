@@ -150,8 +150,9 @@ icompletion is occurring."
 (defcustom icomplete-with-completion-tables t
   "Specialized completion tables with which icomplete should operate.
 
-Icomplete does not operate with any specialized completion tables
-except those on this list."
+If this variable is a list, Icomplete will not operate with any
+specialized completion tables except those on this list.  If this
+variable is t, it won't restrict completion tables."
   :version "24.4"
   :type '(choice (const :tag "All" t)
           (repeat function)))
