@@ -1,5 +1,7 @@
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* display.texi (Blinking): Clarify doc string in example (bug#10658).
+
 	* commands.texi (Accessing Mouse): Mention that these function
 	also work on keyboard events (bug#14228).
 	(Quitting): Refer to the right node for `set-input-mode' (bug#11458).

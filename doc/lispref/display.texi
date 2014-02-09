@@ -5848,7 +5848,7 @@ Here is an example of calling this function explicitly.
 @smallexample
 @group
 (defun interactive-blink-matching-open ()
-  "Indicate momentarily the start of sexp before point."
+  "Indicate momentarily the start of parenthesized sexp before point."
   (interactive)
 @end group
 @group
