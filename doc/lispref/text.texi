@@ -2866,11 +2866,10 @@ zero-based indices into the string.
 @code{propertize}:
 
 @defun propertize string &rest properties
-This function returns a copy of @var{string} which has the text
-properties @var{properties}.  These properties apply to all the
-characters in the string that is returned.  Here is an example that
-constructs a string with a @code{face} property and a @code{mouse-face}
-property:
+This function returns a copy of @var{string} with the text properties
+@var{properties} added.  These properties apply to all the characters
+in the string that is returned.  Here is an example that constructs a
+string with a @code{face} property and a @code{mouse-face} property:
 
 @smallexample
 (propertize "foo" 'face 'italic

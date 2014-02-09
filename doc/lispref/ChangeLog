@@ -1,5 +1,7 @@
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* text.texi (Changing Properties): Clarify `propertize' (bug#9825).
+
 	* display.texi (Blinking): Clarify doc string in example (bug#10658).
 
 	* commands.texi (Accessing Mouse): Mention that these function
