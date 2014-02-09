@@ -1,5 +1,8 @@
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* dired-aux.el (dired-copy-file-recursive): Remove slighly
+	misleading comment (bug#11328).
+
 	* repeat.el (repeat-message-function): Reword doc slightly (bug#11619).
 
 	* icomplete.el (icomplete-with-completion-tables): Doc fix (bug#11654).
