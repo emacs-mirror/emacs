@@ -1,5 +1,7 @@
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* help.el (describe-bindings): Doc fix (bug#9888).
+
 	* files.el (save-buffer): Use ARG as the parameter name for
 	consistency (bug#10346).
 	(save-buffer): Clarify the 0 argument (bug#10346).
