@@ -1,5 +1,7 @@
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* repeat.el (repeat-message-function): Reword doc slightly (bug#11619).
+
 	* icomplete.el (icomplete-with-completion-tables): Doc fix (bug#11654).
 	(icomplete-simple-completing-p): Mention the previous variable.
 

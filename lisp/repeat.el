@@ -109,9 +109,9 @@
 (defvar repeat-message-function nil
   "If non-nil, function used by `repeat' command to say what it's doing.
 Message is something like \"Repeating command glorp\".
-To disable such messages, set this variable to `ignore'.  To customize
-display, assign a function that takes one string as an arg and displays
-it however you want.")
+A value of `ignore' will disable such messages.  To customize
+display, assign a function that takes one string as an arg and
+displays it however you want.")
 
 (defcustom repeat-on-final-keystroke t
   "Allow `repeat' to re-execute for repeating lastchar of a key sequence.
