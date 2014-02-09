@@ -1,5 +1,8 @@
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* cmds.c (Fself_insert_command): Output a clearer error message on
+	negative repetitions (bug#9476).
+
 	* macros.c (Fexecute_kbd_macro): Doc fix (bug#14206).
 
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>

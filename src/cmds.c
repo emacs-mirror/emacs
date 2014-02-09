@@ -268,6 +268,7 @@ static int nonundocount;
 DEFUN ("self-insert-command", Fself_insert_command, Sself_insert_command, 1, 1, "p",
        doc: /* Insert the character you type.
 Whichever character you type to run this command is inserted.
+The numeric prefix argument N says how many times to repeat the insertion.
 Before insertion, `expand-abbrev' is executed if the inserted character does
 not have word syntax and the previous character in the buffer does.
 After insertion, the value of `auto-fill-function' is called if the
@@ -276,7 +277,11 @@ At the end, it runs `post-self-insert-hook'.  */)
   (Lisp_Object n)
 {
   bool remove_boundary = 1;
-  CHECK_NATNUM (n);
+  CHECK_NUMBER (n);
+
+  if (XFASTINT (n) < 1)
+    error ("Repetition argument is %d, but must be higher than 0.",
+	   XFASTINT (n));
 
   if (!EQ (Vthis_command, KVAR (current_kboard, Vlast_command)))
     nonundocount = 0;
