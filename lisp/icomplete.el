@@ -237,7 +237,8 @@ Conditions are:
    and not in the middle of macro execution,
    and the completion table is not a function (which would
        indicate some non-standard, non-simple completion mechanism,
-       like file-name and other custom-func completions)."
+       like file-name and other custom-func completions),
+   and `icomplete-with-completion-tables' doesn't restrict completion."
 
   (unless executing-kbd-macro
     (let ((table (icomplete--completion-table)))
