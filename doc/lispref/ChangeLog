@@ -2,6 +2,7 @@
 
 	* commands.texi (Accessing Mouse): Mention that these function
 	also work on keyboard events (bug#14228).
+	(Quitting): Refer to the right node for `set-input-mode' (bug#11458).
 
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 

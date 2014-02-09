@@ -3047,7 +3047,7 @@ in @ref{Errors}.)
 @end deffn
 
   You can specify a character other than @kbd{C-g} to use for quitting.
-See the function @code{set-input-mode} in @ref{Terminal Input}.
+See the function @code{set-input-mode} in @ref{Input Modes}.
 
 @node Prefix Command Arguments
 @section Prefix Command Arguments
