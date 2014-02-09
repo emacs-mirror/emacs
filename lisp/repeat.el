@@ -111,7 +111,9 @@
 Message is something like \"Repeating command glorp\".
 A value of `ignore' will disable such messages.  To customize
 display, assign a function that takes one string as an arg and
-displays it however you want.")
+displays it however you want.
+If this variable is nil, the normal `message' function will be
+used to display the messages.")
 
 (defcustom repeat-on-final-keystroke t
   "Allow `repeat' to re-execute for repeating lastchar of a key sequence.
