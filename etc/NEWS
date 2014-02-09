@@ -937,6 +937,7 @@ are obsolete.  Customize the `woman-*' faces instead.
 ** New package `eww' is a built-in web browser.
 It is only available if Emacs is compiled with libxml2 support.
 
++++
 ** New minor mode `superword-mode'.
 This overrides the default word motion commands to treat "symbol_words"
 as a single word, similar to what `subword-mode' does.
