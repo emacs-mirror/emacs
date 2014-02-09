@@ -4553,7 +4553,7 @@ Prefixed with three \\[universal-argument]'s, marks this version
  to become a backup when the next save is done,
  and unconditionally makes the previous version into a backup file.
 
-With a numeric argument of 0, never make the previous version
+With a numeric prefix argument of 0, never make the previous version
 into a backup file.
 
 If a file's name is FOO, the names of its numbered backup versions are

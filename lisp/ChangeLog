@@ -2,6 +2,7 @@
 
 	* files.el (save-buffer): Use ARG as the parameter name for
 	consistency (bug#10346).
+	(save-buffer): Clarify the 0 argument (bug#10346).
 
 	* cus-edit.el (customize-apropos): Fix error string.
 	(custom-buffer-create): Doc fix (bug#11122).
