@@ -1450,7 +1450,10 @@ If TYPE is `groups', include only groups."
                           (custom-variable-p symbol)))
                  (push (list symbol 'custom-variable) found))))))
     (unless found
-      (error "No customizable %s matching %s" (symbol-name type) pattern))
+      (error "No customizable %s matching %s" (if (not type)
+						  "group, face, or option"
+						(symbol-name type))
+	     pattern))
     (custom-buffer-create
      (custom-sort-items found t custom-buffer-order-groups)
      "*Customize Apropos*")))

@@ -1,5 +1,7 @@
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* cus-edit.el (customize-apropos): Fix error string.
+
 	* dired-aux.el (dired-copy-file-recursive): Remove slighly
 	misleading comment (bug#11328).
 
