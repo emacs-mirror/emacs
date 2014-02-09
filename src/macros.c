@@ -292,7 +292,8 @@ pop_kbd_macro (Lisp_Object info)
 
 DEFUN ("execute-kbd-macro", Fexecute_kbd_macro, Sexecute_kbd_macro, 1, 3, 0,
        doc: /* Execute MACRO as string of editor command characters.
-If MACRO is a symbol, its function definition is used.
+MACRO can also be a vector of keyboard events.  If MACRO is a symbol,
+its function definition is used.
 COUNT is a repeat count, or nil for once, or 0 for infinite loop.
 
 Optional third arg LOOPFUNC may be a function that is called prior to

@@ -1,3 +1,7 @@
+2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* macros.c (Fexecute_kbd_macro): Doc fix (bug#14206).
+
 2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* syntax.c (Fskip_syntax_backward): Doc clarification (bug#15115).
