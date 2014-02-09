@@ -1,3 +1,8 @@
+2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* dired.texi (Hiding Subdirectories): Mention the node for
+	deleting subdirectories (bug#11743).
+
 2014-02-09  Glenn Morris  <rgm@gnu.org>
 
 	* programs.texi (MixedCase Words): Rename node from "Glasses".

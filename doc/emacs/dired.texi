@@ -1108,7 +1108,8 @@ can use hiding to temporarily exclude subdirectories from operations
 without having to remove the Dired marks on files in those
 subdirectories.
 
-@xref{Dired Updating}, for how to insert or delete a subdirectory listing.
+@xref{Subdirectories in Dired}, for how to insert a subdirectory
+listing, and @pxref{Dired Updating} for how delete it.
 
 @node Dired Updating
 @section Updating the Dired Buffer
