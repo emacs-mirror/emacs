@@ -2,6 +2,7 @@
 
 	* cus-edit.el (customize-apropos): Fix error string.
 	(custom-buffer-create): Doc fix (bug#11122).
+	(custom-sort-items): Doc fix (bug#11121).
 
 	* dired-aux.el (dired-copy-file-recursive): Remove slighly
 	misleading comment (bug#11328).

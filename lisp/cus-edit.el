@@ -699,7 +699,7 @@ If `last', order groups after non-groups."
 
 (defun custom-sort-items (items sort-alphabetically order-groups)
   "Return a sorted copy of ITEMS.
-ITEMS should be a `custom-group' property.
+ITEMS should be a list of `custom-group' properties.
 If SORT-ALPHABETICALLY non-nil, sort alphabetically.
 If ORDER-GROUPS is `first' order groups before non-groups, if `last' order
 groups after non-groups, if nil do not order groups at all."
