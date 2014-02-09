@@ -1,3 +1,8 @@
+2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* NEWS: Mention all the Apropos face options that have been
+	removed (bug#16516).
+
 2014-01-31  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* NEWS: Mention `ruby-align-chained-calls'.

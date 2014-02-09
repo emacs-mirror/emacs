@@ -1879,7 +1879,8 @@ These faces are named `apropos-symbol', `apropos-keybinding', and so on;
 see the `apropos' Custom group for details.
 
 *** The old options whose values specified faces to use have been removed
-(i.e. `apropos-symbol-face', `apropos-keybinding-face', etc.).
+(i.e. `apropos-symbol-face', `apropos-keybinding-face', `apropos-label-face',
+`apropos-match-face' and `apropos-property-face'.).
 
 ** Buffer Menu
 
