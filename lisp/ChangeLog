@@ -1,5 +1,8 @@
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* font-lock.el (font-lock-value-in-major-mode): Clarify the
+	meaning of the parameter (bug#12282).
+
 	* files.el (find-file-noselect): Clarify prompt when changing
 	readedness (bug#13261).
 	(locate-file): Suffixes aren't returned, so don't say that they

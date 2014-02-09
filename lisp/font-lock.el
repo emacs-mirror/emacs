@@ -1764,12 +1764,14 @@ If SYNTACTIC-KEYWORDS is non-nil, it means these keywords are used for
 				 (funcall keywords)
 			       (eval keywords)))))
 
-(defun font-lock-value-in-major-mode (alist)
-  "Return value in ALIST for `major-mode', or ALIST if it is not an alist.
-Structure is ((MAJOR-MODE . VALUE) ...) where MAJOR-MODE may be t."
-  (if (consp alist)
-      (cdr (or (assq major-mode alist) (assq t alist)))
-    alist))
+(defun font-lock-value-in-major-mode (values)
+  "If VALUES is an list, use `major-mode' as a key and return the `assq' value.
+VALUES should then be an alist on the form ((MAJOR-MODE . VALUE) ...) where
+MAJOR-MODE may be t.
+If VALUES isn't a list, return VALUES."
+  (if (consp values)
+      (cdr (or (assq major-mode values) (assq t values)))
+    values))
 
 (defun font-lock-choose-keywords (keywords level)
   "Return LEVELth element of KEYWORDS.
