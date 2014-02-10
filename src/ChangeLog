@@ -1,3 +1,8 @@
+2014-02-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* cmds.c (Fself_insert_command): Respect the width of EMACS_INT
+	and avoid warning.
+
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* cmds.c (Fself_insert_command): Output a clearer error message on
