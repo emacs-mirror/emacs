@@ -6913,7 +6913,8 @@ With prefix argument N, move N items (negative N means move backward)."
 	(setq n (1+ n))))))
 
 (defun choose-completion (&optional event)
-  "Choose the completion at point."
+  "Choose the completion at point.
+If EVENT, use EVENTs position to determine the starting position."
   (interactive (list last-nonmenu-event))
   ;; In case this is run via the mouse, give temporary modes such as
   ;; isearch a chance to turn off.
