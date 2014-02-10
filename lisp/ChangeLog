@@ -1,3 +1,8 @@
+2014-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* files.el (confirm-kill-emacs): Allow specifying an arbitrary
+	predicate function (bug#15455).
+
 2014-02-10  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* ielm.el (inferior-emacs-lisp-mode): Instead of
