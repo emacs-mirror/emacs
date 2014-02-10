@@ -3308,15 +3308,24 @@ the result will be a local, non-Tramp, filename."
 
 	    (dolist
 		(elt
-		 (tramp-send-command-and-read
-		  v
-		  (format
-		   "tramp_vc_registered_read_file_names <<'%s'\n%s\n%s\n"
-		   tramp-end-of-heredoc
-		   (mapconcat 'tramp-shell-quote-argument
-			      tramp-vc-registered-file-names
-			      "\n")
-		   tramp-end-of-heredoc)))
+		 (ignore-errors
+		   ;; We cannot use `tramp-send-command-and-read',
+		   ;; because this does not cooperate well with
+		   ;; heredoc documents.
+		   (tramp-send-command
+		    v
+		    (format
+		     "tramp_vc_registered_read_file_names <<'%s'\n%s\n%s\n"
+		     tramp-end-of-heredoc
+		     (mapconcat 'tramp-shell-quote-argument
+				tramp-vc-registered-file-names
+				"\n")
+		     tramp-end-of-heredoc))
+		   (tramp-send-command-and-check v nil)
+		   (with-current-buffer (tramp-get-connection-buffer v)
+		     ;; Read the expression.
+		     (goto-char (point-min))
+		     (read (current-buffer)))))
 
 	      (tramp-set-file-property
 	       v (car elt) (cadr elt) (cadr (cdr elt))))))

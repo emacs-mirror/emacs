@@ -1,3 +1,8 @@
+2014-02-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-vc-registered): Apply heredoc
+	script more robustly.
+
 2014-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* dired.el (dired-get-marked-files): Doc fix (bug#11534).
