@@ -1,3 +1,8 @@
+2014-02-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-start-file-process): Do not
+	quote `tramp-end-of-heredoc'.
+
 2014-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* dired.el (dired-get-marked-files): Doc fix (bug#11534).

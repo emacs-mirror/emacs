@@ -2713,7 +2713,7 @@ the result will be a local, non-Tramp, filename."
 	    (when (stringp program)
 	      (format "cd %s && exec %s env PS1=%s %s"
 		      (tramp-shell-quote-argument localname)
-		      (if heredoc (format "<<'%s'" tramp-end-of-heredoc) "")
+		      (if heredoc (format "<<%s" tramp-end-of-heredoc) "")
 		      ;; Use a human-friendly prompt, for example for `shell'.
 		      (tramp-shell-quote-argument
 		       (format "%s %s"
