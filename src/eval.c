@@ -283,7 +283,9 @@ call_debugger (Lisp_Object arg)
   bool debug_while_redisplaying;
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object val;
-  EMACS_INT old_max = max_specpdl_size, old_depth = max_lisp_eval_depth;
+  EMACS_INT old_depth = max_lisp_eval_depth;
+  /* Do not allow max_specpdl_size less than actual depth (Bug#16603).  */
+  EMACS_INT old_max = max (max_specpdl_size, count);
 
   if (lisp_eval_depth + 40 > max_lisp_eval_depth)
     max_lisp_eval_depth = lisp_eval_depth + 40;
@@ -3721,7 +3723,9 @@ If Lisp code tries to increase the total number past this amount,
 an error is signaled.
 You can safely use a value considerably larger than the default value,
 if that proves inconveniently small.  However, if you increase it too far,
-Emacs could run out of memory trying to make the stack bigger.  */);
+Emacs could run out of memory trying to make the stack bigger.
+Note that this limit may be silently increased by the debugger
+if `debug-on-error' or `debug-on-quit' is set.  */);
 
   DEFVAR_INT ("max-lisp-eval-depth", max_lisp_eval_depth,
 	      doc: /* Limit on depth in `eval', `apply' and `funcall' before error.
