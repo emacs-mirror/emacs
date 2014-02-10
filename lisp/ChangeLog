@@ -1,5 +1,8 @@
 2014-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* kmacro.el (kmacro-bind-to-key): Say that the parameter is unused
+	(bug#14197).
+
 	* progmodes/grep.el (find-program): Doc fix (bug#14289).
 
 	* files.el (confirm-kill-emacs): Clarify doc (bug#15455).

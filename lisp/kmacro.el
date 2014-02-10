@@ -483,7 +483,8 @@ without repeating the prefix."
 
 (defun kmacro-cycle-ring-next (&optional _arg)
   "Move to next keyboard macro in keyboard macro ring.
-Displays the selected macro in the echo area."
+Displays the selected macro in the echo area.
+The ARG parameter is unused."
   (interactive)
   (unless (kmacro-ring-empty-p)
     (kmacro-push-ring)
@@ -502,7 +503,8 @@ Displays the selected macro in the echo area."
 
 (defun kmacro-cycle-ring-previous (&optional _arg)
   "Move to previous keyboard macro in keyboard macro ring.
-Displays the selected macro in the echo area."
+Displays the selected macro in the echo area.
+The ARG parameter is unused."
   (interactive)
   (unless (kmacro-ring-empty-p)
     (let ((keys (kmacro-get-repeat-prefix))
@@ -529,7 +531,8 @@ Displays the selected macro in the echo area."
 
 
 (defun kmacro-delete-ring-head (&optional _arg)
-  "Delete current macro from keyboard macro ring."
+  "Delete current macro from keyboard macro ring.
+The ARG parameter is unused."
   (interactive)
   (unless (kmacro-ring-empty-p t)
     (if (null kmacro-ring)
@@ -793,7 +796,8 @@ You can bind to any valid key sequence, but if you try to bind to
 a key with an existing command binding, you will be asked for
 confirmation whether to replace that binding.  Note that the
 binding is made in the `global-map' keymap, so the macro binding
-may be shaded by a local key binding."
+may be shaded by a local key binding.
+The ARG parameter is unused."
   (interactive "p")
   (if (or defining-kbd-macro executing-kbd-macro)
       (if defining-kbd-macro
@@ -865,7 +869,8 @@ Interactively, reads the register using `register-read-with-preview'."
 
 (defun kmacro-view-macro (&optional _arg)
   "Display the last keyboard macro.
-If repeated, it shows previous elements in the macro ring."
+If repeated, it shows previous elements in the macro ring.
+The ARG parameter is unused."
   (interactive)
   (cond
    ((or (kmacro-ring-empty-p)
