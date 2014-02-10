@@ -1,3 +1,10 @@
+2014-02-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* face-remap.el (face-remap-add-relative)
+	(face-remap-remove-relative, face-remap-reset-base)
+	(face-remap-set-base): Call force-mode-line-update to redisplay
+	the current buffer due to potential change in faces.  (Bug#16709)
+
 2014-02-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-vc-registered): Apply heredoc
