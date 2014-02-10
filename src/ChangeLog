@@ -1,3 +1,8 @@
+2014-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* fns.c (Fmaphash): Say what `maphash' returns, since it may be
+	unintuitive (bug#15824).
+
 2014-02-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* cmds.c (Fself_insert_command): Respect the width of EMACS_INT

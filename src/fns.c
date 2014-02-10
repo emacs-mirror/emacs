@@ -4508,7 +4508,8 @@ DEFUN ("remhash", Fremhash, Sremhash, 2, 2, 0,
 
 DEFUN ("maphash", Fmaphash, Smaphash, 2, 2, 0,
        doc: /* Call FUNCTION for all entries in hash table TABLE.
-FUNCTION is called with two arguments, KEY and VALUE.  */)
+FUNCTION is called with two arguments, KEY and VALUE.
+`maphash' always returns nil.  */)
   (Lisp_Object function, Lisp_Object table)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
