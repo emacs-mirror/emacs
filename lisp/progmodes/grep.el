@@ -423,8 +423,9 @@ This variable's value takes effect when `grep-compute-defaults' is called.")
 
 ;;;###autoload
 (defvar find-program (purecopy "find")
-  "The default find program for `grep-find-command'.
-This variable's value takes effect when `grep-compute-defaults' is called.")
+  "The default find program.
+This is used by commands like `grep-find-command', `find-dired'
+and others.")
 
 ;;;###autoload
 (defvar xargs-program (purecopy "xargs")
