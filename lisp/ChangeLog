@@ -1,3 +1,7 @@
+2014-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/gulp.el (gulp-discard): Add emacs-devel.
+
 2014-02-09  Alan Mackenzie  <acm@muc.de>
 
 	Fix c-invalidate-state-cache on narrowed buffers.

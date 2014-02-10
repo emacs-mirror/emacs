@@ -33,8 +33,9 @@
   :prefix "-"
   :group 'maint)
 
-(defcustom gulp-discard "^;+ *Maintainer: *FSF *$"
+(defcustom gulp-discard "^;+ *Maintainer: *\\(FSF\\|emacs-devel@gnu\\.org\\) *$"
   "The regexp matching the packages not requiring the request for updates."
+  :version "24.4"			; added emacs-devel
   :type 'regexp
   :group 'gulp)
 
