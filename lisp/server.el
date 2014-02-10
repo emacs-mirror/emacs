@@ -4,7 +4,7 @@
 ;; Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: processes
 
 ;; Changes by peck@sun.com and by rms.

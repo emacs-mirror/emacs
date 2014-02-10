@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: games, extensions
 ;; Created: Mon Mar 22 17:06:26 1993
 

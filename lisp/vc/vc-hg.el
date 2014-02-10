@@ -3,7 +3,7 @@
 ;; Copyright (C) 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: vc tools
 ;; Package: vc
 

@@ -4,7 +4,7 @@
 ;; Inc.
 
 ;; Author: Johan Vromans
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: i18n
 ;; Obsolete-since: 22.1
 

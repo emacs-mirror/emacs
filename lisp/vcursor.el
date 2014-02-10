@@ -4,7 +4,7 @@
 ;; Inc.
 
 ;; Author:   Peter Stephenson <pws@ibmth.df.unipi.it>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: virtual cursor, convenience
 
 ;; This file is part of GNU Emacs.

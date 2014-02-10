@@ -3,7 +3,7 @@
 ;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2014 Free
 ;; Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
 
 ;; This file is part of GNU Emacs.

@@ -3,7 +3,7 @@
 ;; Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
 ;; Author: Richard L. Pieri <ratinox@peorth.gweep.net>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.

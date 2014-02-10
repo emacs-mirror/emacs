@@ -3,7 +3,7 @@
 ;; Copyright (C) 1998-2014 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: April 1998
 ;; Keywords: comm
 

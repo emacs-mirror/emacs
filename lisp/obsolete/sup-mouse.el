@@ -3,7 +3,7 @@
 ;; Copyright (C) 1985-1986, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Wolfgang Rupprecht
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 21 Nov 1986
 ;; Keywords: hardware
 ;; Obsolete-since: 24.4

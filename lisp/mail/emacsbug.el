@@ -4,7 +4,7 @@
 ;; Foundation, Inc.
 
 ;; Author: K. Shane Hartman
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: maint mail
 ;; Package: emacs
 

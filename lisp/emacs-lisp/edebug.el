@@ -4,7 +4,7 @@
 ;; Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp, tools, maint
 
 ;; This file is part of GNU Emacs.

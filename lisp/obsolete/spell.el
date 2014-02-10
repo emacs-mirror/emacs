@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985, 2001-2014 Free Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: wp, unix
 ;; Obsolete-since: 23.1
 ;;   (not in obsolete/ directory then, but all functions marked obsolete)

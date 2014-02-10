@@ -3,7 +3,7 @@
 ;; Copyright (C) 2003-2014 Free Software Foundation, Inc.
 
 ;; Author: Lawrence Mitchell <wence@gmx.li>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: IRC, chat, client, Internet, logging
 
 ;; Created 2003-04-26

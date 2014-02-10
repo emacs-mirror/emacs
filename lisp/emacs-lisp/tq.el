@@ -4,7 +4,7 @@
 ;; Inc.
 
 ;; Author: Scott Draves <spot@cs.cmu.edu>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Adapted-By: ESR
 ;; Keywords: extensions
 

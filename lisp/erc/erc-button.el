@@ -3,7 +3,7 @@
 ;; Copyright (C) 1996-2004, 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: irc, button, url, regexp
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcButton
 

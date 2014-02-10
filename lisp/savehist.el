@@ -3,7 +3,7 @@
 ;; Copyright (C) 1997, 2005-2014 Free Software Foundation, Inc.
 
 ;; Author: Hrvoje Niksic <hniksic@xemacs.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: minibuffer
 ;; Version: 24
 

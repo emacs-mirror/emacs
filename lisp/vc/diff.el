@@ -5,7 +5,7 @@
 
 ;; Author: Frank Bresz
 ;; (according to authors.el)
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: unix, vc, tools
 
 ;; This file is part of GNU Emacs.

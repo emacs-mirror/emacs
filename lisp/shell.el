@@ -5,7 +5,7 @@
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
-;; Maintainer: FSF <emacs-devel@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.

@@ -4,7 +4,7 @@
 ;; Foundation, Inc.
 
 ;; Author: William F. Schelter
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: unix, comm
 
 ;; This file is part of GNU Emacs.

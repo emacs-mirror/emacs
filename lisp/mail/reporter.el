@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993-1998, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author:          1993-1998 Barry A. Warsaw
-;; Maintainer:      FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created:         19-Apr-1993
 ;; Keywords: maint mail tools
 

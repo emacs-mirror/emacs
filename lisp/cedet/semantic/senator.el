@@ -3,7 +3,7 @@
 ;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 10 Nov 2000
 ;; Keywords: syntax
 

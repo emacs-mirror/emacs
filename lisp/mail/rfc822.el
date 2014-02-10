@@ -4,7 +4,7 @@
 ;; Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.

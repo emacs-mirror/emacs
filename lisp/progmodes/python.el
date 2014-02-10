@@ -5,7 +5,7 @@
 ;; Author: Fabián E. Gallina <fabian@anue.biz>
 ;; URL: https://github.com/fgallina/python.el
 ;; Version: 0.24.2
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: Jul 2010
 ;; Keywords: languages
 

@@ -3,7 +3,7 @@
 ;; Copyright (C) 1986, 1992, 2001-2014 Free Software Foundation, Inc.
 ;; Suggested by a previous version by Gildea.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: abbrev
 ;; Package: emacs
 ;; Obsolete-since: 24.1

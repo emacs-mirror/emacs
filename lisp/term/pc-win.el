@@ -4,7 +4,7 @@
 ;; Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 
 ;; This file is part of GNU Emacs.
 

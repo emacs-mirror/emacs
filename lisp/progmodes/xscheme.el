@@ -3,7 +3,7 @@
 ;; Copyright (C) 1986-1987, 1989-1990, 2001-2014 Free Software
 ;; Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages, lisp
 
 ;; This file is part of GNU Emacs.

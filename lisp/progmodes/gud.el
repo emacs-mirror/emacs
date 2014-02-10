@@ -4,7 +4,7 @@
 ;; Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: unix, tools
 
 ;; This file is part of GNU Emacs.

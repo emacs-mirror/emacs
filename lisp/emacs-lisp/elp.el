@@ -4,7 +4,7 @@
 ;; Foundation, Inc.
 
 ;; Author: Barry A. Warsaw
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 26-Feb-1994
 ;; Keywords: debugging lisp tools
 

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: frames
 ;; Package: emacs
 

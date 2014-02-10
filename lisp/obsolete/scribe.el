@@ -4,7 +4,7 @@
 
 ;; Author: William Sommerfeld
 ;; (according to ack.texi)
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: wp
 ;; Obsolete-since: 22.1
 
