@@ -351,7 +351,7 @@ On Nextstep, FRAME is unused.  */)
   check_window_system (NULL);
   CHECK_SYMBOL (selection);
   if (NILP (value))
-      error ("selection value may not be nil.");
+    error ("Selection value may not be nil");
   pb = ns_symbol_to_pb (selection);
   if (pb == nil) return Qnil;
 

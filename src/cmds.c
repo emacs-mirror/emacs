@@ -280,8 +280,7 @@ At the end, it runs `post-self-insert-hook'.  */)
   CHECK_NUMBER (n);
 
   if (XFASTINT (n) < 1)
-    error ("Repetition argument is %"pI"d, but must be higher than 0.",
-	   XFASTINT (n));
+    error ("Nonpositive repetition argument %"pI"d", XFASTINT (n));
 
   if (!EQ (Vthis_command, KVAR (current_kboard, Vlast_command)))
     nonundocount = 0;

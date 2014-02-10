@@ -183,7 +183,7 @@ ns_display_info_for_name (Lisp_Object name)
     if (!NILP (Fstring_equal (XCAR (dpyinfo->name_list_element), name)))
       return dpyinfo;
 
-  error ("Emacs for OpenStep does not yet support multi-display.");
+  error ("Emacs for OpenStep does not yet support multi-display");
 
   Fx_open_connection (name, Qnil, Qnil);
   dpyinfo = x_display_list;

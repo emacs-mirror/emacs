@@ -1,3 +1,13 @@
+2014-02-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid "." at end of error diagnostics.
+	* cmds.c (Fself_insert_command): Reword and avoid "." at end.
+	* font.c (Ffont_at):
+	* nsfns.m (ns_display_info_for_name):
+	* nsselect.m (Fx_own_selection_internal):
+	* nsterm.m (performDragOperation:):
+	Remove "." from end of diagnostic.
+
 2014-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* fns.c (Fmaphash): Say what `maphash' returns, since it may be

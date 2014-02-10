@@ -4785,7 +4785,7 @@ character at index specified by POSITION.  */)
   if (NILP (string))
     {
       if (XBUFFER (w->contents) != current_buffer)
-	error ("Specified window is not displaying the current buffer.");
+	error ("Specified window is not displaying the current buffer");
       CHECK_NUMBER_COERCE_MARKER (position);
       if (! (BEGV <= XINT (position) && XINT (position) < ZV))
 	args_out_of_range_3 (position, make_number (BEGV), make_number (ZV));

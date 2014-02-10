@@ -6786,7 +6786,7 @@ if (cols > 0 && rows > 0)
     }
   else
     {
-      error ("Invalid data type in dragging pasteboard.");
+      error ("Invalid data type in dragging pasteboard");
       return NO;
     }
 }
