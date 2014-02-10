@@ -85,10 +85,9 @@
 ;; at a different version of the file than the one they're accustomed to.  This
 ;; may be an RCS or SCCS header.
 ;;
-;;    * Adapted-By line --- this is for FSF's internal use.  The person named
-;; in this field was the one responsible for installing and adapting the
-;; package for the distribution.  (This file doesn't have one because the
-;; author *is* one of the maintainers.)
+;;    * Adapted-By line --- this was used historically when some files
+;; were added to Emacs.  The person named in this field installed and
+;; (possibly adapted) the package in the Emacs distribution.
 ;;
 ;;    * Keywords line --- used by the finder code for finding Emacs
 ;; Lisp code related to a topic.
