@@ -1,5 +1,7 @@
 2014-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* files.el (confirm-kill-emacs): Clarify doc (bug#15455).
+
 	* emacs-lisp/lisp.el (up-list): Doc fix (bug#15832).
 
 	* files.el (confirm-kill-emacs): Allow specifying an arbitrary
