@@ -70,11 +70,8 @@
 ;; ;;	Dave Brennan <brennan@hal.com>
 ;; ;;	Eric Raymond <esr@snark.thyrsus.com>
 ;;
-;; This field may have some special values; notably "FSF", meaning
-;; "Free Software Foundation".
-;;
 ;;    * Maintainer line --- should be a single name/address as in the Author
-;; line, or an address only, or the string "FSF".  If there is no maintainer
+;; line, or an address only.  If there is no maintainer
 ;; line, the person(s) in the Author field are presumed to be it.
 ;;    The idea behind these two fields is to be able to write a Lisp function
 ;; that does "send mail to the author" without having to mine the name out by
