@@ -1019,7 +1019,8 @@ in the current Emacs session, then this function may return nil."
 
 (defun event-start (event)
   "Return the starting position of EVENT.
-EVENT should be a mouse click, drag, or key press event.
+EVENT should be a mouse click, drag, or key press event.  If
+EVENT is nil, the value of `posn-at-point' is used instead.
 
 The following accessor functions are used to access the elements
 of the position:

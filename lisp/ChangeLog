@@ -1,5 +1,7 @@
 2014-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* subr.el (event-start): Say what a nil EVENT value means.
+
 	* kmacro.el (kmacro-bind-to-key): Say that the parameter is unused
 	(bug#14197).
 
