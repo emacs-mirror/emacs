@@ -106,6 +106,8 @@ This command assumes point is not in a string or comment."
 
 (defun forward-list (&optional arg)
   "Move forward across one balanced group of parentheses.
+This command will also work on other parentheses-like expressions
+defined by the current language mode.
 With ARG, do it that many times.
 Negative arg -N means move backward across N groups of parentheses.
 This command assumes point is not in a string or comment."
@@ -115,6 +117,8 @@ This command assumes point is not in a string or comment."
 
 (defun backward-list (&optional arg)
   "Move backward across one balanced group of parentheses.
+This command will also work on other parentheses-like expressions
+defined by the current language mode.
 With ARG, do it that many times.
 Negative arg -N means move forward across N groups of parentheses.
 This command assumes point is not in a string or comment."
@@ -124,6 +128,8 @@ This command assumes point is not in a string or comment."
 
 (defun down-list (&optional arg)
   "Move forward down one level of parentheses.
+This command will also work on other parentheses-like expressions
+defined by the current language mode.
 With ARG, do this that many times.
 A negative argument means move backward but still go down a level.
 This command assumes point is not in a string or comment."
@@ -136,6 +142,8 @@ This command assumes point is not in a string or comment."
 
 (defun backward-up-list (&optional arg)
   "Move backward out of one level of parentheses.
+This command will also work on other parentheses-like expressions
+defined by the current language mode.
 With ARG, do this that many times.
 A negative argument means move forward but still to a less deep spot.
 This command assumes point is not in a string or comment."
@@ -144,6 +152,8 @@ This command assumes point is not in a string or comment."
 
 (defun up-list (&optional arg)
   "Move forward out of one level of parentheses.
+This command will also work on other parentheses-like expressions
+defined by the current language mode.
 With ARG, do this that many times.
 A negative argument means move backward but still to a less deep spot.
 This command assumes point is not in a string or comment."
