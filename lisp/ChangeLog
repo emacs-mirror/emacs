@@ -1,3 +1,8 @@
+2014-02-10  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* ielm.el (inferior-emacs-lisp-mode): Instead of
+	`comment-use-global-state', set `comment-use-syntax'.
+
 2014-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/gulp.el (gulp-discard): Add emacs-devel.

@@ -549,7 +549,7 @@ Customized bindings may be defined in `ielm-map', which currently contains:
   (setq mode-line-process '(":%s on " (:eval (buffer-name ielm-working-buffer))))
   ;; Useful for `hs-minor-mode'.
   (setq-local comment-start ";")
-  (setq-local comment-use-global-state t)
+  (setq-local comment-use-syntax t)
 
   (set (make-local-variable 'indent-line-function) 'ielm-indent-line)
   (set (make-local-variable 'ielm-working-buffer) (current-buffer))
