@@ -141,13 +141,74 @@
   )
   "Keywords recognized by `use-package'.")
 
-(defun plist-keys (plist)
-  "Return a list containing all the keys in PLIST."
-  (when plist
-    (cons
-      (car plist)
-      (plist-keys
-        (cddr plist)))))
+(defun use-package-mplist-get (plist prop)
+  "Get the values associated to PROP in PLIST, a modified plist.
+
+A modified plist is one where keys are keywords and values are
+all non-keywords elements that follow it.
+
+As a special case : if the first occurrence of the keyword PROP
+is followed by another keyword or is the last element in the
+list, the function returns t.
+
+Currently this function infloops when the list is circular."
+  (let ((tail plist)
+        found
+        result)
+    (while (and
+            (consp tail)
+            (not
+             (eq prop (car tail))))
+      (pop tail))
+    (when (eq prop (pop tail))
+      (setq found t))
+    (while (and (consp tail)
+                (not (keywordp (car tail))))
+      (push (pop tail) result))
+    (or (nreverse result) found)))
+
+(ert-deftest use-package-mplist-get ()
+  (let ((mplist '(:foo bar baz bal :blob plap plup :blam))
+        (tests '((:foo . (bar baz bal))
+                 (:blob . (plap plup))
+                 (:blam . t)
+                 (:blow . nil))))
+    (mapc (lambda (test)
+            (should
+             (equal
+              (use-package-mplist-get mplist
+                                      (car test))
+              (cdr test))))
+          tests)))
+
+(defun use-package-plist-get (plist prop)
+  "Compatibility layer between classical and modified plists.
+
+If `use-package-mplist-get' returns exactly one value, that is
+returned ; otherwise the list is returned wrapped in a `progn'."
+  (let ((values (use-package-mplist-get plist prop)))
+    (when values
+      (cond ((not (listp values))
+             values)
+            ((eq 1 (length values))
+             (car values))
+            (t (cons 'progn values))))))
+
+(defun use-package-mplist-keys (plist)
+  "Get the keys in PLIST, a modified plist.
+
+A modified plist is one where properties are keywords and values
+are all non-keywords elements that follow it."
+  (let ((result))
+    (mapc (lambda (elt)
+            (when (keywordp elt)
+              (push elt result)))
+          plist)
+    (nreverse result)))
+(ert-deftest use-package-mplist-keys ()
+  (should (equal (use-package-mplist-keys
+                  '(:foo bar baz bal :blob plap plup :blam))
+                 '(:foo :blob :blam))))
 
 (defun use-package-validate-keywords (args)
   "Error if any keyword given in ARGS is not recognized.
@@ -157,11 +218,11 @@ Return the list of recognized keywords."
       (lambda (keyword)
         (unless (memq keyword use-package-keywords)
           (error "Unrecognized keyword: %s" keyword))))
-    (plist-keys args)))
+    (use-package-mplist-keys args)))
 
-(defun plist-get-value (plist prop)
+(defun use-package-plist-get-value (plist prop)
   "Return the value of PROP in PLIST as if it was backquoted."
-  (eval (list '\` (plist-get plist prop))))
+  (eval (list '\` (use-package-plist-get plist prop))))
 
 (defmacro use-package (name &rest args)
   "Use a package with configuration options.
@@ -192,29 +253,29 @@ For full documentation. please see commentary.
 :idle adds a form to run on an idle timer
 :ensure loads package using package.el if necessary."
   (use-package-validate-keywords args) ; error if any bad keyword, ignore result
-  (let* ((commands (plist-get args :commands))
-         (pre-init-body (plist-get args :pre-init))
-         (pre-load-body (plist-get args :pre-load))
-         (init-body (plist-get args :init))
-         (config-body (plist-get args :config))
-         (diminish-var (plist-get-value args :diminish))
-         (defines (plist-get-value args :defines))
-         (idle-body (plist-get args :idle))
-         (keybindings-alist (plist-get-value args :bind))
-         (mode (plist-get-value args :mode))
+  (let* ((commands (use-package-plist-get args :commands))
+         (pre-init-body (use-package-plist-get args :pre-init))
+         (pre-load-body (use-package-plist-get args :pre-load))
+         (init-body (use-package-plist-get args :init))
+         (config-body (use-package-plist-get args :config))
+         (diminish-var (use-package-plist-get-value args :diminish))
+         (defines (use-package-plist-get-value args :defines))
+         (idle-body (use-package-plist-get args :idle))
+         (keybindings-alist (use-package-plist-get-value args :bind))
+         (mode (use-package-plist-get-value args :mode))
          (mode-alist
           (if (stringp mode) (cons mode name) mode))
-         (interpreter (plist-get-value args :interpreter))
+         (interpreter (use-package-plist-get-value args :interpreter))
          (interpreter-alist
           (if (stringp interpreter) (cons interpreter name) interpreter))
-         (predicate (plist-get args :if))
-         (pkg-load-path (plist-get-value args :load-path))
+         (predicate (use-package-plist-get args :if))
+         (pkg-load-path (use-package-plist-get-value args :load-path))
          (defines-eval (if (null defines)
                            nil
                          (if (listp defines)
                              (mapcar (lambda (var) `(defvar ,var)) defines)
                            `((defvar ,defines)))))
-         (requires (plist-get-value args :requires))
+         (requires (use-package-plist-get-value args :requires))
          (requires-test (if (null requires)
                             t
                           (if (listp requires)
@@ -225,9 +286,9 @@ For full documentation. please see commentary.
          (name-symbol (if (stringp name) (intern name) name)))
 
     ;; force this immediately -- one off cost
-    (unless (plist-get args :disabled)
+    (unless (use-package-plist-get args :disabled)
 
-      (let* ((ensure (plist-get args :ensure))
+      (let* ((ensure (use-package-plist-get args :ensure))
              (package-name
               (or (and (eq ensure t)
                        name)
@@ -325,8 +386,8 @@ For full documentation. please see commentary.
                   `(load ,name t)
                 `(require ',name nil t))))
 
-         ,(if (and (or commands (plist-get args :defer))
-                   (not (plist-get args :demand)))
+         ,(if (and (or commands (use-package-plist-get args :defer))
+                   (not (use-package-plist-get args :demand)))
               (let (form)
                 (mapc #'(lambda (command)
                           (push `(autoload (function ,command)
