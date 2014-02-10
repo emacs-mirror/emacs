@@ -1,3 +1,8 @@
+2014-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* text.texi (User-Level Deletion): Document
+	`delete-trailing-whitespace' (bug#15309).
+
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* text.texi (Changing Properties): Clarify `propertize' (bug#9825).

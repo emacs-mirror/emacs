@@ -787,6 +787,19 @@ A blank line is defined as a line containing only tabs and spaces.
 @code{delete-blank-lines} returns @code{nil}.
 @end deffn
 
+@deffn Command delete-trailing-whitespace start end
+Delete trailing whitespace in the region defined by @var{start} and
+@var{end}.
+
+This command deletes whitespace characters after the last
+non-whitespace character in each line in the region.
+
+If this command acts on the entire buffer (i.e. if called
+interactively with the mark inactive, or called from Lisp with
+@var{end} nil), it also deletes all trailing lines at the end of the
+buffer if the variable @code{delete-trailing-lines} is non-@code{nil}.
+@end deffn
+
 @node The Kill Ring
 @section The Kill Ring
 @cindex kill ring
