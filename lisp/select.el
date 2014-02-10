@@ -89,7 +89,8 @@ all upper-case names.  The most often used ones, in addition to
 `PRIMARY', are `SECONDARY' and `CLIPBOARD'.
 
 DATA-TYPE is usually `STRING', but can also be one of the symbols
-in `selection-converter-alist', which see."
+in `selection-converter-alist', which see.  This argument is
+ignored on MS-Windows and MS-DOS."
   (let ((data (x-get-selection-internal (or type 'PRIMARY)
 					(or data-type 'STRING)))
 	coding)

@@ -1,5 +1,8 @@
 2014-02-10  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32-common-fns.el (x-get-selection): Doc fix.
+	* select.el (x-get-selection): Doc fix.  (Bug#15109)
+
 	* face-remap.el (face-remap-add-relative)
 	(face-remap-remove-relative, face-remap-reset-base)
 	(face-remap-set-base): Call force-mode-line-update to redisplay
