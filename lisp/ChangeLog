@@ -1,3 +1,7 @@
+2014-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* jit-lock.el (jit-lock-force-redisplay): Doc fix.  (Bug#14394)
+
 2014-02-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32-common-fns.el (x-get-selection): Doc fix.

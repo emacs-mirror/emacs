@@ -419,7 +419,8 @@ Defaults to the whole buffer.  END can be out of bounds."
 	   (setq start (text-property-any next end 'fontified nil))))))))
 
 (defun jit-lock-force-redisplay (start end)
-  "Force the display engine to re-render buffer BUF from START to END."
+  "Force the display engine to re-render START's buffer from START to END.
+This applies to the buffer associated with marker START."
   (when (marker-buffer start)
     (with-current-buffer (marker-buffer start)
       (with-buffer-prepared-for-jit-lock
