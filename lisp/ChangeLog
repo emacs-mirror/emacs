@@ -1,5 +1,7 @@
 2014-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* dired.el (dired-get-marked-files): Doc fix (bug#11534).
+
 	* simple.el (choose-completion): Doc fix (bug#14160).
 
 	* subr.el (event-start): Say what a nil EVENT value means.
