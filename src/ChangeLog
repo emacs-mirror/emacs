@@ -2,6 +2,7 @@
 
 	* fns.c (Fmaphash): Say what `maphash' returns, since it may be
 	unintuitive (bug#15824).
+	(Fyes_or_no_p): Doc fix (bug#15456).
 
 2014-02-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
