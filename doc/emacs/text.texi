@@ -2099,11 +2099,12 @@ want to set the justification style to @code{unfilled}
 @node Editing Format Info
 @subsection Editing Format Information
 
-  The easiest way to alter properties is with the Text Properties
-menu.  You can get to this menu from the Edit menu in the menu bar
-(@pxref{Menu Bar}), or with @kbd{C-Mouse-2} (@pxref{Menu Mouse
-Clicks}).  Some of the commands in the Text Properties menu are listed
-below (you can also invoke them with @kbd{M-x}):
+  The easiest way to alter properties is with the @samp{Text
+Properties} menu.  You can get to this menu from the @samp{Edit} menu
+in the menu bar (@pxref{Menu Bar}), or with @kbd{C-Mouse-2}
+(@pxref{Menu Mouse Clicks}).  Some of the commands in the @samp{Text
+Properties} menu are listed below (you can also invoke them with
+@kbd{M-x}):
 
 @table @code
 @findex facemenu-remove-face-props

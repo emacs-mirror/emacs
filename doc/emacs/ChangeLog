@@ -1,3 +1,7 @@
+2014-02-11  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* text.texi (Editing Format Info): Use @samp for menus (bug#13736).
+
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* dired.texi (Hiding Subdirectories): Mention the node for
