@@ -48,7 +48,7 @@ void TractInit(Tract tract, Pool pool, Addr base)
   AVER(tract != NULL);
   AVERT(Pool, pool);
 
-  tract->pool = pool;
+  tract->pool.pool = pool;
   tract->base = base;
   tract->p = NULL;
   tract->white = TraceSetEMPTY;
@@ -67,7 +67,7 @@ void TractFinish(Tract tract)
 
   /* Check that there's no segment - and hence no shielding. */
   AVER(!TractHasSeg(tract));
-  tract->pool = NULL;
+  tract->pool.pool = NULL;
 }
 
 
@@ -628,8 +628,8 @@ void PageInit(Chunk chunk, Index pi)
   AVER(pi < chunk->pages);
 
   BTRes(chunk->allocTable, pi);
-  PagePool(&chunk->pageTable[pi]) = NULL;
-  PageType(&chunk->pageTable[pi]) = PageTypeFree;
+  PageSetPool(&chunk->pageTable[pi], NULL);
+  PageSetType(&chunk->pageTable[pi], PageStateFREE);
   RingInit(PageSpareRing(&chunk->pageTable[pi]));
   return;
 }
