@@ -82,6 +82,7 @@ typedef struct VMArenaStruct {  /* VM arena structure */
   ArenaVMExtendedCallback extended;
   ArenaVMContractedCallback contracted;
   RingStruct spareRing;         /* spare (free but mapped) tracts */
+  RingStruct freeRing[MPS_WORD_WIDTH]; /* free page caches, per zone */
   Sig sig;                      /* <design/sig/> */
 } VMArenaStruct;
 
@@ -157,7 +158,7 @@ static Bool VMChunkCheck(VMChunk vmchunk)
 
 static Bool VMArenaCheck(VMArena vmArena)
 {
-  Index gen;
+  Index gen, i;
   ZoneSet allocSet;
   Arena arena;
   VMChunk primary;
@@ -186,6 +187,8 @@ static Bool VMArenaCheck(VMArena vmArena)
   }
   
   CHECKL(RingCheck(&vmArena->spareRing));
+  for (i = 0; i < NELEMS(vmArena->freeRing); ++i)
+    CHECKL(RingCheck(&vmArena->freeRing[i]));
 
   /* FIXME: Can't check VMParams */
 
@@ -498,6 +501,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   Chunk chunk;
   mps_arg_s arg;
   char vmParams[VMParamSize];
+  Index i;
   
   AVER(arenaReturn != NULL);
   AVER(class == VMArenaClassGet() || class == VMNZArenaClassGet());
@@ -535,6 +539,8 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   vmArena->vm = arenaVM;
   vmArena->spareSize = 0;
   RingInit(&vmArena->spareRing);
+  for (i = 0; i < NELEMS(vmArena->freeRing); ++i)
+    RingInit(&vmArena->freeRing[i]);
 
   /* Copy the stack-allocated VM parameters into their home in the VMArena. */
   AVER(sizeof(vmArena->vmParams) == sizeof(vmParams));
@@ -553,13 +559,13 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
     vmArena->blacklist = ZoneSetEMPTY;
     nono.word = 0;
     nono.i = 1;
-    vmArena->blacklist = ZoneSetAdd(arena, vmArena->blacklist, nono.addr);
+    vmArena->blacklist = ZoneSetAddAddr(arena, vmArena->blacklist, nono.addr);
     nono.i = -1;
-    vmArena->blacklist = ZoneSetAdd(arena, vmArena->blacklist, nono.addr);
+    vmArena->blacklist = ZoneSetAddAddr(arena, vmArena->blacklist, nono.addr);
     nono.l = 1;
-    vmArena->blacklist = ZoneSetAdd(arena, vmArena->blacklist, nono.addr);
+    vmArena->blacklist = ZoneSetAddAddr(arena, vmArena->blacklist, nono.addr);
     nono.l = -1;
-    vmArena->blacklist = ZoneSetAdd(arena, vmArena->blacklist, nono.addr);
+    vmArena->blacklist = ZoneSetAddAddr(arena, vmArena->blacklist, nono.addr);
   }
   EVENT2(ArenaBlacklistZone, vmArena, vmArena->blacklist);
   
@@ -624,6 +630,7 @@ static void VMArenaFinish(Arena arena)
   VMArena vmArena;
   Ring node, next;
   VM arenaVM;
+  Index i;
 
   vmArena = Arena2VMArena(arena);
   AVERT(VMArena, vmArena);
@@ -637,7 +644,9 @@ static void VMArenaFinish(Arena arena)
   }
   
   /* Destroying the chunks should have purged and removed all spare pages. */
-  AVER(RingIsSingle(&vmArena->spareRing));
+  RingFinish(&vmArena->spareRing);
+  for (i = 0; i < NELEMS(vmArena->freeRing); ++i)
+    RingFinish(&vmArena->freeRing[i]);
 
   /* Destroying the chunks should leave only the arena's own VM. */
   AVER(arena->committed == VMMapped(arenaVM));
@@ -889,6 +898,23 @@ static Bool pagesFindFreeInZones(Index *baseReturn, VMChunk *chunkReturn,
   arena = VMArena2Arena(vmArena);
   zoneSize = (Size)1 << arena->zoneShift;
 
+  /* Try to reuse single pages from the already-mapped spare pages list */
+  if (size == ArenaAlign(arena)) {
+    Index i;
+    for (i = 0; i < NELEMS(vmArena->freeRing); ++i) {
+      Ring ring = &vmArena->freeRing[i];
+      if (ZoneSetIsMember(zones, i) && !RingIsSingle(ring)) {
+        Page page = PageOfFreeRing(RingNext(ring));
+        Chunk chunk;
+        Bool b = ChunkOfAddr(&chunk, arena, (Addr)page);
+        AVER(b);
+        *baseReturn = (Index)(page - chunk->pageTable);
+        *chunkReturn = Chunk2VMChunk(chunk);
+        return TRUE;
+      }
+    }
+  }
+
   /* Should we check chunk cache first? */
   RING_FOR(node, &arena->chunkRing, next) {
     Chunk chunk = RING_ELT(Chunk, chunkRing, node);
@@ -900,7 +926,7 @@ static Bool pagesFindFreeInZones(Index *baseReturn, VMChunk *chunkReturn,
 
     base = chunkBase;
     while(base < chunk->limit) {
-      if (ZoneSetIsMember(arena, zones, base)) {
+      if (ZoneSetHasAddr(arena, zones, base)) {
         /* Search for a run of zone stripes which are in the ZoneSet */
         /* and the arena.  Adding the zoneSize might wrap round (to */
         /* zero, because limit is aligned to zoneSize, which is a */
@@ -919,7 +945,7 @@ static Bool pagesFindFreeInZones(Index *baseReturn, VMChunk *chunkReturn,
 
           AVER(base < limit);
           AVER(limit < chunk->limit);
-        } while(ZoneSetIsMember(arena, zones, limit));
+        } while(ZoneSetHasAddr(arena, zones, limit));
 
         /* If the ZoneSet was universal, then the area found ought to */
         /* be the whole chunk. */
@@ -1240,6 +1266,7 @@ static void sparePageRelease(VMChunk vmChunk, Index pi)
 
   arena->spareCommitted -= ChunkPageSize(chunk);
   RingRemove(PageSpareRing(page));
+  RingRemove(PageFreeRing(page));
 }
 
 
@@ -1669,10 +1696,13 @@ static void VMFree(Addr base, Size size, Pool pool)
     TractFinish(tract);
     PageSetPool(page, NULL);
     PageSetType(page, PageStateSPARE);
-    /* We must init the page's spare ring because it is a union with the
+    /* We must init the page's rings because it is a union with the
        tract and will contain junk. */
     RingInit(PageSpareRing(page));
     RingAppend(&vmArena->spareRing, PageSpareRing(page));
+    RingInit(PageFreeRing(page));
+    RingInsert(&vmArena->freeRing[AddrZone(arena, PageIndexBase(chunk, pi))],
+               PageFreeRing(page));
   }
   arena->spareCommitted += ChunkPagesToSize(chunk, piLimit - piBase);
   BTResRange(chunk->allocTable, piBase, piLimit);
