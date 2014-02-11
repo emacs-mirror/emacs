@@ -1281,7 +1281,6 @@ static void sparePageRelease(VMChunk vmChunk, Index pi)
 
 static void tablePagesUnmap(VMChunk vmChunk, Index basePage, Index limitPage)
 {
-  Index basePTI, limitPTI;
   Addr base, limit;
   Chunk chunk;
   
@@ -1297,41 +1296,46 @@ static void tablePagesUnmap(VMChunk vmChunk, Index basePage, Index limitPage)
 
   /* Lower basePage until we reach a desciptor we can't unmap, or the
      beginning of the table. */
-  while (basePage > 0 &&
-         pageDescIsMapped(vmChunk, basePage) &&
-         PageState(&chunk->pageTable[basePage]) == PageStateFREE)
+  AVER(pageState(vmChunk, basePage) == PageStateFREE);
+  while (basePage > 0) {
+    Bool mapped = pageDescIsMapped(vmChunk, basePage - 1);
+    if (mapped && PageState(&chunk->pageTable[basePage - 1]) != PageStateFREE)
+      break;
     --basePage;
+    if (!mapped)
+      break;
+  }
+  AVER(pageState(vmChunk, basePage) == PageStateFREE);
+  
+  /* Calculate the base of the range we can unmap. */
+  base = AddrAlignUp(addrOfPageDesc(chunk, basePage), ChunkPageSize(chunk));
 
   /* Raise limitPage until we reach a descriptor we can't unmap, or the end
      of the table. */
-  while (limitPage < chunk->pages &&
-         pageDescIsMapped(vmChunk, limitPage) &&
-         PageState(&chunk->pageTable[limitPage]) == PageStateFREE)
+  AVER(pageState(vmChunk, limitPage - 1) == PageStateFREE);
+  while (limitPage < chunk->pages) {
+    Bool mapped = pageDescIsMapped(vmChunk, limitPage);
+    if (mapped && PageState(&chunk->pageTable[limitPage]) != PageStateFREE)
+      break;
     ++limitPage;
+    if (!mapped)
+      break;
+  }
+  AVER(pageState(vmChunk, limitPage - 1) == PageStateFREE);
 
-  /* Calculate the range of pages in the page table. */
-  tablePagesUsed(&basePTI, &limitPTI, chunk, basePage, limitPage);
-  base = TablePageIndexBase(chunk, basePTI);
-  limit = TablePageIndexBase(chunk, limitPTI);
+  /* Calculate the limit of the range we can unmap. */
+  if (limitPage < chunk->pages)
+    limit = AddrAlignDown(addrOfPageDesc(chunk, limitPage), ChunkPageSize(chunk));
+  else
+    limit = AddrAlignUp(addrOfPageDesc(chunk, limitPage), ChunkPageSize(chunk));
 
-  /* If we can't unmap the base page, step up. */
-  if (!pageDescIsMapped(vmChunk, basePage) ||
-      PageState(&chunk->pageTable[basePage]) != PageStateFREE)
-    base = AddrAdd(base, chunk->pageSize);
-  /* If that leaves any pages, then if the limit page contains a desciptor
-     we can't unmap, step down.  Note, limit is the base of the page table
-     page *after* the one containing the desc for limitPage. */
+  /* Base and limit may be equal or out of order, if there were few
+     descriptors in the range.  In that case, we can't unmap anything. */
   if (base < limit) {
-    if (limitPage < chunk->pages &&
-        pageState(vmChunk, limitPage) != PageStateFREE)
-      limit = AddrSub(limit, chunk->pageSize);
-    /* If that leaves any pages, unmap them. */
-    if (base < limit) {
-      vmArenaUnmap(VMChunkVMArena(vmChunk), vmChunk->vm, base, limit);
-      BTResRange(vmChunk->pageTableMapped,
-                 PageTablePageIndex(chunk, base),
-                 PageTablePageIndex(chunk, limit));
-    }
+    vmArenaUnmap(VMChunkVMArena(vmChunk), vmChunk->vm, base, limit);
+    BTResRange(vmChunk->pageTableMapped,
+               PageTablePageIndex(chunk, base),
+               PageTablePageIndex(chunk, limit));
   }
 }
 
