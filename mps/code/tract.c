@@ -159,7 +159,7 @@ Res ChunkInit(Chunk chunk, Arena arena,
 {
   Size size;
   Count pages;
-  PageStruct *pageTable;
+  Page pageTable;
   Shift pageShift;
   Size pageTableSize;
   void *p;
@@ -192,7 +192,7 @@ Res ChunkInit(Chunk chunk, Arena arena,
     goto failAllocTable;
   chunk->allocTable = p;
 
-  pageTableSize = SizeAlignUp(pages * sizeof(PageStruct), pageSize);
+  pageTableSize = SizeAlignUp(pages * sizeof(PageUnion), pageSize);
   chunk->pageTablePages = pageTableSize >> pageShift;
 
   res = (arena->class->chunkInit)(chunk, boot);
@@ -597,7 +597,7 @@ Bool TractNext(Tract *tractReturn, Arena arena, Addr addr)
 
 /* PageAlloc
  *
- * Sets up the PageStruct for an allocated page to turn it into a Tract.
+ * Sets up the page descriptor for an allocated page to turn it into a Tract.
  */
 
 void PageAlloc(Chunk chunk, Index pi, Pool pool)

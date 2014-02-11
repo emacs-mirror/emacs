@@ -15,17 +15,17 @@
 
 /* Page states
  *
- * .states: Pages (hence PageStructs that describe them) can be in
+ * .states: Pages (hence PageUnions that describe them) can be in
  * one of 3 states:
  *  allocated (to a pool as tracts)
  *   allocated pages are mapped
  *   BTGet(allocTable, i) == 1
- *   PageType() == PageStateALLOC
+ *   PageState() == PageStateALLOC
  *   PagePool()->pool == pool
  *  spare
  *   these pages are mapped
  *   BTGet(allocTable, i) == 0
- *   PageType() == PageStateSPARE
+ *   PageState() == PageStateSPARE
  *   PagePool() == NULL
  *  free
  *   these pages are not mapped
@@ -33,13 +33,19 @@
  *   PTE may itself be unmapped, but when it is (use pageTableMapped
  *     to determine whether page occupied by page table is mapped):
  *   PagePool() == NULL
- *   PageType() == PageStateFREE
+ *   PageState() == PageStateFREE
  */
 
 #define PageStateALLOC 0
 #define PageStateSPARE 1
 #define PageStateFREE  2
 #define PageStateWIDTH 2         /* bitfield width */
+
+typedef union PagePoolUnion {
+  unsigned state : PageStateWIDTH; /* see .states */
+  Pool pool;
+} PagePoolUnion;
+
 
 
 /* TractStruct -- tract structure
@@ -51,17 +57,12 @@
  * as type Bool. See <design/arena/#tract.field.hasSeg>.
  */
 
-typedef union TractPoolUnion {
-  Pool pool;
-  unsigned state : PageStateWIDTH; /* see .states */
-} TractPoolUnion;
-
 typedef struct TractStruct { /* Tract structure */
-  TractPoolUnion pool; /* MUST BE FIRST (<design/arena/#tract.field> pool) */
+  PagePoolUnion pool; /* MUST BE FIRST (<design/arena/#tract.field> pool) */
   void *p;                     /* pointer for use of owning pool */
   Addr base;                   /* Base address of the tract */
   TraceSet white : TraceLIMIT; /* traces for which tract is white */
-  unsigned int hasSeg : 1;     /* does tract have a seg in p? See .bool */
+  unsigned hasSeg : 1;         /* does tract have a seg in p? See .bool */
 } TractStruct;
 
 
@@ -97,9 +98,9 @@ extern void TractFinish(Tract tract);
   (TractSetHasSeg(tract, FALSE), TractSetP(tract, NULL))
 
 
-/* PageStruct -- Page structure
+/* PageUnion -- page descriptor
  *
- * .page-table: The page table (defined as a PageStruct array)
+ * .page-table: The page table (defined as a PageUnion array)
  * is central to the design of the arena.
  * See <design/arenavm/#table>.*.
  *
@@ -107,39 +108,38 @@ extern void TractFinish(Tract tract);
  * field of this union.  See <design/arena/#tract.field.pool>.
  */
 
-typedef struct PageStruct {     /* page structure */
-  union PageStructUnion {
-    TractPoolUnion pool;
-    TractStruct tractStruct;    /* allocated tract */
-    struct {
-      TractPoolUnion pool;      /* MUST BE FIRST (<design/arena/#tract.field> pool) */
-      RingStruct spareRing;
-    } rest;                     /* other (non-allocated) page */
-  } the;
-} PageStruct;
+typedef struct PageSpareStruct {
+  PagePoolUnion pool;         /* spare tract, pool.state == PoolStateSPARE */
+  RingStruct ring;            /* link in arena spare ring, LRU order */
+} PageSpareStruct;
+
+typedef union PageUnion {     /* page structure */
+  PagePoolUnion pool;         /* pool.state is the discriminator */
+  TractStruct alloc;          /* allocated tract, pool.state == PoolStateALLOC */
+  PageSpareStruct spare;      /* spare page, pool.state == PoolStateSPARE */
+} PageUnion;
 
 
-#define PageTract(page)       (&(page)->the.tractStruct)
-#define PageOfTract(tract) \
-  PARENT(PageStruct, the, PARENT(union PageStructUnion, tractStruct, (tract)))
-#define PagePool(page)        RVALUE((page)->the.pool.pool)
+#define PageTract(page)       (&(page)->alloc)
+#define PageOfTract(tract)    PARENT(PageUnion, alloc, tract)
+#define PagePool(page)        RVALUE((page)->pool.pool)
 #define PageIsAllocated(page) RVALUE(PagePool(page) != NULL)
-#define PageType(page)        RVALUE((page)->the.pool.state)
-#define PageSpareRing(page)   RVALUE(&(page)->the.rest.spareRing)
-#define PageOfSpareRing(node) RING_ELT(Page, the.rest.spareRing, node)
+#define PageState(page)       RVALUE((page)->pool.state)
+#define PageSpareRing(page)   RVALUE(&(page)->spare.ring)
+#define PageOfSpareRing(node) PARENT(PageUnion, spare, RING_ELT(PageSpare, ring, node))
 
 #define PageSetPool(page, _pool) \
   BEGIN \
-    PageStruct *_page = (page); \
-    _page->the.pool.pool = (_pool); \
-    AVER(PageType(_page) == PageStateALLOC); \
+    Page _page = (page); \
+    _page->pool.pool = (_pool); \
+    AVER(PageState(_page) == PageStateALLOC); \
   END
 
 #define PageSetType(page, _state) \
   BEGIN \
-    PageStruct *_page = (page); \
+    Page _page = (page); \
     AVER(PagePool(_page) == NULL); \
-    _page->the.pool.state = (_state); \
+    _page->pool.state = (_state); \
   END
 
 
@@ -160,7 +160,7 @@ typedef struct ChunkStruct {
   Index allocBase;      /* index of first page allocatable to clients */
   Index pages;          /* index of the page after the last allocatable page */
   BT allocTable;        /* page allocation table */
-  PageStruct* pageTable; /* the page table */
+  Page pageTable;       /* the page table */
   Count pageTablePages; /* number of pages occupied by page table */
 } ChunkStruct;
 
