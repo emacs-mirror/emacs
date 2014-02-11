@@ -1,3 +1,8 @@
+2014-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* nsfns.m (ns_display_info_for_name, Fx_open_connection):
+	Replace refs to "OpenStep" in messages.
+
 2014-02-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Avoid "." at end of error diagnostics.
