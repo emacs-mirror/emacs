@@ -88,7 +88,7 @@ typedef struct mps_chain_s *Chain;      /* <design/trace/> */
 typedef struct TractStruct *Tract;      /* <design/arena/> */
 typedef struct ChunkStruct *Chunk;      /* <code/tract.c> */
 typedef struct ChunkCacheEntryStruct *ChunkCacheEntry; /* <code/tract.c> */
-typedef struct PageStruct *Page;        /* <code/tract.c> */
+typedef union PageUnion *Page;          /* <code/tract.c> */
 typedef struct SegStruct *Seg;          /* <code/seg.c> */
 typedef struct GCSegStruct *GCSeg;      /* <code/seg.c> */
 typedef struct SegClassStruct *SegClass; /* <code/seg.c> */

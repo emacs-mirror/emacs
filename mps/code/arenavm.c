@@ -687,7 +687,7 @@ static Size VMArenaReserved(Arena arena)
  */
 #define tablePageBaseIndex(chunk, tablePage) \
   (AddrOffset((Addr)(chunk)->pageTable, (tablePage)) \
-   / sizeof(PageStruct))
+   / sizeof(PageUnion))
 
 
 /* tablePageWholeBaseIndex
@@ -697,8 +697,8 @@ static Size VMArenaReserved(Arena arena)
  */
 #define tablePageWholeBaseIndex(chunk, tablePage) \
   (AddrOffset((Addr)(chunk)->pageTable, \
-              AddrAdd((tablePage), sizeof(PageStruct)-1)) \
-   / sizeof(PageStruct))
+              AddrAdd((tablePage), sizeof(PageUnion)-1)) \
+   / sizeof(PageUnion))
 
 
 /* tablePageLimitIndex -- index of the first page descriptor falling
@@ -709,7 +709,7 @@ static Size VMArenaReserved(Arena arena)
 #define tablePageLimitIndex(chunk, tablePage) \
   ((AddrOffset((Addr)(chunk)->pageTable, (tablePage)) \
     + ChunkPageSize(chunk) - 1) \
-   / sizeof(PageStruct) \
+   / sizeof(PageUnion) \
    + 1)
 
 /* tablePageWholeLimitIndex
@@ -720,14 +720,14 @@ static Size VMArenaReserved(Arena arena)
 #define tablePageWholeLimitIndex(chunk, tablePage) \
   ((AddrOffset((Addr)(chunk)->pageTable, (tablePage)) \
     + ChunkPageSize(chunk)) \
-   / sizeof(PageStruct))
+   / sizeof(PageUnion))
 
 
 /* tablePagesUsed
  *
  * Takes a range of pages identified by [pageBase, pageLimit), and
  * returns the pages occupied by the page table which store the
- * PageStruct descriptors for those pages.
+ * PageUnion descriptors for those pages.
  */
 static void tablePagesUsed(Index *tableBaseReturn, Index *tableLimitReturn,
                            Chunk chunk, Index pageBase, Index pageLimit)
@@ -1194,32 +1194,32 @@ static Bool pageDescIsMapped(VMChunk vmChunk, Index pi)
   
   AVER(pi < chunk->pages);
 
-  /* Note that unless the pi'th PageStruct crosses a page boundary */
+  /* Note that unless the pi'th PageUnion crosses a page boundary */
   /* Base and Limit will differ by exactly 1. */
   /* They will differ by at most 2 assuming that */
-  /* sizeof(PageStruct) <= ChunkPageSize(chunk) (!) */
+  /* sizeof(PageUnion) <= ChunkPageSize(chunk) (!) */
   tablePagesUsed(&pageTableBaseIndex, &pageTableLimitIndex, chunk, pi, pi+1);
   /* using unsigned arithmetic overflow to use just one comparison */
   AVER(pageTableLimitIndex - pageTableBaseIndex - 1 < 2);
 
-  /* We can examine the PageStruct descriptor iff both table pages */
+  /* We can examine the page descriptor iff both table pages */
   /* are mapped. */
   return BTGet(vmChunk->pageTableMapped, pageTableBaseIndex) &&
          BTGet(vmChunk->pageTableMapped, pageTableLimitIndex - 1);
 }
 
 
-/* pageType -- determine page type
+/* pageState -- determine page state, even if unmapped
  *
  * Parts of the page table may be unmapped if their corresponding pages are
  * free.
  */
 
-static unsigned pageType(VMChunk vmChunk, Index pi)
+static unsigned pageState(VMChunk vmChunk, Index pi)
 {
   Chunk chunk = VMChunk2Chunk(vmChunk);
   if (pageDescIsMapped(vmChunk, pi))
-    return PageType(&chunk->pageTable[pi]);
+    return PageState(&chunk->pageTable[pi]);
   return PageStateFREE;
 }
 
@@ -1235,7 +1235,7 @@ static void sparePageRelease(VMChunk vmChunk, Index pi)
   Arena arena = ChunkArena(chunk);
   Page page = &chunk->pageTable[pi];
 
-  AVER(PageType(page) == PageStateSPARE);
+  AVER(PageState(page) == PageStateSPARE);
   AVER(arena->spareCommitted >= ChunkPageSize(chunk));
 
   arena->spareCommitted -= ChunkPageSize(chunk);
@@ -1272,14 +1272,14 @@ static void tablePagesUnmap(VMChunk vmChunk, Index basePage, Index limitPage)
      beginning of the table. */
   while (basePage > 0 &&
          pageDescIsMapped(vmChunk, basePage) &&
-         PageType(&chunk->pageTable[basePage]) == PageStateFREE)
+         PageState(&chunk->pageTable[basePage]) == PageStateFREE)
     --basePage;
 
   /* Raise limitPage until we reach a descriptor we can't unmap, or the end
      of the table. */
   while (limitPage < chunk->pages &&
          pageDescIsMapped(vmChunk, limitPage) &&
-         PageType(&chunk->pageTable[limitPage]) == PageStateFREE)
+         PageState(&chunk->pageTable[limitPage]) == PageStateFREE)
     ++limitPage;
 
   /* Calculate the range of pages in the page table. */
@@ -1289,14 +1289,14 @@ static void tablePagesUnmap(VMChunk vmChunk, Index basePage, Index limitPage)
 
   /* If we can't unmap the base page, step up. */
   if (!pageDescIsMapped(vmChunk, basePage) ||
-      PageType(&chunk->pageTable[basePage]) != PageStateFREE)
+      PageState(&chunk->pageTable[basePage]) != PageStateFREE)
     base = AddrAdd(base, chunk->pageSize);
   /* If that leaves any pages, then if the limit page contains a desciptor
      we can't unmap, step down.  Note, limit is the base of the page table
      page *after* the one containing the desc for limitPage. */
   if (base < limit) {
     if (limitPage < chunk->pages &&
-        pageType(vmChunk, limitPage) != PageStateFREE)
+        pageState(vmChunk, limitPage) != PageStateFREE)
       limit = AddrSub(limit, chunk->pageSize);
     /* If that leaves any pages, unmap them. */
     if (base < limit) {
@@ -1334,7 +1334,7 @@ static Res pagesMarkAllocated(VMArena vmArena, VMChunk vmChunk,
     Addr freeBase;
 
     /* Allocate a run of spare pages. */
-    while(i < limitIndex && PageType(&chunk->pageTable[i]) == PageStateSPARE) {
+    while(i < limitIndex && PageState(&chunk->pageTable[i]) == PageStateSPARE) {
       sparePageRelease(vmChunk, i);
       PageAlloc(chunk, i, pool);
       ++i;
@@ -1345,8 +1345,8 @@ static Res pagesMarkAllocated(VMArena vmArena, VMChunk vmChunk,
 
     /* Allocate a run of free pages. */
     freeBase = PageIndexBase(chunk, i);
-    AVER(PageType(&chunk->pageTable[i]) == PageStateFREE);
-    while (i < limitIndex && PageType(&chunk->pageTable[i]) == PageStateFREE) {
+    AVER(PageState(&chunk->pageTable[i]) == PageStateFREE);
+    while (i < limitIndex && PageState(&chunk->pageTable[i]) == PageStateFREE) {
       PageAlloc(chunk, i, pool);
       ++i;
     }
@@ -1518,7 +1518,7 @@ static Size chunkUnmapAroundPage(Chunk chunk, Size size, Page page)
   AVERT(Chunk, chunk);
   vmChunk = Chunk2VMChunk(chunk);
   AVERT(VMChunk, vmChunk);
-  AVER(PageType(page) == PageStateSPARE);
+  AVER(PageState(page) == PageStateSPARE);
   /* size is arbitrary */
 
   pageSize = ChunkPageSize(chunk);
@@ -1537,10 +1537,10 @@ static Size chunkUnmapAroundPage(Chunk chunk, Size size, Page page)
     purged += pageSize;
   } while (purged < size &&
            limitPage < chunk->pages &&
-           pageType(vmChunk, limitPage) == PageStateSPARE);
+           pageState(vmChunk, limitPage) == PageStateSPARE);
   while (purged < size &&
          basePage > 0 &&
-         pageType(vmChunk, basePage - 1) == PageStateSPARE) {
+         pageState(vmChunk, basePage - 1) == PageStateSPARE) {
     --basePage;
     sparePageRelease(vmChunk, basePage);
     PageInit(chunk, basePage);
