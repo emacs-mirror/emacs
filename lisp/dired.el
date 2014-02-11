@@ -634,7 +634,8 @@ Optional second argument ARG, if non-nil, specifies files near
  point instead of marked files.  It usually comes from the prefix
  argument.
   If ARG is an integer, use the next ARG files.
-  Any other value means to use the current file instead.
+  If ARG is any other non-nil value, return the current file name.
+  If no files are marked, and ARG is nil, also return the current file name.
 Optional third argument FILTER, if non-nil, is a function to select
   some of the files--those for which (funcall FILTER FILENAME) is non-nil.
 

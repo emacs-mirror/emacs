@@ -1,3 +1,7 @@
+2014-02-11  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* dired.el (dired-get-marked-files): Clarify doc (bug#11534).
+
 2014-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* jit-lock.el (jit-lock-force-redisplay): Doc fix.  (Bug#14394)
