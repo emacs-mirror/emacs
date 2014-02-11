@@ -1296,6 +1296,8 @@ static void tablePagesUnmap(VMChunk vmChunk, Index basePage, Index limitPage)
 
   /* Lower basePage until we reach a desciptor we can't unmap, or the
      beginning of the table. */
+  /* FIXME: Are the descriptors below chunk->allocBase initialised? Shouldn't
+     we stop there? pageTable[allocBase] might cross a page boundary. */
   AVER(pageState(vmChunk, basePage) == PageStateFREE);
   while (basePage > 0) {
     Bool mapped = pageDescIsMapped(vmChunk, basePage - 1);
@@ -1714,8 +1716,15 @@ static void VMFree(Addr base, Size size, Pool pool)
   /* Consider returning memory to the OS. */
   /* TODO: Chunks are only destroyed when ArenaCompact is called, and that is
      only called from TraceReclaim.  Should consider destroying chunks here. */
-  if (arena->spareCommitted > arena->spareCommitLimit)
-    (void)VMPurgeSpare(arena, arena->spareCommitted - arena->spareCommitLimit);
+  if (arena->spareCommitted > arena->spareCommitLimit) {
+    /* Purge half of the spare memory, not just the extra sliver, so
+       that we return a reasonable amount of memory in one go, and avoid
+       lots of small unmappings, each of which has an overhead. */
+    /* TODO: Consider making this time-based. */
+    /* TODO: Consider making this smarter about the overheads tradeoff. */
+    Size toPurge = arena->spareCommitted - arena->spareCommitLimit / 2;
+    (void)VMPurgeSpare(arena, toPurge);
+  }
 }
 
 
