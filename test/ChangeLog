@@ -1,3 +1,11 @@
+2014-02-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (top): Require `vc', `vc-bzr', `vc-git'
+	and `vc-hg'.  Declare `tramp-find-executable' and
+	`tramp-get-remote-path'.
+	(tramp-test29-vc-registered): New test.
+	(tramp-test30-utf8): Rename from `tramp-test29-utf8'.
+
 2014-02-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp-test26-process-file): Improve test.

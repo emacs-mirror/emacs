@@ -37,6 +37,13 @@
 
 (require 'ert)
 (require 'tramp)
+(require 'vc)
+(require 'vc-bzr)
+(require 'vc-git)
+(require 'vc-hg)
+
+(declare-function tramp-find-executable "tramp-sh")
+(declare-function tramp-get-remote-path "tramp-sh")
 
 ;; There is no default value on w32 systems, which could work out of the box.
 (defconst tramp-test-temporary-file-directory
@@ -1188,7 +1195,55 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (format "%s\n" (file-name-nondirectory tmp-name)) (buffer-string))))
       (ignore-errors (delete-file tmp-name)))))
 
-(ert-deftest tramp-test29-utf8 ()
+(ert-deftest tramp-test29-vc-registered ()
+  "Check `vc-registered'."
+  (skip-unless (tramp--test-enabled))
+  (skip-unless
+   (eq
+    (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
+    'tramp-sh-file-name-handler))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
+  (let* ((default-directory tramp-test-temporary-file-directory)
+	 (tmp-name1 (tramp--test-make-temp-name))
+	 (tmp-name2 (expand-file-name "foo" tmp-name1))
+	 (vc-handled-backends
+	  (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
+	    (cond
+	     ((tramp-find-executable v vc-bzr-program (tramp-get-remote-path v))
+	      '(Bzr))
+	     ((tramp-find-executable v vc-git-program (tramp-get-remote-path v))
+	      '(Git))
+	     ((tramp-find-executable v vc-hg-program (tramp-get-remote-path v))
+	      '(Hg))
+	     (t nil)))))
+    (skip-unless vc-handled-backends)
+    (message "%s" vc-handled-backends)
+
+    (unwind-protect
+	(progn
+	  (make-directory tmp-name1)
+	  (write-region "foo" nil tmp-name2)
+	  (should (file-directory-p tmp-name1))
+	  (should (file-exists-p tmp-name2))
+	  (should-not (vc-registered tmp-name1))
+	  (should-not (vc-registered tmp-name2))
+
+	  (let ((default-directory tmp-name1))
+	    ;; Create empty repository, and register the file.
+	    (vc-create-repo (car vc-handled-backends))
+	    ;; The structure of VC-FILESET is not documented.  Let's
+	    ;; hope it won't change.
+	    (vc-register
+	     nil (list (car vc-handled-backends)
+		       (list (file-name-nondirectory tmp-name2)))))
+	  (should (vc-registered tmp-name2)))
+
+	(ignore-errors (delete-directory tmp-name1 'recursive)))))
+
+(ert-deftest tramp-test30-utf8 ()
   "Check UTF8 encoding in file names and file contents."
   (skip-unless (tramp--test-enabled))
   (tramp-cleanup-connection
@@ -1227,7 +1282,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 ;; * make-auto-save-file-name
 ;; * set-file-acl
 ;; * set-file-selinux-context
-;; * vc-registered
 
 ;; * Fix `tramp-test17-insert-directory' for
 ;;   `ls-lisp-insert-directory' ("plink" and friends).
