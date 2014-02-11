@@ -631,6 +631,7 @@ void PageInit(Chunk chunk, Index pi)
   PageSetPool(&chunk->pageTable[pi], NULL);
   PageSetType(&chunk->pageTable[pi], PageStateFREE);
   RingInit(PageSpareRing(&chunk->pageTable[pi]));
+  RingInit(PageFreeRing(&chunk->pageTable[pi]));
   return;
 }
 
