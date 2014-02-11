@@ -1,3 +1,8 @@
+2014-02-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset--jump-to-register): Select the required
+	window and buffer before restoring position (bug#16696).
+
 2014-02-11  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* dired.el (dired-get-marked-files): Clarify doc (bug#11534).

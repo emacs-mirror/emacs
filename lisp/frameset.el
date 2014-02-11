@@ -522,7 +522,6 @@ It must return:
 Frame parameters not on this alist are passed intact, as if they were
 defined with ACTION = nil.")
 
-
 (defvar frameset--target-display nil
   ;; Either (minibuffer . VALUE) or nil.
   ;; This refers to the current frame config being processed inside
@@ -1217,7 +1216,12 @@ Called from `jump-to-register'.  Internal use only."
     (let ((frame (frameset-frame-with-id (aref data 1))))
       (when frame
 	(select-frame-set-input-focus frame)
-	(goto-char (aref data 2))))))
+	(let* ((position (aref data 2))
+	       (buffer (marker-buffer position))
+	       (window (get-buffer-window buffer frame)))
+	  (when (and window (window-live-p window))
+	    (set-frame-selected-window frame window)
+	    (with-current-buffer buffer (goto-char position))))))))
 
 ;;;###autoload
 (defun frameset-to-register (register)
