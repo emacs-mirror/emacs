@@ -1,3 +1,8 @@
+2014-02-12  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnmail.el (nnmail-expand-newtext): Further sub-match fixups
+	(bug#12375).
+
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* message.el (message-tab): Mention what happens on normal tabs

@@ -1542,6 +1542,9 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 	  (if (= c ?\&)
 	      (setq N 0)
 	    (setq N (- c ?0)))
+	  ;; We wrapped the searches in parentheses, so we have to
+	  ;; add some parentheses here...
+	  (setq N (+ N 3))
 	  (when (match-beginning N)
 	    (push (if nnmail-split-lowercase-expanded
 		      (downcase (buffer-substring (match-beginning N)
