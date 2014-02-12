@@ -1,3 +1,7 @@
+2014-02-12  Marcus Karlsson <mk@acc.umu.se> (tiny change)
+
+	* image.c (pbm_load): Set to NO_PIXMAP on error (Bug#16683).
+
 2014-02-12  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* buffer.c (syms_of_buffer): Doc clarification (bug#9981).

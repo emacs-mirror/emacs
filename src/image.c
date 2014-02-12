@@ -5215,6 +5215,7 @@ pbm_load (struct frame *f, struct image *img)
       image_error ("Not a PBM image: `%s'", img->spec, Qnil);
     error:
       xfree (contents);
+      img->pixmap = NO_PIXMAP;
       return 0;
     }
 
