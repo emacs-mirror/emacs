@@ -1,3 +1,7 @@
+2014-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* package.texi (Simple Packages): Describe URL and Keywords headers.
+
 2014-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* text.texi (User-Level Deletion): Document
