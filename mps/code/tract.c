@@ -159,7 +159,6 @@ Res ChunkInit(Chunk chunk, Arena arena,
 {
   Size size;
   Count pages;
-  Page pageTable;
   Shift pageShift;
   Size pageTableSize;
   void *p;
@@ -199,13 +198,6 @@ Res ChunkInit(Chunk chunk, Arena arena,
   if (res != ResOK)
     goto failClassInit;
 
-  /* Put the page table as late as possible, as in VM systems we don't want */
-  /* to map it. */
-  res = BootAlloc(&p, boot, (size_t)pageTableSize, (size_t)pageSize);
-  if (res != ResOK)
-    goto failAllocPageTable;
-  chunk->pageTable = pageTable = p;
-
   /* @@@@ Is BootAllocated always right? */
   /* Last thing we BootAlloc'd is pageTable.  We requested pageSize */
   /* alignment, and pageTableSize is itself pageSize aligned, so */
@@ -221,8 +213,6 @@ Res ChunkInit(Chunk chunk, Arena arena,
   return ResOK;
 
   /* .no-clean: No clean-ups needed for boot, as we will discard the chunk. */
-failAllocPageTable:
-  (arena->class->chunkFinish)(chunk);
 failClassInit:
 failAllocTable:
   return res;
