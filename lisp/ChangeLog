@@ -1,3 +1,8 @@
+2014-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emulation/cua-base.el (cua-scroll-up, cua-scroll-down): Mark them as
+	shift-select commands.
+
 2014-02-12  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/js.el (js-indent-line): Don't widen.
