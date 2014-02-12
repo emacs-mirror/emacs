@@ -19,6 +19,7 @@ extern mps_addr_t dylan_read(mps_addr_t addr);
 extern mps_bool_t dylan_check(mps_addr_t addr);
 extern void dylan_pad(mps_addr_t addr, size_t size);
 extern int dylan_wrapper_check(mps_word_t *w);
+extern mps_res_t dylan_make_wrappers(void);
 
 extern mps_res_t make_dylan_vector(mps_word_t *v, mps_ap_t ap, size_t slots);
 

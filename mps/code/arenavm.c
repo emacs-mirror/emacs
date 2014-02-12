@@ -31,8 +31,10 @@
 SRCID(arenavm, "$Id$");
 
 
-/* @@@@ Arbitrary calculation for the maximum number of distinct */
-/* object sets for generations.  Should be in config.h. */
+/* Arbitrary calculation for the maximum number of distinct */
+/* object sets for generations. */
+/* TODO: Should be in config.h. */
+/* TODO: The arena shouldn't be managing generations */
 /* .gencount.const: Must be a constant suitable for use as an */
 /* array size. */
 #define VMArenaGenCount ((Count)(MPS_WORD_WIDTH/2))
@@ -401,7 +403,7 @@ static Res VMChunkInit(Chunk chunk, BootBlock boot)
     goto failAllocPageTable;
   chunk->pageTable = p;
 
-  /* Actually commit all the tables. <design/arenavm/>.@@@@ */
+  /* Map memory for the bit tables. */
   if (vmChunk->overheadMappedLimit < overheadLimit) {
     overheadLimit = AddrAlignUp(overheadLimit, ChunkPageSize(chunk));
     res = vmArenaMap(VMChunkVMArena(vmChunk), vmChunk->vm,
@@ -899,7 +901,7 @@ static Bool pagesFindFreeWithSegPref(Index *baseReturn, VMChunk *chunkReturn,
     preferred = pref->zones;
   }
 
-  /* @@@@ Some of these tests might be duplicates.  If we're about */
+  /* Some of these tests might be duplicates.  If we're about */
   /* to run out of virtual address space, then slow allocation is */
   /* probably the least of our worries. */
 

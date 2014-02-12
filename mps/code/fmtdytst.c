@@ -43,7 +43,7 @@ static mps_word_t dylan_make_WV(mps_word_t version, mps_word_t vb,
          vf);
 }
 
-static mps_res_t dylan_make_wrapper_wrapper(void)
+mps_res_t dylan_make_wrappers(void)
 {
   if(ww == NULL) {
     ww = malloc(sizeof(mps_word_t) * (BASIC_WRAPPER_SIZE + 1));
@@ -74,7 +74,6 @@ static mps_res_t dylan_make_wrapper_wrapper(void)
   return MPS_RES_OK;
 }
 
-
 /* dylan_init -- turn raw memory into initialised dylan-vector (or pad)
  *
  * If the raw memory is large enough, initialises it to a dylan-vector,
@@ -92,7 +91,7 @@ mps_res_t dylan_init(mps_addr_t addr, size_t size,
   /* Make sure the size is aligned. */
   assert((size & (ALIGN-1)) == 0);
 
-  res = dylan_make_wrapper_wrapper();
+  res = dylan_make_wrappers();
   if (res != MPS_RES_OK)
     return res;
 
@@ -127,7 +126,7 @@ mps_res_t make_dylan_vector(mps_word_t *v, mps_ap_t ap, size_t slots)
   size_t size;
   size_t i;
 
-  res = dylan_make_wrapper_wrapper();
+  res = dylan_make_wrappers();
   if (res != MPS_RES_OK)
     return res;
 
