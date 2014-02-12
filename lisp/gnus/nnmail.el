@@ -1397,7 +1397,7 @@ See the documentation for the variable `nnmail-split-fancy' for details."
      ((stringp split)
       (when nnmail-split-tracing
 	(push split nnmail-split-trace))
-      (list (nnmail-expand-newtext split)))
+      (list (nnmail-expand-newtext split t)))
 
      ;; Junk the message.
      ((eq split 'junk)
@@ -1517,7 +1517,7 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 	;; on the same split, which will find it immediately in the cache.
 	(nnmail-split-it split))))))
 
-(defun nnmail-expand-newtext (newtext)
+(defun nnmail-expand-newtext (newtext &optional fancyp)
   (let ((len (length newtext))
 	(pos 0)
 	c expanded beg N did-expand)
@@ -1544,7 +1544,8 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 	    (setq N (- c ?0)))
 	  ;; We wrapped the searches in parentheses, so we have to
 	  ;; add some parentheses here...
-	  (setq N (+ N 3))
+	  (when fancyp
+	    (setq N (+ N 3)))
 	  (when (match-beginning N)
 	    (push (if nnmail-split-lowercase-expanded
 		      (downcase (buffer-substring (match-beginning N)
