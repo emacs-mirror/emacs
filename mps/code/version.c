@@ -1,7 +1,7 @@
 /* version.c: VERSION INSPECTION
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  
  * See end of file for license.
  *
  * PURPOSE
@@ -29,7 +29,7 @@ SRCID(version, "$Id$");
  * (Note: before 2006-02-01 the style was "release.epcore.chub")
  */
 
-#define MPS_RELEASE "release/1.112.0"
+#define MPS_RELEASE "release/1.113.0"
 
 
 /* MPSCopyrightNotice -- copyright notice for the binary
@@ -39,7 +39,7 @@ SRCID(version, "$Id$");
  */
 
 char MPSCopyrightNotice[] =
-  "Portions copyright (c) 2010-2013 Ravenbrook Limited and Global Graphics Software.";
+  "Portions copyright (c) 2010-2014 Ravenbrook Limited and Global Graphics Software.";
 
 
 /* MPSVersion -- return version string
@@ -63,7 +63,7 @@ char *MPSVersion(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited 
+ * Copyright (C) 2001-2014 Ravenbrook Limited 
  * <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
