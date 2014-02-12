@@ -6181,15 +6181,16 @@ same format as a regular save would use.  */);
   DEFVAR_PER_BUFFER ("buffer-invisibility-spec",
 		     &BVAR (current_buffer, invisibility_spec), Qnil,
 		     doc: /* Invisibility spec of this buffer.
-The default is t, which means that text is invisible
-if it has a non-nil `invisible' property.
-If the value is a list, a text character is invisible if its `invisible'
-property is an element in that list (or is a list with members in common).
-If an element is a cons cell of the form (PROP . ELLIPSIS),
-then characters with property value PROP are invisible,
-and they have an ellipsis as well if ELLIPSIS is non-nil.
-Setting this variable is very fast, much faster than scanning all the
-text in the buffer looking for properties to change.  */);
+The default is t, which means that text is invisible if it has a non-nil
+`invisible' property.
+This variable can also be a list.  The list can have two kinds of elements:
+`ATOM' and `(ATOM . ELLIPSIS)'.  A text character is invisible if its
+`invisible' property is `ATOM', or has an `invisible' property that is a list
+that contains `ATOM'.
+If the `(ATOM . ELLIPSIS)' form is used, and `ELLIPSIS' is non-nil, an
+ellipsis will be displayed after the invisible characters.
+Setting this variable is very fast, much faster than scanning all the text in
+the buffer looking for properties to change.  */);
 
   DEFVAR_PER_BUFFER ("buffer-display-count",
 		     &BVAR (current_buffer, display_count), Qintegerp,
