@@ -1029,7 +1029,7 @@ of the position:
 `posn-area': A symbol identifying the area the event occurred in,
 or nil if the event occurred in the text area.
 `posn-point': The buffer position of the event.
-`posn-x-y': The pixel-based coordiates of the event.
+`posn-x-y': The pixel-based coordinates of the event.
 `posn-col-row': The estimated column and row corresponding to the
 position of the event.
 `posn-actual-col-row': The actual column and row corresponding to the

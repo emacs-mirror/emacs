@@ -446,7 +446,7 @@ Optional arg EMPTY is message to print if no macros are defined."
 ;;;###autoload
 (defun kmacro-exec-ring-item (item arg)
   "Execute item ITEM from the macro ring.
-ARG is the number of times to excute the item."
+ARG is the number of times to execute the item."
   ;; Use counter and format specific to the macro on the ring!
   (let ((kmacro-counter (nth 1 item))
 	(kmacro-counter-format-start (nth 2 item)))
