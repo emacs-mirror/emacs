@@ -167,20 +167,6 @@ Currently this function infloops when the list is circular."
       (push (pop tail) result))
     (or (nreverse result) found)))
 
-(ert-deftest use-package-mplist-get ()
-  (let ((mplist '(:foo bar baz bal :blob plap plup :blam))
-        (tests '((:foo . (bar baz bal))
-                 (:blob . (plap plup))
-                 (:blam . t)
-                 (:blow . nil))))
-    (mapc (lambda (test)
-            (should
-             (equal
-              (use-package-mplist-get mplist
-                                      (car test))
-              (cdr test))))
-          tests)))
-
 (defun use-package-plist-get (plist prop)
   "Compatibility layer between classical and modified plists.
 
@@ -205,10 +191,6 @@ are all non-keywords elements that follow it."
               (push elt result)))
           plist)
     (nreverse result)))
-(ert-deftest use-package-mplist-keys ()
-  (should (equal (use-package-mplist-keys
-                  '(:foo bar baz bal :blob plap plup :blam))
-                 '(:foo :blob :blam))))
 
 (defun use-package-validate-keywords (args)
   "Error if any keyword given in ARGS is not recognized.
