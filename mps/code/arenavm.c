@@ -1301,9 +1301,9 @@ static void tablePagesUnmap(VMChunk vmChunk, Index basePI, Index limitPI)
      been caught by previous scans. */
 
   /* Lower basePI until we reach a desciptor we can't unmap, or the
-     beginning of the table. */
-  /* FIXME: Are the descriptors below chunk->allocBase initialised? Shouldn't
-     we stop there? pageTable[allocBase] might cross a page boundary. */
+     beginning of the table.  We scan right down to page zero even
+     though allocations start at chunk->allocBase so that the first table
+     page can be unmapped. */
   AVER(pageState(vmChunk, basePI) == PageStateFREE);
   while (basePI > 0) {
     Bool mapped = pageDescIsMapped(vmChunk, basePI - 1);
