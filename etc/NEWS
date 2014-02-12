@@ -187,11 +187,6 @@ content-type that is found in the new variable `image-format-suffixes'.
 *** New commands `toggle-frame-fullscreen' and `toggle-frame-maximized',
 bound to <f11> and M-<f10>, respectively.
 
-*** New command `frameset-to-register' is now bound to `C-x r f', replacing
-`frame-configuration-to-register'.  It offers similar functionality,
-plus enhancements like the ability to restore deleted frames.  The
-command `frame-configuration-to-register' still exists, but is unbound.
-
 +++
 *** New hooks `focus-in-hook', `focus-out-hook'.
 These are normal hooks run when an Emacs frame gains or loses input focus.
@@ -320,12 +315,15 @@ that summarizes existing registers.  To disable this, set that option to nil.
 Interactive commands that read registers and want to make use of this
 should use `register-read-with-preview' to read register names.
 
+*** New command `frameset-to-register' bound to `C-x r f', replacing
+`frame-configuration-to-register'.  It offers similar functionality,
+plus enhancements like the ability to restore deleted frames.
+(`frame-configuration-to-register' still exists, but no longer has a
+key binding.)
+
 +++
 *** New command `C-x C-k x' (`kmacro-to-register') stores keyboard
 macros in registers.
-
-*** New command `C-x r f' (`frameset-to-register').
-See Changes in Emacs 24.4, above.
 
 +++
 ** New command `delete-duplicate-lines'.
@@ -556,12 +554,15 @@ module.
 ** New F90 mode option `f90-smart-end-names'.
 
 ** Icomplete
+Icomplete is now more similar to Ido.
 
+---
 *** Icomplete by default now applies to all forms of minibuffer completion.
 The variable `icomplete-with-completion-tables' (now a user option)
 controls this.  To restore the old behavior, set it back to
 '(internal-complete-buffer).
 
++++
 *** You can navigate through and select completions using the keys
 from `icomplete-minibuffer-map'.
 
