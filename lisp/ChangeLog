@@ -1,3 +1,8 @@
+2014-02-12  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/js.el (js-indent-line): Don't widen.
+	http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00276.html
+
 2014-02-12  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/package.el (package-menu-mode-map): Tweak menu.

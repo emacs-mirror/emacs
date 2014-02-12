@@ -1905,13 +1905,11 @@ In particular, return the buffer position of the first `for' kwd."
 (defun js-indent-line ()
   "Indent the current line as JavaScript."
   (interactive)
-  (save-restriction
-    (widen)
-    (let* ((parse-status
-            (save-excursion (syntax-ppss (point-at-bol))))
-           (offset (- (current-column) (current-indentation))))
-      (indent-line-to (js--proper-indentation parse-status))
-      (when (> offset 0) (forward-char offset)))))
+  (let* ((parse-status
+          (save-excursion (syntax-ppss (point-at-bol))))
+         (offset (- (current-column) (current-indentation))))
+    (indent-line-to (js--proper-indentation parse-status))
+    (when (> offset 0) (forward-char offset))))
 
 ;;; Filling
 
