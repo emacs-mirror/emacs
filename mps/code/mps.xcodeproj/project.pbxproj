@@ -1160,6 +1160,8 @@
 		3104B02F156D39F2000A585A /* amssshe.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = amssshe.c; sourceTree = "<group>"; };
 		3104B03D156D3AD7000A585A /* segsmss */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = segsmss; sourceTree = BUILT_PRODUCTS_DIR; };
 		3107DC4E173B03D100F705C8 /* arg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = arg.h; sourceTree = "<group>"; };
+		3112ED3A18ABC57F00CC531A /* sa.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sa.h; sourceTree = "<group>"; };
+		3112ED3B18ABC75200CC531A /* sa.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sa.c; sourceTree = "<group>"; };
 		3114A590156E913C001E0AA3 /* locv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = locv; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A5A1156E9168001E0AA3 /* locv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = locv.c; sourceTree = "<group>"; };
 		3114A5A7156E92C0001E0AA3 /* qs */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = qs; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1908,6 +1910,8 @@
 				311F2F7A17398B8E00C15B6A /* tract.h */,
 				31EEAC44156AB32500714D05 /* version.c */,
 				31EEAC0E156AB27B00714D05 /* walk.c */,
+				3112ED3A18ABC57F00CC531A /* sa.h */,
+				3112ED3B18ABC75200CC531A /* sa.c */,
 			);
 			name = "MPM Core";
 			sourceTree = "<group>";

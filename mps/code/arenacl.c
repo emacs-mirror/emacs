@@ -145,7 +145,9 @@ failBootInit:
 
 static Res ClientChunkInit(Chunk chunk, BootBlock boot)
 {
+  Res res;
   ClientChunk clChunk;
+  void *p;
 
   /* chunk is supposed to be uninitialized, so don't check it. */
   clChunk = Chunk2ClientChunk(chunk);
@@ -153,6 +155,13 @@ static Res ClientChunkInit(Chunk chunk, BootBlock boot)
   UNUSED(boot);
 
   clChunk->freePages = chunk->pages; /* too large @@@@ */
+
+  /* Put the page table as late as possible, as in VM systems we don't want */
+  /* to map it. */
+  res = BootAlloc(&p, boot, chunk->pageTablePages << chunk->pageShift, chunk->pageSize);
+  if (res != ResOK)
+    return res;
+  chunk->pageTable = p;
 
   return ResOK;
 }
