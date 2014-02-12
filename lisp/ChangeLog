@@ -1,3 +1,9 @@
+2014-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/package.el (package-menu-mode-map): Tweak menu.
+	(package-menu-filter): Rename from package-menu-filter-interactive.
+	Doc fix.
+
 2014-02-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el (frameset--jump-to-register): Select the required
@@ -72,9 +78,6 @@
 	* cus-edit.el (customize-apropos): Fix error string.
 	(custom-buffer-create): Doc fix (bug#11122).
 	(custom-sort-items): Doc fix (bug#11121).
-
-	* dired-aux.el (dired-copy-file-recursive): Remove slighly
-	misleading comment (bug#11328).
 
 	* repeat.el (repeat-message-function): Reword doc slightly (bug#11619).
 

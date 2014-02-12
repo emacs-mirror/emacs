@@ -1,3 +1,9 @@
+2014-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* help.texi (Package Keywords): Mention describe-package buttons.
+
+	* package.texi (Package Menu): Mention package-menu-filter.
+
 2014-02-11  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* text.texi (Editing Format Info): Use @samp for menus (bug#13736).

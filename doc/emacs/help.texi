@@ -458,7 +458,9 @@ buffer (@pxref{Package Menu}).
 @kindex C-h P
   @kbd{C-h P} (@code{describe-package}) prompts for the name of a
 package, and displays a help buffer describing the attributes of the
-package and the features that it implements.
+package and the features that it implements.  The buffer lists the
+keywords that relate to the package in the form of buttons.  Click on
+a button to see other packages related to that keyword.
 
 @node Language Help
 @section Help for International Language Support
