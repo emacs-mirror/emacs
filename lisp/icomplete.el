@@ -1,12 +1,11 @@
 ;;; icomplete.el --- minibuffer completion incremental feedback
 
-;; Copyright (C) 1992-1994, 1997, 1999, 2001-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1992-1994, 1997, 1999, 2001-2014
+;;   Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@i.am>
 ;; Maintainer: Ken Manheimer <klm@i.am>
 ;; Created: Mar 1993 Ken Manheimer, klm@nist.gov - first release to usenet
-;; Last update: Ken Manheimer <klm@i.am>, 11/18/1999.
 ;; Keywords: help, abbrev
 
 ;; This file is part of GNU Emacs.
@@ -26,7 +25,7 @@
 
 ;;; Commentary:
 
-;; Loading this package implements a more fine-grained minibuffer
+;; Enabling this package implements a more fine-grained minibuffer
 ;; completion feedback scheme.  Prospective completions are concisely
 ;; indicated within the minibuffer itself, with each successive
 ;; keystroke.
@@ -38,14 +37,7 @@
 ;; customize icomplete setup for interoperation with other
 ;; minibuffer-oriented packages.
 
-;; To activate icomplete mode, load the package and use the
-;; `icomplete-mode' function.  You can subsequently deactivate it by
-;; invoking the function icomplete-mode with a negative prefix-arg
-;; (C-U -1 ESC-x icomplete-mode).  Also, you can prevent activation of
-;; the mode during package load by first setting the variable
-;; `icomplete-mode' to nil.  Icompletion can be enabled any time after
-;; the package is loaded by invoking icomplete-mode without a prefix
-;; arg.
+;; To enable/disable icomplete mode, use the `icomplete-mode' function.
 
 ;; Thanks to everyone for their suggestions for refinements of this
 ;; package.  I particularly have to credit Michael Cook, who
@@ -61,6 +53,7 @@
 (defgroup icomplete nil
   "Show completions dynamically in minibuffer."
   :prefix "icomplete-"
+  :link '(info-link "(emacs)Icomplete")
   :group 'minibuffer)
 
 (defvar icomplete-prospects-length 80)
@@ -83,7 +76,17 @@ When nil, show candidates in full."
   :type 'boolean
   :version "24.4")
 
-(defface icomplete-first-match  '((t :weight bold))
+(defcustom icomplete-with-completion-tables t
+  "Specialized completion tables with which icomplete should operate.
+If this is t, Icomplete operates on all tables.
+Otherwise this should be a list of the completion tables (e.g.,
+`internal-complete-buffer') on which Icomplete should operate."
+  ;; Prior to 24.4, not a user-option, default '(internal-complete-buffer).
+  :version "24.4"
+  :type '(choice (const :tag "All" t)
+		 (repeat function)))
+
+(defface icomplete-first-match '((t :weight bold))
   "Face used by icomplete for highlighting first match."
   :version "24.4")
 
@@ -120,10 +123,7 @@ It is intended for use in customizing icomplete for interoperation
 with other features and packages.  For instance:
 
   \(add-hook 'icomplete-minibuffer-setup-hook
-	    \(function
-	     \(lambda ()
-	       \(make-local-variable 'max-mini-window-height)
-	       \(setq max-mini-window-height 3))))
+	     \(lambda () (setq-local max-mini-window-height 3)))
 
 will constrain Emacs to a maximum minibuffer height of 3 lines when
 icompletion is occurring."
@@ -146,24 +146,14 @@ icompletion is occurring."
   (let ((non-essential t)) ;E.g. don't prompt for password!
     (icomplete-exhibit)))
 
-;;;_  = icomplete-with-completion-tables
-(defcustom icomplete-with-completion-tables t
-  "Specialized completion tables with which icomplete should operate.
-
-If this variable is a list, Icomplete will not operate with any
-specialized completion tables except those on this list.  If this
-variable is t, it won't restrict completion tables."
-  :version "24.4"
-  :type '(choice (const :tag "All" t)
-          (repeat function)))
-
 (defvar icomplete-minibuffer-map
   (let ((map (make-sparse-keymap)))
     (define-key map [?\M-\t] 'minibuffer-force-complete)
     (define-key map [?\C-j]  'minibuffer-force-complete-and-exit)
     (define-key map [?\C-.]  'icomplete-forward-completions)
     (define-key map [?\C-,]  'icomplete-backward-completions)
-    map))
+    map)
+  "Keymap used by `icomplete-mode' in the minibuffer.")
 
 (defun icomplete-forward-completions ()
   "Step forward completions by one entry.
@@ -199,7 +189,20 @@ Last entry becomes the first and can be selected with
   "Toggle incremental minibuffer completion (Icomplete mode).
 With a prefix argument ARG, enable Icomplete mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil."
+the mode if ARG is omitted or nil.
+
+When this global minor mode is enabled, typing in the minibuffer
+continuously displays a list of possible completions that match
+the string you have typed.  See `icomplete-completions' for a
+description of how prospective completions are displayed.
+
+For more information, see Info node `(emacs)Icomplete'.
+For options you can set, `M-x customize-group icomplete'.
+
+You can use the following key bindings to navigate and select
+completions:
+
+\\{icomplete-minibuffer-map}"
   :global t :group 'icomplete
   (remove-hook 'minibuffer-setup-hook #'icomplete-minibuffer-setup)
   (remove-hook 'completion-in-region-mode-hook #'icomplete--in-region-setup)
@@ -230,7 +233,7 @@ the mode if ARG is omitted or nil."
 
 ;;;_ > icomplete-simple-completing-p ()
 (defun icomplete-simple-completing-p ()
-  "Non-nil if current window is minibuffer that's doing simple completion.
+  "Non-nil if current window is a minibuffer that's doing simple completion.
 
 Conditions are:
    the selected window is a minibuffer,
@@ -356,11 +359,11 @@ one of \(), \[], or \{} pairs.  The choice of brackets is as follows:
   \{...} - multiple prospects, separated by commas, are indicated, and
           further input is required to distinguish a single one.
 
+If there are multiple possibilities, `icomplete-separator' separates them.
+
 The displays for unambiguous matches have ` [Matched]' appended
 \(whether complete or not), or ` \[No matches]', if no eligible
-matches exist.  \(Keybindings for uniquely matched commands
-are exhibited within the square braces.)"
-
+matches exist."
   (let* ((minibuffer-completion-table candidates)
 	 (minibuffer-completion-predicate predicate)
 	 (md (completion--field-metadata (icomplete--field-beg)))

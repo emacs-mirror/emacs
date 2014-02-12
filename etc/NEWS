@@ -232,6 +232,7 @@ equivalent to setting `(eval-expression-)print-length' and
 `(eval-expression-)print-level' to nil.  Additionally, it causes integers
 to be printed in other formats (octal, hexadecimal, and character).
 
+---
 *** New hook `eval-expression-minibuffer-setup-hook' run by
 `eval-expression' on entering the minibuffer.
 
@@ -554,17 +555,26 @@ module.
 ---
 ** New F90 mode option `f90-smart-end-names'.
 
-** Icomplete is a bit more like Ido.
+** Icomplete
 
-*** Key bindings to navigate through and select the completions.
+*** Icomplete by default now applies to all forms of minibuffer completion.
+The variable `icomplete-with-completion-tables' (now a user option)
+controls this.  To restore the old behavior, set it back to
+'(internal-complete-buffer).
 
-*** The icomplete-separator is customizable, and its default has changed.
+*** You can navigate through and select completions using the keys
+from `icomplete-minibuffer-map'.
 
-*** Removed `icomplete-show-key-bindings'.
+---
+*** The string that separates potential completions is now a customizable
+option (`icomplete-separator').  The default is " | " rather than ",".
 
-*** Icomplete-mode by defaults applies to all forms of minibuffer completion.
-(setq icomplete-with-completion-tables '(internal-complete-buffer))
-will revert to the old behavior.
+---
+*** New face `icomplete-first-match'; and new options
+`icomplete-hide-common-prefix' and `icomplete-show-matches-on-no-input'.
+
+---
+*** The option `icomplete-show-key-bindings' has been removed.
 
 ** Ido
 

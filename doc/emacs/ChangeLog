@@ -1,5 +1,9 @@
 2014-02-12  Glenn Morris  <rgm@gnu.org>
 
+	* mini.texi (Completion Options): No longer mention icomplete,
+	which has its own section now.
+	* modes.texi (Minor Modes): Update Icomplete xref.
+
 	* help.texi (Package Keywords): Mention describe-package buttons.
 
 	* package.texi (Package Menu): Mention package-menu-filter.

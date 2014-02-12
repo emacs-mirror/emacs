@@ -263,8 +263,7 @@ in the region, if the region is active.  @xref{Using Region}.
 
 @item
 Icomplete mode displays an indication of available completions when
-you are in the minibuffer and completion is active.  @xref{Completion
-Options}.
+you are in the minibuffer and completion is active.  @xref{Icomplete}.
 
 @item
 Line Number mode enables display of the current line number in the
