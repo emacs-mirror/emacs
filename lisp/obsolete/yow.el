@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1993-1995, 2000-2014 Free Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Author: Richard Mlynarik
 ;; Keywords: games
 ;; Obsolete-since: 24.4

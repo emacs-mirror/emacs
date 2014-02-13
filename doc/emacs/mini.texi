@@ -575,13 +575,6 @@ in a cyclic manner.  If you give @code{completion-cycle-threshold} a
 numeric value @var{n}, completion commands switch to this cycling
 behavior only when there are @var{n} or fewer alternatives.
 
-@cindex Icomplete mode
-@findex icomplete-mode
-  Icomplete mode presents a constantly-updated display that tells you
-what completions are available for the text you've entered so far.  The
-command to enable or disable this minor mode is @kbd{M-x
-icomplete-mode}.
-
 @node Minibuffer History
 @section Minibuffer History
 @cindex minibuffer history

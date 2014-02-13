@@ -928,6 +928,12 @@ highlighting, Hi Lock provides several of its own and these are
 pre-loaded into a list of default values.  While being prompted
 for a face use @kbd{M-n} and @kbd{M-p} to cycle through them.
 
+@vindex hi-lock-auto-select-face
+Setting the option @code{hi-lock-auto-select-face} to a non-@code{nil}
+value causes this command (and other Hi Lock commands that read faces)
+to automatically choose the next face from the default list without
+prompting.
+
 You can use this command multiple times, specifying various regular
 expressions to highlight in different ways.
 
@@ -976,8 +982,8 @@ initial lower-case letters will become case insensitive.
 @findex highlight-symbol-at-point
 @cindex symbol, highlighting
 @cindex highlighting symbol at point
-Highlight the symbol found near point without prompting, using the next
-available face automatically (@code{highlight-symbol-at-point}).
+Highlight the symbol found near point, using the next available face
+(@code{highlight-symbol-at-point}).
 
 @item M-s h w
 @itemx C-x w b

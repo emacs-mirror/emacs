@@ -537,6 +537,16 @@ do { \
     w32_fill_rect (f,hdc,pix,&rect); \
 } while (0)
 
+#define w32_fill_area_abs(f,hdc,pix,x0,y0,x1,y1) \
+do { \
+    RECT rect; \
+    rect.left = x0; \
+    rect.top = y0; \
+    rect.right = x1; \
+    rect.bottom = y1; \
+    w32_fill_rect (f,hdc,pix,&rect); \
+} while (0)
+
 #define w32_clear_rect(f,hdc,lprect) \
   w32_fill_rect (f, hdc, FRAME_BACKGROUND_PIXEL (f), lprect)
 
@@ -771,9 +781,7 @@ typedef char guichar_t;
 
 #define GUI_SDATA(x) ((guichar_t*) SDATA (x))
 
-#if defined HAVE_DIALOGS
 extern Lisp_Object w32_popup_dialog (struct frame *, Lisp_Object, Lisp_Object);
-#endif
 
 extern void syms_of_w32term (void);
 extern void syms_of_w32menu (void);

@@ -1,3 +1,32 @@
+2014-02-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (top): Require `vc', `vc-bzr', `vc-git'
+	and `vc-hg'.  Declare `tramp-find-executable' and
+	`tramp-get-remote-path'.
+	(tramp-test29-vc-registered): New test.
+	(tramp-test30-utf8): Rename from `tramp-test29-utf8'.
+
+2014-02-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test26-process-file): Improve test.
+	(tramp-test27-start-file-process): Use "_p" as argument of lambda.
+	(tramp-test28-shell-command): Improve `shell-command' test.  Add
+	`async-shell-command' tests.
+
+2014-02-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el (file-notify--wait-for-events):
+	Use `read-event' instead of `sit-for'.
+	(file-notify-test02-events): Remove expected result, the bug is
+	fixed meanwhile.
+	(file-notify-test02-events, file-notify-test03-autorevert):
+	Use `sleep-for' instead of `sit-for'.
+
+2014-01-31  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el (ruby-align-chained-calls):
+	New test.
+
 2014-01-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/file-notify-tests.el (file-notify--deftest-remote):
@@ -172,7 +201,7 @@
 	* automated/Makefile.in (PATH_SEPARATOR): New, set by configure.
 	(EMACSOPT): Use PATH_SEPARATOR.
 
-2013-11-20  Bozhidar Batsov <bozhidar@batsov.com>
+2013-11-20  Bozhidar Batsov  <bozhidar@batsov.com>
 
 	* automated/ruby-mode-tests.el (ruby-exit!-font-lock):
 	Add a failing test for Bug#15874.
@@ -866,7 +895,7 @@
 
 2013-04-09  Masatake YAMATO  <yamato@redhat.com>
 
-	* automated/add-log-tests.el: New file. (Bug#14112)
+	* automated/add-log-tests.el: New file.  (Bug#14112)
 
 2013-03-30  Fabián Ezequiel Gallina  <fabian@anue.biz>
 
@@ -1205,7 +1234,7 @@
 
 	* automated/newsticker-tests.el
 	(newsticker--group-manage-orphan-feeds): Prevent updating
-	newsticker treeview. Fixed bug#9763.
+	newsticker treeview.  Fixed bug#9763.
 
 2011-10-20  Glenn Morris  <rgm@gnu.org>
 
@@ -1220,7 +1249,7 @@
 2011-09-27  Ulf Jasper  <ulf.jasper@web.de>
 
 	* automated/newsticker-tests.el: Move newsticker-testsuite.el
-	to automated/newsticker-tests.el. Convert to ERT.
+	to automated/newsticker-tests.el.  Convert to ERT.
 
 2011-07-26  Ulf Jasper  <ulf.jasper@web.de>
 

@@ -273,7 +273,7 @@ If you want to report a bug, please type `M-x gnus-bug'.  This will
 give me a precise overview of your Gnus and Emacs version numbers,
 along with a look at all Gnus variables you have changed.
 
-Du not expect a reply back, but your bug should be fixed in the next
+Do not expect a reply back, but your bug should be fixed in the next
 version.  If the bug persists, please re-submit your bug report.
 
 When a bug occurs, I need a recipe for how to trigger the bug.  You

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2002-2004, 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: Sacha Chua <sacha@free.net.ph>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: comm, convenience
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcCompletion
 

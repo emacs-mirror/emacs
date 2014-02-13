@@ -3,7 +3,7 @@
 ;; Copyright (C) 1985-1986, 1993-1994, 1998-2014 Free Software
 ;; Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, internal
 ;; Package: emacs
 
@@ -472,8 +472,8 @@ To record all your input on a file, use `open-dribble-file'."
 ;; Key bindings
 
 (defun describe-bindings (&optional prefix buffer)
-  "Show a list of all defined keys, and their definitions.
-We put that list in a buffer, and display the buffer.
+  "Display a buffer showing a list of all defined keys, and their definitions.
+The keys are displayed in order of precedence.
 
 The optional argument PREFIX, if non-nil, should be a key sequence;
 then we display only bindings that start with that prefix.

@@ -3,7 +3,7 @@
 ;; Copyright (C) 1995-2014 Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 03 Apr 1995
 ;; Keywords: hypertext, hypermedia, mouse
 

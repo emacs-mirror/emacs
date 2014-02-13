@@ -3,7 +3,7 @@
 ;; Copyright (C) 1985, 1993-1994, 2001-2014 Free Software Foundation,
 ;; Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
 ;; Package: emacs
 
@@ -90,9 +90,11 @@ text."
 		 (character :tag "Use register" :value ?+)))
 
 (defcustom register-preview-delay 1
-  "If non-nil delay in seconds to pop up the preview window."
+  "If non-nil, time to wait in seconds before popping up a preview window.
+If nil, do not show register previews, unless `help-char' (or a member of
+`help-event-list') is pressed."
   :version "24.4"
-  :type '(choice number (const :tag "Indefinitely" nil))
+  :type '(choice number (const :tag "No preview unless requested" nil))
   :group 'register)
 
 (defun get-register (register)
@@ -117,11 +119,21 @@ See the documentation of the variable `register-alist' for possible VALUEs."
         (substring d (match-end 0))
       d)))
 
-(defvar register-preview-functions nil)
+(defun register-preview-default (r)
+  "Default function for the variable `register-preview-function'."
+  (format "%s %s\n"
+	  (concat (single-key-description (car r)) ":")
+	  (register-describe-oneline (car r))))
+
+(defvar register-preview-function #'register-preview-default
+  "Function to format a register for previewing.
+Takes one argument, a cons (NAME . CONTENTS) as found in `register-alist'.
+Returns a string.")
 
 (defun register-preview (buffer &optional show-empty)
   "Pop up a window to show register preview in BUFFER.
-If SHOW-EMPTY is non-nil show the window even if no registers."
+If SHOW-EMPTY is non-nil show the window even if no registers.
+Format of each entry is controlled by the variable `register-preview-function'."
   (when (or show-empty (consp register-alist))
     (with-temp-buffer-window
      buffer
@@ -130,20 +142,15 @@ If SHOW-EMPTY is non-nil show the window even if no registers."
      nil
      (with-current-buffer standard-output
        (setq cursor-in-non-selected-windows nil)
-       (mapc
-	(lambda (r)
-	  (insert (or (run-hook-with-args-until-success
-		       'register-preview-functions r)
-		      (format "%s %s\n"
-			      (concat (single-key-description (car r)) ":")
-			      (register-describe-oneline (car r))))))
-	register-alist)))))
+       (insert (mapconcat register-preview-function register-alist ""))))))
 
 (defun register-read-with-preview (prompt)
-  "Read an event with register preview using PROMPT.
-Pop up a register preview window if the input is a help char but
-is not a register. Alternatively if `register-preview-delay' is a
-number the preview window is popped up after some delay."
+  "Read and return a register name, possibly showing existing registers.
+Prompt with the string PROMPT.  If `register-alist' and
+`register-preview-delay' are both non-nil, display a window
+listing existing registers after `register-preview-delay' seconds.
+If `help-char' (or a member of `help-event-list') is pressed,
+display such a window regardless."
   (let* ((buffer "*Register Preview*")
 	 (timer (when (numberp register-preview-delay)
 		  (run-with-timer register-preview-delay nil
@@ -159,7 +166,8 @@ number the preview window is popped up after some delay."
 		       help-chars)
 	    (unless (get-buffer-window buffer)
 	      (register-preview buffer 'show-empty)))
-	  last-input-event)
+	  (if (characterp last-input-event) last-input-event
+	    (error "Non-character input-event")))
       (and (timerp timer) (cancel-timer timer))
       (let ((w (get-buffer-window buffer)))
         (and (window-live-p w) (delete-window w)))
@@ -169,7 +177,9 @@ number the preview window is popped up after some delay."
   "Store current location of point in register REGISTER.
 With prefix argument, store current frame configuration.
 Use \\[jump-to-register] to go to that location or restore that configuration.
-Argument is a character, naming the register."
+Argument is a character, naming the register.
+
+Interactively, reads the register using `register-read-with-preview'."
   (interactive (list (register-read-with-preview "Point to register: ")
 		     current-prefix-arg))
   ;; Turn the marker into a file-ref if the buffer is killed.
@@ -181,7 +191,9 @@ Argument is a character, naming the register."
 (defun window-configuration-to-register (register &optional _arg)
   "Store the window configuration of the selected frame in register REGISTER.
 Use \\[jump-to-register] to restore the configuration.
-Argument is a character, naming the register."
+Argument is a character, naming the register.
+
+Interactively, reads the register using `register-read-with-preview'."
   (interactive (list (register-read-with-preview
 		      "Window configuration to register: ")
 		     current-prefix-arg))
@@ -189,16 +201,26 @@ Argument is a character, naming the register."
   ;; of point in the current buffer, so record that separately.
   (set-register register (list (current-window-configuration) (point-marker))))
 
+;; It has had the optional arg for ages, but never used it.
+(set-advertised-calling-convention 'window-configuration-to-register
+				   '(register) "24.4")
+
 (defun frame-configuration-to-register (register &optional _arg)
   "Store the window configuration of all frames in register REGISTER.
 Use \\[jump-to-register] to restore the configuration.
-Argument is a character, naming the register."
+Argument is a character, naming the register.
+
+Interactively, reads the register using `register-read-with-preview'."
   (interactive (list (register-read-with-preview
 		      "Frame configuration to register: ")
 		     current-prefix-arg))
   ;; current-frame-configuration does not include the value
   ;; of point in the current buffer, so record that separately.
   (set-register register (list (current-frame-configuration) (point-marker))))
+
+;; It has had the optional arg for ages, but never used it.
+(set-advertised-calling-convention 'frame-configuration-to-register
+				   '(register) "24.4")
 
 (defalias 'register-to-point 'jump-to-register)
 (defun jump-to-register (register &optional delete)
@@ -210,7 +232,9 @@ If the register contains a window configuration (one frame) or a frameset
 First argument is a character, naming the register.
 Optional second arg non-nil (interactively, prefix argument) says to
 delete any existing frames that the frameset doesn't mention.
-\(Otherwise, these frames are iconified.)"
+\(Otherwise, these frames are iconified.)
+
+Interactively, reads the register using `register-read-with-preview'."
   (interactive (list (register-read-with-preview "Jump to register: ")
 		     current-prefix-arg))
   (let ((val (get-register register)))
@@ -258,7 +282,9 @@ delete any existing frames that the frameset doesn't mention.
 Two args, NUMBER and REGISTER (a character, naming the register).
 If NUMBER is nil, a decimal number is read from the buffer starting
 at point, and point moves to the end of that number.
-Interactively, NUMBER is the prefix arg (none means nil)."
+Interactively, NUMBER is the prefix arg (none means nil).
+
+Interactively, reads the register using `register-read-with-preview'."
   (interactive (list current-prefix-arg
 		     (register-read-with-preview "Number to register: ")))
   (set-register register
@@ -278,8 +304,11 @@ If REGISTER contains a number, add `prefix-numeric-value' of
 PREFIX to it.
 
 If REGISTER is empty or if it contains text, call
-`append-to-register' with `delete-flag' set to PREFIX."
-  (interactive "P\ncIncrement register: ")
+`append-to-register' with `delete-flag' set to PREFIX.
+
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive (list current-prefix-arg
+		     (register-read-with-preview "Increment register: ")))
   (let ((register-val (get-register register)))
     (cond
      ((numberp register-val)
@@ -291,7 +320,9 @@ If REGISTER is empty or if it contains text, call
 
 (defun view-register (register)
   "Display what is contained in register named REGISTER.
-The Lisp value REGISTER is a character."
+The Lisp value REGISTER is a character.
+
+Interactively, reads the register using `register-read-with-preview'."
   (interactive (list (register-read-with-preview "View register: ")))
   (let ((val (get-register register)))
     (if (null val)
@@ -393,7 +424,9 @@ The Lisp value REGISTER is a character."
   "Insert contents of register REGISTER.  (REGISTER is a character.)
 Normally puts point before and mark after the inserted text.
 If optional second arg is non-nil, puts mark before and point after.
-Interactively, second arg is non-nil if prefix arg is supplied."
+Interactively, second arg is non-nil if prefix arg is supplied.
+
+Interactively, reads the register using `register-read-with-preview'."
   (interactive (progn
 		 (barf-if-buffer-read-only)
 		 (list (register-read-with-preview "Insert register: ")
@@ -424,7 +457,9 @@ With prefix arg, delete as well.
 Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to copy.
 The optional argument REGION if non-nil, indicates that we're not just copying
-some text between START and END, but we're copying the region."
+some text between START and END, but we're copying the region.
+
+Interactively, reads the register using `register-read-with-preview'."
   (interactive (list (register-read-with-preview "Copy to register: ")
 		     (region-beginning)
 		     (region-end)
@@ -443,7 +478,9 @@ some text between START and END, but we're copying the region."
   "Append region to text in register REGISTER.
 With prefix arg, delete as well.
 Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
-START and END are buffer positions indicating what to append."
+START and END are buffer positions indicating what to append.
+
+Interactively, reads the register using `register-read-with-preview'."
   (interactive (list (register-read-with-preview "Append to register: ")
 		     (region-beginning)
 		     (region-end)
@@ -465,7 +502,9 @@ START and END are buffer positions indicating what to append."
   "Prepend region to text in register REGISTER.
 With prefix arg, delete as well.
 Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
-START and END are buffer positions indicating what to prepend."
+START and END are buffer positions indicating what to prepend.
+
+Interactively, reads the register using `register-read-with-preview'."
   (interactive (list (register-read-with-preview "Prepend to register: ")
 		     (region-beginning)
 		     (region-end)
@@ -489,7 +528,9 @@ With prefix arg, delete as well.
 To insert this register in the buffer, use \\[insert-register].
 
 Called from a program, takes four args: REGISTER, START, END and DELETE-FLAG.
-START and END are buffer positions giving two corners of rectangle."
+START and END are buffer positions giving two corners of rectangle.
+
+Interactively, reads the register using `register-read-with-preview'."
   (interactive (list (register-read-with-preview
 		      "Copy rectangle to register: ")
 		     (region-beginning)

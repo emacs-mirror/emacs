@@ -1,3 +1,11 @@
+2014-02-06  David Engster  <deng@randomsample.de>
+
+	* grammars/c.by (function-pointer): Correctly deal with anonymous
+	function pointers.
+	(opt-brackets-after-symbol): New.
+	(multi-stage-dereference): Use it.  Add rules for explicit
+	matching the last dereference.
+
 2014-01-16  Eric S. Raymond  <esr@thyrsus.com>
 
 	* notes/commits: Add a 'graph on VCS-independent ways of
@@ -359,7 +367,7 @@
 
 2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Use Gnulib ACL implementation, for benefit of Solaris etc. (Bug#14295)
+	Use Gnulib ACL implementation, for benefit of Solaris etc.  (Bug#14295)
 	* merge-gnulib (GNULIB_MODULES): Add qacl.
 	(GNULIB_TOOL_FLAGS): Do not avoid errno.
 

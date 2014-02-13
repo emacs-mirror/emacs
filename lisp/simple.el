@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985-1987, 1993-2014 Free Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
 ;; Package: emacs
 
@@ -738,6 +738,9 @@ useful for editing binary files."
     ;;          (>= char ?\240)
     ;;          (<= char ?\377))
     ;;     (setq char (unibyte-char-to-multibyte char)))
+    (unless (characterp char)
+      (user-error "%s is not a valid character"
+		  (key-description (vector char))))
     (if (> arg 0)
 	(if (eq overwrite-mode 'overwrite-mode-binary)
 	    (delete-char arg)))
@@ -1564,13 +1567,11 @@ If the value is non-nil and not a number, we wait 2 seconds."
 (defun execute-extended-command (prefixarg &optional command-name)
   ;; Based on Fexecute_extended_command in keyboard.c of Emacs.
   ;; Aaron S. Hawley <aaron.s.hawley(at)gmail.com> 2009-08-24
-  "Read function name, then read its arguments and call it.
-
-To pass a numeric argument to the command you are invoking, specify
-the numeric argument to this command.
-
+  "Read a command name, then read the arguments and call the command.
+Interactively, to pass a prefix argument to the command you are
+invoking, give a prefix argument to `execute-extended-command'.
 Noninteractively, the argument PREFIXARG is the prefix argument to
-give to the command you invoke, if it asks for an argument."
+give to the command you invoke."
   (interactive (list current-prefix-arg (read-extended-command)))
   ;; Emacs<24 calling-convention was with a single `prefixarg' argument.
   (if (null command-name)
@@ -5110,6 +5111,12 @@ The value is a floating-point number."
 ;; a cleaner solution to the problem of making C-n do something
 ;; useful given a tall image.
 (defun line-move (arg &optional noerror to-end try-vscroll)
+  "Move forward ARG lines.
+If NOERROR, don't signal an error if we can't move ARG lines.
+TO-END is unused.
+TRY-VSCROLL controls whether to vscroll tall lines: if either
+`auto-window-vscroll' or TRY-VSCROLL is nil, this function will
+not vscroll."
   (if noninteractive
       (forward-line arg)
     (unless (and auto-window-vscroll try-vscroll
@@ -5159,6 +5166,8 @@ The value is a floating-point number."
 ;; Arg says how many lines to move.  The value is t if we can move the
 ;; specified number of lines.
 (defun line-move-visual (arg &optional noerror)
+  "Move ARG lines forward.
+If NOERROR, don't signal an error if we can't move that many lines."
   (let ((opoint (point))
 	(hscroll (window-hscroll))
 	target-hscroll)
@@ -6904,7 +6913,8 @@ With prefix argument N, move N items (negative N means move backward)."
 	(setq n (1+ n))))))
 
 (defun choose-completion (&optional event)
-  "Choose the completion at point."
+  "Choose the completion at point.
+If EVENT, use EVENTs position to determine the starting position."
   (interactive (list last-nonmenu-event))
   ;; In case this is run via the mouse, give temporary modes such as
   ;; isearch a chance to turn off.
@@ -6975,12 +6985,10 @@ With prefix argument N, move N items (negative N means move backward)."
 
 (defvar choose-completion-string-functions nil
   "Functions that may override the normal insertion of a completion choice.
-These functions are called in order with four arguments:
+These functions are called in order with three arguments:
 CHOICE - the string to insert in the buffer,
 BUFFER - the buffer in which the choice should be inserted,
-MINI-P - non-nil if BUFFER is a minibuffer, and
-BASE-SIZE - the number of characters in BUFFER before
-the string being completed.
+BASE-POSITION - where to insert the completion.
 
 If a function in the list returns non-nil, that function is supposed
 to have inserted the CHOICE in the BUFFER, and possibly exited
@@ -7765,6 +7773,33 @@ contains the list of implementations currently supported for this command."
              (call-interactively ,varimp-sym)
            (message ,(format "No implementation selected for command `%s'"
                              command-name)))))))
+
+
+;; This is here because files in obsolete/ are not scanned for autoloads.
+
+(defvar iswitchb-mode nil "\
+Non-nil if Iswitchb mode is enabled.
+See the command `iswitchb-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `iswitchb-mode'.")
+
+(custom-autoload 'iswitchb-mode "iswitchb" nil)
+
+(autoload 'iswitchb-mode "iswitchb" "\
+Toggle Iswitchb mode.
+With a prefix argument ARG, enable Iswitchb mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Iswitchb mode is a global minor mode that enables switching
+between buffers using substrings.  See `iswitchb' for details.
+
+\(fn &optional ARG)" t nil)
+
+(make-obsolete 'iswitchb-mode
+               "use `icomplete-mode' or `ido-mode' instead." "24.4")
+
 
 (provide 'simple)
 

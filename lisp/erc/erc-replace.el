@@ -4,7 +4,7 @@
 ;; Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: IRC, client, Internet
 
 ;; This file is part of GNU Emacs.

@@ -72,13 +72,18 @@ Grep finished (matches found) at Thu Jul 21 15:02:15
 agrep -n "INFO tree" ../info/*
 ../info/dir: 6: File: dir	Node: Top	This is the top of the INFO tree
 
+* bzr grep with Bazaar plugin [grep]
+
+bzr grep --color=always -in "org-element-map"
+[35mlisp/org/org.el[1;36m:[0m21047[1;36m:[0m		      ([1;31morg-element-map[0m
+
 * git-grep
   with `[diff "el"] xfuncname = "^(\\(.*)$"' in .gitconfig
   and `*.el diff=el' in .gitattributes
 
-git grep -inH -p -e "org-element-map"
-lisp/org/org.el=20969=(defun org-fill-paragraph (&optional justify)
-lisp/org/org.el:21047:		      (org-element-map
+git --no-pager grep -inH -p -e "org-element-map"
+lisp/org/org.el[36m=[m20969[36m=[m(defun org-fill-paragraph (&optional justify)
+lisp/org/org.el[36m:[m21047[36m:[m		      ([1;31morg-element-map[m
 
 * unknown greps
 

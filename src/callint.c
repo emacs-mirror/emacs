@@ -308,7 +308,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   specs = Qnil;
   string = 0;
-  /* The idea of FILTER_SPECS is to provide away to
+  /* The idea of FILTER_SPECS is to provide a way to
      specify how to represent the arguments in command history.
      The feature is not fully implemented.  */
   filter_specs = Qnil;

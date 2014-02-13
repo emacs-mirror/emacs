@@ -695,7 +695,9 @@ draw_fringe_bitmap_1 (struct window *w, struct glyph_row *row, int left_p, int o
 	}
     }
 
-  FRAME_RIF (f)->draw_fringe_bitmap (w, row, &p);
+  if (p.x >= WINDOW_BOX_LEFT_EDGE_X (w)
+      && (p.x + p.wd) <= WINDOW_BOX_LEFT_EDGE_X (w) + WINDOW_PIXEL_WIDTH (w))
+    FRAME_RIF (f)->draw_fringe_bitmap (w, row, &p);
 }
 
 static int

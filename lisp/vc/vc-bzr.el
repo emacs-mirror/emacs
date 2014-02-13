@@ -4,7 +4,7 @@
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; 	   Riccardo Murri <riccardo.murri@gmail.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: vc tools
 ;; Created: Sept 2006
 ;; Package: vc

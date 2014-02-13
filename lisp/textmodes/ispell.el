@@ -3025,7 +3025,7 @@ Keeps argument list for future Ispell invocations for no async support."
 	(setq ispell-filter nil ispell-filter-continue nil)
       ;; may need to restart to select new personal dictionary.
       (ispell-kill-ispell t)
-      (message "Starting new Ispell process [%s::%s] ..."
+      (message "Starting new Ispell process %s with %s dictionary..."
 	       ispell-program-name
 	       (or ispell-local-dictionary ispell-dictionary "default"))
       (sit-for 0)

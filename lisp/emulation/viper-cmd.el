@@ -4831,6 +4831,7 @@ Please, specify your level now: ")
   (beep 1))
 
 
+;; FIXME Use register-read-with-preview?
 ;; if ENFORCE-BUFFER is not nil, error if CHAR is a marker in another buffer
 (defun viper-register-to-point (char &optional enforce-buffer)
   "Like `jump-to-register', but switches to another buffer in another window."

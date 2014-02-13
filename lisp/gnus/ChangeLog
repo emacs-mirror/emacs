@@ -1,3 +1,63 @@
+2014-02-12  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnmail.el (nnmail-expand-newtext): Further sub-match fixups
+	(bug#12375).
+
+2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-tab): Mention what happens on normal tabs
+	(bug#11297).
+
+2014-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* auth-source.el (auth-sources): Doc fix.  (Bug#16642)
+
+2014-02-07  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* ietf-drums.el (ietf-drums-parse-address): Don't bug out when called
+	with an empty string.
+
+2014-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-summary-cancel-article): `user-mail-address' is
+	buffer-local in some buffers, so bind it explicitly in the buffer we're
+	trying to cancel the article in (bug#10808).
+
+2014-02-05  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-int.el (gnus-request-accept-article): Doc fix.
+
+2014-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnir.el (nnir-request-update-mark): Don't try to update the source
+	group if we can't find it (bug#16611).
+
+2014-01-31  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-transform-headers): Fix Davmail header parsing.
+
+2014-01-31  Dave Abrahams  <dave@boostpro.com>
+
+	* gnus-salt.el (gnus-tree-highlight-article): Don't move point around
+	in the summary buffer (bug#13769).
+
+2014-01-31  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-setup-buffer): Refresh the summary buffer
+	name if we're using a single article buffer.  Otherwise, it may point
+	to a killed buffer (bug#13756).
+
+2014-01-30  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnmail.el (nnmail-split-it): Instead of redoing the search to restore
+	the match data, just save and restore it explictly (bug#12375).
+
+	* gnus-sum.el (gnus-summary-read-group-1): Initialize the spam code if
+	that's needed.
+
+	* spam.el (spam-initialize): Allow calling repeatedly, but only run the
+	the code once (bug#9069).
+
 2014-01-18  Steinar Bang  <sb@dod.no>
 
 	* gnus-setup.el (gnus-use-sendmail): We never use sendmail for mail
@@ -96,7 +156,7 @@
 	(gnus-icalendar-event->org-entry)
 	(gnus-icalendar--update-org-event)
 	(gnus-icalendar-event->gnus-calendar): Distinguish between
-	required/optional/non-participant attendee status. Fix bug causing
+	required/optional/non-participant attendee status.  Fix bug causing
 	the first required event participant to be omitted.
 
 2013-11-27  Katsumi Yamaoka  <yamaoka@jpl.org>
@@ -584,7 +644,7 @@
 	* nnimap.el (nnimap-request-head): Remove to-buffer argument.
 
 	* gnus-int.el (gnus-request-head): Remove to-buffer argument, only
-	supported by nnimap actually. Reverts previous change.
+	supported by nnimap actually.  Reverts previous change.
 
 	* gnus-int.el (gnus-request-head): Add an optional to-buffer parameter
 	to mimic `gnus-request-article' and enjoy backends the nn*-request-head
@@ -952,7 +1012,7 @@
 	the work.  Has the nice benefit of enabling STARTTLS.
 	Wait for capabilities after STARTTLS: following RFC5804, the server
 	sends new capabilities after successfully establishing a TLS connection
-	with the client. The client should update the cached list of
+	with the client.  The client should update the cached list of
 	capabilities, but we just ignore the answer for now.
 	(sieve-manage-network-p, sieve-manage-network-open)
 	(sieve-manage-starttls-p, sieve-manage-starttls-open)
@@ -1002,7 +1062,7 @@
 	* sieve.el: Put point at beginning of buffer when viewing a script.
 	(sieve-open-server): Respect the PORT parameter.  Show the correct port
 	number in sieve-buffer's header.  Fixed code to also work with a string
-	as port specifier. Properly close the connection on pressing 'q'.  Make
+	as port specifier.  Properly close the connection on pressing 'q'.  Make
 	sieve-manage-quit close the connection and process buffer.  Also, remove
 	duplicate keybinding for 'q'.
 
@@ -5487,7 +5547,7 @@
 
 2011-02-22  Andrew Cohen  <cohen@andy.bu.edu>
 
-	* nnir.el (nnir-imap-search-arguments,nnir-imap-default-search-key):
+	* nnir.el (nnir-imap-search-arguments, nnir-imap-default-search-key):
 	Lower case names of search constraints.
 	(nnir-run-query): Cache and reuse search constraints for all imap
 	servers.
@@ -6790,7 +6850,7 @@
 	customizable.
 	(nnir-retrieve-headers): Remove obsolete subject-mangling code.
 
-	* gnus-sum.el (nnir-article-group,nnir-article-rsv): Autoload macros
+	* gnus-sum.el (nnir-article-group, nnir-article-rsv): Autoload macros
 	from nnir.el.
 
 2010-12-03  Julien Danjou  <julien@danjou.info>
@@ -6817,7 +6877,7 @@
 
 	* nnir.el (nnir-summary-line-format): New variable.
 	(nnir-mode): Use it.
-	(nnir-artlist-*,nnir-aritem-*): Reimplement as macros.
+	(nnir-artlist-*, nnir-aritem-*): Reimplement as macros.
 	(nnir-article-ids): Reimplement as defsubst.
 	(nnir-retrieve-headers): Don't mangle the subject header.
 	(nnir-run-imap): Use 100 as RSV score.
@@ -6848,7 +6908,7 @@
 	(nnir-mode): Install nnir-specific hooks for updating the registry.
 
 	* gnus-sum.el
-	(gnus-article-original-subject,gnus-newsgroup-original-name):
+	(gnus-article-original-subject, gnus-newsgroup-original-name):
 	Remove obsolete variables.
 	(gnus-summary-move-article): Remove use of obsolete variables.
 	(gnus-summary-local-variables): Make move and delete hooks local to
@@ -7644,7 +7704,7 @@
 	long-lines case by only filling the long lines.
 
 	* nnimap.el (nnimap-parse-line): Don't bug out oddly formed replies
-	(bug #7311).
+	(bug#7311).
 
 2010-11-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -7724,7 +7784,7 @@
 
 2010-10-31  Andrew Cohen  <cohen@andy.bu.edu>
 
-	* nnir.el (gnus-group-make-nnir-group,nnir-run-query): Allow searching
+	* nnir.el (gnus-group-make-nnir-group, nnir-run-query): Allow searching
 	an entire server.
 	(nnir-get-active): New function.
 	(nnir-run-imap): Use it.
@@ -7806,13 +7866,13 @@
 	* nnir.el: General clean up.  Allow searching with multiple engines.
 	Allow separate extra-parameters for each engine.
 	Batch queries when possible.
-	(nnir-imap-default-search-key,nnir-method-default-engines):
+	(nnir-imap-default-search-key, nnir-method-default-engines):
 	Add customize interface.
 	(nnir-run-gmane): New engine.
 	(nnir-engines): Use it.  Qualify all prompts with engine name.
 	(nnir-search-engine): Remove global variable.
 	(nnir-run-hyrex): Restore for now.
-	(nnir-extra-parms,nnir-search-history): New variables.
+	(nnir-extra-parms, nnir-search-history): New variables.
 	(gnus-group-make-nnir-group): Use them.
 	(nnir-group-server): Remove in favor of gnus-group-server.
 	(nnir-request-group): Avoid searching twice.
@@ -8146,7 +8206,7 @@
 
 	* gnus-agent.el (gnus-agent-toggle-plugged): Use the right minor mode
 	name in the mode line spec so that the mode line menu works
-	(bug #2431).
+	(bug#2431).
 
 	* message.el (message-get-reply-headers): If we're fed `to-address',
 	then always use that.
@@ -8155,7 +8215,7 @@
 	aren't so wide as to need to switch off the edit menu.
 
 	* gnus-delay.el (gnus-delay-article): Remove superfluous `group'
-	binding.  Suggested by Leo <sdl.web@gmail.com> (bug #6613).
+	binding.  Suggested by Leo <sdl.web@gmail.com> (bug#6613).
 
 	* nnimap.el (nnimap-request-group): Don't SELECT the group twice on
 	`M-g'.
@@ -9001,7 +9061,7 @@
 
 2010-09-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* nnir.el: Use the server names without suffixes (bug #7009).
+	* nnir.el: Use the server names without suffixes (bug#7009).
 
 	* nnimap.el (nnimap-open-connection): Reinstate the auto-upgrade from
 	unencrypted to STARTTLS, if possible.
@@ -10987,7 +11047,7 @@
 
 2010-07-13  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
-	Allow bookmarks to be set from Gnus Article buffers (Bug #5975).
+	Allow bookmarks to be set from Gnus Article buffers (Bug#5975).
 	Patch applied (with minor tweaks) by Karl Fogel.  Note this leaves
 	C-w still not working correctly from Article buffers; Thierry's
 	patch to fix that will be applied after this.
@@ -11211,7 +11271,7 @@
 
 2010-05-01  Andreas Seltenreich  <seltenreich@gmx.de>
 
-	* mml.el (mml-generate-mime-1,mml-compute-boundary-1): Update 'mml
+	* mml.el (mml-generate-mime-1, mml-compute-boundary-1): Update 'mml
 	handles on recursive mml-to-mime translation and check them for
 	boundary delimiter collisions.  Reported by Greg Troxel.
 
@@ -18622,7 +18682,7 @@
 2005-12-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* mm-uu.el (mm-uu-type-alist): Don't depend on message.el for
-	message-marks (Debian bug #342521).
+	message-marks (Debian bug#342521).
 
 2005-12-12  Simon Josefsson  <jas@extundo.com>
 

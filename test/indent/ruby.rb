@@ -135,6 +135,13 @@ end
 # Bug#15208
 if something == :==
   do_something
+
+  return false unless method == :+
+  x = y + z # Bug#16609
+
+  a = 1 ? 2 :(
+    2 + 3
+  )
 end
 
 # Example from http://www.ruby-doc.org/docs/ProgrammingRuby/html/language.html
@@ -257,8 +264,8 @@ foo ^
   bar
 
 foo_bar_tee(1, 2, 3)
-  .qux
-  .bar
+  .qux.bar
+  .tee
 
 foo do
   bar
@@ -338,7 +345,7 @@ end
 %^abc^
 ddd
 
-qux = foo ?
+qux = foo.fee ?
         bar :
         tee
 
@@ -348,7 +355,7 @@ zoo.keep.bar!(
 
 zoo
   .lose(
-  q, p)
+    q, p)
 
 foo(bar:
       tee)

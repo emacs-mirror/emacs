@@ -1293,10 +1293,14 @@ been put there by c-put-char-property.  POINT remains unchanged."
   ;; suppressed.
   `(unwind-protect
        (c-save-buffer-state ()
-	 (c-clear-cpp-delimiters ,beg ,end)
+	 (save-restriction
+	   (widen)
+	   (c-clear-cpp-delimiters ,beg ,end))
 	 ,`(c-with-cpps-commented-out ,@forms))
      (c-save-buffer-state ()
-       (c-set-cpp-delimiters ,beg ,end))))
+       (save-restriction
+	 (widen)
+	 (c-set-cpp-delimiters ,beg ,end)))))
 
 (defsubst c-intersect-lists (list alist)
   ;; return the element of ALIST that matches the first element found
@@ -2215,7 +2219,7 @@ quoted."
 		     ;;(message (concat "Loading %s to get the source "
 		     ;;			"value for language constant %s")
 		     ;;		file name)
-		     (load file))
+		     (load file nil t))
 
 		   (unless (setq assignment-entry (cdar file-entry))
 		     ;; The load didn't fill in the source for the

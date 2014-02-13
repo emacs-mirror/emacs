@@ -4,7 +4,7 @@
 ;; Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Obsolete-since: 24.4
 ;; Keywords: comm, terminals
 

@@ -214,7 +214,8 @@ backslash and doublequote.")
 		(mapconcat 'identity (reverse display-name) " "))
 	(setq display-string (ietf-drums-get-comment string)))
       (if (not mailbox)
-	  (when (string-match "@" display-string)
+	  (when (and display-string
+		     (string-match "@" display-string))
 	    (cons
 	     (mapconcat 'identity (nreverse display-name) "")
 	     (ietf-drums-get-comment string)))

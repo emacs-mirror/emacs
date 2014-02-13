@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985, 2001-2014 Free Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Obsolete-since: 22.1
 
 ;; This file is part of GNU Emacs.

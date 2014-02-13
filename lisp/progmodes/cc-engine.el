@@ -2219,7 +2219,8 @@ comment at the start of cc-engine.el for more info."
        ((and (not not-in-delimiter)	; inside a comment starter
 	     (not (bobp))
 	     (progn (backward-char)
-		    (looking-at c-comment-start-regexp)))
+		    (and (not (looking-at "\\s!"))
+			 (looking-at c-comment-start-regexp))))
 	(setq ty (if (looking-at c-block-comment-start-regexp) 'c 'c++)
 	      co-st (point))
 	(forward-comment 1)
@@ -2552,8 +2553,11 @@ comment at the start of cc-engine.el for more info."
   ;; The return value is a list, one of the following:
   ;;
   ;; o - ('forward START-POINT) - scan forward from START-POINT,
-  ;;	 which is not less than the highest position in `c-state-cache' below here.
+  ;;	 which is not less than the highest position in `c-state-cache' below HERE,
+  ;;     which is after GOOD-POS.
   ;; o - ('backward nil) - scan backwards (from HERE).
+  ;; o - ('back-and-forward START-POINT) - like 'forward, but when HERE is earlier
+  ;;     than GOOD-POS.
   ;; o - ('IN-LIT nil) - point is inside the literal containing point-min.
   (let ((cache-pos (c-get-cache-scan-pos here))	; highest position below HERE in cache (or 1)
 	strategy	    ; 'forward, 'backward, or 'IN-LIT.
@@ -2568,9 +2572,9 @@ comment at the start of cc-engine.el for more info."
      ((< (- good-pos here) (- here cache-pos)) ; FIXME!!! ; apply some sort of weighting.
       (setq strategy 'backward))
      (t
-      (setq strategy 'forward
+      (setq strategy 'back-and-forward
 	    start-point cache-pos)))
-    (list strategy (and (eq strategy 'forward) start-point))))
+    (list strategy start-point)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2842,9 +2846,10 @@ comment at the start of cc-engine.el for more info."
 
 (defun c-remove-stale-state-cache (start-point here pps-point)
   ;; Remove stale entries from the `c-cache-state', i.e. those which will
-  ;; not be in it when it is amended for position HERE.  Additionally, the
-  ;; "outermost" open-brace entry before HERE will be converted to a cons if
-  ;; the matching close-brace is scanned.
+  ;; not be in it when it is amended for position HERE.  This may involve
+  ;; replacing a CONS element for a brace pair containing HERE with its car.
+  ;; Additionally, the "outermost" open-brace entry before HERE will be
+  ;; converted to a cons if the matching close-brace is below HERE.
   ;;
   ;; START-POINT is a "maximal" "safe position" - there must be no open
   ;; parens/braces/brackets between START-POINT and HERE.
@@ -2855,7 +2860,7 @@ comment at the start of cc-engine.el for more info."
   ;; adjust it to get outside a string/comment.	 (Sorry about this!  The code
   ;; needs to be FAST).
   ;;
-  ;; Return a list (GOOD-POS SCAN-BACK-POS PPS-STATE), where
+  ;; Return a list (GOOD-POS SCAN-BACK-POS CONS-SEPARATED PPS-STATE), where
   ;; o - GOOD-POS is a position where the new value `c-state-cache' is known
   ;;   to be good (we aim for this to be as high as possible);
   ;; o - SCAN-BACK-POS, if not nil, indicates there may be a brace pair
@@ -2863,6 +2868,9 @@ comment at the start of cc-engine.el for more info."
   ;;   position to scan backwards from.  It is the position of the "{" of the
   ;;   last element to be removed from `c-state-cache', when that elt is a
   ;;   cons, otherwise nil.
+  ;; o - CONS-SEPARATED is t when a cons element in `c-state-cache' has been
+  ;;   replaced by its car because HERE lies inside the brace pair represented
+  ;;   by the cons.
   ;; o - PPS-STATE is the parse-partial-sexp state at PPS-POINT.
   (save-excursion
     (save-restriction
@@ -2890,6 +2898,7 @@ comment at the start of cc-engine.el for more info."
 	     pos
 	     upper-lim	   ; ,beyond which `c-state-cache' entries are removed
 	     scan-back-pos
+	     cons-separated
 	     pair-beg pps-point-state target-depth)
 
 	;; Remove entries beyond HERE.  Also remove any entries inside
@@ -2911,7 +2920,8 @@ comment at the start of cc-engine.el for more info."
 		   (consp (car c-state-cache))
 		   (> (cdar c-state-cache) upper-lim))
 	  (setcar c-state-cache (caar c-state-cache))
-	  (setq scan-back-pos (car c-state-cache)))
+	  (setq scan-back-pos (car c-state-cache)
+		cons-separated t))
 
 	;; The next loop jumps forward out of a nested level of parens each
 	;; time round; the corresponding elements in `c-state-cache' are
@@ -2983,7 +2993,7 @@ comment at the start of cc-engine.el for more info."
 	  (setq c-state-cache (cons (cons pair-beg pos)
 				    c-state-cache)))
 
-	(list pos scan-back-pos pps-state)))))
+	(list pos scan-back-pos cons-separated pps-state)))))
 
 (defun c-remove-stale-state-cache-backwards (here)
   ;; Strip stale elements of `c-state-cache' by moving backwards through the
@@ -3265,6 +3275,7 @@ comment at the start of cc-engine.el for more info."
 		     ; are no open parens/braces between it and HERE.
 	 bopl-state
 	 res
+	 cons-separated
 	 scan-backward-pos scan-forward-p) ; used for 'backward.
     ;; If POINT-MIN has changed, adjust the cache
     (unless (= (point-min) c-state-point-min)
@@ -3277,13 +3288,15 @@ comment at the start of cc-engine.el for more info."
 
     ;; SCAN!
     (cond
-     ((eq strategy 'forward)
+     ((memq strategy '(forward back-and-forward))
       (setq res (c-remove-stale-state-cache start-point here here-bopl))
       (setq cache-pos (car res)
 	    scan-backward-pos (cadr res)
-	    bopl-state (car (cddr res))) ; will be nil if (< here-bopl
+	    cons-separated (car (cddr res)) 
+	    bopl-state (cadr (cddr res))) ; will be nil if (< here-bopl
 					; start-point)
-      (if scan-backward-pos
+      (if (and scan-backward-pos
+	       (or cons-separated (eq strategy 'forward))) ;scan-backward-pos
 	  (c-append-lower-brace-pair-to-state-cache scan-backward-pos here))
       (setq good-pos
 	    (c-append-to-state-cache cache-pos here))

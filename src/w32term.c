@@ -628,25 +628,37 @@ static void
 w32_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  RECT r;
-  HDC hdc;
-  struct face *face;
+  HDC hdc = get_frame_dc (f);
+  struct face *face = FACE_FROM_ID (f, WINDOW_DIVIDER_FACE_ID);
+  struct face *face_first = FACE_FROM_ID (f, WINDOW_DIVIDER_FIRST_PIXEL_FACE_ID);
+  struct face *face_last = FACE_FROM_ID (f, WINDOW_DIVIDER_LAST_PIXEL_FACE_ID);
+  unsigned long color = face ? face->foreground : FRAME_FOREGROUND_PIXEL (f);
+  unsigned long color_first = (face_first
+			       ? face_first->foreground
+			       : FRAME_FOREGROUND_PIXEL (f));
+  unsigned long color_last = (face_last
+			      ? face_last->foreground
+			      : FRAME_FOREGROUND_PIXEL (f));
 
-  r.left = x0;
-  r.right = x1;
-  r.top = y0;
-  r.bottom = y1;
-
-  hdc = get_frame_dc (f);
-  face = FACE_FROM_ID (f, WINDOW_DIVIDER_FACE_ID);
-  if (face)
-    w32_fill_rect (f, hdc, face->foreground, &r);
+  if (y1 - y0 > x1 - x0 && x1 - x0 > 2)
+    /* Vertical.  */
+    {
+      w32_fill_area_abs (f, hdc, color_first, x0, y0, x0 + 1, y1);
+      w32_fill_area_abs (f, hdc, color, x0 + 1, y0, x1 - 1, y1);
+      w32_fill_area_abs (f, hdc, color_last, x1 - 1, y0, x1, y1);
+    }
+  else if (x1 - x0 > y1 - y0 && y1 - y0 > 3)
+    /* Horizontal.  */
+    {
+      w32_fill_area_abs (f, hdc, color_first, x0, y0, x1, y0 + 1);
+      w32_fill_area_abs (f, hdc, color, x0, y0 + 1, x1, y1 - 1);
+      w32_fill_area_abs (f, hdc, color_last, x0, y1 - 1, x1, y1);
+    }
   else
-    w32_fill_rect (f, hdc, FRAME_FOREGROUND_PIXEL (f), &r);
+    w32_fill_area_abs (f, hdc, color, x0, y0, x1, y1);
 
   release_frame_dc (f, hdc);
 }
-
 
 /* End update of window W.
 

@@ -271,7 +271,7 @@ WHOAMI (interactive prefix) non-nil means prompt for user name
 and site.  FILE-NAME is the name of the change log; if nil, use
 `change-log-default-name'.
 
-This may be useful as a `log-edit-checkin-hook' to update change logs
+This may be useful as a `vc-checkin-hook' to update change logs
 automatically."
   (interactive (if current-prefix-arg
 		   (list current-prefix-arg

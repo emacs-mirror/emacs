@@ -3,7 +3,7 @@
 ;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2014 Free
 ;; Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
 
 ;; This file is part of GNU Emacs.
@@ -1891,9 +1891,11 @@ but coerced to the correct value of INTEGERS."
 
 (defun replace-match-maybe-edit (newtext fixedcase literal noedit match-data backward)
   "Make a replacement with `replace-match', editing `\\?'.
-NEWTEXT, FIXEDCASE, LITERAL are just passed on.  If NOEDIT is true, no
-check for `\\?' is made to save time.  MATCH-DATA is used for the
-replacement.  In case editing is done, it is changed to use markers.
+FIXEDCASE, LITERAL are passed to `replace-match' (which see).
+After possibly editing it (if `\\?' is present), NEWTEXT is also
+passed to `replace-match'.  If NOEDIT is true, no check for `\\?'
+is made (to save time).  MATCH-DATA is used for the replacement.
+In case editing is done, it is changed to use markers.
 
 The return value is non-nil if there has been no `\\?' or NOEDIT was
 passed in.  If LITERAL is set, no checking is done, anyway."

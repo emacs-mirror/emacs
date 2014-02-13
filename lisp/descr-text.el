@@ -3,7 +3,7 @@
 ;; Copyright (C) 1994-1996, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: faces, i18n, Unicode, multilingual
 
 ;; This file is part of GNU Emacs.

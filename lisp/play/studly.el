@@ -5,7 +5,7 @@
 
 ;; This file is part of GNU Emacs.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: games
 
 ;;; Commentary:

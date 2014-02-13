@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Version: 0.1
 ;; Keywords: comm
 

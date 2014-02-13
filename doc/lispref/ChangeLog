@@ -1,3 +1,41 @@
+2014-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* debugging.texi (Debugger Commands): Tiny edits.
+
+2014-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* package.texi (Simple Packages): Describe URL and Keywords headers.
+
+2014-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* text.texi (User-Level Deletion): Document
+	`delete-trailing-whitespace' (bug#15309).
+
+2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* text.texi (Changing Properties): Clarify `propertize' (bug#9825).
+
+	* display.texi (Blinking): Clarify doc string in example (bug#10658).
+
+	* commands.texi (Accessing Mouse): Mention that these function
+	also work on keyboard events (bug#14228).
+	(Quitting): Refer to the right node for `set-input-mode' (bug#11458).
+
+2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* display.texi (Face Attributes): Add an index (bug#14924).
+
+	* keymaps.texi (Menu Bar): Minor clarification (bug#15657).
+
+2014-02-06  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Truncation):
+	* positions.texi (Screen Lines): Do not mention cache-long-scans.
+
+2014-01-31  Juri Linkov  <juri@jurta.org>
+
+	* searching.texi (String Search): Incremental word search fixes.
+
 2014-01-28  Glenn Morris  <rgm@gnu.org>
 
 	* text.texi (Indent Tabs): Update related to tab-stops.
@@ -599,8 +637,8 @@
 	(dvi, html, pdf, ps): Use *_TARGETS variables.
 	(elisp.html): Use HTML_OPTS.
 	(elisp.ps): Remove explicit rule.
-	(.PHONY): install-dvi, install-html, install-pdf, install-ps
-	,install-doc, uninstall-dvi, uninstall-html, uninstall-pdf,
+	(.PHONY): install-dvi, install-html, install-pdf, install-ps,
+	install-doc, uninstall-dvi, uninstall-html, uninstall-pdf,
 	uninstall-ps, and uninstall-doc.
 	(install-dvi, install-html, install-pdf, install-ps, install-doc)
 	(uninstall-dvi, uninstall-html, uninstall-ps, uninstall-pdf)

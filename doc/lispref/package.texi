@@ -141,7 +141,8 @@ the various headers, as illustrated by the following example:
 ;; Author: J. R. Hacker <jrh@@example.com>
 ;; Version: 1.3
 ;; Package-Requires: ((flange "1.0"))
-;; Keywords: frobnicate
+;; Keywords: multimedia, frobnicate
+;; URL: http://example.com/jrhacker/superfrobnicate
 
 @dots{}
 
@@ -176,6 +177,11 @@ the package dependencies.  In the above example, the package depends
 on the @samp{flange} package, version 1.0 or higher.  @xref{Library
 Headers}, for a description of the @samp{Package-Requires} header.  If
 the header is omitted, the package has no dependencies.
+
+  The @samp{Keywords} and @samp{URL} headers are optional, but recommended.
+The command @code{describe-package} uses these to add links to its
+output.  The @samp{Keywords} header should contain at least one
+standard keyword from the @code{finder-known-keywords} list.
 
   The file ought to also contain one or more autoload magic comments,
 as explained in @ref{Packaging Basics}.  In the above example, a magic

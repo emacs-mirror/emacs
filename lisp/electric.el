@@ -4,7 +4,7 @@
 ;; Inc.
 
 ;; Author: K. Shane Hartman
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: extensions
 
 ;; This file is part of GNU Emacs.

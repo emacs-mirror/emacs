@@ -95,7 +95,7 @@ Uses the same syntax as `nnmail-split-methods'.")
 (defvoo nnimap-unsplittable-articles '(%Deleted %Seen)
   "Articles with the flags in the list will not be considered when splitting.")
 
-(make-obsolete-variable 'nnimap-split-rule "see `nnimap-split-methods'"
+(make-obsolete-variable 'nnimap-split-rule "see `nnimap-split-methods'."
 			"Emacs 24.1")
 
 (defvoo nnimap-authenticator nil
@@ -255,7 +255,9 @@ textual parts.")
 	  (insert (format "Chars: %s\n" size)))
 	(when lines
 	  (insert (format "Lines: %s\n" lines)))
-	(unless (re-search-forward "^\r$" nil t)
+	;; Most servers have a blank line after the headers, but
+	;; Davmail doesn't.
+	(unless (re-search-forward "^\r$\\|^)\r?$" nil t)
 	  (goto-char (point-max)))
 	(delete-region (line-beginning-position) (line-end-position))
 	(insert ".")

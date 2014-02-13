@@ -264,6 +264,18 @@ Only has effect when `ruby-use-smie' is t.
   :safe 'listp
   :version "24.4")
 
+(defcustom ruby-align-chained-calls nil
+  "If non-nil, align chained method calls.
+
+Each method call on a separate line will be aligned to the column
+of its parent.
+
+Only has effect when `ruby-use-smie' is t."
+  :type 'boolean
+  :group 'ruby
+  :safe 'booleanp
+  :version "24.4")
+
 (defcustom ruby-deep-arglist t
   "Deep indent lists in parenthesis when non-nil.
 Also ignores spaces after parenthesis when `space'.
@@ -350,10 +362,10 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
              ;; but avoids lots of conflicts:
              (exp "and" exp) (exp "or" exp))
        (exp  (exp1) (exp "," exp) (exp "=" exp)
-             (id " @ " exp)
-             (exp "." id))
+             (id " @ " exp))
        (exp1 (exp2) (exp2 "?" exp1 ":" exp1))
-       (exp2 ("def" insts "end")
+       (exp2 (exp3) (exp3 "." exp2))
+       (exp3 ("def" insts "end")
              ("begin" insts-rescue-insts "end")
              ("do" insts "end")
              ("class" insts "end") ("module" insts "end")
@@ -380,7 +392,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
        (ielsei (itheni) (itheni "else" insts))
        (if-body (ielsei) (if-body "elsif" if-body)))
      '((nonassoc "in") (assoc ";") (right " @ ")
-       (assoc ",") (right "=") (assoc "."))
+       (assoc ",") (right "="))
      '((assoc "when"))
      '((assoc "elsif"))
      '((assoc "rescue" "ensure"))
@@ -399,7 +411,8 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
        (nonassoc ">" ">=" "<" "<=")
        (nonassoc "==" "===" "!=")
        (nonassoc "=~" "!~")
-       (left "<<" ">>"))))))
+       (left "<<" ">>")
+       (right "."))))))
 
 (defun ruby-smie--bosp ()
   (save-excursion (skip-chars-backward " \t")
@@ -409,14 +422,17 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
   (save-excursion
     (skip-chars-backward " \t")
     (not (or (bolp)
+             (memq (char-before) '(?\[ ?\())
              (and (memq (char-before)
-                        '(?\; ?- ?+ ?* ?/ ?: ?. ?, ?\[ ?\( ?\\ ?& ?> ?< ?%
-                          ?~ ?^))
+                        '(?\; ?- ?+ ?* ?/ ?: ?. ?, ?\\ ?& ?> ?< ?% ?~ ?^))
+                  ;; Not a binary operator symbol.
+                  (not (eq (char-before (1- (point))) ?:))
                   ;; Not the end of a regexp or a percent literal.
                   (not (memq (car (syntax-after (1- (point)))) '(7 15))))
              (and (eq (char-before) ?\?)
                   (equal (save-excursion (ruby-smie--backward-token)) "?"))
              (and (eq (char-before) ?=)
+                  ;; Not a symbol :==, :!=, or a foo= method.
                   (string-match "\\`\\s." (save-excursion
                                             (ruby-smie--backward-token))))
              (and (eq (char-before) ?|)
@@ -609,7 +625,18 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
         ;; When after `.', let's always de-indent,
         ;; because when `.' is inside the line, the
         ;; additional indentation from it looks out of place.
-        ((smie-rule-parent-p ".") (smie-rule-parent (- ruby-indent-level)))
+        ((smie-rule-parent-p ".")
+         (let (smie--parent)
+           (save-excursion
+             ;; Traverse up the parents until the parent is "." at
+             ;; indentation, or any other token.
+             (while (and (progn
+                           (goto-char (1- (cadr (smie-indent--parent))))
+                           (not (ruby-smie--bosp)))
+                         (progn
+                           (setq smie--parent nil)
+                           (smie-rule-parent-p "."))))
+             (smie-rule-parent))))
         (t (smie-rule-parent))))))
     (`(:after . ,(or `"(" "[" "{"))
      ;; FIXME: Shouldn't this be the default behavior of
@@ -622,7 +649,10 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
        (unless (or (eolp) (forward-comment 1))
          (cons 'column (current-column)))))
     (`(:before . "do") (ruby-smie--indent-to-stmt))
-    (`(:before . ".") ruby-indent-level)
+    (`(:before . ".")
+     (if (smie-rule-sibling-p)
+         (and ruby-align-chained-calls 0)
+       ruby-indent-level))
     (`(:after . "=>") ruby-indent-level)
     (`(:before . ,(or `"else" `"then" `"elsif" `"rescue" `"ensure"))
      (smie-rule-parent))
@@ -1987,27 +2017,17 @@ See `font-lock-syntax-table'.")
           "yield")
         'symbols))
      (1 font-lock-keyword-face))
-    ;; Some core methods.
+    ;; Core methods that have required arguments.
     (,(concat
        ruby-font-lock-keyword-beg-re
        (regexp-opt
         '( ;; built-in methods on Kernel
-          "__callee__"
-          "__dir__"
-          "__method__"
-          "abort"
           "at_exit"
           "autoload"
           "autoload?"
-          "binding"
-          "block_given?"
-          "caller"
           "catch"
           "eval"
           "exec"
-          "exit"
-          "exit!"
-          "fail"
           "fork"
           "format"
           "lambda"
@@ -2020,19 +2040,12 @@ See `font-lock-syntax-table'.")
           "proc"
           "putc"
           "puts"
-          "raise"
-          "rand"
-          "readline"
-          "readlines"
           "require"
           "require_relative"
-          "sleep"
           "spawn"
           "sprintf"
-          "srand"
           "syscall"
           "system"
-          "throw"
           "trap"
           "warn"
           ;; keyword-like private methods on Module
@@ -2046,11 +2059,36 @@ See `font-lock-syntax-table'.")
           "include"
           "module_function"
           "prepend"
+          "refine"
+          "using")
+        'symbols))
+     (1 (unless (looking-at " *\\(?:[]|,.)}]\\|$\\)")
+          font-lock-builtin-face)))
+    ;; Kernel methods that have no required arguments.
+    (,(concat
+       ruby-font-lock-keyword-beg-re
+       (regexp-opt
+        '("__callee__"
+          "__dir__"
+          "__method__"
+          "abort"
+          "at_exit"
+          "binding"
+          "block_given?"
+          "caller"
+          "exit"
+          "exit!"
+          "fail"
           "private"
           "protected"
           "public"
-          "refine"
-          "using")
+          "raise"
+          "rand"
+          "readline"
+          "readlines"
+          "sleep"
+          "srand"
+          "throw")
         'symbols))
      (1 font-lock-builtin-face))
     ;; Here-doc beginnings.

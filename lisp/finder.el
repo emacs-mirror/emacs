@@ -1,7 +1,6 @@
 ;;; finder.el --- topic & keyword-based code finder
 
-;; Copyright (C) 1992, 1997-1999, 2001-2014 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1992, 1997-1999, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 16 Jun 1992
@@ -73,7 +72,9 @@
     (tools	. "programming tools")
     (unix	. "UNIX feature interfaces and emulators")
     (vc		. "version control")
-    (wp		. "word processing")))
+    (wp		. "word processing"))
+  "Association list of the standard \"Keywords:\" headers.
+Each element has the form (KEYWORD . DESCRIPTION).")
 
 (defvar finder-mode-map
   (let ((map (make-sparse-keymap))
@@ -103,7 +104,8 @@
     (define-key menu-map [finder-select]
       '(menu-item "Select" finder-select
 		  :help "Select item on current line in a finder buffer"))
-    map))
+    map)
+  "Keymap used in `finder-mode'.")
 
 (defvar finder-mode-syntax-table
   (let ((st (make-syntax-table emacs-lisp-mode-syntax-table)))

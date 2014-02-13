@@ -3,7 +3,7 @@
 ;; Copyright (C) 1985-1986, 1994, 2000-2014 Free Software Foundation,
 ;; Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp, languages
 ;; Package: emacs
 
@@ -106,6 +106,8 @@ This command assumes point is not in a string or comment."
 
 (defun forward-list (&optional arg)
   "Move forward across one balanced group of parentheses.
+This command will also work on other parentheses-like expressions
+defined by the current language mode.
 With ARG, do it that many times.
 Negative arg -N means move backward across N groups of parentheses.
 This command assumes point is not in a string or comment."
@@ -115,6 +117,8 @@ This command assumes point is not in a string or comment."
 
 (defun backward-list (&optional arg)
   "Move backward across one balanced group of parentheses.
+This command will also work on other parentheses-like expressions
+defined by the current language mode.
 With ARG, do it that many times.
 Negative arg -N means move forward across N groups of parentheses.
 This command assumes point is not in a string or comment."
@@ -124,6 +128,8 @@ This command assumes point is not in a string or comment."
 
 (defun down-list (&optional arg)
   "Move forward down one level of parentheses.
+This command will also work on other parentheses-like expressions
+defined by the current language mode.
 With ARG, do this that many times.
 A negative argument means move backward but still go down a level.
 This command assumes point is not in a string or comment."
@@ -136,6 +142,8 @@ This command assumes point is not in a string or comment."
 
 (defun backward-up-list (&optional arg)
   "Move backward out of one level of parentheses.
+This command will also work on other parentheses-like expressions
+defined by the current language mode.
 With ARG, do this that many times.
 A negative argument means move forward but still to a less deep spot.
 This command assumes point is not in a string or comment."
@@ -144,6 +152,8 @@ This command assumes point is not in a string or comment."
 
 (defun up-list (&optional arg)
   "Move forward out of one level of parentheses.
+This command will also work on other parentheses-like expressions
+defined by the current language mode.
 With ARG, do this that many times.
 A negative argument means move backward but still to a less deep spot.
 This command assumes point is not in a string or comment."
@@ -815,7 +825,8 @@ considered."
 		  (scan-error pos)))
 	   (end
 	    (unless (or (eq beg (point-max))
-			(member (char-syntax (char-after beg)) '(?\" ?\( ?\))))
+			(member (char-syntax (char-after beg))
+                                '(?\s ?\" ?\( ?\))))
 	      (condition-case nil
 		  (save-excursion
 		    (goto-char beg)
@@ -830,9 +841,17 @@ considered."
                 ;; use it to provide a more specific completion table in some
                 ;; cases.  E.g. filter out keywords that are not understood by
                 ;; the macro/function being called.
-                (list nil (completion-table-in-turn
+                (list nil (completion-table-merge
                            lisp--local-variables-completion-table
-                           obarray)       ;Could be anything.
+                           (apply-partially #'completion-table-with-predicate
+                                            obarray
+                                            ;; Don't include all symbols
+                                            ;; (bug#16646).
+                                            (lambda (sym)
+                                              (or (boundp sym)
+                                                  (fboundp sym)
+                                                  (symbol-plist sym)))
+                                            'strict))
                       :annotation-function
                       (lambda (str) (if (fboundp (intern-soft str)) " <f>"))
                       :company-doc-buffer #'lisp--company-doc-buffer

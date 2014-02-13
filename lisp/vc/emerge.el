@@ -2516,8 +2516,12 @@ for how the template is interpreted.
 Refuses to function if this difference has been edited, i.e., if it is
 neither the A nor the B variant.
 An argument forces the variant to be selected even if the difference has
-been edited."
-  (interactive "cRegister containing template: \nP")
+been edited.
+
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive (list
+		(register-read-with-preview "Register containing template: ")
+		current-prefix-arg))
   (let ((template (get-register char)))
     (if (not (stringp template))
 	(error "Register does not contain text"))

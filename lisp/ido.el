@@ -795,13 +795,11 @@ remaining completion.  If absent, elements 5 and 6 are used instead."
   :group 'ido)
 
 (defcustom ido-use-virtual-buffers nil
-  "Specify how virtual buffers should be used.
-The value can be one of the following:
-
-  nil:  No virtual buffers are used.
-  auto: Use virtual buffers when the current input matches no
-        existing buffers.
+  "If non-nil, refer to past (\"virtual\") buffers as well as existing ones.
+The options are:
+  nil:  Do not use virtual buffers.
   t:    Always use virtual buffers.
+  auto: Use virtual buffers if the current input matches no existing buffer.
 
 Essentially it works as follows: Say you are visiting a file and
 the buffer gets cleaned up by midnight.el.  Later, you want to
@@ -811,10 +809,11 @@ the `ido-virtual' face, and always at the end), and if you select
 it, it opens the file back up again.  This allows you to think
 less about whether recently opened files are still open or not.
 Most of the time you can quit Emacs, restart, and then switch to
-a file buffer that was previously open as if it still were.  This
-feature relies upon the `recentf' package, which will be enabled
-if this variable is configured to a non-nil value."
-  :version "24.4"
+a file buffer that was previously open as if it still were.
+
+This feature relies upon the `recentf' package, which will be
+enabled if this variable is configured to a non-nil value."
+  :version "24.1"
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Automatic" auto)
 		 (const :tag "Never" nil))

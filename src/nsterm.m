@@ -6396,6 +6396,14 @@ if (cols > 0 && rows > 0)
 
   if (fs_state != FULLSCREEN_BOTH)
     {
+      NSScreen *screen = [w screen];
+
+#if defined (NS_IMPL_COCOA) && \
+  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
+      /* Hide ghost menu bar on secondary monitor? */
+      if (! onFirstScreen)
+        onFirstScreen = [NSScreen screensHaveSeparateSpaces];
+#endif
       /* Hide dock and menubar if we are on the primary screen.  */
       if (onFirstScreen)
         {
@@ -6416,7 +6424,7 @@ if (cols > 0 && rows > 0)
                                  styleMask:NSBorderlessWindowMask
                                    backing:NSBackingStoreBuffered
                                      defer:YES
-                                    screen:[w screen]];
+                                    screen:screen];
 
       [fw setContentView:[w contentView]];
       [fw setTitle:[w title]];
@@ -6439,7 +6447,7 @@ if (cols > 0 && rows > 0)
       [fw makeKeyAndOrderFront:NSApp];
       [fw makeFirstResponder:self];
       [w orderOut:self];
-      r = [fw frameRectForContentRect:[[fw screen] frame]];
+      r = [fw frameRectForContentRect:[screen frame]];
       [fw setFrame: r display:YES animate:YES];
       [self windowDidEnterFullScreen:nil];
       [fw display];
@@ -6778,7 +6786,7 @@ if (cols > 0 && rows > 0)
     }
   else
     {
-      error ("Invalid data type in dragging pasteboard.");
+      error ("Invalid data type in dragging pasteboard");
       return NO;
     }
 }
@@ -7637,7 +7645,7 @@ Only works on OSX 10.6 or later.  */);
      doc: /*Non-nil means to use native fullscreen on OSX >= 10.7.
 Nil means use fullscreen the old (< 10.7) way.  The old way works better with
 multiple monitors, but lacks tool bar.  This variable is ignored on OSX < 10.7.
-Default is t for OSX >= 10.7, nil otherwise. */);
+Default is t for OSX >= 10.7, nil otherwise.  */);
 #ifdef HAVE_NATIVE_FS
   ns_use_native_fullscreen = YES;
 #else
@@ -7648,7 +7656,7 @@ Default is t for OSX >= 10.7, nil otherwise. */);
   DEFVAR_BOOL ("ns-use-srgb-colorspace", ns_use_srgb_colorspace,
      doc: /*Non-nil means to use sRGB colorspace on OSX >= 10.7.
 Note that this does not apply to images.
-This variable is ignored on OSX < 10.7 and GNUstep.  Default is t. */);
+This variable is ignored on OSX < 10.7 and GNUstep.  */);
   ns_use_srgb_colorspace = YES;
 
   /* TODO: move to common code */

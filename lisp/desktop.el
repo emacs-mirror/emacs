@@ -162,7 +162,10 @@ If Desktop Save mode is enabled, the state of Emacs is saved from
 one session to another.  See variable `desktop-save' and function
 `desktop-read' for details."
   :global t
-  :group 'desktop)
+  :group 'desktop
+  (if desktop-save-mode
+      (desktop-auto-save-set-timer)
+    (desktop-auto-save-cancel-timer)))
 
 (defun desktop-save-mode-off ()
   "Disable `desktop-save-mode'.  Provided for use in hooks."
@@ -350,11 +353,11 @@ modes are restored automatically; they should not be listed here."
   :type '(repeat symbol)
   :group 'desktop)
 
-(defcustom desktop-buffers-not-to-save nil
+(defcustom desktop-buffers-not-to-save "\\` "
   "Regexp identifying buffers that are to be excluded from saving."
   :type '(choice (const :tag "None" nil)
 		 regexp)
-  :version "23.2"                       ; set to nil
+  :version "24.4"		    ; skip invisible temporary buffers
   :group 'desktop)
 
 ;; Skip tramp and ange-ftp files
@@ -1105,7 +1108,7 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
 	    (setq desktop-file-modtime (nth 5 (file-attributes (desktop-full-file-name))))
 	    ;; If it wasn't already, mark it as in-use, to bother other
 	    ;; desktop instances.
-	    (unless owner
+	    (unless (eq (emacs-pid) owner)
 	      (condition-case nil
 		  (desktop-claim-lock)
 		(file-error (message "Couldn't record use of desktop file")
@@ -1216,14 +1219,17 @@ Called by the timer created in `desktop-auto-save-set-timer'."
 Cancel any previous timer.  When `desktop-auto-save-timeout' is a positive
 integer, start a new idle timer to call `desktop-auto-save' repeatedly
 after that many seconds of idle time."
-  (when desktop-auto-save-timer
-    (cancel-timer desktop-auto-save-timer)
-    (setq desktop-auto-save-timer nil))
+  (desktop-auto-save-cancel-timer)
   (when (and (integerp desktop-auto-save-timeout)
 	     (> desktop-auto-save-timeout 0))
     (setq desktop-auto-save-timer
 	  (run-with-idle-timer desktop-auto-save-timeout t
 			       'desktop-auto-save))))
+
+(defun desktop-auto-save-cancel-timer ()
+  (when desktop-auto-save-timer
+    (cancel-timer desktop-auto-save-timer)
+    (setq desktop-auto-save-timer nil)))
 
 ;; ----------------------------------------------------------------------------
 ;;;###autoload
@@ -1465,10 +1471,9 @@ If there are no buffers left to create, kill the timer."
     (let ((key "--no-desktop"))
       (when (member key command-line-args)
         (setq command-line-args (delete key command-line-args))
-        (setq desktop-save-mode nil)))
+        (desktop-save-mode 0)))
     (when desktop-save-mode
       (desktop-read)
-      (desktop-auto-save-set-timer)
       (setq inhibit-startup-screen t))))
 
 ;; So we can restore vc-dir buffers.

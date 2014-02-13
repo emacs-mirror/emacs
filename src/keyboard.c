@@ -807,9 +807,13 @@ force_auto_save_soon (void)
 
 DEFUN ("recursive-edit", Frecursive_edit, Srecursive_edit, 0, 0, "",
        doc: /* Invoke the editor command loop recursively.
-To get out of the recursive edit, a command can do `(throw 'exit nil)';
-that tells this function to return.
-Alternatively, `(throw 'exit t)' makes this function signal an error.
+To get out of the recursive edit, a command can throw to `exit' -- for
+instance `(throw 'exit nil)'.
+If you throw a value other than t, `recursive-edit' returns normally
+to the function that called it.  Throwing a t value causes
+`recursive-edit' to quit, so that control returns to the command loop
+one level up.
+
 This function is called by the editor initialization to begin editing.  */)
   (void)
 {
@@ -1991,7 +1995,7 @@ start_polling (void)
 	 been turned off in process.c.  */
       turn_on_atimers (1);
 
-      /* If poll timer doesn't exist, are we need one with
+      /* If poll timer doesn't exist, or we need one with
 	 a different interval, start a new one.  */
       if (poll_timer == NULL
 	  || poll_timer->interval.tv_sec != polling_period)
@@ -3820,7 +3824,7 @@ kbd_buffer_get_event (KBOARD **kbp,
     }
 #endif	/* subprocesses */
 
-#ifndef HAVE_DBUS  /* We want to read D-Bus events in batch mode.  */
+#if !defined HAVE_DBUS && !defined USE_FILE_NOTIFY
   if (noninteractive
       /* In case we are running as a daemon, only do this before
 	 detaching from the terminal.  */
@@ -3831,7 +3835,7 @@ kbd_buffer_get_event (KBOARD **kbp,
       *kbp = current_kboard;
       return obj;
     }
-#endif	/* ! HAVE_DBUS  */
+#endif	/* !defined HAVE_DBUS && !defined USE_FILE_NOTIFY  */
 
   /* Wait until there is input available.  */
   for (;;)

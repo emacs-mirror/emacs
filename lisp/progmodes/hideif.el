@@ -4,7 +4,7 @@
 
 ;; Author: Brian Marick
 ;;	Daniel LaLiberte <liberte@holonexus.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: c, outlines
 
 ;; This file is part of GNU Emacs.

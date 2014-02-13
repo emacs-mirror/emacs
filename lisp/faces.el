@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1992-1996, 1998-2014 Free Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
 ;; Package: emacs
 
@@ -2423,6 +2423,39 @@ Use the face `mode-line-highlight' for features that can be selected."
   '((((type tty)) :inherit mode-line-inactive))
   "Face used for vertical window dividers on ttys."
   :version "22.1"
+  :group 'basic-faces)
+
+(defface window-divider '((t :foreground "gray60"))
+  "Basic face for window dividers.
+When a divider is less than 3 pixels wide, it is drawn solidly
+with the foreground of this face.  For larger dividers this face
+is used for the inner part while the first pixel line/column is
+drawn with the `window-divider-first-pixel' face and the last
+pixel line/column with the `window-divider-last-pixel' face."
+  :version "24.4"
+  :group 'frames
+  :group 'basic-faces)
+
+(defface window-divider-first-pixel
+  '((t :foreground "gray80"))
+  "Basic face for first pixel line/column of window dividers.
+When a divider is at least 3 pixels wide, its first pixel
+line/column is drawn with the foreground of this face.  If you do
+not want to accentuate the first pixel line/column, set this to
+the same as `window-divider' face."
+  :version "24.4"
+  :group 'frames
+  :group 'basic-faces)
+
+(defface window-divider-last-pixel
+  '((t :foreground "gray40"))
+  "Basic face for last pixel line/column of window dividers.
+When a divider is at least 3 pixels wide, its last pixel
+line/column is drawn with the foreground of this face.  If you do
+not want to accentuate the last pixel line/column, set this to
+the same as `window-divider' face."
+  :version "24.4"
+  :group 'frames
   :group 'basic-faces)
 
 (defface minibuffer-prompt

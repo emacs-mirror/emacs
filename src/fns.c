@@ -2425,7 +2425,8 @@ do_yes_or_no_p (Lisp_Object prompt)
 /* Anything that calls this function must protect from GC!  */
 
 DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, 1, 0,
-       doc: /* Ask user a yes-or-no question.  Return t if answer is yes.
+       doc: /* Ask user a yes-or-no question.
+Return t if answer is yes, and nil if the answer is no.
 PROMPT is the string to display to ask the question.  It should end in
 a space; `yes-or-no-p' adds \"(yes or no) \" to it.
 
@@ -4508,7 +4509,8 @@ DEFUN ("remhash", Fremhash, Sremhash, 2, 2, 0,
 
 DEFUN ("maphash", Fmaphash, Smaphash, 2, 2, 0,
        doc: /* Call FUNCTION for all entries in hash table TABLE.
-FUNCTION is called with two arguments, KEY and VALUE.  */)
+FUNCTION is called with two arguments, KEY and VALUE.
+`maphash' always returns nil.  */)
   (Lisp_Object function, Lisp_Object table)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);

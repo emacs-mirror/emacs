@@ -1085,7 +1085,7 @@ If window cannot be scrolled further, move cursor to bottom line instead.
 A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll downward.
 If ARG is the atom `-', scroll downward by nearly full screen."
-  (interactive "P")
+  (interactive "^P")
   (cond
    ((eq arg '-) (cua-scroll-down nil))
    ((< (prefix-numeric-value arg) 0)
@@ -1106,7 +1106,7 @@ If window cannot be scrolled further, move cursor to top line instead.
 A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll upward.
 If ARG is the atom `-', scroll upward by nearly full screen."
-  (interactive "P")
+  (interactive "^P")
   (cond
    ((eq arg '-) (cua-scroll-up nil))
    ((< (prefix-numeric-value arg) 0)

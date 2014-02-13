@@ -79,7 +79,8 @@ all upper-case names.  The most often used ones, in addition to
 `PRIMARY', are `SECONDARY' and `CLIPBOARD'.
 
 DATA-TYPE is usually `STRING', but can also be one of the symbols
-in `selection-converter-alist', which see."
+in `selection-converter-alist', which see.  This argument is
+ignored on MS-Windows and MS-DOS."
   (get 'x-selections (or type 'PRIMARY)))
 
 ;; x-selection-owner-p is used in simple.el

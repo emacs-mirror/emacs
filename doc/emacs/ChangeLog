@@ -1,3 +1,54 @@
+2014-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* mini.texi (Completion Options): No longer mention icomplete,
+	which has its own section now.
+	* modes.texi (Minor Modes): Update Icomplete xref.
+
+	* help.texi (Package Keywords): Mention describe-package buttons.
+
+	* package.texi (Package Menu): Mention package-menu-filter.
+
+2014-02-11  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* text.texi (Editing Format Info): Use @samp for menus (bug#13736).
+
+2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* dired.texi (Hiding Subdirectories): Mention the node for
+	deleting subdirectories (bug#11743).
+
+2014-02-09  Glenn Morris  <rgm@gnu.org>
+
+	* programs.texi (MixedCase Words): Rename node from "Glasses".
+	Move Subword mode here from "Other C Commands" node.
+	(Misc for Programs): Mention Superword mode.
+	* emacs.texi: Update menu.
+
+2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* regs.texi (File Registers): Clarify metasyntactical variables
+	(bug#13565).
+
+	* search.texi (Search Case): Rearrange text slightly to make it
+	obvious that `M-c' also toggles sensitivity if `case-fold-search'
+	is nil (bug#14726).
+
+	* frames.texi (Mouse Commands): Clarify `mouse-yank-at-click'
+	(bug#16376).
+
+2014-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Highlight Interactively):
+	Mention hi-lock-auto-select-face.
+
+	* anti.texi (Antinews): Fix typo.
+
+	* ack.texi (Acknowledgments): No longer mention obsolete files.
+
+2014-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* regs.texi (Registers): Mention previewing.
+
 2014-01-29  Glenn Morris  <rgm@gnu.org>
 
 	* killing.texi (Deletion): Mention cycle-spacing.

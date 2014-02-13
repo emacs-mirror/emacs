@@ -1570,7 +1570,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
     (define-key map "i" 'package-menu-mark-install)
     (define-key map "U" 'package-menu-mark-upgrades)
     (define-key map "r" 'package-menu-refresh)
-    (define-key map "f" 'package-menu-filter-interactive)
+    (define-key map "f" 'package-menu-filter)
     (define-key map "~" 'package-menu-mark-obsolete-for-deletion)
     (define-key map "x" 'package-menu-execute)
     (define-key map "h" 'package-menu-quick-help)
@@ -1579,9 +1579,6 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
     (define-key menu-map [mq]
       '(menu-item "Quit" quit-window
 		  :help "Quit package selection"))
-    (define-key menu-map [mf]
-      '(menu-item "Filter" package-menu-filter-interactive
-		  :help "Filter package selection (q to go back)"))
     (define-key menu-map [s1] '("--"))
     (define-key menu-map [mn]
       '(menu-item "Next" next-line
@@ -1606,6 +1603,9 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
       '(menu-item "Mark Upgradable Packages" package-menu-mark-upgrades
 		  :help "Mark packages that have a newer version for upgrading"))
     (define-key menu-map [s3] '("--"))
+    (define-key menu-map [mf]
+      '(menu-item "Filter Package List..." package-menu-filter
+		  :help "Filter package selection (q to go back)"))
     (define-key menu-map [mg]
       '(menu-item "Update Package List" revert-buffer
 		  :help "Update the list of packages"))
@@ -2120,8 +2120,12 @@ shown."
       (package-menu--generate nil packages keywords))
     (switch-to-buffer buf)))
 
-(defun package-menu-filter-interactive (keyword)
-  "Filter the *Packages* buffer."
+;; package-menu--generate rebinds "q" on the fly, so we have to
+;; hard-code the binding in the doc-string here.
+(defun package-menu-filter (keyword)
+  "Filter the *Packages* buffer.
+Show only those items that relate to the specified KEYWORD.
+To restore the full package list, type `q'."
   (interactive (list (completing-read "Keyword: " (package-all-keywords))))
   (package-show-package-list t (list keyword)))
 

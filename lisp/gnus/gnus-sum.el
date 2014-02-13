@@ -4024,6 +4024,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
      ;; The group was successfully selected.
      (t
       (gnus-set-global-variables)
+      (when (boundp 'spam-install-hooks)
+	(spam-initialize))
       ;; Save the active value in effect when the group was entered.
       (setq gnus-newsgroup-active
 	    (gnus-copy-sequence

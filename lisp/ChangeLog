@@ -1,3 +1,462 @@
+2014-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* jit-lock.el (jit-lock-mode): Doc fix.
+
+2014-02-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* apropos.el (apropos-read-pattern): When the user passes an empty
+	string, give a more helpful error message than "Wrong type
+	argument: stringp, nil".
+
+2014-02-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* jit-lock.el (jit-lock-mode): Keep it disabled in indirect buffers.
+
+2014-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* finder.el (finder-known-keywords, finder-mode-map): Doc fixes.
+
+2014-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emulation/cua-base.el (cua-scroll-up, cua-scroll-down): Mark them as
+	shift-select commands.
+
+2014-02-12  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/js.el (js-indent-line): Don't widen.
+	http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00276.html
+
+2014-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* icomplete.el (icomplete): Add info-link to defgroup.
+	(icomplete-with-completion-tables, icomplete-minibuffer-setup-hook)
+	(icomplete-minibuffer-map, icomplete-mode)
+	(icomplete-simple-completing-p, icomplete-completions): Doc fixes.
+
+	* emacs-lisp/package.el (package-menu-mode-map): Tweak menu.
+	(package-menu-filter): Rename from package-menu-filter-interactive.
+	Doc fix.
+
+2014-02-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset--jump-to-register): Select the required
+	window and buffer before restoring position (bug#16696).
+
+2014-02-11  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* dired.el (dired-get-marked-files): Clarify doc (bug#11534).
+
+2014-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* jit-lock.el (jit-lock-force-redisplay): Doc fix.  (Bug#14394)
+
+2014-02-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32-common-fns.el (x-get-selection): Doc fix.
+	* select.el (x-get-selection): Doc fix.  (Bug#15109)
+
+	* face-remap.el (face-remap-add-relative)
+	(face-remap-remove-relative, face-remap-reset-base)
+	(face-remap-set-base): Call force-mode-line-update to redisplay
+	the current buffer due to potential change in faces.  (Bug#16709)
+
+2014-02-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-vc-registered): Apply heredoc
+	script more robustly.
+
+2014-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* dired.el (dired-get-marked-files): Doc fix (bug#11534).
+
+	* simple.el (choose-completion): Doc fix (bug#14160).
+
+	* subr.el (event-start): Say what a nil EVENT value means.
+
+	* kmacro.el (kmacro-bind-to-key): Say that the parameter is unused
+	(bug#14197).
+
+	* progmodes/grep.el (find-program): Doc fix (bug#14289).
+
+	* files.el (confirm-kill-emacs): Clarify doc (bug#15455).
+
+	* emacs-lisp/lisp.el (up-list): Doc fix (bug#15832).
+
+	* files.el (confirm-kill-emacs): Allow specifying an arbitrary
+	predicate function (bug#15455).
+
+2014-02-10  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* ielm.el (inferior-emacs-lisp-mode): Instead of
+	`comment-use-global-state', set `comment-use-syntax'.
+
+2014-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/gulp.el (gulp-discard): Add emacs-devel.
+
+2014-02-09  Alan Mackenzie  <acm@muc.de>
+
+	Fix c-invalidate-state-cache on narrowed buffers.
+	* progmodes/cc-defs.el (c-with-all-but-one-cpps-commented-out):
+	Widen when setting and clearing the CPP delimiter properties.
+
+2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* help.el (describe-bindings): Doc fix (bug#9888).
+
+	* files.el (save-buffer): Use ARG as the parameter name for
+	consistency (bug#10346).
+	(save-buffer): Clarify the 0 argument (bug#10346).
+
+	* cus-edit.el (customize-apropos): Fix error string.
+	(custom-buffer-create): Doc fix (bug#11122).
+	(custom-sort-items): Doc fix (bug#11121).
+
+	* repeat.el (repeat-message-function): Reword doc slightly (bug#11619).
+
+	* icomplete.el (icomplete-with-completion-tables): Doc fix (bug#11654).
+	(icomplete-simple-completing-p): Mention the previous variable.
+
+	* font-lock.el (font-lock-value-in-major-mode): Clarify the
+	meaning of the parameter (bug#12282).
+
+	* files.el (find-file-noselect): Clarify prompt when changing
+	readedness (bug#13261).
+	(locate-file): Suffixes aren't returned, so don't say that they
+	are (bug#12674).
+	(backup-inhibited): Doc clarification (bug#12525).
+
+	* dired.el (dired-internal-do-deletions): Don't say "Deleting..."
+	before we actually start to delete things (bug#16331).
+
+	* subr.el (event-start): Doc fix (bug#14228).
+	(event-end): Ditto.
+
+2014-02-09  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/warnings.el (lwarn):
+	Empower help-enable-auto-load.  (Bug#15940)
+
+2014-02-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* vc/log-edit.el (log-edit-comment-to-change-log): Doc fix.
+	(Bug#16690)
+
+2014-02-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-start-file-process):
+	Insert output at end of buffer.  (Bug#16120)
+
+2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* simple.el (choose-completion-string-functions): Document new
+	calling convention (bug#14153).
+	(execute-extended-command): Clarify doc string (bug#13373).
+
+	* kmacro.el (kmacro-exec-ring-item): Doc fix (bug#14198).
+
+	* find-dired.el (find-name-dired): Doc fix (bug#14290).
+	(find-grep-dired): Doc fix (bug#14288).
+
+2014-02-08  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-quote-char): Check character validity
+	like in `quoted-insert' (bug#16677).
+
+2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* files.el (find-file-visit-truename): Doc clarification (bug#14697).
+
+	* isearch.el (isearch-hide-immediately): Doc clarification
+	(bug#14723).
+
+	* simple.el (line-move): Document utility function used many
+	places in the Emacs sources (bug#14843).
+
+	* dired.el (dired-mode-map): Make :help text more accurate (bug#14893).
+	(dired-prev-marked-file): Doc fix (bug#14855).
+	(dired-up-directory): Doc fix (bug#14848).
+
+	* minibuffer.el (read-file-name): Doc clarification (bug#15096).
+
+	* files.el (file-relative-name): Doc fix (bug#15159).
+
+	* fringe.el (fringe-styles): Doc fix (bug#15239).
+
+	* isearch.el (isearch-filter-predicate): Documentation typo fix
+	(bug#15474).
+
+	* info-look.el (info-lookup-symbol): Document MODE (bug#15498).
+
+	* isearch.el (isearch-cmds): Doc clarification (bug#15547).
+
+	* replace.el (replace-match-maybe-edit): Doc clarification
+	(bug#15632).
+
+	* subr.el (add-to-list): Refill the paragraphs (bug#15791).
+
+	* macros.el (insert-kbd-macro): Doc fix (bug#16025).
+
+2014-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* help-fns.el (describe-variable):
+	Check {file,dir}-local-variables-alist, and buffer-file-name,
+	in the correct buffer.
+
+2014-02-08  Ingo Lohmar  <i.lohmar@gmail.com>
+
+	* help-fns.el (describe-variable): Fix the case where
+	a value is directory-local with no dir-locals file.  (Bug#16635)
+
+2014-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* abbrev.el (edit-abbrevs-mode):
+	Derive from fundamental-mode.  (Bug#16682)
+
+2014-02-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (quoted-insert): Check character validity (bug#16677).
+
+2014-02-07  Juri Linkov  <juri@jurta.org>
+
+	* desktop.el (desktop-read): Claim the lock when the owner is not
+	the current process.  (Bug#16157)
+
+2014-02-07  Juri Linkov  <juri@jurta.org>
+
+	* desktop.el (desktop-buffers-not-to-save): Change default from nil
+	to "\\` ".  (Bug#16651)
+
+2014-02-07  Juri Linkov  <juri@jurta.org>
+
+	* desktop.el (desktop-save-mode): Call `desktop-auto-save-set-timer'
+	when enabling, and `desktop-auto-save-cancel-timer' when disabling.
+	(desktop-auto-save-cancel-timer): New function with some code from
+	`desktop-auto-save-set-timer'.
+	(after-init-hook): Don't call `desktop-auto-save-set-timer'.
+	Instead of setting `desktop-save-mode' to nil, call
+	`desktop-save-mode' with arg 0.  (Bug#16630)
+
+2014-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* hi-lock.el (hi-lock-auto-select-face, hi-lock-line-face-buffer)
+	(hi-lock-face-buffer, hi-lock-face-phrase-buffer)
+	(hi-lock-face-symbol-at-point, hi-lock-read-face-name): Doc tweaks.
+
+	* obsolete/iswitchb.el: Move to obsolete/.
+	* simple.el (iswitchb-mode): Add manual autoloads to ease transition,
+	since obsolete/ is not scanned for autoloads.
+	* emacs-lisp/authors.el (authors-valid-file-names):
+	Add iswitchb.el.
+
+	* obsolete/meese.el: Restore as obsolete (deleted 2014-01-11).
+	Disable now non-functional find-file-hook.
+
+2014-02-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-start-file-process): Use "&&"
+	instead of ";" in order to avoid additional prompts.  Let heredoc
+	scripts read from tty.  (Bug#16582)
+	(tramp-send-command): No special handling of heredocs, it isn't
+	necessary anymore.
+
+2014-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Symbols don't start
+	with a space (bug#16664).  Limit the symbols considered to the ones
+	that are bound or fbound (bug#16646).
+
+2014-02-06  Glenn Morris  <rgm@gnu.org>
+
+	* epa.el (epa-mail-aliases): Doc fix.
+
+2014-02-06  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point):
+	Use `completion-table-merge' instead of `completion-table-in-turn'
+	(bug#16604).
+
+	* minibuffer.el (completion-table-merge): New function.
+
+2014-02-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-end-of-heredoc): New defconst.
+	(tramp-sh-handle-set-file-acl)
+	(tramp-sh-handle-start-file-process)
+	(tramp-sh-handle-write-region, tramp-sh-handle-vc-registered)
+	(tramp-find-executable, tramp-send-command): Use it.
+
+2014-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* epa.el (epa-mail-aliases): Fix custom type.  Doc tweak.
+
+2014-02-04  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-shell-send-string):
+	(python-shell-send-string-no-output): Fix docstring (Bug#16547).
+
+2014-02-04  Anders Lindgren  <andlind@gmail.com>
+
+	* emacs-lisp/ert.el (ert--activate-font-lock-keywords): Allow dashes in
+	the names (bug#16620).
+
+2014-02-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* faces.el (window-divider): New default value.  Rewrite doc-string.
+	(window-divider-first-pixel, window-divider-last-pixel): New faces.
+
+2014-02-03  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): `private',
+	`protected' and `public' can also be called without arguments.
+
+2014-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* register.el (window-configuration-to-register)
+	(frame-configuration-to-register): Unadvertise unused argument.
+	* frameset.el (frameset-to-register): Remove unused argument.
+
+	* frameset.el (frameset-to-register):
+	* kmacro.el (kmacro-to-register):
+	* register.el (increment-register):
+	* calc/calc-yank.el (calc-copy-to-register, calc-insert-register)
+	(calc-append-to-register, calc-prepend-to-register):
+	* play/gametree.el (gametree-layout-to-register)
+	(gametree-apply-register-layout):
+	* textmodes/picture.el (picture-clear-rectangle-to-register)
+	(picture-yank-rectangle-from-register):
+	* vc/emerge.el (emerge-combine-versions-register):
+	Use register-read-with-preview to read registers.
+
+2014-02-03  João Távora  <joaotavora@gmail.com>
+
+	* elec-pair.el (electric-pair-backward-delete-char): Don't error
+	when at beginning of (possibly narrowed) buffer.
+
+2014-02-02  Daniel Colascione  <dancol@dancol.org>
+
+	* help-at-pt.el (help-at-pt-string, help-at-pt-maybe-display):
+	Also try to display local help from just before point.
+
+2014-02-02  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	c-parse-state.  Don't "append-lower-brace-pair" in certain
+	circumstances.  Also fix an obscure bug where "\\s!" shouldn't be
+	recognised as a comment.
+
+	* progmodes/cc-engine.el (c-state-pp-to-literal): Check for "\\s!"
+	as well as normal comment starter.
+	(c-parse-state-get-strategy): Extra return possibility
+	'back-and-forward.
+	(c-remove-stale-state-cache): Extra element CONS-SEPARATED in
+	return value list to indicate replacement of a brace-pair cons
+	with its car.
+	(c-parse-state-1): With 'back-and-forward, only call
+	c-append-lower-brace-pair-to state-cache when cons-separated.
+
+2014-02-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (ns-suspend-error): New function.
+	(ns-initialize-window-system): Add ns-suspend-error to
+	suspend-hook (Bug#16612).
+
+2014-02-02  Daniel Colascione  <dancol@dancol.org>
+
+	* progmodes/cc-defs.el (c-find-assignment-for-mode): Make loading cc-mode silent.
+
+2014-02-02  Daniel Colascione  <dancol@dancol.org>
+
+	* comint.el (comint-prompt-read-only): Change doc to suggest remap keybinding.
+
+2014-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* register.el (register-read-with-preview, point-to-register)
+	(window-configuration-to-register, frame-configuration-to-register)
+	(jump-to-register, number-to-register, view-register, insert-register)
+	(copy-to-register, append-to-register, prepend-to-register)
+	(copy-rectangle-to-register): Doc fixes.
+
+2014-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el (help-C-file-name): Handle advised functions (bug#16478).
+	* emacs-lisp/find-func.el (find-function-C-source): Idem.
+	* emacs-lisp/nadvice.el (advice--cd*r): New function.
+	* help-fns.el (describe-function-1): Use it.
+
+2014-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* register.el (register-preview-default): New function,
+	split from register-preview.
+	(register-preview-function): Rename from register-preview-functions,
+	make it not a hook.
+	(register-preview): Use register-preview-function.
+	(register-read-with-preview): Error on non-character event.  (Bug#16595)
+
+2014-02-01  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie--implicit-semi-p): Check for
+	`:' before binary operators (bug#16609).  Don't check for `:'
+	before `[' and `(', or their syntax status.  A percent literal
+	can't end with either.
+	(ruby-font-lock-keywords): For built-ins that require arguments,
+	check that they're followed by something that looks like argument
+	(bug#16610).
+
+2014-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* subr.el (butlast): Document what an omitted N means (bug#13437).
+	(nbutlast): Ditto.
+
+2014-01-31  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-generic): Make into a defsubst to make the stack
+	depth shallower (bug#16587).
+	(shr-tag-svg): Respect `shr-inhibit-images'.
+	(shr-dom-to-xml): Respect `shr-blocked-images' (bug#15882).
+
+2014-01-31  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-align-chained-calls): New option.
+	(ruby-smie-grammar): Make "." right-associative.  Make its priority
+	lower than the ternary and all binary operators.
+	(ruby-smie-rules): Indent "(" relative to the first non-"."
+	parent, or the first "." parent at indentation.
+	Use `ruby-align-chained-calls' for indentation of "." tokens.
+	(Bug#16593)
+
+2014-01-31  Juri Linkov  <juri@jurta.org>
+
+	* sort.el (delete-duplicate-lines): Remove `:weakness 'key'
+	from `make-hash-table'.
+
+	* textmodes/ispell.el (ispell-init-process): Change message format
+	to be consistent with other messages.
+
+2014-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* delsel.el (delete-selection-mode): Doc fix.
+
+	* emacs-lisp/trace.el (trace--read-args, trace-function-foreground)
+	(trace-function-background): Doc fixes.
+
+	* ido.el (ido-use-virtual-buffers): Doc fix.
+	Reset :version, since the default value has not changed.
+
+	* register.el (register-preview-delay, register-read-with-preview):
+	Doc fixes.
+
+	* mail/reporter.el (reporter-dump-variable): In case of void-variable,
+	do not mess with mail-buffer position (fixes 2009-11-03 change).
+	* progmodes/cc-mode.el (c-submit-bug-report):
+	Check auto-fill-mode is bound.  (Bug#16592)
+
+2014-01-31  Darren Hoo  <darren.hoo@gmail.com>
+
+	* startup.el (fancy-splash-image-file): New function,
+	split from fancy-splash-head.
+	(fancy-splash-head, use-fancy-splash-screens-p): Use it,
+	so that we are both using the same image.  (Bug#16574)
+
 2014-01-30  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (eval-expression): Doc fix.
@@ -195,7 +654,7 @@
 	* progmodes/sh-script.el (sh--inside-noncommand-expression):
 	Correctly detect when we're inside an arithmetic expansion form
 	containing nested parenthesis.
-	(sh--maybe-here-document): Use `sh--inside-noncommand-expression`
+	(sh--maybe-here-document): Use `sh--inside-noncommand-expression'
 	to detect cases where we shouldn't expand "<<" to a heredoc
 	skeleton.
 
@@ -488,7 +947,7 @@
 	* play/meese.el: It's 2014 and Ed Meese is justly forgotten.
 	Goes with removal of the joke manpages from /etc.
 
-2014-01-10  K. Handa  <handa@gnu.org>
+2014-01-10  Kenichi Handa  <handa@gnu.org>
 
 	* mail/rmail.el (rmail-get-coding-system):
 	Check rmail-get-coding-function before "funcall"ing it.
@@ -633,7 +1092,7 @@
 2014-01-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (balance-windows-2): While rounding don't give a
-	window more than the remainder.  Bug#16351, Bug#16383.
+	window more than the remainder.  Bug#16351, bug#16383.
 
 2014-01-07  Glenn Morris  <rgm@gnu.org>
 
@@ -703,7 +1162,7 @@
 
 	* vc/log-view.el (log-view-beginning-of-defun): Rewrite to behave
 	like `beginning-of-defun'.
-	(log-view-end-of-defun,log-view-end-of-defun-1): Rename old
+	(log-view-end-of-defun, log-view-end-of-defun-1): Rename old
 	log-view-end-of-defun to log-view-end-of-defun-1.  Replace
 	log-view-end-of-defun with wrapper that behaves like `end-of-defun'.
 	(log-view-extract-comment): Call `log-view-current-entry' directly
@@ -751,7 +1210,7 @@
 2014-01-05  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
 
 	* net/eww.el (eww): Support single/double quote for search.
-	* net/eww.el (eww-list-histories,eww-history-browse): Fixup.
+	* net/eww.el (eww-list-histories, eww-history-browse): Fixup.
 	(eww-history-quit): Delete and use quit-window.
 	(eww-history-kill): Delete, because it doesn't work well and
 	not necessary.
@@ -834,7 +1293,7 @@
 	of printing a useless when we resume from sleep.
 
 	* progmodes/sh-script.el
-	(sh-smie-sh-forward-token,sh-smie-rc-forward-token): Fix infloop
+	(sh-smie-sh-forward-token, sh-smie-rc-forward-token): Fix infloop
 	in indentation code.  (Bug#16233)
 
 2013-12-28  João Távora  <joaotavora@gmail.com>
@@ -1910,7 +2369,7 @@
 	`multi-isearch-file-list' globally.  Set NO-RECURSIVE-EDIT
 	arg of isearch-forward to t.
 	(multi-isearch-files-regexp): Set the value of
-	`multi-isearch-file-list globally.  Set NO-RECURSIVE-EDIT
+	`multi-isearch-file-list' globally.  Set NO-RECURSIVE-EDIT
 	arg of isearch-forward-regexp to t.  (Bug#16035)
 
 	* dired-aux.el (dired-isearch-filenames): Set NO-RECURSIVE-EDIT
@@ -4333,7 +4792,7 @@
 
 2013-10-08  Bastien Guerry  <bzg@gnu.org>
 
-	* register.el (insert-register): Fix revno:114543.
+	* register.el (insert-register): Fix 2013-10-07 change.
 
 2013-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -6516,7 +6975,7 @@
 	frameset--process-minibuffer-frames.  All callers changed.
 	(frameset-save): Add new keyword arguments APP, NAME and DESCRIPTION.
 	Use new default constructor (again).  Doc fix.
-	(frameset--find-frame-if): Rename from `frameset--find-frame.
+	(frameset--find-frame-if): Rename from `frameset--find-frame'.
 	All callers changed.
 	(frameset--reuse-frame): Rename arg FRAME-CFG to PARAMETERS.
 	(frameset--initial-params): Rename arg FRAME-CFG to PARAMETERS.

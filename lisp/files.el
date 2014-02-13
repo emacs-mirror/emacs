@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985-1987, 1992-2014 Free Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
 
 ;; This file is part of GNU Emacs.
@@ -96,9 +96,9 @@ The choice of renaming or copying is controlled by the variables
 ;; Do this so that local variables based on the file name
 ;; are not overridden by the major mode.
 (defvar backup-inhibited nil
-  "Non-nil means don't make a backup, regardless of the other parameters.
-This variable is intended for use by making it local to a buffer.
-But it is local only if you make it local.")
+  "If non-nil, backups will be inhibited.
+This variable is intended for use by making it local to a buffer,
+but it is not an automatically buffer-local variable.")
 (put 'backup-inhibited 'permanent-local t)
 
 (defcustom backup-by-copying nil
@@ -159,9 +159,11 @@ under another name, you get the existing buffer instead of a new buffer."
   :group 'find-file)
 
 (defcustom find-file-visit-truename nil
-  "Non-nil means visit a file under its truename.
-The truename of a file is found by chasing all links
-both at the file level and at the levels of the containing directories."
+  "Non-nil means visiting a file uses its truename as the visited-file name.
+That is, the buffer visiting the file has the truename as the
+value of `buffer-file-name'.  The truename of a file is found by
+chasing all links both at the file level and at the levels of the
+containing directories."
   :type 'boolean
   :group 'find-file)
 (put 'find-file-visit-truename 'safe-local-variable 'booleanp)
@@ -745,8 +747,8 @@ The path separator is colon in GNU and GNU-like systems."
 
 (defun locate-file (filename path &optional suffixes predicate)
   "Search for FILENAME through PATH.
-If found, return the absolute file name of FILENAME, with its suffixes;
-otherwise return nil.
+If found, return the absolute file name of FILENAME; otherwise
+return nil.
 PATH should be a list of directories to look in, like the lists in
 `exec-path' or `load-path'.
 If SUFFIXES is non-nil, it should be a list of suffixes to append to
@@ -1908,10 +1910,12 @@ the various files."
 			      (eq read-only buffer-file-read-only)
 			      (eq read-only buffer-read-only))
 		    (when (or nowarn
-			      (let ((question
-				     (format "File %s is %s on disk.  Change buffer mode? "
-					     buffer-file-name
-					     (if read-only "read-only" "writable"))))
+			      (let* ((new-status
+				      (if read-only "read-only" "writable"))
+				     (question
+				      (format "File %s is %s on disk.  Make buffer %s, too? "
+					      buffer-file-name
+					      new-status new-status)))
 				(y-or-n-p question)))
 		      (setq buffer-read-only read-only)))
 		  (setq buffer-file-read-only read-only))
@@ -4469,6 +4473,8 @@ Uses `backup-directory-alist' in the same way as does
   "Convert FILENAME to be relative to DIRECTORY (default: `default-directory').
 This function returns a relative file name which is equivalent to FILENAME
 when used with that default directory as the default.
+If FILENAME is a relative file name, it will be interpreted as existing in
+`default-directory'.
 If FILENAME and DIRECTORY lie on different machines or on different drives
 on a DOS/Windows machine, it returns FILENAME in expanded form."
   (save-match-data
@@ -4533,7 +4539,7 @@ on a DOS/Windows machine, it returns FILENAME in expanded form."
             ;; We matched FILENAME's directory equivalent.
             ancestor))))))
 
-(defun save-buffer (&optional args)
+(defun save-buffer (&optional arg)
   "Save current buffer in visited file if modified.
 Variations are described below.
 
@@ -4547,7 +4553,7 @@ Prefixed with three \\[universal-argument]'s, marks this version
  to become a backup when the next save is done,
  and unconditionally makes the previous version into a backup file.
 
-With a numeric argument of 0, never make the previous version
+With a numeric prefix argument of 0, never make the previous version
 into a backup file.
 
 If a file's name is FOO, the names of its numbered backup versions are
@@ -4571,9 +4577,9 @@ If `vc-make-backup-files' is nil, which is the default,
 See the subroutine `basic-save-buffer' for more information."
   (interactive "p")
   (let ((modp (buffer-modified-p))
-	(make-backup-files (or (and make-backup-files (not (eq args 0)))
-			       (memq args '(16 64)))))
-    (and modp (memq args '(16 64)) (setq buffer-backed-up nil))
+	(make-backup-files (or (and make-backup-files (not (eq arg 0)))
+			       (memq arg '(16 64)))))
+    (and modp (memq arg '(16 64)) (setq buffer-backed-up nil))
     ;; We used to display the message below only for files > 50KB, but
     ;; then Rmail-mbox never displays it due to buffer swapping.  If
     ;; the test is ever re-introduced, be sure to handle saving of
@@ -4581,7 +4587,7 @@ See the subroutine `basic-save-buffer' for more information."
     (if (and modp (buffer-file-name))
 	(message "Saving file %s..." (buffer-file-name)))
     (basic-save-buffer)
-    (and modp (memq args '(4 64)) (setq buffer-backed-up nil))))
+    (and modp (memq arg '(4 64)) (setq buffer-backed-up nil))))
 
 (defun delete-auto-save-file-if-necessary (&optional force)
   "Delete auto-save file for current buffer if `delete-auto-save-files' is t.
@@ -6492,10 +6498,11 @@ the low level primitive, does not.  See also `kill-emacs-hook'.")
 (defcustom confirm-kill-emacs nil
   "How to ask for confirmation when leaving Emacs.
 If nil, the default, don't ask at all.  If the value is non-nil, it should
-be a predicate function such as `yes-or-no-p'."
+be a predicate function; for example `yes-or-no-p'."
   :type '(choice (const :tag "Ask with yes-or-no-p" yes-or-no-p)
 		 (const :tag "Ask with y-or-n-p" y-or-n-p)
-		 (const :tag "Don't confirm" nil))
+		 (const :tag "Don't confirm" nil)
+		 (function :tag "Predicate function"))
   :group 'convenience
   :version "21.1")
 

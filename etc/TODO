@@ -532,7 +532,7 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
 ** Optionally make the cursor a little thinner at the end of a line
   or the end of the buffer.
 
-** Port the conservative stack marking code of Emacs' garbage collector
+** Port the conservative stack marking code of Emacs's garbage collector
   to more systems, so that we can completely get rid of GCPROs.  Note
   that Boehm garbage collector provides this.
 
@@ -556,8 +556,8 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
   snmp-mode [?], soundex [should be interactive?], strokes [start from
   the web page], talk, thingatpt [interactive functions?], type-break,
   vcursor, xscheme, zone-mode [?], mlconvert [?], iso-cvt,
-  feedmail [?], uce, gametree, meese, page-ext,
-  refbib, refer, scribe, spell [obsolete?], texinfo, underline,
+  feedmail [?], uce, gametree, page-ext,
+  refbib, refer, scribe, texinfo, underline,
   cmacexp, hideif, mantemp [obsolete?], pcomplete, xml,
   cvs-status (should be described in PCL-CVS manual); other progmodes,
   probably in separate manual.

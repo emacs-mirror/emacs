@@ -754,7 +754,6 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 
 (defun gnus-request-accept-article (group &optional gnus-command-method last
 					  no-encode)
-  ;; Make sure there's a newline at the end of the article.
   (when (stringp gnus-command-method)
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
   (when (and (not gnus-command-method)
@@ -762,6 +761,7 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
     (setq gnus-command-method (or (gnus-find-method-for-group group)
                                   (gnus-group-name-to-method group))))
   (goto-char (point-max))
+  ;; Make sure there's a newline at the end of the article.
   (unless (bolp)
     (insert "\n"))
   (unless no-encode

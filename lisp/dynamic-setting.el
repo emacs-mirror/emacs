@@ -3,7 +3,7 @@
 ;; Copyright (C) 2009-2014 Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: font, system-font, tool-bar-style
 ;; Package: emacs
 

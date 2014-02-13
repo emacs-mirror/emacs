@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993-1994, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Lynn Slater <lrs@indetech.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: Mon Oct  1 11:42:39 1990
 ;; Adapted-By: ESR
 ;; Package: emacs

@@ -260,7 +260,7 @@ minibuffer.  In the minibuffer, use M-n to yank the default argument
 value into the minibuffer so you can edit it.  The default symbol is the
 one found at point.
 
-With prefix arg a query for the symbol help mode is offered."
+With prefix arg MODE a query for the symbol help mode is offered."
   (interactive
    (info-lookup-interactive-arguments 'symbol current-prefix-arg))
   (info-lookup 'symbol symbol mode))
@@ -274,7 +274,7 @@ In the minibuffer, use M-n to yank the default file name
 into the minibuffer so you can edit it.
 The default file name is the one found at point.
 
-With prefix arg a query for the file help mode is offered."
+With prefix arg MODE a query for the file help mode is offered."
   (interactive
    (info-lookup-interactive-arguments 'file current-prefix-arg))
   (info-lookup 'file file mode))

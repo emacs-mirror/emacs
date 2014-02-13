@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993-1995, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Richard M. Stallman
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal, mouse
 ;; Package: emacs
 

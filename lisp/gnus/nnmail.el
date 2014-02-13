@@ -1397,7 +1397,7 @@ See the documentation for the variable `nnmail-split-fancy' for details."
      ((stringp split)
       (when nnmail-split-tracing
 	(push split nnmail-split-trace))
-      (list (nnmail-expand-newtext split)))
+      (list (nnmail-expand-newtext split t)))
 
      ;; Junk the message.
      ((eq split 'junk)
@@ -1430,12 +1430,14 @@ See the documentation for the variable `nnmail-split-fancy' for details."
      ;; Check the cache for the regexp for this split.
      ((setq cached-pair (assq split nnmail-split-cache))
       (let (split-result
+	    match-data
 	    (end-point (point-max))
 	    (value (nth 1 split)))
 	(if (symbolp value)
 	    (setq value (cdr (assq value nnmail-split-abbrev-alist))))
 	(while (and (goto-char end-point)
 		    (re-search-backward (cdr cached-pair) nil t))
+	  (setq match-data (match-data))
 	  (when nnmail-split-tracing
 	    (push split nnmail-split-trace))
 	  (let ((split-rest (cddr split))
@@ -1464,12 +1466,9 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 		(setq split-rest (cddr split-rest))))
 	    (when split-rest
 	      (goto-char end)
-	      (let ((value (nth 1 split)))
-		(if (symbolp value)
-		    (setq value (cdr (assq value nnmail-split-abbrev-alist))))
-		;; Someone might want to do a \N sub on this match, so get the
-		;; correct match positions.
-		(re-search-backward value start-of-value))
+	      ;; Someone might want to do a \N sub on this match, so
+	      ;; restore the match data.
+	      (set-match-data match-data)
 	      (dolist (sp (nnmail-split-it (car split-rest)))
 		(unless (member sp split-result)
 		  (push sp split-result))))))
@@ -1518,7 +1517,7 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 	;; on the same split, which will find it immediately in the cache.
 	(nnmail-split-it split))))))
 
-(defun nnmail-expand-newtext (newtext)
+(defun nnmail-expand-newtext (newtext &optional fancyp)
   (let ((len (length newtext))
 	(pos 0)
 	c expanded beg N did-expand)
@@ -1543,6 +1542,10 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 	  (if (= c ?\&)
 	      (setq N 0)
 	    (setq N (- c ?0)))
+	  ;; We wrapped the searches in parentheses, so we have to
+	  ;; add some parentheses here...
+	  (when fancyp
+	    (setq N (+ N 3)))
 	  (when (match-beginning N)
 	    (push (if nnmail-split-lowercase-expanded
 		      (downcase (buffer-substring (match-beginning N)

@@ -1733,6 +1733,7 @@ Key bindings:
 		filladapt-mode
 		defun-prompt-regexp
 		font-lock-mode
+		auto-fill-mode
 		font-lock-maximum-decoration
 		parse-sexp-lookup-properties
 		lookup-syntax-properties))

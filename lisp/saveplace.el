@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993-1994, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: July, 1993
 ;; Keywords: bookmarks, placeholders
 

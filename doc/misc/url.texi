@@ -410,6 +410,13 @@ ignored; any other value means to ask the user on each request.
 @node Cookies
 @subsection Cookies
 
+@findex url-cookie-delete
+@defun url-cookie-list
+This command creates a @file{*url cookies*} buffer listing the current
+cookies, if there are any.  You can remove a cookie using the
+@kbd{C-k} (@code{url-cookie-delete}) command.
+@end defun
+
 @defopt url-cookie-file
 The file in which cookies are stored, defaulting to @file{cookies} in
 the directory specified by @code{url-configuration-directory}.

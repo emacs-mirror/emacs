@@ -1,3 +1,45 @@
+2014-02-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update from gnulib.
+
+2014-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* auth.texi (GnuPG and EasyPG Assistant Configuration):
+	Be agnostic about authinfo/authinfo.gpg default order.  (Bug#16642)
+
+2014-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* viper.texi (File and Buffer Handling): Prefer ido to iswitchb.
+
+2014-02-06  Glenn Morris  <rgm@gnu.org>
+
+	* epa.texi (Mail-mode integration): Mention epa-mail-aliases.
+
+	* mh-e.texi, viper.texi: Do not use colons in index entries.
+
+2014-02-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update from gnulib.
+
+2014-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* epa.texi: Add indices.
+
+	* url.texi (Cookies): Mention url-cookie-list command.
+
+2014-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Blocks and Exits): Mention cl-tagbody.
+
+2014-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* efaq-w32.texi (Tramp ssh): Remove deleted tramp methods.
+
+2014-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* efaq.texi (Replacing highlighted text):
+	Update delete-selection-mode doc.
+
 2014-01-30  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* sem-user.texi (Include paths): Fix a Texinfo command.
@@ -210,7 +252,7 @@
 	* org.texi (Creating one-off styles): Use new export snippet
 	syntax.
 
-	* org.texi (Export settings): documentation describing how text
+	* org.texi (Export settings): Documentation describing how text
 	above the first heading is ignored when an :export: tag is in a
 	file.
 
@@ -673,7 +715,7 @@
 
 	* org.texi: Document variable changes.
 
-	* org.texi (Export settings): Doument p: item in OPTIONS keyword.
+	* org.texi (Export settings): Document p: item in OPTIONS keyword.
 
 	* org.texi (Exporting): Massive rewrite of the first sections.
 	(Selective export): Delete.
@@ -853,7 +895,7 @@
 	(INSTALL_DATA): New, set by configure.
 	(HTML_OPTS, HTML_TARGETS, PS_TARGETS, DVIPS): New variables.
 	(.PHONY): Add html, ps, install-dvi, install-html, install-pdf,
-	install-ps ,install-doc, uninstall-dvi, uninstall-html, uninstall-pdf,
+	install-ps, install-doc, uninstall-dvi, uninstall-html, uninstall-pdf,
 	uninstall-ps, and uninstall-doc.
 	(.SUFFIXES): Add .ps and .dvi.
 	(.dvi.ps): New suffix rule.
@@ -10600,7 +10642,7 @@
 	(Top): More description for the `Default Method' menu entry.
 	(Default Method): Use @code, not @var, for Lisp variables.
 	(Default Method): New subsection `Which method is the right one
-	for me?'  Suggested by Christian Kirsch.
+	for me?'.  Suggested by Christian Kirsch.
 	(Configuration): Pointer to new subsection added.
 	(Default Method): Too many "use" in one sentence.
 	Rephrase.  Reported by Christian Kirsch.

@@ -2261,7 +2261,7 @@ validate_region (register Lisp_Object *b, register Lisp_Object *e)
     }
 
   if (! (BEGV <= XINT (*b) && XINT (*e) <= ZV))
-    args_out_of_range (*b, *e);
+    args_out_of_range_3 (Fcurrent_buffer (), *b, *e);
 }
 
 /* Advance BYTE_POS up to a character boundary
@@ -3830,7 +3830,7 @@ DEFUN ("overlayp", Foverlayp, Soverlayp, 1, 1, 0,
 }
 
 DEFUN ("make-overlay", Fmake_overlay, Smake_overlay, 2, 5, 0,
-       doc: /* Create a new overlay with range BEG to END in BUFFER.
+       doc: /* Create a new overlay with range BEG to END in BUFFER and return it.
 If omitted, BUFFER defaults to the current buffer.
 BEG and END may be integers or markers.
 The fourth arg FRONT-ADVANCE, if non-nil, makes the marker
@@ -6130,6 +6130,8 @@ If the value of the variable is t, undo information is not recorded.  */);
   DEFVAR_PER_BUFFER ("cache-long-scans", &BVAR (current_buffer, cache_long_scans), Qnil,
 		     doc: /* Non-nil means that Emacs should use caches in attempt to speedup buffer scans.
 
+There is no reason to set this to nil except for debugging purposes.
+
 Normally, the line-motion functions work by scanning the buffer for
 newlines.  Columnar operations (like `move-to-column' and
 `compute-motion') also work by scanning the buffer, summing character
@@ -6179,15 +6181,16 @@ same format as a regular save would use.  */);
   DEFVAR_PER_BUFFER ("buffer-invisibility-spec",
 		     &BVAR (current_buffer, invisibility_spec), Qnil,
 		     doc: /* Invisibility spec of this buffer.
-The default is t, which means that text is invisible
-if it has a non-nil `invisible' property.
-If the value is a list, a text character is invisible if its `invisible'
-property is an element in that list (or is a list with members in common).
-If an element is a cons cell of the form (PROP . ELLIPSIS),
-then characters with property value PROP are invisible,
-and they have an ellipsis as well if ELLIPSIS is non-nil.
-Setting this variable is very fast, much faster than scanning all the
-text in the buffer looking for properties to change.  */);
+The default is t, which means that text is invisible if it has a non-nil
+`invisible' property.
+This variable can also be a list.  The list can have two kinds of elements:
+`ATOM' and `(ATOM . ELLIPSIS)'.  A text character is invisible if its
+`invisible' property is `ATOM', or has an `invisible' property that is a list
+that contains `ATOM'.
+If the `(ATOM . ELLIPSIS)' form is used, and `ELLIPSIS' is non-nil, an
+ellipsis will be displayed after the invisible characters.
+Setting this variable is very fast, much faster than scanning all the text in
+the buffer looking for properties to change.  */);
 
   DEFVAR_PER_BUFFER ("buffer-display-count",
 		     &BVAR (current_buffer, display_count), Qintegerp,

@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993-1994, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 12 Dec 1992
 ;; Keywords: extensions, lisp, tools
 ;; Package: emacs

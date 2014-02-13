@@ -5,6 +5,7 @@
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
 ;; Keywords: completion convenience
+;; Obsolete-since: 24.4
 
 ;; This file is part of GNU Emacs.
 
@@ -22,6 +23,8 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; This file is obsolete - use icomplete-mode or ido-mode instead.
 
 ;; Installation:
 ;; To get the functions in this package bound to keys, use
@@ -1413,6 +1416,9 @@ See the variable `iswitchb-case' for details."
 	  (isearch-no-upper-case-p iswitchb-text)
 	(isearch-no-upper-case-p iswitchb-text t))))
 
+;; NB obsolete/ is not scanned for autoloads.
+;; If you change any of the following doc, copy the changes to simple.el.
+
 ;;;###autoload
 (define-minor-mode iswitchb-mode
   "Toggle Iswitchb mode.
@@ -1427,8 +1433,9 @@ between buffers using substrings.  See `iswitchb' for details."
       (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)
     (remove-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)))
 
+;;;###autoload
 (make-obsolete 'iswitchb-mode
-               "use icomplete-mode or ido-mode instead" "24.4")
+               "use `icomplete-mode' or `ido-mode' instead." "24.4")
 
 (provide 'iswitchb)
 

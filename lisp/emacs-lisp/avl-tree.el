@@ -6,7 +6,7 @@
 ;;         Inge Wallin <inge@lysator.liu.se>
 ;;         Thomas Bellman <bellman@lysator.liu.se>
 ;;         Toby Cubitt <toby-predictive@dr-qubit.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 10 May 1991
 ;; Keywords: extensions, data structures, AVL, tree
 

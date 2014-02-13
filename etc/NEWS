@@ -32,7 +32,7 @@ configure option `--disable-acl'.
 ** Emacs can now be compiled with file notification support.
 This happens by default if a suitable system library is found at
 build time.  To prevent this, use the configure option
-`--with-file-notification-no'.  See below for file-notify features.
+`--without-file-notification'.  See below for file-notify features.
 FIXME?  This feature is not available for the Nextstep port. (?)
 
 ---
@@ -107,8 +107,8 @@ first menu-bar menu by typing F10, which invokes `menu-bar-open'.
 
 If you want the previous behavior, whereby F10 invoked `tmm-menubar',
 customize the option `tty-menu-open-use-tmm' to a non-nil value.
-(Typing M-` will always invoke `tmm-menubar', even if
-`tty-menu-open-use-tmm' is nil.)
+(Typing M-` always invokes `tmm-menubar', even if `tty-menu-open-use-tmm'
+is nil.)
 
 +++
 ** The *Messages* buffer is created in `messages-buffer-mode',
@@ -187,14 +187,20 @@ content-type that is found in the new variable `image-format-suffixes'.
 *** New commands `toggle-frame-fullscreen' and `toggle-frame-maximized',
 bound to <f11> and M-<f10>, respectively.
 
-*** New command `frameset-to-register' is now bound to `C-x r f', replacing
-`frame-configuration-to-register'.  It offers similar functionality,
-plus enhancements like the ability to restore deleted frames.  The
-command `frame-configuration-to-register' still exists, but is unbound.
-
 +++
 *** New hooks `focus-in-hook', `focus-out-hook'.
 These are normal hooks run when an Emacs frame gains or loses input focus.
+
+---
+*** Emacs can now draw dividers between adjacent windows.
+To put dividers between side-by-side/vertically stacked windows
+customize the frame parameter `right-divider-width'/`bottom-divider-width'
+to some positive integer.  You can drag dividers with the mouse
+(they show a corresponding cursor when the mouse hovers over them).
+You can change the appearance of dividers by customizing the faces
+`window-divider', `window-divider-first-pixel', and
+`window-divider-last-pixel'.  The last two are useful to provide a 3D
+effect, or to better distinguish dividers from surrounding display objects.
 
 ---
 *** `split-window' is now a non-interactive function, not a command.
@@ -221,6 +227,7 @@ equivalent to setting `(eval-expression-)print-length' and
 `(eval-expression-)print-level' to nil.  Additionally, it causes integers
 to be printed in other formats (octal, hexadecimal, and character).
 
+---
 *** New hook `eval-expression-minibuffer-setup-hook' run by
 `eval-expression' on entering the minibuffer.
 
@@ -228,9 +235,9 @@ to be printed in other formats (octal, hexadecimal, and character).
 ** `write-region-inhibit-fsync' now defaults to t in batch mode.
 
 +++
-** `cache-long-line-scans' has been renamed to `cache-long-scans'
+** `cache-long-line-scans' is now non-nil, and renamed to `cache-long-scans',
 because it affects caching of paragraph scanning results as well.
-Also, it is now enabled by default.
+There is no reason to set this to nil except for debugging purposes.
 
 ---
 ** The option `set-mark-default-inactive' has been deleted.
@@ -244,11 +251,11 @@ and this variable has been marked obsolete.
 ** `emacs-bzr-version' has been renamed to `emacs-repository-version',
 and works for git too, if you fetch the repository notes.
 
-** `read-regexp-defaults-function' defines a function to read regexps,
-used by commands like `rgrep', `lgrep' `occur', `highlight-regexp', etc.
-You can customize this to specify a function that provides a default
-value from the regexp last history element, or from the symbol found
-at point.
+** `read-regexp-defaults-function' defines a function to provide default
+values for reading regexps by commands like `rgrep', `lgrep' `occur',
+`highlight-regexp', etc.  You can customize this to specify a function
+that provides a default value from the regexp last history element,
+or from the symbol found at point.
 
 +++
 ** New option `load-prefer-newer' affects how the `load' function chooses
@@ -301,14 +308,22 @@ bidirectional context.
 
 ** Register changes
 
-*** All register commands can now show help with preview.
++++
+*** All interactive commands that read a register (`copy-to-register', etc.)
+now display a temporary window after `register-preview-delay' seconds
+that summarizes existing registers.  To disable this, set that option to nil.
+Interactive commands that read registers and want to make use of this
+should use `register-read-with-preview' to read register names.
+
+*** New command `frameset-to-register' bound to `C-x r f', replacing
+`frame-configuration-to-register'.  It offers similar functionality,
+plus enhancements like the ability to restore deleted frames.
+(`frame-configuration-to-register' still exists, but no longer has a
+key binding.)
 
 +++
 *** New command `C-x C-k x' (`kmacro-to-register') stores keyboard
 macros in registers.
-
-*** New command `C-x r f' (`frameset-to-register').
-See Changes in Emacs 24.4, above.
 
 +++
 ** New command `delete-duplicate-lines'.
@@ -342,15 +357,16 @@ Also the following files used by the now obsolete otodo-mode.el:
 
 ** Backtrace and debugger
 
-*** The Lisp debugger's `e' command now includes the lexical environment
-when evaluating the code in the context at point.  Hence, it now lets
-you access lexical variables.
-
 +++
-*** New command `v' (`debugger-toggle-locals') displays local vars.
+*** New Lisp debugger command `v' (`debugger-toggle-locals') toggles the
+display of local variables of the current stack frame.
 
-*** New minor mode `jit-lock-debug-mode' lets you use the debuggers on
-code run via JIT Lock.
+*** The Lisp debugger's `e' command (`debugger-eval-expression') now includes
+the lexical environment when evaluating the code in the context at point
+(and so allows you to access lexical variables).
+
+---
+*** New minor mode `jit-lock-debug-mode' helps you debug code run via JIT Lock.
 
 ---
 ** Battery information can now be retrieved from BSD's `apm' utility.
@@ -419,7 +435,9 @@ For example, this enables parsing of macros that open new namespaces.
 
 ** cl-lib
 
++++
 *** New macro `cl-tagbody'.
+This executes statements while allowing for control transfer to labels.
 
 +++
 *** letf is now just an alias for cl-letf.
@@ -446,7 +464,8 @@ You can disable `transient-mark-mode' to get the same result.
 There is a fallback syntax available if you don't have cf-promises or
 if your version doesn't support that option.  See option `cfengine-cf-promises'.
 
-** Delete Selection mode can now be used without `transient-mark-mode'.
+---
+** Delete Selection mode can now be used without Transient Mark mode.
 
 ** Desktop
 
@@ -497,19 +516,12 @@ You can customize `electric-pair-text-pairs' and
 `electric-pair-text-syntax-table' to tweak pairing behavior inside
 strings and comments.
 
++++
 ** New EPA option `epa-mail-aliases'.
-You can set this to a list of alias expansions for keys to use
-in `epa-mail-encrypt'.
+You can set this to a list of email address aliases that `epa-mail-encrypt'
+should use to find keys.
 
-If one element of the variable's value is ("foo@bar.com" "foo@hello.org"),
-that means: when one of the recipients of the message being encrypted
-is `foo@bar.com', encrypt the message for `foo@hello.org' instead.
-
-If one element of the variable's value is ("foo@bar.com"),
-that means: when one of the recipients of the message being encrypted
-is `foo@bar.com', ignore that name as regards encryption.
-This is useful to avoid a query when you have no key for that name.
-
+---
 ** New ERC option `erc-accidental-paste-threshold-seconds'.
 If set to a number, this can be used to avoid accidentally pasting large
 amounts of data into the ERC input.
@@ -542,25 +554,43 @@ module.
 ---
 ** New F90 mode option `f90-smart-end-names'.
 
-** Icomplete is a bit more like Ido.
+** Icomplete
+Icomplete is now more similar to Ido.
 
-*** Key bindings to navigate through and select the completions.
+---
+*** Icomplete by default now applies to all forms of minibuffer completion.
+The variable `icomplete-with-completion-tables' (now a user option)
+controls this.  To restore the old behavior, set it back to
+'(internal-complete-buffer).
 
-*** The icomplete-separator is customizable, and its default has changed.
++++
+*** You can navigate through and select completions using the keys
+from `icomplete-minibuffer-map'.
 
-*** Removed `icomplete-show-key-bindings'.
+---
+*** The string that separates potential completions is now a customizable
+option (`icomplete-separator').  The default is " | " rather than ",".
 
-*** Icomplete-mode by defaults applies to all forms of minibuffer completion.
-(setq icomplete-with-completion-tables '(internal-complete-buffer))
-will revert to the old behavior.
+---
+*** New face `icomplete-first-match'; and new options
+`icomplete-hide-common-prefix' and `icomplete-show-matches-on-no-input'.
+
+---
+*** The option `icomplete-show-key-bindings' has been removed.
 
 ** Ido
 
-*** Ido has a manual now.
++++
+*** An Ido user manual is now included.
 
-*** `ido-use-virtual-buffers' takes a new value 'auto.
+---
+*** The option `ido-use-virtual-buffers' can now take the value `auto'.
+This means to use virtual buffers if the current ido input does not match
+an existing buffer.
 
-*** `ido-decorations' has been slightly extended to give a bit more control.
+---
+*** The variable `ido-decorations' can optionally have two new elements,
+which are the brackets to use around the sole remaining completion.
 
 ** Image mode
 
@@ -588,20 +618,26 @@ callers to fit the image to a frame other than the selected frame.
 
 ** Hi-Lock
 
++++
+*** New global command `M-s h .' (`highlight-symbol-at-point') highlights
+the symbol found near point.
+
++++
 *** New option `hi-lock-auto-select-face'.  When non-nil, hi-lock commands
 will cycle through faces in `hi-lock-face-defaults' without prompting.
 
-+++
-*** New global command `M-s h .' (`highlight-symbol-at-point')
-highlights the symbol found near point without prompting,
-using the next face automatically.
-
 ** New Imenu option `imenu-generic-skip-comments-and-strings'.
 
+** Info
+
 ---
-** New Info face `info-index-match', used to highlight matches in index
+*** New Info face `info-index-match', used to highlight matches in index
 entries displayed by `Info-index-next', `Info-virtual-index' and
 `info-apropos'.
+
+---
+*** The Info-edit command is obsolete.  Editing Info nodes by hand
+has not been relevant for some time.
 
 ** JS Mode
 
@@ -648,19 +684,21 @@ Use `electric-indent-mode' instead.
 
 ** Package
 
++++
+*** In the `list-packages' buffer, you can use `f' (`package-menu-filter')
+to filter the list of packages by a keyword.
+
++++
+*** In the `describe-package' buffer, there are now buttons listing the 
+keywords related to the package.  Click on a button to see other packages
+related to that keyword.
+
+---
 *** The format of `archive-contents' files, generated by package
 repositories, has changed to allow a new (fifth) element in the data
 vectors, containing an associative list with extra properties.
-
-*** `describe-package' buffer uses the `:url' extra property to
-display a `Homepage' header, if it's present.
-
-*** In the buffer produced by `describe-package', there are now buttons
-listing the keywords related to that package.  You can click on them
-to see other packages related to any given keyword.
-
-*** In the *Packages* buffer, `f' or the Package->Filter menu filters
-the packages by a keyword.
+(For example, `describe-package' uses the `:url' extra property to
+display a "Homepage" header.)
 
 ---
 ** In Prolog mode, `prolog-use-smie' has been removed,
@@ -707,6 +745,9 @@ rather than mboxo.  Customize `unrmail-mbox-format' to change this.
 
 ---
 *** New option `ruby-align-to-stmt-keywords'.
+
+---
+*** New option `ruby-align-chained-calls'.
 
 ---
 *** More Ruby file types have been added to `auto-mode-alist'.
@@ -804,17 +845,22 @@ or in archive files, undoing or unarchiving done items.
 
 *** Extensive customizability of operation and display, including many faces.
 
-** trace-function
+** Trace
 
-*** No prompting for the destination buffer, unless a prefix argument is used.
+---
+*** `trace-function' and `trace-function-background' no longer prompt for
+the output buffer.  Unless you use a prefix argument, they output to
+`trace-buffer'.
 
-*** With a prefix argument, you can enter a "context"; i.e., a Lisp
-expression whose value at the time the function is entered/exited will
-be printed along with the function name and arguments.  For example,
-you can use this to trace the value of current-buffer or point.
+---
+*** With a prefix argument, `trace-function' and `trace-function-background'
+will prompt for a "context".  This is a Lisp expression, whose value at the
+time the function is entered/exited is printed along with the function's
+name and arguments.
 
 ** Tramp
 
++++
 *** The experimental url syntax for remote file names has been removed.
 
 +++
@@ -822,10 +868,11 @@ you can use this to trace the value of current-buffer or point.
 devices by the Android Debug Bridge.  The variable `tramp-adb-program'
 can be used to adapt the path of the "adb" program, if needed.
 
++++
 *** The connection methods "plink1", "ssh1", "ssh2", "scp1", "scp2",
 "scpc" and "rsyncc" are discontinued.  The ssh option
 "ControlMaster=auto" is set automatically in all ssh-based methods,
-when possible.
+when possible.  See `tramp-use-ssh-controlmaster-options'.
 
 +++
 *** Handlers for `file-acl' and `set-file-acl' for remote machines
@@ -835,8 +882,9 @@ which support POSIX ACLs.
 *** Handlers for `file-notify-add-watch' and `file-notify-rm-watch'
 for remote machines which support filesystem notifications.
 
-** New command `url-cookie-list' displays all the current cookies, and
-allows deleting selected cookies.
++++
+** New URL command `url-cookie-list' displays the current cookies,
+and allows you to interactively remove cookies.
 
 ** VC and related modes
 
@@ -871,28 +919,29 @@ are obsolete.  Customize the `woman-*' faces instead.
 
 ** Obsolete packages
 
-*** Iswitchb is made obsolete by icomplete-mode.
++++
+*** iswitchb.el; use icomplete-mode.
 
-*** longlines.el is obsolete; use visual-line-mode instead.
+---
+*** longlines.el; use visual-line-mode.
+
+---
+*** meese.el.
 
 +++
 *** sup-mouse.el.
 
 ---
-*** terminal.el is obsolete; use term.el instead.
+*** terminal.el; use term.el instead.
 
 ---
-*** The previous version of todo-mode.el is obsolete and renamed otodo-mode.el.
+*** the old version of todo-mode.el (renamed to otodo-mode.el).
 
 ---
-*** xesam.el is obsolete, because the XESAM project has been canceled.
+*** xesam.el (owing to the cancellation of the XESAM project).
 
 +++
-*** yow.el is obsolete; use fortune.el or cookie1.el instead.
-
----
-*** The Info-edit command is obsolete.  Editing Info nodes by hand
-has not been relevant for some time.
+*** yow.el; use fortune.el or cookie1.el instead.
 
 
 * New Modes and Packages in Emacs 24.4
@@ -901,6 +950,7 @@ has not been relevant for some time.
 ** New package `eww' is a built-in web browser.
 It is only available if Emacs is compiled with libxml2 support.
 
++++
 ** New minor mode `superword-mode'.
 This overrides the default word motion commands to treat "symbol_words"
 as a single word, similar to what `subword-mode' does.
@@ -913,7 +963,7 @@ It is layered as:
 function-carrying place, such as process-filters or `<foo>-function' hooks.
 
 *** advice-add/advice-remove to add/remove a piece of advice on a named
-function,much like `defadvice' does.
+function, much like `defadvice' does.
 
 ** New package frameset.el.
 It provides a set of operations to save a frameset (the state of all
@@ -1050,6 +1100,12 @@ around the comma.
 Either use `completion-all-completions', which returns highlighted
 strings (including for partial or substring completion), or call
 `completion-hilit-commonality' to add the highlight.
+
+*** New function `completion-table-with-cache' is a wrapper for
+`completion-table-dynamic' that caches the result of the last lookup.
+
+*** New function `completion-table-merge' to combine several
+completion tables by merging their completions.
 
 ** New minor modes `prettify-symbols-mode' and `global-prettify-symbols-mode'
 let you enable symbol prettification (replacing a string like "lambda" with
@@ -1836,7 +1892,8 @@ These faces are named `apropos-symbol', `apropos-keybinding', and so on;
 see the `apropos' Custom group for details.
 
 *** The old options whose values specified faces to use have been removed
-(i.e. `apropos-symbol-face', `apropos-keybinding-face', etc.).
+(i.e. `apropos-symbol-face', `apropos-keybinding-face', `apropos-label-face',
+`apropos-match-face' and `apropos-property-face'.).
 
 ** Buffer Menu
 

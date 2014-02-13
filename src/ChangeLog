@@ -1,3 +1,215 @@
+2014-02-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* composite.c (fill_gstring_header): Pass positions as C integers
+	and move parameters checking to...
+	(Fcomposition_get_gstring): ...this function.  Handle case when
+	buffer positions are in reversed order and avoid crash (Bug#16739).
+	Adjust docstring.
+	* buffer.c (validate_region): Mention current buffer in error message.
+
+2014-02-12  Marcus Karlsson  <mk@acc.umu.se>  (tiny change)
+
+	* image.c (pbm_load): Set to NO_PIXMAP on error (Bug#16683).
+
+2014-02-12  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* buffer.c (syms_of_buffer): Doc clarification (bug#9981).
+
+2014-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* nsfns.m (ns_display_info_for_name, Fx_open_connection):
+	Replace refs to "OpenStep" in messages.
+
+2014-02-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid "." at end of error diagnostics.
+	* cmds.c (Fself_insert_command): Reword and avoid "." at end.
+	* font.c (Ffont_at):
+	* nsfns.m (ns_display_info_for_name):
+	* nsselect.m (Fx_own_selection_internal):
+	* nsterm.m (performDragOperation:):
+	Remove "." from end of diagnostic.
+
+2014-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* fns.c (Fmaphash): Say what `maphash' returns, since it may be
+	unintuitive (bug#15824).
+	(Fyes_or_no_p): Doc fix (bug#15456).
+
+2014-02-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* cmds.c (Fself_insert_command): Respect the width of EMACS_INT
+	and avoid warning.
+	* eval.c (call_debugger): When exiting the debugger, do not allow
+	max_specpdl_size less than actual binding depth (Bug#16603).
+	(syms_of_eval): Adjust docstring.
+
+2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* cmds.c (Fself_insert_command): Output a clearer error message on
+	negative repetitions (bug#9476).
+
+	* macros.c (Fexecute_kbd_macro): Doc fix (bug#14206).
+
+2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* syntax.c (Fskip_syntax_backward): Doc clarification (bug#15115).
+
+	* minibuf.c (Fread_string): Doc clarification (bug#15422).
+
+	* buffer.c (Fmake_overlay): Doc clarification (bug#15489).
+
+2014-02-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.c (Frecursive_edit): Fix typo in docstring.
+
+2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* xdisp.c (syms_of_xdisp): Doc clarification (bug#15657).
+
+	* keyboard.c (Frecursive_edit): Say more precicely how throwing
+	`exit' works (bug#15865).
+
+2014-02-07  Martin Rudalics  <rudalics@gmx.at>
+
+	Constrain window box/body sizes and margin widths (Bug#16649).
+	* xdisp.c (window_box_width): Don't return less than zero.
+	(window_box_left_offset, window_box_right_offset): Don't return
+	more than the window's pixel width.
+	* window.c (window_body_height, window_body_width): Don't return
+	negative value.
+	(window_resize_apply): Adjust margin width, if necessary.
+
+2014-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* nsterm.m (syms_of_nsterm): Doc fix.
+
+2014-02-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (pMultiByteToWideChar, pWideCharToMultiByte): New
+	variables: pointers through which to call the respective APIs.
+	(filename_to_utf16, filename_from_utf16, filename_to_ansi)
+	(filename_from_ansi, sys_link, check_windows_init_file): Call
+	MultiByteToWideChar and WideCharToMultiByte through pointers.
+	This is required on Windows 9X, where we dynamically load
+	UNICOWS.DLL which has their non-stub implementations.
+	(maybe_load_unicows_dll): Assign addresses to these 2 function
+	pointers after loading UNICOWS.DLL.
+
+	* w32fns.c (Fx_file_dialog, Fw32_shell_execute) [!CYGWIN]: Call
+	MultiByteToWideChar and WideCharToMultiByte through function
+	pointers.
+
+	* w32.h (pMultiByteToWideChar, pWideCharToMultiByte): New
+	declarations.
+
+2014-02-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (toggleFullScreen:): Hide menubar on secondary monitor
+	for OSX >= 10.9 if separate spaces are used.
+	(toggleFullScreen:): Use screen of w instead of fw (Bug#16659).
+
+2014-02-06  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (cache-long-scans): Doc fix.
+
+2014-02-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Fw32_shell_execute): Doc fix.
+
+2014-02-05  Bastien Guerry  <bzg@gnu.org>
+
+	* syntax.c (Fforward_word): Call Fconstrain_to_field with
+	ESCAPE-FROM-EDGE set to `nil' (Bug#16453).
+
+2014-02-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* fringe.c (draw_fringe_bitmap_1): Don't draw a fringe if it's
+	outside the window (Bug#16649).
+
+	* xdisp.c (note_mouse_highlight): When entering a margin area show
+	a non-text cursor (Bug#16647).
+
+2014-02-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* menu.c (Fx_popup_dialog): Remove label 'dialog_via_menu'.
+	It prompted a compile-time diagnostic on GNU/Linux.
+	Simplify to remove the need for the label.
+
+2014-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32menu.c (w32_popup_dialog): Don't condition the whole function
+	on HAVE_DIALOGS.  If the dialog is "simple", pop up a message box
+	to show it; otherwise return 'unsupported--w32-dialog' to signal
+	to the caller that emulation with menus is necessary.  This
+	resurrects code inadvertently deleted by the 2013-10-08 commit.
+	(Bug#16636)
+	(syms_of_w32menu): DEFSYM Qunsupported__w32_dialog.
+
+	* w32term.h (w32_popup_dialog): Prototype is no longer conditioned
+	by HAVE_DIALOGS.
+
+	* menu.c (Fx_popup_dialog): Don't condition the call to
+	w32_popup_dialog on HAVE_DIALOGS.  If w32_popup_dialog returns a
+	special symbol 'unsupported--w32-dialog', emulate the dialog with
+	a menu by calling x-popup-menu.
+
+	* menu.h (Qunsupported__w32_dialog): New extern variable.
+
+2014-02-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* keyboard.c (kbd_buffer_get_event): Read file notification events
+	also in batch mode.
+
+	* xgselect.c (xg_select): Read glib events in any case, even if
+	there are no file descriptors to watch for.  (Bug#16519)
+
+2014-02-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* dispextern.h (face_id): Add WINDOW_DIVIDER_FIRST_PIXEL_FACE_ID
+	and WINDOW_DIVIDER_LAST_PIXEL_FACE_ID.
+	* w32term.c (w32_draw_window_divider): Handle first and last
+	pixels specially.
+	* w32term.h (w32_fill_area_abs): New function.
+	* xdisp.c (x_draw_right_divider): Don't draw over bottom
+	divider.
+	* xfaces.c (realize_basic_faces): Handle new face ids.
+	* xfns.c (Fx_create_frame): Call x_default_parameter for right
+	and bottom divider width.
+	* xterm.c (x_draw_window_divider): Handle first and last pixels
+	specially.
+
+2014-02-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* print.c (Fexternal_debugging_output): Add cast to pacify
+	--enable-gcc-warnings.
+	* eval.c (call_debugger): Grow specpdl if the debugger was
+	entered due to specpdl overflow (Bug#16603) and allow more
+	specpdl space for the debugger itself.
+
+2014-02-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32fns.c (Fx_create_frame): Process frame alpha earlier.
+	(Bug#16619)
+
+2014-02-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Ffile_system_info): Use WINAPI in the function
+	pointers that get the address of GetDiskFreeSpaceEx.  (Bug#16615)
+
+	* print.c (Fexternal_debugging_output): If the argument character
+	is non-ASCII, encode it with the current locale's encoding before
+	writing the result to the terminal.  (Bug#16448)
+
+	* w32fns.c (Fw32_shell_execute): Don't call file-exists-p for
+	DOCUMENT that is a "remote" file name, i.e. a file-handler exists
+	for it.  (Bug#16558)
+
+2014-01-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (create_process): Reset SIGPROF handler in the child.
+	* callproc.c (call_process): Likewise.
+
 2014-01-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xmenu.c (create_and_show_popup_menu): Port comment to C89.
@@ -13,15 +225,12 @@
 
 2014-01-27  K. Handa  <handa@gnu.org>
 
-	Fix bug#16286 by the different way than revno:116158 to preserve
-	the code detection behavior of 24.3.
-
+	Fix bug#16286 by a different method from revno:116158 (2014-01-26),
+	to preserve the code detection behavior of 24.3.
 	* coding.h (struct coding_system): New member detected_utf8_bytes.
-
 	* coding.c (detect_coding_utf_8): Set coding->detected_utf8_bytes.
 	(decode_coding_gap): Use short cut for UTF-8 file reading only
 	when coding->detected_utf8_bytes equals to coding->src_bytes.
-
 	* fileio.c (Finsert_file_contents): Cancel the previous change.
 
 2014-01-29  Martin Rudalics  <rudalics@gmx.at>
@@ -234,7 +443,7 @@
 	* gtkutil.h (xg_have_tear_offs): Add frame parameter
 	* gtkutil.c (xg_have_tear_offs): Count the global menu as a
 	tear-off.
-	(xg_update_menubar,xg_update_menu_item): Call g_object_notify when
+	(xg_update_menubar, xg_update_menu_item): Call g_object_notify when
 	updating menus; explain why.
 	(xg_update_frame_menubar): Remove the 23px hack: I can't repro the
 	problem it's supposed to solve and it interferes with detecting
@@ -766,7 +975,7 @@
 2013-12-16  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnutls.c (Fgnutls_boot): Use `Flistp' instead of
-	`CHECK_LIST_CONS`.
+	`CHECK_LIST_CONS'.
 
 2013-12-16  Martin Rudalics  <rudalics@gmx.at>
 
@@ -3247,7 +3456,7 @@
 
 	* msdos.c (x_set_menu_bar_lines): Delete unused function.
 
-	* menu.h (tty_menu_show, menu_item_width): provide prototypes.
+	* menu.h (tty_menu_show, menu_item_width): Provide prototypes.
 
 	* menu.c (have_boxes): New function.
 	(single_keymap_panes): Use it instead of a compile-time
@@ -3545,9 +3754,9 @@
 2013-09-26  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	Signal error when reading an empty byte-code object (Bug#15405)
-	* lread.c (read1): signal error
-	* alloc.c (make_byte_code): eassert header size
-	(sweep_vectors): change an int to size_t
+	* lread.c (read1): Signal error.
+	* alloc.c (make_byte_code): eassert header size.
+	(sweep_vectors): Change an int to size_t.
 
 2013-09-24  Paul Eggert  <eggert@cs.ucla.edu>
 

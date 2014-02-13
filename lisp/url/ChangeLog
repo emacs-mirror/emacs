@@ -1,3 +1,7 @@
+2014-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* url-cookie.el (url-cookie-list): Doc fix.
+
 2014-01-25  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* url-vars.el (url): Link to info manual.
@@ -29,7 +33,7 @@
 2013-09-16  Glenn Morris  <rgm@gnu.org>
 
 	* url-misc.el (url-data): Avoid match-data mix-up with base64 case.
-	Use Content-Transfer-Encoding rather than Content-Encoding. (Bug#15285)
+	Use Content-Transfer-Encoding rather than Content-Encoding.  (Bug#15285)
 
 2013-09-13  Glenn Morris  <rgm@gnu.org>
 

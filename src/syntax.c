@@ -1485,7 +1485,7 @@ and the function returns nil.  Field boundaries are not noticed if
 
   /* Avoid jumping out of an input field.  */
   tmp = Fconstrain_to_field (make_number (val), make_number (PT),
-			     Qt, Qnil, Qnil);
+			     Qnil, Qnil, Qnil);
   val = XFASTINT (tmp);
 
   SET_PT (val);
@@ -1532,7 +1532,8 @@ DEFUN ("skip-syntax-backward", Fskip_syntax_backward, Sskip_syntax_backward, 1, 
 SYNTAX is a string of syntax code characters.
 Stop on reaching a char whose syntax is not in SYNTAX, or at position LIM.
 If SYNTAX starts with ^, skip characters whose syntax is NOT in SYNTAX.
-This function returns the distance traveled, either zero or negative.  */)
+This function returns either zero or a negative number, and the absolute value
+of this is the distance traveled.  */)
   (Lisp_Object syntax, Lisp_Object lim)
 {
   return skip_syntaxes (0, syntax, lim);

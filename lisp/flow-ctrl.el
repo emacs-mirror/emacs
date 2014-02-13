@@ -4,7 +4,7 @@
 ;; Inc.
 
 ;; Author: Kevin Gallagher
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Adapted-By: ESR
 ;; Keywords: hardware
 

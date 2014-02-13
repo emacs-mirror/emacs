@@ -3,7 +3,7 @@
 ;; Copyright (C) 1996-1997, 1999-2014 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, faces
 ;; Package: emacs
 
@@ -699,7 +699,7 @@ If `last', order groups after non-groups."
 
 (defun custom-sort-items (items sort-alphabetically order-groups)
   "Return a sorted copy of ITEMS.
-ITEMS should be a `custom-group' property.
+ITEMS should be a list of `custom-group' properties.
 If SORT-ALPHABETICALLY non-nil, sort alphabetically.
 If ORDER-GROUPS is `first' order groups before non-groups, if `last' order
 groups after non-groups, if nil do not order groups at all."
@@ -1450,7 +1450,10 @@ If TYPE is `groups', include only groups."
                           (custom-variable-p symbol)))
                  (push (list symbol 'custom-variable) found))))))
     (unless found
-      (error "No customizable %s matching %s" (symbol-name type) pattern))
+      (error "No customizable %s matching %s" (if (not type)
+						  "group, face, or option"
+						(symbol-name type))
+	     pattern))
     (custom-buffer-create
      (custom-sort-items found t custom-buffer-order-groups)
      "*Customize Apropos*")))
@@ -1527,7 +1530,8 @@ not for everybody."
 Optional NAME is the name of the buffer.
 OPTIONS should be an alist of the form ((SYMBOL WIDGET)...), where
 SYMBOL is a customization option, and WIDGET is a widget for editing
-that option."
+that option.
+DESCRIPTION is unused."
   (pop-to-buffer-same-window (custom-get-fresh-buffer (or name "*Customization*")))
   (custom-buffer-create-internal options description))
 

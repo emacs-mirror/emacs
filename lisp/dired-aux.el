@@ -4,7 +4,7 @@
 ;; Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: files
 ;; Package: emacs
 
@@ -1343,9 +1343,7 @@ Special value `always' suppresses confirmation."
 	     (eq t (car attrs))
 	     (or (eq recursive 'always)
 		 (yes-or-no-p (format "Recursive copies of %s? " from))))
-	;; This is a directory.
 	(copy-directory from to preserve-time)
-      ;; Not a directory.
       (or top (dired-handle-overwrite to))
       (condition-case err
 	  (if (stringp (car attrs))

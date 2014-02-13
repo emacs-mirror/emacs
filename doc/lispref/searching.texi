@@ -137,7 +137,7 @@ the ball boy!"
 
 @group
 (word-search-forward "Please find the ball, boy.")
-     @result{} 36
+     @result{} 39
 
 ---------- Buffer: foo ----------
 He said "Please!  Find
@@ -160,16 +160,17 @@ If @var{repeat} is non-@code{nil}, then the search is repeated that many
 times.  Point is positioned at the end of the last match.
 
 @findex word-search-regexp
-Internal, @code{word-search-forward} and related functions use the
+Internally, @code{word-search-forward} and related functions use the
 function @code{word-search-regexp} to convert @var{string} to a
 regular expression that ignores punctuation.
 @end deffn
 
 @deffn Command word-search-forward-lax string &optional limit noerror repeat
 This command is identical to @code{word-search-forward}, except that
-the end of @var{string} need not match a word boundary, unless @var{string} ends
-in whitespace.  For instance, searching for @samp{ball boy} matches
-@samp{ball boyee}, but does not match @samp{aball boy}.
+the beginning or the end of @var{string} need not match a word
+boundary, unless @var{string} begins or ends in whitespace.
+For instance, searching for @samp{ball boy} matches @samp{ball boyee},
+but does not match @samp{balls boy}.
 @end deffn
 
 @deffn Command word-search-backward string &optional limit noerror repeat
@@ -181,8 +182,8 @@ beginning of the match.
 
 @deffn Command word-search-backward-lax string &optional limit noerror repeat
 This command is identical to @code{word-search-backward}, except that
-the end of @var{string} need not match a word boundary, unless @var{string} ends
-in whitespace.
+the beginning or the end of @var{string} need not match a word
+boundary, unless @var{string} begins or ends in whitespace.
 @end deffn
 
 @node Searching and Case

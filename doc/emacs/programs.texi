@@ -1,3 +1,4 @@
+@c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2014 Free Software
 @c Foundation, Inc.
@@ -35,7 +36,7 @@ Highlight program syntax (@pxref{Font Lock}).
 * Documentation::       Getting documentation of functions you plan to call.
 * Hideshow::            Displaying blocks selectively.
 * Symbol Completion::   Completion on symbol names of your program or language.
-* Glasses::             Making identifiersLikeThis more readable.
+* MixedCase Words::     Dealing with identifiersLikeThis.
 * Semantic::            Suite of editing tools based on source code parsing.
 * Misc for Programs::   Other Emacs features useful for editing programs.
 * C Modes::             Special commands of C, C++, Objective-C, Java,
@@ -1335,23 +1336,36 @@ another window.  @xref{Completion}.
   In Text mode and related modes, @kbd{M-@key{TAB}} completes words
 based on the spell-checker's dictionary.  @xref{Spelling}.
 
-@node Glasses
-@section Glasses minor mode
-@cindex Glasses mode
+@node MixedCase Words
+@section MixedCase Words
 @cindex camel case
-@findex mode, Glasses
 
-  Glasses mode is a buffer-local minor mode that makes it easier to
-read mixed-case (or ``CamelCase'') symbols like
-@samp{unReadableSymbol}, by altering how they are displayed.  By
-default, it displays extra underscores between each lower-case letter
-and the following capital letter.  This does not alter the buffer
-text, only how it is displayed.
+  Some programming styles make use of mixed-case (or ``CamelCase'')
+symbols like @samp{unReadableSymbol}.  (In the GNU project, we recommend
+using underscores to separate words within an identifier, rather than
+using case distinctions.)  Emacs has various features to make it easier
+to deal with such symbols.
+
+@cindex Glasses mode
+@findex mode, Glasses
+  Glasses mode is a buffer-local minor mode that makes it easier to read
+such symbols, by altering how they are displayed.  By default, it
+displays extra underscores between each lower-case letter and the
+following capital letter.  This does not alter the buffer text, only how
+it is displayed.
 
   To toggle Glasses mode, type @kbd{M-x glasses-mode} (@pxref{Minor
 Modes}).  When Glasses mode is enabled, the minor mode indicator
 @samp{o^o} appears in the mode line.  For more information about
 Glasses mode, type @kbd{C-h P glasses @key{RET}}.
+
+@cindex Subword mode
+@findex subword-mode
+  Subword mode is another buffer-local minor mode.  In subword mode,
+Emacs's word commands recognize upper case letters in
+@samp{StudlyCapsIdentifiers} as word boundaries.  When Subword mode is
+enabled, the minor mode indicator @samp{,} appears in the mode line.
+See also the similar @code{superword-mode} (@pxref{Misc for Programs}).
 
 @node Semantic
 @section Semantic
@@ -1437,6 +1451,19 @@ the program clearer will also provide useful chunks of text for the
 paragraph commands to work on.  Auto Fill mode, if enabled in a
 programming language major mode, indents the new lines which it
 creates.
+
+@findex superword-mode
+ Superword mode is a buffer-local minor mode that causes editing and
+motion commands to treat symbols (e.g., @samp{this_is_a_symbol}) as words.
+When Subword mode is enabled, the minor mode indicator
+@iftex
+@samp{@math{^2}}
+@end iftex
+@ifnottex
+@samp{²}
+@end ifnottex
+appears in the mode line.  See also the similar @code{subword-mode}
+(@pxref{MixedCase Words}).
 
 @findex electric-layout-mode
   Electric Layout mode (@kbd{M-x electric-layout-mode}) is a global
@@ -1650,19 +1677,6 @@ hungry-delete feature is enabled.
 @subsection Other Commands for C Mode
 
 @table @kbd
-@item C-c C-w
-@itemx M-x subword-mode
-@findex subword-mode
-Enable (or disable) @dfn{subword mode}.  In subword mode, Emacs's word
-commands recognize upper case letters in
-@samp{StudlyCapsIdentifiers} as word boundaries.  This is indicated by
-the flag @samp{/w} on the mode line after the mode name
-(e.g., @samp{C/law}).  You can even use @kbd{M-x subword-mode} in
-non-CC Mode buffers.
-
-In the GNU project, we recommend using underscores to separate words
-within an identifier in C or C++, rather than using case distinctions.
-
 @item M-x c-context-line-break
 @findex c-context-line-break
 This command inserts a line break and indents the new line in a manner

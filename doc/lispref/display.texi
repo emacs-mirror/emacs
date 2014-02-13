@@ -214,6 +214,7 @@ A line prefix may also be specified for regions of text using the
 over the @code{line-prefix} variable.  @xref{Special Properties}.
 @end defvar
 
+@ignore
   If your buffer contains only very short lines, you might find it
 advisable to set @code{cache-long-scans} to @code{nil}.
 
@@ -227,6 +228,7 @@ Turning off the cache speeds up processing of short lines somewhat.
 
 This variable is automatically buffer-local in every buffer.
 @end defvar
+@end ignore
 
 @node The Echo Area
 @section The Echo Area
@@ -2167,6 +2169,7 @@ font matching those wildcards.  Specifying this attribute also changes
 the values of the @code{:family}, @code{:foundry}, @code{:width},
 @code{:height}, @code{:weight}, and @code{:slant} attributes.
 
+@cindex inheritance, for faces
 @item :inherit
 The name of a face from which to inherit attributes, or a list of face
 names.  Attributes from inherited faces are merged into the face like
@@ -5845,7 +5848,7 @@ Here is an example of calling this function explicitly.
 @smallexample
 @group
 (defun interactive-blink-matching-open ()
-  "Indicate momentarily the start of sexp before point."
+  "Indicate momentarily the start of parenthesized sexp before point."
   (interactive)
 @end group
 @group

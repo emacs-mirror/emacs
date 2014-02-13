@@ -52,10 +52,6 @@ files.
 Michael Albinus wrote @file{dbus.el}, a package that implements the
 D-Bus message bus protocol; @file{zeroconf.el}, a mode for browsing
 Avahi services;
-@ignore
-@c obsolete
-@file{xesam.el}, a Xesam-based search engine interface;
-@end ignore
 and @file{secrets.el}, an interface to keyring daemons for
 storing confidential data.  He and Kai Großjohann wrote the Tramp package, which
 provides transparent remote file editing using rcp, ssh, ftp, and
@@ -307,8 +303,7 @@ to VC and the calendar.
 
 @item
 Stephen Eglen wrote @file{mspools.el}, which tells you which Procmail
-folders have mail waiting in them; and @file{iswitchb.el}, a feature
-for incremental reading and completion of buffer names.
+folders have mail waiting in them.
 
 @item
 Torbjörn Einarsson wrote @file{f90.el}, a mode for Fortran 90 files.
@@ -820,10 +815,6 @@ Common Lisp code; @file{ebuff-menu.el}, an ``electric'' browser for
 buffer listings; @file{ehelp.el}, bindings for browsing help screens;
 and @file{rfc822.el}, a parser for E-mail addresses in the RFC-822 format,
 used in mail messages and news articles.
-@ignore
-@c Obsolete since 24.4
-; and @file{terminal.el}, a terminal emulator for Emacs subprocesses.
-@end ignore
 
 @item
 Gerd Möllmann was the Emacs maintainer from the beginning of Emacs 21
@@ -1105,12 +1096,6 @@ Ronald S. Schnell wrote @file{dunnet.el}, a text adventure game.
 @item
 Philippe Schnoebelen wrote @file{gomoku.el}, a Go Moku game played
 against Emacs; and @file{mpuz.el}, a multiplication puzzle.
-
-@ignore
-@c Removed in 24.1.
-@item
-Rainer Schöpf contributed to Alpha and OSF1 support.
-@end ignore
 
 @item
 Jan Schormann wrote @file{solitaire.el}, an implementation of the

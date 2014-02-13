@@ -7928,8 +7928,9 @@ If nil, the function bound in `text-mode-map' or `global-map' is executed."
 
 (defun message-tab ()
   "Complete names according to `message-completion-alist'.
-Execute function specified by `message-tab-body-function' when not in
-those headers."
+Execute function specified by `message-tab-body-function' when
+not in those headers.  If that variable is nil, indent with the
+regular text mode tabbing command."
   (interactive)
   (cond
    ((if (and (boundp 'completion-fail-discreetly)

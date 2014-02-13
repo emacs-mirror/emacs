@@ -889,6 +889,7 @@ Here is an example:
 @c FIXME?  completion-table-with-context?
 @findex completion-table-case-fold
 @findex completion-table-in-turn
+@findex completion-table-merge
 @findex completion-table-subvert
 @findex completion-table-with-quoting
 @findex completion-table-with-predicate
@@ -897,9 +898,10 @@ Here is an example:
 @cindex completion tables, combining
 There are several functions that take an existing completion table and
 return a modified version.  @code{completion-table-case-fold} returns
-a case-insensitive table.  @code{completion-table-in-turn} combines
-multiple input tables.  @code{completion-table-subvert} alters a table
-to use a different initial prefix.  @code{completion-table-with-quoting}
+a case-insensitive table.  @code{completion-table-in-turn} and
+@code{completion-table-merge} combine multiple input tables in
+different ways.  @code{completion-table-subvert} alters a table to use
+a different initial prefix.  @code{completion-table-with-quoting}
 returns a table suitable for operating on quoted text.
 @code{completion-table-with-predicate} filters a table with a
 predicate function.  @code{completion-table-with-terminator} adds a

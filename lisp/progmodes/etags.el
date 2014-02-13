@@ -4,7 +4,7 @@
 ;; Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: tools
 
 ;; This file is part of GNU Emacs.

@@ -174,13 +174,14 @@ non-nil, `backward-delete-char-untabify'."
   (interactive "*p\nP")
   (let* ((prev (char-before))
          (next (char-after))
-         (syntax-info (electric-pair-syntax-info prev))
+         (syntax-info (and prev
+                           (electric-pair-syntax-info prev)))
          (syntax (car syntax-info))
          (pair (cadr syntax-info)))
-    (when (and (if (functionp electric-pair-delete-adjacent-pairs)
+    (when (and next pair
+               (if (functionp electric-pair-delete-adjacent-pairs)
                    (funcall electric-pair-delete-adjacent-pairs)
                  electric-pair-delete-adjacent-pairs)
-               next
                (memq syntax '(?\( ?\" ?\$))
                (eq pair next))
       (delete-char 1 killflag))

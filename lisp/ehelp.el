@@ -4,7 +4,7 @@
 
 ;; Author: Richard Mlynarik
 ;; (according to ack.texi and authors.el)
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, extensions
 
 ;; This file is part of GNU Emacs.

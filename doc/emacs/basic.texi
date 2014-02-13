@@ -235,7 +235,7 @@ Move backward one word (@code{backward-word}).
 @kindex C-LEFT
 @kindex M-LEFT
 @findex left-word
-This command (@code{left-word}) behaves like @kbd{M-f}, except it
+This command (@code{left-word}) behaves like @kbd{M-b}, except it
 moves @emph{forward} by one word if the current paragraph is
 right-to-left.  @xref{Bidirectional Editing}.
 

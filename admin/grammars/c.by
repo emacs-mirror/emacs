@@ -1113,8 +1113,8 @@ functionname
   ;
 
 function-pointer
-  : LPAREN STAR symbol RPAREN
-    ( (concat "*" $3) )
+  : LPAREN STAR opt-symbol RPAREN
+    ( (concat "*" ,(car $3)) )
   | LPAREN symbol RPAREN
     ( $2 )
   ;
@@ -1154,14 +1154,25 @@ type-cast-list
   : open-paren typeformbase close-paren
   ;
 
+opt-brackets-after-symbol
+  : brackets-after-symbol
+  | ;; EMPTY
+  ;
+
 brackets-after-symbol
   : PAREN_BLCK
   | BRACK_BLCK
   ;
 
 multi-stage-dereference
-  : namespace-symbol brackets-after-symbol PERIOD multi-stage-dereference ;; method call
-  | namespace-symbol brackets-after-symbol MINUS GREATER multi-stage-dereference ;;method call
+  : namespace-symbol opt-brackets-after-symbol
+    PERIOD multi-stage-dereference ;; method call
+  | namespace-symbol opt-brackets-after-symbol
+    MINUS GREATER multi-stage-dereference ;;method call
+  | namespace-symbol opt-brackets-after-symbol
+    PERIOD namespace-symbol opt-brackets-after-symbol
+  | namespace-symbol opt-brackets-after-symbol
+    MINUS GREATER namespace-symbol opt-brackets-after-symbol
   | namespace-symbol brackets-after-symbol
   ;
 

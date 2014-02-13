@@ -3,7 +3,7 @@
 ;; Copyright (C) 2002, 2004-2014 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@lexx.delysid.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.

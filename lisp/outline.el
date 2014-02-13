@@ -3,7 +3,7 @@
 ;; Copyright (C) 1986, 1993-1995, 1997, 2000-2014 Free Software
 ;; Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: outlines
 
 ;; This file is part of GNU Emacs.

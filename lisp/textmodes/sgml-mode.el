@@ -4,7 +4,7 @@
 ;; Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Adapted-By: ESR, Daniel Pfeiffer <occitan@esperanto.org>,
 ;;             F.Potorti@cnuce.cnr.it
 ;; Keywords: wp, hypermedia, comm, languages

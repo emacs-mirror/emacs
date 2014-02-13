@@ -3,7 +3,7 @@
 ;; Copyright (C) 1985-1987, 1992, 2001-2014 Free Software Foundation,
 ;; Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: abbrev convenience
 ;; Package: emacs
 
@@ -1007,7 +1007,7 @@ SORTFUN is passed to `sort' to change the default ordering."
 
 ;; Keep it after define-abbrev-table, since define-derived-mode uses
 ;; define-abbrev-table.
-(define-derived-mode edit-abbrevs-mode special-mode "Edit-Abbrevs"
+(define-derived-mode edit-abbrevs-mode fundamental-mode "Edit-Abbrevs"
   "Major mode for editing the list of abbrev definitions.")
 
 (provide 'abbrev)

@@ -3,7 +3,7 @@
 ;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience languages lisp
 
 ;; This file is part of GNU Emacs.

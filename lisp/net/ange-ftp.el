@@ -4,7 +4,7 @@
 ;; Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.

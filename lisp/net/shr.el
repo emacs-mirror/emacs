@@ -359,6 +359,14 @@ size, and full-buffer size."
 	(push (shr-transform-dom sub) result)))
     (nreverse result)))
 
+(defsubst shr-generic (cont)
+  (dolist (sub cont)
+    (cond
+     ((eq (car sub) 'text)
+      (shr-insert (cdr sub)))
+     ((listp (cdr sub))
+      (shr-descend sub)))))
+
 (defun shr-descend (dom)
   (let ((function
 	 (or
@@ -391,14 +399,6 @@ size, and full-buffer size."
 	(shr-colorize-region start (point)
 			     (cdr (assq 'color shr-stylesheet))
 			     (cdr (assq 'background-color shr-stylesheet)))))))
-
-(defun shr-generic (cont)
-  (dolist (sub cont)
-    (cond
-     ((eq (car sub) 'text)
-      (shr-insert (cdr sub)))
-     ((listp (cdr sub))
-      (shr-descend sub)))))
 
 (defmacro shr-char-breakable-p (char)
   "Return non-nil if a line can be broken before and after CHAR."
@@ -972,11 +972,18 @@ ones, in case fg and bg are nil."
 (defun shr-dom-to-xml (dom)
   "Convert DOM into a string containing the xml representation."
   (let ((arg " ")
-        (text ""))
+        (text "")
+	url)
     (dolist (sub (cdr dom))
       (cond
        ((listp (cdr sub))
-        (setq text (concat text (shr-dom-to-xml sub))))
+	;; Ignore external image definitions if required.
+	;; <image xlink:href="http://TRACKING_URL/"/>
+	(when (or (not (eq (car sub) 'image))
+		  (not (setq url (cdr (assq ':xlink:href (cdr sub)))))
+		  (not shr-blocked-images)
+		  (not (string-match shr-blocked-images url)))
+	  (setq text (concat text (shr-dom-to-xml sub)))))
        ((eq (car sub) 'text)
         (setq text (concat text (cdr sub))))
        (t
@@ -990,7 +997,8 @@ ones, in case fg and bg are nil."
             (car dom))))
 
 (defun shr-tag-svg (cont)
-  (when (image-type-available-p 'svg)
+  (when (and (image-type-available-p 'svg)
+	     (not shr-inhibit-images))
     (funcall shr-put-image-function
              (shr-dom-to-xml (cons 'svg cont))
              "SVG Image")))

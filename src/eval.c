@@ -273,6 +273,8 @@ restore_stack_limits (Lisp_Object data)
   max_lisp_eval_depth = XINT (XCDR (data));
 }
 
+static void grow_specpdl (void);
+
 /* Call the Lisp debugger, giving it argument ARG.  */
 
 Lisp_Object
@@ -281,22 +283,29 @@ call_debugger (Lisp_Object arg)
   bool debug_while_redisplaying;
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object val;
-  EMACS_INT old_max = max_specpdl_size;
-
-  /* Temporarily bump up the stack limits,
-     so the debugger won't run out of stack.  */
-
-  max_specpdl_size += 1;
-  record_unwind_protect (restore_stack_limits,
-			 Fcons (make_number (old_max),
-				make_number (max_lisp_eval_depth)));
-  max_specpdl_size = old_max;
+  EMACS_INT old_depth = max_lisp_eval_depth;
+  /* Do not allow max_specpdl_size less than actual depth (Bug#16603).  */
+  EMACS_INT old_max = max (max_specpdl_size, count);
 
   if (lisp_eval_depth + 40 > max_lisp_eval_depth)
     max_lisp_eval_depth = lisp_eval_depth + 40;
 
-  if (max_specpdl_size - 100 < SPECPDL_INDEX ())
-    max_specpdl_size = SPECPDL_INDEX () + 100;
+  /* While debugging Bug#16603, previous value of 100 was found
+     too small to avoid specpdl overflow in the debugger itself.  */
+  if (max_specpdl_size - 200 < count)
+    max_specpdl_size = count + 200;
+
+  if (old_max == count)
+    {
+      /* We can enter the debugger due to specpdl overflow (Bug#16603).  */
+      specpdl_ptr--;
+      grow_specpdl ();
+    }
+
+  /* Restore limits after leaving the debugger.  */
+  record_unwind_protect (restore_stack_limits,
+			 Fcons (make_number (old_max),
+				make_number (old_depth)));
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
@@ -3714,7 +3723,9 @@ If Lisp code tries to increase the total number past this amount,
 an error is signaled.
 You can safely use a value considerably larger than the default value,
 if that proves inconveniently small.  However, if you increase it too far,
-Emacs could run out of memory trying to make the stack bigger.  */);
+Emacs could run out of memory trying to make the stack bigger.
+Note that this limit may be silently increased by the debugger
+if `debug-on-error' or `debug-on-quit' is set.  */);
 
   DEFVAR_INT ("max-lisp-eval-depth", max_lisp_eval_depth,
 	      doc: /* Limit on depth in `eval', `apply' and `funcall' before error.

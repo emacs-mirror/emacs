@@ -4549,20 +4549,22 @@ commands:
 			 nil)
 		     (error "Action aborted"))
 		 t)))
-	(with-current-buffer name
-	  (set (make-local-variable 'gnus-article-edit-mode) nil)
-	  (gnus-article-stop-animations)
-	  (when gnus-article-mime-handles
-	    (mm-destroy-parts gnus-article-mime-handles)
-	    (setq gnus-article-mime-handles nil))
-	  ;; Set it to nil in article-buffer!
-	  (setq gnus-article-mime-handle-alist nil)
-	  (buffer-disable-undo)
-	  (setq buffer-read-only t)
-	  (unless (derived-mode-p 'gnus-article-mode)
-	    (gnus-article-mode))
-	  (setq truncate-lines gnus-article-truncate-lines)
-	  (current-buffer))
+	(let ((summary gnus-summary-buffer))
+	  (with-current-buffer name
+	    (set (make-local-variable 'gnus-article-edit-mode) nil)
+	    (gnus-article-stop-animations)
+	    (when gnus-article-mime-handles
+	      (mm-destroy-parts gnus-article-mime-handles)
+	      (setq gnus-article-mime-handles nil))
+	    ;; Set it to nil in article-buffer!
+	    (setq gnus-article-mime-handle-alist nil)
+	    (buffer-disable-undo)
+	    (setq buffer-read-only t)
+	    (unless (derived-mode-p 'gnus-article-mode)
+	      (gnus-article-mode))
+	    (set (make-local-variable 'gnus-summary-buffer) summary)
+	    (setq truncate-lines gnus-article-truncate-lines)
+	    (current-buffer)))
       (let ((summary gnus-summary-buffer))
 	(with-current-buffer (gnus-get-buffer-create name)
 	  (gnus-article-mode)

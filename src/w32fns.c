@@ -4503,6 +4503,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "leftFringe", "LeftFringe", RES_TYPE_NUMBER);
   x_default_parameter (f, parameters, Qright_fringe, Qnil,
 		       "rightFringe", "RightFringe", RES_TYPE_NUMBER);
+  /* Process alpha here (Bug#16619).  */
+  x_default_parameter (f, parameters, Qalpha, Qnil,
+                       "alpha", "Alpha", RES_TYPE_NUMBER);
 
   /* Init faces before x_default_parameter is called for scroll-bar
      parameters because that function calls x_set_scroll_bar_width,
@@ -4595,8 +4598,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "cursorType", "CursorType", RES_TYPE_SYMBOL);
   x_default_parameter (f, parameters, Qscroll_bar_width, Qnil,
 		       "scrollBarWidth", "ScrollBarWidth", RES_TYPE_NUMBER);
-  x_default_parameter (f, parameters, Qalpha, Qnil,
-                       "alpha", "Alpha", RES_TYPE_NUMBER);
 
   /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
      Change will not be effected unless different from the current
@@ -6537,13 +6538,13 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	    if (errno == ENOENT && filename_buf_w[MAX_PATH - 1] != 0)
 	      report_file_error ("filename too long", default_filename);
 	  }
-	len = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
-				   SSDATA (prompt), -1, NULL, 0);
+	len = pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+				    SSDATA (prompt), -1, NULL, 0);
 	if (len > 32768)
 	  len = 32768;
 	prompt_w = alloca (len * sizeof (wchar_t));
-	MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
-			     SSDATA (prompt), -1, prompt_w, len);
+	pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+			      SSDATA (prompt), -1, prompt_w, len);
       }
     else
       {
@@ -6555,18 +6556,18 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	    if (errno == ENOENT && filename_buf_a[MAX_PATH - 1] != 0)
 	      report_file_error ("filename too long", default_filename);
 	  }
-	len = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
-				   SSDATA (prompt), -1, NULL, 0);
+	len = pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+				    SSDATA (prompt), -1, NULL, 0);
 	if (len > 32768)
 	  len = 32768;
 	prompt_w = alloca (len * sizeof (wchar_t));
-	MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
-			     SSDATA (prompt), -1, prompt_w, len);
-	len = WideCharToMultiByte (CP_ACP, 0, prompt_w, -1, NULL, 0, NULL, NULL);
+	pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+			      SSDATA (prompt), -1, prompt_w, len);
+	len = pWideCharToMultiByte (CP_ACP, 0, prompt_w, -1, NULL, 0, NULL, NULL);
 	if (len > 32768)
 	  len = 32768;
 	prompt_a = alloca (len);
-	WideCharToMultiByte (CP_ACP, 0, prompt_w, -1, prompt_a, len, NULL, NULL);
+	pWideCharToMultiByte (CP_ACP, 0, prompt_w, -1, prompt_a, len, NULL, NULL);
       }
 #endif /* NTGUI_UNICODE */
 
@@ -6849,40 +6850,52 @@ handler application, but typically it is one of the following common
 operations:
 
  \"open\"    - open DOCUMENT, which could be a file, a directory, or an
-               executable program.  If it is an application, that
-               application is launched in the current buffer's default
+               executable program (application).  If it is an application,
+               that application is launched in the current buffer's default
                directory.  Otherwise, the application associated with
                DOCUMENT is launched in the buffer's default directory.
- \"print\"   - print DOCUMENT, which must be a file
- \"explore\" - start the Windows Explorer on DOCUMENT
+ \"opennew\" - like \"open\", but instruct the application to open
+               DOCUMENT in a new window.
+ \"openas\"  - open the \"Open With\" dialog for DOCUMENT.
+ \"print\"   - print DOCUMENT, which must be a file.
+ \"printto\" - print DOCUMENT, which must be a file, to a specified printer.
+               The printer should be provided in PARAMETERS, see below.
+ \"explore\" - start the Windows Explorer on DOCUMENT.
  \"edit\"    - launch an editor and open DOCUMENT for editing; which
                editor is launched depends on the association for the
-               specified DOCUMENT
- \"find\"    - initiate search starting from DOCUMENT which must specify
-               a directory
+               specified DOCUMENT.
+ \"find\"    - initiate search starting from DOCUMENT, which must specify
+               a directory.
  \"runas\"   - run DOCUMENT, which must be an excutable file, with
                elevated privileges (a.k.a. \"as Administrator\").
+ \"properties\"
+           - open the the property sheet dialog for DOCUMENT; works
+               for *.lnk desktop shortcuts, and little or nothing else.
  nil       - invoke the default OPERATION, or \"open\" if default is
-               not defined or unavailable
+               not defined or unavailable.
 
 DOCUMENT is typically the name of a document file or a URL, but can
-also be a program executable to run, or a directory to open in the
+also be an executable program to run, or a directory to open in the
 Windows Explorer.  If it is a file, it must be a local one; this
 function does not support remote file names.
 
-If DOCUMENT is a program executable, the optional third arg PARAMETERS
+If DOCUMENT is an executable program, the optional third arg PARAMETERS
 can be a string containing command line parameters that will be passed
-to the program; otherwise, PARAMETERS should be nil or unspecified.
+to the program.  Some values of OPERATION also require parameters (e.g.,
+\"printto\" requires the printer address).  Otherwise, PARAMETERS should
+be nil or unspecified.
 
 Optional fourth argument SHOW-FLAG can be used to control how the
 application will be displayed when it is invoked.  If SHOW-FLAG is nil
-or unspecified, the application is displayed normally, otherwise it is
-an integer representing a ShowWindow flag:
+or unspecified, the application is displayed as if SHOW-FLAG of 10 was
+specified, otherwise it is an integer between 0 and 11 representing
+a ShowWindow flag:
 
   0 - start hidden
-  1 - start normally
-  3 - start maximized
-  6 - start minimized  */)
+  1 - start as normal-size window
+  3 - start in a maximized window
+  6 - start in a minimized window
+ 10 - start as the application itself specifies; this is the default.  */)
   (Lisp_Object operation, Lisp_Object document, Lisp_Object parameters, Lisp_Object show_flag)
 {
   char *errstr;
@@ -6892,7 +6905,8 @@ an integer representing a ShowWindow flag:
 #ifndef CYGWIN
   int use_unicode = w32_unicode_filenames;
   char *doc_a = NULL, *params_a = NULL, *ops_a = NULL;
-  Lisp_Object absdoc;
+  Lisp_Object absdoc, handler;
+  struct gcpro gcpro1;
 #endif
 
   CHECK_STRING (document);
@@ -6922,15 +6936,30 @@ an integer representing a ShowWindow flag:
 #else  /* !CYGWIN */
   current_dir = ENCODE_FILE (current_dir);
   /* We have a situation here.  If DOCUMENT is a relative file name,
-     and is not in CURRENT_DIR, ShellExecute below will fail to find
-     it.  So we need to make the file name absolute.  But DOCUMENT
-     does not have to be a file, it can be a URL, for example.  So we
-     make it absolute only if it is an existing file; if it is a file
-     that does not exist, tough.  */
+     but its name includes leading directories, i.e. it lives not in
+     CURRENT_DIR, but in its subdirectory, then ShellExecute below
+     will fail to find it.  So we need to make the file name is
+     absolute.  But DOCUMENT does not have to be a file, it can be a
+     URL, for example.  So we make it absolute only if it is an
+     existing file; if it is a file that does not exist, tough.  */
+  GCPRO1 (absdoc);
   absdoc = Fexpand_file_name (document, Qnil);
-  if (!NILP (Ffile_exists_p (absdoc)))
-    document = absdoc;
-  document = ENCODE_FILE (document);
+  /* Don't call file handlers for file-exists-p, since they might
+     attempt to access the file, which could fail or produce undesired
+     consequences, see bug#16558 for an example.  */
+  handler = Ffind_file_name_handler (absdoc, Qfile_exists_p);
+  if (NILP (handler))
+    {
+      Lisp_Object absdoc_encoded = ENCODE_FILE (absdoc);
+
+      if (faccessat (AT_FDCWD, SSDATA (absdoc_encoded), F_OK, AT_EACCESS) == 0)
+	document = absdoc_encoded;
+      else
+	document = ENCODE_FILE (document);
+    }
+  else
+    document = ENCODE_FILE (document);
+  UNGCPRO;
   if (use_unicode)
     {
       wchar_t document_w[MAX_PATH], current_dir_w[MAX_PATH];
@@ -6945,13 +6974,13 @@ an integer representing a ShowWindow flag:
 	  int len;
 
 	  parameters = ENCODE_SYSTEM (parameters);
-	  len = MultiByteToWideChar (CP_ACP, MB_ERR_INVALID_CHARS,
-				     SSDATA (parameters), -1, NULL, 0);
+	  len = pMultiByteToWideChar (CP_ACP, MB_ERR_INVALID_CHARS,
+				      SSDATA (parameters), -1, NULL, 0);
 	  if (len > 32768)
 	    len = 32768;
 	  params_w = alloca (len * sizeof (wchar_t));
-	  MultiByteToWideChar (CP_ACP, MB_ERR_INVALID_CHARS,
-			       SSDATA (parameters), -1, params_w, len);
+	  pMultiByteToWideChar (CP_ACP, MB_ERR_INVALID_CHARS,
+				SSDATA (parameters), -1, params_w, len);
 	}
       if (STRINGP (operation))
 	{
@@ -7446,12 +7475,12 @@ If the underlying system call fails, value is nil.  */)
      added rather late on.  */
   {
     HMODULE hKernel = GetModuleHandle ("kernel32");
-    BOOL (*pfn_GetDiskFreeSpaceExW)
+    BOOL (WINAPI *pfn_GetDiskFreeSpaceExW)
       (wchar_t *, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER)
-      = (void *) GetProcAddress (hKernel, "GetDiskFreeSpaceExW");
-    BOOL (*pfn_GetDiskFreeSpaceExA)
+      = GetProcAddress (hKernel, "GetDiskFreeSpaceExW");
+    BOOL (WINAPI *pfn_GetDiskFreeSpaceExA)
       (char *, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER)
-      = (void *) GetProcAddress (hKernel, "GetDiskFreeSpaceExA");
+      = GetProcAddress (hKernel, "GetDiskFreeSpaceExA");
     bool have_pfn_GetDiskFreeSpaceEx =
       (w32_unicode_filenames && pfn_GetDiskFreeSpaceExW
        || !w32_unicode_filenames && pfn_GetDiskFreeSpaceExA);

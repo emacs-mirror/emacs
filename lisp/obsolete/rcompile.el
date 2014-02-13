@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993-1994, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Alon Albert <alon@milcse.rtsg.mot.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 1993 Oct 6
 ;; Keywords: tools, processes
 ;; Obsolete-since: 24.4
