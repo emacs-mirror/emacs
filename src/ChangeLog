@@ -1,4 +1,4 @@
-2014-02-12  Marcus Karlsson <mk@acc.umu.se> (tiny change)
+2014-02-12  Marcus Karlsson  <mk@acc.umu.se>  (tiny change)
 
 	* image.c (pbm_load): Set to NO_PIXMAP on error (Bug#16683).
 
@@ -434,7 +434,7 @@
 	* gtkutil.h (xg_have_tear_offs): Add frame parameter
 	* gtkutil.c (xg_have_tear_offs): Count the global menu as a
 	tear-off.
-	(xg_update_menubar,xg_update_menu_item): Call g_object_notify when
+	(xg_update_menubar, xg_update_menu_item): Call g_object_notify when
 	updating menus; explain why.
 	(xg_update_frame_menubar): Remove the 23px hack: I can't repro the
 	problem it's supposed to solve and it interferes with detecting
@@ -966,7 +966,7 @@
 2013-12-16  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnutls.c (Fgnutls_boot): Use `Flistp' instead of
-	`CHECK_LIST_CONS`.
+	`CHECK_LIST_CONS'.
 
 2013-12-16  Martin Rudalics  <rudalics@gmx.at>
 
@@ -3447,7 +3447,7 @@
 
 	* msdos.c (x_set_menu_bar_lines): Delete unused function.
 
-	* menu.h (tty_menu_show, menu_item_width): provide prototypes.
+	* menu.h (tty_menu_show, menu_item_width): Provide prototypes.
 
 	* menu.c (have_boxes): New function.
 	(single_keymap_panes): Use it instead of a compile-time
@@ -3745,9 +3745,9 @@
 2013-09-26  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	Signal error when reading an empty byte-code object (Bug#15405)
-	* lread.c (read1): signal error
-	* alloc.c (make_byte_code): eassert header size
-	(sweep_vectors): change an int to size_t
+	* lread.c (read1): Signal error.
+	* alloc.c (make_byte_code): eassert header size.
+	(sweep_vectors): Change an int to size_t.
 
 2013-09-24  Paul Eggert  <eggert@cs.ucla.edu>
 

@@ -468,7 +468,7 @@
 
 2013-03-21  Eric Ludlam  <zappo@gnu.org>
 
-	* semantic.el (navigate-menu): Yank Tag :enable. Make sure
+	* semantic.el (navigate-menu): Yank Tag :enable.  Make sure
 	`senator-tag-ring' is bound.
 	(semantic-parse-region-default): Stop reversing the output of
 	parse-whole-stream.
@@ -818,9 +818,9 @@
 	* ede.el (ede-buffer-belongs-to-project-p): Use ede-object-project
 	to allow use in more kinds of buffers.
 	(ede-project-forms-menu): Add `Default configuration' menu item.
-        (ede-configuration-forms-menu): New, for use in above.
-        (ede-project-configurations-set): New command used from menu.
-        (ede-java-classpath): New conveninece for Java support.
+	(ede-configuration-forms-menu): New, for use in above.
+	(ede-project-configurations-set): New command used from menu.
+	(ede-java-classpath): New conveninece for Java support.
 	(ede-apply-object-keymap): Combine keybindings from the project
 	and the target, not just whatever is local to the buffer.
 	(ede-apply-target-options): Call fcn to apply project local
@@ -887,9 +887,9 @@
 	(-scheme, -makefile-misc, ede-proj-target-makefile-program)
 	(-makefile-archive, -makefile-shared-object)
 	(ede-proj-target-makefile-info, -grammar): New autoloads.
-        (ede-proj-project): Inherit from eieio-persistent-read.
+	(ede-proj-project): Inherit from eieio-persistent-read.
 	Specify extension and header line.
-        (ede-proj-load, ede-proj-save): Replace with impl using
+	(ede-proj-load, ede-proj-save): Replace with impl using
 	eieio-persistent-read.
 
 	* ede/project-am.el (project-add-file): Use ede-target-parent
@@ -933,7 +933,7 @@
 	* semantic/db-typecache.el
 	(semanticdb-abstract-table::semanticdb-typecache-find-method):
 	Allow proxied tags to be resolved during the search.
-        (semanticdb-typecache-complete-flush): Support missing or empty
+	(semanticdb-typecache-complete-flush): Support missing or empty
 	pointmax slot, to allow for more database types.
 
 	* semantic/db.el (semanticdb-abstract-table): Add db-refs slot.
@@ -998,7 +998,7 @@
 
 	* srecode/compile.el (srecode-compile-templates): Add "framework"
 	special variable support.
-        (srecode-compile-template-table): Support framework specifier.
+	(srecode-compile-template-table): Support framework specifier.
 
 	* srecode/cpp.el (srecode-semantic-handle-:c)
 	(srecode-semantic-handle-:cpp): New functions.
@@ -1023,7 +1023,7 @@
 	* srecode/srt-mode.el (srecode-font-lock-keywords): Update.
 
 	* srecode/table.el (srecode-template-table): Add :framework slot.
-        (srecode-dump): Dump it.
+	(srecode-dump): Dump it.
 	(srecode-mode-table): Add new modetables slot.
 	(srecode-get-mode-table): Find the mode, but also find all parent
 	modes, and merge the tables together in :tables from :modetables.
@@ -1059,7 +1059,7 @@
 	(ede-proj-makefile-insert-variables): Do not insert preload items.
 	(ede-proj-target-elisp-autoloads): Don't depend on cedet-autogen.
 
-        * ede/util.el (ede-make-buffer-writable):
+	* ede/util.el (ede-make-buffer-writable):
 	* semantic/debug.el (semantic-debug-mode): Set buffer-read-only
 	instead of calling toggle-read-only.
 
@@ -1081,9 +1081,9 @@
 	(semantic-c-convert-spp-value-to-hideif-value)
 	(semantic-c-evaluate-symbol-for-hideif, semantic-c-hideif-lookup)
 	(semantic-c-hideif-defined): Revive hideif code from CEDET trunk.
-        (semantic-lex-c-if, semantic-c-do-lex-ifdef): Revert changes for
+	(semantic-lex-c-if, semantic-c-do-lex-ifdef): Revert changes for
 	regular expression parsing.
-        (semantic-cpp-lexer): Add semantic-lex-c-ifdef.
+	(semantic-cpp-lexer): Add semantic-lex-c-ifdef.
 	(semantic-expand-c-tag): Check if tag is non-nil before adding it
 	to return list.
 	(semantic-expand-c-extern-C, semantic-expand-c-complex-type):
@@ -1183,9 +1183,9 @@
 	(project-compile-project, project-compiler-target): New methods.
 
 	* inversion.el (inversion-decoders): New regexps for SXEmacs.
-        (inversion-package-version): More verbose error message.
-        (inversion-<): Deal with new special cases.
-        (inversion-require-emacs): New argument sxemacs-ver; use it.
+	(inversion-package-version): More verbose error message.
+	(inversion-<): Deal with new special cases.
+	(inversion-require-emacs): New argument sxemacs-ver; use it.
 
 2012-10-01  Nelson Ferreira  <nelson.ferreira@ieee.org>
 

@@ -252,7 +252,7 @@
 	* org.texi (Creating one-off styles): Use new export snippet
 	syntax.
 
-	* org.texi (Export settings): documentation describing how text
+	* org.texi (Export settings): Documentation describing how text
 	above the first heading is ignored when an :export: tag is in a
 	file.
 
@@ -715,7 +715,7 @@
 
 	* org.texi: Document variable changes.
 
-	* org.texi (Export settings): Doument p: item in OPTIONS keyword.
+	* org.texi (Export settings): Document p: item in OPTIONS keyword.
 
 	* org.texi (Exporting): Massive rewrite of the first sections.
 	(Selective export): Delete.
@@ -895,7 +895,7 @@
 	(INSTALL_DATA): New, set by configure.
 	(HTML_OPTS, HTML_TARGETS, PS_TARGETS, DVIPS): New variables.
 	(.PHONY): Add html, ps, install-dvi, install-html, install-pdf,
-	install-ps ,install-doc, uninstall-dvi, uninstall-html, uninstall-pdf,
+	install-ps, install-doc, uninstall-dvi, uninstall-html, uninstall-pdf,
 	uninstall-ps, and uninstall-doc.
 	(.SUFFIXES): Add .ps and .dvi.
 	(.dvi.ps): New suffix rule.
@@ -10642,7 +10642,7 @@
 	(Top): More description for the `Default Method' menu entry.
 	(Default Method): Use @code, not @var, for Lisp variables.
 	(Default Method): New subsection `Which method is the right one
-	for me?'  Suggested by Christian Kirsch.
+	for me?'.  Suggested by Christian Kirsch.
 	(Configuration): Pointer to new subsection added.
 	(Default Method): Too many "use" in one sentence.
 	Rephrase.  Reported by Christian Kirsch.

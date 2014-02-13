@@ -201,7 +201,7 @@
 	* automated/Makefile.in (PATH_SEPARATOR): New, set by configure.
 	(EMACSOPT): Use PATH_SEPARATOR.
 
-2013-11-20  Bozhidar Batsov <bozhidar@batsov.com>
+2013-11-20  Bozhidar Batsov  <bozhidar@batsov.com>
 
 	* automated/ruby-mode-tests.el (ruby-exit!-font-lock):
 	Add a failing test for Bug#15874.
@@ -895,7 +895,7 @@
 
 2013-04-09  Masatake YAMATO  <yamato@redhat.com>
 
-	* automated/add-log-tests.el: New file. (Bug#14112)
+	* automated/add-log-tests.el: New file.  (Bug#14112)
 
 2013-03-30  Fabián Ezequiel Gallina  <fabian@anue.biz>
 
@@ -1234,7 +1234,7 @@
 
 	* automated/newsticker-tests.el
 	(newsticker--group-manage-orphan-feeds): Prevent updating
-	newsticker treeview. Fixed bug#9763.
+	newsticker treeview.  Fixed bug#9763.
 
 2011-10-20  Glenn Morris  <rgm@gnu.org>
 
@@ -1249,7 +1249,7 @@
 2011-09-27  Ulf Jasper  <ulf.jasper@web.de>
 
 	* automated/newsticker-tests.el: Move newsticker-testsuite.el
-	to automated/newsticker-tests.el. Convert to ERT.
+	to automated/newsticker-tests.el.  Convert to ERT.
 
 2011-07-26  Ulf Jasper  <ulf.jasper@web.de>
 

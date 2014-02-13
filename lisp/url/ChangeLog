@@ -33,7 +33,7 @@
 2013-09-16  Glenn Morris  <rgm@gnu.org>
 
 	* url-misc.el (url-data): Avoid match-data mix-up with base64 case.
-	Use Content-Transfer-Encoding rather than Content-Encoding. (Bug#15285)
+	Use Content-Transfer-Encoding rather than Content-Encoding.  (Bug#15285)
 
 2013-09-13  Glenn Morris  <rgm@gnu.org>
 

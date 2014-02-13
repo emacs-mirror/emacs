@@ -495,7 +495,7 @@
 	(define-obsolete-function-alias): Actually remove the third (and
 	any following) argument from the argument list before calling the
 	advised function.  Extend eval-and-compile clause and add advices
-	for functions that have different parameter lists in XEmacs. Add
+	for functions that have different parameter lists in XEmacs.  Add
 	variable definitions that XEmacs lacks .
 
 	* ob-fortran.el (org-every): Declare.
@@ -2819,7 +2819,7 @@
 
 	* org-ctags.el (org-ctags-path-to-ctags): Avoid usine `case'.
 
-	* org.el (org-beginning-of-line,org-end-of-line): Set
+	* org.el (org-beginning-of-line, org-end-of-line): Set
 	disable-point-adjustment when the command ends next to invisible
 	text.
 
@@ -3663,7 +3663,7 @@
 	variables are available.  Use correct :test.
 	(org-export-table-cell-width): Modify key (now an element) and
 	value structure (now a vector) of cache so it can use `eq' as
-	test. Elements are circular lists so `equal' cannot apply on them.
+	test.  Elements are circular lists so `equal' cannot apply on them.
 
 	* ox-publish.el (project-plist): Remove variable.
 
@@ -3946,8 +3946,8 @@
 	* org-element.el (org-element--list-struct): Fix failing
 	"plain-list-parser" test.
 
-	* ox-latex.el (org-latex-src-block): Handle :float attribute. Its
-	value can be set to "t", "multicolumn" or "nil".  Also remove
+	* ox-latex.el (org-latex-src-block): Handle :float attribute.
+	Its value can be set to "t", "multicolumn" or "nil".  Also remove
 	:long-listing attribute, which is now replaced with :float nil.
 	(org-latex--org-table): Replace :float table with :float t.
 	(org-latex--inline-image): Replace :float figure with :float t.
@@ -4463,7 +4463,7 @@
 	computing minimal headline level.
 
 	* org.el (org-do-latex-and-related): Fix infloop when user
-	provides a wrong value for `org-highlight-latex-and-related'. In
+	provides a wrong value for `org-highlight-latex-and-related'.  In
 	this case, `org-latex-and-related-regexp' is the empty string and
 	generates an infloop since matching it doesn't move point.
 
@@ -5107,7 +5107,7 @@
 	Fix docstring.
 
 	* org.el (org-adaptive-fill-function): Items do not have
-	a :post-affiliated property. Use :begin property instead.
+	a :post-affiliated property.  Use :begin property instead.
 
 	* org-element.el (org-element-headline-parser)
 	(org-element-inlinetask-parser): Remove :clockedp property.
@@ -5164,7 +5164,7 @@
 	(org-element--current-element): Tiny refactoring.
 
 	* ob.el (org-babel-where-is-src-block-result): Insert new results
-	keyword in current narrowed part of buffer, if necessary. Small
+	keyword in current narrowed part of buffer, if necessary.  Small
 	refactoring.
 	(org-babel-insert-result): Do not widen buffer when new results have
 	to be inserted.  Therefore, results inserted after the last block of
@@ -5211,7 +5211,7 @@
 	stored in DATE keyword instead.
 
 	* org-element.el (org-element-object-restrictions): Allow links in
-	caption. Also allow inline-src-blocks and inline-babel-calls.
+	caption.  Also allow inline-src-blocks and inline-babel-calls.
 	(org-element-map): Change signature.
 	(org-element-parsed-keywords): Remove document properties from the
 	value.
@@ -5241,7 +5241,7 @@
 	(org-element-latex-environment-parser)
 	(org-element-paragraph-parser, org-element-property-drawer-parser)
 	(org-element-src-block-parser, org-element-table-parser)
-	(org-element-verse-block-parser): Change signature. Now use an
+	(org-element-verse-block-parser): Change signature.  Now use an
 	additional argument: affiliated.
 	(org-element--current-element): Skip affiliated keywords and pass
 	them as an argument to parsers.  It prevents to walk through these
@@ -5262,10 +5262,9 @@
 	* ob-exp.el (org-export-blocks-preprocess): Fix block evaluation
 	when results are before the block.
 	(org-export-blocks-preprocess): Improve blank lines handling in
-	function. Add comments. Remove `org-export-blocks-postblock-hook'
-	since it's defined nowhere now
-	(and doesn't need to, there's `org-export-before-parsing-hook'
-	already).
+	function.  Add comments.  Remove `org-export-blocks-postblock-hook'
+	since it's defined nowhere now (and doesn't need to, there's
+	`org-export-before-parsing-hook' already).
 
 	* org-exp-blocks.el: Delete.
 
@@ -5334,8 +5333,8 @@
 	container.
 	(org-html-divs): Extra character in doc string.
 	(org-babel-execute:sql): Unquote cmdline argument in
-	format string, dbish requires three separate arguments. Add dbi to
-	the list of engines with automatically added header separator.
+	format string, dbish requires three separate arguments.  Add dbi
+	to the list of engines with automatically added header separator.
 	(org-html--build-pre/postamble): Add css class to wrapper div
 	(defaults to `org-pre/postamble-class').  Move spec building to
 	separate function (`org-html-format-spec').
@@ -5538,7 +5537,7 @@
 	needed, make sure the distance is incremented.  In addition, the
 	now obsolete mmin function was removed.
 
-2013-11-12  Oleh Krehel <wave@mail.ua>
+2013-11-12  Oleh Krehel  <wave@mail.ua>
 
 	* org-capture.el (org-capture-expand-embedded-elisp): Throw error
 	if result is not a string and not nil.  If the result is nil,
@@ -5583,7 +5582,7 @@
 	and change the wording of the docstring.
 	(org-latex-guess-babel-language): Replace AUTO with language if
 	AUTO is the option of the LaTeX package Babel.
-	(org-latex-classes): updated documentation with respect
+	(org-latex-classes): Updated documentation with respect
 	to `org-latex-guess-babel-language'.
 
 2013-11-12  Дядов Васил Стоянов  <vdyadov@elvees.com>  (tiny change)
@@ -13264,10 +13263,10 @@
 	(org-indent-initialize): Remove timer.
 	(org-indent-add-properties): Refactor code.
 	(org-indent-refresh-subtree, org-indent-refresh-section)
-	(org-indent-refresh-buffer,org-indent-set-initial-properties):
+	(org-indent-refresh-buffer, org-indent-set-initial-properties):
 	Remove functions.
 	(org-indent-deleted-headline): New variable.
-	(org-indent-notify-deleted-headline,org-indent-refresh-maybe):
+	(org-indent-notify-deleted-headline, org-indent-refresh-maybe):
 	New functions.
 	(org-indent-mode): Insert new functions into a hook.
 
@@ -13279,7 +13278,7 @@
 	section when promoting or demoting it.
 	(org-indent-add-properties): Rewrite function to proceed line by
 	line, as required by `wrap-prefix' specificity.
-	(org-indent-refresh-section,org-indent-refresh-subtree): Refactor.
+	(org-indent-refresh-section, org-indent-refresh-subtree): Refactor.
 	(org-indent-refresh-view): New function.
 	(org-indent-refresh-to, org-indent-refresh-section):
 	Remove functions.
@@ -16042,7 +16041,7 @@
 
 	* org-list.el (org-list-in-valid-context-p): Rename from
 	`org-list-in-valid-block-p'.
-	(org-at-item-p,org-list-search-generic): Use renamed function.
+	(org-at-item-p, org-list-search-generic): Use renamed function.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -16239,7 +16238,7 @@
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-list.el (org-list-struct,org-in-item-p): Don't assume end of
+	* org-list.el (org-list-struct, org-in-item-p): Don't assume end of
 	blocks or drawers necessarily start somewhere.  It it isn't the
 	case, treat them as normal text.
 
@@ -16388,7 +16387,7 @@
 	* org-list.el (org-list-to-generic): Set a default term for
 	ill-formed description lists.  Do not insert newline characters
 	unless told to.
-	(org-list-to-texinfo,org-list-to-html): Apply changes to
+	(org-list-to-texinfo, org-list-to-html): Apply changes to
 	`org-list-parse-liste'.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
@@ -16612,7 +16611,7 @@
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-list.el (org-list-in-valid-block-p): New function.
-	(org-at-item-p,org-list-search-generic): Use new function.
+	(org-at-item-p, org-list-search-generic): Use new function.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -16727,7 +16726,7 @@
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org.el (org-demote-subtree,org-promote-subtree):
+	* org.el (org-demote-subtree, org-promote-subtree):
 	Wrap `org-map-tree' into `org-with-limited-levels' macro, so it avoids
 	operating on inline tasks.
 
@@ -17421,7 +17420,7 @@
 	function every at every line in a list.  User will have to reload
 	Org if he change value of either `org-list-end-regexp' or
 	`org-empty-line-terminates-plain-lists'.
-	(org-in-item-p,org-list-struct,org-list-parse-list): Apply change.
+	(org-in-item-p, org-list-struct, org-list-parse-list): Apply change.
 
 	* org-exp.el (org-export-mark-list-end)
 	(org-export-mark-list-properties): Apply change.
@@ -17502,7 +17501,7 @@
 	`org-search-backward-unenclosed'.
 	(org-list-search-forward): Rename from
 	`org-search-forward-unenclosed'.
-	(org-toggle-checkbox,org-update-checkbox-count): Use new
+	(org-toggle-checkbox, org-update-checkbox-count): Use new
 	functions.
 	(org-sort-list): Using default regexp search functions as context
 	is not required in this case.
@@ -17529,7 +17528,7 @@
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org.el (org-skip-over-state-notes,org-store-log-note): Use new
+	* org.el (org-skip-over-state-notes, org-store-log-note): Use new
 	accessors.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
@@ -17537,8 +17536,8 @@
 	* org-list.el (org-list-indent-item-generic): Remove error
 	messages happening before process.  This belongs to interactive
 	functions.
-	(org-indent-item,org-indent-item-tree)
-	(org-outdent-item,org-outdent-item-tree): Ensure point or region
+	(org-indent-item, org-indent-item-tree)
+	(org-outdent-item, org-outdent-item-tree): Ensure point or region
 	is correct before computing list structure.  Return an error
 	message otherwise.
 
@@ -17554,7 +17553,7 @@
 	text following a sub-list in the same item.  See docstring for an
 	example of output.
 	(org-list-to-generic): Use new parsing function.
-	(org-list-to-latex,org-list-to-html): Minor change for clearer
+	(org-list-to-latex, org-list-to-html): Minor change for clearer
 	export.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
@@ -17577,7 +17576,7 @@
 	was already the first item of the list at point.
 	(org-list-get-list-end): Function wasn't return value when item
 	was already the last item of the list at point.
-	(org-list-struct-fix-box,org-update-checkbox-count): Now uses
+	(org-list-struct-fix-box, org-update-checkbox-count): Now uses
 	`org-list-get-children'.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
@@ -17602,7 +17601,7 @@
 	(org-list-exchange-items): Refactor and comment code.  Now return
 	new struct instead of modifying it, as list sorting would
 	sometimes eat first item.
-	(org-move-item-down,org-move-item-up): Reflect changes to
+	(org-move-item-down, org-move-item-up): Reflect changes to
 	`org-list-exchange-items'.
 	(org-insert-item): As `org-in-item-p' also computes item beginning
 	when applicable, reuse the result.

@@ -317,7 +317,7 @@
 
 2014-02-02  Daniel Colascione  <dancol@dancol.org>
 
-	* help-at-pt.el (help-at-pt-string,help-at-pt-maybe-display):
+	* help-at-pt.el (help-at-pt-string, help-at-pt-maybe-display):
 	Also try to display local help from just before point.
 
 2014-02-02  Alan Mackenzie  <bug-cc-mode@gnu.org>
@@ -636,7 +636,7 @@
 	* progmodes/sh-script.el (sh--inside-noncommand-expression):
 	Correctly detect when we're inside an arithmetic expansion form
 	containing nested parenthesis.
-	(sh--maybe-here-document): Use `sh--inside-noncommand-expression`
+	(sh--maybe-here-document): Use `sh--inside-noncommand-expression'
 	to detect cases where we shouldn't expand "<<" to a heredoc
 	skeleton.
 
@@ -929,7 +929,7 @@
 	* play/meese.el: It's 2014 and Ed Meese is justly forgotten.
 	Goes with removal of the joke manpages from /etc.
 
-2014-01-10  K. Handa  <handa@gnu.org>
+2014-01-10  Kenichi Handa  <handa@gnu.org>
 
 	* mail/rmail.el (rmail-get-coding-system):
 	Check rmail-get-coding-function before "funcall"ing it.
@@ -1074,7 +1074,7 @@
 2014-01-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (balance-windows-2): While rounding don't give a
-	window more than the remainder.  Bug#16351, Bug#16383.
+	window more than the remainder.  Bug#16351, bug#16383.
 
 2014-01-07  Glenn Morris  <rgm@gnu.org>
 
@@ -1144,7 +1144,7 @@
 
 	* vc/log-view.el (log-view-beginning-of-defun): Rewrite to behave
 	like `beginning-of-defun'.
-	(log-view-end-of-defun,log-view-end-of-defun-1): Rename old
+	(log-view-end-of-defun, log-view-end-of-defun-1): Rename old
 	log-view-end-of-defun to log-view-end-of-defun-1.  Replace
 	log-view-end-of-defun with wrapper that behaves like `end-of-defun'.
 	(log-view-extract-comment): Call `log-view-current-entry' directly
@@ -1192,7 +1192,7 @@
 2014-01-05  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
 
 	* net/eww.el (eww): Support single/double quote for search.
-	* net/eww.el (eww-list-histories,eww-history-browse): Fixup.
+	* net/eww.el (eww-list-histories, eww-history-browse): Fixup.
 	(eww-history-quit): Delete and use quit-window.
 	(eww-history-kill): Delete, because it doesn't work well and
 	not necessary.
@@ -1275,7 +1275,7 @@
 	of printing a useless when we resume from sleep.
 
 	* progmodes/sh-script.el
-	(sh-smie-sh-forward-token,sh-smie-rc-forward-token): Fix infloop
+	(sh-smie-sh-forward-token, sh-smie-rc-forward-token): Fix infloop
 	in indentation code.  (Bug#16233)
 
 2013-12-28  João Távora  <joaotavora@gmail.com>
@@ -2351,7 +2351,7 @@
 	`multi-isearch-file-list' globally.  Set NO-RECURSIVE-EDIT
 	arg of isearch-forward to t.
 	(multi-isearch-files-regexp): Set the value of
-	`multi-isearch-file-list globally.  Set NO-RECURSIVE-EDIT
+	`multi-isearch-file-list' globally.  Set NO-RECURSIVE-EDIT
 	arg of isearch-forward-regexp to t.  (Bug#16035)
 
 	* dired-aux.el (dired-isearch-filenames): Set NO-RECURSIVE-EDIT
@@ -6957,7 +6957,7 @@
 	frameset--process-minibuffer-frames.  All callers changed.
 	(frameset-save): Add new keyword arguments APP, NAME and DESCRIPTION.
 	Use new default constructor (again).  Doc fix.
-	(frameset--find-frame-if): Rename from `frameset--find-frame.
+	(frameset--find-frame-if): Rename from `frameset--find-frame'.
 	All callers changed.
 	(frameset--reuse-frame): Rename arg FRAME-CFG to PARAMETERS.
 	(frameset--initial-params): Rename arg FRAME-CFG to PARAMETERS.

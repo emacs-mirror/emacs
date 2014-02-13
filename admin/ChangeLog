@@ -367,7 +367,7 @@
 
 2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Use Gnulib ACL implementation, for benefit of Solaris etc. (Bug#14295)
+	Use Gnulib ACL implementation, for benefit of Solaris etc.  (Bug#14295)
 	* merge-gnulib (GNULIB_MODULES): Add qacl.
 	(GNULIB_TOOL_FLAGS): Do not avoid errno.
 
