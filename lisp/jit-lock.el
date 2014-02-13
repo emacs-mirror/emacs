@@ -189,7 +189,9 @@ following ways:
 Stealth fontification only occurs while the system remains unloaded.
 If the system load rises above `jit-lock-stealth-load' percent, stealth
 fontification is suspended.  Stealth fontification intensity is controlled via
-the variable `jit-lock-stealth-nice'."
+the variable `jit-lock-stealth-nice'.
+
+If you need to debug code run from jit-lock, see `jit-lock-debug-mode'."
   (setq jit-lock-mode arg)
   (cond
    ((buffer-base-buffer)

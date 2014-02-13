@@ -357,15 +357,16 @@ Also the following files used by the now obsolete otodo-mode.el:
 
 ** Backtrace and debugger
 
-*** The Lisp debugger's `e' command now includes the lexical environment
-when evaluating the code in the context at point.  Hence, it now lets
-you access lexical variables.
-
 +++
-*** New command `v' (`debugger-toggle-locals') displays local vars.
+*** New Lisp debugger command `v' (`debugger-toggle-locals') toggles the
+displays of local variables.
 
-*** New minor mode `jit-lock-debug-mode' lets you use the debuggers on
-code run via JIT Lock.
+*** The Lisp debugger's `e' command (`debugger-eval-expression') now includes
+the lexical environment when evaluating the code in the context at point
+(and so allows you to access lexical variables).
+
+---
+*** New minor mode `jit-lock-debug-mode' helps you debug code run via JIT Lock.
 
 ---
 ** Battery information can now be retrieved from BSD's `apm' utility.

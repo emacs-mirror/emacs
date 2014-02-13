@@ -1,3 +1,7 @@
+2014-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* debugging.texi (Debugger Commands): Tiny edits.
+
 2014-02-12  Glenn Morris  <rgm@gnu.org>
 
 	* package.texi (Simple Packages): Describe URL and Keywords headers.

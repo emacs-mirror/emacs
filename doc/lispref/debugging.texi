@@ -425,7 +425,8 @@ Flag the current frame like @kbd{b}.  Then continue execution like
 are set up to do so by @code{debug-on-entry}.
 
 @item e
-Read a Lisp expression in the minibuffer, evaluate it, and print the
+Read a Lisp expression in the minibuffer, evaluate it (with the
+relevant lexical environment, if applicable), and print the
 value in the echo area.  The debugger alters certain important
 variables, and the current buffer, as part of its operation; @kbd{e}
 temporarily restores their values from outside the debugger, so you can
@@ -465,8 +466,7 @@ function and thus cancel the effect of @code{debug-on-entry}, it may
 erroneously show up in this list.
 
 @item v
-Display local variables (@pxref{Local Variables}) of the current stack
-frame.  Press @kbd{e} again to hide them.
+Toggle the display of local variables of the current stack frame.
 @end table
 
 @node Invoking the Debugger

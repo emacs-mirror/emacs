@@ -1,3 +1,7 @@
+2014-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* jit-lock.el (jit-lock-mode): Doc fix.
+
 2014-02-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* apropos.el (apropos-read-pattern): When the user passes an empty
