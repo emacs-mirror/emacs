@@ -1,3 +1,7 @@
+2014-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* finder.el (finder-known-keywords, finder-mode-map): Doc fixes.
+
 2014-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emulation/cua-base.el (cua-scroll-up, cua-scroll-down): Mark them as
