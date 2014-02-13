@@ -1,5 +1,7 @@
 2014-02-13  Glenn Morris  <rgm@gnu.org>
 
+	* mail/rmail.el (rmail-probe): Be less strict.  (Bug#16743)
+
 	* jit-lock.el (jit-lock-mode): Doc fix.
 
 2014-02-13  Juanma Barranquero  <lekktu@gmail.com>
