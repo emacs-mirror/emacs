@@ -1,3 +1,13 @@
+2014-02-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix subspace record bug on HP-UX 10.20 (Bug#16717).
+	* unexhp9k800.c (unexec_error): New function, to simplify the code.
+	(check_lseek): New function, to report lseek errors.
+	(save_data_space, update_file_ptrs, read_header, write_header)
+	(copy_file, copy_rest, unexec): Use these news functions.
+	(update_file_ptrs): Don't assume wraparound behavior when
+	converting a large size_t value to off_t.
+
 2014-02-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* composite.c (fill_gstring_header): Pass positions as C integers
