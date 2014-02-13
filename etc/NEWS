@@ -359,7 +359,7 @@ Also the following files used by the now obsolete otodo-mode.el:
 
 +++
 *** New Lisp debugger command `v' (`debugger-toggle-locals') toggles the
-displays of local variables.
+display of local variables of the current stack frame.
 
 *** The Lisp debugger's `e' command (`debugger-eval-expression') now includes
 the lexical environment when evaluating the code in the context at point
