@@ -1,3 +1,9 @@
+2014-02-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (start_timer_thread): Pass a non-NULL pointer as last
+	argument to CreateThread.  This avoids segfaults on Windows 9X.
+	Reported by oslsachem <oslsachem@gmail.com>.
+
 2014-02-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix subspace record bug on HP-UX 10.20 (Bug#16717).
