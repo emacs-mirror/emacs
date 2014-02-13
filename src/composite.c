@@ -780,35 +780,11 @@ static Lisp_Object gstring_work;
 static Lisp_Object gstring_work_headers;
 
 static Lisp_Object
-fill_gstring_header (Lisp_Object header, Lisp_Object start, Lisp_Object end,
-		     Lisp_Object font_object, Lisp_Object string)
+fill_gstring_header (Lisp_Object header, ptrdiff_t from, ptrdiff_t from_byte,
+		     ptrdiff_t to, Lisp_Object font_object, Lisp_Object string)
 {
-  ptrdiff_t from, to, from_byte;
-  ptrdiff_t len, i;
+  ptrdiff_t len = to - from, i;
 
-  if (NILP (string))
-    {
-      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	error ("Attempt to shape unibyte text");
-      validate_region (&start, &end);
-      from = XFASTINT (start);
-      to = XFASTINT (end);
-      from_byte = CHAR_TO_BYTE (from);
-    }
-  else
-    {
-      CHECK_STRING (string);
-      if (! STRING_MULTIBYTE (string))
-	error ("Attempt to shape unibyte text");
-      /* The caller checks that START and END are nonnegative integers.  */
-      if (! (XINT (start) <= XINT (end) && XINT (end) <= SCHARS (string)))
-	args_out_of_range_3 (string, start, end);
-      from = XINT (start);
-      to = XINT (end);
-      from_byte = string_char_to_byte (string, from);
-    }
-
-  len = to - from;
   if (len == 0)
     error ("Attempt to shape zero-length text");
   if (VECTORP (header))
@@ -1708,6 +1684,8 @@ frame, or nil for the selected frame's terminal device.
 
 If the optional 4th argument STRING is not nil, it is a string
 containing the target characters between indices FROM and TO.
+Otherwise FROM and TO are character positions in current buffer;
+they can be in either order, and can be integers or markers.
 
 A glyph-string is a vector containing information about how to display
 a specific character sequence.  The format is:
@@ -1739,10 +1717,8 @@ should be ignored.  */)
   (Lisp_Object from, Lisp_Object to, Lisp_Object font_object, Lisp_Object string)
 {
   Lisp_Object gstring, header;
-  ptrdiff_t frompos, topos;
+  ptrdiff_t frompos, frombyte, topos;
 
-  CHECK_NATNUM (from);
-  CHECK_NATNUM (to);
   if (! FONT_OBJECT_P (font_object))
     {
       struct coding_system *coding;
@@ -1754,13 +1730,35 @@ should be ignored.  */)
       font_object = CODING_ID_NAME (coding->id);
     }
 
-  header = fill_gstring_header (Qnil, from, to, font_object, string);
+  if (NILP (string))
+    {
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
+	error ("Attempt to shape unibyte text");
+      validate_region (&from, &to);
+      frompos = XFASTINT (from);
+      topos = XFASTINT (to);
+      frombyte = CHAR_TO_BYTE (frompos);
+    }
+  else
+    {
+      CHECK_NATNUM (from);
+      CHECK_NATNUM (to);
+      CHECK_STRING (string);
+      if (! STRING_MULTIBYTE (string))
+	error ("Attempt to shape unibyte text");
+      if (! (XINT (from) <= XINT (to) && XINT (to) <= SCHARS (string)))
+	args_out_of_range_3 (string, from, to);
+      frompos = XFASTINT (from);
+      topos = XFASTINT (to);
+      frombyte = string_char_to_byte (string, frompos);
+    }
+
+  header = fill_gstring_header (Qnil, frompos, frombyte,
+				topos, font_object, string);
   gstring = gstring_lookup_cache (header);
   if (! NILP (gstring))
     return gstring;
 
-  frompos = XINT (from);
-  topos = XINT (to);
   if (LGSTRING_GLYPH_LEN (gstring_work) < topos - frompos)
     gstring_work = Fmake_vector (make_number (topos - frompos + 2), Qnil);
   LGSTRING_SET_HEADER (gstring_work, header);
