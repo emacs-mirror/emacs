@@ -1,3 +1,9 @@
+2014-02-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (install-arch-indep): Simplify (Bug#16717).
+	This should make it more reliable, and hopefully more portable to
+	non-GNU 'make' implementations such as HP-UX 'make'.
+
 2014-02-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* Makefile.in (install-nt): Also pass datadir.

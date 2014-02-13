@@ -612,18 +612,11 @@ install-arch-indep: lisp install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	  ${write_subdir}
 	subdir="$(DESTDIR)${datadir}/emacs/site-lisp" ; \
 	  ${write_subdir} || true
-	[ -z "${GZIP_PROG}" ] || \
-	  ( echo "Compressing *.el ..." ; \
-	    unset CDPATH; \
-	    thisdir=`/bin/pwd`; \
-	    for dir in "$(DESTDIR)${lispdir}"; do \
-	      cd "$${thisdir}" ; \
-	      cd "$${dir}" || exit 1 ; \
-	      for f in `find . -name "*.elc" -print`; do \
-	        f_el=`echo "$$f" | sed 's/.elc$$/.el/'`; \
-	        ${GZIP_PROG} -9n "$$f_el" ; \
-	      done ; \
-	    done )
+	[ -z "${GZIP_PROG}" ] || { \
+	  echo "Compressing *.el ..." && \
+	  find "$(DESTDIR)${lispdir}" -name '*.elc' -exec sh -c \
+	    '${GZIP_PROG} -9n `expr "$$@" : "\\(.*\\)c"`' dummy '{}' ';'; \
+	}
 	-chmod -R a+r "$(DESTDIR)${datadir}/emacs/${version}" ${COPYDESTS}
 
 ## The above chmods are needed because "umask 022; tar ..." is not
