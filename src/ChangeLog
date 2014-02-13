@@ -2,9 +2,9 @@
 
 	* composite.c (fill_gstring_header): Pass positions as C integers
 	and move parameters checking to...
-	* composite.c (Fcomposition_get_gstring): ...this function.  Handle
-	case when buffer positions are in reversed order and avoid crash
-	(Bug#16739).  Adjust docstring.
+	(Fcomposition_get_gstring): ...this function.  Handle case when
+	buffer positions are in reversed order and avoid crash (Bug#16739).
+	Adjust docstring.
 	* buffer.c (validate_region): Mention current buffer in error message.
 
 2014-02-12  Marcus Karlsson  <mk@acc.umu.se>  (tiny change)
