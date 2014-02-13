@@ -510,6 +510,7 @@ install-nt:
 	  $(MAKE) install $(MFLAGS) prefix="${prefix}" \
 	    exec_prefix="${exec_prefix}" bindir="${bindir}" \
 	    libexecdir="${libexecdir}" archlibdir="${archlibdir}" \
+	    datadir="${datadir}" \
 	    INSTALL_STRIP=${INSTALL_STRIP}
 
 ## In the share directory, we are deleting:

@@ -56,6 +56,15 @@ exec_prefix=@exec_prefix@
 # to `../configure'.
 bindir=@bindir@
 
+# The root of the directory tree for read-only architecture-independent
+# data files.  ${datadir}, ${infodir} and ${mandir} are based on this.
+datarootdir=@datarootdir@
+
+# Where to install architecture-independent data files.  ${lispdir}
+# and ${etcdir} are subdirectories of this.  This is set with the
+# --datadir option to `../configure'.
+datadir=@datadir@
+
 # Where to install and expect executable files to be run by Emacs
 # rather than directly by users, and other architecture-dependent
 # data.  ${archlibdir} is usually below this.  This is set with the
@@ -95,6 +104,7 @@ archlibdir=@archlibdir@
 
 # ../configure figures out the correct values for these.
 INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 # By default, we uphold the dignity of our programs.
@@ -161,8 +171,10 @@ install: $(DESTDIR)${archlibdir}
 	for file in ${INSTALLABLES} ; do \
 	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} "$(DESTDIR)${bindir}"/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
 	done
+	$(INSTALL_DATA) README.W32 "$(DESTDIR)${datadir}/emacs/$(version)"
 
 uninstall:
+	rm -f "$(DESTDIR)${datadir}/emacs/$(version)/README.W32"
 	for file in ${INSTALLABLES}; do \
 	  rm -f "$(DESTDIR)${bindir}"/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
 	done
