@@ -1,3 +1,9 @@
+2014-02-13  Daniel Colascione  <dancol@dancol.org>
+
+	* progmodes/flymake.el (flymake-post-syntax-check): Widen buffer
+	when adding overlays so that line numbers from compiler match line
+	numbers we use.
+
 2014-02-13  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-probe): Be less strict.  (Bug#16743)
