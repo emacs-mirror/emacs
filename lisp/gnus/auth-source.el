@@ -237,6 +237,11 @@ Each entry is the authentication type with optional properties.
 Entries are tried in the order in which they appear.
 See Info node `(auth)Help for users' for details.
 
+If an entry names a file with the \".gpg\" extension and you have
+EPA/EPG set up, the file will be encrypted and decrypted
+automatically.  See Info node `(epa)Encrypting/decrypting gpg files'
+for details.
+
 It's best to customize this with `M-x customize-variable' because the choices
 can get pretty complex."
   :group 'auth-source
