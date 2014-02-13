@@ -1,3 +1,7 @@
+2014-02-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* jit-lock.el (jit-lock-mode): Keep it disabled in indirect buffers.
+
 2014-02-13  Glenn Morris  <rgm@gnu.org>
 
 	* finder.el (finder-known-keywords, finder-mode-map): Doc fixes.
