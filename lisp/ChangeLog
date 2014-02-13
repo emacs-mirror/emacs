@@ -1,3 +1,9 @@
+2014-02-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* apropos.el (apropos-read-pattern): When the user passes an empty
+	string, give a more helpful error message than "Wrong type
+	argument: stringp, nil".
+
 2014-02-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* jit-lock.el (jit-lock-mode): Keep it disabled in indirect buffers.

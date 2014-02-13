@@ -370,7 +370,8 @@ kind of objects to search."
 	 (read-string (concat "Search for " subject " (word list or regexp): "))))
     (if (string-equal (regexp-quote pattern) pattern)
 	;; Split into words
-	(split-string pattern "[ \t]+" t)
+	(or (split-string pattern "[ \t]+" t)
+	    (user-error "No word list given"))
       pattern)))
 
 (defun apropos-parse-pattern (pattern)
