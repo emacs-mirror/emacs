@@ -20756,9 +20756,9 @@ mean, then repeating until the two values converge.
 $$ a_{i+1} = { a_i + b_i \over 2 } , \qquad b_{i+1} = \sqrt{a_i b_i} $$
 @end tex
 
-@cindex Root-mean-square
-Another commonly used mean, the RMS (root-mean-square), can be computed
-for a vector of numbers simply by using the @kbd{A} command.
+@c @cindex Root-mean-square
+@c Another commonly used mean, the RMS (root-mean-square), can be computed
+@c for a vector of numbers simply by using the @kbd{A} command.
 
 @kindex u S
 @pindex calc-vector-sdev
