@@ -613,7 +613,7 @@ sanitize_char_width (EMACS_INT width)
 /* Data type for Unicode general category.
 
    The order of members must be in sync with the 8th element of the
-   member of unidata-prop-alist (in admin/unidata/unidata-getn.el) for
+   member of unidata-prop-alist (in admin/unidata/unidata-gen.el) for
    Unicode character property `general-category'.  */
 
 typedef enum {
