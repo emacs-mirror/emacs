@@ -169,7 +169,6 @@ static Bool VMArenaCheck(VMArena vmArena)
   CHECKL(vmArena->spareSize <= arena->committed);
   CHECKL(vmArena->blacklist != ZoneSetUNIV);
 
-  /* FIXME: Test for vmArena->freeSet? */
   CHECKL(vmArena->extendBy > 0);
   CHECKL(vmArena->extendMin <= vmArena->extendBy);
 

@@ -532,8 +532,8 @@
 
 #define ChainDEFAULT \
   { \
-    { 2 * 1024, 0.85 }, /* 2MiB nursery */ \
-    { 8 * 1024, 0.45 }  /* 8MiB second gen, after which dynamic */ \
+    {  8 * 1024, 0.85 }, /* 8MiB nursery */ \
+    { 32 * 1024, 0.45 }  /* 32MiB second gen, after which dynamic */ \
   }
 
 
