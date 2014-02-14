@@ -678,20 +678,17 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
   if (res != ResOK)
     goto failSize;
 
-  res = SegAlloc(&seg, (*ams->segClass)(), segPref, prefSize,
-                 pool, withReservoirPermit, argsNone);
+  res = ChainAlloc(&seg, ams->chain, ams->pgen.nr, (*ams->segClass)(),
+                   prefSize, pool, withReservoirPermit, argsNone);
   if (res != ResOK) { /* try to allocate one that's just large enough */
     Size minSize = SizeAlignUp(size, ArenaAlign(arena));
-
     if (minSize == prefSize)
       goto failSeg;
-    res = SegAlloc(&seg, (*ams->segClass)(), segPref, minSize,
-                   pool, withReservoirPermit, argsNone);
+    res = ChainAlloc(&seg, ams->chain, ams->pgen.nr, (*ams->segClass)(),
+                     prefSize, pool, withReservoirPermit, argsNone);
     if (res != ResOK)
       goto failSeg;
   }
-
-  PoolGenUpdateZones(&ams->pgen, seg);
 
   /* see <design/seg/#field.rankset> */
   if (rankSet != RankSetEMPTY) {
@@ -764,13 +761,20 @@ static Res AMSInit(Pool pool, ArgList args)
   Format format;
   Chain chain;
   Bool supportAmbiguous = AMS_SUPPORT_AMBIGUOUS_DEFAULT;
+  unsigned gen = AMS_GEN_DEFAULT;
   ArgStruct arg;
 
   AVERT(Pool, pool);
   AVER(ArgListCheck(args));
 
-  ArgRequire(&arg, args, MPS_KEY_CHAIN);
-  chain = arg.val.chain;
+  if (ArgPick(&arg, args, MPS_KEY_CHAIN))
+    chain = arg.val.chain;
+  else {
+    chain = ArenaGlobals(PoolArena(pool))->defaultChain;
+    gen = 1; /* avoid the nursery of the default chain by default */
+  }
+  if (ArgPick(&arg, args, MPS_KEY_GEN))
+    gen = arg.val.u;
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
   if (ArgPick(&arg, args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS))
@@ -778,7 +782,7 @@ static Res AMSInit(Pool pool, ArgList args)
 
   /* .ambiguous.noshare: If the pool is required to support ambiguous */
   /* references, the alloc and white tables cannot be shared. */
-  res = AMSInitInternal(Pool2AMS(pool), format, chain, !supportAmbiguous);
+  res = AMSInitInternal(Pool2AMS(pool), format, chain, gen, !supportAmbiguous);
   if (res == ResOK) {
     EVENT3(PoolInitAMS, pool, PoolArena(pool), format);
   }
@@ -788,7 +792,8 @@ static Res AMSInit(Pool pool, ArgList args)
 
 /* AMSInitInternal -- initialize an AMS pool, given the format and the chain */
 
-Res AMSInitInternal(AMS ams, Format format, Chain chain, Bool shareAllocTable)
+Res AMSInitInternal(AMS ams, Format format, Chain chain, unsigned gen,
+                    Bool shareAllocTable)
 {
   Pool pool;
   Res res;
@@ -796,6 +801,7 @@ Res AMSInitInternal(AMS ams, Format format, Chain chain, Bool shareAllocTable)
   /* Can't check ams, it's not initialized. */
   AVERT(Format, format);
   AVERT(Chain, chain);
+  AVER(gen <= ChainGens(chain));
 
   pool = AMS2Pool(ams);
   AVERT(Pool, pool);
@@ -803,10 +809,8 @@ Res AMSInitInternal(AMS ams, Format format, Chain chain, Bool shareAllocTable)
   pool->alignment = pool->format->alignment;
   ams->grainShift = SizeLog2(PoolAlignment(pool));
 
-  if (ChainGens(chain) != 1)
-    return ResPARAM;
   ams->chain = chain;
-  res = PoolGenInit(&ams->pgen, ams->chain, 0, pool);
+  res = PoolGenInit(&ams->pgen, ams->chain, gen, pool);
   if (res != ResOK)
     return res;
 
@@ -957,7 +961,7 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
 
   /* No suitable segment found; make a new one. */
-  segPrefStruct = *SegPrefDefault();
+  SegPrefInit(&segPrefStruct);
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
   res = AMSSegCreate(&seg, pool, size, &segPrefStruct, rankSet,
                      withReservoirPermit);
