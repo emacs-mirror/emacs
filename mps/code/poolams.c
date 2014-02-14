@@ -809,8 +809,6 @@ Res AMSInitInternal(AMS ams, Format format, Chain chain, unsigned gen,
   pool->alignment = pool->format->alignment;
   ams->grainShift = SizeLog2(PoolAlignment(pool));
 
-  /* TODO: Accept a keyword parameter specifying which generation of the
-     chain to allocate in. */
   ams->chain = chain;
   res = PoolGenInit(&ams->pgen, ams->chain, gen, pool);
   if (res != ResOK)
