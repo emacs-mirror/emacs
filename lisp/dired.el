@@ -3284,6 +3284,7 @@ As always, hidden subdirs are not affected."
   "History list of regular expressions used in Dired commands.")
 
 (defun dired-read-regexp (prompt &optional default history)
+  "Read a regexp using `read-regexp'."
   (read-regexp prompt default (or history 'dired-regexp-history)))
 
 (defun dired-mark-files-regexp (regexp &optional marker-char)

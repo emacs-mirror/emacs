@@ -819,7 +819,7 @@ substitution string.  Note dynamic scoping of variables.")
 		 t t command))))))
 
 (defun grep-read-regexp ()
-  "Read regexp arg for interactive grep."
+  "Read regexp arg for interactive grep using `read-regexp'."
   (read-regexp "Search for" 'grep-tag-default 'grep-regexp-history))
 
 (defun grep-read-files (regexp)

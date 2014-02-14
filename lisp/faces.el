@@ -1260,7 +1260,7 @@ The sample text is a string that comes from the variable
 
 If REGEXP is non-nil, list only those faces with names matching
 this regular expression.  When called interactively with a prefix
-arg, prompt for a regular expression."
+argument, prompt for a regular expression using `read-regexp'."
   (interactive (list (and current-prefix-arg
                           (read-regexp "List faces matching regexp"))))
   (let ((all-faces (zerop (length regexp)))

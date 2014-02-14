@@ -239,7 +239,8 @@ set in `multi-isearch-buffers' or `multi-isearch-buffers-regexp'."
     (nreverse bufs)))
 
 (defun multi-isearch-read-matching-buffers ()
-  "Return a list of buffers whose names match specified regexp."
+  "Return a list of buffers whose names match specified regexp.
+Uses `read-regexp' to read the regexp."
   ;; Most code from `multi-occur-in-matching-buffers'
   ;; and `kill-matching-buffers'.
   (let ((bufregexp
@@ -322,8 +323,10 @@ Every next/previous file in the defined sequence is visited by
       (add-to-list 'files file))
     (nreverse files)))
 
+;; A regexp is not the same thing as a file glob - does this matter?
 (defun multi-isearch-read-matching-files ()
-  "Return a list of files whose names match specified wildcard."
+  "Return a list of files whose names match specified wildcard.
+Uses `read-regexp' to read the wildcard."
   ;; Most wildcard code from `find-file-noselect'.
   (let ((filename (read-regexp "Search in files whose names match wildcard")))
     (when (and filename

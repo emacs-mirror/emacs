@@ -1,5 +1,12 @@
 2014-02-14  Glenn Morris  <rgm@gnu.org>
 
+	* dired.el (dired-read-regexp):
+	* faces.el (list-faces-display):
+	* misearch.el (multi-isearch-read-matching-buffers)
+	(multi-isearch-read-matching-files):
+	* play/cookie1.el (cookie-apropos):
+	* progmodes/grep.el (grep-read-regexp): Doc fixes.
+
 	* textmodes/remember.el (remember): Use frameset-to-register
 	rather than frame-configuration-to-register.
 

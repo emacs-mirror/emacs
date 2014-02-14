@@ -187,6 +187,7 @@ Argument REQUIRE-MATCH non-nil forces a matching cookie."
 
 (defun cookie-apropos (regexp phrase-file &optional display)
   "Return a list of all entries matching REGEXP from PHRASE-FILE.
+Interactively, uses `read-regexp' to read REGEXP.
 Interactively, PHRASE-FILE defaults to `cookie-file', unless that
 is nil or a prefix argument is used.
 If called interactively, or if DISPLAY is non-nil, display a list of matches."
