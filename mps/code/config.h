@@ -244,6 +244,17 @@
 /* Pool AMS Configuration -- see <code/poolams.c> */
 
 #define AMS_SUPPORT_AMBIGUOUS_DEFAULT FALSE
+#define AMS_GEN_DEFAULT       0
+
+
+/* Pool AWL Configuration -- see <code/poolawl.c> */
+
+#define AWL_GEN_DEFAULT       0
+
+
+/* Pool LO Configuration -- see <code/poollo.c> */
+
+#define LO_GEN_DEFAULT       0
 
 
 /* Pool MV Configuration -- see <code/poolmv.c> */
@@ -303,8 +314,6 @@
   TRUE,                /* high */ \
   ArenaDefaultZONESET, /* zoneSet */ \
   FALSE,               /* isCollected */ \
-  FALSE,               /* isGen */ \
-  (Serial)0,           /* gen */ \
 }
 
 #define LDHistoryLENGTH ((Size)4)
@@ -513,6 +522,19 @@
 #define AWL_SEG_SA_LIMIT        200     /* TODO: Improve guesswork with measurements */
 #define AWL_HAVE_TOTAL_SA_LIMIT FALSE
 #define AWL_TOTAL_SA_LIMIT      0
+
+
+/* Default chain for GC pools
+ *
+ * TODO: The default should be to measure liveness and make sensible
+ * decisions.
+ */
+
+#define ChainDEFAULT \
+  { \
+    {  8 * 1024, 0.85 }, /* 8MiB nursery */ \
+    { 32 * 1024, 0.45 }  /* 32MiB second gen, after which dynamic */ \
+  }
 
 
 #endif /* config_h */
