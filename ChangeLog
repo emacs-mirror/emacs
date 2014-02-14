@@ -1,3 +1,9 @@
+2014-02-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (install-arch-indep): Allow ' ' in destdir (Bug#16717).
+	This fixes a bug in the previous change.  Also, use $(SHELL)
+	rather than sh, as that's more likely to be portable.
+
 2014-02-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (install-arch-indep): Simplify (Bug#16717).
