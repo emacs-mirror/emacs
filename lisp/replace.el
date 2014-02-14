@@ -668,7 +668,7 @@ via \\<minibuffer-local-map>\\[next-history-element]."
   "Read and return a regular expression as a string.
 Prompt with the string PROMPT.  If PROMPT ends in \":\" (followed by
 optional whitespace), use it as-is.  Otherwise, add \": \" to the end,
-possible preceded by the default result (see below).
+possibly preceded by the default result (see below).
 
 The optional argument DEFAULTS can be either: nil, a string, a list
 of strings, or a symbol.  We use DEFAULTS to construct the default
