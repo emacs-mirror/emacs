@@ -1,5 +1,8 @@
 2014-02-14  Glenn Morris  <rgm@gnu.org>
 
+	* replace.el (map-query-replace-regexp)
+	(read-regexp-defaults-function, read-regexp): Doc fixes.
+
 	* dired.el (dired-read-regexp):
 	* faces.el (list-faces-display):
 	* misearch.el (multi-isearch-read-matching-buffers)
