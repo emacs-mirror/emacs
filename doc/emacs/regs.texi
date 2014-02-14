@@ -182,7 +182,7 @@ rather than a text string, if the register contains a rectangle.
 @cindex saving window configuration in a register
 
 @findex window-configuration-to-register
-@findex frame-configuration-to-register
+@findex frameset-to-register
 @kindex C-x r w
 @kindex C-x r f
   You can save the window configuration of the selected frame in a
@@ -196,7 +196,7 @@ Save the state of the selected frame's windows in register @var{r}
 (@code{window-configuration-to-register}).
 @item C-x r f @var{r}
 Save the state of all frames, including all their windows, in register
-@var{r} (@code{frame-configuration-to-register}).
+@var{r} (@code{frameset-to-register}).
 @end table
 
   Use @kbd{C-x r j @var{r}} to restore a window or frame configuration.

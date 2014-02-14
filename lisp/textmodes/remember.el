@@ -276,7 +276,7 @@ With a prefix or a visible region, use the region as INITIAL."
                         transient-mark-mode))
            (buffer-substring (region-beginning) (region-end)))))
   (funcall (if remember-in-new-frame
-               #'frame-configuration-to-register
+               #'frameset-to-register
              #'window-configuration-to-register) remember-register)
   (let* ((annotation
           (if remember-run-all-annotation-functions-flag

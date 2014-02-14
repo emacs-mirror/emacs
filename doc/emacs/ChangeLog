@@ -1,3 +1,7 @@
+2014-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* regs.texi (Configuration Registers): Update C-x r f binding.
+
 2014-02-12  Glenn Morris  <rgm@gnu.org>
 
 	* mini.texi (Completion Options): No longer mention icomplete,
