@@ -21,15 +21,6 @@
 SRCID(cbs, "$Id$");
 
 
-typedef struct CBSBlockStruct *CBSBlock;
-typedef struct CBSBlockStruct {
-  SplayNodeStruct splayNode;
-  Addr base;
-  Addr limit;
-  Size maxSize; /* accurate maximum block size of sub-tree */
-  ZoneSet zones; /* union zone set of all ranges in sub-tree */
-} CBSBlockStruct;
-
 #define CBSBlockBase(block) ((block)->base)
 #define CBSBlockLimit(block) ((block)->limit)
 #define CBSBlockSize(block) AddrOffset((block)->base, (block)->limit)
@@ -41,7 +32,7 @@ typedef struct CBSBlockStruct {
 #define splayNodeOfCBSBlock(block) (&((block)->splayNode))
 #define keyOfCBSBlock(block) ((void *)&((block)->base))
 
-#define cbsBlockPool(cbs) MFSPool(&(cbs)->blockPoolStruct)
+#define cbsBlockPool(cbs) RVALUE((cbs)->blockPool)
 
 
 /* cbsEnter, cbsLeave -- Avoid re-entrance
@@ -78,10 +69,11 @@ Bool CBSCheck(CBS cbs)
   CHECKL(cbs != NULL);
   CHECKL(SplayTreeCheck(splayTreeOfCBS(cbs)));
   /* nothing to check about splayTreeSize */
-  CHECKD(MFS, &cbs->blockPoolStruct);
+  CHECKD(Pool, cbs->blockPool);
   CHECKU(Arena, cbs->arena);
   CHECKL(BoolCheck(cbs->fastFind));
   CHECKL(BoolCheck(cbs->inCBS));
+  CHECKL(BoolCheck(cbs->ownPool));
   /* No MeterCheck */
 
   return TRUE;
@@ -220,6 +212,7 @@ static void cbsUpdateNode(SplayTree tree, SplayNode node,
  */
 
 ARG_DEFINE_KEY(cbs_extend_by, Size);
+ARG_DEFINE_KEY(cbs_block_pool, Pool);
 
 Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
             Bool fastFind, ArgList args)
@@ -228,9 +221,12 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
   Bool extendSelf = TRUE;
   ArgStruct arg;
   Res res;
+  Pool blockPool = NULL;
 
   AVERT(Arena, arena);
 
+  if (ArgPick(&arg, args, CBSBlockPool))
+    blockPool = arg.val.pool;
   if (ArgPick(&arg, args, MPS_KEY_CBS_EXTEND_BY))
     extendBy = arg.val.size;
   if (ArgPick(&arg, args, MFSExtendSelf))
@@ -239,15 +235,24 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
   cbs->arena = arena;
   SplayTreeInit(splayTreeOfCBS(cbs), &cbsSplayCompare,
                 fastFind ? &cbsUpdateNode : NULL);
-  MPS_ARGS_BEGIN(piArgs) {
-    MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
-    MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, extendBy);
-    MPS_ARGS_ADD(piArgs, MFSExtendSelf, extendSelf);
-    MPS_ARGS_DONE(piArgs);
-    res = PoolInit(&cbs->blockPoolStruct.poolStruct, arena, PoolClassMFS(), piArgs);
-  } MPS_ARGS_END(piArgs);
-  if (res != ResOK)
-    return res;
+
+  if (blockPool != NULL) {
+    cbs->blockPool = blockPool;
+    cbs->ownPool = FALSE;
+  } else {
+    MPS_ARGS_BEGIN(pcArgs) {
+      MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
+      MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, extendBy);
+      MPS_ARGS_ADD(pcArgs, MFSExtendSelf, extendSelf);
+      MPS_ARGS_DONE(pcArgs);
+      res = PoolCreate(&cbs->blockPool, arena, PoolClassMFS(), pcArgs);
+    } MPS_ARGS_END(pcArgs);
+    if (res != ResOK)
+      return res;
+    cbs->ownPool = TRUE;
+  }
+
+  cbs->blockPool = blockPool;
   cbs->splayTreeSize = 0;
 
   cbs->fastFind = fastFind;
@@ -280,7 +285,8 @@ void CBSFinish(CBS cbs)
   cbs->sig = SigInvalid;
 
   SplayTreeFinish(splayTreeOfCBS(cbs));
-  PoolFinish(cbsBlockPool(cbs));
+  if (cbs->ownPool)
+    PoolDestroy(cbsBlockPool(cbs));
 }
 
 

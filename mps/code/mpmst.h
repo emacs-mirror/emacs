@@ -614,11 +614,12 @@ typedef struct GlobalsStruct {
 typedef struct CBSStruct {
   SplayTreeStruct splayTree;
   STATISTIC_DECL(Count splayTreeSize);
-  MFSStruct blockPoolStruct;    /* FIXME: ref to why this is inlined */
+  Pool blockPool;
   Arena arena;                  /* needed by update method */
   Align alignment;
   Bool fastFind;
   Bool inCBS;                   /* prevent reentrance */
+  Bool ownPool;                 /* did we create blockPool? */
   /* meters for sizes of search structures at each op */
   METER_DECL(splaySearch);
   Sig sig; /* sig at end because embeded */
@@ -660,6 +661,7 @@ typedef struct mps_arena_s {
   ChunkCacheEntryStruct chunkCache; /* just one entry */
   
   Bool hasFreeCBS;              /* Is freeCBS available? */
+  MFSStruct cbsBlockPoolStruct; /* Shared pool for CBS blocks */
   CBSStruct freeCBS;            /* CBS of free address space */
   ZoneSet freeZones;            /* zones not yet allocated */
 
