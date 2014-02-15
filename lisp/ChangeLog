@@ -1,3 +1,14 @@
+2014-02-14  Michael R. Mauger  <michael@mauger.com>
+
+	* progmodes/sql.el: Version 3.4
+	(sql-oracle-options): New default value ("-L").
+	(sql-mode-oracle-font-lock-keywords): Added placeholder
+	highlighting.
+	(sql-placeholders-filter): Correct placeholder pattern.
+	(sql-read-table-name): Bug fix. Detect absence of SQLi process.
+	(sql-login-delay): New variable.
+	(sql-product-interactive): Use it.
+
 2014-02-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el (frameset--jump-to-register): Check that buffer is live

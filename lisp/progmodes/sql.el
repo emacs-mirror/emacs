@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <michael@mauger.com>
-;; Version: 3.3
+;; Version: 3.4
 ;; Keywords: comm languages processes
 ;; URL: http://savannah.gnu.org/projects/emacs/
 
@@ -724,6 +724,8 @@ it automatically."
 Globally should be set to nil; it will be non-nil in `sql-mode',
 `sql-interactive-mode' and list all buffers.")
 
+(defvar sql-login-delay 7.5 ;; Secs
+  "Maximum number of seconds you are willing to wait for a login connection.")
 
 (defcustom sql-pop-to-buffer-after-send-region nil
   "When non-nil, pop to the buffer SQL statements are sent to.
@@ -849,10 +851,10 @@ You will find the file in your Orant\\bin directory."
   :type 'file
   :group 'SQL)
 
-(defcustom sql-oracle-options nil
+(defcustom sql-oracle-options '("-L")
   "List of additional options for `sql-oracle-program'."
   :type '(repeat string)
-  :version "20.8"
+  :version "24.4"
   :group 'SQL)
 
 (defcustom sql-oracle-login-params '(user password database)
@@ -1601,6 +1603,7 @@ to add functions and PL/SQL keywords.")
 
        "\\)\\(?:\\s-.*\\)?\\(?:[-]\n.*\\)*$")
       0 'font-lock-doc-face t)
+     '("&?&\\(?:\\sw\\|\\s_\\)+[.]?" 0 font-lock-preprocessor-face t)
 
      ;; Oracle Functions
      (sql-font-lock-keywords-builder 'font-lock-builtin-face nil
@@ -3208,7 +3211,7 @@ Inserts SELECT or commas if appropriate."
 Placeholders are words starting with an ampersand like &this."
 
   (when sql-oracle-scan-on
-    (while (string-match "&\\(\\sw+\\)" string)
+    (while (string-match "&?&\\(\\(?:\\sw\\|\\s_\\)+\\)[.]?" string)
       (setq string (replace-match
 		    (read-from-minibuffer
 		     (format "Enter value for %s: " (match-string 1 string))
@@ -3681,13 +3684,16 @@ The list is maintained in SQL interactive buffers.")
                (buffer-substring-no-properties (match-beginning 0)
                                                (match-end 0))))
          (sql-completion-sqlbuf (sql-find-sqli-buffer))
-         (product (with-current-buffer sql-completion-sqlbuf sql-product))
+         (product (when sql-completion-sqlbuf
+                    (with-current-buffer sql-completion-sqlbuf sql-product)))
          (completion-ignore-case t))
 
-    (if (sql-get-product-feature product :completion-object)
-        (completing-read prompt #'sql--completion-table
-                         nil nil tname)
-      (read-from-minibuffer prompt tname))))
+    (if product
+        (if (sql-get-product-feature product :completion-object)
+            (completing-read prompt #'sql--completion-table
+                             nil nil tname)
+          (read-from-minibuffer prompt tname))
+      (user-error "There is no active SQLi buffer"))))
 
 (defun sql-list-all (&optional enhanced)
   "List all database objects.
@@ -4145,14 +4151,15 @@ the call to \\[sql-product-interactive] with
             ;; We have a new name or sql-buffer doesn't exist or match
             ;; Start by remembering where we start
             (let ((start-buffer (current-buffer))
-                  new-sqli-buffer)
+                  new-sqli-buffer rpt)
 
               ;; Get credentials.
               (apply #'sql-get-login
                      (sql-get-product-feature product :sqli-login))
 
               ;; Connect to database.
-              (message "Login...")
+              (setq rpt (make-progress-reporter "Login"))
+
               (let ((sql-user       (default-value 'sql-user))
                     (sql-password   (default-value 'sql-password))
                     (sql-server     (default-value 'sql-server))
@@ -4182,15 +4189,25 @@ the call to \\[sql-product-interactive] with
               ;; Make sure the connection is complete
               ;; (Sometimes start up can be slow)
               ;;  and call the login hook
-              (let ((proc (get-buffer-process new-sqli-buffer)))
+              (let ((proc (get-buffer-process new-sqli-buffer))
+                    (secs sql-login-delay)
+                    (step 0.3))
                 (while (and (memq (process-status proc) '(open run))
-                            (accept-process-output proc 2.5)
+                            (or (accept-process-output proc step)
+                                (<= 0.0 (setq secs (- secs step))))
                             (progn (goto-char (point-max))
-                                   (not (looking-back sql-prompt-regexp))))))
-              (run-hooks 'sql-login-hook)
+                                   (not (re-search-backward sql-prompt-regexp 0 t))))
+                  (progress-reporter-update rpt)))
+
+              (goto-char (point-max))
+              (when (re-search-backward sql-prompt-regexp nil t)
+                (run-hooks 'sql-login-hook))
+
               ;; All done.
-              (message "Login...done")
-              (pop-to-buffer new-sqli-buffer)))))
+              (progress-reporter-done rpt)
+              (pop-to-buffer new-sqli-buffer)
+              (goto-char (point-max))
+              (current-buffer)))))
     (user-error "No default SQL product defined.  Set `sql-product'.")))
 
 (defun sql-comint (product params)
@@ -4262,8 +4279,9 @@ The default comes from `process-coding-system-alist' and
 	  (setq parameter sql-user)))
     (if (and parameter (not (string= "" sql-database)))
 	(setq parameter (concat parameter "@" sql-database)))
+    ;; options must appear before the logon parameters
     (if parameter
-	(setq parameter (nconc (list parameter) options))
+	(setq parameter (append options (list parameter)))
       (setq parameter options))
     (sql-comint product parameter)
     ;; Set process coding system to agree with the interpreter
