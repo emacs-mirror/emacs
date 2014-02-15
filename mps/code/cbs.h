@@ -16,11 +16,25 @@
 #include "splay.h"
 
 
+typedef struct CBSBlockStruct *CBSBlock;
+typedef struct CBSBlockStruct {
+  SplayNodeStruct splayNode;
+  Addr base;
+  Addr limit;
+  Size maxSize; /* accurate maximum block size of sub-tree */
+  ZoneSet zones; /* union zone set of all ranges in sub-tree */
+} CBSBlockStruct;
+
+
 typedef struct CBSStruct *CBS;
 typedef Bool (*CBSIterateMethod)(CBS cbs, Range range,
                                  void *closureP, Size closureS);
 
 extern Bool CBSCheck(CBS cbs);
+
+extern const struct mps_key_s _mps_key_cbs_block_pool;
+#define CBSBlockPool (&_mps_key_cbs_block_pool)
+#define CBSBlockPool_FIELD pool
 
 extern Res CBSInit(Arena arena, CBS cbs, void *owner,
                    Align alignment, Bool fastFind, ArgList args);

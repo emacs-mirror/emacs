@@ -142,6 +142,7 @@ typedef struct mps_arg_s {
     mps_fmt_isfwd_t fmt_isfwd;
     mps_fmt_pad_t fmt_pad;
     mps_fmt_class_t fmt_class;
+    mps_pool_t pool;
   } val;
 } mps_arg_s;
 

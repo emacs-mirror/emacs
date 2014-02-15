@@ -197,11 +197,22 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment)
 
   arena->sig = ArenaSig;
 
+  MPS_ARGS_BEGIN(piArgs) {
+    MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
+    MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, arena->alignment);
+    MPS_ARGS_ADD(piArgs, MFSExtendSelf, FALSE); /* FIXME: Explain why */
+    MPS_ARGS_DONE(piArgs);
+    res = PoolInit(&arena->cbsBlockPoolStruct.poolStruct, arena,
+                   PoolClassMFS(), piArgs);
+  } MPS_ARGS_END(piArgs);
+  AVER(res == ResOK);
+  if (res != ResOK)
+    goto failMFSInit;
+
   /* Initialise the freeCBS after the rest is initialised so that the CBS
      code can check the arena and pick up the alignment. */
   MPS_ARGS_BEGIN(cbsiArgs) {
-    MPS_ARGS_ADD(cbsiArgs, MPS_KEY_CBS_EXTEND_BY, arena->alignment);
-    MPS_ARGS_ADD(cbsiArgs, MFSExtendSelf, FALSE); /* FIXME: Explain why */
+    MPS_ARGS_ADD(cbsiArgs, CBSBlockPool, &arena->cbsBlockPoolStruct.poolStruct);
     MPS_ARGS_DONE(cbsiArgs);
     res = CBSInit(arena, &arena->freeCBS, arena, arena->alignment, TRUE, cbsiArgs);
   } MPS_ARGS_END(cbsiArgs);
@@ -221,6 +232,8 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment)
 failReservoirInit:
   CBSFinish(&arena->freeCBS);
 failCBSInit:
+  PoolFinish(&arena->cbsBlockPoolStruct.poolStruct);
+failMFSInit:
   GlobalsFinish(ArenaGlobals(arena));
 failGlobalsInit:
   return res;
@@ -338,17 +351,18 @@ void ArenaDestroy(Arena arena)
      so manually get rid of all its tracts first.  Ought to reset the
      CBS tree first, so that there are no dangling pointers. */
   {
-    Pool pool = &arena->freeCBS.blockPoolStruct.poolStruct;
-    Tract tract = arena->freeCBS.blockPoolStruct.tractList;
+    Pool pool = &arena->cbsBlockPoolStruct.poolStruct;
+    Tract tract = arena->cbsBlockPoolStruct.tractList;
     Size size = ArenaAlign(arena);
     while(tract != NULL) {
       Tract nextTract = (Tract)TractP(tract);   /* .tract.chain */
       (*arena->class->free)(TractBase(tract), size, pool);
       tract = nextTract;
     }
-    arena->freeCBS.blockPoolStruct.tractList = NULL;
+    arena->cbsBlockPoolStruct.tractList = NULL;
   }
   CBSFinish(&arena->freeCBS);
+  PoolFinish(&arena->cbsBlockPoolStruct.poolStruct);
 
   /* Call class-specific finishing.  This will call ArenaFinish. */
   (*arena->class->finish)(arena);
@@ -565,6 +579,8 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream)
  * This is a primitive allocator used to allocate pages for the arena CBS.
  * It is called rarely and can use a simple search.  It may not use the
  * CBS or any pool, because it is used as part of the bootstrap.
+ *
+ * FIXME: Might this allocate a page that is in a free CBS?
  */
 
 static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
@@ -622,7 +638,7 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
 
 Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit)
 {
-  Pool pool = &arena->freeCBS.blockPoolStruct.poolStruct;
+  Pool pool = &arena->cbsBlockPoolStruct.poolStruct;
   RangeStruct range;
   Res res;
 
@@ -946,7 +962,7 @@ void ArenaFree(Addr base, Size size, Pool pool)
       /* The CBS's MFS doesn't have enough space to describe the free memory.
          Give it some of the memory we're about to free and try again. */
       Tract tract = TractOfBaseAddr(arena, base);
-      Pool mfs = &arena->freeCBS.blockPoolStruct.poolStruct;
+      Pool mfs = &arena->cbsBlockPoolStruct.poolStruct;
       AVER(size >= ArenaAlign(arena));
       TractFinish(tract);
       TractInit(tract, mfs, base);
