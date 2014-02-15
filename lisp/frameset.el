@@ -1213,15 +1213,14 @@ Called from `jump-to-register'.  Internal use only."
 		      :filters frameset-session-filter-alist
 		      :reuse-frames (if delete t :keep))
     (mapc #'iconify-frame iconify-list)
-    (let ((frame (frameset-frame-with-id (aref data 1))))
+    (let ((frame (frameset-frame-with-id (aref data 1)))
+	  buffer window)
       (when frame
 	(select-frame-set-input-focus frame)
-	(let* ((position (aref data 2))
-	       (buffer (marker-buffer position))
-	       (window (get-buffer-window buffer frame)))
-	  (when (and window (window-live-p window))
-	    (set-frame-selected-window frame window)
-	    (with-current-buffer buffer (goto-char position))))))))
+	(when (and (buffer-live-p (setq buffer (marker-buffer (aref data 2))))
+		   (window-live-p (setq window (get-buffer-window buffer frame))))
+	  (set-frame-selected-window frame window)
+	  (with-current-buffer buffer (goto-char (aref data 2))))))))
 
 ;;;###autoload
 (defun frameset-to-register (register)
