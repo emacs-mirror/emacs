@@ -99,6 +99,11 @@ Bool ArgCheckdouble(Arg arg) {
   return TRUE;
 }
 
+Bool ArgCheckPool(Arg arg) {
+  CHECKD(Pool, arg->val.pool);
+  return TRUE;
+}
+
 
 ARG_DEFINE_KEY(args_end, Shouldnt);
 
