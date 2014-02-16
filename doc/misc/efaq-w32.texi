@@ -1781,8 +1781,6 @@ openssh
 PuTTY
 @itemize
 @item @code{pscp} Uses pscp for copying, plink for shell operations.
-@item @code{pscp1} pscp, with forced SSH protocol version 1
-@item @code{pscp2} pscp, with forced SSH protocol version 2
 @item @code{plink} Uses plink with encoding on stdin/stdout for file transfer.
 @end itemize
 @end itemize
