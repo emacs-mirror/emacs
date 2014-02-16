@@ -1,3 +1,9 @@
+2013-10-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.9.
+
+	* net/trampver.el: Update release number.
+
 2014-02-16  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* ido.el (ido-file-internal): Don't add the name of an existing

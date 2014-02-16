@@ -1,3 +1,11 @@
+2014-02-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.9.
+
+	* automated/tramp-tests.el (password-cache-expiry): Set to nil.
+	(tramp-test28-shell-command): Make a while loop when waiting for
+	process exit.
+
 2014-02-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (top): Require `vc', `vc-bzr', `vc-git'

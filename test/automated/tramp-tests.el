@@ -53,7 +53,8 @@
    (t (format "/ssh::%s" temporary-file-directory)))
   "Temporary directory for Tramp tests.")
 
-(setq tramp-verbose 0
+(setq password-cache-expiry nil
+      tramp-verbose 0
       tramp-message-show-message nil)
 
 ;; Disable interactive passwords in batch mode.
@@ -1175,7 +1176,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should (file-exists-p tmp-name))
           (async-shell-command
 	   (format "ls %s" (file-name-nondirectory tmp-name)) (current-buffer))
-	  (sit-for 1 'nodisplay)
+	  (while (ignore-errors
+		   (memq (process-status (get-buffer-process (current-buffer)))
+			 '(run open)))
+	    (sit-for 1 'nodisplay))
 	  (should
 	   (string-equal
 	    (format "%s\n" (file-name-nondirectory tmp-name)) (buffer-string))))
@@ -1189,7 +1193,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (process-send-string
 	   (get-buffer-process (current-buffer))
 	   (format "%s\n" (file-name-nondirectory tmp-name)))
-	  (sit-for 1 'nodisplay)
+	  (while (ignore-errors
+		   (memq (process-status (get-buffer-process (current-buffer)))
+			 '(run open)))
+	    (sit-for 1 'nodisplay))
 	  (should
 	   (string-equal
 	    (format "%s\n" (file-name-nondirectory tmp-name)) (buffer-string))))
