@@ -973,6 +973,13 @@ xd_get_connection_references (DBusConnection *connection)
   return *refcount;
 }
 
+/* Convert a Lisp dbus object to a pointer */
+static DBusConnection*
+xd_lisp_dbus_to_dbus (Lisp_Object bus)
+{
+  return (DBusConnection *) (intptr_t) XFASTINT (bus);
+}
+
 /* Return D-Bus connection address.  BUS is either a Lisp symbol,
    :system or :session, or a string denoting the bus address.  */
 static DBusConnection *
@@ -985,7 +992,7 @@ xd_get_connection_address (Lisp_Object bus)
   if (NILP (val))
     XD_SIGNAL2 (build_string ("No connection to bus"), bus);
   else
-    connection = (DBusConnection *) (intptr_t) XFASTINT (val);
+    connection = xd_lisp_dbus_to_dbus (val);
 
   if (!dbus_connection_get_is_connected (connection))
     XD_SIGNAL2 (build_string ("No connection to bus"), bus);
@@ -1080,14 +1087,21 @@ xd_close_bus (Lisp_Object bus)
 {
   DBusConnection *connection;
   Lisp_Object val;
+  Lisp_Object busobj;
 
   /* Check whether we are connected.  */
   val = Fassoc (bus, xd_registered_buses);
   if (NILP (val))
     return;
 
+  busobj = CDR_SAFE(val);
+  if (NILP (val)) {
+    xd_registered_buses = Fdelete (val, xd_registered_buses);
+    return;
+  }
+
   /* Retrieve bus address.  */
-  connection = xd_get_connection_address (bus);
+  connection = xd_lisp_dbus_to_dbus (busobj);
 
   if (xd_get_connection_references (connection) == 1)
     {

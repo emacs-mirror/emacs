@@ -1,3 +1,11 @@
+2014-02-16  Daniel Colascione  <dancol@dancol.org>
+
+	* dbusbind.c (xd_lisp_dbus_to_dbus): New function.
+	(xd_get_connection_address): Use it.
+	(xd_close_bus): Use xd_lisp_dbus_to_dbus to instead of
+	xd_get_connection_address because the latter signals if the bus
+	we're trying to close is already disconnected.
+
 2014-02-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (start_timer_thread): Pass a non-NULL pointer as last
