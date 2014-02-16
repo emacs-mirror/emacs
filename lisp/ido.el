@@ -2375,14 +2375,14 @@ If cursor is not at the end of the user input, move to end of input."
 			  (if (eq ido-use-filename-at-point 'guess)
 			      (ffap-guesser)
 			    (ffap-string-at-point))))
-	       (not (string-match "^http:/" fn))
-	       (let ((absolute-fn (expand-file-name fn)))
-		 (setq d (if (file-directory-p absolute-fn)
-			     (file-name-as-directory absolute-fn)
-			   (file-name-directory absolute-fn))))
-	       (file-directory-p d))
-	  (setq ido-current-directory d)
-	  (setq initial (file-name-nondirectory fn))))))
+	       (not (string-match "^http:/" fn)))
+          (let ((absolute-fn (expand-file-name fn)))
+            (cond
+             ((file-directory-p absolute-fn)
+              (setq ido-current-directory (file-name-as-directory absolute-fn)))
+             ((file-directory-p (file-name-directory absolute-fn))
+              (setq ido-current-directory (file-name-directory absolute-fn))
+              (setq initial (file-name-nondirectory absolute-fn)))))))))
 
     (let (ido-saved-vc-hb
 	  (vc-handled-backends (and (boundp 'vc-handled-backends) vc-handled-backends))

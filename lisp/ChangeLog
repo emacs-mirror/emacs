@@ -1,3 +1,8 @@
+2014-02-16  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* ido.el (ido-file-internal): Don't add the name of an existing
+	directory twice.  (Bug#16747)
+
 2014-02-16  Glenn Morris  <rgm@gnu.org>
 
 	* vc/ediff-init.el (ediff-use-faces, ediff-highlight-all-diffs):
