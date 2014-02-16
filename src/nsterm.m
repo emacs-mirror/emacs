@@ -5119,9 +5119,17 @@ not_in_argv (NSString *arg)
       /* (Carbon way: [theEvent keyCode]) */
 
       /* is it a "function key"? */
-      fnKeysym = (code < 0x00ff && (flags&NSNumericPadKeyMask))
-	? ns_convert_key ([theEvent keyCode] | NSNumericPadKeyMask)
-	: ns_convert_key (code);
+      /* Note: Sometimes a plain key will have the NSNumericPadKeyMask
+         flag set (this is probably a bug in the OS).
+      */
+      if (code < 0x00ff && (flags&NSNumericPadKeyMask))
+        {
+          fnKeysym = ns_convert_key ([theEvent keyCode] | NSNumericPadKeyMask);
+        }
+      if (fnKeysym == 0)
+        {
+          fnKeysym = ns_convert_key (code);
+        }
 
       if (fnKeysym)
         {

@@ -1,3 +1,8 @@
+2014-02-16  Anders Lindgern <andlind@gmail.com>
+
+	* nsterm.m (keyDown:): Check for normal key even if NSNumericPadKeyMask
+	is set (Bug#16505).
+
 2014-02-16  Daniel Colascione  <dancol@dancol.org>
 
 	* dbusbind.c (xd_lisp_dbus_to_dbus): New function.
