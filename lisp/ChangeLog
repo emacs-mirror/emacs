@@ -1,4 +1,9 @@
-2014-02-14  Michael R. Mauger  <michael@mauger.com>
+2014-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* vc/ediff-init.el (ediff-use-faces, ediff-highlight-all-diffs):
+	Do not use ediff-defvar-local on pre-defined variables.  (Bug#16744)
+
+2014-02-15  Michael R. Mauger  <michael@mauger.com>
 
 	* progmodes/sql.el: Version 3.4
 	(sql-oracle-options): New default value ("-L").
