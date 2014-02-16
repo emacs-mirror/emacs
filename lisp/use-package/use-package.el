@@ -58,6 +58,11 @@
   :type 'number
   :group 'use-package)
 
+(defcustom use-package-idle-interval 3
+  "Time to wait when using :idle in a `use-package' specification."
+  :type 'number
+  :group 'use-package)
+
 (defmacro use-package-with-elapsed-timer (text &rest body)
   (declare (indent 1))
   (let ((nowvar (make-symbol "now")))
@@ -82,7 +87,7 @@
   (unless use-package-idle-timer
     (setq use-package-idle-timer
           (run-with-idle-timer
-           3 t
+           use-package-idle-interval t
            'use-package-idle-eval))))
 
 (defun use-package-init-on-idle (form priority)
@@ -129,7 +134,7 @@ Return nil when the queue is empty."
               "Failure on use-package idle. Form: %s, Error: %s"
               next e)))
           ;; recurse after a bit
-          (when (sit-for 3)
+          (when (sit-for use-package-idle-interval)
             (use-package-idle-eval)))
       ;; finished (so far!)
       (cancel-timer use-package-idle-timer)
