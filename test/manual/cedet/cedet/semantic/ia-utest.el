@@ -1,6 +1,6 @@
 ;;; semantic/ia-utest.el --- Analyzer unit tests
 
-;; Copyright (C) 2008, 2009, 2010, 2011 Eric M. Ludlam
+;; Copyright (C) 2008, 2009, 2010, 2011, 2014 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -50,6 +50,8 @@
     "tests/testsppcomplete.c"
     "tests/testvarnames.c"
     "tests/testjavacomp.java"
+    "tests/testvarnames.java"
+    "tests/testf90.f90"
     )
   "List of files with analyzer completion test points.")
 
