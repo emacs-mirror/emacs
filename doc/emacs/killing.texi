@@ -866,8 +866,9 @@ the prefix key twice, e.g., @kbd{C-x C-x C-f}.
 while retaining the other features of CUA mode described below, set
 the variable @code{cua-enable-cua-keys} to @code{nil}.
 
-  In CUA mode, typed text replaces the active region as in
-Delete-Selection mode (@pxref{Mouse Commands}).
+  CUA mode by default activates Delete-Selection mode (@pxref{Mouse Commands})
+so that typed text replaces the active region.  To use CUA without this
+behavior, set the variable @code{cua-delete-selection} to @code{nil}.
 
 @cindex rectangle highlighting
   CUA mode provides enhanced rectangle support with visible
@@ -877,6 +878,9 @@ extend it using the movement commands, and cut or copy it using
 (clockwise) corner of the rectangle, so you can easily expand it in
 any direction.  Normal text you type is inserted to the left or right
 of each line in the rectangle (on the same side as the cursor).
+
+  You can use this rectangle support without activating CUA by calling the
+@code{cua-rectangle-mark-mode} command.
 
   With CUA you can easily copy text and rectangles into and out of
 registers by providing a one-digit numeric prefix to the kill, copy,

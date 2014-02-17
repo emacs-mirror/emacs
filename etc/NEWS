@@ -159,6 +159,7 @@ non-nil, they output the same results.
 +++
 *** The key `?' now describes prefix bindings, like `C-h'.
 
+---
 *** The command `describe-function' has been extended for EIEIO.
 Running it on constructors will show a full description of the
 generated class.  For generic functions, it will show all
@@ -244,6 +245,7 @@ There is no reason to set this to nil except for debugging purposes.
 This unfinished feature was introduced by accident in Emacs 23.1;
 simply disabling Transient Mark mode does the same thing.
 
+---
 ** The default value of `comment-use-global-state' is now t,
 and this variable has been marked obsolete.
 
@@ -438,6 +440,7 @@ This executes statements while allowing for control transfer to labels.
 
 ** CUA mode
 
++++
 *** CUA mode now uses `delete-selection-mode' and `shift-select-mode'.
 Hence, you can now enable it independently from those modes, and from
 `transient-mark-mode'.
@@ -446,7 +449,9 @@ Hence, you can now enable it independently from those modes, and from
 *** `cua-highlight-region-shift-only' is now obsolete.
 You can disable `transient-mark-mode' to get the same result.
 
-*** CUA's rectangles can now be used via `cua-rectangle-mark-mode'.
++++
+*** CUA's rectangles can now be used without CUA by calling the command
+`cua-rectangle-mark-mode'.
 
 ** CFEngine mode
 
@@ -482,6 +487,7 @@ The results display in the mode line.
 
 ** Electric Pair mode
 
++++
 *** New option `electric-pair-preserve-balance', enabled by default.
 If non-nil, pairing/skipping only kicks in when that help the balance
 of parentheses and quotes, i.e. the buffer should end up at least as
@@ -490,21 +496,25 @@ balanced as before.
 You can further control this behavior by adjusting the predicates
 stored in `electric-pair-inhibit-predicate' and `electric-pair-skip-self'.
 
++++
 *** New option `electric-pair-delete-adjacent-pairs', enabled by default.
 In `electric-pair-mode', the commands `backward-delete-char' and
 `backward-delete-char-untabify' are now bound to electric variants
 that delete the closer when invoked between adjacent pairs.
 
++++
 *** New option `electric-pair-open-newline-between-pairs', enabled by default.
 In `electric-pair-mode', inserting a newline between adjacent pairs
 opens an extra newline after point, which is indented if
 `electric-indent-mode' is also set.
 
++++
 *** New option `electric-pair-skip-whitespace', enabled by default.
 This controls if skipping over closing delimiters should jump over any
 whitespace slack.  Setting it to `chomp' makes it delete this
 whitespace.  See also the variable `electric-pair-skip-whitespace-chars'.
 
+---
 *** New variables control the pairing in strings and comments.
 You can customize `electric-pair-text-pairs' and
 `electric-pair-text-syntax-table' to tweak pairing behavior inside

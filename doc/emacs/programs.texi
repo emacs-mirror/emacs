@@ -867,7 +867,7 @@ makes inserting inserting a newline between two adjacent pairs also
 automatically open and extra newline after point.
 
 @item
-@code{electric-skip-whitespace}, when non-@code{nil}, causes the minor
+@code{electric-pair-skip-whitespace}, when non-@code{nil}, causes the minor
 mode to skip whitespace forward before deciding whether to skip over
 the closing delimiter.
 @end itemize
