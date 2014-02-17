@@ -51,6 +51,28 @@
 ;;
 ;;   (unbind-key "C-c x" some-other-mode-map)
 ;;
+;; To bind multiple keys at once, or set up a prefix map, a
+;; `bind-keys' macro is provided.  It accepts keyword arguments, see
+;; its documentation for detailed description.
+;;
+;; To add keys into a specific map, use :map argument
+;;
+;;    (bind-keys :map dired-mode-map
+;;               ("o" . dired-omit-mode)
+;;               ("a" . some-custom-dired-function))
+;;
+;; To set up a prefix map, use :prefix-map and :prefix
+;; arguments (both are required)
+;;
+;;    (bind-keys :prefix-map my-customize-prefix-map
+;;               :prefix "C-c c"
+;;               ("f" . customize-face)
+;;               ("v" . customize-variable))
+;;
+;; You can combine all the keywords together.
+;; Additionally, :prefix-docstring can be specified to set
+;; documentation of created :prefix-map variable.
+;;
 ;; After Emacs loads, you can see a summary of all your personal keybindings
 ;; currently in effect with this command:
 ;;
@@ -117,6 +139,45 @@
   `(progn
      (bind-key ,key-name ,command)
      (define-key override-global-map ,(read-kbd-macro key-name) ,command)))
+
+(defmacro bind-keys (&rest args)
+  "Bind multiple keys at once.
+
+Accepts keyword arguments:
+:map - a keymap into which the keybindings should be added
+:prefix-map - name of the prefix map that should be created for
+              these bindings
+:prefix - prefix key for these bindings
+:prefix-docstring - docstring for the prefix-map variable
+
+The rest of the arguments are conses of keybinding string and a
+function symbol (unquoted)."
+  (let ((map (plist-get args :map))
+        (doc (plist-get args :prefix-docstring))
+        (prefix-map (plist-get args :prefix-map))
+        (prefix (plist-get args :prefix))
+        (key-bindings (progn
+                        (while (keywordp (car args))
+                          (pop args)
+                          (pop args))
+                        args)))
+    (when (or (and prefix-map
+                   (not prefix))
+              (and prefix
+                   (not prefix-map)))
+      (error "Both :prefix-map and :prefix must be supplied"))
+    `(progn
+       ,@(when prefix-map
+           `((defvar ,prefix-map)
+             ,@(when doc `((put ',prefix-map'variable-documentation ,doc)))
+             (define-prefix-command ',prefix-map)
+             (bind-key ,prefix ',prefix-map ,@(when map (list map)))))
+       ,@(mapcar (lambda (form) `(bind-key ,(if prefix
+                                                (concat prefix " " (car form))
+                                              (car form))
+                                           ',(cdr form)
+                                           ,@(when map (list map))))
+                 key-bindings))))
 
 (defun get-binding-description (elem)
   (cond
