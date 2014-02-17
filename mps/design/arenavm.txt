@@ -167,13 +167,7 @@ the base address in the VM. Namely:
 - base address to index: ``index = (base-address - arena-base) / page-size``
 
 _`.table.page.partial`: The table is partially mapped on an
-"as-needed" basis. The function ``unusedTablePages()`` identifies
-entirely unused pages occupied by the page table itself (that is,
-those pages of the page table which are occupied by ``PageStruct``
-objects which all describe free pages). Tract allocation and freeing
-use this function to map and unmap the page table with no hysteresis.
-(There is restriction on the parameters you may pass to
-``unusedTablePages()``.)
+"as-needed" basis using the SparseArray abstract type.
 
 _`.table.page.tract`: Each page table entry contains a tract, which is
 only valid if it is allocated to a pool. If it is not allocated to a
@@ -214,6 +208,9 @@ Document History
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 
 - 2013-05-24 GDR_ Converted to reStructuredText.
+
+- 2014-02-17 RB_ Updated to note use of SparseArray rather than direct
+management of page table mapping.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/

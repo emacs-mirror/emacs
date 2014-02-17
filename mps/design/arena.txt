@@ -233,14 +233,14 @@ associating their own data with each allocation grain.
 _`.tract.structure`: The tract structure definition looks like this::
 
     typedef struct TractStruct { /* Tract structure */
-      Pool pool;   /* MUST BE FIRST (design.mps.arena.tract.field.pool) */
+      PagePoolUnion pool; /* MUST BE FIRST (design.mps.arena.tract.field.pool) */
       void *p;                    /* pointer for use of owning pool */
       Addr base;                  /* Base address of the tract */
       TraceSet white : TRACE_MAX; /* traces for which tract is white */
       unsigned int hasSeg : 1;    /* does tract have a seg in p?  */
     } TractStruct;
 
-_`.tract.field.pool`: The pool field indicates to which pool the tract
+_`.tract.field.pool`: The pool.pool field indicates to which pool the tract
 has been allocated (`.req.fun.trans.pool`_). Tracts are only valid
 when they are allocated to pools. When tracts are not allocated to
 pools, arena classes are free to reuse tract objects in undefined
@@ -545,6 +545,8 @@ Document History
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 
 - 2013-03-11 GDR_ Converted to reStructuredText.
+
+- 2014-02-17 RB_ Updated first field of tract structure.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
