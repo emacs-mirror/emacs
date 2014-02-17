@@ -1176,6 +1176,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should (file-exists-p tmp-name))
           (async-shell-command
 	   (format "ls %s" (file-name-nondirectory tmp-name)) (current-buffer))
+	  (sit-for 1 'nodisplay)
 	  (while (ignore-errors
 		   (memq (process-status (get-buffer-process (current-buffer)))
 			 '(run open)))
@@ -1193,6 +1194,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (process-send-string
 	   (get-buffer-process (current-buffer))
 	   (format "%s\n" (file-name-nondirectory tmp-name)))
+	  (sit-for 1 'nodisplay)
 	  (while (ignore-errors
 		   (memq (process-status (get-buffer-process (current-buffer)))
 			 '(run open)))

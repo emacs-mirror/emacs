@@ -1,3 +1,8 @@
+2014-02-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test28-shell-command): Perform
+	an initial `sit-for' prior the while loop.
+
 2014-02-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.9.
