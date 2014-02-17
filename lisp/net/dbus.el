@@ -260,6 +260,7 @@ object is returned instead of a list containing this single Lisp object.
       (signal 'wrong-type-argument (list 'stringp method)))
 
   (let ((timeout (plist-get args :timeout))
+        (check-interval 0.001)
 	(key
 	 (apply
 	  'dbus-message-internal dbus-message-type-method-call
@@ -270,13 +271,21 @@ object is returned instead of a list containing this single Lisp object.
     ;; default 25".  Events which are not from D-Bus must be restored.
     ;; `read-event' performs a redisplay.  This must be suppressed; it
     ;; hurts when reading D-Bus events asynchronously.
+
+    ;; Work around bug#16775 by busy-waiting with gradual backoff for
+    ;; dbus calls to complete.  A better aproach would involve either
+    ;; adding arbitrary wait condition support to read-event or
+    ;; restructuring dbus as a kind of process object.  Poll at most
+    ;; about once per second for completion.
+
     (with-timeout ((if timeout (/ timeout 1000.0) 25))
       (while (eq (gethash key dbus-return-values-table :ignore) :ignore)
-	(let ((event (let ((inhibit-redisplay t) unread-command-events)
-		       (read-event nil nil 0.1))))
-	  (when (and event (not (ignore-errors (dbus-check-event event))))
-	    (setq unread-command-events
-		  (append unread-command-events (list event)))))))
+        (let ((event (let ((inhibit-redisplay t) unread-command-events)
+		       (read-event nil nil check-interval))))
+          (when event
+            (push event unread-command-events))
+          (when (< check-interval 1)
+            (setf check-interval (* check-interval 1.05))))))
 
     ;; Cleanup `dbus-return-values-table'.  Return the result.
     (prog1
