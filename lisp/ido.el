@@ -430,10 +430,10 @@ in merged file and directory lists."
 ;;  (with-current-buffer name
 ;;    (derived-mode-p 'c-mode)))
 ;;
-;;(setq ido-ignore-buffers '("^ " ido-ignore-c-mode))
+;;(setq ido-ignore-buffers '("\\` " ido-ignore-c-mode))
 
 ;; Examples for setting the value of ido-ignore-files
-;;(setq ido-ignore-files '("^ " "\\.c\\'" "\\.h\\'"))
+;;(setq ido-ignore-files '("\\` " "\\.c\\'" "\\.h\\'"))
 
 (defcustom ido-default-file-method  'raise-frame
   "How to visit a new file when using `ido-find-file'.
@@ -2356,8 +2356,8 @@ If cursor is not at the end of the user input, move to end of input."
 		 (ido-directory-too-big-p ido-current-directory))))
 
     (when (and (eq item 'file)
-	   (or ido-use-url-at-point ido-use-filename-at-point))
-      (let (fn d)
+               (or ido-use-url-at-point ido-use-filename-at-point))
+      (let (fn)
 	(require 'ffap)
 	;; Duplicate code from ffap-guesser as we want different
 	;; behavior for files and URLs.
@@ -2375,17 +2375,19 @@ If cursor is not at the end of the user input, move to end of input."
 			  (if (eq ido-use-filename-at-point 'guess)
 			      (ffap-guesser)
 			    (ffap-string-at-point))))
-	       (not (string-match "^http:/" fn)))
+	       (not (string-match "\\`http:/" fn)))
           (let ((absolute-fn (expand-file-name fn)))
             (cond
              ((file-directory-p absolute-fn)
-              (setq ido-current-directory (file-name-as-directory absolute-fn)))
+              (setq ido-current-directory
+                    (file-name-as-directory absolute-fn)))
              ((file-directory-p (file-name-directory absolute-fn))
               (setq ido-current-directory (file-name-directory absolute-fn))
               (setq initial (file-name-nondirectory absolute-fn)))))))))
 
     (let (ido-saved-vc-hb
-	  (vc-handled-backends (and (boundp 'vc-handled-backends) vc-handled-backends))
+	  (vc-handled-backends (and (boundp 'vc-handled-backends)
+                                    vc-handled-backends))
 	  (ido-work-directory-index -1)
 	  (ido-work-file-index -1)
        	  (ido-find-literal nil))
@@ -2393,11 +2395,13 @@ If cursor is not at the end of the user input, move to end of input."
       (unless filename
 	(setq ido-saved-vc-hb vc-handled-backends)
 	(let ((minibuffer-completing-file-name t))
-	  (setq filename (ido-read-internal item
-					    (or prompt "Find file: ")
-					    'ido-file-history
-					    (and (eq method 'alt-file) buffer-file-name)
-					    (confirm-nonexistent-file-or-buffer) initial))))
+	  (setq filename
+                (ido-read-internal item
+                                   (or prompt "Find file: ")
+                                   'ido-file-history
+                                   (and (eq method 'alt-file) buffer-file-name)
+                                   (confirm-nonexistent-file-or-buffer)
+                                   initial))))
 
       ;; Choose the file name: either the text typed in, or the head
       ;; of the list of matches
@@ -2414,11 +2418,13 @@ If cursor is not at the end of the user input, move to end of input."
 
        ((eq ido-exit 'switch-to-buffer)
 	(ido-buffer-internal
-	 (if (memq method '(other-window other-frame)) method ido-default-buffer-method)
+	 (if (memq method '(other-window other-frame))
+             method ido-default-buffer-method)
 	 nil nil nil ido-text))
 
        ((eq ido-exit 'insert-buffer)
-	(ido-buffer-internal 'insert 'insert-buffer "Insert buffer: " nil ido-text 'ido-enter-insert-file))
+	(ido-buffer-internal 'insert 'insert-buffer "Insert buffer: "
+                             nil ido-text 'ido-enter-insert-file))
 
        ((eq ido-exit 'dired)
         (funcall (cond ((eq method 'other-window) 'dired-other-window)
@@ -2438,7 +2444,8 @@ If cursor is not at the end of the user input, move to end of input."
        ((memq method '(dired list-directory))
 	(if (equal filename ".")
 	    (setq filename ""))
-	(let* ((dirname (ido-final-slash (concat ido-current-directory filename) t))
+	(let* ((dirname (ido-final-slash
+                         (concat ido-current-directory filename) t))
 	       (file (substring dirname 0 -1)))
 	  (cond
 	   ((file-directory-p dirname)
@@ -2459,7 +2466,8 @@ If cursor is not at the end of the user input, move to end of input."
 	      (ido-record-command method dirname)
 	      (ido-record-work-directory)
 	      (funcall method dirname))
-	     ((y-or-n-p (format "Directory %s does not exist.  Create it? " filename))
+	     ((y-or-n-p (format "Directory %s does not exist.  Create it? "
+                                filename))
 	      (ido-record-command method dirname)
 	      (ido-record-work-directory dirname)
 	      (make-directory-internal dirname)
@@ -2505,7 +2513,8 @@ If cursor is not at the end of the user input, move to end of input."
 	(ido-record-command 'find-file filename)
 	(add-to-history 'file-name-history filename)
 	(ido-record-work-directory)
-	(ido-visit-buffer (find-file-noselect filename nil ido-find-literal) method))))))
+	(ido-visit-buffer (find-file-noselect filename nil ido-find-literal)
+                          method))))))
 
 (defun ido-existing-item-p ()
   ;; Return non-nil if there is a matching item

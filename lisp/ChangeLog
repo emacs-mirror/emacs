@@ -1,3 +1,8 @@
+2014-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ido.el (ido-file-internal): Remove unused var `d'.
+	Use \` for to match BoS.  Fit within 80n columns.
+
 2014-02-17  Daniel Colascione  <dancol@dancol.org>
 
 	* net/dbus.el (dbus-call-method): Work around bug#16775 by having
@@ -24,8 +29,7 @@
 
 	* progmodes/sql.el: Version 3.4
 	(sql-oracle-options): New default value ("-L").
-	(sql-mode-oracle-font-lock-keywords): Added placeholder
-	highlighting.
+	(sql-mode-oracle-font-lock-keywords): Add placeholder highlighting.
 	(sql-placeholders-filter): Correct placeholder pattern.
 	(sql-read-table-name): Bug fix. Detect absence of SQLi process.
 	(sql-login-delay): New variable.
