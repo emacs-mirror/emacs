@@ -392,7 +392,7 @@ static Res chunkAlloc(Addr *baseReturn, Tract *baseTractReturn,
   clChunk->freePages -= pages;
 
   *baseReturn = PageIndexBase(chunk, baseIndex);
-  *baseTractReturn = PageTract(&chunk->pageTable[baseIndex]);
+  *baseTractReturn = PageTract(ChunkPage(chunk, baseIndex));
 
   return ResOK;
 }
@@ -471,8 +471,7 @@ static void ClientFree(Addr base, Size size, Pool pool)
   AVER(limitIndex <= chunk->pages);
 
   for(pi = baseIndex; pi < limitIndex; pi++) {
-    Page page = &chunk->pageTable[pi];
-    Tract tract = PageTract(page);
+    Tract tract = PageTract(ChunkPage(chunk, pi));
 
     AVER(TractPool(tract) == pool);
     TractFinish(tract);

@@ -21,7 +21,7 @@
 
 typedef struct SparseArrayStruct *SparseArray;
 
-#define SparseArraySig  ((Sig)0x5195BA66) /* SIGnature SParse ARRAy */
+#define SparseArraySig  ((Sig)0x5195BA66) /* SIGnature SParse ARRay */
 
 typedef struct SparseArrayStruct {
   Sig sig;
