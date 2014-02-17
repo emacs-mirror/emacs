@@ -1,3 +1,9 @@
+2014-02-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset-cfg-id): New function.
+	(frameset--reuse-frame, frameset-restore): Use it.
+	(frameset--jump-to-register): Try harder to reuse frames (bug#16748).
+
 2014-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ido.el (ido-file-internal): Remove unused var `d'.

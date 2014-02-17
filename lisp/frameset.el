@@ -682,6 +682,11 @@ Internal use only."
 			 (mapconcat (lambda (n) (format "%04X" n))
 				    (cl-loop repeat 4 collect (random 65536))
 				    "-"))))
+
+(defun frameset-cfg-id (frame-cfg)
+  "Return the frame id for frame configuration FRAME-CFG."
+  (cdr (assq 'frameset--id frame-cfg)))
+
 ;;;###autoload
 (defun frameset-frame-id (frame)
   "Return the frame id of FRAME, if it has one; else, return nil.
@@ -900,7 +905,7 @@ is the parameter alist of the frame being restored.  Internal use only."
 	   (setq frame (frameset--find-frame-if
 			(lambda (f id)
 			  (frameset-frame-id-equal-p f id))
-			display (cdr (assq 'frameset--id parameters))))
+			display (frameset-cfg-id parameters)))
 	   ;; If it has not been loaded, and it is not a minibuffer-only frame,
 	   ;; let's look for an existing non-minibuffer-only frame to reuse.
 	   (unless (or frame (eq (cdr (assq 'minibuffer parameters)) 'only))
@@ -921,8 +926,7 @@ is the parameter alist of the frame being restored.  Internal use only."
 				   (frameset-frame-id-equal-p
 				    (window-frame (minibuffer-window f))
 				    mini-id))))
-			display
-			(cdr (assq 'frameset--id parameters)) (cdr mini))))
+			display (frameset-cfg-id parameters) (cdr mini))))
 	  (t
 	   ;; Default to just finding a frame in the same display.
 	   (setq frame (frameset--find-frame-if nil display))))
@@ -1136,7 +1140,7 @@ All keyword parameters default to nil."
 		  ;; frameset--id from the non-reusable frame, which is not useful anymore.
 		  (when (and other-frames
 			     (or (eq reuse-frames :keep) (consp reuse-frames)))
-		    (let ((dup (frameset-frame-with-id (cdr (assq 'frameset--id frame-cfg))
+		    (let ((dup (frameset-frame-with-id (frameset-cfg-id frame-cfg)
 						       other-frames)))
 		      (when dup
 			(set-frame-parameter dup 'frameset--id nil))))
@@ -1207,20 +1211,33 @@ All keyword parameters default to nil."
 (defun frameset--jump-to-register (data)
   "Restore frameset from DATA stored in register.
 Called from `jump-to-register'.  Internal use only."
-  (let* ((delete (and current-prefix-arg t))
-	 (iconify-list (if delete nil (frame-list))))
-    (frameset-restore (aref data 0)
+  (let ((fs (aref data 0))
+	reuse-frames iconify-list)
+    (if current-prefix-arg
+	;; Reuse all frames and delete any left unused
+	(setq reuse-frames t)
+      ;; Reuse matching frames and leave others to be iconified
+      (setq iconify-list (frame-list))
+      (dolist (state (frameset-states fs))
+	(let ((frame (frameset-frame-with-id (frameset-cfg-id (car state))
+					     iconify-list)))
+	  (when frame
+	    (push frame reuse-frames)
+	    (setq iconify-list (delq frame iconify-list))))))
+    (frameset-restore fs
 		      :filters frameset-session-filter-alist
-		      :reuse-frames (if delete t :keep))
-    (mapc #'iconify-frame iconify-list)
-    (let ((frame (frameset-frame-with-id (aref data 1)))
-	  buffer window)
-      (when frame
-	(select-frame-set-input-focus frame)
-	(when (and (buffer-live-p (setq buffer (marker-buffer (aref data 2))))
-		   (window-live-p (setq window (get-buffer-window buffer frame))))
-	  (set-frame-selected-window frame window)
-	  (with-current-buffer buffer (goto-char (aref data 2))))))))
+		      :reuse-frames reuse-frames)
+    (mapc #'iconify-frame iconify-list))
+
+  ;; Restore selected frame, buffer and point.
+  (let ((frame (frameset-frame-with-id (aref data 1)))
+	buffer window)
+    (when frame
+      (select-frame-set-input-focus frame)
+      (when (and (buffer-live-p (setq buffer (marker-buffer (aref data 2))))
+		 (window-live-p (setq window (get-buffer-window buffer frame))))
+	(set-frame-selected-window frame window)
+	(with-current-buffer buffer (goto-char (aref data 2)))))))
 
 ;;;###autoload
 (defun frameset-to-register (register)
