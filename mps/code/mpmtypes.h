@@ -88,7 +88,7 @@ typedef struct mps_chain_s *Chain;      /* <design/trace/> */
 typedef struct TractStruct *Tract;      /* <design/arena/> */
 typedef struct ChunkStruct *Chunk;      /* <code/tract.c> */
 typedef struct ChunkCacheEntryStruct *ChunkCacheEntry; /* <code/tract.c> */
-typedef struct PageStruct *Page;        /* <code/tract.c> */
+typedef union PageUnion *Page;          /* <code/tract.c> */
 typedef struct SegStruct *Seg;          /* <code/seg.c> */
 typedef struct GCSegStruct *GCSeg;      /* <code/seg.c> */
 typedef struct SegClassStruct *SegClass; /* <code/seg.c> */
@@ -119,7 +119,7 @@ typedef Res (*ArenaInitMethod)(Arena *arenaReturn,
                                ArenaClass class, ArgList args);
 typedef void (*ArenaFinishMethod)(Arena arena);
 typedef Size (*ArenaReservedMethod)(Arena arena);
-typedef void (*ArenaSpareCommitExceededMethod)(Arena arena);
+typedef Size (*ArenaPurgeSpareMethod)(Arena arena, Size size);
 typedef Res (*ArenaExtendMethod)(Arena arena, Addr base, Size size);
 typedef Res (*ArenaAllocMethod)(Addr *baseReturn, Tract *baseTractReturn,
                                 SegPref pref, Size size, Pool pool);

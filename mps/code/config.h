@@ -504,10 +504,14 @@
 
 #define MPS_PROD_STRING         "mps"
 #define MPS_PROD_MPS
-#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
 #define THREAD_MULTI
 #define PROTECTION
 #define PROD_CHECKLEVEL_INITIAL CheckLevelSHALLOW
+
+/* TODO: This should be proportional to the memory usage of the MPS, not
+   a constant.  That will require design, and then some interface and
+   documenation changes. */
+#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
 
 
 /* Pool Class AMC configuration */

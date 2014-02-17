@@ -588,7 +588,7 @@ extern Size ArenaCommitLimit(Arena arena);
 extern Res ArenaSetCommitLimit(Arena arena, Size limit);
 extern Size ArenaSpareCommitLimit(Arena arena);
 extern void ArenaSetSpareCommitLimit(Arena arena, Size limit);
-extern void ArenaNoSpareCommitExceeded(Arena arena);
+extern Size ArenaNoPurgeSpare(Arena arena, Size size);
 
 extern double ArenaMutatorAllocSize(Arena arena);
 extern Size ArenaAvail(Arena arena);
@@ -844,13 +844,15 @@ extern Bool RankSetCheck(RankSet rankSet);
 #define ZoneSetUnion(zs1, zs2) BS_UNION(zs1, zs2)
 #define ZoneSetInter(zs1, zs2) BS_INTER(zs1, zs2)
 #define ZoneSetDiff(zs1, zs2)  BS_DIFF(zs1, zs2)
-#define ZoneSetAdd(arena, zs, addr) \
+#define ZoneSetAddAddr(arena, zs, addr) \
   BS_ADD(ZoneSet, zs, AddrZone(arena, addr))
-#define ZoneSetIsMember(arena, zs, addr) \
+#define ZoneSetHasAddr(arena, zs, addr) \
   BS_IS_MEMBER(zs, AddrZone(arena, addr))
 #define ZoneSetSub(zs1, zs2)   BS_SUB(zs1, zs2)
 #define ZoneSetSuper(zs1, zs2) BS_SUPER(zs1, zs2)
 #define ZoneSetComp(zs)        BS_COMP(zs)
+#define ZoneSetIsMember(zs, z) BS_IS_MEMBER(zs, z)
+
 
 extern ZoneSet ZoneSetOfRange(Arena arena, Addr base, Addr limit);
 extern ZoneSet ZoneSetOfSeg(Arena arena, Seg seg);
