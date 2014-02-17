@@ -60,7 +60,7 @@ AMCZ interface
     Mostly-Copying Zero-rank) :term:`pool`.
 
     When creating an AMCZ pool, :c:func:`mps_pool_create_k` requires
-    two :term:`keyword arguments`:
+    one :term:`keyword argument`:
 
     * :c:macro:`MPS_KEY_FORMAT` (type :c:type:`mps_fmt_t`) specifies
       the :term:`object format` for the objects allocated in the pool.
@@ -68,13 +68,15 @@ AMCZ interface
       method`, an :term:`is-forwarded method` and a :term:`padding
       method`.
 
+    It accepts one optional keyword argument:
+
     * :c:macro:`MPS_KEY_CHAIN` (type :c:type:`mps_chain_t`) specifies
-      the :term:`generation chain` for the pool.
+      the :term:`generation chain` for the pool. If not specified, the
+      pool will use the arena's default chain.
 
     For example::
 
         MPS_ARGS_BEGIN(args) {
-            MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
             MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
             MPS_ARGS_DONE(args);
             res = mps_pool_create_k(&pool, arena, mps_class_amcz(), args);
@@ -85,7 +87,7 @@ AMCZ interface
         When using :c:func:`mps_pool_create`, pass the format and
         chain like this::
 
-          mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                    mps_class_t mps_class_amcz(),
-                                    mps_fmt_t fmt,
-                                    mps_chain_t chain)
+            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
+                                      mps_class_t mps_class_amcz(),
+                                      mps_fmt_t fmt,
+                                      mps_chain_t chain)
