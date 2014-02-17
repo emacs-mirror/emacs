@@ -283,7 +283,9 @@ object is returned instead of a list containing this single Lisp object.
         (let ((event (let ((inhibit-redisplay t) unread-command-events)
 		       (read-event nil nil check-interval))))
           (when event
-            (push event unread-command-events))
+            (setf unread-command-events
+                  (nconc unread-command-events
+                         (cons event nil))))
           (when (< check-interval 1)
             (setf check-interval (* check-interval 1.05))))))
 
