@@ -90,6 +90,7 @@ shield_                 Shield abstraction: separate control of collector access
 sig_                    Signatures in the MPS
 splay_                  Design of splay trees
 sso1al_                 Stack scanner for Digital Unix / Alpha systems
+strategy_               Collection strategy
 telemetry_              The design of the MPS telemetry mechanism
 tests_                  The design of MPS internal tests
 thread-manager_         The design of the MPS thread manager
@@ -156,6 +157,7 @@ writef_                 The design of the MPS writef function
 .. _sig: sig
 .. _splay: splay
 .. _sso1al: sso1al
+.. _strategy: strategy
 .. _telemetry: telemetry
 .. _tests: tests
 .. _thread-manager: thread-manager
@@ -199,6 +201,7 @@ Document History
 - 2013-05-22 	GDR_ 	Add link to keyword-arguments.
 - 2013-05-25 	RB_ 	Replacing "cstyle" with reworked "guide.impl.c.format".
 - 2013-06-07	RB_	Converting to reST_.  Linking to [RB_2002-06-18]_.
+- 2014-01-29    RB_     The arena no longer manages generation zonesets.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb
 .. _NB: http://www.ravenbrook.com/consultants/nb
