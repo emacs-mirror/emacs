@@ -5,7 +5,8 @@
  */
 
 #include "sa.h"
-#include "mpmst.h"
+#include "mpm.h"
+#include "bt.h"
 
 static Index pagesLength(SparseArray sa)
 {
@@ -51,8 +52,9 @@ Bool SparseArrayCheck(SparseArray sa)
   CHECKL(VMCheck(sa->vm));
   CHECKL(sa->elementSize <= VMAlign(sa->vm));
   CHECKL(sa->length > 0);
-  CHECKL(BTCheck(sa->mapped));
-  CHECKL(BTCheck(sa->pages));
+  /* TODO: Make BTCheck extern and use everywhere. */
+  /* CHECKL(BTCheck(sa->mapped)); */
+  /* CHECKL(BTCheck(sa->pages)); */
   CHECKL(sa->shift == SizeLog2(VMAlign(sa->vm)));
   return TRUE;
 }
