@@ -17,11 +17,6 @@ management>` but :term:`non-moving <non-moving garbage collector>`
 :term:`pool class`. It should be used instead of :ref:`pool-amc` for
 blocks that need to be automatically managed, but cannot be moved.
 
-AMS does not use :term:`generational garbage collection`, but when
-creating a pool you use a :term:`generation chain` to specify the
-capacity and mortality of a single "generation". These numbers are
-used to schedule the collection of the whole pool.
-
 .. note::
 
     AMS is likely to be useful as a step in integrating a program with
@@ -55,6 +50,9 @@ AMS properties
 
 * Garbage collections are scheduled automatically. See
   :ref:`topic-collection-schedule`.
+
+* Does not use :term:`generational garbage collection`, so blocks are
+  never promoted out of the generation in which they are allocated.
 
 * Blocks may contain :term:`exact references` to blocks in the same or
   other pools, or :term:`ambiguous references` (if the
@@ -116,6 +114,21 @@ AMS interface
       the :term:`generation chain` for the pool. It must have a single
       generation.
 
+    It accepts three optional keyword arguments:
+
+    * :c:macro:`MPS_KEY_CHAIN` (type :c:type:`mps_chain_t`) specifies
+      the :term:`generation chain` for the pool. If not specified, the
+      pool will use the arena's default chain.
+
+    * :c:macro:`MPS_KEY_GEN` (type :c:type:`unsigned`) specifies the
+      :term:`generation` in the chain into which new objects will be
+      allocated. If you pass your own chain, then this defaults to
+      ``0``, but if you didn't (and so use the arena's default chain),
+      then an appropriate generation is used.
+
+      Note that AWL does not use generational garbage collection, so
+      blocks remain in this generation and are not promoted.
+
     * :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` (type
       :c:type:`mps_bool_t`, default false) specifies whether references
       may be ambiguous.
@@ -123,7 +136,6 @@ AMS interface
     For example::
 
         MPS_ARGS_BEGIN(args) {
-            MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
             MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
             MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, 1);
             MPS_ARGS_DONE(args);
@@ -132,8 +144,8 @@ AMS interface
 
     .. deprecated:: starting with version 1.112.
 
-        When using :c:func:`mps_pool_create`, pass the format and
-        chain like this::
+        When using :c:func:`mps_pool_create`, pass the format,
+        chain, and ambiguous flag like this::
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
                                       mps_class_t mps_class_ams(),
