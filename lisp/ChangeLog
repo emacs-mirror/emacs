@@ -1,3 +1,20 @@
+2014-02-17  Alan Mackenzie  <acm@muc.de>
+
+	Connect electric-indent-mode up with CC Mode.  Bug #15478.
+	* progmodes/cc-mode.el (c-initialize-cc-mode): add CC Mode hooks
+	to electric-indent-{,local-}-mode.
+	(c-basic-common-init): Set electric-indent-inhibit.  Initialise
+	c-electric-flag from electric-indent-mode.
+	(c-electric-indent-mode-hook, c-electric-indent-local-mode-hook):
+	New hook functions which propagate electric-indent-mode to CC
+	Mode.
+
+	* progmodes/cc-cmds.el (c-toggle-electric-state): When C-c C-l is
+	hit, toggle electric-indent-local-moode.
+
+	* electric.el (electric-indent-mode-has-been-called): New
+	variable.
+
 2014-02-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el (frameset-cfg-id): New function.

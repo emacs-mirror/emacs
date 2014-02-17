@@ -286,6 +286,9 @@ mode set `electric-indent-inhibit', but this can be used as a workaround.")
   (let ((electric-indent-mode nil))
     (newline arg 'interactive)))
 
+(defvar electric-indent-mode-has-been-called 0
+  "How many times has `electric-indent-mode' been called?
+It's > 1 if it's been called at least once by the user.")
 ;;;###autoload
 (define-minor-mode electric-indent-mode
   "Toggle on-the-fly reindentation (Electric Indent mode).
@@ -299,6 +302,8 @@ insert a character from `electric-indent-chars'."
   :global t :group 'electricity
   :initialize 'custom-initialize-delay
   :init-value t
+  (setq electric-indent-mode-has-been-called
+	(1+ electric-indent-mode-has-been-called))
   (if (not electric-indent-mode)
       (progn
         (when (eq (lookup-key global-map [?\C-j])
