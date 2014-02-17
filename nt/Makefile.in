@@ -172,7 +172,7 @@ install: $(DESTDIR)${archlibdir}
 	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} "$(DESTDIR)${bindir}"/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
 	done
 	${MKDIR_P} "$(DESTDIR)${datadir}/emacs/$(version)"
-	$(INSTALL_DATA) README.W32 "$(DESTDIR)${datadir}/emacs/$(version)"
+	$(INSTALL_DATA) ${srcdir}/README.W32 "$(DESTDIR)${datadir}/emacs/$(version)"
 
 uninstall:
 	rm -f "$(DESTDIR)${datadir}/emacs/$(version)/README.W32"

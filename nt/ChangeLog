@@ -1,7 +1,7 @@
 2014-02-17  Juanma Barranquero  <lekktu@gmail.com>
 
-	* Makefile.in (install): Create destination directory before
-	copying README.W32 (bug#16772).
+	* Makefile.in (install): Create destination directory before copying
+	README.W32, and use ${datadir} to refer to the file (bug#16772).
 
 2014-02-13  Juanma Barranquero  <lekktu@gmail.com>
 
