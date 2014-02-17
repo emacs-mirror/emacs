@@ -1544,19 +1544,11 @@ comes out upside-down.
 @node Class Values
 @chapter Class Values
 
-Details about any class or object can be retrieved using the function
-@code{eieio-describe-class}.  Interactively, type in the name of a
-class.  In a program, pass it a string with the name of a class, a
-class symbol, or an object.  The resulting buffer will display all
-slot names.  Additionally, all methods defined to have functionality
-on this class is displayed.
-
-You can also use the normal @code{describe-function} to retrieve
-information about a class.  If you call it on a constructor function,
-it will also display the class information.  If you call it on a
-generic function, all implementations of that generic function will be
-listed, together with links through which you can directly jump to the
-source.
+You can use the normal @code{describe-function} command to retrieve
+information about a class.  Running it on constructors will show a
+full description of the generated class.  If you call it on a generic
+function, all implementations of that generic function will be listed,
+together with links through which you can directly jump to the source.
 
 @node Default Superclass
 @chapter Default Superclass
@@ -1864,9 +1856,8 @@ loaded so the form @code{(setf (slot-value object slot) t)} should
 work.
 @end table
 
-CLOS supports the @code{describe} command, but @eieio{} only provides
-@code{eieio-describe-class}, and @code{eieio-describe-generic}.  Those
-are automatically called by @code{describe-function} when called on a
+CLOS supports the @code{describe} command, but @eieio{} provides
+support for using the standard @code{describe-function} command on a
 constructor or generic function.
 
 When creating a new class (@pxref{Building Classes}) there are several

@@ -1,7 +1,11 @@
+2014-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* eieio.texi (Class Values, CLOS compatibility):
+	Remove references to deleted eieio-describe-class/generic.
+
 2014-02-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.9.
-
 	* trampver.texi: Update release number.
 
 	* efaq-w32.texi (Tramp ssh): Remove also pscp1 and pscp2.

@@ -95,7 +95,7 @@
 ;; Where FILENAME is a file in the root directory of the project.
 ;; Where MYFCN is a symbol for a function.  See:
 ;;
-;; M-x describe-class RET ede-cpp-root-project RET
+;; M-x describe-function RET ede-cpp-root-project RET
 ;;
 ;; for documentation about the locate-fcn extension.
 ;;
