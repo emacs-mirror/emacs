@@ -211,25 +211,39 @@ This function works by calling the
 @end smallexample
 @end defun
 
-@defun read-regexp prompt &optional default history
+@defun read-regexp prompt &optional defaults history
 This function reads a regular expression as a string from the
-minibuffer and returns it.  The argument @var{prompt} is used as in
-@code{read-from-minibuffer}.
+minibuffer and returns it.  If the minibuffer prompt string
+@var{prompt} does not end in @samp{:} (followed by optional
+whitespace), the function adds @samp{: } to the end, preceded by the
+default return value (see below), if that is non-empty.
 
-The optional argument @var{default} specifies a default value to
-return if the user enters null input; it should be a string, or
-@code{nil}, which is equivalent to an empty string.
+The optional argument @var{defaults} controls the default value to
+return if the user enters null input, and should be one of: a string;
+@code{nil}, which is equivalent to an empty string; a list of strings;
+or a symbol.
 
-The optional argument @var{history}, if non-@code{nil}, is a symbol
-specifying a minibuffer history list to use (@pxref{Minibuffer
-History}).  If it is omitted or @code{nil}, the history list defaults
-to @code{regexp-history}.
+If @var{defaults} is a symbol, @code{read-regexp} consults the value
+of the variable @code{read-regexp-defaults-function} (see below), and
+if that is non-@code{nil} uses it in preference to @var{defaults}.
+The value in this case should be either:
 
-@code{read-regexp} also collects a few useful candidates for input and
-passes them to @code{read-from-minibuffer}, to make them available to
-the user as the ``future minibuffer history list'' (@pxref{Minibuffer
-History, future list,, emacs, The GNU Emacs Manual}).  These
-candidates are:
+@itemize @minus
+@item
+@code{regexp-history-last}, which means to use the first element of
+the appropriate minibuffer history list (see below).
+
+@item
+A function of no arguments, whose return value (which should be
+@code{nil}, a string, or a list of strings) becomes the value of
+@var{defaults}.
+@end itemize
+
+@code{read-regexp} now ensures that the result of processing
+@var{defaults} is a list (i.e., if the value is @code{nil} or a
+string, it converts it to a list of one element).  To this list,
+@code{read-regexp} then appends a few potentially useful candidates for
+input.  These are:
 
 @itemize @minus
 @item
@@ -242,9 +256,36 @@ The last string used in an incremental search.
 The last string or pattern used in query-replace commands.
 @end itemize
 
-This function works by calling the @code{read-from-minibuffer}
-function, after computing the list of defaults as described above.
+The function now has a list of regular expressions that it passes to
+@code{read-from-minibuffer} to obtain the user's input.  The first
+element of the list is the default result in case of empty input.  All
+elements of the list are available to the user as the ``future
+minibuffer history list'' (@pxref{Minibuffer History, future list,,
+emacs, The GNU Emacs Manual}).
+
+The optional argument @var{history}, if non-@code{nil}, is a symbol
+specifying a minibuffer history list to use (@pxref{Minibuffer
+History}).  If it is omitted or @code{nil}, the history list defaults
+to @code{regexp-history}.
 @end defun
+
+@defvar read-regexp-defaults-function
+The function @code{read-regexp} may use the value of this variable to
+determine its list of default regular expressions.  If non-@code{nil},
+the value of this variable should be either:
+
+@itemize @minus
+@item
+The symbol @code{regexp-history-last}.
+
+@item
+A function of no arguments that returns either @code{nil}, a string,
+or a list of strings.
+@end itemize
+
+@noindent
+See @code{read-regexp} above for details of how these values are used.
+@end defvar
 
 @defvar minibuffer-allow-text-properties
 If this variable is @code{nil}, then @code{read-from-minibuffer}

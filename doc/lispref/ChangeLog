@@ -1,3 +1,8 @@
+2014-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.texi (Text from Minibuffer): Update read-regexp details.
+	Mention read-regexp-defaults-function.
+
 2014-02-13  Glenn Morris  <rgm@gnu.org>
 
 	* debugging.texi (Debugger Commands): Tiny edits.

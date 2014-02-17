@@ -1097,6 +1097,7 @@ respecting file-local variables.
 +++
 ** New function `get-pos-property'.
 
++++
 ** `read-regexp' now uses the new variable `read-regexp-defaults-function'
 as a function to call to provide default values.
 
