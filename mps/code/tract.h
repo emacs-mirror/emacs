@@ -15,31 +15,16 @@
 
 /* Page states
  *
- * .states: Pages (hence PageUnions that describe them) can be in
- * one of 3 states:
- *  allocated (to a pool as tracts)
- *   allocated pages are mapped
- *   BTGet(allocTable, i) == 1
- *   PageState() == PageStateALLOC
- *   PagePool()->pool == pool
- *  spare
- *   these pages are mapped
- *   BTGet(allocTable, i) == 0
- *   PageState() == PageStateSPARE
- *   PagePool() == NULL
- *  free
- *   these pages are not mapped
- *   BTGet(allocTable, i) == 0
- *   PTE may itself be unmapped, but when it is (use pageTableMapped
- *     to determine whether page occupied by page table is mapped):
- *   PagePool() == NULL
- *   PageState() == PageStateFREE
+ * .states: The first word of the page descriptor contains a pointer to
+ * the page's owning pool if the page is allocated.  The bottom two bits
+ * indicate the page state.  Note that the page descriptor itself may
+ * not be mapped since it is stored in a SparseArray.
  */
 
-#define PageStateALLOC 0
-#define PageStateSPARE 1
-#define PageStateFREE  2
-#define PageStateWIDTH 2         /* bitfield width */
+#define PageStateALLOC 0    /* allocated to a pool as a tract */
+#define PageStateSPARE 1    /* free but mapped to backing store */
+#define PageStateFREE  2    /* free and unmapped (address space only) */
+#define PageStateWIDTH 2    /* bitfield width */
 
 typedef union PagePoolUnion {
   unsigned state : PageStateWIDTH; /* see .states */
@@ -168,11 +153,12 @@ typedef struct ChunkStruct {
 } ChunkStruct;
 
 
-#define ChunkArena(chunk) ((chunk)->arena)
-#define ChunkPageSize(chunk) ((chunk)->pageSize)
-#define ChunkPageShift(chunk) ((chunk)->pageShift)
+#define ChunkArena(chunk) RVALUE((chunk)->arena)
+#define ChunkPageSize(chunk) RVALUE((chunk)->pageSize)
+#define ChunkPageShift(chunk) RVALUE((chunk)->pageShift)
 #define ChunkPagesToSize(chunk, pages) ((Size)(pages) << (chunk)->pageShift)
 #define ChunkSizeToPages(chunk, size) ((Count)((size) >> (chunk)->pageShift))
+#define ChunkPage(chunk, pi) (&(chunk)->pageTable[pi])
 
 extern Bool ChunkCheck(Chunk chunk);
 extern Res ChunkInit(Chunk chunk, Arena arena,
