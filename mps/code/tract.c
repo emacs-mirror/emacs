@@ -48,7 +48,7 @@ void TractInit(Tract tract, Pool pool, Addr base)
   AVER(tract != NULL);
   AVERT(Pool, pool);
 
-  tract->pool = pool;
+  tract->pool.pool = pool;
   tract->base = base;
   tract->p = NULL;
   tract->white = TraceSetEMPTY;
@@ -67,7 +67,7 @@ void TractFinish(Tract tract)
 
   /* Check that there's no segment - and hence no shielding. */
   AVER(!TractHasSeg(tract));
-  tract->pool = NULL;
+  tract->pool.pool = NULL;
 }
 
 
@@ -159,7 +159,6 @@ Res ChunkInit(Chunk chunk, Arena arena,
 {
   Size size;
   Count pages;
-  PageStruct *pageTable;
   Shift pageShift;
   Size pageTableSize;
   void *p;
@@ -192,19 +191,12 @@ Res ChunkInit(Chunk chunk, Arena arena,
     goto failAllocTable;
   chunk->allocTable = p;
 
-  pageTableSize = SizeAlignUp(pages * sizeof(PageStruct), pageSize);
+  pageTableSize = SizeAlignUp(pages * sizeof(PageUnion), pageSize);
   chunk->pageTablePages = pageTableSize >> pageShift;
 
   res = (arena->class->chunkInit)(chunk, boot);
   if (res != ResOK)
     goto failClassInit;
-
-  /* Put the page table as late as possible, as in VM systems we don't want */
-  /* to map it. */
-  res = BootAlloc(&p, boot, (size_t)pageTableSize, (size_t)pageSize);
-  if (res != ResOK)
-    goto failAllocPageTable;
-  chunk->pageTable = pageTable = p;
 
   /* @@@@ Is BootAllocated always right? */
   /* Last thing we BootAlloc'd is pageTable.  We requested pageSize */
@@ -221,8 +213,6 @@ Res ChunkInit(Chunk chunk, Arena arena,
   return ResOK;
 
   /* .no-clean: No clean-ups needed for boot, as we will discard the chunk. */
-failAllocPageTable:
-  (arena->class->chunkFinish)(chunk);
 failClassInit:
 failAllocTable:
   return res;
@@ -456,8 +446,7 @@ Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr)
   /* either the page is free or it is */
   /* part of the arena tables (see .ullagepages). */
   if (BTGet(chunk->allocTable, i)) {
-    Page page = &chunk->pageTable[i];
-    *tractReturn = PageTract(page);
+    *tractReturn = PageTract(ChunkPage(chunk, i));
     return TRUE;
   }
 
@@ -504,15 +493,15 @@ static Bool tractSearchInChunk(Tract *tractReturn, Chunk chunk, Index i)
   AVER_CRITICAL(chunk->allocBase <= i);
   AVER_CRITICAL(i <= chunk->pages);
 
-  while(i < chunk->pages
-        && !(BTGet(chunk->allocTable, i)
-             && PageIsAllocated(&chunk->pageTable[i]))) {
+  while (i < chunk->pages
+         && !(BTGet(chunk->allocTable, i)
+              && PageIsAllocated(ChunkPage(chunk, i)))) {
     ++i;
   }
   if (i == chunk->pages)
     return FALSE;
   AVER(i < chunk->pages);
-  *tractReturn = PageTract(&chunk->pageTable[i]);
+  *tractReturn = PageTract(ChunkPage(chunk, i));
   return TRUE;
 }
 
@@ -597,13 +586,14 @@ Bool TractNext(Tract *tractReturn, Arena arena, Addr addr)
 
 /* PageAlloc
  *
- * Sets up the PageStruct for an allocated page to turn it into a Tract.
+ * Sets up the page descriptor for an allocated page to turn it into a Tract.
  */
 
 void PageAlloc(Chunk chunk, Index pi, Pool pool)
 {
   Tract tract;
   Addr base;
+  Page page;
 
   AVERT(Chunk, chunk);
   AVER(pi >= chunk->allocBase);
@@ -611,11 +601,11 @@ void PageAlloc(Chunk chunk, Index pi, Pool pool)
   AVER(!BTGet(chunk->allocTable, pi));
   AVERT(Pool, pool);
 
-  tract = PageTract(&chunk->pageTable[pi]);
+  page = ChunkPage(chunk, pi);
+  tract = PageTract(page);
   base = PageIndexBase(chunk, pi);
   BTSet(chunk->allocTable, pi);
   TractInit(tract, pool, base);
-  return;
 }
 
 
@@ -623,13 +613,18 @@ void PageAlloc(Chunk chunk, Index pi, Pool pool)
 
 void PageInit(Chunk chunk, Index pi)
 {
+  Page page;
+
   AVERT(Chunk, chunk);
   AVER(pi < chunk->pages);
+  
+  page = ChunkPage(chunk, pi);
 
   BTRes(chunk->allocTable, pi);
-  PagePool(&chunk->pageTable[pi]) = NULL;
-  PageType(&chunk->pageTable[pi]) = PageTypeFree;
-  return;
+  PageSetPool(page, NULL);
+  PageSetType(page, PageStateFREE);
+  RingInit(PageSpareRing(page));
+  RingInit(PageFreeRing(page));
 }
 
 

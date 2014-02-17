@@ -1262,7 +1262,7 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
 
   /* The zone test should already have been passed by MPS_FIX1 in mps.h. */
   AVER_CRITICAL(ZoneSetInter(ScanStateWhite(ss),
-                             ZoneSetAdd(ss->arena, ZoneSetEMPTY, ref)) !=
+                             ZoneSetAddAddr(ss->arena, ZoneSetEMPTY, ref)) !=
                 ZoneSetEMPTY);
 
   STATISTIC(++ss->fixRefCount);
