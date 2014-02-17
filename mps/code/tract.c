@@ -446,8 +446,7 @@ Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr)
   /* either the page is free or it is */
   /* part of the arena tables (see .ullagepages). */
   if (BTGet(chunk->allocTable, i)) {
-    Page page = &chunk->pageTable[i];
-    *tractReturn = PageTract(page);
+    *tractReturn = PageTract(ChunkPage(chunk, i));
     return TRUE;
   }
 
@@ -494,15 +493,15 @@ static Bool tractSearchInChunk(Tract *tractReturn, Chunk chunk, Index i)
   AVER_CRITICAL(chunk->allocBase <= i);
   AVER_CRITICAL(i <= chunk->pages);
 
-  while(i < chunk->pages
-        && !(BTGet(chunk->allocTable, i)
-             && PageIsAllocated(&chunk->pageTable[i]))) {
+  while (i < chunk->pages
+         && !(BTGet(chunk->allocTable, i)
+              && PageIsAllocated(ChunkPage(chunk, i)))) {
     ++i;
   }
   if (i == chunk->pages)
     return FALSE;
   AVER(i < chunk->pages);
-  *tractReturn = PageTract(&chunk->pageTable[i]);
+  *tractReturn = PageTract(ChunkPage(chunk, i));
   return TRUE;
 }
 
@@ -602,7 +601,7 @@ void PageAlloc(Chunk chunk, Index pi, Pool pool)
   AVER(!BTGet(chunk->allocTable, pi));
   AVERT(Pool, pool);
 
-  page = &chunk->pageTable[pi];
+  page = ChunkPage(chunk, pi);
   tract = PageTract(page);
   base = PageIndexBase(chunk, pi);
   BTSet(chunk->allocTable, pi);
@@ -614,15 +613,18 @@ void PageAlloc(Chunk chunk, Index pi, Pool pool)
 
 void PageInit(Chunk chunk, Index pi)
 {
+  Page page;
+
   AVERT(Chunk, chunk);
   AVER(pi < chunk->pages);
+  
+  page = ChunkPage(chunk, pi);
 
   BTRes(chunk->allocTable, pi);
-  PageSetPool(&chunk->pageTable[pi], NULL);
-  PageSetType(&chunk->pageTable[pi], PageStateFREE);
-  RingInit(PageSpareRing(&chunk->pageTable[pi]));
-  RingInit(PageFreeRing(&chunk->pageTable[pi]));
-  return;
+  PageSetPool(page, NULL);
+  PageSetType(page, PageStateFREE);
+  RingInit(PageSpareRing(page));
+  RingInit(PageFreeRing(page));
 }
 
 

@@ -105,15 +105,15 @@ static Bool VMChunkCheck(VMChunk vmchunk)
   CHECKL(VMCheck(vmchunk->vm));
   CHECKL(VMAlign(vmchunk->vm) == ChunkPageSize(chunk));
   CHECKL(vmchunk->overheadMappedLimit <= (Addr)chunk->pageTable);
-  /* check pageTableMapped table */
-  /* FIXME: Check sa's tables */
   CHECKD(SparseArray, &vmchunk->pages);
-#if 0
-  CHECKL(vmchunk->pageTableMapped != NULL);
-  CHECKL((Addr)vmchunk->pageTableMapped >= chunk->base);
-  CHECKL(AddrAdd((Addr)vmchunk->pageTableMapped, BTSize(chunk->pageTablePages))
-         <= vmchunk->overheadMappedLimit);
-#endif
+  /* SparseArrayCheck is agnostic about where the BTs live, so VMChunkCheck
+     makes sure they're where they're expected to be (in the chunk). */
+  CHECKL(chunk->base < (Addr)vmchunk->pages.mapped);
+  CHECKL(AddrAdd(vmchunk->pages.mapped, BTSize(chunk->pages)) <=
+         vmchunk->overheadMappedLimit);
+  CHECKL(chunk->base < (Addr)vmchunk->pages.pages);
+  CHECKL(AddrAdd(vmchunk->pages.pages, BTSize(chunk->pageTablePages)) <=
+         vmchunk->overheadMappedLimit);
   /* .improve.check-table: Could check the consistency of the tables. */
   
   return TRUE;
@@ -1039,7 +1039,7 @@ static unsigned pageState(VMChunk vmChunk, Index pi)
 {
   Chunk chunk = VMChunk2Chunk(vmChunk);
   if (SparseArrayIsMapped(&vmChunk->pages, pi))
-    return PageState(&chunk->pageTable[pi]);
+    return PageState(ChunkPage(chunk, pi));
   return PageStateFREE;
 }
 
@@ -1053,7 +1053,7 @@ static void sparePageRelease(VMChunk vmChunk, Index pi)
 {
   Chunk chunk = VMChunk2Chunk(vmChunk);
   Arena arena = ChunkArena(chunk);
-  Page page = &chunk->pageTable[pi];
+  Page page = ChunkPage(chunk, pi);
 
   AVER(PageState(page) == PageStateSPARE);
   AVER(arena->spareCommitted >= ChunkPageSize(chunk));
@@ -1214,7 +1214,7 @@ static Res vmAllocComm(Addr *baseReturn, Tract *baseTractReturn,
   }
 
   base = PageIndexBase(chunk, baseIndex);
-  baseTract = PageTract(&chunk->pageTable[baseIndex]);
+  baseTract = PageTract(ChunkPage(chunk, baseIndex));
   limit = AddrAdd(base, size);
   zones = ZoneSetOfRange(arena, base, limit);
 
@@ -1410,7 +1410,7 @@ static void VMFree(Addr base, Size size, Pool pool)
   /* loop from pageBase to pageLimit-1 inclusive */
   /* Finish each Tract found, then convert them to spare pages. */
   for(pi = piBase; pi < piLimit; ++pi) {
-    Page page = &chunk->pageTable[pi];
+    Page page = ChunkPage(chunk, pi);
     Tract tract = PageTract(page);
     AVER(TractPool(tract) == pool);
 

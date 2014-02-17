@@ -44,10 +44,11 @@ void SparseArrayFinish(SparseArray sa)
 Bool SparseArrayCheck(SparseArray sa)
 {
   CHECKL(sa != NULL);
-  CHECKL(sa->sig == SparseArraySig);
+  CHECKS(SparseArray, sa);
   CHECKL(sa->base != NULL);
   CHECKL(sa->elementSize >= 1);
-  CHECKL(VMCheck(sa->vm)); /* TODO: CHECKD(VM, sa->vm); */
+  /* TODO: CHECKD(VM, sa->vm); once VMStruct becomes visible */
+  CHECKL(VMCheck(sa->vm));
   CHECKL(sa->elementSize <= VMAlign(sa->vm));
   CHECKL(sa->length > 0);
   CHECKL(BTCheck(sa->mapped));
