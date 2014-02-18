@@ -1,5 +1,8 @@
 2014-02-18  Glenn Morris  <rgm@gnu.org>
 
+	* trouble.texi (Contributing) [WWW_GNU_ORG]: Link to
+	gnu.org version of etc/CONTRIBUTE in html output.
+
 	* misc.texi (Saving Emacs Sessions): Mention desktop-auto-save-timeout.
 
 2014-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>

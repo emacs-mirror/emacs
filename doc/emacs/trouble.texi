@@ -1174,7 +1174,18 @@ repository where it is actively maintained by a group of developers.
 See the Emacs project page
 @url{http://savannah.gnu.org/projects/emacs/} for details.
 
-For more information on how to contribute, see the @file{etc/CONTRIBUTE}
+For more information on how to contribute, see the
+@ifset WWW_GNU_ORG
+@ifhtml
+@url{http://gnu.org/software/emacs/CONTRIBUTE, etc/CONTRIBUTE}
+@end ifhtml
+@ifnothtml
+@file{etc/CONTRIBUTE}
+@end ifnothtml
+@end ifset
+@ifclear WWW_GNU_ORG
+@file{etc/CONTRIBUTE}
+@end ifclear
 file in the Emacs distribution.
 
 @node Service
