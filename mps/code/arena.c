@@ -66,7 +66,7 @@ DEFINE_CLASS(AbstractArenaClass, class)
   class->init = NULL;
   class->finish = NULL;
   class->reserved = NULL;
-  class->spareCommitExceeded = ArenaNoSpareCommitExceeded;
+  class->purgeSpare = ArenaNoPurgeSpare;
   class->extend = ArenaNoExtend;
   class->grow = ArenaNoGrow;
   class->free = NULL;
@@ -94,7 +94,7 @@ Bool ArenaClassCheck(ArenaClass class)
   CHECKL(FUNCHECK(class->init));
   CHECKL(FUNCHECK(class->finish));
   CHECKL(FUNCHECK(class->reserved));
-  CHECKL(FUNCHECK(class->spareCommitExceeded));
+  CHECKL(FUNCHECK(class->purgeSpare));
   CHECKL(FUNCHECK(class->extend));
   CHECKL(FUNCHECK(class->free));
   CHECKL(FUNCHECK(class->chunkInit));
@@ -126,7 +126,6 @@ Bool ArenaCheck(Arena arena)
 
   CHECKL(arena->committed <= arena->commitLimit);
   CHECKL(arena->spareCommitted <= arena->committed);
-  CHECKL(arena->spareCommitted <= arena->spareCommitLimit);
 
   CHECKL(ShiftCheck(arena->zoneShift));
   CHECKL(AlignCheck(arena->alignment));
@@ -967,6 +966,9 @@ void ArenaFree(Addr base, Size size, Pool pool)
 
   (*arena->class->free)(base, size, pool);
 
+  /* Freeing memory might create spare pages, but not more than this. */
+  CHECKL(arena->spareCommitted <= arena->spareCommitLimit);
+
 allTransferred:
 allDeposited:
   EVENT3(ArenaFree, arena, wholeBase, wholeSize);
@@ -1005,7 +1007,8 @@ void ArenaSetSpareCommitLimit(Arena arena, Size limit)
 
   arena->spareCommitLimit = limit;
   if (arena->spareCommitLimit < arena->spareCommitted) {
-    arena->class->spareCommitExceeded(arena);
+    Size excess = arena->spareCommitted - arena->spareCommitLimit;
+    (void)arena->class->purgeSpare(arena, excess);
   }
 
   EVENT2(SpareCommitLimitSet, arena, limit);
@@ -1013,10 +1016,11 @@ void ArenaSetSpareCommitLimit(Arena arena, Size limit)
 }
 
 /* Used by arenas which don't use spare committed memory */
-void ArenaNoSpareCommitExceeded(Arena arena)
+Size ArenaNoPurgeSpare(Arena arena, Size size)
 {
   AVERT(Arena, arena);
-  return;
+  UNUSED(size);
+  return 0;
 }
 
 
@@ -1047,8 +1051,8 @@ Res ArenaSetCommitLimit(Arena arena, Size limit)
   if (limit < committed) {
     /* Attempt to set the limit below current committed */
     if (limit >= committed - arena->spareCommitted) {
-      /* could set the limit by flushing any spare committed memory */
-      arena->class->spareCommitExceeded(arena);
+      Size excess = committed - limit;
+      (void)arena->class->purgeSpare(arena, excess);
       AVER(limit >= ArenaCommitted(arena));
       arena->commitLimit = limit;
       res = ResOK;
