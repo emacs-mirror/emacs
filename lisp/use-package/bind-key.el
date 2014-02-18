@@ -88,6 +88,11 @@
   "A simple way to manage personal keybindings"
   :group 'emacs)
 
+(defcustom bind-key-column-widths '(18 . 40)
+  "Width of columns in `describe-personal-keybindings'."
+  :type '(cons integer integer)
+  :group 'bind-key)
+
 (defcustom bind-key-segregation-regexp
   "\\`\\(\\(C-[chx] \\|M-[gso] \\)\\([CM]-\\)?\\|.+-\\)"
   "Regular expression used to divide key sets in the output from
@@ -244,9 +249,11 @@ function symbol (unquoted)."
   "Display all the personal keybindings defined by `bind-key'."
   (interactive)
   (with-output-to-temp-buffer "*Personal Keybindings*"
-    (princ "Key name          Command                                 Comments
------------------ --------------------------------------- ---------------------
-")
+    (princ (format "Key name%s Command%s Comments\n%s %s ---------------------\n"
+                   (make-string (- (car bind-key-column-widths) 9) ? )
+                   (make-string (- (cdr bind-key-column-widths) 8) ? )
+                   (make-string (1- (car bind-key-column-widths)) ?-)
+                   (make-string (1- (cdr bind-key-column-widths)) ?-)))
     (let (last-binding)
       (dolist (binding
                (setq personal-keybindings
@@ -257,7 +264,7 @@ function symbol (unquoted)."
         (if (not (eq (cdar last-binding) (cdar binding)))
             (princ (format "\n\n%s\n%s\n\n"
                            (cdar binding)
-                           (make-string 79 ?-)))
+                           (make-string (+ 21 (car bind-key-column-widths) (cdr bind-key-column-widths)) ?-)))
           (if (and last-binding
                    (cdr (compare-keybindings last-binding binding)))
               (princ "\n")))
@@ -275,7 +282,7 @@ function symbol (unquoted)."
                )
           (let ((line
                  (format
-                  "%-18s%-40s%s\n"
+                  (format "%%-%ds%%-%ds%%s\n" (car bind-key-column-widths) (cdr bind-key-column-widths))
                   key-name (format "`%s\'" command-desc)
                   (if (string= command-desc at-present-desc)
                       (if (or (null was-command)
