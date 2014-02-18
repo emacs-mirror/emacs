@@ -973,7 +973,7 @@ xd_get_connection_references (DBusConnection *connection)
   return *refcount;
 }
 
-/* Convert a Lisp dbus object to a pointer */
+/* Convert a Lisp D-Bus object to a pointer.  */
 static DBusConnection*
 xd_lisp_dbus_to_dbus (Lisp_Object bus)
 {
@@ -1095,7 +1095,7 @@ xd_close_bus (Lisp_Object bus)
     return;
 
   busobj = CDR_SAFE(val);
-  if (NILP (val)) {
+  if (NILP (busobj)) {
     xd_registered_buses = Fdelete (val, xd_registered_buses);
     return;
   }
