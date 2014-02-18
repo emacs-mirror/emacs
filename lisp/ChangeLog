@@ -1,3 +1,8 @@
+2014-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* delsel.el (delete-char): Restore incorrectly erased property
+	(bug#16795).
+
 2014-02-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el (frameset--restore-frame): When a frame is being reused
@@ -17,19 +22,18 @@
 2014-02-17  Alan Mackenzie  <acm@muc.de>
 
 	Connect electric-indent-mode up with CC Mode.  Bug #15478.
-	* progmodes/cc-mode.el (c-initialize-cc-mode): add CC Mode hooks
+	* progmodes/cc-mode.el (c-initialize-cc-mode): Add CC Mode hooks
 	to electric-indent-{,local-}-mode.
-	(c-basic-common-init): Set electric-indent-inhibit.  Initialise
-	c-electric-flag from electric-indent-mode.
+	(c-basic-common-init): Set electric-indent-inhibit.
+	Initialise c-electric-flag from electric-indent-mode.
 	(c-electric-indent-mode-hook, c-electric-indent-local-mode-hook):
-	New hook functions which propagate electric-indent-mode to CC
-	Mode.
+	New hook functions which propagate electric-indent-mode to CC mode.
 
 	* progmodes/cc-cmds.el (c-toggle-electric-state): When C-c C-l is
-	hit, toggle electric-indent-local-moode.
+	hit, toggle electric-indent-local-mode.
 
-	* electric.el (electric-indent-mode-has-been-called): New
-	variable.
+	* electric.el (electric-indent-mode-has-been-called):
+	New variable.
 
 2014-02-17  Juanma Barranquero  <lekktu@gmail.com>
 
