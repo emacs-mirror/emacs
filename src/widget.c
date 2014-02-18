@@ -599,8 +599,13 @@ update_various_frame_slots (EmacsFrame ew)
 {
   struct frame *f = ew->emacs_frame.frame;
   struct x_output *x = f->output_data.x;
+  /* Don't do that: It confuses the check in change_frame_size_1 whether
+     the pixel size of the frame changed due to a change of the internal
+     border width.  Bug#16736.  */
+#if 0
   FRAME_PIXEL_HEIGHT (f) = ew->core.height + x->menubar_height;
   FRAME_PIXEL_WIDTH (f) = ew->core.width;
+#endif
   f->internal_border_width = ew->emacs_frame.internal_border_width;
 
 }

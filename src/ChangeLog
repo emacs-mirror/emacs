@@ -1,3 +1,8 @@
+2014-02-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* widget.c (update_various_frame_slots): Don't set
+	FRAME_PIXEL_HEIGHT and FRAME_PIXEL_WIDTH here (Bug#16736).
+
 2014-02-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_close_bus): Apply proper check on busobj.
