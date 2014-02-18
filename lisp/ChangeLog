@@ -1,3 +1,9 @@
+2014-02-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset--restore-frame): When a frame is being reused
+	and its root window is not alive, delete all the frame's windows before
+	restoring the window state.  This works around the issue in bug#16793.
+
 2014-02-18  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/remember.el (remember-data-directory)
