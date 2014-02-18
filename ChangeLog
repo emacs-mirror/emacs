@@ -1,3 +1,7 @@
+2014-02-18  Mirek Kaim  <mirek.kaim@outlook.com>  (tiny change)
+
+	* configure.ac [HAVE_W32]: Test for ImageMagick.  (Bug#16754)
+
 2014-02-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (install-arch-indep): Allow ' ' in destdir (Bug#16717).
