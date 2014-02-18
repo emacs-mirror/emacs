@@ -1,3 +1,10 @@
+2014-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* remember.texi (copying): Bump remember mode version.
+	(Installation): Remove unnecessary chapter.
+	(Quick Start): No need to explicitly load remember.el.
+	(Separate Text Files): New section.
+
 2014-02-17  Glenn Morris  <rgm@gnu.org>
 
 	* eieio.texi (Class Values, CLOS compatibility):

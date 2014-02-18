@@ -1,5 +1,11 @@
 2014-02-18  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/remember.el (remember-data-directory)
+	(remember-directory-file-name-format, remember-store-in-files)
+	(remember-notes-initial-major-mode, remember-notes-bury-on-kill)
+	(remember-notes-save-and-bury-buffer)
+	(remember-notes--kill-buffer-query): Doc fixes.
+
 	* desktop.el (desktop-save-mode, desktop-auto-save-timeout): Doc fixes.
 
 2014-02-17  Alan Mackenzie  <acm@muc.de>

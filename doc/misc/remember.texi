@@ -7,7 +7,7 @@
 @c %**end of header
 
 @copying
-This manual is for Remember Mode, version 1.9
+This manual is for Remember Mode, version 2.0
 
 Copyright @copyright{} 2001, 2004--2005, 2007--2014
 Free Software Foundation, Inc.
@@ -54,7 +54,6 @@ modify this GNU manual.''
 @menu
 * Preface::                     About the documentation.
 * Introduction::                What is Remember Mode?
-* Installation::                How to install Remember.
 * Implementation::              How Remember came into existence.
 * Quick Start::                 Get started using Remember.
 * Function Reference::          Interactive functions in remember.el.
@@ -69,6 +68,7 @@ modify this GNU manual.''
 Backends
 
 * Text File::                   Saving to a text file.
+* Separate Text Files::         Saving to separate text files.
 * Diary::                       Saving to a Diary file.
 * Mailbox::                     Saving to a mailbox.
 * Org::                         Saving to an Org Mode file.
@@ -128,18 +128,6 @@ in order to record them---it would map much more closely to how the mind
 manual-ness which computers from the very beginning have been championed
 as being able to reduce.
 
-@node Installation
-@chapter Installation
-
-Installing Remember Mode is as simple as adding the following lines to
-your Emacs configuration file (usually @file{~/.emacs.d/init.el} or
-@file{~/.emacs}).
-
-@lisp
-(add-to-list 'load-path "/path/to/remember")
-(require 'remember)
-@end lisp
-
 @node Implementation
 @chapter Implementation
 
@@ -187,14 +175,11 @@ feedback will help to make this as intuitive a tool as possible.
 @itemize
 
 @item
-Load @file{remember.el}.
-
-@item
-Type @kbd{M-x remember}. The @samp{*Remember*} buffer should be
+Type @kbd{M-x remember}.  The @samp{*Remember*} buffer should be
 displayed.
 
 @item
-Type in what you want to remember. The first line will be treated as
+Type in what you want to remember.  The first line will be treated as
 the headline, and the rest of the buffer will contain the body of the
 note.
 
@@ -204,18 +189,18 @@ the @samp{*Remember*} buffer.
 @end itemize
 
 By default, @code{remember-finalize} saves the note in @file{~/emacs.d/notes}.
-You can edit it now to see the remembered and timestamped note. You
-can edit this file however you want. New entries will always be added
+You can edit it now to see the remembered and timestamped note.  You
+can edit this file however you want.  New entries will always be added
 to the end.
 
-To remember a region of text, use the universal prefix. @kbd{C-u M-x
+To remember a region of text, use the universal prefix.  @kbd{C-u M-x
 remember} displays a @samp{*Remember*} buffer with the region as the
 initial contents.
 
 As a simple beginning, you can start by using the Text File backend,
 keeping your @file{~/.emacs.d/notes} file in outline-mode format, with a final
-entry called @samp{* Raw data}. Remembered data will be added to the
-end of the file. Every so often, you can move the data that gets
+entry called @samp{* Raw data}.  Remembered data will be added to the
+end of the file.  Every so often, you can move the data that gets
 appended there into other files, or reorganize your document.
 
 You can also store remembered data in other backends.
@@ -233,7 +218,7 @@ very accessible keystrokes facilities using the mode:
 @end lisp
 
 By default, remember uses the first annotation returned by
-@code{remember-annotation-functions}. To include all of the annotations,
+@code{remember-annotation-functions}.  To include all of the annotations,
 set @code{remember-run-all-annotation-functions-flag} to non-nil.
 
 @defopt remember-run-all-annotation-functions-flag
@@ -242,7 +227,7 @@ Non-nil means use all annotations returned by
 @end defopt
 
 You can write custom functions that use a different set of
-remember-annotation-functions. For example:
+remember-annotation-functions.  For example:
 
 @lisp
 (defun my/remember-with-filename ()
@@ -258,7 +243,7 @@ remember-annotation-functions. For example:
 @file{remember.el} defines the following interactive functions:
 
 @defun remember initial
-Remember an arbitrary piece of data. With a prefix, it will use the
+Remember an arbitrary piece of data.  With a prefix, it will use the
 region as @var{initial}.
 @end defun
 
@@ -310,6 +295,7 @@ You can save remembered notes to a variety of backends.
 
 @menu
 * Text File::                   Saving to a text file.
+* Separate Text Files::         Saving to separate text files.
 * Diary::                       Saving to a Diary file.
 * Mailbox::                     Saving to a mailbox.
 * Org::                         Saving to an Org Mode file.
@@ -334,6 +320,30 @@ The file in which to store unprocessed data.
 @defopt remember-leader-text
 The text used to begin each remember item.
 @end defopt
+
+
+@node Separate Text Files
+@section Saving to Separate Text Files
+@cindex text files, saving to separate
+
+@subheading Insinuation
+
+@lisp
+(setq remember-handler-functions '(remember-store-in-files))
+@end lisp
+
+@subheading Options
+
+@defopt remember-data-directory
+The directory in which to store remember data as files.
+@end defopt
+
+@defopt remember-directory-file-name-format
+A format string to use for naming files in the remember directory.
+File names are formed by calling @code{format-time-string} at the time
+of saving, using this format string.
+@end defopt
+
 
 @node Diary
 @section Saving to a Diary file

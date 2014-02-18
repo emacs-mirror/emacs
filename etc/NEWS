@@ -28,6 +28,7 @@ otherwise leave it unmarked.
 This happens by default if a suitable support library is found at
 build time, like libacl on GNU/Linux.  To prevent this, use the
 configure option `--disable-acl'.
+FIXME?  Should be --without-acl?
 
 ** Emacs can now be compiled with file notification support.
 This happens by default if a suitable system library is found at
@@ -720,11 +721,11 @@ buffer and can be used that way by setting `initial-buffer-choice' to
 Without the second change, the *scratch* buffer will still be there
 for notes that do not need to be preserved.
 
-*** The Remember package can now store notes in separates files.
-You can use the new function `remember-store-in-files' within the
-`remember-handler-functions' option.  See `remember-data-directory'
-and `remember-directory-file-name-format' for new options related to
-this function.
++++
+*** Remember can now store notes in separate files.
+To use this, add `remember-store-in-files' to the `remember-handler-functions'
+option.  The files are saved in `remember-data-directory' using
+names specified by `remember-directory-file-name-format'.
 
 ** Rmail
 

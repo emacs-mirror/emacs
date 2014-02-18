@@ -442,21 +442,24 @@ If you want to remember a region, supply a universal prefix to
       (remember-destroy))))
 
 (defcustom remember-data-directory "~/remember"
-  "The directory in which to store remember data as files."
+  "The directory in which to store remember data as files.
+Used by `remember-store-in-files'."
   :type 'directory
   :version "24.4"
   :group 'remember)
 
 (defcustom remember-directory-file-name-format "%Y-%m-%d_%T-%z"
-  "Format string for the file name in which to store unprocessed data."
+  "Format string for the file name in which to store unprocessed data.
+This is passed to `format-time-string'.
+Used by `remember-store-in-files'."
   :type 'string
   :version "24.4"
   :group 'remember)
 
 (defun remember-store-in-files ()
   "Store remember data in a file in `remember-data-directory'.
-The file is named after `remember-directory-file-name-format' fed through
-`format-time-string'."
+The file is named by calling `format-time-string' using
+`remember-directory-file-name-format' as the format string."
   (let ((name (format-time-string
 	       remember-directory-file-name-format (current-time)))
         (text (buffer-string)))
@@ -572,20 +575,19 @@ purpose of storing notes."
   :version "24.4")
 
 (defcustom remember-notes-initial-major-mode nil
-  "Major mode to set to notes buffer when it's created.
-If set to nil will use the same mode as `initial-major-mode'."
-  :type '(choice (const    :tag "Same as `initial-major-mode'" nil)
+  "Major mode to use in the notes buffer when it's created.
+If this is nil, use `initial-major-mode'."
+  :type '(choice (const    :tag "Use `initial-major-mode'" nil)
 		 (function :tag "Major mode" text-mode))
   :version "24.4")
 
 (defcustom remember-notes-bury-on-kill t
-  "Whether to bury notes buffer instead of killing."
+  "Non-nil means `kill-buffer' will bury the notes buffer instead of killing."
   :type 'boolean
   :version "24.4")
 
 (defun remember-notes-save-and-bury-buffer ()
-  "Saves and buries current buffer.
-Buffer is saved only if `buffer-modified-p' returns non-nil."
+  "Save (if it is modified) and bury the current buffer."
   (interactive)
   (when (buffer-modified-p)
     (save-buffer))
@@ -648,10 +650,16 @@ preserve across Emacs restarts.  The notes will be stored in the
     buf))
 
 (defun remember-notes--kill-buffer-query ()
+  "Function that `remember-notes-mode' adds to `kill-buffer-query-functions'.
+Save the current buffer if modified.  If `remember-notes-bury-on-kill'
+is non-nil, bury it and return nil; otherwise return t."
   (when (buffer-modified-p)
     (save-buffer))
   (if remember-notes-bury-on-kill
-      (bury-buffer)
+      (progn
+        ;; bury-buffer always returns nil, but let's be explicit.
+        (bury-buffer)
+        nil)
     t))
 
 ;;; remember.el ends here
