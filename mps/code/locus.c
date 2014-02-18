@@ -471,9 +471,11 @@ void LocusInit(Arena arena)
 
   /* Can't check arena, because it's not been inited. */
 
+  /* TODO: The mortality estimate here is unjustifiable.  Dynamic generation
+     decision making needs to be improved and this constant removed. */
   gen->zones = ZoneSetEMPTY;
   gen->capacity = 0; /* unused */
-  gen->mortality = 0.51; /* FIXME: Justify this estimate */
+  gen->mortality = 0.51;
   gen->proflow = 0.0;
   RingInit(&gen->locusRing);
   gen->sig = GenDescSig;

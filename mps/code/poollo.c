@@ -282,7 +282,6 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
   LO lo;
   Seg seg;
   Res res;
-  Serial gen;
 
   AVER(loSegReturn != NULL);
   AVERT(Pool, pool);
@@ -291,8 +290,7 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
-  gen = 0; /* LO only has one generation in its chain */
-  res = ChainAlloc(&seg, lo->chain, gen, EnsureLOSegClass(),
+  res = ChainAlloc(&seg, lo->chain, lo->pgen.nr, EnsureLOSegClass(),
                    SizeAlignUp(size, ArenaAlign(PoolArena(pool))),
                    pool, withReservoirPermit, argsNone);
   if (res != ResOK)

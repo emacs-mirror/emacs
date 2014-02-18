@@ -182,7 +182,7 @@ void MFSExtend(Pool pool, Addr base, Size size)
      inserted from elsewhere then it must have been set up correctly.
      FIXME: Reference the design.
      FIXME: Use PoolHasAddr before getting the tract. */
-  AVER(tract->pool == pool);
+  AVER(TractPool(tract) == pool);
 
   TractSetP(tract, (void *)mfs->tractList);
   mfs->tractList = tract;

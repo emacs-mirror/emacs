@@ -540,7 +540,7 @@ typedef struct mps_arena_class_s {
   ArenaInitMethod init;
   ArenaFinishMethod finish;
   ArenaReservedMethod reserved;
-  ArenaSpareCommitExceededMethod spareCommitExceeded;
+  ArenaPurgeSpareMethod purgeSpare;
   ArenaExtendMethod extend;
   ArenaGrowMethod grow;
   ArenaFreeMethod free;

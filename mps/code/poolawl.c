@@ -466,10 +466,9 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
   if (size == 0)
     return ResMEMORY;
   MPS_ARGS_BEGIN(args) {
-    Serial gen = 0; /* AWL only has one generation in its chain */
     MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u, rankSet);
     MPS_ARGS_DONE(args);
-    res = ChainAlloc(&seg, awl->chain, gen, AWLSegClassGet(),
+    res = ChainAlloc(&seg, awl->chain, awl->pgen.nr, AWLSegClassGet(),
                      size, pool, reservoirPermit, args);
   } MPS_ARGS_END(args);
   if (res != ResOK)

@@ -143,7 +143,7 @@ Bool RangeInZoneSet(Addr *baseReturn, Addr *limitReturn,
     Addr next;
 
     /* Search for a stripe in the zoneSet and within the block. */
-    while (!ZoneSetIsMember(arena, zoneSet, base)) {
+    while (!ZoneSetHasAddr(arena, zoneSet, base)) {
       base = nextStripe(base, limit, arena);
       if (base >= limit)
         return FALSE;
@@ -153,7 +153,7 @@ Bool RangeInZoneSet(Addr *baseReturn, Addr *limitReturn,
     next = base;
     do
       next = nextStripe(next, limit, arena);
-    while(next < limit && ZoneSetIsMember(arena, zoneSet, next));
+    while(next < limit && ZoneSetHasAddr(arena, zoneSet, next));
     
     /* Is the run big enough to satisfy the size? */
     if (AddrOffset(base, next) >= size) {
@@ -192,13 +192,13 @@ ZoneSet ZoneSetBlacklist(Arena arena)
   blacklist = ZoneSetEMPTY;
   nono.word = 0;
   nono.i = 1;
-  blacklist = ZoneSetAdd(arena, blacklist, nono.addr);
+  blacklist = ZoneSetAddAddr(arena, blacklist, nono.addr);
   nono.i = -1;
-  blacklist = ZoneSetAdd(arena, blacklist, nono.addr);
+  blacklist = ZoneSetAddAddr(arena, blacklist, nono.addr);
   nono.l = 1;
-  blacklist = ZoneSetAdd(arena, blacklist, nono.addr);
+  blacklist = ZoneSetAddAddr(arena, blacklist, nono.addr);
   nono.l = -1;
-  blacklist = ZoneSetAdd(arena, blacklist, nono.addr);
+  blacklist = ZoneSetAddAddr(arena, blacklist, nono.addr);
 
   return blacklist;
 }
