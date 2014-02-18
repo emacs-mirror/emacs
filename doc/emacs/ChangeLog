@@ -1,3 +1,7 @@
+2014-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Saving Emacs Sessions): Mention desktop-auto-save-timeout.
+
 2014-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* programs.texi (Matching): Fix typo.

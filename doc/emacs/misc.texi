@@ -2150,6 +2150,12 @@ sessions, or add this line in your init file (@pxref{Init File}):
 (desktop-save-mode 1)
 @end example
 
+@vindex desktop-auto-save-timeout
+@noindent
+When @code{desktop-save-mode} is active and the desktop file exists,
+Emacs auto-saves it every @code{desktop-auto-save-timeout}
+seconds, if that is non-@code{nil} and non-zero.
+
 @findex desktop-change-dir
 @findex desktop-revert
 @vindex desktop-path

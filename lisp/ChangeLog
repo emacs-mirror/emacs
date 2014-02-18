@@ -1,3 +1,7 @@
+2014-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* desktop.el (desktop-save-mode, desktop-auto-save-timeout): Doc fixes.
+
 2014-02-17  Alan Mackenzie  <acm@muc.de>
 
 	Connect electric-indent-mode up with CC Mode.  Bug #15478.

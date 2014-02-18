@@ -1,7 +1,6 @@
 ;;; desktop.el --- save partial status of Emacs when killed -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1995, 1997, 2000-2014 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1993-1995, 1997, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Keywords: convenience
@@ -154,13 +153,24 @@ backward compatibility.")
 ;;;###autoload
 (define-minor-mode desktop-save-mode
   "Toggle desktop saving (Desktop Save mode).
-With a prefix argument ARG, enable Desktop Save mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+With a prefix argument ARG, enable Desktop Save mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode if ARG
+is omitted or nil.
 
-If Desktop Save mode is enabled, the state of Emacs is saved from
-one session to another.  See variable `desktop-save' and function
-`desktop-read' for details."
+When Desktop Save mode is enabled, the state of Emacs is saved from
+one session to another.  In particular, Emacs will save the desktop when
+it exits (this may prompt you; see the option `desktop-save').  The next
+time Emacs starts, if this mode is active it will restore the desktop.
+
+To manually save the desktop at any time, use the command `M-x desktop-save'.
+To load it, use `M-x desktop-read'.
+
+Once a desktop file exists, Emacs will auto-save it according to the
+option `desktop-auto-save-timeout'.
+
+To see all the options you can set, browse the `desktop' customization group.
+
+For further details, see info node `(emacs)Saving Emacs Sessions'."
   :global t
   :group 'desktop
   (if desktop-save-mode
@@ -197,6 +207,7 @@ determine where the desktop is saved."
 
 (defcustom desktop-auto-save-timeout auto-save-timeout
   "Number of seconds idle time before auto-save of the desktop.
+This applies to an existing desktop file when `desktop-save-mode' is enabled.
 Zero or nil means disable auto-saving due to idleness."
   :type '(choice (const :tag "Off" nil)
                  (integer :tag "Seconds"))
@@ -1055,6 +1066,7 @@ being set (usually, by reading it from the desktop)."
 (defvar desktop-buffer-ok-count)
 (defvar desktop-buffer-fail-count)
 
+;; FIXME Interactively, this should have the option to prompt for dirname.
 ;;;###autoload
 (defun desktop-read (&optional dirname)
   "Read and process the desktop file in directory DIRNAME.
