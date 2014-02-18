@@ -95,6 +95,11 @@
   :type 'regexp
   :group 'bind-key)
 
+(defcustom bind-key-describe-special-forms nil
+  "If non-nil, extract docstrings from lambdas, closures and keymaps if possible."
+  :type 'boolean
+  :group 'bind-key)
+
 ;; Create override-global-mode to force key remappings
 
 (defvar override-global-map (make-keymap)
@@ -184,15 +189,25 @@ function symbol (unquoted)."
    ((listp elem)
     (cond
      ((eq 'lambda (car elem))
-      "#<lambda>")
+      (if (and bind-key-describe-special-forms
+               (stringp (nth 2 elem)))
+          (nth 2 elem)
+        "#<lambda>"))
      ((eq 'closure (car elem))
-      "#<closure>")
+      (if (and bind-key-describe-special-forms
+               (stringp (nth 3 elem)))
+          (nth 3 elem)
+        "#<closure>"))
      ((eq 'keymap (car elem))
       "#<keymap>")
      (t
       elem)))
    ((keymapp elem)
-    "#<keymap>")
+    (if (and bind-key-describe-special-forms
+             (symbolp elem)
+             (get elem 'variable-documentation))
+        (format "%s" (get elem 'variable-documentation))
+      "#<keymap>"))
    ((symbolp elem)
     elem)
    (t
