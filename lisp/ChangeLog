@@ -1,3 +1,8 @@
+2014-02-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-state-put): Allow WINDOW to refer to an
+	internal window (Bug#16793).
+
 2014-02-19  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/remember.el: Move provide statement to end.

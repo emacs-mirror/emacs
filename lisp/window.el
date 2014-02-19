@@ -5026,14 +5026,32 @@ value can be also stored on disk and read back in a new session."
   "Put window state STATE into WINDOW.
 STATE should be the state of a window returned by an earlier
 invocation of `window-state-get'.  Optional argument WINDOW must
-specify a live window and defaults to the selected one.
+specify a valid window and defaults to the selected one.  If
+WINDOW is not live, replace WINDOW by a live one before putting
+STATE into it.
 
 Optional argument IGNORE non-nil means ignore minimum window
 sizes and fixed size restrictions.  IGNORE equal `safe' means
 windows can get as small as `window-safe-min-height' and
 `window-safe-min-width'."
   (setq window-state-put-stale-windows nil)
-  (setq window (window-normalize-window window t))
+  (setq window (window-normalize-window window))
+
+  ;; When WINDOW is internal, reduce it to a live one to put STATE into,
+  ;; see Bug#16793.
+  (unless (window-live-p window)
+    (let ((root (frame-root-window window)))
+      (if (eq window root)
+	  (setq window (frame-first-window root))
+	(setq root window)
+	(setq window (catch 'live
+		       (walk-window-subtree
+			(lambda (window)
+			  (when (window-live-p window)
+			    (throw 'live window)))
+			root))))
+      (delete-other-windows-internal window root)))
+
   (let* ((frame (window-frame window))
 	 (head (car state))
 	 ;; We check here (1) whether the total sizes of root window of
