@@ -713,13 +713,9 @@ along with the non-SMIE indentation code.
 
 ** Remember
 
-*** The new command `remember-notes' creates a buffer that is saved on
-`kill-emacs'.  You can think of it as a *scratch* buffer whose content
-is preserved.  In fact, it was designed as a replacement for *scratch*
-buffer and can be used that way by setting `initial-buffer-choice' to
-`remember-notes' and `remember-notes-buffer-name' to "*scratch*".
-Without the second change, the *scratch* buffer will still be there
-for notes that do not need to be preserved.
++++
+*** The new command `remember-notes' creates a buffer that is saved on exit.
+You can use it as a more permanent *scratch* buffer.
 
 +++
 *** Remember can now store notes in separate files.

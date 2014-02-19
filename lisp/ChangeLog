@@ -1,3 +1,9 @@
+2014-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/remember.el: Move provide statement to end.
+	(remember-mode-map, remember-notes-mode-map, remember-notes-mode)
+	(remember-notes): Doc fixes.
+
 2014-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* delsel.el (delete-char): Restore incorrectly erased property

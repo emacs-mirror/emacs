@@ -3,6 +3,7 @@
 ;; Copyright (C) 1999-2001, 2003-2014 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 29 Mar 1999
 ;; Version: 2.0
 ;; Keywords: data memory todo pim
@@ -178,8 +179,6 @@
 
 ;;; Code:
 
-(provide 'remember)
-
 (defconst remember-version "2.0"
   "This version of remember.")
 
@@ -229,6 +228,8 @@ recorded somewhere by that function."
   "If non-nil every function in `remember-handler-functions' is called."
   :type 'boolean
   :group 'remember)
+
+;; See below for more user variables.
 
 ;;; Internal Variables:
 
@@ -553,7 +554,7 @@ If this is nil, then `diary-file' will be used instead."
     (define-key map "\C-c\C-c" 'remember-finalize)
     (define-key map "\C-c\C-k" 'remember-destroy)
     map)
-  "Keymap used in Remember mode.")
+  "Keymap used in `remember-mode'.")
 
 (define-derived-mode remember-mode indented-text-mode "Remember"
   "Major mode for output from \\[remember].
@@ -599,10 +600,14 @@ If this is nil, use `initial-major-mode'."
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-c" 'remember-notes-save-and-bury-buffer)
     map)
-  "Keymap used in remember-notes mode.")
+  "Keymap used in `remember-notes-mode'.")
 
 (define-minor-mode remember-notes-mode
-  "Minor mode for the `remember-notes' buffer."
+  "Minor mode for the `remember-notes' buffer.
+This sets `buffer-save-without-query' so that `save-some-buffers' will
+save the notes buffer without asking.
+
+\\{remember-notes-mode-map}"
   nil nil nil
   (cond
    (remember-notes-mode
@@ -612,29 +617,25 @@ If this is nil, use `initial-major-mode'."
 
 ;;;###autoload
 (defun remember-notes (&optional switch-to)
-  "Creates notes buffer and switches to it if called interactively.
+  "Return the notes buffer, creating it if needed, and maybe switch to it.
+This buffer is for notes that you want to preserve across Emacs sessions.
+The notes are saved in `remember-data-file'.
 
-If a notes buffer created by a previous invocation of this
-function already exist, it will be returned.  Otherwise a new
-buffer will be created whose content will be read from file
-pointed by `remember-data-file'.  If a buffer visiting this file
-already exist, that buffer will be used instead of creating a new
-one (see `find-file-noselect' function for more details).
+If a buffer is already visiting that file, just return it.
 
-Name of the created buffer is taken from `remember-notes-buffer-name'
-variable and if a buffer with that name already exist (but was not
-created by this function), it will be first killed.
-\\<remember-notes-mode-map>
-`remember-notes-mode' is active in the notes buffer which by default
-contains only one \\[save-and-bury-buffer] binding which saves and
-buries the buffer.
+Otherwise, create the buffer, and rename it to `remember-notes-buffer-name',
+unless a buffer of that name already exists.  Set the major mode according
+to `remember-notes-initial-major-mode', and enable `remember-notes-mode'
+minor mode.
 
-Function returns notes buffer.  When called interactively,
-switches to it as well.
+Use \\<remember-notes-mode-map>\\[remember-notes-save-and-bury-buffer] to save and bury the notes buffer.
 
-Notes buffer is meant for keeping random notes which you'd like to
-preserve across Emacs restarts.  The notes will be stored in the
-`remember-data-file'."
+Interactively, or if SWITCH-TO is non-nil, switch to the buffer.
+Return the buffer.
+
+Set `initial-buffer-choice' to `remember-notes' to visit your notes buffer
+when Emacs starts.  Set `remember-notes-buffer-name' to \"*scratch*\"
+to turn the *scratch* buffer into your notes buffer."
   (interactive "p")
   (let ((buf (or (find-buffer-visiting remember-data-file)
                  (with-current-buffer (find-file-noselect remember-data-file)
@@ -661,5 +662,7 @@ is non-nil, bury it and return nil; otherwise return t."
         (bury-buffer)
         nil)
     t))
+
+(provide 'remember)
 
 ;;; remember.el ends here

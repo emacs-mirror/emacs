@@ -1,3 +1,9 @@
+2014-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* remember.texi: Copyedits.
+	(Quick Start): No need for manual autoloads.  Mention remember-notes.
+	(Function Reference): Update arguments.  Add new commands.
+
 2014-02-18  Glenn Morris  <rgm@gnu.org>
 
 	* remember.texi (copying): Bump remember mode version.

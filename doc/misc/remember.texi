@@ -96,8 +96,8 @@ to remember what our conscious mind may not currently have access to.
 There are many different databases out there---and good ones---which
 this mode is not trying to replace.  Rather, it's how that data gets
 there that's the question.  Most of the time, we just want to say
-"Remember so-and-so's phone number, or that I have to buy dinner for the
-cats tonight."  That's the FACT@.  How it's stored is really the
+``Remember so-and-so's phone number, or that I have to buy dinner for the
+cats tonight.''  That's the FACT@.  How it's stored is really the
 computer's problem.  But at this point in time, it's most definitely
 also the user's problem, and sometimes so laboriously so that people
 just let data slip, rather than expend the effort to record it.
@@ -175,7 +175,7 @@ feedback will help to make this as intuitive a tool as possible.
 @itemize
 
 @item
-Type @kbd{M-x remember}.  The @samp{*Remember*} buffer should be
+Type @kbd{M-x remember}.  The @file{*Remember*} buffer should be
 displayed.
 
 @item
@@ -185,7 +185,7 @@ note.
 
 @item
 Type @kbd{C-c C-c} (@code{remember-finalize}) to save the note and close
-the @samp{*Remember*} buffer.
+the @file{*Remember*} buffer.
 @end itemize
 
 By default, @code{remember-finalize} saves the note in @file{~/emacs.d/notes}.
@@ -194,7 +194,7 @@ can edit this file however you want.  New entries will always be added
 to the end.
 
 To remember a region of text, use the universal prefix.  @kbd{C-u M-x
-remember} displays a @samp{*Remember*} buffer with the region as the
+remember} displays a @file{*Remember*} buffer with the region as the
 initial contents.
 
 As a simple beginning, you can start by using the Text File backend,
@@ -203,26 +203,23 @@ entry called @samp{* Raw data}.  Remembered data will be added to the
 end of the file.  Every so often, you can move the data that gets
 appended there into other files, or reorganize your document.
 
-You can also store remembered data in other backends.
-(@pxref{Backends})
+You can also store remembered data in other backends.  @xref{Backends}.
 
-Here is one way to map the remember functions in your @file{.emacs} to
+Here is one way to map the remember functions in your init file to
 very accessible keystrokes facilities using the mode:
 
 @lisp
-(autoload 'remember ``remember'' nil t)
-(autoload 'remember-region ``remember'' nil t)
-
 (define-key global-map (kbd "<f9> r") 'remember)
 (define-key global-map (kbd "<f9> R") 'remember-region)
 @end lisp
 
 By default, remember uses the first annotation returned by
 @code{remember-annotation-functions}.  To include all of the annotations,
-set @code{remember-run-all-annotation-functions-flag} to non-nil.
+set @code{remember-run-all-annotation-functions-flag} to a
+non-@code{nil} value.
 
 @defopt remember-run-all-annotation-functions-flag
-Non-nil means use all annotations returned by
+Non-@code{nil} means use all annotations returned by
 @code{remember-annotation-functions}.
 @end defopt
 
@@ -237,17 +234,32 @@ remember-annotation-functions.  For example:
   (call-interactively 'remember)))
 @end lisp
 
+@cindex notes
+The @code{remember-notes} command creates a @dfn{notes} buffer that
+visits the file specified by the option @code{remember-data-file}.
+The option @code{remember-notes-buffer-name} specifies the name of the
+buffer.  The buffer uses @code{remember-notes-initial-major-mode} and
+@code{remember-notes-mode} minor mode.  Use @kbd{C-c C-c} to save
+and bury the buffer.  The command @code{save-some-buffers} saves this
+buffer without asking.  This function is a suitable setting for
+@code{initial-buffer-choice}.
+
+
 @node Function Reference
 @chapter Function Reference
 
 @file{remember.el} defines the following interactive functions:
 
-@defun remember initial
+@defun remember &optional initial
 Remember an arbitrary piece of data.  With a prefix, it will use the
 region as @var{initial}.
 @end defun
 
-@defun remember-region beg end
+@defun remember-other-frame &optional initial
+Like @code{remember}, but uses a new frame.
+@end defun
+
+@defun remember-region &optional beg end
 If called from within the remember buffer, @var{beg} and @var{end} are
 ignored, and the entire buffer will be remembered.  If called from any
 other buffer, that region, plus any context information specific to
@@ -263,11 +275,35 @@ for remembering things from Netscape or other X Windows applications.
 Remember the contents of the current buffer.
 @end defun
 
+@defun remember-destroy
+Destroy the current remember buffer.
+@end defun
+
 @defun remember-mode
-This enters the major mode for output from @command{remember}.  This
+This enters the major mode for output from @code{remember}.  This
 buffer is used to collect data that you want remember.  Just hit
 @kbd{C-c C-c} when you're done entering, and it will go ahead and file
 the data for latter retrieval, and possible indexing.
+@end defun
+
+@defun remember-notes &optional switch-to
+This returns the notes buffer, creating it if needed, and switches
+to it if called interactively (or if @var{switch-to} is non-@code{nil}).
+The notes buffer visits @code{remember-data-file}, and
+is named @code{remember-notes-buffer-name}.  It uses
+@code{remember-notes-initial-major-mode} and @code{remember-notes-mode}
+minor mode.
+@end defun
+
+@defun remember-notes-mode &optional arg
+This is a minor mode for the notes buffer.  It sets
+@code{buffer-save-without-query} so that @code{save-some-buffers} will
+save the notes buffer without asking.  Use @kbd{C-c C-c} to
+run the command @code{remember-notes-save-and-bury-buffer}.
+@end defun
+
+@defun remember-notes-save-and-bury-buffer
+Save (if it is modified) and bury the current buffer.
 @end defun
 
 @node Keystrokes
@@ -277,14 +313,12 @@ the data for latter retrieval, and possible indexing.
 
 @table @kbd
 
-@item C-c C-c (`remember-finalize')
-Remember the contents of the current buffer.
+@item C-c C-c
+@itemx C-x C-s
+Remember the contents of the current buffer (`remember-finalize').
 
-@item C-c C-k (`remember-destroy')
-Destroy the current *Remember* buffer.
-
-@item C-x C-s (`remember-finalize')
-Remember the contents of the current buffer.
+@item C-c C-k
+Destroy the current @file{*Remember*} buffer (`remember-destroy').
 
 @end table
 
@@ -359,7 +393,7 @@ of saving, using this format string.
 
 @defopt remember-diary-file
 File for extracted diary entries.
-If this is nil, then @code{diary-file} will be used instead."
+If this is @code{nil}, then @code{diary-file} will be used instead.
 @end defopt
 
 @node Mailbox
