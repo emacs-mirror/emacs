@@ -371,23 +371,8 @@ enum {
 
 
 /* .result-codes: Result Codes -- see <design/type/#res> */
-/* These definitions must match <code/mps.h#result-codes>. */
-/* This is checked by <code/mpsi.c#check.rc>. */
-/* Changing this list entails changing the list in */
-/* <code/mps.h#result-codes> and the check in <code/mpsi.c#check.rc> */
 
-enum {
-  ResOK = 0,  /* MPS_RES_OK */
-  ResFAIL,  /* MPS_RES_FAIL */
-  ResRESOURCE,  /* MPS_RES_RESOURCE */
-  ResMEMORY,  /* MPS_RES_MEMORY */
-  ResLIMIT,  /* MPS_RES_LIMIT */  
-    /* note "LIMIT" does _not_ have usual end-of-enum meaning -rhsk */
-  ResUNIMPL,  /* MPS_RES_UNIMPL */
-  ResIO,  /* MPS_RES_IO */
-  ResCOMMIT_LIMIT,  /* MPS_RES_COMMIT_LIMIT */
-  ResPARAM  /* MPS_RES_PARAM */
-};
+_mps_ENUM_DEF(_mps_RES_ENUM, Res)
 
 
 /* TraceStates -- see <design/trace/> */
