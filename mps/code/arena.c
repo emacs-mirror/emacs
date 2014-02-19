@@ -111,6 +111,8 @@ Bool ArenaClassCheck(ArenaClass class)
 
 Bool ArenaCheck(Arena arena)
 {
+  Index i;
+
   CHECKS(Arena, arena);
   CHECKD(Globals, ArenaGlobals(arena));
   CHECKD(ArenaClass, arena->class);
@@ -121,6 +123,10 @@ Bool ArenaCheck(Arena arena)
     CHECKD(MV, &arena->controlPoolStruct);
     CHECKD(Reservoir, &arena->reservoirStruct);
   }
+
+  for (i = 0; i < NELEMS(arena->freeRing); ++i)
+    CHECKL(RingCheck(&arena->freeRing[i]));
+
   /* Can't check that limit>=size because we may call ArenaCheck */
   /* while the size is being adjusted. */
 
@@ -190,6 +196,9 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment)
   arena->chunkSerial = (Serial)0;
   ChunkCacheEntryInit(&arena->chunkCache);
   
+  for (i = 0; i < NELEMS(arena->freeRing); ++i)
+    RingInit(&arena->freeRing[i]);
+
   LocusInit(arena);
   
   res = GlobalsInit(ArenaGlobals(arena));
@@ -339,7 +348,10 @@ failInit:
 
 void ArenaFinish(Arena arena)
 {
+  Index i;
   ReservoirFinish(ArenaReservoir(arena));
+  for (i = 0; i < NELEMS(arena->freeRing); ++i)
+    RingFinish(&arena->freeRing[i]);
   arena->sig = SigInvalid;
   GlobalsFinish(ArenaGlobals(arena));
   LocusFinish(arena);
@@ -743,6 +755,25 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones,
   /* TODO: What about a range that crosses chunks?! Every chunk has
      some unallocated space at the beginning with page tables in it.
      This assumption needs documenting and asserting! */
+
+  /* Try to reuse single pages from the already-mapped spare pages list */
+  if (size == ArenaAlign(arena)) {
+    for (i = 0; i < NELEMS(arena->freeRing); ++i) {
+      Ring ring = &arena->freeRing[i];
+      if (ZoneSetIsMember(zones, i) && !RingIsSingle(ring)) {
+        Page page = PageOfFreeRing(RingNext(ring));
+        b = ChunkOfAddr(&chunk, arena, (Addr)page);
+        AVER(b);
+        AVER(ChunkPageSize(chunk) == size);
+        baseIndex = (Index)(page - chunk->pageTable);
+        res = (*arena->class->pagesMarkAllocated)(arena, chunk, baseIndex, 1, pool);
+        if (res == ResOK) {
+          *tractReturn = PageTract(&chunk->pageTable[baseIndex]); /* FIXME: method for this? */
+          return ResOK;
+        }
+      }
+    }
+  }
 
   for (i = 0; i < NELEMS(arena->zoneCBS); ++i)
     if ((((ZoneSet)1 << i) & zones) != 0 && /* FIXME: ZoneSetIsMember */
