@@ -1378,7 +1378,6 @@ static void VMFree(Addr base, Size size, Pool pool)
 {
   Arena arena;
   VMArena vmArena;
-  VMChunk vmChunk;
   Chunk chunk = NULL;           /* suppress "may be used uninitialized" */
   Count pages;
   Index pi, piBase, piLimit;
@@ -1398,7 +1397,6 @@ static void VMFree(Addr base, Size size, Pool pool)
 
   foundChunk = ChunkOfAddr(&chunk, arena, base);
   AVER(foundChunk);
-  vmChunk = Chunk2VMChunk(chunk);
 
   /* Calculate the number of pages in the region */
   pages = ChunkSizeToPages(chunk, size);
