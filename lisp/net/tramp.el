@@ -3150,6 +3150,13 @@ User is always nil."
 	      (delete-file local-copy)))))
       t)))
 
+(defun tramp-handle-make-symbolic-link
+  (filename linkname &optional ok-if-already-exists)
+  "Like `make-symbolic-link' for Tramp files."
+  (with-parsed-tramp-file-name
+      (if (tramp-tramp-file-p filename) filename linkname) nil
+    (tramp-error v 'file-error "make-symbolic-link not supported")))
+
 (defun tramp-handle-shell-command
   (command &optional output-buffer error-buffer)
   "Like `shell-command' for Tramp files."
@@ -3819,9 +3826,17 @@ be granted."
        (or
         result
         (let ((file-attr
-               (tramp-get-file-property
-                vec (tramp-file-name-localname vec)
-                (concat "file-attributes-" suffix) nil))
+	       (or
+		(tramp-get-file-property
+		 vec (tramp-file-name-localname vec)
+		 (concat "file-attributes-" suffix) nil)
+		(file-attributes
+		 (tramp-make-tramp-file-name
+		  (tramp-file-name-method vec)
+		  (tramp-file-name-user vec)
+		  (tramp-file-name-host vec)
+		  (tramp-file-name-localname vec))
+		 suffix)))
               (remote-uid
                (tramp-get-connection-property
                 vec (concat "uid-" suffix) nil))

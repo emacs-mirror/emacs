@@ -457,7 +457,7 @@ Every entry is a list (NAME ADDRESS).")
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-gvfs-handle-make-directory)
     (make-directory-internal . ignore)
-    (make-symbolic-link . ignore)
+    (make-symbolic-link . tramp-handle-make-symbolic-link)
     (process-file . ignore)
     (rename-file . tramp-gvfs-handle-rename-file)
     (set-file-acl . ignore)
@@ -1547,19 +1547,19 @@ connection if a previous connection has died for some reason."
 	;; is marked with the fuse-mountpoint "/".  We shall react.
 	(when (string-equal
 	       (tramp-get-file-property vec "/" "fuse-mountpoint" "") "/")
-	  (tramp-error vec 'file-error "FUSE mount denied"))
+	  (tramp-error vec 'file-error "FUSE mount denied")))))
 
-	;; In `tramp-check-cached-permissions', the connection
-	;; properties {uig,gid}-{integer,string} are used.  We set
-	;; them to their local counterparts.
-	(tramp-set-connection-property
-	 vec "uid-integer" (tramp-get-local-uid 'integer))
-	(tramp-set-connection-property
-	 vec "gid-integer" (tramp-get-local-gid 'integer))
-	(tramp-set-connection-property
-	 vec "uid-string" (tramp-get-local-uid 'string))
-	(tramp-set-connection-property
-	 vec "gid-string" (tramp-get-local-gid 'string))))))
+  ;; In `tramp-check-cached-permissions', the connection properties
+  ;; {uig,gid}-{integer,string} are used.  We set them to their local
+  ;; counterparts.
+  (with-tramp-connection-property
+   vec "uid-integer" (tramp-get-local-uid 'integer))
+  (with-tramp-connection-property
+   vec "gid-integer" (tramp-get-local-gid 'integer))
+  (with-tramp-connection-property
+   vec "uid-string" (tramp-get-local-uid 'string))
+  (with-tramp-connection-property
+   vec "gid-string" (tramp-get-local-gid 'string)))
 
 (defun tramp-gvfs-send-command (vec command &rest args)
   "Send the COMMAND with its ARGS to connection VEC.

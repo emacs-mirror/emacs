@@ -140,7 +140,7 @@
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-adb-handle-make-directory)
     (make-directory-internal . ignore)
-    (make-symbolic-link . ignore)
+    (make-symbolic-link . tramp-handle-make-symbolic-link)
     (process-file . tramp-adb-handle-process-file)
     (rename-file . tramp-adb-handle-rename-file)
     (set-file-acl . ignore)

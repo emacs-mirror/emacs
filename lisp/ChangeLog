@@ -1,3 +1,30 @@
+2014-02-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-make-symbolic-link): New defun.
+	(tramp-check-cached-permissions): Call `file-attributes' if the
+	cache is empty.
+
+	* net/tramp-adb.el (tramp-adb-file-name-handler-alist)
+	[make-symbolic-link]: Use `tramp-handle-make-symbolic-link'.
+
+	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist)
+	[make-symbolic-link]: Use `tramp-handle-make-symbolic-link'.
+	(tramp-gvfs-maybe-open-connection): Set always connection
+	properties, even if target is mounted already.
+
+	* net/tramp-sh.el (tramp-color-escape-sequence-regexp):
+	Set tramp-autoload cookie.
+	(tramp-get-remote-touch): New defun.
+	(tramp-sh-handle-set-file-times): Use it.
+	(tramp-sh-handle-directory-files-and-attributes):
+	Use `tramp-handle-directory-files-and-attributes' if neither stat
+	nor perl are available on the remote host.
+
+	* net/tramp-smb.el (tramp-smb-handle-insert-directory): Mark trailing
+	"/".  Write long listing only when "l" belongs to the switches.
+
+	* net/trampver.el: Update release number.
+
 2014-02-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el (frameset--reuse-frame): Remove workaround for bug#16793.
