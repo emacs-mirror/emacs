@@ -12,17 +12,21 @@
 #include "mpmtypes.h"
 #include "range.h"
 
+#define NAILBOARD_MAX_LEVELS ((MPS_WORD_WIDTH + MPS_WORD_SHIFT - 1) / MPS_WORD_SHIFT)
+
 typedef struct NailboardStruct *Nailboard;
 
 typedef struct NailboardStruct {
   Sig sig;
   Arena arena;
-  RangeStruct range; /* range covered by nailboard */
-  Shift markShift;  /* to convert offset into bit index for mark */
-  BT mark;          /* mark table used to record ambiguous fixes */
-  Count nails;      /* no. of ambigFixes, not necessarily distinct */
-  Count distinctNails; /* number of distinct ambigFixes */
-  Bool newNails;    /* set to TRUE if a new nail is set */
+  RangeStruct range;   /* range of addresses covered by nailboard */
+  Count levels;        /* number of levels */
+  Count nails;         /* number of calls to NailboardSet */
+  Count distinctNails; /* number of nails in the board */
+  Bool newNails;       /* set to TRUE if a new nail is set */
+  Shift alignShift;    /* shift due to address alignment */
+  Shift levelShift;    /* additional shift for each level */
+  BT level[1];         /* bit tables for each level */
 } NailboardStruct;
 
 #define NailboardSig ((Sig)0x5194A17B) /* SIGnature NAILBoard */
