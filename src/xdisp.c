@@ -20119,7 +20119,12 @@ display_line (struct it *it)
       /* If we truncate lines, we are done when the last displayed
 	 glyphs reach past the right margin of the window.  */
       if (it->line_wrap == TRUNCATE
-	  && (FRAME_WINDOW_P (it->f) && WINDOW_RIGHT_FRINGE_WIDTH (it->w)
+	  && ((FRAME_WINDOW_P (it->f)
+	       /* Images are preprocessed in produce_image_glyph such
+		  that they are cropped at the right edge of the
+		  window, so an image glyph will always end exactly at
+		  last_visible_x, even if there's no right fringe.  */
+	       && (WINDOW_RIGHT_FRINGE_WIDTH (it->w) || it->what == IT_IMAGE))
 	      ? (it->current_x >= it->last_visible_x)
 	      : (it->current_x > it->last_visible_x)))
 	{
@@ -20152,19 +20157,26 @@ display_line (struct it *it)
 		  i = row->used[TEXT_AREA] - (i + 1);
 		}
 
-	      it->current_x = x_before;
-	      if (!FRAME_WINDOW_P (it->f))
+	      /* produce_special_glyphs overwrites the last glyph, so
+		 we don't want that if we want to keep that last
+		 glyph, which means it's an image.  */
+	      if (it->current_x > it->last_visible_x)
 		{
-		  for (n = row->used[TEXT_AREA]; i < n; ++i)
+		  it->current_x = x_before;
+		  if (!FRAME_WINDOW_P (it->f))
+		    {
+		      for (n = row->used[TEXT_AREA]; i < n; ++i)
+			{
+			  row->used[TEXT_AREA] = i;
+			  produce_special_glyphs (it, IT_TRUNCATION);
+			}
+		    }
+		  else
 		    {
 		      row->used[TEXT_AREA] = i;
 		      produce_special_glyphs (it, IT_TRUNCATION);
 		    }
-		}
-	      else
-		{
-		  row->used[TEXT_AREA] = i;
-		  produce_special_glyphs (it, IT_TRUNCATION);
+		  it->hpos = hpos_before;
 		}
 	    }
 	  else if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
@@ -20183,13 +20195,13 @@ display_line (struct it *it)
 		  goto at_end_of_line;
 		}
 	      it->current_x = x_before;
+	      it->hpos = hpos_before;
 	    }
 
 	  row->truncated_on_right_p = 1;
 	  it->continuation_lines_width = 0;
 	  reseat_at_next_visible_line_start (it, 0);
 	  row->ends_at_zv_p = FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n';
-	  it->hpos = hpos_before;
 	  break;
 	}
     }
@@ -20203,9 +20215,12 @@ display_line (struct it *it)
       && IT_CHARPOS (*it) != CHARPOS (row->start.pos))
     {
       if (!FRAME_WINDOW_P (it->f)
-	  || (row->reversed_p
-	      ? WINDOW_RIGHT_FRINGE_WIDTH (it->w)
-	      : WINDOW_LEFT_FRINGE_WIDTH (it->w)) == 0)
+	  || (((row->reversed_p
+		? WINDOW_RIGHT_FRINGE_WIDTH (it->w)
+		: WINDOW_LEFT_FRINGE_WIDTH (it->w)) == 0)
+	      /* Don't let insert_left_trunc_glyphs overwrite the
+		 first glyph of the row if it is an image.  */
+	      && row->glyphs[TEXT_AREA]->type != IMAGE_GLYPH))
 	insert_left_trunc_glyphs (it);
       row->truncated_on_left_p = 1;
     }

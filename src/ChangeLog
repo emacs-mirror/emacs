@@ -1,5 +1,10 @@
 2014-02-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (display_line): Fix horizontal scrolling of large images
+	when fringes are turned off.  This comes at a price of not
+	displaying the truncation/continuation glyphs in this case.
+	(Bug#16806)
+
 	* image.c (x_create_x_image_and_pixmap) [HAVE_NTGUI]: If
 	CreateDIBSection returns an error indication, zero out *ximg after
 	destroying the image.  This avoids crashes in memory allocations
