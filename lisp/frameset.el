@@ -1116,7 +1116,7 @@ All keyword parameters default to nil."
 		     (force-display (if (functionp force-display)
 					(funcall force-display frame-cfg window-cfg)
 				      force-display))
-		     frame to-tty)
+		     frame to-tty duplicate)
 		;; Only set target if forcing displays and the target display is different.
 		(cond ((frameset-keep-original-display-p force-display)
 		       (setq frameset--target-display nil))
@@ -1134,16 +1134,14 @@ All keyword parameters default to nil."
 			     (or (eq force-display :delete)
 				 (and to-tty
 				      (eq (cdr (assq 'minibuffer frame-cfg)) 'only))))
-		  ;; If keeping non-reusable frames, and the frameset--id of one of them
-		  ;; matches the id of a frame being restored (because, for example, the
-		  ;; frameset has already been read in the same session), remove the
-		  ;; frameset--id from the non-reusable frame, which is not useful anymore.
-		  (when (and other-frames
-			     (or (eq reuse-frames :keep) (consp reuse-frames)))
-		    (let ((dup (frameset-frame-with-id (frameset-cfg-id frame-cfg)
-						       other-frames)))
-		      (when dup
-			(set-frame-parameter dup 'frameset--id nil))))
+		  ;; To avoid duplicating frame ids after restoration, we note any
+		  ;; existing frame whose id matches a frame configuration in the
+		  ;; frameset.  Once the frame config is properly restored, we can
+		  ;; reset the old frame's id to nil.
+		  (setq duplicate (and other-frames
+				       (or (eq reuse-frames :keep) (consp reuse-frames))
+				       (frameset-frame-with-id (frameset-cfg-id frame-cfg)
+							       other-frames)))
 		  ;; Restore minibuffers.  Some of this stuff could be done in a filter
 		  ;; function, but it would be messy because restoring minibuffers affects
 		  ;; global state; it's best to do it here than add a bunch of global
@@ -1177,6 +1175,9 @@ All keyword parameters default to nil."
 		  (setq frame (frameset--restore-frame frame-cfg window-cfg
 						       (or filters frameset-filter-alist)
 						       force-onscreen))
+		  ;; Now reset any duplicate frameset--id
+		  (when (and duplicate (not (eq frame duplicate)))
+		    (set-frame-parameter duplicate 'frameset--id nil))
 		  ;; Set default-minibuffer if required.
 		  (when default (setq default-minibuffer-frame frame))))
 	    (error

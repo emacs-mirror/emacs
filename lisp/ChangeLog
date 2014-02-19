@@ -1,3 +1,8 @@
+2014-02-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset-restore): Delay removing an old frame's
+	duplicate id until the new frame has been correctly created.
+
 2014-02-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-make-symbolic-link): New defun.
