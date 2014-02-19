@@ -1,3 +1,12 @@
+2014-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (x_create_x_image_and_pixmap) [HAVE_NTGUI]: If
+	CreateDIBSection returns an error indication, zero out *ximg after
+	destroying the image.  This avoids crashes in memory allocations
+	due to the fact that some of the callers also call
+	x_destroy_x_image, which will attempt to free an already free'd
+	block of memory.
+
 2014-02-18  Martin Rudalics  <rudalics@gmx.at>
 
 	* widget.c (update_various_frame_slots): Don't set
