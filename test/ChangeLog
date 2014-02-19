@@ -1,3 +1,21 @@
+2014-02-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test17-insert-directory):
+	Make first line "total 123" optional.
+	(tramp-test20-file-modes, tramp-test22-file-times)
+	(tramp-test26-process-file, tramp-test27-start-file-process)
+	(tramp-test28-shell-command): Skip for tramp-gvfs.el and
+	tramp-smb.el.
+	(tramp-test20-file-modes): Check for "root" only when there is an
+	explicit user name.
+	(tramp-test21-file-links): Handle "... not supported" error.
+	(tramp-test22-file-times): Skip for "don't know" return values.
+	(tramp-test26-process-file, tramp-test28-shell-command):
+	Remove color escape sequences.
+	(tramp-test28-shell-command): Use `accept-process-output' rather
+	than `sit-for'.
+	(tramp-test30-utf8): Set coding system `utf-8'.
+
 2014-02-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp-test28-shell-command): Perform

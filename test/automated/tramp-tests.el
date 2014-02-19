@@ -822,7 +822,8 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	     (file-name-as-directory tmp-name1) "-al" nil 'full-directory-p)
 	    (goto-char (point-min))
 	    (should
-	     (looking-at-p "total +[[:digit:]]+\n.+ \\.\n.+ \\.\\.\n.+ foo$"))))
+	     (looking-at-p
+	      "\\(total +[[:digit:]]+\n\\)?.+ \\.\n.+ \\.\\.\n.+ foo$"))))
       (ignore-errors (delete-directory tmp-name1 'recursive)))))
 
 (ert-deftest tramp-test18-file-attributes ()
@@ -905,6 +906,11 @@ This tests also `file-readable-p' and `file-regular-p'."
   "Check `file-modes'.
 This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   (skip-unless (tramp--test-enabled))
+  (skip-unless
+   (not
+    (memq
+     (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
+     '(tramp-gvfs-file-name-handler tramp-smb-file-name-handler))))
   (tramp-cleanup-connection
    (tramp-dissect-file-name tramp-test-temporary-file-directory)
    nil 'keep-password)
@@ -922,7 +928,8 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	  (should (= (file-modes tmp-name) #o444))
 	  (should-not (file-executable-p tmp-name))
 	  ;; A file is always writable for user "root".
-	  (unless (string-equal (file-remote-p tmp-name 'user) "root")
+	  (when (and (stringp (file-remote-p tmp-name 'user))
+		     (not (string-equal (file-remote-p tmp-name 'user) "root")))
 	    (should-not (file-writable-p tmp-name))))
       (ignore-errors (delete-file tmp-name)))))
 
@@ -941,7 +948,15 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	(progn
 	  (write-region "foo" nil tmp-name1)
 	  (should (file-exists-p tmp-name1))
-	  (make-symbolic-link tmp-name1 tmp-name2)
+	  ;; Method "smb" supports `make-symbolic-link' only if the
+	  ;; remote host has CIFS capabilities.  tramp-adb.el and
+	  ;; tramp-gvfs.el do not support symbolic links at all.
+	  (condition-case err
+	      (make-symbolic-link tmp-name1 tmp-name2)
+	    (file-error
+	     (skip-unless
+	      (not (string-equal (error-message-string err)
+				 "make-symbolic-link not supported")))))
 	  (should (file-symlink-p tmp-name2))
 	  (should-error (make-symbolic-link tmp-name1 tmp-name2))
 	  (make-symbolic-link tmp-name1 tmp-name2 'ok-if-already-exists)
@@ -983,6 +998,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test22-file-times ()
   "Check `set-file-times' and `file-newer-than-file-p'."
   (skip-unless (tramp--test-enabled))
+  (skip-unless
+   (not
+    (memq
+     (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
+     '(tramp-gvfs-file-name-handler tramp-smb-file-name-handler))))
   (tramp-cleanup-connection
    (tramp-dissect-file-name tramp-test-temporary-file-directory)
    nil 'keep-password)
@@ -997,6 +1017,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should (consp (nth 5 (file-attributes tmp-name1))))
 	  ;; '(0 0) means don't know, and will be replaced by `current-time'.
 	  (set-file-times tmp-name1 '(0 1))
+	  ;; Dumb busyboxes are not able to return the date correctly.
+	  ;; They say "don't know.
+	  (skip-unless (not (equal (nth 5 (file-attributes tmp-name1)) '(0 0))))
 	  (should (equal (nth 5 (file-attributes tmp-name1)) '(0 1)))
 	  (write-region "bla" nil tmp-name2)
 	  (should (file-exists-p tmp-name2))
@@ -1077,6 +1100,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test26-process-file ()
   "Check `process-file'."
   (skip-unless (tramp--test-enabled))
+  (skip-unless
+   (not
+    (memq
+     (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
+     '(tramp-gvfs-file-name-handler tramp-smb-file-name-handler))))
   (tramp-cleanup-connection
    (tramp-dissect-file-name tramp-test-temporary-file-directory)
    nil 'keep-password)
@@ -1096,6 +1124,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (should
 	     (zerop
 	      (process-file "ls" nil t nil (file-name-nondirectory tmp-name))))
+	    ;; `ls' could produce colorized output.
+	    (goto-char (point-min))
+	    (while (re-search-forward tramp-color-escape-sequence-regexp nil t)
+	      (replace-match "" nil nil))
 	    (should
 	     (string-equal
 	      (format "%s\n" (file-name-nondirectory tmp-name))
@@ -1105,6 +1137,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test27-start-file-process ()
   "Check `start-file-process'."
   (skip-unless (tramp--test-enabled))
+  (skip-unless
+   (not
+    (memq
+     (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
+     '(tramp-gvfs-file-name-handler tramp-smb-file-name-handler))))
   (tramp-cleanup-connection
    (tramp-dissect-file-name tramp-test-temporary-file-directory)
    nil 'keep-password)
@@ -1153,6 +1190,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test28-shell-command ()
   "Check `shell-command'."
   (skip-unless (tramp--test-enabled))
+  (skip-unless
+   (not
+    (memq
+     (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
+     '(tramp-gvfs-file-name-handler tramp-smb-file-name-handler))))
   (tramp-cleanup-connection
    (tramp-dissect-file-name tramp-test-temporary-file-directory)
    nil 'keep-password)
@@ -1165,6 +1207,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should (file-exists-p tmp-name))
 	  (shell-command
 	   (format "ls %s" (file-name-nondirectory tmp-name)) (current-buffer))
+	  ;; `ls' could produce colorized output.
+	  (goto-char (point-min))
+	  (while (re-search-forward tramp-color-escape-sequence-regexp nil t)
+	    (replace-match "" nil nil))
 	  (should
 	   (string-equal
 	    (format "%s\n" (file-name-nondirectory tmp-name)) (buffer-string))))
@@ -1176,11 +1222,15 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should (file-exists-p tmp-name))
           (async-shell-command
 	   (format "ls %s" (file-name-nondirectory tmp-name)) (current-buffer))
-	  (sit-for 1 'nodisplay)
+	  (accept-process-output (get-buffer-process (current-buffer)) 1)
 	  (while (ignore-errors
 		   (memq (process-status (get-buffer-process (current-buffer)))
 			 '(run open)))
-	    (sit-for 1 'nodisplay))
+	    (accept-process-output (get-buffer-process (current-buffer)) 1))
+	  ;; `ls' could produce colorized output.
+	  (goto-char (point-min))
+	  (while (re-search-forward tramp-color-escape-sequence-regexp nil t)
+	    (replace-match "" nil nil))
 	  (should
 	   (string-equal
 	    (format "%s\n" (file-name-nondirectory tmp-name)) (buffer-string))))
@@ -1194,11 +1244,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (process-send-string
 	   (get-buffer-process (current-buffer))
 	   (format "%s\n" (file-name-nondirectory tmp-name)))
-	  (sit-for 1 'nodisplay)
+	  (accept-process-output (get-buffer-process (current-buffer)) 1)
 	  (while (ignore-errors
 		   (memq (process-status (get-buffer-process (current-buffer)))
 			 '(run open)))
-	    (sit-for 1 'nodisplay))
+	    (accept-process-output (get-buffer-process (current-buffer)) 1))
 	  (should
 	   (string-equal
 	    (format "%s\n" (file-name-nondirectory tmp-name)) (buffer-string))))
@@ -1260,6 +1310,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
    nil 'keep-password)
 
   (let ((tmp-name (tramp--test-make-temp-name))
+	(coding-system-for-read 'utf-8)
+	(coding-system-for-write 'utf-8)
 	(arabic "أصبح بوسعك الآن تنزيل نسخة كاملة من موسوعة ويكيبيديا العربية لتصفحها بلا اتصال بالإنترنت")
 	(chinese "银河系漫游指南系列")
 	(russian "Автостопом по гала́ктике"))
@@ -1293,10 +1345,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 ;; * set-file-selinux-context
 
 ;; * Fix `tramp-test17-insert-directory' for
-;;   `ls-lisp-insert-directory' ("plink" and friends).
-;; * Fix `tramp-test27-start-file-process' on MS Windows
-;;   (`process-send-eof'?).
-;; * Fix `tramp-test29-utf8' on MS Windows.
+;;   `ls-lisp-insert-directory' ("plink" and friends, tramp-gvfs.el).
+;; * Fix `tramp-test27-start-file-process' on MS Windows (`process-send-eof'?).
+;; * Fix `tramp-test28-shell-command' on MS Windows (`process-send-eof'?).
+;; * Fix `tramp-test30-utf8' on MS Windows.  Seems to be in `directory-files'.
 
 (defun tramp-test-all (&optional interactive)
   "Run all tests for \\[tramp]."
