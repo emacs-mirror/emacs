@@ -932,11 +932,7 @@ is the parameter alist of the frame being restored.  Internal use only."
 	   (setq frame (frameset--find-frame-if nil display))))
     ;; If found, remove from the list.
     (when frame
-      (setq frameset--reuse-list (delq frame frameset--reuse-list))
-      ;; Workaround for feature/bug#16793
-      (let ((root (frame-root-window frame)))
-	(unless (window-live-p root)
-	  (delete-other-windows-internal (frame-first-window root) root))))
+      (setq frameset--reuse-list (delq frame frameset--reuse-list)))
     frame))
 
 (defun frameset--initial-params (parameters)
