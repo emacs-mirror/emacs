@@ -1225,13 +1225,27 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
  */
 static void MVTSegFree(MVT mvt, Seg seg)
 {
-  Size size = SegSize(seg);
+  Buffer buffer;
+  Size size;
+  
+  size = SegSize(seg);
   AVER(mvt->available >= size);
 
   mvt->available -= size;
   mvt->size -= size;
   mvt->availLimit = mvt->size * mvt->fragLimit / 100;
   AVER(mvt->size == mvt->allocated + mvt->available + mvt->unavailable);
+
+  /* If the client program allocates the exactly the entire buffer then
+     frees the allocated memory then we'll try to free the segment with
+     the buffer still attached.  It's safe, but we must detach the buffer
+     first.  See job003520 and job003672. */
+  buffer = SegBuffer(seg);
+  if (buffer != NULL) {
+    AVER(BufferAP(buffer)->init == SegLimit(seg));
+    BufferDetach(buffer, MVT2Pool(mvt));
+  }
+  
   SegFree(seg);
   METER_ACC(mvt->segFrees, size);
 }
