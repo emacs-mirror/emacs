@@ -78,7 +78,6 @@ typedef struct VMArenaStruct {  /* VM arena structure */
   ArenaVMExtendedCallback extended;
   ArenaVMContractedCallback contracted;
   RingStruct spareRing;         /* spare (free but mapped) tracts */
-  RingStruct freeRing[MPS_WORD_WIDTH]; /* free page caches, per zone */
   Sig sig;                      /* <design/sig/> */
 } VMArenaStruct;
 
@@ -157,7 +156,6 @@ static Bool VMChunkCheck(VMChunk vmchunk)
 
 static Bool VMArenaCheck(VMArena vmArena)
 {
-  Index i;
   Arena arena;
   VMChunk primary;
 
@@ -180,8 +178,6 @@ static Bool VMArenaCheck(VMArena vmArena)
   }
   
   CHECKL(RingCheck(&vmArena->spareRing));
-  for (i = 0; i < NELEMS(vmArena->freeRing); ++i)
-    CHECKL(RingCheck(&vmArena->freeRing[i]));
 
   /* FIXME: Can't check VMParams */
 
@@ -498,7 +494,6 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   Chunk chunk;
   mps_arg_s arg;
   char vmParams[VMParamSize];
-  Index i;
   
   AVER(arenaReturn != NULL);
   AVER(class == VMArenaClassGet());
@@ -536,8 +531,6 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   vmArena->vm = arenaVM;
   vmArena->spareSize = 0;
   RingInit(&vmArena->spareRing);
-  for (i = 0; i < NELEMS(vmArena->freeRing); ++i)
-    RingInit(&vmArena->freeRing[i]);
 
   /* Copy the stack-allocated VM parameters into their home in the VMArena. */
   AVER(sizeof(vmArena->vmParams) == sizeof(vmParams));
@@ -623,7 +616,6 @@ static void VMArenaFinish(Arena arena)
   VMArena vmArena;
   Ring node, next;
   VM arenaVM;
-  Index i;
 
   vmArena = Arena2VMArena(arena);
   AVERT(VMArena, vmArena);
@@ -638,8 +630,6 @@ static void VMArenaFinish(Arena arena)
   
   /* Destroying the chunks should have purged and removed all spare pages. */
   RingFinish(&vmArena->spareRing);
-  for (i = 0; i < NELEMS(vmArena->freeRing); ++i)
-    RingFinish(&vmArena->freeRing[i]);
 
   /* Destroying the chunks should leave only the arena's own VM. */
   AVER(arena->committed == VMMapped(arenaVM));
@@ -1075,7 +1065,7 @@ static void VMFree(Addr base, Size size, Pool pool)
     RingInit(PageSpareRing(page));
     RingAppend(&vmArena->spareRing, PageSpareRing(page));
     RingInit(PageFreeRing(page));
-    RingInsert(&vmArena->freeRing[AddrZone(arena, PageIndexBase(chunk, pi))],
+    RingInsert(&arena->freeRing[AddrZone(arena, PageIndexBase(chunk, pi))],
                PageFreeRing(page));
   }
   arena->spareCommitted += ChunkPagesToSize(chunk, piLimit - piBase);
