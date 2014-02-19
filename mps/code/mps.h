@@ -77,21 +77,25 @@ typedef mps_word_t mps_clock_t;  /* processor time */
 typedef mps_word_t mps_label_t;  /* telemetry label */
 
 /* Result Codes */
-/* .result-codes: Keep in sync with <code/mpmtypes.h#result-codes> */
-/* and the check in <code/mpsi.c#check.rc> */
 
-enum {
-  MPS_RES_OK = 0,               /* success (always zero) */
-  MPS_RES_FAIL,                 /* unspecified failure */
-  MPS_RES_RESOURCE,             /* unable to obtain resources */
-  MPS_RES_MEMORY,               /* unable to obtain memory */
-  MPS_RES_LIMIT,                /* limitation reached */
-  MPS_RES_UNIMPL,               /* unimplemented facility */
-  MPS_RES_IO,                   /* system I/O error */
-  MPS_RES_COMMIT_LIMIT,         /* arena commit limit exceeded */
-  MPS_RES_PARAM                 /* illegal user parameter value */
-};
+#define _mps_RES_ENUM(R, X) \
+  R(X, OK,            "success (always zero)") \
+  R(X, FAIL,          "unspecified failure") \
+  R(X, RESOURCE,      "unable to obtain resources") \
+  R(X, MEMORY,        "unable to obtain memory") \
+  R(X, LIMIT,         "limitation reached") \
+  R(X, UNIMPL,        "unimplemented facility") \
+  R(X, IO,            "system I/O error") \
+  R(X, COMMIT_LIMIT,  "arena commit limit exceeded") \
+  R(X, PARAM,         "illegal user parameter value")
 
+#define _mps_ENUM_DEF_ROW(prefix, ident, doc) prefix##ident,
+#define _mps_ENUM_DEF(REL, prefix) \
+  enum { \
+    REL(_mps_ENUM_DEF_ROW, prefix) \
+    _mps_##prefix##LIMIT \
+  };
+_mps_ENUM_DEF(_mps_RES_ENUM, MPS_RES_)
 
 /* Format and Root Method Types */
 /* see design.mps.root-interface */
