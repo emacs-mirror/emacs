@@ -502,7 +502,7 @@ static obj_t make_symbol(size_t length, const char string[])
   return obj;
 }
 
-static obj_t make_string(size_t length, char string[])
+static obj_t make_string(size_t length, const char *string)
 {
   obj_t obj;
   mps_addr_t addr;

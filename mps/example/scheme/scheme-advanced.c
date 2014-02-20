@@ -510,7 +510,7 @@ static obj_t make_symbol(obj_t name)
   return obj;
 }
 
-static obj_t make_string(size_t length, char string[])
+static obj_t make_string(size_t length, const char *string)
 {
   obj_t obj;
   mps_addr_t addr;
@@ -973,7 +973,7 @@ static obj_t intern_string(obj_t name)
 }
 
 
-static obj_t intern(char *string)
+static obj_t intern(const char *string)
 {
   return intern_string(make_string(strlen(string), string));
 }
