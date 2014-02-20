@@ -48,9 +48,6 @@ SRCID(poolawl, "$Id$");
 
 #define AWLSig ((Sig)0x519B7A37) /* SIGnature PooL AWL */
 
-#define AWLGen ((Serial)1) /* "generation" for AWL pools */
-/* This and the dynamic criterion are the only ways AWL will get collected. */
-
 
 /* awlStat* -- Statistics gathering about instruction emulation
  *
@@ -90,7 +87,6 @@ typedef struct AWLStruct {
   Chain chain;              /* dummy chain */
   PoolGenStruct pgen;       /* generation representing the pool */
   Size size;                /* allocated size in bytes */
-  Serial gen;               /* associated generation (for SegAlloc) */
   Count succAccesses;       /* number of successive single accesses */
   FindDependentMethod findDependent; /*  to find a dependent object */
   awlStatTotalStruct stats;
@@ -452,7 +448,6 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
   AWLSeg awlseg;
   Res res;
   Arena arena;
-  SegPrefStruct segPrefStruct;
 
   AVER(awlsegReturn != NULL);
   AVER(RankSetCheck(rankSet));
@@ -470,14 +465,11 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
   /* beware of large sizes overflowing upon rounding */
   if (size == 0)
     return ResMEMORY;
-  segPrefStruct = *SegPrefDefault();
-  SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
-  SegPrefExpress(&segPrefStruct, SegPrefGen, &awl->gen);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u, rankSet);
     MPS_ARGS_DONE(args);
-    res = SegAlloc(&seg, AWLSegClassGet(), &segPrefStruct, size, pool,
-                   reservoirPermit, args);
+    res = ChainAlloc(&seg, awl->chain, awl->pgen.nr, AWLSegClassGet(),
+                     size, pool, reservoirPermit, args);
   } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
@@ -543,8 +535,8 @@ static Res AWLInit(Pool pool, ArgList args)
   FindDependentMethod findDependent;
   Chain chain;
   Res res;
-  static GenParamStruct genParam = { SizeMAX, 0.5 /* dummy */ };
   ArgStruct arg;
+  unsigned gen = AWL_GEN_DEFAULT;
 
   /* Weak check, as half-way through initialization. */
   AVER(pool != NULL);
@@ -555,6 +547,14 @@ static Res AWLInit(Pool pool, ArgList args)
   format = arg.val.format;
   ArgRequire(&arg, args, MPS_KEY_AWL_FIND_DEPENDENT);
   findDependent = (FindDependentMethod)arg.val.addr_method;
+  if (ArgPick(&arg, args, MPS_KEY_CHAIN))
+    chain = arg.val.chain;
+  else {
+    chain = ArenaGlobals(PoolArena(pool))->defaultChain;
+    gen = 1; /* avoid the nursery of the default chain by default */
+  }
+  if (ArgPick(&arg, args, MPS_KEY_GEN))
+    gen = arg.val.u;
 
   AVERT(Format, format);
   pool->format = format;
@@ -562,18 +562,15 @@ static Res AWLInit(Pool pool, ArgList args)
   AVER(FUNCHECK(findDependent));
   awl->findDependent = findDependent;
 
-  res = ChainCreate(&chain, pool->arena, 1, &genParam);
-  if (res != ResOK)
-    return res;
+  AVERT(Chain, chain);
+  AVER(gen <= ChainGens(chain));
   awl->chain = chain;
-  /* .gen: This must be the nursery in the chain, because it's the only */
-  /* generation.  awl->gen is just a hack for segment placement. */
-  res = PoolGenInit(&awl->pgen, chain, 0 /* .gen */, pool);
+
+  res = PoolGenInit(&awl->pgen, chain, gen, pool);
   if (res != ResOK)
     goto failGenInit;
 
   awl->alignShift = SizeLog2(pool->alignment);
-  awl->gen = AWLGen;
   awl->size = (Size)0;
 
   awl->succAccesses = 0;
@@ -585,7 +582,6 @@ static Res AWLInit(Pool pool, ArgList args)
   return ResOK;
 
 failGenInit:
-  ChainDestroy(chain);
   AVER(res != ResOK);
   return res;
 }
@@ -611,7 +607,6 @@ static void AWLFinish(Pool pool)
   }
   awl->sig = SigInvalid;
   PoolGenFinish(&awl->pgen);
-  ChainDestroy(awl->chain);
 }
 
 
@@ -1304,9 +1299,6 @@ static Bool AWLCheck(AWL awl)
   CHECKL(awl->poolStruct.class == AWLPoolClassGet());
   CHECKL((Align)1 << awl->alignShift == awl->poolStruct.alignment);
   CHECKD(Chain, awl->chain);
-  CHECKL(NONNEGATIVE(awl->gen));
-  /* 30 is just a sanity check really, not a constraint. */
-  CHECKL(awl->gen <= 30);
   /* Nothing to check about succAccesses. */
   CHECKL(FUNCHECK(awl->findDependent));
   /* Don't bother to check stats. */

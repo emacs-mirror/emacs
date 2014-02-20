@@ -199,7 +199,7 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
     if (segLimit == limit) /* segment ends at end of range */
       break;
 
-    b = SegNext(&seg, arena, segBase);
+    b = SegFindAboveAddr(&seg, arena, segBase);
     AVER(b);
     segBase = SegBase(seg);
     segLimit = SegLimit(seg);
@@ -593,7 +593,7 @@ static Res MVFFInit(Pool pool, ArgList args)
     return res;
 
   mvff->segPref = (SegPref)p;
-  *mvff->segPref = *SegPrefDefault();
+  SegPrefInit(mvff->segPref);
   SegPrefExpress(mvff->segPref, arenaHigh ? SegPrefHigh : SegPrefLow, NULL);
   /* If using zoneset placement, just put it apart from the others. */
   zones = ZoneSetComp(ArenaDefaultZONESET);

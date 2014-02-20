@@ -181,6 +181,8 @@ extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream);
 #define PoolArena(pool)         ((pool)->arena)
 #define PoolAlignment(pool)     ((pool)->alignment)
 #define PoolSegRing(pool)       (&(pool)->segRing)
+#define PoolArenaRing(pool) (&(pool)->arenaRing)
+#define PoolOfArenaRing(node) RING_ELT(Pool, arenaRing, node)
 
 extern Bool PoolFormat(Format *formatReturn, Pool pool);
 
@@ -404,7 +406,6 @@ extern void TraceIdMessagesDestroy(Arena arena, TraceId ti);
 
 /* Collection control parameters */
 
-extern double TraceTopGenMortality;
 extern double TraceWorkFactor;
 
 
@@ -506,7 +507,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaZoneShift(arena)   ((arena)->zoneShift)
 #define ArenaAlign(arena)       ((arena)->alignment)
 #define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
-
+#define ArenaPoolRing(arena) (&ArenaGlobals(arena)->poolRing)
 
 extern void (ArenaEnter)(Arena arena);
 extern void (ArenaLeave)(Arena arena);
@@ -587,7 +588,7 @@ extern Size ArenaCommitLimit(Arena arena);
 extern Res ArenaSetCommitLimit(Arena arena, Size limit);
 extern Size ArenaSpareCommitLimit(Arena arena);
 extern void ArenaSetSpareCommitLimit(Arena arena, Size limit);
-extern void ArenaNoSpareCommitExceeded(Arena arena);
+extern Size ArenaNoPurgeSpare(Arena arena, Size size);
 
 extern double ArenaMutatorAllocSize(Arena arena);
 extern Size ArenaAvail(Arena arena);
@@ -625,6 +626,7 @@ extern Res ArenaNoExtend(Arena arena, Addr base, Size size);
 
 extern Bool SegPrefCheck(SegPref pref);
 extern SegPref SegPrefDefault(void);
+extern void SegPrefInit(SegPref pref);
 extern void SegPrefExpress(SegPref pref, SegPrefKind kind, void *p);
 
 extern void LocusInit(Arena arena);
@@ -640,7 +642,9 @@ extern Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
 extern void SegFree(Seg seg);
 extern Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr);
 extern Bool SegFirst(Seg *segReturn, Arena arena);
-extern Bool SegNext(Seg *segReturn, Arena arena, Addr addr);
+extern Bool SegNext(Seg *segReturn, Arena arena, Seg seg);
+extern Bool SegNextOfRing(Seg *segReturn, Arena arena, Pool pool, Ring next);
+extern Bool SegFindAboveAddr(Seg *segReturn, Arena arena, Addr addr);
 extern void SegSetWhite(Seg seg, TraceSet white);
 extern void SegSetGrey(Seg seg, TraceSet grey);
 extern void SegSetRankSet(Seg seg, RankSet rankSet);
@@ -688,6 +692,7 @@ extern Addr (SegLimit)(Seg seg);
 #define SegGrey(seg)            ((TraceSet)(seg)->grey)
 #define SegWhite(seg)           ((TraceSet)(seg)->white)
 #define SegNailed(seg)          ((TraceSet)(seg)->nailed)
+#define SegPoolRing(seg)        (&(seg)->poolRing)
 #define SegOfPoolRing(node)     (RING_ELT(Seg, poolRing, (node)))
 #define SegOfGreyRing(node)     (&(RING_ELT(GCSeg, greyRing, (node)) \
                                    ->segStruct))
@@ -839,13 +844,15 @@ extern Bool RankSetCheck(RankSet rankSet);
 #define ZoneSetUnion(zs1, zs2) BS_UNION(zs1, zs2)
 #define ZoneSetInter(zs1, zs2) BS_INTER(zs1, zs2)
 #define ZoneSetDiff(zs1, zs2)  BS_DIFF(zs1, zs2)
-#define ZoneSetAdd(arena, zs, addr) \
+#define ZoneSetAddAddr(arena, zs, addr) \
   BS_ADD(ZoneSet, zs, AddrZone(arena, addr))
-#define ZoneSetIsMember(arena, zs, addr) \
+#define ZoneSetHasAddr(arena, zs, addr) \
   BS_IS_MEMBER(zs, AddrZone(arena, addr))
 #define ZoneSetSub(zs1, zs2)   BS_SUB(zs1, zs2)
 #define ZoneSetSuper(zs1, zs2) BS_SUPER(zs1, zs2)
 #define ZoneSetComp(zs)        BS_COMP(zs)
+#define ZoneSetIsMember(zs, z) BS_IS_MEMBER(zs, z)
+
 
 extern ZoneSet ZoneSetOfRange(Arena arena, Addr base, Addr limit);
 extern ZoneSet ZoneSetOfSeg(Arena arena, Seg seg);

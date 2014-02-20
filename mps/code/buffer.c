@@ -778,7 +778,8 @@ Bool BufferCommit(Buffer buffer, Addr p, Size size)
   /* .commit.after: If a flip occurs at this point, the pool will */
   /* see "initAtFlip" above the object, which is valid, so it will */
   /* be collected.  The commit must succeed when trip is called.  */
-  /* The pointer "p" will have been fixed up.  (@@@@ Will it?) */
+  /* The pointer "p" will have been fixed up. */
+  /* TODO: Check the above assertion and explain why it is so. */
   /* .commit.trip: Trip the buffer if a flip has occurred. */
   if (buffer->ap_s.limit == 0)
     return BufferTrip(buffer, p, size);
@@ -887,7 +888,7 @@ void BufferFlip(Buffer buffer)
       && !BufferIsReset(buffer)) {
     AVER(buffer->initAtFlip == (Addr)0);
     buffer->initAtFlip = buffer->ap_s.init;
-    /* Memory Barrier here? @@@@ */
+    /* TODO: Is a memory barrier required here? */
     buffer->ap_s.limit = (Addr)0;
     buffer->mode |= BufferModeFLIPPED;
   }

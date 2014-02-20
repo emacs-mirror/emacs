@@ -348,7 +348,7 @@ static Res AMSTInit(Pool pool, ArgList args)
   res = ChainCreate(&chain, pool->arena, 1, &genParam);
   if (res != ResOK)
     return res;
-  res = AMSInitInternal(Pool2AMS(pool), format, chain, FALSE);
+  res = AMSInitInternal(Pool2AMS(pool), format, chain, 0, FALSE);
   if (res != ResOK)
     return res;
   amst = Pool2AMST(pool);

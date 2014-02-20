@@ -118,6 +118,7 @@ Alignment? [5]_                                conf   conf   conf   conf   conf 
 Dependent objects? [8]_                        no     ---    no     yes    ---    ---    ---    ---    ---    no
 May use remote references? [9]_                no     ---    no     no     ---    ---    ---    ---    ---    no
 Blocks are automatically managed? [10]_        yes    yes    yes    yes    yes    no     no     no     no     no
+Blocks are promoted between generations        yes    yes    no     no     no     ---    ---    ---    ---    ---
 Blocks are manually managed? [10]_             no     no     no     no     no     yes    yes    yes    yes    yes
 Blocks are scanned? [11]_                      yes    no     yes    yes    no     no     no     no     no     yes
 Blocks support base pointers only? [12]_       yes    yes    yes    yes    yes    ---    ---    ---    ---    yes
