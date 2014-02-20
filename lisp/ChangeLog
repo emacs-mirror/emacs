@@ -1,3 +1,8 @@
+2014-02-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* elec-pair.el (electric-pair-syntax-info): Do not check syntax
+	before the start of buffer/region (bug#16799).
+
 2014-02-20  Glenn Morris  <rgm@gnu.org>
 
 	* isearch.el (search-invisible): Doc fix.

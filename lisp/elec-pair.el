@@ -215,8 +215,9 @@ COMMAND-EVENT's pair.  UNCONDITIONAL indicates the variables
 `electric-pair-pairs' or `electric-pair-text-pairs' were used to
 lookup syntax.  STRING-OR-COMMENT-START indicates that point is
 inside a comment of string."
-  (let* ((pre-string-or-comment (nth 8 (save-excursion
-                                         (syntax-ppss (1- (point))))))
+  (let* ((pre-string-or-comment (or (bobp)
+                                    (nth 8 (save-excursion
+                                             (syntax-ppss (1- (point)))))))
          (post-string-or-comment (nth 8 (syntax-ppss (point))))
          (string-or-comment (and post-string-or-comment
                                  pre-string-or-comment))
