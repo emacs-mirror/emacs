@@ -15470,29 +15470,32 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		  /* As soon as we've found the exact match for point,
 		     or the first suitable row whose ends_at_zv_p flag
 		     is set, we are done.  */
-		  at_zv_p =
-		    MATRIX_ROW (w->current_matrix, w->cursor.vpos)->ends_at_zv_p;
-		  if (rv && !at_zv_p
-		      && w->cursor.hpos >= 0
-		      && w->cursor.hpos < MATRIX_ROW_USED (w->current_matrix,
-							   w->cursor.vpos))
+		  if (rv)
 		    {
-		      struct glyph_row *candidate =
-			MATRIX_ROW (w->current_matrix, w->cursor.vpos);
-		      struct glyph *g =
-			candidate->glyphs[TEXT_AREA] + w->cursor.hpos;
-		      ptrdiff_t endpos = MATRIX_ROW_END_CHARPOS (candidate);
+		      at_zv_p = MATRIX_ROW (w->current_matrix,
+					    w->cursor.vpos)->ends_at_zv_p;
+		      if (!at_zv_p
+			  && w->cursor.hpos >= 0
+			  && w->cursor.hpos < MATRIX_ROW_USED (w->current_matrix,
+							       w->cursor.vpos))
+			{
+			  struct glyph_row *candidate =
+			    MATRIX_ROW (w->current_matrix, w->cursor.vpos);
+			  struct glyph *g =
+			    candidate->glyphs[TEXT_AREA] + w->cursor.hpos;
+			  ptrdiff_t endpos = MATRIX_ROW_END_CHARPOS (candidate);
 
-		      exact_match_p =
-			(BUFFERP (g->object) && g->charpos == PT)
-			|| (INTEGERP (g->object)
-			    && (g->charpos == PT
-				|| (g->charpos == 0 && endpos - 1 == PT)));
-		    }
-		  if (rv && (at_zv_p || exact_match_p))
-		    {
-		      rc = CURSOR_MOVEMENT_SUCCESS;
-		      break;
+			  exact_match_p =
+			    (BUFFERP (g->object) && g->charpos == PT)
+			    || (INTEGERP (g->object)
+				&& (g->charpos == PT
+				    || (g->charpos == 0 && endpos - 1 == PT)));
+			}
+		      if (at_zv_p || exact_match_p)
+			{
+			  rc = CURSOR_MOVEMENT_SUCCESS;
+			  break;
+			}
 		    }
 		  if (MATRIX_ROW_BOTTOM_Y (row) == last_y)
 		    break;

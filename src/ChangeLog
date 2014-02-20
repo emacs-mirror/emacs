@@ -2,6 +2,9 @@
 
 	* xdisp.c (init_iterator): Don't dereference a bogus face
 	pointer.  (Bug#16819)
+	(try_cursor_movement): Don't use cursor position if
+	set_cursor_from_row failed to compute it.  This avoids assertion
+	violations in MATRIX_ROW.
 
 2014-02-20  Glenn Morris  <rgm@gnu.org>
 
