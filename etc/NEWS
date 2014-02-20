@@ -1094,8 +1094,10 @@ treated as regexps rather than literal strings.
 Generic commands are interactive functions whose implementation can be
 selected among several alternatives, as a matter of user preference.
 
-** The `defalias-fset-function' property lets you catch `defalias'
-calls, and redirect them to your own function, instead of `fset'.
++++
+** If you give a symbol a `defalias-fset-function' property, `defalias'
+on that symbol will use the associated value as a function to call
+in place of `fset'.
 
 +++
 ** New variable `enable-dir-local-variables'.

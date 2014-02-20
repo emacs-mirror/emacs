@@ -592,6 +592,11 @@ If @var{doc} is non-@code{nil}, it becomes the function documentation
 of @var{name}.  Otherwise, any documentation provided by
 @var{definition} is used.
 
+@cindex defalias-fset-function property
+Internally, @code{defalias} normally uses @code{fset} to set the definition.
+If @var{name} has a @code{defalias-fset-function} property, however,
+the associated value is used as a function to call in place of @code{fset}.
+
 The proper place to use @code{defalias} is where a specific function
 name is being defined---especially where that name appears explicitly in
 the source file being loaded.  This is because @code{defalias} records

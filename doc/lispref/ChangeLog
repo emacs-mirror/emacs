@@ -1,3 +1,7 @@
+2014-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* functions.texi (Defining Functions): Mention defalias-fset-function.
+
 2014-02-17  Glenn Morris  <rgm@gnu.org>
 
 	* minibuf.texi (Text from Minibuffer): Update read-regexp details.

@@ -1,3 +1,7 @@
+2014-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* data.c (Fdefalias): Doc fix.
+
 2014-02-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (display_line): Fix horizontal scrolling of large images
