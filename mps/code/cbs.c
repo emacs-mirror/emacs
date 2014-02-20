@@ -23,7 +23,7 @@ SRCID(cbs, "$Id$");
 
 typedef struct CBSBlockStruct *CBSBlock;
 typedef struct CBSBlockStruct {
-  SplayNodeStruct node;
+  TreeStruct node;
   Addr base;
   Addr limit;
   Size maxSize; /* accurate maximum block size of sub-tree */
