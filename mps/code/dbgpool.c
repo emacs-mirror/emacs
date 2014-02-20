@@ -195,7 +195,7 @@ static Res DebugPoolInit(Pool pool, ArgList args)
     if (res != ResOK)
       goto tagFail;
     debug->missingTags = 0;
-    SplayTreeInit(&debug->index, TagComp, NULL);
+    SplayTreeInit(&debug->index, TagComp, SplayTrivUpdate);
   }
 
   debug->sig = PoolDebugMixinSig;
@@ -475,7 +475,7 @@ static void tagFree(PoolDebugMixin debug, Pool pool, Addr old, Size size)
   AVER(tag->size == size);
   res = SplayTreeDelete(&debug->index, node, (void *)&old);
   AVER(res == ResOK);
-  SplayNodeFinish(node);
+  TreeFinish(node);
   PoolFree(debug->tagPool, (Addr)tag, debug->tagSize);
 }
 
