@@ -290,7 +290,7 @@ static Res MVTInit(Pool pool, ArgList args)
   {
     ZoneSet zones;
     /* --- Loci needed here, what should the pref be? */
-    *MVTSegPref(mvt) = *SegPrefDefault();
+    SegPrefInit(MVTSegPref(mvt));
     zones = ZoneSetComp(ArenaDefaultZONESET);
     SegPrefExpress(MVTSegPref(mvt), SegPrefZoneSet, (void *)&zones);
   }
@@ -832,8 +832,8 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
 
   if (RangeSize(&newRange) >= mvt->reuseSize) {
     /* The new range is big enough that it might have been coalesced
-     * with ranges on the ABQ, so ensure that they are removed before
-     * reserving the new range.
+     * with ranges on the ABQ, so ensure that the corresponding ranges
+     * are coalesced on the ABQ.
      */
     ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &newRange, 0);
     MVTReserve(mvt, &newRange);
@@ -1225,13 +1225,27 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
  */
 static void MVTSegFree(MVT mvt, Seg seg)
 {
-  Size size = SegSize(seg);
+  Buffer buffer;
+  Size size;
+  
+  size = SegSize(seg);
   AVER(mvt->available >= size);
 
   mvt->available -= size;
   mvt->size -= size;
   mvt->availLimit = mvt->size * mvt->fragLimit / 100;
   AVER(mvt->size == mvt->allocated + mvt->available + mvt->unavailable);
+
+  /* If the client program allocates the exactly the entire buffer then
+     frees the allocated memory then we'll try to free the segment with
+     the buffer still attached.  It's safe, but we must detach the buffer
+     first.  See job003520 and job003672. */
+  buffer = SegBuffer(seg);
+  if (buffer != NULL) {
+    AVER(BufferAP(buffer)->init == SegLimit(seg));
+    BufferDetach(buffer, MVT2Pool(mvt));
+  }
+  
   SegFree(seg);
   METER_ACC(mvt->segFrees, size);
 }

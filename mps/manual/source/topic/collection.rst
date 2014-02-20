@@ -28,10 +28,29 @@ capable of collecting many automatically managed pools simultaneously.
 Generation chains
 -----------------
 
-A :term:`generation chain` describes the structure of the
-:term:`generations` in a set of :term:`automatically managed
-<automatic memory management>` :term:`pools`. The same generation
-chain should be used for all pools whose blocks live and die together.
+A :term:`generation chain` describes a sequence of :term:`generations`
+used by a set of :term:`automatically managed <automatic memory
+management>` :term:`pools`.
+
+A generation is a set of blocks that are managed together by the
+:term:`garbage collector`: they are :term:`condemned <condemned set>`
+together, and in :term:`moving <moving memory manager>` pools they are
+moved together. If two pools allocate blocks that are expected to live
+and die together, then it is efficient for them to share a chain.
+
+Typically blocks are allocated in the first generation in the chain,
+the :term:`nursery generation` (though you can change this using the
+:c:macro:`MPS_KEY_GEN` keyword argument to :c:func:`mps_pool_create`),
+and each time a block survives one collection then it is
+:term:`promoted <promotion>` to the next generation. Thus a generation
+contains a set of blocks of similar ages.
+
+By default, all pools in an arena share the same generation chain
+("the arena's default generation chain"), but if this doesn't meet
+your requirements, then when creating an automatically managed pool,
+you can choose which chain it should use by passing the
+:c:macro:`MPS_KEY_CHAIN` keyword argument to
+:c:func:`mps_pool_create`.
 
 Create a generation chain by preparing an array of
 :c:type:`mps_gen_param_s` structures giving the *capacity* (in
@@ -59,8 +78,9 @@ For example::
 
 .. c:type:: mps_chain_t
 
-    The type of :term:`generation chains`. A
-    generation chain describes the structure of :term:`generations` in a :term:`pool`.
+    The type of :term:`generation chains`. A generation chain
+    describes the structure of :term:`generations` in a set of
+    :term:`pools`.
 
 
 .. c:type:: mps_gen_param_s
@@ -260,7 +280,7 @@ Garbage collection messages
       generated the message;
 
     * :c:func:`mps_message_gc_not_condemned_size` returns the
-      approximate size of the set of objects that were in collected
+      approximate size of the set of blocks that were in collected
       :term:`pools`, but were not condemned in the garbage
       collection that generated the message.
 
@@ -298,7 +318,7 @@ Garbage collection messages
     not yet discarded.  It must be a garbage collection message: see
     :c:func:`mps_message_type_gc`.
 
-    The "live size" property is the total size of the set of objects
+    The "live size" property is the total size of the set of blocks
     that survived the :term:`garbage collection` that generated the
     message.
 
@@ -318,7 +338,7 @@ Garbage collection messages
     :c:func:`mps_message_type_gc`.
 
     The "not condemned size" property is the approximate size of the
-    set of objects that were in collected :term:`pools`, but
+    set of blocks that were in collected :term:`pools`, but
     were not in the :term:`condemned set` in the :term:`garbage
     collection` that generated the message.
 

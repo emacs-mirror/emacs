@@ -100,7 +100,7 @@ static Res clientChunkCreate(Chunk *chunkReturn, Addr base, Addr limit,
 
   AVER(chunkReturn != NULL);
   AVER(base != (Addr)0);
-  /* @@@@ Should refuse on small chunks, instead of AVERring. */
+  /* TODO: Should refuse on small chunks, instead of AVERring. */
   AVER(limit != (Addr)0);
   AVER(limit > base);
 
@@ -113,7 +113,7 @@ static Res clientChunkCreate(Chunk *chunkReturn, Addr base, Addr limit,
     goto failBootInit;
 
   /* Allocate the chunk. */
-  /* See <design/arena/>.@@@@ */
+  /* TODO: Add reference to design. */
   res = BootAlloc(&p, boot, sizeof(ClientChunkStruct), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failChunkAlloc;
@@ -145,14 +145,25 @@ failBootInit:
 
 static Res ClientChunkInit(Chunk chunk, BootBlock boot)
 {
+  Res res;
   ClientChunk clChunk;
+  void *p;
 
   /* chunk is supposed to be uninitialized, so don't check it. */
   clChunk = Chunk2ClientChunk(chunk);
   AVERT(BootBlock, boot);
   UNUSED(boot);
 
-  clChunk->freePages = chunk->pages; /* too large @@@@ */
+  /* TODO: An old comment claimed this is too large.
+     Does it fail to exclude the page table or something? */
+  clChunk->freePages = chunk->pages;
+
+  /* Put the page table as late as possible, as in VM systems we don't want */
+  /* to map it. */
+  res = BootAlloc(&p, boot, chunk->pageTablePages << chunk->pageShift, chunk->pageSize);
+  if (res != ResOK)
+    return res;
+  chunk->pageTable = p;
 
   return ResOK;
 }
@@ -381,7 +392,7 @@ static Res chunkAlloc(Addr *baseReturn, Tract *baseTractReturn,
   clChunk->freePages -= pages;
 
   *baseReturn = PageIndexBase(chunk, baseIndex);
-  *baseTractReturn = PageTract(&chunk->pageTable[baseIndex]);
+  *baseTractReturn = PageTract(ChunkPage(chunk, baseIndex));
 
   return ResOK;
 }
@@ -460,8 +471,7 @@ static void ClientFree(Addr base, Size size, Pool pool)
   AVER(limitIndex <= chunk->pages);
 
   for(pi = baseIndex; pi < limitIndex; pi++) {
-    Page page = &chunk->pageTable[pi];
-    Tract tract = PageTract(page);
+    Tract tract = PageTract(ChunkPage(chunk, pi));
 
     AVER(TractPool(tract) == pool);
     TractFinish(tract);

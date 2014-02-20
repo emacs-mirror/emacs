@@ -1,6 +1,6 @@
 /* scheme.c -- SCHEME INTERPRETER EXAMPLE FOR THE MEMORY POOL SYSTEM
  *
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * This is a toy interpreter for a subset of the Scheme programming
  * language <http://en.wikipedia.org/wiki/Scheme_%28programming_language%29>.
@@ -55,6 +55,7 @@
 
 #define unless(c)	if(!(c))
 #define LENGTH(array)	(sizeof(array) / sizeof(array[0]))
+#define UNUSED(var)     ((void)var)
 
 
 /* CONFIGURATION PARAMETERS */
@@ -133,12 +134,12 @@ typedef struct integer_s {
 
 typedef struct special_s {
   type_t type;			/* TYPE_SPECIAL */
-  char *name;			/* printed representation, NUL terminated */
+  const char *name;		/* printed representation, NUL terminated */
 } special_s;
 
 typedef struct operator_s {
   type_t type;			/* TYPE_OPERATOR */
-  char *name;			/* printed name, NUL terminated */
+  const char *name;		/* printed name, NUL terminated */
   entry_t entry;		/* entry point -- see eval() */
   obj_t arguments, body;	/* function arguments and code */
   obj_t env, op_env;		/* closure environments */
@@ -389,7 +390,7 @@ static mps_ap_t obj_ap;         /* allocation point used to allocate objects */
  * message.
  */
 
-static void error(char *format, ...)
+static void error(const char *format, ...)
 {
   va_list args;
 
@@ -484,7 +485,7 @@ static obj_t make_integer(long integer)
   return obj;
 }
 
-static obj_t make_symbol(size_t length, char string[])
+static obj_t make_symbol(size_t length, const char string[])
 {
   obj_t obj;
   mps_addr_t addr;
@@ -501,7 +502,7 @@ static obj_t make_symbol(size_t length, char string[])
   return obj;
 }
 
-static obj_t make_string(size_t length, char string[])
+static obj_t make_string(size_t length, const char *string)
 {
   obj_t obj;
   mps_addr_t addr;
@@ -519,7 +520,7 @@ static obj_t make_string(size_t length, char string[])
   return obj;
 }
 
-static obj_t make_special(char *string)
+static obj_t make_special(const char *string)
 {
   obj_t obj;
   mps_addr_t addr;
@@ -535,7 +536,7 @@ static obj_t make_special(char *string)
   return obj;
 }
 
-static obj_t make_operator(char *name,
+static obj_t make_operator(const char *name,
                            entry_t entry, obj_t arguments,
                            obj_t body, obj_t env, obj_t op_env)
 {
@@ -702,18 +703,17 @@ static int isealpha(int c)
  */
 
 static unsigned long hash(const char *s, size_t length) {
-  char c;
-  unsigned long h=0;
+  unsigned long c, h=0;
   size_t i = 0;
   switch(length % 4) {
     do {
-      c=s[i++]; h+=(c<<17)^(c<<11)^(c<<5)^(c>>1);
+      c=(unsigned long)s[i++]; h+=(c<<17)^(c<<11)^(c<<5)^(c>>1);
     case 3:
-      c=s[i++]; h^=(c<<14)+(c<<7)+(c<<4)+c;
+      c=(unsigned long)s[i++]; h^=(c<<14)+(c<<7)+(c<<4)+c;
     case 2:
-      c=s[i++]; h^=(~c<<11)|((c<<3)^(c>>1));
+      c=(unsigned long)s[i++]; h^=(~c<<11)|((c<<3)^(c>>1));
     case 1:
-      c=s[i++]; h-=(c<<16)|(c<<9)|(c<<2)|(c&3);
+      c=(unsigned long)s[i++]; h-=(c<<16)|(c<<9)|(c<<2)|(c&3);
     case 0:
       ;
     } while(i < length);
@@ -732,7 +732,7 @@ static unsigned long hash(const char *s, size_t length) {
  * is full.
  */
 
-static obj_t *find(char *string) {
+static obj_t *find(const char *string) {
   unsigned long i, h, probe;
 
   h = hash(string, strlen(string));
@@ -754,7 +754,7 @@ static obj_t *find(char *string) {
 
 static void rehash(void) {
   obj_t *old_symtab = symtab;
-  unsigned old_symtab_size = symtab_size;
+  size_t old_symtab_size = symtab_size;
   mps_root_t old_symtab_root = symtab_root;
   unsigned i;
   mps_addr_t ref;
@@ -791,7 +791,7 @@ static void rehash(void) {
 }
 
 /* union-find string in symbol table, rehashing if necessary */
-static obj_t intern(char *string) {
+static obj_t intern(const char *string) {
   obj_t *where;
 
   where = find(string);
@@ -831,9 +831,9 @@ static unsigned long eqv_hash(obj_t obj, mps_ld_t ld)
 {
   switch(TYPE(obj)) {
   case TYPE_INTEGER:
-    return obj->integer.integer;
+    return (unsigned long)obj->integer.integer;
   case TYPE_CHARACTER:
-    return obj->character.c;
+    return (unsigned long)obj->character.c;
   default:
       return eq_hash(obj, ld);
   }
@@ -857,6 +857,7 @@ static int eqvp(obj_t obj1, obj_t obj2)
 
 static unsigned long string_hash(obj_t obj, mps_ld_t ld)
 {
+  UNUSED(ld);
   unless(TYPE(obj) == TYPE_STRING)
     error("string-hash: argument must be a string");
   return hash(obj->string.string, obj->string.length);
@@ -1028,8 +1029,11 @@ static void port_close(obj_t port)
 }
 
 
-static void print(obj_t obj, unsigned depth, FILE *stream)
+static void print(obj_t obj, long depth, FILE *stream)
 {
+  if (depth < 0) {
+    depth = -1;
+  }
   switch(TYPE(obj)) {
     case TYPE_INTEGER: {
       fprintf(stream, "%ld", obj->integer.integer);
@@ -1205,11 +1209,11 @@ static obj_t read_integer(FILE *stream, int c)
 
 static obj_t read_symbol(FILE *stream, int c)
 {
-  int length = 0;
+  size_t length = 0;
   char string[SYMMAX+1];
 
   do {
-    string[length++] = tolower(c);
+    string[length++] = (char)tolower(c);
     c = getc(stream);
   } while(length < SYMMAX && (isalnum(c) || isealpha(c)));
 
@@ -1226,7 +1230,7 @@ static obj_t read_symbol(FILE *stream, int c)
 
 static obj_t read_string(FILE *stream, int c)
 {
-  int length = 0;
+  size_t length = 0;
   char string[STRMAX+1];
 
   for(;;) {
@@ -1249,7 +1253,7 @@ static obj_t read_string(FILE *stream, int c)
           error("read: unknown escape '%c'", c);
       }
     }
-    string[length++] = c;
+    string[length++] = (char)c;
   }
 
   string[length] = '\0';
@@ -1263,12 +1267,14 @@ static obj_t read(FILE *stream);
 
 static obj_t read_quote(FILE *stream, int c)
 {
+  UNUSED(c);
   return make_pair(obj_quote, make_pair(read(stream), obj_empty));
 }
 
 
 static obj_t read_quasiquote(FILE *stream, int c)
 {
+  UNUSED(c);
   return make_pair(obj_quasiquote, make_pair(read(stream), obj_empty));
 }
 
@@ -1352,7 +1358,7 @@ static obj_t read_special(FILE *stream, int c)
       c = getc(stream);
       if(c == EOF)
         error("read: end of file reading character literal");
-      return make_character(c);
+      return make_character((char)c);
     }
     case '(': {			/* vector (R4RS 6.8) */
       obj_t list = read_list(stream, c);
@@ -1549,7 +1555,7 @@ static obj_t load(obj_t env, obj_t op_env, obj_t filename) {
  * using the message given.
  */
 
-static obj_t eval_list(obj_t env, obj_t op_env, obj_t list, char *message)
+static obj_t eval_list(obj_t env, obj_t op_env, obj_t list, const char *message)
 {
   obj_t result, end, pair;
   result = obj_empty;
@@ -1574,7 +1580,7 @@ static obj_t eval_list(obj_t env, obj_t op_env, obj_t list, char *message)
  * See eval_args and eval_args_rest for usage.
  */
 
-static obj_t eval_args1(char *name, obj_t env, obj_t op_env,
+static obj_t eval_args1(const char *name, obj_t env, obj_t op_env,
                         obj_t operands, unsigned n, va_list args)
 {
   unsigned i;
@@ -1599,7 +1605,7 @@ static obj_t eval_args1(char *name, obj_t env, obj_t op_env,
  *   eval_args("foo", env, op_env, operands, 2, &arg1, &arg2);
  */
 
-static void eval_args(char *name, obj_t env, obj_t op_env,
+static void eval_args(const char *name, obj_t env, obj_t op_env,
                       obj_t operands, unsigned n, ...)
 {
   va_list args;
@@ -1623,7 +1629,7 @@ static void eval_args(char *name, obj_t env, obj_t op_env,
  *   eval_args_rest("foo", env, op_env, operands, &rest, 2, &arg1, &arg2);
  */
 
-static void eval_args_rest(char *name, obj_t env, obj_t op_env,
+static void eval_args_rest(const char *name, obj_t env, obj_t op_env,
                            obj_t operands, obj_t *restp, unsigned n, ...)
 {
   va_list args;
@@ -1728,6 +1734,8 @@ static obj_t entry_interpret(obj_t env, obj_t op_env, obj_t operator, obj_t oper
 
 static obj_t entry_quote(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
+  UNUSED(env);
+  UNUSED(op_env);
   unless(TYPE(operands) == TYPE_PAIR &&
          CDR(operands) == obj_empty)
     error("%s: illegal syntax", operator->operator.name);
@@ -2747,7 +2755,7 @@ static obj_t entry_reverse(obj_t env, obj_t op_env, obj_t operator, obj_t operan
 static obj_t entry_list_tail(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg, k;
-  int i;
+  long i;
   eval_args(operator->operator.name, env, op_env, operands, 2, &arg, &k);
   unless(TYPE(k) == TYPE_INTEGER)
     error("%s: second argument must be an integer", operator->operator.name);
@@ -2770,7 +2778,7 @@ static obj_t entry_list_tail(obj_t env, obj_t op_env, obj_t operator, obj_t oper
 static obj_t entry_list_ref(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg, k, result;
-  int i;
+  long i;
   eval_args(operator->operator.name, env, op_env, operands, 2, &arg, &k);
   unless(TYPE(k) == TYPE_INTEGER)
     error("%s: second argument must be an integer", operator->operator.name);
@@ -3008,7 +3016,7 @@ static obj_t entry_integer_to_char(obj_t env, obj_t op_env, obj_t operator, obj_
     error("%s: first argument must be an integer", operator->operator.name);
   unless(0 <= arg->integer.integer)
     error("%s: first argument is out of range", operator->operator.name);
-  return make_character(arg->integer.integer);
+  return make_character((char)arg->integer.integer);
 }
 
 
@@ -3037,12 +3045,14 @@ static obj_t entry_make_vector(obj_t env, obj_t op_env, obj_t operator, obj_t op
   eval_args_rest(operator->operator.name, env, op_env, operands, &rest, 1, &length);
   unless(TYPE(length) == TYPE_INTEGER)
     error("%s: first argument must be an integer", operator->operator.name);
+  unless(0 <= length->integer.integer)
+    error("%s: first argument is out of range", operator->operator.name);
   unless(rest == obj_empty) {
     unless(CDR(rest) == obj_empty)
       error("%s: too many arguments", operator->operator.name);
     fill = CAR(rest);
   }
-  return make_vector(length->integer.integer, fill);
+  return make_vector((size_t)length->integer.integer, fill);
 }
 
 
@@ -3071,7 +3081,7 @@ static obj_t entry_vector_length(obj_t env, obj_t op_env, obj_t operator, obj_t 
   eval_args(operator->operator.name, env, op_env, operands, 1, &vector);
   unless(TYPE(vector) == TYPE_VECTOR)
     error("%s: argument must be a vector", operator->operator.name);
-  return make_integer(vector->vector.length);
+  return make_integer((long)vector->vector.length);
 }
 
 
@@ -3088,8 +3098,9 @@ static obj_t entry_vector_ref(obj_t env, obj_t op_env, obj_t operator, obj_t ope
     error("%s: first argument must be a vector", operator->operator.name);
   unless(TYPE(index) == TYPE_INTEGER)
     error("%s: second argument must be an integer", operator->operator.name);
-  unless(0 <= index->integer.integer && index->integer.integer < vector->vector.length)
-    error("%s: index %ld out of bounds of vector length %ld",
+  unless(0 <= index->integer.integer
+         && (size_t)index->integer.integer < vector->vector.length)
+    error("%s: index %ld out of bounds of vector length %lu",
           operator->operator.name, index->integer.integer, vector->vector.length);
   return vector->vector.vector[index->integer.integer];
 }
@@ -3109,8 +3120,9 @@ static obj_t entry_vector_set(obj_t env, obj_t op_env, obj_t operator, obj_t ope
     error("%s: first argument must be a vector", operator->operator.name);
   unless(TYPE(index) == TYPE_INTEGER)
     error("%s: second argument must be an integer", operator->operator.name);
-  unless(0 <= index->integer.integer && index->integer.integer < vector->vector.length)
-    error("%s: index %ld out of bounds of vector length %ld",
+  unless(0 <= index->integer.integer
+         && (size_t)index->integer.integer < vector->vector.length)
+    error("%s: index %ld out of bounds of vector length %lu",
           operator->operator.name, index->integer.integer, vector->vector.length);
   vector->vector.vector[index->integer.integer] = obj;
   return obj_undefined;
@@ -3257,7 +3269,7 @@ static obj_t entry_make_string(obj_t env, obj_t op_env, obj_t operator, obj_t op
       error("%s: too many arguments", operator->operator.name);
     c = CAR(args)->character.c;
   }
-  obj = make_string(k->integer.integer, NULL);
+  obj = make_string((size_t)k->integer.integer, NULL);
   for (i = 0; i < k->integer.integer; ++i) {
     obj->string.string[i] = c;
   }
@@ -3306,7 +3318,7 @@ static obj_t entry_string_length(obj_t env, obj_t op_env, obj_t operator, obj_t 
   eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
   unless(TYPE(arg) == TYPE_STRING)
     error("%s: argument must be a string", operator->operator.name);
-  return make_integer(arg->string.length);
+  return make_integer((long)arg->string.length);
 }
 
 
@@ -3323,7 +3335,8 @@ static obj_t entry_string_ref(obj_t env, obj_t op_env, obj_t operator, obj_t ope
     error("%s: first argument must be a string", operator->operator.name);
   unless(TYPE(k) == TYPE_INTEGER)
     error("%s: second argument must be an integer", operator->operator.name);
-  unless(0 <= k->integer.integer && k->integer.integer < arg->string.length)
+  unless(0 <= k->integer.integer
+         && (size_t)k->integer.integer < arg->string.length)
     error("%s: second argument is out of range", operator->operator.name);
   return make_character(arg->string.string[k->integer.integer]);
 }
@@ -3367,9 +3380,9 @@ static obj_t entry_substring(obj_t env, obj_t op_env, obj_t operator, obj_t oper
     error("%s: third argument must be an integer", operator->operator.name);
   unless(0 <= start->integer.integer
          && start->integer.integer <= end->integer.integer
-         && end->integer.integer <= arg->string.length)
+         && (size_t)end->integer.integer <= arg->string.length)
     error("%s: arguments out of range", operator->operator.name);
-  length = end->integer.integer - start->integer.integer;
+  length = (size_t)end->integer.integer - (size_t)start->integer.integer;
   obj = make_string(length, NULL);
   strncpy(obj->string.string, &arg->string.string[start->integer.integer], length);
   return obj;
@@ -3488,7 +3501,7 @@ static obj_t entry_string_hash(obj_t env, obj_t op_env, obj_t operator, obj_t op
   eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
   unless(TYPE(arg) == TYPE_STRING)
     error("%s: argument must be a string", operator->operator.name);
-  return make_integer(string_hash(arg, NULL));
+  return make_integer((long)string_hash(arg, NULL));
 }
 
 
@@ -3496,7 +3509,7 @@ static obj_t entry_eq_hash(obj_t env, obj_t op_env, obj_t operator, obj_t operan
 {
   obj_t arg;
   eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
-  return make_integer(eq_hash(arg, NULL));
+  return make_integer((long)eq_hash(arg, NULL));
 }
 
 
@@ -3504,7 +3517,7 @@ static obj_t entry_eqv_hash(obj_t env, obj_t op_env, obj_t operator, obj_t opera
 {
   obj_t arg;
   eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
-  return make_integer(eqv_hash(arg, NULL));
+  return make_integer((long)eqv_hash(arg, NULL));
 }
 
 
@@ -3521,7 +3534,7 @@ static obj_t make_hashtable(obj_t operator, obj_t rest, hash_t hashf, cmp_t cmpf
       error("%s: first argument must be an integer", operator->operator.name);
     unless(arg->integer.integer > 0)
       error("%s: first argument must be positive", operator->operator.name);
-    length = arg->integer.integer;
+    length = (size_t)arg->integer.integer;
   }
   return make_table(length, hashf, cmpf);
 }
@@ -3616,7 +3629,7 @@ static obj_t entry_hashtable_size(obj_t env, obj_t op_env, obj_t operator, obj_t
   eval_args(operator->operator.name, env, op_env, operands, 1, &arg);
   unless(TYPE(arg) == TYPE_TABLE)
     error("%s: first argument must be a hash table", operator->operator.name);
-  return make_integer(table_size(arg));
+  return make_integer((long)table_size(arg));
 }
 
 
@@ -3731,7 +3744,7 @@ static obj_t entry_gc(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 
 /* special table */
 
-static struct {char *name; obj_t *varp;} sptab[] = {
+static struct {const char *name; obj_t *varp;} sptab[] = {
   {"()", &obj_empty},
   {"#[eof]", &obj_eof},
   {"#[error]", &obj_error},
@@ -3745,7 +3758,7 @@ static struct {char *name; obj_t *varp;} sptab[] = {
 
 /* initial symbol table */
 
-static struct {char *name; obj_t *varp;} isymtab[] = {
+static struct {const char *name; obj_t *varp;} isymtab[] = {
   {"quote", &obj_quote},
   {"lambda", &obj_lambda},
   {"begin", &obj_begin},
@@ -3758,7 +3771,7 @@ static struct {char *name; obj_t *varp;} isymtab[] = {
 
 /* operator table */
 
-static struct {char *name; entry_t entry;} optab[] = {
+static struct {const char *name; entry_t entry;} optab[] = {
   {"quote", entry_quote},
   {"define", entry_define},
   {"set!", entry_set},
@@ -3779,7 +3792,7 @@ static struct {char *name; entry_t entry;} optab[] = {
 
 /* function table */
 
-static struct {char *name; entry_t entry;} funtab[] = {
+static struct {const char *name; entry_t entry;} funtab[] = {
   {"not", entry_not},
   {"boolean?", entry_booleanp},
   {"eqv?", entry_eqvp},
@@ -4097,7 +4110,7 @@ static void obj_fwd(mps_addr_t old, mps_addr_t new)
 {
   obj_t obj = old;
   mps_addr_t limit = obj_skip(old);
-  size_t size = (char *)limit - (char *)old;
+  size_t size = (size_t)((char *)limit - (char *)old);
   assert(size >= ALIGN_WORD(sizeof(fwd2_s)));
   if (size == ALIGN_WORD(sizeof(fwd2_s))) {
     TYPE(obj) = TYPE_FWD2;
@@ -4143,6 +4156,8 @@ static void obj_pad(mps_addr_t addr, size_t size)
 
 static mps_res_t globals_scan(mps_ss_t ss, void *p, size_t s)
 {
+  UNUSED(p);
+  UNUSED(s);
   MPS_SCAN_BEGIN(ss) {
     size_t i;
     for (i = 0; i < LENGTH(sptab); ++i)
@@ -4470,7 +4485,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

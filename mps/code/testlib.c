@@ -236,6 +236,16 @@ double rnd_double(void)
 }
 
 
+rnd_state_t rnd_seed(void)
+{
+  /* Initialize seed based on seconds since epoch and on processor
+   * cycle count. */
+  EventClock t2;
+  EVENT_CLOCK(t2);
+  return 1 + ((unsigned long)time(NULL) + (unsigned long)t2) % (R_m - 1);
+}
+
+
 /* randomize -- randomize the generator, or initialize to replay
  *
  * There have been 3 versions of the rnd-states reported by this 
@@ -270,11 +280,7 @@ void randomize(int argc, char *argv[])
            argv[0], seed0);
     rnd_state_set(seed0);
   } else {
-    /* Initialize seed based on seconds since epoch and on processor
-     * cycle count. */
-    EventClock t2;
-    EVENT_CLOCK(t2);
-    seed0 = 1 + ((unsigned long)time(NULL) + (unsigned long)t2) % (R_m - 1);
+    seed0 = rnd_seed();
     printf("%s: randomize(): choosing initial state (v3): %lu.\n",
            argv[0], seed0);
     rnd_state_set(seed0);
@@ -320,6 +326,17 @@ void rnd_state_set_v2(unsigned long seed0_v2)
 }
 
 
+/* res_strings -- human readable MPS result codes */
+
+static struct {
+  const char *ident;
+  const char *doc;
+} res_strings[] = {
+#define RES_STRINGS_ROW(X, ident, doc) {#ident, #doc},
+_mps_RES_ENUM(RES_STRINGS_ROW, X)
+};
+
+
 /* verror -- die with message */
 
 void verror(const char *format, va_list args)
@@ -353,23 +370,24 @@ void error(const char *format, ...)
 }
 
 
-/* die -- Test a return code, and exit on error */
-
-void die(mps_res_t res, const char *s)
-{
-  if (res != MPS_RES_OK) {
-    error("\n%s: %d\n", s, res);
-  }
-}
-
-
 /* die_expect -- Test a return code, and exit on unexpected result */
 
 void die_expect(mps_res_t res, mps_res_t expected, const char *s)
 {
   if (res != expected) {
-    error("\n%s: %d\n", s, res);
+    if (0 <= res && (unsigned)res < sizeof(res_strings) / sizeof(res_strings[0]))
+      error("\n%s: %s: %s\n", s, res_strings[res].ident, res_strings[res].doc);
+    else
+      error("\n%s: %d: unknown result code\n", s, res);
   }
+}
+
+
+/* die -- Test a return code, and exit on error */
+
+void die(mps_res_t res, const char *s)
+{
+  die_expect(res, MPS_RES_OK, s);
 }
 
 

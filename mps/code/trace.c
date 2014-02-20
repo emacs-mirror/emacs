@@ -399,9 +399,7 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
   arena = trace->arena;
 
   if(SegFirst(&seg, arena)) {
-    Addr base;
     do {
-      base = SegBase(seg);
       /* Segment should be black now. */
       AVER(!TraceSetIsMember(SegGrey(seg), trace));
       AVER(!TraceSetIsMember(SegWhite(seg), trace));
@@ -418,7 +416,7 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
         if(res != ResOK)
           return res;
       }
-    } while (SegNext(&seg, arena, base));
+    } while (SegNext(&seg, arena, seg));
   }
 
   EVENT3(TraceCondemnZones, trace, condemnedSet, trace->white);
@@ -818,16 +816,20 @@ static void traceReclaim(Trace trace)
   EVENT1(TraceReclaim, trace);
   arena = trace->arena;
   if(SegFirst(&seg, arena)) {
-    Addr base;
+    Pool pool;
+    Ring next;
     do {
-      base = SegBase(seg);
+      Addr base = SegBase(seg);
+      pool = SegPool(seg);
+      next = RingNext(SegPoolRing(seg));
+
       /* There shouldn't be any grey stuff left for this trace. */
       AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace));
 
       if(TraceSetIsMember(SegWhite(seg), trace)) {
-        AVER_CRITICAL((SegPool(seg)->class->attr & AttrGC) != 0);
+        AVER_CRITICAL((pool->class->attr & AttrGC) != 0);
         STATISTIC(++trace->reclaimCount);
-        PoolReclaim(SegPool(seg), trace, seg);
+        PoolReclaim(pool, trace, seg);
 
         /* If the segment still exists, it should no longer be white. */
         /* Note that the seg returned by this SegOfAddr may not be */
@@ -843,7 +845,7 @@ static void traceReclaim(Trace trace)
           UNUSED(nonWhiteSeg); /* <code/mpm.c#check.unused> */
         }
       }
-    } while(SegNext(&seg, arena, base));
+    } while(SegNextOfRing(&seg, arena, pool, next));
   }
 
   trace->state = TraceFINISHED;
@@ -1260,7 +1262,7 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
 
   /* The zone test should already have been passed by MPS_FIX1 in mps.h. */
   AVER_CRITICAL(ZoneSetInter(ScanStateWhite(ss),
-                             ZoneSetAdd(ss->arena, ZoneSetEMPTY, ref)) !=
+                             ZoneSetAddAddr(ss->arena, ZoneSetEMPTY, ref)) !=
                 ZoneSetEMPTY);
 
   STATISTIC(++ss->fixRefCount);
@@ -1529,7 +1531,6 @@ failBegin:
 
 /* Collection control parameters */
 
-double TraceTopGenMortality = 0.51;
 double TraceWorkFactor = 0.25;
 
 
@@ -1589,7 +1590,6 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
   Arena arena;
   Res res;
   Seg seg;
-  Size size;
 
   AVERT(Trace, trace);
   AVER(trace->state == TraceINIT);
@@ -1608,10 +1608,8 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
   /* dynamically which method to use. */
 
   if(SegFirst(&seg, arena)) {
-    Addr base;
     do {
-      base = SegBase(seg);
-      size = SegSize(seg);
+      Size size = SegSize(seg);
       AVER(!TraceSetIsMember(SegGrey(seg), trace));
 
       /* A segment can only be grey if it contains some references. */
@@ -1640,7 +1638,7 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
           trace->notCondemned += size;
         }
       }
-    } while (SegNext(&seg, arena, base));
+    } while (SegNext(&seg, arena, seg));
   }
 
   STATISTIC_BEGIN {
@@ -1772,12 +1770,12 @@ Res TraceStartCollectAll(Trace *traceReturn, Arena arena, int why)
   if(res != ResOK) /* should try some other trace, really @@@@ */
     goto failCondemn;
   finishingTime = ArenaAvail(arena)
-                  - trace->condemned * (1.0 - TraceTopGenMortality);
+                  - trace->condemned * (1.0 - arena->topGen.mortality);
   if(finishingTime < 0) {
     /* Run out of time, should really try a smaller collection. @@@@ */
     finishingTime = 0.0;
   }
-  res = TraceStart(trace, TraceTopGenMortality, finishingTime);
+  res = TraceStart(trace, arena->topGen.mortality, finishingTime);
   if (res != ResOK)
     goto failStart;
   *traceReturn = trace;
@@ -1820,12 +1818,12 @@ Size TracePoll(Globals globals)
     double dynamicDeferral;
 
     /* Compute dynamic criterion.  See strategy.lisp-machine. */
-    AVER(TraceTopGenMortality >= 0.0);
-    AVER(TraceTopGenMortality <= 1.0);
+    AVER(arena->topGen.mortality >= 0.0);
+    AVER(arena->topGen.mortality <= 1.0);
     sFoundation = (Size)0; /* condemning everything, only roots @@@@ */
     /* @@@@ sCondemned should be scannable only */
     sCondemned = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
-    sSurvivors = (Size)(sCondemned * (1 - TraceTopGenMortality));
+    sSurvivors = (Size)(sCondemned * (1 - arena->topGen.mortality));
     tTracePerScan = sFoundation + (sSurvivors * (1 + TraceCopyScanRATIO));
     AVER(TraceWorkFactor >= 0);
     AVER(sSurvivors + tTracePerScan * TraceWorkFactor <= (double)SizeMAX);
