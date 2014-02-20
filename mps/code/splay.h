@@ -14,7 +14,6 @@
 
 typedef struct SplayTreeStruct *SplayTree;
 typedef struct SplayNodeStruct *SplayNode;
-typedef unsigned Compare;
 typedef Compare (*SplayCompareMethod)(void *key, SplayNode node);
 typedef Bool (*SplayTestNodeMethod)(SplayTree tree, SplayNode node,
                                     void *closureP, Size closureS);
@@ -24,11 +23,6 @@ typedef void (*SplayUpdateNodeMethod)(SplayTree tree, SplayNode node,
                                       SplayNode leftChild,
                                       SplayNode rightChild);
 typedef Res (*SplayNodeDescribeMethod)(SplayNode node, mps_lib_FILE *stream);
-enum {
-  CompareLESS = 1,
-  CompareEQUAL,
-  CompareGREATER
-};
 
 
 typedef struct SplayTreeStruct {
