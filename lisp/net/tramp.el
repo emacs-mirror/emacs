@@ -49,9 +49,8 @@
 ;;            http://lists.gnu.org/mailman/listinfo/tramp-devel
 ;;
 ;; For the adventurous, the current development sources are available
-;; via CVS.  You can find instructions about this at the following URL:
+;; via Git.  You can find instructions about this at the following URL:
 ;;            http://savannah.gnu.org/projects/tramp/
-;; Click on "CVS" in the navigation bar near the top.
 ;;
 ;; Don't forget to put on your asbestos longjohns, first!
 
@@ -66,6 +65,7 @@
 (defvar directory-sep-char)
 (defvar eshell-path-env)
 (defvar file-notify-descriptors)
+(defvar ls-lisp-use-insert-directory-program)
 (defvar outline-regexp)
 
 ;;; User Customizable Internal Variables:
@@ -3006,6 +3006,38 @@ User is always nil."
 	       (symbol-value 'bkup-backup-directory-info)))))
 
       (tramp-run-real-handler 'find-backup-file-name (list filename)))))
+
+(defun tramp-handle-insert-directory
+  (filename switches &optional wildcard full-directory-p)
+  "Like `insert-directory' for Tramp files."
+  (unless switches (setq switches ""))
+  ;; Mark trailing "/".
+  (when (and (zerop (length (file-name-nondirectory filename)))
+	     (not full-directory-p))
+    (setq switches (concat switches "F")))
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
+    (with-tramp-progress-reporter v 0 (format "Opening directory %s" filename)
+      (require 'ls-lisp)
+      (let (ls-lisp-use-insert-directory-program start)
+	(tramp-run-real-handler
+	 'insert-directory
+	 (list filename switches wildcard full-directory-p))
+	;; `ls-lisp' always returns full listings.  We must remove
+	;; superfluous parts.
+	(unless (string-match "l" switches)
+	  (save-excursion
+	    (goto-char (point-min))
+	    (while (setq start
+			 (text-property-not-all
+			  (point) (point-at-eol) 'dired-filename t))
+	      (delete-region
+	       start
+	       (or (text-property-any start (point-at-eol) 'dired-filename t)
+		   (point-at-eol)))
+	      (if (=  (point-at-bol) (point-at-eol))
+		  ;; Empty line.
+		  (delete-region (point) (progn (forward-line) (point)))
+		(forward-line)))))))))
 
 (defun tramp-handle-insert-file-contents
   (filename &optional visit beg end replace)

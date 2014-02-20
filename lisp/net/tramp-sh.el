@@ -2516,8 +2516,8 @@ This is like `dired-recursive-delete-directory' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (if (and (featurep 'ls-lisp)
 	     (not (symbol-value 'ls-lisp-use-insert-directory-program)))
-	(tramp-run-real-handler
-	 'insert-directory (list filename switches wildcard full-directory-p))
+	(tramp-handle-insert-directory
+	 filename switches wildcard full-directory-p)
       (when (stringp switches)
         (setq switches (split-string switches)))
       (when (and (member "--dired" switches)

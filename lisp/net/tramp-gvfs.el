@@ -108,7 +108,6 @@
 (eval-when-compile
   (require 'cl)
   (require 'custom))
-(defvar ls-lisp-use-insert-directory-program)
 
 ;;;###tramp-autoload
 (defcustom tramp-gvfs-methods '("dav" "davs" "obex" "synce")
@@ -451,7 +450,7 @@ Every entry is a list (NAME ADDRESS).")
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `find-file-noselect' performed by default handler.
     ;; `get-file-buffer' performed by default handler.
-    (insert-directory . tramp-gvfs-handle-insert-directory)
+    (insert-directory . tramp-handle-insert-directory)
     (insert-file-contents . tramp-handle-insert-file-contents)
     (load . tramp-handle-load)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
@@ -1005,19 +1004,6 @@ is no information where to trace the message.")
 	;; If file doesn't exist, check if directory is writable.
 	(and (file-directory-p (file-name-directory filename))
 	     (file-writable-p (file-name-directory filename)))))))
-
-(defun tramp-gvfs-handle-insert-directory
-  (filename switches &optional wildcard full-directory-p)
-  "Like `insert-directory' for Tramp files."
-  ;; gvfs-* output is hard to parse.  So we let `ls-lisp' do the job.
-  (unless switches (setq switches ""))
-  (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (with-tramp-progress-reporter v 0 (format "Opening directory %s" filename)
-      (require 'ls-lisp)
-      (let (ls-lisp-use-insert-directory-program)
-	(tramp-run-real-handler
-	 'insert-directory
-	 (list filename switches wildcard full-directory-p))))))
 
 (defun tramp-gvfs-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
