@@ -130,12 +130,12 @@ typedef struct integer_s {
 
 typedef struct special_s {
   type_t type;			/* TYPE_SPECIAL */
-  char *name;			/* printed representation, NUL terminated */
+  const char *name;		/* printed representation, NUL terminated */
 } special_s;
 
 typedef struct operator_s {
   type_t type;			/* TYPE_OPERATOR */
-  char *name;			/* printed name, NUL terminated */
+  const char *name;		/* printed name, NUL terminated */
   entry_t entry;		/* entry point -- see eval() */
   obj_t arguments, body;	/* function arguments and code */
   obj_t env, op_env;		/* closure environments */
@@ -397,7 +397,7 @@ static mps_ap_t weak_buckets_ap; /* allocation point for weak buckets */
  * message.
  */
 
-static void error(char *format, ...)
+static void error(const char *format, ...)
 {
   va_list args;
 
@@ -527,7 +527,7 @@ static obj_t make_string(size_t length, char string[])
   return obj;
 }
 
-static obj_t make_special(char *string)
+static obj_t make_special(const char *string)
 {
   obj_t obj;
   mps_addr_t addr;
@@ -543,7 +543,7 @@ static obj_t make_special(char *string)
   return obj;
 }
 
-static obj_t make_operator(char *name,
+static obj_t make_operator(const char *name,
                            entry_t entry, obj_t arguments,
                            obj_t body, obj_t env, obj_t op_env)
 {
@@ -1523,7 +1523,7 @@ static obj_t load(obj_t env, obj_t op_env, obj_t filename) {
  * using the message given.
  */
 
-static obj_t eval_list(obj_t env, obj_t op_env, obj_t list, char *message)
+static obj_t eval_list(obj_t env, obj_t op_env, obj_t list, const char *message)
 {
   obj_t result, end, pair;
   result = obj_empty;
@@ -1548,7 +1548,7 @@ static obj_t eval_list(obj_t env, obj_t op_env, obj_t list, char *message)
  * See eval_args and eval_args_rest for usage.
  */
 
-static obj_t eval_args1(char *name, obj_t env, obj_t op_env,
+static obj_t eval_args1(const char *name, obj_t env, obj_t op_env,
                         obj_t operands, unsigned n, va_list args)
 {
   unsigned i;
@@ -1573,7 +1573,7 @@ static obj_t eval_args1(char *name, obj_t env, obj_t op_env,
  *   eval_args("foo", env, op_env, operands, 2, &arg1, &arg2);
  */
 
-static void eval_args(char *name, obj_t env, obj_t op_env,
+static void eval_args(const char *name, obj_t env, obj_t op_env,
                       obj_t operands, unsigned n, ...)
 {
   va_list args;
@@ -1597,7 +1597,7 @@ static void eval_args(char *name, obj_t env, obj_t op_env,
  *   eval_args_rest("foo", env, op_env, operands, &rest, 2, &arg1, &arg2);
  */
 
-static void eval_args_rest(char *name, obj_t env, obj_t op_env,
+static void eval_args_rest(const char *name, obj_t env, obj_t op_env,
                            obj_t operands, obj_t *restp, unsigned n, ...)
 {
   va_list args;
@@ -3754,7 +3754,7 @@ static obj_t entry_gc(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 
 /* special table */
 
-static struct {char *name; obj_t *varp;} sptab[] = {
+static struct {const char *name; obj_t *varp;} sptab[] = {
   {"()", &obj_empty},
   {"#[eof]", &obj_eof},
   {"#[error]", &obj_error},
@@ -3769,7 +3769,7 @@ static struct {char *name; obj_t *varp;} sptab[] = {
 
 /* initial symbol table */
 
-static struct {char *name; obj_t *varp;} isymtab[] = {
+static struct {const char *name; obj_t *varp;} isymtab[] = {
   {"quote", &obj_quote},
   {"lambda", &obj_lambda},
   {"begin", &obj_begin},
@@ -3782,7 +3782,7 @@ static struct {char *name; obj_t *varp;} isymtab[] = {
 
 /* operator table */
 
-static struct {char *name; entry_t entry;} optab[] = {
+static struct {const char *name; entry_t entry;} optab[] = {
   {"quote", entry_quote},
   {"define", entry_define},
   {"set!", entry_set},
@@ -3803,7 +3803,7 @@ static struct {char *name; entry_t entry;} optab[] = {
 
 /* function table */
 
-static struct {char *name; entry_t entry;} funtab[] = {
+static struct {const char *name; entry_t entry;} funtab[] = {
   {"not", entry_not},
   {"boolean?", entry_booleanp},
   {"eqv?", entry_eqvp},
