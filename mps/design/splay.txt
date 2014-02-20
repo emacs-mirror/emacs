@@ -249,7 +249,7 @@ _`.function.splay.tree.init`: This function initialises a
 implement a total ordering is undefined. It also requires an
 ``updateNode`` method, which will be used to keep client properties up
 to date when the tree structure changes; the value
-``SplayTrivUpdateNode`` may be used for this method if there is no
+``SplayTrivUpdate`` may be used for this method if there is no
 need to maintain client properties. (See `.usage.initialization`_ for
 an example use).
 

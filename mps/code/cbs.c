@@ -166,31 +166,26 @@ static Bool cbsTestTree(SplayTree tree, Tree node,
 
 /* cbsUpdateNode -- update size info after restructuring */
 
-static void cbsUpdateNode(SplayTree tree, Tree node,
-                          Tree leftChild, Tree rightChild)
+static void cbsUpdateNode(SplayTree tree, Tree node)
 {
   Size maxSize;
   CBSBlock block;
 
   AVERT(SplayTree, tree);
   AVERT(Tree, node);
-  if (leftChild != NULL)
-    AVERT(Tree, leftChild);
-  if (rightChild != NULL)
-    AVERT(Tree, rightChild);
   AVER(cbsOfTree(tree)->fastFind);
 
   block = cbsBlockOfNode(node);
   maxSize = CBSBlockSize(block);
 
-  if (leftChild != NULL) {
-    Size size = cbsBlockOfNode(leftChild)->maxSize;
+  if (TreeHasLeft(node)) {
+    Size size = cbsBlockOfNode(TreeLeft(node))->maxSize;
     if (size > maxSize)
       maxSize = size;
   }
 
-  if (rightChild != NULL) {
-    Size size = cbsBlockOfNode(rightChild)->maxSize;
+  if (TreeHasRight(node)) {
+    Size size = cbsBlockOfNode(TreeRight(node))->maxSize;
     if (size > maxSize)
       maxSize = size;
   }
@@ -219,7 +214,7 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
     extendBy = arg.val.size;
 
   SplayTreeInit(treeOfCBS(cbs), &cbsCompare,
-                fastFind ? &cbsUpdateNode : NULL);
+                fastFind ? cbsUpdateNode : SplayTrivUpdate);
   MPS_ARGS_BEGIN(pcArgs) {
     MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
     MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, extendBy);
@@ -345,7 +340,7 @@ static Res cbsBlockAlloc(CBSBlock *blockReturn, CBS cbs, Range range)
     goto failPoolAlloc;
   block = (CBSBlock)p;
 
-  SplayNodeInit(nodeOfCBSBlock(block));
+  TreeInit(nodeOfCBSBlock(block));
   block->base = RangeBase(range);
   block->limit = RangeLimit(range);
   block->maxSize = CBSBlockSize(block);

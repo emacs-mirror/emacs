@@ -20,11 +20,10 @@ typedef Bool (*SplayTestNodeMethod)(SplayTree tree, Tree node,
                                     void *closureP, Size closureS);
 typedef Bool (*SplayTestTreeMethod)(SplayTree tree, Tree node,
                                     void *closureP, Size closureS);
-typedef void (*SplayUpdateNodeMethod)(SplayTree tree, Tree node,
-                                      Tree leftChild,
-                                      Tree rightChild);
 typedef Res (*SplayNodeDescribeMethod)(Tree node, mps_lib_FILE *stream);
 
+typedef void (*SplayUpdateNodeMethod)(SplayTree tree, Tree node);
+extern void SplayTrivUpdate(SplayTree tree, Tree node);
 
 typedef struct SplayTreeStruct {
   SplayCompareMethod compare;
@@ -36,8 +35,6 @@ typedef struct SplayTreeStruct {
 extern Bool SplayTreeCheck(SplayTree tree);
 extern void SplayTreeInit(SplayTree tree, SplayCompareMethod compare,
                           SplayUpdateNodeMethod updateNode);
-extern void SplayNodeInit(Tree node);
-extern void SplayNodeFinish(Tree node);
 extern void SplayTreeFinish(SplayTree tree);
 
 extern Res SplayTreeInsert(SplayTree tree, Tree node, void *key);
