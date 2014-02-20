@@ -1,3 +1,11 @@
+2014-02-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp--instrument-test-case): New macro.
+	(tramp-test17-insert-directory): First line could contain more
+	text, when produced by `ls-lisp'.
+	(tramp-test19-directory-files-and-attributes): Instrument failed
+	test case.
+
 2014-02-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp-test17-insert-directory):

@@ -89,6 +89,20 @@ being the result.")
   (expand-file-name
    (make-temp-name "tramp-test") tramp-test-temporary-file-directory))
 
+(defmacro tramp--instrument-test-case (verbose &rest body)
+  "Run BODY with `tramp-verbose' equal VERBOSE.
+Print the the content of the Tramp debug buffer, if BODY does not
+eval properly in `should', `should-not' or `should-error'."
+  `(let ((tramp-verbose ,verbose))
+     (condition-case err
+	 (progn ,@body)
+       (ert-test-failed
+	(with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
+	  (with-current-buffer (tramp-get-debug-buffer v)
+	    (message "%s" (buffer-string))))
+	(signal (car err) (cdr err))))))
+(put 'tramp--instrument-test-case 'lisp-indent-function 1)
+
 (ert-deftest tramp-test00-availability ()
   "Test availability of Tramp functions."
   :expected-result (if (tramp--test-enabled) :passed :failed)
@@ -823,7 +837,7 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	    (goto-char (point-min))
 	    (should
 	     (looking-at-p
-	      "\\(total +[[:digit:]]+\n\\)?.+ \\.\n.+ \\.\\.\n.+ foo$"))))
+	      "\\(total.+[[:digit:]]+\n\\)?.+ \\.\n.+ \\.\\.\n.+ foo$"))))
       (ignore-errors (delete-directory tmp-name1 'recursive)))))
 
 (ert-deftest tramp-test18-file-attributes ()
@@ -891,13 +905,15 @@ This tests also `file-readable-p' and `file-regular-p'."
 	  (setq attr (directory-files-and-attributes tmp-name))
 	  (should (consp attr))
 	  (dolist (elt attr)
-	    (should
-	     (equal (file-attributes (expand-file-name (car elt) tmp-name))
-		    (cdr elt))))
+	    (tramp--instrument-test-case 10
+	      (should
+	       (equal (file-attributes (expand-file-name (car elt) tmp-name))
+		      (cdr elt)))))
 	  (setq attr (directory-files-and-attributes tmp-name 'full))
 	  (dolist (elt attr)
-	    (should
-	     (equal (file-attributes (car elt)) (cdr elt))))
+	    (tramp--instrument-test-case 10
+	      (should
+	       (equal (file-attributes (car elt)) (cdr elt)))))
 	  (setq attr (directory-files-and-attributes tmp-name nil "^b"))
 	  (should (equal (mapcar 'car attr) '("bar" "boz"))))
       (ignore-errors (delete-directory tmp-name 'recursive)))))
@@ -1344,8 +1360,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 ;; * set-file-acl
 ;; * set-file-selinux-context
 
-;; * Fix `tramp-test17-insert-directory' for
-;;   `ls-lisp-insert-directory' ("plink" and friends, tramp-gvfs.el).
 ;; * Fix `tramp-test27-start-file-process' on MS Windows (`process-send-eof'?).
 ;; * Fix `tramp-test28-shell-command' on MS Windows (`process-send-eof'?).
 ;; * Fix `tramp-test30-utf8' on MS Windows.  Seems to be in `directory-files'.
