@@ -4521,6 +4521,7 @@ int main(int argc, char *argv[])
     MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, ALIGNMENT);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_SCAN, buckets_scan);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_SKIP, buckets_skip);
+    MPS_ARGS_DONE(args);
     res = mps_fmt_create_k(&buckets_fmt, arena, args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create buckets format");
