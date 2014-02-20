@@ -500,8 +500,9 @@ The relevant features are:
     ;; see if by using a longer timeout we get rid of most issues.
     (while (and (setq chr (read-event nil nil 2)) (not (equal chr ?c)))
       (setq str (concat str (string chr))))
-    (when (string-match "0;\\([0-9]+\\);0" str)
-      (let ((version (string-to-number (match-string 1 str))))
+    ;; Since xterm-280, the terminal type (NUMBER1) is now 41 instead of 0.
+    (when (string-match "\\([0-9]+\\);\\([0-9]+\\);0" str)
+      (let ((version (string-to-number (match-string 2 str))))
         ;; If version is 242 or higher, assume the xterm supports
         ;; reporting the background color (TODO: maybe earlier
         ;; versions do too...)
