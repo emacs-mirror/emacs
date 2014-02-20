@@ -893,6 +893,7 @@ This tests also `file-readable-p' and `file-regular-p'."
    (tramp-dissect-file-name tramp-test-temporary-file-directory)
    nil 'keep-password)
 
+  (tramp--instrument-test-case 10
   (let ((tmp-name (tramp--test-make-temp-name))
 	attr)
     (unwind-protect
@@ -905,18 +906,16 @@ This tests also `file-readable-p' and `file-regular-p'."
 	  (setq attr (directory-files-and-attributes tmp-name))
 	  (should (consp attr))
 	  (dolist (elt attr)
-	    (tramp--instrument-test-case 10
-	      (should
-	       (equal (file-attributes (expand-file-name (car elt) tmp-name))
-		      (cdr elt)))))
+	    (should
+	     (equal (file-attributes (expand-file-name (car elt) tmp-name))
+		    (cdr elt))))
 	  (setq attr (directory-files-and-attributes tmp-name 'full))
 	  (dolist (elt attr)
-	    (tramp--instrument-test-case 10
-	      (should
-	       (equal (file-attributes (car elt)) (cdr elt)))))
+	    (should
+	     (equal (file-attributes (car elt)) (cdr elt))))
 	  (setq attr (directory-files-and-attributes tmp-name nil "^b"))
 	  (should (equal (mapcar 'car attr) '("bar" "boz"))))
-      (ignore-errors (delete-directory tmp-name 'recursive)))))
+      (ignore-errors (delete-directory tmp-name 'recursive))))))
 
 (ert-deftest tramp-test20-file-modes ()
   "Check `file-modes'.
