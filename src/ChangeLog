@@ -1,3 +1,8 @@
+2014-02-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (init_iterator): Don't dereference a bogus face
+	pointer.  (Bug#16819)
+
 2014-02-20  Glenn Morris  <rgm@gnu.org>
 
 	* data.c (Fdefalias): Doc fix.

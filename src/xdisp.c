@@ -2928,7 +2928,7 @@ init_iterator (struct it *it, struct window *w,
       /* If we have a boxed mode line, make the first character appear
 	 with a left box line.  */
       face = FACE_FROM_ID (it->f, remapped_base_face_id);
-      if (face->box != FACE_NO_BOX)
+      if (face && face->box != FACE_NO_BOX)
 	it->start_of_box_run_p = true;
     }
 
