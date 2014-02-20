@@ -44,7 +44,7 @@ static void TagTrivInit(void* tag, va_list args)
 
 /* TagComp -- splay comparison function for address ordering of tags */
 
-static Compare TagComp(void *key, SplayNode node)
+static Compare TagComp(void *key, Tree node)
 {
   Addr addr1, addr2;
 
@@ -457,7 +457,7 @@ static Res tagAlloc(PoolDebugMixin debug,
 
 static void tagFree(PoolDebugMixin debug, Pool pool, Addr old, Size size)
 {
-  SplayNode node;
+  Tree node;
   Tag tag;
   Res res;
 
@@ -556,7 +556,7 @@ typedef void (*ObjectsStepMethod)(Addr addr, Size size, Format fmt,
 
 static void TagWalk(Pool pool, ObjectsStepMethod step, void *p)
 {
-  SplayNode node;
+  Tree node;
   PoolDebugMixin debug;
   Addr dummy = NULL; /* Breaks <design/type/#addr.use>, but it's */
                      /* only temporary until SplayTreeFirst is fixed. */
