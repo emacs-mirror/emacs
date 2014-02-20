@@ -22,11 +22,12 @@ typedef struct tagStruct {
   /* We don't want to pay the expense of a sig in every tag */
   Addr addr;
   Size size;
-  SplayNodeStruct splayNode;
+  TreeStruct treeStruct;
   char userdata[1 /* actually variable length */];
 } tagStruct;
 
-#define SplayNode2Tag(node) PARENT(tagStruct, splayNode, (node))
+#define TagTree(tag)    (&(tag)->treeStruct)
+#define TagOfTree(tree) PARENT(tagStruct, treeStruct, tree)
 
 typedef tagStruct *Tag;
 
@@ -48,12 +49,12 @@ static Compare TagComp(void *key, SplayNode node)
   Addr addr1, addr2;
 
   addr1 = *(Addr *)key;
-  addr2 = SplayNode2Tag(node)->addr;
+  addr2 = TagOfTree(node)->addr;
   if (addr1 < addr2)
     return CompareLESS;
   else if (addr1 > addr2) {
     /* Check key is not inside the object of this tag */
-    AVER_CRITICAL(AddrAdd(addr2, SplayNode2Tag(node)->size) <= addr1);
+    AVER_CRITICAL(AddrAdd(addr2, TagOfTree(node)->size) <= addr1);
     return CompareGREATER;
   } else
     return CompareEQUAL;
@@ -444,9 +445,9 @@ static Res tagAlloc(PoolDebugMixin debug,
   }
   tag = (Tag)addr;
   tag->addr = new; tag->size = size;
-  SplayNodeInit(&tag->splayNode);
+  TreeInit(TagTree(tag));
   /* In the future, we might call debug->tagInit here. */
-  res = SplayTreeInsert(&debug->index, &tag->splayNode, (void *)&new);
+  res = SplayTreeInsert(&debug->index, TagTree(tag), (void *)&new);
   AVER(res == ResOK);
   return ResOK;
 }
@@ -470,7 +471,7 @@ static void tagFree(PoolDebugMixin debug, Pool pool, Addr old, Size size)
     debug->missingTags--;
     return;
   }
-  tag = SplayNode2Tag(node);
+  tag = TagOfTree(node);
   AVER(tag->size == size);
   res = SplayTreeDelete(&debug->index, node, (void *)&old);
   AVER(res == ResOK);
@@ -570,7 +571,7 @@ static void TagWalk(Pool pool, ObjectsStepMethod step, void *p)
 
   node = SplayTreeFirst(&debug->index, (void *)&dummy);
   while (node != NULL) {
-    Tag tag = SplayNode2Tag(node);
+    Tag tag = TagOfTree(node);
 
     step(tag->addr, tag->size, NULL, pool, &tag->userdata, p);
     node = SplayTreeNext(&debug->index, node, (void *)&tag->addr);
