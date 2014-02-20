@@ -65,6 +65,9 @@ extern Bool TreeCheckLeaf(Tree tree);
     (tree)->right = TreeEMPTY; \
   END
 
+#define TreeHasLeft(tree) (TreeLeft(tree) != TreeEMPTY)
+#define TreeHasRight(tree) (TreeRight(tree) != TreeEMPTY)
+
 extern Compare TreeFind(Tree *treeReturn, Tree root,
                         TreeKey key, TreeCompare compare);
 

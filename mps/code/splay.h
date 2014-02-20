@@ -10,10 +10,14 @@
 #define splay_h
 
 #include "mpmtypes.h" /* for Res, etc. */
+#include "tree.h"
 
 
 typedef struct SplayTreeStruct *SplayTree;
-typedef struct SplayNodeStruct *SplayNode;
+
+typedef struct TreeStruct *SplayNode;
+#define SplayNodeCheck TreeCheck
+
 typedef Compare (*SplayCompareMethod)(void *key, SplayNode node);
 typedef Bool (*SplayTestNodeMethod)(SplayTree tree, SplayNode node,
                                     void *closureP, Size closureS);
@@ -28,17 +32,11 @@ typedef Res (*SplayNodeDescribeMethod)(SplayNode node, mps_lib_FILE *stream);
 typedef struct SplayTreeStruct {
   SplayCompareMethod compare;
   SplayUpdateNodeMethod updateNode;
-  SplayNode root;
+  Tree root;
 } SplayTreeStruct;
-
-typedef struct SplayNodeStruct {
-  SplayNode left;
-  SplayNode right;
-} SplayNodeStruct;
 
 
 extern Bool SplayTreeCheck(SplayTree tree);
-extern Bool SplayNodeCheck(SplayNode node);
 extern void SplayTreeInit(SplayTree tree, SplayCompareMethod compare,
                           SplayUpdateNodeMethod updateNode);
 extern void SplayNodeInit(SplayNode node);
