@@ -74,17 +74,15 @@ static void ArenaFormattedObjectsWalk(Arena arena, FormattedObjectsStepMethod f,
   AVERT(FormattedObjectsStepClosure, c);
 
   if (SegFirst(&seg, arena)) {
-    Addr base;
     do {
       Pool pool;
-      base = SegBase(seg);
       pool = SegPool(seg);
       if (pool->class->attr & AttrFMT) {
         ShieldExpose(arena, seg);
         PoolWalk(pool, seg, f, p, s);
         ShieldCover(arena, seg);
       }
-    } while(SegNext(&seg, arena, base));
+    } while(SegNext(&seg, arena, seg));
   }
 }
 
@@ -308,13 +306,11 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
   /* ArenaRootsWalk only passes references to GCable pools to the client. */
   /* NOTE: I'm not sure why this is. RB 2012-07-24 */
   if (SegFirst(&seg, arena)) {
-    Addr base;
     do {
-      base = SegBase(seg);
       if ((SegPool(seg)->class->attr & AttrGC) != 0) {
         TraceAddWhite(trace, seg);
       }
-    } while (SegNext(&seg, arena, base));
+    } while (SegNext(&seg, arena, seg));
   }
 
   /* Make the roots grey so that they are scanned */

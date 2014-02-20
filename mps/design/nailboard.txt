@@ -52,24 +52,25 @@ logarithmic in the size of the range. (Because scanning overhead must
 be proportional to the number of objects, not to their size.)
 
 
-Overview
---------
+Implementation
+--------------
 
-We maintain a (level 0) bit table with one bit for each (aligned)
-address in the range. In addition, we maintain a (level 1) bit table
-with one bit for each ``scale`` bits in the level 0 bit table (this
-bit is set if any bit in the corresponding word in the level 0 table
-is set). And so on until we reach the level *k* bit table which is
-just one word long.
+_`.impl.table`: We maintain a (level 0) bit table with one bit for
+each (aligned) address in the range. In addition, we maintain a
+(level 1) bit table with one bit for each ``scale`` bits in the level
+0 bit table (this bit is set if any bit in the corresponding word in
+the level 0 table is set). And so on until we reach the level *k* bit
+table which is just one word long.
 
-The size of the level *i* bit table is the ceiling of
+_`.impl.size`: The size of the level *i* bit table is the ceiling of
 
    (``limit`` − ``base``) / (``align`` × ``scale``\ :superscript:`i`\ )
 
 where ``base`` and ``limit`` are the bounds of the address range being
 represented in the nailboard, ``align`` is the pool alignment.
 
-The address *a* may be looked up in the level *i* bit table at the bit
+_`.impl.address`: The address *a* may be looked up in the level *i*
+bit table at the bit
 
    (*a* − ``base``) / (``align`` × ``scale``\ :superscript:`i`\ )
 

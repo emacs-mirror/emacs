@@ -72,18 +72,7 @@ SRCID(mpsi, "$Id$");
 
 static Bool mpsi_check(void)
 {
-  /* .check.rc: Check that external and internal result codes match. */
-  /* See <code/mps.h#result-codes> and <code/mpmtypes.h#result-codes>. */
-  /* Also see .check.enum.cast. */
   CHECKL(COMPATTYPE(mps_res_t, Res));
-  CHECKL((int)MPS_RES_OK == (int)ResOK);
-  CHECKL((int)MPS_RES_FAIL == (int)ResFAIL);
-  CHECKL((int)MPS_RES_RESOURCE == (int)ResRESOURCE);
-  CHECKL((int)MPS_RES_MEMORY == (int)ResMEMORY);
-  CHECKL((int)MPS_RES_LIMIT == (int)ResLIMIT);
-  CHECKL((int)MPS_RES_UNIMPL == (int)ResUNIMPL);
-  CHECKL((int)MPS_RES_IO == (int)ResIO);
-  CHECKL((int)MPS_RES_COMMIT_LIMIT == (int)ResCOMMIT_LIMIT);
 
   /* Check that external and internal message types match. */
   /* See <code/mps.h#message.types> and */

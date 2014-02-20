@@ -166,7 +166,7 @@ typedef struct AMSSegStruct {
 
 /* the rest */
 
-extern Res AMSInitInternal(AMS ams, Format format, Chain chain,
+extern Res AMSInitInternal(AMS ams, Format format, Chain chain, unsigned gen,
                            Bool shareAllocTable);
 extern void AMSFinish(Pool pool);
 extern Bool AMSCheck(AMS ams);

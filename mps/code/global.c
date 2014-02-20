@@ -215,6 +215,9 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKL(RingCheck(&arenaRing));
 
   CHECKL(BoolCheck(arena->emergency));
+  
+  if (arenaGlobals->defaultChain != NULL)
+    CHECKD(Chain, arenaGlobals->defaultChain);
 
   /* can't check arena->stackAtArenaEnter */
   
@@ -319,6 +322,8 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->emergency = FALSE;
 
   arena->stackAtArenaEnter = NULL;
+  
+  arenaGlobals->defaultChain = NULL;
 
   arenaGlobals->sig = GlobalsSig;
   AVERT(Globals, arenaGlobals);
@@ -366,11 +371,19 @@ Res GlobalsCompleteCreate(Globals arenaGlobals)
   arenaGlobals->lock = (Lock)p;
   LockInit(arenaGlobals->lock);
 
+  {
+    GenParamStruct params[] = ChainDEFAULT;
+    res = ChainCreate(&arenaGlobals->defaultChain, arena, NELEMS(params), params);
+    if (res != ResOK)
+      goto failChainCreate;
+  }
+
   arenaAnnounce(arena);
 
   return ResOK;
 
-  /* @@@@ error path */
+failChainCreate:
+  return res;
 }
 
 
@@ -380,7 +393,7 @@ void GlobalsFinish(Globals arenaGlobals)
 {
   Arena arena;
   Rank rank;
-
+  
   /* Check that the tear-down is complete: that the client has
    * destroyed all data structures associated with the arena. We do
    * this *before* calling AVERT(Globals, arenaGlobals) because the
@@ -433,6 +446,9 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
 
   arena = GlobalsArena(arenaGlobals);
   arenaDenounce(arena);
+
+  ChainDestroy(arenaGlobals->defaultChain);
+  arenaGlobals->defaultChain = NULL;
 
   LockReleaseMPM(arenaGlobals->lock);
   /* Theoretically, another thread could grab the lock here, but it's */
