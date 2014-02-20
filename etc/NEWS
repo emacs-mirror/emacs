@@ -766,9 +766,7 @@ symbol found near point added to the search string initially.
 *** `C-x 8 RET' in Isearch mode reads a character by its Unicode name
 and adds it to the search string.
 
-*** `M-s i' in Isearch mode toggles the variable `isearch-invisible'
-between nil and the value of the option `search-invisible' (or `open'
-when it's nil).
+*** `M-s i' in Isearch mode toggles whether search matches invisible text.
 
 *** `query-replace' skips invisible text when `search-invisible' is nil,
 and opens overlays with hidden text when `search-invisible' is `open'.

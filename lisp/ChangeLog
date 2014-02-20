@@ -1,3 +1,7 @@
+2014-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* isearch.el (search-invisible): Doc fix.
+
 2014-02-20  W. Trevor King  <wking@tremily.us>  (tiny change)
 
 	* term/xterm.el (xterm--version-handler): Adapt to xterm-280's output

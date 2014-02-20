@@ -244,6 +244,18 @@ in the search string, the search becomes case-sensitive.  If you
 delete the upper-case character from the search string, it ceases to
 have this effect.  @xref{Search Case}.
 
+@cindex invisible text, searching for
+@kindex M-s i @r{(Incremental search)}
+@findex isearch-toggle-invisible
+@vindex search-invisible
+  Some Emacs modes hide certain text by making it invisible.  For
+example, Outline major mode (@pxref{Outline Mode}).  By default,
+incremental search will search for matches in text hidden by Outline
+mode (and some other modes), and make the text visible if it finds a match.
+To toggle whether or not invisible text is searched, type
+@kbd{M-s i} (@code{isearch-toggle-invisible}).  To change the default
+for future searches, customize the option @code{search-invisible}.
+
   To search for a newline character, type @kbd{C-j}.
 
   To search for non-@acronym{ASCII} characters, use one of the
@@ -1047,6 +1059,7 @@ This variable applies to nonincremental searches also, including those
 performed by the replace commands (@pxref{Replace}) and the minibuffer
 history matching commands (@pxref{Minibuffer History}).
 
+@c isearch-toggle-case-fold
   Typing @kbd{M-c} within an incremental search toggles the case
 sensitivity of that search.  The effect does not extend beyond the
 current incremental search to the next one, but it does override the

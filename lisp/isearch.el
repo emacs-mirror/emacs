@@ -137,6 +137,12 @@ When the value is `open', if the text matched is made invisible by
 an overlay having an `invisible' property and that overlay has a property
 `isearch-open-invisible', then incremental search will show the contents.
 \(This applies when using `outline.el' and `hideshow.el'.)
+
+To temporarily change the value for an active incremental search,
+use \\<isearch-mode-map>\\[isearch-toggle-invisible].
+
+See also the related option `isearch-hide-immediately'.
+
 See also `reveal-mode' if you want overlays to automatically be opened
 whenever point is in one of them."
   :type '(choice (const :tag "Match hidden text" t)

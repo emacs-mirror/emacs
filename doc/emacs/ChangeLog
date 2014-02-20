@@ -1,3 +1,7 @@
+2014-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* search.texi (Special Isearch): Mention invisible text.
+
 2014-02-18  Glenn Morris  <rgm@gnu.org>
 
 	* trouble.texi (Contributing) [WWW_GNU_ORG]: Link to
