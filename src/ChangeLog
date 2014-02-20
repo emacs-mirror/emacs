@@ -5,6 +5,12 @@
 	(try_cursor_movement): Don't use cursor position if
 	set_cursor_from_row failed to compute it.  This avoids assertion
 	violations in MATRIX_ROW.
+	(move_it_in_display_line_to): Save the iterator state in ppos_it
+	only once per call.  Reimplement the method used to return to the
+	best candidate position if all the positions found in display line
+	are beyond TO_CHARPOS.  This cuts down the number of calls to
+	bidi_shelve_cache, which moves a lot of stuff when lines are long
+	and include bidirectional text.  (Bug#15555)
 
 2014-02-20  Glenn Morris  <rgm@gnu.org>
 
