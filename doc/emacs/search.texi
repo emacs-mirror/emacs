@@ -247,14 +247,8 @@ have this effect.  @xref{Search Case}.
 @cindex invisible text, searching for
 @kindex M-s i @r{(Incremental search)}
 @findex isearch-toggle-invisible
-@vindex search-invisible
-  Some Emacs modes hide certain text by making it invisible.  For
-example, Outline major mode (@pxref{Outline Mode}).  By default,
-incremental search will search for matches in text hidden by Outline
-mode (and some other modes), and make the text visible if it finds a match.
-To toggle whether or not invisible text is searched, type
-@kbd{M-s i} (@code{isearch-toggle-invisible}).  To change the default
-for future searches, customize the option @code{search-invisible}.
+  To toggle whether or not invisible text is searched, type
+@kbd{M-s i} (@code{isearch-toggle-invisible}).  @xref{Outline Search}.
 
   To search for a newline character, type @kbd{C-j}.
 
