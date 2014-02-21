@@ -1901,6 +1901,39 @@ to allocate ptys reliably.
 
 * Runtime problems specific to MS-Windows
 
+** Emacs on Windows 9X requires UNICOWS.DLL
+
+If that DLL is not available, Emacs will display an error dialog
+stating its absence, and refuse to run.
+
+This is because Emacs 24.4 and later uses functions whose non-stub
+implementation is only available in UNICOWS.DLL, which implements the
+Microsoft Layer for Unicode on Windows 9X, or "MSLU".  This article on
+MSDN:
+
+  http://msdn.microsoft.com/en-us/goglobal/bb688166.aspx
+
+includes a short description of MSLU and a link where it can be
+downloaded.
+
+** A few seconds delay is seen at startup and for many file operations
+
+This happens when the Net Logon service is enabled.  During Emacs
+startup, this service issues many DNS requests looking up for the
+Windows Domain Controller.  When Emacs accesses files on networked
+drives, it automatically logs on the user into those drives, which
+again causes delays when Net Logon is running.
+
+The solution seems to be to disable Net Logon with this command typed
+at the Windows shell prompt:
+
+  net stop netlogon
+
+To start the service again, type "net start netlogon".  (You can also
+stop and start the service from the Computer Management application,
+accessible by right-clicking "My Computer" or "Computer", selecting
+"Manage", then clicking on "Services".)
+
 ** PATH can contain unexpanded environment variables
 
 Old releases of TCC (version 9) and 4NT (up to version 8) do not correctly
@@ -1920,8 +1953,8 @@ XKeymacs completely is reported to solve the problem.
 
 ** Windows 95 and networking.
 
-To support server sockets, Emacs 22.1 loads ws2_32.dll.  If this file
-is missing, all Emacs networking features are disabled.
+To support server sockets, Emacs loads ws2_32.dll.  If this file is
+missing, all Emacs networking features are disabled.
 
 Old versions of Windows 95 may not have the required DLL.  To use
 Emacs's networking features on Windows 95, you must install the
@@ -1940,27 +1973,35 @@ reported as a bug against both Emacs and rails-mode, so look for an updated
 rails-mode that avoids this crash, or avoid using UNC paths if using
 rails-mode.
 
-** Known problems with the MS-Windows port of Emacs 22.3
+** M-x term does not work on MS-Windows.
 
-M-x term does not work on MS-Windows.  TTY emulation on Windows is
-undocumented, and programs such as stty which are used on posix platforms
-to control tty emulation do not exist for native windows terminals.
+TTY emulation on Windows is undocumented, and programs such as stty
+which are used on posix platforms to control tty emulation do not
+exist for native windows terminals.
 
-Using create-fontset-from-ascii-font or the --font startup parameter
+** Using create-fontset-from-ascii-font or the --font startup parameter
 with a Chinese, Japanese or Korean font leads to display problems.
 Use a Latin-only font as your default font.  If you want control over
 which font is used to display Chinese, Japanese or Korean character,
 use create-fontset-from-fontset-spec to define a fontset.
 
-Frames are not refreshed while the File or Font dialog or a pop-up menu
-is displayed.  This also means help text for pop-up menus is not
-displayed at all.  This is because message handling under Windows is
-synchronous, so we cannot handle repaint (or any other) messages while
-waiting for a system function to return the result of the dialog or
-pop-up menu interaction.
+** Frames are not refreshed while dialogs or menus are displayed
+
+This means no redisplay while the File or Font dialog or a pop-up menu
+is displayed.  This also means tooltips with help text for pop-up
+menus is not displayed at all (except in a TTY session, where the help
+text is shown in the echo area).  This is because message handling
+under Windows is synchronous, so we cannot handle repaint (or any
+other) messages while waiting for a system function, which popped up
+the menu/dialog, to return the result of the dialog or pop-up menu
+interaction.
+
+** Help text in tooltips does not work on old Windows versions
 
 Windows 95 and Windows NT up to version 4.0 do not support help text
 for menus.  Help text is only available in later versions of Windows.
+
+** Display problems with ClearType method of smoothing
 
 When "ClearType" method is selected as the "method to smooth edges of
 screen fonts" (in Display Properties, Appearance tab, under
@@ -1973,6 +2014,8 @@ has some code to enlarge the width of the bounding box.  Apparently,
 this display feature needs more changes to get it 100% right.  A
 workaround is to disable ClearType.
 
+** Problems with mouse-tracking and focus management
+
 There are problems with display if mouse-tracking is enabled and the
 mouse is moved off a frame, over another frame then back over the first
 frame.  A workaround is to click the left mouse button inside the frame
@@ -1984,22 +2027,22 @@ not as severely as in 21.1.
 An inactive cursor remains in an active window after the Windows
 Manager driven switch of the focus, until a key is pressed.
 
-Windows input methods are not recognized by Emacs.  However, some
-of these input methods cause the keyboard to send characters encoded
-in the appropriate coding system (e.g., ISO 8859-1 for Latin-1
-characters, ISO 8859-8 for Hebrew characters, etc.).  To make these
-input methods work with Emacs, set the keyboard coding system to the
-appropriate value after you activate the Windows input method.  For
-example, if you activate the Hebrew input method, type this:
+** Problems with Windows input methods
+
+Some of the Windows input methods cause the keyboard to send
+characters encoded in the appropriate coding system (e.g., ISO 8859-1
+for Latin-1 characters, ISO 8859-8 for Hebrew characters, etc.).  To
+make these input methods work with Emacs on Windows 9X, you might need
+to set the keyboard coding system to the appropriate value after you
+activate the Windows input method.  For example, if you activate the
+Hebrew input method, type this:
 
    C-x RET k hebrew-iso-8bit RET
 
-(Emacs ought to recognize the Windows language-change event and set up
-the appropriate keyboard encoding automatically, but it doesn't do
-that yet.)  In addition, to use these Windows input methods, you
-should set your "Language for non-Unicode programs" (on Windows XP,
-this is on the Advanced tab of Regional Settings) to the language of
-the input method.
+In addition, to use these Windows input methods, you might need to set
+your "Language for non-Unicode programs" (on Windows XP, this is on
+the Advanced tab of Regional Settings) to the language of the input
+method.
 
 To bind keys that produce non-ASCII characters with modifiers, you
 must specify raw byte codes.  For instance, if you want to bind
@@ -2011,19 +2054,27 @@ The above example is for the Latin-1 environment where the byte code
 of the encoded a-grave is 340 octal.  For other environments, use the
 encoding appropriate to that environment.
 
+** Problems with the %b format specifier for format-time-string
+
 The %b specifier for format-time-string does not produce abbreviated
 month names with consistent widths for some locales on some versions
 of Windows.  This is caused by a deficiency in the underlying system
 library function.
 
+** Problems with set-time-zone-rule function
+
 The function set-time-zone-rule gives incorrect results for many
 non-US timezones.  This is due to over-simplistic handling of
 daylight savings switchovers by the Windows libraries.
+
+** Files larger than 4GB report wrong size
 
 Files larger than 4GB cause overflow in the size (represented as a
 32-bit integer) reported by `file-attributes'.  This affects Dired as
 well, since the Windows port uses a Lisp emulation of `ls' that relies
 on `file-attributes'.
+
+** Playing sound doesn't support the :data method
 
 Sound playing is not supported with the `:data DATA' key-value pair.
 You _must_ use the `:file FILE' method.
