@@ -974,6 +974,15 @@ WINDOW must be a live window and defaults to the selected one.  */)
   return (make_number (WINDOW_BOTTOM_DIVIDER_WIDTH (decode_live_window (window))));
 }
 
+DEFUN ("window-scroll-bar-width", Fwindow_scroll_bar_width,
+       Swindow_scroll_bar_width, 0, 1, 0,
+       doc: /* Return the width in pixels of WINDOW's vertical scrollbar.
+WINDOW must be a live window and defaults to the selected one.  */)
+  (Lisp_Object window)
+{
+  return (make_number (WINDOW_SCROLL_BAR_AREA_WIDTH (decode_live_window (window))));
+}
+
 DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
        doc: /* Return the number of columns by which WINDOW is scrolled from left margin.
 WINDOW must be a live window and defaults to the selected one.  */)
@@ -7363,6 +7372,7 @@ pixelwise even if this option is nil.  */);
   defsubr (&Swindow_header_line_height);
   defsubr (&Swindow_right_divider_width);
   defsubr (&Swindow_bottom_divider_width);
+  defsubr (&Swindow_scroll_bar_width);
   defsubr (&Swindow_inside_edges);
   defsubr (&Swindow_inside_pixel_edges);
   defsubr (&Swindow_inside_absolute_pixel_edges);

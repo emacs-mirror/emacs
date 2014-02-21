@@ -1,3 +1,7 @@
+2014-02-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_scroll_bar_width): New function.
+
 2014-02-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Pacify GCC when configuring with --enable-gcc-warnings.

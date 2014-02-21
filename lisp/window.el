@@ -1012,6 +1012,84 @@ FRAME defaults to the selected frame."
   (window--side-check frame)
   (window--atom-check frame))
 
+;; Dumping frame/window contents.
+(defun window--dump-window (&optional window erase)
+  "Dump WINDOW to buffer *window-frame-dump*.
+WINDOW must be a valid window and defaults to the selected one.
+Optional argument ERASE non-nil means erase *window-frame-dump*
+before writing to it."
+  (setq window (window-normalize-window window))
+  (with-current-buffer (get-buffer-create "*window-frame-dump*")
+    (when erase (erase-buffer))
+    (insert
+     (format "%s   parent: %s\n" window (window-parent window))
+     (format "pixel left: %s   top: %s   size: %s x %s   new: %s\n"
+	     (window-pixel-left window) (window-pixel-top window)
+	     (window-size window t t) (window-size window nil t)
+	     (window-new-pixel window))
+     (format "char left: %s   top: %s   size: %s x %s   new: %s\n"
+	     (window-left-column window) (window-top-line window)
+	     (window-total-size window t) (window-total-size window)
+	     (window-new-total window))
+     (format "normal: %s x %s   new: %s\n"
+	     (window-normal-size window t) (window-normal-size window)
+	     (window-new-normal window)))
+    (when (window-live-p window)
+      (let ((fringes (window-fringes window))
+	    (margins (window-margins window)))
+	(insert
+	 (format "body pixel: %s x %s   char: %s x %s\n"
+		 (window-body-width window t) (window-body-height window t)
+		 (window-body-width window) (window-body-height window))
+	 (format "width left fringe: %s  left margin: %s  right margin: %s\n"
+		 (car fringes) (or (car margins) 0) (or (cdr margins) 0))
+	 (format "width right fringe: %s  scroll-bar: %s  divider: %s\n"
+		 (cadr fringes)
+		 (window-scroll-bar-width window)
+		 (window-right-divider-width window))
+	 (format "height header-line: %s  mode-line: %s  divider: %s\n"
+		 (window-header-line-height window)
+		 (window-mode-line-height window)
+		 (window-bottom-divider-width window)))))
+    (insert "\n")))
+
+(defun window--dump-frame (&optional window-or-frame)
+  "Dump WINDOW-OR-FRAME to buffer *window-frame-dump*.
+WINDOW-OR-FRAME can be a frame or a window and defaults to the
+selected frame.  When WINDOW-OR-FRAME is a window, dump that
+window's frame.  The buffer *window-frame-dump* is erased before
+dumping to it."
+  (interactive)
+  (let* ((window
+	  (cond
+	   ((or (not window-or-frame)
+		(frame-live-p window-or-frame))
+	    (frame-root-window window-or-frame))
+	   ((or (window-live-p window-or-frame)
+		(window-child window-or-frame))
+	    window-or-frame)
+	   (t
+	    (frame-root-window))))
+	 (frame (window-frame window)))
+    (with-current-buffer (get-buffer-create "*window-frame-dump*")
+      (erase-buffer)
+      (insert
+       (format "frame pixel: %s x %s   cols/lines: %s x %s   units: %s x %s\n"
+	       (frame-pixel-width frame) (frame-pixel-height frame)
+	       (frame-total-cols frame) (frame-text-lines frame) ; (frame-total-lines frame)
+	       (frame-char-width frame) (frame-char-height frame))
+       (format "frame text pixel: %s x %s   cols/lines: %s x %s\n"
+	       (frame-text-width frame) (frame-text-height frame)
+	       (frame-text-cols frame) (frame-text-lines frame))
+       (format "tool: %s  scroll: %s  fringe: %s  border: %s  right: %s  bottom: %s\n\n"
+	       (tool-bar-height frame t)
+	       (frame-scroll-bar-width frame)
+	       (frame-fringe-width frame)
+	       (frame-border-width frame)
+	       (frame-right-divider-width frame)
+	       (frame-bottom-divider-width frame)))
+      (walk-window-tree 'window--dump-window frame t t))))
+
 ;;; Window sizes.
 (defun window-total-size (&optional window horizontal round)
   "Return the total height or width of WINDOW.
@@ -1140,55 +1218,46 @@ of WINDOW."
 	  ;; windows such that the new (or resized) windows can get a
 	  ;; size less than the user-specified `window-min-height' and
 	  ;; `window-min-width'.
-	  (let ((frame (window-frame window))
-		(fringes (window-fringes window))
-		(scroll-bars (window-scroll-bars window)))
+	  (let* ((char-size (frame-char-size window t))
+		 (fringes (window-fringes window))
+		 (pixel-width
+		  (+ (window-safe-min-size window t t)
+		     (car fringes) (cadr fringes)
+		     (window-scroll-bar-width window)
+		     (window-right-divider-width window))))
 	    (if pixelwise
 		(max
-		 (+ (window-safe-min-size window t t)
-		    (car fringes) (cadr fringes)
-		    (cond
-		     ((memq (nth 2 scroll-bars) '(left right))
-		      (nth 1 scroll-bars))
-		     ((memq (frame-parameter frame 'vertical-scroll-bars)
-			    '(left right))
-		      (frame-parameter frame 'scroll-bar-width))
-		     (t 0)))
+		 (if window-resize-pixelwise
+		     pixel-width
+		   ;; Round up to next integral of columns.
+		   (* (ceiling pixel-width char-size) char-size))
 		 (if (window--size-ignore-p window ignore)
 		     0
 		   (window-min-pixel-width)))
 	      (max
-	       (+ window-safe-min-width
-		  (ceiling (car fringes) (frame-char-width frame))
-		  (ceiling (cadr fringes) (frame-char-width frame))
-		  (cond
-		   ((memq (nth 2 scroll-bars) '(left right))
-		    (nth 1 scroll-bars))
-		 ((memq (frame-parameter frame 'vertical-scroll-bars)
-			'(left right))
-		  (ceiling (or (frame-parameter frame 'scroll-bar-width) 14)
-			   (frame-char-width)))
-		 (t 0)))
+	       (ceiling pixel-width char-size)
 	       (if (window--size-ignore-p window ignore)
 		   0
 		 window-min-width)))))
-	 (pixelwise
-	  (max
-	   (+ (window-safe-min-size window nil t)
-	      (window-header-line-height window)
-	      (window-mode-line-height window))
-	   (if (window--size-ignore-p window ignore)
-	       0
-	     (window-min-pixel-height))))
-	 (t
-	  ;; For the minimum height of a window take any mode- or
-	  ;; header-line into account.
-	  (max (+ window-safe-min-height
-		  (if header-line-format 1 0)
-		  (if mode-line-format 1 0))
-	       (if (window--size-ignore-p window ignore)
-		   0
-		 window-min-height))))))))
+	 ((let ((char-size (frame-char-size window))
+		(pixel-height
+		 (+ (window-safe-min-size window nil t)
+		    (window-header-line-height window)
+		    (window-mode-line-height window)
+		    (window-bottom-divider-width window))))
+	    (if pixelwise
+		(max
+		 (if window-resize-pixelwise
+		     pixel-height
+		   ;; Round up to next integral of lines.
+		   (* (ceiling pixel-height char-size) char-size))
+		 (if (window--size-ignore-p window ignore)
+		     0
+		   (window-min-pixel-height)))
+	      (max (ceiling pixel-height char-size)
+		   (if (window--size-ignore-p window ignore)
+		       0
+		     window-min-height))))))))))
 
 (defun window-sizable (window delta &optional horizontal ignore pixelwise)
   "Return DELTA if DELTA lines can be added to WINDOW.
@@ -1323,9 +1392,10 @@ WINDOW can be resized in the desired direction.  The function
 	    (unless (eq sub window)
 	      (setq delta
 		    (min delta
-			 (- (window-size sub horizontal pixelwise 'floor)
-			    (window-min-size
-			     sub horizontal ignore pixelwise)))))
+			 (max (- (window-size sub horizontal pixelwise 'ceiling)
+				 (window-min-size
+				  sub horizontal ignore pixelwise))
+			      0))))
 	    (setq sub (window-right sub))))
 	(if noup
 	    delta
@@ -1400,9 +1470,11 @@ by which WINDOW can be shrunk."
 		 (t
 		  (setq delta
 			(+ delta
-			   (- (window-size sub horizontal pixelwise 'floor)
-			      (window-min-size
-			       sub horizontal ignore pixelwise))))))
+			   (max
+			    (- (window-size sub horizontal pixelwise 'ceiling)
+			       (window-min-size
+				sub horizontal ignore pixelwise))
+			    0)))))
 		(setq sub (window-right sub))))
 	  ;; For an ortho-combination throw DELTA when at least one
 	  ;; child window is fixed-size.
@@ -2317,9 +2389,11 @@ instead."
 	;; Otherwise, resize all other windows in the same combination.
 	(window--resize-siblings window delta horizontal ignore))
       (when (window--resize-apply-p frame horizontal)
-	(window-resize-apply frame horizontal)
-	(window--pixel-to-total frame horizontal)
-	(run-window-configuration-change-hook frame)))
+	(if (window-resize-apply frame horizontal)
+	    (progn
+	      (window--pixel-to-total frame horizontal)
+	      (run-window-configuration-change-hook frame))
+	  (error "Failed to apply resizing %s" window))))
      (t
       (error "Cannot resize window %s" window)))))
 
@@ -2560,7 +2634,7 @@ already set by this routine."
 	  (setq best-value most-negative-fixnum)
 	  (while sub
 	    (when (and (consp (window-new-normal sub))
-		       (not (zerop (car (window-new-normal sub))))
+		       (not (<= (car (window-new-normal sub)) 0))
 		       (> (cdr (window-new-normal sub)) best-value))
 	      (setq best-window sub)
 	      (setq best-value (cdr (window-new-normal sub))))
@@ -2576,7 +2650,7 @@ already set by this routine."
 	     best-window
 	     (if (= (car (window-new-normal best-window)) best-delta)
 		 'skip	    ; We can't shrink best-window any further.
-	       (cons (1- (car (window-new-normal best-window)))
+	       (cons (- (car (window-new-normal best-window)) best-delta)
 		     (- (/ (float (window-new-pixel best-window))
 			   parent-total)
 			(window-normal-size best-window horizontal))))))))
@@ -2941,7 +3015,7 @@ move it as far as possible in the desired direction."
 	  (window--resize-reset frame horizontal)
 	  ;; Try to enlarge LEFT first.
 	  (setq this-delta (window--resizable
-			    left delta horizontal nil nil nil nil pixelwise))
+			    left delta horizontal nil 'after nil nil pixelwise))
 	  (unless (zerop this-delta)
 	    (window--resize-this-window
 	     left this-delta horizontal nil t 'before
@@ -2970,7 +3044,7 @@ move it as far as possible in the desired direction."
 	  ;; Try to enlarge RIGHT.
 	  (setq this-delta
 		(window--resizable
-		 right (- delta) horizontal nil nil nil nil pixelwise))
+		 right (- delta) horizontal nil 'before nil nil pixelwise))
 	  (unless (zerop this-delta)
 	    (window--resize-this-window
 	     right this-delta horizontal nil t 'after

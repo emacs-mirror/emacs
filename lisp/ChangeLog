@@ -1,3 +1,20 @@
+2014-02-21  Martin Rudalics  <rudalics@gmx.at>
+
+	Fix handling of window-min-height/-width (Bug#16738).
+	* window.el (window--dump-window, window--dump-frame): New
+	functions.
+	(window--min-size-1): Account for window dividers.  When
+	window-resize-pixelwise is nil, delay rounding till after the
+	sum of the window components has been calculated.
+	(window--min-delta-1, window--max-delta-1): When PIXELWISE is
+	nil make sure at least one text line and two text columns remain
+	fully visible.
+	(window-resize): Signal an error when window-resize-apply fails.
+	(window--resize-child-windows): Fix calculation of by how many
+	pixels a window can still be shrunk via window-new-normal.
+	(adjust-window-trailing-edge): Call window--resizable with
+	correct TRAIL argument.
+
 2014-02-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-check-cached-permissions):
