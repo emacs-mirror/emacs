@@ -149,6 +149,8 @@ menu if the variable `w32-use-w32-font-dialog' is nil."
 		      (string :tag "Font")))))))
     :group 'w32)
 
+(make-obsolete-variable 'w32-enable-synthesized-fonts nil "24.4")
+
 (provide 'w32-vars)
 
 ;;; w32-vars.el ends here

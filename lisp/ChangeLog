@@ -1,5 +1,8 @@
 2014-02-21  Juanma Barranquero  <lekktu@gmail.com>
 
+	* w32-vars.el (w32-enable-synthesized-fonts): Mark as obsolete.
+	It has done nothing for years; should be removed after the release.
+
 	* simple.el (choose-completion): Fix docstring typo.
 	(read-quoted-char-radix): Remove unneeded * in docstring.
 	(process-file, kill-whole-line, pop-to-mark-command, set-mark-command):
