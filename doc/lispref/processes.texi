@@ -112,7 +112,7 @@ described below.
 argument that specifies where the standard output from the program will
 go.  It should be a buffer or a buffer name; if it is a buffer name,
 that will create the buffer if it does not already exist.  It can also
-be @code{nil}, which says to discard the output unless a filter function
+be @code{nil}, which says to discard the output unless a custom filter function
 handles it.  (@xref{Filter Functions}, and @ref{Read and Print}.)
 Normally, you should avoid having multiple processes send output to the
 same buffer because their output would be intermixed randomly.
@@ -1130,12 +1130,12 @@ children of Emacs.  @xref{System Processes}.
 @cindex process output
 @cindex output from processes
 
-  There are two ways to receive the output that a subprocess writes to
-its standard output stream.  The output can be inserted in a buffer,
-which is called the associated buffer of the process (@pxref{Process
-Buffers}), or a function called the @dfn{filter function} can be
-called to act on the output.  If the process has no buffer and no
-filter function, its output is discarded.
+  The output that a subprocess writes to its standard output stream
+is passed to a function called the @dfn{filter function}.  The default
+filter function simply inserts the output into a buffer, which is
+called the associated buffer of the process (@pxref{Process
+Buffers}).  If the process has no buffer then the default filter
+discards the output.
 
   When a subprocess terminates, Emacs reads any pending output,
 then stops reading output from that subprocess.  Therefore, if the
@@ -1221,13 +1221,12 @@ marker that says where to insert output from the process.
 If @var{process} does not have a buffer, @code{process-mark} returns a
 marker that points nowhere.
 
-Insertion of process output in a buffer uses this marker to decide where
-to insert, and updates it to point after the inserted text.  That is why
-successive batches of output are inserted consecutively.
+The default filter function uses this marker to decide where to
+insert process output, and updates it to point after the inserted text.
+That is why successive batches of output are inserted consecutively.
 
-Filter functions normally should use this marker in the same fashion
-as is done by direct insertion of output in the buffer.  For an
-example of a filter function that uses @code{process-mark},
+Custom filter functions normally should use this marker in the same fashion.
+For an example of a filter function that uses @code{process-mark},
 @pxref{Process Filter Example}.
 
 When the user is expected to enter input in the process buffer for
@@ -1269,7 +1268,7 @@ subprocess with a @code{SIGHUP} signal (@pxref{Signals to Processes}).
 @cindex process filter
 
   A process @dfn{filter function} is a function that receives the
-standard output from the associated process.  @emph{all} output from
+standard output from the associated process.  @emph{All} output from
 that process is passed to the filter.  The default filter simply
 outputs directly to the process buffer.
 
@@ -1454,6 +1453,7 @@ code conversion and the end of line conversion---that is, one like
 @c set-process-filter-multibyte and process-filter-multibyte-p,
 @cindex filter multibyte flag, of process
 @cindex process filter multibyte flag
+@c FIXME there is always a filter function now
   When Emacs calls a process filter function, it provides the process
 output as a multibyte string or as a unibyte string according to the
 process's filter coding system.  Emacs
@@ -2282,8 +2282,7 @@ Initialize the process query flag to @var{query-flag}.
 @xref{Query Before Exit}.
 
 @item :filter @var{filter}
-Initialize the process filter to @var{filter}.  (Otherwise the default
-filter is used.)
+Initialize the process filter to @var{filter}.
 
 @item :filter-multibyte @var{multibyte}
 If @var{multibyte} is non-@code{nil}, strings given to the process
@@ -2291,8 +2290,7 @@ filter are multibyte, otherwise they are unibyte.  The default is the
 default value of @code{enable-multibyte-characters}.
 
 @item :sentinel @var{sentinel}
-Initialize the process sentinel to @var{sentinel}.  (Otherwise the default
-sentinel is used.)
+Initialize the process sentinel to @var{sentinel}.
 
 @item :log @var{log}
 Initialize the log function of a server process to @var{log}.  The log
@@ -2580,12 +2578,10 @@ state is cleared by @code{continue-process} and set by
 @code{stop-process}.
 
 @item :filter @var{filter}
-Install @var{filter} as the process filter.  (Otherwise the default
-filter is used.)
+Install @var{filter} as the process filter.
 
 @item :sentinel @var{sentinel}
-Install @var{sentinel} as the process sentinel.  (Otherwise the default
-sentinel is used.)
+Install @var{sentinel} as the process sentinel.
 
 @item :plist @var{plist}
 Install @var{plist} as the initial plist of the process.

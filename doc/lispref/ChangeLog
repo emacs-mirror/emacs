@@ -6,9 +6,9 @@
 2014-02-21  Glenn Morris  <rgm@gnu.org>
 
 	* internals.texi (Process Internals):
-	* processes.texi (Deleting Processes, Output from Processes)
-	(Process Buffers, Filter Functions, Accepting Output, Sentinels)
-	(Network, Network Servers, Network Processes, Serial Ports):
+	* processes.texi (Subprocess Creation, Deleting Processes)
+	(Output from Processes, Process Buffers, Filter Functions)
+	(Accepting Output, Sentinels, Network, Network Servers):
 	Filters and sentinels can no longer be nil.
 	* elisp.texi (Top): Menu update.
 
