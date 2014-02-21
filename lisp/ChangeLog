@@ -41,7 +41,7 @@
 	(tramp-handle-insert-directory): New defun, taken from tramp-gvfs.el.
 
 	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist)
-	[insert-directory]: Use `tramp-handle-insert-directory.
+	<insert-directory>: Use `tramp-handle-insert-directory.
 	(tramp-gvfs-handle-insert-directory): Remove function.
 
 	* net/tramp-sh.el (tramp-sh-handle-insert-directory):
@@ -73,10 +73,10 @@
 	cache is empty.
 
 	* net/tramp-adb.el (tramp-adb-file-name-handler-alist)
-	[make-symbolic-link]: Use `tramp-handle-make-symbolic-link'.
+	<make-symbolic-link>: Use `tramp-handle-make-symbolic-link'.
 
 	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist)
-	[make-symbolic-link]: Use `tramp-handle-make-symbolic-link'.
+	<make-symbolic-link>: Use `tramp-handle-make-symbolic-link'.
 	(tramp-gvfs-maybe-open-connection): Set always connection
 	properties, even if target is mounted already.
 
@@ -4710,7 +4710,7 @@
 	* net/tramp-smb.el (tramp-smb-acl-program): New customer option.
 	(tramp-smb-errors): Add error messages.
 	(tramp-smb-actions-with-acl): New defconst.
-	(tramp-smb-file-name-handler-alist) [set-file-acl]: Add handler.
+	(tramp-smb-file-name-handler-alist) <set-file-acl>: Add handler.
 	(tramp-smb-action-with-acl, tramp-smb-handle-set-file-acl): New defuns.
 	(tramp-smb-handle-file-acl): Rewrite, using "smbcacls".
 	(tramp-smb-handle-file-attributes): Simplify test for "stat" capability.
@@ -7679,18 +7679,18 @@
 
 	* net/tramp-adb.el (tramp-adb-file-name-handler-alist):
 	Order alphabetically.
-	[access-file, add-name-to-file, dired-call-process]:
-	[dired-compress-file, file-acl, file-notify-rm-watch]:
-	[file-ownership-preserved-p, file-selinux-context]:
-	[make-directory-internal, make-symbolic-link, set-file-acl]:
-	[set-file-selinux-context, set-visited-file-modtime]:
-	[verify-visited-file-modtime]: Add handler.
+	<access-file, add-name-to-file, dired-call-process>:
+	<dired-compress-file, file-acl, file-notify-rm-watch>:
+	<file-ownership-preserved-p, file-selinux-context>:
+	<make-directory-internal, make-symbolic-link, set-file-acl>:
+	<set-file-selinux-context, set-visited-file-modtime>:
+	<verify-visited-file-modtime>: Add handler.
 	(tramp-adb-handle-write-region): Apply `set-visited-file-modtime'.
 
 	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist)
-	[file-notify-add-watch, file-notify-rm-watch]:
-	[set-file-times, set-visited-file-modtime]:
-	[verify-visited-file-modtime]: Add handler.
+	<file-notify-add-watch, file-notify-rm-watch>:
+	<set-file-times, set-visited-file-modtime>:
+	<verify-visited-file-modtime>: Add handler.
 	(with-tramp-gvfs-error-message)
 	(tramp-gvfs-handle-set-visited-file-modtime)
 	(tramp-gvfs-fuse-file-name): Remove.
@@ -7700,8 +7700,8 @@
 
 	* net/tramp-sh.el (tramp-sh-file-name-handler-alist):
 	Order alphabetically.
-	[file-notify-rm-watch ]: Use default Tramp handler.
-	[executable-find]: Remove private handler.
+	<file-notify-rm-watch>: Use default Tramp handler.
+	<executable-find>: Remove private handler.
 	(tramp-do-copy-or-rename-file-out-of-band): Do not bind
 	`default-directory'.
 	(tramp-sh-handle-executable-find)
@@ -7711,8 +7711,8 @@
 	Do not use `format' in `tramp-message'.
 
 	* net/tramp-smb.el (tramp-smb-file-name-handler-alist)
-	[file-notify-rm-watch, set-visited-file-modtime]:
-	[verify-visited-file-modtime]: Add handler.
+	<file-notify-rm-watch, set-visited-file-modtime>:
+	<verify-visited-file-modtime>: Add handler.
 	(tramp-smb-call-winexe): Do not bind `default-directory'.
 
 2013-08-01  Xue Fuqiao  <xfq.free@gmail.com>
@@ -8426,7 +8426,7 @@
 	* net/tramp-gvfs.el (tramp-gvfs-maybe-open-connection):
 	* net/tramp-sh.el (tramp-maybe-open-connection):
 	Use `tramp-connection-timeout'.
-	(tramp-methods) [su, sudo, ksu]: Add method specific timeouts.
+	(tramp-methods) <su, sudo, ksu>: Add method specific timeouts.
 	(Bug#14808)
 
 2013-07-11  Leo Liu  <sdl.web@gmail.com>
