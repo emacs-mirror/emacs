@@ -1,3 +1,8 @@
+2014-02-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-check-cached-permissions):
+	Call `file-attributes' with `suffix' being a symbol but a string.
+
 2014-02-21  Daniel Colascione  <dancol@dancol.org>
 
 	* net/dbus.el (dbus-init-bus-1): Declare new subr.
