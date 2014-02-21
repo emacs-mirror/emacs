@@ -1,5 +1,12 @@
 2014-02-21  Juanma Barranquero  <lekktu@gmail.com>
 
+	* savehist.el (savehist-save-minibuffer-history)
+	(savehist-additional-variables, savehist-file, savehist-mode-hook)
+	(savehist-save-hook, savehist-coding-system, savehist-loaded)
+	(savehist-load, savehist-install, savehist-autosave): Fix typos;
+	mostly, refer to "Savehist mode" when talking about the mode,
+	and not the function.
+
 	* saveplace.el (save-place): Remove redundant info in docstring.
 	(save-place-forget-unreadable-files, toggle-save-place)
 	(save-place-forget-unreadable-files, save-place-dired-hook):
