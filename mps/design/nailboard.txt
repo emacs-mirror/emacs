@@ -59,15 +59,19 @@ _`.impl.table`: We maintain a (level 0) bit table with one bit for
 each (aligned) address in the range. In addition, we maintain a
 (level 1) bit table with one bit for each ``scale`` bits in the level
 0 bit table (this bit is set if any bit in the corresponding word in
-the level 0 table is set). And so on until we reach the level *k* bit
+the level 0 table is set). And so on until we reach the level *n* bit
 table which is just one word long.
+
+_`.impl.scale`: Here ``scale`` is an arbitrary scale factor that must
+be a power of 2. It could be supplied as a parameter of the nailboard,
+but in the current implementation it is always :c:func:`MPS_WORD_WIDTH`.
 
 _`.impl.size`: The size of the level *i* bit table is the ceiling of
 
    (``limit`` − ``base``) / (``align`` × ``scale``\ :superscript:`i`\ )
 
 where ``base`` and ``limit`` are the bounds of the address range being
-represented in the nailboard, ``align`` is the pool alignment.
+represented in the nailboard and ``align`` is the pool alignment.
 
 _`.impl.address`: The address *a* may be looked up in the level *i*
 bit table at the bit
@@ -78,6 +82,15 @@ and since ``align`` and ``scale`` are powers of 2, that's
 
    (*a* − ``base``) >> (log\ :subscript:`2`\ ``align`` + *i* log\ :subscript:`2`\ ``scale``)
 
+_`.impl.set`: Setting a nail for an address *a* in a nailboard is on
+the critical path: it is called for every fix of an ambiguous
+reference to an address in an AMC pool. When setting a nail, we set
+the corresponding bit in every level of the nailboard. See
+:c:func:`NailboardSet`.
+
+_`.impl.get`: Testing a range of addresses to see if any nails are set
+is also on the critical path: it is called when scanning any AMC
+segment with a nailboard. See :c:func:`NailboardIsResRange`.
 
 
 Interface
@@ -144,6 +157,12 @@ if any nail is unset.
 
 Return ``TRUE`` if no nails are set in the given range, or ``FALSE``
 if any nail is set.
+
+``Bool NailboardIsResClientRange(Nailboard board, Size headerSize, Addr base, Addr limit)``
+
+Return ``TRUE`` if no nails are set in the given range, or ``FALSE``
+if any nail is set. The ``base`` and ``limit`` arguments are client
+addresses in a pool where objects have the given header size.
 
 
 Document History
