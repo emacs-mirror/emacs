@@ -1,3 +1,8 @@
+2014-02-21  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* electric.el (electric-indent-functions-without-reindent):
+	Add `yaml-indent-line'.
+
 2014-02-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32-vars.el (w32-enable-synthesized-fonts): Mark as obsolete.
