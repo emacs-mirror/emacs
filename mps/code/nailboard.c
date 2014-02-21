@@ -192,9 +192,9 @@ Bool NailboardSet(Nailboard board, Addr addr)
   if (isNew) {
     board->newNails = TRUE;
     ++ board->distinctNails;
-    return TRUE;
+    return FALSE;
   }
-  return FALSE;
+  return TRUE;
 }
 
 void NailboardSetRange(Nailboard board, Addr base, Addr limit)
@@ -240,7 +240,6 @@ Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)
 
 Bool NailboardIsResClientRange(Nailboard board, Size headerSize, Addr base, Addr limit)
 {
-  return !NailboardGet(board, base);
   return NailboardIsResRange(board, AddrSub(base, headerSize),
                              AddrSub(limit, headerSize));
 }
