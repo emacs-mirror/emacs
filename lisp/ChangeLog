@@ -1,3 +1,18 @@
+2014-02-21  Daniel Colascione  <dancol@dancol.org>
+
+	* net/dbus.el (dbus-init-bus-1): Declare new subr.
+	(dbus-init-bus): New function: call into dbus-init-bus-1
+	and installs a handler for the disconnect signal.
+	(dbus-call-method): Rewrite to look for result in cons.
+	(dbus-call-method-handler): Store result in cons.
+	(dbus-check-event): Recognize events with nil sender as valid.
+	(dbus-handle-bus-disconnect): New function.  React to bus
+	disconnection signal by synthesizing dbus error for each
+	pending synchronous or asynchronous call.
+	(dbus-notice-synchronous-call-errors): New function.
+	(dbus-handle-event): Raise errors directly only when `dbus-debug'
+	is true, not all the time.
+
 2014-02-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32-fns.el (w32-enable-italics, w32-charset-to-codepage-alist):

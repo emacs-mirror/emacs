@@ -42,7 +42,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /* Subroutines.  */
-static Lisp_Object Qdbus_init_bus;
+static Lisp_Object Qdbus_init_bus_1;
 static Lisp_Object Qdbus_get_unique_name;
 static Lisp_Object Qdbus_message_internal;
 
@@ -1121,8 +1121,11 @@ xd_close_bus (Lisp_Object bus)
   return;
 }
 
-DEFUN ("dbus-init-bus", Fdbus_init_bus, Sdbus_init_bus, 1, 2, 0,
+DEFUN ("dbus-init-bus-1", Fdbus_init_bus_1, Sdbus_init_bus_1, 1, 2, 0,
        doc: /* Establish the connection to D-Bus BUS.
+
+This function is dbus-internal.  You almost certainly want to use
+dbus-init-bus.
 
 BUS can be either the symbol `:system' or the symbol `:session', or it
 can be a string denoting the address of the corresponding bus.  For
@@ -1742,8 +1745,8 @@ void
 syms_of_dbusbind (void)
 {
 
-  DEFSYM (Qdbus_init_bus, "dbus-init-bus");
-  defsubr (&Sdbus_init_bus);
+  DEFSYM (Qdbus_init_bus_1, "dbus-init-bus-1");
+  defsubr (&Sdbus_init_bus_1);
 
   DEFSYM (Qdbus_get_unique_name, "dbus-get-unique-name");
   defsubr (&Sdbus_get_unique_name);
