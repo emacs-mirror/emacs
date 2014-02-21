@@ -8313,7 +8313,7 @@ move_it_in_display_line_to (struct it *it,
   void *ppos_data = NULL;
   int may_wrap = 0;
   enum it_method prev_method = it->method;
-  ptrdiff_t closest_pos, prev_pos = IT_CHARPOS (*it);
+  ptrdiff_t closest_pos IF_LINT (= 0), prev_pos = IT_CHARPOS (*it);
   int saw_smaller_pos = prev_pos < to_charpos;
 
   /* Don't produce glyphs in produce_glyphs.  */

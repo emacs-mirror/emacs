@@ -1,3 +1,9 @@
+2014-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Pacify GCC when configuring with --enable-gcc-warnings.
+	* xdisp.c (move_it_in_display_line_to) [lint]:
+	Initialize recently-added local.
+
 2014-02-21  Daniel Colascione  <dancol@dancol.org>
 
 	* dbusbind.c: Rename dbus-init-bus to dbus-init-bus-1.
