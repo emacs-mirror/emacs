@@ -307,11 +307,6 @@ bit output with no translation."
 (w32-add-charset-info "tis620-0" 'w32-charset-thai 874)
 (w32-add-charset-info "iso8859-1" 'w32-charset-ansi 1252)
 
-(make-obsolete-variable 'w32-enable-italics
-                        'w32-enable-synthesized-fonts "21.1")
-(make-obsolete-variable 'w32-charset-to-codepage-alist
-                        'w32-charset-info-alist "21.1")
-
 
 ;;;; Support for build process
 
