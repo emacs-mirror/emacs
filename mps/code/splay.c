@@ -125,62 +125,6 @@ static void SplayLinkLeft(Tree *topIO, Tree *leftIO) {
 }
 
 
-/* SplayRotateLeft -- Rotate right child edge of node
- *
- * Rotates node, right child of node, and left child of right
- * child of node, leftwards in the order stated.
- *
- * See <design/splay/#impl.rotate.left>.
- */
-
-static void SplayRotateLeft(Tree *nodeIO, SplayTree tree) {
-  Tree nodeRight;
-
-  AVER(nodeIO != NULL);
-  AVERT(Tree, *nodeIO);
-  AVERT(Tree, TreeRight(*nodeIO));
-  AVERT(SplayTree, tree);
-
-  nodeRight = TreeRight(*nodeIO);
-  TreeSetRight(*nodeIO, TreeLeft(nodeRight));
-  TreeSetLeft(nodeRight, *nodeIO);
-  *nodeIO = nodeRight;
-
-  tree->updateNode(tree, TreeLeft(nodeRight));
-  /* Don't need to update new root because we know that we will */
-  /* do either a link or an assemble next, and that will sort it */
-  /* out. */
-}
-
-
-/* SplayRotateRight -- Rotate left child edge of node
- *
- * Rotates node, left child of node, and right child of left
- * child of node, leftwards in the order stated.
- *
- * See <design/splay/#impl.rotate.right>.
- */
-
-static void SplayRotateRight(Tree *nodeIO, SplayTree tree) {
-  Tree nodeLeft;
-
-  AVER(nodeIO != NULL);
-  AVERT(Tree, *nodeIO);
-  AVERT(Tree, TreeLeft(*nodeIO));
-  AVERT(SplayTree, tree);
-
-  nodeLeft = TreeLeft(*nodeIO);
-  TreeSetLeft(*nodeIO, TreeRight(nodeLeft));
-  TreeSetRight(nodeLeft, *nodeIO);
-  *nodeIO = nodeLeft;
-
-  tree->updateNode(tree, TreeRight(nodeLeft));
-  /* Don't need to update new root because we know that we will */
-  /* do either a link or an assemble next, and that will sort it */
-  /* out. */
-}
-
-
 /* SplayAssemble -- Assemble left right and top trees into one
  *
  * We do this by moving the children of the top tree to the last and
@@ -336,7 +280,8 @@ static Bool SplaySplay(Tree *nodeReturn, SplayTree tree,
         case CompareLESS: {                  /* zig-zig */
           if (TreeLeft(topLeft) == TreeEMPTY)
             goto terminalZig;
-          SplayRotateRight(&top, tree);
+          TreeRotateRight(&top);
+          tree->updateNode(tree, TreeRight(top));
           SplayLinkRight(&top, &rightFirst);
         } break;
 
@@ -373,7 +318,8 @@ static Bool SplaySplay(Tree *nodeReturn, SplayTree tree,
         case CompareGREATER: {               /* zag-zag */
           if (TreeRight(topRight) == TreeEMPTY)
             goto terminalZag;
-          SplayRotateLeft(&top, tree);
+          TreeRotateLeft(&top);
+          tree->updateNode(tree, TreeLeft(top));
           SplayLinkLeft(&top, &leftLast);
         } break;
 
