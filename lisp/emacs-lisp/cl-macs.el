@@ -2710,7 +2710,7 @@ compiler macros are expanded repeatedly until no further expansions are
 possible.  Unlike regular macros, BODY can decide to \"punt\" and leave the
 original function call alone by declaring an initial `&whole foo' parameter
 and then returning foo."
-  (declare (debug cl-defmacro))
+  (declare (debug cl-defmacro) (indent 2))
   (let ((p args) (res nil))
     (while (consp p) (push (pop p) res))
     (setq args (nconc (nreverse res) (and p (list '&rest p)))))

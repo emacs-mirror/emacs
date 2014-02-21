@@ -1,3 +1,8 @@
+2014-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-define-compiler-macro): Add indent rule
+	(bug#16829).
+
 2014-02-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* whitespace.el (whitespace-space, whitespace-hspace, whitespace-tab)
@@ -25,10 +30,10 @@
 2014-02-21  Martin Rudalics  <rudalics@gmx.at>
 
 	Fix handling of window-min-height/-width (Bug#16738).
-	* window.el (window--dump-window, window--dump-frame): New
-	functions.
-	(window--min-size-1): Account for window dividers.  When
-	window-resize-pixelwise is nil, delay rounding till after the
+	* window.el (window--dump-window, window--dump-frame):
+	New functions.
+	(window--min-size-1): Account for window dividers.
+	When window-resize-pixelwise is nil, delay rounding till after the
 	sum of the window components has been calculated.
 	(window--min-delta-1, window--max-delta-1): When PIXELWISE is
 	nil make sure at least one text line and two text columns remain
