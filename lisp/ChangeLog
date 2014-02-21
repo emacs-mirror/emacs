@@ -1,3 +1,10 @@
+2014-02-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (choose-completion): Fix docstring typo.
+	(read-quoted-char-radix): Remove unneeded * in docstring.
+	(process-file, kill-whole-line, pop-to-mark-command, set-mark-command):
+	Don't escape parentheses unnecessarily in docstrings.
+
 2014-02-21  Martin Rudalics  <rudalics@gmx.at>
 
 	Fix handling of window-min-height/-width (Bug#16738).

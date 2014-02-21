@@ -641,7 +641,7 @@ column specified by the function `current-left-margin'."
     (indent-according-to-mode)))
 
 (defcustom read-quoted-char-radix 8
- "*Radix for \\[quoted-insert] and other uses of `read-quoted-char'.
+  "Radix for \\[quoted-insert] and other uses of `read-quoted-char'.
 Legitimate radix values are 8, 10 and 16."
  :type '(choice (const 8) (const 10) (const 16))
  :group 'editing-basics)
@@ -3184,9 +3184,9 @@ subprocess is `default-directory'.
 
 File names in INFILE and BUFFER are handled normally, but file
 names in ARGS should be relative to `default-directory', as they
-are passed to the process verbatim.  \(This is a difference to
+are passed to the process verbatim.  (This is a difference to
 `call-process' which does not support file handlers for INFILE
-and BUFFER.\)
+and BUFFER.)
 
 Some file handlers might not support all variants, for example
 they might behave as if DISPLAY was nil, regardless of the actual
@@ -4107,7 +4107,7 @@ even beep.)"
   "Kill current line.
 With prefix ARG, kill that many lines starting from the current line.
 If ARG is negative, kill backward.  Also kill the preceding newline.
-\(This is meant to make \\[repeat] work well with negative arguments.\)
+\(This is meant to make \\[repeat] work well with negative arguments.)
 If ARG is zero, kill current line but exclude the trailing newline."
   (interactive "p")
   (or arg (setq arg 1))
@@ -4531,7 +4531,7 @@ Start discarding off end if gets this big."
 
 (defun pop-to-mark-command ()
   "Jump to mark, and pop a new position for mark off the ring.
-\(Does not affect global mark ring\)."
+\(Does not affect global mark ring)."
   (interactive)
   (if (null (mark t))
       (error "No mark set in this buffer")
@@ -4577,11 +4577,11 @@ global mark ring, if the previous mark was set in another buffer.
 When Transient Mark Mode is off, immediately repeating this
 command activates `transient-mark-mode' temporarily.
 
-With prefix argument \(e.g., \\[universal-argument] \\[set-mark-command]\), \
+With prefix argument (e.g., \\[universal-argument] \\[set-mark-command]), \
 jump to the mark, and set the mark from
-position popped off the local mark ring \(this does not affect the global
-mark ring\).  Use \\[pop-global-mark] to jump to a mark popped off the global
-mark ring \(see `pop-global-mark'\).
+position popped off the local mark ring (this does not affect the global
+mark ring).  Use \\[pop-global-mark] to jump to a mark popped off the global
+mark ring (see `pop-global-mark').
 
 If `set-mark-command-repeat-pop' is non-nil, repeating
 the \\[set-mark-command] command with no prefix argument pops the next position
@@ -5380,7 +5380,7 @@ If NOERROR, don't signal an error if we can't move that many lines."
 	;; the middle of a continued line.  When we get to
 	;; line-move-finish, point is at the start of a new *screen*
 	;; line but the same text line; then line-move-to-column would
-	;; move us backwards. Test using C-n with point on the "x" in
+	;; move us backwards.  Test using C-n with point on the "x" in
 	;;   (insert "a" (propertize "x" 'field t) (make-string 89 ?y))
 	(and forward
 	     (< (point) old)
@@ -6914,7 +6914,7 @@ With prefix argument N, move N items (negative N means move backward)."
 
 (defun choose-completion (&optional event)
   "Choose the completion at point.
-If EVENT, use EVENTs position to determine the starting position."
+If EVENT, use EVENT's position to determine the starting position."
   (interactive (list last-nonmenu-event))
   ;; In case this is run via the mouse, give temporary modes such as
   ;; isearch a chance to turn off.
