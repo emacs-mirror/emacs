@@ -814,17 +814,16 @@ Emacs can learn the appropriate indentation settings if you provide it
 with an indented sample file.
 
 ---
-** SQL
-Improved login monitoring and appropriate response to login failures.
-Includes `sql-login-delay' to define maximum wait for a connection.
+** SQL mode
 
-*** Oracle support
+*** Improved login monitoring and appropriate response to login failures.
+New variable `sql-login-delay' defines maximum wait time for a connection.
+
+*** Oracle support.
 SQL*Plus script placeholders are properly highlighted and identified
-in `sql-placeholders-filter' correctly.  When SQL*Plus is started,
-options specified in `sql-oracle-options' are passed before the logon
-parameter, as SQL*Plus expects.  The default setting for
-`sql-oracle-options' has been altered to pass the `-L' option to limit
-the number of logon attempts per invocation.
+in `sql-placeholders-filter'.  When starting SQL*Plus, `sql-oracle-options'
+are passed before the logon parameter, as required.  The default now
+includes `-L', to limit the number of logon attempts per invocation.
 
 ---
 ** New Term mode option `term-suppress-hard-newline'.
