@@ -1,7 +1,7 @@
 /* Asynchronous subprocess control for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2014 Free Software
-Foundation, Inc.
+Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2014
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1022,7 +1022,7 @@ Return BUFFER.  */)
 DEFUN ("process-buffer", Fprocess_buffer, Sprocess_buffer,
        1, 1, 0,
        doc: /* Return the buffer PROCESS is associated with.
-Output from PROCESS is inserted in this buffer unless PROCESS has a filter.  */)
+The default process filter inserts output from PROCESS into this buffer.  */)
   (register Lisp_Object process)
 {
   CHECK_PROCESS (process);
@@ -1049,7 +1049,7 @@ passed to the filter.
 
 The filter gets two arguments: the process and the string of output.
 The string argument is normally a multibyte string, except:
-- if the process' input coding system is no-conversion or raw-text,
+- if the process's input coding system is no-conversion or raw-text,
   it is a unibyte string (the non-converted input), or else
 - if `default-enable-multibyte-characters' is nil, it is a unibyte
   string (the result of converting the decoded input multibyte
@@ -1061,7 +1061,7 @@ The string argument is normally a multibyte string, except:
   CHECK_PROCESS (process);
   p = XPROCESS (process);
 
-  /* Don't signal an error if the process' input file descriptor
+  /* Don't signal an error if the process's input file descriptor
      is closed.  This could make debugging Lisp more difficult,
      for example when doing something like
 
@@ -2758,7 +2758,7 @@ client.  The arguments are SERVER, CLIENT, and MESSAGE, where SERVER
 is the server process, CLIENT is the new process for the connection,
 and MESSAGE is a string.
 
-:plist PLIST -- Install PLIST as the new process' initial plist.
+:plist PLIST -- Install PLIST as the new process's initial plist.
 
 :server QLEN -- if QLEN is non-nil, create a server process for the
 specified FAMILY, SERVICE, and connection type (stream or datagram).
@@ -2788,21 +2788,21 @@ When a client connection is accepted, a new network process is created
 for the connection with the following parameters:
 
 - The client's process name is constructed by concatenating the server
-process' NAME and a client identification string.
+process's NAME and a client identification string.
 - If the FILTER argument is non-nil, the client process will not get a
 separate process buffer; otherwise, the client's process buffer is a newly
-created buffer named after the server process' BUFFER name or process
+created buffer named after the server process's BUFFER name or process
 NAME concatenated with the client identification string.
 - The connection type and the process filter and sentinel parameters are
-inherited from the server process' TYPE, FILTER and SENTINEL.
-- The client process' contact info is set according to the client's
+inherited from the server process's TYPE, FILTER and SENTINEL.
+- The client process's contact info is set according to the client's
 addressing information (typically an IP address and a port number).
-- The client process' plist is initialized from the server's plist.
+- The client process's plist is initialized from the server's plist.
 
 Notice that the FILTER and SENTINEL args are never used directly by
 the server process.  Also, the BUFFER argument is not used directly by
 the server process, but via the optional :log function, accepted (and
-failed) connections may be logged in the server process' buffer.
+failed) connections may be logged in the server process's buffer.
 
 The original argument list, modified with the actual connection
 information, is available via the `process-contact' function.
@@ -3917,7 +3917,7 @@ deactivate_process (Lisp_Object proc)
 DEFUN ("accept-process-output", Faccept_process_output, Saccept_process_output,
        0, 4, 0,
        doc: /* Allow any pending output from subprocesses to be read by Emacs.
-It is read into the process' buffers or given to their filter functions.
+It is given to their filter functions.
 Non-nil arg PROCESS means do not return until some output has been received
 from PROCESS.
 
@@ -5187,7 +5187,8 @@ read_and_dispose_of_process_output (struct Lisp_Process *p, char *chars,
 
 DEFUN ("internal-default-process-filter", Finternal_default_process_filter,
        Sinternal_default_process_filter, 2, 2, 0,
-       doc: /* Function used as default process filter.  */)
+       doc: /* Function used as default process filter.
+This inserts the process's output into its buffer.  */)
   (Lisp_Object proc, Lisp_Object text)
 {
   struct Lisp_Process *p;
@@ -6411,7 +6412,8 @@ status_notify (struct Lisp_Process *deleting_process)
 
 DEFUN ("internal-default-process-sentinel", Finternal_default_process_sentinel,
        Sinternal_default_process_sentinel, 2, 2, 0,
-       doc: /* Function used as default sentinel for processes.  */)
+       doc: /* Function used as default sentinel for processes.
+This inserts a status message into the process's buffer.  */)
      (Lisp_Object proc, Lisp_Object msg)
 {
   Lisp_Object buffer, symbol;

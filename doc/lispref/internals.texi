@@ -1469,12 +1469,10 @@ process.  For a network or serial process, it is @code{nil} if the
 process is running or @code{t} if the process is stopped.
 
 @item filter
-If non-@code{nil}, a function used to accept output from the process
-instead of a buffer.
+A function used to accept output from the process.
 
 @item sentinel
-If non-@code{nil}, a function called whenever the state of the process
-changes.
+A function called whenever the state of the process changes.
 
 @item buffer
 The associated buffer of the process.

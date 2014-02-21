@@ -1,3 +1,10 @@
+2014-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* flymake.texi (Starting the syntax check process): Grammar fix.
+
+	* tramp.texi (External packages): Grammar fix.
+	Reword for default sentinel not being nil any more.
+
 2014-02-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* trampver.texi: Update release number.

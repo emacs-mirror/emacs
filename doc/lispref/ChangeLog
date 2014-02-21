@@ -1,3 +1,12 @@
+2014-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* internals.texi (Process Internals):
+	* processes.texi (Deleting Processes, Output from Processes)
+	(Process Buffers, Filter Functions, Accepting Output, Sentinels)
+	(Network, Network Servers, Network Processes, Serial Ports):
+	Filters and sentinels can no longer be nil.
+	* elisp.texi (Top): Menu update.
+
 2014-02-20  Glenn Morris  <rgm@gnu.org>
 
 	* functions.texi (Defining Functions): Mention defalias-fset-function.

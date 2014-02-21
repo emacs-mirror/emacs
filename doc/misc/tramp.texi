@@ -3766,10 +3766,10 @@ its complete cache keeping attributes for all files of the remote host
 it has seen so far.
 
 This is a performance degradation, because the lost file attributes
-must be recomputed when needed again.  In cases the caller of
+must be recomputed when needed again.  In cases where the caller of
 @code{process-file} knows that there are no file attribute changes, it
-shall let-bind the variable @code{process-file-side-effects} to
-@code{nil}.  @value{tramp} wouldn't flush the file attributes cache then.
+should let-bind the variable @code{process-file-side-effects} to
+@code{nil}.  Then @value{tramp} won't flush the file attributes cache.
 
 @lisp
 (let (process-file-side-effects)
@@ -3779,8 +3779,8 @@ shall let-bind the variable @code{process-file-side-effects} to
 For asynchronous processes, @value{tramp} flushes the file attributes
 cache via a process sentinel.  If the caller of
 @code{start-file-process} knows that there are no file attribute
-changes, it shall set the process sentinel to @code{nil}.  In case the
-caller defines an own process sentinel, @value{tramp}'s process
+changes, it should set the process sentinel to the default.  In cases
+where the caller defines its own process sentinel, @value{tramp}'s process
 sentinel is overwritten.  The caller can still flush the file
 attributes cache in its process sentinel with this code:
 

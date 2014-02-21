@@ -1305,7 +1305,7 @@ Processes
 
 Receiving Output from Processes
 
-* Process Buffers::         If no filter, output is put in a buffer.
+* Process Buffers::         By default, output is put in a buffer.
 * Filter Functions::        Filter functions accept output from the process.
 * Decoding Output::         Filters can get unibyte or multibyte strings.
 * Accepting Output::        How to wait until process output arrives.
