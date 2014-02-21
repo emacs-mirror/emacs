@@ -906,13 +906,19 @@ This tests also `file-readable-p' and `file-regular-p'."
 	  (setq attr (directory-files-and-attributes tmp-name))
 	  (should (consp attr))
 	  (dolist (elt attr)
-	    (should
-	     (equal (file-attributes (expand-file-name (car elt) tmp-name))
-		    (cdr elt))))
+	    ;; We cannot include "." and "..".  They might have
+	    ;; changed their timestamp already.
+	    (when (string-match "foo$\\|bar$\\|baz$" (car elt))
+	      (should
+	       (equal (file-attributes (expand-file-name (car elt) tmp-name))
+		      (cdr elt)))))
 	  (setq attr (directory-files-and-attributes tmp-name 'full))
 	  (dolist (elt attr)
-	    (should
-	     (equal (file-attributes (car elt)) (cdr elt))))
+	    ;; We cannot include "." and "..".  They might have
+	    ;; changed their timestamp already.
+	    (when (string-match "foo$\\|bar$\\|baz$" (car elt))
+	      (should
+	       (equal (file-attributes (car elt)) (cdr elt)))))
 	  (setq attr (directory-files-and-attributes tmp-name nil "^b"))
 	  (should (equal (mapcar 'car attr) '("bar" "boz"))))
       (ignore-errors (delete-directory tmp-name 'recursive))))))

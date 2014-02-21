@@ -1,3 +1,10 @@
+2014-02-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el
+	(tramp-test19-directory-files-and-attributes): Do not include
+	directories in comparison; they might have changed their
+	timestamps already.
+
 2014-02-20  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp--instrument-test-case): New macro.
