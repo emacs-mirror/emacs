@@ -54,7 +54,6 @@ This alist is saved between Emacs sessions.")
   "Non-nil means automatically save place in each file.
 This means when you visit a file, point goes to the last place
 where it was when you previously visited the same file.
-This variable is automatically buffer-local.
 
 If you wish your place in any file to always be automatically
 saved, set this to t using the Customize facility, or put the
@@ -101,7 +100,7 @@ value of `version-control'."
 
 The filenames in `save-place-alist' that do not match
 `save-place-skip-check-regexp' are filtered through
-`file-readable-p'. if nil, their alist entries are removed.
+`file-readable-p'.  If nil, their alist entries are removed.
 
 You may do this anytime by calling the complementary function,
 `save-place-forget-unreadable-files'.  When this option is turned on,
@@ -151,7 +150,7 @@ the argument is positive.
 To save places automatically in all files, put this in your init
 file:
 
-\(setq-default save-place t\)"
+\(setq-default save-place t)"
   (interactive "P")
   (if (not (or buffer-file-name (and (derived-mode-p 'dired-mode)
 				     dired-directory)))
@@ -206,8 +205,8 @@ file:
 (defun save-place-forget-unreadable-files ()
   "Remove unreadable files from `save-place-alist'.
 For each entry in the alist, if `file-readable-p' returns nil for the
-filename, remove the entry.  Save the new alist \(as the first pair
-may have changed\) back to `save-place-alist'."
+filename, remove the entry.  Save the new alist (as the first pair
+may have changed) back to `save-place-alist'."
   (interactive)
   ;; the following was adapted from an in-place filtering function,
   ;; `filter-mod', used in the original.
@@ -324,7 +323,7 @@ may have changed\) back to `save-place-alist'."
 (declare-function dired-goto-file "dired" (file))
 
 (defun save-place-dired-hook ()
-  "Position the point in a dired buffer."
+  "Position the point in a Dired buffer."
   (or save-place-loaded (load-save-place-alist-from-file))
   (let ((cell (assoc (and (derived-mode-p 'dired-mode)
 			  dired-directory

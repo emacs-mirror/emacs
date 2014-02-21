@@ -1,3 +1,10 @@
+2014-02-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* saveplace.el (save-place): Remove redundant info in docstring.
+	(save-place-forget-unreadable-files, toggle-save-place)
+	(save-place-forget-unreadable-files, save-place-dired-hook):
+	Fix typos and remove unneeded backslashes.
+
 2014-02-20  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (ls-lisp-use-insert-directory-program): Declare.
