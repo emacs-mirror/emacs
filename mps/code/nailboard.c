@@ -19,7 +19,6 @@ Bool NailboardCheck(Nailboard board)
   CHECKS(Nailboard, board);
   CHECKU(Arena, board->arena);
   CHECKL(RangeCheck(&board->range));
-  CHECKL(board->levels <= NAILBOARD_MAX_LEVELS);
   CHECKL(0 < board->alignShift);
   CHECKL(0 < board->levelShift);
   for (i = 0; i < board->levels; ++i) {
@@ -27,22 +26,33 @@ Bool NailboardCheck(Nailboard board)
     CHECKL(board->level[i] != NULL);
   }
   /* distinctNails must be the same as the number of set bits in
-   * level[0].mark, but we don't want to check this as it's O(n).
+   * level[0], but we don't want to check this as it's O(n).
    */
   CHECKL(board->distinctNails <= board->nails);
   CHECKL(BoolCheck(board->newNails));
   return TRUE;
 }
 
-static Size nailboardSize(Count bits, Count levels, Shift shift)
+/* nailboardStructSize -- return the size of the nailboard structure,
+ * including its array of pointers to levels.
+ */
+static Size nailboardStructSize(Count levels)
+{
+  return sizeof(NailboardStruct) + sizeof(BT *) * (levels - 1);
+}
+
+/* nailboardLevelsSize -- return the total size of the bit tables for
+ * all the levels in a nailboard with the given number of paramaters.
+ */
+static Size nailboardLevelsSize(Count nails, Count levels, Shift shift)
 {
   Index i;
   Size size;
-  AVER(bits >> ((levels - 1) * shift) != 0);
-  AVER(bits >> (levels * shift) == 0);
+  AVER(nails >> ((levels - 1) * shift) != 0);
+  AVER(nails >> (levels * shift) == 0);
   size = 0;
   for (i = 0; i < levels; ++i) {
-    size += BTSize(bits >> (i * shift));
+    size += BTSize(nails >> (i * shift));
   }
   return size;
 }
@@ -52,9 +62,9 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
 {
   void *p;
   Nailboard board;
-  Count bits, levels;
+  Count nails, levels;
   Index i;
-  Size size;
+  Size structSize, levelsSize;
   Res res;
   Shift levelShift = MPS_WORD_SHIFT;
 
@@ -65,61 +75,58 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
   AVER(AddrIsAligned(base, alignment));
   AVER(AddrIsAligned(limit, alignment));
 
-  bits = AddrOffset(base, limit) / alignment;
-  levels = SizeRoundUp(SizeLog2(bits), levelShift) / levelShift;
-  AVER(levels <= NAILBOARD_MAX_LEVELS);
-  size = sizeof(NailboardStruct) + sizeof(BT*) * (levels - 1);
-  res = ControlAlloc(&p, arena, size, FALSE);
-  if(res != ResOK)
-    goto failAllocNailboard;
+  nails = AddrOffset(base, limit) / alignment;
+  levels = SizeRoundUp(SizeLog2(nails), levelShift) / levelShift;
+  AVER((nails >> ((levels - 1) * levelShift)) > 0);
+  AVER((nails >> (levels * levelShift)) == 0);
+
+  structSize = nailboardStructSize(levels);
+  levelsSize = nailboardLevelsSize(nails, levels, levelShift);
+  res = ControlAlloc(&p, arena, structSize + levelsSize, FALSE);
+  if (res != ResOK)
+    return res;
+
   board = p;
   board->arena = arena;
-  board->nails = (Count)0;
-  board->distinctNails = (Count)0;
+  board->nails = 0;
+  board->distinctNails = 0;
   board->newNails = FALSE;
   board->levels = levels;
   board->alignShift = SizeLog2(alignment);
   board->levelShift = levelShift;
   RangeInit(&board->range, base, limit);
 
-  res = ControlAlloc(&p, arena, nailboardSize(bits, levels, levelShift), FALSE);
-  if(res != ResOK)
-    goto failAllocNails;
-
-  AVER(bits == RangeSize(&board->range) >> board->alignShift);
+  AVER(nails == RangeSize(&board->range) >> board->alignShift);
+  p = AddrAdd(p, structSize);
   for (i = 0; i < levels; ++i) {
-    AVER(bits > 0);
+    Count levelNails = nails >> (i * levelShift);
+    AVER(levelNails > 0);
     board->level[i] = p;
-    BTResRange(board->level[i], 0, bits);
-    p = AddrAdd(p, BTSize(bits));
-    bits >>= levelShift;
+    BTResRange(board->level[i], 0, levelNails);
+    p = AddrAdd(p, BTSize(levelNails));
   }
-  AVER(bits == 0);
 
   board->sig = NailboardSig;
   AVERT(Nailboard, board);
   *boardReturn = board;
   return ResOK;
-
-failAllocNails:
-  ControlFree(arena, board, sizeof(NailboardStruct));
-failAllocNailboard:
-  return res;
 }
 
 void NailboardDestroy(Nailboard board)
 {
   Arena arena;
-  Count bits;
+  Count nails;
+  Size structSize, levelsSize;
 
   AVERT(Nailboard, board);
 
   arena = board->arena;
-  bits = RangeSize(&board->range) >> board->alignShift;
-  ControlFree(arena, board->level[0],
-              nailboardSize(bits, board->levels, board->levelShift));
+  nails = RangeSize(&board->range) >> board->alignShift;
+  structSize = nailboardStructSize(board->levels);
+  levelsSize = nailboardLevelsSize(nails, board->levels, board->levelShift);
+
   board->sig = SigInvalid;
-  ControlFree(arena, board, sizeof(NailboardStruct));
+  ControlFree(arena, board, structSize + levelsSize);
 }
 
 Align NailboardAlignment(Nailboard board)
@@ -142,11 +149,6 @@ Bool NailboardNewNails(Nailboard board)
  */
 static Index nailboardIndex(Nailboard board, Index level, Addr addr)
 {
-  AVERT(Nailboard, board);
-  AVER(level < board->levels);
-  AVER(RangeBase(&board->range) <= addr);
-  AVER(addr <= RangeLimit(&board->range));
-
   return AddrOffset(RangeBase(&board->range), addr)
     >> (board->alignShift + level * board->levelShift);
 }
@@ -159,8 +161,6 @@ static void nailboardIndexRange(Index *ibaseReturn, Index *ilimitReturn,
                                 Nailboard board, Index level,
                                 Addr base, Addr limit)
 {
-  AVER(base < limit);
-
   *ibaseReturn = nailboardIndex(board, level, base);
   *ilimitReturn = nailboardIndex(board, level, AddrSub(limit, 1)) + 1;
 }
@@ -174,25 +174,25 @@ Bool NailboardGet(Nailboard board, Addr addr)
 
 Bool NailboardSet(Nailboard board, Addr addr)
 {
-  Index i, j;
+  Bool isNew = FALSE;
+  Index i;
 
-  AVERT(Nailboard, board);
-  AVER(RangeContains(&board->range, addr));
+  AVERT_CRITICAL(Nailboard, board);
+  AVER_CRITICAL(RangeContains(&board->range, addr));
 
   ++ board->nails;
-  j = nailboardIndex(board, 0, addr);
-  if (BTGet(board->level[0], j)) {
-    return TRUE;
-  }
-  BTSet(board->level[0], j);
-  board->newNails = TRUE;
-  ++ board->distinctNails;
-  for (i = 1; i < board->levels; ++i) {
-    j = nailboardIndex(board, i, addr);
+  for (i = 0; i < board->levels; ++i) {
+    Index j = nailboardIndex(board, i, addr);
     if (BTGet(board->level[i], j)) {
       break;
     }
     BTSet(board->level[i], j);
+    isNew = TRUE;
+  }
+  if (isNew) {
+    board->newNails = TRUE;
+    ++ board->distinctNails;
+    return TRUE;
   }
   return FALSE;
 }
@@ -223,7 +223,7 @@ Bool NailboardIsSetRange(Nailboard board, Addr base, Addr limit)
 Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)
 {
   Index i;
-  AVERT(Nailboard, board);
+  AVERT_CRITICAL(Nailboard, board);
   i = board->levels;
   while (i > 0) {
     Index ibase, ilimit;
@@ -231,8 +231,50 @@ Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)
     nailboardIndexRange(&ibase, &ilimit, board, i, base, limit);
     if (BTIsResRange(board->level[i], ibase, ilimit))
       return TRUE;
+    if (ibase + 1 < ilimit - 1
+        && !BTIsResRange(board->level[i], ibase + 1, ilimit - 1))
+      return FALSE;
   }
   return FALSE;
+}
+
+Bool NailboardIsResClientRange(Nailboard board, Size headerSize, Addr base, Addr limit)
+{
+  return !NailboardGet(board, base);
+  return NailboardIsResRange(board, AddrSub(base, headerSize),
+                             AddrSub(limit, headerSize));
+}
+
+Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream);
+Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream)
+{
+  Count nails;
+  Index i, j;
+
+  if(!TESTT(Nailboard, board))
+    return ResFAIL;
+  if(stream == NULL)
+    return ResFAIL;
+
+  nails = RangeSize(&board->range) >> board->alignShift;
+  for(i = 0; i < board->levels; ++i) {
+    Count levelNails = nails >> (i * board->levelShift);
+    Res res;
+    res = WriteF(stream, "  Level $U: ", i, NULL);
+    if(res != ResOK)
+      return res;
+    for (j = 0; j < levelNails; ++j) {
+      char c = BTGet(board->level[i], j) ? '*' : '.';
+      res = WriteF(stream, "$C", c, NULL);
+      if(res != ResOK)
+        return res;
+    }
+    res = WriteF(stream, "\n", NULL);
+    if(res != ResOK)
+      return res;
+  }
+
+  return ResOK;
 }
 
 
