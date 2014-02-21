@@ -1,3 +1,8 @@
+2014-02-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* windows.texi (Window Configurations): Doc fix.
+	(Windows and Frames): Fix typo.
+
 2014-02-21  Glenn Morris  <rgm@gnu.org>
 
 	* internals.texi (Process Internals):

@@ -252,7 +252,7 @@ child windows form a horizontal combination, consisting of the live
 window @var{W2} and the internal window @var{W3}.  The child windows
 of @var{W3} form a vertical combination, consisting of the live
 windows @var{W4} and @var{W5}.  Hence, the live windows in this
-window tree are @var{W2} @var{W4}, and @var{W5}.
+window tree are @var{W2}, @var{W4}, and @var{W5}.
 
   The following functions can be used to retrieve a child window of an
 internal window, and the siblings of a child window.
@@ -3504,8 +3504,9 @@ the following function to restore the state of the window.
 This function puts the window state @var{state} into @var{window}.  The
 argument @var{state} should be the state of a window returned by an
 earlier invocation of @code{window-state-get}, see above.  The optional
-argument @var{window} must specify a live window and defaults to the
-selected one.
+argument @var{window} must specify a valid window and defaults to the
+selected one.  If @var{window} is not live, it is replaced by a live
+window before putting @var{state} into it.
 
 If the optional argument @var{ignore} is non-@code{nil}, it means to ignore
 minimum window sizes and fixed-size restrictions.  If @var{ignore}
