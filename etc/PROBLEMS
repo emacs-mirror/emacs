@@ -1934,6 +1934,22 @@ stop and start the service from the Computer Management application,
 accessible by right-clicking "My Computer" or "Computer", selecting
 "Manage", then clicking on "Services".)
 
+** Emacs crashes when exiting the Emacs session
+
+This was reported to happen when some optional DLLs, such as those
+used for displaying images or the GnuTLS library, which are loaded
+on-demand, have a runtime dependency on the libgcc DLL,
+libgcc_s_dw2-1.dll.  The reason seems to be a bug in libgcc which
+rears its ugly head whenever the libgcc DLL is loaded after Emacs has
+started.
+
+One solution for this problem is to find an alternative build of the
+same optional library that does not depend on the libgcc DLL.
+
+Another possibility is to rebuild Emacs with the -shared-libgcc
+switch, which will force Emacs to load libgcc_s_dw2-1.dll on startup,
+ahead of any optional DLLs loaded on-demand later in the session.
+
 ** PATH can contain unexpanded environment variables
 
 Old releases of TCC (version 9) and 4NT (up to version 8) do not correctly
