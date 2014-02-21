@@ -15,6 +15,9 @@
 	(adjust-window-trailing-edge): Call window--resizable with
 	correct TRAIL argument.
 
+	(with-temp-buffer-window): Don't evaluate BODY within
+	with-current-buffer (Bug#16816).
+
 2014-02-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-check-cached-permissions):

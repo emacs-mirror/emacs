@@ -189,8 +189,8 @@ argument replaces this)."
     `(let* ((,buffer (temp-buffer-window-setup ,buffer-or-name))
 	    (standard-output ,buffer)
 	    ,window ,value)
+       (setq ,value (progn ,@body))
        (with-current-buffer ,buffer
-	 (setq ,value (progn ,@body))
 	 (setq ,window (temp-buffer-window-show ,buffer ,action)))
 
        (if (functionp ,quit-function)
