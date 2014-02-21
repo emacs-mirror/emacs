@@ -162,6 +162,51 @@ void TreeTraverseMorris(Tree tree, TreeVisitor visit,
 }
 
 
+/* TreeRotateLeft -- Rotate right child edge of node
+ *
+ * Rotates node, right child of node, and left child of right
+ * child of node, leftwards in the order stated.
+ */
+
+void TreeRotateLeft(Tree *treeIO)
+{
+  Tree tree, right;
+
+  AVER(treeIO != NULL);
+  tree = *treeIO;
+  AVERT(Tree, tree);
+  right = TreeRight(tree);
+  AVERT(Tree, right);
+
+  TreeSetRight(tree, TreeLeft(right));
+  TreeSetLeft(right, tree);
+
+  *treeIO = right;
+}
+
+
+/* TreeRotateRight -- Rotate left child edge of node
+ *
+ * Rotates node, left child of node, and right child of left
+ * child of node, leftwards in the order stated.
+ */
+
+void TreeRotateRight(Tree *treeIO) {
+  Tree tree, left;
+
+  AVER(treeIO != NULL);
+  tree = *treeIO;
+  AVERT(Tree, tree);
+  left = TreeLeft(tree);
+  AVERT(Tree, left);
+
+  TreeSetLeft(*treeIO, TreeRight(left));
+  TreeSetRight(left, *treeIO);
+
+  *treeIO = left;
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
