@@ -157,11 +157,13 @@ arguments as NAME.  DO is a function as defined in `gv-get'."
         (_ (message "Unknown %s declaration %S" symbol handler) nil))))
 
 ;;;###autoload
-(push `(gv-expander ,(apply-partially #'gv--defun-declaration 'gv-expander))
-      defun-declarations-alist)
+(or (assq 'gv-expander defun-declarations-alist)
+    (push `(gv-expander ,(apply-partially #'gv--defun-declaration 'gv-expander))
+	  defun-declarations-alist))
 ;;;###autoload
-(push `(gv-setter ,(apply-partially #'gv--defun-declaration 'gv-setter))
-      defun-declarations-alist)
+(or (assq 'gv-setter defun-declarations-alist)
+    (push `(gv-setter ,(apply-partially #'gv--defun-declaration 'gv-setter))
+	  defun-declarations-alist))
 
 ;; (defmacro gv-define-expand (name expander)
 ;;   "Use EXPANDER to handle NAME as a generalized var.

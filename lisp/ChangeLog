@@ -1,3 +1,8 @@
+2014-02-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/gv.el: Avoid duplicating gv-expander and gv-setter in
+	defun-declarations-alist.
+
 2014-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el (cl-define-compiler-macro): Add indent rule
