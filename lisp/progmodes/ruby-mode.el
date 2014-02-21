@@ -2174,7 +2174,7 @@ See `font-lock-syntax-table'.")
                                      "\\|jbuilder\\|gemspec\\|podspec"
                                      "\\|/"
                                      "\\(?:Gem\\|Rake\\|Cap\\|Thor"
-                                     "Vagrant\\|Guard\\|Pod\\)file"
+                                     "\\|Vagrant\\|Guard\\|Pod\\)file"
                                      "\\)\\'")) 'ruby-mode))
 
 ;;;###autoload

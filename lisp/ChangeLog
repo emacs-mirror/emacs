@@ -1,5 +1,7 @@
 2014-02-21  Dmitry Gutov  <dgutov@yandex.ru>
 
+	* progmodes/ruby-mode.el (auto-mode-alist): Add missing "or".
+
 	* electric.el (electric-indent-functions-without-reindent):
 	Add `yaml-indent-line'.
 
