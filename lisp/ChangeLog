@@ -1,3 +1,10 @@
+2014-02-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* whitespace.el (whitespace-space, whitespace-hspace, whitespace-tab)
+	(whitespace-newline, whitespace-trailing, whitespace-line)
+	(whitespace-space-before-tab, whitespace-indentation, whitespace-empty)
+	(whitespace-space-after-tab): Fix typo in docstrings.
+
 2014-02-21  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (auto-mode-alist): Add missing "or".
