@@ -12,8 +12,6 @@
 #include "mpmtypes.h"
 #include "range.h"
 
-#define NAILBOARD_MAX_LEVELS ((MPS_WORD_WIDTH + MPS_WORD_SHIFT - 1) / MPS_WORD_SHIFT)
-
 typedef struct NailboardStruct *Nailboard;
 
 typedef struct NailboardStruct {
@@ -42,6 +40,7 @@ extern Bool NailboardSet(Nailboard board, Addr addr);
 extern void NailboardSetRange(Nailboard board, Addr base, Addr limit);
 extern Bool NailboardIsSetRange(Nailboard board, Addr base, Addr limit);
 extern Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit);
+extern Bool NailboardIsResClientRange(Nailboard board, Size headerSize, Addr base, Addr limit);
 
 #endif /* nailboard.h */
 
