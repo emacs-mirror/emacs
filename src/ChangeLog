@@ -1,3 +1,7 @@
+2014-02-21  Daniel Colascione  <dancol@dancol.org>
+
+	* dbusbind.c: Rename dbus-init-bus to dbus-init-bus-1.
+
 2014-02-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (init_iterator): Don't dereference a bogus face
