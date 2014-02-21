@@ -3868,7 +3868,7 @@ be granted."
 		  (tramp-file-name-user vec)
 		  (tramp-file-name-host vec)
 		  (tramp-file-name-localname vec))
-		 suffix)))
+		 (intern suffix))))
               (remote-uid
                (tramp-get-connection-property
                 vec (concat "uid-" suffix) nil))
