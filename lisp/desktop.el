@@ -878,23 +878,25 @@ FILENAME is the visited file name, BUFNAME is the buffer name, and
 MODE is the major mode.
 \n\(fn FILENAME BUFNAME MODE)"
   (let ((case-fold-search nil)
-        dired-skip)
-    (and (not (and (stringp desktop-buffers-not-to-save)
-		   (not filename)
-		   (string-match-p desktop-buffers-not-to-save bufname)))
-         (not (memq mode desktop-modes-not-to-save))
-         ;; FIXME this is broken if desktop-files-not-to-save is nil.
-         (or (and filename
-		  (stringp desktop-files-not-to-save)
-                  (not (string-match-p desktop-files-not-to-save filename)))
-             (and (memq mode '(dired-mode vc-dir-mode))
-                  (with-current-buffer bufname
-                    (not (setq dired-skip
-                               (string-match-p desktop-files-not-to-save
-                                               default-directory)))))
-             (and (null filename)
-                  (null dired-skip)     ; bug#5755
-		  (with-current-buffer bufname desktop-save-buffer))))))
+	(no-regexp-to-check (not (stringp desktop-files-not-to-save)))
+	dired-skip)
+    (and (or filename
+	     (not (stringp desktop-buffers-not-to-save))
+	     (not (string-match-p desktop-buffers-not-to-save bufname)))
+	 (not (memq mode desktop-modes-not-to-save))
+	 (or (and filename
+		  (or no-regexp-to-check
+		      (not (string-match-p desktop-files-not-to-save filename))))
+	     (and (memq mode '(dired-mode vc-dir-mode))
+		  (or no-regexp-to-check
+		      (not (setq dired-skip
+				 (with-current-buffer bufname
+				   (string-match-p desktop-files-not-to-save
+						   default-directory))))))
+	     (and (null filename)
+		  (null dired-skip)  ; bug#5755
+		  (with-current-buffer bufname desktop-save-buffer)))
+	 t)))
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-file-name (filename dirname)
