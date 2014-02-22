@@ -112,7 +112,7 @@ described below.
 argument that specifies where the standard output from the program will
 go.  It should be a buffer or a buffer name; if it is a buffer name,
 that will create the buffer if it does not already exist.  It can also
-be @code{nil}, which says to discard the output unless a custom filter function
+be @code{nil}, which says to discard the output, unless a custom filter function
 handles it.  (@xref{Filter Functions}, and @ref{Read and Print}.)
 Normally, you should avoid having multiple processes send output to the
 same buffer because their output would be intermixed randomly.
@@ -1189,7 +1189,7 @@ be sent to the process, but this is not built into Emacs Lisp.
 
   By default, process output is inserted in the associated buffer.
 (You can change this by defining a custom filter function,
-@pxref{Filter Functions}).  The position to insert the output is
+@pxref{Filter Functions}.)  The position to insert the output is
 determined by the @code{process-mark}, which is then updated to point
 to the end of the text just inserted.  Usually, but not always, the
 @code{process-mark} is at the end of the buffer.
@@ -1453,7 +1453,6 @@ code conversion and the end of line conversion---that is, one like
 @c set-process-filter-multibyte and process-filter-multibyte-p,
 @cindex filter multibyte flag, of process
 @cindex process filter multibyte flag
-@c FIXME there is always a filter function now
   When Emacs calls a process filter function, it provides the process
 output as a multibyte string or as a unibyte string according to the
 process's filter coding system.  Emacs

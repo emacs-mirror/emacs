@@ -5188,7 +5188,8 @@ read_and_dispose_of_process_output (struct Lisp_Process *p, char *chars,
 DEFUN ("internal-default-process-filter", Finternal_default_process_filter,
        Sinternal_default_process_filter, 2, 2, 0,
        doc: /* Function used as default process filter.
-This inserts the process's output into its buffer.  */)
+This inserts the process's output into its buffer, if there is one.
+Otherwise it discards the output.  */)
   (Lisp_Object proc, Lisp_Object text)
 {
   struct Lisp_Process *p;
@@ -6413,7 +6414,7 @@ status_notify (struct Lisp_Process *deleting_process)
 DEFUN ("internal-default-process-sentinel", Finternal_default_process_sentinel,
        Sinternal_default_process_sentinel, 2, 2, 0,
        doc: /* Function used as default sentinel for processes.
-This inserts a status message into the process's buffer.  */)
+This inserts a status message into the process's buffer, if there is one.  */)
      (Lisp_Object proc, Lisp_Object msg)
 {
   Lisp_Object buffer, symbol;

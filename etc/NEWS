@@ -1093,6 +1093,7 @@ errors.  You should either convert them to utf-8 or add an explicit
 It used to disable the minor mode, major mode, and text-property keymaps,
 whereas now it simply has higher precedence.
 
++++
 ** Default process filters and sentinels are not nil any more.
 Instead they default to a function that does what the nil value used to do.
 

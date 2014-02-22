@@ -1,3 +1,8 @@
+2014-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* process.c (Finternal_default_process_filter)
+	(Finternal_default_process_sentinel): Doc tweaks.
+
 2014-02-21  Glenn Morris  <rgm@gnu.org>
 
 	* process.c (Fprocess_buffer, Faccept_process_output)
