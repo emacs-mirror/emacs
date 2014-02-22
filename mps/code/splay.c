@@ -243,22 +243,23 @@ static void SplayAssemble(SplayTree tree, Tree top,
  * See <design/splay/#impl.splay>.
  */
 
-static Compare SplaySplay(SplayTree tree, TreeKey key, TreeCompare compare) {
+static Compare SplaySplay(SplayTree tree, TreeKey key, TreeCompare compare)
+{
   /* The sides structure avoids a boundary case in SplayLink* */
   TreeStruct sides; /* rightTop and leftTop */
-  Tree top, leftLast, rightFirst;
+  Tree node, leftLast, rightFirst;
   Compare cmp;
 
   AVERT(SplayTree, tree);
   AVER(FUNCHECK(compare));
 
-  top = SplayTreeRoot(tree); /* will be copied back at end */
+  node = SplayTreeRoot(tree); /* will be copied back at end */
 
-  if (top == TreeEMPTY)
+  if (node == TreeEMPTY)
     return CompareEQUAL;
 
   /* short-circuit case where node is already top */
-  cmp = compare(top, key);
+  cmp = compare(node, key);
   if (cmp == CompareEQUAL)
     return CompareEQUAL;
 
@@ -266,107 +267,99 @@ static Compare SplaySplay(SplayTree tree, TreeKey key, TreeCompare compare) {
   leftLast = &sides;
   rightFirst = &sides;
 
-  while(TRUE) {
-    /* compareTop is already initialised above. */
+  for (;;) {
+    Tree child;
+
+    /* cmp is already initialised above. */
     switch(cmp) {
 
-    case CompareLESS: {
-      Tree topLeft = TreeLeft(top);
-      if (topLeft == TreeEMPTY) {
+    case CompareLESS:
+      child = TreeLeft(node);
+      if (child == TreeEMPTY)
         goto assemble;
-      } else {
-        cmp = compare(topLeft, key);
 
-        switch(cmp) {
+      cmp = compare(child, key);
 
-        case CompareEQUAL: {                 /* zig */
-          SplayLinkRight(&top, &rightFirst);
+      switch(cmp) {
+      default:
+        NOTREACHED;
+        /* defensive fall-through */
+
+      case CompareEQUAL:                   /* zig */
+        SplayLinkRight(&node, &rightFirst);
+        goto assemble;
+
+      case CompareLESS:                    /* zig-zig */
+        if (TreeLeft(child) == TreeEMPTY) {
+          SplayLinkRight(&node, &rightFirst);
           goto assemble;
-        } /* break; */
-
-        case CompareLESS: {                  /* zig-zig */
-          if (TreeLeft(topLeft) == TreeEMPTY)
-            goto terminalZig;
-          TreeRotateRight(&top);
-          tree->updateNode(tree, TreeRight(top));
-          SplayLinkRight(&top, &rightFirst);
-        } break;
-
-        case CompareGREATER: {               /* zig-zag */
-          if (TreeRight(topLeft) == TreeEMPTY)
-            goto terminalZig;
-          SplayLinkRight(&top, &rightFirst);
-          SplayLinkLeft(&top, &leftLast);
-        } break;
-
-        default: {
-          NOTREACHED;
-        } break;
         }
-      }
-    } break;
+        TreeRotateRight(&node);
+        tree->updateNode(tree, TreeRight(node));
+        SplayLinkRight(&node, &rightFirst);
+        break;
 
-    case CompareGREATER: {
-      Tree topRight = TreeRight(top);
-      if (topRight == TreeEMPTY) {
+      case CompareGREATER:                 /* zig-zag */
+        SplayLinkRight(&node, &rightFirst);
+        if (TreeRight(child) == TreeEMPTY)
+          goto assemble;
+        SplayLinkLeft(&node, &leftLast);
+        break;
+      }
+      break;
+
+    case CompareGREATER:
+      child = TreeRight(node);
+      if (child == TreeEMPTY)
         goto assemble;
-      } else {
-        cmp = compare(topRight, key);
 
-        switch(cmp) {
+      cmp = compare(child, key);
 
-        case CompareEQUAL: {                 /* zag */
-            SplayLinkLeft(&top, &leftLast);
-            goto assemble;
-        } /* break; */
+      switch(cmp) {
+      default:
+        NOTREACHED;
+        /* defensive fall-through */
 
-        case CompareGREATER: {               /* zag-zag */
-          if (TreeRight(topRight) == TreeEMPTY)
-            goto terminalZag;
-          TreeRotateLeft(&top);
-          tree->updateNode(tree, TreeLeft(top));
-          SplayLinkLeft(&top, &leftLast);
-        } break;
+      case CompareEQUAL:                   /* zag */
+        SplayLinkLeft(&node, &leftLast);
+        goto assemble;
 
-        case CompareLESS: {                  /* zag-zig */
-          if (TreeLeft(topRight) == TreeEMPTY)
-            goto terminalZag;
-          SplayLinkLeft(&top, &leftLast);
-          SplayLinkRight(&top, &rightFirst);
-        } break;
-
-        default: {
-          NOTREACHED;
-        } break;
+      case CompareGREATER:                 /* zag-zag */
+        if (TreeRight(child) == TreeEMPTY) {
+          SplayLinkLeft(&node, &leftLast);
+          goto assemble;
         }
+        TreeRotateLeft(&node);
+        tree->updateNode(tree, TreeLeft(node));
+        SplayLinkLeft(&node, &leftLast);
+        break;
+
+      case CompareLESS:                    /* zag-zig */
+        SplayLinkLeft(&node, &leftLast);
+        if (TreeLeft(child) == TreeEMPTY)
+          goto assemble;
+        SplayLinkRight(&node, &rightFirst);
+        break;
       }
-    } break;
+      break;
 
-    case CompareEQUAL: {
-      goto assemble;
-    } /* break; */
-
-    default: {
+    default:
       NOTREACHED;
-    } break;
+      /* defensive fall-through */
+
+    case CompareEQUAL:
+      goto assemble;
     }
-    cmp = compare(top, key);
-  } /* end while(TRUE) */
 
-terminalZig:
-  SplayLinkRight(&top, &rightFirst);
-  goto assemble;
-
-terminalZag:
-  SplayLinkLeft(&top, &leftLast);
-  goto assemble;
+    cmp = compare(node, key);
+  }
 
 assemble:
-  SplayAssemble(tree, top,
+  SplayAssemble(tree, node,
                 TreeRight(&sides), leftLast,
                 TreeLeft(&sides), rightFirst);
 
-  SplayTreeSetRoot(tree, top);
+  SplayTreeSetRoot(tree, node);
   return cmp;
 }
 
