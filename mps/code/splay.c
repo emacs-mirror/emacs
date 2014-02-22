@@ -33,6 +33,7 @@ Bool SplayTreeCheck(SplayTree tree)
   UNUSED(tree);
   CHECKL(tree != NULL);
   CHECKL(FUNCHECK(tree->compare));
+  CHECKL(FUNCHECK(tree->nodeKey));
   CHECKL(FUNCHECK(tree->updateNode));
   return TRUE;
 }
@@ -40,13 +41,16 @@ Bool SplayTreeCheck(SplayTree tree)
 
 void SplayTreeInit(SplayTree tree,
                    TreeCompare compare,
+                   TreeKeyMethod nodeKey,
                    SplayUpdateNodeMethod updateNode)
 {
   AVER(tree != NULL);
   AVER(FUNCHECK(compare));
+  AVER(FUNCHECK(nodeKey));
   AVER(FUNCHECK(updateNode));
 
   tree->compare = compare;
+  tree->nodeKey = nodeKey;
   tree->updateNode = updateNode;
   SplayTreeSetRoot(tree, TreeEMPTY);
 
@@ -365,7 +369,7 @@ assemble:
  * <design/splay/#impl.insert>.
  */
 
-Bool SplayTreeInsert(SplayTree tree, Tree node, TreeKey key) {
+Bool SplayTreeInsert(SplayTree tree, Tree node) {
   AVERT(SplayTree, tree);
   AVERT(Tree, node);
   AVER(TreeLeft(node) == TreeEMPTY);
@@ -375,7 +379,7 @@ Bool SplayTreeInsert(SplayTree tree, Tree node, TreeKey key) {
     SplayTreeSetRoot(tree, node);
   } else {
     Tree neighbour;
-    switch (SplaySplay(tree, key, tree->compare)) {
+    switch (SplaySplay(tree, tree->nodeKey(node), tree->compare)) {
     default:
       NOTREACHED;
       /* defensive fall-through */
@@ -413,14 +417,14 @@ Bool SplayTreeInsert(SplayTree tree, Tree node, TreeKey key) {
  * <design/splay/#impl.delete>.
  */
 
-Bool SplayTreeDelete(SplayTree tree, Tree node, TreeKey key) {
+Bool SplayTreeDelete(SplayTree tree, Tree node) {
   Tree leftLast;
   Compare cmp;
 
   AVERT(SplayTree, tree);
   AVERT(Tree, node);
 
-  cmp = SplaySplay(tree, key, tree->compare);
+  cmp = SplaySplay(tree, tree->nodeKey(node), tree->compare);
   AVER(cmp != CompareEQUAL || SplayTreeRoot(tree) == node);
 
   if (cmp != CompareEQUAL) {
@@ -860,14 +864,14 @@ Bool SplayRoot(Tree *nodeReturn, SplayTree tree)
  * updating the single node.  This may change.
  */
 
-void SplayNodeRefresh(SplayTree tree, Tree node, TreeKey key)
+void SplayNodeRefresh(SplayTree tree, Tree node)
 {
   Compare cmp;
 
   AVERT(SplayTree, tree);
   AVERT(Tree, node);
 
-  cmp = SplaySplay(tree, key, tree->compare);
+  cmp = SplaySplay(tree, tree->nodeKey(node), tree->compare);
   AVER(cmp == CompareEQUAL);
   AVER(SplayTreeRoot(tree) == node);
 

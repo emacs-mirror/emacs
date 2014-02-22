@@ -60,6 +60,11 @@ static Compare TagCompare(Tree node, TreeKey key)
     return CompareEQUAL;
 }
 
+static TreeKey TagKey(Tree node)
+{
+  return &TagOfTree(node)->addr;
+}
+
 
 /* PoolDebugMixinCheck -- check a PoolDebugMixin */
 
@@ -195,7 +200,7 @@ static Res DebugPoolInit(Pool pool, ArgList args)
     if (res != ResOK)
       goto tagFail;
     debug->missingTags = 0;
-    SplayTreeInit(&debug->index, TagCompare, SplayTrivUpdate);
+    SplayTreeInit(&debug->index, TagCompare, TagKey, SplayTrivUpdate);
   }
 
   debug->sig = PoolDebugMixinSig;
@@ -448,7 +453,7 @@ static Res tagAlloc(PoolDebugMixin debug,
   tag->addr = new; tag->size = size;
   TreeInit(TagTree(tag));
   /* In the future, we might call debug->tagInit here. */
-  b = SplayTreeInsert(&debug->index, TagTree(tag), &new);
+  b = SplayTreeInsert(&debug->index, TagTree(tag));
   AVER(b);
   return ResOK;
 }
@@ -473,7 +478,8 @@ static void tagFree(PoolDebugMixin debug, Pool pool, Addr old, Size size)
   }
   tag = TagOfTree(node);
   AVER(tag->size == size);
-  b = SplayTreeDelete(&debug->index, node, &old);
+  AVER(tag->addr == old);
+  b = SplayTreeDelete(&debug->index, node);
   AVER(b); /* expect tag to be in the tree */
   TreeFinish(node);
   PoolFree(debug->tagPool, (Addr)tag, debug->tagSize);
