@@ -663,7 +663,7 @@ descended, whilst looking for the node.
 
 _`.impl.splay`: The key to the operation of the splay tree is the
 internal function ``SplaySplay()``. It searches the tree for a node
-with a given key and returns whether it suceeded. In the process, it
+with a given key. In the process, it
 brings the found node, or an arbitrary neighbour if not found, to the
 root of the tree. This "bring-to-root" operation is performed top-down
 during the search, and it is not the simplest possible bring-to-root
