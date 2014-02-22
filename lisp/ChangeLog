@@ -1,5 +1,7 @@
 2014-02-22  Glenn Morris  <rgm@gnu.org>
 
+	* imenu.el (imenu--generic-function): Doc fix.
+
 	* register.el (frame-configuration-to-register): Make obsolete.
 
 2014-02-22  Juanma Barranquero  <lekktu@gmail.com>

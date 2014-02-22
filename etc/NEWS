@@ -704,6 +704,7 @@ the symbol found near point.
 *** New option `hi-lock-auto-select-face'.  When non-nil, hi-lock commands
 will cycle through faces in `hi-lock-face-defaults' without prompting.
 
+---
 ** New Imenu option `imenu-generic-skip-comments-and-strings'.
 
 ** Info
