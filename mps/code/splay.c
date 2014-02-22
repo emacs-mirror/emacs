@@ -141,6 +141,38 @@ static void SplayLinkLeft(Tree *topIO, Tree *leftIO) {
 }
 
 
+/* SplayUpdateLeftSpine -- undo pointer reversal, updating client property */
+
+static Tree SplayUpdateLeftSpine(SplayTree tree, Tree node, Tree top)
+{
+  Tree child = TreeRight(top);
+  while(node != TreeEMPTY) {
+    Tree parent = TreeLeft(node);
+    TreeSetLeft(node, child); /* un-reverse pointer */
+    tree->updateNode(tree, node);
+    child = node;
+    node = parent;
+  }
+  return child;
+}
+
+
+/* SplayUpdateRightSpine -- undo pointer reversal, updating client property */
+
+static Tree SplayUpdateRightSpine(SplayTree tree, Tree node, Tree top)
+{
+  Tree child = TreeLeft(top);
+  while (node != TreeEMPTY) {
+    Tree parent = TreeRight(node);
+    TreeSetRight(node, child); /* un-reverse pointer */
+    tree->updateNode(tree, node);
+    child = node;
+    node = parent;
+  }
+  return child;
+}
+
+
 /* SplayAssemble -- Assemble left right and top trees into one
  *
  * We do this by moving the children of the top tree to the last and
@@ -164,41 +196,19 @@ static void SplayAssemble(SplayTree tree, Tree top,
 
   if (tree->updateNode != SplayTrivUpdate) {
     /* Update client property using pointer reversal (Ugh!). */
-    Tree node, child;
-
-    node = TreeReverseRightSpine(leftTop);
-    
-    /* Now restore the pointers, updating the client property. */
-    child = TreeLeft(top);
-    while (node != TreeEMPTY) {
-      Tree parent = TreeRight(node);
-      TreeSetRight(node, child); /* un-reverse pointer */
-      tree->updateNode(tree, node);
-      child = node;
-      node = parent;
-    }
-    AVER(child == (leftTop != TreeEMPTY ? leftTop : TreeLeft(top)));
-    TreeSetLeft(top, child);
+    Tree leftLast = TreeReverseRightSpine(leftTop);
+    Tree newLeft = SplayUpdateRightSpine(tree, leftLast, top);
+    AVER(newLeft == (leftTop != TreeEMPTY ? leftTop : TreeLeft(top)));
+    TreeSetLeft(top, newLeft);
   } else
     TreeSetLeft(top, leftTop);
 
   if (tree->updateNode != SplayTrivUpdate) {
     /* Update client property using pointer reversal (Ugh!). */
-    Tree node, child;
-    
-    node = TreeReverseLeftSpine(rightTop);
-
-    /* Now restore the pointers, updating the client property. */
-    child = TreeRight(top);
-    while(node != TreeEMPTY) {
-      Tree parent = TreeLeft(node);
-      TreeSetLeft(node, child); /* un-reverse pointer */
-      tree->updateNode(tree, node);
-      child = node;
-      node = parent;
-    }
-    AVER(child == (rightTop != TreeEMPTY ? rightTop : TreeRight(top)));
-    TreeSetRight(top, child);
+    Tree rightFirst = TreeReverseLeftSpine(rightTop);
+    Tree newRight = SplayUpdateLeftSpine(tree, rightFirst, top);
+    AVER(newRight == (rightTop != TreeEMPTY ? rightTop : TreeRight(top)));
+    TreeSetRight(top, newRight);
   } else
     TreeSetRight(top, rightTop);
 
