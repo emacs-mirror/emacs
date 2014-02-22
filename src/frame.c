@@ -4597,8 +4597,7 @@ is a reasonable practice.  See also the variable `x-resource-name'.  */);
   DEFVAR_LISP ("frame-alpha-lower-limit", Vframe_alpha_lower_limit,
     doc: /* The lower limit of the frame opacity (alpha transparency).
 The value should range from 0 (invisible) to 100 (completely opaque).
-You can also use a floating number between 0.0 and 1.0.
-The default is 20.  */);
+You can also use a floating number between 0.0 and 1.0.  */);
   Vframe_alpha_lower_limit = make_number (20);
 #endif
 
@@ -4736,8 +4735,8 @@ is non-nil, no rounding occurs, hence frame sizes can increase/decrease
 by one pixel.
 
 With some window managers you have to set this to non-nil in order to
-fully maximize frames.  The default of this option is nil.  To resize
-your initial frame pixelwise, set this option in your init file.  */);
+fully maximize frames.  To resize your initial frame pixelwise,
+set this option to a non-nil value in your init file.  */);
   frame_resize_pixelwise = 0;
 
   staticpro (&Vframe_list);

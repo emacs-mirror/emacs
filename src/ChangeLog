@@ -1,5 +1,8 @@
 2014-02-22  Glenn Morris  <rgm@gnu.org>
 
+	* frame.c (frame-alpha-lower-limit, frame-resize-pixelwise):
+	* window.c (window-resize-pixelwise): Doc fixes.
+
 	* process.c (Finternal_default_process_filter)
 	(Finternal_default_process_sentinel): Doc tweaks.
 

@@ -7309,11 +7309,10 @@ respectively are not installed by `window-state-put'.  */);
   Vwindow_persistent_parameters = list1 (Fcons (Qclone_of, Qt));
 
   DEFVAR_BOOL ("window-resize-pixelwise", window_resize_pixelwise,
-	       doc: /*  Non-nil means resizing windows works pixelwise.
-Functions currently affected by this option are `split-window',
-`maximize-window', `minimize-window', `fit-window-to-buffer' and
-`fit-frame-to-buffer' and all functions symmetrically resizing a
-parent window.
+	       doc: /*  Non-nil means resize windows pixelwise.
+This currently affects the functions: `split-window', `maximize-window',
+`minimize-window', `fit-window-to-buffer' and `fit-frame-to-buffer', and
+all functions that symmetrically resize a parent window.
 
 Note that when a frame's pixel size is not a multiple of the
 frame's character size, at least one window may get resized
