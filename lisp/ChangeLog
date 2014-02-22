@@ -1,3 +1,9 @@
+2014-02-22  Daniel Colascione  <dancol@dancol.org>
+
+	* net/secrets.el (secrets-create-item,secrets-search-items): Check
+	that attribute values are strings, avoiding the construction of
+	invalid dbus messages.
+
 2014-02-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/gv.el: Avoid duplicating gv-expander and gv-setter in

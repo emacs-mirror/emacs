@@ -609,6 +609,8 @@ The object paths of the found items are returned as list."
       (while (consp (cdr attributes))
 	(unless (keywordp (car attributes))
 	  (error 'wrong-type-argument (car attributes)))
+        (unless (stringp (cadr attributes))
+          (error 'wrong-type-argument (cadr attributes)))
 	(setq props (add-to-list
 		     'props
 		     (list :dict-entry
@@ -647,6 +649,8 @@ The object path of the created item is returned."
 	(while (consp (cdr attributes))
 	  (unless (keywordp (car attributes))
 	    (error 'wrong-type-argument (car attributes)))
+          (unless (stringp (cadr attributes))
+            (error 'wrong-type-argument (cadr attributes)))
 	  (setq props (add-to-list
 		       'props
 		       (list :dict-entry
