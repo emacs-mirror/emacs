@@ -20,6 +20,9 @@
 SRCID(splay, "$Id$");
 
 
+/* #define SPLAY_DEBUG */
+
+
 /* Basic getter and setter methods */
 
 #define SplayTreeRoot(t) RVALUE((t)->root)
@@ -248,6 +251,9 @@ static Compare SplaySplay(SplayTree tree, TreeKey key, TreeCompare compare)
   TreeStruct sides; /* rightTop and leftTop */
   Tree node, leftLast, rightFirst;
   Compare cmp;
+#ifdef SPLAY_DEBUG
+  Count count = TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey);
+#endif
 
   AVERT(SplayTree, tree);
   AVER(FUNCHECK(compare));
@@ -359,6 +365,11 @@ assemble:
                 TreeLeft(&sides), rightFirst);
 
   SplayTreeSetRoot(tree, node);
+
+#ifdef SPLAY_DEBUG
+  AVER(count == TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey));
+#endif
+
   return cmp;
 }
 

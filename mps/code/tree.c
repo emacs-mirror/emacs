@@ -29,6 +29,34 @@ Bool TreeCheckLeaf(Tree tree)
 }
 
 
+/* TreeDebugCount -- count and check order of tree
+ *
+ * This function may be called from a debugger or temporarily inserted
+ * during development to check a tree's integrity.  It may not be called
+ * from the production MPS because it uses indefinite stack depth.
+ */
+
+static Count TreeDebugCountBetween(Tree node,
+                                   TreeCompare compare, TreeKeyMethod key,
+                                   TreeKey min, TreeKey max)
+{
+  if (node == TreeEMPTY)
+    return 0;
+  AVERT(Tree, node);
+  AVER(min == NULL || compare(node, min) != CompareGREATER);
+  AVER(max == NULL || compare(node, max) != CompareLESS);
+  return TreeDebugCountBetween(TreeLeft(node), compare, key, min, key(node)) +
+         1 +
+         TreeDebugCountBetween(TreeRight(node), compare, key, key(node), max);
+}
+
+Count TreeDebugCount(Tree tree, TreeCompare compare, TreeKeyMethod key)
+{
+  AVERT(Tree, tree);
+  return TreeDebugCountBetween(tree, compare, key, NULL, NULL);
+}
+
+
 /* TreeFind -- search for a node matching the key
  *
  * If a matching node is found, sets *treeReturn to that node and returns
