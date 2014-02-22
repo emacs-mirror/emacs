@@ -44,7 +44,7 @@ static void TagTrivInit(void* tag, va_list args)
 
 /* TagComp -- splay comparison function for address ordering of tags */
 
-static Compare TagComp(void *key, Tree node)
+static Compare TagCompare(Tree node, void *key)
 {
   Addr addr1, addr2;
 
@@ -195,7 +195,7 @@ static Res DebugPoolInit(Pool pool, ArgList args)
     if (res != ResOK)
       goto tagFail;
     debug->missingTags = 0;
-    SplayTreeInit(&debug->index, TagComp, SplayTrivUpdate);
+    SplayTreeInit(&debug->index, TagCompare, SplayTrivUpdate);
   }
 
   debug->sig = PoolDebugMixinSig;

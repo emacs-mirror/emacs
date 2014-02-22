@@ -15,7 +15,6 @@
 
 typedef struct SplayTreeStruct *SplayTree;
 
-typedef Compare (*SplayCompareMethod)(void *key, Tree node);
 typedef Bool (*SplayTestNodeMethod)(SplayTree tree, Tree node,
                                     void *closureP, Size closureS);
 typedef Bool (*SplayTestTreeMethod)(SplayTree tree, Tree node,
@@ -26,14 +25,15 @@ typedef void (*SplayUpdateNodeMethod)(SplayTree tree, Tree node);
 extern void SplayTrivUpdate(SplayTree tree, Tree node);
 
 typedef struct SplayTreeStruct {
-  SplayCompareMethod compare;
+  TreeCompare compare;
   SplayUpdateNodeMethod updateNode;
   Tree root;
 } SplayTreeStruct;
 
 
 extern Bool SplayTreeCheck(SplayTree tree);
-extern void SplayTreeInit(SplayTree tree, SplayCompareMethod compare,
+extern void SplayTreeInit(SplayTree tree,
+                          TreeCompare compare,
                           SplayUpdateNodeMethod updateNode);
 extern void SplayTreeFinish(SplayTree tree);
 

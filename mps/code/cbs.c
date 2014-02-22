@@ -104,7 +104,7 @@ static Bool CBSBlockCheck(CBSBlock block)
  * See <design/splay/#type.splay.compare.method>
  */
 
-static Compare cbsCompare(void *key, Tree node)
+static Compare cbsCompare(Tree node, void *key)
 {
   Addr base1, base2, limit2;
   CBSBlock cbsBlock;
@@ -213,7 +213,8 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
   if (ArgPick(&arg, args, MPS_KEY_CBS_EXTEND_BY))
     extendBy = arg.val.size;
 
-  SplayTreeInit(treeOfCBS(cbs), &cbsCompare,
+  SplayTreeInit(treeOfCBS(cbs),
+                cbsCompare,
                 fastFind ? cbsUpdateNode : SplayTrivUpdate);
   MPS_ARGS_BEGIN(pcArgs) {
     MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
