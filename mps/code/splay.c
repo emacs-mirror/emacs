@@ -33,7 +33,7 @@ Bool SplayTreeCheck(SplayTree tree)
   UNUSED(tree);
   CHECKL(tree != NULL);
   CHECKL(FUNCHECK(tree->compare));
-  CHECKL(tree->updateNode == NULL || FUNCHECK(tree->updateNode));
+  CHECKL(FUNCHECK(tree->updateNode));
   return TRUE;
 }
 
@@ -48,7 +48,7 @@ void SplayTreeInit(SplayTree tree,
 
   tree->compare = compare;
   tree->updateNode = updateNode;
-  SplayTreeSetRoot(tree, NULL);
+  SplayTreeSetRoot(tree, TreeEMPTY);
 
   AVERT(SplayTree, tree);
 }
@@ -57,8 +57,9 @@ void SplayTreeInit(SplayTree tree,
 void SplayTreeFinish(SplayTree tree)
 {
   AVERT(SplayTree, tree);
-  SplayTreeSetRoot(tree, NULL);
+  SplayTreeSetRoot(tree, TreeEMPTY);
   tree->compare = NULL;
+  tree->updateNode = NULL;
 }
 
 
@@ -93,7 +94,7 @@ static void SplayLinkRight(Tree *topIO, Tree *rightIO)
   *topIO = TreeLeft(*topIO);
 
   /* The following line is only required for .link.right.first. */
-  TreeSetLeft(*rightIO, NULL);
+  TreeSetLeft(*rightIO, TreeEMPTY);
 }
 
 
@@ -120,7 +121,7 @@ static void SplayLinkLeft(Tree *topIO, Tree *leftIO) {
   *topIO = TreeRight(*topIO);
 
   /* The following line is only required for .link.left.first. */
-  TreeSetRight(*leftIO, NULL);
+  TreeSetRight(*leftIO, TreeEMPTY);
 }
 
 
@@ -214,7 +215,7 @@ static void SplayAssemble(SplayTree tree, Tree top,
       /* Reverse the pointers between leftTop and leftLast */
       /* leftLast is not reversed. */
       node = leftTop;
-      parent = NULL;
+      parent = TreeEMPTY;
       while(node != leftLast) {
         rightChild = TreeRight(node);
         TreeSetRight(node, parent); /* pointer reversal */
@@ -223,7 +224,7 @@ static void SplayAssemble(SplayTree tree, Tree top,
        }
 
       /* Now restore the pointers, updating the client property. */
-      /* node is leftLast, parent is the last parent (or NULL). */
+      /* node is leftLast, parent is the last parent (or TreeEMPTY). */
       tree->updateNode(tree, node);
       while(node != leftTop) {
         rightChild = node;
@@ -247,7 +248,7 @@ static void SplayAssemble(SplayTree tree, Tree top,
       /* Reverse the pointers between rightTop and rightFirst */
       /* ightFirst is not reversed. */
       node = rightTop;
-      parent = NULL;
+      parent = TreeEMPTY;
       while(node != rightFirst) {
         leftChild = TreeLeft(node);
         TreeSetLeft(node, parent); /* pointer reversal */
@@ -256,7 +257,7 @@ static void SplayAssemble(SplayTree tree, Tree top,
        }
 
       /* Now restore the pointers, updating the client property. */
-      /* node is rightFirst, parent is the last parent (or NULL). */
+      /* node is rightFirst, parent is the last parent (or TreeEMPTY). */
       tree->updateNode(tree, node);
       while(node != rightTop) {
         leftChild = node;
@@ -297,7 +298,7 @@ static Bool SplaySplay(Tree *nodeReturn, SplayTree tree,
   top = SplayTreeRoot(tree); /* will be copied back at end */
 
   if (top == TreeEMPTY) {
-    *nodeReturn = NULL;
+    *nodeReturn = TreeEMPTY;
     return FALSE;
   }
 
@@ -450,14 +451,14 @@ Res SplayTreeInsert(SplayTree tree, Tree node, TreeKey key) {
       SplayTreeSetRoot(tree, node);
       TreeSetRight(node, TreeRight(neighbour));
       TreeSetLeft(node, neighbour);
-      TreeSetRight(neighbour, NULL);
+      TreeSetRight(neighbour, TreeEMPTY);
     } break;
 
     case CompareLESS: { /* right neighbour */
       SplayTreeSetRoot(tree, node);
       TreeSetLeft(node, TreeLeft(neighbour));
       TreeSetRight(node, neighbour);
-      TreeSetLeft(neighbour, NULL);
+      TreeSetLeft(neighbour, TreeEMPTY);
     } break;
 
     case CompareEQUAL:
@@ -543,7 +544,7 @@ Res SplayTreeSearch(Tree *nodeReturn, SplayTree tree, TreeKey key) {
 /* SplayTreePredecessor -- Splays a tree at the root's predecessor
  *
  * Must not be called on en empty tree.  Predecessor need not exist,
- * in which case NULL is returned, and the tree is unchanged.
+ * in which case TreeEMPTY is returned, and the tree is unchanged.
  */
 
 static Tree SplayTreePredecessor(SplayTree tree, TreeKey key) {
@@ -555,11 +556,11 @@ static Tree SplayTreePredecessor(SplayTree tree, TreeKey key) {
   AVERT(Tree, oldRoot);
 
   if (TreeLeft(oldRoot) == TreeEMPTY) {
-    newRoot = NULL; /* No predecessor */
+    newRoot = TreeEMPTY; /* No predecessor */
   } else {
     /* temporarily chop off the right half-tree, inclusive of root */
     SplayTreeSetRoot(tree, TreeLeft(oldRoot));
-    TreeSetLeft(oldRoot, NULL);
+    TreeSetLeft(oldRoot, TreeEMPTY);
     if (SplaySplay(&newRoot, tree, key, tree->compare)) {
       NOTREACHED; /* Another matching node found */
     } else {
@@ -578,7 +579,7 @@ static Tree SplayTreePredecessor(SplayTree tree, TreeKey key) {
 /* SplayTreeSuccessor -- Splays a tree at the root's successor
  *
  * Must not be called on en empty tree.  Successor need not exist,
- * in which case NULL is returned, and the tree is unchanged.
+ * in which case TreeEMPTY is returned, and the tree is unchanged.
  */
 
 static Tree SplayTreeSuccessor(SplayTree tree, TreeKey key) {
@@ -590,11 +591,11 @@ static Tree SplayTreeSuccessor(SplayTree tree, TreeKey key) {
   AVERT(Tree, oldRoot);
 
   if (TreeRight(oldRoot) == TreeEMPTY) {
-    newRoot = NULL; /* No successor */
+    newRoot = TreeEMPTY; /* No successor */
   } else {
     /* temporarily chop off the left half-tree, inclusive of root */
     SplayTreeSetRoot(tree, TreeRight(oldRoot));
-    TreeSetRight(oldRoot, NULL);
+    TreeSetRight(oldRoot, TreeEMPTY);
     if (SplaySplay(&newRoot, tree, key, tree->compare)) {
       NOTREACHED; /* Another matching node found */
     } else {
@@ -630,7 +631,7 @@ Res SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
   if (SplaySplay(&neighbour, tree, key, tree->compare)) {
     return ResFAIL;
   } else if (neighbour == TreeEMPTY) {
-    *leftReturn = *rightReturn = NULL;
+    *leftReturn = *rightReturn = TreeEMPTY;
   } else {
     switch(SplayCompare(tree, key, neighbour)) {
 
@@ -657,12 +658,12 @@ Res SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
 /* SplayTreeFirst, SplayTreeNext -- Iterators
  *
  * SplayTreeFirst receives a key that must precede all
- * nodes in the tree.  It returns NULL if the tree is empty.
+ * nodes in the tree.  It returns TreeEMPTY if the tree is empty.
  * Otherwise, it splays the tree to the first node, and returns the
  * new root.  See <design/splay/#function.splay.tree.first>.
  *
  * SplayTreeNext takes a tree and splays it to the successor of the
- * old root, and returns the new root.  Returns NULL is there are
+ * old root, and returns the new root.  Returns TreeEMPTY is there are
  * no successors.  It takes a key for the old root.  See
  * <design/splay/#function.splay.tree.next>.
  */
@@ -672,7 +673,7 @@ Tree SplayTreeFirst(SplayTree tree, TreeKey zeroKey) {
   AVERT(SplayTree, tree);
 
   if (SplayTreeRoot(tree) == TreeEMPTY) {
-    node = NULL;
+    node = TreeEMPTY;
   } else if (SplaySplay(&node, tree, zeroKey, tree->compare)) {
     NOTREACHED;
   } else {
