@@ -1,3 +1,7 @@
+2014-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* register.el (frame-configuration-to-register): Make obsolete.
+
 2014-02-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-save-buffer-p): Do not fail when

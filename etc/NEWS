@@ -382,6 +382,7 @@ that summarizes existing registers.  To disable this, set that option to nil.
 Interactive commands that read registers and want to make use of this
 should use `register-read-with-preview' to read register names.
 
++++
 *** New command `frameset-to-register' bound to `C-x r f', replacing
 `frame-configuration-to-register'.  It offers similar functionality,
 plus enhancements like the ability to restore deleted frames.
