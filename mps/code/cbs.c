@@ -38,7 +38,7 @@ typedef struct CBSBlockStruct {
 #define cbsBlockOfNode(_node) PARENT(CBSBlockStruct, node, (_node))
 #define treeOfCBS(cbs) (&((cbs)->tree))
 #define nodeOfCBSBlock(block) (&((block)->node))
-#define keyOfCBSBlock(block) ((void *)&((block)->base))
+#define keyOfCBSBlock(block) (&((block)->base))
 
 
 /* cbsEnter, cbsLeave -- Avoid re-entrance
@@ -104,7 +104,7 @@ static Bool CBSBlockCheck(CBSBlock block)
  * See <design/splay/#type.splay.compare.method>
  */
 
-static Compare cbsCompare(Tree node, void *key)
+static Compare cbsCompare(Tree node, TreeKey key)
 {
   Addr base1, base2, limit2;
   CBSBlock cbsBlock;
@@ -393,7 +393,7 @@ static Res cbsInsertIntoTree(Range rangeReturn, CBS cbs, Range range)
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
   res = SplayTreeNeighbours(&leftSplay, &rightSplay,
-                            treeOfCBS(cbs), (void *)&base);
+                            treeOfCBS(cbs), &base);
   if (res != ResOK)
     goto fail;
 

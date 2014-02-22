@@ -44,7 +44,7 @@ static void TagTrivInit(void* tag, va_list args)
 
 /* TagComp -- splay comparison function for address ordering of tags */
 
-static Compare TagCompare(Tree node, void *key)
+static Compare TagCompare(Tree node, TreeKey key)
 {
   Addr addr1, addr2;
 
@@ -447,7 +447,7 @@ static Res tagAlloc(PoolDebugMixin debug,
   tag->addr = new; tag->size = size;
   TreeInit(TagTree(tag));
   /* In the future, we might call debug->tagInit here. */
-  res = SplayTreeInsert(&debug->index, TagTree(tag), (void *)&new);
+  res = SplayTreeInsert(&debug->index, TagTree(tag), &new);
   AVER(res == ResOK);
   return ResOK;
 }
@@ -465,7 +465,7 @@ static void tagFree(PoolDebugMixin debug, Pool pool, Addr old, Size size)
   AVERT(Pool, pool);
   AVER(size > 0);
 
-  res = SplayTreeSearch(&node, &debug->index, (void *)&old);
+  res = SplayTreeSearch(&node, &debug->index, &old);
   if (res != ResOK) {
     AVER(debug->missingTags > 0);
     debug->missingTags--;
@@ -473,7 +473,7 @@ static void tagFree(PoolDebugMixin debug, Pool pool, Addr old, Size size)
   }
   tag = TagOfTree(node);
   AVER(tag->size == size);
-  res = SplayTreeDelete(&debug->index, node, (void *)&old);
+  res = SplayTreeDelete(&debug->index, node, &old);
   AVER(res == ResOK);
   TreeFinish(node);
   PoolFree(debug->tagPool, (Addr)tag, debug->tagSize);
@@ -569,12 +569,12 @@ static void TagWalk(Pool pool, ObjectsStepMethod step, void *p)
   AVER(debug != NULL);
   AVERT(PoolDebugMixin, debug);
 
-  node = SplayTreeFirst(&debug->index, (void *)&dummy);
+  node = SplayTreeFirst(&debug->index, &dummy);
   while (node != NULL) {
     Tag tag = TagOfTree(node);
 
     step(tag->addr, tag->size, NULL, pool, &tag->userdata, p);
-    node = SplayTreeNext(&debug->index, node, (void *)&tag->addr);
+    node = SplayTreeNext(&debug->index, node, &tag->addr);
   }
 }
 
