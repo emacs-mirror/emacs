@@ -1583,9 +1583,9 @@ made obsolete.
 @item (compiler-macro @var{expander})
 This can only be used for functions, and tells the compiler to use
 @var{expander} as an optimization function.  When encountering a call to the
-function, of the form @code{(@var{function} @var{args}@dots)}, the macro
+function, of the form @code{(@var{function} @var{args}@dots{})}, the macro
 expander will call @var{expander} with that form as well as with
-@var{args}@dots, and @var{expander} can either return a new expression to use
+@var{args}@dots{}, and @var{expander} can either return a new expression to use
 instead of the function call, or it can return just the form unchanged,
 to indicate that the function call should be left alone.  @var{expander} can
 be a symbol, or it can be a form @code{(lambda (@var{arg}) @var{body})} in
