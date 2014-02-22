@@ -46,9 +46,8 @@ extern Bool SplayTreeNeighbours(Tree *leftReturn,
                                 Tree *rightReturn,
                                 SplayTree tree, TreeKey key);
 
-extern Tree SplayTreeFirst(SplayTree tree, TreeKey zeroKey);
-extern Tree SplayTreeNext(SplayTree tree, Tree oldNode,
-                               TreeKey oldKey);
+extern Tree SplayTreeFirst(SplayTree tree);
+extern Tree SplayTreeNext(SplayTree tree, TreeKey oldKey);
 
 extern Bool SplayFindFirst(Tree *nodeReturn, SplayTree tree,
                            SplayTestNodeMethod testNode,
