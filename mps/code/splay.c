@@ -77,22 +77,6 @@ void SplayTrivUpdate(SplayTree tree, Tree node)
 }
 
 
-static Compare compareLess(Tree node, TreeKey key)
-{
-  UNUSED(node);
-  UNUSED(key);
-  return CompareLESS;
-}
-
-
-static Compare compareGreater(Tree node, TreeKey key)
-{
-  UNUSED(node);
-  UNUSED(key);
-  return CompareGREATER;
-}
-
-
 /* SplayLinkRight -- Move top to left child of top
  *
  * Link the current top node into the left child of the right tree,
@@ -374,6 +358,94 @@ assemble:
 }
 
 
+static void SplayLeft(SplayTree tree)
+{
+  /* The sides structure avoids a boundary case in SplayLink* */
+  TreeStruct sides; /* rightTop and leftTop */
+  Tree node, rightFirst;
+#ifdef SPLAY_DEBUG
+  Count count = TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey);
+#endif
+
+  AVERT(SplayTree, tree);
+
+  node = SplayTreeRoot(tree); /* will be copied back at end */
+
+  if (node == TreeEMPTY)
+    return;
+
+  TreeInit(&sides); /* left and right trees now TreeEMPTY */
+  rightFirst = &sides;
+
+  for (;;) {
+    Tree child = TreeLeft(node);
+    if (child == TreeEMPTY)
+      break;
+    if (TreeLeft(child) == TreeEMPTY) {
+      SplayLinkRight(&node, &rightFirst);
+      break;
+    }
+    TreeRotateRight(&node);
+    tree->updateNode(tree, TreeRight(node));
+    SplayLinkRight(&node, &rightFirst);
+  }
+
+  SplayAssemble(tree, node,
+                TreeEMPTY, TreeEMPTY,
+                TreeLeft(&sides), rightFirst);
+
+  SplayTreeSetRoot(tree, node);
+
+#ifdef SPLAY_DEBUG
+  AVER(count == TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey));
+#endif
+}
+
+
+static void SplayRight(SplayTree tree)
+{
+  /* The sides structure avoids a boundary case in SplayLink* */
+  TreeStruct sides; /* rightTop and leftTop */
+  Tree node, leftLast;
+#ifdef SPLAY_DEBUG
+  Count count = TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey);
+#endif
+
+  AVERT(SplayTree, tree);
+
+  node = SplayTreeRoot(tree); /* will be copied back at end */
+
+  if (node == TreeEMPTY)
+    return;
+
+  TreeInit(&sides); /* left and right trees now TreeEMPTY */
+  leftLast = &sides;
+
+  for (;;) {
+    Tree child = TreeRight(node);
+    if (child == TreeEMPTY)
+      break;
+    if (TreeRight(child) == TreeEMPTY) {
+      SplayLinkLeft(&node, &leftLast);
+      break;
+    }
+    TreeRotateLeft(&node);
+    tree->updateNode(tree, TreeLeft(node));
+    SplayLinkLeft(&node, &leftLast);
+  }
+
+  SplayAssemble(tree, node,
+                TreeRight(&sides), leftLast,
+                TreeEMPTY, TreeEMPTY);
+
+  SplayTreeSetRoot(tree, node);
+
+#ifdef SPLAY_DEBUG
+  AVER(count == TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey));
+#endif
+}
+
+
 /* SplayTreeInsert -- Insert a node into a splay tree
  *
  * See <design/splay/#function.splay.tree.insert> and
@@ -451,8 +523,7 @@ Bool SplayTreeDelete(SplayTree tree, Tree node) {
     TreeClearRight(node);
     SplayTreeSetRoot(tree, TreeLeft(node));
     TreeClearLeft(node);
-    cmp = SplaySplay(tree, NULL, compareGreater);
-    AVER(cmp == CompareGREATER);
+    SplayRight(tree);
     leftLast = SplayTreeRoot(tree);
     AVER(leftLast != TreeEMPTY);
     AVER(TreeRight(leftLast) == TreeEMPTY);
@@ -504,12 +575,10 @@ static Tree SplayTreePredecessor(SplayTree tree) {
   if (TreeLeft(oldRoot) == TreeEMPTY) {
     newRoot = TreeEMPTY; /* No predecessor */
   } else {
-    Compare cmp;
     /* temporarily chop off the right half-tree, inclusive of root */
     SplayTreeSetRoot(tree, TreeLeft(oldRoot));
     TreeSetLeft(oldRoot, TreeEMPTY);
-    cmp = SplaySplay(tree, NULL, compareGreater);
-    AVER(cmp == CompareGREATER);
+    SplayRight(tree);
     newRoot = SplayTreeRoot(tree);
     AVER(newRoot != TreeEMPTY);
     AVER(TreeRight(newRoot) == TreeEMPTY);
@@ -539,12 +608,10 @@ static Tree SplayTreeSuccessor(SplayTree tree) {
   if (TreeRight(oldRoot) == TreeEMPTY) {
     newRoot = TreeEMPTY; /* No successor */
   } else {
-    Compare cmp;
     /* temporarily chop off the left half-tree, inclusive of root */
     SplayTreeSetRoot(tree, TreeRight(oldRoot));
     TreeSetRight(oldRoot, TreeEMPTY);
-    cmp = SplaySplay(tree, NULL, compareLess);
-    AVER(cmp == CompareLESS);
+    SplayLeft(tree);
     newRoot = SplayTreeRoot(tree);
     AVER(newRoot != TreeEMPTY);
     AVER(TreeLeft(newRoot) == TreeEMPTY);
@@ -615,15 +682,13 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
 
 Tree SplayTreeFirst(SplayTree tree) {
   Tree node;
-  Compare cmp;
 
   AVERT(SplayTree, tree);
 
   if (SplayTreeRoot(tree) == TreeEMPTY)
     return TreeEMPTY;
   
-  cmp = SplaySplay(tree, NULL, compareLess);
-  AVER(cmp != CompareEQUAL);
+  SplayLeft(tree);
   node = SplayTreeRoot(tree);
   AVER(node != TreeEMPTY);
   AVER(TreeLeft(node) == TreeEMPTY);
