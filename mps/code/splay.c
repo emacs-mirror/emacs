@@ -283,7 +283,7 @@ static void SplayAssemble(SplayTree tree, Tree top,
  */
 
 static Bool SplaySplay(Tree *nodeReturn, SplayTree tree,
-                       void *key, TreeCompare compare) {
+                       TreeKey key, TreeCompare compare) {
   /* The sides structure avoids a boundary case in SplayLink* */
   TreeStruct sides; /* rightTop and leftTop */
   Tree top, leftLast, rightFirst;
@@ -430,7 +430,7 @@ assemble:
  * <design/splay/#impl.insert>.
  */
 
-Res SplayTreeInsert(SplayTree tree, Tree node, void *key) {
+Res SplayTreeInsert(SplayTree tree, Tree node, TreeKey key) {
   Tree neighbour;
 
   AVERT(SplayTree, tree);
@@ -480,7 +480,7 @@ Res SplayTreeInsert(SplayTree tree, Tree node, void *key) {
  * <design/splay/#impl.delete>.
  */
 
-Res SplayTreeDelete(SplayTree tree, Tree node, void *key) {
+Res SplayTreeDelete(SplayTree tree, Tree node, TreeKey key) {
   Tree rightHalf, del, leftLast;
   Bool found;
 
@@ -524,7 +524,7 @@ Res SplayTreeDelete(SplayTree tree, Tree node, void *key) {
  * <design/splay/#impl.search>.
  */
 
-Res SplayTreeSearch(Tree *nodeReturn, SplayTree tree, void *key) {
+Res SplayTreeSearch(Tree *nodeReturn, SplayTree tree, TreeKey key) {
   Tree node;
 
   AVERT(SplayTree, tree);
@@ -546,7 +546,7 @@ Res SplayTreeSearch(Tree *nodeReturn, SplayTree tree, void *key) {
  * in which case NULL is returned, and the tree is unchanged.
  */
 
-static Tree SplayTreePredecessor(SplayTree tree, void *key) {
+static Tree SplayTreePredecessor(SplayTree tree, TreeKey key) {
   Tree oldRoot, newRoot;
 
   AVERT(SplayTree, tree);
@@ -581,7 +581,7 @@ static Tree SplayTreePredecessor(SplayTree tree, void *key) {
  * in which case NULL is returned, and the tree is unchanged.
  */
 
-static Tree SplayTreeSuccessor(SplayTree tree, void *key) {
+static Tree SplayTreeSuccessor(SplayTree tree, TreeKey key) {
   Tree oldRoot, newRoot;
 
   AVERT(SplayTree, tree);
@@ -620,7 +620,7 @@ static Tree SplayTreeSuccessor(SplayTree tree, void *key) {
 
 
 Res SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
-                        SplayTree tree, void *key) {
+                        SplayTree tree, TreeKey key) {
   Tree neighbour;
 
   AVERT(SplayTree, tree);
@@ -667,7 +667,7 @@ Res SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
  * <design/splay/#function.splay.tree.next>.
  */
 
-Tree SplayTreeFirst(SplayTree tree, void *zeroKey) {
+Tree SplayTreeFirst(SplayTree tree, TreeKey zeroKey) {
   Tree node;
   AVERT(SplayTree, tree);
 
@@ -682,7 +682,7 @@ Tree SplayTreeFirst(SplayTree tree, void *zeroKey) {
   return node;
 }
 
-Tree SplayTreeNext(SplayTree tree, Tree oldNode, void *oldKey) {
+Tree SplayTreeNext(SplayTree tree, Tree oldNode, TreeKey oldKey) {
   Bool b;
   Tree node;
 
@@ -750,7 +750,7 @@ typedef struct {
   SplayTree tree;
 } SplayFindClosureStruct, *SplayFindClosure;
 
-static Compare SplayFindFirstCompare(Tree node, void *key)
+static Compare SplayFindFirstCompare(Tree node, TreeKey key)
 {
   SplayFindClosure closure;
   void *closureP;
@@ -781,7 +781,7 @@ static Compare SplayFindFirstCompare(Tree node, void *key)
   }
 }
 
-static Compare SplayFindLastCompare(Tree node, void *key)
+static Compare SplayFindLastCompare(Tree node, TreeKey key)
 {
   SplayFindClosure closure;
   void *closureP;
@@ -849,7 +849,7 @@ Bool SplayFindFirst(Tree *nodeReturn, SplayTree tree,
   closureStruct.testTree = testTree;
   closureStruct.tree = tree;
 
-  if (SplaySplay(&node, tree, (void *)&closureStruct, SplayFindFirstCompare)) {
+  if (SplaySplay(&node, tree, &closureStruct, SplayFindFirstCompare)) {
     *nodeReturn = node;
     return TRUE;
   } else {
@@ -884,7 +884,7 @@ Bool SplayFindLast(Tree *nodeReturn, SplayTree tree,
   closureStruct.testTree = testTree;
   closureStruct.tree = tree;
 
-  if (SplaySplay(&node, tree, (void *)&closureStruct, SplayFindLastCompare)) {
+  if (SplaySplay(&node, tree, &closureStruct, SplayFindLastCompare)) {
     *nodeReturn = node;
     return TRUE;
   } else {
@@ -922,7 +922,7 @@ Bool SplayRoot(Tree *nodeReturn, SplayTree tree)
  * updating the single node.  This may change.
  */
 
-void SplayNodeRefresh(SplayTree tree, Tree node, void *key)
+void SplayNodeRefresh(SplayTree tree, Tree node, TreeKey key)
 {
   Bool b;
   Tree node2;

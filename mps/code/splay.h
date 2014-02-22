@@ -37,18 +37,18 @@ extern void SplayTreeInit(SplayTree tree,
                           SplayUpdateNodeMethod updateNode);
 extern void SplayTreeFinish(SplayTree tree);
 
-extern Res SplayTreeInsert(SplayTree tree, Tree node, void *key);
-extern Res SplayTreeDelete(SplayTree tree, Tree node, void *key);
+extern Res SplayTreeInsert(SplayTree tree, Tree node, TreeKey key);
+extern Res SplayTreeDelete(SplayTree tree, Tree node, TreeKey key);
 
 extern Res SplayTreeSearch(Tree *nodeReturn,
-                           SplayTree tree, void *key );
+                           SplayTree tree, TreeKey key);
 extern Res SplayTreeNeighbours(Tree *leftReturn,
                                Tree *rightReturn,
-                               SplayTree tree, void *key);
+                               SplayTree tree, TreeKey key);
 
-extern Tree SplayTreeFirst(SplayTree tree, void *zeroKey);
+extern Tree SplayTreeFirst(SplayTree tree, TreeKey zeroKey);
 extern Tree SplayTreeNext(SplayTree tree, Tree oldNode,
-                               void *oldKey);
+                               TreeKey oldKey);
 
 extern Bool SplayFindFirst(Tree *nodeReturn, SplayTree tree,
                            SplayTestNodeMethod testNode,
@@ -59,7 +59,7 @@ extern Bool SplayFindLast(Tree *nodeReturn, SplayTree tree,
                           SplayTestTreeMethod testTree,
                           void *closureP, Size closureS);
 
-extern void SplayNodeRefresh(SplayTree tree, Tree node, void *key);
+extern void SplayNodeRefresh(SplayTree tree, Tree node, TreeKey key);
 
 extern Res SplayTreeDescribe(SplayTree tree, mps_lib_FILE *stream,
                              SplayNodeDescribeMethod nodeDescribe);
