@@ -70,6 +70,22 @@ void SplayTrivUpdate(SplayTree tree, Tree node)
 }
 
 
+static Compare compareLess(Tree node, TreeKey key)
+{
+  UNUSED(node);
+  UNUSED(key);
+  return CompareLESS;
+}
+
+
+static Compare compareGreater(Tree node, TreeKey key)
+{
+  UNUSED(node);
+  UNUSED(key);
+  return CompareGREATER;
+}
+
+
 /* SplayLinkRight -- Move top to left child of top
  *
  * Link the current top node into the left child of the right tree,
@@ -410,7 +426,7 @@ Bool SplayTreeInsert(SplayTree tree, Tree node, TreeKey key) {
  */
 
 Bool SplayTreeDelete(SplayTree tree, Tree node, TreeKey key) {
-  Tree rightHalf, leftLast;
+  Tree leftLast;
   Compare cmp;
 
   AVERT(SplayTree, tree);
@@ -428,12 +444,12 @@ Bool SplayTreeDelete(SplayTree tree, Tree node, TreeKey key) {
     SplayTreeSetRoot(tree, TreeLeft(node));
     TreeClearLeft(node);
   } else {
-    rightHalf = TreeRight(node);
+    Tree rightHalf = TreeRight(node);
     TreeClearRight(node);
     SplayTreeSetRoot(tree, TreeLeft(node));
     TreeClearLeft(node);
-    cmp = SplaySplay(tree, key, tree->compare);
-    AVER(cmp != CompareEQUAL); /* would have been found by first splay above */
+    cmp = SplaySplay(tree, NULL, compareGreater);
+    AVER(cmp == CompareGREATER);
     leftLast = SplayTreeRoot(tree);
     AVER(leftLast != TreeEMPTY);
     AVER(TreeRight(leftLast) == TreeEMPTY);
@@ -474,7 +490,7 @@ Bool SplayTreeFind(Tree *nodeReturn, SplayTree tree, TreeKey key) {
  * in which case TreeEMPTY is returned, and the tree is unchanged.
  */
 
-static Tree SplayTreePredecessor(SplayTree tree, TreeKey key) {
+static Tree SplayTreePredecessor(SplayTree tree) {
   Tree oldRoot, newRoot;
 
   AVERT(SplayTree, tree);
@@ -489,8 +505,8 @@ static Tree SplayTreePredecessor(SplayTree tree, TreeKey key) {
     /* temporarily chop off the right half-tree, inclusive of root */
     SplayTreeSetRoot(tree, TreeLeft(oldRoot));
     TreeSetLeft(oldRoot, TreeEMPTY);
-    cmp = SplaySplay(tree, key, tree->compare);
-    AVER(cmp != CompareEQUAL); /* Another matching node found */
+    cmp = SplaySplay(tree, NULL, compareGreater);
+    AVER(cmp == CompareGREATER);
     newRoot = SplayTreeRoot(tree);
     AVER(newRoot != TreeEMPTY);
     AVER(TreeRight(newRoot) == TreeEMPTY);
@@ -509,7 +525,7 @@ static Tree SplayTreePredecessor(SplayTree tree, TreeKey key) {
  * in which case TreeEMPTY is returned, and the tree is unchanged.
  */
 
-static Tree SplayTreeSuccessor(SplayTree tree, TreeKey key) {
+static Tree SplayTreeSuccessor(SplayTree tree) {
   Tree oldRoot, newRoot;
 
   AVERT(SplayTree, tree);
@@ -524,8 +540,8 @@ static Tree SplayTreeSuccessor(SplayTree tree, TreeKey key) {
     /* temporarily chop off the left half-tree, inclusive of root */
     SplayTreeSetRoot(tree, TreeRight(oldRoot));
     TreeSetRight(oldRoot, TreeEMPTY);
-    cmp = SplaySplay(tree, key, tree->compare);
-    AVER(cmp != CompareEQUAL); /* Another matching node found */
+    cmp = SplaySplay(tree, NULL, compareLess);
+    AVER(cmp == CompareLESS);
     newRoot = SplayTreeRoot(tree);
     AVER(newRoot != TreeEMPTY);
     AVER(TreeLeft(newRoot) == TreeEMPTY);
@@ -568,12 +584,12 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
 
   case CompareLESS:
     *rightReturn = SplayTreeRoot(tree);
-    *leftReturn = SplayTreePredecessor(tree, key);
+    *leftReturn = SplayTreePredecessor(tree);
     break;
 
   case CompareGREATER:
     *leftReturn = SplayTreeRoot(tree);
-    *rightReturn = SplayTreeSuccessor(tree, key);
+    *rightReturn = SplayTreeSuccessor(tree);
     break;
   }
 
@@ -594,7 +610,7 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
  * <design/splay/#function.splay.tree.next>.
  */
 
-Tree SplayTreeFirst(SplayTree tree, TreeKey zeroKey) {
+Tree SplayTreeFirst(SplayTree tree) {
   Tree node;
   Compare cmp;
 
@@ -603,7 +619,7 @@ Tree SplayTreeFirst(SplayTree tree, TreeKey zeroKey) {
   if (SplayTreeRoot(tree) == TreeEMPTY)
     return TreeEMPTY;
   
-  cmp = SplaySplay(tree, zeroKey, tree->compare);
+  cmp = SplaySplay(tree, NULL, compareLess);
   AVER(cmp != CompareEQUAL);
   node = SplayTreeRoot(tree);
   AVER(node != TreeEMPTY);
@@ -612,9 +628,8 @@ Tree SplayTreeFirst(SplayTree tree, TreeKey zeroKey) {
   return node;
 }
 
-Tree SplayTreeNext(SplayTree tree, Tree oldNode, TreeKey oldKey) {
+Tree SplayTreeNext(SplayTree tree, TreeKey oldKey) {
   AVERT(SplayTree, tree);
-  AVERT(Tree, oldNode);
 
   if (SplayTreeRoot(tree) == TreeEMPTY)
     return TreeEMPTY;
@@ -630,7 +645,7 @@ Tree SplayTreeNext(SplayTree tree, Tree oldNode, TreeKey oldKey) {
 
   case CompareLESS:
   case CompareEQUAL:
-    return SplayTreeSuccessor(tree, oldKey);
+    return SplayTreeSuccessor(tree);
   }
 }
 

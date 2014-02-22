@@ -558,8 +558,6 @@ static void TagWalk(Pool pool, ObjectsStepMethod step, void *p)
 {
   Tree node;
   PoolDebugMixin debug;
-  Addr dummy = NULL; /* Breaks <design/type/#addr.use>, but it's */
-                     /* only temporary until SplayTreeFirst is fixed. */
 
   AVERT(Pool, pool);
   AVERT(ObjectsStepMethod, step);
@@ -569,12 +567,12 @@ static void TagWalk(Pool pool, ObjectsStepMethod step, void *p)
   AVER(debug != NULL);
   AVERT(PoolDebugMixin, debug);
 
-  node = SplayTreeFirst(&debug->index, &dummy);
+  node = SplayTreeFirst(&debug->index);
   while (node != NULL) {
     Tag tag = TagOfTree(node);
 
     step(tag->addr, tag->size, NULL, pool, &tag->userdata, p);
-    node = SplayTreeNext(&debug->index, node, &tag->addr);
+    node = SplayTreeNext(&debug->index, &tag->addr);
   }
 }
 

@@ -109,10 +109,6 @@ static Compare cbsCompare(Tree node, TreeKey key)
   Addr base1, base2, limit2;
   CBSBlock cbsBlock;
 
-  /* NULL key compares less than everything. */
-  if (key == NULL)
-    return CompareLESS;
-
   AVER(node != NULL);
 
   base1 = *(Addr *)key;
@@ -641,7 +637,7 @@ void CBSIterate(CBS cbs, CBSIterateMethod iterate,
   /* .splay-iterate.slow: We assume that splay tree iteration does */
   /* searches and meter it. */
   METER_ACC(cbs->treeSearch, cbs->treeSize);
-  node = SplayTreeFirst(tree, NULL);
+  node = SplayTreeFirst(tree);
   while(node != NULL) {
     RangeStruct range;
     cbsBlock = cbsBlockOfNode(node);
@@ -649,7 +645,7 @@ void CBSIterate(CBS cbs, CBSIterateMethod iterate,
     if (!(*iterate)(cbs, &range, closureP, closureS))
       break;
     METER_ACC(cbs->treeSearch, cbs->treeSize);
-    node = SplayTreeNext(tree, node, keyOfCBSBlock(cbsBlock));
+    node = SplayTreeNext(tree, keyOfCBSBlock(cbsBlock));
   }
 
   cbsLeave(cbs);
