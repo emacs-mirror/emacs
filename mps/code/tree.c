@@ -155,7 +155,7 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
  * <http://en.wikipedia.org/wiki/Tree_traversal#Morris_in-order_traversal_using_threading>
  *
  * The tree may not be modified during the traversal, and the traversal
- * must complete.
+ * must complete.  TODO: Is there a way to abort early?
  */
 
 void TreeTraverseMorris(Tree tree, TreeVisitor visit,
@@ -170,7 +170,7 @@ void TreeTraverseMorris(Tree tree, TreeVisitor visit,
   node = tree;
   while (node != TreeEMPTY) {
     if (node->left == TreeEMPTY) {
-      visit(node, closureP, closureS);
+      (void)visit(node, closureP, closureS);
       node = node->right;
     } else {
       Tree pre = node->left;
@@ -182,7 +182,7 @@ void TreeTraverseMorris(Tree tree, TreeVisitor visit,
         }
         if (pre->right == node) {
           pre->right = TreeEMPTY;
-          visit(node, closureP, closureS);
+          (void)visit(node, closureP, closureS);
           node = node->right;
           break;
         }
@@ -190,6 +190,101 @@ void TreeTraverseMorris(Tree tree, TreeVisitor visit,
       }
     }
   }
+}
+
+
+/* TreeTraverse -- traverse tree using pointer reversal */
+
+static Tree stepDownLeft(Tree node, Tree *parentIO)
+{
+  Tree parent = *parentIO;
+  Tree child = TreeLeft(node);
+  TreeSetLeft(node, parent);
+  *parentIO = node;
+  return child;
+}
+
+static Tree stepDownRight(Tree node, Tree *parentIO)
+{
+  Tree parent = *parentIO;
+  Tree child = TreeRight(node);
+  TreeSetRight(node, parent);
+  *parentIO = node;
+  return child;
+}
+
+static Tree stepUpRight(Tree node, Tree *parentIO)
+{
+  Tree parent = *parentIO;
+  Tree grandparent = TreeLeft(parent);
+  TreeSetLeft(parent, node);
+  *parentIO = grandparent;
+  return parent;
+}
+
+static Tree stepUpLeft(Tree node, Tree *parentIO)
+{
+  Tree parent = *parentIO;
+  Tree grandparent = TreeRight(parent);
+  TreeSetRight(parent, node);
+  *parentIO = grandparent;
+  return parent;
+}
+
+void TreeTraverse(Tree tree,
+                  TreeCompare compare,
+                  TreeKeyMethod key,
+                  TreeVisitor visit, void *closureP, Size closureS)
+{
+  Tree parent, node;
+  
+  AVER(TreeCheck(tree));
+  AVER(FUNCHECK(visit));
+  /* closureP, closureS arbitrary */
+
+  parent = TreeEMPTY;
+  node = tree;
+  
+  if (node == TreeEMPTY)
+    return;
+
+down:
+  if (TreeHasLeft(node)) {
+    node = stepDownLeft(node, &parent);
+    AVER(compare(parent, key(node)) == CompareLESS);
+    goto down;
+  }
+  if (!visit(node, closureP, closureS))
+    goto abort;
+  if (TreeHasRight(node)) {
+    node = stepDownRight(node, &parent);
+    AVER(compare(parent, key(node)) != CompareLESS);
+    goto down;
+  }
+
+up:
+  if (parent == TreeEMPTY)
+    return;
+  if (compare(parent, key(node)) != CompareLESS) {
+    node = stepUpLeft(node, &parent);
+    goto up;
+  }
+  node = stepUpRight(node, &parent);
+  if (!visit(node, closureP, closureS))
+    goto abort;
+  if (!TreeHasRight(node))
+    goto up;
+  node = stepDownRight(node, &parent);
+  goto down;
+
+abort:
+  if (parent == TreeEMPTY)
+    return;
+  if (compare(parent, key(node)) != CompareLESS)
+    node = stepUpLeft(node, &parent);
+  else
+    node = stepUpRight(node, &parent);
+  goto abort;
 }
 
 
@@ -292,6 +387,57 @@ Tree TreeReverseRightSpine(Tree tree)
 }
 
 
+/* TreeToVine -- unbalance a tree into a single right spine */
+
+Count TreeToVine(Tree *link)
+{
+  Count count = 0;
+  
+  AVER(link != NULL);
+  AVERT(Tree, *link);
+
+  while (*link != TreeEMPTY) {
+    while (TreeHasLeft(*link))
+      TreeRotateRight(link);
+    link = &((*link)->right);
+    ++count;
+  }
+  
+  return count;
+}
+
+
+/* TreeBalance -- rebalance a tree
+ *
+ * Linear time, constant space rebalance.
+ *
+ * Quentin F. Stout and Bette L. Warren,
+ * "Tree Rebalancing in Optimal Time and Space",
+ * Communications of the ACM, Vol. 29, No. 9 (September 1986), p. 902-908
+ */
+
+void TreeBalance(Tree *treeIO)
+{
+  Count depth;
+
+  AVER(treeIO != NULL);
+  AVERT(Tree, *treeIO);
+
+  depth = TreeToVine(treeIO);
+
+  if (depth > 2) {
+    Count n = depth - 1;
+    do {
+      Count m = n / 2, i;
+      Tree *link = treeIO;
+      for (i = 0; i < m; ++i) {
+        TreeRotateLeft(link);
+        link = &((*link)->right);
+      }
+      n = n - m - 1;
+    } while (n > 1);
+  }
+}
 
 
 /* C. COPYRIGHT AND LICENSE

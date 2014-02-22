@@ -624,12 +624,35 @@ static Res cbsSplayNodeDescribe(Tree node, mps_lib_FILE *stream)
  * See <design/cbs/#function.cbs.iterate>.
  */
 
+typedef struct CBSIterateClosure {
+  CBS cbs;
+  CBSIterateMethod iterate;
+  void *closureP;
+  Size closureS;
+} CBSIterateClosure;
+
+static Bool CBSIterateVisit(Tree tree, void *closureP, Size closureS)
+{
+  CBSIterateClosure *closure = closureP;
+  RangeStruct range;
+  CBSBlock cbsBlock;
+  CBS cbs = closure->cbs;
+
+  UNUSED(closureS);
+
+  cbsBlock = cbsBlockOfNode(tree);
+  RangeInit(&range, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock));
+  if (!closure->iterate(cbs, &range, closure->closureP, closure->closureS))
+    return FALSE;
+  METER_ACC(cbs->treeSearch, cbs->treeSize);
+  return TRUE;
+}
+
 void CBSIterate(CBS cbs, CBSIterateMethod iterate,
                 void *closureP, Size closureS)
 {
-  Tree node;
   SplayTree tree;
-  CBSBlock cbsBlock;
+  CBSIterateClosure closure;
 
   AVERT(CBS, cbs);
   cbsEnter(cbs);
@@ -639,16 +662,13 @@ void CBSIterate(CBS cbs, CBSIterateMethod iterate,
   /* .splay-iterate.slow: We assume that splay tree iteration does */
   /* searches and meter it. */
   METER_ACC(cbs->treeSearch, cbs->treeSize);
-  node = SplayTreeFirst(tree);
-  while(node != NULL) {
-    RangeStruct range;
-    cbsBlock = cbsBlockOfNode(node);
-    RangeInit(&range, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock));
-    if (!(*iterate)(cbs, &range, closureP, closureS))
-      break;
-    METER_ACC(cbs->treeSearch, cbs->treeSize);
-    node = SplayTreeNext(tree, keyOfCBSBlock(cbsBlock));
-  }
+
+  closure.cbs = cbs;
+  closure.iterate = iterate;
+  closure.closureP = closureP;
+  closure.closureS = closureS;
+  TreeTraverse(SplayTreeRoot(tree), tree->compare, tree->nodeKey,
+               CBSIterateVisit, &closure, 0);
 
   cbsLeave(cbs);
   return;
