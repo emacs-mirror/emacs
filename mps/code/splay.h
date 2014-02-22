@@ -37,14 +37,14 @@ extern void SplayTreeInit(SplayTree tree,
                           SplayUpdateNodeMethod updateNode);
 extern void SplayTreeFinish(SplayTree tree);
 
-extern Res SplayTreeInsert(SplayTree tree, Tree node, TreeKey key);
-extern Res SplayTreeDelete(SplayTree tree, Tree node, TreeKey key);
+extern Bool SplayTreeInsert(SplayTree tree, Tree node, TreeKey key);
+extern Bool SplayTreeDelete(SplayTree tree, Tree node, TreeKey key);
 
-extern Res SplayTreeSearch(Tree *nodeReturn,
-                           SplayTree tree, TreeKey key);
-extern Res SplayTreeNeighbours(Tree *leftReturn,
-                               Tree *rightReturn,
-                               SplayTree tree, TreeKey key);
+extern Bool SplayTreeFind(Tree *nodeReturn, SplayTree tree, TreeKey key);
+
+extern Bool SplayTreeNeighbours(Tree *leftReturn,
+                                Tree *rightReturn,
+                                SplayTree tree, TreeKey key);
 
 extern Tree SplayTreeFirst(SplayTree tree, TreeKey zeroKey);
 extern Tree SplayTreeNext(SplayTree tree, Tree oldNode,

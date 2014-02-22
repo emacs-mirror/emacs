@@ -431,6 +431,7 @@ static Res tagAlloc(PoolDebugMixin debug,
 {
   Tag tag;
   Res res;
+  Bool b;
   Addr addr;
 
   UNUSED(pool);
@@ -447,8 +448,8 @@ static Res tagAlloc(PoolDebugMixin debug,
   tag->addr = new; tag->size = size;
   TreeInit(TagTree(tag));
   /* In the future, we might call debug->tagInit here. */
-  res = SplayTreeInsert(&debug->index, TagTree(tag), &new);
-  AVER(res == ResOK);
+  b = SplayTreeInsert(&debug->index, TagTree(tag), &new);
+  AVER(b);
   return ResOK;
 }
 
@@ -459,22 +460,21 @@ static void tagFree(PoolDebugMixin debug, Pool pool, Addr old, Size size)
 {
   Tree node;
   Tag tag;
-  Res res;
+  Bool b;
 
   AVERT(PoolDebugMixin, debug);
   AVERT(Pool, pool);
   AVER(size > 0);
 
-  res = SplayTreeSearch(&node, &debug->index, &old);
-  if (res != ResOK) {
+  if (!SplayTreeFind(&node, &debug->index, &old)) {
     AVER(debug->missingTags > 0);
     debug->missingTags--;
     return;
   }
   tag = TagOfTree(node);
   AVER(tag->size == size);
-  res = SplayTreeDelete(&debug->index, node, &old);
-  AVER(res == ResOK);
+  b = SplayTreeDelete(&debug->index, node, &old);
+  AVER(b); /* expect tag to be in the tree */
   TreeFinish(node);
   PoolFree(debug->tagPool, (Addr)tag, debug->tagSize);
 }

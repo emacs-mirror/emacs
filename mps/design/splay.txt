@@ -281,34 +281,34 @@ tree, if any (see `.req.root`_). If the tree is empty, ``FALSE`` is
 returned and ``*nodeReturn`` is not changed. Otherwise, ``TRUE`` is
 returned and ``*nodeReturn`` is set to the root.
 
-``Res SplayTreeInsert(SplayTree tree, SplayNode node, void *key)``
+``Bool SplayTreeInsert(SplayTree tree, SplayNode node, void *key)``
 
 _`.function.splay.tree.insert`: This function is used to insert into a
 splay tree a new node which is associated with the supplied key (see
 `.req.add`_). It first splays the tree at the key. If an attempt is
 made to insert a node that compares ``CompareEQUAL`` to an existing
-node in the tree, then ``ResFAIL`` will be returned and the node will
+node in the tree, then ``FALSE`` will be returned and the node will
 not be inserted. (See `.usage.insert`_ for an example use).
 
-``Res SplayTreeDelete(SplayTree tree, SplayNode node, void *key)``
+``Bool SplayTreeDelete(SplayTree tree, SplayNode node, void *key)``
 
 _`.function.splay.tree.delete`: This function is used to delete from a
 splay tree a node which is associated with the supplied key (see
 `.req.remove`_). If the tree does not contain the given node, or the
 given node does not compare ``CompareEQUAL`` with the given key, then
-``ResFAIL`` will be returned, and the node will not be deleted. The
+``FALSE`` will be returned, and the node will not be deleted. The
 function first splays the tree at the given key. (See `.usage.delete`_
 for an example use).
 
-``Res SplayTreeSearch(SplayNode *nodeReturn, SplayTree tree, void *key)``
+``Bool SplayTreeFind(SplayNode *nodeReturn, SplayTree tree, void *key)``
 
 _`.function.splay.tree.search`: This function searches the splay tree
 for a node that compares ``CompareEQUAL`` to the given key (see
-`.req.locate`_). It splays the tree at the key. It returns ``ResFAIL``
+`.req.locate`_). It splays the tree at the key. It returns ``FALSE``
 if there is no such node in the tree, otherwise ``*nodeReturn`` will
 be set to the node.
 
-``Res SplayTreeNeighbours(SplayNode *leftReturn, SplayNode *rightReturn, SplayTree tree, void *key)``
+``Bool SplayTreeNeighbours(SplayNode *leftReturn, SplayNode *rightReturn, SplayTree tree, void *key)``
 
 _`.function.splay.tree.neighbours`: This function searches a splay
 tree for the two nodes that are the neighbours of the given key (see
@@ -317,7 +317,7 @@ will be the neighbour which compares less than the key if such a
 neighbour exists; otherwise it will be ``NULL``. ``*rightReturn`` will
 be the neighbour which compares greater than the key if such a
 neighbour exists; otherwise it will be ``NULL``. The function returns
-``ResFAIL`` if any node in the tree compares ``CompareEQUAL`` with the
+``FALSE`` if any node in the tree compares ``CompareEQUAL`` with the
 given key. (See `.usage.insert`_ for an example use).
 
 ``SplayNode SplayTreeFirst(SplayTree tree, void *zeroKey)``
@@ -927,6 +927,8 @@ Document History
 - 1999-03-31 Tony Mann. Edited after review.
 
 - 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2014-02-22 RB_ Fixing abuses of Res and ResFAIL.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/

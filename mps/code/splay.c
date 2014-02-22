@@ -377,7 +377,7 @@ assemble:
  * <design/splay/#impl.insert>.
  */
 
-Res SplayTreeInsert(SplayTree tree, Tree node, TreeKey key) {
+Bool SplayTreeInsert(SplayTree tree, Tree node, TreeKey key) {
   Tree neighbour;
 
   AVERT(SplayTree, tree);
@@ -388,7 +388,7 @@ Res SplayTreeInsert(SplayTree tree, Tree node, TreeKey key) {
   if (SplayTreeRoot(tree) == TreeEMPTY) {
     SplayTreeSetRoot(tree, node);
   } else if (SplaySplay(&neighbour, tree, key, tree->compare)) {
-    return ResFAIL;
+    return FALSE;
   } else {
     AVER(SplayTreeRoot(tree) == neighbour);
     switch(SplayCompare(tree, key, neighbour)) {
@@ -417,7 +417,7 @@ Res SplayTreeInsert(SplayTree tree, Tree node, TreeKey key) {
     tree->updateNode(tree, node);
   }
 
-  return ResOK;
+  return TRUE;
 }
 
 
@@ -427,7 +427,7 @@ Res SplayTreeInsert(SplayTree tree, Tree node, TreeKey key) {
  * <design/splay/#impl.delete>.
  */
 
-Res SplayTreeDelete(SplayTree tree, Tree node, TreeKey key) {
+Bool SplayTreeDelete(SplayTree tree, Tree node, TreeKey key) {
   Tree rightHalf, del, leftLast;
   Bool found;
 
@@ -438,7 +438,7 @@ Res SplayTreeDelete(SplayTree tree, Tree node, TreeKey key) {
   AVER(!found || del == node);
 
   if (!found) {
-    return ResFAIL;
+    return FALSE;
   } else if (TreeLeft(node) == TreeEMPTY) {
     SplayTreeSetRoot(tree, TreeRight(node));
     TreeClearRight(node);
@@ -446,44 +446,41 @@ Res SplayTreeDelete(SplayTree tree, Tree node, TreeKey key) {
     SplayTreeSetRoot(tree, TreeLeft(node));
     TreeClearLeft(node);
   } else {
+    Bool b;
     rightHalf = TreeRight(node);
     TreeClearRight(node);
     SplayTreeSetRoot(tree, TreeLeft(node));
     TreeClearLeft(node);
-    if (SplaySplay(&leftLast, tree, key, tree->compare)) {
-      return ResFAIL;
-    } else {
-      AVER(TreeRight(leftLast) == TreeEMPTY);
-      TreeSetRight(leftLast, rightHalf);
-      tree->updateNode(tree, leftLast);
-    }
+    b = SplaySplay(&leftLast, tree, key, tree->compare);
+    AVER(!b); /* would have been found by first splay above */
+    AVER(TreeRight(leftLast) == TreeEMPTY);
+    TreeSetRight(leftLast, rightHalf);
+    tree->updateNode(tree, leftLast);
   }
 
   TreeFinish(node);
 
-  return ResOK;
+  return TRUE;
 }
 
 
-/* SplayTreeSearch -- Search for a node in a splay tree matching a key
+/* SplayTreeFind -- search for a node in a splay tree matching a key
  *
  * See <design/splay/#function.splay.tree.search> and
  * <design/splay/#impl.search>.
  */
 
-Res SplayTreeSearch(Tree *nodeReturn, SplayTree tree, TreeKey key) {
+Bool SplayTreeFind(Tree *nodeReturn, SplayTree tree, TreeKey key) {
   Tree node;
 
   AVERT(SplayTree, tree);
   AVER(nodeReturn != NULL);
 
-  if (SplaySplay(&node, tree, key, tree->compare)) {
-    *nodeReturn = node;
-  } else {
-    return ResFAIL;
-  }
+  if (!SplaySplay(&node, tree, key, tree->compare))
+    return FALSE;
 
-  return ResOK;
+  *nodeReturn = node;
+  return TRUE;
 }
 
 
@@ -566,8 +563,8 @@ static Tree SplayTreeSuccessor(SplayTree tree, TreeKey key) {
  */
 
 
-Res SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
-                        SplayTree tree, TreeKey key) {
+Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
+                         SplayTree tree, TreeKey key) {
   Tree neighbour;
 
   AVERT(SplayTree, tree);
@@ -575,7 +572,7 @@ Res SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
   AVER(rightReturn != NULL);
 
   if (SplaySplay(&neighbour, tree, key, tree->compare)) {
-    return ResFAIL;
+    return FALSE;
   } else if (neighbour == TreeEMPTY) {
     *leftReturn = *rightReturn = TreeEMPTY;
   } else {
@@ -597,7 +594,7 @@ Res SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
     } break;
     }
   }
-  return ResOK;
+  return TRUE;
 }
 
 
