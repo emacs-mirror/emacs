@@ -295,8 +295,8 @@ static Compare SplaySplit(Tree *nodeReturn,
           goto assemble;
         }
         TreeRotateRight(&node);
-        tree->updateNode(tree, TreeRight(node));
         SplayLinkRight(&node, &rightFirst);
+        tree->updateNode(tree, TreeRight(rightFirst));
         break;
 
       case CompareGREATER:                 /* zig-zag */
@@ -329,8 +329,8 @@ static Compare SplaySplit(Tree *nodeReturn,
           goto assemble;
         }
         TreeRotateLeft(&node);
-        tree->updateNode(tree, TreeLeft(node));
         SplayLinkLeft(&node, &leftLast);
+        tree->updateNode(tree, TreeLeft(leftLast));
         break;
 
       case CompareLESS:                    /* zag-zig */
@@ -626,7 +626,6 @@ static Tree SplayTreeSuccessor(SplayTree tree) {
  * See <design/splay/#function.splay.tree.neighbours> and
  * <design/splay/#impl.neighbours>.
  */
-
 
 Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
                          SplayTree tree, TreeKey key)
