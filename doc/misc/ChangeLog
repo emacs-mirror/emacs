@@ -1,3 +1,8 @@
+2014-02-22  Xue Fuqiao  <xfq@gnu.org>
+
+	* remember.texi (Quick Start): Add an index.
+	(Function Reference, Quick Start): Add cross-references.
+
 2014-02-21  Glenn Morris  <rgm@gnu.org>
 
 	* flymake.texi (Starting the syntax check process): Grammar fix.

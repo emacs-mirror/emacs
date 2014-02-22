@@ -79,7 +79,7 @@ Backends
 @node Preface
 @chapter Preface
 
-This document describes remember-el, which was written by John Wiegley,
+This document describes remember.el, which was written by John Wiegley,
 was once maintained by Sacha Chua, and is now maintained by the Emacs
 developers.
 
@@ -205,14 +205,16 @@ appended there into other files, or reorganize your document.
 
 You can also store remembered data in other backends.  @xref{Backends}.
 
-Here is one way to map the remember functions in your init file to
-very accessible keystrokes facilities using the mode:
+Here is one way to map the remember functions in your init file
+(@pxref{Init File, , The Emacs Initialization File, emacs, GNU Emacs
+Manual}) to very accessible keystrokes facilities using the mode:
 
 @lisp
 (define-key global-map (kbd "<f9> r") 'remember)
 (define-key global-map (kbd "<f9> R") 'remember-region)
 @end lisp
 
+@cindex annotation
 By default, remember uses the first annotation returned by
 @code{remember-annotation-functions}.  To include all of the annotations,
 set @code{remember-run-all-annotation-functions-flag} to a
@@ -280,10 +282,11 @@ Destroy the current remember buffer.
 @end defun
 
 @defun remember-mode
-This enters the major mode for output from @code{remember}.  This
-buffer is used to collect data that you want remember.  Just hit
-@kbd{C-c C-c} when you're done entering, and it will go ahead and file
-the data for latter retrieval, and possible indexing.
+This enters the major mode (@pxref{Major Modes, , Major Modes, emacs,
+GNU Emacs Manual}) for output from @code{remember}.  This buffer is
+used to collect data that you want remember.  Just hit @kbd{C-c C-c}
+when you're done entering, and it will go ahead and file the data for
+latter retrieval, and possible indexing.
 @end defun
 
 @defun remember-notes &optional switch-to
