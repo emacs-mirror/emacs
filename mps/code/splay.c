@@ -77,6 +77,18 @@ void SplayTrivUpdate(SplayTree tree, Tree node)
 }
 
 
+#ifdef SPLAY_DEBUG
+static void SplayDebugUpdate(SplayTree tree, Tree node)
+{
+  if (node == TreeEMPTY)
+    return;
+  SplayDebugUpdate(tree, TreeLeft(node));
+  SplayDebugUpdate(tree, TreeRight(node));
+  tree->updateNode(tree, node);
+}
+#endif
+
+
 /* SplayLinkRight -- Move top to left child of top
  *
  * Link the current top node into the left child of the right tree,
@@ -196,6 +208,7 @@ static void SplayAssemble(SplayTree tree, Tree top,
       AVER(newLeft == leftTop);
       TreeSetLeft(top, newLeft);
     } else {
+      AVER(leftLast != TreeEMPTY);
       TreeSetRight(leftLast, TreeLeft(top));
       TreeSetLeft(top, leftTop);
     }
@@ -211,6 +224,7 @@ static void SplayAssemble(SplayTree tree, Tree top,
       AVER(newRight == rightTop);
       TreeSetRight(top, newRight);
     } else {
+      AVER(rightFirst != TreeEMPTY);
       TreeSetLeft(rightFirst, TreeRight(top));
       TreeSetRight(top, rightTop);
     }
@@ -229,37 +243,35 @@ static void SplayAssemble(SplayTree tree, Tree top,
  * See <design/splay/#impl.splay>.
  */
 
-static Compare SplaySplay(SplayTree tree, TreeKey key, TreeCompare compare)
+static Compare SplaySplit(Tree *nodeReturn,
+                          Tree *leftTopReturn, Tree *leftLastReturn,
+                          Tree *rightTopReturn, Tree *rightFirstReturn,
+                          SplayTree tree, TreeKey key, TreeCompare compare)
 {
   /* The sides structure avoids a boundary case in SplayLink* */
   TreeStruct sides; /* rightTop and leftTop */
   Tree node, leftLast, rightFirst;
   Compare cmp;
-#ifdef SPLAY_DEBUG
-  Count count = TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey);
-#endif
 
   AVERT(SplayTree, tree);
   AVER(FUNCHECK(compare));
-
+  
   node = SplayTreeRoot(tree); /* will be copied back at end */
-
-  if (node == TreeEMPTY)
-    return CompareEQUAL;
-
-  /* short-circuit case where node is already top */
-  cmp = compare(node, key);
-  if (cmp == CompareEQUAL)
-    return CompareEQUAL;
 
   TreeInit(&sides); /* left and right trees now TreeEMPTY */
   leftLast = &sides;
   rightFirst = &sides;
 
+  if (node == TreeEMPTY) {
+    cmp = CompareEQUAL;
+    goto assemble;
+  }
+
   for (;;) {
     Tree child;
 
     /* cmp is already initialised above. */
+    cmp = compare(node, key);
     switch(cmp) {
 
     case CompareLESS:
@@ -268,7 +280,6 @@ static Compare SplaySplay(SplayTree tree, TreeKey key, TreeCompare compare)
         goto assemble;
 
       cmp = compare(child, key);
-
       switch(cmp) {
       default:
         NOTREACHED;
@@ -303,7 +314,6 @@ static Compare SplaySplay(SplayTree tree, TreeKey key, TreeCompare compare)
         goto assemble;
 
       cmp = compare(child, key);
-
       switch(cmp) {
       default:
         NOTREACHED;
@@ -339,14 +349,32 @@ static Compare SplaySplay(SplayTree tree, TreeKey key, TreeCompare compare)
     case CompareEQUAL:
       goto assemble;
     }
-
-    cmp = compare(node, key);
   }
 
 assemble:
+  *nodeReturn = node;
+  *leftTopReturn = TreeRight(&sides);
+  *leftLastReturn = leftLast == &sides ? TreeEMPTY : leftLast;
+  *rightTopReturn = TreeLeft(&sides);
+  *rightFirstReturn = rightFirst == &sides ? TreeEMPTY : rightFirst;
+  return cmp;
+}
+
+
+static Compare SplaySplay(SplayTree tree, TreeKey key, TreeCompare compare)
+{
+  Compare cmp;
+  Tree node, leftTop, leftLast, rightTop, rightFirst;
+#ifdef SPLAY_DEBUG
+  Count count = TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey);
+#endif
+
+  cmp = SplaySplit(&node, &leftTop, &leftLast, &rightTop, &rightFirst,
+                   tree, key, compare);
+
   SplayAssemble(tree, node,
-                TreeRight(&sides), leftLast,
-                TreeLeft(&sides), rightFirst);
+                leftTop, leftLast,
+                rightTop, rightFirst);
 
   SplayTreeSetRoot(tree, node);
 
@@ -558,39 +586,6 @@ Bool SplayTreeFind(Tree *nodeReturn, SplayTree tree, TreeKey key) {
 }
 
 
-/* SplayTreePredecessor -- Splays a tree at the root's predecessor
- *
- * Must not be called on en empty tree.  Predecessor need not exist,
- * in which case TreeEMPTY is returned, and the tree is unchanged.
- */
-
-static Tree SplayTreePredecessor(SplayTree tree) {
-  Tree oldRoot, newRoot;
-
-  AVERT(SplayTree, tree);
-
-  oldRoot = SplayTreeRoot(tree);
-  AVERT(Tree, oldRoot);
-
-  if (TreeLeft(oldRoot) == TreeEMPTY) {
-    newRoot = TreeEMPTY; /* No predecessor */
-  } else {
-    /* temporarily chop off the right half-tree, inclusive of root */
-    SplayTreeSetRoot(tree, TreeLeft(oldRoot));
-    TreeSetLeft(oldRoot, TreeEMPTY);
-    SplayRight(tree);
-    newRoot = SplayTreeRoot(tree);
-    AVER(newRoot != TreeEMPTY);
-    AVER(TreeRight(newRoot) == TreeEMPTY);
-    TreeSetRight(newRoot, oldRoot);
-    tree->updateNode(tree, oldRoot);
-    tree->updateNode(tree, newRoot);
-  }
-
-  return newRoot;
-}
-
-
 /* SplayTreeSuccessor -- Splays a tree at the root's successor
  *
  * Must not be called on en empty tree.  Successor need not exist,
@@ -636,6 +631,13 @@ static Tree SplayTreeSuccessor(SplayTree tree) {
 Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
                          SplayTree tree, TreeKey key)
 {
+  Tree node, leftTop, leftLast, rightTop, rightFirst;
+  Bool found;
+#ifdef SPLAY_DEBUG
+  Count count = TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey);
+#endif
+
+
   AVERT(SplayTree, tree);
   AVER(leftReturn != NULL);
   AVER(rightReturn != NULL);
@@ -645,25 +647,40 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
     return TRUE;
   }
 
-  switch (SplaySplay(tree, key, tree->compare)) {
+  switch (SplaySplit(&node, &leftTop, &leftLast, &rightTop, &rightFirst,
+                     tree, key, tree->compare)) {
   default:
     NOTREACHED;
     /* defensive fall-through */
   case CompareEQUAL:
-    return FALSE;
+    found = FALSE;
+    break;
 
   case CompareLESS:
-    *rightReturn = SplayTreeRoot(tree);
-    *leftReturn = SplayTreePredecessor(tree);
+    AVER(TreeLeft(node) == TreeEMPTY);
+    *rightReturn = node;
+    *leftReturn = leftLast;
+    found = TRUE;
     break;
 
   case CompareGREATER:
-    *leftReturn = SplayTreeRoot(tree);
-    *rightReturn = SplayTreeSuccessor(tree);
+    AVER(TreeRight(node) == TreeEMPTY);
+    *leftReturn = node;
+    *rightReturn = rightFirst;
+    found = TRUE;
     break;
   }
 
-  return TRUE;
+  SplayAssemble(tree, node,
+                leftTop, leftLast,
+                rightTop, rightFirst);
+  SplayTreeSetRoot(tree, node);
+
+#ifdef SPLAY_DEBUG
+  AVER(count == TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey));
+#endif
+
+  return found;
 }
 
 
