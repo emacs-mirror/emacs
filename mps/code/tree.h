@@ -80,6 +80,8 @@ extern void TreeTraverseMorris(Tree tree, TreeVisitor visit,
 
 extern void TreeRotateLeft(Tree *nodeIO);
 extern void TreeRotateRight(Tree *nodeIO);
+extern Tree TreeReverseLeftSpine(Tree tree);
+extern Tree TreeReverseRightSpine(Tree tree);
 
 
 #endif /* tree_h */

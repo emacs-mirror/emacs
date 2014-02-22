@@ -11,15 +11,18 @@ SRCID(tree, "$Id$");
 
 Bool TreeCheck(Tree tree)
 {
-  CHECKL(tree != NULL);
-  CHECKL(tree->left == TreeEMPTY || tree->left != NULL);
-  CHECKL(tree->right == TreeEMPTY || tree->right != NULL);
+  if (tree != TreeEMPTY) {
+    CHECKL(tree != NULL);
+    CHECKL(tree->left == TreeEMPTY || tree->left != NULL);
+    CHECKL(tree->right == TreeEMPTY || tree->right != NULL);
+  }
   return TRUE;
 }
 
 Bool TreeCheckLeaf(Tree tree)
 {
   CHECKL(TreeCheck(tree));
+  CHECKL(tree != TreeEMPTY);
   CHECKL(tree->left == TreeEMPTY);
   CHECKL(tree->right == TreeEMPTY);
   return TRUE;
@@ -205,6 +208,62 @@ void TreeRotateRight(Tree *treeIO) {
 
   *treeIO = left;
 }
+
+
+/* TreeReverseLeftSpine -- reverse the pointers on the right spine
+ *
+ * Descends the left spine of a tree, updating each node's left child
+ * to point to its parent instead.  The root's left child is set to
+ * TreeEMPTY.  Returns the leftmost child in *leftReturn, or TreeEMPTY
+ * if the tree was empty.
+ */
+
+Tree TreeReverseLeftSpine(Tree tree)
+{
+  Tree node, parent;
+
+  AVERT(Tree, tree);
+  
+  parent = TreeEMPTY;
+  node = tree;
+  while (node != TreeEMPTY) {
+    Tree child = TreeLeft(node);
+    TreeSetLeft(node, parent);
+    parent = node;
+    node = child;
+  }
+  
+  return parent;
+}
+
+
+/* TreeReverseRightSpine -- reverse the pointers on the right spine
+ *
+ * Descends the right spine of a tree, updating each node's right child
+ * to point to its parent instead.  The root's right child is set to
+ * TreeEMPTY.  Returns the rightmost child in *rightReturn, or TreeEMPTY
+ * if the tree was empty.
+ */
+
+Tree TreeReverseRightSpine(Tree tree)
+{
+  Tree node, parent;
+
+  AVERT(Tree, tree);
+  
+  parent = TreeEMPTY;
+  node = tree;
+  while (node != TreeEMPTY) {
+    Tree child = TreeRight(node);
+    TreeSetRight(node, parent);
+    parent = node;
+    node = child;
+  }
+  
+  return parent;
+}
+
+
 
 
 /* C. COPYRIGHT AND LICENSE
