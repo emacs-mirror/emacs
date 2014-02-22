@@ -269,15 +269,15 @@ void CBSFinish(CBS cbs)
 
 static void cbsBlockDelete(CBS cbs, CBSBlock block)
 {
-  Res res;
+  Bool b;
 
   AVERT(CBS, cbs);
   AVERT(CBSBlock, block);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
-  res = SplayTreeDelete(treeOfCBS(cbs), nodeOfCBSBlock(block),
-                        keyOfCBSBlock(block));
-  AVER(res == ResOK); /* Must be possible to delete node */
+  b = SplayTreeDelete(treeOfCBS(cbs), nodeOfCBSBlock(block),
+                      keyOfCBSBlock(block));
+  AVER(b); /* expect block to be in the tree */
   STATISTIC(--cbs->treeSize);
 
   /* make invalid */
@@ -359,15 +359,15 @@ failPoolAlloc:
 
 static void cbsBlockInsert(CBS cbs, CBSBlock block)
 {
-  Res res;
+  Bool b;
 
   AVERT(CBS, cbs);
   AVERT(CBSBlock, block);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
-  res = SplayTreeInsert(treeOfCBS(cbs), nodeOfCBSBlock(block),
-                        keyOfCBSBlock(block));
-  AVER(res == ResOK);
+  b = SplayTreeInsert(treeOfCBS(cbs), nodeOfCBSBlock(block),
+                      keyOfCBSBlock(block));
+  AVER(b);
   STATISTIC(++cbs->treeSize);
 }
 
@@ -376,6 +376,7 @@ static void cbsBlockInsert(CBS cbs, CBSBlock block)
 
 static Res cbsInsertIntoTree(Range rangeReturn, CBS cbs, Range range)
 {
+  Bool b;
   Res res;
   Addr base, limit, newBase, newLimit;
   Tree leftSplay, rightSplay;
@@ -392,10 +393,11 @@ static Res cbsInsertIntoTree(Range rangeReturn, CBS cbs, Range range)
   limit = RangeLimit(range);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
-  res = SplayTreeNeighbours(&leftSplay, &rightSplay,
-                            treeOfCBS(cbs), &base);
-  if (res != ResOK)
+  b = SplayTreeNeighbours(&leftSplay, &rightSplay, treeOfCBS(cbs), &base);
+  if (!b) {
+    res = ResFAIL;
     goto fail;
+  }
 
   /* The two cases below are not quite symmetrical, because base was
    * passed into the call to SplayTreeNeighbours(), but limit was not.
@@ -509,9 +511,10 @@ static Res cbsDeleteFromTree(Range rangeReturn, CBS cbs, Range range)
   limit = RangeLimit(range);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
-  res = SplayTreeSearch(&node, treeOfCBS(cbs), (void *)&base);
-  if (res != ResOK)
+  if (!SplayTreeFind(&node, treeOfCBS(cbs), (void *)&base)) {
+    res = ResFAIL;
     goto failSplayTreeSearch;
+  }
   cbsBlock = cbsBlockOfNode(node);
 
   if (limit > cbsBlock->limit) {
