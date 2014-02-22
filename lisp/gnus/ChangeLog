@@ -1,3 +1,9 @@
+2014-02-22  Daniel Colascione  <dancol@dancol.org>
+
+	* auth-source.el (auth-source-secrets-listify-pattern): New function.
+	(auth-source-secrets-search): Don't pass invalid patterns to secrets.el;
+	instead, build list of patterns.
+
 2014-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-sources): Add pointer to what the .gpg extension

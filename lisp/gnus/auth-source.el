@@ -1506,6 +1506,31 @@ Respects `auth-source-save-behavior'.  Uses
 ;; (let ((auth-sources '("secrets:Login"))) (auth-source-search :max 1))
 ;; (let ((auth-sources '("secrets:Login"))) (auth-source-search :max 1 :signon_realm "https://git.gnus.org/Git"))
 
+(defun auth-source-secrets-listify-pattern (pattern)
+  "Convert a pattern with lists to a list of string patterns.
+
+auth-source patterns can have values of the form :foo (\"bar\"
+\"qux\"), which means to match any secret with :foo equal to
+\"bar\" otr :foo equal to \"qux\".  The secrets backend supports
+only string values for patterns, so this routine returns a list
+of patterns that is equivalent to the single original pattern
+when interpreted such that if a secret matches any pattern in the
+list, it mathces the original pattern."
+  (if (null pattern)
+      '(nil)
+    (let* ((key (pop pattern))
+           (value (pop pattern))
+           (tails (auth-source-secrets-listify-pattern pattern))
+           (heads (if (stringp value)
+                      (list (list key value))
+                    (mapcar (lambda (v) (list key v)) value))))
+      (cl-loop
+         for h in heads
+         nconc
+           (cl-loop
+              for tl in tails
+              collect (append h tl))))))
+
 (defun* auth-source-secrets-search (&rest
                                     spec
                                     &key backend create delete label
@@ -1558,21 +1583,25 @@ authentication tokens:
                             collect (nth i spec)))
          ;; build a search spec without the ignored keys
          ;; if a search key is nil or t (match anything), we skip it
-         (search-spec (apply 'append (mapcar
+         (search-specs (auth-source-secrets-listify-pattern
+                        (apply 'append (mapcar
                                       (lambda (k)
                                         (if (or (null (plist-get spec k))
                                                 (eq t (plist-get spec k)))
                                             nil
                                           (list k (plist-get spec k))))
-                                      search-keys)))
+                                      search-keys))))
          ;; needed keys (always including host, login, port, and secret)
          (returned-keys (mm-delete-duplicates (append
                                                '(:host :login :port :secret)
                                                search-keys)))
-         (items (loop for item in (apply 'secrets-search-items coll search-spec)
-                      unless (and (stringp label)
-                                  (not (string-match label item)))
-                      collect item))
+         (items
+          (loop for search-spec in search-specs
+               nconc
+               (loop for item in (apply 'secrets-search-items coll search-spec)
+                  unless (and (stringp label)
+                              (not (string-match label item)))
+                  collect item)))
          ;; TODO: respect max in `secrets-search-items', not after the fact
          (items (butlast items (- (length items) max)))
          ;; convert the item name to a full plist
