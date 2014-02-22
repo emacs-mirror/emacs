@@ -23,6 +23,7 @@ typedef TreeKey (*TreeKeyMethod)(Tree tree);
 
 extern Bool TreeCheck(Tree tree);
 extern Bool TreeCheckLeaf(Tree tree);
+extern Count TreeDebugCount(Tree tree, TreeCompare compare, TreeKeyMethod key);
 
 #define TreeInit(tree) \
   BEGIN \
