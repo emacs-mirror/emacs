@@ -155,80 +155,52 @@ static void SplayLinkLeft(Tree *topIO, Tree *leftIO) {
  */
 
 static void SplayAssemble(SplayTree tree, Tree top,
-                          Tree leftTop, Tree leftLast,
-                          Tree rightTop, Tree rightFirst) {
+                          Tree leftTop, Tree rightTop)
+{
   AVERT(SplayTree, tree);
   AVERT(Tree, top);
-  AVER(leftTop == TreeEMPTY ||
-       (TreeCheck(leftTop) && TreeCheck(leftLast)));
-  AVER(rightTop == TreeEMPTY ||
-       (TreeCheck(rightTop) && TreeCheck(rightFirst)));
+  AVERT(Tree, leftTop);
+  AVERT(Tree, rightTop);
 
-  if (leftTop != TreeEMPTY) {
-    TreeSetRight(leftLast, TreeLeft(top));
+  if (tree->updateNode != SplayTrivUpdate) {
+    /* Update client property using pointer reversal (Ugh!). */
+    Tree node, child;
+
+    node = TreeReverseRightSpine(leftTop);
+    
+    /* Now restore the pointers, updating the client property. */
+    child = TreeLeft(top);
+    while (node != TreeEMPTY) {
+      Tree parent = TreeRight(node);
+      TreeSetRight(node, child); /* un-reverse pointer */
+      tree->updateNode(tree, node);
+      child = node;
+      node = parent;
+    }
+    AVER(child == (leftTop != TreeEMPTY ? leftTop : TreeLeft(top)));
+    TreeSetLeft(top, child);
+  } else
     TreeSetLeft(top, leftTop);
 
-    if (tree->updateNode != SplayTrivUpdate) {
-      /* Update client property using pointer reversal (Ugh!). */
-      Tree node, parent, rightChild;
+  if (tree->updateNode != SplayTrivUpdate) {
+    /* Update client property using pointer reversal (Ugh!). */
+    Tree node, child;
+    
+    node = TreeReverseLeftSpine(rightTop);
 
-      /* Reverse the pointers between leftTop and leftLast */
-      /* leftLast is not reversed. */
-      node = leftTop;
-      parent = TreeEMPTY;
-      while(node != leftLast) {
-        rightChild = TreeRight(node);
-        TreeSetRight(node, parent); /* pointer reversal */
-        parent = node;
-        node = rightChild;
-       }
-
-      /* Now restore the pointers, updating the client property. */
-      /* node is leftLast, parent is the last parent (or TreeEMPTY). */
+    /* Now restore the pointers, updating the client property. */
+    child = TreeRight(top);
+    while(node != TreeEMPTY) {
+      Tree parent = TreeLeft(node);
+      TreeSetLeft(node, child); /* un-reverse pointer */
       tree->updateNode(tree, node);
-      while(node != leftTop) {
-        rightChild = node;
-        node = parent;
-        parent = TreeRight(node);
-        TreeSetRight(node, rightChild); /* un-reverse pointer */
-        tree->updateNode(tree, node);
-      }
+      child = node;
+      node = parent;
     }
-  }
-  /* otherwise leave top->left alone */
-
-  if (rightTop != TreeEMPTY) {
-    TreeSetLeft(rightFirst, TreeRight(top));
+    AVER(child == (rightTop != TreeEMPTY ? rightTop : TreeRight(top)));
+    TreeSetRight(top, child);
+  } else
     TreeSetRight(top, rightTop);
-
-    if (tree->updateNode != SplayTrivUpdate) {
-      /* Update client property using pointer reversal (Ugh!). */
-      Tree node, parent, leftChild;
-
-      /* Reverse the pointers between rightTop and rightFirst */
-      /* ightFirst is not reversed. */
-      node = rightTop;
-      parent = TreeEMPTY;
-      while(node != rightFirst) {
-        leftChild = TreeLeft(node);
-        TreeSetLeft(node, parent); /* pointer reversal */
-        parent = node;
-        node = leftChild;
-       }
-
-      /* Now restore the pointers, updating the client property. */
-      /* node is rightFirst, parent is the last parent (or TreeEMPTY). */
-      tree->updateNode(tree, node);
-      while(node != rightTop) {
-        leftChild = node;
-        node = parent;
-        parent = TreeLeft(node);
-        TreeSetLeft(node, leftChild); /* un-reverse pointer */
-        tree->updateNode(tree, node);
-      }
-    }
-  }
-  /* otherwise leave top->right alone */
 
   tree->updateNode(tree, top);
 }
@@ -355,9 +327,7 @@ static Compare SplaySplay(SplayTree tree, TreeKey key, TreeCompare compare)
   }
 
 assemble:
-  SplayAssemble(tree, node,
-                TreeRight(&sides), leftLast,
-                TreeLeft(&sides), rightFirst);
+  SplayAssemble(tree, node, TreeRight(&sides), TreeLeft(&sides));
 
   SplayTreeSetRoot(tree, node);
   return cmp;
