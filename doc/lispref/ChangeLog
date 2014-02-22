@@ -1,3 +1,8 @@
+2014-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* functions.texi (Declare Form): Document gv-expander, gv-setter, and
+	compiler-macro (bug#16829).
+
 2014-02-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* windows.texi (Window Configurations): Doc fix.
@@ -16,6 +21,11 @@
 
 	* functions.texi (Defining Functions): Mention defalias-fset-function.
 
+2014-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.texi (Completion Commands): Don't document obsolete
+	`common-substring' arg of display-completion-list.
+
 2014-02-17  Glenn Morris  <rgm@gnu.org>
 
 	* minibuf.texi (Text from Minibuffer): Update read-regexp details.
@@ -31,8 +41,8 @@
 
 2014-02-10  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	* text.texi (User-Level Deletion): Document
-	`delete-trailing-whitespace' (bug#15309).
+	* text.texi (User-Level Deletion):
+	Document `delete-trailing-whitespace' (bug#15309).
 
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
@@ -237,8 +247,8 @@
 2013-12-24  Tassilo Horn  <tsdh@gnu.org>
 
 	* control.texi (Pattern matching case statement): Fix missing
-	argument in simple expression language sample (Bug#16238).  Add
-	some sample programs written in that language.  Mention that
+	argument in simple expression language sample (Bug#16238).
+	Add some sample programs written in that language.  Mention that
 	`pcase' requires lexical binding.
 
 2013-12-23  Xue Fuqiao  <xfq.free@gmail.com>
@@ -253,8 +263,8 @@
 
 2013-12-23  Chong Yidong  <cyd@gnu.org>
 
-	* keymaps.texi (Controlling Active Maps): Renamed
-	set-temporary-overlay-map to set-transient map.  Doc fixes.
+	* keymaps.texi (Controlling Active Maps):
+	Rename set-temporary-overlay-map to set-transient map.  Doc fixes.
 	(Searching Keymaps): The transient keymap takes precedence.
 
 2013-12-23  Glenn Morris  <rgm@gnu.org>
@@ -523,8 +533,8 @@
 2013-10-08  Eli Zaretskii  <eliz@gnu.org>
 
 	Support menus on text-mode terminals.
-	* keymaps.texi (Defining Menus, Mouse Menus, Menu Bar): Modify
-	wording to the effect that menus are supported on TTYs.
+	* keymaps.texi (Defining Menus, Mouse Menus, Menu Bar):
+	Modify wording to the effect that menus are supported on TTYs.
 
 	* frames.texi (Pop-Up Menus, Dialog Boxes)
 	(Display Feature Testing): Update for menu support on TTYs.
@@ -731,8 +741,8 @@
 2013-07-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.texi (Magic File Names): Add file-notify-add-watch,
-	file-notify-rm-watch and file-notify-supported-p.  Move
-	file-remote-p down.
+	file-notify-rm-watch and file-notify-supported-p.
+	Move file-remote-p down.
 
 	* errors.texi (Standard Errors): Add file-notify-error.
 
