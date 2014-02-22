@@ -187,30 +187,43 @@ static Tree SplayUpdateRightSpine(SplayTree tree, Tree node, Tree top)
  */
 
 static void SplayAssemble(SplayTree tree, Tree top,
-                          Tree leftTop, Tree rightTop)
+                          Tree leftTop, Tree leftLast,
+                          Tree rightTop, Tree rightFirst)
 {
   AVERT(SplayTree, tree);
   AVERT(Tree, top);
   AVERT(Tree, leftTop);
   AVERT(Tree, rightTop);
 
-  if (tree->updateNode != SplayTrivUpdate) {
-    /* Update client property using pointer reversal (Ugh!). */
-    Tree leftLast = TreeReverseRightSpine(leftTop);
-    Tree newLeft = SplayUpdateRightSpine(tree, leftLast, top);
-    AVER(newLeft == (leftTop != TreeEMPTY ? leftTop : TreeLeft(top)));
-    TreeSetLeft(top, newLeft);
-  } else
-    TreeSetLeft(top, leftTop);
+  if (leftTop != TreeEMPTY) {
+    if (tree->updateNode != SplayTrivUpdate) {
+      /* Update client property using pointer reversal (Ugh!). */
+      Tree left, newLeft;
+      left = TreeReverseRightSpine(leftTop);
+      AVER(left == leftLast);
+      newLeft = SplayUpdateRightSpine(tree, left, top);
+      AVER(newLeft == leftTop);
+      TreeSetLeft(top, newLeft);
+    } else {
+      TreeSetRight(leftLast, TreeLeft(top));
+      TreeSetLeft(top, leftTop);
+    }
+  }
 
-  if (tree->updateNode != SplayTrivUpdate) {
-    /* Update client property using pointer reversal (Ugh!). */
-    Tree rightFirst = TreeReverseLeftSpine(rightTop);
-    Tree newRight = SplayUpdateLeftSpine(tree, rightFirst, top);
-    AVER(newRight == (rightTop != TreeEMPTY ? rightTop : TreeRight(top)));
-    TreeSetRight(top, newRight);
-  } else
-    TreeSetRight(top, rightTop);
+  if (rightTop != TreeEMPTY) {
+    if (tree->updateNode != SplayTrivUpdate) {
+      /* Update client property using pointer reversal (Ugh!). */
+      Tree right, newRight;
+      right = TreeReverseLeftSpine(rightTop);
+      AVER(right == rightFirst);
+      newRight = SplayUpdateLeftSpine(tree, rightFirst, top);
+      AVER(newRight == rightTop);
+      TreeSetRight(top, newRight);
+    } else {
+      TreeSetLeft(rightFirst, TreeRight(top));
+      TreeSetRight(top, rightTop);
+    }
+  }
 
   tree->updateNode(tree, top);
 }
@@ -337,7 +350,9 @@ static Compare SplaySplay(SplayTree tree, TreeKey key, TreeCompare compare)
   }
 
 assemble:
-  SplayAssemble(tree, node, TreeRight(&sides), TreeLeft(&sides));
+  SplayAssemble(tree, node,
+                TreeRight(&sides), leftLast,
+                TreeLeft(&sides), rightFirst);
 
   SplayTreeSetRoot(tree, node);
   return cmp;
