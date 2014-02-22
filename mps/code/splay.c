@@ -457,6 +457,9 @@ Bool SplayTreeFind(Tree *nodeReturn, SplayTree tree, TreeKey key) {
   AVERT(SplayTree, tree);
   AVER(nodeReturn != NULL);
 
+  if (SplayTreeRoot(tree) == TreeEMPTY)
+    return FALSE;
+
   if (SplaySplay(tree, key, tree->compare) != CompareEQUAL)
     return FALSE;
 
@@ -593,18 +596,18 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
 
 Tree SplayTreeFirst(SplayTree tree, TreeKey zeroKey) {
   Tree node;
+  Compare cmp;
 
   AVERT(SplayTree, tree);
 
-  if (SplayTreeRoot(tree) == TreeEMPTY) {
-    node = TreeEMPTY;
-  } else {
-    Compare cmp = SplaySplay(tree, zeroKey, tree->compare);
-    AVER(cmp != CompareEQUAL);
-    node = SplayTreeRoot(tree);
-    AVER(node != TreeEMPTY);
-    AVER(TreeLeft(node) == TreeEMPTY);
-  }
+  if (SplayTreeRoot(tree) == TreeEMPTY)
+    return TreeEMPTY;
+  
+  cmp = SplaySplay(tree, zeroKey, tree->compare);
+  AVER(cmp != CompareEQUAL);
+  node = SplayTreeRoot(tree);
+  AVER(node != TreeEMPTY);
+  AVER(TreeLeft(node) == TreeEMPTY);
 
   return node;
 }
@@ -613,6 +616,9 @@ Tree SplayTreeNext(SplayTree tree, Tree oldNode, TreeKey oldKey) {
   AVERT(SplayTree, tree);
   AVERT(Tree, oldNode);
 
+  if (SplayTreeRoot(tree) == TreeEMPTY)
+    return TreeEMPTY;
+  
   /* Make old node the root.  Probably already is.  We don't mind if the
      node has been deleted, or replaced by a node with the same key. */
   switch (SplaySplay(tree, oldKey, tree->compare)) {
