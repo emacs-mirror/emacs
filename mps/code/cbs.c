@@ -124,6 +124,11 @@ static Compare cbsCompare(Tree node, TreeKey key)
     return CompareEQUAL;
 }
 
+static TreeKey cbsKey(Tree node)
+{
+  return keyOfCBSBlock(cbsBlockOfNode(node));
+}
+
 
 /* cbsTestNode, cbsTestTree -- test for nodes larger than the S parameter */
 
@@ -211,6 +216,7 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
 
   SplayTreeInit(treeOfCBS(cbs),
                 cbsCompare,
+                cbsKey,
                 fastFind ? cbsUpdateNode : SplayTrivUpdate);
   MPS_ARGS_BEGIN(pcArgs) {
     MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
@@ -271,8 +277,7 @@ static void cbsBlockDelete(CBS cbs, CBSBlock block)
   AVERT(CBSBlock, block);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
-  b = SplayTreeDelete(treeOfCBS(cbs), nodeOfCBSBlock(block),
-                      keyOfCBSBlock(block));
+  b = SplayTreeDelete(treeOfCBS(cbs), nodeOfCBSBlock(block));
   AVER(b); /* expect block to be in the tree */
   STATISTIC(--cbs->treeSize);
 
@@ -295,8 +300,7 @@ static void cbsBlockShrunk(CBS cbs, CBSBlock block, Size oldSize)
   AVER(oldSize > newSize);
 
   if (cbs->fastFind) {
-    SplayNodeRefresh(treeOfCBS(cbs), nodeOfCBSBlock(block),
-                     keyOfCBSBlock(block));
+    SplayNodeRefresh(treeOfCBS(cbs), nodeOfCBSBlock(block));
     AVER(CBSBlockSize(block) <= block->maxSize);
   }
 }
@@ -312,8 +316,7 @@ static void cbsBlockGrew(CBS cbs, CBSBlock block, Size oldSize)
   AVER(oldSize < newSize);
 
   if (cbs->fastFind) {
-    SplayNodeRefresh(treeOfCBS(cbs), nodeOfCBSBlock(block),
-                     keyOfCBSBlock(block));
+    SplayNodeRefresh(treeOfCBS(cbs), nodeOfCBSBlock(block));
     AVER(CBSBlockSize(block) <= block->maxSize);
   }
 }
@@ -361,8 +364,7 @@ static void cbsBlockInsert(CBS cbs, CBSBlock block)
   AVERT(CBSBlock, block);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
-  b = SplayTreeInsert(treeOfCBS(cbs), nodeOfCBSBlock(block),
-                      keyOfCBSBlock(block));
+  b = SplayTreeInsert(treeOfCBS(cbs), nodeOfCBSBlock(block));
   AVER(b);
   STATISTIC(++cbs->treeSize);
 }

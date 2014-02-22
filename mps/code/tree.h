@@ -17,6 +17,7 @@ typedef struct TreeStruct {
 
 typedef void *TreeKey;
 typedef Compare (*TreeCompare)(Tree tree, TreeKey key);
+typedef TreeKey (*TreeKeyMethod)(Tree tree);
 
 #define TreeEMPTY ((Tree)0)
 

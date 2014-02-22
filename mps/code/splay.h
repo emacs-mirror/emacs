@@ -26,6 +26,7 @@ extern void SplayTrivUpdate(SplayTree tree, Tree node);
 
 typedef struct SplayTreeStruct {
   TreeCompare compare;
+  TreeKeyMethod nodeKey;
   SplayUpdateNodeMethod updateNode;
   Tree root;
 } SplayTreeStruct;
@@ -34,11 +35,12 @@ typedef struct SplayTreeStruct {
 extern Bool SplayTreeCheck(SplayTree tree);
 extern void SplayTreeInit(SplayTree tree,
                           TreeCompare compare,
+                          TreeKeyMethod nodeKey,
                           SplayUpdateNodeMethod updateNode);
 extern void SplayTreeFinish(SplayTree tree);
 
-extern Bool SplayTreeInsert(SplayTree tree, Tree node, TreeKey key);
-extern Bool SplayTreeDelete(SplayTree tree, Tree node, TreeKey key);
+extern Bool SplayTreeInsert(SplayTree tree, Tree node);
+extern Bool SplayTreeDelete(SplayTree tree, Tree node);
 
 extern Bool SplayTreeFind(Tree *nodeReturn, SplayTree tree, TreeKey key);
 
@@ -58,7 +60,7 @@ extern Bool SplayFindLast(Tree *nodeReturn, SplayTree tree,
                           SplayTestTreeMethod testTree,
                           void *closureP, Size closureS);
 
-extern void SplayNodeRefresh(SplayTree tree, Tree node, TreeKey key);
+extern void SplayNodeRefresh(SplayTree tree, Tree node);
 
 extern Res SplayTreeDescribe(SplayTree tree, mps_lib_FILE *stream,
                              SplayNodeDescribeMethod nodeDescribe);
