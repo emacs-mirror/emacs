@@ -2,6 +2,8 @@
  *
  * $Id$
  * Copyright (C) 2014 Ravenbrook Limited.  See end of file for license.
+ *
+ * Simple binary trees, for use as building blocks.
  */
 
 #ifndef tree_h
@@ -77,11 +79,11 @@ extern Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
                        TreeKey key, TreeCompare compare);
 
 typedef Bool TreeVisitor(Tree tree, void *closureP, Size closureS);
-extern void TreeTraverse(Tree tree,
+extern Bool TreeTraverse(Tree tree,
                          TreeCompare compare,
                          TreeKeyMethod key,
                          TreeVisitor visit, void *closureP, Size closureS);
-extern void TreeTraverseMorris(Tree tree, TreeVisitor visit,
+extern Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
                                void *closureP, Size closureS);
 
 extern void TreeRotateLeft(Tree *nodeIO);
