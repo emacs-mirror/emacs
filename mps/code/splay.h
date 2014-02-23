@@ -34,6 +34,8 @@ typedef struct SplayTreeStruct {
   Tree root;
 } SplayTreeStruct;
 
+#define SplayTreeRoot(splay)    RVALUE((splay)->root)
+#define SplayTreeIsEmpty(splay) (SplayTreeRoot(splay) == TreeEMPTY)
 
 extern Bool SplayTreeCheck(SplayTree splay);
 extern void SplayTreeInit(SplayTree splay,
@@ -67,8 +69,6 @@ extern void SplayNodeRefresh(SplayTree splay, Tree node);
 
 extern Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream,
                              SplayNodeDescribeMethod nodeDescribe);
-
-extern Bool SplayRoot(Tree *nodeReturn, SplayTree splay);
 
 extern void SplayDebugUpdate(SplayTree splay, Tree tree);
 
