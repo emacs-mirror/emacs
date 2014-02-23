@@ -1,3 +1,9 @@
+2014-02-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* apropos.el (apropos-property, apropos-all-words-regexp)
+	(apropos-true-hit, apropos-variable, apropos-print):
+	Fix docstring typos, and remove obsolete comment.
+
 2014-02-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-file-truename):

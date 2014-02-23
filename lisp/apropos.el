@@ -99,7 +99,7 @@ include key-binding information in its output."
 
 (defface apropos-property
   '((t (:inherit font-lock-builtin-face)))
-  "Face for property name in apropos output, or nil for none."
+  "Face for property name in Apropos output, or nil for none."
   :group 'apropos
   :version "24.3")
 
@@ -182,7 +182,7 @@ If value is `verbose', the computed score is shown for each match."
   "Regexp used in current apropos run.")
 
 (defvar apropos-all-words-regexp nil
-  "Regexp matching apropos-all-words.")
+  "Regexp matching `apropos-all-words'.")
 
 (defvar apropos-files-scanned ()
   "List of elc files already scanned in current run of `apropos-documentation'.")
@@ -411,7 +411,6 @@ This updates variables `apropos-pattern', `apropos-pattern-quoted',
 	  apropos-pattern pattern
 	  apropos-regexp pattern)))
 
-
 (defun apropos-calc-scores (str words)
   "Return apropos scores for string STR matching WORDS.
 Value is a list of offsets of the words into the string."
@@ -455,7 +454,7 @@ Value is a list of offsets of the words into the string."
 (defun apropos-true-hit (str words)
   "Return t if STR is a genuine hit.
 This may fail if only one of the keywords is matched more than once.
-This requires that at least 2 keywords (unless only one was given)."
+This requires at least two keywords (unless only one was given)."
   (or (not str)
       (not words)
       (not (cdr words))
@@ -506,7 +505,7 @@ variables, not just user options."
 ;;;###autoload
 (defun apropos-variable (pattern &optional do-not-all)
   "Show variables that match PATTERN.
-When DO-NOT-ALL is not-nil, show user options only, i.e. behave
+When DO-NOT-ALL is non-nil, show user options only, i.e. behave
 like `apropos-user-option'."
   (interactive (list (apropos-read-pattern
 		      (if current-prefix-arg "user option" "variable"))
@@ -1038,14 +1037,12 @@ alphabetically by symbol name; but this function also sets
 `apropos-accumulator' to nil before returning.
 
 If SPACING is non-nil, it should be a string; separate items with that string.
-If non-nil TEXT is a string that will be printed as a heading."
+If non-nil, TEXT is a string that will be printed as a heading."
   (if (null apropos-accumulator)
       (message "No apropos matches for `%s'" apropos-pattern)
     (setq apropos-accumulator
 	  (sort apropos-accumulator
 		(lambda (a b)
-		  ;; Don't sort by score if user can't see the score.
-		  ;; It would be confusing.  -- rms.
 		  (if apropos-sort-by-scores
 		      (or (> (cadr a) (cadr b))
 			  (and (= (cadr a) (cadr b))
