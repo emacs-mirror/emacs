@@ -55,6 +55,8 @@ extern Bool CBSFindLast(Range rangeReturn, Range oldRangeReturn,
 extern Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
                            CBS cbs, Size size, FindDelete findDelete);
 
+extern Size CBSSize(CBS cbs);
+
 
 #endif /* cbs_h */
 

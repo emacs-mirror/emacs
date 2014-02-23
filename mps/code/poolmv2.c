@@ -825,9 +825,8 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
   if (ResIsAllocFailure(res)) {
     /* CBS ran out of memory for splay nodes: add range to emergency
      * free list instead. */
-    res = FreelistInsert(&newRange, MVTFreelist(mvt), &range);
-  }
-  if (res != ResOK)
+    FreelistInsert(&newRange, MVTFreelist(mvt), &range);
+  } else 
     return res;
 
   if (RangeSize(&newRange) >= mvt->reuseSize) {

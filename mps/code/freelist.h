@@ -32,7 +32,7 @@ extern Bool FreelistCheck(Freelist fl);
 extern Res FreelistInit(Freelist fl, Align alignment);
 extern void FreelistFinish(Freelist fl);
 
-extern Res FreelistInsert(Range rangeReturn, Freelist fl, Range range);
+extern void FreelistInsert(Range rangeReturn, Freelist fl, Range range);
 extern Res FreelistDelete(Range rangeReturn, Freelist fl, Range range);
 extern Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream);
 
@@ -47,6 +47,8 @@ extern Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn,
                                 Freelist fl, Size size, FindDelete findDelete);
 
 extern void FreelistFlushToCBS(Freelist fl, CBS cbs);
+
+extern Size FreelistSize(Freelist fl);
 
 #endif /* freelist.h */
 
