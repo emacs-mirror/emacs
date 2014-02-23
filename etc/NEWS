@@ -219,31 +219,26 @@ the appearance of dividers by customizing the faces `window-divider',
 two are useful to provide a 3D effect, or to better distinguish dividers
 from surrounding display objects.
 
----
 *** New functions are provided to return the pixel sizes of window
 components, namely `window-scroll-bar-width', `window-mode-line-height'
 `window-header-line-height', `window-right-divider-width' and
 `window-bottom-divider-width'.
 
----
 *** The new function `window-text-pixel-size' returns the size of the
 text of a window's buffer in pixels.  This allows functions like
 `fit-frame-to-buffer' and `fit-window-to-buffer' to accurately fit a
 window to its buffer as it will be displayed.
 
----
 *** `fit-window-to-buffer' can now resize windows horizontally.
 This behavior is controlled by the new option
 `fit-window-to-buffer-horizontally'.
 
----
 *** `fit-frame-to-buffer' can now fit frames in both directions.
 This behavior is controlled by the option `fit-frame-to-buffer' which
 tells in which direction(s) the frame shall be fit.  The new options
 `fit-frame-to-buffer-margins' and `fit-frame-to-buffer-sizes' allow to
 control the size of the frame and its position on screen.
 
----
 *** Temp Buffer Resize Mode can now adjust height and width of windows
 and frames.  `temp-buffer-resize-mode' is now able to adjust the height
 and the width of a window displaying a temporary buffer.  The new option
@@ -258,11 +253,9 @@ As a command, it was a special case of `C-x 2' (`split-window-below'),
 and as such superfluous.  After being reimplemented in Lisp, its
 interactive form was mistakenly retained.
 
----
 *** The functions `window-size' and `window-total-size' now have an
 optional argument to return a rounded size value.
 
----
 *** `window-state-put' now allows to put a window state into internal
 windows too.
 
@@ -272,12 +265,10 @@ Available only on X, this option allows to control over-scrolling
 using the scroll bar (i.e. dragging the thumb down even when the end
 of the buffer is visible).
 
----
 *** New basic action function `display-buffer-in-previous-window' has
 `display-buffer' display a buffer in a window previously showing that
 buffer.
 
----
 *** New basic action function `display-buffer-at-bottom' has
 `display-buffer' choose or make a window at the bottom of the selected
 frame.
