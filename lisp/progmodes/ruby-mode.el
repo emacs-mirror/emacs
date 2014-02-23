@@ -653,7 +653,6 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
      (if (smie-rule-sibling-p)
          (and ruby-align-chained-calls 0)
        ruby-indent-level))
-    (`(:after . "=>") ruby-indent-level)
     (`(:before . ,(or `"else" `"then" `"elsif" `"rescue" `"ensure"))
      (smie-rule-parent))
     (`(:before . "when")

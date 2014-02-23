@@ -361,4 +361,10 @@ foo(bar:
       tee)
 
 foo(:bar =>
-      tee)
+    tee)
+
+{'a' => {
+   'b' => 'c',
+   'd' => %w(e f)
+ }
+}

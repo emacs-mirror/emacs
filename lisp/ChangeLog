@@ -1,3 +1,8 @@
+2014-02-23  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie-rules): Don't indent specially
+	after `=>' (bug#16811).
+
 2014-02-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* elec-pair.el (electric-pair-text-syntax-table)
