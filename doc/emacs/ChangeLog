@@ -1,3 +1,7 @@
+2014-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* rmail.texi (Rmail Inbox): Mention rmail-mbox-format.
+
 2014-02-20  Glenn Morris  <rgm@gnu.org>
 
 	* search.texi (Special Isearch): Mention invisible text.

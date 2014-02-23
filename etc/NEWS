@@ -784,6 +784,7 @@ names specified by `remember-directory-file-name-format'.
 
 ** Rmail
 
++++
 *** Customize `rmail-mbox-format' to influence some minor aspects of
 how Rmail displays non-MIME messages.
 
