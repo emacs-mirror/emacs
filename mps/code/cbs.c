@@ -667,8 +667,8 @@ void CBSIterate(CBS cbs, CBSIterateMethod iterate,
   closure.iterate = iterate;
   closure.closureP = closureP;
   closure.closureS = closureS;
-  TreeTraverse(SplayTreeRoot(tree), tree->compare, tree->nodeKey,
-               CBSIterateVisit, &closure, 0);
+  (void)TreeTraverse(SplayTreeRoot(tree), tree->compare, tree->nodeKey,
+                     CBSIterateVisit, &closure, 0);
 
   cbsLeave(cbs);
   return;

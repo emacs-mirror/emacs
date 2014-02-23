@@ -155,13 +155,16 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
  * <http://en.wikipedia.org/wiki/Tree_traversal#Morris_in-order_traversal_using_threading>
  *
  * The tree may not be modified during the traversal, and the traversal
- * must complete.  TODO: Is there a way to abort early?
+ * must complete.
+ *
+ * TreeTraverse is generally superior if comparisons are cheap.
  */
 
-void TreeTraverseMorris(Tree tree, TreeVisitor visit,
+Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
                         void *closureP, Size closureS)
 {
   Tree node;
+  Bool visiting = TRUE;
   
   AVER(TreeCheck(tree));
   AVER(FUNCHECK(visit));
@@ -170,7 +173,8 @@ void TreeTraverseMorris(Tree tree, TreeVisitor visit,
   node = tree;
   while (node != TreeEMPTY) {
     if (node->left == TreeEMPTY) {
-      (void)visit(node, closureP, closureS);
+      if (visiting)
+        visiting = visit(node, closureP, closureS);
       node = node->right;
     } else {
       Tree pre = node->left;
@@ -182,7 +186,10 @@ void TreeTraverseMorris(Tree tree, TreeVisitor visit,
         }
         if (pre->right == node) {
           pre->right = TreeEMPTY;
-          (void)visit(node, closureP, closureS);
+          if (visiting)
+            visiting = visit(node, closureP, closureS);
+          else if (node == tree)
+            return FALSE;
           node = node->right;
           break;
         }
@@ -190,6 +197,8 @@ void TreeTraverseMorris(Tree tree, TreeVisitor visit,
       }
     }
   }
+
+  return visiting;
 }
 
 
@@ -231,7 +240,7 @@ static Tree stepUpLeft(Tree node, Tree *parentIO)
   return parent;
 }
 
-void TreeTraverse(Tree tree,
+Bool TreeTraverse(Tree tree,
                   TreeCompare compare,
                   TreeKeyMethod key,
                   TreeVisitor visit, void *closureP, Size closureS)
@@ -246,7 +255,7 @@ void TreeTraverse(Tree tree,
   node = tree;
   
   if (node == TreeEMPTY)
-    return;
+    return TRUE;
 
 down:
   if (TreeHasLeft(node)) {
@@ -264,7 +273,7 @@ down:
 
 up:
   if (parent == TreeEMPTY)
-    return;
+    return TRUE;
   if (compare(parent, key(node)) != CompareLESS) {
     node = stepUpLeft(node, &parent);
     goto up;
@@ -279,7 +288,7 @@ up:
 
 abort:
   if (parent == TreeEMPTY)
-    return;
+    return FALSE;
   if (compare(parent, key(node)) != CompareLESS)
     node = stepUpLeft(node, &parent);
   else
