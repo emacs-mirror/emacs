@@ -80,7 +80,7 @@ Bool PoolDebugMixinCheck(PoolDebugMixin debug)
     CHECKD(Pool, debug->tagPool);
     CHECKL(COMPATTYPE(Addr, void*)); /* tagPool relies on this */
     /* Nothing to check about missingTags */
-    CHECKL(SplayTreeCheck(&debug->index));
+    CHECKD(SplayTree, &debug->index);
   }
   UNUSED(debug); /* see <code/mpm.c#check.unused> */
   return TRUE;
