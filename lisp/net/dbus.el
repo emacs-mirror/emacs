@@ -286,7 +286,7 @@ object is returned instead of a list containing this single Lisp object.
     ;; hurts when reading D-Bus events asynchronously.
 
     ;; Work around bug#16775 by busy-waiting with gradual backoff for
-    ;; dbus calls to complete.  A better aproach would involve either
+    ;; dbus calls to complete.  A better approach would involve either
     ;; adding arbitrary wait condition support to read-event or
     ;; restructuring dbus as a kind of process object.  Poll at most
     ;; about once per second for completion.

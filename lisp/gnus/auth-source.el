@@ -1511,11 +1511,11 @@ Respects `auth-source-save-behavior'.  Uses
 
 auth-source patterns can have values of the form :foo (\"bar\"
 \"qux\"), which means to match any secret with :foo equal to
-\"bar\" otr :foo equal to \"qux\".  The secrets backend supports
+\"bar\" or :foo equal to \"qux\".  The secrets backend supports
 only string values for patterns, so this routine returns a list
 of patterns that is equivalent to the single original pattern
 when interpreted such that if a secret matches any pattern in the
-list, it mathces the original pattern."
+list, it matches the original pattern."
   (if (null pattern)
       '(nil)
     (let* ((key (pop pattern))
