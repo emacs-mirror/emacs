@@ -1,3 +1,8 @@
+2014-02-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-file-truename):
+	Preserve trailing "/".  (Bug#16851)
+
 2014-02-23  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie-rules): Don't indent specially
@@ -130,7 +135,7 @@
 	(tramp-handle-insert-directory): New defun, taken from tramp-gvfs.el.
 
 	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist)
-	<insert-directory>: Use `tramp-handle-insert-directory.
+	<insert-directory>: Use `tramp-handle-insert-directory'.
 	(tramp-gvfs-handle-insert-directory): Remove function.
 
 	* net/tramp-sh.el (tramp-sh-handle-insert-directory):

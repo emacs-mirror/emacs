@@ -1042,7 +1042,8 @@ target of the symlink differ."
 		  (setq result (concat result "/"))))))
 
 	  (tramp-message v 4 "True name of `%s' is `%s'" localname result)
-	  result)))))
+	  (if (string-equal (file-name-nondirectory localname) "")
+	      (file-name-as-directory result) result))))))
 
 ;; Basic functions.
 
