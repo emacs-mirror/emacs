@@ -744,7 +744,8 @@ static void cbsFindDeleteRange(Range rangeReturn, Range oldRangeReturn,
        deleted from one end of the block, so cbsDeleteFromTree did not
        need to allocate a new block. */
     AVER(res == ResOK);
-  }
+  } else
+    RangeFinish(oldRangeReturn);
 }
 
 
@@ -860,6 +861,26 @@ Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
 
   cbsLeave(cbs);
   return found;
+}
+
+
+/* CBSSize -- calculate the total size of blocks in the CBS */
+
+static Bool CBSSizeIterate(CBS cbs, Range range, void *closureP, Size closureS)
+{
+  Size *sizeP = closureP;
+  UNUSED(cbs);
+  UNUSED(closureS);
+  *sizeP += RangeSize(range);
+  return TRUE;
+}
+
+Size CBSSize(CBS cbs)
+{
+  Size size = 0;
+  AVERT(CBS, cbs);
+  CBSIterate(cbs, CBSSizeIterate, &size, 0);
+  return size;
 }
 
 

@@ -201,7 +201,7 @@ static void freelistBlockSetPrevNext(Freelist fl, FreelistBlock prev,
 }
 
 
-Res FreelistInsert(Range rangeReturn, Freelist fl, Range range)
+void FreelistInsert(Range rangeReturn, Freelist fl, Range range)
 {
   FreelistBlock prev, cur, next, new;
   Addr base, limit;
@@ -218,8 +218,10 @@ Res FreelistInsert(Range rangeReturn, Freelist fl, Range range)
   prev = NULL;
   cur = fl->list;
   while (cur) {
-    if (base < FreelistBlockLimit(fl, cur) && FreelistBlockBase(cur) < limit)
-      return ResFAIL; /* range overlaps with cur */
+    if (base < FreelistBlockLimit(fl, cur) && FreelistBlockBase(cur) < limit) {
+      NOTREACHED; /* range overlaps with cur */
+      return;     /* defensive ignore */
+    }
     if (limit <= FreelistBlockBase(cur))
       break;
     next = FreelistBlockNext(cur);
@@ -262,7 +264,6 @@ Res FreelistInsert(Range rangeReturn, Freelist fl, Range range)
   }
 
   RangeInit(rangeReturn, base, limit);
-  return ResOK;
 }
 
 
@@ -621,6 +622,28 @@ void FreelistFlushToCBS(Freelist fl, CBS cbs)
   AVERT(CBS, cbs);
 
   FreelistIterate(fl, freelistFlushIterateMethod, cbs, 0);
+}
+
+
+/* FreelistSize -- calculate the total size of blocks in the freelist */
+
+static Bool FreelistSizeVisitor(Bool *deleteReturn,
+                                Range range,
+                                void *closureP, Size closureS)
+{
+  Size *sizeP = closureP;
+  UNUSED(closureS);
+  *sizeP += RangeSize(range);
+  deleteReturn = FALSE;
+  return TRUE;
+}
+
+Size FreelistSize(Freelist fl)
+{
+  Size size = 0;
+  AVERT(Freelist, fl);
+  FreelistIterate(fl, FreelistSizeVisitor, &size, 0);
+  return size;
 }
 
 
