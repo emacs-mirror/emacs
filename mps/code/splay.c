@@ -218,7 +218,7 @@ static Tree SplayZagZag(Tree middle, Tree *leftLastIO, Tree leftPrev)
 }
 
 
-/* SplaySplit -- divide the tree around a key
+/* SplaySplitDown -- divide the tree around a key
  *
  * Split a tree into three according to a key and a comparison,
  * splaying nested left and right nodes.  Preserves tree ordering.
@@ -242,8 +242,8 @@ typedef struct SplayStateStruct {
   Tree rightFirst;
 } SplayStateStruct, *SplayState;
 
-static Compare SplaySplit(SplayStateStruct *stateReturn,
-                          SplayTree splay, TreeKey key, TreeCompare compare)
+static Compare SplaySplitDown(SplayStateStruct *stateReturn,
+                              SplayTree splay, TreeKey key, TreeCompare compare)
 {
   TreeStruct sentinel;
   Tree middle, leftLast, rightFirst, leftPrev, rightNext;
@@ -326,7 +326,7 @@ stop:
 }
 
 
-/* SplayAssemble -- assemble left right and middle trees into one
+/* SplayAssembleDown -- assemble left right and middle trees into one
  *
  * Takes the result of a SplaySplit and forms a single tree with the
  * root of the middle tree as the root.
@@ -348,7 +348,7 @@ stop:
  * See <design/splay/#impl.assemble>.
  */
 
-static void SplayAssemble(SplayTree splay, SplayState state)
+static void SplayAssembleDown(SplayTree splay, SplayState state)
 {
   AVERT(SplayTree, splay);
   AVER(state->middle != TreeEMPTY);
@@ -590,6 +590,24 @@ static void SplayAssembleRev(SplayTree splay, SplayState state)
 }
 
 
+static Compare SplaySplit(SplayStateStruct *stateReturn,
+                          SplayTree splay, TreeKey key, TreeCompare compare)
+{
+  if (SplayHasUpdate(splay))
+    return SplaySplitRev(stateReturn, splay, key, compare);
+  else
+    return SplaySplitDown(stateReturn, splay, key, compare);
+}
+
+static void SplayAssemble(SplayTree splay, SplayState state)
+{
+  if (SplayHasUpdate(splay))
+    SplayAssembleRev(splay, state);
+  else
+    SplayAssembleDown(splay, state);
+}
+
+
 /* SplaySplay -- splay the tree around a given key
  *
  * If the key is not found, splays around an arbitrary neighbour.
@@ -617,8 +635,8 @@ static Compare SplaySplay(SplayTree splay, TreeKey key, TreeCompare compare)
     cmp = SplaySplitRev(&stateStruct, splay, key, compare);
     SplayAssembleRev(splay, &stateStruct);
   } else {
-    cmp = SplaySplit(&stateStruct, splay, key, compare);
-    SplayAssemble(splay, &stateStruct);
+    cmp = SplaySplitDown(&stateStruct, splay, key, compare);
+    SplayAssembleDown(splay, &stateStruct);
   }
 
   SplayTreeSetRoot(splay, stateStruct.middle);
@@ -818,10 +836,7 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
     return TRUE;
   }
 
-  if (SplayHasUpdate(splay))
-    cmp = SplaySplitRev(&stateStruct, splay, key, splay->compare);
-  else
-    cmp = SplaySplit(&stateStruct, splay, key, splay->compare);
+  cmp = SplaySplit(&stateStruct, splay, key, splay->compare);
 
   switch (cmp) {
   default:
@@ -846,11 +861,7 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
     break;
   }
 
-  if (SplayHasUpdate(splay))
-    SplayAssembleRev(splay, &stateStruct);
-  else
-    SplayAssemble(splay, &stateStruct);
-
+  SplayAssemble(splay, &stateStruct);
   SplayTreeSetRoot(splay, stateStruct.middle);
 
 #ifdef SPLAY_DEBUG
