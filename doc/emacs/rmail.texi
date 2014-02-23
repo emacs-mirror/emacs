@@ -356,7 +356,7 @@ Files}.
 @item
 The inbox file format varies between operating systems and according to
 the other mail software in use.  Only one part of Rmail needs to know
-about the alternatives, and it need only understand how to convert allx
+about the alternatives, and it need only understand how to convert all
 of them to Rmail's own format.
 
 @item
