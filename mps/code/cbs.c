@@ -73,7 +73,7 @@ Bool CBSCheck(CBS cbs)
   /* See .enter-leave.simple. */
   CHECKS(CBS, cbs);
   CHECKL(cbs != NULL);
-  CHECKL(SplayTreeCheck(treeOfCBS(cbs)));
+  CHECKD(SplayTree, treeOfCBS(cbs));
   /* nothing to check about treeSize */
   CHECKD(Pool, cbs->blockPool);
   CHECKL(BoolCheck(cbs->fastFind));
