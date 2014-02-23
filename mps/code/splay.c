@@ -77,7 +77,24 @@ void SplayTrivUpdate(SplayTree tree, Tree node)
 }
 
 
+static Compare compareLess(Tree tree, TreeKey key)
+{
+  UNUSED(tree);
+  UNUSED(key);
+  return CompareLESS;
+}
+
+
+static Compare compareGreater(Tree tree, TreeKey key)
+{
+  UNUSED(tree);
+  UNUSED(key);
+  return CompareGREATER;
+}
+
+
 #ifdef SPLAY_DEBUG
+#if 0
 static void SplayDebugUpdate(SplayTree tree, Tree node)
 {
   if (node == TreeEMPTY)
@@ -87,60 +104,417 @@ static void SplayDebugUpdate(SplayTree tree, Tree node)
   tree->updateNode(tree, node);
 }
 #endif
+#endif
 
 
-/* SplayLinkRight -- Move top to left child of top
+/* SplayZig -- move to left child, prepending to right tree
  *
- * Link the current top node into the left child of the right tree,
- * leaving the top node as the left child of the old top node.
+ * Link the top node of the middle tree into the left child of the
+ * right tree, then step to the left child.
  *
  * See <design/splay/#impl.link.right>.
+ *
+ *    middle    rightNext            middle
+ *      B          E                   A              E
+ *     / \        / \          =>                    / \
+ *    A   C      D   F                    rightNext D   F
+ *          rightFirst                             /
+ *                                     rightFirst B
+ *                                                 \
+ *                                                  C
  */
 
-static void SplayLinkRight(Tree *topIO, Tree *rightIO)
+static Tree SplayZig(Tree middle, Tree *rightFirstIO, Tree *rightNextReturn)
 {
-  AVERT(Tree, *topIO);
-  AVERT(Tree, *rightIO);
+#if 0
+  AVERT(Tree, middle);
+  AVER(rightFirstIO != NULL);
+  AVERT(Tree, *rightFirstIO);
+#endif
+  TreeSetLeft(*rightFirstIO, middle);
+  *rightNextReturn = *rightFirstIO;
+  *rightFirstIO = middle;
+  return TreeLeft(middle);
+}
 
-  /* Don't fix client properties yet. */
+/* SplayZigZig -- move to left child, rotating on on to right tree
+ *
+ * Rotate the top node of the middle tree over the left child of the
+ * right tree, then step to the left child.
+ *
+ *    middle     rightNext           middle       rightNext
+ *      B          E                   A              E
+ *     / \        / \          =>                    / \
+ *    A   C      D   F                        right B   F
+ *             right                                 \
+ *                                                    D
+ *                                                   /
+ *                                                  C
+ */
 
-  /* .link.right.first: *rightIO is always the first node in the */
-  /* right tree, so its left child must be null. */
-  AVER(TreeLeft(*rightIO) == TreeEMPTY);
+static Tree SplayZigZig(Tree middle, Tree *rightFirstIO, Tree rightNext)
+{
+#if 0
+  AVERT(Tree, middle);
+  AVER(rightFirstIO != NULL);
+  AVERT(Tree, *rightFirstIO);
+#endif
+  TreeSetLeft(*rightFirstIO, TreeRight(middle));
+  TreeSetRight(middle, *rightFirstIO);
+  TreeSetLeft(rightNext, middle);
+  *rightFirstIO = middle;
+  return TreeLeft(middle);
+}
+  
+/* SplayZag -- mirror image of SplayZig */
 
-  TreeSetLeft(*rightIO, *topIO);
-  *rightIO = *topIO;
-  *topIO = TreeLeft(*topIO);
+static Tree SplayZag(Tree middle, Tree *leftLastIO, Tree *leftPrevReturn) {
+#if 0
+  AVERT(Tree, middle);
+  AVER(leftLastIO != NULL);
+  AVERT(Tree, *leftLastIO);
+#endif
+  TreeSetRight(*leftLastIO, middle);
+  *leftPrevReturn = *leftLastIO;
+  *leftLastIO = middle;
+  return TreeRight(middle);
+}
 
-  /* The following line is only required for .link.right.first. */
-  TreeSetLeft(*rightIO, TreeEMPTY);
+/* SplayZagZag -- mirror image of SplayZigZig */
+
+static Tree SplayZagZag(Tree middle, Tree *leftLastIO, Tree leftPrev)
+{
+#if 0
+  AVERT(Tree, middle);
+  AVER(leftLastIO != NULL);
+  AVERT(Tree, *leftLastIO);
+#endif
+  TreeSetRight(*leftLastIO, TreeLeft(middle));
+  TreeSetLeft(middle, *leftLastIO);
+  TreeSetRight(leftPrev, middle);
+  *leftLastIO = middle;
+  return TreeRight(middle);
 }
 
 
-/* SplayLinkLeft -- Move top to right child of top
+/* SplaySplit -- divide the tree around a key
  *
- * Link the current top node into the right child of the left tree,
- * leaving the top node as the right child of the old top node.
+ * Split a tree into three according to a key and a comparison,
+ * splaying nested left and right nodes.
  *
- * See <design/splay/#impl.link.left>.
+ * Regardless of the comparison, preserves the order of the trees.
+ *
+ * Returns a forest:
+ *   cmp -- the relationship of node to the key
+ *   node -- the middle tree, with the nearest match for the key at the top
+ *   leftTop -- a tree of nodes that were less than node
+ *   leftLast -- the greatest node in leftTop (rightmost child)
+ *   rightTop -- a tree of nodes that were greater than node
+ *   rightFirst -- the least node in rightTop (leftmost child)
+ *
+ * Does *not* maintain client properties.  See SplaySplitRev.
  */
 
-static void SplayLinkLeft(Tree *topIO, Tree *leftIO) {
-  AVERT(Tree, *topIO);
-  AVERT(Tree, *leftIO);
+static Compare SplaySplit(Tree *nodeReturn,
+                          Tree *leftTopReturn, Tree *leftLastReturn,
+                          Tree *rightTopReturn, Tree *rightFirstReturn,
+                          SplayTree tree, TreeKey key, TreeCompare compare)
+{
+  TreeStruct sides;
+  Tree node, leftLast, rightFirst, leftPrev, rightNext;
+  Compare cmp;
 
-  /* Don't fix client properties yet. */
+  AVERT(SplayTree, tree);
+  AVER(FUNCHECK(compare));
+  
+  TreeInit(&sides);
+  leftLast = &sides;
+  rightFirst = &sides;
 
-  /* .link.left.first: *leftIO is always the last node in the */
-  /* left tree, so its right child must be null. */
-  AVER(TreeRight(*leftIO) == TreeEMPTY);
+  node = SplayTreeRoot(tree);
 
-  TreeSetRight(*leftIO, *topIO);
-  *leftIO = *topIO;
-  *topIO = TreeRight(*topIO);
+  if (node == TreeEMPTY) {
+    cmp = CompareEQUAL;
+    goto stop;
+  }
 
-  /* The following line is only required for .link.left.first. */
-  TreeSetRight(*leftIO, TreeEMPTY);
+  for (;;) {
+    cmp = compare(node, key);
+    switch(cmp) {
+    default:
+      NOTREACHED;
+      /* defensive fall-through */
+    case CompareEQUAL:
+      goto stop;
+
+    case CompareLESS:
+      if (!TreeHasLeft(node))
+        goto stop;
+      node = SplayZig(node, &rightFirst, &rightNext);
+      cmp = compare(node, key);
+      switch(cmp) {
+      default:
+        NOTREACHED;
+        /* defensive fall-through */
+      case CompareEQUAL:
+        goto stop;
+      case CompareLESS:
+        if (!TreeHasLeft(node))
+          goto stop;
+        node = SplayZigZig(node, &rightFirst, rightNext);
+        break;
+      case CompareGREATER:
+        if (!TreeHasRight(node))
+          goto stop;
+        node = SplayZag(node, &leftLast, &leftPrev);
+        break;
+      }
+      break;
+
+    case CompareGREATER:
+      if (!TreeHasRight(node))
+        goto stop;
+      node = SplayZag(node, &leftLast, &leftPrev);
+      cmp = compare(node, key);
+      switch(cmp) {
+      default:
+        NOTREACHED;
+        /* defensive fall-through */
+      case CompareEQUAL:
+        goto stop;
+      case CompareGREATER:
+        if (!TreeHasRight(node))
+          goto stop;
+        node = SplayZagZag(node, &leftLast, leftPrev);
+        break;
+      case CompareLESS:
+        if (!TreeHasLeft(node))
+          goto stop;
+        node = SplayZig(node, &rightFirst, &rightNext);
+        break;
+      }
+      break;
+    }
+  }
+
+stop:
+  *nodeReturn = node;
+  *leftTopReturn = TreeRight(&sides);
+  *leftLastReturn = leftLast == &sides ? TreeEMPTY : leftLast;
+  *rightTopReturn = TreeLeft(&sides);
+  *rightFirstReturn = rightFirst == &sides ? TreeEMPTY : rightFirst;
+  return cmp;
+}
+
+
+/* SplayAssemble -- assemble left right and middle trees into one
+ *
+ * Takes the result of a SplaySplit and forms a single tree.
+ *
+ * We do this by moving the children of the middle tree to the last and
+ * first nodes in the left and right trees, and then moving the tops
+ * of the left and right trees to the children of the middle tree.
+ * Does *not* maintain client properties.  See SplayAssembleRev.
+ *
+ * See <design/splay/#impl.assemble>.
+ */
+
+static void SplayAssemble(SplayTree tree, Tree middle,
+                          Tree leftTop, Tree leftLast,
+                          Tree rightTop, Tree rightFirst)
+{
+  AVERT(SplayTree, tree);
+  AVERT(Tree, middle);
+  AVERT(Tree, leftTop);
+  AVERT(Tree, rightTop);
+
+  if (leftTop != TreeEMPTY) {
+    AVER(leftLast != TreeEMPTY);
+    TreeSetRight(leftLast, TreeLeft(middle));
+    TreeSetLeft(middle, leftTop);
+  }
+
+  if (rightTop != TreeEMPTY) {
+    AVER(rightFirst != TreeEMPTY);
+    TreeSetLeft(rightFirst, TreeRight(middle));
+    TreeSetRight(middle, rightTop);
+  }
+}
+
+
+/* SplayZigRev -- move to left child, prepending to reversed right tree
+ *
+ * Same as SplayZig, except that the right tree is pointer-reversed,
+ * so that the left children of the nodes on the left spine point at
+ * their parents.
+ */
+
+static Tree SplayZigRev(Tree middle, Tree *rightFirstIO)
+{
+  Tree child;
+#if 0
+  AVERT(Tree, middle);
+  AVER(rightFirstIO != NULL);
+  AVERT(Tree, *rightFirstIO);
+#endif
+  child = TreeLeft(middle);
+  TreeSetLeft(middle, *rightFirstIO);
+  *rightFirstIO = middle;
+  return child;
+}
+
+/* SplayZigZigRev -- move to left child, rotating onto reversed right tree
+ *
+ * Same as SplayZigZig, except that the right tree is pointer reversed
+ * (see SplayZigRev)
+ */
+
+static Tree SplayZigZigRev(Tree middle, Tree *rightFirstIO)
+{
+  Tree child;
+#if 0
+  AVERT(Tree, middle);
+  AVER(rightFirstIO != NULL);
+  AVERT(Tree, *rightFirstIO);
+#endif
+  child = TreeLeft(middle);
+  TreeSetLeft(middle, TreeLeft(*rightFirstIO));
+  TreeSetLeft(*rightFirstIO, TreeRight(middle));
+  TreeSetRight(middle, *rightFirstIO);
+  *rightFirstIO = middle;
+  return child;
+}
+
+/* SplayZagRev -- mirror image of SplayZigRev */
+
+static Tree SplayZagRev(Tree middle, Tree *leftLastIO)
+{
+  Tree child;
+#if 0
+  AVERT(Tree, middle);
+  AVER(leftLastIO != NULL);
+  AVERT(Tree, *leftLastIO);
+#endif
+  child = TreeRight(middle);
+  TreeSetRight(middle, *leftLastIO);
+  *leftLastIO = middle;
+  return child;
+}
+
+/* SplayZagZagRev -- mirror image of SplayZigZigRev */
+
+static Tree SplayZagZagRev(Tree middle, Tree *leftLastIO)
+{
+  Tree child;
+#if 0
+  AVERT(Tree, middle);
+  AVER(leftLastIO != NULL);
+  AVERT(Tree, *leftLastIO);
+#endif
+  child = TreeRight(middle);
+  TreeSetRight(middle, TreeRight(*leftLastIO));
+  TreeSetRight(*leftLastIO, TreeLeft(middle));
+  TreeSetLeft(middle, *leftLastIO);
+  *leftLastIO = middle;
+  return child;
+}
+
+
+/* SplaySplitRev -- divide the tree around a key
+ *
+ * This is the same as SplaySplit, except that:
+ *   - the left and right trees are pointer reversed on their spines
+ *   - client properties for rotated nodes (not on the spines) are
+ *     updated
+ */
+
+static Compare SplaySplitRev(Tree *nodeReturn,
+                             Tree *leftLastReturn, Tree *rightFirstReturn,
+                             SplayTree tree, TreeKey key, TreeCompare compare)
+{
+  Tree node, leftLast, rightFirst;
+  Compare cmp;
+
+  AVERT(SplayTree, tree);
+  AVER(FUNCHECK(compare));
+  
+  node = SplayTreeRoot(tree); /* will be copied back at end */
+
+  leftLast = TreeEMPTY;
+  rightFirst = TreeEMPTY;
+
+  if (node == TreeEMPTY) {
+    cmp = CompareEQUAL;
+    goto stop;
+  }
+
+  for (;;) {
+    /* cmp is already initialised above. */
+    cmp = compare(node, key);
+    switch(cmp) {
+    default:
+      NOTREACHED;
+      /* defensive fall-through */
+    case CompareEQUAL:
+      goto stop;
+
+    case CompareLESS:
+      if (!TreeHasLeft(node))
+        goto stop;
+      node = SplayZigRev(node, &rightFirst);
+      cmp = compare(node, key);
+      switch(cmp) {
+      default:
+        NOTREACHED;
+        /* defensive fall-through */
+      case CompareEQUAL:
+        goto stop;
+      case CompareLESS:
+        if (!TreeHasLeft(node))
+          goto stop;
+        node = SplayZigZigRev(node, &rightFirst);
+        tree->updateNode(tree, TreeRight(rightFirst));
+        break;
+      case CompareGREATER:
+        if (!TreeHasRight(node))
+          goto stop;
+        node = SplayZagRev(node, &leftLast);
+        break;
+      }
+      break;
+
+    case CompareGREATER:
+      if (!TreeHasRight(node))
+        goto stop;
+      node = SplayZagRev(node, &leftLast);
+      cmp = compare(node, key);
+      switch(cmp) {
+      default:
+        NOTREACHED;
+        /* defensive fall-through */
+      case CompareEQUAL:
+        goto stop;
+      case CompareGREATER:
+        if (!TreeHasRight(node))
+          goto stop;
+        node = SplayZagZagRev(node, &leftLast);
+        tree->updateNode(tree, TreeLeft(leftLast));
+        break;
+      case CompareLESS:
+        if (!TreeHasLeft(node))
+          goto stop;
+        node = SplayZigRev(node, &rightFirst);
+        break;
+      }
+      break;
+    }
+  }
+
+stop:
+  *nodeReturn = node;
+  *leftLastReturn = leftLast;
+  *rightFirstReturn = rightFirst;
+  return cmp;
 }
 
 
@@ -176,59 +550,25 @@ static Tree SplayUpdateRightSpine(SplayTree tree, Tree node, Tree top)
 }
 
 
-/* SplayAssemble -- Assemble left right and top trees into one
+/* SplayAssembleRev -- pointer reversed SplayAssemble
  *
- * We do this by moving the children of the top tree to the last and
- * first nodes in the left and right trees, and then moving the tops
- * of the left and right trees to the children of the top tree.
- *
- * When we reach this function, the nodes between the roots of the
- * left and right trees and their last and first nodes respectively
- * will have out of date client properties.
- *
- * See <design/splay/#impl.assemble>.
+ * Does the same job as SplayAssemble, but operates on pointer-reversed
+ * left and right trees, updating client properties.  When we reach
+ * this function, the nodes on the spines of the left and right trees
+ * will have out of date client properties because their children have
+ * been changed by SplaySplitRev.
  */
 
-static void SplayAssemble(SplayTree tree, Tree top,
-                          Tree leftTop, Tree leftLast,
-                          Tree rightTop, Tree rightFirst)
+static void SplayAssembleRev(SplayTree tree, Tree top,
+                             Tree leftLast, Tree rightFirst)
 {
   AVERT(SplayTree, tree);
   AVERT(Tree, top);
-  AVERT(Tree, leftTop);
-  AVERT(Tree, rightTop);
+  AVERT(Tree, leftLast);
+  AVERT(Tree, rightFirst);
 
-  if (leftTop != TreeEMPTY) {
-    if (tree->updateNode != SplayTrivUpdate) {
-      /* Update client property using pointer reversal (Ugh!). */
-      Tree left, newLeft;
-      left = TreeReverseRightSpine(leftTop);
-      AVER(left == leftLast);
-      newLeft = SplayUpdateRightSpine(tree, left, top);
-      AVER(newLeft == leftTop);
-      TreeSetLeft(top, newLeft);
-    } else {
-      AVER(leftLast != TreeEMPTY);
-      TreeSetRight(leftLast, TreeLeft(top));
-      TreeSetLeft(top, leftTop);
-    }
-  }
-
-  if (rightTop != TreeEMPTY) {
-    if (tree->updateNode != SplayTrivUpdate) {
-      /* Update client property using pointer reversal (Ugh!). */
-      Tree right, newRight;
-      right = TreeReverseLeftSpine(rightTop);
-      AVER(right == rightFirst);
-      newRight = SplayUpdateLeftSpine(tree, rightFirst, top);
-      AVER(newRight == rightTop);
-      TreeSetRight(top, newRight);
-    } else {
-      AVER(rightFirst != TreeEMPTY);
-      TreeSetLeft(rightFirst, TreeRight(top));
-      TreeSetRight(top, rightTop);
-    }
-  }
+  TreeSetLeft(top, SplayUpdateRightSpine(tree, leftLast, top));
+  TreeSetRight(top, SplayUpdateLeftSpine(tree, rightFirst, top));
 
   tree->updateNode(tree, top);
 }
@@ -238,135 +578,9 @@ static void SplayAssemble(SplayTree tree, Tree top,
  *
  * If the key is not found, splays around an arbitrary neighbour.
  * Returns the relationship of the new tree root to the key.
- * This is the real logic behind splay trees.
  *
  * See <design/splay/#impl.splay>.
  */
-
-static Compare SplaySplit(Tree *nodeReturn,
-                          Tree *leftTopReturn, Tree *leftLastReturn,
-                          Tree *rightTopReturn, Tree *rightFirstReturn,
-                          SplayTree tree, TreeKey key, TreeCompare compare)
-{
-  /* The sides structure avoids a boundary case in SplayLink* */
-  TreeStruct sides; /* rightTop and leftTop */
-  Tree node, leftLast, rightFirst, leftPrev, rightNext;
-  Compare cmp;
-
-  AVERT(SplayTree, tree);
-  AVER(FUNCHECK(compare));
-  
-  node = SplayTreeRoot(tree); /* will be copied back at end */
-
-  TreeInit(&sides); /* left and right trees now TreeEMPTY */
-  leftLast = &sides;
-  rightFirst = &sides;
-
-  if (node == TreeEMPTY) {
-    cmp = CompareEQUAL;
-    goto assemble;
-  }
-
-  for (;;) {
-    Tree child;
-
-    /* cmp is already initialised above. */
-    cmp = compare(node, key);
-    switch(cmp) {
-
-    case CompareLESS:
-      child = TreeLeft(node);
-      if (child == TreeEMPTY)
-        goto assemble;
-
-      rightNext = rightFirst;
-      SplayLinkRight(&node, &rightFirst);   /* zig */
-
-      cmp = compare(child, key);
-      switch(cmp) {
-      default:
-        NOTREACHED;
-        /* defensive fall-through */
-
-      case CompareEQUAL:
-        goto assemble;
-
-      case CompareLESS:                    /* zig-zig */
-        if (TreeLeft(child) == TreeEMPTY)
-          goto assemble;
-        TreeSetLeft(rightFirst, TreeRight(node));
-        TreeSetRight(node, rightFirst);
-        TreeSetLeft(rightNext, node);
-        rightFirst = node;
-        node = TreeLeft(node);
-        TreeClearLeft(rightFirst); /* for AVER */
-        tree->updateNode(tree, TreeRight(rightFirst));
-        break;
-
-      case CompareGREATER:                 /* zig-zag */
-        if (TreeRight(child) == TreeEMPTY)
-          goto assemble;
-        leftPrev = leftLast;
-        SplayLinkLeft(&node, &leftLast);
-        break;
-      }
-      break;
-
-    case CompareGREATER:
-      child = TreeRight(node);
-      if (child == TreeEMPTY)
-        goto assemble;
-
-      leftPrev = leftLast;
-      SplayLinkLeft(&node, &leftLast);      /* zag */
-
-      cmp = compare(child, key);
-      switch(cmp) {
-      default:
-        NOTREACHED;
-        /* defensive fall-through */
-
-      case CompareEQUAL:
-        goto assemble;
-
-      case CompareGREATER:                 /* zag-zag */
-        if (TreeRight(child) == TreeEMPTY)
-          goto assemble;
-        TreeSetRight(leftLast, TreeLeft(node));
-        TreeSetLeft(node, leftLast);
-        TreeSetRight(leftPrev, node);
-        leftLast = node;
-        node = TreeRight(node);
-        TreeClearRight(leftLast); /* for AVER */
-        tree->updateNode(tree, TreeLeft(leftLast));
-        break;
-
-      case CompareLESS:                    /* zag-zig */
-        if (TreeLeft(child) == TreeEMPTY)
-          goto assemble;
-        SplayLinkRight(&node, &rightFirst);
-        break;
-      }
-      break;
-
-    default:
-      NOTREACHED;
-      /* defensive fall-through */
-
-    case CompareEQUAL:
-      goto assemble;
-    }
-  }
-
-assemble:
-  *nodeReturn = node;
-  *leftTopReturn = TreeRight(&sides);
-  *leftLastReturn = leftLast == &sides ? TreeEMPTY : leftLast;
-  *rightTopReturn = TreeLeft(&sides);
-  *rightFirstReturn = rightFirst == &sides ? TreeEMPTY : rightFirst;
-  return cmp;
-}
-
 
 static Compare SplaySplay(SplayTree tree, TreeKey key, TreeCompare compare)
 {
@@ -376,12 +590,16 @@ static Compare SplaySplay(SplayTree tree, TreeKey key, TreeCompare compare)
   Count count = TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey);
 #endif
 
-  cmp = SplaySplit(&node, &leftTop, &leftLast, &rightTop, &rightFirst,
-                   tree, key, compare);
-
-  SplayAssemble(tree, node,
-                leftTop, leftLast,
-                rightTop, rightFirst);
+  if (tree->updateNode == SplayTrivUpdate) {
+    cmp = SplaySplit(&node, &leftTop, &leftLast, &rightTop, &rightFirst,
+                     tree, key, compare);
+    SplayAssemble(tree, node,
+                  leftTop, leftLast,
+                  rightTop, rightFirst);
+  } else {
+    cmp = SplaySplitRev(&node, &leftLast, &rightFirst, tree, key, compare);
+    SplayAssembleRev(tree, node, leftLast, rightFirst);
+  }
 
   SplayTreeSetRoot(tree, node);
 
@@ -390,94 +608,6 @@ static Compare SplaySplay(SplayTree tree, TreeKey key, TreeCompare compare)
 #endif
 
   return cmp;
-}
-
-
-static void SplayLeft(SplayTree tree)
-{
-  /* The sides structure avoids a boundary case in SplayLink* */
-  TreeStruct sides; /* rightTop and leftTop */
-  Tree node, rightFirst;
-#ifdef SPLAY_DEBUG
-  Count count = TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey);
-#endif
-
-  AVERT(SplayTree, tree);
-
-  node = SplayTreeRoot(tree); /* will be copied back at end */
-
-  if (node == TreeEMPTY)
-    return;
-
-  TreeInit(&sides); /* left and right trees now TreeEMPTY */
-  rightFirst = &sides;
-
-  for (;;) {
-    Tree child = TreeLeft(node);
-    if (child == TreeEMPTY)
-      break;
-    if (TreeLeft(child) == TreeEMPTY) {
-      SplayLinkRight(&node, &rightFirst);
-      break;
-    }
-    TreeRotateRight(&node);
-    tree->updateNode(tree, TreeRight(node));
-    SplayLinkRight(&node, &rightFirst);
-  }
-
-  SplayAssemble(tree, node,
-                TreeEMPTY, TreeEMPTY,
-                TreeLeft(&sides), rightFirst);
-
-  SplayTreeSetRoot(tree, node);
-
-#ifdef SPLAY_DEBUG
-  AVER(count == TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey));
-#endif
-}
-
-
-static void SplayRight(SplayTree tree)
-{
-  /* The sides structure avoids a boundary case in SplayLink* */
-  TreeStruct sides; /* rightTop and leftTop */
-  Tree node, leftLast;
-#ifdef SPLAY_DEBUG
-  Count count = TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey);
-#endif
-
-  AVERT(SplayTree, tree);
-
-  node = SplayTreeRoot(tree); /* will be copied back at end */
-
-  if (node == TreeEMPTY)
-    return;
-
-  TreeInit(&sides); /* left and right trees now TreeEMPTY */
-  leftLast = &sides;
-
-  for (;;) {
-    Tree child = TreeRight(node);
-    if (child == TreeEMPTY)
-      break;
-    if (TreeRight(child) == TreeEMPTY) {
-      SplayLinkLeft(&node, &leftLast);
-      break;
-    }
-    TreeRotateLeft(&node);
-    tree->updateNode(tree, TreeLeft(node));
-    SplayLinkLeft(&node, &leftLast);
-  }
-
-  SplayAssemble(tree, node,
-                TreeRight(&sides), leftLast,
-                TreeEMPTY, TreeEMPTY);
-
-  SplayTreeSetRoot(tree, node);
-
-#ifdef SPLAY_DEBUG
-  AVER(count == TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey));
-#endif
 }
 
 
@@ -558,7 +688,7 @@ Bool SplayTreeDelete(SplayTree tree, Tree node) {
     TreeClearRight(node);
     SplayTreeSetRoot(tree, TreeLeft(node));
     TreeClearLeft(node);
-    SplayRight(tree);
+    SplaySplay(tree, NULL, compareGreater);
     leftLast = SplayTreeRoot(tree);
     AVER(leftLast != TreeEMPTY);
     AVER(TreeRight(leftLast) == TreeEMPTY);
@@ -613,7 +743,7 @@ static Tree SplayTreeSuccessor(SplayTree tree) {
     /* temporarily chop off the left half-tree, inclusive of root */
     SplayTreeSetRoot(tree, TreeRight(oldRoot));
     TreeSetRight(oldRoot, TreeEMPTY);
-    SplayLeft(tree);
+    SplaySplay(tree, NULL, compareLess);
     newRoot = SplayTreeRoot(tree);
     AVER(newRoot != TreeEMPTY);
     AVER(TreeLeft(newRoot) == TreeEMPTY);
@@ -630,6 +760,10 @@ static Tree SplayTreeSuccessor(SplayTree tree) {
  *
  * Search for the two nodes in a splay tree neighbouring a key.
  *
+ * TODO: Change to SplayTreeCoalesce that takes a function that can
+ * direct the deletion of one of the neighbours, since this is a
+ * good moment to do it, avoiding another search and splay.
+ *
  * See <design/splay/#function.splay.tree.neighbours> and
  * <design/splay/#impl.neighbours>.
  */
@@ -639,6 +773,7 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
 {
   Tree node, leftTop, leftLast, rightTop, rightFirst;
   Bool found;
+  Compare cmp;
 #ifdef SPLAY_DEBUG
   Count count = TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey);
 #endif
@@ -653,8 +788,14 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
     return TRUE;
   }
 
-  switch (SplaySplit(&node, &leftTop, &leftLast, &rightTop, &rightFirst,
-                     tree, key, tree->compare)) {
+  if (tree->updateNode == SplayTrivUpdate)
+    cmp = SplaySplit(&node, &leftTop, &leftLast, &rightTop, &rightFirst,
+                     tree, key, tree->compare);
+  else
+    cmp = SplaySplitRev(&node, &leftLast, &rightFirst,
+                        tree, key, tree->compare);
+
+  switch (cmp) {
   default:
     NOTREACHED;
     /* defensive fall-through */
@@ -677,9 +818,13 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
     break;
   }
 
-  SplayAssemble(tree, node,
-                leftTop, leftLast,
-                rightTop, rightFirst);
+  if (tree->updateNode == SplayTrivUpdate)
+    SplayAssemble(tree, node,
+                  leftTop, leftLast,
+                  rightTop, rightFirst);
+  else
+    SplayAssembleRev(tree, node, leftLast, rightFirst);
+
   SplayTreeSetRoot(tree, node);
 
 #ifdef SPLAY_DEBUG
@@ -701,6 +846,9 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
  * old root, and returns the new root.  Returns TreeEMPTY is there are
  * no successors.  It takes a key for the old root.  See
  * <design/splay/#function.splay.tree.next>.
+ *
+ * Iterating over the tree using these functions will leave the tree
+ * totally unbalanced.  Consider using TreeTraverse.
  */
 
 Tree SplayTreeFirst(SplayTree tree) {
@@ -710,8 +858,8 @@ Tree SplayTreeFirst(SplayTree tree) {
 
   if (SplayTreeRoot(tree) == TreeEMPTY)
     return TreeEMPTY;
-  
-  SplayLeft(tree);
+
+  SplaySplay(tree, NULL, compareLess);
   node = SplayTreeRoot(tree);
   AVER(node != TreeEMPTY);
   AVER(TreeLeft(node) == TreeEMPTY);
