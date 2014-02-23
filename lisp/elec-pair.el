@@ -163,7 +163,7 @@ return value is considered instead."
   "Syntax table used when pairing inside comments and strings.
 
 `electric-pair-mode' considers this syntax table only when point in inside
-quotes or comments. If lookup fails here, `electric-pair-text-pairs' will
+quotes or comments.  If lookup fails here, `electric-pair-text-pairs' will
 be considered.")
 
 (defun electric-pair-backward-delete-char (n &optional killflag untabify)
@@ -214,7 +214,7 @@ SYNTAX is COMMAND-EVENT's syntax character.  PAIR is
 COMMAND-EVENT's pair.  UNCONDITIONAL indicates the variables
 `electric-pair-pairs' or `electric-pair-text-pairs' were used to
 lookup syntax.  STRING-OR-COMMENT-START indicates that point is
-inside a comment of string."
+inside a comment or string."
   (let* ((pre-string-or-comment (or (bobp)
                                     (nth 8 (save-excursion
                                              (syntax-ppss (1- (point)))))))
@@ -252,7 +252,7 @@ inside a comment of string."
 (defun electric-pair--syntax-ppss (&optional pos where)
   "Like `syntax-ppss', but sometimes fallback to `parse-partial-sexp'.
 
-WHERE is list defaulting to '(string comment) and indicates
+WHERE is a list defaulting to '(string comment) and indicates
 when to fallback to `parse-partial-sexp'."
   (let* ((pos (or pos (point)))
          (where (or where '(string comment)))
@@ -267,43 +267,42 @@ when to fallback to `parse-partial-sexp'."
           (parse-partial-sexp (point-min) pos)
         quick-ppss-at-pos))))
 
-;; Balancing means controlling pairing and skipping of parentheses so
-;; that, if possible, the buffer ends up at least as balanced as
-;; before, if not more. The algorithm is slightly complex because some
-;; situations like "()))" need pairing to occur at the end but not at
-;; the beginning. Balancing should also happen independently for
-;; different types of parentheses, so that having your {}'s unbalanced
-;; doesn't keep `electric-pair-mode' from balancing your ()'s and your
-;; []'s.
+;; Balancing means controlling pairing and skipping of parentheses
+;; so that, if possible, the buffer ends up at least as balanced as
+;; before, if not more.  The algorithm is slightly complex because
+;; some situations like "()))" need pairing to occur at the end but
+;; not at the beginning.  Balancing should also happen independently
+;; for different types of parentheses, so that having your {}'s
+;; unbalanced doesn't keep `electric-pair-mode' from balancing your
+;; ()'s and your []'s.
 (defun electric-pair--balance-info (direction string-or-comment)
   "Examine lists forward or backward according to DIRECTION's sign.
 
 STRING-OR-COMMENT is info suitable for running `parse-partial-sexp'.
 
 Return a cons of two descriptions (MATCHED-P . PAIR) for the
-innermost and outermost lists that enclose point. The outermost
+innermost and outermost lists that enclose point.  The outermost
 list enclosing point is either the first top-level or first
 mismatched list found by listing up.
 
-If the outermost list is matched, don't rely on its PAIR. If
-point is not enclosed by any lists, return ((T) . (T))."
+If the outermost list is matched, don't rely on its PAIR.
+If point is not enclosed by any lists, return ((t) . (t))."
   (let* (innermost
          outermost
          (table (if string-or-comment
                     electric-pair-text-syntax-table
                   (syntax-table)))
          (at-top-level-or-equivalent-fn
-          ;; called when `scan-sexps' ran perfectly, when when it
-          ;; found a parenthesis pointing in the direction of
-          ;; travel. Also when travel started inside a comment and
-          ;; exited it
+          ;; called when `scan-sexps' ran perfectly, when it found
+          ;; a parenthesis pointing in the direction of travel.
+          ;; Also when travel started inside a comment and exited it.
           #'(lambda ()
               (setq outermost (list t))
               (unless innermost
                 (setq innermost (list t)))))
          (ended-prematurely-fn
           ;; called when `scan-sexps' crashed against a parenthesis
-          ;; pointing opposite the direction of travel. After
+          ;; pointing opposite the direction of travel.  After
           ;; traversing that character, the idea is to travel one sexp
           ;; in the opposite direction looking for a matching
           ;; delimiter.
@@ -366,7 +365,7 @@ point is not enclosed by any lists, return ((T) . (T))."
     (cons innermost outermost)))
 
 (defun electric-pair--looking-at-unterminated-string-p (char)
-  "Say if following string starts with CHAR and is unterminated."
+  "Return non-nil if following string starts with CHAR and is unterminated."
   ;; FIXME: ugly/naive
   (save-excursion
     (skip-chars-forward (format "^%c" char))
@@ -380,14 +379,14 @@ point is not enclosed by any lists, return ((T) . (T))."
            (scan-error t)))))
 
 (defun electric-pair--inside-string-p (char)
-  "Say if point is inside a string started by CHAR.
+  "Return non-nil if point is inside a string started by CHAR.
 
 A comments text is parsed with `electric-pair-text-syntax-table'.
 Also consider strings within comments, but not strings within
 strings."
   ;; FIXME: could also consider strings within strings by examining
   ;; delimiters.
-  (let* ((ppss (electric-pair--syntax-ppss (point) '(comment))))
+  (let ((ppss (electric-pair--syntax-ppss (point) '(comment))))
     (memq (nth 3 ppss) (list t char))))
 
 (defun electric-pair-inhibit-if-helps-balance (char)
@@ -549,7 +548,7 @@ the mode if ARG is omitted or nil.
 
 Electric Pair mode is a global minor mode.  When enabled, typing
 an open parenthesis automatically inserts the corresponding
-closing parenthesis.  \(Likewise for brackets, etc.)."
+closing parenthesis.  (Likewise for brackets, etc.)."
   :global t :group 'electricity
   (if electric-pair-mode
       (progn

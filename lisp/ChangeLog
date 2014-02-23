@@ -1,3 +1,11 @@
+2014-02-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* elec-pair.el (electric-pair-text-syntax-table)
+	(electric-pair-syntax-info, electric-pair--syntax-ppss)
+	(electric-pair--balance-info, electric-pair-mode): Fix docstring typos.
+	(electric-pair--looking-at-unterminated-string-p): Doc fix.
+	(electric-pair--inside-string-p): Doc fix.  Use `let', not `let*'.
+
 2014-02-22  Glenn Morris  <rgm@gnu.org>
 
 	* imenu.el (imenu--generic-function): Doc fix.
