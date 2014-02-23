@@ -1,3 +1,7 @@
+2014-02-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Fix references to ?« and ?» that got mangled somehow.
+
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* NEWS: Mention all the Apropos face options that have been

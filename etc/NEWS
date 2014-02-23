@@ -1063,8 +1063,8 @@ The new optional CHECK-TIMERS parameter allows for the prior behavior.
 ** `defvar' and `defcustom' in a let-binding affect the "external" default.
 
 ---
-** The syntax of ?Â» and ?Â« is now punctuation instead of matched parens.
-Some languages match those as Â»...Â«, and others as Â«...Â», so it is
+** The syntax of ?» and ?« is now punctuation instead of matched parens.
+Some languages match those as »...«, and others as «...», so it is
 better for Emacs to stay neutral by default.
 
 ---
