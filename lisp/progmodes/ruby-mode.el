@@ -630,9 +630,11 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
            (save-excursion
              ;; Traverse up the parents until the parent is "." at
              ;; indentation, or any other token.
-             (while (and (progn
-                           (goto-char (1- (cadr (smie-indent--parent))))
-                           (not (ruby-smie--bosp)))
+             (while (and (let ((parent (smie-indent--parent)))
+                           (goto-char (cadr parent))
+                           (save-excursion
+                             (unless (integerp (car parent)) (forward-char -1))
+                             (not (ruby-smie--bosp))))
                          (progn
                            (setq smie--parent nil)
                            (smie-rule-parent-p "."))))
@@ -2061,7 +2063,7 @@ See `font-lock-syntax-table'.")
           "refine"
           "using")
         'symbols))
-     (1 (unless (looking-at " *\\(?:[]|,.)}]\\|$\\)")
+     (1 (unless (looking-at " *\\(?:[]|,.)}=]\\|$\\)")
           font-lock-builtin-face)))
     ;; Kernel methods that have no required arguments.
     (,(concat

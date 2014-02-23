@@ -2,6 +2,10 @@
 
 	* progmodes/ruby-mode.el (ruby-smie-rules): Don't indent specially
 	after `=>' (bug#16811).
+	(ruby-smie-rules): Handle the inconsistent second element of the
+	list returned by `smie-indent--parent'.
+	(ruby-font-lock-keywords): Disqualify any identifier before `=' as
+	method call.
 
 2014-02-23  Juanma Barranquero  <lekktu@gmail.com>
 

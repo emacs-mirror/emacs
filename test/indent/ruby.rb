@@ -357,6 +357,13 @@ zoo
   .lose(
     q, p)
 
+a.records().map(&:b).zip(
+  foo)
+
+# FIXME: This is not consistent with the example below it, but this
+# ofset only happens if the colon is at eol, which wouldn't be often.
+# Tokenizing `bar:' as `:bar =>' would be better, but it's hard to
+# distinguish from a variable reference inside a ternary operator.
 foo(bar:
       tee)
 
