@@ -828,8 +828,6 @@ Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
                     CBS cbs, Size size, FindDelete findDelete)
 {
   Bool found = FALSE;
-  Tree root;
-  Bool notEmpty;
 
   AVERT(CBS, cbs);
   cbsEnter(cbs);
@@ -839,14 +837,13 @@ Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
   AVER(cbs->fastFind);
   AVERT(FindDelete, findDelete);
 
-  notEmpty = SplayRoot(&root, treeOfCBS(cbs));
-  if (notEmpty) {
+  if (!SplayTreeIsEmpty(treeOfCBS(cbs))) {
     RangeStruct range;
     CBSBlock block;
     Tree node = NULL;    /* suppress "may be used uninitialized" */
     Size maxSize;
 
-    maxSize = cbsBlockOfNode(root)->maxSize;
+    maxSize = cbsBlockOfNode(SplayTreeRoot(treeOfCBS(cbs)))->maxSize;
     if (maxSize >= size) {
       METER_ACC(cbs->treeSearch, cbs->treeSize);
       found = SplayFindFirst(&node, treeOfCBS(cbs), &cbsTestNode,
