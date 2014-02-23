@@ -224,7 +224,7 @@ static Tree SplayZagZag(Tree middle, Tree *leftLastIO, Tree leftPrev)
  * splaying nested left and right nodes.  Preserves tree ordering.
  *
  * Returns cmp, the relationship of the root of the middle tree to the key,
- * and a copse:
+ * and a SplayState:
  *   middle -- the middle tree, with the nearest match for the key at the top
  *   leftTop -- a tree of nodes that were less than node
  *   leftLast -- the greatest node in leftTop (rightmost child)
@@ -234,9 +234,15 @@ static Tree SplayZagZag(Tree middle, Tree *leftLastIO, Tree leftPrev)
  * Does *not* maintain client properties.  See SplaySplitRev.
  */
 
-static Compare SplaySplit(Tree *middleReturn,
-                          Tree *leftTopReturn, Tree *leftLastReturn,
-                          Tree *rightTopReturn, Tree *rightFirstReturn,
+typedef struct SplayStateStruct {
+  Tree middle;
+  Tree left;
+  Tree leftLast;
+  Tree right;
+  Tree rightFirst;
+} SplayStateStruct, *SplayState;
+
+static Compare SplaySplit(SplayStateStruct *stateReturn,
                           SplayTree splay, TreeKey key, TreeCompare compare)
 {
   TreeStruct sentinel;
@@ -311,11 +317,11 @@ static Compare SplaySplit(Tree *middleReturn,
   }
 
 stop:
-  *middleReturn = middle;
-  *leftTopReturn = TreeRight(&sentinel);
-  *leftLastReturn = leftLast == &sentinel ? TreeEMPTY : leftLast;
-  *rightTopReturn = TreeLeft(&sentinel);
-  *rightFirstReturn = rightFirst == &sentinel ? TreeEMPTY : rightFirst;
+  stateReturn->middle = middle;
+  stateReturn->left = TreeRight(&sentinel);
+  stateReturn->leftLast = leftLast == &sentinel ? TreeEMPTY : leftLast;
+  stateReturn->right = TreeLeft(&sentinel);
+  stateReturn->rightFirst = rightFirst == &sentinel ? TreeEMPTY : rightFirst;
   return cmp;
 }
 
@@ -342,26 +348,21 @@ stop:
  * See <design/splay/#impl.assemble>.
  */
 
-static void SplayAssemble(SplayTree splay, Tree middle,
-                          Tree leftTop, Tree leftLast,
-                          Tree rightTop, Tree rightFirst)
+static void SplayAssemble(SplayTree splay, SplayState state)
 {
   AVERT(SplayTree, splay);
-  AVERT(Tree, middle);
-  AVERT(Tree, leftTop);
-  AVERT(Tree, rightTop);
-  AVER(middle != TreeEMPTY);
+  AVER(state->middle != TreeEMPTY);
 
-  if (leftTop != TreeEMPTY) {
-    AVER_CRITICAL(leftLast != TreeEMPTY);
-    TreeSetRight(leftLast, TreeLeft(middle));
-    TreeSetLeft(middle, leftTop);
+  if (state->left != TreeEMPTY) {
+    AVER_CRITICAL(state->leftLast != TreeEMPTY);
+    TreeSetRight(state->leftLast, TreeLeft(state->middle));
+    TreeSetLeft(state->middle, state->left);
   }
 
-  if (rightTop != TreeEMPTY) {
-    AVER_CRITICAL(rightFirst != TreeEMPTY);
-    TreeSetLeft(rightFirst, TreeRight(middle));
-    TreeSetRight(middle, rightTop);
+  if (state->right != TreeEMPTY) {
+    AVER_CRITICAL(state->rightFirst != TreeEMPTY);
+    TreeSetLeft(state->rightFirst, TreeRight(state->middle));
+    TreeSetRight(state->middle, state->right);
   }
 }
 
@@ -444,8 +445,7 @@ static Tree SplayZagZagRev(Tree middle, Tree *leftLastIO)
  *     updated
  */
 
-static Compare SplaySplitRev(Tree *middleReturn,
-                             Tree *leftLastReturn, Tree *rightFirstReturn,
+static Compare SplaySplitRev(SplayStateStruct *stateReturn,
                              SplayTree splay, TreeKey key, TreeCompare compare)
 {
   Tree middle, leftLast, rightFirst;
@@ -520,9 +520,9 @@ static Compare SplaySplitRev(Tree *middleReturn,
   }
 
 stop:
-  *middleReturn = middle;
-  *leftLastReturn = leftLast;
-  *rightFirstReturn = rightFirst;
+  stateReturn->middle = middle;
+  stateReturn->leftLast = leftLast;
+  stateReturn->rightFirst = rightFirst;
   return cmp;
 }
 
@@ -571,19 +571,22 @@ static Tree SplayUpdateRightSpine(SplayTree splay, Tree node, Tree child)
  * been changed by SplaySplitRev.
  */
 
-static void SplayAssembleRev(SplayTree splay, Tree middle,
-                             Tree leftLast, Tree rightFirst)
+static void SplayAssembleRev(SplayTree splay, SplayState state)
 {
+  Tree left, right;
+
   AVERT(SplayTree, splay);
-  AVERT(Tree, middle);
-  AVERT(Tree, leftLast);
-  AVERT(Tree, rightFirst);
-  AVER(middle != TreeEMPTY);
+  AVER(state->middle != TreeEMPTY);
+  
+  left = TreeLeft(state->middle);
+  left = SplayUpdateRightSpine(splay, state->leftLast, left);
+  TreeSetLeft(state->middle, left);
 
-  TreeSetLeft(middle, SplayUpdateRightSpine(splay, leftLast, TreeLeft(middle)));
-  TreeSetRight(middle, SplayUpdateLeftSpine(splay, rightFirst, TreeRight(middle)));
+  right = TreeRight(state->middle);
+  right = SplayUpdateLeftSpine(splay, state->rightFirst, right);
+  TreeSetRight(state->middle, right);
 
-  splay->updateNode(splay, middle);
+  splay->updateNode(splay, state->middle);
 }
 
 
@@ -598,7 +601,7 @@ static void SplayAssembleRev(SplayTree splay, Tree middle,
 static Compare SplaySplay(SplayTree splay, TreeKey key, TreeCompare compare)
 {
   Compare cmp;
-  Tree middle, leftTop, leftLast, rightTop, rightFirst;
+  SplayStateStruct stateStruct;
 
 #ifdef SPLAY_DEBUG
   Count count = TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey);
@@ -611,17 +614,14 @@ static Compare SplaySplay(SplayTree splay, TreeKey key, TreeCompare compare)
     return CompareEQUAL;
 
   if (SplayHasUpdate(splay)) {
-    cmp = SplaySplitRev(&middle, &leftLast, &rightFirst, splay, key, compare);
-    SplayAssembleRev(splay, middle, leftLast, rightFirst);
+    cmp = SplaySplitRev(&stateStruct, splay, key, compare);
+    SplayAssembleRev(splay, &stateStruct);
   } else {
-    cmp = SplaySplit(&middle, &leftTop, &leftLast, &rightTop, &rightFirst,
-                     splay, key, compare);
-    SplayAssemble(splay, middle,
-                  leftTop, leftLast,
-                  rightTop, rightFirst);
+    cmp = SplaySplit(&stateStruct, splay, key, compare);
+    SplayAssemble(splay, &stateStruct);
   }
 
-  SplayTreeSetRoot(splay, middle);
+  SplayTreeSetRoot(splay, stateStruct.middle);
 
 #ifdef SPLAY_DEBUG
   AVER(count == TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey));
@@ -801,7 +801,7 @@ static Tree SplayTreeSuccessor(SplayTree splay) {
 Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
                          SplayTree splay, TreeKey key)
 {
-  Tree node, leftTop, leftLast, rightTop, rightFirst;
+  SplayStateStruct stateStruct;
   Bool found;
   Compare cmp;
 #ifdef SPLAY_DEBUG
@@ -819,11 +819,9 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
   }
 
   if (SplayHasUpdate(splay))
-    cmp = SplaySplitRev(&node, &leftLast, &rightFirst,
-                        splay, key, splay->compare);
+    cmp = SplaySplitRev(&stateStruct, splay, key, splay->compare);
   else
-    cmp = SplaySplit(&node, &leftTop, &leftLast, &rightTop, &rightFirst,
-                     splay, key, splay->compare);
+    cmp = SplaySplit(&stateStruct, splay, key, splay->compare);
 
   switch (cmp) {
   default:
@@ -834,28 +832,26 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
     break;
 
   case CompareLESS:
-    AVER(!TreeHasLeft(node));
-    *rightReturn = node;
-    *leftReturn = leftLast;
+    AVER(!TreeHasLeft(stateStruct.middle));
+    *rightReturn = stateStruct.middle;
+    *leftReturn = stateStruct.leftLast;
     found = TRUE;
     break;
 
   case CompareGREATER:
-    AVER(!TreeHasRight(node));
-    *leftReturn = node;
-    *rightReturn = rightFirst;
+    AVER(!TreeHasRight(stateStruct.middle));
+    *leftReturn = stateStruct.middle;
+    *rightReturn = stateStruct.rightFirst;
     found = TRUE;
     break;
   }
 
   if (SplayHasUpdate(splay))
-    SplayAssembleRev(splay, node, leftLast, rightFirst);
+    SplayAssembleRev(splay, &stateStruct);
   else
-    SplayAssemble(splay, node,
-                  leftTop, leftLast,
-                  rightTop, rightFirst);
+    SplayAssemble(splay, &stateStruct);
 
-  SplayTreeSetRoot(splay, node);
+  SplayTreeSetRoot(splay, stateStruct.middle);
 
 #ifdef SPLAY_DEBUG
   AVER(count == TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey));
