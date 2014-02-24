@@ -1,3 +1,8 @@
+2014-02-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* apropos.el (apropos-print): Avoid formatting error when
+	apropos-do-all and apropos-compact-layout are both t.
+
 2014-02-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* apropos.el (apropos-property, apropos-all-words-regexp)

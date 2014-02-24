@@ -1052,6 +1052,7 @@ If non-nil, TEXT is a string that will be printed as a heading."
       (let ((p apropos-accumulator)
 	    (old-buffer (current-buffer))
 	    (inhibit-read-only t)
+	    (button-end 0)
 	    symbol item)
 	(set-buffer standard-output)
 	(apropos-mode)
@@ -1069,10 +1070,12 @@ If non-nil, TEXT is a string that will be printed as a heading."
 	      (setq apropos-item
 		    (cons (car apropos-item)
 			  (cons nil (cdr apropos-item)))))
+	  (when (= (point) button-end) (terpri))
 	  (insert-text-button (symbol-name symbol)
 			      'type 'apropos-symbol
 			      'skip apropos-multi-type
 			      'face 'apropos-symbol)
+	  (setq button-end (point))
 	  (if (and (eq apropos-sort-by-scores 'verbose)
 		   (cadr apropos-item))
 	      (insert " (" (number-to-string (cadr apropos-item)) ") "))
