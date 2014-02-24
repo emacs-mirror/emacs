@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2014-02-09.15}
+\def\texinfoversion{2014-02-16.16}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -4428,7 +4428,7 @@ end
   % complicated, when \tex is in effect and \{ is a \delimiter again.
   % We can't use \lbracecmd and \rbracecmd because texindex assumes
   % braces and backslashes are used only as delimiters.  Perhaps we
-  % should define @lbrace and @rbrace commands a la @comma.
+  % should use @lbracechar and @rbracechar?
   \def\{{{\tt\char123}}%
   \def\}{{\tt\char125}}%
   %
@@ -4449,8 +4449,7 @@ end
   % @end macro
   % ...
   % @funindex commtest
-  %
-  % The above is not enough to reproduce the bug, but it gives the flavor.
+  % This is not enough to reproduce the bug, but it gives the flavor.
   %
   % Sample whatsit resulting:
   % .@write3{\entry{xyz}{@folio }{@code {xyz@endinput }}}
@@ -4663,6 +4662,9 @@ end
   \let\xeatspaces = \eatspaces
 }
 
+% For testing: output @{ and @} in index sort strings as \{ and \}.
+\newif\ifusebracesinindexes
+
 % \indexnofonts is used when outputting the strings to sort the index
 % by, and when constructing control sequence names.  It eliminates all
 % control sequences and just writes whatever the best ASCII sort string
@@ -4691,11 +4693,16 @@ end
   % Unfortunately, texindex is not prepared to handle braces in the
   % content at all.  So for index sorting, we map @{ and @} to strings
   % starting with |, since that ASCII character is between ASCII { and }.
-  \def\{{|a}%
-  \def\lbracechar{|a}%
+  \ifusebracesinindexes
+    \def\lbracechar{\lbracecmd}%
+    \def\rbracechar{\rbracecmd}%
+  \else
+    \def\lbracechar{|a}%
+    \def\rbracechar{|b}%
+  \fi
+  \let\{=\lbracechar
+  \let\}=\rbracechar
   %
-  \def\}{|b}%
-  \def\rbracechar{|b}%
   %
   % Non-English letters.
   \def\AA{AA}%

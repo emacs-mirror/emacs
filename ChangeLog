@@ -1,3 +1,9 @@
+2014-02-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2014-02-21 timer: fix uClibc detection of threading
+	2014-02-21 maintainer-makefiles: provide AC_PROG_SED for older autoconf
+
 2014-02-18  Mirek Kaim  <mirek.kaim@outlook.com>  (tiny change)
 
 	* configure.ac [HAVE_W32]: Test for ImageMagick.  (Bug#16754)

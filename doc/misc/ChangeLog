@@ -1,3 +1,7 @@
+2014-02-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update from gnulib.
+
 2014-02-22  Xue Fuqiao  <xfq@gnu.org>
 
 	* remember.texi (Quick Start): Add an index.

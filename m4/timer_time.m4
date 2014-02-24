@@ -28,7 +28,7 @@ AC_DEFUN([gl_TIMER_TIME],
 #include <features.h>
 #ifdef __GNU_LIBRARY__
  #if ((__GLIBC__ == 2 && __GLIBC_MINOR__ >= 2) || (__GLIBC__ > 2)) \
-     && !defined __UCLIBC__
+     && !(__UCLIBC__ && __HAS_NO_THREADS__)
   Thread emulation available
  #endif
 #endif
