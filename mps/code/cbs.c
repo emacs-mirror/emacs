@@ -212,6 +212,7 @@ Res CBSInitWithPool(Arena arena, CBS cbs, void *owner, Align alignment,
   cbs->fastFind = fastFind;
   cbs->alignment = alignment;
   cbs->inCBS = TRUE;
+  cbs->blockPoolMine = FALSE;
 
   METER_INIT(cbs->treeSearch, "size of tree", (void *)cbs);
 
@@ -247,7 +248,16 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
   if (res != ResOK)
     return res;
 
-  return CBSInitWithPool(arena, cbs, owner, alignment, fastFind, blockPool);
+  res = CBSInitWithPool(arena, cbs, owner, alignment, fastFind, blockPool);
+  if (res != ResOK)
+    goto failCBSInit;
+  
+  cbs->blockPoolMine = TRUE;
+  return ResOK;
+
+failCBSInit:
+  PoolDestroy(blockPool);
+  return res;
 }
 
 
@@ -266,7 +276,8 @@ void CBSFinish(CBS cbs)
   cbs->sig = SigInvalid;
 
   SplayTreeFinish(treeOfCBS(cbs));
-  PoolDestroy(cbs->blockPool);
+  if (cbs->blockPoolMine)
+    PoolDestroy(cbs->blockPool);
 }
 
 

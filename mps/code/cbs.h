@@ -30,6 +30,7 @@ typedef struct CBSStruct {
   Align alignment;
   Bool fastFind;
   Bool inCBS; /* prevent reentrance */
+  Bool blockPoolMine;
   /* meters for sizes of search structures at each op */
   METER_DECL(treeSearch);
   Sig sig; /* sig at end because embeded */
