@@ -12,11 +12,6 @@
 SRCID(arena, "$Id$");
 
 
-/* ArenaControlPool -- get the control pool */
-
-#define ArenaControlPool(arena) MV2Pool(&(arena)->controlPoolStruct)
-
-
 /* Forward declarations */
 
 static void ArenaTrivCompact(Arena arena, Trace trace);
@@ -113,7 +108,7 @@ Bool ArenaCheck(Arena arena)
 
   CHECKL(BoolCheck(arena->poolReady));
   if (arena->poolReady) { /* <design/arena/#pool.ready> */
-    CHECKD(MV, &arena->controlPoolStruct);
+    CHECKD(Pool, ArenaControlPool(arena));
     CHECKD(Reservoir, &arena->reservoirStruct);
   }
   /* Can't check that limit>=size because we may call ArenaCheck */
@@ -307,16 +302,21 @@ void ArenaDestroy(Arena arena)
 
 /* ControlInit -- initialize the control pool */
 
+extern PoolClass PoolClassMVFF(void); /* FIXME: May need poolmvff.h */
+
 Res ControlInit(Arena arena)
 {
   Res res;
+  PoolClass poolClass = PoolClassMVFF();
 
   AVERT(Arena, arena);
+  AVER(sizeof(arena->control) >= poolClass->size);
+  AVER((char *)ArenaControlPool(arena) - (char *)&arena->control == poolClass->offset);
+
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, CONTROL_EXTEND_BY);
     MPS_ARGS_DONE(args);
-    res = PoolInit(&arena->controlPoolStruct.poolStruct, arena,
-                   PoolClassMV(), args);
+    res = PoolInit(ArenaControlPool(arena), arena, poolClass, args);
   } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
@@ -331,7 +331,7 @@ void ControlFinish(Arena arena)
 {
   AVERT(Arena, arena);
   arena->poolReady = FALSE;
-  PoolFinish(&arena->controlPoolStruct.poolStruct);
+  PoolFinish(ArenaControlPool(arena));
 }
 
 
@@ -353,7 +353,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
 
   if (arena->poolReady) {
     res = WriteF(stream,
-                 "  controlPool $P\n", (WriteFP)&arena->controlPoolStruct,
+                 "  controlPool $P\n", (WriteFP)ArenaControlPool(arena),
                  NULL);
     if (res != ResOK) return res;
   }
