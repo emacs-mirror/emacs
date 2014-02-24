@@ -118,6 +118,7 @@ ARG_DEFINE_KEY(min_size, Size);
 ARG_DEFINE_KEY(mean_size, Size);
 ARG_DEFINE_KEY(max_size, Size);
 ARG_DEFINE_KEY(align, Align);
+ARG_DEFINE_KEY(spare, double);
 
 
 /* PoolInit -- initialize a pool
