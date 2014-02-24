@@ -43,6 +43,14 @@ void RangeFinish(Range range)
   range->base = range->limit = NULL;
 }
 
+void RangeCopy(Range toRange, Range fromRange)
+{
+  AVERT(Range, fromRange);
+  toRange->base = fromRange->base;
+  toRange->limit = fromRange->limit;
+  toRange->sig = RangeSig;
+}
+
 Res RangeDescribe(Range range, mps_lib_FILE *stream)
 {
   Res res;
