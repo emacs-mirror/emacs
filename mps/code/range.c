@@ -94,6 +94,12 @@ Bool RangeIsAligned(Range range, Align alignment)
       && AddrIsAligned(RangeLimit(range), alignment);
 }
 
+Bool RangeIsEmpty(Range range)
+{
+  AVERT(Range, range);
+  return RangeBase(range) == RangeLimit(range);
+}
+
 Addr (RangeBase)(Range range) {
   AVERT(Range, range);
   return RangeBase(range);
