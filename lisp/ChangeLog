@@ -1,3 +1,7 @@
+2014-02-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-file-truename): Improve last fix.
+
 2014-02-24  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
 
 	* minibuffer.el (completion--try-word-completion):

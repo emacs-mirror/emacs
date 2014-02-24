@@ -938,8 +938,11 @@ target of the symlink differ."
 
 (defun tramp-sh-handle-file-truename (filename)
   "Like `file-truename' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (tramp-make-tramp-file-name method user host
+  (format
+   "%s%s"
+   (with-parsed-tramp-file-name (expand-file-name filename) nil
+     (tramp-make-tramp-file-name
+      method user host
       (with-tramp-file-property v localname "file-truename"
 	(let ((result nil))			; result steps in reverse order
 	  (tramp-message v 4 "Finding true name for `%s'" filename)
@@ -1042,8 +1045,10 @@ target of the symlink differ."
 		  (setq result (concat result "/"))))))
 
 	  (tramp-message v 4 "True name of `%s' is `%s'" localname result)
-	  (if (string-equal (file-name-nondirectory localname) "")
-	      (file-name-as-directory result) result))))))
+	  result))))
+
+   ;; Preserve trailing "/".
+   (if (string-equal (file-name-nondirectory filename) "") "/" "")))
 
 ;; Basic functions.
 
