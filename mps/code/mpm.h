@@ -508,6 +508,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaAlign(arena)       ((arena)->alignment)
 #define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
 #define ArenaPoolRing(arena) (&ArenaGlobals(arena)->poolRing)
+#define ArenaControlPool(arena) (&(arena)->control.poolStruct)
 
 extern void (ArenaEnter)(Arena arena);
 extern void (ArenaLeave)(Arena arena);

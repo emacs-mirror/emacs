@@ -614,8 +614,10 @@ typedef struct mps_arena_s {
   ArenaClass class;             /* arena class structure */
 
   Bool poolReady;               /* <design/arena/#pool.ready> */
-  MVStruct controlPoolStruct;   /* <design/arena/#pool> */
-
+  union {
+    char space[2984];           /* FIXME: Avoid moving tons of structures to mpmst.h */
+    PoolStruct poolStruct;
+  } control;                    /* <design/arena/#pool> */
   ReservoirStruct reservoirStruct; /* <design/reservoir/> */
 
   Size committed;               /* amount of committed RAM */
