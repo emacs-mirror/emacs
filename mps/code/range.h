@@ -32,6 +32,7 @@ extern void RangeFinish(Range range);
 extern Res RangeDescribe(Range range, mps_lib_FILE *stream);
 extern Bool RangeCheck(Range range);
 extern Bool RangeIsAligned(Range range, Align align);
+extern Bool RangeIsEmpty(Range range);
 extern Bool RangesOverlap(Range range1, Range range2);
 extern Bool RangesNest(Range outer, Range inner);
 extern Bool RangesEqual(Range range1, Range range2);
