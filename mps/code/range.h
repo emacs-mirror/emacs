@@ -29,6 +29,7 @@ typedef struct RangeStruct *Range;
 
 extern void RangeInit(Range range, Addr base, Addr limit);
 extern void RangeFinish(Range range);
+extern void RangeCopy(Range toRange, Range fromRange);
 extern Res RangeDescribe(Range range, mps_lib_FILE *stream);
 extern Bool RangeCheck(Range range);
 extern Bool RangeIsAligned(Range range, Align align);

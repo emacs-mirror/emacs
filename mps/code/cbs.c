@@ -764,7 +764,7 @@ static void cbsFindDeleteRange(Range rangeReturn, Range oldRangeReturn,
        need to allocate a new block. */
     AVER(res == ResOK);
   } else
-    mps_lib_memcpy(oldRangeReturn, rangeReturn, sizeof(RangeStruct));
+    RangeCopy(oldRangeReturn, rangeReturn);
 }
 
 
@@ -873,8 +873,13 @@ Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
       AVER(CBSBlockSize(block) >= maxSize);
       RangeInit(&range, CBSBlockBase(block), CBSBlockLimit(block));
       AVER(RangeSize(&range) >= maxSize);
-      cbsFindDeleteRange(rangeReturn, oldRangeReturn, cbs, &range,
-                         size, findDelete);
+      if (size > 0)
+        cbsFindDeleteRange(rangeReturn, oldRangeReturn, cbs, &range,
+                           size, findDelete);
+      else {
+        RangeCopy(rangeReturn, &range); /* FIXME: sense? */
+        RangeCopy(oldRangeReturn, &range);
+      }
     }
   }
 
