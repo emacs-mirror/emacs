@@ -20,14 +20,7 @@
 
 SRCID(cbs, "$Id$");
 
-
 typedef struct CBSBlockStruct *CBSBlock;
-typedef struct CBSBlockStruct {
-  TreeStruct node;
-  Addr base;
-  Addr limit;
-  Size maxSize; /* accurate maximum block size of sub-tree */
-} CBSBlockStruct;
 
 #define CBSBlockBase(block) ((block)->base)
 #define CBSBlockLimit(block) ((block)->limit)
@@ -202,32 +195,20 @@ static void cbsUpdateNode(SplayTree tree, Tree node)
 
 ARG_DEFINE_KEY(cbs_extend_by, Size);
 
-Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
-            Bool fastFind, ArgList args)
+Res CBSInitWithPool(Arena arena, CBS cbs, void *owner, Align alignment,
+                    Bool fastFind, Pool blockPool)
 {
-  Size extendBy = CBS_EXTEND_BY_DEFAULT;
-  ArgStruct arg;
-  Res res;
-
   AVERT(Arena, arena);
-
-  if (ArgPick(&arg, args, MPS_KEY_CBS_EXTEND_BY))
-    extendBy = arg.val.size;
+  AVERT(Pool, blockPool);
+  AVER(BoolCheck(fastFind));
 
   SplayTreeInit(treeOfCBS(cbs),
                 cbsCompare,
                 cbsKey,
                 fastFind ? cbsUpdateNode : SplayTrivUpdate);
-  MPS_ARGS_BEGIN(pcArgs) {
-    MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
-    MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, extendBy);
-    MPS_ARGS_DONE(pcArgs);
-    res = PoolCreate(&(cbs->blockPool), arena, PoolClassMFS(), pcArgs);
-  } MPS_ARGS_END(pcArgs);
-  if (res != ResOK)
-    return res;
-  cbs->treeSize = 0;
 
+  cbs->treeSize = 0;
+  cbs->blockPool = blockPool;
   cbs->fastFind = fastFind;
   cbs->alignment = alignment;
   cbs->inCBS = TRUE;
@@ -237,9 +218,36 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
   cbs->sig = CBSSig;
 
   AVERT(CBS, cbs);
+
   EVENT2(CBSInit, cbs, owner);
   cbsLeave(cbs);
+
   return ResOK;
+}
+
+Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
+            Bool fastFind, ArgList args)
+{
+  Size extendBy = CBS_EXTEND_BY_DEFAULT;
+  ArgStruct arg;
+  Res res;
+  Pool blockPool;
+
+  AVERT(Arena, arena);
+
+  if (ArgPick(&arg, args, MPS_KEY_CBS_EXTEND_BY))
+    extendBy = arg.val.size;
+
+  MPS_ARGS_BEGIN(pcArgs) {
+    MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
+    MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, extendBy);
+    MPS_ARGS_DONE(pcArgs);
+    res = PoolCreate(&blockPool, arena, PoolClassMFS(), pcArgs);
+  } MPS_ARGS_END(pcArgs);
+  if (res != ResOK)
+    return res;
+
+  return CBSInitWithPool(arena, cbs, owner, alignment, fastFind, blockPool);
 }
 
 

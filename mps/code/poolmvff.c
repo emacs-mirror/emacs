@@ -49,6 +49,7 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
   Size avgSize;                 /* client estimate of allocation size */
   Size total;                   /* total bytes in pool */
   Size free;                    /* total free bytes in pool */
+  MFSStruct cbsBlockPoolStruct; /* stores blocks for CBSs */
   CBSStruct totalCBSStruct;     /* all memory allocated from the arena */
   CBSStruct freeCBSStruct;      /* free list */
   FreelistStruct flStruct;      /* emergency free list */
@@ -66,6 +67,7 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
 #define MVFFFreelist(mvff)    (&((mvff)->flStruct))
 #define MVFFOfFreelist(fl)    PARENT(MVFFStruct, flStruct, fl)
 #define MVFFSegPref(mvff)     (&((mvff)->segPrefStruct))
+#define MVFFBlockPool(mvff)   (&((mvff)->cbsBlockPoolStruct.poolStruct))
 
 static Bool MVFFCheck(MVFF mvff);
 
@@ -558,9 +560,8 @@ static Res MVFFInit(Pool pool, ArgList args)
 
   SegPrefInit(MVFFSegPref(mvff));
   SegPrefExpress(MVFFSegPref(mvff), arenaHigh ? SegPrefHigh : SegPrefLow, NULL);
-  /* If using zoneset placement, just put it apart from the others. */
   zones = ZoneSetComp(ArenaDefaultZONESET);
-  SegPrefExpress(MVFFSegPref(mvff), SegPrefZoneSet, (void *)&zones);
+  SegPrefExpress(MVFFSegPref(mvff), SegPrefZoneSet, &zones);
 
   mvff->total = 0;
   mvff->free = 0;
@@ -569,14 +570,25 @@ static Res MVFFInit(Pool pool, ArgList args)
   if (res != ResOK)
     goto failFreelistInit;
 
-  /* TODO: Share the MFS pool between these two, since the totalCBS will
-     probably have few nodes in it. */
+  /* An MFS pool is explicitly initialised for the two CBSs partly to share
+     space, but mostly to avoid a call to PoolCreate, so that MVFF can be
+     used during arena bootstrap as the control pool. */
 
-  res = CBSInit(arena, MVFFTotalCBS(mvff), mvff, align, FALSE, args);
+  MPS_ARGS_BEGIN(piArgs) {
+    MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
+    MPS_ARGS_DONE(piArgs);
+    res = PoolInit(MVFFBlockPool(mvff), arena, PoolClassMFS(), piArgs);
+  } MPS_ARGS_END(piArgs);
+  if (res != ResOK)
+    goto failBlockPoolInit;
+
+  res = CBSInitWithPool(arena, MVFFTotalCBS(mvff), mvff, ArenaAlign(arena),
+                        TRUE, MVFFBlockPool(mvff));
   if (res != ResOK)
     goto failTotalInit;
 
-  res = CBSInit(arena, MVFFFreeCBS(mvff), mvff, align, TRUE, args);
+  res = CBSInitWithPool(arena, MVFFFreeCBS(mvff), mvff, align,
+                        TRUE, MVFFBlockPool(mvff));
   if (res != ResOK)
     goto failFreeInit;
 
@@ -589,6 +601,8 @@ static Res MVFFInit(Pool pool, ArgList args)
 failFreeInit:
   CBSFinish(MVFFTotalCBS(mvff));
 failTotalInit:
+  PoolFinish(MVFFBlockPool(mvff));
+failBlockPoolInit:
   FreelistFinish(MVFFFreelist(mvff));
 failFreelistInit:
   AVER(res != ResOK);
