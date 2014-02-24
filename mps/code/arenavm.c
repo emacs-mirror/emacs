@@ -1,7 +1,7 @@
 /* arenavm.c: VIRTUAL MEMORY ARENA CLASS
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  *
  * DESIGN
@@ -909,6 +909,34 @@ static Bool pagesFindFreeWithSegPref(Index *baseReturn, VMChunk *chunkReturn,
 }
 
 
+/* vmArenaChunkSize -- choose chunk size for arena extension
+ *
+ * .vmchunk.overhead: This code still lacks a proper estimate of
+ * the overhead required by a vmChunk for chunkStruct, page tables
+ * etc.  For now, estimate it as 10%.  RHSK 2007-12-21
+ */
+static Size vmArenaChunkSize(VMArena vmArena, Size size)
+{
+  Size fraction = 10;  /* 10% -- see .vmchunk.overhead */
+  Size chunkSize;
+  Size chunkOverhead;
+
+  /* 1: use extendBy, if it is big enough for size + overhead */
+  chunkSize = vmArena->extendBy;
+  chunkOverhead = chunkSize / fraction;
+  if(chunkSize > size && (chunkSize - size) >= chunkOverhead)
+    return chunkSize;
+
+  /* 2: use size + overhead (unless it overflows SizeMAX) */
+  chunkOverhead = size / (fraction - 1);
+  if((SizeMAX - size) >= chunkOverhead)
+    return size + chunkOverhead;
+
+  /* 3: use SizeMAX */
+  return SizeMAX;
+}
+
+
 /* vmArenaExtend -- Extend the arena by making a new chunk
  *
  * The size arg specifies how much we wish to allocate after the extension.
@@ -919,31 +947,7 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
   Size chunkSize;
   Res res;
 
-  /* Choose chunk size. */
-  /* .vmchunk.overhead: This code still lacks a proper estimate of */
-  /* the overhead required by a vmChunk for chunkStruct, page tables */
-  /* etc.  For now, estimate it as 10%.  RHSK 2007-12-21 */
-  do {
-    Size fraction = 10;  /* 10% -- see .vmchunk.overhead */
-    Size chunkOverhead;
-    
-    /* 1: use extendBy, if it is big enough for size + overhead */
-    chunkSize = vmArena->extendBy;
-    chunkOverhead = chunkSize / fraction;
-    if(chunkSize > size && (chunkSize - size) >= chunkOverhead)
-      break;
-    
-    /* 2: use size + overhead (unless it overflows SizeMAX) */
-    chunkOverhead = size / (fraction - 1);
-    if((SizeMAX - size) >= chunkOverhead) {
-      chunkSize = size + chunkOverhead;
-      break;
-    }
-    
-    /* 3: use SizeMAX */
-    chunkSize = SizeMAX;
-    break;
-  } while(0);
+  chunkSize = vmArenaChunkSize(vmArena, size);
 
   EVENT3(vmArenaExtendStart, size, chunkSize,
          VMArenaReserved(VMArena2Arena(vmArena)));
@@ -1571,7 +1575,7 @@ mps_arena_class_t mps_arena_class_vmnz(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
