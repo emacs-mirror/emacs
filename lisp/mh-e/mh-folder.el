@@ -1817,15 +1817,13 @@ If UPDATE, append the scan lines, otherwise replace."
              "-width" (window-width)
              folder range)
       (goto-char scan-start)
-      (cond ((looking-at "scan: no messages in")
-             (keep-lines mh-scan-valid-regexp)) ; Flush random scan lines
-            ((looking-at (if (mh-variant-p 'gnu-mh)
-                             "scan: message set .* does not exist"
-                           "scan: bad message list "))
-             (keep-lines mh-scan-valid-regexp))
-            ((looking-at "scan: "))     ; Keep error messages
+      (cond ((or (looking-at "scan: no messages in")
+                 (looking-at "scan: message set .* does not exist")
+                 (looking-at "scan: bad message list "))
+             (keep-lines mh-scan-valid-regexp)) ; flush common scan output
+            ((looking-at "scan: "))             ; keep unexpected error messages
             (t
-             (keep-lines mh-scan-valid-regexp))) ; Flush random scan lines
+             (keep-lines mh-scan-valid-regexp))) ; flush random scan output
       (setq mh-seq-list (mh-read-folder-sequences folder nil))
       (mh-notate-user-sequences)
       (or update

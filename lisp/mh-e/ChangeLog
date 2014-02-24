@@ -1,3 +1,8 @@
+2014-02-24  Bill Wohler  <wohler@newt.com>
+
+	* mh-folder.el (mh-regenerate-headers): Fix scan: bad message list
+	`unseen' error (closes SF #471).
+
 2013-03-03  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-version): Add +bzr to version.
