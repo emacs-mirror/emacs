@@ -259,7 +259,8 @@ static void arena_setup(gcthread_fn_t fn,
   watch(fn, name);
   mps_pool_destroy(pool);
   mps_fmt_destroy(format);
-  mps_chain_destroy(chain);
+  if (ngen > 0)
+    mps_chain_destroy(chain);
   mps_arena_destroy(arena);
 }
 
