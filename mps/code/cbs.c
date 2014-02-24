@@ -745,7 +745,7 @@ static void cbsFindDeleteRange(Range rangeReturn, Range oldRangeReturn,
        need to allocate a new block. */
     AVER(res == ResOK);
   } else
-    RangeFinish(oldRangeReturn);
+    mps_lib_memcpy(oldRangeReturn, rangeReturn, sizeof(RangeStruct));
 }
 
 
