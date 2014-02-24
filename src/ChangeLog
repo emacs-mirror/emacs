@@ -1,3 +1,7 @@
+2014-02-24  Daniel Colascione  <dancol@dancol.org>
+
+	* keyboard.c (read_char): Close race that resulted in lost events.
+
 2014-02-22  Glenn Morris  <rgm@gnu.org>
 
 	* frame.c (frame-alpha-lower-limit, frame-resize-pixelwise):
