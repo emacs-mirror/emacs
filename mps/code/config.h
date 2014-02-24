@@ -277,6 +277,7 @@
 #define MVFF_SLOT_HIGH_DEFAULT   FALSE
 #define MVFF_ARENA_HIGH_DEFAULT  FALSE
 #define MVFF_FIRST_FIT_DEFAULT   TRUE
+#define MVFF_SPARE_DEFAULT       0.75
 
 
 /* Pool MVT Configuration -- see <code/poolmv2.c> */

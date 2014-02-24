@@ -49,6 +49,7 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
   Size avgSize;                 /* client estimate of allocation size */
   Size total;                   /* total bytes in pool */
   Size free;                    /* total free bytes in pool */
+  double spare;                 /* spare space fraction, see MVFFReduce */
   MFSStruct cbsBlockPoolStruct; /* stores blocks for CBSs */
   CBSStruct totalCBSStruct;     /* all memory allocated from the arena */
   CBSStruct freeCBSStruct;      /* free list */
@@ -156,55 +157,85 @@ static void MVFFDeleteFromFree(MVFF mvff, Range range)
 
 /* MVFFReduce -- free segments from given range
  *
- * Given a free range, attempts to find entire tracts within
- * it, and returns them to the arena, updating total size counter.
+ * Consider reducing the total size of the pool by returning memory
+ * to the arena.
  *
  * This is usually called immediately after MVFFAddToFreeList.
  * It is not combined with MVFFAddToFreeList because the latter
  * is also called when new segments are added under MVFFAlloc.
  */
 
-static void MVFFReduce(MVFF mvff, Range range)
+static void MVFFReduce(MVFF mvff)
 {
   Arena arena;
-  RangeStruct alignedRange, oldRange;
-  Addr base, limit;
-  Size size;
-  Res res;
-
-  AVERT(MVFF, mvff);
-  AVER(RangeBase(range) < RangeLimit(range));
-  /* Could profitably AVER that the given range is free, */
-  /* but the CBS doesn't provide that facility. */
-
-  size = RangeSize(range);
-
-  arena = PoolArena(MVFF2Pool(mvff));
-  base = AddrAlignUp(RangeBase(range), ArenaAlign(arena));
-  limit = AddrAlignDown(RangeLimit(range), ArenaAlign(arena));
-  if (base >= limit) { /* no whole tracts */
-    return;
-  }
-
-  RangeInit(&alignedRange, base, limit);
-  AVER(RangesNest(range, &alignedRange));
-
-  /* Delete the range from the free list before attempting to delete it
-     from the total allocated memory, so that we don't have dangling blocks
-     in the freelist, even for a moment.  If we fail to delete from the
-     totalCBS we add back to the freelist, which can't fail. */
+  RangeStruct freeRange;
+  Size freeLimit, targetFree;
+  Align align;
   
-  MVFFDeleteFromFree(mvff, &alignedRange);
+  AVERT(MVFF, mvff);
+  arena = PoolArena(MVFF2Pool(mvff));
+  align = ArenaAlign(arena);
 
-  res = CBSDelete(&oldRange, MVFFTotalCBS(mvff), &alignedRange);
-  if (res != ResOK) {
-    RangeStruct coalesced;
-    MVFFAddToFree(&coalesced, mvff, &alignedRange);
+  /* Try to return memory when the amount of free memory exceeds a
+     threshold fraction of the total memory. */
+  
+  /* NOTE: If this code becomes very hot, then the test of whether there's
+     a large free block in the CBS could be inlined, since it's a property
+     stored at the root node. */
+
+  freeLimit = (Size)(mvff->total * mvff->spare);
+  if (mvff->free < freeLimit)
     return;
-  }
-  mvff->total -= RangeSize(&alignedRange);
 
-  ArenaFree(base, AddrOffset(base, limit), MVFF2Pool(mvff));
+  targetFree = freeLimit / 2;
+  while (mvff->free > targetFree &&
+         CBSFindLargest(&freeRange, &freeRange, MVFFFreeCBS(mvff),
+                        0, FindDeleteNONE)) {
+    RangeStruct pageRange, oldRange;
+    Size size;
+    Res res;
+    Addr base, limit;
+    
+    base = AddrAlignUp(RangeBase(&freeRange), align);
+    limit = AddrAlignDown(RangeLimit(&freeRange), align);
+    
+    /* Give up if the block is too small to contain a whole page when
+       aligned, even though it might be masking smaller better aligned
+       pages that we could return, because CBSFindLargest won't be able
+       to find those. */
+    if (base >= limit)
+      break;
+
+    size = AddrOffset(base, limit);
+
+    /* Don't return (much) more than we need to. */
+    if (size > mvff->free - targetFree)
+      size = SizeAlignUp(mvff->free - targetFree, align);
+
+    /* Calculate the range of pages we can return to the arena near the
+       top end of the free memory (because we're first fit). */
+    RangeInit(&pageRange, AddrSub(limit, size), limit);
+    AVER(!RangeIsEmpty(&pageRange));
+    AVER(RangesNest(&freeRange, &pageRange));
+    AVER(RangeIsAligned(&pageRange, align));
+
+    /* Delete the range from the free list before attempting to delete it
+       from the total allocated memory, so that we don't have dangling blocks
+       in the freelist, even for a moment.  If we fail to delete from the
+       totalCBS we add back to the freelist, which can't fail. */
+    
+    MVFFDeleteFromFree(mvff, &pageRange);
+
+    res = CBSDelete(&oldRange, MVFFTotalCBS(mvff), &pageRange);
+    if (res != ResOK) {
+      RangeStruct coalesced;
+      MVFFAddToFree(&coalesced, mvff, &pageRange);
+      return;
+    }
+    mvff->total -= RangeSize(&pageRange);
+
+    ArenaFree(RangeBase(&pageRange), RangeSize(&pageRange), MVFF2Pool(mvff));
+  }
 }
 
 
@@ -374,7 +405,7 @@ static void MVFFFree(Pool pool, Addr old, Size size)
   size = SizeAlignUp(size, PoolAlignment(pool));
   RangeInit(&range, old, AddrAdd(old, size));
   MVFFAddToFree(&coalescedRange, mvff, &range);
-  MVFFReduce(mvff, &coalescedRange);
+  MVFFReduce(mvff);
 }
 
 /* MVFFFindLargest -- call CBSFindLargest and then fall back to
@@ -464,7 +495,7 @@ static void MVFFBufferEmpty(Pool pool, Buffer buffer,
 
   RangeInit(&range, base, limit);
   MVFFAddToFree(&coalescedRange, mvff, &range);
-  MVFFReduce(mvff, &coalescedRange);
+  MVFFReduce(mvff);
 }
 
 
@@ -510,6 +541,7 @@ static Res MVFFInit(Pool pool, ArgList args)
   Bool slotHigh = MVFF_SLOT_HIGH_DEFAULT;
   Bool arenaHigh = MVFF_ARENA_HIGH_DEFAULT;
   Bool firstFit = MVFF_FIRST_FIT_DEFAULT;
+  double spare = MVFF_SPARE_DEFAULT;
   MVFF mvff;
   Arena arena;
   Res res;
@@ -533,6 +565,9 @@ static Res MVFFInit(Pool pool, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_ALIGN))
     align = arg.val.align;
 
+  if (ArgPick(&arg, args, MPS_KEY_SPARE))
+    spare = arg.val.d;
+
   if (ArgPick(&arg, args, MPS_KEY_MVFF_SLOT_HIGH))
     slotHigh = arg.val.b;
   
@@ -545,6 +580,8 @@ static Res MVFFInit(Pool pool, ArgList args)
   AVER(extendBy > 0);           /* .arg.check */
   AVER(avgSize > 0);            /* .arg.check */
   AVER(avgSize <= extendBy);    /* .arg.check */
+  AVER(spare >= 0.0);           /* .arg.check */
+  AVER(spare <= 1.0);           /* .arg.check */
   AVER(SizeIsAligned(align, MPS_PF_ALIGN));
   AVER(BoolCheck(slotHigh));
   AVER(BoolCheck(arenaHigh));
@@ -557,6 +594,7 @@ static Res MVFFInit(Pool pool, ArgList args)
   pool->alignment = align;
   mvff->slotHigh = slotHigh;
   mvff->firstFit = firstFit;
+  mvff->spare = spare;
 
   SegPrefInit(MVFFSegPref(mvff));
   SegPrefExpress(MVFFSegPref(mvff), arenaHigh ? SegPrefHigh : SegPrefLow, NULL);
@@ -794,6 +832,8 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKL(mvff->extendBy > 0);                   /* see .arg.check */
   CHECKL(mvff->avgSize > 0);                    /* see .arg.check */
   CHECKL(mvff->avgSize <= mvff->extendBy);      /* see .arg.check */
+  CHECKL(mvff->spare >= 0.0);                   /* see .arg.check */
+  CHECKL(mvff->spare <= 1.0);                   /* see .arg.check */
   CHECKL(mvff->total >= mvff->free);
   CHECKL(SizeIsAligned(mvff->free, PoolAlignment(MVFF2Pool(mvff))));
   CHECKL(SizeIsAligned(mvff->total, ArenaAlign(PoolArena(MVFF2Pool(mvff)))));
@@ -801,10 +841,10 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKD(Freelist, MVFFFreelist(mvff));
   CHECKL(BoolCheck(mvff->slotHigh));
   CHECKL(BoolCheck(mvff->firstFit));
-#if MVFF_DEBUG
-  CHECKL(CBSSize(MVFFFreeCBS(mvff)) +
-         FreelistSize(MVFFFreelist(mvff)) == mvff->free);
-  CHECKL(CBSSize(MVFFTotalCBS(mvff)) == mvff->total);
+#ifdef MVFF_DEBUG /* FIXME: Consider using just "if" */
+  CHECKL(mvff->free == CBSSize(MVFFFreeCBS(mvff)) +
+                       FreelistSize(MVFFFreelist(mvff)));
+  CHECKL(mvff->total == CBSSize(MVFFTotalCBS(mvff)));
 #endif
   return TRUE;
 }
