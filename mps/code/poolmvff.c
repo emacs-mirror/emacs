@@ -640,6 +640,7 @@ static void MVFFFinish(Pool pool)
 
   CBSFinish(MVFFFreeCBS(mvff));
   CBSFinish(MVFFTotalCBS(mvff));
+  PoolFinish(MVFFBlockPool(mvff));
   FreelistFinish(MVFFFreelist(mvff));
 }
 
