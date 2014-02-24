@@ -165,9 +165,9 @@ static void cbsUpdateNode(SplayTree tree, Tree node)
   Size maxSize;
   CBSBlock block;
 
-  AVERT(SplayTree, tree);
-  AVERT(Tree, node);
-  AVER(cbsOfTree(tree)->fastFind);
+  AVERT_CRITICAL(SplayTree, tree);
+  AVERT_CRITICAL(Tree, node);
+  AVER_CRITICAL(cbsOfTree(tree)->fastFind);
 
   block = cbsBlockOfNode(node);
   maxSize = CBSBlockSize(block);
