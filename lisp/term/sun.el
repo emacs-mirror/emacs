@@ -38,7 +38,7 @@
   (scroll-up n))
 
 (defun kill-region-and-unmark (beg end)
-  "Like kill-region, but pops the mark [which equals point, anyway.]"
+  "Like `kill-region', but pops the mark [which equals point, anyway.]"
   (interactive "r")
   (kill-region beg end)
   (setq this-command 'kill-region-and-unmark)
@@ -122,7 +122,7 @@
 ;; for you to put your own bindings in.
 
 (defvar sun-raw-prefix-hooks nil
-  "List of forms to evaluate after setting sun-raw-prefix.")
+  "List of forms to evaluate after setting `sun-raw-prefix'.")
 (make-obsolete-variable 'sun-raw-prefix-hooks 'term-setup-hook "21.1")
 
 

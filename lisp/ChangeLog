@@ -1,3 +1,8 @@
+2014-02-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term/sun.el (kill-region-and-unmark, sun-raw-prefix-hooks):
+	Fix docstring typos.
+
 2014-02-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-file-truename): Improve last fix.
