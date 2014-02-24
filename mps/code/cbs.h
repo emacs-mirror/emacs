@@ -35,10 +35,24 @@ typedef struct CBSStruct {
   Sig sig; /* sig at end because embeded */
 } CBSStruct;
 
+
+/* CBSBlockStruct is here so that its size can be known, but should
+   be treated as opaque outside cbs.c. */
+
+typedef struct CBSBlockStruct {
+  TreeStruct node;
+  Addr base;
+  Addr limit;
+  Size maxSize;         /* accurate maximum block size of sub-tree */
+} CBSBlockStruct;
+
+
 extern Bool CBSCheck(CBS cbs);
 
 extern Res CBSInit(Arena arena, CBS cbs, void *owner,
                    Align alignment, Bool fastFind, ArgList args);
+extern Res CBSInitWithPool(Arena arena, CBS cbs, void *owner,
+                           Align alignment, Bool fastFind, Pool blockPool);
 extern void CBSFinish(CBS cbs);
 
 extern Res CBSInsert(Range rangeReturn, CBS cbs, Range range);
