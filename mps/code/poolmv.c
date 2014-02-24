@@ -132,9 +132,7 @@ typedef struct MVSpanStruct {
 
 static Bool MVSpanCheck(MVSpan span)
 {
-  Addr addr, base, limit;
-  Arena arena;
-  Tract tract;
+  Addr base, limit;
 
   CHECKS(MVSpan, span);
 
@@ -170,13 +168,20 @@ static Bool MVSpanCheck(MVSpan span)
     CHECKL(span->largest == SpanSize(span)+1);
   }
 
-  /* Each tract of the span must refer to the span */
-  arena = PoolArena(TractPool(span->tract));
-  TRACT_FOR(tract, addr, arena, base, limit) {
-    CHECKD_NOSIG(Tract, tract);
-    CHECKL(TractP(tract) == (void *)span);
+#ifdef MV_DEBUG
+  {
+    Addr addr;
+    Arena arena;
+    Tract tract;
+    /* Each tract of the span must refer to the span */
+    arena = PoolArena(TractPool(span->tract));
+    TRACT_FOR(tract, addr, arena, base, limit) {
+      CHECKD_NOSIG(Tract, tract);
+      CHECKL(TractP(tract) == (void *)span);
+    }
+    CHECKL(addr == limit);
   }
-  CHECKL(addr == limit);
+#endif
 
   return TRUE;
 }
