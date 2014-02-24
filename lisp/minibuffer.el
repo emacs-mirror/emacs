@@ -1371,7 +1371,7 @@ appear to be a match."
 				   (concat before ext after)
 				   table predicate (1+ point) md))
 				exts))))
-	  (when (and (= 1 (length comps) (consp (car comps))))
+	  (when (and (null (cdr comps)) (consp (car comps)))
 	    (setq comp (car comps)))))
 
       ;; Completing a single word is actually more difficult than completing

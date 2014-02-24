@@ -1,3 +1,8 @@
+2014-02-24  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
+
+	* minibuffer.el (completion--try-word-completion):
+	Fix error when completing M-x commands (bug#16808).
+
 2014-02-24  Leo Liu  <sdl.web@gmail.com>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Fix debug spec.
