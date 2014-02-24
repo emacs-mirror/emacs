@@ -148,7 +148,7 @@ For example, you could write
     :lighter \" Foo\" :require 'foo :global t :group 'hassle :version \"27.5\"
     ...BODY CODE...)"
   (declare (doc-string 2)
-           (debug (&define name stringp
+           (debug (&define name string-or-null-p
 			   [&optional [&not keywordp] sexp
 			    &optional [&not keywordp] sexp
 			    &optional [&not keywordp] sexp]

@@ -1,3 +1,7 @@
+2014-02-24  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Fix debug spec.
+
 2014-02-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* apropos.el (apropos-print): Avoid formatting error when
