@@ -31,7 +31,14 @@ typedef struct CBSBlockStruct *CBSBlock;
 #define cbsBlockOfNode(_node) PARENT(CBSBlockStruct, node, (_node))
 #define treeOfCBS(cbs) (&((cbs)->tree))
 #define nodeOfCBSBlock(block) (&((block)->node))
-#define keyOfCBSBlock(block) (&((block)->base))
+
+/* We pass the block base directly as a TreeKey (void *) assuming that
+   Addr can be encoded, and possibly breaking <design/type/#addr.use>.
+   On an exotic platform where this isn't true, pass the address of base.
+   i.e. add an & */
+#define keyOfCBSBlock(block)  ((TreeKey)(block)->base)
+#define keyOfBaseVar(baseVar) ((TreeKey)(baseVar))
+#define baseOfKey(key)        ((Addr)(key))
 
 
 /* cbsEnter, cbsLeave -- Avoid re-entrance
@@ -102,9 +109,10 @@ static Compare cbsCompare(Tree node, TreeKey key)
   Addr base1, base2, limit2;
   CBSBlock cbsBlock;
 
-  AVER(node != NULL);
+  AVERT_CRITICAL(Tree, node);
+  AVER_CRITICAL(key != NULL);
 
-  base1 = *(Addr *)key;
+  base1 = baseOfKey(key);
   cbsBlock = cbsBlockOfNode(node);
   base2 = cbsBlock->base;
   limit2 = cbsBlock->limit;
@@ -410,7 +418,7 @@ static Res cbsInsertIntoTree(Range rangeReturn, CBS cbs, Range range)
   limit = RangeLimit(range);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
-  b = SplayTreeNeighbours(&leftSplay, &rightSplay, treeOfCBS(cbs), &base);
+  b = SplayTreeNeighbours(&leftSplay, &rightSplay, treeOfCBS(cbs), keyOfBaseVar(base));
   if (!b) {
     res = ResFAIL;
     goto fail;
@@ -528,7 +536,7 @@ static Res cbsDeleteFromTree(Range rangeReturn, CBS cbs, Range range)
   limit = RangeLimit(range);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
-  if (!SplayTreeFind(&node, treeOfCBS(cbs), (void *)&base)) {
+  if (!SplayTreeFind(&node, treeOfCBS(cbs), keyOfBaseVar(base))) {
     res = ResFAIL;
     goto failSplayTreeSearch;
   }
