@@ -874,7 +874,7 @@ Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
       RangeInit(&range, CBSBlockBase(block), CBSBlockLimit(block));
       AVER(RangeSize(&range) >= maxSize);
       cbsFindDeleteRange(rangeReturn, oldRangeReturn, cbs, &range,
-                         maxSize, findDelete);
+                         size, findDelete);
     }
   }
 
