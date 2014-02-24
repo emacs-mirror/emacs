@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998-2013 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 1998-2014 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Keymaps
 @chapter Keymaps
@@ -622,76 +622,67 @@ string for the keymap.  The prompt string should be given for menu keymaps
 @node Active Keymaps
 @section Active Keymaps
 @cindex active keymap
-@cindex global keymap
+
+  Emacs contains many keymaps, but at any time only a few keymaps are
+@dfn{active}.  When Emacs receives user input, it translates the input
+event (@pxref{Translation Keymaps}), and looks for a key binding in
+the active keymaps.
+
+  Usually, the active keymaps are: (i) the keymap specified by the
+@code{keymap} property, (ii) the keymaps of enabled minor modes, (iii)
+the current buffer's local keymap, and (iv) the global keymap, in that
+order.  Emacs searches for each input key sequence in all these
+keymaps.
+
+  Of these ``usual'' keymaps, the highest-precedence one is specified
+by the @code{keymap} text or overlay property at point, if any.  (For
+a mouse input event, Emacs uses the event position instead of point;
+@iftex
+see the next section for details.)
+@end iftex
+@ifnottex
+@pxref{Searching Keymaps}.)
+@end ifnottex
+
+  Next in precedence are keymaps specified by enabled minor modes.
+These keymaps, if any, are specified by the variables
+@code{emulation-mode-map-alists},
+@code{minor-mode-overriding-map-alist}, and
+@code{minor-mode-map-alist}.  @xref{Controlling Active Maps}.
+
 @cindex local keymap
-
-  Emacs normally contains many keymaps; at any given time, just a few
-of them are @dfn{active}, meaning that they participate in the
-interpretation of user input.  All the active keymaps are used
-together to determine what command to execute when a key is entered.
-
-  Normally the active keymaps are the @code{keymap} property keymap,
-the keymaps of any enabled minor modes, the current buffer's local
-keymap, and the global keymap, in that order.  Emacs searches for each
-input key sequence in all these keymaps.  @xref{Searching Keymaps},
-for more details of this procedure.
-
-  When the key sequence starts with a mouse event,
-the active keymaps are determined based on the
-position in that event.  If the event happened on a string embedded
-with a @code{display}, @code{before-string}, or @code{after-string}
-property (@pxref{Special Properties}), the non-@code{nil} map
-properties of the string override those of the buffer (if the
-underlying buffer text contains map properties in its text properties
-or overlays, they are ignored).
-
-  The @dfn{global keymap} holds the bindings of keys that are defined
-regardless of the current buffer, such as @kbd{C-f}.  The variable
-@code{global-map} holds this keymap, which is always active.
-
-  Each buffer may have another keymap, its @dfn{local keymap}, which
-may contain new or overriding definitions for keys.  The current
-buffer's local keymap is always active except when
-@code{overriding-local-map} overrides it.  The @code{local-map} text
-or overlay property can specify an alternative local keymap for certain
-parts of the buffer; see @ref{Special Properties}.
-
-  Each minor mode can have a keymap; if it does, the keymap is active
-when the minor mode is enabled.  Modes for emulation can specify
-additional active keymaps through the variable
-@code{emulation-mode-map-alists}.
-
-  The highest precedence normal keymap comes from the @code{keymap}
-text or overlay property.  If that is non-@code{nil}, it is the first
-keymap to be processed, in normal circumstances.  Next comes
-any keymap added by the function @code{set-temporary-overlay-map}.
-@xref{Controlling Active Maps}.
-
-  However, there are also special ways for programs to substitute
-other keymaps for some of those.  The variable
-@code{overriding-local-map}, if non-@code{nil}, specifies a keymap
-that replaces all the usual active keymaps except the global keymap.
-Another way to do this is with @code{overriding-terminal-local-map};
-it operates on a per-terminal basis.  These variables are documented
-below.
+  Next in precedence is the buffer's @dfn{local keymap}, containing
+key bindings specific to the buffer.  The minibuffer also has a local
+keymap (@pxref{Intro to Minibuffers}).  If there is a @code{local-map}
+text or overlay property at point, that specifies the local keymap to
+use, in place of the buffer's default local keymap.
 
 @cindex major mode keymap
-  Since every buffer that uses the same major mode normally uses the
-same local keymap, you can think of the keymap as local to the mode.  A
-change to the local keymap of a buffer (using @code{local-set-key}, for
-example) is seen also in the other buffers that share that keymap.
+  The local keymap is normally set by the buffer's major mode, and
+every buffer with the same major mode shares the same local keymap.
+Hence, if you call @code{local-set-key} (@pxref{Key Binding Commands})
+to change the local keymap in one buffer, that also affects the local
+keymaps in other buffers with the same major mode.
 
-  The local keymaps that are used for Lisp mode and some other major
-modes exist even if they have not yet been used.  These local keymaps are
-the values of variables such as @code{lisp-mode-map}.  For most major
-modes, which are less frequently used, the local keymap is constructed
-only when the mode is used for the first time in a session.
+@cindex global keymap
+  Finally, the @dfn{global keymap} contains key bindings that are
+defined regardless of the current buffer, such as @kbd{C-f}.  It is
+always active, and is bound to the variable @code{global-map}.
 
-  The minibuffer has local keymaps, too; they contain various completion
-and exit commands.  @xref{Intro to Minibuffers}.
+  Apart from the above ``usual'' keymaps, Emacs provides special ways
+for programs to make other keymaps active.  Firstly, the variable
+@code{overriding-local-map} specifies a keymap that replaces the usual
+active keymaps, except for the global keymap.  Secondly, the
+terminal-local variable @code{overriding-terminal-local-map} specifies
+a keymap that takes precedence over @emph{all} other keymaps
+(including @code{overriding-local-map}); this is normally used for
+modal/transient keybindings (the function @code{set-transient-map}
+provides a convenient interface for this).  @xref{Controlling Active
+Maps}, for details.
 
-  Emacs has other keymaps that are used in a different way---translating
-events within @code{read-key-sequence}.  @xref{Translation Keymaps}.
+  Making keymaps active is not the only way to use them.  Keymaps are
+also used in other ways, such as for translating events within
+@code{read-key-sequence}.  @xref{Translation Keymaps}.
 
   @xref{Standard Keymaps}, for a list of some standard keymaps.
 
@@ -728,7 +719,7 @@ If @var{position} is non-@code{nil}, it should be either a buffer
 position or an event position like the value of @code{event-start}.
 Then the maps consulted are determined based on @var{position}.
 
-An error is signaled if @var{key} is not a string or a vector.
+Emacs signals an error if @var{key} is not a string or a vector.
 
 @example
 @group
@@ -742,46 +733,52 @@ An error is signaled if @var{key} is not a string or a vector.
 @section Searching the Active Keymaps
 @cindex searching active keymaps for keys
 
-  After translation of event subsequences (@pxref{Translation
-Keymaps}) Emacs looks for them in the active keymaps.  Here is a
-pseudo-Lisp description of the order and conditions for searching
-them:
+Here is a pseudo-Lisp summary of how Emacs searches the active
+keymaps:
 
 @lisp
-(or (cond
-     (overriding-terminal-local-map
-      (@var{find-in} overriding-terminal-local-map))
-     (overriding-local-map
-      (@var{find-in} overriding-local-map))
-     ((or (@var{find-in} (get-char-property (point) 'keymap))
-          (@var{find-in} @var{temp-map})
+(or (if overriding-terminal-local-map
+        (@var{find-in} overriding-terminal-local-map))
+    (if overriding-local-map
+        (@var{find-in} overriding-local-map)
+      (or (@var{find-in} (get-char-property (point) 'keymap))
           (@var{find-in-any} emulation-mode-map-alists)
           (@var{find-in-any} minor-mode-overriding-map-alist)
           (@var{find-in-any} minor-mode-map-alist)
           (if (get-text-property (point) 'local-map)
               (@var{find-in} (get-char-property (point) 'local-map))
-            (@var{find-in} (current-local-map))))))
+            (@var{find-in} (current-local-map)))))
     (@var{find-in} (current-global-map)))
 @end lisp
 
 @noindent
-@var{find-in} and @var{find-in-any} are pseudo functions that search
-in one keymap and in an alist of keymaps, respectively.  (Searching a
-single keymap for a binding is called @dfn{key lookup}; see @ref{Key
-Lookup}.)  If the key sequence starts with a mouse event, that event's position
-is used instead of point and the current buffer.  Mouse events on an
-embedded string use non-@code{nil} text properties from that string
-instead of the buffer.  @var{temp-map} is a pseudo variable that
-represents the effect of a @code{set-temporary-overlay-map} call.
+Here, @var{find-in} and @var{find-in-any} are pseudo functions that
+search in one keymap and in an alist of keymaps, respectively.  Note
+that the @code{set-transient-map} function works by setting
+@code{overriding-terminal-local-map} (@pxref{Controlling Active
+Maps}).
 
-  When a match is found (@pxref{Key Lookup}), if the binding in the
-keymap is a function, the search is over.  However if the keymap entry
-is a symbol with a value or a string, Emacs replaces the input key
-sequences with the variable's value or the string, and restarts the
-search of the active keymaps.
+  In the above pseudo-code, if a key sequence starts with a mouse
+event (@pxref{Mouse Events}), that event's position is used instead of
+point, and the event's buffer is used instead of the current buffer.
+In particular, this affects how the @code{keymap} and @code{local-map}
+properties are looked up.  If a mouse event occurs on a string
+embedded with a @code{display}, @code{before-string}, or
+@code{after-string} property (@pxref{Special Properties}), and the
+string has a non-@code{nil} @code{keymap} or @code{local-map}
+property, that overrides the corresponding property in the underlying
+buffer text (i.e., the property specified by the underlying text is
+ignored).
 
-  The function finally found might also be remapped.  @xref{Remapping
-Commands}.
+  When a key binding is found in one of the active keymaps, and that
+binding is a command, the search is over---the command is executed.
+However, if the binding is a symbol with a value or a string, Emacs
+replaces the input key sequences with the variable's value or the
+string, and restarts the search of the active keymaps.  @xref{Key
+Lookup}.
+
+  The command which is finally found might also be remapped.
+@xref{Remapping Commands}.
 
 @node Controlling Active Maps
 @section Controlling the Active Keymaps
@@ -858,7 +855,6 @@ keymap.  @code{use-local-map} returns @code{nil}.  Most major mode
 commands use this function.
 @end defun
 
-@c Emacs 19 feature
 @defvar minor-mode-map-alist
 @anchor{Definition of minor-mode-map-alist}
 This variable is an alist describing keymaps that may or may not be
@@ -943,7 +939,7 @@ event is run directly by @code{read-event}.  @xref{Special Events}.
 @end defvar
 
 @defvar emulation-mode-map-alists
-This variable holds a list of keymap alists to use for emulations
+This variable holds a list of keymap alists to use for emulation
 modes.  It is intended for modes or packages using multiple minor-mode
 keymaps.  Each element is a keymap alist which has the same format and
 meaning as @code{minor-mode-map-alist}, or a symbol with a variable
@@ -952,19 +948,25 @@ are used before @code{minor-mode-map-alist} and
 @code{minor-mode-overriding-map-alist}.
 @end defvar
 
-@defun set-temporary-overlay-map keymap &optional keep
-This function adds @var{keymap} as a temporary keymap that takes
-precedence over most other keymaps.  It does not take precedence over
-the ``overriding'' maps (see above); and unlike them, if no match for
-a key is found in @var{keymap}, the search continues.
+@cindex transient keymap
+@defun set-transient-map keymap &optional keep
+This function adds @var{keymap} as a @dfn{transient} keymap, which
+takes precedence over other keymaps for one (or more) subsequent keys.
 
-Normally, @var{keymap} is used only once.  If the optional argument
-@var{pred} is @code{t}, the map stays active if a key from @var{keymap}
-is used.  @var{pred} can also be a function of no arguments: if it returns
-non-@code{nil} then @var{keymap} stays active.
+Normally, @var{keymap} is used just once, to look up the very next
+key.  If the optional argument @var{pred} is @code{t}, the map stays
+active as long as the user types keys defined in @var{keymap}; when
+the user types a key that is not in @var{keymap}, the transient keymap
+is deactivated and normal key lookup continues for that key.
 
-For a pseudo-Lisp description of exactly how and when this keymap applies,
-@pxref{Searching Keymaps}.
+The @var{pred} argument can also be a function.  In that case, the
+function is called with no arguments, prior to running each command,
+while @var{keymap} is active; it should return non-@code{nil} if
+@var{keymap} should stay active.
+
+This function works by adding and removing @code{keymap} from the
+variable @code{overriding-terminal-local-map}, which takes precedence
+over all other active keymaps (@pxref{Searching Keymaps}).
 @end defun
 
 @node Key Lookup
@@ -1549,32 +1551,36 @@ specifies a list of keymaps to search in.  This argument is ignored if
 
 @node Translation Keymaps
 @section Keymaps for Translating Sequences of Events
+@cindex translation keymap
 @cindex keymaps for translating events
 
-  This section describes keymaps that are used during reading a key
-sequence, to translate certain event sequences into others.
-@code{read-key-sequence} checks every subsequence of the key sequence
-being read, as it is read, against @code{input-decode-map}, then
-@code{local-function-key-map}, and then against @code{key-translation-map}.
+  When the @code{read-key-sequence} function reads a key sequence
+(@pxref{Key Sequence Input}), it uses @dfn{translation keymaps} to
+translate certain event sequences into others.  The translation
+keymaps are @code{input-decode-map}, @code{local-function-key-map},
+and @code{key-translation-map} (in order of priority).
 
-These keymaps have the same structure as other keymaps, but they are used
-differently: they specify translations to make while reading key sequences,
-rather than bindings for key sequences.
+  Translation keymaps have the same structure as other keymaps, but
+are used differently: they specify translations to make while reading
+key sequences, rather than bindings for complete key sequences.  As
+each key sequence is read, it is checked against each translation
+keymap.  If one of the translation keymaps ``binds'' @var{k} to a
+vector @var{v}, then whenever @var{k} appears as a sub-sequence
+@emph{anywhere} in a key sequence, that sub-sequence is replaced with
+the events in @var{v}.
 
-If one of these keymaps ``binds'' a key sequence @var{k} to a vector
-@var{v}, then when @var{k} appears as a subsequence @emph{anywhere} in a
-key sequence, it is replaced with the events in @var{v}.
+  For example, VT100 terminals send @kbd{@key{ESC} O P} when the
+keypad key @key{PF1} is pressed.  On such terminals, Emacs must
+translate that sequence of events into a single event @code{pf1}.
+This is done by ``binding'' @kbd{@key{ESC} O P} to @code{[pf1]} in
+@code{input-decode-map}.  Thus, when you type @kbd{C-c @key{PF1}} on
+the terminal, the terminal emits the character sequence @kbd{C-c
+@key{ESC} O P}, and @code{read-key-sequence} translates this back into
+@kbd{C-c @key{PF1}} and returns it as the vector @code{[?\C-c pf1]}.
 
-For example, VT100 terminals send @kbd{@key{ESC} O P} when the
-keypad @key{PF1} key is pressed.  Therefore, we want Emacs to translate
-that sequence of events into the single event @code{pf1}.  We accomplish
-this by ``binding'' @kbd{@key{ESC} O P} to @code{[pf1]} in
-@code{input-decode-map}, when using a VT100.
-
-Thus, typing @kbd{C-c @key{PF1}} sends the character sequence @kbd{C-c
-@key{ESC} O P}; later the function @code{read-key-sequence} translates
-this back into @kbd{C-c @key{PF1}}, which it returns as the vector
-@code{[?\C-c pf1]}.
+  Translation keymaps take effect only after Emacs has decoded the
+keyboard input (via the input coding system specified by
+@code{keyboard-coding-system}).  @xref{Terminal I/O Encoding}.
 
 @defvar input-decode-map
 This variable holds a keymap that describes the character sequences sent
@@ -1661,10 +1667,6 @@ to turn the character that follows into a Hyper character:
 (define-key local-function-key-map "\C-ch" 'hyperify)
 @end group
 @end example
-
-  If you have enabled keyboard character set decoding using
-@code{set-keyboard-coding-system}, decoding is done before the
-translations listed above.  @xref{Terminal I/O Encoding}.
 
 @subsection Interaction with normal keymaps
 
@@ -2024,7 +2026,7 @@ which is a string that appears as an element of the keymap.
 the menu's commands.  Emacs displays the overall prompt string as the
 menu title in some cases, depending on the toolkit (if any) used for
 displaying menus.@footnote{It is required for menus which do not use a
-toolkit, e.g., under MS-DOS.}  Keyboard menus also display the
+toolkit, e.g., on a text terminal.}  Keyboard menus also display the
 overall prompt string.
 
 The easiest way to construct a keymap with a prompt string is to
@@ -2372,16 +2374,17 @@ if the menu keymap contains a single nested keymap and no other menu
 items, the menu shows the contents of the nested keymap directly, not
 as a submenu.
 
-  However, if Emacs is compiled without X toolkit support, submenus
-are not supported.  Each nested keymap is shown as a menu item, but
-clicking on it does not automatically pop up the submenu.  If you wish
-to imitate the effect of submenus, you can do that by giving a nested
-keymap an item string which starts with @samp{@@}.  This causes Emacs
-to display the nested keymap using a separate @dfn{menu pane}; the
-rest of the item string after the @samp{@@} is the pane label.  If
-Emacs is compiled without X toolkit support, menu panes are not used;
-in that case, a @samp{@@} at the beginning of an item string is
-omitted when the menu label is displayed, and has no other effect.
+  However, if Emacs is compiled without X toolkit support, or on text
+terminals, submenus are not supported.  Each nested keymap is shown as
+a menu item, but clicking on it does not automatically pop up the
+submenu.  If you wish to imitate the effect of submenus, you can do
+that by giving a nested keymap an item string which starts with
+@samp{@@}.  This causes Emacs to display the nested keymap using a
+separate @dfn{menu pane}; the rest of the item string after the
+@samp{@@} is the pane label.  If Emacs is compiled without X toolkit
+support, or if a menu is displayed on a text terminal, menu panes are
+not used; in that case, a @samp{@@} at the beginning of an item string
+is omitted when the menu label is displayed, and has no other effect.
 
 @node Keyboard Menus
 @subsection Menus and the Keyboard
@@ -2486,10 +2489,10 @@ can do it this way:
 @subsection The Menu Bar
 @cindex menu bar
 
-  On graphical displays, there is usually a @dfn{menu bar} at the top
-of each frame.  @xref{Menu Bars,,,emacs, The GNU Emacs Manual}.  Menu
-bar items are subcommands of the fake ``function key''
-@code{menu-bar}, as defined in the active keymaps.
+  Emacs usually shows a @dfn{menu bar} at the top of each frame.
+@xref{Menu Bars,,,emacs, The GNU Emacs Manual}.  Menu bar items are
+subcommands of the fake ``function key'' @code{menu-bar}, as defined
+in the active keymaps.
 
   To add an item to the menu bar, invent a fake ``function key'' of your
 own (let's call it @var{key}), and make a binding for the key sequence
@@ -2556,7 +2559,7 @@ at the end of the menu bar, following local menu items.
 
 @defvar menu-bar-update-hook
 This normal hook is run by redisplay to update the menu bar contents,
-before redisplaying the menu bar.  You can use it to update submenus
+before redisplaying the menu bar.  You can use it to update menus
 whose contents should vary.  Since this hook is run frequently, we
 advise you to ensure that the functions it calls do not take much time
 in the usual case.
@@ -2576,7 +2579,7 @@ in Documentation}.
 
   A @dfn{tool bar} is a row of clickable icons at the top of a frame,
 just below the menu bar.  @xref{Tool Bars,,,emacs, The GNU Emacs
-Manual}.
+Manual}.  Emacs normally shows a tool bar on graphical displays.
 
   On each frame, the frame parameter @code{tool-bar-lines} controls
 how many lines' worth of height to reserve for the tool bar.  A zero
@@ -2630,6 +2633,9 @@ Used when the item is disabled and selected.
 Used when the item is disabled and deselected.
 @end table
 @end table
+
+The GTK+ and NS versions of Emacs ignores items 1 to 3, because disabled and/or
+deselected images are autocomputed from item 0.
 
 If @var{image} is a single image specification, Emacs draws the tool bar
 button in disabled state by applying an edge-detection algorithm to the

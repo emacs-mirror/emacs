@@ -1,6 +1,6 @@
-;;; calculator.el --- a [not so] simple calculator for Emacs
+;;; calculator.el --- a [not so] simple calculator for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
@@ -131,14 +131,15 @@ The displayer is a symbol, a string or an expression.  A symbol should
 be the name of a one-argument function, a string is used with a single
 argument and an expression will be evaluated with the variable `num'
 bound to whatever should be displayed.  If it is a function symbol, it
-should be able to handle special symbol arguments, currently 'left and
-'right which will be sent by special keys to modify display parameters
+should be able to handle special symbol arguments, currently `left' and
+`right' which will be sent by special keys to modify display parameters
 associated with the displayer function (for example to change the number
 of digits displayed).
 
 An exception to the above is the case of the list (std C) where C is a
 character, in this case the `calculator-standard-displayer' function
 will be used with this character for a format string."
+  :type '(choice (function) (string) (list (const std) character) (sexp))
   :group 'calculator)
 
 (defcustom calculator-displayers
@@ -240,6 +241,8 @@ Examples:
 
 ;;;=====================================================================
 ;;; Code:
+
+(eval-when-compile (require 'cl-lib))
 
 ;;;---------------------------------------------------------------------
 ;;; Variables
@@ -668,7 +671,9 @@ more information.
 
 \\{calculator-mode-map}")
 
-(eval-when-compile (require 'electric) (require 'ehelp))
+(declare-function Electric-command-loop "electric"
+                  (return-tag &optional prompt inhibit-quitting
+                              loop-function loop-state))
 
 ;;;###autoload
 (defun calculator ()
@@ -706,7 +711,7 @@ See the documentation for `calculator-mode' for more information."
                ;; can't use 'noprompt, bug in electric.el
                (lambda () 'noprompt)
                nil
-               (lambda (x y) (calculator-update-display))))
+               (lambda (_x _y) (calculator-update-display))))
           (and calculator-buffer
                (catch 'calculator-done (calculator-quit)))
           (use-local-map old-l-map)
@@ -903,9 +908,9 @@ The string is set not to exceed the screen width."
       value)
     (car (read-from-string
           (cond ((equal "." str) "0.0")
-                ((string-match "[eE][+-]?$" str) (concat str "0"))
-                ((string-match "\\.[0-9]\\|[eE]" str) str)
-                ((string-match "\\." str)
+                ((string-match-p "[eE][+-]?$" str) (concat str "0"))
+                ((string-match-p "\\.[0-9]\\|[eE]" str) str)
+                ((string-match-p "\\." str)
                  ;; do this because Emacs reads "23." as an integer
                  (concat str "0"))
                 ((stringp str) (concat str ".0"))
@@ -1122,11 +1127,10 @@ the 'left or 'right when one of the standard modes is used."
         (format calculator-displayer num))
        ((symbolp calculator-displayer)
         (funcall calculator-displayer num))
-       ((and (consp calculator-displayer)
-             (eq 'std (car calculator-displayer)))
+       ((eq 'std (car-safe calculator-displayer))
         (calculator-standard-displayer num (cadr calculator-displayer)))
        ((listp calculator-displayer)
-        (eval calculator-displayer))
+        (eval calculator-displayer `((num. ,num))))
        (t (prin1-to-string num t))))
     ;; operators are printed here
     (t (prin1-to-string (nth 1 num) t))))
@@ -1271,29 +1275,24 @@ arguments."
       ;; smaller than calculator-epsilon (1e-15).  I don't think this is
       ;; necessary now.
       (if (symbolp f)
-        (cond ((and X Y) (funcall f X Y))
-              (X         (funcall f X))
-              (t         (funcall f)))
+          (cond ((and X Y) (funcall f X Y))
+                (X         (funcall f X))
+                (t         (funcall f)))
         ;; f is an expression
-        (let* ((__f__ f) ; so we can get this value below...
-               (TX (calculator-truncate X))
+        (let* ((TX (calculator-truncate X))
                (TY (and Y (calculator-truncate Y)))
                (DX (if calculator-deg (/ (* X pi) 180) X))
-               (L  calculator-saved-list)
-               (Fbound (fboundp 'F))
-               (Fsave  (and Fbound (symbol-function 'F)))
-               (Dbound (fboundp 'D))
-               (Dsave  (and Dbound (symbol-function 'D))))
-          ;; a shortened version of flet
-          (fset 'F (function
-                    (lambda (&optional x y)
-                      (calculator-funcall __f__ x y))))
-          (fset 'D (function
-                    (lambda (x)
-                      (if calculator-deg (/ (* x 180) float-pi) x))))
-          (unwind-protect (eval f)
-            (if Fbound (fset 'F Fsave) (fmakunbound 'F))
-            (if Dbound (fset 'D Dsave) (fmakunbound 'D)))))
+               (L  calculator-saved-list))
+          (cl-letf (((symbol-function 'F)
+                     (lambda (&optional x y) (calculator-funcall f x y)))
+                    ((symbol-function 'D)
+                     (lambda (x) (if calculator-deg (/ (* x 180) float-pi) x))))
+            (eval f `((X . ,X)
+                      (Y . ,Y)
+                      (TX . ,TX)
+                      (TY . ,TY)
+                      (DX . ,DX)
+                      (L . ,L))))))
     (error 0)))
 
 ;;;---------------------------------------------------------------------
@@ -1364,7 +1363,7 @@ OP is the operator (if any) that caused this call."
            (or calculator-display-fragile
                (not (numberp (car calculator-stack))))
            (not (and calculator-curnum
-                     (string-match "[.eE]" calculator-curnum))))
+                     (string-match-p "[.eE]" calculator-curnum))))
     ;; enter the period on the same condition as a digit, only if no
     ;; period or exponent entered yet
     (progn
@@ -1380,7 +1379,7 @@ OP is the operator (if any) that caused this call."
     (if (and (or calculator-display-fragile
                  (not (numberp (car calculator-stack))))
              (not (and calculator-curnum
-                       (string-match "[eE]" calculator-curnum))))
+                       (string-match-p "[eE]" calculator-curnum))))
       ;; same condition as above, also no E so far
       (progn
         (calculator-clear-fragile)
@@ -1450,7 +1449,7 @@ no need for negative numbers since these are handled by unary operators)."
   (interactive)
   (if (and (not calculator-display-fragile)
            calculator-curnum
-           (string-match "[eE]$" calculator-curnum))
+           (string-match-p "[eE]$" calculator-curnum))
     (calculator-digit)
     (calculator-op)))
 
@@ -1619,6 +1618,8 @@ Optional string argument KEYS will force using it as the keys entered."
              (setq s (match-string 1 s)))
            (kill-new s)))))
 
+;; FIXME this should use register-read-with-preview, but it
+;; uses calculator-registers rather than register-alist.
 (defun calculator-set-register (reg)
   "Set a register value for REG."
   (interactive "cRegister to store into: ")
@@ -1659,13 +1660,16 @@ Used by `calculator-paste' and `get-register'."
           (setq str (concat (or (match-string 1 str) "0")
                             (or (match-string 2 str) ".0")
                             (or (match-string 3 str) ""))))
-     (condition-case nil (calculator-string-to-number str)
-       (error nil)))))
+     (ignore-errors (calculator-string-to-number str)))))
 
+;; FIXME this should use register-read-with-preview, but it
+;; uses calculator-registers rather than register-alist.
 (defun calculator-get-register (reg)
   "Get a value from a register REG."
   (interactive "cRegister to get value from: ")
   (calculator-put-value (cdr (assq reg calculator-registers))))
+
+(declare-function electric-describe-mode "ehelp" ())
 
 (defun calculator-help ()
   ;; this is used as the quick reference screen you get with `h'
@@ -1697,7 +1701,7 @@ Used by `calculator-paste' and `get-register'."
       (if (or (not calculator-electric-mode)
               ;; XEmacs has a problem with electric-describe-mode
               (featurep 'xemacs))
-        (describe-mode)
+          (describe-mode)
         (electric-describe-mode))
       (if calculator-electric-mode
         (use-global-map g-map))
@@ -1724,13 +1728,11 @@ Used by `calculator-paste' and `get-register'."
   (interactive)
   (set-buffer calculator-buffer)
   (let ((inhibit-read-only t)) (erase-buffer))
-  (if (not calculator-electric-mode)
-    (progn
-      (condition-case nil
-          (while (get-buffer-window calculator-buffer)
-            (delete-window (get-buffer-window calculator-buffer)))
-        (error nil))
-      (kill-buffer calculator-buffer)))
+  (unless calculator-electric-mode
+    (ignore-errors
+      (while (get-buffer-window calculator-buffer)
+	(delete-window (get-buffer-window calculator-buffer))))
+    (kill-buffer calculator-buffer))
   (setq calculator-buffer nil)
   (message "Calculator done.")
   (if calculator-electric-mode (throw 'calculator-done nil)))
@@ -1764,14 +1766,11 @@ To use this, apply a binary operator (evaluate it), then call this."
 
 (defun calculator-integer-p (x)
   "Non-nil if X is equal to an integer."
-  (condition-case nil
-      (= x (ftruncate x))
-    (error nil)))
+  (ignore-errors (= x (ftruncate x))))
 
 (defun calculator-expt (x y)
   "Compute X^Y, dealing with errors appropriately."
-  (condition-case
-      nil
+  (condition-case nil
       (expt x y)
     (domain-error 0.0e+NaN)
     (range-error

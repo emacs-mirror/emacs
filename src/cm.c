@@ -1,5 +1,5 @@
 /* Cursor motion subroutines for GNU Emacs.
-   Copyright (C) 1985, 1995, 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1995, 2001-2014 Free Software Foundation, Inc.
     based primarily on public domain code written by Chris Torek
 
 This file is part of GNU Emacs.
@@ -214,7 +214,7 @@ calccost (struct tty_display_info *tty,
     if (doit)
       do
           emacs_tputs (tty, p, 1, cmputc);
-      while (0 < --deltay);
+      while (--deltay > 0);
 x:
     if ((deltax = dstx - srcx) == 0)
 	goto done;
@@ -297,7 +297,7 @@ fail:
     if (doit)
       do
           emacs_tputs (tty, p, 1, cmputc);
-      while (0 < --deltax);
+      while (--deltax > 0);
 done:
     return totalcost;
 }

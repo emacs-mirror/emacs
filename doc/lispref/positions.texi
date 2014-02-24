@@ -1,10 +1,11 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2013 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2014 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Positions
 @chapter Positions
 @cindex position (in buffer)
+@cindex buffer position
 
   A @dfn{position} is the index of a character in the text of a buffer.
 More precisely, a position identifies the place between two characters
@@ -146,9 +147,13 @@ that.
 
 @deffn Command goto-char position
 This function sets point in the current buffer to the value
-@var{position}.  If @var{position} is less than 1, it moves point to the
-beginning of the buffer.  If @var{position} is greater than the length
-of the buffer, it moves point to the end.
+@var{position}.
+@c This behavior used to be documented until 2013/08.
+@ignore
+If @var{position} is less than 1, it moves point to the beginning of
+the buffer.  If @var{position} is greater than the length of the
+buffer, it moves point to the end.
+@end ignore
 
 If narrowing is in effect, @var{position} still counts from the
 beginning of the buffer, but point cannot go outside the accessible
@@ -191,8 +196,8 @@ whether a given character is part of a word.  @xref{Syntax Tables}.
 
 @deffn Command forward-word &optional count
 This function moves point forward @var{count} words (or backward if
-@var{count} is negative).  If @var{count} is @code{nil}, it moves
-forward one word.
+@var{count} is negative).  If @var{count} is omitted or @code{nil}, it
+defaults to 1.
 
 ``Moving one word'' means moving until point crosses a
 word-constituent character and then encounters a word-separator
@@ -210,7 +215,7 @@ If @code{inhibit-field-text-motion} is non-@code{nil},
 this function ignores field boundaries.
 
 In an interactive call, @var{count} is specified by the numeric prefix
-argument.  If @var{count} is omitted or @code{nil}, it defaults to 1.
+argument.
 @end deffn
 
 @deffn Command backward-word &optional count
@@ -481,9 +486,11 @@ flag, and display table may vary between windows).  @xref{Usual
 Display}.
 
   These functions scan text to determine where screen lines break, and
-thus take time proportional to the distance scanned.  If you intend to
-use them heavily, Emacs provides caches which may improve the
-performance of your code.  @xref{Truncation, cache-long-line-scans}.
+thus take time proportional to the distance scanned.
+@ignore
+If you intend to use them heavily, Emacs provides caches which may
+improve the performance of your code.  @xref{Truncation, cache-long-scans}.
+@end ignore
 
 @defun vertical-motion count &optional window
 This function moves point to the start of the screen line @var{count}
@@ -805,7 +812,7 @@ thousands of times in the Lisp sources of Emacs.
 buffer, use @code{save-current-buffer} or @code{with-current-buffer}
 instead (@pxref{Current Buffer}).  If you need to save or restore
 window configurations, see the forms described in @ref{Window
-Configurations} and in @ref{Frame Configurations}.
+Configurations} and in @ref{Frame Configurations}. @c frameset?
 
 @defspec save-excursion body@dots{}
 @cindex mark excursion

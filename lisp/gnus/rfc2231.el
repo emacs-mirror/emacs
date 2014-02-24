@@ -1,6 +1,6 @@
 ;;; rfc2231.el --- Functions for decoding rfc2231 headers
 
-;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -215,7 +215,8 @@ These look like:
  \"''This%20is%20%2A%2A%2Afun%2A%2A%2A\", or
  \"This is ***fun***\"."
   (string-match "\\`\\(?:\\([^']+\\)?'\\([^']+\\)?'\\)?\\(.+\\)" string)
-  (let ((coding-system (mm-charset-to-coding-system (match-string 1 string)))
+  (let ((coding-system (mm-charset-to-coding-system
+			(match-string 1 string) nil t))
 	;;(language (match-string 2 string))
 	(value (match-string 3 string)))
     (mm-with-unibyte-buffer

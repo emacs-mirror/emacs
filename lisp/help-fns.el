@@ -1,9 +1,9 @@
 ;;; help-fns.el --- Complex help functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2013 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2014 Free Software
 ;; Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, internal
 ;; Package: emacs
 
@@ -31,6 +31,12 @@
 ;; are in help.el
 
 ;;; Code:
+
+(defvar help-fns-describe-function-functions nil
+  "List of functions to run in help buffer in `describe-function'.
+Those functions will be run after the header line and argument
+list was inserted, and before the documentation will be inserted.
+The functions will receive the function name as argument.")
 
 ;; Functions
 
@@ -181,7 +187,7 @@ KIND should be `var' for a variable or `subr' for a subroutine."
   (let ((docbuf (get-buffer-create " *DOC*"))
 	(name (if (eq 'var kind)
 		  (concat "V" (symbol-name subr-or-var))
-		(concat "F" (subr-name subr-or-var)))))
+		(concat "F" (subr-name (advice--cd*r subr-or-var))))))
     (with-current-buffer docbuf
       (goto-char (point-min))
       (if (eobp)
@@ -382,8 +388,6 @@ suitable file is found, return nil."
 			    (match-string 1 str))))
 	(and src-file (file-readable-p src-file) src-file))))))
 
-(declare-function ad-get-advice-info "advice" (function))
-
 (defun help-fns--key-bindings (function)
   (when (commandp function)
     (let ((pt2 (with-current-buffer standard-output (point)))
@@ -435,14 +439,19 @@ suitable file is found, return nil."
   (let ((handler (function-get function 'compiler-macro)))
     (when handler
       (insert "\nThis function has a compiler macro")
-      (let ((lib (get function 'compiler-macro-file)))
-        ;; FIXME: rather than look at the compiler-macro-file property,
-        ;; just look at `handler' itself.
-        (when (stringp lib)
-          (insert (format " in `%s'" lib))
-          (save-excursion
-            (re-search-backward "`\\([^`']+\\)'" nil t)
-            (help-xref-button 1 'help-function-cmacro function lib))))
+      (if (symbolp handler)
+          (progn
+            (insert (format " `%s'" handler))
+            (save-excursion
+              (re-search-backward "`\\([^`']+\\)'" nil t)
+              (help-xref-button 1 'help-function handler)))
+        ;; FIXME: Obsolete since 24.4.
+        (let ((lib (get function 'compiler-macro-file)))
+          (when (stringp lib)
+            (insert (format " in `%s'" lib))
+            (save-excursion
+              (re-search-backward "`\\([^`']+\\)'" nil t)
+              (help-xref-button 1 'help-function-cmacro function lib)))))
       (insert ".\n"))))
 
 (defun help-fns--signature (function doc real-def real-function)
@@ -526,27 +535,30 @@ FILE is the file where FUNCTION was probably defined."
 
 ;;;###autoload
 (defun describe-function-1 (function)
-  (let* ((advised (and (symbolp function) (featurep 'advice)
-		       (ad-get-advice-info function)))
+  (let* ((advised (and (symbolp function)
+		       (featurep 'nadvice)
+		       (advice--p (advice--symbol-function function))))
 	 ;; If the function is advised, use the symbol that has the
 	 ;; real definition, if that symbol is already set up.
 	 (real-function
 	  (or (and advised
-		   (let ((origname (cdr (assq 'origname advised))))
-		     (and (fboundp origname) origname)))
+                   (advice--cd*r (advice--symbol-function function)))
 	      function))
 	 ;; Get the real definition.
 	 (def (if (symbolp real-function)
 		  (symbol-function real-function)
-		function))
-	 (aliased (symbolp def))
-	 (real-def (if aliased
-		       (let ((f def))
-			 (while (and (fboundp f)
-				     (symbolp (symbol-function f)))
-			   (setq f (symbol-function f)))
-			 f)
-		     def))
+		real-function))
+	 (aliased (or (symbolp def)
+		      ;; Advised & aliased function.
+		      (and advised (symbolp real-function))))
+	 (real-def (cond
+		    (aliased (let ((f real-function))
+			       (while (and (fboundp f)
+					   (symbolp (symbol-function f)))
+				 (setq f (symbol-function f)))
+			       f))
+		    ((subrp def) (intern (subr-name def)))
+		    (t def)))
 	 (file-name (find-lisp-object-file-name function def))
          (pt1 (with-current-buffer (help-buffer) (point)))
 	 (beg (if (and (or (byte-code-function-p def)
@@ -566,14 +578,20 @@ FILE is the file where FUNCTION was probably defined."
 		  (if (eq 'unevalled (cdr (subr-arity def)))
 		      (concat beg "special form")
 		    (concat beg "built-in function")))
-		 ((byte-code-function-p def)
-		  (concat beg "compiled Lisp function"))
+		 ;; Aliases are Lisp functions, so we need to check
+		 ;; aliases before functions.
 		 (aliased
 		  (format "an alias for `%s'" real-def))
+		 ((or (eq (car-safe def) 'macro)
+		      ;; For advised macros, def is a lambda
+		      ;; expression or a byte-code-function-p, so we
+		      ;; need to check macros before functions.
+		      (macrop function))
+		  (concat beg "Lisp macro"))
+		 ((byte-code-function-p def)
+		  (concat beg "compiled Lisp function"))
 		 ((eq (car-safe def) 'lambda)
 		  (concat beg "Lisp function"))
-		 ((eq (car-safe def) 'macro)
-		  (concat beg "Lisp macro"))
 		 ((eq (car-safe def) 'closure)
 		  (concat beg "Lisp closure"))
 		 ((autoloadp def)
@@ -633,13 +651,14 @@ FILE is the file where FUNCTION was probably defined."
         (help-fns--key-bindings function)
         (with-current-buffer standard-output
           (setq doc (help-fns--signature function doc real-def real-function))
-
-          (help-fns--compiler-macro function)
-          (help-fns--parent-mode function)
-          (help-fns--obsolete function)
-
+	  (run-hook-with-args 'help-fns-describe-function-functions function)
           (insert "\n"
                   (or doc "Not documented.")))))))
+
+;; Add defaults to `help-fns-describe-function-functions'.
+(add-hook 'help-fns-describe-function-functions #'help-fns--obsolete)
+(add-hook 'help-fns-describe-function-functions #'help-fns--parent-mode)
+(add-hook 'help-fns-describe-function-functions #'help-fns--compiler-macro)
 
 
 ;; Variables
@@ -870,8 +889,10 @@ it is displayed along with the global value."
 		(princ "buffer-local when set.\n"))
 	       ((not permanent-local))
 	       ((bufferp locus)
+		(setq extra-line t)
 		(princ "  This variable's buffer-local value is permanent.\n"))
 	       (t
+		(setq extra-line t)
                 (princ "  This variable's value is permanent \
 if it is given a local binding.\n")))
 
@@ -890,13 +911,18 @@ if it is given a local binding.\n")))
 			     (t ".")))
                 (terpri))
 
-	      (when (member (cons variable val) file-local-variables-alist)
+	      (when (member (cons variable val)
+                            (with-current-buffer buffer
+                              file-local-variables-alist))
 		(setq extra-line t)
-		(if (member (cons variable val) dir-local-variables-alist)
-		    (let ((file (and (buffer-file-name)
-                                      (not (file-remote-p (buffer-file-name)))
+		(if (member (cons variable val)
+                             (with-current-buffer buffer
+                               dir-local-variables-alist))
+		    (let ((file (and (buffer-file-name buffer)
+                                      (not (file-remote-p
+                                            (buffer-file-name buffer)))
                                       (dir-locals-find-file
-                                       (buffer-file-name))))
+                                       (buffer-file-name buffer))))
                           (dir-file t))
 		      (princ "  This variable's value is directory-local")
 		      (if (null file)
@@ -909,7 +935,8 @@ if it is given a local binding.\n")))
                                 (setq file (expand-file-name
                                             dir-locals-file (car file)))
                               ;; Otherwise, assume it was set directly.
-                              (setq dir-file nil)))
+                              (setq file (car file)
+                                    dir-file nil)))
 			(princ (if dir-file
 				   "by the file\n  `"
 				 "for the directory\n  `"))

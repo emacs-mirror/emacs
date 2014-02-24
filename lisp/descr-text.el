@@ -1,9 +1,9 @@
-;;; descr-text.el --- describe text mode
+;;; descr-text.el --- describe text mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1996, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: faces, i18n, Unicode, multilingual
 
 ;; This file is part of GNU Emacs.
@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;;; Describe-Text Mode.
+;; Describe-Text Mode.
 
 ;;; Code:
 
@@ -36,8 +36,7 @@
   "Insert text to describe WIDGET in the current buffer."
   (insert-text-button
    (symbol-name (if (symbolp widget) widget (car widget)))
-   'action `(lambda (&rest ignore)
-	      (widget-browse ',widget))
+   'action (lambda (&rest _ignore) (widget-browse widget))
    'help-echo "mouse-2, RET: browse this widget")
   (insert " ")
   (insert-text-button
@@ -55,10 +54,10 @@
     	     (<= (length pp) (- (window-width) (current-column))))
 	(insert pp)
       (insert-text-button
-       "[Show]" 'action `(lambda (&rest ignore)
-			   (with-output-to-temp-buffer
-			       "*Pp Eval Output*"
-			     (princ ',pp)))
+       "[Show]" 'action (lambda (&rest _ignore)
+                          (with-output-to-temp-buffer
+                              "*Pp Eval Output*"
+                            (princ pp)))
        'help-echo "mouse-2, RET: pretty print value in another buffer"))))
 
 (defun describe-property-list (properties)
@@ -81,8 +80,8 @@ into help buttons that call `describe-text-category' or
       (cond ((eq key 'category)
 	     (insert-text-button
 	      (symbol-name value)
-	      'action `(lambda (&rest ignore)
-			 (describe-text-category ',value))
+	      'action (lambda (&rest _ignore)
+                        (describe-text-category value))
 	      'follow-link t
 	      'help-echo "mouse-2, RET: describe this category"))
             ((memq key '(face font-lock-face mouse-face))
@@ -663,7 +662,7 @@ relevant to POS."
                             ((and (< char 32) (not (memq char '(9 10))))
                              'escape-glyph)))))
                   (if face (list (list "hardcoded face"
-                                       `(insert-text-button
+                                       `(insert-text-button ;FIXME: Wrap in lambda!
                                          ,(symbol-name face)
                                          'type 'help-face
                                          'help-args '(,face))))))
@@ -753,7 +752,7 @@ relevant to POS."
                     (insert " by these characters:\n")
                     (while (and (<= from to)
                                 (setq glyph (lgstring-glyph gstring from)))
-                      (insert (format " %c (#x%d)\n"
+                      (insert (format " %c (#x%x)\n"
                                       (lglyph-char glyph) (lglyph-char glyph)))
                       (setq from (1+ from)))))
               (insert " by the rule:\n\t(")

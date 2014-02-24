@@ -1,6 +1,6 @@
-# Makefile -- Makefile to generate character property tables.
+### @configure_input@
 
-# Copyright (C) 2012-2013 Free Software Foundation, Inc.
+# Copyright (C) 2012-2014 Free Software Foundation, Inc.
 
 # Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -21,16 +21,17 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-SHELL = /bin/sh
+SHELL = @SHELL@
 
 srcdir = @srcdir@
-abs_builddir = @abs_builddir@
 top_srcdir = @top_srcdir@
-abs_top_builddir = @abs_top_builddir@
+top_builddir = @top_builddir@
 
-EMACS = ${abs_top_builddir}/src/emacs
+EMACS = ${top_builddir}/src/emacs
 DSTDIR = ${top_srcdir}/lisp/international
-emacs = ${EMACS} -batch --no-site-file --no-site-lisp
+emacs = "${EMACS}" -batch --no-site-file --no-site-lisp
+
+.PHONY: all compile install
 
 all: ${DSTDIR}/charprop.el
 
@@ -40,14 +41,25 @@ all: ${DSTDIR}/charprop.el
 unidata.txt: ${srcdir}/UnicodeData.txt
 	sed -e 's/\([^;]*\);\(.*\)/(#x\1 "\2")/' -e 's/;/" "/g' < ${srcdir}/UnicodeData.txt > $@
 
-${DSTDIR}/charprop.el: ${srcdir}/unidata-gen.elc unidata.txt
-	cd ${DSTDIR} && ${emacs} -l ${srcdir}/unidata-gen \
-	  -f unidata-gen-files ${srcdir} ${abs_builddir}/unidata.txt
+compile: ${srcdir}/unidata-gen.elc
+
+## Depend on .el rather than .elc so as not to needlessly rebuild
+## uni-*.el files just because .elc is missing.
+## Same for UnicodeData.txt v unidata.txt.
+${DSTDIR}/charprop.el: ${srcdir}/unidata-gen.el ${srcdir}/UnicodeData.txt
+	${MAKE} ${MFLAGS} compile unidata.txt EMACS="${EMACS}"
+	-if [ -f "$@" ]; then \
+	  cd ${DSTDIR} && chmod +w charprop.el `sed -n 's/^;; FILE: //p' < charprop.el`; \
+	fi
+	${emacs} -L ${srcdir} -l unidata-gen -f unidata-gen-files \
+	  ${srcdir} "${DSTDIR}"
 
 ## Like the above, but generate in PWD rather than lisp/international.
 charprop.el: ${srcdir}/unidata-gen.elc unidata.txt
-	${emacs} -l ${srcdir}/unidata-gen \
-	  -f unidata-gen-files ${srcdir} unidata.txt
+	${emacs} -L ${srcdir} -l unidata-gen -f unidata-gen-files \
+	  ${srcdir}
+
+.PHONY: clean bootstrap-clean distclean maintainer-clean extraclean
 
 install: charprop.el
 	cp charprop.el ${DSTDIR}
@@ -57,9 +69,20 @@ clean:
 	if test -f charprop.el; then \
 	  rm -f `sed -n 's/^;; FILE: //p' < charprop.el`; \
 	fi
-	rm -f charprop.el ${srcdir}/unidata-gen.elc unidata.txt
+	rm -f charprop.el ${srcdir}/*.elc unidata.txt
+
+bootstrap-clean: clean
 
 distclean: clean
-	-rm -f ./Makefile
+	rm -f Makefile
 
 maintainer-clean: distclean
+
+## Do not remove these files, even in a bootstrap, because they rarely
+## change and it slows down bootstrap (a tiny bit).
+## Cf leim/ja-dic (which is much slower).
+extraclean:
+	if test -f ${DSTDIR}/charprop.el; then \
+	  (cd ${DSTDIR} && rm -f `sed -n 's/^;; FILE: //p' < charprop.el`); \
+	  rm -f ${DSTDIR}/charprop.el; \
+	fi

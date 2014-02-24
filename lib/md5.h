@@ -1,6 +1,6 @@
 /* Declaration of functions and data types used for MD5 sum computing
    library functions.
-   Copyright (C) 1995-1997, 1999-2001, 2004-2006, 2008-2013 Free Software
+   Copyright (C) 1995-1997, 1999-2001, 2004-2006, 2008-2014 Free Software
    Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -22,6 +22,10 @@
 
 #include <stdio.h>
 #include <stdint.h>
+
+# if HAVE_OPENSSL_MD5
+#  include <openssl/md5.h>
+# endif
 
 #define MD5_DIGEST_SIZE 16
 #define MD5_BLOCK_SIZE 64
@@ -57,6 +61,10 @@
 extern "C" {
 # endif
 
+# if HAVE_OPENSSL_MD5
+#  define GL_OPENSSL_NAME 5
+#  include "gl_openssl.h"
+# else
 /* Structure to save state of computation between the single steps.  */
 struct md5_ctx
 {
@@ -106,17 +114,19 @@ extern void *__md5_finish_ctx (struct md5_ctx *ctx, void *resbuf) __THROW;
 extern void *__md5_read_ctx (const struct md5_ctx *ctx, void *resbuf) __THROW;
 
 
-/* Compute MD5 message digest for bytes read from STREAM.  The
-   resulting message digest number will be written into the 16 bytes
-   beginning at RESBLOCK.  */
-extern int __md5_stream (FILE *stream, void *resblock) __THROW;
-
 /* Compute MD5 message digest for LEN bytes beginning at BUFFER.  The
    result is always in little endian byte order, so that a byte-wise
    output yields to the wanted ASCII representation of the message
    digest.  */
 extern void *__md5_buffer (const char *buffer, size_t len,
                            void *resblock) __THROW;
+
+# endif
+/* Compute MD5 message digest for bytes read from STREAM.  The
+   resulting message digest number will be written into the 16 bytes
+   beginning at RESBLOCK.  */
+extern int __md5_stream (FILE *stream, void *resblock) __THROW;
+
 
 # ifdef __cplusplus
 }

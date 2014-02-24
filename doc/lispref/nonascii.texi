@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1998-1999, 2001-2013 Free Software Foundation, Inc.
+@c Copyright (C) 1998-1999, 2001-2014 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Non-ASCII Characters
 @chapter Non-@acronym{ASCII} Characters
@@ -13,6 +13,7 @@ how they are stored in strings and buffers.
 
 @menu
 * Text Representations::    How Emacs represents text.
+* Disabling Multibyte::     Controlling whether to use multibyte characters.
 * Converting Representations::  Converting unibyte to multibyte and vice versa.
 * Selecting a Representation::  Treating a byte sequence as unibyte or multi.
 * Character Codes::         How unibyte and multibyte relate to
@@ -124,7 +125,8 @@ belong to the same character.
 
 @defun multibyte-string-p string
 Return @code{t} if @var{string} is a multibyte string, @code{nil}
-otherwise.
+otherwise.  This function also returns @code{nil} if @var{string} is
+some object other than a string.
 @end defun
 
 @defun string-bytes string
@@ -138,6 +140,55 @@ If @var{string} is a multibyte string, this can be greater than
 This function concatenates all its argument @var{bytes} and makes the
 result a unibyte string.
 @end defun
+
+@node Disabling Multibyte
+@section Disabling Multibyte Characters
+@cindex disabling multibyte
+
+  By default, Emacs starts in multibyte mode: it stores the contents
+of buffers and strings using an internal encoding that represents
+non-@acronym{ASCII} characters using multi-byte sequences.  Multibyte
+mode allows you to use all the supported languages and scripts without
+limitations.
+
+@cindex turn multibyte support on or off
+  Under very special circumstances, you may want to disable multibyte
+character support, for a specific buffer.
+When multibyte characters are disabled in a buffer, we call
+that @dfn{unibyte mode}.  In unibyte mode, each character in the
+buffer has a character code ranging from 0 through 255 (0377 octal); 0
+through 127 (0177 octal) represent @acronym{ASCII} characters, and 128
+(0200 octal) through 255 (0377 octal) represent non-@acronym{ASCII}
+characters.
+
+  To edit a particular file in unibyte representation, visit it using
+@code{find-file-literally}.  @xref{Visiting Functions}.  You can
+convert a multibyte buffer to unibyte by saving it to a file, killing
+the buffer, and visiting the file again with
+@code{find-file-literally}.  Alternatively, you can use @kbd{C-x
+@key{RET} c} (@code{universal-coding-system-argument}) and specify
+@samp{raw-text} as the coding system with which to visit or save a
+file.  @xref{Text Coding, , Specifying a Coding System for File Text,
+emacs, GNU Emacs Manual}.  Unlike @code{find-file-literally}, finding
+a file as @samp{raw-text} doesn't disable format conversion,
+uncompression, or auto mode selection.
+
+@c See http://debbugs.gnu.org/11226 for lack of unibyte tooltip.
+@vindex enable-multibyte-characters
+The buffer-local variable @code{enable-multibyte-characters} is
+non-@code{nil} in multibyte buffers, and @code{nil} in unibyte ones.
+The mode line also indicates whether a buffer is multibyte or not.
+With a graphical display, in a multibyte buffer, the portion of the
+mode line that indicates the character set has a tooltip that (amongst
+other things) says that the buffer is multibyte.  In a unibyte buffer,
+the character set indicator is absent.  Thus, in a unibyte buffer
+(when using a graphical display) there is normally nothing before the
+indication of the visited file's end-of-line convention (colon,
+backslash, etc.), unless you are using an input method.
+
+@findex toggle-enable-multibyte-characters
+You can turn off multibyte support in a specific buffer by invoking the
+command @code{toggle-enable-multibyte-characters} in that buffer.
 
 @node Converting Representations
 @section Converting Text Representations
@@ -197,6 +248,7 @@ unibyte string, it is returned unchanged.  Use this function for
 characters.
 @end defun
 
+@c FIXME: Should `@var{character}' be `@var{byte}'?
 @defun byte-to-string byte
 @cindex byte to string
 This function returns a unibyte string containing a single byte of
@@ -350,12 +402,14 @@ specifies how the character behaves and how it should be handled
 during text processing and display.  Thus, character properties are an
 important part of specifying the character's semantics.
 
+@c FIXME: Use the latest URI of this chapter?
+@c http://www.unicode.org/versions/latest/ch04.pdf
   On the whole, Emacs follows the Unicode Standard in its implementation
 of character properties.  In particular, Emacs supports the
 @uref{http://www.unicode.org/reports/tr23/, Unicode Character Property
 Model}, and the Emacs character property database is derived from the
 Unicode Character Database (@acronym{UCD}).  See the
-@uref{http://www.unicode.org/versions/Unicode5.0.0/ch04.pdf, Character
+@uref{http://www.unicode.org/versions/Unicode6.2.0/ch04.pdf, Character
 Properties chapter of the Unicode Standard}, for a detailed
 description of Unicode character properties and their meaning.  This
 section assumes you are already familiar with that chapter of the
@@ -386,7 +440,7 @@ properties that Emacs knows about:
 Corresponds to the @code{Name} Unicode property.  The value is a
 string consisting of upper-case Latin letters A to Z, digits, spaces,
 and hyphen @samp{-} characters.  For unassigned codepoints, the value
-is an empty string.
+is @code{nil}.
 
 @cindex unicode general category
 @item general-category
@@ -424,14 +478,14 @@ unassigned codepoints, the value is the character itself.
 
 @item decimal-digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for
-characters whose @code{Numeric_Type} is @samp{Digit}.  The value is an
-integer number.  For unassigned codepoints, the value is @code{nil},
-which means @acronym{NaN}, or ``not-a-number''.
+characters whose @code{Numeric_Type} is @samp{Decimal}.  The value is
+an integer number.  For unassigned codepoints, the value is
+@code{nil}, which means @acronym{NaN}, or ``not-a-number''.
 
 @item digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for
-characters whose @code{Numeric_Type} is @samp{Decimal}.  The value is
-an integer number.  Examples of such characters include compatibility
+characters whose @code{Numeric_Type} is @samp{Digit}.  The value is an
+integer number.  Examples of such characters include compatibility
 subscript and superscript digits, for which the value is the
 corresponding number.  For unassigned codepoints, the value is
 @code{nil}, which means @acronym{NaN}.
@@ -468,7 +522,8 @@ is @code{nil}.
 
 @item old-name
 Corresponds to the Unicode @code{Unicode_1_Name} property.  The value
-is a string.  For unassigned codepoints, the value is an empty string.
+is a string.  Unassigned codepoints, and characters that have no value
+for this property, the value is @code{nil}.
 
 @item iso-10646-comment
 Corresponds to the Unicode @code{ISO_Comment} property.  The value is
@@ -497,11 +552,11 @@ This function returns the value of @var{char}'s @var{propname} property.
 
 @example
 @group
-(get-char-code-property ?  'general-category)
+(get-char-code-property ?\s 'general-category)
      @result{} Zs
 @end group
 @group
-(get-char-code-property ?1  'general-category)
+(get-char-code-property ?1 'general-category)
      @result{} Nd
 @end group
 @group
@@ -554,6 +609,7 @@ property as a symbol.
 @end defvar
 
 @defvar char-script-table
+@cindex script symbols
 The value of this variable is a char-table that specifies, for each
 character, a symbol whose name is the script to which the character
 belongs, according to the Unicode Standard classification of the
@@ -630,6 +686,7 @@ which case the returned charset must be supported by that coding
 system (@pxref{Coding Systems}).
 @end defun
 
+@c TODO: Explain the properties here and add indexes such as 'charset property'.
 @defun charset-plist charset
 This function returns the property list of the character set
 @var{charset}.  Although @var{charset} is a symbol, this is not the
@@ -795,6 +852,8 @@ systems specifies its own translation tables, the table that is the
 value of this variable, if non-@code{nil}, is applied after them.
 @end defvar
 
+@c FIXME: This variable is obsolete since 23.1.  We should mention
+@c that here or simply remove this defvar.  --xfq
 @defvar translation-table-for-input
 Self-inserting characters are translated through this translation
 table before they are inserted.  Search commands also translate their
@@ -903,7 +962,8 @@ Unix convention, used on GNU and Unix systems, is to use the linefeed
 character (also called newline).  The DOS convention, used on
 MS-Windows and MS-DOS systems, is to use a carriage-return and a
 linefeed at the end of a line.  The Mac convention is to use just
-carriage-return.
+carriage-return.  (This was the convention used on the Macintosh
+system prior to OS X.)
 
 @cindex base coding system
 @cindex variant coding system
@@ -961,6 +1021,7 @@ The value of the @code{:mime-charset} property is also defined
 as an alias for the coding system.
 @end defun
 
+@cindex alias, for coding systems
 @defun coding-system-aliases coding-system
 This function returns the list of aliases of @var{coding-system}.
 @end defun
@@ -1045,6 +1106,16 @@ new coding system.  If you try to save one of these buffers under the
 visited file name, saving may use the wrong file name, or it may get
 an error.  If such a problem happens, use @kbd{C-x C-w} to specify a
 new file name for that buffer.
+
+@cindex file-name encoding, MS-Windows
+  On Windows 2000 and later, Emacs by default uses Unicode APIs to
+pass file names to the OS, so the value of
+@code{file-name-coding-system} is largely ignored.  Lisp applications
+that need to encode or decode file names on the Lisp level should use
+@code{utf-8} coding-system when @code{system-type} is
+@code{windows-nt}; the conversion of UTF-8 encoded file names to the
+encoding appropriate for communicating with the OS is performed
+internally by Emacs.
 
 @node Lisp and Coding Systems
 @subsection Coding Systems in Lisp
@@ -1216,17 +1287,18 @@ Sets}) supported by @var{coding-system}.  Some coding systems that
 support too many character sets to list them all yield special values:
 @itemize @bullet
 @item
-If @var{coding-system} supports all the ISO-2022 charsets, the value
-is @code{iso-2022}.
-@item
 If @var{coding-system} supports all Emacs characters, the value is
 @code{(emacs)}.
 @item
-If @var{coding-system} supports all emacs-mule characters, the value
-is @code{emacs-mule}.
-@item
 If @var{coding-system} supports all Unicode characters, the value is
 @code{(unicode)}.
+@item
+If @var{coding-system} supports all ISO-2022 charsets, the value is
+@code{iso-2022}.
+@item
+If @var{coding-system} supports all the characters in the internal
+coding system used by Emacs version 21 (prior to the implementation of
+internal Unicode support), the value is @code{emacs-mule}.
 @end itemize
 @end defun
 
@@ -1511,7 +1583,7 @@ the alist; otherwise it returns @code{nil}.
 
 If @var{operation} is @code{insert-file-contents}, the argument
 corresponding to the target may be a cons cell of the form
-@code{(@var{filename} . @var{buffer})}).  In that case, @var{filename}
+@code{(@var{filename} . @var{buffer})}.  In that case, @var{filename}
 is a file name to look up in @code{file-coding-system-alist}, and
 @var{buffer} is a buffer that contains the file's contents (not yet
 decoded).  If @code{file-coding-system-alist} specifies a function to
@@ -1544,8 +1616,7 @@ of the right way to use the variable:
 
 @example
 ;; @r{Read the file with no character code conversion.}
-;; @r{Assume @acronym{crlf} represents end-of-line.}
-(let ((coding-system-for-read 'emacs-mule-dos))
+(let ((coding-system-for-read 'no-conversion))
   (insert-file-contents filename))
 @end example
 
@@ -1734,24 +1805,23 @@ decoding, you can call this function.
 @node Terminal I/O Encoding
 @subsection Terminal I/O Encoding
 
-  Emacs can decode keyboard input using a coding system, and encode
+  Emacs can use coding systems to decode keyboard input and encode
 terminal output.  This is useful for terminals that transmit or
-display text using a particular encoding such as Latin-1.  Emacs does
-not set @code{last-coding-system-used} for encoding or decoding of
+display text using a particular encoding, such as Latin-1.  Emacs does
+not set @code{last-coding-system-used} when encoding or decoding
 terminal I/O.
 
 @defun keyboard-coding-system &optional terminal
-This function returns the coding system that is in use for decoding
-keyboard input from @var{terminal}---or @code{nil} if no coding system
-is to be used for that terminal.  If @var{terminal} is omitted or
-@code{nil}, it means the selected frame's terminal.  @xref{Multiple
-Terminals}.
+This function returns the coding system used for decoding keyboard
+input from @var{terminal}.  A value of @code{no-conversion} means no
+decoding is done.  If @var{terminal} is omitted or @code{nil}, it
+means the selected frame's terminal.  @xref{Multiple Terminals}.
 @end defun
 
 @deffn Command set-keyboard-coding-system coding-system &optional terminal
 This command specifies @var{coding-system} as the coding system to use
 for decoding keyboard input from @var{terminal}.  If
-@var{coding-system} is @code{nil}, that means do not decode keyboard
+@var{coding-system} is @code{nil}, that means not to decode keyboard
 input.  If @var{terminal} is a frame, it means that frame's terminal;
 if it is @code{nil}, that means the currently selected frame's
 terminal.  @xref{Multiple Terminals}.
@@ -1759,18 +1829,19 @@ terminal.  @xref{Multiple Terminals}.
 
 @defun terminal-coding-system &optional terminal
 This function returns the coding system that is in use for encoding
-terminal output from @var{terminal}---or @code{nil} if the output is
-not encoded.  If @var{terminal} is a frame, it means that frame's
-terminal; if it is @code{nil}, that means the currently selected
-frame's terminal.
+terminal output from @var{terminal}.  A value of @code{no-conversion}
+means no encoding is done.  If @var{terminal} is a frame, it means
+that frame's terminal; if it is @code{nil}, that means the currently
+selected frame's terminal.
 @end defun
 
 @deffn Command set-terminal-coding-system coding-system &optional terminal
 This command specifies @var{coding-system} as the coding system to use
 for encoding terminal output from @var{terminal}.  If
-@var{coding-system} is @code{nil}, terminal output is not encoded.  If
-@var{terminal} is a frame, it means that frame's terminal; if it is
-@code{nil}, that means the currently selected frame's terminal.
+@var{coding-system} is @code{nil}, that means not to encode terminal
+output.  If @var{terminal} is a frame, it means that frame's terminal;
+if it is @code{nil}, that means the currently selected frame's
+terminal.
 @end deffn
 
 @node Input Methods

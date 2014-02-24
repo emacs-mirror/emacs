@@ -6,13 +6,13 @@ ENCODE:	BIG5
 AUTOSELECT:	NO
 PROMPT:	四角號碼::\040
 #
-COMMENT 
+COMMENT
 COMMENT Copyright (c) 2001 Christian Wittern <chris@ccbs.ntu.edu.tw>
-COMMENT 
+COMMENT
 COMMENT Permission to copy and distribute both modified and
 COMMENT unmodified versions is granted without royalty provided this
 COMMENT notice is preserved.
-COMMENT 
+COMMENT
 COMMENT	Authors: Dr. Urs App, Christian Wittern (Kyoto Univ, Japan)
 COMMENT
 COMMENT Input:  四角號碼 (及一附加碼)
@@ -6676,4 +6676,3 @@ BEGINDICTIONARY
 99901	禜
 99903	縈
 99904	榮
-

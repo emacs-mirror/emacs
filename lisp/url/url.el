@@ -1,6 +1,6 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2001, 2004-2013 Free Software Foundation,
+;; Copyright (C) 1996-1999, 2001, 2004-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
@@ -220,7 +220,7 @@ URL-encoded before it's used."
     buffer))
 
 ;;;###autoload
-(defun url-retrieve-synchronously (url)
+(defun url-retrieve-synchronously (url &optional silent inhibit-cookies)
   "Retrieve URL synchronously.
 Return the buffer containing the data, or nil if there are no data
 associated with it (the case for dired, info, or mailto URLs that need
@@ -233,7 +233,8 @@ no further processing).  URL is either a string or a parsed URL."
 	  (url-retrieve url (lambda (&rest ignored)
 			      (url-debug 'retrieval "Synchronous fetching done (%S)" (current-buffer))
 			      (setq retrieval-done t
-				    asynch-buffer (current-buffer)))))
+				    asynch-buffer (current-buffer)))
+			nil silent inhibit-cookies))
     (if (null asynch-buffer)
         ;; We do not need to do anything, it was a mailto or something
         ;; similar that takes processing completely outside of the URL
@@ -289,6 +290,12 @@ no further processing).  URL is either a string or a parsed URL."
               (setq proc (and (not quit-flag)
 			      (get-buffer-process asynch-buffer)))))))
       asynch-buffer)))
+
+;; url-mm-callback called from url-mm, which requires mm-decode.
+(declare-function mm-dissect-buffer "mm-decode"
+		  (&optional no-strict-mime loose-mime from))
+(declare-function mm-display-part "mm-decode"
+		  (handle &optional no-default force))
 
 (defun url-mm-callback (&rest ignored)
   (let ((handle (mm-dissect-buffer t)))

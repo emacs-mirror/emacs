@@ -1,0 +1,88 @@
+/* Hey Emacs, this is -*- C -*- code!  */
+/* epaths.in file for MS-Windows build that uses the configure script.
+
+   Since Emacs on Windows must be relocatable to any directory, it
+   cannot have here hard-coded directories determined at configure
+   time.  Therefore, each directory must begin with %emacs_dir%, which
+   is resolved at startup to the root of the Emacs installation tree
+   (see w32.c:init_environment).
+
+   This file is edited at configure time to replace @VER@ by the Emacs
+   version being built (e.g., 25.9.77), @CFG@ by the canonical name of
+   the host system (e.g., i686-pc-mingw32), and @SRC@ by the root of
+   the Emacs source tree used to build Emacs.  */
+/*
+Copyright (C) 1993, 1995, 1997, 1999, 2001-2014 Free Software
+Foundation, Inc.
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+
+
+/* Together with PATH_SITELOADSEARCH, this gives the default value of
+   load-path, which is the search path for the Lisp function "load".
+   Configure (using "make epaths-force") sets this to
+   ${standardlisppath}, which typically has a value like:
+   <datadir>/emacs/VERSION/lisp where datadir is eg /usr/local/share.
+*/
+#define PATH_LOADSEARCH "%emacs_dir%/share/emacs/@VER@/lisp"
+
+/* Like PATH_LOADSEARCH, but contains the non-standard pieces.
+   These are the site-lisp directories.  Configure sets this to
+   ${locallisppath}, which typically defaults to something like:
+   <datadir>/emacs/VERSION/site-lisp:<datadir>/emacs/site-lisp
+   but can be overridden by the --enable-locallisppath argument.
+   This is combined with PATH_LOADSEARCH to make the default load-path.
+   If the --no-site-lisp option is used, this piece is excluded.
+*/
+#define PATH_SITELOADSEARCH "%emacs_dir%/share/emacs/@VER@/site-lisp;%emacs_dir%/share/emacs/site-lisp"
+
+/* Like PATH_LOADSEARCH, but used only during the build process
+   when Emacs is dumping.  Configure (using "make epaths-force-w32") sets
+   this to $buildlisppath, which normally has the value: <srcdir>/lisp.
+*/
+#define PATH_DUMPLOADSEARCH "@SRC@/lisp"
+
+/* The extra search path for programs to invoke.  This is appended to
+   whatever the PATH environment variable says to set the Lisp
+   variable exec-path and the first file name in it sets the Lisp
+   variable exec-directory.  exec-directory is used for finding
+   executables and other architecture-dependent files.  */
+#define PATH_EXEC "%emacs_dir%/libexec/emacs/@VER@/@CFG@"
+
+/* Where Emacs should look for its architecture-independent data
+   files, like the NEWS file.  The lisp variable data-directory
+   is set to this value.  */
+#define PATH_DATA "%emacs_dir%/share/emacs/@VER@/etc"
+
+/* Where Emacs should look for X bitmap files.
+   The lisp variable x-bitmap-file-path is set based on this value.  */
+#define PATH_BITMAPS ""
+
+/* Where Emacs should look for its docstring file.  The lisp variable
+   doc-directory is set to this value.  */
+#define PATH_DOC "%emacs_dir%/share/emacs/@VER@/etc"
+
+/* Where the configuration process believes the info tree lives.  The
+   lisp variable configure-info-directory gets its value from this
+   macro, and is then used to set the Info-default-directory-list.  */
+#define PATH_INFO "%emacs_dir%/share/info"
+
+/* Where Emacs should store game score files.  */
+#define PATH_GAME "%emacs_dir%/var/games/emacs"
+
+/* Where Emacs should look for the application default file. */
+#define PATH_X_DEFAULTS ""
+

@@ -1,5 +1,5 @@
 /* Block-relocating memory allocator.
-   Copyright (C) 1993, 1995, 2000-2013 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1995, 2000-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -43,8 +43,6 @@ extern size_t __malloc_extra_blocks;
 #else /* not emacs */
 
 #include <stddef.h>
-
-#include <unistd.h>
 #include <malloc.h>
 
 #endif	/* not emacs */
@@ -87,7 +85,7 @@ static int extra_bytes;
 /* Macros for rounding.  Note that rounding to any value is possible
    by changing the definition of PAGE.  */
 #define PAGE (getpagesize ())
-#define ROUNDUP(size) (((size_t) (size) + page_size - 1) \
+#define PAGE_ROUNDUP(size) (((size_t) (size) + page_size - 1) \
 		       & ~((size_t) (page_size - 1)))
 
 #define MEM_ALIGN sizeof (double)
@@ -283,7 +281,7 @@ obtain (void *address, size_t size)
 	 Get some extra, so we can come here less often.  */
 
       get = size + extra_bytes - already_available;
-      get = (char *) ROUNDUP ((char *) last_heap->end + get)
+      get = (char *) PAGE_ROUNDUP ((char *) last_heap->end + get)
 	- (char *) last_heap->end;
 
       if (real_morecore (get) != last_heap->end)
@@ -346,7 +344,7 @@ relinquish (void)
       else
 	{
 	  excess = ((char *) last_heap->end
-		    - (char *) ROUNDUP ((char *) last_heap->end - excess));
+		    - (char *) PAGE_ROUNDUP ((char *) last_heap->end - excess));
 	  /* If the system doesn't want that much memory back, leave
 	     the end of the last heap unchanged to reflect that.  This
 	     can occur if break_value is still within the original
@@ -770,9 +768,9 @@ r_alloc_sbrk (ptrdiff_t size)
 	 not always find a space which is contiguous to the previous.  */
       void *new_bloc_start;
       heap_ptr h = first_heap;
-      size_t get = ROUNDUP (size);
+      size_t get = PAGE_ROUNDUP (size);
 
-      address = (void *) ROUNDUP (virtual_break_value);
+      address = (void *) PAGE_ROUNDUP (virtual_break_value);
 
       /* Search the list upward for a heap which is large enough.  */
       while ((char *) h->end < (char *) MEM_ROUNDUP ((char *) address + get))
@@ -780,7 +778,7 @@ r_alloc_sbrk (ptrdiff_t size)
 	  h = h->next;
 	  if (h == NIL_HEAP)
 	    break;
-	  address = (void *) ROUNDUP (h->start);
+	  address = (void *) PAGE_ROUNDUP (h->start);
 	}
 
       /* If not found, obtain more space.  */
@@ -792,9 +790,9 @@ r_alloc_sbrk (ptrdiff_t size)
 	    return 0;
 
 	  if (first_heap == last_heap)
-	    address = (void *) ROUNDUP (virtual_break_value);
+	    address = (void *) PAGE_ROUNDUP (virtual_break_value);
 	  else
-	    address = (void *) ROUNDUP (last_heap->start);
+	    address = (void *) PAGE_ROUNDUP (last_heap->start);
 	  h = last_heap;
 	}
 
@@ -1056,7 +1054,7 @@ r_alloc_check (void)
   for (h = first_heap; h; h = h->next)
     {
       assert (h->prev == ph);
-      assert ((void *) ROUNDUP (h->end) == h->end);
+      assert ((void *) PAGE_ROUNDUP (h->end) == h->end);
 #if 0 /* ??? The code in ralloc.c does not really try to ensure
 	 the heap start has any sort of alignment.
 	 Perhaps it should.  */
@@ -1192,7 +1190,7 @@ r_alloc_init (void)
   if (break_value == NULL)
     emacs_abort ();
 
-  extra_bytes = ROUNDUP (50000);
+  extra_bytes = PAGE_ROUNDUP (50000);
 #endif
 
 #ifdef DOUG_LEA_MALLOC
@@ -1214,7 +1212,7 @@ r_alloc_init (void)
 #endif
 
 #ifndef SYSTEM_MALLOC
-  first_heap->end = (void *) ROUNDUP (first_heap->start);
+  first_heap->end = (void *) PAGE_ROUNDUP (first_heap->start);
 
   /* The extra call to real_morecore guarantees that the end of the
      address space is a multiple of page_size, even if page_size is

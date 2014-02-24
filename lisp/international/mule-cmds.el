@@ -1,6 +1,6 @@
-;;; mule-cmds.el --- commands for multilingual environment -*-coding: iso-2022-7bit -*-
+;;; mule-cmds.el --- commands for multilingual environment -*-coding: utf-8 -*-
 
-;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2014 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -29,6 +29,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(eval-when-compile (require 'cl-lib))
 
 (defvar dos-codepage)
 (autoload 'widget-value "wid-edit")
@@ -548,7 +550,7 @@ Emacs, but is unlikely to be what you really want now."
 				     (coding-system-charset-list cs)))
 		   (charsets charsets))
 	       (if (coding-system-get cs :ascii-compatible-p)
-		   (add-to-list 'cs-charsets 'ascii))
+		   (cl-pushnew 'ascii cs-charsets))
 	       (if (catch 'ok
 		     (when cs-charsets
 		       (while charsets
@@ -636,6 +638,36 @@ The meaning is the same as the argument ACCEPT-DEFAULT-P of the
 function `select-safe-coding-system' (which see).  This variable
 overrides that argument.")
 
+(defun sanitize-coding-system-list (codings)
+  "Return a list of coding systems presumably more user-friendly than CODINGS."
+  ;; Change each safe coding system to the corresponding
+  ;; mime-charset name if it is also a coding system.  Such a name
+  ;; is more friendly to users.
+  (setq codings
+        (mapcar (lambda (cs)
+                  (let ((mime-charset (coding-system-get cs 'mime-charset)))
+                    (if (and mime-charset (coding-system-p mime-charset)
+                             (coding-system-equal cs mime-charset))
+                        mime-charset cs)))
+                codings))
+
+  ;; Don't offer variations with locking shift, which you
+  ;; basically never want.
+  (let (l)
+    (dolist (elt codings (setq codings (nreverse l)))
+      (unless (or (eq 'coding-category-iso-7-else
+		      (coding-system-category elt))
+		  (eq 'coding-category-iso-8-else
+		      (coding-system-category elt)))
+	(push elt l))))
+
+  ;; Remove raw-text, emacs-mule and no-conversion unless nothing
+  ;; else is available.
+  (or (delq 'raw-text
+            (delq 'emacs-mule
+                  (delq 'no-conversion (copy-sequence codings))))
+      codings))
+
 (defun select-safe-coding-system-interactively (from to codings unsafe
 						&optional rejected default)
   "Select interactively a coding system for the region FROM ... TO.
@@ -667,35 +699,7 @@ DEFAULT is the coding system to use by default in the query."
 					 from to coding 11)))))
 		    unsafe)))
 
-  ;; Change each safe coding system to the corresponding
-  ;; mime-charset name if it is also a coding system.  Such a name
-  ;; is more friendly to users.
-  (let ((l codings)
-	mime-charset)
-    (while l
-      (setq mime-charset (coding-system-get (car l) :mime-charset))
-      (if (and mime-charset (coding-system-p mime-charset)
-	       (coding-system-equal (car l) mime-charset))
-	  (setcar l mime-charset))
-      (setq l (cdr l))))
-
-  ;; Don't offer variations with locking shift, which you
-  ;; basically never want.
-  (let (l)
-    (dolist (elt codings (setq codings (nreverse l)))
-      (unless (or (eq 'coding-category-iso-7-else
-		      (coding-system-category elt))
-		  (eq 'coding-category-iso-8-else
-		      (coding-system-category elt)))
-	(push elt l))))
-
-  ;; Remove raw-text, emacs-mule and no-conversion unless nothing
-  ;; else is available.
-  (setq codings
-	(or (delq 'raw-text
-		  (delq 'emacs-mule
-			(delq 'no-conversion codings)))
-	    '(raw-text emacs-mule no-conversion)))
+  (setq codings (sanitize-coding-system-list codings))
 
   (let ((window-configuration (current-window-configuration))
 	(bufname (buffer-name))
@@ -972,13 +976,17 @@ It is highly recommended to fix it before writing to a file."
 
 	;; Classify the defaults into safe, rejected, and unsafe.
 	(dolist (elt default-coding-system)
-	  (if (or (eq (car codings) 'undecided)
-		  (memq (cdr elt) codings))
+	  (if (memq (cdr elt) codings)
+	      ;; This is safe.  Is it acceptable?
 	      (if (and (functionp accept-default-p)
 		       (not (funcall accept-default-p (cdr elt))))
+		  ;; No, not acceptable.
 		  (push (car elt) rejected)
+		;; Yes, acceptable.
 		(push (car elt) safe))
+	    ;; This is not safe.
 	    (push (car elt) unsafe)))
+	;; If there are safe ones, the first one is what we want.
 	(if safe
 	    (setq coding-system (car safe))))
 
@@ -1029,6 +1037,14 @@ and try again)? " coding-system auto-cs))
 	      (error "Save aborted"))))
       (when (and tick (/= tick (buffer-chars-modified-tick)))
 	(error "Canceled because the buffer was modified"))
+      (if (and (eq (coding-system-type coding-system) 'undecided)
+	       (coding-system-get coding-system :prefer-utf-8)
+	       (or (multibyte-string-p from)
+		   (and (number-or-marker-p from)
+			(< (- to from)
+			   (- (position-bytes to) (position-bytes from))))))
+	  (setq coding-system
+		(coding-system-change-text-conversion coding-system 'utf-8)))
       coding-system)))
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)
@@ -1413,7 +1429,9 @@ The return value is a string."
 	 ;; buffer local.
 	 (input-method (completing-read prompt input-method-alist
 					nil t nil 'input-method-history
-					default)))
+					(if (and default (symbolp default))
+                                            (symbol-name default)
+                                          default))))
     (if (and input-method (symbolp input-method))
 	(setq input-method (symbol-name input-method)))
     (if (> (length input-method) 0)
@@ -1731,8 +1749,8 @@ This hook is mainly used for canceling the effect of
 This variable should be set only with \\[customize], which is equivalent
 to using the function `set-language-environment'."
   :link '(custom-manual "(emacs)Language Environments")
-  :set (lambda (symbol value) (set-language-environment value))
-  :get (lambda (x)
+  :set (lambda (_symbol value) (set-language-environment value))
+  :get (lambda (_x)
 	 (or (car-safe (assoc-string
 			(if (symbolp current-language-environment)
 			    (symbol-name current-language-environment)

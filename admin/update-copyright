@@ -1,0 +1,75 @@
+#! /bin/sh
+# Update the copyright dates in Emacs sources.
+# Typical usage:
+#
+#	admin/update-copyright
+#
+# By default, this script uses the local-time calendar year.
+# Set the UPDATE_COPYRIGHT_YEAR environment variable to override the default.
+
+# Copyright 2013-2014 Free Software Foundation, Inc.
+
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+# written by Paul Eggert
+
+# FIXME: The file 'notes/copyright' says that the AIST copyright years
+# should be updated, but by inspection it appears that some should be
+# updated and some should not be, due to registration numbers, so
+# this script leaves these copyright years alone for now.
+
+: ${UPDATE_COPYRIGHT_USE_INTERVALS=1}
+export UPDATE_COPYRIGHT_USE_INTERVALS
+
+: ${UPDATE_COPYRIGHT_YEAR=$(date +%Y)}
+export UPDATE_COPYRIGHT_YEAR
+
+emacsver=etc/refcards/emacsver.tex
+sed 's/\\def\\year[{][0-9]*[}]/\\def\\year{'"$UPDATE_COPYRIGHT_YEAR"'}'/g \
+  $emacsver >$emacsver.aux &&
+{ cmp -s $emacsver $emacsver.aux ||
+  cp $emacsver.aux $emacsver
+} &&
+rm $emacsver.aux &&
+
+bzr_files=$(bzr ls -RV --kind file) &&
+
+# Do not update the copyright of files that have one or more of the
+# following problems:
+# . They are license files, maintained by the FSF, with their own dates.
+# . Their format cannot withstand changing the contents of copyright strings.
+
+updatable_files=$(find $bzr_files \
+  ! -name COPYING \
+  ! -name doclicense.texi \
+  ! -name gpl.texi \
+  ! -name '*-gzipped' \
+  ! -name '*.ico' \
+  ! -name '*.icns' \
+  ! -name '*.pbm' \
+  ! -name '*.pdf' \
+  ! -name '*.png' \
+  ! -name '*.sig' \
+  ! -name '*.tar' \
+  ! -name '*.tiff' \
+  ! -name '*.xpm' \
+  ! -name eterm-color \
+  ! -name hand.cur \
+  ! -name key.pub \
+  ! -name key.sec \
+  -print) &&
+
+build-aux/update-copyright $updatable_files

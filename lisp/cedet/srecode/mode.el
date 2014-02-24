@@ -1,6 +1,6 @@
 ;;; srecode/mode.el --- Minor mode for managing and using SRecode templates
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -225,7 +225,7 @@ MENU-DEF is the menu to bind this into."
 		   (ctxtcons (assoc ctxt alltabs))
 		   (bind (if (slot-boundp temp 'binding)
 			     (oref temp binding)))
-		   (name (object-name-string temp)))
+		   (name (eieio-object-name-string temp)))
 
 	      (when (not ctxtcons)
 		(if (string= context ctxt)

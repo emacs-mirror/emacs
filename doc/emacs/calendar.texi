@@ -1,5 +1,5 @@
-@c This is part of the Emacs manual.  -*- coding: iso-latin-1 -*-
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c This is part of the Emacs manual.  -*- coding: utf-8 -*-
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Calendar/Diary
@@ -304,6 +304,7 @@ Regenerate the calendar window (@code{calendar-redraw}).
 @item SPC
 Scroll the next window up (@code{scroll-other-window}).
 @item DEL
+@itemx S-SPC
 Scroll the next window down (@code{scroll-other-window-down}).
 @item q
 Exit from calendar (@code{calendar-exit}).
@@ -522,7 +523,7 @@ holidays centered around a different month, use @kbd{C-u M-x
 holidays}, which prompts for the month and year.
 
   The holidays known to Emacs include United States holidays and the
-major Bah·'Ì, Chinese, Christian, Islamic, and Jewish holidays; also the
+major Bah√°'√≠, Chinese, Christian, Islamic, and Jewish holidays; also the
 solstices and equinoxes.
 
 @findex list-holidays
@@ -678,7 +679,6 @@ and from several other calendars.
                              (aside from Gregorian).
 * To Other Calendar::      Converting the selected date to various calendars.
 * From Other Calendar::    Moving to a date specified in another calendar.
-* Mayan Calendar::         Moving to a date specified in a Mayan calendar.
 @end menu
 
 @c FIXME perhaps most of the details should be moved to cal-xtra.
@@ -760,8 +760,8 @@ days are named by combining one of ten ``celestial stems'' with one of
 twelve ``terrestrial branches'' for a total of sixty names that are
 repeated in a cycle of sixty.
 
-@cindex Bah·'Ì calendar
-  The Bah·'Ì calendar system is based on a solar cycle of 19 months with
+@cindex Bah√°'√≠ calendar
+  The Bah√°'√≠ calendar system is based on a solar cycle of 19 months with
 19 days each.  The four remaining ``intercalary'' days are placed
 between the 18th and 19th months.
 
@@ -801,7 +801,7 @@ Display French Revolutionary date for selected day
 (@code{calendar-french-print-date}).
 @findex calendar-bahai-print-date
 @item p b
-Display Bah·'Ì date for selected day
+Display Bah√°'√≠ date for selected day
 (@code{calendar-bahai-print-date}).
 @findex calendar-chinese-print-date
 @item p C
@@ -869,7 +869,7 @@ Move to a date specified in the Julian calendar
 Move to a date specified with an astronomical (Julian) day number
 (@code{calendar-astro-goto-day-number}).
 @item g b
-Move to a date specified in the Bah·'Ì calendar
+Move to a date specified in the Bah√°'√≠ calendar
 (@code{calendar-bahai-goto-date}).
 @item g h
 Move to a date specified in the Hebrew calendar
@@ -912,93 +912,6 @@ a range of years and then displays a list of the yahrzeit dates for those
 years for the date given by point.  If you are not in the calendar,
 this command first asks you for the date of death and the range of
 years, and then displays the list of yahrzeit dates.
-
-@c FIXME move to emacs-xtra.
-@node Mayan Calendar
-@subsection Converting from the Mayan Calendar
-
-  Here are the commands to select dates based on the Mayan calendar:
-
-@table @kbd
-@item g m l
-Move to a date specified by the long count calendar
-(@code{calendar-mayan-goto-long-count-date}).
-@item g m n t
-Move to the next occurrence of a place in the
-tzolkin calendar (@code{calendar-mayan-next-tzolkin-date}).
-@item g m p t
-Move to the previous occurrence of a place in the
-tzolkin calendar (@code{calendar-mayan-previous-tzolkin-date}).
-@item g m n h
-Move to the next occurrence of a place in the
-haab calendar (@code{calendar-mayan-next-haab-date}).
-@item g m p h
-Move to the previous occurrence of a place in the
-haab calendar (@code{calendar-mayan-previous-haab-date}).
-@item g m n c
-Move to the next occurrence of a place in the
-calendar round (@code{calendar-mayan-next-calendar-round-date}).
-@item g m p c
-Move to the previous occurrence of a place in the
-calendar round (@code{calendar-mayan-previous-calendar-round-date}).
-@end table
-
-@cindex Mayan long count
-  To understand these commands, you need to understand the Mayan calendars.
-The @dfn{long count} is a counting of days with these units:
-
-@display
-1 kin = 1 day@ @ @ 1 uinal = 20 kin@ @ @ 1 tun = 18 uinal
-1 katun = 20 tun@ @ @ 1 baktun = 20 katun
-@end display
-
-@kindex g m @r{(Calendar mode)}
-@findex calendar-mayan-goto-long-count-date
-@noindent
-Thus, the long count date 12.16.11.16.6 means 12 baktun, 16 katun, 11
-tun, 16 uinal, and 6 kin.  The Emacs calendar can handle Mayan long
-count dates as early as 7.17.18.13.3, but no earlier.  When you use the
-@kbd{g m l} command, type the Mayan long count date with the baktun,
-katun, tun, uinal, and kin separated by periods.
-
-@findex calendar-mayan-previous-tzolkin-date
-@findex calendar-mayan-next-tzolkin-date
-@cindex Mayan tzolkin calendar
-  The Mayan tzolkin calendar is a cycle of 260 days formed by a pair of
-independent cycles of 13 and 20 days.  Since this cycle repeats
-endlessly, Emacs provides commands to move backward and forward to the
-previous or next point in the cycle.  Type @kbd{g m p t} to go to the
-previous tzolkin date; Emacs asks you for a tzolkin date and moves point
-to the previous occurrence of that date.  Similarly, type @kbd{g m n t}
-to go to the next occurrence of a tzolkin date.
-
-@findex calendar-mayan-previous-haab-date
-@findex calendar-mayan-next-haab-date
-@cindex Mayan haab calendar
-  The Mayan haab calendar is a cycle of 365 days arranged as 18 months
-of 20 days each, followed by a 5-day monthless period.  Like the tzolkin
-cycle, this cycle repeats endlessly, and there are commands to move
-backward and forward to the previous or next point in the cycle.  Type
-@kbd{g m p h} to go to the previous haab date; Emacs asks you for a haab
-date and moves point to the previous occurrence of that date.
-Similarly, type @kbd{g m n h} to go to the next occurrence of a haab
-date.
-
-@c This is omitted because it is too long for smallbook format.
-@c @findex calendar-mayan-previous-calendar-round-date
-@findex calendar-mayan-next-calendar-round-date
-@cindex Mayan calendar round
-  The Maya also used the combination of the tzolkin date and the haab
-date.  This combination is a cycle of about 52 years called a
-@emph{calendar round}.  If you type @kbd{g m p c}, Emacs asks you for
-both a haab and a tzolkin date and then moves point to the previous
-occurrence of that combination.  Use @kbd{g m n c} to move point to the
-next occurrence of a combination.  These commands signal an error if the
-haab/tzolkin date combination you have typed is impossible.
-
-  Emacs uses strict completion (@pxref{Completion Exit}) whenever it
-asks you to type a Mayan name, so you don't have to worry about
-spelling.
 
 @node Diary
 @section The Diary
@@ -1435,7 +1348,7 @@ mean ``second'', @minus{}2 would mean ``second-to-last'', and so on).
 The month can be a single month or a list of months.  Thus you could change
 the 11 above to @samp{'(1 2 3)} and have the entry apply to the last
 Thursday of January, February, and March.  If the month is @code{t}, the
-entry applies to all months of the year.@refill
+entry applies to all months of the year.
 
   Each of the standard sexp diary entries takes an optional parameter
 specifying the name of a face or a single-character string to use when
@@ -1542,7 +1455,8 @@ variety of other formats.
 messages.  While viewing such a message in Rmail or Gnus, do @kbd{M-x
 diary-from-outlook} to import the entry.  You can make this command
 recognize additional appointment message formats by customizing the
-variable @code{diary-outlook-formats}.
+variable @code{diary-outlook-formats}.  Other mail clients can set
+@code{diary-from-outlook-function} to an appropriate value.
 
 @c FIXME the name of the RFC is hardly very relevant.
 @cindex iCalendar support
@@ -1702,11 +1616,11 @@ you.  You can, however, customize the value of the variable
 then, only an explicit @kbd{M-x timeclock-out} or @kbd{M-x
 timeclock-change} will tell Emacs that the current interval is over.
 
-@cindex @file{.timelog} file
+@cindex @file{timelog} file
 @vindex timeclock-file
 @findex timeclock-reread-log
   The timeclock functions work by accumulating the data in a file
-called @file{.timelog} in your home directory.  You can specify a
+called @file{~/.emacs.d/timelog}.  You can specify a
 different name for this file by customizing the variable
 @code{timeclock-file}.  If you edit the timeclock file manually, or if
 you change the value of any of timeclock's customizable variables, you

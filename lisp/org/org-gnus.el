@@ -1,6 +1,6 @@
 ;;; org-gnus.el --- Support for links to Gnus groups and messages from within Org-mode
 
-;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2014 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;         Tassilo Horn <tassilo at member dot fsf dot org>
@@ -43,8 +43,7 @@
 (declare-function gnus-summary-last-subject "gnus-sum" nil)
 ;; Customization variables
 
-(when (fboundp 'defvaralias)
-  (defvaralias 'org-usenet-links-prefer-google 'org-gnus-prefer-web-links))
+(org-defvaralias 'org-usenet-links-prefer-google 'org-gnus-prefer-web-links)
 
 (defcustom org-gnus-prefer-web-links nil
   "If non-nil, `org-store-link' creates web links to Google groups or Gmane.
@@ -66,6 +65,12 @@ this variable to `t'."
   :version "24.1"
   :type 'boolean)
 
+(defcustom org-gnus-no-server nil
+  "Should Gnus be started using `gnus-no-server'?"
+  :group 'org-gnus
+  :version "24.4"
+  :package-version '(Org . "8.0")
+  :type 'boolean)
 
 ;; Install the link type
 (org-add-link-type "gnus" 'org-gnus-open)
@@ -287,7 +292,7 @@ If `org-store-link' was called with a prefix arg the meaning of
 
 (defun org-gnus-no-new-news ()
   "Like `M-x gnus' but doesn't check for new news."
-  (if (not (gnus-alive-p)) (gnus)))
+  (if (not (gnus-alive-p)) (if org-gnus-no-server (gnus-no-server) (gnus))))
 
 (provide 'org-gnus)
 

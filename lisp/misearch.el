@@ -1,6 +1,6 @@
 ;;; misearch.el --- isearch extensions for multi-buffer search
 
-;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@jurta.org>
 ;; Keywords: matching
@@ -239,7 +239,8 @@ set in `multi-isearch-buffers' or `multi-isearch-buffers-regexp'."
     (nreverse bufs)))
 
 (defun multi-isearch-read-matching-buffers ()
-  "Return a list of buffers whose names match specified regexp."
+  "Return a list of buffers whose names match specified regexp.
+Uses `read-regexp' to read the regexp."
   ;; Most code from `multi-occur-in-matching-buffers'
   ;; and `kill-matching-buffers'.
   (let ((bufregexp
@@ -262,11 +263,11 @@ whose names match the specified regexp."
 	     (multi-isearch-read-matching-buffers)
 	   (multi-isearch-read-buffers))))
   (let ((multi-isearch-next-buffer-function
-	 'multi-isearch-next-buffer-from-list)
-	(multi-isearch-buffer-list (mapcar #'get-buffer buffers)))
+	 'multi-isearch-next-buffer-from-list))
+    (setq multi-isearch-buffer-list (mapcar #'get-buffer buffers))
     (switch-to-buffer (car multi-isearch-buffer-list))
     (goto-char (if isearch-forward (point-min) (point-max)))
-    (isearch-forward)))
+    (isearch-forward nil t)))
 
 ;;;###autoload
 (defun multi-isearch-buffers-regexp (buffers)
@@ -280,11 +281,11 @@ whose names match the specified regexp."
 	     (multi-isearch-read-matching-buffers)
 	   (multi-isearch-read-buffers))))
   (let ((multi-isearch-next-buffer-function
-	 'multi-isearch-next-buffer-from-list)
-	(multi-isearch-buffer-list (mapcar #'get-buffer buffers)))
+	 'multi-isearch-next-buffer-from-list))
+    (setq multi-isearch-buffer-list (mapcar #'get-buffer buffers))
     (switch-to-buffer (car multi-isearch-buffer-list))
     (goto-char (if isearch-forward (point-min) (point-max)))
-    (isearch-forward-regexp)))
+    (isearch-forward-regexp nil t)))
 
 
 ;;; Global multi-file search invocations
@@ -322,8 +323,10 @@ Every next/previous file in the defined sequence is visited by
       (add-to-list 'files file))
     (nreverse files)))
 
+;; A regexp is not the same thing as a file glob - does this matter?
 (defun multi-isearch-read-matching-files ()
-  "Return a list of files whose names match specified wildcard."
+  "Return a list of files whose names match specified wildcard.
+Uses `read-regexp' to read the wildcard."
   ;; Most wildcard code from `find-file-noselect'.
   (let ((filename (read-regexp "Search in files whose names match wildcard")))
     (when (and filename
@@ -346,11 +349,11 @@ whose file names match the specified wildcard."
 	     (multi-isearch-read-matching-files)
 	   (multi-isearch-read-files))))
   (let ((multi-isearch-next-buffer-function
-	 'multi-isearch-next-file-buffer-from-list)
-	(multi-isearch-file-list (mapcar #'expand-file-name files)))
+	 'multi-isearch-next-file-buffer-from-list))
+    (setq multi-isearch-file-list (mapcar #'expand-file-name files))
     (find-file (car multi-isearch-file-list))
     (goto-char (if isearch-forward (point-min) (point-max)))
-    (isearch-forward)))
+    (isearch-forward nil t)))
 
 ;;;###autoload
 (defun multi-isearch-files-regexp (files)
@@ -365,11 +368,11 @@ whose file names match the specified wildcard."
 	     (multi-isearch-read-matching-files)
 	   (multi-isearch-read-files))))
   (let ((multi-isearch-next-buffer-function
-	 'multi-isearch-next-file-buffer-from-list)
-	(multi-isearch-file-list (mapcar #'expand-file-name files)))
+	 'multi-isearch-next-file-buffer-from-list))
+    (setq multi-isearch-file-list (mapcar #'expand-file-name files))
     (find-file (car multi-isearch-file-list))
     (goto-char (if isearch-forward (point-min) (point-max)))
-    (isearch-forward-regexp)))
+    (isearch-forward-regexp nil t)))
 
 
 (provide 'multi-isearch)

@@ -1,6 +1,6 @@
 ;;; notifications.el --- Client interface to desktop notifications.
 
-;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: comm desktop notifications
@@ -349,7 +349,7 @@ BUS can be a string denoting a D-Bus connection, the default is `:session'."
                     notifications-path
                     notifications-interface
                     notifications-close-notification-method
-                    :int32 id))
+                    :uint32 id))
 
 (defvar dbus-debug) ; used in the macroexpansion of dbus-ignore-errors
 

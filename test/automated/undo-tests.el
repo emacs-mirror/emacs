@@ -1,6 +1,6 @@
 ;;; undo-tests.el --- Tests of primitive-undo
 
-;; Copyright (C) 2012  Aaron S. Hawley
+;; Copyright (C) 2012-2014 Free Software Foundation, Inc.
 
 ;; Author: Aaron S. Hawley <aaron.s.hawley@gmail.com>
 
@@ -124,7 +124,7 @@
     (undo-boundary)
     (insert " Zero")
     (undo-boundary)
-    (push-mark)
+    (push-mark nil t)
     (delete-region (save-excursion
                      (forward-word -1)
                      (point)) (point))
@@ -139,26 +139,6 @@
                      (undo-more 2)
                      (undo)
                      (buffer-string))))))
-
-(ert-deftest undo-test3 ()
-  "Test modtime with \\[undo] command."
-  (let ((tmpfile (make-temp-file "undo-test3")))
-    (with-temp-file tmpfile
-      (let ((buffer-file-name tmpfile))
-        (buffer-enable-undo)
-        (set (make-local-variable 'make-backup-files) nil)
-        (undo-boundary)
-        (insert ?\s)
-        (undo-boundary)
-        (basic-save-buffer)
-        (insert ?\t)
-        (undo)
-        (should
-         (string-equal (buffer-string)
-                       (progn
-                         (undo)
-                         (buffer-string)))))
-      (delete-file tmpfile))))
 
 (ert-deftest undo-test4 ()
   "Test \\[undo] of \\[flush-lines]."
@@ -192,7 +172,7 @@
     (insert " BEE")
     (undo-boundary)
     (setq buffer-undo-list (cons '(0.0 bogus) buffer-undo-list))
-    (push-mark)
+    (push-mark nil t)
     (delete-region (save-excursion
                      (forward-word -1)
                      (point)) (point))
@@ -219,6 +199,32 @@
            (equal (should-error (undo))
                   '(error "Unrecognized entry in undo list \"bogus\""))))
         (buffer-string))))))
+
+;; http://debbugs.gnu.org/14824
+(ert-deftest undo-test-buffer-modified ()
+  "Test undoing marks buffer unmodified."
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (insert "1")
+    (undo-boundary)
+    (set-buffer-modified-p nil)
+    (insert "2")
+    (undo)
+    (should-not (buffer-modified-p))))
+
+(ert-deftest undo-test-file-modified ()
+  "Test undoing marks buffer visiting file unmodified."
+  (let ((tempfile (make-temp-file "undo-test")))
+    (unwind-protect
+        (progn
+          (with-current-buffer (find-file-noselect tempfile)
+            (insert "1")
+            (undo-boundary)
+            (set-buffer-modified-p nil)
+            (insert "2")
+            (undo)
+            (should-not (buffer-modified-p))))
+      (delete-file tempfile))))
 
 (defun undo-test-all (&optional interactive)
   "Run all tests for \\[undo]."

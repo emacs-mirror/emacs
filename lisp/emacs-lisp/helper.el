@@ -1,9 +1,9 @@
 ;;; helper.el --- utility help package supporting help in electric modes
 
-;; Copyright (C) 1985, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help
 ;; Package: emacs
 
@@ -59,7 +59,7 @@
 			Helper-return-blurb)
 		   "return")))
     (save-window-excursion
-      (goto-char (window-start (selected-window)))
+      (goto-char (window-start))
       (if (get-buffer-window "*Help*")
 	  (pop-to-buffer "*Help*")
 	(switch-to-buffer "*Help*"))

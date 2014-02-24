@@ -1,6 +1,6 @@
 ;;; recentf.el --- setup a menu of recently opened files
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: July 19 1999
@@ -69,9 +69,10 @@ See the command `recentf-save-list'."
   :group 'recentf
   :type 'integer)
 
-(defcustom recentf-save-file (convert-standard-filename "~/.recentf")
+(defcustom recentf-save-file (locate-user-emacs-file "recentf" ".recentf")
   "File to save the recent list into."
   :group 'recentf
+  :version "24.4"
   :type 'file
   :initialize 'custom-initialize-default
   :set (lambda (symbol value)

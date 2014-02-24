@@ -11,7 +11,7 @@
 @copying
 This file documents the Emacs MIME interface functionality.
 
-Copyright @copyright{} 1998--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 1998--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -26,8 +26,8 @@ modify this GNU manual.''
 @end quotation
 @end copying
 
-@c Node ``Interface Functions'' uses Latin-1 characters
-@documentencoding ISO-8859-1
+@c Node ``Interface Functions'' uses non-ASCII characters
+@documentencoding UTF-8
 
 @dircategory Emacs lisp libraries
 @direntry
@@ -871,15 +871,15 @@ by using the @code{encoding} @acronym{MML} tag (@pxref{MML Definition}).
 @vindex mm-coding-system-priorities
 Prioritize coding systems to use for outgoing messages.  The default
 is @code{nil}, which means to use the defaults in Emacs, but is
-@code{(iso-8859-1 iso-2022-jp iso-2022-jp-2 shift_jis utf-8)} when
-running Emacs in the Japanese language environment.  It is a list of
-coding system symbols (aliases of coding systems are also allowed, use
-@kbd{M-x describe-coding-system} to make sure you are specifying correct
-coding system names).  For example, if you have configured Emacs
-to prefer UTF-8, but wish that outgoing messages should be sent in
-ISO-8859-1 if possible, you can set this variable to
-@code{(iso-8859-1)}.  You can override this setting on a per-message
-basis by using the @code{charset} @acronym{MML} tag (@pxref{MML Definition}).
+@code{(iso-8859-1 iso-2022-jp utf-8)} when running Emacs in the Japanese
+language environment.  It is a list of coding system symbols (aliases of
+coding systems are also allowed, use @kbd{M-x describe-coding-system} to
+make sure you are specifying correct coding system names).  For example,
+if you have configured Emacs to prefer UTF-8, but wish that outgoing
+messages should be sent in ISO-8859-1 if possible, you can set this
+variable to @code{(iso-8859-1)}.  You can override this setting on a
+per-message basis by using the @code{charset} @acronym{MML} tag
+(@pxref{MML Definition}).
 
 As different hierarchies prefer different charsets, you may want to set
 @code{mm-coding-system-priorities} according to the hierarchy in Gnus.
@@ -904,7 +904,7 @@ Here's an example:
           (mm-coding-system-priorities '(iso-8859-15 iso-8859-1 utf-8)))
          ("^fj\\." ;; Japanese
           (mm-coding-system-priorities
-           '(iso-8859-1 iso-2022-jp iso-2022-jp-2 shift_jis utf-8)))
+           '(iso-8859-1 iso-2022-jp utf-8)))
          ("^ru\\." ;; Cyrillic
           (mm-coding-system-priorities
            '(koi8-r iso-8859-5 iso-8859-1 utf-8))))
@@ -1221,7 +1221,7 @@ Return the value of the field under point.
 @item mail-encode-encoded-word-region
 @findex mail-encode-encoded-word-region
 Encode the non-@acronym{ASCII} words in the region.  For instance,
-@samp{Na@"{@dotless{i}}ve} is encoded as @samp{=?iso-8859-1?q?Na=EFve?=}.
+@samp{Naïve} is encoded as @samp{=?iso-8859-1?q?Na=EFve?=}.
 
 @item mail-encode-encoded-word-buffer
 @findex mail-encode-encoded-word-buffer
@@ -1234,7 +1234,7 @@ Encode the words that need encoding in a string, and return the result.
 
 @example
 (mail-encode-encoded-word-string
- "This is na@"{@dotless{i}}ve, baby")
+ "This is naïve, baby")
 @result{} "This is =?iso-8859-1?q?na=EFve,?= baby"
 @end example
 
@@ -1249,7 +1249,7 @@ Decode the encoded words in the string and return the result.
 @example
 (mail-decode-encoded-word-string
  "This is =?iso-8859-1?q?na=EFve,?= baby")
-@result{} "This is na@"{@dotless{i}}ve, baby"
+@result{} "This is naïve, baby"
 @end example
 
 @end table
@@ -1511,7 +1511,7 @@ Here's a bunch of time/date/second/day examples:
 (date-to-time "Sat Sep 12 12:21:54 1998 +0200")
 @result{} (13818 19266)
 
-(time-to-seconds '(13818 19266))
+(float-time '(13818 19266))
 @result{} 905595714.0
 
 (seconds-to-time 905595714.0)
@@ -1583,9 +1583,8 @@ These are the functions available:
 @item date-to-time
 Take a date and return a time.
 
-@item time-to-seconds
-Take a time and return seconds.  Note that Emacs has a built-in
-function, @code{float-time}, that does this.
+@item float-time
+Take a time and return seconds.  (This is a built-in function.)
 
 @item seconds-to-time
 Take seconds and return a time.
@@ -1890,5 +1889,5 @@ Documentation of the text/plain format parameter for flowed text.
 
 @c Local Variables:
 @c mode: texinfo
-@c coding: iso-8859-1
+@c coding: utf-8
 @c End:

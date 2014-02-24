@@ -1,5 +1,5 @@
 /* Filesystem notifications support for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 2012-2013 Free Software Foundation, Inc.
+   Copyright (C) 2012-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -39,7 +39,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    return, and watch_worker then issues another call to
    ReadDirectoryChangesW.  (Except when it does not, see below.)
 
-   In a GUI session, The WM_EMACS_FILENOTIFY message, posted to the
+   In a GUI session, the WM_EMACS_FILENOTIFY message posted to the
    message queue gets dispatched to the main Emacs window procedure,
    which queues it for processing by w32_read_socket.  When
    w32_read_socket sees this message, it accesses the buffer with file
@@ -59,7 +59,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    When the FILE_NOTIFY_EVENT event is processed by keyboard.c's
    kbd_buffer_get_event, it is converted to a Lispy event that can be
-   bound to a command.  The default binding is w32notify-handle-event,
+   bound to a command.  The default binding is file-notify-handle-event,
    defined on subr.el.
 
    After w32_read_socket or w32_console_read_socket are done
@@ -105,7 +105,7 @@ struct notification {
   OVERLAPPED *io_info;	/* the OVERLAPPED structure for async I/O */
   BOOL subtree;		/* whether to watch subdirectories */
   DWORD filter;		/* bit mask for events to watch */
-  char *watchee;	/* the file we are interested in */
+  char *watchee;	/* the file we are interested in, UTF-8 encoded */
   HANDLE dir;		/* handle to the watched directory */
   HANDLE thr;		/* handle to the thread that watches */
   volatile int terminate; /* if non-zero, request for the thread to terminate */
@@ -129,7 +129,7 @@ send_notifications (BYTE *info, DWORD info_size, void *desc,
 		    volatile int *terminate)
 {
   int done = 0;
-  FRAME_PTR f = SELECTED_FRAME ();
+  struct frame *f = SELECTED_FRAME ();
 
   /* A single buffer is used to communicate all notifications to the
      main thread.  Since both the main thread and several watcher
@@ -163,7 +163,12 @@ send_notifications (BYTE *info, DWORD info_size, void *desc,
 	       && PostThreadMessage (dwMainThreadId, WM_EMACS_FILENOTIFY, 0, 0))
 	      || (FRAME_W32_P (f)
 		  && PostMessage (FRAME_W32_WINDOW (f),
-				  WM_EMACS_FILENOTIFY, 0, 0)))
+				  WM_EMACS_FILENOTIFY, 0, 0))
+	      /* When we are running in batch mode, there's no one to
+		 send a message, so we just signal the data is
+		 available and hope sys_select will be called soon and
+		 will read the data.  */
+	      || (FRAME_INITIAL_P (f) && noninteractive))
 	    notification_buffer_in_use = 1;
 	  done = 1;
 	}
@@ -324,18 +329,46 @@ add_watch (const char *parent_dir, const char *file, BOOL subdirs, DWORD flags)
   HANDLE hdir;
   struct notification *dirwatch = NULL;
 
-  if (!file || !*file)
+  if (!file)
     return NULL;
 
-  hdir = CreateFile (parent_dir,
-		     FILE_LIST_DIRECTORY,
-		     /* FILE_SHARE_DELETE doesn't preclude other
-			processes from deleting files inside
-			parent_dir.  */
-		     FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-		     NULL, OPEN_EXISTING,
-		     FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
-		     NULL);
+  if (w32_unicode_filenames)
+    {
+      wchar_t dir_w[MAX_PATH], file_w[MAX_PATH];
+
+      filename_to_utf16 (parent_dir, dir_w);
+      if (*file)
+	filename_to_utf16 (file, file_w);
+      else
+	file_w[0] = 0;
+
+      hdir = CreateFileW (dir_w,
+			  FILE_LIST_DIRECTORY,
+			  /* FILE_SHARE_DELETE doesn't preclude other
+			     processes from deleting files inside
+			     parent_dir.  */
+			  FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+			  NULL, OPEN_EXISTING,
+			  FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+			  NULL);
+    }
+  else
+    {
+      char dir_a[MAX_PATH], file_a[MAX_PATH];
+
+      filename_to_ansi (parent_dir, dir_a);
+      if (*file)
+	filename_to_ansi (file, file_a);
+      else
+	file_a[0] = '\0';
+
+      hdir = CreateFileA (dir_a,
+			  FILE_LIST_DIRECTORY,
+			  FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+			  NULL, OPEN_EXISTING,
+			  FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+			  NULL);
+    }
   if (hdir == INVALID_HANDLE_VALUE)
     return NULL;
 
@@ -485,9 +518,7 @@ will never come in.  Volumes shared from remote Windows machines do
 generate notifications correctly, though.  */)
   (Lisp_Object file, Lisp_Object filter, Lisp_Object callback)
 {
-  Lisp_Object encoded_file, watch_object, watch_descriptor;
-  char parent_dir[MAX_PATH], *basename;
-  size_t fn_len;
+  Lisp_Object dirfn, basefn, watch_object, watch_descriptor;
   DWORD flags;
   BOOL subdirs = FALSE;
   struct notification *dirwatch = NULL;
@@ -505,41 +536,33 @@ generate notifications correctly, though.  */)
 			 Qnil);
     }
 
-  /* We need a full absolute file name of FILE, and we need to remove
-     any trailing slashes from it, so that GetFullPathName below gets
-     the basename part correctly.  */
+  /* filenotify.el always passes us a directory, either the parent
+     directory of a file to be watched, or the directory to be
+     watched.  */
   file = Fdirectory_file_name (Fexpand_file_name (file, Qnil));
-  encoded_file = ENCODE_FILE (file);
-
-  fn_len = GetFullPathName (SDATA (encoded_file), MAX_PATH, parent_dir,
-			    &basename);
-  if (!fn_len)
+  if (NILP (Ffile_directory_p (file)))
     {
-      errstr = w32_strerror (0);
-      errno = EINVAL;
-      if (!NILP (Vlocale_coding_system))
-	lisp_errstr
-	  = code_convert_string_norecord (build_unibyte_string (errstr),
-					  Vlocale_coding_system, 0);
-      else
-	lisp_errstr = build_string (errstr);
-      report_file_error ("GetFullPathName failed",
-			 Fcons (lisp_errstr, Fcons (file, Qnil)));
+      /* This should only happen if we are called directly, not via
+	 filenotify.el.  If BASEFN is empty, the argument was the root
+	 directory on its drive.  */
+      dirfn = ENCODE_FILE (Ffile_name_directory (file));
+      basefn = ENCODE_FILE (Ffile_name_nondirectory (file));
+      if (*SDATA (basefn) == '\0')
+	subdirs = TRUE;
     }
-  /* We need the parent directory without the slash that follows it.
-     If BASENAME is NULL, the argument was the root directory on its
-     drive.  */
-  if (basename)
-    basename[-1] = '\0';
   else
-    subdirs = TRUE;
+    {
+      dirfn = ENCODE_FILE (file);
+      basefn = Qnil;
+    }
 
   if (!NILP (Fmember (Qsubtree, filter)))
     subdirs = TRUE;
 
   flags = filter_list_to_flags (filter);
 
-  dirwatch = add_watch (parent_dir, basename, subdirs, flags);
+  dirwatch = add_watch (SSDATA (dirfn), NILP (basefn) ? "" : SSDATA (basefn),
+			subdirs, flags);
   if (!dirwatch)
     {
       DWORD err = GetLastError ();

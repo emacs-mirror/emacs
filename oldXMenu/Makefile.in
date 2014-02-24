@@ -1,4 +1,4 @@
-## Makefile for oldXMenu
+### @configure_input@
 
 ## Copyright 1985, 1986, 1987 by the Massachusetts Institute of Technology
 
@@ -15,7 +15,7 @@
 ## without express or implied warranty.
 
 
-## Copyright (C) 2001-2013 Free Software Foundation, Inc.
+## Copyright (C) 2001-2014 Free Software Foundation, Inc.
 
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -43,6 +43,8 @@
 ### Code:
 
 srcdir=@srcdir@
+# MinGW CPPFLAGS may use this.
+abs_top_srcdir=@abs_top_srcdir@
 VPATH=@srcdir@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
@@ -85,7 +87,8 @@ OBJS =  Activate.o \
 	SetSel.o \
       XDelAssoc.o XLookAssoc.o XCrAssoc.o XDestAssoc.o XMakeAssoc.o
 
-all:: libXMenu11.a
+all: libXMenu11.a
+.PHONY: all
 
 ALL_CFLAGS=$(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
   $(C_SWITCH_X_SITE) \
@@ -139,5 +142,6 @@ distclean: clean
 	rm -f Makefile
 maintainer-clean: distclean
 
-tags::
+tags:
 	$(TAGS) -t *.[ch]
+.PHONY: tags

@@ -1,9 +1,9 @@
 ;;; cus-theme.el -- custom theme creation user interface
 ;;
-;; Copyright (C) 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2014 Free Software Foundation, Inc.
 ;;
 ;; Author: Alex Schroeder <alex@gnu.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, faces
 ;; Package: emacs
 
@@ -32,9 +32,11 @@
 
 (defvar custom-new-theme-mode-map
   (let ((map (make-keymap)))
-    (set-keymap-parent map widget-keymap)
+    (set-keymap-parent map (make-composed-keymap widget-keymap
+						 special-mode-map))
     (suppress-keymap map)
     (define-key map "\C-x\C-s" 'custom-theme-write)
+    (define-key map "q" 'Custom-buffer-done)
     (define-key map "n" 'widget-forward)
     (define-key map "p" 'widget-backward)
     map)
@@ -263,7 +265,7 @@ interactively, this defaults to the current value of VAR."
 (defun custom-theme-add-face (face &optional spec)
   "Add a widget for FACE (a symbol) to the *New Custom Theme* buffer.
 SPEC, if non-nil, should be a face spec to which to set the widget."
-  (interactive (list (read-face-name "Face name" nil nil) nil))
+  (interactive (list (read-face-name "Face name" (face-at-point t))))
   (unless (or (facep face) spec)
     (error "`%s' has no face definition" face))
   (let ((entry (assq face custom-theme-faces)))

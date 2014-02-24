@@ -1,6 +1,6 @@
 ;;; sieve.el --- Utilities to manage sieve scripts
 
-;; Copyright (C) 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -109,7 +109,6 @@ require \"fileinto\";
     ;; various
     (define-key map "?" 'sieve-help)
     (define-key map "h" 'sieve-help)
-    (define-key map "q" 'kill-buffer)
     ;; activating
     (define-key map "m" 'sieve-activate)
     (define-key map "u" 'sieve-deactivate)
@@ -126,7 +125,8 @@ require \"fileinto\";
     (define-key map "f" 'sieve-edit-script)
     (define-key map "o" 'sieve-edit-script-other-window)
     (define-key map "r" 'sieve-remove)
-    (define-key map "q" 'sieve-manage-quit)
+    (define-key map "q" 'sieve-bury-buffer)
+    (define-key map "Q" 'sieve-manage-quit)
     (define-key map [(down-mouse-2)] 'sieve-edit-script)
     (define-key map [(down-mouse-3)] 'sieve-manage-mode-menu)
     map)
@@ -150,9 +150,16 @@ require \"fileinto\";
 ;; Commands used in sieve-manage mode:
 
 (defun sieve-manage-quit ()
-  "Quit."
+  "Quit Manage Sieve and close the connection."
   (interactive)
+  (sieve-manage-close sieve-manage-buffer)
+  (kill-buffer sieve-manage-buffer)
   (kill-buffer (current-buffer)))
+
+(defun sieve-bury-buffer ()
+  "Bury the Manage Sieve buffer without closing the connection."
+  (interactive)
+  (bury-buffer))
 
 (defun sieve-activate (&optional pos)
   (interactive "d")
@@ -206,6 +213,7 @@ require \"fileinto\";
       (insert sieve-template))
     (sieve-mode)
     (setq sieve-buffer-script-name name)
+    (goto-char (point-min))
     (message
      (substitute-command-keys
       "Press \\[sieve-upload] to upload script to server."))))
@@ -256,10 +264,9 @@ Used to bracket operations which move point in the sieve-buffer."
   (setq buffer-read-only nil)
   (erase-buffer)
   (buffer-disable-undo)
-  (insert "\
-Server  : " server ":" (or port "2000") "
-
-")
+  (let* ((port (or port sieve-manage-default-port))
+         (header (format "Server : %s:%s\n\n" server port)))
+    (insert header))
   (set (make-local-variable 'sieve-buffer-header-end)
        (point-max)))
 
@@ -305,7 +312,7 @@ Server  : " server ":" (or port "2000") "
   (with-current-buffer
       (or ;; open server
        (set (make-local-variable 'sieve-manage-buffer)
-	    (sieve-manage-open server))
+	    (sieve-manage-open server port))
        (error "Error opening server %s" server))
     (sieve-manage-authenticate)))
 

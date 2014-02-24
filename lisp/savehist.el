@@ -1,9 +1,9 @@
 ;;; savehist.el --- Save minibuffer history
 
-;; Copyright (C) 1997, 2005-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2005-2014 Free Software Foundation, Inc.
 
 ;; Author: Hrvoje Niksic <hniksic@xemacs.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: minibuffer
 ;; Version: 24
 
@@ -49,7 +49,7 @@
 
 (require 'custom)
 (eval-when-compile
-  (require 'cl))
+  (if (featurep 'xemacs) (require 'cl)))
 
 ;; User variables
 
@@ -60,21 +60,21 @@
 
 (defcustom savehist-save-minibuffer-history t
   "If non-nil, save all recorded minibuffer histories.
-If you want to save only specific histories, use `savehist-save-hook' to
-modify the value of `savehist-minibuffer-history-variables'."
+If you want to save only specific histories, use `savehist-save-hook'
+to modify the value of `savehist-minibuffer-history-variables'."
   :type 'boolean
   :group 'savehist)
 
 (defcustom savehist-additional-variables ()
   "List of additional variables to save.
 Each element is a symbol whose value will be persisted across Emacs
-sessions that use savehist.  The contents of variables should be
+sessions that use Savehist.  The contents of variables should be
 printable with the Lisp printer.  You don't need to add minibuffer
 history variables to this list, all minibuffer histories will be
 saved automatically as long as `savehist-save-minibuffer-history' is
 non-nil.
 
-User options should be saved with the customize interface.  This
+User options should be saved with the Customize interface.  This
 list is useful for saving automatically updated variables that are not
 minibuffer histories, such as `compile-command' or `kill-ring'."
   :type '(repeat variable)
@@ -89,7 +89,7 @@ minibuffer histories, such as `compile-command' or `kill-ring'."
   (locate-user-emacs-file "history" ".emacs-history")
   "File name where minibuffer history is saved to and loaded from.
 The minibuffer history is a series of Lisp expressions loaded
-automatically when `savehist-mode' is turned on.  See `savehist-mode'
+automatically when Savehist mode is turned on.  See `savehist-mode'
 for more details.
 
 If you want your minibuffer history shared between Emacs and XEmacs,
@@ -115,14 +115,14 @@ If set to nil, disables timer-based autosaving."
   :group 'savehist)
 
 (defcustom savehist-mode-hook nil
-  "Hook called when `savehist-mode' is turned on."
+  "Hook called when Savehist mode is turned on."
   :type 'hook
   :group 'savehist)
 
 (defcustom savehist-save-hook nil
   "Hook called by `savehist-save' before saving the variables.
-You can use this hook to influence choice and content of variables to
-save."
+You can use this hook to influence choice and content of variables
+to save."
   :type 'hook
   :group 'savehist)
 
@@ -134,7 +134,7 @@ save."
 					(<= emacs-major-version 21)
 					(< emacs-minor-version 5))
 				   'iso-2022-8 'utf-8-unix)
-  "The coding system savehist uses for saving the minibuffer history.
+  "The coding system Savehist uses for saving the minibuffer history.
 Changing this value while Emacs is running is supported, but considered
 unwise, unless you know what you are doing.")
 
@@ -158,7 +158,7 @@ buffer text.")
 
 (defvar savehist-loaded nil
   "Whether the history has already been loaded.
-This prevents toggling `savehist-mode' from destroying existing
+This prevents toggling Savehist mode from destroying existing
 minibuffer history.")
 
 (when (featurep 'xemacs)
@@ -205,7 +205,7 @@ histories, which is probably undesirable."
     (savehist-install)))
 
 (defun savehist-load ()
-  "Load the variables stored in `savehist-file' and turn on `savehist-mode'.
+  "Load the variables stored in `savehist-file' and turn on Savehist mode.
 If `savehist-file' is in the old format that doesn't record
 the value of `savehist-minibuffer-history-variables', that
 value is deducted from the contents of the file."
@@ -228,7 +228,7 @@ value is deducted from the contents of the file."
               vars)))))
 
 (defun savehist-install ()
-  "Hook savehist into Emacs.
+  "Hook Savehist into Emacs.
 Normally invoked by calling `savehist-mode' to set the minor mode.
 Installs `savehist-autosave' in `kill-emacs-hook' and on a timer.
 To undo this, call `savehist-uninstall'."
@@ -356,7 +356,7 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 
 (defun savehist-autosave ()
   "Save the minibuffer history if it has been modified since the last save.
-Does nothing if `savehist-mode' is off."
+Does nothing if Savehist mode is off."
   (when savehist-mode
     (savehist-save t)))
 

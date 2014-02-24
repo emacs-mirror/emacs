@@ -1,6 +1,6 @@
 ;;; gnus-start.el --- startup functions for Gnus
 
-;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -944,7 +944,8 @@ If REGEXP is given, lines that match it will be deleted."
   (when (and gnus-dribble-buffer
 	     (buffer-name gnus-dribble-buffer))
     (with-current-buffer gnus-dribble-buffer
-      (save-buffer))))
+      (when (> (buffer-size) 0)
+	(save-buffer)))))
 
 (defun gnus-dribble-clear ()
   (when (gnus-buffer-exists-p gnus-dribble-buffer)
@@ -1807,6 +1808,9 @@ backend check whether the group actually exists."
        (or (not (gnus-agent-method-p method))
 	   (gnus-online method)))
       (gnus-finish-retrieve-group-infos method infos early-data)
+      ;; We may have altered the data now, so mark the dribble buffer
+      ;; as dirty so that it gets saved.
+      (gnus-dribble-touch)
       (gnus-agent-save-active method))
      ;; Most backends have -retrieve-groups.
      ((gnus-check-backend-function 'retrieve-groups (car method))
@@ -2301,7 +2305,12 @@ If FORCE is non-nil, the .newsrc file is read."
 	  (gnus-message 5 "Reading %s...done" newsrc-file)))
 
       ;; Convert old to new.
-      (gnus-convert-old-newsrc))))
+      (gnus-convert-old-newsrc)
+      (gnus-clean-old-newsrc))))
+
+(defun gnus-clean-old-newsrc (&optional force)
+  ;; Currently no cleanups.
+  )
 
 (defun gnus-convert-old-newsrc ()
   "Convert old newsrc formats into the current format, if needed."

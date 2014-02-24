@@ -1,6 +1,6 @@
 ;;; ob-sh.el --- org-babel functions for shell evaluation
 
-;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -27,9 +27,6 @@
 
 ;;; Code:
 (require 'ob)
-(require 'ob-ref)
-(require 'ob-comint)
-(require 'ob-eval)
 (require 'shell)
 (eval-when-compile (require 'cl))
 
@@ -56,9 +53,9 @@ This will be passed to  `shell-command-on-region'")
 This function is called by `org-babel-execute-src-block'."
   (let* ((session (org-babel-sh-initiate-session
 		   (cdr (assoc :session params))))
-	 (stdin ((lambda (stdin) (when stdin (org-babel-sh-var-to-string
-					      (org-babel-ref-resolve stdin))))
-		 (cdr (assoc :stdin params))))
+	 (stdin (let ((stdin (cdr (assoc :stdin params))))
+                  (when stdin (org-babel-sh-var-to-string
+                               (org-babel-ref-resolve stdin)))))
          (full-body (org-babel-expand-body:generic
 		     body params (org-babel-variable-assignments:sh params))))
     (org-babel-reassemble-table
@@ -109,7 +106,7 @@ var of the same value."
   "Convert an elisp value to a string."
   (let ((echo-var (lambda (v) (if (stringp v) v (format "%S" v)))))
     (cond
-     ((and (listp var) (listp (car var)))
+     ((and (listp var) (or (listp (car var)) (equal (car var) 'hline)))
       (orgtbl-to-generic var  (list :sep (or sep "\t") :fmt echo-var)))
      ((listp var)
       (mapconcat echo-var var "\n"))
@@ -138,70 +135,69 @@ Emacs-lisp table, otherwise return the results as a string."
 If RESULT-TYPE equals 'output then return a list of the outputs
 of the statements in BODY, if RESULT-TYPE equals 'value then
 return the value of the last statement in BODY."
-  ((lambda (results)
-     (when results
-       (let ((result-params (cdr (assoc :result-params params))))
-	 (if (or (member "scalar" result-params)
-		 (member "verbatim" result-params)
-		 (member "output" result-params))
-	     results
-	   (let ((tmp-file (org-babel-temp-file "sh-")))
-	     (with-temp-file tmp-file (insert results))
-	     (org-babel-import-elisp-from-file tmp-file))))))
-   (cond
-    (stdin				; external shell script w/STDIN
-     (let ((script-file (org-babel-temp-file "sh-script-"))
-	   (stdin-file (org-babel-temp-file "sh-stdin-"))
-	   (shebang (cdr (assoc :shebang params)))
-	   (padline (not (string= "no" (cdr (assoc :padline params))))))
-       (with-temp-file script-file
-	 (when shebang (insert (concat shebang "\n")))
-	 (when padline (insert "\n"))
-	 (insert body))
-       (set-file-modes script-file #o755)
-       (with-temp-file stdin-file (insert stdin))
-       (with-temp-buffer
-	 (call-process-shell-command
-	  (if shebang
-	      script-file
-	    (format "%s %s" org-babel-sh-command script-file))
-	  stdin-file
-	  (current-buffer))
-	 (buffer-string))))
-    (session 				; session evaluation
-     (mapconcat
-      #'org-babel-sh-strip-weird-long-prompt
-      (mapcar
-       #'org-babel-trim
-       (butlast
-	(org-babel-comint-with-output
-	    (session org-babel-sh-eoe-output t body)
-	  (mapc
-	   (lambda (line)
-	     (insert line)
-	     (comint-send-input nil t)
-	     (while (save-excursion
-		      (goto-char comint-last-input-end)
-		      (not (re-search-forward
-			    comint-prompt-regexp nil t)))
-	       (accept-process-output (get-buffer-process (current-buffer)))))
-	   (append
-	    (split-string (org-babel-trim body) "\n")
-	    (list org-babel-sh-eoe-indicator))))
-	2)) "\n"))
-    ('otherwise				; external shell script
-     (if (and (cdr (assoc :shebang params))
-	      (> (length (cdr (assoc :shebang params))) 0))
-	 (let ((script-file (org-babel-temp-file "sh-script-"))
-	       (shebang (cdr (assoc :shebang params)))
-	       (padline (not (string= "no" (cdr (assoc :padline params))))))
-	   (with-temp-file script-file
-	     (when shebang (insert (concat shebang "\n")))
-	     (when padline (insert "\n"))
-	     (insert body))
-	   (set-file-modes script-file #o755)
-	   (org-babel-eval script-file ""))
-       (org-babel-eval org-babel-sh-command (org-babel-trim body)))))))
+  (let ((results
+         (cond
+          (stdin                        ; external shell script w/STDIN
+           (let ((script-file (org-babel-temp-file "sh-script-"))
+                 (stdin-file (org-babel-temp-file "sh-stdin-"))
+                 (shebang (cdr (assoc :shebang params)))
+                 (padline (not (string= "no" (cdr (assoc :padline params))))))
+             (with-temp-file script-file
+               (when shebang (insert (concat shebang "\n")))
+               (when padline (insert "\n"))
+               (insert body))
+             (set-file-modes script-file #o755)
+             (with-temp-file stdin-file (insert stdin))
+             (with-temp-buffer
+               (call-process-shell-command
+                (if shebang
+                    script-file
+                  (format "%s %s" org-babel-sh-command script-file))
+                stdin-file
+                (current-buffer))
+               (buffer-string))))
+          (session                      ; session evaluation
+           (mapconcat
+            #'org-babel-sh-strip-weird-long-prompt
+            (mapcar
+             #'org-babel-trim
+             (butlast
+              (org-babel-comint-with-output
+                  (session org-babel-sh-eoe-output t body)
+                (mapc
+                 (lambda (line)
+                   (insert line)
+                   (comint-send-input nil t)
+                   (while (save-excursion
+                            (goto-char comint-last-input-end)
+                            (not (re-search-forward
+                                  comint-prompt-regexp nil t)))
+                     (accept-process-output
+                      (get-buffer-process (current-buffer)))))
+                 (append
+                  (split-string (org-babel-trim body) "\n")
+                  (list org-babel-sh-eoe-indicator))))
+              2)) "\n"))
+          ('otherwise                   ; external shell script
+           (if (and (cdr (assoc :shebang params))
+                    (> (length (cdr (assoc :shebang params))) 0))
+               (let ((script-file (org-babel-temp-file "sh-script-"))
+                     (shebang (cdr (assoc :shebang params)))
+                     (padline (not (equal "no" (cdr (assoc :padline params))))))
+                 (with-temp-file script-file
+                   (when shebang (insert (concat shebang "\n")))
+                   (when padline (insert "\n"))
+                   (insert body))
+                 (set-file-modes script-file #o755)
+                 (org-babel-eval script-file ""))
+             (org-babel-eval org-babel-sh-command (org-babel-trim body)))))))
+    (when results
+      (let ((result-params (cdr (assoc :result-params params))))
+        (org-babel-result-cond result-params
+          results
+          (let ((tmp-file (org-babel-temp-file "sh-")))
+            (with-temp-file tmp-file (insert results))
+            (org-babel-import-elisp-from-file tmp-file)))))))
 
 (defun org-babel-sh-strip-weird-long-prompt (string)
   "Remove prompt cruft from a string of shell output."

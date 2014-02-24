@@ -1,6 +1,6 @@
 /* Basic character support.
 
-Copyright (C) 2001-2013 Free Software Foundation, Inc.
+Copyright (C) 2001-2014 Free Software Foundation, Inc.
 Copyright (C) 1995, 1997, 1998, 2001 Electrotechnical Laboratory, JAPAN.
   Licensed to the Free Software Foundation.
 Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -28,8 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef emacs
 #include <config.h>
 #endif
-
-#define CHARACTER_INLINE EXTERN_INLINE
 
 #include <stdio.h>
 
@@ -174,11 +172,14 @@ string_char (const unsigned char *p, const unsigned char **advanced, int *len)
 
   if (*p < 0x80 || ! (*p & 0x20) || ! (*p & 0x10))
     {
+      /* 1-, 2-, and 3-byte sequences can be handled by the macro.  */
       c = STRING_CHAR_ADVANCE (p);
     }
   else if (! (*p & 0x08))
     {
-      c = ((((p)[0] & 0xF) << 18)
+      /* A 4-byte sequence of this form:
+	 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx  */
+      c = ((((p)[0] & 0x7) << 18)
 	   | (((p)[1] & 0x3F) << 12)
 	   | (((p)[2] & 0x3F) << 6)
 	   | ((p)[3] & 0x3F));
@@ -186,7 +187,14 @@ string_char (const unsigned char *p, const unsigned char **advanced, int *len)
     }
   else
     {
-      c = ((((p)[1] & 0x3F) << 18)
+      /* A 5-byte sequence of this form:
+
+	 111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
+
+	 Note that the top 4 `x's are always 0, so shifting p[1] can
+	 never exceed the maximum valid character codepoint. */
+      c = (/* (((p)[0] & 0x3) << 24) ... always 0, so no need to shift. */
+	   (((p)[1] & 0x3F) << 18)
 	   | (((p)[2] & 0x3F) << 12)
 	   | (((p)[3] & 0x3F) << 6)
 	   | ((p)[4] & 0x3F));
@@ -1062,10 +1070,6 @@ A char-table for width (columns) of each character.  */);
 	       doc: /* Char table of script symbols.
 It has one extra slot whose value is a list of script symbols.  */);
 
-  /* Intern this now in case it isn't already done.
-     Setting this variable twice is harmless.
-     But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
   DEFSYM (Qchar_script_table, "char-script-table");
   Fput (Qchar_script_table, Qchar_table_extra_slots, make_number (1));
   Vchar_script_table = Fmake_char_table (Qchar_script_table, Qnil);

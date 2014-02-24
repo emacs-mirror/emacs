@@ -5,10 +5,11 @@
 @syncodeindex fn cp
 @syncodeindex vr cp
 @syncodeindex ky cp
+@documentencoding UTF-8
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2000--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2000--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -28,6 +29,14 @@ modify this GNU manual.''
 * Widget: (widget).             The "widget" package used by the Emacs
                                   Customization facility.
 @end direntry
+
+
+@titlepage
+@title The Emacs Widget Library
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
 
 @contents
 
@@ -431,7 +440,6 @@ Set up a buffer to support widgets.
 
 This should be called after creating all the widgets and before allowing
 the user to edit them.
-@refill
 @end defun
 
 If you want to insert text outside the widgets in the form, the
@@ -450,7 +458,7 @@ There is a standard widget keymap which you might find useful.
 @key{TAB} and @kbd{C-@key{TAB}} are bound to @code{widget-forward} and
 @code{widget-backward}, respectively.  @key{RET} and @kbd{Mouse-2}
 are bound to @code{widget-button-press} and
-@code{widget-button-click}.@refill
+@code{widget-button-click}.
 @end defvr
 
 @defvar widget-global-map
@@ -1718,7 +1726,7 @@ Keymap used in @code{widget-minor-mode}.
 @defun widget-prompt-value widget prompt [ value unbound ]
 Prompt for a value matching @var{widget}, using @var{prompt}.
 The current value is assumed to be @var{value}, unless @var{unbound} is
-non-@code{nil}.@refill
+non-@code{nil}.
 @end defun
 
 @defun widget-get-sibling widget

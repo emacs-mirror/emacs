@@ -1,6 +1,6 @@
 ;;; snake.el --- implementation of Snake for Emacs
 
-;; Copyright (C) 1997, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Created: 1997-09-10
@@ -353,20 +353,12 @@ Argument SNAKE-BUFFER is the name of the buffer."
 
 (put 'snake-mode 'mode-class 'special)
 
-(defun snake-mode ()
-  "A mode for playing Snake.
-
-Snake mode keybindings:
-   \\{snake-mode-map}
-"
-  (kill-all-local-variables)
+(define-derived-mode snake-mode special-mode "Snake"
+  "A mode for playing Snake."
 
   (add-hook 'kill-buffer-hook 'gamegrid-kill-timer nil t)
 
   (use-local-map snake-null-map)
-
-  (setq major-mode 'snake-mode)
-  (setq mode-name "Snake")
 
   (unless (featurep 'emacs)
     (setq mode-popup-menu
@@ -382,9 +374,7 @@ Snake mode keybindings:
   (setq gamegrid-use-glyphs snake-use-glyphs-flag)
   (setq gamegrid-use-color snake-use-color-flag)
 
-  (gamegrid-init (snake-display-options))
-
-  (run-mode-hooks 'snake-mode-hook))
+  (gamegrid-init (snake-display-options)))
 
 ;;;###autoload
 (defun snake ()

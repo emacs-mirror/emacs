@@ -1,6 +1,6 @@
 Emacs machines list
 
-Copyright (C) 1989-1990, 1992-1993, 1998, 2001-2013 Free Software
+Copyright (C) 1989-1990, 1992-1993, 1998, 2001-2014 Free Software
 Foundation, Inc.
 See the end of the file for license conditions.
 
@@ -99,6 +99,13 @@ the list at the end of this file.
 
     ./configure CC='/usr/sfw/bin/gcc -m64'  # GCC
     ./configure CC='cc -m64'                # Solaris Studio
+
+** Irix 6.5
+
+  It *may* be possible to build Emacs on Irix 6.5 with an old version
+  (3.1) of gcc.  Newer versions of gcc may not work.  None of the
+  current Emacs developers use Irix, though.  If you want to help
+  make Emacs on Irix work, see <http://debbugs.gnu.org/9684>.
 
 
 * Obsolete platforms

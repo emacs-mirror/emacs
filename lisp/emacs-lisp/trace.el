@@ -1,9 +1,9 @@
 ;;; trace.el --- tracing facility for Emacs Lisp functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 1998, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1998, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 15 Dec 1992
 ;; Keywords: tools, lisp
 
@@ -32,9 +32,9 @@
 
 ;; Introduction:
 ;; =============
-;; A simple trace package that utilizes advice.el. It generates trace
+;; A simple trace package that utilizes nadvice.el.  It generates trace
 ;; information in a Lisp-style fashion and inserts it into a trace output
-;; buffer. Tracing can be done in the background (or silently) so that
+;; buffer.  Tracing can be done in the background (or silently) so that
 ;; generation of trace output won't interfere with what you are currently
 ;; doing.
 
@@ -48,15 +48,14 @@
 ;;   + Compiled calls to subrs that have special byte-codes associated
 ;;     with them (e.g., car, cdr, ...)
 ;;   + Macros that were expanded during compilation
-;; - All the restrictions that apply to advice.el
+;; - All the restrictions that apply to nadvice.el
 
 ;; Usage:
 ;; ======
-;; - To trace a function say `M-x trace-function' which will ask you for the
-;;   name of the function/subr/macro to trace, as well as for the buffer
-;;   into which trace output should go.
+;; - To trace a function say `M-x trace-function', which will ask you for the
+;;   name of the function/subr/macro to trace.
 ;; - If you want to trace a function that switches buffers or does other
-;;   display oriented stuff use `M-x trace-function-background' which will
+;;   display oriented stuff use `M-x trace-function-background', which will
 ;;   generate the trace output silently in the background without popping
 ;;   up windows and doing other irritating stuff.
 ;; - To untrace a function say `M-x untrace-function'.
@@ -157,6 +156,17 @@
 (defvar inhibit-trace nil
   "If non-nil, all tracing is temporarily inhibited.")
 
+;;;###autoload
+(defun trace-values (&rest values)
+  "Helper function to get internal values.
+You can call this function to add internal values in the trace buffer."
+  (unless inhibit-trace
+    (with-current-buffer trace-buffer
+      (goto-char (point-max))
+      (insert
+       (trace-entry-message
+        'trace-values trace-level values "")))))
+
 (defun trace-entry-message (function level args context)
   "Generate a string that describes that FUNCTION has been entered.
 LEVEL is the trace level, ARGS is the list of arguments passed to FUNCTION,
@@ -189,6 +199,18 @@ some global variables)."
 
 (defvar trace--timer nil)
 
+(defun trace--display-buffer (buf)
+  (unless (or trace--timer
+	      (get-buffer-window buf 'visible))
+    (setq trace--timer
+	  ;; Postpone the display to some later time, in case we
+	  ;; can't actually do it now.
+	  (run-with-timer 0 nil
+			  (lambda ()
+			    (setq trace--timer nil)
+			    (display-buffer buf nil 0))))))
+
+
 (defun trace-make-advice (function buffer background context)
   "Build the piece of advice to be added to trace FUNCTION.
 FUNCTION is the name of the traced function.
@@ -199,19 +221,12 @@ be printed along with the arguments in the trace."
   (lambda (body &rest args)
     (let ((trace-level (1+ trace-level))
           (trace-buffer (get-buffer-create buffer))
+          (deactivate-mark nil)         ;Protect deactivate-mark.
           (ctx (funcall context)))
       (unless inhibit-trace
         (with-current-buffer trace-buffer
           (set (make-local-variable 'window-point-insertion-type) t)
-          (unless (or background trace--timer
-                      (get-buffer-window trace-buffer 'visible))
-            (setq trace--timer
-                  ;; Postpone the display to some later time, in case we
-                  ;; can't actually do it now.
-                  (run-with-timer 0 nil
-                                  (lambda ()
-                                    (setq trace--timer nil)
-                                    (display-buffer trace-buffer)))))
+          (unless background (trace--display-buffer trace-buffer))
           (goto-char (point-max))
           ;; Insert a separator from previous trace output:
           (if (= trace-level 1) (insert trace-separator))
@@ -224,7 +239,7 @@ be printed along with the arguments in the trace."
           (unless inhibit-trace
             (let ((ctx (funcall context)))
               (with-current-buffer trace-buffer
-                (unless background (display-buffer trace-buffer))
+                (unless background (trace--display-buffer trace-buffer))
                 (goto-char (point-max))
                 (insert
                  (trace-exit-message
@@ -240,14 +255,27 @@ be printed along with the arguments in the trace."
    function :around
    (trace-make-advice function (or buffer trace-buffer) background
                       (or context (lambda () "")))
-   `((name . ,trace-advice-name))))
+   `((name . ,trace-advice-name) (depth . -100))))
 
 (defun trace-is-traced (function)
   (advice-member-p trace-advice-name function))
 
 (defun trace--read-args (prompt)
+  "Read a function name, prompting with string PROMPT.
+If `current-prefix-arg' is non-nil, also read a buffer and a \"context\"
+\(Lisp expression).  Return (FUNCTION BUFFER FUNCTION-CONTEXT)."
   (cons
-   (intern (completing-read prompt obarray 'fboundp t))
+   (let ((default (function-called-at-point))
+         (beg (string-match ":[ \t]*\\'" prompt)))
+     (intern (completing-read (if default
+                                  (format
+                                   "%s (default %s)%s"
+                                   (substring prompt 0 beg)
+                                   default
+                                   (if beg (substring prompt beg) ": "))
+                                prompt)
+                              obarray 'fboundp t nil nil
+                              (if default (symbol-name default)))))
    (when current-prefix-arg
      (list
       (read-buffer "Output to buffer: " trace-buffer)
@@ -262,23 +290,30 @@ be printed along with the arguments in the trace."
 
 ;;;###autoload
 (defun trace-function-foreground (function &optional buffer context)
-  "Traces FUNCTION with trace output going to BUFFER.
-For every call of FUNCTION Lisp-style trace messages that display argument
-and return values will be inserted into BUFFER.  This function generates the
-trace advice for FUNCTION and activates it together with any other advice
-there might be!!  The trace BUFFER will popup whenever FUNCTION is called.
-Do not use this to trace functions that switch buffers or do any other
-display oriented stuff, use `trace-function-background' instead.
+  "Trace calls to function FUNCTION.
+With a prefix argument, also prompt for the trace buffer (default
+`trace-buffer'), and a Lisp expression CONTEXT.
 
-To untrace a function, use `untrace-function' or `untrace-all'."
+Tracing a function causes every call to that function to insert
+into BUFFER Lisp-style trace messages that display the function's
+arguments and return values.  It also evaluates CONTEXT, if that is
+non-nil, and inserts its value too.  For example, you can use this
+to track the current buffer, or position of point.
+
+This function creates BUFFER if it does not exist.  This buffer will
+popup whenever FUNCTION is called.  Do not use this function to trace
+functions that switch buffers, or do any other display-oriented
+stuff - use `trace-function-background' instead.
+
+To stop tracing a function, use `untrace-function' or `untrace-all'."
   (interactive (trace--read-args "Trace function: "))
   (trace-function-internal function buffer nil context))
 
 ;;;###autoload
 (defun trace-function-background (function &optional buffer context)
-  "Traces FUNCTION with trace output going quietly to BUFFER.
-Like `trace-function-foreground' but without popping up the trace BUFFER or
-changing the window configuration."
+  "Trace calls to function FUNCTION, quietly.
+This is like `trace-function-foreground', but without popping up
+the output buffer or changing the window configuration."
   (interactive (trace--read-args "Trace function in background: "))
   (trace-function-internal function buffer t context))
 

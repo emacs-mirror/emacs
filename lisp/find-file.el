@@ -1,10 +1,10 @@
 ;;; find-file.el --- find a file corresponding to this one given a pattern
 
 ;; Author: Henry Guillaume <henri@tibco.com, henry@c032.aone.net.au>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: c, matching, tools
 
-;; Copyright (C) 1994-1995, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2014 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -245,7 +245,8 @@ the preceding slash.  The star represents all the subdirectories except
     ("\\.hh\\'"  (".cc" ".C"))
 
     ("\\.c\\'"   (".h"))
-    ("\\.h\\'"   (".c" ".cc" ".C" ".CC" ".cxx" ".cpp"))
+    ("\\.m\\'"   (".h"))
+    ("\\.h\\'"   (".c" ".cc" ".C" ".CC" ".cxx" ".cpp" ".m"))
 
     ("\\.C\\'"   (".H"  ".hh" ".h"))
     ("\\.H\\'"   (".C"  ".CC"))
@@ -267,6 +268,7 @@ This list should contain the most used extensions before the others,
 since the search algorithm searches sequentially through each directory
 specified in `ff-search-directories'.  If a file is not found, a new one
 is created with the first matching extension (`.cc' yields `.hh')."
+  :version "24.4"                       ; add .m
   :type '(repeat (list regexp (choice (repeat string) function)))
   :group 'ff)
 
@@ -526,11 +528,9 @@ the `ff-ignore-include' variable."
         stub            ;; name of the file without extension
         alist           ;; working copy of the list of file extensions
         pathname        ;; the pathname of the file or the #include line
-        default-name    ;; file we should create if none found
         format          ;; what we have to match
         found           ;; name of the file or buffer found - nil if none
-        dirs            ;; local value of ff-search-directories
-        no-match)       ;; whether we know about this kind of file
+        dirs)           ;; local value of ff-search-directories
 
     (message "Working...")
 
@@ -543,7 +543,6 @@ the `ff-ignore-include' variable."
 
     (cond
      ((and (not ff-ignore-include) fname)
-      (setq default-name fname)
       (setq found (ff-get-file-name dirs fname nil)))
 
      ;; let's just get the corresponding file
@@ -556,7 +555,6 @@ the `ff-ignore-include' variable."
                        "/none.none"))
 
       (setq fname (file-name-nondirectory pathname)
-            no-match nil
             match (car alist))
 
       ;; find the table entry corresponding to this file
@@ -567,8 +565,7 @@ the `ff-ignore-include' variable."
         (setq pos (ff-string-match (car match) fname)))
 
       ;; no point going on if we haven't found anything
-      (if (not match)
-          (setq no-match t)
+      (when match
 
         ;; otherwise, suffixes contains what we need
         (setq suffixes (car (cdr match))
@@ -581,8 +578,7 @@ the `ff-ignore-include' variable."
             (progn
               (setq suffixes (funcall action (buffer-file-name))
                     match (cons (car match) (list suffixes))
-                    stub nil
-                    default-name (car suffixes)))
+                    stub nil))
 
           ;; otherwise build our filename stub
           (cond
@@ -597,11 +593,7 @@ the `ff-ignore-include' variable."
             (setq format (concat "\\(.+\\)" (car match)))
             (string-match format fname)
             (setq stub (substring fname (match-beginning 1) (match-end 1)))
-            ))
-
-          ;; if we find nothing, we should try to get a file like this one
-          (setq default-name
-                (concat stub (car (car (cdr match))))))
+            )))
 
         ;; do the real work - find the file
         (setq found
@@ -669,7 +661,7 @@ name of the first file found."
       (setq buf (buffer-name (car blist)))
       (while (and blist (not found))
 
-        (if (string-match (concat filename "<[0-9]+>") buf)
+        (if (string-match-p (concat filename "<[0-9]+>") buf)
             (setq found (buffer-file-name (car blist))))
 
         (setq blist (cdr blist))
@@ -795,20 +787,18 @@ See variable `ff-special-constructs'."
   "Get all the directory files under directory HERE.
 Exclude all files in the optional EXCLUDE list."
   (if (file-directory-p here)
-      (condition-case nil
-          (progn
-            (let ((files (directory-files here t))
-                  (dirlist (list))
-                  file)
-              (while files
-                (setq file (car files))
-                (if (and
-                     (file-directory-p file)
-                     (not (member (ff-basename file) exclude)))
-                    (setq dirlist (cons file dirlist)))
-                (setq files (cdr files)))
-              (setq dirlist (reverse dirlist))))
-        (error nil))
+      (ignore-errors
+	(let ((files (directory-files here t))
+	      (dirlist (list))
+	      file)
+	  (while files
+	    (setq file (car files))
+	    (if (and
+		 (file-directory-p file)
+		 (not (member (ff-basename file) exclude)))
+		(setq dirlist (cons file dirlist)))
+	    (setq files (cdr files)))
+	  (setq dirlist (reverse dirlist))))
     nil))
 
 (defun ff-switch-file (f1 f2 file &optional in-other-window new-file)
@@ -890,9 +880,7 @@ Given START and/or END, checks between these characters."
 Build up a new file list based possibly on part of the directory name
 and the name of the file passed in."
   (ff-string-match "\\(.*\\)/\\([^/]+\\)/\\([^.]+\\).\\([^/]+\\)$" arg)
-  (let ((path (if (match-beginning 1)
-                  (substring arg (match-beginning 1) (match-end 1)) nil))
-        (dire (if (match-beginning 2)
+  (let ((dire (if (match-beginning 2)
                   (substring arg (match-beginning 2) (match-end 2)) nil))
         (file (if (match-beginning 3)
                   (substring arg (match-beginning 3) (match-end 3)) nil))

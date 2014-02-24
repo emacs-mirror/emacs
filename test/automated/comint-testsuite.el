@@ -1,6 +1,6 @@
 ;;; comint-testsuite.el
 
-;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -27,7 +27,7 @@
 (require 'ert)
 
 (defvar comint-testsuite-password-strings
-  '("foo@example.net's password: " ;ssh
+  '("foo@example.net's password: " ; ssh
     "Password for foo@example.org: " ; kinit
     "Please enter the password for foo@example.org: "   ; kinit
     "Kerberos password for devnull/root <at> GNU.ORG: " ; ksu
@@ -37,7 +37,9 @@
     "Passphrase for key root@GNU.ORG: " ; plink
     "[sudo] password for user:" ; Ubuntu sudo
     "Password (again):"
-    "Enter password:")
+    "Enter password:"
+    "Mot de Passe:" ; localized
+    "Passwort:") ; localized
   "List of strings that should match `comint-password-prompt-regexp'.")
 
 (ert-deftest comint-test-password-regexp ()

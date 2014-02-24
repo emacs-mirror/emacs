@@ -1,6 +1,6 @@
 ;;; subword.el --- Handling capitalized subwords in a nomenclature
 
-;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2014 Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO
 
@@ -26,7 +26,8 @@
 
 ;; This package provides `subword' oriented commands and a minor mode
 ;; (`subword-mode') that substitutes the common word handling
-;; functions with them.
+;; functions with them.  It also provides the `superword-mode' minor
+;; mode that treats symbols as words, the opposite of `subword-mode'.
 
 ;; In spite of GNU Coding Standards, it is popular to name a symbol by
 ;; mixing uppercase and lowercase letters, e.g. "GtkWidget",
@@ -43,12 +44,13 @@
 
 ;; The subword oriented commands defined in this package recognize
 ;; subwords in a nomenclature to move between them and to edit them as
-;; words.
+;; words.  You also get a mode to treat symbols as words instead,
+;; called `superword-mode' (the opposite of `subword-mode').
 
 ;; In the minor mode, all common key bindings for word oriented
 ;; commands are overridden by the subword oriented commands:
 
-;; Key     Word oriented command      Subword oriented command
+;; Key     Word oriented command      Subword oriented command (also superword)
 ;; ============================================================
 ;; M-f     `forward-word'             `subword-forward'
 ;; M-b     `backward-word'            `subword-backward'
@@ -67,8 +69,13 @@
 ;; To make the mode turn on automatically, put the following code in
 ;; your .emacs:
 ;;
-;; (add-hook 'c-mode-common-hook
-;; 	  (lambda () (subword-mode 1)))
+;; (add-hook 'c-mode-common-hook 'subword-mode)
+;;
+
+;; To make the mode turn `superword-mode' on automatically for
+;; only some modes, put the following code in your .emacs:
+;;
+;; (add-hook 'c-mode-common-hook 'superword-mode)
 ;;
 
 ;; Acknowledgment:
@@ -87,7 +94,7 @@
   "Function to call for backward subword movement.")
 
 (defvar subword-forward-regexp
-  "\\W*\\(\\([[:upper:]]*\\W?\\)[[:lower:][:digit:]]*\\)"
+  "\\W*\\(\\([[:upper:]]*\\(\\W\\)?\\)[[:lower:][:digit:]]*\\)"
   "Regexp used by `subword-forward-internal'.")
 
 (defvar subword-backward-regexp
@@ -98,7 +105,8 @@
   (let ((map (make-sparse-keymap)))
     (dolist (cmd '(forward-word backward-word mark-word kill-word
 				backward-kill-word transpose-words
-                                capitalize-word upcase-word downcase-word))
+                                capitalize-word upcase-word downcase-word
+                                left-word right-word))
       (let ((othercmd (let ((name (symbol-name cmd)))
                         (string-match "\\([[:alpha:]-]+\\)-word[s]?" name)
                         (intern (concat "subword-" (match-string 1 name))))))
@@ -133,21 +141,21 @@ subwords in a nomenclature to move between subwords and to edit them
 as words.
 
 \\{subword-mode-map}"
-    nil
-    nil
-    subword-mode-map)
+    :lighter " ,"
+    (when subword-mode (superword-mode -1)))
 
 (define-obsolete-function-alias 'c-subword-mode 'subword-mode "23.2")
 
 ;;;###autoload
 (define-global-minor-mode global-subword-mode subword-mode
-  (lambda () (subword-mode 1)))
+  (lambda () (subword-mode 1))
+  :group 'convenience)
 
 (defun subword-forward (&optional arg)
   "Do the same as `forward-word' but on subwords.
 See the command `subword-mode' for a description of subwords.
 Optional argument ARG is the same as for `forward-word'."
-  (interactive "p")
+  (interactive "^p")
   (unless arg (setq arg 1))
   (cond
    ((< 0 arg)
@@ -165,8 +173,22 @@ Optional argument ARG is the same as for `forward-word'."
   "Do the same as `backward-word' but on subwords.
 See the command `subword-mode' for a description of subwords.
 Optional argument ARG is the same as for `backward-word'."
-  (interactive "p")
+  (interactive "^p")
   (subword-forward (- (or arg 1))))
+
+(defun subword-right (&optional arg)
+  "Do the same as `right-word' but on subwords."
+  (interactive "^p")
+  (if (eq (current-bidi-paragraph-direction) 'left-to-right)
+      (subword-forward arg)
+    (subword-backward arg)))
+
+(defun subword-left (&optional arg)
+  "Do the same as `left-word' but on subwords."
+  (interactive "^p")
+  (if (eq (current-bidi-paragraph-direction) 'left-to-right)
+      (subword-backward arg)
+    (subword-forward arg)))
 
 (defun subword-mark (arg)
   "Do the same as `mark-word' but on subwords.
@@ -235,60 +257,99 @@ Optional argument ARG is the same as for `upcase-word'."
 See the command `subword-mode' for a description of subwords.
 Optional argument ARG is the same as for `capitalize-word'."
   (interactive "p")
-  (let ((count (abs arg))
-	(start (point))
-	(advance (if (< arg 0) nil t)))
-    (dotimes (i count)
-      (if advance
-	  (progn (re-search-forward
-		  (concat "[[:alpha:]]")
-		  nil t)
-		 (goto-char (match-beginning 0)))
-	(subword-backward))
-      (let* ((p (point))
-	     (pp (1+ p))
-	     (np (subword-forward)))
-	(upcase-region p pp)
-	(downcase-region pp np)
-	(goto-char (if advance np p))))
-    (unless advance
-      (goto-char start))))
+  (condition-case nil
+      (let ((count (abs arg))
+            (start (point))
+            (advance (>= arg 0)))
 
+        (dotimes (i count)
+          (if advance
+              (progn
+                (re-search-forward "[[:alpha:]]")
+                (goto-char (match-beginning 0)))
+            (subword-backward))
+          (let* ((p (point))
+                 (pp (1+ p))
+                 (np (subword-forward)))
+            (upcase-region p pp)
+            (downcase-region pp np)
+            (goto-char (if advance np p))))
+        (unless advance
+          (goto-char start)))
+    (search-failed nil)))
+
+
+
+(defvar superword-mode-map subword-mode-map
+  "Keymap used in `superword-mode' minor mode.")
+
+;;;###autoload
+(define-minor-mode superword-mode
+  "Toggle superword movement and editing (Superword mode).
+With a prefix argument ARG, enable Superword mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Superword mode is a buffer-local minor mode.  Enabling it remaps
+word-based editing commands to superword-based commands that
+treat symbols as words, e.g. \"this_is_a_symbol\".
+
+The superword oriented commands activated in this minor mode
+recognize symbols as superwords to move between superwords and to
+edit them as words.
+
+\\{superword-mode-map}"
+    :lighter " ²"
+    (when superword-mode (subword-mode -1)))
+
+;;;###autoload
+(define-global-minor-mode global-superword-mode superword-mode
+  (lambda () (superword-mode 1))
+  :group 'convenience)
 
 
 ;;
 ;; Internal functions
 ;;
 (defun subword-forward-internal ()
-  (if (and
-       (save-excursion
-	 (let ((case-fold-search nil))
-	   (re-search-forward subword-forward-regexp nil t)))
-       (> (match-end 0) (point)))
-      (goto-char
-       (cond
-	((< 1 (- (match-end 2) (match-beginning 2)))
-	 (1- (match-end 2)))
-	(t
-	 (match-end 0))))
-    (forward-word 1)))
-
+  (if superword-mode
+      (forward-symbol 1)
+    (if (and
+         (save-excursion
+           (let ((case-fold-search nil))
+             (re-search-forward subword-forward-regexp nil t)))
+         (> (match-end 0) (point)))
+        (goto-char
+         (cond
+          ((and (< 1 (- (match-end 2) (match-beginning 2)))
+                ;; If we have an all-caps word with no following lower-case or
+                ;; non-word letter, don't leave the last char (bug#13758).
+                (not (and (null (match-beginning 3))
+                          (eq (match-end 2) (match-end 1)))))
+           (1- (match-end 2)))
+          (t
+           (match-end 0))))
+      (forward-word 1))))
 
 (defun subword-backward-internal ()
-  (if (save-excursion
-	(let ((case-fold-search nil))
-	  (re-search-backward subword-backward-regexp nil t)))
-      (goto-char
-       (cond
-	((and (match-end 3)
-	      (< 1 (- (match-end 3) (match-beginning 3)))
-	      (not (eq (point) (match-end 3))))
-	 (1- (match-end 3)))
-	(t
-	 (1+ (match-beginning 0)))))
-    (backward-word 1)))
+  (if superword-mode
+      (forward-symbol -1)
+    (if (save-excursion
+          (let ((case-fold-search nil))
+            (re-search-backward subword-backward-regexp nil t)))
+        (goto-char
+         (cond
+          ((and (match-end 3)
+                (< 1 (- (match-end 3) (match-beginning 3)))
+                (not (eq (point) (match-end 3))))
+           (1- (match-end 3)))
+          (t
+           (1+ (match-beginning 0)))))
+      (backward-word 1))))
 
 
+
 (provide 'subword)
+(provide 'superword)
 
 ;;; subword.el ends here

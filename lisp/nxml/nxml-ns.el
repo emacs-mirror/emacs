@@ -1,6 +1,6 @@
-;;; nxml-ns.el --- XML namespace processing
+;;; nxml-ns.el --- XML namespace processing  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -56,11 +56,9 @@ namespace bindings (no default namespace and only the xml prefix bound).")
   (equal nxml-ns-state state))
 
 (defmacro nxml-ns-save (&rest body)
+  (declare (indent 0) (debug t))
   `(let ((nxml-ns-state nxml-ns-initial-state))
      ,@body))
-
-(put 'nxml-ns-save 'lisp-indent-function 0)
-(def-edebug-spec nxml-ns-save t)
 
 (defun nxml-ns-init ()
   (setq nxml-ns-state nxml-ns-initial-state))
@@ -117,11 +115,12 @@ NS is a symbol or nil."
     (setq current (cdr current))
     (while (let ((binding (rassq ns current)))
 	     (when binding
-	       (when (eq (nxml-ns-get-prefix (car binding)) ns)
-		 (add-to-list 'prefixes
-			      (car binding)))
-	       (setq current
-		     (cdr (member binding current))))))
+               (let ((prefix (car binding)))
+                 (when (eq (nxml-ns-get-prefix prefix) ns)
+                   (unless (member prefix prefixes)
+                     (push prefix prefixes))))
+               (setq current
+                     (cdr (member binding current))))))
     prefixes))
 
 (defun nxml-ns-prefix-for (ns)

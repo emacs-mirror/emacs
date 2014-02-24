@@ -1,6 +1,6 @@
 ;;; url-misc.el --- Misc Uniform Resource Locator retrieval code
 
-;; Copyright (C) 1996-1999, 2002, 2004-2013 Free Software Foundation,
+;; Copyright (C) 1996-1999, 2002, 2004-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Keywords: comm, data, processes
@@ -89,19 +89,19 @@
     (save-excursion
       (if (not (string-match "\\([^,]*\\)?," desc))
 	  (error "Malformed data URL: %s" desc)
-	(setq mediatype (match-string 1 desc))
+	(setq mediatype (match-string 1 desc)
+	      data (url-unhex-string (substring desc (match-end 0))))
 	(if (and mediatype (string-match ";base64\\'" mediatype))
 	    (setq mediatype (substring mediatype 0 (match-beginning 0))
 		  encoding "base64"))
 	(if (or (null mediatype)
 		(eq ?\; (aref mediatype 0)))
-	  (setq mediatype (concat "text/plain" mediatype)))
-	(setq data (url-unhex-string (substring desc (match-end 0)))))
+	  (setq mediatype (concat "text/plain" mediatype))))
       (set-buffer (generate-new-buffer " *url-data*"))
       (mm-disable-multibyte)
       (insert (format "Content-Length: %d\n" (length data))
 	      "Content-Type: " mediatype "\n"
-	      "Content-Encoding: " encoding "\n"
+	      "Content-Transfer-Encoding: " encoding "\n"
 	      "\n")
       (if data (insert data))
       (current-buffer))))

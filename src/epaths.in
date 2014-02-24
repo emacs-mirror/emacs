@@ -1,6 +1,6 @@
 /* Hey Emacs, this is -*- C -*- code!  */
 /*
-Copyright (C) 1993, 1995, 1997, 1999, 2001-2013 Free Software
+Copyright (C) 1993, 1995, 1997, 1999, 2001-2014 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -23,17 +23,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    load-path, which is the search path for the Lisp function "load".
    Configure (using "make epaths-force") sets this to
    ${standardlisppath}, which typically has a value like:
-   <datadir>/emacs/VERSION/lisp:<datadir>/emacs/VERSION/leim
-   where datadir is eg /usr/local/share.
+   <datadir>/emacs/VERSION/lisp where datadir is eg /usr/local/share.
 */
 #define PATH_LOADSEARCH "/usr/local/share/emacs/lisp"
 
 
 /* Like PATH_LOADSEARCH, but contains the non-standard pieces.
-   These are the site-lisp directories, typically something like
+   These are the site-lisp directories.  Configure sets this to
+   ${locallisppath}, which typically defaults to something like:
    <datadir>/emacs/VERSION/site-lisp:<datadir>/emacs/site-lisp
-   Configure prepends any $locallisppath, as set by the
-   --enable-locallisppath argument.
+   but can be overridden by the --enable-locallisppath argument.
    This is combined with PATH_LOADSEARCH to make the default load-path.
    If the --no-site-lisp option is used, this piece is excluded.
 */

@@ -3,6 +3,34 @@
 	* mh-folder.el (mh-regenerate-headers): Fix scan: bad message list
 	`unseen' error (closes SF #471).
 
+2013-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mh-print.el (mh-ps-print-preprint): Don't use dynamic-var
+	`prefix-arg' as function argument.
+
+2013-06-18  Juri Linkov  <juri@jurta.org>
+
+	* mh-alias.el (mh-alias-local-users): Add non-nil arg REPLACE to
+	the call of `shell-command-on-region'.  (Bug#14637)
+
+2013-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* mh-speed.el (mh-speed-view):
+	Use dframe-with-attached-buffer rather than speedbar- alias.
+
+2013-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* mh-comp.el (mh-regexp-in-field-p): Fix previous change.
+
+2013-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* mh-e.el (mh-sortm-args, mh-default-folder-for-message-function):
+	Fix custom types.
+
+2013-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mh-comp.el (mh-regexp-in-field-p): Minor simplification.
+
 2013-03-03  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-version): Add +bzr to version.
@@ -13,27 +41,21 @@
 
 	* mh-e.el (Version, mh-version): Update for release 8.5.
 
-2013-01-23  Dmitry Antipov  <dmantipov@yandex.ru>
-
-	* mh-acros.el (mh-do-at-event-location): Use point-marker.
-	* mh-search.el (mh-index-create-imenu-index): Likewise.
-	* mh-xface.el (mh-x-image-url-display): Likewise.
-
-2012-12-10  Jeffrey C Honig  <jch@honig.net>
+2013-03-02  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-folder.el (mh-inc-folder): Revert SF #2321115, SF #250
 	which processed pending deletes and refiles.  Call to
 	mh-process-or-undo-commands to insure that pending changes are
 	properly tagged after including new mail (closes SF #271).
 
-2012-12-08  Jeffrey C Honig  <jch@honig.net>
-
 	* mh-comp.el: Insure that mail-header-separator is set before
 	invoking any mml functions (closes SF #270).
 
-2012-11-25  Bill Wohler  <wohler@newt.com>
+2013-01-23  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	* mh-e.el (mh-version):  Add +bzr to version.
+	* mh-acros.el (mh-do-at-event-location): Use point-marker.
+	* mh-search.el (mh-index-create-imenu-index): Likewise.
+	* mh-xface.el (mh-x-image-url-display): Likewise.
 
 2012-11-25  Bill Wohler  <wohler@newt.com>
 
@@ -95,7 +117,7 @@
 
 2012-11-25  Ted Phelps  <phelps@gnusto.com>
 
-	Postpone junk processing (closes SF #2945712). Patch submitted by
+	Postpone junk processing (closes SF #2945712).  Patch submitted by
 	Ted Phelps and refined by Bill Wohler.
 
 	* mh-e.el (mh-blacklist, mh-whitelist): New variables.
@@ -103,7 +125,7 @@
 	(mh-before-commands-processed-hook): Update documentation.
 	(mh-blacklist-msg-hook, mh-whitelist-msg-hook): New hooks.
 	(mh-folder-blacklisted, mh-folder-whitelisted): New faces.
-	* mh-folder.el (mh-folder-message-menu):  Add "Junk" to "Undo."
+	* mh-folder.el (mh-folder-message-menu): Add "Junk" to "Undo."
 	(mh-folder-font-lock-keywords): Add regexps for blacklisted and
 	whitelisted messages.
 	(mh-folder-mode): Add mh-blacklist and mh-whitelist variables.
@@ -141,8 +163,8 @@
 	X-MaxCode-Template:, X-ME-Bayesian:, X-Sendergroup:, X-SFDC-,
 	X-SMFBL:, X-SMHeaderMap:, X-VGI-OESCD:, X-VirtualServer:,
 	X-VirtualServerGroup:, X-XPT-XSL-Name:, X-Y-GMX-Trusted:,
-	X-XWALL-, X-ZixNet:. Changed X-Habeas-SWE- to X-Habeas-. Updated
-	the comment. (addresses SF #1916032).
+	X-XWALL-, X-ZixNet:. Changed X-Habeas-SWE- to X-Habeas-.  Updated
+	the comment.  (addresses SF #1916032).
 
 2012-11-25  Bill Wohler  <wohler@newt.com>
 
@@ -151,7 +173,7 @@
 	X-Bayes-Prob, X-Cam-, X-CanIt-Geo, X-Completed, X-Facebook,
 	X-Forwarded-, X-Generated-By, X-Headers-End, X-IEEE-UCE,
 	X-Jira-Fingerprint, X-Junkmail-, X-Launchpad-, X-MXL-Hash,
-	X-Notification-, X-Notifications, X-Oracle-Calendar. Replace
+	X-Notification-, X-Notifications, X-Oracle-Calendar.  Replace
 	X-DCC-Usenix-Metrics with X-DCC- (addresses SF #1916032).
 
 2012-11-25  Jeffrey C Honig  <jch@honig.net>
@@ -1210,7 +1232,7 @@
 	(mh-show-subject, mh-show-to, mh-show-xface)
 	(mh-speedbar-folder, mh-speedbar-folder-with-unseen-messages)
 	(mh-speedbar-selected-folder)
-	(mh-speedbar-selected-folder-with-unseen-messages): : Add
+	(mh-speedbar-selected-folder-with-unseen-messages): Add
 	:package-version keyword to these faces (closes SF #1452724).
 
 	* mh-tool-bar.el (mh-tool-bar-define): Add commented-out
@@ -3611,6 +3633,10 @@
 	* mh-customize.el: Call mh-image-load-path just before
 	mh-tool-bar-define so that the toolbar images can be found.
 
+2005-10-06  Bill Wohler  <wohler@newt.com>
+
+	* mh-loaddefs.el: Remove.  Now generated automatically.
+
 2005-10-04  Bill Wohler  <wohler@newt.com>
 
 	* ChangeLog: Move contents into ChangeLog.1 and trim.
@@ -3618,7 +3644,7 @@
 	* ChangeLog.1: New file.  Contains old ChangeLog.
 
 
-	Copyright (C) 2005-2013 Free Software Foundation, Inc.
+	Copyright (C) 2005-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

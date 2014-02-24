@@ -1,10 +1,10 @@
 ;;; lisp-mnt.el --- utility functions for Emacs Lisp maintainers
 
-;; Copyright (C) 1992, 1994, 1997, 2000-2013 Free Software Foundation,
+;; Copyright (C) 1992, 1994, 1997, 2000-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 14 Jul 1992
 ;; Keywords: docs
 ;; X-Bogus-Bureaucratic-Cruft: Gruad will get you if you don't watch out!
@@ -70,11 +70,8 @@
 ;; ;;	Dave Brennan <brennan@hal.com>
 ;; ;;	Eric Raymond <esr@snark.thyrsus.com>
 ;;
-;; This field may have some special values; notably "FSF", meaning
-;; "Free Software Foundation".
-;;
 ;;    * Maintainer line --- should be a single name/address as in the Author
-;; line, or an address only, or the string "FSF".  If there is no maintainer
+;; line, or an address only.  If there is no maintainer
 ;; line, the person(s) in the Author field are presumed to be it.
 ;;    The idea behind these two fields is to be able to write a Lisp function
 ;; that does "send mail to the author" without having to mine the name out by
@@ -88,10 +85,9 @@
 ;; at a different version of the file than the one they're accustomed to.  This
 ;; may be an RCS or SCCS header.
 ;;
-;;    * Adapted-By line --- this is for FSF's internal use.  The person named
-;; in this field was the one responsible for installing and adapting the
-;; package for the distribution.  (This file doesn't have one because the
-;; author *is* one of the maintainers.)
+;;    * Adapted-By line --- this was used historically when some files
+;; were added to Emacs.  The person named in this field installed and
+;; (possibly adapted) the package in the Emacs distribution.
 ;;
 ;;    * Keywords line --- used by the finder code for finding Emacs
 ;; Lisp code related to a topic.
@@ -461,8 +457,8 @@ each line."
   (let ((keywords (lm-keywords file)))
     (if keywords
 	(if (string-match-p "," keywords)
-	    (split-string keywords ",[ \t\n]*" t)
-	  (split-string keywords "[ \t\n]+" t)))))
+	    (split-string keywords ",[ \t\n]*" t "[ ]+")
+	  (split-string keywords "[ \t\n]+" t "[ ]+")))))
 
 (defvar finder-known-keywords)
 (defun lm-keywords-finder-p (&optional file)

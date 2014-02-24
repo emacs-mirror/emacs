@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Indentation
@@ -127,14 +127,26 @@ that column number.
 @kindex C-x TAB
 @findex indent-rigidly
 @cindex remove indentation
-Shift each line in the region by a fixed distance, to the right or
-left (@code{indent-rigidly}).  The distance to move is determined by
-the numeric argument (positive to move rightward, negative to move
-leftward).
+This command is used to change the indentation of all lines that begin
+in the region, moving the affected lines as a ``rigid'' unit.
 
-This command can be used to remove all indentation from the lines in
-the region, by invoking it with a large negative argument,
-e.g., @kbd{C-u -1000 C-x @key{TAB}}.
+If called with no argument, the command activates a transient mode for
+adjusting the indentation of the affected lines interactively.  While
+this transient mode is active, typing @key{LEFT} or @key{RIGHT}
+indents leftward and rightward, respectively, by one space.  You can
+also type @kbd{S-@key{LEFT}} or @kbd{S-@key{RIGHT}} to indent leftward
+or rightward to the next tab stop (@pxref{Tab Stops}).  Typing any
+other key disables the transient mode, and resumes normal editing.
+
+If called with a prefix argument @var{n}, this command indents the
+lines forward by @var{n} spaces (without enabling the transient mode).
+Negative values of @var{n} indent backward, so you can remove all
+indentation from the lines in the region using a large negative
+argument, like this:
+
+@smallexample
+C-u -999 C-x @key{TAB}
+@end smallexample
 @end table
 
 @node Tab Stops
@@ -145,10 +157,12 @@ e.g., @kbd{C-u -1000 C-x @key{TAB}}.
   Emacs defines certain column numbers to be @dfn{tab stops}.  These
 are used as stopping points by @key{TAB} when inserting whitespace in
 Text mode and related modes (@pxref{Indentation}), and by commands
-like @kbd{M-i} (@pxref{Indentation Commands}).  By default, tab stops
-are located every 8 columns.  These positions are stored in the
-variable @code{tab-stop-list}, whose value is a list of column numbers
-in increasing order.
+like @kbd{M-i} (@pxref{Indentation Commands}).  The variable
+@code{tab-stop-list} controls these positions.  The default value
+is @code{nil}, which means a tab stop every 8 columns.  The value
+can also be a list of column numbers (in increasing order) at which to
+place tab stops.  Emacs extends the list forever by repeating the
+difference between the last and next-to-last elements.
 
 @findex edit-tab-stops
 @kindex C-c C-c @r{(Edit Tab Stops)}
@@ -167,10 +181,14 @@ To install changes, type C-c C-c
 @noindent
 The first line contains a colon at each tab stop.  The numbers on the
 next two lines are present just to indicate where the colons are.
+If the value of @code{tab-stop-list} is @code{nil}, as it is by default,
+no colons are displayed initially.
 
   You can edit this buffer to specify different tab stops by placing
 colons on the desired columns.  The buffer uses Overwrite mode
-(@pxref{Minor Modes}).  When you are done, type @kbd{C-c C-c} to make
+(@pxref{Minor Modes}).  Remember that Emacs will extend the list of
+tab stops forever by repeating the difference between the last two
+explicit stops that you place.  When you are done, type @kbd{C-c C-c} to make
 the new tab stops take effect.  Normally, the new tab stop settings
 apply to all buffers.  However, if you have made the
 @code{tab-stop-list} variable local to the buffer where you called
@@ -236,5 +254,6 @@ indentation; otherwise, it inserts a tab character.
 @cindex mode, Electric Indent
 @findex electric-indent-mode
   Electric Indent mode is a global minor mode that automatically
-indents the line after every @key{RET} you type.  To toggle this minor
-mode, type @kbd{M-x electric-indent-mode}.
+indents the line after every @key{RET} you type.  This mode is enabled
+by default.  To toggle this minor mode, type @kbd{M-x
+electric-indent-mode}.

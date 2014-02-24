@@ -1,6 +1,6 @@
 /* provide consistent interface to getgroups for systems that don't allow N==0
 
-   Copyright (C) 1996, 1999, 2003, 2006-2013 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1999, 2003, 2006-2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -41,6 +41,21 @@ getgroups (int n _GL_UNUSED, GETGROUPS_T *groups _GL_UNUSED)
 # undef getgroups
 # ifndef GETGROUPS_ZERO_BUG
 #  define GETGROUPS_ZERO_BUG 0
+# endif
+
+/* On OS X 10.6 and later, use the usual getgroups, not the one
+   supplied when _DARWIN_C_SOURCE is defined.  _DARWIN_C_SOURCE is
+   normally defined, since it means "conform to POSIX, but add
+   non-POSIX extensions even if that violates the POSIX namespace
+   rules", which is what we normally want.  But with getgroups there
+   is an inconsistency, and _DARWIN_C_SOURCE means "change getgroups()
+   so that it no longer works right".  The BUGS section of compat(5)
+   says that the behavior is dubious if you compile different sections
+   of a program with different _DARWIN_C_SOURCE settings, so fix only
+   the offending symbol.  */
+# ifdef __APPLE__
+int posix_getgroups (int, gid_t []) __asm ("_getgroups");
+#  define getgroups posix_getgroups
 # endif
 
 /* On at least Ultrix 4.3 and NextStep 3.2, getgroups (0, NULL) always
@@ -86,7 +101,7 @@ rpl_getgroups (int n, gid_t *group)
         }
       saved_errno = errno;
       free (gbuf);
-      errno == saved_errno;
+      errno = saved_errno;
       return result;
     }
 

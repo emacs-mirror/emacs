@@ -1,6 +1,6 @@
 ;;; generic.el --- defining simple major modes with comment and font-lock
 ;;
-;; Copyright (C) 1997, 1999, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2014 Free Software Foundation, Inc.
 ;;
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Fri Sep 27 1996
@@ -44,11 +44,8 @@
 ;;   end at the end of the line.)  Emacs does not support comment
 ;;   strings of more than two characters in length.
 ;;
-;; * List of keywords to font-lock.  Each keyword should be a string.
-;;   If you have additional keywords which should be highlighted in a
-;;   face different from `font-lock-keyword-face', you can use the
-;;   convenience function `generic-make-keywords-list' (which see),
-;;   and add the result to the following list:
+;; * List of keywords to font-lock in `font-lock-keyword-face'.
+;;   Each keyword should be a string.
 ;;
 ;; * Additional expressions to font-lock.  This should be a list of
 ;;   expressions, each of which should be of the same form as those in
@@ -92,6 +89,8 @@
 ;;   Stefan Monnier (monnier+gnu/emacs@flint.cs.yale.edu)
 
 ;;; Code:
+
+(eval-when-compile (require 'pcase))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Internal Variables
@@ -224,18 +223,11 @@ Some generic modes are defined in `generic-x.el'."
   (funcall (intern mode)))
 
 ;;; Comment Functionality
-(defun generic-mode-set-comments (comment-list)
-  "Set up comment functionality for generic mode."
-  (let ((st (make-syntax-table))
-	(chars nil)
-	(comstyles))
-    (make-local-variable 'comment-start)
-    (make-local-variable 'comment-start-skip)
-    (make-local-variable 'comment-end)
 
-    ;; Go through all the comments
+(defun generic--normalize-comments (comment-list)
+  (let ((normalized '()))
     (dolist (start comment-list)
-      (let (end (comstyle ""))
+      (let (end)
 	;; Normalize
 	(when (consp start)
 	  (setq end (cdr start))
@@ -244,58 +236,79 @@ Some generic modes are defined in `generic-x.el'."
 	(cond
 	 ((characterp end)   (setq end (char-to-string end)))
 	 ((zerop (length end)) (setq end "\n")))
+        (push (cons start end) normalized)))
+    (nreverse normalized)))
 
-	;; Setup the vars for `comment-region'
-	(if comment-start
-	    ;; We have already setup a comment-style, so use style b
-	    (progn
-	      (setq comstyle "b")
-	      (setq comment-start-skip
-		    (concat comment-start-skip "\\|" (regexp-quote start) "+\\s-*")))
-	  ;; First comment-style
-	  (setq comment-start start)
-	  (setq comment-end (if (string-equal end "\n") "" end))
-	  (setq comment-start-skip (concat (regexp-quote start) "+\\s-*")))
+(defun generic-set-comment-syntax (st comment-list)
+  "Set up comment functionality for generic mode."
+  (let ((chars nil)
+	(comstyles)
+        (comstyle "")
+        (comment-start nil))
 
-       ;; Reuse comstyles if necessary
-       (setq comstyle
+    ;; Go through all the comments.
+    (pcase-dolist (`(,start . ,end) comment-list)
+      (let ((comstyle
+             ;; Reuse comstyles if necessary.
              (or (cdr (assoc start comstyles))
                  (cdr (assoc end comstyles))
-                 comstyle))
+                 ;; Otherwise, use a style not yet in use.
+                 (if (not (rassoc "" comstyles)) "")
+                 (if (not (rassoc "b" comstyles)) "b")
+                 "c")))
        (push (cons start comstyle) comstyles)
        (push (cons end comstyle) comstyles)
 
-	;; Setup the syntax table
+	;; Setup the syntax table.
 	(if (= (length start) 1)
-	    (modify-syntax-entry (string-to-char start)
+	    (modify-syntax-entry (aref start 0)
 				 (concat "< " comstyle) st)
-	  (let ((c0 (elt start 0)) (c1 (elt start 1)))
-	    ;; Store the relevant info but don't update yet
+	  (let ((c0 (aref start 0)) (c1 (aref start 1)))
+	    ;; Store the relevant info but don't update yet.
 	    (push (cons c0 (concat (cdr (assoc c0 chars)) "1")) chars)
 	    (push (cons c1 (concat (cdr (assoc c1 chars))
 				   (concat "2" comstyle))) chars)))
 	(if (= (length end) 1)
-	    (modify-syntax-entry (string-to-char end)
+	    (modify-syntax-entry (aref end 0)
 				 (concat ">" comstyle) st)
-	  (let ((c0 (elt end 0)) (c1 (elt end 1)))
-	    ;; Store the relevant info but don't update yet
+	  (let ((c0 (aref end 0)) (c1 (aref end 1)))
+	    ;; Store the relevant info but don't update yet.
 	    (push (cons c0 (concat (cdr (assoc c0 chars))
 				   (concat "3" comstyle))) chars)
 	    (push (cons c1 (concat (cdr (assoc c1 chars)) "4")) chars)))))
 
     ;; Process the chars that were part of a 2-char comment marker
+    (with-syntax-table st               ;For `char-syntax'.
     (dolist (cs (nreverse chars))
       (modify-syntax-entry (car cs)
 			   (concat (char-to-string (char-syntax (car cs)))
 				   " " (cdr cs))
-			   st))
+                             st)))))
+
+(defun generic-set-comment-vars (comment-list)
+  (when comment-list
+    (setq-local comment-start (caar comment-list))
+    (setq-local comment-end
+                (let ((end (cdar comment-list)))
+                  (if (string-equal end "\n") "" end)))
+    (setq-local comment-start-skip
+                (concat (regexp-opt (mapcar #'car comment-list))
+                        "+[ \t]*"))
+    (setq-local comment-end-skip
+                (concat "[ \t]*" (regexp-opt (mapcar #'cdr comment-list))))))
+
+(defun generic-mode-set-comments (comment-list)
+  "Set up comment functionality for generic mode."
+  (let ((st (make-syntax-table))
+        (comment-list (generic--normalize-comments comment-list)))
+    (generic-set-comment-syntax st comment-list)
+    (generic-set-comment-vars comment-list)
     (set-syntax-table st)))
 
 (defun generic-bracket-support ()
   "Imenu support for [KEYWORD] constructs found in INF, INI and Samba files."
-  (setq imenu-generic-expression
-	'((nil "^\\[\\(.*\\)\\]" 1))
-        imenu-case-fold-search t))
+  (setq-local imenu-generic-expression '((nil "^\\[\\(.*\\)\\]" 1)))
+  (setq-local imenu-case-fold-search t))
 
 ;;;###autoload
 (defun generic-make-keywords-list (keyword-list face &optional prefix suffix)
@@ -306,6 +319,7 @@ expression that matches these keywords and concatenates it with
 PREFIX and SUFFIX.  Then it returns a construct based on this
 regular expression that can be used as an element of
 `font-lock-keywords'."
+  (declare (obsolete regexp-opt "24.4"))
   (unless (listp keyword-list)
     (error "Keywords argument must be a list of strings"))
   (list (concat prefix "\\_<"

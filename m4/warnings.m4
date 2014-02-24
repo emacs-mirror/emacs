@@ -1,5 +1,5 @@
-# warnings.m4 serial 7
-dnl Copyright (C) 2008-2013 Free Software Foundation, Inc.
+# warnings.m4 serial 11
+dnl Copyright (C) 2008-2014 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -25,19 +25,36 @@ m4_ifdef([AS_VAR_APPEND],
 AC_DEFUN([gl_COMPILER_OPTION_IF],
 [AS_VAR_PUSHDEF([gl_Warn], [gl_cv_warn_[]_AC_LANG_ABBREV[]_$1])dnl
 AS_VAR_PUSHDEF([gl_Flags], [_AC_LANG_PREFIX[]FLAGS])dnl
+AS_LITERAL_IF([$1],
+  [m4_pushdef([gl_Positive], m4_bpatsubst([$1], [^-Wno-], [-W]))],
+  [gl_positive="$1"
+case $gl_positive in
+  -Wno-*) gl_positive=-W`expr "X$gl_positive" : 'X-Wno-\(.*\)'` ;;
+esac
+m4_pushdef([gl_Positive], [$gl_positive])])dnl
 AC_CACHE_CHECK([whether _AC_LANG compiler handles $1], m4_defn([gl_Warn]), [
   gl_save_compiler_FLAGS="$gl_Flags"
-  gl_AS_VAR_APPEND(m4_defn([gl_Flags]), [" $1"])
-  AC_COMPILE_IFELSE([m4_default([$4], [AC_LANG_PROGRAM([])])],
-                    [AS_VAR_SET(gl_Warn, [yes])],
-                    [AS_VAR_SET(gl_Warn, [no])])
+  gl_AS_VAR_APPEND(m4_defn([gl_Flags]),
+    [" $gl_unknown_warnings_are_errors ]m4_defn([gl_Positive])["])
+  AC_LINK_IFELSE([m4_default([$4], [AC_LANG_PROGRAM([])])],
+                 [AS_VAR_SET(gl_Warn, [yes])],
+                 [AS_VAR_SET(gl_Warn, [no])])
   gl_Flags="$gl_save_compiler_FLAGS"
 ])
 AS_VAR_IF(gl_Warn, [yes], [$2], [$3])
+m4_popdef([gl_Positive])dnl
 AS_VAR_POPDEF([gl_Flags])dnl
 AS_VAR_POPDEF([gl_Warn])dnl
 ])
 
+# gl_UNKNOWN_WARNINGS_ARE_ERRORS
+# ------------------------------
+# Clang doesn't complain about unknown warning options unless one also
+# specifies -Wunknown-warning-option -Werror.  Detect this.
+AC_DEFUN([gl_UNKNOWN_WARNINGS_ARE_ERRORS],
+[gl_COMPILER_OPTION_IF([-Werror -Wunknown-warning-option],
+   [gl_unknown_warnings_are_errors='-Wunknown-warning-option -Werror'],
+   [gl_unknown_warnings_are_errors=])])
 
 # gl_WARN_ADD(OPTION, [VARIABLE = WARN_CFLAGS],
 #             [PROGRAM = AC_LANG_PROGRAM()])
@@ -47,7 +64,8 @@ AS_VAR_POPDEF([gl_Warn])dnl
 #
 # If VARIABLE is a variable name, AC_SUBST it.
 AC_DEFUN([gl_WARN_ADD],
-[gl_COMPILER_OPTION_IF([$1],
+[AC_REQUIRE([gl_UNKNOWN_WARNINGS_ARE_ERRORS])
+gl_COMPILER_OPTION_IF([$1],
   [gl_AS_VAR_APPEND(m4_if([$2], [], [[WARN_CFLAGS]], [[$2]]), [" $1"])],
   [],
   [$3])

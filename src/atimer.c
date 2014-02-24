@@ -1,5 +1,5 @@
 /* Asynchronous timers.
-   Copyright (C) 2000-2013 Free Software Foundation, Inc.
+   Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -94,17 +94,16 @@ static struct atimer *append_atimer_lists (struct atimer *,
    to cancel_atimer; don't free it yourself.  */
 
 struct atimer *
-start_atimer (enum atimer_type type, EMACS_TIME timestamp, atimer_callback fn,
-	      void *client_data)
+start_atimer (enum atimer_type type, struct timespec timestamp,
+	      atimer_callback fn, void *client_data)
 {
   struct atimer *t;
 
   /* Round TIME up to the next full second if we don't have
      itimers.  */
 #ifndef HAVE_SETITIMER
-  if (EMACS_NSECS (timestamp) != 0
-      && EMACS_SECS (timestamp) < TYPE_MAXIMUM (time_t))
-    timestamp = make_emacs_time (EMACS_SECS (timestamp) + 1, 0);
+  if (timestamp.tv_nsec != 0 && timestamp.tv_sec < TYPE_MAXIMUM (time_t))
+    timestamp = make_timespec (timestamp.tv_sec + 1, 0);
 #endif /* not HAVE_SETITIMER */
 
   /* Get an atimer structure from the free-list, or allocate
@@ -133,11 +132,11 @@ start_atimer (enum atimer_type type, EMACS_TIME timestamp, atimer_callback fn,
       break;
 
     case ATIMER_RELATIVE:
-      t->expiration = add_emacs_time (current_emacs_time (), timestamp);
+      t->expiration = timespec_add (current_timespec (), timestamp);
       break;
 
     case ATIMER_CONTINUOUS:
-      t->expiration = add_emacs_time (current_emacs_time (), timestamp);
+      t->expiration = timespec_add (current_timespec (), timestamp);
       t->interval = timestamp;
       break;
     }
@@ -250,7 +249,7 @@ stop_other_atimers (struct atimer *t)
 /* Run all timers again, if some have been stopped with a call to
    stop_other_atimers.  */
 
-static void
+void
 run_all_atimers (void)
 {
   if (stopped_atimers)
@@ -274,16 +273,6 @@ run_all_atimers (void)
 }
 
 
-/* A version of run_all_atimers suitable for a record_unwind_protect.  */
-
-Lisp_Object
-unwind_stop_other_atimers (Lisp_Object dummy)
-{
-  run_all_atimers ();
-  return Qnil;
-}
-
-
 /* Arrange for a SIGALRM to arrive when the next timer is ripe.  */
 
 static void
@@ -294,7 +283,7 @@ set_alarm (void)
 #ifdef HAVE_SETITIMER
       struct itimerval it;
 #endif
-      EMACS_TIME now, interval;
+      struct timespec now, interval;
 
 #ifdef HAVE_ITIMERSPEC
       if (alarm_timer_ok)
@@ -309,10 +298,10 @@ set_alarm (void)
 
       /* Determine interval till the next timer is ripe.
 	 Don't set the interval to 0; this disables the timer.  */
-      now = current_emacs_time ();
-      interval = (EMACS_TIME_LE (atimers->expiration, now)
-		  ? make_emacs_time (0, 1000 * 1000)
-		  : sub_emacs_time (atimers->expiration, now));
+      now = current_timespec ();
+      interval = (timespec_cmp (atimers->expiration, now) <= 0
+		  ? make_timespec (0, 1000 * 1000)
+		  : timespec_sub (atimers->expiration, now));
 
 #ifdef HAVE_SETITIMER
 
@@ -320,7 +309,7 @@ set_alarm (void)
       it.it_value = make_timeval (interval);
       setitimer (ITIMER_REAL, &it, 0);
 #else /* not HAVE_SETITIMER */
-      alarm (max (EMACS_SECS (interval), 1));
+      alarm (max (interval.tv_sec, 1));
 #endif /* not HAVE_SETITIMER */
     }
 }
@@ -336,7 +325,7 @@ schedule_atimer (struct atimer *t)
   struct atimer *a = atimers, *prev = NULL;
 
   /* Look for the first atimer that is ripe after T.  */
-  while (a && EMACS_TIME_GT (t->expiration, a->expiration))
+  while (a && timespec_cmp (a->expiration, t->expiration) < 0)
     prev = a, a = a->next;
 
   /* Insert T in front of the atimer found, if any.  */
@@ -351,9 +340,9 @@ schedule_atimer (struct atimer *t)
 static void
 run_timers (void)
 {
-  EMACS_TIME now = current_emacs_time ();
+  struct timespec now = current_timespec ();
 
-  while (atimers && EMACS_TIME_LE (atimers->expiration, now))
+  while (atimers && timespec_cmp (atimers->expiration, now) <= 0)
     {
       struct atimer *t = atimers;
       atimers = atimers->next;
@@ -361,7 +350,7 @@ run_timers (void)
 
       if (t->type == ATIMER_CONTINUOUS)
 	{
-	  t->expiration = add_emacs_time (now, t->interval);
+	  t->expiration = timespec_add (now, t->interval);
 	  schedule_atimer (t);
 	}
       else

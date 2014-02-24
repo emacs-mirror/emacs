@@ -1,9 +1,9 @@
 ;;; linum.el --- display line numbers in the left margin -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Markus Triska <markus.triska@gmx.at>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
 ;; Version: 0.9x
 
@@ -152,7 +152,7 @@ Linum mode is a buffer-local minor mode."
     (run-hooks 'linum-before-numbering-hook)
     ;; Create an overlay (or reuse an existing one) for each
     ;; line visible in this window, if necessary.
-    (while (and (not (eobp)) (<= (point) limit))
+    (while (and (not (eobp)) (< (point) limit))
       (let* ((str (if fmt
                       (propertize (format fmt line) 'face 'linum)
                     (funcall linum-format line)))

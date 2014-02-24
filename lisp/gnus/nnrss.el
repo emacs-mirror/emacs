@@ -1,6 +1,6 @@
 ;;; nnrss.el --- interfacing with RSS
 
-;; Copyright (C) 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: RSS
@@ -933,30 +933,30 @@ whether they are `offsite' or `onsite'."
      rss-offsite-in rdf-offsite-in xml-offsite-in)))
 
 (defun nnrss-discover-feed (url)
-  "Given a page, find an RSS feed using Mark Pilgrim's
-`ultra-liberal rss locator'."
-
+  "Given a page, find an RSS feed.
+Use Mark Pilgrim's `ultra-liberal rss locator'."
   (let ((parsed-page (nnrss-fetch url)))
-
-;;    1. if this url is the rss, use it.
+    ;;    1. if this url is the rss, use it.
     (if (nnrss-rss-p parsed-page)
 	(let ((rss-ns (nnrss-get-namespace-prefix parsed-page "http://purl.org/rss/1.0/")))
 	  (nnrss-rss-title-description rss-ns parsed-page url))
 
-;;    2. look for the <link rel="alternate"
-;;    type="application/rss+xml" and use that if it is there.
+      ;;    2. look for the <link rel="alternate"
+      ;;    type="application/rss+xml" and use that if it is there.
       (let ((links (nnrss-get-rsslinks parsed-page)))
 	(if links
 	    (let* ((xml (nnrss-fetch
 			 (cdr (assoc 'href (cadar links)))))
-		   (rss-ns (nnrss-get-namespace-prefix xml "http://purl.org/rss/1.0/")))
-	      (nnrss-rss-title-description rss-ns xml (cdr (assoc 'href (cadar links)))))
+		   (rss-ns (nnrss-get-namespace-prefix
+			    xml "http://purl.org/rss/1.0/")))
+	      (nnrss-rss-title-description
+	       rss-ns xml (cdr (assoc 'href (cadar links)))))
 
-;;    3. look for links on the site in the following order:
-;;       - onsite links ending in .rss, .rdf, or .xml
-;;       - onsite links containing any of the above
-;;       - offsite links ending in .rss, .rdf, or .xml
-;;       - offsite links containing any of the above
+	  ;;    3. look for links on the site in the following order:
+	  ;;       - onsite links ending in .rss, .rdf, or .xml
+	  ;;       - onsite links containing any of the above
+	  ;;       - offsite links ending in .rss, .rdf, or .xml
+	  ;;       - offsite links containing any of the above
 	  (let* ((base-uri (progn (string-match ".*://[^/]+/?" url)
 				  (match-string 0 url)))
 		 (hrefs (nnrss-order-hrefs
@@ -969,9 +969,9 @@ whether they are `offsite' or `onsite'."
 		      (setq rss-link (nnrss-rss-title-description
 				      rss-ns href-data (car hrefs))))
 		  (setq hrefs (cdr hrefs)))))
-	    (if rss-link rss-link
-
-;;    4. check syndic8
+	    (if rss-link
+		rss-link
+	      ;;    4. check syndic8
 	      (nnrss-find-rss-via-syndic8 url))))))))
 
 (defun nnrss-find-rss-via-syndic8 (url)

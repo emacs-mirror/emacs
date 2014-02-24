@@ -1,9 +1,9 @@
 ;;; picture.el --- "Picture mode" -- editing using quarter-plane screen model
 
-;; Copyright (C) 1985, 1994, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience wp
 
 ;; This file is part of GNU Emacs.
@@ -494,8 +494,12 @@ prefix argument, the rectangle is actually killed, shifting remaining text."
 (defun picture-clear-rectangle-to-register (start end register &optional killp)
   "Clear rectangle delineated by point and mark into REGISTER.
 The rectangle is saved in REGISTER and replaced with whitespace.  With
-prefix argument, the rectangle is actually killed, shifting remaining text."
-  (interactive "r\ncRectangle to register: \nP")
+prefix argument, the rectangle is actually killed, shifting remaining text.
+
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive (list (region-beginning) (region-end)
+		     (register-read-with-preview "Rectangle to register: ")
+		     current-prefix-arg))
   (set-register register (picture-snarf-rectangle start end killp)))
 
 (defun picture-snarf-rectangle (start end &optional killp)
@@ -534,8 +538,11 @@ regardless of where you click."
 The rectangle is positioned with upper left corner at point, overwriting
 existing text.  With prefix argument, the rectangle is
 inserted instead, shifting existing text.  Leaves mark at one corner
-of rectangle and point at the other (diagonally opposed) corner."
-  (interactive "cRectangle from register: \nP")
+of rectangle and point at the other (diagonally opposed) corner.
+
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive (list (register-read-with-preview "Rectangle from register: ")
+		     current-prefix-arg))
   (let ((rectangle (get-register register)))
     (if (not (consp rectangle))
 	(error "Register %c does not contain a rectangle" register)

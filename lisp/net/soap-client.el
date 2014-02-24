@@ -1,6 +1,6 @@
 ;;;; soap-client.el -- Access SOAP web services from Emacs
 
-;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2014 Free Software Foundation, Inc.
 
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Created: December, 2009
@@ -1352,10 +1352,7 @@ This is because it is easier to work with list results in LISP."
 
 ;;;; Soap Envelope parsing
 
-(put 'soap-error
-     'error-conditions
-     '(error soap-error))
-(put 'soap-error 'error-message "SOAP error")
+(define-error 'soap-error "SOAP error")
 
 (defun soap-parse-envelope (node operation wsdl)
   "Parse the SOAP envelope in NODE and return the response.

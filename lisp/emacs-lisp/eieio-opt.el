@@ -1,6 +1,6 @@
 ;;; eieio-opt.el -- eieio optional functions (debug, printing, speedbar)
 
-;; Copyright (C) 1996, 1998-2003, 2005, 2008-2013 Free Software
+;; Copyright (C) 1996, 1998-2003, 2005, 2008-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -74,108 +74,81 @@ Argument CH-PREFIX is another character prefix to display."
 
 ;;; CLASS COMPLETION / DOCUMENTATION
 
-;;;###autoload(defalias 'describe-class 'eieio-describe-class)
-
 ;;;###autoload
-(defun eieio-describe-class (class &optional headerfcn)
-  "Describe a CLASS defined by a string or symbol.
-If CLASS is actually an object, then also display current values of that object.
-Optional HEADERFCN should be called to insert a few bits of info first."
-  (interactive (list (eieio-read-class "Class: ")))
-  (with-output-to-temp-buffer (help-buffer) ;"*Help*"
-    (help-setup-xref (list #'eieio-describe-class class headerfcn)
-		     (called-interactively-p 'interactive))
+(defun eieio-help-class (class)
+  "Print help description for CLASS.
+If CLASS is actually an object, then also display current values of that object."
+  ;; Header line
+  (prin1 class)
+  (insert " is a"
+	  (if (class-option class :abstract)
+	      "n abstract"
+	    "")
+	  " class")
+  (let ((location (get class 'class-location)))
+    (when location
+      (insert " in `")
+      (help-insert-xref-button
+       (file-name-nondirectory location)
+       'eieio-class-def class location)
+      (insert "'")))
+  (insert ".\n")
+  ;; Parents
+  (let ((pl (eieio-class-parents class))
+	cur)
+    (when pl
+      (insert " Inherits from ")
+      (while (setq cur (pop pl))
+	(insert "`")
+	(help-insert-xref-button (symbol-name cur)
+				 'help-function cur)
+	(insert (if pl "', " "'")))
+      (insert ".\n")))
+  ;; Children
+  (let ((ch (eieio-class-children class))
+	cur)
+    (when ch
+      (insert " Children ")
+      (while (setq cur (pop ch))
+	(insert "`")
+	(help-insert-xref-button (symbol-name cur)
+				 'help-function cur)
+	(insert (if ch "', " "'")))
+      (insert ".\n")))
+  ;; System documentation
+  (let ((doc (documentation-property class 'variable-documentation)))
+    (when doc
+      (insert "\n" doc "\n\n")))
+  ;; Describe all the slots in this class.
+  (eieio-help-class-slots class)
+  ;; Describe all the methods specific to this class.
+  (let ((methods (eieio-all-generic-functions class))
+	(type [":STATIC" ":BEFORE" ":PRIMARY" ":AFTER"])
+	counter doc)
+    (when methods
+      (insert (propertize "Specialized Methods:\n\n" 'face 'bold))
+      (while methods
+	(setq doc (eieio-method-documentation (car methods) class))
+	(insert "`")
+	(help-insert-xref-button (symbol-name (car methods))
+				 'help-function (car methods))
+	(insert "'")
+	(if (not doc)
+	    (insert "  Undocumented")
+	  (setq counter 0)
+	  (dolist (cur doc)
+	    (when cur
+	      (insert " " (aref type counter) " "
+		      (prin1-to-string (car cur) (current-buffer))
+		      "\n"
+		      (cdr cur)))
+	    (setq counter (1+ counter))))
+	(insert "\n\n")
+	(setq methods (cdr methods))))))
 
-    (when headerfcn (funcall headerfcn))
-    (prin1 class)
-    (princ " is a")
-    (if (class-option class :abstract)
-	(princ "n abstract"))
-    (princ " class")
-    ;; Print file location
-    (when (get class 'class-location)
-      (princ " in `")
-      (princ (file-name-nondirectory (get class 'class-location)))
-      (princ "'"))
-    (terpri)
-    ;; Inheritance tree information
-    (let ((pl (eieio-class-parents class)))
-      (when pl
-	(princ " Inherits from ")
-	(while pl
-	  (princ "`") (prin1 (car pl)) (princ "'")
-	  (setq pl (cdr pl))
-	  (if pl (princ ", ")))
-	(terpri)))
-    (let ((ch (eieio-class-children class)))
-      (when ch
-	(princ " Children ")
-	(while ch
-	  (princ "`") (prin1 (car ch)) (princ "'")
-	  (setq ch (cdr ch))
-	  (if ch (princ ", ")))
-	(terpri)))
-    (terpri)
-    ;; System documentation
-    (let ((doc (documentation-property class 'variable-documentation)))
-      (when doc
-	(princ "Documentation:")
-	(terpri)
-	(princ doc)
-	(terpri)
-	(terpri)))
-    ;; Describe all the slots in this class
-    (eieio-describe-class-slots class)
-    ;; Describe all the methods specific to this class.
-    (let ((methods (eieio-all-generic-functions class))
-	  (doc nil))
-      (if (not methods) nil
-	(princ "Specialized Methods:")
-	(terpri)
-	(terpri)
-	(while methods
-	  (setq doc (eieio-method-documentation (car methods) class))
-	  (princ "`")
-	  (prin1 (car methods))
-	  (princ "'")
-	  (if (not doc)
-	      (princ "  Undocumented")
-	    (if (car doc)
-		(progn
-		  (princ "  :STATIC ")
-		  (prin1 (car (car doc)))
-		  (terpri)
-		  (princ (cdr (car doc)))))
-	    (setq doc (cdr doc))
-	    (if (car doc)
-		(progn
-		  (princ "  :BEFORE ")
-		  (prin1 (car (car doc)))
-		  (terpri)
-		  (princ (cdr (car doc)))))
-	    (setq doc (cdr doc))
-	    (if (car doc)
-		(progn
-		  (princ "  :PRIMARY ")
-		  (prin1 (car (car doc)))
-		  (terpri)
-		  (princ (cdr (car doc)))))
-	    (setq doc (cdr doc))
-	    (if (car doc)
-		(progn
-		  (princ "  :AFTER ")
-		  (prin1 (car (car doc)))
-		  (terpri)
-		  (princ (cdr (car doc)))))
-	    (terpri)
-	    (terpri))
-	  (setq methods (cdr methods))))))
-  (with-current-buffer (help-buffer)
-    (buffer-string)))
-
-(defun eieio-describe-class-slots (class)
-  "Describe the slots in CLASS.
-Outputs to the standard output."
+(defun eieio-help-class-slots (class)
+  "Print help description for the slots in CLASS.
+Outputs to the current buffer."
   (let* ((cv (class-v class))
 	 (docs   (eieio--class-public-doc cv))
 	 (names  (eieio--class-public-a cv))
@@ -185,28 +158,27 @@ Outputs to the standard output."
 	 (i      0)
 	 (prot   (eieio--class-protection cv))
 	 )
-    (princ "Instance Allocated Slots:")
-    (terpri)
-    (terpri)
+    (insert (propertize "Instance Allocated Slots:\n\n"
+			'face 'bold))
     (while names
-      (if (car prot) (princ "Private "))
-      (princ "Slot: ")
-      (prin1 (car names))
-      (when (not (eq (aref types i) t))
-	(princ "    type = ")
-	(prin1 (aref types i)))
-      (unless (eq (car deflt) eieio-unbound)
-	(princ "    default = ")
-	(prin1 (car deflt)))
-      (when (car publp)
-	(princ "    printer = ")
-	(prin1 (car publp)))
-      (when (car docs)
-	(terpri)
-	(princ "  ")
-	(princ (car docs))
-	(terpri))
-      (terpri)
+      (insert
+       (concat
+	(when (car prot)
+	  (propertize "Private " 'face 'bold))
+	(propertize "Slot: " 'face 'bold)
+	(prin1-to-string (car names))
+	(unless (eq (aref types i) t)
+	  (concat "    type = "
+		  (prin1-to-string (aref types i))))
+	(unless (eq (car deflt) eieio-unbound)
+	  (concat "    default = "
+		  (prin1-to-string (car deflt))))
+	(when (car publp)
+	  (concat "    printer = "
+		  (prin1-to-string (car publp))))
+	(when (car docs)
+	  (concat "\n  " (car docs) "\n"))
+	"\n"))
       (setq names (cdr names)
 	    docs (cdr docs)
 	    deflt (cdr deflt)
@@ -219,60 +191,29 @@ Outputs to the standard output."
 	  i     0
 	  prot  (eieio--class-class-allocation-protection cv))
     (when names
-	(terpri)
-	(princ "Class Allocated Slots:"))
-	(terpri)
-	(terpri)
+      (insert (propertize "\nClass Allocated Slots:\n\n" 'face 'bold)))
     (while names
-      (when (car prot)
-	(princ "Private "))
-      (princ "Slot: ")
-      (prin1 (car names))
-      (unless (eq (aref types i) t)
-	(princ "    type = ")
-	(prin1 (aref types i)))
-      (condition-case nil
-	  (let ((value (eieio-oref class (car names))))
-	    (princ "   value = ")
-	    (prin1 value))
+      (insert
+       (concat
+	(when (car prot)
+	  "Private ")
+	"Slot: "
+	(prin1-to-string (car names))
+	(unless (eq (aref types i) t)
+	  (concat "    type = "
+		  (prin1-to-string (aref types i))))
+	(condition-case nil
+	    (let ((value (eieio-oref class (car names))))
+	      (concat "   value = "
+		      (prin1-to-string value)))
 	  (error nil))
-      (when (car docs)
-	(terpri)
-	(princ "  ")
-	(princ (car docs))
-	(terpri))
-      (terpri)
+	(when (car docs)
+	  (concat "\n\n " (car docs) "\n"))
+	"\n"))
       (setq names (cdr names)
 	    docs (cdr docs)
 	    prot (cdr prot)
 	    i (1+ i)))))
-
-;;;###autoload
-(defun eieio-describe-constructor (fcn)
-  "Describe the constructor function FCN.
-Uses `eieio-describe-class' to describe the class being constructed."
-  (interactive
-   ;; Use eieio-read-class since all constructors have the same name as
-   ;; the class they create.
-   (list (eieio-read-class "Class: ")))
-  (eieio-describe-class
-   fcn (lambda ()
-	 ;; Describe the constructor part.
-	 (prin1 fcn)
-	 (princ " is an object constructor function")
-	 ;; Print file location
-	 (when (get fcn 'class-location)
-	   (princ " in `")
-	   (princ (file-name-nondirectory (get fcn 'class-location)))
-	   (princ "'"))
-	 (terpri)
-	 (princ "Creates an object of class ")
-	 (prin1 fcn)
-	 (princ ".")
-	 (terpri)
-	 (terpri)
-	 ))
-  )
 
 (defun eieio-build-class-list (class)
   "Return a list of all classes that inherit from CLASS."
@@ -326,91 +267,112 @@ are not abstract."
 
 ;;; METHOD COMPLETION / DOC
 
-(defalias 'describe-method 'eieio-describe-generic)
-;;;###autoload(defalias 'describe-generic 'eieio-describe-generic)
-(defalias 'eieio-describe-method 'eieio-describe-generic)
+(define-button-type 'eieio-method-def
+  :supertype 'help-xref
+  'help-function (lambda (class method file)
+		   (eieio-help-find-method-definition class method file))
+  'help-echo (purecopy "mouse-2, RET: find method's definition"))
+
+(define-button-type 'eieio-class-def
+  :supertype 'help-xref
+  'help-function (lambda (class file)
+		   (eieio-help-find-class-definition class file))
+  'help-echo (purecopy "mouse-2, RET: find class definition"))
 
 ;;;###autoload
-(defun eieio-describe-generic (generic)
-  "Describe the generic function GENERIC.
-Also extracts information about all methods specific to this generic."
-  (interactive (list (eieio-read-generic "Generic Method: ")))
-  (eieio--check-type generic-p generic)
-  (with-output-to-temp-buffer (help-buffer) ; "*Help*"
-    (help-setup-xref (list #'eieio-describe-generic generic)
-		     (called-interactively-p 'interactive))
+(defun eieio-help-constructor (ctr)
+  "Describe CTR if it is a class constructor."
+  (when (class-p ctr)
+    (erase-buffer)
+    (let ((location (get ctr 'class-location))
+	  (def (symbol-function ctr)))
+      (goto-char (point-min))
+      (prin1 ctr)
+      (insert (format " is an %s object constructor function"
+		      (if (autoloadp def)
+			  "autoloaded"
+			"")))
+      (when (and (autoloadp def)
+		 (null location))
+	(setq location
+	      (find-lisp-object-file-name ctr def)))
+      (when location
+	(insert " in `")
+	(help-insert-xref-button
+	 (file-name-nondirectory location)
+	 'eieio-class-def ctr location)
+	(insert "'"))
+      (insert ".\nCreates an object of class " (symbol-name ctr) ".")
+      (goto-char (point-max))
+      (if (autoloadp def)
+	  (insert "\n\n[Class description not available until class definition is loaded.]\n")
+	(save-excursion
+	  (insert (propertize "\n\nClass description:\n" 'face 'bold))
+	  (eieio-help-class ctr))
+	))))
 
-    (prin1 generic)
-    (princ " is a generic function")
-    (when (generic-primary-only-p generic)
-      (princ " with only ")
-      (when (generic-primary-only-one-p generic)
-	(princ "one "))
-      (princ "primary method")
-      (when (not (generic-primary-only-one-p generic))
-	(princ "s"))
-      )
-    (princ ".")
-    (terpri)
-    (terpri)
-    (let ((d (documentation generic)))
-      (if (not d)
-	  (princ "The generic is not documented.\n")
-	(princ "Documentation:")
-	(terpri)
-	(princ d)
-	(terpri)
-	(terpri)))
-    (princ "Implementations:")
-    (terpri)
-    (terpri)
-    (let ((i 4)
-	  (prefix [ ":STATIC" ":BEFORE" ":PRIMARY" ":AFTER" ] ))
-      ;; Loop over fanciful generics
-      (while (< i 7)
-	(let ((gm (aref (get generic 'eieio-method-tree) i)))
-	  (when gm
-	    (princ "Generic ")
-	    (princ (aref prefix (- i 3)))
-	    (terpri)
-	    (princ (or (nth 2 gm) "Undocumented"))
-	    (terpri)
-	    (terpri)))
-	(setq i (1+ i)))
-      (setq i 0)
-      ;; Loop over defined class-specific methods
-      (while (< i 4)
-	(let ((gm (reverse (aref (get generic 'eieio-method-tree) i)))
-	      location)
-	  (while gm
-	    (princ "`")
-	    (prin1 (car (car gm)))
-	    (princ "'")
-	    ;; prefix type
-	    (princ " ")
-	    (princ (aref prefix i))
-	    (princ " ")
-	    ;; argument list
-	    (let* ((func (cdr (car gm)))
-		   (arglst (eieio-lambda-arglist func)))
-	      (prin1 arglst))
-	    (terpri)
-	    ;; 3 because of cdr
-	    (princ (or (documentation (cdr (car gm)))
-		       "Undocumented"))
-	    ;; Print file location if available
-	    (when (and (setq location (get generic 'method-locations))
-		       (setq location (assoc (caar gm) location)))
-	      (setq location (cadr location))
-	      (princ "\n\nDefined in `")
-	      (princ (file-name-nondirectory location))
-	      (princ "'\n"))
-	    (setq gm (cdr gm))
-	    (terpri)
-	    (terpri)))
-	(setq i (1+ i)))))
-  (with-current-buffer (help-buffer)
-    (buffer-string)))
+
+;;;###autoload
+(defun eieio-help-generic (generic)
+  "Describe GENERIC if it is a generic function."
+  (when (and (symbolp generic) (generic-p generic))
+    (save-excursion
+      (goto-char (point-min))
+      (when (re-search-forward " in `.+'.$" nil t)
+	(replace-match ".")))
+    (save-excursion
+      (insert "\n\nThis is a generic function"
+	      (cond
+	       ((and (generic-primary-only-p generic)
+		     (generic-primary-only-one-p generic))
+		" with only one primary method")
+	       ((generic-primary-only-p generic)
+		" with only primary methods")
+	       (t ""))
+	      ".\n\n")
+      (insert (propertize "Implementations:\n\n" 'face 'bold))
+      (let ((i 4)
+	    (prefix [ ":STATIC" ":BEFORE" ":PRIMARY" ":AFTER" ] ))
+	;; Loop over fanciful generics
+	(while (< i 7)
+	  (let ((gm (aref (get generic 'eieio-method-tree) i)))
+	    (when gm
+	      (insert "Generic "
+		      (aref prefix (- i 3))
+		      "\n"
+		      (or (nth 2 gm) "Undocumented")
+		      "\n\n")))
+	  (setq i (1+ i)))
+	(setq i 0)
+	;; Loop over defined class-specific methods
+	(while (< i 4)
+	  (let* ((gm (reverse (aref (get generic 'eieio-method-tree) i)))
+		 cname location)
+	    (while gm
+	      (setq cname (caar gm))
+	      (insert "`")
+	      (help-insert-xref-button (symbol-name cname)
+				       'help-variable cname)
+	      (insert "' " (aref prefix i) " ")
+	      ;; argument list
+	      (let* ((func (cdr (car gm)))
+		     (arglst (eieio-lambda-arglist func)))
+		(prin1 arglst (current-buffer)))
+	      (insert "\n"
+		      (or (documentation (cdr (car gm)))
+			  "Undocumented"))
+	      ;; Print file location if available
+	      (when (and (setq location (get generic 'method-locations))
+			 (setq location (assoc cname location)))
+		(setq location (cadr location))
+		(insert "\n\nDefined in `")
+		(help-insert-xref-button
+		 (file-name-nondirectory location)
+		 'eieio-method-def cname generic location)
+		(insert "'\n"))
+	      (setq gm (cdr gm))
+	      (insert "\n")))
+	  (setq i (1+ i)))))))
 
 (defun eieio-lambda-arglist (func)
   "Return the argument list of FUNC, a function body."
@@ -584,21 +546,13 @@ Optional argument HISTORYVAR is the variable to use as history."
 
 ;;; HELP AUGMENTATION
 ;;
-(define-button-type 'eieio-method-def
-  :supertype 'help-xref
-  'help-function (lambda (class method file)
-		   (eieio-help-find-method-definition class method file))
-  'help-echo (purecopy "mouse-2, RET: find method's definition"))
-
-(define-button-type 'eieio-class-def
-  :supertype 'help-xref
-  'help-function (lambda (class file)
-		   (eieio-help-find-class-definition class file))
-  'help-echo (purecopy "mouse-2, RET: find class definition"))
-
 (defun eieio-help-find-method-definition (class method file)
   (let ((filename (find-library-name file))
 	location buf)
+    (when (symbolp class)
+      (setq class (symbol-name class)))
+    (when (symbolp method)
+      (setq method (symbol-name method)))
     (when (null filename)
       (error "Cannot find library %s" file))
     (setq buf (find-file-noselect filename))
@@ -622,6 +576,8 @@ Optional argument HISTORYVAR is the variable to use as history."
       (beginning-of-line))))
 
 (defun eieio-help-find-class-definition (class file)
+  (when (symbolp class)
+    (setq class (symbol-name class)))
   (let ((filename (find-library-name file))
 	location buf)
     (when (null filename)
@@ -641,71 +597,6 @@ Optional argument HISTORYVAR is the variable to use as history."
       (goto-char location)
       (recenter)
       (beginning-of-line))))
-
-
-(defun eieio-help-mode-augmentation-maybee (&rest unused)
-  "For buffers thrown into help mode, augment for EIEIO.
-Arguments UNUSED are not used."
-  ;; Scan created buttons so far if we are in help mode.
-  (when (eq major-mode 'help-mode)
-    (save-excursion
-      (goto-char (point-min))
-      (let ((pos t) (inhibit-read-only t))
-	(while pos
-	  (if (get-text-property (point) 'help-xref) ; move off reference
-	      (goto-char
-	       (or (next-single-property-change (point) 'help-xref)
-		   (point))))
-	  (setq pos (next-single-property-change (point) 'help-xref))
-	  (when pos
-	    (goto-char pos)
-	    (let* ((help-data (get-text-property (point) 'help-xref))
-		   ;(method (car help-data))
-		   (args (cdr help-data)))
-	      (when (symbolp (car args))
-		(cond ((class-p (car args))
-		       (setcar help-data 'eieio-describe-class))
-		      ((generic-p (car args))
-		       (setcar help-data 'eieio-describe-generic))
-		      (t nil))
-		))))
-	;; start back at the beginning, and highlight some sections
-	(goto-char (point-min))
-	(while (re-search-forward "^\\(Documentation\\|Implementations\\):$" nil t)
-	    (put-text-property (match-beginning 0) (match-end 0) 'face 'bold))
-	(goto-char (point-min))
-	(if (re-search-forward "^Specialized Methods:$" nil t)
-	    (put-text-property (match-beginning 0) (match-end 0) 'face 'bold))
-	(goto-char (point-min))
-	(while (re-search-forward "^\\(Instance\\|Class\\) Allocated Slots:$" nil t)
-	    (put-text-property (match-beginning 0) (match-end 0) 'face 'bold))
-	(goto-char (point-min))
-	(while (re-search-forward ":\\(STATIC\\|BEFORE\\|AFTER\\|PRIMARY\\)" nil t)
-	    (put-text-property (match-beginning 0) (match-end 0) 'face 'bold))
-	(goto-char (point-min))
-	(while (re-search-forward "^\\(Private \\)?Slot:" nil t)
-	    (put-text-property (match-beginning 0) (match-end 0) 'face 'bold))
-	(goto-char (point-min))
-	(cond
-	 ((looking-at "\\(.+\\) is a generic function")
-	  (let ((mname (match-string 1))
-		cname)
-	    (while (re-search-forward "^`\\(.+\\)'[^\0]+?Defined in `\\(.+\\)'" nil t)
-	      (setq cname (match-string-no-properties 1))
-	      (help-xref-button 2 'eieio-method-def cname
-				mname
-				(cadr (assoc (intern cname)
-					     (get (intern mname)
-						  'method-locations)))))))
-	 ((looking-at "\\(.+\\) is an object constructor function in `\\(.+\\)'")
-	  (let ((cname (match-string-no-properties 1)))
-	    (help-xref-button 2 'eieio-class-def cname
-			      (get (intern cname) 'class-location))))
-	 ((looking-at "\\(.+\\) is a\\(n abstract\\)? class in `\\(.+\\)'")
-	  (let ((cname (match-string-no-properties 1)))
-	    (help-xref-button 3 'eieio-class-def cname
-			      (get (intern cname) 'class-location)))))
-	))))
 
 ;;; SPEEDBAR SUPPORT
 ;;
@@ -749,7 +640,7 @@ DIR-OR-OBJECT is the object to expand, or nil, and DEPTH is the
 current expansion depth."
   (when (eq (point-min) (point-max))
     ;; This function is only called once, to start the whole deal.
-    ;; Ceate, and expand the default object.
+    ;; Create and expand the default object.
     (eieio-class-button eieio-default-superclass 0)
     (forward-line -1)
     (speedbar-expand-line)))
@@ -795,10 +686,14 @@ Argument INDENT is the depth of indentation."
 (defun eieio-describe-class-sb (text token indent)
   "Describe the class TEXT in TOKEN.
 INDENT is the current indentation level."
-  (speedbar-with-attached-buffer
-   (eieio-describe-class token))
-  (speedbar-maybee-jump-to-attached-frame))
+  (dframe-with-attached-buffer
+   (describe-function token))
+  (dframe-maybee-jump-to-attached-frame))
 
 (provide 'eieio-opt)
+
+;; Local variables:
+;; generated-autoload-file: "eieio.el"
+;; End:
 
 ;;; eieio-opt.el ends here

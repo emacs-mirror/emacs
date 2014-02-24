@@ -1,6 +1,6 @@
 ;;; cua-gmrk.el --- CUA unified global mark support
 
-;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2014 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience cua mark
@@ -25,10 +25,8 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cua-base)
-  (require 'cua-rect)
-  )
+(require 'cua-base)
+(require 'cua-rect)
 
 ;;; Global Marker
 
@@ -364,7 +362,6 @@ With prefix argument, don't jump to global mark when canceling it."
   (define-key cua--global-mark-keymap [remap backward-delete-char]	'cua-delete-backward-char-at-global-mark)
   (define-key cua--global-mark-keymap [remap backward-delete-char-untabify] 'cua-delete-backward-char-at-global-mark)
   (define-key cua--global-mark-keymap [remap self-insert-command]	'cua-insert-char-at-global-mark)
-  (define-key cua--global-mark-keymap [remap self-insert-iso]		'cua-insert-char-at-global-mark)
 
   ;; Catch self-inserting characters which are "stolen" by other modes
   (define-key cua--global-mark-keymap [t]

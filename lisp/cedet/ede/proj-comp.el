@@ -1,6 +1,6 @@
 ;;; ede/proj-comp.el --- EDE Generic Project compiler/rule driver
 
-;; Copyright (C) 1999-2001, 2004-2005, 2007, 2009-2013 Free Software
+;; Copyright (C) 1999-2001, 2004-2005, 2007, 2009-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -218,7 +218,7 @@ This will prevent rules from creating duplicate variables or rules."
 	    (def-edebug-spec ede-pmake-insert-variable-shared (form def-body))
 	    ))
 
-;;; Querys
+;;; Queries
 (defun ede-proj-find-compiler (compilers sourcetype)
   "Return a compiler from the list COMPILERS that will compile SOURCETYPE."
   (while (and compilers

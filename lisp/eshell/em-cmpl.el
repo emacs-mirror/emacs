@@ -1,6 +1,6 @@
-;;; em-cmpl.el --- completion using the TAB key
+;;; em-cmpl.el --- completion using the TAB key  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -68,11 +68,14 @@
 ;; with sufficient pointers to locate the relevant help text.
 
 ;;; Code:
+(require 'pcomplete)
+
+(require 'esh-mode)
+(require 'esh-util)
 
 (eval-when-compile
   (require 'cl-lib)
   (require 'eshell))
-(require 'esh-util)
 
 ;;;###autoload
 (progn
@@ -240,10 +243,14 @@ to writing a completion function."
 
 ;;; Functions:
 
+(defun eshell-complete-lisp-symbol ()
+  "Try to complete the text around point as a Lisp symbol."
+  (interactive)
+  (let ((completion-at-point-functions '(lisp-completion-at-point)))
+    (completion-at-point)))
+
 (defun eshell-cmpl-initialize ()
   "Initialize the completions module."
-  (unless (fboundp 'pcomplete)
-    (load "pcmpl-auto" t t))
   (set (make-local-variable 'pcomplete-command-completion-function)
        eshell-command-completion-function)
   (set (make-local-variable 'pcomplete-command-name-function)
@@ -278,17 +285,17 @@ to writing a completion function."
        eshell-cmpl-restore-window-delay)
   (set (make-local-variable 'pcomplete-use-paring)
        eshell-cmpl-use-paring)
-  ;; `pcomplete-arg-quote-list' should only be set after all the
+  ;; `comint-file-name-quote-list' should only be set after all the
   ;; load-hooks for any other extension modules have been run, which
   ;; is true at the time `eshell-mode-hook' is run
   (add-hook 'eshell-mode-hook
 	    (function
 	     (lambda ()
-	       (set (make-local-variable 'pcomplete-arg-quote-list)
+	       (set (make-local-variable 'comint-file-name-quote-list)
 		    eshell-special-chars-outside-quoting))) nil t)
   (add-hook 'pcomplete-quote-arg-hook 'eshell-quote-backslash nil t)
-  (define-key eshell-mode-map [(meta tab)] 'lisp-complete-symbol)
-  (define-key eshell-mode-map [(meta control ?i)] 'lisp-complete-symbol)
+  (define-key eshell-mode-map [(meta tab)] 'eshell-complete-lisp-symbol)
+  (define-key eshell-mode-map [(meta control ?i)] 'eshell-complete-lisp-symbol)
   (define-key eshell-command-map [(meta ?h)] 'eshell-completion-help)
   (define-key eshell-command-map [tab] 'pcomplete-expand-and-complete)
   (define-key eshell-command-map [(control ?i)]
@@ -346,7 +353,7 @@ to writing a completion function."
 	       (setq begin (1+ (cadr delim))
 		     args (eshell-parse-arguments begin end)))
 	      ((eq (car delim) ?\()
-	       (lisp-complete-symbol)
+	       (eshell-complete-lisp-symbol)
 	       (throw 'pcompleted t))
 	      (t
 	       (insert-and-inherit "\t")
@@ -363,7 +370,7 @@ to writing a completion function."
     (cl-assert (= (length args) (length posns)))
     (let ((a args)
 	  (i 0)
-	  l final)
+	  l)
       (while a
 	(if (and (consp (car a))
 		 (eq (caar a) 'eshell-operator))

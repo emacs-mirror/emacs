@@ -1,6 +1,6 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 
-;; Copyright (C) 1994-1995, 1997-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997-2014 Free Software Foundation, Inc.
 
 ;; Author: Rolf Ebert      <ebert@inf.enst.fr>
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
@@ -130,6 +130,8 @@
 (defvar ispell-check-comments)
 (defvar skeleton-further-elements)
 
+(define-error 'ada-mode-errors nil)
+
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
@@ -147,6 +149,8 @@ This is a good place to add Ada environment specific bindings.")
 (defgroup ada nil
   "Major mode for editing and compiling Ada source in Emacs."
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
+  :link '(custom-manual "(ada-mode) Top")
+  :link '(emacs-commentary-link :tag "Commentary" "ada-mode.el")
   :group 'languages)
 
 (defcustom ada-auto-case t
@@ -457,15 +461,8 @@ The extensions should include a `.' if needed.")
 (defvar ada-mode-extra-prefix "\C-c\C-q"
   "Prefix key to access `ada-mode-extra-map' functions.")
 
-(defvar ada-mode-abbrev-table nil
+(define-abbrev-table 'ada-mode-abbrev-table ()
   "Local abbrev table for Ada mode.")
-(define-abbrev-table 'ada-mode-abbrev-table ())
-
-(defvar ada-mode-syntax-table nil
-  "Syntax table to be used for editing Ada source code.")
-
-(defvar ada-mode-symbol-syntax-table nil
-  "Syntax table for Ada, where `_' is a word constituent.")
 
 (eval-when-compile
   ;; These values are used in eval-when-compile expressions.
@@ -845,61 +842,58 @@ the 4 file locations can be clicked on and jumped to."
 ;; better is available on XEmacs.
 ;;-------------------------------------------------------------------------
 
-(defun ada-create-syntax-table ()
-  "Create the two syntax tables use in the Ada mode.
-The standard table declares `_' as a symbol constituent, the second one
-declares it as a word constituent."
-  (interactive)
-  (setq ada-mode-syntax-table (make-syntax-table))
+(defvar ada-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    ;; Define string brackets (`%' is alternative string bracket, but
+    ;; almost never used as such and throws font-lock and indentation
+    ;; off the track.)
+    (modify-syntax-entry ?%  "$" st)
+    (modify-syntax-entry ?\" "\"" st)
 
-  ;; define string brackets (`%' is alternative string bracket, but
-  ;; almost never used as such and throws font-lock and indentation
-  ;; off the track.)
-  (modify-syntax-entry ?%  "$" ada-mode-syntax-table)
-  (modify-syntax-entry ?\" "\"" ada-mode-syntax-table)
+    (modify-syntax-entry ?:  "." st)
+    (modify-syntax-entry ?\; "." st)
+    (modify-syntax-entry ?&  "." st)
+    (modify-syntax-entry ?\|  "." st)
+    (modify-syntax-entry ?+  "." st)
+    (modify-syntax-entry ?*  "." st)
+    (modify-syntax-entry ?/  "." st)
+    (modify-syntax-entry ?=  "." st)
+    (modify-syntax-entry ?<  "." st)
+    (modify-syntax-entry ?>  "." st)
+    (modify-syntax-entry ?$ "." st)
+    (modify-syntax-entry ?\[ "." st)
+    (modify-syntax-entry ?\] "." st)
+    (modify-syntax-entry ?\{ "." st)
+    (modify-syntax-entry ?\} "." st)
+    (modify-syntax-entry ?. "." st)
+    (modify-syntax-entry ?\\ "." st)
+    (modify-syntax-entry ?\' "." st)
 
-  (modify-syntax-entry ?:  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?\; "." ada-mode-syntax-table)
-  (modify-syntax-entry ?&  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?\|  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?+  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?*  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?/  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?=  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?<  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?>  "." ada-mode-syntax-table)
-  (modify-syntax-entry ?$ "." ada-mode-syntax-table)
-  (modify-syntax-entry ?\[ "." ada-mode-syntax-table)
-  (modify-syntax-entry ?\] "." ada-mode-syntax-table)
-  (modify-syntax-entry ?\{ "." ada-mode-syntax-table)
-  (modify-syntax-entry ?\} "." ada-mode-syntax-table)
-  (modify-syntax-entry ?. "." ada-mode-syntax-table)
-  (modify-syntax-entry ?\\ "." ada-mode-syntax-table)
-  (modify-syntax-entry ?\' "." ada-mode-syntax-table)
+    ;; A single hyphen is punctuation, but a double hyphen starts a comment.
+    (modify-syntax-entry ?-  ". 12" st)
 
-  ;; a single hyphen is punctuation, but a double hyphen starts a comment
-  (modify-syntax-entry ?-  ". 12" ada-mode-syntax-table)
+    ;; See the comment above on grammar related function for the special
+    ;; setup for '#'.
+    (modify-syntax-entry ?# (if (featurep 'xemacs) "<" "$") st)
 
-  ;; See the comment above on grammar related function for the special
-  ;; setup for '#'.
-  (if (featurep 'xemacs)
-      (modify-syntax-entry ?#  "<" ada-mode-syntax-table)
-    (modify-syntax-entry ?#  "$" ada-mode-syntax-table))
+    ;; And \f and \n end a comment.
+    (modify-syntax-entry ?\f  ">   " st)
+    (modify-syntax-entry ?\n  ">   " st)
 
-  ;; and \f and \n end a comment
-  (modify-syntax-entry ?\f  ">   " ada-mode-syntax-table)
-  (modify-syntax-entry ?\n  ">   " ada-mode-syntax-table)
+    ;; Define what belongs in Ada symbols.
+    (modify-syntax-entry ?_ "_" st)
 
-  ;; define what belongs in Ada symbols
-  (modify-syntax-entry ?_ "_" ada-mode-syntax-table)
+    ;; Define parentheses to match.
+    (modify-syntax-entry ?\( "()" st)
+    (modify-syntax-entry ?\) ")(" st)
+    st)
+  "Syntax table to be used for editing Ada source code.")
 
-  ;; define parentheses to match
-  (modify-syntax-entry ?\( "()" ada-mode-syntax-table)
-  (modify-syntax-entry ?\) ")(" ada-mode-syntax-table)
-
-  (setq ada-mode-symbol-syntax-table (copy-syntax-table ada-mode-syntax-table))
-  (modify-syntax-entry ?_ "w" ada-mode-symbol-syntax-table)
-  )
+(defvar ada-mode-symbol-syntax-table
+  (let ((st (make-syntax-table ada-mode-syntax-table)))
+    (modify-syntax-entry ?_ "w" st)
+    st)
+  "Syntax table for Ada, where `_' is a word constituent.")
 
 ;;  Support of special characters in XEmacs (see the comments at the beginning
 ;;  of the section on Grammar related functions).
@@ -1293,7 +1287,7 @@ the file name."
   (if ada-popup-key
       (define-key ada-mode-map ada-popup-key 'ada-popup-menu))
 
-  ;;  Support for Abbreviations (the user still need to "M-x abbrev-mode"
+  ;;  Support for Abbreviations (the user still needs to "M-x abbrev-mode").
   (setq local-abbrev-table ada-mode-abbrev-table)
 
   ;;  Support for which-function mode
@@ -1625,9 +1619,8 @@ ARG is the prefix the user entered with \\[universal-argument]."
       (let ((lastk last-command-event))
 
         (with-syntax-table ada-mode-symbol-syntax-table
-          (cond ((or (eq lastk ?\n)
-                     (eq lastk ?\r))
-                 ;; horrible kludge
+          (cond ((memq lastk '(?\n ?\r))
+                 ;; Horrible kludge.
                  (insert " ")
                  (ada-adjust-case)
                  ;; horrible dekludge
@@ -1706,9 +1699,7 @@ ARG is ignored, and is there for compatibility with `capitalize-word' only."
   (interactive)
   (let ((end   (save-excursion (skip-syntax-forward  "w") (point)))
 	(begin (save-excursion (skip-syntax-backward "w") (point))))
-    (modify-syntax-entry ?_ "_")
-    (capitalize-region begin end)
-    (modify-syntax-entry ?_ "w")))
+    (capitalize-region begin end)))
 
 (defun ada-adjust-case-region (from to)
   "Adjust the case of all words in the region between FROM and TO.
@@ -2165,7 +2156,7 @@ and the offset."
     (unwind-protect
 	(with-syntax-table ada-mode-symbol-syntax-table
 
-	  ;;  This need to be done here so that the advice is not always
+	  ;;  This needs to be done here so that the advice is not always
 	  ;;  activated (this might interact badly with other modes)
 	  (if (featurep 'xemacs)
 	      (ad-activate 'parse-partial-sexp t))
@@ -3419,27 +3410,23 @@ Stop the search at LIMIT."
 If BACKWARD is non-nil, jump to the beginning of the previous word.
 Return the new position of point or nil if not found."
   (let ((match-cons nil)
-	(orgpoint (point))
-	(old-syntax (char-to-string (char-syntax ?_))))
-    (modify-syntax-entry ?_ "w")
+	(orgpoint (point)))
     (unless backward
-      (skip-syntax-forward "w"))
+      (skip-syntax-forward "w_"))
     (if (setq match-cons
-              (ada-search-ignore-string-comment "\\w" backward nil t))
+              (ada-search-ignore-string-comment "\\sw\\|\\s_" backward nil t))
 	;;
 	;; move to the beginning of the word found
 	;;
 	(progn
 	  (goto-char (car match-cons))
-	  (skip-syntax-backward "w")
+	  (skip-syntax-backward "w_")
 	  (point))
       ;;
       ;; if not found, restore old position of point
       ;;
       (goto-char orgpoint)
-      'nil)
-    (modify-syntax-entry ?_ old-syntax))
-  )
+      'nil)))
 
 
 (defun ada-check-matching-start (keyword)
@@ -5430,9 +5417,6 @@ This function typically is to be hooked into `ff-file-created-hook'."
 ;;  every time
 (ada-create-keymap)
 (ada-create-menu)
-
-;;  Create the syntax tables, but do not activate them
-(ada-create-syntax-table)
 
 ;;  Add the default extensions (and set up speedbar)
 (ada-add-extensions ".ads" ".adb")

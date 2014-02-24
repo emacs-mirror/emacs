@@ -1,6 +1,6 @@
 ;;; pgg-gpg.el --- GnuPG support for PGG.
 
-;; Copyright (C) 1999-2000, 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Symmetric encryption and gpg-agent support added by:
@@ -28,8 +28,9 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)				; for gpg macros
-  (require 'pgg))
+  (require 'cl))
+
+(require 'pgg)
 
 (defgroup pgg-gpg ()
   "GnuPG interface."

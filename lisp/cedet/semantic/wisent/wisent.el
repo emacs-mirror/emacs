@@ -1,6 +1,6 @@
 ;;; semantic/wisent/wisent.el --- GNU Bison for Emacs - Runtime
 
-;;; Copyright (C) 2002-2007, 2009-2013 Free Software Foundation, Inc.
+;;; Copyright (C) 2002-2007, 2009-2014 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -46,8 +46,8 @@
            \\_         _/
             (     `o  `      (European ;-) Bison
              \\      ` /
-             (   D  ,¨       for Emacs!
-              ` ~ ,¨
+             (   D  ,\"       for Emacs!
+              ` ~ ,\"
                `\"\""
   :group 'semantic)
 
@@ -474,5 +474,9 @@ automaton has only one entry point."
     (car (aref stack 1))))
 
 (provide 'semantic/wisent/wisent)
+
+;; Local variables:
+;; generated-autoload-load-name: "semantic/wisent/wisent"
+;; End:
 
 ;;; semantic/wisent/wisent.el ends here

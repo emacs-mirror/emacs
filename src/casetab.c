@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with case tables.
-   Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2001-2014 Free Software Foundation, Inc.
 
 Author: Howard Gayle
 
@@ -205,7 +205,6 @@ set_identity (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
 	from = to = XINT (c);
 
       to++;
-      lint_assume (to <= MAX_CHAR + 1);
       for (; from < to; from++)
 	CHAR_TABLE_SET (table, from, make_number (from));
     }
@@ -232,7 +231,6 @@ shuffle (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
 	from = to = XINT (c);
 
       to++;
-      lint_assume (to <= MAX_CHAR + 1);
       for (; from < to; from++)
 	{
 	  Lisp_Object tem = Faref (table, elt);
@@ -246,16 +244,9 @@ void
 init_casetab_once (void)
 {
   register int i;
-  Lisp_Object down, up;
+  Lisp_Object down, up, eqv;
+
   DEFSYM (Qcase_table, "case-table");
-
-  /* Intern this now in case it isn't already done.
-     Setting this variable twice is harmless.
-     But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
-
-  /* Now we are ready to set up this property, so we can
-     create char tables.  */
   Fput (Qcase_table, Qchar_table_extra_slots, make_number (3));
 
   down = Fmake_char_table (Qcase_table, Qnil);
@@ -275,13 +266,21 @@ init_casetab_once (void)
 
   for (i = 0; i < 128; i++)
     {
-      int c = ((i >= 'A' && i <= 'Z') ? i + ('a' - 'A')
-	       : ((i >= 'a' && i <= 'z') ? i + ('A' - 'a')
-		  : i));
+      int c = (i >= 'a' && i <= 'z') ? i + ('A' - 'a') : i;
       CHAR_TABLE_SET (up, i, make_number (c));
     }
 
-  set_char_table_extras (down, 2, Fcopy_sequence (up));
+  eqv = Fmake_char_table (Qcase_table, Qnil);
+
+   for (i = 0; i < 128; i++)
+     {
+      int c = ((i >= 'A' && i <= 'Z') ? i + ('a' - 'A')
+	       : ((i >= 'a' && i <= 'z') ? i + ('A' - 'a')
+		  : i));
+      CHAR_TABLE_SET (eqv, i, make_number (c));
+    }
+
+  set_char_table_extras (down, 2, eqv);
 
   /* Fill in what isn't filled in.  */
   set_case_table (down, 1);

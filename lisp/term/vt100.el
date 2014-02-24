@@ -1,6 +1,6 @@
 ;;; vt100.el --- define VT100 function key sequences in function-key-map
 
-;; Copyright (C) 1989, 1993, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -46,6 +46,7 @@ With a prefix argument ARG, switch to 132-column mode if ARG is
 positive, and 80-column mode otherwise.  If called from Lisp,
 switch to 132-column mode if ARG is omitted or nil."
   :global t :init-value (= (frame-width) 132)
+  :group 'terminals
   (send-string-to-terminal (if vt100-wide-mode "\e[?3h" "\e[?3l"))
   (set-frame-width terminal-frame (if vt100-wide-mode 132 80)))
 

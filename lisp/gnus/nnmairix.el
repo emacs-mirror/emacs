@@ -1,6 +1,6 @@
 ;;; nnmairix.el --- Mairix back end for Gnus, the Emacs newsreader
 
-;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: David Engster <dengste@eml.cc>
 ;; Keywords: mail searching
@@ -308,13 +308,13 @@ The default chooses the largest window in the current frame."
 
 (defcustom nnmairix-propagate-marks-upon-close t
   "Flag if marks should be propagated upon closing a group.
-The default of this variable is t. If set to 'ask, the
+The default of this variable is t.  If set to 'ask, the
 user will be asked if the flags should be propagated when the
 group is closed.  If set to nil, the user will have to manually
 call 'nnmairix-propagate-marks'."
   :version "23.1"
   :type '(choice (const :tag "always" t)
-		 (const :tag "ask" 'ask)
+		 (const :tag "ask" ask)
 		 (const :tag "never" nil))
   :group 'nnmairix)
 

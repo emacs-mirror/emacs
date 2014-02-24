@@ -1,3 +1,162 @@
+2014-01-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert some of the CANNOT_DUMP fix (Bug#16494).
+	* Makefile.in (RUN_EMACS): Keep EMACSLOADPATH empty.
+
+2013-12-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Sync better from sources.
+	* CXTERM-DIC/ARRAY30.tit, CXTERM-DIC/4Corner.tit:
+	* CXTERM-DIC/QJ.tit, CXTERM-DIC/QJ-b5.tit:
+	Omit blank lines not present in the original.
+	* CXTERM-DIC/CCDOSPY.tit:
+	* CXTERM-DIC/PY-b5.tit:
+	* CXTERM-DIC/SW.tit, CXTERM-DIC/TONEPY.tit:
+	* MISC-DIC/pinyin.map, MISC-DIC/ziranma.cin:
+	Clarify which header lines were added for Emacs.
+	* CXTERM-DIC/README:
+	Clarify what changes we made, and where the files came from.
+	* MISC-DIC/README, MISC-DIC/pinyin.map, MISC-DIC/ziranma.cin:
+	Update URLs.
+	* SKK-DIC/SKK-JISYO.L: Update from upstream.
+
+2013-12-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix problems with CANNOT_DUMP and EMACSLOADPATH.
+	* Makefile.in (RUN_EMACS): Add lisp src to EMACSLOADPATH.
+
+2013-11-28  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (${leimdir}/leim-list.el):
+	* leim-ext.el: Change method for getting comments in the output
+	to one that does not fool lisp/compile-main's no-byte-compile test.
+
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (bootstrap-clean): No need to delete .elc,
+	lisp/ rules will do that.
+
+	* Makefile.in (extraclean): New.
+	(bootstrap-clean): Move ja-dic deletion to extraclean.
+
+	Move ja-dic, quail, leim-list.el to ../lisp/leim.
+	* Makefile.in (leimdir): New variable.
+	(TIT_GB, TIT_BIG5, MISC, changed.tit, changed.misc)
+	(${leimdir}/leim-list.el, ${leimdir}/ja-dic/ja-dic.el):
+	Generate in $leimdir.
+	(all): Remove compilation, add ja-dic.
+	(leim-list.el): Now PHONY.
+	(setwins, compile-targets, compile-main, clean, mostlyclean)
+	(extraclean): Remove.
+	(bootstrap-clean): Delete all generated files.
+	* README: Update for moved leim/ directory.
+	* leim-ext.el (ucs-input-activate, hangul-input-method-activate):
+	Remove manual autoloads; now in loaddefs.el.
+	Disable byte-compile, version-control, autoloads in the output.
+	* quail: Move to ../lisp/leim.
+
+2013-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (RUN_EMACS): Empty EMACSLOADPATH rather than unsetting.
+
+2013-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (RUN_EMACS): Don't set LC_ALL=C.  (Bug#15260)
+
+2013-11-03  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (abs_srcdir): Remove.
+	(RUN_EMACS): Unset EMACSLOADPATH.
+
+2013-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (buildlisppath): Remove.
+	(RUN_EMACS): Use abs_srcdir directly.
+
+2013-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (.el.elc, changed.tit, changed.misc, leim-list.el)
+	($(srcdir)/ja-dic/ja-dic.el, check-declare): Remove unnecessary
+	path in -l argument (RUN_EMACS sets EMACSLOADPATH).
+
+2013-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (abs_srcdir): New, set by configure.
+	(buildlisppath): Use abs_srcdir.
+	(RUN_EMACS, .el.elc, changed.tit, changed.misc, leim-list.el)
+	($(srcdir)/ja-dic/ja-dic.el, setwins, distclean, check-declare):
+	Quote entities that might contain whitespace.
+
+2013-09-05  Jean Haidouk  <haidouk@yandex.com>  (tiny change)
+
+	* quail/latin-alt.el ("french-alt-postfix", "latin-alt-postfix"):
+	* quail/latin-pre.el ("french-prefix"):
+	* quail/latin-post.el ("french-postfix"): Add `œ' and `Œ'.
+
+2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
+	for portability to hosts where /bin/sh has problems.
+
+2013-06-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* quail/croatian.el ("croatian-prefix"):
+	* quail/czech.el ("czech", "czech-qwerty"):
+	* quail/ipa-praat.el ("ipa-praat"):
+	* quail/ipa.el ("ipa-x-sampa"):
+	* quail/tibetan.el ("tibetan-wylie", "tibetan-tibkey"):
+	* quail/uni-input.el (ucs-input-activate): Fix typos in docstrings.
+
+2013-05-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (leim-list.el, check-declare):
+	Replace reveal-filename with unmsys--file-name.
+
+2013-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (leim-list.el, check-declare): Use reveal-filename.
+
+2013-04-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use UTF-8 for most files with non-ASCII characters (Bug#13936).
+	* quail/cyrillic.el, quail/czech.el, quail/ethiopic.el:
+	* quail/greek.el, quail/hanja.el, quail/hanja3.el, quail/hebrew.el:
+	* quail/lao.el, quail/lrt.el, quail/slovak.el, quail/symbol-ksc.el:
+	* quail/thai.el, quail/tibetan.el, quail/viqr.el, quail/vntelex.el:
+	* quail/vnvni.el, quail/welsh.el:
+	Switch from iso-2022-7bit to utf-8 or (if needed) utf-8-emacs.
+
+2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in ($(srcdir)/ja-dic/ja-dic.el): Use batch-skkdic-convert.
+
+2013-03-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(srcdir)/ja-dic/ja-dic.el): New target.
+
+2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Automate the build of ja-dic.el (Bug#13984).
+	ja-dic.el no longer needs to be in the repository: it's now
+	generated as part of the build from bzr.  Also, update SKK-JISYO.L to
+	match the upstream source exactly.
+	* ja-dic/ja-dic.el: Remove from repository.  It is still distributed
+	as part of the Emacs tarball.
+	* Makefile.in ($(srcdir)/ja-dic/ja-dic.el): New rule.
+	(compile-main): Depend on it.
+	* SKK-DIC/README: Update to reflect new build procedure.
+	* SKK-DIC/SKK-JISYO.L: Update to match source exactly.
+	This is now the annotated version, to match the upstream file name;
+	the unannotated one is built from it automatically.
+
+2013-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/latin-ltx.el: Resolve conflicts (bug#13950).
+	(latin-ltx--mark-map, latin-ltx--mark-re): New constants.
+	(latin-ltx--define-rules): Check for conflicts.  Eval `re's.
+	(rules): Use tighter regexps to avoid conflicts.
+	Consolidate the various rules for combining marks.
+
 2013-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* quail/latin-ltx.el: Add greek superscripts.
@@ -46,7 +205,7 @@
 
 2012-06-12  Nguyen Thai Ngoc Duy  <pclouds@gmail.com>
 
-	* quail/vnvi.el: New file (Bug#4747).
+	* quail/vnvni.el: New file (Bug#4747).
 
 2012-05-22  Glenn Morris  <rgm@gnu.org>
 
@@ -493,7 +652,7 @@
 
 2008-07-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* quail/cyrillic.el : Add more rules to cyrillic-translit, make
+	* quail/cyrillic.el: Add more rules to cyrillic-translit, make
 	everything postfix.  Adjust to eliminate conflicts.
 
 2008-06-30  Juanma Barranquero  <lekktu@gmail.com>
@@ -616,10 +775,10 @@
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* latin-post.el: Recode to utf-8.
+	* quail/latin-post.el: Recode to utf-8.
 	("latin-postfix"): New method.
 
-	* latin-alt.el: Recode to utf-8.
+	* quail/latin-alt.el: Recode to utf-8.
 	("latin-alt-postfix"): New method.
 
 	* quail/latin-pre.el: Recode to utf-8.
@@ -1901,11 +2060,11 @@
 
 1998-10-13  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
 
-	* latin-alt.el ("latin-1-alt-postfix"): Add a method to enter the
+	* quail/latin-alt.el ("latin-1-alt-postfix"): Add a method to enter the
 	small superscript underlined o and a.
 	("italian-alt-postfix"): Change it to something useful and
 	different from italian-postfix.
-	* latin-post.el ("latin-1-postfix"): Add a method to enter the
+	* quail/latin-post.el ("latin-1-postfix"): Add a method to enter the
 	small superscript underlined o and a.
 	("italian-postfix"): Same as above.
 	("italian-postfix"): Add methods to enter e with acute accent and
@@ -2013,11 +2172,11 @@
 	* Makefile.in: Prepend ${srcdir} to all non-TIT lisp file names.
 	(leim-list.el): Depend on ${WORLD}.
 
-	* latin-alt.el (latin-2-alt-postfix): Doc fix.
+	* quail/latin-alt.el (latin-2-alt-postfix): Doc fix.
 
 1998-04-08  Karl Heuer  <kwzh@mescaline.gnu.org>
 
-	* czech.el, slovak.el: Correct starting commentary.
+	* quail/czech.el, quail/slovak.el: Correct starting commentary.
 
 1998-04-07  Milan Zamazal  <pdm@fi.muni.cz>
 
@@ -2025,7 +2184,7 @@
 
 1998-04-06  Andreas Schwab  <schwab@gnu.org>
 
-	* lrt.el (lrt-composing-pattern-double-c): Change chars-in-string
+	* quail/lrt.el (lrt-composing-pattern-double-c): Change chars-in-string
 	to length.
 	(lrt-generate-quail-map): Change sref to aref, and make second
 	argument of substring a character index.
@@ -2146,7 +2305,7 @@
 
 	* quail/cyrillic.el: For each package, pass t for the SIMPLE
 	argument to quail-define-package.
-	* quail/cyril-jis.el: Likewise
+	* quail/cyril-jis.el: Likewise.
 	* quail/greek.el: Likewise.
 	* quail/ipa.el: Likewise.
 	* quail/lao.el: Likewise.
@@ -2376,7 +2535,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1997-1999, 2001-2013 Free Software Foundation, Inc.
+  Copyright (C) 1997-1999, 2001-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

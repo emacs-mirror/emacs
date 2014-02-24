@@ -1092,9 +1092,9 @@
 	North American rule.  Replace "daylight savings" with "daylight
 	saving" in doc.
 
-	* calendar/cal-china.el, cal-dst.el, calendar.el, diary-lib.el:
-	* calendar/lunar.el, solar.el: Replace "daylight savings" with
-	"daylight saving" in text.
+	* calendar/cal-china.el, calendar/cal-dst.el, calendar/calendar.el:
+	* calendar/diary-lib.el, calendar/lunar.el, calendar/solar.el:
+	Replace "daylight savings" with "daylight saving" in text.
 
 	* woman.el (woman-change-fonts): Tweak previous change by using
 	woman-request-regexp rather than "^\\.".
@@ -5113,7 +5113,7 @@
 
 	* version.el (emacs-version): Use mac-carbon-version-string.
 
-	* term/macterm.el (res-geometry): Apply 2006-10-18 change for x-win.el.
+	* term/mac-win.el (res-geometry): Apply 2006-10-18 change for x-win.el.
 
 2006-10-19  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -8191,8 +8191,9 @@
 
 2006-07-10  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-awk.el, cc-defs.el, cc-fonts.el, cc-langs.el:
-	* cc-mode.el: Changes to eradicate eval-after-load.
+	* progmodes/cc-awk.el, progmodes/cc-defs.el, progmodes/cc-fonts.el:
+	* progmodes/cc-langs.el, progmodes/cc-mode.el:
+	Changes to eradicate eval-after-load.
 
 2006-07-09  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -12229,7 +12230,7 @@
 
 2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-cmds.el, cc-mode.el: Rename c-hungry-backspace to
+	* progmodes/cc-cmds.el, progmodes/cc-mode.el: Rename c-hungry-backspace to
 	c-hungry-delete-backwards, at the request of RMS.  Leave the old
 	name as an alias.
 
@@ -12283,7 +12284,7 @@
 
 	* progmodes/cc-defs.el (c-version): Update version number to 5.31.2.
 
-	* progmodes/cc-cmds.el, cc-mode.el, cc-engine.el
+	* progmodes/cc-cmds.el, progmodes/cc-mode.el, progmodes/cc-engine.el
 	(c-update-modeline): Concatenate the minor mode indicators
 	directly onto mode-name, removing c-submode-indicators.
 	Sometimes, c-s-i got separated from the mode name on the mode line.
@@ -13528,7 +13529,7 @@
 	(last-arg): Add defvar.
 
 	* makefile.w32-in (WINS): Add erc.
-	(MH_E_SRC): Update (copied from lisp/Makefile.in).
+	(MH_E_SRC): Update (copied from Makefile.in).
 
 2006-01-29  Bill Wohler  <wohler@newt.com>
 
@@ -15730,7 +15731,8 @@
 	Emacsen which lack `define-minor-mode'.  (Currently Emacs <21.
 	We might do this function properly in the future).
 
-	* progmodes/cc-cmds.el, cc-defs.el, cc-styles.el, cc-vars.el:
+	* progmodes/cc-cmds.el, progmodes/cc-defs.el:
+	* progmodes/cc-styles.el, progmodes/cc-vars.el:
 	New macros c-sentence-end and c-default-value-sentence end, to cope
 	with Emacs 22's new function `sentence-end'.
 
@@ -15779,7 +15781,7 @@
 
 	* progmodes/cc-mode.el: Bind c-subword-mode to C-c C-w.
 
-	* progmodes/cc-subword.el, cc-cmds.el, cc-mode.el:
+	* progmodes/cc-subword.el, progmodes/cc-cmds.el, progmodes/cc-mode.el:
 	Rename "c-subword-move-mode" as "c-subword-mode".
 
 	* progmodes/cc-mode.el: Added tty suitable bindings for C-c
@@ -15810,7 +15812,7 @@
 
 2005-12-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-fonts.el, cc-vars.el
+	* progmodes/cc-fonts.el, progmodes/cc-vars.el
 	(gtkdoc-font-lock-doc-comments, gtkdoc-font-lock-doc-protection)
 	(gtkdoc-font-lock-keywords): GtkDoc patterns contributed by
 	Masatake YAMATO.
@@ -15886,7 +15888,7 @@
 	* progmodes/cc-cmds.el: Make C-c C-a (`c-toggle-auto-newline')
 	forcibly enable c-electric-flag.
 
-	* progmodes/cc-vars.el, cc-cmds.el: New clean-up
+	* progmodes/cc-vars.el, progmodes/cc-cmds.el: New clean-up
 	`comment-close-slash' on c-electric-slash: if enabled, typing `/' just
 	after the comment-prefix of a C-style comment will close that comment.
 
@@ -15899,7 +15901,7 @@
 	* progmodes/cc-langs.el (c-other-op-syntax-tokens): Only C++ has
 	digraphs.
 
-	* progmodes/cc-fonts.el, cc-langs.el, cc-engine.el
+	* progmodes/cc-fonts.el, progmodes/cc-langs.el, progmodes/cc-engine.el
 	(c-cpp-message-directives, c-cpp-include-directives)
 	(c-opt-cpp-macro-define, c-opt-cpp-macro-define-start)
 	(c-cpp-expr-directives): Introduce new language constants to
@@ -15909,7 +15911,7 @@
 
 	(c-cpp-matchers, c-forward-to-cpp-define-body): Use them.
 
-	* progmodes/cc-langs.el, cc-fonts.el (c-string-escaped-newlines)
+	* progmodes/cc-langs.el, progmodes/cc-fonts.el (c-string-escaped-newlines)
 	(c-multiline-string-start-char): New language constants and
 	variables to specify how newlines in string literals work.
 
@@ -15923,13 +15925,13 @@
 	(c-electric-brace): Indent syntactically after the cleanups since
 	lineup functions might do it differently then.
 
-	* progmodes/cc-engine.el, cc-langs.el
+	* progmodes/cc-engine.el, progmodes/cc-langs.el
 	(c-opt-op-identifier-prefix): New language constant and variable.
 
 	(c-just-after-func-arglist-p, c-after-special-operator-id)
 	(c-search-decl-header-end, c-inside-bracelist-p): Use it.
 
-	* progmodes/cc-align.el, cc-engine.el
+	* progmodes/cc-align.el, progmodes/cc-engine.el
 	(c-after-special-operator-id): New helper to handle C++ operator
 	identifiers.
 
@@ -16012,8 +16014,9 @@
 	* progmodes/cc-cmds.el (c-show-syntactic-information): Show the
 	anchor position(s) using faces.  Thanks to Masatake YAMATO for the idea.
 
-	* progmodes/cc-mode.el, cc-cmds.el, cc-defs.el, cc-engine.el
-	(c-submode-indicators): Change name from `c-auto-hungry-string'
+	* progmodes/cc-mode.el, progmodes/cc-cmds.el, progmodes/cc-defs.el:
+	* progmodes/cc-engine.el (c-submode-indicators):
+	Change name from `c-auto-hungry-string'
 	since it's now used to track another submode.
 
 	(c-update-modeline): Convert to function and extended to check
@@ -16084,7 +16087,7 @@
 	to avoid heuristics that doesn't work for unclosed blocks.
 	(c-at-statement-start-p): New function.
 
-	* progmodes/cc-engine.el, cc-fonts.el: Fixes in handling of
+	* progmodes/cc-engine.el, progmodes/cc-fonts.el: Fixes in handling of
 	Objective-C directives, e.g. directives spanning lines should work
 	reasonably well now.
 
@@ -16168,7 +16171,7 @@
 	(c-forward-single-comment, c-backward-single-comment): Comment out
 	the (now redundant) "special" AWK stuff.
 
-	* progmodes/cc-styles.el, cc-vars.el: Change the settings of
+	* progmodes/cc-styles.el, progmodes/cc-vars.el: Change the settings of
 	c-string-par-start, c-string-par-separate to be more like Text
 	Mode than Fundamental Mode.
 
@@ -16237,7 +16240,7 @@
 	the checks for paren sexps between the point and the keyword, to
 	avoid some false alarms.
 
-	* progmodes/cc-engine.el, cc-langs.el (c-looking-at-inexpr-block):
+	* progmodes/cc-engine.el, progmodes/cc-langs.el (c-looking-at-inexpr-block):
 	Fixed a situation where an error could be thrown for unbalanced
 	parens.  Changed to make use of c-keyword-member' to avoid some
 	repeated regexp matches.
@@ -16278,7 +16281,8 @@
 
 2005-12-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-cmds.el, cc-styles.el, cc-vars.el: New variables
+	* progmodes/cc-cmds.el, progmodes/cc-styles.el:
+	* progmodes/cc-vars.el: New variables
 	c-string-par-start/separate c-sentence-end-with-esc-eol,
 	initialized in c-setup-paragraph-variables, used in string
 	scanning subroutines of c-beginning-of-statement.
@@ -16288,7 +16292,7 @@
 
 2005-12-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el, cc-langs.el: Rewrote the recognition
+	* progmodes/cc-engine.el, progmodes/cc-langs.el: Rewrote the recognition
 	function for declaration level blocks.  It should now cope with
 	templates better and also be a lot more comprehensible.
 
@@ -16340,7 +16344,7 @@
 	the point could be left directly after an open paren when finding
 	the beginning of the first decl in the block.
 
-	* progmodes/cc-engine.el, cc-fonts.el (c-forward-keyword-clause):
+	* progmodes/cc-engine.el, progmodes/cc-fonts.el (c-forward-keyword-clause):
 	Specify which submatch to use.
 
 	* progmodes/cc-langs.el (c-symbol-start): Include `@' in ObjC.
@@ -16405,7 +16409,7 @@
 	(c-specifier-key, c-not-decl-init-keywords): Some cleanup using new
 	language constants `c-type-start-kwds' and `c-prefix-spec-kwds'.
 
-	* progmodes/cc-fonts.el, cc-langs.el, cc-engine.el:
+	* progmodes/cc-fonts.el, progmodes/cc-langs.el, progmodes/cc-engine.el:
 	Internal cleanups to properly detect the declared identifiers in
 	various declarations.
 
@@ -16446,11 +16450,12 @@
 	* progmodes/cc-engine.el (c-maybe-labelp): Provide no default
 	value - this variable is always dynamically bound.
 
-	* progmodes/cc-engine.el, cc-fonts.el, cc-langs.el, cc-menus.el
-	* cc-mode.el, cc-styles.el, cc-vars.el, cc-align.el, cc-awk.el
-	* cc-cmds.el, cc-defs.el: Change the policy for marking up
-	functions that might do hidden buffer changes: All such internal
-	functions are now marked instead of those that don't.
+	* progmodes/cc-engine.el, progmodes/cc-fonts.el, progmodes/cc-langs.el:
+	* progmodes/cc-menus.el, progmodes/cc-mode.el, progmodes/cc-styles.el:
+	* progmodes/cc-vars.el, progmodes/cc-align.el, progmodes/cc-awk.el:
+	* progmodes/cc-cmds.el, progmodes/cc-defs.el: Change the policy
+	for marking up functions that might do hidden buffer changes:
+	All such internal functions are now marked instead of those that don't.
 
 	(c-beginning-of-macro, c-end-of-macro, c-(forward|backward)-comments)
 	(c-(forward|backward)-single-comment, c-parse-state, c-on-identifier)
@@ -16495,7 +16500,8 @@
 
 2005-12-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el, cc-fonts.el, cc-langs.el: Cleaned up the
+	* progmodes/cc-engine.el, progmodes/cc-fonts.el:
+	* progmodes/cc-langs.el: Cleaned up the
 	label handling.  Labels are now recognized in a uniform and more
 	robust way, regardless of context.  Text properties are put on all
 	labels to recognize the following declarations better.
@@ -16552,7 +16558,7 @@
 	* progmodes/cc-align.el (c-lineup-arglist): Fix bug when the
 	first argument starts with a special brace list.
 
-	* progmodes/cc-engine.el, cc-fonts.el (c-forward-decl-or-cast-1)
+	* progmodes/cc-engine.el, progmodes/cc-fonts.el (c-forward-decl-or-cast-1)
 	(c-font-lock-declarations): Break out the declaration and cast
 	recognition from `c-font-lock-declarations' to a new function, so
 	that it can be used in the indentation engine.
@@ -16652,7 +16658,7 @@
 
 2005-12-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-fonts.el, cc-langs.el: Use `c-simple-ws' instead of
+	* progmodes/cc-fonts.el, progmodes/cc-langs.el: Use `c-simple-ws' instead of
 	hardcoded char classes wherever possible.  Changed a couple of
 	places to use skip by syntax instead of skip by char class.
 
@@ -16702,7 +16708,7 @@
 	* progmodes/cc-cmds.el: Tidy c-beginning-of-sentence (and
 	subfunctions) so that it works at BOB and EOB.
 
-	* progmodes/cc-cmds.el, cc-vars.el: More updating of
+	* progmodes/cc-cmds.el, progmodes/cc-vars.el: More updating of
 	c-beginning-of-statement, including new variable
 	c-block-comment-start-regexp.
 
@@ -16742,7 +16748,7 @@
 
 2005-12-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el, cc-fonts.el, cc-langs.el
+	* progmodes/cc-engine.el, progmodes/cc-fonts.el, progmodes/cc-langs.el
 	(c-guess-basic-syntax): Change the way class-level labels are
 	recognized; they can now contain essentially any symbols.
 
@@ -16765,7 +16771,7 @@
 	Remove some cruft and fixed a bug that could cause it to go to a
 	position further down.
 
-	* progmodes/cc-langs.el, cc-engine.el
+	* progmodes/cc-langs.el, progmodes/cc-engine.el
 	(c-beginning-of-statement-1): Improve detection of labels in
 	declaration contexts.
 
@@ -16780,7 +16786,7 @@
 	* progmodes/cc-defs.el (c-forward-sexp, c-backward-sexp):
 	Make these behave as documented when used at the buffer limits.
 
-	* progmodes/cc-mode.el, cc-engine.el, cc-langs.el
+	* progmodes/cc-mode.el, progmodes/cc-engine.el, progmodes/cc-langs.el
 	(c-type-decl-end-used): Made this a language variable.
 
 	* progmodes/cc-mode.el (c-after-change): Widen the buffer to work
@@ -16807,7 +16813,8 @@
 	* progmodes/cc-mode.el (c-basic-common-init): Turn on syntax-table
 	text property lookup only when it's needed.
 
-	* progmodes/cc-langs.el, cc-engine.el, cc-fonts.el, cc-mode.el:
+	* progmodes/cc-langs.el, progmodes/cc-engine.el:
+	* progmodes/cc-fonts.el, progmodes/cc-mode.el:
 	Change the policy for paren marked angle brackets to be more
 	persistent; once marked they remain marked even when they're found
 	to be unbalanced in the searched region.  This should keep the
@@ -16852,27 +16859,29 @@
 
 2005-12-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-cmds.el, cc-engine.el, cc-langs.el, cc-vars.el:
+	* progmodes/cc-cmds.el, progmodes/cc-engine.el:
+	* progmodes/cc-langs.el, progmodes/cc-vars.el:
 	Make the "Text Filling and Line Breaking" commands work for AWK buffers.
 
 2005-12-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-defs.el, cc-engine.el (c-mode-is-new-awk-p):
+	* progmodes/cc-defs.el, progmodes/cc-engine.el (c-mode-is-new-awk-p):
 	Removed; (c-major-mode-is 'awk-mode) can be used instead now.
 
 	* progmodes/cc-mode.el: Always set up AWK mode since emacsen where
 	it doesn't work no longer are supported.
 
-	* progmodes/cc-mode.el, cc-styles.el, cc-vars.el, cc-defs.el
-	* cc-engine.el, cc-fonts.el, cc-langs.el, cc-cmds.el: CC Mode now
+	* progmodes/cc-mode.el, progmodes/cc-styles.el, progmodes/cc-vars.el:
+	* progmodes/cc-defs.el, progmodes/cc-engine.el, progmodes/cc-fonts.el:
+	* progmodes/cc-langs.el, progmodes/cc-cmds.el: CC Mode now
 	requires support for the syntax-table' text property, which rules
 	out Emacs 19 and XEmacs < 21.4.  Removed various compatibility
 	cruft associated with those versions.
 
-	* progmodes/cc-defs.el, cc-fix.el: CC Mode now requires support
-	for the `syntax-table' text property, which rules out Emacs 19 and
-	XEmacs < 21.4.  Removed various compatibility cruft associated
-	with those versions.
+	* progmodes/cc-defs.el, progmodes/cc-fix.el: CC Mode now requires
+	support for the `syntax-table' text property, which rules out
+	Emacs 19 and XEmacs < 21.4.  Remove various compatibility cruft
+	associated with those versions.
 
 	* progmodes/cc-vars.el (c-emacs-features): CC Mode now requires
 	support for the `syntax-table' text property.
@@ -17355,7 +17364,7 @@
 
 	* calc/calc-embed.el (calc-do-embedded): Update help message.
 
-	* calc/calc-prog.el (calc-user-define-invokation): Update help message.
+	* calc/calc-prog.el (calc-user-define-invocation): Update help message.
 
 2005-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -20672,8 +20681,6 @@
 
 2005-10-06  Bill Wohler  <wohler@newt.com>
 
-	* mh-e/mh-loaddefs.el: Remove.  Now generated automatically.
-
 	* Makefile.in (AUTOGENEL): Add mh-e/mh-loaddefs.el.
 	(MH-E-SRC): New.  Used by mh-autoloads.
 	(mh-autoloads): New.  Builds mh-e/mh-loaddefs.el.  Rebuilds if any
@@ -22919,10 +22926,6 @@
 	* info.el: Add handler to desktop-buffer-mode-handlers.
 	(Info-restore-desktop-buffer): Remove autoload cookie.
 	(Info-mode): Add autoload cookie.
-
-	* mh-e/mh-e.el: Add handler to desktop-buffer-mode-handlers.
-	(mh-restore-desktop-buffer): Remove autoload cookie.
-	(mh-folder-mode): Add autoload cookie.
 
 	* mail/rmail.el: Add handler to desktop-buffer-mode-handlers.
 	(rmail-restore-desktop-buffer): Remove autoload cookie.
@@ -26775,16 +26778,6 @@
 	(iswitchb-common-match-inserted): New variable.
 	(iswitchb-complete, iswitchb-completion-help): Use it.
 
-2005-06-04  David Reitter  <david.reitter@gmail.com>  (tiny change)
-
-	* url/url-http.el (url-http-chunked-encoding-after-change-function):
-	Use `url-http-debug' instead of `message'.
-
-2005-06-04  Thierry Emery  <thierry.emery@free.fr>  (tiny change)
-
-	* url/url-http.el (url-http-parse-headers): Pass redirected URL
-	as a callback argument.
-
 2005-06-04  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (line-move): Only call sit-for when moving backwards.
@@ -27408,14 +27401,14 @@
 	* progmodes/cc-engine.el (c-guess-basic-syntax): Handle operator
 	declarations somewhat better in C++.
 
-	* progmodes/cc-styles.el, cc-mode.el (c-run-mode-hooks):
+	* progmodes/cc-styles.el, progmodes/cc-mode.el (c-run-mode-hooks):
 	New helper macro to make use of `run-mode-hooks'
 	which has been added in Emacs 21.1.
 	(c-mode, c++-mode, objc-mode, java-mode, idl-mode, pike-mode)
 	(awk-mode): Use it.
 	(make-local-hook): Suppress warning about obsolescence.
 
-	* progmodes/cc-engine.el, cc-align.el, cc-cmds.el
+	* progmodes/cc-engine.el, progmodes/cc-align.el, progmodes/cc-cmds.el
 	(c-append-backslashes-forward, c-delete-backslashes-forward)
 	(c-find-decl-spots, c-semi&comma-no-newlines-before-nonblanks):
 	Compensate for return value from `forward-line' when it has moved
@@ -27428,9 +27421,9 @@
 
 	CC Mode update to 5.30.10:
 
-	* progmodes/cc-mode.el, cc-engine.el, cc-align.el: Change the FSF's
-	address in the copyright statement.  Incidentally, change "along with
-	GNU Emacs" to "along with this program" where it occurs.
+	* progmodes/cc-mode.el, progmodes/cc-engine.el, progmodes/cc-align.el:
+	Change the FSF's address in the copyright statement.  Incidentally,
+	change "along with GNU Emacs" to "along with this program" where it occurs.
 
 	* progmodes/cc-mode.el: Add a fourth parameter `t' to the awk-mode
 	autoload, so that it is interactive, hence can be found by M-x awk-mode
@@ -29693,11 +29686,6 @@
 	* abbrev.el (define-abbrevs): Read system abbrevs properly.
 
 	* emacs-lisp/map-ynp.el (map-y-or-n-p): Clarify RET/q in help message.
-
-2005-04-10  Chong Yidong  <cyd@stupidchicken.com>
-
-	* url/url-ldap.el (url-ldap): Add docstring.  Fix call to
-	`ldap-search-internal'.
 
 2005-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -33346,7 +33334,7 @@ See ChangeLog.11 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2005-2013 Free Software Foundation, Inc.
+    Copyright (C) 2005-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

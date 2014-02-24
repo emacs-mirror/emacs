@@ -1,6 +1,6 @@
 ;;; lmenu.el --- emulate Lucid's menubar support
 
-;; Copyright (C) 1992-1994, 1997, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1992-1994, 1997, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Keywords: emulations obsolete
@@ -131,7 +131,7 @@
       (setq menu-items (cdr menu-items)))
     menu))
 
-(declare-function x-popup-dialog "xmenu.c" (position contents &optional header))
+(declare-function x-popup-dialog "menu.c" (position contents &optional header))
 
 ;; XEmacs compatibility function
 (defun popup-dialog-box (data)

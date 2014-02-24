@@ -1,6 +1,6 @@
 ;;; semantic/wisent/grammar.el --- Wisent's input grammar mode
 
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -473,6 +473,54 @@ Menu items are appended to the common grammar menu.")
 \;; 2009, 2010 Python Software Foundation; All Rights Reserved"
      ,wisent-make-parsers--python-license)))
 
+;; Cf bovine--make-parser-1.
+(defun wisent--make-parser-1 (infile &optional outdir)
+  (if outdir (setq outdir (file-name-directory (expand-file-name outdir))))
+  (let ((packagename
+	 ;; This is with-demoted-errors.
+	 (condition-case err
+	     (with-current-buffer (find-file-noselect infile)
+	       (if outdir (setq default-directory outdir))
+	       (semantic-grammar-create-package nil t))
+	   (error (message "%s" (error-message-string err)) nil)))
+	output-data)
+    (when (setq output-data (assoc packagename wisent-make-parsers--parser-file-name))
+      (let ((additional-copyright (nth 1 output-data))
+	    (additional-license   (nth 2 output-data))
+	    (filename (expand-file-name
+		       (progn (string-match ".*/\\(.*\\)" packagename)
+			      (match-string 1 packagename))
+		       outdir))
+	    copyright-end)
+	;; Touch up the generated parsers for Emacs integration.
+	(with-temp-file filename
+	  (insert-file-contents filename)
+	  ;; Fix copyright header:
+	  (goto-char (point-min))
+	  (when additional-copyright
+	    (re-search-forward "Copyright (C).*$")
+	    (insert "\n;; " additional-copyright))
+	  (re-search-forward "^;; Author:")
+	  (setq copyright-end (match-beginning 0))
+	  (re-search-forward "^;;; Code:\n")
+	  (delete-region copyright-end (match-end 0))
+	  (goto-char copyright-end)
+	  (insert wisent-make-parsers--emacs-license)
+	  (insert "\n\n;;; Commentary:
+;;
+;; This file was generated from admin/grammars/"
+		  (file-name-nondirectory infile) ".")
+	  (when additional-license
+	    (insert "\n" additional-license))
+	  (insert "\n\n;;; Code:\n")
+	  (goto-char (point-min))
+	  (delete-region (point-min) (line-end-position))
+	  (insert ";;; " packagename
+		  " --- Generated parser support file")
+	  (re-search-forward ";;; \\(.*\\) ends here")
+	  (replace-match packagename nil nil nil 1)
+	  (delete-trailing-whitespace))))))
+
 (defun wisent-make-parsers ()
   "Generate Emacs' built-in Wisent-based parser files."
   (interactive)
@@ -480,47 +528,37 @@ Menu items are appended to the common grammar menu.")
   ;; Loop through each .wy file in current directory, and run
   ;; `semantic-grammar-batch-build-one-package' to build the grammar.
   (dolist (f (directory-files default-directory nil "\\.wy\\'"))
-    (let ((packagename
-           (condition-case err
-               (with-current-buffer (find-file-noselect f)
-                 (semantic-grammar-create-package))
-             (error (message "%s" (error-message-string err)) nil)))
-	  output-data)
-      (when (setq output-data (assoc packagename wisent-make-parsers--parser-file-name))
-	(let ((additional-copyright (nth 1 output-data))
-	      (additional-license   (nth 2 output-data))
-	      (filename (progn (string-match ".*/\\(.*\\)" packagename) (match-string 1 packagename)))
-	      copyright-end)
-	  ;; Touch up the generated parsers for Emacs integration.
-	  (with-temp-buffer
-	    (insert-file-contents filename)
-	    ;; Fix copyright header:
-	    (goto-char (point-min))
-	    (when additional-copyright
-	      (re-search-forward "Copyright (C).*$")
-	      (insert "\n;; " additional-copyright))
-	    (re-search-forward "^;; Author:")
-	    (setq copyright-end (match-beginning 0))
-	    (re-search-forward "^;;; Code:\n")
-	    (delete-region copyright-end (match-end 0))
-	    (goto-char copyright-end)
-	    (insert wisent-make-parsers--emacs-license)
-	    (insert "\n\n;;; Commentary:
-;;
-;; This file was generated from admin/grammars/"
-			f ".")
-	    (when additional-license
-	      (insert "\n" additional-license))
-	    (insert "\n\n;;; Code:\n")
-	    (goto-char (point-min))
-	    (delete-region (point-min) (line-end-position))
-	    (insert ";;; " packagename
-		    " --- Generated parser support file")
-	    (re-search-forward ";;; \\(.*\\) ends here")
-	    (replace-match packagename nil nil nil 1)
-	    (delete-trailing-whitespace)
-	    (write-region nil nil (expand-file-name filename))))))))
+    (wisent--make-parser-1 f)))
+
+
+(defun wisent-batch-make-parser (&optional infile outdir)
+  "Generate a Wisent parser from input INFILE, writing to OUTDIR.
+This is mainly intended for use in batch mode:
+
+emacs -batch -l semantic/wisent/grammar -f wisent-make-parser-batch \\
+   [-dir output-dir | -o output-file] file.by
+
+If -o is supplied, only the directory part is used."
+  (semantic-mode 1)
+  (when (and noninteractive (not infile))
+    (let (arg)
+      (while command-line-args-left
+	(setq arg (pop command-line-args-left))
+	(cond ((string-equal arg "-dir")
+	       (setq outdir (pop command-line-args-left)))
+	      ((string-equal arg "-o")
+	       (setq outdir (file-name-directory (pop command-line-args-left))))
+	      (t (setq infile arg))))))
+  (or infile (error "No input file specified"))
+  (or (file-readable-p infile)
+      (error "Input file `%s' not readable" infile))
+  (wisent--make-parser-1 infile outdir))
+
 
 (provide 'semantic/wisent/grammar)
+
+;; Local variables:
+;; generated-autoload-load-name: "semantic/wisent/grammar"
+;; End:
 
 ;;; semantic/wisent/grammar.el ends here

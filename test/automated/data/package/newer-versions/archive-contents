@@ -1,0 +1,13 @@
+(1
+ (simple-single .
+                [(1 4)
+                 nil "A single-file package with no dependencies" single])
+ (simple-depend .
+                [(1 0)
+                 ((simple-single (1 3))) "A single-file package with a dependency." single])
+ (new-pkg .
+                [(1 0)
+                 nil "A package only seen after "updating" archive-contents" single])
+ (multi-file .
+             [(0 2 3)
+              nil "Example of a multi-file tar package" tar]))

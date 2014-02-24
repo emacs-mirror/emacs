@@ -1,11 +1,11 @@
 ;;; disp-table.el --- functions for dealing with char tables
 
-;; Copyright (C) 1987, 1994-1995, 1999, 2001-2013 Free Software
+;; Copyright (C) 1987, 1994-1995, 1999, 2001-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Based on a previous version by Howard Gayle
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: i18n
 ;; Package: emacs
 
@@ -119,7 +119,7 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 (defun describe-current-display-table ()
   "Describe the display table in use in the selected window and buffer."
   (interactive)
-  (let ((disptab (or (window-display-table (selected-window))
+  (let ((disptab (or (window-display-table)
 		     buffer-display-table
 		     standard-display-table)))
     (if disptab

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 2001-2013 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 2001-2014 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Byte Compilation
 @chapter Byte Compilation
@@ -181,8 +181,8 @@ after compiling it.  Interactively, @var{load} is the prefix argument.
 
 @example
 @group
-% ls -l push*
--rw-r--r--  1 lewis     791 Oct  5 20:31 push.el
+$ ls -l push*
+-rw-r--r-- 1 lewis lewis 791 Oct  5 20:31 push.el
 @end group
 
 @group
@@ -191,9 +191,9 @@ after compiling it.  Interactively, @var{load} is the prefix argument.
 @end group
 
 @group
-% ls -l push*
--rw-r--r--  1 lewis     791 Oct  5 20:31 push.el
--rw-rw-rw-  1 lewis     638 Oct  8 20:25 push.elc
+$ ls -l push*
+-rw-r--r-- 1 lewis lewis 791 Oct  5 20:31 push.el
+-rw-rw-rw- 1 lewis lewis 638 Oct  8 20:25 push.elc
 @end group
 @end example
 @end deffn
@@ -232,7 +232,7 @@ If @var{noforce} is non-@code{nil}, this function does not recompile
 files that have an up-to-date @samp{.elc} file.
 
 @example
-% emacs -batch -f batch-byte-compile *.el
+$ emacs -batch -f batch-byte-compile *.el
 @end example
 @end defun
 
@@ -240,59 +240,49 @@ files that have an up-to-date @samp{.elc} file.
 @section Documentation Strings and Compilation
 @cindex dynamic loading of documentation
 
-  Functions and variables loaded from a byte-compiled file access their
-documentation strings dynamically from the file whenever needed.  This
-saves space within Emacs, and makes loading faster because the
-documentation strings themselves need not be processed while loading the
-file.  Actual access to the documentation strings becomes slower as a
-result, but this normally is not enough to bother users.
+  When Emacs loads functions and variables from a byte-compiled file,
+it normally does not load their documentation strings into memory.
+Each documentation string is ``dynamically'' loaded from the
+byte-compiled file only when needed.  This saves memory, and speeds up
+loading by skipping the processing of the documentation strings.
 
-  Dynamic access to documentation strings does have drawbacks:
+  This feature has a drawback: if you delete, move, or alter the
+compiled file (such as by compiling a new version), Emacs may no
+longer be able to access the documentation string of previously-loaded
+functions or variables.  Such a problem normally only occurs if you
+build Emacs yourself, and happen to edit and/or recompile the Lisp
+source files.  To solve it, just reload each file after recompilation.
 
-@itemize @bullet
-@item
-If you delete or move the compiled file after loading it, Emacs can no
-longer access the documentation strings for the functions and variables
-in the file.
-
-@item
-If you alter the compiled file (such as by compiling a new version),
-then further access to documentation strings in this file will
-probably give nonsense results.
-@end itemize
-
-@noindent
-These problems normally occur only if you build Emacs yourself and use
-it from the directory where you built it, and you happen to edit
-and/or recompile the Lisp source files.  They can be easily cured by
-reloading each file after recompiling it.
-
-@cindex @samp{#@@@var{count}}
-@cindex @samp{#$}
-  The dynamic documentation string feature writes compiled files that
-use a special Lisp reader construct, @samp{#@@@var{count}}.  This
-construct skips the next @var{count} characters.  It also uses the
-@samp{#$} construct, which stands for ``the name of this file, as a
-string''.  It is usually best not to use these constructs in Lisp source
-files, since they are not designed to be clear to humans reading the
-file.
-
-  You can disable the dynamic documentation string feature at compile
-time by setting @code{byte-compile-dynamic-docstrings} to @code{nil};
-this is useful mainly if you expect to change the file, and you want
-Emacs processes that have already loaded it to keep working when the
-file changes.  You can do this globally, or for one source file by
-specifying a file-local binding for the variable.  One way to do that
-is by adding this string to the file's first line:
-
-@example
--*-byte-compile-dynamic-docstrings: nil;-*-
-@end example
+  Dynamic loading of documentation strings from byte-compiled files is
+determined, at compile time, for each byte-compiled file.  It can be
+disabled via the option @code{byte-compile-dynamic-docstrings}.
 
 @defopt byte-compile-dynamic-docstrings
 If this is non-@code{nil}, the byte compiler generates compiled files
 that are set up for dynamic loading of documentation strings.
+
+To disable the dynamic loading feature for a specific file, set this
+option to @code{nil} in its header line (@pxref{File Variables, ,
+Local Variables in Files, emacs, The GNU Emacs Manual}), like this:
+
+@smallexample
+-*-byte-compile-dynamic-docstrings: nil;-*-
+@end smallexample
+
+This is useful mainly if you expect to change the file, and you want
+Emacs sessions that have already loaded it to keep working when the
+file changes.
 @end defopt
+
+@cindex @samp{#@@@var{count}}
+@cindex @samp{#$}
+Internally, the dynamic loading of documentation strings is
+accomplished by writing compiled files with a special Lisp reader
+construct, @samp{#@@@var{count}}.  This construct skips the next
+@var{count} characters.  It also uses the @samp{#$} construct, which
+stands for ``the name of this file, as a string''.  Do not use these
+constructs in Lisp source files; they are not designed to be clear to
+humans reading the file.
 
 @node Dynamic Loading
 @section Dynamic Loading of Individual Functions
@@ -440,29 +430,35 @@ to what @code{eval-when-compile} does.
 @section Compiler Errors
 @cindex compiler errors
 
-  Byte compilation outputs all errors and warnings into the buffer
-@file{*Compile-Log*}.  The messages include file names and line
-numbers that identify the location of the problem.  The usual Emacs
-commands for operating on compiler diagnostics work properly on these
+  Error and warning messages from byte compilation are printed in a
+buffer named @file{*Compile-Log*}.  These messages include file names
+and line numbers identifying the location of the problem.  The usual
+Emacs commands for operating on compiler output can be used on these
 messages.
 
   When an error is due to invalid syntax in the program, the byte
 compiler might get confused about the errors' exact location.  One way
-to investigate is to switch to the buffer @w{@file{ *Compiler Input*}}.
-(This buffer name starts with a space, so it does not show up in
-@kbd{M-x list-buffers}.)  This buffer contains the program being
+to investigate is to switch to the buffer @w{@file{ *Compiler
+Input*}}.  (This buffer name starts with a space, so it does not show
+up in the Buffer Menu.)  This buffer contains the program being
 compiled, and point shows how far the byte compiler was able to read;
 the cause of the error might be nearby.  @xref{Syntax Errors}, for
 some tips for locating syntax errors.
 
-  When the byte compiler warns about functions that were used but not
-defined, it always reports the line number for the end of the file,
-not the locations where the missing functions were called.  To find
-the latter, you must search for the function names.
+  A common type of warning issued by the byte compiler is for
+functions and variables that were used but not defined.  Such warnings
+report the line number for the end of the file, not the locations
+where the missing functions or variables were used; to find these, you
+must search the file manually.
 
-  You can suppress the compiler warning for calling an undefined
-function @var{func} by conditionalizing the function call on an
-@code{fboundp} test, like this:
+  If you are sure that a warning message about a missing function or
+variable is unjustified, there are several ways to suppress it:
+
+@itemize @bullet
+@item
+You can suppress the warning for a specific call to a function
+@var{func} by conditionalizing it on an @code{fboundp} test, like
+this:
 
 @example
 (if (fboundp '@var{func}) ...(@var{func} ...)...)
@@ -473,14 +469,10 @@ The call to @var{func} must be in the @var{then-form} of the
 @code{if}, and @var{func} must appear quoted in the call to
 @code{fboundp}.  (This feature operates for @code{cond} as well.)
 
-  You can tell the compiler that a function is defined using
-@code{declare-function} (@pxref{Declaring Functions}).  Likewise, you
-can tell the compiler that a variable is defined using @code{defvar}
-with no initial value.
-
-  You can suppress the compiler warning for a specific use of an
-undefined variable @var{variable} by conditionalizing its use on a
-@code{boundp} test, like this:
+@item
+Likewise, you can suppress the warning for a specific use of a
+variable @var{variable} by conditionalizing it on a @code{boundp}
+test:
 
 @example
 (if (boundp '@var{variable}) ...@var{variable}...)
@@ -491,7 +483,17 @@ The reference to @var{variable} must be in the @var{then-form} of the
 @code{if}, and @var{variable} must appear quoted in the call to
 @code{boundp}.
 
-  You can suppress any and all compiler warnings within a certain
+@item
+You can tell the compiler that a function is defined using
+@code{declare-function}. @xref{Declaring Functions}.
+
+@item
+Likewise, you can tell the compiler that a variable is defined using
+@code{defvar} with no initial value.  (Note that this marks the
+variable as special.)  @xref{Defining Variables}.
+@end itemize
+
+  You can also suppress any and all compiler warnings within a certain
 expression using the construct @code{with-no-warnings}:
 
 @c This is implemented with a defun, but conceptually it is
@@ -507,13 +509,15 @@ possible piece of code, to avoid missing possible warnings other than
 one you intend to suppress.
 @end defspec
 
-  More precise control of warnings is possible by setting the variable
-@code{byte-compile-warnings}.
+  Byte compiler warnings can be controlled more precisely by setting
+the variable @code{byte-compile-warnings}.  See its documentation
+string for details.
 
 @node Byte-Code Objects
 @section Byte-Code Function Objects
 @cindex compiled function
 @cindex byte-code function
+@cindex byte-code object
 
   Byte-compiled functions have a special data type: they are
 @dfn{byte-code function objects}.  Whenever such an object appears as
@@ -606,8 +610,9 @@ name of an existing buffer.  Then the output goes there, at point, and
 point is left before the output.
 
 The argument @var{object} can be a function name, a lambda expression
-or a byte-code object.  If it is a lambda expression, @code{disassemble}
-compiles it and disassembles the resulting compiled code.
+(@pxref{Lambda Expressions}), or a byte-code object (@pxref{Byte-Code
+Objects}).  If it is a lambda expression, @code{disassemble} compiles
+it and disassembles the resulting compiled code.
 @end deffn
 
   Here are two examples of using the @code{disassemble} function.  We

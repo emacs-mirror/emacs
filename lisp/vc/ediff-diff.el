@@ -1,6 +1,6 @@
 ;;; ediff-diff.el --- diff-related utilities
 
-;; Copyright (C) 1994-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2014 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -27,10 +27,8 @@
 
 (provide 'ediff-diff)
 
-(eval-when-compile
-  (require 'ediff-util))
-
 (require 'ediff-init)
+(require 'ediff-util)
 
 (defgroup ediff-diff nil
   "Diff related utilities."
@@ -213,7 +211,7 @@ one optional arguments, diff-number to refine.")
 ;; ediff-setup-diff-regions is called via a funcall to
 ;; ediff-setup-diff-regions-function, which can also have the value
 ;; ediff-setup-diff-regions3, which takes 4 arguments.
-(defun ediff-setup-diff-regions (file-A file-B file-C)
+(defun ediff-setup-diff-regions (file-A file-B _file-C)
   ;; looking for '-c', '-i', '-u', or 'c', 'i', 'u' among clustered non-long options
   (if (string-match "^-[ciu]\\| -[ciu]\\|\\(^\\| \\)-[^- ]+[ciu]"
 		    ediff-diff-options)
@@ -1225,7 +1223,7 @@ delimiter regions"))
 ;; like shell-command-sentinel but doesn't print an exit status message
 ;; we do this because diff always exits with status 1, if diffs are found
 ;; so shell-command-sentinel displays a confusing message to the user
-(defun ediff-process-sentinel (process signal)
+(defun ediff-process-sentinel (process _signal)
   (if (and (memq (process-status process) '(exit signal))
            (buffer-name (process-buffer process)))
       (progn

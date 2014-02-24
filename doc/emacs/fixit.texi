@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Fixit
@@ -190,7 +190,7 @@ point forward across three other characters.  It would change
 @samp{f@point{}oobar} into @samp{oobf@point{}ar}.  This is equivalent to
 repeating @kbd{C-t} three times.  @kbd{C-u - 4 M-t} moves the word
 before point backward across four words.  @kbd{C-u - C-M-t} would cancel
-the effect of plain @kbd{C-M-t}.@refill
+the effect of plain @kbd{C-M-t}.
 
   A numeric argument of zero is assigned a special meaning (because
 otherwise a command with a repeat count of zero would do nothing): to
@@ -216,7 +216,7 @@ Convert last word to lower case with capital initial.
 the word case-conversion commands @kbd{M-l}, @kbd{M-u} and @kbd{M-c} have a
 special feature when used with a negative argument: they do not move the
 cursor.  As soon as you see you have mistyped the last word, you can simply
-case-convert it and go on typing.  @xref{Case}.@refill
+case-convert it and go on typing.  @xref{Case}.
 
 @node Spelling
 @section Checking and Correcting Spelling

@@ -1,9 +1,9 @@
 ;;; thumbs.el --- Thumbnails previewer for images files
 
-;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2014 Free Software Foundation, Inc.
 
 ;; Author: Jean-Philippe Theberge <jphiltheberge@videotron.ca>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: Multimedia
 
 ;; This file is part of GNU Emacs.
@@ -57,6 +57,7 @@
 ;;; Code:
 
 (require 'dired)
+(require 'cl-lib)			; for cl-gensym
 
 ;; CUSTOMIZATIONS
 
@@ -179,21 +180,6 @@ this value can let another user see some of your images."
 (make-variable-buffer-local 'thumbs-marked-list)
 (put 'thumbs-marked-list 'permanent-local t)
 
-(defalias 'thumbs-gensym
-    (if (fboundp 'gensym)
-        'gensym
-      ;; Copied from cl-macs.el
-      (defvar thumbs-gensym-counter 0)
-      (lambda (&optional prefix)
-	"Generate a new uninterned symbol.
-The name is made by appending a number to PREFIX, default \"G\"."
-	(let ((pfix (if (stringp prefix) prefix "G"))
-	      (num (if (integerp prefix) prefix
-		     (prog1 thumbs-gensym-counter
-		       (setq thumbs-gensym-counter
-			     (1+ thumbs-gensym-counter))))))
-	  (make-symbol (format "%s%d" pfix num))))))
-
 (defsubst thumbs-temp-dir ()
   (file-name-as-directory (expand-file-name thumbs-temp-dir)))
 
@@ -202,7 +188,7 @@ The name is made by appending a number to PREFIX, default \"G\"."
   (format "%s%s-%s.jpg"
           (thumbs-temp-dir)
           thumbs-temp-prefix
-          (thumbs-gensym "T")))
+          (cl-gensym "T")))
 
 (defun thumbs-thumbsdir ()
   "Return the current thumbnails directory (from `thumbs-thumbsdir').

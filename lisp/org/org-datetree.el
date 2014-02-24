@@ -1,6 +1,6 @@
 ;;; org-datetree.el --- Create date entries in a tree
 
-;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2014 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -72,7 +72,8 @@ tree can be found."
       (goto-char (prog1 (point) (widen))))))
 
 (defun org-datetree-find-year-create (year)
-  (let ((re "^\\*+[ \t]+\\([12][0-9]\\{3\\}\\)\\(.*?\\([ \t]:[[:alnum:]:_@#%]+:\\)?\\s-*$\\)")
+  "Find the YEAR datetree or create it."
+  (let ((re "^\\*+[ \t]+\\([12][0-9]\\{3\\}\\)\\(\\s-*?\\([ \t]:[[:alnum:]:_@#%]+:\\)?\\s-*$\\)")
 	match)
     (goto-char (point-min))
     (while (and (setq match (re-search-forward re nil t))
@@ -90,6 +91,7 @@ tree can be found."
       (org-datetree-insert-line year)))))
 
 (defun org-datetree-find-month-create (year month)
+  "Find the datetree for YEAR and MONTH or create it."
   (org-narrow-to-subtree)
   (let ((re (format "^\\*+[ \t]+%d-\\([01][0-9]\\) \\w+$" year))
 	match)
@@ -109,6 +111,7 @@ tree can be found."
       (org-datetree-insert-line year month)))))
 
 (defun org-datetree-find-day-create (year month day)
+  "Find the datetree for YEAR, MONTH and DAY or create it."
   (org-narrow-to-subtree)
   (let ((re (format "^\\*+[ \t]+%d-%02d-\\([0123][0-9]\\) \\w+$" year month))
 	match)

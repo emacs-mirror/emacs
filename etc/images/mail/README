@@ -1,4 +1,4 @@
-COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
+COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES -*- coding: utf-8 -*-
 
 The following icons are from GNOME 2.x. They are not part of Emacs,
 but are distributed and used by Emacs.  They are licensed under the
@@ -25,7 +25,7 @@ save.xpm                    combines stock_mail, io/stock_save and
 send.xpm                    stock_mail-send
 spam.xpm                    stock_spam
 
-(preview and save were contributed by Adam Sjøgren <asjo@koldfront.dk>)
+(preview and save were contributed by Adam SjÃ¸gren <asjo@koldfront.dk>)
 
 repack is a slightly modified version of package-x-generic.
 reply-from is a slightly modified version of reply.

@@ -1,6 +1,6 @@
 ;;; landmark.el --- neural-network robot that learns landmarks
 
-;; Copyright (C) 1996-1997, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Terrence Brannon (was: <brannon@rana.usc.edu>)
 ;; Created: December 16, 1996 - first release to usenet
@@ -233,10 +233,8 @@
 (put 'landmark-mode 'intangible 1)
 ;; This one is for when they set view-read-only to t: Landmark cannot
 ;; allow View Mode to be activated in its buffer.
-(put 'landmark-mode 'mode-class 'special)
-
-(defun landmark-mode ()
-  "Major mode for playing Landmark against Emacs.
+(define-derived-mode landmark-mode special-mode "Lm"
+  "Major mode for playing Lm against Emacs.
 You and Emacs play in turn by marking a free square.  You mark it with X
 and Emacs marks it with O.  The winner is the first to get five contiguous
 marks horizontally, vertically or in diagonal.
@@ -247,16 +245,9 @@ Other useful commands:
 \\{landmark-mode-map}
 Entry to this mode calls the value of `landmark-mode-hook' if that value
 is non-nil.  One interesting value is `turn-on-font-lock'."
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'landmark-mode
-	mode-name "Landmark")
   (landmark-display-statistics)
-  (use-local-map landmark-mode-map)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(landmark-font-lock-keywords t)
-	buffer-read-only t)
-  (run-mode-hooks 'landmark-mode-hook))
+  (setq-local font-lock-defaults '(landmark-font-lock-keywords t))
+  (setq buffer-read-only t))
 
 
 ;;;_ +  THE SCORE TABLE.
@@ -843,13 +834,13 @@ If the game is finished, this command requests for another game."
 
 (defun landmark-max-width ()
   "Largest possible board width for the current window."
-  (1+ (/ (- (window-width (selected-window))
+  (1+ (/ (- (window-width)
 	    landmark-x-offset landmark-x-offset 1)
 	 landmark-square-width)))
 
 (defun landmark-max-height ()
   "Largest possible board height for the current window."
-  (1+ (/ (- (window-height (selected-window))
+  (1+ (/ (- (window-height)
 	    landmark-y-offset landmark-y-offset 2)
 	 ;; 2 instead of 1 because WINDOW-HEIGHT includes the mode line !
 	 landmark-square-height)))

@@ -1,6 +1,6 @@
 ;;; vc-hooks.el --- resident support for version-control
 
-;; Copyright (C) 1992-1996, 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2014 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -128,7 +128,7 @@ See also variable `vc-consult-headers'."
 This avoids slow queries over the network and instead uses heuristics
 and past information to determine the current status of a file.
 
-If value is the symbol `only-file' `vc-dir' will connect to the
+If value is the symbol `only-file', `vc-dir' will connect to the
 server, but heuristics will be used to determine the status for
 all other VC operations.
 
@@ -190,7 +190,7 @@ individually should stay local."
 (make-variable-buffer-local 'vc-mode)
 (put 'vc-mode 'permanent-local t)
 
-(defun vc-mode (&optional arg)
+(defun vc-mode (&optional _arg)
   ;; Dummy function for C-h m
   "Version Control minor mode.
 This minor mode is automatically activated whenever you visit a file under
@@ -631,7 +631,7 @@ this function."
 (define-obsolete-function-alias
   'vc-toggle-read-only 'toggle-read-only "24.1")
 
-(defun vc-default-make-version-backups-p (backend file)
+(defun vc-default-make-version-backups-p (_backend _file)
   "Return non-nil if unmodified versions should be backed up locally.
 The default is to switch off this feature."
   nil)
@@ -834,7 +834,7 @@ current, and kill the buffer that visits the link."
       (set-buffer true-buffer)
       (kill-buffer this-buffer))))
 
-(defun vc-default-find-file-hook (backend)
+(defun vc-default-find-file-hook (_backend)
   nil)
 
 (defun vc-find-file-hook ()
@@ -918,6 +918,7 @@ current, and kill the buffer that visits the link."
     (define-key map "c" 'vc-rollback)
     (define-key map "d" 'vc-dir)
     (define-key map "g" 'vc-annotate)
+    (define-key map "G" 'vc-ignore)
     (define-key map "h" 'vc-insert-headers)
     (define-key map "i" 'vc-register)
     (define-key map "l" 'vc-print-log)
@@ -1002,6 +1003,9 @@ current, and kill the buffer that visits the link."
     (bindings--define-key map [vc-register]
       '(menu-item "Register" vc-register
 		  :help "Register file set into a version control system"))
+    (bindings--define-key map [vc-ignore]
+      '(menu-item "Ignore File..." vc-ignore
+		  :help "Ignore a file under current version control system"))
     (bindings--define-key map [vc-dir]
       '(menu-item "VC Dir"  vc-dir
 		  :help "Show the VC status of files in a directory"))
@@ -1029,7 +1033,7 @@ current, and kill the buffer that visits the link."
 	      '((ext-menu-separator "--"))
               ext-binding))))
 
-(defun vc-default-extra-menu (backend)
+(defun vc-default-extra-menu (_backend)
   nil)
 
 (provide 'vc-hooks)

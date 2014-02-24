@@ -1,6 +1,6 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system
 
-;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2013 Free
+;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2014 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
@@ -1019,6 +1019,7 @@ windows in the frame are removed."
   (when delete-other-windows-flag
     (delete-other-windows)))
 
+;; FIXME: Maybe out of date?  --xfq
 (if (boundp 'customize-package-emacs-version-alist)
     (add-to-list 'customize-package-emacs-version-alist
                  '(MH-E ("6.0" . "22.1") ("6.1" . "22.1") ("7.0" . "22.1")
@@ -1354,7 +1355,7 @@ This option is consulted when a prefix argument is used with
 specified in the MH profile. This option may be used to provide
 an alternate view. For example, \"'(\"-nolimit\" \"-textfield\"
 \"subject\")\" is a useful setting."
-  :type 'string
+  :type '(repeat string)
   :group 'mh-folder
   :package-version '(MH-E . "8.0"))
 
@@ -1368,7 +1369,7 @@ being refiled and point is at the start of the message. This function
 should return the default folder as a string with a leading \"+\"
 sign. It can also return nil so that the last folder name is used as
 the default, or an empty string to suppress the default entirely."
-  :type 'function
+  :type '(choice (const nil) function)
   :group 'mh-folder-selection
   :package-version '(MH-E . "8.0"))
 

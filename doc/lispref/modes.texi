@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Modes
@@ -69,11 +69,13 @@ functions are called with arguments, or their return values are used
 in some way.  The hook's documentation says how the functions are
 called.  You can use @code{add-hook} to add a function to an abnormal
 hook, but you must write the function to follow the hook's calling
-convention.
+convention.  By convention, abnormal hook names end in @samp{-functions}.
 
-  By convention, abnormal hook names end in @samp{-functions}.  If the
-variable's name ends in @samp{-function}, then its value is just a single
-function, not a list of functions.
+@cindex single-function hook
+If the variable's name ends in @samp{-function}, then its value is
+just a single function, not a list of functions.  @code{add-hook} cannot be
+used to modify such a @emph{single function hook}, and you have to use
+@code{add-function} instead (@pxref{Advising Functions}).
 
 @menu
 * Running Hooks::    How to run a hook.
@@ -127,47 +129,6 @@ value.  Each hook function is passed the arguments @var{args}.  If this
 function stops because one of the hook functions returns a
 non-@code{nil} value, it returns that value; otherwise it returns
 @code{nil}.
-@end defun
-
-@defmac with-wrapper-hook hook args &rest body
-This macro runs the abnormal hook @code{hook} as a series of nested
-``wrapper functions'' around the @var{body} forms.  The effect is
-similar to nested @code{around} advices (@pxref{Around-Advice}).
-
-Each hook function should accept an argument list consisting of a function
-@var{fun}, followed by the additional arguments listed in @var{args}.
-The first hook function is passed a function @var{fun} that, if it is
-called with arguments @var{args}, performs @var{body} (i.e., the default
-operation).  The @var{fun} passed to each successive hook function is
-constructed from all the preceding hook functions (and @var{body}); if
-this @var{fun} is called with arguments @var{args}, it does what the
-@code{with-wrapper-hook} call would if the preceding hook functions were
-the only ones in @var{hook}.
-
-Each hook function may call its @var{fun} argument as many times as it
-wishes, including never.  In that case, such a hook function acts to
-replace the default definition altogether, and any preceding hook
-functions.  Of course, a subsequent hook function may do the same thing.
-
-Each hook function definition is used to construct the @var{fun} passed
-to the next hook function in @var{hook}, if any.  The last or
-``outermost'' @var{fun} is called once to produce the overall effect.
-
-When might you want to use a wrapper hook?  The function
-@code{filter-buffer-substring} illustrates a common case.  There is a
-basic functionality, performed by @var{body}---in this case, to extract
-a buffer-substring.  Then any number of hook functions can act in
-sequence to modify that string, before returning the final result.
-A wrapper-hook also allows for a hook function to completely replace the
-default definition (by not calling @var{fun}).
-@end defmac
-
-@defun run-hook-wrapped hook wrap-function &rest args
-This function is similar to @code{run-hook-with-args-until-success}.
-Like that function, it runs the functions on the abnormal hook
-@code{hook}, stopping at the first one that returns non-@code{nil}.
-Instead of calling the hook functions directly, though, it actually
-calls @code{wrap-function} with arguments @code{fun} and @code{args}.
 @end defun
 
 @node Setting Hooks
@@ -646,10 +607,10 @@ mode command.  The default value is @code{lisp-interaction-mode}.
 @defvar interpreter-mode-alist
 This variable specifies major modes to use for scripts that specify a
 command interpreter in a @samp{#!} line.  Its value is an alist with
-elements of the form @code{(@var{interpreter} . @var{mode})}; for
-example, @code{("perl" . perl-mode)} is one element present by
-default.  The element says to use mode @var{mode} if the file
-specifies an interpreter which matches @var{interpreter}.
+elements of the form @code{(@var{regexp} . @var{mode})}; this says to
+use mode @var{mode} if the file specifies an interpreter which matches
+@code{\\`@var{regexp}\\'}.  For example, one of the default elements
+is @code{("python[0-9.]*" . python-mode)}.
 @end defvar
 
 @defvar magic-mode-alist
@@ -1506,9 +1467,11 @@ designed for abbrevs and Auto Fill mode.  Do not try substituting your
 own definition of @code{self-insert-command} for the standard one.  The
 editor command loop handles this function specially.)
 
-The key sequences bound in a minor mode should consist of @kbd{C-c}
-followed by one of @kbd{.,/?`'"[]\|~!#$%^&*()-_+=}.  (The other
-punctuation characters are reserved for major modes.)
+Minor modes may bind commands to key sequences consisting of @kbd{C-c}
+followed by a punctuation character.  However, sequences consisting of
+@kbd{C-c} followed by one of @kbd{@{@}<>:;}, or a control character or
+digit, are reserved for major modes.  Also, @kbd{C-c @var{letter}} is
+reserved for users.  @xref{Key Binding Conventions}.
 
 @node Defining Minor Modes
 @subsection Defining Minor Modes
@@ -1683,7 +1646,7 @@ minor modes don't need any.
 This defines a global toggle named @var{global-mode} whose meaning is
 to enable or disable the buffer-local minor mode @var{mode} in all
 buffers.  To turn on the minor mode in a buffer, it uses the function
-@var{turn-on}; to turn off the minor mode, it calls @code{mode} with
+@var{turn-on}; to turn off the minor mode, it calls @var{mode} with
 @minus{}1 as argument.
 
 Globally enabling the mode also affects buffers subsequently created
@@ -1800,7 +1763,7 @@ display of the text just as they would text in the buffer.  Any
 characters which have no @code{face} properties are displayed, by
 default, in the face @code{mode-line} or @code{mode-line-inactive}
 (@pxref{Standard Faces,,, emacs, The GNU Emacs Manual}).  The
-@code{help-echo} and @code{local-map} properties in @var{string} have
+@code{help-echo} and @code{keymap} properties in @var{string} have
 special meanings.  @xref{Properties in Mode}.
 
 @item @var{symbol}
@@ -2205,7 +2168,7 @@ The value of @code{global-mode-string}.
   Certain text properties are meaningful in the
 mode line.  The @code{face} property affects the appearance of text; the
 @code{help-echo} property associates help strings with the text, and
-@code{local-map} can make the text mouse-sensitive.
+@code{keymap} can make the text mouse-sensitive.
 
   There are four ways to specify text properties for text in the mode
 line:
@@ -2229,7 +2192,7 @@ structure, and make @var{form} evaluate to a string that has a text
 property.
 @end enumerate
 
-  You can use the @code{local-map} property to specify a keymap.  This
+  You can use the @code{keymap} property to specify a keymap.  This
 keymap only takes real effect for mouse clicks; binding character keys
 and function keys to it has no effect, since it is impossible to move
 point into the mode line.
@@ -2483,7 +2446,7 @@ Selecting a special element performs:
 A nested sub-alist element looks like this:
 
 @example
-(@var{menu-title} @var{sub-alist})
+(@var{menu-title} . @var{sub-alist})
 @end example
 
 It creates the submenu @var{menu-title} specified by @var{sub-alist}.
@@ -3381,6 +3344,7 @@ of Lisp sexps and adapts it to non-Lisp languages.
 
 @node SMIE
 @subsection Simple Minded Indentation Engine
+@cindex SMIE
 
 SMIE is a package that provides a generic navigation and indentation
 engine.  Based on a very simple parser using an ``operator precedence
@@ -3548,6 +3512,8 @@ simply ignored.
 
 @node SMIE Grammar
 @subsubsection Defining the Grammar of a Language
+@cindex SMIE grammar
+@cindex grammar, SMIE
 
 The usual way to define the SMIE grammar of a language is by
 defining a new global variable that holds the precedence table by
@@ -3623,6 +3589,8 @@ formally as left associative.
 
 @node SMIE Lexer
 @subsubsection Defining Tokens
+@cindex SMIE lexer
+@cindex defining tokens, SMIE
 
 SMIE comes with a predefined lexical analyzer which uses syntax tables
 in the following way: any sequence of characters that have word or
@@ -3757,6 +3725,7 @@ surrounding text to find ad-hoc clues.
 
 @node SMIE Indentation
 @subsubsection Specifying Indentation Rules
+@cindex indentation rules, SMIE
 
 Based on the provided grammar, SMIE will be able to provide automatic
 indentation without any extra effort.  But in practice, this default

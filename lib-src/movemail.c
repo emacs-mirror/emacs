@@ -1,7 +1,7 @@
 /* movemail foo bar -- move file foo to file bar,
    locking file foo the way /bin/mail respects.
 
-Copyright (C) 1986, 1992-1994, 1996, 1999, 2001-2013 Free Software
+Copyright (C) 1986, 1992-1994, 1996, 1999, 2001-2014 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -304,24 +304,13 @@ main (int argc, char **argv)
 
 	  memcpy (tempname, inname, inname_dirlen);
 	  strcpy (tempname + inname_dirlen, "EXXXXXX");
-#ifdef HAVE_MKSTEMP
-	  desc = mkstemp (tempname);
-#else
-	  mktemp (tempname);
-	  if (!*tempname)
-	    desc = -1;
-	  else
-	    {
-	      unlink (tempname);
-	      desc = open (tempname, O_WRONLY | O_CREAT | O_EXCL, 0600);
-	    }
-#endif
+	  desc = mkostemp (tempname, 0);
 	  if (desc < 0)
 	    {
-	      int mkstemp_errno = errno;
+	      int mkostemp_errno = errno;
 	      error ("error while creating what would become the lock file",
 		     0, 0);
-	      errno = mkstemp_errno;
+	      errno = mkostemp_errno;
 	      pfatal_with_name (tempname);
 	    }
 	  close (desc);
@@ -380,13 +369,9 @@ main (int argc, char **argv)
       if (indesc < 0)
 	pfatal_with_name (inname);
 
-#ifdef BSD_SYSTEM
-      /* In case movemail is setuid to root, make sure the user can
-	 read the output file.  */
-      /* This is desirable for all systems
-	 but I don't want to assume all have the umask system call */
-      umask (umask (0) & 0333);
-#endif /* BSD_SYSTEM */
+      /* Make sure the user can read the output file.  */
+      umask (umask (0) & 0377);
+
       outdesc = open (outname, O_WRONLY | O_CREAT | O_EXCL, 0666);
       if (outdesc < 0)
 	pfatal_with_name (outname);
@@ -470,10 +455,8 @@ main (int argc, char **argv)
 	  }
       }
 
-#ifdef BSD_SYSTEM
-      if (fsync (outdesc) < 0)
+      if (fsync (outdesc) != 0 && errno != EINVAL)
 	pfatal_and_delete (outname);
-#endif
 
       /* Prevent symlink attacks truncating other users' mailboxes */
       if (setregid (-1, real_gid) < 0)
@@ -754,21 +737,14 @@ popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse
 	}
     }
 
-  /* On AFS, a call to write only modifies the file in the local
-   *     workstation's AFS cache.  The changes are not written to the server
-   *      until a call to fsync or close is made.  Users with AFS home
-   *      directories have lost mail when over quota because these checks were
-   *      not made in previous versions of movemail. */
-
-#ifdef BSD_SYSTEM
-  if (fsync (mbfi) < 0)
+  if (fsync (mbfi) != 0 && errno != EINVAL)
     {
       error ("Error in fsync: %s", strerror (errno), 0);
+      close (mbfi);
       return EXIT_FAILURE;
     }
-#endif
 
-  if (close (mbfi) == -1)
+  if (close (mbfi) != 0)
     {
       error ("Error in close: %s", strerror (errno), 0);
       return EXIT_FAILURE;

@@ -1,6 +1,6 @@
 * COPYRIGHT
 
-Copyright (C) 2001-2013 Free Software Foundation, Inc.
+Copyright (C) 2001-2014 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 * Changes in MH-E 8.5
@@ -14,7 +14,7 @@ Version 8.5 fixes bugs when incorporating or forwarding mail.
 The function `mh-rmail' now switches to `+inbox' as expected (closes
 SF #271).
 
-*** Problem forwarding a messsage
+*** Problem forwarding a message
 
 Forwarding messages resulted in the error: `(wrong-type-argument
 number-or-marker-p nil).' This has been fixed by setting the mail
@@ -1005,7 +1005,7 @@ Renamed from `mh-speedbar-selected-folder-face' per new Emacs conventions.
 *** mh-speedbar-selected-folder-with-unseen-messages
 
 Renamed from `mh-speedbar-selected-folder-with-unseen-messages-face'
-per new Emacs conventions. 
+per new Emacs conventions.
 
 
 
@@ -1118,7 +1118,7 @@ Emacs conventions.
 
 *** Face Variable Names Now Follow Current Conventions
 
-The -face suffix has been dropped from all face names. 
+The -face suffix has been dropped from all face names.
 
 *** Swish Fixes
 
@@ -3205,7 +3205,7 @@ current folder.
 *** New function `mh-version' displays version information about MH
 and mh-e. Please use the output in bug reports.
 
-*** `mh-quit' now burys the folder buffer and show buffer.
+*** `mh-quit' now buries the folder buffer and show buffer.
 
 
 ** New hooks and customization variables in mh-e 4.0
@@ -3379,4 +3379,3 @@ Local variables:
 mode: outline
 paragraph-separate: "[ 	]*$"
 end:
-

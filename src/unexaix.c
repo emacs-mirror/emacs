@@ -1,5 +1,5 @@
 /* Dump an executable image.
-   Copyright (C) 1985-1988, 1999, 2001-2013 Free Software Foundation,
+   Copyright (C) 1985-1988, 1999, 2001-2014 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -42,6 +42,7 @@ what you give them.   Help stamp out software-hoarding!  */
 
 #include <config.h>
 #include "unexec.h"
+#include "lisp.h"
 
 #define PERROR(file) report_error (file, new)
 #include <a.out.h>
@@ -93,13 +94,10 @@ static int pagemask;
 static _Noreturn void
 report_error (const char *file, int fd)
 {
+  int err = errno;
   if (fd)
-    {
-      int failed_errno = errno;
-      close (fd);
-      errno = failed_errno;
-    }
-  report_file_error ("Cannot unexec", Fcons (build_string (file), Qnil));
+    emacs_close (fd);
+  report_file_errno ("Cannot unexec", build_string (file), err);
 }
 
 #define ERROR0(msg) report_error_1 (new, msg)
@@ -110,7 +108,7 @@ static _Noreturn void ATTRIBUTE_FORMAT_PRINTF (2, 3)
 report_error_1 (int fd, const char *msg, ...)
 {
   va_list ap;
-  close (fd);
+  emacs_close (fd);
   va_start (ap, msg);
   verror (msg, ap);
   va_end (ap);
@@ -132,11 +130,11 @@ unexec (const char *new_name, const char *a_name)
 {
   int new = -1, a_out = -1;
 
-  if (a_name && (a_out = open (a_name, O_RDONLY)) < 0)
+  if (a_name && (a_out = emacs_open (a_name, O_RDONLY, 0)) < 0)
     {
       PERROR (a_name);
     }
-  if ((new = creat (new_name, 0666)) < 0)
+  if ((new = emacs_open (new_name, O_WRONLY | O_CREAT | O_TRUNC, 0666)) < 0)
     {
       PERROR (new_name);
     }
@@ -147,13 +145,13 @@ unexec (const char *new_name, const char *a_name)
       || adjust_lnnoptrs (new, a_out, new_name) < 0
       || unrelocate_symbols (new, a_out, a_name, new_name) < 0)
     {
-      close (new);
+      emacs_close (new);
       return;
     }
 
-  close (new);
+  emacs_close (new);
   if (a_out >= 0)
-    close (a_out);
+    emacs_close (a_out);
   mark_x (new_name);
 }
 
@@ -503,7 +501,7 @@ adjust_lnnoptrs (int writedesc, int readdesc, const char *new_name)
   if (!lnnoptr || !f_hdr.f_symptr)
     return 0;
 
-  if ((new = open (new_name, O_RDWR)) < 0)
+  if ((new = emacs_open (new_name, O_RDWR, 0)) < 0)
     {
       PERROR (new_name);
       return -1;
@@ -533,7 +531,7 @@ adjust_lnnoptrs (int writedesc, int readdesc, const char *new_name)
             }
 	}
     }
-  close (new);
+  emacs_close (new);
 
   return 0;
 }

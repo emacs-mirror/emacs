@@ -1,6 +1,6 @@
 ;;; vc-arch.el --- VC backend for the Arch version-control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2014 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -227,6 +227,10 @@ Only the value `maybe' can be trusted :-(."
 	  (vc-file-setprop
 	   file 'arch-root root)))))
 
+(defun vc-arch-find-admin-dir (file)
+  "Return the administrative directory of FILE."
+  (expand-file-name "{arch}" (vc-arch-root file)))
+
 (defun vc-arch-register (files &optional rev _comment)
   (if rev (error "Explicit initial revision not supported for Arch"))
   (dolist (file files)
@@ -311,6 +315,9 @@ Only the value `maybe' can be trusted :-(."
 		    'up-to-date
 		  'edited)))))))))
 
+;; -dir-status called from vc-dir, which loads vc, which loads vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+
 (defun vc-arch-dir-status (dir callback)
   "Run 'tla inventory' for DIR and pass results to CALLBACK.
 CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
@@ -318,8 +325,8 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
   (let ((default-directory dir))
     (vc-arch-command t 'async nil "changes"))
   ;; The updating could be done asynchronously.
-  (vc-exec-after
-   `(vc-arch-after-dir-status ',callback)))
+  (vc-run-delayed
+   (vc-arch-after-dir-status callback)))
 
 (defun vc-arch-after-dir-status (callback)
   (let* ((state-map '(("M " . edited)
@@ -431,6 +438,8 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 	      (message "There are unresolved conflicts in this file")))
 	(message "There are unresolved conflicts in %s"
 		 (file-name-nondirectory rej))))))
+
+(autoload 'vc-switches "vc")
 
 (defun vc-arch-checkin (files rev comment)
   (if rev (error "Committing to a specific revision is unsupported"))

@@ -1,5 +1,5 @@
 /* Shared GDI and Uniscribe Font backend declarations for the Windows API.
-   Copyright (C) 2007-2013 Free Software Foundation, Inc.
+   Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -63,16 +63,16 @@ struct w32font_info
 
 #define CACHE_BLOCKSIZE 128
 
-Lisp_Object w32font_get_cache (FRAME_PTR fe);
-Lisp_Object w32font_list_internal (Lisp_Object frame,
+Lisp_Object w32font_get_cache (struct frame *fe);
+Lisp_Object w32font_list_internal (struct frame *f,
                                    Lisp_Object font_spec,
                                    int opentype_only);
-Lisp_Object w32font_match_internal (Lisp_Object frame,
+Lisp_Object w32font_match_internal (struct frame *f,
                                     Lisp_Object font_spec,
                                     int opentype_only);
-int w32font_open_internal (FRAME_PTR f, Lisp_Object font_entity,
+int w32font_open_internal (struct frame *f, Lisp_Object font_entity,
                            int pixel_size, Lisp_Object font_object);
-void w32font_close (FRAME_PTR f, struct font *font);
+void w32font_close (struct font *font);
 int w32font_has_char (Lisp_Object entity, int c);
 int w32font_text_extents (struct font *font, unsigned *code, int nglyphs,
                           struct font_metrics *metrics);

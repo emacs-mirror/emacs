@@ -1,6 +1,6 @@
 ;;; pcmpl-linux.el --- functions for dealing with GNU/Linux completions
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Package: pcomplete
 
@@ -31,9 +31,10 @@
 
 (require 'pcomplete)
 
-(defgroup pcmpl-linux nil
-  "Functions for dealing with GNU/Linux completions."
-  :group 'pcomplete)
+;; Unused.
+;;; (defgroup pcmpl-linux nil
+;;;   "Functions for dealing with GNU/Linux completions."
+;;;   :group 'pcomplete)
 
 ;; Functions:
 

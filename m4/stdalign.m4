@@ -1,6 +1,6 @@
 # Check for stdalign.h that conforms to C11.
 
-dnl Copyright 2011-2013 Free Software Foundation, Inc.
+dnl Copyright 2011-2014 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -31,10 +31,12 @@ AC_DEFUN([gl_STDALIGN_H],
 
             /* Test _Alignas only on platforms where gnulib can help.  */
             #if \
-                (__GNUC__ || __IBMC__ || __IBMCPP__ \
+                ((defined __cplusplus && 201103 <= __cplusplus) \
+                 || __GNUC__ || __IBMC__ || __IBMCPP__ || __ICC \
                  || 0x5110 <= __SUNPRO_C || 1300 <= _MSC_VER)
-              int alignas (8) alignas_int = 1;
-              char test_alignas[_Alignof (alignas_int) == 8 ? 1 : -1];
+              struct alignas_test { char c; char alignas (8) alignas_8; };
+              char test_alignas[offsetof (struct alignas_test, alignas_8) == 8
+                                ? 1 : -1];
             #endif
           ]])],
        [gl_cv_header_working_stdalign_h=yes],

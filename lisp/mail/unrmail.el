@@ -1,8 +1,8 @@
 ;;; unrmail.el --- convert Rmail Babyl files to mbox files
 
-;; Copyright (C) 1992, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2014 Free Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -52,12 +52,12 @@ Therefore any lines in the message bodies that start with \"From \"
 must be quoted.  The `mboxo' format just prepends a \">\" to such lines.
 This is not reversible, because given a line starting with \">From \" in
 an mboxo file, it is not possible to know whether the original had a \">\"
-or not.  The `mxbord' format avoids this by also quoting \">From \" as
+or not.  The `mboxrd' format avoids this by also quoting \">From \" as
 \">>From \", and so on.  For this reason, mboxrd is recommended.
 
 See also `rmail-mbox-format'."
   :type '(choice (const mboxrd)
-		 (const mboxro))
+		 (const mboxo))
   :version "24.4"
   :group 'rmail-files)
 
@@ -94,11 +94,9 @@ The variable `unrmail-mbox-format' controls which mbox format to use."
 	      ;; earlier versions did that with the current buffer's encoding.
 	      ;; So we want to favor detection of emacs-mule (whose normal
 	      ;; priority is quite low), but still allow detection of other
-	      ;; encodings if emacs-mule won't fit.  The call to
-	      ;; detect-coding-with-priority below achieves that.
-	      (car (detect-coding-with-priority
-		    from to
-		    '((coding-category-emacs-mule . emacs-mule))))))
+	      ;; encodings if emacs-mule won't fit.
+	      (car (with-coding-priority '(emacs-mule)
+		     (detect-coding-region from to)))))
       (unless (memq coding-system
 		    '(undecided undecided-unix))
 	(set-buffer-modified-p t)	; avoid locking when decoding

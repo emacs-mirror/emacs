@@ -4,7 +4,7 @@
 ;; Created: Fri Mar 26 1999
 ;; Keywords: unix
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -53,7 +53,7 @@
   "Internal variable.")
 
 (defconst find-lisp-line-indent "  "
-  "Indentation for dired file lines.")
+  "Indentation for Dired file lines.")
 
 (defvar find-lisp-file-predicate nil
   "Predicate for choosing to include files.")
@@ -280,7 +280,7 @@ It is a function which takes two arguments, the directory and its parent."
 
 ;;;###autoload
 (defun find-lisp-find-dired-filter (regexp)
-  "Change the filter on a find-lisp-find-dired buffer to REGEXP."
+  "Change the filter on a `find-lisp-find-dired' buffer to REGEXP."
   (interactive "sSet filter to regexp: ")
   (setq find-lisp-regexp regexp)
   (revert-buffer))

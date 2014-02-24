@@ -1,6 +1,6 @@
 ;;; vc.el --- drive a version-control system from within Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1998, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1998, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -115,10 +115,10 @@
 ;;   Return non-nil if FILE is registered in this backend.  Both this
 ;;   function as well as `state' should be careful to fail gracefully
 ;;   in the event that the backend executable is absent.  It is
-;;   preferable that this function's body is autoloaded, that way only
+;;   preferable that this function's *body* is autoloaded, that way only
 ;;   calling vc-registered does not cause the backend to be loaded
 ;;   (all the vc-FOO-registered functions are called to try to find
-;;   the controlling backend for FILE.
+;;   the controlling backend for FILE).
 ;;
 ;; * state (file)
 ;;
@@ -233,6 +233,7 @@
 ;;   The implementation should pass the value of vc-register-switches
 ;;   to the backend command.  (Note: in older versions of VC, this
 ;;   command took a single file argument and not a list.)
+;;   The REV argument is a historical leftover and is never used.
 ;;
 ;; - init-revision (file)
 ;;
@@ -346,6 +347,10 @@
 ;;
 ;;   Mark conflicts as resolved.  Some VC systems need to run a
 ;;   command to mark conflicts as resolved.
+;;
+;; - find-admin-dir (file)
+;;
+;;   Return the administrative directory of FILE.
 
 ;; HISTORY FUNCTIONS
 ;;
@@ -356,9 +361,11 @@
 ;;   If LIMIT is true insert only insert LIMIT log entries.  If the
 ;;   backend does not support limiting the number of entries to show
 ;;   it should return `limit-unsupported'.
-;;   If START-REVISION is given, then show the log starting from the
-;;   revision.  At this point START-REVISION is only required to work
-;;   in conjunction with LIMIT = 1.
+;;   If START-REVISION is given, then show the log starting from that
+;;   revision ("starting" in the sense of it being the _newest_
+;;   revision shown, rather than the working revision, which is normally
+;;   the case).  Not all backends support this.  At present, this is
+;;   only ever used with LIMIT = 1 (by vc-annotate-show-log-revision-at-line).
 ;;
 ;; * log-outgoing (backend remote-location)
 ;;
@@ -483,6 +490,7 @@
 ;;   default implementation always returns nil.
 ;;
 ;; - root (file)
+;;
 ;;   Return the root of the VC controlled hierarchy for file.
 ;;
 ;; - repository-hostname (dirname)
@@ -492,6 +500,21 @@
 ;;   is nil, it means that the repository is local.
 ;;   This function is used in `vc-stay-local-p' which backends can use
 ;;   for their convenience.
+;;
+;; - ignore (file &optional directory)
+;;
+;;   Ignore FILE under the VCS of DIRECTORY (default is `default-directory').
+;;   FILE is a file wildcard.
+;;   When called interactively and with a prefix argument, remove FILE
+;;   from ignored files.
+;;   When called from Lisp code, if DIRECTORY is non-nil, the
+;;   repository to use will be deduced by DIRECTORY.
+;;
+;; - ignore-completion-table
+;;
+;;   Return the completion table for files ignored by the current
+;;   version control system, e.g., the entries in `.gitignore' and
+;;   `.bzrignore'.
 ;;
 ;; - previous-revision (file rev)
 ;;
@@ -572,9 +595,6 @@
 ;;;; New Primitives:
 ;;
 ;; - deal with push/pull operations.
-;;
-;; - add a mechanism for editing the underlying VCS's list of files
-;;   to be ignored, when that's possible.
 ;;
 ;;;; Primitives that need changing:
 ;;
@@ -734,13 +754,6 @@ not specific to any particular backend."
 		 (repeat :tag "Argument List" :value ("") string))
   :group 'vc
   :version "21.1")
-
-(defcustom vc-diff-knows-L nil
-  "Indicates whether diff understands the -L option.
-The value is either `yes', `no', or nil.  If it is nil, VC tries
-to use -L and sets this variable to remember whether it worked."
-  :type '(choice (const :tag "Work out" nil) (const yes) (const no))
-  :group 'vc)
 
 (defcustom vc-log-show-limit 2000
   "Limit the number of items shown by the VC log commands.
@@ -949,7 +962,8 @@ Within directories, only files already under version control are noticed."
   "Deduce a set of files and a backend to which to apply an operation.
 Return (BACKEND FILESET FILESET-ONLY-FILES STATE CHECKOUT-MODEL).
 
-If we're in VC-dir mode, FILESET is the list of marked files.
+If we're in VC-dir mode, FILESET is the list of marked files,
+or the directory if no files are marked.
 Otherwise, if in a buffer visiting a version-controlled file,
 FILESET is a single-file fileset containing that file.
 Otherwise, if ALLOW-UNREGISTERED is non-nil and the visited file
@@ -997,7 +1011,7 @@ current buffer."
 		nil)
 	(list (vc-backend-for-registration (buffer-file-name))
 	      (list buffer-file-name))))
-     (t (error "No fileset is available here")))))
+     (t (error "File is not under version control")))))
 
 (defun vc-dired-deduce-fileset ()
   (let ((backend (vc-responsible-backend default-directory)))
@@ -1038,6 +1052,11 @@ current buffer."
   (or
    (eq p q)
    (and (member p '(edited added removed)) (member q '(edited added removed)))))
+
+(defun vc-read-backend (prompt)
+  (intern
+   (completing-read prompt (mapcar 'symbol-name vc-handled-backends)
+                    nil 'require-match)))
 
 ;; Here's the major entry point.
 
@@ -1097,8 +1116,9 @@ For old-style locking-based version control systems, like RCS:
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-update)))
       (cond
        (verbose
-	;; go to a different revision
+	;; Go to a different revision.
 	(let* ((revision
+                ;; FIXME: Provide completion.
                 (read-string "Branch, revision, or backend to move to: "))
                (revision-downcase (downcase revision)))
 	  (if (member
@@ -1159,15 +1179,10 @@ For old-style locking-based version control systems, like RCS:
 	    (message "No files remain to be committed")
 	  (if (not verbose)
 	      (vc-checkin ready-for-commit backend)
-	    (let* ((revision (read-string "New revision or backend: "))
-                   (revision-downcase (downcase revision)))
-	      (if (member
-		   revision-downcase
-		   (mapcar (lambda (arg) (downcase (symbol-name arg)))
-			   vc-handled-backends))
-		  (let ((vsym (intern revision-downcase)))
-		    (dolist (file files) (vc-transfer-file file vsym)))
-		(vc-checkin ready-for-commit backend revision)))))))
+            (let ((new-backend (vc-read-backend "New backend: ")))
+	      (if new-backend
+                  (dolist (file files)
+                    (vc-transfer-file file new-backend))))))))
      ;; locked by somebody else (locking VCSes only)
      ((stringp state)
       ;; In the old days, we computed the revision once and used it on
@@ -1328,6 +1343,79 @@ first backend that could register the file is used."
   (let ((vc-handled-backends (list backend)))
     (call-interactively 'vc-register)))
 
+(defun vc-ignore (file &optional directory remove)
+  "Ignore FILE under the VCS of DIRECTORY.
+
+Normally, FILE is a wildcard specification that matches the files
+to be ignored.  When REMOVE is non-nil, remove FILE from the list
+of ignored files.
+
+DIRECTORY defaults to `default-directory' and is used to
+determine the responsible VC backend.
+
+When called interactively, prompt for a FILE to ignore, unless a
+prefix argument is given, in which case prompt for a file FILE to
+remove from the list of ignored files."
+  (interactive
+   (list
+    (if (not current-prefix-arg)
+        (read-file-name "File to ignore: ")
+      (completing-read
+       "File to remove: "
+       (vc-call-backend
+        (or (vc-responsible-backend default-directory)
+            (error "Unknown backend"))
+        'ignore-completion-table default-directory)))
+    nil current-prefix-arg))
+  (let* ((directory (or directory default-directory))
+	 (backend (or (vc-responsible-backend default-directory)
+                      (error "Unknown backend"))))
+    (vc-call-backend backend 'ignore file directory remove)))
+
+(defun vc-default-ignore (backend file &optional directory remove)
+  "Ignore FILE under the VCS of DIRECTORY (default is `default-directory').
+FILE is a file wildcard, relative to the root directory of DIRECTORY.
+When called from Lisp code, if DIRECTORY is non-nil, the
+repository to use will be deduced by DIRECTORY; if REMOVE is
+non-nil, remove FILE from ignored files.
+Argument BACKEND is the backend you are using."
+  (let ((ignore
+	 (vc-call-backend backend 'find-ignore-file (or directory default-directory)))
+	(pattern (file-relative-name
+		  (expand-file-name file) (file-name-directory file))))
+    (if remove
+	(vc--remove-regexp pattern ignore)
+      (vc--add-line pattern ignore))))
+
+(defun vc-default-ignore-completion-table (backend file)
+  "Return the list of ignored files under BACKEND."
+  (vc--read-lines
+   (vc-call-backend backend 'find-ignore-file file)))
+
+(defun vc--read-lines (file)
+  "Return a list of lines of FILE."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (split-string (buffer-string) "\n" t)))
+
+;; Subroutine for `vc-git-ignore' and `vc-hg-ignore'.
+(defun vc--add-line (string file)
+  "Add STRING as a line to FILE."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (unless (re-search-forward (concat "^" (regexp-quote string) "$") nil t)
+      (goto-char (point-max))
+      (insert (concat "\n" string))
+      (write-region (point-min) (point-max) file))))
+
+(defun vc--remove-regexp (regexp file)
+  "Remove all matching for REGEXP in FILE."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (while (re-search-forward regexp nil t)
+      (replace-match ""))
+    (write-region (point-min) (point-max) file)))
+
 (defun vc-checkout (file &optional writable rev)
   "Retrieve a copy of the revision REV of FILE.
 If WRITABLE is non-nil, make sure the retrieved file is writable.
@@ -1456,11 +1544,11 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
 ;;   (vc-file-tree-walk
 ;;    default-directory
 ;;    (lambda (f)
-;;      (vc-exec-after
-;;       `(let ((coding-system-for-read (vc-coding-system-for-diff ',f)))
-;;          (message "Looking at %s" ',f)
-;;          (vc-call-backend ',(vc-backend f)
-;;                           'diff (list ',f) ',rev1 ',rev2))))))
+;;      (vc-run-delayed
+;;       (let ((coding-system-for-read (vc-coding-system-for-diff f)))
+;;          (message "Looking at %s" f)
+;;          (vc-call-backend (vc-backend f)
+;;                           'diff (list f) rev1 rev2))))))
 
 (defvar vc-coding-system-inherit-eol t
   "When non-nil, inherit the EOL format for reading Diff output from the file.
@@ -1563,6 +1651,13 @@ Return t if the buffer had changes, nil otherwise."
 	 ;; be to call the back end separately for each file.
 	 (coding-system-for-read
 	  (if files (vc-coding-system-for-diff (car files)) 'undecided)))
+    ;; On MS-Windows and MS-DOS, Diff is likely to produce DOS-style
+    ;; EOLs, which will look ugly if (car files) happens to have Unix
+    ;; EOLs.
+    (if (memq system-type '(windows-nt ms-dos))
+	(setq coding-system-for-read
+	      (coding-system-change-eol-conversion coding-system-for-read
+						   'dos)))
     (vc-setup-buffer buffer)
     (message "%s" (car messages))
     ;; Many backends don't handle well the case of a file that has been
@@ -1598,8 +1693,8 @@ Return t if the buffer had changes, nil otherwise."
     (diff-mode)
     (set (make-local-variable 'diff-vc-backend) (car vc-fileset))
     (set (make-local-variable 'revert-buffer-function)
-	 `(lambda (ignore-auto noconfirm)
-	    (vc-diff-internal ,async ',vc-fileset ,rev1 ,rev2 ,verbose)))
+	 (lambda (_ignore-auto _noconfirm)
+           (vc-diff-internal async vc-fileset rev1 rev2 verbose)))
     ;; Make the *vc-diff* buffer read only, the diff-mode key
     ;; bindings are nicer for read only buffers. pcl-cvs does the
     ;; same thing.
@@ -1615,8 +1710,8 @@ Return t if the buffer had changes, nil otherwise."
       ;; The diff process may finish early, so call `vc-diff-finish'
       ;; after `pop-to-buffer'; the former assumes the diff buffer is
       ;; shown in some window.
-      (vc-exec-after `(vc-diff-finish ,(current-buffer)
-				      ',(when verbose messages)))
+      (let ((buf (current-buffer)))
+        (vc-run-delayed (vc-diff-finish buf (when verbose messages))))
       ;; In the async case, we return t even if there are no differences
       ;; because we don't know that yet.
       t)))
@@ -1654,13 +1749,12 @@ Return t if the buffer had changes, nil otherwise."
      ;; if the file is not up-to-date, use working revision as older revision
      ((not (vc-up-to-date-p first))
       (setq rev1-default (vc-working-revision first)))
-     ;; if the file is not locked, use last and previous revisions as defaults
+     ;; if the file is not locked, use last revision and current source as defaults
      (t
       (setq rev1-default (ignore-errors ;If `previous-revision' doesn't work.
                            (vc-call-backend backend 'previous-revision first
                                             (vc-working-revision first))))
-      (when (string= rev1-default "") (setq rev1-default nil))
-      (setq rev2-default (vc-working-revision first))))
+      (when (string= rev1-default "") (setq rev1-default nil))))
     ;; construct argument list
     (let* ((rev1-prompt (if rev1-default
                             (concat "Older revision (default "
@@ -2084,6 +2178,11 @@ Not all VC backends support short logs!")
 (defvar log-view-vc-fileset)
 
 (defun vc-print-log-setup-buttons (working-revision is-start-revision limit pl-return)
+  "Insert at the end of the current buffer buttons to show more log entries.
+In the new log, leave point at WORKING-REVISION (if non-nil).
+LIMIT is the number of entries currently shown.
+Does nothing if IS-START-REVISION is non-nil, or if LIMIT is nil,
+or if PL-RETURN is 'limit-unsupported."
   (when (and limit (not (eq 'limit-unsupported pl-return))
 	     (not is-start-revision))
     (goto-char (point-max))
@@ -2104,6 +2203,14 @@ Not all VC backends support short logs!")
 
 (defun vc-print-log-internal (backend files working-revision
                                       &optional is-start-revision limit)
+  "For specified BACKEND and FILES, show the VC log.
+Leave point at WORKING-REVISION, if it is non-nil.
+If IS-START-REVISION is non-nil, start the log from WORKING-REVISION
+\(not all backends support this); i.e., show only WORKING-REVISION and
+earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
+  ;; As of 2013/04 the only thing that passes IS-START-REVISION non-nil
+  ;; is vc-annotate-show-log-revision-at-line, which sets LIMIT = 1.
+
   ;; Don't switch to the output buffer before running the command,
   ;; so that any buffer-local settings in the vc-controlled
   ;; buffer can be accessed by the command.
@@ -2137,6 +2244,7 @@ Not all VC backends support short logs!")
 (defvar vc-log-view-type nil
   "Set this to differentiate the different types of logs.")
 (put 'vc-log-view-type 'permanent-local t)
+(defvar vc-sentinel-movepoint)
 
 (defun vc-log-internal-common (backend
 			       buffer-name
@@ -2159,13 +2267,13 @@ Not all VC backends support short logs!")
       (set (make-local-variable 'log-view-vc-fileset) files)
       (set (make-local-variable 'revert-buffer-function)
 	   rev-buff-func))
-    (vc-exec-after
-     `(let ((inhibit-read-only t))
-	(funcall ',setup-buttons-func ',backend ',files ',retval)
-	(shrink-window-if-larger-than-buffer)
-	(funcall ',goto-location-func ',backend)
-	(setq vc-sentinel-movepoint (point))
-	(set-buffer-modified-p nil)))))
+    (vc-run-delayed
+     (let ((inhibit-read-only t))
+       (funcall setup-buttons-func backend files retval)
+       (shrink-window-if-larger-than-buffer)
+       (funcall goto-location-func backend)
+       (setq vc-sentinel-movepoint (point))
+       (set-buffer-modified-p nil)))))
 
 (defun vc-incoming-outgoing-internal (backend remote-location buffer-name type)
   (vc-log-internal-common
@@ -2189,7 +2297,7 @@ WORKING-REVISION and LIMIT."
   (interactive
    (cond
     (current-prefix-arg
-     (let ((rev (read-from-minibuffer "Log from revision (default: last revision): " nil
+     (let ((rev (read-from-minibuffer "Leave point at revision (default: last revision): " nil
 				      nil nil nil))
 	   (lim (string-to-number
 		 (read-from-minibuffer
@@ -2204,7 +2312,8 @@ WORKING-REVISION and LIMIT."
   (let* ((vc-fileset (vc-deduce-fileset t)) ;FIXME: Why t? --Stef
 	 (backend (car vc-fileset))
 	 (files (cadr vc-fileset))
-	 (working-revision (or working-revision (vc-working-revision (car files)))))
+;;	 (working-revision (or working-revision (vc-working-revision (car files))))
+         )
     (vc-print-log-internal backend files working-revision nil limit)))
 
 ;;;###autoload
@@ -2232,16 +2341,16 @@ When called interactively with a prefix argument, prompt for LIMIT."
 	(setq rootdir (vc-call-backend backend 'root default-directory))
       (setq rootdir (read-directory-name "Directory for VC root-log: "))
       (setq backend (vc-responsible-backend rootdir))
-      (if backend
-	  (setq default-directory rootdir)
-	(error "Directory is not version controlled")))
-    (setq working-revision (vc-working-revision rootdir))
+      (unless backend
+        (error "Directory is not version controlled")))
+    (setq working-revision (vc-working-revision rootdir)
+          default-directory rootdir)
     (vc-print-log-internal backend (list rootdir) working-revision nil limit)))
 
 ;;;###autoload
 (defun vc-log-incoming (&optional remote-location)
   "Show a log of changes that will be received with a pull operation from REMOTE-LOCATION.
-When called interactively with a prefix argument, prompt for REMOTE-LOCATION.."
+When called interactively with a prefix argument, prompt for REMOTE-LOCATION."
   (interactive
    (when current-prefix-arg
      (list (read-string "Remote location (empty for default): "))))

@@ -1251,7 +1251,7 @@
 
 1999-11-02  Dave Love  <fx@gnu.org>
 
-	* gnu-linux.h: Use SIGCHLD, not SIGCLD (not in glibc 2.1).
+	* s/gnu-linux.h: Use SIGCHLD, not SIGCLD (not in glibc 2.1).
 
 	* process.c: Define _GNU_SOURCE before config.h to get strsignal
 	declared with glibc2.
@@ -1575,10 +1575,10 @@
 	then use strsignal istead of sys_siglist.
 	* w32proc.c (sys_wait): Likewise.
 
-	* s/aix3-1.h, s/bsd4-1.h, s/dgux.h, s/gnu-linux.h, s/hiuxmpp.h,
-	s/hpux.h, s/iris3-5.h, s/iris3-6.h, s/irix3-3.h, s/osf1.h, s/rtu.h,
-	s/sunos4-1.h, s/unipl5-0.h, s/unipl5-2.h, s/usg5-0.h, s/usg5-2-2.h,
-	s/usg5-2.h, s/usg5-3.h, s/xenix.h:
+	* s/aix3-1.h, s/bsd4-1.h, s/dgux.h, s/gnu-linux.h, s/hiuxmpp.h:
+	* s/hpux.h, s/iris3-5.h, s/iris3-6.h, s/irix3-3.h, s/osf1.h, s/rtu.h:
+	* s/sunos4-1.h, s/unipl5-0.h, s/unipl5-2.h, s/usg5-0.h, s/usg5-2-2.h:
+	* s/usg5-2.h, s/usg5-3.h, s/xenix.h:
 	(open, close, read, write, INTERRUPTIBLE_OPEN)
 	(INTERRUPTIBLE_CLOSE, INTERRUPTIBLE_IO): Remove.
 
@@ -1809,7 +1809,7 @@
 
 1999-10-07  Jeffrey C Honig  <jch@bsdi.com>
 
-	* bsdos4.h [HAVE_LIBNCURSES]: Define TERMINFO and LIBS_TERMCAP.
+	* s/bsdos4.h [HAVE_LIBNCURSES]: Define TERMINFO and LIBS_TERMCAP.
 
 1999-10-07  Richard M. Stallman  <rms@gnu.org>
 
@@ -2742,7 +2742,7 @@
 	(PARSE_MULTIBYTE_SEQ): Make it work also for ASCII string.
 	(STRING_CHAR_AND_CHAR_LENGTH): This macro removed.
 
-	* charset.c : Lots of comments fixed.
+	* charset.c: Lots of comments fixed.
 	(SPLIT_MULTIBYTE_SEQ): Make it work also for ASCII string.
 	(CHAR_COMPONENTS_VALID_P): Name changed from
 	CHAR_COMPONENT_VALID_P.  Caller changed.
@@ -3112,7 +3112,7 @@
 
 1999-08-30  Gerd Moellmann  <gerd@gnu.org>
 
-	* freebsd.h (C_SWITCH_SYSTEM): Added to let configure find headers
+	* s/freebsd.h (C_SWITCH_SYSTEM): Added to let configure find headers
 	in /usr/X11R6/include which are checked for with AC_CHECK_HEADER.
 
 1999-08-30  Gerd Moellmann  <gerd@gnu.org>
@@ -3478,10 +3478,10 @@
 
 1999-08-21  Dave Love  <fx@gnu.org>
 
-	* aix3-2-5.h (C_DEBUG_SWITCH): Use -g -O.
-	* aix4-1.h: Likewise.
+	* s/aix3-2-5.h (C_DEBUG_SWITCH): Use -g -O.
+	* s/aix4-1.h: Likewise.
 
-	* irix6-5.h (C_DEBUG_SWITCH): Set for debug and optimize.
+	* s/irix6-5.h (C_DEBUG_SWITCH): Set for debug and optimize.
 
 1999-08-20  Gerd Moellmann  <gerd@gnu.org>
 
@@ -6618,7 +6618,7 @@
 	an iterator.
 	(globally): Add function prototypes from 20.2.97.
 
-	* everywhere: Use P_ instead of PROTO for function prototypes
+	* Everywhere: Use P_ instead of PROTO for function prototypes
 	because everyone else seems to use P_.
 
 	* dispextern.h (struct text_pos): Structure describing a charpos/
@@ -10893,7 +10893,7 @@
 	(MATRIX_ROW_INVERSE_P): Former MATRIX_ROW_HIGHLIGHT_P.
 	(struct glyph_row): HIGHLIGHT_P -> INVERSE_P
 
-	* all files: Use above new names.
+	* All files: Use above new names.
 
 	* dispnew.c (scroll_frame_lines): Simplified.  Use
 	SCROLL_GLYPH_MATRIX.
@@ -13979,7 +13979,7 @@
 
 See ChangeLog.7 for earlier changes.
 
-  Copyright (C) 1999, 2001-2013 Free Software Foundation, Inc.
+  Copyright (C) 1999, 2001-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

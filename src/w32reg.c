@@ -1,5 +1,5 @@
 /* Emulate the X Resource Manager through the registry.
-   Copyright (C) 1990, 1993-1994, 2001-2013 Free Software Foundation,
+   Copyright (C) 1990, 1993-1994, 2001-2014 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -56,7 +56,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 */
 
 static char *
-w32_get_rdb_resource (char *rdb, char *resource)
+w32_get_rdb_resource (char *rdb, const char *resource)
 {
   char *value = rdb;
   int len = strlen (resource);
@@ -74,7 +74,7 @@ w32_get_rdb_resource (char *rdb, char *resource)
 }
 
 static LPBYTE
-w32_get_string_resource (char *name, char *class, DWORD dwexptype)
+w32_get_string_resource (const char *name, const char *class, DWORD dwexptype)
 {
   LPBYTE lpvalue = NULL;
   HKEY hrootkey = NULL;
@@ -92,7 +92,7 @@ w32_get_string_resource (char *name, char *class, DWORD dwexptype)
 
   if (RegOpenKeyEx (hive, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
     {
-      char *keyname;
+      const char *keyname;
 
       if (RegQueryValueEx (hrootkey, name, NULL, &dwType, NULL, &cbData) == ERROR_SUCCESS
 	  && dwType == dwexptype)
@@ -141,7 +141,7 @@ w32_get_string_resource (char *name, char *class, DWORD dwexptype)
    database RDB. */
 
 char *
-x_get_string_resource (XrmDatabase rdb, char *name, char *class)
+x_get_string_resource (XrmDatabase rdb, const char *name, const char *class)
 {
   if (rdb)
     {

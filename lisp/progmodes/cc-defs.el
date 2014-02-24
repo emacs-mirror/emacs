@@ -1,6 +1,6 @@
 ;;; cc-defs.el --- compile time definitions for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2014 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -48,16 +48,12 @@
 
 ;; Silence the compiler.
 (cc-bytecomp-defvar c-enable-xemacs-performance-kludge-p) ; In cc-vars.el
-(cc-bytecomp-defun buffer-syntactic-context-depth) ; XEmacs
 (cc-bytecomp-defun region-active-p)	; XEmacs
-(cc-bytecomp-defvar zmacs-region-stays)	; XEmacs
-(cc-bytecomp-defvar zmacs-regions)	; XEmacs
 (cc-bytecomp-defvar mark-active)	; Emacs
 (cc-bytecomp-defvar deactivate-mark)	; Emacs
 (cc-bytecomp-defvar inhibit-point-motion-hooks) ; Emacs
 (cc-bytecomp-defvar parse-sexp-lookup-properties) ; Emacs
 (cc-bytecomp-defvar text-property-default-nonsticky) ; Emacs 21
-(cc-bytecomp-defvar lookup-syntax-properties) ; XEmacs
 (cc-bytecomp-defun string-to-syntax)	; Emacs 21
 
 
@@ -93,7 +89,7 @@
 
 ;;; Variables also used at compile time.
 
-(defconst c-version "5.32.4"
+(defconst c-version "5.32.5"
   "CC Mode version number.")
 
 (defconst c-version-sym (intern c-version))
@@ -334,6 +330,8 @@ to it is returned.  This function does not modify the point or the mark."
 (defmacro c-region-is-active-p ()
   ;; Return t when the region is active.  The determination of region
   ;; activeness is different in both Emacs and XEmacs.
+  ;; FIXME? Emacs has region-active-p since 23.1, so maybe this test
+  ;; should be updated.
   (if (cc-bytecomp-boundp 'mark-active)
       ;; Emacs.
       'mark-active
@@ -343,7 +341,7 @@ to it is returned.  This function does not modify the point or the mark."
 (defmacro c-set-region-active (activate)
   ;; Activate the region if ACTIVE is non-nil, deactivate it
   ;; otherwise.  Covers the differences between Emacs and XEmacs.
-  (if (cc-bytecomp-fboundp 'zmacs-activate-region)
+  (if (fboundp 'zmacs-activate-region)
       ;; XEmacs.
       `(if ,activate
 	   (zmacs-activate-region)
@@ -375,6 +373,13 @@ to it is returned.  This function does not modify the point or the mark."
   (if (fboundp 'int-to-char)
       `(int-to-char ,integer)
     integer))
+
+(defmacro c-last-command-char ()
+  ;; The last character just typed.  Note that `last-command-event' exists in
+  ;; both Emacs and XEmacs, but with confusingly different meanings.
+  (if (featurep 'xemacs)
+      'last-command-char
+    'last-command-event))
 
 (defmacro c-sentence-end ()
   ;; Get the regular expression `sentence-end'.
@@ -700,9 +705,9 @@ be after it."
   ;; `c-parse-state'.
 
   `(progn
-     (if (and ,(cc-bytecomp-fboundp 'buffer-syntactic-context-depth)
+     (if (and ,(fboundp 'buffer-syntactic-context-depth)
 	      c-enable-xemacs-performance-kludge-p)
-	 ,(when (cc-bytecomp-fboundp 'buffer-syntactic-context-depth)
+	 ,(when (fboundp 'buffer-syntactic-context-depth)
 	    ;; XEmacs only.  This can improve the performance of
 	    ;; c-parse-state to between 3 and 60 times faster when
 	    ;; braces are hung.  It can also degrade performance by
@@ -1132,7 +1137,7 @@ been put there by c-put-char-property.  POINT remains unchanged."
 ;; Make edebug understand the macros.
 ;(eval-after-load "edebug" ; 2006-07-09: def-edebug-spec is now in subr.el.
 ;  '(progn
-(def-edebug-spec cc-eval-when-compile t)
+(def-edebug-spec cc-eval-when-compile (&rest def-form))
 (def-edebug-spec c-point t)
 (def-edebug-spec c-set-region-active t)
 (def-edebug-spec c-safe t)
@@ -1288,10 +1293,14 @@ been put there by c-put-char-property.  POINT remains unchanged."
   ;; suppressed.
   `(unwind-protect
        (c-save-buffer-state ()
-	 (c-clear-cpp-delimiters ,beg ,end)
+	 (save-restriction
+	   (widen)
+	   (c-clear-cpp-delimiters ,beg ,end))
 	 ,`(c-with-cpps-commented-out ,@forms))
      (c-save-buffer-state ()
-       (c-set-cpp-delimiters ,beg ,end))))
+       (save-restriction
+	 (widen)
+	 (c-set-cpp-delimiters ,beg ,end)))))
 
 (defsubst c-intersect-lists (list alist)
   ;; return the element of ALIST that matches the first element found
@@ -1599,7 +1608,7 @@ non-nil, a caret is prepended to invert the set."
     (let ((buf (generate-new-buffer " test"))
 	  parse-sexp-lookup-properties
 	  parse-sexp-ignore-comments
-	  lookup-syntax-properties)
+	  lookup-syntax-properties)	; XEmacs
       (with-current-buffer buf
 	(set-syntax-table (make-syntax-table))
 
@@ -2210,7 +2219,7 @@ quoted."
 		     ;;(message (concat "Loading %s to get the source "
 		     ;;			"value for language constant %s")
 		     ;;		file name)
-		     (load file))
+		     (load file nil t))
 
 		   (unless (setq assignment-entry (cdar file-entry))
 		     ;; The load didn't fill in the source for the

@@ -1,6 +1,6 @@
 /* Function for handling the GLib event loop.
 
-Copyright (C) 2009-2013 Free Software Foundation, Inc.
+Copyright (C) 2009-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,24 +15,26 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http§://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
 #include "xgselect.h"
 
-#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
+#ifdef HAVE_GLIB
 
 #include <glib.h>
 #include <errno.h>
-#include "xterm.h"
+#include <timespec.h>
+#include "frame.h"
 
 int
-xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
-	   EMACS_TIME *timeout, sigset_t *sigmask)
+xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
+	   struct timespec const *timeout, sigset_t const *sigmask)
 {
-  SELECT_TYPE all_rfds, all_wfds;
-  EMACS_TIME tmo, *tmop = timeout;
+  fd_set all_rfds, all_wfds;
+  struct timespec tmo;
+  struct timespec const *tmop = timeout;
 
   GMainContext *context;
   int have_wfds = wfds != NULL;
@@ -43,9 +45,13 @@ xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   int i, nfds, tmo_in_millisec;
   USE_SAFE_ALLOCA;
 
-  if (! (x_in_use
-	 && g_main_context_pending (context = g_main_context_default ())))
-    return pselect (fds_lim, rfds, wfds, efds, timeout, sigmask);
+  /* Do not try to optimize with an initial check with g_main_context_pending
+     and a call to pselect if it returns false.  If Gdk has a timeout for 0.01
+     second, and Emacs has a timeout for 1 second, g_main_context_pending will
+     return false, but the timeout will be 1 second, thus missing the gdk
+     timeout with a lot.  */
+
+  context = g_main_context_default ();
 
   if (rfds) all_rfds = *rfds;
   else FD_ZERO (&all_rfds);
@@ -81,9 +87,9 @@ xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 
   if (tmo_in_millisec >= 0)
     {
-      tmo = make_emacs_time (tmo_in_millisec / 1000,
-			     1000 * 1000 * (tmo_in_millisec % 1000));
-      if (!timeout || EMACS_TIME_LT (tmo, *timeout))
+      tmo = make_timespec (tmo_in_millisec / 1000,
+			   1000 * 1000 * (tmo_in_millisec % 1000));
+      if (!timeout || timespec_cmp (tmo, *timeout) < 0)
 	tmop = &tmo;
     }
 
@@ -118,25 +124,21 @@ xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
         }
     }
 
-  if (our_fds > 0 || (nfds == 0 && tmop == &tmo))
-    {
-
-      /* If Gtk+ is in use eventually gtk_main_iteration will be called,
-         unless retval is zero.  */
+  /* If Gtk+ is in use eventually gtk_main_iteration will be called,
+     unless retval is zero.  */
 #ifdef USE_GTK
-      if (retval == 0)
+  if (retval == 0)
 #endif
-        while (g_main_context_pending (context))
-          g_main_context_dispatch (context);
+    while (g_main_context_pending (context))
+      g_main_context_dispatch (context);
 
-      /* To not have to recalculate timeout, return like this.  */
-      if (retval == 0)
-        {
-          retval = -1;
-          errno = EINTR;
-        }
+  /* To not have to recalculate timeout, return like this.  */
+  if ((our_fds > 0 || (nfds == 0 && tmop == &tmo)) && (retval == 0))
+    {
+      retval = -1;
+      errno = EINTR;
     }
 
   return retval;
 }
-#endif /* USE_GTK || HAVE_GCONF || HAVE_GSETTINGS */
+#endif /* HAVE_GLIB */

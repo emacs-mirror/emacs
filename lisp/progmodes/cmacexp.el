@@ -1,9 +1,9 @@
 ;;; cmacexp.el --- expand C macros in a region
 
-;; Copyright (C) 1992, 1994, 1996, 2000-2013 Free Software Foundation,
+;; Copyright (C) 1992, 1994, 1996, 2000-2014 Free Software Foundation,
 ;; Inc.
 
-;; Author: Francesco Potorti` <pot@gnu.org>
+;; Author: Francesco Potortì <pot@gnu.org>
 ;; Adapted-By: ESR
 ;; Keywords: c
 
@@ -70,7 +70,7 @@
 ;; BUG REPORTS =======================================================
 
 ;; Please report bugs, suggestions, complaints and so on to
-;; pot@gnu.org (Francesco Potorti`).
+;; bug-gnu-emacs@gnu.org and pot@gnu.org (Francesco Potortì).
 
 ;; IMPROVEMENTS OVER emacs 18.xx cmacexp.el ==========================
 
@@ -404,3 +404,7 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
       (kill-buffer outbuf))))
 
 ;;; cmacexp.el ends here
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

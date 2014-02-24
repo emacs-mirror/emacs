@@ -1,6 +1,6 @@
 ;;; pulse.el --- Pulsing Overlays
 
-;;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
+;;; Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 ;; Version: 1.0
@@ -180,7 +180,7 @@ Be sure to call `pulse-reset-face' after calling pulse."
 
 (defun pulse-momentary-highlight-overlay (o &optional face)
   "Pulse the overlay O, unhighlighting before next command.
-Optional argument FACE specifies the fact to do the highlighting."
+Optional argument FACE specifies the face to do the highlighting."
   (overlay-put o 'original-face (overlay-get o 'face))
   (add-to-list 'pulse-momentary-overlay o)
   (if (eq pulse-flag 'never)
@@ -237,7 +237,7 @@ Optional argument FACE specifies the face to do the highlighting."
 
 (defun pulse-momentary-highlight-region (start end &optional face)
   "Highlight between START and END, unhighlighting before next command.
-Optional argument FACE specifies the fact to do the highlighting."
+Optional argument FACE specifies the face to do the highlighting."
   (let ((o (make-overlay start end)))
     ;; Mark it for deletion
     (overlay-put o 'pulse-delete t)

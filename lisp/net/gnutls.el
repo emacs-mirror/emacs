@@ -1,6 +1,6 @@
 ;;; gnutls.el --- Support SSL/TLS connections through GnuTLS
 
-;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: comm, tls, ssl, encryption
@@ -35,7 +35,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 
 (defgroup gnutls nil
   "Emacs interface to the GnuTLS library."
@@ -50,6 +50,20 @@ set this variable to \"normal:-dhe-rsa\"."
   :group 'gnutls
   :type '(choice (const nil)
                  string))
+
+(defcustom gnutls-verify-error nil
+  "If non-nil, this should be a list of checks per hostname regex or t."
+  :group 'gnutls
+  :version "24.4"
+  :type '(choice
+          (const t)
+          (repeat :tag "List of hostname regexps with flags for each"
+           (list
+            (choice :tag "Hostname"
+                    (const ".*" :tag "Any hostname")
+                    regexp)
+            (set (const :trustfiles)
+                 (const :hostname))))))
 
 (defcustom gnutls-trustfiles
   '(
@@ -111,14 +125,11 @@ trust and key files, and priority string."
                     :type 'gnutls-x509pki
                     :hostname host))
 
-(put 'gnutls-error
-     'error-conditions
-     '(error gnutls-error))
-(put 'gnutls-error
-     'error-message "GnuTLS error")
+(define-error 'gnutls-error "GnuTLS error")
 
 (declare-function gnutls-boot "gnutls.c" (proc type proplist))
 (declare-function gnutls-errorp "gnutls.c" (error))
+(defvar gnutls-log-level)               ; gnutls.c
 
 (cl-defun gnutls-negotiate
     (&rest spec
@@ -141,19 +152,25 @@ MIN-PRIME-BITS is the minimum acceptable size of Diffie-Hellman keys
 \(see `gnutls-min-prime-bits' for more information).  Use nil for the
 default.
 
-When VERIFY-HOSTNAME-ERROR is not nil, an error will be raised
-when the hostname does not match the presented certificate's host
-name.  The exact verification algorithm is a basic implementation
-of the matching described in RFC2818 (HTTPS), which takes into
-account wildcards, and the DNSName/IPAddress subject alternative
-name PKIX extension.  See GnuTLS' gnutls_x509_crt_check_hostname
-for details.  When VERIFY-HOSTNAME-ERROR is nil, only a warning
-will be issued.
+VERIFY-HOSTNAME-ERROR is a backwards compatibility option for
+putting `:hostname' in VERIFY-ERROR.
 
-When VERIFY-ERROR is not nil, an error will be raised when the
-peer certificate verification fails as per GnuTLS'
-gnutls_certificate_verify_peers2.  Otherwise, only warnings will
-be shown about the verification failure.
+When VERIFY-ERROR is t or a list containing `:trustfiles', an
+error will be raised when the peer certificate verification fails
+as per GnuTLS' gnutls_certificate_verify_peers2.  Otherwise, only
+warnings will be shown about the verification failure.
+
+When VERIFY-ERROR is t or a list containing `:hostname', an error
+will be raised when the hostname does not match the presented
+certificate's host name.  The exact verification algorithm is a
+basic implementation of the matching described in
+RFC2818 (HTTPS), which takes into account wildcards, and the
+DNSName/IPAddress subject alternative name PKIX extension.  See
+GnuTLS' gnutls_x509_crt_check_hostname for details.  Otherwise,
+only a warning will be issued.
+
+Note that the list in `gnutls-verify-error', matched against the
+HOSTNAME, is the default VERIFY-ERROR.
 
 VERIFY-FLAGS is a numeric OR of verification flags only for
 `gnutls-x509pki' connections.  See GnuTLS' x509.h for details;
@@ -186,8 +203,28 @@ defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
                                 (if gnutls-algorithm-priority
                                     (upcase gnutls-algorithm-priority)
                                   "NORMAL")))))
+         (verify-error (or verify-error
+                           ;; this uses the value of `gnutls-verify-error'
+                           (cond
+                            ;; if t, pass it on
+                            ((eq gnutls-verify-error t)
+                             t)
+                            ;; if a list, look for hostname matches
+                            ((listp gnutls-verify-error)
+                             (cl-mapcan
+                              (lambda (check)
+                                (when (string-match (car check) hostname)
+                                  (cdr check)))
+                              gnutls-verify-error))
+                            ;; else it's nil
+                            (t nil))))
          (min-prime-bits (or min-prime-bits gnutls-min-prime-bits))
-         (params `(:priority ,priority-string
+         params ret)
+
+    (when verify-hostname-error
+      (push :hostname verify-error))
+
+    (setq params `(:priority ,priority-string
                              :hostname ,hostname
                              :loglevel ,gnutls-log-level
                              :min-prime-bits ,min-prime-bits
@@ -196,9 +233,7 @@ defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
                              :keylist ,keylist
                              :verify-flags ,verify-flags
                              :verify-error ,verify-error
-                             :verify-hostname-error ,verify-hostname-error
                              :callbacks nil))
-         ret)
 
     (gnutls-message-maybe
      (setq ret (gnutls-boot process type params))

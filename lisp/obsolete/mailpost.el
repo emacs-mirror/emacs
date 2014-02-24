@@ -6,7 +6,7 @@
 ;; This file is part of GNU Emacs.
 
 ;; Author: Gary Delp <delp@huey.Udel.Edu>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 13 Jan 1986
 ;; Keywords: mail
 ;; Obsolete-since: 24.3

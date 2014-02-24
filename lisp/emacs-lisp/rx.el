@@ -1,9 +1,9 @@
 ;;; rx.el --- sexp notation for regular expressions
 
-;; Copyright (C) 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: strings, regexps, extensions
 
 ;; This file is part of GNU Emacs.
@@ -258,7 +258,8 @@ regular expressions.")
     (not-at-end-of-line		. ?<)
     (not-at-beginning-of-line	. ?>)
     (alpha-numeric-two-byte	. ?A)
-    (chinse-two-byte		. ?C)
+    (chinese-two-byte		. ?C)
+    (chinse-two-byte		. ?C) ;; A typo in Emacs 21.1-24.3.
     (greek-two-byte		. ?G)
     (japanese-hiragana-two-byte . ?H)
     (indian-two-byte		. ?I)
@@ -871,7 +872,7 @@ NO-GROUP non-nil means don't put shy groups around the result."
 REGEXPS is a non-empty sequence of forms of the sort listed below.
 
 Note that `rx' is a Lisp macro; when used in a Lisp program being
- compiled, the translation is performed by the compiler.
+compiled, the translation is performed by the compiler.
 See `rx-to-string' for how to do such a translation at run-time.
 
 The following are valid subforms of regular expressions in sexp
@@ -1045,7 +1046,7 @@ CHAR
      `not-at-end-of-line'		(\\c<)
      `not-at-beginning-of-line'		(\\c>)
      `alpha-numeric-two-byte'		(\\cA)
-     `chinse-two-byte'			(\\cC)
+     `chinese-two-byte'			(\\cC)
      `greek-two-byte'			(\\cG)
      `japanese-hiragana-two-byte'	(\\cH)
      `indian-tow-byte'			(\\cI)

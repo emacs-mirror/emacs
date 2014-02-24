@@ -1,5 +1,5 @@
 /* Declarations for `malloc' and friends.
-   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013 Free
+   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2014 Free
    Software Foundation, Inc.
 		  Written May 1989 by Mike Haertel.
 
@@ -58,6 +58,7 @@ extern void free (void *ptr);
 
 /* Allocate SIZE bytes allocated to ALIGNMENT bytes.  */
 #ifdef MSDOS
+extern void *aligned_alloc (size_t, size_t);
 extern void *memalign (size_t, size_t);
 extern int posix_memalign (void **, size_t, size_t);
 #endif
@@ -143,11 +144,11 @@ struct list
 /* Free list headers for each fragment size.  */
 extern struct list _fraghead[];
 
-/* List of blocks allocated with `memalign' (or `valloc').  */
+/* List of blocks allocated with aligned_alloc and friends.  */
 struct alignlist
   {
     struct alignlist *next;
-    void *aligned;		/* The address that memaligned returned.  */
+    void *aligned;		/* The address that aligned_alloc returned.  */
     void *exact;		/* The address that malloc returned.  */
   };
 extern struct alignlist *_aligned_blocks;
@@ -977,7 +978,7 @@ License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 /* Debugging hook for free.  */
 void (*__free_hook) (void *__ptr);
 
-/* List of blocks allocated by memalign.  */
+/* List of blocks allocated by aligned_alloc.  */
 struct alignlist *_aligned_blocks = NULL;
 
 /* Return memory to the heap.
@@ -1306,8 +1307,8 @@ special_realloc (void *ptr, size_t size)
     type == 0 ? bss_sbrk_heapinfo[block].busy.info.size * BLOCKSIZE
     : (size_t) 1 << type;
   result = _malloc_internal_nolock (size);
-  if (result != NULL)
-    memcpy (result, ptr, min (oldsize, size));
+  if (result)
+    return memcpy (result, ptr, min (oldsize, size));
   return result;
 }
 #endif
@@ -1487,13 +1488,20 @@ License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 /* Allocate an array of NMEMB elements each SIZE bytes long.
    The entire array is initialized to zeros.  */
 void *
-calloc (register size_t nmemb, register size_t size)
+calloc (size_t nmemb, size_t size)
 {
-  register void *result = malloc (nmemb * size);
+  void *result;
+  size_t bytes = nmemb * size;
 
-  if (result != NULL)
-    (void) memset (result, 0, nmemb * size);
+  if (size != 0 && bytes / size != nmemb)
+    {
+      errno = ENOMEM;
+      return NULL;
+    }
 
+  result = malloc (bytes);
+  if (result)
+    return memset (result, 0, bytes);
   return result;
 }
 /* Copyright (C) 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
@@ -1559,7 +1567,7 @@ License along with this library.  If not, see <http://www.gnu.org/licenses/>.  *
 void *(*__memalign_hook) (size_t size, size_t alignment);
 
 void *
-memalign (size_t alignment, size_t size)
+aligned_alloc (size_t alignment, size_t size)
 {
   void *result;
   size_t adj, lastadj;
@@ -1570,6 +1578,11 @@ memalign (size_t alignment, size_t size)
 
   /* Allocate a block with enough extra space to pad the block with up to
      (ALIGNMENT - 1) bytes if necessary.  */
+  if (- size < alignment)
+    {
+      errno = ENOMEM;
+      return NULL;
+    }
   result = malloc (size + alignment - 1);
   if (result == NULL)
     return NULL;
@@ -1631,6 +1644,15 @@ memalign (size_t alignment, size_t size)
   return result;
 }
 
+/* An obsolete alias for aligned_alloc, for any old libraries that use
+   this alias.  */
+
+void *
+memalign (size_t alignment, size_t size)
+{
+  return aligned_alloc (alignment, size);
+}
+
 int
 posix_memalign (void **memptr, size_t alignment, size_t size)
 {
@@ -1641,7 +1663,7 @@ posix_memalign (void **memptr, size_t alignment, size_t size)
       || (alignment & (alignment - 1)) != 0)
     return EINVAL;
 
-  mem = memalign (alignment, size);
+  mem = aligned_alloc (alignment, size);
   if (mem == NULL)
     return ENOMEM;
 
@@ -1686,7 +1708,7 @@ valloc (size_t size)
   if (pagesize == 0)
     pagesize = getpagesize ();
 
-  return memalign (pagesize, size);
+  return aligned_alloc (pagesize, size);
 }
 
 #ifdef GC_MCHECK
@@ -1792,8 +1814,7 @@ mallochook (size_t size)
   hdr->size = size;
   hdr->magic = MAGICWORD;
   ((char *) &hdr[1])[size] = MAGICBYTE;
-  memset (hdr + 1, MALLOCFLOOD, size);
-  return hdr + 1;
+  return memset (hdr + 1, MALLOCFLOOD, size);
 }
 
 static void *

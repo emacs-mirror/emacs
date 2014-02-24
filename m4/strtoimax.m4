@@ -1,5 +1,5 @@
-# strtoimax.m4 serial 13
-dnl Copyright (C) 2002-2004, 2006, 2009-2013 Free Software Foundation, Inc.
+# strtoimax.m4 serial 14
+dnl Copyright (C) 2002-2004, 2006, 2009-2014 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -15,7 +15,7 @@ AC_DEFUN([gl_FUNC_STRTOIMAX],
     HAVE_DECL_STRTOIMAX=0
   fi
 
-  if test $ac_cv_func_strtoimax = yes; then
+  if test "$ac_cv_func_strtoimax" = yes; then
     HAVE_STRTOIMAX=1
     dnl On AIX 5.1, strtoimax() fails for values outside the 'int' range.
     AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
@@ -72,6 +72,10 @@ int main ()
       *no) REPLACE_STRTOIMAX=1 ;;
     esac
   else
+    if test "$ac_cv_have_decl_strtoimax" = yes; then
+      # HP-UX 11.11 has "#define strtoimax(...) ..." but no function.
+      REPLACE_STRTOIMAX=1
+    fi
     HAVE_STRTOIMAX=0
   fi
 ])

@@ -1,6 +1,6 @@
 ;;; checkdoc.el --- check documentation strings for style requirements
 
-;; Copyright (C) 1997-1998, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.6.2
@@ -186,7 +186,6 @@
 (defcustom checkdoc-minor-mode-string " CDoc"
   "String to display in mode line when Checkdoc mode is enabled; nil for none."
   :type '(choice string (const :tag "None" nil))
-  :group 'checkdoc
   :version "23.1")
 
 (defcustom checkdoc-autofix-flag 'semiautomatic
@@ -197,7 +196,6 @@ made without asking unless the change is very-complex.  If the value
 is `semiautomatic' or any other value, then simple fixes are made
 without asking, and complex changes are made by asking the user first.
 The value `never' is the same as nil, never ask or change anything."
-  :group 'checkdoc
   :type '(choice (const automatic)
           (const query)
           (const never)
@@ -207,7 +205,6 @@ The value `never' is the same as nil, never ask or change anything."
   "Non-nil means to \"bounce\" to auto-fix locations.
 Setting this to nil will silently make fixes that require no user
 interaction.  See `checkdoc-autofix-flag' for auto-fixing details."
-  :group 'checkdoc
   :type 'boolean)
 
 (defcustom checkdoc-force-docstrings-flag t
@@ -215,16 +212,14 @@ interaction.  See `checkdoc-autofix-flag' for auto-fixing details."
 Style guide dictates that interactive functions MUST have documentation,
 and that it's good but not required practice to make non user visible items
 have doc strings."
-  :group 'checkdoc
   :type 'boolean)
-;;;###autoload(put 'checkdoc-force-docstrings-flag 'safe-local-variable 'booleanp)
+;;;###autoload(put 'checkdoc-force-docstrings-flag 'safe-local-variable #'booleanp)
 
 (defcustom checkdoc-force-history-flag nil
   "Non-nil means that files should have a History section or ChangeLog file.
 This helps document the evolution of, and recent changes to, the package."
-  :group 'checkdoc
   :type 'boolean)
-;;;###autoload(put 'checkdoc-force-history-flag 'safe-local-variable 'booleanp)
+;;;###autoload(put 'checkdoc-force-history-flag 'safe-local-variable #'booleanp)
 
 (defcustom checkdoc-permit-comma-termination-flag nil
   "Non-nil means the first line of a docstring may end with a comma.
@@ -232,9 +227,8 @@ Ordinarily, a full sentence is required.  This may be misleading when
 there is a substantial caveat to the one-line description -- the comma
 should be used when the first part could stand alone as a sentence, but
 it indicates that a modifying clause follows."
-  :group 'checkdoc
   :type 'boolean)
-;;;###autoload(put 'checkdoc-permit-comma-termination-flag 'safe-local-variable 'booleanp)
+;;;###autoload(put 'checkdoc-permit-comma-termination-flag 'safe-local-variable #'booleanp)
 
 (defcustom checkdoc-spellcheck-documentation-flag nil
   "Non-nil means run Ispell on text based on value.
@@ -246,22 +240,22 @@ system.  Possible values are:
   buffer      - Spell-check when style checking the whole buffer
   interactive - Spell-check during any interactive check.
   t           - Always spell-check"
-  :group 'checkdoc
   :type '(choice (const nil)
           (const defun)
           (const buffer)
           (const interactive)
           (const t)))
+;;;###autoload(put 'checkdoc-spellcheck-documentation-flag 'safe-local-variable #'booleanp)
 
 (defvar checkdoc-ispell-lisp-words
   '("alist" "emacs" "etags" "keymap" "paren" "regexp" "sexp" "xemacs")
   "List of words that are correct when spell-checking Lisp documentation.")
+;;;###autoload(put 'checkdoc-ispell-list-words 'safe-local-variable #'checkdoc-list-of-strings-p)
 
 (defcustom checkdoc-max-keyref-before-warn 10
   "The number of \\ [command-to-keystroke] tokens allowed in a doc string.
 Any more than this and a warning is generated suggesting that the construct
 \\ {keymap} be used instead."
-  :group 'checkdoc
   :type 'integer)
 
 (defcustom checkdoc-arguments-in-order-flag t
@@ -270,9 +264,8 @@ Setting this to nil will mean only checking that all the arguments
 appear in the proper form in the documentation, not that they are in
 the same order as they appear in the argument list.  No mention is
 made in the style guide relating to order."
-  :group 'checkdoc
   :type 'boolean)
-;;;###autoload(put 'checkdoc-arguments-in-order-flag 'safe-local-variable 'booleanp)
+;;;###autoload(put 'checkdoc-arguments-in-order-flag 'safe-local-variable #'booleanp)
 
 (define-obsolete-variable-alias 'checkdoc-style-hooks
   'checkdoc-style-functions "24.3")
@@ -305,8 +298,8 @@ A search leaves the cursor in front of the parameter list.")
   "Non-nil means to attempt to check the voice of the doc string.
 This check keys off some words which are commonly misused.  See the
 variable `checkdoc-common-verbs-wrong-voice' if you wish to add your own."
-  :group 'checkdoc
   :type 'boolean)
+;;;###autoload(put 'checkdoc-verb-check-experimental-flag 'safe-local-variable #'booleanp)
 
 (defvar checkdoc-generate-compile-warnings-flag nil
   "Non-nil means generate warnings in a buffer for browsing.
@@ -317,16 +310,15 @@ with a universal argument.")
   "A list of symbol names (strings) which also happen to make good words.
 These words are ignored when unquoted symbols are searched for.
 This should be set in an Emacs Lisp file's local variables."
-  :group 'checkdoc
   :type '(repeat (symbol :tag "Word")))
-;;;###autoload(put 'checkdoc-symbol-words 'safe-local-variable 'checkdoc-list-of-strings-p)
+;;;###autoload(put 'checkdoc-symbol-words 'safe-local-variable #'checkdoc-list-of-strings-p)
 
 ;;;###autoload
 (defun checkdoc-list-of-strings-p (obj)
   ;; this is a function so it might be shared by checkdoc-proper-noun-list
   ;; and/or checkdoc-ispell-lisp-words in the future
   (and (listp obj)
-       (not (memq nil (mapcar 'stringp obj)))))
+       (not (memq nil (mapcar #'stringp obj)))))
 
 (defvar checkdoc-proper-noun-list
   '("ispell" "xemacs" "emacs" "lisp")
@@ -340,9 +332,11 @@ This should be set in an Emacs Lisp file's local variables."
 	  (regexp-opt checkdoc-proper-noun-list t)
 	  "\\(\\_>\\|[.!?][ \t\n\"]\\)")
   "Regular expression derived from `checkdoc-proper-noun-regexp'.")
+;;;###autoload(put 'checkdoc-proper-noun-regexp 'safe-local-variable 'stringp)
 
 (defvar checkdoc-common-verbs-regexp nil
   "Regular expression derived from `checkdoc-common-verbs-regexp'.")
+;;;###autoload(put 'checkdoc-common-verbs-regexp 'safe-local-variable 'stringp)
 
 (defvar checkdoc-common-verbs-wrong-voice
   '(("adds" . "add")
@@ -443,19 +437,19 @@ be re-created.")
 ;;; Compatibility
 ;;
 (defalias 'checkdoc-make-overlay
-  (if (featurep 'xemacs) 'make-extent 'make-overlay))
+  (if (featurep 'xemacs) #'make-extent #'make-overlay))
 (defalias 'checkdoc-overlay-put
-  (if (featurep 'xemacs) 'set-extent-property 'overlay-put))
+  (if (featurep 'xemacs) #'set-extent-property #'overlay-put))
 (defalias 'checkdoc-delete-overlay
-  (if (featurep 'xemacs) 'delete-extent 'delete-overlay))
+  (if (featurep 'xemacs) #'delete-extent #'delete-overlay))
 (defalias 'checkdoc-overlay-start
-  (if (featurep 'xemacs) 'extent-start 'overlay-start))
+  (if (featurep 'xemacs) #'extent-start #'overlay-start))
 (defalias 'checkdoc-overlay-end
-  (if (featurep 'xemacs) 'extent-end 'overlay-end))
+  (if (featurep 'xemacs) #'extent-end #'overlay-end))
 (defalias 'checkdoc-mode-line-update
-  (if (featurep 'xemacs) 'redraw-modeline 'force-mode-line-update))
+  (if (featurep 'xemacs) #'redraw-modeline #'force-mode-line-update))
 (defalias 'checkdoc-char=
-  (if (featurep 'xemacs) 'char= '=))
+  (if (featurep 'xemacs) #'char= #'=))
 
 ;;; User level commands
 ;;
@@ -540,7 +534,7 @@ checkdoc status window instead of the usual behavior."
         ;; Due to a design flaw, this will never spell check
         ;; docstrings.
         (checkdoc-interactive-loop start-here showstatus
-                                   'checkdoc-next-error)
+                                   #'checkdoc-next-error)
       ;; This is a workaround to perform spell checking.
       (checkdoc-interactive-ispell-loop start-here))))
 
@@ -560,7 +554,7 @@ checkdoc status window instead of the usual behavior."
     (prog1
         ;; Due to a design flaw, this will never spell check messages.
         (checkdoc-interactive-loop start-here showstatus
-                                   'checkdoc-next-message-error)
+                                   #'checkdoc-next-message-error)
       ;; This is a workaround to perform spell checking.
       (checkdoc-message-interactive-ispell-loop start-here))))
 
@@ -639,7 +633,7 @@ style."
 		(goto-char (cdr (car err-list)))
 		;; `automatic-then-never' tells the autofix function
 		;; to only allow one fix to be automatic.  The autofix
-		;; function will then set the flag to 'never, allowing
+		;; function will then set the flag to `never', allowing
 		;; the checker to return a different error.
 		(let ((checkdoc-autofix-flag 'automatic-then-never)
 		      (fixed nil))
@@ -1004,7 +998,7 @@ Evaluation is done first so the form will be read before the
 documentation is checked.  If there is a documentation error, then the display
 of what was evaluated will be overwritten by the diagnostic message."
   (interactive)
-  (call-interactively 'eval-defun)
+  (call-interactively #'eval-defun)
   (checkdoc-defun))
 
 ;;;###autoload
@@ -1046,85 +1040,86 @@ space at the end of each line."
 ;;
 
 ;;;###autoload
-(defun checkdoc-ispell (&optional take-notes)
+(defun checkdoc-ispell ()
   "Check the style and spelling of everything interactively.
 Calls `checkdoc' with spell-checking turned on.
-Prefix argument TAKE-NOTES is the same as for `checkdoc'"
+Prefix argument is the same as for `checkdoc'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively 'checkdoc nil current-prefix-arg)))
+    (call-interactively #'checkdoc nil current-prefix-arg)))
 
 ;;;###autoload
-(defun checkdoc-ispell-current-buffer (&optional take-notes)
+(defun checkdoc-ispell-current-buffer ()
   "Check the style and spelling of the current buffer.
 Calls `checkdoc-current-buffer' with spell-checking turned on.
-Prefix argument TAKE-NOTES is the same as for `checkdoc-current-buffer'"
+Prefix argument is the same as for `checkdoc-current-buffer'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively 'checkdoc-current-buffer nil current-prefix-arg)))
+    (call-interactively #'checkdoc-current-buffer nil current-prefix-arg)))
 
 ;;;###autoload
-(defun checkdoc-ispell-interactive (&optional take-notes)
+(defun checkdoc-ispell-interactive ()
   "Check the style and spelling of the current buffer interactively.
 Calls `checkdoc-interactive' with spell-checking turned on.
-Prefix argument TAKE-NOTES is the same as for `checkdoc-interactive'"
+Prefix argument is the same as for `checkdoc-interactive'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively 'checkdoc-interactive nil current-prefix-arg)))
+    (call-interactively #'checkdoc-interactive nil current-prefix-arg)))
 
 ;;;###autoload
-(defun checkdoc-ispell-message-interactive (&optional take-notes)
+(defun checkdoc-ispell-message-interactive ()
   "Check the style and spelling of message text interactively.
 Calls `checkdoc-message-interactive' with spell-checking turned on.
-Prefix argument TAKE-NOTES is the same as for `checkdoc-message-interactive'"
+Prefix argument is the same as for `checkdoc-message-interactive'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively 'checkdoc-message-interactive nil current-prefix-arg)))
+    (call-interactively #'checkdoc-message-interactive
+                        nil current-prefix-arg)))
 
 ;;;###autoload
-(defun checkdoc-ispell-message-text (&optional take-notes)
+(defun checkdoc-ispell-message-text ()
   "Check the style and spelling of message text interactively.
 Calls `checkdoc-message-text' with spell-checking turned on.
-Prefix argument TAKE-NOTES is the same as for `checkdoc-message-text'"
+Prefix argument is the same as for `checkdoc-message-text'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively 'checkdoc-message-text nil current-prefix-arg)))
+    (call-interactively #'checkdoc-message-text nil current-prefix-arg)))
 
 ;;;###autoload
-(defun checkdoc-ispell-start (&optional take-notes)
+(defun checkdoc-ispell-start ()
   "Check the style and spelling of the current buffer.
 Calls `checkdoc-start' with spell-checking turned on.
-Prefix argument TAKE-NOTES is the same as for `checkdoc-start'"
+Prefix argument is the same as for `checkdoc-start'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively 'checkdoc-start nil current-prefix-arg)))
+    (call-interactively #'checkdoc-start nil current-prefix-arg)))
 
 ;;;###autoload
-(defun checkdoc-ispell-continue (&optional take-notes)
+(defun checkdoc-ispell-continue ()
   "Check the style and spelling of the current buffer after point.
 Calls `checkdoc-continue' with spell-checking turned on.
-Prefix argument TAKE-NOTES is the same as for `checkdoc-continue'"
+Prefix argument is the same as for `checkdoc-continue'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively 'checkdoc-continue nil current-prefix-arg)))
+    (call-interactively #'checkdoc-continue nil current-prefix-arg)))
 
 ;;;###autoload
-(defun checkdoc-ispell-comments (&optional take-notes)
+(defun checkdoc-ispell-comments ()
   "Check the style and spelling of the current buffer's comments.
 Calls `checkdoc-comments' with spell-checking turned on.
-Prefix argument TAKE-NOTES is the same as for `checkdoc-comments'"
+Prefix argument is the same as for `checkdoc-comments'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively 'checkdoc-comments nil current-prefix-arg)))
+    (call-interactively #'checkdoc-comments nil current-prefix-arg)))
 
 ;;;###autoload
-(defun checkdoc-ispell-defun (&optional take-notes)
+(defun checkdoc-ispell-defun ()
   "Check the style and spelling of the current defun with Ispell.
 Calls `checkdoc-defun' with spell-checking turned on.
-Prefix argument TAKE-NOTES is the same as for `checkdoc-defun'"
+Prefix argument is the same as for `checkdoc-defun'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively 'checkdoc-defun nil current-prefix-arg)))
+    (call-interactively #'checkdoc-defun nil current-prefix-arg)))
 
 ;;; Error Management
 ;;
@@ -1254,10 +1249,10 @@ checking of documentation strings.
 (defsubst checkdoc-run-hooks (hookvar &rest args)
   "Run hooks in HOOKVAR with ARGS."
   (if (fboundp 'run-hook-with-args-until-success)
-      (apply 'run-hook-with-args-until-success hookvar args)
+      (apply #'run-hook-with-args-until-success hookvar args)
     ;; This method was similar to above.  We ignore the warning
     ;; since we will use the above for future Emacs versions
-    (apply 'run-hook-with-args hookvar args)))
+    (apply #'run-hook-with-args hookvar args)))
 
 (defsubst checkdoc-create-common-verbs-regexp ()
   "Rebuild the contents of `checkdoc-common-verbs-regexp'."
@@ -2066,7 +2061,8 @@ If the offending word is in a piece of quoted text, then it is skipped."
 
 ;;; Ispell engine
 ;;
-(eval-when-compile (require 'ispell))
+(defvar ispell-process)
+(declare-function ispell-buffer-local-words "ispell" ())
 
 (defun checkdoc-ispell-init ()
   "Initialize Ispell process (default version) with Lisp words.
@@ -2074,19 +2070,14 @@ The words used are from `checkdoc-ispell-lisp-words'.  If `ispell'
 cannot be loaded, then set `checkdoc-spellcheck-documentation-flag' to
 nil."
   (require 'ispell)
-  (if (not (symbol-value 'ispell-process)) ;Silence byteCompiler
-      (condition-case nil
-	  (progn
-	    (ispell-buffer-local-words)
-	    ;; This code copied in part from ispell.el Emacs 19.34
-	    (let ((w checkdoc-ispell-lisp-words))
-	      (while w
-		(process-send-string
-		 ;;  Silence byte compiler
-		 (symbol-value 'ispell-process)
-		 (concat "@" (car w) "\n"))
-		(setq w (cdr w)))))
-	(error (setq checkdoc-spellcheck-documentation-flag nil)))))
+  (unless ispell-process
+    (condition-case nil
+	(progn
+	  (ispell-buffer-local-words)
+	  ;; This code copied in part from ispell.el Emacs 19.34
+	  (dolist (w checkdoc-ispell-lisp-words)
+	    (process-send-string ispell-process (concat "@" w "\n"))))
+      (error (setq checkdoc-spellcheck-documentation-flag nil)))))
 
 (defun checkdoc-ispell-docstring-engine (end)
   "Run the Ispell tools on the doc string between point and END.
@@ -2187,13 +2178,12 @@ News agents may remove it"
 
 ;;; Comment checking engine
 ;;
-(eval-when-compile
-  ;; We must load this to:
-  ;; a) get symbols for compile and
-  ;; b) determine if we have lm-history symbol which doesn't always exist
-  (require 'lisp-mnt))
-
 (defvar generate-autoload-cookie)
+
+(eval-when-compile (require 'lisp-mnt))	; expand silly defsubsts
+(declare-function lm-summary "lisp-mnt" (&optional file))
+(declare-function lm-section-start "lisp-mnt" (header &optional after))
+(declare-function lm-section-end "lisp-mnt" (header))
 
 (defun checkdoc-file-comments-engine ()
   "Return a message list if this file does not match the Emacs standard.
@@ -2203,8 +2193,8 @@ Code:, and others referenced in the style guide."
       nil
     (require 'lisp-mnt)
     ;; Old XEmacs don't have `lm-commentary-mark'
-    (if (and (not (fboundp 'lm-commentary-mark)) (boundp 'lm-commentary))
-	(defalias 'lm-commentary-mark 'lm-commentary)))
+    (if (and (not (fboundp 'lm-commentary-mark)) (fboundp 'lm-commentary))
+	(defalias 'lm-commentary-mark #'lm-commentary)))
   (save-excursion
     (let* ((f1 (file-name-nondirectory (buffer-file-name)))
 	   (fn (file-name-sans-extension f1))
@@ -2265,8 +2255,7 @@ Code:, and others referenced in the style guide."
 	(if (or (not checkdoc-force-history-flag)
 		(file-exists-p "ChangeLog")
 		(file-exists-p "../ChangeLog")
-		(let ((fn 'lm-history-mark)) ;bestill byte-compiler
-		  (and (fboundp fn) (funcall fn))))
+                (and (fboundp 'lm-history-mark) (funcall #'lm-history-mark)))
 	    nil
 	  (progn
 	    (goto-char (or (lm-commentary-mark) (point-min)))
@@ -2590,10 +2579,10 @@ This function will not modify `match-data'."
 
 (define-derived-mode checkdoc-output-mode compilation-mode "Checkdoc"
   "Set up the major mode for the buffer containing the list of errors."
-  (set (make-local-variable 'compilation-error-regexp-alist)
-       checkdoc-output-error-regex-alist)
-  (set (make-local-variable 'compilation-mode-font-lock-keywords)
-       checkdoc-output-font-lock-keywords))
+  (setq-local compilation-error-regexp-alist
+              checkdoc-output-error-regex-alist)
+  (setq-local compilation-mode-font-lock-keywords
+              checkdoc-output-font-lock-keywords))
 
 (defun checkdoc-buffer-label ()
   "The name to use for a checkdoc buffer in the error list."
@@ -2625,7 +2614,7 @@ function called to create the messages."
     (with-current-buffer (get-buffer checkdoc-diagnostic-buffer)
       (goto-char (point-max))
       (let ((inhibit-read-only t))
-        (apply 'insert text)))))
+        (apply #'insert text)))))
 
 (defun checkdoc-show-diagnostics ()
   "Display the checkdoc diagnostic buffer in a temporary window."

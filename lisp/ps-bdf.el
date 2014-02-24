@@ -1,6 +1,6 @@
 ;;; ps-bdf.el --- BDF font file handler for ps-print
 
-;; Copyright (C) 1998-1999, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2001-2014 Free Software Foundation, Inc.
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
 ;;   2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -91,12 +91,7 @@ If BDFNAME doesn't exist, return nil."
 	   (insert-file-contents bdfname)
 	   buf))))
 
-(defvar bdf-cache-file (if (eq system-type 'ms-dos)
-			   ;; convert-standard-filename doesn't
-			   ;; guarantee that the .el extension will be
-			   ;; preserved.
-			   "~/_bdfcache.el"
-			 (convert-standard-filename "~/.bdfcache.el"))
+(defvar bdf-cache-file (locate-user-emacs-file "bdfcache.el" ".bdfcache.el")
   "Name of cache file which contains information of `BDF' font files.")
 
 (defvar bdf-cache nil

@@ -1,6 +1,6 @@
 ;;; characters.el --- set syntax and category for multibyte characters
 
-;; Copyright (C) 1997, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2014 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -484,13 +484,16 @@ with L, LRE, or LRO Unicode bidi character type.")
 
 ;; Bidi categories
 
-(map-char-table (lambda (key val)
-		  (cond
-		   ((memq val '(R AL RLO RLE))
-		    (modify-category-entry key ?R))
-		   ((memq val '(L LRE LRO))
-		    (modify-category-entry key ?L))))
-		(unicode-property-table-internal 'bidi-class))
+;; If bootstrapping without generated uni-*.el files, table not defined.
+(let ((table (unicode-property-table-internal 'bidi-class)))
+  (when table
+    (map-char-table (lambda (key val)
+		      (cond
+		       ((memq val '(R AL RLO RLE))
+			(modify-category-entry key ?R))
+		       ((memq val '(L LRE LRO))
+			(modify-category-entry key ?L))))
+		    table)))
 
 ;; Latin
 
@@ -512,7 +515,13 @@ with L, LRE, or LRO Unicode bidi character type.")
   (set-case-syntax ?¦ "_" tbl)
   (set-case-syntax ?§ "." tbl)
   (set-case-syntax ?© "_" tbl)
-  (set-case-syntax-delims 171 187 tbl)	; « »
+  ;; French wants
+  ;;   (set-case-syntax-delims ?« ?» tbl)
+  ;; And German wants
+  ;;   (set-case-syntax-delims ?» ?« tbl)
+  ;; So let's stay neutral and let users set these up if/when they want to.
+  (set-case-syntax ?« "." tbl)
+  (set-case-syntax ?» "." tbl)
   (set-case-syntax ?¬ "_" tbl)
   (set-case-syntax ?­ "_" tbl)
   (set-case-syntax ?® "_" tbl)
@@ -786,7 +795,7 @@ with L, LRE, or LRO Unicode bidi character type.")
   ;; Combining diacritics
   (modify-category-entry '(#x300 . #x362) ?^)
   ;; Combining marks
-  (modify-category-entry '(#x20d0 . #x20e3) ?^)
+  (modify-category-entry '(#x20d0 . #x20ff) ?^)
 
   ;; Fixme: syntax for symbols &c
   )
@@ -1072,10 +1081,10 @@ with L, LRE, or LRO Unicode bidi character type.")
 ;;  (lambda (range ignore) (set-char-table-range char-width-table range 2))
 ;; 'tibetan)
 (map-charset-chars
- (lambda (range ignore) (set-char-table-range char-width-table range 2))
+ (lambda (range _ignore) (set-char-table-range char-width-table range 2))
  'indian-2-column)
 (map-charset-chars
- (lambda (range ignore) (set-char-table-range char-width-table range 2))
+ (lambda (range _ignore) (set-char-table-range char-width-table range 2))
  'arabic-2-column)
 
 ;; Internal use only.
@@ -1085,7 +1094,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 ;;   (LOCALE TABLE (CHARSET (FROM-CODE . TO-CODE) ...) ...)
 ;; LOCALE: locale symbol
 ;; TABLE: char-table used for char-width-table, initially nil.
-;; CAHRSET: character set
+;; CHARSET: character set
 ;; FROM-CODE, TO-CODE: range of code-points in CHARSET
 
 (defvar cjk-char-width-table-list
@@ -1104,8 +1113,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 (defun use-cjk-char-width-table (locale-name)
   (while (char-table-parent char-width-table)
     (setq char-width-table (char-table-parent char-width-table)))
-  (let ((slot (assq locale-name cjk-char-width-table-list))
-	table)
+  (let ((slot (assq locale-name cjk-char-width-table-list)))
     (or slot (error "Unknown locale for CJK language environment: %s"
 		    locale-name))
     (unless (nth 1 slot)
@@ -1113,7 +1121,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 	(dolist (charset-info (nthcdr 2 slot))
 	  (let ((charset (car charset-info)))
 	    (dolist (code-range (cdr charset-info))
-	      (map-charset-chars #'(lambda (range arg)
+	      (map-charset-chars #'(lambda (range _arg)
 				     (set-char-table-range table range 2))
 				 charset nil
 				 (car code-range) (cdr code-range)))))
@@ -1320,22 +1328,22 @@ Setup char-width-table appropriate for non-CJK language environment."
   (set-char-table-extra-slot char-script-table 0 (nreverse script-list)))
 
 (map-charset-chars
- #'(lambda (range ignore)
+ #'(lambda (range _ignore)
      (set-char-table-range char-script-table range 'tibetan))
  'tibetan)
 
 
 ;;; Setting unicode-category-table.
 
-(setq unicode-category-table
-      (unicode-property-table-internal 'general-category))
-(map-char-table #'(lambda (key val)
-		    (if (and val
-			     (or (and (/= (aref (symbol-name val) 0) ?M)
-				      (/= (aref (symbol-name val) 0) ?C))
-				 (eq val 'Zs)))
-			(modify-category-entry key ?.)))
-		unicode-category-table)
+(when (setq unicode-category-table
+	    (unicode-property-table-internal 'general-category))
+  (map-char-table #'(lambda (key val)
+		      (if (and val
+			       (or (and (/= (aref (symbol-name val) 0) ?M)
+					(/= (aref (symbol-name val) 0) ?C))
+				   (eq val 'Zs)))
+			  (modify-category-entry key ?.)))
+		  unicode-category-table))
 
 (optimize-char-table (standard-category-table))
 
@@ -1410,38 +1418,47 @@ This function updates the char-table `glyphless-char-display'."
       (or (memq method '(zero-width thin-space empty-box acronym hex-code))
 	  (error "Invalid glyphless character display method: %s" method))
       (cond ((eq target 'c0-control)
-	     (set-char-table-range glyphless-char-display '(#x00 . #x1F)
-				   method)
+	     (glyphless-set-char-table-range glyphless-char-display
+					     #x00 #x1F method)
 	     ;; Users will not expect their newlines and TABs be
 	     ;; displayed as anything but themselves, so exempt those
 	     ;; two characters from c0-control.
 	     (set-char-table-range glyphless-char-display #x9 nil)
 	     (set-char-table-range glyphless-char-display #xa nil))
 	    ((eq target 'c1-control)
-	     (set-char-table-range glyphless-char-display '(#x80 . #x9F)
-				   method))
+	     (glyphless-set-char-table-range glyphless-char-display
+					     #x80 #x9F method))
 	    ((eq target 'format-control)
-	     (map-char-table
-	      #'(lambda (char category)
-		  (if (eq category 'Cf)
-		      (let ((this-method method)
-			    from to)
-			(if (consp char)
-			    (setq from (car char) to (cdr char))
-			  (setq from char to char))
-			(while (<= from to)
-			  (when (/= from #xAD)
-			    (if (eq method 'acronym)
-				(setq this-method
-				      (aref char-acronym-table from)))
-			    (set-char-table-range glyphless-char-display
-						  from this-method))
-			  (setq from (1+ from))))))
-	      unicode-category-table))
+	     (when unicode-category-table
+	       (map-char-table
+		#'(lambda (char category)
+		    (if (eq category 'Cf)
+			(let ((this-method method)
+			      from to)
+			  (if (consp char)
+			      (setq from (car char) to (cdr char))
+			    (setq from char to char))
+			  (while (<= from to)
+			    (when (/= from #xAD)
+			      (if (eq method 'acronym)
+				  (setq this-method
+					(aref char-acronym-table from)))
+			      (set-char-table-range glyphless-char-display
+						    from this-method))
+			    (setq from (1+ from))))))
+		unicode-category-table)))
 	    ((eq target 'no-font)
 	     (set-char-table-extra-slot glyphless-char-display 0 method))
 	    (t
 	     (error "Invalid glyphless character group: %s" target))))))
+
+(defun glyphless-set-char-table-range (chartable from to method)
+  (if (eq method 'acronym)
+      (let ((i from))
+	(while (<= i to)
+	  (set-char-table-range chartable i (aref char-acronym-table i))
+	  (setq i (1+ i))))
+    (set-char-table-range chartable (cons from to) method)))
 
 ;;; Control of displaying glyphless characters.
 (defcustom glyphless-char-display-control
@@ -1472,7 +1489,12 @@ METHOD must be one of these symbols:
   `empty-box':  display an empty box.
   `acronym':    display an acronym of the character in a box.  The
                 acronym is taken from `char-acronym-table', which see.
-  `hex-code':   display the hexadecimal character code in a box."
+  `hex-code':   display the hexadecimal character code in a box.
+
+Do not set its value directly from Lisp; the value takes effect
+only via a custom `:set'
+function (`update-glyphless-char-display'), which updates
+`glyphless-char-display'."
   :version "24.1"
   :type '(alist :key-type (symbol :tag "Character Group")
 		:value-type (symbol :tag "Display Method"))

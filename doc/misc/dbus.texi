@@ -2,6 +2,7 @@
 @setfilename ../../info/dbus
 @c %**start of header
 @settitle Using of D-Bus
+@documentencoding UTF-8
 @c @setchapternewpage odd
 @c %**end of header
 
@@ -9,7 +10,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 2007--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -28,6 +29,14 @@ modify this GNU manual.''
 @direntry
 * D-Bus: (dbus).                Using D-Bus in Emacs.
 @end direntry
+
+@titlepage
+@title Using D-Bus in Emacs
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
 
 @contents
 
@@ -403,8 +412,11 @@ Every dictionary entry has a string as key, and a variant as value.
 The interface offers also a signal, which returns 2 parameters: an
 integer, and an array consisting of elements which are a struct of a
 string and 2 boolean values.@footnote{ The interfaces of the service
-@samp{org.freedesktop.Hal} are described at
-@uref{http://people.freedesktop.org/~david/hal-spec/hal-spec.html#interfaces}.}
+@samp{org.freedesktop.Hal} are described in
+@c Previous link is gone.  Since HAL is now obsolete, this URL
+@c (unchanged in ~ 4 years) feels like it might go too...
+@uref{http://people.freedesktop.org/~dkukawka/hal-spec-git/hal-spec.html#interfaces,
+the HAL specification}.}
 @end defun
 
 @defun dbus-introspect-xml bus service path
@@ -757,7 +769,7 @@ If there are no properties, @code{nil} is returned.  Example:
 @end defun
 
 @defun dbus-get-all-managed-objects bus service path
-This functions returns all objects at @var{bus}, @var{service},
+This function returns all objects at @var{bus}, @var{service},
 @var{path}, and the children of @var{path}.  The result is a list of
 objects.  Every object is a cons of an existing path name, and the
 list of available interface objects.  An interface object is another
@@ -1135,10 +1147,11 @@ The signal @code{PropertyModified}, discussed as example in
 (@var{INTEGER} ((@var{STRING} @var{BOOL} @var{BOOL}) (@var{STRING} @var{BOOL} @var{BOOL}) @dots{}))
 @end lisp
 
-@defun dbus-byte-array-to-string byte-array
+@defun dbus-byte-array-to-string byte-array &optional multibyte
 If a D-Bus method or signal returns an array of bytes, which are known
 to represent an UTF8 string, this function converts @var{byte-array}
-to the corresponding string.  Example:
+to the corresponding string.  The string is unibyte encoded, unless
+@var{multibyte} is non-@code{nil}.  Example:
 
 @lisp
 (dbus-byte-array-to-string '(47 101 116 99 47 104 111 115 116 115))
@@ -1148,20 +1161,30 @@ to the corresponding string.  Example:
 @end defun
 
 @defun dbus-unescape-from-identifier string
-Retrieve the original string from the encoded @var{string}.
-@var{string} must have been coded with
+Retrieve the original string from the encoded @var{string} as unibyte
+string.  @var{string} must have been encoded with
 @code{dbus-escape-as-identifier}.  Example:
 
 @lisp
 (dbus-unescape-from-identifier "_30123abc_5fxyz_01_ff")
 
-@ifinfo
-@result{} "0123abc_xyz^Aÿ"
-@end ifinfo
-@ifnotinfo
-@result{} "0123abc_xyz^A@"y"
-@end ifnotinfo
+@result{} "0123abc_xyz\x01\xff"
 @end lisp
+
+If the original string used in @code{dbus-escape-as-identifier} is a
+multibyte string, it cannot be expected that this function returns
+that string:
+
+@lisp
+(string-equal
+  (dbus-unescape-from-identifier
+    (dbus-escape-as-identifier "Grüß Göttin"))
+  "Grüß Göttin")
+
+@result{} nil
+@end lisp
+
+
 @end defun
 
 

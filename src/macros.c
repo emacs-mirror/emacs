@@ -1,6 +1,6 @@
 /* Keyboard macros.
 
-Copyright (C) 1985-1986, 1993, 2000-2013 Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993, 2000-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -55,7 +55,7 @@ Use \\[name-last-kbd-macro] to give it a permanent name.
 Non-nil arg (prefix arg) means append to last macro defined;
 this begins by re-executing that macro as if you typed it again.
 If optional second arg, NO-EXEC, is non-nil, do not re-execute last
-macro before appending to it. */)
+macro before appending to it.  */)
   (Lisp_Object append, Lisp_Object no_exec)
 {
   if (!NILP (KVAR (current_kboard, defining_kbd_macro)))
@@ -66,7 +66,7 @@ macro before appending to it. */)
       current_kboard->kbd_macro_buffer = xmalloc (30 * word_size);
       current_kboard->kbd_macro_bufsize = 30;
     }
-  update_mode_lines++;
+  update_mode_lines = 19;
   if (NILP (append))
     {
       if (current_kboard->kbd_macro_bufsize > 200)
@@ -138,7 +138,7 @@ void
 end_kbd_macro (void)
 {
   kset_defining_kbd_macro (current_kboard, Qnil);
-  update_mode_lines++;
+  update_mode_lines = 20;
   kset_last_kbd_macro
     (current_kboard,
      make_event_array ((current_kboard->kbd_macro_end
@@ -279,7 +279,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 /* Restore Vexecuting_kbd_macro and executing_kbd_macro_index.
    Called when the unwind-protect in Fexecute_kbd_macro gets invoked.  */
 
-static Lisp_Object
+static void
 pop_kbd_macro (Lisp_Object info)
 {
   Lisp_Object tem;
@@ -288,12 +288,12 @@ pop_kbd_macro (Lisp_Object info)
   executing_kbd_macro_index = XINT (XCAR (tem));
   Vreal_this_command = XCDR (tem);
   Frun_hooks (1, &Qkbd_macro_termination_hook);
-  return Qnil;
 }
 
 DEFUN ("execute-kbd-macro", Fexecute_kbd_macro, Sexecute_kbd_macro, 1, 3, 0,
        doc: /* Execute MACRO as string of editor command characters.
-If MACRO is a symbol, its function definition is used.
+MACRO can also be a vector of keyboard events.  If MACRO is a symbol,
+its function definition is used.
 COUNT is a repeat count, or nil for once, or 0 for infinite loop.
 
 Optional third arg LOOPFUNC may be a function that is called prior to

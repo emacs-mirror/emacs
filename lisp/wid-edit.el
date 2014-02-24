@@ -1,9 +1,9 @@
 ;;; wid-edit.el --- Functions for creating and using widgets -*-byte-compile-dynamic: t; lexical-binding:t -*-
 ;;
-;; Copyright (C) 1996-1997, 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2014 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: extensions
 ;; Package: emacs
 
@@ -55,6 +55,7 @@
 ;; See `widget.el'.
 
 ;;; Code:
+(require 'cl-lib)
 
 ;;; Compatibility.
 
@@ -221,7 +222,7 @@ minibuffer."
 	((or widget-menu-minibuffer-flag
 	     (> (length items) widget-menu-max-shortcuts))
 	 ;; Read the choice of name from the minibuffer.
-	 (setq items (widget-remove-if 'stringp items))
+	 (setq items (cl-remove-if 'stringp items))
 	 (let ((val (completing-read (concat title ": ") items nil t)))
 	   (if (stringp val)
 	       (let ((try (try-completion val items)))
@@ -294,14 +295,6 @@ minibuffer."
 	   (when (eq value 'keyboard-quit)
 	     (error "Canceled"))
 	   value))))
-
-(defun widget-remove-if (predicate list)
-  (let (result (tail list))
-    (while tail
-      (or (funcall predicate (car tail))
-	  (setq result (cons (car tail) result)))
-      (setq tail (cdr tail)))
-    (nreverse result)))
 
 ;;; Widget text specifications.
 ;;
@@ -528,6 +521,7 @@ Otherwise, just return the value."
 		(or (widget-get widget :value)
 		    (progn
 		      (when (widget-get widget :args)
+			(setq widget (widget-copy widget))
 			(let (args)
 			  (dolist (arg (widget-get widget :args))
 			    (setq args (append args
@@ -3468,14 +3462,14 @@ To use this type, you must define :match or :match-alternatives."
 ;; Recursive datatypes.
 
 (define-widget 'lazy 'default
-  "Base widget for recursive datastructures.
+  "Base widget for recursive data structures.
 
 The `lazy' widget will, when instantiated, contain a single inferior
 widget, of the widget type specified by the :type parameter.  The
 value of the `lazy' widget is the same as the value of the inferior
 widget.  When deriving a new widget from the 'lazy' widget, the :type
 parameter is allowed to refer to the widget currently being defined,
-thus allowing recursive datastructures to be described.
+thus allowing recursive data structures to be described.
 
 The :type parameter takes the same arguments as the defcustom
 parameter with the same name.
@@ -3485,7 +3479,7 @@ not allow recursion.  That is, when you define a new widget type, none
 of the inferior widgets may be of the same type you are currently
 defining.
 
-In Lisp, however, it is custom to define datastructures in terms of
+In Lisp, however, it is custom to define data structures in terms of
 themselves.  A list, for example, is defined as either nil, or a cons
 cell whose cdr itself is a list.  The obvious way to translate this
 into a widget type would be
@@ -3508,7 +3502,7 @@ example:
     :type '(choice (const nil) (cons :value (nil) sexp sexp-list)))"
   :format "%{%t%}: %v"
   ;; We don't convert :type because we want to allow recursive
-  ;; datastructures.  This is slow, so we should not create speed
+  ;; data structures.  This is slow, so we should not create speed
   ;; critical widgets by deriving from this.
   :convert-widget 'widget-value-convert-widget
   :value-create 'widget-type-value-create

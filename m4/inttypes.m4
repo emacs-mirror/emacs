@@ -1,5 +1,5 @@
 # inttypes.m4 serial 26
-dnl Copyright (C) 2006-2013 Free Software Foundation, Inc.
+dnl Copyright (C) 2006-2014 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -148,6 +148,7 @@ AC_DEFUN([gl_INTTYPES_H_DEFAULTS],
   HAVE_DECL_STRTOIMAX=1; AC_SUBST([HAVE_DECL_STRTOIMAX])
   HAVE_DECL_STRTOUMAX=1; AC_SUBST([HAVE_DECL_STRTOUMAX])
   REPLACE_STRTOIMAX=0;   AC_SUBST([REPLACE_STRTOIMAX])
+  REPLACE_STRTOUMAX=0;   AC_SUBST([REPLACE_STRTOUMAX])
   INT32_MAX_LT_INTMAX_MAX=1;  AC_SUBST([INT32_MAX_LT_INTMAX_MAX])
   INT64_MAX_EQ_LONG_MAX='defined _LP64';  AC_SUBST([INT64_MAX_EQ_LONG_MAX])
   PRI_MACROS_BROKEN=0;   AC_SUBST([PRI_MACROS_BROKEN])

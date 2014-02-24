@@ -1,6 +1,6 @@
-;;; cyrillic.el --- support for Cyrillic -*- coding: iso-2022-7bit; -*-
+;;; cyrillic.el --- support for Cyrillic -*- coding: utf-8; -*-
 
-;; Copyright (C) 1997-1998, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2014 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -74,7 +74,7 @@
 		  (nonascii-translation . iso-8859-5)
 		  (unibyte-display . cyrillic-iso-8bit)
 		  (features cyril-util)
-		  (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
+		  (sample-text . "Russian (Русский)	Здравствуйте!")
 		  (documentation . "Support for Cyrillic ISO-8859-5."))
  '("Cyrillic"))
 
@@ -103,7 +103,7 @@
 		   (input-method . "russian-typewriter")
 		   (features cyril-util)
 		   (unibyte-display . cyrillic-koi8)
-		   (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
+		   (sample-text . "Russian (Русский)	Здравствуйте!")
 		   (documentation . "Support for Cyrillic KOI8-R."))
  '("Cyrillic"))
 
@@ -117,7 +117,7 @@
 	     (input-method . "russian-computer")
 	     (features cyril-util)
 	     (unibyte-display . cyrillic-koi8)
-	     (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
+	     (sample-text . "Russian (Русский)	Здравствуйте!")
 	     (documentation . "\
 Support for Russian using koi8-r and the russian-computer input method.")
 	     (tutorial . "TUTORIAL.ru"))
@@ -158,7 +158,7 @@ Support for Russian using koi8-r and the russian-computer input method.")
 		  (input-method . "russian-typewriter")
 		  (features cyril-util)
 		  (unibyte-display . cyrillic-alternativnyj)
-		  (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
+		  (sample-text . "Russian (Русский)	Здравствуйте!")
 		  (documentation . "Support for Cyrillic ALTERNATIVNYJ."))
  '("Cyrillic"))
 
@@ -215,7 +215,7 @@ Support for Russian using koi8-r and the russian-computer input method.")
   :charset-list '(mik))
 
 (define-coding-system 'pt154
-  "Parattype Asian Cyrillic codepage"
+  "ParaType Asian Cyrillic codepage"
   :coding-type 'charset
   :mnemonic ?D
   :charset-list '(pt154))

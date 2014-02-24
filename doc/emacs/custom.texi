@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization
@@ -345,7 +345,7 @@ hidden, nor on subgroups that are hidden or not visible in the buffer.
 @kindex C-x C-c @r{(customization buffer)}
 @findex Custom-set
 @findex Custom-save
-  The command @kbd{C-c C-c} (@code{Custom-set}) is equivalent using to
+  The command @kbd{C-c C-c} (@code{Custom-set}) is equivalent to using
 the @samp{[Set for Current Session]} button.  The command @kbd{C-x
 C-s} (@code{Custom-save}) is like using the @samp{[Save for Future
 Sessions]} button.
@@ -1166,7 +1166,10 @@ conversion of this file.  @xref{Coding Systems}.
 
 @item
 @code{unibyte} says to load or compile a file of Emacs Lisp in unibyte
-mode, if the value is @code{t}.  @xref{Disabling Multibyte}.
+mode, if the value is @code{t}.  @xref{Disabling Multibyte, ,
+Disabling Multibyte Characters, elisp, GNU Emacs Lisp Reference
+Manual}.
+
 @end itemize
 
 @noindent
@@ -2185,7 +2188,7 @@ sequences are mandatory.
 @samp{\C-} can be used as a prefix for a control character, as in
 @samp{\C-s} for @acronym{ASCII} control-S, and @samp{\M-} can be used as a prefix for
 a Meta character, as in @samp{\M-a} for @kbd{Meta-A} or @samp{\M-\C-a} for
-@kbd{Control-Meta-A}.@refill
+@kbd{Control-Meta-A}.
 
 @xref{Init Non-ASCII}, for information about including
 non-@acronym{ASCII} in your init file.
@@ -2448,7 +2451,7 @@ it is run on that type of terminal.  For a terminal type named
 found by searching the directories @code{load-path} as usual and trying the
 suffixes @samp{.elc} and @samp{.el}.  Normally it appears in the
 subdirectory @file{term} of the directory where most Emacs libraries are
-kept.@refill
+kept.
 
   The usual purpose of the terminal-specific library is to map the
 escape sequences used by the terminal's function keys onto more
@@ -2463,7 +2466,7 @@ function keys that Termcap does not specify.
 before the first hyphen is significant in choosing the library name.
 Thus, terminal types @samp{aaa-48} and @samp{aaa-30-rv} both use
 the library @file{term/aaa}.  The code in the library can use
-@code{(getenv "TERM")} to find the full terminal type name.@refill
+@code{(getenv "TERM")} to find the full terminal type name.
 
 @vindex term-file-prefix
   The library's name is constructed by concatenating the value of the

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Microsoft Windows
@@ -482,7 +482,7 @@ the variable @code{w32-alt-is-meta} to a @code{nil} value.
 @kbd{Alt-@key{TAB}}, for its own use.  These key combinations are
 intercepted by the system before Emacs can see them.  You can use the
 @code{w32-register-hot-key} function to allow a key sequence to be
-seen by Emacs instead of being grabbed by Windows.  This functions
+seen by Emacs instead of being grabbed by Windows.  This function
 registers a key sequence as a @dfn{hot key}, overriding the special
 meaning of that key sequence for Windows.  (MS-Windows is told that
 the key sequence is a hot key only when one of the Emacs windows has

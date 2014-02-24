@@ -1,9 +1,9 @@
 ;;; compare-w.el --- compare text between windows for Emacs
 
-;; Copyright (C) 1986, 1989, 1993, 1997, 2001-2013 Free Software
+;; Copyright (C) 1986, 1989, 1993, 1997, 2001-2014 Free Software
 ;; Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience files vc
 
 ;; This file is part of GNU Emacs.
@@ -35,7 +35,7 @@
   :prefix "compare-"
   :group 'tools)
 
-(defcustom compare-windows-whitespace "\\(\\s-\\|\n\\)+"
+(defcustom compare-windows-whitespace "\\(\\s-\\|\n\\|\240\\)+"
   "Regexp or function that defines whitespace sequences for `compare-windows'.
 That command optionally ignores changes in whitespace.
 
@@ -49,6 +49,7 @@ any text before that point.
 
 If the function returns the same value for both windows, then the
 whitespace is considered to match, and is skipped."
+  :version "24.4"			; added \240
   :type '(choice regexp function)
   :group 'compare-windows)
 
@@ -178,7 +179,7 @@ on third call it again advances points to the next difference and so on."
                            'compare-windows-sync-regexp
                          compare-windows-sync)))
     (setq p1 (point) b1 (current-buffer))
-    (setq w2 (next-window (selected-window)))
+    (setq w2 (next-window))
     (if (eq w2 (selected-window))
 	(setq w2 (next-window (selected-window) nil 'visible)))
     (if (eq w2 (selected-window))

@@ -1,6 +1,6 @@
 ;;; edmacro.el --- keyboard macro editor
 
-;; Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Maintainer: Dave Gillespie <daveg@synaptics.com>
@@ -62,9 +62,8 @@
 ;; macro in a more concise way that omits the comments.
 
 ;;; Code:
-
-(eval-when-compile (require 'cl-lib))
 
+(require 'cl-lib)
 (require 'kmacro)
 
 ;;; The user-level commands for editing macros.
@@ -444,14 +443,14 @@ doubt, use whitespace."
       (let* ((prefix
 	      (or (and (integerp (aref rest-mac 0))
 		       (memq (aref rest-mac 0) mdigs)
-		       (memq (key-binding (edmacro-subseq rest-mac 0 1))
+		       (memq (key-binding (cl-subseq rest-mac 0 1))
 			     '(digit-argument negative-argument))
 		       (let ((i 1))
 			 (while (memq (aref rest-mac i) (cdr mdigs))
 			   (cl-incf i))
 			 (and (not (memq (aref rest-mac i) pkeys))
-			      (prog1 (vconcat "M-" (edmacro-subseq rest-mac 0 i) " ")
-				(cl-callf edmacro-subseq rest-mac i)))))
+			      (prog1 (vconcat "M-" (cl-subseq rest-mac 0 i) " ")
+				(cl-callf cl-subseq rest-mac i)))))
 		  (and (eq (aref rest-mac 0) ?\C-u)
 		       (eq (key-binding [?\C-u]) 'universal-argument)
 		       (let ((i 1))
@@ -459,7 +458,7 @@ doubt, use whitespace."
 			   (cl-incf i))
 			 (and (not (memq (aref rest-mac i) pkeys))
 			      (prog1 (cl-loop repeat i concat "C-u ")
-				(cl-callf edmacro-subseq rest-mac i)))))
+				(cl-callf cl-subseq rest-mac i)))))
 		  (and (eq (aref rest-mac 0) ?\C-u)
 		       (eq (key-binding [?\C-u]) 'universal-argument)
 		       (let ((i 1))
@@ -469,18 +468,18 @@ doubt, use whitespace."
 				      '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
 			   (cl-incf i))
 			 (and (not (memq (aref rest-mac i) pkeys))
-			      (prog1 (vconcat "C-u " (edmacro-subseq rest-mac 1 i) " ")
-				(cl-callf edmacro-subseq rest-mac i)))))))
+			      (prog1 (vconcat "C-u " (cl-subseq rest-mac 1 i) " ")
+				(cl-callf cl-subseq rest-mac i)))))))
 	     (bind-len (apply 'max 1
 			      (cl-loop for map in maps
                                        for b = (lookup-key map rest-mac)
                                        when b collect b)))
-	     (key (edmacro-subseq rest-mac 0 bind-len))
+	     (key (cl-subseq rest-mac 0 bind-len))
 	     (fkey nil) tlen tkey
 	     (bind (or (cl-loop for map in maps for b = (lookup-key map key)
                                 thereis (and (not (integerp b)) b))
 		       (and (setq fkey (lookup-key local-function-key-map rest-mac))
-			    (setq tlen fkey tkey (edmacro-subseq rest-mac 0 tlen)
+			    (setq tlen fkey tkey (cl-subseq rest-mac 0 tlen)
 				  fkey (lookup-key local-function-key-map tkey))
 			    (cl-loop for map in maps
                                      for b = (lookup-key map fkey)
@@ -507,7 +506,7 @@ doubt, use whitespace."
 		    (> first 32) (<= first maxkey) (/= first 92)
 		    (progn
 		      (if (> text 30) (setq text 30))
-		      (setq desc (concat (edmacro-subseq rest-mac 0 text)))
+		      (setq desc (concat (cl-subseq rest-mac 0 text)))
 		      (when (string-match "^[ACHMsS]-." desc)
 			(setq text 2)
 			(cl-callf substring desc 0 2))
@@ -524,7 +523,7 @@ doubt, use whitespace."
 		    (> text bind-len)
 		    (memq (aref rest-mac text) '(return 13))
 		    (progn
-		      (setq desc (concat (edmacro-subseq rest-mac bind-len text)))
+		      (setq desc (concat (cl-subseq rest-mac bind-len text)))
 		      (commandp (intern-soft desc))))
 	       (if (commandp (intern-soft desc)) (setq bind desc))
 	       (setq desc (format "<<%s>>" desc))
@@ -562,14 +561,15 @@ doubt, use whitespace."
 	    (setq desc (concat (edmacro-sanitize-for-string prefix) desc)))
 	(unless (string-match " " desc)
 	  (let ((times 1) (pos bind-len))
-	    (while (not (edmacro-mismatch rest-mac rest-mac
-					  0 bind-len pos (+ bind-len pos)))
+	    (while (not (cl-mismatch rest-mac rest-mac
+				     :start1 0 :end1 bind-len
+				     :start2 pos :end2 (+ bind-len pos)))
 	      (cl-incf times)
 	      (cl-incf pos bind-len))
 	    (when (> times 1)
 	      (setq desc (format "%d*%s" times desc))
 	      (setq bind-len (* bind-len times)))))
-	(setq rest-mac (edmacro-subseq rest-mac bind-len))
+	(setq rest-mac (cl-subseq rest-mac bind-len))
 	(if verbose
 	    (progn
 	      (unless (equal res "") (cl-callf concat res "\n"))
@@ -589,50 +589,6 @@ doubt, use whitespace."
 	  (cl-callf concat res desc)
 	  (cl-incf len (length desc)))))
     res))
-
-(defun edmacro-mismatch (cl-seq1 cl-seq2 cl-start1 cl-end1 cl-start2 cl-end2)
-  "Compare SEQ1 with SEQ2, return index of first mismatching element.
-Return nil if the sequences match.  If one sequence is a prefix of the
-other, the return value indicates the end of the shorted sequence.
-\n(fn SEQ1 SEQ2 START1 END1 START2 END2)"
-  (or cl-end1 (setq cl-end1 (length cl-seq1)))
-  (or cl-end2 (setq cl-end2 (length cl-seq2)))
-  (let ((cl-p1 (and (listp cl-seq1) (nthcdr cl-start1 cl-seq1)))
-        (cl-p2 (and (listp cl-seq2) (nthcdr cl-start2 cl-seq2))))
-    (while (and (< cl-start1 cl-end1) (< cl-start2 cl-end2)
-                (eql (if cl-p1 (car cl-p1)
-                       (aref cl-seq1 cl-start1))
-                     (if cl-p2 (car cl-p2)
-                       (aref cl-seq2 cl-start2))))
-      (setq cl-p1 (cdr cl-p1) cl-p2 (cdr cl-p2)
-            cl-start1 (1+ cl-start1) cl-start2 (1+ cl-start2)))
-    (and (or (< cl-start1 cl-end1) (< cl-start2 cl-end2))
-         cl-start1)))
-
-(defun edmacro-subseq (seq start &optional end)
-  "Return the subsequence of SEQ from START to END.
-If END is omitted, it defaults to the length of the sequence.
-If START or END is negative, it counts from the end."
-  (if (stringp seq) (substring seq start end)
-    (let (len)
-      (and end (< end 0) (setq end (+ end (setq len (length seq)))))
-      (if (< start 0) (setq start (+ start (or len (setq len (length seq))))))
-      (cond ((listp seq)
-	     (if (> start 0) (setq seq (nthcdr start seq)))
-	     (if end
-		 (let ((res nil))
-		   (while (>= (setq end (1- end)) start)
-		     (push (pop seq) res))
-		   (nreverse res))
-	       (copy-sequence seq)))
-	    (t
-	     (or end (setq end (or len (length seq))))
-	     (let ((res (make-vector (max (- end start) 0) nil))
-		   (i 0))
-	       (while (< start end)
-		 (aset res i (aref seq start))
-		 (setq i (1+ i) start (1+ start)))
-	       res))))))
 
 (defun edmacro-sanitize-for-string (seq)
   "Convert a key sequence vector SEQ into a string.
@@ -760,7 +716,7 @@ This function assumes that the events can be stored in a string."
 	       (eq (aref res 1) ?\()
 	       (eq (aref res (- (length res) 2)) ?\C-x)
 	       (eq (aref res (- (length res) 1)) ?\)))
-      (setq res (edmacro-subseq res 2 -2)))
+      (setq res (cl-subseq res 2 -2)))
     (if (and (not need-vector)
 	     (cl-loop for ch across res
                       always (and (characterp ch)

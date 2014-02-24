@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Building
@@ -618,12 +618,12 @@ associated with an identifier when the program is not executing.
 selecting stack frames, and stepping through the program.
 
 @table @kbd
-@item C-x @key{SPC}
-@kindex C-x SPC
+@item C-x C-a C-b
+@kindex C-x C-a C-b
 Set a breakpoint on the source line that point is on.
 @end table
 
-  @kbd{C-x @key{SPC}} (@code{gud-break}), when called in a source
+  @kbd{C-x C-a C-b} (@code{gud-break}), when called in a source
 buffer, sets a debugger breakpoint on the current source line.  This
 command is available only after starting GUD@.  If you call it in a
 buffer that is not associated with any debugger subprocess, it signals
@@ -1348,6 +1348,7 @@ not from an existing Emacs buffer.
 
 @findex load
 @findex load-library
+@vindex load-prefer-newer
 @cindex load path for Emacs Lisp
   If an Emacs Lisp file is installed in the Emacs Lisp @dfn{load path}
 (defined below), you can load it by typing @kbd{M-x load-library},
@@ -1356,15 +1357,18 @@ command prompts for a @dfn{library name} rather than a file name; it
 searches through each directory in the Emacs Lisp load path, trying to
 find a file matching that library name.  If the library name is
 @samp{@var{foo}}, it tries looking for files named
-@file{@var{foo}.elc}, @file{@var{foo}.el}, and lastly just
-@file{@var{foo}}; the first one found is loaded.  This command prefers
-@file{.elc} files over @file{.el} files because compiled files load
-and run faster.  If it finds that @file{@var{lib}.el} is newer than
-@file{@var{lib}.elc}, it issues a warning, in case someone made
+@file{@var{foo}.elc}, @file{@var{foo}.el}, and @file{@var{foo}}.  The
+default behaviour is to load the first file found.  This command
+prefers @file{.elc} files over @file{.el} files because compiled files
+load and run faster.  If it finds that @file{@var{lib}.el} is newer
+than @file{@var{lib}.elc}, it issues a warning, in case someone made
 changes to the @file{.el} file and forgot to recompile it, but loads
 the @file{.elc} file anyway.  (Due to this behavior, you can save
 unfinished edits to Emacs Lisp source files, and not recompile until
-your changes are ready for use.)
+your changes are ready for use.)  If you set the option
+@code{load-prefer-newer} to a non-@code{nil} value, however, then
+rather than the procedure described above, Emacs loads whichever
+version of the file is newest.
 
   Emacs Lisp programs usually load Emacs Lisp files using the
 @code{load} function.  This is similar to @code{load-library}, but is
@@ -1422,6 +1426,7 @@ Emacs to crash.  Set the variable @code{load-dangerous-libraries} to
 @section Evaluating Emacs Lisp Expressions
 @cindex Emacs Lisp mode
 @cindex mode, Emacs Lisp
+@cindex evaluation, Emacs Lisp
 
 @findex emacs-lisp-mode
   Emacs Lisp mode is the major mode for editing Emacs Lisp.  Its mode
@@ -1471,13 +1476,17 @@ expression.)
   The command @kbd{C-x C-e} (@code{eval-last-sexp}) evaluates the
 Emacs Lisp expression preceding point in the buffer, and displays the
 value in the echo area.  When the result of an evaluation is an
-integer, you can type @kbd{C-x C-e} a second time to display the value
-of the integer result in additional formats (octal, hexadecimal, and
-character).
+integer, it is displayed together with the value in other formats
+(octal, hexadecimal, and character).
 
   If @kbd{M-:} or @kbd{C-x C-e} is given a prefix argument, it inserts
 the value into the current buffer at point, rather than displaying it
-in the echo area.  The argument's value does not matter.
+in the echo area.  If the prefix argument is zero, any integer output
+is inserted together with its value in other formats (octal,
+hexadecimal, and character).  Such a prefix argument also prevents
+abbreviation of the output according to the variables
+@code{eval-expression-print-level} and @code{eval-expression-print-length}
+(see below).
 
 @kindex C-M-x @r{(Emacs Lisp mode)}
 @findex eval-defun
@@ -1511,9 +1520,11 @@ eval-buffer} is similar but evaluates the entire buffer.
   The options @code{eval-expression-print-level} and
 @code{eval-expression-print-length} control the maximum depth and
 length of lists to print in the result of the evaluation commands
-before abbreviating them.  @code{eval-expression-debug-on-error}
-controls whether evaluation errors invoke the debugger when these
-commands are used; its default is @code{t}.
+before abbreviating them.  Supplying a zero prefix argument to
+@code{eval-expression} or @code{eval-last-sexp} causes lists to be
+printed in full.  @code{eval-expression-debug-on-error} controls
+whether evaluation errors invoke the debugger when these commands are
+used; its default is @code{t}.
 
 @node Lisp Interaction
 @section Lisp Interaction Buffers

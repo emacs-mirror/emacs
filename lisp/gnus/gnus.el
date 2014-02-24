@@ -1,6 +1,6 @@
 ;;; gnus.el --- a newsreader for GNU Emacs
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2013 Free Software
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -1628,7 +1628,7 @@ slower."
     ("nnfolder" mail respool address)
     ("nngateway" post-mail address prompt-address physical-address)
     ("nnweb" none)
-    ("nnrss" none)
+    ("nnrss" none global)
     ("nnagent" post-mail)
     ("nnimap" post-mail address prompt-address physical-address respool
      server-marks)
@@ -1649,6 +1649,7 @@ this variable.  I think."
 					     (const post-mail))
 			(checklist :inline t :greedy t
 				   (const :format "%v " address)
+				   (const global)
 				   (const :format "%v " prompt-address)
 				   (const :format "%v " physical-address)
 				   (const virtual)
@@ -2507,6 +2508,7 @@ Disabling the agent may result in noticeable loss of performance."
   :version "24.4"
   :group 'gnus-start
   :type '(choice (function-item gnus)
+		 (function-item gnus-group-get-new-news)
 		 (function-item gnus-no-server)
 		 (function-item gnus-slave)
 		 (function-item gnus-slave-no-server)))
@@ -2635,10 +2637,11 @@ a string, be sure to use a valid format, see RFC 2616."
     (scored . score) (saved . save)
     (cached . cache) (downloadable . download)
     (unsendable . unsend) (forwarded . forward)
-    (seen . seen)))
+    (seen . seen) (unexist . unexist)))
 
 (defconst gnus-article-special-mark-lists
   '((seen range)
+    (unexist range)
     (killed range)
     (bookmark tuple)
     (uid tuple)
@@ -2653,7 +2656,7 @@ a string, be sure to use a valid format, see RFC 2616."
 ;; `score' is not a proper mark
 ;; `bookmark': don't propagated it, or fix the bug in update-mark.
 (defconst gnus-article-unpropagated-mark-lists
-  '(seen cache download unsend score bookmark)
+  '(seen cache download unsend score bookmark unexist)
   "Marks that shouldn't be propagated to back ends.
 Typical marks are those that make no sense in a standalone back end,
 such as a mark that says whether an article is stored in the cache
@@ -2685,7 +2688,6 @@ such as a mark that says whether an article is stored in the cache
     (gnus-tree-mode "(gnus)Tree Display"))
   "Alist of major modes and related Info nodes.")
 
-(defvar gnus-group-buffer "*Group*")
 (defvar gnus-summary-buffer "*Summary*")
 (defvar gnus-article-buffer "*Article*")
 (defvar gnus-server-buffer "*Server*")
@@ -3005,7 +3007,7 @@ with some simple extensions.
             summary just like information from any other summary
             specifier.
 &user-date; Age sensitive date format. Various date format is
-            defined in `gnus-summary-user-date-format-alist'.
+            defined in `gnus-user-date-format-alist'.
 
 
 The %U (status), %R (replied) and %z (zcore) specs have to be handled
@@ -3032,7 +3034,7 @@ See Info node `(gnus)Formatting Variables'."
 
 (defun gnus-suppress-keymap (keymap)
   (suppress-keymap keymap)
-  (let ((keys `([backspace] [delete] "\177" "\M-u"))) ;gnus-mouse-2
+  (let ((keys `([delete] "\177" "\M-u"))) ;gnus-mouse-2
     (while keys
       (define-key keymap (pop keys) 'undefined))))
 
@@ -3244,9 +3246,9 @@ If ARG, insert string at point."
 		    0))
       (string-to-number
        (if (zerop major)
-	     (format "%s00%02d%02d"
+	     (format "%1.2f00%02d%02d"
 		     (if (member alpha '("(ding)" "d"))
-			 "4.99"
+			 4.99
 		       (+ 5 (* 0.02
 			       (abs
 				(- (mm-char-int (aref (downcase alpha) 0))
@@ -4242,8 +4244,7 @@ parameters."
       (setq valids (cdr valids)))
     outs))
 
-(eval-and-compile
-  (autoload 'message-y-or-n-p "message" nil nil 'macro))
+(autoload 'message-y-or-n-p "message" nil nil 'macro)
 
 (defun gnus-read-group (prompt &optional default)
   "Prompt the user for a group name.
@@ -4433,12 +4434,13 @@ prompt the user for the name of an NNTP server to use."
     (gnus-1 arg dont-connect slave)
     (gnus-final-warning)))
 
-(eval-and-compile
-  (unless (fboundp 'debbugs-gnu)
-    (autoload 'debbugs-gnu "debbugs-gnu" "List all outstanding Emacs bugs." t)))
+(declare-function debbugs-gnu "ext:debbugs-gnu"
+		  (severities &optional packages archivedp suppress tags))
+
 (defun gnus-list-debbugs ()
   "List all open Gnus bug reports."
   (interactive)
+  (require 'debbugs-gnu)
   (debbugs-gnu nil "gnus"))
 
 ;; Allow redefinition of Gnus functions.

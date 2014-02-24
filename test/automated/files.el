@@ -1,6 +1,6 @@
 ;;; files.el --- tests for file handling.
 
-;; Copyright (C) 2012-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2014 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
      (:all nil    (eq files-test-result nil))
      (:all maybe  (eq files-test-result t)) ; This combination is ambiguous.
      (maybe t     (eq files-test-result 'query))
-     (maybe nil   (eq files-test-result 'query))
+     (maybe nil   (eq files-test-result nil))
      (maybe maybe (eq files-test-result 'query)))
     ;; Unsafe local variable value
     (("files-test-result: t")
@@ -127,6 +127,8 @@ form.")
 	  files-test-safe-result nil)
     (let ((enable-local-variables (nth 0 test-settings))
 	  (enable-local-eval      (nth 1 test-settings))
+	  ;; Prevent any dir-locals file interfering with the tests.
+	  (enable-dir-local-variables nil)
 	  (files-test-queried nil))
       (hack-local-variables)
       (eval (nth 2 test-settings)))))
@@ -145,5 +147,8 @@ form.")
 	    (dolist (subtest (cdr test))
 	      (should (file-test--do-local-variables-test str subtest))))))
     (ad-disable-advice 'hack-local-variables-confirm 'around 'files-test)))
+
+;; Stop the above "Local Var..." confusing Emacs.
+
 
 ;;; files.el ends here

@@ -1,6 +1,6 @@
 ;;; ede-proj-elisp.el --- EDE Generic Project Emacs Lisp support
 
-;; Copyright (C) 1998-2005, 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2005, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -170,7 +170,7 @@ Bonus: Return a cons cell: (COMPILED . UPTODATE)."
 		    (setq utd (1+ utd)))))))
 
 	    (oref obj source))
-    (message "All Emacs Lisp sources are up to date in %s" (object-name obj))
+    (message "All Emacs Lisp sources are up to date in %s" (eieio-object-name obj))
     (cons comp utd)))
 
 (defmethod ede-update-version-in-source ((this ede-proj-target-elisp) version)
@@ -194,7 +194,8 @@ is found, such as a `-version' variable, or the standard header."
 		    (goto-char (match-beginning 1))
 		    (insert version)))))
 	  (setq vs (cdr vs)))
-	(if (not match) (call-next-method)))))
+	;; The next method will include comments such as "Version:"
+	(call-next-method))))
 
 
 ;;; Makefile generation functions
@@ -254,7 +255,7 @@ is found, such as a `-version' variable, or the standard header."
       (save-excursion
 	(if (file-symlink-p ec)
 	    (progn
-	      ;; Desymlinkify
+	      ;; Change symlinks to copies.
 	      (rename-file ec (concat ec ".tmp"))
 	      (copy-file (concat ec ".tmp") ec)
 	      (delete-file (concat ec ".tmp"))))

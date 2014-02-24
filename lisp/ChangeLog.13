@@ -541,7 +541,7 @@
 
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-print.ps: Fix background height.
+	* ps-print.el: Fix background height.
 	(ps-print-version): New version 7.2.1.
 
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
@@ -636,7 +636,7 @@
 
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-print.el : Fix doc.
+	* ps-print.el: Fix doc.
 	(ps-print-version): New version 7.0.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -12554,7 +12554,7 @@
 
 2007-08-23  John Wiegley  <johnw@newartisans.com>
 
-	* calendar/cal-bahai.el: Added in the diacriticals that were
+	* calendar/cal-bahai.el: Added in the diacritics that were
 	missing for many of the month names.
 
 2007-08-22  Jason Rumney  <jasonr@gnu.org>
@@ -16697,7 +16697,7 @@ See ChangeLog.12 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2007-2013 Free Software Foundation, Inc.
+  Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

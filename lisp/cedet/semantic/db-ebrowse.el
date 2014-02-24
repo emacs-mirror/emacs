@@ -1,6 +1,6 @@
 ;;; semantic/db-ebrowse.el --- Semanticdb backend using ebrowse.
 
-;; Copyright (C) 2005-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2014 Free Software Foundation, Inc.
 
 ;; Authors: Eric M. Ludlam <zappo@gnu.org>
 ;;	Joakim Verona
@@ -659,5 +659,9 @@ Return a list of tags."
     ))
 
 (provide 'semantic/db-ebrowse)
+
+;; Local variables:
+;; generated-autoload-load-name: "semantic/db-ebrowse"
+;; End:
 
 ;;; semantic/db-ebrowse.el ends here

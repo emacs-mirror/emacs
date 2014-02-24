@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Sending Mail
@@ -256,7 +256,7 @@ This means that @var{nick} should expand into @var{fulladdresses},
 where @var{fulladdresses} can be either a single address, or multiple
 addresses separated with spaces.  For instance, to make @code{maingnu}
 stand for @code{gnu@@gnu.org} plus a local address of your own, put in
-this line:@refill
+this line:
 
 @example
 alias maingnu gnu@@gnu.org local-gnu
@@ -374,7 +374,7 @@ This is the default, unless you have already set the variables for
 sending mail via @code{smtpmail-send-it} (see below).
 
 @item smtpmail-send-it
-Send mail using the through an external mail host, such as your
+Send mail through an external mail host, such as your
 Internet service provider's outgoing SMTP mail server.  If you have
 not told Emacs how to contact the SMTP server, it prompts for this
 information, which is saved in the @code{smtpmail-smtp-server} variable

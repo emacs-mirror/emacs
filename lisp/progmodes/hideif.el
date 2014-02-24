@@ -1,10 +1,10 @@
 ;;; hideif.el --- hides selected code within ifdef
 
-;; Copyright (C) 1988, 1994, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Brian Marick
 ;;	Daniel LaLiberte <liberte@holonexus.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: c, outlines
 
 ;; This file is part of GNU Emacs.
@@ -35,9 +35,7 @@
 ;; M-x hide-ifdefs  or C-c @ h
 ;;
 ;; Hide-ifdef suppresses the display of code that the preprocessor wouldn't
-;; pass through.  The support of constant expressions in #if lines is
-;; limited to identifiers, parens, and the operators: &&, ||, !, and
-;; "defined".  Please extend this.
+;; pass through.  Support complete C/C++ expression and precedence.
 ;;
 ;; The hidden code is marked by ellipses (...).  Be
 ;; cautious when editing near ellipses, since the hidden text is
@@ -97,6 +95,9 @@
 ;;
 ;; Written by Brian Marick, at Gould, Computer Systems Division, Urbana IL.
 ;; Extensively modified by Daniel LaLiberte (while at Gould).
+;;
+;; Extensively modified by Luke Lee in 2013 to support complete C expression
+;; evaluation.
 
 ;;; Code:
 
@@ -368,26 +369,44 @@ that form should be displayed.")
 (defvar hif-token-list)
 
 (defconst hif-token-alist
-  '(("||" . or)
-    ("&&" . and)
+  '(("||"  . hif-or)
+    ("&&"  . hif-and)
     ("|"  . hif-logior)
+    ("^"   . hif-logxor)
     ("&"  . hif-logand)
-    ("==" . equal)
+    ("<<"  . hif-shiftleft)
+    (">>"  . hif-shiftright)
+    ("=="  . hif-equal)
+    ;; Note: we include tokens like `=' which aren't supported by CPP's
+    ;; expression syntax, because they are still relevant for the tokenizer,
+    ;; especially in conjunction with ##.
+    ("="   . hif-assign)
     ("!=" . hif-notequal)
-    ("!"  . not)
-    ("("  . lparen)
-    (")"  . rparen)
+    ("##"  . hif-token-concat)
+    ("!"   . hif-not)
+    ("~"   . hif-lognot)
+    ("("   . hif-lparen)
+    (")"   . hif-rparen)
     (">"  . hif-greater)
     ("<"  . hif-less)
     (">=" . hif-greater-equal)
     ("<=" . hif-less-equal)
     ("+"  . hif-plus)
     ("-"  . hif-minus)
+    ("*"   . hif-multiply)
+    ("/"   . hif-divide)
+    ("%"   . hif-modulo)
     ("?"  . hif-conditional)
     (":"  . hif-colon)))
 
 (defconst hif-token-regexp
-  (concat (regexp-opt (mapcar 'car hif-token-alist)) "\\|\\w+"))
+  (concat (regexp-opt (mapcar 'car hif-token-alist))
+          "\\|0x[0-9a-fA-F]+\\.?[0-9a-fA-F]*"
+          "\\|[0-9]+\\.?[0-9]*"  ;; decimal/octal
+          "\\|\\w+"))
+
+(defconst hif-string-literal-regexp  "\\(\"\\(?:[^\"\\]\\|\\\\.\\)*\"\\)")
+
 
 (defun hif-tokenize (start end)
   "Separate string between START and END into a list of tokens."
@@ -401,23 +420,63 @@ that form should be displayed.")
 	   ((looking-at "\\\\\n")
 	    (forward-char 2))
 
+           ((looking-at hif-string-literal-regexp)
+            (push (substring-no-properties (match-string 1)) token-list)
+            (goto-char (match-end 0)))
 	   ((looking-at hif-token-regexp)
 	    (let ((token (buffer-substring (point) (match-end 0))))
 	      (goto-char (match-end 0))
 	      ;; (message "token: %s" token) (sit-for 1)
-	      (push (or (cdr (assoc token hif-token-alist))
-                        (if (string-equal token "defined") 'hif-defined)
-                        (if (string-match "\\`[0-9]*\\'" token)
-                            (string-to-number token))
-                        (intern token))
-		    token-list)))
+	      (push
+               (or (cdr (assoc token hif-token-alist))
+                   (if (string-equal token "defined") 'hif-defined)
+                   ;; TODO:
+                   ;; 1. postfix 'l', 'll', 'ul' and 'ull'
+                   ;; 2. floating number formats
+                   ;; 3. hexadecimal/octal floats
+                   ;; 4. 098 is interpreted as octal conversion error
+                   ;; FIXME: string-to-number does not convert hex floats
+                   (if (string-match "0x\\([0-9a-fA-F]+\\.?[0-9a-fA-F]*\\)"
+                                     token)
+                       (string-to-number (match-string 1 token) 16)) ;; hex
+                   ;; FIXME: string-to-number does not convert octal floats
+                   (if (string-match "\\`0[0-9]+\\(\\.[0-9]+\\)?\\'" token)
+                       (string-to-number token 8)) ;; octal
+                   (if (string-match "\\`[1-9][0-9]*\\(\\.[0-9]+\\)?\\'"
+                                     token)
+                       (string-to-number token)) ;; decimal
+                   (intern token))
+               token-list)))
 	   (t (error "Bad #if expression: %s" (buffer-string)))))))
     (nreverse token-list)))
 
-;;;-----------------------------------------------------------------
-;;; Translate C preprocessor #if expressions using recursive descent.
-;;; This parser is limited to the operators &&, ||, !, and "defined".
-;;; Added ==, !=, +, and -.  Gary Oberbrunner, garyo@avs.com, 8/9/94
+;;------------------------------------------------------------------------
+;; Translate C preprocessor #if expressions using recursive descent.
+;; This parser was limited to the operators &&, ||, !, and "defined".
+;; Added ==, !=, +, and -.  Gary Oberbrunner, garyo@avs.com, 8/9/94
+;;
+;; Implement the C language operator precedence table. Add all those
+;; missing operators that could be used in macros. Luke Lee 2013-09-04
+
+;;  | Operator Type        | Operator                    | Associativity |
+;;  +----------------------+-----------------------------+---------------+
+;;  | Primary Expression   | () [] . -> expr++ expr--    | left-to-right |
+;;  | Unary Operators      | * & + - ! ~ ++expr --expr   | right-to-left |
+;;  |                      | (typecast) sizeof           |               |
+;;  | Binary Operators     | * / %                       | left-to-right |
+;;  |                      | + -                         |               |
+;;  |                      | >> <<                       |               |
+;;  |                      | < > <= >=                   |               |
+;;  |                      | == !=                       |               |
+;;  |                      | &                           |               |
+;;  |                      | ^                           |               |
+;;  |                      | |                           |               |
+;;  |                      | &&                          |               |
+;;  |                      | ||                          |               |
+;;  | Ternary Operator     | ?:                          | right-to-left |
+;; x| Assignment Operators | = += -= *= /= %= >>= <<= &= | right-to-left |
+;;  |                      | ^= =                        |               |
+;;  | Comma                | ,                           | left-to-right |
 
 (defsubst hif-nexttoken ()
   "Pop the next token from token-list into the let variable \"hif-token\"."
@@ -428,9 +487,23 @@ that form should be displayed.")
   (let ((hif-token-list token-list))
     (hif-nexttoken)
     (prog1
-        (hif-expr)
+        (and hif-token
+             (hif-exprlist))
       (if hif-token ; is there still a token?
           (error "Error: unexpected token: %s" hif-token)))))
+
+(defun hif-exprlist ()
+  "Parse an exprlist: expr { ',' expr}"
+  (let ((result (hif-expr)))
+    (if (eq hif-token 'hif-comma)
+	(let ((temp (list result)))
+	  (while
+	    (progn
+	      (hif-nexttoken)
+	      (push (hif-expr) temp)
+	      (eq hif-token 'hif-comma)))
+	  (cons 'hif-comma (nreverse temp)))
+      result)))
 
 (defun hif-expr ()
   "Parse an expression as found in #if.
@@ -448,67 +521,125 @@ that form should be displayed.")
     result))
 
 (defun hif-or-expr ()
-  "Parse n or-expr : and-expr | or-expr '||' and-expr."
+  "Parse an or-expr : and-expr | or-expr '||' and-expr."
   (let ((result (hif-and-expr)))
-    (while (eq hif-token 'or)
+    (while (eq hif-token 'hif-or)
       (hif-nexttoken)
       (setq result (list 'hif-or result (hif-and-expr))))
   result))
 
 (defun hif-and-expr ()
-  "Parse an and-expr : eq-expr | and-expr '&&' eq-expr."
-  (let ((result (hif-eq-expr)))
-    (while (eq hif-token 'and)
+  "Parse an and-expr : logior-expr | and-expr '&&' logior-expr."
+  (let ((result (hif-logior-expr)))
+    (while (eq hif-token 'hif-and)
       (hif-nexttoken)
-      (setq result (list 'hif-and result (hif-eq-expr))))
+      (setq result (list 'hif-and result (hif-logior-expr))))
+    result))
+
+(defun hif-logior-expr ()
+  "Parse a logor-expr : logxor-expr | logor-expr '|' logxor-expr."
+  (let ((result (hif-logxor-expr)))
+    (while (eq hif-token 'hif-logior)
+      (hif-nexttoken)
+      (setq result (list 'hif-logior result (hif-logxor-expr))))
+    result))
+
+(defun hif-logxor-expr ()
+  "Parse a logxor-expr : logand-expr | logxor-expr '^' logand-expr."
+  (let ((result (hif-logand-expr)))
+    (while (eq hif-token 'hif-logxor)
+      (hif-nexttoken)
+      (setq result (list 'hif-logxor result (hif-logand-expr))))
+    result))
+
+(defun hif-logand-expr ()
+  "Parse a logand-expr : eq-expr | logand-expr '&' eq-expr."
+  (let ((result (hif-eq-expr)))
+    (while (eq hif-token 'hif-logand)
+      (hif-nexttoken)
+      (setq result (list 'hif-logand result (hif-eq-expr))))
     result))
 
 (defun hif-eq-expr ()
-  "Parse an eq-expr : math | eq-expr `=='|`!='|`<'|`>'|`>='|`<=' math."
-  (let ((result (hif-math))
+  "Parse an eq-expr : comp | eq-expr `=='|`!=' comp."
+  (let ((result (hif-comp-expr))
 	(eq-token nil))
-    (while (memq hif-token '(equal hif-notequal hif-greater hif-less
-			     hif-greater-equal hif-less-equal))
+    (while (memq hif-token '(hif-equal hif-notequal))
       (setq eq-token hif-token)
       (hif-nexttoken)
-      (setq result (list eq-token result (hif-math))))
+      (setq result (list eq-token result (hif-comp-expr))))
+    result))
+
+(defun hif-comp-expr ()
+  "Parse a comp-expr : logshift | comp-expr `<'|`>'|`>='|`<=' logshift."
+  (let ((result (hif-logshift-expr))
+        (comp-token nil))
+    (while (memq hif-token '(hif-greater hif-less hif-greater-equal hif-less-equal))
+      (setq comp-token hif-token)
+      (hif-nexttoken)
+      (setq result (list comp-token result (hif-logshift-expr))))
+    result))
+
+(defun hif-logshift-expr ()
+  "Parse a logshift : math | logshift `<<'|`>>' math."
+  (let ((result (hif-math))
+        (shift-token nil))
+    (while (memq hif-token '(hif-shiftleft hif-shiftright))
+      (setq shift-token hif-token)
+      (hif-nexttoken)
+      (setq result (list shift-token result (hif-math))))
     result))
 
 (defun hif-math ()
-  "Parse an expression with + or - and simpler things.
-       math : factor | math '+|-' factor."
+  "Parse an expression with + or -.
+       math : muldiv | math '+|-' muldiv."
+  (let ((result (hif-muldiv-expr))
+        (math-op nil))
+    (while (memq hif-token '(hif-plus hif-minus))
+      (setq math-op hif-token)
+      (hif-nexttoken)
+      (setq result (list math-op result (hif-muldiv-expr))))
+    result))
+
+(defun hif-muldiv-expr ()
+  "Parse an expression with *,/,%.
+       muldiv : factor | muldiv '*|/|%' factor."
   (let ((result (hif-factor))
 	(math-op nil))
-    (while (memq hif-token '(hif-plus hif-minus hif-logior hif-logand))
+    (while (memq hif-token '(hif-multiply hif-divide hif-modulo))
       (setq math-op hif-token)
       (hif-nexttoken)
       (setq result (list math-op result (hif-factor))))
   result))
 
 (defun hif-factor ()
-  "Parse a factor: '!' factor | '(' expr ')' | 'defined(' id ')' | id."
+  "Parse a factor: '!' factor | '~' factor | '(' expr ')' | 'defined(' id ')' | 'id(parmlist)' | strings | id."
   (cond
-   ((eq hif-token 'not)
+   ((eq hif-token 'hif-not)
     (hif-nexttoken)
     (list 'hif-not (hif-factor)))
 
-   ((eq hif-token 'lparen)
+   ((eq hif-token 'hif-lognot)
     (hif-nexttoken)
-    (let ((result (hif-expr)))
-      (if (not (eq hif-token 'rparen))
+    (list 'hif-lognot (hif-factor)))
+
+   ((eq hif-token 'hif-lparen)
+    (hif-nexttoken)
+    (let ((result (hif-exprlist)))
+      (if (not (eq hif-token 'hif-rparen))
 	  (error "Bad token in parenthesized expression: %s" hif-token)
 	(hif-nexttoken)
 	result)))
 
    ((eq hif-token 'hif-defined)
     (hif-nexttoken)
-    (let ((paren (when (eq hif-token 'lparen) (hif-nexttoken) t))
+    (let ((paren (when (eq hif-token 'hif-lparen) (hif-nexttoken) t))
 	  (ident hif-token))
-      (if (memq hif-token '(or and not hif-defined lparen rparen))
+      (if (memq hif-token '(or and not hif-defined hif-lparen hif-rparen))
 	  (error "Error: unexpected token: %s" hif-token))
       (when paren
 	(hif-nexttoken)
-	(unless (eq hif-token 'rparen)
+        (unless (eq hif-token 'hif-rparen)
 	  (error "Error: expected \")\" after identifier")))
       (hif-nexttoken)
       `(hif-defined (quote ,ident))))
@@ -541,21 +672,53 @@ that form should be displayed.")
   (or (not (zerop (hif-mathify a))) (not (zerop (hif-mathify b)))))
 (defun hif-not (a)
   (zerop (hif-mathify a)))
+(defun hif-lognot (a)
+  (lognot (hif-mathify a)))
 
 (defmacro hif-mathify-binop (fun)
   `(lambda (a b)
      ,(format "Like `%s' but treat t and nil as 1 and 0." fun)
      (,fun (hif-mathify a) (hif-mathify b))))
 
+(defun hif-shiftleft (a b)
+  (setq a (hif-mathify a))
+  (setq b (hif-mathify b))
+  (if (< a 0)
+      (ash a b)
+    (lsh a b)))
+
+(defun hif-shiftright (a b)
+  (setq a (hif-mathify a))
+  (setq b (hif-mathify b))
+  (if (< a 0)
+      (ash a (- b))
+    (lsh a (- b))))
+
+
+(defalias 'hif-multiply      (hif-mathify-binop *))
+(defalias 'hif-divide        (hif-mathify-binop /))
+(defalias 'hif-modulo        (hif-mathify-binop %))
 (defalias 'hif-plus          (hif-mathify-binop +))
 (defalias 'hif-minus         (hif-mathify-binop -))
+(defalias 'hif-equal         (hif-mathify-binop =))
 (defalias 'hif-notequal      (hif-mathify-binop /=))
 (defalias 'hif-greater       (hif-mathify-binop >))
 (defalias 'hif-less          (hif-mathify-binop <))
 (defalias 'hif-greater-equal (hif-mathify-binop >=))
 (defalias 'hif-less-equal    (hif-mathify-binop <=))
 (defalias 'hif-logior        (hif-mathify-binop logior))
+(defalias 'hif-logxor        (hif-mathify-binop logxor))
 (defalias 'hif-logand        (hif-mathify-binop logand))
+
+
+(defun hif-comma (&rest expr)
+  "Evaluate a list of expr, return the result of the last item"
+  (let ((result nil))
+    (dolist (e expr)
+      (ignore-errors
+        (setq result (funcall hide-ifdef-evaluator e))))
+    result))
+
 
 ;;;----------- end of parser -----------------------
 

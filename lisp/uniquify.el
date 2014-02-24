@@ -1,10 +1,10 @@
 ;;; uniquify.el --- unique buffer names dependent on file name -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1995-1997, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1989, 1995-1997, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Dick King <king@reasoning.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: files
 ;; Created: 15 May 86
 ;; Package: emacs
@@ -93,7 +93,7 @@
   :group 'files)
 
 
-(defcustom uniquify-buffer-name-style nil
+(defcustom uniquify-buffer-name-style 'post-forward-angle-brackets
   "If non-nil, buffer names are uniquified with parts of directory name.
 The value determines the buffer name style and is one of `forward',
 `reverse', `post-forward', or `post-forward-angle-brackets'.
@@ -111,6 +111,7 @@ of `uniquify-strip-common-suffix'."
 		(const post-forward)
 		(const post-forward-angle-brackets)
 		(const :tag "standard Emacs behavior (nil)" nil))
+  :version "24.4"
   :require 'uniquify
   :group 'uniquify)
 

@@ -1,6 +1,6 @@
 ;;; quail.el --- provides simple input method for multilingual text
 
-;; Copyright (C) 1997-1998, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2014 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -445,10 +445,11 @@ user's keyboard layout to the standard keyboard layout.  See the
 documentation of `quail-keyboard-layout' and
 `quail-keyboard-layout-standard' for more detail.
 
-SHOW-LAYOUT non-nil means the `quail-help' command should show
-the user's keyboard layout visually with translated characters.
-If KBD-TRANSLATE is set, it is desirable to set also this flag unless
-this package defines no translations for single character keys.
+SHOW-LAYOUT non-nil means the function `quail-help' (as used by
+the command `describe-input-method') should show the user's keyboard
+layout visually with translated characters.  If KBD-TRANSLATE is
+set, it is desirable to also set this flag, unless this package
+defines no translations for single character keys.
 
 CREATE-DECODE-MAP non-nil means decode map is also created.  A decode
 map is an alist of translations and corresponding original keys.
@@ -1301,7 +1302,7 @@ The returned value is a Quail map specific to KEY."
 	(setcdr map (funcall (cdr map) key len)))
     map))
 
-(put 'quail-error 'error-conditions '(quail-error error))
+(define-error 'quail-error nil)
 (defun quail-error (&rest args)
   (signal 'quail-error (apply 'format args)))
 
@@ -2486,7 +2487,6 @@ should be made by `quail-build-decode-map' (which see)."
   "Show brief description of the current Quail package.
 Optional arg PACKAGE specifies the name of alternative Quail
 package to describe."
-  (interactive)
   (require 'help-mode)
   (let ((help-xref-mule-regexp help-xref-mule-regexp-template)
 	(mb enable-multibyte-characters)
@@ -2543,7 +2543,9 @@ Assuming that your actual keyboard has the `")
 	   'quail-keyboard-layout-button
 	   quail-keyboard-layout-type)
 	  (insert "' layout,
-translation results in the following \"virtual\" keyboard layout:
+translation results in the following \"virtual\" keyboard layout
+\(the labels on the keys indicate what character will be produced
+by each key, with and without holding Shift):
 ")
 	  (setq done-list
 		(quail-insert-kbd-layout quail-keyboard-layout))

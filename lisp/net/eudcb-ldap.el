@@ -1,9 +1,9 @@
-;;; eudcb-ldap.el --- Emacs Unified Directory Client - LDAP Backend
+;;; eudcb-ldap.el --- Emacs Unified Directory Client - LDAP Backend -*- coding: utf-8 -*-
 
-;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2014 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
-;; Maintainer: Pavel Janík <Pavel@Janik.cz>
+;; Maintainer: Pavel JanÃ­k <Pavel@Janik.cz>
 ;; Keywords: comm
 ;; Package: eudc
 
@@ -136,7 +136,7 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
 	 result))
     final-result))
 
-(defun eudc-ldap-get-field-list (dummy &optional objectclass)
+(defun eudc-ldap-get-field-list (_dummy &optional objectclass)
   "Return a list of valid attribute names for the current server.
 OBJECTCLASS is the LDAP object class for which the valid
 attribute names are returned. Default to `person'"

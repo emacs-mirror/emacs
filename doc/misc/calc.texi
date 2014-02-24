@@ -4,6 +4,7 @@
 @setfilename ../../info/calc
 @c [title]
 @settitle GNU Emacs Calc Manual
+@documentencoding UTF-8
 @setchapternewpage odd
 @comment %**end of header (This is for running Texinfo on a region.)
 
@@ -94,7 +95,7 @@ This file documents Calc, the GNU Emacs calculator, included with
 GNU Emacs @value{EMACSVER}.
 @end ifnotinfo
 
-Copyright @copyright{} 1990--1991, 2001--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 1990--1991, 2001--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -140,7 +141,7 @@ modify this GNU manual.''
 @c [begin]
 @ifnottex
 @node Top, Getting Started, (dir), (dir)
-@chapter The GNU Emacs Calculator
+@top The GNU Emacs Calculator
 
 @noindent
 @dfn{Calc} is an advanced desk calculator and mathematical tool
@@ -11801,6 +11802,18 @@ Thus @kbd{M-@key{DEL}} by itself removes the second-from-top stack element,
 leaving the first, third, fourth, and so on; @kbd{M-3 M-@key{DEL}} deletes
 the third stack element.
 
+The above commands do not depend on the location of the cursor.
+If the customizable variable @code{calc-context-sensitive-enter} is
+non-@code{nil} (@pxref{Customizing Calc}), these commands will become
+context sensitive.  For example, instead of duplicating the top of the stack,
+@key{RET} will copy the element at the cursor to the top of the
+stack.  With a positive numeric prefix, a copy of the element at the
+cursor and the appropriate number of preceding elements will be placed
+at the top of the stack.  A negative prefix will still duplicate the
+specified element of the stack regardless of the cursor  position.
+Similarly, @key{DEL} will remove the corresponding elements from the
+stack.
+
 @kindex @key{TAB}
 @pindex calc-roll-down
 To exchange the top two elements of the stack, press @key{TAB}
@@ -20743,9 +20756,9 @@ mean, then repeating until the two values converge.
 $$ a_{i+1} = { a_i + b_i \over 2 } , \qquad b_{i+1} = \sqrt{a_i b_i} $$
 @end tex
 
-@cindex Root-mean-square
-Another commonly used mean, the RMS (root-mean-square), can be computed
-for a vector of numbers simply by using the @kbd{A} command.
+@c @cindex Root-mean-square
+@c Another commonly used mean, the RMS (root-mean-square), can be computed
+@c for a vector of numbers simply by using the @kbd{A} command.
 
 @kindex u S
 @pindex calc-vector-sdev
@@ -27859,7 +27872,8 @@ while typing @kbd{u c au/yr @key{RET}} produces
 
 If the units you request are inconsistent with the original units, the
 number will be converted into your units times whatever ``remainder''
-units are left over.  For example, converting @samp{55 mph} into acres
+units are left over.  (This can be disabled; @pxref{Customizing Calc}.)
+For example, converting @samp{55 mph} into acres
 produces @samp{6.08e-3 acre / m s}.  (Recall that multiplication binds
 more strongly than division in Calc formulas, so the units here are
 acres per meter-second.)  Remainder units are expressed in terms of
@@ -27874,12 +27888,6 @@ given the input @samp{980 cm/s^2}, the command @kbd{u c ms} will
 change the @samp{s} to @samp{ms} to get @samp{9.8e-4 cm/ms^2}.
 The ``remainder unit'' @samp{cm} is left alone rather than being
 changed to the base unit @samp{m}.
-
-If you want to disallow using inconsistent units, you can set the
-customizable variable @code{calc-ensure-consistent-units} to @code{t}
-(@pxref{Customizing Calc}).  In this case, if you request units which
-are inconsistent with the original units, you will be warned about it
-and no conversion will occur.
 
 You can use explicit unit conversion instead of the @kbd{u s} command
 to gain more control over the units of the result of an expression.
@@ -27916,10 +27924,7 @@ prompt first for the old units which this value should be considered
 to have, then for the new units.  (If the value on the stack can be
 simplified so that it doesn't contain any units, like @samp{ft/in} can
 be simplified to 12, then @kbd{u c} will still prompt for both old
-units and new units. You can ignore the prompt for old units with
-@key{RET}, or turn off the prompt by setting the customizable variable
-@code{calc-allow-units-as-numbers} to @code{nil}. 
-@pxref{Customizing Calc})  Assuming the old and new units you give are
+units and new units.   Assuming the old and new units you give are
 consistent with each other, the result also will not contain any
 units.  For example, @kbd{@w{u c} cm @key{RET} in @key{RET}} converts
 the number 2 on the stack to 5.08.
@@ -28048,8 +28053,8 @@ radiation related to the cesium-133 atom.  The only SI unit that is not
 based on a fundamental physical process (although there are efforts to
 change this) is the kilogram, which was originally defined as the mass
 of one liter of water, but is now defined as the mass of the
-International Prototype Kilogram (IPK), a cylinder of platinum-iridium
-kept at the Bureau International des Poids et Mesures in S@`evres,
+international prototype of the kilogram (IPK), a cylinder of platinum-iridium
+kept at the Bureau international des poids et mesures in S@`evres,
 France.  (There are several copies of the IPK throughout the world.)
 The British imperial units, once defined in terms of physical objects,
 were redefined in 1963 in terms of SI units.  The US customary units,
@@ -33314,12 +33319,15 @@ Lisp integers.  This is the only storage format for Calc data objects
 which is not a Lisp list.
 
 Large integers are stored as lists of the form @samp{(bigpos @var{d0}
-@var{d1} @var{d2} @dots{})} for positive integers 1000000 or more, or
-@samp{(bigneg @var{d0} @var{d1} @var{d2} @dots{})} for negative integers
-@mathit{-1000000} or less.  Each @var{d} is a base-1000 ``digit,'' a Lisp integer
-from 0 to 999.  The least significant digit is @var{d0}; the last digit,
+@var{d1} @var{d2} @dots{})} for sufficiently large positive integers
+(where ``sufficiently large'' depends on the machine), or
+@samp{(bigneg @var{d0} @var{d1} @var{d2} @dots{})} for negative
+integers.  Each @var{d} is a base-@expr{10^n} ``digit'' (where again,
+@expr{n} depends on the machine), a Lisp integer from 0 to
+99@dots{}9.  The least significant digit is @var{d0}; the last digit,
 @var{dn}, which is always nonzero, is the most significant digit.  For
-example, the integer @mathit{-12345678} is stored as @samp{(bigneg 678 345 12)}.
+example, the integer @mathit{-12345678} might be stored as
+@samp{(bigneg 678 345 12)}.
 
 The distinction between small and large integers is entirely hidden from
 the user.  In @code{defmath} definitions, the Lisp predicate @code{integerp}
@@ -35701,15 +35709,14 @@ have different dimensions. The default value of @code{calc-ensure-consistent-uni
 is @code{nil}.
 @end defvar
 
-@defvar calc-allow-units-as-numbers
-When converting units, the variable @code{calc-allow-units-as-numbers}
-determines whether or not values which can be simplified so that
-they don't contain units (such as @samp{ft/in} can be simplified to 12)
-can be regarded as not containing units.  If 
-@code{calc-allow-units-as-numbers} is non-@code{nil}, then @kbd{u c}
-will prompt for both old units and new units when converting an expression
-like @samp{ft/in}, otherwise @kbd{u c} will only prompt for the new units.
-The default value of @code{calc-allow-units-as-numbers} is @code{t}.
+@defvar calc-context-sensitive-enter
+The commands @code{calc-enter} and @code{calc-pop} will typically
+duplicate the top of the stack.  If
+@code{calc-context-sensitive-enter} is non-@code{nil}, then the
+@code{calc-enter} will copy the element at the cursor to the
+top of the stack and @code{calc-pop} will delete the element at the
+cursor.  The default value of @code{calc-context-sensitive-enter} is
+@code{nil}.
 @end defvar
 
 @defvar calc-undo-length

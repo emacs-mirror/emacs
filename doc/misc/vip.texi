@@ -2,8 +2,10 @@
 @setfilename ../../info/vip
 @settitle VIP
 
+@documentencoding UTF-8
+
 @copying
-Copyright @copyright{} 1987, 2001--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 1987, 2001--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -56,7 +58,7 @@ you start using VIP@.  Other nodes may be visited as needed.
 
 Comments and bug reports are welcome.  Please send messages to
 @code{ms@@Sail.Stanford.Edu} if you are outside of Japan and to
-@code{masahiko@@sato.riec.tohoku.junet} if you are in Japan.@refill
+@code{masahiko@@sato.riec.tohoku.junet} if you are in Japan.
 
 @insertcopying
 
@@ -128,14 +130,13 @@ the character; otherwise we say that point is @dfn{at the end of buffer}.
 @key{PNT} and @key{MRK} are used
 to indicate positions in a buffer and they are not part of the text of the
 buffer.  If a buffer contains a @key{MRK} then the text between @key{MRK}
-and @key{PNT} is called the @dfn{region} of the buffer.@refill
+and @key{PNT} is called the @dfn{region} of the buffer.
 
 @cindex window
 
 Emacs provides (multiple) @dfn{windows} on the screen, and you can see the
 content of a buffer through the window associated with the buffer.  The
 cursor of the screen is always positioned on the character after @key{PNT}.
-@refill
 
 @cindex mode
 @cindex keymap
@@ -149,7 +150,7 @@ buffers.  Each buffer has its @dfn{local keymap} that determines the
 a function is bound to some key in the local keymap then that function will
 be executed when you type the key.  If no function is bound to a key in the
 local map, however, the function bound to the key in the global map becomes
-in effect.@refill
+in effect.
 
 @node Loading VIP
 @section Loading VIP
@@ -187,7 +188,7 @@ Loading VIP has the effect of globally binding @kbd{C-z} (@kbd{Control-z})
 to the function @code{vip-change-mode-to-vi}. The default binding of @kbd{C-z}
 in GNU Emacs is @code{suspend-emacs}, but, you can also call
 @code{suspend-emacs} by typing @kbd{C-x C-z}.  Other than this, all the
-key bindings of Emacs remain the same after loading VIP.@refill
+key bindings of Emacs remain the same after loading VIP.
 
 @cindex vi mode
 
@@ -198,12 +199,12 @@ called and you will be in @dfn{vi mode}.  (Some major modes may locally bind
 invoked by @kbd{M-x}.  Here @kbd{M-x} means @kbd{Meta-x}, and if your
 terminal does not have a @key{META} key you can enter it by typing
 @kbd{@key{ESC} x}.  The same effect can also be achieve by typing
-@kbd{M-x vip-mode}.)@refill
+@kbd{M-x vip-mode}.)
 
 @cindex mode line
 
 You can observe the change of mode by looking at the @dfn{mode line}.  For
-instance, if the mode line is:@refill
+instance, if the mode line is:
 @example
 -----Emacs: *scratch*              (Lisp Interaction)----All------------
 @end example
@@ -219,7 +220,7 @@ Thus the word @samp{Emacs} in the mode line will change to @samp{Vi}.
 @cindex emacs mode
 
 You can go back to the original @dfn{emacs mode} by typing @kbd{C-z} in
-vi mode.  Thus @kbd{C-z} toggles between these two modes.@refill
+vi mode.  Thus @kbd{C-z} toggles between these two modes.
 
 Note that modes in VIP exist orthogonally to modes in Emacs.  This means
 that you can be in vi mode and at the same time, say, shell mode.
@@ -265,7 +266,7 @@ emacs mode             vi mode                 insert mode
 You will be in this mode just after you loaded VIP@.  You can do all
 normal Emacs editing in this mode.  Note that the key @kbd{C-z} is globally
 bound to @code{vip-change-mode-to-vi}.  So, if you type @kbd{C-z} in this mode
-then you will be in vi mode.@refill
+then you will be in vi mode.
 
 @node Vi Mode
 @subsection Vi Mode
@@ -332,7 +333,7 @@ The major differences from Vi are explained below.
 You can repeat undoing by the @kbd{.} key.  So, @kbd{u} will undo
 a single change, while @kbd{u .@: .@: .@:}, for instance, will undo 4 previous
 changes.  Undo is undoable as in Vi.  So the content of the buffer will
-be the same before and after @kbd{u u}.@refill
+be the same before and after @kbd{u u}.
 
 @node Changing
 @subsection Changing
@@ -345,7 +346,7 @@ then VIP will prompt you for a new word in the minibuffer by the prompt
 @key{ESC} to complete the command.  Before you enter @key{RET} or
 @key{ESC} you can abort the command by typing @kbd{C-g}.  In general,
 @kindex 007 @kbd{C-g} (@code{vip-keyboard-quit})
-you can abort a partially formed command by typing @kbd{C-g}.@refill
+you can abort a partially formed command by typing @kbd{C-g}.
 
 @node Searching
 @subsection Searching
@@ -361,7 +362,7 @@ A search for empty string will toggle the search mode between vanilla
 search and regular expression search.  You cannot give an offset to the
 search string.  (It is a limitation.)  By default, search will wrap around
 the buffer as in Vi.  You can change this by rebinding the variable
-@code{vip-search-wrap-around}.  @xref{Customization}, for how to do this.@refill
+@code{vip-search-wrap-around}.  @xref{Customization}, for how to do this.
 
 @node z Command
 @subsection z Command
@@ -376,7 +377,7 @@ the buffer as in Vi.  You can change this by rebinding the variable
 For those of you who cannot remember which of @kbd{z} followed by @key{RET},
 @kbd{.}@: and @kbd{-} do what.  You can also use @kbd{z} followed by @kbd{H},
 @kbd{M} and @kbd{L} to place the current line in the Home (Middle, and
-Last) line of the window.@refill
+Last) line of the window.
 
 @node Counts
 @subsection Counts
@@ -436,7 +437,7 @@ delimited by point and mark.)  The key @kbd{r} is used for this purpose.
 Thus @kbd{d r} will delete the current region.  If @kbd{R} is used instead
 of @kbd{r} the region will first be enlarged so that it will become the
 smallest region containing the original region and consisting of whole
-lines.  Thus @kbd{m .@: d R} will have the same effect as @kbd{d d}.@refill
+lines.  Thus @kbd{m .@: d R} will have the same effect as @kbd{d d}.
 
 @node New Commands
 @subsection Some New Commands
@@ -478,7 +479,7 @@ can execute a single Emacs command.  After executing the Emacs command you
 will be in vi mode again.  You can give a count before typing @kbd{\}.
 Thus @kbd{5 \ *}, as well as @kbd{\ C-u 5 *}, will insert @samp{*****}
 before point.  Similarly @kbd{1 0 \ C-p} will move the point 10 lines above
-the current line.@refill
+the current line.
 @item K
 @kindex 113 @kbd{K} (@code{vip-kill-buffer})
 Kill current buffer if it is not modified.  Useful when you selected a
@@ -504,7 +505,7 @@ similar, but will use window different from the current window.
 If followed by a certain character @var{ch}, it becomes an operator whose
 argument is the region determined by the motion command that follows.
 Currently, @var{ch} can be one of @kbd{c}, @kbd{C}, @kbd{g}, @kbd{q} and
-@kbd{s}.@refill
+@kbd{s}.
 @item # c
 @kindex 0432 @kbd{# c} (@code{downcase-region})
 Change upper-case characters in the region to lower case
@@ -517,7 +518,7 @@ Change lower-case characters in the region to upper case. For instance,
 @item # g
 @kindex 0432 @kbd{# g} (@code{vip-global-execute})
 Execute last keyboard macro for each line in the region
-(@code{vip-global-execute}).@refill
+(@code{vip-global-execute}).
 @item # q
 @kindex 0432 @kbd{# q} (@code{vip-quote-region})
 Insert specified string at the beginning of each line in the region
@@ -577,7 +578,7 @@ mode.  You get the same effect by typing @kbd{C-x C-s} in vi mode, but
 the idea here is that you can execute useful Emacs commands without typing
 control characters. For example, if you hit @kbd{X} (or @kbd{C-x}) followed
 by @kbd{2}, then the current window will be split into 2 and you will be in
-vi mode again.@refill
+vi mode again.
 @end table
 
 In addition to these, @code{ctl-x-map} is slightly modified:
@@ -723,7 +724,7 @@ Most Vi commands accept a @dfn{numeric argument} which can be supplied as
 a prefix to the commands.  A numeric argument is also called a @dfn{count}.
 In many cases, if a count is given, the command is executed that many times.
 For instance, @kbd{5 d d} deletes 5 lines while simple @kbd{d d} deletes a
-line.  In this manual the metavariable @var{n} will denote a count.@refill
+line.  In this manual the metavariable @var{n} will denote a count.
 
 @node Important Keys
 @section Important Keys
@@ -742,7 +743,7 @@ Clear the screen and reprint everything (@code{recenter}).
 
 In Emacs many commands are bound to the key strokes that start with
 @kbd{C-x}, @kbd{C-c} and @key{ESC}.  These commands can be
-accessed from vi mode as easily as from emacs mode.@refill
+accessed from vi mode as easily as from emacs mode.
 
 @table @kbd
 @item C-x
@@ -772,7 +773,7 @@ Escape to emacs mode.  Hitting the @kbd{\} key will take you to emacs mode,
 and you can execute a single Emacs command.  After executing the
 Emacs command you will be in vi mode again.  You can give a count before
 typing @kbd{\}.  Thus @kbd{5 \ +}, as well as @kbd{\ C-u 5 +}, will insert
-@samp{+++++} before point.@refill
+@samp{+++++} before point.
 @end table
 
 @node Buffers and Windows
@@ -784,7 +785,7 @@ typing @kbd{\}.  Thus @kbd{5 \ +}, as well as @kbd{\ C-u 5 +}, will insert
 
 In Emacs the text you edit is stored in a @dfn{buffer}.
 See GNU Emacs Manual, for details.  There is always one @dfn{current}
-buffer, also called the @dfn{selected buffer}.@refill
+buffer, also called the @dfn{selected buffer}.
 
 @cindex window
 @cindex modified (buffer)
@@ -883,7 +884,7 @@ file in the current window, you can just type @kbd{v}.  Emacs maintains the
 @dfn{default directory} which is specific to each buffer.  Suppose, for
 instance, that the default directory of the current buffer is
 @file{/usr/masahiko/lisp/}.  Then you will get the following prompt in the
-minibuffer.@refill
+minibuffer.
 @example
 visit file: /usr/masahiko/lisp/
 @end example
@@ -911,7 +912,7 @@ window.
 
 You can verify which file you are editing by typing @kbd{g}.  (You can also
 type @kbd{X B} to get information on other buffers too.)  If you type
-@kbd{g} you will get an information like below in the echo area:@refill
+@kbd{g} you will get an information like below in the echo area:
 @example
 "/usr/masahiko/man/vip.texinfo" line 921 of 1949
 @end example
@@ -921,7 +922,7 @@ you may wish to save it in a file.  If you wish to save it in the file
 associated with the buffer (@file{/usr/masahiko/man/vip.texinfo}, in this
 case), you can just say @kbd{X S}.  If you wish to save it in another file,
 you can type @kbd{X W}.  You will then get a similar prompt as you get for
-@kbd{v}, to which you can enter the file name.@refill
+@kbd{v}, to which you can enter the file name.
 
 @node Viewing the Buffer
 @section Viewing the Buffer
@@ -1453,7 +1454,7 @@ For example, if point is at the beginning of a word @samp{foo} and you
 wish to change it to @samp{bar}, you can type @kbd{c w}.  Then, as @kbd{w}
 is a point command, you will get the prompt @samp{foo =>} in the
 minibuffer, for which you can type @kbd{b a r @key{RET}} to complete the change
-command.@refill
+command.
 
 @table @kbd
 @item c c
@@ -1862,7 +1863,7 @@ The following Ex commands are available in Vi, but not implemented in VIP.
 @node Customization
 @chapter Customization
 
-If you have a file called @file{.vip} in your home directory, then it
+If you have a file called @file{~/.emacs.d/vip} (or @file{~/.vip}), then it
 will also be loaded when VIP is loaded.  This file is thus useful for
 customizing VIP.
 
@@ -1902,7 +1903,7 @@ if @code{nil} then it sis bound to @code{delete-backward-char}.
 @end table
 @noindent
 You can reset these constants in VIP by the Ex command @kbd{set}.  Or you
-can include a line like this in your @file{.vip} file:
+can include a line like this in your @file{~/.emacs.d/vip} file:
 @example
 (setq vip-case-fold-search t)
 @end example
@@ -1915,8 +1916,8 @@ can include a line like this in your @file{.vip} file:
 VIP uses @code{vip-command-mode-map} as the @dfn{local keymap} for vi mode.
 For example, in vi mode, @key{SPC} is bound to the function
 @code{vip-scroll}.  But, if you wish to make @key{SPC} and some other keys
- behave like Vi, you can include the following lines in your @file{.vip}
-file.
+ behave like Vi, you can include the following lines in your
+@file{~/.emacs.d/vip} file.
 
 @example
 (define-key vip-command-mode-map "\C-g" 'vip-info-on-file)

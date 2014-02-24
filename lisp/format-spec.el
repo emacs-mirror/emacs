@@ -1,6 +1,6 @@
 ;;; format-spec.el --- functions for formatting arbitrary formatting strings
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: tools
@@ -44,14 +44,15 @@ the text that it generates."
        ((looking-at "\\([-0-9.]*\\)\\([a-zA-Z]\\)")
 	(let* ((num (match-string 1))
 	       (spec (string-to-char (match-string 2)))
-	       (val (cdr (assq spec specification))))
+	       (val (assq spec specification)))
 	  (unless val
 	    (error "Invalid format character: `%%%c'" spec))
+	  (setq val (cdr val))
 	  ;; Pad result to desired length.
-          (let ((text (format (concat "%" num "s") val)))
+	  (let ((text (format (concat "%" num "s") val)))
 	    ;; Insert first, to preserve text properties.
-            (insert-and-inherit text)
-            ;; Delete the specifier body.
+	    (insert-and-inherit text)
+	    ;; Delete the specifier body.
             (delete-region (+ (match-beginning 0) (length text))
                            (+ (match-end 0) (length text)))
             ;; Delete the percent sign.

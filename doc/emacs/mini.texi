@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Minibuffer
@@ -37,7 +37,7 @@ how it will be used.  The prompt is highlighted using the
   The simplest way to enter a minibuffer argument is to type the text,
 then @key{RET} to submit the argument and exit the minibuffer.
 Alternatively, you can type @kbd{C-g} to exit the minibuffer by
-cancelling the command asking for the argument (@pxref{Quitting}).
+canceling the command asking for the argument (@pxref{Quitting}).
 
 @cindex default argument
   Sometimes, the prompt shows a @dfn{default argument}, inside
@@ -550,6 +550,9 @@ previous example, @samp{foo.e} completes to @samp{foo.elc}.  Emacs
 disregards @code{completion-ignored-extensions} when showing
 completion alternatives in the completion list.
 
+  Shell completion is an extended version of filename completion,
+@pxref{Shell Options}.
+
 @vindex completion-auto-help
   If @code{completion-auto-help} is set to @code{nil}, the completion
 commands never display the completion list buffer; you must type
@@ -571,13 +574,6 @@ completion command replaces that with the next completion alternative,
 in a cyclic manner.  If you give @code{completion-cycle-threshold} a
 numeric value @var{n}, completion commands switch to this cycling
 behavior only when there are @var{n} or fewer alternatives.
-
-@cindex Icomplete mode
-@findex icomplete-mode
-  Icomplete mode presents a constantly-updated display that tells you
-what completions are available for the text you've entered so far.  The
-command to enable or disable this minor mode is @kbd{M-x
-icomplete-mode}.
 
 @node Minibuffer History
 @section Minibuffer History

@@ -1,6 +1,6 @@
 ;;; semantic-grammar.wy -- LALR grammar of Semantic input grammars
 ;;
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -94,7 +94,7 @@
 %token <open-paren>  LBRACE      "{"
 %token <close-paren> RBRACE      "}"
 
-;; Punctuations
+;; Punctuation
 %type  <punctuation>
 %token <punctuation> COLON       ":"
 %token <punctuation> SEMI        ";"

@@ -1,6 +1,6 @@
 ;;; ibuffer.el --- operate on buffers like dired
 
-;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -53,6 +53,8 @@
 (defvar ibuffer-tmp-hide-regexps)
 (defvar ibuffer-tmp-show-regexps)
 
+(declare-function ibuffer-ext-visible-p "ibuf-ext"
+		  (buf all &optional ibuffer-buf))
 (declare-function ibuffer-mark-on-buffer "ibuf-ext"
 		  (func &optional ibuffer-mark-on-buffer-mark group))
 (declare-function ibuffer-generate-filter-groups "ibuf-ext"
@@ -154,7 +156,7 @@ elisp byte-compiler."
 	     (null buffer-file-name))
 	italic)
     (30 (memq major-mode ibuffer-help-buffer-modes) font-lock-comment-face)
-    (35 (eq major-mode 'dired-mode) font-lock-function-name-face))
+    (35 (derived-mode-p 'dired-mode) font-lock-function-name-face))
   "An alist describing how to fontify buffers.
 Each element should be of the form (PRIORITY FORM FACE), where
 PRIORITY is an integer, FORM is an arbitrary form to evaluate in the
@@ -462,6 +464,7 @@ directory, like `default-directory'."
     (define-key map (kbd "M-g") 'ibuffer-jump-to-buffer)
     (define-key map (kbd "M-s a C-s") 'ibuffer-do-isearch)
     (define-key map (kbd "M-s a M-C-s") 'ibuffer-do-isearch-regexp)
+    (define-key map (kbd "M-s a C-o") 'ibuffer-do-occur)
     (define-key map (kbd "DEL") 'ibuffer-unmark-backward)
     (define-key map (kbd "M-DEL") 'ibuffer-unmark-all)
     (define-key map (kbd "* *") 'ibuffer-unmark-all)
@@ -1197,7 +1200,7 @@ a new window in the current frame, splitting vertically."
 			     (and (stringp (cadr err))
 				  ;; This definitely falls in the
 				  ;; ghetto hack category...
-				  (not (string-match "too small" (cadr err)))))
+				  (not (string-match-p "too small" (cadr err)))))
 			 (signal (car err) (cdr err))
 		       (enlarge-window 3))))))
 	      (select-window (next-window))
@@ -2355,7 +2358,7 @@ FORMATS is the value to use for `ibuffer-formats'.
 	;; We switch to the buffer's window in order to be able
 	;; to modify the value of point
 	(select-window (get-buffer-window buf 0))
-	(or (eq major-mode 'ibuffer-mode)
+	(or (derived-mode-p 'ibuffer-mode)
 	    (ibuffer-mode))
 	(setq ibuffer-restore-window-config-on-quit other-window-p)
 	(when shrink
@@ -2380,7 +2383,7 @@ FORMATS is the value to use for `ibuffer-formats'.
 	  (message "Commands: m, u, t, RET, g, k, S, D, Q; q to quit; h for help"))))))
 
 (put 'ibuffer-mode 'mode-class 'special)
-(defun ibuffer-mode ()
+(define-derived-mode ibuffer-mode special-mode "IBuffer"
   "A major mode for viewing a list of buffers.
 In Ibuffer, you can conveniently perform many operations on the
 currently open buffers, in addition to filtering your view to a
@@ -2561,10 +2564,6 @@ filter groups are displayed in this order of precedence.
 You may rearrange filter groups by using the regular
 '\\[ibuffer-kill-line]' and '\\[ibuffer-yank]' pair.  Yanked groups
 will be inserted before the group at point."
-  (kill-all-local-variables)
-  (use-local-map ibuffer-mode-map)
-  (setq major-mode 'ibuffer-mode)
-  (setq mode-name "Ibuffer")
   ;; Include state info next to the mode name.
   (set (make-local-variable 'mode-line-process)
         '(" by "
@@ -2624,35 +2623,12 @@ will be inserted before the group at point."
   (ibuffer-update-format)
   (when ibuffer-default-directory
     (setq default-directory ibuffer-default-directory))
-  (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
-  (run-mode-hooks 'ibuffer-mode-hook))
+  (add-hook 'change-major-mode-hook 'font-lock-defontify nil t))
 
 
 ;;; Start of automatically extracted autoloads.
 
-;;;### (autoloads (ibuffer-do-occur ibuffer-mark-dired-buffers ibuffer-mark-read-only-buffers
-;;;;;;  ibuffer-mark-special-buffers ibuffer-mark-old-buffers ibuffer-mark-compressed-file-buffers
-;;;;;;  ibuffer-mark-help-buffers ibuffer-mark-dissociated-buffers
-;;;;;;  ibuffer-mark-unsaved-buffers ibuffer-mark-modified-buffers
-;;;;;;  ibuffer-mark-by-mode ibuffer-mark-by-file-name-regexp ibuffer-mark-by-mode-regexp
-;;;;;;  ibuffer-mark-by-name-regexp ibuffer-copy-filename-as-kill
-;;;;;;  ibuffer-diff-with-file ibuffer-jump-to-buffer ibuffer-do-kill-lines
-;;;;;;  ibuffer-backwards-next-marked ibuffer-forward-next-marked
-;;;;;;  ibuffer-add-to-tmp-show ibuffer-add-to-tmp-hide ibuffer-bs-show
-;;;;;;  ibuffer-invert-sorting ibuffer-toggle-sorting-mode ibuffer-switch-to-saved-filters
-;;;;;;  ibuffer-add-saved-filters ibuffer-delete-saved-filters ibuffer-save-filters
-;;;;;;  ibuffer-or-filter ibuffer-negate-filter ibuffer-exchange-filters
-;;;;;;  ibuffer-decompose-filter ibuffer-pop-filter ibuffer-filter-disable
-;;;;;;  ibuffer-switch-to-saved-filter-groups ibuffer-delete-saved-filter-groups
-;;;;;;  ibuffer-save-filter-groups ibuffer-yank-filter-group ibuffer-yank
-;;;;;;  ibuffer-kill-line ibuffer-kill-filter-group ibuffer-jump-to-filter-group
-;;;;;;  ibuffer-clear-filter-groups ibuffer-decompose-filter-group
-;;;;;;  ibuffer-pop-filter-group ibuffer-set-filter-groups-by-mode
-;;;;;;  ibuffer-filters-to-filter-group ibuffer-included-in-filters-p
-;;;;;;  ibuffer-backward-filter-group ibuffer-forward-filter-group
-;;;;;;  ibuffer-toggle-filter-group ibuffer-mouse-toggle-filter-group
-;;;;;;  ibuffer-interactive-filter-by-mode ibuffer-mouse-filter-by-mode
-;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "9950bdf995e4b5e962a17d754a35f2c6")
+;;;### (autoloads nil "ibuf-ext" "ibuf-ext.el" "e8ce929c4c76419f8d355b444f722c3a")
 ;;; Generated autoloads from ibuf-ext.el
 
 (autoload 'ibuffer-auto-mode "ibuf-ext" "\
@@ -2984,7 +2960,7 @@ Mark all buffers whose associated file does not exist.
 \(fn)" t nil)
 
 (autoload 'ibuffer-mark-help-buffers "ibuf-ext" "\
-Mark buffers like *Help*, *Apropos*, *Info*.
+Mark buffers whose major mode is in variable `ibuffer-help-buffer-modes'.
 
 \(fn)" t nil)
 
@@ -3030,7 +3006,7 @@ defaults to one.
 (run-hooks 'ibuffer-load-hook)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; ibuffer.el ends here

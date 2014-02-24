@@ -1,6 +1,6 @@
 Emacs TODO List                                                   -*-outline-*-
 
-Copyright (C) 2001-2013 Free Software Foundation, Inc.
+Copyright (C) 2001-2014 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -76,7 +76,8 @@ to use it.
 ** Convert all defvars with leading `*' in the doc-strings into defcustoms
 of appropriate :type and :group.
 
-** Remove any leading `*'s from defcustom doc-strings.  [done?]
+** Remove any leading `*'s from defcustom doc-strings.
+[done?] [A lot of them are in CC Mode.]
 
 ** Remove unnecessary autoload cookies from defcustoms.
 This needs a bit of care, since often people have become used to
@@ -176,6 +177,15 @@ where <device> is the network device found under the first key.
 
 ** Check for any included packages that define obsolete bug-reporting commands.
 Change them to use report-emacs-bug.
+*** Related functions:
+**** gnus-bug
+**** report-calc-bug
+**** org-submit-bug-report
+**** lm-report-bug
+**** tramp-bug
+**** c-submit-bug-report
+**** ffap-bug and ffap-submit-bug (obsoleted)
+[Do all of them need changing?]
 
 ** Allow fringe indicators to display a tooltip (provide a help-echo property?)
 
@@ -189,6 +199,14 @@ dired buffers and DTRT WRT `auto-revert-mode'.
 http://lists.gnu.org/archive/html/emacs-devel/2008-08/msg00456.html
 
 * Important features:
+
+** "Emacs as word processor"
+http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00515.html
+    rms writes:
+    25 years ago I hoped we would extend Emacs to do WYSIWYG word
+    processing.  That is why we added text properties and variable
+    width fonts.  However, more features are still needed to achieve this.
+
 ** Extended text-properties (to make overlays "obsolete")
 *** Several text-property planes
 This would get us rid of font-lock-face property (and I'd be happy to
@@ -210,6 +228,12 @@ Emacs this is more or less the "dedicated window" feature, but we have
 never really made it work for this.
 
 Perspectives also need to interact with the tabs.
+
+** FFI (foreign function interface)
+See eg http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00246.html
+
+** Replace unexec with a more portable form of dumping
+See eg http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01034.html
 
 ** Imenu could be extended into a file-structure browsing mechanism
 using code like that of customize-groups.
@@ -432,6 +456,8 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
 
 ** Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).  Already in CUA,
   but it's a valuable feature worth making more general.
+  [Basic support added 2013/10:
+  http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00904.html ]
 
 ** Eliminate the storm of warnings concerning char/unsigned char
   mismatches that we get with GCC 4.x and proprietary compilers on
@@ -506,7 +532,7 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
 ** Optionally make the cursor a little thinner at the end of a line
   or the end of the buffer.
 
-** Port the conservative stack marking code of Emacs' garbage collector
+** Port the conservative stack marking code of Emacs's garbage collector
   to more systems, so that we can completely get rid of GCPROs.  Note
   that Boehm garbage collector provides this.
 
@@ -521,8 +547,8 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
   aim for completeness, but some may be worth documenting.
 
   Here's a list which is probably not complete/correct: align, allout,
-  artist, ansi-color, array, battery, calculator, cdl, cmuscheme,
-  completion, cua, delim-col, dirtrack, double, echistory, elide-head,
+  artist, ansi-color, array, calculator, cdl, cmuscheme,
+  completion, delim-col, dirtrack, double, echistory, elide-head,
   easymenu, expand, flow-ctrl, format [format-alist],
   generic/generic-x [various modes], kermit, log-edit,
   makesum, midnight [other than in Kill Buffer node],
@@ -530,8 +556,8 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
   snmp-mode [?], soundex [should be interactive?], strokes [start from
   the web page], talk, thingatpt [interactive functions?], type-break,
   vcursor, xscheme, zone-mode [?], mlconvert [?], iso-cvt,
-  feedmail [?], uce, gametree, meese, page-ext,
-  refbib, refer, scribe, sgml-mode, spell, texinfo, underline,
+  feedmail [?], uce, gametree, page-ext,
+  refbib, refer, scribe, texinfo, underline,
   cmacexp, hideif, mantemp [obsolete?], pcomplete, xml,
   cvs-status (should be described in PCL-CVS manual); other progmodes,
   probably in separate manual.
@@ -1198,6 +1224,9 @@ systems for HTML/XML files automatically."
 ** Merge ibuffer.el and buff-menu.el.
    More specifically do what's needed to make ibuffer.el the default,
    or just an extension of buff-menu.el.
+
+** Replace linum.el with nlinum.el
+   http://lists.gnu.org/archive/html/emacs-devel/2013-08/msg00379.html
 
 ** Use pcomplete by default in shell-mode.
    This means to make it behave (by default) more like the current code.

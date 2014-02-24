@@ -1,6 +1,6 @@
 ;;; semantic/sort.el --- Utilities for sorting and re-arranging tag tables.
 
-;;; Copyright (C) 1999-2005, 2007-2013 Free Software Foundation, Inc.
+;;; Copyright (C) 1999-2005, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -522,7 +522,7 @@ See `semantic-tag-external-member-children' for details."
 	   (semanticdb-minor-mode-p)
 	   (require 'semantic/db-find))
       (let ((m (semanticdb-find-tags-external-children-of-type
-		(semantic-tag-name tag))))
+		(semantic-tag-name tag) tag)))
 	(if m (apply #'append (mapcar #'cdr m))))
     (semantic--find-tags-by-function
      `(lambda (tok)

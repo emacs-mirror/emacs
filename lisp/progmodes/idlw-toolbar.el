@@ -1,10 +1,9 @@
 ;;; idlw-toolbar.el --- a debugging toolbar for IDLWAVE
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@astro.uva.nl>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
-;; Version: 6.1.22
 ;; Keywords: processes
 ;; Package: idlwave
 
@@ -963,7 +962,7 @@ static char * file[] = {
   (if (featurep 'xemacs)
       nil ; no action necessary, toolbar gets updated automatically
     ;; On Emacs, redraw the frame to make sure the Toolbar is updated.
-    (redraw-frame (selected-frame))))
+    (redraw-frame)))
 
 (provide 'idlw-toolbar)
 (provide 'idlwave-toolbar)

@@ -1,6 +1,6 @@
-;;; esh-util.el --- general utilities
+;;; esh-util.el --- general utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -22,6 +22,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(eval-when-compile (require 'cl-lib))
 
 (defgroup eshell-util nil
   "This is general utility code, meant for use by Eshell itself."
@@ -142,7 +144,7 @@ function `string-to-number'."
 Otherwise, evaluates FORM with no error handling."
   (declare (indent 2))
   (if eshell-handle-errors
-      `(condition-case ,tag
+      `(condition-case-unless-debug ,tag
 	   ,form
 	 ,@handlers)
     form))
@@ -215,8 +217,7 @@ then quoting is done by a backslash, rather than a doubled delimiter."
 (defun eshell-sublist (l &optional n m)
   "Return from LIST the N to M elements.
 If N or M is nil, it means the end of the list."
-  (let* ((a (copy-sequence l))
-	 result)
+  (let ((a (copy-sequence l)))
     (if (and m (consp (nthcdr m a)))
 	(setcdr (nthcdr m a) nil))
     (if n
@@ -476,20 +477,20 @@ list."
 (defalias 'eshell-user-name 'user-login-name)
 
 (defun eshell-read-hosts-file (filename)
-  "Read in the hosts from the /etc/hosts file."
+  "Read in the hosts from FILENAME, default `eshell-hosts-file'."
   (let (hosts)
     (with-temp-buffer
-      (insert-file-contents eshell-hosts-file)
+      (insert-file-contents (or filename eshell-hosts-file))
       (goto-char (point-min))
       (while (re-search-forward
 	      "^\\([^#[:space:]]+\\)\\s-+\\(\\S-+\\)\\(\\s-*\\(\\S-+\\)\\)?" nil t)
 	(if (match-string 1)
-	    (add-to-list 'hosts (match-string 1)))
+	    (cl-pushnew (match-string 1) hosts :test #'equal))
 	(if (match-string 2)
-	    (add-to-list 'hosts (match-string 2)))
+	    (cl-pushnew (match-string 2) hosts :test #'equal))
 	(if (match-string 4)
-	    (add-to-list 'hosts (match-string 4)))))
-    (sort hosts 'string-lessp)))
+	    (cl-pushnew (match-string 4) hosts :test #'equal))))
+    (sort hosts #'string-lessp)))
 
 (defun eshell-read-hosts (file result-var timestamp-var)
   "Read the contents of /etc/passwd for user names."
@@ -560,9 +561,13 @@ Unless optional argument INPLACE is non-nil, return a new string."
 	  (substring string 0 sublen)
 	string)))
 
+(defvar ange-cache)
+
+;; Partial reimplementation of Emacs's builtin directory-files-and-attributes.
+;; id-format not implemented.
 (and (featurep 'xemacs)
      (not (fboundp 'directory-files-and-attributes))
-     (defun directory-files-and-attributes (directory &optional full match nosort id-format)
+     (defun directory-files-and-attributes (directory &optional full match nosort _id-format)
     "Return a list of names of files and their attributes in DIRECTORY.
 There are three optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
@@ -576,8 +581,6 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 	(lambda (file)
 	  (cons file (eshell-file-attributes (expand-file-name file directory)))))
        (directory-files directory full match nosort)))))
-
-(defvar ange-cache)
 
 (defun eshell-directory-files-and-attributes (dir &optional full match nosort id-format)
   "Make sure to use the handler for `directory-file-and-attributes'."
@@ -605,10 +608,16 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
     (autoload 'parse-time-string "parse-time"))
 
 (eval-when-compile
-  (require 'ange-ftp nil t)
-  (require 'tramp nil t))
+  (require 'ange-ftp nil t))		; ange-ftp-parse-filename
+
+(defvar tramp-file-name-structure)
+(declare-function ange-ftp-ls "ange-ftp"
+		  (file lsargs parse &optional no-error wildcard))
+(declare-function ange-ftp-file-modtime "ange-ftp" (file))
 
 (defun eshell-parse-ange-ls (dir)
+  (require 'ange-ftp)
+  (require 'tramp)
   (let ((ange-ftp-name-format
 	 (list (nth 0 tramp-file-name-structure)
 	       (nth 3 tramp-file-name-structure)

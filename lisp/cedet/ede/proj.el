@@ -1,6 +1,6 @@
 ;;; ede/proj.el --- EDE Generic Project file driver
 
-;; Copyright (C) 1998-2003, 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2003, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -104,6 +104,7 @@ distributed, and each should have a corresponding rule to build it.")
 	     :initform nil
 	     :type (or null symbol)
 	     :custom (choice (const :tag "None" nil)
+			     (symbol :tag "Custom Compiler Symbol")
 			     :slotofchoices availablecompilers)
 	     :label "Compiler for building sources"
 	     :group make
@@ -116,6 +117,7 @@ of these compiler resources, and global customization thereof.")
 	     :initform nil
 	     :type (or null symbol)
 	     :custom (choice (const :tag "None" nil)
+			     (symbol :tag "Custom Linker Symbol")
 			     :slotofchoices availablelinkers)
 	     :label "Linker for combining intermediate object files."
 	     :group make
@@ -512,11 +514,11 @@ Optional argument COMMAND is the s the alternate command to use."
 
 (defmethod project-debug-target ((obj ede-proj-target))
   "Run the current project target OBJ in a debugger."
-  (error "Debug-target not supported by %s" (object-name obj)))
+  (error "Debug-target not supported by %s" (eieio-object-name obj)))
 
 (defmethod project-run-target ((obj ede-proj-target))
   "Run the current project target OBJ."
-  (error "Run-target not supported by %s" (object-name obj)))
+  (error "Run-target not supported by %s" (eieio-object-name obj)))
 
 (defmethod ede-proj-makefile-target-name ((this ede-proj-target))
   "Return the name of the main target for THIS target."

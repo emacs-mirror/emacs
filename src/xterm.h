@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993-1994, 1998-2013 Free Software Foundation,
+   Copyright (C) 1989, 1993-1994, 1998-2014 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -38,8 +38,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/CoreP.h>		/* foul, but we need this to use our own
 				   window inside a widget instead of one
 				   that Xt creates... */
-#include <X11/StringDefs.h>
-
 typedef Widget xt_or_gtk_widget;
 #endif
 
@@ -52,32 +50,39 @@ typedef GtkWidget *xt_or_gtk_widget;
 #define XtParent(x) (gtk_widget_get_parent (x))
 #undef XSync
 #define XSync(d, b) do { gdk_window_process_all_updates (); \
-                         XSync (d, b);  } while (0)
-
-/* The GtkTooltip API came in 2.12, but gtk-enable-tooltips in 2.14. */
-#if GTK_MAJOR_VERSION > 2 || GTK_MINOR_VERSION > 13
-#define USE_GTK_TOOLTIP
-#endif
-
+                         XSync (d, b);  } while (false)
 #endif /* USE_GTK */
 
-
-/* Bookkeeping to distinguish X versions.  */
+/* True iff GTK's version is at least I.J.K.  */
+#ifndef GTK_CHECK_VERSION
+# ifdef USE_GTK
+#  define GTK_CHECK_VERSION(i, j, k) \
+     ((i) \
+      < GTK_MAJOR_VERSION + ((j) \
+			     < GTK_MINOR_VERSION + ((k) \
+						    <= GTK_MICRO_VERSION)))
+# else
+#  define GTK_CHECK_VERSION(i, j, k) false
+# endif
+#endif
 
+/* The GtkTooltip API came in 2.12, but gtk-enable-tooltips in 2.14. */
+#if GTK_CHECK_VERSION (2, 14, 0)
+#define USE_GTK_TOOLTIP
+#endif
 
 #ifdef HAVE_X_I18N
 #include <X11/Xlocale.h>
 #endif
-
-#define BLACK_PIX_DEFAULT(f) BlackPixel (FRAME_X_DISPLAY (f), \
-					 XScreenNumberOfScreen (FRAME_X_SCREEN (f)))
-#define WHITE_PIX_DEFAULT(f) WhitePixel (FRAME_X_DISPLAY (f), \
-					 XScreenNumberOfScreen (FRAME_X_SCREEN (f)))
 
-#define FONT_WIDTH(f)	((f)->max_width)
-#define FONT_HEIGHT(f)	((f)->ascent + (f)->descent)
-#define FONT_BASE(f)    ((f)->ascent)
-#define FONT_DESCENT(f) ((f)->descent)
+#include "dispextern.h"
+#include "termhooks.h"
+
+/* Black and white pixel values for the screen which frame F is on.  */
+#define BLACK_PIX_DEFAULT(f)					\
+  BlackPixel (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f))
+#define WHITE_PIX_DEFAULT(f)					\
+  WhitePixel (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f))
 
 /* The mask of events that text windows always want to receive.  This
    includes mouse movement events, since handling the mouse-font text property
@@ -110,7 +115,7 @@ struct xim_inst_t
 struct x_bitmap_record
 {
   Pixmap pixmap;
-  int have_mask;
+  bool have_mask;
   Pixmap mask;
   char *file;
   int refcount;
@@ -129,14 +134,10 @@ struct x_display_info
   /* The generic display parameters corresponding to this X display. */
   struct terminal *terminal;
 
-  /* Connection number (normally a file descriptor number).  */
-  int connection;
-
   /* This says how to access this display in Xlib.  */
   Display *display;
 
-  /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).
-     The same cons cell also appears in x_display_name_list.  */
+  /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).  */
   Lisp_Object name_list_element;
 
   /* Number of frames that are on this display.  */
@@ -295,6 +296,41 @@ struct x_display_info
      minibuffer.  */
   struct frame *x_highlight_frame;
 
+  /* The frame waiting to be auto-raised in XTread_socket.  */
+  struct frame *x_pending_autoraise_frame;
+
+  /* The frame where the mouse was last time we reported a ButtonPress event.  */
+  struct frame *last_mouse_frame;
+
+  /* The frame where the mouse was last time we reported a mouse position.  */
+  struct frame *last_mouse_glyph_frame;
+
+  /* The frame where the mouse was last time we reported a mouse motion.  */
+  struct frame *last_mouse_motion_frame;
+
+  /* The scroll bar in which the last X motion event occurred.  */
+  struct scroll_bar *last_mouse_scroll_bar;
+
+  /* Time of last user interaction as returned in X events on this display.  */
+  Time last_user_time;
+
+  /* Position where the mouse was last time we reported a motion.
+     This is a position on last_mouse_motion_frame.  */
+  int last_mouse_motion_x;
+  int last_mouse_motion_y;
+
+  /* Where the mouse was last time we reported a mouse position.
+     This is a rectangle on last_mouse_glyph_frame.  */
+  XRectangle last_mouse_glyph;
+
+  /* Time of last mouse movement on this display.  This is a hack because
+     we would really prefer that XTmouse_position would return the time
+     associated with the position it returns, but there doesn't seem to be
+     any way to wrest the time-stamp from the server along with the position
+     query.  So, we just keep track of the time of the last movement we
+     received, and return that in hopes that it's somewhat accurate.  */
+  Time last_mouse_movement_time;
+
   /* The gray pixmap.  */
   Pixmap gray;
 
@@ -346,7 +382,8 @@ struct x_display_info
   Atom Xatom_net_wm_state, Xatom_net_wm_state_fullscreen,
     Xatom_net_wm_state_maximized_horz, Xatom_net_wm_state_maximized_vert,
     Xatom_net_wm_state_sticky, Xatom_net_wm_state_hidden,
-    Xatom_net_frame_extents;
+    Xatom_net_frame_extents,
+    Xatom_net_current_desktop, Xatom_net_workarea;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
@@ -363,45 +400,18 @@ struct x_display_info
 
 #ifdef HAVE_X_I18N
 /* Whether or not to use XIM if we have it.  */
-extern int use_xim;
-#endif
-
-/* This checks to make sure we have a display.  */
-
-extern void check_x (void);
-
-extern struct frame *x_window_to_frame (struct x_display_info *, int);
-extern struct frame *x_any_window_to_frame (struct x_display_info *, int);
-extern struct frame *x_menubar_window_to_frame (struct x_display_info *,
-						XEvent *);
-extern struct frame *x_top_window_to_frame (struct x_display_info *, int);
-
-extern struct frame *x_menubar_window_to_frame (struct x_display_info *,
-						XEvent *);
-
-#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
-#define x_any_window_to_frame x_window_to_frame
-#define x_top_window_to_frame x_window_to_frame
+extern bool use_xim;
 #endif
 
 /* This is a chain of structures for all the X displays currently in use.  */
 extern struct x_display_info *x_display_list;
 
-/* This is a list of cons cells, each of the form (NAME . FONT-LIST-CACHE),
-   one for each element of x_display_list and in the same order.
-   NAME is the name of the frame.
-   FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
-extern Lisp_Object x_display_name_list;
-
 extern struct x_display_info *x_display_info_for_display (Display *);
-
+extern struct frame *x_top_window_to_frame (struct x_display_info *, int);
 extern struct x_display_info *x_term_init (Lisp_Object, char *, char *);
-extern int x_display_ok  (const char *);
+extern bool x_display_ok (const char *);
 
 extern void select_visual (struct x_display_info *);
-
-
-struct font;
 
 /* Each X frame object points to its own struct x_output object
    in the output_data.x field.  The x_output structure contains
@@ -478,9 +488,9 @@ struct x_output
 /* The handle box that makes the tool bar detachable.  */
   GtkWidget *handlebox_widget;
 #endif
-  /* Non-zero if tool bar is packed into the hbox widget (i.e. vertical).  */
-  bool toolbar_in_hbox;
-  bool toolbar_is_packed;
+  /* True if tool bar is packed into the hbox widget (i.e. vertical).  */
+  bool_bf toolbar_in_hbox : 1;
+  bool_bf toolbar_is_packed : 1;
 
   /* The last size hints set.  */
   GdkGeometry size_hints;
@@ -534,14 +544,12 @@ struct x_output
   Cursor hand_cursor;
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
+  Cursor vertical_drag_cursor;
   Cursor current_cursor;
 
   /* Window whose cursor is hourglass_cursor.  This window is temporarily
      mapped to display an hourglass cursor.  */
   Window hourglass_window;
-
-  /* Non-zero means hourglass cursor is currently displayed.  */
-  unsigned hourglass_p : 1;
 
   /* These are the current window manager hints.  It seems that
      XSetWMHints, when presented with an unset bit in the `flags'
@@ -568,22 +576,34 @@ struct x_output
   int id;
 #endif
 
-  /* Nonzero means our parent is another application's window
+  /* True means hourglass cursor is currently displayed.  */
+  bool_bf hourglass_p : 1;
+
+  /* True means our parent is another application's window
      and was explicitly specified.  */
-  unsigned explicit_parent : 1;
+  bool_bf explicit_parent : 1;
 
-  /* Nonzero means tried already to make this frame visible.  */
-  unsigned asked_for_visible : 1;
+  /* True means tried already to make this frame visible.  */
+  bool_bf asked_for_visible : 1;
 
-  /* Nonzero if this frame was ever previously visible.  */
-  unsigned has_been_visible : 1;
+  /* True if this frame was ever previously visible.  */
+  bool_bf has_been_visible : 1;
+
+  /* Xt waits for a ConfigureNotify event from the window manager in
+     EmacsFrameSetCharSize when the shell widget is resized.  For some
+     window managers like fvwm2 2.2.5 and KDE 2.1 this event doesn't
+     arrive for an unknown reason and Emacs hangs in Xt.  If this is
+     false, tell Xt not to wait.  */
+  bool_bf wait_for_wm : 1;
+
+  /* True if _NET_WM_STATE_HIDDEN is set for this frame.  */
+  bool_bf net_wm_state_hidden_seen : 1;
 
 #ifdef HAVE_X_I18N
   /* Input context (currently, this means Compose key handler setup).  */
   XIC xic;
   XIMStyle xic_style;
   XFontSet xic_xfs;
-  char *xic_base_fontname;
 #endif
 
   /* Relief GCs, colors etc.  */
@@ -591,20 +611,12 @@ struct x_output
   {
     GC gc;
     unsigned long pixel;
-    int allocated_p;
   }
   black_relief, white_relief;
 
   /* The background for which the above relief GCs were set up.
      They are changed only when a different background is involved.  */
   unsigned long relief_background;
-
-  /* Xt waits for a ConfigureNotify event from the window manager in
-     EmacsFrameSetCharSize when the shell widget is resized.  For some
-     window managers like fvwm2 2.2.5 and KDE 2.1 this event doesn't
-     arrive for an unknown reason and Emacs hangs in Xt.  If this is
-     zero, tell Xt not to wait.  */
-  int wait_for_wm;
 
   /* As x_pixels_diff, but to FRAME_OUTER_WINDOW.  For some reason the
      two might differ by a pixel, depending on WM */
@@ -623,14 +635,6 @@ struct x_output
   /* The offset we need to add to compensate for type A WMs.  */
   int move_offset_top;
   int move_offset_left;
-
-  /* The frame's left/top offsets before we call XMoveWindow.  See
-     x_check_expected_move.  */
-  int left_before_move;
-  int top_before_move;
-
-  /* Non-zero if _NET_WM_STATE_HIDDEN is set for this frame.  */
-  unsigned net_wm_state_hidden_seen : 1;
 };
 
 #define No_Cursor (None)
@@ -717,20 +721,22 @@ enum
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.x->baseline_offset)
 
 /* This gives the x_display_info structure for the display F is on.  */
-#define FRAME_X_DISPLAY_INFO(f) ((f)->output_data.x->display_info)
+#define FRAME_DISPLAY_INFO(f) ((f)->output_data.x->display_info)
 
 /* This is the `Display *' which frame F is on.  */
-#define FRAME_X_DISPLAY(f) (FRAME_X_DISPLAY_INFO (f)->display)
+#define FRAME_X_DISPLAY(f) (FRAME_DISPLAY_INFO (f)->display)
 
 /* This is the `Screen *' which frame F is on.  */
-#define FRAME_X_SCREEN(f) (FRAME_X_DISPLAY_INFO (f)->screen)
+#define FRAME_X_SCREEN(f) (FRAME_DISPLAY_INFO (f)->screen)
+
+/* This is the screen index number of screen which frame F is on.  */
 #define FRAME_X_SCREEN_NUMBER(f) XScreenNumberOfScreen (FRAME_X_SCREEN (f))
 
 /* This is the Visual which frame F is on.  */
-#define FRAME_X_VISUAL(f) FRAME_X_DISPLAY_INFO (f)->visual
+#define FRAME_X_VISUAL(f) FRAME_DISPLAY_INFO (f)->visual
 
 /* This is the Colormap which frame F uses.  */
-#define FRAME_X_COLORMAP(f) FRAME_X_DISPLAY_INFO (f)->cmap
+#define FRAME_X_COLORMAP(f) FRAME_DISPLAY_INFO (f)->cmap
 
 /* The difference in pixels between the top left corner of the
    Emacs window (including possible window manager decorations)
@@ -743,22 +749,11 @@ enum
 
 
 #define FRAME_XIC(f) ((f)->output_data.x->xic)
-#define FRAME_X_XIM(f) (FRAME_X_DISPLAY_INFO (f)->xim)
-#define FRAME_X_XIM_STYLES(f) (FRAME_X_DISPLAY_INFO (f)->xim_styles)
+#define FRAME_X_XIM(f) (FRAME_DISPLAY_INFO (f)->xim)
+#define FRAME_X_XIM_STYLES(f) (FRAME_DISPLAY_INFO (f)->xim_styles)
 #define FRAME_XIC_STYLE(f) ((f)->output_data.x->xic_style)
 #define FRAME_XIC_FONTSET(f) ((f)->output_data.x->xic_xfs)
-#define FRAME_XIC_BASE_FONTNAME(f) ((f)->output_data.x->xic_base_fontname)
 
-/* Value is the smallest width of any character in any font on frame F.  */
-
-#define FRAME_SMALLEST_CHAR_WIDTH(F) \
-     FRAME_X_DISPLAY_INFO(F)->smallest_char_width
-
-/* Value is the smallest height of any font on frame F.  */
-
-#define FRAME_SMALLEST_FONT_HEIGHT(F) \
-     FRAME_X_DISPLAY_INFO(F)->smallest_font_height
-
 /* X-specific scroll bar stuff.  */
 
 /* We represent scroll bars as lisp vectors.  This allows us to place
@@ -805,17 +800,19 @@ struct scroll_bar
   /* If the scroll bar handle is currently being dragged by the user,
      this is the number of pixels from the top of the handle to the
      place where the user grabbed it.  If the handle isn't currently
-     being dragged, this is Qnil.  */
-  Lisp_Object dragging;
+     being dragged, this is -1.  */
+  int dragging;
 
-  /* 1 if the background of the fringe that is adjacent to a scroll
-     bar is extended to the gap between the fringe and the bar.  */
-  unsigned int fringe_extended_p : 1;
+#if defined (USE_TOOLKIT_SCROLL_BARS) && defined (USE_LUCID)
+  /* Last scroll bar part seen in xaw_jump_callback and xaw_scroll_callback.  */
+  enum scroll_bar_part last_seen_part;
+#endif
 };
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
 
+#ifdef USE_X_TOOLKIT
 
 /* Extract the X widget of the scroll bar from a struct scroll_bar.
    XtWindowToWidget should be fast enough since Xt uses a hash table
@@ -830,16 +827,16 @@ struct scroll_bar
   do {						\
     Window window = XtWindow (w);		\
     ptr->x_window = window;			\
-} while (0)
+  } while (false)
 
+#endif /* USE_X_TOOLKIT */
 
 /* Return the inside width of a vertical scroll bar, given the outside
    width.  */
 #define VERTICAL_SCROLL_BAR_INSIDE_WIDTH(f, width) \
   ((width) \
    - VERTICAL_SCROLL_BAR_LEFT_BORDER \
-   - VERTICAL_SCROLL_BAR_RIGHT_BORDER \
-   - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2)
+   - VERTICAL_SCROLL_BAR_RIGHT_BORDER)
 
 /* Return the length of the rectangle within which the top of the
    handle must stay.  This isn't equivalent to the inside height,
@@ -876,11 +873,6 @@ struct scroll_bar
 /* Minimum lengths for scroll bar handles, in pixels.  */
 #define VERTICAL_SCROLL_BAR_MIN_HANDLE (5)
 
-/* Trimming off a few pixels from each side prevents
-   text from glomming up against the scroll bar */
-#define VERTICAL_SCROLL_BAR_WIDTH_TRIM (0)
-
-
 /* If a struct input_event has a kind which is SELECTION_REQUEST_EVENT
    or SELECTION_CLEAR_EVENT, then its contents are really described
    by this structure.  */
@@ -912,22 +904,8 @@ struct selection_input_event
 #define SELECTION_EVENT_TIME(eventp)	\
   (((struct selection_input_event *) (eventp))->time)
 
-
-struct window;
-struct glyph_matrix;
-struct frame;
-struct input_event;
-struct face;
-struct image;
-
-/* From xselect.c.  */
-
-void x_handle_selection_notify (XSelectionEvent *);
-void x_handle_property_notify (XPropertyEvent *);
-
 /* From xfns.c.  */
 
-struct frame *check_x_frame (Lisp_Object);
 extern void x_free_gcs (struct frame *);
 
 /* From xrdb.c.  */
@@ -941,10 +919,10 @@ extern int x_text_icon (struct frame *, const char *);
 extern void x_catch_errors (Display *);
 extern void x_check_errors (Display *, const char *)
   ATTRIBUTE_FORMAT_PRINTF (2, 0);
-extern int x_had_errors_p (Display *);
+extern bool x_had_errors_p (Display *);
 extern void x_uncatch_errors (void);
 extern void x_clear_errors (Display *);
-extern void x_set_window_size (struct frame *, int, int, int);
+extern void x_set_window_size (struct frame *, int, int, int, bool);
 extern void x_set_mouse_position (struct frame *, int, int);
 extern void x_set_mouse_pixel_position (struct frame *, int, int);
 extern void xembed_request_focus (struct frame *);
@@ -962,12 +940,12 @@ extern bool x_alloc_lighter_color_for_widget (Widget, Display *, Colormap,
 #endif
 extern bool x_alloc_nearest_color (struct frame *, Colormap, XColor *);
 extern void x_query_color (struct frame *f, XColor *);
-extern void x_clear_area (Display *, Window, int, int, int, int, int);
-#if defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK
+extern void x_clear_area (Display *, Window, int, int, int, int);
+#if !defined USE_X_TOOLKIT && !defined USE_GTK
 extern void x_mouse_leave (struct x_display_info *);
 #endif
 
-#ifdef USE_X_TOOLKIT
+#if defined USE_X_TOOLKIT || defined USE_MOTIF
 extern int x_dispatch_event (XEvent *, Display *);
 #endif
 extern int x_x_to_emacs_modifiers (struct x_display_info *, int);
@@ -977,10 +955,10 @@ extern int x_display_pixel_width (struct x_display_info *);
 extern void x_set_sticky (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_wait_for_event (struct frame *, int);
 
-/* Defined in xselect.c */
+/* Defined in xselect.c.  */
 
-extern void x_handle_property_notify (XPropertyEvent *);
-extern void x_handle_selection_notify (XSelectionEvent *);
+extern void x_handle_property_notify (const XPropertyEvent *);
+extern void x_handle_selection_notify (const XSelectionEvent *);
 extern void x_handle_selection_event (struct input_event *);
 extern void x_clear_frame_selections (struct frame *);
 
@@ -992,9 +970,9 @@ extern void x_send_client_event (Lisp_Object display,
                                  Lisp_Object values);
 
 extern int x_handle_dnd_message (struct frame *,
-                                 XClientMessageEvent *,
+                                 const XClientMessageEvent *,
                                  struct x_display_info *,
-                                 struct input_event *bufp);
+                                 struct input_event *);
 extern int x_check_property_data (Lisp_Object);
 extern void x_fill_property_data (Display *,
                                   Lisp_Object,
@@ -1010,9 +988,7 @@ extern void x_clipboard_manager_save_all (void);
 
 /* Defined in xfns.c */
 
-extern struct x_display_info * check_x_display_info (Lisp_Object);
 extern Lisp_Object x_get_focus_frame (struct frame *);
-extern int x_in_use;
 
 #ifdef USE_GTK
 extern int xg_set_icon (struct frame *, Lisp_Object);
@@ -1026,8 +1002,6 @@ extern void destroy_frame_xic (struct frame *);
 extern void xic_set_preeditarea (struct window *, int, int);
 extern void xic_set_statusarea (struct frame *);
 extern void xic_set_xfontset (struct frame *, const char *);
-extern int x_pixel_width (struct frame *);
-extern int x_pixel_height (struct frame *);
 extern bool x_defined_color (struct frame *, const char *, XColor *, bool);
 #ifdef HAVE_X_I18N
 extern void free_frame_xic (struct frame *);
@@ -1044,6 +1018,10 @@ extern void x_free_dpy_colors (Display *, Screen *, Colormap,
 #endif /* USE_X_TOOLKIT */
 
 /* Defined in xmenu.c */
+
+#if defined USE_X_TOOLKIT || defined USE_GTK
+extern Lisp_Object xw_popup_dialog (struct frame *, Lisp_Object, Lisp_Object);
+#endif
 
 #if defined USE_GTK || defined USE_MOTIF
 extern void x_menu_set_in_use (int);
@@ -1071,13 +1049,13 @@ extern void x_session_close (void);
 
 extern Lisp_Object Qx_gtk_map_stock;
 
+#if !defined USE_X_TOOLKIT && !defined USE_GTK
+extern void x_clear_under_internal_border (struct frame *f);
+#endif
+
 /* Is the frame embedded into another application? */
 
 #define FRAME_X_EMBEDDED_P(f) (FRAME_X_OUTPUT(f)->explicit_parent != 0)
-
-
-#define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
-#define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
 
 #define STORE_XCHAR2B(chp, b1, b2) \
   ((chp)->byte1 = (b1), (chp)->byte2 = (b2))
@@ -1087,7 +1065,6 @@ extern Lisp_Object Qx_gtk_map_stock;
 
 #define XCHAR2B_BYTE2(chp) \
   ((chp)->byte2)
-
 
 #define STORE_NATIVE_RECT(nr,rx,ry,rwidth,rheight)	\
   ((nr).x = (rx),					\

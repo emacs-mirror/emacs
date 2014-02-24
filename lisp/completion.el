@@ -1,9 +1,9 @@
 ;;; completion.el --- dynamic word-completion code
 
-;; Copyright (C) 1990, 1993, 1995, 1997, 2001-2013 Free Software
+;; Copyright (C) 1990, 1993, 1995, 1997, 2001-2014 Free Software
 ;; Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: abbrev convenience
 ;; Author: Jim Salem <alem@bbnplanet.com> of Thinking Machines Inc.
 ;;  (ideas suggested by Brewster Kahle)
@@ -342,9 +342,6 @@ Definitions from visited files which have these modes
 are automatically added to the completion database."
   :type '(set (const lisp) (const c))
   :group 'completion)
-
-;;(defvar *record-cmpl-statistics-p* nil
-;;  "If non-nil, record completion statistics.")
 
 ;;(defvar *completion-auto-save-period* 1800
 ;;  "The period in seconds to wait for emacs to be idle before autosaving
@@ -692,16 +689,6 @@ Returns nil if there isn't one longer than `completion-min-length'."
 ;; are in completion-stats.el.
 
 ;;-----------------------------------------------
-;; Conditionalizing code on *record-cmpl-statistics-p*
-;;-----------------------------------------------
-;; All statistics code outside this block should use this
-(defmacro cmpl-statistics-block (&rest _body))
-;;  "Only executes body if we are recording statistics."
-;;  (list 'cond
-;;	(list* '*record-cmpl-statistics-p* body)
-;;	))
-
-;;-----------------------------------------------
 ;; Completion Sources
 ;;-----------------------------------------------
 
@@ -1004,9 +991,7 @@ Each symbol is bound to a single completion entry.")
   "Initialize the completion storage.  All existing completions are lost."
   (interactive)
   (setq cmpl-prefix-obarray (make-vector cmpl-obarray-length 0))
-  (setq cmpl-obarray (make-vector cmpl-obarray-length 0))
-  (cmpl-statistics-block
-    (record-clear-all-completions)))
+  (setq cmpl-obarray (make-vector cmpl-obarray-length 0)))
 
 (defvar completions-list-return-value)
 
@@ -1154,9 +1139,6 @@ Returns the completion entry."
 	       (set-cmpl-prefix-entry-tail prefix-entry entry))
 	      (t
 	       (set cmpl-db-prefix-symbol (make-cmpl-prefix-entry entry))))
-	;; statistics
-	(cmpl-statistics-block
-	  (note-added-completion))
 	;; set symbol
 	(set cmpl-db-symbol (car entry)))))
 
@@ -1206,9 +1188,6 @@ Returns the completion entry."
 	    (t
 	     ;; Start new prefix entry
 	     (set cmpl-db-prefix-symbol (make-cmpl-prefix-entry entry))))
-      ;; statistics
-      (cmpl-statistics-block
-	(note-added-completion))
       ;; Add it to the symbol
       (set cmpl-db-symbol (car entry)))))
 
@@ -1236,9 +1215,7 @@ String must be longer than `completion-prefix-min-length'."
 		(or (set-cmpl-prefix-entry-head
 		      prefix-entry (cdr (cmpl-prefix-entry-head prefix-entry)))
 		    ;; List is now empty
-		    (set cmpl-db-prefix-symbol nil))))
-	 (cmpl-statistics-block
-	   (note-completion-deleted)))
+		    (set cmpl-db-prefix-symbol nil)))))
       (error "Unknown completion `%s'" completion-string)))
 
 ;; Tests --
@@ -1372,8 +1349,6 @@ Completions added this way will automatically be saved if
   (let ((string (and enable-completion (symbol-before-point)))
 	(current-completion-source cmpl-source-separator)
 	entry)
-    (cmpl-statistics-block
-      (note-separator-character string))
     (cond (string
 	   (setq entry (add-completion-to-head string))
 	   (if (and completion-on-separator-character
@@ -1614,9 +1589,6 @@ Prefix args ::
 		       completion-prefix-min-length)))
 	 ;; get index
 	 (setq cmpl-current-index (if current-prefix-arg arg 0))
-	 ;; statistics
-	 (cmpl-statistics-block
-	   (note-complete-entered-afresh cmpl-original-string))
 	 ;; reset database
 	 (completion-search-reset cmpl-original-string)
 	 ;; erase what we've got
@@ -1626,7 +1598,7 @@ Prefix args ::
   ;; Get the next completion
   (let* ((print-status-p
 	  (and (>= baud-rate completion-prompt-speed-threshold)
-	       (not (window-minibuffer-p (selected-window)))))
+	       (not (window-minibuffer-p))))
 	 (insert-point (point))
 	 (entry (completion-search-next cmpl-current-index))
 	 string)
@@ -1649,9 +1621,6 @@ Prefix args ::
 		  (goto-char insert-point))
 		 (t;; point at end,
 		  (setq cmpl-last-insert-location insert-point)))
-	   ;; statistics
-	   (cmpl-statistics-block
-	     (note-complete-inserted entry cmpl-current-index))
 	   ;; Done ! cmpl-stat-complete-successful
 	   ;;display the next completion
 	   (cond
@@ -1677,9 +1646,6 @@ Prefix args ::
 	   (if (and print-status-p (sit-for 0))
 	       (message "No %scompletions."
 			(if (eq this-command last-command) "more " "")))
-	   ;; statistics
-	   (cmpl-statistics-block
-	     (record-complete-failed cmpl-current-index))
 	   ;; Pretend that we were never here
 	   (setq this-command 'failed-complete)))))
 
@@ -1709,25 +1675,14 @@ Prefix args ::
 
 (defun add-completions-from-buffer ()
   (interactive)
-  (let ((current-completion-source cmpl-source-file-parsing)
-	(start-num
-	 (cmpl-statistics-block
-	  (aref completion-add-count-vector cmpl-source-file-parsing)))
-	mode)
+  (let ((current-completion-source cmpl-source-file-parsing))
     (cond ((memq major-mode '(emacs-lisp-mode lisp-mode))
-	   (add-completions-from-lisp-buffer)
-	   (setq mode 'lisp))
+	   (add-completions-from-lisp-buffer))
 	  ((memq major-mode '(c-mode))
-	   (add-completions-from-c-buffer)
-	   (setq mode 'c))
+	   (add-completions-from-c-buffer))
 	  (t
 	   (error "Cannot parse completions in %s buffers"
-		  major-mode)))
-    (cmpl-statistics-block
-      (record-cmpl-parse-file
-	mode (point-max)
-	(- (aref completion-add-count-vector cmpl-source-file-parsing)
-	   start-num)))))
+		  major-mode)))))
 
 ;; Find file hook
 (defun completion-find-file-hook ()
@@ -1960,8 +1915,7 @@ Prefix args ::
 	((not cmpl-completions-accepted-p)
 	 (message "Completions database has not changed - not writing."))
 	(t
-	 (save-completions-to-file))))
-  (cmpl-statistics-block (record-cmpl-kill-emacs)))
+	 (save-completions-to-file)))))
 
 ;; There is no point bothering to change this again
 ;; unless the package changes so much that it matters
@@ -2066,9 +2020,7 @@ If file name is not specified, use `save-completions-file-name'."
 	       (set-buffer-modified-p nil)
 	       (message "Couldn't save completion file `%s'" filename)))
 	    ;; Reset accepted-p flag
-	    (setq cmpl-completions-accepted-p nil) )
-	  (cmpl-statistics-block
-	   (record-save-completions total-in-db total-perm total-saved))))))
+	    (setq cmpl-completions-accepted-p nil) )))))
 
 ;;(defun auto-save-completions ()
 ;;  (if (and save-completions-flag enable-completion cmpl-initialized-p
@@ -2103,9 +2055,6 @@ If file is not specified, then use `save-completions-file-name'."
 		  string entry last-use-time
 		  cmpl-entry cmpl-last-use-time
 		  (current-completion-source cmpl-source-init-file)
-		  (start-num
-		   (cmpl-statistics-block
-		    (aref completion-add-count-vector cmpl-source-file-parsing)))
 		  (total-in-file 0) (total-perm 0))
 	      ;; insert the file into a buffer
 	      (condition-case nil
@@ -2163,12 +2112,6 @@ If file is not specified, then use `save-completions-file-name'."
 			       (message "Loading completions from file %s . . . Done."
 					filename))
 			 (message "End of file while reading completions."))))))
-
-	      (cmpl-statistics-block
-	       (record-load-completions
-		total-in-file total-perm
-		(- (aref completion-add-count-vector cmpl-source-init-file)
-		   start-num)))
 ))))))
 
 (defun completion-initialize ()
@@ -2201,9 +2144,7 @@ Patched to remove the most recent completion."
   (cond ((eq last-command 'complete)
 	 (delete-region (point) cmpl-last-insert-location)
 	 (insert cmpl-original-string)
-	 (setq completion-to-accept nil)
-	 (cmpl-statistics-block
-	   (record-complete-failed)))
+	 (setq completion-to-accept nil))
 	(t
 	 (kill-region beg end))))
 
@@ -2263,15 +2204,10 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
     (use-completion-before-separator)))
 
 (defun use-completion-backward-under ()
-  (use-completion-under-point)
-  (if (eq last-command 'complete)
-      ;; probably a failed completion if you have to back up
-      (cmpl-statistics-block (record-complete-failed))))
+  (use-completion-under-point))
 
 (defun use-completion-backward ()
-  (if (eq last-command 'complete)
-      ;; probably a failed completion if you have to back up
-      (cmpl-statistics-block (record-complete-failed))))
+  nil)
 
 (defun completion-before-command ()
   (funcall (or (and (symbolp this-command)
@@ -2342,6 +2278,7 @@ With a prefix argument ARG, enable the mode if ARG is positive,
 and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil."
   :global t
+  :group 'completion
   ;; This is always good, not specific to dynamic-completion-mode.
   (define-key function-key-map [C-return] [?\C-\r])
 
@@ -2426,9 +2363,6 @@ if ARG is omitted or nil."
     ;; foobar
     ;; fooquux
     ;; fooper
-
-    (cmpl-statistics-block
-     (record-completion-file-loaded))
 
     (completion-initialize)))
 

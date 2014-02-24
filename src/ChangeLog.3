@@ -12551,7 +12551,7 @@
 
 1990-09-27  Richard Stallman  (rms@mole.ai.mit.edu)
 
-	* emacs.c (main) : Set the DISPLAY environment value when both of
+	* emacs.c (main): Set the DISPLAY environment value when both of
 	MAINTAIN_ENVIRONMENT and HAVE_X_WINDOW are defined.
 
 	* m-convex.h (LIB_STANDARD, LIBS_MACHINE): Remove these, they
@@ -12845,8 +12845,8 @@
 	longer DEFVARed: they are already declared in window.c.
 
 	* screen.c (window_from_coordinates): Use Fnext_window, even if
-	MULTI_SCREEN, to obtain the next window.  This is an test.
-	Also, new paramater part returns text or modeline symbol.
+	MULTI_SCREEN, to obtain the next window.  This is a test.
+	Also, new parameter part returns text or modeline symbol.
 	(Flocate_window_from_coordinates): Pass &part to
 	window_from_coordinates.
 	(coordinates_in_window): Don't say modeline if window_height is 1,
@@ -14878,10 +14878,6 @@
 
 	* dispnew.c: Handle BROKEN_FIONREAD as in other files.
 
-1989-08-09  Joseph Arceneaux  (jla@spiff)
-
-	* ../oldXMenu/Makefile: Removed all the unnecessary X stuff.
-
 1989-08-07  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
 	* fileio.c (barf_or_query_if_file_exists): When signaling,
@@ -15138,8 +15134,8 @@
 
 1989-06-23  Joseph Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
-	* xfns.c, lisp/term/x-win.el: C routine Fscreen_color_p now lisp
-	function x-color-screen-p in x-win.el.
+	* xfns.c: C routine Fscreen_color_p now lisp
+	function x-color-screen-p in lisp/term/x-win.el.
 	(x_set_cursor_color): New method: first disallow same cursor as
 	background, then if cursor not foreground, use it as cursor
 	foreground.
@@ -15447,7 +15443,7 @@
 	* xterm.c (XTread_socket_hook): For X11, on map and unmap events
 	check the window manager hints for iconification status.
 
-	* xterm.c (x_make_widow_icon): For X11, just request
+	* xterm.c (x_make_window_icon): For X11, just request
 	iconification of the window manager.
 
 1989-05-08  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
@@ -16266,7 +16262,7 @@
 
 1988-12-14  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
-	* bytecode.el (Fbyte_code): Cache the pointer in the string
+	* bytecode.c (Fbyte_code): Cache the pointer in the string
 	to avoid recalculating it at each fetch.
 	Also turn off the error check for stack overflow/underflow.
 
@@ -16507,7 +16503,7 @@ See ChangeLog.2 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993, 2001-2013 Free Software Foundation, Inc.
+  Copyright (C) 1993, 2001-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

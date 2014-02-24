@@ -1,10 +1,11 @@
 @c \input texinfo @c -*-texinfo-*-
 @c Uncomment 1st line before texing this file alone.
 @c %**start of header
-@c Copyright (C) 1995, 2001-2013 Free Software Foundation, Inc.
+@c Copyright (C) 1995, 2001-2014 Free Software Foundation, Inc.
 @c
 @c @setfilename gnus-faq.info
 @c @settitle Frequently Asked Questions
+@c @documentencoding UTF-8
 @c %**end of header
 @c
 
@@ -222,10 +223,9 @@ Which version of Emacs do I need?
 
 @subsubheading Answer
 
-Gnus 5.10 requires an Emacs version that is greater than or equal
-to Emacs 20.7 or XEmacs 21.1.
-The development versions of Gnus (aka No Gnus) requires Emacs 21
-or XEmacs 21.4.
+Gnus 5.13 requires an Emacs version that is greater than or equal
+to Emacs 23.1 or XEmacs 21.1, although there are some features that
+only work on Emacs 24.
 
 @node FAQ 1-7
 @subsubheading Question 1.7
@@ -705,32 +705,9 @@ retrieves via POP3?
 
 @subsubheading Answer
 
-First of all, that's not the way POP3 is intended to work,
-if you have the possibility, you should use the IMAP
-Protocol if you want your messages to stay on the
-server. Nevertheless there might be situations where you
-need the feature, but sadly Gnus itself has no predefined
-functionality to do so.
-
-However this is Gnus county so there are possibilities to
-achieve what you want. The easiest way is to get an external
-program which retrieves copies of the mail and stores them
-on disk, so Gnus can read it from there. On Unix systems you
-could use, e.g., fetchmail for this, on MS Windows you can use
-Hamster, an excellent local news and mail server.
-
-The other solution would be, to replace the method Gnus
-uses to get mail from POP3 servers by one which is capable
-of leaving the mail on the server. If you use XEmacs, get
-the package mail-lib, it includes an enhanced pop3.el,
-look in the file, there's documentation on how to tell
-Gnus to use it and not to delete the retrieved mail. For
-GNU Emacs look for the file epop3.el which can do the same
-(If you know the home of this file, please send me an
-e-mail). You can also tell Gnus to use an external program
-(e.g., fetchmail) to fetch your mail, see the info node
-"Mail Source Specifiers" in the Gnus manual on how to do
-it.
+Yes, if the POP3 server supports the UIDL control (maybe almost servers
+do it nowadays).  To do that, add a @code{:leave VALUE} pair to each
+POP3 mail source.  See @pxref{Mail Source Specifiers} for VALUE.
 
 @node FAQ 4 - Reading messages
 @subsection Reading messages
@@ -1541,8 +1518,9 @@ cat file.face | sed 's/\\/\\\\/g;s/\"/\\\"/g;' > file.face.quoted
 
 If you can't use compface, there's an online X-face converter at
 @uref{http://www.dairiki.org/xface/}.
-If you use MS Windows, you could also use the WinFace program from
-@uref{http://www.xs4all.nl/~walterln/winface/}.
+If you use MS Windows, you could also use the WinFace program,
+which used to be available from
+@indicateurl{http://www.xs4all.nl/~walterln/winface/}.
 Now you only have to tell Gnus to include the X-face in your postings by saying
 
 @example
@@ -1835,15 +1813,20 @@ too.
 Of course you can also use grep to search through your
 local mail, but this is both slow for big archives and
 inconvenient since you are not displaying the found mail
-in Gnus. Here comes nnir into action. Nnir is a front end
+in Gnus.  Here nnir comes into action.  Nnir is a front end
 to search engines like swish-e or swish++ and
-others. You index your mail with one of those search
+others.  You index your mail with one of those search
 engines and with the help of nnir you can search through
 the indexed mail and generate a temporary group with all
-messages which met your search criteria. If this sound
-cool to you get nnir.el from
+messages which met your search criteria.  If this sounds
+cool to you, get nnir.el from
+@c FIXME Isn't this file in Gnus?
+@ignore
+@c Dead link 2013/7.
 @uref{ftp://ls6-ftp.cs.uni-dortmund.de/pub/src/emacs/}
-or @uref{ftp://ftp.is.informatik.uni-duisburg.de/pub/src/emacs/}.
+or
+@end ignore
+@uref{ftp://ftp.is.informatik.uni-duisburg.de/pub/src/emacs/}.
 Instructions on how to use it are at the top of the file.
 
 @node FAQ 6-4
@@ -1966,7 +1949,7 @@ the easiest solution is a small nntp server like
 @uref{http://infa.abo.fi/~patrik/sn/, sn},
 of course you can also install a full featured news
 server like
-@uref{http://www.isc.org/products/INN/, inn}.
+@uref{http://www.isc.org/software/inn/, inn}.
 Then you want to fetch your Mail, popular choices
 are @uref{http://www.catb.org/~esr/fetchmail/, fetchmail}
 and @uref{http://pyropus.ca/software/getmail/, getmail}.

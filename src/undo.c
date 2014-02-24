@@ -1,5 +1,5 @@
 /* undo handling for GNU Emacs.
-   Copyright (C) 1990, 1993-1994, 2000-2013 Free Software Foundation,
+   Copyright (C) 1990, 1993-1994, 2000-2014 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -55,7 +55,7 @@ static Lisp_Object pending_boundary;
 static void
 record_point (ptrdiff_t pt)
 {
-  int at_boundary;
+  bool at_boundary;
 
   /* Don't record position of pt when undo_inhibit_record_point holds.  */
   if (undo_inhibit_record_point)
@@ -77,7 +77,7 @@ record_point (ptrdiff_t pt)
 
   if (CONSP (BVAR (current_buffer, undo_list)))
     {
-      /* Set AT_BOUNDARY to 1 only when we have nothing other than
+      /* Set AT_BOUNDARY only when we have nothing other than
          marker adjustment before undo boundary.  */
 
       Lisp_Object tail = BVAR (current_buffer, undo_list), elt;
@@ -229,10 +229,9 @@ record_first_change (void)
   if (base_buffer->base_buffer)
     base_buffer = base_buffer->base_buffer;
 
-  bset_undo_list
-    (current_buffer,
-     Fcons (Fcons (Qt, make_lisp_time (base_buffer->modtime)),
-	    BVAR (current_buffer, undo_list)));
+  bset_undo_list (current_buffer,
+		  Fcons (Fcons (Qt, Fvisited_file_modtime ()),
+			 BVAR (current_buffer, undo_list)));
 }
 
 /* Record a change in property PROP (whose old value was VAL)
@@ -245,7 +244,7 @@ record_property_change (ptrdiff_t beg, ptrdiff_t length,
 {
   Lisp_Object lbeg, lend, entry;
   struct buffer *obuf = current_buffer, *buf = XBUFFER (buffer);
-  int boundary = 0;
+  bool boundary = 0;
 
   if (EQ (BVAR (buf, undo_list), Qt))
     return;
@@ -443,12 +442,6 @@ truncate_undo_list (struct buffer *b)
     bset_undo_list (b, Qnil);
 
   unbind_to (count, Qnil);
-}
-
-static _Noreturn void
-user_error (const char *msg)
-{
-  xsignal1 (Quser_error, build_string (msg));
 }
 
 

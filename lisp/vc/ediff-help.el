@@ -1,6 +1,6 @@
 ;;; ediff-help.el --- Code related to the contents of Ediff help buffers
 
-;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -253,7 +253,7 @@ the value of this variable and the variables `ediff-help-message-*' in
 
 
 (defun ediff-indent-help-message ()
-  (let* ((shift (/ (max 0 (- (window-width (selected-window))
+  (let* ((shift (/ (max 0 (- (window-width)
 			     (ediff-help-message-line-length)))
 		   2))
 	 (str (make-string shift ?\ )))

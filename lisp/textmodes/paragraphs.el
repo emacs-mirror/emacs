@@ -1,9 +1,9 @@
 ;;; paragraphs.el --- paragraph and sentence parsing
 
-;; Copyright (C) 1985-1987, 1991, 1994-1997, 1999-2013 Free Software
+;; Copyright (C) 1985-1987, 1991, 1994-1997, 1999-2014 Free Software
 ;; Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: wp
 ;; Package: emacs
 
@@ -468,7 +468,7 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
 	  (setq par-text-beg (point))
 	  ;; Start of the first line of the paragraph.
 	  ;; We use this as the search limit
-	  ;; to allow s1entence-end to match if it is anchored at
+	  ;; to allow sentence-end to match if it is anchored at
 	  ;; BOL and the paragraph starts indented.
 	  (beginning-of-line)
 	  (setq par-beg (point)))

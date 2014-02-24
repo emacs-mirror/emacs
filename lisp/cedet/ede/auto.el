@@ -1,6 +1,6 @@
 ;;; ede/auto.el --- Autoload features for EDE
 
-;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -199,8 +199,8 @@ added.  Possible values are:
             front of the list so more generic projects don't get priority."
   ;; First, can we identify PROJAUTO as already in the list?  If so, replace.
   (let ((projlist ede-project-class-files)
-	(projname (object-name-string projauto)))
-    (while (and projlist (not (string= (object-name-string (car projlist)) projname)))
+	(projname (eieio-object-name-string projauto)))
+    (while (and projlist (not (string= (eieio-object-name-string (car projlist)) projname)))
       (setq projlist (cdr projlist)))
 
     (if projlist

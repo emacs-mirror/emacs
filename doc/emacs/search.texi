@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Search
@@ -52,14 +52,14 @@ Incremental search backward (@code{isearch-backward}).
 @end table
 
 @menu
-* Basic Isearch::       Basic incremental search commands.
-* Repeat Isearch::      Searching for the same string again.
-* Error in Isearch::    When your string is not found.
-* Special Isearch::     Special input in incremental search.
-* Isearch Yank::        Commands that grab text into the search string
-                          or else edit the search string.
-* Isearch Scroll::      Scrolling during an incremental search.
-* Isearch Minibuffer::  Incremental search of the minibuffer history.
+* Basic Isearch::        Basic incremental search commands.
+* Repeat Isearch::       Searching for the same string again.
+* Error in Isearch::     When your string is not found.
+* Special Isearch::      Special input in incremental search.
+* Isearch Yank::         Commands that grab text into the search string
+                           or else edit the search string.
+* Not Exiting Isearch::  Prefix argument and scrolling commands.
+* Isearch Minibuffer::   Incremental search of the minibuffer history.
 @end menu
 
 @node Basic Isearch
@@ -175,7 +175,7 @@ element in the minibuffer, where you can edit it.
 
 @kindex M-e @r{(Incremental search)}
   To edit the current search string in the minibuffer without
-replacing it with items from the search ring, type @kbd{M-e}.  Type
+replacing it with items from the search ring, type @kbd{M-e}.  Type @key{RET},
 @kbd{C-s} or @kbd{C-r} to finish editing the string and search for it.
 
 @node Error in Isearch
@@ -229,12 +229,14 @@ spaces in the text.  Hence, @samp{foo bar} matches @samp{foo bar},
 @samp{foo  bar}, @samp{foo   bar}, and so on (but not @samp{foobar}).
 More precisely, Emacs matches each sequence of space characters in the
 search string to a regular expression specified by the variable
-@code{search-whitespace-regexp}.  For example, set it to
-@samp{"[[:space:]\n]+"} to make spaces match sequences of newlines as
-well as spaces.  To toggle lax space matching, type @kbd{M-s SPC}
+@code{search-whitespace-regexp}.  For example, to make spaces match
+sequences of newlines as well as spaces, set it to
+@samp{"[[:space:]\n]+"}.
+
+  To toggle lax space matching, type @kbd{M-s SPC}
 (@code{isearch-toggle-lax-whitespace}).  To disable this feature
 entirely, change @code{search-whitespace-regexp} to @code{nil}; then
-each space in the search string matches exactly one space
+each space in the search string matches exactly one space.
 
   If the search string you entered contains only lower-case letters,
 the search is case-insensitive; as long as an upper-case letter exists
@@ -242,17 +244,37 @@ in the search string, the search becomes case-sensitive.  If you
 delete the upper-case character from the search string, it ceases to
 have this effect.  @xref{Search Case}.
 
+@cindex invisible text, searching for
+@kindex M-s i @r{(Incremental search)}
+@findex isearch-toggle-invisible
+  To toggle whether or not invisible text is searched, type
+@kbd{M-s i} (@code{isearch-toggle-invisible}).  @xref{Outline Search}.
+
   To search for a newline character, type @kbd{C-j}.
 
-  To search for other control characters, such as @key{control-S},
-quote it by typing @kbd{C-q} first (@pxref{Inserting Text}).  To
-search for non-@acronym{ASCII} characters, you can either use
-@kbd{C-q} and enter its octal code, or use an input method
-(@pxref{Input Methods}).  If an input method is enabled in the current
-buffer when you start the search, you can use it in the search string
-also.  While typing the search string, you can toggle the input method
-with the command @kbd{C-\} (@code{isearch-toggle-input-method}).  You
-can also turn on a non-default input method with @kbd{C-^}
+  To search for non-@acronym{ASCII} characters, use one of the
+following methods:
+
+@itemize @bullet
+@item
+Type @kbd{C-q}, followed by a non-graphic character or a sequence of
+octal digits.  This adds a character to the search string, similar to
+inserting into a buffer using @kbd{C-q} (@pxref{Inserting Text}).  For
+example, @kbd{C-q C-s} during incremental search adds the
+@key{control-S} character to the search string.
+
+@item
+Type @kbd{C-x 8 @key{RET}}, followed by a Unicode name or code-point.
+This adds the specified character into the search string, similar to
+the usual @code{insert-char} command (@pxref{Inserting Text}).
+
+@item
+Use an input method (@pxref{Input Methods}).  If an input method is
+enabled in the current buffer when you start the search, you can use
+it in the search string also.  While typing the search string, you can
+toggle the input method with @kbd{C-\}
+(@code{isearch-toggle-input-method}).  You can also turn on a
+non-default input method with @kbd{C-^}
 (@code{isearch-toggle-specified-input-method}), which prompts for the
 name of the input method.  When an input method is active during
 incremental search, the search prompt includes the input method
@@ -268,12 +290,13 @@ I-search [@var{im}]:
 where @var{im} is the mnemonic of the active input method.  Any input
 method you enable during incremental search remains enabled in the
 current buffer afterwards.
+@end itemize
 
 @kindex M-% @r{(Incremental search)}
   Typing @kbd{M-%} in incremental search invokes @code{query-replace}
 or @code{query-replace-regexp} (depending on search mode) with the
-current search string used as the string to replace.  @xref{Query
-Replace}.
+current search string used as the string to replace.  A negative
+prefix argument means to replace backward.  @xref{Query Replace}.
 
 @kindex M-TAB @r{(Incremental search)}
   Typing @kbd{M-@key{TAB}} in incremental search invokes
@@ -315,7 +338,8 @@ of whether to copy a character or a word is heuristic.)
 @findex isearch-yank-line
   Similarly, @kbd{M-s C-e} (@code{isearch-yank-line}) appends the rest
 of the current line to the search string.  If point is already at the
-end of a line, it appends the next line.
+end of a line, it appends the next line.  With a prefix argument
+@var{n}, it appends the next @var{n} lines.
 
   If the search is currently case-insensitive, both @kbd{C-w} and
 @kbd{M-s C-e} convert the text they copy to lower case, so that the
@@ -332,9 +356,28 @@ alternative method to add the character after point is to enter the
 minibuffer with @kbd{M-e} (@pxref{Repeat Isearch}) and type @kbd{C-f}
 at the end of the search string in the minibuffer.
 
-@node Isearch Scroll
-@subsection Scrolling During Incremental Search
+@node Not Exiting Isearch
+@subsection Not Exiting Incremental Search
 
+This subsection describes two categories of commands which you can
+type without exiting the current incremental search, even though they
+are not themselves part of incremental search.
+
+@table @asis
+@item Prefix Arguments
+@vindex isearch-allow-prefix
+  In incremental search, when you enter a prefix argument
+(@pxref{Arguments}), by default it will apply either to the next
+action in the search or to the command that exits the search.
+
+  In previous versions of Emacs, entering a prefix argument always
+terminated the search.  You can revert to this behavior by setting the
+variable @code{isearch-allow-prefix} to @code{nil}.
+
+  When @code{isearch-allow-scroll} is non-@code{nil} (see below),
+prefix arguments always have the default behavior described above.
+
+@item Scrolling Commands
 @vindex isearch-allow-scroll
   Normally, scrolling commands exit incremental search.  If you change
 the variable @code{isearch-allow-scroll} to a non-@code{nil} value,
@@ -366,6 +409,7 @@ This feature can be applied to any command that doesn't permanently
 change point, the buffer contents, the match data, the current buffer,
 or the selected window and frame.  The command must not itself attempt
 an incremental search.
+@end table
 
 @node Isearch Minibuffer
 @subsection Searching the Minibuffer
@@ -461,12 +505,13 @@ These run the commands @code{word-search-forward} and
 @code{word-search-backward} respectively.
 
   Incremental and nonincremental word searches differ slightly in the
-way they find a match.  In a nonincremental word search, the last word
-in the search string must exactly match a whole word.  In an
-incremental word search, the matching is more lax: the last word in
-the search string can match part of a word, so that the matching
-proceeds incrementally as you type.  This additional laxity does not
-apply to the lazy highlight, which always matches whole words.
+way they find a match.  In a nonincremental word search, each word in
+the search string must exactly match a whole word.  In an incremental
+word search, the matching is more lax: while you are typing the search
+string, its first and last words need not match whole words.  This is
+so that the matching can proceed incrementally as you type.  This
+additional laxity does not apply to the lazy highlight, which always
+matches whole words.
 
 @node Symbol Search
 @section Symbol Search
@@ -486,6 +531,9 @@ searching source code.
 If incremental search is active, toggle symbol search mode
 (@code{isearch-toggle-symbol}); otherwise, begin an incremental
 forward symbol search (@code{isearch-forward-symbol}).
+@item M-s .
+Start a symbol incremental search forward with the symbol found near
+point added to the search string initially.
 @item M-s _ @key{RET} @var{symbol} @key{RET}
 Search forward for @var{symbol}, nonincrementally.
 @item M-s _ C-r @key{RET} @var{symbol} @key{RET}
@@ -493,9 +541,12 @@ Search backward for @var{symbol}, nonincrementally.
 @end table
 
 @kindex M-s _
+@kindex M-s .
 @findex isearch-forward-symbol
-  To begin a forward incremental symbol search, type @kbd{M-s _}.  If
-incremental search is not already active, this runs the command
+@findex isearch-forward-symbol-at-point
+  To begin a forward incremental symbol search, type @kbd{M-s _} (or
+@kbd{M-s .} if the symbol to search is near point).  If incremental
+search is not already active, this runs the command
 @code{isearch-forward-symbol}.  If incremental search is already
 active, @kbd{M-s _} switches to a symbol search, preserving the
 direction of the search and the current search string; you can disable
@@ -648,7 +699,7 @@ it possible to match the rest of the pattern.  For example, in matching
 tries to match all three @samp{a}s; but the rest of the pattern is
 @samp{ar} and there is only @samp{r} left to match, so this try fails.
 The next alternative is for @samp{a*} to match only two @samp{a}s.
-With this choice, the rest of the regexp matches successfully.@refill
+With this choice, the rest of the regexp matches successfully.
 
 @item @kbd{+}
 is a postfix operator, similar to @samp{*} except that it must match
@@ -810,11 +861,11 @@ either @var{a} matches it or @var{b} matches it.  It works by trying to
 match @var{a}, and if that fails, by trying to match @var{b}.
 
 Thus, @samp{foo\|bar} matches either @samp{foo} or @samp{bar}
-but no other string.@refill
+but no other string.
 
 @samp{\|} applies to the largest possible surrounding expressions.  Only a
 surrounding @samp{\( @dots{} \)} grouping can limit the grouping power of
-@samp{\|}.@refill
+@samp{\|}.
 
 Full backtracking capability exists to handle multiple uses of @samp{\|}.
 
@@ -830,7 +881,7 @@ Thus, @samp{\(foo\|bar\)x} matches either @samp{foox} or @samp{barx}.
 To enclose a complicated expression for the postfix operators @samp{*},
 @samp{+} and @samp{?} to operate on.  Thus, @samp{ba\(na\)*} matches
 @samp{bananana}, etc., with any (zero or more) number of @samp{na}
-strings.@refill
+strings.
 
 @item
 To record a matched substring for future reference.
@@ -892,7 +943,7 @@ matches the empty string, but only at point.
 matches the empty string, but only at the beginning or
 end of a word.  Thus, @samp{\bfoo\b} matches any occurrence of
 @samp{foo} as a separate word.  @samp{\bballs?\b} matches
-@samp{ball} or @samp{balls} as a separate word.@refill
+@samp{ball} or @samp{balls} as a separate word.
 
 @samp{\b} matches at the beginning or end of the buffer
 regardless of what text appears next to it.
@@ -985,19 +1036,13 @@ searching through, if you specify the text in lower case.  Thus, if
 you specify searching for @samp{foo}, then @samp{Foo} and @samp{foo}
 also match.  Regexps, and in particular character sets, behave
 likewise: @samp{[ab]} matches @samp{a} or @samp{A} or @samp{b} or
-@samp{B}.@refill
+@samp{B}.
 
   An upper-case letter anywhere in the incremental search string makes
 the search case-sensitive.  Thus, searching for @samp{Foo} does not find
 @samp{foo} or @samp{FOO}.  This applies to regular expression search as
 well as to string search.  The effect ceases if you delete the
 upper-case letter from the search string.
-
-  Typing @kbd{M-c} within an incremental search toggles the case
-sensitivity of that search.  The effect does not extend beyond the
-current incremental search to the next one, but it does override the
-effect of adding or removing an upper-case letter in the current
-search.
 
 @vindex case-fold-search
   If you set the variable @code{case-fold-search} to @code{nil}, then
@@ -1007,6 +1052,13 @@ unless you change its default value.  @xref{Locals}.
 This variable applies to nonincremental searches also, including those
 performed by the replace commands (@pxref{Replace}) and the minibuffer
 history matching commands (@pxref{Minibuffer History}).
+
+@c isearch-toggle-case-fold
+  Typing @kbd{M-c} within an incremental search toggles the case
+sensitivity of that search.  The effect does not extend beyond the
+current incremental search to the next one, but it does override the
+effect of adding or removing an upper-case letter in the current
+search.
 
   Several related variables control case-sensitivity of searching and
 matching for specific commands or activities.  For instance,
@@ -1217,7 +1269,8 @@ occurrence and asks you whether to replace it.  Aside from querying,
 (@pxref{Unconditional Replace}).  In particular, it preserves case
 provided @code{case-replace} is non-@code{nil}, as it normally is
 (@pxref{Replacement and Case}).  A numeric argument means to consider
-only occurrences that are bounded by word-delimiter characters.
+only occurrences that are bounded by word-delimiter characters.  A
+negative prefix argument replaces backward.
 
 @kindex C-M-%
 @findex query-replace-regexp

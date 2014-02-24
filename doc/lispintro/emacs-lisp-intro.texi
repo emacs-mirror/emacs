@@ -4,141 +4,17 @@
 @c setfilename emacs-lisp-intro.info
 @c sethtmlfilename emacs-lisp-intro.html
 @settitle Programming in Emacs Lisp
+@documentencoding UTF-8
 @syncodeindex vr cp
 @syncodeindex fn cp
 @finalout
 
-@c ---------
-@c <<<< For hard copy printing, this file is now
-@c      set for smallbook, which works for all sizes
-@c      of paper, and with PostScript figures >>>>
-@set smallbook
-@ifset smallbook
-@smallbook
-@clear  largebook
-@end ifset
-@set print-postscript-figures
-@c set largebook
-@c clear print-postscript-figures
-@c ---------
-
-@comment %**end of header
-
-@c per rms and peterb, use 10pt fonts for the main text, mostly to
-@c save on paper cost.
-@c Do this inside @tex for now, so current makeinfo does not complain.
-@tex
-@ifset smallbook
-@fonttextsize 10
-
-@end ifset
-\global\hbadness=6666 % don't worry about not-too-underfull boxes
-@end tex
-
-@set edition-number 3.10
-@set update-date 28 October 2009
-
-@ignore
- ## Summary of shell commands to create various output formats:
-
-    pushd /usr/local/src/emacs/lispintro/
-    ## pushd /u/intro/
-
-    ## Info output
-    makeinfo --paragraph-indent=0 --verbose emacs-lisp-intro.texi
-
-      ## ;; (progn (when (bufferp (get-buffer "*info*")) (kill-buffer "*info*")) (info "/usr/local/src/emacs/info/eintr"))
-
-    ## DVI output
-    texi2dvi emacs-lisp-intro.texi
-
-      ## xdvi -margins 24pt -topmargin 4pt -offsets 24pt -geometry 760x1140 -s 5 -useTeXpages -mousemode 1 emacs-lisp-intro.dvi &
-
-    ## HTML output
-    makeinfo --html --no-split --verbose emacs-lisp-intro.texi
-
-      ## galeon emacs-lisp-intro.html
-
-    ## Plain text output
-    makeinfo --fill-column=70 --no-split --paragraph-indent=0 \
-    --verbose --no-headers --output=emacs-lisp-intro.txt emacs-lisp-intro.texi
-
-    popd
-
-# as user `root'
-# insert thumbdrive
-  mtusb       #   mount -v -t ext3 /dev/sda /mnt
-  cp -v /u/intro/emacs-lisp-intro.texi /mnt/backup/intro/emacs-lisp-intro.texi
-  umtusb      #   umount -v /mnt
-# remove thumbdrive
-
-    ## Other shell commands
-
-    pushd /usr/local/src/emacs/lispintro/
-    ## pushd /u/intro/
-
-    ## PDF
-    texi2dvi --pdf emacs-lisp-intro.texi
-       # xpdf emacs-lisp-intro.pdf &
-
-    ## DocBook                    -- note file extension
-    makeinfo --docbook --no-split --paragraph-indent=0 \
-    --verbose --output=emacs-lisp-intro.docbook emacs-lisp-intro.texi
-
-    ## XML with a Texinfo DTD     -- note file extension
-    makeinfo --xml --no-split --paragraph-indent=0 \
-    --verbose --output=emacs-lisp-intro.texinfoxml emacs-lisp-intro.texi
-
-    ## PostScript (needs DVI)
-        #     gv emacs-lisp-intro.ps &
-        # Create DVI if we lack it
-        # texi2dvi emacs-lisp-intro.texi
-    dvips emacs-lisp-intro.dvi -o emacs-lisp-intro.ps
-
-    ## RTF (needs HTML)
-        # Use OpenOffice to view RTF
-        # Create HTML if we lack it
-        # makeinfo --no-split --html emacs-lisp-intro.texi
-    /usr/local/src/html2rtf.pl emacs-lisp-intro.html
-
-    ## LaTeX (needs RTF)
-    /usr/bin/rtf2latex emacs-lisp-intro.rtf
-
-    popd
-
-@end ignore
-
-@c ================ Included Figures ================
-
-@c Set  print-postscript-figures  if you print PostScript figures.
-@c If you clear this, the ten figures will be printed as ASCII diagrams.
-@c (This is not relevant to Info, since Info only handles ASCII.)
-@c Your site may require editing changes to print PostScript; in this
-@c case, search for `print-postscript-figures' and make appropriate changes.
-
-@c ================ How to Create an Info file ================
-
-@c If you have `makeinfo' installed, run the following command
-
-@c     makeinfo emacs-lisp-intro.texi
-
-@c or, if you want a single, large Info file, and no paragraph indents:
-@c     makeinfo --no-split --paragraph-indent=0 --verbose emacs-lisp-intro.texi
-
-@c After creating the Info file, edit your Info `dir' file, if the
-@c `dircategory' section below does not enable your system to
-@c install the manual automatically.
-@c (The `dir' file is often in the `/usr/local/share/info/' directory.)
-
-@c ================ How to Create an HTML file ================
-
-@c To convert to HTML format
-@c     makeinfo --html --no-split --verbose emacs-lisp-intro.texi
+@include emacsver.texi
 
 @c ================ How to Print a Book in Various Sizes ================
 
 @c This book can be printed in any of three different sizes.
-@c In the above header, set @-commands appropriately.
+@c Set the following @-commands appropriately.
 
 @c     7 by 9.25 inches:
 @c              @smallbook
@@ -153,38 +29,43 @@
 @c              @afourpaper
 @c              @set largebook
 
-@c ================ How to Typeset and Print ================
-
-@c If you do not include PostScript figures, run either of the
-@c following command sequences, or similar commands suited to your
-@c system:
-
-@c     texi2dvi emacs-lisp-intro.texi
-@c     lpr -d emacs-lisp-intro.dvi
-
-@c or else:
-
-@c     tex emacs-lisp-intro.texi
-@c     texindex emacs-lisp-intro.??
-@c     tex emacs-lisp-intro.texi
-@c     lpr -d emacs-lisp-intro.dvi
-
-@c If you include the PostScript figures, and you have old software,
-@c you may need to convert the .dvi file to a .ps file before
-@c printing.  Run either of the following command sequences, or one
-@c similar:
-@c
-@c     dvips -f < emacs-lisp-intro.dvi > emacs-lisp-intro.ps
-@c
-@c or else:
-@c
-@c     postscript -p < emacs-lisp-intro.dvi > emacs-lisp-intro.ps
-@c
-
 @c (Note: if you edit the book so as to change the length of the
 @c table of contents, you may have to change the value of `pageno' below.)
 
-@c ================ End of Formatting Sections ================
+@c <<<< For hard copy printing, this file is now
+@c      set for smallbook, which works for all sizes
+@c      of paper, and with PostScript figures >>>>
+
+@set smallbook
+@ifset smallbook
+@smallbook
+@clear  largebook
+@end ifset
+
+@c ================ Included Figures ================
+
+@c If you clear this, the figures will be printed as ASCII diagrams
+@c rather than PostScript/PDF.
+@c (This is not relevant to Info, since Info only handles ASCII.)
+@set print-postscript-figures
+@c clear print-postscript-figures
+
+@comment %**end of header
+
+@c per rms and peterb, use 10pt fonts for the main text, mostly to
+@c save on paper cost.
+@c Do this inside @tex for now, so current makeinfo does not complain.
+@tex
+@ifset smallbook
+@fonttextsize 10
+
+@end ifset
+\global\hbadness=6666 % don't worry about not-too-underfull boxes
+@end tex
+
+@c These refer to the printed book sold by the FSF.
+@set edition-number 3.10
+@set update-date 28 October 2009
 
 @c For next or subsequent edition:
 @c   create function using with-output-to-temp-buffer
@@ -216,26 +97,30 @@
 
 @c ----------------------------------------------------
 
-@dircategory GNU Emacs Lisp
+@dircategory Emacs lisp
 @direntry
-* Emacs Lisp Intro: (eintr).
-                          A simple introduction to Emacs Lisp programming.
+* Emacs Lisp Intro: (eintr).    A simple introduction to Emacs Lisp programming.
 @end direntry
 
 @copying
 This is an @cite{Introduction to Programming in Emacs Lisp}, for
 people who are not programmers.
 @sp 1
+@iftex
 Edition @value{edition-number}, @value{update-date}
+@end iftex
+@ifnottex
+Distributed with Emacs version @value{EMACSVER}.
+@end ifnottex
 @sp 1
-Copyright @copyright{} 1990--1995, 1997, 2001--2013 Free Software
+Copyright @copyright{} 1990--1995, 1997, 2001--2014 Free Software
 Foundation, Inc.
 @sp 1
 
 @iftex
 Published by the:@*
 
-GNU Press,               @hfill @uref{http://www.fsf.org/campaigns/gnu-press/}@*
+GNU Press,               @hfill @uref{http://www.fsf.org/licensing/gnu-press/}@*
 a division of the               @hfill email: @email{sales@@fsf.org}@*
 Free Software Foundation, Inc.  @hfill Tel: +1 (617) 542-5942@*
 51 Franklin Street, Fifth Floor @hfill Fax: +1 (617) 542-2652@*
@@ -243,10 +128,10 @@ Boston, MA 02110-1301 USA
 @end iftex
 
 @ifnottex
-Published by the:
+Printed copies available from @uref{http://shop.fsf.org/}. Published by:
 
 @example
-GNU Press,                        http://www.fsf.org/campaigns/gnu-press/
+GNU Press,                        http://www.fsf.org/licensing/gnu-press/
 a division of the                 email: sales@@fsf.org
 Free Software Foundation, Inc.    Tel: +1 (617) 542-5942
 51 Franklin Street, Fifth Floor   Fax: +1 (617) 542-2652
@@ -255,9 +140,9 @@ Boston, MA 02110-1301 USA
 @end ifnottex
 
 @sp 1
-@c Printed copies are available from @uref{http://shop.fsf.org/} for $35 each.@*
 ISBN 1-882114-43-4
 
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; there
@@ -269,6 +154,7 @@ Documentation License''.
 (a) The FSF's Back-Cover Text is: ``You have the freedom to
 copy and modify this GNU manual.  Buying copies from the FSF
 supports it in developing GNU and promoting software freedom.''
+@end quotation
 @end copying
 
 @c half title; two lines here, so do not use `shorttitlepage'
@@ -318,6 +204,15 @@ supports it in developing GNU and promoting software freedom.''
 @ifnottex
 @node Top
 @top An Introduction to Programming in Emacs Lisp
+
+@ifset WWW_GNU_ORG
+@html
+<p>The homepage for GNU Emacs is at
+<a href="/software/emacs/">http://www.gnu.org/software/emacs/</a>.<br>
+To view this manual in other formats, click
+<a href="/software/emacs/manual/eintr.html">here</a>.
+@end html
+@end ifset
 
 @insertcopying
 
@@ -448,7 +343,7 @@ Practicing Evaluation
 How To Write Function Definitions
 
 * Primitive Functions::
-* defun::                        The @code{defun} special form.
+* defun::                        The @code{defun} macro.
 * Install::                      Install a function definition.
 * Interactive::                  Making a function interactive.
 * Interactive Options::          Different options for @code{interactive}.
@@ -755,7 +650,7 @@ Your @file{.emacs} File
 * Default Configuration::
 * Site-wide Init::              You can write site-wide init files.
 * defcustom::                   Emacs will write code for you.
-* Beginning a .emacs File::     How to write a @code{.emacs file}.
+* Beginning init File::         How to write a @file{.emacs} init file.
 * Text and Auto-fill::          Automatically wrap lines.
 * Mail Aliases::                Use abbreviations for email addresses.
 * Indent Tabs Mode::            Don't use tabs with @TeX{}
@@ -1061,7 +956,12 @@ encouragement.  My mistakes are my own.
 
 @flushright
 Robert J. Chassell
+@ifnothtml
 @email{bob@@gnu.org}
+@end ifnothtml
+@ifhtml
+bob@@gnu.org
+@end ifhtml
 @end flushright
 
 @c ================ Beginning of main text ================
@@ -1609,13 +1509,25 @@ the symbol's value as a @dfn{variable}.  This situation is described
 in the section on variables.  (@xref{Variables}.)
 
 @cindex Special form
-The second complication occurs because some functions are unusual and do
-not work in the usual manner.  Those that don't are called @dfn{special
-forms}.  They are used for special jobs, like defining a function, and
-there are not many of them.  In the next few chapters, you will be
-introduced to several of the more important special forms.
+The second complication occurs because some functions are unusual and
+do not work in the usual manner.  Those that don't are called
+@dfn{special forms}.  They are used for special jobs, like defining a
+function, and there are not many of them.  In the next few chapters,
+you will be introduced to several of the more important special forms.
 
-The third and final complication is this: if the function that the
+As well as special forms, there are also @dfn{macros}.  A macro
+is a construct defined in Lisp, which differs from a function in that it
+translates a Lisp expression into another expression that is to be
+evaluated in place of the original expression.  (@xref{Lisp macro}.)
+
+For the purposes of this introduction, you do not need to worry too much
+about whether something is a special form, macro, or ordinary function.
+For example, @code{if} is a special form (@pxref{if}), but @code{when}
+is a macro (@pxref{Lisp macro}).  In earlier versions of Emacs,
+@code{defun} was a special form, but now it is a macro (@pxref{defun}).
+It still behaves in the same way.
+
+The final complication is this: if the function that the
 Lisp interpreter is looking at is not a special form, and if it is part
 of a list, the Lisp interpreter looks to see whether the list has a list
 inside of it.  If there is an inner list, the Lisp interpreter first
@@ -3045,7 +2957,7 @@ symbol refers to it.)
 
 @menu
 * Primitive Functions::
-* defun::                        The @code{defun} special form.
+* defun::                        The @code{defun} macro.
 * Install::                      Install a function definition.
 * Interactive::                  Making a function interactive.
 * Interactive Options::          Different options for @code{interactive}.
@@ -3086,18 +2998,15 @@ unless you investigate, you won't know whether an already-written
 function is written in Emacs Lisp or C.
 
 @node defun
-@section The @code{defun} Special Form
+@section The @code{defun} Macro
 @findex defun
-@cindex Special form of @code{defun}
 
 @cindex @samp{function definition} defined
 In Lisp, a symbol such as @code{mark-whole-buffer} has code attached to
 it that tells the computer what to do when the function is called.
 This code is called the @dfn{function definition} and is created by
 evaluating a Lisp expression that starts with the symbol @code{defun}
-(which is an abbreviation for @emph{define function}).  Because
-@code{defun} does not evaluate its arguments in the usual way, it is
-called a @dfn{special form}.
+(which is an abbreviation for @emph{define function}).
 
 In subsequent sections, we will look at function definitions from the
 Emacs source code, such as @code{mark-whole-buffer}.  In this section,
@@ -3358,7 +3267,7 @@ line that follows a semicolon is a comment.  The end of the line is the
 end of the comment.  To stretch a comment over two or more lines, begin
 each line with a semicolon.
 
-@xref{Beginning a .emacs File, , Beginning a @file{.emacs}
+@xref{Beginning init File, , Beginning a @file{.emacs}
 File}, and @ref{Comments, , Comments, elisp, The GNU Emacs Lisp
 Reference Manual}, for more about comments.
 
@@ -3689,7 +3598,7 @@ name for a @dfn{local variable} that overshadows any use of the same
 name outside the @code{let} expression.  This is like understanding
 that whenever your host refers to `the house', he means his house, not
 yours.  (Symbols used in argument lists work the same way.
-@xref{defun, , The @code{defun} Special Form}.)
+@xref{defun, , The @code{defun} Macro}.)
 
 Local variables created by a @code{let} expression retain their value
 @emph{only} within the @code{let} expression itself (and within
@@ -4246,7 +4155,7 @@ On the other hand, this function returns @code{nil} if the test is false.
 @findex point
 @findex mark
 
-The @code{save-excursion} function is the fourth and final special form
+The @code{save-excursion} function is the third and final special form
 that we will discuss in this chapter.
 
 In Emacs Lisp programs used for editing, the @code{save-excursion}
@@ -4373,9 +4282,9 @@ within the body of a @code{let} expression.  It looks like this:
 @node Review
 @section Review
 
-In the last few chapters we have introduced a fair number of functions
-and special forms.  Here they are described in brief, along with a few
-similar functions that have not been mentioned yet.
+In the last few chapters we have introduced a macro and a fair number
+of functions and special forms.  Here they are described in brief,
+along with a few similar functions that have not been mentioned yet.
 
 @table @code
 @item eval-last-sexp
@@ -4385,10 +4294,10 @@ invoked with an argument; in that case, the output is printed in the
 current buffer.  This command is normally bound to @kbd{C-x C-e}.
 
 @item defun
-Define function.  This special form has up to five parts: the name,
-a template for the arguments that will be passed to the function,
-documentation, an optional interactive declaration, and the body of the
-definition.
+Define function.  This macro has up to five parts: the name, a
+template for the arguments that will be passed to the function,
+documentation, an optional interactive declaration, and the body of
+the definition.
 
 @need 1250
 For example, in an early version of Emacs, the function definition was
@@ -4795,7 +4704,7 @@ leave mark at previous position."
 @end smallexample
 
 Like all function definitions, this definition has five parts following
-the special form @code{defun}:
+the macro @code{defun}:
 
 @enumerate
 @item
@@ -6416,7 +6325,7 @@ and avoids clobbering the mark."
                         (/ (+ 10 (* size (prefix-numeric-value arg)))
                            10)))
                  (point-min))))
-  (if arg (forward-line 1)))
+  (if (and arg (not (consp arg))) (forward-line 1)))
 @end group
 @end smallexample
 
@@ -6483,7 +6392,7 @@ to move point to the beginning of the next line if the command is
 invoked with an argument:
 
 @smallexample
-(if arg (forward-line 1)))
+(if (and arg (not (consp arg))) (forward-line 1))
 @end smallexample
 
 @noindent
@@ -6492,14 +6401,10 @@ appropriate tenths position in the buffer.  This is a flourish that
 means that the cursor is always located @emph{at least} the requested
 tenths of the way through the buffer, which is a nicety that is,
 perhaps, not necessary, but which, if it did not occur, would be sure
-to draw complaints.
-
-On the other hand, it also means that if you specify the command with
-a @kbd{C-u}, but without a number, that is to say, if the `raw prefix
-argument' is simply a cons cell, then the command puts you at the
-beginning of the second line @dots{}  I don't know whether this is
-intended or whether no one has dealt with the code to avoid this
-happening.
+to draw complaints.  (The @code{(not (consp arg))} portion is so that
+if you specify the command with a @kbd{C-u}, but without a number,
+that is to say, if the `raw prefix argument' is simply a cons cell,
+the command does not put you at the beginning of the second line.)
 
 @node Second Buffer Related Review
 @section Review
@@ -7635,20 +7540,7 @@ retrieved.  @xref{Yanking, , Yanking Text Back}.
 @section @code{zap-to-char}
 @findex zap-to-char
 
-@c FIXME remove obsolete stuff
-The @code{zap-to-char} function changed little between GNU Emacs
-version 19 and GNU Emacs version 22.  However, @code{zap-to-char}
-calls another function, @code{kill-region}, which enjoyed a major
-rewrite.
-
-The @code{kill-region} function in Emacs 19 is complex, but does not
-use code that is important at this time.  We will skip it.
-
-The @code{kill-region} function in Emacs 22 is easier to read than the
-same function in Emacs 19 and introduces a very important concept,
-that of error handling.  We will walk through the function.
-
-But first, let us look at the interactive @code{zap-to-char} function.
+Let us look at the interactive @code{zap-to-char} function.
 
 @menu
 * Complete zap-to-char::        The complete implementation.
@@ -8302,7 +8194,7 @@ an @code{if} without the possibility of an else clause.  In your mind,
 you can replace @code{when} with @code{if} and understand what goes
 on.  That is what the Lisp interpreter does.
 
-Technically speaking, @code{when} is a Lisp macro.  A Lisp @dfn{macro}
+Technically speaking, @code{when} is a Lisp macro.  A Lisp macro
 enables you to define new control constructs and other language
 features.  It tells the interpreter how to compute another Lisp
 expression which will in turn compute the value.  In this case, the
@@ -8423,7 +8315,7 @@ As usual, this function can be divided into its component parts:
 
 The arguments are @code{beg} and @code{end} and the function is
 interactive with @code{"r"}, so the two arguments must refer to the
-beginning and end of the region.  If you have been reading though this
+beginning and end of the region.  If you have been reading through this
 document from the beginning, understanding these parts of a function is
 almost becoming routine.
 
@@ -9116,8 +9008,8 @@ Lisp; it is written in C and is one of the primitives of the GNU Emacs
 system.  Since it is very simple, I will digress briefly from Lisp and
 describe it here.
 
-@c GNU Emacs 22  in /usr/local/src/emacs/src/editfns.c
-@c the DEFUN for  buffer-substring-no-properties
+@c GNU Emacs 24  in src/editfns.c
+@c the DEFUN for  delete-and-extract-region
 
 @need 1500
 Like many of the other Emacs primitives,
@@ -9127,22 +9019,15 @@ like this:
 
 @smallexample
 @group
-DEFUN ("buffer-substring-no-properties", Fbuffer_substring_no_properties,
-       Sbuffer_substring_no_properties, 2, 2, 0,
-       doc: /* Return the characters of part of the buffer,
-without the text properties.
-The two arguments START and END are character positions;
-they can be in either order.  */)
-     (start, end)
-     Lisp_Object start, end;
+DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
+       Sdelete_and_extract_region, 2, 2, 0,
+       doc: /* Delete the text between START and END and return it.  */)
+       (Lisp_Object start, Lisp_Object end)
 @{
-  register int b, e;
-
   validate_region (&start, &end);
-  b = XINT (start);
-  e = XINT (end);
-
-  return make_buffer_string (b, e, 0);
+  if (XINT (start) == XINT (end))
+    return empty_unibyte_string;
+  return del_range_1 (XINT (start), XINT (end), 1, 1);
 @}
 @end group
 @end smallexample
@@ -9192,20 +9077,9 @@ and provides a prompt.
 
 @item
 The seventh part is a documentation string, just like the one for a
-function written in Emacs Lisp, except that every newline must be
-written explicitly as @samp{\n} followed by a backslash and carriage
-return.
-
-@need 1000
-Thus, the first two lines of documentation for  @code{goto-char} are
-written like this:
-
-@smallexample
-@group
-  "Set point to POSITION, a number or marker.\n\
-Beginning of buffer is position (point-min), end is (point-max)."
-@end group
-@end smallexample
+function written in Emacs Lisp.  This is written as a C comment.  (When
+you build Emacs, the program @command{lib-src/make-docfile} extracts
+these comments and uses them to make the ``real'' documentation.)
 @end itemize
 
 @need 1200
@@ -9218,15 +9092,15 @@ consists of the following four lines:
 @group
 validate_region (&start, &end);
 if (XINT (start) == XINT (end))
-  return build_string ("");
+  return empty_unibyte_string;
 return del_range_1 (XINT (start), XINT (end), 1, 1);
 @end group
 @end smallexample
 
-The   @code{validate_region} function checks whether the values
+The @code{validate_region} function checks whether the values
 passed as the beginning and end of the region are the proper type and
 are within range.  If the beginning and end positions are the same,
-then return and empty string.
+then return an empty string.
 
 The @code{del_range_1} function actually deletes the text.  It is a
 complex function we will not look into.  It updates the buffer and
@@ -9303,7 +9177,7 @@ have a value.  If the variable already has a value, @code{defvar} does
 not override the existing value.  Second, @code{defvar} has a
 documentation string.
 
-(Another special form, @code{defcustom}, is designed for variables
+(There is a related macro, @code{defcustom}, designed for variables
 that people customize.  It has more features than @code{defvar}.
 (@xref{defcustom, , Setting Variables with @code{defcustom}}.)
 
@@ -9373,7 +9247,7 @@ In the past, Emacs used the @code{defvar} special form both for
 internal variables that you would not expect a user to change and for
 variables that you do expect a user to change.  Although you can still
 use @code{defvar} for user customizable variables, please use
-@code{defcustom} instead, since that special form provides a path into
+@code{defcustom} instead, since it provides a path into
 the Customization commands.  (@xref{defcustom, , Specifying Variables
 using @code{defcustom}}.)
 
@@ -9634,10 +9508,6 @@ This sounds more complicated than it is and is easier seen in a diagram:
 @sp 1
 @tex
 @center @image{cons-1}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/cons-1.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -9697,10 +9567,6 @@ bouquet
 @sp 1
 @tex
 @center @image{cons-2}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/cons-2.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -9746,10 +9612,6 @@ bouquet
 @sp 1
 @tex
 @center @image{cons-2a}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/cons-2a.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -9813,10 +9675,6 @@ bouquet        flowers
 @sp 1
 @tex
 @center @image{cons-3}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/cons-3.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -9885,10 +9743,6 @@ bouquet                       flowers
 @sp 1
 @tex
 @center @image{cons-4}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/cons-4.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -10002,10 +9856,6 @@ Here is a fanciful representation:
 @sp 1
 @tex
 @center @image{drawers}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/drawers.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -10178,10 +10028,6 @@ kill-ring     kill-ring-yank-pointer
 @sp 1
 @tex
 @center @image{cons-5}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/cons-5.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -11310,11 +11156,11 @@ Let's expand on the metaphor in which a computer program is a robot.
 
 A function definition provides the blueprints for a robot.  When you
 install a function definition, that is, when you evaluate a
-@code{defun} special form, you install the necessary equipment to
-build robots.  It is as if you were in a factory, setting up an
-assembly line.  Robots with the same name are built according to the
-same blueprints.  So they have, as it were, the same `model number',
-but a different `serial number'.
+@code{defun} macro, you install the necessary equipment to build
+robots.  It is as if you were in a factory, setting up an assembly
+line.  Robots with the same name are built according to the same
+blueprints.  So they have, as it were, the same `model number', but a
+different `serial number'.
 
 We often say that a recursive function `calls itself'.  What we mean
 is that the instructions in a recursive function cause the Lisp
@@ -11764,7 +11610,7 @@ and this provides a sense of its primal capabilities.
 @node Every
 @unnumberedsubsubsec Recursive Pattern: @emph{every}
 @cindex Every, type of recursive pattern
-@cindex Recursive pattern: every
+@cindex Recursive pattern - every
 
 In the @code{every} recursive pattern, an action is performed on every
 element of a list.
@@ -11863,7 +11709,7 @@ But when the list has at least one element,
 @node Accumulate
 @unnumberedsubsubsec Recursive Pattern: @emph{accumulate}
 @cindex Accumulate, type of recursive pattern
-@cindex Recursive pattern: accumulate
+@cindex Recursive pattern - accumulate
 
 Another recursive pattern is called the @code{accumulate} pattern.  In
 the @code{accumulate} recursive pattern, an action is performed on
@@ -11914,7 +11760,7 @@ accumulate pattern.
 @node Keep
 @unnumberedsubsubsec Recursive Pattern: @emph{keep}
 @cindex Keep, type of recursive pattern
-@cindex Recursive pattern: keep
+@cindex Recursive pattern - keep
 
 A third recursive pattern is called the @code{keep} pattern.
 In the @code{keep} recursive pattern, each element of a list is tested;
@@ -12066,7 +11912,6 @@ more steps.
 @node No deferment solution
 @subsection No Deferment Solution
 @cindex No deferment solution
-@cindex Defermentless solution
 @cindex Solution without deferment
 
 The solution to the problem of deferred operations is to write in a
@@ -13700,7 +13545,7 @@ regexps.  @xref{the-the, , @code{the-the} Duplicated Words Function}.
 @end itemize
 
 @node Counting Words
-@chapter Counting: Repetition and Regexps
+@chapter Counting via Repetition and Regexps
 @cindex Repetition for word counting
 @cindex Regular expressions for word counting
 
@@ -14584,7 +14429,7 @@ exclamation mark, and question mark.  Do the same using recursion.
 
 Our next project is to count the number of words in a function
 definition.  Clearly, this can be done using some variant of
-@code{@value{COUNT-WORDS}}.  @xref{Counting Words, , Counting Words:
+@code{@value{COUNT-WORDS}}.  @xref{Counting Words, , Counting via
 Repetition and Regexps}.  If we are just going to count the words in
 one definition, it is easy enough to mark the definition with the
 @kbd{C-M-h} (@code{mark-defun}) command, and then call
@@ -15216,18 +15061,19 @@ C-e} (@code{eval-last-sexp}).
 @c !!! 22.1.1 lisp sources location here
 @smallexample
 (lengths-list-file
- "/usr/local/share/emacs/22.1.1/lisp/emacs-lisp/debug.el")
+ "/usr/local/share/emacs/22.1/lisp/emacs-lisp/debug.el")
 @end smallexample
 
 @noindent
-(You may need to change the pathname of the file; the one here is for
-GNU Emacs version 22.1.1.  To change the expression, copy it to
+You may need to change the pathname of the file; the one here is for
+GNU Emacs version 22.1.  To change the expression, copy it to
 the @file{*scratch*} buffer and edit it.
 
 @need 1200
 @noindent
-(Also, to see the full length of the list, rather than a truncated
+Also, to see the full length of the list, rather than a truncated
 version, you may have to evaluate the following:
+@c We do not want to insert, so do not mention the zero prefix argument.
 
 @smallexample
 (custom-set-variables '(eval-expression-print-length nil))
@@ -15253,7 +15099,8 @@ took seven seconds to produce and looked like this:
 (75 41 80 62 20 45 44 68 45 12 34 235)
 @end smallexample
 
-(The newer version of @file{debug.el} contains more defuns than the
+@noindent
+The newer version of @file{debug.el} contains more defuns than the
 earlier one; and my new machine is much faster than the old one.)
 
 Note that the length of the last definition in the file is first in
@@ -15758,7 +15605,7 @@ Let's write a function definition to do these tasks.  We will use a
 directory, checking what needs to be done; and we will use a recursive
 call to repeat the actions on each sub-directory.  The recursive
 pattern is `accumulate'
-(@pxref{Accumulate, , Recursive Pattern: @emph{accumulate}}),
+(@pxref{Accumulate}),
 using @code{append} as the combiner.
 
 @ignore
@@ -16863,7 +16710,7 @@ expressions in Emacs Lisp you can change or extend Emacs.
 * Default Configuration::
 * Site-wide Init::              You can write site-wide init files.
 * defcustom::                   Emacs will write code for you.
-* Beginning a .emacs File::     How to write a @code{.emacs file}.
+* Beginning init File::         How to write a @file{.emacs} init file.
 * Text and Auto-fill::          Automatically wrap lines.
 * Mail Aliases::                Use abbreviations for email addresses.
 * Indent Tabs Mode::            Don't use tabs with @TeX{}
@@ -16981,10 +16828,9 @@ definitions; but you can write @code{defuns} in your @file{.emacs}
 file.  Indeed, you can write any Lisp expression in your @file{.emacs}
 file.)
 
-The @code{customize} feature depends on the @code{defcustom} special
-form.  Although you can use @code{defvar} or @code{setq} for variables
-that users set, the @code{defcustom} special form is designed for the
-job.
+The @code{customize} feature depends on the @code{defcustom} macro.
+Although you can use @code{defvar} or @code{setq} for variables that
+users set, the @code{defcustom} macro is designed for the job.
 
 You can use your knowledge of @code{defvar} for writing the
 first three arguments for @code{defcustom}.  The first argument to
@@ -17010,7 +16856,7 @@ For example, the customizable user option variable
   "Normal hook run when entering Text mode and many related modes."
   :type 'hook
   :options '(turn-on-auto-fill flyspell-mode)
-  :group 'data)
+  :group 'wp)
 @end group
 @end smallexample
 
@@ -17033,7 +16879,7 @@ Finally, the @code{:group} keyword tells the Emacs Customization
 command in which group the variable is located.  This tells where to
 find it.
 
-The @code{defcustom} function recognizes more than a dozen keywords.
+The @code{defcustom} macro recognizes more than a dozen keywords.
 For more information, see @ref{Customization, , Writing Customization
 Definitions, elisp, The GNU Emacs Lisp Reference Manual}.
 
@@ -17135,7 +16981,7 @@ intent is that neither programs nor users should ever change a value
 set by @code{defconst}.  (You can change it; the value set is a
 variable; but please do not.)
 
-@node Beginning a .emacs File
+@node Beginning init File
 @section Beginning a @file{.emacs} File
 @cindex @file{.emacs} file, beginning of
 
@@ -17829,7 +17675,7 @@ emacs -q --no-site-file -eval '(blink-cursor-mode nil)'
 
 @exdent Or nowadays, using an even more sophisticated set of options,
 
-emacs -Q - D
+emacs -Q -D
 @end smallexample
 }:
 
@@ -18629,7 +18475,7 @@ shows which line you are currently executing.
 You can walk through the execution of a function, line by line, or run
 quickly until reaching a @dfn{breakpoint} where execution stops.
 
-Edebug is described in @ref{edebug, , Edebug, elisp, The GNU Emacs
+Edebug is described in @ref{Edebug, , , elisp, The GNU Emacs
 Lisp Reference Manual}.
 
 @need 1250
@@ -18756,7 +18602,7 @@ error or at specified stopping points; you can cause it to display the
 changing values of various expressions; you can find out how many
 times a function is called, and more.
 
-Edebug is described in @ref{edebug, , Edebug, elisp, The GNU Emacs
+Edebug is described in @ref{Edebug, , , elisp, The GNU Emacs
 Lisp Reference Manual}.
 
 @need 1500
@@ -19464,7 +19310,7 @@ them in an argument list (and within expressions called by them).
 @ignore
 @c texi2dvi fails when the name of the section is within ifnottex ...
 (@xref{Prevent confusion, , @code{let} Prevents Confusion}, and
-@ref{defun, , The @code{defun} Special Form}.)
+@ref{defun, , The @code{defun} Macro}.)
 @end ignore
 
 @node yank
@@ -20984,16 +20830,13 @@ equivalent of @code{multiply-by-seven} is:
 @end smallexample
 
 @noindent
-(@xref{defun, ,  The @code{defun} Special Form}.)
+(@xref{defun, ,  The @code{defun} Macro}.)
 
 @need 1250
 @noindent
 If we want to multiply 3 by 7, we can write:
 
-@c !!! Clear print-postscript-figures if the computer formatting this
-@c     document is too small and cannot handle all the diagrams and figures.
 @c clear print-postscript-figures
-@c set print-postscript-figures
 @c lambda example diagram #1
 @ifnottex
 @smallexample
@@ -21009,10 +20852,6 @@ If we want to multiply 3 by 7, we can write:
 @sp 1
 @tex
 @center @image{lambda-1}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/lambda-1.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -21051,10 +20890,6 @@ Similarly, we can write:
 @sp 1
 @tex
 @center @image{lambda-2}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/lambda-2.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -21090,10 +20925,6 @@ If we want to divide 100 by 50, we can write:
 @sp 1
 @tex
 @center @image{lambda-3}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/lambda-3.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset

@@ -1,6 +1,6 @@
 ;;; semantic/lex.el --- Lexical Analyzer builder
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -437,7 +437,7 @@ PROPSPECS must be a list of (TYPE PROPERTY VALUE)."
           (if default
               (message
                "*Warning* default value of <%s> tokens changed to %S, was %S"
-               type default token))
+               type token default))
           (setq default token)))
       ;; Ensure the default matching spec is the first one.
       (semantic-lex-type-set type (cons default (nreverse alist))))
@@ -831,63 +831,6 @@ analyzer which might mistake a number for as a symbol."
        ;; Return the token stream
        (nreverse semantic-lex-token-stream))))
 
-;;; Collapsed block tokens delimited by any tokens.
-;;
-(defun semantic-lex-start-block (syntax)
-  "Mark the last read token as the beginning of a SYNTAX block."
-  (if (or (not semantic-lex-maximum-depth)
-          (< semantic-lex-current-depth semantic-lex-maximum-depth))
-      (setq semantic-lex-current-depth (1+ semantic-lex-current-depth))
-    (push (list syntax (car semantic-lex-token-stream))
-          semantic-lex-block-stack)))
-
-(defun semantic-lex-end-block (syntax)
-  "Process the end of a previously marked SYNTAX block.
-That is, collapse the tokens inside that block, including the
-beginning and end of block tokens, into a high level block token of
-class SYNTAX.
-The token at beginning of block is the one marked by a previous call
-to `semantic-lex-start-block'.  The current token is the end of block.
-The collapsed tokens are saved in `semantic-lex-block-streams'."
-  (if (null semantic-lex-block-stack)
-      (setq semantic-lex-current-depth (1- semantic-lex-current-depth))
-    (let* ((stream semantic-lex-token-stream)
-           (blk (pop semantic-lex-block-stack))
-           (bstream (cdr blk))
-           (first (car bstream))
-           (last (pop stream)) ;; The current token mark the EOBLK
-           tok)
-      (if (not (eq (car blk) syntax))
-          ;; SYNTAX doesn't match the syntax of the current block in
-          ;; the stack. So we encountered the end of the SYNTAX block
-          ;; before the end of the current one in the stack which is
-          ;; signaled unterminated.
-          (semantic-lex-unterminated-syntax-detected (car blk))
-        ;; Move tokens found inside the block from the main stream
-        ;; into a separate block stream.
-        (while (and stream (not (eq (setq tok (pop stream)) first)))
-          (push tok bstream))
-        ;; The token marked as beginning of block was not encountered.
-        ;; This should not happen!
-        (or (eq tok first)
-            (error "Token %S not found at beginning of block `%s'"
-                   first syntax))
-        ;; Save the block stream for future reuse, to avoid to redo
-        ;; the lexical analysis of the block content!
-        ;; Anchor the block stream with its start position, so we can
-        ;; use: (cdr (assq start semantic-lex-block-streams)) to
-        ;; quickly retrieve the lexical stream associated to a block.
-        (setcar blk (semantic-lex-token-start first))
-        (setcdr blk (nreverse bstream))
-        (push blk semantic-lex-block-streams)
-        ;; In the main stream, replace the tokens inside the block by
-        ;; a high level block token of class SYNTAX.
-        (setq semantic-lex-token-stream stream)
-        (semantic-lex-push-token
-         (semantic-lex-token
-          syntax (car blk) (semantic-lex-token-end last)))
-        ))))
-
 ;;; Lexical token API
 ;;
 ;; Functions for accessing parts of a token.  Use these functions
@@ -1048,6 +991,63 @@ Optional argument DEPTH is the depth to scan into lists."
   (semantic-lex (semantic-lex-token-start semlist)
                 (semantic-lex-token-end   semlist)
                 depth))
+
+;;; Collapsed block tokens delimited by any tokens.
+;;
+(defun semantic-lex-start-block (syntax)
+  "Mark the last read token as the beginning of a SYNTAX block."
+  (if (or (not semantic-lex-maximum-depth)
+          (< semantic-lex-current-depth semantic-lex-maximum-depth))
+      (setq semantic-lex-current-depth (1+ semantic-lex-current-depth))
+    (push (list syntax (car semantic-lex-token-stream))
+          semantic-lex-block-stack)))
+
+(defun semantic-lex-end-block (syntax)
+  "Process the end of a previously marked SYNTAX block.
+That is, collapse the tokens inside that block, including the
+beginning and end of block tokens, into a high level block token of
+class SYNTAX.
+The token at beginning of block is the one marked by a previous call
+to `semantic-lex-start-block'.  The current token is the end of block.
+The collapsed tokens are saved in `semantic-lex-block-streams'."
+  (if (null semantic-lex-block-stack)
+      (setq semantic-lex-current-depth (1- semantic-lex-current-depth))
+    (let* ((stream semantic-lex-token-stream)
+           (blk (pop semantic-lex-block-stack))
+           (bstream (cdr blk))
+           (first (car bstream))
+           (last (pop stream)) ;; The current token mark the EOBLK
+           tok)
+      (if (not (eq (car blk) syntax))
+          ;; SYNTAX doesn't match the syntax of the current block in
+          ;; the stack. So we encountered the end of the SYNTAX block
+          ;; before the end of the current one in the stack which is
+          ;; signaled unterminated.
+          (semantic-lex-unterminated-syntax-detected (car blk))
+        ;; Move tokens found inside the block from the main stream
+        ;; into a separate block stream.
+        (while (and stream (not (eq (setq tok (pop stream)) first)))
+          (push tok bstream))
+        ;; The token marked as beginning of block was not encountered.
+        ;; This should not happen!
+        (or (eq tok first)
+            (error "Token %S not found at beginning of block `%s'"
+                   first syntax))
+        ;; Save the block stream for future reuse, to avoid to redo
+        ;; the lexical analysis of the block content!
+        ;; Anchor the block stream with its start position, so we can
+        ;; use: (cdr (assq start semantic-lex-block-streams)) to
+        ;; quickly retrieve the lexical stream associated to a block.
+        (setcar blk (semantic-lex-token-start first))
+        (setcdr blk (nreverse bstream))
+        (push blk semantic-lex-block-streams)
+        ;; In the main stream, replace the tokens inside the block by
+        ;; a high level block token of class SYNTAX.
+        (setq semantic-lex-token-stream stream)
+        (semantic-lex-push-token
+         (semantic-lex-token
+          syntax (car blk) (semantic-lex-token-end last)))
+        ))))
 
 ;;; Analyzer creation macros
 ;;

@@ -2,13 +2,41 @@ Tasks needed before the next release.
 
 * TO BE DONE SHORTLY BEFORE RELEASE
 
+** Either update, test, and support the old w32 build method, or remove it.
+
 ** Manuals
+Check for node names using problematic characters:
+  find doc -name '*.texi' -exec grep '^@node[^,]*[:.()]' {} +
+Sadly makeinfo does not warn about such characters.
+
 Check cross-references between the manuals (eg from emacs to elisp)
 are correct.  You can use something like the following in the info
 directory in the Emacs build tree:
 
 emacs -Q --eval "(progn (require 'info) (setq Info-directory-list '(\".\")))" \
   -f info-xref-check-all
+
+Setting Info-directory-list avoids having system info pages confuse
+things.  References to external manuals will be flagged as
+uncheckable.  You should still check these, and also that each
+external manual has an appropriate redirect in the file manual/.htaccess
+in the web pages repository.  E.g.:
+Redirect /software/emacs/manual/html_mono/automake.html /software/automake/manual/automake.html
+Redirect /software/emacs/manual/html_node/automake/ /software/automake/manual/html_node/
+
+Another tool you can use to check links is gnu.org's linc.py:
+http://www.gnu.org/server/source/
+
+You run this something like:
+
+cd /path/to/cvs/emacs-www
+linc.py -o /path/to/output-dir --url http://www.gnu.org/software/emacs/ .
+
+Be warned that it is really, really slow (as in, can take ~ a full day
+to check the manual/ directory).  It is probably best to run it on a
+single directory at a time from eg manual/html_node.  It is very
+inefficient, but may reveal a few things that info-xref does not.
+
 
 make emacs.dvi, elisp.dvi, and deal with any errors (undefined
 references etc) in the output.  Break any overfull lines.
@@ -42,7 +70,6 @@ I think this is different to what you get if you just use eg `make
 emacs.pdf' (e.g., enable "smallbook").
 
 ** Check the keybindings in the refcards are correct, and add any new ones.
-Regenerate the pdf versions in etc/refcards/.
 What paper size are the English versions supposed to be on?
 On Debian testing, the packages texlive-lang-czechslovak and
 texlive-lang-polish will let you generate the cs-* and sk-* pdfs.
@@ -112,7 +139,7 @@ SECTION                  READERS
 ----------------------------------
 TUTORIAL             cyd
 TUTORIAL.bg          ogi
-TUTORIAL.cn
+TUTORIAL.cn          xfq
 TUTORIAL.cs          
 TUTORIAL.de          wl
 TUTORIAL.eo
@@ -120,7 +147,7 @@ TUTORIAL.es
 TUTORIAL.fr          
 TUTORIAL.he          eliz
 TUTORIAL.it          
-TUTORIAL.ja		 
+TUTORIAL.ja          
 TUTORIAL.ko
 TUTORIAL.nl	     Pieter Schoenmakers
 TUTORIAL.pl          
@@ -191,7 +218,6 @@ xresources.texi   cyd
 ** Check the Lisp manual.
 
 abbrevs.texi      rgm
-advice.texi       cyd
 anti.texi         rgm
 back.texi         rgm
 backups.texi      cyd

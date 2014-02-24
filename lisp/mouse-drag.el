@@ -1,6 +1,6 @@
 ;;; mouse-drag.el --- use mouse-2 to do a new style of scrolling
 
-;; Copyright (C) 1996-1997, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: John Heidemann <johnh@ISI.EDU>
 ;; Keywords: mouse
@@ -156,7 +156,7 @@ Keep the cursor on the screen as needed."
   "Determine if it's wise to enable col-scrolling for the current window.
 Basically, we check for existing horizontal scrolling."
   (or truncate-lines
-      (> (window-hscroll (selected-window)) 0)
+      (> (window-hscroll) 0)
       (not (window-full-width-p))
       (and
        mouse-drag-electric-col-scrolling
@@ -291,7 +291,7 @@ To test this function, evaluate:
 	       (or (mouse-movement-p event)
 		   (eq (car-safe event) 'switch-frame)))
 	;; Scroll if see if we're on the edge.
-	;; NEEDSWORK: should handle mouse-in-other window.
+	;; FIXME: should handle mouse-in-other window.
 	(cond
 	 ((not (eq start-window (posn-window end)))
 	  t) ; wait for return to original window

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node System Interface
@@ -34,7 +34,8 @@ terminal and the screen.
 * X11 Keysyms::         Operating on key symbols for X Windows.
 * Batch Mode::          Running Emacs without terminal interaction.
 * Session Management::  Saving and restoring state with X Session Management.
-* Notifications::       Desktop notifications.
+* Desktop Notifications:: Desktop notifications.
+* File Notifications::  File notifications.
 * Dynamic Libraries::   On-demand loading of support libraries.
 @end menu
 
@@ -70,11 +71,12 @@ in their turn.  The files @file{subdirs.el} are normally generated
 automatically when Emacs is installed.
 
 @item
-If the library @file{leim-list.el} exists, Emacs loads it.  This
-optional library is intended for registering input methods; Emacs
-looks for it in @code{load-path} (@pxref{Library Search}), skipping
-those directories containing the standard Emacs libraries (since
-@file{leim-list.el} should not exist in those directories).
+It loads any @file{leim-list.el} that it finds in the @code{load-path}
+directories.  This file is intended for registering input methods.
+The search is only for any personal @file{leim-list.el} files that you
+may have created; it skips the directories containing the standard Emacs
+libraries (these should contain only a single @file{leim-list.el} file,
+which is compiled into the Emacs executable).
 
 @vindex before-init-time
 @item
@@ -193,7 +195,9 @@ It now exits if the option @code{--batch} was specified.
 
 @item
 If @code{initial-buffer-choice} is a string, it visits the file with
-that name.  If the @file{*scratch*} buffer exists and is
+that name.  If it is a function, it calls the function and selects the
+buffer returned by the function.  It it is @code{t}, it selects the
+@file{*scratch*} buffer.  If the @file{*scratch*} buffer exists and is
 empty, it inserts @code{initial-scratch-message} into that buffer.
 
 @c To make things nice and confusing, the next three items can be
@@ -217,6 +221,7 @@ specify.
 It runs @code{window-setup-hook}.  @xref{Window Systems}.
 
 @item
+@cindex startup screen
 It displays the @dfn{startup screen}, which is a special buffer that
 contains information about copyleft and basic Emacs usage.  This is
 not done if @code{inhibit-startup-screen} or @code{initial-buffer-choice}
@@ -268,11 +273,9 @@ aliases for this variable.
 If non-@code{nil}, this variable is a string that specifies a file or
 directory for Emacs to display after starting up, instead of the
 startup screen.
-@ignore
-@c I do not think this should be mentioned.  AFAICS it is just a dodge
-@c around inhibit-startup-screen not being settable on a site-wide basis.
+If its value is a function, Emacs calls that function which must
+return a buffer which is then displayed.
 If its value is @code{t}, Emacs displays the @file{*scratch*} buffer.
-@end ignore
 @end defopt
 
 @defopt inhibit-startup-echo-area-message
@@ -315,7 +318,7 @@ Run without an interactive terminal.  @xref{Batch Mode}.
 Do not initialize any display; just start a server in the background.
 
 @item --no-init-file
-@itemx -Q
+@itemx -q
 Do not load either the init file, or the @file{default} library.
 
 @item --no-site-file
@@ -515,9 +518,10 @@ displays the startup messages.
 The value of this variable is @code{t} once the command line has been
 processed.
 
-If you redump Emacs by calling @code{dump-emacs}, you may wish to set
-this variable to @code{nil} first in order to cause the new dumped Emacs
-to process its new command-line arguments.
+If you redump Emacs by calling @code{dump-emacs} (@pxref{Building
+Emacs}), you may wish to set this variable to @code{nil} first in
+order to cause the new dumped Emacs to process its new command-line
+arguments.
 @end defvar
 
 @defvar command-switch-alist
@@ -549,8 +553,8 @@ sole argument.
 In some cases, the option is followed in the command line by an
 argument.  In these cases, the @var{handler-function} can find all the
 remaining command-line arguments in the variable
-@code{command-line-args-left}.  (The entire list of command-line
-arguments is in @code{command-line-args}.)
+@code{command-line-args-left} (see below).  (The entire list of
+command-line arguments is in @code{command-line-args}.)
 
 The command-line arguments are parsed by the @code{command-line-1}
 function in the @file{startup.el} file.  See also @ref{Emacs
@@ -958,6 +962,7 @@ to access the value of @var{variable}.  If @var{value} is omitted or
 removes @var{variable} from the environment.  Otherwise, @var{value}
 should be a string.
 
+@c FIXME: Document `substitute-env-vars'?  --xfq
 If the optional argument @var{substitute} is non-@code{nil}, Emacs
 calls the function @code{substitute-env-vars} to expand any
 environment variables in @var{value}.
@@ -1094,9 +1099,9 @@ originally logged in.  The value reflects command-line options such as
 Lisp packages that load files of customizations, or any other sort of
 user profile, should obey this variable in deciding where to find it.
 They should load the profile of the user name found in this variable.
-If @code{init-file-user} is @code{nil}, meaning that the @samp{-q}
-option was used, then Lisp packages should not load any customization
-files or user profile.
+If @code{init-file-user} is @code{nil}, meaning that the @samp{-q},
+@samp{-Q}, or @samp{-batch} option was used, then Lisp packages should
+not load any customization files or user profile.
 @end defvar
 
 @defopt user-mail-address
@@ -1146,6 +1151,7 @@ you to ``fake out'' Emacs by telling the functions what to return.  The
 variables are also useful for constructing frame titles (@pxref{Frame
 Titles}).
 
+@cindex UID
 @defun user-real-uid
 This function returns the real @acronym{UID} of the user.
 The value may be a floating point number, in the (unlikely) event that
@@ -1157,6 +1163,7 @@ This function returns the effective @acronym{UID} of the user.
 The value may be a floating point number.
 @end defun
 
+@cindex GID
 @defun group-gid
 This function returns the effective @acronym{GID} of the Emacs process.
 The value may be a floating point number.
@@ -1216,9 +1223,9 @@ file-attributes}).  In function arguments, e.g., the @var{time-value}
 argument to @code{current-time-string}, two-, three-, and four-integer
 lists are accepted.  You can convert times from the list
 representation into standard human-readable strings using
-@code{current-time}, or to other forms using the @code{decode-time}
-and @code{format-time-string} functions documented in the following
-sections.
+@code{current-time-string}, or to other forms using the
+@code{decode-time} and @code{format-time-string} functions documented
+in the following sections.
 
 @defun current-time-string &optional time-value
 This function returns the current time and date as a human-readable
@@ -1262,6 +1269,7 @@ exact.  Do not use this function if precise time stamps are required.
 @end defun
 
 @defun current-time-zone &optional time-value
+@cindex time zone, current
 This function returns a list describing the time zone that the user is
 in.
 
@@ -1288,6 +1296,7 @@ time zone.
 
 @node Time Conversion
 @section Time Conversion
+@cindex calendrical information
 
   These functions convert time values (lists of two to four integers,
 as explained in the previous section) into calendrical information and
@@ -1516,7 +1525,7 @@ system.
 @defun seconds-to-time seconds
 This function converts @var{seconds}, a floating point number of
 seconds since the epoch, to a time value and returns that.  To perform
-the inverse conversion, use @code{float-time}.
+the inverse conversion, use @code{float-time} (@pxref{Time of Day}).
 @end defun
 
 @defun format-seconds format-string seconds
@@ -1578,6 +1587,7 @@ most-positive-fixnum}).
 both elapsed and processor time, used by the Emacs process.
 
 @deffn Command emacs-uptime &optional format
+@cindex uptime of Emacs
 This function returns a string representing the Emacs
 @dfn{uptime}---the elapsed wall-clock time this instance of Emacs is
 running.  The string is formatted by @code{format-seconds} according
@@ -1914,10 +1924,10 @@ functions.
 
 @defun set-input-mode interrupt flow meta &optional quit-char
 This function sets the mode for reading keyboard input.  If
-@var{interrupt} is non-null, then Emacs uses input interrupts.  If it is
-@code{nil}, then it uses @sc{cbreak} mode.  The default setting is
-system-dependent.  Some systems always use @sc{cbreak} mode regardless
-of what is specified.
+@var{interrupt} is non-@code{nil}, then Emacs uses input interrupts.
+If it is @code{nil}, then it uses @sc{cbreak} mode.  The default
+setting is system-dependent.  Some systems always use @sc{cbreak} mode
+regardless of what is specified.
 
 When Emacs communicates directly with X, it ignores this argument and
 uses interrupts if that is the way it knows how to communicate.
@@ -2067,17 +2077,17 @@ often than to actual Emacs bugs.  Once you are certain which characters
 were actually output, you can determine reliably whether they correspond
 to the Termcap specifications in use.
 
-You close the termscript file by calling this function with an
-argument of @code{nil}.
-
-See also @code{open-dribble-file} in @ref{Recording Input}.
-
 @example
 @group
 (open-termscript "../junk/termscript")
      @result{} nil
 @end group
 @end example
+
+You close the termscript file by calling this function with an
+argument of @code{nil}.
+
+See also @code{open-dribble-file} in @ref{Recording Input}.
 @end deffn
 
 @node Sound Output
@@ -2088,6 +2098,7 @@ See also @code{open-dribble-file} in @ref{Recording Input}.
 certain systems are supported; if you call @code{play-sound} on a
 system which cannot really do the job, it gives an error.
 
+@c FIXME: Add indexes for Au and WAV?  --xfq
   The sound must be stored as a file in RIFF-WAVE format (@samp{.wav})
 or Sun Audio format (@samp{.au}).
 
@@ -2234,6 +2245,7 @@ saved session to restore.  For Emacs, this argument is @samp{--smid
 @var{session}}.
 
 @defvar emacs-save-session-functions
+@cindex session file
 Emacs supports saving state via a hook called
 @code{emacs-save-session-functions}.  Emacs runs this hook when the
 session manager tells it that the window system is shutting down.  The
@@ -2270,14 +2282,16 @@ Emacs is restarted by the session manager.
 @end group
 @end example
 
-@node Notifications
+@node Desktop Notifications
 @section Desktop Notifications
 @cindex desktop notifications
+@cindex notifications, on desktop
 
 Emacs is able to send @dfn{notifications} on systems that support the
 freedesktop.org Desktop Notifications Specification.  In order to use
 this functionality, Emacs must have been compiled with D-Bus support,
-and the @code{notifications} library must be loaded.
+and the @code{notifications} library must be loaded.  @xref{Top, ,
+D-Bus,dbus,D-Bus integration in Emacs}.
 
 @defun notifications-notify &rest params
 This function sends a notification to the desktop via D-Bus,
@@ -2510,6 +2524,157 @@ If @var{SPEC_VERSION} is @code{nil}, the server supports a
 specification prior to @samp{"1.0"}.
 @end defun
 
+@node File Notifications
+@section Notifications on File Changes
+@cindex file notifications
+@cindex watch, for filesystem events
+
+Several operating systems support watching of filesystems for changes
+of files.  If configured properly, Emacs links a respective library
+like @file{gfilenotify}, @file{inotify}, or  @file{w32notify}
+statically.  These libraries enable watching of filesystems on the
+local machine.
+
+It is also possible to watch filesystems on remote machines,
+@pxref{Remote Files,, Remote Files, emacs, The GNU Emacs Manual}
+This does not depend on one of the libraries linked to Emacs.
+
+Since all these libraries emit different events on notified file
+changes, there is the Emacs library @code{filenotify} which provides a
+unique interface.
+
+@defun file-notify-add-watch file flags callback
+Add a watch for filesystem events pertaining to @var{file}.  This
+arranges for filesystem events pertaining to @var{file} to be reported
+to Emacs.
+
+The returned value is a descriptor for the added watch.  Its type
+depends on the underlying library, it cannot be assumed to be an
+integer as in the example below.  It should be used for comparison by
+@code{equal} only.
+
+If the @var{file} cannot be watched for some reason, this function
+signals a @code{file-notify-error} error.
+
+Sometimes, mounted filesystems cannot be watched for file changes.
+This is not detected by this function, a non-@code{nil} return value
+does not guarantee that changes on @var{file} will be notified.
+
+@var{flags} is a list of conditions to set what will be watched for.
+It can include the following symbols:
+
+@table @code
+@item change
+watch for file changes
+@item attribute-change
+watch for file attribute changes, like permissions or modification
+time
+@end table
+
+If @var{file} is a directory, changes for all files in that directory
+will be notified.  This does not work recursively.
+
+When any event happens, Emacs will call the @var{callback} function
+passing it a single argument @var{event}, which is of the form
+
+@lisp
+(@var{descriptor} @var{action} @var{file} [@var{file1}])
+@end lisp
+
+@var{descriptor} is the same object as the one returned by this
+function.  @var{action} is the description of the event.  It could be
+any one of the following symbols:
+
+@table @code
+@item created
+@var{file} was created
+@item deleted
+@var{file} was deleted
+@item changed
+@var{file} has changed
+@item renamed
+@var{file} has been renamed to @var{file1}
+@item attribute-changed
+a @var{file} attribute was changed
+@end table
+
+@var{file} and @var{file1} are the name of the file(s) whose event is
+being reported.  For example:
+
+@example
+@group
+(require 'filenotify)
+     @result{} filenotify
+@end group
+
+@group
+(defun my-notify-callback (event)
+  (message "Event %S" event))
+     @result{} my-notify-callback
+@end group
+
+@group
+(file-notify-add-watch
+  "/tmp" '(change attribute-change) 'my-notify-callback)
+     @result{} 35025468
+@end group
+
+@group
+(write-region "foo" nil "/tmp/foo")
+     @result{} Event (35025468 created "/tmp/.#foo")
+        Event (35025468 created "/tmp/foo")
+        Event (35025468 changed "/tmp/foo")
+        Event (35025468 deleted "/tmp/.#foo")
+@end group
+
+@group
+(write-region "bla" nil "/tmp/foo")
+     @result{} Event (35025468 created "/tmp/.#foo")
+        Event (35025468 changed "/tmp/foo") [2 times]
+        Event (35025468 deleted "/tmp/.#foo")
+@end group
+
+@group
+(set-file-modes "/tmp/foo" (default-file-modes))
+     @result{} Event (35025468 attribute-changed "/tmp/foo")
+@end group
+@end example
+
+Whether the action @code{renamed} is returned, depends on the used
+watch library.  It can be expected, when a directory is watched, and
+both @var{file} and @var{file1} belong to this directory.  Otherwise,
+the actions @code{deleted} and @code{created} could be returned in a
+random order.
+
+@example
+@group
+(rename-file "/tmp/foo" "/tmp/bla")
+     @result{} Event (35025468 renamed "/tmp/foo" "/tmp/bla")
+@end group
+
+@group
+(file-notify-add-watch
+  "/var/tmp" '(change attribute-change) 'my-notify-callback)
+     @result{} 35025504
+@end group
+
+@group
+(rename-file "/tmp/bla" "/var/tmp/bla")
+     @result{} ;; gfilenotify
+        Event (35025468 renamed "/tmp/bla" "/var/tmp/bla")
+
+     @result{} ;; inotify
+        Event (35025504 created "/var/tmp/bla")
+        Event (35025468 deleted "/tmp/bla")
+@end group
+@end example
+@end defun
+
+@defun file-notify-rm-watch descriptor
+Removes an existing file watch specified by its @var{descriptor}.
+@var{descriptor} should be an object returned by
+@code{file-notify-add-watch}.
+@end defun
 
 @node Dynamic Libraries
 @section Dynamically Loaded Libraries

@@ -1,6 +1,6 @@
 ;;; nxml-outln.el --- outline support for nXML mode
 
-;; Copyright (C) 2004, 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -149,7 +149,7 @@ See the variable `nxml-section-element-name-regexp' for more details."
 (defun nxml-show-all ()
   "Show all elements in the buffer normally."
   (interactive)
-  (nxml-with-unmodifying-text-property-changes
+  (with-silent-modifications
     (remove-text-properties (point-min)
 			    (point-max)
 			    '(nxml-outline-state nil)))
@@ -370,7 +370,7 @@ customize which elements are recognized as sections and headings."
   (get-text-property pos 'nxml-outline-state))
 
 (defun nxml-set-outline-state (pos state)
-  (nxml-with-unmodifying-text-property-changes
+  (with-silent-modifications
     (if state
 	(put-text-property pos (1+ pos) 'nxml-outline-state state)
       (remove-text-properties pos (1+ pos) '(nxml-outline-state nil)))))
@@ -1008,13 +1008,8 @@ immediately after the section's start-tag."
 (defun nxml-outline-error (&rest args)
   (signal 'nxml-outline-error args))
 
-(put 'nxml-outline-error
-     'error-conditions
-     '(error nxml-error nxml-outline-error))
-
-(put 'nxml-outline-error
-     'error-message
-     "Cannot create outline of buffer that is not well-formed")
+(define-error 'nxml-outline-error
+  "Cannot create outline of buffer that is not well-formed" 'nxml-error)
 
 ;;; Debugging
 

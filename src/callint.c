@@ -1,5 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2013 Free Software
+   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2014 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -34,6 +34,7 @@ static Lisp_Object Qcommand_debug_status;
 static Lisp_Object Qenable_recursive_minibuffers;
 
 static Lisp_Object Qhandle_shift_selection;
+static Lisp_Object Qread_number;
 
 Lisp_Object Qmouse_leave_buffer_hook;
 
@@ -126,7 +127,7 @@ quotify_arg (register Lisp_Object exp)
   if (CONSP (exp)
       || (SYMBOLP (exp)
 	  && !NILP (exp) && !EQ (exp, Qt)))
-    return Fcons (Qquote, Fcons (exp, Qnil));
+    return list2 (Qquote, exp);
 
   return exp;
 }
@@ -250,6 +251,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
 `this-command-keys-vector' is used.  */)
   (Lisp_Object function, Lisp_Object record_flag, Lisp_Object keys)
 {
+  /* `args' will contain the array of arguments to pass to the function.
+     `visargs' will contain the same list but in a nicer form, so that if we
+     pass it to `Fformat' it will be understandable to a human.  */
   Lisp_Object *args, *visargs;
   Lisp_Object specs;
   Lisp_Object filter_specs;
@@ -304,7 +308,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   specs = Qnil;
   string = 0;
-  /* The idea of FILTER_SPECS is to provide away to
+  /* The idea of FILTER_SPECS is to provide a way to
      specify how to represent the arguments in command history.
      The feature is not fully implemented.  */
   filter_specs = Qnil;
@@ -327,12 +331,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   /* If SPECS is set to a string, use it as an interactive prompt.  */
   if (STRINGP (specs))
-    {
-      /* Make a copy of string so that if a GC relocates specs,
-	 `string' will still be valid.  */
-      string = alloca (SBYTES (specs) + 1);
-      memcpy (string, SSDATA (specs), SBYTES (specs) + 1);
-    }
+    /* Make a copy of string so that if a GC relocates specs,
+       `string' will still be valid.  */
+    string = xlispstrdupa (specs);
   else
     {
       Lisp_Object input;
@@ -525,7 +526,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 			      make_number (SCHARS (callint_message)),
 			      Qface, Qminibuffer_prompt, callint_message);
 	  args[i] = Fread_char (callint_message, Qnil, Qnil);
-	  message1_nolog ((char *) 0);
+	  message1_nolog (0);
 	  /* Passing args[i] directly stimulates compiler bug.  */
 	  teml = args[i];
 	  /* See bug#8479.  */
@@ -615,8 +616,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    Fput_text_property (make_number (0),
 				make_number (SCHARS (callint_message)),
 				Qface, Qminibuffer_prompt, callint_message);
-	    args[i] = Fread_key_sequence (callint_message,
-					  Qnil, Qt, Qnil, Qnil);
+	    args[i] = Fread_key_sequence_vector (callint_message,
+						 Qnil, Qt, Qnil, Qnil);
 	    teml = args[i];
 	    visargs[i] = Fkey_description (teml, Qnil);
 	    unbind_to (speccount1, Qnil);
@@ -683,29 +684,10 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  if (!NILP (prefix_arg))
 	    goto have_prefix_arg;
 	case 'n':		/* Read number from minibuffer.  */
-	  {
-	    bool first = 1;
-	    do
-	      {
-		Lisp_Object str;
-		if (! first)
-		  {
-		    message1 ("Please enter a number.");
-		    sit_for (make_number (1), 0, 0);
-		  }
-		first = 0;
-
-		str = Fread_from_minibuffer (callint_message,
-					     Qnil, Qnil, Qnil, Qnil, Qnil,
-					     Qnil);
-		if (! STRINGP (str) || SCHARS (str) == 0)
-		  args[i] = Qnil;
-		else
-		  args[i] = Fread (str);
-	      }
-	    while (! NUMBERP (args[i]));
-	  }
-	  visargs[i] = args[i];
+	  args[i] = call1 (Qread_number, callint_message);
+	  /* Passing args[i] directly stimulates compiler bug.  */
+	  teml = args[i];
+	  visargs[i] = Fnumber_to_string (teml);
 	  break;
 
 	case 'P':		/* Prefix arg in raw form.  Does no I/O.  */
@@ -754,12 +736,12 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  break;
 
 	case 'x':		/* Lisp expression read but not evaluated.  */
-	  args[i] = Fread_minibuffer (callint_message, Qnil);
+	  args[i] = call1 (intern ("read-minibuffer"), callint_message);
 	  visargs[i] = last_minibuf_string;
 	  break;
 
 	case 'X':		/* Lisp expression read and evaluated.  */
-	  args[i] = Feval_minibuffer (callint_message, Qnil);
+	  args[i] = call1 (intern ("eval-minibuffer"), callint_message);
 	  visargs[i] = last_minibuf_string;
  	  break;
 
@@ -811,11 +793,13 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   if (arg_from_tty || !NILP (record_flag))
     {
+      /* We don't need `visargs' any more, so let's recycle it since we need
+	 an array of just the same size.  */
       visargs[0] = function;
       for (i = 1; i < nargs; i++)
 	{
 	  if (varies[i] > 0)
-	    visargs[i] = Fcons (intern (callint_argfuns[varies[i]]), Qnil);
+	    visargs[i] = list1 (intern (callint_argfuns[varies[i]]));
 	  else
 	    visargs[i] = quotify_arg (args[i]);
 	}
@@ -903,6 +887,7 @@ syms_of_callint (void)
   DEFSYM (Qminus, "-");
   DEFSYM (Qplus, "+");
   DEFSYM (Qhandle_shift_selection, "handle-shift-selection");
+  DEFSYM (Qread_number, "read-number");
   DEFSYM (Qcall_interactively, "call-interactively");
   DEFSYM (Qcommand_debug_status, "command-debug-status");
   DEFSYM (Qenable_recursive_minibuffers, "enable-recursive-minibuffers");

@@ -1,5 +1,5 @@
 ;;; epa-hook.el --- preloaded code to enable epa-file.el -*- lexical-binding: t -*-
-;; Copyright (C) 2006-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -53,15 +53,15 @@ does that automatically."
 May either be a string or a list of strings.")
 
 (put 'epa-file-encrypt-to 'safe-local-variable
-     (lambda (val)
-       (or (stringp val)
-	   (and (listp val)
-		(catch 'safe
-		  (mapc (lambda (elt)
-			  (unless (stringp elt)
-			    (throw 'safe nil)))
-			val)
-		  t)))))
+     #'(lambda (val)
+	 (or (stringp val)
+	     (and (listp val)
+		  (catch 'safe
+		    (mapc (lambda (elt)
+			    (unless (stringp elt)
+			      (throw 'safe nil)))
+			  val)
+		    t)))))
 
 (put 'epa-file-encrypt-to 'permanent-local t)
 

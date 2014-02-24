@@ -1,5 +1,5 @@
 /* Definitions needed by most editing commands.
-   Copyright (C) 1985, 1994, 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994, 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -36,10 +36,10 @@ extern Lisp_Object control_x_map;
    events until a non-ASCII event is acceptable as input.  */
 extern Lisp_Object unread_switch_frame;
 
-/* Nonzero if input is coming from the keyboard */
+/* Nonzero if input is coming from the keyboard.  */
 
 #define INTERACTIVE (NILP (Vexecuting_kbd_macro) && !noninteractive)
 
-/* Set this nonzero to force reconsideration of mode line. */
+/* Set this nonzero to force reconsideration of mode line.  */
 
 extern int update_mode_lines;

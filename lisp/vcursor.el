@@ -1,10 +1,10 @@
 ;;; vcursor.el --- manipulate an alternative ("virtual") cursor
 
-;; Copyright (C) 1994, 1996, 1998, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1994, 1996, 1998, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author:   Peter Stephenson <pws@ibmth.df.unipi.it>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: virtual cursor, convenience
 
 ;; This file is part of GNU Emacs.

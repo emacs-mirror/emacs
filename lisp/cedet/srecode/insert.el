@@ -1,6 +1,6 @@
 ;;; srecode/insert.el --- Insert srecode templates to an output stream.
 
-;; Copyright (C) 2005, 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -809,7 +809,7 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
     (srecode-insert-report-error
      dict
      "Only section dictionaries allowed for `%s'"
-     (object-name-string sti)))
+     (eieio-object-name-string sti)))
 
   ;; Output the code from the sub-template.
   (srecode-insert-method (slot-value sti slot) dict))
@@ -866,7 +866,7 @@ Return the remains of INPUT."
   (let* ((out (srecode-compile-split-code tag input STATE
 					  (oref ins :object-name))))
     (oset ins template (srecode-template
-			(object-name-string ins)
+			(eieio-object-name-string ins)
 			:context nil
 			:args nil
 			:code (cdr out)))

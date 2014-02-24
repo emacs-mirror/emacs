@@ -1,9 +1,9 @@
-;;; erc-list.el --- /list support for ERC
+;;; erc-list.el --- /list support for ERC  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Version: 0.1
 ;; Keywords: comm
 
@@ -29,6 +29,10 @@
 ;;; Code:
 
 (require 'erc)
+
+(defgroup erc-list nil
+  "Support for the /list command."
+  :group 'erc)
 
 ;; This is implicitly the width of the channel name column.  Pick
 ;; something small enough that the topic has a chance of being
@@ -160,7 +164,8 @@
 
 ;; Handle a "322" response.  This response tells us about a single
 ;; channel.
-(defun erc-list-handle-322 (proc parsed)
+;; Called via erc-once-with-server-event with two arguments.
+(defun erc-list-handle-322 (_proc parsed)
   (let* ((args (cdr (erc-response.command-args parsed)))
 	 (channel (car args))
 	 (nusers (car (cdr args)))
@@ -179,7 +184,7 @@
     ;; Arrange for 323 (end of list) to end this.
     (erc-once-with-server-event
      323
-     '(progn
+     (lambda (_proc _parsed)
 	(remove-hook 'erc-server-322-functions 'erc-list-handle-322 t)))
     ;; Find the list buffer, empty it, and display it.
     (set (make-local-variable 'erc-list-buffer)
@@ -205,14 +210,17 @@ should usually be one or more channels, separated by commas.
 Please note that this function only works with IRC servers which conform
 to RFC and send the LIST header (#321) at start of list transmission."
   (erc-with-server-buffer
-    (set (make-local-variable 'erc-list-last-argument) line)
-    (erc-once-with-server-event
-     321
-     (list 'progn
-	   (list 'erc-list-install-322-handler (current-buffer)))))
+   (set (make-local-variable 'erc-list-last-argument) line)
+   (erc-once-with-server-event
+    321
+    (let ((buf (current-buffer)))
+      (lambda (_proc _parsed)
+	(erc-list-install-322-handler buf)))))
   (erc-server-send (concat "LIST :" (or (and line (substring line 1))
 					""))))
 (put 'erc-cmd-LIST 'do-not-parse-args t)
+
+(provide 'erc-list)
 
 ;;; erc-list.el ends here
 ;;

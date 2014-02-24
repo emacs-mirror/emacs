@@ -1,6 +1,6 @@
 ;;; ediff-util.el --- the core commands and utilities of ediff
 
-;; Copyright (C) 1994-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2014 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -40,10 +40,7 @@
 (defvar ediff-after-quit-hook-internal nil)
 
 (eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
-
-(eval-when-compile
-  (require 'ediff))
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  _r))))
 
 ;; end pacifier
 
@@ -540,7 +537,7 @@ to invocation.")
 ;; to reside.
 (defun ediff-setup-control-buffer (ctl-buf)
   "Set up window for control buffer."
-  (if (window-dedicated-p (selected-window))
+  (if (window-dedicated-p)
       (set-buffer ctl-buf) ; we are in control frame but just in case
     (switch-to-buffer ctl-buf))
   (let ((window-min-height 2))
@@ -1605,7 +1602,7 @@ the width of the A/B/C windows."
 ;;BEG, END show the region to be positioned.
 ;;JOB-NAME holds ediff-job-name.  The ediff-windows job positions regions
 ;;differently.
-(defun ediff-position-region (beg end pos job-name)
+(defun ediff-position-region (beg end pos _job-name)
   (if (> end (point-max))
       (setq end (point-max)))
   (if ediff-windows-job
@@ -1632,7 +1629,7 @@ the width of the A/B/C windows."
 	    (setq lines (1+ lines)))
 	  ;; And position the beginning on the right line
 	  (goto-char beg)
-	  (recenter (/ (1+ (max (- (1- (window-height (selected-window)))
+	  (recenter (/ (1+ (max (- (1- (window-height))
 				   lines)
 				1)
 			   )
@@ -1688,7 +1685,7 @@ the width of the A/B/C windows."
 			    'ediff-get-lines-to-region-start)
 			   ((eq op 'scroll-up)
 			    'ediff-get-lines-to-region-end)
-			   (t (lambda (a b c) 0))))
+			   (t (lambda (_a _b _c) 0))))
 	       (max-lines (max (funcall func 'A n ctl-buf)
 			       (funcall func 'B n ctl-buf)
 			       (if (ediff-buffer-live-p ediff-buffer-C)
@@ -2821,7 +2818,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
   (with-output-to-temp-buffer ediff-msg-buffer
     (ediff-with-current-buffer standard-output
       (fundamental-mode))
-    (raise-frame (selected-frame))
+    (raise-frame)
     (princ (ediff-version))
     (princ "\n\n")
     (ediff-with-current-buffer ediff-buffer-A
@@ -3471,12 +3468,15 @@ Without an argument, it saves customized diff argument, if available
 	  (ediff-with-current-buffer buf
 	    (goto-char (point-min)))
 	  (switch-to-buffer buf)
-	  (raise-frame (selected-frame)))))
+	  (raise-frame))))
   (if (frame-live-p ediff-control-frame)
       (ediff-reset-mouse ediff-control-frame))
   (if (window-live-p ediff-control-window)
       (select-window ediff-control-window)))
 
+(declare-function ediff-regions-internal "ediff"
+		  (buffer-a beg-a end-a buffer-b beg-b end-b
+			    startup-hooks job-name word-mode setup-parameters))
 
 (defun ediff-inferior-compare-regions ()
   "Compare regions in an active Ediff session.

@@ -1,9 +1,9 @@
 ;;; bindings.el --- define standard key bindings and some variables
 
-;; Copyright (C) 1985-1987, 1992-1996, 1999-2013 Free Software
+;; Copyright (C) 1985-1987, 1992-1996, 1999-2014 Free Software
 ;; Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
 ;; Package: emacs
 
@@ -675,7 +675,7 @@ language you are using."
 (garbage-collect)
 
 
-(setq help-event-list '(help f1))
+(setq help-event-list '(help f1 ?\?))
 
 (make-variable-buffer-local 'minor-mode-overriding-map-alist)
 
@@ -696,29 +696,57 @@ language you are using."
 (put 'narrow-to-region 'disabled t)
 
 ;; Moving with arrows in bidi-sensitive direction.
+(defcustom visual-order-cursor-movement nil
+  "If non-nil, moving cursor with arrow keys follows the visual order.
+
+When this is non-nil, \\[right-char] will move to the character that is
+to the right of point on display, and \\[left-char] will move to the left,
+disregarding the surrounding bidirectional context.  Depending on the
+bidirectional context of the surrounding characters, this can move point
+many buffer positions away.
+
+When the text is entirely left-to-right, logical-order and visual-order
+cursor movements produce identical results."
+  :type '(choice (const :tag "Logical-order cursor movement" nil)
+		 (const :tag "Visual-order cursor movement" t))
+  :group 'display
+  :version "24.4")
+
 (defun right-char (&optional n)
   "Move point N characters to the right (to the left if N is negative).
 On reaching beginning or end of buffer, stop and signal error.
 
-Depending on the bidirectional context, this may move either forward
-or backward in the buffer.  This is in contrast with \\[forward-char]
-and \\[backward-char], which see."
+If `visual-order-cursor-movement' is non-nil, this always moves
+to the right on display, wherever that is in the buffer.
+Otherwise, depending on the bidirectional context, this may move
+one position either forward or backward in the buffer.  This is
+in contrast with \\[forward-char] and \\[backward-char], which
+see."
   (interactive "^p")
-  (if (eq (current-bidi-paragraph-direction) 'left-to-right)
-      (forward-char n)
-    (backward-char n)))
+  (if visual-order-cursor-movement
+      (dotimes (i (if (numberp n) (abs n) 1))
+	(move-point-visually (if (and (numberp n) (< n 0)) -1 1)))
+    (if (eq (current-bidi-paragraph-direction) 'left-to-right)
+	(forward-char n)
+      (backward-char n))))
 
 (defun left-char ( &optional n)
   "Move point N characters to the left (to the right if N is negative).
 On reaching beginning or end of buffer, stop and signal error.
 
-Depending on the bidirectional context, this may move either backward
-or forward in the buffer.  This is in contrast with \\[backward-char]
-and \\[forward-char], which see."
+If `visual-order-cursor-movement' is non-nil, this always moves
+to the left on display, wherever that is in the buffer.
+Otherwise, depending on the bidirectional context, this may move
+one position either backward or forward in the buffer.  This is
+in contrast with \\[forward-char] and \\[backward-char], which
+see."
   (interactive "^p")
-  (if (eq (current-bidi-paragraph-direction) 'left-to-right)
-      (backward-char n)
-    (forward-char n)))
+  (if visual-order-cursor-movement
+      (dotimes (i (if (numberp n) (abs n) 1))
+	(move-point-visually (if (and (numberp n) (< n 0)) 1 -1)))
+    (if (eq (current-bidi-paragraph-direction) 'left-to-right)
+	(backward-char n)
+      (forward-char n))))
 
 (defun right-word (&optional n)
   "Move point N words to the right (to the left if N is negative).
@@ -863,6 +891,7 @@ if `inhibit-field-text-motion' is non-nil."
 
 (define-key ctl-x-map "\C-x" 'exchange-point-and-mark)
 (define-key ctl-x-map "\C-@" 'pop-global-mark)
+(define-key ctl-x-map " " 'rectangle-mark-mode)
 (define-key ctl-x-map [?\C- ] 'pop-global-mark)
 
 (define-key global-map "\C-n" 'next-line)
@@ -894,6 +923,7 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key search-map "hr" 'highlight-regexp)
 (define-key search-map "hp" 'highlight-phrase)
 (define-key search-map "hl" 'highlight-lines-matching-regexp)
+(define-key search-map "h." 'highlight-symbol-at-point)
 (define-key search-map "hu" 'unhighlight-regexp)
 (define-key search-map "hf" 'hi-lock-find-patterns)
 (define-key search-map "hw" 'hi-lock-write-interactive-patterns)
@@ -1026,36 +1056,30 @@ if `inhibit-field-text-motion' is non-nil."
 ;; FIXME: rather than list such mappings for every modifier-combination,
 ;;   we should come up with a way to do it generically, something like
 ;;   (define-key function-key-map [*-kp-home] [*-home])
-(define-key function-key-map [kp-home] [home])
-(define-key function-key-map [kp-left] [left])
-(define-key function-key-map [kp-up] [up])
-(define-key function-key-map [kp-right] [right])
-(define-key function-key-map [kp-down] [down])
-(define-key function-key-map [kp-prior] [prior])
-(define-key function-key-map [kp-next] [next])
-(define-key function-key-map [M-kp-next] [M-next])
-(define-key function-key-map [kp-end] [end])
-(define-key function-key-map [kp-begin] [begin])
-(define-key function-key-map [kp-insert] [insert])
+;; Currently we add keypad key combinations with basic modifiers
+;; (to complement plain bindings in "Keypad support" section in simple.el)
+;; Until [*-kp-home] is implemented, for more modifiers we could also use:
+;; (todo-powerset '(control meta shift hyper super alt))  (Bug#14397)
+(let ((modifiers '(nil (control) (meta) (control meta) (shift)
+		   (control shift) (meta shift) (control meta shift)))
+      (keys '((kp-delete delete) (kp-insert insert)
+	      (kp-end end) (kp-down down) (kp-next next)
+	      (kp-left left) (kp-begin begin) (kp-right right)
+	      (kp-home home) (kp-up up) (kp-prior prior)
+	      (kp-enter enter) (kp-decimal ?.)
+	      (kp-0 ?0) (kp-1 ?1) (kp-2 ?2) (kp-3 ?3) (kp-4 ?4)
+	      (kp-5 ?5) (kp-6 ?6) (kp-7 ?7) (kp-8 ?8) (kp-9 ?9)
+	      (kp-add ?+) (kp-subtract ?-) (kp-multiply ?*) (kp-divide ?/))))
+  (dolist (pair keys)
+    (dolist (mod modifiers)
+      (define-key function-key-map
+	(vector (append mod (list (nth 0 pair))))
+	(vector (append mod (list (nth 1 pair))))))))
+
 (define-key function-key-map [backspace] [?\C-?])
 (define-key function-key-map [delete] [?\C-?])
 (define-key function-key-map [kp-delete] [?\C-?])
-(define-key function-key-map [S-kp-end] [S-end])
-(define-key function-key-map [S-kp-down] [S-down])
-(define-key function-key-map [S-kp-next] [S-next])
-(define-key function-key-map [S-kp-left] [S-left])
-(define-key function-key-map [S-kp-right] [S-right])
-(define-key function-key-map [S-kp-home] [S-home])
-(define-key function-key-map [S-kp-up] [S-up])
-(define-key function-key-map [S-kp-prior] [S-prior])
-(define-key function-key-map [C-S-kp-end] [C-S-end])
-(define-key function-key-map [C-S-kp-down] [C-S-down])
-(define-key function-key-map [C-S-kp-next] [C-S-next])
-(define-key function-key-map [C-S-kp-left] [C-S-left])
-(define-key function-key-map [C-S-kp-right] [C-S-right])
-(define-key function-key-map [C-S-kp-home] [C-S-home])
-(define-key function-key-map [C-S-kp-up] [C-S-up])
-(define-key function-key-map [C-S-kp-prior] [C-S-prior])
+
 ;; Don't bind shifted keypad numeric keys, they reportedly
 ;; interfere with the feature of some keyboards to produce
 ;; numbers when NumLock is off.
@@ -1067,14 +1091,14 @@ if `inhibit-field-text-motion' is non-nil."
 ;(define-key function-key-map [S-kp-7] [S-home])
 ;(define-key function-key-map [S-kp-8] [S-up])
 ;(define-key function-key-map [S-kp-9] [S-prior])
-(define-key function-key-map [C-S-kp-1] [C-S-end])
-(define-key function-key-map [C-S-kp-2] [C-S-down])
-(define-key function-key-map [C-S-kp-3] [C-S-next])
-(define-key function-key-map [C-S-kp-4] [C-S-left])
-(define-key function-key-map [C-S-kp-6] [C-S-right])
-(define-key function-key-map [C-S-kp-7] [C-S-home])
-(define-key function-key-map [C-S-kp-8] [C-S-up])
-(define-key function-key-map [C-S-kp-9] [C-S-prior])
+;(define-key function-key-map [C-S-kp-1] [C-S-end])
+;(define-key function-key-map [C-S-kp-2] [C-S-down])
+;(define-key function-key-map [C-S-kp-3] [C-S-next])
+;(define-key function-key-map [C-S-kp-4] [C-S-left])
+;(define-key function-key-map [C-S-kp-6] [C-S-right])
+;(define-key function-key-map [C-S-kp-7] [C-S-home])
+;(define-key function-key-map [C-S-kp-8] [C-S-up])
+;(define-key function-key-map [C-S-kp-9] [C-S-prior])
 
 ;; Hitting C-SPC on text terminals, usually sends the ascii code 0 (aka C-@),
 ;; so we can't distinguish those two keys, but usually we consider C-SPC
@@ -1191,7 +1215,7 @@ if `inhibit-field-text-motion' is non-nil."
     (define-key map "n" 'number-to-register)
     (define-key map "+" 'increment-register)
     (define-key map "w" 'window-configuration-to-register)
-    (define-key map "f" 'frame-configuration-to-register)
+    (define-key map "f" 'frameset-to-register)
     map)
   "Keymap for subcommands of C-x r.")
 (define-key ctl-x-map "r" ctl-x-r-map)

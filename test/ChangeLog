@@ -1,3 +1,957 @@
+2014-02-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el
+	(tramp-test19-directory-files-and-attributes): Do not include
+	directories in comparison; they might have changed their
+	timestamps already.
+
+2014-02-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp--instrument-test-case): New macro.
+	(tramp-test17-insert-directory): First line could contain more
+	text, when produced by `ls-lisp'.
+	(tramp-test19-directory-files-and-attributes): Instrument failed
+	test case.
+
+2014-02-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test17-insert-directory):
+	Make first line "total 123" optional.
+	(tramp-test20-file-modes, tramp-test22-file-times)
+	(tramp-test26-process-file, tramp-test27-start-file-process)
+	(tramp-test28-shell-command): Skip for tramp-gvfs.el and
+	tramp-smb.el.
+	(tramp-test20-file-modes): Check for "root" only when there is an
+	explicit user name.
+	(tramp-test21-file-links): Handle "... not supported" error.
+	(tramp-test22-file-times): Skip for "don't know" return values.
+	(tramp-test26-process-file, tramp-test28-shell-command):
+	Remove color escape sequences.
+	(tramp-test28-shell-command): Use `accept-process-output' rather
+	than `sit-for'.
+	(tramp-test30-utf8): Set coding system `utf-8'.
+
+2014-02-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test28-shell-command): Perform
+	an initial `sit-for' prior the while loop.
+
+2014-02-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.9.
+
+	* automated/tramp-tests.el (password-cache-expiry): Set to nil.
+	(tramp-test28-shell-command): Make a while loop when waiting for
+	process exit.
+
+2014-02-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (top): Require `vc', `vc-bzr', `vc-git'
+	and `vc-hg'.  Declare `tramp-find-executable' and
+	`tramp-get-remote-path'.
+	(tramp-test29-vc-registered): New test.
+	(tramp-test30-utf8): Rename from `tramp-test29-utf8'.
+
+2014-02-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test26-process-file): Improve test.
+	(tramp-test27-start-file-process): Use "_p" as argument of lambda.
+	(tramp-test28-shell-command): Improve `shell-command' test.  Add
+	`async-shell-command' tests.
+
+2014-02-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el (file-notify--wait-for-events):
+	Use `read-event' instead of `sit-for'.
+	(file-notify-test02-events): Remove expected result, the bug is
+	fixed meanwhile.
+	(file-notify-test02-events, file-notify-test03-autorevert):
+	Use `sleep-for' instead of `sit-for'.
+
+2014-01-31  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el (ruby-align-chained-calls):
+	New test.
+
+2014-01-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el (file-notify--deftest-remote):
+	Do not skip when the local test has failed.  They are unrelated.
+	(file-notify--wait-for-events): Use `sit-for'.  Let-bind
+	`noninteractive' to nil, otherwise `sit-for' could be degraded to
+	`sleep-for'.
+	(file-notify-test02-events): Check for `file-remote-p' instead of
+	`file-notify--test-remote-enabled'.
+
+2014-01-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el (file-notify-test02-events):
+	Let test case fail for Bug#16519.
+
+2014-01-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el (file-notify-test02-events):
+	Hide Bug#16519, until it is solved.
+
+2014-01-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el
+	(file-notify--test-local-enabled): Fix error in logic.
+	(file-notify--wait-for-events): New defmacro.
+	(file-notify-test02-events): Make short breaks between file operations.
+	Use `file-notify--wait-for-events'.  Check, that events have arrived.
+	(file-notify-test03-autorevert): Use `file-notify--wait-for-events'.
+
+	* automated/comint-testsuite.el
+	(comint-testsuite-password-strings): Add localized examples.
+
+2014-01-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/inotify-test.el (inotify-file-watch-simple): Skip test
+	case if inotify is not linked with Emacs.  Use `read-event' rather
+	than `sit-for' in order to process events.  (Bug#13662)
+
+2014-01-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/ert-tests.el (ert-test-record-backtrace): Reenable
+	test case with adapted test string.  (Bug#13064)
+
+2013-12-28  Glenn Morris  <rgm@gnu.org>
+
+	* automated/electric-tests.el: Require 'elec-pair.
+
+2013-12-26  João Távora  <joaotavora@gmail.com>
+
+	* automated/electric-tests.el (electric-pair-test-for):
+	Fix autowrapping tests in batch-mode by running with
+	`transient-mark-mode' set to `lambda'.
+
+	* automated/electric-tests.el: New file.
+
+2013-12-25  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el
+	(python-nav-lisp-forward-sexp-safe-1): Remove test.
+	(python-nav-forward-sexp-safe-1): New test.
+
+2013-12-20  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el: Add tests for
+	`ruby-align-to-stmt-keywords'.
+
+	* indent/ruby.rb: Update examples to reflect the lack of change in
+	default indentation of `begin' blocks.
+
+2013-12-17  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Update examples according to the change
+	in `smie-indent-close'.
+
+2013-12-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: New examples.
+
+2013-12-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-indent-dedenters-2): New test.
+
+2013-12-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-indent-after-comment-1)
+	(python-indent-after-comment-2): New tests.
+
+2013-12-12  Nathan Trapuzzano  <nbtrap@nbtrap.com>
+
+	* automated/python-tests.el (python-indent-block-enders-1):
+	Rename from python-indent-block-enders.
+	(python-indent-block-enders-2): New test.
+
+2013-12-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/js.js: New file.
+
+2013-12-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/dbus-tests.el: New file.
+
+2013-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/regexp-tests.el: New file.
+
+2013-11-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* automated/reftex-tests.el (reftex-parse-from-file-test):
+	Run temp-dir through file-truename, to make sure the temporary file
+	names are comparable as strings.
+
+	* automated/decoder-tests.el (ert-test-decoder-prefer-utf-8):
+	Force Unix EOLs by using 'utf-8-unix', since the default of
+	'utf-8' is system-dependent, while the test expects to see Unix EOLs.
+
+2013-11-28  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (SEPCHAR): Use in place of PATH_SEP.
+
+2013-11-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* automated/Makefile.in (PATH_SEP): Set this instead of PATH_SEPARATOR.
+	(EMACSOPT): Use $(PATH_SEP).
+
+2013-11-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el (auto-revert-stop-on-user-input):
+	Set to nil.
+
+2013-11-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el
+	(file-notify-test-remote-temporary-file-directory):
+	Check $REMOTE_TEMPORARY_FILE_DIRECTORY.
+	(tramp-read-passwd): Check $REMOTE_ALLOW_PASSWORD.
+	(file-notify--deftest-remote): Cleanup connection initially.
+	(file-notify-test03-autorevert): Run also in batch mode.  Use a
+	larger timeout for remote files.  `sit-for' 1 second; 0.1 second
+	does not work on MS Windows.  Call `accept-process-output' for
+	remote files.  Apply `string-match' instead of `string-equal', the
+	messages are different on MS Windows.
+
+	* automated/tramp-tests.el (tramp-test-temporary-file-directory):
+	Use $REMOTE_TEMPORARY_FILE_DIRECTORY.
+	(tramp-read-passwd): Check $REMOTE_ALLOW_PASSWORD.
+
+2013-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* automated/python-tests.el (python-shell-make-comint-1)
+	(python-shell-make-comint-2, python-shell-get-process-1):
+	Suppress creation of some temp-files.
+
+	* automated/python-tests.el (python-shell-parse-command-1)
+	(python-shell-make-comint-1, python-shell-make-comint-2)
+	(python-shell-get-process-1)
+	(python-shell-internal-get-or-create-process-1):
+	Skip rather than fail if prereqs not found.
+
+	* automated/Makefile.in (emacs):
+	Empty EMACSLOADPATH rather than unsetting.
+
+2013-11-22  Glenn Morris  <rgm@gnu.org>
+
+	* automated/ruby-mode-tests.el (ruby-exit!-font-lock):
+	Set expected-result.
+
+2013-11-21  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (XARGS_LIMIT): New, set by configure.
+	(compile-main): Pass XARGS_LIMIT to xargs.
+
+	* automated/Makefile.in (PATH_SEPARATOR): New, set by configure.
+	(EMACSOPT): Use PATH_SEPARATOR.
+
+2013-11-20  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* automated/ruby-mode-tests.el (ruby-exit!-font-lock):
+	Add a failing test for Bug#15874.
+	(ruby--insert-coding-comment-ruby-style)
+	(ruby--insert-coding-comment-emacs-style)
+	(ruby--insert-coding-comment-custom-style):
+	Add a few tests for `ruby--insert-coding-comment'.
+
+2013-11-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve API of recently-added bool vector functions (Bug#15912).
+	* automated/data-tests.el: Adjust to API changes.
+
+2013-11-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test07-file-exists-p)
+	(tramp-test08-file-local-copy)
+	(tramp-test09-insert-file-contents, tramp-test10-write-region)
+	(tramp-test11-copy-file, tramp-test12-rename-file)
+	(tramp-test13-make-directory, tramp-test14-delete-directory)
+	(tramp-test15-copy-directory, tramp-test16-directory-files)
+	(tramp-test17-insert-directory, tramp-test18-file-attributes)
+	(tramp-test19-directory-files-and-attributes)
+	(tramp-test20-file-modes, tramp-test21-file-links)
+	(tramp-test22-file-times, tramp-test23-visited-file-modtime)
+	(tramp-test24-file-name-completion, tramp-test25-load)
+	(tramp-test26-process-file, tramp-test27-start-file-process)
+	(tramp-test28-shell-command): Cleanup connection initially.
+
+2013-11-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test29-utf8): Cleanup the
+	connection before running the test.
+
+2013-11-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test15-copy-directory)
+	(tramp-test16-directory-files, tramp-test17-insert-directory)
+	(tramp-test18-file-attributes)
+	(tramp-test19-directory-files-and-attributes)
+	(tramp-test20-file-modes, tramp-test21-file-links)
+	(tramp-test22-file-times, tramp-test23-visited-file-modtime)
+	(tramp-test24-file-name-completion, tramp-test25-load)
+	(tramp-test26-process-file, tramp-test27-start-file-process):
+	(tramp-test28-shell-command): Protect unwindforms with `ignore-errors'.
+	(tramp-test29-utf8): New test.
+
+2013-11-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el (file-notify-test02-events)
+	(file-notify-test03-autorevert): Suppress messages in `write-region'.
+
+	* automated/tramp-tests.el (tramp-test02-file-name-dissect)
+	(tramp-test03-file-name-defaults, tramp-test21-file-links): Add tests.
+	(tramp-test26-process-file, tramp-test28-shell-command):
+	Ensure, that the directory is not empty when calling "ls".
+
+2013-11-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test-temporary-file-directory):
+	Check $TRAMP_TEST_TEMPORARY_FILE_DIRECTORY.
+	(tramp-read-passwd): Check $TRAMP_TEST_ALLOW_PASSWORD.
+	(tramp-test09-insert-file-contents, tramp-test10-write-region):
+	(tramp-test26-process-file): Add tests.
+	(tramp-test11-copy-file): Remove debug message.
+	(tramp-test20-file-modes): Special case, if user is "root".
+
+2013-11-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el:
+	* automated/tramp-tests.el: Add `tramp-own-remote-path' to
+	`tramp-remote-path' when running on hydra.
+	(tramp-test07-file-exists-p): Remove instrumentation code.
+	(tramp-test26-process-file): Don't use "/bin/true" and
+	"/bin/false", these paths do not exist on hydra.
+
+2013-11-08  Helmut Eller  <eller.helmut@gmail.com>
+
+	* automated/process-tests.el: New file.
+
+2013-11-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: New examples.
+
+2013-11-06  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (setwins): Avoid accidental matches.
+
+2013-11-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test07-file-exists-p):
+	Fix docstring.  Instrument, in order to hunt failure on hydra.
+
+2013-11-06  Glenn Morris  <rgm@gnu.org>
+
+	* automated/flymake-tests.el (warning-predicate-rx-gcc)
+	(warning-predicate-function-gcc, warning-predicate-rx-perl)
+	(warning-predicate-function-perl):
+	* automated/info-xref.el (info-xref-test-makeinfo):
+	* automated/vc-bzr.el (vc-bzr-test-bug9726, vc-bzr-test-bug9781)
+	(vc-bzr-test-faulty-bzr-autoloads): Skip rather than expect failure.
+
+2013-11-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el: New file.
+
+2013-11-05  Glenn Morris  <rgm@gnu.org>
+
+	Get rid of --chdir usage.
+	* automated/Makefile.in (EMACSOPT): Move -L here.
+	(emacs): Set EMACS_TEST_DIRECTORY in the environment.
+	(setwins): Don't assume called from srcdir.  Remove legacy stuff.
+	(.el.elc): No more need to pass -L here.
+	(compile-main): Get rid of sub-shell and cd.
+	(compile-clean, check): Get rid of cd.
+
+	Make it possible to run tests with a different working directory.
+	* automated/flymake-tests.el (flymake-tests-data-directory): New.
+	(flymake-tests--current-face): Use flymake-tests-data-directory.
+	(warning-predicate-function-gcc, warning-predicate-rx-perl)
+	(warning-predicate-function-perl): Adapt for above change.
+	* automated/zlib-tests.el (zlib-tests-data-directory): New.
+	(zlib--decompress): Use zlib-tests-data-directory.
+
+	* automated/eieio-tests.el (eieio-test-37-persistent-classes):
+	Remove test that makes no sense.
+
+	* automated/files.el (files-test-local-variable-data):
+	Fix result typo presumably caused by interference from dir-locals.
+	(file-test--do-local-variables-test): Prevent dir-locals interfering.
+
+2013-11-04  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Add a statement on the line after heredoc.
+	Move a now-successful example.
+
+	* automated/ruby-mode-tests.el: Remove outdated comment.
+
+2013-11-04  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (abs_srcdir): Remove.
+	(emacs): Unset EMACSLOADPATH.
+	(.el.elc, check): Use -L to append srcdir to load-path.
+
+2013-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (top_builddir, abs_test, abs_lispsrc, lisp)
+	(test, abs_top_srcdir, abs_top_builddir): Remove variables.
+	(abs_srcdir): New, set by configure.
+	(EMACS): Use a relative file name.
+	(emacs): Use abs_srcdir rather than abs_lispsrc, abs_test.
+	(lisp-compile): Remove (assume it's up-to-date).
+	(compile-main): Do not run lisp-compile.
+	(compile-main, compile-clean, compile-always, bootstrap-clean)
+	(check): Use srcdir rather than $test.  Check cd return value.
+	Use --chdir.
+	(doit, compile, compile-always): Remove stuff copied from lisp/.
+	(all, check, bootstrap-clean, distclean, maintainer-clean): PHONY.
+
+2013-10-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/ert-tests.el (ert-test-stats-set-test-and-result):
+	Add a skipping test.
+
+2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/prolog.prolog: Test alignment of ->; with operator at bol.
+
+	* indent/css-mode.css (.x2): Test alignement inside braces.
+
+2013-10-26  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: New failing example.
+
+	* automated/ruby-mode-tests.el (ruby-toggle-block-to-brace):
+	Fix the test, in respect to adding the space after the curly.
+
+2013-10-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/ert-tests.el (ert-test-skip-unless): New test case.
+	(ert-test-deftest): Adapt test for changed macro expansion.
+	(ert-test-run-tests-interactively):
+	* automated/ert-x-tests.el (ert-test-run-tests-interactively-2):
+	Add a skipping test.
+
+	* automated/file-notify-tests.el (top): Do not require tramp-sh.el.
+	(file-notify--test-local-enabled): Make it a function.  Check also
+	for `file-remote-p' of `temporary-file-directory'.
+	(file-notify--test-remote-enabled-checked): New defvar.
+	(file-notify--test-remote-enabled): Rewrite.  Do not use Tramp
+	internal functions.  Cache result.
+	(file-notify--deftest-remote, file-notify-test00-availability)
+	(file-notify-test01-add-watch, file-notify-test02-events)
+	(file-notify-test03-autorevert): Add checks with `skip_unless'.
+	(file-notify-test-all): Do not check `file-notify--test-local-enabled'.
+
+2013-10-24  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Fix syntax error in the latest example.
+
+2013-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (abs_top_srcdir, top_builddir):
+	New, set by configure.
+	(top_srcdir): Remove.
+	(abs_test, abs_lispsrc): New.
+	(lisp): No longer absolute.
+	(emacs, lisp-compile, compile, compile-always):
+	Quote entities that might contain whitespace.
+
+2013-10-22  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Move two examples to "working" section, add one
+	more.
+
+2013-10-21  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: New examples for indentation of blocks.
+	Example of hash inside parens that inflooped before the present commit.
+
+2013-10-17  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	* automated/timer-tests.el: New file.  Tests that (sit-for 0)
+	allows another timer to run.
+
+2013-10-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: More examples for bug#15594, both failing and
+	now passing.
+
+2013-10-11  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Add two more cases.
+
+2013-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/ruby-mode-tests.el (ruby-with-temp-buffer): Move before
+	first use.
+	(ruby-should-indent): Use indent-according-to-mode.
+	(ruby-deftest-move-to-block): Use `declare'.
+
+2013-10-07  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Fix a spurious change, add more failing examples.
+
+2013-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/ruby.rb: Add a few more tests; adjust some indentation.
+
+2013-10-06  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el: Add tests for `ruby-forward-sexp'
+	and `ruby-backward-sexp' that fail when `ruby-use-smie' is t.
+
+	* indent/ruby.rb: Fix a syntax error, add a few failing examples.
+
+2013-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/ruby.rb: Port a few cases from automated/ruby-mode-tests.el.
+	Adjust indentation of continued line to the new SMIE behavior.
+
+2013-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/completion-tests.el:
+	* indent/css-mode.css: New files.
+
+2013-10-03  Daiki Ueno  <ueno@gnu.org>
+
+	* automated/data/package/signed/archive-contents:
+	* automated/data/package/signed/archive-contents.sig:
+	* automated/data/package/signed/signed-good-1.0.el:
+	* automated/data/package/signed/signed-good-1.0.el.sig:
+	* automated/data/package/signed/signed-bad-1.0.el:
+	* automated/data/package/signed/signed-bad-1.0.el.sig:
+	* automated/data/package/key.pub:
+	* automated/data/package/key.sec: New files.
+
+	* automated/package-test.el (package-test-update-listing)
+	(package-test-update-archives, package-test-describe-package):
+	Adjust to package.el change.
+	(package-test-signed): New test.
+
+2013-10-01  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/package-test.el: Update all cases to use :url instead
+	of :homepage.
+
+	* automated/package-x-test.el
+	(package-x-test--single-archive-entry-1-3): Same.
+
+2013-09-29  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/package-test.el (simple-single-desc-1-4): Remove, it
+	was unused.
+	(simple-single-desc): Expect :homepage property.
+	(multi-file-desc): Same.
+	(with-package-test): Do not save previous `default-directory'
+	value, let-bind the var instead.
+	(package-test-install-single): Expect :homepage property in the
+	generated pkg file.
+	(package-test-describe-package): Expect Homepage button.
+	(package-test-describe-non-installed-package)
+	(package-test-describe-non-installed-multi-file-package): Same.
+	(package-test-describe-not-installed-package): Remove, it was a
+	duplicate.
+
+	* automated/package-x-test.el
+	(package-x-test--single-archive-entry-1-3): Expect :homepage
+	property.
+	(package-x-test--single-archive-entry-1-4): Expect nil extras slot.
+
+	* automated/data/package/simple-single-1.3.el: Add URL header.
+
+	* automated/data/package/archive-contents: Add :homepage
+	properties to `simple-single' and `multi-file'.
+
+2013-09-22  Daniel Colascione  <dancol@dancol.org>
+
+	* automated/data-tests.el:
+	(bool-vector-count-matches-all-0-nil)
+	(bool-vector-count-matches-all-0-t)
+	(bool-vector-count-matches-1-il, bool-vector-count-matches-1-t)
+	(bool-vector-count-matches-at, bool-vector-intersection-op)
+	(bool-vector-union-op, bool-vector-xor-op)
+	(bool-vector-set-difference-op)
+	(bool-vector-change-detection, bool-vector-not): New tests.
+	(mock-bool-vector-count-matches-at)
+	(test-bool-vector-bv-from-hex-string)
+	(test-bool-vector-to-hex-string)
+	(test-bool-vector-count-matches-at-tc)
+	(test-bool-vector-apply-mock-op)
+	(test-bool-vector-binop): New helper functions.
+	(bool-vector-test-vectors): New testcase data.
+
+2013-09-20  Ryan  <rct@thompsonclan.org>  (tiny change)
+
+	* automated/advice-tests.el (advice-test-called-interactively-p-around)
+	(advice-test-called-interactively-p-filter-args)
+	(advice-test-called-interactively-p-around): New tests.
+
+2013-09-16  Glenn Morris  <rgm@gnu.org>
+
+	* automated/eshell.el (eshell-match-result):
+	Return a more informative failure than simply "false".  Update callers.
+
+	* automated/eshell.el (eshell-test/for-name-shadow-loop):
+	Test value before and after loop as well as during.
+
+2013-09-15  Glenn Morris  <rgm@gnu.org>
+
+	* automated/eshell.el (eshell-test/for-name-shadow-loop):
+	New test.  (Bug#15372)
+	(eshell-test/for-loop, eshell-test/for-name-loop): Doc fix.
+
+2013-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* automated/eshell.el (with-temp-eshell):
+	Use a temp directory for eshell-directory-name.
+	(eshell-test-command-result): New, again using a temp directory.
+	Replace eshell-command-result with this throughout.
+	(eshell-test/for-loop, eshell-test/for-name-loop):
+	Ensure environment variables don't confuse us.
+
+2013-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* automated/eshell.el (with-temp-eshell): Avoid hangs in batch mode
+	due to "has a running process; kill it?" prompts.
+
+2013-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/eshell.el: Rename from eshell.el.
+	(eshell-test/for-loop, eshell-test/for-name-loop): New tests (bug#15231).
+
+2013-09-01  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (setwins): Avoid leading space in $wins.
+	Otherwise the sed command used by eg compile-main ends up
+	containing "/*.el".  (Bug#15170)
+
+2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* automated/Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
+	for portability to hosts where /bin/sh has problems.
+
+2013-08-21  David Engster  <deng@randomsample.de>
+
+	* automated/eieio-tests.el, automated/eieio-test-persist.el:
+	* automated/eieio-test-methodinvoke.el: EIEIO tests from CEDET
+	upstream.  Changed to use ERT.
+
+2013-08-14  Daniel Hackney  <dan@haxney.org>
+
+	* automated/package-test.el: Remove tar-package-building functions.
+	Tar file used for testing is included in the repository.
+	(package-test-install-texinfo, package-test-cleanup-built-files):
+	Remove.
+
+2013-08-13  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-imenu-create-index-4)
+	(python-imenu-create-flat-index-2): New tests.
+
+2013-08-05  Glenn Morris  <rgm@gnu.org>
+
+	* automated/mule-util.el: New file, with tests extracted from
+	lisp/international/mule-util.el.
+
+2013-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/advice-tests.el (advice-tests-nadvice): Test removal
+	before definition.
+	(advice-tests-macroaliases): New test.
+
+2013-08-04  Glenn Morris  <rgm@gnu.org>
+
+	* automated/ert-tests.el: Disable failing test that no-one seems
+	to know how to fix.  (Bug#13064)
+
+	* automated/icalendar-tests.el (icalendar-tests--test-export)
+	(icalendar-tests--test-import): Try more precise TZ specification.
+	Remove debug messages.
+
+2013-08-03  Glenn Morris  <rgm@gnu.org>
+
+	* automated/core-elisp-tests.el (core-elisp-tests): Fix defcustom.
+
+	* automated/icalendar-tests.el (icalendar-tests--test-export)
+	(icalendar-tests--test-import):
+	Use getenv/setenv rather than set-time-zone-rule.  Add debug messages.
+	(icalendar-tests--test-import): Reset zone even if error occurred.
+
+2013-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/core-elisp-tests.el: New file.
+
+2013-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* automated/file-notify-tests.el (file-notify--test-remote-enabled):
+	Try to check that the remote system has a notification program.
+
+2013-07-31  Glenn Morris  <rgm@gnu.org>
+
+	* automated/undo-tests.el (undo-test2, undo-test5): Be quieter.
+
+2013-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el
+	(file-notify--test-local-enabled): New defconst.  Replaces all
+	`file-notify-support' occurrences.
+	(file-notify--test-remote-enabled): New defun.
+	(file-notify--deftest-remote): Use it.
+	(file-notify-test00-availability): Rewrite.
+	(file-notify-test00-availability-remote): New defun.
+	(file-notify-test01-add-watch): Rewrite first erroneous check.
+
+2013-07-23  Glenn Morris  <rgm@gnu.org>
+
+	* automated/inotify-test.el (inotify-file-watch-simple):
+	Delete temp-file when done.
+
+	* automated/subword-tests.el: Require subword.
+
+2013-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/subword-tests.el: New file.
+
+2013-07-13  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-imenu-create-index-2)
+	(python-imenu-create-index-3): New tests.
+
+2013-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* automated/ert-tests.el: Require cl-lib at runtime too.
+	(ert-test-special-operator-p): Use cl-gensym rather than ert-- version.
+	(ert-test-remprop, ert-test-remove-if-not, ert-test-remove*)
+	(ert-test-set-functions, ert-test-gensym)
+	(ert-test-coerce-to-vector, ert-test-string-position)
+	(ert-test-mismatch): Remove tests.
+	* automated/cl-lib.el: New, split from ert-tests.el.
+
+	* automated/ruby-mode-tests.el (ruby-deftest-move-to-block):
+	Goto point-min.
+	(works-on-do, zero-is-noop, ok-with-three, ok-with-minus-two)
+	(ruby-move-to-block-skips-percent-literal)
+	(ruby-move-to-block-skips-heredoc)
+	(ruby-move-to-block-moves-from-else-to-if)
+	(ruby-beginning-of-defun-does-not-fold-case)
+	(ruby-end-of-defun-skips-to-next-line-after-the-method):
+	Replace goto-line with forward-line/goto-char.
+	(ruby-move-to-block-does-not-fold-case): Remove unneeded end-of-buffer.
+
+	* automated/package-test.el (makeinfo-buffer): Autoload.
+	(compilation-in-progress, tar-parse-info, tar-header-name): Declare.
+	(package-test-install-texinfo): Don't require makeinfo.
+
+	* automated/files.el: Stop "local variables" confusion.
+
+	* automated/flymake-tests.el (flymake-tests): Remove unused group.
+
+	* automated/icalendar-tests.el (icalendar-tests--do-test-cycle):
+	Use with-current-buffer.
+
+	* automated/undo-tests.el (undo-test-buffer-modified)
+	(undo-test-file-modified): New tests.
+
+2013-07-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el (file-notify-test00-availability):
+	Set :expected-result.
+	(file-notify-test01-add-watch, file-notify-test01-add-watch-remote)
+	(file-notify-test02-events, file-notify-test02-events-remote)
+	(file-notify-test03-autorevert, file-notify-test03-autorevert-remote):
+	Skip when `file-notify-support' is nil.  (Bug#14823)
+
+2013-07-09  Glenn Morris  <rgm@gnu.org>
+
+	* automated/inotify-test.el (inotify-add-watch, inotify-rm-watch):
+	Declare.
+	(inotify-file-watch-simple): Silence compiler.
+
+	* automated/python-tests.el (python-indent-block-enders):
+	Make it actually test something.
+
+	* automated/package-x-test.el: Require package-test when compiling.
+
+	* automated/add-log-tests.el, automated/advice-tests.el:
+	* automated/imenu-test.el, automated/package-x-test.el:
+	* automated/python-tests.el, automated/ruby-mode-tests.el:
+	* automated/xml-parse-tests.el: Explicitly require ert.
+
+2013-07-08  Kenichi Handa  <handa@gnu.org>
+
+	* automated/decoder-tests.el (decoder-tests-prefer-utf-8-read):
+	Use with-ccoding-priority to avoid side-effect (Bug#14781).
+
+2013-07-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el
+	(file-notify-test-remote-temporary-file-directory):
+	Use `null-device' on w32.
+	(file-notify--test-tmpfile, file-notify--test-tmpfile1)
+	(file-notify--test-results, file-notify--test-event)
+	(file-notify--deftest-remote, file-notify--event-test)
+	(file-notify--test-event-handler)
+	(file-notify--test-make-temp-name): Rename, in order to mark them
+	internal.
+	(tramp-message-show-message, tramp-read-passwd): Tweak them for
+	better fitting in noninteractive tests.
+	(file-notify-test00-availability): Rename from `file-notify-test0'.
+	(file-notify-test01-add-watch): Rename from `file-notify-test1'.
+	Use `temporary-file-directory '.
+	(file-notify-test01-add-watch-remote): New test.
+	(file-notify-test02-events): Rename from `file-notify-test2'.
+	(file-notify-test02-events-remote): Rename from `file-notify-test3'.
+	(file-notify-test03-autorevert): Rename from
+	`file-notify-test4'.  Use timeouts.
+	(file-notify-test03-autorevert-remote): Rename from
+	`file-notify-test5'.
+
+2013-07-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el: New package.
+
+2013-06-28  Kenichi Handa  <handa@gnu.org>
+
+	* automated/decoder-tests.el (decoder-tests-gen-file): New arg FILE.
+	(decoder-tests-ao-gen-file): Rename from decoder-tests-filename.
+	Callers changed.
+	(decoder-tests-filename): New function.
+	(decoder-tests-prefer-utf-8-read)
+	(decoder-tests-prefer-utf-8-write): New function.
+	(ert-test-decoder-prefer-utf-8): New test.
+
+2013-06-27  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/package-x-test.el: Change the commentary.
+	(package-x-test--single-archive-entry-1-3)
+	(package-x-test--single-archive-entry-1-4): Fix the tests, by
+	using the appropriate data structure.
+
+2013-06-27  Daniel Hackney  <dan@haxney.org>
+
+	* automated/Makefile.in (setwins): Include the 'data' subdirectory.
+
+	* automated/package-x-test.el: New file.
+
+	* automated/package-test.el: New file.
+
+	* automated/data/package: New directory, with test examples.
+
+2013-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* automated/python-tests.el (python-tests-with-temp-file):
+	Clean up after ourself.
+
+	* automated/undo-tests.el (undo-test3): Remove test that seems to
+	do nothing that the previous one doesn't, except leave a tempfile.
+
+2013-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* automated/info-xref.el: New file.
+
+2013-06-25  Glenn Morris  <rgm@gnu.org>
+
+	* automated/occur-tests.el (occur-test-create): New function.
+	Use it to create separate tests for each element, so we run them
+	all rather than stopping at the first error.
+
+2013-06-24  Glenn Morris  <rgm@gnu.org>
+
+	* automated/occur-tests.el (occur-tests):
+	Update for 2013-05-29 change to occur header line.
+
+2013-06-21  Eduard Wiebe  <usenet@pusto.de>
+
+	Test suite for flymake.
+	* automated/flymake-tests.el:
+	* automated/flymake/warnpred/Makefile
+	* automated/flymake/warnpred/test.c
+	* automated/flymake/warnpred/test.pl: New files.
+
+2013-06-12  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* automated/reftex-tests.el (reftex-parse-from-file-test): Fix test.
+
+2013-06-12  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* automated/reftex-tests.el: New test suite for reftex.
+
+2013-05-31  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el: New tests, for percent literals
+	and expression expansion.
+
+2013-05-29  Leo Liu  <sdl.web@gmail.com>
+
+	* indent/octave.m: Tweak.
+
+2013-05-26  Aidan Gauland  <aidalgol@amuri.net>
+
+	* eshell.el: Rewrite tests using ERT.
+
+2013-05-25  Leo Liu  <sdl.web@gmail.com>
+
+	* indent/octave.m: Add tests for %!, # and ### comments.
+
+2013-05-23  Kenichi Handa  <handa@gnu.org>
+
+	* automated/decoder-tests.el: New file.
+
+2013-05-19  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Add multiline regexp example.
+
+	* automated/ruby-mode-tests.el (ruby-heredoc-highlights-interpolations)
+	(ruby-regexp-skips-over-interpolation)
+	(ruby-regexp-continues-till-end-when-unclosed)
+	(ruby-regexp-can-be-multiline)
+	(ruby-interpolation-inside-percent-literal): New tests.
+
+2013-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/ruby.rb: Fix indentation after =; add more cases.
+
+2013-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/pascal.pas: Add test for mis-identified comments.
+
+2013-04-01  Masatake YAMATO  <yamato@redhat.com>
+
+	* automated/imenu-test.el: New file.  (Bug#14112)
+
+2013-04-19  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-imenu-prev-index-position-1):
+	Remove test.
+	(python-imenu-create-index-1, python-imenu-create-flat-index-1):
+	New tests.
+
+2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-nav-backward-defun-2)
+	(python-nav-backward-defun-3, python-nav-forward-defun-2)
+	(python-nav-forward-defun-3): New tests.
+
+2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-nav-backward-defun-1)
+	(python-nav-forward-defun-1): New tests.
+
+2013-04-09  Masatake YAMATO  <yamato@redhat.com>
+
+	* automated/add-log-tests.el: New file.  (Bug#14112)
+
+2013-03-30  Fabián Ezequiel Gallina  <fabian@anue.biz>
+
+	* automated/python-tests.el (python-indent-block-enders): New test.
+	(python-info-current-defun-2): Fix test.
+
+2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* indent/octave.m: Fix encoding error in comment.  Add coding tag.
+
 2013-02-28  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* automated/python-tests.el (python-tests-with-temp-buffer): Doc fix.
@@ -27,8 +981,8 @@
 	(ruby-move-to-block-skips-percent-literal): Add depth-affecting
 	bits inside the examples.
 	(ruby-move-to-block-skips-heredoc): New test.
-	(ruby-add-log-current-method-after-inner-class): Lower
-	expectations: move point inside a method, initially.
+	(ruby-add-log-current-method-after-inner-class):
+	Lower expectations: move point inside a method, initially.
 
 2013-02-13  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -41,8 +995,8 @@
 
 2013-02-03  Chong Yidong  <cyd@gnu.org>
 
-	* automated/files.el (file-test--do-local-variables-test): Avoid
-	compilation warning message.
+	* automated/files.el (file-test--do-local-variables-test):
+	Avoid compilation warning message.
 
 2013-01-27  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -81,7 +1035,7 @@
 
 2012-12-14  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* automated/ruby-mode-tests.el
+	* automated/ruby-mode-tests.el:
 	Rename one interpolation test; add three more.
 	(ruby-with-temp-buffer): New macro, use it where appropriate.
 	(ruby-add-log-current-method-examples): Use "_" for target point.
@@ -324,9 +1278,9 @@
 	* automated/newsticker-tests.el
 	(newsticker--group-manage-orphan-feeds): Use fset instead of flet.
 
-	* trunk/test/automated/newsticker-tests.el
+	* automated/newsticker-tests.el
 	(newsticker--group-manage-orphan-feeds): Prevent updating
-	newsticker treeview. Fixed bug#9763.
+	newsticker treeview.  Fixed bug#9763.
 
 2011-10-20  Glenn Morris  <rgm@gnu.org>
 
@@ -341,12 +1295,12 @@
 2011-09-27  Ulf Jasper  <ulf.jasper@web.de>
 
 	* automated/newsticker-tests.el: Move newsticker-testsuite.el
-	to automated/newsticker-tests.el. Convert to ERT.
+	to automated/newsticker-tests.el.  Convert to ERT.
 
 2011-07-26  Ulf Jasper  <ulf.jasper@web.de>
 
 	* automated/icalendar-tests.el (icalendar-tests--compare-strings):
-	Removed, simply use string=.
+	Remove, simply use string=.
 	(icalendar--diarytime-to-isotime)
 	(icalendar--datetime-to-diary-date)
 	(icalendar--datestring-to-isodate)
@@ -660,7 +1614,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2008-2013 Free Software Foundation, Inc.
+  Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

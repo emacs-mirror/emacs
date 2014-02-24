@@ -1,5 +1,6 @@
-# Maintenance productions for the automated test directory
-# Copyright (C) 2010-2013 Free Software Foundation, Inc.
+### @configure_input@
+
+# Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -16,102 +17,76 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-SHELL = /bin/sh
+SHELL = @SHELL@
 
 srcdir = @srcdir@
-top_srcdir = @top_srcdir@
-abs_top_builddir = @abs_top_builddir@
-test = $(srcdir)
 VPATH = $(srcdir)
-lispsrc = $(top_srcdir)/lisp
-lisp = ${abs_top_builddir}/lisp
 
-# You can specify a different executable on the make command line,
-# e.g. "make EMACS=../src/emacs ...".
+SEPCHAR = @SEPCHAR@
 
-# We sometimes change directory before running Emacs (typically when
-# building out-of-tree, we chdir to the source directory), so we need
-# to use an absolute file name.
-EMACS = ${abs_top_builddir}/src/emacs
+# Empty for all systems except MinGW, where xargs needs an explicit
+# limitation.
+XARGS_LIMIT = @XARGS_LIMIT@
+
+# We never change directory before running Emacs, so a relative file
+# name is fine, and makes life easier.  If we need to change
+# directory, we can use emacs --chdir.
+EMACS = ../../src/emacs
 
 # Command line flags for Emacs.
+# Apparently MSYS bash would convert "-L :" to "-L ;" anyway,
+# but we might as well be explicit.
+EMACSOPT = -batch --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)"
 
-EMACSOPT = -batch --no-site-file --no-site-lisp
-
-# Extra flags to pass to the byte compiler
+# Extra flags to pass to the byte compiler.
 BYTE_COMPILE_EXTRA_FLAGS =
-# For example to not display the undefined function warnings you can use this:
-# BYTE_COMPILE_EXTRA_FLAGS = --eval '(setq byte-compile-warnings (quote (not unresolved)))'
-# The example above is just for developers, it should not be used by default.
 
 # The actual Emacs command run in the targets below.
-emacs = EMACSLOADPATH=$(lispsrc):$(test) LC_ALL=C $(EMACS) $(EMACSOPT)
+# Prevent any setting of EMACSLOADPATH in user environment causing problems.
+emacs = EMACSLOADPATH= LC_ALL=C EMACS_TEST_DIRECTORY=$(srcdir) "$(EMACS)" $(EMACSOPT)
 
 # Common command to find subdirectories
-setwins=subdirs=`find . -type d -print`; \
-	for file in $$subdirs; do \
-	   case $$file in */.* | */.*/* | */=* ) ;; \
-		*) wins="$$wins $$file" ;; \
+setwins=for file in `find $(srcdir) -type d -print`; do \
+	   case $$file in $(srcdir)*/data* | $(srcdir)*/flymake* ) ;; \
+		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
 
+.PHONY: all check
+
 all: check
 
-doit:
-
-
-# Files MUST be compiled one by one. If we compile several files in a
-# row (i.e., in the same instance of Emacs) we can't make sure that
-# the compilation environment is clean.  We also set the load-path of
-# the Emacs used for compilation to the current directory and its
-# subdirectories, to make sure require's and load's in the files being
-# compiled find the right files.
+# The compilation stuff is copied from lisp/Makefile - see comments there.
 
 .SUFFIXES: .elc .el
 
-# An old-fashioned suffix rule, which, according to the GNU Make manual,
-# cannot have prerequisites.
 .el.elc:
 	@echo Compiling $<
 	@$(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $<
 
-.PHONY: lisp-compile compile-main compile compile-always
 
-lisp-compile:
-	cd $(lisp); $(MAKE) $(MFLAGS) compile EMACS=$(EMACS)
+.PHONY: compile-targets compile-main compile-clean
 
-# In `compile-main' we could directly do
-#    ... | xargs $(MAKE) $(MFLAGS) EMACS="$(EMACS)"
-# and it works, but it generates a lot of messages like
-#    make[2]: « gnus/gnus-mlspl.elc » is up to date.
-# so instead, we use "xargs echo" to split the list of file into manageable
-# chunks and then use an intermediate `compile-targets' target so the
-# actual targets (the .elc files) are not mentioned as targets on the
-# make command line.
-
-
-.PHONY: compile-targets
 # TARGETS is set dynamically in the recursive call from `compile-main'.
 compile-targets: $(TARGETS)
 
 # Compile all the Elisp files that need it.  Beware: it approximates
 # `no-byte-compile', so watch out for false-positives!
-compile-main: compile-clean lisp-compile
-	@(cd $(test); $(setwins); \
+compile-main: compile-clean
+	@$(setwins); \
 	els=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
 	for el in $$els; do \
 	  test -f $$el || continue; \
 	  test ! -f $${el}c && GREP_OPTIONS= grep '^;.*no-byte-compile: t' $$el > /dev/null && continue; \
 	  echo "$${el}c"; \
-	done | xargs echo) | \
+	done | xargs $(XARGS_LIMIT) echo | \
 	while read chunk; do \
 	  $(MAKE) $(MFLAGS) compile-targets EMACS="$(EMACS)" TARGETS="$$chunk"; \
 	done
 
-.PHONY: compile-clean
 # Erase left-over .elc files that do not have a corresponding .el file.
 compile-clean:
-	@cd $(test); $(setwins); \
+	@$(setwins); \
 	elcs=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.elc |g'`; \
 	for el in $$(echo $$elcs | sed -e 's/\.elc/\.el/g'); do \
 	  if test -f "$$el" -o \! -f "$${el}c"; then :; else \
@@ -120,32 +95,20 @@ compile-clean:
 	  fi \
 	done
 
-# Compile all Lisp files, but don't recompile those that are up to
-# date.  Some .el files don't get compiled because they set the
-# local variable no-byte-compile.
-# Calling make recursively because suffix rule cannot have prerequisites.
-# Explicitly pass EMACS (sometimes ../src/bootstrap-emacs) to those
-# sub-makes that run rules that use it, for the sake of some non-GNU makes.
-compile: $(LOADDEFS) autoloads compile-first
-	$(MAKE) $(MFLAGS) compile-main EMACS=$(EMACS)
 
-# Compile all Lisp files.  This is like `compile' but compiles files
-# unconditionally.  Some files don't actually get compiled because they
-# set the local variable no-byte-compile.
-compile-always: doit
-	cd $(test); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
-	$(MAKE) $(MFLAGS) compile EMACS=$(EMACS)
+.PHONY: bootstrap-clean distclean maintainer-clean
 
 bootstrap-clean:
-	cd $(test); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
+	-cd $(srcdir) && rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
 
 distclean:
-	-rm -f ./Makefile
+	rm -f Makefile
 
 maintainer-clean: distclean bootstrap-clean
 
+
 check: compile-main
-	@(cd $(test); $(setwins); \
+	@$(setwins); \
 	pattern=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
 	for el in $$pattern; do \
 	  test -f $$el || continue; \
@@ -153,6 +116,6 @@ check: compile-main
 	  els="$$els $$el"; \
 	done; \
 	echo Testing $$els; \
-	$(emacs) $$args -f ert-run-tests-batch-and-exit)
+	$(emacs) $$args -f ert-run-tests-batch-and-exit
 
 # Makefile ends here.

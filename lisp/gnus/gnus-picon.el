@@ -1,6 +1,6 @@
 ;;; gnus-picon.el --- displaying pretty icons in Gnus
 
-;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news xpm annotation glyph faces
@@ -77,7 +77,7 @@ Some people may want to add \"unknown\" to this list."
 
 (defcustom gnus-picon-properties '(:color-symbols (("None" . "white")))
   "List of image properties applied to picons."
-  :type 'list
+  :type 'sexp
   :version "24.3"
   :group 'gnus-picon)
 

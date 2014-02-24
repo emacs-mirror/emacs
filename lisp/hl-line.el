@@ -1,9 +1,9 @@
-;;; hl-line.el --- highlight the current line
+;;; hl-line.el --- highlight the current line  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author:  Dave Love <fx@gnu.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 1998-09-13
 ;; Keywords: faces, frames, emulations
 
@@ -61,12 +61,16 @@
 
 ;;; Code:
 
-(defvar hl-line-overlay nil
+(defvar-local hl-line-overlay nil
   "Overlay used by Hl-Line mode to highlight the current line.")
-(make-variable-buffer-local 'hl-line-overlay)
 
-(defvar global-hl-line-overlay nil
+(defvar-local global-hl-line-overlay nil
   "Overlay used by Global-Hl-Line mode to highlight the current line.")
+
+(defvar global-hl-line-overlays nil
+  "Overlays used by Global-Hl-Line mode in various buffers.
+Global-Hl-Line keeps displaying one overlay in each buffer
+when `global-hl-line-sticky-flag' is non-nil.")
 
 (defgroup hl-line nil
   "Highlight the current line."
@@ -155,13 +159,18 @@ addition to `hl-line-highlight' on `post-command-hook'."
     (remove-hook 'change-major-mode-hook #'hl-line-unhighlight t)
     (remove-hook 'pre-command-hook #'hl-line-unhighlight t)))
 
+(defun hl-line-make-overlay ()
+  (let ((ol (make-overlay (point) (point))))
+    (overlay-put ol 'priority -50)           ;(bug#16192)
+    (overlay-put ol 'face hl-line-face)
+    ol))
+
 (defun hl-line-highlight ()
   "Activate the Hl-Line overlay on the current line."
   (if hl-line-mode	; Might be changed outside the mode function.
       (progn
         (unless hl-line-overlay
-          (setq hl-line-overlay (make-overlay 1 1)) ; to be moved
-          (overlay-put hl-line-overlay 'face hl-line-face))
+          (setq hl-line-overlay (hl-line-make-overlay))) ; To be moved.
         (overlay-put hl-line-overlay
                      'window (unless hl-line-sticky-flag (selected-window)))
 	(hl-line-move hl-line-overlay))
@@ -189,19 +198,25 @@ Global-Hl-Line mode uses the functions `global-hl-line-unhighlight' and
   :group 'hl-line
   (if global-hl-line-mode
       (progn
-	(add-hook 'pre-command-hook #'global-hl-line-unhighlight)
+        ;; In case `kill-all-local-variables' is called.
+        (add-hook 'change-major-mode-hook #'global-hl-line-unhighlight)
+        (if global-hl-line-sticky-flag
+            (remove-hook 'pre-command-hook #'global-hl-line-unhighlight)
+          (add-hook 'pre-command-hook #'global-hl-line-unhighlight))
+        (global-hl-line-highlight)
 	(add-hook 'post-command-hook #'global-hl-line-highlight))
-    (global-hl-line-unhighlight)
+    (global-hl-line-unhighlight-all)
     (remove-hook 'pre-command-hook #'global-hl-line-unhighlight)
     (remove-hook 'post-command-hook #'global-hl-line-highlight)))
 
 (defun global-hl-line-highlight ()
   "Highlight the current line in the current window."
   (when global-hl-line-mode	; Might be changed outside the mode function.
-    (unless (window-minibuffer-p (selected-window))
+    (unless (window-minibuffer-p)
       (unless global-hl-line-overlay
-        (setq global-hl-line-overlay (make-overlay 1 1)) ; to be moved
-        (overlay-put global-hl-line-overlay 'face hl-line-face))
+        (setq global-hl-line-overlay (hl-line-make-overlay))) ; To be moved.
+      (unless (member global-hl-line-overlay global-hl-line-overlays)
+	(push global-hl-line-overlay global-hl-line-overlays))
       (overlay-put global-hl-line-overlay 'window
 		   (unless global-hl-line-sticky-flag
 		     (selected-window)))
@@ -211,6 +226,16 @@ Global-Hl-Line mode uses the functions `global-hl-line-unhighlight' and
   "Deactivate the Global-Hl-Line overlay on the current line."
   (when global-hl-line-overlay
     (delete-overlay global-hl-line-overlay)))
+
+(defun global-hl-line-unhighlight-all ()
+  "Deactivate all Global-Hl-Line overlays."
+  (mapc (lambda (ov)
+	  (let ((ovb (overlay-buffer ov)))
+	    (when (bufferp ovb)
+		(with-current-buffer ovb
+		  (global-hl-line-unhighlight)))))
+	global-hl-line-overlays)
+  (setq global-hl-line-overlays nil))
 
 (defun hl-line-move (overlay)
   "Move the Hl-Line overlay.

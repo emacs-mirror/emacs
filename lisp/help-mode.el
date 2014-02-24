@@ -1,9 +1,9 @@
 ;;; help-mode.el --- `help-mode' used by *Help* buffers
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2013 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2014 Free Software
 ;; Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, internal
 ;; Package: emacs
 
@@ -37,6 +37,8 @@
     (set-keymap-parent map (make-composed-keymap button-buffer-map
                                                  special-mode-map))
     (define-key map [mouse-2] 'help-follow-mouse)
+    (define-key map "l" 'help-go-back)
+    (define-key map "r" 'help-go-forward)
     (define-key map "\C-c\C-b" 'help-go-back)
     (define-key map "\C-c\C-f" 'help-go-forward)
     (define-key map [XF86Back] 'help-go-back)
@@ -204,7 +206,7 @@ The format is (FUNCTION ARGS...).")
 		       (message "Unable to find location in file"))))
   'help-echo (purecopy "mouse-2, RET: find function's definition"))
 
-(define-button-type 'help-function-cmacro
+(define-button-type 'help-function-cmacro ; FIXME: Obsolete since 24.4.
   :supertype 'help-xref
   'help-function (lambda (fun file)
 		   (setq file (locate-library file t))
@@ -213,7 +215,7 @@ The format is (FUNCTION ARGS...).")
 			 (pop-to-buffer (find-file-noselect file))
 			 (goto-char (point-min))
 			 (if (re-search-forward
-			      (format "^[ \t]*(define-compiler-macro[ \t]+%s"
+			      (format "^[ \t]*(\\(cl-\\)?define-compiler-macro[ \t]+%s"
 				      (regexp-quote (symbol-name fun))) nil t)
 			     (forward-line 0)
 			   (message "Unable to find location in file")))
@@ -268,7 +270,7 @@ The format is (FUNCTION ARGS...).")
 
 (define-button-type 'help-dir-local-var-def
   :supertype 'help-xref
-  'help-function (lambda (var &optional file)
+  'help-function (lambda (_var &optional file)
 		   ;; FIXME: this should go to the point where the
 		   ;; local variable was defined.
 		   (find-file file))
@@ -295,16 +297,8 @@ Commands:
 
 ;;;###autoload
 (defun help-mode-finish ()
-  (when (eq major-mode 'help-mode)
+  (when (derived-mode-p 'help-mode)
     (setq buffer-read-only t)
-    (save-excursion
-      (goto-char (point-min))
-      (let ((inhibit-read-only t))
-	(when (re-search-forward "^This [^[:space:]]+ is advised.$" nil t)
-	  (put-text-property (match-beginning 0)
-			     (match-end 0)
-			     'face 'font-lock-warning-face))))
-
     (help-make-xrefs (current-buffer))))
 
 ;; Grokking cross-reference information in doc strings and
@@ -541,7 +535,7 @@ that."
                       (while
                           (and (not (eobp))
                                ;; Stop at a pair of blank lines.
-                               (not (looking-at "\n\\s-*\n")))
+                               (not (looking-at-p "\n\\s-*\n")))
                         ;; Skip a single blank line.
                         (and (eolp) (forward-line))
                         (end-of-line)
@@ -605,26 +599,25 @@ See `help-make-xrefs'."
 	(save-restriction
 	  (narrow-to-region from to)
 	  (goto-char (point-min))
-	  (condition-case nil
-	      (while (not (eobp))
-		(cond
-		 ((looking-at "\"") (forward-sexp 1))
-		 ((looking-at "#<") (search-forward ">" nil 'move))
-		 ((looking-at "\\(\\(\\sw\\|\\s_\\)+\\)")
-		  (let* ((sym (intern-soft (match-string 1)))
-			 (type (cond ((fboundp sym) 'help-function)
-				     ((or (memq sym '(t nil))
-					  (keywordp sym))
-				      nil)
-				     ((and sym
-					   (or (boundp sym)
-					       (get sym
-						    'variable-documentation)))
-				      'help-variable))))
-		    (when type (help-xref-button 1 type sym)))
-		  (goto-char (match-end 1)))
-		 (t (forward-char 1))))
-	    (error nil)))))))
+	  (ignore-errors
+	    (while (not (eobp))
+	      (cond
+	       ((looking-at-p "\"") (forward-sexp 1))
+	       ((looking-at-p "#<") (search-forward ">" nil 'move))
+	       ((looking-at "\\(\\(\\sw\\|\\s_\\)+\\)")
+		(let* ((sym (intern-soft (match-string 1)))
+		       (type (cond ((fboundp sym) 'help-function)
+				   ((or (memq sym '(t nil))
+					(keywordp sym))
+				    nil)
+				   ((and sym
+					 (or (boundp sym)
+					     (get sym
+						  'variable-documentation)))
+				    'help-variable))))
+		  (when type (help-xref-button 1 type sym)))
+		(goto-char (match-end 1)))
+	       (t (forward-char 1))))))))))
 
 
 ;; Additional functions for (re-)creating types of help buffers.

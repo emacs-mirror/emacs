@@ -1,6 +1,6 @@
 ;;; tramp-uu.el --- uuencode in Lisp
 
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <kai.grossjohann@gmx.net>
 ;; Keywords: comm, terminals
@@ -28,11 +28,11 @@
 
 ;;; Code:
 
-(defvar tramp-uu-b64-alphabet
+(defconst tramp-uu-b64-alphabet
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
   "Mapping from base64-encoded character to the byte it represents.")
 
-(defvar tramp-uu-b64-char-to-byte
+(defconst tramp-uu-b64-char-to-byte
   (let ((i 0))
     (mapcar (lambda (c)
 	      (prog1
@@ -55,7 +55,6 @@
   ;; First we base64 encode the region, then we transmogrify that into
   ;; uu encoding.
   (let ((len (base64-encode-region beg end t))
-	(padding 0)
 	i c)
     (save-excursion
       (goto-char beg)

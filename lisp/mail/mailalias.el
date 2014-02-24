@@ -1,9 +1,9 @@
 ;;; mailalias.el --- expand and complete mailing address aliases -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1995-1997, 2001-2013 Free Software
+;; Copyright (C) 1985, 1987, 1995-1997, 2001-2014 Free Software
 ;; Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -209,7 +209,9 @@ removed from alias expansions."
 	    (if (re-search-forward "[ \t]*[\n,][ \t]*" end1 t)
 		(setq epos (match-beginning 0)
 		      seplen (- (point) epos))
-	      (setq epos (marker-position end1) seplen 0))
+	      ;; Handle the last name in this header field.
+	      ;; We already moved END1 back across whitespace after it.
+ 	      (setq epos (marker-position end1) seplen 0))
 	    (let ((string (buffer-substring-no-properties pos epos))
 		  translation)
 	      (if (and (not (assoc string disabled-aliases))

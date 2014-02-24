@@ -1,9 +1,9 @@
 ;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-2013 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1992, 1994-2014 Free Software Foundation,
 ;; Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
 ;; Package: emacs
 
@@ -53,7 +53,8 @@ or directory when no target file is specified."
 	  (const     :tag "Startup screen" nil)
 	  (directory :tag "Directory" :value "~/")
 	  (file      :tag "File" :value "~/.emacs")
-          (function  :tag "Function")
+	  (const     :tag "Notes buffer" remember-notes)
+	  (function  :tag "Function")
 	  (const     :tag "Lisp scratch buffer" t))
   :version "24.4"
   :group 'initialization)
@@ -397,8 +398,6 @@ from being initialized."
 
 (defvar no-blinking-cursor nil)
 
-(defvar default-frame-background-mode)
-
 (defvar pure-space-overflow nil
   "Non-nil if building Emacs overflowed pure space.")
 
@@ -413,14 +412,20 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
   :type 'directory
   :initialize 'custom-initialize-delay)
 
-(defconst package-subdirectory-regexp
-  "\\([^.].*?\\)-\\([0-9]+\\(?:[.][0-9]+\\|\\(?:pre\\|beta\\|alpha\\)[0-9]+\\)*\\)"
-  "Regular expression matching the name of a package subdirectory.
-The first subexpression is the package name.
-The second subexpression is the version string.
+(defvar package--builtin-versions
+  ;; Mostly populated by loaddefs.el via autoload-builtin-package-versions.
+  (purecopy `((emacs . ,(version-to-list emacs-version))))
+  "Alist giving the version of each versioned builtin package.
+I.e. each element of the list is of the form (NAME . VERSION) where
+NAME is the package name as a symbol, and VERSION is its version
+as a list.")
 
-The regexp should not contain a starting \"\\`\" or a trailing
- \"\\'\"; those are added automatically by callers.")
+(defun package--description-file (dir)
+  (concat (let ((subdir (file-name-nondirectory
+                         (directory-file-name dir))))
+            (if (string-match "\\([^.].*?\\)-\\([0-9]+\\(?:[.][0-9]+\\|\\(?:pre\\|beta\\|alpha\\)[0-9]+\\)*\\)" subdir)
+                (match-string 1 subdir) subdir))
+          "-pkg.el"))
 
 (defun normal-top-level-add-subdirs-to-load-path ()
   "Add all subdirectories of `default-directory' to `load-path'.
@@ -437,8 +442,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
       (let* ((this-dir (car dirs))
 	     (contents (directory-files this-dir))
 	     (default-directory this-dir)
-	     (canonicalized (if (fboundp 'untranslated-canonical-name)
-				(untranslated-canonical-name this-dir))))
+	     (canonicalized (if (fboundp 'w32-untranslated-canonical-name)
+				(w32-untranslated-canonical-name this-dir))))
 	;; The Windows version doesn't report meaningful inode numbers, so
 	;; use the canonicalized absolute file name of the directory instead.
 	(setq attrs (or canonicalized
@@ -485,8 +490,93 @@ It is the default value of the variable `top-level'."
   (if command-line-processed
       (message "Back to top level.")
     (setq command-line-processed t)
+
+    ;; Look in each dir in load-path for a subdirs.el file.  If we
+    ;; find one, load it, which will add the appropriate subdirs of
+    ;; that dir into load-path.  This needs to be done before setting
+    ;; the locale environment, because the latter might need to load
+    ;; some support files.
+    ;; Look for a leim-list.el file too.  Loading it will register
+    ;; available input methods.
+    (let ((tail load-path)
+          (lispdir (expand-file-name "../lisp" data-directory))
+          dir)
+      (while tail
+        (setq dir (car tail))
+        (let ((default-directory dir))
+          (load (expand-file-name "subdirs.el") t t t))
+        ;; Do not scan standard directories that won't contain a leim-list.el.
+        ;; http://lists.gnu.org/archive/html/emacs-devel/2009-10/msg00502.html
+        ;; (Except the preloaded one in lisp/leim.)
+        (or (string-prefix-p lispdir dir)
+            (let ((default-directory dir))
+              (load (expand-file-name "leim-list.el") t t t)))
+        ;; We don't use a dolist loop and we put this "setq-cdr" command at
+        ;; the end, because the subdirs.el files may add elements to the end
+        ;; of load-path and we want to take it into account.
+        (setq tail (cdr tail))))
+
+    ;; Set the default strings to display in mode line for end-of-line
+    ;; formats that aren't native to this platform.  This should be
+    ;; done before calling set-locale-environment, as the latter might
+    ;; use these mnemonics.
+    (cond
+     ((memq system-type '(ms-dos windows-nt))
+      (setq eol-mnemonic-unix "(Unix)"
+	    eol-mnemonic-mac  "(Mac)"))
+     (t                                   ; this is for Unix/GNU/Linux systems
+      (setq eol-mnemonic-dos  "(DOS)"
+	    eol-mnemonic-mac  "(Mac)")))
+
+    (set-locale-environment nil)
+    ;; Decode all default-directory's (probably, only *scratch* exists
+    ;; at this point).  default-directory of *scratch* is the basis
+    ;; for many other file-name variables and directory lists, so it
+    ;; is important to decode it ASAP.
+    (when locale-coding-system
+      (let ((coding (if (eq system-type 'windows-nt)
+			;; MS-Windows build converts all file names to
+			;; UTF-8 during startup.
+			'utf-8
+		      locale-coding-system)))
+	(save-excursion
+	  (dolist (elt (buffer-list))
+	    (set-buffer elt)
+	    (if default-directory
+		(setq default-directory
+		      (decode-coding-string default-directory coding t)))))
+
+	;; Decode all the important variables and directory lists, now
+	;; that we know the locale's encoding.  This is because the
+	;; values of these variables are until here unibyte undecoded
+	;; strings created by build_unibyte_string.  data-directory in
+	;; particular is used to construct many other standard
+	;; directory names, so it must be decoded ASAP.  Note that
+	;; charset-map-path cannot be decoded here, since we could
+	;; then be trapped in infinite recursion below, when we load
+	;; subdirs.el, because encoding a directory name might need to
+	;; load a charset map, which will want to encode
+	;; charset-map-path, which will want to load the same charset
+	;; map...  So decoding of charset-map-path is delayed until
+	;; further down below.
+	(dolist (pathsym '(load-path exec-path))
+	  (let ((path (symbol-value pathsym)))
+	    (if (listp path)
+		(set pathsym (mapcar (lambda (dir)
+				       (decode-coding-string dir coding t))
+				     path)))))
+	(dolist (filesym '(data-directory doc-directory exec-directory
+					  installation-directory
+					  invocation-directory invocation-name
+					  source-directory
+					  shared-game-score-directory))
+	  (let ((file (symbol-value filesym)))
+	    (if (stringp file)
+		(set filesym (decode-coding-string file coding t)))))))
+
     (let ((dir default-directory))
       (with-current-buffer "*Messages*"
+        (messages-buffer-mode)
         ;; Make it easy to do like "tail -f".
         (set (make-local-variable 'window-point-insertion-type) t)
         ;; Give *Messages* the same default-directory as *scratch*,
@@ -495,29 +585,6 @@ It is the default value of the variable `top-level'."
     ;; `user-full-name' is now known; reset its standard-value here.
     (put 'user-full-name 'standard-value
 	 (list (default-value 'user-full-name)))
-    ;; Look in each dir in load-path for a subdirs.el file.
-    ;; If we find one, load it, which will add the appropriate subdirs
-    ;; of that dir into load-path,
-    ;; Look for a leim-list.el file too.  Loading it will register
-    ;; available input methods.
-    (let ((tail load-path)
-          (lispdir (expand-file-name "../lisp" data-directory))
-	  ;; For out-of-tree builds, leim-list is generated in the build dir.
-;;;          (leimdir (expand-file-name "../leim" doc-directory))
-          dir)
-      (while tail
-        (setq dir (car tail))
-        (let ((default-directory dir))
-          (load (expand-file-name "subdirs.el") t t t))
-	;; Do not scan standard directories that won't contain a leim-list.el.
-	;; http://lists.gnu.org/archive/html/emacs-devel/2009-10/msg00502.html
-	(or (string-match (concat "\\`" lispdir) dir)
-	    (let ((default-directory dir))
-	      (load (expand-file-name "leim-list.el") t t t)))
-        ;; We don't use a dolist loop and we put this "setq-cdr" command at
-        ;; the end, because the subdirs.el files may add elements to the end
-        ;; of load-path and we want to take it into account.
-        (setq tail (cdr tail))))
     ;; If the PWD environment variable isn't accurate, delete it.
     (let ((pwd (getenv "PWD")))
       (and (stringp pwd)
@@ -531,6 +598,17 @@ It is the default value of the variable `top-level'."
 	       (setq process-environment
 		     (delete (concat "PWD=" pwd)
 			     process-environment)))))
+    ;; Now, that other directories were searched, and any charsets we
+    ;; need for encoding them are already loaded, we are ready to
+    ;; decode charset-map-path.
+    (if (listp charset-map-path)
+	(let ((coding (if (eq system-type 'windows-nt)
+			  'utf-8
+			locale-coding-system)))
+	  (setq charset-map-path
+		(mapcar (lambda (dir)
+			  (decode-coding-string dir coding t))
+			charset-map-path))))
     (setq default-directory (abbreviate-file-name default-directory))
     (let ((old-face-font-rescale-alist face-font-rescale-alist))
       (unwind-protect
@@ -715,7 +793,7 @@ opening the first frame (e.g. open a connection to an X server).")
                      default-frame-alist))
 	      (t
                (push argi rest)))))
-    (nreverse rest)))
+    (nconc (nreverse rest) args)))
 
 (declare-function x-get-resource "frame.c"
 		  (attribute class &optional component subclass))
@@ -751,18 +829,6 @@ Amongst another things, it parses the command-line arguments."
   ;;! ;; Choose a good default value for split-window-keep-point.
   ;;! (setq split-window-keep-point (> baud-rate 2400))
 
-  ;; Set the default strings to display in mode line for
-  ;; end-of-line formats that aren't native to this platform.
-  (cond
-   ((memq system-type '(ms-dos windows-nt))
-    (setq eol-mnemonic-unix "(Unix)"
-          eol-mnemonic-mac  "(Mac)"))
-   (t                                   ; this is for Unix/GNU/Linux systems
-    (setq eol-mnemonic-dos  "(DOS)"
-          eol-mnemonic-mac  "(Mac)")))
-
-  (set-locale-environment nil)
-
   ;; Convert preloaded file names in load-history to absolute.
   (let ((simple-file-name
 	 ;; Look for simple.el or simple.elc and use their directory
@@ -796,7 +862,7 @@ please check its value")
 		    load-history))))
 
   ;; Convert the arguments to Emacs internal representation.
-  (let ((args (cdr command-line-args)))
+  (let ((args command-line-args))
     (while args
       (setcar args
 	      (decode-coding-string (car args) locale-coding-system t))
@@ -1194,28 +1260,17 @@ the `--debug-init' option to view a complete error backtrace."
 	   (dolist (dir dirs)
 	     (when (file-directory-p dir)
 	       (dolist (subdir (directory-files dir))
-		 (when (and (file-directory-p (expand-file-name subdir dir))
-			    (string-match
-			     (concat "\\`" package-subdirectory-regexp "\\'")
-			     subdir))
+		 (when (let ((subdir (expand-file-name subdir dir)))
+                         (and (file-directory-p subdir)
+                              (file-exists-p
+                               (expand-file-name
+                                (package--description-file subdir)
+                                subdir))))
 		   (throw 'package-dir-found t)))))))
        (package-initialize))
 
   (setq after-init-time (current-time))
   (run-hooks 'after-init-hook)
-
-  ;; Decode all default-directory.
-  (if (and (default-value 'enable-multibyte-characters) locale-coding-system)
-      (save-excursion
-	(dolist (elt (buffer-list))
-	  (set-buffer elt)
-	  (if default-directory
-	      (setq default-directory
-		    (decode-coding-string default-directory
-					  locale-coding-system t))))
-	(setq command-line-default-directory
-	      (decode-coding-string command-line-default-directory
-				    locale-coding-system t))))
 
   ;; If *scratch* exists and init file didn't change its mode, initialize it.
   (if (get-buffer "*scratch*")
@@ -1237,6 +1292,29 @@ the `--debug-init' option to view a complete error backtrace."
 
   ;; Process the remaining args.
   (command-line-1 (cdr command-line-args))
+
+  ;; This is a problem because, e.g. if emacs.d/gnus.el exists,
+  ;; trying to load gnus could load the wrong file.
+  ;; OK, it would not matter if .emacs.d were at the end of load-path.
+  ;; but for the sake of simplicity, we discourage it full-stop.
+  ;; Ref eg http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00056.html
+  ;;
+  ;; A bad element could come from user-emacs-file, the command line,
+  ;; or EMACSLOADPATH, so we basically always have to check.
+  (let (warned)
+    (dolist (dir load-path)
+      (and (not warned)
+	   (string-match-p "/[._]emacs\\.d/?\\'" dir)
+	   (string-equal (file-name-as-directory (expand-file-name dir))
+			 (expand-file-name user-emacs-directory))
+	   (setq warned t)
+	   (display-warning 'initialization
+			    (format "Your `load-path' seems to contain
+your `.emacs.d' directory: %s\n\
+This is likely to cause problems...\n\
+Consider using a subdirectory instead, e.g.: %s" dir
+(expand-file-name "lisp" user-emacs-directory))
+			     :warning))))
 
   ;; If -batch, terminate after processing the command options.
   (if noninteractive (kill-emacs t))
@@ -1512,27 +1590,29 @@ a face or button specification."
 
 (declare-function image-size "image.c" (spec &optional pixels frame))
 
+(defun fancy-splash-image-file ()
+  (cond ((stringp fancy-splash-image) fancy-splash-image)
+	((display-color-p)
+	 (cond ((<= (display-planes) 8)
+		(if (image-type-available-p 'xpm)
+		    "splash.xpm"
+		  "splash.pbm"))
+	       ((or (image-type-available-p 'svg)
+		    (image-type-available-p 'imagemagick))
+		"splash.svg")
+	       ((image-type-available-p 'png)
+		"splash.png")
+	       ((image-type-available-p 'xpm)
+		"splash.xpm")
+	       (t "splash.pbm")))
+	(t "splash.pbm")))
+
 (defun fancy-splash-head ()
   "Insert the head part of the splash screen into the current buffer."
-  (let* ((image-file (cond ((stringp fancy-splash-image)
-			    fancy-splash-image)
-			   ((display-color-p)
-			    (cond ((<= (display-planes) 8)
-				   (if (image-type-available-p 'xpm)
-				       "splash.xpm"
-				     "splash.pbm"))
-				  ((or (image-type-available-p 'svg)
-				       (image-type-available-p 'imagemagick))
-				   "splash.svg")
-				  ((image-type-available-p 'png)
-				   "splash.png")
-				  ((image-type-available-p 'xpm)
-				   "splash.xpm")
-				  (t "splash.pbm")))
-			   (t "splash.pbm")))
+  (let* ((image-file (fancy-splash-image-file))
 	 (img (create-image image-file))
 	 (image-width (and img (car (image-size img))))
-	 (window-width (window-width (selected-window))))
+	 (window-width (window-width)))
     (when img
       (when (> window-width image-width)
 	;; Center the image in the window.
@@ -1665,6 +1745,7 @@ splash screen in another window."
 	(insert "\n")
 	(fancy-startup-tail concise))
       (use-local-map splash-screen-keymap)
+      (setq-local browse-url-browser-function 'eww-browse-url)
       (setq tab-width 22
 	    buffer-read-only t)
       (set-buffer-modified-p nil)
@@ -1702,6 +1783,7 @@ splash screen in another window."
 	(goto-char (point-min))
 	(force-mode-line-update))
       (use-local-map splash-screen-keymap)
+      (setq-local browse-url-browser-function 'eww-browse-url)
       (setq tab-width 22)
       (setq buffer-read-only t)
       (goto-char (point-min))
@@ -1713,6 +1795,10 @@ Returning non-nil does not mean we should necessarily
 use the fancy splash screen, but if we do use it,
 we put it on this frame."
   (let (chosen-frame)
+    ;; MS-Windows needs this to have a chance to make the initial
+    ;; frame visible.
+    (if (eq system-type 'windows-nt)
+	(sit-for 0 t))
     (dolist (frame (append (frame-list) (list (selected-frame))))
       (if (and (frame-visible-p frame)
 	       (not (window-minibuffer-p (frame-selected-window frame))))
@@ -1723,14 +1809,11 @@ we put it on this frame."
   "Return t if fancy splash screens should be used."
   (when (and (display-graphic-p)
              (or (and (display-color-p)
-		 (image-type-available-p 'xpm))
+		      (image-type-available-p 'xpm))
                  (image-type-available-p 'pbm)))
     (let ((frame (fancy-splash-frame)))
       (when frame
-	(let* ((img (create-image (or fancy-splash-image
-				      (if (and (display-color-p)
-					       (image-type-available-p 'xpm))
-					  "splash.xpm" "splash.pbm"))))
+	(let* ((img (create-image (fancy-splash-image-file)))
 	       (image-height (and img (cdr (image-size img nil frame))))
 	       ;; We test frame-height so that, if the frame is split
 	       ;; by displaying a warning, that doesn't cause the normal
@@ -1856,11 +1939,8 @@ To quit a partially entered command, type Control-g.\n")
   (insert "\n" (emacs-version)
 	  "\n" emacs-copyright))
 
-;; No mouse menus, so give help using kbd commands.
 (defun normal-no-mouse-startup-screen ()
-
-  ;; If keys have their default meanings,
-  ;; use precomputed string to save lots of time.
+  "Show a splash screen suitable for displays without mouse support."
   (let* ((c-h-accessible
           ;; If normal-erase-is-backspace is used on a tty, there's
           ;; no way to invoke C-h and you have to use F1 instead.
@@ -1938,47 +2018,24 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
 		 'follow-link t)
   (insert "\n")
   (insert "\n" (emacs-version) "\n" emacs-copyright "\n")
-
-  (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
-	   (eq (key-binding "\C-h\C-d") 'describe-distribution)
-	   (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
-      (progn
-	(insert
-	 "
-GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for ")
-	(insert-button "full details"
-		       'action (lambda (_button) (describe-no-warranty))
-		       'follow-link t)
-	(insert ".
-Emacs is Free Software--Free as in Freedom--so you can redistribute copies
-of Emacs and modify it; type C-h C-c to see ")
-	(insert-button "the conditions"
-		       'action (lambda (_button) (describe-copying))
-		       'follow-link t)
-	(insert ".
-Type C-h C-d for information on ")
-	(insert-button "getting the latest version"
-		       'action (lambda (_button) (describe-distribution))
-		       'follow-link t)
-	(insert "."))
-    (insert (substitute-command-keys
-	     "
+  (insert (substitute-command-keys
+	   "
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for "))
-    (insert-button "full details"
-		   'action (lambda (_button) (describe-no-warranty))
-		   'follow-link t)
-    (insert (substitute-command-keys ".
+  (insert-button "full details"
+		 'action (lambda (_button) (describe-no-warranty))
+		 'follow-link t)
+  (insert (substitute-command-keys ".
 Emacs is Free Software--Free as in Freedom--so you can redistribute copies
 of Emacs and modify it; type \\[describe-copying] to see "))
-    (insert-button "the conditions"
-		   'action (lambda (_button) (describe-copying))
-		   'follow-link t)
-    (insert (substitute-command-keys".
+  (insert-button "the conditions"
+		 'action (lambda (_button) (describe-copying))
+		 'follow-link t)
+  (insert (substitute-command-keys".
 Type \\[describe-distribution] for information on "))
-    (insert-button "getting the latest version"
-		   'action (lambda (_button) (describe-distribution))
-		   'follow-link t)
-    (insert ".")))
+  (insert-button "getting the latest version"
+		 'action (lambda (_button) (describe-distribution))
+		 'follow-link t)
+  (insert "."))
 
 (defun normal-about-screen ()
   (insert "\n" (emacs-version) "\n" emacs-copyright "\n\n")
@@ -2027,14 +2084,11 @@ Type \\[describe-distribution] for information on "))
   (insert "\tBuying printed manuals from the FSF\n"))
 
 (defun startup-echo-area-message ()
-  (cond ((daemonp)
-	 "Starting Emacs daemon.")
-	((eq (key-binding "\C-h\C-a") 'about-emacs)
-	 "For information about GNU Emacs and the GNU system, type C-h C-a.")
-	(t
-	 (substitute-command-keys
-	  "For information about GNU Emacs and the GNU system, type \
-\\[about-emacs]."))))
+  (if (daemonp)
+      "Starting Emacs daemon."
+    (substitute-command-keys
+     "For information about GNU Emacs and the GNU system, type \
+\\[about-emacs].")))
 
 (defun display-startup-echo-area-message ()
   (let ((resize-mini-windows t))
@@ -2109,12 +2163,11 @@ A fancy display is used on graphic displays, normal otherwise."
 	    ;; This approach loses for "-batch -L DIR --eval "(require foo)",
 	    ;; if foo is intended to be found in DIR.
 	    ;;
-	    ;; ;; The directories listed in --directory/-L options will *appear*
-	    ;; ;; at the front of `load-path' in the order they appear on the
-	    ;; ;; command-line.  We cannot do this by *placing* them at the front
-	    ;; ;; in the order they appear, so we need this variable to hold them,
-	    ;; ;; temporarily.
-	    ;; extra-load-path
+	    ;; The directories listed in --directory/-L options will *appear*
+	    ;; at the front of `load-path' in the order they appear on the
+	    ;; command-line.  We cannot do this by *placing* them at the front
+	    ;; in the order they appear, so we need this variable to hold them,
+	    ;; temporarily.
 	    ;;
 	    ;; To DTRT we keep track of the splice point and modify `load-path'
 	    ;; straight away upon any --directory/-L option.
@@ -2194,13 +2247,22 @@ A fancy display is used on graphic displays, normal otherwise."
 		   (eval (read (or argval (pop command-line-args-left)))))
 
 		  ((member argi '("-L" "-directory"))
-		   (setq tem (expand-file-name
-			      (command-line-normalize-file-name
-			       (or argval (pop command-line-args-left)))))
-		   (cond (splice (setcdr splice (cons tem (cdr splice)))
-				 (setq splice (cdr splice)))
-			 (t (setq load-path (cons tem load-path)
-				  splice load-path))))
+		   ;; -L :/foo adds /foo to the _end_ of load-path.
+		   (let (append)
+		     (if (string-match-p
+			  (format "\\`%s" path-separator)
+			  (setq tem (or argval (pop command-line-args-left))))
+			 (setq tem (substring tem 1)
+			       append t))
+		     (setq tem (expand-file-name
+				(command-line-normalize-file-name tem)))
+		     (cond (append (setq load-path
+					 (append load-path (list tem)))
+				   (if splice (setq splice load-path)))
+			   (splice (setcdr splice (cons tem (cdr splice)))
+				   (setq splice (cdr splice)))
+			   (t (setq load-path (cons tem load-path)
+				    splice load-path)))))
 
 		  ((member argi '("-l" "-load"))
 		   (let* ((file (command-line-normalize-file-name
@@ -2399,13 +2461,17 @@ A fancy display is used on graphic displays, normal otherwise."
     ;; Use arg 1 so that we don't collapse // at the start of the file name.
     ;; That is significant on some systems.
     ;; However, /// at the beginning is supposed to mean just /, not //.
-    (if (string-match "^///+" file)
+    (if (string-match
+	 (if (memq system-type '(ms-dos windows-nt))
+	     "^\\([\\/][\\/][\\/]\\)+"
+	   "^///+")
+	 file)
 	(setq file (replace-match "/" t t file)))
-    (and (memq system-type '(ms-dos windows-nt))
-	 (string-match "^[A-Za-z]:\\(\\\\[\\\\/]\\)" file) ; C:\/ or C:\\
-	 (setq file (replace-match "/" t t file 1)))
-    (while (string-match "//+" file 1)
-      (setq file (replace-match "/" t t file)))
+    (if (memq system-type '(ms-dos windows-nt))
+	(while (string-match "\\([\\/][\\/]\\)+" file 1)
+	  (setq file (replace-match "/" t t file)))
+      (while (string-match "//+" file 1)
+	(setq file (replace-match "/" t t file))))
     file))
 
 ;;; startup.el ends here

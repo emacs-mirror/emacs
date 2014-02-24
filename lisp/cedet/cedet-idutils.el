@@ -1,9 +1,9 @@
 ;;; cedet-idutils.el --- ID Utils support for CEDET.
 
-;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; Version: 0.2
+;; Old-Version: 0.2
 ;; Keywords: OO, lisp
 ;; Package: cedet
 

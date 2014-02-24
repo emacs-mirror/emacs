@@ -3,6 +3,7 @@
 @comment %**start of header
 @setfilename ../../info/ebrowse
 @settitle A Class Browser for C++
+@documentencoding UTF-8
 @setchapternewpage odd
 @syncodeindex fn cp
 @comment %**end of header
@@ -10,7 +11,7 @@
 @copying
 This file documents Ebrowse, a C++ class browser for GNU Emacs.
 
-Copyright @copyright{} 2000--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2000--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -138,7 +139,7 @@ list of the pseudo-class @samp{*Globals*};
 
 @item
 Types (@code{enum}s, and @code{typedef}s defined with class
-scope).@refill
+scope).
 @end itemize
 
 You can switch member buffers from one list to another, or to another
@@ -210,7 +211,7 @@ per line.
 
 @findex --help
 When invoked with option @samp{--help}, @command{ebrowse} prints a list of
-available command line options.@refill
+available command line options.
 
 @menu
 * Input files::         Specifying which files to parse
@@ -478,12 +479,12 @@ name.
 This command views the class declaration if the database
 contains information about it.  If you don't parse the entire source
 you are working on, some classes will only be known to exist but the
-location of their declarations and definitions will not be known.@refill
+location of their declarations and definitions will not be known.
 
 @item RET
 Works like @kbd{SPC}, except that it finds the class
 declaration rather than viewing it, so that it is ready for
-editing.@refill
+editing.
 @end table
 
 The same functionality is available from the menu opened with
@@ -570,7 +571,7 @@ positions the cursor on the class in the class tree.
 If the branch of the class tree containing the class searched for is
 currently collapsed, the class itself and all its base classes are
 recursively made visible.  (See also @ref{Expanding and
-Collapsing}.)@refill
+Collapsing}.)
 
 This function is also available from the tree buffer's context menu.
 
@@ -634,7 +635,7 @@ Here is an example of a tree buffer with file names displayed.
 You can expand and collapse parts of a tree to reduce the complexity of
 large class hierarchies.  Expanding or collapsing branches of a tree has
 no impact on the functionality of other commands, like @kbd{/}.  (See
-also @ref{Go to Class}.)@refill
+also @ref{Go to Class}.)
 
 Collapsed branches are indicated with an ellipsis following the class
 name like in the example below.
@@ -734,7 +735,7 @@ context menu.
 
 Classes can be marked for operations similar to the standard Emacs
 commands @kbd{M-x tags-search} and @kbd{M-x tags-query-replace} (see
-also @xref{Tags-like Functions}.)@refill
+also @xref{Tags-like Functions}.)
 
 @table @kbd
 @cindex toggle mark
@@ -1292,7 +1293,7 @@ When jumping to a member declaration or definition with one of
 Ebrowse's commands, the position from where you performed the
 jump and the position where you jumped to are recorded in a
 @dfn{position stack}.  There are several ways in which you can quickly
-move to positions in the stack:@refill
+move to positions in the stack:
 
 @table @kbd
 @cindex return to original position

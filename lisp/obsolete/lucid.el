@@ -1,8 +1,8 @@
 ;;; lucid.el --- emulate some Lucid Emacs functions
 
-;; Copyright (C) 1993, 1995, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2014 Free Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: emulations
 ;; Obsolete-since: 23.2
 

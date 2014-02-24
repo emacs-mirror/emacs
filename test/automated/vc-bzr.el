@@ -1,8 +1,9 @@
 ;;; vc-bzr.el --- tests for vc/vc-bzr.el
 
-;; Copyright (C) 2011-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2014 Free Software Foundation, Inc.
 
 ;; Author: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 
 ;; This file is part of GNU Emacs.
 
@@ -27,14 +28,9 @@
 (require 'vc-bzr)
 (require 'vc-dir)
 
-;; FIXME it would be better to skip all these tests if there is no
-;; bzr installed.  We could just put everything inside an IF
-;; statement, but it would be nice if ERT had a "skipped" facility (?).
-
 (ert-deftest vc-bzr-test-bug9726 ()
   "Test for http://debbugs.gnu.org/9726 ."
-  :expected-result (if (executable-find vc-bzr-program) :passed :failed)
-  (should (executable-find vc-bzr-program))
+  (skip-unless (executable-find vc-bzr-program))
   (let* ((tempdir (make-temp-file "vc-bzr-test" t))
          (ignored-dir (expand-file-name "ignored-dir" tempdir))
          (default-directory (file-name-as-directory tempdir)))
@@ -64,8 +60,7 @@
 ;; Not specific to bzr.
 (ert-deftest vc-bzr-test-bug9781 ()
   "Test for http://debbugs.gnu.org/9781 ."
-  :expected-result (if (executable-find vc-bzr-program) :passed :failed)
-  (should (executable-find vc-bzr-program))
+  (skip-unless (executable-find vc-bzr-program))
   (let* ((tempdir (make-temp-file "vc-bzr-test" t))
          (subdir (expand-file-name "subdir" tempdir))
          (file (expand-file-name "file" tempdir))
@@ -101,8 +96,7 @@
 ;; http://lists.gnu.org/archive/html/help-gnu-emacs/2012-04/msg00145.html
 (ert-deftest vc-bzr-test-faulty-bzr-autoloads ()
   "Test we can generate autoloads in a bzr directory when bzr is faulty."
-  :expected-result (if (executable-find vc-bzr-program) :passed :failed)
-  (should (executable-find vc-bzr-program))
+  (skip-unless (executable-find vc-bzr-program))
   (let* ((tempdir (make-temp-file "vc-bzr-test" t))
          (file (expand-file-name "foo.el" tempdir))
          (default-directory (file-name-as-directory tempdir))

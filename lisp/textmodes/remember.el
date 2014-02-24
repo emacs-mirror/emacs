@@ -1,8 +1,9 @@
 ;;; remember --- a mode for quickly jotting down things to remember
 
-;; Copyright (C) 1999-2001, 2003-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2001, 2003-2014 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 29 Mar 1999
 ;; Version: 2.0
 ;; Keywords: data memory todo pim
@@ -118,7 +119,7 @@
 ;;
 ;; * Using "remember"
 ;;
-;; As a rough beginning, what I do is to keep my .notes file in
+;; As a rough beginning, what I do is to keep my `remember-data-file' in
 ;; outline-mode format, with a final entry called "* Raw data".  Then,
 ;; at intervals, I can move the data that gets appended there into
 ;; other places.  But certainly this should evolve into an intuitive
@@ -178,8 +179,6 @@
 
 ;;; Code:
 
-(provide 'remember)
-
 (defconst remember-version "2.0"
   "This version of remember.")
 
@@ -216,10 +215,11 @@ All functions are run in the remember buffer."
 Each function is called with the current buffer narrowed to what the
 user wants remembered.
 If any function returns non-nil, the data is assumed to have been
-recorded somewhere by that function. "
+recorded somewhere by that function."
   :type 'hook
   :options '(remember-store-in-mailbox
              remember-append-to-file
+             remember-store-in-files
              remember-diary-extract-entries
              org-remember-handler)
   :group 'remember)
@@ -228,6 +228,8 @@ recorded somewhere by that function. "
   "If non-nil every function in `remember-handler-functions' is called."
   :type 'boolean
   :group 'remember)
+
+;; See below for more user variables.
 
 ;;; Internal Variables:
 
@@ -275,7 +277,7 @@ With a prefix or a visible region, use the region as INITIAL."
                         transient-mark-mode))
            (buffer-substring (region-beginning) (region-end)))))
   (funcall (if remember-in-new-frame
-               #'frame-configuration-to-register
+               #'frameset-to-register
              #'window-configuration-to-register) remember-register)
   (let* ((annotation
           (if remember-run-all-annotation-functions-flag
@@ -293,6 +295,7 @@ With a prefix or a visible region, use the region as INITIAL."
     (if remember-in-new-frame
         (set-window-dedicated-p
          (get-buffer-window (current-buffer) (selected-frame)) t))
+    (setq buffer-offer-save t)
     (remember-mode)
     (when (= (point-max) (point-min))
       (when initial (insert initial))
@@ -380,9 +383,20 @@ Subject: %s\n\n"
 
 ;; Remembering to plain files
 
-(defcustom remember-data-file (convert-standard-filename "~/.notes")
-  "The file in which to store unprocessed data."
+(defcustom remember-data-file (locate-user-emacs-file "notes" ".notes")
+  "The file in which to store unprocessed data.
+When set via customize, visited file of the notes buffer (if it
+exists) might be changed."
+  :version "24.4"                       ; added locate-user-emacs-file
   :type 'file
+  :set (lambda (symbol value)
+         (let ((buf (find-buffer-visiting (default-value symbol))))
+           (set-default symbol value)
+           (when (buffer-live-p buf)
+             (with-current-buffer buf
+               (set-visited-file-name
+                (expand-file-name remember-data-file))))))
+  :initialize 'custom-initialize-default
   :group 'remember)
 
 (defcustom remember-leader-text "** "
@@ -392,21 +406,20 @@ Subject: %s\n\n"
 
 (defun remember-append-to-file ()
   "Remember, with description DESC, the given TEXT."
-  (let ((text (buffer-string))
-        (desc (remember-buffer-desc)))
-    (with-temp-buffer
-      (insert "\n" remember-leader-text (current-time-string)
-              " (" desc ")\n\n" text)
-      (if (not (bolp))
-          (insert "\n"))
-      (if (find-buffer-visiting remember-data-file)
-          (let ((remember-text (buffer-string)))
-            (set-buffer (get-file-buffer remember-data-file))
-            (save-excursion
-              (goto-char (point-max))
-              (insert remember-text)
-              (when remember-save-after-remembering (save-buffer))))
-        (append-to-file (point-min) (point-max) remember-data-file)))))
+  (let* ((text (buffer-string))
+         (desc (remember-buffer-desc))
+         (remember-text (concat "\n" remember-leader-text (current-time-string)
+                                " (" desc ")\n\n" text
+                                (save-excursion (goto-char (point-max))
+                                                (if (bolp) nil "\n"))))
+         (buf (find-buffer-visiting remember-data-file)))
+    (if buf
+        (with-current-buffer buf
+          (save-excursion
+            (goto-char (point-max))
+            (insert remember-text))
+          (if remember-save-after-remembering (save-buffer)))
+      (append-to-file remember-text nil remember-data-file))))
 
 (defun remember-region (&optional beg end)
   "Remember the data from BEG to END.
@@ -428,6 +441,33 @@ If you want to remember a region, supply a universal prefix to
           (run-hooks 'remember-handler-functions)
         (run-hook-with-args-until-success 'remember-handler-functions))
       (remember-destroy))))
+
+(defcustom remember-data-directory "~/remember"
+  "The directory in which to store remember data as files.
+Used by `remember-store-in-files'."
+  :type 'directory
+  :version "24.4"
+  :group 'remember)
+
+(defcustom remember-directory-file-name-format "%Y-%m-%d_%T-%z"
+  "Format string for the file name in which to store unprocessed data.
+This is passed to `format-time-string'.
+Used by `remember-store-in-files'."
+  :type 'string
+  :version "24.4"
+  :group 'remember)
+
+(defun remember-store-in-files ()
+  "Store remember data in a file in `remember-data-directory'.
+The file is named by calling `format-time-string' using
+`remember-directory-file-name-format' as the format string."
+  (let ((name (format-time-string
+	       remember-directory-file-name-format (current-time)))
+        (text (buffer-string)))
+    (with-temp-buffer
+      (insert text)
+      (write-file (convert-standard-filename
+                   (format "%s/%s" remember-data-directory name))))))
 
 ;;;###autoload
 (defun remember-clipboard ()
@@ -456,7 +496,7 @@ Most useful for remembering things from other applications."
 (defcustom remember-diary-file nil
   "File for extracted diary entries.
 If this is nil, then `diary-file' will be used instead."
-  :type 'file
+  :type '(choice (const :tag "diary-file" nil) file)
   :group 'remember)
 
 (defun remember-diary-convert-entry (entry)
@@ -500,7 +540,7 @@ If this is nil, then `diary-file' will be used instead."
     (goto-char (point-min))
     (let (list)
       (while (re-search-forward "^DIARY:\\s-*\\(.+\\)" nil t)
-        (add-to-list 'list (remember-diary-convert-entry (match-string 1))))
+        (push (remember-diary-convert-entry (match-string 1)) list))
       (when list
         (diary-make-entry (mapconcat 'identity list "\n")
                           nil remember-diary-file))
@@ -514,7 +554,7 @@ If this is nil, then `diary-file' will be used instead."
     (define-key map "\C-c\C-c" 'remember-finalize)
     (define-key map "\C-c\C-k" 'remember-destroy)
     map)
-  "Keymap used in Remember mode.")
+  "Keymap used in `remember-mode'.")
 
 (define-derived-mode remember-mode indented-text-mode "Remember"
   "Major mode for output from \\[remember].
@@ -525,5 +565,104 @@ the data away for latter retrieval, and possible indexing.
 
 \\{remember-mode-map}"
   (set-keymap-parent remember-mode-map nil))
+
+;; Notes buffer showing the notes:
+
+(defcustom remember-notes-buffer-name "*notes*"
+  "Name of the notes buffer.
+Setting it to *scratch* will hijack the *scratch* buffer for the
+purpose of storing notes."
+  :type 'string
+  :version "24.4")
+
+(defcustom remember-notes-initial-major-mode nil
+  "Major mode to use in the notes buffer when it's created.
+If this is nil, use `initial-major-mode'."
+  :type '(choice (const    :tag "Use `initial-major-mode'" nil)
+		 (function :tag "Major mode" text-mode))
+  :version "24.4")
+
+(defcustom remember-notes-bury-on-kill t
+  "Non-nil means `kill-buffer' will bury the notes buffer instead of killing."
+  :type 'boolean
+  :version "24.4")
+
+(defun remember-notes-save-and-bury-buffer ()
+  "Save (if it is modified) and bury the current buffer."
+  (interactive)
+  (when (buffer-modified-p)
+    (save-buffer))
+  (bury-buffer))
+
+
+
+(defvar remember-notes-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-c" 'remember-notes-save-and-bury-buffer)
+    map)
+  "Keymap used in `remember-notes-mode'.")
+
+(define-minor-mode remember-notes-mode
+  "Minor mode for the `remember-notes' buffer.
+This sets `buffer-save-without-query' so that `save-some-buffers' will
+save the notes buffer without asking.
+
+\\{remember-notes-mode-map}"
+  nil nil nil
+  (cond
+   (remember-notes-mode
+    (add-hook 'kill-buffer-query-functions
+              #'remember-notes--kill-buffer-query nil t)
+    (setq buffer-save-without-query t))))
+
+;;;###autoload
+(defun remember-notes (&optional switch-to)
+  "Return the notes buffer, creating it if needed, and maybe switch to it.
+This buffer is for notes that you want to preserve across Emacs sessions.
+The notes are saved in `remember-data-file'.
+
+If a buffer is already visiting that file, just return it.
+
+Otherwise, create the buffer, and rename it to `remember-notes-buffer-name',
+unless a buffer of that name already exists.  Set the major mode according
+to `remember-notes-initial-major-mode', and enable `remember-notes-mode'
+minor mode.
+
+Use \\<remember-notes-mode-map>\\[remember-notes-save-and-bury-buffer] to save and bury the notes buffer.
+
+Interactively, or if SWITCH-TO is non-nil, switch to the buffer.
+Return the buffer.
+
+Set `initial-buffer-choice' to `remember-notes' to visit your notes buffer
+when Emacs starts.  Set `remember-notes-buffer-name' to \"*scratch*\"
+to turn the *scratch* buffer into your notes buffer."
+  (interactive "p")
+  (let ((buf (or (find-buffer-visiting remember-data-file)
+                 (with-current-buffer (find-file-noselect remember-data-file)
+                   (and remember-notes-buffer-name
+                        (not (get-buffer remember-notes-buffer-name))
+                        (rename-buffer remember-notes-buffer-name))
+                   (funcall (or remember-notes-initial-major-mode
+                                initial-major-mode))
+                   (remember-notes-mode 1)
+                   (current-buffer)))))
+    (when switch-to
+      (switch-to-buffer buf))
+    buf))
+
+(defun remember-notes--kill-buffer-query ()
+  "Function that `remember-notes-mode' adds to `kill-buffer-query-functions'.
+Save the current buffer if modified.  If `remember-notes-bury-on-kill'
+is non-nil, bury it and return nil; otherwise return t."
+  (when (buffer-modified-p)
+    (save-buffer))
+  (if remember-notes-bury-on-kill
+      (progn
+        ;; bury-buffer always returns nil, but let's be explicit.
+        (bury-buffer)
+        nil)
+    t))
+
+(provide 'remember)
 
 ;;; remember.el ends here

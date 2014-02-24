@@ -4,6 +4,7 @@
 @set TITLE SRecoder Manual
 @set AUTHOR Eric M. Ludlam
 @settitle @value{TITLE}
+@documentencoding UTF-8
 
 @c Merge all indexes into a single index for now.
 @c We can always separate them later into two or more as needed.
@@ -15,7 +16,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2007--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -32,7 +33,7 @@ modify this GNU manual.''
 
 @dircategory Emacs misc features
 @direntry
-* SRecode: (srecode).           Template code generator.
+* SRecode: (srecode).           Semantic template code generator.
 @end direntry
 
 @titlepage
@@ -40,6 +41,9 @@ modify this GNU manual.''
 @center @titlefont{SRecode}
 @vskip 0pt plus 1 fill
 @center by @value{AUTHOR}
+@page
+@vskip 0pt plus 1filll
+@insertcopying
 @end titlepage
 
 @macro semantic{}
@@ -247,7 +251,6 @@ features of the current file name, user name, time, etc.
 
 Some arguments are major-mode specific, such as the @code{:el} or
 @code{:cpp} arguments.
-@refill
 
 @section Template Insertion Context
 A context can be provided for templates in a file.  This helps
@@ -257,7 +260,6 @@ contexts to have the same name.  Some standard contexts are
 
 A context can be automatically derived as well based on the parsing
 state from @i{Semantic}.  @inforef{Top, Semantic Manual, semantic}.
-@refill
 
 @section Applications
 Commands that do a particular user task which involves also writing
@@ -340,7 +342,7 @@ area will modify the other linked areas.  Pressing TAB will move
 between editable fields in the template.
 
 Once the cursor moves out of the are inserted by the template, all the
-fields are cancelled.
+fields are canceled.
 
 @b{NOTE}: Some conveniences in templates, such as completion, or
 character restrictions are lost when using field editing mode.
@@ -781,7 +783,6 @@ All the text and macros within a section are either not shown at all
 (if that section is not 'visible') or the section is shown one time
 for each dictionary added to that symbol.
 @xref{Developing Template Functions}.
-@refill
 
 Macros prefixed with ``>'' will include another template.  Include
 macros would look like this:
@@ -821,7 +822,7 @@ from the name, like this:
 @node Contexts
 @section Context
 
-Each template belongs to a context.  When promting for a template by
+Each template belongs to a context.  When prompting for a template by
 name, such as with @kbd{C-c / /}, the name is prefixed by the current
 context.  If there is no context, it defaults to @code{declaration}.
 

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Dired
@@ -281,9 +281,9 @@ say they are backup files---that is, files whose names end in
 the backup files for deletion: all but the oldest few and newest few
 backups of any one file.  Normally, the number of newest versions kept
 for each file is given by the variable @code{dired-kept-versions}
-(@strong{not} @code{kept-new-versions}; that applies only when
-saving).  The number of oldest versions to keep is given by the
-variable @code{kept-old-versions}.
+(@emph{not} @code{kept-new-versions}; that applies only when saving).
+The number of oldest versions to keep is given by the variable
+@code{kept-old-versions}.
 
   Period with a positive numeric argument, as in @kbd{C-u 3 .},
 specifies the number of newest versions to keep, overriding
@@ -1108,7 +1108,8 @@ can use hiding to temporarily exclude subdirectories from operations
 without having to remove the Dired marks on files in those
 subdirectories.
 
-@xref{Dired Updating}, for how to insert or delete a subdirectory listing.
+@xref{Subdirectories in Dired}, for how to insert a subdirectory
+listing, and @pxref{Dired Updating} for how delete it.
 
 @node Dired Updating
 @section Updating the Dired Buffer
@@ -1382,7 +1383,7 @@ file, the search wraps around to the first marked file.  The command
 a regular expression search.  @xref{Repeat Isearch}, for information
 about search repetition.
 
-@cindex Adding to the kill ring in Dired.
+@cindex adding to the kill ring in Dired
 @kindex w @r{(Dired)}
 @findex dired-copy-filename-as-kill
   The command @kbd{w} (@code{dired-copy-filename-as-kill}) puts the
@@ -1402,6 +1403,19 @@ ignored in this case.
 names into arguments for other Emacs commands.  It also displays what
 it added to the kill ring, so you can use it to display the list of
 currently marked files in the echo area.
+
+@kindex ( @r{(Dired)}
+@findex dired-hide-details-mode
+@vindex dired-hide-details-hide-symlink-targets
+@vindex dired-hide-details-hide-information-lines
+@cindex hiding details in Dired
+  The command @kbd{(} (@code{dired-hide-details-mode}) toggles whether
+details, such as ownership or file permissions, are visible in the
+current Dired buffer.  By default, it also hides the targets of
+symbolic links, and all lines other than the header line and
+file/directory listings.  To change this, customize the options
+@code{dired-hide-details-hide-symlink-targets} and
+@code{dired-hide-details-hide-information-lines}, respectively.
 
 @cindex Dired and version control
   If the directory you are visiting is under version control

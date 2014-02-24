@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Searching and Matching
@@ -137,7 +137,7 @@ the ball boy!"
 
 @group
 (word-search-forward "Please find the ball, boy.")
-     @result{} 36
+     @result{} 39
 
 ---------- Buffer: foo ----------
 He said "Please!  Find
@@ -160,16 +160,17 @@ If @var{repeat} is non-@code{nil}, then the search is repeated that many
 times.  Point is positioned at the end of the last match.
 
 @findex word-search-regexp
-Internal, @code{word-search-forward} and related functions use the
+Internally, @code{word-search-forward} and related functions use the
 function @code{word-search-regexp} to convert @var{string} to a
 regular expression that ignores punctuation.
 @end deffn
 
 @deffn Command word-search-forward-lax string &optional limit noerror repeat
 This command is identical to @code{word-search-forward}, except that
-the end of @var{string} need not match a word boundary, unless @var{string} ends
-in whitespace.  For instance, searching for @samp{ball boy} matches
-@samp{ball boyee}, but does not match @samp{aball boy}.
+the beginning or the end of @var{string} need not match a word
+boundary, unless @var{string} begins or ends in whitespace.
+For instance, searching for @samp{ball boy} matches @samp{ball boyee},
+but does not match @samp{balls boy}.
 @end deffn
 
 @deffn Command word-search-backward string &optional limit noerror repeat
@@ -181,8 +182,8 @@ beginning of the match.
 
 @deffn Command word-search-backward-lax string &optional limit noerror repeat
 This command is identical to @code{word-search-backward}, except that
-the end of @var{string} need not match a word boundary, unless @var{string} ends
-in whitespace.
+the beginning or the end of @var{string} need not match a word
+boundary, unless @var{string} begins or ends in whitespace.
 @end deffn
 
 @node Searching and Case
@@ -273,12 +274,12 @@ expression is ordinary, unless a @samp{\} precedes it.
 therefore @samp{f} is a regular expression that matches the string
 @samp{f} and no other string.  (It does @emph{not} match the string
 @samp{fg}, but it does match a @emph{part} of that string.)  Likewise,
-@samp{o} is a regular expression that matches only @samp{o}.@refill
+@samp{o} is a regular expression that matches only @samp{o}.
 
   Any two regular expressions @var{a} and @var{b} can be concatenated.  The
 result is a regular expression that matches a string if @var{a} matches
 some amount of the beginning of that string and @var{b} matches the rest of
-the string.@refill
+the string.
 
   As a simple example, we can concatenate the regular expressions @samp{f}
 and @samp{o} to get the regular expression @samp{fo}, which matches only
@@ -304,7 +305,7 @@ expression.
 is a special character that matches any single character except a newline.
 Using concatenation, we can make regular expressions like @samp{a.b}, which
 matches any three-character string that begins with @samp{a} and ends with
-@samp{b}.@refill
+@samp{b}.
 
 @item @samp{*}
 @cindex @samp{*} in regexp
@@ -488,7 +489,7 @@ example, the regular expression that matches the @samp{\} character is
 @samp{\\}.  To write a Lisp string that contains the characters
 @samp{\\}, Lisp syntax requires you to quote each @samp{\} with another
 @samp{\}.  Therefore, the read syntax for a regular expression matching
-@samp{\} is @code{"\\\\"}.@refill
+@samp{\} is @code{"\\\\"}.
 @end table
 
 @strong{Please note:} For historical compatibility, special characters
@@ -496,7 +497,7 @@ are treated as ordinary ones if they are in contexts where their special
 meanings make no sense.  For example, @samp{*foo} treats @samp{*} as
 ordinary since there is no preceding expression on which the @samp{*}
 can act.  It is poor practice to depend on this behavior; quote the
-special character anyway, regardless of where it appears.@refill
+special character anyway, regardless of where it appears.
 
 As a @samp{\} is not special inside a character alternative, it can
 never remove the special meaning of @samp{-} or @samp{]}.  So you
@@ -589,10 +590,8 @@ through @samp{f} and @samp{A} through @samp{F}.
 
   For the most part, @samp{\} followed by any character matches only
 that character.  However, there are several exceptions: certain
-two-character sequences starting with @samp{\} that have special
-meanings.  (The character after the @samp{\} in such a sequence is
-always ordinary when used on its own.)  Here is a table of the special
-@samp{\} constructs.
+sequences starting with @samp{\} that have special meanings.  Here is
+a table of the special @samp{\} constructs.
 
 @table @samp
 @item \|
@@ -601,14 +600,14 @@ always ordinary when used on its own.)  Here is a table of the special
 specifies an alternative.
 Two regular expressions @var{a} and @var{b} with @samp{\|} in
 between form an expression that matches anything that either @var{a} or
-@var{b} matches.@refill
+@var{b} matches.
 
 Thus, @samp{foo\|bar} matches either @samp{foo} or @samp{bar}
-but no other string.@refill
+but no other string.
 
 @samp{\|} applies to the largest possible surrounding expressions.  Only a
 surrounding @samp{\( @dots{} \)} grouping can limit the grouping power of
-@samp{\|}.@refill
+@samp{\|}.
 
 If you need full backtracking capability to handle multiple uses of
 @samp{\|}, use the POSIX regular expression functions (@pxref{POSIX
@@ -787,7 +786,7 @@ matches the empty string, but only at point.
 matches the empty string, but only at the beginning or
 end of a word.  Thus, @samp{\bfoo\b} matches any occurrence of
 @samp{foo} as a separate word.  @samp{\bballs?\b} matches
-@samp{ball} or @samp{balls} as a separate word.@refill
+@samp{ball} or @samp{balls} as a separate word.
 
 @samp{\b} matches at the beginning or end of the buffer (or string)
 regardless of what text appears next to it.
@@ -1148,13 +1147,7 @@ implemented by searching backwards from point for a match that ends at
 point.  That can be quite slow if it has to search a long distance.
 You can bound the time required by specifying @var{limit}, which says
 not to search before @var{limit}.  In this case, the match that is
-found must begin at or after @var{limit}.
-
-If @var{greedy} is non-@code{nil}, this function extends the match
-backwards as far as possible, stopping when a single additional
-previous character cannot be part of a match for regexp.  When the
-match is extended, its starting position is allowed to occur before
-@var{limit}.
+found must begin at or after @var{limit}.  Here's an example:
 
 @example
 @group
@@ -1169,6 +1162,12 @@ comes back" twice.
      @result{} nil
 @end group
 @end example
+
+If @var{greedy} is non-@code{nil}, this function extends the match
+backwards as far as possible, stopping when a single additional
+previous character cannot be part of a match for regexp.  When the
+match is extended, its starting position is allowed to occur before
+@var{limit}.
 
 @c http://debbugs.gnu.org/5689
 As a general recommendation, try to avoid using @code{looking-back}
@@ -1774,7 +1773,7 @@ questions, assuming that the answers will be ``no''.
 
 @item exit-prefix
 Like @code{exit}, but add the key that was pressed to
-@code{unread-comment-events}.
+@code{unread-command-events} (@pxref{Event Input Misc}).
 
 @item act-and-exit
 Answer this question ``yes'', and give up on the entire series of

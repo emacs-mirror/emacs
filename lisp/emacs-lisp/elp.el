@@ -1,10 +1,10 @@
 ;;; elp.el --- Emacs Lisp Profiler  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1995, 1997-1998, 2001-2013 Free Software
+;; Copyright (C) 1994-1995, 1997-1998, 2001-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Barry A. Warsaw
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 26-Feb-1994
 ;; Keywords: debugging lisp tools
 
@@ -251,7 +251,7 @@ FUNSYM must be a symbol of a defined function."
     ;; Set the symbol's new profiling function definition to run
     ;; ELP wrapper.
     (advice-add funsym :around (elp--make-wrapper funsym)
-                `((name . ,elp--advice-name)))))
+                `((name . ,elp--advice-name) (depth . -99)))))
 
 (defun elp--instrumented-p (sym)
   (advice-member-p elp--advice-name sym))

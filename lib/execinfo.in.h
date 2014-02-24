@@ -1,6 +1,6 @@
 /* Information about executables.
 
-   Copyright (C) 2012-2013 Free Software Foundation, Inc.
+   Copyright (C) 2012-2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,6 +20,9 @@
 #ifndef _GL_EXECINFO_H
 #define _GL_EXECINFO_H
 
+#ifndef _GL_INLINE_HEADER_BEGIN
+ #error "Please include config.h first."
+#endif
 _GL_INLINE_HEADER_BEGIN
 #ifndef _GL_EXECINFO_INLINE
 # define _GL_EXECINFO_INLINE _GL_INLINE

@@ -1,6 +1,6 @@
 ;;; ispell.el --- interface to International Ispell Versions 3.1 and 3.2
 
-;; Copyright (C) 1994-1995, 1997-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997-2014 Free Software Foundation, Inc.
 
 ;; Author:           Ken Stevens <k.stevens@ieee.org>
 ;; Maintainer:       Ken Stevens <k.stevens@ieee.org>
@@ -1157,7 +1157,7 @@ all uninitialized dicts using that affix file."
 	  (use-for-dicts (list dict))
 	  (dict-args-cdr (cdr (ispell-parse-hunspell-affix-file dict)))
 	  newlist)
-      ;; Get a list of unitialized dicts using the same affix file.
+      ;; Get a list of uninitialized dicts using the same affix file.
       (dolist (dict-equiv-alist-entry ispell-hunspell-dictionary-equivs-alist)
 	(let ((dict-equiv-key (car dict-equiv-alist-entry))
 	      (dict-equiv-value (cadr dict-equiv-alist-entry)))
@@ -1383,7 +1383,8 @@ aspell is used along with Emacs).")
 		;; Unless default dict, re-add "-d" option with the mapped value
 		(if dict-name
 		    (if dict-equiv
-			(nconc ispell-args (list "-d" dict-equiv))
+			(setq ispell-args
+			      (nconc ispell-args (list "-d" dict-equiv)))
 		      (message
 		       "ispell-set-spellchecker-params: Missing hunspell equiv for \"%s\". Skipping."
 		       dict-name)
@@ -2217,7 +2218,7 @@ Global `ispell-quit' set to start location to continue spell session."
 	(window-min-height (min window-min-height
 				ispell-choices-win-default-height))
 	(command-characters '( ?  ?i ?a ?A ?r ?R ?? ?x ?X ?q ?l ?u ?m ))
-	(dedicated (window-dedicated-p (selected-window)))
+	(dedicated (window-dedicated-p))
 	(skipped 0)
 	char num result textwin dedicated-win)
 
@@ -2328,10 +2329,14 @@ Global `ispell-quit' set to start location to continue spell session."
 		   ((= char ?i)		; accept and insert word into pers dict
 		    (ispell-send-string (concat "*" word "\n"))
 		    (setq ispell-pdict-modified-p '(t)) ; dictionary modified!
+		    (and (fboundp 'flyspell-unhighlight-at)
+			 (flyspell-unhighlight-at start))
 		    nil)
 		   ((or (= char ?a) (= char ?A)) ; accept word without insert
 		    (ispell-send-string (concat "@" word "\n"))
 		    (add-to-list 'ispell-buffer-session-localwords word)
+		    (and (fboundp 'flyspell-unhighlight-at)
+			 (flyspell-unhighlight-at start))
 		    (or ispell-buffer-local-name ; session localwords might conflict
 			(setq ispell-buffer-local-name (buffer-name)))
 		    (if (null ispell-pdict-modified-p)
@@ -2402,7 +2407,7 @@ Global `ispell-quit' set to start location to continue spell session."
 					    "  --  word-list: "
 					    (or ispell-complete-word-dict
 						ispell-alternate-dictionary))
-				    miss (lookup-words new-word)
+				    miss (ispell-lookup-words new-word)
 				    choices miss
 				    line ispell-choices-win-default-height)
 			      (while (and choices ; adjust choices window.
@@ -2608,8 +2613,9 @@ SPC:   Accept word this time.
 		(sit-for 5))
 	    (erase-buffer)))))))
 
+(define-obsolete-function-alias 'lookup-words 'ispell-lookup-words "24.4")
 
-(defun lookup-words (word &optional lookup-dict)
+(defun ispell-lookup-words (word &optional lookup-dict)
   "Look up WORD in optional word-list dictionary LOOKUP-DICT.
 A `*' serves as a wild card.  If no wild cards, `look' is used if it exists.
 Otherwise the variable `ispell-grep-command' contains the command used to
@@ -2643,8 +2649,12 @@ if defined."
       (message "Starting \"%s\" process..." (file-name-nondirectory prog))
       (if look-p
           nil
+        (insert "^" word)
+        ;; When there are no wildcards, append one, for consistency
+        ;; with `look' behavior.
+        (unless wild-p (insert "*"))
+        (insert "$")
         ;; Convert * to .*
-        (insert "^" word "$")
         (while (search-backward "*" nil t) (insert "."))
         (setq word (buffer-string))
         (erase-buffer))
@@ -3015,7 +3025,7 @@ Keeps argument list for future Ispell invocations for no async support."
 	(setq ispell-filter nil ispell-filter-continue nil)
       ;; may need to restart to select new personal dictionary.
       (ispell-kill-ispell t)
-      (message "Starting new Ispell process [%s::%s] ..."
+      (message "Starting new Ispell process %s with %s dictionary..."
 	       ispell-program-name
 	       (or ispell-local-dictionary ispell-dictionary "default"))
       (sit-for 0)
@@ -3295,7 +3305,8 @@ ispell-region: Search for first region to skip after (ispell-begin-skip-region-r
                    ispell-start ispell-end (point-at-eol) in-comment add-comment string)
 		  (if add-comment		; account for comment chars added
 		      (setq ispell-start (- ispell-start (length add-comment))
-			    add-comment nil))
+			    ;; Reset `in-comment' (and indirectly `add-comment') for new line
+			    in-comment nil))
 		  (setq ispell-end (point)) ; "end" tracks region retrieved.
 		  (if string		; there is something to spell check!
 		      ;; (special start end)
@@ -3761,7 +3772,7 @@ Use APPEND to append the info to previous buffer if exists."
 
 ;;;###autoload
 (defun ispell-complete-word (&optional interior-frag)
-  "Try to complete the word before or under point (see `lookup-words').
+  "Try to complete the word before or under point.
 If optional INTERIOR-FRAG is non-nil then the word may be a character
 sequence inside of a word.
 
@@ -3777,11 +3788,11 @@ Standard ispell choices are then available."
 	  word (car word)
 	  possibilities
 	  (or (string= word "")		; Will give you every word
-	      (lookup-words (concat (and interior-frag "*") word
-				    (if (or interior-frag (null ispell-look-p))
-					"*"))
-			    (or ispell-complete-word-dict
-				ispell-alternate-dictionary))))
+	      (ispell-lookup-words
+	       (concat (and interior-frag "*") word
+		       (and interior-frag "*"))
+	       (or ispell-complete-word-dict
+		   ispell-alternate-dictionary))))
     (cond ((eq possibilities t)
 	   (message "No word to complete"))
 	  ((null possibilities)
@@ -4331,8 +4342,13 @@ Both should not be used to define a buffer-local dictionary."
                                   (if (fboundp 'comment-padright)
                                       ;; Try and use the proper comment marker,
                                       ;; e.g. ";;" rather than ";".
-                                      (comment-padright comment-start
-                                                        (comment-add nil))
+				      (progn
+					;; XEmacs: comment-normalize-vars
+					;; (newcomment.el) only in >= 21.5
+					(and (fboundp 'comment-normalize-vars)
+					     (comment-normalize-vars))
+					(comment-padright comment-start
+							  (comment-add nil)))
                                     comment-start)
                                   " ")
                               "")

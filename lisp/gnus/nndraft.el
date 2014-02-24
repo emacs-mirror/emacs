@@ -1,6 +1,6 @@
 ;;; nndraft.el --- draft article access for Gnus
 
-;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -255,11 +255,16 @@ are generated if and only if they are also in `message-draft-headers'.")
 (deffoo nndraft-request-expire-articles (articles group &optional server force)
   (nndraft-possibly-change-group group)
   (let* ((nnmh-allow-delete-final t)
-	 (nnmail-expiry-target
-	  (or (gnus-group-find-parameter
-	       (gnus-group-prefixed-name group (list 'nndraft server))
-	       'expiry-target t)
-	      nnmail-expiry-target))
+	 (nnmail-expiry-target 'delete)
+	 ;; FIXME: If we want to move a draft message to an expiry group,
+	 ;; there are things to have to improve:
+	 ;; - Remove a header separator.
+	 ;; - Encode it, including attachments, into a MIME message.
+	 ;;(nnmail-expiry-target
+	 ;; (or (gnus-group-find-parameter
+	 ;;      (gnus-group-prefixed-name group (list 'nndraft server))
+	 ;;      'expiry-target t)
+	 ;;     nnmail-expiry-target))
 	 (res (nnoo-parent-function 'nndraft
 				    'nnmh-request-expire-articles
 				    (list articles group server force)))
@@ -346,8 +351,7 @@ are generated if and only if they are also in `message-draft-headers'.")
    nnmh-retrieve-headers
    nnmh-request-group
    nnmh-close-group
-   nnmh-request-list
-   nnmh-request-newsgroups))
+   nnmh-request-list))
 
 (provide 'nndraft)
 

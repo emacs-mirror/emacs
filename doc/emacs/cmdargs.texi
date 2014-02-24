@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Emacs Invocation
@@ -10,6 +10,7 @@
 @cindex switches (command line)
 @cindex startup (command line arguments)
 @cindex invocation (command line arguments)
+@c FIXME: Document `--smid'?  --xfq
 
   Emacs supports command line arguments to request various actions
 when invoking Emacs.  These are for compatibility with other editors
@@ -135,7 +136,14 @@ visited.
 @opindex -L
 @itemx --directory=@var{dir}
 @opindex --directory
-Add directory @var{dir} to the variable @code{load-path}.
+Prepend directory @var{dir} to the variable @code{load-path}.
+If you specify multiple @samp{-L} options, Emacs preserves the
+relative order; i.e., using @samp{-L /foo -L /bar} results in
+a @code{load-path} of the form @code{("/foo" "/bar" @dots{})}.
+If @var{dir} begins with @samp{:}, Emacs removes the @samp{:} and
+appends (rather than prepends) the remainder to @code{load-path}.
+(On MS Windows, use @samp{;} instead of @samp{:}; i.e., use
+the value of @code{path-separator}.)
 
 @item -f @var{function}
 @opindex -f
@@ -251,7 +259,8 @@ terminal's standard input stream (@code{stdin}) instead.
 but @file{site-start.el} is loaded nonetheless.  It also causes Emacs
 to exit after processing all the command options.  In addition, it
 disables auto-saving except in buffers for which auto-saving is
-explicitly requested.
+explicitly requested, and when saving files it omits the @code{fsync}
+system call unless otherwise requested.
 
 @item --script @var{file}
 @opindex --script
@@ -437,8 +446,8 @@ when you specify a relative directory name.
 @item DBUS_SESSION_BUS_ADDRESS
 Used by D-Bus when Emacs is compiled with it.  Usually, there is no
 need to change it.  Setting it to a dummy address, like
-@samp{unix:path=/tmp/foo}, suppresses connections to the D-Bus session
-bus.
+@samp{unix:path=/dev/null}, suppresses connections to the D-Bus session
+bus as well as autolaunching the D-Bus session bus if not running yet.
 @item EMACSDATA
 Directory for the architecture-independent files that come with Emacs.
 This is used to initialize the variable @code{data-directory}.
@@ -446,13 +455,16 @@ This is used to initialize the variable @code{data-directory}.
 Directory for the documentation string file, which is used to
 initialize the Lisp variable @code{doc-directory}.
 @item EMACSLOADPATH
-A colon-separated list of directories@footnote{ Here and below,
+A colon-separated list of directories@footnote{Here and below,
 whenever we say ``colon-separated list of directories'', it pertains
 to Unix and GNU/Linux systems.  On MS-DOS and MS-Windows, the
 directories are separated by semi-colons instead, since DOS/Windows
-file names might include a colon after a drive letter.}  to search for
-Emacs Lisp files.  If set, it overrides the usual initial value of the
-@code{load-path} variable (@pxref{Lisp Libraries}).
+file names might include a colon after a drive letter.} to search for
+Emacs Lisp files.  If set, it modifies the usual initial value of the
+@code{load-path} variable (@pxref{Lisp Libraries}).  An empty element
+stands for the default value of @code{load-path}; e.g., using
+@samp{EMACSLOADPATH="/tmp:"} adds @file{/tmp} to the front of
+the default @code{load-path}.
 @item EMACSPATH
 A colon-separated list of directories to search for executable files.
 If set, Emacs uses this in addition to @env{PATH} (see below) when

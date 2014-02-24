@@ -1,6 +1,6 @@
 ;;; fontset.el --- commands for handling fontset
 
-;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2014 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -357,7 +357,7 @@
     (dolist (elt cjk)
       (let ((mask (lsh 1 i)))
 	(map-charset-chars
-	 #'(lambda (range arg)
+	 #'(lambda (range _arg)
 	     (let ((from (car range)) (to (cdr range)))
 	       (if (< to #x110000)
 		   (while (<= from to)
@@ -805,6 +805,8 @@ Internal use only.  Should be called at startup time."
 ;; These fonts require vertical centering.
 (setq vertical-centering-font-regexp
       (purecopy "gb2312\\|gbk\\|gb18030\\|jisx0208\\|jisx0212\\|ksc5601\\|cns11643\\|big5"))
+(put 'vertical-centering-font-regexp 'standard-value
+     (list vertical-centering-font-regexp))
 
 ;; CDAC fonts are actually smaller than their design sizes.
 (setq face-font-rescale-alist
@@ -874,7 +876,7 @@ Return nil if PATTERN doesn't conform to XLFD."
 	      (aset xlfd-fields i nil)))
 	xlfd-fields)))
 
-(defun x-compose-font-name (fields &optional reduce)
+(defun x-compose-font-name (fields &optional _reduce)
   "Compose X fontname from FIELDS.
 FIELDS is a vector of XLFD fields, of length 12.
 If a field is nil, wild-card letter `*' is embedded.
@@ -952,7 +954,7 @@ Done when `mouse-set-font' is called."
 	(let ((family (aref xlfd-fields xlfd-regexp-family-subnum))
 	      (weight (aref xlfd-fields xlfd-regexp-weight-subnum))
 	      (slant  (aref xlfd-fields xlfd-regexp-slant-subnum))
-	      (swidth (aref xlfd-fields xlfd-regexp-swidth-subnum))
+	      ;(swidth (aref xlfd-fields xlfd-regexp-swidth-subnum))
 	      (size   (aref xlfd-fields xlfd-regexp-pixelsize-subnum))
 	      (nickname (aref xlfd-fields xlfd-regexp-registry-subnum))
 	      name)
@@ -1037,7 +1039,7 @@ This alist is used by the function `create-fontset-from-fontset-spec'
 to map charsets to scripts.")
 
 (defun create-fontset-from-fontset-spec (fontset-spec
-					 &optional style-variant noerror)
+					 &optional _style-variant _noerror)
   "Create a fontset from fontset specification string FONTSET-SPEC.
 FONTSET-SPEC is a string of the format:
 	FONTSET-NAME,SCRIPT-NAME0:FONT-NAME0,SCRIPT-NAME1:FONT-NAME1, ...

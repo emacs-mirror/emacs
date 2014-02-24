@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Documentation
@@ -10,8 +10,13 @@
   GNU Emacs has convenient built-in help facilities, most of which
 derive their information from documentation strings associated with
 functions and variables.  This chapter describes how to access
-documentation strings in Lisp programs.  @xref{Documentation Tips},
-for how to write good documentation strings.
+documentation strings in Lisp programs.
+
+  The contents of a documentation string should follow certain
+conventions.  In particular, its first line should be a complete
+sentence (or two complete sentences) that briefly describes what the
+function or variable does.  @xref{Documentation Tips}, for how to
+write good documentation strings.
 
   Note that the documentation strings for Emacs are not the same thing
 as the Emacs manual.  Manuals have their own source files, written in
@@ -40,78 +45,48 @@ Help, emacs, The GNU Emacs Manual}.
 @cindex string, writing a doc string
 
   A documentation string is written using the Lisp syntax for strings,
-with double-quote characters surrounding the text of the string.  This
-is because it really is a Lisp string object.  The string serves as
-documentation when it is written in the proper place in the definition
-of a function or variable.  In a function definition, the documentation
-string follows the argument list.  In a variable definition, the
-documentation string follows the initial value of the variable.
+with double-quote characters surrounding the text.  It is, in fact, an
+actual Lisp string.  When the string appears in the proper place in a
+function or variable definition, it serves as the function's or
+variable's documentation.
 
-  When you write a documentation string, make the first line a
-complete sentence (or two complete sentences) that briefly describes
-what the function or variable does.  Some commands, such as
-@code{apropos}, show only the first line of a multi-line documentation
-string.  Also, you should not indent the second line of a
-documentation string, if it has one, because that looks odd when you
-use @kbd{C-h f} (@code{describe-function}) or @kbd{C-h v}
-(@code{describe-variable}) to view the documentation string.  There
-are many other conventions for documentation strings; see
-@ref{Documentation Tips}.
+@cindex @code{function-documentation} property
+  In a function definition (a @code{lambda} or @code{defun} form), the
+documentation string is specified after the argument list, and is
+normally stored directly in the function object.  @xref{Function
+Documentation}.  You can also put function documentation in the
+@code{function-documentation} property of a function name
+(@pxref{Accessing Documentation}).
 
-  Documentation strings can contain several special text sequences,
-referring to key bindings which are looked up in the current keymaps
-when the user views the documentation.  This allows the help commands
-to display the correct keys even if a user rearranges the default key
+@cindex @code{variable-documentation} property
+  In a variable definition (a @code{defvar} form), the documentation
+string is specified after the initial value.  @xref{Defining
+Variables}.  The string is stored in the variable's
+@code{variable-documentation} property.
+
+@cindex @file{DOC} (documentation) file
+  Sometimes, Emacs does not keep documentation strings in memory.
+There are two such circumstances.  Firstly, to save memory, the
+documentation for preloaded functions and variables (including
+primitives) is kept in a file named @file{DOC}, in the directory
+specified by @code{doc-directory} (@pxref{Accessing Documentation}).
+Secondly, when a function or variable is loaded from a byte-compiled
+file, Emacs avoids loading its documentation string (@pxref{Docs and
+Compilation}).  In both cases, Emacs looks up the documentation string
+from the file only when needed, such as when the user calls @kbd{C-h
+f} (@code{describe-function}) for a function.
+
+  Documentation strings can contain special @dfn{key substitution
+sequences}, referring to key bindings which are looked up only when
+the user views the documentation.  This allows the help commands to
+display the correct keys even if a user rearranges the default key
 bindings.  @xref{Keys in Documentation}.
 
   In the documentation string of an autoloaded command
-(@pxref{Autoload}), these special text sequences have an additional
-special effect: they cause @kbd{C-h f} (@code{describe-function}) on
-the command to trigger autoloading.  (This is needed for correctly
-setting up the hyperlinks in the @file{*Help*} buffer).
-
-@vindex emacs-lisp-docstring-fill-column
-  Emacs Lisp mode fills documentation strings to the width
-specified by @code{emacs-lisp-docstring-fill-column}.
-
-  Exactly where a documentation string is stored depends on how its
-function or variable was defined or loaded into memory:
-
-@itemize @bullet
-@item
-@kindex function-documentation
-When you define a function (@pxref{Lambda Expressions}, and
-@pxref{Function Documentation}), the documentation string is stored in
-the function definition itself.  You can also put function
-documentation in the @code{function-documentation} property of a
-function name.  That is useful for function definitions which can't
-hold a documentation string, such as keyboard macros.
-
-@item
-@kindex variable-documentation
-When you define a variable with a @code{defvar} or related form
-(@pxref{Defining Variables}), the documentation is stored in the
-variable's @code{variable-documentation} property.
-
-@cindex @file{DOC-@var{version}} (documentation) file
-@item
-To save memory, the documentation for preloaded functions and
-variables (including primitive functions and autoloaded functions) is
-not kept in memory, but in the file
-@file{emacs/etc/DOC-@var{version}}, where @var{version} is the Emacs
-version number (@pxref{Version Info}).
-
-@item
-When a function or variable is loaded from a byte-compiled file during
-the Emacs session, its documentation string is not loaded into memory.
-Instead, Emacs looks it up in the byte-compiled file as needed.
-@xref{Docs and Compilation}.
-@end itemize
-
-@noindent
-Regardless of where the documentation string is stored, you can
-retrieve it using the @code{documentation} or
-@code{documentation-property} function, described in the next section.
+(@pxref{Autoload}), these key-substitution sequences have an
+additional special effect: they cause @kbd{C-h f} on the command to
+trigger autoloading.  (This is needed for correctly setting up the
+hyperlinks in the @file{*Help*} buffer.)
 
 @node Accessing Documentation
 @section Access to Documentation Strings
@@ -123,18 +98,20 @@ most often used to look up the documentation strings of variables, for
 which @var{property} is @code{variable-documentation}.  However, it
 can also be used to look up other kinds of documentation, such as for
 customization groups (but for function documentation, use the
-@code{documentation} command, below).
+@code{documentation} function, below).
 
-If the value recorded in the property list refers to a documentation
-string stored in a @file{DOC-@var{version}} file or a byte-compiled
-file, it looks up that string and returns it.  If the property value
-isn't @code{nil}, isn't a string, and doesn't refer to text in a file,
-then it is evaluated as a Lisp expression to obtain a string.
+If the property value refers to a documentation string stored in the
+@file{DOC} file or a byte-compiled file, this function looks up that
+string and returns it.
 
-The last thing this function does is pass the string through
-@code{substitute-command-keys} to substitute actual key bindings
-(@pxref{Keys in Documentation}).  However, it skips this step if
-@var{verbatim} is non-@code{nil}.
+If the property value isn't @code{nil}, isn't a string, and doesn't
+refer to text in a file, then it is evaluated as a Lisp expression to
+obtain a string.
+
+Finally, this function passes the string through
+@code{substitute-command-keys} to substitute key bindings (@pxref{Keys
+in Documentation}).  It skips this step if @var{verbatim} is
+non-@code{nil}.
 
 @smallexample
 @group
@@ -161,16 +138,18 @@ ordinary functions.
 If @var{function} is a symbol, this function first looks for the
 @code{function-documentation} property of that symbol; if that has a
 non-@code{nil} value, the documentation comes from that value (if the
-value is not a string, it is evaluated).  If @var{function} is not a
-symbol, or if it has no @code{function-documentation} property, then
-@code{documentation} extracts the documentation string from the actual
-function definition, reading it from a file if called for.
+value is not a string, it is evaluated).
 
-Finally, unless @var{verbatim} is non-@code{nil}, it calls
-@code{substitute-command-keys} so as to return a value containing the
-actual (current) key bindings.
+If @var{function} is not a symbol, or if it has no
+@code{function-documentation} property, then @code{documentation}
+extracts the documentation string from the actual function definition,
+reading it from a file if called for.
 
-The function @code{documentation} signals a @code{void-function} error
+Finally, unless @var{verbatim} is non-@code{nil}, this function calls
+@code{substitute-command-keys}.  The result is the documentation
+string to return.
+
+The @code{documentation} function signals a @code{void-function} error
 if @var{function} has no function definition.  However, it is OK if
 the function definition has no documentation string.  In that case,
 @code{documentation} returns @code{nil}.
@@ -181,7 +160,6 @@ This function returns the documentation string of @var{face} as a
 face.
 @end defun
 
-@c Wordy to prevent overfull hboxes.  --rjc 15mar92
 Here is an example of using the two functions, @code{documentation} and
 @code{documentation-property}, to display the documentation strings for
 several symbols in a @file{*Help*} buffer.
@@ -296,12 +274,12 @@ memory in the function definitions and variable property lists.
 Emacs reads the file @var{filename} from the @file{emacs/etc} directory.
 When the dumped Emacs is later executed, the same file will be looked
 for in the directory @code{doc-directory}.  Usually @var{filename} is
-@code{"DOC-@var{version}"}.
+@code{"DOC"}.
 @end defun
 
 @defvar doc-directory
 This variable holds the name of the directory which should contain the
-file @code{"DOC-@var{version}"} that contains documentation strings for
+file @code{"DOC"} that contains documentation strings for
 built-in and preloaded functions and variables.
 
 In most cases, this is the same as @code{data-directory}.  They may be
@@ -314,6 +292,7 @@ without actually installing it.  @xref{Definition of data-directory}.
 @cindex documentation, keys in
 @cindex keys in documentation strings
 @cindex substituting keys in documentation
+@cindex key substitution sequence
 
   When documentation strings refer to key sequences, they should use the
 current, actual key bindings.  They can do so using certain special text

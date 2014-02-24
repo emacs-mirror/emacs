@@ -1,6 +1,6 @@
 ;;; term.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2013 Free Software
+;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Per Bothner <per@bothner.com>
@@ -560,6 +560,13 @@ This variable is buffer-local."
   :type 'boolean
   :group 'term)
 
+(defcustom term-suppress-hard-newline nil
+  "Non-nil means interpreter should not break long lines with newlines.
+This means text can automatically reflow if the window is resized."
+  :version "24.4"
+  :type 'boolean
+  :group 'term)
+
 ;; Where gud-display-frame should put the debugging arrow.  This is
 ;; set by the marker-filter, which scans the debugger's output for
 ;; indications of the current pc.
@@ -953,7 +960,7 @@ is buffer-local."
   (when term-escape-char
     ;; Undo previous term-set-escape-char.
     (define-key term-raw-map term-escape-char 'term-send-raw))
-  (setq term-escape-char (vector key))
+  (setq term-escape-char (if (vectorp key) key (vector key)))
   (define-key term-raw-map term-escape-char term-raw-escape-map)
   ;; FIXME: If we later call term-set-escape-char again with another key,
   ;; we should undo this binding.
@@ -968,8 +975,8 @@ is buffer-local."
 	   (display-graphic-p)
 	   overflow-newline-into-fringe
 	   (/= (frame-parameter nil 'right-fringe) 0))
-      (window-width)
-    (1- (window-width))))
+      (window-body-width)
+    (1- (window-body-width))))
 
 
 (put 'term-mode 'mode-class 'special)
@@ -1245,15 +1252,14 @@ without any interpretation."
     (setq this-command 'yank)
     (mouse-set-point click)
     (term-send-raw-string
-     (or (cond  ; From `mouse-yank-primary':
-	  ((eq system-type 'windows-nt)
-	   (or (x-get-selection 'PRIMARY)
-	       (x-get-selection-value)))
-	  ((fboundp 'x-get-selection-value)
-	   (or (x-get-selection-value)
-	       (x-get-selection 'PRIMARY)))
-	  (t
-	   (x-get-selection 'PRIMARY)))
+     ;; From `mouse-yank-primary':
+     (or (if (fboundp 'x-get-selection-value)
+             (if (eq system-type 'windows-nt)
+                 (or (x-get-selection 'PRIMARY)
+                     (x-get-selection-value))
+               (or (x-get-selection-value)
+                   (x-get-selection 'PRIMARY)))
+	   (x-get-selection 'PRIMARY))
 	 (error "No selection is available")))))
 
 (defun term-paste ()
@@ -2828,8 +2834,9 @@ See `term-prompt-regexp'."
 			  (setq count (length decoded-substring))
 			  (setq temp (- (+ (term-horizontal-column) count)
 					term-width))
-			  (cond ((<= temp 0)) ;; All count chars fit in line.
-				((> count temp)	;; Some chars fit.
+			  (cond ((or term-suppress-hard-newline (<= temp 0)))
+				;; All count chars fit in line.
+				((> count temp) ;; Some chars fit.
 				 ;; This iteration, handle only what fits.
 				 (setq count (- count temp))
 				 (setq count-bytes
@@ -2929,8 +2936,10 @@ See `term-prompt-regexp'."
 			  (let ((end (string-match "\r?$" str i)))
 			    (if end
 				(funcall term-command-hook
-					 (prog1 (substring str (1+ i) end)
-					   (setq i (match-end 0))))
+					 (decode-coding-string
+					  (prog1 (substring str (1+ i) end)
+					    (setq i (match-end 0)))
+					  locale-coding-system))
 			      (setq term-terminal-parameter (substring str i))
 			      (setq term-terminal-state 4)
 			      (setq i str-length))))

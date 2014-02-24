@@ -1,6 +1,6 @@
-;;; battery.el --- display battery status information  -*- coding: iso-8859-1 -*-
+;;; battery.el --- display battery status information  -*- coding: utf-8 -*-
 
-;; Copyright (C) 1997-1998, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;; Keywords: hardware
@@ -116,7 +116,7 @@ string are substituted as defined by the current value of the variable
 
 (defcustom battery-mode-line-format
   (cond ((eq battery-status-function 'battery-linux-proc-acpi)
-	 "[%b%p%%,%d°C]")
+	 "[%b%p%%,%dÂ°C]")
 	(battery-status-function
 	 "[%b%p%%]"))
   "Control string formatting the string to display in the mode line.
@@ -615,7 +615,7 @@ The following %-sequences are provided:
     (with-temp-buffer
       (ignore-errors (call-process "pmset" nil t nil "-g" "ps"))
       (goto-char (point-min))
-      (when (re-search-forward "Currentl?y drawing from '\\(AC\\|Battery\\) Power'" nil t)
+      (when (re-search-forward "\\(?:Currentl?y\\|Now\\) drawing from '\\(AC\\|Battery\\) Power'" nil t)
 	(setq power-source (match-string 1))
 	(when (re-search-forward "^ -InternalBattery-0[ \t]+" nil t)
 	  (when (looking-at "\\([0-9]\\{1,3\\}\\)%")

@@ -1,7 +1,7 @@
 /* sha1.c - Functions to compute SHA1 message digest of files or
    memory blocks according to the NIST specification FIPS-180-1.
 
-   Copyright (C) 2000-2001, 2003-2006, 2008-2013 Free Software Foundation, Inc.
+   Copyright (C) 2000-2001, 2003-2006, 2008-2014 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -23,6 +23,9 @@
 
 #include <config.h>
 
+#if HAVE_OPENSSL_SHA1
+# define GL_OPENSSL_INLINE _GL_EXTERN_INLINE
+#endif
 #include "sha1.h"
 
 #include <stdalign.h>
@@ -46,6 +49,7 @@
 # error "invalid BLOCKSIZE"
 #endif
 
+#if ! HAVE_OPENSSL_SHA1
 /* This array contains the bytes used to pad the buffer to the next
    64-byte boundary.  (RFC 1321, 3.1: Step 1)  */
 static const unsigned char fillbuf[64] = { 0x80, 0 /* , 0, 0, ...  */ };
@@ -116,6 +120,7 @@ sha1_finish_ctx (struct sha1_ctx *ctx, void *resbuf)
 
   return sha1_read_ctx (ctx, resbuf);
 }
+#endif
 
 /* Compute SHA1 message digest for bytes read from STREAM.  The
    resulting message digest number will be written into the 16 bytes
@@ -190,6 +195,7 @@ sha1_stream (FILE *stream, void *resblock)
   return 0;
 }
 
+#if ! HAVE_OPENSSL_SHA1
 /* Compute SHA1 message digest for LEN bytes beginning at BUFFER.  The
    result is always in little endian byte order, so that a byte-wise
    output yields to the wanted ASCII representation of the message
@@ -424,3 +430,4 @@ sha1_process_block (const void *buffer, size_t len, struct sha1_ctx *ctx)
       e = ctx->E += e;
     }
 }
+#endif

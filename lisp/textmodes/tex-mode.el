@@ -1,9 +1,9 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2013 Free
+;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2014 Free
 ;; Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: tex
 
 ;; Contributions over the years by William F. Schelter, Dick King,
@@ -2680,6 +2680,8 @@ Runs the shell command defined by `tex-show-queue-command'."
 (defvar tex-indent-item tex-indent-basic)
 (defvar tex-indent-item-re "\\\\\\(bib\\)?item\\>")
 (defvar latex-noindent-environments '("document"))
+(put 'latex-noindent-environments 'safe-local-variable
+     (lambda (x) (null (delq t (mapcar 'stringp x)))))
 
 (defvar tex-latex-indent-syntax-table
   (let ((st (make-syntax-table tex-mode-syntax-table)))
@@ -2801,7 +2803,7 @@ There might be text before point."
 	  (t
 	   (let ((col (current-column)))
 	     (if (or (not (eq (char-syntax (or (char-after pos) ?\s)) ?\())
-		     ;; Can't be an arg if there's an empty line inbetween.
+		     ;; Can't be an arg if there's an empty line in between.
 		     (save-excursion (re-search-forward "^[ \t]*$" pos t)))
 		 ;; If the first char was not an open-paren, there's
 		 ;; a risk that this is really not an argument to the

@@ -1,8 +1,8 @@
 ;;; mail-utils.el --- utility functions used both by rmail and rnews
 
-;; Copyright (C) 1985, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2014 Free Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail, news
 
 ;; This file is part of GNU Emacs.
@@ -183,17 +183,15 @@ as Rmail does."
 		   (error "Malformed MIME quoted-printable message"))))
 	  (not failed))))))
 
-(eval-when-compile (require 'rfc822))
+(autoload 'rfc822-addresses "rfc822")
 
 (defun mail-strip-quoted-names (address)
   "Delete comments and quoted strings in an address list ADDRESS.
 Also delete leading/trailing whitespace and replace FOO <BAR> with just BAR.
 Return a modified address list."
-  (if (null address)
-      nil
+  (when address
     (if mail-use-rfc822
-	(progn (require 'rfc822)
-	       (mapconcat 'identity (rfc822-addresses address) ", "))
+	(mapconcat 'identity (rfc822-addresses address) ", ")
       (let (pos)
 
         ;; Strip comments.

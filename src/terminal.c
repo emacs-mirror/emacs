@@ -1,5 +1,5 @@
 /* Functions related to terminal devices.
-   Copyright (C) 2005-2013 Free Software Foundation, Inc.
+   Copyright (C) 2005-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-
-#define TERMHOOKS_INLINE EXTERN_INLINE
 
 #include <stdio.h>
 
@@ -38,6 +36,8 @@ static int next_terminal_id;
 
 /* The initial terminal device, created by initial_term_init. */
 struct terminal *initial_terminal;
+
+static Lisp_Object Qterminal_live_p;
 
 static void delete_initial_terminal (struct terminal *);
 
@@ -199,11 +199,11 @@ ins_del_lines (struct frame *f, int vpos, int n)
 
 /* Return the terminal object specified by TERMINAL.  TERMINAL may be
    a terminal object, a frame, or nil for the terminal device of the
-   current frame.  If THROW is zero, return NULL for failure,
+   current frame.  If THROW is false, return NULL for failure,
    otherwise throw an error.  */
 
 struct terminal *
-get_terminal (Lisp_Object terminal, int throw)
+get_terminal (Lisp_Object terminal, bool throw)
 {
   struct terminal *result = NULL;
 
@@ -280,7 +280,7 @@ delete_terminal (struct terminal *terminal)
   xfree (terminal->name);
   terminal->name = NULL;
 
-  /* Check for live frames that are still on this terminal. */
+  /* Check for live frames that are still on this terminal.  */
   FOR_EACH_FRAME (tail, frame)
     {
       struct frame *f = XFRAME (frame);
@@ -500,7 +500,15 @@ selected frame's terminal).  */)
   return store_terminal_param (t, parameter, value);
 }
 
-
+/* Initial frame has no device-dependent output data, but has
+   face cache which should be freed when the frame is deleted.  */
+
+static void
+initial_free_frame_resources (struct frame *f)
+{
+  eassert (FRAME_INITIAL_P (f));
+  free_frame_faces (f);
+}
 
 /* Create the bootstrap display terminal for the initial frame.
    Returns a terminal of type output_initial.  */
@@ -516,6 +524,7 @@ init_initial_terminal (void)
   initial_terminal->name = xstrdup ("initial_terminal");
   initial_terminal->kboard = initial_kboard;
   initial_terminal->delete_terminal_hook = &delete_initial_terminal;
+  initial_terminal->delete_frame_hook = &initial_free_frame_resources;
   /* All other hooks are NULL. */
 
   return initial_terminal;
@@ -549,6 +558,8 @@ Each function is called with argument, the terminal.
 This may be called just before actually deleting the terminal,
 or some time later.  */);
   Vdelete_terminal_functions = Qnil;
+
+  DEFSYM (Qterminal_live_p, "terminal-live-p");
   DEFSYM (Qdelete_terminal_functions, "delete-terminal-functions");
   DEFSYM (Qrun_hook_with_args, "run-hook-with-args");
 

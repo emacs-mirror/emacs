@@ -1,6 +1,6 @@
 ;;; srecode/dictionary.el --- Dictionary code for the semantic recoder.
 
-;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -175,7 +175,7 @@ associated with a buffer or parent."
        ((srecode-dictionary-child-p buffer-or-parent)
 	(setq parent buffer-or-parent
 	      buffer (oref buffer-or-parent buffer)
-	      origin (concat (object-name buffer-or-parent) " in "
+	      origin (concat (eieio-object-name buffer-or-parent) " in "
 			     (if buffer (buffer-name buffer)
 			       "no buffer")))
 	(when buffer
@@ -454,12 +454,12 @@ If you subclass `srecode-dictionary-compound-value' then this
 method could return nil, but if it does that, it must insert
 the value itself using `princ', or by detecting if the current
 standard out is a buffer, and using `insert'."
-  (object-name cp))
+  (eieio-object-name cp))
 
 (defmethod srecode-dump ((cp srecode-dictionary-compound-value)
 			 &optional indent)
   "Display information about this compound value."
-  (princ (object-name cp))
+  (princ (eieio-object-name cp))
   )
 
 (defmethod srecode-compound-toString ((cp srecode-dictionary-compound-variable)
@@ -654,7 +654,7 @@ STATE is the current compiler state."
 				       4)))
 		      (while entry
 			(princ " --> SUBDICTIONARY ")
-			(princ (object-name dict))
+			(princ (eieio-object-name dict))
 			(princ "\n")
 			(srecode-dump (car entry) newindent)
 			(setq entry (cdr entry))

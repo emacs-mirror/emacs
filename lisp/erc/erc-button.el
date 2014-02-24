@@ -1,9 +1,9 @@
-;; erc-button.el --- A way of buttonizing certain things in ERC buffers
+;; erc-button.el --- A way of buttonizing certain things in ERC buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2004, 2006-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2004, 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: irc, button, url, regexp
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcButton
 
@@ -189,6 +189,8 @@ PAR is a number of a regexp grouping whose text will be passed to
                 (choice :tag "Matches"
                         regexp
                         (variable :tag "Variable containing regexp")
+                        ;; FIXME It really does mean 'nicknames
+                        ;; rather than just nicknames.
                         (const :tag "Nicknames" 'nicknames))
                 (integer :tag "Number of the regexp section that matches")
                 (choice :tag "When to buttonize"
@@ -267,7 +269,7 @@ specified by `erc-button-alist'."
             (inhibit-point-motion-hooks t)
             (inhibit-field-text-motion t)
             (alist erc-button-alist)
-            entry regexp data)
+            regexp)
         (erc-button-remove-old-buttons)
         (dolist (entry alist)
           (if (equal (car entry) (quote (quote nicknames)))
@@ -407,7 +409,7 @@ REGEXP is the regular expression which matched for this button."
 ;; Since Emacs runs this directly, rather than with
 ;; widget-button-click, we need to fake an extra arg in the
 ;; interactive spec.
-(defun erc-button-click-button (ignore event)
+(defun erc-button-click-button (_ignore event)
   "Call `erc-button-press-button'."
   (interactive "P\ne")
   (save-excursion
@@ -416,7 +418,7 @@ REGEXP is the regular expression which matched for this button."
 
 ;; XEmacs calls this via widget-button-press with a bunch of arguments
 ;; which we don't care about.
-(defun erc-button-press-button (&rest ignore)
+(defun erc-button-press-button (&rest _ignore)
   "Check text at point for a callback function.
 If the text at point has a `erc-callback' property,
 call it with the value of the `erc-data' text property."
@@ -432,19 +434,22 @@ call it with the value of the `erc-data' text property."
 (defun erc-button-next-function ()
   "Pseudo completion function that actually jumps to the next button.
 For use on `completion-at-point-functions'."
-    (when (< (point) (erc-beg-of-input-line))
-      `(lambda ()
-         (let ((here ,(point)))
-           (while (and (get-text-property here 'erc-callback)
-                       (not (= here (point-max))))
-             (setq here (1+ here)))
-           (while (and (not (get-text-property here 'erc-callback))
-                       (not (= here (point-max))))
-             (setq here (1+ here)))
-           (if (< here (point-max))
-               (goto-char here)
-             (error "No next button"))
-           t))))
+  ;; FIXME: This is an abuse of completion-at-point-functions.
+  (when (< (point) (erc-beg-of-input-line))
+    (let ((start (point)))
+      (lambda ()
+        (let ((here start))
+          ;; FIXME: Use next-single-property-change.
+          (while (and (get-text-property here 'erc-callback)
+                      (not (= here (point-max))))
+            (setq here (1+ here)))
+          (while (not (or (get-text-property here 'erc-callback)
+                          (= here (point-max))))
+            (setq here (1+ here)))
+          (if (< here (point-max))
+              (goto-char here)
+            (error "No next button"))
+          t)))))
 
 (defun erc-button-next ()
   "Go to the next button in this buffer."
@@ -511,7 +516,7 @@ Examples:
          (code (cdr (assoc action erc-nick-popup-alist))))
     (when code
       (erc-set-active-buffer (current-buffer))
-      (eval code))))
+      (eval code `((nick . ,nick))))))
 
 ;;; Callback functions
 (defun erc-button-describe-symbol (symbol-name)

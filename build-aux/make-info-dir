@@ -1,0 +1,106 @@
+#!/bin/sh
+
+### make-info-dir - create info/dir, for systems without install-info
+
+## Copyright (C) 2013-2014 Free Software Foundation, Inc.
+
+## Author: Glenn Morris <rgm@gnu.org>
+## Maintainer: emacs-devel@gnu.org
+
+## This file is part of GNU Emacs.
+
+## GNU Emacs is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+
+## GNU Emacs is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+
+## You should have received a copy of the GNU General Public License
+## along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+### Commentary:
+
+## Generate info/dir, for systems without install-info.
+## Expects to be called from top-level Emacs source directory.
+
+## It only handles the case where info/dir is missing from the
+## installation directory.  It does not handle info/dir being present
+## but missing some entries.
+
+### Code:
+
+if test $# -ne 1; then
+    echo "Specify destination file"
+    exit 1
+fi
+
+outfile=$1
+
+echo "Creating $outfile..."
+
+if test -f "$outfile"; then
+    echo "$outfile already present"
+    exit 1
+fi
+
+## Header contains non-printing characters, so this is more
+## reliable than using echo.
+basefile=build-aux/dir_top
+
+if test ! -f "$basefile"; then
+    echo "$basefile not found"
+    exit 1
+fi
+
+
+cp $basefile $outfile
+
+
+## FIXME inefficient looping.
+## What we should do is loop once over files, collecting topic and
+## direntry information for each.  Then loop over topics and write
+## out the results.  But that seems to require associative arrays,
+## and I do not know how to do that with portable sh.
+## Could use Emacs instead of sh, but till now info generation does
+## not require Emacs to have been built.
+for topic in "Texinfo documentation system" "Emacs" "Emacs lisp" \
+    "Emacs editing modes" "Emacs network features" "Emacs misc features" \
+    "Emacs lisp libraries"; do
+
+    cat - <<EOF >> $outfile
+
+$topic
+EOF
+    ## Bit faster than doc/*/*.texi.
+    for file in doc/emacs/emacs.texi doc/lispintro/emacs-lisp-intro.texi \
+        doc/lispref/elisp.texi doc/misc/*.texi; do
+
+        ## FIXME do not ignore w32 if OS is w32.
+        case $file in
+            *-xtra.texi|*efaq-w32.texi|*doclicense.texi) continue ;;
+        esac
+
+        dircat=`sed -n -e 's/@value{emacsname}/Emacs/' -e 's/^@dircategory //p' $file`
+
+        ## TODO warn about unknown topics.
+        ## (check-info in top-level Makefile does that.)
+        test "$dircat" = "$topic" || continue
+
+
+        sed -n -e 's/@value{emacsname}/Emacs/' \
+            -e 's/@acronym{\([A-Z]*\)}/\1/' \
+            -e '/^@direntry/,/^@end direntry/ s/^\([^@]\)/\1/p' \
+            $file >> $outfile
+
+    done
+done
+
+echo "Created $outfile"
+
+exit 0
+
+### make-info-dir ends here

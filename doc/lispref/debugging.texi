@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1994, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Debugging
@@ -32,7 +32,7 @@ program.
 
 @item
 You can use the ERT package to write regression tests for the program.
-@xref{Top,the ERT manual,, ERT, ERT: Emacs Lisp Regression Testing}.
+@xref{Top,the ERT manual,, ert, ERT: Emacs Lisp Regression Testing}.
 
 @item
 You can profile the program to get hints about how to make it more efficient.
@@ -388,6 +388,7 @@ the same function.  (To do this, visit the source for the function and
 type @kbd{C-M-x} on its definition.)  You cannot use the Lisp debugger
 to step through a primitive function.
 
+@c FIXME: Add @findex for the following commands?  --xfq
   Here is a list of Debugger mode commands:
 
 @table @kbd
@@ -424,7 +425,8 @@ Flag the current frame like @kbd{b}.  Then continue execution like
 are set up to do so by @code{debug-on-entry}.
 
 @item e
-Read a Lisp expression in the minibuffer, evaluate it, and print the
+Read a Lisp expression in the minibuffer, evaluate it (with the
+relevant lexical environment, if applicable), and print the
 value in the echo area.  The debugger alters certain important
 variables, and the current buffer, as part of its operation; @kbd{e}
 temporarily restores their values from outside the debugger, so you can
@@ -462,6 +464,9 @@ This is a list of functions that are set to break on entry by means of
 @code{debug-on-entry}.  @strong{Warning:} if you redefine such a
 function and thus cancel the effect of @code{debug-on-entry}, it may
 erroneously show up in this list.
+
+@item v
+Toggle the display of local variables of the current stack frame.
 @end table
 
 @node Invoking the Debugger

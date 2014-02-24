@@ -1,6 +1,6 @@
 ;; ede-make.srt --- SRecode templates for Makefiles used by EDE.
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -26,10 +26,11 @@ set application "ede"
 
 context file
 
-template ede-empty :file
+template ede-empty :file :project
 ----
 # Automatically Generated {{FILE}} by EDE.
 # For use with: {{MAKETYPE}}
+# Relative File Name: {{PROJECT_FILENAME}}
 #
 # DO NOT MODIFY THIS FILE OR YOUR CHANGES MAY BE LOST.
 # EDE is the Emacs Development Environment.

@@ -3,6 +3,7 @@
 @set TITLE  Semantic Manual
 @set AUTHOR Eric M. Ludlam, David Ponce, and Richard Y. Kim
 @settitle @value{TITLE}
+@documentencoding UTF-8
 
 @c *************************************************************************
 @c @ Header
@@ -24,7 +25,7 @@
 @copying
 This manual documents the Semantic library and utilities.
 
-Copyright @copyright{} 1999--2005, 2007, 2009--2013 Free Software
+Copyright @copyright{} 1999--2005, 2007, 2009--2014 Free Software
 Foundation, Inc.
 
 @quotation
@@ -49,6 +50,9 @@ modify this GNU manual.''
 @center @titlefont{Semantic}
 @sp 4
 @center by @value{AUTHOR}
+@page
+@vskip 0pt plus 1filll
+@insertcopying
 @end titlepage
 @page
 
@@ -351,7 +355,7 @@ tags are @emph{saved} while a buffer is not in memory.
 
 The database and tables both also provide applicable cache information,
 and cache flushing system.  The semanticdb search routines use caches
-to save datastructures that are complex to calculate.
+to save data structures that are complex to calculate.
 
 Lastly, it provides the concept of @dfn{project root}.  It is a system
 by which a file can be associated with the root of a project, so if
@@ -603,7 +607,7 @@ Emacs Lisp.  It is an LALR parser suitable for complex languages.
 @c LocalWords: backquote bnf bovinate bovinates LALR
 @c LocalWords: bovinating bovination bovinator bucketize
 @c LocalWords: cb cdr charquote checkcache cindex CLOS
-@c LocalWords: concat concocting const constantness ctxt Decl defcustom
+@c LocalWords: concat concocting const ctxt Decl defcustom
 @c LocalWords: deffn deffnx defun defvar destructor's dfn diff dir
 @c LocalWords: doc docstring EDE EIEIO elisp emacsman emph enum
 @c LocalWords: eq Exp EXPANDFULL expression fn foo func funcall

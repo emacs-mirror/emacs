@@ -1,11 +1,11 @@
 ;;; find-dired.el --- run a `find' command and dired the output
 
-;; Copyright (C) 1992, 1994-1995, 2000-2013 Free Software Foundation,
+;; Copyright (C) 1992, 1994-1995, 2000-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>,
 ;;	   Sebastian Kremer <sk@thp.uni-koeln.de>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: unix
 
 ;; This file is part of GNU Emacs.
@@ -236,9 +236,11 @@ use in place of \"-ls\" as the final argument."
   "Search DIR recursively for files matching the globbing pattern PATTERN,
 and run dired on those files.
 PATTERN is a shell wildcard (not an Emacs regexp) and need not be quoted.
-The command run (after changing into DIR) is
+The default command run (after changing into DIR) is
 
-    find . -name 'PATTERN' -ls"
+    find . -name 'PATTERN' -ls
+
+See `find-name-arg' to customize the arguments."
   (interactive
    "DFind-name (directory): \nsFind-name (filename wildcard): ")
   (find-dired dir (concat find-name-arg " " (shell-quote-argument pattern))))
@@ -252,7 +254,7 @@ The command run (after changing into DIR) is
 (defalias 'lookfor-dired 'find-grep-dired)
 ;;;###autoload
 (defun find-grep-dired (dir regexp)
-  "Find files in DIR containing a regexp REGEXP and start Dired on output.
+  "Find files in DIR matching a regexp REGEXP and start Dired on output.
 The command run (after changing into DIR) is
 
   find . \\( -type f -exec `grep-program' `find-grep-options' \\

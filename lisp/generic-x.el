@@ -1,6 +1,6 @@
 ;;; generic-x.el --- A collection of generic modes
 
-;; Copyright (C) 1997-1998, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Tue Oct 08 1996
@@ -460,139 +460,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
 
 ;;; DOS/Windows BAT files
 (when (memq 'bat-generic-mode generic-extras-enable-list)
-
-(define-generic-mode bat-generic-mode
-  nil
-  nil
-  (eval-when-compile
-    (list
-     ;; Make this one first in the list, otherwise comments will
-     ;; be over-written by other variables
-     '("^[@ \t]*\\([rR][eE][mM][^\n\r]*\\)" 1 font-lock-comment-face t)
-     '("^[ \t]*\\(::.*\\)"                  1 font-lock-comment-face t)
-     '("^[@ \t]*\\([bB][rR][eE][aA][kK]\\|[vV][eE][rR][iI][fF][yY]\\)[ \t]+\\([oO]\\([nN]\\|[fF][fF]\\)\\)"
-       (1 font-lock-builtin-face)
-       (2 font-lock-constant-face t t))
-     ;; Any text (except ON/OFF) following ECHO is a string.
-     '("^[@ \t]*\\([eE][cC][hH][oO]\\)[ \t]+\\(\\([oO]\\([nN]\\|[fF][fF]\\)\\)\\|\\([^>|\r\n]+\\)\\)"
-       (1 font-lock-builtin-face)
-       (3 font-lock-constant-face t t)
-       (5 font-lock-string-face t t))
-     ;; These keywords appear as the first word on a line.  (Actually, they
-     ;; can also appear after "if ..." or "for ..." clause, but since they
-     ;; are frequently used in simple text, we punt.)
-     ;; In `generic-bat-mode-setup-function' we make the keywords
-     ;; case-insensitive
-     (generic-make-keywords-list
-      '("for"
-	"if")
-      font-lock-keyword-face "^[@ \t]*")
-     ;; These keywords can be anywhere on a line
-     ;; In `generic-bat-mode-setup-function' we make the keywords
-     ;; case-insensitive
-     (generic-make-keywords-list
-      '("do"
-	"exist"
-	"errorlevel"
-	"goto"
-	"not")
-      font-lock-keyword-face)
-     ;; These are built-in commands.  Only frequently-used ones are listed.
-     (generic-make-keywords-list
-      '("CALL"	    "call"	 "Call"
-	"CD"	    "cd"	 "Cd"
-	"CLS"	    "cls"	 "Cls"
-	"COPY"	    "copy"	 "Copy"
-	"DEL"	    "del"	 "Del"
-	"ECHO"	    "echo"	 "Echo"
-	"MD"	    "md"	 "Md"
-	"PATH"	    "path"	 "Path"
-	"PAUSE"	    "pause"	 "Pause"
-	"PROMPT"    "prompt"	 "Prompt"
-	"RD"	    "rd"	 "Rd"
-	"REN"	    "ren"	 "Ren"
-	"SET"	    "set"	 "Set"
-	"START"	    "start"	 "Start"
-	"SHIFT"	    "shift"	 "Shift")
-      font-lock-builtin-face "[ \t|\n]")
-     '("^[ \t]*\\(:\\sw+\\)"         1 font-lock-function-name-face t)
-     '("\\(%\\sw+%\\)"               1 font-lock-variable-name-face t)
-     '("\\(%[0-9]\\)"                1 font-lock-variable-name-face t)
-     '("[\t ]+\\([+-/][^\t\n\" ]+\\)" 1 font-lock-type-face)
-     '("[ \t\n|]\\<\\([gG][oO][tT][oO]\\)\\>[ \t]*\\(\\sw+\\)?"
-       (1 font-lock-keyword-face)
-       (2 font-lock-function-name-face nil t))
-     '("[ \t\n|]\\<\\([sS][eE][tT]\\)\\>[ \t]*\\(\\sw+\\)?[ \t]*=?"
-       (1 font-lock-builtin-face)
-       (2 font-lock-variable-name-face t t))))
-  '("\\.[bB][aA][tT]\\'"
-    "\\.[cC][mM][dD]\\'"
-    "\\`[cC][oO][nN][fF][iI][gG]\\."
-    "\\`[aA][uU][tT][oO][eE][xX][eE][cC]\\.")
-  '(generic-bat-mode-setup-function)
-  "Generic mode for MS-Windows batch files.")
-
-(defvar bat-generic-mode-syntax-table nil
-  "Syntax table in use in `bat-generic-mode' buffers.")
-
-(defvar bat-generic-mode-keymap (make-sparse-keymap)
-  "Keymap for `bat-generic-mode'.")
-
-(defun bat-generic-mode-compile ()
-  "Run the current BAT file in a compilation buffer."
-  (interactive)
-  (let ((compilation-buffer-name-function
-	 (function
-	  (lambda (_ign)
-	    (concat "*" (buffer-file-name) "*")))))
-    (compile
-     (concat (w32-shell-name) " -c " (buffer-file-name)))))
-
-(eval-when-compile (require 'comint))
-(declare-function comint-mode "comint" ())
-(declare-function comint-exec "comint" (buffer name command startfile switches))
-
-(defun bat-generic-mode-run-as-comint ()
-  "Run the current BAT file in a comint buffer."
-  (interactive)
-  (require 'comint)
-  (let* ((file (buffer-file-name))
-	 (buf-name (concat "*" file "*")))
-    (with-current-buffer (get-buffer-create buf-name)
-      (erase-buffer)
-      (comint-mode)
-      (comint-exec
-       buf-name
-       file
-       (w32-shell-name)
-       nil
-       (list "-c" file))
-      (display-buffer buf-name))))
-
-(define-key bat-generic-mode-keymap "\C-c\C-c" 'bat-generic-mode-compile)
-
-;; Make underscores count as words
-(unless bat-generic-mode-syntax-table
-  (setq bat-generic-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?_ "w" bat-generic-mode-syntax-table))
-
-;; bat-generic-mode doesn't use the comment functionality of
-;; define-generic-mode because it has a three-letter comment-string,
-;; so we do it here manually instead
-(defun generic-bat-mode-setup-function ()
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (make-local-variable 'comment-start)
-  (make-local-variable 'comment-start-skip)
-  (make-local-variable 'comment-end)
-  (setq imenu-generic-expression '((nil "^:\\(\\sw+\\)" 1))
-	parse-sexp-ignore-comments t
-	comment-end ""
-	comment-start "REM "
-	comment-start-skip "[Rr][Ee][Mm] *")
-  (set-syntax-table bat-generic-mode-syntax-table)
-  ;; Make keywords case-insensitive
-  (setq font-lock-defaults '(generic-font-lock-keywords nil t))
-  (use-local-map bat-generic-mode-keymap)))
+  (define-obsolete-function-alias 'bat-generic-mode 'bat-mode "24.4"))
 
 ;;; Mailagent
 ;; Mailagent is a Unix mail filtering program.  Anyone wanna do a
@@ -842,21 +710,16 @@ like an INI file.  You can add this hook to `find-file-hook'."
   ;; the choice of face for each token group
   (eval-when-compile
     (list
-     (generic-make-keywords-list
-      '("FILEFLAGSMASK"
-	"FILEFLAGS"
-	"FILEOS"
-	"FILESUBTYPE"
-	"FILETYPE"
-	"FILEVERSION"
-	"PRODUCTVERSION")
-      font-lock-type-face)
-     (generic-make-keywords-list
-      '("BEGIN"
-	"BLOCK"
-	"END"
-	"VALUE")
-      font-lock-function-name-face)
+     (list (regexp-opt '("FILEFLAGSMASK"
+			 "FILEFLAGS"
+			 "FILEOS"
+			 "FILESUBTYPE"
+			 "FILETYPE"
+			 "FILEVERSION"
+			 "PRODUCTVERSION") 'symbols)
+	   1 font-lock-type-face)
+     (list (regexp-opt '("BEGIN" "BLOCK" "END" "VALUE") 'symbols)
+	   1 font-lock-function-name-face)
      '("^#[ \t]*include[ \t]+\\(<[^>\"\n]+>\\)" 1 font-lock-string-face)
      '("^#[ \t]*define[ \t]+\\(\\sw+\\)("       1 font-lock-function-name-face)
      '("^#[ \t]*\\(elif\\|if\\)\\>"
@@ -1420,17 +1283,21 @@ like an INI file.  You can add this hook to `find-file-hook'."
     "WIN32SMINOR")
   "Function argument constants used in InstallShield 3 and 5."))
 
-(defvar rul-generic-mode-syntax-table nil
+;; c++-mode-syntax-table used to be autoloaded, with an initial nil value.
+;; This file did not load cc-mode, and therefore rul-generic-mode-syntax-table
+;; would have different values according to whether or not cc-mode
+;; happened to be loaded before this file was.
+(require 'cc-mode)
+(defvar c++-mode-syntax-table)
+
+(defvar rul-generic-mode-syntax-table
+  (let ((table (make-syntax-table c++-mode-syntax-table)))
+    (modify-syntax-entry ?\r "> b" table)
+    (modify-syntax-entry ?\n "> b" table)
+    (modify-syntax-entry ?/  ". 124b" table)
+    (modify-syntax-entry ?*  ". 23" table)
+    table)
   "Syntax table to use in `rul-generic-mode' buffers.")
-
-(setq rul-generic-mode-syntax-table
-      (make-syntax-table c++-mode-syntax-table))
-
-(modify-syntax-entry ?\r "> b" rul-generic-mode-syntax-table)
-(modify-syntax-entry ?\n "> b" rul-generic-mode-syntax-table)
-
-(modify-syntax-entry ?/  ". 124b" rul-generic-mode-syntax-table)
-(modify-syntax-entry ?*  ". 23"   rul-generic-mode-syntax-table)
 
 ;; here manually instead
 (defun generic-rul-mode-setup-function ()
@@ -1471,21 +1338,25 @@ like an INI file.  You can add this hook to `find-file-hook'."
        (1 font-lock-keyword-face)
        (2 font-lock-constant-face nil t))
      ;; system variables
-     (generic-make-keywords-list
-      installshield-system-variables-list
-      font-lock-variable-name-face "[^_]" "[^_]")
+     (list (concat "[^_]"
+		   (regexp-opt installshield-system-variables-list 'symbols)
+		   "[^_]")
+	   1 font-lock-variable-name-face)
      ;; system functions
-     (generic-make-keywords-list
-      installshield-system-functions-list
-      font-lock-function-name-face "[^_]" "[^_]")
+     (list (concat "[^_]"
+		   (regexp-opt installshield-system-functions-list 'symbols)
+		   "[^_]")
+	   1 font-lock-function-name-face)
      ;; type keywords
-     (generic-make-keywords-list
-      installshield-types-list
-      font-lock-type-face "[^_]" "[^_]")
+     (list (concat "[^_]"
+		   (regexp-opt installshield-types-list 'symbols)
+		   "[^_]")
+	   1 font-lock-type-face)
      ;; function argument constants
-     (generic-make-keywords-list
-      installshield-funarg-constants-list
-      font-lock-variable-name-face "[^_]" "[^_]"))) ; is this face the best choice?
+     (list (concat "[^_]"
+		   (regexp-opt installshield-funarg-constants-list 'symbols)
+		   "[^_]")
+	   1 font-lock-variable-name-face))) ; is this face the best choice?
   '("\\.[rR][uU][lL]\\'")
   '(generic-rul-mode-setup-function)
   "Generic mode for InstallShield RUL files.")

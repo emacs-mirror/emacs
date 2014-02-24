@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MS Windows operating systems
-rem   Copyright (C) 1999-2013 Free Software Foundation, Inc.
+rem   Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -58,7 +58,20 @@ rem    	look for "cygpath" near line 85 of gmake.defs.
 rem [7] not recommended; please report if you try this combination.
 rem [8] tested only on Windows XP.
 rem
+echo ****************************************************************
+echo *** THIS METHOD OF BUILDING EMACS IS NO LONGER SUPPORTED.     **
+echo *** INSTEAD, FOLLOW THE INSTRUCTIONS FROM INSTALL.            **
+echo ****************************************************************
+:confirm_continue
+set /p answer=Continue running this script at your own risks ? (Y/N)
+if x%answer% == xy (goto confirm_continue_y)
+if x%answer% == xY (goto confirm_continue_y)
+if x%answer% == xn (goto end)
+if x%answer% == xN (goto end)
+echo Please answer by Y or N
+goto confirm_continue
 
+:confirm_continue_y
 if exist config.log del config.log
 
 rem ----------------------------------------------------------------------
@@ -174,6 +187,11 @@ echo. Note that this capability of processing parameters that include the =
 echo. character depends on command extensions.  This batch file attempts to
 echo. enable command extensions.  If command extensions cannot be enabled, a
 echo. warning message will be displayed.
+echo.
+echo. IMPORTANT: This method of building Emacs for MS-Windows is deprecated,
+echo. and could be removed in a future version of Emacs.  The preferred way
+echo  to build Emacs for MS-Windows from now on is using the MSYS environment
+echo. and MinGW development tools.  Please see nt/INSTALL for details.
 goto end
 
 rem ----------------------------------------------------------------------
@@ -954,4 +972,3 @@ set HAVE_XPM=
 set dbginfo=
 endlocal
 set use_extensions=
-

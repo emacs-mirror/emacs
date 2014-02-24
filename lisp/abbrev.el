@@ -1,9 +1,9 @@
 ;;; abbrev.el --- abbrev mode commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1985-1987, 1992, 2001-2014 Free Software Foundation,
 ;; Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: abbrev convenience
 ;; Package: emacs
 
@@ -67,13 +67,15 @@ be replaced by its expansion."
 (put 'abbrev-mode 'safe-local-variable 'booleanp)
 
 
-(defvar edit-abbrevs-map
+(defvar edit-abbrevs-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-x\C-s" 'abbrev-edit-save-buffer)
     (define-key map "\C-x\C-w" 'abbrev-edit-save-to-file)
     (define-key map "\C-c\C-c" 'edit-abbrevs-redefine)
     map)
   "Keymap used in `edit-abbrevs'.")
+(define-obsolete-variable-alias 'edit-abbrevs-map
+  'edit-abbrevs-mode-map "24.4")
 
 (defun kill-all-abbrevs ()
   "Undefine all defined abbrevs."
@@ -143,16 +145,6 @@ Otherwise display all abbrevs."
       (goto-char (point-min))
       (set-buffer-modified-p nil)
       (current-buffer))))
-
-(defun edit-abbrevs-mode ()
-  "Major mode for editing the list of abbrev definitions.
-\\{edit-abbrevs-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'edit-abbrevs-mode)
-  (setq mode-name "Edit-Abbrevs")
-  (use-local-map edit-abbrevs-map)
-  (run-mode-hooks 'edit-abbrevs-mode-hook))
 
 (defun edit-abbrevs ()
   "Alter abbrev definitions by editing a list of them.
@@ -429,7 +421,7 @@ A prefix argument means don't query; expand all abbrevs."
 \(fn ABBREV PROP)")
 
 (defalias 'abbrev-put 'put
-  "Set the property PROP of abbrev ABREV to value VAL.
+  "Set the property PROP of abbrev ABBREV to value VAL.
 See `define-abbrev' for the effect of some special properties.
 
 \(fn ABBREV PROP VAL)")
@@ -532,7 +524,7 @@ This is the first thing that `expand-abbrev' does, and so this may change
 the current abbrev table before abbrev lookup happens."
   :type 'hook
   :group 'abbrev-mode)
-(make-obsolete-variable 'pre-abbrev-expand-hook 'abbrev-expand-functions "23.1")
+(make-obsolete-variable 'pre-abbrev-expand-hook 'abbrev-expand-function "23.1")
 
 (defun clear-abbrev-table (table)
   "Undefine all abbrevs in abbrev table TABLE, leaving it empty."
@@ -596,7 +588,7 @@ An obsolete but still supported calling form is:
                  (boundp sym) (symbol-value sym)
                  (not (abbrev-get sym :system)))
       (unless (or system-flag
-                  (and (boundp sym) (fboundp sym)
+                  (and (boundp sym)
                        ;; load-file-name
                        (equal (symbol-value sym) expansion)
                        (equal (symbol-function sym) hook)))
@@ -615,9 +607,9 @@ An obsolete but still supported calling form is:
   "Check if the characters in ABBREV have word syntax in either the
 current (if global is nil) or standard syntax table."
   (with-syntax-table
-      (cond ((null global) (standard-syntax-table))
+      (cond ((null global) (syntax-table))
             ;; ((syntax-table-p global) global)
-            (t (syntax-table)))
+            (t (standard-syntax-table)))
     (when (string-match "\\W" abbrev)
       (let ((badchars ())
             (pos 0))
@@ -669,6 +661,26 @@ either a single abbrev table or a list of abbrev tables."
       tables))))
 
 
+(defun abbrev--symbol (abbrev table)
+  "Return the symbol representing abbrev named ABBREV in TABLE.
+This symbol's name is ABBREV, but it is not the canonical symbol of that name;
+it is interned in the abbrev-table TABLE rather than the normal obarray.
+The value is nil if that abbrev is not defined."
+  (let* ((case-fold (not (abbrev-table-get table :case-fixed)))
+         ;; In case the table doesn't set :case-fixed but some of the
+         ;; abbrevs do, we have to be careful.
+         (sym
+          ;; First try without case-folding.
+          (or (intern-soft abbrev table)
+              (when case-fold
+                ;; We didn't find any abbrev, try case-folding.
+                (let ((sym (intern-soft (downcase abbrev) table)))
+                  ;; Only use it if it doesn't require :case-fixed.
+                  (and sym (not (abbrev-get sym :case-fixed))
+                       sym))))))
+    (if (symbol-value sym)
+        sym)))
+
 (defun abbrev-symbol (abbrev &optional table)
   "Return the symbol representing abbrev named ABBREV.
 This symbol's name is ABBREV, but it is not the canonical symbol of that name;
@@ -678,23 +690,11 @@ Optional second arg TABLE is abbrev table to look it up in.
 The default is to try buffer's mode-specific abbrev table, then global table."
   (let ((tables (abbrev--active-tables table))
         sym)
-    (while (and tables (not (symbol-value sym)))
-      (let* ((table (pop tables))
-             (case-fold (not (abbrev-table-get table :case-fixed))))
+    (while (and tables (not sym))
+      (let* ((table (pop tables)))
         (setq tables (append (abbrev-table-get table :parents) tables))
-        ;; In case the table doesn't set :case-fixed but some of the
-        ;; abbrevs do, we have to be careful.
-        (setq sym
-              ;; First try without case-folding.
-              (or (intern-soft abbrev table)
-                  (when case-fold
-                    ;; We didn't find any abbrev, try case-folding.
-                    (let ((sym (intern-soft (downcase abbrev) table)))
-                      ;; Only use it if it doesn't require :case-fixed.
-                      (and sym (not (abbrev-get sym :case-fixed))
-                           sym)))))))
-    (if (symbol-value sym)
-        sym)))
+        (setq sym (abbrev--symbol abbrev table))))
+    sym))
 
 
 (defun abbrev-expansion (abbrev &optional table)
@@ -748,7 +748,7 @@ then ABBREV is looked up in that table only."
                            (setq start (match-beginning 1))
                            (setq end   (match-end 1)))))
                      (setq name  (buffer-substring start end))
-                     (let ((abbrev (abbrev-symbol name table)))
+                     (let ((abbrev (abbrev--symbol name table)))
                        (when abbrev
                          (setq enable-fun (abbrev-get abbrev :enable-function))
                          (and (or (not enable-fun) (funcall enable-fun))
@@ -824,10 +824,12 @@ see `define-abbrev' for details."
     value))
 
 (defvar abbrev-expand-functions nil
-  "Wrapper hook around `expand-abbrev'.
-The functions on this special hook are called with one argument:
-a function that performs the abbrev expansion.  It should return
-the abbrev symbol if expansion took place.")
+  "Wrapper hook around `expand-abbrev'.")
+(make-obsolete-variable 'abbrev-expand-functions 'abbrev-expand-function "24.4")
+
+(defvar abbrev-expand-function #'abbrev--default-expand
+  "Function to perform abbrev expansion.
+Takes no argument and should return the abbrev symbol if expansion took place.")
 
 (defun expand-abbrev ()
   "Expand the abbrev before point, if there is an abbrev there.
@@ -836,6 +838,9 @@ Returns the abbrev symbol, if expansion took place.  (The actual
 return value is that of `abbrev-insert'.)"
   (interactive)
   (run-hooks 'pre-abbrev-expand-hook)
+  (funcall abbrev-expand-function))
+
+(defun abbrev--default-expand ()
   (with-wrapper-hook abbrev-expand-functions ()
     (pcase-let ((`(,sym ,name ,wordstart ,wordend) (abbrev--before-point)))
       (when sym
@@ -843,7 +848,7 @@ return value is that of `abbrev-insert'.)"
               (endmark (copy-marker wordend t)))
           (unless (or ;; executing-kbd-macro
                    noninteractive
-                   (window-minibuffer-p (selected-window)))
+                   (window-minibuffer-p))
             ;; Add an undo boundary, in case we are doing this for
             ;; a self-inserting command which has avoided making one so far.
             (undo-boundary))
@@ -999,6 +1004,11 @@ SORTFUN is passed to `sort' to change the default ordering."
     (nconc (make-sparse-keymap prompt)
            (sort entries (lambda (x y)
                 (funcall sortfun (nth 2 x) (nth 2 y)))))))
+
+;; Keep it after define-abbrev-table, since define-derived-mode uses
+;; define-abbrev-table.
+(define-derived-mode edit-abbrevs-mode fundamental-mode "Edit-Abbrevs"
+  "Major mode for editing the list of abbrev definitions.")
 
 (provide 'abbrev)
 

@@ -1,6 +1,6 @@
 ;;; ps-print.el --- print text from the buffer as PostScript
 
-;; Copyright (C) 1993-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2014 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
@@ -1472,12 +1472,6 @@ Please send all bug fixes and enhancements to
     (error "`ps-print' only supports Emacs 23 and higher")))
 
 
-(defconst ps-windows-system
-  (memq system-type '(ms-dos windows-nt)))
-(defconst ps-lp-system
-  (memq system-type '(usg-unix-v hpux irix)))
-
-
 ;; Load XEmacs/Emacs definitions
 (require 'ps-def)
 
@@ -1676,8 +1670,7 @@ For more information about PostScript document comments, see:
   :version "20"
   :group 'ps-print-miscellany)
 
-(defcustom ps-printer-name (and (boundp 'printer-name)
-				(symbol-value 'printer-name))
+(defcustom ps-printer-name nil
   "The name of a local printer for printing PostScript files.
 
 On Unix-like systems, a string value should be a name understood by lpr's -P
@@ -1709,12 +1702,8 @@ See also `ps-printer-name-option' for documentation."
   :group 'ps-print-printer)
 
 (defcustom ps-printer-name-option
-  (cond (ps-windows-system
-	 "/D:")
-	(ps-lp-system
-	 "-d")
-	(t
-	 "-P" ))
+  (cond (lpr-windows-system "/D:")
+	(t lpr-printer-switch))
   "Option for `ps-printer-name' variable (see it).
 
 On Unix-like systems, if `lpr' is in use, this should be the string
@@ -1728,8 +1717,6 @@ For any other printing utility, see its documentation.
 Set this to \"\" or nil, if the utility given by `ps-lpr-command'
 needs an empty printer name option--that is, pass the printer name
 with no special option preceding it.
-
-Any value that is not a string is treated as nil.
 
 This variable is used only when `ps-printer-name' is a non-empty string."
   :type '(choice :menu-tag "Printer Name Option"
@@ -1782,11 +1769,14 @@ See `ps-lpr-command'."
   :version "20"
   :group 'ps-print-printer)
 
-(defcustom ps-print-region-function nil
+(defcustom ps-print-region-function
+  (if (memq system-type '(ms-dos windows-nt))
+      #'w32-direct-ps-print-region-function
+    #'call-process-region)
   "Specify a function to print the region on a PostScript printer.
 See definition of `call-process-region' for calling conventions.  The fourth
 and the sixth arguments are both nil."
-  :type '(choice (const nil) function)
+  :type 'function
   :version "20"
   :group 'ps-print-printer)
 
@@ -1798,7 +1788,7 @@ If it's nil, automatic feeding takes place."
   :version "20"
   :group 'ps-print-printer)
 
-(defcustom ps-end-with-control-d (and ps-windows-system t)
+(defcustom ps-end-with-control-d (and lpr-windows-system t)
   "Non-nil means insert C-d at end of PostScript file generated."
   :version "21.1"
   :type 'boolean
@@ -2636,7 +2626,7 @@ NOTE: page numbers are displayed as part of headers,
   :group 'ps-print-headers)
 
 (defcustom ps-spool-config
-  (if ps-windows-system
+  (if lpr-windows-system
       nil
     'lpr-switches)
   "Specify who is responsible for setting duplex and page size.
@@ -3017,7 +3007,6 @@ Any other value is ignored and black color will be used.
 This variable is used only when `ps-print-color-p' (which see) is neither nil
 nor black-white."
   :type '(choice :menu-tag "Default Foreground Gray/Color"
-		 :tag "Default Foreground Gray/Color"
 		 (const :tag "Session Foreground" t)
 		 (const :tag "Frame Foreground" frame-parameter)
 		 (number :tag "Gray Scale" :value 0.0)
@@ -3025,7 +3014,8 @@ nor black-white."
 		 (list :tag "RGB Color" :value (0.0 0.0 0.0)
 		       (number :tag "Red")
 		       (number :tag "Green")
-		       (number :tag "Blue")))
+		       (number :tag "Blue"))
+		 (other :tag "Default Foreground Gray/Color" nil))
   :version "20"
   :group 'ps-print-color)
 
@@ -3063,7 +3053,6 @@ nor black-white.
 
 See also `ps-use-face-background'."
   :type '(choice :menu-tag "Default Background Gray/Color"
-		 :tag "Default Background Gray/Color"
 		 (const :tag "Session Background" t)
 		 (const :tag "Frame Background" frame-parameter)
 		 (number :tag "Gray Scale" :value 1.0)
@@ -3071,7 +3060,8 @@ See also `ps-use-face-background'."
 		 (list :tag "RGB Color" :value (1.0 1.0 1.0)
 		       (number :tag "Red")
 		       (number :tag "Green")
-		       (number :tag "Blue")))
+		       (number :tag "Blue"))
+		 (other :tag "Default Background Gray/Color" nil))
   :version "20"
   :group 'ps-print-color)
 
@@ -3389,15 +3379,12 @@ It's like the very first character of buffer (or region) is ^L (\\014)."
   :group 'ps-print-headers)
 
 (defcustom ps-postscript-code-directory
-  (or (if (featurep 'xemacs)
-	  (cond ((fboundp 'locate-data-directory) ; XEmacs
-		 (funcall 'locate-data-directory "ps-print"))
-		((boundp 'data-directory) ; XEmacs
-		 (symbol-value 'data-directory))
-		(t			; don't know what to do
-		 nil))
-	data-directory)			; Emacs
-      (error "`ps-postscript-code-directory' isn't set properly"))
+  (cond ((fboundp 'locate-data-directory) ; XEmacs
+         (locate-data-directory "ps-print"))
+        ((boundp 'data-directory)       ; XEmacs and Emacs.
+         data-directory)
+        (t                              ; don't know what to do
+         (error "`ps-postscript-code-directory' isn't set properly")))
   "Directory where it's located the PostScript prologue file used by ps-print.
 By default, this directory is the same as in the variable `data-directory'."
   :type 'directory
@@ -3646,8 +3633,7 @@ The table depends on the current ps-print setup."
 	      ") ps-print version " ps-print-version "\n")
       ";; internal vars"
       (ps-comment-string "emacs-version     " emacs-version)
-      (ps-comment-string "ps-windows-system " ps-windows-system)
-      (ps-comment-string "ps-lp-system      " ps-lp-system)
+      (ps-comment-string "lpr-windows-system" lpr-windows-system)
       nil
       '(25 . ps-print-color-p)
       '(25 . ps-lpr-command)
@@ -5426,8 +5412,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
      "%%Title: " (buffer-name)		; Take job name from name of
 					; first buffer printed
      "\n%%Creator: ps-print v" ps-print-version
-     "\n%%For: " (user-full-name)
-     "\n%%CreationDate: " (format-time-string "%T %b %d %Y")
+     "\n%%For: " (user-full-name)       ;FIXME: may need encoding!
+     "\n%%CreationDate: " (format-time-string "%T %b %d %Y") ;FIXME: encoding!
      "\n%%Orientation: "
      (if ps-landscape-mode "Landscape" "Portrait")
      "\n%%DocumentNeededResources: font Times-Roman Times-Italic\n%%+ font "
@@ -6135,7 +6121,7 @@ to the equivalent Latin-1 characters.")
     (goto-char from)
 
     ;; ...break the region up into chunks separated by tabs, linefeeds,
-    ;; pagefeeds, control characters, and plot each chunk.
+    ;; formfeeds, control characters, and plot each chunk.
     (while (< from to)
       ;; skip lines between cut markers
       (and ps-begin-cut-regexp ps-end-cut-regexp
@@ -6307,6 +6293,10 @@ If FACE is not a valid face name, use default face."
    ;; only background color, not a `real' face
    ((ps-face-background-color-p (car face-or-list))
     (vector 0 nil (ps-face-extract-color face-or-list)))
+   ;; Anonymous face.
+   ((keywordp (car face-or-list))
+    (vector 0 (plist-get face-or-list :foreground)
+	    (plist-get face-or-list :background)))
    ;; list of faces
    (t
     (let ((effects 0)
@@ -6569,96 +6559,36 @@ If FACE is not a valid face name, use default face."
 	    (write-region (point-min) (point-max) filename))
 	  (and ps-razzle-dazzle (message "Wrote %s" filename)))
       ;; Else, spool to the printer
-      (and ps-razzle-dazzle (message "Printing..."))
       (with-current-buffer ps-spool-buffer
 	(let* ((coding-system-for-write 'raw-text-unix)
-	       (ps-printer-name (or ps-printer-name
-				    (and (boundp 'printer-name)
-					 (symbol-value 'printer-name))))
-	       (ps-lpr-switches
-		(append ps-lpr-switches
-			(and (stringp ps-printer-name)
-			     (string< "" ps-printer-name)
-			     (list (concat
-				    (and (stringp ps-printer-name-option)
-					 ps-printer-name-option)
-				    ps-printer-name))))))
-	  (or (stringp ps-printer-name)
-	      (setq ps-printer-name nil))
-	  (apply (or ps-print-region-function 'call-process-region)
-		 (point-min) (point-max) ps-lpr-command nil
-		 (and (fboundp 'start-process) 0)
-		 nil
-		 (ps-flatten-list	; dynamic evaluation
-		  (ps-string-list
-		   (mapcar 'ps-eval-switch ps-lpr-switches))))))
-      (and ps-razzle-dazzle (message "Printing...done")))
+	       (printer-name (or ps-printer-name printer-name))
+               (lpr-printer-switch ps-printer-name-option)
+               (print-region-function ps-print-region-function)
+               (lpr-command ps-lpr-command))
+          (lpr-print-region (point-min) (point-max) ps-lpr-switches nil))))
     (kill-buffer ps-spool-buffer)))
 
-(defun ps-string-list (arg)
-  (let (lstr)
-    (dolist (elm arg)
-      (cond ((stringp elm)
-	     (setq lstr (cons elm lstr)))
-	    ((listp elm)
-	     (let ((s (ps-string-list elm)))
-	       (when s
-		 (setq lstr (cons s lstr)))))
-	    (t )))			; ignore any other value
-    (nreverse lstr)))
-
-;; Dynamic evaluation
-(defun ps-eval-switch (arg)
-  (cond ((stringp arg) arg)
-	((functionp arg) (apply arg nil))
-	((symbolp arg) (symbol-value arg))
-	((consp arg) (apply (car arg) (cdr arg)))
-	(t nil)))
-
-;; `ps-flatten-list' is defined here (copied from "message.el" and
-;; enhanced to handle dotted pairs as well) until we can get some
-;; sensible autoloads, or `flatten-list' gets put somewhere decent.
-
-;; (ps-flatten-list '((a . b) c (d . e) (f g h) i . j))
-;; => (a b c d e f g h i j)
-
-(defun ps-flatten-list (&rest list)
-  (ps-flatten-list-1 list))
-
-(defun ps-flatten-list-1 (list)
-  (cond ((null list) nil)
-	((consp list) (append (ps-flatten-list-1 (car list))
-			      (ps-flatten-list-1 (cdr list))))
-	(t (list list))))
-
 (defun ps-kill-emacs-check ()
-  (let (ps-buffer)
-    (and (setq ps-buffer (get-buffer ps-spool-buffer-name))
-	 (buffer-name ps-buffer)	; check if it's not killed
+  (let ((ps-buffer (get-buffer ps-spool-buffer-name)))
+    (and (buffer-live-p ps-buffer)
 	 (buffer-modified-p ps-buffer)
 	 (y-or-n-p "Unprinted PostScript waiting; print now? ")
-	 (ps-despool))
-    (and (setq ps-buffer (get-buffer ps-spool-buffer-name))
-	 (buffer-name ps-buffer)	; check if it's not killed
+	 (ps-despool)))
+  (let ((ps-buffer (get-buffer ps-spool-buffer-name)))
+    (and (buffer-live-p ps-buffer)
 	 (buffer-modified-p ps-buffer)
 	 (not (yes-or-no-p "Unprinted PostScript waiting; exit anyway? "))
 	 (error "Unprinted PostScript"))))
 
-(cond ((fboundp 'add-hook)
-       (unless noninteractive
-         (funcall 'add-hook 'kill-emacs-hook 'ps-kill-emacs-check)))
-      (kill-emacs-hook
-       (message "Won't override existing `kill-emacs-hook'"))
-      (t
-       (setq kill-emacs-hook 'ps-kill-emacs-check)))
+(unless noninteractive
+  (add-hook 'kill-emacs-hook #'ps-kill-emacs-check))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; To make this file smaller, some commands go in a separate file.
 ;; But autoload them here to make the separation invisible.
 
-;;;### (autoloads (ps-mule-end-job ps-mule-begin-job ps-mule-initialize
-;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "1f436e4d78c7dc983a503dac18298515")
+;;;### (autoloads nil "ps-mule" "ps-mule.el" "173235d6520575a877c25be437fb9e5f")
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\

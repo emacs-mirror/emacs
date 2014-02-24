@@ -1,5 +1,6 @@
+@c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Programs
@@ -35,7 +36,7 @@ Highlight program syntax (@pxref{Font Lock}).
 * Documentation::       Getting documentation of functions you plan to call.
 * Hideshow::            Displaying blocks selectively.
 * Symbol Completion::   Completion on symbol names of your program or language.
-* Glasses::             Making identifiersLikeThis more readable.
+* MixedCase Words::     Dealing with identifiersLikeThis.
 * Semantic::            Suite of editing tools based on source code parsing.
 * Misc for Programs::   Other Emacs features useful for editing programs.
 * C Modes::             Special commands of C, C++, Objective-C, Java,
@@ -75,17 +76,17 @@ mode for the C programming language is @code{c-mode}.
 @cindex VHDL mode
 @cindex M4 mode
 @cindex Shell-script mode
-@cindex Delphi mode
+@cindex OPascal mode
 @cindex PostScript mode
 @cindex Conf mode
 @cindex DNS mode
 @cindex Javascript mode
   Emacs has programming language modes for Lisp, Scheme, the
-Scheme-based DSSSL expression language, Ada, ASM, AWK, C, C++, Delphi,
+Scheme-based DSSSL expression language, Ada, ASM, AWK, C, C++,
 Fortran, Icon, IDL (CORBA), IDLWAVE, Java, Javascript, Metafont
-(@TeX{}'s companion for font creation), Modula2, Objective-C, Octave,
-Pascal, Perl, Pike, PostScript, Prolog, Python, Ruby, Simula, Tcl, and
-VHDL@.  An alternative mode for Perl is called CPerl mode.  Modes are
+(@TeX{}'s companion for font creation), Modula2, Object Pascal, Objective-C,
+Octave, Pascal, Perl, Pike, PostScript, Prolog, Python, Ruby, Simula, Tcl,
+and VHDL@.  An alternative mode for Perl is called CPerl mode.  Modes are
 also available for the scripting languages of the common GNU and Unix
 shells, VMS DCL, and MS-DOS/MS-Windows @samp{BAT} files, and for
 makefiles, DNS master files, and various sorts of configuration files.
@@ -119,17 +120,17 @@ those specified in the mode's own mode hook (@pxref{Major Modes}).
 For instance, entering C mode runs the hooks @code{prog-mode-hook} and
 @code{c-mode-hook}.  @xref{Hooks}, for information about hooks.
 
-@ifinfo
+@ifnottex
   Separate manuals are available for the modes for Ada (@pxref{Top,,
 Ada Mode, ada-mode, Ada Mode}), C/C++/Objective C/Java/Corba
 IDL/Pike/AWK (@pxref{Top, , CC Mode, ccmode, CC Mode}), and IDLWAVE
 (@pxref{Top,, IDLWAVE, idlwave, IDLWAVE User Manual}).
-@end ifinfo
-@ifnotinfo
+@end ifnottex
+@iftex
   The Emacs distribution contains Info manuals for the major modes for
 Ada, C/C++/Objective C/Java/Corba IDL/Pike/AWK, and IDLWAVE@.  For
 Fortran mode, @pxref{Fortran,,, emacs-xtra, Specialized Emacs Features}.
-@end ifnotinfo
+@end iftex
 
 @node Defuns
 @section Top-Level Definitions, or Defuns
@@ -844,8 +845,34 @@ show-paren-mode}.
   Electric Pair mode, a global minor mode, provides a way to easily
 insert matching delimiters.  Whenever you insert an opening delimiter,
 the matching closing delimiter is automatically inserted as well,
-leaving point between the two.  To toggle Electric Pair mode, type
-@kbd{M-x electric-pair-mode}.
+leaving point between the two. Conversely, when you insert a closing
+delimiter over an existing one, no inserting takes places and that
+position is simply skipped over. These variables control additional
+features of Electric Pair mode:
+
+@itemize @bullet
+@item
+@code{electric-pair-preserve-balance}, when non-@code{nil}, makes the
+default pairing logic balance out the number of opening and closing
+delimiters.
+
+@item
+@code{electric-pair-delete-adjacent-pairs}, when non-@code{nil}, makes
+backspacing between two adjacent delimiters also automatically delete
+the closing delimiter.
+
+@item
+@code{electric-pair-open-newline-between-pairs}, when non-@code{nil},
+makes inserting inserting a newline between two adjacent pairs also
+automatically open and extra newline after point.
+
+@item
+@code{electric-pair-skip-whitespace}, when non-@code{nil}, causes the minor
+mode to skip whitespace forward before deciding whether to skip over
+the closing delimiter.
+@end itemize
+
+To toggle Electric Pair mode, type @kbd{M-x electric-pair-mode}.
 
 @node Comments
 @section Manipulating Comments
@@ -1194,7 +1221,7 @@ variables that you want to use.  @xref{Name Help}.
 @cindex Eldoc mode
 @findex eldoc-mode
   Eldoc is a buffer-local minor mode that helps with looking up Lisp
-documention.  When it is enabled, the echo area displays some useful
+documentation.  When it is enabled, the echo area displays some useful
 information whenever there is a Lisp function or variable at point;
 for a function, it shows the argument list, and for a variable it
 shows the first line of the variable's documentation string.  To
@@ -1309,23 +1336,36 @@ another window.  @xref{Completion}.
   In Text mode and related modes, @kbd{M-@key{TAB}} completes words
 based on the spell-checker's dictionary.  @xref{Spelling}.
 
-@node Glasses
-@section Glasses minor mode
-@cindex Glasses mode
+@node MixedCase Words
+@section MixedCase Words
 @cindex camel case
-@findex mode, Glasses
 
-  Glasses mode is a buffer-local minor mode that makes it easier to
-read mixed-case (or ``CamelCase'') symbols like
-@samp{unReadableSymbol}, by altering how they are displayed.  By
-default, it displays extra underscores between each lower-case letter
-and the following capital letter.  This does not alter the buffer
-text, only how it is displayed.
+  Some programming styles make use of mixed-case (or ``CamelCase'')
+symbols like @samp{unReadableSymbol}.  (In the GNU project, we recommend
+using underscores to separate words within an identifier, rather than
+using case distinctions.)  Emacs has various features to make it easier
+to deal with such symbols.
+
+@cindex Glasses mode
+@findex mode, Glasses
+  Glasses mode is a buffer-local minor mode that makes it easier to read
+such symbols, by altering how they are displayed.  By default, it
+displays extra underscores between each lower-case letter and the
+following capital letter.  This does not alter the buffer text, only how
+it is displayed.
 
   To toggle Glasses mode, type @kbd{M-x glasses-mode} (@pxref{Minor
 Modes}).  When Glasses mode is enabled, the minor mode indicator
 @samp{o^o} appears in the mode line.  For more information about
 Glasses mode, type @kbd{C-h P glasses @key{RET}}.
+
+@cindex Subword mode
+@findex subword-mode
+  Subword mode is another buffer-local minor mode.  In subword mode,
+Emacs's word commands recognize upper case letters in
+@samp{StudlyCapsIdentifiers} as word boundaries.  When Subword mode is
+enabled, the minor mode indicator @samp{,} appears in the mode line.
+See also the similar @code{superword-mode} (@pxref{Misc for Programs}).
 
 @node Semantic
 @section Semantic
@@ -1356,7 +1396,7 @@ the menu item named @samp{Source Code Parsers (Semantic)} in the
 @samp{Tools} menu.  This enables Semantic mode, a global minor mode.
 
    When Semantic mode is enabled, Emacs automatically attempts to
-parses each file you visit.  Currently, Semantic understands C, C++,
+parse each file you visit.  Currently, Semantic understands C, C++,
 Scheme, Javascript, Java, HTML, and Make.  Within each parsed buffer,
 the following commands are available:
 
@@ -1411,6 +1451,19 @@ the program clearer will also provide useful chunks of text for the
 paragraph commands to work on.  Auto Fill mode, if enabled in a
 programming language major mode, indents the new lines which it
 creates.
+
+@findex superword-mode
+ Superword mode is a buffer-local minor mode that causes editing and
+motion commands to treat symbols (e.g., @samp{this_is_a_symbol}) as words.
+When Subword mode is enabled, the minor mode indicator
+@iftex
+@samp{@math{^2}}
+@end iftex
+@ifnottex
+@samp{²}
+@end ifnottex
+appears in the mode line.  See also the similar @code{subword-mode}
+(@pxref{MixedCase Words}).
 
 @findex electric-layout-mode
   Electric Layout mode (@kbd{M-x electric-layout-mode}) is a global
@@ -1624,19 +1677,6 @@ hungry-delete feature is enabled.
 @subsection Other Commands for C Mode
 
 @table @kbd
-@item C-c C-w
-@itemx M-x subword-mode
-@findex subword-mode
-Enable (or disable) @dfn{subword mode}.  In subword mode, Emacs's word
-commands recognize upper case letters in
-@samp{StudlyCapsIdentifiers} as word boundaries.  This is indicated by
-the flag @samp{/w} on the mode line after the mode name
-(e.g., @samp{C/law}).  You can even use @kbd{M-x subword-mode} in
-non-CC Mode buffers.
-
-In the GNU project, we recommend using underscores to separate words
-within an identifier in C or C++, rather than using case distinctions.
-
 @item M-x c-context-line-break
 @findex c-context-line-break
 This command inserts a line break and indents the new line in a manner

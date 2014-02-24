@@ -1,6 +1,6 @@
 ;;; ob-screen.el --- org-babel support for interactive terminal
 
-;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2014 Free Software Foundation, Inc.
 
 ;; Author: Benjamin Andresen
 ;; Keywords: literate programming, interactive shell
@@ -34,7 +34,6 @@
 
 ;;; Code:
 (require 'ob)
-(require 'ob-ref)
 
 (defvar org-babel-screen-location "screen"
   "The command location for screen.

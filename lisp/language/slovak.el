@@ -1,10 +1,10 @@
-;;; slovak.el --- support for Slovak -*- coding: iso-2022-7bit -*-
+;;; slovak.el --- support for Slovak -*- coding: utf-8 -*-
 
-;; Copyright (C) 1998, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2014 Free Software Foundation, Inc.
 
-;; Authors:    Tibor ,B)(Bimko <tibor.simko@fmph.uniba.sk>,
+;; Authors:    Tibor Šimko <tibor.simko@fmph.uniba.sk>,
 ;;             Milan Zamazal <pdm@zamazal.org>
-;; Maintainer: Pavel Jan,Am(Bk <Pavel@Janik.cz>
+;; Maintainer: Pavel Janík <Pavel@Janik.cz>
 ;; Keywords: multilingual, Slovak
 
 ;; This file is part of GNU Emacs.
@@ -36,7 +36,7 @@
 	    (input-method . "slovak")
 	    (unibyte-display . iso-8859-2)
 	    (tutorial . "TUTORIAL.sk")
-	    (sample-text . "Prajeme V,Ba(Bm pr,Bm(Bjemn,B}(B de,Br(B!")
+	    (sample-text . "Prajeme Vám príjemný deň!")
 	    (documentation . "\
 This language environment is almost the same as Latin-2,
 but sets the default input method to \"slovak\",

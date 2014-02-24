@@ -1,6 +1,6 @@
 /* GNU Emacs routines to deal with category tables.
 
-Copyright (C) 1998, 2001-2013 Free Software Foundation, Inc.
+Copyright (C) 1998, 2001-2014 Free Software Foundation, Inc.
 Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
   2005, 2006, 2007, 2008, 2009, 2010, 2011
   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -30,8 +30,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#define CATEGORY_INLINE EXTERN_INLINE
-
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
@@ -57,16 +55,8 @@ bset_category_table (struct buffer *b, Lisp_Object val)
 static int category_table_version;
 
 static Lisp_Object Qcategory_table, Qcategoryp, Qcategorysetp, Qcategory_table_p;
-
-/* Make CATEGORY_SET includes (if VAL is t) or excludes (if VAL is
-   nil) CATEGORY.  */
-#define SET_CATEGORY_SET(category_set, category, val) \
-  set_category_set (category_set, category, val)
-static void set_category_set (Lisp_Object, Lisp_Object, Lisp_Object);
 
 /* Category set staff.  */
-
-static Lisp_Object hash_get_category_set (Lisp_Object, Lisp_Object);
 
 static Lisp_Object
 hash_get_category_set (Lisp_Object table, Lisp_Object category_set)
@@ -90,6 +80,13 @@ hash_get_category_set (Lisp_Object table, Lisp_Object category_set)
   return category_set;
 }
 
+/* Make CATEGORY_SET include (if VAL) or exclude (if !VAL) CATEGORY.  */
+
+static void
+set_category_set (Lisp_Object category_set, EMACS_INT category, bool val)
+{
+  bool_vector_set (category_set, category, val);
+}
 
 DEFUN ("make-category-set", Fmake_category_set, Smake_category_set, 1, 1, 0,
        doc: /* Return a newly created category-set which contains CATEGORIES.
@@ -110,11 +107,11 @@ those categories.  */)
   len = SCHARS (categories);
   while (--len >= 0)
     {
-      Lisp_Object category;
+      unsigned char cat = SREF (categories, len);
+      Lisp_Object category = make_number (cat);
 
-      XSETFASTINT (category, SREF (categories, len));
       CHECK_CATEGORY (category);
-      SET_CATEGORY_SET (val, category, Qt);
+      set_category_set (val, cat, 1);
     }
   return val;
 }
@@ -336,20 +333,6 @@ The return value is a string containing those same categories.  */)
   return build_string (str);
 }
 
-static void
-set_category_set (Lisp_Object category_set, Lisp_Object category, Lisp_Object val)
-{
-  do {
-    int idx = XINT (category) / 8;
-    unsigned char bits = 1 << (XINT (category) % 8);
-
-    if (NILP (val))
-      XCATEGORY_SET (category_set)->data[idx] &= ~bits;
-    else
-      XCATEGORY_SET (category_set)->data[idx] |= bits;
-  } while (0);
-}
-
 DEFUN ("modify-category-entry", Fmodify_category_entry,
        Smodify_category_entry, 2, 4, 0,
        doc: /* Modify the category set of CHARACTER by adding CATEGORY to it.
@@ -361,7 +344,7 @@ If optional fourth argument RESET is non-nil,
 then delete CATEGORY from the category set instead of adding it.  */)
   (Lisp_Object character, Lisp_Object category, Lisp_Object table, Lisp_Object reset)
 {
-  Lisp_Object set_value;	/* Actual value to be set in category sets.  */
+  bool set_value;	/* Actual value to be set in category sets.  */
   Lisp_Object category_set;
   int start, end;
   int from, to;
@@ -386,7 +369,7 @@ then delete CATEGORY from the category set instead of adding it.  */)
   if (NILP (CATEGORY_DOCSTRING (table, XFASTINT (category))))
     error ("Undefined category: %c", (int) XFASTINT (category));
 
-  set_value = NILP (reset) ? Qt : Qnil;
+  set_value = NILP (reset);
 
   while (start <= end)
     {
@@ -395,7 +378,7 @@ then delete CATEGORY from the category set instead of adding it.  */)
       if (CATEGORY_MEMBER (XFASTINT (category), category_set) != NILP (reset))
 	{
 	  category_set = Fcopy_sequence (category_set);
-	  SET_CATEGORY_SET (category_set, category, set_value);
+	  set_category_set (category_set, XFASTINT (category), set_value);
 	  category_set = hash_get_category_set (table, category_set);
 	  char_table_set_range (table, start, to, category_set);
 	}
@@ -460,14 +443,6 @@ init_category_once (void)
 {
   /* This has to be done here, before we call Fmake_char_table.  */
   DEFSYM (Qcategory_table, "category-table");
-
-  /* Intern this now in case it isn't already done.
-     Setting this variable twice is harmless.
-     But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
-
-  /* Now we are ready to set up this property, so we can
-     create category tables.  */
   Fput (Qcategory_table, Qchar_table_extra_slots, make_number (2));
 
   Vstandard_category_table = Fmake_char_table (Qcategory_table, Qnil);

@@ -1,6 +1,6 @@
 ;;; gnus-async.el --- asynchronous support for Gnus
 
-;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -76,7 +76,7 @@ The function will be called narrowed to the region of the article
 that was fetched."
   :version "24.1"
   :group 'gnus-asynchronous
-  :type 'function)
+  :type '(choice (const nil) function))
 
 ;;; Internal variables.
 

@@ -1,8 +1,8 @@
 ;;; common-win.el --- common part of handling window systems
 
-;; Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2014 Free Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: terminals
 
 ;; This file is part of GNU Emacs.
@@ -44,6 +44,11 @@ This variable is not used by the Nextstep port."
 (defvar ns-last-selected-text)		; ns-win.el
 (declare-function ns-set-pasteboard "ns-win" (string))
 
+(defvar x-select-enable-primary)	; x-win.el
+(defvar x-last-selected-text-primary)
+(defvar x-last-selected-text-clipboard)
+(defvar saved-region-selection) 	; simple.el
+
 (defun x-select-text (text)
   "Select TEXT, a string, according to the window system.
 
@@ -73,6 +78,10 @@ is not used)."
 	     (x-set-selection 'PRIMARY text)
 	     (setq x-last-selected-text-primary text))
 	   (when x-select-enable-clipboard
+	     ;; When cutting, the selection is cleared and PRIMARY set to
+	     ;; the empty string.  Prevent that, PRIMARY should not be reset
+	     ;; by cut (Bug#16382).
+	     (setq saved-region-selection text)
 	     (x-set-selection 'CLIPBOARD text)
 	     (setq x-last-selected-text-clipboard text))))))
 
@@ -159,7 +168,7 @@ is not used)."
 		    initial-frame-alist)))))
 
 ;; Make -iconic apply only to the initial frame!
-(defun x-handle-iconic (switch)
+(defun x-handle-iconic (_switch)
   (setq initial-frame-alist
 	(cons '(visibility . icon) initial-frame-alist)))
 
@@ -175,7 +184,7 @@ is not used)."
 (declare-function x-parse-geometry "frame.c" (string))
 
 ;; Handle the geometry option
-(defun x-handle-geometry (switch)
+(defun x-handle-geometry (_switch)
   (let* ((geo (x-parse-geometry (pop x-invocation-args)))
 	 (left (assq 'left geo))
 	 (top (assq 'top geo))
@@ -216,7 +225,7 @@ is not used)."
 On X, the display name of individual X frames is recorded in the
 `display' frame parameter.")
 
-(defun x-handle-display (switch)
+(defun x-handle-display (_switch)
   "Handle -display DISPLAY option."
   (setq x-display-name (pop x-invocation-args))
   ;; Make subshell programs see the same DISPLAY value Emacs really uses.

@@ -1,6 +1,6 @@
 /* Declarations of functions and data types used for SHA1 sum
    library functions.
-   Copyright (C) 2000-2001, 2003, 2005-2006, 2008-2013 Free Software
+   Copyright (C) 2000-2001, 2003, 2005-2006, 2008-2014 Free Software
    Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify it
@@ -22,12 +22,20 @@
 # include <stdio.h>
 # include <stdint.h>
 
+# if HAVE_OPENSSL_SHA1
+#  include <openssl/sha.h>
+# endif
+
 # ifdef __cplusplus
 extern "C" {
 # endif
 
 #define SHA1_DIGEST_SIZE 20
 
+# if HAVE_OPENSSL_SHA1
+#  define GL_OPENSSL_NAME 1
+#  include "gl_openssl.h"
+# else
 /* Structure to save state of computation between the single steps.  */
 struct sha1_ctx
 {
@@ -41,7 +49,6 @@ struct sha1_ctx
   uint32_t buflen;
   uint32_t buffer[32];
 };
-
 
 /* Initialize structure containing state of computation. */
 extern void sha1_init_ctx (struct sha1_ctx *ctx);
@@ -73,16 +80,18 @@ extern void *sha1_finish_ctx (struct sha1_ctx *ctx, void *resbuf);
 extern void *sha1_read_ctx (const struct sha1_ctx *ctx, void *resbuf);
 
 
-/* Compute SHA1 message digest for bytes read from STREAM.  The
-   resulting message digest number will be written into the 20 bytes
-   beginning at RESBLOCK.  */
-extern int sha1_stream (FILE *stream, void *resblock);
-
 /* Compute SHA1 message digest for LEN bytes beginning at BUFFER.  The
    result is always in little endian byte order, so that a byte-wise
    output yields to the wanted ASCII representation of the message
    digest.  */
 extern void *sha1_buffer (const char *buffer, size_t len, void *resblock);
+
+# endif
+/* Compute SHA1 message digest for bytes read from STREAM.  The
+   resulting message digest number will be written into the 20 bytes
+   beginning at RESBLOCK.  */
+extern int sha1_stream (FILE *stream, void *resblock);
+
 
 # ifdef __cplusplus
 }

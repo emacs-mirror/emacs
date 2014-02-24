@@ -678,7 +678,7 @@
 		  to erc-truncate.el
 		* erc-truncate-buffer-on-save: moved to erc-log.el
 		* erc-initialize-log-marker: new function.
-	erc-log.el:
+	* erc-log.el:
 		* erc-truncate-buffer-on-save: New defcust here; from erc.el
 		* erc-truncate-buffer-on-save: Put it in group `erc-log'
 		* erc-log-channels-directory: Remove trailing slash from
@@ -686,7 +686,7 @@
 		* Add functions to erc-connect-pre-hook, erc-part-hook and
 		  erc-quit-hook to avoid getting autoloaded.
 
-	erc-truncate.el:
+	* erc-truncate.el:
 		* Contains the truncation functions and defcusts from erc.el.
 		* define-erc-module clause added; new erc-truncate-mode.
 
@@ -2141,7 +2141,7 @@
 
 See ChangeLog.02 for earlier changes.
 
-	Copyright (C) 2003, 2006-2013 Free Software Foundation, Inc.
+	Copyright (C) 2003, 2006-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; ob-plantuml.el --- org-babel functions for plantuml evaluation
 
-;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
 ;; Author: Zhang Weize
 ;; Keywords: literate programming, reproducible research
@@ -35,13 +35,12 @@
 
 ;;; Code:
 (require 'ob)
-(require 'ob-eval)
 
 (defvar org-babel-default-header-args:plantuml
   '((:results . "file") (:exports . "results"))
   "Default arguments for evaluating a plantuml source block.")
 
-(defcustom org-plantuml-jar-path nil
+(defcustom org-plantuml-jar-path ""
   "Path to the plantuml.jar file."
   :group 'org-babel
   :version "24.1"
@@ -56,7 +55,7 @@ This function is called by `org-babel-execute-src-block'."
 	 (cmdline (cdr (assoc :cmdline params)))
 	 (in-file (org-babel-temp-file "plantuml-"))
 	 (java (or (cdr (assoc :java params)) ""))
-	 (cmd (if (not org-plantuml-jar-path)
+	 (cmd (if (string= "" org-plantuml-jar-path)
 		  (error "`org-plantuml-jar-path' is not set")
 		(concat "java " java " -jar "
 			(shell-quote-argument

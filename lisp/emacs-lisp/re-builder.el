@@ -1,6 +1,6 @@
 ;;; re-builder.el --- building Regexps with visual feedback -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: Detlev Zundel <dzu@gnu.org>
 ;; Keywords: matching, lisp, tools
@@ -319,7 +319,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   (eq 'color
       ;; emacs/xemacs compatibility
       (if (fboundp 'frame-parameter)
-	  (frame-parameter (selected-frame) 'display-type)
+	  (frame-parameter nil 'display-type)
 	(if (fboundp 'frame-property)
 	    (frame-property (selected-frame) 'display-type)))))
 

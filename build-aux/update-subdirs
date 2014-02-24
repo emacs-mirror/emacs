@@ -1,7 +1,7 @@
 #!/bin/sh
 # Write into $1/subdirs.el a list of subdirs of directory $1.
 
-# Copyright (C) 1994-1995, 1997, 1999, 2001-2013 Free Software
+# Copyright (C) 1994-1995, 1997, 1999, 2001-2014 Free Software
 # Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -20,7 +20,7 @@
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 
-cd $1
+cd "$1" || exit 1
 for file in *; do
     case $file in
 	*.elc | *.el | term | RCS | CVS | Old | . | .. | =* | *~ | *.orig | *.rej)
@@ -49,8 +49,8 @@ else
 ;; no-byte-compile: t
 ;; End:" > subdirs.el~
   if cmp "subdirs.el" "subdirs.el~" >/dev/null 2>&1; then
-    :; # echo "subdirs.el unchanged";
+    rm subdirs.el~
   else
-  mv subdirs.el~ subdirs.el
+    mv subdirs.el~ subdirs.el
   fi
 fi

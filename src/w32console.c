@@ -1,5 +1,5 @@
 /* Terminal hooks for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1992, 1999, 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 1992, 1999, 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -53,7 +53,6 @@ static void w32con_write_glyphs (struct frame *f, struct glyph *string, int len)
 static void w32con_delete_glyphs (struct frame *f, int n);
 static void w32con_reset_terminal_modes (struct terminal *t);
 static void w32con_set_terminal_modes (struct terminal *t);
-static void w32con_set_terminal_window (struct frame *f, int size);
 static void w32con_update_begin (struct frame * f);
 static void w32con_update_end (struct frame * f);
 static WORD w32_face_attributes (struct frame *f, int face_id);
@@ -63,6 +62,7 @@ static HANDLE	prev_screen, cur_screen;
 static WORD	char_attr_normal;
 static DWORD	prev_console_mode;
 
+static CONSOLE_CURSOR_INFO console_cursor_info;
 #ifndef USE_SEPARATE_SCREEN
 static CONSOLE_CURSOR_INFO prev_console_cursor;
 #endif
@@ -94,6 +94,22 @@ w32con_move_cursor (struct frame *f, int row, int col)
   /* TODO: for multi-tty support, cur_screen should be replaced with a
      reference to the terminal for this frame.  */
   SetConsoleCursorPosition (cur_screen, cursor_coords);
+}
+
+void
+w32con_hide_cursor (void)
+{
+  GetConsoleCursorInfo (cur_screen, &console_cursor_info);
+  console_cursor_info.bVisible = FALSE;
+  SetConsoleCursorInfo (cur_screen, &console_cursor_info);
+}
+
+void
+w32con_show_cursor (void)
+{
+  GetConsoleCursorInfo (cur_screen, &console_cursor_info);
+  console_cursor_info.bVisible = TRUE;
+  SetConsoleCursorInfo (cur_screen, &console_cursor_info);
 }
 
 /* Clear from cursor to end of screen.  */
@@ -497,11 +513,6 @@ w32con_update_end (struct frame * f)
   SetConsoleCursorPosition (cur_screen, cursor_coords);
 }
 
-static void
-w32con_set_terminal_window (struct frame *f, int size)
-{
-}
-
 /***********************************************************************
 			stubs from termcap.c
  ***********************************************************************/
@@ -558,6 +569,21 @@ Wcm_clear (struct tty_display_info *tty)
 }
 
 
+/* Report the current cursor position.  The following two functions
+   are used in term.c's tty menu code, so they are not really
+   "stubs".  */
+int
+cursorX (struct tty_display_info *tty)
+{
+  return cursor_coords.X;
+}
+
+int
+cursorY (struct tty_display_info *tty)
+{
+  return cursor_coords.Y;
+}
+
 /***********************************************************************
 				Faces
  ***********************************************************************/
@@ -601,10 +627,9 @@ w32_face_attributes (struct frame *f, int face_id)
 }
 
 void
-initialize_w32_display (struct terminal *term)
+initialize_w32_display (struct terminal *term, int *width, int *height)
 {
   CONSOLE_SCREEN_BUFFER_INFO	info;
-  Mouse_HLInfo *hlinfo;
 
   term->rif = 0; /* No window based redisplay on the console.  */
   term->cursor_to_hook		= w32con_move_cursor;
@@ -619,7 +644,7 @@ initialize_w32_display (struct terminal *term)
   term->ring_bell_hook		= w32_sys_ring_bell;
   term->reset_terminal_modes_hook = w32con_reset_terminal_modes;
   term->set_terminal_modes_hook	= w32con_set_terminal_modes;
-  term->set_terminal_window_hook = w32con_set_terminal_window;
+  term->set_terminal_window_hook = NULL;
   term->update_begin_hook	= w32con_update_begin;
   term->update_end_hook		= w32con_update_end;
 
@@ -636,13 +661,7 @@ initialize_w32_display (struct terminal *term)
   term->frame_up_to_date_hook = 0;
 
   /* Initialize the mouse-highlight data.  */
-  hlinfo = &term->display_info.tty->mouse_highlight;
-  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-  hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
-  hlinfo->mouse_face_mouse_frame = NULL;
-  hlinfo->mouse_face_window = Qnil;
-  hlinfo->mouse_face_hidden = 0;
+  reset_mouse_highlight (&term->display_info.tty->mouse_highlight);
 
   /* Initialize interrupt_handle.  */
   init_crit ();
@@ -722,23 +741,21 @@ initialize_w32_display (struct terminal *term)
 	      || info.srWindow.Right - info.srWindow.Left < 40
 	      || info.srWindow.Right - info.srWindow.Left > 100)))
     {
-      FRAME_LINES (SELECTED_FRAME ()) = 25;
-      SET_FRAME_COLS (SELECTED_FRAME (), 80);
+      *height = 25;
+      *width = 80;
     }
 
   else if (w32_use_full_screen_buffer)
     {
-      FRAME_LINES (SELECTED_FRAME ()) = info.dwSize.Y;	/* lines per page */
-      SET_FRAME_COLS (SELECTED_FRAME (), info.dwSize.X);  /* characters per line */
+      *height = info.dwSize.Y;	/* lines per page */
+      *width = info.dwSize.X;	/* characters per line */
     }
   else
     {
       /* Lines per page.  Use buffer coords instead of buffer size.  */
-      FRAME_LINES (SELECTED_FRAME ()) = 1 + info.srWindow.Bottom -
-	info.srWindow.Top;
+      *height = 1 + info.srWindow.Bottom - info.srWindow.Top;
       /* Characters per line.  Use buffer coords instead of buffer size.  */
-      SET_FRAME_COLS (SELECTED_FRAME (), 1 + info.srWindow.Right -
-		       info.srWindow.Left);
+      *width = 1 + info.srWindow.Right - info.srWindow.Left;
     }
 
   if (os_subtype == OS_NT)

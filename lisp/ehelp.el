@@ -1,10 +1,10 @@
 ;;; ehelp.el --- bindings for electric-help mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986, 1995, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1995, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik
 ;; (according to ack.texi and authors.el)
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, extensions
 
 ;; This file is part of GNU Emacs.
@@ -146,7 +146,7 @@ BUFFER is put back into its original major mode."
     (unwind-protect
          (save-excursion
            (when one
-	     (goto-char (window-start (selected-window))))
+	     (goto-char (window-start)))
            (let ((pop-up-windows t))
              (pop-to-buffer buffer))
            (with-current-buffer buffer

@@ -1,6 +1,6 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994-1999, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1992, 1994-1999, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Stefan Schoef <schoef@offis.uni-oldenburg.de>
@@ -468,7 +468,7 @@ alternatives, starting from zero."
      nil
      (("editor") ("editora") ("editorb") ("editorc")
       ("translator") ("annotator") ("commentator")
-      ("introduction") ("foreword") ("afterword") ("titleaddon")
+      ("introduction") ("foreword") ("afterword") ("subtitle") ("titleaddon")
       ("maintitle") ("mainsubtitle") ("maintitleaddon")
       ("language") ("origlanguage") ("volume") ("part") ("edition") ("volumes")
       ("series") ("number") ("note") ("publisher") ("location") ("isbn")
@@ -1224,7 +1224,10 @@ Used by `bibtex-complete-crossref-cleanup' and `bibtex-copy-summary-as-kill'."
                  (function :tag "Personalized function")))
 
 (defcustom bibtex-generate-url-list
-  '((("url" . ".*:.*")))
+  '((("url" . ".*:.*"))
+    (("doi" . "10\\.[0-9]+/.+")
+     "http://dx.doi.org/%s"
+     ("doi" ".*" 0)))
   "List of schemes for generating the URL of a BibTeX entry.
 These schemes are used by `bibtex-url'.
 
@@ -1261,6 +1264,7 @@ The following is a complex example, see URL `http://link.aps.org/'.
      (\"volume\" \".*\" 0)
      (\"pages\" \"\\`[A-Z]?[0-9]+\" 0)))"
   :group 'bibtex
+  :version "24.4"
   :type '(repeat
           (cons :tag "Scheme"
                 (cons :tag "Matcher" :extra-offset 4
@@ -3020,11 +3024,14 @@ Parsing initializes `bibtex-reference-keys' and `bibtex-strings'."
 Visit the BibTeX files defined by `bibtex-files' and return a list
 of corresponding buffers.
 Initialize in these buffers `bibtex-reference-keys' if not yet set.
-List of BibTeX buffers includes current buffer if CURRENT is non-nil.
+List of BibTeX buffers includes current buffer if CURRENT is non-nil
+and the current buffer visits a file using `bibtex-mode'.
 If FORCE is non-nil, (re)initialize `bibtex-reference-keys' even if
 already set.  If SELECT is non-nil interactively select a BibTeX buffer.
-When called interactively, FORCE is t, CURRENT is t if current buffer uses
-`bibtex-mode', and SELECT is t if current buffer does not use `bibtex-mode',"
+
+When called interactively, FORCE is t, CURRENT is t if current buffer
+visits a file using `bibtex-mode', and SELECT is t if current buffer
+does not use `bibtex-mode',"
   (interactive (list (eq major-mode 'bibtex-mode) t
                      (not (eq major-mode 'bibtex-mode))))
   (let ((file-path (split-string (or bibtex-file-path default-directory) ":+"))
@@ -3062,10 +3069,12 @@ When called interactively, FORCE is t, CURRENT is t if current buffer uses
       (if (file-readable-p file)
         (push (find-file-noselect file) buffer-list)))
     ;; Include current buffer iff we want it.
-    ;; Exclude current buffer if it doesn't use `bibtex-mode'.
-    ;; Thus calling `bibtex-initialize' gives meaningful results for
-    ;; any current buffer.
-    (unless (and current (eq major-mode 'bibtex-mode)) (setq current nil))
+    ;; Exclude current buffer if it does not visit a file using `bibtex-mode'.
+    ;; This way we exclude BibTeX buffers such as `bibtex-search-buffer'
+    ;; that are not visiting a BibTeX file.  Also, calling `bibtex-initialize'
+    ;; gives meaningful results for any current buffer.
+    (unless (and current (eq major-mode 'bibtex-mode) buffer-file-name)
+      (setq current nil))
     (cond ((and current (not (memq (current-buffer) buffer-list)))
            (push (current-buffer) buffer-list))
           ((and (not current) (memq (current-buffer) buffer-list))
@@ -3395,9 +3404,6 @@ if that value is non-nil.
   (set (make-local-variable 'syntax-propertize-function)
        (syntax-propertize-via-font-lock
         bibtex-font-lock-syntactic-keywords))
-  (setq imenu-generic-expression
-        (list (list nil bibtex-entry-head bibtex-key-in-head))
-        imenu-case-fold-search t)
   ;; Allow `bibtex-dialect' as a file-local variable.
   (add-hook 'hack-local-variables-hook 'bibtex-set-dialect nil t))
 
@@ -3474,7 +3480,10 @@ LOCAL is t for interactive calls."
              (concat "^[ \t]*@[ \t]*\\(?:"
                      (regexp-opt
                       (append '("String" "Preamble")
-                              (mapcar 'car bibtex-entry-alist))) "\\)"))))
+                              (mapcar 'car bibtex-entry-alist))) "\\)"))
+    (setq imenu-generic-expression
+          (list (list nil bibtex-entry-head bibtex-key-in-head))
+          imenu-case-fold-search t)))
 
 ;; Entry commands and menus for BibTeX dialects
 ;; We do not use `easy-menu-define' here because this gets confused
@@ -5163,6 +5172,9 @@ Return the URL or nil if none can be generated."
                     (if (stringp (car scheme))
                         (setq fmt (pop scheme)))
                     (dolist (step scheme)
+                      ;; In the first STEP, if the field contains multiple
+                      ;; matches, we want the match the closest to point.
+                      ;; (if (eq step (car scheme))
                       (setq text (cdr (assoc-string (car step) fields-alist t)))
                       (if (string-match (nth 1 step) text)
                           (push (cond ((functionp (nth 2 step))
@@ -5233,19 +5245,22 @@ where FILE is the BibTeX file of ENTRY."
           (if (string= "" field)
               ;; Unrestricted search.
               (while (re-search-forward regexp nil t)
-                (let ((beg (bibtex-beginning-of-entry))
-                      (end (bibtex-end-of-entry))
-                      key)
-                  (if (and (<= beg (match-beginning 0))
-                           (<= (match-end 0) end)
-                           (save-excursion
-                             (goto-char beg)
-                             (and (looking-at bibtex-entry-head)
-                                  (setq key (bibtex-key-in-head))))
-                           (not (assoc key entries)))
-                      (push (list key file
-                                  (buffer-substring-no-properties beg end))
-                            entries))))
+                (save-excursion
+                  (let ((mbeg (match-beginning 0))
+                        (mend (match-end 0))
+                        (beg (bibtex-beginning-of-entry))
+                        (end (bibtex-end-of-entry))
+                        key)
+                    (if (and (<= beg mbeg)
+                             (<= mend end)
+                             (progn
+                               (goto-char beg)
+                               (looking-at bibtex-entry-head))
+                             (setq key (bibtex-key-in-head))
+                             (not (assoc key entries)))
+                        (push (list key file
+                                    (buffer-substring-no-properties beg end))
+                              entries)))))
             ;; The following is slow.  But it works reliably even in more
             ;; complicated cases with BibTeX string constants and crossrefed
             ;; entries.  If you prefer speed over reliability, perform an

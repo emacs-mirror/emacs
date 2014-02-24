@@ -1,6 +1,6 @@
-;;; rect.el --- rectangle functions for GNU Emacs
+;;; rect.el --- rectangle functions for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1999-2014 Free Software Foundation, Inc.
 
 ;; Maintainer: Didier Verna <didier@xemacs.org>
 ;; Keywords: internal
@@ -411,6 +411,166 @@ with a prefix argument, prompt for START-AT and FORMAT."
   (let ((rectangle-number-line-counter start-at))
     (apply-on-rectangle 'rectangle-number-line-callback
 			start end format)))
+
+;;; New rectangle integration with kill-ring.
+
+;; FIXME: known problems with the new rectangle support:
+;; - lots of commands handle the region without paying attention to its
+;;   rectangular shape.
+
+(add-function :around redisplay-highlight-region-function
+              #'rectangle--highlight-for-redisplay)
+(add-function :around redisplay-unhighlight-region-function
+              #'rectangle--unhighlight-for-redisplay)
+(add-function :around region-extract-function
+              #'rectangle--extract-region)
+
+(defvar rectangle-mark-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [?\C-o] 'open-rectangle)
+    (define-key map [?\C-t] 'string-rectangle)
+    ;; (define-key map [remap open-line] 'open-rectangle)
+    ;; (define-key map [remap transpose-chars] 'string-rectangle)
+    map)
+  "Keymap used while marking a rectangular region.")
+
+;;;###autoload
+(define-minor-mode rectangle-mark-mode
+  "Toggle the region as rectangular.
+Activates the region if needed.  Only lasts until the region is deactivated."
+  nil nil nil
+  (when rectangle-mark-mode
+    (add-hook 'deactivate-mark-hook
+              (lambda () (rectangle-mark-mode -1)))
+    (unless (region-active-p)
+      (push-mark)
+      (activate-mark)
+      (message "Mark set (rectangle mode)"))))
+
+(defun rectangle--extract-region (orig &optional delete)
+  (if (not rectangle-mark-mode)
+      (funcall orig delete)
+    (let* ((strs (funcall (if delete
+                              #'delete-extract-rectangle
+                            #'extract-rectangle)
+                          (region-beginning) (region-end)))
+           (str (mapconcat #'identity strs "\n")))
+      (when (eq last-command 'kill-region)
+        ;; Try to prevent kill-region from appending this to some
+        ;; earlier element.
+        (setq last-command 'kill-region-dont-append))
+      (when strs
+        (put-text-property 0 (length str) 'yank-handler
+                           `(rectangle--insert-for-yank ,strs t)
+                           str)
+        str))))
+
+(defun rectangle--insert-for-yank (strs)
+  (push (point) buffer-undo-list)
+  (let ((undo-at-start buffer-undo-list))
+    (insert-rectangle strs)
+    (setq yank-undo-function
+          (lambda (_start _end)
+            (undo-start)
+            (setcar undo-at-start nil)  ;Turn it into a boundary.
+            (while (not (eq pending-undo-list (cdr undo-at-start)))
+              (undo-more 1))))))
+
+(defun rectangle--highlight-for-redisplay (orig start end window rol)
+  (cond
+   ((not rectangle-mark-mode)
+    (funcall orig start end window rol))
+   ((and (eq 'rectangle (car-safe rol))
+         (eq (nth 1 rol) (buffer-chars-modified-tick))
+         (eq start (nth 2 rol))
+         (eq end (nth 3 rol)))
+    rol)
+   (t
+    (save-excursion
+      (let* ((nrol nil)
+             (old (if (eq 'rectangle (car-safe rol))
+                      (nthcdr 4 rol)
+                    (funcall redisplay-unhighlight-region-function rol)
+                    nil))
+             (ptcol (progn (goto-char start) (current-column)))
+             (markcol (progn (goto-char end) (current-column)))
+             (leftcol  (min ptcol markcol))
+             (rightcol (max ptcol markcol)))
+        (goto-char start)
+        (while
+            (let* ((mleft (move-to-column leftcol))
+                   (left (point))
+                   (mright (move-to-column rightcol))
+                   (right (point))
+                   (ol
+                    (if (not old)
+                        (let ((ol (make-overlay left right)))
+                          (overlay-put ol 'window window)
+                          (overlay-put ol 'face 'region)
+                          ol)
+                      (let ((ol (pop old)))
+                        (move-overlay ol left right (current-buffer))
+                        ol))))
+              ;; `move-to-column' may stop before the column (if bumping into
+              ;; EOL) or overshoot it a little, when column is in the middle
+              ;; of a char.
+              (cond
+               ((< mleft leftcol)       ;`leftcol' is past EOL.
+                (overlay-put ol 'before-string
+                             (spaces-string (- leftcol mleft)))
+                (setq mright (max mright leftcol)))
+               ((and (> mleft leftcol)  ;`leftcol' is in the middle of a char.
+                     (eq (char-before left) ?\t))
+                (setq left (1- left))
+                (move-overlay ol left right)
+                (goto-char left)
+                (overlay-put ol 'before-string
+                             (spaces-string (- leftcol (current-column)))))
+               ((overlay-get ol 'before-string)
+                (overlay-put ol 'before-string nil)))
+              (cond
+               ((< mright rightcol)     ;`rightcol' is past EOL.
+                (let ((str (make-string (- rightcol mright) ?\s)))
+                  (put-text-property 0 (length str) 'face 'region str)
+                  ;; If cursor happens to be here, draw it *before* rather than
+                  ;; after this highlighted pseudo-text.
+                  (put-text-property 0 1 'cursor t str)
+                  (overlay-put ol 'after-string str)))
+               ((and (> mright rightcol) ;`rightcol's in the middle of a char.
+                     (eq (char-before right) ?\t))
+                (setq right (1- right))
+                (move-overlay ol left right)
+                (if (= rightcol leftcol)
+                    (overlay-put ol 'after-string nil)
+                  (goto-char right)
+                  (let ((str (make-string
+                              (- rightcol (max leftcol (current-column)))
+                              ?\s)))
+                    (put-text-property 0 (length str) 'face 'region str)
+                    (when (= left right)
+                      ;; If cursor happens to be here, draw it *before* rather
+                      ;; than after this highlighted pseudo-text.
+                      (put-text-property 0 1 'cursor 1 str))
+                    (overlay-put ol 'after-string str))))
+               ((overlay-get ol 'after-string)
+                (overlay-put ol 'after-string nil)))
+              (when (and (= leftcol rightcol) (display-graphic-p))
+                ;; Make zero-width rectangles visible!
+		(overlay-put ol 'after-string
+			     (concat (propertize " "
+                                                 'face '(region (:height 0.2)))
+                                     (overlay-get ol 'after-string))))
+              (push ol nrol)
+              (and (zerop (forward-line 1))
+                   (<= (point) end))))
+        (mapc #'delete-overlay old)
+        `(rectangle ,(buffer-chars-modified-tick) ,start ,end ,@nrol))))))
+
+(defun rectangle--unhighlight-for-redisplay (orig rol)
+  (if (not (eq 'rectangle (car-safe rol)))
+      (funcall orig rol)
+    (mapc #'delete-overlay (nthcdr 4 rol))
+    (setcar (cdr rol) nil)))
 
 (provide 'rect)
 

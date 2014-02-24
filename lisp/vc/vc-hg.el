@@ -1,9 +1,9 @@
 ;;; vc-hg.el --- VC backend for the mercurial version control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: vc tools
 ;; Package: vc
 
@@ -152,7 +152,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
      (2 'change-log-list)
      (3 'change-log-name)
      (4 'change-log-date)))
-  "Mercurial log template for `vc-print-root-log'.
+  "Mercurial log template for `vc-hg-print-log' short format.
 This should be a list (TEMPLATE REGEXP KEYWORDS), where TEMPLATE
 is the \"--template\" argument string to pass to Mercurial,
 REGEXP is a regular expression matching the resulting Mercurial
@@ -245,8 +245,13 @@ highlighting the Log View buffer."
                  (repeat :tag "Argument List" :value ("") string))
   :group 'vc-hg)
 
+(autoload 'vc-setup-buffer "vc-dispatcher")
+
 (defun vc-hg-print-log (files buffer &optional shortlog start-revision limit)
-  "Get change log associated with FILES."
+  "Print commit log associated with FILES into specified BUFFER.
+If SHORTLOG is non-nil, use a short format based on `vc-hg-root-log-format'.
+If START-REVISION is non-nil, it is the newest revision to show.
+If LIMIT is non-nil, show no more than this many entries."
   ;; `vc-do-command' creates the buffer, but we need it before running
   ;; the command.
   (vc-setup-buffer buffer)
@@ -257,7 +262,7 @@ highlighting the Log View buffer."
 	buffer
       (apply 'vc-hg-command buffer 0 files "log"
 	     (nconc
-	      (when start-revision (list (format "-r%s:" start-revision)))
+	      (when start-revision (list (format "-r%s:0" start-revision)))
 	      (when limit (list "-l" (format "%s" limit)))
 	      (when shortlog (list "--template" (car vc-hg-root-log-format)))
 	      vc-hg-log-switches)))))
@@ -302,6 +307,8 @@ highlighting the Log View buffer."
 	    ("^date: \\(.+\\)" (1 'change-log-date))
 	    ("^tag: +\\([^ ]+\\)$" (1 'highlight))
 	    ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
+
+(autoload 'vc-switches "vc")
 
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
   "Get a difference report using hg between two revisions of FILES."
@@ -357,7 +364,7 @@ Optional arg REVISION is a revision to annotate from."
 ;;215 Wed Jun 20 21:22:58 2007 -0700 foo.c: CONTENTS
 ;; i.e. VERSION_NUMBER DATE FILENAME: CONTENTS
 (defconst vc-hg-annotate-re
-  "^[ \t]*\\([0-9]+\\) \\(.\\{30\\}\\)\\(?:\\(: \\)\\|\\(?: +\\(.+\\): \\)\\)")
+  "^[ \t]*\\([0-9]+\\) \\(.\\{30\\}\\)\\(?:\\(: \\)\\|\\(?: +\\([^:\n]+\\(?::\\(?:[^: \n][^:\n]*\\)?\\)*\\): \\)\\)")
 
 (defun vc-hg-annotate-time ()
   (when (looking-at vc-hg-annotate-re)
@@ -451,6 +458,11 @@ REV is ignored."
     (if rev
         (vc-hg-command buffer 0 file "cat" "-r" rev)
       (vc-hg-command buffer 0 file "cat"))))
+
+(defun vc-hg-find-ignore-file (file)
+  "Return the root directory of the repository of FILE."
+  (expand-file-name ".hgignore"
+		    (vc-hg-root file)))
 
 ;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-checkout (file &optional _editable rev)
@@ -588,15 +600,21 @@ REV is the revision to check out into WORKFILE."
         (forward-line))
       (funcall update-function result)))
 
+;; Follows vc-hg-command (or vc-do-async-command), which uses vc-do-command
+;; from vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+;; Follows vc-exec-after.
+(declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
+
 (defun vc-hg-dir-status (dir update-function)
   (vc-hg-command (current-buffer) 'async dir "status" "-C")
-  (vc-exec-after
-   `(vc-hg-after-dir-status (quote ,update-function))))
+  (vc-run-delayed
+   (vc-hg-after-dir-status update-function)))
 
 (defun vc-hg-dir-status-files (dir files _default-state update-function)
   (apply 'vc-hg-command (current-buffer) 'async dir "status" "-C" files)
-  (vc-exec-after
-   `(vc-hg-after-dir-status (quote ,update-function))))
+  (vc-run-delayed
+   (vc-hg-after-dir-status update-function)))
 
 (defun vc-hg-dir-extra-header (name &rest commands)
   (concat (propertize name 'face 'font-lock-type-face)
@@ -648,6 +666,8 @@ REV is the revision to check out into WORKFILE."
   ;;       modified files
   "Value of `compilation-error-regexp-alist' in *vc-hg* buffers.")
 
+(autoload 'vc-do-async-command "vc-dispatcher")
+
 (defun vc-hg-pull (prompt)
   "Issue a Mercurial pull command.
 If called interactively with a set of marked Log View buffers,
@@ -688,7 +708,8 @@ then attempts to update the working directory."
 		args       (cddr args)))
 	(apply 'vc-do-async-command buffer root hg-program
 	       command args)
-        (with-current-buffer buffer (vc-exec-after '(vc-compilation-mode 'hg)))
+        (with-current-buffer buffer
+          (vc-run-delayed (vc-compilation-mode 'hg)))
 	(vc-set-async-update buffer)))))
 
 (defun vc-hg-merge-branch ()
@@ -697,7 +718,7 @@ This runs the command \"hg merge\"."
   (let* ((root (vc-hg-root default-directory))
 	 (buffer (format "*vc-hg : %s*" (expand-file-name root))))
     (apply 'vc-do-async-command buffer root vc-hg-program '("merge"))
-    (with-current-buffer buffer (vc-exec-after '(vc-compilation-mode 'hg)))
+    (with-current-buffer buffer (vc-run-delayed (vc-compilation-mode 'hg)))
     (vc-set-async-update buffer)))
 
 ;;; Internal functions

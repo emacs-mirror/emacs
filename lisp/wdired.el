@@ -1,9 +1,9 @@
 ;;; wdired.el --- Rename files editing their names in dired buffers
 
-;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2014 Free Software Foundation, Inc.
 
 ;; Filename: wdired.el
-;; Author: Juan León Lahoz García <juanleon1@gmail.com>
+;; Author: Juan LeÃ³n Lahoz GarcÃ­a <juanleon1@gmail.com>
 ;; Version: 2.0
 ;; Keywords: dired, environment, files, renaming
 
@@ -72,8 +72,6 @@
 ;; were posted to gnu.emacs.sources)
 
 ;;; Code:
-
-(defvar dired-backup-overwrite) ; Only in Emacs 20.x this is a custom var
 
 (require 'dired)
 (autoload 'dired-do-create-files-regexp "dired-aux")
@@ -185,7 +183,8 @@ renamed by `dired-do-rename' and `dired-do-rename-regexp'."
     (define-key map [remap capitalize-word] 'wdired-capitalize-word)
     (define-key map [remap downcase-word] 'wdired-downcase-word)
 
-    map))
+    map)
+  "Keymap used in `wdired-mode'.")
 
 (defvar wdired-mode-hook nil
   "Hooks run when changing to WDired mode.")
@@ -239,8 +238,8 @@ See `wdired-mode'."
        (dired-remember-marks (point-min) (point-max)))
   (set (make-local-variable 'wdired-old-point) (point))
   (set (make-local-variable 'query-replace-skip-read-only) t)
-  (set (make-local-variable 'isearch-filter-predicate)
-       'wdired-isearch-filter-read-only)
+  (add-function :after-while (local 'isearch-filter-predicate)
+                #'wdired-isearch-filter-read-only)
   (use-local-map wdired-mode-map)
   (force-mode-line-update)
   (setq buffer-read-only nil)
@@ -268,9 +267,8 @@ or \\[wdired-abort-changes] to abort changes")))
 
 (defun wdired-isearch-filter-read-only (beg end)
   "Skip matches that have a read-only property."
-  (and (isearch-filter-visible beg end)
-       (not (text-property-not-all (min beg end) (max beg end)
-				   'read-only nil))))
+  (not (text-property-not-all (min beg end) (max beg end)
+			      'read-only nil)))
 
 ;; Protect the buffer so only the filenames can be changed, and put
 ;; properties so filenames (old and new) can be easily found.
@@ -851,7 +849,7 @@ Like original function but it skips read-only words."
 (provide 'wdired)
 
 ;; Local Variables:
-;; coding: latin-1
+;; coding: utf-8
 ;; byte-compile-dynamic: t
 ;; End:
 

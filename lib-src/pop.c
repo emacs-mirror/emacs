@@ -1,6 +1,6 @@
 /* pop.c: client routines for talking to a POP3-protocol post-office server
 
-Copyright (C) 1991, 1993, 1996-1997, 1999, 2001-2013 Free Software
+Copyright (C) 1991, 1993, 1996-1997, 1999, 2001-2014 Free Software
 Foundation, Inc.
 
 Author: Jonathan Kamens <jik@security.ov.com>
@@ -124,7 +124,7 @@ static char *find_crlf (char *, int);
 #endif
 
 char pop_error[ERROR_MAX];
-int pop_debug = 0;
+bool pop_debug = false;
 
 /*
  * Function: pop_open (char *host, char *username, char *password,
@@ -269,8 +269,8 @@ pop_open (char *host, char *username, char *password, int flags)
   server->data = 0;
   server->buffer_index = 0;
   server->buffer_size = GETLINE_MIN;
-  server->in_multi = 0;
-  server->trash_started = 0;
+  server->in_multi = false;
+  server->trash_started = false;
 
   if (getok (server))
     return (0);
@@ -686,7 +686,7 @@ pop_multi_first (popserver server, const char *command, char **response)
   else if (0 == strncmp (*response, "+OK", 3))
     {
       for (*response += 3; **response == ' '; (*response)++) /* empty */;
-      server->in_multi = 1;
+      server->in_multi = true;
       return (0);
     }
   else
@@ -728,7 +728,7 @@ pop_multi_next (popserver server, char **line)
       if (! fromserver[1])
 	{
 	  *line = 0;
-	  server->in_multi = 0;
+	  server->in_multi = false;
 	  return (0);
 	}
       else
@@ -1075,28 +1075,22 @@ socket_connection (char *host, int flags)
 	}
     } while (ret != 0);
 
-  if (ret == 0)
+  for (it = res; it; it = it->ai_next)
+    if (it->ai_addrlen == sizeof addr)
+      {
+	struct sockaddr_in *in_a = (struct sockaddr_in *) it->ai_addr;
+	addr.sin_addr = in_a->sin_addr;
+	if (! connect (sock, (struct sockaddr *) &addr, sizeof addr))
+	  break;
+      }
+  connect_ok = it != NULL;
+  if (connect_ok)
     {
-      it = res;
-      while (it)
-        {
-          if (it->ai_addrlen == sizeof (addr))
-            {
-              struct sockaddr_in *in_a = (struct sockaddr_in *) it->ai_addr;
-              addr.sin_addr = in_a->sin_addr;
-              if (! connect (sock, (struct sockaddr *) &addr, sizeof (addr)))
-                break;
-            }
-          it = it->ai_next;
-        }
-      connect_ok = it != NULL;
-      if (connect_ok)
-        {
-          realhost = alloca (strlen (it->ai_canonname) + 1);
-          strcpy (realhost, it->ai_canonname);
-        }
-      freeaddrinfo (res);
+      realhost = alloca (strlen (it->ai_canonname) + 1);
+      strcpy (realhost, it->ai_canonname);
     }
+  freeaddrinfo (res);
+
 #else /* !HAVE_GETADDRINFO */
   do
     {
@@ -1198,7 +1192,7 @@ socket_connection (char *host, int flags)
 	    }
 #elif defined HAVE_KRB5_ERROR_E_TEXT
 	  if (err_ret && err_ret->e_text && **err_ret->e_text)
-	    snprintf (pop_error + pop_error_len, ERRMAX - pop_error_len,
+	    snprintf (pop_error + pop_error_len, ERROR_MAX - pop_error_len,
 		      " [server says '%s']", *err_ret->e_text);
 #endif
 	  if (err_ret)
@@ -1552,7 +1546,7 @@ pop_trash (popserver server)
       /* avoid recursion; sendline can call pop_trash */
       if (server->trash_started)
 	return;
-      server->trash_started = 1;
+      server->trash_started = true;
 
       sendline (server, "RSET");
       sendline (server, "QUIT");

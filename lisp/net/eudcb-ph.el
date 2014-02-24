@@ -1,9 +1,9 @@
-;;; eudcb-ph.el --- Emacs Unified Directory Client - CCSO PH/QI Backend
+;;; eudcb-ph.el --- Emacs Unified Directory Client - CCSO PH/QI Backend -*- coding: utf-8 -*-
 
-;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2014 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
-;; Maintainer: Pavel Janík <Pavel@Janik.cz>
+;; Maintainer: Pavel JanÃ­k <Pavel@Janik.cz>
 ;; Keywords: comm
 ;; Package: eudc
 

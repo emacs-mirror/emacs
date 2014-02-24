@@ -1095,7 +1095,7 @@
 	`ibuffer-define-column'.  Require 'ibuf-ext so that the macros
 	work without compiler warnings.
 
-	* man/erc.texi (Obtaining ERC, Installation): Note that these
+	* erc.texi (Obtaining ERC, Installation): Note that these
 	sections may be skipped if using the version of ERC that comes
 	with Emacs.
 
@@ -1430,7 +1430,7 @@
 
 See ChangeLog.05 for earlier changes.
 
-	Copyright (C) 2006-2013 Free Software Foundation, Inc.
+	Copyright (C) 2006-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

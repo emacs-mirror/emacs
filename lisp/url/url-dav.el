@@ -1,6 +1,6 @@
 ;;; url-dav.el --- WebDAV support
 
-;; Copyright (C) 2001, 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2004-2014 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: Bill Perry <wmperry@gnu.org>
@@ -32,10 +32,12 @@
 (require 'xml)
 (require 'url-util)
 (require 'url-handlers)
+(require 'url-http)
 
 (defvar url-dav-supported-protocols '(1 2)
   "List of supported DAV versions.")
 
+;; Dynamically bound.
 (defvar url-http-content-type)
 (defvar url-http-response-status)
 (defvar url-http-end-of-headers)
@@ -620,8 +622,6 @@ Returns t if the lock was successfully released."
 	(_
 	 (url-debug 'dav "Unrecognized DAV:locktype (%S)" (car lock)))))
     modes))
-
-(autoload 'url-http-head-file-attributes "url-http")
 
 (defun url-dav-file-attributes (url &optional id-format)
   (let ((properties (cdar (url-dav-get-properties url))))

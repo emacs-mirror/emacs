@@ -1,6 +1,6 @@
 ;;; tramp-gw.el --- Tramp utility functions for HTTP tunnels and SOCKS gateways
 
-;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -33,16 +33,11 @@
 
 (require 'tramp)
 
-;; Pacify byte-compiler
+;; Pacify byte-compiler.
 (eval-when-compile
   (require 'cl)
   (require 'custom))
-
-;; Avoid byte-compiler warnings if the byte-compiler supports this.
-;; Currently, XEmacs supports this.
-(eval-when-compile
-  (when (featurep 'xemacs)
-      (byte-compiler-options (warnings (- unused-vars)))))
+(defvar socks-noproxy)
 
 ;; We don't add the following methods to `tramp-methods', in order to
 ;; exclude them from file name completion.
@@ -96,16 +91,16 @@
 (defvar tramp-gw-aux-proc nil
   "Process listening on local port, as mediation between SSH and the gateway.")
 
-(defun tramp-gw-gw-proc-sentinel (proc event)
+(defun tramp-gw-gw-proc-sentinel (proc _event)
   "Delete auxiliary process when we are deleted."
   (unless (memq (process-status proc) '(run open))
     (tramp-message
      tramp-gw-vector 4 "Deleting auxiliary process `%s'" tramp-gw-gw-proc)
-    (let* (tramp-verbose
+    (let* ((tramp-verbose 0)
 	   (p (tramp-get-connection-property proc "process" nil)))
       (when (processp p) (delete-process p)))))
 
-(defun tramp-gw-aux-proc-sentinel (proc event)
+(defun tramp-gw-aux-proc-sentinel (proc _event)
   "Activate the different filters for involved gateway and auxiliary processes."
   (when (memq (process-status proc) '(run open))
     ;; A new process has been spawned from `tramp-gw-aux-proc'.
@@ -116,7 +111,7 @@
     (tramp-compat-set-process-query-on-exit-flag proc nil)
     ;; We don't want debug messages, because the corresponding debug
     ;; buffer might be undecided.
-    (let (tramp-verbose)
+    (let ((tramp-verbose 0))
       (tramp-set-connection-property tramp-gw-gw-proc "process" proc)
       (tramp-set-connection-property proc "process" tramp-gw-gw-proc))
     ;; Set the process-filter functions for both processes.
@@ -130,7 +125,7 @@
 	  (tramp-gw-process-filter tramp-gw-gw-proc s))))))
 
 (defun tramp-gw-process-filter (proc string)
-  (let (tramp-verbose)
+  (let ((tramp-verbose 0))
     (process-send-string
      (tramp-get-connection-property proc "process" nil) string)))
 
@@ -243,14 +238,14 @@ authentication is requested from proxy server, provide it."
        tramp-gw-vector 6 "\n%s"
        (format
 	"%s%s\r\n" command
-	(replace-regexp-in-string ;; no password in trace!
+	(tramp-compat-replace-regexp-in-string ;; no password in trace!
 	 "Basic [^\r\n]+" "Basic xxxxx" authentication t)))
       (with-current-buffer buffer
 	;; Trap errors to be traced in the right trace buffer.  Often,
 	;; proxies have a timeout of 60".  We wait 65" in order to
 	;; receive an answer this case.
 	(ignore-errors
-	  (let (tramp-verbose)
+	  (let ((tramp-verbose 0))
 	    (tramp-wait-for-regexp proc 65 "\r?\n\r?\n")))
 	;; Check return code.
 	(goto-char (point-min))

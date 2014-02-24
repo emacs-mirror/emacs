@@ -1,6 +1,6 @@
 ;;; cedet-files.el --- Common routines dealing with file names.
 
-;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 ;; Package: cedet
@@ -87,6 +87,24 @@ specific conversions during tests."
       (when (string-match "^!" file)
 	(setq file (concat "//" (substring file 1)))))
     file))
+
+(defun cedet-files-list-recursively (dir re)
+  "Returns list of files in directory matching to given regex"
+  (when (file-accessible-directory-p dir)
+    (let ((files (directory-files dir t))
+          matched)
+      (dolist (file files matched)
+        (let ((fname (file-name-nondirectory file)))
+          (cond
+           ((or (string= fname ".")
+                (string= fname "..")) nil)
+           ((and (file-regular-p file)
+                 (string-match re fname))
+            (setq matched (cons file matched)))
+           ((file-directory-p file)
+            (let ((tfiles (cedet-files-list-recursively file re)))
+              (when tfiles (setq matched (append matched tfiles)))))))))))
+
 
 (provide 'cedet-files)
 

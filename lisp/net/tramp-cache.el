@@ -1,6 +1,6 @@
 ;;; tramp-cache.el --- file information caching for Tramp
 
-;; Copyright (C) 2000, 2005-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2005-2014 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pittman <daniel@inanna.danann.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -38,9 +38,11 @@
 ;;
 ;; - localname is a string.  This are temporary properties, which are
 ;;   related to the file localname is referring to.  Examples:
-;;   "file-exists-p" is t or nile, depending on the file existence, or
+;;   "file-exists-p" is t or nil, depending on the file existence, or
 ;;   "file-attributes" caches the result of the function
-;;  `file-attributes'.
+;;   `file-attributes'.  These entries have a timestamp, and they
+;;   expire after `remote-file-name-inhibit-cache' seconds if this
+;;   variable is set.
 ;;
 ;; - The key is a process.  This are temporary properties related to
 ;;   an open connection.  Examples: "scripts" keeps shell script
@@ -64,7 +66,7 @@
 Every entry has the form (REGEXP PROPERTY VALUE).  The regexp
 matches remote file names.  It can be nil.  PROPERTY is a string,
 and VALUE the corresponding value.  They are used, if there is no
-matching entry in for PROPERTY in `tramp-cache-data'."
+matching entry for PROPERTY in `tramp-cache-data'."
   :group 'tramp
   :version "24.4"
   :type '(repeat (list (choice :tag "File Name regexp" regexp (const nil))
@@ -185,7 +187,7 @@ Remove also properties of all files in subdirectories."
 		    'directory-file-name (list directory))))
     (tramp-message key 8 "%s" directory)
     (maphash
-     (lambda (key value)
+     (lambda (key _value)
        (when (and (stringp (tramp-file-name-localname key))
 		  (string-match directory (tramp-file-name-localname key)))
 	 (remhash key tramp-cache-data)))
@@ -271,7 +273,7 @@ KEY identifies the connection, it is either a process or a vector."
    (let ((hash (gethash key tramp-cache-data))
 	 properties)
      (when (hash-table-p hash)
-       (maphash (lambda (x y) (add-to-list 'properties x 'append)) hash))
+       (maphash (lambda (x _y) (add-to-list 'properties x 'append)) hash))
      properties))
   (setq tramp-cache-data-changed t)
   (remhash key tramp-cache-data))
@@ -283,6 +285,21 @@ KEY identifies the connection, it is either a process or a vector."
     (let (result)
       (maphash
        (lambda (key value)
+	 ;; Remove text properties from KEY and VALUE.
+	 ;; `substring-no-properties' does not exist in XEmacs.
+	 (when (functionp 'substring-no-properties)
+	   (when (vectorp key)
+	     (dotimes (i (length key))
+	       (when (stringp (aref key i))
+		 (aset key i
+		       (tramp-compat-funcall
+			'substring-no-properties (aref key i))))))
+	   (when (stringp key)
+	     (setq key (tramp-compat-funcall 'substring-no-properties key)))
+	   (when (stringp value)
+	     (setq value
+		   (tramp-compat-funcall 'substring-no-properties value))))
+	 ;; Dump.
 	 (let ((tmp (format
 		     "(%s %s)"
 		     (if (processp key)
@@ -302,7 +319,7 @@ KEY identifies the connection, it is either a process or a vector."
   "Return a list of all known connection vectors according to `tramp-cache'."
     (let (result)
       (maphash
-       (lambda (key value)
+       (lambda (key _value)
 	 (when (and (vectorp key) (null (aref key 3)))
 	   (add-to-list 'result key)))
        tramp-cache-data)
@@ -366,7 +383,7 @@ This function is added always in `tramp-get-completion-function'
 for all methods.  Resulting data are derived from connection history."
   (let (res)
     (maphash
-     (lambda (key value)
+     (lambda (key _value)
        (if (and (vectorp key)
 		(string-equal method (tramp-file-name-method key))
 		(not (tramp-file-name-localname key)))
@@ -388,6 +405,7 @@ for all methods.  Resulting data are derived from connection history."
       (with-temp-buffer
 	(insert-file-contents tramp-persistency-file-name)
 	(let ((list (read (current-buffer)))
+	      (tramp-verbose 0)
 	      element key item)
 	  (while (setq element (pop list))
 	    (setq key (pop element))

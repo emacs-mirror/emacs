@@ -1,6 +1,6 @@
 ;;; inf-lisp.el --- an inferior-lisp mode
 
-;; Copyright (C) 1988, 1993-1994, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1988, 1993-1994, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
@@ -90,6 +90,21 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
     (define-key map "\C-c\C-f" 'lisp-show-function-documentation)
     (define-key map "\C-c\C-v" 'lisp-show-variable-documentation)
     map))
+
+(easy-menu-define
+  inferior-lisp-menu
+  inferior-lisp-mode-map
+  "Inferior Lisp Menu"
+  '("Inf-Lisp"
+    ["Eval Last Sexp" lisp-eval-last-sexp t]
+    "--"
+    ["Load File..." lisp-load-file t]
+    ["Compile File..." lisp-compile-file t]
+    "--"
+    ["Show Arglist..." lisp-show-arglist t]
+    ["Describe Symbol..." lisp-describe-sym t]
+    ["Show Documentation for Function..." lisp-show-function-documentation t]
+    ["Show Documentation for Variable..." lisp-show-variable-documentation t]))
 
 ;;; These commands augment Lisp mode, so you can process Lisp code in
 ;;; the source files.

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 
@@ -113,6 +113,7 @@ Region}).
 @findex delete-horizontal-space
 @kindex M-SPC
 @findex just-one-space
+@findex cycle-spacing
   The other delete commands are those that delete only whitespace
 characters: spaces, tabs and newlines.  @kbd{M-\}
 (@code{delete-horizontal-space}) deletes all the spaces and tab
@@ -123,7 +124,11 @@ point, regardless of the number of spaces that existed previously
 (even if there were none before).  With a numeric argument @var{n}, it
 leaves @var{n} spaces before point if @var{n} is positive; if @var{n}
 is negative, it deletes newlines in addition to spaces and tabs,
-leaving @var{-n} spaces before point.
+leaving @var{-n} spaces before point.  The command @code{cycle-spacing}
+acts like a more flexible version of @code{just-one-space}.  It
+does different things if you call it repeatedly in succession.
+The first call acts like @code{just-one-space}, the next removes
+all whitespace, and a third call restores the original whitespace.
 
   @kbd{C-x C-o} (@code{delete-blank-lines}) deletes all blank lines
 after the current line.  If the current line is blank, it deletes all
@@ -133,6 +138,17 @@ the current line).  On a solitary blank line, it deletes that line.
   @kbd{M-^} (@code{delete-indentation}) joins the current line and the
 previous line, by deleting a newline and all surrounding spaces, usually
 leaving a single space.  @xref{Indentation,M-^}.
+
+@c Not really sure where to put this...
+@findex delete-duplicate-lines
+  The command @code{delete-duplicate-lines} searches the region for
+identical lines, and removes all but one copy of each.  Normally it
+keeps the first instance of each repeated line, but with a @kbd{C-u}
+prefix argument it keeps the last.  With a @kbd{C-u C-u} prefix
+argument, it only searches for adjacent identical lines.  This is a
+more efficient mode of operation, useful when the lines have already
+been sorted.  With a @kbd{C-u C-u C-u} prefix argument, it retains
+repeated blank lines.
 
 @node Killing by Lines
 @subsection Killing by Lines
@@ -415,13 +431,15 @@ killed it.
 @kindex C-M-w
 @findex append-next-kill
   If a kill command is separated from the last kill command by other
-commands (not just numeric arguments), it starts a new entry on the kill
-ring.  But you can force it to append by first typing the command
-@kbd{C-M-w} (@code{append-next-kill}) right before it.  The @kbd{C-M-w}
-tells the following command, if it is a kill command, to append the text
-it kills to the last killed text, instead of starting a new entry.  With
-@kbd{C-M-w}, you can kill several separated pieces of text and
-accumulate them to be yanked back in one place.@refill
+commands (not just numeric arguments), it starts a new entry on the
+kill ring.  But you can force it to combine with the last killed text,
+by typing @kbd{C-M-w} (@code{append-next-kill}) right beforehand.  The
+@kbd{C-M-w} tells its following command, if it is a kill command, to
+treat the kill as part of the sequence of previous kills.  As usual,
+the kill is appended to the previous killed text if the command kills
+forward, and prepended if the command kills backward.  In this way,
+you can kill several separated pieces of text and accumulate them to
+be yanked back in one place.
 
   A kill command following @kbd{M-w} (@code{kill-ring-save}) does not
 append to the text that @kbd{M-w} copied into the kill ring.
@@ -848,8 +866,9 @@ the prefix key twice, e.g., @kbd{C-x C-x C-f}.
 while retaining the other features of CUA mode described below, set
 the variable @code{cua-enable-cua-keys} to @code{nil}.
 
-  In CUA mode, typed text replaces the active region as in
-Delete-Selection mode (@pxref{Mouse Commands}).
+  CUA mode by default activates Delete-Selection mode (@pxref{Mouse Commands})
+so that typed text replaces the active region.  To use CUA without this
+behavior, set the variable @code{cua-delete-selection} to @code{nil}.
 
 @cindex rectangle highlighting
   CUA mode provides enhanced rectangle support with visible
@@ -859,6 +878,9 @@ extend it using the movement commands, and cut or copy it using
 (clockwise) corner of the rectangle, so you can easily expand it in
 any direction.  Normal text you type is inserted to the left or right
 of each line in the rectangle (on the same side as the cursor).
+
+  You can use this rectangle support without activating CUA by calling the
+@code{cua-rectangle-mark-mode} command.
 
   With CUA you can easily copy text and rectangles into and out of
 registers by providing a one-digit numeric prefix to the kill, copy,

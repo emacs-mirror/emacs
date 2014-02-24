@@ -1,6 +1,6 @@
 ;;; zone.el --- idle display hacks
 
-;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Victor Zandy <zandy@cs.wisc.edu>
 ;; Maintainer: Thien-Thi Nguyen <ttn@gnu.org>
@@ -110,7 +110,7 @@ If the element is a function or a list of a function and a number,
     (let ((f (selected-frame))
           (outbuf (get-buffer-create "*zone*"))
           (text (buffer-substring (window-start) (window-end)))
-          (wp (1+ (- (window-point (selected-window))
+          (wp (1+ (- (window-point)
                      (window-start)))))
       (put 'zone 'orig-buffer (current-buffer))
       (switch-to-buffer outbuf)

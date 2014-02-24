@@ -1,6 +1,6 @@
 /* Simple built-in editing commands.
 
-Copyright (C) 1985, 1993-1998, 2001-2013 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1998, 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -86,6 +86,7 @@ DEFUN ("forward-char", Fforward_char, Sforward_char, 0, 1, "^p",
        doc: /* Move point N characters forward (backward if N is negative).
 On reaching end or beginning of buffer, stop and signal error.
 Interactively, N is the numeric prefix argument.
+If N is omitted or nil, move point 1 character forward.
 
 Depending on the bidirectional context, the movement may be to the
 right or to the left on the screen.  This is in contrast with
@@ -99,6 +100,7 @@ DEFUN ("backward-char", Fbackward_char, Sbackward_char, 0, 1, "^p",
        doc: /* Move point N characters backward (forward if N is negative).
 On attempt to pass beginning or end of buffer, stop and signal error.
 Interactively, N is the numeric prefix argument.
+If N is omitted or nil, move point 1 character backward.
 
 Depending on the bidirectional context, the movement may be to the
 right or to the left on the screen.  This is in contrast with
@@ -119,9 +121,7 @@ With positive N, a non-empty line at the end counts as one line
 successfully moved (for the return value).  */)
   (Lisp_Object n)
 {
-  ptrdiff_t opoint = PT, opoint_byte = PT_BYTE;
-  ptrdiff_t pos, pos_byte;
-  EMACS_INT count, shortage;
+  ptrdiff_t opoint = PT, pos, pos_byte, shortage, count;
 
   if (NILP (n))
     count = 1;
@@ -132,16 +132,12 @@ successfully moved (for the return value).  */)
     }
 
   if (count <= 0)
-    shortage = scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, count - 1, 1);
+    pos = find_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, count - 1,
+			&shortage, &pos_byte, 1);
   else
-    shortage = scan_newline (PT, PT_BYTE, ZV, ZV_BYTE, count, 1);
+    pos = find_newline (PT, PT_BYTE, ZV, ZV_BYTE, count,
+			&shortage, &pos_byte, 1);
 
-  /* Since scan_newline does TEMP_SET_PT_BOTH,
-     and we want to set PT "for real",
-     go back to the old point and then come back here.  */
-  pos = PT;
-  pos_byte = PT_BYTE;
-  TEMP_SET_PT_BOTH (opoint, opoint_byte);
   SET_PT_BOTH (pos, pos_byte);
 
   if (shortage > 0
@@ -272,6 +268,7 @@ static int nonundocount;
 DEFUN ("self-insert-command", Fself_insert_command, Sself_insert_command, 1, 1, "p",
        doc: /* Insert the character you type.
 Whichever character you type to run this command is inserted.
+The numeric prefix argument N says how many times to repeat the insertion.
 Before insertion, `expand-abbrev' is executed if the inserted character does
 not have word syntax and the previous character in the buffer does.
 After insertion, the value of `auto-fill-function' is called if the
@@ -280,7 +277,10 @@ At the end, it runs `post-self-insert-hook'.  */)
   (Lisp_Object n)
 {
   bool remove_boundary = 1;
-  CHECK_NATNUM (n);
+  CHECK_NUMBER (n);
+
+  if (XFASTINT (n) < 1)
+    error ("Nonpositive repetition argument %"pI"d", XFASTINT (n));
 
   if (!EQ (Vthis_command, KVAR (current_kboard, Vlast_command)))
     nonundocount = 0;
@@ -308,7 +308,7 @@ At the end, it runs `post-self-insert-hook'.  */)
   /* Barf if the key that invoked this was not a character.  */
   if (!CHARACTERP (last_command_event))
     bitch_at_user ();
-  {
+  else {
     int character = translate_char (Vtranslation_table_for_input,
 				    XINT (last_command_event));
     int val = internal_self_insert (character, XFASTINT (n));

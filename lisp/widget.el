@@ -1,10 +1,9 @@
 ;;; widget.el --- a library of user interface components
 ;;
-;; Copyright (C) 1996-1997, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2014 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, extensions, faces, hypermedia
-;; Version: 1.9920
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 ;; Package: emacs
 

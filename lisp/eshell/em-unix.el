@@ -1,6 +1,6 @@
-;;; em-unix.el --- UNIX command aliases
+;;; em-unix.el --- UNIX command aliases  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -148,7 +148,7 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
   (make-local-variable 'eshell-complex-commands)
   (setq eshell-complex-commands
 	(append '("grep" "egrep" "fgrep" "agrep" "glimpse" "locate"
-		  "cat" "time" "cp" "mv" "make" "du" "diff" "su" "sudo")
+		  "cat" "time" "cp" "mv" "make" "du" "diff")
 		eshell-complex-commands)))
 
 (defalias 'eshell/date     'current-time-string)
@@ -195,12 +195,12 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
       (Info-menu (car args))
       (setq args (cdr args)))))
 
-(defun eshell-remove-entries (path files &optional top-level)
-  "From PATH, remove all of the given FILES, perhaps interactively."
+(defun eshell-remove-entries (files &optional toplevel)
+  "Remove all of the given FILES, perhaps interactively."
   (while files
     (if (string-match "\\`\\.\\.?\\'"
 		      (file-name-nondirectory (car files)))
-	(if top-level
+	(if toplevel
 	    (eshell-error "rm: cannot remove `.' or `..'\n"))
       (if (and (file-directory-p (car files))
 	       (not (file-symlink-p (car files))))
@@ -284,18 +284,21 @@ Remove (unlink) the FILE(s).")
 					     entry)))))
 	   (eshell-funcalln 'unintern entry)))
 	((stringp entry)
-	 (if (and (file-directory-p entry)
-		  (not (file-symlink-p entry)))
-	     (if (or em-recursive
-		     eshell-rm-removes-directories)
-		 (if (or em-preview
-			 (not em-interactive)
-			 (y-or-n-p
-			  (format "rm: descend into directory `%s'? "
-				  entry)))
-		     (eshell-remove-entries nil (list entry) t))
-	       (eshell-error (format "rm: %s: is a directory\n" entry)))
-	   (eshell-remove-entries nil (list entry) t)))))
+	 ;; -f should silently ignore missing files (bug#15373).
+	 (unless (and force-removal
+		      (not (file-exists-p entry)))
+	   (if (and (file-directory-p entry)
+		    (not (file-symlink-p entry)))
+	       (if (or em-recursive
+		       eshell-rm-removes-directories)
+		   (if (or em-preview
+			   (not em-interactive)
+			   (y-or-n-p
+			    (format "rm: descend into directory `%s'? "
+				    entry)))
+		     (eshell-remove-entries (list entry) t))
+		 (eshell-error (format "rm: %s: is a directory\n" entry)))
+	     (eshell-remove-entries (list entry) t))))))
      (setq args (cdr args)))
    nil))
 
@@ -458,6 +461,8 @@ Remove the DIRECTORY(ies), if they are empty.")
 	   (eshell-parse-command
 	    (format "tar %s %s" tar-args archive) args))))
 
+(defvar ange-cache)			; XEmacs?  See esh-util
+
 ;; this is to avoid duplicating code...
 (defmacro eshell-mvcpln-template (command action func query-var
 					  force-var &optional preserve)
@@ -532,8 +537,10 @@ Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.
 	 "don't change anything on disk")
      (?p "preserve" nil preserve
 	 "preserve file attributes if possible")
-     (?R "recursive" nil em-recursive
+     (?r "recursive" nil em-recursive
 	 "copy directories recursively")
+     (?R nil nil em-recursive
+	 "as for -r")
      (?v "verbose" nil em-verbose
 	 "explain what is being done")
      (nil "help" nil nil "show this usage screen")
@@ -711,6 +718,8 @@ available..."
 	  (pop-to-buffer (current-buffer) t)
 	  (goto-char (point-min))
 	  (resize-temp-buffer-window))))))
+
+(defvar compilation-scroll-output)
 
 (defun eshell-grep (command args &optional maybe-use-occur)
   "Generic service function for the various grep aliases.
@@ -987,7 +996,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 	    (setq args nil)
 	  (setcdr (last args 3) nil))
 	(with-current-buffer
-	    (condition-case err
+	    (condition-case nil
 		(diff-no-select
 		 old new
 		 (nil-blank-string (eshell-flatten-and-stringify args)))
@@ -1011,6 +1020,8 @@ Show wall-clock time elapsed during execution of COMMAND.")
   nil)
 
 (put 'eshell/diff 'eshell-no-numeric-conversions t)
+
+(defvar locate-history-list)
 
 (defun eshell/locate (&rest args)
   "Alias \"locate\" to call Emacs `locate' function."
@@ -1037,85 +1048,6 @@ Show wall-clock time elapsed during execution of COMMAND.")
       (apply 'occur args))))
 
 (put 'eshell/occur 'eshell-no-numeric-conversions t)
-
-(defun eshell/su (&rest args)
-  "Alias \"su\" to call Tramp."
-  (require 'tramp)
-  (setq args (eshell-stringify-list (eshell-flatten-list args)))
-  (let ((orig-args (copy-tree args)))
-    (eshell-eval-using-options
-     "su" args
-     '((?h "help" nil nil "show this usage screen")
-       (?l "login" nil login "provide a login environment")
-       (?  nil nil login "provide a login environment")
-       :usage "[- | -l | --login] [USER]
-Become another USER during a login session.")
-     (throw 'eshell-replace-command
-	    (let ((user "root")
-		  (host (or (file-remote-p default-directory 'host)
-			    "localhost"))
-		  (dir (or (file-remote-p default-directory 'localname)
-			   (expand-file-name default-directory)))
-		  (prefix (file-remote-p default-directory)))
-	      (dolist (arg args)
-		(if (string-equal arg "-") (setq login t) (setq user arg)))
-	      ;; `eshell-eval-using-options' does not handle "-".
-	      (if (member "-" orig-args) (setq login t))
-	      (if login (setq dir "~/"))
-	      (if (and prefix
-		       (or
-			(not (string-equal
-			      "su" (file-remote-p default-directory 'method)))
-			(not (string-equal
-			      user (file-remote-p default-directory 'user)))))
-		  (eshell-parse-command
-		   "cd" (list (format "%s|su:%s@%s:%s"
-				      (substring prefix 0 -1) user host dir)))
-		(eshell-parse-command
-		 "cd" (list (format "/su:%s@%s:%s" user host dir)))))))))
-
-(put 'eshell/su 'eshell-no-numeric-conversions t)
-
-(defun eshell/sudo (&rest args)
-  "Alias \"sudo\" to call Tramp."
-  (require 'tramp)
-  (setq args (eshell-stringify-list (eshell-flatten-list args)))
-  (let ((orig-args (copy-tree args)))
-    (eshell-eval-using-options
-     "sudo" args
-     '((?h "help" nil nil "show this usage screen")
-       (?u "user" t user "execute a command as another USER")
-       :show-usage
-       :usage "[(-u | --user) USER] COMMAND
-Execute a COMMAND as the superuser or another USER.")
-     (throw 'eshell-external
-	    (let ((user (or user "root"))
-		  (host (or (file-remote-p default-directory 'host)
-			    "localhost"))
-		  (dir (or (file-remote-p default-directory 'localname)
-			   (expand-file-name default-directory)))
-		  (prefix (file-remote-p default-directory)))
-	      ;; `eshell-eval-using-options' reads options of COMMAND.
-	      (while (and (stringp (car orig-args))
-			  (member (car orig-args) '("-u" "--user")))
-		(setq orig-args (cddr orig-args)))
-	      (let ((default-directory
-		      (if (and prefix
-			       (or
-				(not
-				 (string-equal
-				  "sudo"
-				  (file-remote-p default-directory 'method)))
-				(not
-				 (string-equal
-				  user
-				  (file-remote-p default-directory 'user)))))
-			  (format "%s|sudo:%s@%s:%s"
-				  (substring prefix 0 -1) user host dir)
-			(format "/sudo:%s@%s:%s" user host dir))))
-		(eshell-named-command (car orig-args) (cdr orig-args))))))))
-
-(put 'eshell/sudo 'eshell-no-numeric-conversions t)
 
 (provide 'em-unix)
 

@@ -1,7 +1,7 @@
 /* A general interface to the widgets of different toolkits.
 
 Copyright (C) 1992, 1993 Lucid, Inc.
-Copyright (C) 1994-1996, 1999-2013 Free Software Foundation, Inc.
+Copyright (C) 1994-1996, 1999-2014 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -103,11 +103,7 @@ static void show_one_widget_busy (Widget, Boolean);
 char *
 safe_strdup (const char *s)
 {
-  char *result;
-  if (! s) return 0;
-  result = (char *) xmalloc (strlen (s) + 1);
-  strcpy (result, s);
-  return result;
+  return s ? xstrdup (s) : 0;
 }
 
 static void

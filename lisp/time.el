@@ -1,9 +1,9 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs -*-coding: utf-8 -*-
 
-;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2013 Free Software
+;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2014 Free Software
 ;; Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 
 ;; This file is part of GNU Emacs.
 
@@ -323,8 +323,6 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
 
 (defun display-time-event-handler ()
   (display-time-update)
-  ;; Do redisplay right now, if no input pending.
-  (sit-for 0)
   (let* ((current (current-time))
 	 (timer display-time-timer)
 	 ;; Compute the time when this timer will run again, next.
@@ -352,8 +350,7 @@ Switches from the 1 to 5 to 15 minute load average, and then back to 1."
   (interactive)
   (if (= 3 (setq display-time-load-average (1+ display-time-load-average)))
       (setq display-time-load-average 0))
-  (display-time-update)
-  (sit-for 0))
+  (display-time-update))
 
 (defun display-time-mail-check-directory ()
   (let ((mail-files (directory-files display-time-mail-directory t))
@@ -474,7 +471,7 @@ update which can wait for the next redisplay."
     ;; This is inside the let binding, but we are not going to document
     ;; what variables are available.
     (run-hooks 'display-time-hook))
-  (force-mode-line-update))
+  (force-mode-line-update 'all))
 
 (defun display-time-file-nonempty-p (file)
   (let ((remote-file-name-inhibit-cache (- display-time-interval 5)))

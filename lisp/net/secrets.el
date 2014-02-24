@@ -1,6 +1,6 @@
 ;;; secrets.el --- Client interface to gnome-keyring and kwallet.
 
-;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm password passphrase
@@ -189,6 +189,7 @@ It returns t if not."
 ;;   </method>
 ;;   <method name="CreateCollection">
 ;;     <arg name="props"      type="a{sv}" direction="in"/>
+;;     <arg name="alias"      type="s"     direction="in"/>   ;; Added 2011/3/1
 ;;     <arg name="collection" type="o"     direction="out"/>
 ;;     <arg name="prompt"     type="o"     direction="out"/>
 ;;   </method>
@@ -208,9 +209,9 @@ It returns t if not."
 ;;     <arg name="Prompt"  type="o"  direction="out"/>
 ;;   </method>
 ;;   <method name="GetSecrets">
-;;     <arg name="items"   type="ao"          direction="in"/>
-;;     <arg name="session" type="o"           direction="in"/>
-;;     <arg name="secrets" type="a{o(oayay)}" direction="out"/>
+;;     <arg name="items"   type="ao"           direction="in"/>
+;;     <arg name="session" type="o"            direction="in"/>
+;;     <arg name="secrets" type="a{o(oayays)}" direction="out"/>
 ;;   </method>
 ;;   <method name="ReadAlias">
 ;;     <arg name="name"       type="s" direction="in"/>
@@ -234,7 +235,7 @@ It returns t if not."
 ;; <interface name="org.freedesktop.Secret.Collection">
 ;;   <property name="Items"    type="ao" access="read"/>
 ;;   <property name="Label"    type="s"  access="readwrite"/>
-;;   <property name="Locked"   type="s"  access="read"/>
+;;   <property name="Locked"   type="b"  access="read"/>
 ;;   <property name="Created"  type="t"  access="read"/>
 ;;   <property name="Modified" type="t"  access="read"/>
 ;;   <method name="Delete">
@@ -245,11 +246,11 @@ It returns t if not."
 ;;     <arg name="results"    type="ao"    direction="out"/>
 ;;   </method>
 ;;   <method name="CreateItem">
-;;     <arg name="props"   type="a{sv}"   direction="in"/>
-;;     <arg name="secret"  type="(oayay)" direction="in"/>
-;;     <arg name="replace" type="b"       direction="in"/>
-;;     <arg name="item"    type="o"       direction="out"/>
-;;     <arg name="prompt"  type="o"       direction="out"/>
+;;     <arg name="props"   type="a{sv}"    direction="in"/>
+;;     <arg name="secret"  type="(oayays)" direction="in"/>
+;;     <arg name="replace" type="b"        direction="in"/>
+;;     <arg name="item"    type="o"        direction="out"/>
+;;     <arg name="prompt"  type="o"        direction="out"/>
 ;;   </method>
 ;;   <signal name="ItemCreated">
 ;;     <arg name="item" type="o"/>
@@ -293,11 +294,11 @@ It returns t if not."
 ;;     <arg name="prompt" type="o" direction="out"/>
 ;;   </method>
 ;;   <method name="GetSecret">
-;;     <arg name="session" type="o"       direction="in"/>
-;;     <arg name="secret"  type="(oayay)" direction="out"/>
+;;     <arg name="session" type="o"        direction="in"/>
+;;     <arg name="secret"  type="(oayays)" direction="out"/>
 ;;   </method>
 ;;   <method name="SetSecret">
-;;     <arg name="secret" type="(oayay)" direction="in"/>
+;;     <arg name="secret" type="(oayays)" direction="in"/>
 ;;   </method>
 ;; </interface>
 ;;
@@ -305,9 +306,50 @@ It returns t if not."
 ;;   OBJECT PATH  session
 ;;   ARRAY BYTE	  parameters
 ;;   ARRAY BYTE	  value
+;;   STRING	  content_type     ;; Added 2011/2/9
 
 (defconst secrets-interface-item-type-generic "org.freedesktop.Secret.Generic"
   "The default item type we are using.")
+
+;; We cannot use introspection, because some servers, like
+;; mate-keyring-daemon, don't provide relevant data.  Once the dust
+;; has settled, we shall assume the new interface, and get rid of the test.
+(defconst secrets-struct-secret-content-type
+  (ignore-errors
+    (let ((content-type "text/plain")
+	  (path (cadr
+		 (dbus-call-method
+		  :session secrets-service secrets-path
+		  secrets-interface-service
+		  "OpenSession" "plain" '(:variant ""))))
+	  result)
+      ;; Create a dummy item.
+      (setq result
+	    (dbus-call-method
+	     :session secrets-service secrets-session-collection-path
+	     secrets-interface-collection "CreateItem"
+	     ;; Properties.
+	     `(:array
+	       (:dict-entry ,(concat secrets-interface-item ".Label")
+			    (:variant "dummy"))
+	       (:dict-entry ,(concat secrets-interface-item ".Type")
+			    (:variant ,secrets-interface-item-type-generic)))
+	     ;; Secret.
+	     `(:struct :object-path ,path
+		       (:array :signature "y")
+		       ,(dbus-string-to-byte-array " ")
+		       :string ,content-type)
+	     ;; Don't replace.
+	     nil))
+      ;; Remove it.
+      (dbus-call-method
+       :session secrets-service (car result)
+       secrets-interface-item "Delete")
+      ;; Result.
+      `(,content-type)))
+  "The content_type of a secret struct.
+It must be wrapped as list, because we add it via `append'.  This
+is an interface introduced in 2011.")
 
 (defconst secrets-interface-session "org.freedesktop.Secret.Session"
   "A session tracks state between the service and a client application.")
@@ -450,9 +492,10 @@ If there is no such COLLECTION, return nil."
 	      (secrets-get-collection-property collection-path "Label"))
 	 (throw 'collection-found collection-path))))))
 
-(defun secrets-create-collection (collection)
+(defun secrets-create-collection (collection &optional alias)
   "Create collection labeled COLLECTION if it doesn't exist.
-Return the D-Bus object path for collection."
+Set ALIAS as alias of the collection.  Return the D-Bus object
+path for collection."
   (let ((collection-path (secrets-collection-path collection)))
     ;; Create the collection.
     (when (secrets-empty-path collection-path)
@@ -463,7 +506,10 @@ Return the D-Bus object path for collection."
 	      (dbus-call-method
 	       :session secrets-service secrets-path
 	       secrets-interface-service "CreateCollection"
-	       `(:array (:dict-entry "Label" (:variant ,collection))))))))
+	       `(:array
+		 (:dict-entry ,(concat secrets-interface-collection ".Label")
+			      (:variant ,collection)))
+	       (or alias ""))))))
     ;; Return object path of the collection.
     collection-path))
 
@@ -563,6 +609,8 @@ The object paths of the found items are returned as list."
       (while (consp (cdr attributes))
 	(unless (keywordp (car attributes))
 	  (error 'wrong-type-argument (car attributes)))
+        (unless (stringp (cadr attributes))
+          (error 'wrong-type-argument (cadr attributes)))
 	(setq props (add-to-list
 		     'props
 		     (list :dict-entry
@@ -601,6 +649,8 @@ The object path of the created item is returned."
 	(while (consp (cdr attributes))
 	  (unless (keywordp (car attributes))
 	    (error 'wrong-type-argument (car attributes)))
+          (unless (stringp (cadr attributes))
+            (error 'wrong-type-argument (cadr attributes)))
 	  (setq props (add-to-list
 		       'props
 		       (list :dict-entry
@@ -616,16 +666,21 @@ The object path of the created item is returned."
 	       ;; Properties.
 	       (append
 		`(:array
-		  (:dict-entry "Label" (:variant ,item))
-		  (:dict-entry
-		   "Type" (:variant ,secrets-interface-item-type-generic)))
+		  (:dict-entry ,(concat secrets-interface-item ".Label")
+			       (:variant ,item))
+		  (:dict-entry ,(concat secrets-interface-item ".Type")
+			       (:variant ,secrets-interface-item-type-generic)))
 		(when props
-		  `((:dict-entry
-		     "Attributes" (:variant ,(append '(:array) props))))))
+		  `((:dict-entry ,(concat secrets-interface-item ".Attributes")
+				 (:variant ,(append '(:array) props))))))
 	       ;; Secret.
-	       `(:struct :object-path ,secrets-session-path
-			 (:array :signature "y") ;; no parameters.
-			 ,(dbus-string-to-byte-array password))
+	       (append
+		`(:struct :object-path ,secrets-session-path
+			  (:array :signature "y") ;; No parameters.
+			  ,(dbus-string-to-byte-array password))
+		;; We add the content_type.  In backward compatibility
+		;; mode, nil is appended, which means nothing.
+		secrets-struct-secret-content-type)
 	       ;; Do not replace. Replace does not seem to work.
 	       nil))
 	(secrets-prompt (cadr result))

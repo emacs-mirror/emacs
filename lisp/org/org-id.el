@@ -1,6 +1,6 @@
 ;;; org-id.el --- Global identifiers for Org-mode entries
 ;;
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -186,7 +186,7 @@ the link."
   :type 'boolean)
 
 (defcustom org-id-locations-file (convert-standard-filename
-				  "~/.emacs.d/.org-id-locations")
+				  (concat user-emacs-directory ".org-id-locations"))
   "The file for remembering in which file an ID was defined.
 This variable is only relevant when `org-id-track-globally' is set."
   :group 'org-id
@@ -233,6 +233,7 @@ With optional argument FORCE, force the creation of a new ID."
     (org-entry-put (point) "ID" nil))
   (org-id-get (point) 'create))
 
+;;;###autoload
 (defun org-id-copy ()
   "Copy the ID of the entry at point to the kill ring.
 Create an ID if necessary."
@@ -258,6 +259,7 @@ In any case, the ID of the entry is returned."
 	(org-id-add-location id (buffer-file-name (buffer-base-buffer)))
 	id)))))
 
+;;;###autoload
 (defun org-id-get-with-outline-path-completion (&optional targets)
   "Use `outline-path-completion' to retrieve the ID of an entry.
 TARGETS may be a setting for `org-refile-targets' to define
@@ -274,6 +276,7 @@ If necessary, the ID is created."
     (prog1 (org-id-get pom 'create)
       (move-marker pom nil))))
 
+;;;###autoload
 (defun org-id-get-with-outline-drilling (&optional targets)
   "Use an outline-cycling interface to retrieve the ID of an entry.
 This only finds entries in the current buffer, using `org-get-location'.
@@ -320,6 +323,7 @@ With optional argument MARKERP, return the position as a new marker."
 
 ;; Creating new IDs
 
+;;;###autoload
 (defun org-id-new (&optional prefix)
   "Create a new globally unique ID.
 
@@ -343,7 +347,7 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
       (unless (org-uuidgen-p unique)
 	(setq unique (org-id-uuid))))
      ((eq org-id-method 'org)
-      (let* ((etime (org-id-reverse-string (org-id-time-to-b36)))
+      (let* ((etime (org-reverse-string (org-id-time-to-b36)))
 	     (postfix (if org-id-include-domain
 			  (progn
 			    (require 'message)
@@ -375,9 +379,6 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
 		       (substring rnd 16 18) 16))))
 	    (substring rnd 18 20)
 	    (substring rnd 20 32))))
-
-(defun org-id-reverse-string (s)
-  (mapconcat 'char-to-string (nreverse (string-to-list s)) ""))
 
 (defun org-id-int-to-b36-one-digit (i)
   "Turn an integer between 0 and 61 into a single character 0..9, A..Z, a..z."
@@ -432,7 +433,7 @@ and time is the usual three-integer representation of time."
     (if (= 2 (length parts))
 	(setq prefix (car parts) time (nth 1 parts))
       (setq prefix nil time (nth 0 parts)))
-    (setq time (org-id-reverse-string time))
+    (setq time (org-reverse-string time))
     (setq time (list (org-id-b36-to-int (substring time 0 4))
 		     (org-id-b36-to-int (substring time 4 8))
 		     (org-id-b36-to-int (substring time 8 12))))
@@ -440,6 +441,7 @@ and time is the usual three-integer representation of time."
 
 ;; Storing ID locations (files)
 
+;;;###autoload
 (defun org-id-update-id-locations (&optional files silent)
   "Scan relevant files for IDs.
 Store the relation between files and corresponding IDs.
@@ -530,7 +532,9 @@ When CHECK is given, prepare detailed information about duplicate IDs."
 		   (org-id-hash-to-alist org-id-locations)
 		 org-id-locations)))
       (with-temp-file org-id-locations-file
-	(print out (current-buffer))))))
+	(let ((print-level nil)
+	      (print-length nil))
+	  (print out (current-buffer)))))))
 
 (defun org-id-locations-load ()
   "Read the data from `org-id-locations-file'."

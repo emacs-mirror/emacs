@@ -1,5 +1,5 @@
 /* sysselect.h - System-dependent definitions for the select function.
-   Copyright (C) 1995, 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -25,15 +25,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    definitions in w32.h are incompatible with the below.  */
 #ifndef WINDOWSNT
 #ifdef FD_SET
-#ifdef FD_SETSIZE
-#define MAXDESC FD_SETSIZE
-#else
-#define MAXDESC 64
+#ifndef FD_SETSIZE
+#define FD_SETSIZE 64
 #endif
-#define SELECT_TYPE fd_set
 #else /* no FD_SET */
-#define MAXDESC 32
-#define SELECT_TYPE int
+#define FD_SETSIZE 32
+typedef int fd_set;
 
 /* Define the macros to access a single-int bitmap of descriptors.  */
 #define FD_SET(n, p) (*(p) |= (1 << (n)))

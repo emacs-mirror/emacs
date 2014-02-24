@@ -1,10 +1,10 @@
 ;;; bib-mode.el --- major mode for editing bib files
 
-;; Copyright (C) 1989, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Henry Kautz
 ;; (according to authors.el)
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: bib
 
 ;; This file is part of GNU Emacs.

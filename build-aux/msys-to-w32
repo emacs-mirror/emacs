@@ -1,0 +1,170 @@
+#!/bin/sh
+# Take a list of MSYS-compatible paths and convert them to native
+# MS-Windows format.
+# Status is zero if successful, nonzero otherwise.
+
+# Copyright (C) 2013-2014 Free Software Foundation, Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Take only the basename from the full pathname
+me=${0//*\//}
+
+usage="usage: ${me} PATHLIST [MUSTEXIST] [SEPARATOR [SEPARATOR2]]"
+
+help="$usage
+  or:  ${me} OPTION
+
+Convert MSYS-compatible paths to MS-Windows native format.
+
+PATHLIST should be a list of paths separated by SEPARATOR.  This list
+will be written to the standard output after performing the following
+transformations:
+1. Discard empty paths.
+2. Replace backslashes with forward slashes.
+3. Replace two consecutive slashes with single ones.
+4. Translate to Windows-native format those paths that are not in such
+   format already. The translated paths will not end with a slash,
+   except for root directories (e.g. 'c:/' or 'c:/foo').  Paths
+   starting with '%emacs_dir%' will not be translated.
+5. Escape with backslashes every occurrence of SEPARATOR2 within the paths.
+6. Concatenate the translated paths with SEPARATOR2.
+
+If MUSTEXIST is 'Y' or not supplied, then each path in PATHLIST must
+exist.  Otherwise, only some part of each path is required to exist
+(the deepest existing subpath will be translated and the remainder
+concatenated to the translation).
+
+If SEPARATOR is not supplied, PATHLIST will be regarded as a single
+path.
+
+If SEPARATOR2 is not supplied, it will take the same value as
+SEPARATOR.
+
+Options:
+  --help     display this help and exit
+
+Report bugs to <bug-gnu-emacs@gnu.org>."
+
+for arg
+do
+  case $arg in
+    --help | --hel | --he | --h)
+      exec echo "$help" ;;
+    --)
+      shift
+      break ;;
+    -*)
+      echo "${me}: invalid option: $arg" >&2
+      exit 1 ;;
+    *)
+      break ;;
+  esac
+done
+
+{ test $# -ge 1 && test $# -le 4; } ||
+{ echo "${me}: $usage" >&2; exit 1; }
+
+# Arguments
+pathlist="$1"
+mustexist="${2:-Y}"
+separator="$3"
+separator2="${4:-${separator}}"
+
+# Split pathlist into its path components
+if test -n "$separator"
+then
+    IFS=${separator} patharray=( $pathlist )
+else
+    patharray=( "$pathlist" )
+fi
+
+w32pathlist=""
+
+for p in "${patharray[@]}"
+do
+    # Skip empty paths
+    test "$p" = "" && continue
+
+    # Replace '\' with '/' and '//' with '/'
+    p="${p//\\//}"
+    p="${p//\/\///}"
+
+    if test "${p:0:11}" = "%emacs_dir%"
+    then
+	# Paths starting with "%emacs_dir%" will not be translated
+	w32p=$p
+    elif test -d "$p"
+    then
+	# The path exists, so just translate it
+	w32p=`cd "$p" && pwd -W`
+    else
+	# The path does not exist.  So, try to guess the
+	# Windows-native translation, by looking for the deepest
+	# existing directory in this path, and then translating the
+	# existing part and concatenating the remainder.
+
+	test "${mustexist}" = "Y" &&
+	{ echo "${me}: invalid path: $p" >&2; exit 1; }
+
+	p1=$p
+	IFS=/ pcomponents=( $p )
+
+	for (( i=${#pcomponents[@]}-1 ; i>=0 ; i-- ))
+	do
+
+	    if test "${pcomponents[i]}" = ""
+	    then
+		# The path component is empty.  This can only mean
+		# that the path starts with "/" and all components
+		# have been stripped out already.  So in this case we
+		# want to test with the MSYS root directory
+		p1="/"
+	    else
+		p1="${p1%/}"
+		p1="${p1%${pcomponents[i]}}"
+	    fi
+
+	    if test -d "${p1}"
+	    then
+
+		# Existing path found
+
+		# Translate the existing part and concatenate the
+		# remainder (ensuring that only one slash is used in
+		# the join, and no trailing slash is left)
+		w32p1=`cd "${p1}" && pwd -W`
+		remainder="${p#${p1}}"
+		remainder="${remainder#/}"
+		remainder="${remainder%/}"
+		w32p="${w32p1%/}/${remainder}"
+
+		break
+	    fi
+
+	done
+
+	# If no existing directory was found, error out
+	test -e "${p1}" ||
+	{ echo "${me}: invalid path: ${p}" >&2; exit 1; }
+    fi
+
+    # Concatenate the translated path to the translated pathlist
+    test "${w32pathlist}" = "" || w32pathlist="${w32pathlist}${separator2}"
+    w32pathlist="${w32pathlist}${w32p//${separator2}/\\${separator2}}"
+
+done
+
+# Write the translated pathlist to the standard output
+printf "%s" "${w32pathlist}"

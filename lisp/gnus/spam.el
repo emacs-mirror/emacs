@@ -1,6 +1,6 @@
 ;;; spam.el --- Identifying spam
 
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>
@@ -50,7 +50,6 @@
 ;;; for the definitions of group content classification and spam processors
 (require 'gnus)
 
-(eval-when-compile (require 'spam-report))
 (eval-when-compile (require 'hashcash))
 
 ;; for nnimap-split-download-body-default
@@ -60,11 +59,10 @@
 (autoload 'query-dig "dig")
 
 ;; autoload spam-report
-(eval-and-compile
-  (autoload 'spam-report-gmane "spam-report")
-  (autoload 'spam-report-gmane-spam "spam-report")
-  (autoload 'spam-report-gmane-ham "spam-report")
-  (autoload 'spam-report-resend "spam-report"))
+(autoload 'spam-report-gmane "spam-report")
+(autoload 'spam-report-gmane-spam "spam-report")
+(autoload 'spam-report-gmane-ham "spam-report")
+(autoload 'spam-report-resend "spam-report")
 
 ;; autoload gnus-registry
 (autoload 'gnus-registry-group-count "gnus-registry")
@@ -94,14 +92,14 @@ Note that setting the `spam-use-move' or `spam-use-copy' backends on
 a group through group/topic parameters overrides this mechanism."
   :type '(choice
           (const
-           'default
-           :tag "Move spam out of all groups and ham out of spam groups.")
+           :tag "Move spam out of all groups and ham out of spam groups"
+           default)
           (const
-           'move-all
-           :tag "Move spam out of all groups and ham out of all groups.")
+           :tag "Move spam out of all groups and ham out of all groups"
+           move-all)
           (const
-           'move-none
-           :tag "Never move spam or ham out of any groups."))
+           :tag "Never move spam or ham out of any groups"
+           move-none))
   :group 'spam)
 
 (defcustom spam-directory (nnheader-concat gnus-directory "spam/")
@@ -2473,7 +2471,10 @@ With a non-nil REMOVE, remove the ADDRESSES."
 (defun spam-report-resend-register-ham-routine (articles)
   (spam-report-resend-register-routine articles t))
 
+(defvar spam-report-resend-to)
+
 (defun spam-report-resend-register-routine (articles &optional ham)
+  (require 'spam-report)
   (let* ((resend-to-gp
           (if ham
               (gnus-parameter-ham-resend-to gnus-newsgroup-name)
@@ -2902,25 +2903,27 @@ explicitly, and matters only if you need the extra headers
 installed through `spam-necessary-extra-headers'."
   (interactive)
 
-  (dolist (var symbols)
-    (set var t))
+  (when spam-install-hooks
+    (dolist (var symbols)
+      (set var t))
 
-  (dolist (header (spam-necessary-extra-headers))
-    (add-to-list 'nnmail-extra-headers header)
-    (add-to-list 'gnus-extra-headers header))
+    (dolist (header (spam-necessary-extra-headers))
+      (add-to-list 'nnmail-extra-headers header)
+      (add-to-list 'gnus-extra-headers header))
 
-  (setq spam-install-hooks t)
-  ;; TODO: How do we redo this every time the `spam' face is customized?
-  (push '((eq mark gnus-spam-mark) . spam)
-        gnus-summary-highlight)
-  ;; Add hooks for loading and saving the spam stats
-  (add-hook 'gnus-save-newsrc-hook 'spam-maybe-spam-stat-save)
-  (add-hook 'gnus-get-top-new-news-hook 'spam-maybe-spam-stat-load)
-  (add-hook 'gnus-startup-hook 'spam-maybe-spam-stat-load)
-  (add-hook 'gnus-summary-prepare-exit-hook 'spam-summary-prepare-exit)
-  (add-hook 'gnus-summary-prepare-hook 'spam-summary-prepare)
-  (add-hook 'gnus-get-new-news-hook 'spam-setup-widening)
-  (add-hook 'gnus-summary-prepared-hook 'spam-find-spam))
+    ;; TODO: How do we redo this every time the `spam' face is customized?
+    (push '((eq mark gnus-spam-mark) . spam)
+	  gnus-summary-highlight)
+    ;; Add hooks for loading and saving the spam stats
+    (add-hook 'gnus-save-newsrc-hook 'spam-maybe-spam-stat-save)
+    (add-hook 'gnus-get-top-new-news-hook 'spam-maybe-spam-stat-load)
+    (add-hook 'gnus-startup-hook 'spam-maybe-spam-stat-load)
+    (add-hook 'gnus-summary-prepare-exit-hook 'spam-summary-prepare-exit)
+    (add-hook 'gnus-summary-prepare-hook 'spam-summary-prepare)
+    (add-hook 'gnus-get-new-news-hook 'spam-setup-widening)
+    (add-hook 'gnus-summary-prepared-hook 'spam-find-spam)
+    ;; Don't install things more than once.
+    (setq spam-install-hooks nil)))
 
 (defun spam-unload-hook ()
   "Uninstall the spam.el hooks."
@@ -2935,8 +2938,6 @@ installed through `spam-necessary-extra-headers'."
 
 (add-hook 'spam-unload-hook 'spam-unload-hook)
 
-(when spam-install-hooks
-  (spam-initialize))
 ;;}}}
 
 (provide 'spam)

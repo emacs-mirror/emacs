@@ -1,6 +1,6 @@
 ;;; crm.el --- read multiple strings with completion
 
-;; Copyright (C) 1985-1986, 1993-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-2014 Free Software Foundation, Inc.
 
 ;; Author: Sen Nagata <sen@eccosys.com>
 ;; Keywords: completion, minibuffer, multiple elements
@@ -157,33 +157,32 @@ Functions'."
                                    predicate
                                    flag)))
 
-(defun crm--select-current-element ()
+(defun crm--current-element ()
   "Parse the minibuffer to find the current element.
-Place an overlay on the element, with a `field' property, and return it."
-  (let* ((bob (minibuffer-prompt-end))
-         (start (save-excursion
+Return the element's boundaries as (START . END)."
+  (let ((bob (minibuffer-prompt-end)))
+    (cons (save-excursion
                   (if (re-search-backward crm-separator bob t)
                       (match-end 0)
-                    bob)))
-         (end (save-excursion
+              bob))
+          (save-excursion
                 (if (re-search-forward crm-separator nil t)
                     (match-beginning 0)
-                  (point-max))))
-         (ol (make-overlay start end nil nil t)))
-    (overlay-put ol 'field (make-symbol "crm"))
-    ol))
+              (point-max))))))
 
-(defmacro crm--completion-command (command)
-  "Make COMMAND a completion command for `completing-read-multiple'."
-  `(let ((ol (crm--select-current-element)))
-     (unwind-protect
-         ,command
-       (delete-overlay ol))))
+(defmacro crm--completion-command (beg end &rest body)
+  "Run BODY with BEG and END bound to the current element's boundaries."
+  (declare (indent 2) (debug (sexp sexp &rest body)))
+  `(let* ((crm--boundaries (crm--current-element))
+          (,beg (car crm--boundaries))
+          (,end (cdr crm--boundaries)))
+     ,@body))
 
 (defun crm-completion-help ()
   "Display a list of possible completions of the current minibuffer element."
   (interactive)
-  (crm--completion-command (minibuffer-completion-help))
+  (crm--completion-command beg end
+    (minibuffer-completion-help beg end))
   nil)
 
 (defun crm-complete ()
@@ -192,13 +191,18 @@ If no characters can be completed, display a list of possible completions.
 
 Return t if the current element is now a valid match; otherwise return nil."
   (interactive)
-  (crm--completion-command (minibuffer-complete)))
+  (crm--completion-command beg end
+    (completion-in-region beg end
+                          minibuffer-completion-table
+                          minibuffer-completion-predicate)))
 
 (defun crm-complete-word ()
   "Complete the current element at most a single word.
 Like `minibuffer-complete-word' but for `completing-read-multiple'."
   (interactive)
-  (crm--completion-command (minibuffer-complete-word)))
+  (crm--completion-command beg end
+    (completion-in-region--single-word
+     beg end minibuffer-completion-table minibuffer-completion-predicate)))
 
 (defun crm-complete-and-exit ()
   "If all of the minibuffer elements are valid completions then exit.
@@ -211,16 +215,14 @@ This function is modeled after `minibuffer-complete-and-exit'."
     (goto-char (minibuffer-prompt-end))
     (while
         (and doexit
-             (let ((ol (crm--select-current-element)))
-               (goto-char (overlay-end ol))
-               (unwind-protect
-                   (catch 'exit
-                     (minibuffer-complete-and-exit)
-                     ;; This did not throw `exit', so there was a problem.
-                     (setq doexit nil))
-                 (goto-char (overlay-end ol))
-                 (delete-overlay ol))
-               (not (eobp)))
+             (crm--completion-command beg end
+               (let ((end (copy-marker end t)))
+                 (goto-char end)
+                 (setq doexit nil)
+                 (completion-complete-and-exit beg end
+                                               (lambda () (setq doexit t)))
+                 (goto-char end)
+                 (not (eobp))))
              (looking-at crm-separator))
       ;; Skip to the next element.
       (goto-char (match-end 0)))
@@ -263,7 +265,8 @@ Completion is available on a per-element basis.  For example, if the
 contents of the minibuffer are 'alice,bob,eve' and point is between
 'l' and 'i', pressing TAB operates on the element 'alice'.
 
-The return value of this function is a list of the read strings.
+The return value of this function is a list of the read strings
+with empty strings removed.
 
 See the documentation for `completing-read' for details on the arguments:
 PROMPT, TABLE, PREDICATE, REQUIRE-MATCH, INITIAL-INPUT, HIST, DEF, and
@@ -287,7 +290,8 @@ INHERIT-INPUT-METHOD."
 		       prompt initial-input map
 		       nil hist def inherit-input-method)))
 	  (and def (string-equal input "") (setq input def))
-	  (split-string input crm-separator)))
+          ;; Remove empty strings in the list of read strings.
+	  (split-string input crm-separator t)))
     (remove-hook 'choose-completion-string-functions
 		 'crm--choose-completion-string)))
 

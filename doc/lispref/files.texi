@@ -1,27 +1,27 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Files
 @chapter Files
 
   This chapter describes the Emacs Lisp functions and variables to
-find, create, view, save, and otherwise work with files and file
+find, create, view, save, and otherwise work with files and
 directories.  A few other file-related functions are described in
 @ref{Buffers}, and those related to backups and auto-saving are
 described in @ref{Backups and Auto-Saving}.
 
   Many of the file functions take one or more arguments that are file
-names.  A file name is actually a string.  Most of these functions
-expand file name arguments by calling @code{expand-file-name}, so that
+names.  A file name is a string.  Most of these functions expand file
+name arguments using the function @code{expand-file-name}, so that
 @file{~} is handled correctly, as are relative file names (including
-@samp{../}).  @xref{File Name Expansion}.
+@file{../}).  @xref{File Name Expansion}.
 
   In addition, certain @dfn{magic} file names are handled specially.
 For example, when a remote file name is specified, Emacs accesses the
-file over the network via an appropriate protocol (@pxref{Remote
-Files,, Remote Files, emacs, The GNU Emacs Manual}).  This handling is
+file over the network via an appropriate protocol.  @xref{Remote
+Files,, Remote Files, emacs, The GNU Emacs Manual}.  This handling is
 done at a very low level, so you may assume that all the functions
 described in this chapter accept magic file names as file name
 arguments, except where noted.  @xref{Magic File Names}, for details.
@@ -58,22 +58,21 @@ done, we say that the buffer is @dfn{visiting} that file, and call the
 file ``the visited file'' of the buffer.
 
   A file and a buffer are two different things.  A file is information
-recorded permanently in the computer (unless you delete it).  A buffer,
-on the other hand, is information inside of Emacs that will vanish at
-the end of the editing session (or when you kill the buffer).  Usually,
-a buffer contains information that you have copied from a file; then we
-say the buffer is visiting that file.  The copy in the buffer is what
-you modify with editing commands.  Such changes to the buffer do not
-change the file; therefore, to make the changes permanent, you must
-@dfn{save} the buffer, which means copying the altered buffer contents
-back into the file.
+recorded permanently in the computer (unless you delete it).  A
+buffer, on the other hand, is information inside of Emacs that will
+vanish at the end of the editing session (or when you kill the
+buffer).  When a buffer is visiting a file, it contains information
+copied from the file.  The copy in the buffer is what you modify with
+editing commands.  Changes to the buffer do not change the file; to
+make the changes permanent, you must @dfn{save} the buffer, which
+means copying the altered buffer contents back into the file.
 
-  In spite of the distinction between files and buffers, people often
-refer to a file when they mean a buffer and vice-versa.  Indeed, we say,
-``I am editing a file'', rather than, ``I am editing a buffer that I
-will soon save as a file of the same name''.  Humans do not usually need
-to make the distinction explicit.  When dealing with a computer program,
-however, it is good to keep the distinction in mind.
+  Despite the distinction between files and buffers, people often
+refer to a file when they mean a buffer and vice-versa.  Indeed, we
+say, ``I am editing a file'', rather than, ``I am editing a buffer
+that I will soon save as a file of the same name''.  Humans do not
+usually need to make the distinction explicit.  When dealing with a
+computer program, however, it is good to keep the distinction in mind.
 
 @menu
 * Visiting Functions::         The usual interface functions for visiting.
@@ -507,9 +506,9 @@ Name}).
 @section Reading from Files
 @cindex reading from files
 
-  You can copy a file from the disk and insert it into a buffer
-using the @code{insert-file-contents} function.  Don't use the user-level
-command @code{insert-file} in a Lisp program, as that sets the mark.
+  To copy the contents of a file into a buffer, use the function
+@code{insert-file-contents}.  (Don't use the command
+@code{insert-file} in a Lisp program, as that sets the mark.)
 
 @defun insert-file-contents filename &optional visit beg end replace
 This function inserts the contents of file @var{filename} into the
@@ -677,11 +676,12 @@ with-temp-buffer,, The Current Buffer}.
   When two users edit the same file at the same time, they are likely
 to interfere with each other.  Emacs tries to prevent this situation
 from arising by recording a @dfn{file lock} when a file is being
-modified.  (File locks are not implemented on Microsoft systems.)
+modified.
 Emacs can then detect the first attempt to modify a buffer visiting a
 file that is locked by another Emacs job, and ask the user what to do.
 The file lock is really a file, a symbolic link with a special name,
-stored in the same directory as the file you are editing.
+stored in the same directory as the file you are editing.  (On file
+systems that do not support symbolic links, a regular file is used.)
 
   When you access files using NFS, there may be a small probability that
 you and another user will both lock the same file ``simultaneously''.
@@ -720,11 +720,6 @@ does nothing if the current buffer is not visiting a file, or if the
 system does not support locking.
 @end defun
 
-  File locking is not supported on some systems.  On systems that do not
-support it, the functions @code{lock-buffer}, @code{unlock-buffer} and
-@code{file-locked-p} do nothing and return @code{nil}.  It is also
-possible to disable locking, by setting the variable @code{create-lockfiles}.
-
 @defopt create-lockfiles
 If this variable is @code{nil}, Emacs does not lock files.
 @end defopt
@@ -761,26 +756,31 @@ name of the user who has locked the file.
 @end itemize
 
 If you wish, you can replace the @code{ask-user-about-lock} function
-with your own version that makes the decision in another way.  The code
-for its usual definition is in @file{userlock.el}.
+with your own version that makes the decision in another way.
 @end defun
 
 @node Information about Files
 @section Information about Files
 @cindex file, information about
 
-  The functions described in this section all operate on strings that
-designate file names.  With a few exceptions, all the functions have
-names that begin with the word @samp{file}.  These functions all
-return information about actual files or directories, so their
-arguments must all exist as actual files or directories unless
-otherwise noted.
+  This section describes the functions for retrieving various types of
+information about files (or directories or symbolic links), such as
+whether a file is readable or writable, and its size.  These functions
+all take arguments which are file names.  Except where noted, these
+arguments need to specify existing files, or an error is signaled.
+
+@cindex file names, trailing whitespace
+@cindex trailing blanks in file names
+  Be careful with file names that end in spaces.  On some filesystems
+(notably, MS-Windows), trailing whitespace characters in file names
+are silently and automatically ignored.
 
 @menu
 * Testing Accessibility::   Is a given file readable?  Writable?
 * Kinds of Files::          Is it a directory?  A symbolic link?
 * Truenames::               Eliminating symbolic links from a file name.
-* File Attributes::         How large is it?  Any other names?  Etc.
+* File Attributes::         File sizes, modification times, etc.
+* Extended Attributes::     Extended file attributes for access control.
 * Locating Files::          How to find a file in standard places.
 @end menu
 
@@ -789,10 +789,16 @@ otherwise noted.
 @cindex accessibility of a file
 @cindex file accessibility
 
-  These functions test for permission to access a file in specific
-ways.  Unless explicitly stated otherwise, they recursively follow
-symbolic links for their file name arguments, at all levels (at the
-level of the file itself and at all levels of parent directories).
+  These functions test for permission to access a file for reading,
+writing, or execution.  Unless explicitly stated otherwise, they
+recursively follow symbolic links for their file name arguments, at
+all levels (at the level of the file itself and at all levels of
+parent directories).
+
+  On some operating systems, more complex sets of access permissions
+can be specified, via mechanisms such as Access Control Lists (ACLs).
+@xref{Extended Attributes}, for how to query and set those
+permissions.
 
 @defun file-exists-p filename
 This function returns @code{t} if a file named @var{filename} appears
@@ -802,9 +808,8 @@ true if the file exists and you have execute permission on the
 containing directories, regardless of the permissions of the file
 itself.)
 
-If the file does not exist, or if fascist access control policies
-prevent you from finding the attributes of the file, this function
-returns @code{nil}.
+If the file does not exist, or if access control policies prevent you
+from finding its attributes, this function returns @code{nil}.
 
 Directories are files, so @code{file-exists-p} returns @code{t} when
 given a directory name.  However, symbolic links are treated
@@ -815,24 +820,8 @@ name only if the target file exists.
 @defun file-readable-p filename
 This function returns @code{t} if a file named @var{filename} exists
 and you can read it.  It returns @code{nil} otherwise.
-
-@example
-@group
-(file-readable-p "files.texi")
-     @result{} t
-@end group
-@group
-(file-exists-p "/usr/spool/mqueue")
-     @result{} t
-@end group
-@group
-(file-readable-p "/usr/spool/mqueue")
-     @result{} nil
-@end group
-@end example
 @end defun
 
-@c Emacs 19 feature
 @defun file-executable-p filename
 This function returns @code{t} if a file named @var{filename} exists and
 you can execute it.  It returns @code{nil} otherwise.  On Unix and
@@ -848,19 +837,11 @@ file exists and you can write it.  It is creatable if it does not exist,
 but the specified directory does exist and you can write in that
 directory.
 
-In the third example below, @file{foo} is not writable because the
-parent directory does not exist, even though the user could create such
-a directory.
+In the example below, @file{foo} is not writable because the parent
+directory does not exist, even though the user could create such a
+directory.
 
 @example
-@group
-(file-writable-p "~/foo")
-     @result{} t
-@end group
-@group
-(file-writable-p "/foo")
-     @result{} nil
-@end group
 @group
 (file-writable-p "~/no-such-dir/foo")
      @result{} nil
@@ -868,7 +849,6 @@ a directory.
 @end example
 @end defun
 
-@c Emacs 19 feature
 @defun file-accessible-directory-p dirname
 This function returns @code{t} if you have permission to open existing
 files in the directory whose name as a file is @var{dirname};
@@ -877,16 +857,13 @@ The value of @var{dirname} may be either a directory name (such as
 @file{/foo/}) or the file name of a file which is a directory
 (such as @file{/foo}, without the final slash).
 
-Example: after the following,
+For example, from the following we deduce that any attempt to read a
+file in @file{/foo/} will give an error:
 
 @example
 (file-accessible-directory-p "/foo")
      @result{} nil
 @end example
-
-@noindent
-we can deduce that any attempt to read a file in @file{/foo/} will
-give an error.
 @end defun
 
 @defun access-file filename string
@@ -909,39 +886,59 @@ replace @var{filename} with its target.  However, it does recursively
 follow symbolic links at all levels of parent directories.
 @end defun
 
-@defun file-newer-than-file-p filename1 filename2
-@cindex file age
-@cindex file modification time
-This function returns @code{t} if the file @var{filename1} is
-newer than file @var{filename2}.  If @var{filename1} does not
-exist, it returns @code{nil}.  If @var{filename1} does exist, but
-@var{filename2} does not, it returns @code{t}.
+@defun file-modes filename
+@cindex mode bits
+@cindex file permissions
+@cindex permissions, file
+@cindex file modes
+This function returns the @dfn{mode bits} of @var{filename}---an
+integer summarizing its read, write, and execution permissions.
+Symbolic links in @var{filename} are recursively followed at all
+levels.  If the file does not exist, the return value is @code{nil}.
 
-In the following example, assume that the file @file{aug-19} was written
-on the 19th, @file{aug-20} was written on the 20th, and the file
-@file{no-file} doesn't exist at all.
+@xref{File permissions,,, coreutils, The @sc{gnu} @code{Coreutils}
+Manual}, for a description of mode bits.  For example, if the
+low-order bit is 1, the file is executable by all users; if the
+second-lowest-order bit is 1, the file is writable by all users; etc.
+The highest possible value is 4095 (7777 octal), meaning that everyone
+has read, write, and execute permission, the @acronym{SUID} bit is set
+for both others and group, and the sticky bit is set.
+
+@xref{Changing Files}, for the @code{set-file-modes} function, which
+can be used to set these permissions.
 
 @example
 @group
-(file-newer-than-file-p "aug-19" "aug-20")
+(file-modes "~/junk/diffs")
+     @result{} 492               ; @r{Decimal integer.}
+@end group
+@group
+(format "%o" 492)
+     @result{} "754"             ; @r{Convert to octal.}
+@end group
+
+@group
+(set-file-modes "~/junk/diffs" #o666)
      @result{} nil
 @end group
+
 @group
-(file-newer-than-file-p "aug-20" "aug-19")
-     @result{} t
-@end group
-@group
-(file-newer-than-file-p "aug-19" "no-file")
-     @result{} t
-@end group
-@group
-(file-newer-than-file-p "no-file" "aug-19")
-     @result{} nil
+$ ls -l diffs
+-rw-rw-rw- 1 lewis lewis 3063 Oct 30 16:00 diffs
 @end group
 @end example
 
-You can use @code{file-attributes} to get a file's last modification
-time as a list of four integers.  @xref{File Attributes}.
+@cindex MS-DOS and file modes
+@cindex file modes and MS-DOS
+@strong{MS-DOS note:} On MS-DOS, there is no such thing as an
+``executable'' file mode bit.  So @code{file-modes} considers a file
+executable if its name ends in one of the standard executable
+extensions, such as @file{.com}, @file{.bat}, @file{.exe}, and some
+others.  Files that begin with the Unix-standard @samp{#!} signature,
+such as shell and Perl scripts, are also considered executable.
+Directories are also reported as executable, for compatibility with
+Unix.  These conventions are also followed by @code{file-attributes}
+(@pxref{File Attributes}).
 @end defun
 
 @node Kinds of Files
@@ -979,8 +976,6 @@ If the file @var{filename} is not a symbolic link (or there is no such file),
      @result{} "/pub/bin"
 @end group
 @end example
-
-@c !!! file-symlink-p: should show output of ls -l for comparison
 @end defun
 
 The next two functions recursively follow symbolic links at
@@ -1021,21 +1016,6 @@ a regular file (not a directory, named pipe, terminal, or
 other I/O device).
 @end defun
 
-@defun file-equal-p file1 file2
-This function returns @code{t} if the files @var{file1} and
-@var{file2} name the same file.  If @var{file1} or @var{file2} does
-not exist, the return value is unspecified.
-@end defun
-
-@defun file-in-directory-p file dir
-This function returns @code{t} if @var{file} is a file in directory
-@var{dir}, or in a subdirectory of @var{dir}.  It also returns
-@code{t} if @var{file} and @var{dir} are the same directory.  It
-compares the @code{file-truename} values of the two directories
-(@pxref{Truenames}).  If @var{dir} does not name an existing
-directory, the return value is @code{nil}.
-@end defun
-
 @node Truenames
 @subsection Truenames
 @cindex truename (of file)
@@ -1058,14 +1038,14 @@ This function does not expand environment variables.  Only
 substitute-in-file-name}.
 
 If you may need to follow symbolic links preceding @samp{..}@:
-appearing as a name component, you should make sure to call
-@code{file-truename} without prior direct or indirect calls to
-@code{expand-file-name}, as otherwise the file name component
-immediately preceding @samp{..} will be ``simplified away'' before
-@code{file-truename} is called.  To eliminate the need for a call to
-@code{expand-file-name}, @code{file-truename} handles @samp{~} in the
-same way that @code{expand-file-name} does.  @xref{File Name
-Expansion,, Functions that Expand Filenames}.
+appearing as a name component, call @code{file-truename} without prior
+direct or indirect calls to @code{expand-file-name}.  Otherwise, the
+file name component immediately preceding @samp{..} will be
+``simplified away'' before @code{file-truename} is called.  To
+eliminate the need for a call to @code{expand-file-name},
+@code{file-truename} handles @samp{~} in the same way that
+@code{expand-file-name} does.  @xref{File Name Expansion,, Functions
+that Expand Filenames}.
 @end defun
 
 @defun file-chase-links filename &optional limit
@@ -1094,101 +1074,67 @@ we would have:
      @result{} "/home/foo/hello"
 @end example
 
-  @xref{Buffer File Name}, for related information.
+@defun file-equal-p file1 file2
+This function returns @code{t} if the files @var{file1} and
+@var{file2} name the same file.  This is similar to comparing their
+truenames, except that remote file names are also handled in an
+appropriate manner.  If @var{file1} or @var{file2} does not exist, the
+return value is unspecified.
+@end defun
+
+@defun file-in-directory-p file dir
+This function returns @code{t} if @var{file} is a file in directory
+@var{dir}, or in a subdirectory of @var{dir}.  It also returns
+@code{t} if @var{file} and @var{dir} are the same directory.  It
+compares the truenames of the two directories.  If @var{dir} does not
+name an existing directory, the return value is @code{nil}.
+@end defun
 
 @node File Attributes
-@subsection Other Information about Files
+@subsection File Attributes
+@cindex file attributes
 
   This section describes the functions for getting detailed
-information about a file, other than its contents.  This information
-includes the mode bits that control access permissions, the owner and
-group numbers, the number of names, the inode number, the size, and
-the times of access and modification.
+information about a file, including the owner and group numbers, the
+number of names, the inode number, the size, and the times of access
+and modification.
 
-@defun file-modes filename
-@cindex file permissions
-@cindex permissions, file
-@cindex file attributes
-@cindex file modes
-This function returns the @dfn{mode bits} describing the @dfn{file
-permissions} of @var{filename}, as an integer.  It recursively follows
-symbolic links in @var{filename} at all levels.  If @var{filename}
-does not exist, the return value is @code{nil}.
+@defun file-newer-than-file-p filename1 filename2
+@cindex file age
+@cindex file modification time
+This function returns @code{t} if the file @var{filename1} is
+newer than file @var{filename2}.  If @var{filename1} does not
+exist, it returns @code{nil}.  If @var{filename1} does exist, but
+@var{filename2} does not, it returns @code{t}.
 
-@xref{File Permissions,,, coreutils, The @sc{gnu} @code{Coreutils}
-Manual}, for a description of mode bits.  If the low-order bit is 1,
-then the file is executable by all users, if the second-lowest-order
-bit is 1, then the file is writable by all users, etc.  The highest
-value returnable is 4095 (7777 octal), meaning that everyone has read,
-write, and execute permission, that the @acronym{SUID} bit is set for
-both others and group, and that the sticky bit is set.
+In the following example, assume that the file @file{aug-19} was written
+on the 19th, @file{aug-20} was written on the 20th, and the file
+@file{no-file} doesn't exist at all.
 
 @example
 @group
-(file-modes "~/junk/diffs")
-     @result{} 492               ; @r{Decimal integer.}
-@end group
-@group
-(format "%o" 492)
-     @result{} "754"             ; @r{Convert to octal.}
-@end group
-
-@group
-(set-file-modes "~/junk/diffs" #o666)
+(file-newer-than-file-p "aug-19" "aug-20")
      @result{} nil
 @end group
-
 @group
-% ls -l diffs
-  -rw-rw-rw-  1 lewis 0 3063 Oct 30 16:00 diffs
+(file-newer-than-file-p "aug-20" "aug-19")
+     @result{} t
+@end group
+@group
+(file-newer-than-file-p "aug-19" "no-file")
+     @result{} t
+@end group
+@group
+(file-newer-than-file-p "no-file" "aug-19")
+     @result{} nil
 @end group
 @end example
-
-@xref{Changing Files}, for functions that change file permissions,
-such as @code{set-file-modes}.
-
-@cindex MS-DOS and file modes
-@cindex file modes and MS-DOS
-@strong{MS-DOS note:} On MS-DOS, there is no such thing as an
-``executable'' file mode bit.  So @code{file-modes} considers a file
-executable if its name ends in one of the standard executable
-extensions, such as @file{.com}, @file{.bat}, @file{.exe}, and some
-others.  Files that begin with the Unix-standard @samp{#!} signature,
-such as shell and Perl scripts, are also considered executable.
-Directories are also reported as executable, for compatibility with
-Unix.  These conventions are also followed by @code{file-attributes},
-below.
 @end defun
 
   If the @var{filename} argument to the next two functions is a
 symbolic link, then these function do @emph{not} replace it with its
 target.  However, they both recursively follow symbolic links at all
 levels of parent directories.
-
-@defun file-nlinks filename
-This functions returns the number of names (i.e., hard links) that
-file @var{filename} has.  If the file does not exist, then this function
-returns @code{nil}.  Note that symbolic links have no effect on this
-function, because they are not considered to be names of the files they
-link to.
-
-@example
-@group
-% ls -l foo*
--rw-rw-rw-  2 rms       4 Aug 19 01:27 foo
--rw-rw-rw-  2 rms       4 Aug 19 01:27 foo1
-@end group
-
-@group
-(file-nlinks "foo")
-     @result{} 2
-@end group
-@group
-(file-nlinks "doesnt-exist")
-     @result{} nil
-@end group
-@end example
-@end defun
 
 @defun file-attributes filename &optional id-format
 @anchor{Definition of file-attributes}
@@ -1254,7 +1200,7 @@ An unspecified value, present for backward compatibility.
 @item
 The file's inode number.  If possible, this is an integer.  If the
 inode number is too large to be represented as an integer in Emacs
-Lisp but dividing it by @math{2^16} yields a representable integer,
+Lisp but dividing it by @math{2^{16}} yields a representable integer,
 then the value has the
 form @code{(@var{high} . @var{low})}, where @var{low} holds the low 16
 bits.  If the inode number is too wide for even that, the value is of the form
@@ -1331,52 +1277,99 @@ is on the file-system device whose number is 1014478468.
 @end table
 @end defun
 
-@cindex SELinux context
-  SELinux is a Linux kernel feature which provides more sophisticated
-file access controls than ordinary ``Unix-style'' file permissions.
-If Emacs has been compiled with SELinux support on a system with
-SELinux enabled, you can use the function @code{file-selinux-context}
-to retrieve a file's SELinux security context.  For the function
-@code{set-file-selinux-context}, see @ref{Changing Files}.
+@defun file-nlinks filename
+This function returns the number of names (i.e., hard links) that
+file @var{filename} has.  If the file does not exist, this function
+returns @code{nil}.  Note that symbolic links have no effect on this
+function, because they are not considered to be names of the files
+they link to.
 
-@defun file-selinux-context filename
-This function returns the SELinux security context of the file
-@var{filename}.  This return value is a list of the form
-@code{(@var{user} @var{role} @var{type} @var{range})}, whose elements
-are the context's user, role, type, and range respectively, as Lisp
-strings.  See the SELinux documentation for details about what these
-actually mean.
+@example
+@group
+$ ls -l foo*
+-rw-rw-rw- 2 rms rms 4 Aug 19 01:27 foo
+-rw-rw-rw- 2 rms rms 4 Aug 19 01:27 foo1
+@end group
 
-If the file does not exist or is inaccessible, or if the system does
-not support SELinux, or if Emacs was not compiled with SELinux
-support, then the return value is @code{(nil nil nil nil)}.
+@group
+(file-nlinks "foo")
+     @result{} 2
+@end group
+@group
+(file-nlinks "doesnt-exist")
+     @result{} nil
+@end group
+@end example
 @end defun
+
+@node Extended Attributes
+@subsection Extended File Attributes
+@cindex extended file attributes
+
+On some operating systems, each file can be associated with arbitrary
+@dfn{extended file attributes}.  At present, Emacs supports querying
+and setting two specific sets of extended file attributes: Access
+Control Lists (ACLs) and SELinux contexts.  These extended file
+attributes are used, on some systems, to impose more sophisticated
+file access controls than the basic ``Unix-style'' permissions
+discussed in the previous sections.
 
 @cindex access control list
 @cindex ACL entries
-  If Emacs has been compiled with @dfn{ACL} (access control list)
-support, you can use the function @code{file-acl} to retrieve a file's
-ACL entries.  The interface implementation is platform-specific; on
-GNU/Linux and BSD, Emacs uses the POSIX ACL interface, while on
-MS-Windows Emacs emulates the POSIX ACL interface with native file
-security APIs.
+@cindex SELinux context
+  A detailed explanation of ACLs and SELinux is beyond the scope of
+this manual.  For our purposes, each file can be associated with an
+@dfn{ACL}, which specifies its properties under an ACL-based file
+control system, and/or an @dfn{SELinux context}, which specifies its
+properties under the SELinux system.
 
 @defun file-acl filename
-This function returns the ACL entries of the file @var{filename}.  The
-return value is a platform-dependent object containing some
-representation of the ACL entries.  Don't use it for anything except
-passing it to the @code{set-file-acl} function (@pxref{Changing Files,
-set-file-acl}).
+This function returns the ACL for the file @var{filename}.  The exact
+Lisp representation of the ACL is unspecified (and may change in
+future Emacs versions), but it is the same as what @code{set-file-acl}
+takes for its @var{acl} argument (@pxref{Changing Files}).
 
-If the file does not exist or is inaccessible, or if Emacs was unable to
-determine the ACL entries, then the return value is @code{nil}.  The
-latter can happen for local files if Emacs was not compiled with ACL
-support, or for remote files if the file handler returns nil for the
-file's ACL entries.
+The underlying ACL implementation is platform-specific; on GNU/Linux
+and BSD, Emacs uses the POSIX ACL interface, while on MS-Windows Emacs
+emulates the POSIX ACL interface with native file security APIs.
+
+If Emacs was not compiled with ACL support, or the file does not exist
+or is inaccessible, or Emacs was unable to determine the ACL entries
+for any other reason, then the return value is @code{nil}.
+@end defun
+
+@defun file-selinux-context filename
+This function returns the SELinux context of the file @var{filename},
+as a list of the form @code{(@var{user} @var{role} @var{type}
+@var{range})}.  The list elements are the context's user, role, type,
+and range respectively, as Lisp strings; see the SELinux documentation
+for details about what these actually mean.  The return value has the
+same form as what @code{set-file-selinux-context} takes for its
+@var{context} argument (@pxref{Changing Files}).
+
+If Emacs was not compiled with SELinux support, or the file does not
+exist or is inaccessible, or if the system does not support SELinux,
+then the return value is @code{(nil nil nil nil)}.
+@end defun
+
+@defun file-extended-attributes filename
+This function returns an alist of the Emacs-recognized extended
+attributes of file @var{filename}.  Currently, it serves as a
+convenient way to retrieve both the ACL and SELinux context; you can
+then call the function @code{set-file-extended-attributes}, with the
+returned alist as its second argument, to apply the same file access
+attributes to another file (@pxref{Changing Files}).
+
+One of the elements is @code{(acl . @var{acl})}, where @var{acl} has
+the same form returned by @code{file-acl}.
+
+Another element is @code{(selinux-context . @var{context})}, where
+@var{context} is the SELinux context, in the same form returned by
+@code{file-selinux-context}.
 @end defun
 
 @node Locating Files
-@subsection How to Locate Files in Standard Places
+@subsection Locating Files in Standard Places
 @cindex locate file in path
 @cindex find file in path
 
@@ -1477,9 +1470,9 @@ In the first part of the following example, we list two files,
 
 @example
 @group
-% ls -li fo*
-81908 -rw-rw-rw-  1 rms       29 Aug 18 20:32 foo
-84302 -rw-rw-rw-  1 rms       24 Aug 18 20:31 foo3
+$ ls -li fo*
+81908 -rw-rw-rw- 1 rms rms 29 Aug 18 20:32 foo
+84302 -rw-rw-rw- 1 rms rms 24 Aug 18 20:31 foo3
 @end group
 @end example
 
@@ -1494,10 +1487,10 @@ the files again.  This shows two names for one file, @file{foo} and
 @end group
 
 @group
-% ls -li fo*
-81908 -rw-rw-rw-  2 rms       29 Aug 18 20:32 foo
-81908 -rw-rw-rw-  2 rms       29 Aug 18 20:32 foo2
-84302 -rw-rw-rw-  1 rms       24 Aug 18 20:31 foo3
+$ ls -li fo*
+81908 -rw-rw-rw- 2 rms rms 29 Aug 18 20:32 foo
+81908 -rw-rw-rw- 2 rms rms 29 Aug 18 20:32 foo2
+84302 -rw-rw-rw- 1 rms rms 24 Aug 18 20:31 foo3
 @end group
 @end example
 
@@ -1519,10 +1512,10 @@ contents of @file{foo3} are lost.
 @end group
 
 @group
-% ls -li fo*
-81908 -rw-rw-rw-  3 rms       29 Aug 18 20:32 foo
-81908 -rw-rw-rw-  3 rms       29 Aug 18 20:32 foo2
-81908 -rw-rw-rw-  3 rms       29 Aug 18 20:32 foo3
+$ ls -li fo*
+81908 -rw-rw-rw- 3 rms rms 29 Aug 18 20:32 foo
+81908 -rw-rw-rw- 3 rms rms 29 Aug 18 20:32 foo2
+81908 -rw-rw-rw- 3 rms rms 29 Aug 18 20:32 foo3
 @end group
 @end example
 
@@ -1542,7 +1535,7 @@ with @code{add-name-to-file} and then deleting @var{filename} has the
 same effect as renaming, aside from momentary intermediate states.
 @end deffn
 
-@deffn Command copy-file oldname newname &optional ok-if-exists time preserve-uid-gid preserve-selinux
+@deffn Command copy-file oldname newname &optional ok-if-exists time preserve-uid-gid preserve-extended-attributes
 This command copies the file @var{oldname} to @var{newname}.  An
 error is signaled if @var{oldname} does not exist.  If @var{newname}
 names a directory, it copies @var{oldname} into that directory,
@@ -1555,8 +1548,6 @@ some operating systems.)  If setting the time gets an error,
 interactive call, a prefix argument specifies a non-@code{nil} value
 for @var{time}.
 
-This function copies the file modes, too.
-
 If argument @var{preserve-uid-gid} is @code{nil}, we let the operating
 system decide the user and group ownership of the new file (this is
 usually set to the user running Emacs).  If @var{preserve-uid-gid} is
@@ -1564,10 +1555,16 @@ non-@code{nil}, we attempt to copy the user and group ownership of the
 file.  This works only on some operating systems, and only if you have
 the correct permissions to do so.
 
-If the optional argument @var{preserve-extended-attributes} is
-non-@code{nil}, and Emacs has been built with the appropriate support,
-this function attempts to copy the file's extended attributes, such as
-its SELinux context and ACL entries (@pxref{File Attributes}).
+If the optional argument @var{preserve-permissions} is non-@code{nil},
+this function copies the file modes (or ``permissions'') of
+@var{oldname} to @var{newname}, as well as the Access Control List and
+SELinux context (if any).  @xref{Information about Files}.
+
+Otherwise, the file modes of @var{newname} are left unchanged if it is
+an existing file, and set to those of @var{oldname}, masked by the
+default file permissions (see @code{set-default-file-modes} below), if
+@var{newname} is to be newly created.  The Access Control List or
+SELinux context are not copied over in either case.
 @end deffn
 
 @deffn Command make-symbolic-link filename newname  &optional ok-if-exists
@@ -1609,7 +1606,7 @@ See also @code{delete-directory} in @ref{Create/Delete Dirs}.
 @cindex permissions, file
 @cindex file modes, setting
 @deffn Command set-file-modes filename mode
-This function sets the @dfn{file mode} (or @dfn{file permissions}) of
+This function sets the @dfn{file mode} (or @dfn{permissions}) of
 @var{filename} to @var{mode}.  It recursively follows symbolic links
 at all levels for @var{filename}.
 
@@ -1625,7 +1622,7 @@ octal numbers to enter @var{mode}.  For example,
 @noindent
 specifies that the file should be readable and writable for its owner,
 readable for group members, and readable for all other users.
-@xref{File Permissions,,, coreutils, The @sc{gnu} @code{Coreutils}
+@xref{File permissions,,, coreutils, The @sc{gnu} @code{Coreutils}
 Manual}, for a description of mode bit specifications.
 
 Interactively, @var{mode} is read from the minibuffer using
@@ -1638,13 +1635,12 @@ returns the permissions of a file.
 
 @defun set-default-file-modes mode
 @cindex umask
-This function sets the default file permissions for new files created
-by Emacs and its subprocesses.  Every file created with Emacs
-initially has these permissions, or a subset of them
-(@code{write-region} will not grant execute permissions even if the
-default file permissions allow execution).  On Unix and GNU/Linux, the
-default permissions are given by the bitwise complement of the
-``umask'' value.
+This function sets the default permissions for new files created by
+Emacs and its subprocesses.  Every file created with Emacs initially
+has these permissions, or a subset of them (@code{write-region} will
+not grant execute permissions even if the default file permissions
+allow execution).  On Unix and GNU/Linux, the default permissions are
+given by the bitwise complement of the ``umask'' value.
 
 The argument @var{mode} should be an integer which specifies the
 permissions, similar to @code{set-file-modes} above.  Only the lowest
@@ -1676,7 +1672,7 @@ the permissions on which the specification is based are taken from the
 mode bits of @var{base-file}.  If @var{base-file} is omitted or
 @code{nil}, the function uses @code{0} as the base mode bits.  The
 complete and relative specifications can be combined, as in
-@code{"u+r,g+rx,o+r,g-w"}.  @xref{File Permissions,,, coreutils, The
+@code{"u+r,g+rx,o+r,g-w"}.  @xref{File permissions,,, coreutils, The
 @sc{gnu} @code{Coreutils} Manual}, for a description of file mode
 specifications.
 @end defun
@@ -1698,25 +1694,31 @@ time and must be in the format returned by @code{current-time}
 (@pxref{Time of Day}).
 @end defun
 
-@defun set-file-selinux-context filename context
-This function sets the SELinux security context of the file
-@var{filename} to @var{context}.  @xref{File Attributes}, for a brief
-description of SELinux contexts.  The @var{context} argument should be
-a list @code{(@var{user} @var{role} @var{type} @var{range})}, like the
-return value of @code{file-selinux-context}.  The function returns
-@code{t} if it succeeds to set the SELinux security context of
-@var{filename}, @code{nil} otherwise.  The function does nothing and
-returns @code{nil} if SELinux is disabled, or if Emacs was compiled
-without SELinux support.
+@defun set-file-extended-attributes filename attribute-alist
+This function sets the Emacs-recognized extended file attributes for
+@code{filename}.  The second argument @var{attribute-alist} should be
+an alist of the same form returned by @code{file-extended-attributes}.
+@xref{Extended Attributes}.
 @end defun
 
-@defun set-file-acl filename acl-string
-This function sets the ACL entries of the file @var{filename} to
-@var{acl-string}.  @xref{File Attributes}, for a brief description of
-ACLs.  The @var{acl-string} argument should be a string containing the
-textual representation of the desired ACL entries as returned by
-@code{file-acl} (@pxref{File Attributes, file-acl}).  The function
-returns @code{t} if it succeeds to set the ACL entries of
+@defun set-file-selinux-context filename context
+This function sets the SELinux security context for @var{filename} to
+@var{context}.  The @var{context} argument should be a list
+@code{(@var{user} @var{role} @var{type} @var{range})}, where each
+element is a string.  @xref{Extended Attributes}.
+
+The function returns @code{t} if it succeeds in setting the SELinux
+context of @var{filename}.  It returns @code{nil} if the context was
+not set (e.g., if SELinux is disabled, or if Emacs was compiled
+without SELinux support).
+@end defun
+
+@defun set-file-acl filename acl
+This function sets the Access Control List for @var{filename} to
+@var{acl}.  The @var{acl} argument should have the same form returned
+by the function @code{file-acl}.  @xref{Extended Attributes}.
+
+The function returns @code{t} if it successfully sets the ACL of
 @var{filename}, @code{nil} otherwise.
 @end defun
 
@@ -2105,10 +2107,6 @@ start with @samp{~}.)  Otherwise, the current buffer's value of
 (expand-file-name "foo" "/usr/spool/")
      @result{} "/usr/spool/foo"
 @end group
-@group
-(expand-file-name "$HOME/foo")
-     @result{} "/xcssun/users/rms/lewis/$HOME/foo"
-@end group
 @end example
 
 If the part of the combined file name before the first slash is
@@ -2142,7 +2140,14 @@ This is for the sake of filesystems that have the concept of a
 @file{/../} is interpreted exactly the same as @file{/}.
 
 Note that @code{expand-file-name} does @emph{not} expand environment
-variables; only @code{substitute-in-file-name} does that.
+variables; only @code{substitute-in-file-name} does that:
+
+@example
+@group
+(expand-file-name "$HOME/foo")
+     @result{} "/xcssun/users/rms/lewis/$HOME/foo"
+@end group
+@end example
 
 Note also that @code{expand-file-name} does not follow symbolic links
 at any level.  This results in a difference between the way
@@ -2367,7 +2372,7 @@ buffer's default directory is prepended to @var{directory}, if
 In the following example, suppose that @file{~rms/lewis} is the current
 default directory, and has five files whose names begin with @samp{f}:
 @file{foo}, @file{file~}, @file{file.c}, @file{file.c.~1~}, and
-@file{file.c.~2~}.@refill
+@file{file.c.~2~}.
 
 @example
 @group
@@ -2398,7 +2403,7 @@ function returns @code{t}.  The function returns @code{nil} if directory
 In the following example, suppose that the current default directory
 has five files whose names begin with @samp{f}: @file{foo},
 @file{file~}, @file{file.c}, @file{file.c.~1~}, and
-@file{file.c.~2~}.@refill
+@file{file.c.~2~}.
 
 @example
 @group
@@ -2427,7 +2432,7 @@ has five files whose names begin with @samp{f}: @file{foo},
 @code{file-name-completion} usually ignores file names that end in any
 string in this list.  It does not ignore them when all the possible
 completions end in one of these suffixes.  This variable has no effect
-on @code{file-name-all-completions}.@refill
+on @code{file-name-all-completions}.
 
 A typical value might look like this:
 
@@ -2769,16 +2774,17 @@ first, before handlers for jobs such as remote file access.
 @code{file-equal-p},
 @code{file-executable-p}, @code{file-exists-p},
 @code{file-in-directory-p},
-@code{file-local-copy}, @code{file-remote-p},
+@code{file-local-copy},
 @code{file-modes}, @code{file-name-all-completions},
 @code{file-name-as-directory},
 @code{file-name-completion},
 @code{file-name-directory},
 @code{file-name-nondirectory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
+@code{file-notify-add-watch}, @code{file-notify-rm-watch},
 @code{file-ownership-preserved-p},
 @code{file-readable-p}, @code{file-regular-p},
-@code{file-selinux-context},
+@code{file-remote-p}, @code{file-selinux-context},
 @code{file-symlink-p}, @code{file-truename}, @code{file-writable-p},
 @code{find-backup-file-name},
 @c Not sure why it was here:   @code{find-file-noselect},@*
@@ -2817,20 +2823,21 @@ first, before handlers for jobs such as remote file access.
 @code{file-accessible-direc@discretionary{}{}{}tory-p},
 @code{file-acl},
 @code{file-attributes},
-@code{file-direct@discretionary{}{}{}ory-p},
+@code{file-direc@discretionary{}{}{}tory-p},
 @code{file-equal-p},
 @code{file-executable-p}, @code{file-exists-p},
 @code{file-in-directory-p},
-@code{file-local-copy}, @code{file-remote-p},
+@code{file-local-copy},
 @code{file-modes}, @code{file-name-all-completions},
 @code{file-name-as-directory},
 @code{file-name-completion},
 @code{file-name-directory},
 @code{file-name-nondirec@discretionary{}{}{}tory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
+@code{file-notify-add-watch}, @code{file-notify-rm-watch},
 @code{file-ownership-pre@discretionary{}{}{}served-p},
 @code{file-readable-p}, @code{file-regular-p},
-@code{file-selinux-context},
+@code{file-remote-p}, @code{file-selinux-context},
 @code{file-symlink-p}, @code{file-truename}, @code{file-writable-p},
 @code{find-backup-file-name},
 @c Not sure why it was here:   @code{find-file-noselect},

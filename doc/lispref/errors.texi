@@ -1,18 +1,17 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1999, 2001-2013 Free Software Foundation,
+@c Copyright (C) 1990-1993, 1999, 2001-2014 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Standard Errors
 @appendix Standard Errors
 @cindex standard errors
 
-  Here is a list of the more important error symbols in standard Emacs,
-grouped by concept.  The list includes each symbol's message (on the
-@code{error-message} property of the symbol) and a cross reference to a
-description of how the error can occur.
+  Here is a list of the more important error symbols in standard Emacs, grouped
+by concept.  The list includes each symbol's message and a cross reference
+to a description of how the error can occur.
 
-  Each error symbol has an @code{error-conditions} property that is a
+  Each error symbol has an set of parent error conditions that is a
 list of symbols.  Normally this list includes the error symbol itself
 and the symbol @code{error}.  Occasionally it includes additional
 symbols, which are intermediate classifications, narrower than
@@ -24,8 +23,6 @@ conditions, that means it has none.
   As a special exception, the error symbol @code{quit} does not have the
 condition @code{error}, because quitting is not considered an error.
 
-@c You can grep for "(put 'foo 'error-conditions ...) to find
-@c examples defined in Lisp.  E.g., soap-client.el, sasl.el.
   Most of these error symbols are defined in C (mainly @file{data.c}),
 but some are defined in Lisp.  For example, the file @file{userlock.el}
 defines the @code{file-locked} and @code{file-supersession} errors.
@@ -122,6 +119,11 @@ This is a subcategory of @code{file-error}.  @xref{File Locks}.
 @c userlock.el
 @item file-supersession
 This is a subcategory of @code{file-error}.  @xref{Modification Time}.
+
+@c filenotify.el
+@item file-notify-error
+This is a subcategory of @code{file-error}.  It happens, when a file
+could not be watched for changes.  @xref{File Notifications}.
 
 @c net/ange-ftp.el
 @item ftp-error

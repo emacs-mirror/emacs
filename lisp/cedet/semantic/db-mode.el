@@ -1,6 +1,6 @@
 ;;; semantic/db-mode.el --- Semanticdb Minor Mode
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -66,7 +66,7 @@ database, which can be saved for future Emacs sessions."
 	(add-hook (cadr elt) (car elt)))
     ;; Disable
     (dolist (elt semanticdb-hooks)
-      (add-hook (cadr elt) (car elt)))))
+      (remove-hook (cadr elt) (car elt)))))
 
 (defvaralias 'semanticdb-mode-hook 'global-semanticdb-minor-mode-hook)
 (defvaralias 'semanticdb-global-mode 'global-semanticdb-minor-mode)
@@ -82,7 +82,7 @@ Update the environment of Semantic enabled buffers accordingly."
       ;; Save databases before disabling semanticdb.
       (semanticdb-save-all-db))
   ;; Toggle semanticdb minor mode.
-  (global-semanticdb-minor-mode))
+  (global-semanticdb-minor-mode 'toggle))
 
 ;;; Hook Functions:
 ;;
@@ -105,7 +105,8 @@ Sets up the semanticdb environment."
       (oset ctbl major-mode major-mode)
       ;; Local state
       (setq semanticdb-current-table ctbl)
-      ;; Try to swap in saved tags
+      (oset ctbl buffer (current-buffer))
+        ;; Try to swap in saved tags
       (if (or (not (slot-boundp ctbl 'tags)) (not (oref ctbl tags))
 	      (/= (or (oref ctbl pointmax) 0) (point-max))
 	      )
@@ -133,7 +134,6 @@ Sets up the semanticdb environment."
 	(semantic--set-buffer-cache (oref ctbl tags))
 	;; Don't need it to be dirty.  Set dirty due to hooks from above.
 	(oset ctbl dirty nil) ;; Special case here.
-	(oset ctbl buffer (current-buffer))
 	;; Bind into the buffer.
 	(semantic--tag-link-cache-to-buffer)
 	)

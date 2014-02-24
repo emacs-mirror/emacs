@@ -1,6 +1,6 @@
 ;;; kkc.el --- Kana Kanji converter    -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1997-1998, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2014 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -40,7 +40,7 @@
   "String denoting KKC input method.
 This string is shown at mode line when users are in KKC mode.")
 
-(defvar kkc-init-file-name (convert-standard-filename "~/.kkcrc")
+(defvar kkc-init-file-name (locate-user-emacs-file "kkcrc" ".kkcrc")
   "Name of a file which contains user's initial setup code for KKC.")
 
 ;; A flag to control a file specified by `kkc-init-file-name'.
@@ -207,7 +207,7 @@ area while indicating the current selection by `<N>'."
 		  kkc-current-conversions-width nil
 		  kkc-current-conversions (cons 0 nil)))))))
 
-(put 'kkc-error 'error-conditions '(kkc-error error))
+(define-error 'kkc-error nil)
 (defun kkc-error (&rest args)
   (signal 'kkc-error (apply 'format args)))
 

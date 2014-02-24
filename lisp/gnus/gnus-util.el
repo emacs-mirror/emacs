@@ -1,6 +1,6 @@
 ;;; gnus-util.el --- utility functions for Gnus
 
-;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -68,7 +68,7 @@
   "Value of `completion-styles' to use when completing."
   :version "24.1"
   :group 'gnus-meta
-  :type 'list)
+  :type '(repeat symbol))
 
 ;; Fixme: this should be a gnus variable, not nnmail-.
 (defvar nnmail-pathname-coding-system)
@@ -514,11 +514,14 @@ but also to the ones displayed in the echo area."
 			     (> message-log-max 0)
 			     (/= (length str) 0))
 		    (setq time (current-time))
-		    (with-current-buffer (get-buffer-create "*Messages*")
+		    (with-current-buffer (if (fboundp 'messages-buffer)
+					     (messages-buffer)
+					   (get-buffer-create "*Messages*"))
 		      (goto-char (point-max))
-		      (insert ,timestamp str "\n")
-		      (forward-line (- message-log-max))
-		      (delete-region (point-min) (point))
+		      (let ((inhibit-read-only t))
+			(insert ,timestamp str "\n")
+			(forward-line (- message-log-max))
+			(delete-region (point-min) (point)))
 		      (goto-char (point-max))))
 		  str)
 		 (gnus-add-timestamp-to-message
@@ -934,7 +937,7 @@ Otherwise, return the value."
       'previous-extent-change 'previous-char-property-change))
 
 ;;; Protected and atomic operations.  dmoore@ucsd.edu 21.11.1996
-;; The primary idea here is to try to protect internal datastructures
+;; The primary idea here is to try to protect internal data structures
 ;; from becoming corrupted when the user hits C-g, or if a hook or
 ;; similar blows up.  Often in Gnus multiple tables/lists need to be
 ;; updated at the same time, or information can be lost.
@@ -1025,6 +1028,15 @@ with potentially long computations."
 
 (declare-function mm-append-to-file "mm-util"
                   (start end filename &optional codesys inhibit))
+(declare-function rmail-swap-buffers-maybe "rmail" ())
+(declare-function rmail-maybe-set-message-counters "rmail" ())
+(declare-function rmail-count-new-messages "rmail" (&optional nomsg))
+(declare-function rmail-summary-exists "rmail" ())
+(declare-function rmail-show-message "rmail" (&optional n no-summary))
+;; Macroexpansion of rmail-select-summary:
+(declare-function rmail-summary-displayed "rmail" ())
+(declare-function rmail-pop-to-buffer "rmail" (&rest args))
+(declare-function rmail-maybe-display-summary "rmail" ())
 
 (defun gnus-output-to-rmail (filename &optional ask)
   "Append the current article to an Rmail file named FILENAME.
@@ -1549,9 +1561,15 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
   "Call standard `completing-read-function'."
   (let ((completion-styles gnus-completion-styles))
     (completing-read prompt
-                     ;; Old XEmacs (at least 21.4) expect an alist for
-                     ;; collection.
-                     (mapcar 'list collection)
+		     (if (featurep 'xemacs)
+			 ;; Old XEmacs (at least 21.4) expect an alist,
+			 ;; in which the car of each element is a string,
+			 ;; for collection.
+			 (mapcar
+			  (lambda (elem)
+			    (list (format "%s" (or (car-safe elem) elem))))
+			  collection)
+		       collection)
                      nil require-match initial-input history def)))
 
 (autoload 'ido-completing-read "ido")
@@ -1872,6 +1890,8 @@ empty directories from OLD-PATH."
               (aref ,display-table ,character)
             (get-char-table ,character ,display-table)))
     `(aref ,display-table ,character)))
+
+(declare-function image-size "image.c" (spec &optional pixels frame))
 
 (defun gnus-rescale-image (image size)
   "Rescale IMAGE to SIZE if possible.

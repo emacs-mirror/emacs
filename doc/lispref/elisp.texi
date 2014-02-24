@@ -98,7 +98,7 @@ This is the @cite{GNU Emacs Lisp Reference Manual}
 @end ifnottex
 corresponding to Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1990--1996, 1998--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 1990--1996, 1998--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -115,11 +115,11 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@documentencoding ISO-8859-1
+@documentencoding UTF-8
 
-@dircategory GNU Emacs Lisp
+@dircategory Emacs lisp
 @direntry
-* Elisp: (elisp).       The Emacs Lisp Reference Manual.
+* Elisp: (elisp).               The Emacs Lisp Reference Manual.
 @end direntry
 
 @titlepage
@@ -157,6 +157,17 @@ Cover art by Etienne Suvasa.
 @node Top
 @top Emacs Lisp
 
+@ifset WWW_GNU_ORG
+@html
+<p>The homepage for GNU Emacs is at
+<a href="/software/emacs/">http://www.gnu.org/software/emacs/</a>.<br>
+For information on using Emacs, refer to the
+<a href="/software/emacs/manual/emacs.html">Emacs Manual</a>.<br>
+To view this manual in other formats, click
+<a href="/software/emacs/manual/elisp.html">here</a>.
+@end html
+@end ifset
+
 @insertcopying
 @end ifnottex
 
@@ -183,7 +194,6 @@ Cover art by Etienne Suvasa.
 
 * Loading::                 Reading files of Lisp code into Lisp.
 * Byte Compilation::        Compilation makes programs run faster.
-* Advising Functions::      Adding to the definition of a function.
 * Debugging::               Tools and tips for debugging Lisp programs.
 
 * Read and Print::          Converting Lisp objects to text and back.
@@ -603,19 +613,6 @@ Byte Compilation
 * Byte-Code Objects::       The data type used for byte-compiled functions.
 * Disassembly::             Disassembling byte-code; how to read byte-code.
 
-Advising Emacs Lisp Functions
-
-* Simple Advice::           A simple example to explain the basics of advice.
-* Defining Advice::         Detailed description of @code{defadvice}.
-* Around-Advice::           Wrapping advice around a function's definition.
-* Computed Advice::         ...is to @code{defadvice} as @code{fset} is to @code{defun}.
-* Activation of Advice::    Advice doesn't do anything until you activate it.
-* Enabling Advice::         You can enable or disable each piece of advice.
-* Preactivation::           Preactivation is a way of speeding up the
-                              loading of compiled advice.
-* Argument Access in Advice:: How advice can access the function's arguments.
-* Combined Definition::     How advice is implemented.
-
 Debugging Lisp Programs
 
 * Debugger::                A debugger for the Emacs Lisp evaluator.
@@ -940,7 +937,8 @@ Information about Files
 * Testing Accessibility::   Is a given file readable?  Writable?
 * Kinds of Files::          Is it a directory?  A symbolic link?
 * Truenames::               Eliminating symbolic links from a file name.
-* File Attributes::         How large is it?  Any other names?  Etc.
+* File Attributes::         File sizes, modification times, etc.
+* Extended Attributes::     Extended file attributes for access control.
 * Locating Files::          How to find a file in standard places.
 
 File Names
@@ -1183,6 +1181,7 @@ Text Properties
 Non-@acronym{ASCII} Characters
 
 * Text Representations::    How Emacs represents text.
+* Disabling Multibyte::     Controlling whether to use multibyte characters.
 * Converting Representations::  Converting unibyte to multibyte and vice versa.
 * Selecting a Representation::  Treating a byte sequence as unibyte or multi.
 * Character Codes::         How unibyte and multibyte relate to
@@ -1306,7 +1305,7 @@ Processes
 
 Receiving Output from Processes
 
-* Process Buffers::         If no filter, output is put in a buffer.
+* Process Buffers::         By default, output is put in a buffer.
 * Filter Functions::        Filter functions accept output from the process.
 * Decoding Output::         Filters can get unibyte or multibyte strings.
 * Accepting Output::        How to wait until process output arrives.
@@ -1471,7 +1470,8 @@ Operating System Interface
 * Batch Mode::              Running Emacs without terminal interaction.
 * Session Management::      Saving and restoring state with
                               X Session Management.
-* Notifications::           Desktop notifications.
+* Desktop Notifications::   Desktop notifications.
+* File Notifications::      File notifications.
 * Dynamic Libraries::       On-demand loading of support libraries.
 
 Starting Up Emacs
@@ -1547,7 +1547,6 @@ Object Internals
 @include customize.texi
 @include loading.texi
 @include compile.texi
-@include advice.texi
 
 @c This includes edebug.texi.
 @include debugging.texi

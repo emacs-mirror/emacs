@@ -1,6 +1,6 @@
 	     Emacs for Windows NT/2000 and Windows 95/98/ME
 
-  Copyright (C) 2001-2013 Free Software Foundation, Inc.
+  Copyright (C) 2001-2014 Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
   This directory contains support for compiling and running GNU Emacs on
@@ -25,15 +25,17 @@
   Building and installing Emacs will produce the following executable
   files in the bin directory.
 
-  + emacs.exe - The main Emacs executable. As this is designed to run
+  + emacs.exe - The main Emacs executable.  As this is designed to run
     as both a text-mode application (emacs -nw) and as a GUI application,
     it will pop up a command prompt window if run directly from Explorer.
 
   + runemacs.exe - A wrapper for running Emacs as a GUI application
-    without popping up a command prompt window.
+    without popping up a command prompt window.  If you create a
+    desktop shortcut for invoking Emacs, make it point to this
+    executable, not to emacs.exe.
 
   + emacsclient.exe - A command-line client program that can
-    communicate with a running Emacs process. See the `Emacs Server'
+    communicate with a running Emacs process.  See the `Emacs Server'
     node of the Emacs manual.
 
   + emacsclientw.exe - A version of emacsclient that does not open
@@ -42,30 +44,44 @@
   + addpm.exe - A basic installer that creates Start Menu icons for Emacs.
     Running this is optional.
 
-  + cmdproxy.exe - Used internally by Emacs to work around problems with
-    the native shells in various versions of Windows.
-
   + ctags.exe, etags.exe - Tools for generating tag files.  See the
-  `Tags' node of the Emacs manual.
+    `Tags' node of the Emacs manual.
 
   + ebrowse.exe - A tool for generating C++ browse information.  See the
     `Ebrowse' manual.
 
-  + ddeclient.exe - A tool for interacting with DDE servers.
+  Several helper programs are installed in a version-specific
+  subdirectory of the libexec directory:
 
-  + hexl.exe - A tool for converting files to hex dumps.  See the
+  + cmdproxy.exe - Used internally by Emacs to work around problems with
+    the native shells in various versions of Windows.
+
+  + ddeclient.exe - A tool for interacting with DDE servers.  To be
+    invoked as "ddeclient SERVER [TOPIC]", where SERVER is the DDE
+    server name, and sends each line of its standard input to the DDE
+    server using the DdeClientTransaction API.  This program is
+    supposed to be invoked via the 'call-process-region' Emacs
+    primitive.
+
+  + hexl.exe - A tool for producing hex dumps of binary files.  See the
     `Editing Binary Files' node of the Emacs manual.
 
   + movemail.exe - A helper application for safely moving mail from
     a mail spool or POP server to a local user mailbox.  See the
     `Movemail' node of the Emacs manual.
 
+  + profile.exe - A helper program that generates periodic events for
+    profiling Emacs Lisp code.
+
+  + update-game-score.exe - A utility for updating the score files of
+    Emacs games.
+
 * Further information
 
-  There is a web page that serves as a FAQ for the Windows port of
-  Emacs (a.k.a. NTEmacs) at:
+  The FAQ for the MS Windows port of Emacs is distributed with Emacs
+  (info manual "efaq-w32"), and also available at
 
-	http://www.gnu.org/software/emacs/windows/ntemacs.html
+        http://www.gnu.org/software/emacs/manual/efaq-w32.html
 
   There is also a mailing list for discussing issues related to this
   port of Emacs.  For information about the list, see this Web page:
@@ -103,11 +119,7 @@
 
   Use the built in bug reporting functionality in Emacs so that it
   will be seen by the right people.  You can use the command M-x
-  report-emacs-bug to create and send the bug report, but in some
-  cases there is a function to report bugs in a specific package;
-  e.g. M-x gnus-bug for Gnus, M-x c-submit-bug-report for C/C++/Java
-  mode, etc.
-
+  report-emacs-bug to create and send the bug report.
 
 This file is part of GNU Emacs.
 

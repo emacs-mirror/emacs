@@ -1,0 +1,113 @@
+### @configure_input@
+
+## Copyright (C) 2013-2014 Free Software Foundation, Inc.
+
+## This file is part of GNU Emacs.
+
+## GNU Emacs is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+
+## GNU Emacs is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+
+## You should have received a copy of the GNU General Public License
+## along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+### Commentary:
+
+## This directory contains grammar files in Bison and Wisent,
+## used to generate the parser data in the lisp/cedet directory.
+
+SHELL = @SHELL@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+top_builddir = @top_builddir@
+
+EMACS = ${top_builddir}/src/emacs
+emacs = EMACSLOADPATH= "${EMACS}" -batch --no-site-file --no-site-lisp
+
+make_bovine = ${emacs} -l semantic/bovine/grammar -f bovine-batch-make-parser
+make_wisent = ${emacs} -l semantic/wisent/grammar -f wisent-batch-make-parser
+
+cedetdir = ${top_srcdir}/lisp/cedet
+bovinedir = ${cedetdir}/semantic/bovine
+wisentdir = ${cedetdir}/semantic/wisent
+
+BOVINE = \
+	${bovinedir}/c-by.el \
+	${bovinedir}/make-by.el \
+	${bovinedir}/scm-by.el
+
+## FIXME Should include this one too:
+##	${cedetdir}/semantic/grammar-wy.el
+## but semantic/grammar.el (which is what we use to generate grammar-wy.el)
+## requires it!
+WISENT = \
+	${wisentdir}/javat-wy.el \
+	${wisentdir}/js-wy.el \
+	${wisentdir}/python-wy.el \
+	${cedetdir}/srecode/srt-wy.el
+
+ALL = ${BOVINE} ${WISENT}
+
+.PHONY: all bovine wisent
+
+all: ${ALL}
+
+bovine: ${BOVINE}
+
+wisent: ${WISENT}
+
+
+${bovinedir}/c-by.el: ${srcdir}/c.by
+	[ ! -f "$@" ] || chmod +w "$@"
+	${make_bovine} -o "$@" ${srcdir}/c.by
+
+${bovinedir}/make-by.el: ${srcdir}/make.by
+	[ ! -f "$@" ] || chmod +w "$@"
+	${make_bovine} -o "$@" ${srcdir}/make.by
+
+${bovinedir}/scm-by.el: ${srcdir}/scheme.by
+	[ ! -f "$@" ] || chmod +w "$@"
+	${make_bovine} -o "$@" ${srcdir}/scheme.by
+
+
+${cedetdir}/semantic/grammar-wy.el: ${srcdir}/grammar.wy
+	[ ! -f "$@" ] || chmod +w "$@"
+	${make_wisent} -o "$@" ${srcdir}/grammar.wy
+
+${wisentdir}/javat-wy.el: ${srcdir}/java-tags.wy
+	[ ! -f "$@" ] || chmod +w "$@"
+	${make_wisent} -o "$@" ${srcdir}/java-tags.wy
+
+${wisentdir}/js-wy.el: ${srcdir}/js.wy
+	[ ! -f "$@" ] || chmod +w "$@"
+	${make_wisent} -o "$@" ${srcdir}/js.wy
+
+${wisentdir}/python-wy.el: ${srcdir}/python.wy
+	[ ! -f "$@" ] || chmod +w "$@"
+	${make_wisent} -o "$@" ${srcdir}/python.wy
+
+${cedetdir}/srecode/srt-wy.el: ${srcdir}/srecode-template.wy
+	[ ! -f "$@" ] || chmod +w "$@"
+	${make_wisent} -o "$@" ${srcdir}/srecode-template.wy
+
+
+.PHONY: distclean bootstrap-clean maintainer-clean extraclean
+
+distclean:
+	rm -f Makefile
+
+bootstrap-clean maintainer-clean: distclean
+
+## We do not normally delete the generated files, even in bootstrap.
+## Creating them does not take long, so we could easily change this.
+extraclean:
+	rm -f ${ALL}
+
+# Makefile.in ends here

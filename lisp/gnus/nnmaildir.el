@@ -63,17 +63,17 @@
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
-(eval-and-compile
-  (require 'nnheader)
-  (require 'gnus)
-  (require 'gnus-util)
-  (require 'gnus-range)
-  (require 'gnus-start)
-  (require 'gnus-int)
-  (require 'message))
+(require 'nnheader)
+(require 'gnus)
+(require 'gnus-util)
+(require 'gnus-range)
+(require 'gnus-start)
+(require 'gnus-int)
+(require 'message)
+(require 'nnmail)
+
 (eval-when-compile
-  (require 'cl)
-  (require 'nnmail))
+  (require 'cl))
 
 (defconst nnmaildir-version "Gnus")
 

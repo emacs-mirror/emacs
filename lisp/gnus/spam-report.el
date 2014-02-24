@@ -1,6 +1,6 @@
 ;;; spam-report.el --- Reporting spam
 
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: network, spam, mail, gmane, report
@@ -81,7 +81,7 @@ The function must accept the arguments `host' and `report'."
   "Email address that spam articles are resent to when reporting.
 If not set, the user will be prompted to enter a value which will be
 saved for future use."
-  :type 'string
+  :type '(choice (const :tag "Prompt" nil) string)
   :group 'spam-report)
 
 (defvar spam-report-url-ping-temp-agent-function nil

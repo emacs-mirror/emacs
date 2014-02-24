@@ -1,6 +1,6 @@
 ;;; cc-menus.el --- imenu support for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2014 Free Software Foundation, Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
@@ -161,48 +161,131 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
   cc-imenu-c++-generic-expression
   "Imenu generic expression for C mode.  See `imenu-generic-expression'.")
 
-(defvar cc-imenu-java-generic-expression
+
+;; Auxiliary regexps for Java try to match their trailing whitespace where
+;; appropriate, but _not_ starting whitespace.
+
+(defconst cc-imenu-java-ellipsis-regexp
+  (concat
+   "\\.\\{3\\}"
+   "[ \t\n\r]*"))
+
+(defun cc-imenu-java-build-type-args-regex (depth)
+  "Builds regexp for type arguments list with DEPTH allowed
+nested angle brackets constructs."
+  (if (> depth 0)
+      (concat "<"
+		"[][.," c-alnum "_? \t\n\r]+"
+		(if (> depth 1)
+		    "\\(")
+		(cc-imenu-java-build-type-args-regex (1- depth))
+		(if (> depth 1)
+		  (concat "[][.," c-alnum "_? \t\n\r]*"
+			  "\\)*"))
+	      ">")))
+
+(defconst cc-imenu-java-type-spec-regexp
+  (concat
+   ;; zero or more identifiers followed by a dot
+   "\\("
+     "[" c-alpha "_][" c-alnum "_]*\\."
+   "\\)*"
+   ;; a single mandatory identifier without a dot
+   "[" c-alpha "_][" c-alnum "_]*"
+   ;; then choice:
+   "\\("
+   ;; (option 1) type arguments list which _may_ be followed with brackets
+   ;; and/or spaces, then optional variable arity
+     "[ \t\n\r]*"
+     (cc-imenu-java-build-type-args-regex 3)
+     "[][ \t\n\r]*"
+     "\\(" cc-imenu-java-ellipsis-regexp "\\)?"
+   "\\|"
+   ;; (option 2) just brackets and/or spaces (there should be at least one),
+   ;; then optional variable arity
+     "[][ \t\n\r]+"
+     "\\(" cc-imenu-java-ellipsis-regexp "\\)?"
+   "\\|"
+   ;; (option 3) just variable arity
+     cc-imenu-java-ellipsis-regexp
+   "\\)"))
+
+(defconst cc-imenu-java-comment-regexp
+  (concat
+   "/"
+   "\\("
+   ;; a traditional comment
+     "\\*"
+     "\\("
+       "[^*]"
+     "\\|"
+       "\\*+[^/*]"
+     "\\)*"
+     "\\*+/"
+   "\\|"
+   ;; an end-of-line comment
+     "/[^\n\r]*[\n\r]"
+   "\\)"
+  "[ \t\n\r]*"
+   ))
+
+;; Comments are allowed before the argument, after any of the
+;; modifiers and after the identifier.
+(defconst cc-imenu-java-method-arg-regexp
+  (concat
+   "\\(" cc-imenu-java-comment-regexp "\\)*"
+   ;; optional modifiers
+   "\\("
+     ;; a modifier is either an annotation or "final"
+     "\\("
+       "@[" c-alpha "_]"
+       "[" c-alnum "._]*"
+       ;; TODO support element-value pairs!
+     "\\|"
+       "final"
+     "\\)"
+     ;; a modifier ends with comments and/or ws
+     "\\("
+       "\\(" cc-imenu-java-comment-regexp "\\)+"
+     "\\|"
+       "[ \t\n\r]+"
+       "\\(" cc-imenu-java-comment-regexp "\\)*"
+     "\\)"
+   "\\)*"
+   ;; type spec
+   cc-imenu-java-type-spec-regexp
+   ;; identifier
+   "[" c-alpha "_]"
+   "[" c-alnum "_]*"
+   ;; optional comments and/or ws
+   "[ \t\n\r]*"
+   "\\(" cc-imenu-java-comment-regexp "\\)*"
+   ))
+
+(defconst cc-imenu-java-generic-expression
   `((nil
      ,(concat
-       "[" c-alpha "_][\]\[." c-alnum "_<> ]+[ \t\n\r]+" ; type spec
-       "\\([" c-alpha "_][" c-alnum "_]*\\)" ; method name
+       cc-imenu-java-type-spec-regexp
+       "\\("				      ; method name which gets captured
+					      ; into index
+         "[" c-alpha "_]"
+         "[" c-alnum "_]*"
+       "\\)"
        "[ \t\n\r]*"
-       ;; An argument list htat is either empty or contains any number
-       ;; of arguments.  An argument is any number of annotations
-       ;; followed by a type spec followed by a word.  A word is an
-       ;; identifier.  A type spec is an identifier, possibly followed
-       ;; by < typespec > possibly followed by [].
-       (concat "("
-               "\\("
-               "[ \t\n\r]*"
-               "\\("
-               "@"
-               "[" c-alpha "_]"
-               "[" c-alnum "._]""*"
-               "[ \t\n\r]+"
-               "\\)*"
-               "\\("
-               "[" c-alpha "_]"
-               "[\]\[" c-alnum "_.]*"
-               "\\("
-
-               "<"
-               "[ \t\n\r]*"
-               "[\]\[.," c-alnum "_<> \t\n\r]*"
-               ">"
-               "\\)?"
-               "\\(\\[\\]\\)?"
-               "[ \t\n\r]+"
-               "\\)"
-               "[" c-alpha "_]"
-               "[" c-alnum "_]*"
-               "[ \t\n\r,]*"
-               "\\)*"
-               ")"
-               "[.," c-alnum " \t\n\r]*"
-               "{"
-	       )) 1))
+       ;; An argument list that contains zero or more arguments.
+       (concat
+	"("
+	"[ \t\n\r]*"
+	"\\("
+	  "\\(" cc-imenu-java-method-arg-regexp ",[ \t\n\r]*\\)*"
+	  cc-imenu-java-method-arg-regexp
+	"\\)?"
+	")"
+	"[.,_" c-alnum " \t\n\r]*"	      ; throws etc.
+	"{"
+	)) 7))
   "Imenu generic expression for Java mode.  See `imenu-generic-expression'.")
+
 
 ;; Internal variables
 (defvar cc-imenu-objc-generic-expression-noreturn-index nil)

@@ -1,6 +1,6 @@
 /* runemacs --- Simple program to start Emacs with its console window hidden.
 
-Copyright (C) 2001-2013 Free Software Foundation, Inc.
+Copyright (C) 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -75,6 +75,11 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
   /* Quote executable name in case of spaces in the path. */
   *new_cmdline = '"';
   strcpy (new_cmdline + 1, modname);
+  /* Detect and handle un-installed runemacs.exe in nt/ subdirectory,
+     while emacs.exe is in src/.  */
+  if ((p = strrchr (new_cmdline, '\\')) != NULL
+      && stricmp (p, "\\nt") == 0)
+    strcpy (p, "\\src");
 
 #ifdef CHOOSE_NEWEST_EXE
   {
@@ -229,8 +234,6 @@ ensure_unicows_dll (void)
 			       "Emacs cannot load the UNICOWS.DLL library.\n"
 			       "This library is essential for using Emacs\n"
 			       "on this system.  You need to install it.\n\n"
-			       "However, you can still use Emacs by invoking\n"
-			       "it with the '-nw' command-line option.\n\n"
 			       "Emacs will exit when you click OK.",
 			       "Emacs cannot load UNICOWS.DLL",
 			       MB_ICONERROR | MB_TASKMODAL

@@ -1,6 +1,6 @@
 /* Profiler implementation.
 
-Copyright (C) 2012-2013 Free Software Foundation, Inc.
+Copyright (C) 2012-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -55,7 +55,7 @@ make_log (int heap_size, int max_stack_depth)
   /* What is special about our hash-tables is that the keys are pre-filled
      with the vectors we'll put in them.  */
   int i = ASIZE (h->key_and_value) / 2;
-  while (0 < i)
+  while (i > 0)
     set_hash_key_slot (h, --i,
 		       Fmake_vector (make_number (max_stack_depth), Qnil));
   return log;
@@ -138,10 +138,8 @@ static void evict_lower_half (log_t *log)
 static void
 record_backtrace (log_t *log, EMACS_INT count)
 {
-  struct backtrace *backlist = backtrace_list;
   Lisp_Object backtrace;
-  ptrdiff_t index, i = 0;
-  ptrdiff_t asize;
+  ptrdiff_t index;
 
   if (!INTEGERP (log->next_free))
     /* FIXME: transfer the evicted counts to a special entry rather
@@ -151,16 +149,7 @@ record_backtrace (log_t *log, EMACS_INT count)
 
   /* Get a "working memory" vector.  */
   backtrace = HASH_KEY (log, index);
-  asize = ASIZE (backtrace);
-
-  /* Copy the backtrace contents into working memory.  */
-  for (; i < asize && backlist; i++, backlist = backlist->next)
-    /* FIXME: For closures we should ignore the environment.  */
-    ASET (backtrace, i, backlist->function);
-
-  /* Make sure that unused space of working memory is filled with nil.  */
-  for (; i < asize; i++)
-    ASET (backtrace, i, Qnil);
+  get_backtrace (backtrace);
 
   { /* We basically do a `gethash+puthash' here, except that we have to be
        careful to avoid memory allocation since we're in a signal
@@ -232,7 +221,7 @@ static EMACS_INT current_sampling_interval;
 static void
 handle_profiler_signal (int signal)
 {
-  if (backtrace_list && EQ (backtrace_list->function, Qautomatic_gc))
+  if (EQ (backtrace_top_function (), Qautomatic_gc))
     /* Special case the time-count inside GC because the hash-table
        code is not prepared to be used while the GC is running.
        More specifically it uses ASIZE at many places where it does
@@ -247,7 +236,7 @@ handle_profiler_signal (int signal)
       if (profiler_timer_ok)
 	{
 	  int overruns = timer_getoverrun (profiler_timer);
-	  eassert (0 <= overruns);
+	  eassert (overruns >= 0);
 	  count += overruns;
 	}
 #endif
@@ -278,8 +267,8 @@ setup_cpu_timer (Lisp_Object sampling_interval)
     return NOT_RUNNING;
 
   current_sampling_interval = XINT (sampling_interval);
-  interval = make_emacs_time (current_sampling_interval / billion,
-			      current_sampling_interval % billion);
+  interval = make_timespec (current_sampling_interval / billion,
+			    current_sampling_interval % billion);
   emacs_sigaction_init (&action, deliver_profiler_signal);
   sigaction (SIGPROF, &action, 0);
 
@@ -579,12 +568,12 @@ to make room for new entries.  */);
   profiler_log_size = 10000;
 
   DEFSYM (Qprofiler_backtrace_equal, "profiler-backtrace-equal");
-  {
-    struct hash_table_test test
-      = { Qprofiler_backtrace_equal, Qnil, Qnil,
-	  cmpfn_profiler, hashfn_profiler };
-    hashtest_profiler = test;
-  }
+
+  hashtest_profiler.name = Qprofiler_backtrace_equal;
+  hashtest_profiler.user_hash_function = Qnil;
+  hashtest_profiler.user_cmp_function = Qnil;
+  hashtest_profiler.cmpfn = cmpfn_profiler;
+  hashtest_profiler.hashfn = hashfn_profiler;
 
   defsubr (&Sfunction_equal);
 

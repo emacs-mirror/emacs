@@ -1,6 +1,6 @@
 ;;; calc-embed.el --- embed Calc in a buffer
 
-;; Copyright (C) 1990-1993, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -30,7 +30,8 @@
 (require 'calc-macs)
 
 ;; Declare functions which are defined elsewhere.
-(declare-function thing-at-point-looking-at "thingatpt" (regexp))
+(declare-function thing-at-point-looking-at "thingatpt"
+		  (regexp &optional distance))
 
 
 (defun calc-show-plain (n)

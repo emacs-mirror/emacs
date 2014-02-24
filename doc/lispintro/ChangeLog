@@ -1,3 +1,148 @@
+2014-02-06  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (Recursive Patterns):
+	Do not use colons in index entries.
+
+2014-01-23  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (lengths-list-file): Fix textual parentheses.
+
+2013-12-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Specify .texi encoding (Bug#16292).
+	* emacs-lisp-intro.texi: Add @documentencoding.
+
+2013-12-30  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Use @quotation for license notice.
+
+2013-12-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Tweak dircategory.
+
+	* emacs-lisp-intro.texi: Sync direntry with info/dir version.
+
+2013-12-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs-lisp-intro.texi (Counting Words): Don't use ':' in xref
+	titles, as this isn't supported by Texinfo.
+
+2013-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (distclean): Remove Makefile.
+
+2013-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-dvi, install-html, install-pdf)
+	(install-ps, uninstall-dvi, uninstall-html, uninstall-ps)
+	(uninstall-pdf): Quote entities that might contain whitespace.
+
+2013-09-01  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (beginning-of-buffer complete):
+	Put back a version of the removed paragraph about raw prefix arg.
+
+2013-09-01  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* emacs-lisp-intro.texi (beginning-of-buffer complete):
+	Update function details.  (Bug#15085)
+
+2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
+	for portability to hosts where /bin/sh has problems.
+
+2013-08-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (Complete copy-region-as-kill): Fix typo.
+
+	* emacs-lisp-intro.texi (Thank You): Avoid mailto: in html output.
+
+	* Makefile.in (prefix, datarootdir, datadir, PACKAGE_TARNAME)
+	(docdir, dvidir, htmldir, pdfdir, psdir, GZIP_PROG, INSTALL)
+	(INSTALL_DATA): New, set by configure.
+	(HTML_OPTS, DVI_TARGETS, HTML_TARGETS, PDF_TARGETS, PS_TARGETS):
+	New variables.
+	(.SUFFIXES): Add .ps and .dvi.
+	(.dvi.ps): New suffix rule.
+	(dvi, html, pdf, ps): Use *_TARGETS variables.
+	(emacs-lisp-intro.ps): Remove explicit rule.
+	(emacs-lisp-intro.html): Use HTML_OPTS.
+	(clean): Use DVI_TARGETS, HTML_TARGETS, PDF_TARGETS, PS_TARGETS.
+	(.PHONY): install-dvi, install-html, install-pdf, install-ps,
+	install-doc, uninstall-dvi, uninstall-html, uninstall-pdf,
+	uninstall-ps, and uninstall-doc.
+	(install-dvi, install-html, install-pdf, install-ps, install-doc)
+	(uninstall-dvi, uninstall-html, uninstall-ps, uninstall-pdf)
+	(uninstall-doc): New rules.
+
+2013-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp-intro.texi (Beginning init File): Rename from
+	"Beginning a .emacs File", since a node name cannot include a
+	period.
+	(Top, Emacs Initialization, Change a defun): All references
+	changed.  (Bug#15038)
+
+2013-08-02  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* emacs-lisp-intro.texi (zap-to-char): Remove obsolete stuff.
+
+2013-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (Top):
+	Move WWW_GNU_ORG section outside @copying, update URL.
+
+2013-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (edebug): Fix cross-references.
+
+2013-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (dist): Edit more configure variables.  (Bug#14660)
+	Try to check that we do not miss any in future.
+
+2013-04-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (INFO_OPTS): Add "-I$(emacsdir)" to fix last
+	commit.
+
+2013-04-24  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (emacsver.texi): Include it.
+	(copying): For non-printed versions, uses Emacs version rather
+	than that of the printed book.
+	(Complications, Lisp macro, defvar and asterisk, defcustom): Copyedits.
+	* Makefile.in (emacsdir): New variable..
+	(MAKEINFO_OPTS, ENVADD): Add $emacsdir.
+	(srcs): Add emacsver.texi.
+	(dist): Include emacsver.texi.  Edit emacsdir.
+	* makefile.w32-in (emacsdir): New variable.
+	(INFO_SOURCES): Add emacsver.texi.
+	(ENVADD): Add $emacsdir (and $texinfodir).
+
+2013-04-23  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* emacs-lisp-intro.texi (Complications, defvar, Writing Defuns)
+	(Prevent confusion, Determining the Element, lambda): Refine the
+	doc about Lisp macros, reported by Glenn Morris.
+
+2013-04-21  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* emacs-lisp-intro.texi (defcustom, defun)
+	(simplified-beginning-of-buffer, defvar, Building Robots, Review)
+	(save-excursion): `defun' and `defcustom' are now macros rather
+	than special forms.  (Bug#13853)
+
+2013-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Add some stuff specific to www.gnu.org.
+
+2013-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (Digression into C): Update example.
+	(defcustom, Simple Extension): Fix typos.
+
 2012-12-22  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (srcs): New variable, adding doclicense.texi.
@@ -7,7 +152,7 @@
 
 2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	Fix permissions bugs with setgid directories etc.  (Bug#13125)
 	* emacs-lisp-intro.texi (Files List):
 	directory-files-and-attributes now outputs t for attribute that's
 	now a placeholder.
@@ -568,7 +713,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2001-2013 Free Software Foundation, Inc.
+  Copyright (C) 2001-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,12 +1,13 @@
 \input texinfo    @c -*-texinfo-*-
 @setfilename ../../info/cl
 @settitle Common Lisp Extensions
+@documentencoding UTF-8
 @include emacsver.texi
 
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright @copyright{} 1993, 2001--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -273,6 +274,8 @@ and the @code{cl-eval-when} construct.
 
 @node Argument Lists
 @section Argument Lists
+@cindex &key
+@cindex &aux
 
 @noindent
 Emacs Lisp's notation for argument lists of functions is a subset of
@@ -461,6 +464,7 @@ matter of stylistic taste:
     @var{body}))
 @end example
 
+@cindex destructuring, in argument list
 Argument lists support @dfn{destructuring}.  In Common Lisp,
 destructuring is only allowed with @code{defmacro}; this package
 allows it with @code{cl-defun} and other argument lists as well.
@@ -1278,13 +1282,8 @@ cells of symbols rather than on the value cells.  Each @var{binding}
 must be a list of the form @samp{(@var{name} @var{arglist}
 @var{forms}@dots{})}, which defines a function exactly as if
 it were a @code{cl-defun} form.  The function @var{name} is defined
-accordingly for the duration of the body of the @code{cl-flet}; then
-the old function definition, or lack thereof, is restored.
-
-You can use @code{cl-flet} to disable or modify the behavior of
-functions (including Emacs primitives) in a temporary, localized fashion.
-(Compare this with the idea of advising functions.
-@xref{Advising Functions,,,elisp,GNU Emacs Lisp Reference Manual}.)
+accordingly but only within the body of the @code{cl-flet}, hiding any external
+definition if applicable.
 
 The bindings are lexical in scope.  This means that all references to
 the named functions must appear physically within the body of the
@@ -1492,6 +1491,7 @@ simply returning @code{nil}.
 
 @node Blocks and Exits
 @section Blocks and Exits
+@cindex block
 
 @noindent
 Common Lisp @dfn{blocks} provide a non-local exit mechanism very
@@ -1555,6 +1555,19 @@ This macro is exactly like @code{(cl-return-from nil @var{result})}.
 Common Lisp loops like @code{cl-do} and @code{cl-dolist} implicitly enclose
 themselves in @code{nil} blocks.
 @end defmac
+
+@c FIXME?  Maybe this should be in a separate section?
+@defmac cl-tagbody &rest labels-or-statements
+This macro executes statements while allowing for control transfer to
+user-defined labels.  Each element of @var{labels-or-statements} can
+be either a label (an integer or a symbol), or a cons-cell
+(a statement).  This distinction is made before macroexpansion.
+Statements are executed in sequence, discarding any return value.
+Any statement can transfer control at any time to the statements that follow
+one of the labels with the special form @code{(go @var{label})}.
+Labels have lexical scope and dynamic extent.
+@end defmac
+
 
 @node Iteration
 @section Iteration
@@ -2139,6 +2152,7 @@ that was just set by the previous clause; in the second loop,
 based on the value of @code{x} left over from the previous time
 through the loop.
 
+@cindex destructuring, in cl-loop
 Another feature of the @code{cl-loop} macro is @emph{destructuring},
 similar in concept to the destructuring provided by @code{defmacro}
 (@pxref{Argument Lists}).
@@ -2503,6 +2517,8 @@ if @var{expr} returns a list of the wrong number of arguments
 or with incorrect keyword arguments.
 @end defmac
 
+@cindex compiler macros
+@cindex define compiler macros
 This package also includes the Common Lisp @code{define-compiler-macro}
 facility, which allows you to define compile-time expansions and
 optimizations for your functions.
@@ -4850,10 +4866,27 @@ generated directly inside Emacs will not be caught since they make
 direct C-language calls to the message routines rather than going
 through the Lisp @code{message} function.
 
+For those cases where the dynamic scoping of @code{flet} is desired,
+@code{cl-flet} is clearly not a substitute.  The most direct replacement would
+be instead to use @code{cl-letf} to temporarily rebind @code{(symbol-function
+'@var{fun})}.  But in most cases, a better substitute is to use an advice, such
+as:
+
+@example
+(defvar my-fun-advice-enable nil)
+(add-advice '@var{fun} :around
+            (lambda (orig &rest args)
+              (if my-fun-advice-enable (do-something)
+                (apply orig args))))
+@end example
+
+so that you can then replace the @code{flet} with a simple dynamically scoped
+binding of @code{my-fun-advice-enable}.
+
 @c Bug#411.
-Note that many primitives (e.g., @code{+}) have special byte-compile
-handling.  Attempts to redefine such functions using @code{flet} will
-fail if byte-compiled.
+Note that many primitives (e.g., @code{+}) have special byte-compile handling.
+Attempts to redefine such functions using @code{flet}, @code{cl-letf}, or an
+advice will fail when byte-compiled.
 @c Or cl-flet.
 @c In such cases, use @code{labels} instead.
 @end defmac

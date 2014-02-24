@@ -1,6 +1,6 @@
 ;;; authors.el --- utility for maintaining Emacs's AUTHORS file -*-coding: utf-8 -*-
 
-;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: Kim F. Storm <storm@cua.dk>
@@ -51,50 +51,36 @@ files.")
     ("Bill Rozas" "Guillermo J. Rozas")
     ("Björn Torkelsson" "Bjorn Torkelsson")
     ("Brian Fox" "Brian J. Fox")
+    ("Brian P Templeton" "BT Templeton")
     ("Brian Sniffen" "Brian T. Sniffen")
-    ("Christoph Wedler" "Christoph.Wedler@sap.com")
-    ("Daniel Pfeiffer" "<Daniel.Pfeiffer@Informatik.START.db.de>"
-     "<Daniel.Pfeiffer@Informatik.START.dbp.de>")
     ("David Abrahams" "Dave Abrahams")
+    ("David J. Biesack" "David Biesack")
     ("David De La Harpe Golden" "David Golden")
     ("David Gillespie" "Dave Gillespie")
     ("David Kågedal" "David K..edal")
-    ("David M. Koppelman" "David M. Koppelman, Koppel@Ec?e.Lsu.Edu"
-     "David Koppelman")
+    ("David M. Koppelman" "David Koppelman")
     ("David M. Smith" "David Smith" "David M Smith")
     ("David O'Toole" "David T. O'Toole")
     ("Deepak Goel" "D. Goel")
     ("Ed L. Cashin" "Ed L Cashin")
-    ("Edward M. Reingold" "Ed Reingold" "Edward M Reingold"
-     "Reingold Edward M")
-    ("Eli Zaretskii" "eliz")
+    ("Edward M. Reingold" "Ed\\(ward\\( M\\)?\\)? Reingold" "Reingold Edward M")
     ("Emilio C. Lopes" "Emilio Lopes")
-    ("Era Eriksson" "Era@Iki.Fi")
     ("Eric M. Ludlam" "Eric Ludlam")
     ("Eric S. Raymond" "Eric Raymond")
-    ("Eric Youngdale" "(Eric Youngdale at youngdale@v6550c.nrl.navy.mil)")
+    ("Fabián Ezequiel Gallina" "Fabian Ezequiel Gallina" "Fabi.n E\\. Gallina")
     ("Francis J. Wright" "Dr Francis J. Wright" "Francis Wright")
     ("François Pinard" "Francois Pinard")
     ("Francesco Potortì" "Francesco Potorti" "Francesco Potorti`")
     ("Frederic Pierresteguy" "Fred Pierresteguy")
-    ("Geoff Voelker" "voelker")
     ("Gerd Möllmann" "Gerd Moellmann")
     ("Hallvard B. Furuseth" "Hallvard B Furuseth" "Hallvard Furuseth")
     ("Hrvoje Nikšić" "Hrvoje Niksic")
     ;; lisp/org/ChangeLog 2010-11-11.
     (nil "aaa bbb")
-    ;; src/ChangeLog.4, 1994-01-11, since fixed.
-;;;    (nil "(afs@hplb.hpl.hp.com)")
-    ;; lisp/gnus/ChangeLog.1, 1998-01-15.
-    ;; http://quimby.gnus.org/cgi-bin/cvsweb.cgi/gnus/lisp/gnus-art.el?rev=4.13
-    (nil "<Use-Author-Address-Header@\\[127.1\\]>")
     (nil "Code Extracted") ; lisp/newcomment.el's "Author:" header
-    (nil "\\`FSF")  ; FIXME what is this for - no effect?
-    ;; lisp/gnus/ChangeLog.1, 1997-10-12, since fixed.
-;;;    (nil "ISO-2022-JP")
     ("Jaeyoun Chung" "Jae-youn Chung" "Jae-you Chung" "Chung Jae-youn")
     ("Jan Djärv" "Jan D." "Jan Djarv")
-    ("Jay K. Adams" "jka@ece.cmu.edu" "Jay Adams")
+    ("Jay K. Adams" "Jay Adams")
     ("Jérôme Marant" "Jérôme Marant" "Jerome Marant")
     ("Jens-Ulrik Holger Petersen" "Jens-Ulrik Petersen")
     ("Jeremy Bertram Maitin-Shepard" "Jeremy Maitin-Shepard")
@@ -102,24 +88,24 @@ files.")
     ("John J Foerch" "John Foerch")
     ("John W. Eaton" "John Eaton")
     ("Jonathan I. Kamens" "Jonathan Kamens")
+    ("Jorgen Schäfer" "Jorgen Schaefer")
     ("Joseph Arceneaux" "Joe Arceneaux")
     ("Joseph M. Kelsey" "Joe Kelsey")	; FIXME ?
     ("Juan León Lahoz García" "Juan-Leon Lahoz Garcia")
     ("K. Shane Hartman" "Shane Hartman")
-    ("Kai Großjohann" "Kai Grossjohann" "Kai Großjohann"
-     "Kai.Grossjohann@Cs.Uni-Dortmund.De"
-     "Kai.Grossjohann@Gmx.Net")
+    ("Kai Großjohann" "Kai Grossjohann")
     ("Karl Berry" "K. Berry")
     ("Károly Lőrentey" "Károly Lőrentey" "Lőrentey Károly")
-    ("Kazushi Marukawa" "Kazushi")
+    ("Kazushi Marukawa" "Kazushi (Jam) Marukawa")
     ("Ken Manheimer" "Kenneth Manheimer")
-    ("Kenichi Handa" "Ken'ichi Handa" "Kenichi HANDA")
+    ("Kenichi Handa" "Ken'ichi Handa" "Kenichi HANDA" "K\\. Handa")
     ("Kevin Greiner" "Kevin J. Greiner")
     ("Kim F. Storm" "Kim Storm")
     ("Kyle Jones" "Kyle E. Jones")
     ("Lars Magne Ingebrigtsen" "Lars Ingebrigtsen")
     ("Marcus G. Daniels" "Marcus Daniels")
     ("Mark D. Baushke" "Mark D Baushke")
+    ("Mark E. Shoulson" "Mark Shoulson")
     ("Marko Kohtala" "Kohtala Marko")
     ("Agustín Martín" "Agustin Martin" "Agustín Martín Domingo")
     ("Martin Lorentzon" "Martin Lorentzson")
@@ -128,37 +114,36 @@ files.")
     ("Michael R. Mauger" "Michael Mauger")
     ("Michael D. Ernst" "Michael Ernst")
     ("Michaël Cadilhac" "Michael Cadilhac")
-    ("Michael I. Bushnell" "Michael I Bushnell" "Michael I. Bushnell, P/Bsg")
+    ("Michael I. Bushnell" "Michael I Bushnell" "Michael I. Bushnell, p/BSG")
     ("Michael R. Cook" "Michael Cook")
     ("Michael Sperber" "Michael Sperber \\[Mr. Preprocessor\\]")
     ("Mikio Nakajima" "Nakajima Mikio")
     ("Nelson Jose dos Santos Ferreira" "Nelson Ferreira")
     ("Noorul Islam" "Noorul Islam K M")
-    ("Paul Eggert" "eggert")
-    ("Paul Reilly" "(pmr@legacy.pajato.com)")
-    ("Pavel Janík" "Pavel Janík Ml." "Pavel Janik Ml." "Pavel Janik" "Pavel Janík" "Pavel@Janik.Cz")
+    ("Paul Eggert" "Paul R\\. Eggert")
+    ("Pavel Janík" "Pavel Janík Ml." "Pavel Janik Ml." "Pavel Janik")
     ("Pavel Kobiakov" "Pavel Kobyakov")
     ("Per Abrahamsen" "Per Abhiddenware")
     ("Per Starbäck" "Per Starback")
     ("Peter J. Weisberg" "PJ Weisberg")
-    ("Peter S. Galbraith" "Peter Galbraith")
+    ("Peter S. Galbraith" "Peter S Galbraith" "Peter Galbraith")
     ("Peter Runestig" "Peter 'luna' Runestig")
-    ("Peter S. Galbraith" "Peter S Galbraith")
+    ("Piotr Zieliński" "Piotr Zielinski")
+    ("Rainer Schöpf" "Rainer Schoepf")
     ("Raja R. Harinath" "Raja R Harinath")
     ("Richard G. Bielawski" "Richard G Bielawski" "Richard Bielawski")
     ("Richard King" "Dick King")
-    ("Richard M. Stallman" "Richard M. Stallman,,," "Richard Stallman"
-     "rms" "rms@gnu.org")
+    ("Richard M. Stallman" "Richard Stallman" "rms@gnu.org")
     ("Robert J. Chassell" "Bob Chassell")
+    ("Roberto Huelga Díaz" "Roberto Huelga")
     ("Roland B. Roberts" "Roland B Roberts" "Roland Roberts")
-    ("Rui-Tao Dong" "Rui-Tao Dong ~{6-Hpln~}")
+    ("Rui-Tao Dong" "Rui-Tao Dong ~{6-HpLN~}")
     ("Sacha Chua" "Sandra Jean Chua")
     ("Sam Steingold" "Sam Shteingold")
     ("Satyaki Das" "Indexed search by Satyaki Das")
     ("Sébastien Vauban" "Sebastien Vauban")
     ;; There are other Stefans.
 ;;;    ("Stefan Monnier" "Stefan")
-    ("Stephen A. Wood" "(saw@cebaf.gov)")
     ("Steven L. Baur" "SL Baur" "Steven L Baur")
     ("Stewart M. Clamen" "Stewart Clamen")
     ("Stuart D. Herring" "Stuart Herring" "Davis Herring")
@@ -174,7 +159,7 @@ files.")
     ("Tomohiko Morioka" "MORIOKA Tomohiko")
     ("Torbjörn Axelsson" "Torbjvrn Axelsson")
     ("Torbjörn Einarsson" "Torbj.*rn Einarsson")
-    ("Toru Tomabechi" "Toru Tomabechi,")
+    ("Toru Tomabechi" "Toru TOMABECHI")
     ("Tsugutomo Enami" "enami tsugutomo")
     ("Ulrich Müller" "Ulrich Mueller")
     ("Vincent Del Vecchio" "Vince Del Vecchio")
@@ -192,7 +177,8 @@ If REALNAME is nil, ignore that author.")
 
 ;; FIXME seems it would be less fragile to check for O', Mc, etc.
 (defconst authors-fixed-case
-  '("Bryan O'Sullivan"
+  '("Brian van den Broek"
+    "Bryan O'Sullivan"
     "Christian von Roques"
     "Christophe de Dinechin"
     "Craig McDaniel"
@@ -206,7 +192,9 @@ If REALNAME is nil, ignore that author.")
     "Greg McGary"
     "Hans de Graaff"
     "James TD Smith"
+    "Jay McCarthy"
     "Joel N. Weber II"
+    "Matt McClure"
     "Michael McNamara"
     "Mike McEwan"
     "Nelson Jose dos Santos Ferreira"
@@ -216,6 +204,7 @@ If REALNAME is nil, ignore that author.")
     "Roland McGrath"
     "Sean O'Halpin"
     "Sean O'Rourke"
+    "Thomas DeWeese"
     "Tijs van Bakel")
   "List of authors whose names cannot be simply capitalized.")
 
@@ -238,15 +227,15 @@ If REALNAME is nil, ignore that author.")
 
 
 (defvar authors-obsolete-files-regexps
-  '("vc-\\*\\.el$"
-    "spec.txt$"
-    ".*loaddefs.el$"			; not obsolete, but auto-generated
+  '(".*loaddefs.el$"			; not obsolete, but auto-generated
     "\\.\\(cvs\\|git\\)ignore$"		; obsolete or uninteresting
     "\\.arch-inventory$"
     ;; TODO lib/? Matches other things?
-    "build-aux/" "m4/" "Emacs.xcodeproj" "charsets" "mapfiles"
+    "build-aux/" "m4/" "Emacs.xcodeproj" "mapfiles" "\\.map\\'"
     "preferences\\.\\(nib\\|gorm\\)"
-    "vc-\\(rcs\\|cvs\\|sccs\\)-hooks\\.el$")
+    ;; Generated files that have since been removed.
+    "\\(refcard\\(-de\\|-pl\\)?\\|calccard\\|dired-ref\\|orgcard\\|\
+gnus-booklet\\|fr-drdref\\)\\.p\\(df\\|s\\)\\'")
   "List of regexps matching obsolete files.
 Changes to files matching one of the regexps in this list are not listed.")
 
@@ -261,14 +250,19 @@ Changes to files matching one of the regexps in this list are not listed.")
     "NEWS.1" "OOOOONEWS...OONEWS" "OOOONEWS" "etc/NEWS"
     "NEWS.1-17" "NEWS.18" "NEWS.19" "NEWS.20" "NEWS.21" "NEWS.22"
     "MAINTAINERS" "MH-E-NEWS"
-    "install-sh" "missing" "mkinstalldirs"
+    "install.sh" "install-sh" "missing" "mkinstalldirs"
     "termcap.dat" "termcap.src" "termcap.ucb" "termcap"
     "ChangeLog.nextstep" "Emacs.clr" "spec.txt"
     "gfdl.1"
     "texi/Makefile.in"
     "Imakefile" "icons/sink.ico" "aixcc.lex"
     "nxml/char-name/unicode"
+    "spec.txt"
     "js2-mode.el"      ; only installed very briefly, replaced by js.el
+    ;; In the old imported lisp/url ChangeLog, but never in Emacs.
+    "mule-sysdp.el"
+    ;; Only briefly present.
+    "tests/gnustest-nntp.el" "tests/gnustest-registry.el"
     "cedet/tests/testtemplates.cpp"
     "cedet/tests/testusing.cpp"
     "cedet/tests/scopetest.cpp"
@@ -278,8 +272,13 @@ Changes to files matching one of the regexps in this list are not listed.")
     "cedet/tests/teststruct.cpp"
     "*.el"
     ;; Autogen:
-    "cus-load.el" "finder-inf.el" "ldefs-boot.el"
+    "cus-load.el" "finder-inf.el" "ldefs-boot.el" "loaddefs-boot.el"
     "compile" "config.guess" "config.sub" "depcomp"
+    "autogen/compile" "autogen/config.guess" "autogen/config.in"
+    "autogen/config.sub" "autogen/depcomp" "autogen/install-sh"
+    "autogen/missing" "autogen"
+    "autogen/copy_autogen" ; not generated, but trivial and now removed
+    "dir_top"
     ;; Only existed briefly, then renamed:
     "images/icons/allout-widgets-dark-bg"
     "images/icons/allout-widgets-light-bg"
@@ -289,10 +288,12 @@ Changes to files matching one of the regexps in this list are not listed.")
     "gnu-hp300" "refcard.bit" "ledit.l" "forms.README" "forms-d2.dat"
     "CXTERM-DIC/PY.tit" "CXTERM-DIC/ZIRANMA.tit"
     "CXTERM-DIC/CTLau.tit" "CXTERM-DIC/CTLauB.tit"
+    "copying.paper" "celibacy.1" "condom.1" "echo.msg" "sex.6"
+    "COOKIES" "INTERVIEW" "MAILINGLISTS" "MOTIVATION"
     "NICKLES.WORTH" "INTERVAL.IDEAS" "RCP"
     "3B-MAXMEM" "AIX.DUMP" "SUN-SUPPORT" "XENIX"
     "CODINGS" "CHARSETS"
-    "calc/INSTALL" "calc/Makefile"
+    "calc/INSTALL" "calc/Makefile" "calc/README.prev"
     "vms-pp.trans" "_emacs" "batcomp.com" "notes/cpp" ; admin/
     "emacsver.texi.in"
     "vpath.sed"
@@ -329,16 +330,23 @@ Changes to files matching one of the regexps in this list are not listed.")
     "debian/scripts/startup"
     "debian/scripts/startup.erc"
     "debian/scripts/startup.erc-speak"
+    ;; Used to be in admin, not very interesting.
+    "emacs-pretesters" "make-announcement" "make-changelog-diff"
+    ;; Textual comments that are not files.
+    "All" "Version" "Everywhere" "Many" "Various" "files"
+    ;; Directories.
+    "vms" "mac" "url" "tree-widget"
     )
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
 
 ;; List via: find . -name '*.el' | sed 's/.*\///g' | sort | uniq -d
 ;; FIXME It would be better to discover these dynamically.
-;; Note that traditionally "Makefile.in" etc have not been in this list.
-;; Ditto for "abbrev.texi" etc.
 (defconst authors-ambiguous-files
-  '("chart.el"
+  '("Makefile.in"
+    "makefile.w32-in"
+    "chart.el"
+    "cl-lib.el"
     "compile.el"
     "complete.el"
     "cpp.el"
@@ -357,11 +365,13 @@ Changes to files in this list are not listed.")
     "format.el"
     "generic.el"
     "georgian.el"
+    "grammar.el"
     "greek.el"
     "grep.el"
     "hebrew.el"
     "imenu.el"
     "indian.el"
+    "info-xref.el"
     "japanese.el"
     "java.el"
     "lao.el"
@@ -369,6 +379,7 @@ Changes to files in this list are not listed.")
     "locate.el"
     "make.el"
     "mode.el"
+    "mule-util.el"
     "python.el"
     "rmailmm.el"
     "semantic.el"
@@ -381,6 +392,7 @@ Changes to files in this list are not listed.")
     "table.el"
     "texi.el"
     "thai.el"
+    "thingatpt.el"
     "tibetan.el"
     "util.el"
     "vc-bzr.el"
@@ -399,11 +411,15 @@ Changes to files in this list are not listed.")
     ("David M. Brown" :wrote "array.el")
     ;; No longer distributed.
 ;;;    ("Gary Byers" :changed "xenix.h")
-    ("Shawn M. Carey" :wrote "freebsd.h")
+    ;; No longer distributed: freebsd.h
+    ;; Only trivial pieces remain, merged into configure.ac.
+    ("Shawn M. Carey" :wrote "[some early FreeBSD support]")
     ;; hp800.h renamed from hp9000s800.h, hpux.h merged into hpux10-20.h.
     ;; FIXME overwritten by Author:.
     ("Satyaki Das" :cowrote "mh-search.el")
-    ("Eric Decker" :changed "hp800.h" "hpux10-20.h" "sysdep.c")
+    ;; No longer distributed: hp800.h, hpux10-20.h.
+    ;; Only trivial pieces remain, merged into configure.ac.
+    ("Eric Decker" :changed "sysdep.c (and other files for HP-UX support)")
     ("Lawrence R. Dodd" :cowrote "dired-x.el")
     ;; No longer distributed.
 ;;;    ("Viktor Dukhovni" :wrote "unexsunos4.c")
@@ -434,15 +450,16 @@ Changes to files in this list are not listed.")
      "process.c" "sysdep.c" "unexcoff.c")
     ;; No longer distributed.
 ;;;    ("Ishikawa Chiaki" :changed "aviion.h" "dgux.h")
-    ;; ymakefile no longer distributed.
-    ("Michael K. Johnson" :changed "configure.ac" "emacs.c" "intel386.h"
-     "mem-limits.h" "process.c" "template.h" "sysdep.c" "syssignal.h"
-     "systty.h" "unexcoff.c" "linux.h")
+    ;; No longer distributed: ymakefile, intel386.h, mem-limits.h, template.h,
+    ;; linux.h (was renamed to lignux.h, then to gnu-linux.h, then removed)
+    ("Michael K. Johnson" :changed "configure.ac" "emacs.c"
+     "process.c" "sysdep.c" "syssignal.h" "systty.h" "unexcoff.c")
     ;; No longer distributed.
 ;;;    ("Kyle Jones" :wrote "mldrag.el")
     ("Henry Kautz" :wrote "bib-mode.el")
-    ;; No longer distributed: vms-pwd.h, vmsfns.c, uaf.h.
-    ("Joseph M. Kelsey" :changed "fileio.c" "dir.h")
+    ;; No longer distributed: vms-pwd.h, vmsfns.c, uaf.h,
+    ;; dir.h (was renamed to vmsdir.h, then removed)
+    ("Joseph M. Kelsey" :changed "fileio.c")
     ("Sam Kendall" :changed "etags.c" "etags.el")
     ;; ack.texi: "We're not using his backquote.el any more."
     ("Richard King" :wrote "userlock.el" "filelock.c")
@@ -481,11 +498,12 @@ Changes to files in this list are not listed.")
     ("Mark Neale" :changed "fortran.el")
     ;; Renamed from sc.el.
     ("Martin Neitzel" :changed "supercite.el")
-    ("Andrew Oram" :changed "calendar.texi (and other files in man/)")
+    ("Andrew Oram" :changed "calendar.texi (and other doc files)")
     ("Frederic Pierresteguy" :wrote "widget.c")
     ("Michael D. Prange" :changed "tex-mode.el")
     ;; No longer distributed (dgux5-4r3.h was renamed to dgux5-4-3.h).
 ;;;    ("Paul Reilly" :wrote "gux5-4r2.h" "dgux5-4-3.h")
+    ("Rob Riepel" :wrote "tpu-edt.doc")
     ("Roland B. Roberts" :changed "files.el" "sort.el"
      "buffer.h" "callproc.c" "dired.c" "process.c" "sysdep.c" "systty.h")
      ;; No longer distributed.
@@ -494,14 +512,16 @@ Changes to files in this list are not listed.")
 ;;;    ("Guillermo J. Rozas" :wrote "fakemail.c")
     ("Wolfgang Rupprecht" :changed "lisp-mode.el" "loadup.el"
      "sort.el" "alloc.c" "callint.c"
-     ;; config.in renamed from config.h.in; ecrt0.c from crt0.c.
-     "config.in" "ecrt0.c" "data.c" "fns.c"
+     ;; config.in renamed from config.h.in, now a generated file.
+     ;; ecrt0.c renamed from crt0.c, then removed.
+     "data.c" "fns.c"
      "lisp.h" "lread.c" ; "sun3.h" "ymakefile" - no longer distributed
      "print.c" :wrote "float-sup.el" "floatfns.c")
     ("Schlumberger Technology Corporation" :changed "gud.el")
     ;; Replaced by tcl.el.
 ;;;    ("Gregor Schmid" :wrote "tcl-mode.el")
-    ("Rainer Schoepf" :wrote "alpha.h" "unexalpha.c")
+    ;; No longer distributed since 24.1.
+;;;    ("Rainer Schöpf" :wrote "alpha.h" "unexalpha.c")
     ;; No longer distributed: emacsserver.c.
     ("William Sommerfeld" :wrote "emacsclient.c" "scribe.el")
     ;; No longer distributed: emacsserver.c.
@@ -520,7 +540,8 @@ Changes to files in this list are not listed.")
     ("Spencer Thomas" :changed "emacsclient.c" "server.el"
      "dabbrev.el" "unexcoff.c" "gnus.texi")
     ("Jonathan Vail" :changed "vc.el")
-    ("James Van Artsdalen" :changed "usg5-4.h" "unexcoff.c")
+    ;; No longer distributed: usg5-4.h
+    ("James Van Artsdalen" :changed "unexcoff.c")
     ;; No longer distributed: src/makefile.nt, lisp/makefile.nt
     ;; winnt.el renamed to w32-fns.el; nt.[ch] to w32.[ch];
     ;; ntheap.[ch] to w32heap.[ch]; ntinevt.c to w32inevt.c;
@@ -529,7 +550,8 @@ Changes to files in this list are not listed.")
     ("Geoff Voelker" :wrote "w32-fns.el" "w32.c" "w32.h" "w32heap.c"
      "w32heap.h" "w32inevt.c" "w32proc.c" "w32term.c" "ms-w32.h")
     ("Morten Welinder" :wrote "dosfns.c" "[many MS-DOS files]" "msdos.h")
-    ("Eli Zaretskii" :wrote "bidi.c" "[bidirectional display in xdisp.c]")
+    ("Eli Zaretskii" :wrote "bidi.c" "[bidirectional display in xdisp.c]"
+     "[tty menus in term.c]")
     ;; Not using this version any more.
 ;;;    ("Pace Willisson" :wrote "ispell.el")
     ;; FIXME overwritten by Author:.
@@ -544,16 +566,24 @@ Changes to files in this list are not listed.")
 (defconst authors-valid-file-names
   '("aclocal.m4"
     "build-ins.in"
+    "Makefile"
     "Makefile.noleim"
     "makedist.bat"
     "makefile.def"
     "makefile.nt"
     "ns.mk"
+    "README"
+    ;; There were a few of these, not just the generated top-level one.
+    "configure" "config.h"
+    ;; nt/
+    "ebuild.bat" "install.bat" "fast-install.bat"
     "debug.bat.in" "emacs.bat.in"
+    "inc/sys/dir.h" "inc/gettext.h"
     ".gdbinit-union"
     "alloca.s"
     "make-delta"
     "config.w95"
+    "msysconfig.sh"
     "emacstool.1"
     "align.umax"
     "cxux-crt0.s"
@@ -571,16 +601,85 @@ Changes to files in this list are not listed.")
     "emacs16_mac.png" "emacs24_mac.png"
     "emacs256_mac.png" "emacs32_mac.png"
     "emacs48_mac.png" "emacs512_mac.png"
+    "ps-prin2.ps" "ps-prin3.ps"
+    "emacs.xbm" "gnu.xpm" "gnus-pointer.xbm" "gnus-pointer.xpm"
+    ;; Moved from etc/ to etc/images, and/or removed.
+    "gnus.pbm" "gnus.xbm" "gnus.xpm" "letter.pbm" "letter.xbm" "letter.xpm"
+    "splash.pbm" "splash.xbm" "splash.xpm" "splash8.xpm"
+    "images/execute.pbm" "images/execute.xpm" "images/fld-open.pbm"
+    "images/fld-open.xpm" "images/highlight.pbm" "images/highlight.xpm"
+    "images/mail.pbm" "images/mail.xpm" "images/mail/alias.pbm"
+    "images/mail/alias.xpm" "images/mail/refile.pbm"
+    "images/mail/refile.xpm" "images/page-down.pbm"
+    "images/page-down.xpm" "images/widen.pbm" "images/widen.xpm"
+    "images/gnus/bar.xbm" "images/gnus/bar.xpm"
+    "images/gnus/reverse-smile.xpm"
     "revdiff"				; admin/
     "vcdiff" "rcs-checkin" "tindex.pl"
     "mainmake" "sed1.inp" "sed2.inp" "sed3.inp" ; msdos/
     "mac-fix-env.m"
     ;; Deleted vms stuff:
     "temacs.opt" "descrip.mms" "compile.com" "link.com"
+    "compact.el" "fadr.el"
+    "calc/calc-maint.el"
+    "emacs-lisp/eieio-comp.el"
+    "erc-hecomplete.el"
+    "eshell/esh-maint.el"
+    "language/persian.el"
+    "meese.el" "iswitchb.el"
+    "mh-exec.el" "mh-init.el" "mh-customize.el"
+    "net/zone-mode.el" "xesam.el"
+    "term/mac-win.el" "sup-mouse.el"
+    "url-https.el"
+    "org-mac-message.el" "org-mew.el" "org-w3m.el" "org-vm.el" "org-wl.el"
+    "org-mks.el" "org-remember.el" "org-xoxo.el" "org-docbook.el"
+    "org-freemind.el" "ox-jsinfo.el"
+    "org-exp-blocks.el"		     ; maybe this is ob-exp now? dunno
+    "org-lparse.el"
+    "org-special-blocks.el" "org-taskjuggler.el"
+    ;; gnus
+    "nnwfm.el" "nnlistserv.el" "nnkiboze.el" "nndb.el" "nnsoup.el"
+    "netrc.el" "password.el" "sasl-cram.el" "sasl-digest.el" "sasl-ntlm.el"
+    "sasl.el" "dig.el" "dns.el" "hex-util.el" "sha1.el" "md4.el"
+    "hmac-def.el" "hmac-md5.el" "ntlm.el" "hashcash.el" "smime-ldap.el"
+    "assistant.el" "gnus-utils.el" "tls.el" "pgg-def.el" "pgg-gpg.el"
+    "gnus-compat.el" "pgg-parse.el" "pgg-pgp.el" "pgg-pgp5.el" "pgg.el"
+    "dns-mode.el" "run-at-time.el" "gnus-encrypt.el" "sha1-el.el"
+    "gnus-gl.el" "gnus.sum.el" "proto-stream.el" "color.el" "color-lab.el"
+    "eww.el" "shr-color.el" "shr.el" "earcon.el" "gnus-audio.el" "encrypt.el"
+    ;; doc
+    "getopt.c" "texindex.c" "news.texi" "vc.texi" "vc2-xtra.texi"
+    "back.texi" "vol1.texi" "vol2.texi" "elisp-covers.texi" "two.el"
+    "front-cover-1.texi" "locals.texi" "calendar.texi" "info-stnd.texi"
+    "tasks.texi"
+    "advice.texi" "picture.texi" "texinfo.tex"
+    ;; lwlib:
+    "dispatch.c" "dispatch.h" "xrdb-cpp.c" "xrdb.c"
+    "lwlib-Xol.c" "lwlib-Xol.h" "lwlib-Xolmb.c" "lwlib-Xolmb.h"
+    "lwlib-XolmbP.h"
+    ;; lib/
+    "lib/stdio.c" "lib/gl_openssl.h" "lib/sigprocmask.c"
+    "lib/pthread_sigprocmask.c" "lib/ldtoastr.c" "lib/dummy.c"
+    "lib/ignore-value.h"
+    ;; lib-src/
+    "cvtmail.c" "digest-doc.c" "emacsserver.c" "emacstool.c" "env.c"
+    "etags-vmslib.c" "fakemail.c" "getdate.c" "getopt.h" "getopt1.c"
+    "getopt_.h" "getopt_int.h" "gettext.h" "leditcfns.c" "loadst.c"
+    "make-path.c" "qsort.c" "sorted-doc.c" "tcp.c" "timer.c" "wakeup.c"
+    "yow.c"
+    ;; etc/
+    "emacsclient.c" "etags.c" "hexl.c" "make-docfile.c" "movemail.c"
+    "test-distrib.c" "testfile"
+    "tpu-edt.doc"			; see below
     )
   "File names which are valid, but no longer exist (or cannot be found)
 in the repository.")
 
+;; Note that any directory part on the RHS is retained.
+;; Cf authors-renamed-files-regexps.
+;; NB So only add a directory if needed to disambiguate.
+;; FIXME?
+;; Although perhaps we could let authors-disambiguate-file-name do that?
 (defconst authors-renamed-files-alist
   '(("nt.c" . "w32.c") ("nt.h" . "w32.h")
     ("ntheap.c" . "w32heap.c") ("ntheap.h" . "w32heap.h")
@@ -590,15 +689,29 @@ in the repository.")
     ("unexnt.c" . "unexw32.c")
     ("s/windowsnt.h" . "s/ms-w32.h")
     ("s/ms-w32.h" . "inc/ms-w32.h")
+    ("src/config.h" . "config.h")
     ("winnt.el" . "w32-fns.el")
+    ("linux.h" . "gnu-linux.h")
     ("emacs.manifest" . "emacs-x86.manifest")
     ("config.emacs" . "configure")
     ("configure.in" . "configure.ac")
     ("config.h.dist" . "config.in")
     ("config.h-dist" . "config.in")
     ("config.h.in" . "config.in")
-    ("paths.h-dist" . "paths.h.in")
+    ("debug.bat" . "debug.bat.in")
+    ("emacs.bat" . "emacs.bat.in")
+    ;; paths.h.dist -> paths.h-dist -> paths.h.in -> paths.in -> epaths.in.
+    ("paths.h.dist" . "epaths.in")
+    ("paths.h-dist" . "epaths.in")
+    ("paths.h.in" . "epaths.in")
+    ("paths.in" . "epaths.in")
     ("patch1" . "sed1.inp")
+    ("INSTALL.MSYS" . "INSTALL")
+    ("server.c" . "emacsserver.c")
+    ("lib-src/etags.c" . "etags.c")
+    ;; msdos/
+    ("is-exec.c" . "is_exec.c")
+    ("enriched.doc" . "enriched.txt")
     ("GETTING.GNU.SOFTWARE" . "FTP")
     ("etc/MACHINES" . "MACHINES")
     ("ONEWS" . "NEWS.19")
@@ -611,42 +724,85 @@ in the repository.")
     ("DIFF" . "OTHER.EMACSES")
     ("CCADIFF" . "OTHER.EMACSES")
     ("GOSDIFF" . "OTHER.EMACSES")
+    ;; Moved from lisp/tpu-doc.el to etc/tpu-edt.doc in Emacs 19.29.
+    ;; Removed in Emacs 19.30, replaced by new file etc/edt-user.doc
+    ;; (no associated ChangeLog entry).
+    ("tpu-doc.el" . "tpu-edt.doc")
     ("Makefile.in.in" . "Makefile.in")
     ("leim-Makefile" . "leim/Makefile")
     ("leim-Makefile.in" . "leim/Makefile.in")
     ("emacs-lisp/testcover-ses.el" . "tcover-ses.el")
     ("emacs-lisp/testcover-unsafep.el" . "tcover-unsafep.el")
+    ("progmodes/dos.el" . "bat-mode.el")
     ;; index and pick merged into search.
     ("mh-index.el" . "mh-search.el")
     ("mh-pick.el" . "mh-search.el")
     ("font-setting.el" . "dynamic-setting.el")
-    ;; INSTALL-CVS -> .CVS -> .BZR
-    ("INSTALL-CVS" . "INSTALL.BZR")
-    ("INSTALL.CVS" . "INSTALL.BZR")
-    ("refcards/fr-drdref.pdf" . "refcards/fr-dired-ref.pdf")
-    ("gnus-logo.eps" . "refcards/gnus-logo.eps")
+    ("help-funs.el" . "help-fns.el")
+    ("erc-notifications.el" . "erc-desktop-notifications.el")
+    ("org-complete.el" . "org-pcomplete.el")
+    ("org-export.el" . "ox.el")		; ?
+    ;; Was definitely renamed to org-latex.el, then... ?
+    ("org-export-latex.el" . "ox-latex.el") ; ?
+    ("org-exp.el" . "ox.el")		    ; ?
+    ("progmodes/cfengine3.el" . "cfengine.el")
+    ("progmodes/delphi.el" . "opascal.el")
+    ("octave-inf.el" . "octave.el")
+    ("octave-mod.el" . "octave.el")
+    ("progmodes/octave-inf.el" . "octave.el")
+    ("progmodes/octave-mod.el" . "octave.el")
+    ;; Obsolete.
+    ("play/bruce.el" . "bruce.el")
+    ("patcomp.el" . "patcomp.el")
+    ;; From lisp to etc/forms.
+    ("forms-d2.el" . "forms-d2.el")
+    ("forms-pass.el" . "forms-pass.el")
+    ;; From lisp/ to etc/nxml.
+    ("nxml/test.invalid.xml" . "test-invalid.xml")
+    ("nxml/test.valid.xml" . "test-valid.xml")
+    ;; The one in lisp is eshell/eshell.el.
+    ("eshell.el" . "automated/eshell.el")
+    ("eshell/esh-test.el" . "automated/eshell.el")
+    ;; INSTALL-CVS -> .CVS -> .BZR -> .REPO
+    ("INSTALL-CVS" . "INSTALL.REPO")
+    ("INSTALL.CVS" . "INSTALL.REPO")
+    ("INSTALL.BZR" . "INSTALL.REPO")
+    ("gnus-logo.eps" . "gnus-logo.eps")	; moved to refcards/
     ("build-install" . "build-ins.in")
     ("build-install.in" . "build-ins.in")
     ("unidata/Makefile" . "unidata/Makefile.in")
-    ("move-if-change" . "build-aux/move-if-change")
-    ("update-subdirs" . "build-aux/update-subdirs")
+    ;; Moved from top to etc/
+    ("CONTRIBUTE" . "CONTRIBUTE")
+    ("FTP" . "FTP")
+    ;; Moved from top to build-aux/
+    ("move-if-change" . "move-if-change")
+    ("update-subdirs" . "update-subdirs")
+    ("emacs.tex" . "emacs.texi")
+    ("faq.texi" . "efaq.texi")
+    ("major.texi" . "modes.texi")
+    ;; And from emacs/ to misc/ and back again.
+    ("ns-emacs.texi" . "macos.texi")
+    ("overrides.texi" . "gnus-overrides.texi")
+    ("xresmini.texi" . "xresources.texi")
     ;; Not renamed, but we only have the latter in the Emacs repo.
     ("trampver.texi.in" . "trampver.texi")
-    ("e/eterm" . "e/eterm-color")
-    ("e/eterm.ti" . "e/eterm-color.ti")
+    ;; Renamed with same directory.
+    ("e/eterm" . "eterm-color")
+    ("e/eterm.ti" . "eterm-color.ti")
     ("README.txt" . "README")
     ("emacs.names" . "JOKES")
     ("ED.WORSHIP" . "JOKES")
     ("GNU.JOKES" . "JOKES")
     ("CHARACTERS" . "TODO")
-    ("schema/xhtml-basic-form.rnc" . "schema/xhtml-bform.rnc" )
-    ("schema/xhtml-basic-table.rnc" . "schema/xhtml-btable.rnc")
-    ("schema/xhtml-list.rnc" . "schema/xhtml-lst.rnc")
-    ("schema/xhtml-target.rnc" . "schema/xhtml-tgt.rnc")
-    ("schema/xhtml-style.rnc" . "schema/xhtml-xstyle.rnc")
-    ("schema/docbook-dyntbl.rnc" . "schema/docbk-dyntbl.rnc")
-    ("schema/docbook-soextbl.rnc" . "schema/docbk-soextbl.rn" )
-    ("texi/url.txi" . "url.texi")
+    ("images/gnus/mail_send.xpm" . "mail-send.xpm") ; still in images/gnus
+    ;; Renamed within same directory.
+    ("schema/xhtml-basic-form.rnc" . "xhtml-bform.rnc" )
+    ("schema/xhtml-basic-table.rnc" . "xhtml-btable.rnc")
+    ("schema/xhtml-list.rnc" . "xhtml-lst.rnc")
+    ("schema/xhtml-target.rnc" . "xhtml-tgt.rnc")
+    ("schema/xhtml-style.rnc" . "xhtml-xstyle.rnc")
+    ("schema/docbook-dyntbl.rnc" . "docbk-dyntbl.rnc")
+    ("schema/docbook-soextbl.rnc" . "docbk-soextbl.rn" )
     ("edt-user.doc" . "edt.texi")
     ("DEV-NOTES" . "nextstep")
     ("org/COPYRIGHT-AND-LICENSE" . "org/README")
@@ -656,60 +812,163 @@ in the repository.")
     ("emacs.1" . "emacs.1")
     ("emacsclient.1" . "emacsclient.1")
     ("icons/emacs21.ico" . "emacs21.ico")
+    ("ja-dic" . "leim/ja-dic")
+    ("quail" . "leim/quail")
+    ;; Moved from autogen/ to admin/.
+    ("autogen/update_autogen" . "update_autogen")
+    ;; Moved from etc/ to admin/.
+    ("grammars" . "grammars")
+    ;; From etc to lisp/cedet/semantic/.
+    ("grammars/bovine-grammar.el" . "bovine/grammar.el")
+    ("grammars/wisent-grammar.el" . "wisent/grammar.el")
     ;; Moved from admin/nt/ to nt/.
     ("nt/README.W32" . "README.W32")
     )
   "Alist of files which have been renamed during their lifetime.
 Elements are (OLDNAME . NEWNAME).")
 
+;; Should still test that the renamed file exists.  Does it?
+;; But it might be relative to a different ChangeLog...
+;;
+;; Note that only the basename of the RHS is used.
+;; Cf authors-renamed-files-alist.
 (defconst authors-renamed-files-regexps
-  '(("^m/m-\\(.*\\.h\\)$" . "m/\\1")
-    ("^m-\\(.*\\.h\\)$" . "\\1")
-    ("^s/s-\\(.*\\.h\\)$" . "s/\\1")
-    ("^s-\\(.*\\.h\\)$" . "\\1")
-    ("^s/[-.a-zA-Z0-9_]+\\.h$" . t)
-    ("\\(.*\\)\\.cmd$" . "\\1.bat")
-    ("\\.bat$" . t)
-    ("\\.[ch]$" . t)
-    ("\\.el$" . t)
-    ("\\.ps$" . t)
-    ("\\.texi?$" . t)
-    ("\\.texinfo$" . t)
-    ("\\.xml?$" . t)
-    ("\\.x[pb]m$" . t)
-    ("\\.[xp]bm$" . t)
-    ("^paths\\." . t)
-    ("^install\\." . t)
-    ("^\\(TUTORIAL[^/]*\\)" . "tutorials/\\1")
-    ("^\\(tree-widget/\\(?:default\\|folder\\)/[-a-z]+\\.png\\)$" .
+  '(("\\`\\(arg-nonnull\\|c\\+\\+defs\\|warn-on-use\\)\\.h\\'"
+     "build-aux/snippet/\\&")
+    ("\\`\\(ebuild\\|emacs\\|install\\|fast-install\\)\\.cmd\\'" "\\1.bat")
+    ("\\`\\(book-spine\\|cl\\|forms\\|functions\\|gnus\\|sc\\|texinfo\\|vip\\)\
+\\.texinfo\\'" "\\1.texi")
+    ("\\`\\(\\(calc\\|org\\|vip\\)card\\|viperCard\\|\
+\\(\\(cs\\|fr\\|sk\\)-\\)?dired-ref\\|\
+\\(\\(cs\\|de\\|fr\\|gnus\\|pl\\|pt-br\\|ru\\|sk\\)-\\)?refcard\\|\
+\\(\\(cs\\|fr\\|sk\\)-\\)?survival\\)\\.tex\\'" "refcards/\\&")
+    ("\\`refcard-\\(de\\|pl\\)\\.tex\\'" "refcards/\\1-refcard.tex")
+    ("\\`\\(refcards/\\)?fr-drdref\\.tex\\'" "refcards/fr-dired-ref.tex")
+    ("^\\(TUTORIAL[^/]*\\)" "tutorials/\\1")
+    ("\\`themes/dev-\\(tsdh-\\(?:light\\|dark\\)-theme\\.el\\)\\'"
+     "themes/\\1")
+    ;; Moved from lisp/toolbar to etc/images.
+    ("\\`toolbar/\\(back\\|fwd\\|left\\|right\\|up\\)_arrow\
+\\(\\.\\(?:pb\\|xp\\)m\\)\\'" "images/\\1-arrow\\2")
+    ("\\`toolbar/lc-\\(back\\|fwd\\|left\\|right\\|up\\)_arrow\
+\\(\\.\\(?:pb\\|xp\\)m\\)\\'" "images/low-color/\\1-arrow\\2")
+    ("\\`toolbar/mail_\\(compose\\|send\\)\\(\\.[xp]bm\\)\\'"
+     "images/mail/\\1")
+    ("\\`toolbar/jump_to\\(\\.\\(?:pb\\|xp\\)m\\)\\'" "images/jump-to\\1")
+    ("\\`toolbar/lc-jump_to\\(\\.\\(?:pb\\|xp\\)m\\)\\'"
+     "images/low-color/jump-to\\1")
+    ("\\`toolbar/\\(attach\\|cancel\\|close\\|copy\\|cut\\|\
+diropen\\|exit\\|help\\|home\\|index\\|info\\|mail\\|new\\|open\\|\
+paste\\|preferences\\|print\\|save\\|saveas\\|search\\|search-replace\\|\
+spell\\|undo\\)\\(\\.\\(?:pb\\|xp\\)m\\)\\'" "images/\\1\\2")
+    ("\\`toolbar/gud-\\(break\\|cont\\|down\\|finish\\|print\\|pstar\\|\
+remove\\|run\\|until\\|up\\|watch\\)\\(\\.\\(?:pb\\|xp\\)m\\)\\'"
+     "images/gud/\\1\\2")
+    ("\\`\\(toolbar/gud-\\|images/gud/\\)n\\(i\\)?\\(\\.\\(?:pb\\|xp\\)m\\)\\'"
+     "images/gud/next\\2\\3")
+    ("\\`\\(toolbar/gud-\\|images/gud/\\)s\\(i\\)?\\(\\.\\(?:pb\\|xp\\)m\\)\\'"
+     "images/gud/step\\2\\3")
+    ("\\`toolbar/lc-\\([-a-z]+\\.xpm\\)\\'" "images/low-color/\\1")
+    ("^\\(tree-widget/\\(?:default\\|folder\\)/[-a-z]+\\.\\(png\\|xpm\\)\\)$"
      "images/\\1")
-    ("^\\(images/icons/\\)mac\\(emacs\\)_\\([0-9]+\\)\\(\\.png\\)" .
+    ("^\\(images/icons/\\)mac\\(emacs\\)_\\([0-9]+\\)\\(\\.png\\)"
      "\\1\\2\\3_mac\\4")
-    ("\\(images/icons/\\)emacs_\\([0-9][0-9]\\)\\.png" .
+    ("\\(images/icons/\\)emacs_\\([0-9][0-9]\\)\\.png"
      "\\1hicolor/\\2x\\2/apps/emacs.png")
+    ;; Moved from leim/ to lisp/leim/.
+    ("\\`quail/[-a-z0-9]+\\.el\\'" "leim/\\&")
+    ("\\`ja-dic/ja-dic\\.el\\'" "leim/\\&")
+    ("\\`vc-\\(rcs\\|cvs\\|sccs\\)-hooks\\.el\\'" "vc/vc-\\1.el")
+    ("\\`vc-\\(annotate\\|arch\\|bzr\\|cvs\\|dav\\|dir\\|dispatcher\\|\
+git\\|hg\\|hooks\\|mtn\\|rcs\\|sccs\\|svn\\)\\.el\\'" "vc/\\&")
+    ("\\`ediff-\\(diff\\|help\\|hook\\|init\\|merg\\|mult\\|ptch\\|util\\|\
+vers\\|wind\\)\\.el\\'" "vc/\\&")
+    ("\\`pcvs-\\(defs\\|info\\|parse\\|util\\)\\.el\\'" "vc/\\&")
+    ("\\`\\(add-log\\|compare-w\\|cvs-status\\|diff-mode\\|diff\\|\
+ediff\\|emerge\\|log-edit\\|log-view\\|pcvs\\|smerge-mode\\|vc\\)\\.el\\'"
+     "vc/\\&")
+    ("\\`\\(emacs-lisp/\\)?helpers\\.el\\'" "emacs-lisp/subr-x.el")
+    ;; I assume this is (essentially) what happened, org/ChangeLog is vague.
+    ("\\`org-\\(ascii\\|beamer\\|html\\|icalendar\\|jsinfo\\|latex\
+\\|odt\\|publish\\)\\.el\\'" "ox-\\1.el")
+    ;; From test/ to test/automated/.
+    ("comint-testsuite.el" "automated/\\&")
+    ("\\`\\(bytecomp\\|font-parse\\|icalendar\\|occur\\|newsticker\\)\
+-testsuite\\.el" "automated/\\1-tests.el")
+    ;; NB lax rules should come last.
+    ("^m/m-\\(.*\\.h\\)$" "m/\\1" t)
+    ("^m-\\(.*\\.h\\)$" "\\1" t)
+    ("^s/s-\\(.*\\.h\\)$" "s/\\1" t)
+    ("^s-\\(.*\\.h\\)$" "\\1" t)
+    ("\\.\\(el\\|[ch]\\|x[pb]m\\|pbm\\)\\'" t t)
     )
-  "List regexps and rewriting rules for renamed files.
-Elements are (REGEXP . REPLACE).  If REPLACE is a string, the file
+  "List of regexps and rewriting rules for renamed files.
+Elements are (REGEXP REPLACE [LAX]).  If REPLACE is a string, the file
 name matching REGEXP is replaced by REPLACE using `replace-string'.
-Otherwise, the file name is accepted as is.")
+Otherwise, the file name is accepted as is.
+Elements with LAX non-nil are only used in `authors-lax-changelogs'.")
+
+;; It's really not worth trying to make these old logs fully valid.
+;; All the obvious real errors are gone.
+;; The main issue is _lots_ of moving around of files.
+;; Eg the progmodes/ (etc) directories did not exist before 1997.
+;; Also, lib-src/ did not exist, the files were in etc/.
+;; And various other things.
+;; Maybe this should just be any ChangeLog with a . extension,
+;; assuming we always fix logs fully before rotating them?
+(defconst authors-lax-changelogs
+  '("erc/ChangeLog\\.0[1-8]\\'"
+    "gnus/ChangeLog\\.[1-2]\\'"
+    "lisp/ChangeLog\\.\\([1-9]\\|1[0-5]\\)\\'"
+    "mh-e/ChangeLog\\.1\\'"
+    "src/ChangeLog\\.\\([1-9]\\|1[0-2]\\)\\'")
+  "List of regexps matching ChangeLogs that we do not print errors from.
+These are older ChangeLogs that have various issues.
+Additionally, for these logs we apply the `lax' elements of
+`authors-renamed-files-regexps'.")
+
 
 (defvar authors-checked-files-alist)
 (defvar authors-invalid-file-names)
 
+;; This has become rather yucky. :(
 (defun authors-disambiguate-file-name (fullname)
   "Convert FULLNAME to an unambiguous relative-name."
   (let ((relname (file-name-nondirectory fullname))
-	parent)
-    (if (member relname authors-ambiguous-files)
-	;; In case of ambiguity, just prepend the parent directory.
-	;; FIXME obviously this is not a perfect solution.
-	(if (string-equal "lisp"
-			  (setq parent (file-name-nondirectory
-					(directory-file-name
-					 (file-name-directory fullname)))))
+	dir parent)
+    (if (and (member relname authors-ambiguous-files)
+	     ;; Try to identify the top-level directory.
+	     ;; FIXME should really use ROOT from M-x authors.
+	     (not (and (file-directory-p
+			(expand-file-name
+			 "lib-src"
+			 (setq dir (file-name-directory fullname))))
+		       (file-directory-p (expand-file-name "etc" dir)))))
+	;; I think it looks weird to see eg "lisp/simple.el".
+	;; But for eg Makefile.in, we do want to say "lisp/Makefile.in".
+	(if (and (string-equal "lisp"
+			       (setq parent (file-name-nondirectory
+					     (directory-file-name dir))))
+		 ;; TODO better to simply have hard-coded list?
+		 ;; Only really Makefile.in where this applies.
+		 (not (file-exists-p
+		       (expand-file-name (concat "../" relname) dir))))
 	    relname
-	  (format "%s/%s" parent relname))
+	  ;; In case of ambiguity, just prepend the parent directory.
+	  ;; FIXME obviously this is not a perfect solution.
+	  (format "%s/%s" (file-name-nondirectory (directory-file-name dir))
+		  relname))
       relname)))
+
+(defun authors-lax-changelog-p (file)
+  "Return non-nil if FILE matches `authors-lax-changelogs'."
+  (let ((list authors-lax-changelogs)
+	found)
+    (while list
+      (setq list (if (setq found (string-match-p (car list) file))
+		     nil
+		   (cdr list))))
+    found))
 
 (defun authors-canonical-file-name (file log-file pos author)
   "Return canonical file name for FILE found in LOG-FILE.
@@ -722,35 +981,39 @@ to print a message if FILE is not found."
   ;; same as that from top-level/ChangeLog.
   (let* ((fullname (expand-file-name file (file-name-directory log-file)))
 	 (entry (assoc fullname authors-checked-files-alist))
-	 relname
-	 valid)
+	 laxlog relname valid)
     (if entry
 	(cdr entry)
       (setq relname (file-name-nondirectory file))
-      (if (or (member relname authors-valid-file-names)
+      (if (or (member file authors-valid-file-names)
+	      (member relname authors-valid-file-names)
 	      (file-exists-p file)
-	      (file-exists-p relname)
-	      (file-exists-p (concat "etc/" relname)))
+	      (file-exists-p relname)	; FIXME? appropriate?
+	      )
 	  (setq valid (authors-disambiguate-file-name fullname))
-	(setq valid (assoc file authors-renamed-files-alist))
-	(if valid
+	(if (setq valid (assoc file authors-renamed-files-alist))
 	    (setq valid (cdr valid))
-	  (let ((rules authors-renamed-files-regexps))
+	  (setq laxlog (authors-lax-changelog-p log-file))
+	  (let ((rules authors-renamed-files-regexps)
+		rule)
 	    (while rules
-	      (if (string-match (car (car rules)) file)
-		  (setq valid (if (stringp (cdr (car rules)))
+	      (setq rule (car rules))
+	      (if (and (or laxlog (not (nth 2 rule)))
+		       (string-match (car rule) file))
+		  (setq valid (if (stringp (nth 1 rule))
 				  (file-name-nondirectory
-				   (replace-match (cdr (car rules)) t nil file))
+				   (replace-match (nth 1 rule) t nil file))
 				relname)
-			rules nil))
-	      (setq rules (cdr rules))))))
+			rules nil)
+		(setq rules (cdr rules)))))))
       (setq authors-checked-files-alist
 	    (cons (cons fullname valid) authors-checked-files-alist))
       (unless (or valid
 		  (member file authors-ignored-files)
 		  (authors-obsolete-file-p file)
 		  (string-match "[*]" file)
-		  (string-match "^[0-9.]+$" file))
+		  (string-match "^[0-9.]+$" file)
+		  laxlog)
 	(setq authors-invalid-file-names
 	      (cons (format "%s:%d: unrecognized `%s' for %s"
 			    log-file
@@ -1023,7 +1286,7 @@ buffer *Authors Errors* containing references to unknown files."
 Foundation's distribution of GNU Emacs.  To show our appreciation for
 their public spirit, we list here in alphabetical order a condensed
 list of their contributions.\n")
-    (let (authors-author-list a)
+    (let (authors-author-list)
       (maphash #'authors-add-to-author-list table)
       (setq authors-author-list
 	    (sort authors-author-list
@@ -1032,8 +1295,7 @@ list of their contributions.\n")
 	(let ((author (car a))
 	      (wrote (nth 1 a))
 	      (cowrote (nth 2 a))
-	      (changed (nth 3 a))
-	      file)
+	      (changed (nth 3 a)))
 	(insert "\n" author ": ")
 	(when wrote
 	  (insert "wrote")

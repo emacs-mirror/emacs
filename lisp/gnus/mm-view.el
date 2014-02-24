@@ -1,6 +1,6 @@
 ;;; mm-view.el --- functions for viewing MIME objects
 
-;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -175,7 +175,7 @@
 				  (match-end 2))))
 		    (if (fboundp 'w3-coding-system-for-mime-charset)
 			(w3-coding-system-for-mime-charset bsubstr)
-		      (mm-charset-to-coding-system bsubstr))))
+		      (mm-charset-to-coding-system bsubstr nil t))))
 	    (delete-region (point-min) (point-max))
 	    (insert (mm-decode-string text charset))))
 	(save-window-excursion
@@ -343,9 +343,10 @@
 						'charset)
 			 (symbol-name mail-parse-charset)))
 	    cs)
-	(unless (and charset
-		     (setq cs (mm-charset-to-coding-system charset))
-		     (not (eq cs 'ascii)))
+	(if (and charset
+		 (setq cs (mm-charset-to-coding-system charset nil t))
+		 (not (eq cs 'ascii)))
+	    (setq charset (format "%s" (mm-coding-system-to-mime-charset cs)))
 	  ;; The default.
 	  (setq charset "iso-8859-1"
 		cs 'iso-8859-1))
@@ -419,16 +420,18 @@
        (buffer-string)))))
 
 (defun mm-inline-text-html (handle)
-  (let* ((func mm-text-html-renderer)
-	 (entry (assq func mm-text-html-renderer-alist))
-	 (inhibit-read-only t))
-    (if entry
-	(setq func (cdr entry)))
-    (cond
-     ((functionp func)
-      (funcall func handle))
-     (t
-      (apply (car func) handle (cdr func))))))
+  (if (stringp (car handle))
+      (mapcar 'mm-inline-text-html (cdr handle))
+    (let* ((func mm-text-html-renderer)
+	   (entry (assq func mm-text-html-renderer-alist))
+	   (inhibit-read-only t))
+      (if entry
+	  (setq func (cdr entry)))
+      (cond
+       ((functionp func)
+	(funcall func handle))
+       (t
+	(apply (car func) handle (cdr func)))))))
 
 (defun mm-inline-text-vcard (handle)
   (let ((inhibit-read-only t))
@@ -660,14 +663,26 @@ If MODE is not set, try to find mode automatically."
 ;;      id-signedData OBJECT IDENTIFIER ::= { iso(1) member-body(2)
 ;;          us(840) rsadsi(113549) pkcs(1) pkcs7(7) 2 }
 (defvar mm-pkcs7-signed-magic
-  "\x30\x5c\x28\x80\x5c\x7c\x81\x2e\x5c\x7c\x82\x2e\x2e\x5c\x7c\x83\x2e\x2e\
-\x2e\x5c\x29\x06\x09\x5c\x2a\x86\x48\x86\xf7\x0d\x01\x07\x02")
+  (concat
+    "0"
+    "\\(\\(\x80\\)"
+    "\\|\\(\x81\\(.\\|\n\\)\\{1\\}\\)"
+    "\\|\\(\x82\\(.\\|\n\\)\\{2\\}\\)"
+    "\\|\\(\x83\\(.\\|\n\\)\\{3\\}\\)"
+    "\\)"
+    "\x06\x09\\*\x86H\x86\xf7\x0d\x01\x07\x02"))
 
 ;;      id-envelopedData OBJECT IDENTIFIER ::= { iso(1) member-body(2)
 ;;          us(840) rsadsi(113549) pkcs(1) pkcs7(7) 3 }
 (defvar mm-pkcs7-enveloped-magic
-  "\x30\x5c\x28\x80\x5c\x7c\x81\x2e\x5c\x7c\x82\x2e\x2e\x5c\x7c\x83\x2e\x2e\
-\x2e\x5c\x29\x06\x09\x5c\x2a\x86\x48\x86\xf7\x0d\x01\x07\x03")
+  (concat
+    "0"
+    "\\(\\(\x80\\)"
+    "\\|\\(\x81\\(.\\|\n\\)\\{1\\}\\)"
+    "\\|\\(\x82\\(.\\|\n\\)\\{2\\}\\)"
+    "\\|\\(\x83\\(.\\|\n\\)\\{3\\}\\)"
+    "\\)"
+    "\x06\x09\\*\x86H\x86\xf7\x0d\x01\x07\x03"))
 
 (defun mm-view-pkcs7-get-type (handle)
   (mm-with-unibyte-buffer

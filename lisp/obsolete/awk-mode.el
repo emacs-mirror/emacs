@@ -1,9 +1,9 @@
 ;;; awk-mode.el --- AWK code editing commands for Emacs
 
-;; Copyright (C) 1988, 1994, 1996, 2000-2013 Free Software Foundation,
+;; Copyright (C) 1988, 1994, 1996, 2000-2014 Free Software Foundation,
 ;; Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: unix, languages
 ;; Obsolete-since: 22.1
 

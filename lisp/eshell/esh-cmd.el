@@ -1,6 +1,6 @@
-;;; esh-cmd.el --- command invocation
+;;; esh-cmd.el --- command invocation  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -205,12 +205,16 @@ forms or strings)."
   :type 'hook
   :group 'eshell-cmd)
 
-(defcustom eshell-post-rewrite-command-hook nil
+(defvar eshell-post-rewrite-command-function #'identity
+  "Function run after command rewriting is finished.
+Takes the (rewritten) command, modifies it as it sees fit and returns
+the new result to use instead.")
+(defvar eshell-post-rewrite-command-hook nil
   "A hook run after command rewriting is finished.
 Each function is passed the symbol containing the rewritten command,
-which may be modified directly.  Any return value is ignored."
-  :type 'hook
-  :group 'eshell-cmd)
+which may be modified directly.  Any return value is ignored.")
+(make-obsolete-variable 'eshell-post-rewrite-command-hook
+                        'eshell-post-rewrite-command-function "24.4")
 
 (defcustom eshell-complex-commands '("ls")
   "A list of commands names or functions, that determine complexity.
@@ -335,13 +339,15 @@ otherwise t.")
 
 ;; Command parsing
 
-(defun eshell-parse-command (command &optional args top-level)
+(defvar eshell--sep-terms)
+
+(defun eshell-parse-command (command &optional args toplevel)
   "Parse the COMMAND, adding ARGS if given.
 COMMAND can either be a string, or a cons cell demarcating a buffer
-region.  TOP-LEVEL, if non-nil, means that the outermost command (the
+region.  TOPLEVEL, if non-nil, means that the outermost command (the
 user's input command) is being parsed, and that pre and post command
 hooks should be run before and after the command."
-  (let* (sep-terms
+  (let* (eshell--sep-terms
 	 (terms
 	  (append
 	   (if (consp command)
@@ -361,32 +367,27 @@ hooks should be run before and after the command."
 	   (function
 	    (lambda (cmd)
               (setq cmd
-                    (if (or (not (car sep-terms))
-                            (string= (car sep-terms) ";"))
-			(eshell-parse-pipeline cmd (not (car sep-terms)))
+                    (if (or (not (car eshell--sep-terms))
+                            (string= (car eshell--sep-terms) ";"))
+			(eshell-parse-pipeline cmd)
 		      `(eshell-do-subjob
                         (list ,(eshell-parse-pipeline cmd)))))
-	      (setq sep-terms (cdr sep-terms))
+	      (setq eshell--sep-terms (cdr eshell--sep-terms))
 	      (if eshell-in-pipeline-p
 		  cmd
 		`(eshell-trap-errors ,cmd))))
-	   (eshell-separate-commands terms "[&;]" nil 'sep-terms))))
+	   (eshell-separate-commands terms "[&;]" nil 'eshell--sep-terms))))
     (let ((cmd commands))
       (while cmd
 	(if (cdr cmd)
 	    (setcar cmd `(eshell-commands ,(car cmd))))
 	(setq cmd (cdr cmd))))
-    (setq commands
-	  `(progn
-             ,@(if top-level
-                   '((run-hooks 'eshell-pre-command-hook)))
-             ,@(if (not top-level)
-                   commands
-                 `((catch 'top-level (progn ,@commands))
-                   (run-hooks 'eshell-post-command-hook)))))
-    (if top-level
-	`(eshell-commands ,commands)
-      commands)))
+    (if toplevel
+	`(eshell-commands (progn
+                            (run-hooks 'eshell-pre-command-hook)
+                            (catch 'top-level (progn ,@commands))
+                            (run-hooks 'eshell-post-command-hook)))
+      (macroexp-progn commands))))
 
 (defun eshell-debug-command (tag subform)
   "Output a debugging message to '*eshell last cmd*'."
@@ -473,6 +474,8 @@ the second is ignored."
     arg))
 
 (defvar eshell-last-command-status)     ;Define in esh-io.el.
+(defvar eshell--local-vars nil
+  "List of locally bound vars that should take precedence over env-vars.")
 
 (defun eshell-rewrite-for-command (terms)
   "Rewrite a `for' command into its equivalent Eshell command form.
@@ -495,7 +498,9 @@ implemented via rewriting, rather than as a function."
 	       (eshell-command-body '(nil))
                (eshell-test-body '(nil)))
 	   (while (car for-items)
-	     (let ((,(intern (cadr terms)) (car for-items)))
+	     (let ((,(intern (cadr terms)) (car for-items))
+		   (eshell--local-vars (cons ',(intern (cadr terms))
+					    eshell--local-vars)))
 	       (eshell-protect
 	   	,(eshell-invokify-arg body t)))
 	     (setcar for-items (cadr for-items))
@@ -505,14 +510,11 @@ implemented via rewriting, rather than as a function."
             (list 'quote eshell-last-command-result))))))
 
 (defun eshell-structure-basic-command (func names keyword test body
-					    &optional else vocal-test)
+					    &optional else)
   "With TERMS, KEYWORD, and two NAMES, structure a basic command.
 The first of NAMES should be the positive form, and the second the
 negative.  It's not likely that users should ever need to call this
-function.
-
-If VOCAL-TEST is non-nil, it means output from the test should be
-shown, as well as output from the body."
+function."
   ;; If the test form begins with `eshell-convert', it means
   ;; something data-wise will be returned, and we should let
   ;; that determine the truth of the statement.
@@ -582,11 +584,13 @@ For an external command, it means an exit code of 0."
       eshell-last-command-result
     (= eshell-last-command-status 0)))
 
-(defun eshell-parse-pipeline (terms &optional final-p)
+(defvar eshell--cmd)
+
+(defun eshell-parse-pipeline (terms)
   "Parse a pipeline from TERMS, return the appropriate Lisp forms."
-  (let* (sep-terms
+  (let* (eshell--sep-terms
 	 (bigpieces (eshell-separate-commands terms "\\(&&\\|||\\)"
-					      nil 'sep-terms))
+					      nil 'eshell--sep-terms))
 	 (bp bigpieces)
 	 (results (list t))
 	 final)
@@ -599,8 +603,11 @@ For an external command, it means an exit code of 0."
 	      (run-hook-with-args 'eshell-pre-rewrite-command-hook cmd)
 	      (setq cmd (run-hook-with-args-until-success
 			 'eshell-rewrite-command-hook cmd))
-	      (run-hook-with-args 'eshell-post-rewrite-command-hook 'cmd)
-	      (setcar p cmd))
+	      (let ((eshell--cmd cmd))
+		(run-hook-with-args 'eshell-post-rewrite-command-hook
+				    'eshell--cmd)
+		(setq cmd eshell--cmd))
+	      (setcar p (funcall eshell-post-rewrite-command-function cmd)))
 	    (setq p (cdr p)))
 	  (nconc results
 		 (list
@@ -615,16 +622,15 @@ For an external command, it means an exit code of 0."
 	  results (nreverse results)
 	  final (car results)
 	  results (cdr results)
-	  sep-terms (nreverse sep-terms))
+	  eshell--sep-terms (nreverse eshell--sep-terms))
     (while results
-      (cl-assert (car sep-terms))
+      (cl-assert (car eshell--sep-terms))
       (setq final (eshell-structure-basic-command
-		   'if (string= (car sep-terms) "&&") "if"
+		   'if (string= (car eshell--sep-terms) "&&") "if"
 		   `(eshell-protect ,(car results))
-		   `(eshell-protect ,final)
-		   nil t)
+		   `(eshell-protect ,final))
 	    results (cdr results)
-	    sep-terms (cdr sep-terms)))
+	    eshell--sep-terms (cdr eshell--sep-terms)))
     final))
 
 (defun eshell-parse-subcommand-argument ()
@@ -650,7 +656,7 @@ For an external command, it means an exit code of 0."
 	   (looking-at eshell-lisp-regexp))
       (let* ((here (point))
 	     (obj
-	      (condition-case err
+	      (condition-case nil
 		  (read (current-buffer))
 		(end-of-file
 		 (throw 'eshell-incomplete ?\()))))
@@ -912,7 +918,7 @@ at the moment are:
   "Completion for the `debug' command."
   (while (pcomplete-here '("errors" "commands"))))
 
-(defun eshell-invoke-directly (command input)
+(defun eshell-invoke-directly (command)
   (let ((base (cadr (nth 2 (nth 2 (cadr command))))) name)
     (if (and (eq (car base) 'eshell-trap-errors)
 	     (eq (car (cadr base)) 'eshell-named-command))
@@ -993,14 +999,6 @@ at the moment are:
        ,@commands
        (eshell-debug-command ,(concat "done " (eval tag)) form))))
 
-(defsubst eshell-macrop (object)
-  "Return t if OBJECT is a macro or nil otherwise."
-  (and (symbolp object) (fboundp object)
-       (setq object (indirect-function object))
-       (listp object)
-       (eq 'macro (car object))
-       (functionp (cdr object))))
-
 (defun eshell-do-eval (form &optional synchronous-p)
   "Evaluate form, simplifying it as we go.
 Unless SYNCHRONOUS-P is non-nil, throws `eshell-defer' if it needs to
@@ -1016,7 +1014,7 @@ be finished later after the completion of an asynchronous subprocess."
       (setq form (cadr (cadr form))))
     ;; expand any macros directly into the form.  This is done so that
     ;; we can modify any `let' forms to evaluate only once.
-    (if (eshell-macrop (car form))
+    (if (macrop (car form))
 	(let ((exp (eshell-copy-tree (macroexpand form))))
 	  (eshell-manipulate (format "expanding macro `%s'"
 				     (symbol-name (car form)))

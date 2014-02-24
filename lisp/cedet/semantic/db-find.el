@@ -1,6 +1,6 @@
 ;;; semantic/db-find.el --- Searching through semantic databases.
 
-;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -130,12 +130,12 @@
 (declare-function ede-current-project "ede")
 
 (defvar semanticdb-find-throttle-custom-list
-  '(repeat (radio (const 'local)
-		  (const 'project)
-		  (const 'unloaded)
-		  (const 'system)
-		  (const 'recursive)
-		  (const 'omniscience)))
+  '(set (const local)
+	(const project)
+	(const unloaded)
+	(const system)
+	(const recursive)
+	(const omniscience))
   "Customization values for semanticdb find throttle.
 See `semanticdb-find-throttle' for details.")
 
@@ -244,7 +244,7 @@ This class will cache data derived during various searches.")
 	   (let ((tab-idx (semanticdb-get-table-index tab)))
 	     ;; Not a full reset?
 	     (when (oref tab-idx type-cache)
-	       (require 'db-typecache)
+	       (require 'semantic/db-typecache)
 	       (semanticdb-typecache-notify-reset
 		(oref tab-idx type-cache)))
 	     )))
@@ -919,7 +919,7 @@ but should be good enough for debugging assertions."
   (if (< (length result) 2)
       (concat "#<FIND RESULT "
 	      (mapconcat (lambda (a)
-			   (concat "(" (object-name (car a) ) " . "
+			   (concat "(" (eieio-object-name (car a) ) " . "
 				   "#<TAG LIST " (number-to-string (length (cdr a))) ">)"))
 			 result
 			 " ")
@@ -1285,7 +1285,7 @@ associated with that tag should be loaded into a buffer."
   (semanticdb-find-tags-collector
    (lambda (table tags)
      (semanticdb-find-tags-external-children-of-type-method table type tags))
-   path find-file-match))
+   path find-file-match t))
 
 (defun semanticdb-find-tags-subclasses-of-type
   (type &optional path find-file-match)

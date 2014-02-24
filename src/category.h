@@ -54,19 +54,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    But, for the moment, we are not using this slot.  */
 
 INLINE_HEADER_BEGIN
-#ifndef CATEGORY_INLINE
-# define CATEGORY_INLINE INLINE
-#endif
 
 #define CATEGORYP(x) RANGED_INTEGERP (0x20, x, 0x7E)
 
 #define CHECK_CATEGORY(x) \
   CHECK_TYPE (CATEGORYP (x), Qcategoryp, x)
 
-#define XCATEGORY_SET XBOOL_VECTOR
-
 #define CATEGORY_SET_P(x) \
-  (BOOL_VECTOR_P (x) && XBOOL_VECTOR (x)->size == 128)
+  (BOOL_VECTOR_P (x) && bool_vector_size (x) == 128)
 
 /* Return a new empty category set.  */
 #define MAKE_CATEGORY_SET (Fmake_bool_vector (make_number (128), Qnil))
@@ -78,13 +73,15 @@ INLINE_HEADER_BEGIN
 #define CATEGORY_SET(c) char_category_set (c)
 
 /* Return true if CATEGORY_SET contains CATEGORY.
-   The faster version of `!NILP (Faref (category_set, category))'.  */
-#define CATEGORY_MEMBER(category, category_set)		 		\
-  ((XCATEGORY_SET (category_set)->data[(category) / 8]			\
-    >> ((category) % 8)) & 1)
+   Faster than '!NILP (Faref (category_set, make_number (category)))'.  */
+INLINE bool
+CATEGORY_MEMBER (EMACS_INT category, Lisp_Object category_set)
+{
+  return bool_vector_bitref (category_set, category);
+}
 
 /* Return true if category set of CH contains CATEGORY.  */
-CATEGORY_INLINE bool
+INLINE bool
 CHAR_HAS_CATEGORY (int ch, int category)
 {
   Lisp_Object category_set = CATEGORY_SET (ch);

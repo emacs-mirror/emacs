@@ -1,6 +1,6 @@
 ;;; semantic/texi.el --- Semantic details for Texinfo files
 
-;; Copyright (C) 2001-2005, 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2005, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -32,7 +32,7 @@
 (require 'texinfo)
 
 (defvar ede-minor-mode)
-(declare-function lookup-words "ispell")
+(declare-function ispell-lookup-words "ispell")
 (declare-function ede-current-project "ede")
 
 (defvar semantic-texi-super-regex
@@ -431,7 +431,7 @@ that start with that symbol."
 	  ((member 'word (oref context :prefixclass))
 	   ;; Do completion for words via ispell.
 	   (require 'ispell)
-	   (let ((word-list (lookup-words prefix)))
+	   (let ((word-list (ispell-lookup-words prefix)))
 	     (mapcar (lambda (f) (semantic-tag f 'word)) word-list))
 	   )
 	  (t nil))

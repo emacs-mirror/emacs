@@ -1,6 +1,6 @@
 ;;; mixal-mode.el --- Major mode for the mix asm language.
 
-;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2014 Free Software Foundation, Inc.
 
 ;; Author: Pieter E.J. Pareit <pieter.pareit@gmail.com>
 ;; Maintainer: Pieter E.J. Pareit <pieter.pareit@gmail.com>
@@ -1113,8 +1113,10 @@ Assumes that file has been compiled with debugging support."
        mixal-syntax-propertize-function)
   ;; might add an indent function in the future
   ;;  (set (make-local-variable 'indent-line-function) 'mixal-indent-line)
-  (set (make-local-variable 'compile-command) (concat "mixasm "
-						      buffer-file-name)))
+  (set (make-local-variable 'compile-command)
+       (concat "mixasm "
+	       (if buffer-file-name
+		   (shell-quote-argument buffer-file-name)))))
 
 (provide 'mixal-mode)
 

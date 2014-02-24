@@ -1,5 +1,5 @@
 /* systty.h - System-dependent definitions for terminals.
-   Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -79,5 +79,5 @@ struct emacs_tty {
 };
 
 /* From sysdep.c or w32.c  */
-extern int serial_open (char *);
+extern int serial_open (Lisp_Object);
 extern void serial_configure (struct Lisp_Process *, Lisp_Object);

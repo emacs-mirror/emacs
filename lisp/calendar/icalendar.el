@@ -1,6 +1,6 @@
 ;;; icalendar.el --- iCalendar implementation -*-coding: utf-8 -*-
 
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        August 2002
@@ -1822,7 +1822,7 @@ Optional argument NON-MARKING determines whether events are created as
 non-marking or not."
   (interactive "fImport iCalendar data from file: \n\
 Finto diary file:
-p")
+P")
   ;; clean up the diary file
   (save-current-buffer
     ;; now load and convert from the ical file

@@ -1,6 +1,6 @@
-;;; handwrite.el --- turns your emacs buffer into a handwritten document -*- coding: iso-latin-1; -*-
+;;; handwrite.el --- turns your emacs buffer into a handwritten document -*- coding: utf-8; -*-
 
-;; Copyright (C) 1996, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Danny Roozendaal (was: <danny@tvs.kun.nl>)
 ;; Created: October 21 1996
@@ -170,15 +170,15 @@ Variables: `handwrite-linespace'     (default 12)
        (textp)
        (ps-buf-name)			;name of the PostScript buffer
        (trans-table
-	'(("ÿ" . "264") ("á" . "207") ("à" . "210") ("â" . "211")
-	  ("ä" . "212") ("ã" . "213") ("å" . "214") ("é" . "216")
-	  ("è" . "217") ("ê" . "220") ("ë" . "221") ("í" . "222")
-	  ("ì" . "223") ("î" . "224") ("ï" . "225") ("ó" . "227")
-	  ("ò" . "230") ("ô" . "231") ("ö" . "232") ("õ" . "233")
-	  ("ú" . "234") ("ù" . "235") ("û" . "236") ("ü" . "237")
-	  ("ß" . "247") ("°" . "241") ("®" . "250") ("©" . "251")
-	  ("ij" . "264") ("ç" . "215") ("§" . "244") ("ñ" . "226")
-	  ("£" . "243")))
+	'(("Ã¿" . "264") ("Ã¡" . "207") ("Ã " . "210") ("Ã¢" . "211")
+	  ("Ã¤" . "212") ("Ã£" . "213") ("Ã¥" . "214") ("Ã©" . "216")
+	  ("Ã¨" . "217") ("Ãª" . "220") ("Ã«" . "221") ("Ã­" . "222")
+	  ("Ã¬" . "223") ("Ã®" . "224") ("Ã¯" . "225") ("Ã³" . "227")
+	  ("Ã²" . "230") ("Ã´" . "231") ("Ã¶" . "232") ("Ãµ" . "233")
+	  ("Ãº" . "234") ("Ã¹" . "235") ("Ã»" . "236") ("Ã¼" . "237")
+	  ("ÃŸ" . "247") ("Â°" . "241") ("Â®" . "250") ("Â©" . "251")
+	  ("ij" . "264") ("Ã§" . "215") ("Â§" . "244") ("Ã±" . "226")
+	  ("Â£" . "243")))
        (escape-table '("\\\\" "(" ")")) ; \\ comes first to not work
 					; on inserted backslashes
        line)
@@ -244,7 +244,7 @@ Variables: `handwrite-linespace'     (default 12)
     (insert "showpage exec Hwsave restore\n\n")
     (insert "%%Pages " (number-to-string ipage) " 0\n")
     (insert "%%EOF\n")
-    ;;To avoid cumbersome code we simply ignore pagefeeds
+    ;;To avoid cumbersome code we simply ignore formfeeds
     (goto-char textp)
     (while (search-forward "\f" nil t)
       (replace-match "" nil t) )

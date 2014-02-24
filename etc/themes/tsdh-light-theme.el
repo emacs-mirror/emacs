@@ -1,6 +1,6 @@
 ;;; tsdh-light-theme.el --- Tassilo's light custom theme
 
-;; Copyright (C) 2011-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2014 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -38,13 +38,21 @@ Used and created by Tassilo Horn.")
  '(header-line ((t (:inherit mode-line :inverse-video t))))
  '(hl-line ((t (:background "grey95"))))
  '(minibuffer-prompt ((t (:background "yellow" :foreground "medium blue" :box (:line-width -1 :color "red" :style released-button) :weight bold))))
- '(mode-line ((t (:box (:line-width -1 :color "red" :style released-button) :family "DejaVu Sans"))))
- '(mode-line-inactive ((t (:inherit mode-line :foreground "dim gray"))))
+ '(mode-line ((t (:background "wheat" :foreground "black" :box (:line-width 1 :color "tan") :family "DejaVu Sans"))))
+ '(mode-line-inactive ((t (:inherit mode-line :foreground "dark gray"))))
  '(org-agenda-date ((t (:inherit org-agenda-structure))))
  '(org-agenda-date-today ((t (:inherit org-agenda-date :underline t))))
  '(org-agenda-date-weekend ((t (:inherit org-agenda-date :foreground "dark green"))))
  '(org-agenda-structure ((t (:foreground "Blue1" :weight bold :height 1.1 :family "DeJaVu Sans"))))
  '(org-hide ((t (:foreground "white"))))
+ '(org-level-1 ((t (:inherit outline-1 :box nil))))
+ '(org-level-2 ((t (:inherit outline-2 :box nil))))
+ '(org-level-3 ((t (:inherit outline-3 :box nil))))
+ '(org-level-4 ((t (:inherit outline-4 :box nil))))
+ '(org-level-5 ((t (:inherit outline-5 :box nil))))
+ '(org-level-6 ((t (:inherit outline-6 :box nil))))
+ '(org-level-7 ((t (:inherit outline-7 :box nil))))
+ '(org-level-8 ((t (:inherit outline-8 :box nil))))
  '(org-tag ((t (:weight bold))))
  '(outline-1 ((t (:inherit font-lock-function-name-face :weight bold))))
  '(outline-2 ((t (:inherit font-lock-variable-name-face :weight bold))))

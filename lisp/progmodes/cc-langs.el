@@ -1,6 +1,6 @@
-;;; cc-langs.el --- language specific settings for CC Mode
+;;; cc-langs.el --- language specific settings for CC Mode -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1987, 1992-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2014 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -812,8 +812,8 @@ Assumed to not contain any submatches or \\| operators."
 (c-lang-defconst c-anchored-cpp-prefix
   "Regexp matching the prefix of a cpp directive anchored to BOL,
 in the languages that have a macro preprocessor."
-  t (if (c-lang-const c-opt-cpp-prefix)
-	(concat "^" (c-lang-const c-opt-cpp-prefix))))
+  t "^\\s *\\(#\\)\\s *"
+  (java awk) nil)
 (c-lang-defvar c-anchored-cpp-prefix (c-lang-const c-anchored-cpp-prefix))
 
 (c-lang-defconst c-opt-cpp-start
@@ -2040,6 +2040,12 @@ declarations."
 	 ;; In CORBA PSDL:
 	 "as" "const" "implements" "of" "ref"))
 
+(c-lang-defconst c-postfix-decl-spec-key
+  ;; Regexp matching the keywords in `c-postfix-decl-spec-kwds'.
+  t (c-make-keywords-re t (c-lang-const c-postfix-decl-spec-kwds)))
+(c-lang-defvar c-postfix-decl-spec-key
+  (c-lang-const c-postfix-decl-spec-key))
+
 (c-lang-defconst c-nonsymbol-sexp-kwds
   "Keywords that may be followed by a nonsymbol sexp before whatever
 construct it's part of continues."
@@ -2163,8 +2169,7 @@ assumed to be set if this isn't nil."
 (c-lang-defconst c-opt-<>-sexp-key
   ;; Adorned regexp matching keywords that can be followed by an angle
   ;; bracket sexp.  Always set when `c-recognize-<>-arglists' is.
-  t (if (c-lang-const c-recognize-<>-arglists)
-	(c-make-keywords-re t (c-lang-const c-<>-sexp-kwds))))
+  t (c-make-keywords-re t (c-lang-const c-<>-sexp-kwds)))
 (c-lang-defvar c-opt-<>-sexp-key (c-lang-const c-opt-<>-sexp-key))
 
 (c-lang-defconst c-brace-id-list-kwds
@@ -2186,6 +2191,18 @@ identifiers that follows the type in a normal declaration."
   ;; substatement (doesn't match a bare block, however).
   t (c-make-keywords-re t (c-lang-const c-block-stmt-1-kwds)))
 (c-lang-defvar c-block-stmt-1-key (c-lang-const c-block-stmt-1-key))
+
+(c-lang-defconst c-block-stmt-1-2-kwds
+  "Statement keywords optionally followed by a paren sexp.
+Keywords here should also be in `c-block-stmt-1-kwds'."
+  t nil
+  java '("try"))
+
+(c-lang-defconst c-block-stmt-1-2-key
+  ;; Regexp matching the start of a statement which may be followed by a
+  ;; paren sexp and will then be followed by a substatement.
+  t (c-make-keywords-re t (c-lang-const c-block-stmt-1-2-kwds)))
+(c-lang-defvar c-block-stmt-1-2-key (c-lang-const c-block-stmt-1-2-key))
 
 (c-lang-defconst c-block-stmt-2-kwds
   "Statement keywords followed by a paren sexp and then by a substatement."
@@ -2576,6 +2593,15 @@ Note that Java specific rules are currently applied to tell this from
 
 ;;; Additional constants for parser-level constructs.
 
+(c-lang-defconst c-decl-start-colon-kwd-re
+  "Regexp matching a keyword that is followed by a colon, where
+  the whole construct can precede a declaration.
+  E.g. \"public:\" in C++."
+  t "\\<\\>"
+  c++ (c-make-keywords-re t (c-lang-const c-protection-kwds)))
+(c-lang-defvar c-decl-start-colon-kwd-re
+  (c-lang-const c-decl-start-colon-kwd-re))
+
 (c-lang-defconst c-decl-prefix-re
   "Regexp matching something that might precede a declaration, cast or
 label, such as the last token of a preceding statement or declaration.
@@ -2615,8 +2641,11 @@ more info."
   java "\\([\{\}\(;,<]+\\)"
   ;; Match "<" in C++ to get the first argument in a template arglist.
   ;; In that case there's an additional check in `c-find-decl-spots'
-  ;; that it got open paren syntax.
-  c++ "\\([\{\}\(\);,<]+\\)"
+  ;; that it got open paren syntax.  Match ":" to aid in picking up
+  ;; "public:", etc.  This involves additional checks in
+  ;; `c-find-decl-prefix-search' to prevent a match of identifiers
+  ;; or labels.
+  c++ "\\([\{\}\(\);:,<]+\\)"
   ;; Additionally match the protection directives in Objective-C.
   ;; Note that this doesn't cope with the longer directives, which we
   ;; would have to match from start to end since they don't end with
@@ -2805,7 +2834,8 @@ is in effect when this is matched (see `c-identifier-syntax-table')."
 		     "\\>")
 		  "")
 		"\\)")
-  (java idl) "\\([\[\(]\\)")
+  java "\\([\[\(\)]\\)"
+  idl "\\([\[\(]\\)")
 (c-lang-defvar c-type-decl-suffix-key (c-lang-const c-type-decl-suffix-key)
   'dont-doc)
 
@@ -2907,7 +2937,7 @@ is in effect or not."
 
 (c-lang-defconst c-special-brace-lists
 "List of open- and close-chars that makes up a pike-style brace list,
-i.e. for a ([ ]) list there should be a cons (?\\[ . ?\\]) in this
+i.e. for a ([Â ]) list there should be a cons (?\\[ . ?\\]) in this
 list."
   t    nil
   pike '((?{ . ?}) (?\[ . ?\]) (?< . ?>)))
@@ -2926,7 +2956,7 @@ calls before a brace block.  This setting does not affect declarations
 that are preceded by a declaration starting keyword, so
 e.g. `c-typeless-decl-kwds' may still be used when it's set to nil."
   t nil
-  (c c++ objc) t)
+  (c c++ objc java) t)
 (c-lang-defvar c-recognize-typeless-decls
   (c-lang-const c-recognize-typeless-decls))
 
@@ -2938,7 +2968,8 @@ identifier or one of the keywords on `c-<>-type-kwds' or
 `c-<>-arglist-kwds'.  If there's an identifier before then the whole
 expression is considered to be a type."
   t (or (consp (c-lang-const c-<>-type-kwds))
-	(consp (c-lang-const c-<>-arglist-kwds))))
+	(consp (c-lang-const c-<>-arglist-kwds)))
+  java t)
 (c-lang-defvar c-recognize-<>-arglists (c-lang-const c-recognize-<>-arglists))
 
 (c-lang-defconst c-enums-contain-decls

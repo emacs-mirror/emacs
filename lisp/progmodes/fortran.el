@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (C) 1986, 1993-1995, 1997-2013 Free Software Foundation,
+;; Copyright (C) 1986, 1993-1995, 1997-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
@@ -1080,8 +1080,7 @@ The next key typed is executed unless it is SPC."
      fortran-column-ruler-fixed)
    (save-excursion
      (beginning-of-line)
-     (if (eq (window-start (selected-window))
-             (window-point (selected-window)))
+     (if (eq (window-start) (window-point))
          (line-beginning-position 2)
        (point)))
    nil "Type SPC or any command to erase ruler."))

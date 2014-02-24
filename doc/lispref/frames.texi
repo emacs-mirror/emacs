@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Frames
@@ -446,7 +446,7 @@ default parameters by supplying their own parameters.
 If you invoke Emacs with command-line options that specify frame
 appearance, those options take effect by adding elements to either
 @code{initial-frame-alist} or @code{default-frame-alist}.  Options
-which affect just the initial frame, such as @samp{-geometry} and
+which affect just the initial frame, such as @samp{--geometry} and
 @samp{--maximized}, add to @code{initial-frame-alist}; the others add
 to @code{default-frame-alist}.  @pxref{Emacs Invocation,, Command Line
 Arguments for Emacs Invocation, emacs, The GNU Emacs Manual}.
@@ -632,8 +632,9 @@ possible.  The value @code{fullboth} specifies that both the width and
 the height shall be set to the size of the screen.  The value
 @code{maximized} specifies that the frame shall be maximized.  The
 difference between @code{maximized} and @code{fullboth} is that the
-former still has window manager decorations while the latter really
-covers the whole screen.
+former can still be resized by dragging window manager decorations
+with the mouse, while the latter really covers the whole screen and
+does not allow resizing by mouse dragging.
 @end table
 
 @node Layout Parameters
@@ -1361,7 +1362,7 @@ Terminals}.
 @node Input Focus
 @section Input Focus
 @cindex input focus
-@c @cindex selected frame    Duplicates selected-frame
+@c @cindex selected frame    Duplicates selected-frame, same for selected-window.
 
 At any time, one frame in Emacs is the @dfn{selected frame}.  The selected
 window always resides on the selected frame.
@@ -1477,6 +1478,14 @@ differently from a frame whose focus is not redirected.
 The redirection lasts until @code{redirect-frame-focus} is called to
 change it.
 @end defun
+
+@defvar focus-in-hook
+This is a normal hook run when an Emacs frame gains input focus.
+@end defvar
+
+@defvar focus-out-hook
+This is a normal hook run when an Emacs frame loses input focus.
+@end defvar
 
 @defopt focus-follows-mouse
 This option is how you inform Emacs whether the window manager transfers
@@ -1740,8 +1749,10 @@ allows to know if the pointer has been hidden.
 @node Pop-Up Menus
 @section Pop-Up Menus
 
-  When using a window system, a Lisp program can pop up a menu so that
-the user can choose an alternative with the mouse.
+  A Lisp program can pop up a menu so that the user can choose an
+alternative with the mouse.  On a text terminal, if the mouse is not
+available, the user can choose an alternative using the keyboard
+motion keys---@kbd{C-n}, @kbd{C-p}, or up- and down-arrow keys.
 
 @defun x-popup-menu position menu
 This function displays a pop-up menu and returns an indication of
@@ -1762,20 +1773,22 @@ pixels, counting from the top left corner of @var{window}.  @var{window}
 may be a window or a frame.
 
 If @var{position} is @code{t}, it means to use the current mouse
-position.  If @var{position} is @code{nil}, it means to precompute the
-key binding equivalents for the keymaps specified in @var{menu},
-without actually displaying or popping up the menu.
+position (or the top-left corner of the frame if the mouse is not
+available on a text terminal).  If @var{position} is @code{nil}, it
+means to precompute the key binding equivalents for the keymaps
+specified in @var{menu}, without actually displaying or popping up the
+menu.
 
 The argument @var{menu} says what to display in the menu.  It can be a
 keymap or a list of keymaps (@pxref{Menu Keymaps}).  In this case, the
 return value is the list of events corresponding to the user's choice.
 This list has more than one element if the choice occurred in a
 submenu.  (Note that @code{x-popup-menu} does not actually execute the
-command bound to that sequence of events.)  On toolkits that support
-menu titles, the title is taken from the prompt string of @var{menu}
-if @var{menu} is a keymap, or from the prompt string of the first
-keymap in @var{menu} if it is a list of keymaps (@pxref{Defining
-Menus}).
+command bound to that sequence of events.)  On text terminals and
+toolkits that support menu titles, the title is taken from the prompt
+string of @var{menu} if @var{menu} is a keymap, or from the prompt
+string of the first keymap in @var{menu} if it is a list of keymaps
+(@pxref{Defining Menus}).
 
 Alternatively, @var{menu} can have the following form:
 
@@ -1799,7 +1812,7 @@ cell; this makes a non-selectable menu item.
 
 If the user gets rid of the menu without making a valid choice, for
 instance by clicking the mouse away from a valid choice or by typing
-keyboard input, then this normally results in a quit and
+@kbd{C-g}, then this normally results in a quit and
 @code{x-popup-menu} does not return.  But if @var{position} is a mouse
 button event (indicating that the user invoked the menu with the
 mouse) then no quit occurs and @code{x-popup-menu} returns @code{nil}.
@@ -1871,7 +1884,8 @@ window don't matter; only the frame matters.
 
 If @var{header} is non-@code{nil}, the frame title for the box is
 @samp{Information}, otherwise it is @samp{Question}.  The former is used
-for @code{message-box} (@pxref{message-box}).
+for @code{message-box} (@pxref{message-box}).  (On text terminals, the
+box title is not displayed.)
 
 In some configurations, Emacs cannot display a real dialog box; so
 instead it displays the same items in a pop-up menu in the center of the
@@ -2283,9 +2297,9 @@ obtain information about displays.
 
 @defun display-popup-menus-p &optional display
 This function returns @code{t} if popup menus are supported on
-@var{display}, @code{nil} if not.  Support for popup menus requires that
-the mouse be available, since the user cannot choose menu items without
-a mouse.
+@var{display}, @code{nil} if not.  Support for popup menus requires
+that the mouse be available, since the menu is popped up by clicking
+the mouse on some portion of the Emacs display.
 @end defun
 
 @defun display-graphic-p &optional display
@@ -2390,6 +2404,7 @@ displays returned by @code{display-mm-height} and
 @code{display-mm-width} in case the system provides incorrect values.
 @end defopt
 
+@cindex backing store
 @defun display-backing-store &optional display
 This function returns the backing store capability of the display.
 Backing store means recording the pixels of windows (and parts of
@@ -2401,6 +2416,7 @@ Values can be the symbols @code{always}, @code{when-mapped}, or
 when the question is inapplicable to a certain kind of display.
 @end defun
 
+@cindex SaveUnder feature
 @defun display-save-under &optional display
 This function returns non-@code{nil} if the display supports the
 SaveUnder feature.  That feature is used by pop-up windows

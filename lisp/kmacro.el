@@ -1,6 +1,6 @@
 ;;; kmacro.el --- enhanced keyboard macros
 
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard convenience
@@ -202,6 +202,7 @@ macro to be executed before appending to it."
     ;; naming and binding
     (define-key map "b"    'kmacro-bind-to-key)
     (define-key map "n"    'kmacro-name-last-macro)
+    (define-key map "x"    'kmacro-to-register)
     map)
   "Keymap for keyboard macro commands.")
 (defalias 'kmacro-keymap kmacro-keymap)
@@ -444,7 +445,8 @@ Optional arg EMPTY is message to print if no macros are defined."
 
 ;;;###autoload
 (defun kmacro-exec-ring-item (item arg)
-  "Execute item ITEM from the macro ring."
+  "Execute item ITEM from the macro ring.
+ARG is the number of times to execute the item."
   ;; Use counter and format specific to the macro on the ring!
   (let ((kmacro-counter (nth 1 item))
 	(kmacro-counter-format-start (nth 2 item)))
@@ -481,7 +483,8 @@ without repeating the prefix."
 
 (defun kmacro-cycle-ring-next (&optional _arg)
   "Move to next keyboard macro in keyboard macro ring.
-Displays the selected macro in the echo area."
+Displays the selected macro in the echo area.
+The ARG parameter is unused."
   (interactive)
   (unless (kmacro-ring-empty-p)
     (kmacro-push-ring)
@@ -500,7 +503,8 @@ Displays the selected macro in the echo area."
 
 (defun kmacro-cycle-ring-previous (&optional _arg)
   "Move to previous keyboard macro in keyboard macro ring.
-Displays the selected macro in the echo area."
+Displays the selected macro in the echo area.
+The ARG parameter is unused."
   (interactive)
   (unless (kmacro-ring-empty-p)
     (let ((keys (kmacro-get-repeat-prefix))
@@ -527,7 +531,8 @@ Displays the selected macro in the echo area."
 
 
 (defun kmacro-delete-ring-head (&optional _arg)
-  "Delete current macro from keyboard macro ring."
+  "Delete current macro from keyboard macro ring.
+The ARG parameter is unused."
   (interactive)
   (unless (kmacro-ring-empty-p t)
     (if (null kmacro-ring)
@@ -613,9 +618,10 @@ An argument of zero means repeat until error."
 
 
 ;;;###autoload
-(defun kmacro-call-macro (arg &optional no-repeat end-macro)
-  "Call the last keyboard macro that you defined with \\[kmacro-start-macro].
+(defun kmacro-call-macro (arg &optional no-repeat end-macro macro)
+  "Call the keyboard MACRO that you defined with \\[kmacro-start-macro].
 A prefix argument serves as a repeat count.  Zero means repeat until error.
+MACRO defaults to `last-kbd-macro'.
 
 When you call the macro, you can call the macro again by repeating
 just the last key in the key sequence that you used to call this
@@ -631,8 +637,9 @@ others, use \\[kmacro-name-last-macro]."
                              (eq no-repeat 'repeating))
 			 last-input-event)))
     (if end-macro
-	(kmacro-end-macro arg)
-      (call-last-kbd-macro arg #'kmacro-loop-setup-function))
+	(kmacro-end-macro arg)		; modifies last-kbd-macro
+      (let ((last-kbd-macro (or macro last-kbd-macro)))
+	(call-last-kbd-macro arg #'kmacro-loop-setup-function)))
     (when (consp arg)
       (setq arg (car arg)))
     (when (and (or (null arg) (> arg 0))
@@ -647,15 +654,17 @@ others, use \\[kmacro-name-last-macro]."
 		 (if (and kmacro-call-repeat-with-arg
 			  arg (> arg 1))
 		     (format " %d times" arg) "")))
-      ;; Can't use the `keep-pred' arg because this overlay keymap needs to be
-      ;; removed during the next run of the kmacro (i.e. we need to add&remove
-      ;; this overlay-map at each repetition).
-      (set-temporary-overlay-map
+      ;; Can't use the `keep-pred' arg because this overlay keymap
+      ;; needs to be removed during the next run of the kmacro
+      ;; (i.e. we must add and remove this map at each repetition).
+      (set-transient-map
        (let ((map (make-sparse-keymap)))
          (define-key map (vector repeat-key)
            `(lambda () (interactive)
               (kmacro-call-macro ,(and kmacro-call-repeat-with-arg arg)
-                                 'repeating)))
+                                 'repeating nil ,(if end-macro
+						     last-kbd-macro
+						   (or macro last-kbd-macro)))))
          map)))))
 
 
@@ -787,7 +796,8 @@ You can bind to any valid key sequence, but if you try to bind to
 a key with an existing command binding, you will be asked for
 confirmation whether to replace that binding.  Note that the
 binding is made in the `global-map' keymap, so the macro binding
-may be shaded by a local key binding."
+may be shaded by a local key binding.
+The ARG parameter is unused."
   (interactive "p")
   (if (or defining-kbd-macro executing-kbd-macro)
       (if defining-kbd-macro
@@ -836,9 +846,31 @@ Such a \"function\" cannot be called from Lisp, but it is a valid editor command
   (put symbol 'kmacro t))
 
 
+(defun kmacro-execute-from-register (k)
+  (kmacro-call-macro current-prefix-arg nil nil k))
+
+(defun kmacro-to-register (r)
+  "Store the last keyboard macro in register R.
+
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive
+   (progn
+     (or last-kbd-macro (error "No keyboard macro defined"))
+     (list (register-read-with-preview "Save to register: "))))
+  (set-register r (registerv-make
+		   last-kbd-macro
+		   :jump-func 'kmacro-execute-from-register
+		   :print-func (lambda (k)
+				 (princ (format "a keyboard macro:\n   %s"
+						(format-kbd-macro k))))
+		   :insert-func (lambda (k)
+				  (insert (format-kbd-macro k))))))
+
+
 (defun kmacro-view-macro (&optional _arg)
   "Display the last keyboard macro.
-If repeated, it shows previous elements in the macro ring."
+If repeated, it shows previous elements in the macro ring.
+The ARG parameter is unused."
   (interactive)
   (cond
    ((or (kmacro-ring-empty-p)
@@ -1170,12 +1202,10 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	  (setq cmd 'ignore)
 	  nil)
 	 ((memq cmd kmacro-step-edit-prefix-commands)
-	  (setq universal-argument-num-events 0)
 	  (reset-this-command-lengths)
 	  nil)
 	 ((eq cmd 'universal-argument-other-key)
 	  (setq kmacro-step-edit-action t)
-	  (setq universal-argument-num-events 0)
 	  (reset-this-command-lengths)
 	  (if (numberp kmacro-step-edit-inserting)
 	      (setq kmacro-step-edit-inserting nil))
@@ -1190,7 +1220,6 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	  (setq kmacro-step-edit-prefix-index nil)
 	  (reset-this-command-lengths)
 	  (setq overriding-terminal-local-map nil)
-	  (setq universal-argument-num-events nil)
 	  (setq next-index kmacro-step-edit-key-index)
 	  t)
 	 (t nil))

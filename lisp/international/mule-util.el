@@ -1,6 +1,6 @@
 ;;; mule-util.el --- utility functions for multilingual environment (mule)
 
-;; Copyright (C) 1997-1998, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2014 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -124,59 +124,6 @@ defaults to \"...\"."
 	  (setq tail-padding (make-string (- end-column column) padding))))
       (concat head-padding (substring str from-idx idx)
 	      tail-padding ellipsis))))
-
-;;; Test suite for truncate-string-to-width
-;; (dolist (test '((("" 0) . "")
-;; 		(("x" 1) . "x")
-;; 		(("xy" 1) . "x")
-;; 		(("xy" 2 1) . "y")
-;; 		(("xy" 0) . "")
-;; 		(("xy" 3) . "xy")
-;; 		(("$AVP(B" 0) . "")
-;; 		(("$AVP(B" 1) . "")
-;; 		(("$AVP(B" 2) . "$AVP(B")
-;; 		(("$AVP(B" 1 nil ? ) . " ")
-;; 		(("$AVPND(B" 3 1 ? ) . "  ")
-;; 		(("x$AVP(Bx" 2) . "x")
-;; 		(("x$AVP(Bx" 3) . "x$AVP(B")
-;; 		(("x$AVP(Bx" 3) . "x$AVP(B")
-;; 		(("x$AVP(Bx" 4 1) . "$AVP(Bx")
-;; 		(("kor$(CGQ(Be$(C1[(Ban" 8 1 ? ) . "or$(CGQ(Be$(C1[(B")
-;; 		(("kor$(CGQ(Be$(C1[(Ban" 7 2 ? ) . "r$(CGQ(Be ")
-;; 		(("" 0 nil nil "...") . "")
-;; 		(("x" 3 nil nil "...") . "x")
-;; 		(("$AVP(B" 3 nil nil "...") . "$AVP(B")
-;; 		(("foo" 3 nil nil "...") . "foo")
-;; 		(("foo" 2 nil nil "...") . "fo") ;; XEmacs failure?
-;; 		(("foobar" 6 0 nil "...") . "foobar")
-;; 		(("foobarbaz" 6 nil nil "...") . "foo...")
-;; 		(("foobarbaz" 7 2 nil "...") . "ob...")
-;; 		(("foobarbaz" 9 3 nil "...") . "barbaz")
-;; 		(("$A$3(Bh$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo" 15 1 ?  t) . " h$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo")
-;; 		(("$A$3(Bh$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo" 14 1 ?  t) . " h$A$s(Be$A$K(Bl$A$A(B...")
-;; 		(("x" 3 nil nil "$(Gemk#(B") . "x")
-;; 		(("$AVP(B" 2 nil nil "$(Gemk#(B") . "$AVP(B")
-;; 		(("$AVP(B" 1 nil ?x "$(Gemk#(B") . "x") ;; XEmacs error
-;; 		(("$AVPND(B" 3 nil ?  "$(Gemk#(B") . "$AVP(B ") ;; XEmacs error
-;; 		(("foobarbaz" 4 nil nil  "$(Gemk#(B") . "$(Gemk#(B")
-;; 		(("foobarbaz" 5 nil nil  "$(Gemk#(B") . "f$(Gemk#(B")
-;; 		(("foobarbaz" 6 nil nil  "$(Gemk#(B") . "fo$(Gemk#(B")
-;; 		(("foobarbaz" 8 3 nil "$(Gemk#(B") . "b$(Gemk#(B")
-;; 		(("$A$3(Bh$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo" 14 4 ?x "$AHU1>$(Gk#(B") . "xe$A$KHU1>$(Gk#(B")
-;; 		(("$A$3(Bh$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo" 13 4 ?x "$AHU1>$(Gk#(B") . "xex$AHU1>$(Gk#(B")
-;; 		))
-;;   (let (ret)
-;;     (condition-case e
-;; 	(setq ret (apply #'truncate-string-to-width (car test)))
-;;       (error (setq ret e)))
-;;     (unless (equal ret (cdr test))
-;;       (error "%s: expected %s, got %s"
-;; 	     (prin1-to-string (cons 'truncate-string-to-width (car test)))
-;; 	     (prin1-to-string (cdr test))
-;; 	     (if (consp ret)
-;; 		 (format "error: %s: %s" (car ret)
-;; 			 (prin1-to-string (cdr ret)))
-;; 	       (prin1-to-string ret))))))
 
 
 ;;; Nested alist handler.  Nested alist is alist whose elements are
@@ -367,7 +314,7 @@ per-character basis, this may not be accurate."
 (provide 'mule-util)
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; End:
 
 ;;; mule-util.el ends here

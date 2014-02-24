@@ -1,6 +1,6 @@
 ;;; python.wy -- LALR grammar for Python
 
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 ;; Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
 ;; 2009, 2010 Python Software Foundation; All Rights Reserved
 
@@ -91,8 +91,12 @@
 %provide semantic/wisent/python-wy
 
 %{
-(declare-function wisent-python-reconstitute-function-tag "semantic/wisent/python")
-(declare-function wisent-python-reconstitute-class-tag "semantic/wisent/python")
+(declare-function wisent-python-reconstitute-function-tag
+		  "semantic/wisent/python" (tag suite))
+(declare-function wisent-python-reconstitute-class-tag "semantic/wisent/python"
+		  (tag))
+(declare-function semantic-parse-region "semantic"
+		  (start end &optional nonterminal depth returnonerror))
 }
 
 %languagemode python-mode

@@ -1,6 +1,6 @@
 ;;; org-faces.el --- Face definitions for Org-mode.
 
-;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2014 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -202,7 +202,7 @@ set the properties in the `org-column' face.  For example, set
 
 Under XEmacs, the rules are simpler, because the XEmacs version of
 column view defines special faces for each outline level.  See the file
-`org-colview-xemacs.el' for details."
+`org-colview-xemacs.el' in Org's contrib/ directory for details."
   :group 'org-faces)
 
 (defface org-column-title
@@ -216,12 +216,6 @@ column view defines special faces for each outline level.  See the file
       (t (:inverse-video t))))
   "Face for column display of entry properties."
   :group 'org-faces)
-
-(when (fboundp 'set-face-attribute)
-  ;; Make sure that a fixed-width face is used when we have a column table.
-  (set-face-attribute 'org-column nil
-		      :height (face-attribute 'default :height)
-		      :family (face-attribute 'default :family)))
 
 (defface org-agenda-column-dateline
   (org-compatible-face 'org-column
@@ -264,7 +258,7 @@ column view defines special faces for each outline level.  See the file
   '((((class color) (background light)) (:foreground "Purple" :underline t))
     (((class color) (background dark)) (:foreground "Cyan" :underline t))
     (t (:underline t)))
-  "Face for links."
+  "Face for footnotes."
   :group 'org-faces)
 
 (defface org-ellipsis
@@ -393,6 +387,14 @@ determines if it is a foreground or a background color."
 	   (choice :tag "Face   "
 		   (string :tag "Color")
 		   (sexp :tag "Face")))))
+
+(defface org-priority ;; originally copied from font-lock-string-face
+  (org-compatible-face 'font-lock-keyword-face
+    '((((class color) (min-colors 16) (background light)) (:foreground "RosyBrown"))
+      (((class color) (min-colors 16) (background dark)) (:foreground "LightSalmon"))
+      (t (:italic t))))
+  "Face used for priority cookies."
+  :group 'org-faces)
 
 (defcustom org-priority-faces nil
   "Faces for specific Priorities.
@@ -685,25 +687,28 @@ month and 365.24 days for a year)."
 
 (defface org-agenda-restriction-lock
   (org-compatible-face nil
-    '((((class color) (min-colors 88) (background light)) (:background "yellow1"))
-      (((class color) (min-colors 88) (background dark))  (:background "skyblue4"))
-      (((class color) (min-colors 16) (background light)) (:background "yellow1"))
-      (((class color) (min-colors 16) (background dark))  (:background "skyblue4"))
+    '((((class color) (min-colors 88) (background light)) (:background "#eeeeee"))
+      (((class color) (min-colors 88) (background dark))  (:background "#1C1C1C"))
+      (((class color) (min-colors 16) (background light)) (:background "#eeeeee"))
+      (((class color) (min-colors 16) (background dark))  (:background "#1C1C1C"))
       (((class color) (min-colors 8)) (:background "cyan" :foreground "black"))
       (t (:inverse-video t))))
   "Face for showing the agenda restriction lock."
   :group 'org-faces)
 
 (defface org-agenda-filter-tags
-  (org-compatible-face 'mode-line
-    nil)
+  (org-compatible-face 'mode-line nil)
   "Face for tag(s) in the mode-line when filtering the agenda."
   :group 'org-faces)
 
+(defface org-agenda-filter-regexp
+  (org-compatible-face 'mode-line nil)
+  "Face for regexp(s) in the mode-line when filtering the agenda."
+  :group 'org-faces)
+
 (defface org-agenda-filter-category
-  (org-compatible-face 'mode-line
-    nil)
-  "Face for tag(s) in the mode-line when filtering the agenda."
+  (org-compatible-face 'mode-line nil)
+  "Face for categories(s) in the mode-line when filtering the agenda."
   :group 'org-faces)
 
 (defface org-time-grid ;; originally copied from font-lock-variable-name-face
@@ -718,20 +723,17 @@ month and 365.24 days for a year)."
   "Face used to show the current time in the time grid.")
 
 (defface org-agenda-diary
-  (org-compatible-face 'default
-    nil)
+  (org-compatible-face 'default nil)
   "Face used for agenda entries that come from the Emacs diary."
   :group 'org-faces)
 
 (defface org-agenda-calendar-event
-  (org-compatible-face 'default
-    nil)
+  (org-compatible-face 'default nil)
   "Face used to show events and appointments in the agenda."
   :group 'org-faces)
 
 (defface org-agenda-calendar-sexp
-  (org-compatible-face 'default
-    nil)
+  (org-compatible-face 'default nil)
   "Face used to show events computed from a S-expression."
   :group 'org-faces)
 
@@ -757,7 +759,7 @@ level org-n-level-faces"
   :version "24.1"
   :type 'boolean)
 
-(defface org-latex-and-export-specials
+(defface org-latex-and-related
   (let ((font (cond ((assq :inherit custom-face-attributes)
 		     '(:inherit underline))
 		    (t '(:underline t)))))
@@ -770,8 +772,24 @@ level org-n-level-faces"
       (((class color) (background dark))
        (:foreground "burlywood"))
       (t (,@font))))
-  "Face used to highlight math latex and other special exporter stuff."
-  :group 'org-faces)
+  "Face used to highlight LaTeX data, entities and sub/superscript."
+  :group 'org-faces
+  :version "24.4"
+  :package-version '(Org . "8.0"))
+
+(defface org-macro
+  (org-compatible-face 'org-latex-and-related nil)
+  "Face for macros."
+  :group 'org-faces
+  :version "24.4"
+  :package-version '(Org . "8.0"))
+
+(defface org-tag-group
+  (org-compatible-face 'org-tag nil)
+  "Face for group tags."
+  :group 'org-faces
+  :version "24.4"
+  :package-version '(Org . "8.0"))
 
 (org-copy-face 'mode-line 'org-mode-line-clock
   "Face used for clock display in mode line.")

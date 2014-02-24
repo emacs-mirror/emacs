@@ -1,6 +1,6 @@
 ;;; semantic/fw.el --- Framework for Semantic
 
-;;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -123,8 +123,7 @@
 
 
   (defalias 'semantic-make-local-hook
-    (if (and (not (featurep 'xemacs))
-             (>= emacs-major-version 21))
+    (if (featurep 'emacs)
         #'identity  #'make-local-hook))
 
   (defalias 'semantic-mode-line-update
@@ -322,6 +321,15 @@ Avoid using a large BODY since it is duplicated."
 
 ;;; Misc utilities
 ;;
+
+(defvar semantic-new-buffer-fcn-was-run nil
+  "Non-nil after `semantic-new-buffer-fcn' has been executed.")
+(make-variable-buffer-local 'semantic-new-buffer-fcn-was-run)
+
+(defsubst semantic-active-p ()
+  "Return non-nil if the current buffer was set up for parsing."
+  semantic-new-buffer-fcn-was-run)
+
 (defsubst semantic-map-buffers (function)
   "Run FUNCTION for each Semantic enabled buffer found.
 FUNCTION does not have arguments.  When FUNCTION is entered
@@ -361,6 +369,8 @@ later installation should be done in MODE hook."
 ;;
 (defvar semantic-current-input-throw-symbol nil
   "The current throw symbol for `semantic-exit-on-input'.")
+(defvar semantic--on-input-start-marker nil
+  "The marker when starting a semantic-exit-on-input form.")
 
 (defmacro semantic-exit-on-input (symbol &rest forms)
   "Using SYMBOL as an argument to `throw', execute FORMS.
@@ -368,7 +378,8 @@ If FORMS includes a call to `semantic-throw-on-input', then
 if a user presses any key during execution, this form macro
 will exit with the value passed to `semantic-throw-on-input'.
 If FORMS completes, then the return value is the same as `progn'."
-  `(let ((semantic-current-input-throw-symbol ,symbol))
+  `(let ((semantic-current-input-throw-symbol ,symbol)
+         (semantic--on-input-start-marker (point-marker)))
      (catch ,symbol
        ,@forms)))
 (put 'semantic-exit-on-input 'lisp-indent-function 1)
@@ -379,7 +390,16 @@ FROM is an indication of where this function is called from as a value
 to pass to `throw'.  It is recommended to use the name of the function
 calling this one."
   `(when (and semantic-current-input-throw-symbol
-              (or (input-pending-p) (accept-process-output)))
+              (or (input-pending-p)
+                  (save-excursion
+                    ;; Timers might run during accept-process-output.
+                    ;; If they redisplay, point must be where the user
+                    ;; expects. (Bug#15045)
+                    (set-buffer (marker-buffer
+                                 semantic--on-input-start-marker))
+                    (goto-char (marker-position
+                                semantic--on-input-start-marker))
+                    (accept-process-output))))
      (throw semantic-current-input-throw-symbol ,from)))
 
 

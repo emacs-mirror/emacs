@@ -1,6 +1,6 @@
 ;;; url-util.el --- Miscellaneous helper routines for URL library
 
-;; Copyright (C) 1996-1999, 2001, 2004-2013 Free Software Foundation,
+;; Copyright (C) 1996-1999, 2001, 2004-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
@@ -211,15 +211,9 @@ Will not do anything if `url-show-status' is nil."
       (setq z (1+ z)))
     (substring x z nil)))
 
-;;;###autoload
-(defun url-pretty-length (n)
-  (cond
-   ((< n 1024)
-    (format "%d bytes" n))
-   ((< n (* 1024 1024))
-    (format "%dk" (/ n 1024.0)))
-   (t
-    (format "%2.2fM" (/ n (* 1024 1024.0))))))
+
+(define-obsolete-function-alias 'url-pretty-length
+  'file-size-human-readable "24.4")
 
 ;;;###autoload
 (defun url-display-percentage (fmt perc &rest args)

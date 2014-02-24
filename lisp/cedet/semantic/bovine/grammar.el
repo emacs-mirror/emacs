@@ -1,6 +1,6 @@
 ;;; semantic/bovine/grammar.el --- Bovine's input grammar mode
 ;;
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -443,34 +443,39 @@ Menu items are appended to the common grammar menu.")
     )
   "Semantic grammar macros used in bovine grammars.")
 
-(defun bovine-make-parsers ()
-  "Generate Emacs' built-in Bovine-based parser files."
-  (interactive)
-  (semantic-mode 1)
-  ;; Loop through each .by file in current directory, and run
-  ;; `semantic-grammar-batch-build-one-package' to build the grammar.
-  (dolist (f (directory-files default-directory nil "\\.by\\'"))
-    (let ((packagename
-           (condition-case err
-               (with-current-buffer (find-file-noselect f)
-                 (semantic-grammar-create-package))
-             (error (message "%s" (error-message-string err)) nil)))
-	  lang filename)
-      (when (and packagename
-		 (string-match "^.*/\\(.*\\)-by\\.el\\'" packagename))
-	(setq lang (match-string 1 packagename))
-	(setq filename (concat lang "-by.el"))
-	(with-temp-buffer
-	  (insert-file-contents filename)
-	  (setq buffer-file-name (expand-file-name filename))
-	  ;; Fix copyright header:
-	  (goto-char (point-min))
-	  (re-search-forward "^;; Author:")
-	  (setq copyright-end (match-beginning 0))
-	  (re-search-forward "^;;; Code:\n")
-	  (delete-region copyright-end (match-end 0))
-	  (goto-char copyright-end)
-	  (insert ";; This file is part of GNU Emacs.
+(defun bovine--make-parser-1 (infile &optional outdir)
+  (if outdir (setq outdir (file-name-directory (expand-file-name outdir))))
+  ;; It would be nicer to use a temp-buffer rather than find-file-noselect.
+  ;; The only thing stopping us is bovine-grammar-setupcode-builder's
+  ;; use of (buffer-name).  Perhaps that could be changed to
+  ;; (file-name-nondirectory (buffer-file-name)) ?
+;;  (with-temp-buffer
+;;    (insert-file-contents infile)
+;;    (bovine-grammar-mode)
+;;    (setq buffer-file-name (expand-file-name infile))
+;;    (if outdir (setq default-directory outdir))
+  (let ((packagename
+	 ;; This is with-demoted-errors.
+	 (condition-case err
+	     (with-current-buffer (find-file-noselect infile)
+	       (if outdir (setq default-directory outdir))
+	       (semantic-grammar-create-package nil t))
+	   (error (message "%s" (error-message-string err)) nil)))
+	lang filename copyright-end)
+    (when (and packagename
+	       (string-match "^.*/\\(.*\\)-by\\.el\\'" packagename))
+      (setq lang (match-string 1 packagename))
+      (setq filename (expand-file-name (concat lang "-by.el") outdir))
+      (with-temp-file filename
+	(insert-file-contents filename)
+	;; Fix copyright header:
+	(goto-char (point-min))
+	(re-search-forward "^;; Author:")
+	(setq copyright-end (match-beginning 0))
+	(re-search-forward "^;;; Code:\n")
+	(delete-region copyright-end (match-end 0))
+	(goto-char copyright-end)
+	(insert ";; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -488,19 +493,55 @@ Menu items are appended to the common grammar menu.")
 ;;; Commentary:
 ;;
 ;; This file was generated from admin/grammars/"
-		  lang ".by.
+		lang ".by.
 
 ;;; Code:
 ")
-	  (goto-char (point-min))
-	  (delete-region (point-min) (line-end-position))
-	  (insert ";;; " packagename
-		  " --- Generated parser support file")
-	  (delete-trailing-whitespace)
-	  (re-search-forward ";;; \\(.*\\) ends here")
-	  (replace-match packagename nil nil nil 1)
-	  (save-buffer))))))
+	(goto-char (point-min))
+	(delete-region (point-min) (line-end-position))
+	(insert ";;; " packagename
+		" --- Generated parser support file")
+	(delete-trailing-whitespace)
+	(re-search-forward ";;; \\(.*\\) ends here")
+	(replace-match packagename nil nil nil 1)))))
+
+(defun bovine-make-parsers ()
+  "Generate Emacs's built-in Bovine-based parser files."
+  (interactive)
+  (semantic-mode 1)
+  ;; Loop through each .by file in current directory, and run
+  ;; `semantic-grammar-batch-build-one-package' to build the grammar.
+  (dolist (f (directory-files default-directory nil "\\.by\\'"))
+    (bovine--make-parser-1 f)))
+
+
+(defun bovine-batch-make-parser (&optional infile outdir)
+  "Generate a Bovine parser from input INFILE, writing to OUTDIR.
+This is mainly intended for use in batch mode:
+
+emacs -batch -l semantic/bovine/grammar -f bovine-make-parser-batch \\
+   [-dir output-dir | -o output-file] file.by
+
+If -o is supplied, only the directory part is used."
+  (semantic-mode 1)
+  (when (and noninteractive (not infile))
+    (let (arg)
+      (while command-line-args-left
+	(setq arg (pop command-line-args-left))
+	(cond ((string-equal arg "-dir")
+	       (setq outdir (pop command-line-args-left)))
+	      ((string-equal arg "-o")
+	       (setq outdir (file-name-directory (pop command-line-args-left))))
+	      (t (setq infile arg))))))
+  (or infile (error "No input file specified"))
+  (or (file-readable-p infile)
+      (error "Input file `%s' not readable" infile))
+  (bovine--make-parser-1 infile outdir))
 
 (provide 'semantic/bovine/grammar)
+
+;; Local variables:
+;; generated-autoload-load-name: "semantic/bovine/grammar"
+;; End:
 
 ;;; semantic/bovine/grammar.el ends here

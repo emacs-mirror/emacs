@@ -1,5 +1,5 @@
 ;;; org-mobile.el --- Code for asymmetric sync with a mobile device
-;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2014 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -75,6 +75,13 @@ org-agenda-text-search-extra-files
   "The WebDAV directory where the interaction with the mobile takes place."
   :group 'org-mobile
   :type 'directory)
+
+(defcustom org-mobile-allpriorities "A B C"
+  "Default set of priority cookies for the index file."
+  :version "24.4"
+  :package-version '(Org . "8.0")
+  :type 'string
+  :group 'org-mobile)
 
 (defcustom org-mobile-use-encryption nil
   "Non-nil means keep only encrypted files on the WebDAV server.
@@ -276,7 +283,7 @@ Also exclude files matching `org-mobile-files-exclude-regexp'."
 		      (list f))
 		     (t nil)))
 		  org-mobile-files)))
-	 (files (delete
+	 (files (delq
 		 nil
 		 (mapcar (lambda (f)
 			   (unless (and (not (string= org-mobile-files-exclude-regexp ""))
@@ -300,8 +307,6 @@ Also exclude files matching `org-mobile-files-exclude-regexp'."
 	(push (cons file link-name) rtn)))
     (nreverse rtn)))
 
-(defvar org-agenda-filter)
-
 ;;;###autoload
 (defun org-mobile-push ()
   "Push the current state of Org affairs to the target directory.
@@ -314,23 +319,24 @@ create all custom agenda views, for upload to the mobile phone."
 	  (org-agenda-tag-filter org-agenda-tag-filter)
 	  (org-agenda-redo-command org-agenda-redo-command))
       (save-excursion
-	(save-window-excursion
-	  (run-hooks 'org-mobile-pre-push-hook)
-	  (org-mobile-check-setup)
-	  (org-mobile-prepare-file-lists)
-	  (message "Creating agendas...")
-	  (let ((inhibit-redisplay t)
-		(org-agenda-files (mapcar 'car org-mobile-files-alist)))
-	    (org-mobile-create-sumo-agenda))
-	  (message "Creating agendas...done")
-	  (org-save-all-org-buffers) ; to save any IDs created by this process
-	  (message "Copying files...")
-	  (org-mobile-copy-agenda-files)
-	  (message "Writing index file...")
-	  (org-mobile-create-index-file)
-	  (message "Writing checksums...")
-	  (org-mobile-write-checksums)
-	  (run-hooks 'org-mobile-post-push-hook)))
+	(save-restriction
+	  (save-window-excursion
+	    (run-hooks 'org-mobile-pre-push-hook)
+	    (org-mobile-check-setup)
+	    (org-mobile-prepare-file-lists)
+	    (message "Creating agendas...")
+	    (let ((inhibit-redisplay t)
+		  (org-agenda-files (mapcar 'car org-mobile-files-alist)))
+	      (org-mobile-create-sumo-agenda))
+	    (message "Creating agendas...done")
+	    (org-save-all-org-buffers) ; to save any IDs created by this process
+	    (message "Copying files...")
+	    (org-mobile-copy-agenda-files)
+	    (message "Writing index file...")
+	    (org-mobile-create-index-file)
+	    (message "Writing checksums...")
+	    (org-mobile-write-checksums)
+	    (run-hooks 'org-mobile-post-push-hook))))
       (setq org-agenda-buffer-name org-agenda-curbuf-name
 	    org-agenda-this-buffer-name org-agenda-curbuf-name))
     (redraw-display)
@@ -463,7 +469,7 @@ agenda view showing the flagged items."
       (setq tags (append def-tags tags nil))
       (insert "#+TAGS: " (mapconcat 'identity tags " ") "\n")
       (insert "#+DRAWERS: " (mapconcat 'identity drawers " ") "\n")
-      (insert "#+ALLPRIORITIES: A B C" "\n")
+      (insert "#+ALLPRIORITIES: " org-mobile-allpriorities "\n")
       (when (file-exists-p (expand-file-name
 			    org-mobile-directory "agendas.org"))
 	(insert "* [[file:agendas.org][Agenda Views]]\n"))
@@ -1061,10 +1067,13 @@ be returned that indicates what went wrong."
 	 (t (error "Heading changed in MobileOrg and on the computer")))))
 
      ((eq what 'addheading)
-      (if (org-on-heading-p) ; if false we are in top-level of file
+      (if (org-at-heading-p) ; if false we are in top-level of file
 	  (progn
+	    ;; Workaround a `org-insert-heading-respect-content' bug
+	    ;; which prevents correct insertion when point is invisible
+	    (org-show-subtree)
 	    (end-of-line 1)
-	    (org-insert-heading-respect-content t)
+	    (org-insert-heading-respect-content '(16) t)
 	    (org-demote))
 	(beginning-of-line)
 	(insert "* "))
@@ -1073,7 +1082,7 @@ be returned that indicates what went wrong."
      ((eq what 'refile)
       (org-copy-subtree)
       (org-with-point-at (org-mobile-locate-entry new)
-	(if (org-on-heading-p) ; if false we are in top-level of file
+	(if (org-at-heading-p) ; if false we are in top-level of file
 	    (progn
 	      (setq level (org-get-valid-level (funcall outline-level) 1))
 	      (org-end-of-subtree t t)

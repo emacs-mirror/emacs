@@ -1,5 +1,7 @@
+### @configure_input@
+
 # Copyright (C) 1992, 1993 Lucid, Inc.
-# Copyright (C) 1994, 2001-2013 Free Software Foundation, Inc.
+# Copyright (C) 1994, 2001-2014 Free Software Foundation, Inc.
 #
 # This file is part of the Lucid Widget Library.
 #
@@ -21,6 +23,8 @@
 # and set up to be configured by ../configure.
 
 srcdir=@srcdir@
+# MinGW CPPFLAGS may use this.
+abs_top_srcdir=@abs_top_srcdir@
 VPATH=@srcdir@
 @SET_MAKE@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
@@ -57,10 +61,11 @@ ALL_CFLAGS= $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   -Demacs -I../src \
   -I$(srcdir) -I$(srcdir)/../src -I../lib -I$(srcdir)/../lib
 
+all: liblw.a
+.PHONY: all
+
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
-
-all:: liblw.a
 
 liblw.a: $(OBJS)
 	rm -f $@
@@ -95,7 +100,15 @@ distclean: clean
 maintainer-clean: distclean
 	rm -f TAGS
 
-TAGS:
-	../lib-src/etags $(srcdir)/*.[ch]
+
+ETAGS = ../lib-src/etags
+
+ctagsfiles= $(srcdir)/*.[ch]
+
+TAGS: $(ctagsfiles)
+	"$(ETAGS)" $(ctagsfiles)
 tags: TAGS
 .PHONY: tags
+
+
+### Makefile.in ends here

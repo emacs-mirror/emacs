@@ -72,7 +72,7 @@ and co-wrote cc-align.el cc-cmds.el cc-defs.el cc-engine.el cc-fonts.el
   cc-langs.el cc-mode.el cc-styles.el cc-vars.el
 and changed cc-mode.texi lread.c programs.texi font-lock.el font-core.el
   isearch.el lisp.el modes.texi cc-subword.el display.texi os.texi
-  search.texi startup.el subr.el text.texi INSTALL.BZR add-log.el
+  search.texi startup.el subr.el text.texi INSTALL.REPO add-log.el
   buffers.texi bytecomp.el callint.c cc-fix.el and 22 other files
 
 Alan Shutko: changed diary-lib.el calendar.el bindings.el cal-hebrew.el
@@ -1986,7 +1986,7 @@ Karl Eichwalder: changed Makefile.in add-log.el bookmark.el dired-aux.el
 
 Karl Fogel: wrote bookmark.el mail-hist.el saveplace.el
 and changed files.el doc-view.el image-mode.el info.el simple.el INSTALL
-  autogen.sh isearch.el menu-bar.el thingatpt.el INSTALL.BZR configure
+  autogen.sh isearch.el menu-bar.el thingatpt.el INSTALL.REPO configure
   configure.in editfns.c gnus-bookmark.el gnus-msg.el gnus-sum.el man.el
   nnmail.el org-agenda.el vc-svn.el and 4 other files
 

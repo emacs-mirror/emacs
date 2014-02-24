@@ -1,9 +1,9 @@
 ;;; help-macro.el --- makes command line help such as help-for-help
 
-;; Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Lynn Slater <lrs@indetech.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: Mon Oct  1 11:42:39 1990
 ;; Adapted-By: ESR
 ;; Package: emacs
@@ -136,9 +136,9 @@ and then returns."
 		     (setq config (current-window-configuration))
 		     (pop-to-buffer " *Metahelp*" nil t)
 		     (and (fboundp 'make-frame)
-			  (not (eq (window-frame (selected-window))
+			  (not (eq (window-frame)
 				   prev-frame))
-			  (setq new-frame (window-frame (selected-window))
+			  (setq new-frame (window-frame)
 				config nil))
 		     (setq buffer-read-only nil)
 		     (let ((inhibit-read-only t))

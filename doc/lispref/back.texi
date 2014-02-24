@@ -1,11 +1,12 @@
 \input texinfo  @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2001-2013 Free Software Foundation, Inc.
+@c Copyright (C) 2001-2014 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @c
 @c %**start of header
 @setfilename back-cover
 @settitle GNU Emacs Lisp Reference Manual
+@documentencoding UTF-8
 @c %**end of header
 .
 @sp 7

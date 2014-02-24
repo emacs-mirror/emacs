@@ -1,9 +1,9 @@
 ;;; thingatpt.el --- get the `thing' at point
 
-;; Copyright (C) 1991-1998, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1998, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: extensions, matching, mouse
 ;; Created: Thu Mar 28 13:48:23 1991
 
@@ -84,64 +84,70 @@ positions of the thing found."
   (if (get thing 'bounds-of-thing-at-point)
       (funcall (get thing 'bounds-of-thing-at-point))
     (let ((orig (point)))
-      (condition-case nil
-	  (save-excursion
-	    ;; Try moving forward, then back.
-            (funcall ;; First move to end.
-             (or (get thing 'end-op)
-                 (lambda () (forward-thing thing 1))))
-            (funcall ;; Then move to beg.
-             (or (get thing 'beginning-op)
-                 (lambda () (forward-thing thing -1))))
-	    (let ((beg (point)))
-	      (if (<= beg orig)
-		  ;; If that brings us all the way back to ORIG,
-		  ;; it worked.  But END may not be the real end.
-		  ;; So find the real end that corresponds to BEG.
-                  ;; FIXME: in which cases can `real-end' differ from `end'?
-		  (let ((real-end
-			 (progn
-			   (funcall
-			    (or (get thing 'end-op)
-                                (lambda () (forward-thing thing 1))))
-			   (point))))
-		    (when (and (<= orig real-end) (< beg real-end))
-                      (cons beg real-end)))
-		(goto-char orig)
-		;; Try a second time, moving backward first and then forward,
-		;; so that we can find a thing that ends at ORIG.
-                (funcall ;; First, move to beg.
-                 (or (get thing 'beginning-op)
-                     (lambda () (forward-thing thing -1))))
-                (funcall ;; Then move to end.
-                 (or (get thing 'end-op)
-                     (lambda () (forward-thing thing 1))))
-		(let ((end (point))
-                      (real-beg
+      (ignore-errors
+	(save-excursion
+	  ;; Try moving forward, then back.
+	  (funcall ;; First move to end.
+	   (or (get thing 'end-op)
+	       (lambda () (forward-thing thing 1))))
+	  (funcall ;; Then move to beg.
+	   (or (get thing 'beginning-op)
+	       (lambda () (forward-thing thing -1))))
+	  (let ((beg (point)))
+	    (if (<= beg orig)
+		;; If that brings us all the way back to ORIG,
+		;; it worked.  But END may not be the real end.
+		;; So find the real end that corresponds to BEG.
+		;; FIXME: in which cases can `real-end' differ from `end'?
+		(let ((real-end
 		       (progn
 			 (funcall
-			  (or (get thing 'beginning-op)
-                              (lambda () (forward-thing thing -1))))
+			  (or (get thing 'end-op)
+			      (lambda () (forward-thing thing 1))))
 			 (point))))
-		  (if (and (<= real-beg orig) (<= orig end) (< real-beg end))
-		      (cons real-beg end))))))
-	(error nil)))))
+		  (when (and (<= orig real-end) (< beg real-end))
+		    (cons beg real-end)))
+	      (goto-char orig)
+	      ;; Try a second time, moving backward first and then forward,
+	      ;; so that we can find a thing that ends at ORIG.
+	      (funcall ;; First, move to beg.
+	       (or (get thing 'beginning-op)
+		   (lambda () (forward-thing thing -1))))
+	      (funcall ;; Then move to end.
+	       (or (get thing 'end-op)
+		   (lambda () (forward-thing thing 1))))
+	      (let ((end (point))
+		    (real-beg
+		     (progn
+		       (funcall
+			(or (get thing 'beginning-op)
+			    (lambda () (forward-thing thing -1))))
+		       (point))))
+		(if (and (<= real-beg orig) (<= orig end) (< real-beg end))
+		    (cons real-beg end))))))))))
 
 ;;;###autoload
-(defun thing-at-point (thing)
+(defun thing-at-point (thing &optional no-properties)
   "Return the THING at point.
 THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun',
 `filename', `url', `email', `word', `sentence', `whitespace',
 `line', `number', and `page'.
 
+When the optional argument NO-PROPERTIES is non-nil,
+strip text properties from the return value.
+
 See the file `thingatpt.el' for documentation on how to define
 a symbol as a valid THING."
-  (if (get thing 'thing-at-point)
-      (funcall (get thing 'thing-at-point))
-    (let ((bounds (bounds-of-thing-at-point thing)))
-      (if bounds
-	  (buffer-substring (car bounds) (cdr bounds))))))
+  (let ((text
+         (if (get thing 'thing-at-point)
+             (funcall (get thing 'thing-at-point))
+           (let ((bounds (bounds-of-thing-at-point thing)))
+             (when bounds
+               (buffer-substring (car bounds) (cdr bounds)))))))
+    (when (and text no-properties)
+      (set-text-properties 0 (length text) nil text))
+    text))
 
 ;; Go to beginning/end
 
@@ -182,7 +188,7 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 (defun end-of-sexp ()
   "Move point to the end of the current sexp.
 \[This is an internal function.]"
-  (let ((char-syntax (char-syntax (char-after))))
+  (let ((char-syntax (syntax-after (point))))
     (if (or (eq char-syntax ?\))
 	    (and (eq char-syntax ?\") (in-string-p)))
 	(forward-char 1)
@@ -210,21 +216,19 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 \[Internal function used by `bounds-of-thing-at-point'.]"
   (save-excursion
     (let ((opoint (point))
-	  (beg (condition-case nil
-		   (progn (up-list -1)
-			  (point))
-		 (error nil))))
-      (condition-case nil
-	  (if beg
-	      (progn (forward-sexp)
-		     (cons beg (point)))
-	    ;; Are we are at the beginning of a top-level sexp?
-	    (forward-sexp)
-	    (let ((end (point)))
-	      (backward-sexp)
-	      (if (>= opoint (point))
-		  (cons opoint end))))
-	(error nil)))))
+	  (beg (ignore-errors
+		 (up-list -1)
+		 (point))))
+      (ignore-errors
+	(if beg
+	    (progn (forward-sexp)
+		   (cons beg (point)))
+	  ;; Are we are at the beginning of a top-level sexp?
+	  (forward-sexp)
+	  (let ((end (point)))
+	    (backward-sexp)
+	    (if (>= opoint (point))
+		(cons opoint end))))))))
 
 ;; Defuns
 
@@ -351,7 +355,7 @@ the bounds of a possible ill-formed URI (one lacking a scheme)."
       (if found
 	  (cons (match-beginning 1) (match-end 1))))))
 
-(defun thing-at-point--bounds-of-well-formed-url (beg end pt)
+(defun thing-at-point--bounds-of-well-formed-url (beg end _pt)
   (save-excursion
     (goto-char beg)
     (let (url-beg paren-end regexp)
@@ -446,16 +450,14 @@ looks like an email address, \"ftp://\" if it starts with
 	 htb ret)
      (while htbs
        (setq htb (car htbs) htbs (cdr htbs))
-       (condition-case nil
-	   (progn
-	     ;; errs: htb symbol may be unbound, or not a hash-table.
-	     ;; gnus-gethash is just a macro for intern-soft.
-	     (and (symbol-value htb)
-		  (intern-soft string (symbol-value htb))
-		  (setq ret string htbs nil))
-	     ;; If we made it this far, gnus is running, so ignore "heads":
-	     (setq heads nil))
-	 (error nil)))
+       (ignore-errors
+	 ;; errs: htb symbol may be unbound, or not a hash-table.
+	 ;; gnus-gethash is just a macro for intern-soft.
+	 (and (symbol-value htb)
+	      (intern-soft string (symbol-value htb))
+	      (setq ret string htbs nil))
+	 ;; If we made it this far, gnus is running, so ignore "heads":
+	 (setq heads nil)))
      (or ret (not heads)
 	 (let ((head (string-match "\\`\\([[:lower:]]+\\)\\." string)))
 	   (and head (setq head (substring string 0 (match-end 1)))
@@ -474,19 +476,22 @@ looks like an email address, \"ftp://\" if it starts with
 ;; matches that straddle the start position so we search forwards once
 ;; and then back repeatedly and then back up a char at a time.
 
-(defun thing-at-point-looking-at (regexp)
+(defun thing-at-point-looking-at (regexp &optional distance)
   "Return non-nil if point is in or just after a match for REGEXP.
 Set the match data from the earliest such match ending at or after
 point."
   (save-excursion
-    (let ((old-point (point)) match)
+    (let ((old-point (point))
+	  (forward-bound (and distance (+ (point) distance)))
+	  (backward-bound (and distance (- (point) distance)))
+	  match)
       (and (looking-at regexp)
 	   (>= (match-end 0) old-point)
 	   (setq match (point)))
       ;; Search back repeatedly from end of next match.
       ;; This may fail if next match ends before this match does.
-      (re-search-forward regexp nil 'limit)
-      (while (and (re-search-backward regexp nil t)
+      (re-search-forward regexp forward-bound 'limit)
+      (while (and (re-search-backward regexp backward-bound t)
 		  (or (> (match-beginning 0) old-point)
 		      (and (looking-at regexp)	; Extend match-end past search start
 			   (>= (match-end 0) old-point)
@@ -516,7 +521,8 @@ with angle brackets.")
 
 (put 'email 'bounds-of-thing-at-point
      (lambda ()
-       (let ((thing (thing-at-point-looking-at thing-at-point-email-regexp)))
+       (let ((thing (thing-at-point-looking-at
+		     thing-at-point-email-regexp 500)))
          (if thing
              (let ((beginning (match-beginning 0))
                    (end (match-end 0)))
@@ -529,59 +535,10 @@ with angle brackets.")
              (buffer-substring-no-properties
               (car boundary-pair) (cdr boundary-pair))))))
 
-;;  Whitespace
-
-(defun forward-whitespace (arg)
-  "Move point to the end of the next sequence of whitespace chars.
-Each such sequence may be a single newline, or a sequence of
-consecutive space and/or tab characters.
-With prefix argument ARG, do it ARG times if positive, or move
-backwards ARG times if negative."
-  (interactive "p")
-  (if (natnump arg)
-      (re-search-forward "[ \t]+\\|\n" nil 'move arg)
-    (while (< arg 0)
-      (if (re-search-backward "[ \t]+\\|\n" nil 'move)
-	  (or (eq (char-after (match-beginning 0)) ?\n)
-	      (skip-chars-backward " \t")))
-      (setq arg (1+ arg)))))
-
 ;;  Buffer
 
 (put 'buffer 'end-op (lambda () (goto-char (point-max))))
 (put 'buffer 'beginning-op (lambda () (goto-char (point-min))))
-
-;;  Symbols
-
-(defun forward-symbol (arg)
-  "Move point to the next position that is the end of a symbol.
-A symbol is any sequence of characters that are in either the
-word constituent or symbol constituent syntax class.
-With prefix argument ARG, do it ARG times if positive, or move
-backwards ARG times if negative."
-  (interactive "p")
-  (if (natnump arg)
-      (re-search-forward "\\(\\sw\\|\\s_\\)+" nil 'move arg)
-    (while (< arg 0)
-      (if (re-search-backward "\\(\\sw\\|\\s_\\)+" nil 'move)
-	  (skip-syntax-backward "w_"))
-      (setq arg (1+ arg)))))
-
-;;  Syntax blocks
-
-(defun forward-same-syntax (&optional arg)
-  "Move point past all characters with the same syntax class.
-With prefix argument ARG, do it ARG times if positive, or move
-backwards ARG times if negative."
-  (interactive "p")
-  (or arg (setq arg 1))
-  (while (< arg 0)
-    (skip-syntax-backward
-     (char-to-string (char-syntax (char-before))))
-    (setq arg (1+ arg)))
-  (while (> arg 0)
-    (skip-syntax-forward (char-to-string (char-syntax (char-after))))
-    (setq arg (1- arg))))
 
 ;;  Aliases
 
@@ -608,9 +565,8 @@ Signal an error if the entire string was not used."
       (car read-data))))
 
 (defun form-at-point (&optional thing pred)
-  (let ((sexp (condition-case nil
-		  (read-from-whole-string (thing-at-point (or thing 'sexp)))
-		(error nil))))
+  (let ((sexp (ignore-errors
+		(read-from-whole-string (thing-at-point (or thing 'sexp))))))
     (if (or (not pred) (funcall pred sexp)) sexp)))
 
 ;;;###autoload

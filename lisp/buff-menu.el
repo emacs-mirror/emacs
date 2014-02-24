@@ -1,9 +1,9 @@
 ;;; buff-menu.el --- Interface for viewing and manipulating buffers
 
-;; Copyright (C) 1985-1987, 1993-1995, 2000-2013 Free Software
+;; Copyright (C) 1985-1987, 1993-1995, 2000-2014 Free Software
 ;; Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
 ;; Package: emacs
 
@@ -129,6 +129,7 @@ commands.")
     (define-key map "T" 'Buffer-menu-toggle-files-only)
     (define-key map (kbd "M-s a C-s")   'Buffer-menu-isearch-buffers)
     (define-key map (kbd "M-s a M-C-s") 'Buffer-menu-isearch-buffers-regexp)
+    (define-key map (kbd "M-s a C-o") 'Buffer-menu-multi-occur)
 
     (define-key map [mouse-2] 'Buffer-menu-mouse-select)
     (define-key map [follow-link] 'mouse-face)
@@ -169,6 +170,9 @@ commands.")
     (bindings--define-key menu-map [ir]
       '(menu-item "Isearch Marked Buffers..." Buffer-menu-isearch-buffers
 		 :help "Search for a string through all marked buffers using Isearch"))
+    (bindings--define-key menu-map [mo]
+      '(menu-item "Multi Occur Marked Buffers..." Buffer-menu-multi-occur
+		 :help "Show lines matching a regexp in marked buffers using Occur"))
     (bindings--define-key menu-map [s3] menu-bar-separator)
     (bindings--define-key menu-map [by]
       '(menu-item "Bury" Buffer-menu-bury
@@ -226,6 +230,7 @@ In Buffer Menu mode, the following commands are defined:
      buffer selected before this one in another window.
 \\[Buffer-menu-isearch-buffers]    Incremental search in the marked buffers.
 \\[Buffer-menu-isearch-buffers-regexp]  Isearch for regexp in the marked buffers.
+\\[Buffer-menu-multi-occur] Show lines matching regexp in the marked buffers.
 \\[Buffer-menu-visit-tags-table]    visit-tags-table this buffer.
 \\[Buffer-menu-not-modified]    Clear modified-flag on that buffer.
 \\[Buffer-menu-save]    Mark that buffer to be saved, and move down.
@@ -348,14 +353,22 @@ It will be displayed by the \\<Buffer-menu-mode-map>\\[Buffer-menu-select] comma
   "Cancel all requested operations on buffer on this line and move down.
 Optional prefix arg means move up."
   (interactive "P")
-  (tabulated-list-set-col 0 " " t)
+  (Buffer-menu--unmark)
   (forward-line (if backup -1 1)))
 
 (defun Buffer-menu-backup-unmark ()
   "Move up and cancel all requested operations on buffer on line above."
   (interactive)
   (forward-line -1)
-  (tabulated-list-set-col 0 " " t))
+  (Buffer-menu--unmark))
+
+(defun Buffer-menu--unmark ()
+  (tabulated-list-set-col 0 " " t)
+  (let ((buf (Buffer-menu-buffer)))
+    (when buf
+      (if (buffer-modified-p buf)
+          (tabulated-list-set-col 2 "*" t)
+        (tabulated-list-set-col 2 " " t)))))
 
 (defun Buffer-menu-delete (&optional arg)
   "Mark the buffer on this Buffer Menu buffer line for deletion.
@@ -477,6 +490,11 @@ If UNMARK is non-nil, unmark them."
   (interactive)
   (multi-isearch-buffers-regexp (Buffer-menu-marked-buffers)))
 
+(defun Buffer-menu-multi-occur (regexp &optional nlines)
+  "Show all lines in marked buffers containing a match for a regexp."
+  (interactive (occur-read-primary-args))
+  (multi-occur (Buffer-menu-marked-buffers) regexp nlines))
+
 
 (defun Buffer-menu-visit-tags-table ()
   "Visit the tags table in the buffer on this line.  See `visit-tags-table'."
@@ -581,7 +599,7 @@ means list those buffers and no others."
   (select-window (posn-window (event-end event)))
   (let ((buffer (tabulated-list-get-id (posn-point (event-end event)))))
     (when (buffer-live-p buffer)
-      (if (and (window-dedicated-p (selected-window))
+      (if (and (window-dedicated-p)
 	       (eq (selected-window) (frame-root-window)))
 	  (switch-to-buffer-other-frame buffer)
 	(switch-to-buffer buffer)))))

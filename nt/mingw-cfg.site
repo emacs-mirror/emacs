@@ -1,0 +1,116 @@
+# -*- sh -*-
+# Site defaults for the MinGW configuration of GNU Emacs.
+#
+# This file's purpose is to short-circuit configure-time tests for
+# which we want to provide the results instead of letting the
+# 'configure' script do that.  This is mainly for features that
+# 'configure' tests that are implemented as part of Emacs sources, not
+# as part of system libraries.  The idea is to set shell variables
+# that appear to the script as cached values.
+#
+# For each header file foo.h you want to supply test results, set the
+# value of a shell variable ac_cv_header_foo_h.  The value should be
+# yes if the header is deemed to exist, no otherwise.  Or it could be
+# something else, if the value computed by 'configure' requires that.
+# In general, since configure (when invoked from an MSYS environment)
+# instructs GCC to use header files in nt/inc, you should not need to
+# futz with header file tests.  But there are exceptions, like with
+# getopt.h below (which is a MinGW system header, but we do not want
+# to use it).
+#
+# For each library function foo you want to supply test results, set
+# the value of a shell variable ac_cv_func_foo.  Again, the value is
+# determined by what 'configure' expects; sometimes it could be "not
+# needed" or whatever, see the examples below.  In addition, you may
+# need to set the various gl_cv_* variables for those tests that come
+# from gnulib.
+#
+# In short, examine the test in 'configure' and push the knobs that
+# are necessary to steer the test in the direction you need, by
+# judiciously setting variables that control the test results.
+
+# We want to use getopt.h from gnulib
+ac_cv_header_getopt_h=no
+
+# We don't want our struct timeval replaced due to Posix conformance
+gl_cv_sys_struct_timeval_tv_sec=yes
+
+# ACL functions are implemented in w32.c
+ac_cv_search_acl_get_file="none required"
+ac_cv_func_acl_get_file=yes
+ac_cv_func_acl_set_file=yes
+ac_cv_func_acl_free=yes
+ac_cv_func_acl_from_text=yes
+gl_cv_func_working_acl_get_file=yes
+# Autoconf's test program is not smart enough, and fails to detect gethostname
+ac_cv_func_gethostname=yes
+# Implemented as sys_select in w32proc.c
+ac_cv_func_select=yes
+ac_cv_func_pselect=yes
+gl_cv_sig_pselect=yes
+gl_cv_func_pselect_detects_ebadf=yes
+# Implemented as sys_shutdown in w32.c
+ac_cv_func_shutdown=yes
+# Implemented in w32proc.c
+ac_cv_func_setitimer=yes
+# Implemented as sys_sendto in w32.c
+ac_cv_func_sendto=yes
+# Implemented as sys_recvfrom in w32.c
+ac_cv_func_recvfrom=yes
+# Implemented as sys_getsockname in w32.c
+ac_cv_func_getsockname=yes
+# Implemented as sys_getpeername in w32.c
+ac_cv_func_getpeername=yes
+# Implemented as sys_socket in w32.c
+ac_cv_func_socket=yes
+# Implemented in w32.c
+ac_cv_func_mkostemp=yes
+ac_cv_func_readlink=yes
+ac_cv_func_symlink=yes
+# Avoid run-time tests of readlink and symlink, which will fail
+gl_cv_func_readlink_works=yes
+gl_cv_func_symlink_works=yes
+ac_cv_func_readlinkat=yes
+ac_cv_func_faccessat=yes
+# Implemented in w32.c
+ac_cv_func_fcntl=yes
+gl_cv_func_fcntl_f_dupfd_cloexec=yes
+gl_cv_func_fcntl_f_dupfd_works=yes
+# We don't need fdopendir
+ac_cv_func_fdopendir="not-needed"
+gl_cv_func_fdopendir_works="no-but-not-needed-so-yes"
+# Implemented in w32.c
+ac_cv_func_lstat=yes
+gl_cv_func_lstat_dereferences_slashed_symlink=yes
+ac_cv_func_fstatat=yes
+gl_cv_func_fstatat_zero_flag=yes
+# Aliased to _commit in ms-w32.h
+ac_cv_func_fsync=yes
+ac_cv_func_fdatasync=yes
+# Implemented in w32proc.c
+ac_cv_func_pthread_sigmask=yes
+# Avoid gnulib replacement
+gl_threads_api=posix
+gl_cv_func_pthread_sigmask_return_works=yes
+gl_cv_func_pthread_sigmask_unblock_works="not relevant"
+# Implemented in w32proc.c
+emacs_cv_langinfo_codeset=yes
+# Declared in ms-w32.h
+ac_cv_have_decl_alarm=yes
+# Avoid including the gnulib dup2 module
+gl_cv_func_dup2_works=yes
+# Defined in w32.c
+ac_cv_func_getloadavg=yes
+# Avoid compiling gnulib mktime
+gl_cv_func_working_mktime=yes
+# Implemented in w32.c
+ac_cv_func_pipe2=yes
+ac_cv_have_decl_unsetenv=yes
+ac_cv_func_unsetenv=yes
+gt_cv_func_unsetenv_ret='int'
+gl_cv_func_unsetenv_works=yes
+gl_cv_func_stat_dir_slash=yes
+gl_cv_func_stat_file_slash=yes
+ac_cv_func_random=yes
+# Implemented in w32.c as sys_putenv
+gl_cv_func_svid_putenv=yes

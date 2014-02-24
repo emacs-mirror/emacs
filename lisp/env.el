@@ -1,8 +1,8 @@
-;;; env.el --- functions to manipulate environment variables
+;;; env.el --- functions to manipulate environment variables  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991, 1994, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2000-2014 Free Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: processes, unix
 ;; Package: emacs
 
@@ -60,30 +60,46 @@ If it is also not t, RET does not exit if it does non-null completion."
 (defconst env--substitute-vars-regexp
   "\\$\\(?:\\(?1:[[:alnum:]_]+\\)\\|{\\(?1:[^{}]+\\)}\\|\\$\\)")
 
-(defun substitute-env-vars (string &optional only-defined)
+(defun substitute-env-vars (string &optional when-undefined)
   "Substitute environment variables referred to in STRING.
 `$FOO' where FOO is an environment variable name means to substitute
 the value of that variable.  The variable name should be terminated
 with a character not a letter, digit or underscore; otherwise, enclose
 the entire variable name in braces.  For instance, in `ab$cd-x',
 `$cd' is treated as an environment variable.
-If ONLY-DEFINED is nil, references to undefined environment variables
-are replaced by the empty string; if it is non-nil, they are left unchanged.
+
+If WHEN-DEFINED is nil, references to undefined environment variables
+are replaced by the empty string; if it is a function, the function is called
+with the variable name as argument and should return the text with which
+to replace it or nil to leave it unchanged.
+If it is non-nil and not a function, references to undefined variables are
+left unchanged.
 
 Use `$$' to insert a single dollar sign."
   (let ((start 0))
     (while (string-match env--substitute-vars-regexp string start)
       (cond ((match-beginning 1)
-	     (let ((value (getenv (match-string 1 string))))
-               (if (and (null value) only-defined)
+	     (let* ((var (match-string 1 string))
+                    (value (getenv var)))
+               (if (and (null value)
+                        (if (functionp when-undefined)
+                            (null (setq value (funcall when-undefined var)))
+                          when-undefined))
                    (setq start (match-end 0))
-	       (setq string (replace-match (or value "") t t string)
+                 (setq string (replace-match (or value "") t t string)
                        start (+ (match-beginning 0) (length value))))))
 	    (t
 	     (setq string (replace-match "$" t t string)
 		   start (+ (match-beginning 0) 1)))))
     string))
 
+(defun substitute-env-in-file-name (filename)
+  (substitute-env-vars filename
+                       ;; How 'bout we lookup other tables than the env?
+                       ;; E.g. we could accept bookmark names as well!
+                       (if (memq system-type '(windows-nt ms-dos))
+                           (lambda (var) (getenv (upcase var)))
+                         t)))
 
 (defun setenv-internal (env variable value keep-empty)
   "Set VARIABLE to VALUE in ENV, adding empty entries if KEEP-EMPTY.

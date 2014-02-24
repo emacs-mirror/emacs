@@ -1,5 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2013 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2014 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -55,11 +55,6 @@ static EMACS_INT last_known_column_modified;
 
 static ptrdiff_t current_column_1 (void);
 static ptrdiff_t position_indentation (ptrdiff_t);
-
-/* Cache of beginning of line found by the last call of
-   current_column. */
-
-static ptrdiff_t current_column_bol_cache;
 
 /* Get the display table to use for the current buffer.  */
 
@@ -146,33 +141,54 @@ recompute_width_table (struct buffer *buf, struct Lisp_Char_Table *disptab)
     XSETFASTINT (widthtab->contents[i], character_width (i, disptab));
 }
 
-/* Allocate or free the width run cache, as requested by the current
-   state of current_buffer's cache_long_line_scans variable.  */
+/* Allocate or free the width run cache, as requested by the
+   current state of current_buffer's cache_long_scans variable.  */
 
-static void
+static struct region_cache *
 width_run_cache_on_off (void)
 {
-  if (NILP (BVAR (current_buffer, cache_long_line_scans))
+  struct buffer *cache_buffer = current_buffer;
+  bool indirect_p = false;
+
+  if (cache_buffer->base_buffer)
+    {
+      cache_buffer = cache_buffer->base_buffer;
+      indirect_p = true;
+    }
+
+  if (NILP (BVAR (current_buffer, cache_long_scans))
       /* And, for the moment, this feature doesn't work on multibyte
          characters.  */
       || !NILP (BVAR (current_buffer, enable_multibyte_characters)))
     {
-      /* It should be off.  */
-      if (current_buffer->width_run_cache)
-        {
-          free_region_cache (current_buffer->width_run_cache);
-          current_buffer->width_run_cache = 0;
-          bset_width_table (current_buffer, Qnil);
+      if (!indirect_p
+	  || NILP (BVAR (cache_buffer, cache_long_scans))
+	  || !NILP (BVAR (cache_buffer, enable_multibyte_characters)))
+	{
+	  /* It should be off.  */
+	  if (cache_buffer->width_run_cache)
+	    {
+	      free_region_cache (cache_buffer->width_run_cache);
+	      cache_buffer->width_run_cache = 0;
+	      bset_width_table (current_buffer, Qnil);
+	    }
         }
+      return NULL;
     }
   else
     {
-      /* It should be on.  */
-      if (current_buffer->width_run_cache == 0)
-        {
-          current_buffer->width_run_cache = new_region_cache ();
-          recompute_width_table (current_buffer, buffer_display_table ());
-        }
+      if (!indirect_p
+	  || (!NILP (BVAR (cache_buffer, cache_long_scans))
+	      && NILP (BVAR (cache_buffer, enable_multibyte_characters))))
+	{
+	  /* It should be on.  */
+	  if (cache_buffer->width_run_cache == 0)
+	    {
+	      cache_buffer->width_run_cache = new_region_cache ();
+	      recompute_width_table (current_buffer, buffer_display_table ());
+	    }
+	}
+      return cache_buffer->width_run_cache;
     }
 }
 
@@ -254,7 +270,7 @@ skip_invisible (ptrdiff_t pos, ptrdiff_t *next_boundary_p, ptrdiff_t to, Lisp_Ob
      the next property change */
   prop = Fget_char_property (position, Qinvisible,
 			     (!NILP (window)
-			      && EQ (XWINDOW (window)->buffer, buffer))
+			      && EQ (XWINDOW (window)->contents, buffer))
 			     ? window : buffer);
   inv_p = TEXT_PROP_MEANS_INVISIBLE (prop);
   /* When counting columns (window == nil), don't skip over ellipsis text.  */
@@ -439,11 +455,6 @@ current_column (void)
       col += post_tab;
     }
 
-  if (ptr == BEGV_ADDR)
-    current_column_bol_cache = BEGV;
-  else
-    current_column_bol_cache = BYTE_TO_CHAR (PTR_BYTE_POS (ptr));
-
   last_known_column = col;
   last_known_column_point = PT;
   last_known_column_modified = MODIFF;
@@ -520,16 +531,10 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol, ptrdiff_t *prevcol)
   register ptrdiff_t col = 0, prev_col = 0;
   EMACS_INT goal = goalcol ? *goalcol : MOST_POSITIVE_FIXNUM;
   ptrdiff_t end = endpos ? *endpos : PT;
-  ptrdiff_t scan, scan_byte;
-  ptrdiff_t next_boundary;
-  {
-  ptrdiff_t opoint = PT, opoint_byte = PT_BYTE;
-  scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, 1);
-  current_column_bol_cache = PT;
-  scan = PT, scan_byte = PT_BYTE;
-  SET_PT_BOTH (opoint, opoint_byte);
+  ptrdiff_t scan, scan_byte, next_boundary;
+
+  scan = find_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, NULL, &scan_byte, 1);
   next_boundary = scan;
-  }
 
   window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
   w = ! NILP (window) ? XWINDOW (window) : NULL;
@@ -695,7 +700,7 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol, ptrdiff_t *prevcol)
     *prevcol = prev_col;
 }
 
-/* Return the column number of position POS
+/* Return the column number of point
    by scanning forward from the beginning of the line.
    This function handles characters that are invisible
    due to text properties or overlays.  */
@@ -846,14 +851,10 @@ This is the horizontal position of the character
 following any initial whitespace.  */)
   (void)
 {
-  Lisp_Object val;
-  ptrdiff_t opoint = PT, opoint_byte = PT_BYTE;
+  ptrdiff_t posbyte;
 
-  scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, 1);
-
-  XSETFASTINT (val, position_indentation (PT_BYTE));
-  SET_PT_BOTH (opoint, opoint_byte);
-  return val;
+  find_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, NULL, &posbyte, 1);
+  return make_number (position_indentation (posbyte));
 }
 
 static ptrdiff_t
@@ -946,16 +947,13 @@ position_indentation (ptrdiff_t pos_byte)
 bool
 indented_beyond_p (ptrdiff_t pos, ptrdiff_t pos_byte, EMACS_INT column)
 {
-  ptrdiff_t val;
-  ptrdiff_t opoint = PT, opoint_byte = PT_BYTE;
-
-  SET_PT_BOTH (pos, pos_byte);
-  while (PT > BEGV && FETCH_BYTE (PT_BYTE) == '\n')
-    scan_newline (PT - 1, PT_BYTE - 1, BEGV, BEGV_BYTE, -1, 0);
-
-  val = position_indentation (PT_BYTE);
-  SET_PT_BOTH (opoint, opoint_byte);
-  return val >= column;
+  while (pos > BEGV && FETCH_BYTE (pos_byte) == '\n')
+    {
+      DEC_BOTH (pos, pos_byte);
+      pos = find_newline (pos, pos_byte, BEGV, BEGV_BYTE,
+			  -1, NULL, &pos_byte, 0);
+    }
+  return position_indentation (pos_byte) >= column;
 }
 
 DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2,
@@ -1088,8 +1086,8 @@ static struct position val_compute_motion;
 	    : (window_width + window_left != frame_cols))
 
 	where
-	  window_width is XFASTINT (w->total_cols),
-	  window_left is XFASTINT (w->left_col),
+	  window_width is w->total_cols,
+	  window_left is w->left_col,
 	  has_vertical_scroll_bars is
 	    WINDOW_HAS_VERTICAL_SCROLL_BAR (window)
 	  and frame_cols = FRAME_COLS (XFRAME (window->frame))
@@ -1102,8 +1100,8 @@ static struct position val_compute_motion;
    the scroll bars if they are turned on.  */
 
 struct position *
-compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos,
-		bool did_motion, ptrdiff_t to,
+compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
+		EMACS_INT fromhpos, bool did_motion, ptrdiff_t to,
 		EMACS_INT tovpos, EMACS_INT tohpos, EMACS_INT width,
 		ptrdiff_t hscroll, int tab_offset, struct window *win)
 {
@@ -1151,12 +1149,16 @@ compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos,
   EMACS_INT contin_hpos;	/* HPOS of last column of continued line.  */
   int prev_tab_offset;		/* Previous tab offset.  */
   int continuation_glyph_width;
+  struct buffer *cache_buffer = current_buffer;
+  struct region_cache *width_cache;
 
   struct composition_it cmp_it;
 
   XSETWINDOW (window, win);
 
-  width_run_cache_on_off ();
+  if (cache_buffer->base_buffer)
+    cache_buffer = cache_buffer->base_buffer;
+  width_cache = width_run_cache_on_off ();
   if (dp == buffer_display_table ())
     width_table = (VECTORP (BVAR (current_buffer, width_table))
                    ? XVECTOR (BVAR (current_buffer, width_table))->contents
@@ -1169,7 +1171,7 @@ compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos,
   /* Negative width means use all available text columns.  */
   if (width < 0)
     {
-      width = window_body_cols (win);
+      width = window_body_width (win, 0);
       /* We must make room for continuation marks if we don't have fringes.  */
 #ifdef HAVE_WINDOW_SYSTEM
       if (!FRAME_WINDOW_P (XFRAME (win->frame)))
@@ -1186,8 +1188,11 @@ compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos,
   immediate_quit = 1;
   QUIT;
 
+  /* It's just impossible to be too paranoid here.  */
+  eassert (from == BYTE_TO_CHAR (frombyte) && frombyte == CHAR_TO_BYTE (from));
+
   pos = prev_pos = from;
-  pos_byte = prev_pos_byte = CHAR_TO_BYTE (from);
+  pos_byte = prev_pos_byte = frombyte;
   contin_hpos = 0;
   prev_tab_offset = tab_offset;
   memset (&cmp_it, 0, sizeof cmp_it);
@@ -1424,13 +1429,11 @@ compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos,
 
       /* Consult the width run cache to see if we can avoid inspecting
          the text character-by-character.  */
-      if (current_buffer->width_run_cache && pos >= next_width_run)
+      if (width_cache && pos >= next_width_run)
         {
           ptrdiff_t run_end;
           int common_width
-            = region_cache_forward (current_buffer,
-                                    current_buffer->width_run_cache,
-                                    pos, &run_end);
+            = region_cache_forward (cache_buffer, width_cache, pos, &run_end);
 
           /* A width of zero means the character's width varies (like
              a tab), is meaningless (like a newline), or we just don't
@@ -1506,7 +1509,7 @@ compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos,
 	  pos++, pos_byte++;
 
 	  /* Perhaps add some info to the width_run_cache.  */
-	  if (current_buffer->width_run_cache)
+	  if (width_cache)
 	    {
 	      /* Is this character part of the current run?  If so, extend
 		 the run.  */
@@ -1522,8 +1525,7 @@ compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos,
 		     (Currently, we only cache runs of width == 1).  */
 		  if (width_run_start < width_run_end
 		      && width_run_width == 1)
-		    know_region_cache (current_buffer,
-				       current_buffer->width_run_cache,
+		    know_region_cache (cache_buffer, width_cache,
 				       width_run_start, width_run_end);
 
 		  /* Start recording a new width run.  */
@@ -1659,10 +1661,10 @@ compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos,
  after_loop:
 
   /* Remember any final width run in the cache.  */
-  if (current_buffer->width_run_cache
+  if (width_cache
       && width_run_width == 1
       && width_run_start < width_run_end)
-    know_region_cache (current_buffer, current_buffer->width_run_cache,
+    know_region_cache (cache_buffer, width_cache,
                        width_run_start, width_run_end);
 
   val_compute_motion.bufpos = pos;
@@ -1724,7 +1726,8 @@ of a certain window, pass the window's starting location as FROM
 and the window's upper-left coordinates as FROMPOS.
 Pass the buffer's (point-max) as TO, to limit the scan to the end of the
 visible section of the buffer, and pass LINE and COL as TOPOS.  */)
-  (Lisp_Object from, Lisp_Object frompos, Lisp_Object to, Lisp_Object topos, Lisp_Object width, Lisp_Object offsets, Lisp_Object window)
+  (Lisp_Object from, Lisp_Object frompos, Lisp_Object to, Lisp_Object topos,
+   Lisp_Object width, Lisp_Object offsets, Lisp_Object window)
 {
   struct window *w;
   Lisp_Object bufpos, hpos, vpos, prevhpos;
@@ -1767,14 +1770,15 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
   if (XINT (to) < BEGV || XINT (to) > ZV)
     args_out_of_range_3 (to, make_number (BEGV), make_number (ZV));
 
-  pos = compute_motion (XINT (from), XINT (XCDR (frompos)),
+  pos = compute_motion (XINT (from), CHAR_TO_BYTE (XINT (from)),
+			XINT (XCDR (frompos)),
 			XINT (XCAR (frompos)), 0,
 			XINT (to),
 			(NILP (topos)
 			 ? window_internal_height (w)
 			 : XINT (XCDR (topos))),
 			(NILP (topos)
-			 ? (window_body_cols (w)
+			 ? (window_body_width (w, 0)
 			    - (
 #ifdef HAVE_WINDOW_SYSTEM
 			       FRAME_WINDOW_P (XFRAME (w->frame)) ? 0 :
@@ -1789,28 +1793,23 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
   XSETINT (vpos, pos->vpos);
   XSETINT (prevhpos, pos->prevhpos);
 
-  return Fcons (bufpos,
-		Fcons (hpos,
-		       Fcons (vpos,
-			      Fcons (prevhpos,
-				     Fcons (pos->contin ? Qt : Qnil, Qnil)))));
-
+  return list5 (bufpos, hpos, vpos, prevhpos, pos->contin ? Qt : Qnil);
 }
-
-/* Fvertical_motion and vmotion */
+
+/* Fvertical_motion and vmotion.  */
 
 static struct position val_vmotion;
 
 struct position *
-vmotion (register ptrdiff_t from, register EMACS_INT vtarget, struct window *w)
+vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
+	 register EMACS_INT vtarget, struct window *w)
 {
   ptrdiff_t hscroll = w->hscroll;
   struct position pos;
-  /* vpos is cumulative vertical position, changed as from is changed */
+  /* VPOS is cumulative vertical position, changed as from is changed.  */
   register EMACS_INT vpos = 0;
   ptrdiff_t prevline;
   register ptrdiff_t first;
-  ptrdiff_t from_byte;
   ptrdiff_t lmargin = hscroll > 0 ? 1 - hscroll : 0;
   ptrdiff_t selective
     = (INTEGERP (BVAR (current_buffer, selective_display))
@@ -1826,7 +1825,7 @@ vmotion (register ptrdiff_t from, register EMACS_INT vtarget, struct window *w)
 
   /* If the window contains this buffer, use it for getting text properties.
      Otherwise use the current buffer as arg for doing that.  */
-  if (EQ (w->buffer, Fcurrent_buffer ()))
+  if (EQ (w->contents, Fcurrent_buffer ()))
     text_prop_object = window;
   else
     text_prop_object = Fcurrent_buffer ();
@@ -1840,10 +1839,13 @@ vmotion (register ptrdiff_t from, register EMACS_INT vtarget, struct window *w)
 
       while ((vpos > vtarget || first) && from > BEGV)
 	{
-	  ptrdiff_t bytepos;
+	  ptrdiff_t bytepos = from_byte;
 	  Lisp_Object propval;
 
-	  prevline = find_next_newline_no_quit (from - 1, -1, &bytepos);
+	  prevline = from;
+	  DEC_BOTH (prevline, bytepos);
+	  prevline = find_newline_no_quit (prevline, bytepos, -1, &bytepos);
+
 	  while (prevline > BEGV
 		 && ((selective > 0
 		      && indented_beyond_p (prevline, bytepos, selective))
@@ -1853,30 +1855,28 @@ vmotion (register ptrdiff_t from, register EMACS_INT vtarget, struct window *w)
 						       Qinvisible,
 						       text_prop_object),
 			 TEXT_PROP_MEANS_INVISIBLE (propval))))
-	    prevline = find_next_newline_no_quit (prevline - 1, -1, &bytepos);
-	  pos = *compute_motion (prevline, 0,
-				 lmargin,
-				 0,
-				 from,
+	    {
+	      DEC_BOTH (prevline, bytepos);
+	      prevline = find_newline_no_quit (prevline, bytepos, -1, &bytepos);
+	    }
+	  pos = *compute_motion (prevline, bytepos, 0, lmargin, 0, from,
 				 /* Don't care for VPOS...  */
 				 1 << (BITS_PER_SHORT - 1),
 				 /* ... nor HPOS.  */
 				 1 << (BITS_PER_SHORT - 1),
-				 -1, hscroll,
-				 0,
-				 w);
+				 -1, hscroll, 0, w);
 	  vpos -= pos.vpos;
 	  first = 0;
 	  from = prevline;
+	  from_byte = bytepos;
 	}
 
-      /* If we made exactly the desired vertical distance,
-	 or if we hit beginning of buffer,
-	 return point found */
+      /* If we made exactly the desired vertical distance, or
+	 if we hit beginning of buffer, return point found.  */
       if (vpos >= vtarget)
 	{
 	  val_vmotion.bufpos = from;
-	  val_vmotion.bytepos = CHAR_TO_BYTE (from);
+	  val_vmotion.bytepos = from_byte;
 	  val_vmotion.vpos = vpos;
 	  val_vmotion.hpos = lmargin;
 	  val_vmotion.contin = 0;
@@ -1884,17 +1884,18 @@ vmotion (register ptrdiff_t from, register EMACS_INT vtarget, struct window *w)
 	  return &val_vmotion;
 	}
 
-      /* Otherwise find the correct spot by moving down */
+      /* Otherwise find the correct spot by moving down.  */
     }
-  /* Moving downward is simple, but must calculate from beg of line
-     to determine hpos of starting point */
-  from_byte = CHAR_TO_BYTE (from);
+
+  /* Moving downward is simple, but must calculate from
+     beg of line to determine hpos of starting point.  */
+
   if (from > BEGV && FETCH_BYTE (from_byte - 1) != '\n')
     {
       ptrdiff_t bytepos;
       Lisp_Object propval;
 
-      prevline = find_next_newline_no_quit (from, -1, &bytepos);
+      prevline = find_newline_no_quit (from, from_byte, -1, &bytepos);
       while (prevline > BEGV
 	     && ((selective > 0
 		  && indented_beyond_p (prevline, bytepos, selective))
@@ -1904,18 +1905,16 @@ vmotion (register ptrdiff_t from, register EMACS_INT vtarget, struct window *w)
 						   Qinvisible,
 						   text_prop_object),
 		     TEXT_PROP_MEANS_INVISIBLE (propval))))
-	prevline = find_next_newline_no_quit (prevline - 1, -1, &bytepos);
-      pos = *compute_motion (prevline, 0,
-			     lmargin,
-			     0,
-			     from,
+	{
+	  DEC_BOTH (prevline, bytepos);
+	  prevline = find_newline_no_quit (prevline, bytepos, -1, &bytepos);
+	}
+      pos = *compute_motion (prevline, bytepos, 0, lmargin, 0, from,
 			     /* Don't care for VPOS...  */
 			     1 << (BITS_PER_SHORT - 1),
 			     /* ... nor HPOS.  */
 			     1 << (BITS_PER_SHORT - 1),
-			     -1, hscroll,
-			     0,
-			     w);
+			     -1, hscroll, 0, w);
       did_motion = 1;
     }
   else
@@ -1924,11 +1923,9 @@ vmotion (register ptrdiff_t from, register EMACS_INT vtarget, struct window *w)
       pos.vpos = 0;
       did_motion = 0;
     }
-  return compute_motion (from, vpos, pos.hpos, did_motion,
+  return compute_motion (from, from_byte, vpos, pos.hpos, did_motion,
 			 ZV, vtarget, - (1 << (BITS_PER_SHORT - 1)),
-			 -1, hscroll,
-			 0,
-			 w);
+			 -1, hscroll, 0, w);
 }
 
 DEFUN ("vertical-motion", Fvertical_motion, Svertical_motion, 1, 2, 0,
@@ -1981,21 +1978,21 @@ whether or not it is currently displayed in some window.  */)
 
   old_buffer = Qnil;
   GCPRO1 (old_buffer);
-  if (XBUFFER (w->buffer) != current_buffer)
+  if (XBUFFER (w->contents) != current_buffer)
     {
       /* Set the window's buffer temporarily to the current buffer.  */
-      old_buffer = w->buffer;
+      old_buffer = w->contents;
       old_charpos = marker_position (w->pointm);
       old_bytepos = marker_byte_position (w->pointm);
       wset_buffer (w, Fcurrent_buffer ());
-      set_marker_both (w->pointm, w->buffer,
+      set_marker_both (w->pointm, w->contents,
 		       BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
     }
 
   if (noninteractive)
     {
       struct position pos;
-      pos = *vmotion (PT, XINT (lines), w);
+      pos = *vmotion (PT, PT_BYTE, XINT (lines), w);
       SET_PT_BOTH (pos.bufpos, pos.bytepos);
     }
   else
@@ -2019,11 +2016,15 @@ whether or not it is currently displayed in some window.  */)
 	  const char *s = SSDATA (it.string);
 	  const char *e = s + SBYTES (it.string);
 
+	  disp_string_at_start_p =
 	  /* If it.area is anything but TEXT_AREA, we need not bother
 	     about the display string, as it doesn't affect cursor
 	     positioning.  */
-	  disp_string_at_start_p =
-	    it.string_from_display_prop_p && it.area == TEXT_AREA;
+	    it.area == TEXT_AREA
+	    && it.string_from_display_prop_p
+	    /* A display string on anything but buffer text (e.g., on
+	       an overlay string) doesn't affect cursor positioning.  */
+	    && (it.sp > 0 && it.stack[it.sp - 1].method == GET_FROM_BUFFER);
 	  while (s < e)
 	    {
 	      if (*s++ == '\n')
@@ -2141,7 +2142,7 @@ whether or not it is currently displayed in some window.  */)
   if (BUFFERP (old_buffer))
     {
       wset_buffer (w, old_buffer);
-      set_marker_both (w->pointm, w->buffer,
+      set_marker_both (w->pointm, w->contents,
 		       old_charpos, old_bytepos);
     }
 

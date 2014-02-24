@@ -1,0 +1,253 @@
+\input texinfo @c -*-texinfo-*-
+@c %**start of header
+@setfilename ../../info/eww
+@settitle Emacs Web Wowser
+@documentencoding UTF-8
+@c %**end of header
+
+@copying
+This file documents the GNU Emacs Web Wowser (EWW) package.
+
+Copyright @copyright{} 2014 Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License.''
+
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.''
+@end quotation
+@end copying
+
+@dircategory Emacs misc features
+@direntry
+* EWW: (eww).      Emacs Web Wowser
+@end direntry
+
+@finalout
+
+@titlepage
+@title Emacs Web Wowser (EWW)
+@subtitle A web browser for GNU Emacs.
+
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top EWW
+
+@insertcopying
+@end ifnottex
+
+@menu
+* Overview::
+* Basics::
+* Advanced::
+
+Appendices
+* History and Acknowledgments::
+* GNU Free Documentation License::  The license for this documentation.
+
+Indices
+* Key Index::
+* Variable Index::
+* Lisp Function Index::
+* Concept Index::
+@end menu
+
+@node Overview
+@chapter Overview
+@dfn{EWW}, the Emacs Web Wowser, is a web browser for GNU Emacs.  It
+can load, parse, and display various web pages using @dfn{shr.el}.
+However a GNU Emacs with @code{libxml2} support is required.
+
+@node Basics
+@chapter Basic Usage
+
+@findex eww
+@findex eww-open-file
+@vindex eww-search-prefix
+@cindex eww
+@cindex Web Browsing
+  You can open a URL or search the web with the command @kbd{M-x eww}.
+If the input doesn't look like a URL or domain name the web will be
+searched via @code{eww-search-prefix}.  The default search engine is
+@url{https://duckduckgo.com, DuckDuckGo}.  If you want to open a file
+either prefix the file name with @code{file://} or use the command
+@kbd{M-x eww-open-file}.
+
+@findex eww-quit
+@findex eww-reload
+@findex eww-copy-page-url
+@kindex q
+@kindex w
+@kindex g
+  If loading the URL was successful the buffer @code{*eww*} is opened
+and the web page is rendered in it.  You can leave EWW by pressing
+@kbd{q} or exit the browser by calling @kbd{eww-quit}.  To reload the
+web page hit @kbd{g} (@code{eww-reload}).  Pressing @kbd{w}
+(@code{eww-copy-page-url}) will copy the current URL to the kill ring.
+
+@findex eww-download
+@vindex eww-download-directory
+@kindex d
+@cindex Download
+  A URL under the point can be downloaded with @kbd{d}
+(@code{eww-download}).  The file will be written to the directory
+specified in @code{eww-download-directory} (Default: @file{~/Downloads/}).
+
+@findex eww-back-url
+@findex eww-forward-url
+@findex eww-list-histories
+@kindex r
+@kindex l
+@kindex H
+@cindex History
+  EWW remembers the URLs you have visited to allow you to go back and
+forth between them.  By pressing @kbd{l} (@code{eww-back-url}) you go
+to the previous URL.  You can go forward again with @kbd{r}
+(@code{eww-forward-url}).  If you want an overview of your browsing
+history press @kbd{H} (@code{eww-list-histories}) to open the history
+buffer @code{*eww history*}.  The history is lost when EWW is quit.
+If you want to remember websites you can use bookmarks.
+
+@findex eww-add-bookmark
+@findex eww-list-bookmarks
+@kindex b
+@kindex B
+@cindex Bookmarks
+  EWW allows you to @dfn{bookmark} URLs.  Simply hit @kbd{b}
+(@code{eww-add-bookmark}) to store a bookmark for the current website.
+You can view stored bookmarks with @kbd{B}
+(@code{eww-list-bookmarks}).  This will open the bookmark buffer
+@code{*eww bookmarks*}.
+
+@findex eww-browse-with-external-browser
+@vindex shr-external-browser
+@vindex eww-use-external-browser-for-content-type
+@kindex &
+@cindex External Browser
+  Although EWW and shr.el do their best to render webpages in GNU
+Emacs some websites use features which can not be properly represented
+or are not implemented (E.g., JavaScript).  If you have trouble
+viewing a website with EWW then hit @kbd{&}
+(@code{eww-browse-with-external-browser}) inside the EWW buffer to
+open the website in the external browser specified by
+@code{shr-external-browser}.  Some content types, such as video or
+audio content, do not make sense to display in GNU Emacs at all.  You
+can tell EWW to open specific content automatically in an external
+browser by customizing
+@code{eww-use-external-browser-for-content-type}.
+
+@node Advanced
+@chapter Advanced
+
+@findex eww-view-source
+@kindex v
+@cindex Viewing Source
+  You can view the source of a website with @kbd{v}
+(@code{eww-view-source}).  This will open a new buffer
+@code{*eww-source*} and insert the source.  The buffer will be set to
+@code{html-mode} if available.
+
+@findex url-cookie-list
+@kindex C
+@cindex Cookies
+  EWW handles cookies through the @ref{Top, url package, ,url}.
+You can list existing cookies with @kbd{C} (@code{url-cookie-list}).
+For details about the Cookie handling @xref{Cookies,,,url}.
+
+@vindex eww-header-line-format
+@cindex Header
+  The header line of the EWW buffer can be changed by customizing
+@code{eww-header-line-format}.  The format replaces @code{%t} with the
+title of the website and @code{%u} with the URL.
+
+@c @vindex shr-bullet
+@c @vindex shr-hr-line
+@c @vindex eww-form-checkbox-selected-symbol
+@c @vindex eww-form-checkbox-symbol
+@c   EWW and the rendering engine shr.el use ASCII characters to
+@c represent some graphical elements, such as bullet points
+@c (@code{shr-bullet}), check boxes
+@c (@code{eww-form-checkbox-selected-symbol} and
+@c @code{eww-form-checkbox-symbol}), and horizontal rules
+@c @code{shr-hr-line}).  Depending on your fonts these characters can be
+@c replaced by Unicode glyphs to achieve better looking results.
+
+@vindex shr-max-image-proportion
+@vindex shr-blocked-images
+@cindex Image Display
+  Loading random images from the web can be problematic due to their
+size or content.  By customizing @code{shr-max-image-proportion} you
+can set the maximal image proportion in relation to the window they
+are displayed in.  E.g., 0.7 means an image is allowed to take up 70%
+of the width and height.  If Emacs supports image scaling (ImageMagick
+support required) then larger images are scaled down.  You can block
+specific images completely by customizing @code{shr-blocked-images}.
+
+@node History and Acknowledgments
+@appendix History and Acknowledgments
+
+EWW was originally written by Lars Ingebrigtsen, known for his work on
+Gnus.  He started writing an Emacs HTML rendering library,
+@code{shr.el}, to read blogs in Gnus.  He eventually added a web
+browser front end and HTML form support.  Which resulted in EWW, the
+Emacs Web Wowser.  EWW was announced on 16 June 2013:
+@url{http://lars.ingebrigtsen.no/2013/06/16/eww/}.
+
+EWW was then moved from the Gnus repository to GNU Emacs and several
+developers started contributing to it as well.  A list of contributors
+at the time of writing this manual:
+
+@itemize @bullet
+@item Daniel Hackney
+@item Eli Zaretskii
+@item Glenn Morris
+@item Ivan Kanis
+@item Juri Linkov
+@item Katsumi Yamaoka
+@item Kenjiro NAKAYAMA
+@item Lars Magne Ingebrigtsen
+@item Leo Liu
+@item Paul Eggert
+@item Rüdiger Sonderfeld
+@item Stefan Monnier
+@item Ted Zlatanov
+@end itemize
+
+@node GNU Free Documentation License
+@chapter GNU Free Documentation License
+@include doclicense.texi
+
+@node Key Index
+@unnumbered Key Index
+
+@printindex ky
+
+@node Variable Index
+@unnumbered Variable Index
+
+@printindex vr
+
+@node Lisp Function Index
+@unnumbered Function Index
+
+@printindex fn
+
+@node Concept Index
+@unnumbered Concept Index
+
+@printindex cp
+
+
+@bye

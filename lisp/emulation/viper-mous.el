@@ -1,6 +1,6 @@
 ;;; viper-mous.el --- mouse support for Viper
 
-;; Copyright (C) 1994-1997, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -35,15 +35,8 @@
 (defvar viper-s-string)
 (defvar viper-re-search)
 
-;; loading happens only in non-interactive compilation
-;; in order to spare non-viperized emacs from being viperized
-(if noninteractive
-    (eval-when-compile
-      (require 'viper-cmd)
-      ))
-;; end pacifier
-
 (require 'viper-util)
+;; end pacifier
 
 
 (defgroup viper-mouse nil
@@ -139,6 +132,10 @@ considered related."
   (if (featurep 'xemacs) (event-point click)
     (posn-point (event-start click))))
 
+
+
+(declare-function viper-backward-char-carefully "viper-cmd" (&optional arg))
+(declare-function viper-forward-char-carefully "viper-cmd" (&optional arg))
 
 (defun viper-surrounding-word (count click-count)
    "Returns word surrounding point according to a heuristic.
@@ -335,6 +332,8 @@ See `viper-surrounding-word' for the definition of a word in this case."
 	  viper-current-click-count
 	0))))
 
+(declare-function viper-forward-word "viper-cmd" (arg))
+(declare-function viper-adjust-window "viper-cmd" ())
 
 (defun viper-mouse-click-search-word (click arg)
    "Find the word clicked or double-clicked on.  Word may be in another window.

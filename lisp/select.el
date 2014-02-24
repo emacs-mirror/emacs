@@ -1,8 +1,8 @@
 ;;; select.el --- lisp portion of standard selection support
 
-;; Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2014 Free Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
 
 ;; This file is part of GNU Emacs.
@@ -89,7 +89,8 @@ all upper-case names.  The most often used ones, in addition to
 `PRIMARY', are `SECONDARY' and `CLIPBOARD'.
 
 DATA-TYPE is usually `STRING', but can also be one of the symbols
-in `selection-converter-alist', which see."
+in `selection-converter-alist', which see.  This argument is
+ignored on MS-Windows and MS-DOS."
   (let ((data (x-get-selection-internal (or type 'PRIMARY)
 					(or data-type 'STRING)))
 	coding)

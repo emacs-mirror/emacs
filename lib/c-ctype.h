@@ -5,7 +5,7 @@
    <ctype.h> functions' behaviour depends on the current locale set via
    setlocale.
 
-   Copyright (C) 2000-2003, 2006, 2008-2013 Free Software Foundation, Inc.
+   Copyright (C) 2000-2003, 2006, 2008-2014 Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -136,7 +136,8 @@ extern int c_tolower (int c) _GL_ATTRIBUTE_CONST;
 extern int c_toupper (int c) _GL_ATTRIBUTE_CONST;
 
 
-#if defined __GNUC__ && defined __OPTIMIZE__ && !defined __OPTIMIZE_SIZE__ && !defined NO_C_CTYPE_MACROS
+#if (defined __GNUC__ && !defined __STRICT_ANSI__ && defined __OPTIMIZE__ \
+     && !defined __OPTIMIZE_SIZE__ && !defined NO_C_CTYPE_MACROS)
 
 /* ASCII optimizations. */
 

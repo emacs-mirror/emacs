@@ -1,10 +1,10 @@
 ;;; bruce.el --- bruce phrase utility for overloading the Communications -*- no-byte-compile: t -*-
 ;;; Decency Act snoops, if any.
 
-;; Copyright (C) 1988, 1993, 1997, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1988, 1993, 1997, 2001-2014 Free Software Foundation,
 ;; Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: games
 ;; Created: Jan 1997
 ;; Obsolete-since: 24.3

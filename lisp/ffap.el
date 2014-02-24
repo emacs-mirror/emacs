@@ -1,9 +1,9 @@
 ;;; ffap.el --- find file (or url) at point
 
-;; Copyright (C) 1995-1997, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 29 Mar 1993
 ;; Keywords: files, hypermedia, matching, mouse, convenience
 ;; X-URL: ftp://ftp.mathcs.emory.edu/pub/mic/emacs/
@@ -459,7 +459,8 @@ Returned values:
 	   (let ((mesg (car (cdr error))))
 	     (cond
 	      ;; v18:
-	      ((string-match "^Unknown host" mesg) nil)
+	      ((string-match "\\(^Unknown host\\|Name or service not known$\\)"
+			     mesg) nil)
 	      ((string-match "not responding$" mesg) mesg)
 	      ;; v19:
 	      ;; (file-error "connection failed" "permission denied"
@@ -768,7 +769,7 @@ This uses `ffap-file-exists-string', which may try adding suffixes from
     ;; (lisp-interaction-mode . ffap-el-mode) ; maybe
     (finder-mode . ffap-el-mode)	; type {C-h p} and try it
     (help-mode . ffap-el-mode)		; maybe useful
-    (c++-mode . ffap-c-mode)		; search ffap-c-path
+    (c++-mode . ffap-c++-mode)         ; search ffap-c++-path
     (cc-mode . ffap-c-mode)		; same
     ("\\.\\([chCH]\\|cc\\|hh\\)\\'" . ffap-c-mode) ; stdio.h
     (fortran-mode . ffap-fortran-mode)	; FORTRAN requested by MDB
@@ -864,6 +865,28 @@ URL, or nil.  If nil, search the alist for further matches.")
 
 (defun ffap-c-mode (name)
   (ffap-locate-file name t ffap-c-path))
+
+(defvar ffap-c++-path
+  (let ((c++-include-dir (with-temp-buffer
+                           (when (eq 0 (ignore-errors
+                                         (call-process "g++" nil t nil "-v")))
+                             (goto-char (point-min))
+                             (if (re-search-forward "--with-gxx-include-dir=\
+\\([^[:space:]]+\\)"
+                                                      nil 'noerror)
+                                 (match-string 1)
+                               (when (re-search-forward "gcc version \
+\\([[:digit:]]+.[[:digit:]]+.[[:digit:]]+\\)"
+                                                   nil 'noerror)
+                                 (expand-file-name (match-string 1)
+                                                   "/usr/include/c++/")))))))
+    (if c++-include-dir
+        (cons c++-include-dir ffap-c-path)
+      ffap-c-path))
+  "List of directories to search for include files.")
+
+(defun ffap-c++-mode (name)
+  (ffap-locate-file name t ffap-c++-path))
 
 (defvar ffap-fortran-path '("../include" "/usr/include"))
 
@@ -1072,7 +1095,7 @@ Assumes the buffer has not changed."
     (or (and (eq major-mode 'w3-mode) ; In a w3 buffer button?
 	     (w3-view-this-url t))
 	(let ((thing-at-point-beginning-of-url-regexp ffap-url-regexp)
-	      (thing-at-point-default-mail-scheme ffap-foo-at-bar-prefix))
+	      (thing-at-point-default-mail-uri-scheme ffap-foo-at-bar-prefix))
 	  (thing-at-point-url-at-point t
 				       (if (use-region-p)
 					   (cons (region-beginning)
@@ -1735,7 +1758,7 @@ Only intended for interactive use."
   ;; Preserve selected buffer, but do not do save-window-excursion,
   ;; since we want to see any window created by the form.  Temporarily
   ;; select the article buffer, so we can see any point movement.
-  (let ((sb (window-buffer (selected-window))))
+  (let ((sb (window-buffer)))
     (gnus-configure-windows 'article)
     (pop-to-buffer gnus-article-buffer)
     (widen)

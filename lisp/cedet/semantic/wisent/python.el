@@ -1,6 +1,6 @@
 ;;; wisent-python.el --- Semantic support for Python
 
-;; Copyright (C) 2002, 2004, 2006-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: Richard Kim  <emacs18@gmail.com>
 ;; Maintainer: Richard Kim  <emacs18@gmail.com>
@@ -39,6 +39,7 @@
 (require 'semantic/find)
 (require 'semantic/dep)
 (require 'semantic/ctxt)
+(require 'semantic/format)
 
 (eval-when-compile
   (require 'cl))
@@ -484,6 +485,20 @@ cursor is on the text representing that function."
 Return a list as per `semantic-ctxt-current-symbol'.
 Return nil if there is nothing relevant."
   nil)
+
+;;; Tag Formatting
+;;
+(define-mode-local-override semantic-format-tag-abbreviate python-mode (tag &optional parent color)
+  "Format an abbreviated tag for python.
+Shortens 'code' tags, but passes through for others."
+  (cond ((semantic-tag-of-class-p tag 'code)
+	 ;; Just take the first line.
+	 (let ((name (semantic-tag-name tag)))
+	   (when (string-match "\n" name)
+	     (setq name (substring name 0 (match-beginning 0))))
+	   name))
+	(t
+	 (semantic-format-tag-abbreviate-default tag parent color))))
 
 ;;; Enable Semantic in `python-mode'.
 ;;

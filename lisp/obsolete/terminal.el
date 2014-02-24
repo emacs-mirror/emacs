@@ -1,10 +1,10 @@
 ;;; terminal.el --- terminal emulator for GNU Emacs
 
-;; Copyright (C) 1986-1989, 1993-1994, 2001-2013 Free Software
+;; Copyright (C) 1986-1989, 1993-1994, 2001-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Obsolete-since: 24.4
 ;; Keywords: comm, terminals
 

@@ -1,4 +1,4 @@
-Copyright (C) 2001-2013 Free Software Foundation, Inc.
+Copyright (C) 2001-2014 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -20,24 +20,22 @@ This directory contains various dictionaries for Chinese input
 methods.  These dictionaries are automatically converted to Quail
 packages (Emacs Lisp source files) by `make'.
 
-quail:
-
-This directory contains Emacs Lisp source files for Quail packages.
-
 SKK-DIC:
 
 This directory contains source dictionary for Japanese input method
-distributed with SKK (Japanese input method run with Mule).  But, you
-don't need this file because we distribute an Emacs Lisp source file
-ja-dic/ja-dic.el which has already been converted from the source
-dictionary (See below).
+distributed with SKK (Japanese input method run with Mule).
 
-ja-dic:
 
-This directory contains Emacs Lisp source file ja-dic.el which is
-generated from a source dictionary in SKK-DIC directory.  The
-inclusion of this file is for users convenience because it takes
-rather long time to generate it.
+The above source files are used to generate the following outputs:
+
+../lisp/leim/quail:
+
+This directory contains Emacs Lisp source files for Quail packages.
+
+../lisp/leim/ja-dic:
+
+This directory contains Emacs Lisp source file ja-dic.el,
+generated from a source dictionary in SKK-DIC directory.
 
 
 This file is part of GNU Emacs.

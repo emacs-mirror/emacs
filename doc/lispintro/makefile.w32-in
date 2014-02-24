@@ -1,6 +1,6 @@
 #### -*- Makefile -*- for the Emacs Lisp Introduction manual.
 
-# Copyright (C) 2003-2013 Free Software Foundation, Inc.
+# Copyright (C) 2003-2014 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -23,10 +23,13 @@ srcdir = .
 infodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
+# Directory with emacsver.texi.
+emacsdir = $(srcdir)/../emacs
 
 INFO_EXT=.info
-INFO_OPTS=--no-split
-INFO_SOURCES = $(srcdir)/emacs-lisp-intro.texi $(srcdir)/doclicense.texi
+INFO_OPTS=--no-split -I$(emacsdir)
+INFO_SOURCES = $(srcdir)/emacs-lisp-intro.texi $(emacsdir)/emacsver.texi \
+  $(srcdir)/doclicense.texi
 # The file name eintr must fit within 5 characters, to allow for
 # -NN extensions to fit into DOS 8+3 limits without clashing
 INFO_TARGETS = $(infodir)/eintr$(INFO_EXT)
@@ -37,8 +40,9 @@ INSTALL_INFO = install-info
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips
-ENVADD = $(srcdir)\..\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" \
-	 "MAKEINFO=$(MAKEINFO) -I$(srcdir) -I$(texinfodir)" /C
+ENVADD = $(srcdir)\..\..\nt\envadd.bat \
+	 "TEXINPUTS=$(srcdir);$(texinfodir);$(emacsdir);$(TEXINPUTS)" \
+	 "MAKEINFO=$(MAKEINFO) -I$(srcdir) -I$(emacsdir) -I$(texinfodir)" /C
 
 .SUFFIXES: .dvi .ps .texi
 

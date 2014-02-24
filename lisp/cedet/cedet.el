@@ -1,6 +1,6 @@
 ;;; cedet.el --- Setup CEDET environment
 
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: Eric M. Ludlam  <zappo@gnu.org>
@@ -46,9 +46,6 @@
     (semantic      "2.2"           nil       "semantic/doc")
     (srecode       "1.2"           nil       "srecode"     )
     (ede           "1.2"           nil       "ede"         )
-    (speedbar      "1.0.4"         nil       "speedbar"    )
-    (cogre         "1.2"           nil       "cogre"       )
-    (cedet-contrib "1.2"           "contrib" nil           )
     )
   "Table of CEDET packages to install.")
 

@@ -1,9 +1,9 @@
 ;;; browse-url.el --- pass a URL to a WWW browser
 
-;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2014 Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 03 Apr 1995
 ;; Keywords: hypertext, hypermedia, mouse
 
@@ -227,6 +227,7 @@ regexp should probably be \".\" to specify a default browser."
 	  (function-item :tag "Emacs W3" :value  browse-url-w3)
 	  (function-item :tag "W3 in another Emacs via `gnudoit'"
 			 :value  browse-url-w3-gnudoit)
+	  (function-item :tag "eww" :value  eww-browse-url)
 	  (function-item :tag "Mozilla" :value  browse-url-mozilla)
 	  (function-item :tag "Firefox" :value browse-url-firefox)
 	  (function-item :tag "Chromium" :value browse-url-chromium)
@@ -658,9 +659,10 @@ regarding its parameter treatment."
 ;; URL input
 
 (defun browse-url-url-at-point ()
-  (let ((url (thing-at-point 'url)))
-    (set-text-properties 0 (length url) nil url)
-    url))
+  (or (thing-at-point 'url t)
+      ;; assume that the user is pointing at something like gnu.org/gnu
+      (let ((f (thing-at-point 'filename t)))
+        (and f (concat "http://" f)))))
 
 ;; Having this as a separate function called by the browser-specific
 ;; functions allows them to be stand-alone commands, making it easier
@@ -721,9 +723,12 @@ interactively.  Turn the filename into a URL with function
 (defun browse-url-file-url (file)
   "Return the URL corresponding to FILE.
 Use variable `browse-url-filename-alist' to map filenames to URLs."
-  (let ((coding (and (default-value 'enable-multibyte-characters)
-		     (or file-name-coding-system
-			 default-file-name-coding-system))))
+  (let ((coding (if (equal system-type 'windows-nt)
+		    ;; W32 pretends that file names are UTF-8 encoded.
+		    'utf-8
+		  (and (default-value 'enable-multibyte-characters)
+		       (or file-name-coding-system
+			   default-file-name-coding-system)))))
     (if coding (setq file (encode-coding-string file coding))))
   (setq file (browse-url-url-encode-chars file "[*\"()',=;?% ]"))
   (dolist (map browse-url-filename-alist)
@@ -814,8 +819,8 @@ first, if that exists."
     ;; When connected to various displays, be careful to use the display of
     ;; the currently selected frame, rather than the original start display,
     ;; which may not even exist any more.
-    (if (stringp (frame-parameter (selected-frame) 'display))
-        (setenv "DISPLAY" (frame-parameter (selected-frame) 'display)))
+    (if (stringp (frame-parameter nil 'display))
+        (setenv "DISPLAY" (frame-parameter nil 'display)))
     (if (and (consp function)
 	     (not (functionp function)))
 	;; The `function' can be an alist; look down it for first match
@@ -866,7 +871,7 @@ to use."
 (defvar dos-windows-version)
 (declare-function w32-shell-execute "w32fns.c")    ;; Defined in C.
 
-(defun browse-url-default-windows-browser (url &optional new-window)
+(defun browse-url-default-windows-browser (url &optional _new-window)
   (interactive (browse-url-interactive-arg "URL: "))
   (cond ((eq system-type 'ms-dos)
 	 (if dos-windows-version
@@ -876,7 +881,7 @@ to use."
 	 (call-process "cygstart" nil nil nil url))
 	(t (w32-shell-execute "open" url))))
 
-(defun browse-url-default-macosx-browser (url &optional new-window)
+(defun browse-url-default-macosx-browser (url &optional _new-window)
   (interactive (browse-url-interactive-arg "URL: "))
   (start-process (concat "open " url) nil "open" url))
 
@@ -931,7 +936,7 @@ used instead of `browse-url-new-window-flag'."
     ((executable-find browse-url-xterm-program) 'browse-url-text-xterm)
     ((locate-library "w3") 'browse-url-w3)
     (t
-     (lambda (&rest ignore) (error "No usable browser found"))))
+     (lambda (&rest _ignore) (error "No usable browser found"))))
    url args))
 
 (defun browse-url-can-use-xdg-open ()
@@ -1161,7 +1166,7 @@ URL in a new window."
 	       (append browse-url-firefox-startup-arguments (list url))))))
 
 ;;;###autoload
-(defun browse-url-chromium (url &optional new-window)
+(defun browse-url-chromium (url &optional _new-window)
   "Ask the Chromium WWW browser to load URL.
 Default to the URL around or before point.  The strings in
 variable `browse-url-chromium-arguments' are also passed to
@@ -1270,7 +1275,7 @@ used instead of `browse-url-new-window-flag'."
 (defvar url-handler-regexp)
 
 ;;;###autoload
-(defun browse-url-emacs (url &optional new-window)
+(defun browse-url-emacs (url &optional _new-window)
   "Ask Emacs to load URL into a buffer and show it in another window."
   (interactive (browse-url-interactive-arg "URL: "))
   (require 'url-handlers)
@@ -1411,7 +1416,7 @@ used instead of `browse-url-new-window-flag'."
     (w3-fetch url)))
 
 ;;;###autoload
-(defun browse-url-w3-gnudoit (url &optional new-window)
+(defun browse-url-w3-gnudoit (url &optional _new-window)
   ;; new-window ignored
   "Ask another Emacs running gnuserv to load the URL using the W3 browser.
 The `browse-url-gnudoit-program' program is used with options given by
@@ -1426,7 +1431,7 @@ The `browse-url-gnudoit-program' program is used with options given by
 ;; --- Lynx in an xterm ---
 
 ;;;###autoload
-(defun browse-url-text-xterm (url &optional new-window)
+(defun browse-url-text-xterm (url &optional _new-window)
   ;; new-window ignored
   "Ask a text browser to load URL.
 URL defaults to the URL around or before point.
@@ -1490,7 +1495,7 @@ used instead of `browse-url-new-window-flag'."
            (get-buffer-process buf)
            ;; Don't leave around a dead one (especially because of its
            ;; munged keymap.)
-           (lambda (process event)
+           (lambda (process _event)
              (if (not (memq (process-status process) '(run stop)))
                  (let ((buf (process-buffer process)))
                    (if buf (kill-buffer buf)))))))
@@ -1563,7 +1568,7 @@ used instead of `browse-url-new-window-flag'."
 ;; --- Random browser ---
 
 ;;;###autoload
-(defun browse-url-generic (url &optional new-window)
+(defun browse-url-generic (url &optional _new-window)
   ;; new-window ignored
   "Ask the WWW browser defined by `browse-url-generic-program' to load URL.
 Default to the URL around or before point.  A fresh copy of the
@@ -1578,7 +1583,7 @@ don't offer a form of remote control."
 	 (append browse-url-generic-args (list url))))
 
 ;;;###autoload
-(defun browse-url-kde (url &optional new-window)
+(defun browse-url-kde (url &optional _new-window)
   "Ask the KDE WWW browser to load URL.
 Default to the URL around or before point."
   (interactive (browse-url-interactive-arg "KDE URL: "))

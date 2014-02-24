@@ -1,10 +1,10 @@
 ;;; man.el --- browse UNIX manual pages  -*- coding: utf-8 -*-
 
-;; Copyright (C) 1993-1994, 1996-1997, 2001-2013 Free Software
+;; Copyright (C) 1993-1994, 1996-1997, 2001-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help
 ;; Adapted-By: ESR, pot
 
@@ -55,7 +55,7 @@
 ;; point and some other names have been changed to make it a drop-in
 ;; replacement for the old man.el package.
 
-;; Francesco Potorti` <pot@cnuce.cnr.it> cleaned it up thoroughly,
+;; Francesco Potortì <pot@cnuce.cnr.it> cleaned it up thoroughly,
 ;; making it faster, more robust and more tolerant of different
 ;; systems' man idiosyncrasies.
 
@@ -89,6 +89,7 @@
 ;;; Code:
 
 (require 'ansi-color)
+(require 'cl-lib)
 (require 'button)
 
 (defgroup man nil
@@ -368,6 +369,12 @@ specified subject, if your `man' program supports it."
 Otherwise, the value is whatever the function
 `Man-support-local-filenames' should return.")
 
+(defcustom man-imenu-title "Contents"
+  "The title to use if man adds a Contents menu to the menubar."
+  :version "24.4"
+  :type 'string
+  :group 'man)
+
 
 ;; other variables and keymap initializations
 (defvar Man-original-frame)
@@ -413,7 +420,7 @@ Otherwise, the value is whatever the function
 
 (defvar Man-topic-history nil "Topic read history.")
 
-(defvar man-mode-syntax-table
+(defvar Man-mode-syntax-table
   (let ((table (copy-syntax-table (standard-syntax-table))))
     (modify-syntax-entry ?. "w" table)
     (modify-syntax-entry ?_ "w" table)
@@ -441,11 +448,34 @@ Otherwise, the value is whatever the function
     (define-key map "s"    'Man-goto-see-also-section)
     (define-key map "k"    'Man-kill)
     (define-key map "q"    'Man-quit)
+    (define-key map "u"    'Man-update-manpage)
     (define-key map "m"    'man)
     ;; Not all the man references get buttons currently.  The text in the
     ;; manual page can contain references to other man pages
     (define-key map "\r"   'man-follow)
     (define-key map "?"    'describe-mode)
+
+    (easy-menu-define nil map
+      "`Man-mode' menu."
+      '("Man"
+        ["Next Section" Man-next-section t]
+        ["Previous Section" Man-previous-section t]
+        ["Go To Section..." Man-goto-section t]
+        ["Go To \"SEE ALSO\" Section" Man-goto-see-also-section
+         :active (cl-member Man-see-also-regexp Man--sections
+                            :test #'string-match-p)]
+        ["Follow Reference..." Man-follow-manual-reference
+         :active Man--refpages
+         :help "Go to a manpage referred to in the \"SEE ALSO\" section"]
+        "--"
+        ["Next Manpage" Man-next-manpage
+         :active (> (length Man-page-list) 1)]
+        ["Previous Manpage" Man-previous-manpage
+         :active (> (length Man-page-list) 1)]
+        "--"
+        ["Man..." man t]
+        ["Kill Buffer" Man-kill t]
+        ["Quit" Man-quit t]))
     map)
   "Keymap for Man mode.")
 
@@ -752,7 +782,7 @@ POS defaults to `point'."
 	(setq word (concat word (match-string-no-properties 1)))
 	;; Make sure the section number gets included by the code below.
 	(goto-char (match-end 1)))
-      (when (string-match "[._]+$" word)
+      (when (string-match "[-._]+$" word)
 	(setq word (substring word 0 (match-beginning 0))))
       ;; The following was commented out since the preceding code
       ;; should not produce a leading "*" in the first place.
@@ -971,6 +1001,52 @@ names or descriptions.  The pattern argument is usually an
       (error "No item under point")
     (man man-args)))
 
+(defmacro Man-start-calling (&rest body)
+  "Start the man command in `body' after setting up the environment"
+  `(let ((process-environment (copy-sequence process-environment))
+	;; The following is so Awk script gets \n intact
+	;; But don't prevent decoding of the outside.
+	(coding-system-for-write 'raw-text-unix)
+	;; We must decode the output by a coding system that the
+	;; system's locale suggests in multibyte mode.
+	(coding-system-for-read locale-coding-system)
+	;; Avoid possible error by using a directory that always exists.
+	(default-directory
+	  (if (and (file-directory-p default-directory)
+		   (not (find-file-name-handler default-directory
+						'file-directory-p)))
+	      default-directory
+	    "/")))
+    ;; Prevent any attempt to use display terminal fanciness.
+    (setenv "TERM" "dumb")
+    ;; In Debian Woody, at least, we get overlong lines under X
+    ;; unless COLUMNS or MANWIDTH is set.  This isn't a problem on
+    ;; a tty.  man(1) says:
+    ;;        MANWIDTH
+    ;;               If $MANWIDTH is set, its value is used as the  line
+    ;;               length  for which manual pages should be formatted.
+    ;;               If it is not set, manual pages  will  be  formatted
+    ;;               with  a line length appropriate to the current ter-
+    ;;               minal (using an ioctl(2) if available, the value of
+    ;;               $COLUMNS,  or falling back to 80 characters if nei-
+    ;;               ther is available).
+    (when (or window-system
+	      (not (or (getenv "MANWIDTH") (getenv "COLUMNS"))))
+      ;; This isn't strictly correct, since we don't know how
+      ;; the page will actually be displayed, but it seems
+      ;; reasonable.
+      (setenv "COLUMNS" (number-to-string
+			 (cond
+			  ((and (integerp Man-width) (> Man-width 0))
+			   Man-width)
+			  (Man-width (frame-width))
+			  ((window-width))))))
+    ;; Since man-db 2.4.3-1, man writes plain text with no escape
+    ;; sequences when stdout is not a tty.	In 2.5.0, the following
+    ;; env-var was added to allow control of this (see Debian Bug#340673).
+    (setenv "MAN_KEEP_FORMATTING" "1")
+    ,@body))
+
 (defun Man-getpage-in-background (topic)
   "Use TOPIC to build and fire off the manpage and cleaning command.
 Return the buffer in which the manpage will appear."
@@ -986,51 +1062,8 @@ Return the buffer in which the manpage will appear."
 	(setq buffer-undo-list t)
 	(setq Man-original-frame (selected-frame))
 	(setq Man-arguments man-args))
-      (let ((process-environment (copy-sequence process-environment))
-	    ;; The following is so Awk script gets \n intact
-	    ;; But don't prevent decoding of the outside.
-	    (coding-system-for-write 'raw-text-unix)
-	    ;; We must decode the output by a coding system that the
-	    ;; system's locale suggests in multibyte mode.
-	    (coding-system-for-read
-	     (if (default-value 'enable-multibyte-characters)
-		 locale-coding-system 'raw-text-unix))
-	    ;; Avoid possible error by using a directory that always exists.
-	    (default-directory
-	      (if (and (file-directory-p default-directory)
-		       (not (find-file-name-handler default-directory
-						    'file-directory-p)))
-		  default-directory
-		"/")))
-	;; Prevent any attempt to use display terminal fanciness.
-	(setenv "TERM" "dumb")
-	;; In Debian Woody, at least, we get overlong lines under X
-	;; unless COLUMNS or MANWIDTH is set.  This isn't a problem on
-	;; a tty.  man(1) says:
-	;;        MANWIDTH
-	;;               If $MANWIDTH is set, its value is used as the  line
-	;;               length  for which manual pages should be formatted.
-	;;               If it is not set, manual pages  will  be  formatted
-	;;               with  a line length appropriate to the current ter-
-	;;               minal (using an ioctl(2) if available, the value of
-	;;               $COLUMNS,  or falling back to 80 characters if nei-
-	;;               ther is available).
-	(when (or window-system
-                  (not (or (getenv "MANWIDTH") (getenv "COLUMNS"))))
-	  ;; This isn't strictly correct, since we don't know how
-	  ;; the page will actually be displayed, but it seems
-	  ;; reasonable.
-	  (setenv "COLUMNS" (number-to-string
-			     (cond
-			      ((and (integerp Man-width) (> Man-width 0))
-			       Man-width)
-			      (Man-width (frame-width))
-			      ((window-width))))))
-	;; Since man-db 2.4.3-1, man writes plain text with no escape
-	;; sequences when stdout is not a tty.	In 2.5.0, the following
-	;; env-var was added to allow control of this (see Debian Bug#340673).
-	(setenv "MAN_KEEP_FORMATTING" "1")
-	(if (fboundp 'start-process)
+      (Man-start-calling
+       (if (fboundp 'start-process)
 	    (set-process-sentinel
 	     (start-process manual-program buffer
 			    (if (memq system-type '(cygwin windows-nt))
@@ -1052,7 +1085,34 @@ Return the buffer in which the manpage will appear."
 				   exit-status)))
 		(setq msg exit-status))
 	    (Man-bgproc-sentinel bufname msg)))))
-    buffer))
+      buffer))
+
+(defun Man-update-manpage ()
+  "Reformat current manpage by calling the man command again synchronously."
+  (interactive)
+  (when (eq Man-arguments nil)
+    ;;this shouldn't happen unless it is not in a Man buffer."
+    (error "Man-arguments not initialized"))
+  (let ((old-pos (point))
+	(text (current-word))
+	(old-size (buffer-size))
+	(inhibit-read-only t)
+	(buffer-read-only nil))
+     (erase-buffer)
+     (Man-start-calling
+      (call-process shell-file-name nil (list (current-buffer) nil) nil
+		    shell-command-switch
+		    (format (Man-build-man-command) Man-arguments)))
+     (if Man-fontify-manpage-flag
+	 (Man-fontify-manpage)
+       (Man-cleanup-manpage))
+     (goto-char old-pos)
+     ;;restore the point, not strictly right.
+     (unless (or (eq text nil) (= old-size (buffer-size)))
+       (let ((case-fold-search nil))
+	 (if (> old-size (buffer-size))
+	     (search-backward text nil t))
+	 (search-forward text nil t)))))
 
 (defun Man-notify-when-ready (man-buffer)
   "Notify the user when MAN-BUFFER is ready.
@@ -1350,7 +1410,7 @@ manpage command."
 
 (put 'Man-mode 'mode-class 'special)
 
-(defun Man-mode ()
+(define-derived-mode Man-mode fundamental-mode "Man"
   "A mode for browsing Un*x manual pages.
 
 The following man commands are available in the buffer.  Try
@@ -1387,11 +1447,7 @@ The following variables may be of some use.  Try
 
 The following key bindings are currently in effect in the buffer:
 \\{Man-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'Man-mode
-	mode-name "Man"
-	buffer-auto-save-file-name nil
+  (setq buffer-auto-save-file-name nil
 	mode-line-buffer-identification
 	(list (default-value 'mode-line-buffer-identification)
 	      " {" 'Man-page-mode-string "}")
@@ -1399,9 +1455,8 @@ The following key bindings are currently in effect in the buffer:
 	buffer-read-only t)
   (buffer-disable-undo)
   (auto-fill-mode -1)
-  (use-local-map Man-mode-map)
-  (set-syntax-table man-mode-syntax-table)
   (setq imenu-generic-expression (list (list nil Man-heading-regexp 0)))
+  (imenu-add-to-menubar man-imenu-title)
   (set (make-local-variable 'outline-regexp) Man-heading-regexp)
   (set (make-local-variable 'outline-level) (lambda () 1))
   (set (make-local-variable 'bookmark-make-record-function)
@@ -1409,8 +1464,7 @@ The following key bindings are currently in effect in the buffer:
   (Man-build-page-list)
   (Man-strip-page-headers)
   (Man-unindent)
-  (Man-goto-page 1 t)
-  (run-mode-hooks 'Man-mode-hook))
+  (Man-goto-page 1 t))
 
 (defsubst Man-build-section-alist ()
   "Build the list of manpage sections."

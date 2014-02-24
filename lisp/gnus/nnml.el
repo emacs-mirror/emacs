@@ -1,6 +1,6 @@
 ;;; nnml.el --- mail spool access for Gnus
 
-;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2014 Free Software Foundation, Inc.
 
 ;; Authors: Didier Verna <didier@xemacs.org> (adding compaction)
 ;;	Simon Josefsson <simon@josefsson.org>
@@ -1094,7 +1094,10 @@ Use the nov database for the current group if available."
 		       (concat group ":" new-number-string)))
 		    ;; Save to the new file:
 		    (nnmail-write-region (point-min) (point-max) newfile))
-		  (funcall nnmail-delete-file-function oldfile))
+		  (condition-case ()
+		      (funcall nnmail-delete-file-function oldfile)
+		    (file-error
+		     (message "Couldn't delete %s" oldfile))))
 		;; 2/ Update all marks for this article:
 		;; #### NOTE: it is possible that the new article number
 		;; #### already belongs to a range, whereas the corresponding

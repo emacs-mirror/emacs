@@ -1,6 +1,6 @@
 ;;; semantic/db.el --- Semantic tag database manager
 
-;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -190,7 +190,7 @@ If one doesn't exist, create it."
       (oref obj index)
     (let ((idx nil))
       (setq idx (funcall semanticdb-default-find-index-class
-			 (concat (object-name obj) " index")
+			 (concat (eieio-object-name obj) " index")
 			 ;; Fill in the defaults
 		         :table obj
 			 ))
@@ -469,7 +469,7 @@ other than :table."
   (let ((cache (oref table cache))
 	(obj nil))
     (while (and (not obj) cache)
-      (if (eq (object-class-fast (car cache)) desired-class)
+      (if (eq (eieio--object-class (car cache)) desired-class)
 	  (setq obj (car cache)))
       (setq cache (cdr cache)))
     (if obj
@@ -520,7 +520,7 @@ other than :table."
   (let ((cache (oref db cache))
 	(obj nil))
     (while (and (not obj) cache)
-      (if (eq (object-class-fast (car cache)) desired-class)
+      (if (eq (eieio--object-class (car cache)) desired-class)
 	  (setq obj (car cache)))
       (setq cache (cdr cache)))
     (if obj
@@ -560,8 +560,9 @@ This will call `semantic-fetch-tags' if that file is in memory."
    ;;
    ;; Already in a buffer, just do it.
    ((semanticdb-in-buffer-p obj)
-    (semanticdb-set-buffer obj)
-    (semantic-fetch-tags))
+    (save-excursion
+      (semanticdb-set-buffer obj)
+      (semantic-fetch-tags)))
    ;;
    ;; Not in a buffer.  Forcing a load.
    (force
@@ -697,7 +698,7 @@ form."
   (interactive)
   (unless noninteractive
     (message "Saving tag summaries..."))
-  (let ((semanticdb--inhibit-make-directory nil))
+  (let ((semanticdb--inhibit-make-directory noninteractive))
     (mapc 'semanticdb-save-db semanticdb-database-list))
   (unless noninteractive
     (message "Saving tag summaries...done")))
@@ -899,7 +900,7 @@ If file does not have tags available, and DONTLOAD is nil,
 then load the tags for FILE, and create a new table object for it.
 DONTLOAD does not affect the creation of new database objects."
   ;; (message "Object Translate: %s" file)
-  (when (and file (file-exists-p file))
+  (when (and file (file-exists-p file) (file-regular-p file))
     (let* ((default-directory (file-name-directory file))
 	   (tab (semanticdb-file-table-object-from-hash file))
 	   (fullfile nil))

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Text
@@ -562,10 +562,11 @@ customize the abnormal hook variable @code{fill-nobreak-predicate}
 (@pxref{Hooks}).  Each function in this hook is called with no
 arguments, with point positioned where Emacs is considering breaking a
 line.  If a function returns a non-@code{nil} value, Emacs will not
-break the line there.  Two functions you can use are
+break the line there.  Functions you can use there include:
 @code{fill-single-word-nobreak-p} (don't break after the first word of
-a sentence or before the last) and @code{fill-french-nobreak-p} (don't
-break after @samp{(} or before @samp{)}, @samp{:} or @samp{?}).
+a sentence or before the last); @code{fill-single-char-nobreak-p}
+(don't break after a one-letter word); and @code{fill-french-nobreak-p}
+(don't break after @samp{(} or before @samp{)}, @samp{:} or @samp{?}).
 
 @node Fill Prefix
 @subsection The Fill Prefix
@@ -1123,12 +1124,17 @@ though these are technically body lines).  @kbd{C-c C-a}
 numeric argument @var{n}, it hides everything except the top @var{n}
 levels of heading lines.
 
+@anchor{Outline Search}
 @findex reveal-mode
+@vindex search-invisible
   When incremental search finds text that is hidden by Outline mode,
 it makes that part of the buffer visible.  If you exit the search at
-that position, the text remains visible.  You can also automatically
-make text visible as you navigate in it by using Reveal mode (@kbd{M-x
-reveal-mode}), a buffer-local minor mode.
+that position, the text remains visible.  To toggle whether or not
+an active incremental search can match hidden text, type @kbd{M-s i}.
+To change the default for future searches, customize the option
+@code{search-invisible}.  You can also automatically make text visible
+as you navigate in it by using Reveal mode (@kbd{M-x reveal-mode}), a
+buffer-local minor mode.
 
 @node Outline Views
 @subsection Viewing One Outline in Multiple Views
@@ -2011,8 +2017,8 @@ highlighting (@pxref{Font Lock}).  Unlike Enriched mode, Font Lock
 mode assigns text properties automatically, based on the current
 buffer contents; those properties are not saved to disk.
 
-  The file @file{etc/enriched.doc} in the Emacs distribution serves as
-an example of the features of Enriched mode.
+  The file @file{enriched.txt} in Emacs's @code{data-directory}
+serves as an example of the features of Enriched mode.
 
 @menu
 * Enriched Mode::           Entering and exiting Enriched mode.
@@ -2086,6 +2092,7 @@ newlines are used for filling.  The @key{RET} (@code{newline}) and
 commands, including Auto Fill (@pxref{Auto Fill}), insert only soft
 newlines and delete only soft newlines, leaving hard newlines alone.
 
+@c FIXME: I don't see 'unfilled' in that node.  --xfq
   Thus, when editing with Enriched mode, you should not use @key{RET}
 or @kbd{C-o} to break lines in the middle of filled paragraphs.  Use
 Auto Fill mode or explicit fill commands (@pxref{Fill Commands})
@@ -2097,11 +2104,12 @@ want to set the justification style to @code{unfilled}
 @node Editing Format Info
 @subsection Editing Format Information
 
-  The easiest way to alter properties is with the Text Properties
-menu.  You can get to this menu from the Edit menu in the menu bar
-(@pxref{Menu Bar}), or with @kbd{C-Mouse-2} (@pxref{Menu Mouse
-Clicks}).  Some of the commands in the Text Properties menu are listed
-below (you can also invoke them with @kbd{M-x}):
+  The easiest way to alter properties is with the @samp{Text
+Properties} menu.  You can get to this menu from the @samp{Edit} menu
+in the menu bar (@pxref{Menu Bar}), or with @kbd{C-Mouse-2}
+(@pxref{Menu Mouse Clicks}).  Some of the commands in the @samp{Text
+Properties} menu are listed below (you can also invoke them with
+@kbd{M-x}):
 
 @table @code
 @findex facemenu-remove-face-props
@@ -2255,6 +2263,7 @@ Prefix}.
 
 @node Enriched Justification
 @subsection Justification in Enriched Text
+@cindex justification style
 
   In Enriched mode, you can use the following commands to specify
 various @dfn{justification styles} for filling.  These commands apply
@@ -2295,11 +2304,11 @@ still indent the left margin.
 
 @vindex default-justification
   You can also specify justification styles using the Justification
-submenu in the Text Properties menu.
-  The default justification style is specified by the per-buffer
-variable @code{default-justification}.  Its value should be one of the
-symbols @code{left}, @code{right}, @code{full}, @code{center}, or
-@code{none}.
+submenu in the Text Properties menu.  The default justification style
+is specified by the per-buffer variable @code{default-justification}.
+Its value should be one of the symbols @code{left}, @code{right},
+@code{full}, @code{center}, or @code{none}; their meanings correspond
+to the commands above.
 
 @node Enriched Properties
 @subsection Setting Other Text Properties

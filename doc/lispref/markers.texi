@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Markers
@@ -216,11 +216,14 @@ new marker that points to the same place and the same buffer as does
 The new marker's insertion type is specified by the argument
 @var{insertion-type}.  @xref{Marker Insertion Types}.
 
+@c This behavior used to be documented until 2013/08.
+@ignore
 If passed an integer argument less than 1, @code{copy-marker} returns a
 new marker that points to the beginning of the current buffer.  If
 passed an integer argument greater than the length of the buffer,
 @code{copy-marker} returns a new marker that points to the end of the
 buffer.
+@end ignore
 
 @example
 @group
@@ -279,6 +282,8 @@ This function returns the position that @var{marker} points to, or
 This function returns the buffer that @var{marker} points into, or
 @code{nil} if it points nowhere.
 
+@c FIXME: The `buffer' argument of `set-marker' already defaults to
+@c the current buffer, why use `(current-buffer)' explicitly here?
 @example
 @group
 (setq m (make-marker))
@@ -349,11 +354,15 @@ This function moves @var{marker} to @var{position}
 in @var{buffer}.  If @var{buffer} is not provided, it defaults to
 the current buffer.
 
+@c This behavior used to be documented until 2013/08.
+@ignore
 If @var{position} is less than 1, @code{set-marker} moves @var{marker}
 to the beginning of the buffer.  If @var{position} is greater than the
 size of the buffer (@pxref{Point}), @code{set-marker} moves marker to
-the end of the buffer.  If @var{position} is @code{nil} or a marker
-that points nowhere, then @var{marker} is set to point nowhere.
+the end of the buffer.
+@end ignore
+If @var{position} is @code{nil} or a marker that points nowhere, then
+@var{marker} is set to point nowhere.
 
 The value returned is @var{marker}.
 
@@ -384,7 +393,7 @@ This is another name for @code{set-marker}.
 @node The Mark
 @section The Mark
 @cindex mark, the
-@cindex mark ring
+@c @cindex the mark?
 
   Each buffer has a special marker, which is designated @dfn{the
 mark}.  When a buffer is newly created, this marker exists but does
@@ -423,6 +432,7 @@ the mark is active.  This is the main motivation for using Transient
 Mark mode.  (Another is that this enables highlighting of the region
 when the mark is active.  @xref{Display}.)
 
+@cindex mark ring
   In addition to the mark, each buffer has a @dfn{mark ring} which is a
 list of markers containing previous values of the mark.  When editing
 commands change the mark, they should normally save the old value of the
@@ -644,7 +654,12 @@ more marks than this are pushed onto the @code{mark-ring},
 
 @node The Region
 @section The Region
-@cindex region (between point and mark)
+@c The index entry must be just ``region'' to make it the first hit
+@c when the user types ``i region RET'', because otherwise the Info
+@c reader will present substring matches in alphabetical order,
+@c putting this one near the end, with something utterly unrelated as
+@c the first hit.
+@cindex region
 
   The text between point and the mark is known as @dfn{the region}.
 Various functions operate on text delimited by point and the mark, but
@@ -668,6 +683,7 @@ integer).  This is the position of either point or the mark, whichever is
 larger.
 @end defun
 
+@c FIXME: Mention it in tips.texi?
   Instead of using @code{region-beginning} and @code{region-end}, a
 command designed to operate on a region should normally use
 @code{interactive} with the @samp{r} specification to find the
@@ -680,6 +696,8 @@ mark is active, and there is a valid region in the buffer.  This
 function is intended to be used by commands that operate on the
 region, instead of on text near point, when the mark is active.
 
+@cindex empty region
+@vindex use-empty-active-region
 A region is valid if it has a non-zero size, or if the user option
 @code{use-empty-active-region} is non-@code{nil} (by default, it is
 @code{nil}).  The function @code{region-active-p} is similar to

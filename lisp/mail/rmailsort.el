@@ -1,10 +1,10 @@
 ;;; rmailsort.el --- Rmail: sort messages
 
-;; Copyright (C) 1990, 1993-1994, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1990, 1993-1994, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail
 ;; Package: rmail
 

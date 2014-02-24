@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Command Loop
@@ -108,13 +108,26 @@ command does.
 
   The special form @code{interactive} turns a Lisp function into a
 command.  The @code{interactive} form must be located at top-level in
-the function body (usually as the first form in the body), or in the
-@code{interactive-form} property of the function symbol.  When the
-@code{interactive} form is located in the function body, it does
-nothing when actually executed.  Its presence serves as a flag, which
-tells the Emacs command loop that the function can be called
-interactively.  The argument of the @code{interactive} form controls
-the reading of arguments for an interactive call.
+the function body, usually as the first form in the body; this applies
+to both lambda expressions (@pxref{Lambda Expressions}) and
+@code{defun} forms (@pxref{Defining Functions}).  This form does
+nothing during the actual execution of the function; its presence
+serves as a flag, telling the Emacs command loop that the function can
+be called interactively.  The argument of the @code{interactive} form
+specifies how the arguments for an interactive call should be read.
+
+@cindex @code{interactive-form} property
+  Alternatively, an @code{interactive} form may be specified in a
+function symbol's @code{interactive-form} property.  A non-@code{nil}
+value for this property takes precedence over any @code{interactive}
+form in the function body itself.  This feature is seldom used.
+
+@cindex @code{interactive-only} property
+  Sometimes, a named command is only intended to be called
+interactively, never directly from Lisp.  In that case, give it a
+non-@code{nil} @code{interactive-only} property.  In that case, the
+byte compiler will print a warning message if the command is called
+from Lisp.
 
 @menu
 * Using Interactive::     General rules for @code{interactive}.
@@ -1921,9 +1934,12 @@ must be the last element of the list.  For example,
 @node Accessing Mouse
 @subsection Accessing Mouse Events
 @cindex mouse events, data in
+@cindex keyboard events, data in
 
   This section describes convenient functions for accessing the data in
-a mouse button or motion event.
+a mouse button or motion event.  Keyboard event data can be accessed
+using the same functions, but data elements that aren't applicable to
+keyboard events are zero or @code{nil}.
 
   The following two functions return a mouse position list
 (@pxref{Click Events}), specifying the position of a mouse event.
@@ -2395,9 +2411,12 @@ and key sequences read from keyboard macros being executed.
 @code{read-char}, and @code{read-char-exclusive}.
 
 @defun read-event &optional prompt inherit-input-method seconds
-This function reads and returns the next event of command input, waiting
-if necessary until an event is available.  Events can come directly from
-the user or from a keyboard macro.
+This function reads and returns the next event of command input,
+waiting if necessary until an event is available.
+
+The returned event may come directly from the user, or from a keyboard
+macro.  It is not decoded by the keyboard's input coding system
+(@pxref{Terminal I/O Encoding}).
 
 If the optional argument @var{prompt} is non-@code{nil}, it should be a
 string to display in the echo area as a prompt.  Otherwise,
@@ -2739,12 +2758,16 @@ This function converts the string or vector @var{key} to a list of
 individual events, which you can put in @code{unread-command-events}.
 @end defun
 
-@defun input-pending-p
+@defun input-pending-p &optional check-timers
 @cindex waiting for command key input
 This function determines whether any command input is currently
 available to be read.  It returns immediately, with value @code{t} if
 there is available input, @code{nil} otherwise.  On rare occasions it
 may return @code{t} when no input is available.
+
+If the optional argument @var{check-timers} is non-@code{nil}, then if
+no input is available, Emacs runs any timers which are ready.
+@xref{Timers}.
 @end defun
 
 @defvar last-input-event
@@ -3024,7 +3047,7 @@ in @ref{Errors}.)
 @end deffn
 
   You can specify a character other than @kbd{C-g} to use for quitting.
-See the function @code{set-input-mode} in @ref{Terminal Input}.
+See the function @code{set-input-mode} in @ref{Input Modes}.
 
 @node Prefix Command Arguments
 @section Prefix Command Arguments

@@ -1,5 +1,5 @@
 /* Font backend for the Microsoft Windows API.
-   Copyright (C) 2007-2013 Free Software Foundation, Inc.
+   Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -33,6 +33,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "fontset.h"
 #include "font.h"
 #include "w32font.h"
+#ifdef WINDOWSNT
+#include "w32.h"
+#endif
 
 /* Cleartype available on Windows XP, cleartype_natural from XP SP1.
    The latter does not try to fit cleartype smoothed fonts into the
@@ -99,7 +102,7 @@ static Lisp_Object Qw32_charset_thai, Qw32_charset_johab, Qw32_charset_mac;
 /* Font spacing symbols - defined in font.c.  */
 extern Lisp_Object Qc, Qp, Qm;
 
-static void fill_in_logfont (FRAME_PTR, LOGFONT *, Lisp_Object);
+static void fill_in_logfont (struct frame *, LOGFONT *, Lisp_Object);
 
 static BYTE w32_antialias_type (Lisp_Object);
 static Lisp_Object lispy_antialias_type (BYTE);
@@ -144,11 +147,13 @@ struct font_callback_data
    style variations if the font name is not specified.  */
 static void list_all_matching_fonts (struct font_callback_data *);
 
-static BOOL g_b_init_is_w9x;
+#ifdef WINDOWSNT
+
 static BOOL g_b_init_get_outline_metrics_w;
 static BOOL g_b_init_get_text_metrics_w;
 static BOOL g_b_init_get_glyph_outline_w;
 static BOOL g_b_init_get_glyph_outline_w;
+static BOOL g_b_init_get_char_width_32_w;
 
 typedef UINT (WINAPI * GetOutlineTextMetricsW_Proc) (
    HDC hdc,
@@ -165,6 +170,11 @@ typedef DWORD (WINAPI * GetGlyphOutlineW_Proc) (
    DWORD cbBuffer,
    LPVOID lpvBuffer,
    const MAT2 *lpmat2);
+typedef BOOL (WINAPI * GetCharWidth32W_Proc) (
+   HDC hdc,
+   UINT uFirstChar,
+   UINT uLastChar,
+   LPINT lpBuffer);
 
 /* Several "wide" functions we use to support the font backends are
    unavailable on Windows 9X, unless UNICOWS.DLL is installed (their
@@ -177,45 +187,7 @@ typedef DWORD (WINAPI * GetGlyphOutlineW_Proc) (
 static HMODULE
 w32_load_unicows_or_gdi32 (void)
 {
-  static BOOL is_9x = 0;
-  OSVERSIONINFO os_ver;
-  HMODULE ret;
-  if (g_b_init_is_w9x == 0)
-    {
-      g_b_init_is_w9x = 1;
-      ZeroMemory (&os_ver, sizeof (OSVERSIONINFO));
-      os_ver.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
-      if (GetVersionEx (&os_ver))
-	is_9x = (os_ver.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS);
-    }
-  if (is_9x)
-    {
-      ret = LoadLibrary ("Unicows.dll");
-      if (!ret)
-	{
-	  int button;
-
-	  button = MessageBox (NULL,
-			       "Emacs cannot load the UNICOWS.DLL library.\n"
-			       "This library is essential for using Emacs\n"
-			       "on this system.  You need to install it.\n\n"
-			       "However, you can still use Emacs by invoking\n"
-			       "it with the '-nw' command-line option.\n\n"
-			       "Emacs will exit when you click OK.",
-			       "Emacs cannot load UNICOWS.DLL",
-			       MB_ICONERROR | MB_TASKMODAL
-			       | MB_SETFOREGROUND | MB_OK);
-	  switch (button)
-	    {
-	    case IDOK:
-	    default:
-	      exit (1);
-	    }
-	}
-    }
-  else
-    ret = LoadLibrary ("Gdi32.dll");
-  return ret;
+  return maybe_load_unicows_dll ();
 }
 
 /* The following 3 functions call the problematic "wide" APIs via
@@ -274,6 +246,35 @@ get_glyph_outline_w (HDC hdc, UINT uChar, UINT uFormat, LPGLYPHMETRICS lpgm,
 				   lpvBuffer, lpmat2);
 }
 
+static DWORD WINAPI
+get_char_width_32_w (HDC hdc, UINT uFirstChar, UINT uLastChar, LPINT lpBuffer)
+{
+  static GetCharWidth32W_Proc s_pfn_Get_Char_Width_32W = NULL;
+  HMODULE hm_unicows = NULL;
+  if (g_b_init_get_char_width_32_w == 0)
+    {
+      g_b_init_get_char_width_32_w = 1;
+      hm_unicows = w32_load_unicows_or_gdi32 ();
+      if (hm_unicows)
+	s_pfn_Get_Char_Width_32W = (GetCharWidth32W_Proc)
+	  GetProcAddress (hm_unicows, "GetCharWidth32W");
+    }
+  eassert (s_pfn_Get_Char_Width_32W != NULL);
+  return s_pfn_Get_Char_Width_32W (hdc, uFirstChar, uLastChar, lpBuffer);
+}
+
+#else  /* Cygwin */
+
+/* Cygwin doesn't support Windows 9X, and links against GDI32.DLL, so
+   it can just call these functions directly.  */
+#define get_outline_metrics_w(h,d,o)   GetOutlineTextMetricsW(h,d,o)
+#define get_text_metrics_w(h,t)        GetTextMetricsW(h,t)
+#define get_glyph_outline_w(h,uc,f,gm,b,v,m) \
+                                       GetGlyphOutlineW(h,uc,f,gm,b,v,m)
+#define get_char_width_32_w(h,fc,lc,b) GetCharWidth32W(h,fc,lc,b)
+
+#endif	/* Cygwin */
+
 static int
 memq_no_quit (Lisp_Object elt, Lisp_Object list)
 {
@@ -297,9 +298,9 @@ intern_font_name (char * string)
    Return a cache of font-entities on FRAME.  The cache must be a
    cons whose cdr part is the actual cache area.  */
 Lisp_Object
-w32font_get_cache (FRAME_PTR f)
+w32font_get_cache (struct frame *f)
 {
-  struct w32_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   return (dpyinfo->name_list_element);
 }
@@ -309,9 +310,9 @@ w32font_get_cache (FRAME_PTR f)
    is a vector of font-entities.  This is the sole API that
    allocates font-entities.  */
 static Lisp_Object
-w32font_list (Lisp_Object frame, Lisp_Object font_spec)
+w32font_list (struct frame *f, Lisp_Object font_spec)
 {
-  Lisp_Object fonts = w32font_list_internal (frame, font_spec, 0);
+  Lisp_Object fonts = w32font_list_internal (f, font_spec, 0);
   FONT_ADD_LOG ("w32font-list", font_spec, fonts);
   return fonts;
 }
@@ -321,9 +322,9 @@ w32font_list (Lisp_Object frame, Lisp_Object font_spec)
    FRAME.  The closeness is determined by the font backend, thus
    `face-font-selection-order' is ignored here.  */
 static Lisp_Object
-w32font_match (Lisp_Object frame, Lisp_Object font_spec)
+w32font_match (struct frame *f, Lisp_Object font_spec)
 {
-  Lisp_Object entity = w32font_match_internal (frame, font_spec, 0);
+  Lisp_Object entity = w32font_match_internal (f, font_spec, 0);
   FONT_ADD_LOG ("w32font-match", font_spec, entity);
   return entity;
 }
@@ -332,12 +333,11 @@ w32font_match (Lisp_Object frame, Lisp_Object font_spec)
    List available families.  The value is a list of family names
    (symbols).  */
 static Lisp_Object
-w32font_list_family (Lisp_Object frame)
+w32font_list_family (struct frame *f)
 {
   Lisp_Object list = Qnil;
   LOGFONT font_match_pattern;
   HDC dc;
-  FRAME_PTR f = XFRAME (frame);
 
   memset (&font_match_pattern, 0, sizeof (font_match_pattern));
   font_match_pattern.lfCharSet = DEFAULT_CHARSET;
@@ -356,7 +356,7 @@ w32font_list_family (Lisp_Object frame)
    Open a font specified by FONT_ENTITY on frame F.
    If the font is scalable, open it with PIXEL_SIZE.  */
 static Lisp_Object
-w32font_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
+w32font_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
 {
   Lisp_Object font_object
     = font_make_object (VECSIZE (struct w32font_info),
@@ -377,26 +377,28 @@ w32font_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   return font_object;
 }
 
-/* w32 implementation of close for font_backend.
-   Close FONT on frame F.  */
+/* w32 implementation of close for font_backend.  */
 void
-w32font_close (FRAME_PTR f, struct font *font)
+w32font_close (struct font *font)
 {
-  int i;
   struct w32font_info *w32_font = (struct w32font_info *) font;
 
-  /* Delete the GDI font object.  */
-  DeleteObject (w32_font->hfont);
-
-  /* Free all the cached metrics.  */
-  if (w32_font->cached_metrics)
+  if (w32_font->hfont)
     {
-      for (i = 0; i < w32_font->n_cache_blocks; i++)
-        {
-          xfree (w32_font->cached_metrics[i]);
-        }
-      xfree (w32_font->cached_metrics);
-      w32_font->cached_metrics = NULL;
+      /* Delete the GDI font object.  */
+      DeleteObject (w32_font->hfont);
+      w32_font->hfont = NULL;
+
+      /* Free all the cached metrics.  */
+      if (w32_font->cached_metrics)
+	{
+	  int i;
+
+	  for (i = 0; i < w32_font->n_cache_blocks; i++)
+	      xfree (w32_font->cached_metrics[i]);
+	  xfree (w32_font->cached_metrics);
+	  w32_font->cached_metrics = NULL;
+	}
     }
 }
 
@@ -732,13 +734,13 @@ w32font_free_entity (Lisp_Object entity);
    storing some data in FACE->extra.  If successful, return 0.
    Otherwise, return -1.
 static int
-w32font_prepare_face (FRAME_PTR f, struct face *face);
+w32font_prepare_face (struct frame *f, struct face *face);
   */
 /* w32 implementation of done_face for font backend.
    Optional.
    Done FACE for displaying characters by FACE->font on frame F.
 static void
-w32font_done_face (FRAME_PTR f, struct face *face);  */
+w32font_done_face (struct frame *f, struct face *face);  */
 
 /* w32 implementation of get_bitmap for font backend.
    Optional.
@@ -811,15 +813,14 @@ w32font_otf_drive (struct font *font, Lisp_Object features,
    Additional parameter opentype_only restricts the returned fonts to
    opentype fonts, which can be used with the Uniscribe backend.  */
 Lisp_Object
-w32font_list_internal (Lisp_Object frame, Lisp_Object font_spec, int opentype_only)
+w32font_list_internal (struct frame *f, Lisp_Object font_spec, int opentype_only)
 {
   struct font_callback_data match_data;
   HDC dc;
-  FRAME_PTR f = XFRAME (frame);
 
   match_data.orig_font_spec = font_spec;
   match_data.list = Qnil;
-  match_data.frame = frame;
+  XSETFRAME (match_data.frame, f);
 
   memset (&match_data.pattern, 0, sizeof (LOGFONT));
   fill_in_logfont (f, &match_data.pattern, font_spec);
@@ -864,14 +865,13 @@ w32font_list_internal (Lisp_Object frame, Lisp_Object font_spec, int opentype_on
    Additional parameter opentype_only restricts the returned fonts to
    opentype fonts, which can be used with the Uniscribe backend.  */
 Lisp_Object
-w32font_match_internal (Lisp_Object frame, Lisp_Object font_spec, int opentype_only)
+w32font_match_internal (struct frame *f, Lisp_Object font_spec, int opentype_only)
 {
   struct font_callback_data match_data;
   HDC dc;
-  FRAME_PTR f = XFRAME (frame);
 
   match_data.orig_font_spec = font_spec;
-  match_data.frame = frame;
+  XSETFRAME (match_data.frame, f);
   match_data.list = Qnil;
 
   memset (&match_data.pattern, 0, sizeof (LOGFONT));
@@ -892,7 +892,7 @@ w32font_match_internal (Lisp_Object frame, Lisp_Object font_spec, int opentype_o
 }
 
 int
-w32font_open_internal (FRAME_PTR f, Lisp_Object font_entity,
+w32font_open_internal (struct frame *f, Lisp_Object font_entity,
 		       int pixel_size, Lisp_Object font_object)
 {
   int len, size;
@@ -990,7 +990,6 @@ w32font_open_internal (FRAME_PTR f, Lisp_Object font_entity,
   font->baseline_offset = 0;
   font->relative_compose = 0;
   font->default_ascent = w32_font->metrics.tmAscent;
-  font->font_encoder = NULL;
   font->pixel_size = size;
   font->driver = &w32font_driver;
   /* Use format cached during list, as the information we have access to
@@ -1964,10 +1963,10 @@ w32_to_fc_weight (int n)
 
 /* Fill in all the available details of LOGFONT from FONT_SPEC.  */
 static void
-fill_in_logfont (FRAME_PTR f, LOGFONT *logfont, Lisp_Object font_spec)
+fill_in_logfont (struct frame *f, LOGFONT *logfont, Lisp_Object font_spec)
 {
   Lisp_Object tmp, extra;
-  int dpi = FRAME_W32_DISPLAY_INFO (f)->resy;
+  int dpi = FRAME_RES_Y (f);
 
   tmp = AREF (font_spec, FONT_DPI_INDEX);
   if (INTEGERP (tmp))
@@ -2114,7 +2113,7 @@ static void
 list_all_matching_fonts (struct font_callback_data *match_data)
 {
   HDC dc;
-  Lisp_Object families = w32font_list_family (match_data->frame);
+  Lisp_Object families = w32font_list_family (XFRAME (match_data->frame));
   struct frame *f = XFRAME (match_data->frame);
 
   dc = get_frame_dc (f);
@@ -2438,6 +2437,7 @@ compute_metrics (HDC dc, struct w32font_info *w32_font, unsigned int code,
   GLYPHMETRICS gm;
   MAT2 transform;
   unsigned int options = GGO_METRICS;
+  INT width;
 
   if (w32_font->glyph_idx)
     options |= GGO_GLYPH_INDEX;
@@ -2454,6 +2454,13 @@ compute_metrics (HDC dc, struct w32font_info *w32_font, unsigned int code,
       metrics->width = gm.gmCellIncX;
       metrics->status = W32METRIC_SUCCESS;
     }
+  else if (get_char_width_32_w (dc, code, code, &width) != 0)
+    {
+      metrics->lbearing = 0;
+      metrics->rbearing = width;
+      metrics->width = width;
+      metrics->status = W32METRIC_SUCCESS;
+    }
   else
     metrics->status = W32METRIC_FAIL;
 }
@@ -2467,7 +2474,7 @@ If EXCLUDE-PROPORTIONAL is non-nil, exclude proportional fonts
 in the font selection dialog. */)
   (Lisp_Object frame, Lisp_Object exclude_proportional)
 {
-  FRAME_PTR f = check_x_frame (frame);
+  struct frame *f = decode_window_system_frame (frame);
   CHOOSEFONT cf;
   LOGFONT lf;
   TEXTMETRIC tm;
@@ -2533,7 +2540,7 @@ w32font_filter_properties (Lisp_Object font, Lisp_Object alist)
 
 struct font_driver w32font_driver =
   {
-    0, /* Qgdi */
+    LISP_INITIALLY_ZERO, /* Qgdi */
     0, /* case insensitive */
     w32font_get_cache,
     w32font_list,
@@ -2724,8 +2731,10 @@ versions of Windows) characters.  */);
 void
 globals_of_w32font (void)
 {
-  g_b_init_is_w9x = 0;
+#ifdef WINDOWSNT
   g_b_init_get_outline_metrics_w = 0;
   g_b_init_get_text_metrics_w = 0;
   g_b_init_get_glyph_outline_w = 0;
+  g_b_init_get_char_width_32_w = 0;
+#endif
 }

@@ -1,6 +1,6 @@
 ;;; gnus-msg.el --- mail and post interface for Gnus
 
-;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2014 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -415,6 +415,11 @@ Thank you for your help in stamping out bugs.
      (gnus-inews-make-draft-meta-information
       ,(gnus-group-decoded-name gnus-newsgroup-name) ',articles)))
 
+(autoload 'nnir-article-number "nnir" nil nil 'macro)
+(autoload 'nnir-article-group "nnir" nil nil 'macro)
+(autoload 'gnus-nnir-group-p "nnir")
+
+
 (defvar gnus-article-reply nil)
 (defmacro gnus-setup-message (config &rest forms)
   (let ((winconf (make-symbol "gnus-setup-message-winconf"))
@@ -426,15 +431,24 @@ Thank you for your help in stamping out bugs.
     `(let ((,winconf (current-window-configuration))
 	   (,winconf-name gnus-current-window-configuration)
 	   (,buffer (buffer-name (current-buffer)))
-	   (,article gnus-article-reply)
+	   (,article (if (and (gnus-nnir-group-p gnus-newsgroup-name)
+			      gnus-article-reply)
+			 (nnir-article-number (or (car-safe gnus-article-reply)
+						  gnus-article-reply))
+		       gnus-article-reply))
 	   (,yanked gnus-article-yanked-articles)
-	   (,group gnus-newsgroup-name)
+	   (,group (if (and (gnus-nnir-group-p gnus-newsgroup-name)
+			    gnus-article-reply)
+		       (nnir-article-group (or (car-safe gnus-article-reply)
+					       gnus-article-reply))
+		     gnus-newsgroup-name))
 	   (message-header-setup-hook
 	    (copy-sequence message-header-setup-hook))
 	   (mbl mml-buffer-list)
 	   (message-mode-hook (copy-sequence message-mode-hook)))
        (setq mml-buffer-list nil)
-       (add-hook 'message-header-setup-hook 'gnus-inews-insert-gcc)
+       (add-hook 'message-header-setup-hook (lambda ()
+					      (gnus-inews-insert-gcc ,group)))
        ;; message-newsreader and message-mailer were formerly set in
        ;; gnus-inews-add-send-actions, but this is too late when
        ;; message-generate-headers-first is used. --ansel
@@ -526,7 +540,8 @@ instead."
 	(message-mail to subject other-headers continue
 		      nil yank-action send-actions return-action))
     (let ((buf (current-buffer))
-	  (gnus-newsgroup-name (or gnus-newsgroup-name ""))
+	  ;; Don't use posting styles corresponding to any existing group.
+	  (gnus-newsgroup-name "")
 	  mail-buf)
       (gnus-setup-message 'message
 	(message-mail to subject other-headers continue
@@ -847,7 +862,7 @@ post using the current select method."
   (let ((message-post-method
 	 `(lambda (arg)
 	    (gnus-post-method (eq ',symp 'a) ,gnus-newsgroup-name)))
-	(user-mail-address user-mail-address))
+	(custom-address user-mail-address))
     (dolist (article (gnus-summary-work-articles n))
       (when (gnus-summary-select-article t nil nil article)
 	;; Pretend that we're doing a followup so that we can see what
@@ -857,12 +872,13 @@ post using the current select method."
 	    (gnus-summary-followup nil)
 	    (let ((from (message-fetch-field "from")))
 	      (when from
-		(setq user-mail-address
+		(setq custom-address
 		      (car (mail-header-parse-address from)))))
 	    (kill-buffer (current-buffer))))
 	;; Now cancel the article using the From header we got.
 	(when (gnus-eval-in-buffer-window gnus-original-article-buffer
-		(message-cancel-news))
+		(let ((user-mail-address (or custom-address user-mail-address)))
+		  (message-cancel-news)))
 	  (gnus-summary-mark-as-read article gnus-canceled-mark)
 	  (gnus-cache-remove-article 1))
 	(gnus-article-hide-headers-if-wanted))
@@ -907,6 +923,7 @@ header line with the old Message-ID."
       (with-current-buffer article-buffer
 	(let ((gnus-newsgroup-charset (or gnus-article-charset
 					  gnus-newsgroup-charset))
+	      (inhibit-read-only t)
 	      (gnus-newsgroup-ignored-charsets
 	       (or gnus-article-ignored-charsets
 		   gnus-newsgroup-ignored-charsets)))
@@ -1118,7 +1135,9 @@ See the variable `gnus-user-agent'."
 	   (gnus-v
 	    (when (memq 'gnus gnus-user-agent)
 	      (concat "Gnus/"
-		      (prin1-to-string (gnus-continuum-version gnus-version) t)
+		      (gnus-replace-in-string
+		       (format "%1.8f" (gnus-continuum-version gnus-version))
+		       "0+\\'" "")
 		      " (" gnus-version ")")))
 	   (emacs-v (gnus-emacs-version)))
       (concat gnus-v (when (and gnus-v emacs-v) " ")
@@ -1706,7 +1725,8 @@ this is a reply."
          (group (when group (gnus-group-decoded-name group)))
          (var (or gnus-outgoing-message-group gnus-message-archive-group))
 	 (gcc-self-val
-	  (and group (gnus-group-find-parameter group 'gcc-self)))
+	  (and group (not (gnus-virtual-group-p group))
+	       (gnus-group-find-parameter group 'gcc-self)))
 	 result
 	 (groups
 	  (cond

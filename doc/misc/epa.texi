@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../info/epa
 @settitle EasyPG Assistant User's Manual
+@documentencoding UTF-8
 @c %**end of header
 
 @set VERSION 1.0.0
@@ -9,7 +10,7 @@
 @copying
 This file describes EasyPG Assistant @value{VERSION}.
 
-Copyright @copyright{} 2007--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -62,6 +63,9 @@ called EasyPG Library.
 * Caching Passphrases::
 * Bug Reports::
 * GNU Free Documentation License::  The license for this documentation.
+* Key Index::
+* Function Index::
+* Variable Index::
 @end menu
 
 @node  Overview
@@ -106,7 +110,7 @@ This chapter introduces various commands for typical use cases.
 * Cryptographic operations on files::
 * Dired integration::
 * Mail-mode integration::
-* Encrypting/decrypting *.gpg files::
+* Encrypting/decrypting gpg files::
 @end menu
 
 @node Key management
@@ -240,8 +244,9 @@ you answered yes, it will let you select the signing keys.
 @node Cryptographic operations on files
 @section Cryptographic operations on files
 
-@deffn Command epa-decrypt-file file
-Decrypt @var{file}.
+@deffn Command epa-decrypt-file file &optional output
+Decrypt @var{file}.  If you do not specify the name @var{output} to
+use for the decrypted file, this function prompts for the value to use.
 @end deffn
 
 @deffn Command epa-verify-file file
@@ -337,16 +342,19 @@ Compose a signed message from the current buffer.
 @kindex @kbd{C-c C-e C-e}
 @kindex @kbd{C-c C-e e}
 @findex epa-mail-encrypt
+@vindex epa-mail-aliases
 Compose an encrypted message from the current buffer.
 By default it tries to build the recipient list from @samp{to},
 @samp{cc}, and @samp{bcc} fields of the mail header.  To include your
 key in the recipient list, use @samp{encrypt-to} option in
-@file{~/.gnupg/gpg.conf}.
+@file{~/.gnupg/gpg.conf}.  This function translates recipient
+addresses using the @code{epa-mail-aliases} list.  You can also
+use that option to ignore specific recipients for encryption purposes.
 
 @end table
 
-@node Encrypting/decrypting *.gpg files
-@section Encrypting/decrypting *.gpg files
+@node Encrypting/decrypting gpg files
+@section Encrypting/decrypting gpg files
 By default, every file whose name ends with @samp{.gpg} will be
 treated as encrypted.  That is, when you open such a file, the
 decrypted text is inserted in the buffer rather than encrypted one.
@@ -395,7 +403,7 @@ which encryption method should be used through @xref{File Variables, ,
 variable for this.
 @vindex epa-file-encrypt-to
 
-For example, if you want an Elisp file should be encrypted with a
+For example, if you want an Elisp file to be encrypted with a
 public key associated with an email address @samp{ueno@@unixuser.org},
 add the following line to the beginning of the file.
 
@@ -463,7 +471,7 @@ To set up gpg-agent, follow the instruction in GnuPG manual.
 
 To set up elisp passphrase cache, set
 @code{epa-file-cache-passphrase-for-symmetric-encryption}.
-@xref{Encrypting/decrypting *.gpg files}.
+@xref{Encrypting/decrypting gpg files}.
 
 @node Bug Reports
 @chapter Bug Reports
@@ -490,6 +498,18 @@ buffer name is a whitespace.
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
+
+@node Key Index
+@unnumbered Key Index
+@printindex ky
+
+@node Function Index
+@unnumbered Function Index
+@printindex fn
+
+@node Variable Index
+@unnumbered Variable Index
+@printindex vr
 
 @bye
 

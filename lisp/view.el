@@ -1,6 +1,6 @@
 ;;; view.el --- peruse file or buffer without editing
 
-;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2013 Free Software
+;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Author: K. Shane Hartman
@@ -322,7 +322,7 @@ own View-like bindings."
     (view-mode-enter nil exit-action)))
 
 ;;;###autoload
-(defun view-buffer-other-window (buffer &optional not-return exit-action)
+(defun view-buffer-other-window (buffer &optional _not-return exit-action)
   "View BUFFER in View mode in another window.
 Emacs commands editing the buffer contents are not available;
 instead, a special set of commands (mostly letters and
@@ -349,7 +349,7 @@ own View-like bindings."
     (view-mode-enter nil exit-action)))
 
 ;;;###autoload
-(defun view-buffer-other-frame (buffer &optional not-return exit-action)
+(defun view-buffer-other-frame (buffer &optional _not-return exit-action)
   "View BUFFER in View mode in another frame.
 Emacs commands editing the buffer contents are not available;
 instead, a special set of commands (mostly letters and

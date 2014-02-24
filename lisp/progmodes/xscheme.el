@@ -1,9 +1,9 @@
 ;;; xscheme.el --- run MIT Scheme under Emacs
 
-;; Copyright (C) 1986-1987, 1989-1990, 2001-2013 Free Software
+;; Copyright (C) 1986-1987, 1989-1990, 2001-2014 Free Software
 ;; Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages, lisp
 
 ;; This file is part of GNU Emacs.
@@ -35,7 +35,6 @@
 ;;;; Internal Variables
 
 (defvar xscheme-previous-mode)
-(defvar xscheme-previous-process-state)
 (defvar xscheme-last-input-end)
 
 (defvar xscheme-process-command-line nil
@@ -388,8 +387,6 @@ with no args, if that value is non-nil.
   (if (not preserve)
       (let ((previous-mode major-mode))
         (kill-all-local-variables)
-        (make-local-variable 'xscheme-process-name)
-        (make-local-variable 'xscheme-previous-process-state)
         (make-local-variable 'xscheme-runlight-string)
         (make-local-variable 'xscheme-runlight)
         (set (make-local-variable 'xscheme-previous-mode) previous-mode)
@@ -397,35 +394,29 @@ with no args, if that value is non-nil.
           (set (make-local-variable 'xscheme-buffer-name) (buffer-name buffer))
           (set (make-local-variable 'xscheme-last-input-end) (make-marker))
           (let ((process (get-buffer-process buffer)))
-            (if process
-                (progn
-                  (setq xscheme-process-name (process-name process))
-                  (setq xscheme-previous-process-state
-                        (cons (process-filter process)
-                              (process-sentinel process)))
-		  (xscheme-process-filter-initialize t)
-		  (xscheme-mode-line-initialize xscheme-buffer-name)
-		  (set-process-sentinel process 'xscheme-process-sentinel)
-		  (set-process-filter process 'xscheme-process-filter))
-                (setq xscheme-previous-process-state (cons nil nil)))))))
+            (when process
+              (setq-local xscheme-process-name (process-name process))
+              ;; FIXME: Use add-function!
+              (xscheme-process-filter-initialize t)
+              (xscheme-mode-line-initialize xscheme-buffer-name)
+              (add-function :override (process-sentinel process)
+                            #'xscheme-process-sentinel)
+              (add-function :override (process-filter process)
+                            #'xscheme-process-filter))))))
   (scheme-interaction-mode-initialize)
   (scheme-mode-variables)
   (run-mode-hooks 'scheme-mode-hook 'scheme-interaction-mode-hook))
 
 (defun exit-scheme-interaction-mode ()
-  "Take buffer out of scheme interaction mode"
+  "Take buffer out of scheme interaction mode."
   (interactive)
   (if (not (derived-mode-p 'scheme-interaction-mode))
       (error "Buffer not in scheme interaction mode"))
-  (let ((previous-state xscheme-previous-process-state))
-    (funcall xscheme-previous-mode)
-    (let ((process (get-buffer-process (current-buffer))))
-      (if process
-	  (progn
-	    (if (eq (process-filter process) 'xscheme-process-filter)
-		(set-process-filter process (car previous-state)))
-	    (if (eq (process-sentinel process) 'xscheme-process-sentinel)
-		(set-process-sentinel process (cdr previous-state))))))))
+  (funcall xscheme-previous-mode)
+  (let ((process (get-buffer-process (current-buffer))))
+    (when process
+      (remove-function (process-sentinel process) #'xscheme-process-sentinel)
+      (remove-function (process-filter process) #'xscheme-process-filter))))
 
 (defvar scheme-interaction-mode-commands-alist nil)
 (defvar scheme-interaction-mode-map nil)

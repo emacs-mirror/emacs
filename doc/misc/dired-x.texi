@@ -9,6 +9,7 @@
 @comment %**start of header (This is for running Texinfo on a region.)
 @setfilename ../../info/dired-x
 @settitle Dired Extra User's Manual
+@documentencoding UTF-8
 
 @include emacsver.texi
 
@@ -19,7 +20,7 @@
 @comment %**end of header (This is for running Texinfo on a region.)
 
 @copying
-Copyright @copyright{} 1994--1995, 1999, 2001--2013
+Copyright @copyright{} 1994--1995, 1999, 2001--2014
 Free Software Foundation, Inc.
 
 @quotation
@@ -560,7 +561,7 @@ of marked files.
 @vindex dired-guess-shell-alist-default
 Predefined rules for shell commands.  Set this to @code{nil} to turn guessing off.
 The elements of @code{dired-guess-shell-alist-user} (defined by the
-user) will override these rules.@refill
+user) will override these rules.
 
 @item dired-guess-shell-alist-user
 @vindex dired-guess-shell-alist-user
@@ -568,7 +569,6 @@ If non-@code{nil}, a user-defined alist of file regexps and their suggested
 commands.  These rules take precedence over the predefined rules in the
 variable @code{dired-guess-shell-alist-default} (to which they are prepended)
 when @code{dired-do-shell-command} is run).
-@refill
 
 Each element of the alist looks like
 

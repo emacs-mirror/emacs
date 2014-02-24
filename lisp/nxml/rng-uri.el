@@ -1,6 +1,6 @@
 ;;; rng-uri.el --- URI parsing and manipulation
 
-;; Copyright (C) 2003, 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -127,8 +127,7 @@ Signal an error if URI is not a valid file URL."
 (defun rng-uri-error (&rest args)
   (signal 'rng-uri-error (list (apply 'format args))))
 
-(put 'rng-uri-error 'error-conditions '(error rng-uri-error))
-(put 'rng-uri-error 'error-message "Invalid URI")
+(define-error 'rng-uri-error "Invalid URI")
 
 (defun rng-uri-split (str)
   (and (string-match "\\`\\(?:\\([^:/?#]+\\):\\)?\

@@ -1,6 +1,6 @@
 ;;; url-http.el --- HTTP retrieval routines
 
-;; Copyright (C) 1999, 2001, 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004-2014 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -51,7 +51,6 @@
 (defvar url-show-status)
 
 (require 'url-gw)
-(require 'url-util)
 (require 'url-parse)
 (require 'url-cookie)
 (require 'mail-parse)
@@ -357,9 +356,7 @@ request.")
              ;; End request
              "\r\n"
              ;; Any data
-             url-http-data
-	     ;; If `url-http-data' is nil, avoid two CRLFs (Bug#8931).
-	     (if url-http-data "\r\n")))
+             url-http-data))
            ""))
     (url-http-debug "Request is: \n%s" request)
     request))
@@ -374,9 +371,6 @@ Return the number of characters removed."
     (while (re-search-forward "\r$" url-http-end-of-headers t)
       (replace-match ""))
     (- end url-http-end-of-headers)))
-
-(defvar status)
-(defvar success)
 
 (defun url-http-handle-authentication (proxy)
   (url-http-debug "Handling %s authentication" (if proxy "proxy" "normal"))
@@ -404,9 +398,9 @@ Return the number of characters removed."
 		       (url-strip-leading-spaces
 			this-auth)))
       (let* ((this-type
-	      (if (string-match "[ \t]" this-auth)
-		  (downcase (substring this-auth 0 (match-beginning 0)))
-		(downcase this-auth)))
+	      (downcase (if (string-match "[ \t]" this-auth)
+                            (substring this-auth 0 (match-beginning 0))
+                          this-auth)))
 	     (registered (url-auth-registered this-type))
 	     (this-strength (cddr registered)))
 	(when (and registered (> this-strength strength))
@@ -421,20 +415,26 @@ Return the number of characters removed."
 	  (insert "<hr>Sorry, but I do not know how to handle " type
 		  " authentication.  If you'd like to write it,"
 		  " send it to " url-bug-address ".<hr>")
-	  (setq status t))
+          ;; We used to set a `status' var (declared "special") but I can't
+          ;; find the corresponding let-binding, so it's probably an error.
+          ;; FIXME: Maybe it was supposed to set `success', i.e. to return t?
+          ;; (setq status t)
+          nil) ;; Not success yet.
+
       (let* ((args (url-parse-args (subst-char-in-string ?, ?\; auth)))
 	     (auth (url-get-authentication auth-url
 					   (cdr-safe (assoc "realm" args))
 					   type t args)))
 	(if (not auth)
-	    (setq success t)
+            t                           ;Success.
 	  (push (cons (if proxy "Proxy-Authorization" "Authorization") auth)
 		url-http-extra-headers)
 	  (let ((url-request-method url-http-method)
 		(url-request-data url-http-data)
 		(url-request-extra-headers url-http-extra-headers))
 	    (url-retrieve-internal url url-callback-function
-				   url-callback-arguments)))))))
+				   url-callback-arguments))
+          nil))))) ;; Not success yet.
 
 (defun url-http-parse-response ()
   "Parse just the response code."
@@ -498,12 +498,11 @@ should be shown to the user."
       (when (and connection
 		 (string= (downcase connection) "close"))
 	(delete-process url-http-process)))))
-  (let ((buffer (current-buffer))
-	(class nil)
-	(success nil)
-	;; other status symbols: jewelry and luxury cars
-	(status-symbol (cadr (assq url-http-response-status url-http-codes))))
-    (setq class (/ url-http-response-status 100))
+  (let* ((buffer (current-buffer))
+         (class (/ url-http-response-status 100))
+         (success nil)
+         ;; other status symbols: jewelry and luxury cars
+         (status-symbol (cadr (assq url-http-response-status url-http-codes))))
     (url-http-debug "Parsed HTTP headers: class=%d status=%d"
                     class url-http-response-status)
     (when (url-use-cookies url-http-target-url)
@@ -536,15 +535,14 @@ should be shown to the user."
        (pcase status-symbol
 	 ((or `no-content `reset-content)
 	  ;; No new data, just stay at the same document
-	  (url-mark-buffer-as-dead buffer)
-	  (setq success t))
+	  (url-mark-buffer-as-dead buffer))
 	 (_
 	  ;; Generic success for all others.  Store in the cache, and
 	  ;; mark it as successful.
 	  (widen)
 	  (if (and url-automatic-caching (equal url-http-method "GET"))
-	      (url-store-in-cache buffer))
-	  (setq success t))))
+	      (url-store-in-cache buffer))))
+       (setq success t))
       (3				; Redirection
        ;; 300 Multiple choices
        ;; 301 Moved permanently
@@ -684,106 +682,107 @@ should be shown to the user."
        ;; 422 Unprocessable Entity (Added by DAV)
        ;; 423 Locked
        ;; 424 Failed Dependency
-       (pcase status-symbol
-	 (`unauthorized			; 401
-	  ;; The request requires user authentication.  The response
-	  ;; MUST include a WWW-Authenticate header field containing a
-	  ;; challenge applicable to the requested resource.  The
-	  ;; client MAY repeat the request with a suitable
-	  ;; Authorization header field.
-	  (url-http-handle-authentication nil))
-	 (`payment-required              ; 402
-	  ;; This code is reserved for future use
-	  (url-mark-buffer-as-dead buffer)
-	  (error "Somebody wants you to give them money"))
-	 (`forbidden			; 403
-	  ;; The server understood the request, but is refusing to
-	  ;; fulfill it.  Authorization will not help and the request
-	  ;; SHOULD NOT be repeated.
-	  (setq success t))
-	 (`not-found			; 404
-	  ;; Not found
-	  (setq success t))
-	 (`method-not-allowed		; 405
-	  ;; The method specified in the Request-Line is not allowed
-	  ;; for the resource identified by the Request-URI.  The
-	  ;; response MUST include an Allow header containing a list of
-	  ;; valid methods for the requested resource.
-	  (setq success t))
-	 (`not-acceptable		; 406
-	  ;; The resource identified by the request is only capable of
-	  ;; generating response entities which have content
-	  ;; characteristics not acceptable according to the accept
-	  ;; headers sent in the request.
-	  (setq success t))
-	 (`proxy-authentication-required ; 407
-	  ;; This code is similar to 401 (Unauthorized), but indicates
-	  ;; that the client must first authenticate itself with the
-	  ;; proxy.  The proxy MUST return a Proxy-Authenticate header
-	  ;; field containing a challenge applicable to the proxy for
-	  ;; the requested resource.
-	  (url-http-handle-authentication t))
-	 (`request-timeout		; 408
-	  ;; The client did not produce a request within the time that
-	  ;; the server was prepared to wait.  The client MAY repeat
-	  ;; the request without modifications at any later time.
-	  (setq success t))
-	 (`conflict			; 409
-	  ;; The request could not be completed due to a conflict with
-	  ;; the current state of the resource.  This code is only
-	  ;; allowed in situations where it is expected that the user
-	  ;; might be able to resolve the conflict and resubmit the
-	  ;; request.  The response body SHOULD include enough
-	  ;; information for the user to recognize the source of the
-	  ;; conflict.
-	  (setq success t))
-	 (`gone                          ; 410
-	  ;; The requested resource is no longer available at the
-	  ;; server and no forwarding address is known.
-	  (setq success t))
-	 (`length-required		; 411
-	  ;; The server refuses to accept the request without a defined
-	  ;; Content-Length.  The client MAY repeat the request if it
-	  ;; adds a valid Content-Length header field containing the
-	  ;; length of the message-body in the request message.
-	  ;;
-	  ;; NOTE - this will never happen because
-	  ;; `url-http-create-request' automatically calculates the
-	  ;; content-length.
-	  (setq success t))
-	 (`precondition-failed		; 412
-	  ;; The precondition given in one or more of the
-	  ;; request-header fields evaluated to false when it was
-	  ;; tested on the server.
-	  (setq success t))
-	 ((or `request-entity-too-large `request-uri-too-large) ; 413 414
-	  ;; The server is refusing to process a request because the
-	  ;; request entity|URI is larger than the server is willing or
-	  ;; able to process.
-	  (setq success t))
-	 (`unsupported-media-type	; 415
-	  ;; The server is refusing to service the request because the
-	  ;; entity of the request is in a format not supported by the
-	  ;; requested resource for the requested method.
-	  (setq success t))
-	 (`requested-range-not-satisfiable ; 416
-	  ;; A server SHOULD return a response with this status code if
-	  ;; a request included a Range request-header field, and none
-	  ;; of the range-specifier values in this field overlap the
-	  ;; current extent of the selected resource, and the request
-	  ;; did not include an If-Range request-header field.
-	  (setq success t))
-	 (`expectation-failed		; 417
-	  ;; The expectation given in an Expect request-header field
-	  ;; could not be met by this server, or, if the server is a
-	  ;; proxy, the server has unambiguous evidence that the
-	  ;; request could not be met by the next-hop server.
-	  (setq success t))
-	 (_
-	  ;; The request could not be understood by the server due to
-	  ;; malformed syntax.  The client SHOULD NOT repeat the
-	  ;; request without modifications.
-	  (setq success t)))
+       (setq success
+             (pcase status-symbol
+               (`unauthorized			; 401
+                ;; The request requires user authentication.  The response
+                ;; MUST include a WWW-Authenticate header field containing a
+                ;; challenge applicable to the requested resource.  The
+                ;; client MAY repeat the request with a suitable
+                ;; Authorization header field.
+                (url-http-handle-authentication nil))
+               (`payment-required              ; 402
+                ;; This code is reserved for future use
+                (url-mark-buffer-as-dead buffer)
+                (error "Somebody wants you to give them money"))
+               (`forbidden			; 403
+                ;; The server understood the request, but is refusing to
+                ;; fulfill it.  Authorization will not help and the request
+                ;; SHOULD NOT be repeated.
+                t)
+               (`not-found			; 404
+                ;; Not found
+                t)
+               (`method-not-allowed		; 405
+                ;; The method specified in the Request-Line is not allowed
+                ;; for the resource identified by the Request-URI.  The
+                ;; response MUST include an Allow header containing a list of
+                ;; valid methods for the requested resource.
+                t)
+               (`not-acceptable		; 406
+                ;; The resource identified by the request is only capable of
+                ;; generating response entities which have content
+                ;; characteristics not acceptable according to the accept
+                ;; headers sent in the request.
+                t)
+               (`proxy-authentication-required ; 407
+                ;; This code is similar to 401 (Unauthorized), but indicates
+                ;; that the client must first authenticate itself with the
+                ;; proxy.  The proxy MUST return a Proxy-Authenticate header
+                ;; field containing a challenge applicable to the proxy for
+                ;; the requested resource.
+                (url-http-handle-authentication t))
+               (`request-timeout		; 408
+                ;; The client did not produce a request within the time that
+                ;; the server was prepared to wait.  The client MAY repeat
+                ;; the request without modifications at any later time.
+                t)
+               (`conflict			; 409
+                ;; The request could not be completed due to a conflict with
+                ;; the current state of the resource.  This code is only
+                ;; allowed in situations where it is expected that the user
+                ;; might be able to resolve the conflict and resubmit the
+                ;; request.  The response body SHOULD include enough
+                ;; information for the user to recognize the source of the
+                ;; conflict.
+                t)
+               (`gone                          ; 410
+                ;; The requested resource is no longer available at the
+                ;; server and no forwarding address is known.
+                t)
+               (`length-required		; 411
+                ;; The server refuses to accept the request without a defined
+                ;; Content-Length.  The client MAY repeat the request if it
+                ;; adds a valid Content-Length header field containing the
+                ;; length of the message-body in the request message.
+                ;;
+                ;; NOTE - this will never happen because
+                ;; `url-http-create-request' automatically calculates the
+                ;; content-length.
+                t)
+               (`precondition-failed		; 412
+                ;; The precondition given in one or more of the
+                ;; request-header fields evaluated to false when it was
+                ;; tested on the server.
+                t)
+               ((or `request-entity-too-large `request-uri-too-large) ; 413 414
+                ;; The server is refusing to process a request because the
+                ;; request entity|URI is larger than the server is willing or
+                ;; able to process.
+                t)
+               (`unsupported-media-type	; 415
+                ;; The server is refusing to service the request because the
+                ;; entity of the request is in a format not supported by the
+                ;; requested resource for the requested method.
+                t)
+               (`requested-range-not-satisfiable ; 416
+                ;; A server SHOULD return a response with this status code if
+                ;; a request included a Range request-header field, and none
+                ;; of the range-specifier values in this field overlap the
+                ;; current extent of the selected resource, and the request
+                ;; did not include an If-Range request-header field.
+                t)
+               (`expectation-failed		; 417
+                ;; The expectation given in an Expect request-header field
+                ;; could not be met by this server, or, if the server is a
+                ;; proxy, the server has unambiguous evidence that the
+                ;; request could not be met by the next-hop server.
+                t)
+               (_
+                ;; The request could not be understood by the server due to
+                ;; malformed syntax.  The client SHOULD NOT repeat the
+                ;; request without modifications.
+                t)))
        ;; Tell the callback that an error occurred, and what the
        ;; status code was.
        (when success
@@ -849,10 +848,26 @@ should be shown to the user."
        (error "Unknown class of HTTP response code: %d (%d)"
 	      class url-http-response-status)))
     (if (not success)
-	(url-mark-buffer-as-dead buffer))
+	(url-mark-buffer-as-dead buffer)
+      (url-handle-content-transfer-encoding))
     (url-http-debug "Finished parsing HTTP headers: %S" success)
     (widen)
+    (goto-char (point-min))
     success))
+
+(declare-function zlib-decompress-region "decompress.c" (start end))
+
+(defun url-handle-content-transfer-encoding ()
+  (let ((encoding (mail-fetch-field "content-encoding")))
+    (when (and encoding
+	       (fboundp 'zlib-available-p)
+	       (zlib-available-p)
+	       (equal (downcase encoding) "gzip"))
+      (save-restriction
+	(widen)
+	(goto-char (point-min))
+	(when (search-forward "\n\n")
+	  (zlib-decompress-region (point) (point-max)))))))
 
 ;; Miscellaneous
 (defun url-http-activate-callback ()
@@ -901,7 +916,7 @@ should be shown to the user."
 (defun url-http-simple-after-change-function (st nd length)
   ;; Function used when we do NOT know how long the document is going to be
   ;; Just _very_ simple 'downloaded %d' type of info.
-  (url-lazy-message "Reading %s..." (url-pretty-length nd)))
+  (url-lazy-message "Reading %s..." (file-size-human-readable nd)))
 
 (defun url-http-content-length-after-change-function (st nd length)
   "Function used when we DO know how long the document is going to be.
@@ -914,16 +929,16 @@ the callback to be triggered."
        (url-percentage (- nd url-http-end-of-headers)
 		       url-http-content-length)
        url-http-content-type
-       (url-pretty-length (- nd url-http-end-of-headers))
-       (url-pretty-length url-http-content-length)
+       (file-size-human-readable (- nd url-http-end-of-headers))
+       (file-size-human-readable url-http-content-length)
        (url-percentage (- nd url-http-end-of-headers)
 		       url-http-content-length))
     (url-display-percentage
      "Reading... %s of %s (%d%%)"
      (url-percentage (- nd url-http-end-of-headers)
 		     url-http-content-length)
-     (url-pretty-length (- nd url-http-end-of-headers))
-     (url-pretty-length url-http-content-length)
+     (file-size-human-readable (- nd url-http-end-of-headers))
+     (file-size-human-readable url-http-content-length)
      (url-percentage (- nd url-http-end-of-headers)
 		     url-http-content-length)))
 
@@ -1222,18 +1237,17 @@ previous `url-http' call, which is being re-attempted."
 
 	(set-process-buffer connection buffer)
 	(set-process-filter connection 'url-http-generic-filter)
-	(let ((status (process-status connection)))
-	  (cond
-	   ((eq status 'connect)
-	    ;; Asynchronous connection
-	    (set-process-sentinel connection 'url-http-async-sentinel))
-	   ((eq status 'failed)
-	    ;; Asynchronous connection failed
-	    (error "Could not create connection to %s:%d" host port))
-	   (t
-	    (set-process-sentinel connection
-                                  'url-http-end-of-document-sentinel)
-	    (process-send-string connection (url-http-create-request)))))))
+	(pcase (process-status connection)
+          (`connect
+           ;; Asynchronous connection
+           (set-process-sentinel connection 'url-http-async-sentinel))
+          (`failed
+           ;; Asynchronous connection failed
+           (error "Could not create connection to %s:%d" host port))
+          (_
+           (set-process-sentinel connection
+                                 'url-http-end-of-document-sentinel)
+           (process-send-string connection (url-http-create-request))))))
     buffer))
 
 (defun url-http-async-sentinel (proc why)
@@ -1302,17 +1316,14 @@ previous `url-http' call, which is being re-attempted."
     (url-retrieve-synchronously url)))
 
 (defun url-http-file-exists-p (url)
-  (let ((status nil)
-	(exists nil)
-	(buffer (url-http-head url)))
-    (if (not buffer)
-	(setq exists nil)
-      (setq status (url-http-symbol-value-in-buffer 'url-http-response-status
-						    buffer 500)
-	    exists (and (integerp status)
-			(>= status 200) (< status 300)))
-      (kill-buffer buffer))
-    exists))
+  (let ((buffer (url-http-head url)))
+    (when buffer
+      (let ((status (url-http-symbol-value-in-buffer 'url-http-response-status
+                                                     buffer 500)))
+        (prog1
+            (and (integerp status)
+                 (>= status 200) (< status 300))
+          (kill-buffer buffer))))))
 
 (defalias 'url-http-file-readable-p 'url-http-file-exists-p)
 

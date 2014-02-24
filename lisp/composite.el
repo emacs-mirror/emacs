@@ -1,5 +1,7 @@
 ;;; composite.el --- support character composition
 
+;; Copyright (C) 2001-2014 Free Software Foundation, Inc.
+
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
 ;;   2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -57,8 +59,8 @@ The meaning of glyph reference point codes is as follows:
     |         |			7:bc or bottom-center
     6----7----8 <---- descent	8:br or bottom-right
 
-Glyph reference point symbols are to be used to specify composition
-rule of the form \(GLOBAL-REF-POINT . NEW-REF-POINT), where
+Glyph reference point symbols are to be used to specify a composition
+rule of the form (GLOBAL-REF-POINT . NEW-REF-POINT), where
 GLOBAL-REF-POINT is a reference point in the overall glyphs already
 composed, and NEW-REF-POINT is a reference point in the new glyph to
 be added.
@@ -71,13 +73,13 @@ follows (the point `*' corresponds to both reference points):
     |       |  |
     | global|  |
     | glyph |  |
- -- |       |  |-- <--- baseline \(doesn't change)
+ -- |       |  |-- <--- baseline (doesn't change)
     +----+--*--+
     |    | new |
     |    |glyph|
     +----+-----+ <--- new descent
 
-A composition rule may have the form \(GLOBAL-REF-POINT
+A composition rule may have the form (GLOBAL-REF-POINT
 NEW-REF-POINT XOFF YOFF), where XOFF and YOFF specify how much
 to shift NEW-REF-POINT from GLOBAL-REF-POINT.  In this case, XOFF
 and YOFF are integers in the range -100..100 representing the
@@ -279,8 +281,8 @@ text in the composition."
 (defun compose-chars (&rest args)
   "Return a string from arguments in which all characters are composed.
 For relative composition, arguments are characters.
-For rule-based composition, Mth \(where M is odd) arguments are
-characters, and Nth \(where N is even) arguments are composition rules.
+For rule-based composition, Mth (where M is odd) arguments are
+characters, and Nth (where N is even) arguments are composition rules.
 A composition rule is a cons of glyph reference points of the form
 \(GLOBAL-REF-POINT . NEW-REF-POINT).  See the documentation of
 `reference-point-alist' for more detail."
@@ -387,7 +389,7 @@ This function is the default value of `compose-chars-after-function'."
 (defun compose-last-chars (args)
   "Compose last characters.
 The argument is a parameterized event of the form
-	\(compose-last-chars N COMPONENTS),
+	(compose-last-chars N COMPONENTS),
 where N is the number of characters before point to compose,
 COMPONENTS, if non-nil, is the same as the argument to `compose-region'
 \(which see).  If it is nil, `compose-chars-after' is called,
@@ -555,7 +557,11 @@ All non-spacing characters have this function in
 		 (rbearing (lglyph-rbearing glyph))
 		 (lbearing (lglyph-lbearing glyph))
 		 (center (/ (+ lbearing rbearing) 2))
+		 ;; Artificial vertical gap between the glyphs.
 		 (gap (round (* (font-get (lgstring-font gstring) :size) 0.1))))
+	    (if (= gap 0)
+		;; Assure at least 1 pixel vertical gap.
+		(setq gap 1))
 	    (dotimes (i nchars)
 	      (setq glyph (lgstring-glyph gstring i))
 	      (when (> i 0)
@@ -566,8 +572,10 @@ All non-spacing characters have this function in
 		       (as (lglyph-ascent glyph))
 		       (de (lglyph-descent glyph))
 		       (ce (/ (+ lb rb) 2))
+		       (w (lglyph-width glyph))
 		       xoff yoff)
-		  (when (and class (>= class 200) (<= class 240))
+		  (cond
+		   ((and class (>= class 200) (<= class 240))
 		    (setq xoff 0 yoff 0)
 		    (cond
 		     ((= class 200)
@@ -621,6 +629,38 @@ All non-spacing characters have this function in
 			  rb (+ lb xoff)
 			  as (- as yoff)
 			  de (+ de yoff)))
+		   ((and (= class 0)
+			 (eq (get-char-code-property (lglyph-char glyph)
+						     'general-category) 'Me))
+		    ;; Artificially laying out glyphs in an enclosing
+		    ;; mark is difficult.  All we can do is to adjust
+		    ;; the x-offset and width of the base glyph to
+		    ;; align it at the center of the glyph of the
+		    ;; enclosing mark hoping that the enclosing mark
+		    ;; is big enough.  We also have to adjust the
+		    ;; x-offset and width of the mark ifself properly
+		    ;; depending on how the glyph is designed.
+
+		    ;; (non-spacing or not).  For instance, when we
+		    ;; have these glyphs:
+		    ;;   X position  |
+		    ;;   base:       <-*-> lbearing=0 rbearing=5 width=5
+		    ;;   mark: <----------.> lb=-11 rb=2 w=0
+		    ;; we get a correct layout by moving them as this:
+		    ;;   base:           <-*-> XOFF=4 WAD=9
+		    ;;   mark:       <----------.> xoff=2 wad=4
+		    ;; we have moved the base to the left by 4-pixel
+		    ;; and make its width 9-pixel, then move the mark
+		    ;; to the left 2-pixel and make its width 4-pixel.
+		    (let* (;; Adjustment for the base glyph
+			   (XOFF (/ (- rb lb width) 2))
+			   (WAD (+ width XOFF))
+			   ;; Adjustment for the enclosing mark glyph
+			   (xoff (- (+ lb WAD)))
+			   (wad (- rb lb WAD)))
+		      (lglyph-set-adjustment glyph xoff 0 wad)
+		      (setq glyph (lgstring-glyph gstring 0))
+		      (lglyph-set-adjustment glyph XOFF 0 WAD))))
 		  (if (< ascent as)
 		      (setq ascent as))
 		  (if (< descent de)
@@ -631,16 +671,18 @@ All non-spacing characters have this function in
 	      (setq i (1+ i))))
 	  gstring))))))
 
-(let ((elt `([,(purecopy "\\c.\\c^+") 1 compose-gstring-for-graphic]
-	     [nil 0 compose-gstring-for-graphic])))
-  (map-char-table
-   #'(lambda (key val)
-       (if (memq val '(Mn Mc Me))
-	   (set-char-table-range composition-function-table key elt)))
-   unicode-category-table))
+;; Allow for bootstrapping without uni-*.el.
+(when unicode-category-table
+  (let ((elt `([,(purecopy "\\c.\\c^+") 1 compose-gstring-for-graphic]
+	       [nil 0 compose-gstring-for-graphic])))
+    (map-char-table
+     #'(lambda (key val)
+	 (if (memq val '(Mn Mc Me))
+	     (set-char-table-range composition-function-table key elt)))
+     unicode-category-table)))
 
 (defun compose-gstring-for-terminal (gstring)
-  "Compose glyph string GSTRING for terminal display.
+  "Compose glyph-string GSTRING for terminal display.
 Non-spacing characters are composed with the preceding base
 character.  If the preceding character is not a base character,
 each non-spacing character is composed as a spacing character by

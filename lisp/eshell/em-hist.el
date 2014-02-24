@@ -1,6 +1,6 @@
-;;; em-hist.el --- history list management
+;;; em-hist.el --- history list management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -189,21 +189,18 @@ element, regardless of any text on the command line.  In that case,
 (defvar eshell-matching-input-from-input-string "")
 (defvar eshell-save-history-index nil)
 
-(defvar eshell-isearch-map nil)
-
-(unless eshell-isearch-map
-  (setq eshell-isearch-map (copy-keymap isearch-mode-map))
-  (define-key eshell-isearch-map [(control ?m)] 'eshell-isearch-return)
-  (define-key eshell-isearch-map [return] 'eshell-isearch-return)
-  (define-key eshell-isearch-map [(control ?r)] 'eshell-isearch-repeat-backward)
-  (define-key eshell-isearch-map [(control ?s)] 'eshell-isearch-repeat-forward)
-  (define-key eshell-isearch-map [(control ?g)] 'eshell-isearch-abort)
-  (define-key eshell-isearch-map [backspace] 'eshell-isearch-delete-char)
-  (define-key eshell-isearch-map [delete] 'eshell-isearch-delete-char)
-  (defvar eshell-isearch-cancel-map)
-  (define-prefix-command 'eshell-isearch-cancel-map)
-  (define-key eshell-isearch-map [(control ?c)] 'eshell-isearch-cancel-map)
-  (define-key eshell-isearch-cancel-map [(control ?c)] 'eshell-isearch-cancel))
+(defvar eshell-isearch-map
+  (let ((map (copy-keymap isearch-mode-map)))
+    (define-key map [(control ?m)] 'eshell-isearch-return)
+    (define-key map [return] 'eshell-isearch-return)
+    (define-key map [(control ?r)] 'eshell-isearch-repeat-backward)
+    (define-key map [(control ?s)] 'eshell-isearch-repeat-forward)
+    (define-key map [(control ?g)] 'eshell-isearch-abort)
+    (define-key map [backspace] 'eshell-isearch-delete-char)
+    (define-key map [delete] 'eshell-isearch-delete-char)
+    (define-key map "\C-c\C-c" 'eshell-isearch-cancel)
+    map)
+  "Keymap used in isearch in Eshell.")
 
 (defvar eshell-rebind-keys-alist)
 
@@ -333,7 +330,7 @@ unless a different file is specified on the command line.")
    (and (or (not (ring-p eshell-history-ring))
 	   (ring-empty-p eshell-history-ring))
 	(error "No history"))
-   (let (length command file)
+   (let (length file)
      (when (and args (string-match "^[0-9]+$" (car args)))
        (setq length (min (eshell-convert (car args))
 			 (ring-length eshell-history-ring))
@@ -349,8 +346,7 @@ unless a different file is specified on the command line.")
       (write-history (eshell-write-history file))
       (append-history (eshell-write-history file t))
       (t
-       (let* ((history nil)
-	      (index (1- (or length (ring-length eshell-history-ring))))
+       (let* ((index (1- (or length (ring-length eshell-history-ring))))
 	      (ref (- (ring-length eshell-history-ring) index)))
 	 ;; We have to build up a list ourselves from the ring vector.
 	 (while (>= index 0)
@@ -535,7 +531,7 @@ See also `eshell-read-history'."
    ((string= "%" ref)
     (error "`%%' history word designator not yet implemented"))))
 
-(defun eshell-hist-parse-arguments (&optional silent b e)
+(defun eshell-hist-parse-arguments (&optional b e)
   "Parse current command arguments in a history-code-friendly way."
   (let ((end (or e (point)))
 	(begin (or b (save-excursion (eshell-bol) (point))))
@@ -575,7 +571,7 @@ See also `eshell-read-history'."
 
 (defun eshell-expand-history-references (beg end)
   "Parse and expand any history references in current input."
-  (let ((result (eshell-hist-parse-arguments t beg end)))
+  (let ((result (eshell-hist-parse-arguments beg end)))
     (when result
       (let ((textargs (nreverse (nth 0 result)))
 	    (posb (nreverse (nth 1 result)))
@@ -703,7 +699,7 @@ matched."
 	  (here (point))
 	  textargs)
       (insert hist)
-      (setq textargs (car (eshell-hist-parse-arguments nil here (point))))
+      (setq textargs (car (eshell-hist-parse-arguments here (point))))
       (delete-region here (point))
       (if (string= nth "*")
 	  (if mth
@@ -948,7 +944,7 @@ If N is negative, search backwards for the -Nth previous match."
 (defun eshell-isearch-backward (&optional invert)
   "Do incremental regexp search backward through past commands."
   (interactive)
-  (let ((inhibit-read-only t) end)
+  (let ((inhibit-read-only t))
     (eshell-prepare-for-search)
     (goto-char (point-max))
     (set-marker eshell-last-output-end (point))

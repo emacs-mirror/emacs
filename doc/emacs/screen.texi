@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Screen
@@ -287,13 +287,12 @@ here, as you can more easily see them yourself.
 
 @kindex M-`
 @kindex F10
-@findex tmm-menubar
 @findex menu-bar-open
-  On a graphical display, you can use the mouse to choose a command
-from the menu bar.  An arrow on the right edge of a menu item means it
-leads to a subsidiary menu, or @dfn{submenu}.  A @samp{...} at the end
-of a menu item means that the command will prompt you for further
-input before it actually does anything.
+  On a display that support a mouse, you can use the mouse to choose a
+command from the menu bar.  An arrow on the right edge of a menu item
+means it leads to a subsidiary menu, or @dfn{submenu}.  A @samp{...}
+at the end of a menu item means that the command will prompt you for
+further input before it actually does anything.
 
   Some of the commands in the menu bar have ordinary key bindings as
 well; if so, a key binding is shown in parentheses after the item
@@ -305,14 +304,20 @@ the usual way (@pxref{Key Help}).
 item by pressing @key{F10} (to run the command @code{menu-bar-open}).
 You can then navigate the menus with the arrow keys.  To activate a
 selected menu item, press @key{RET}; to cancel menu navigation, press
-@key{ESC}.
+@kbd{C-g} or @kbd{ESC ESC ESC}.
 
-  On a text terminal, you can use the menu bar by typing @kbd{M-`} or
-@key{F10} (these run the command @code{tmm-menubar}).  This lets you
-select a menu item with the keyboard.  A provisional choice appears in
-the echo area.  You can use the up and down arrow keys to move through
-the menu to different items, and then you can type @key{RET} to select
-the item.  Each menu item is also designated by a letter or digit
-(usually the initial of some word in the item's name).  This letter or
-digit is separated from the item name by @samp{==>}.  You can type the
-item's letter or digit to select the item.
+@findex tmm-menubar
+@vindex tty-menu-open-use-tmm
+  On a text terminal, you can optionally access the menu-bar menus in
+the echo area.  To this end, customize the variable
+@code{tty-menu-open-use-tmm} to a non-@code{nil} value.  Then typing
+@key{F10} will run the command @code{tmm-menubar} instead of dropping
+down the menu.  (You can also type @kbd{M-`}, which always invokes
+@code{tmm-menubar}.)  @code{tmm-menubar} lets you select a menu item
+with the keyboard.  A provisional choice appears in the echo area.
+You can use the up and down arrow keys to move through the menu to
+different items, and then you can type @key{RET} to select the item.
+Each menu item is also designated by a letter or digit (usually the
+initial of some word in the item's name).  This letter or digit is
+separated from the item name by @samp{==>}.  You can type the item's
+letter or digit to select the item.

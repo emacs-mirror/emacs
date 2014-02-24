@@ -1,6 +1,6 @@
 ;;; javascript-jv.wy -- LALR grammar for Javascript
 
-;; Copyright (C) 2005-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2014 Free Software Foundation, Inc.
 ;; Copyright (C) 1998-2011 Ecma International.
 
 ;; Author: Joakim Verona
@@ -59,7 +59,13 @@
 
 %package wisent-javascript-jv-wy
 %provide semantic/wisent/js-wy
-;; JAVE I prefere ecmascript-mode
+
+%{
+(declare-function semantic-parse-region "semantic"
+		  (start end &optional nonterminal depth returnonerror))
+}
+
+;; JAVE I preferred ecmascript-mode.
 %languagemode ecmascript-mode javascript-mode
 
 ;; The default goal
@@ -270,8 +276,8 @@ Statement : Block
           | BreakStatement
           | ReturnStatement
           | WithStatement
-          ;   
-      
+          ;
+
 FunctionDeclaration : FUNCTION VARIABLE FormalParameterListBlock Block
 		      (FUNCTION-TAG $2 nil $3)
                     ;
@@ -347,7 +353,7 @@ IterationExpression : WHILE OPEN_PARENTHESIS Expression CLOSE_PARENTHESIS Statem
 ContinueStatement : CONTINUE SEMICOLON
                   ;
 
-;;JAVE break needs labels 
+;;JAVE break needs labels
 BreakStatement : BREAK SEMICOLON
               ;;               | BREAK identifier SEMICOLON
                ;

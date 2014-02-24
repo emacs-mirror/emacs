@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Processes
@@ -112,7 +112,7 @@ described below.
 argument that specifies where the standard output from the program will
 go.  It should be a buffer or a buffer name; if it is a buffer name,
 that will create the buffer if it does not already exist.  It can also
-be @code{nil}, which says to discard the output unless a filter function
+be @code{nil}, which says to discard the output, unless a custom filter function
 handles it.  (@xref{Filter Functions}, and @ref{Read and Print}.)
 Normally, you should avoid having multiple processes send output to the
 same buffer because their output would be intermixed randomly.
@@ -696,7 +696,7 @@ but not necessarily right away.  You can delete a process explicitly
 at any time.  If you explicitly delete a terminated process before it
 is deleted automatically, no harm results.  Deleting a running
 process sends a signal to terminate it (and its child processes, if
-any), and calls the process sentinel if it has one.  @xref{Sentinels}.
+any), and calls the process sentinel.  @xref{Sentinels}.
 
   When a process is deleted, the process object itself continues to
 exist as long as other Lisp objects point to it.  All the Lisp
@@ -719,7 +719,7 @@ signal.  The argument may be a process, the name of a process, a
 buffer, or the name of a buffer.  (A buffer or buffer-name stands for
 the process that @code{get-buffer-process} returns.)  Calling
 @code{delete-process} on a running process terminates it, updates the
-process status, and runs the sentinel (if any) immediately.  If the
+process status, and runs the sentinel immediately.  If the
 process has already terminated, calling @code{delete-process} has no
 effect on its status, or on the running of its sentinel (which will
 happen sooner or later).
@@ -1130,12 +1130,12 @@ children of Emacs.  @xref{System Processes}.
 @cindex process output
 @cindex output from processes
 
-  There are two ways to receive the output that a subprocess writes to
-its standard output stream.  The output can be inserted in a buffer,
-which is called the associated buffer of the process (@pxref{Process
-Buffers}), or a function called the @dfn{filter function} can be
-called to act on the output.  If the process has no buffer and no
-filter function, its output is discarded.
+  The output that a subprocess writes to its standard output stream
+is passed to a function called the @dfn{filter function}.  The default
+filter function simply inserts the output into a buffer, which is
+called the associated buffer of the process (@pxref{Process
+Buffers}).  If the process has no buffer then the default filter
+discards the output.
 
   When a subprocess terminates, Emacs reads any pending output,
 then stops reading output from that subprocess.  Therefore, if the
@@ -1170,7 +1170,7 @@ redirect one of them to a file---for example, by using an appropriate
 shell command.
 
 @menu
-* Process Buffers::         If no filter, output is put in a buffer.
+* Process Buffers::         By default, output is put in a buffer.
 * Filter Functions::        Filter functions accept output from the process.
 * Decoding Output::         Filters can get unibyte or multibyte strings.
 * Accepting Output::        How to wait until process output arrives.
@@ -1187,11 +1187,12 @@ normal practice only one process is associated with any given buffer.
 Many applications of processes also use the buffer for editing input to
 be sent to the process, but this is not built into Emacs Lisp.
 
-  Unless the process has a filter function (@pxref{Filter Functions}),
-its output is inserted in the associated buffer.  The position to insert
-the output is determined by the @code{process-mark}, which is then
-updated to point to the end of the text just inserted.  Usually, but not
-always, the @code{process-mark} is at the end of the buffer.
+  By default, process output is inserted in the associated buffer.
+(You can change this by defining a custom filter function,
+@pxref{Filter Functions}.)  The position to insert the output is
+determined by the @code{process-mark}, which is then updated to point
+to the end of the text just inserted.  Usually, but not always, the
+@code{process-mark} is at the end of the buffer.
 
 @findex process-kill-buffer-query-function
   Killing the associated buffer of a process also kills the process.
@@ -1220,13 +1221,12 @@ marker that says where to insert output from the process.
 If @var{process} does not have a buffer, @code{process-mark} returns a
 marker that points nowhere.
 
-Insertion of process output in a buffer uses this marker to decide where
-to insert, and updates it to point after the inserted text.  That is why
-successive batches of output are inserted consecutively.
+The default filter function uses this marker to decide where to
+insert process output, and updates it to point after the inserted text.
+That is why successive batches of output are inserted consecutively.
 
-Filter functions normally should use this marker in the same fashion
-as is done by direct insertion of output in the buffer.  For an
-example of a filter function that uses @code{process-mark},
+Custom filter functions normally should use this marker in the same fashion.
+For an example of a filter function that uses @code{process-mark},
 @pxref{Process Filter Example}.
 
 When the user is expected to enter input in the process buffer for
@@ -1268,10 +1268,9 @@ subprocess with a @code{SIGHUP} signal (@pxref{Signals to Processes}).
 @cindex process filter
 
   A process @dfn{filter function} is a function that receives the
-standard output from the associated process.  If a process has a filter,
-then @emph{all} output from that process is passed to the filter.  The
-process buffer is used directly for output from the process only when
-there is no filter.
+standard output from the associated process.  @emph{All} output from
+that process is passed to the filter.  The default filter simply
+outputs directly to the process buffer.
 
   The filter function can only be called when Emacs is waiting for
 something, because process output arrives only at such times.  Emacs
@@ -1300,8 +1299,8 @@ This makes it possible to use the Lisp debugger to debug the
 filter function.  @xref{Debugger}.
 
   Many filter functions sometimes (or always) insert the output in the
-process's buffer, mimicking the actions of Emacs when there is no
-filter.  Such filter functions need to make sure that they save the
+process's buffer, mimicking the actions of the default filter.
+Such filter functions need to make sure that they save the
 current buffer, select the correct buffer (if different) before
 inserting output, and then restore the original buffer.
 They should also check whether the buffer is still alive, update the
@@ -1357,12 +1356,12 @@ received text into a temporary buffer, which can then be searched.
 
 @defun set-process-filter process filter
 This function gives @var{process} the filter function @var{filter}.  If
-@var{filter} is @code{nil}, it gives the process no filter.
+@var{filter} is @code{nil}, it gives the process the default filter,
+which inserts the process output into the process buffer.
 @end defun
 
 @defun process-filter process
-This function returns the filter function of @var{process}, or @code{nil}
-if it has none.
+This function returns the filter function of @var{process}.
 @end defun
 
   Here is an example of the use of a filter function:
@@ -1401,8 +1400,7 @@ backup.mss              dland                   syllabus.mss
 
 @ignore   @c The code in this example doesn't show the right way to do things.
 Here is another, more realistic example, which demonstrates how to use
-the process mark to do insertion in the same fashion as is done when
-there is no filter function:
+the process mark to do insertion in the same fashion as the default filter:
 
 @smallexample
 @group
@@ -1474,9 +1472,9 @@ until output arrives from a process.
 
 @defun accept-process-output &optional process seconds millisec just-this-one
 This function allows Emacs to read pending output from processes.  The
-output is inserted in the associated buffers or given to their filter
-functions.  If @var{process} is non-@code{nil} then this function does
-not return until some output has been received from @var{process}.
+output is given to their filter functions.  If @var{process} is
+non-@code{nil} then this function does not return until some output
+has been received from @var{process}.
 
 The arguments @var{seconds} and @var{millisec} let you specify timeout
 periods.  The former specifies a period measured in seconds and the
@@ -1591,9 +1589,9 @@ while executing sentinels.  @xref{Match Data}.
 
 @defun set-process-sentinel process sentinel
 This function associates @var{sentinel} with @var{process}.  If
-@var{sentinel} is @code{nil}, then the process will have no sentinel.
-The default behavior when there is no sentinel is to insert a message in
-the process's buffer when the process status changes.
+@var{sentinel} is @code{nil}, then the process will have the default
+sentinel, which inserts a message in the process's buffer when the
+process status changes.
 
 Changes in process sentinels take effect immediately---if the sentinel
 is slated to be run but has not been called yet, and you specify a new
@@ -1616,8 +1614,7 @@ sentinel, the eventual call to the sentinel will use the new one.
 @end defun
 
 @defun process-sentinel process
-This function returns the sentinel of @var{process}, or @code{nil} if it
-has none.
+This function returns the sentinel of @var{process}.
 @end defun
 
 @defun waiting-for-user-input-p
@@ -1974,7 +1971,7 @@ is modified as necessary to make it unique.
 
 The @var{buffer} argument is the buffer to associate with the
 connection.  Output from the connection is inserted in the buffer,
-unless you specify a filter function to handle the output.  If
+unless you specify your own filter function to handle the output.  If
 @var{buffer} is @code{nil}, it means that the connection is not
 associated with any buffer.
 
@@ -2082,7 +2079,7 @@ unique number in brackets, as in @samp{<@var{nnn}>}.  The number
 is unique for each connection in the Emacs session.
 
 @item
-If the server's filter is non-@code{nil}, the connection process does
+If the server has a non-default filter, the connection process does
 not get a separate process buffer; otherwise, Emacs creates a new
 buffer for the purpose.  The buffer name is the server's buffer name
 or process name, concatenated with the client identification string.
@@ -2613,7 +2610,7 @@ Here is an example:
 @cindex stopbits, in serial connections
 @cindex flowcontrol, in serial connections
 
-This functions configures a serial port connection.  Arguments are
+This function configures a serial port connection.  Arguments are
 specified as keyword/argument pairs.  Attributes that are not given
 are re-initialized from the process's current configuration (available
 via the function @code{process-contact}), or set to reasonable default

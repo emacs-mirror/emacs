@@ -1,6 +1,6 @@
 ;;; newst-reader.el --- Generic RSS reader functions.
 
-;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2014 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-reader.el
@@ -101,15 +101,18 @@ window is used when filling.  See also `newsticker-justification'."
   :group 'newsticker-reader)
 
 (defcustom newsticker-html-renderer
-  nil
+  (if (fboundp 'libxml-parse-html-region)
+      #'shr-render-region)
   "Function for rendering HTML contents.
 If non-nil, newsticker.el will call this function whenever it
-finds HTML-like tags in item descriptions.  Possible functions
-are `w3m-region', `w3-region', and `newsticker-htmlr-render'.
+finds HTML-like tags in item descriptions.  
+Possible functions include `shr-render-region', `w3m-region', `w3-region', and
+`newsticker-htmlr-render'.
 Newsticker automatically loads the respective package w3m, w3, or
 htmlr if this option is set."
   :type '(choice :tag "Function"
                  (const :tag "None" nil)
+                 (const :tag "SHR" shr-render-region)
                  (const :tag "w3" w3-region)
                  (const :tag "w3m" w3m-region)
                  (const :tag "htmlr" newsticker-htmlr-render))

@@ -1,5 +1,5 @@
 @c This is part of the Semantic manual.
-@c Copyright (C) 1999-2005, 2007, 2009-2013 Free Software Foundation,
+@c Copyright (C) 1999-2005, 2007, 2009-2014 Free Software Foundation,
 @c Inc.
 @c See file semantic.texi for copying conditions.
 
@@ -416,11 +416,11 @@ Customize the system include path for the current major mode (or
 @var{mode}).
 @end deffn
 
-@defun semanticdb-implied-include-tags
+@defvar semanticdb-implied-include-tags
 Include tags implied for all files of a given mode.  You can set this
 variable with @code{defvar-mode-local} for a particular mode so that
 any symbols that exist for all files for that mode are included.
-@end defun
+@end defvar
 
 @c @xref{Search Optimization}, for more information on include paths.
 
@@ -983,7 +983,7 @@ If your symbol should be in the scope, but you cannot find it, then
 you may have found a language support bug in the local-variable
 parser, or using statement parser.
 
-Calling @kbd{M-x bovinte} should force a reset on the scope in case
+Calling @kbd{M-x bovinate} should force a reset on the scope in case
 there is merely some bad state.
 
 @example
@@ -1014,7 +1014,7 @@ fully qualified names.  You can examine the typecache with
 @kbd{M-x semanticdb-typecache-dump}.
 
 If your data types are not in the typecache, there may be some parsing
-error or other bug.  Calling @kbd{M-x bovinte} should force a reset on
+error or other bug.  Calling @kbd{M-x bovinate} should force a reset on
 the typecache in case there is merely some bad state.
 
 @example

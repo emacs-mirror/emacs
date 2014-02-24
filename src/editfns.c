@@ -1,6 +1,6 @@
 /* Lisp functions pertaining to editing.
 
-Copyright (C) 1985-1987, 1989, 1993-2013 Free Software Foundation, Inc.
+Copyright (C) 1985-1987, 1989, 1993-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -64,7 +64,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern Lisp_Object w32_get_internal_run_time (void);
 #endif
 
-static Lisp_Object format_time_string (char const *, ptrdiff_t, EMACS_TIME,
+static Lisp_Object format_time_string (char const *, ptrdiff_t, struct timespec,
 				       bool, struct tm *);
 static int tm_diff (struct tm *, struct tm *);
 static void update_buffer_properties (ptrdiff_t, ptrdiff_t);
@@ -233,26 +233,12 @@ Beginning of buffer is position (point-min), end is (point-max).
 The return value is POSITION.  */)
   (register Lisp_Object position)
 {
-  ptrdiff_t pos;
-
-  if (MARKERP (position)
-      && current_buffer == XMARKER (position)->buffer)
-    {
-      pos = marker_position (position);
-      if (pos < BEGV)
-	SET_PT_BOTH (BEGV, BEGV_BYTE);
-      else if (pos > ZV)
-	SET_PT_BOTH (ZV, ZV_BYTE);
-      else
-	SET_PT_BOTH (pos, marker_byte_position (position));
-
-      return position;
-    }
-
-  CHECK_NUMBER_COERCE_MARKER (position);
-
-  pos = clip_to_bounds (BEGV, XINT (position), ZV);
-  SET_PT (pos);
+  if (MARKERP (position))
+    set_point_from_marker (position);
+  else if (INTEGERP (position))
+    SET_PT (clip_to_bounds (BEGV, XINT (position), ZV));
+  else
+    wrong_type_argument (Qinteger_or_marker_p, position);
   return position;
 }
 
@@ -357,23 +343,22 @@ overlays_around (EMACS_INT pos, Lisp_Object *vec, ptrdiff_t len)
   return idx;
 }
 
-/* Return the value of property PROP, in OBJECT at POSITION.
-   It's the value of PROP that a char inserted at POSITION would get.
-   OBJECT is optional and defaults to the current buffer.
-   If OBJECT is a buffer, then overlay properties are considered as well as
-   text properties.
-   If OBJECT is a window, then that window's buffer is used, but
-   window-specific overlays are considered only if they are associated
-   with OBJECT. */
-Lisp_Object
-get_pos_property (Lisp_Object position, register Lisp_Object prop, Lisp_Object object)
+DEFUN ("get-pos-property", Fget_pos_property, Sget_pos_property, 2, 3, 0,
+       doc: /* Return the value of POSITION's property PROP, in OBJECT.
+Almost identical to `get-char-property' except for the following difference:
+Whereas `get-char-property' returns the property of the char at (i.e. right
+after) POSITION, this pays attention to properties's stickiness and overlays's
+advancement settings, in order to find the property of POSITION itself,
+i.e. the property that a char would inherit if it were inserted
+at POSITION.  */)
+  (Lisp_Object position, register Lisp_Object prop, Lisp_Object object)
 {
   CHECK_NUMBER_COERCE_MARKER (position);
 
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
   else if (WINDOWP (object))
-    object = XWINDOW (object)->buffer;
+    object = XWINDOW (object)->contents;
 
   if (!BUFFERP (object))
     /* pos-property only makes sense in buffers right now, since strings
@@ -498,7 +483,7 @@ find_field (Lisp_Object pos, Lisp_Object merge_at_boundary,
      specially.  */
   if (NILP (merge_at_boundary))
     {
-      Lisp_Object field = get_pos_property (pos, Qfield, Qnil);
+      Lisp_Object field = Fget_pos_property (pos, Qfield, Qnil);
       if (!EQ (field, after_field))
 	at_field_end = 1;
       if (!EQ (field, before_field))
@@ -661,7 +646,7 @@ also considered to be `on the boundary'.
 
 If the optional argument ONLY-IN-LINE is non-nil and constraining
 NEW-POS would move it to a different line, NEW-POS is returned
-unconstrained.  This useful for commands that move by line, like
+unconstrained.  This is useful for commands that move by line, like
 \\[next-line] or \\[beginning-of-line], which should generally respect field boundaries
 only in the case where they can still move to the right line.
 
@@ -669,7 +654,8 @@ If the optional argument INHIBIT-CAPTURE-PROPERTY is non-nil, and OLD-POS has
 a non-nil property of that name, then any field boundaries are ignored.
 
 Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
-  (Lisp_Object new_pos, Lisp_Object old_pos, Lisp_Object escape_from_edge, Lisp_Object only_in_line, Lisp_Object inhibit_capture_property)
+  (Lisp_Object new_pos, Lisp_Object old_pos, Lisp_Object escape_from_edge,
+   Lisp_Object only_in_line, Lisp_Object inhibit_capture_property)
 {
   /* If non-zero, then the original point, before re-positioning.  */
   ptrdiff_t orig_point = 0;
@@ -696,7 +682,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
       && (!NILP (Fget_char_property (new_pos, Qfield, Qnil))
           || !NILP (Fget_char_property (old_pos, Qfield, Qnil))
           /* To recognize field boundaries, we must also look at the
-             previous positions; we could use `get_pos_property'
+             previous positions; we could use `Fget_pos_property'
              instead, but in itself that would fail inside non-sticky
              fields (like comint prompts).  */
           || (XFASTINT (new_pos) > BEGV
@@ -707,10 +693,12 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
           /* Field boundaries are again a problem; but now we must
              decide the case exactly, so we need to call
              `get_pos_property' as well.  */
-          || (NILP (get_pos_property (old_pos, inhibit_capture_property, Qnil))
+          || (NILP (Fget_pos_property (old_pos, inhibit_capture_property, Qnil))
               && (XFASTINT (old_pos) <= BEGV
-                  || NILP (Fget_char_property (old_pos, inhibit_capture_property, Qnil))
-                  || NILP (Fget_char_property (prev_old, inhibit_capture_property, Qnil))))))
+                  || NILP (Fget_char_property
+			   (old_pos, inhibit_capture_property, Qnil))
+                  || NILP (Fget_char_property
+			   (prev_old, inhibit_capture_property, Qnil))))))
     /* It is possible that NEW_POS is not within the same field as
        OLD_POS; try to move NEW_POS so that it is.  */
     {
@@ -730,12 +718,13 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
 	  /* NEW_POS should be constrained, but only if either
 	     ONLY_IN_LINE is nil (in which case any constraint is OK),
 	     or NEW_POS and FIELD_BOUND are on the same line (in which
-	     case the constraint is OK even if ONLY_IN_LINE is non-nil). */
+	     case the constraint is OK even if ONLY_IN_LINE is non-nil).  */
 	  && (NILP (only_in_line)
 	      /* This is the ONLY_IN_LINE case, check that NEW_POS and
 		 FIELD_BOUND are on the same line by seeing whether
 		 there's an intervening newline or not.  */
-	      || (find_newline (XFASTINT (new_pos), XFASTINT (field_bound),
+	      || (find_newline (XFASTINT (new_pos), -1,
+				XFASTINT (field_bound), -1,
 				fwd ? -1 : 1, &shortage, NULL, 1),
 		  shortage != 0)))
 	/* Constrain NEW_POS to FIELD_BOUND.  */
@@ -836,22 +825,21 @@ This function does not move point.  */)
 Lisp_Object
 save_excursion_save (void)
 {
-  return make_save_value
-    ("oooo",
-     Fpoint_marker (),
+  return make_save_obj_obj_obj_obj
+    (Fpoint_marker (),
      /* Do not copy the mark if it points to nowhere.  */
      (XMARKER (BVAR (current_buffer, mark))->buffer
       ? Fcopy_marker (BVAR (current_buffer, mark), Qnil)
       : Qnil),
      /* Selected window if current buffer is shown in it, nil otherwise.  */
-     ((XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
+     (EQ (XWINDOW (selected_window)->contents, Fcurrent_buffer ())
       ? selected_window : Qnil),
      BVAR (current_buffer, mark_active));
 }
 
 /* Restore saved buffer before leaving `save-excursion' special form.  */
 
-Lisp_Object
+void
 save_excursion_restore (Lisp_Object info)
 {
   Lisp_Object tem, tem1, omark, nmark;
@@ -913,7 +901,7 @@ save_excursion_restore (Lisp_Object info)
   tem = XSAVE_OBJECT (info, 2);
   if (WINDOWP (tem)
       && !EQ (tem, selected_window)
-      && (tem1 = XWINDOW (tem)->buffer,
+      && (tem1 = XWINDOW (tem)->contents,
 	  (/* Window is live...  */
 	   BUFFERP (tem1)
 	   /* ...and it shows the current buffer.  */
@@ -925,7 +913,6 @@ save_excursion_restore (Lisp_Object info)
  out:
 
   free_misc (info);
-  return Qnil;
 }
 
 DEFUN ("save-excursion", Fsave_excursion, Ssave_excursion, 0, UNEVALLED, 0,
@@ -1420,7 +1407,7 @@ least significant 16 bits.  USEC and PSEC are the microsecond and
 picosecond counts.  */)
   (void)
 {
-  return make_lisp_time (current_emacs_time ());
+  return make_lisp_time (current_timespec ());
 }
 
 DEFUN ("get-internal-run-time", Fget_internal_run_time, Sget_internal_run_time,
@@ -1450,7 +1437,7 @@ does the same thing as `current-time'.  */)
       usecs -= 1000000;
       secs++;
     }
-  return make_lisp_time (make_emacs_time (secs, usecs * 1000));
+  return make_lisp_time (make_timespec (secs, usecs * 1000));
 #else /* ! HAVE_GETRUSAGE  */
 #ifdef WINDOWSNT
   return w32_get_internal_run_time ();
@@ -1481,12 +1468,10 @@ make_time (time_t t)
    UNKNOWN_MODTIME_NSECS; in that case, the Lisp list contains a
    correspondingly negative picosecond count.  */
 Lisp_Object
-make_lisp_time (EMACS_TIME t)
+make_lisp_time (struct timespec t)
 {
-  int ns = EMACS_NSECS (t);
-  return make_time_tail (EMACS_SECS (t),
-			 list2 (make_number (ns / 1000),
-				make_number (ns % 1000 * 1000)));
+  int ns = t.tv_nsec;
+  return make_time_tail (t.tv_sec, list2i (ns / 1000, ns % 1000 * 1000));
 }
 
 /* Decode a Lisp list SPECIFIED_TIME that represents a time.
@@ -1531,7 +1516,7 @@ disassemble_lisp_time (Lisp_Object specified_time, Lisp_Object *phigh,
    list, generate the corresponding time value.
 
    If RESULT is not null, store into *RESULT the converted time;
-   this can fail if the converted time does not fit into EMACS_TIME.
+   this can fail if the converted time does not fit into struct timespec.
    If *DRESULT is not null, store into *DRESULT the number of
    seconds since the start of the POSIX Epoch.
 
@@ -1539,7 +1524,7 @@ disassemble_lisp_time (Lisp_Object specified_time, Lisp_Object *phigh,
 bool
 decode_time_components (Lisp_Object high, Lisp_Object low, Lisp_Object usec,
 			Lisp_Object psec,
-			EMACS_TIME *result, double *dresult)
+			struct timespec *result, double *dresult)
 {
   EMACS_INT hi, lo, us, ps;
   if (! (INTEGERP (high) && INTEGERP (low)
@@ -1567,7 +1552,7 @@ decode_time_components (Lisp_Object high, Lisp_Object low, Lisp_Object usec,
 	  /* Return the greatest representable time that is not greater
 	     than the requested time.  */
 	  time_t sec = hi;
-	  *result = make_emacs_time ((sec << 16) + lo, us * 1000 + ps / 1000);
+	  *result = make_timespec ((sec << 16) + lo, us * 1000 + ps / 1000);
 	}
       else
 	{
@@ -1585,15 +1570,15 @@ decode_time_components (Lisp_Object high, Lisp_Object low, Lisp_Object usec,
 /* Decode a Lisp list SPECIFIED_TIME that represents a time.
    If SPECIFIED_TIME is nil, use the current time.
 
-   Round the time down to the nearest EMACS_TIME value.
+   Round the time down to the nearest struct timespec value.
    Return seconds since the Epoch.
    Signal an error if unsuccessful.  */
-EMACS_TIME
+struct timespec
 lisp_time_argument (Lisp_Object specified_time)
 {
-  EMACS_TIME t;
+  struct timespec t;
   if (NILP (specified_time))
-    t = current_emacs_time ();
+    t = current_timespec ();
   else
     {
       Lisp_Object high, low, usec, psec;
@@ -1615,12 +1600,12 @@ lisp_seconds_argument (Lisp_Object specified_time)
   else
     {
       Lisp_Object high, low, usec, psec;
-      EMACS_TIME t;
+      struct timespec t;
       if (! (disassemble_lisp_time (specified_time, &high, &low, &usec, &psec)
 	     && decode_time_components (high, low, make_number (0),
 					make_number (0), &t, 0)))
 	error ("Invalid time specification");
-      return EMACS_SECS (t);
+      return t.tv_sec;
     }
 }
 
@@ -1641,8 +1626,8 @@ or (if you need time as a string) `format-time-string'.  */)
   double t;
   if (NILP (specified_time))
     {
-      EMACS_TIME now = current_emacs_time ();
-      t = EMACS_SECS (now) + EMACS_NSECS (now) / 1e9;
+      struct timespec now = current_timespec ();
+      t = now.tv_sec + now.tv_nsec / 1e9;
     }
   else
     {
@@ -1718,6 +1703,7 @@ by text that describes the specified date and time in TIME:
 %G is the year corresponding to the ISO week, %g within the century.
 %m is the numeric month.
 %b and %h are the locale's abbreviated month name, %B the full name.
+ (%h is not supported on MS-Windows.)
 %d is the day of the month, zero-padded, %e is blank-padded.
 %u is the numeric day of week from 1 (Monday) to 7, %w from 0 (Sunday) to 6.
 %a is the locale's abbreviated name of the day of week, %A the full name.
@@ -1737,6 +1723,7 @@ by text that describes the specified date and time in TIME:
 %c is the locale's date and time format.
 %x is the locale's "preferred" date format.
 %D is like "%m/%d/%y".
+%F is the ISO 8601 date format (like "%Y-%m-%d").
 
 %R is like "%H:%M", %T is like "%H:%M:%S", %r is like "%I:%M:%S %p".
 %X is the locale's "preferred" time format.
@@ -1755,12 +1742,12 @@ The modifiers are `E' and `O'.  For certain characters X,
 %EX is a locale's alternative version of %X;
 %OX is like %X, but uses the locale's number symbols.
 
-For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".
+For example, to produce full ISO 8601 format, use "%FT%T%z".
 
 usage: (format-time-string FORMAT-STRING &optional TIME UNIVERSAL)  */)
   (Lisp_Object format_string, Lisp_Object timeval, Lisp_Object universal)
 {
-  EMACS_TIME t = lisp_time_argument (timeval);
+  struct timespec t = lisp_time_argument (timeval);
   struct tm tm;
 
   CHECK_STRING (format_string);
@@ -1772,20 +1759,20 @@ usage: (format-time-string FORMAT-STRING &optional TIME UNIVERSAL)  */)
 
 static Lisp_Object
 format_time_string (char const *format, ptrdiff_t formatlen,
-		    EMACS_TIME t, bool ut, struct tm *tmp)
+		    struct timespec t, bool ut, struct tm *tmp)
 {
   char buffer[4000];
   char *buf = buffer;
   ptrdiff_t size = sizeof buffer;
   size_t len;
   Lisp_Object bufstring;
-  int ns = EMACS_NSECS (t);
+  int ns = t.tv_nsec;
   struct tm *tm;
   USE_SAFE_ALLOCA;
 
   while (1)
     {
-      time_t *taddr = emacs_secs_addr (&t);
+      time_t *taddr = &t.tv_sec;
       block_input ();
 
       synchronize_system_time_locale ();
@@ -1946,7 +1933,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
 	  EMACS_INT zone_hr = abszone / (60*60);
 	  int zone_min = (abszone/60) % 60;
 	  int zone_sec = abszone % 60;
-	  sprintf (tzbuf, tzbuf_format, "-" + (XINT (zone) < 0),
+	  sprintf (tzbuf, tzbuf_format, &"-"[XINT (zone) < 0],
 		   zone_hr, zone_min, zone_sec);
 	  tzstring = tzbuf;
 	}
@@ -2070,17 +2057,17 @@ in this case, `current-time-zone' returns a list containing nil for
 the data it can't find.  */)
   (Lisp_Object specified_time)
 {
-  EMACS_TIME value;
+  struct timespec value;
   int offset;
   struct tm *t;
   struct tm localtm;
   Lisp_Object zone_offset, zone_name;
 
   zone_offset = Qnil;
-  value = make_emacs_time (lisp_seconds_argument (specified_time), 0);
+  value = make_timespec (lisp_seconds_argument (specified_time), 0);
   zone_name = format_time_string ("%Z", sizeof "%Z" - 1, value, 0, &localtm);
   block_input ();
-  t = gmtime (emacs_secs_addr (&value));
+  t = gmtime (&value.tv_sec);
   if (t)
     offset = tm_diff (&localtm, t);
   unblock_input ();
@@ -2331,6 +2318,10 @@ If the current buffer is multibyte, unibyte strings are converted
 to multibyte for insertion (see `unibyte-char-to-multibyte').
 If the current buffer is unibyte, multibyte strings are converted
 to unibyte for insertion.
+
+If an overlay begins at the insertion point, the inserted text falls
+outside the overlay; if a nonempty overlay ends at the insertion
+point, the inserted text falls inside that overlay.
 
 usage: (insert-before-markers &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
@@ -2809,18 +2800,16 @@ determines whether case is significant or ignored.  */)
   return make_number (0);
 }
 
-static Lisp_Object
+static void
 subst_char_in_region_unwind (Lisp_Object arg)
 {
   bset_undo_list (current_buffer, arg);
-  return arg;
 }
 
-static Lisp_Object
+static void
 subst_char_in_region_unwind_1 (Lisp_Object arg)
 {
   bset_filename (current_buffer, arg);
-  return arg;
 }
 
 DEFUN ("subst-char-in-region", Fsubst_char_in_region,
@@ -2932,7 +2921,7 @@ Both characters must have the same length of multi-byte form.  */)
 	  else if (!changed)
 	    {
 	      changed = -1;
-	      modify_region_1 (pos, XINT (end), false);
+	      modify_text (pos, XINT (end));
 
 	      if (! NILP (noundo))
 		{
@@ -3108,7 +3097,7 @@ It returns the number of characters changed.  */)
   pos = XINT (start);
   pos_byte = CHAR_TO_BYTE (pos);
   end_pos = XINT (end);
-  modify_region_1 (pos, end_pos, false);
+  modify_text (pos, end_pos);
 
   cnt = 0;
   for (; pos < end_pos; )
@@ -3331,7 +3320,7 @@ save_restriction_save (void)
     }
 }
 
-Lisp_Object
+void
 save_restriction_restore (Lisp_Object data)
 {
   struct buffer *cur = NULL;
@@ -3398,8 +3387,6 @@ save_restriction_restore (Lisp_Object data)
 
   if (cur)
     set_buffer_internal (cur);
-
-  return Qnil;
 }
 
 DEFUN ("save-restriction", Fsave_restriction, Ssave_restriction, 0, UNEVALLED, 0,
@@ -3434,6 +3421,9 @@ DEFUN ("message", Fmessage, Smessage, 1, MANY, 0,
 The message also goes into the `*Messages*' buffer, if `message-log-max'
 is non-nil.  (In keyboard macros, that's all it does.)
 Return the message.
+
+In batch mode, the message is printed to the standard error stream,
+followed by a newline.
 
 The first argument is a format control string, and the rest are data
 to be formatted under control of the string.  See `format' for details.
@@ -3484,23 +3474,14 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
   else
     {
       Lisp_Object val = Fformat (nargs, args);
-#ifdef HAVE_MENUS
-      /* The MS-DOS frames support popup menus even though they are
-	 not FRAME_WINDOW_P.  */
-      if (FRAME_WINDOW_P (XFRAME (selected_frame))
-	  || FRAME_MSDOS_P (XFRAME (selected_frame)))
-      {
-	Lisp_Object pane, menu;
-	struct gcpro gcpro1;
-	pane = Fcons (Fcons (build_string ("OK"), Qt), Qnil);
-	GCPRO1 (pane);
-	menu = Fcons (val, pane);
-	Fx_popup_dialog (Qt, menu, Qt);
-	UNGCPRO;
-	return val;
-      }
-#endif /* HAVE_MENUS */
-      message3 (val);
+      Lisp_Object pane, menu;
+      struct gcpro gcpro1;
+
+      pane = list1 (Fcons (build_string ("OK"), Qt));
+      GCPRO1 (pane);
+      menu = Fcons (val, pane);
+      Fx_popup_dialog (Qt, menu, Qt);
+      UNGCPRO;
       return val;
     }
 }
@@ -3519,11 +3500,9 @@ message; let the minibuffer contents show.
 usage: (message-or-box FORMAT-STRING &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-#ifdef HAVE_MENUS
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box)
     return Fmessage_box (nargs, args);
-#endif
   return Fmessage (nargs, args);
 }
 
@@ -3627,7 +3606,7 @@ usage: (format STRING &rest OBJECTS)  */)
   ptrdiff_t bufsize = sizeof initial_buffer;
   ptrdiff_t max_bufsize = STRING_BYTES_BOUND + 1;
   char *p;
-  Lisp_Object buf_save_value IF_LINT (= {0});
+  ptrdiff_t buf_save_value_index IF_LINT (= 0);
   char *format, *end, *format_start;
   ptrdiff_t formatlen, nchars;
   /* True if the format is multibyte.  */
@@ -3657,8 +3636,8 @@ usage: (format STRING &rest OBJECTS)  */)
   struct info
   {
     ptrdiff_t start, end;
-    unsigned converted_to_string : 1;
-    unsigned intervals : 1;
+    bool_bf converted_to_string : 1;
+    bool_bf intervals : 1;
   } *info = 0;
 
   /* It should not be necessary to GCPRO ARGS, because
@@ -3958,7 +3937,7 @@ usage: (format STRING &rest OBJECTS)  */)
 		   trailing "d").  */
 		pMlen = sizeof pMd - 2
 	      };
-	      verify (0 < USEFUL_PRECISION_MAX);
+	      verify (USEFUL_PRECISION_MAX > 0);
 
 	      int prec;
 	      ptrdiff_t padding, sprintf_bytes;
@@ -4235,13 +4214,16 @@ usage: (format STRING &rest OBJECTS)  */)
 	if (buf == initial_buffer)
 	  {
 	    buf = xmalloc (bufsize);
-	    sa_must_free = 1;
-	    buf_save_value = make_save_pointer (buf);
-	    record_unwind_protect (safe_alloca_unwind, buf_save_value);
+	    sa_must_free = true;
+	    buf_save_value_index = SPECPDL_INDEX ();
+	    record_unwind_protect_ptr (xfree, buf);
 	    memcpy (buf, initial_buffer, used);
 	  }
 	else
-	  XSAVE_POINTER (buf_save_value, 0) = buf = xrealloc (buf, bufsize);
+	  {
+	    buf = xrealloc (buf, bufsize);
+	    set_unwind_protect_ptr (buf_save_value_index, xfree, buf);
+	  }
 
 	p = buf + used;
       }
@@ -4618,7 +4600,7 @@ Transposing beyond buffer boundaries is an error.  */)
 
   if (end1 == start2)		/* adjacent regions */
     {
-      modify_region_1 (start1, end2, false);
+      modify_text (start1, end2);
       record_change (start1, len1 + len2);
 
       tmp_interval1 = copy_intervals (cur_intv, start1, len1);
@@ -4677,8 +4659,8 @@ Transposing beyond buffer boundaries is an error.  */)
         {
 	  USE_SAFE_ALLOCA;
 
-          modify_region_1 (start1, end1, false);
-          modify_region_1 (start2, end2, false);
+          modify_text (start1, end1);
+          modify_text (start2, end2);
           record_change (start1, len1);
           record_change (start2, len2);
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
@@ -4711,7 +4693,7 @@ Transposing beyond buffer boundaries is an error.  */)
         {
 	  USE_SAFE_ALLOCA;
 
-          modify_region_1 (start1, end2, false);
+          modify_text (start1, end2);
           record_change (start1, (end2 - start1));
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
@@ -4744,7 +4726,7 @@ Transposing beyond buffer boundaries is an error.  */)
 	  USE_SAFE_ALLOCA;
 
           record_change (start1, (end2 - start1));
-          modify_region_1 (start1, end2, false);
+          modify_text (start1, end2);
 
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
@@ -4850,6 +4832,7 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Sbuffer_substring);
   defsubr (&Sbuffer_substring_no_properties);
   defsubr (&Sbuffer_string);
+  defsubr (&Sget_pos_property);
 
   defsubr (&Spoint_marker);
   defsubr (&Smark_marker);

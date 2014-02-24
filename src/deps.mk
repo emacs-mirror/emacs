@@ -1,6 +1,6 @@
 ### deps.mk --- src/Makefile fragment for GNU Emacs
 
-## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2013 Free Software
+## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2014 Free Software
 ## Foundation, Inc.
 
 ## This file is part of GNU Emacs.
@@ -190,7 +190,7 @@ sysdep.o: sysdep.c syssignal.h systty.h systime.h syswait.h blockinput.h \
    frame.h atimer.h window.h msdos.h dosfns.h keyboard.h cm.h lisp.h \
    globals.h $(config_h) composite.h sysselect.h gnutls.h \
    ../lib/allocator.h ../lib/careadlinkat.h \
-   ../lib/unistd.h ../lib/ignore-value.h
+   ../lib/unistd.h
 term.o: term.c termchar.h termhooks.h termopts.h lisp.h globals.h $(config_h) \
    cm.h frame.h disptab.h keyboard.h character.h charset.h coding.h ccl.h \
    xterm.h msdos.h window.h keymap.h blockinput.h atimer.h systime.h \

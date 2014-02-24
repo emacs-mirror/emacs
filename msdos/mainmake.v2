@@ -1,6 +1,6 @@
 # Top-level Makefile for Emacs under MS-DOS/DJGPP v2.0 or higher. -*-makefile-*-
 
-# Copyright (C) 1996-2013 Free Software Foundation, Inc.
+# Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -64,13 +64,13 @@ MAKESHELL=/xyzzy/command
 top_srcdir := $(subst \,/,$(shell cd))
 
 # Q: Do we need to bootstrap?
-# A: Only if we find autogen/README, i.e. we are building out of
+# A: Only if we find msdos/autogen/Makefile.in, i.e. we are building out of
 #    a VCS-checkout (not a release), and src/b-emacs.exe does not exist.
 #    This avoids building a bootstrap-emacs and recompiling Lisp files
 #    when building a pretest/release tarball.  Recompiling Lisp files
 #    is BAD because lisp/Makefile.in requires a Unixy shell.
 boot :=
-ifneq ($(wildcard autogen/README),)
+ifneq ($(wildcard msdos/autogen/Makefile.in),)
 ifeq ($(wildcard src/b-emacs.exe),)
 boot := b-emacs.exe
 endif

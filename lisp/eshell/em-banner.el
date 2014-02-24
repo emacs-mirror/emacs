@@ -1,6 +1,6 @@
-;;; em-banner.el --- sample module that displays a login banner
+;;; em-banner.el --- sample module that displays a login banner  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -39,11 +39,11 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl-lib)
-  (require 'esh-mode)
-  (require 'eshell))
+  (require 'cl-lib))
 
 (require 'esh-util)
+(require 'esh-mode)
+(require 'eshell)
 
 ;;;###autoload
 (progn

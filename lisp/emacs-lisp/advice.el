@@ -1,9 +1,9 @@
 ;;; advice.el --- An overloading mechanism for Emacs Lisp functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 12 Dec 1992
 ;; Keywords: extensions, lisp, tools
 ;; Package: emacs
@@ -295,8 +295,8 @@
 ;;         {<after-K-1-body-form>}*
 ;;         ad-return-value))
 
-;; Macros and special forms will be redefined as macros, hence the optional
-;; [macro] in the beginning of the definition.
+;; Macros are redefined as macros, hence the optional [macro] in the
+;; beginning of the definition.
 
 ;; <arglist> is either the argument list of the original function or the
 ;; first argument list defined in the list of before/around/after advices.
@@ -698,6 +698,7 @@
 ;; problems because they get expanded at compile or load time, hence, they
 ;; might not have all the necessary runtime support and such advice cannot be
 ;; de/activated or changed as it is possible for functions.
+;;
 ;; Special forms cannot be advised.
 ;;
 ;; MORAL: - Only advise macros when you are absolutely sure what you are doing.
@@ -1563,29 +1564,6 @@
 ;; flexibility and effectiveness of the advice mechanism. Macros that were
 ;; compile-time expanded before the advice was activated will of course never
 ;; exhibit the advised behavior.
-;;
-;; @@ Advising special forms:
-;; ==========================
-;; Now for something that should be even more rare than advising macros:
-;; Advising special forms. Because special forms are irregular in their
-;; argument evaluation behavior (e.g., `setq' evaluates the second but not
-;; the first argument) they have to be advised into macros. A dangerous
-;; consequence of this is that the byte-compiler will not recognize them
-;; as special forms anymore (well, in most cases) and use their expansion
-;; rather than the proper byte-code. Also, because the original definition
-;; of a special form cannot be `funcall'ed, `eval' has to be used instead
-;; which is less efficient.
-;;
-;; MORAL: Do not advise special forms unless you are completely sure about
-;;        what you are doing (some of the forward advice behavior is
-;;        implemented via advice of the special forms `defun' and `defmacro').
-;;        As a safety measure one should always do `ad-deactivate-all' before
-;;        one byte-compiles a file to avoid any interference of advised
-;;        special forms.
-;;
-;; Apart from the safety concerns advising special forms is not any different
-;; from advising plain functions or subrs.
-
 
 ;;; Code:
 
@@ -2140,14 +2118,6 @@ See Info node `(elisp)Computed Advice' for detailed documentation."
   "Take a macro function DEFINITION and make a lambda out of it."
   `(cdr ,definition))
 
-(defmacro ad-subr-p (definition)
-  ;;"non-nil if DEFINITION is a subr."
-  (list 'subrp definition))
-
-(defmacro ad-macro-p (definition)
-  ;;"non-nil if DEFINITION is a macro."
-  `(eq (car-safe ,definition) 'macro))
-
 (defmacro ad-lambda-p (definition)
   ;;"non-nil if DEFINITION is a lambda expression."
   `(eq (car-safe ,definition) 'lambda))
@@ -2160,12 +2130,12 @@ See Info node `(elisp)Computed Advice' for detailed documentation."
 (defmacro ad-compiled-p (definition)
   "Return non-nil if DEFINITION is a compiled byte-code object."
   `(or (byte-code-function-p ,definition)
-    (and (ad-macro-p ,definition)
-     (byte-code-function-p (ad-lambdafy ,definition)))))
+       (and (macrop ,definition)
+            (byte-code-function-p (ad-lambdafy ,definition)))))
 
 (defmacro ad-compiled-code (compiled-definition)
   "Return the byte-code object of a COMPILED-DEFINITION."
-  `(if (ad-macro-p ,compiled-definition)
+  `(if (macrop ,compiled-definition)
     (ad-lambdafy ,compiled-definition)
     ,compiled-definition))
 
@@ -2173,7 +2143,7 @@ See Info node `(elisp)Computed Advice' for detailed documentation."
   "Return the lambda expression of a function/macro/advice DEFINITION."
   (cond ((ad-lambda-p definition)
 	 definition)
-	((ad-macro-p definition)
+	((macrop definition)
 	 (ad-lambdafy definition))
 	((ad-advice-p definition)
 	 (cdr definition))
@@ -2183,7 +2153,7 @@ See Info node `(elisp)Computed Advice' for detailed documentation."
   "Return the argument list of DEFINITION."
   (require 'help-fns)
   (help-function-arglist
-   (if (or (ad-macro-p definition) (ad-advice-p definition))
+   (if (or (macrop definition) (ad-advice-p definition))
        (cdr definition)
      definition)
    'preserve-names))
@@ -2215,26 +2185,6 @@ Like `interactive-form', but also works on pieces of advice."
 		    (if (ad-interactive-form definition) 1 0))
 		 (cdr (cdr (ad-lambda-expression definition)))))))
 
-(defun ad-make-advised-definition-docstring (_function)
-  "Make an identifying docstring for the advised definition of FUNCTION.
-Put function name into the documentation string so we can infer
-the name of the advised function from the docstring.  This is needed
-to generate a proper advised docstring even if we are just given a
-definition (see the code for `documentation')."
-  (eval-when-compile
-    (propertize "Advice function assembled by advice.el."
-                'dynamic-docstring-function
-                #'ad--make-advised-docstring)))
-
-(defun ad-advised-definition-p (definition)
-  "Return non-nil if DEFINITION was generated from advice information."
-  (if (or (ad-lambda-p definition)
-	  (ad-macro-p definition)
-	  (ad-compiled-p definition))
-      (let ((docstring (ad-docstring definition)))
-	(and (stringp docstring)
-	     (get-text-property 0 'dynamic-docstring-function docstring)))))
-
 (defun ad-definition-type (definition)
   "Return symbol that describes the type of DEFINITION."
   ;; These symbols are only ever used to check a cache entry's validity.
@@ -2242,8 +2192,8 @@ definition (see the code for `documentation')."
   ;; representations, so cache entries preactivated with version
   ;; 1 can't be used.
   (cond
-   ((ad-macro-p definition) 'macro2)
-   ((ad-subr-p definition) 'subr2)
+   ((macrop definition) 'macro2)
+   ((subrp definition) 'subr2)
    ((or (ad-lambda-p definition) (ad-compiled-p definition)) 'fun2)
    ((ad-advice-p definition) 'advice2))) ;; FIXME: Can this ever happen?
 
@@ -2273,14 +2223,13 @@ For that it has to be fbound with a non-autoload definition."
   "True if FUNCTION has an interpreted definition that can be compiled."
   (and (ad-has-proper-definition function)
        (or (ad-lambda-p (symbol-function function))
-	   (ad-macro-p (symbol-function function)))
+	   (macrop (symbol-function function)))
        (not (ad-compiled-p (symbol-function function)))))
 
 (defvar warning-suppress-types)         ;From warnings.el.
 (defun ad-compile-function (function)
   "Byte-compile the assembled advice function."
   (require 'bytecomp)
-  (require 'warnings)  ;To define warning-suppress-types before we let-bind it.
   (let ((byte-compile-warnings byte-compile-warnings)
         ;; Don't pop up windows showing byte-compiler warnings.
         (warning-suppress-types '((bytecomp))))
@@ -2529,36 +2478,39 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 
 (require 'help-fns)	    ;For help-split-fundoc and help-add-fundoc-usage.
 
-(defun ad--make-advised-docstring (origdoc function &optional style)
+(defun ad--make-advised-docstring (function &optional style)
   "Construct a documentation string for the advised FUNCTION.
-It concatenates the original documentation with the documentation
-strings of the individual pieces of advice which will be formatted
-according to STYLE.  STYLE can be `plain', everything else
-will be interpreted as `default'.  The order of the advice documentation
-strings corresponds to before/around/after and the individual ordering
-in any of these classes."
-  (if (and (symbolp function)
-           (string-match "\\`ad-+Advice-" (symbol-name function)))
-      (setq function
-            (intern (substring (symbol-name function) (match-end 0)))))
-  (let* ((usage (help-split-fundoc origdoc function))
-	 paragraphs advice-docstring)
-    (setq usage (if (null usage) t (setq origdoc (cdr usage)) (car usage)))
-    (if origdoc (setq paragraphs (list origdoc)))
-    (dolist (class ad-advice-classes)
-      (dolist (advice (ad-get-enabled-advices function class))
-	(setq advice-docstring
-	      (ad-make-single-advice-docstring advice class style))
-	(if advice-docstring
-	    (push advice-docstring paragraphs))))
-    (setq origdoc (if paragraphs
-		      (propertize
-		       ;; separate paragraphs with blank lines:
-		       (mapconcat 'identity (nreverse paragraphs) "\n\n")
-                       ;; FIXME: what is this for?
-		       'dynamic-docstring-function
-                       #'ad--make-advised-docstring)))
-    (help-add-fundoc-usage origdoc usage)))
+Concatenate the original documentation with the documentation
+strings of the individual pieces of advice.  Optional argument
+STYLE specifies how to format the pieces of advice; it can be
+`plain', or any other value which means the default formatting.
+
+The advice documentation is shown in order of before/around/after
+advice type, obeying the priority in each of these types."
+  ;; Retrieve the original function documentation
+  (let* ((fun (get function 'function-documentation))
+	 (origdoc (unwind-protect
+		      (progn (put function 'function-documentation nil)
+			     (documentation function t))
+		    (put function 'function-documentation fun))))
+    (if (and (symbolp function)
+	     (string-match "\\`ad-+Advice-" (symbol-name function)))
+	(setq function
+	      (intern (substring (symbol-name function) (match-end 0)))))
+    (let* ((usage (help-split-fundoc origdoc function))
+	   paragraphs advice-docstring)
+      (setq usage (if (null usage) t (setq origdoc (cdr usage)) (car usage)))
+      (if origdoc (setq paragraphs (list origdoc)))
+      (dolist (class ad-advice-classes)
+	(dolist (advice (ad-get-enabled-advices function class))
+	  (setq advice-docstring
+		(ad-make-single-advice-docstring advice class style))
+	  (if advice-docstring
+	      (push advice-docstring paragraphs))))
+      (setq origdoc (if paragraphs
+			(mapconcat 'identity (nreverse paragraphs)
+				   "\n\n")))
+      (help-add-fundoc-usage origdoc usage))))
 
 
 ;; @@@ Accessing overriding arglists and interactive forms:
@@ -2606,7 +2558,7 @@ in any of these classes."
 	;; Finally, build the sucker:
 	(ad-assemble-advised-definition
 	 advised-arglist
-         (ad-make-advised-definition-docstring function)
+	 nil
 	 interactive-form
 	 orig-form
 	 (ad-get-enabled-advices function 'before)
@@ -2903,7 +2855,7 @@ If COMPILE is nil then the result depends on the value of
    ((eq ad-default-compilation-action 'never) nil)
    ((eq ad-default-compilation-action 'always) t)
    ((eq ad-default-compilation-action 'like-original)
-    (or (ad-subr-p (ad-get-orig-definition function))
+    (or (subrp (ad-get-orig-definition function))
         (ad-compiled-p (ad-get-orig-definition function))))
    ;; everything else means `maybe':
    (t (featurep 'byte-compile))))
@@ -2920,6 +2872,8 @@ The current definition and its cache-id will be put into the cache."
     (fset advicefunname
           (or verified-cached-definition
               (ad-make-advised-definition function)))
+    (put advicefunname 'function-documentation
+	 `(ad--make-advised-docstring ',advicefunname))
     (unless (equal (interactive-form advicefunname) old-ispec)
       ;; If the interactive-spec of advicefunname has changed, force nadvice to
       ;; refresh its copy.
@@ -3199,7 +3153,7 @@ See Info node `(elisp)Advising Functions' for comprehensive documentation.
 usage: (defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
           [DOCSTRING] [INTERACTIVE-FORM]
           BODY...)"
-  (declare (doc-string 3)
+  (declare (doc-string 3) (indent 2)
            (debug (&define name  ;; thing being advised.
                            (name ;; class is [&or "before" "around" "after"
                                  ;;               "activation" "deactivation"]
@@ -3250,7 +3204,7 @@ usage: (defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
              `((ad-set-cache
                 ',function
                 ;; the function will get compiled:
-                ,(cond ((ad-macro-p (car preactivation))
+                ,(cond ((macrop (car preactivation))
                         `(ad-macrofy
                           (function
                            ,(ad-lambdafy

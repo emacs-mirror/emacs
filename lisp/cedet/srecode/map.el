@@ -1,6 +1,6 @@
 ;;; srecode/map.el --- Manage a template file map
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -80,7 +80,7 @@ Each app keys to an alist of files and modes (as above.)")
     ans))
 
 (defmethod srecode-map-entry-for-app ((map srecode-map) app)
-  "Return the entry in MAP for APP'lication."
+  "Return the entry in MAP for APP."
   (assoc app (oref map apps))
   )
 
@@ -137,7 +137,7 @@ Return non-nil if the MAP was changed."
     dirty))
 
 (defmethod srecode-map-delete-file-entry-from-app ((map srecode-map) file app)
-  "Delete from MAP the FILE entry within the APP'lication."
+  "Delete from MAP the FILE entry within the APP."
   (let* ((appe (srecode-map-entry-for-app map app))
 	 (fentry (assoc file (cdr appe))))
     (setcdr appe (delete fentry (cdr appe))))
@@ -363,6 +363,9 @@ Return non-nil if the map changed."
 	  (let ((semantic-init-hook nil))
 	    (semantic-new-buffer-fcn))
 	  )
+	;; Force semantic to be enabled in this buffer.
+	(unless (semantic-active-p)
+	  (semantic-new-buffer-fcn))
 
 	(semantic-fetch-tags)
 	(let* ((mode-tag

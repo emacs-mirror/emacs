@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Help
@@ -55,11 +55,12 @@ This displays the available Emacs packages based on keywords.
 @xref{Package Keywords}.
 @end table
 
-  @kbd{C-h} or @key{F1} means ``help'' in various other contexts as
-well.  For instance, you can type them after a prefix key to view a
-list of the keys that can follow the prefix key.  (A few prefix keys
-don't support @kbd{C-h} in this way, because they define other
-meanings for it, but they all support @key{F1} for help.)
+  @kbd{C-h}, @key{F1}, or @kbd{?} means ``help'' in various other
+contexts as well.  For instance, you can type them after a prefix key
+to view a list of the keys that can follow the prefix key.  (A few
+prefix keys don't support @kbd{C-h} or @kbd{?} in this way, because
+they define other meanings for it, but they all support @key{F1} for
+help.)
 
 @menu
 * Help Summary::        Brief list of all Help commands.
@@ -376,8 +377,9 @@ alphabetical order, change the variable
 @section Help Mode Commands
 
   Help buffers provide the same commands as View mode (@pxref{View
-Mode}); for instance, @key{SPC} scrolls forward, and @key{DEL} scrolls
-backward.  A few special commands are also provided:
+Mode}); for instance, @key{SPC} scrolls forward, and @key{DEL} or
+@kbd{S-SPC} scrolls backward.  A few special commands are also
+provided:
 
 @table @kbd
 @item @key{RET}
@@ -456,7 +458,9 @@ buffer (@pxref{Package Menu}).
 @kindex C-h P
   @kbd{C-h P} (@code{describe-package}) prompts for the name of a
 package, and displays a help buffer describing the attributes of the
-package and the features that it implements.
+package and the features that it implements.  The buffer lists the
+keywords that relate to the package in the form of buttons.  Click on
+a button to see other packages related to that keyword.
 
 @node Language Help
 @section Help for International Language Support
@@ -535,6 +539,8 @@ describes the commands and features that are changed in this mode.
 
 @kindex C-h b
 @findex describe-bindings
+@kindex C-h s
+@findex describe-syntax
   @kbd{C-h b} (@code{describe-bindings}) and @kbd{C-h s}
 (@code{describe-syntax}) show other information about the current
 environment within Emacs.  @kbd{C-h b} displays a list of all the key
@@ -547,11 +553,13 @@ Emacs Lisp Reference Manual}).
 
 @findex describe-prefix-bindings
   You can get a list of subcommands for a particular prefix key by
-typing @kbd{C-h} (@code{describe-prefix-bindings}) after the prefix
-key.  (There are a few prefix keys for which this does not
-work---those that provide their own bindings for @kbd{C-h}.  One of
-these is @key{ESC}, because @kbd{@key{ESC} C-h} is actually
-@kbd{C-M-h}, which marks a defun.)
+typing @kbd{C-h}, @kbd{?}, or @kbd{F1}
+(@code{describe-prefix-bindings}) after the prefix key.  (There are a
+few prefix keys for which not all of these keys work---those that
+provide their own bindings for one of them.  One of these prefix keys
+is @key{ESC} in combination with @kbd{C-h}, because @kbd{ESC C-h} is
+actually @kbd{C-M-h}, which marks a defun.  However, @kbd{ESC F1} and
+@kbd{ESC ?} work fine.)
 
 @node Help Files
 @section Help Files

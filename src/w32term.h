@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the Microsoft Windows API.
-   Copyright (C) 1995, 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,22 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BLACK_PIX_DEFAULT(f) PALETTERGB(0,0,0)
 #define WHITE_PIX_DEFAULT(f) PALETTERGB(255,255,255)
 
-#define FONT_WIDTH(f)     ((f)->max_width)
-#define FONT_HEIGHT(f)    ((f)->height)
-#define FONT_BASE(f)      ((f)->ascent)
-#define FONT_DESCENT(f)   ((f)->descent)
-
 #define CP_DEFAULT 1004
-
-#define CHECK_W32_FRAME(f, frame)		\
-  if (NILP (frame))				\
-    f = SELECTED_FRAME ();			\
-  else						\
-    {						\
-      CHECK_LIVE_FRAME (frame, 0);		\
-      f = XFRAME (frame);			\
-    }						\
-  if (! FRAME_W32_P (f))
 
 /* Indicates whether we are in the readsocket call and the message we
    are processing in the current loop */
@@ -71,6 +56,8 @@ struct w32_palette_entry {
 };
 
 extern void w32_regenerate_palette (struct frame *f);
+extern void w32_fullscreen_rect (HWND hwnd, int fsmode, RECT normal,
+                                 RECT *rect);
 
 
 /* For each display (currently only one on w32), we have a structure that
@@ -84,8 +71,7 @@ struct w32_display_info
   /* The generic display parameters corresponding to this w32 display.  */
   struct terminal *terminal;
 
-  /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).
-     The same cons cell also appears in x_display_name_list.  */
+  /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).  */
   Lisp_Object name_list_element;
 
   /* Number of frames that are on this display.  */
@@ -177,17 +163,42 @@ struct w32_display_info
      frame.  It differs from w32_focus_frame when we're using a global
      minibuffer.  */
   struct frame *x_highlight_frame;
+
+  /* The frame waiting to be auto-raised in w32_read_socket.  */
+  struct frame *w32_pending_autoraise_frame;
+
+  /* The frame where the mouse was last time we reported a mouse event.  */
+  struct frame *last_mouse_frame;
+
+  /* The frame where the mouse was last time we reported a mouse motion.  */
+  struct frame *last_mouse_motion_frame;
+
+  /* The frame where the mouse was last time we reported a mouse position.  */
+  struct frame *last_mouse_glyph_frame;
+
+  /* Position where the mouse was last time we reported a motion.
+     This is a position on last_mouse_motion_frame.  */
+  int last_mouse_motion_x;
+  int last_mouse_motion_y;
+
+  /* Where the mouse was last time we reported a mouse position.
+     This is a rectangle on last_mouse_glyph_frame.  */
+  RECT last_mouse_glyph;
+
+  /* The scroll bar in which the last motion event occurred.  */
+  struct scroll_bar *last_mouse_scroll_bar;
+
+  /* Mouse position on the scroll bar above.
+     FIXME: shouldn't it be a member of struct scroll_bar?  */
+  int last_mouse_scroll_bar_pos;
+
+  /* Time of last mouse movement.  */
+  Time last_mouse_movement_time;
 };
 
 /* This is a chain of structures for all the displays currently in use.  */
 extern struct w32_display_info *x_display_list;
 extern struct w32_display_info one_w32_display_info;
-
-/* This is a list of cons cells, each of the form (NAME . FONT-LIST-CACHE),
-   one for each element of w32_display_list and in the same order.
-   NAME is the name of the frame.
-   FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
-extern Lisp_Object w32_display_name_list;
 
 extern struct frame *x_window_to_frame (struct w32_display_info *, HWND);
 
@@ -197,28 +208,22 @@ Lisp_Object display_x_get_resource (struct w32_display_info *,
                                     Lisp_Object, Lisp_Object,
                                     Lisp_Object, Lisp_Object);
 
-extern void x_focus_on_frame (struct frame *f);
-
 /* also defined in xterm.h XXX: factor out to common header */
 
 extern struct w32_display_info *w32_term_init (Lisp_Object,
 					       char *, char *);
-extern void check_w32 (void);
-extern int w32_defined_color (FRAME_PTR f, const char *color,
+extern int w32_defined_color (struct frame *f, const char *color,
                               XColor *color_def, int alloc);
 extern void x_set_window_size (struct frame *f, int change_grav,
-                              int cols, int rows);
+			       int width, int height, bool pixelwise);
 extern int x_display_pixel_height (struct w32_display_info *);
 extern int x_display_pixel_width (struct w32_display_info *);
-extern void x_sync (struct frame *);
 extern Lisp_Object x_get_focus_frame (struct frame *);
 extern void x_set_mouse_position (struct frame *f, int h, int v);
 extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
 extern void x_make_frame_visible (struct frame *f);
 extern void x_make_frame_invisible (struct frame *f);
 extern void x_iconify_frame (struct frame *f);
-extern int x_pixel_width (struct frame *f);
-extern int x_pixel_height (struct frame *f);
 extern void x_set_frame_alpha (struct frame *f);
 extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_tool_bar_lines (struct frame *f,
@@ -236,6 +241,10 @@ extern int w32_kbd_mods_to_emacs (DWORD mods, WORD key);
 
 
 extern Lisp_Object x_get_focus_frame (struct frame *);
+
+/* w32console.c */
+extern void w32con_hide_cursor (void);
+extern void w32con_show_cursor (void);
 
 
 #define PIX_TYPE COLORREF
@@ -325,6 +334,7 @@ struct w32_output
   Cursor hand_cursor;
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
+  Cursor vertical_drag_cursor;
 
   /* Non-zero means hourglass cursor is currently displayed.  */
   unsigned hourglass_p : 1;
@@ -352,13 +362,18 @@ struct w32_output
   {
     XGCValues *gc;
     unsigned long pixel;
-    int allocated_p;
   }
   black_relief, white_relief;
 
   /* The background for which the above relief GCs were set up.
      They are changed only when a different background is involved.  */
   unsigned long relief_background;
+
+  /* Frame geometry and full-screen mode before it was resized by
+     specifying the 'fullscreen' frame parameter.  Used to restore the
+     geometry when 'fullscreen' is reset to nil.  */
+  WINDOWPLACEMENT normal_placement;
+  int prev_fsmode;
 };
 
 extern struct w32_output w32term_display;
@@ -375,21 +390,14 @@ extern struct w32_output w32term_display;
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.w32->baseline_offset)
 
 /* This gives the w32_display_info structure for the display F is on.  */
-#define FRAME_W32_DISPLAY_INFO(f) (&one_w32_display_info)
-#define FRAME_X_DISPLAY_INFO(f) (&one_w32_display_info)
+#define FRAME_DISPLAY_INFO(f) (&one_w32_display_info)
 
 /* This is the `Display *' which frame F is on.  */
 #define FRAME_X_DISPLAY(f) (0)
 
-/* Value is the smallest width of any character in any font on frame F.  */
+#define FRAME_NORMAL_PLACEMENT(F) ((F)->output_data.w32->normal_placement)
+#define FRAME_PREV_FSMODE(F)      ((F)->output_data.w32->prev_fsmode)
 
-#define FRAME_SMALLEST_CHAR_WIDTH(F) \
-     FRAME_W32_DISPLAY_INFO(F)->smallest_char_width
-
-/* Value is the smallest height of any font on frame F.  */
-
-#define FRAME_SMALLEST_FONT_HEIGHT(F) \
-     FRAME_W32_DISPLAY_INFO(F)->smallest_font_height
 
 /* W32-specific scroll bar stuff.  */
 
@@ -421,7 +429,7 @@ struct scroll_bar {
 
   /* The position and size of the scroll bar in pixels, relative to the
      frame.  */
-  Lisp_Object top, left, width, height;
+  int top, left, width, height;
 
   /* The starting and ending positions of the handle, relative to the
      handle area (i.e. zero is the top position, not
@@ -434,17 +442,13 @@ struct scroll_bar {
      drawing handle bottoms VERTICAL_SCROLL_BAR_MIN_HANDLE pixels below
      where they would be normally; the bottom and top are in a
      different co-ordinate system.  */
-  Lisp_Object start, end;
+  int start, end;
 
   /* If the scroll bar handle is currently being dragged by the user,
      this is the number of pixels from the top of the handle to the
      place where the user grabbed it.  If the handle isn't currently
      being dragged, this is Qnil.  */
-  Lisp_Object dragging;
-
-  /* t if the background of the fringe that is adjacent to a scroll
-     bar is extended to the gap between the fringe and the bar.  */
-  Lisp_Object fringe_extended_p;
+  int dragging;
 };
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
@@ -476,21 +480,12 @@ struct scroll_bar {
 #define SET_SCROLL_BAR_W32_WINDOW(ptr, id) \
   (SCROLL_BAR_UNPACK ((ptr)->w32_window_low, (ptr)->w32_window_high, (intptr_t) id))
 
-/* Extract the X widget of the scroll bar from a struct scroll_bar.  */
-#define SCROLL_BAR_X_WIDGET(ptr) \
-  ((Widget) SCROLL_BAR_PACK ((ptr)->x_widget_low, (ptr)->x_widget_high))
-
-/* Store a widget id in a struct scroll_bar.  */
-#define SET_SCROLL_BAR_X_WIDGET(ptr, w) \
-  (SCROLL_BAR_UNPACK ((ptr)->x_widget_low, (ptr)->x_widget_high, (int) w))
-
 /* Return the inside width of a vertical scroll bar, given the outside
    width.  */
 #define VERTICAL_SCROLL_BAR_INSIDE_WIDTH(f,width) \
   ((width) \
    - VERTICAL_SCROLL_BAR_LEFT_BORDER \
-   - VERTICAL_SCROLL_BAR_RIGHT_BORDER \
-   - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2)
+   - VERTICAL_SCROLL_BAR_RIGHT_BORDER)
 
 /* Return the length of the rectangle within which the top of the
    handle must stay.  This isn't equivalent to the inside height,
@@ -527,11 +522,6 @@ struct scroll_bar {
 /* Minimum lengths for scroll bar handles, in pixels.  */
 #define VERTICAL_SCROLL_BAR_MIN_HANDLE (vertical_scroll_bar_min_handle)
 
-/* Trimming off a few pixels from each side prevents
-   text from glomming up against the scroll bar */
-#define VERTICAL_SCROLL_BAR_WIDTH_TRIM (0)
-
-
 struct frame;  /* from frame.h */
 
 extern void w32_fill_rect (struct frame *, HDC, COLORREF, RECT *);
@@ -544,6 +534,16 @@ do { \
     rect.top = y; \
     rect.right = x + nx; \
     rect.bottom = y + ny; \
+    w32_fill_rect (f,hdc,pix,&rect); \
+} while (0)
+
+#define w32_fill_area_abs(f,hdc,pix,x0,y0,x1,y1) \
+do { \
+    RECT rect; \
+    rect.left = x0; \
+    rect.top = y0; \
+    rect.right = x1; \
+    rect.bottom = y1; \
     w32_fill_rect (f,hdc,pix,&rect); \
 } while (0)
 
@@ -670,9 +670,10 @@ extern DWORD notifications_size;
 extern void *notifications_desc;
 extern Lisp_Object w32_get_watch_object (void *);
 extern Lisp_Object lispy_file_action (DWORD);
+extern int handle_file_notifications (struct input_event *);
 
 extern void w32_initialize_display_info (Lisp_Object);
-extern void initialize_w32_display (struct terminal *);
+extern void initialize_w32_display (struct terminal *, int *, int *);
 
 /* Keypad command key support.  W32 doesn't have virtual keys defined
    for the function keys on the keypad (they are mapped to the standard
@@ -727,7 +728,6 @@ struct image;
 struct face;
 
 XGCValues *XCreateGC (void *, Window, unsigned long, XGCValues *);
-struct frame * check_x_frame (Lisp_Object);
 
 typedef DWORD (WINAPI * ClipboardSequence_Proc) (void);
 typedef BOOL (WINAPI * AppendMenuW_Proc) (
@@ -740,6 +740,9 @@ extern HWND w32_system_caret_hwnd;
 extern int w32_system_caret_height;
 extern int w32_system_caret_x;
 extern int w32_system_caret_y;
+extern struct window *w32_system_caret_window;
+extern int w32_system_caret_hdr_height;
+extern int w32_system_caret_mode_height;
 
 #ifdef _MSC_VER
 #ifndef EnumSystemLocales
@@ -760,6 +763,25 @@ BOOL WINAPI EnumSystemLocalesW(LOCALE_ENUMPROCW,DWORD);
 extern const char*
 w32_name_of_message (UINT msg);
 #endif /* EMACSDEBUG */
+
+#ifdef NTGUI_UNICODE
+extern Lisp_Object ntgui_encode_system (Lisp_Object str);
+#define GUISTR(x) (L ## x)
+#define GUI_ENCODE_FILE GUI_ENCODE_SYSTEM
+#define GUI_ENCODE_SYSTEM(x) ntgui_encode_system (x)
+#define GUI_FN(fn) fn ## W
+typedef wchar_t guichar_t;
+#else /* !NTGUI_UNICODE */
+#define GUISTR(x) x
+#define GUI_ENCODE_FILE ENCODE_FILE
+#define GUI_ENCODE_SYSTEM ENCODE_SYSTEM
+#define GUI_FN(fn) fn
+typedef char guichar_t;
+#endif /* NTGUI_UNICODE */
+
+#define GUI_SDATA(x) ((guichar_t*) SDATA (x))
+
+extern Lisp_Object w32_popup_dialog (struct frame *, Lisp_Object, Lisp_Object);
 
 extern void syms_of_w32term (void);
 extern void syms_of_w32menu (void);

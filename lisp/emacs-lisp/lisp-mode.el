@@ -1,8 +1,8 @@
-;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands
+;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1999-2014 Free Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp, languages
 ;; Package: emacs
 
@@ -110,7 +110,9 @@ It has `lisp-mode-abbrev-table' as its parent."
 				"define-compiler-macro" "define-modify-macro"
 				"defsetf" "define-setf-expander"
 				"define-method-combination"
-				"defgeneric" "defmethod") t))
+				"defgeneric" "defmethod"
+				"cl-defun" "cl-defsubst" "cl-defmacro"
+				"cl-define-compiler-macro") t))
 			   "\\s-+\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2)
    (list (purecopy "Variables")
@@ -132,7 +134,8 @@ It has `lisp-mode-abbrev-table' as its parent."
 			     (regexp-opt
 			      '("defgroup" "deftheme" "deftype" "defstruct"
 				"defclass" "define-condition" "define-widget"
-				"defface" "defpackage") t))
+				"defface" "defpackage" "cl-deftype"
+				"cl-defstruct") t))
 			   "\\s-+'?\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2))
 
@@ -149,6 +152,240 @@ It has `lisp-mode-abbrev-table' as its parent."
 
 (defvar lisp-doc-string-elt-property 'doc-string-elt
   "The symbol property that holds the docstring position info.")
+
+
+;;;; Font-lock support.
+
+(pcase-let
+    ((`(,vdefs ,tdefs
+        ,el-defs-re ,cl-defs-re
+        ,el-kws-re  ,cl-kws-re
+        ,el-errs-re ,cl-errs-re)
+      (eval-when-compile
+        (let ((lisp-fdefs '("defmacro" "defsubst" "defun"))
+              (lisp-vdefs '("defvar"))
+              (lisp-kw '("cond" "if" "while" "let" "let*" "progn" "prog1"
+                         "prog2" "lambda" "unwind-protect" "condition-case"
+                         "when" "unless" "with-output-to-string"
+                         "ignore-errors" "dotimes" "dolist" "declare"))
+              (lisp-errs '("warn" "error" "signal"))
+              ;; Elisp constructs.  FIXME: update dynamically from obarray.
+              (el-fdefs '("defadvice" "defalias"
+                          "define-derived-mode" "define-minor-mode"
+                          "define-generic-mode" "define-global-minor-mode"
+                          "define-globalized-minor-mode" "define-skeleton"
+                          "define-widget"))
+              (el-vdefs '("defconst" "defcustom" "defvaralias" "defvar-local"
+                          "defface"))
+              (el-tdefs '("defgroup" "deftheme"))
+              (el-kw '("while-no-input" "letrec" "pcase" "pcase-let"
+                       "pcase-let*" "save-restriction" "save-excursion"
+                       "save-selected-window"
+                       ;; "eval-after-load" "eval-next-after-load"
+                       "save-window-excursion" "save-current-buffer"
+                       "save-match-data" "combine-after-change-calls"
+                       "condition-case-unless-debug" "track-mouse"
+                       "eval-and-compile" "eval-when-compile" "with-case-table"
+                       "with-category-table" "with-coding-priority"
+                       "with-current-buffer" "with-demoted-errors"
+                       "with-electric-help" "with-eval-after-load"
+                       "with-local-quit" "with-no-warnings"
+                       "with-output-to-temp-buffer" "with-selected-window"
+                       "with-selected-frame" "with-silent-modifications"
+                       "with-syntax-table" "with-temp-buffer" "with-temp-file"
+                       "with-temp-message" "with-timeout"
+                       "with-timeout-handler"))
+              (el-errs '("user-error"))
+              ;; Common-Lisp constructs supported by EIEIO.  FIXME: namespace.
+              (eieio-fdefs '("defgeneric" "defmethod"))
+              (eieio-tdefs '("defclass"))
+              (eieio-kw '("with-slots"))
+              ;; Common-Lisp constructs supported by cl-lib.
+              (cl-lib-fdefs '("defmacro" "defsubst" "defun"))
+              (cl-lib-tdefs '("defstruct" "deftype"))
+              (cl-lib-kw '("progv" "eval-when" "case" "ecase" "typecase"
+                           "etypecase" "ccase" "ctypecase" "loop" "do" "do*"
+                           "the" "locally" "proclaim" "declaim" "letf" "go"
+                           ;; "lexical-let" "lexical-let*"
+                           "symbol-macrolet" "flet" "destructuring-bind"
+                           "labels" "macrolet" "tagbody" "multiple-value-bind"
+                           "block" "return" "return-from"))
+              (cl-lib-errs '("assert" "check-type"))
+              ;; Common-Lisp constructs not supported by cl-lib.
+              (cl-fdefs '("defsetf" "define-method-combination"
+                          "define-condition" "define-setf-expander"
+                          ;; "define-function"??
+                          "define-compiler-macro" "define-modify-macro"))
+              (cl-vdefs '("define-symbol-macro" "defconstant" "defparameter"))
+              (cl-tdefs '("defpackage" "defstruct" "deftype"))
+              (cl-kw '("prog" "prog*" "handler-case" "handler-bind"
+                       "in-package" "restart-case" ;; "inline"
+                       "restart-bind" "break" "multiple-value-prog1"
+                       "compiler-let" "with-accessors" "with-compilation-unit"
+                       "with-condition-restarts" "with-hash-table-iterator"
+                       "with-input-from-string" "with-open-file"
+                       "with-open-stream" "with-package-iterator"
+                       "with-simple-restart" "with-standard-io-syntax"))
+              (cl-errs '("abort" "cerror")))
+
+          (list (append lisp-vdefs el-vdefs cl-vdefs)
+                (append el-tdefs eieio-tdefs cl-tdefs cl-lib-tdefs
+                        (mapcar (lambda (s) (concat "cl-" s)) cl-lib-tdefs))
+
+                ;; Elisp and Common Lisp definers.
+                (regexp-opt (append lisp-fdefs lisp-vdefs
+                                    el-fdefs el-vdefs el-tdefs
+                                    (mapcar (lambda (s) (concat "cl-" s))
+                                            (append cl-lib-fdefs cl-lib-tdefs))
+                                    eieio-fdefs eieio-tdefs)
+                            t)
+                (regexp-opt (append lisp-fdefs lisp-vdefs
+                                    cl-lib-fdefs cl-lib-tdefs
+                                    eieio-fdefs eieio-tdefs
+                                    cl-fdefs cl-vdefs cl-tdefs)
+                            t)
+
+                ;; Elisp and Common Lisp keywords.
+                (regexp-opt (append
+                             lisp-kw el-kw eieio-kw
+                             (cons "go" (mapcar (lambda (s) (concat "cl-" s))
+                                                (remove "go" cl-lib-kw))))
+                            t)
+                (regexp-opt (append lisp-kw cl-kw eieio-kw cl-lib-kw)
+                            t)
+
+                ;; Elisp and Common Lisp "errors".
+                (regexp-opt (append (mapcar (lambda (s) (concat "cl-" s))
+                                            cl-lib-errs)
+                                    lisp-errs el-errs)
+                            t)
+                (regexp-opt (append lisp-errs cl-lib-errs cl-errs) t))))))
+
+  (dolist (v vdefs)
+    (put (intern v) 'lisp-define-type 'var))
+  (dolist (v tdefs)
+    (put (intern v) 'lisp-define-type 'type))
+
+  (define-obsolete-variable-alias 'lisp-font-lock-keywords-1
+    'lisp-el-font-lock-keywords-1 "24.4")
+  (defconst lisp-el-font-lock-keywords-1
+    `( ;; Definitions.
+      (,(concat "(" el-defs-re "\\_>"
+                ;; Any whitespace and defined object.
+                "[ \t'\(]*"
+                "\\(\\(?:\\sw\\|\\s_\\)+\\)?")
+       (1 font-lock-keyword-face)
+       (2 (let ((type (get (intern-soft (match-string 1)) 'lisp-define-type)))
+            (cond ((eq type 'var) font-lock-variable-name-face)
+                  ((eq type 'type) font-lock-type-face)
+                  (t font-lock-function-name-face)))
+          nil t))
+      ;; Emacs Lisp autoload cookies.  Supports the slightly different
+      ;; forms used by mh-e, calendar, etc.
+      ("^;;;###\\([-a-z]*autoload\\)" 1 font-lock-warning-face prepend))
+    "Subdued level highlighting for Emacs Lisp mode.")
+
+  (defconst lisp-cl-font-lock-keywords-1
+    `( ;; Definitions.
+      (,(concat "(" cl-defs-re "\\_>"
+                ;; Any whitespace and defined object.
+                "[ \t'\(]*"
+                "\\(setf[ \t]+\\(?:\\sw\\|\\s_\\)+\\|\\(?:\\sw\\|\\s_\\)+\\)?")
+       (1 font-lock-keyword-face)
+       (2 (let ((type (get (intern-soft (match-string 1)) 'lisp-define-type)))
+            (cond ((eq type 'var) font-lock-variable-name-face)
+                  ((eq type 'type) font-lock-type-face)
+                  (t font-lock-function-name-face)))
+          nil t)))
+    "Subdued level highlighting for Lisp modes.")
+
+  (define-obsolete-variable-alias 'lisp-font-lock-keywords-2
+    'lisp-el-font-lock-keywords-2 "24.4")
+  (defconst lisp-el-font-lock-keywords-2
+    (append
+     lisp-el-font-lock-keywords-1
+     `( ;; Regexp negated char group.
+       ("\\[\\(\\^\\)" 1 font-lock-negation-char-face prepend)
+       ;; Control structures.  Common Lisp forms.
+       (,(concat "(" el-kws-re "\\_>") . 1)
+       ;; Exit/Feature symbols as constants.
+       (,(concat "(\\(catch\\|throw\\|featurep\\|provide\\|require\\)\\_>"
+                 "[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?")
+        (1 font-lock-keyword-face)
+        (2 font-lock-constant-face nil t))
+       ;; Erroneous structures.
+       (,(concat "(" el-errs-re "\\_>")
+        (1 font-lock-warning-face))
+       ;; Words inside \\[] tend to be for `substitute-command-keys'.
+       ("\\\\\\\\\\[\\(\\(?:\\sw\\|\\s_\\)+\\)\\]"
+        (1 font-lock-constant-face prepend))
+       ;; Words inside `' tend to be symbol names.
+       ("`\\(\\(?:\\sw\\|\\s_\\)\\(?:\\sw\\|\\s_\\)+\\)'"
+        (1 font-lock-constant-face prepend))
+       ;; Constant values.
+       ("\\_<:\\(?:\\sw\\|\\s_\\)+\\_>" 0 font-lock-builtin-face)
+       ;; ELisp and CLisp `&' keywords as types.
+       ("\\_<\\&\\(?:\\sw\\|\\s_\\)+\\_>" . font-lock-type-face)
+       ;; ELisp regexp grouping constructs
+       (,(lambda (bound)
+           (catch 'found
+             ;; The following loop is needed to continue searching after matches
+             ;; that do not occur in strings.  The associated regexp matches one
+             ;; of `\\\\' `\\(' `\\(?:' `\\|' `\\)'.  `\\\\' has been included to
+             ;; avoid highlighting, for example, `\\(' in `\\\\('.
+             (while (re-search-forward "\\(\\\\\\\\\\)\\(?:\\(\\\\\\\\\\)\\|\\((\\(?:\\?[0-9]*:\\)?\\|[|)]\\)\\)" bound t)
+               (unless (match-beginning 2)
+                 (let ((face (get-text-property (1- (point)) 'face)))
+                   (when (or (and (listp face)
+                                  (memq 'font-lock-string-face face))
+                             (eq 'font-lock-string-face face))
+                     (throw 'found t)))))))
+        (1 'font-lock-regexp-grouping-backslash prepend)
+        (3 'font-lock-regexp-grouping-construct prepend))
+       ;; This is too general -- rms.
+       ;; A user complained that he has functions whose names start with `do'
+       ;; and that they get the wrong color.
+       ;; ;; CL `with-' and `do-' constructs
+       ;;("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
+       ))
+    "Gaudy level highlighting for Emacs Lisp mode.")
+
+  (defconst lisp-cl-font-lock-keywords-2
+    (append
+     lisp-cl-font-lock-keywords-1
+     `( ;; Regexp negated char group.
+       ("\\[\\(\\^\\)" 1 font-lock-negation-char-face prepend)
+       ;; Control structures.  Common Lisp forms.
+       (,(concat "(" cl-kws-re "\\_>") . 1)
+       ;; Exit/Feature symbols as constants.
+       (,(concat "(\\(catch\\|throw\\|provide\\|require\\)\\_>"
+                 "[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?")
+        (1 font-lock-keyword-face)
+        (2 font-lock-constant-face nil t))
+       ;; Erroneous structures.
+       (,(concat "(" cl-errs-re "\\_>")
+        (1 font-lock-warning-face))
+       ;; Words inside `' tend to be symbol names.
+       ("`\\(\\(?:\\sw\\|\\s_\\)\\(?:\\sw\\|\\s_\\)+\\)'"
+        (1 font-lock-constant-face prepend))
+       ;; Constant values.
+       ("\\_<:\\(?:\\sw\\|\\s_\\)+\\_>" 0 font-lock-builtin-face)
+       ;; ELisp and CLisp `&' keywords as types.
+       ("\\_<\\&\\(?:\\sw\\|\\s_\\)+\\_>" . font-lock-type-face)
+       ;; This is too general -- rms.
+       ;; A user complained that he has functions whose names start with `do'
+       ;; and that they get the wrong color.
+       ;; ;; CL `with-' and `do-' constructs
+       ;;("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
+       ))
+    "Gaudy level highlighting for Lisp modes."))
+
+(define-obsolete-variable-alias 'lisp-font-lock-keywords
+  'lisp-el-font-lock-keywords "24.4")
+(defvar lisp-el-font-lock-keywords lisp-el-font-lock-keywords-1
+  "Default expressions to highlight in Emacs Lisp mode.")
+(defvar lisp-cl-font-lock-keywords lisp-cl-font-lock-keywords-1
+  "Default expressions to highlight in Lisp modes.")
 
 (defun lisp-font-lock-syntactic-face-function (state)
   (if (nth 3 state)
@@ -187,7 +424,8 @@ It has `lisp-mode-abbrev-table' as its parent."
               font-lock-string-face))))
     font-lock-comment-face))
 
-(defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive)
+(defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive
+                                      elisp)
   "Common initialization routine for lisp modes.
 The LISP-SYNTAX argument is used by code in inf-lisp.el and is
 \(uselessly) passed from pp.el, chistory.el, gnus-kill.el and
@@ -222,14 +460,25 @@ font-lock keywords will not be case sensitive."
   (setq-local comment-use-global-state t)
   (setq-local imenu-generic-expression lisp-imenu-generic-expression)
   (setq-local multibyte-syntax-as-symbol t)
-  (setq-local syntax-begin-function 'beginning-of-defun)
+  ;; (setq-local syntax-begin-function 'beginning-of-defun)  ;;Bug#16247.
   (setq font-lock-defaults
-	`((lisp-font-lock-keywords
-	   lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
+	`(,(if elisp '(lisp-el-font-lock-keywords
+                       lisp-el-font-lock-keywords-1
+                       lisp-el-font-lock-keywords-2)
+             '(lisp-cl-font-lock-keywords
+               lisp-cl-font-lock-keywords-1
+               lisp-cl-font-lock-keywords-2))
 	  nil ,keywords-case-insensitive nil nil
 	  (font-lock-mark-block-function . mark-defun)
 	  (font-lock-syntactic-face-function
-	   . lisp-font-lock-syntactic-face-function))))
+	   . lisp-font-lock-syntactic-face-function)))
+  (setq-local prettify-symbols-alist lisp--prettify-symbols-alist)
+  ;; electric
+  (when elisp
+    (setq-local electric-pair-text-pairs
+                (cons '(?\` . ?\') electric-pair-text-pairs)))
+  (setq-local electric-pair-skip-whitespace 'chomp)
+  (setq-local electric-pair-open-newline-between-pairs nil))
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."
@@ -266,6 +515,7 @@ font-lock keywords will not be case sensitive."
 
 (defvar lisp-mode-shared-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map prog-mode-map)
     (define-key map "\e\C-q" 'indent-sexp)
     (define-key map "\177" 'backward-delete-char-untabify)
     ;; This gets in the way when viewing a Lisp file in view-mode.  As
@@ -394,7 +644,7 @@ font-lock keywords will not be case sensitive."
 		  :enable mark-active))
     (bindings--define-key menu-map [eval-sexp]
       '(menu-item "Evaluate Last S-expression" eval-last-sexp
-		  :help "Evaluate sexp before point; print value in minibuffer"))
+		  :help "Evaluate sexp before point; print value in echo area"))
     (bindings--define-key menu-map [separator-format] menu-bar-separator)
     (bindings--define-key menu-map [comment-region]
       '(menu-item "Comment Out Region" comment-region
@@ -431,7 +681,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
 
 (defcustom emacs-lisp-mode-hook nil
   "Hook run when entering Emacs Lisp mode."
-  :options '(turn-on-eldoc-mode imenu-add-menubar-index checkdoc-minor-mode)
+  :options '(eldoc-mode imenu-add-menubar-index checkdoc-minor-mode)
   :type 'hook
   :group 'lisp)
 
@@ -443,9 +693,12 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
 
 (defcustom lisp-interaction-mode-hook nil
   "Hook run when entering Lisp Interaction mode."
-  :options '(turn-on-eldoc-mode)
+  :options '(eldoc-mode)
   :type 'hook
   :group 'lisp)
+
+(defconst lisp--prettify-symbols-alist
+  '(("lambda"  . ?λ)))
 
 (define-derived-mode emacs-lisp-mode prog-mode "Emacs-Lisp"
   "Major mode for editing Lisp code to run in Emacs.
@@ -453,11 +706,9 @@ Commands:
 Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.
 
-\\{emacs-lisp-mode-map}
-Entry to this mode calls the value of `emacs-lisp-mode-hook'
-if that value is non-nil."
+\\{emacs-lisp-mode-map}"
   :group 'lisp
-  (lisp-mode-variables)
+  (lisp-mode-variables nil nil 'elisp)
   (setq imenu-case-fold-search nil)
   (add-hook 'completion-at-point-functions
             'lisp-completion-at-point nil 'local))
@@ -545,10 +796,7 @@ Blank lines separate paragraphs.  Semicolons start comments.
 
 \\{lisp-mode-map}
 Note that `run-lisp' may be used either to start an inferior Lisp job
-or to switch back to an existing one.
-
-Entry to this mode calls the value of `lisp-mode-hook'
-if that value is non-nil."
+or to switch back to an existing one."
   (lisp-mode-variables nil t)
   (setq-local find-tag-default-function 'lisp-find-tag-default)
   (setq-local comment-start-skip
@@ -566,7 +814,7 @@ if that value is non-nil."
 (defalias 'common-lisp-mode 'lisp-mode)
 
 ;; This will do unless inf-lisp.el is loaded.
-(defun lisp-eval-defun (&optional and-go)
+(defun lisp-eval-defun (&optional _and-go)
   "Send the current defun to the Lisp process made by \\[run-lisp]."
   (interactive)
   (error "Process lisp does not exist"))
@@ -613,24 +861,25 @@ Delete converts tabs to spaces as it moves back.
 Paragraphs are separated only by blank lines.
 Semicolons start comments.
 
-\\{lisp-interaction-mode-map}
-Entry to this mode calls the value of `lisp-interaction-mode-hook'
-if that value is non-nil."
+\\{lisp-interaction-mode-map}"
   :abbrev-table nil)
 
-(defun eval-print-last-sexp ()
+(defun eval-print-last-sexp (&optional eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value into current buffer.
 
-If `eval-expression-debug-on-error' is non-nil, which is the default,
-this command arranges for all errors to enter the debugger.
+Normally, this function truncates long output according to the value
+of the variables `eval-expression-print-length' and
+`eval-expression-print-level'.  With a prefix argument of zero,
+however, there is no such truncation.  Such a prefix argument
+also causes integers to be printed in several additional formats
+\(octal, hexadecimal, and character).
 
-Note that printing the result is controlled by the variables
-`eval-expression-print-length' and `eval-expression-print-level',
-which see."
-  (interactive)
+If `eval-expression-debug-on-error' is non-nil, which is the default,
+this command arranges for all errors to enter the debugger."
+  (interactive "P")
   (let ((standard-output (current-buffer)))
     (terpri)
-    (eval-last-sexp t)
+    (eval-last-sexp (or eval-last-sexp-arg-internal t))
     (terpri)))
 
 
@@ -653,7 +902,7 @@ alternative printed representations that can be displayed."
 						printed-value)))))
 
 
-(defun last-sexp-toggle-display (&optional arg)
+(defun last-sexp-toggle-display (&optional _arg)
   "Toggle between abbreviated and unabbreviated printed representations."
   (interactive "P")
   (save-restriction
@@ -772,19 +1021,27 @@ If CHAR is not a character, return nil."
 
 
 (defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
-  "Evaluate sexp before point; print value in minibuffer.
-With argument, print output into current buffer."
+  "Evaluate sexp before point; print value in the echo area.
+With argument, print output into current buffer.
+With a zero prefix arg, print output with no limit on the length
+and level of lists, and include additional formats for integers
+\(octal, hexadecimal, and character)."
   (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t)))
     ;; Setup the lexical environment if lexical-binding is enabled.
     (eval-last-sexp-print-value
-     (eval (eval-sexp-add-defvars (preceding-sexp)) lexical-binding))))
+     (eval (eval-sexp-add-defvars (preceding-sexp)) lexical-binding)
+     eval-last-sexp-arg-internal)))
 
 
-(defun eval-last-sexp-print-value (value)
+(defun eval-last-sexp-print-value (value &optional eval-last-sexp-arg-internal)
   (let ((unabbreviated (let ((print-length nil) (print-level nil))
 			 (prin1-to-string value)))
-	(print-length eval-expression-print-length)
-	(print-level eval-expression-print-level)
+	(print-length (and (not (zerop (prefix-numeric-value
+					eval-last-sexp-arg-internal)))
+			   eval-expression-print-length))
+	(print-level (and (not (zerop (prefix-numeric-value
+				       eval-last-sexp-arg-internal)))
+			  eval-expression-print-level))
 	(beg (point))
 	end)
     (prog1
@@ -808,6 +1065,7 @@ With argument, print output into current buffer."
 (defun eval-sexp-add-defvars (exp &optional pos)
   "Prepend EXP with all the `defvar's that precede it in the buffer.
 POS specifies the starting position where EXP was found and defaults to point."
+  (setq exp (macroexpand-all exp))      ;Eager macro-expansion.
   (if (not lexical-binding)
       exp
     (save-excursion
@@ -825,10 +1083,15 @@ POS specifies the starting position where EXP was found and defaults to point."
         `(progn ,@(mapcar (lambda (v) `(defvar ,v)) vars) ,exp)))))
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
-  "Evaluate sexp before point; print value in minibuffer.
+  "Evaluate sexp before point; print value in the echo area.
 Interactively, with prefix argument, print output into current buffer.
-Truncates long output according to the value of the variables
-`eval-expression-print-length' and `eval-expression-print-level'.
+
+Normally, this function truncates long output according to the value
+of the variables `eval-expression-print-length' and
+`eval-expression-print-level'.  With a prefix argument of zero,
+however, there is no such truncation.  Such a prefix argument
+also causes integers to be printed in several additional formats
+\(octal, hexadecimal, and character).
 
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger."
@@ -891,14 +1154,13 @@ Reinitialize the face according to the `defface' specification."
 
 (defun eval-defun-2 ()
   "Evaluate defun that point is in or before.
-The value is displayed in the minibuffer.
+The value is displayed in the echo area.
 If the current defun is actually a call to `defvar',
 then reset the variable using the initial value expression
 even if the variable already has some other value.
 \(Normally `defvar' does not change the variable's value
 if it already has a value.\)
 
-With argument, insert value in current buffer after the defun.
 Return the result of evaluation."
   ;; FIXME: the print-length/level bindings should only be applied while
   ;; printing, not while evaluating.
@@ -908,27 +1170,27 @@ Return the result of evaluation."
     (save-excursion
       ;; Arrange for eval-region to "read" the (possibly) altered form.
       ;; eval-region handles recording which file defines a function or
-      ;; variable.  Re-written using `apply' to avoid capturing
-      ;; variables like `end'.
-      (apply
-       #'eval-region
-       (let ((standard-output t)
-	     beg end form)
-	 ;; Read the form from the buffer, and record where it ends.
-	 (save-excursion
-	   (end-of-defun)
-	   (beginning-of-defun)
-	   (setq beg (point))
-	   (setq form (read (current-buffer)))
-	   (setq end (point)))
-	 ;; Alter the form if necessary.
-	 (setq form (eval-sexp-add-defvars (eval-defun-1 (macroexpand form))))
-	 (list beg end standard-output
-	       `(lambda (ignore)
-		 ;; Skipping to the end of the specified region
-		 ;; will make eval-region return.
-		 (goto-char ,end)
-		 ',form))))))
+      ;; variable.
+      (let ((standard-output t)
+            beg end form)
+        ;; Read the form from the buffer, and record where it ends.
+        (save-excursion
+          (end-of-defun)
+          (beginning-of-defun)
+          (setq beg (point))
+          (setq form (read (current-buffer)))
+          (setq end (point)))
+        ;; Alter the form if necessary.
+        (let ((form (eval-sexp-add-defvars
+                     (eval-defun-1 (macroexpand form)))))
+          (eval-region beg end standard-output
+                       (lambda (_ignore)
+                         ;; Skipping to the end of the specified region
+                         ;; will make eval-region return.
+                         (goto-char end)
+                         form))))))
+  (let ((str (eval-expression-print-format (car values))))
+    (if str (princ str)))
   ;; The result of evaluation has been put onto VALUES.  So return it.
   (car values))
 
@@ -950,11 +1212,11 @@ this command arranges for all errors to enter the debugger.
 With a prefix argument, instrument the code for Edebug.
 
 If acting on a `defun' for FUNCTION, and the function was
-instrumented, `Edebug: FUNCTION' is printed in the minibuffer.  If not
+instrumented, `Edebug: FUNCTION' is printed in the echo area.  If not
 instrumented, just FUNCTION is printed.
 
 If not acting on a `defun', the result of evaluation is displayed in
-the minibuffer.  This display is controlled by the variables
+the echo area.  This display is controlled by the variables
 `eval-expression-print-length' and `eval-expression-print-level',
 which see."
   (interactive "P")
@@ -993,12 +1255,12 @@ function is `common-lisp-indent-function'."
   :type 'function
   :group 'lisp)
 
-(defun lisp-indent-line (&optional whole-exp)
+(defun lisp-indent-line (&optional _whole-exp)
   "Indent current line as Lisp code.
 With argument, indent any additional lines of the same expression
 rigidly along with this one."
   (interactive "P")
-  (let ((indent (calculate-lisp-indent)) shift-amt end
+  (let ((indent (calculate-lisp-indent)) shift-amt
 	(pos (- (point-max) (point)))
 	(beg (progn (beginning-of-line) (point))))
     (skip-chars-forward " \t")
@@ -1038,7 +1300,7 @@ is the buffer position of the start of the containing expression."
   (save-excursion
     (beginning-of-line)
     (let ((indent-point (point))
-          state paren-depth
+          state
           ;; setting this to a number inhibits calling hook
           (desired-indent nil)
           (retry t)
@@ -1052,7 +1314,7 @@ is the buffer position of the start of the containing expression."
       ;; Find innermost containing sexp
       (while (and retry
 		  state
-                  (> (setq paren-depth (elt state 0)) 0))
+                  (> (elt state 0) 0))
         (setq retry nil)
         (setq calculate-lisp-indent-last-sexp (elt state 2))
         (setq containing-sexp (elt state 1))
@@ -1281,7 +1543,7 @@ Lisp function does not specify a special indentation."
           body-indent
           normal-indent))))
 
-(defun lisp-indent-defform (state indent-point)
+(defun lisp-indent-defform (state _indent-point)
   (goto-char (car (cdr state)))
   (forward-line 1)
   (if (> (point) (car (cdr (cdr state))))
@@ -1436,6 +1698,8 @@ Any non-integer value means do not use a different value of
   :type '(choice (integer)
                  (const :tag "Use the current `fill-column'" t))
   :group 'lisp)
+(put 'emacs-lisp-docstring-fill-column 'safe-local-variable
+     (lambda (x) (or (eq x t) (integerp x))))
 
 (defun lisp-fill-paragraph (&optional justify)
   "Like \\[fill-paragraph], but handle Emacs Lisp comments and docstrings.

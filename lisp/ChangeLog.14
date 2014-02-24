@@ -7565,7 +7565,7 @@
 
 2008-09-05  Wilson Snyder  <wsnyder@wsnyder.org>
 
-	* verilog-mode.el (verilog-library-extensions): Enable .sv
+	* progmodes/verilog-mode.el (verilog-library-extensions): Enable .sv
 	filename extensions to call verilog-mode.
 	(verilog-auto, verilog-auto-inst, verilog-faq)
 	(verilog-submit-bug-report): Update author support URLs.
@@ -7592,7 +7592,7 @@
 
 2008-09-05  Michael McNamara  <mac@mail.brushroad.com>
 
-	* verilog-mode.el (verilog-beg-block-re-ordered, verilog-calc-1):
+	* progmodes/verilog-mode.el (verilog-beg-block-re-ordered, verilog-calc-1):
 	Better support for the property statement.  Sometimes this keyword
 	introduces a statement which requires an endproperty keyword, and
 	sometimes it doesn't, depending on the work before the property
@@ -11807,7 +11807,7 @@
 
 2008-05-24  Ulf Jasper  <ulf.jasper@web.de>
 
-	* icalendar.el (icalendar-version): Increase to "0.19".
+	* calendar/icalendar.el (icalendar-version): Increase to "0.19".
 	(icalendar--date-style): New function.
 	(icalendar--datetime-to-diary-date): Doc fix.
 	Use icalendar--date-style.
@@ -13390,10 +13390,6 @@
 	(orgtbl-send-table): Use the previous two functions and implement
 	multiple destinations for each table.
 
-	* doc/org.texi (A LaTeX example): Note that fmt may be a
-	one-argument function, and efmt may be a two-argument function.
-	(Radio tables): Document multiple destinations.
-
 2008-04-27  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org/org-agenda.el (org-add-to-diary-list): New function.
@@ -13508,7 +13504,7 @@
 
 2008-04-27  Andreas Schwab  <schwab@suse.de>
 
-	* Makefile.el: Unbreak bootstrap.
+	* Makefile.in: Unbreak bootstrap.
 
 2008-04-27  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -20551,7 +20547,7 @@ See ChangeLog.13 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2008-2013 Free Software Foundation, Inc.
+    Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

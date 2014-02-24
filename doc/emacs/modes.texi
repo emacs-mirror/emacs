@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Modes
@@ -263,8 +263,7 @@ in the region, if the region is active.  @xref{Using Region}.
 
 @item
 Icomplete mode displays an indication of available completions when
-you are in the minibuffer and completion is active.  @xref{Completion
-Options}.
+you are in the minibuffer and completion is active.  @xref{Icomplete}.
 
 @item
 Line Number mode enables display of the current line number in the

@@ -1,6 +1,6 @@
-;;; vc-sccs.el --- support for SCCS version-control
+;;; vc-sccs.el --- support for SCCS version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2014 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -101,7 +101,7 @@ For a description of possible values, see `vc-check-master-templates'."
 ;;; Properties of the backend
 
 (defun vc-sccs-revision-granularity () 'file)
-(defun vc-sccs-checkout-model (files) 'locking)
+(defun vc-sccs-checkout-model (_files) 'locking)
 
 ;;;
 ;;; State-querying functions
@@ -154,6 +154,8 @@ For a description of possible values, see `vc-check-master-templates'."
             ;; Fall through to real state computation.
             (vc-sccs-state file))))
     (vc-sccs-state file)))
+
+(autoload 'vc-expand-dirs "vc")
 
 (defun vc-sccs-dir-status (dir update-function)
   ;; FIXME: this function should be rewritten, using `vc-expand-dirs'
@@ -215,6 +217,8 @@ Optional string REV is a revision."
   "Create a new SCCS repository."
   ;; SCCS is totally file-oriented, so all we have to do is make the directory
   (make-directory "SCCS"))
+
+(autoload 'vc-switches "vc")
 
 (defun vc-sccs-register (files &optional rev comment)
   "Register FILES into the SCCS version-control system.
@@ -317,7 +321,7 @@ are expanded to all version-controlled subfiles."
                                 (vc-name file) (concat "-r" discard))
 	    (vc-sccs-do-command nil 0 "get" (vc-name file) nil))))
 
-(defun vc-sccs-revert (file &optional contents-done)
+(defun vc-sccs-revert (file &optional _contents-done)
   "Revert FILE to the version it was based on. If FILE is a directory,
 revert all subfiles."
   (if (file-directory-p file)
@@ -349,11 +353,17 @@ revert all subfiles."
 ;;; History functions
 ;;;
 
-(defun vc-sccs-print-log (files buffer &optional shortlog start-revision-ignored limit)
-  "Get change log associated with FILES."
+(defun vc-sccs-print-log (files buffer &optional _shortlog _start-revision-ignored limit)
+  "Print commit log associated with FILES into specified BUFFER.
+Remaining arguments are ignored."
   (setq files (vc-expand-dirs files))
   (vc-sccs-do-command buffer 0 "prs" (mapcar 'vc-name files))
   (when limit 'limit-unsupported))
+
+(autoload 'vc-setup-buffer "vc-dispatcher")
+(autoload 'vc-delistify "vc-dispatcher")
+
+(defvar w32-quote-process-args)
 
 ;; FIXME use sccsdiff if present?
 (defun vc-sccs-diff (files &optional oldvers newvers buffer)
@@ -431,6 +441,9 @@ revert all subfiles."
 ;;; our own set of name-to-revision mappings.
 ;;;
 
+(autoload 'vc-tag-precondition "vc")
+(declare-function vc-file-tree-walk "vc" (dirname func &rest args))
+
 (defun vc-sccs-create-tag (dir name branchp)
   (when branchp
     (error "SCCS backend does not support module branches"))
@@ -458,6 +471,8 @@ revert all subfiles."
   (save-excursion
     (goto-char (point-min))
     (re-search-forward  "%[A-Z]%" nil t)))
+
+(autoload 'vc-rename-master "vc")
 
 (defun vc-sccs-rename-file (old new)
   ;; Move the master file (using vc-rcs-master-templates).
@@ -491,7 +506,7 @@ revert all subfiles."
 ;; a (autoload 'vc-sccs-search-project-dir "vc-sccs") which would not
 ;; help us avoid loading vc-sccs.
 ;;;###autoload
-(progn (defun vc-sccs-search-project-dir (dirname basename)
+(progn (defun vc-sccs-search-project-dir (_dirname basename)
   "Return the name of a master file in the SCCS project directory.
 Does not check whether the file exists but returns nil if it does not
 find any project directory."

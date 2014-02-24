@@ -1,6 +1,6 @@
 ;;; ert-x-tests.el --- Tests for ert-x.el
 
-;; Copyright (C) 2008, 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2010-2014 Free Software Foundation, Inc.
 
 ;; Author: Phil Hagelberg
 ;; 	   Christian Ohler <ohler@gnu.org>
@@ -111,6 +111,9 @@
                                                                      'a 'b))
                                                 (ert-fail
                                                  "failure message")))))
+         (skipped-test (make-ert-test :name 'skipped-test
+                                      :body (lambda () (ert-skip
+							"skip message"))))
          (ert-debug-on-error nil)
          (buffer-name (generate-new-buffer-name "*ert-test-run-tests*"))
          (messages nil)
@@ -119,10 +122,12 @@
             (push (apply #'format format-string args) messages))))
     (cl-flet ((expected-string (with-font-lock-p)
                 (ert-propertized-string
-                 "Selector: (member <passing-test> <failing-test>)\n"
-                 "Passed: 1\n"
-                 "Failed: 1 (1 unexpected)\n"
-                 "Total:  2/2\n\n"
+                 "Selector: (member <passing-test> <failing-test> "
+		 "<skipped-test>)\n"
+                 "Passed:  1\n"
+                 "Failed:  1 (1 unexpected)\n"
+                 "Skipped: 1\n"
+                 "Total:   3/3\n\n"
                  "Started at:\n"
                  "Finished.\n"
                  "Finished at:\n\n"
@@ -132,7 +137,7 @@
                             face ,(if with-font-lock-p
                                       'ert-test-result-unexpected
                                     'button))
-                 ".F" nil "\n\n"
+                 ".Fs" nil "\n\n"
                  `(category ,(button-category-symbol
                               'ert--results-expand-collapse-button)
                             button (t)
@@ -153,11 +158,12 @@
         (unwind-protect
             (let ((case-fold-search nil))
               (ert-run-tests-interactively
-               `(member ,passing-test ,failing-test) buffer-name
+               `(member ,passing-test ,failing-test ,skipped-test) buffer-name
                mock-message-fn)
               (should (equal messages `(,(concat
-                                          "Ran 2 tests, 1 results were "
-                                          "as expected, 1 unexpected"))))
+                                          "Ran 3 tests, 1 results were "
+                                          "as expected, 1 unexpected, "
+					  "1 skipped"))))
               (with-current-buffer buffer-name
                 (font-lock-mode 0)
                 (should (ert-equal-including-properties

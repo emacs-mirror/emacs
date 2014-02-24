@@ -1,9 +1,9 @@
 ;;; erc-lang.el --- provide the LANG command to ERC
 
-;; Copyright (C) 2002, 2004, 2006-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Version: 1.0.0
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcLang
 ;; Keywords: comm languages processes
@@ -32,6 +32,9 @@
 
 (require 'erc)
 
+;; FIXME: It's ISO 639-1, not ISO 638.  ISO 638 is for paper, board and pulps.
+;; The Lisp variable should be renamed.
+
 (defvar iso-638-languages
   '(("aa" . "Afar")
     ("ab" . "Abkhazian")
@@ -42,7 +45,7 @@
     ("ay" . "Aymara")
     ("az" . "Azerbaijani")
     ("ba" . "Bashkir")
-    ("be" . "Byelorussian")
+    ("be" . "Belarusian")
     ("bg" . "Bulgarian")
     ("bh" . "Bihari")
     ("bi" . "Bislama")

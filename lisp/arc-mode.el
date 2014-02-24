@@ -1,6 +1,6 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997-1998, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1995, 1997-1998, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
@@ -78,7 +78,7 @@
 ;;             interaction among members.
 ;;             Headers come in three flavors called level 0, 1 and 2 headers.
 ;;             Level 2 header is free of DOS specific restrictions and most
-;;             prevalently used.  Also level 1 and 2 headers consist of base
+;;             commonly used.  Also level 1 and 2 headers consist of base
 ;;             and extension headers.  For more details see
 ;;             http://homepage1.nifty.com/dangan/en/Content/Program/Java/jLHA/Notes/Notes.html
 ;;             http://www.osirusoft.com/joejared/lzhformat.html
@@ -218,9 +218,14 @@ Archive and member name will be added."
 ;; ------------------------------
 ;; Zip archive configuration
 
+(defvar archive-7z-program (let ((7z (or (executable-find "7z")
+                                         (executable-find "7za"))))
+                             (when 7z
+                               (file-name-nondirectory 7z))))
+
 (defcustom archive-zip-extract
   (cond ((executable-find "unzip")   '("unzip" "-qq" "-c"))
-	((executable-find "7z")      '("7z" "x" "-so"))
+	(archive-7z-program          `(,archive-7z-program "x" "-so"))
 	((executable-find "pkunzip") '("pkunzip" "-e" "-o-"))
 	(t                           '("unzip" "-qq" "-c")))
   "Program and its options to run in order to extract a zip file member.
@@ -239,7 +244,7 @@ be added."
 
 (defcustom archive-zip-expunge
   (cond ((executable-find "zip")     '("zip" "-d" "-q"))
-	((executable-find "7z")      '("7z" "d"))
+	(archive-7z-program          `(,archive-7z-program "d"))
 	((executable-find "pkzip")   '("pkzip" "-d"))
 	(t                           '("zip" "-d" "-q")))
   "Program and its options to run in order to delete zip file members.
@@ -252,7 +257,7 @@ Archive and member names will be added."
 
 (defcustom archive-zip-update
   (cond ((executable-find "zip")     '("zip" "-q"))
-	((executable-find "7z")      '("7z" "u"))
+	(archive-7z-program          `(,archive-7z-program "u"))
 	((executable-find "pkzip")   '("pkzip" "-u" "-P"))
 	(t                           '("zip" "-q")))
   "Program and its options to run in order to update a zip file member.
@@ -266,7 +271,7 @@ file.  Archive and member name will be added."
 
 (defcustom archive-zip-update-case
   (cond ((executable-find "zip")     '("zip" "-q" "-k"))
-	((executable-find "7z")      '("7z" "u"))
+	(archive-7z-program          `(,archive-7z-program "u"))
 	((executable-find "pkzip")   '("pkzip" "-u" "-P"))
 	(t                           '("zip" "-q" "-k")))
   "Program and its options to run in order to update a case fiddled zip member.
@@ -321,7 +326,7 @@ Archive and member name will be added."
 ;; 7z archive configuration
 
 (defcustom archive-7z-extract
-  '("7z" "x" "-so")
+  `(,(or archive-7z-program "7z") "x" "-so")
   "Program and its options to run in order to extract a 7z file member.
 Extraction should happen to standard output.  Archive and member name will
 be added."
@@ -333,7 +338,7 @@ be added."
   :group 'archive-7z)
 
 (defcustom archive-7z-expunge
-  '("7z" "d")
+  `(,(or archive-7z-program "7z") "d")
   "Program and its options to run in order to delete 7z file members.
 Archive and member names will be added."
   :version "24.1"
@@ -344,7 +349,7 @@ Archive and member names will be added."
   :group 'archive-7z)
 
 (defcustom archive-7z-update
-  '("7z" "u")
+  `(,(or archive-7z-program "7z") "u")
   "Program and its options to run in order to update a 7z file member.
 Options should ensure that specified directory will be put into the 7z
 file.  Archive and member name will be added."
@@ -678,9 +683,9 @@ archive.
       ;; At present we cannot create archives from scratch
       (funcall (or (default-value 'major-mode) 'fundamental-mode))
     (if (and (not force) archive-files) nil
+      (kill-all-local-variables)
       (let* ((type (archive-find-type))
 	     (typename (capitalize (symbol-name type))))
-	(kill-all-local-variables)
 	(make-local-variable 'archive-subtype)
 	(setq archive-subtype type)
 
@@ -689,9 +694,7 @@ archive.
 	(setq revert-buffer-function 'archive-mode-revert)
 	(auto-save-mode 0)
 
-	;; Remote archives are not written by a hook.
-	(if archive-remote nil
-	  (add-hook 'write-contents-functions 'archive-write-file nil t))
+	(add-hook 'write-contents-functions 'archive-write-file nil t)
 
 	(make-local-variable 'require-final-newline)
 	(setq require-final-newline nil)
@@ -758,7 +761,7 @@ archive.
 	  ((looking-at "..-l[hz][0-9ds]-") 'lzh)
 	  ((looking-at "....................[\334]\247\304\375") 'zoo)
 	  ((and (looking-at "\C-z")	; signature too simple, IMHO
-		(string-match "\\.[aA][rR][cC]$"
+		(string-match "\\.[aA][rR][cC]\\'"
 			      (or buffer-file-name (buffer-name))))
 	   'arc)
           ;; This pattern modeled on the BSD/GNU+Linux `file' command.
@@ -1162,8 +1165,10 @@ using `make-temp-file', and the generated name is returned."
 	  (delete-file (expand-file-name name dest)))
       (while (file-name-directory name)
 	(setq name (directory-file-name (file-name-directory name)))
-	(delete-directory (expand-file-name name dest)))
-      (delete-directory dest))))
+	(when (file-directory-p (expand-file-name name dest))
+	  (delete-directory (expand-file-name name dest))))
+      (when (file-directory-p dest)
+	(delete-directory dest)))))
 
 (defun archive-extract-other-window ()
   "In archive mode, find this member in another window."
@@ -1866,7 +1871,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
   (cond
    ((member-ignore-case (car archive-zip-extract) '("pkunzip" "pkzip"))
     (archive-*-extract archive name archive-zip-extract))
-   ((equal (car archive-zip-extract) "7z")
+   ((equal (car archive-zip-extract) archive-7z-program)
     (let ((archive-7z-extract archive-zip-extract))
       (archive-7z-extract archive name)))
    (t
@@ -2090,7 +2095,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	(file buffer-file-name)
 	(files ()))
     (with-temp-buffer
-      (call-process "7z" nil t nil "l" "-slt" file)
+      (call-process archive-7z-program nil t nil "l" "-slt" file)
       (goto-char (point-min))
       ;; Four dashes start the meta info section that should be skipped.
       ;; Archive members start with more than four dashes.

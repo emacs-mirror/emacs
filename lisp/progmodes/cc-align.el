@@ -1,6 +1,6 @@
 ;;; cc-align.el --- custom indentation functions for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2014 Free Software Foundation, Inc.
 
 ;; Authors:    2004- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -737,7 +737,7 @@ arglist-cont-nonempty."
 	      (setq startpos (c-langelem-pos langelem)))))
 
       (setq startpos (c-langelem-pos langelem)
-	    endpos (point))
+	    endpos (c-point 'bol))
 
       ;; Find a syntactically relevant and unnested "=" token on the
       ;; current line.  equalp is in that case set to the number of
@@ -1039,6 +1039,7 @@ brace-list-close, brace-list-intro, statement-block-intro,
 arglist-intro, arglist-cont-nonempty, arglist-close, and all in*
 symbols, e.g. inclass and inextern-lang."
   (save-excursion
+    (beginning-of-line)
     (if (and (c-go-up-list-backward)
 	     (= (point) (c-point 'boi)))
 	nil
@@ -1191,6 +1192,7 @@ Works with: arglist-cont, arglist-cont-nonempty."
   (let ((orig-pos (point))
 	alignto)
     (save-excursion
+      (beginning-of-line)
       (and
        c-opt-asm-stmt-key
 
@@ -1284,7 +1286,7 @@ newline is added.  In either case, checking is stopped.  This supports
 exactly the old newline insertion behavior."
   ;; newline only after semicolon, but only if that semicolon is not
   ;; inside a parenthesis list (e.g. a for loop statement)
-  (if (not (eq last-command-event ?\;))
+  (if (not (eq (c-last-command-char) ?\;))
       nil				; continue checking
     (if (condition-case nil
 	    (save-excursion
@@ -1301,7 +1303,7 @@ If a comma was inserted, no determination is made.  If a semicolon was
 inserted, and the following line is not blank, no newline is inserted.
 Otherwise, no determination is made."
   (save-excursion
-    (if (and (= last-command-event ?\;)
+    (if (and (= (c-last-command-char) ?\;)
 	     ;;(/= (point-max)
 	     ;;    (save-excursion (skip-syntax-forward " ") (point))
 	     (zerop (forward-line 1))
@@ -1318,13 +1320,13 @@ suppressed in one-liners, if the line is an in-class inline function.
 For other semicolon contexts, no determination is made."
   (let ((syntax (c-guess-basic-syntax))
         (bol (save-excursion
-               (if (c-safe (up-list -1) t)
-                   (c-point 'bol)
-                 -1))))
-    (if (and (eq last-command-event ?\;)
-             (eq (car (car syntax)) 'inclass)
-             (eq (car (car (cdr syntax))) 'topmost-intro)
-             (= (c-point 'bol) bol))
+	       (if (c-safe (up-list -1) t)
+		   (c-point 'bol)
+		 -1))))
+    (if (and (eq (c-last-command-char) ?\;)
+	     (eq (car (car syntax)) 'inclass)
+	     (eq (car (car (cdr syntax))) 'topmost-intro)
+	     (= (c-point 'bol) bol))
         'stop
       nil)))
 

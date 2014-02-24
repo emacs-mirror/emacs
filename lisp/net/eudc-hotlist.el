@@ -1,9 +1,9 @@
-;;; eudc-hotlist.el --- hotlist management for EUDC
+;;; eudc-hotlist.el --- hotlist management for EUDC -*- coding: utf-8 -*-
 
-;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2014 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
-;; Maintainer: Pavel Janík <Pavel@Janik.cz>
+;; Maintainer: Pavel JanÃ­k <Pavel@Janik.cz>
 ;; Keywords: comm
 ;; Package: eudc
 
@@ -44,7 +44,7 @@
     (define-key map "x" 'kill-this-buffer)
     map))
 
-(defun eudc-hotlist-mode ()
+(define-derived-mode eudc-hotlist-mode fundamental-mode "EUDC-Servers"
   "Major mode used to edit the hotlist of servers.
 
 These are the special commands of this mode:
@@ -54,18 +54,12 @@ These are the special commands of this mode:
     t -- Transpose the server at point and the previous one
     q -- Commit the changes and quit.
     x -- Quit without committing the changes."
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'eudc-hotlist-mode)
-  (setq mode-name "EUDC-Servers")
-  (use-local-map eudc-hotlist-mode-map)
   (when (featurep 'xemacs)
     (setq mode-popup-menu eudc-hotlist-menu)
     (when (featurep 'menubar)
       (set-buffer-menubar current-menubar)
       (add-submenu nil (cons "EUDC-Hotlist" (cdr (cdr eudc-hotlist-menu))))))
-  (setq buffer-read-only t)
-  (run-mode-hooks 'eudc-hotlist-mode-hook))
+  (setq buffer-read-only t))
 
 ;;;###autoload
 (defun eudc-edit-hotlist ()
@@ -76,10 +70,8 @@ These are the special commands of this mode:
     (switch-to-buffer (get-buffer-create "*EUDC Servers*"))
     (setq buffer-read-only nil)
     (erase-buffer)
-    (mapc (function
-	   (lambda (entry)
-	     (setq proto-col (max (length (car entry)) proto-col))))
-	  eudc-server-hotlist)
+    (dolist (entry eudc-server-hotlist)
+      (setq proto-col (max (length (car entry)) proto-col)))
     (setq proto-col (+ 3 proto-col))
     (setq gap (make-string (- proto-col 6) ?\ ))
     (insert "              EUDC Servers\n"
@@ -89,17 +81,16 @@ These are the special commands of this mode:
 	    "------" gap "--------\n"
 	    "\n")
     (setq eudc-hotlist-list-beginning (point))
-    (mapc (lambda (entry)
-	     (insert (car entry))
-	     (indent-to proto-col)
-	     (insert (symbol-name (cdr entry)) "\n"))
-	  eudc-server-hotlist)
-  (eudc-hotlist-mode)))
+    (dolist (entry eudc-server-hotlist)
+      (insert (car entry))
+      (indent-to proto-col)
+      (insert (symbol-name (cdr entry)) "\n"))
+    (eudc-hotlist-mode)))
 
 (defun eudc-hotlist-add-server ()
   "Add a new server to the list after current one."
   (interactive)
-  (if (not (eq major-mode 'eudc-hotlist-mode))
+  (if (not (derived-mode-p 'eudc-hotlist-mode))
       (error "Not in a EUDC hotlist edit buffer"))
   (let ((server (read-from-minibuffer "Server: "))
 	(protocol (completing-read "Protocol: "
@@ -117,7 +108,7 @@ These are the special commands of this mode:
 (defun eudc-hotlist-delete-server ()
   "Delete the server at point from the list."
   (interactive)
-  (if (not (eq major-mode 'eudc-hotlist-mode))
+  (if (not (derived-mode-p 'eudc-hotlist-mode))
       (error "Not in a EUDC hotlist edit buffer"))
   (let ((buffer-read-only nil))
     (save-excursion
@@ -130,7 +121,7 @@ These are the special commands of this mode:
 (defun eudc-hotlist-quit-edit ()
   "Quit the hotlist editing mode and save changes to the hotlist."
   (interactive)
-  (if (not (eq major-mode 'eudc-hotlist-mode))
+  (if (not (derived-mode-p 'eudc-hotlist-mode))
       (error "Not in a EUDC hotlist edit buffer"))
   (let (hotlist)
     (goto-char eudc-hotlist-list-beginning)
@@ -149,7 +140,7 @@ These are the special commands of this mode:
 (defun eudc-hotlist-select-server ()
   "Select the server at point as the current server."
   (interactive)
-  (if (not (eq major-mode 'eudc-hotlist-mode))
+  (if (not (derived-mode-p 'eudc-hotlist-mode))
       (error "Not in a EUDC hotlist edit buffer"))
   (save-excursion
     (beginning-of-line)
@@ -163,7 +154,7 @@ These are the special commands of this mode:
 (defun eudc-hotlist-transpose-servers ()
   "Swap the order of the server with the previous one in the list."
   (interactive)
-  (if (not (eq major-mode 'eudc-hotlist-mode))
+  (if (not (derived-mode-p 'eudc-hotlist-mode))
       (error "Not in a EUDC hotlist edit buffer"))
   (let ((buffer-read-only nil))
     (save-excursion

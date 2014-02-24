@@ -1,6 +1,6 @@
 ;;; find-func.el --- find the definition of the Emacs Lisp function near point
 
-;; Copyright (C) 1997, 1999, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Jens Petersen <petersen@kurims.kyoto-u.ac.jp>
 ;; Maintainer: petersen@kurims.kyoto-u.ac.jp
@@ -219,7 +219,7 @@ TYPE should be nil to find a function, or `defvar' to find a variable."
 			 (regexp-quote (symbol-name fun-or-var))
 			 "\"")
 	       (concat "DEFUN[ \t\n]*([ \t\n]*\""
-		       (regexp-quote (subr-name fun-or-var))
+		       (regexp-quote (subr-name (advice--cd*r fun-or-var)))
 		       "\""))
 	     nil t)
       (error "Can't find source for %s" fun-or-var))

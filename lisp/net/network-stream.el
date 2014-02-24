@@ -1,6 +1,6 @@
 ;;; network-stream.el --- open network processes, possibly with encryption
 
-;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: network
@@ -128,6 +128,9 @@ values:
 :use-starttls-if-possible is a boolean that says to do opportunistic
 STARTTLS upgrades even if Emacs doesn't have built-in TLS functionality.
 
+:nogreeting is a boolean that can be used to inhibit waiting for
+a greeting from the server.
+
 :nowait is a boolean that says the connection should be made
   asynchronously, if possible."
   (unless (featurep 'make-network-process)
@@ -211,7 +214,8 @@ STARTTLS upgrades even if Emacs doesn't have built-in TLS functionality.
 	 ;; Return (STREAM GREETING CAPABILITIES RESULTING-TYPE)
 	 (stream (make-network-process :name name :buffer buffer
 				       :host host :service service))
-	 (greeting (network-stream-get-response stream start eoc))
+	 (greeting (and (not (plist-get parameters :nogreeting))
+			(network-stream-get-response stream start eoc)))
 	 (capabilities (network-stream-command stream capability-command
 					       eo-capa))
 	 (resulting-type 'plain)
@@ -238,7 +242,8 @@ STARTTLS upgrades even if Emacs doesn't have built-in TLS functionality.
 	(delete-process stream)
 	(setq start (with-current-buffer buffer (point-max)))
 	(let* ((starttls-extra-arguments
-		(if require-tls
+		(if (or require-tls
+			(member "--insecure" starttls-extra-arguments))
 		    starttls-extra-arguments
 		  ;; For opportunistic TLS upgrades, we don't really
 		  ;; care about the identity of the peer.

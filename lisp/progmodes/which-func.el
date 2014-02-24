@@ -1,6 +1,6 @@
 ;;; which-func.el --- print current function in mode line
 
-;; Copyright (C) 1994, 1997-1998, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1994, 1997-1998, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
@@ -342,6 +342,10 @@ If no function name is found, return nil."
 
 
 ;;; Integration with other packages
+
+(defvar ediff-window-A)
+(defvar ediff-window-B)
+(defvar ediff-window-C)
 
 (defun which-func-update-ediff-windows ()
   "Update Which-Function mode display for Ediff windows.

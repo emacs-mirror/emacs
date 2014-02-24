@@ -1,5 +1,5 @@
 /* Markers: examining, setting and deleting.
-   Copyright (C) 1985, 1997-1998, 2001-2013 Free Software Foundation,
+   Copyright (C) 1985, 1997-1998, 2001-2014 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -125,6 +125,12 @@ clear_charpos_cache (struct buffer *b)
 	  return value;							\
 	}								\
     }									\
+}
+
+static void
+CHECK_MARKER (Lisp_Object x)
+{
+  CHECK_TYPE (MARKERP (x), Qmarkerp, x);
 }
 
 /* Return the byte position corresponding to CHARPOS in B.  */
@@ -528,9 +534,9 @@ set_marker_internal (Lisp_Object marker, Lisp_Object position,
 }
 
 DEFUN ("set-marker", Fset_marker, Sset_marker, 2, 3, 0,
-       doc: /* Position MARKER before character number POSITION in BUFFER,
-which defaults to the current buffer.  If POSITION is nil,
-makes marker point nowhere so it no longer slows down
+       doc: /* Position MARKER before character number POSITION in BUFFER.
+If BUFFER is omitted or nil, it defaults to the current buffer.  If
+POSITION is nil, makes marker point nowhere so it no longer slows down
 editing in any buffer.  Returns MARKER.  */)
   (Lisp_Object marker, Lisp_Object position, Lisp_Object buffer)
 {

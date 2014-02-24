@@ -10,8 +10,8 @@ Wittern himself.  Each file contains a license notice.
 (2) CTLau.html
     CTLau-b5.html
 
-They are verbatim copies of those distributed at the author's home
-page <umunhum.stanford.edu/~lee/chicomp/>. Each file contains a
+They are verbatim copies of those distributed by the author; they used to
+be at <http://umunhum.stanford.edu/~lee/chicomp/>.  Each file contains a
 license notice.
 
 (3) pinyin.map
@@ -19,8 +19,8 @@ license notice.
 
 They are copies of those distributed with a free package
 called CCE at:
-	http://ftp.debian.org/debian/dists/potato/main
-		/source/utils/cce_0.36.orig.tar.gz
+
+   http://archive.debian.org/debian/pool/main/c/cce/cce_0.36.orig.tar.gz
 
 As the original files don't contain copyright and license notices, a
 proper notice is extracted from the file Copyright and added at the

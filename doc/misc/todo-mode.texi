@@ -1,0 +1,1761 @@
+\input texinfo.tex   @c -*-texinfo-*-
+@c %**start of header
+@setfilename ../../info/todo-mode
+@settitle Todo Mode User Manual
+@syncodeindex fn cp
+@syncodeindex vr cp
+@syncodeindex ky cp
+@documentencoding UTF-8
+@c %**end of header
+
+@copying
+Copyright @copyright{} 2013-2014 Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License''.
+
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.''
+@end quotation
+@end copying
+
+@dircategory Emacs misc features
+@direntry
+* Todo Mode: (todo-mode).       Make and maintain todo lists.
+@end direntry
+
+@titlepage
+@title Todo Mode User Manual
+@subtitle Facilities for making and maintaining todo lists.
+
+@author Stephen Berman
+@page
+
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+
+@node Top
+@top Todo Mode User Manual
+
+This manual describes the version of Todo mode first appearing in
+Emacs 24.4.
+
+@insertcopying
+@end ifnottex
+
+@menu
+* Overview::
+* Todo Mode Entry Points::
+* Key Binding Conventions::
+* Navigation::                  Moving within and between categories.
+* Editing::                     Adding, deleting and changing todo
+                                  files, categories and items.
+* Todo Archives::               Files of done todo items.
+* Marked Items::                Acting on multiple items simultaneously.
+* Todo Categories Mode::        Table of categories and item counts.
+* Searching for Items::
+* Todo Filtered Items Mode::    Making virtual categories of items from
+                                  different categories and files.
+* Todo Display Features::
+* Printing Todo Buffers::
+* Legacy Todo Mode Files::      Converting old-style todo files.
+
+* GNU Free Documentation License::
+
+@detailmenu
+--- The Detailed Node Listing ---
+
+Overview
+
+* Levels of Organization::
+* Todo Items as Diary Entries::
+
+Editing
+
+* File Editing::
+* Category Editing::
+* Item Editing::
+
+Item Editing
+
+* Inserting New Items::
+* Editing Item Headers and Text::
+* Relocating and Removing Items::
+
+Relocating and Removing Items
+
+* Reprioritizing Items::
+* Moving and Deleting Items::
+* Done Items::
+
+Todo Archives
+
+* Creating and Visiting Archives::
+* Todo Archive Mode::
+
+Todo Categories Mode
+
+* Table of Item Counts::
+* Reordering Categories::
+
+Todo Filtered Items Mode
+
+* Filtering Items::
+* Todo Filtered Items Mode Commands::
+* Files of Filtered Items::
+
+Todo Display Features
+
+* Faces::
+* Item Prefix::
+* Other Display Commands and Options::
+@end detailmenu
+@end menu
+
+@node Overview, Todo Mode Entry Points, Top, Top
+@chapter Overview
+
+The Todo mode package provides facilities for making and maintaining
+todo lists.  A todo list is a list of todo items---things to do (in the
+widest sense)---arranged in order of priority, with the highest priority
+item at the top of the list and the lowest priority item at the bottom.
+
+This manual describes the Todo mode user interface.  Todo mode comprises
+a large number of commands and user options for creating, displaying,
+navigating and editing todo lists, distributed across five major modes.
+The principle major mode is Todo mode; the other four (Todo Edit mode,
+Todo Archive mode, Todo Categories mode, and Todo Filtered Items mode)
+are subsidiary to and accessible from Todo mode.
+
+This version of Todo mode greatly expands on, and in significant ways
+differs from, the original version; for details and consequences of the
+most important differences, @ref{Legacy Todo Mode Files}.
+
+@menu
+* Levels of Organization::
+* Todo Items as Diary Entries::
+@end menu
+
+@node Levels of Organization, Todo Items as Diary Entries, , Overview
+@section Levels of Organization
+
+In Todo mode each todo list is identified with a named category, so you
+can group together thematically related todo items.  Each category is
+stored in a file, which thus provides a further level of organization.
+You can create as many todo files, and in each as many categories, as
+you want.
+
+All todo files reside in a single directory, whose location is specified
+by the user option @code{todo-directory}.  This directory may also
+contain other types of Todo files, which are discussed later
+(@pxref{Todo Archive Mode} and @ref{Todo Filtered Items Mode}).  Emacs
+recognizes Todo files by their extension, so when you visit the files
+the buffer is in the appropriate mode and the current category is
+correctly displayed.
+
+When you use a Todo mode command to create a todo file, the extension
+@samp{.todo} is automatically added to the base name you choose (as a
+rule, this name is also used for the other types of Todo files, which
+have their own extensions).  As a user, you only have to deal with the
+base name of a Todo file.
+
+When you create a new todo file, you must also add at least one category
+to it, and each todo item belongs to a category.  It is not possible to
+have an uncategorized todo list, but you can always make a catch-all
+category with a generic name like ``Todo'', which is in fact the default
+name assigned to the first category when you create a new todo file, if
+you don't provide a different name; you can change the default by
+customizing @code{todo-initial-category}.
+
+The most basic level of organization is the todo item itself, since it
+contains the information about what you want to do.  As detailed in
+subsequent sections of this manual, most Todo mode commands and user
+options concern ways of classifying and deploying this information by
+associating various kinds of metadata with it, e.g., the category it
+belongs to, its priority, whether it is to be included in the Emacs
+diary, date and time stamps, whether it is done or still to do.
+
+@node Todo Items as Diary Entries, , Levels of Organization, Overview
+@section Todo Items as Diary Entries
+
+Each todo item is also a potential diary item: if you include a todo
+file in the Emacs diary file (@pxref{Fancy Diary Display,,, emacs}), the
+Fancy Diary display will show those todo items that are not marked with
+@code{todo-nondiary-marker}.  This effectively augments the Emacs diary
+with categorized diary entries.  For the various options available for
+making a todo item a diary entry, see @ref{Inserting New Items} and
+@ref{Editing Item Headers and Text}.
+
+To ensure the proper display of todo items in the Fancy Diary display,
+they must have the format of diary entries, i.e., they have to begin
+with a date string recognized by the Emacs diary,@footnote{Two types of
+dates recognized by the Emacs diary are not supported in the current
+Todo mode implementation: sexp diary entries and date strings in which
+the year is omitted (however, the latter type is equivalent to using
+@samp{*} for an arbitrary year, which Todo mode does support).} and if
+they are longer than one line, all lines but the first must begin with
+white space.  Todo mode ensures that these requirements are satisfied
+(@pxref{Other Display Commands and Options}).
+
+The Fancy Diary display is also Todo mode aware: if it contains an item
+from a Todo mode file, clicking or typing @key{RET} on this item will
+switch to the buffer visiting that file and properly display the item's
+category, with point on the item.
+
+@node Todo Mode Entry Points, Key Binding Conventions, Overview, Top
+@chapter Todo Mode Entry Points
+
+To initialize your first todo file, invoke the command @code{todo-show}.
+This prompts you for a file name (defaulting to the value of
+@code{todo-initial-file}), prompts you for the name of the first
+category (defaulting to the value of @code{todo-initial-category}),
+creates and visits the file and displays the category in Todo mode, and
+then prompts you to enter the first item.  If you choose not to enter an
+item now, simply type @kbd{C-g}, which leaves the category empty but
+otherwise well-formed.  If you prefer not to be prompted to enter an
+item on adding a new category, disable the option
+@code{todo-add-item-if-new-category}.
+
+Once at least one todo file exists, invoking @code{todo-show} enters
+Todo mode.  Invoked with a prefix argument, the command prompts for
+which todo file to visit.  Otherwise, the first invocation of this
+command after loading the Todo mode package visits the default todo file
+(option @code{todo-default-todo-file}) and shows its first category.
+(You can get a different display with the first invocation of
+@code{todo-show} by customizing the option @code{todo-show-first};
+@pxref{Todo Categories Mode} and @ref{Files of Filtered Items}.)
+
+If you leave Todo mode and later invoke @code{todo-show} to re-enter it,
+by default this returns you to the current (i.e., last displayed)
+category of the current todo file, which is the one in the most recently
+selected and still live buffer visiting a todo file.  If you disable the
+option @code{todo-show-current-file}, then non-initial invocations of
+@code{todo-show} always return to the first or current category of the
+default todo file.
+
+If you want to enter Todo mode and go directly to a specific category
+instead the first or current category in the current or default todo
+file, use the command @code{todo-jump-to-category}; @ref{Navigation}, for
+details.  You can also enter Todo mode by invoking a todo item insertion
+command; @ref{Inserting New Items}, for details.
+
+The most convenient way to use these commands to enter Todo mode is to
+define global key bindings for them in your init file.  Good choices are
+for @code{todo-show} and @code{todo-jump-to-category} are @kbd{C-c t}
+and @kbd{C-c j}, since these commands are bound to @kbd{t} and @kbd{j},
+respectively, in Todo mode.  For invoking item insertion from outside of
+Todo mode, it is useful to bind @code{todo-insertion-map}, which is the
+key map containing the bindings of all Todo item insertion commands, to
+@kbd{C-c i}, since it is bound to @kbd{i} in Todo mode; to complete the
+invocation, supply the rest of the key sequence (@pxref{Inserting New
+Items}).
+
+You can also visit a Todo file via @code{find-file} or Dired, like any
+other file, and since Emacs recognizes it, the buffer will automatically
+be in the appropriate Todo mode.  Moreover, as long as the command you
+use to visit the file is listed in the option
+@code{todo-visit-files-commands} (which by default contains
+@code{find-file} and @code{dired-find-file}), it will also correctly
+display the file's first category on first visiting the file (otherwise
+you have to use one of the commands for navigating between categories in
+order to get a proper display).
+
+You can leave Todo mode by typing @kbd{q} (@code{todo-quit}), which
+buries the current todo file buffer.  Doing this also saves any changes
+you have made to the file, and leaves both the file and the category
+that was displayed on quitting current for subsequent Todo mode commands
+(unless the buffer made current by quitting is visiting another file and
+category in Todo mode, in which case the latter become current for Todo
+mode commands).
+
+@node Key Binding Conventions, Navigation, Todo Mode Entry Points, Top
+@chapter Key Binding Conventions
+
+For Todo mode commands to function properly, it is essential to maintain
+the correct format at all three levels of organization---item, category,
+and file.  Todo mode tries to minimize the risk of format corruption by
+hiding certain parts of the format from the user, making the buffer
+read-only and suppressing the self-insertion keys.  Consequently, it is
+normally impossible to make changes to your todo files without
+explicitly invoking Todo mode commands.
+
+A beneficial side effect of this restrictiveness is that you can invoke
+almost all Todo commands by typing ordinary printing characters, either
+singly or in specified sequences, without using modifier keys, except
+for the shift key for capitalization and the raw prefix argument
+@kbd{C-u}; numeric prefix arguments can be entered just by typing a
+number key.
+
+The predefined key bindings in Todo are more or less mnemonic.  As a
+rule, key sequences beginning with @kbd{C} are bound to commands
+applying to categories, sequences beginning with @kbd{F} apply to
+(non-archive) file-level commands, and those beginning with @kbd{A}
+apply to archives (a special type of Todo file; @ref{Todo Archive
+Mode}).  Todo commands applying to items, which constitute the majority,
+are bound to lower case key sequences.
+
+@node Navigation, Editing, Key Binding Conventions, Top
+@chapter Navigation
+
+The navigation commands are for making another todo file, category, or
+item the current one by moving point to it.@footnote{Many editing
+commands can also do this by side effect, but since that is not their
+main function, they are not included in this section.} Since these
+commands are likely to be used frequently and repetitively, it is
+convenient for their key bindings to be single lower case keys, even for
+navigation commands applying to categories and files.
+
+Two of the navigation commands were already mentioned in the section on
+Todo mode entry points:
+
+@table @kbd
+
+@item t
+Display another todo file in the selected window (@code{todo-show}).
+When you invoke this command in Todo mode, it prompts for a file name,
+which you can choose via minibuffer completion (like invoking
+@code{todo-show} with a prefix argument outside of Todo mode).  If a
+buffer is already visiting that file, it displays its current category;
+if invoking @kbd{t} opens the file, it display its first category (by
+default; see the option @code{todo-show-first} for other possibilities).
+
+@item j
+Display another todo category in the selected window
+(@code{todo-jump-to-category}).  When you invoke this command, it
+prompts for a category name, which you can choose via minibuffer
+completion.  The candidates for completion include the categories in the
+current todo file as well as those in the files listed in the option
+@code{todo-category-completions-files}.  If you type @key{RET} without
+choosing a category, the current category of the current todo file is
+automatically selected (this can be a useful shortcut when you invoke
+@code{todo-jump-to-category} outside of Todo mode).  If you type the
+name of a non-existing category, you can add this to the file as a new
+category and jump to it.  If you invoke this command with a prefix
+argument, it first you prompts for which todo file to jump to (which you
+can also choose with minibuffer completion) and then for which category
+from that file; in this case, completion is only against the categories
+in the selected file.
+@end table
+
+It is also convenient to navigate back and forth sequentially between
+the categories of a single todo file.  The categories of a todo file are
+numbered consecutively starting with @samp{1}.@footnote{A category's
+number is automatically assigned when the category is created: the
+category is appended to the end of the file, so its number is simply the
+highest until another category is added.  There is no command in Todo
+mode to reorder the numbering of the categories in a todo file, but this
+is possible from the file's table of categories; @ref{Todo Categories
+Mode}.}  The current category's number and name appear in the mode line.
+
+@table @kbd
+
+@item f
+Move point to the first item of the category numerically directly
+following the current category (@code{todo-forward-category}).
+
+@item b
+Move point to the first item of the category numerically directly
+preceding the current category (@code{todo-backward-category}).
+@end table
+
+With @kbd{f} and @kbd{b} you can cycle through the categories, so for example,
+if the last category is current and you type @kbd{f}, then the first
+category becomes current.
+
+You can also navigate between the items in the current category:
+
+@table @kbd
+
+@item n
+Move point down to the next item below the current one (i.e., to the
+item with the next lower priority) (@code{todo-next-item}).
+
+@item p
+Move point up to the item directly above the current one (i.e., to the
+item with the next higher priority) (@code{todo-previous-item}).
+@end table
+
+These commands also accept a positive numeric prefix argument; e.g.,
+typing @kbd{5 n} or @kbd{5 p} navigates in one step to the item five items lower
+or higher than the current one.
+
+Navigation to other types of Todo files is discussed in the relevant
+sections below.
+
+@node Editing, Todo Archives, Navigation, Top
+@chapter Editing
+
+Editing in Todo mode means making structural or textual changes at one
+of the levels of organization (file, category, or item).  Structural
+editing includes adding, relocating and removing, textual editing includes
+renaming files or categories and changing an item's content or date, or
+adding certain kinds of marks or tags to items.  To save changes you
+make to the current todo file, type @kbd{s} (@code{todo-save}).  Changes
+are also saved on quitting Todo mode with @kbd{q}.
+
+@menu
+* File Editing::
+* Category Editing::
+* Item Editing::
+@end menu
+
+@node File Editing, Category Editing, , Editing
+@section File Editing and Todo Edit Mode
+
+There are four file-level editing commands:
+
+@table @kbd
+
+@item F a
+Add a new todo file (@code{todo-add-file}).  This command prompts for a
+name and creates the file in @code{todo-directory}, adding the
+@samp{.todo} extension (so you should not include the extension in the
+name you enter).  The command also prompts for the file's first category and, if
+option @code{todo-add-item-if-new-category} is enabled (the default),
+for that category's first item.
+
+@item F r
+Rename the current todo file (@code{todo-rename-file}).  If called with
+a prefix argument, prompt for a todo file and rename it.  If the todo
+file has an archive (@pxref{Todo Archive Mode}) or there are
+corresponding filtered items files (@pxref{Todo Filtered Items Mode}),
+this command renames these accordingly.  If there are live buffers
+visiting any of these files, the command also rename them accordingly.
+
+@item F k
+Delete the current todo file (@code{todo-delete-file}).@footnote{The key
+binding of this command is mnemonic for ``kill'' to parallel the binding
+@kbd{k} for item deletion, since @kbd{d} is bound to another item
+editing command (@pxref{Done Items}).}  If the todo file has an archive
+(@pxref{Todo Archive Mode}), prompt whether to delete that as well.
+This command also kill the buffers visiting the deleted files.
+
+@item F e
+This command (@code{todo-edit-file}) changes the buffer's major mode to
+Todo Edit mode.  In this mode the entire file is visible, the buffer is
+writable and you can use the self-insertion keys and standard Emacs
+editing commands to make changes.  To return to Todo mode, type @kbd{C-x
+C-q} (@code{todo-edit-quit}).
+
+The command @kbd{F e} is not intended for normal editing of items and
+categories, as it circumvents the restrictions that Todo imposes to
+protect against file format corruption (i.e., all categories, not just
+the current one, and all internal formatting are exposed and editable).
+It is provided primarily as a convenience for two types of use cases
+that are likely to arise infrequently.  One is to be able to use
+standard Emacs commands like @code{query-replace} to replace a piece of
+text that occurs in different categories throughout the file.  The other
+use case is to recover from a mistake, such as accidentally deleting an
+item, since this cannot be undone in Todo mode.
+
+Using @kbd{C-x C-q} to quit Todo Edit mode provides a measure of safety,
+since it runs a file format check, signaling an error if the format has
+become invalid.  However, this check cannot tell if the number of items
+changed, which could result in the file containing inconsistent
+information (see the cautionary note in @ref{Reordering Categories}, for
+more details).  For this reason @kbd{F e} should be used with caution.
+@end table
+
+@node Category Editing, Item Editing, File Editing, Editing
+@section Category Editing
+
+The following commands are available for editing at the category level
+(for additional category-editing commands, which are extensions of item
+commands, @pxref{Editing Item Headers and Text}):
+
+@table @kbd
+
+@item C a
+Add a new category to the current todo file and make that category
+current (@code{todo-add-category}).  If called with a prefix argument,
+prompt for a file name and add the new category to that file.  This
+command is similar to using @kbd{j}, but it only accepts category names
+that are not the name of an existing category in the file.
+
+@item C r
+Rename the current category (@code{todo-rename-category}).  If this
+category's file has an archive (@pxref{Todo Archive Mode}) with a
+corresponding category, rename the category there as well.
+
+@item C m
+Move the current category (with all its items) to another todo file
+(@code{todo-move-category}).  If this category's file has an archive
+(@pxref{Todo Archive Mode}) with a corresponding category, this command
+also moves that category to the archive file corresponding to the moved
+to todo file; if there is no such archive file, the command creates it
+and adds the category.
+
+@item C k
+Delete the current category (@code{todo-delete-category}).@footnote{This
+binding is mnemonic for ``kill'' to parallel the binding @kbd{k} for
+item deletion, since @kbd{d} is bound to another item editing command
+(@pxref{Done Items}).}  To delete a category that contains items, you
+have to confirm your intent; if the category is empty, deletion is
+immediate.
+
+@item C g
+Merge the items of one category into another category, delete the first
+category and make the second category current
+(@code{todo-merge-category}).  If both the first and second categories
+also have archived items (@pxref{Todo Archive Mode}), merge the former
+to the latter.  If only the first category has archived items, rename
+the archive category to the merged to category.  Minibuffer completion
+of the name of the category merged to works as with the navigation
+command @kbd{j}, and as with that command, passing a prefix argument,
+i.e., typing @kbd{C-u C g}, prompts for a file and confines merging to a
+category in that file.
+@end table
+
+@node Item Editing, , Category Editing, Editing
+@section Item Editing
+
+Todo mode provides a wide variety of commands for adding and textually
+changing items, as well as for deleting and relocating items.
+
+@menu
+* Inserting New Items::
+* Editing Item Headers and Text::
+* Relocating and Removing Items::
+@end menu
+
+@node  Inserting New Items, Editing Item Headers and Text, , Item Editing
+@subsection Inserting New Items
+
+There are many commands for adding new todo items.  The command names
+contain the word ``insert'' instead of ``add'' and their key bindings are
+sequences beginning with @kbd{i}.  The motivation for this terminology is
+that speaking of adding an item to a category suggests appending it to
+the top or bottom, whereas you can insert an item into the category
+anywhere, giving each new item any priority in the list.
+
+@table @kbd
+
+@item i i
+This is the basic command for inserting new items into a category
+(@code{todo-insert-item}).  Called without a prefix argument, it prompts
+for the text of the item and its priority (a number between 1 and one
+more than the number of items already in the category), both of which
+you enter in the minibuffer, and inserts the item into the current
+category of the current todo file at the position in the list
+corresponding to the priority you chose.  Called with one prefix
+argument, it also prompts for a category, and called with two prefix
+arguments, it prompts for both a file and a category from that file, and
+inserts the item accordingly.  Category name completion works as with
+the navigation command @kbd{j}.
+@end table
+
+Each invocation of @kbd{i i} adds a header string to the item, which
+includes at least the current date in the same format used by
+@code{diary-insert-entry} (@pxref{Date Formats,,, emacs}).  You can
+control what other information is included in the header by customizing
+the following options:
+
+@itemize @bullet
+
+@item
+@code{todo-always-add-time-string} is for including or omitting the
+current time.  The time string is omitted by default.
+
+@item
+@code{todo-include-in-diary} is for specifying whether the item appears
+in the Fancy Diary display by adding or omitting
+@code{todo-nondiary-marker}.  By default, new todo items are marked for
+exclusion from the diary.
+
+@item
+@code{todo-diary-nonmarking} is for adding or omitting
+@code{diary-nonmarking-symbol} to items displayed in the diary, to
+control whether they are marked in the calendar (@pxref{Format of Diary
+File,,, emacs}).  By default, todo items that are diary entries are
+marked in the calendar.
+@end itemize
+
+Instead of always adding the same header information to a new item, you
+can use more specific insertion commands that let you decide what to
+include in the item header each time you insert a new item.  And instead
+of always being prompted to choose the new item's priority, you can
+invoke a command to insert it at the position (hence with the priority)
+of the item at point.  Finally, instead of always typing the text of the
+new item in the minibuffer, you can invoke a command that makes the
+selected region in an Emacs buffer automatically become the new item's
+text.  The following paragraphs discuss how to invoke these commands by
+typing certain key sequences.
+
+There are eight parameters of item insertion in Todo mode, six
+concerning the item header, and one each concerning its priority and its
+text.  Each unique combination of these parameters produces a different
+insertion command.  The command @kbd{i i} realizes one of these
+combinations.  For the commands that realize the remaining combinations
+it is convenient to associate each parameter with a mnemonically chosen
+key.  Then by typing certain sequences of these keys, you complete the
+insertion command invocation that realizes the specified combination.
+As with @kbd{i i}, the effect of many of these commands also depends on
+the values of the item insertion options mentioned above (see the
+examples below).
+
+Here is a list of the parameters and their associated keys, in the order
+in which you must type them when building a key sequence (this order
+roughly reflects the order in which the corresponding parts of the item
+occur in a category listing):
+
+@enumerate
+
+@item
+@kbd{y} for diary (non)inclusion;
+@item
+@kbd{k} for adding or omitting `diary-nonmarking-symbol';
+@item
+@kbd{c} for adding the date header by clicking a date in the Emacs
+calendar, or@*
+@kbd{d} for interactively entering the date header as a string of year,
+month and day number components in the minibuffer, or@*
+@kbd{n} for interactively entering the date header as a weekday name in
+the minibuffer;
+@item
+@kbd{t} for adding a time string to the header in the minibuffer
+(including the empty string, which amounts to omitting the time);
+@item
+@kbd{h} for inserting the new item in the position of the item at point
+(``here''), or@*
+@kbd{r} to use the text of the selected region as the item's text.
+@end enumerate
+
+Each insertion command key sequence begins (disregarding prefix
+arguments) with @kbd{i}, followed by one or more of these eight keys, in
+the order listed.  But as you can see in the above table, since some of
+the insertion parameters are mutually exclusive, they occupy only five
+positions, so the complete (unprefixed) sequences are maximally six keys
+long.  Shorter sequences are also possible, since a parameter may be
+omitted.  But since the order in any key sequence is fixed, if the last
+key in the sequence could be followed by another insertion key, i.e., if
+the last key is not @kbd{h} or @kbd{r}, it has to be doubled to complete
+the sequence, otherwise it would be interpreted as a prefix sequence
+(this is why the binding for the basic item insertion command is @kbd{i
+i} and not @kbd{i}).
+
+Here are some examples of item insertion command key sequences:
+
+@itemize @bullet
+
+@item
+@kbd{i h} inserts a new item at the position of the item at point (pushing
+the latter down) with a header containing the current date and,
+depending on the values of the mentioned options, possibly the current
+time and diary-related markings.
+@item
+@kbd{i y h} does the same as the preceding command, except that
+@code{todo-nondiary-marker} is added if @code{todo-include-in-diary} is
+non-nil and omitted if that option is nil; that is, the diary key @kbd{y}
+overrides the setting of this option.
+@item
+@kbd{i y t h} does the same as the preceding command, except that it
+prompts for a time string instead of automatically inserting the
+current time; however, typing @key{RET} at the prompt returns the
+current time if @code{todo-always-add-time-string} is non-nil, otherwise
+the empty string (i.e., no time string).
+@item
+@kbd{i y t t} does the same as the preceding command, except that it
+prompts for the item's priority and inserts it accordingly.
+@end itemize
+
+Note that the commands whose key sequences include @kbd{y}, @kbd{k} or @kbd{t}
+reverse the effect of the options @code{todo-include-in-diary},
+@code{todo-diary-nonmarking} and @code{todo-always-add-time-string},
+respectively, thus temporarily overriding their values.
+
+The names of the item insertion commands correspond to their key
+bindings, e.g., @kbd{i h} is bound to @code{todo-insert-item-here}, @kbd{i y h} to
+@code{todo-insert-item-diary-here}, etc.  But since there are so many
+combinations, instead of trying to memorize either the names or the key
+sequences, you can, as usual, just type an initial part of a key
+sequence (minimally @kbd{i}), followed by @kbd{C-h} to see the valid
+completions.
+
+An alternative to using the key @kbd{c} for choosing the item's date
+from the calendar is also available: if point is on a date in the
+calendar, typing @kbd{i t} (@code{todo-insert-item-from-calendar}) will
+prompt for a new item and its priority and insert it in the current
+category.  Like @kbd{i i} and the other item insertion commands, this
+also accepts one or two prefix arguments for choosing the category via
+minibuffer completion.  Note, however, that the key sequence @kbd{i t}
+is not defined in Todo mode but in the Calendar mode keymap.  It is a
+convenient shortcut if you happen to be using the calendar when you
+decide to make a new todo item.  (Contrast this with a command like
+@kbd{i c c}, which pops open the calendar after you have entered the
+item's text, and then you can choose a date from the calendar.)
+
+There is one more item insertion command, which does not derive from the
+item insertion parameters:
+
+@table @kbd
+
+@item i p
+This command (@code{todo-copy-item}) makes a complete copy of the item
+at point, including its header, prompts for its priority in the current
+category and inserts it accordingly.
+@end table
+
+@noindent
+This command is useful for quickly adding a todo item whose text or
+header you want to differ only partly from that of an existing item:
+after inserting the copy, you can quickly edit it as needed by using
+commands described in the next section.
+
+@node  Editing Item Headers and Text, Relocating and Removing Items, Inserting New Items, Item Editing
+@subsection Editing Item Headers and Text
+
+There are a number of commands for editing an existing item's text or
+header; these commands are bound to key sequences with @kbd{e}.
+
+There are two commands for editing an item's text (and manually editing
+its header), one appropriate for short items and simple edits and one
+better suited for more complex changes or for editing lengthy items:
+
+@table @kbd
+
+@item e e
+Edit the text of the current item in the minibuffer
+(@code{todo-edit-item}).  If called with a prefix argument (@kbd{C-u e
+e}), the item's header is also included in the minibuffer and so can be
+edited manually.
+
+@item e m
+Edit the text of the current item in a special buffer in Todo Edit mode
+(@code{todo-edit-multiline-item}).  When you have finished editing, type
+@kbd{C-x C-q} to return to Todo mode; this runs a format check to ensure
+the item is well-formed.@footnote{Unlike the command @kbd{F e}
+(@pxref{File Editing}), @kbd{e m} does not expose you to the risk of
+putting the file in an inconsistent state, since it puts only the
+current item in Todo Edit mode.}
+@end table
+
+A number of commands are available for interactively editing all or part
+of the item header, permitting quick edits and helping avoid formatting
+errors.
+
+The following three commands are for editing any or all of the year,
+month and day components of a date header:
+
+@table @kbd
+
+@item e d t
+Successively prompt for changes to the date's year, month and
+day number, and if the option @code{todo-always-add-time-string} is
+non-nil, also for editing the time string (see also @kbd{e t} below).
+
+@item e d a
+Change the date to today's date.
+
+@item e d c
+This command pops up the Emacs calendar, and after you type @key{RET} on
+a date in the calendar makes that date the item's date.
+@end table
+
+@noindent
+You can also use these commands on items whose date header consists of a
+weekday name, which then changes to a header with year, month and day
+components.
+
+Each of the following three commands, in contrast to the preceding
+three, changes only a single date component and has no effect on a date
+header consisting of a weekday name:
+
+@table @kbd
+@item e d y
+@itemx e d m
+@itemx e d d
+Prompt for changing just the year, month or day number, respectively; if
+invoked with a positive or negative numeric prefix argument, directly
+increment or decrement the date component accordingly and automatically
+adjust the other date component if necessary.  For example, if the date
+string is ``January 1, 2013'', typing @kbd{- 3 e d d} results in
+``December 29, 2012''.
+@end table
+
+@table @kbd
+@item e d n
+Prompt for a weekday name and make it the item's date header.  Note that
+this replaces an existing date string, it does not add the day name to
+the date string.
+
+@item e t
+Edit just the item's time string.  A time string can be added both to a
+date string and to a weekday name.  If you type @key{RET} at the
+prompt, this omits a time string from the header, or deletes an existing
+time string.
+
+@item e y y
+Change the item's diary inclusion status by adding or removing
+@code{todo-nondiary-marker}.
+
+@item e y k
+Change the item's diary marking status by adding or removing
+@code{diary-nonmarking-symbol} (this command has an effect only if the
+item is not marked for exclusion from the diary).
+@end table
+
+@noindent
+Parallel to the latter two item-level commands are the
+following category-level commands:
+
+@table @kbd
+
+@item C e y
+@itemx C e k
+Add @code{todo-nondiary-marker} and @code{diary-nonmarking-symbol},
+respectively, to all todo items in the current category; if invoked with
+a prefix argument, these markings are removed from all items in the
+category.
+@end table
+
+@node  Relocating and Removing Items,  , Editing Item Headers and Text, Item Editing
+@subsection Relocating and Removing Items
+
+In addition to inserting a new todo item and changing the text or header
+of an existing item, you can also move an item to another category
+(i.e., recategorize it), change its priority within its category, delete
+it from the category and file, or mark it as a ``done'' item, which
+removes it from the todo list but does not delete it.
+
+@menu
+* Reprioritizing Items::
+* Moving and Deleting Items::
+* Done Items::
+@end menu
+
+@node Reprioritizing Items, Moving and Deleting Items, , Relocating and Removing Items
+@subsubsection Reprioritizing Items
+
+There are three ways to change a todo item's priority:
+
+@table @kbd
+
+@item r
+Raise the current item's priority by one, exchanging its position in the list
+with that of the item directly above it (@code{todo-raise-item-priority}).
+
+@item l
+Lower the current item's priority by one, exchanging its position in the list
+with that of the item directly below it (@code{todo-lower-item-priority}).
+
+@item #
+Prompt for a number and relocate the item to the corresponding position
+in the list (@code{todo-set-item-priority}).  For example, entering
+@kbd{3} at the prompt makes the item the third in the category, i.e.,
+gives it third highest priority.  You can also pass the desired priority
+as a numeric prefix argument, e.g., @kbd{3 #} gives the item third
+highest priority without prompting.  (Prefix arguments have no effect
+with @kbd{r} or @kbd{l}.)
+@end table
+
+@node Moving and Deleting Items, Done Items, Reprioritizing Items, Relocating and Removing Items
+@subsubsection Moving and Deleting Items
+
+You can move an item to another category, thereby recategorizing it:
+
+@table @kbd
+
+@item m
+Move the item at point to another category (@code{todo-move-item}).
+This prompts for a category to move the item to, displays that category,
+prompts for the priority of the moved item in the category moved to and
+inserts the item accordingly.  Minibuffer completion of the name of the
+category moved to works as with the navigation command @kbd{j}, and as
+with that command, passing a prefix argument prompts for a file and
+moves the item to a category in that file; and if the category name you
+enter is new, then you are asked whether to add the category to the
+file, and if you affirm, the item is moved to the new category.
+@end table
+
+You delete an item, thereby permanently removing it:
+
+@table @kbd
+
+@item k
+Delete the todo item at point (@code{todo-delete-item}; the binding is
+mnemonic for ``kill'', since @kbd{d} is used for marking items as done
+(@pxref{Done Items}); but note that @kbd{k} does not put the item into
+the kill ring).  This command requires confirmation that you want to
+delete the item, since you cannot undo the deletion in Todo mode.  (You
+could use @kbd{F e} to recover the item, but be aware that this would
+put the file in an inconsistent state, which you can recover from, but
+not without a risk; cf.@: the cautionary note in @ref{Reordering
+Categories}.)
+@end table
+
+@quotation Note
+Todo commands that require user confirmation, such as @kbd{k}, use a
+modified form of @code{y-or-n-p}, which by default only accepts @kbd{y}
+or @kbd{Y}, but not @key{SPC}, as an affirmative answer.  This is to
+diminish the risk of unintentionally executing the command, which is
+especially important with commands that do deletion, since there is no
+Todo command to undo a deletion.  If you want to be able to use SPC for
+confirmation, enable the option @code{todo-y-with-space}.
+@end quotation
+
+@node Done Items, , Moving and Deleting Items, Relocating and Removing Items
+@subsubsection Done Items
+
+When the activity or thing that a todo item is about has been done, it
+is natural to eliminate the item from the todo list.  But instead of
+deleting it permanently, you may prefer to keep a record of your
+accomplishments by marking the item as done.  In Todo mode, this removes
+the done item from the todo list, so as not to clutter it up, and stores
+it elsewhere.  Such stored items form a record or diary of things done.
+The Todo package provides two such stores: the ``done items'' section of
+a Todo category, described here, and done item archives (@pxref{Todo
+Archive Mode}).
+
+@table @kbd
+
+@item d
+This command (@code{todo-item-done}) removes the todo item at point from
+the todo list, appends to the original header a header consisting of
+@code{todo-done-string} (by default ``DONE '') and the current date, and
+if @code{todo-always-add-time-string} is enabled, also the current time,
+and adds the resulting done item to the top of the done items section of
+the category.  Invoked with a prefix argument, it also prompts you to
+enter a comment, which is appended to the end of the done item, prefixed
+with @code{todo-comment-string} (by default ``COMMENT: '').
+@end table
+
+A category's done items section is located below the last todo (i.e.,
+not done) item in the category.  By default this section is hidden from
+view.  There are two commands for viewing and hiding done items; since
+these are toggle commands, for convenience they also have a single key
+binding:
+
+@table @kbd
+
+@item C v
+@itemx v
+Make the done items section of the current category visible if it is
+hidden, or hide it if it is visible
+(@code{todo-toggle-view-done-items}).  If you always want to see the
+done items section on entering a category, enable the option
+@code{todo-show-with-done}; you can still use @kbd{C v} or @kbd{v} to
+hide (and unhide) it.
+
+@item F V
+@itemx V
+Toggle the standard category display in the current todo file, i.e.,
+display only the done items section of each category in the file, or if
+this is visible, hide it again and display only the todo items section
+(@code{todo-toggle-view-done-only}).
+@end table
+
+Three editing commands for done items are available:
+
+@table @kbd
+
+@item e c
+If you type this command (@code{todo-edit-done-item-comment}) when point is
+on a done item that has a comment, you can edit the text of the
+comment.  If you invoke it with a prefix argument (@kbd{C-u e c}), the
+comment is deleted on confirmation.  If the done item does not have a
+comment, this command allows you to add one.
+
+@item m
+Move the done item at point to the top of the done items section of
+another category (@code{todo-move-item}).  This is useful in case, after
+having relocated an item to its category's done items section, you
+create a category that is better suited to the content of the done item
+than its current category, so you can recategorize the done item.
+
+@item u
+If you decide the done item at point is not done after all, this command
+``undoes'' it, i.e., restores it to the todo list of its category, with
+the priority you choose for it (@code{todo-item-undone}).  If the done
+item has a comment, you are asked whether to delete it from the restored
+item.
+@end table
+
+@node Todo Archives, Marked Items, Editing, Top
+@chapter Todo Archives
+
+When the done items section of a category itself starts to become
+cluttered, or if you just want to store some accomplished todo items in
+a separate file, you can move them to a Todo archive.  This is a file
+with exactly the same structure as a todo file, i.e., divided into
+categories, but differs in that the categories contain only done items.
+Todo archives reside, like todo files, in @code{todo-directory} but have
+the extension @samp{.toda} instead of @samp{.todo}.
+
+@menu
+* Creating and Visiting Archives::
+* Todo Archive Mode::
+@end menu
+
+@node Creating and Visiting Archives, Todo Archive Mode, , Todo Archives
+@section Creating and Visiting Archives
+
+Todo mode provides the following command for archiving items:
+
+@table @kbd
+
+@item A d
+This command (@code{todo-archive-done-item}) archives the done item at point.
+Invoked with a prefix argument, it archives all done items in the
+current todo category.  If an archive for the current todo file
+already exists and contains a category with the same name as the
+current todo category, then this command moves the done item to the
+top of the corresponding archive category.  If the archive exists but
+it does not have a corresponding category, this command creates the
+category in the archive and moves the done item to it.  If no archive
+for the todo file exists, the command creates both the archive file,
+using the same base name as that of the todo file, as well as the
+category, and moves the done item to it.
+@end table
+
+Typing @kbd{A d} is also the only way within the Todo mode package to
+create an archive file and its categories.  Consequently, as a rule each
+archive file corresponds to exactly one todo file and has the same base
+name as this file, and each category in an archive file corresponds to
+and has the same name as a category in the corresponding todo file.
+Exceptions can only arise if you delete a todo file but not the
+corresponding archive, or if you delete a category in a todo file that
+has a corresponding category in an archive.
+
+You might be inclined to do the latter if you have archived all the
+items from a given todo category and you don't plan to add new items to
+it.  In particular, if you have numerous such empty categories in a todo
+file, this can make sequential navigation in the file annoying.  You can
+avoid this annoyance by deleting these categories, but only at the cost
+of putting the todo file out of synch with the archive file.
+
+You may find it preferable not to delete empty todo categories but to
+enable the option @code{todo-skip-archived-categories}.  When this is
+non-nil, such empty todo categories are skipped over by the sequential
+category navigation commands @kbd{f} and @kbd{b}, so they don't distract you
+while navigating and you maintain the structural correspondence between
+todo and archive files (you can also still jump to empty todo categories
+with @kbd{j}).
+
+If you rename a todo category that has a corresponding category in an
+archive, the archive category is also automatically identically renamed.
+Likewise, if you move such a todo category to another file; in this
+case, if there is no archive file corresponding to the todo file the
+category is moved to, then the archive is automatically created and the
+archived category is moved to it.
+
+There are two commands in Todo mode for visiting archive files:
+
+@table @kbd
+
+@item A f
+Switch to a buffer displaying the archived category corresponding to the
+current todo category (@code{todo-find-archive}).  If the todo category
+has no archived items, the command asks if you want to visit the archive
+anyway.  If there is no archive for this todo file, it asks if you want
+to visit another archive, which you can select via minibuffer
+completion.
+
+@item A c
+Choose an archive to visit, whether or not the current todo file has an
+archive (@code{todo-choose-archive}).
+@end table
+
+As with todo files, you can also visit a Todo archive by invoking a
+standard Emacs file-visiting command; this displays the first (on the
+initial invocation) or current category of the archive.
+
+@node Todo Archive Mode, , Creating and Visiting Archives, Todo Archives
+@section Todo Archive Mode
+
+When you visit a Todo archive, the buffer is in Todo Archive mode.  It
+displays categories just as in Todo mode, except that they only contain
+done items.  It provides the same sequential navigation commands as
+Todo mode: @kbd{f} and @kbd{b} navigate between the categories of the current
+archive, and @kbd{n} and @kbd{p} navigate between the done items of the current
+archive category.
+
+The commands @kbd{t} and @kbd{j} are also available in Todo Archive
+mode, and they work the same as in Todo mode, which means they can only
+be used to return to Todo mode: @kbd{t} prompt for and switch to a todo
+file, and with @kbd{j} you can only jump to a todo category.  These
+commands exclude archives because an archive file has the same base name
+as the corresponding todo file, and category name completion uses only
+the base names, so the commands cannot know which type of file you want
+to visit.  For this reason, there is a special command in Todo Archive
+mode for jumping to another archive category or visiting another archive
+file:
+
+@table @kbd
+
+@item a
+This command (@code{todo-jump-to-archive-category}) prompts for a category in the
+current archive and jumps to it.  Called with a prefix argument, it
+prompts for another archive, then for a category in it and jumps to
+that category.
+@end table
+
+None of the Todo mode editing commands are available in Todo Archive
+mode, since archives are meant to be static records of accomplished todo
+items.  Should you, however, archive an item by mistake or simply change
+your mind about the archival status of an item, you can ``unarchive'' it:
+
+@table @kbd
+
+@item u
+Restore the done item at point to the top of the done items section of
+the corresponding category in the corresponding todo file, i.e., an
+unarchived item remains a done item (@code{todo-unarchive-items}).  When
+the last item in an archive category has been unarchived, the category
+is automatically deleted from the archive.  If this was the only
+category in the archive, the archive file is also automatically deleted.
+@end table
+
+Since it is natural to visit an archive from the corresponding todo
+file, it would be convenient to easily return to the todo file when you
+have finished browsing the archive.  If you type `q' to quit Todo
+Archive mode, this switches to the corresponding todo file and shows the
+todo category corresponding to the archive category you were just
+visiting.
+
+The command @kbd{F k} (@pxref{File Editing}) is also available in Todo
+Archive mode.  It deletes the current archive file and prompts you
+whether to delete the corresponding todo file.
+
+@node Marked Items, Todo Categories Mode, Todo Archives, Top
+@chapter Marked Items
+
+For many item editing commands it can make sense and be convenient to
+apply them simultaneously to more than one item in the current category.
+Todo facilitates this by means of marked items.
+
+@table @kbd
+
+@item *
+Mark the item at point if it is unmarked, and remove the mark it is
+already marked (@code{todo-toggle-mark-item}).  The mark is a string
+specified by the option @code{todo-item-mark} (by default @samp{*})
+appended in front of the item header (more precisely, in front of the
+item's priority number or prefix; see @ref{Todo Display Features}, for
+details of the latter).  After marking the current item, the command
+advances point to the next item.  It also accepts a numeric prefix
+argument, which allows toggling the mark of multiple consecutive items.
+
+@item C *
+Mark all todo items in the current category.
+
+@item C u
+Unmark all todo item in the current category.
+@end table
+
+You can also use the last two commands to mark or unmark all done items in
+the category, but only when only the done items section is being
+displayed, i.e., after invoking @kbd{C V} or @kbd{V}.
+
+The following commands operate on marked items: @kbd{k} (deleting), @kbd{m}
+(moving to another category), @kbd{d} (moving to the done items section;
+note that @kbd{C-u d} adds the same comment to all marked items), @kbd{A d}
+(archiving), @kbd{u} (both in Todo mode for undoing a done item and in
+Todo Archive mode for unarchiving an item), as well as the commands for
+editing the item header (those beginning with the prefix @kbd{e d} as well
+as @kbd{e t}, @kbd{e y y} and @kbd{e y k}).  The item insertion, textual editing and
+priority changing commands do not operate on marked items.
+
+If you use @kbd{m}, @kbd{d}, @kbd{A d} or @kbd{u} on multiple noncontiguous marked
+items, the relocated items retain their relative order but are now
+listed consecutively en bloc.
+
+You can mark both todo and done items, but note that only @kbd{m} can apply
+to both; other commands only affect either marked todo or marked done
+items, so if both types of items are marked, invoking these commands
+has no effect and informs you of your erroneous attempt.
+
+@node Todo Categories Mode, Searching for Items, Marked Items, Top
+@chapter Todo Categories Mode
+
+It can be helpful to have a compact overview of the categories in a todo
+file and the types of items it contains; Todo provides a tabular view
+of this information.
+
+@table @kbd
+
+@item F c
+Typing this command (@code{todo-show-categories-table}) in Todo mode or Todo
+Archive mode switches to a buffer displaying a table that gives an
+overview of the categories in the current todo or archive file.  This
+buffer is in Todo Categories mode.
+@end table
+
+The table consists of a column containing the names of the categories in
+the file, followed by columns containing counts of certain types of
+items in each category.  With todo files there are four count types: all
+todo (i.e., not done) items, diary items (i.e., those todo items lacking
+the @code{todo-nondiary-marker}, which hence can appear in the Fancy Diary
+display), done (but not archived) items, and archived items.  With
+archive files all items are done, so the table only has a column for
+this count.  The final row of the table gives total item counts across
+all categories in the file.
+
+Aside from explicitly invoking @kbd{F c} to display the table of
+categories, you can also arrange to have it displayed on the first
+invocation of @code{todo-show} for a given file (i.e., either using
+@code{todo-show} to initiate a Todo session, or calling it in Todo mode
+to visit another todo file).  To do this customize the option
+@code{todo-show-first}.
+
+@menu
+* Table of Item Counts::
+* Reordering Categories::
+@end menu
+
+@node Table of Item Counts, Reordering Categories, , Todo Categories Mode
+@section Table of Item Counts
+
+Above each column of the table is a labeled button you can press by
+clicking with the mouse or by typing @key{RET} on it.  Pressing an item
+count button sorts the table alternately in ascending or descending
+order according to the type of count.  Pressing the category button
+alternates between the initial numerical order of the categories and
+alphabetical order.  In numerical order the column of category names is
+preceded by a column containing the corresponding category numbers; this
+column is not displayed in the alphabetical listing.  Instead of
+pressing the buttons, you can also sort the table by typing the
+following keys:
+
+@itemize
+
+@item @kbd{c}
+to sort by category numerically or alphabetically;
+@item @kbd{t}
+to sort by todo item counts;
+@item @kbd{y}
+to sort by diary item counts;
+@item @kbd{d}
+to sort by done item counts;
+@item @kbd{a}
+to sort by archived item counts.
+@end itemize
+
+Each row of the table is also buttonized; pressing one of these exits
+the buffer (killing it), returns to the buffer of the file from which
+you had invoked `F c', and displays the category that was named in the
+row button you pressed (i.e., pressing this button jumps to that
+category).  However, if the category named in the row is in a todo file
+and all of its items have been archived, and you have enabled the option
+@code{todo-skip-archived-categories}, then pressing the button jumps to
+the archive category instead of the empty todo category.  You can
+recognize such categories by their items counts in the table---all
+columns but the archived one have counts of zero---and in addition,
+their lines in the table are also distinguished from the others by a
+different face.
+
+You can navigate around the table:
+
+@table @kbd
+
+@item n
+@itemx @key{TAB}
+Advance point to the next button.
+
+@item p
+@itemx S-@key{TAB}
+Put point on the previous button.
+@end table
+
+These commands are cyclic, e.g. when point is on the last button,
+pressing @kbd{n} moves it to the first button.
+
+Typing @kbd{q} exits Todo Categories mode, killing the buffer and returning
+to the current category in the Todo mode or Todo Archive mode buffer
+from which you had invoked @kbd{F c}.
+
+@node Reordering Categories, , Table of Item Counts, Todo Categories Mode
+@section Reordering Categories
+
+Todo Categories mode provide commands with which you can change the
+numbering of the categories in the current file.  This renumbering has
+the effect of reordering the categories for sequential navigation by
+@kbd{f} and @kbd{b} in Todo mode and Todo Archive mode.  These commands
+are only operative when the table displays the categories in their
+numerical order.  They work just like reprioritizing items in Todo mode,
+hence have the same key bindings:
+
+@table @kbd
+
+@item r
+Raise the current line of the table (the one the cursor is on),
+decreasing the category's number by one (@code{todo-raise-category}).
+This command exchanges lines, and hence the numbers, of the category at
+point and the one above it before invoking the command.
+
+@item l
+Lower the current line of the table, increasing the category's number by
+one (@code{todo-lower-category}).  This command exchanges lines, and
+hence the numbers, of the category at point and the one below it before
+invoking the command.
+
+@item #
+Prompt for a number between 1 and the number of categories in the file
+and reorder the table accordingly (@code{todo-set-category-number}).  If
+called with a numeric prefix argument within the allowed range, reorder
+the table without prompting.
+@end table
+
+The reordering done by these commands remains in effect when you return
+to Todo mode or Todo Archive mode and, as long as you save the todo
+or archive file after reordering, in subsequent sessions as well.
+
+@quotation @strong{Caution}
+It is important to be aware that renumbering the categories does not
+change the textual order of the categories in the file.  This is
+significant if you should invoke @kbd{F e} to edit the entire file
+manually and in so doing alter the number of items in a category: this
+will make the item count shown in the table of categories of this file
+inconsistent with the actual number.  You can repair this inconsistency
+by invoking the command @code{todo-repair-categories-sexp} (which lacks
+a key binding, since it is meant to be a rarely needed rescue
+operation).  But this will revert any renumbering of the categories you
+have made, so you will have to renumber them again.  This is the reason
+why you should exercise caution when using @kbd{F e}.
+@end quotation
+
+@node Searching for Items, Todo Filtered Items Mode, Todo Categories Mode, Top
+@chapter Searching for Items
+
+It can be useful to be able to locate and examine all todo items that
+fit certain criteria, regardless of which category they belong to.  One
+way to do this in Todo mode is by sequentially searching in the file:
+
+@table @kbd
+
+@item S
+This command (@code{todo-search}; the key is capital @kbd{S}) prompts for a
+regular expression, searches from the beginning of the current todo file
+and displays the category containing the first match it finds, with the
+match highlighted.  If there are further matches, a message saying how
+many are left is displayed and you are asked if you want to go to the
+next match.  When you reach the last match, or if you decide not to go
+to further matches, you are asked whether the match highlighting should
+be removed.
+
+@item X
+This command (@code{todo-clear-matches}) removes any highlighting added by @kbd{S}.
+This is so you can leave the matches highlighted at the end of the
+search and remove the highlighting later.
+@end table
+
+These commands are also available in Todo Archive mode.
+
+@node Todo Filtered Items Mode, Todo Display Features, Searching for Items, Top
+@chapter Todo Filtered Items Mode
+
+A more powerful alternative to sequential searching is item filtering,
+by which items from different categories that match specified criteria
+are gathered and displayed in a new buffer as a kind of virtual
+category in a distinct mode, Todo Filtered Items mode.
+
+@menu
+* Filtering Items::
+* Todo Filtered Items Mode Commands::
+* Files of Filtered Items::
+@end menu
+
+@node Filtering Items, Todo Filtered Items Mode Commands, , Todo Filtered Items Mode
+@section Filtering Items
+
+Todo mode provides three ways to filter items: a general filter for
+items matching a user-entered regular expression, as with the search
+command; and two specific filters, one for diary-displayable items
+(i.e., those lacking @code{todo-nondiary-marker}) and one for top
+priority items (more on the latter below).  The commands for each
+filter come in pairs, one for filtering just the current todo file and
+one for filtering a user-specified list of todo files.  Thus, there
+are six item filtering commands:@footnote{The use of @kbd{F} in the key
+sequences of these commands naturally recalls ``filter'', but is also
+consistent with the Todo mode mnemonic key binding convention, since the
+commands involve one or more whole files.}
+
+@itemize @bullet
+
+@item
+@kbd{F x x} (@code{todo-filter-regexp-items})
+@item
+@kbd{F x m} (@code{todo-filter-regexp-items-multifile})
+@item
+@kbd{F y y} (@code{todo-filter-diary-items})
+@item
+@kbd{F y m} (@code{todo-filter-diary-items-multifile})
+@item
+@kbd{F t t} (@code{todo-filter-top-priorities})
+@item
+@kbd{F t m} (@code{todo-filter-top-priorities-multifile})
+@end itemize
+
+There are two ways to specify which files the multifile filtering
+commands apply to.  If there are files you want to filter every time you
+use these commands, customize the option @code{todo-filter-files}.  If you
+leave this option empty (the default), invoking a multifile filtering
+command pops up a buffer similar to the Customization buffer for
+@code{todo-filter-files}, in which you can select files to filter just for
+this invocation.
+
+Diary and top priority items are by definition non-done todo items, but
+when filtering by regular expression, you can extend the scope of the
+command to done items by enabling the option @code{todo-filter-done-items}.
+Then @kbd{F x x} and @kbd{F x m} will gather both matching todo and matching
+done items (including done items from any archive files corresponding to
+the selected todo files) into the virtual category of filtered items.
+
+There are several ways to specify how many items in each category count
+as top priorities and hence get filtered by @kbd{F t t} and @kbd{F t m}:
+
+@itemize @bullet
+
+@item
+The option @code{todo-top-priorities} specifies a single default number
+for all categories and all todo files; its default value is 1, which
+means just the highest priority item in every category is filtered,
+unless otherwise specified.
+@item
+The option @code{todo-top-priorities-overrides} lists file-wide overrides
+of @code{todo-top-priorities} as well as category-specific overrides.  It
+is empty by default.  However, using the Custom facility to set this
+option would be tedious and error-prone, so instead you should use the
+commands @kbd{F t s} and @kbd{C t s}.  The former sets (i.e., overrides) the
+default number of top priorities for all categories in the current
+todo file, and the latter sets the number of top priorities for the
+current category.  To exclude a category or file from filtering by @kbd{F t t}
+and @kbd{F t m}, set the number to @samp{0}.
+@item
+You can invoke `F t t' and `F t m' with a numeric prefix argument,
+which specifies the number of top priorities in each category just for
+this invocation, overriding both @code{todo-top-priorities-overrides} and
+@code{todo-top-priorities}.
+@end itemize
+
+@node Todo Filtered Items Mode Commands, Files of Filtered Items, Filtering Items, Todo Filtered Items Mode
+@section Todo Filtered Items Mode Commands
+
+The output of the item filtering commands looks similar to a regular
+Todo category, but it is not contained in any todo file and does not
+have a name on being created, so it is not a ``real'' category but a
+``virtual'' category.  Another difference is the lack of a done items
+section; either there are no done items in the list (when the filtered
+items are diary or top priority items), or these are displayed in the
+same list as todo items (if you filtered by regular expression and
+allowed done items).  A further difference is that the items have an
+additional header, between the item's date/time header and its text,
+specifying which category (and if you invoked a multifile command, also
+which file) the item comes from, and if you filtered by regular
+expression, also whether the item comes from a Todo archive.
+
+The sequential item navigation commands @kbd{n} and @kbd{p} work the same in
+Todo Filtered Items mode as in Todo mode, as do the file and category
+jumping commands @kbd{t} and @kbd{j}; however, the sequential category
+navigation commands are unavailable, since virtual categories of
+filtered items are not ordered with respect to ``real'' categories.  In
+addition, Todo Filtered Items mode provides a special navigation
+command:
+
+@table @kbd
+
+@item g
+@itemx @key{RET}
+If you type this command (@code{todo-go-to-source-item}) with point on a
+filtered item, the buffer switches to the item's source file (in Todo
+mode or Todo Archive mode, as the case may be) and displays its
+category, with point on the item.
+@end table
+
+Filtered items cannot be textually edited, moved to another category,
+marked done or archived like items in a real todo category, since these
+would then be out of synch with each other.  But there is one type of
+editing command that does work in Todo Filtered Items mode: changing an
+item's priority:
+
+@table @kbd
+
+@item r
+@itemx l
+@itemx #
+These commands raise, lower, or set, respectively, the current item's
+priority in the virtual category.
+@end table
+
+@noindent
+Using these commands, you can create a cross-category (and even
+cross-file) prioritized list of filtered items.  However, there is a
+restriction on these commands in Todo Filtered Items mode: you cannot
+change the relative priorities of items from the same real category,
+since that would make the filtered list inconsistent with the source
+todo list.
+
+@node Files of Filtered Items, , Todo Filtered Items Mode Commands, Todo Filtered Items Mode
+@section Files of Filtered Items
+
+Typing @kbd{s} in Todo Filtered Items mode saves the buffer of filtered
+items to a file in @code{todo-directory}.  Files of items filtered by
+regular expression have the extension @samp{.todr}, those with filtered
+diary items have the extension @samp{.tody} and those with filtered top
+priorities have the extension @samp{.todt}.  The extensions are added
+automatically the first time you save the buffer to a file.
+
+With filtered top priority or diary items, the file is automatically
+named on first saving it, using as the base name either the same base
+name as the single todo file it was generated from, or combining the
+base names of the todo files used in multifile filtering commands.
+With items filtered by regular expression, it can be useful to save
+separate lists generated from the same file(s) using different regular
+expressions, so when saving such a list, you are prompted for a short
+identifying string to add to the file name.
+
+When you invoke one of the item filtering commands without a prefix
+argument and a corresponding file already exists, the command visits
+this file (if, for the current file or chosen files, there are multiple
+files of items filtered by regular expression, you are prompted to
+choose one).  To force generation of a new filtered list, invoke the
+command with a prefix argument (in the case of top priority items,
+either numeric as described above, or the raw prefix argument @kbd{C-u} to
+use the values of @code{todo-top-priorities-overrides} or
+@code{todo-top-priorities}).
+
+Aside from explicitly invoking an item filtering command to display a
+saved list of items filtered by a given method from given todo files,
+there are two other ways to visit a saved file of filtered items:
+
+@table @kbd
+@item F f
+Visit a saved file of filtered items, which you choose via minibuffer
+completion (@code{todo-find-filtered-items-file}).
+@end table
+
+@itemize @bullet
+@item
+As with tables of categories, by customizing @code{todo-show-first} you
+can have the first invocation of @code{todo-show} for a given todo file
+display the corresponding saved file of filtered items.  If there is
+no saved filtered items list for the file, @code{todo-show} simply
+defaults to visiting the file and displaying its first category, as
+usual.
+@end itemize
+
+The command @kbd{F k} (@pxref{File Editing}) is also available in Todo
+Filtered Items mode.  It deletes the current filtered items file.
+
+@node Todo Display Features, Printing Todo Buffers, Todo Filtered Items Mode, Top
+@chapter Todo Display Features
+
+You can change the appearance of Todo mode buffers in a variety of ways.
+
+@menu
+* Faces::
+* Item Prefix::
+* Other Display Commands and Options::
+@end menu
+
+@node Faces, Item Prefix, , Todo Display Features
+@section Faces
+
+Each of the Todo modes uses faces to distinguish various aspects of the
+display, both structural and informational.  For example, the faces for
+the date and time strings of todo item headers by default inherit the
+attributes of the corresponding faces used by the Emacs diary; but when
+the date and time of a Todo diary item (i.e., an item lacking
+@code{todo-nondiary-marker}) is earlier than the current date and time,
+they are displayed in a different face.  In this way, you can readily
+recognize diary items that have ``expired'' and act accordingly (e.g.,
+by tagging them as done or by updating the deadlines).
+
+Another example of an informational face is the face used to distinguish
+top priority items.  A third case is the face used in Todo Categories
+mode to mark rows of the table containing categories with only archived
+items.
+
+The @code{todo-faces} customization group contains a complete list of
+Todo mode faces and brief descriptions of their use.
+
+
+@node Item Prefix, Other Display Commands and Options, Faces, Todo Display Features
+@section Item Prefix
+
+In the default display of (real or virtual) categories in Todo mode,
+Todo Archive mode and Todo Filtered Item mode the items are visually
+numbered in ascending order, starting with @samp{1} on the top item,
+displayed to the left of its header (date/time string).  With todo items
+the numbers indicate each item's priority in the list, so when you
+reprioritize an item with @kbd{#} or move it with @kbd{m}, these numbers make
+it easier to choose the item's new priority.  The numbering also lets
+you to see at a glance how many items there are in the list.  When an
+item is inserted, deleted, or moved, the numbering is automatically
+updated.  In Todo mode, the todo and done items sections in each
+category are separately numbered.
+
+If you prefer not to have item numbering displayed, disable the option
+@code{todo-number-prefix}; then the display of each item starts by default
+simply with its header.  But you can also replace the numbering with a
+visually distinctive string of your choice by customizing the option
+@code{todo-prefix} (the empty string by default).  Another alternative is to
+temporarily hide the item numbering:
+
+@table @kbd
+
+@item F N
+@itemx N
+Toggle between displaying item numbering and displaying the
+@code{todo-prefix} string in the current Todo file (todo, archive, or
+saved virtual category of filtered items.  This command also works in
+buffers of filtered items that have not yet been written to a file.)
+@end table
+
+In the todo items section of each Todo mode category, the item prefix
+(whether a priority number or a fixed string) of the top priority items
+(determined as specified in @pxref{Filtering Items}) is displayed in a
+different face from the prefix of the other items, so you see at a
+glance how many items in the category are top priorities.
+
+@node Other Display Commands and Options, , Item Prefix, Todo Display Features
+@section Other Display Commands and Options
+
+There are two additional toggle commands that affect display in the
+current file:
+
+@table @kbd
+
+@item F h
+@itemx h
+Hide the item headers if visible, or show them if they are hidden.
+With done items, only the done header (i.e. the done tag and date-time
+string inserted when the item was marked done) is hidden, the original
+date-time string is not. With filtered items, the category (or
+category-file) tag is not hidden.
+
+@item F H
+@itemx H
+Highlight the current item if unhighlighted, or remove its highlighting.
+When item highlighting is enabled, it follows navigation by @kbd{n} or
+@kbd{p}.  If you want to have current item highlighting by default,
+enable the option @code{todo-highlight-item}.  @kbd{F H} or @kbd{H} will
+still toggle it.
+@end table
+
+There are two options which affect the display of items whose content is
+longer than one screen line:
+
+@itemize @bullet{}
+
+@item
+@code{todo-indent-to-here} sets the amount of indentation for all lines
+after the first in multiline todo items, which is necessary in order
+for todo diary items to be fully visible in the Fancy Diary display.
+The default indentation is 3 spaces.  For a uniform appearance this
+option applies to all items, i.e., diary and nondiary todo items and
+also done items.
+
+@item
+@code{todo-wrap-lines} allows you to choose, for the purposes of
+insertion and editing, between treating multiline todo items as
+containing multiple logical lines with hard line breaks or as multiple
+visual lines using Visual Line mode; the latter is the default.  Since
+multiparagraph items also contain hard line breaks in Visual Line mode,
+for a uniform appearance this display shows indentation on wrapped lines
+by using a wrap-prefix of @code{todo-indent-to-here} spaces.
+@end itemize
+
+The indentation inserted after a hard newline is actually a tab
+character, and the Todo modes that display items bind @code{tab-width} to
+@code{todo-indent-to-here}, so if you change the default value of the
+latter, the next time you visit a Todo file, the indentation will
+reflect your change.
+
+By default, the todo and done items sections of a todo category are
+visually separated by a line as wide as the window the buffer is
+displayed in.  You can change the appearance and width of the separator
+by customizing @code{todo-done-separator-string}; you can also change the
+face of the separator string.
+
+There are also several options for changing the appearance in Todo
+Categories mode and Todo Filtered Items mode, beyond those mentioned
+above in the sections on these modes; see the customization groups
+@code{todo-categories} and @code{todo-filtered} for details.
+
+@node Printing Todo Buffers, Legacy Todo Mode Files, Todo Display Features, Top
+@chapter Printing Todo Buffers
+
+If you print a Todo buffer using one of the standard Emacs printing
+commands, it does not look exactly like what you see in the buffer.
+This is because some of the display features are non-printable
+(specifically, those using overlays, word-wrap and wrap-prefix).  Todo
+mode provides two print commands that produce output which includes
+printable counterparts of such display features:
+
+@table @kbd
+
+@item P B
+Send the printable buffer output directly to your printer.
+
+@item P F
+Prompt for a file name and write the printable output to that file.
+@end table
+
+By default, Todo uses @code{ps-print-buffer-with-faces} to make the
+printable version; you can change this by setting the option
+@code{todo-print-function}.
+
+@node Legacy Todo Mode Files, GNU Free Documentation License, Printing Todo Buffers, Top
+@chapter Legacy Todo Mode Files
+
+Users of the original version of Todo mode will recognize from the
+description in this user manual that, although the new version shares
+with the original version the same basic user interface and handling of
+todo items, there are some incompatible differences between them, such
+as the done items sections (there are also other file format
+incompatibilities behind the scenes that are normally not visible to
+users).
+
+The most significant incompatibility concerns the item prefix.  In the
+earlier version of Todo mode the prefix was the initial part of the item
+string itself, so in order for the item to be displayable in the Emacs
+diary, the prefix had to be a date/time pattern recognizable by the
+diary (although the todo item also has its own date/time header).
+Moreover, since all items had the same prefix string in the original
+version, this means that either only all or no items could appear in the
+Fancy Diary display on any given date.  This considerably restricts the
+practicality of including todo items in the diary.  In contrast, the
+current version of Todo mode uses overlays for item priority numbering
+or prefixes, and item-specific diary-compatible date/time headers and
+special marks for todo items to be excluded from the diary, so you can
+determine for each item whether and when it appears in the Fancy Diary
+display.
+
+Due to these incompatibilities, files created with the original version
+of Todo mode cannot be displayed or edited with the current version.
+However, this version provides a function that converts the two main
+types of files used by the original version into new-style valid todo
+and archive files, respectively, and saves them in
+@code{todo-directory}.@footnote{The original version of Todo mode also
+allowed saving a file of top priority items, but since you can readily
+create such a file with the new version, which is also more flexible,
+no conversion is provided for this file.}
+
+This conversion function is automatically called the first time you
+invoke @code{todo-show} (i.e., before you have created a todo file with
+the new version), and if it finds the old-style files, it offers to
+convert them, making them the first new-style todo and archive files.
+If you choose not to convert the old-style files at this time, you can
+do so later by invoking the command @code{todo-convert-legacy-files}
+(there is no key binding for it, since it shouldn't be necessary to use
+it often).  (A delicate part of the conversion concerns the customizable
+format of item date/time headers in the old-style; see the documentation
+string of @code{todo-todo-mode-date-time-regexp} for details.)
+
+@node GNU Free Documentation License, , Legacy Todo Mode Files, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@bye
+
+@c End:

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2010-2013 Free Software Foundation, Inc.
+@c Copyright (C) 2010-2014 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Packaging
 @chapter Preparing Lisp code for distribution
@@ -141,7 +141,8 @@ the various headers, as illustrated by the following example:
 ;; Author: J. R. Hacker <jrh@@example.com>
 ;; Version: 1.3
 ;; Package-Requires: ((flange "1.0"))
-;; Keywords: frobnicate
+;; Keywords: multimedia, frobnicate
+;; URL: http://example.com/jrhacker/superfrobnicate
 
 @dots{}
 
@@ -176,6 +177,11 @@ the package dependencies.  In the above example, the package depends
 on the @samp{flange} package, version 1.0 or higher.  @xref{Library
 Headers}, for a description of the @samp{Package-Requires} header.  If
 the header is omitted, the package has no dependencies.
+
+  The @samp{Keywords} and @samp{URL} headers are optional, but recommended.
+The command @code{describe-package} uses these to add links to its
+output.  The @samp{Keywords} header should contain at least one
+standard keyword from the @code{finder-known-keywords} list.
 
   The file ought to also contain one or more autoload magic comments,
 as explained in @ref{Packaging Basics}.  In the above example, a magic
@@ -265,7 +271,7 @@ variable @code{load-file-name} (@pxref{Loading}).  Here is an example:
   Via the Package Menu, users may download packages from @dfn{package
 archives}.  Such archives are specified by the variable
 @code{package-archives}, whose default value contains a single entry:
-the archive hosted by the GNU project at @url{elpa.gnu.org}.  This
+the archive hosted by the GNU project at @url{http://elpa.gnu.org}.  This
 section describes how to set up and maintain a package archive.
 
 @cindex base location, package archive

@@ -1,6 +1,6 @@
 ;;; spam-stat.el --- detecting spam based on statistics
 
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Keywords: network
@@ -412,8 +412,7 @@ With a prefix argument save unconditionally."
   (when (or force spam-stat-dirty)
     (let ((coding-system-for-write spam-stat-coding-system))
       (with-temp-file spam-stat-file
-	(let ((standard-output (current-buffer))
-	      (font-lock-maximum-size 0))
+	(let ((standard-output (current-buffer)))
 	  (insert (format ";-*- coding: %s; -*-\n" spam-stat-coding-system))
 	  (insert (format "(setq spam-stat-ngood %d spam-stat-nbad %d
 spam-stat (spam-stat-to-hash-table '(" spam-stat-ngood spam-stat-nbad))

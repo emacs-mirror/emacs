@@ -1,6 +1,6 @@
 /* update-game-score.c --- Update a score file
 
-Copyright (C) 2002-2013 Free Software Foundation, Inc.
+Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 Author: Colin Walters <walters@debian.org>
 
@@ -35,7 +35,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -46,14 +48,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/stat.h>
 #include <getopt.h>
 
-#define MAX_ATTEMPTS 5
-#define MAX_SCORES 200
-#define MAX_DATA_LEN 1024
-
-#ifndef HAVE_DIFFTIME
-/* OK on POSIX (time_t is arithmetic type) modulo overflow in subtraction.  */
-#define difftime(t1, t0) (double)((t1) - (t0))
+#ifdef WINDOWSNT
+#include "ntlib.h"
 #endif
+
+#ifndef min
+# define min(a,b) ((a) < (b) ? (a) : (b))
+#endif
+
+#define MAX_ATTEMPTS 5
+#define MAX_DATA_LEN 1024
 
 static _Noreturn void
 usage (int err)
@@ -72,18 +76,21 @@ static int unlock_file (const char *filename, void *state);
 
 struct score_entry
 {
-  long score;
+  intmax_t score;
   char *username;
   char *data;
 };
 
+#define MAX_SCORES min (PTRDIFF_MAX, SIZE_MAX / sizeof (struct score_entry))
+
 static int read_scores (const char *filename, struct score_entry **scores,
-			int *count);
-static int push_score (struct score_entry **scores, int *count,
-		       int newscore, char *username, char *newdata);
-static void sort_scores (struct score_entry *scores, int count, int reverse);
+			ptrdiff_t *count, ptrdiff_t *alloc);
+static int push_score (struct score_entry **scores, ptrdiff_t *count,
+		       ptrdiff_t *size, struct score_entry const *newscore);
+static void sort_scores (struct score_entry *scores, ptrdiff_t count,
+			 bool reverse);
 static int write_scores (const char *filename,
-			 const struct score_entry *scores, int count);
+			 const struct score_entry *scores, ptrdiff_t count);
 
 static _Noreturn void
 lose (const char *msg)
@@ -103,19 +110,19 @@ static char *
 get_user_id (void)
 {
   struct passwd *buf = getpwuid (getuid ());
-  if (!buf)
+  if (!buf || strchr (buf->pw_name, ' ') || strchr (buf->pw_name, '\n'))
     {
-      long uid = getuid ();
-      char *name = malloc (sizeof uid * CHAR_BIT / 3 + 1);
+      intmax_t uid = getuid ();
+      char *name = malloc (sizeof uid * CHAR_BIT / 3 + 4);
       if (name)
-	sprintf (name, "%ld", uid);
+	sprintf (name, "%"PRIdMAX, uid);
       return name;
     }
   return buf->pw_name;
 }
 
 static const char *
-get_prefix (int running_suid, const char *user_prefix)
+get_prefix (bool running_suid, const char *user_prefix)
 {
   if (!running_suid && user_prefix == NULL)
     lose ("Not using a shared game directory, and no prefix given.");
@@ -133,14 +140,18 @@ get_prefix (int running_suid, const char *user_prefix)
 int
 main (int argc, char **argv)
 {
-  int c, running_suid;
+  int c;
+  bool running_suid;
   void *lockstate;
-  char *user_id, *scorefile;
+  char *scorefile;
+  char *nl;
   const char *prefix, *user_prefix = NULL;
   struct stat buf;
   struct score_entry *scores;
-  int newscore, scorecount, reverse = 0, max = MAX_SCORES;
-  char *newdata;
+  struct score_entry newscore;
+  bool reverse = false;
+  ptrdiff_t scorecount, scorealloc;
+  ptrdiff_t max_scores = MAX_SCORES;
 
   srand (time (0));
 
@@ -157,15 +168,18 @@ main (int argc, char **argv)
 	reverse = 1;
 	break;
       case 'm':
-	max = atoi (optarg);
-	if (max > MAX_SCORES)
-	  max = MAX_SCORES;
+	{
+	  intmax_t m = strtoimax (optarg, 0, 10);
+	  if (m < 0)
+	    usage (EXIT_FAILURE);
+	  max_scores = min (m, MAX_SCORES);
+	}
 	break;
       default:
 	usage (EXIT_FAILURE);
       }
 
-  if (optind+3 != argc)
+  if (argc - optind != 3)
     usage (EXIT_FAILURE);
 
   running_suid = (getuid () != geteuid ());
@@ -179,13 +193,18 @@ main (int argc, char **argv)
   strcpy (scorefile, prefix);
   strcat (scorefile, "/");
   strcat (scorefile, argv[optind]);
-  newscore = atoi (argv[optind+1]);
-  newdata = argv[optind+2];
-  if (strlen (newdata) > MAX_DATA_LEN)
-    newdata[MAX_DATA_LEN] = '\0';
 
-  user_id = get_user_id ();
-  if (user_id == NULL)
+  newscore.score = strtoimax (argv[optind + 1], 0, 10);
+
+  newscore.data = argv[optind + 2];
+  if (strlen (newscore.data) > MAX_DATA_LEN)
+    newscore.data[MAX_DATA_LEN] = '\0';
+  nl = strchr (newscore.data, '\n');
+  if (nl)
+    *nl = '\0';
+
+  newscore.username = get_user_id ();
+  if (! newscore.username)
     lose_syserr ("Couldn't determine user id");
 
   if (stat (scorefile, &buf) < 0)
@@ -194,29 +213,34 @@ main (int argc, char **argv)
   if (lock_file (scorefile, &lockstate) < 0)
     lose_syserr ("Failed to lock scores file");
 
-  if (read_scores (scorefile, &scores, &scorecount) < 0)
+  if (read_scores (scorefile, &scores, &scorecount, &scorealloc) < 0)
     {
       unlock_file (scorefile, lockstate);
       lose_syserr ("Failed to read scores file");
     }
-  push_score (&scores, &scorecount, newscore, user_id, newdata);
+  if (push_score (&scores, &scorecount, &scorealloc, &newscore) < 0)
+    {
+      unlock_file (scorefile, lockstate);
+      lose_syserr ("Failed to add score");
+    }
   sort_scores (scores, scorecount, reverse);
   /* Limit the number of scores.  If we're using reverse sorting, then
      also increment the beginning of the array, to skip over the
      *smallest* scores.  Otherwise, just decrementing the number of
      scores suffices, since the smallest is at the end. */
-  if (scorecount > MAX_SCORES)
+  if (scorecount > max_scores)
     {
       if (reverse)
-	scores += (scorecount - MAX_SCORES);
-      scorecount = MAX_SCORES;
+	scores += scorecount - max_scores;
+      scorecount = max_scores;
     }
   if (write_scores (scorefile, scores, scorecount) < 0)
     {
       unlock_file (scorefile, lockstate);
       lose_syserr ("Failed to write scores file");
     }
-  unlock_file (scorefile, lockstate);
+  if (unlock_file (scorefile, lockstate) < 0)
+    lose_syserr ("Failed to unlock scores file");
   exit (EXIT_SUCCESS);
 }
 
@@ -224,13 +248,18 @@ static int
 read_score (FILE *f, struct score_entry *score)
 {
   int c;
+  if ((c = getc (f)) != EOF)
+    ungetc (c, f);
   if (feof (f))
     return 1;
-  while ((c = getc (f)) != EOF
-	 && isdigit (c))
+  for (score->score = 0; (c = getc (f)) != EOF && isdigit (c); )
     {
+      if (INTMAX_MAX / 10 < score->score)
+	return -1;
       score->score *= 10;
-      score->score += (c-48);
+      if (INTMAX_MAX - (c - '0') < score->score)
+	return -1;
+      score->score += c - '0';
     }
   while ((c = getc (f)) != EOF
 	 && isspace (c))
@@ -241,6 +270,7 @@ read_score (FILE *f, struct score_entry *score)
 #ifdef HAVE_GETDELIM
   {
     size_t count = 0;
+    score->username = 0;
     if (getdelim (&score->username, &count, ' ', f) < 1
 	|| score->username == NULL)
       return -1;
@@ -249,18 +279,30 @@ read_score (FILE *f, struct score_entry *score)
   }
 #else
   {
-    int unameread = 0;
-    int unamelen = 30;
+    ptrdiff_t unameread = 0;
+    ptrdiff_t unamelen = 30;
     char *username = malloc (unamelen);
     if (!username)
       return -1;
 
-    while ((c = getc (f)) != EOF
-	   && !isspace (c))
+    while ((c = getc (f)) != EOF && c != ' ')
       {
-	if (unameread >= unamelen-1)
-	  if (!(username = realloc (username, unamelen *= 2)))
-	    return -1;
+	if (unameread >= unamelen - 1)
+	  {
+	    ptrdiff_t unamelen_max = min (PTRDIFF_MAX, SIZE_MAX);
+	    if (unamelen <= unamelen_max / 2)
+	      unamelen *= 2;
+	    else if (unamelen < unamelen_max)
+	      unamelen = unamelen_max;
+	    else
+	      {
+		errno = ENOMEM;
+		return -1;
+	      }
+	    username = realloc (username, unamelen);
+	    if (!username)
+	      return -1;
+	  }
 	username[unameread] = c;
 	unameread++;
       }
@@ -281,8 +323,8 @@ read_score (FILE *f, struct score_entry *score)
   }
 #else
   {
-    int cur = 0;
-    int len = 16;
+    ptrdiff_t cur = 0;
+    ptrdiff_t len = 16;
     char *buf = malloc (len);
     if (!buf)
       return -1;
@@ -291,6 +333,11 @@ read_score (FILE *f, struct score_entry *score)
       {
 	if (cur >= len-1)
 	  {
+	    if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < len)
+	      {
+		errno = ENOMEM;
+		return -1;
+	      }
 	    if (!(buf = realloc (buf, len *= 2)))
 	      return -1;
 	  }
@@ -305,36 +352,29 @@ read_score (FILE *f, struct score_entry *score)
 }
 
 static int
-read_scores (const char *filename, struct score_entry **scores, int *count)
+read_scores (const char *filename, struct score_entry **scores,
+	     ptrdiff_t *count, ptrdiff_t *alloc)
 {
-  int readval, scorecount, cursize;
-  struct score_entry *ret;
+  int readval = -1;
+  ptrdiff_t scorecount = 0;
+  ptrdiff_t cursize = 0;
+  struct score_entry *ret = 0;
+  struct score_entry entry;
   FILE *f = fopen (filename, "r");
+  int retval = -1;
   if (!f)
     return -1;
-  scorecount = 0;
-  cursize = 16;
-  ret = (struct score_entry *) malloc (sizeof (struct score_entry) * cursize);
-  if (!ret)
-    return -1;
-  while ((readval = read_score (f, &ret[scorecount])) == 0)
+  while ((readval = read_score (f, &entry)) == 0)
+    if (push_score (&ret, &scorecount, &cursize, &entry) < 0)
+      return -1;
+  if (readval > 0 && fclose (f) == 0)
     {
-      /* We encountered an error.  */
-      if (readval < 0)
-	return -1;
-      scorecount++;
-      if (scorecount >= cursize)
-	{
-	  cursize *= 2;
-	  ret = (struct score_entry *)
-	    realloc (ret, (sizeof (struct score_entry) * cursize));
-	  if (!ret)
-	    return -1;
-	}
+      *count = scorecount;
+      *alloc = cursize;
+      *scores = ret;
+      retval = 0;
     }
-  *count = scorecount;
-  *scores = ret;
-  return 0;
+  return retval;
 }
 
 static int
@@ -348,60 +388,81 @@ score_compare (const void *a, const void *b)
 static int
 score_compare_reverse (const void *a, const void *b)
 {
-  const struct score_entry *sa = (const struct score_entry *) a;
-  const struct score_entry *sb = (const struct score_entry *) b;
-  return (sa->score > sb->score) - (sa->score < sb->score);
+  return score_compare (b, a);
 }
 
 int
-push_score (struct score_entry **scores, int *count, int newscore, char *username, char *newdata)
+push_score (struct score_entry **scores, ptrdiff_t *count, ptrdiff_t *size,
+	    struct score_entry const *newscore)
 {
- struct score_entry *newscores
-   = (struct score_entry *) realloc (*scores,
-				     sizeof (struct score_entry) * ((*count) + 1));
-  if (!newscores)
-    return -1;
-  newscores[*count].score = newscore;
-  newscores[*count].username = username;
-  newscores[*count].data = newdata;
+  struct score_entry *newscores = *scores;
+  if (*count == *size)
+    {
+      ptrdiff_t newsize = *size;
+      if (newsize <= 0)
+	newsize = 1;
+      else if (newsize <= MAX_SCORES / 2)
+	newsize *= 2;
+      else if (newsize < MAX_SCORES)
+	newsize = MAX_SCORES;
+      else
+	{
+	  errno = ENOMEM;
+	  return -1;
+	}
+      newscores = realloc (newscores, sizeof *newscores * newsize);
+      if (!newscores)
+	return -1;
+      *scores = newscores;
+      *size = newsize;
+    }
+  newscores[*count] = *newscore;
   (*count) += 1;
-  *scores = newscores;
   return 0;
 }
 
 static void
-sort_scores (struct score_entry *scores, int count, int reverse)
+sort_scores (struct score_entry *scores, ptrdiff_t count, bool reverse)
 {
-  qsort (scores, count, sizeof (struct score_entry),
-	reverse ? score_compare_reverse : score_compare);
+  qsort (scores, count, sizeof *scores,
+	 reverse ? score_compare_reverse : score_compare);
 }
 
 static int
-write_scores (const char *filename, const struct score_entry *scores, int count)
+write_scores (const char *filename, const struct score_entry *scores,
+	      ptrdiff_t count)
 {
+  int fd;
   FILE *f;
-  int i;
+  ptrdiff_t i;
   char *tempfile = malloc (strlen (filename) + strlen (".tempXXXXXX") + 1);
   if (!tempfile)
     return -1;
   strcpy (tempfile, filename);
   strcat (tempfile, ".tempXXXXXX");
-#ifdef HAVE_MKSTEMP
-  if (mkstemp (tempfile) < 0
-#else
-  if (mktemp (tempfile) != tempfile
+  fd = mkostemp (tempfile, 0);
+  if (fd < 0)
+    return -1;
+#ifndef WINDOWSNT
+  if (fchmod (fd, 0644) != 0)
+    return -1;
 #endif
-      || !(f = fopen (tempfile, "w")))
+  f = fdopen (fd, "w");
+  if (! f)
     return -1;
   for (i = 0; i < count; i++)
-    if (fprintf (f, "%ld %s %s\n", scores[i].score, scores[i].username,
-		scores[i].data) < 0)
+    if (fprintf (f, "%"PRIdMAX" %s %s\n",
+		 scores[i].score, scores[i].username, scores[i].data)
+	< 0)
       return -1;
-  fclose (f);
-  if (rename (tempfile, filename) < 0)
+  if (fclose (f) != 0)
     return -1;
+  if (rename (tempfile, filename) != 0)
+    return -1;
+#ifdef WINDOWSNT
   if (chmod (filename, 0644) < 0)
     return -1;
+#endif
   return 0;
 }
 
@@ -420,9 +481,9 @@ lock_file (const char *filename, void **state)
   *state = lockpath;
  trylock:
   attempts++;
-  /* If the lock is over an hour old, delete it. */
+  /* If the lock is over an hour old, delete it.  */
   if (stat (lockpath, &buf) == 0
-      && (difftime (buf.st_ctime, time (NULL) > 60*60)))
+      && 60 * 60 < time (0) - buf.st_ctime)
     unlink (lockpath);
   fd = open (lockpath, O_CREAT | O_EXCL, 0600);
   if (fd < 0)
@@ -450,12 +511,12 @@ static int
 unlock_file (const char *filename, void *state)
 {
   char *lockpath = (char *) state;
-  int ret = unlink (lockpath);
   int saved_errno = errno;
+  int ret = unlink (lockpath);
+  int unlink_errno = errno;
   free (lockpath);
-  errno = saved_errno;
+  errno = ret < 0 ? unlink_errno : saved_errno;
   return ret;
 }
-
 
 /* update-game-score.c ends here */

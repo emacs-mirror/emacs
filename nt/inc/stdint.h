@@ -1,6 +1,6 @@
 /* Replacement stdint.h file for building GNU Emacs on Windows.
 
-Copyright (C) 2011-2013 Free Software Foundation, Inc.
+Copyright (C) 2011-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -38,6 +38,7 @@ typedef unsigned __int64 uint64_t;
 #define INT64_MIN (~INT64_MAX)
 #define INTPTR_MAX INT64_MAX
 #define INTPTR_MIN INT64_MIN
+#define UINTPTR_MAX UINT64_MAX
 #define UINTMAX_MAX UINT64_MAX
 #define UINTMAX_MIN UINT64_MIN
 #define INTMAX_MAX INT64_MAX
@@ -53,6 +54,7 @@ typedef unsigned int uint32_t;
 #define INT32_MIN (~INT32_MAX)
 #define INTPTR_MAX INT32_MAX
 #define INTPTR_MIN INT32_MIN
+#define UINTPTR_MAX UINT32_MAX
 #define UINTMAX_MAX UINT32_MAX
 #define UINTMAX_MIN UINT32_MIN
 #define INTMAX_MAX INT32_MAX
@@ -63,6 +65,7 @@ typedef unsigned int uint32_t;
 
 #define PTRDIFF_MAX INTPTR_MAX
 #define PTRDIFF_MIN INTPTR_MIN
+#define SIZE_MAX UINTPTR_MAX
 
 #endif	/* !__GNUC__ */
 

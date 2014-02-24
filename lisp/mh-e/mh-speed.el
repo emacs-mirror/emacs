@@ -1,6 +1,6 @@
 ;;; mh-speed.el --- MH-E speedbar support
 
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -175,7 +175,7 @@ The optional arguments from speedbar are IGNORED."
                      (mh-read-range "Scan" folder t nil nil
                                     mh-interpret-number-as-range-flag))))
     (when (stringp folder)
-      (speedbar-with-attached-buffer
+      (dframe-with-attached-buffer
        (mh-visit-folder folder range)
        (delete-other-windows)))))
 

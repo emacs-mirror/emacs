@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Registers
@@ -29,6 +29,15 @@ you store something else in that register.  To see what register
 Display a description of what register @var{r} contains.
 @end table
 
+@vindex register-preview-delay
+@cindex preview of registers
+  All of the commands that prompt for a register will display a
+``preview'' window that lists the existing registers (if there are
+any) after a short delay.  To change the length of the delay,
+customize @code{register-preview-delay}.  To prevent this display, set
+that option to @code{nil}.  You can explicitly request a preview
+window by pressing @kbd{C-h} or @key{F1}.
+
   @dfn{Bookmarks} record files and positions in them, so you can
 return to those positions when you look at the file again.  Bookmarks
 are similar in spirit to registers, so they are also documented in
@@ -41,6 +50,7 @@ this chapter.
 * Configuration Registers::  Saving window configurations in registers.
 * Number Registers::         Numbers in registers.
 * File Registers::           File names in registers.
+* Keyboard Macro Registers:: Keyboard macros in registers.
 * Bookmarks::                Bookmarks are like registers, but persistent.
 @end menu
 
@@ -172,7 +182,7 @@ rather than a text string, if the register contains a rectangle.
 @cindex saving window configuration in a register
 
 @findex window-configuration-to-register
-@findex frame-configuration-to-register
+@findex frameset-to-register
 @kindex C-x r w
 @kindex C-x r f
   You can save the window configuration of the selected frame in a
@@ -186,7 +196,7 @@ Save the state of the selected frame's windows in register @var{r}
 (@code{window-configuration-to-register}).
 @item C-x r f @var{r}
 Save the state of all frames, including all their windows, in register
-@var{r} (@code{frame-configuration-to-register}).
+@var{r} (@code{frameset-to-register}).
 @end table
 
   Use @kbd{C-x r j @var{r}} to restore a window or frame configuration.
@@ -230,10 +240,10 @@ numeric argument stores zero in the register.
 
   If you visit certain file names frequently, you can visit them more
 conveniently if you put their names in registers.  Here's the Lisp code
-used to put a file name in a register:
+used to put a file @var{name} into register @var{r}:
 
 @smallexample
-(set-register ?@var{r} '(file . @var{name}))
+(set-register @var{r} '(file . @var{name}))
 @end smallexample
 
 @need 3000
@@ -250,6 +260,23 @@ puts the file name shown in register @samp{z}.
   To visit the file whose name is in register @var{r}, type @kbd{C-x r j
 @var{r}}.  (This is the same command used to jump to a position or
 restore a frame configuration.)
+
+@node Keyboard Macro Registers
+@section Keyboard Macro Registers
+@cindex saving keyboard macro in a register
+@cindex keyboard macros, in registers
+
+@kindex C-x C-k x
+@findex kmacro-to-register
+  If you need to execute a keyboard macro (@pxref{Keyboard Macros})
+frequently, it is more convenient to put it in a register or save it
+(@pxref{Save Keyboard Macro}).  @kbd{C-x C-k x @var{r}}
+(@code{kmacro-to-register}) stores the last keyboard macro in register
+@var{r}.
+
+  To execute the keyboard macro in register @var{r}, type @kbd{C-x r j
+@var{r}}.  (This is the same command used to jump to a position or
+restore a frameset.)
 
 @node Bookmarks
 @section Bookmarks
@@ -316,6 +343,10 @@ don't lose any bookmark values even if Emacs crashes.  The value, if
 a number, says how many bookmark modifications should go by between
 saving.  If you set this variable to @code{nil}, Emacs only
 saves bookmarks if you explicitly use @kbd{M-x bookmark-save}.
+
+@vindex bookmark-default-file
+  The variable @code{bookmark-default-file} specifies the file in
+which to save bookmarks by default.
 
 @vindex bookmark-search-size
   Bookmark position values are saved with surrounding context, so that

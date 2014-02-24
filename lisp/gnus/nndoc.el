@@ -1,6 +1,6 @@
 ;;; nndoc.el --- single file access for Gnus
 
-;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -56,6 +56,10 @@ from the document.")
   `((mmdf
      (article-begin .  "^\^A\^A\^A\^A\n")
      (body-end .  "^\^A\^A\^A\^A\n"))
+    (debbugs-db
+     (file-begin    . "^\005")
+     (article-begin . "^[\005\007]\n")
+     (body-end      . "^\003"))
     (mime-digest
      (article-begin . "")
      (head-begin . "^ ?\n")
@@ -458,6 +462,10 @@ from the document.")
 
 (defun nndoc-mmdf-type-p ()
   (when (looking-at "\^A\^A\^A\^A$")
+    t))
+
+(defun nndoc-debbugs-db-type-p ()
+  (when (looking-at "\006$")
     t))
 
 (defun nndoc-news-type-p ()

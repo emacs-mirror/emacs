@@ -1,9 +1,9 @@
 ;;; semantic/senator.el --- SEmantic NAvigaTOR
 
-;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 10 Nov 2000
 ;; Keywords: syntax
 
@@ -722,12 +722,24 @@ yanked to."
 (defun senator-copy-tag-to-register (register &optional kill-flag)
   "Copy the current tag into REGISTER.
 Optional argument KILL-FLAG will delete the text of the tag to the
-kill ring."
-  (interactive "cTag to register: \nP")
+kill ring.
+
+Interactively, reads the register using `register-read-with-preview',
+if available."
+  (interactive (list (if (fboundp 'register-read-with-preview)
+			 (register-read-with-preview "Tag to register: ")
+		       (read-char "Tag to register: "))
+		     current-prefix-arg))
   (semantic-fetch-tags)
   (let ((ft (semantic-obtain-foreign-tag)))
     (when ft
-      (set-register register ft)
+      (set-register
+       register (registerv-make
+                 ft
+                 :insert-func #'semantic-insert-foreign-tag
+                 :jump-func (lambda (v)
+                              (switch-to-buffer (semantic-tag-buffer v))
+                              (goto-char (semantic-tag-start v)))))
       (if kill-flag
           (kill-region (semantic-tag-start ft)
                        (semantic-tag-end ft))))))

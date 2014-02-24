@@ -1,5 +1,5 @@
 /* Composite sequence support.
-   Copyright (C) 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 2001-2014 Free Software Foundation, Inc.
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
@@ -23,8 +23,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-
-#define COMPOSITE_INLINE EXTERN_INLINE
 
 #include "lisp.h"
 #include "character.h"
@@ -160,10 +158,6 @@ static Lisp_Object Qauto_composition_function;
    auto-compositions.  */
 #define MAX_AUTO_COMPOSITION_LOOKBACK 3
 
-/* Temporary variable used in macros COMPOSITION_XXX.  */
-Lisp_Object composition_temp;
-
-
 /* Return COMPOSITION-ID of a composition at buffer position
    CHARPOS/BYTEPOS and length NCHARS.  The `composition' property of
    the sequence is PROP.  STRING, if non-nil, is a string that
@@ -234,7 +228,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
     key = components;
   else if (NILP (components))
     {
-      key = Fmake_vector (make_number (nchars), Qnil);
+      key = make_uninit_vector (nchars);
       if (STRINGP (string))
 	for (i = 0; i < nchars; i++)
 	  {
@@ -478,11 +472,11 @@ run_composition_function (ptrdiff_t from, ptrdiff_t to, Lisp_Object prop)
      valid too.  */
   if (from > BEGV
       && find_composition (from - 1, -1, &start, &end, &prop, Qnil)
-      && !COMPOSITION_VALID_P (start, end, prop))
+      && !composition_valid_p (start, end, prop))
     from = start;
   if (to < ZV
       && find_composition (to, -1, &start, &end, &prop, Qnil)
-      && !COMPOSITION_VALID_P (start, end, prop))
+      && !composition_valid_p (start, end, prop))
     to = end;
   if (!NILP (Ffboundp (func)))
     call2 (func, make_number (from), make_number (to));
@@ -524,7 +518,7 @@ update_compositions (ptrdiff_t from, ptrdiff_t to, int check_mask)
 	 latter to the copy of it.  */
       if (from > BEGV
 	  && find_composition (from - 1, -1, &start, &end, &prop, Qnil)
-	  && COMPOSITION_VALID_P (start, end, prop))
+	  && composition_valid_p (start, end, prop))
 	{
 	  min_pos = start;
 	  if (end > to)
@@ -538,7 +532,7 @@ update_compositions (ptrdiff_t from, ptrdiff_t to, int check_mask)
 	}
       else if (from < ZV
 	       && find_composition (from, -1, &start, &from, &prop, Qnil)
-	       && COMPOSITION_VALID_P (start, from, prop))
+	       && composition_valid_p (start, from, prop))
 	{
 	  if (from > to)
 	    max_pos = from;
@@ -553,7 +547,7 @@ update_compositions (ptrdiff_t from, ptrdiff_t to, int check_mask)
          (to - 1).  */
       while (from < to - 1
 	     && find_composition (from, to, &start, &from, &prop, Qnil)
-	     && COMPOSITION_VALID_P (start, from, prop)
+	     && composition_valid_p (start, from, prop)
 	     && from < to - 1)
 	run_composition_function (start, from, prop);
     }
@@ -562,7 +556,7 @@ update_compositions (ptrdiff_t from, ptrdiff_t to, int check_mask)
     {
       if (from < to
 	  && find_composition (to - 1, -1, &start, &end, &prop, Qnil)
-	  && COMPOSITION_VALID_P (start, end, prop))
+	  && composition_valid_p (start, end, prop))
 	{
 	  /* TO should be also at composition boundary.  But,
 	     insertion or deletion will make two compositions adjacent
@@ -580,7 +574,7 @@ update_compositions (ptrdiff_t from, ptrdiff_t to, int check_mask)
 	}
       else if (to < ZV
 	       && find_composition (to, -1, &start, &end, &prop, Qnil)
-	       && COMPOSITION_VALID_P (start, end, prop))
+	       && composition_valid_p (start, end, prop))
 	{
 	  run_composition_function (start, end, prop);
 	  max_pos = end;
@@ -595,7 +589,7 @@ update_compositions (ptrdiff_t from, ptrdiff_t to, int check_mask)
       specbind (Qinhibit_point_motion_hooks, Qt);
       Fremove_list_of_text_properties (make_number (min_pos),
 				       make_number (max_pos),
-				       Fcons (Qauto_composed, Qnil), Qnil);
+				       list1 (Qauto_composed), Qnil);
       unbind_to (count, Qnil);
     }
 }
@@ -680,7 +674,6 @@ composition_gstring_put_cache (Lisp_Object gstring, ptrdiff_t len)
       len = j;
     }
 
-  lint_assume (len <= TYPE_MAXIMUM (ptrdiff_t) - 2);
   copy = Fmake_vector (make_number (len + 2), Qnil);
   LGSTRING_SET_HEADER (copy, Fcopy_sequence (header));
   for (i = 0; i < len; i++)
@@ -787,35 +780,11 @@ static Lisp_Object gstring_work;
 static Lisp_Object gstring_work_headers;
 
 static Lisp_Object
-fill_gstring_header (Lisp_Object header, Lisp_Object start, Lisp_Object end,
-		     Lisp_Object font_object, Lisp_Object string)
+fill_gstring_header (Lisp_Object header, ptrdiff_t from, ptrdiff_t from_byte,
+		     ptrdiff_t to, Lisp_Object font_object, Lisp_Object string)
 {
-  ptrdiff_t from, to, from_byte;
-  ptrdiff_t len, i;
+  ptrdiff_t len = to - from, i;
 
-  if (NILP (string))
-    {
-      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	error ("Attempt to shape unibyte text");
-      validate_region (&start, &end);
-      from = XFASTINT (start);
-      to = XFASTINT (end);
-      from_byte = CHAR_TO_BYTE (from);
-    }
-  else
-    {
-      CHECK_STRING (string);
-      if (! STRING_MULTIBYTE (string))
-	error ("Attempt to shape unibyte text");
-      /* The caller checks that START and END are nonnegative integers.  */
-      if (! (XINT (start) <= XINT (end) && XINT (end) <= SCHARS (string)))
-	args_out_of_range_3 (string, start, end);
-      from = XINT (start);
-      to = XINT (end);
-      from_byte = string_char_to_byte (string, from);
-    }
-
-  len = to - from;
   if (len == 0)
     error ("Attempt to shape zero-length text");
   if (VECTORP (header))
@@ -828,7 +797,7 @@ fill_gstring_header (Lisp_Object header, Lisp_Object start, Lisp_Object end,
       if (len <= 8)
 	header = AREF (gstring_work_headers, len - 1);
       else
-	header = Fmake_vector (make_number (len + 1), Qnil);
+	header = make_uninit_vector (len + 1);
     }
 
   ASET (header, 0, font_object);
@@ -901,7 +870,7 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
 	       Lisp_Object string)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
-  FRAME_PTR f = XFRAME (win->frame);
+  struct frame *f = XFRAME (win->frame);
   Lisp_Object pos = make_number (charpos);
   ptrdiff_t to;
   ptrdiff_t pt = PT, pt_byte = PT_BYTE;
@@ -1012,7 +981,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
   if (charpos < endpos
       && find_composition (charpos, endpos, &start, &end, &prop, string)
       && start >= charpos
-      && COMPOSITION_VALID_P (start, end, prop))
+      && composition_valid_p (start, end, prop))
     {
       cmp_it->stop_pos = endpos = start;
       cmp_it->ch = -1;
@@ -1198,7 +1167,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
 
 /* Check if the character at CHARPOS (and BYTEPOS) is composed
    (possibly with the following characters) on window W.  ENDPOS limits
-   characters to be composed.  FACE, in non-NULL, is a base face of
+   characters to be composed.  FACE, if non-NULL, is a base face of
    the character.  If STRING is not nil, it is a string containing the
    character to check, and CHARPOS and BYTEPOS are indices in the
    string.  In that case, FACE must not be NULL.
@@ -1419,7 +1388,7 @@ composition_update_it (struct composition_it *cmp_it, ptrdiff_t charpos, ptrdiff
       cmp_it->width = 0;
       for (i = cmp_it->nchars - 1; i >= 0; i--)
 	{
-	  c = XINT (LGSTRING_CHAR (gstring, i));
+	  c = XINT (LGSTRING_CHAR (gstring, from + i));
 	  cmp_it->nbytes += CHAR_BYTES (c);
 	  cmp_it->width += CHAR_WIDTH (c);
 	}
@@ -1672,7 +1641,7 @@ composition_adjust_point (ptrdiff_t last_pt, ptrdiff_t new_pt)
 
   /* At first check the static composition. */
   if (get_property_and_range (new_pt, Qcomposition, &val, &beg, &end, Qnil)
-      && COMPOSITION_VALID_P (beg, end, val))
+      && composition_valid_p (beg, end, val))
     {
       if (beg < new_pt /* && end > new_pt   <- It's always the case.  */
 	  && (last_pt <= beg || last_pt >= end))
@@ -1715,6 +1684,8 @@ frame, or nil for the selected frame's terminal device.
 
 If the optional 4th argument STRING is not nil, it is a string
 containing the target characters between indices FROM and TO.
+Otherwise FROM and TO are character positions in current buffer;
+they can be in either order, and can be integers or markers.
 
 A glyph-string is a vector containing information about how to display
 a specific character sequence.  The format is:
@@ -1746,10 +1717,8 @@ should be ignored.  */)
   (Lisp_Object from, Lisp_Object to, Lisp_Object font_object, Lisp_Object string)
 {
   Lisp_Object gstring, header;
-  ptrdiff_t frompos, topos;
+  ptrdiff_t frompos, frombyte, topos;
 
-  CHECK_NATNUM (from);
-  CHECK_NATNUM (to);
   if (! FONT_OBJECT_P (font_object))
     {
       struct coding_system *coding;
@@ -1761,13 +1730,35 @@ should be ignored.  */)
       font_object = CODING_ID_NAME (coding->id);
     }
 
-  header = fill_gstring_header (Qnil, from, to, font_object, string);
+  if (NILP (string))
+    {
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
+	error ("Attempt to shape unibyte text");
+      validate_region (&from, &to);
+      frompos = XFASTINT (from);
+      topos = XFASTINT (to);
+      frombyte = CHAR_TO_BYTE (frompos);
+    }
+  else
+    {
+      CHECK_NATNUM (from);
+      CHECK_NATNUM (to);
+      CHECK_STRING (string);
+      if (! STRING_MULTIBYTE (string))
+	error ("Attempt to shape unibyte text");
+      if (! (XINT (from) <= XINT (to) && XINT (to) <= SCHARS (string)))
+	args_out_of_range_3 (string, from, to);
+      frompos = XFASTINT (from);
+      topos = XFASTINT (to);
+      frombyte = string_char_to_byte (string, frompos);
+    }
+
+  header = fill_gstring_header (Qnil, frompos, frombyte,
+				topos, font_object, string);
   gstring = gstring_lookup_cache (header);
   if (! NILP (gstring))
     return gstring;
 
-  frompos = XINT (from);
-  topos = XINT (to);
   if (LGSTRING_GLYPH_LEN (gstring_work) < topos - frompos)
     gstring_work = Fmake_vector (make_number (topos - frompos + 2), Qnil);
   LGSTRING_SET_HEADER (gstring_work, header);
@@ -1872,14 +1863,12 @@ See `find-composition' for more details.  */)
 	  && (e <= XINT (pos) ? e > end : s < start))
 	return list3 (make_number (s), make_number (e), gstring);
     }
-  if (!COMPOSITION_VALID_P (start, end, prop))
-    return Fcons (make_number (start), Fcons (make_number (end),
-					      Fcons (Qnil, Qnil)));
+  if (!composition_valid_p (start, end, prop))
+    return list3 (make_number (start), make_number (end), Qnil);
   if (NILP (detail_p))
-    return Fcons (make_number (start), Fcons (make_number (end),
-					      Fcons (Qt, Qnil)));
+    return list3 (make_number (start), make_number (end), Qt);
 
-  if (COMPOSITION_REGISTERD_P (prop))
+  if (composition_registered_p (prop))
     id = COMPOSITION_ID (prop);
   else
     {
@@ -1892,17 +1881,14 @@ See `find-composition' for more details.  */)
   if (id >= 0)
     {
       Lisp_Object components, relative_p, mod_func;
-      enum composition_method method = COMPOSITION_METHOD (prop);
+      enum composition_method method = composition_method (prop);
       int width = composition_table[id]->width;
 
       components = Fcopy_sequence (COMPOSITION_COMPONENTS (prop));
       relative_p = (method == COMPOSITION_WITH_RULE_ALTCHARS
 		    ? Qnil : Qt);
       mod_func = COMPOSITION_MODIFICATION_FUNC (prop);
-      tail = Fcons (components,
-		    Fcons (relative_p,
-			   Fcons (mod_func,
-				  Fcons (make_number (width), Qnil))));
+      tail = list4 (components, relative_p, mod_func, make_number (width));
     }
   else
     tail = Qnil;

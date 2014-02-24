@@ -1,6 +1,6 @@
 ;;; epa.el --- the EasyPG Assistant -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -31,11 +31,11 @@
 (defgroup epa nil
   "The EasyPG Assistant"
   :version "23.1"
+  :link '(custom-manual "(epa) Top")
   :group 'epg)
 
 (defcustom epa-popup-info-window t
-  "If non-nil, status information from epa commands is displayed on
-the separate window."
+  "If non-nil, display status information from epa commands in another window."
   :type 'boolean
   :group 'epa)
 
@@ -48,6 +48,21 @@ the separate window."
   "Faces for epa-mode."
   :version "23.1"
   :group 'epa)
+
+(defcustom epa-mail-aliases nil
+  "Alist of aliases of email addresses that stand for encryption keys.
+Each element is a list of email addresses (ALIAS EXPANSIONS...).
+When one of the recipients of a message being encrypted is ALIAS,
+instead of encrypting it for ALIAS, encrypt it for EXPANSIONS...
+
+If EXPANSIONS is empty, ignore ALIAS as regards encryption.
+This is a handy way to avoid warnings about addresses that you don't
+have any key for.
+
+The command `epa-mail-encrypt' uses this."
+  :type '(repeat (cons (string :tag "Alias") (repeat (string :tag "Expansion"))))
+  :group 'epa
+  :version "24.4")
 
 (defface epa-validity-high
   '((default :weight bold)
@@ -257,62 +272,40 @@ You should bind this variable with `let', but do not set it globally.")
 	  (epg-sub-key-id (car (epg-key-sub-key-list
 				(widget-get widget :value))))))
 
-(eval-and-compile
-  (if (fboundp 'encode-coding-string)
-      (defalias 'epa--encode-coding-string 'encode-coding-string)
-    (defalias 'epa--encode-coding-string 'identity)))
+(defalias 'epa--encode-coding-string
+  (if (fboundp 'encode-coding-string) #'encode-coding-string #'identity))
 
-(eval-and-compile
-  (if (fboundp 'decode-coding-string)
-      (defalias 'epa--decode-coding-string 'decode-coding-string)
-    (defalias 'epa--decode-coding-string 'identity)))
+(defalias 'epa--decode-coding-string
+  (if (fboundp 'decode-coding-string) #'decode-coding-string #'identity))
 
-(defun epa-key-list-mode ()
+(define-derived-mode epa-key-list-mode special-mode "Keys"
   "Major mode for `epa-list-keys'."
-  (kill-all-local-variables)
   (buffer-disable-undo)
-  (setq major-mode 'epa-key-list-mode
-	mode-name "Keys"
-	truncate-lines t
+  (setq truncate-lines t
 	buffer-read-only t)
-  (use-local-map epa-key-list-mode-map)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(epa-font-lock-keywords t))
+  (setq-local font-lock-defaults '(epa-font-lock-keywords t))
   ;; In XEmacs, auto-initialization of font-lock is not effective
   ;; if buffer-file-name is not set.
   (font-lock-set-defaults)
   (make-local-variable 'epa-exit-buffer-function)
-  (make-local-variable 'revert-buffer-function)
-  (setq revert-buffer-function 'epa--key-list-revert-buffer)
-  (run-mode-hooks 'epa-key-list-mode-hook))
+  (setq-local revert-buffer-function #'epa--key-list-revert-buffer))
 
-(defun epa-key-mode ()
+(define-derived-mode epa-key-mode special-mode "Key"
   "Major mode for a key description."
-  (kill-all-local-variables)
   (buffer-disable-undo)
-  (setq major-mode 'epa-key-mode
-	mode-name "Key"
-	truncate-lines t
+  (setq truncate-lines t
 	buffer-read-only t)
-  (use-local-map epa-key-mode-map)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(epa-font-lock-keywords t))
+  (setq-local font-lock-defaults '(epa-font-lock-keywords t))
   ;; In XEmacs, auto-initialization of font-lock is not effective
   ;; if buffer-file-name is not set.
   (font-lock-set-defaults)
-  (make-local-variable 'epa-exit-buffer-function)
-  (run-mode-hooks 'epa-key-mode-hook))
+  (make-local-variable 'epa-exit-buffer-function))
 
-(defun epa-info-mode ()
+(define-derived-mode epa-info-mode special-mode "Info"
   "Major mode for `epa-info-buffer'."
-  (kill-all-local-variables)
   (buffer-disable-undo)
-  (setq major-mode 'epa-info-mode
-	mode-name "Info"
-	truncate-lines t
-	buffer-read-only t)
-  (use-local-map epa-info-mode-map)
-  (run-mode-hooks 'epa-info-mode-hook))
+  (setq truncate-lines t
+	buffer-read-only t))
 
 (defun epa-mark-key (&optional arg)
   "Mark a key on the current line.
@@ -620,31 +613,37 @@ If SECRET is non-nil, list secret keys instead of public keys."
 		   (floor (* (/ current (float total)) 100))))
       (message "%s..." prompt))))
 
+(defun epa-read-file-name (input)
+  "Interactively read an output file name based on INPUT file name."
+  (setq input (file-name-sans-extension (expand-file-name input)))
+  (expand-file-name
+   (read-file-name
+    (concat "To file (default " (file-name-nondirectory input) ") ")
+    (file-name-directory input)
+    input)))
+
 ;;;###autoload
-(defun epa-decrypt-file (file)
-  "Decrypt FILE."
-  (interactive "fFile: ")
-  (setq file (expand-file-name file))
-  (let* ((default-name (file-name-sans-extension file))
-	 (plain (expand-file-name
-		 (read-file-name
-		  (concat "To file (default "
-			  (file-name-nondirectory default-name)
-			  ") ")
-		  (file-name-directory default-name)
-		  default-name)))
-	 (context (epg-make-context epa-protocol)))
+(defun epa-decrypt-file (decrypt-file &optional plain-file)
+  "Decrypt DECRYPT-FILE into PLAIN-FILE.
+If you do not specify PLAIN-FILE, this functions prompts for the value to use."
+  (interactive
+   (let* ((file (read-file-name "File to decrypt: "))
+	  (plain (epa-read-file-name file)))
+     (list file plain)))
+  (or plain-file (setq plain-file (epa-read-file-name decrypt-file)))
+  (setq decrypt-file (expand-file-name decrypt-file))
+  (let ((context (epg-make-context epa-protocol)))
     (epg-context-set-passphrase-callback context
 					 #'epa-passphrase-callback-function)
     (epg-context-set-progress-callback context
 				       (cons
 					#'epa-progress-callback-function
 					(format "Decrypting %s..."
-						(file-name-nondirectory file))))
-    (message "Decrypting %s..." (file-name-nondirectory file))
-    (epg-decrypt-file context file plain)
-    (message "Decrypting %s...wrote %s" (file-name-nondirectory file)
-	     (file-name-nondirectory plain))
+						(file-name-nondirectory decrypt-file))))
+    (message "Decrypting %s..." (file-name-nondirectory decrypt-file))
+    (epg-decrypt-file context decrypt-file plain-file)
+    (message "Decrypting %s...wrote %s" (file-name-nondirectory decrypt-file)
+	     (file-name-nondirectory plain-file))
     (if (epg-context-result-for context 'verify)
 	(epa-display-info (epg-verify-result-to-string
 			   (epg-context-result-for context 'verify))))))
@@ -934,10 +933,10 @@ See the reason described in the `epa-verify-region' documentation."
 	    (error "No cleartext tail"))
 	  (epa-verify-region cleartext-start cleartext-end))))))
 
-(eval-and-compile
+(defalias 'epa--select-safe-coding-system
   (if (fboundp 'select-safe-coding-system)
-      (defalias 'epa--select-safe-coding-system 'select-safe-coding-system)
-    (defun epa--select-safe-coding-system (_from _to)
+      #'select-safe-coding-system
+    (lambda (_from _to)
       buffer-file-coding-system)))
 
 ;;;###autoload
@@ -1009,16 +1008,16 @@ If no one is selected, default secret key is used.  "
 				 'start-open t
 				 'end-open t)))))
 
-(eval-and-compile
+(defalias 'epa--derived-mode-p
   (if (fboundp 'derived-mode-p)
-      (defalias 'epa--derived-mode-p 'derived-mode-p)
-    (defun epa--derived-mode-p (&rest modes)
+      #'derived-mode-p
+    (lambda (&rest modes)
       "Non-nil if the current major mode is derived from one of MODES.
 Uses the `derived-mode-parent' property of the symbol to trace backwards."
       (let ((parent major-mode))
-	(while (and (not (memq parent modes))
-		    (setq parent (get parent 'derived-mode-parent))))
-	parent))))
+        (while (and (not (memq parent modes))
+                    (setq parent (get parent 'derived-mode-parent))))
+        parent))))
 
 ;;;###autoload
 (defun epa-encrypt-region (start end recipients sign signers)
@@ -1121,6 +1120,7 @@ If no one is selected, symmetric encryption will be performed.  ")
     (if (epg-context-result-for context 'import)
 	(epa-display-info (epg-import-result-to-string
 			   (epg-context-result-for context 'import))))
+    ;; FIXME: Why not use the (otherwise unused) epa--derived-mode-p?
     (if (eq major-mode 'epa-key-list-mode)
 	(apply #'epa--list-keys epa-list-keys-arguments))))
 

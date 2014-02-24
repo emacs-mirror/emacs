@@ -1,9 +1,9 @@
 ;;; foldout.el --- folding extensions for outline-mode and outline-minor-mode
 
-;; Copyright (C) 1994, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Kevin Broadey <KevinB@bartley.demon.co.uk>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 27 Jan 1994
 ;; Version: 1.10
 ;; Keywords: folding, outlines

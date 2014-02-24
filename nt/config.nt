@@ -1,6 +1,6 @@
 /* GNU Emacs site configuration template file.
 
-Copyright (C) 1988, 1993-1994, 2001-2013 Free Software Foundation, Inc.
+Copyright (C) 1988, 1993-1994, 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,8 +18,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* NOTE:
-   This file is intentionally kept in sync with autogen/config.in to
-   ease maintenance.  Please do not remove non-Windows related stuff
+   *** WARNING This file is no longer being updated ***
+   Please do not remove non-Windows related stuff
    unless strictly necessary.  Also, before adding anything here
    consider whether inc/ms-w32.h would be a better place; this is
    particularly true for gcc vs. MSVC conditional defines, MinGW or
@@ -60,12 +60,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define on FreeBSD to work around an issue when reading from a PTY. */
 #undef BROKEN_PTY_READ_AFTER_EAGAIN
 
-/* Define if the system is compatible with BSD 4.2. */
-#undef BSD_SYSTEM
-
-/* Define if AH_BOTTOM should change BSD_SYSTEM. */
-#undef BSD_SYSTEM_AHB
-
 /* Define if Emacs cannot be dumped on your system. */
 #undef CANNOT_DUMP
 
@@ -78,7 +72,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define CLASH_DETECTION 1
 
 /* Short copyright string for this version of Emacs. */
-#define COPYRIGHT "Copyright (C) 2013 Free Software Foundation, Inc."
+#define COPYRIGHT "Copyright (C) 2014 Free Software Foundation, Inc."
 
 /* Define to one of '_getb67', 'GETB67', 'getb67' for Cray-2 and Cray-YMP
    systems. This function is required for 'alloca.c' support on those systems.
@@ -96,9 +90,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Extra bits to be or'd in with any pointers stored in a Lisp_Object. */
 #undef DATA_SEG_BITS
-
-/* Address of the start of the data segment. */
-#undef DATA_START
 
 /* Name of the default sound device. */
 #undef DEFAULT_SOUND_DEVICE
@@ -224,11 +215,77 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `access' function. */
 #undef HAVE_ACCESS
 
+/* Define to 1 if you have the `aclsort' function. */
+#undef HAVE_ACLSORT
+
+/* Define to 1 if you have the <aclv.h> header file. */
+#undef HAVE_ACLV_H
+
+/* Define to 1 if you have the `aclx_get' function. */
+#undef HAVE_ACLX_GET
+
+/* Define to 1 if you have the `acl_copy_ext_native' function. */
+#undef HAVE_ACL_COPY_EXT_NATIVE
+
+/* Define to 1 if you have the `acl_create_entry_np' function. */
+#undef HAVE_ACL_CREATE_ENTRY_NP
+
+/* Define to 1 if you have the `acl_delete_def_file' function. */
+#undef HAVE_ACL_DELETE_DEF_FILE
+
+/* Define to 1 if you have the `acl_delete_fd_np' function. */
+#undef HAVE_ACL_DELETE_FD_NP
+
+/* Define to 1 if you have the `acl_delete_file_np' function. */
+#undef HAVE_ACL_DELETE_FILE_NP
+
+/* Define to 1 if you have the `acl_entries' function. */
+#undef HAVE_ACL_ENTRIES
+
+/* Define to 1 if you have the `acl_extended_file' function. */
+#undef HAVE_ACL_EXTENDED_FILE
+
+/* Define to 1 if the constant ACL_FIRST_ENTRY exists. */
+#undef HAVE_ACL_FIRST_ENTRY
+
+/* Define to 1 if you have the `acl_free' function. */
+#define HAVE_ACL_FREE 1
+
+/* Define to 1 if you have the `acl_free_text' function. */
+#undef HAVE_ACL_FREE_TEXT
+
+/* Define to 1 if you have the `acl_from_mode' function. */
+#undef HAVE_ACL_FROM_MODE
+
+/* Define to 1 if you have the `acl_from_text' function. */
+#define HAVE_ACL_FROM_TEXT 1
+
+/* Define to 1 if you have the `acl_get_fd' function. */
+#undef HAVE_ACL_GET_FD
+
+/* Define to 1 if you have the `acl_get_file' function. */
+#define HAVE_ACL_GET_FILE 1
+
+/* Define to 1 if you have the <acl/libacl.h> header file. */
+#undef HAVE_ACL_LIBACL_H
+
+/* Define to 1 if you have the `acl_set_fd' function. */
+#undef HAVE_ACL_SET_FD
+
+/* Define to 1 if you have the `acl_set_file' function. */
+#define HAVE_ACL_SET_FILE 1
+
+/* Define to 1 if you have the `acl_to_short_text' function. */
+#undef HAVE_ACL_TO_SHORT_TEXT
+
+/* Define to 1 if you have the `acl_trivial' function. */
+#undef HAVE_ACL_TRIVIAL
+
+/* Define to 1 if the ACL type ACL_TYPE_EXTENDED exists. */
+#undef HAVE_ACL_TYPE_EXTENDED
+
 /* Define to 1 if the file /usr/lpp/X11/bin/smt.exp exists. */
 #undef HAVE_AIX_SMT_EXP
-
-/* Define to 1 if you have the `alarm' function. */
-#undef HAVE_ALARM
 
 /* Define to 1 if you have 'alloca' after including <alloca.h>, a header that
    may be supplied by this distribution. */
@@ -263,7 +320,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_COM_ERR_H
 
 /* Define to 1 if you have the `copysign' function. */
-#undef HAVE_COPYSIGN
+#define HAVE_COPYSIGN 1
+
+/* Define to 1 if data_start is the address of the start of the main data
+   segment. */
+#undef HAVE_DATA_START
 
 /* Define to 1 if using D-Bus. */
 #undef HAVE_DBUS
@@ -285,6 +346,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `dbus_watch_get_unix_fd' function. */
 #undef HAVE_DBUS_WATCH_GET_UNIX_FD
+
+/* Define to 1 if you have the declaration of `alarm', and to 0 if you don't.
+   */
+#undef HAVE_DECL_ALARM
+
+/* Define to 1 if you have the declaration of `fdatasync', and to 0 if you
+   don't. */
+#undef HAVE_DECL_FDATASYNC
 
 /* Define to 1 if you have the declaration of `fdopendir', and to 0 if you
    don't. */
@@ -334,6 +403,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    don't. */
 #undef HAVE_DECL_UNSETENV
 
+/* Define to 1 if you have the declaration of `_putenv', and to 0 if you
+   don't. */
+#undef HAVE_DECL__PUTENV
+
 /* Define to 1 if you have the declaration of `__fpending', and to 0 if you
    don't. */
 #undef HAVE_DECL___FPENDING
@@ -378,6 +451,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `faccessat' function. */
 #undef HAVE_FACCESSAT
 
+/* Define to 1 if you have the `facl' function. */
+#undef HAVE_FACL
+
+/* Define to 1 if you have the `fdatasync' function. */
+#undef HAVE_FDATASYNC
+
 /* Define to 1 if you have the `fdopendir' function. */
 #undef HAVE_FDOPENDIR
 
@@ -413,6 +492,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if using GConf. */
 #undef HAVE_GCONF
+
+/* Define to 1 if you have the `getacl' function. */
+#undef HAVE_GETACL
 
 /* Define to 1 if you have the `getaddrinfo' function. */
 #undef HAVE_GETADDRINFO
@@ -464,6 +546,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `gettimeofday' function. */
 #define HAVE_GETTIMEOFDAY 1
+
+/* Define to 1 if using GFile. */
+#undef HAVE_GFILENOTIFY
 
 /* Define to 1 if you have the `get_current_dir_name' function. */
 #undef HAVE_GET_CURRENT_DIR_NAME
@@ -711,6 +796,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    systems that support xmenu.c. */
 #undef HAVE_MENUS
 
+/* Define to 1 if you have the `mkostemp' function. */
+#define HAVE_MKOSTEMP 1
+
 /* Define to 1 if you have the `mkstemp' function. */
 #undef HAVE_MKSTEMP
 
@@ -747,9 +835,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <png.h> header file. */
 #undef HAVE_PNG_H
-
-/* Define to 1 if using POSIX ACL support. */
-#define HAVE_POSIX_ACL 1
 
 /* Define to 1 if you have the `posix_memalign' function. */
 #undef HAVE_POSIX_MEMALIGN
@@ -858,6 +943,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if `speed_t' is declared by <termios.h>. */
 #undef HAVE_SPEED_T
 
+/* Define to 1 if you have the `statacl' function. */
+#undef HAVE_STATACL
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
@@ -945,6 +1033,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `sync' function. */
 #undef HAVE_SYNC
+
+/* Define to 1 if you have the <sys/acl.h> header file. */
+#define HAVE_SYS_ACL_H 1
 
 /* Define to 1 if you have the <sys/bitypes.h> header file. */
 #undef HAVE_SYS_BITYPES_H
@@ -1056,6 +1147,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <vfork.h> header file. */
 #undef HAVE_VFORK_H
 
+/* Define to 1 to use w32notify. */
+#define HAVE_W32NOTIFY 1
+
 /* Define to 1 if you have the <wchar.h> header file. */
 #undef HAVE_WCHAR_H
 
@@ -1106,14 +1200,26 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if XIM is available */
 #undef HAVE_XIM
 
-/* Define to 1 if you have the XkbGetKeyboard function. */
-#undef HAVE_XKBGETKEYBOARD
+/* Define to 1 if you have the Xinerama extension. */
+#undef HAVE_XINERAMA
+
+/* Define to 1 if you have the Xkb extension. */
+#undef HAVE_XKB
 
 /* Define to 1 if you have the Xpm library (-lXpm). */
 #undef HAVE_XPM
 
+/* Define to 1 if you have the XRandr extension. */
+#undef HAVE_XRANDR
+
 /* Define to 1 if you have the `XrmSetDatabase' function. */
 #undef HAVE_XRMSETDATABASE
+
+/* Define to 1 if you have the `XRRGetOutputPrimary' function. */
+#undef HAVE_XRRGETOUTPUTPRIMARY
+
+/* Define to 1 if you have the `XRRGetScreenResourcesCurrent' function. */
+#undef HAVE_XRRGETSCREENRESOURCESCURRENT
 
 /* Define to 1 if you have the `XScreenNumberOfScreen' function. */
 #undef HAVE_XSCREENNUMBEROFSCREEN
@@ -1136,7 +1242,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `_ftime' function. */
 #undef HAVE__FTIME
 
-/* Define to 1 if _setjmp and _longjmp work. */
+/* Define to 1 if _setjmp and _longjmp work.  */
 #define HAVE__SETJMP 1
 
 /* Define to 1 if you have the `__builtin_unwind_init' function. */
@@ -1233,9 +1339,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if the nlist n_name member is a pointer */
 #undef N_NAME_POINTER
-
-/* Define if the C compiler is the linker. */
-#define ORDINARY_LINK 1
 
 /* Name of package */
 #define PACKAGE "emacs"
@@ -1366,7 +1469,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef TERMINFO
 
 /* Define to the header for the built-in window system. */
-#undef TERM_HEADER
+#define TERM_HEADER "w32term.h"
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #define TIME_WITH_SYS_TIME 1
@@ -1399,6 +1502,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* How to get a user's full name. */
 #define USER_FULL_NAME pw->pw_gecos
+
+/* Define to nonzero if you want access control list support. */
+#undef USE_ACL
+
+/* Define to 1 if using file notifications. */
+#define USE_FILE_NOTIFY 1
 
 /* Define to 1 if using GTK. */
 #undef USE_GTK
@@ -1578,13 +1687,24 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    _GL_INLINE_HEADER_END contains useful stuff to put
      in the same include file, after uses of _GL_INLINE.
 
-   Suppress the use of extern inline on Apple's platforms,
-   as Libc-825.25 (2012-09-19) is incompatible with it; see
+   Suppress extern inline with HP-UX cc, as it appears to be broken; see
+   <http://lists.gnu.org/archive/html/bug-texinfo/2013-02/msg00030.html>.
+
+   Suppress extern inline with Sun C in standards-conformance mode, as it
+   mishandles inline functions that call each other.  E.g., for 'inline void f
+   (void) { } inline void g (void) { f (); }', c99 incorrectly complains
+   'reference to static identifier "f" in extern inline function'.
+   This bug was observed with Sun C 5.12 SunOS_i386 2011/11/16.
+
+   Suppress the use of extern inline on Apple's platforms, as Libc at least
+   through Libc-825.26 (2013-04-09) is incompatible with it; see, e.g.,
    <http://lists.gnu.org/archive/html/bug-gnulib/2012-12/msg00023.html>.
    Perhaps Apple will fix this some day.  */
 #if ((__GNUC__ \
       ? defined __GNUC_STDC_INLINE__ && __GNUC_STDC_INLINE__ \
-      : 199901L <= __STDC_VERSION__) \
+      : (199901L <= __STDC_VERSION__ \
+         && !defined __HP_cc \
+         && !(defined __SUNPRO_C && __STDC__))) \
      && !defined __APPLE__)
 # define _GL_INLINE inline
 # define _GL_EXTERN_INLINE extern inline

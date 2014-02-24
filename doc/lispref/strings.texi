@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Strings and Characters
@@ -268,7 +268,7 @@ string to be used as a shell command, see @ref{Shell Arguments,
 combine-and-quote-strings}.
 @end defun
 
-@defun split-string string &optional separators omit-nulls
+@defun split-string string &optional separators omit-nulls trim
 This function splits @var{string} into substrings based on the regular
 expression @var{separators} (@pxref{Regular Expressions}).  Each match
 for @var{separators} defines a splitting point; the substrings between
@@ -349,6 +349,11 @@ practice:
 (split-string "ooo" "\\|o+" t)
      @result{} ("o" "o" "o")
 @end example
+
+If the optional argument @var{trim} is non-@code{nil}, it should be a
+regular expression to match text to trim from the beginning and end of
+each substring.  If trimming makes the substring empty, it is treated
+as null.
 
 If you need to split a string into a list of individual command-line
 arguments suitable for @code{call-process} or @code{start-process},
@@ -516,6 +521,13 @@ the optional argument @var{ignore-case} is non-@code{nil}, the
 comparison ignores case differences.
 @end defun
 
+@defun string-suffix-p suffix string &optional ignore-case
+This function returns non-@code{nil} if @var{suffix} is a suffix of
+@var{string}; i.e., if @var{string} ends with @var{suffix}.  If the
+optional argument @var{ignore-case} is non-@code{nil}, the comparison
+ignores case differences.
+@end defun
+
 @defun compare-strings string1 start1 end1 string2 start2 end2 &optional ignore-case
 This function compares a specified part of @var{string1} with a
 specified part of @var{string2}.  The specified part of @var{string1}
@@ -617,10 +629,8 @@ but its value is too large to fit into a Lisp integer,
 The parsing skips spaces and tabs at the beginning of @var{string},
 then reads as much of @var{string} as it can interpret as a number in
 the given base.  (On some systems it ignores other whitespace at the
-beginning, not just spaces and tabs.)  If the first character after
-the ignored whitespace is neither a digit in the given base, nor a
-plus or minus sign, nor the leading dot of a floating point number,
-this function returns 0.
+beginning, not just spaces and tabs.)  If @var{string} cannot be
+interpreted as a number, this function returns 0.
 
 @example
 (string-to-number "256")

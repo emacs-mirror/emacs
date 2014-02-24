@@ -1,9 +1,9 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs
 
-;; Copyright (C) 1985-1988, 1993-1998, 2000-2013 Free Software
+;; Copyright (C) 1985-1988, 1993-1998, 2000-2014 Free Software
 ;; Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -103,6 +103,11 @@ its character representation and its display representation.")
 (defvar rmail-mime-decoded nil
   "Non-nil if message has been processed by `rmail-show-mime-function'.")
 (put 'rmail-mime-decoded 'permanent-local t) ; for rmail-edit
+
+(defsubst rmail-mime-message-p ()
+  "Non-nil if and only if the current message is a MIME."
+  (or (get-text-property (point) 'rmail-mime-entity)
+      (get-text-property (point-min) 'rmail-mime-entity)))
 
 (defgroup rmail nil
   "Mail reader for Emacs."
@@ -249,7 +254,7 @@ We do this by executing it with `--version' and analyzing its output."
 	(cond
 	 ((looking-at ".*movemail: invalid option")
 	  'emacs)    ;; Possibly...
-	 ((looking-at "movemail (GNU Mailutils .*)")
+	 ((looking-at "movemail (GNU Mailutils")
 	  'mailutils)
 	 (t
 	  ;; FIXME:
@@ -686,6 +691,12 @@ Element N specifies the summary line for message N+1.")
 
 This is set to nil by default.")
 
+(defcustom rmail-get-coding-function nil
+  "Function of no args to try to determine coding system for a message."
+  :type 'function
+  :group 'rmail
+  :version "24.4")
+
 (defcustom rmail-enable-mime t
   "If non-nil, RMAIL automatically displays decoded MIME messages.
 For this to work, the feature specified by `rmail-mime-feature' must
@@ -1029,9 +1040,11 @@ This function also reinitializes local variables used by Rmail."
 The buffer is expected to be narrowed to just the header of the message."
   (save-excursion
     (goto-char (point-min))
-    (if (re-search-forward rmail-mime-charset-pattern nil t)
-	(coding-system-from-name (match-string 1))
-      'undecided)))
+    (or (if rmail-get-coding-function
+	    (funcall rmail-get-coding-function))
+	(if (re-search-forward rmail-mime-charset-pattern nil t)
+	    (coding-system-from-name (match-string 1))
+	  'undecided))))
 
 ;;; Set up Rmail mode keymaps
 
@@ -3725,7 +3738,7 @@ to switch to."
    ;; If the frame was probably made for this buffer, the user
    ;; probably wants to delete it now.
    ((display-multi-frame-p)
-    (delete-frame (selected-frame)))
+    (delete-frame))
    ;; The previous frame is where normally they have the Rmail buffer
    ;; displayed.
    (t (other-frame -1))))
@@ -3863,16 +3876,18 @@ which is an element of rmail-msgref-vector."
 			message-id))
                    ;; missing From, or Message-ID is sufficiently informative
                    message-id
-                   (concat message-id " (" tem ")"))
+		 (concat message-id " (" tem ")"))
+	     ;; Message has no Message-ID field.
 	     ;; Copy TEM, discarding text properties.
 	     (setq tem (copy-sequence tem))
 	     (set-text-properties 0 (length tem) nil tem)
 	     (setq tem (copy-sequence tem))
 	     ;; Use prin1 to fake RFC822 quoting
 	     (let ((field (prin1-to-string tem)))
+	       ;; Wrap it in parens to make it a comment according to RFC822
 	       (if date
-		   (concat field "'s message of " date)
-		   field)))))
+		   (concat "(" field "'s message of " date ")")
+		 (concat "(" field ")"))))))
         ((let* ((foo "[^][\000-\037()<>@,;:\\\" ]+")
                 (bar "[^][\000-\037()<>@,;:\\\"]+"))
 	   ;; These strings both match all non-ASCII characters.
@@ -3898,7 +3913,8 @@ which is an element of rmail-msgref-vector."
              (if message-id
                  ;; "<AA259@bar.edu> (message from Unix Loser on 1-Apr-89)"
                  (concat message-id " (" field ")")
-                 field))))
+	       ;; Wrap in parens to make it a comment, for RFC822.
+	       (concat "(" field ")")))))
         (t
          ;; If we can't kludge it simply, do it correctly
          (let ((mail-use-rfc822 t))
@@ -4105,6 +4121,8 @@ The message should be narrowed to just the headers."
 
 (autoload 'mail-position-on-field "sendmail")
 
+(declare-function rmail-mime-toggle-raw "rmailmm" (&optional state))
+
 (defun rmail-retry-failure ()
   "Edit a mail message which is based on the contents of the current message.
 For a message rejected by the mail system, extract the interesting headers and
@@ -4117,7 +4135,13 @@ The variable `rmail-retry-ignored-headers' is a regular expression
 specifying headers which should not be copied into the new message."
   (interactive)
   (require 'mail-utils)
-  (if rmail-enable-mime
+  ;; FIXME This does not handle rmail-mime-feature != 'rmailmm.
+  ;; There is no API defined for rmail-mime-feature to provide
+  ;; rmail-mime-message-p, rmail-mime-toggle-raw equivalents.
+  ;; But does anyone actually use rmail-mime-feature != 'rmailmm?
+  (if (and rmail-enable-mime
+	   (eq rmail-mime-feature 'rmailmm)
+	   (featurep rmail-mime-feature))
       (with-current-buffer rmail-buffer
 	(if (rmail-mime-message-p)
 	    (let ((rmail-mime-mbox-buffer rmail-view-buffer)
@@ -4301,8 +4325,6 @@ This has an effect only if a summary buffer exists."
                  (restore-buffer-modified-p nil)))))))
 
 ;;; Speedbar support for RMAIL files.
-(eval-when-compile (require 'speedbar))
-
 (defcustom rmail-speedbar-match-folder-regexp "^[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?$"
   "Regexp matching Rmail folder names to be displayed in Speedbar.
 Enabling this permits Speedbar to display your folders for easy
@@ -4317,12 +4339,12 @@ browsing, and moving of messages."
 (defvar rmail-speedbar-key-map nil
   "Keymap used when in rmail display mode.")
 
+(declare-function speedbar-make-specialized-keymap "speedbar" ())
+
 (defun rmail-install-speedbar-variables ()
   "Install those variables used by speedbar to enhance rmail."
-  (if rmail-speedbar-key-map
-      nil
+  (unless rmail-speedbar-key-map
     (setq rmail-speedbar-key-map (speedbar-make-specialized-keymap))
-
     (define-key rmail-speedbar-key-map "e" 'speedbar-edit-line)
     (define-key rmail-speedbar-key-map "r" 'speedbar-edit-line)
     (define-key rmail-speedbar-key-map "\C-m" 'speedbar-edit-line)
@@ -4336,6 +4358,9 @@ browsing, and moving of messages."
      (save-excursion (beginning-of-line)
 		     (looking-at "<M> "))])
   "Additional menu-items to add to speedbar frame.")
+
+(declare-function speedbar-insert-button "speedbar"
+		  (text face mouse function &optional token prevline))
 
 ;; Make sure our special speedbar major mode is loaded
 (if (featurep 'speedbar)
@@ -4378,18 +4403,26 @@ current message into that RMAIL folder."
 	    (speedbar-insert-button file 'speedbar-file-face 'highlight
 				    'rmail-speedbar-find-file nil t)))))))
 
+(eval-when-compile (require 'dframe))
+;; Part of the macro expansion of dframe-with-attached-buffer.
+;; At runtime, will be pulled in as a require of speedbar.
+(declare-function dframe-select-attached-frame "dframe" (&optional frame))
+(declare-function dframe-maybee-jump-to-attached-frame "dframe" ())
+
 (defun rmail-speedbar-button (text token indent)
   "Execute an rmail command specified by TEXT.
 The command used is TOKEN.  INDENT is not used."
-  (speedbar-with-attached-buffer
+  (dframe-with-attached-buffer
    (funcall token t)))
 
 (defun rmail-speedbar-find-file (text token indent)
   "Load in the rmail file TEXT.
 TOKEN and INDENT are not used."
-  (speedbar-with-attached-buffer
+  (dframe-with-attached-buffer
    (message "Loading in RMAIL file %s..." text)
    (rmail text)))
+
+(declare-function speedbar-do-function-pointer "speedbar" ())
 
 (defun rmail-speedbar-move-message-to-folder-on-line ()
   "If the current line is a folder, move current message to it."
@@ -4404,7 +4437,7 @@ TOKEN and INDENT are not used."
 (defun rmail-speedbar-move-message (text token indent)
   "From button TEXT, copy current message to the rmail file specified by TOKEN.
 TEXT and INDENT are not used."
-  (speedbar-with-attached-buffer
+  (dframe-with-attached-buffer
    (message "Moving message to %s" token)
    ;; expand-file-name is needed due to the unhelpful way in which
    ;; rmail-output expands non-absolute filenames against rmail-default-file.
@@ -4465,7 +4498,7 @@ encoded string (and the same mask) will decode the string."
 ;; There doesn't really seem to be an appropriate menu.
 ;; Eg the edit command is not in a menu either.
 (defun rmail-epa-decrypt ()
-  "Decrypt OpenPGP armors in current message."
+  "Decrypt GnuPG or OpenPGP armors in current message."
   (interactive)
 
   ;; Save the current buffer here for cleanliness, in case we
@@ -4475,14 +4508,10 @@ encoded string (and the same mask) will decode the string."
     (let (decrypts)
       (goto-char (point-min))
 
-      ;; In case the encrypted data is inside a mime attachment,
-      ;; show it.  This is a kludge; to be clean, it should not
-      ;; modify the buffer, but I don't see how to do that.
-      (when (search-forward "octet-stream" nil t)
-	(beginning-of-line)
-	(forward-button 1)
-	(if (looking-at "Show")
-	    (rmail-mime-toggle-hidden)))
+      ;; Turn off mime processing.
+      (when (and (rmail-mime-message-p)
+		 (not (get-text-property (point-min) 'rmail-mime-hidden)))
+	(rmail-mime))
 
       ;; Now find all armored messages in the buffer
       ;; and decrypt them one by one.
@@ -4542,6 +4571,7 @@ encoded string (and the same mask) will decode the string."
 		      (when armor-end
 			(delete-region armor-start armor-end)
 			(insert-buffer-substring from-buffer (nth 0 d) (nth 1 d)))))))))))))
+ 
 
 ;;;;  Desktop support
 
@@ -4594,8 +4624,7 @@ encoded string (and the same mask) will decode the string."
 
 ;;; Start of automatically extracted autoloads.
 
-;;;### (autoloads (rmail-edit-current-message) "rmailedit" "rmailedit.el"
-;;;;;;  "0b056146d4775080a1847b8ce7527bc5")
+;;;### (autoloads nil "rmailedit" "rmailedit.el" "b155463a02e4aa9256ac21997ea003e9")
 ;;; Generated autoloads from rmailedit.el
 
 (autoload 'rmail-edit-current-message "rmailedit" "\
@@ -4605,9 +4634,7 @@ Edit the contents of this message.
 
 ;;;***
 
-;;;### (autoloads (rmail-next-labeled-message rmail-previous-labeled-message
-;;;;;;  rmail-read-label rmail-kill-label rmail-add-label) "rmailkwd"
-;;;;;;  "rmailkwd.el" "b5337290fd35bbc11888afb25d767195")
+;;;### (autoloads nil "rmailkwd" "rmailkwd.el" "d462d15a119ee2a1733de2bc31bf347c")
 ;;; Generated autoloads from rmailkwd.el
 
 (autoload 'rmail-add-label "rmailkwd" "\
@@ -4650,7 +4677,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "93951f748e43e1015da1b485088970ca")
+;;;### (autoloads nil "rmailmm" "rmailmm.el" "4904dafb4e3b7b456c14e63d2dc9163d")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\
@@ -4676,8 +4703,7 @@ The arguments ARG and STATE have no effect in this case.
 
 ;;;***
 
-;;;### (autoloads (set-rmail-inbox-list) "rmailmsc" "rmailmsc.el"
-;;;;;;  "8a2466563b4a463710531d01766c07a3")
+;;;### (autoloads nil "rmailmsc" "rmailmsc.el" "0950b0ad020610737220948bb3f37c17")
 ;;; Generated autoloads from rmailmsc.el
 
 (autoload 'set-rmail-inbox-list "rmailmsc" "\
@@ -4691,9 +4717,7 @@ This applies only to the current session.
 
 ;;;***
 
-;;;### (autoloads (rmail-sort-by-labels rmail-sort-by-lines rmail-sort-by-correspondent
-;;;;;;  rmail-sort-by-recipient rmail-sort-by-author rmail-sort-by-subject
-;;;;;;  rmail-sort-by-date) "rmailsort" "rmailsort.el" "3e3a30326fc95d7f17835906c2ccb19f")
+;;;### (autoloads nil "rmailsort" "rmailsort.el" "4106a6e4898795822554ce931f531ab8")
 ;;; Generated autoloads from rmailsort.el
 
 (autoload 'rmail-sort-by-date "rmailsort" "\
@@ -4750,9 +4774,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 
 ;;;***
 
-;;;### (autoloads (rmail-summary-by-senders rmail-summary-by-topic
-;;;;;;  rmail-summary-by-regexp rmail-summary-by-recipients rmail-summary-by-labels
-;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "119ce8b431f01e7f54bb6fa99603b3d9")
+;;;### (autoloads nil "rmailsum" "rmailsum.el" "9baf491e4facec07debcb6aa55a11b54")
 ;;; Generated autoloads from rmailsum.el
 
 (autoload 'rmail-summary "rmailsum" "\
@@ -4799,8 +4821,7 @@ SENDERS is a string of regexps separated by commas.
 
 ;;;***
 
-;;;### (autoloads (unforward-rmail-message undigestify-rmail-message)
-;;;;;;  "undigest" "undigest.el" "9b273a3e15b5496ab6121b585d8bd3b3")
+;;;### (autoloads nil "undigest" "undigest.el" "f30d93eb6a006ac64080a1ee8a45a1af")
 ;;; Generated autoloads from undigest.el
 
 (autoload 'undigestify-rmail-message "undigest" "\

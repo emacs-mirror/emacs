@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Windows
@@ -252,7 +252,7 @@ child windows form a horizontal combination, consisting of the live
 window @var{W2} and the internal window @var{W3}.  The child windows
 of @var{W3} form a vertical combination, consisting of the live
 windows @var{W4} and @var{W5}.  Hence, the live windows in this
-window tree are @var{W2} @var{W4}, and @var{W5}.
+window tree are @var{W2}, @var{W4}, and @var{W5}.
 
   The following functions can be used to retrieve a child window of an
 internal window, and the siblings of a child window.
@@ -717,7 +717,7 @@ window.
 This section describes functions for creating a new window by
 @dfn{splitting} an existing one.
 
-@deffn Command split-window &optional window size side
+@defun split-window &optional window size side
 This function creates a new live window next to the window
 @var{window}.  If @var{window} is omitted or @code{nil}, it defaults
 to the selected window.  That window is ``split'', and reduced in
@@ -767,7 +767,7 @@ called with the arguments @var{window}, @var{size}, and @var{side}, in
 lieu of the usual action of @code{split-window}.  Otherwise, this
 function obeys the @code{window-atom} or @code{window-side} window
 parameter, if any.  @xref{Window Parameters}.
-@end deffn
+@end defun
 
   As an example, here is a sequence of @code{split-window} calls that
 yields the window configuration discussed in @ref{Windows and Frames}.
@@ -1164,7 +1164,7 @@ vertical combination @var{W1}.
 
 @cindex window combination limit
 @defun set-window-combination-limit window limit
-This functions sets the @dfn{combination limit} of the window
+This function sets the @dfn{combination limit} of the window
 @var{window} to @var{limit}.  This value can be retrieved via the
 function @code{window-combination-limit}.  See below for its effects;
 note that it is only meaningful for internal windows.  The
@@ -1355,10 +1355,9 @@ within that frame.  @var{frame} should be a live frame; if omitted or
 
 @defun set-frame-selected-window frame window &optional norecord
 This function makes @var{window} the window selected within the frame
-@var{frame}.  @var{frame} should be a live frame; if omitted or
-@code{nil}, it defaults to the selected frame.  @var{window} should be
-a live window; if omitted or @code{nil}, it defaults to the selected
-window.
+@var{frame}.  @var{frame} should be a live frame; if @code{nil}, it
+defaults to the selected frame.  @var{window} should be a live window;
+if @code{nil}, it defaults to the selected window.
 
 If @var{frame} is the selected frame, this makes @var{window} the
 selected window.
@@ -1843,7 +1842,10 @@ The constant @code{display-buffer-fallback-action}.
 @noindent
 Each action function is called in turn, passing the buffer as the
 first argument and the combined action alist as the second argument,
-until one of the functions returns non-@code{nil}.
+until one of the functions returns non-@code{nil}.  The caller can
+pass @code{(allow-no-window . t)} as an element of the action alist to
+indicate its readiness to handle the case of not displaying the
+buffer in a window.
 
 The argument @var{action} can also have a non-@code{nil}, non-list
 value.  This has the special meaning that the buffer should be
@@ -1924,6 +1926,10 @@ frames to search for a reusable window:
 @item
 A frame means consider windows on that frame only.
 @end itemize
+
+Note that these meanings differ slightly from those of the
+@var{all-frames} argument to @code{next-window} (@pxref{Cyclic Window
+Ordering}).
 
 If @var{alist} contains no @code{reusable-frames} entry, this function
 normally searches just the selected frame; however, if the variable
@@ -2241,8 +2247,9 @@ window and defaults to the selected one.
 
 Each list element has the form @code{(@var{buffer} @var{window-start}
 @var{window-pos})}, where @var{buffer} is a buffer previously shown in
-the window, @var{window-start} is the window start position when that
-buffer was last shown, and @var{window-pos} is the point position when
+the window, @var{window-start} is the window start position
+(@pxref{Window Start and End}) when that buffer was last shown, and
+@var{window-pos} is the point position (@pxref{Window Point}) when
 that buffer was last shown in @var{window}.
 
 The list is ordered so that earlier elements correspond to more
@@ -2325,10 +2332,11 @@ same frame.  The following option can be used to override this behavior.
 @defopt switch-to-visible-buffer
 If this variable is non-@code{nil}, @code{switch-to-prev-buffer} and
 @code{switch-to-next-buffer} may switch to a buffer that is already
-visible on the same frame, provided the buffer was shown in the relevant
-window before.  If it is @code{nil}, @code{switch-to-prev-buffer} and
-@code{switch-to-next-buffer} always try to avoid switching to a buffer
-that is already visible in another window on the same frame.
+visible on the same frame, provided the buffer was shown in the
+relevant window before.  If it is @code{nil},
+@code{switch-to-prev-buffer} and @code{switch-to-next-buffer} always
+try to avoid switching to a buffer that is already visible in another
+window on the same frame.  The default is @code{t}.
 @end defopt
 
 
@@ -2359,6 +2367,7 @@ showing another buffer in that frame's only window.  The function
 @code{replace-buffer-in-windows} (@pxref{Buffers and Windows}) which is
 called when a buffer gets killed, deletes the window in case (1) and
 behaves like @code{delete-windows-on} otherwise.
+@c FIXME: Does replace-buffer-in-windows _delete_ a window in case (1)?
 
    When @code{bury-buffer} (@pxref{The Buffer List}) operates on the
 selected window (which shows the buffer that shall be buried), it
@@ -2563,6 +2572,7 @@ so @code{window-point} will stay behind text inserted there.
 @node Window Start and End
 @section The Window Start and End Positions
 @cindex window start position
+@cindex display-start position
 
   Each window maintains a marker used to keep track of a buffer position
 that specifies where in the buffer display should start.  This position
@@ -3188,6 +3198,7 @@ The value returned is @var{columns}.
    Here is how you can determine whether a given position @var{position}
 is off the screen due to horizontal scrolling:
 
+@c FIXME: Maybe hscroll-on-screen-p is a better name?
 @example
 @group
 (defun hscroll-on-screen (window position)
@@ -3493,8 +3504,9 @@ the following function to restore the state of the window.
 This function puts the window state @var{state} into @var{window}.  The
 argument @var{state} should be the state of a window returned by an
 earlier invocation of @code{window-state-get}, see above.  The optional
-argument @var{window} must specify a live window and defaults to the
-selected one.
+argument @var{window} must specify a valid window and defaults to the
+selected one.  If @var{window} is not live, it is replaced by a live
+window before putting @var{state} into it.
 
 If the optional argument @var{ignore} is non-@code{nil}, it means to ignore
 minimum window sizes and fixed-size restrictions.  If @var{ignore}

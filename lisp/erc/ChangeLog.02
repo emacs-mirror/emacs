@@ -1032,13 +1032,12 @@
 	* erc-autoaway.el 1.1, erc-fill.el 1.15, erc.el 1.312: erc-autoaway.el:
 	* new file
 
-	erc.el:
-	* Removed auto-discard-away facility (now included in erc-autoaway.el)
-	* (erc-away-p): new function
+	* erc.el: Removed auto-discard-away facility (now included in
+	erc-autoaway.el)
+	(erc-away-p): new function
 
-	erc-fill.el:
-	* (erc-fill-variable): Check whether erc-timestamp-format is bound before
-	                       using it (erc-fill.el does not require erc-stamp).
+	* erc-fill.el (erc-fill-variable): Check whether erc-timestamp-format
+	is bound before using it (erc-fill.el does not require erc-stamp).
 
 2002-11-10  Alex Schroeder  <alex@gnu.org>
 
@@ -1650,10 +1649,13 @@
 	Changed some instances of member to memq.
 
 	* erc-track.el 1.13, erc.el 1.275:
-	erc.el: (erc-message-type-member): New function, used to test
+	* erc.el (erc-message-type-member): New function, used to test
 	for message type. Require erc-parsed text-property.
-	erc-track.el: erc-track-exclude-types: New variable. Defaults to ("JOIN" "PART") right now for testing, it should eventually set to nil soon again.
-	(erc-track-modified-channels): Use above fun and var to optionally exclude certain message types from channel tracking.
+	* erc-track.el (erc-track-exclude-types): New variable. Defaults
+	to ("JOIN" "PART") right now for testing, it should eventually set
+	to nil soon again.
+	(erc-track-modified-channels): Use above fun and var to optionally
+	exclude certain message types from channel tracking.
 
 2002-05-28  Diane Murray  <disumu@x3y2z1.net>
 
@@ -2596,7 +2598,7 @@
 
 See ChangeLog.01 for earlier changes.
 
-	Copyright (C) 2002, 2006-2013 Free Software Foundation, Inc.
+	Copyright (C) 2002, 2006-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

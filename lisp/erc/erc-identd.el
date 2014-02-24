@@ -1,9 +1,9 @@
 ;;; erc-identd.el --- RFC1413 (identd authentication protocol) server
 
-;; Copyright (C) 2003, 2006-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: comm, processes
 
 ;; This file is part of GNU Emacs.

@@ -1,6 +1,6 @@
 ;;; srecode/table.el --- Tables of Semantic Recoders
 
-;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -251,7 +251,7 @@ Use PREDICATE is the same as for the `sort' function."
 (defmethod srecode-dump ((tab srecode-template-table))
   "Dump the contents of the SRecode template table TAB."
   (princ "Template Table for ")
-  (princ (object-name-string tab))
+  (princ (eieio-object-name-string tab))
   (princ "\nPriority: ")
   (prin1 (oref tab :priority))
   (when (oref tab :application)

@@ -1,6 +1,6 @@
 ;;; occur-tests.el --- Test suite for occur.
 
-;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@jurta.org>
 ;; Keywords: matching, internal
@@ -35,7 +35,7 @@ xd
 xex
 fx
 " "\
-5 matches for \"x\" in buffer:  *test-occur*
+6 matches in 5 lines for \"x\" in buffer:  *test-occur*
       1:xa
       3:cx
       4:xd
@@ -335,12 +335,18 @@ Each element has the format:
       (and (buffer-name temp-buffer)
            (kill-buffer temp-buffer)))))
 
-(ert-deftest occur-tests ()
-  "Test the functionality of `occur'.
-The test data is in the `occur-tests' constant."
-  (let ((occur-hook nil))
-    (dolist (test occur-tests)
-      (should (occur-test-case test)))))
+(defun occur-test-create (n)
+  "Create a test for element N of the `occur-tests' constant."
+  (let ((testname (intern (format "occur-test-%.2d" n)))
+        (testdoc (format "Test element %d of `occur-tests'." n)))
+    (eval
+     `(ert-deftest ,testname ()
+        ,testdoc
+        (let (occur-hook)
+          (should (occur-test-case (nth ,n occur-tests))))))))
+
+(dotimes (i (length occur-tests))
+  (occur-test-create i))
 
 (provide 'occur-tests)
 

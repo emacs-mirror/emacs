@@ -1,5 +1,5 @@
 /* Define wait system call interface for Emacs.
-   Copyright (C) 1993-1995, 2000-2013 Free Software Foundation, Inc.
+   Copyright (C) 1993-1995, 2000-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -23,10 +23,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_SYSWAIT_H
 #define EMACS_SYSWAIT_H
 
-#include <stdbool.h>
 #include <sys/types.h>
 
-#ifdef HAVE_SYS_WAIT_H	/* We have sys/wait.h with POSIXoid definitions. */
+#ifdef HAVE_SYS_WAIT_H	/* We have sys/wait.h with POSIXish definitions.  */
 #include <sys/wait.h>
 #endif  /* !HAVE_SYS_WAIT_H */
 
@@ -51,9 +50,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef WTERMSIG
 #define WTERMSIG(status) ((status) & 0x7f)
 #endif
-
-/* Defined in process.c.  */
-extern void record_deleted_pid (pid_t);
 
 /* Defined in sysdep.c.  */
 extern void wait_for_termination (pid_t, int *, bool);

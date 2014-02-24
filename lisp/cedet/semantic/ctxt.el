@@ -1,6 +1,6 @@
 ;;; semantic/ctxt.el --- Context calculations for Semantic tools.
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -168,8 +168,7 @@ Uses the bovinator with the special top-symbol `bovine-inner-scope'
 to collect tags, such as local variables or prototypes."
   ;; This assumes a bovine parser.  Make sure we don't do
   ;; anything in that case.
-  (when (and semantic--parse-table (not (eq semantic--parse-table t))
-	     (not (semantic-parse-tree-unparseable-p)))
+  (when (and semantic--parse-table (not (eq semantic--parse-table t)))
     (let ((vars (semantic-get-cache-data 'get-local-variables)))
       (if vars
 	  (progn
@@ -357,6 +356,86 @@ beginning and end of a command."
 	    (def-edebug-spec semantic-with-buffer-narrowed-to-command
 	      (def-body))))
 
+(define-overloadable-function semantic-ctxt-end-of-symbol (&optional point)
+  "Move point to the end of the current symbol under POINT.
+This skips forward over symbols in a complex reference.
+For example, in the C statement:
+  this.that().entry;
+
+If the cursor is on 'this', will move point to the ; after entry.")
+
+(defun semantic-ctxt-end-of-symbol-default (&optional point)
+  "Move point to the end of the current symbol under POINT.
+This will move past type/field names when applicable.
+Depends on `semantic-type-relation-separator-character', and will
+work on C like languages."
+  (if point (goto-char point))
+  (let* ((fieldsep1 (mapconcat (lambda (a) (regexp-quote a))
+			       semantic-type-relation-separator-character
+			       "\\|"))
+	 ;; NOTE: The [ \n] expression below should used \\s-, but that
+	 ;; doesn't work in C since \n means end-of-comment, and isn't
+	 ;; really whitespace.
+	 (fieldsep (concat "[ \t\n\r]*\\(" fieldsep1 "\\)[ \t\n\r]*\\(\\w\\|\\s_\\)"))
+	 (case-fold-search semantic-case-fold)
+	 (continuesearch t)
+	 (end nil)
+	 )
+      (with-syntax-table semantic-lex-syntax-table
+	(cond ((looking-at "\\w\\|\\s_")
+	       ;; In the middle of a symbol, move to the end.
+	       (forward-sexp 1))
+	      ((looking-at fieldsep1)
+	       ;; We are in a fine spot.. do nothing.
+	       nil
+	       )
+	      ((save-excursion
+		 (and (condition-case nil
+			  (progn (forward-sexp -1)
+				 (forward-sexp 1)
+				 t)
+			(error nil))
+		      (looking-at fieldsep1)))
+	       (forward-sexp -1)
+	       ;; Skip array expressions.
+	       (while (looking-at "\\s(") (forward-sexp -1))
+	       (forward-sexp 1))
+	      )
+	;; Set the current end marker.
+	(setq end (point))
+
+	;; Cursor is at the safe end of some symbol.  Look until we
+	;; find the logical end of this current complex symbol.
+	(condition-case nil
+	    (while continuesearch
+	      ;; If there are functional arguments, arrays, etc, skip them.
+	      (when (looking-at "\\s(")
+		(forward-sexp 1))
+
+	      ;; If there is a field separator, then skip that, plus
+	      ;; the next expected symbol.
+	      (if (not (looking-at fieldsep1))
+		  ;; We hit the end.
+		  (error nil)
+
+		;; Skip the separator and the symbol.
+		(goto-char (match-end 0))
+
+		(if (looking-at "\\w\\|\\s_")
+		    ;; Skip symbols
+		    (forward-sexp 1)
+		  ;; No symbol, exit the search...
+		  (setq continuesearch nil))
+
+		(setq end (point)))
+
+	      ;; Cont...
+	      )
+
+	  ;; Restore position if we go to far....
+	  (error (goto-char end)) )
+
+	)))
 
 (define-overloadable-function semantic-ctxt-current-symbol (&optional point)
   "Return the current symbol the cursor is on at POINT in a list.
@@ -391,7 +470,7 @@ Depends on `semantic-type-relation-separator-character'."
 		 ;; In the middle of a symbol, move to the end.
 		 (forward-sexp 1))
 		((looking-at fieldsep1)
-		 ;; We are in a find spot.. do nothing.
+		 ;; We are in a fine spot.. do nothing.
 		 nil
 		 )
 		((save-excursion

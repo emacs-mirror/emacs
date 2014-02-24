@@ -1,8 +1,8 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1998-2014 Free Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
@@ -151,7 +151,7 @@ to take place:
   6. Move backward to start of comment, indenting if necessary."
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Beginning only" nil)
-		 (const :tag "Maybe move or make or delete comment" 'tcl))
+		 (other :tag "Maybe move or make or delete comment" tcl))
   :group 'tcl)
 
 
@@ -266,7 +266,7 @@ quoted for Tcl."
   ;; Maybe someone has a better set?
   (let ((map (make-sparse-keymap)))
     ;; Will inherit from `comint-mode-map' thanks to define-derived-mode.
-    (define-key map "\t" 'comint-dynamic-complete)
+    (define-key map "\t" 'completion-at-point)
     (define-key map "\M-?" 'comint-dynamic-list-filename-completions)
     (define-key map "\177" 'backward-delete-char-untabify)
     (define-key map "\M-\C-x" 'tcl-eval-defun)

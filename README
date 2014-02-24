@@ -1,4 +1,4 @@
-Copyright (C) 2001-2013 Free Software Foundation, Inc.
+Copyright (C) 2001-2014 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -24,8 +24,9 @@ list bug-gnu-emacs@gnu.org.  If possible, use M-x report-emacs-bug.
 See the "Bugs" section of the Emacs manual for more information on how
 to report bugs.  (The file `BUGS' in this directory explains how you
 can find and read that section using the Info files that come with
-Emacs.)  See `etc/MAILINGLISTS' for more information on mailing lists
-relating to GNU packages.
+Emacs.)  For a list of mailing lists related to Emacs, see
+<http://savannah.gnu.org/mail/?group=emacs>.  For the complete
+list of GNU mailing lists, see <http://lists.gnu.org/>.
 
 The `etc' subdirectory contains several other files, named in capital
 letters, which you might consider looking at when installing GNU
@@ -64,9 +65,10 @@ There are several subdirectories:
             its primitives, the redisplay code, and some basic editing
             functions).
 `lisp'      holds the Emacs Lisp code for Emacs (most everything else).
-`leim'      holds the library of Emacs input methods, Lisp code and
-            auxiliary data files required to type international characters
-            which can't be directly produced by your keyboard.
+`leim'      holds the original source files for the generated files
+            in lisp/leim.  These form the library of Emacs input methods,
+            required to type international characters that can't be
+            directly produced by your keyboard.
 `lib'       holds source code for libraries used by Emacs and its utilities
 `lib-src'   holds the source code for some utility programs for use by or
             with Emacs, like movemail and etags.

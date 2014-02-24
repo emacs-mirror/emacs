@@ -1,9 +1,9 @@
 ;;; refbib.el --- convert refer-style references to ones usable by Latex bib
 
-;; Copyright (C) 1989, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Henry Kautz <kautz@research.att.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: bib, tex
 
 ;; This file is part of GNU Emacs.

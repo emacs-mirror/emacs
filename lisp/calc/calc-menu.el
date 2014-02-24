@@ -1,6 +1,6 @@
 ;;; calc-menu.el --- a menu for Calc
 
-;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
 
@@ -917,12 +917,13 @@
                    (call-interactively 'calc-vector-geometric-mean)))
                :keys "H u G"
                :active (>= (calc-stack-size) 1)]
-               ["RMS(1:)"
-                (progn (require 'calc-arith)
-                       (call-interactively 'calc-abs))
-                :keys "A"
-                :active (>= (calc-stack-size) 1)
-                :help "The root-mean-square, or quadratic mean"])
+               ;; ["RMS(1:)"
+               ;;  (progn (require 'calc-arith)
+               ;;         (call-interactively 'calc-abs))
+               ;;  :keys "A"
+               ;;  :active (>= (calc-stack-size) 1)
+               ;;  :help "The root-mean-square, or quadratic mean"]
+               )
         ["Abbreviate long vectors"
          (progn
            (require 'calc-mode)
@@ -1634,7 +1635,9 @@
            (Info-goto-node "Help Commands"))])
   "Menu for Calc's help functions.")
 
-(defvar calc-mode-map)
+;; Needed to make this file loadable in isolation.
+;; Another option would be to use calc-load-hook.
+(require 'calc)
 
 (easy-menu-define
   calc-menu

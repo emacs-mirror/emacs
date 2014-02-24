@@ -1,6 +1,6 @@
 ;;; newst-plainview.el --- Single buffer frontend for newsticker.
 
-;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2014 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-plainview.el
@@ -1188,7 +1188,7 @@ The mode-line is changed accordingly."
   "Redraw the newsticker window."
   (if (fboundp 'force-window-update)
       (force-window-update (current-buffer))
-    (redraw-frame (selected-frame)))
+    (redraw-frame))
   (run-hooks 'newsticker-buffer-change-hook)
   (sit-for 0))
 

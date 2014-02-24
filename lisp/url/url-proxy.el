@@ -1,6 +1,6 @@
 ;;; url-proxy.el --- Proxy server support
 
-;; Copyright (C) 1999, 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2004-2014 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -63,6 +63,8 @@
       (url-warn 'url (format "Unknown proxy directive: %s" proxy) 'critical)
       nil))))
 
+(autoload 'url-http "url-http")
+
 (defun url-proxy (url callback &optional cbargs)
   ;; Retrieve URL from a proxy.
   ;; Expects `url-using-proxy' to be bound to the specific proxy to use."
@@ -73,7 +75,7 @@
     (url-http url callback cbargs))
    (t
     (error "Don't know how to use proxy `%s'" url-using-proxy))))
-  
+
 (provide 'url-proxy)
 
 ;;; url-proxy.el ends here

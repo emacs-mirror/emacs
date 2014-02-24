@@ -1,9 +1,9 @@
 ;;; hippie-exp.el --- expand text trying various ways to find its expansion
 
-;; Copyright (C) 1992, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Anders Holst <aho@sans.kth.se>
-;; Last change: 3 March 1998
+;; Maintainer: emacs-devel@gnu.org
 ;; Version: 1.6
 ;; Keywords: abbrev convenience
 
@@ -296,7 +296,7 @@ undoes the expansion."
 		  (message "No further expansions found"))
 	      (ding))
 	    (if (and hippie-expand-verbose
-		     (not (window-minibuffer-p (selected-window))))
+		     (not (window-minibuffer-p)))
 		(message "Using %s"
 			 (nth he-num hippie-expand-try-functions-list)))))
       (if (and (>= he-num 0)
@@ -305,7 +305,7 @@ undoes the expansion."
 	    (setq he-num -1)
 	    (he-reset-string)
 	    (if (and hippie-expand-verbose
-		     (not (window-minibuffer-p (selected-window))))
+		     (not (window-minibuffer-p)))
 		(message "Undoing expansions"))))))
 
 ;; Initializes the region to expand (to between BEG and END).
@@ -978,7 +978,7 @@ The argument OLD has to be nil the first call of this function, and t
 for subsequent calls (for further possible expansions of the same
 string).  It returns t if a new expansion is found, nil otherwise."
   (let ((expansion ())
-	(flag (if (frame-visible-p (window-frame (selected-window)))
+	(flag (if (frame-visible-p (window-frame))
 		  'visible t)))
     (unless old
       (he-init-string (he-dabbrev-beg) (point))

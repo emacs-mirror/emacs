@@ -1,8 +1,8 @@
 ;;; org-protocol.el --- Intercept calls from emacsclient to trigger custom actions.
 ;;
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 ;;
-;; Authors: Bastien Guerry <bzg AT gnu DOT org>
+;; Authors: Bastien Guerry <bzg@gnu.org>
 ;;       Daniel M German <dmg AT uvic DOT org>
 ;;       Sebastian Rose <sebastian_rose AT gmx DOT de>
 ;;       Ross Patterson <me AT rpatterson DOT net>
@@ -91,11 +91,6 @@
 ;;     Org-link of which the page title will be the description part.  If text
 ;;     was select in the browser, that text will be the body of the entry.
 ;;
-;;   * Call `org-protocol-remember' by using the sub-protocol \"remember\".
-;;     This is provided for backward compatibility.
-;;     You may read `org-capture' as `org-remember' throughout this file if
-;;     you still use `org-remember'.
-;;
 ;; You may use the same bookmark URL for all those standard handlers and just
 ;; adjust the sub-protocol used:
 ;;
@@ -155,8 +150,7 @@ for `org-protocol-the-protocol' and sub-protocols defined in
 ;;; Variables:
 
 (defconst org-protocol-protocol-alist-default
-  '(("org-remember"    :protocol "remember"    :function org-protocol-remember :kill-client t)
-    ("org-capture"     :protocol "capture"     :function org-protocol-capture  :kill-client t)
+  '(("org-capture"     :protocol "capture"     :function org-protocol-capture  :kill-client t)
     ("org-store-link"  :protocol "store-link"  :function org-protocol-store-link)
     ("org-open-source" :protocol "open-source" :function org-protocol-open-source))
   "Default protocols to use.
@@ -271,12 +265,14 @@ Here is an example:
 This is usually a single character string but can also be a
 string with two characters."
   :group 'org-protocol
-  :type 'string)
+  :type '(choice (const nil) (string)))
 
-(defcustom org-protocol-data-separator "/+"
+(defcustom org-protocol-data-separator "/+\\|\\?"
   "The default data separator to use.
    This should be a single regexp string."
   :group 'org-protocol
+  :version "24.4"
+  :package-version '(Org . "8.0")
   :type 'string)
 
 ;;; Helper functions:
@@ -297,7 +293,7 @@ nil, assume \"/+\".  The results of that splitting are returned
 as a list.  If UNHEXIFY is non-nil, hex-decode each split part.
 If UNHEXIFY is a function, use that function to decode each split
 part."
-  (let* ((sep (or separator "/+"))
+  (let* ((sep (or separator "/+\\|\\?"))
          (split-parts (split-string data sep)))
     (if unhexify
 	(if (fboundp unhexify)
@@ -391,32 +387,14 @@ The sub-protocol used to reach this function is set in
              uri))
   nil)
 
-(defun org-protocol-remember (info)
-  "Process an org-protocol://remember:// style url.
-
-The location for a browser's bookmark has to look like this:
-
-  javascript:location.href='org-protocol://remember://'+ \\
-        encodeURIComponent(location.href)+'/' \\
-        encodeURIComponent(document.title)+'/'+ \\
-        encodeURIComponent(window.getSelection())
-
-See the docs for `org-protocol-capture' for more information."
-
-  (if (and (boundp 'org-stored-links)
-           (fboundp 'org-capture)
-	   (org-protocol-do-capture info 'org-remember))
-      (message "Item remembered."))
-  nil)
-
 (defun org-protocol-capture (info)
   "Process an org-protocol://capture:// style url.
 
 The sub-protocol used to reach this function is set in
 `org-protocol-protocol-alist'.
 
-This function detects an URL, title and optional text, separated by '/'
-The location for a browser's bookmark has to look like this:
+This function detects an URL, title and optional text, separated
+by '/'.  The location for a browser's bookmark looks like this:
 
   javascript:location.href='org-protocol://capture://'+ \\
         encodeURIComponent(location.href)+'/' \\
@@ -431,14 +409,20 @@ But you may prepend the encoded URL with a character and a slash like so:
 
 Now template ?b will be used."
   (if (and (boundp 'org-stored-links)
-           (fboundp 'org-capture)
-	   (org-protocol-do-capture info 'org-capture))
+	   (org-protocol-do-capture info))
       (message "Item captured."))
   nil)
 
-(defun org-protocol-do-capture (info capture-func)
-  "Support `org-capture' and `org-remember' alike.
-CAPTURE-FUNC is either the symbol `org-remember' or `org-capture'."
+(defun org-protocol-convert-query-to-plist (query)
+  "Convert query string that is part of url to property list."
+  (if query
+      (apply 'append (mapcar (lambda (x)
+			       (let ((c (split-string x "=")))
+				 (list (intern (concat ":" (car c))) (cadr c))))
+			     (split-string query "&")))))
+
+(defun org-protocol-do-capture (info)
+  "Support `org-capture'."
   (let* ((parts (org-protocol-split-data info t org-protocol-data-separator))
 	 (template (or (and (>= 2 (length (car parts))) (pop parts))
 		       org-protocol-default-template-key))
@@ -449,8 +433,8 @@ CAPTURE-FUNC is either the symbol `org-remember' or `org-capture'."
 	 (region (or (caddr parts) ""))
 	 (orglink (org-make-link-string
 		   url (if (string-match "[^[:space:]]" title) title url)))
-	 (org-capture-link-is-already-stored t) ;; avoid call to org-store-link
-	 remember-annotation-functions)
+	 (query (or (org-protocol-convert-query-to-plist (cadddr parts)) ""))
+	 (org-capture-link-is-already-stored t)) ;; avoid call to org-store-link
     (setq org-stored-links
 	  (cons (list url title) org-stored-links))
     (kill-new orglink)
@@ -458,9 +442,10 @@ CAPTURE-FUNC is either the symbol `org-remember' or `org-capture'."
 			  :link url
 			  :description title
 			  :annotation orglink
-			  :initial region)
+			  :initial region
+			  :query query)
     (raise-frame)
-    (funcall capture-func nil template)))
+    (funcall 'org-capture nil template)))
 
 (defun org-protocol-open-source (fname)
   "Process an org-protocol://open-source:// style url.
@@ -588,9 +573,9 @@ as filename."
 
 (defun org-protocol-create-for-org ()
   "Create a org-protocol project for the current file's Org-mode project.
-This works, if the file visited is part of a publishing project in
-`org-publish-project-alist'.  This function calls `org-protocol-create' to do
-most of the work."
+The visited file needs to be part of a publishing project in
+`org-publish-project-alist' for this to work.  The function
+delegates most of the work to `org-protocol-create'."
   (interactive)
   (require 'org-publish)
   (let ((all (or (org-publish-get-project-from-filename buffer-file-name))))
@@ -600,10 +585,11 @@ most of the work."
 
 (defun org-protocol-create (&optional project-plist)
   "Create a new org-protocol project interactively.
-An org-protocol project is an entry in `org-protocol-project-alist'
-which is used by `org-protocol-open-source'.
-Optionally use project-plist to initialize the defaults for this project.  If
-project-plist is the CDR of an element in `org-publish-project-alist', reuse
+An org-protocol project is an entry in
+`org-protocol-project-alist' which is used by
+`org-protocol-open-source'.  Optionally use PROJECT-PLIST to
+initialize the defaults for this project.  If PROJECT-PLIST is
+the cdr of an element in `org-publish-project-alist', reuse
 :base-directory, :html-extension and :base-extension."
   (interactive)
   (let ((working-dir (expand-file-name

@@ -1,6 +1,6 @@
 ;;; tramp-ftp.el --- Tramp convenience functions for Ange-FTP
 
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -30,11 +30,13 @@
 
 (require 'tramp)
 
+;; Pacify byte-compiler.
 (eval-when-compile
-
-  ;; Pacify byte-compiler.
   (require 'cl)
   (require 'custom))
+(defvar ange-ftp-ftp-name-arg)
+(defvar ange-ftp-ftp-name-res)
+(defvar ange-ftp-name-format)
 
 ;; Disable Ange-FTP from file-name-handler-alist.
 ;; To handle EFS, the following functions need to be dealt with:
@@ -170,7 +172,7 @@ pass to the OPERATION."
        ;; We must copy it locally first, because there is no place in
        ;; ange-ftp for correct handling.
        ((and (memq operation '(copy-file rename-file))
-	     (file-remote-p (cadr args))
+	     (tramp-tramp-file-p (cadr args))
 	     (not (tramp-ftp-file-name-p (cadr args))))
 	(let* ((filename (car args))
 	       (newname (cadr args))

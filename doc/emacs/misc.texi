@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -439,6 +439,18 @@ associated with the current buffer, type @kbd{K}
 (@code{doc-view-kill-proc-and-buffer}) kills the converter process and
 the DocView buffer.
 
+@node EWW
+@section Web Browsing with EWW
+
+@findex eww
+@findex eww-open-file
+  @dfn{EWW}, the Emacs Web Wowser, is a web browser package for Emacs.
+It allows browsing URLs within an Emacs buffer.  The command @kbd{M-x
+eww} will open a URL or search the web.  You can open a file
+using the command @kbd{M-x eww-open-file}.  You can use EWW as the
+web browser for @code{browse-url}, @pxref{Browse-URL}.  For full
+details, @pxref{Top, EWW,, eww, The Emacs Web Wowser Manual}.
+
 @node Shell
 @section Running Shell Commands from Emacs
 @cindex subshell
@@ -677,20 +689,13 @@ in the shell buffer to submit the current line as input.
 @item @key{TAB}
 @kindex TAB @r{(Shell mode)}
 @findex completion-at-point
+@cindex shell completion
 Complete the command name or file name before point in the shell
 buffer (@code{completion-at-point}).  This uses the usual Emacs
 completion rules (@pxref{Completion}), with the completion
 alternatives being file names, environment variable names, the shell
 command history, and history references (@pxref{History References}).
-
-@vindex shell-completion-fignore
-@vindex comint-completion-fignore
-The variable @code{shell-completion-fignore} specifies a list of file
-name extensions to ignore in Shell mode completion.  The default
-setting is @code{nil}, but some users prefer @code{("~" "#" "%")} to
-ignore file names ending in @samp{~}, @samp{#} or @samp{%}.  Other
-related Comint modes use the variable @code{comint-completion-fignore}
-instead.
+For options controlling the completion, @pxref{Shell Options}.
 
 @item M-?
 @kindex M-? @r{(Shell mode)}
@@ -810,8 +815,8 @@ echoing.  This is useful when a shell command runs a program that asks
 for a password.
 
 Please note that Emacs will not echo passwords by default.  If you
-really want them to be echoed, evaluate the following Lisp
-expression:
+really want them to be echoed, evaluate (@pxref{Lisp Eval}) the
+following Lisp expression:
 
 @example
 (remove-hook 'comint-output-filter-functions
@@ -1179,6 +1184,20 @@ the possible completions whenever completion is not exact.
 If you set @code{shell-completion-execonly} to @code{nil},
 it considers nonexecutable files as well.
 
+@vindex shell-completion-fignore
+@vindex comint-completion-fignore
+The variable @code{shell-completion-fignore} specifies a list of file
+name extensions to ignore in Shell mode completion.  The default
+setting is @code{nil}, but some users prefer @code{("~" "#" "%")} to
+ignore file names ending in @samp{~}, @samp{#} or @samp{%}.  Other
+related Comint modes use the variable @code{comint-completion-fignore}
+instead.
+
+@findex shell-dynamic-complete-command
+Some implementation details of the shell command completion may also be found
+in the lisp documentation of the @code{shell-dynamic-complete-command}
+function.
+
 @findex shell-pushd-tohome
 @findex shell-pushd-dextract
 @findex shell-pushd-dunique
@@ -1542,9 +1561,9 @@ option, like the @samp{-t} option, creates a new frame in the server's
 current text terminal.  @xref{Windows Startup}.
 
 If you omit a filename argument while supplying the @samp{-c} option,
-the new frame displays the @file{*scratch*} buffer by default.  If
-@code{initial-buffer-choice} is a string (@pxref{Entering Emacs}), the
-new frame displays that file or directory instead.
+the new frame displays the @file{*scratch*} buffer by default.  This
+behavior can be customized using the variable
+@code{initial-buffer-choice} (@pxref{Entering Emacs}).
 
 @item -F @var{alist}
 @itemx --frame-parameters=@var{alist}
@@ -1975,6 +1994,7 @@ Like @kbd{M-x sort-fields} except that the text within each line
 used for comparison comes from a fixed range of columns.  See below
 for an explanation.
 
+@findex reverse-region
 @item M-x reverse-region
 Reverse the order of the lines in the region.  This is useful for
 sorting into descending order by fields or columns, since those sort
@@ -2129,6 +2149,12 @@ sessions, or add this line in your init file (@pxref{Init File}):
 @example
 (desktop-save-mode 1)
 @end example
+
+@vindex desktop-auto-save-timeout
+@noindent
+When @code{desktop-save-mode} is active and the desktop file exists,
+Emacs auto-saves it every @code{desktop-auto-save-timeout}
+seconds, if that is non-@code{nil} and non-zero.
 
 @findex desktop-change-dir
 @findex desktop-revert

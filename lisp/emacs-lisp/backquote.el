@@ -1,10 +1,10 @@
 ;;; backquote.el --- implement the ` Lisp construct
 
-;; Copyright (C) 1990, 1992, 1994, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1990, 1992, 1994, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Rick Sladkey <jrs@world.std.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: extensions, internal
 ;; Package: emacs
 
@@ -153,11 +153,18 @@ LEVEL is only used internally and indicates the nesting level:
 	      (list 'quote s))))
    ((eq (car s) backquote-unquote-symbol)
     (if (<= level 0)
-        (cons 1 (nth 1 s))
+        (if (> (length s) 2)
+            ;; We could support it with: (cons 2 `(list . ,(cdr s)))
+            ;; But let's not encourage such uses.
+            (error "Multiple args to , are not supported: %S" s)
+          (cons 1 (nth 1 s)))
       (backquote-delay-process s (1- level))))
    ((eq (car s) backquote-splice-symbol)
     (if (<= level 0)
-        (cons 2 (nth 1 s))
+        (if (> (length s) 2)
+            ;; (cons 2 `(append . ,(cdr s)))
+            (error "Multiple args to ,@ are not supported: %S" s)
+          (cons 2 (nth 1 s)))
       (backquote-delay-process s (1- level))))
    ((eq (car s) backquote-backquote-symbol)
       (backquote-delay-process s (1+ level)))

@@ -1,6 +1,6 @@
-# Makefile for the GNU Emacs Lisp Reference Manual.
+### @configure_input@
 
-# Copyright (C) 1990-1996, 1998-2013 Free Software Foundation, Inc.
+# Copyright (C) 1990-1996, 1998-2014 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -17,7 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-SHELL = /bin/sh
+SHELL = @SHELL@
+
+# NB If you add any more configure variables,
+# update the sed rules in the dist target below.
 
 # Standard configure variables.
 srcdir = @srcdir@
@@ -30,11 +33,28 @@ texinfodir = $(srcdir)/../misc
 # Directory with emacsver.texi.
 emacsdir =  $(srcdir)/../emacs
 
+prefix = @prefix@
+datarootdir = @datarootdir@
+datadir = @datadir@
+PACKAGE_TARNAME = @PACKAGE_TARNAME@
+docdir = @docdir@
+dvidir = @dvidir@
+htmldir = @htmldir@
+pdfdir = @pdfdir@
+psdir = @psdir@
+
 MKDIR_P = @MKDIR_P@
+
+GZIP_PROG = @GZIP_PROG@
+
+HTML_OPTS = --no-split --html
 
 INFO_EXT=@INFO_EXT@
 # Options used only when making info output.
 INFO_OPTS=@INFO_OPTS@
+
+INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
 
 MAKEINFO = @MAKEINFO@
 MAKEINFO_OPTS = --force --enable-encoding -I $(emacsdir) -I $(srcdir)
@@ -45,13 +65,17 @@ DVIPS = dvips
 ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(emacsdir):$(TEXINPUTS)" \
          MAKEINFO="$(MAKEINFO) $(MAKEINFO_OPTS)"
 
+DVI_TARGETS = elisp.dvi
+HTML_TARGETS = elisp.html
+PDF_TARGETS = elisp.pdf
+PS_TARGETS = elisp.ps
+
 # List of all the texinfo files in the manual:
 
 srcs = \
   $(srcdir)/elisp.texi \
   $(emacsdir)/emacsver.texi \
   $(srcdir)/abbrevs.texi \
-  $(srcdir)/advice.texi \
   $(srcdir)/anti.texi \
   $(srcdir)/backups.texi \
   $(srcdir)/buffers.texi \
@@ -105,11 +129,16 @@ mkinfodir = @${MKDIR_P} ${buildinfodir}
 
 .PHONY: info dvi pdf ps
 
+.SUFFIXES: .ps .dvi
+
+.dvi.ps:
+	$(DVIPS) -o $@ $<
+
 info: $(buildinfodir)/elisp$(INFO_EXT)
-dvi: elisp.dvi
-html: elisp.html
-pdf: elisp.pdf
-ps: elisp.ps
+dvi: $(DVI_TARGETS)
+html: $(HTML_TARGETS)
+pdf: $(PDF_TARGETS)
+ps: $(PS_TARGETS)
 
 ## Note: "<" is not portable in ordinary make rules.
 $(buildinfodir)/elisp$(INFO_EXT): $(srcs)
@@ -120,10 +149,7 @@ elisp.dvi: $(srcs)
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/elisp.texi
 
 elisp.html: $(srcs)
-	$(MAKEINFO) $(MAKEINFO_OPTS) --html -o $@ $(srcdir)/elisp.texi
-
-elisp.ps: elisp.dvi
-	$(DVIPS) -o $@ elisp.dvi
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ $(srcdir)/elisp.texi
 
 elisp.pdf: $(srcs)
 	$(ENVADD) $(TEXI2PDF) $(srcdir)/elisp.texi
@@ -137,12 +163,12 @@ mostlyclean:
 	rm -f elisp[12]* vol[12].tmp
 
 clean: mostlyclean
-	rm -f elisp.dvi elisp.pdf elisp.ps
+	rm -f $(DVI_TARGETS) $(HTML_TARGETS) $(PDF_TARGETS) $(PS_TARGETS)
 	rm -f vol[12].dvi vol[12].pdf vol[12].ps
-	rm -rf elisp.html
 	rm -f emacs-lispref-${version}.tar*
 
 distclean: clean
+	rm -f Makefile
 
 infoclean:
 	-cd $(buildinfodir) && rm -f elisp$(INFO_EXT) elisp$(INFO_EXT)-[1-9] elisp$(INFO_EXT)-[1-9][0-9]
@@ -163,8 +189,60 @@ dist:
 	  -e 's/^\(buildinfodir *=\).*/\1 ./' \
 	  -e 's/^\(clean:.*\)/\1 infoclean/' \
 	  -e "s/@ver[s]ion@/${version}/" \
+	  -e 's/@MAKE[I]NFO@/makeinfo/' -e 's/@MK[D]IR_P@/mkdir -p/' \
+	  -e 's/@IN[F]O_EXT@/.info/' -e 's/@IN[F]O_OPTS@//' \
 	  ${srcdir}/Makefile.in > emacs-lispref-${version}/Makefile
+	@if grep '@[a-zA-Z_]*@' emacs-lispref-${version}/Makefile; then \
+	  echo "Unexpanded configure variables in Makefile?" 1>&2; exit 1; \
+	fi
 	tar -cf emacs-lispref-${version}.tar emacs-lispref-${version}
 	rm -rf emacs-lispref-${version}
+
+.PHONY: install-dvi install-html install-pdf install-ps install-doc
+
+install-dvi: dvi
+	umask 022; $(MKDIR_P) "$(DESTDIR)$(dvidir)"
+	$(INSTALL_DATA) $(DVI_TARGETS) "$(DESTDIR)$(dvidir)"
+install-html: html
+	umask 022; $(MKDIR_P) "$(DESTDIR)$(htmldir)"
+	$(INSTALL_DATA) $(HTML_TARGETS) "$(DESTDIR)$(htmldir)"
+install-pdf: pdf
+	 umask 022;$(MKDIR_P) "$(DESTDIR)$(pdfdir)"
+	$(INSTALL_DATA) $(PDF_TARGETS) "$(DESTDIR)$(pdfdir)"
+install-ps: ps
+	umask 022; $(MKDIR_P) "$(DESTDIR)$(psdir)"
+	for file in $(PS_TARGETS); do \
+	  $(INSTALL_DATA) $${file} "$(DESTDIR)$(psdir)"; \
+	  [ -n "${GZIP_PROG}" ] || continue; \
+	  rm -f "$(DESTDIR)$(psdir)/$${file}.gz"; \
+	  ${GZIP_PROG} -9n "$(DESTDIR)$(psdir)/$${file}"; \
+	done
+
+## Top-level Makefile installs the info pages.
+install-doc: install-dvi install-html install-pdf install-ps
+
+
+.PHONY: uninstall-dvi uninstall-html uninstall-pdf uninstall-ps uninstall-doc
+
+uninstall-dvi:
+	for file in $(DVI_TARGETS); do \
+	  rm -f "$(DESTDIR)$(dvidir)/$${file}"; \
+	done
+uninstall-html:
+	for file in $(HTML_TARGETS); do \
+	  rm -f "$(DESTDIR)$(htmldir)/$${file}"; \
+	done
+uninstall-ps:
+	ext= ; [ -n "${GZIP_PROG}" ] && ext=.gz; \
+	for file in $(PS_TARGETS); do \
+	  rm -f "$(DESTDIR)$(psdir)/$${file}$${ext}"; \
+	done
+uninstall-pdf:
+	for file in $(PDF_TARGETS); do \
+	  rm -f "$(DESTDIR)$(pdfdir)/$${file}"; \
+	done
+
+uninstall-doc: uninstall-dvi uninstall-html uninstall-pdf uninstall-ps
+
 
 ### Makefile ends here

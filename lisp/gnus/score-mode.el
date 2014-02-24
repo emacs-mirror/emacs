@@ -1,6 +1,6 @@
 ;;; score-mode.el --- mode for editing Gnus score files
 
-;; Copyright (C) 1996, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -40,13 +40,13 @@
 (defvar gnus-score-edit-exit-function nil
   "Function run on exit from the score buffer.")
 
-(defvar gnus-score-mode-map nil)
-(unless gnus-score-mode-map
-  (setq gnus-score-mode-map (make-sparse-keymap))
-  (set-keymap-parent gnus-score-mode-map emacs-lisp-mode-map)
-  (define-key gnus-score-mode-map "\C-c\C-c" 'gnus-score-edit-exit)
-  (define-key gnus-score-mode-map "\C-c\C-d" 'gnus-score-edit-insert-date)
-  (define-key gnus-score-mode-map "\C-c\C-p" 'gnus-score-pretty-print))
+(defvar gnus-score-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map emacs-lisp-mode-map)
+    (define-key map "\C-c\C-c" 'gnus-score-edit-exit)
+    (define-key map "\C-c\C-d" 'gnus-score-edit-insert-date)
+    (define-key map "\C-c\C-p" 'gnus-score-pretty-print)
+    map))
 
 (defvar score-mode-syntax-table
   (let ((table (copy-syntax-table lisp-mode-syntax-table)))
@@ -58,21 +58,13 @@
 (defvar score-mode-coding-system mm-universal-coding-system)
 
 ;;;###autoload
-(defun gnus-score-mode ()
+(define-derived-mode gnus-score-mode emacs-lisp-mode "Score"
   "Mode for editing Gnus score files.
 This mode is an extended emacs-lisp mode.
 
 \\{gnus-score-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map gnus-score-mode-map)
   (gnus-score-make-menu-bar)
-  (set-syntax-table score-mode-syntax-table)
-  (setq major-mode 'gnus-score-mode)
-  (setq mode-name "Score")
-  (lisp-mode-variables nil)
-  (make-local-variable 'gnus-score-edit-exit-function)
-  (gnus-run-mode-hooks 'emacs-lisp-mode-hook 'gnus-score-mode-hook))
+  (make-local-variable 'gnus-score-edit-exit-function))
 
 (defun gnus-score-make-menu-bar ()
   (unless (boundp 'gnus-score-menu)

@@ -1,6 +1,6 @@
-;;; esh-mode.el --- user interface
+;;; esh-mode.el --- user interface  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -60,7 +60,7 @@
 
 (provide 'esh-mode)
 
-(eval-when-compile (require 'esh-util))
+(require 'esh-util)
 (require 'esh-module)
 (require 'esh-cmd)
 (require 'esh-io)
@@ -182,7 +182,7 @@ inserted.  They return the string as it should be inserted."
   :group 'eshell-mode)
 
 (defcustom eshell-password-prompt-regexp
-  "[Pp]ass\\(word\\|phrase\\).*:\\s *\\'"
+  (format "\\(%s\\).*:\\s *\\'" (regexp-opt password-word-equivalents))
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `eshell-watch-for-password-prompt'."
   :type 'regexp
@@ -220,74 +220,67 @@ This is used by `eshell-watch-for-password-prompt'."
 (defvar eshell-last-output-end nil)
 
 (defvar eshell-currently-handling-window nil)
-(defvar eshell-mode-syntax-table nil)
-(defvar eshell-mode-abbrev-table nil)
 
 (define-abbrev-table 'eshell-mode-abbrev-table ())
 
-(if (not eshell-mode-syntax-table)
-    (let ((i 0))
-      (setq eshell-mode-syntax-table (make-syntax-table))
-      (while (< i ?0)
-	(modify-syntax-entry i "_   " eshell-mode-syntax-table)
-	(setq i (1+ i)))
-      (setq i (1+ ?9))
-      (while (< i ?A)
-	(modify-syntax-entry i "_   " eshell-mode-syntax-table)
-	(setq i (1+ i)))
-      (setq i (1+ ?Z))
-      (while (< i ?a)
-	(modify-syntax-entry i "_   " eshell-mode-syntax-table)
-	(setq i (1+ i)))
-      (setq i (1+ ?z))
-      (while (< i 128)
-	(modify-syntax-entry i "_   " eshell-mode-syntax-table)
-	(setq i (1+ i)))
-      (modify-syntax-entry ?  "    " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\t "    " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\f "    " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\n ">   " eshell-mode-syntax-table)
-      ;; Give CR the same syntax as newline, for selective-display.
-      (modify-syntax-entry ?\^m ">   " eshell-mode-syntax-table)
-;;;   (modify-syntax-entry ?\; "<   " eshell-mode-syntax-table)
-      (modify-syntax-entry ?` "'   " eshell-mode-syntax-table)
-      (modify-syntax-entry ?' "'   " eshell-mode-syntax-table)
-      (modify-syntax-entry ?, "'   " eshell-mode-syntax-table)
-      ;; Used to be singlequote; changed for flonums.
-      (modify-syntax-entry ?. "_   " eshell-mode-syntax-table)
-      (modify-syntax-entry ?- "_   " eshell-mode-syntax-table)
-      (modify-syntax-entry ?| ".   " eshell-mode-syntax-table)
-      (modify-syntax-entry ?# "'   " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\" "\"    " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\\ "/   " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\( "()  " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\) ")(  " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\{ "(}  " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\} "){  " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\[ "(]  " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\] ")[  " eshell-mode-syntax-table)
-      ;; All non-word multibyte characters should be `symbol'.
-      (if (featurep 'xemacs)
-	  (map-char-table
-	   (function
-	    (lambda (key val)
-	      (and (characterp key)
-		   (>= (char-int key) 256)
-		   (/= (char-syntax key) ?w)
-		   (modify-syntax-entry key "_   "
-					eshell-mode-syntax-table))))
-	   (standard-syntax-table))
-	(map-char-table
-	 (function
-	  (lambda (key val)
-	    (and (if (consp key)
-		     (and (>= (car key) 128)
-			  (/= (char-syntax (car key)) ?w))
-		   (and (>= key 256)
-			(/= (char-syntax key) ?w)))
-		 (modify-syntax-entry key "_   "
-				      eshell-mode-syntax-table))))
-	 (standard-syntax-table)))))
+(defvar eshell-mode-syntax-table
+  (let ((st (make-syntax-table))
+        (i 0))
+    (while (< i ?0)
+      (modify-syntax-entry i "_   " st)
+      (setq i (1+ i)))
+    (setq i (1+ ?9))
+    (while (< i ?A)
+      (modify-syntax-entry i "_   " st)
+      (setq i (1+ i)))
+    (setq i (1+ ?Z))
+    (while (< i ?a)
+      (modify-syntax-entry i "_   " st)
+      (setq i (1+ i)))
+    (setq i (1+ ?z))
+    (while (< i 128)
+      (modify-syntax-entry i "_   " st)
+      (setq i (1+ i)))
+    (modify-syntax-entry ?  "    " st)
+    (modify-syntax-entry ?\t "    " st)
+    (modify-syntax-entry ?\f "    " st)
+    (modify-syntax-entry ?\n ">   " st)
+    ;; Give CR the same syntax as newline, for selective-display.
+    (modify-syntax-entry ?\^m ">   " st)
+    ;; (modify-syntax-entry ?\; "<   " st)
+    (modify-syntax-entry ?` "'   " st)
+    (modify-syntax-entry ?' "'   " st)
+    (modify-syntax-entry ?, "'   " st)
+    ;; Used to be singlequote; changed for flonums.
+    (modify-syntax-entry ?. "_   " st)
+    (modify-syntax-entry ?- "_   " st)
+    (modify-syntax-entry ?| ".   " st)
+    (modify-syntax-entry ?# "'   " st)
+    (modify-syntax-entry ?\" "\"    " st)
+    (modify-syntax-entry ?\\ "/   " st)
+    (modify-syntax-entry ?\( "()  " st)
+    (modify-syntax-entry ?\) ")(  " st)
+    (modify-syntax-entry ?\{ "(}  " st)
+    (modify-syntax-entry ?\} "){  " st)
+    (modify-syntax-entry ?\[ "(]  " st)
+    (modify-syntax-entry ?\] ")[  " st)
+    ;; All non-word multibyte characters should be `symbol'.
+    (map-char-table
+     (if (featurep 'xemacs)
+         (lambda (key _val)
+           (and (characterp key)
+                (>= (char-int key) 256)
+                (/= (char-syntax key) ?w)
+                (modify-syntax-entry key "_   " st)))
+       (lambda (key _val)
+         (and (if (consp key)
+                  (and (>= (car key) 128)
+                       (/= (char-syntax (car key)) ?w))
+                (and (>= key 256)
+                     (/= (char-syntax key) ?w)))
+              (modify-syntax-entry key "_   " st))))
+     (standard-syntax-table))
+    st))
 
 ;;; User Functions:
 
@@ -303,42 +296,30 @@ and the hook `eshell-exit-hook'."
   (run-hooks 'eshell-exit-hook))
 
 ;;;###autoload
-(defun eshell-mode ()
-  "Emacs shell interactive mode.
+(define-derived-mode eshell-mode fundamental-mode "EShell"
+  "Emacs shell interactive mode."
+  (setq-local eshell-mode t)
 
-\\{eshell-mode-map}"
-  (kill-all-local-variables)
-
-  (setq major-mode 'eshell-mode)
-  (setq mode-name "EShell")
-  (set (make-local-variable 'eshell-mode) t)
-
-  (make-local-variable 'eshell-mode-map)
-  (setq eshell-mode-map (make-sparse-keymap))
+  ;; FIXME: What the hell!?
+  (setq-local eshell-mode-map (make-sparse-keymap))
   (use-local-map eshell-mode-map)
 
   (when eshell-status-in-mode-line
     (make-local-variable 'eshell-command-running-string)
     (let ((fmt (copy-sequence mode-line-format)))
-      (make-local-variable 'mode-line-format)
-      (setq mode-line-format fmt))
+      (setq-local mode-line-format fmt))
     (let ((mode-line-elt (memq 'mode-line-modified mode-line-format)))
       (if mode-line-elt
 	  (setcar mode-line-elt 'eshell-command-running-string))))
 
-  (define-key eshell-mode-map [return] 'eshell-send-input)
-  (define-key eshell-mode-map [(control ?m)] 'eshell-send-input)
-  (define-key eshell-mode-map [(control ?j)] 'eshell-send-input)
-  (define-key eshell-mode-map [(meta return)] 'eshell-queue-input)
-  (define-key eshell-mode-map [(meta control ?m)] 'eshell-queue-input)
+  (define-key eshell-mode-map "\r" 'eshell-send-input)
+  (define-key eshell-mode-map "\M-\r" 'eshell-queue-input)
   (define-key eshell-mode-map [(meta control ?l)] 'eshell-show-output)
   (define-key eshell-mode-map [(control ?a)] 'eshell-bol)
 
-  (set (make-local-variable 'eshell-command-prefix)
-       (make-symbol "eshell-command-prefix"))
+  (setq-local eshell-command-prefix (make-symbol "eshell-command-prefix"))
   (fset eshell-command-prefix (make-sparse-keymap))
-  (set (make-local-variable 'eshell-command-map)
-       (symbol-function eshell-command-prefix))
+  (setq-local eshell-command-map (symbol-function eshell-command-prefix))
   (define-key eshell-mode-map [(control ?c)] eshell-command-prefix)
 
   ;; without this, find-tag complains about read-only text being
@@ -362,7 +343,6 @@ and the hook `eshell-exit-hook'."
   (define-key eshell-command-map [(control ?y)] 'eshell-repeat-argument)
 
   (setq local-abbrev-table eshell-mode-abbrev-table)
-  (set-syntax-table eshell-mode-syntax-table)
 
   (set (make-local-variable 'dired-directory) default-directory)
   (set (make-local-variable 'list-buffers-directory)
@@ -445,7 +425,6 @@ and the hook `eshell-exit-hook'."
 
   (if eshell-first-time-p
       (run-hooks 'eshell-first-time-mode-hook))
-  (run-mode-hooks 'eshell-mode-hook)
   (run-hooks 'eshell-post-command-hook))
 
 (put 'eshell-mode 'mode-class 'special)
@@ -473,8 +452,8 @@ and the hook `eshell-exit-hook'."
     (add-hook 'pre-command-hook 'eshell-intercept-commands t t)
     (message "Sending subprocess input directly")))
 
-(defun eshell-self-insert-command (N)
-  (interactive "i")
+(defun eshell-self-insert-command ()
+  (interactive)
   (process-send-string
    (eshell-interactive-process)
    (char-to-string (if (symbolp last-command-event)
@@ -503,7 +482,7 @@ and the hook `eshell-exit-hook'."
 (declare-function find-tag-interactive "etags" (prompt &optional no-default))
 
 (defun eshell-find-tag (&optional tagname next-p regexp-p)
-  "A special version of `find-tag' that ignores read-onlyness."
+  "A special version of `find-tag' that ignores whether the text is read-only."
   (interactive)
   (require 'etags)
   (let ((inhibit-read-only t)
@@ -692,7 +671,7 @@ newline."
 		      (run-hooks 'eshell-input-filter-functions)
 		      (and (catch 'eshell-terminal
 			     (ignore
-			      (if (eshell-invoke-directly cmd input)
+			      (if (eshell-invoke-directly cmd)
 				  (eval cmd)
 				(eshell-eval-command cmd input))))
 			   (eshell-life-is-too-much)))))
@@ -743,7 +722,7 @@ This is done after all necessary filtering has been done."
 	      (if (<= (point) oend)
 		  (setq oend (+ oend nchars)))
 	      (insert-before-markers string)
-	      (if (= (window-start (selected-window)) (point))
+	      (if (= (window-start) (point))
 		  (set-window-start (selected-window)
 				    (- (point) nchars)))
 	      (if (= (point) eshell-last-input-end)
@@ -947,10 +926,10 @@ a key."
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-truncate-buffer)
 
-(defun eshell-send-invisible (str)
+(defun eshell-send-invisible ()
   "Read a string without echoing.
 Then send it to the process running in the current buffer."
-  (interactive "P")                     ; Defeat snooping via C-x ESC ESC
+  (interactive) ; Don't pass str as argument, to avoid snooping via C-x ESC ESC
   (let ((str (read-passwd
 	      (format "%s Password: "
 		      (process-name (eshell-interactive-process))))))
@@ -968,11 +947,12 @@ buffer's process if STRING contains a password prompt defined by
 This function could be in the list `eshell-output-filter-functions'."
   (when (eshell-interactive-process)
     (save-excursion
-      (goto-char eshell-last-output-block-begin)
-      (beginning-of-line)
-      (if (re-search-forward eshell-password-prompt-regexp
-			     eshell-last-output-end t)
-	  (eshell-send-invisible nil)))))
+      (let ((case-fold-search t))
+	(goto-char eshell-last-output-block-begin)
+	(beginning-of-line)
+	(if (re-search-forward eshell-password-prompt-regexp
+			       eshell-last-output-end t)
+	    (eshell-send-invisible))))))
 
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-watch-for-password-prompt)
@@ -980,32 +960,30 @@ This function could be in the list `eshell-output-filter-functions'."
 (defun eshell-handle-control-codes ()
   "Act properly when certain control codes are seen."
   (save-excursion
-    (let ((orig (point)))
-      (goto-char eshell-last-output-block-begin)
-      (unless (eolp)
-	(beginning-of-line))
-      (while (< (point) eshell-last-output-end)
-	(let ((char (char-after)))
-	  (cond
-	   ((eq char ?\r)
-	    (if (< (1+ (point)) eshell-last-output-end)
-		(if (memq (char-after (1+ (point)))
-			  '(?\n ?\r))
-		    (delete-char 1)
-		  (let ((end (1+ (point))))
-		    (beginning-of-line)
-		    (delete-region (point) end)))
-	      (add-text-properties (point) (1+ (point))
-				   '(invisible t))
-	      (forward-char)))
-	   ((eq char ?\a)
-	    (delete-char 1)
-	    (beep))
-	   ((eq char ?\C-h)
-	    (delete-backward-char 1)
-	    (delete-char 1))
-	   (t
-	    (forward-char))))))))
+    (goto-char eshell-last-output-block-begin)
+    (unless (eolp)
+      (beginning-of-line))
+    (while (< (point) eshell-last-output-end)
+      (let ((char (char-after)))
+        (cond
+         ((eq char ?\r)
+          (if (< (1+ (point)) eshell-last-output-end)
+              (if (memq (char-after (1+ (point)))
+                        '(?\n ?\r))
+                  (delete-char 1)
+                (let ((end (1+ (point))))
+                  (beginning-of-line)
+                  (delete-region (point) end)))
+            (add-text-properties (point) (1+ (point))
+                                 '(invisible t))
+            (forward-char)))
+         ((eq char ?\a)
+          (delete-char 1)
+          (beep))
+         ((eq char ?\C-h)
+          (delete-region (1- (point)) (1+ (point))))
+         (t
+          (forward-char)))))))
 
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-handle-control-codes)

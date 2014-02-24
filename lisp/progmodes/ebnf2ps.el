@@ -1,6 +1,6 @@
 ;;; ebnf2ps.el --- translate an EBNF to a syntactic chart on PostScript
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -3912,7 +3912,7 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
  {/Effect EffectP def
   /fP F ForegroundP SetRGB BackgroundP aload pop true BG S
   /Effect 0 def
-  ( :) S false BG}if
+  ( :) S false BG}{pop}ifelse
  xw yw moveto
  hT EL RA
  xp yw moveto

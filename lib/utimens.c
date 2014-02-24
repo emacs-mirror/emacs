@@ -1,6 +1,6 @@
 /* Set file access and modification times.
 
-   Copyright (C) 2003-2013 Free Software Foundation, Inc.
+   Copyright (C) 2003-2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -90,10 +90,12 @@ validate_timespec (struct timespec timespec[2])
   assert (timespec);
   if ((timespec[0].tv_nsec != UTIME_NOW
        && timespec[0].tv_nsec != UTIME_OMIT
-       && (timespec[0].tv_nsec < 0 || 1000000000 <= timespec[0].tv_nsec))
+       && ! (0 <= timespec[0].tv_nsec
+             && timespec[0].tv_nsec < TIMESPEC_RESOLUTION))
       || (timespec[1].tv_nsec != UTIME_NOW
           && timespec[1].tv_nsec != UTIME_OMIT
-          && (timespec[1].tv_nsec < 0 || 1000000000 <= timespec[1].tv_nsec)))
+          && ! (0 <= timespec[1].tv_nsec
+                && timespec[1].tv_nsec < TIMESPEC_RESOLUTION)))
     {
       errno = EINVAL;
       return -1;
@@ -216,15 +218,19 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
   if (0 <= utimensat_works_really)
     {
       int result;
-# if __linux__
+# if __linux__ || __sun
       /* As recently as Linux kernel 2.6.32 (Dec 2009), several file
          systems (xfs, ntfs-3g) have bugs with a single UTIME_OMIT,
          but work if both times are either explicitly specified or
          UTIME_NOW.  Work around it with a preparatory [f]stat prior
          to calling futimens/utimensat; fortunately, there is not much
          timing impact due to the extra syscall even on file systems
-         where UTIME_OMIT would have worked.  FIXME: Simplify this in
-         2012, when file system bugs are no longer common.  */
+         where UTIME_OMIT would have worked.
+
+         The same bug occurs in Solaris 11.1 (Apr 2013).
+
+         FIXME: Simplify this for Linux in 2016 and for Solaris in
+         2024, when file system bugs are no longer common.  */
       if (adjustment_needed == 2)
         {
           if (fd < 0 ? stat (file, &st) : fstat (fd, &st))
@@ -236,7 +242,7 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
           /* Note that st is good, in case utimensat gives ENOSYS.  */
           adjustment_needed++;
         }
-# endif /* __linux__ */
+# endif
 # if HAVE_UTIMENSAT
       if (fd < 0)
         {
@@ -445,15 +451,19 @@ lutimens (char const *file, struct timespec const timespec[2])
   if (0 <= lutimensat_works_really)
     {
       int result;
-# if __linux__
+# if __linux__ || __sun
       /* As recently as Linux kernel 2.6.32 (Dec 2009), several file
          systems (xfs, ntfs-3g) have bugs with a single UTIME_OMIT,
          but work if both times are either explicitly specified or
          UTIME_NOW.  Work around it with a preparatory lstat prior to
          calling utimensat; fortunately, there is not much timing
          impact due to the extra syscall even on file systems where
-         UTIME_OMIT would have worked.  FIXME: Simplify this in 2012,
-         when file system bugs are no longer common.  */
+         UTIME_OMIT would have worked.
+
+         The same bug occurs in Solaris 11.1 (Apr 2013).
+
+         FIXME: Simplify this for Linux in 2016 and for Solaris in
+         2024, when file system bugs are no longer common.  */
       if (adjustment_needed == 2)
         {
           if (lstat (file, &st))
@@ -465,7 +475,7 @@ lutimens (char const *file, struct timespec const timespec[2])
           /* Note that st is good, in case utimensat gives ENOSYS.  */
           adjustment_needed++;
         }
-# endif /* __linux__ */
+# endif
       result = utimensat (AT_FDCWD, file, ts, AT_SYMLINK_NOFOLLOW);
 # ifdef __linux__
       /* Work around a kernel bug:

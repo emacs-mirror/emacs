@@ -1,5 +1,5 @@
 /* Interface to libxml2.
-   Copyright (C) 2010-2013 Free Software Foundation, Inc.
+   Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -124,7 +124,7 @@ make_dom (xmlNode *node)
 {
   if (node->type == XML_ELEMENT_NODE)
     {
-      Lisp_Object result = Fcons (intern ((char *) node->name), Qnil);
+      Lisp_Object result = list1 (intern ((char *) node->name));
       xmlNode *child;
       xmlAttr *property;
       Lisp_Object plist = Qnil;

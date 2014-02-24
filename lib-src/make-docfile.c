@@ -1,6 +1,6 @@
 /* Generate doc-string file for GNU Emacs from source files.
 
-Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2013 Free Software
+Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2014 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -276,7 +276,7 @@ struct rcsoc_state
 /* Output CH to the file or buffer in STATE.  Any pending newlines or
    spaces are output first.  */
 
-static inline void
+static void
 put_char (int ch, struct rcsoc_state *state)
 {
   int out_ch;
@@ -555,7 +555,7 @@ enum global_type
   LISP_OBJECT,
   EMACS_INTEGER,
   BOOLEAN,
-  FUNCTION,
+  FUNCTION
 };
 
 /* A single global.  */
@@ -1075,7 +1075,7 @@ read_lisp_symbol (FILE *infile, char *buffer)
 static int
 search_lisp_doc_at_eol (FILE *infile)
 {
-  char c = 0, c1 = 0, c2 = 0;
+  int c = 0, c1 = 0, c2 = 0;
 
   /* Skip until the end of line; remember two previous chars.  */
   while (c != '\n' && c != '\r' && c != EOF)
@@ -1090,8 +1090,7 @@ search_lisp_doc_at_eol (FILE *infile)
   if (c2 != '"' || c1 != '\\')
     {
 #ifdef DEBUG
-      fprintf (stderr, "## non-docstring in %s (%s)\n",
-	       buffer, filename);
+      fprintf (stderr, "## non-docstring found\n");
 #endif
       if (c != EOF)
 	ungetc (c, infile);

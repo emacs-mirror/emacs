@@ -1,5 +1,5 @@
 /* ftxfont.c -- FreeType font driver on X (without using XFT).
-   Copyright (C) 2006-2013 Free Software Foundation, Inc.
+   Copyright (C) 2006-2014 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -57,7 +57,7 @@ struct ftxfont_frame_data
 /* Return an array of 6 GCs for antialiasing.  */
 
 static GC *
-ftxfont_get_gcs (FRAME_PTR f, long unsigned int foreground, long unsigned int background)
+ftxfont_get_gcs (struct frame *f, unsigned long foreground, unsigned long background)
 {
   XColor color;
   XGCValues xgcv;
@@ -134,7 +134,7 @@ ftxfont_get_gcs (FRAME_PTR f, long unsigned int foreground, long unsigned int ba
 }
 
 static int
-ftxfont_draw_bitmap (FRAME_PTR f, GC gc_fore, GC *gcs, struct font *font,
+ftxfont_draw_bitmap (struct frame *f, GC gc_fore, GC *gcs, struct font *font,
                      unsigned int code, int x, int y, XPoint *p, int size,
                      int *n, bool flush)
 {
@@ -212,7 +212,7 @@ ftxfont_draw_bitmap (FRAME_PTR f, GC gc_fore, GC *gcs, struct font *font,
 }
 
 static void
-ftxfont_draw_background (FRAME_PTR f, struct font *font, GC gc, int x, int y,
+ftxfont_draw_background (struct frame *f, struct font *font, GC gc, int x, int y,
 			 int width)
 {
   XGCValues xgcv;
@@ -226,9 +226,9 @@ ftxfont_draw_background (FRAME_PTR f, struct font *font, GC gc, int x, int y,
 }
 
 static Lisp_Object
-ftxfont_list (Lisp_Object frame, Lisp_Object spec)
+ftxfont_list (struct frame *f, Lisp_Object spec)
 {
-  Lisp_Object list = ftfont_driver.list (frame, spec), tail;
+  Lisp_Object list = ftfont_driver.list (f, spec), tail;
 
   for (tail = list; CONSP (tail); tail = XCDR (tail))
     ASET (XCAR (tail), FONT_TYPE_INDEX, Qftx);
@@ -236,9 +236,9 @@ ftxfont_list (Lisp_Object frame, Lisp_Object spec)
 }
 
 static Lisp_Object
-ftxfont_match (Lisp_Object frame, Lisp_Object spec)
+ftxfont_match (struct frame *f, Lisp_Object spec)
 {
-  Lisp_Object entity = ftfont_driver.match (frame, spec);
+  Lisp_Object entity = ftfont_driver.match (f, spec);
 
   if (VECTORP (entity))
     ASET (entity, FONT_TYPE_INDEX, Qftx);
@@ -246,7 +246,7 @@ ftxfont_match (Lisp_Object frame, Lisp_Object spec)
 }
 
 static Lisp_Object
-ftxfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
+ftxfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 {
   Lisp_Object font_object;
   struct font *font;
@@ -260,16 +260,16 @@ ftxfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 }
 
 static void
-ftxfont_close (FRAME_PTR f, struct font *font)
+ftxfont_close (struct font *font)
 {
-  ftfont_driver.close (f, font);
+  ftfont_driver.close (font);
 }
 
 static int
 ftxfont_draw (struct glyph_string *s, int from, int to, int x, int y,
               bool with_background)
 {
-  FRAME_PTR f = s->f;
+  struct frame *f = s->f;
   struct face *face = s->face;
   struct font *font = s->font;
   XPoint p[0x700];
@@ -338,7 +338,7 @@ ftxfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 }
 
 static int
-ftxfont_end_for_frame (FRAME_PTR f)
+ftxfont_end_for_frame (struct frame *f)
 {
   struct ftxfont_frame_data *data = font_get_frame_data (f, &ftxfont_driver);
 

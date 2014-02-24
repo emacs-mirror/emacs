@@ -2,12 +2,13 @@
 
 @setfilename gnus-coding
 @settitle Gnus Coding Style and Maintenance Guide
+@documentencoding UTF-8
 @syncodeindex fn cp
 @syncodeindex vr cp
 @syncodeindex pg cp
 
 @copying
-Copyright @copyright{} 2004--2005, 2007--2013 Free Software
+Copyright @copyright{} 2004--2005, 2007--2014 Free Software
 Foundation, Inc.
 
 @quotation
@@ -387,5 +388,5 @@ changed.
 
 @c Local Variables:
 @c mode: texinfo
-@c coding: iso-8859-1
+@c coding: utf-8
 @c End:

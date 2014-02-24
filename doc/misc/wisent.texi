@@ -20,10 +20,11 @@
 @c @footnotestyle separate
 @c @paragraphindent 2
 @c @@smallbook
+@documentencoding UTF-8
 @c %**end of header
 
 @copying
-Copyright @copyright{} 1988--1993, 1995, 1998--2004, 2007, 2012--2013
+Copyright @copyright{} 1988--1993, 1995, 1998--2004, 2007, 2012--2014
 Free Software Foundation, Inc.
 
 @c Since we are both GNU manuals, we do not need to ack each other here.
@@ -113,9 +114,6 @@ of GNU Bison 1.28 & 1.31.
 
 For more details on the basic concepts for understanding Wisent, it is
 worthwhile to read the @ref{Top, Bison Manual, , bison}.
-@ifhtml
-@uref{http://www.gnu.org/manual/bison/html_node/index.html}.
-@end ifhtml
 
 Wisent can generate compilers compatible with the @semantic{} tool set.
 See the @ref{Top, Semantic Manual, , semantic}.
@@ -133,7 +131,7 @@ June 1985, Report No. UCB/CSD 85/251.
 
 @item
 For generating the lookahead sets, Wisent uses the well-known
-technique of F. DeRemer and A. Pennello described in:
+technique of F. DeRemer and T. Pennello described in:
 @quotation
 @cite{Efficient Computation of LALR(1) Look-Ahead Sets}@*
 October 1982, ACM TOPLAS Vol 4 No 4, 615--49,

@@ -4,11 +4,12 @@
 
 @setfilename ../../info/emacs-gnutls
 @settitle Emacs GnuTLS Integration @value{VERSION}
+@documentencoding UTF-8
 
 @copying
 This file describes the Emacs GnuTLS integration.
 
-Copyright @copyright{} 2012--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2012--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -25,7 +26,7 @@ modify this GNU manual.''
 
 @dircategory Emacs network features
 @direntry
-* GnuTLS: (emacs-gnutls).       The Emacs GnuTLS integration.
+* Emacs GnuTLS: (emacs-gnutls). The Emacs GnuTLS integration.
 @end direntry
 
 @titlepage
@@ -130,6 +131,24 @@ and RHEL; @file{/etc/ssl/ca-bundle.pem} for Suse;
 customize @code{gnutls-trustfiles} to be something else, but let us
 know if you do, so we can make the change to benefit the other users
 of that platform.
+@end defvar
+
+@defvar gnutls-verify-error
+The @code{gnutls-verify-error} variable allows you to verify SSL/TLS
+server certificates for all connections or by host name.  It defaults
+to @code{nil} for now but will likely be changed to @code{t} later,
+meaning that all certificates will be verified.
+
+There are two checks available currently, that the certificate has
+been issued by a trusted authority as defined by
+@code{gnutls-trustfiles}, and that the hostname matches the
+certificate.  @code{t} enables both checks, but you can enable them
+individually as well with @code{:trustfiles} and @code{:hostname}
+instead.
+
+Because of the low-level interactions with the GnuTLS library, there
+is no way currently to ask if a certificate can be accepted.  You have
+to look in the @code{*Messages*} buffer.
 @end defvar
 
 @defvar gnutls-min-prime-bits

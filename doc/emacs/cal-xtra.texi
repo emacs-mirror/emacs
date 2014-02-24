@@ -1,5 +1,5 @@
-@c This is part of the Emacs manual.  -*- coding: iso-latin-1 -*-
-@c Copyright (C) 2004-2013 Free Software Foundation, Inc.
+@c This is part of the Emacs manual.  -*- coding: utf-8 -*-
+@c Copyright (C) 2004-2014 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -17,6 +17,7 @@ your personal tastes.
 @menu
 * Calendar Customizing::   Calendar layout and hooks.
 * Holiday Customizing::    Defining your own holidays.
+* Mayan Calendar::         Moving to a date specified in a Mayan calendar.
 * Date Display Format::    Changing the format.
 * Time Display Format::    Changing the format.
 * Diary Customizing::      Defaults you can set.
@@ -42,9 +43,12 @@ customize the variables @code{calendar-intermonth-header} and
 @code{calendar-intermonth-text} as described in their documentation.
 
 @vindex calendar-month-header
+@vindex calendar-day-header-array
   The variable @code{calendar-month-header} controls the text that
 appears above each month in the calendar.  By default, it shows the
-month and year.
+month and year.  The variable @code{calendar-day-header-array}
+controls the text that appears above each day's column in every month.
+By default, it shows the first two letters of each day's name.
 
 @vindex calendar-holiday-marker
 @vindex diary-entry-marker
@@ -67,7 +71,7 @@ the calendar).
   Starting the calendar runs the normal hook
 @code{calendar-initial-window-hook}.  Recomputation of the calendar
 display does not run this hook.  But if you leave the calendar with the
-@kbd{q} command and reenter it, the hook runs again.@refill
+@kbd{q} command and reenter it, the hook runs again.
 
 @vindex calendar-today-visible-hook
 @findex calendar-star-date
@@ -203,7 +207,7 @@ the month (1 specifies the first occurrence, 2 the second occurrence,
 @minus{}1 the last occurrence, @minus{}2 the second-to-last occurrence, and
 so on).
 
-  You can specify holidays that occur on fixed days of the Bah·'Ì,
+  You can specify holidays that occur on fixed days of the Bah√°'√≠,
 Chinese, Hebrew, Islamic, and Julian calendars too.  For example,
 
 @smallexample
@@ -259,6 +263,99 @@ visible in the calendar window, with descriptive strings, like this:
 @smallexample
 (((6 4 2012) "Lunar Eclipse") ((11 13 2012) "Solar Eclipse") ... )
 @end smallexample
+
+@node Mayan Calendar
+@subsection Converting from the Mayan Calendar
+@cindex Mayan calendar
+
+  Here are the commands to select dates based on the Mayan calendar:
+
+@table @kbd
+@item g m l
+Move to a date specified by the long count calendar
+(@code{calendar-mayan-goto-long-count-date}).
+@item g m n t
+Move to the next occurrence of a place in the
+tzolkin calendar (@code{calendar-mayan-next-tzolkin-date}).
+@item g m p t
+Move to the previous occurrence of a place in the
+tzolkin calendar (@code{calendar-mayan-previous-tzolkin-date}).
+@item g m n h
+Move to the next occurrence of a place in the
+haab calendar (@code{calendar-mayan-next-haab-date}).
+@item g m p h
+Move to the previous occurrence of a place in the
+haab calendar (@code{calendar-mayan-previous-haab-date}).
+@item g m n c
+Move to the next occurrence of a place in the
+calendar round (@code{calendar-mayan-next-calendar-round-date}).
+@item g m p c
+Move to the previous occurrence of a place in the
+calendar round (@code{calendar-mayan-previous-calendar-round-date}).
+@end table
+
+@cindex Mayan long count
+  To understand these commands, you need to understand the Mayan calendars.
+The @dfn{long count} is a counting of days with these units:
+
+@display
+1 kin = 1 day@ @ @ 1 uinal = 20 kin@ @ @ 1 tun = 18 uinal
+1 katun = 20 tun@ @ @ 1 baktun = 20 katun
+@end display
+
+@kindex g m @r{(Calendar mode)}
+@findex calendar-mayan-goto-long-count-date
+@noindent
+Thus, the long count date 12.16.11.16.6 means 12 baktun, 16 katun, 11
+tun, 16 uinal, and 6 kin.  The Emacs calendar can handle Mayan long
+count dates as early as 7.17.18.13.3, but no earlier.  When you use the
+@kbd{g m l} command, type the Mayan long count date with the baktun,
+katun, tun, uinal, and kin separated by periods.
+
+@findex calendar-mayan-previous-tzolkin-date
+@findex calendar-mayan-next-tzolkin-date
+@cindex Mayan tzolkin calendar
+  The Mayan tzolkin calendar is a cycle of 260 days formed by a pair of
+independent cycles of 13 and 20 days.  Since this cycle repeats
+endlessly, Emacs provides commands to move backward and forward to the
+previous or next point in the cycle.  Type @kbd{g m p t} to go to the
+previous tzolkin date; Emacs asks you for a tzolkin date and moves point
+to the previous occurrence of that date.  Similarly, type @kbd{g m n t}
+to go to the next occurrence of a tzolkin date.
+
+@findex calendar-mayan-previous-haab-date
+@findex calendar-mayan-next-haab-date
+@cindex Mayan haab calendar
+  The Mayan haab calendar is a cycle of 365 days arranged as 18 months
+of 20 days each, followed by a 5-day monthless period.  Like the tzolkin
+cycle, this cycle repeats endlessly, and there are commands to move
+backward and forward to the previous or next point in the cycle.  Type
+@kbd{g m p h} to go to the previous haab date; Emacs asks you for a haab
+date and moves point to the previous occurrence of that date.
+Similarly, type @kbd{g m n h} to go to the next occurrence of a haab
+date.
+
+@c This is omitted because it is too long for smallbook format.
+@c @findex calendar-mayan-previous-calendar-round-date
+@findex calendar-mayan-next-calendar-round-date
+@cindex Mayan calendar round
+  The Maya also used the combination of the tzolkin date and the haab
+date.  This combination is a cycle of about 52 years called a
+@emph{calendar round}.  If you type @kbd{g m p c}, Emacs asks you for
+both a haab and a tzolkin date and then moves point to the previous
+occurrence of that combination.  Use @kbd{g m n c} to move point to the
+next occurrence of a combination.  These commands signal an error if the
+haab/tzolkin date combination you have typed is impossible.
+
+  Emacs uses strict completion
+@iftex
+(@pxref{Completion Exit,,, emacs, the Emacs Manual})
+@end iftex
+@ifnottex
+(@pxref{Completion Exit})
+@end ifnottex
+whenever it asks you to type a Mayan name, so you don't have to worry
+about spelling.
 
 @node Date Display Format
 @subsection Date Display Format
@@ -420,7 +517,7 @@ the fourth pattern.
 @subsection Diary Entries Using non-Gregorian Calendars
 
   As well as entries based on the standard Gregorian calendar, your
-diary can have entries based on Bah·'Ì, Hebrew, or Islamic dates.
+diary can have entries based on Bah√°'√≠, Hebrew, or Islamic dates.
 Recognition of such entries can be time-consuming, however, and since
 most people don't use them, you must explicitly enable their use.  If
 you want the diary to recognize Hebrew-date diary entries, for example,
@@ -440,7 +537,7 @@ you must do this:
 @end smallexample
 
 @noindent
-Similarly, for Islamic and Bah·'Ì entries, add
+Similarly, for Islamic and Bah√°'√≠ entries, add
 @code{diary-islamic-list-entries} and @code{diary-islamic-mark-entries}, or
 @code{diary-bahai-list-entries} and @code{diary-bahai-mark-entries}.
 
@@ -449,7 +546,7 @@ Similarly, for Islamic and Bah·'Ì entries, add
 @vindex diary-islamic-entry-symbol
   These diary entries have the same formats as Gregorian-date diary
 entries; except that @code{diary-bahai-entry-symbol} (default @samp{B})
-must precede a Bah·'Ì date, @code{diary-hebrew-entry-symbol} (default
+must precede a Bah√°'√≠ date, @code{diary-hebrew-entry-symbol} (default
 @samp{H}) a Hebrew date, and @code{diary-islamic-entry-symbol} (default
 @samp{I}) an Islamic date.  Moreover, non-Gregorian month names may not
 be abbreviated (because the first three letters are often not unique).
@@ -476,7 +573,7 @@ nonmarking if preceded by @code{diary-nonmarking-symbol} (default
 
   Here is a table of commands used in the calendar to create diary
 entries that match the selected date and other dates that are similar in
-the Bah·'Ì, Hebrew, or Islamic calendars:
+the Bah√°'√≠, Hebrew, or Islamic calendars:
 
 @table @kbd
 @item i h d
@@ -537,7 +634,7 @@ example, to sort the entries by the dates they apply to.
   Ordinarily, the fancy diary buffer does not show days for which there
 are no diary entries, even if that day is a holiday.  If you want such
 days to be shown in the fancy diary buffer, set the variable
-@code{diary-list-include-blanks} to @code{t}.@refill
+@code{diary-list-include-blanks} to @code{t}.
 
   The fancy diary buffer enables View mode
 @iftex
@@ -851,7 +948,7 @@ Make a diary entry with today's equivalent Julian calendar date.
 @item %%(diary-astro-day-number)
 Make a diary entry with today's equivalent astronomical (Julian) day number.
 @item %%(diary-bahai-date)
-Make a diary entry with today's equivalent Bah·'Ì calendar date.
+Make a diary entry with today's equivalent Bah√°'√≠ calendar date.
 @item %%(diary-chinese-date)
 Make a diary entry with today's equivalent Chinese calendar date.
 @item %%(diary-coptic-date)

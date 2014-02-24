@@ -7,10 +7,12 @@
 @set VERSION 0.2
 @settitle Emacs SASL Library @value{VERSION}
 
+@documentencoding UTF-8
+
 @copying
 This file describes the Emacs SASL library, version @value{VERSION}.
 
-Copyright @copyright{} 2000, 2004--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2000, 2004--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

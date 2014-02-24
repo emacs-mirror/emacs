@@ -1,6 +1,6 @@
 ;;; xml.el --- XML parser
 
-;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Mark A. Hershberger <mah@everybody.org>
@@ -479,7 +479,7 @@ Return one of:
 		 xml-default-ns))))
     (cond
      ;; Processing instructions, like <?xml version="1.0"?>.
-     ((looking-at "<\\?")
+     ((looking-at-p "<\\?")
       (search-forward "?>")
       (skip-syntax-forward " ")
       (xml-parse-tag-1 parse-dtd xml-ns))
@@ -492,14 +492,14 @@ Return one of:
 	 (buffer-substring-no-properties pos (match-beginning 0))
 	 (xml-parse-string))))
      ;; DTD for the document
-     ((looking-at "<!DOCTYPE[ \t\n\r]")
+     ((looking-at-p "<!DOCTYPE[ \t\n\r]")
       (let ((dtd (xml-parse-dtd parse-ns)))
 	(skip-syntax-forward " ")
 	(if xml-validating-parser
 	    (cons dtd (xml-parse-tag-1 nil xml-ns))
 	  (xml-parse-tag-1 nil xml-ns))))
      ;; skip comments
-     ((looking-at "<!--")
+     ((looking-at-p "<!--")
       (search-forward "-->")
       ;; FIXME: This loses the skipped-over spaces.
       (skip-syntax-forward " ")
@@ -507,7 +507,7 @@ Return one of:
 	(let ((xml-sub-parser t))
 	  (xml-parse-tag-1 parse-dtd xml-ns))))
      ;; end tag
-     ((looking-at "</")
+     ((looking-at-p "</")
       '())
      ;; opening tag
      ((looking-at (eval-when-compile (concat "<\\(" xml-name-re "\\)")))
@@ -530,7 +530,7 @@ Return one of:
 	(setq children (list attrs (xml-maybe-do-ns node-name "" xml-ns)))
 	(cond
 	 ;; is this an empty element ?
-	 ((looking-at "/>")
+	 ((looking-at-p "/>")
 	  (forward-char 2)
 	  (nreverse children))
 	 ;; is this a valid start tag ?
@@ -543,7 +543,7 @@ Return one of:
 	       ((eobp)
 		(error "XML: (Not Well-Formed) End of document while reading element `%s'"
 		       node-name))
-	       ((looking-at "</")
+	       ((looking-at-p "</")
 		(forward-char 2)
 		(error "XML: (Not Well-Formed) Invalid end tag `%s' (expecting `%s')"
 		       (let ((pos (point)))
@@ -591,7 +591,7 @@ references."
 	(old-remaining-size (- (buffer-size) (point)))
 	ref val)
     (while (and (not (eobp))
-		(not (looking-at "<")))
+		(not (looking-at-p "<")))
       ;; Find the next < or & character.
       (skip-chars-forward "^<&")
       (when (eq (char-after) ?&)
@@ -690,11 +690,11 @@ This follows the rule [28] in the XML specifications."
   (let ((xml-validating-parser nil))
     (xml-parse-dtd)))
 
-(defun xml-parse-dtd (&optional parse-ns)
+(defun xml-parse-dtd (&optional _parse-ns)
   "Parse the DTD at point."
   (forward-char (eval-when-compile (length "<!DOCTYPE")))
   (skip-syntax-forward " ")
-  (if (and (looking-at ">")
+  (if (and (looking-at-p ">")
 	   xml-validating-parser)
       (error "XML: (Validity) Invalid DTD (expecting name of the document)"))
 
@@ -755,7 +755,7 @@ This follows the rule [28] in the XML specifications."
 
       ;; Parse the rest of the DTD
       ;; Fixme: Deal with NOTATION, PIs.
-      (while (not (looking-at "\\s-*\\]"))
+      (while (not (looking-at-p "\\s-*\\]"))
 	(skip-syntax-forward " ")
 	(cond
 	 ((eobp)
@@ -771,14 +771,14 @@ This follows the rule [28] in the XML specifications."
 		(end-pos (match-end 0)))
 	    ;; Translation of rule [46] of XML specifications
 	    (cond
-	     ((string-match "\\`EMPTY\\s-*\\'" type)  ; empty declaration
+	     ((string-match-p "\\`EMPTY\\s-*\\'" type)  ; empty declaration
 	      (setq type 'empty))
-	     ((string-match "\\`ANY\\s-*$" type)      ; any type of contents
+	     ((string-match-p "\\`ANY\\s-*$" type)      ; any type of contents
 	      (setq type 'any))
 	     ((string-match "\\`(\\(.*\\))\\s-*\\'" type) ; children ([47])
 	      (setq type (xml-parse-elem-type
 			  (match-string-no-properties 1 type))))
-	     ((string-match "^%[^;]+;[ \t\n\r]*\\'" type) ; substitution
+	     ((string-match-p "^%[^;]+;[ \t\n\r]*\\'" type) ; substitution
 	      nil)
 	     (xml-validating-parser
 	      (error "XML: (Validity) Invalid element type in the DTD")))
@@ -803,7 +803,7 @@ This follows the rule [28] in the XML specifications."
 	  (goto-char (match-end 0)))
 
 	 ;; Comments (skip to end, ignoring parameter entity):
-	 ((looking-at "<!--")
+	 ((looking-at-p "<!--")
 	  (search-forward "-->")
 	  (and next-parameter-entity
 	       (> (point) next-parameter-entity)
@@ -856,7 +856,6 @@ This follows the rule [28] in the XML specifications."
 	    (unless (looking-at xml-pe-reference-re)
 	      (error "XML: Internal error"))
 	    (let* ((entity (match-string 1))
-		   (beg    (point-marker))
 		   (elt    (assoc entity xml-parameter-entity-alist)))
 	      (if elt
 		  (progn
@@ -916,11 +915,11 @@ references and parameter-entity references."
 	(progn
 	  (setq elem     (match-string-no-properties 1 string)
 		modifier (match-string-no-properties 2 string))
-	  (if (string-match "|" elem)
+	  (if (string-match-p "|" elem)
 	      (setq elem (cons 'choice
 			       (mapcar 'xml-parse-elem-type
 				       (split-string elem "|"))))
-	    (if (string-match "," elem)
+	    (if (string-match-p "," elem)
 		(setq elem (cons 'seq
 				 (mapcar 'xml-parse-elem-type
 					 (split-string elem ",")))))))
@@ -987,13 +986,12 @@ by \"*\"."
   (if (and string (stringp string))
       (let ((start 0))
         (while (string-match "&#\\([0-9]+\\);" string start)
-          (condition-case nil
-              (setq string (replace-match
-                            (string (read (substring string
-                                                     (match-beginning 1)
-                                                     (match-end 1))))
-                            nil nil string))
-            (error nil))
+          (ignore-errors
+	    (setq string (replace-match
+			  (string (read (substring string
+						   (match-beginning 1)
+						   (match-end 1))))
+			  nil nil string)))
           (setq start (1+ (match-beginning 0))))
         string)
     nil))

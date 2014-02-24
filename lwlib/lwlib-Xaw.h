@@ -15,16 +15,17 @@ void
 xaw_update_one_widget (widget_instance *, Widget, widget_value *, Boolean);
 
 void
-xaw_update_one_value (widget_instance *, Widget, widget_value *);
+xaw_update_one_value (widget_instance *, Widget, widget_value *)
+  ATTRIBUTE_CONST;
 
 void
 xaw_destroy_instance (widget_instance *);
 
 void
-xaw_popup_menu (Widget, XEvent *);
+xaw_popup_menu (Widget, XEvent *)
+  ATTRIBUTE_CONST;
 
 void
 xaw_pop_instance (widget_instance *, Boolean);
 
 #endif /* LWLIB_XAW_H */
-

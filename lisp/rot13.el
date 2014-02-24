@@ -1,9 +1,9 @@
 ;;; rot13.el --- display a buffer in ROT13
 
-;; Copyright (C) 1988, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 
 ;; This file is part of GNU Emacs.
 
@@ -101,9 +101,9 @@ See also `toggle-rot13-mode'."
 (defun toggle-rot13-mode ()
   "Toggle the use of ROT13 encoding for the current window."
   (interactive)
-  (if (eq (window-display-table (selected-window)) rot13-display-table)
+  (if (eq (window-display-table) rot13-display-table)
       (set-window-display-table (selected-window) nil)
-    (if (null (window-display-table (selected-window)))
+    (if (null (window-display-table))
 	(set-window-display-table (selected-window) rot13-display-table))))
 
 (provide 'rot13)

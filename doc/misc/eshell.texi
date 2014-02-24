@@ -4,12 +4,13 @@
 @settitle Eshell: The Emacs Shell
 @defindex cm
 @synindex vr fn
+@documentencoding UTF-8
 @c %**end of header
 
 @copying
 This manual is for Eshell, the Emacs shell.
 
-Copyright @copyright{} 1999--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -61,20 +62,19 @@ modify this GNU manual.''
 @node Top
 @top Eshell
 
-Eshell is a shell-like command interpreter
-implemented in Emacs Lisp.  It invokes no external processes except for
-those requested by the user.  It is intended to be a functional
-replacement for command shells such as @command{bash}, @command{zsh},
-@command{rc}, or @command{4dos}; since Emacs itself is capable of
-handling the sort of tasks accomplished by those tools.
+Eshell is a shell-like command interpreter implemented in Emacs Lisp.
+It invokes no external processes except for those requested by the
+user.  It is intended to be an alternative to the IELM (@pxref{Lisp Interaction, Emacs Lisp Interaction, , emacs, The Emacs Editor})
+REPL for Emacs @emph{and} with an interface similar to command shells
+such as @command{bash}, @command{zsh}, @command{rc}, or
+@command{4dos}.
 @c This manual is updated to release 2.4 of Eshell.
 
 @insertcopying
 @end ifnottex
 
 @menu
-* What is Eshell?::             A brief introduction to the Emacs Shell.
-* Command basics::              The basics of command usage.
+* Introduction::             A brief introduction to the Emacs Shell.
 * Commands::
 * Expansion::
 * Input/Output::
@@ -87,8 +87,9 @@ handling the sort of tasks accomplished by those tools.
 * Key Index::
 @end menu
 
-@node What is Eshell?
-@chapter What is Eshell?
+@node Introduction
+@chapter Introduction
+@section What is Eshell?
 @cindex what is Eshell?
 @cindex Eshell, what it is
 
@@ -139,6 +140,24 @@ Any tool you use often deserves the time spent learning to master it.
 looks like: But don't let it fool you; once you know what's going on,
 it's easier than it looks: @code{ls -lt **/*.doc(Lk+50aM+5)}.}
 
+@section What Eshell is not
+@cindex Eshell, what it is not
+@cindex what Eshell is not
+@cindex what isn't Eshell?
+
+Eshell is @emph{not} a replacement for system shells such as
+@command{bash} or @command{zsh}.  Use Eshell when you want to move
+text between Emacs and external processes; if you only want to pipe
+output from one external process to another (and then another, and so
+on), use a system shell, because Emacs's IO system is buffer oriented,
+not stream oriented, and is very inefficient at such tasks.  If you
+want to write shell scripts in Eshell, don't; either write an elisp
+library or use a system shell.
+
+Some things Eshell just doesn't do well.  It fills the niche between
+IELM and your system shell, where the peculiar use-cases lie, and it
+is less than ideal outside that niche.
+
 @menu
 * Contributors to Eshell::      People who have helped out!
 @end menu
@@ -158,122 +177,30 @@ The following persons have made contributions to Eshell.
 @item
 Eli Zaretskii made it possible for Eshell to run without requiring
 asynchronous subprocess support.  This is important for MS-DOS, which
-does not have such support.@refill
+does not have such support.
 
 @item
-Miles Bader contributed many fixes during the port to Emacs 21.@refill
+Miles Bader contributed many fixes during the port to Emacs 21.
 
 @item
 Stefan Monnier fixed the things which bothered him, which of course made
-things better for all.@refill
+things better for all.
 
 @item
 Gerd Moellmann also helped to contribute bug fixes during the initial
-integration with Emacs 21.@refill
+integration with Emacs 21.
 
 @item
 Alex Schroeder contributed code for interactively querying the user
-before overwriting files.@refill
+before overwriting files.
 
 @item
-Sudish Joseph helped with some XEmacs compatibility issues.@refill
+Sudish Joseph helped with some XEmacs compatibility issues.
 @end itemize
 
 Apart from these, a lot of people have sent suggestions, ideas,
 requests, bug reports and encouragement.  Thanks a lot!  Without you
 there would be no new releases of Eshell.
-
-@node Command basics
-@chapter Basic overview
-
-A command shell is a means of entering verbally-formed commands.  This
-is really all that it does, and every feature described in this manual
-is a means to that end.  Therefore, it's important to take firm hold on
-exactly what a command is, and how it fits in the overall picture of
-things.
-
-@menu
-* Commands verbs::              Commands always begin with a verb.
-* Command arguments::           Some verbs require arguments.
-@end menu
-
-@node Commands verbs
-@section Commands verbs
-
-Commands are expressed using @dfn{script}, a special shorthand language
-computers can understand with no trouble.  Script is an extremely simple
-language; oddly enough, this is what makes it look so complicated!
-Whereas normal languages use a variety of embellishments, the form of a
-script command is always:
-
-@example
-@var{verb} [@var{arguments}]
-@end example
-
-The verb expresses what you want your computer to do.  There are a fixed
-number of verbs, although this number is usually quite large.  On the
-author's computer, it reaches almost 1400 in number.  But of course,
-only a handful of these are really necessary.
-
-Sometimes, the verb is all that's written.  A verb is always a single
-word, usually related to the task it performs.  @command{reboot} is a
-good example.  Entering that on GNU/Linux will reboot the
-computer---assuming you have sufficient privileges.
-
-Other verbs require more information.  These are usually very capable
-verbs, and must be told specifically what to do.  The extra information
-is given in the form of @dfn{arguments}.  For example, the
-@command{echo} verb prints back whatever arguments you type.  It
-requires these arguments to know what to echo.  A proper use of
-@command{echo} looks like this:
-
-@example
-echo This is an example of using echo!
-@end example
-
-This script command causes the computer to echo back: ``This is an
-example of using echo!''
-
-Although command verbs are always simple words, like @command{reboot} or
-@command{echo}, arguments may have a wide variety of forms.  There are
-textual arguments, numerical arguments---even Lisp arguments.
-Distinguishing these different types of arguments requires special
-typing, for the computer to know exactly what you mean.
-
-@node Command arguments
-@section Command arguments
-
-Eshell recognizes several different kinds of command arguments:
-
-@enumerate
-@item Strings (also called textual arguments)
-@item Numbers (floating point or integer)
-@item Lisp lists
-@item Lisp symbols
-@item Emacs buffers
-@item Emacs process handles
-@end enumerate
-
-Most users need to worry only about the first two.  The third, Lisp lists,
-occur very frequently, but almost always behind the scenes.
-
-Strings are the most common type of argument, and consist of nearly any
-character.  Special characters---those used by Eshell
-specifically---must be preceded by a backslash (@samp{\}).  When in doubt, it
-is safe to add backslashes anywhere and everywhere.
-
-Here is a more complicated @command{echo} example:
-
-@example
-echo A\ Multi-word\ Argument\ With\ A\ \$\ dollar
-@end example
-
-Beyond this, things get a bit more complicated.  While not beyond the
-reach of someone wishing to learn, it is definitely beyond the scope of
-this manual to present it all in a simplistic manner.  Get comfortable
-with Eshell as a basic command invocation tool, and learn more about the
-commands on your system; then come back when it all sits more familiarly
-on your mind.  Have fun!
 
 @node Commands
 @chapter Commands
@@ -353,9 +280,9 @@ sudo is an alias, defined as "*sudo $*"
 
 @vindex eshell-prefer-lisp-functions
 If you would prefer to use the built-in commands instead of the external
-commands, set @var{eshell-prefer-lisp-functions} to @code{t}.
+commands, set @code{eshell-prefer-lisp-functions} to @code{t}.
 
-Some of the built-in commands have different behaviour from their
+Some of the built-in commands have different behavior from their
 external counterparts, and some have no external counterpart.  Most of
 these will print a usage message when given the @code{--help} option.
 
@@ -378,12 +305,13 @@ Similar to, but slightly different from, the GNU Coreutils
 
 @item define
 @cmindex define
-Define a varalias.  @xref{Variable Aliases, , , elisp}.
+Define a varalias.
+@xref{Variable Aliases, , , elisp, The Emacs Lisp Reference Manual}.
 
 @item diff
 @cmindex diff
 Use Emacs's internal @code{diff} (not to be confused with
-@code{ediff}).  @xref{Comparing Files, , , elisp}.
+@code{ediff}).  @xref{Comparing Files, , , emacs, The GNU Emacs Manual}.
 
 @item grep
 @cmindex grep
@@ -422,15 +350,18 @@ and @code{("foo" "bar")} both evaluate to @code{("foo" "bar")}.
 @item locate
 @cmindex locate
 Alias to Emacs's @code{locate} function, which simply runs the external
-@command{locate} command and parses the results.  @xref{Dired and `find', , , elisp}.
+@command{locate} command and parses the results.
+@xref{Dired and Find, , , emacs, The GNU Emacs Manual}.
 
 @item make
 @cmindex make
-Run @command{make} through @code{compile}.  @xref{Running Compilations under Emacs, , , elisp}.
+Run @command{make} through @code{compile}.
+@xref{Compilation, , , emacs, The GNU Emacs Manual}.
 
 @item occur
 @cmindex occur
-Alias to Emacs's @code{occur}.  @xref{Other Search-and-Loop Commands, , , elisp}.
+Alias to Emacs's @code{occur}.
+@xref{Other Repeating Search, , , emacs, The GNU Emacs Manual}.
 
 @item printnl
 @cmindex printnl
@@ -460,8 +391,9 @@ With @samp{cd -42}, you can access the directory stack by number.
 @cmindex su
 @itemx sudo
 @cmindex sudo
-Uses TRAMP's @command{su} or @command{sudo} method to run a command via
-@command{su} or @command{sudo}.
+Uses TRAMP's @command{su} or @command{sudo} method @pxref{Inline methods, , , tramp}
+to run a command via @command{su} or @command{sudo}.  These commands
+are in the eshell-tramp module, which is disabled by default.
 
 @end table
 
@@ -510,7 +442,7 @@ Aliases are commands that expand to a longer input line.  For example,
 with the command invocation @samp{alias ll ls -l}; with this defined,
 running @samp{ll foo} in Eshell will actually run @samp{ls -l foo}.
 Aliases defined (or deleted) by the @command{alias} command are
-automatically written to the file named by @var{eshell-aliases-file},
+automatically written to the file named by @code{eshell-aliases-file},
 which you can also edit directly (although you will have to manually
 reload it).
 
@@ -534,7 +466,7 @@ by @code{!foo:n}.
 
 The history ring is loaded from a file at the start of every session,
 and written back to the file at the end of every session.  The file path
-is specified in @var{eshell-history-file-name}.  Unlike other shells,
+is specified in @code{eshell-history-file-name}.  Unlike other shells,
 such as Bash, Eshell can not be configured to keep a history ring of a
 different size than that of the history file.
 
@@ -647,7 +579,8 @@ variables in command invocations.
 
 @item $#var
 Expands to the length of the value bound to @code{var}.  Raises an error
-if the value is not a sequence (@pxref{Sequences Arrays and Vectors, Sequences, , elisp}).
+if the value is not a sequence
+(@pxref{Sequences Arrays Vectors, Sequences, , elisp, The Emacs Lisp Reference Manual}).
 
 @item $(lisp)
 Expands to the result of evaluating the S-expression @code{(lisp)}.  On
@@ -679,7 +612,8 @@ any regular expression.  So to split on numbers, use @samp{$var["[0-9]+" 10 20]}
 
 @item $var[hello]
 Calls @code{assoc} on @code{var} with @code{"hello"}, expecting it to be
-an alist (@pxref{Association List Type, Association Lists, , elisp}).
+an alist (@pxref{Association List Type, Association Lists, , elisp,
+The Emacs Lisp Reference Manual}).
 
 @item $#var[hello]
 Returns the length of the cdr of the element of @code{var} who car is equal
@@ -692,22 +626,35 @@ to @code{"hello"}.
 Eshell's globbing syntax is very similar to that of Zsh.  Users coming
 from Bash can still use Bash-style globbing, as there are no
 incompatibilities.  Most globbing is pattern-based expansion, but there
-is also predicate-based expansion.  See @ref{Filename Generation, , , zsh}
-for full syntax.  To customize the syntax and behaviour of globbing in
-Eshell see the Customize@footnote{@xref{Customization Settings, Customize, , elisp}.}
+is also predicate-based expansion.  See
+@ref{Filename Generation, , , zsh, The Z Shell Manual}
+for full syntax.  To customize the syntax and behavior of globbing in
+Eshell see the Customize@footnote{@xref{Easy Customization, , , emacs,
+The GNU Emacs Manual}.}
 groups ``eshell-glob'' and ``eshell-pred''.
 
 @node Input/Output
 @chapter Input/Output
 Since Eshell does not communicate with a terminal like most command
-shells, IO is a little different.  If you try to run programs from
-within Eshell that are not line-oriented, such as programs that use
-ncurses, you will just get garbage output, since the Eshell buffer is
-not a terminal emulator.  Eshell solves this problem by running
-specified commands in Emacs's terminal emulator; to let Eshell know
-which commands need to be run in a terminal, add them to the list
-@var{eshell-visual-commands}.
+shells, IO is a little different.
 
+@section Visual Commands
+If you try to run programs from within Eshell that are not
+line-oriented, such as programs that use ncurses, you will just get
+garbage output, since the Eshell buffer is not a terminal emulator.
+Eshell solves this problem by running such programs in Emacs's
+terminal emulator.
+
+Programs that need a terminal to display output properly are referred
+to in this manual as ``visual commands,'' because they are not simply
+line-oriented.  You must tell Eshell which commands are visual, by
+adding them to @code{eshell-visual-commands}; for commands that are
+visual for only certain @emph{sub}-commands -- e.g. @samp{git log} but
+not @samp{git status} -- use @code{eshell-visual-subcommands}; and for
+commands that are visual only when passed certain options, use
+@code{eshell-visual-options}.
+
+@section Redirection
 Redirection is mostly the same in Eshell as it is in other command
 shells.  The output redirection operators @code{>} and @code{>>} as
 well as pipes are supported, but there is not yet any support for
@@ -720,16 +667,16 @@ on the right-hand side, into which it inserts the output of the
 left-hand side.  e.g., @samp{echo hello >>> #<buffer *scratch*>}
 inserts the string @code{"hello"} into the @code{*scratch*} buffer.
 
-@var{eshell-virtual-targets} is a list of mappings of virtual device
+@code{eshell-virtual-targets} is a list of mappings of virtual device
 names to functions.  Eshell comes with two virtual devices:
 @file{/dev/kill}, which sends the text to the kill ring, and
 @file{/dev/clip}, which sends text to the clipboard.
 
 You can, of course, define your own virtual targets.  They are defined
-by adding a list of the form @code{("/dev/name" function mode)} to
-@var{eshell-virtual-targets}.  The first element is the device name;
-@code{function} may be either a lambda or a function name.  If
-@code{mode} is nil, then the function is the output function; if it is
+by adding a list of the form @samp{("/dev/name" @var{function} @var{mode})} to
+@code{eshell-virtual-targets}.  The first element is the device name;
+@var{function} may be either a lambda or a function name.  If
+@var{mode} is nil, then the function is the output function; if it is
 non-nil, then the function is passed the redirection mode as a
 symbol--@code{overwrite} for @code{>}, @code{append} for @code{>>}, or
 @code{insert} for @code{>>>}--and the function is expected to return
@@ -745,7 +692,8 @@ can be disabled and enabled without having to unload and reload them,
 and to provide a common parent Customize group for the
 modules.@footnote{ERC provides a similar module facility.}  An Eshell
 module is defined the same as any other library but one requirement: the
-module must define a Customize@footnote{@xref{Customization Settings, Customize, , elisp}.}
+module must define a Customize@footnote{@xref{Customization, , ,
+elisp, The Emacs Lisp Reference Manual}.}
 group using @code{eshell-defgroup} (in place of @code{defgroup}) with
 @code{eshell-module} as the parent group.@footnote{If the module has
 no user-customizable options, then there is no need to define it as an
@@ -753,7 +701,7 @@ Eshell module.}  You also need to load the following as shown:
 
 @example
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'esh-mode)
   (require 'eshell))
 
@@ -798,16 +746,18 @@ Eshell module.}  You also need to load the following as shown:
 @cindex known bugs
 @cindex bugs, known
 
-If you find a bug or misfeature, don't hesitate to let me know!  Send
-email to @email{johnw@@gnu.org}.  Feature requests should also be sent
-there.  I prefer discussing one thing at a time.  If you find several
+If you find a bug or misfeature, don't hesitate to report it, by
+using @kbd{M-x report-emacs-bug}.  The same applies to feature requests.
+It is best to discuss one thing at a time.  If you find several
 unrelated bugs, please report them separately.
 
+@ignore
 If you have ideas for improvements, or if you have written some
 extensions to this package, I would like to hear from you.  I hope you
 find this package useful!
+@end ignore
 
-Below is a complete list of known problems with Eshell version 2.4.2,
+Below is a list of some known problems with Eshell version 2.4.2,
 which is the version included with Emacs 22.
 
 @table @asis

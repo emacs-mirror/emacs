@@ -1,6 +1,6 @@
 /* Replacement grp.h file for building GNU Emacs on Windows.
 
-Copyright (C) 2003-2013 Free Software Foundation, Inc.
+Copyright (C) 2003-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

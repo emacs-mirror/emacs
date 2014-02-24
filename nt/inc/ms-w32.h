@@ -1,6 +1,6 @@
 /* System description file for Windows NT.
 
-Copyright (C) 1993-1995, 2001-2013 Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -23,6 +23,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef WINDOWSNT
 #define WINDOWSNT
 #endif
+
+#include <mingw_time.h>
 
 /* #undef const */
 
@@ -67,7 +69,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #if (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 8))
-#define HAVE___BUILTIN_UNWIND_INIT 1
+# ifndef HAVE___BUILTIN_UNWIND_INIT
+#  define HAVE___BUILTIN_UNWIND_INIT 1
+# endif
 #endif
 
 /* This isn't perfect, as some systems might have the page file in
@@ -99,8 +103,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef __GNUC__
-# define restrict __restrict__
+/* config.h may have defined already.  */
+# ifndef restrict
+#  define restrict __restrict__
+# endif
 #else
+  /* FIXME: should we define to __restrict, which MSVC supports? */
 # define restrict
 #endif
 
@@ -127,23 +135,50 @@ typedef unsigned short mode_t;
 extern char *getenv ();
 #endif
 
-#ifdef HAVE_STRINGS_H
-#include "strings.h"
+/* Prevent accidental use of features unavailable in older Windows
+   versions we still support.  MinGW64 defines this to a higher value
+   in its system headers, and is not really compatible with values
+   lower than 0x0500, so leave it alone.  */
+#ifndef _W64
+# define _WIN32_WINNT 0x0400
 #endif
+
+/* Make a leaner executable.  */
+#define WIN32_LEAN_AND_MEAN 1
+
 #include <sys/types.h>
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN      _MAX_PATH
 #endif
 
+/* This is used to hold UTF-8 encoded file names.  */
+#define MAX_UTF8_PATH   (MAXPATHLEN * 4)
+
 #ifdef HAVE_NTGUI
-#define HAVE_WINDOW_SYSTEM 1
-#define HAVE_MENUS 1
+# ifndef HAVE_WINDOW_SYSTEM
+#  define HAVE_WINDOW_SYSTEM 1
+# endif
 #endif
 
 /* Get some redefinitions in place.  */
 
 #ifdef emacs
+
+#ifdef _W64
+/* MinGW64 specific stuff.  */
+/* Make sure 'struct timespec' and 'struct timezone' are defined.  */
+#include <sys/types.h>
+#include <time.h>
+/* This prototype avoids MinGW64 compiler warnings due to the fact
+   that time.h is included before localtime is redirected to
+   sys_localtime below.  */
+extern struct tm * sys_localtime (const time_t *);
+/* MinGW64 uses a 2-argument _setjmp, and setjmp is a macro defined to
+   supply the 2nd arg correctly, so don't use _setjmp directly in that
+   case.  */
+#undef HAVE__SETJMP
+#endif
 
 #ifdef _MSC_VER
 #include <sys/timeb.h>
@@ -174,11 +209,8 @@ extern char *getenv ();
 #define link    sys_link
 #define localtime sys_localtime
 #define mkdir   sys_mkdir
-#undef mktemp
-#define mktemp  sys_mktemp
 #undef open
 #define open    sys_open
-#define pipe    sys_pipe
 #undef read
 #define read    sys_read
 #define rename  sys_rename
@@ -189,12 +221,23 @@ extern char *getenv ();
 #define strerror sys_strerror
 #undef unlink
 #define unlink  sys_unlink
+#undef opendir
+#define opendir sys_opendir
+#undef closedir
+#define closedir sys_closedir
+#undef readdir
+#define readdir sys_readdir
+#undef seekdir
+#define seekdir sys_seekdir
 /* This prototype is needed because some files include config.h
    _after_ the standard headers, so sys_unlink gets no prototype from
    stdio.h or io.h.  */
 extern int sys_unlink (const char *);
 #undef write
 #define write   sys_write
+#undef umask
+#define umask   sys_umask
+extern int sys_umask (int);
 
 /* Subprocess calls that are emulated.  */
 #define spawnve sys_spawnve
@@ -220,10 +263,8 @@ extern int sys_unlink (const char *);
 /* Map to MSVC names.  */
 #define execlp    _execlp
 #define execvp    _execvp
+#define fdatasync _commit
 #define fdopen	  _fdopen
-#ifndef fileno
-#define fileno	  _fileno
-#endif
 #define fsync	  _commit
 #define ftruncate _chsize
 #define getpid    _getpid
@@ -231,16 +272,13 @@ extern int sys_unlink (const char *);
 typedef int pid_t;
 #define snprintf  _snprintf
 #define strtoll   _strtoi64
+#define copysign  _copysign
 #endif
 #define isatty    _isatty
 #define _longjmp  longjmp
 #define lseek     _lseek
 #define popen     _popen
 #define pclose    _pclose
-#define umask	  _umask
-#ifndef _MSC_VER
-#define utimbuf	  _utimbuf
-#endif
 #define strdup    _strdup
 #define strupr    _strupr
 #define strnicmp  _strnicmp
@@ -257,19 +295,18 @@ int _getpid (void);
    array, and triggers an error message.  */
 #include <time.h>
 #define tzname    _tzname
-#if !defined (_MSC_VER) || (_MSC_VER < 1400)
-#undef  utime
-#define utime	  _utime
-#endif
 
 /* 'struct timespec' is used by time-related functions in lib/ and
    elsewhere, but we don't use lib/time.h where the structure is
    defined.  */
+/* MinGW64 defines 'struct timespec' and _TIMESPEC_DEFINED in sys/types.h.  */
+#ifndef _TIMESPEC_DEFINED
 struct timespec
 {
   time_t	tv_sec;		/* seconds */
   long int	tv_nsec;	/* nanoseconds */
 };
+#endif
 
 /* Required for functions in lib/time_r.c, since we don't use lib/time.h.  */
 extern struct tm *gmtime_r (time_t const * restrict, struct tm * restrict);
@@ -296,6 +333,9 @@ extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 #include <io.h>
 #include <stdio.h>
 #endif	/* !_MSC_VER */
+#ifndef fileno
+#define fileno	  _fileno
+#endif
 
 /* Defines that we need that aren't in the standard signal.h.  */
 #define SIGHUP  1               /* Hang up */
@@ -315,9 +355,20 @@ extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 #define ENOTSUP ENOSYS
 #endif
 
+/* In case lib/errno.h is not used.  */
+#ifndef EOPNOTSUPP
+#define EOPNOTSUPP 130
+#endif
+
 #ifdef _MSC_VER
 typedef int sigset_t;
 typedef int ssize_t;
+#endif
+
+#ifdef _W64	/* MinGW64 */
+#ifndef _POSIX
+typedef _sigset_t sigset_t;
+#endif
 #endif
 
 typedef void (_CALLBACK_ *signal_handler) (int);
@@ -337,13 +388,18 @@ extern int sigemptyset (sigset_t *);
 extern int sigaddset (sigset_t *, int);
 extern int sigfillset (sigset_t *);
 extern int sigprocmask (int, const sigset_t *, sigset_t *);
+/* MinGW64 defines pthread_sigmask as zero in its pthread_signal.h
+   header, but we have an implementation for that function in w32proc.c.  */
+#ifdef pthread_sigmask
+#undef pthread_sigmask
+#endif
 extern int pthread_sigmask (int, const sigset_t *, sigset_t *);
 extern int sigismember (const sigset_t *, int);
 extern int setpgrp (int, int);
 extern int sigaction (int, const struct sigaction *, struct sigaction *);
 extern int alarm (int);
 
-extern int sys_kill (int, int);
+extern int sys_kill (pid_t, int);
 
 
 /* For integration with MSDOS support.  */
@@ -354,23 +410,18 @@ extern int sys_kill (int, int);
 #define getdefdir(_drv, _buf)   _getdcwd (_drv, _buf, MAXPATHLEN)
 #endif
 
+#ifndef EMACS_CONFIGURATION
 extern char *get_emacs_configuration (void);
 extern char *get_emacs_configuration_options (void);
 #define EMACS_CONFIGURATION 	get_emacs_configuration ()
 #define EMACS_CONFIG_OPTIONS	get_emacs_configuration_options ()
+#endif
 
 /* Define this so that winsock.h definitions don't get included with
    windows.h.  For this to have proper effect, config.h must always be
    included before windows.h.  */
 #define _WINSOCKAPI_    1
 #define _WINSOCK_H
-
-/* Prevent accidental use of features unavailable in
-   older Windows versions we still support.  */
-#define _WIN32_WINNT 0x0400
-
-/* Make a leaner executable.  */
-#define WIN32_LEAN_AND_MEAN 1
 
 /* Defines size_t and alloca ().  */
 #ifdef emacs
@@ -414,14 +465,20 @@ extern int getpagesize (void);
 
 extern void * memrchr (void const *, int, size_t);
 
+extern int mkostemp (char *, int);
+
 
 #if defined (__MINGW32__)
 
 /* Define to 1 if the system has the type `long long int'. */
-# define HAVE_LONG_LONG_INT 1
+# ifndef HAVE_LONG_LONG_INT
+#  define HAVE_LONG_LONG_INT 1
+# endif
 
 /* Define to 1 if the system has the type `unsigned long long int'. */
-# define HAVE_UNSIGNED_LONG_LONG_INT 1
+# ifndef HAVE_UNSIGNED_LONG_LONG_INT
+#  define HAVE_UNSIGNED_LONG_LONG_INT 1
+# endif
 
 #endif
 
@@ -509,7 +566,6 @@ extern void _DebPrint (const char *fmt, ...);
 #pragma warning(disable:4308)
 #endif
 #endif
-#define TERM_HEADER "w32term.h"
 
 
 /* ============================================================ */

@@ -919,18 +919,18 @@
 
 2001-09-24  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ebnf2ps.el: Eliminate make-local-hook calls.  Doc fix.
+	* progmodes/ebnf2ps.el: Eliminate make-local-hook calls.  Doc fix.
 	(ebnf-version): New version (3.6.1).
 
-	* ebnf-bnf.el: Fix character range regexp.  Doc fix.
+	* progmodes/ebnf-bnf.el: Fix character range regexp.  Doc fix.
 	(ebnf-bnf-non-terminal-chars): New internal const.
 	(ebnf-bnf-lex): Fix code.
 
-	* ebnf-iso.el: Fix character range regexp.  Doc fix.
+	* progmodes/ebnf-iso.el: Fix character range regexp.  Doc fix.
 	(ebnf-iso-non-terminal-chars): New internal const.
 	(ebnf-iso-lex): Fix code.
 
-	* ebnf-yac.el: Fix character range regexp.  Doc fix.
+	* progmodes/ebnf-yac.el: Fix character range regexp.  Doc fix.
 	(ebnf-yac-skip-chars): New internal const.
 	(ebnf-yac-skip-code): Fix code.
 
@@ -1006,16 +1006,17 @@
 
 2001-09-19  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ebnf2ps.el: Replace "Prologue" by "Prolog" in PostScript
+	* progmodes/ebnf2ps.el: Replace "Prologue" by "Prolog" in PostScript
 	programming.  Doc fix.
 	(ebnf-version): New version (3.6).
 	(ebnf-eps-begin): Data fix.
 	(ebnf-begin-file): Code fix.
 
-	* ebnf-bnf.el: Doc fix.
+	* progmodes/ebnf-bnf.el: Doc fix.
 	(ebnf-bnf-lex): Fix regexp for non-terminal and terminal tokens.
 
-	* ebnf-iso.el, ebnf-otz.el, ebnf-yac.el: Doc fix.
+	* progmodes/ebnf-iso.el, progmodes/ebnf-otz.el, progmodes/ebnf-yac.el:
+	Doc fix.
 
 2001-09-18  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
@@ -2437,20 +2438,6 @@
 
 	* emacs-lisp/elp.el: A fix to follow coding conventions.
 
-	* gnus/binhex.el, gnus/binhex.el, gnus/earcon.el,
-	* gnus/gnus-agent.el, gnus/gnus-art.el, gnus/gnus-audio.el,
-	* gnus/gnus-logic.el, gnus/gnus-ml.el, gnus/gnus-mlspl.el,
-	* gnus/gnus-setup.el, gnus/gnus-srvr.el, gnus/gnus-sum.el,
-	* gnus/gnus-uu.el, gnus/gnus-vm.el, gnus/ietf-drums.el,
-	* gnus/mail-parse.el, gnus/mail-prsvr.el, gnus/mail-source.el,
-	* gnus/mm-bodies.el, gnus/mm-decode.el, gnus/mm-encode.el,
-	* gnus/mm-partial.el, gnus/mm-util.el, gnus/mm-uu.el,
-	* gnus/mm-view.el, gnus/mml.el, gnus/nnimap.el, gnus/nnoo.el,
-	* gnus/parse-time.el, gnus/rfc1843.el, gnus/rfc2045.el,
-	* gnus/rfc2047.el, gnus/rfc2104.el, gnus/rfc2231.el,
-	* gnus/time-date.el, gnus/uudecode.el: Some fixes to follow coding
-	conventions in files from Gnus.
-
 	* abbrevlist.el, array.el, buff-menu.el, calendar/appt.el,
 	* case-table.el, cdl.el, cmuscheme.el, compare-w.el, completion.el,
 	* custom.el, derived.el, dired-aux.el, disp-table.el, dos-vars.el,
@@ -2569,7 +2556,7 @@
 
 2001-07-10  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-indent-exp): Keep the indentation of the block
+	* progmodes/cc-cmds.el (c-indent-exp): Keep the indentation of the block
 	itself, i.e. only indent the contents in it.
 
 2001-07-10  Markus Rost  <rost@math.ohio-state.edu>
@@ -2601,7 +2588,7 @@
 
 2001-07-09  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el: Extended the kludge to interoperate with the
+	* progmodes/cc-cmds.el: Extended the kludge to interoperate with the
 	delsel and pending-del packages wrt to the new function
 	`c-electric-delete-forward'.
 
@@ -2860,8 +2847,9 @@
 	* international/quail.el (quail-start-conversion):
 	Reset quail-translating to nil.
 
-	* antlr-mode.el (antlr-mode): Check that `c-Java-access-key' is
-	bound.  Suggested by David B. Malkovsky <David.Malkovsky@sas.com>.
+	* progmodes/antlr-mode.el (antlr-mode):
+	Check that `c-Java-access-key' is bound.
+	Suggested by David B. Malkovsky <David.Malkovsky@sas.com>.
 
 2001-06-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -3648,14 +3636,14 @@
 
 2001-05-04  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-electric-delete, c-electric-delete-forward):
+	* progmodes/cc-cmds.el (c-electric-delete, c-electric-delete-forward):
 	Split `c-electric-delete' into two functions where
 	`c-electric-delete-forward' always deletes forward and
 	`c-electric-delete' only contains the code necessary for XEmacs to
 	choose between backward and forward deletion.
 
-	* cc-mode.el: `c-electric-delete-forward' is now bound to C-d to
-	get the electric behavior on that key too.
+	* progmodes/cc-mode.el: `c-electric-delete-forward' is now bound
+	to C-d to get the electric behavior on that key too.
 	(c-fill-paragraph): Fixed bogus direct use of
 	c-comment-prefix-regexp, which caused an error when it's a list.
 
@@ -4463,53 +4451,54 @@
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-mode.el, cc-vars.el (c-common-init, c-default-style):
+	* progmodes/cc-mode.el, progmodes/cc-vars.el (c-common-init)
+	(c-default-style):
 	Removed the hardcoded switch to "java" style in Java mode.
 	It's instead taken care of by the default value for c-default-style.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-align.el (c-lineup-math): Fix bug where lineup was
+	* progmodes/cc-align.el (c-lineup-math): Fix bug where lineup was
 	triggered by equal signs in string literals.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-fill-paragraph): Fixed bug in the paragraph
+	* progmodes/cc-cmds.el (c-fill-paragraph): Fixed bug in the paragraph
 	limit detection when at the ends of the buffer.
 
-	* cc-engine.el (c-guess-basic-syntax): Removed bogus check for
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Removed bogus check for
 	"for" statement clause in case 7F; a better one is done
 	earlier in case 7D anyway.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-guess-fill-prefix): Improved the heuristics
+	* progmodes/cc-cmds.el (c-guess-fill-prefix): Improved the heuristics
 	somewhat more and did a small optimization.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-beginning-of-statement, c-end-of-statement):
+	* progmodes/cc-cmds.el (c-beginning-of-statement, c-end-of-statement):
 	Use the limit argument only to limit the syntactic context
 	search, not to limit the actual movement.
 
-	* cc-cmds.el (c-beginning-of-statement): Move by sentence
+	* progmodes/cc-cmds.el (c-beginning-of-statement): Move by sentence
 	inside multiline strings, just like in comments.  Also various
 	fixes to the paragraph and comment prefix recognition, block
 	comment ender handling etc.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-fill-paragraph): Take more care to preserve
+	* progmodes/cc-cmds.el (c-fill-paragraph): Take more care to preserve
 	the relative position of the point.
 
-	* cc-cmds.el (c-electric-continued-statement): New function to
+	* progmodes/cc-cmds.el (c-electric-continued-statement): New function to
 	use as abbrev hook to reindent for keywords such as "else"
 	that continues an earlier statement.
 
-	* cc-menus.el (cc-imenu-c++-generic-expression): Treat structs
+	* progmodes/cc-menus.el (cc-imenu-c++-generic-expression): Treat structs
 	like classes.
 
-	* cc-mode.el (c-mode, c++-mode, java-mode, objc-mode)
+	* progmodes/cc-mode.el (c-mode, c++-mode, java-mode, objc-mode)
 	(pike-mode): Populate the default abbrev tables to reindent for
 	keywords such as "else" that can continue earlier statements.
 	Abbrev mode is therefore turned on by default now.  (Note that
@@ -4518,30 +4507,30 @@
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-engine.el (c-inside-bracelist-p): Fix for handling
+	* progmodes/cc-engine.el (c-inside-bracelist-p): Fix for handling
 	bracelists where the declaration contains template arguments.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-comment-indent):
+	* progmodes/cc-cmds.el (c-comment-indent):
 	Use `c-get-syntactic-indentation' to correctly calculate the
 	syntactic indentation.  Fixes bug with lineup functions that
 	return vectors.
 
-	* cc-engine.el (c-get-syntactic-indentation): Split the
+	* progmodes/cc-engine.el (c-get-syntactic-indentation): Split the
 	indentation sum calculation from `c-indent-line' to a separate
 	function.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-beginning-of-statement, c-comment-indent):
+	* progmodes/cc-cmds.el (c-beginning-of-statement, c-comment-indent):
 	Fixed places where it was assumed that preprocessor directives
 	have to start in column zero.
 
-	* cc-engine.el (c-beginning-of-member-init-list): Handle C++
+	* progmodes/cc-engine.el (c-beginning-of-member-init-list): Handle C++
 	template arguments after a class identifier properly.
 
-	* cc-engine.el (c-guess-basic-syntax): Treat initializer brace
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Treat initializer brace
 	lists for `new Foo[]' constructs in Java as expressions and
 	not top level definition brace lists on the top level, so that
 	they'll get indented consistently with the same type of
@@ -4549,25 +4538,26 @@
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-fill-paragraph): The kludge that checks
+	* progmodes/cc-cmds.el (c-fill-paragraph): The kludge that checks
 	whether the adaptive filling package fails to keep the comment
 	prefix is now kludged further to check for filladapt-mode
 	which doesn't have that problem. This is really icky, but it's
 	the only way that works with the current misfeatures/bugs in
 	both adaptive-fill-mode and filladapt-mode.
 
-	* cc-cmds.el (c-fill-paragraph): Made the way the paragraph
+	* progmodes/cc-cmds.el (c-fill-paragraph): Made the way the paragraph
 	around point is recognized more robust.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el, cc-engine.el, cc-lobotomy.el (c-state-cache)
+	* progmodes/cc-cmds.el, progmodes/cc-engine.el:
+	* progmodes/cc-lobotomy.el (c-state-cache)
 	(c-in-literal-cache, c-auto-fill-prefix, c-lit-limits)
 	(c-lit-type): Fixed all internal variables used dynamically so
 	that they are always bound.
 
-	* cc-cmds.el, cc-engine.el: Improved recovery of syntactic
-	errors:
+	* progmodes/cc-cmds.el, progmodes/cc-engine.el:
+	Improve recovery of syntactic errors:
 
 	(c-indent-region): Fixed reporting of syntactic errors so that
 	the region is fully reindented even when an error occurs.
@@ -4594,22 +4584,23 @@
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-beginning-of-statement): Fixed bugs with
+	* progmodes/cc-cmds.el (c-beginning-of-statement): Fixed bugs with
 	paragraph recognition when moving by sentence in literals.
 
-	* cc-langs.el (c-Java-javadoc-paragraph-start): Modified paragraph
-	start regexp for javadoc to recognize javadoc markup in general instead
-	of a specific set of keywords, to be more future-safe.
+	* progmodes/cc-langs.el (c-Java-javadoc-paragraph-start): Modified
+	paragraph start regexp for javadoc to recognize javadoc markup in
+	general instead of a specific set of keywords, to be more future-safe.
 
 	(c-Pike-pikedoc-paragraph-start)
 	(c-Pike-pikedoc-paragraph-separate): New regexps to recognize
 	pikedoc markup.
 
-	* cc-mode.el: Fixed initialization and use of c-current-comment-prefix.
+	* progmodes/cc-mode.el:
+	Fixed initialization and use of c-current-comment-prefix.
 
 	(pike-mode): Initialize paragraph settings pikedoc recognition.
 
-	* cc-vars.el (c-default-style): Made a nicer Customize widget.
+	* progmodes/cc-vars.el (c-default-style): Made a nicer Customize widget.
 
 	(c-comment-prefix-regexp): Made it possible to use an
 	association list on this to specify mode specific regexps.
@@ -4621,114 +4612,116 @@
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-electric-brace): Fixed check for special brace
+	* progmodes/cc-cmds.el (c-electric-brace): Fixed check for special brace
 	lists: We can't look at the syntax, since a brace list can get
 	recognized as a plain statement-cont.
 
-	* cc-engine.el (c-guess-basic-syntax): Fixed bug where a
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Fixed bug where a
 	special brace list opener broken over two lines got recognized
 	as a statement on the second line.  Case 9A changed.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-electric-brace): Fixed bug in c-state-cache
+	* progmodes/cc-cmds.el (c-electric-brace): Fixed bug in c-state-cache
 	adjustment after line is reindented.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-defs.el (c-point): Added optional argument for position
+	* progmodes/cc-defs.el (c-point): Added optional argument for position
 	to use instead of the current point.
 
-	* cc-defs.el, cc-engine.el (c-add-class-syntax): Do not add
-	the in-expression block symbols when the construct starts at
-	boi, to avoid the extra level of indentation in that case.
+	* progmodes/cc-defs.el, progmodes/cc-engine.el (c-add-class-syntax):
+	Do not add the in-expression block symbols when the construct
+	starts at boi, to avoid the extra level of indentation in that case.
 	Cases 4, 16A and 17E affected.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el: Use `indent-according-to-mode' instead of direct
+	* progmodes/cc-cmds.el: Use `indent-according-to-mode' instead of direct
 	calls to `c-indent-line', to adhere better to Emacs conventions.
 
-	* cc-engine.el (c-indent-line): Use the syntax already bound
+	* progmodes/cc-engine.el (c-indent-line): Use the syntax already bound
 	to `c-syntactic-context', if there is any.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-engine.el (c-get-offset): Fixed bug where the indentation
+	* progmodes/cc-engine.el (c-get-offset): Fixed bug where the indentation
 	wasn't added up correctly when a lineup function returned nil.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-engine.el (c-collect-line-comments): Fixed bug where
+	* progmodes/cc-engine.el (c-collect-line-comments): Fixed bug where
 	empty lines were ignored when collecting line comments backwards.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-align.el (c-lineup-dont-change): Return an absolute
+	* progmodes/cc-align.el (c-lineup-dont-change): Return an absolute
 	indentation column to work correctly in the case when several
 	syntactic elements are processed for the same line.
 
-	* cc-engine.el, cc-styles.el, cc-vars.el (c-evaluate-offset)
+	* progmodes/cc-engine.el, progmodes/cc-styles.el:
+	* progmodes/cc-vars.el (c-evaluate-offset)
 	(c-get-offset, c-indent-line, c-valid-offset, c-read-offset)
 	(c-set-offset): Added absolute indentation column settings by
 	using the vector type.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el, cc-vars.el (c-electric-paren, c-cleanup-list):
+	* progmodes/cc-cmds.el, progmodes/cc-vars.el
+	(c-electric-paren, c-cleanup-list):
 	Implemented two new cleanups `space-before-funcall' and
 	`compact-empty-funcall'.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-defs.el (c-paren-re, c-identifier-re): Two new macros for
+	* progmodes/cc-defs.el (c-paren-re, c-identifier-re): Two new macros for
 	helping building regexps.
 
-	* cc-engine.el (c-on-identifier): New function for detecting
+	* progmodes/cc-engine.el (c-on-identifier): New function for detecting
 	identifiers.  It takes keywords into account.
 
-	* cc-langs.el, cc-mode.el: Added regexps for complete keyword
-	lists.  `c-keywords' is set to a regexp matching all keywords
-	in the current language.
+	* progmodes/cc-langs.el, progmodes/cc-mode.el: Added regexps for
+	complete keyword lists.  `c-keywords' is set to a regexp matching
+	all keywords in the current language.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-engine.el (c-beginning-of-statement-1): Added '#' to the
+	* progmodes/cc-engine.el (c-beginning-of-statement-1): Added '#' to the
 	list of characters to skip backwards over at the beginning of
 	a statement, since it can precede string literals in Pike.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-guess-fill-prefix): Fixed bug with prefix
+	* progmodes/cc-cmds.el (c-guess-fill-prefix): Fixed bug with prefix
 	recognition when standing on the last line in a C++ comment
 	with nothing but whitespace after the prefix.
 
-	* cc-engine.el (c-backward-to-start-of-if): Fixed bug when
+	* progmodes/cc-engine.el (c-backward-to-start-of-if): Fixed bug when
 	given no limit argument.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-engine.el (c-inside-bracelist-p): Fixed brace list
+	* progmodes/cc-engine.el (c-inside-bracelist-p): Fixed brace list
 	recognition for the `[]= operator symbol in Pike.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-bytecomp.el (cc-eval-when-compile): New macro that works
+	* progmodes/cc-bytecomp.el (cc-eval-when-compile): New macro that works
 	around a bug in `eval-when-compile' in the byte compiler.
 
-	* cc-engine.el (c-forward-token-1): Fixed bug with return
+	* progmodes/cc-engine.el (c-forward-token-1): Fixed bug with return
 	value when count is zero and there's no token start within the limit.
 
 	(c-guess-basic-syntax): Don't add 'comment-intro to lines with
 	"prefix comments", i.e. comments which are followed by code on
 	the same line.
 
-	* cc-mode-19.el: Fixes so that checks that must be done at
+	* progmodes/cc-mode-19.el: Fixes so that checks that must be done at
 	compile time also are done then.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-defs.el: Make sure cc-mode-19 is loaded both at compile
+	* progmodes/cc-defs.el: Make sure cc-mode-19 is loaded both at compile
 	time and at runtime, and only when it's needed.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
@@ -4738,7 +4731,7 @@
 	compilation orders. Thanks to Martin Buchholz for providing
 	the basis for all this.
 
-	* cc-bytecomp.el: New file that provides some byte compilation
+	* progmodes/cc-bytecomp.el: New file that provides some byte compilation
 	features: It ensures that files always are loaded from the
 	current source directory during compilation, and it provides a
 	set of macros to turn off specific compiler warnings for
@@ -4747,61 +4740,62 @@
 	Fixed a nearly acyclic dependency tree (both runtime and
 	compile-time) between all files.
 
-	* cc-defs.el: Separated all macros before the inline functions,
-	to ensure correct compilation.
+	* progmodes/cc-defs.el: Separated all macros before the
+	inline functions, to ensure correct compilation.
 
-	* cc-defs.el, cc-engine.el: Moved c-beginning-of-macro to from
-	cc-defs.el to cc-engine.el and made it a function instead.
+	* progmodes/cc-defs.el, progmodes/cc-engine.el: Moved
+	c-beginning-of-macro to from cc-defs.el to cc-engine.el and
+	made it a function instead.
 
-	* cc-mode-19.el: Patch the byte compiler in Emacs 19 not to warn
-	about char-after.
+	* progmodes/cc-mode-19.el: Patch the byte compiler in Emacs 19
+	not to warn about char-after.
 
-	* cc-vars.el: Cope even when there isn't a custom package
+	* progmodes/cc-vars.el: Cope even when there isn't a custom package
 	containing defcustom available.
 
-	* cc-make.el: Removed since it's no longer necessary.
+	* progmodes/cc-make.el: Removed since it's no longer necessary.
 
 	README: Updated installation instructions.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el, cc-langs.el, cc-mode.el: Moved around things to
-	improve the modularity: Moved all mode init stuff from
-	cc-langs.el to cc-mode.el, including the keymap
-	initialization; cc-langs now only contains the various
-	variables for configuring the language syntax.
+	* progmodes/cc-cmds.el, progmodes/cc-langs.el, progmodes/cc-mode.el:
+	Moved around things to improve the modularity:
+	Moved all mode init stuff from cc-langs.el to cc-mode.el,
+	including the keymap initialization; cc-langs now only contains
+	the various variables for configuring the language syntax.
 
-	* cc-engine.el, cc-styles.el (c-evaluate-offset)
+	* progmodes/cc-engine.el, progmodes/cc-styles.el (c-evaluate-offset)
 	(c-get-offset): Moved from cc-styles to cc-engine since file
 	dependency analysis suggests they belong there (which also
 	makes more sense).  Thanks to Martin Buchholz for doing the analysis.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-fn-region-is-active-p): New function that
+	* progmodes/cc-cmds.el (c-fn-region-is-active-p): New function that
 	wraps the corresponding macro, for use in places that aren't
 	compiled.  Thanks to Martin Buchholz for pointing out this.
 
-	* cc-langs.el (c-mode-menu): Use c-fn-region-is-active-p.
+	* progmodes/cc-langs.el (c-mode-menu): Use c-fn-region-is-active-p.
 
-	* cc-mode.el (c-prepare-bug-report-hooks): Hook variable to
+	* progmodes/cc-mode.el (c-prepare-bug-report-hooks): Hook variable to
 	add things to the bug report.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-guess-fill-prefix): Fixed bug where the
+	* progmodes/cc-cmds.el (c-guess-fill-prefix): Fixed bug where the
 	returned prefix could contain a newline when the search for a
 	good prefix line failed.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-toggle-auto-state, c-toggle-hungry-state)
+	* progmodes/cc-cmds.el (c-toggle-auto-state, c-toggle-hungry-state)
 	(c-toggle-auto-hungry-state): Made the argument optional, as
 	the documentation says it is.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-engine.el (c-guess-basic-syntax): Don't treat the Pike
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Don't treat the Pike
 	multiline string syntax, #"...", as a cpp macro.
 
 2001-03-21  Paul Eggert  <eggert@twinsun.com>
@@ -5573,10 +5567,6 @@
 	* ediff-util.el (ediff-compute-custom-diffs-maybe):
 	Better handling of the diff mode.
 
-	* ediff.texi: Added ediff-coding-system-for-read.
-
-	* viper.texi: Fix typos.
-
 2001-02-11  Dave Love  <fx@gnu.org>
 
 	* shadowfile.el: Doc fixes.
@@ -5756,7 +5746,7 @@
 
 2001-02-05  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ebnf2ps.el: Eliminate time-stamp functions.
+	* progmodes/ebnf2ps.el: Eliminate time-stamp functions.
 	(ebnf-version): New version (3.5).
 	(ebnf-eps-finish-and-write): Replace time-stamp functions by
 	format-time-string.
@@ -7083,27 +7073,27 @@
 
 2000-12-21  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ebnf2ps.el: Fix a problem with skip-chars-forward: it doesn't accept
-	ranges like \177-\237, but accepts the character sequence from \177 to
-	\237.  Doc fix.
+	* progmodes/ebnf2ps.el: Fix a problem with skip-chars-forward:
+	it doesn't accept ranges like \177-\237, but accepts the character
+	sequence from \177 to \237.  Doc fix.
 	(ebnf-version): New version (3.4).
 	(ebnf-setup): Code fix.
 	(ebnf-range-regexp): New fun.
 	(ebnf-8-bit-chars): Const fix.
 
-	* ebnf-bnf.el: Fix the same problem as described on ebnf2ps.el log
-	entry.  Doc fix.
+	* progmodes/ebnf-bnf.el: Fix the same problem as described
+	on ebnf2ps.el log entry.  Doc fix.
 	(ebnf-bnf-lex): Code fix.
 	(ebnf-bnf-comment-chars): Const fix.
 
-	* ebnf-iso.el: Fix the same problem as described on ebnf2ps.el log
-	entry.  Doc fix.
+	* progmodes/ebnf-iso.el: Fix the same problem as described
+	on ebnf2ps.el log entry.  Doc fix.
 	(ebnf-iso-comment-chars): Const fix.
 
-	* ebnf-otz.el: Doc fix.
+	* progmodes/ebnf-otz.el: Doc fix.
 
-	* ebnf-yac.el: Fix the same problem as described on ebnf2ps.el log
-	entry.  Doc fix.
+	* progmodes/ebnf-yac.el: Fix the same problem as described
+	on ebnf2ps.el log entry.  Doc fix.
 	(ebnf-yac-skip-code): Code fix.
 	(ebnf-yac-comment-chars): Const fix.
 
@@ -7774,7 +7764,7 @@
 
 	* international/mule.el (make-char): Fix last change.
 
-	* textmode/texinfo.el (texinfo-open-quote, texinfo-close-quote):
+	* textmodes/texinfo.el (texinfo-open-quote, texinfo-close-quote):
 	New defcustoms.
 	(texinfo-insert-quote): Don't call tex-insert-quote, to avoid
 	autoloading tex-mode; instead, do the same manually.
@@ -7930,8 +7920,8 @@
 
 2000-11-29  Christoph Wedler  <Christoph.Wedler@sap.com>
 
-	* antlr-mode.el: New commands to run ANTLR from within Emacs and
-	to create Makefile rules.
+	* progmodes/antlr-mode.el: New commands to run ANTLR from within
+	Emacs and to create Makefile rules.
 	(antlr-tool-command): New user option.
 	(antlr-ask-about-save): New user option.
 	(antlr-makefile-specification): New user option.
@@ -7950,7 +7940,7 @@
 	(antlr-insert-makefile-rules): New function.
 	(antlr-show-makefile-rules): New command.
 
-	* antlr-mode.el: More Emacs/XEmacs stuff.
+	* progmodes/antlr-mode.el: More Emacs/XEmacs stuff.
 	(antlr-no-action-keywords): New constant with value nil.
 	(antlr-font-lock-keywords-alist): Use it.  Old value would break
 	syntax highlighting in Emacs-21.0.
@@ -7960,7 +7950,7 @@
 
 2000-11-29  Christoph Wedler  <Christoph.Wedler@sap.com>
 
-	* antlr-mode.el: imenu, parsing and highlighting changes.
+	* progmodes/antlr-mode.el: imenu, parsing and highlighting changes.
 	(antlr-imenu-create-index-function): Don't create extra submenus
 	for definitions in different grammar classes.  It is not necessary
 	for the menu and would make command `imenu' awkward to use.
@@ -7975,7 +7965,7 @@
 
 2000-11-29  Christoph Wedler  <Christoph.Wedler@sap.com>
 
-	* antlr-mode.el: Minor changes: language setting.
+	* progmodes/antlr-mode.el: Minor changes: language setting.
 	(antlr-language-alist): The value for file option "language" can
 	be both an identifier and a string.
 	Reported by Rajesh Radhakrishnan <radhakrs@email.uc.edu>.
@@ -7983,7 +7973,7 @@
 
 2000-11-29  Christoph Wedler  <Christoph.Wedler@sap.com>
 
-	* antlr-mode.el: Minor changes: tabs, hiding.
+	* progmodes/antlr-mode.el: Minor changes: tabs, hiding.
 	(antlr-tab-offset-alist): Set `indent-tabs-mode' to nil instead t.
 	(antlr-action-visibility): Also allow value nil to also hide the
 	braces.  Renamed from `antlr-tiny-action-length'.
@@ -10194,7 +10184,7 @@
 	* eshell/em-unix.el, eshell/em-term.el, eshell/em-smart.el,
 	* eshell/em-script.el, eshell/em-rebind.el, eshell/em-prompt.el,
 	* eshell/em-pred.el, eshell/em-ls.el, eshell/em-hist.el,
-	* eshell/em-glob.el, shell/em-dirs.el, eshell/em-cmpl.el,
+	* eshell/em-glob.el, eshell/em-dirs.el, eshell/em-cmpl.el,
 	* eshell/em-basic.el, eshell/em-banner.el, eshell/em-alias.el:
 	Add author information.
 
@@ -12444,8 +12434,8 @@
 	(vc-cvs-merge-news): Set workfile version to nil if not known.
 	(vc-cvs-latest-on-branch-p): Recommented.  Candidate for removal.
 
-	* vc-*.el (vc-*-checkout): Switch off coding systems for checkout
-	via stdout. (Merge from main line.)
+	* vc-cvs.el, vc-rcs.el, vc-sccs.el (vc-*-checkout): Switch off
+	coding systems for checkout via stdout. (Merge from main line.)
 
 2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -12705,21 +12695,22 @@
 	(vc-backend): Reintroduce the test for `file = nil' now that I
 	know why it was there (and added a comment to better remember).
 
-	* vc-sccs-hooks.el: Merge into vc-sccs.el * vc-sccs.el: Merge in
-	code from vc-sccs-hooks.el.
+	* vc-sccs-hooks.el: Merge into vc-sccs.el
+	* vc-sccs.el: Merge in code from vc-sccs-hooks.el.
 	(vc-sccs-release, vc-sccs-system-release): Remove.  Don't require
 	'vc anymore.
 	(vc-sccs-responsible-p): Use expand-file-name instead of concat
 	and file-directory-p instead of file-exists-p.
 	(vc-sccs-check-headers): Simplify the regexp.
 
-	* vc-rcs-hooks.el: Merge into vc-rcs.el * vc-rcs.el: Merge in code
-	from vc-rcs-hooks.el.  Don't require 'vc anymore.
+	* vc-rcs-hooks.el: Merge into vc-rcs.el
+	* vc-rcs.el: Merge in code from vc-rcs-hooks.el.
+	Don't require 'vc anymore.
 	(vc-rcs-responsible-p): Use expand-file-name instead of concat and
 	file-directory-p instead of file-exists-p.
 
-	* vc-cvs-hooks.el: Merge into vc-cvs.el * vc-cvs.el: Merge in code
-	from vc-cvs-hooks.el.
+	* vc-cvs-hooks.el: Merge into vc-cvs.el
+	* vc-cvs.el: Merge in code from vc-cvs-hooks.el.
 	(proto vc-cvs-registered): Require 'vc-cvs instead of
 	'vc-cvs-hooks.  Don't require 'vc anymore.
 	(vc-cvs-responsible-p): Use expand-file-name instead of concat and
@@ -12998,7 +12989,7 @@
 	`vc-locking-user' semantics.
 	(vc-backend-merge): Remove.
 
-	* vc-rcs.el, vc-scc.el (vc-{sc,r}cs-check{in,out}): Update 'vc-state
+	* vc-rcs.el, vc-sccs.el (vc-{sc,r}cs-check{in,out}): Update 'vc-state
 	rather than 'vc-locking-user.
 
 	* vc-rcs-hooks.el (vc-rcs-consult-headers): Adapt to new `vc-state'.
@@ -14108,7 +14099,7 @@
 2000-08-28  Peter Breton  <pbreton@ne.mediaone.net>
 
 	* locate.el (locate): Cleaned up locate command's interactive prompting
-	Thanks to François_Pinard <pinard@iro.umontreal.ca> for suggestions.
+	Thanks to François Pinard <pinard@iro.umontreal.ca> for suggestions.
 
 	* filecache.el (file-cache-case-fold-search): New variable.
 	(file-cache-assoc-function): New variable.
@@ -15046,7 +15037,7 @@
 
 2000-07-30  Milan Zamazal  <pdm@freesoft.cz>
 
-	* glasses.el (glasses-make-readable): Fix uncapitalization of
+	* progmodes/glasses.el (glasses-make-readable): Fix uncapitalization of
 	identifiers like `myXMLDocument'.
 
 2000-07-28  Karl Fogel  <kfogel@red-bean.com>
@@ -15271,31 +15262,31 @@
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-engine.el (c-looking-at-inexpr-block): Replaced a call to
+	* progmodes/cc-engine.el (c-looking-at-inexpr-block): Replaced a call to
 	c-beginning-of-statement-1 that caused a bad case of recursion
 	which could consume a lot of CPU in large classes in languages
 	that have in-expression classes (i.e. Java and Pike).
 
-	* cc-engine.el (c-guess-basic-syntax): Check for in-expression
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Check for in-expression
 	statements before top level constructs (i.e. case 6 is moved
 	before case 5 and is now case 4) to catch in-expression
 	classes in top level expressions correctly.
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-engine.el (c-guess-basic-syntax): Less naive handling of
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Less naive handling of
 	objc-method-intro. Case 4 removed and case 5I added.
 
-	* cc-langs.el (c-append-paragraph-start): New variable used by
+	* progmodes/cc-langs.el (c-append-paragraph-start): New variable used by
 	c-common-init to get paragraph-start correct.
-	* cc-langs.el (c-common-init): Use c-append-paragraph-start to
+	* progmodes/cc-langs.el (c-common-init): Use c-append-paragraph-start to
 	initialize paragraph-start to make it correct both with and
 	without the javadoc special case.
 
-	* cc-mode.el (java-mode): Use c-append-paragraph-start to
+	* progmodes/cc-mode.el (java-mode): Use c-append-paragraph-start to
 	initialize paragraph-start for javadoc markup.
 
-	* cc-vars.el (c-style-variables-are-local-p): Incompatible
+	* progmodes/cc-vars.el (c-style-variables-are-local-p): Incompatible
 	change by defaulting this to t.  It's motivated by the
 	confusing behavior that otherwise arise from the style system
 	when editing both java and non-java files at the same time
@@ -15303,84 +15294,84 @@
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-indent-new-comment-line): Added a kludge
+	* progmodes/cc-cmds.el (c-indent-new-comment-line): Added a kludge
 	similar to the one in c-fill-paragraph to check the fill
 	prefix from the adaptive fill function for sanity.
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-defs.el (c-end-of-defun-1): Fixed forward scanning into
+	* progmodes/cc-defs.el (c-end-of-defun-1): Fixed forward scanning into
 	defun block.
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-align.el (c-lineup-multi-inher): Handle lines with
+	* progmodes/cc-align.el (c-lineup-multi-inher): Handle lines with
 	leading comma nicely. Extended to handle member initializers
 	too.
 
-	* cc-engine.el (c-beginning-of-inheritance-list)
+	* progmodes/cc-engine.el (c-beginning-of-inheritance-list)
 	(c-guess-basic-syntax): Fixed recognition of inheritance lists
 	when the lines begins with a comma.
 
-	* cc-vars.el (c-offsets-alist): Changed default for
+	* progmodes/cc-vars.el (c-offsets-alist): Changed default for
 	member-init-cont to c-lineup-multi-inher since it now handles
 	member initializers and indents better for leading commas.
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-electric-brace): Fixed some bugs in the state
+	* progmodes/cc-cmds.el (c-electric-brace): Fixed some bugs in the state
 	handling that caused class open lines to be recognized as
 	statement-conts in some cases.
 
-	* cc-cmds.el (c-indent-new-comment-line): Keep the fill prefix
+	* progmodes/cc-cmds.el (c-indent-new-comment-line): Keep the fill prefix
 	guessed by the adaptive fill function unless point is on the
 	first line of a block comment.
 
-	* cc-engine.el (c-forward-syntactic-ws): Fixed an infloop bug
+	* progmodes/cc-engine.el (c-forward-syntactic-ws): Fixed an infloop bug
 	when the buffer ends with a macro continuation char.
 
-	* cc-engine.el (c-guess-basic-syntax): Added support for
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Added support for
 	function definitions as statements in Pike.  The first
 	statement in a lambda block is now labeled defun-block-intro
 	instead of statement-block-intro.
 
-	* cc-engine.el (c-narrow-out-enclosing-class): Whack the state
+	* progmodes/cc-engine.el (c-narrow-out-enclosing-class): Whack the state
 	so that the class surrounding point is selected, not the one
 	innermost in the state.
 
-	* cc-engine.el (c-guess-basic-syntax): Fixed bug in
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Fixed bug in
 	recognition of switch labels having hanging multiline
 	statements.
 
-	* cc-engine.el (c-beginning-of-member-init-list): Broke out
+	* progmodes/cc-engine.el (c-beginning-of-member-init-list): Broke out
 	some code in c-guess-basic-syntax to a separate function.
-	* cc-engine.el (c-just-after-func-arglist-p): Fixed
+	* progmodes/cc-engine.el (c-just-after-func-arglist-p): Fixed
 	recognition of member inits with multiple line arglists.
-	* cc-engine.el (c-guess-basic-syntax): New case 5B.3 to detect
+	* progmodes/cc-engine.el (c-guess-basic-syntax): New case 5B.3 to detect
 	member-init-cont when the commas are in funny places.
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-defs.el (c-auto-newline): Removed this macro since it's
+	* progmodes/cc-defs.el (c-auto-newline): Removed this macro since it's
 	not used anymore.
 
-	* cc-engine.el (c-looking-at-bos): New helper function.
-	* cc-engine.el (c-looking-at-inexpr-block): More tests to tell
+	* progmodes/cc-engine.el (c-looking-at-bos): New helper function.
+	* progmodes/cc-engine.el (c-looking-at-inexpr-block): More tests to tell
 	inexpr and toplevel classes apart in Pike.
 
-	* cc-engine.el (c-guess-basic-syntax): Fixed bogus recognition
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Fixed bogus recognition
 	of case 9A.
 
-	* cc-langs.el, cc-mode.el (c-Pike-inexpr-class-key): New
-	constant, since "class" can introduce an in-expression class
-	in Pike nowadays.
+	* progmodes/cc-langs.el, progmodes/cc-mode.el
+	(c-Pike-inexpr-class-key): New constant, since "class" can
+	introduce an in-expression class in Pike nowadays.
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-align.el (c-gnu-impose-minimum): Don't impose minimum
+	* progmodes/cc-align.el (c-gnu-impose-minimum): Don't impose minimum
 	indentation on cpp-macro lines.
 
-	* cc-engine.el (c-guess-basic-syntax): Made the cpp-macro
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Made the cpp-macro
 	a syntax modifier like comment-intro, to make it possible to
 	get syntactic indentation for preprocessor directives.  It's
 	incompatible wrt to lineup functions on cpp-macro, but it has
@@ -15389,117 +15380,117 @@
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-engine.el (c-guess-basic-syntax): Fixed bug with missed
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Fixed bug with missed
 	member-init-cont when the preceding arglist is several lines.
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-styles.el (c-style-alist): The basic offset for the BSD
+	* progmodes/cc-styles.el (c-style-alist): The basic offset for the BSD
 	style corrected to 8.
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-styles.el (c-style-alist): Adjusted the indentation of
+	* progmodes/cc-styles.el (c-style-alist): Adjusted the indentation of
 	brace list openers in the gnu style.
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-indent-command): Obey c-syntactic-indentation.
+	* progmodes/cc-cmds.el (c-indent-command): Obey c-syntactic-indentation.
 
-	* cc-cmds.el (c-electric-brace, c-electric-slash,
+	* progmodes/cc-cmds.el (c-electric-brace, c-electric-slash,
 	c-electric-star, c-electric-semi&comma, c-electric-colon,
 	c-electric-lt-gt, c-electric-paren): Don't reindent old lines
 	when c-syntactic-indentation is nil.
 
-	* cc-engine.el (c-beginning-of-statement-1): Fixed bug where
+	* progmodes/cc-engine.el (c-beginning-of-statement-1): Fixed bug where
 	we were left at comments preceding the first statement when
 	reaching the beginning of the buffer.
 
-	* cc-vars.el (c-syntactic-indentation): New variable to turn
+	* progmodes/cc-vars.el (c-syntactic-indentation): New variable to turn
 	off all syntactic indentation.
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-fill-paragraph): Keep one or two spaces
+	* progmodes/cc-cmds.el (c-fill-paragraph): Keep one or two spaces
 	between the text and the block comment ender when it hangs,
 	depending on how many there are before the fill.
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-engine.el (c-beginning-of-closest-statement): New helper
+	* progmodes/cc-engine.el (c-beginning-of-closest-statement): New helper
 	function to go back to the closest preceding statement start,
 	which could be inside a conditional statement.
-	* cc-engine.el (c-guess-basic-syntax): Use
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Use
 	c-beginning-of-closest-statement in cases 10B.2, 17B and 17C.
 
-	* cc-engine.el (c-guess-basic-syntax): Better handling of
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Better handling of
 	arglist-intro, arglist-cont-nonempty and arglist-close when
 	the arglist is nested inside parens.  Cases 7A, 7C and 7F
 	changed.
 
-	* cc-langs.el (c-Java-javadoc-paragraph-start): Brought
+	* progmodes/cc-langs.el (c-Java-javadoc-paragraph-start): Brought
 	up-to-date with javadoc 1.2.
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-engine.el (c-beginning-of-statement-1): Fixed handling of
+	* progmodes/cc-engine.el (c-beginning-of-statement-1): Fixed handling of
 	multiline Pike type decls.
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-cmds.el (c-indent-new-comment-line): Always break
+	* progmodes/cc-cmds.el (c-indent-new-comment-line): Always break
 	multiline comments in multiline mode, regardless of
 	comment-multi-line.
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-engine.el (c-guess-basic-syntax): Fixed bug with
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Fixed bug with
 	fully::qualified::names in C++ member init lists.  Preamble in
 	case 5D changed.
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-langs.el (c-common-init): Handling of obsolete variables
+	* progmodes/cc-langs.el (c-common-init): Handling of obsolete variables
 	moved to c-initialize-cc-mode.  More compatible style override
 	when using global style variables.
-	* cc-mode.el (c-initialize-cc-mode): Handling of obsolete
+	* progmodes/cc-mode.el (c-initialize-cc-mode): Handling of obsolete
 	variables moved here.
 
-	* cc-styles.el (c-make-styles-buffer-local): Flag style
+	* progmodes/cc-styles.el (c-make-styles-buffer-local): Flag style
 	variable localness in c-style-variables-are-local-p to make
 	the compatibility measure in c-common-init work well.
 
-	* cc-styles.el (c-set-style-1): c-special-indent-hook can no
+	* progmodes/cc-styles.el (c-set-style-1): c-special-indent-hook can no
 	longer contain set-from-style.
-	* cc-styles.el (c-initialize-builtin-style): Don't check for
+	* progmodes/cc-styles.el (c-initialize-builtin-style): Don't check for
 	set-from-style on c-special-indent-hook.
-	* cc-styles.el (c-copy-tree): Obsolete.  The standard function
+	* progmodes/cc-styles.el (c-copy-tree): Obsolete.  The standard function
 	copy-alist is sufficient now.
 
-	* cc-styles.el (c-set-style, c-set-style-1,
+	* progmodes/cc-styles.el (c-set-style, c-set-style-1,
 	c-get-style-variables): Fixes to variable initialization so
 	that duplicate entries in styles have the same effect
 	regardless of DONT-OVERRIDE.
 
-	* cc-styles.el (c-set-style-2): Fixed bug where the
+	* progmodes/cc-styles.el (c-set-style-2): Fixed bug where the
 	initialization of inheriting styles failed when the
 	dont-override flag is set.
 
-	* cc-vars.el (c-special-indent-hook): Don't use set-from-style
+	* progmodes/cc-vars.el (c-special-indent-hook): Don't use set-from-style
 	on this.
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-defs.el (c-forward-comment): Removed the workaround
+	* progmodes/cc-defs.el (c-forward-comment): Removed the workaround
 	introduced in 5.38 since it had worse side-effects.  If a line
 	contains the string "//\"", it regarded the // as a comment
 	start since the \ temporarily doesn't have escape syntax.
 
 2000-07-17  Emmanuel Briot  <briot@act-europe.fr>
 
-	* ada-mode.el: Got rid of all byte-compiler warnings on Emacs Load
-	ada-xref.el before ada-prj.el, so that the Project menu is created
-	when ada-prj tries to add to it.
+	* progmodes/ada-mode.el: Got rid of all byte-compiler warnings on
+	Emacs.  Load ada-xref.el before ada-prj.el, so that the Project
+	menu is created when ada-prj tries to add to it.
 	(ada-activate-keys-for-case): Suppress the characters that are not
 	part of the Ada syntax. Better compatibility with else-mode.
 	(ada-adjust-case-interactive): When auto-casing is not active,
@@ -15584,7 +15575,7 @@
 	(ada-xemacs): Evaluate it at compile time too, so that ada-mode.el
 	can be batch-compiled from the command line.
 
-	* ada-xref.el: Got rid of all byte-compiler warnings on Emacs.
+	* progmodes/ada-xref.el: Got rid of all byte-compiler warnings on Emacs.
 	Add to the menu when the file is loaded, not in ada-mode-hook.
 	Add -toolbar to the default ddd command Switches moved from
 	ada-prj-default-comp-cmd and ada-prj-default-make-cmd to
@@ -15657,7 +15648,7 @@
 	cd to the build directory.  New field: main_unit Provide a default
 	file name even if the current buffer has no prj file.
 
-	* ada-prj.el:
+	* progmodes/ada-prj.el:
 	Rewritten to show a tabbed-dialog.
 	(ada-prj-add-ada-menu): Remove the map and name parameters.
 	(ada-prj-display-page, ada-prj-field, ada-prj-initialize-values):
@@ -15667,7 +15658,7 @@
 	(ada-prj-save): Always save fields that depend on the current buffer.
 	(ada-prj-show-value): New function
 
-	* ada-stmt.el (ada-stmt-add-to-ada-menu): Hide the menu if not in
+	* progmodes/ada-stmt.el (ada-stmt-add-to-ada-menu): Hide the menu if not in
 	Ada mode. This will allow us to display the Ada menu in any buffer
 	we want (for project items).
 	(ada-header-tmpl): Use ada-fill-comment-prefix to put the correct
@@ -16414,7 +16405,7 @@
 	Support for bibentry.
 	(reftex-compile-variables): Fixed problem with end of section-re.
 
-	* texmodes/reftex-dcr.el (reftex-view-crossref,
+	* textmodes/reftex-dcr.el (reftex-view-crossref,
 	reftex-view-crossref-from-bibtex):
 	Deal with changed `reftex-find-citation-regexp-format'.
 	(reftex-view-regexp-match, reftex-view-crossref-from-bibtex):
@@ -17235,7 +17226,7 @@
 
 2000-05-29  Christoph Wedler  <Christoph.Wedler@sap.com>
 
-	* antlr-mode.el: New commands: hide/unhide actions,
+	* progmodes/antlr-mode.el: New commands: hide/unhide actions,
 	upcase/downcase literals.
 	(antlr-tiny-action-length): New user option.
 	(antlr-hide-actions): New command.  Suggested by
@@ -17245,11 +17236,11 @@
 	(antlr-downcase-literals): New command.
 	(antlr-upcase-literals): Ditto.
 
-	* antlr-mode.el: Minor changes: indentation, mode-name.
+	* progmodes/antlr-mode.el: Minor changes: indentation, mode-name.
 	(antlr-indent-line): Indent cpp directive at column 0.
 	(antlr-mode): Use mode-name prefix "Antlr." instead of "Antlr/".
 
-	* antlr-mode.el: XEmacs bug workaround, XEmacs hint.
+	* progmodes/antlr-mode.el: XEmacs bug workaround, XEmacs hint.
 	(antlr-font-lock-additional-keywords): Workaround for intentional
 	bug in XEmacs version of font-lock.
 	(antlr-mode): Set symbol property `mode-name' to "Antlr".  Could
@@ -17846,10 +17837,13 @@
 
 	* faces.el: Declare more functions obsolete.
 
-	* viet-util.el, thai-util.el, tibet-util.el, slovak.el
-	* misc-lang.el, romanian.el, korea-util.el, lao-util.el
-	* japan-util.el, greek.el, hebrew.el, european.el, ethio-util.el
-	* english.el, czech.el, devan-util.el, cyril-util.el, china-util.el:
+	* language/viet-util.el, language/thai-util.el, language/tibet-util.el:
+	* language/slovak.el, language/misc-lang.el, language/romanian.el:
+	* language/korea-util.el, language/lao-util.el, language/japan-util.el:
+	* language/greek.el, language/hebrew.el, language/european.el:
+	* language/ethio-util.el, language/english.el, language/czech.el:
+	* language/devan-util.el, language/cyril-util.el:
+	* language/china-util.el:
 	Remove all the setup-...-environment functions.
 
 2000-05-13  Eric M. Ludlam  <zappo@ultranet.com>
@@ -18088,7 +18082,7 @@
 
 2000-05-04  Milan Zamazal  <pdm@freesoft.cz>
 
-	* glasses.el (glasses-convert-to-unreadable): Use
+	* progmodes/glasses.el (glasses-convert-to-unreadable): Use
 	`glasses-separator' instead of the hard-wired "_".
 	(glasses-mode): Call `glasses-make-unreadable' only in a single
 	place.
@@ -18607,7 +18601,7 @@
 
 2000-04-04  Milan Zamazal  <pdm@freesoft.cz>
 
-	* glasses.el: Provide facilities for inserting space before left
+	* progmodes/glasses.el: Provide facilities for inserting space before left
 	parentheses and uncapitalization of identifiers.
 	(glasses-mode): Try to remove old overlays in all cases.
 
@@ -19251,7 +19245,7 @@
 	* mouse.el (mouse-drag-region): Don't run up-event handler
 	if hscroll has changed.
 
-	* octave-mod.el (octave-font-lock-keywords): To font-lock the
+	* progmodes/octave-mod.el (octave-font-lock-keywords): To font-lock the
 	builtin operators, use `font-lock-builtin-face' for Emacs and
 	`font-lock-preprocessor-face' otherwise.
 
@@ -19796,7 +19790,7 @@
 	(bibtex-make-field, bibtex-end-of-entry, bibtex-sort-buffer)
 	(bibtex-find-entry-location, bibtex-validate, bibtex-find-text)
 	(bibtex-kill-entry, bibtex-clean-entry, bibtex-reformat)
-	(bibtex-complete-key, bibtex-String) : Use the new nomenclature.
+	(bibtex-complete-key, bibtex-String): Use the new nomenclature.
 
 2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
@@ -19934,8 +19928,8 @@
 
 2000-02-09  Ray Blaak  <blaak@gnu.org>
 
-	* delphi.el: Make resourcestring a declaration region, like const
-	and var.
+	* progmodes/delphi.el: Make resourcestring a declaration region,
+	like const and var.
 
 2000-02-09  Dave Love  <fx@gnu.org>
 
@@ -20103,9 +20097,9 @@
 
 	* windmove.el: New file.
 
-	* progmodes/ebnf2ps.el, progmodes/ebnf-bnf.el,
-	progmodes/ebnf-iso.el, progmodes/ebnf-otz.el,
-	progmodes/ebnf-yac.el: Update copyright and license info.
+	* progmodes/ebnf2ps.el, progmodes/ebnf-bnf.el:
+	* progmodes/ebnf-iso.el, progmodes/ebnf-otz.el:
+	* progmodes/ebnf-yac.el: Update copyright and license info.
 
 	* jit-lock.el (jit-lock-function): Widen before calculating
 	end position.
@@ -20692,7 +20686,7 @@ See ChangeLog.8 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2000-2011, 2013 Free Software Foundation, Inc.
+    Copyright (C) 2000-2011, 2013-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

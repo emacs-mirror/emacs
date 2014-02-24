@@ -1837,6 +1837,8 @@
 	(float_to_string): Use dtoastr rather than rolling our own code,
 	which had an off-by-one bug on non-IEEE hosts.
 
+	* config.in: Regenerate.
+
 	Automate syncing from gnulib.
 	* Makefile.in (lib): New macro.
 	(ALL_CFLAGS): Add -I$(lib) -I$(srcdir)/../lib.
@@ -5253,7 +5255,7 @@
 	(x_set_window_size, ns_draw_fringe_bitmap, judge): Move declarations
 	before code.
 
-	* nsterm.h : Include sysselect.h.
+	* nsterm.h: Include sysselect.h.
 	(x_sync, x_get_focus_frame, x_set_mouse_position)
 	(x_set_mouse_pixel_position, x_make_frame_visible)
 	(x_make_frame_invisible, x_iconify_frame, x_char_width, x_char_height)
@@ -8971,7 +8973,7 @@
 	* Makefile.in (DBUS_CFLAGS, DBUS_LIBS, GCONF_CFLAGS, GCONF_LIBS)
 	(LIBSOUND, CFLAGS_SOUND, RSVG_LIBS, RSVG_CFLAGS, INTERVALS_H)
 	(GETLOADAVG_LIBS, RUN_TEMACS): Move to the autoconf section.
-	(ORDINARY_LINK): Remove, defined in src/s/gnu.h.
+	(ORDINARY_LINK): Remove, defined in s/gnu.h.
 	(CRT0_COMPILE): Remove, inline it in the only user.
 
 2010-04-14  Juri Linkov  <juri@jurta.org>
@@ -14366,7 +14368,7 @@
 2009-01-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (pos_visible_p): When iterator stops on the last glyph
-	of a display vector, backtrack.
+	of a display vector, backtrack.  (Bug#1810)
 	(try_window_reusing_current_matrix): Check glyph type before
 	referencing charpos member.
 
@@ -16939,7 +16941,7 @@
 	* xdisp.c (redisplay_internal, note_mouse_highlight): Under NS,
 	shortcircuit if popup_activated like GTK and X toolkit.
 
-	* m/inter386.h: Change DARWIN to DARWIN_OS.
+	* m/intel386.h: Change DARWIN to DARWIN_OS.
 
 	* s/darwin.h: Add #define DARWIN_OS.  Get rid of C_SWITCH_SYSTEM def.
 	Change LIBS_MACGUI to LIBS_NSGUI.  Move temacs-conditionalized defs
@@ -18932,7 +18934,7 @@
 	(ftfont_spec_pattern): Don't check QCfc_unknown_spec and QCname.
 	(ftfont_list) [FC_FONTFORMAT]: Include FC_FONTFORMAT in objset.
 
-	* xftfont.c (QChinting , QCautohint, QChintstyle, QCrgba)
+	* xftfont.c (QChinting, QCautohint, QChintstyle, QCrgba)
 	(QCembolden): New variables.
 	(syms_of_xftfont): DEFSYM them.
 	(xftfont_open): Call XftFontMatch.  Don't trust the result of
@@ -28495,7 +28497,7 @@
 
 2007-11-09  Jason Rumney  <jasonr@gnu.org>
 
-	* s/ms-w32.c (USE_TOOLKIT_SCROLL_BARS): Define.
+	* s/ms-w32.h (USE_TOOLKIT_SCROLL_BARS): Define.
 
 	* w32term.c (w32_scroll_bar_handle_click): Use SCROLL_BAR_CLICK_EVENT.
 
@@ -31383,7 +31385,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2007-2013 Free Software Foundation, Inc.
+  Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

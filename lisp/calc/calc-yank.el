@@ -1,6 +1,6 @@
 ;;; calc-yank.el --- kill-ring functionality for Calc
 
-;; Copyright (C) 1990-1993, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -163,8 +163,12 @@ text) or `nil'."
 
 (defun calc-copy-to-register (register start end &optional delete-flag)
   "Copy the lines in the region into register REGISTER.
-With prefix arg, delete as well."
-  (interactive "cCopy to register: \nr\nP")
+With prefix arg, delete as well.
+
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive (list (register-read-with-preview "Copy to register: ")
+		     (region-beginning) (region-end)
+		     current-prefix-arg))
   (if (eq major-mode 'calc-mode)
       (let* ((top-num (calc-locate-cursor-element start))
              (top-pos (save-excursion
@@ -183,8 +187,10 @@ With prefix arg, delete as well."
     (copy-to-register register start end delete-flag)))
 
 (defun calc-insert-register (register)
-  "Insert the contents of register REGISTER."
-  (interactive "cInsert register: ")
+  "Insert the contents of register REGISTER.
+
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive (list (register-read-with-preview "Insert register: ")))
   (if (eq major-mode 'calc-mode)
       (let ((val (calc-get-register register)))
         (calc-wrapper
@@ -237,16 +243,24 @@ otherwise the end.  If DELETE-FLAG is non-nil, also delete the region."
 
 (defun calc-append-to-register (register start end &optional delete-flag)
   "Copy the lines in the region to the end of register REGISTER.
-With prefix arg, also delete the region."
-  (interactive "cAppend to register: \nr\nP")
+With prefix arg, also delete the region.
+
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive (list (register-read-with-preview "Append to register: ")
+		     (region-beginning) (region-end)
+		     current-prefix-arg))
   (if (eq major-mode 'calc-mode)
       (calc-add-to-register register start end nil delete-flag)
     (append-to-register register start end delete-flag)))
 
 (defun calc-prepend-to-register (register start end &optional delete-flag)
   "Copy the lines in the region to the beginning of register REGISTER.
-With prefix arg, also delete the region."
-  (interactive "cPrepend to register: \nr\nP")
+With prefix arg, also delete the region.
+
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive (list (register-read-with-preview "Prepend to register: ")
+		     (region-beginning) (region-end)
+		     current-prefix-arg))
   (if (eq major-mode 'calc-mode)
       (calc-add-to-register register start end t delete-flag)
     (prepend-to-register register start end delete-flag)))
@@ -588,7 +602,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
     (add-hook 'kill-buffer-hook (lambda ()
                                   (let ((calc-edit-handler nil))
                                     (calc-edit-finish t))
-                                  (message "(Cancelled)")) t t)
+                                  (message "(Canceled)")) t t)
     (insert (propertize
              (concat
               (or title title "Calc Edit Mode. ")
@@ -669,7 +683,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
   (interactive)
   (let ((calc-edit-handler nil))
     (calc-edit-finish))
-  (message "(Cancelled)"))
+  (message "(Canceled)"))
 
 (defun calc-finish-stack-edit (num)
   (let ((buf (current-buffer))

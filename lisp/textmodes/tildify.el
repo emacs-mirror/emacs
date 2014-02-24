@@ -1,6 +1,6 @@
 ;;; tildify.el --- adding hard spaces into texts
 
-;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2014 Free Software Foundation, Inc.
 
 ;; Author:     Milan Zamazal <pdm@zamazal.org>
 ;; Version:    4.5
@@ -40,7 +40,7 @@
 ;; The default variable settings are suited for Czech, so do not try to
 ;; understand them if you are not familiar with Czech grammar and spelling.
 ;;
-;; The algorithm was inspired by Petr Olπ·k's program `vlna'.  Abilities of
+;; The algorithm was inspired by Petr Ol≈°√°k's program `vlna'.  Abilities of
 ;; `tildify.el' are a little limited; if you have improvement suggestions, let
 ;; me know.
 
@@ -349,7 +349,7 @@ further questions)."
 
 
 ;; Local variables:
-;; coding: iso-latin-2
+;; coding: utf-8
 ;; End:
 
 ;;; tildify.el ends here

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1993, 1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Tips
@@ -51,13 +51,15 @@ don't postpone it.
 
 @item
 You should choose a short word to distinguish your program from other
-Lisp programs.  The names of all global variables, constants, and
-functions in your program should begin with that chosen prefix.
-Separate the prefix from the rest of the name with a hyphen, @samp{-}.
-This practice helps avoid name conflicts, since all global variables
-in Emacs Lisp share the same name space, and all functions share
-another name space@footnote{The benefits of a Common Lisp-style
-package system are considered not to outweigh the costs.}.
+Lisp programs.  The names of all global symbols in your program, that
+is the names of variables, constants, and functions, should begin with
+that chosen prefix.  Separate the prefix from the rest of the name
+with a hyphen, @samp{-}.  This practice helps avoid name conflicts,
+since all global variables in Emacs Lisp share the same name space,
+and all functions share another name space@footnote{The benefits of a
+Common Lisp-style package system are considered not to outweigh the
+costs.}.  Use two hyphens to separate prefix and name if the symbol is
+not meant to be used by other packages.
 
 Occasionally, for a command name intended for users to use, it is more
 convenient if some words come before the package's name prefix.  And
@@ -221,17 +223,12 @@ only for special-purpose buffers.)  People will find Emacs more
 coherent if all libraries use the same conventions.
 
 @item
-If your program contains non-ASCII characters in string or character
-constants, you should make sure Emacs always decodes these characters
-the same way, regardless of the user's settings.  The easiest way to
-do this is to use the coding system @code{utf-8-emacs} (@pxref{Coding
-System Basics}), and specify that coding in the @samp{-*-} line or the
+The default file coding system for Emacs Lisp source files is UTF-8
+(@pxref{Text Representations}).  In the rare event that your program
+contains characters which are @emph{not} in UTF-8, you should specify
+an appropriate coding system in the source file's @samp{-*-} line or
 local variables list.  @xref{File Variables, , Local Variables in
 Files, emacs, The GNU Emacs Manual}.
-
-@example
-;; XXX.el  -*- coding: utf-8-emacs; -*-
-@end example
 
 @item
 Indent the file using the default indentation parameters.
@@ -576,10 +573,13 @@ Format the documentation string so that it fits in an Emacs window on an
 60 characters.  The first line should not be wider than 67 characters
 or it will look bad in the output of @code{apropos}.
 
-You can fill the text if that looks good.  However, rather than blindly
-filling the entire documentation string, you can often make it much more
-readable by choosing certain line breaks with care.  Use blank lines
-between sections if the documentation string is long.
+@vindex emacs-lisp-docstring-fill-column
+You can fill the text if that looks good.  Emacs Lisp mode fills
+documentation strings to the width specified by
+@code{emacs-lisp-docstring-fill-column}.  However, you can sometimes
+make a documentation string much more readable by adjusting its line
+breaks with care.  Use blank lines between sections if the
+documentation string is long.
 
 @item
 The first line of the documentation string should consist of one or two
@@ -834,10 +834,10 @@ For example:
 
 @smallexample
 @group
-(setq base-version-list                 ; there was a base
+(setq base-version-list                 ; There was a base
       (assoc (substring fn 0 start-vn)  ; version to which
              file-version-assoc-list))  ; this looks like
-                                        ; a subversion
+                                        ; a subversion.
 @end group
 @end smallexample
 
@@ -875,30 +875,14 @@ strings, though.
 
 @item ;;;
 Comments that start with three semicolons, @samp{;;;}, should start at
-the left margin.  These are used, occasionally, for comments within
-functions that should start at the margin.  We also use them sometimes
-for comments that are between functions---whether to use two or three
-semicolons depends on whether the comment should be considered a
+the left margin.  We use them
+for comments which should be considered a
 ``heading'' by Outline minor mode.  By default, comments starting with
 at least three semicolons (followed by a single space and a
 non-whitespace character) are considered headings, comments starting
-with two or fewer are not.
-
-Another use for triple-semicolon comments is for commenting out lines
-within a function.  We use three semicolons for this precisely so that
-they remain at the left margin.  By default, Outline minor mode does
-not consider a comment to be a heading (even if it starts with at
-least three semicolons) if the semicolons are followed by at least two
-spaces.  Thus, if you add an introductory comment to the commented out
-code, make sure to indent it by at least two spaces after the three
-semicolons.
-
-@smallexample
-(defun foo (a)
-;;;  This is no longer necessary.
-;;;  (force-mode-line-update)
-  (message "Finished with %s" a))
-@end smallexample
+with two or fewer are not.  Historically, triple-semicolon comments have
+also been used for commenting out lines within a function, but this use
+is discouraged.
 
 When commenting out entire functions, use two semicolons.
 
@@ -934,7 +918,7 @@ explains these conventions, starting with an example:
 @group
 ;;; foo.el --- Support for the Foo programming language
 
-;; Copyright (C) 2010-2013 Your Name
+;; Copyright (C) 2010-2014 Your Name
 @end group
 
 ;; Author: Your Name <yourname@@example.com>

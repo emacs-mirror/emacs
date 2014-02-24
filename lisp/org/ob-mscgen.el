@@ -1,6 +1,6 @@
 ;;; ob-msc.el --- org-babel functions for mscgen evaluation
 
-;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
 ;; Author: Juan Pechiar
 ;; Keywords: literate programming, reproducible research
@@ -55,7 +55,6 @@
 
 ;;; Code:
 (require 'ob)
-(require 'ob-eval)
 
 (defvar org-babel-default-header-args:mscgen
   '((:results . "file") (:exports . "results"))

@@ -1,6 +1,6 @@
 ;;; mule.el --- basic commands for multilingual environment
 
-;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2014 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -407,12 +407,12 @@ PLIST (property list) may contain any type of information a user
 ;; because that makes a bootstrapping problem
 ;; if you need to recompile all the Lisp files using interpreted code.
 
-(defun charset-id (charset)
+(defun charset-id (_charset)
   "Always return 0.  This is provided for backward compatibility."
   (declare (obsolete nil "23.1"))
   0)
 
-(defmacro charset-bytes (charset)
+(defmacro charset-bytes (_charset)
   "Always return 0.  This is provided for backward compatibility."
   (declare (obsolete nil "23.1"))
   0)
@@ -471,7 +471,7 @@ Return -1 if charset isn't an ISO 2022 one."
 ;;; CHARACTER
 (define-obsolete-function-alias 'char-valid-p 'characterp "23.1")
 
-(defun generic-char-p (char)
+(defun generic-char-p (_char)
   "Always return nil.  This is provided for backward compatibility."
   (declare (obsolete nil "23.1"))
   nil)
@@ -518,7 +518,8 @@ Return -1 if charset isn't an ISO 2022 one."
     composition
     euc-tw-shift
     use-roman
-    use-oldjis)
+    use-oldjis
+    8-bit-level-4)
   "List of symbols that control ISO-2022 encoder/decoder.
 
 The value of the `:flags' attribute in the argument of the function
@@ -542,8 +543,9 @@ If `locking-shift' is specified, decode locking-shift code correctly
 on decoding, and use locking-shift to invoke a graphic element on
 encoding.
 
-If `single-shift' is specified, decode single-shift code correctly on
-decoding, and use single-shift to invoke a graphic element on encoding.
+If `single-shift' is specified, decode single-shift code
+correctly on decoding, and use single-shift to invoke a graphic
+element on encoding.  See also `8-bit-level-4' specification.
 
 If `designation' is specified, decode designation code correctly on
 decoding, and use designation to designate a charset to a graphic
@@ -578,7 +580,13 @@ If `use-roman' is specified, JIS0201-1976-Roman is designated instead
 of ASCII.
 
 If `use-oldjis' is specified, JIS0208-1976 is designated instead of
-JIS0208-1983.")
+JIS0208-1983.
+
+If `8-bit-level-4' is specified, the decoder assumes the
+implementation level \"4\" for 8-bit codes which means that GL is
+identified as the single-shift area.  The default implementation
+level for 8-bit code is \"4A\" which means that GR is identified
+as the single-shift area.")
 
 (defun define-coding-system (name docstring &rest props)
   "Define NAME (a symbol) as a coding system with DOCSTRING and attributes.
@@ -672,7 +680,7 @@ is unsuitable for the top-level media type \"text\".
 
 VALUE must be a list of symbols that control the ISO-2022 converter.
 Each must be a member of the list `coding-system-iso-2022-flags'
-\(which see).  This attribute has a meaning only when `:coding-type'
+\(which see).  This attribute is meaningful only when `:coding-type'
 is `iso-2022'.
 
 `:designation'
@@ -692,7 +700,7 @@ to GN.  If the list contains 96, any charsets whose whose ranges are
 96 long can be designated to GN.  If the first element is a charset,
 that charset is initially designated to GN.
 
-This attribute has a meaning only when `:coding-type' is `iso-2022'.
+This attribute is meaningful only when `:coding-type' is `iso-2022'.
 
 `:bom'
 
@@ -712,7 +720,7 @@ are 0xFF 0xFE, use the cdr part coding system of the value.
 Otherwise, treat them as bytes for a normal character.  On encoding,
 produce BOM bytes according to the value of `:endian'.
 
-This attribute has a meaning only when `:coding-type' is `utf-16' or
+This attribute is meaningful only when `:coding-type' is `utf-16' or
 `utf-8'.
 
 `:endian'
@@ -720,19 +728,38 @@ This attribute has a meaning only when `:coding-type' is `utf-16' or
 VALUE must be `big' or `little' specifying big-endian and
 little-endian respectively.  The default value is `big'.
 
-This attribute has a meaning only when `:coding-type' is `utf-16'.
+This attribute is meaningful only when `:coding-type' is `utf-16'.
 
 `:ccl-decoder'
 
 VALUE is a symbol representing the registered CCL program used for
-decoding.  This attribute has a meaning only when `:coding-type' is
+decoding.  This attribute is meaningful only when `:coding-type' is
 `ccl'.
 
 `:ccl-encoder'
 
 VALUE is a symbol representing the registered CCL program used for
-encoding.  This attribute has a meaning only when `:coding-type' is
-`ccl'."
+encoding.  This attribute is meaningful only when `:coding-type' is
+`ccl'.
+
+`:inhibit-null-byte-detection'
+
+VALUE non-nil means Emacs ignore null bytes on code detection.
+See the variable `inhibit-null-byte-detection'.  This attribute
+is meaningful only when `:coding-type' is `undecided'.
+
+`:inhibit-iso-escape-detection'
+
+VALUE non-nil means Emacs ignores ISO-2022 escape sequences on
+code detection.  See the variable `inhibit-iso-escape-detection'.
+This attribute is meaningful only when `:coding-type' is
+`undecided'.
+
+`:prefer-utf-8'
+
+VALUE non-nil means Emacs prefers UTF-8 on code detection for
+non-ASCII files.  This attribute is meaningful only when
+`:coding-type' is `undecided'."
   (let* ((common-attrs (mapcar 'list
 			       '(:mnemonic
 				 :coding-type
@@ -761,7 +788,11 @@ encoding.  This attribute has a meaning only when `:coding-type' is
 				   ((eq coding-type 'ccl)
 				    '(:ccl-decoder
 				      :ccl-encoder
-				      :valids))))))
+				      :valids))
+				   ((eq coding-type 'undecided)
+				    '(:inhibit-null-byte-detection
+				      :inhibit-iso-escape-detection
+				      :prefer-utf-8))))))
 
     (dolist (slot common-attrs)
       (setcdr slot (plist-get props (car slot))))
@@ -1236,7 +1267,9 @@ just set the variable `buffer-file-coding-system' directly."
   (if (and coding-system buffer-file-coding-system (null force))
       (setq coding-system
 	    (merge-coding-systems coding-system buffer-file-coding-system)))
-  (when (called-interactively-p 'interactive)
+  (when (and (called-interactively-p 'interactive)
+	     (not (memq 'emacs (coding-system-get coding-system
+						  :charset-list))))
     ;; Check whether save would succeed, and jump to the offending char(s)
     ;; if not.
     (let ((css (find-coding-systems-region (point-min) (point-max))))
@@ -1313,7 +1346,7 @@ graphical terminals."
   (if coding-system
       (setq default-terminal-coding-system coding-system))
   (set-terminal-coding-system-internal coding-system terminal)
-  (redraw-frame (selected-frame)))
+  (redraw-frame))
 
 (defvar default-keyboard-coding-system nil
   "Default value of the keyboard coding system.
@@ -1396,7 +1429,7 @@ use either \\[customize] or \\[set-keyboard-coding-system]."
   :type '(coding-system :tag "Coding system")
   :link '(info-link "(emacs)Terminal Coding")
   :link '(info-link "(emacs)Unibyte Mode")
-  :set (lambda (symbol value)
+  :set (lambda (_symbol value)
 	 ;; Don't load encoded-kb unnecessarily.
 	 (if (or value (boundp 'encoded-kbd-setup-display))
 	     (set-keyboard-coding-system value)
@@ -1691,7 +1724,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'"
     ("\\.\\(gz\\|Z\\|bz\\|bz2\\|xz\\|gpg\\)\\'" . no-conversion)
     ("\\.\\(jpe?g\\|png\\|gif\\|tiff?\\|p[bpgn]m\\)\\'" . no-conversion)
     ("\\.pdf\\'" . no-conversion)
-    ("/#[^/]+#\\'" . emacs-mule)))
+    ("/#[^/]+#\\'" . utf-8-emacs-unix)))
   "Alist of filename patterns vs corresponding coding systems.
 Each element looks like (REGEXP . CODING-SYSTEM).
 A file whose name matches REGEXP is decoded by CODING-SYSTEM on reading.
@@ -1817,7 +1850,7 @@ If nothing is specified, the return value is nil."
 	     (head-end (+ head-start (min size 1024)))
 	     (tail-start (+ head-start (max (- size 3072) 0)))
 	     (tail-end (+ head-start size))
-	     coding-system head-found tail-found pos char-trans)
+	     coding-system head-found tail-found char-trans)
 	;; Try a short cut by searching for the string "coding:"
 	;; and for "unibyte:" at the head and tail of SIZE bytes.
 	(setq head-found (or (search-forward "coding:" head-end t)
@@ -1844,8 +1877,11 @@ If nothing is specified, the return value is nil."
 		       (re-search-forward
 			"\\(.*;\\)?[ \t]*unibyte:[ \t]*\\([^ ;]+\\)"
 			head-end t))
-              (display-warning 'mule "`unibyte: t' is obsolete; \
-use \"coding: 'raw-text\" instead." :warning)
+              (display-warning 'mule
+                               (format "\"unibyte: t\" (in %s) is obsolete; \
+use \"coding: 'raw-text\" instead."
+                                       (file-relative-name filename))
+                               :warning)
 	      (setq coding-system 'raw-text))
 	    (when (and (not coding-system)
 		       (re-search-forward
@@ -1924,11 +1960,10 @@ use \"coding: 'raw-text\" instead." :warning)
       (let ((funcs auto-coding-functions)
 	    (coding-system nil))
 	(while (and funcs (not coding-system))
-	  (setq coding-system (condition-case e
-				  (save-excursion
-				    (goto-char (point-min))
-				    (funcall (pop funcs) size))
-				(error nil))))
+	  (setq coding-system (ignore-errors
+				(save-excursion
+				  (goto-char (point-min))
+				  (funcall (pop funcs) size)))))
 	(if coding-system
 	    (cons coding-system 'auto-coding-functions)))))
 

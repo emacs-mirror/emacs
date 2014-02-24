@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Functions
@@ -21,6 +21,7 @@ define them.
 * Function Cells::        Accessing or setting the function definition
                             of a symbol.
 * Closures::              Functions that enclose a lexical environment.
+* Advising Functions::    Adding to the definition of a function.
 * Obsolete Functions::    Declaring functions obsolete.
 * Inline Functions::      Functions that the compiler will expand inline.
 * Declare Form::          Adding additional information about a function.
@@ -196,9 +197,8 @@ an example:
 @end example
 
 @noindent
-In Emacs Lisp, such a list is valid as an expression---it evaluates to
-itself.  But its main use is not to be evaluated as an expression, but
-to be called as a function.
+In Emacs Lisp, such a list is a valid expression which evaluates to
+a function object.
 
   A lambda expression, by itself, has no name; it is an @dfn{anonymous
 function}.  Although lambda expressions can be used this way
@@ -581,6 +581,7 @@ redefinition from unintentional redefinition.
 @end defmac
 
 @cindex function aliases
+@cindex alias, for functions
 @defun defalias name definition &optional doc
 @anchor{Definition of defalias}
 This function defines the symbol @var{name} as a function, with
@@ -590,6 +591,11 @@ Its return value is @emph{undefined}.
 If @var{doc} is non-@code{nil}, it becomes the function documentation
 of @var{name}.  Otherwise, any documentation provided by
 @var{definition} is used.
+
+@cindex defalias-fset-function property
+Internally, @code{defalias} normally uses @code{fset} to set the definition.
+If @var{name} has a @code{defalias-fset-function} property, however,
+the associated value is used as a function to call in place of @code{fset}.
 
 The proper place to use @code{defalias} is where a specific function
 name is being defined---especially where that name appears explicitly in
@@ -975,10 +981,11 @@ Note that we do not quote the @code{lambda} form.
 compiled.  This would not happen if, say, you had constructed the
 anonymous function by quoting it as a list:
 
+@c Do not unquote this lambda!
 @example
 @group
 (defun double-property (symbol prop)
-  (change-property symbol prop (lambda (x) (* 2 x))))
+  (change-property symbol prop '(lambda (x) (* 2 x))))
 @end group
 @end example
 
@@ -1000,12 +1007,12 @@ indirect-function}.
 
 @defun symbol-function symbol
 @kindex void-function
-This returns the object in the function cell of @var{symbol}.  If the
-symbol's function cell is void, a @code{void-function} error is
-signaled.
+This returns the object in the function cell of @var{symbol}.  It does
+not check that the returned object is a legitimate function.
 
-This function does not check that the returned object is a legitimate
-function.
+If the function cell is void, the return value is @code{nil}.  To
+distinguish between a function cell that is void and one set to
+@code{nil}, use @code{fboundp} (see below).
 
 @example
 @group
@@ -1025,10 +1032,10 @@ function.
 @end defun
 
 @cindex void function cell
-  If you have never given a symbol any function definition, we say that
-that symbol's function cell is @dfn{void}.  In other words, the function
-cell does not have any Lisp object in it.  If you try to call such a symbol
-as a function, it signals a @code{void-function} error.
+  If you have never given a symbol any function definition, we say
+that that symbol's function cell is @dfn{void}.  In other words, the
+function cell does not have any Lisp object in it.  If you try to call
+the symbol as a function, Emacs signals a @code{void-function} error.
 
   Note that void is not the same as @code{nil} or the symbol
 @code{void}.  The symbols @code{nil} and @code{void} are Lisp objects,
@@ -1076,12 +1083,10 @@ This function stores @var{definition} in the function cell of
 this is not checked.  The argument @var{symbol} is an ordinary evaluated
 argument.
 
-The primary use of this function is as a subroutine by constructs that
-define or alter functions, like @code{defadvice} (@pxref{Advising
-Functions}).  (If @code{defun} were not a primitive, it could be
-written as a Lisp macro using @code{fset}.)  You can also use it to
-give a symbol a function definition that is not a list, e.g., a
-keyboard macro (@pxref{Keyboard Macros}):
+The primary use of this function is as a subroutine by constructs that define
+or alter functions, like @code{defun} or @code{advice-add} (@pxref{Advising
+Functions}).  You can also use it to give a symbol a function definition that
+is not a function, e.g., a keyboard macro (@pxref{Keyboard Macros}):
 
 @example
 ;; @r{Define a named keyboard macro.}
@@ -1132,8 +1137,272 @@ However, the fact that the internal structure of a closure is
 implementation detail.  For this reason, we recommend against directly
 examining or altering the structure of closure objects.
 
+@node Advising Functions
+@section Advising Emacs Lisp Functions
+@cindex advising functions
+@cindex piece of advice
+
+Any variable or object field which holds a function can be modified with the
+appropriate setter function, such as @code{set-process-filter}, @code{fset}, or
+@code{setq}, but those can be too blunt, completely throwing away the
+previous value.
+
+In order to modify such hooks in a more controlled way, Emacs provides the
+macros @code{add-function} and @code{remove-function}, which let you modify the
+existing function value by composing it with another function.
+
+For example, in order to trace the calls to a process filter, you can use:
+
+@example
+(add-function :before (process-filter proc) #'my-tracing-function)
+@end example
+
+This will cause the process's output to be passed first to
+@code{my-tracing-function} and then to the original process filter.
+When you're done with it, you can revert to the untraced behavior with:
+
+@example
+(remove-function (process-filter proc) #'my-tracing-function)
+@end example
+
+The argument @code{:before} specifies how the two functions are composed, since
+there are many different ways to do it.  The added function is also called an
+@emph{advice}.
+
+The function cell of a symbol can be manipulated similarly, but since it can
+contain other things than a plain function, you have to use @var{advice-add}
+and @var{advice-remove} instead, which
+@c use @var{add-function} and @var{remove-function} internally, but
+know how to handle cases such as when the function cell holds a macro rather
+than function, or when the function is autoloaded so the advice's activation
+needs to be postponed.
+
+@menu
+* Advising Primitives::		Primitives to Manipulate Advices
+* Advising Named Functions::	Advising Named Functions
+@end menu
+
+@node Advising Primitives
+@subsection Primitives to manipulate advice
+
+@defmac add-function where place function &optional props
+This macro is the handy way to add the advice @var{function} to the function
+stored in @var{place} (@pxref{Generalized Variables}).
+
+@var{where} determines how @var{function} is composed with the
+existing function.  It can be one of the following:
+
+@table @code
+@item :before
+Call @var{function} before the old function.  Both functions receive the
+same arguments, and the return value of the composition is the return value of
+the old function.  More specifically, the composition of the two functions
+behaves like:
+@example
+(lambda (&rest r) (apply @var{function} r) (apply @var{oldfun} r))
+@end example
+This is similar to @code{(add-hook @var{hook} @var{function})}, except that it
+applies to single-function hooks rather than normal hooks.
+
+@item :after
+Call @var{function} after the old function.  Both functions receive the
+same arguments, and the return value of the composition is the return value of
+the old function.  More specifically, the composition of the two functions
+behaves like:
+@example
+(lambda (&rest r) (prog1 (apply @var{oldfun} r) (apply @var{function} r)))
+@end example
+This is similar to @code{(add-hook @var{hook} @var{function} nil 'append)},
+except that it applies to single-function hooks rather than normal hooks.
+
+@item :override
+This completely replaces the old function with the new one.  The old function
+can of course be recovered if you later call @code{remove-function}.
+
+@item :around
+Call @var{function} instead of the old function, but provide the old function
+as an extra argument to @var{function}.  This is the most flexible composition.
+For example, it lets you call the old function with different arguments, or
+within a let-binding, or you can sometimes delegate the work to the old
+function and sometimes override it completely.  More specifically, the
+composition of the two functions behaves like:
+@example
+(lambda (&rest r) (apply @var{function} @var{oldfun} r))
+@end example
+
+@item :before-while
+Call @var{function} before the old function and don't call the old
+function if @var{function} returns @code{nil}.  Both functions receive the
+same arguments, and the return value of the composition is the return value of
+the old function.  More specifically, the composition of the two functions
+behaves like:
+@example
+(lambda (&rest r) (and (apply @var{function} r) (apply @var{oldfun} r)))
+@end example
+This is reminiscent of @code{(add-hook @var{hook} @var{function})}, when
+@var{hook} is run via @code{run-hook-with-args-until-failure}.
+
+@item :before-until
+Call @var{function} before the old function and only call the old function if
+@var{function} returns @code{nil}.  More specifically, the composition of the
+two functions behaves like:
+@example
+(lambda (&rest r) (or (apply @var{function} r) (apply @var{oldfun} r)))
+@end example
+This is reminiscent of @code{(add-hook @var{hook} @var{function})}, when
+@var{hook} is run via @code{run-hook-with-args-until-success}.
+
+@item :after-while
+Call @var{function} after the old function and only if the old function
+returned non-@code{nil}.  Both functions receive the same arguments, and the
+return value of the composition is the return value of @var{function}.
+More specifically, the composition of the two functions behaves like:
+@example
+(lambda (&rest r) (and (apply @var{oldfun} r) (apply @var{function} r)))
+@end example
+This is reminiscent of @code{(add-hook @var{hook} @var{function} nil 'append)},
+when @var{hook} is run via @code{run-hook-with-args-until-failure}.
+
+@item :after-until
+Call @var{function} after the old function and only if the old function
+returned @code{nil}.  More specifically, the composition of the two functions
+behaves like:
+@example
+(lambda (&rest r) (or  (apply @var{oldfun} r) (apply @var{function} r)))
+@end example
+This is reminiscent of @code{(add-hook @var{hook} @var{function} nil 'append)},
+when @var{hook} is run via @code{run-hook-with-args-until-success}.
+
+@item :filter-args
+Call @var{function} first and use the result (which should be a list) as the
+new arguments to pass to the old function.  More specifically, the composition
+of the two functions behaves like:
+@example
+(lambda (&rest r) (apply @var{oldfun} (funcall @var{function} r)))
+@end example
+
+@item :filter-return
+Call the old function first and pass the result to @var{function}.
+More specifically, the composition of the two functions behaves like:
+@example
+(lambda (&rest r) (funcall @var{function} (apply @var{oldfun} r)))
+@end example
+@end table
+
+When modifying a variable (whose name will usually end with @code{-function}),
+you can choose whether @var{function} is used globally or only in the current
+buffer: if @var{place} is just a symbol, then @var{function} is added to the
+global value of @var{place}.  Whereas if @var{place} is of the form
+@code{(local @var{symbol})}, where @var{symbol} is an expression which returns
+the variable name, then @var{function} will only be added in the
+current buffer.
+
+Every function added with @code{add-function} can be accompanied by an
+association list of properties @var{props}.  Currently only two of those
+properties have a special meaning:
+
+@table @code
+@item name
+This gives a name to the advice, which @code{remove-function} can use to
+identify which function to remove.  Typically used when @var{function} is an
+anonymous function.
+
+@item depth
+This specifies where to place the advice, in case several advices are present.
+By default, the depth is 0.  A depth of 100 indicates that this advice should
+be kept as deep as possible, whereas a depth of -100 indicates that it
+should stay as the outermost advice.  When two advices specify the same depth,
+the most recently added advice will be outermost.
+@end table
+@end defmac
+
+@defmac remove-function place function
+This macro removes @var{function} from the function stored in
+@var{place}.  This only works if @var{function} was added to @var{place}
+using @code{add-function}.
+
+@var{function} is compared with functions added to @var{place} using
+@code{equal}, to try and make it work also with lambda expressions.  It is
+additionally compared also with the @code{name} property of the functions added
+to @var{place}, which can be more reliable than comparing lambda expressions
+using @code{equal}.
+@end defmac
+
+@defun advice-function-member-p advice function-def
+Return non-@code{nil} if @var{advice} is already in @var{function-def}.
+Like for @code{remove-function} above, instead of @var{advice} being the actual
+function, it can also be the @code{name} of the piece of advice.
+@end defun
+
+@defun advice-function-mapc f function-def
+Call the function @var{f} for every advice that was added to
+@var{function-def}.  @var{f} is called with two arguments: the advice function
+and its properties.
+@end defun
+
+@node Advising Named Functions
+@subsection Advising Named Functions
+
+A common use of advice is for named functions and macros.
+Since @var{add-function} does not know how to deal with macros and autoloaded
+functions, Emacs provides a separate set of functions to manipulate pieces of
+advice applied to named functions.
+
+  Advice can be useful for altering the behavior of an existing
+function without having to redefine the whole function.  However, it
+can be a source of bugs, since existing callers to the function may
+assume the old behavior, and work incorrectly when the behavior is
+changed by advice.  Advice can also cause confusion in debugging, if
+the person doing the debugging does not notice or remember that the
+function has been modified by advice.
+
+  For these reasons, advice should be reserved for the cases where you
+cannot modify a function's behavior in any other way.  If it is
+possible to do the same thing via a hook, that is preferable
+(@pxref{Hooks}).  If you simply want to change what a particular key
+does, it may be better to write a new command, and remap the old
+command's key bindings to the new one (@pxref{Remapping Commands}).
+In particular, Emacs's own source files should not put advice on
+functions in Emacs.  (There are currently a few exceptions to this
+convention, but we aim to correct them.)
+
+  Macros can also be advised, in much the same way as functions.
+However, special forms (@pxref{Special Forms}) cannot be advised.
+
+  It is possible to advise a primitive (@pxref{What Is a Function}),
+but one should typically @emph{not} do so, for two reasons.  Firstly,
+some primitives are used by the advice mechanism, and advising them
+could cause an infinite recursion.  Secondly, many primitives are
+called directly from C, and such calls ignore advice; hence, one ends
+up in a confusing situation where some calls (occurring from Lisp
+code) obey the advice and other calls (from C code) do not.
+
+@defun advice-add symbol where function &optional props
+Add the advice @var{function} to the named function @var{symbol}.
+@var{where} and @var{props} have the same meaning as for @code{add-function}
+(@pxref{Advising Primitives}).
+@end defun
+
+@defun advice-remove symbol function
+Remove the advice @var{function} from the named function @var{symbol}.
+@var{function} can also be the @code{name} of an advice.
+@end defun
+
+@defun advice-member-p function symbol
+Return non-@code{nil} if the advice @var{function} is already in the named
+function @var{symbol}.  @var{function} can also be the @code{name} of
+an advice.
+@end defun
+
+@defun advice-mapc function symbol
+Call @var{function} for every advice that was added to the named function
+@var{symbol}.  @var{function} is called with two arguments: the advice function
+and its properties.
+@end defun
+
 @node Obsolete Functions
 @section Declaring Functions Obsolete
+@cindex obsolete functions
 
   You can mark a named function as @dfn{obsolete}, meaning that it may
 be removed at some point in the future.  This causes Emacs to warn
@@ -1285,14 +1554,17 @@ following effects:
 This acts like a call to @code{set-advertised-calling-convention}
 (@pxref{Obsolete Functions}); @var{signature} specifies the correct
 argument list for calling the function or macro, and @var{when} should
-be a string indicating when the variable was first made obsolete.
+be a string indicating when the old argument list was first made obsolete.
 
 @item (debug @var{edebug-form-spec})
 This is valid for macros only.  When stepping through the macro with
 Edebug, use @var{edebug-form-spec}.  @xref{Instrumenting Macro Calls}.
 
 @item (doc-string @var{n})
-Use element number @var{n}, if any, as the documentation string.
+This is used when defining a function or macro which itself will be used to
+define entities like functions, macros, or variables.  It indicates that
+the @var{n}th argument, if any, should be considered
+as a documentation string.
 
 @item (indent @var{indent-spec})
 Indent calls to this function or macro according to @var{indent-spec}.
@@ -1307,7 +1579,37 @@ instead), a string (specifying the warning message), or @code{nil} (in
 which case the warning message gives no extra details).  @var{when}
 should be a string indicating when the function or macro was first
 made obsolete.
+
+@item (compiler-macro @var{expander})
+This can only be used for functions, and tells the compiler to use
+@var{expander} as an optimization function.  When encountering a call to the
+function, of the form @code{(@var{function} @var{args}@dots{})}, the macro
+expander will call @var{expander} with that form as well as with
+@var{args}@dots{}, and @var{expander} can either return a new expression to use
+instead of the function call, or it can return just the form unchanged,
+to indicate that the function call should be left alone.  @var{expander} can
+be a symbol, or it can be a form @code{(lambda (@var{arg}) @var{body})} in
+which case @var{arg} will hold the original function call expression, and the
+(unevaluated) arguments to the function can be accessed using the function's
+formal arguments.
+
+@item (gv-expander @var{expander})
+Declare @var{expander} to be the function to handle calls to the macro (or
+function) as a generalized variable, similarly to @code{gv-define-expander}.
+@var{expander} can be a symbol or it can be of the form @code{(lambda
+(@var{arg}) @var{body})} in which case that function will additionally have
+access to the macro (or function)'s arguments.
+
+@item (gv-setter @var{setter})
+Declare @var{setter} to be the function to handle calls to the macro (or
+function) as a generalized variable.  @var{setter} can be a symbol in which
+case it will be passed to @code{gv-define-simple-setter}, or it can be of the
+form @code{(lambda (@var{arg}) @var{body})} in which case that function will
+additionally have access to the macro (or function)'s arguments and it will
+passed to @code{gv-define-setter}.
+
 @end table
+
 @end defmac
 
 @node Declaring Functions

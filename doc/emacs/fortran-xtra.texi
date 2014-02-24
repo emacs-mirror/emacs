@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004-2013 Free Software Foundation, Inc.
+@c Copyright (C) 2004-2014 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -575,7 +575,7 @@ yourself.  To use them, you must turn on Abbrev mode.
 semicolon.  For example, one built-in Fortran abbrev is @samp{;c} for
 @samp{continue}.  If you insert @samp{;c} and then insert a punctuation
 character such as a space or a newline, the @samp{;c} expands automatically
-to @samp{continue}, provided Abbrev mode is enabled.@refill
+to @samp{continue}, provided Abbrev mode is enabled.
 
   Type @samp{;?} or @samp{;C-h} to display a list of all the built-in
 Fortran abbrevs and what they stand for.

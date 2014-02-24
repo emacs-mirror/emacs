@@ -1,6 +1,6 @@
 ;;; mairix.el --- Mairix interface for Emacs
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: David Engster <dengste@eml.cc>
 ;; Keywords: mail searching
@@ -757,31 +757,24 @@ VALUES may contain values for editable fields from current article."
     map)
   "'mairix-searches-mode' keymap.")
 
-(defvar mairix-searches-mode-font-lock-keywords)
+(defvar mairix-searches-mode-font-lock-keywords
+  '(("^\\([0-9]+\\)"
+     (1 font-lock-constant-face))
+    ("^[0-9 ]+\\(Name:\\) \\(.*\\)"
+     (1 font-lock-keyword-face) (2 font-lock-string-face))
+    ("^[ ]+\\(Query:\\) \\(.*\\) , "
+     (1 font-lock-keyword-face) (2 font-lock-string-face))
+    (", \\(Threads:\\) \\(.*\\)"
+     (1 font-lock-keyword-face) (2 font-lock-constant-face))
+    ("^\\([A-Z].*\\)$"
+     (1 font-lock-comment-face))
+    ("^[ ]+\\(Folder:\\) \\(.*\\)"
+     (1 font-lock-keyword-face) (2 font-lock-string-face))))
 
-(defun mairix-searches-mode ()
+(define-derived-mode mairix-searches-mode fundamental-mode "mairix-searches"
   "Major mode for editing mairix searches."
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'mairix-searches-mode)
-  (setq mode-name "mairix-searches")
-  (set-syntax-table text-mode-syntax-table)
-  (use-local-map mairix-searches-mode-map)
-  (make-local-variable 'font-lock-defaults)
-  (setq mairix-searches-mode-font-lock-keywords
-	(list (list "^\\([0-9]+\\)"
-		    '(1 font-lock-constant-face))
-	      (list "^[0-9 ]+\\(Name:\\) \\(.*\\)"
-		    '(1 font-lock-keyword-face) '(2 font-lock-string-face))
-	      (list "^[ ]+\\(Query:\\) \\(.*\\) , "
-		    '(1 font-lock-keyword-face) '(2 font-lock-string-face))
-	      (list ", \\(Threads:\\) \\(.*\\)"
-		    '(1 font-lock-keyword-face) '(2 font-lock-constant-face))
-	      (list "^\\([A-Z].*\\)$"
-		    '(1 font-lock-comment-face))
-	      (list "^[ ]+\\(Folder:\\) \\(.*\\)"
-		    '(1 font-lock-keyword-face) '(2 font-lock-string-face))))
-  (setq font-lock-defaults '(mairix-searches-mode-font-lock-keywords)))
+  :syntax-table text-mode-syntax-table
+  (setq-local font-lock-defaults '(mairix-searches-mode-font-lock-keywords)))
 
 (defun mairix-build-search-list ()
   "Display saved searches in current buffer."

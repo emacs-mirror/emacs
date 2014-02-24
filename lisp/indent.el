@@ -1,8 +1,8 @@
-;;; indent.el --- indentation commands for Emacs
+;;; indent.el --- indentation commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1995, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1995, 2001-2014 Free Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
 
 ;; This file is part of GNU Emacs.
@@ -76,9 +76,10 @@ that case, indent by aligning to the previous non-blank line."
       ;; indenting.  Replace with something ad-hoc.
       (let ((column (save-excursion
 		      (beginning-of-line)
-		      (skip-chars-backward "\n \t")
-		      (beginning-of-line)
-		      (current-indentation))))
+		      (if (bobp) 0
+                        (beginning-of-line 0)
+                        (if (looking-at "[ \t]*$") 0
+                          (current-indentation))))))
 	(if (<= (current-column) (current-indentation))
 	    (indent-line-to column)
 	  (save-excursion (indent-line-to column))))
@@ -154,33 +155,117 @@ prefix argument is ignored."
 	(insert-char ?\t count)
       (indent-to (* tab-width (+ count (/ (current-column) tab-width)))))))
 
-(defun indent-rigidly (start end arg)
-  "Indent all lines starting in the region sideways by ARG columns.
-Called from a program, takes three arguments, START, END and ARG.
-You can remove all indentation from a region by giving a large negative ARG."
-  (interactive "r\np")
+(defun indent-rigidly--current-indentation (beg end)
+  "Return the smallest indentation in range from BEG to END.
+Blank lines are ignored."
   (save-excursion
-    (goto-char end)
-    (setq end (point-marker))
-    (goto-char start)
-    (or (bolp) (forward-line 1))
-    (while (< (point) end)
-      (let ((indent (current-indentation))
-	    eol-flag)
-	(save-excursion
-	  (skip-chars-forward " \t")
-	  (setq eol-flag (eolp)))
-	(or eol-flag
-	    (indent-to (max 0 (+ indent arg)) 0))
-	(delete-region (point) (progn (skip-chars-forward " \t") (point))))
-      (forward-line 1))
-    (move-marker end nil)))
+    (save-match-data
+      (let ((beg (progn (goto-char beg) (line-beginning-position)))
+            indent)
+        (goto-char beg)
+        (while (re-search-forward "^\\s-*[[:print:]]" end t)
+          (setq indent (min (or indent (current-indentation))
+                            (current-indentation))))
+        indent))))
+
+(defvar indent-rigidly-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [left]  'indent-rigidly-left)
+    (define-key map [right] 'indent-rigidly-right)
+    (define-key map [S-left]  'indent-rigidly-left-to-tab-stop)
+    (define-key map [S-right] 'indent-rigidly-right-to-tab-stop)
+    map)
+  "Transient keymap for adjusting indentation interactively.
+It is activated by calling `indent-rigidly' interactively.")
+
+(defun indent-rigidly (start end arg &optional interactive)
+  "Indent all lines starting in the region.
+If called interactively with no prefix argument, activate a
+transient mode in which the indentation can be adjusted interactively
+by typing \\<indent-rigidly-map>\\[indent-rigidly-left], \\[indent-rigidly-right], \\[indent-rigidly-left-to-tab-stop], or \\[indent-rigidly-right-to-tab-stop].
+Typing any other key deactivates the transient mode.
+
+If called from a program, or interactively with prefix ARG,
+indent all lines starting in the region forward by ARG columns.
+If called from a program, START and END specify the beginning and
+end of the text to act on, in place of the region.
+
+Negative values of ARG indent backward, so you can remove all
+indentation by specifying a large negative ARG."
+  (interactive "r\nP\np")
+  (if (and (not arg) interactive)
+      (progn
+        (message
+	 (substitute-command-keys
+	  "Indent region with \\<indent-rigidly-map>\\[indent-rigidly-left], \\[indent-rigidly-right], \\[indent-rigidly-left-to-tab-stop], or \\[indent-rigidly-right-to-tab-stop]."))
+        (set-transient-map indent-rigidly-map t))
+    (save-excursion
+      (goto-char end)
+      (setq end (point-marker))
+      (goto-char start)
+      (or (bolp) (forward-line 1))
+      (while (< (point) end)
+        (let ((indent (current-indentation))
+              eol-flag)
+          (save-excursion
+            (skip-chars-forward " \t")
+            (setq eol-flag (eolp)))
+          (or eol-flag
+              (indent-to (max 0 (+ indent (prefix-numeric-value arg))) 0))
+          (delete-region (point) (progn (skip-chars-forward " \t") (point))))
+        (forward-line 1))
+      (move-marker end nil)
+      ;; Keep the active region in transient mode.
+      (when (eq (cadr overriding-terminal-local-map) indent-rigidly-map)
+	(setq deactivate-mark nil)))))
+
+(defun indent-rigidly--pop-undo ()
+  (and (memq last-command '(indent-rigidly-left indent-rigidly-right
+			    indent-rigidly-left-to-tab-stop
+			    indent-rigidly-right-to-tab-stop))
+       (consp buffer-undo-list)
+       (eq (car buffer-undo-list) nil)
+       (pop buffer-undo-list)))
+
+(defun indent-rigidly-left (beg end)
+  "Indent all lines between BEG and END leftward by one space."
+  (interactive "r")
+  (indent-rigidly--pop-undo)
+  (indent-rigidly
+   beg end
+   (if (eq (current-bidi-paragraph-direction) 'right-to-left) 1 -1)))
+
+(defun indent-rigidly-right (beg end)
+  "Indent all lines between BEG and END rightward by one space."
+  (interactive "r")
+  (indent-rigidly--pop-undo)
+  (indent-rigidly
+   beg end
+   (if (eq (current-bidi-paragraph-direction) 'right-to-left) -1 1)))
+
+(defun indent-rigidly-left-to-tab-stop (beg end)
+  "Indent all lines between BEG and END leftward to a tab stop."
+  (interactive "r")
+  (indent-rigidly--pop-undo)
+  (let* ((current (indent-rigidly--current-indentation beg end))
+	 (rtl (eq (current-bidi-paragraph-direction) 'right-to-left))
+	 (next (indent--next-tab-stop current (if rtl nil 'prev))))
+    (indent-rigidly beg end (- next current))))
+
+(defun indent-rigidly-right-to-tab-stop (beg end)
+  "Indent all lines between BEG and END rightward to a tab stop."
+  (interactive "r")
+  (indent-rigidly--pop-undo)
+  (let* ((current (indent-rigidly--current-indentation beg end))
+	 (rtl (eq (current-bidi-paragraph-direction) 'right-to-left))
+	 (next (indent--next-tab-stop current (if rtl 'prev))))
+    (indent-rigidly beg end (- next current))))
 
 (defun indent-line-to (column)
   "Indent current line to COLUMN.
 This function removes or adds spaces and tabs at beginning of line
 only if necessary.  It leaves point at end of indentation."
-  (back-to-indentation)
+  (backward-to-indentation 0)
   (let ((cur-col (current-column)))
     (cond ((< cur-col column)
 	   (if (>= (- column (* (/ cur-col tab-width) tab-width)) tab-width)
@@ -189,7 +274,7 @@ only if necessary.  It leaves point at end of indentation."
 	   (indent-to column))
 	  ((> cur-col column) ; too far right (after tab?)
 	   (delete-region (progn (move-to-column column t) (point))
-			  (progn (back-to-indentation) (point)))))))
+			  (progn (backward-to-indentation 0) (point)))))))
 
 (defun current-left-margin ()
   "Return the left margin to use for this line.
@@ -405,6 +490,7 @@ If the third argument COLUMN is an integer, it specifies the
 column to indent to; if it is nil, use one of the three methods above."
   (interactive "r\nP")
   (cond
+   ;; If a numeric prefix is given, indent to that column.
    (column
     (setq column (prefix-numeric-value column))
     (save-excursion
@@ -416,8 +502,9 @@ column to indent to; if it is nil, use one of the three methods above."
 	(delete-region (point) (progn (skip-chars-forward " \t") (point)))
 	(or (eolp)
 	    (indent-to column 0))
-	(forward-line 1))
+        (forward-line 1))
       (move-marker end nil)))
+   ;; If a fill-prefix is specified, use it.
    (fill-prefix
     (save-excursion
       (goto-char end)
@@ -429,17 +516,24 @@ column to indent to; if it is nil, use one of the three methods above."
 	      (and (bolp) (eolp))
 	      (insert fill-prefix))
 	  (forward-line 1)))))
+   ;; Use indent-region-function is available.
    (indent-region-function
     (funcall indent-region-function start end))
+   ;; Else, use a default implementation that calls indent-line-function on
+   ;; each line.
    (t
     (save-excursion
       (setq end (copy-marker end))
       (goto-char start)
-      (while (< (point) end)
-	(or (and (bolp) (eolp))
-	    (indent-according-to-mode))
-	(forward-line 1))
-      (move-marker end nil))))
+      (let ((pr (unless (minibufferp)
+		  (make-progress-reporter "Indenting region..." (point) end))))
+	(while (< (point) end)
+	  (or (and (bolp) (eolp))
+	      (indent-according-to-mode))
+          (forward-line 1)
+          (and pr (progress-reporter-update pr (point))))
+	(and pr (progress-reporter-done pr))
+        (move-marker end nil)))))
   ;; In most cases, reindenting modifies the buffer, but it may also
   ;; leave it unmodified, in which case we have to deactivate the mark
   ;; by hand.
@@ -492,13 +586,17 @@ See also `indent-relative-maybe'."
 	  (move-marker opoint nil))
       (tab-to-tab-stop))))
 
-(defcustom tab-stop-list
-  '(8 16 24 32 40 48 56 64 72 80 88 96 104 112 120)
+(defcustom tab-stop-list nil
   "List of tab stop positions used by `tab-to-tab-stop'.
-This should be a list of integers, ordered from smallest to largest."
+This should be nil, or a list of integers, ordered from smallest to largest.
+It implicitly extends to infinity through repetition of the last step.
+For example, '(1 2 5) is equivalent to '(1 2 5 8 11 ...).  If the list has
+fewer than 2 elements, `tab-width' is used as the \"last step\".
+A value of nil means a tab stop every `tab-width' columns."
   :group 'indent
+  :version "24.4"                       ; from explicit list to nil
+  :safe 'listp
   :type '(repeat integer))
-(put 'tab-stop-list 'safe-local-variable 'listp)
 
 (defvar edit-tab-stops-map
   (let ((map (make-sparse-keymap)))
@@ -520,8 +618,7 @@ You can add or remove colons and then do \\<edit-tab-stops-map>\\[edit-tab-stops
   (setq edit-tab-stops-buffer (current-buffer))
   (switch-to-buffer (get-buffer-create "*Tab Stops*"))
   (use-local-map edit-tab-stops-map)
-  (make-local-variable 'indent-tabs-mode)
-  (setq indent-tabs-mode nil)
+  (setq-local indent-tabs-mode nil)
   (overwrite-mode 1)
   (setq truncate-lines t)
   (erase-buffer)
@@ -557,6 +654,29 @@ You can add or remove colons and then do \\<edit-tab-stops-map>\\[edit-tab-stops
       (setq tab-stop-list tabs))
   (message "Tab stops installed"))
 
+(defun indent--next-tab-stop (column &optional prev)
+  "Return the next tab stop after COLUMN.
+If PREV is non-nil, return the previous one instead."
+  (let ((tabs tab-stop-list))
+    (while (and tabs (>= column (car tabs)))
+      (setq tabs (cdr tabs)))
+    (if tabs
+        (if (not prev)
+            (car tabs)
+          (let ((prevtabs (cdr (memq (car tabs) (reverse tab-stop-list)))))
+            (if (null prevtabs) 0
+              (if (= column (car prevtabs))
+                  (or (nth 1 prevtabs) 0)
+                (car prevtabs)))))
+      ;; We passed the end of tab-stop-list: guess a continuation.
+      (let* ((last2 (last tab-stop-list 2))
+             (step (if (cdr last2) (- (cadr last2) (car last2)) tab-width))
+             (last (or (cadr last2) (car last2) 0)))
+        ;; Repeat the last tab's length.
+        (+ last (* step (if prev
+                            (if (<= column last) -1 (/ (- column last 1) step))
+                          (1+ (/ (- column last) step)))))))))
+
 (defun tab-to-tab-stop ()
   "Insert spaces or tabs to next defined tab-stop column.
 The variable `tab-stop-list' is a list of columns at which there are tab stops.
@@ -564,37 +684,29 @@ Use \\[edit-tab-stops] to edit them interactively."
   (interactive)
   (and abbrev-mode (= (char-syntax (preceding-char)) ?w)
        (expand-abbrev))
-  (let ((tabs tab-stop-list))
-    (while (and tabs (>= (current-column) (car tabs)))
-      (setq tabs (cdr tabs)))
-    (if tabs
-        (progn
-          (delete-horizontal-space t)
-	  (indent-to (car tabs)))
-      (insert ?\s))))
+  (let ((nexttab (indent--next-tab-stop (current-column))))
+    (delete-horizontal-space t)
+    (indent-to nexttab)))
 
 (defun move-to-tab-stop ()
   "Move point to next defined tab-stop column.
 The variable `tab-stop-list' is a list of columns at which there are tab stops.
 Use \\[edit-tab-stops] to edit them interactively."
   (interactive)
-  (let ((tabs tab-stop-list))
-    (while (and tabs (>= (current-column) (car tabs)))
-      (setq tabs (cdr tabs)))
-    (if tabs
-	(let ((before (point)))
-	  (move-to-column (car tabs) t)
-	  (save-excursion
-	    (goto-char before)
-	    ;; If we just added a tab, or moved over one,
-	    ;; delete any superfluous spaces before the old point.
-	    (if (and (eq (preceding-char) ?\s)
-		     (eq (following-char) ?\t))
-		(let ((tabend (* (/ (current-column) tab-width) tab-width)))
-		  (while (and (> (current-column) tabend)
-			      (eq (preceding-char) ?\s))
-		    (forward-char -1))
-		  (delete-region (point) before))))))))
+  (let ((nexttab (indent--next-tab-stop (current-column))))
+    (let ((before (point)))
+      (move-to-column nexttab t)
+      (save-excursion
+        (goto-char before)
+        ;; If we just added a tab, or moved over one,
+        ;; delete any superfluous spaces before the old point.
+        (if (and (eq (preceding-char) ?\s)
+                 (eq (following-char) ?\t))
+            (let ((tabend (* (/ (current-column) tab-width) tab-width)))
+              (while (and (> (current-column) tabend)
+                          (eq (preceding-char) ?\s))
+                (forward-char -1))
+              (delete-region (point) before)))))))
 
 (define-key global-map "\t" 'indent-for-tab-command)
 (define-key esc-map "\C-\\" 'indent-region)

@@ -1,5 +1,5 @@
 /* blockinput.h - interface to blocking complicated interrupt-driven input.
-   Copyright (C) 1989, 1993, 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993, 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,9 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_BLOCKINPUT_H
 
 INLINE_HEADER_BEGIN
-#ifndef BLOCKINPUT_INLINE
-# define BLOCKINPUT_INLINE INLINE
-#endif
 
 /* Emacs should avoid doing anything hairy in a signal handler, because
    so many system functions are non-reentrant.  For example, malloc
@@ -52,7 +49,7 @@ extern volatile int interrupt_input_blocked;
 
 /* Begin critical section. */
 
-BLOCKINPUT_INLINE void
+INLINE void
 block_input (void)
 {
   interrupt_input_blocked++;
@@ -62,12 +59,12 @@ extern void unblock_input (void);
 extern void totally_unblock_input (void);
 extern void unblock_input_to (int);
 
-/* In critical section ? */
+/* In critical section?  */
 
-BLOCKINPUT_INLINE bool
+INLINE bool
 input_blocked_p (void)
 {
-  return 0 < interrupt_input_blocked;
+  return interrupt_input_blocked > 0;
 }
 
 INLINE_HEADER_END

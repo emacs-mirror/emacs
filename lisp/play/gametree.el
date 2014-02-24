@@ -1,6 +1,6 @@
 ;;; gametree.el --- manage game analysis trees in Emacs
 
-;; Copyright (C) 1997, 1999, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Ian T Zimmerman <itz@rahul.net>
 ;; Created: Wed Dec 10 07:41:46 PST 1997
@@ -399,23 +399,23 @@ depth AT-DEPTH or smaller is found."
       (error
        (goto-char (point-max))
        (if (not (bolp)) (insert "\n"))))
-    (let ((starting-plys
+    (let ((starting-plies
            (if (> (gametree-current-branch-depth) parent-depth)
                (gametree-current-branch-ply)
              (save-excursion (forward-line -1)
                              (gametree-current-branch-ply)))))
       (goto-char (1- (point)))
       (insert "\n")
-      (insert (format (if (= 0 (mod starting-plys 2))
+      (insert (format (if (= 0 (mod starting-plies 2))
                           gametree-full-ply-format
                         gametree-half-ply-format)
-                      (/ starting-plys 2))))))
+                      (/ starting-plies 2))))))
 
 (defun gametree-break-line-here (&optional at-move)
   "Split the variation node at the point position.
 This command works whether the current variation node is a leaf, or is
 already branching at its end.  The new node is created at a level that
-reflects the number of game plys between the beginning of the current
+reflects the number of game plies between the beginning of the current
 variation and the breaking point.
 
 With a numerical argument AT-MOVE, split the variation before
@@ -436,7 +436,7 @@ only work of Black's moves are explicitly numbered, for instance
           (goto-char (match-beginning 0))))
   (gametree-transpose-following-leaves)
   (let* ((pt (point-marker))
-         (plys (gametree-current-branch-ply))
+         (plies (gametree-current-branch-ply))
          (depth (gametree-current-branch-depth))
          (old-depth depth))
     (if (= depth 0)
@@ -451,7 +451,7 @@ only work of Black's moves are explicitly numbered, for instance
                     (if (zerop old-branch-ply)
                         (1+ (gametree-current-branch-depth))
                       (+ (gametree-current-branch-depth)
-                         (- plys old-branch-ply))))))
+                         (- plies old-branch-ply))))))
           (save-excursion
             (beginning-of-line 1)
             (funcall gametree-make-heading-function depth)
@@ -471,7 +471,7 @@ only work of Black's moves are explicitly numbered, for instance
       (insert "\n")
       (if (not (= 0 old-depth))
           (funcall gametree-make-heading-function
-                   (+ depth (- (gametree-current-branch-ply) plys))))
+                   (+ depth (- (gametree-current-branch-ply) plies))))
       (gametree-prettify-heading))))
 
 (defun gametree-merge-line ()
@@ -531,8 +531,10 @@ Subnodes which have been manually scored are honored."
 (defun gametree-layout-to-register (register)
   "Store current tree layout in register REGISTER.
 Use \\[gametree-apply-register-layout] to restore that configuration.
-Argument is a character, naming the register."
-  (interactive "cLayout to register: ")
+Argument is a character, naming the register.
+
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive (list (register-read-with-preview "Layout to register: ")))
   (save-excursion
     (goto-char (point-min))
     (set-register register
@@ -540,8 +542,13 @@ Argument is a character, naming the register."
 
 (defun gametree-apply-register-layout (char)
   "Return to a tree layout stored in a register.
-Argument is a character, naming the register."
-  (interactive "*cApply layout from register: ")
+Argument is a character, naming the register.
+
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive
+   (progn
+     (barf-if-buffer-read-only)
+     (list (register-read-with-preview "Apply layout from register: "))))
   (save-excursion
     (goto-char (point-min))
     (gametree-apply-layout (get-register char) 0 t)))

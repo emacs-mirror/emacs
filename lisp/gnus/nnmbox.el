@@ -1,6 +1,6 @@
 ;;; nnmbox.el --- mail mbox access for Gnus
 
-;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -148,28 +148,29 @@
 (deffoo nnmbox-request-article (article &optional newsgroup server buffer)
   (nnmbox-possibly-change-newsgroup newsgroup server)
   (with-current-buffer nnmbox-mbox-buffer
-    (when (nnmbox-find-article article)
-      (let (start stop)
-	(re-search-backward (concat "^" message-unix-mail-delimiter) nil t)
-	(setq start (point))
-	(forward-line 1)
-	(setq stop (if (re-search-forward (concat "^"
-						  message-unix-mail-delimiter)
-					  nil 'move)
-		       (match-beginning 0)
-		     (point)))
-	(let ((nntp-server-buffer (or buffer nntp-server-buffer)))
-	  (set-buffer nntp-server-buffer)
-	  (erase-buffer)
-	  (insert-buffer-substring nnmbox-mbox-buffer start stop)
-	  (goto-char (point-min))
-	  (while (looking-at "From ")
-	    (delete-char 5)
-	    (insert "X-From-Line: ")
-	    (forward-line 1))
-	  (if (numberp article)
-	      (cons nnmbox-current-group article)
-	    (nnmbox-article-group-number nil)))))))
+    (save-excursion
+      (when (nnmbox-find-article article)
+        (let (start stop)
+          (re-search-backward (concat "^" message-unix-mail-delimiter) nil t)
+          (setq start (point))
+          (forward-line 1)
+          (setq stop (if (re-search-forward (concat "^"
+                                                    message-unix-mail-delimiter)
+                                            nil 'move)
+                         (match-beginning 0)
+                       (point)))
+          (let ((nntp-server-buffer (or buffer nntp-server-buffer)))
+            (set-buffer nntp-server-buffer)
+            (erase-buffer)
+            (insert-buffer-substring nnmbox-mbox-buffer start stop)
+            (goto-char (point-min))
+            (while (looking-at "From ")
+              (delete-char 5)
+              (insert "X-From-Line: ")
+              (forward-line 1))
+            (if (numberp article)
+                (cons nnmbox-current-group article)
+              (nnmbox-article-group-number nil))))))))
 
 (deffoo nnmbox-request-group (group &optional server dont-check info)
   (nnmbox-possibly-change-newsgroup nil server)
@@ -255,14 +256,14 @@
 	  (if (setq is-old
 		    (nnmail-expired-article-p
 		     newsgroup
-		     (buffer-substring
-		      (point) (progn (end-of-line) (point))) force))
+		     (buffer-substring (point) (line-end-position))
+		     force))
 	      (progn
 		(unless (eq nnmail-expiry-target 'delete)
 		  (with-temp-buffer
 		    (nnmbox-request-article (car articles)
-					     newsgroup server
-					     (current-buffer))
+					    newsgroup server
+					    (current-buffer))
 		    (let ((nnml-current-directory nil))
 		      (nnmail-expiry-target-group
 		       nnmail-expiry-target newsgroup)))

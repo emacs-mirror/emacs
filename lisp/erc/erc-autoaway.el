@@ -1,9 +1,9 @@
 ;;; erc-autoaway.el --- Provides autoaway for ERC
 
-;; Copyright (C) 2002-2004, 2006-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcAutoAway
 
 ;; This file is part of GNU Emacs.

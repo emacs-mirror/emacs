@@ -1,9 +1,9 @@
 ;;; loadup.el --- load up standardly loaded Lisp files for Emacs
 
-;; Copyright (C) 1985-1986, 1992, 1994, 2001-2013 Free Software
+;; Copyright (C) 1985-1986, 1992, 1994, 2001-2014 Free Software
 ;; Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
 ;; Package: emacs
 
@@ -46,23 +46,23 @@
 ;; Add subdirectories to the load-path for files that might get
 ;; autoloaded when bootstrapping.
 ;; This is because PATH_DUMPLOADSEARCH is just "../lisp".
-;; Note that we reset load-path below just before dumping,
-;; since lread.c:init_lread checks for changes to load-path
-;; in deciding whether to modify it.
 (if (or (equal (nth 3 command-line-args) "bootstrap")
 	(equal (nth 4 command-line-args) "bootstrap")
-	(equal (nth 3 command-line-args) "unidata-gen.el")
-	(equal (nth 4 command-line-args) "unidata-gen-files")
-	;; In case CANNOT_DUMP.
-	(string-match "src/bootstrap-emacs" (nth 0 command-line-args)))
+	;; FIXME this is irritatingly fragile.
+	(equal (nth 4 command-line-args) "unidata-gen.el")
+	(equal (nth 7 command-line-args) "unidata-gen-files")
+	(if (fboundp 'dump-emacs)
+	    (string-match "src/bootstrap-emacs" (nth 0 command-line-args))
+	  t))
     (let ((dir (car load-path)))
       ;; We'll probably overflow the pure space.
       (setq purify-flag nil)
-      (setq load-path (list dir
+      (setq load-path (list (expand-file-name "." dir)
 			    (expand-file-name "emacs-lisp" dir)
 			    (expand-file-name "language" dir)
 			    (expand-file-name "international" dir)
-			    (expand-file-name "textmodes" dir)))))
+			    (expand-file-name "textmodes" dir)
+			    (expand-file-name "vc" dir)))))
 
 (if (eq t purify-flag)
     ;; Hash consing saved around 11% of pure space in my tests.
@@ -98,6 +98,8 @@
 (load "env")
 (load "format")
 (load "bindings")
+;; This sets temporary-file-directory, used by eg
+;; auto-save-file-name-transforms in files.el.
 (load "cus-start")
 (load "window")  ; Needed here for `replace-buffer-in-windows'.
 (setq load-source-file-function 'load-with-code-conversion)
@@ -139,6 +141,7 @@
   ;; In case loaddefs hasn't been generated yet.
   (file-error (load "ldefs-boot.el")))
 
+(load "emacs-lisp/nadvice")
 (load "minibuffer")
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
 (load "simple")
@@ -210,6 +213,7 @@
 (load "textmodes/page")
 (load "register")
 (load "textmodes/paragraphs")
+(load "progmodes/prog-mode")
 (load "emacs-lisp/lisp-mode")
 (load "textmodes/text-mode")
 (load "textmodes/fill")
@@ -274,15 +278,42 @@
 
 (load "vc/vc-hooks")
 (load "vc/ediff-hook")
-(if (fboundp 'x-show-tip) (load "tooltip"))
+(load "uniquify")
+(load "electric")
+(if (not (eq system-type 'ms-dos)) (load "tooltip"))
 
-;If you want additional libraries to be preloaded and their
-;doc strings kept in the DOC file rather than in core,
-;you may load them with a "site-load.el" file.
-;But you must also cause them to be scanned when the DOC file
-;is generated.
-;For other systems, you must edit ../src/Makefile.in.
-(load "site-load" t)
+;; This file doesn't exist when building a development version of Emacs
+;; from the repository.  It is generated just after temacs is built.
+(load "leim/leim-list.el" t)
+
+;; If you want additional libraries to be preloaded and their
+;; doc strings kept in the DOC file rather than in core,
+;; you may load them with a "site-load.el" file.
+;; But you must also cause them to be scanned when the DOC file
+;; is generated.
+(let ((lp load-path))
+  (load "site-load" t)
+  ;; We reset load-path after dumping.
+  ;; For a permanent change in load-path, use configure's
+  ;; --enable-locallisppath option.
+  ;; See http://debbugs.gnu.org/16107 for more details.
+  (or (equal lp load-path)
+      (message "Warning: Change in load-path due to site-load will be \
+lost after dumping")))
+
+;; Make sure default-directory is unibyte when dumping.  This is
+;; because we cannot decode and encode it correctly (since the locale
+;; environment is not, and should not be, set up).  default-directory
+;; is used every time we call expand-file-name, which we do in every
+;; file primitive.  So the only workable solution to support building
+;; in non-ASCII directories is to manipulate unibyte strings in the
+;; current locale's encoding.
+(if (and (or (equal (nth 3 command-line-args) "dump")
+	     (equal (nth 4 command-line-args) "dump")
+	     (equal (nth 3 command-line-args) "bootstrap")
+	     (equal (nth 4 command-line-args) "bootstrap"))
+	 (multibyte-string-p default-directory))
+    (error "default-directory must be unibyte when dumping Emacs!"))
 
 ;; Determine which last version number to use
 ;; based on the executables that now exist.
@@ -290,11 +321,14 @@
 	     (equal (nth 4 command-line-args) "dump"))
 	 (not (eq system-type 'ms-dos)))
     (let* ((base (concat "emacs-" emacs-version "."))
+	   (exelen (if (eq system-type 'windows-nt) -4))
 	   (files (file-name-all-completions base default-directory))
-	   (versions (mapcar (function (lambda (name)
-					 (string-to-number (substring name (length base)))))
+	   (versions (mapcar (function
+			      (lambda (name)
+				(string-to-number
+				 (substring name (length base) exelen))))
 			     files)))
-      (setq emacs-bzr-version (condition-case nil (emacs-bzr-get-version)
+      (setq emacs-repository-version (condition-case nil (emacs-repository-get-version)
                               (error nil)))
       ;; `emacs-version' is a constant, so we shouldn't change it with `setq'.
       (defconst emacs-version
@@ -305,28 +339,21 @@
 (message "Finding pointers to doc strings...")
 (if (or (equal (nth 3 command-line-args) "dump")
 	(equal (nth 4 command-line-args) "dump"))
-    (let ((name emacs-version))
-      (while (string-match "[^-+_.a-zA-Z0-9]+" name)
-	(setq name (concat (downcase (substring name 0 (match-beginning 0)))
-			   "-"
-			   (substring name (match-end 0)))))
-      (if (memq system-type '(ms-dos windows-nt))
-	  (setq name (expand-file-name
-		      (if (fboundp 'x-create-frame) "DOC-X" "DOC") "../etc"))
-	(setq name (concat (expand-file-name "../etc/DOC-") name))
-	(if (file-exists-p name)
-	    (delete-file name))
-	(copy-file (expand-file-name "../etc/DOC") name t))
-      (Snarf-documentation (file-name-nondirectory name)))
-    (condition-case nil
-	(Snarf-documentation "DOC")
-      (error nil)))
+    (Snarf-documentation "DOC")
+  (condition-case nil
+      (Snarf-documentation "DOC")
+    (error nil)))
 (message "Finding pointers to doc strings...done")
 
 ;; Note: You can cause additional libraries to be preloaded
 ;; by writing a site-init.el that loads them.
-;; See also "site-load" above.
-(load "site-init" t)
+;; See also "site-load" above
+(let ((lp load-path))
+  (load "site-init" t)
+  (or (equal lp load-path)
+      (message "Warning: Change in load-path due to site-init will be \
+lost after dumping")))
+
 (setq current-load-list nil)
 
 ;; We keep the load-history data in PURE space.
@@ -335,11 +362,6 @@
 (setq load-history (mapcar 'purecopy load-history))
 
 (set-buffer-modified-p nil)
-
-;; reset the load-path.  See lread.c:init_lread why.
-(if (or (equal (nth 3 command-line-args) "bootstrap")
-	(equal (nth 4 command-line-args) "bootstrap"))
-    (setcdr load-path nil))
 
 (remove-hook 'after-load-functions (lambda (f) (garbage-collect)))
 
@@ -388,18 +410,25 @@
       (dump-emacs "emacs" "temacs")
       (message "%d pure bytes used" pure-bytes-used)
       ;; Recompute NAME now, so that it isn't set when we dump.
-      (if (not (or (memq system-type '(ms-dos windows-nt))
+      (if (not (or (eq system-type 'ms-dos)
                    ;; Don't bother adding another name if we're just
                    ;; building bootstrap-emacs.
                    (equal (nth 3 command-line-args) "bootstrap")
                    (equal (nth 4 command-line-args) "bootstrap")))
-	  (let ((name (concat "emacs-" emacs-version)))
+	  (let ((name (concat "emacs-" emacs-version))
+		(exe (if (eq system-type 'windows-nt) ".exe" "")))
 	    (while (string-match "[^-+_.a-zA-Z0-9]+" name)
 	      (setq name (concat (downcase (substring name 0 (match-beginning 0)))
 				 "-"
 				 (substring name (match-end 0)))))
+	    (setq name (concat name exe))
             (message "Adding name %s" name)
-	    (add-name-to-file "emacs" name t)))
+	    ;; When this runs on Windows, invocation-directory is not
+	    ;; necessarily the current directory.
+	    (add-name-to-file (expand-file-name (concat "emacs" exe)
+						invocation-directory)
+			      (expand-file-name name invocation-directory)
+			      t)))
       (kill-emacs)))
 
 ;; For machines with CANNOT_DUMP defined in config.h,

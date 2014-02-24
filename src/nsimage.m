@@ -1,5 +1,5 @@
 /* Image support for the NeXT/Open/GNUstep and MacOSX window system.
-   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2013 Free Software
+   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2014 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -334,7 +334,7 @@ static EmacsImage *ImageList = nil;
 {
   NSSize s = [self size];
   unsigned char *planes[5];
-  CGFloat r, g, b, a;
+  EmacsCGFloat r, g, b, a;
   NSColor *rgbColor;
 
   if (bmRep == nil || color == nil)
@@ -437,7 +437,7 @@ static EmacsImage *ImageList = nil;
   else
     {
       NSColor *color = [bmRep colorAtX: x y: y];
-      CGFloat r, g, b, a;
+      EmacsCGFloat r, g, b, a;
       [color getRed: &r green: &g blue: &b alpha: &a];
       return ((int)(a * 255.0) << 24)
         | ((int)(r * 255.0) << 16) | ((int)(g * 255.0) << 8)

@@ -1,9 +1,9 @@
-;;; data-debug.el --- Datastructure Debugger
+;;; data-debug.el --- Data structure debugger
 
-;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam  <zappo@gnu.org>
-;; Version: 0.2
+;; Old-Version: 0.2
 ;; Keywords: OO, lisp
 ;; Package: cedet
 
@@ -869,7 +869,8 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
     table)
   "Syntax table used in data-debug macro buffers.")
 
-(defvar data-debug-map
+(define-obsolete-variable-alias 'data-debug-map 'data-debug-mode-map "24.1")
+(defvar data-debug-mode-map
   (let ((km (make-sparse-keymap)))
     (suppress-keymap km)
     (define-key km [mouse-2] 'data-debug-expand-or-contract-mouse)
@@ -887,22 +888,15 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
   :group 'data-debug
   :type 'hook)
 
-(defun data-debug-mode ()
+(define-derived-mode data-debug-mode fundamental-mode "DATA-DEBUG"
   "Major-mode for the Analyzer debugger.
 
-\\{data-debug-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'data-debug-mode
-        mode-name "DATA-DEBUG"
-	comment-start ";;"
+\\{data-debug-mode-map}"
+  (setq comment-start ";;"
 	comment-end ""
 	buffer-read-only t)
-  (set (make-local-variable 'comment-start-skip)
+  (setq-local comment-start-skip
        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
-  (set-syntax-table data-debug-mode-syntax-table)
-  (use-local-map data-debug-map)
-  (run-hooks 'data-debug-hook)
   (buffer-disable-undo)
   (set (make-local-variable 'font-lock-global-modes) nil)
   (font-lock-mode -1)

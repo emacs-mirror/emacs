@@ -1,10 +1,10 @@
 ;;; jka-cmpr-hook.el --- preloaded code to enable jka-compr.el
 
-;; Copyright (C) 1993-1995, 1997, 1999-2000, 2002-2013 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1993-1995, 1997, 1999-2000, 2002-2014
+;;   Free Software Foundation, Inc.
 
-;; Author: jka@ece.cmu.edu (Jay K. Adams)
-;; Maintainer: FSF
+;; Author: Jay K. Adams <jka@ece.cmu.edu>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: data
 ;; Package: emacs
 
@@ -308,7 +308,7 @@ variables.  Setting this through Custom does that automatically."
 (defcustom jka-compr-mode-alist-additions
   (purecopy '(("\\.tgz\\'" . tar-mode)
               ("\\.tbz2?\\'" . tar-mode)
-              ("\\.txz\\'" . 'tar-mode)))
+              ("\\.txz\\'" . tar-mode)))
   "List of pairs added to `auto-mode-alist' when installing jka-compr.
 Uninstalling jka-compr removes all pairs from `auto-mode-alist' that
 installing added.
@@ -318,6 +318,7 @@ already enabled \(as it is by default), you have to call
 `jka-compr-update' after setting it to properly update other
 variables.  Setting this through Custom does that automatically."
   :type '(repeat (cons string symbol))
+  :version "24.4"			; add txz
   :set 'jka-compr-set
   :group 'jka-compr)
 

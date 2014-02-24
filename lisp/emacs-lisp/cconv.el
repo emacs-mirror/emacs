@@ -1,9 +1,9 @@
 ;;; cconv.el --- Closure conversion for statically scoped Emacs lisp. -*- lexical-binding: t; coding: utf-8 -*-
 
-;; Copyright (C) 2011-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2014 Free Software Foundation, Inc.
 
 ;; Author: Igor Kuzmin <kzuminig@iro.umontreal.ca>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp
 ;; Package: emacs
 
@@ -55,7 +55,7 @@
 ;;
 ;; If a variable is mutated (updated by setq), and it is used in a closure
 ;; we wrap its definition with list: (list val) and we also replace
-;; var => (car var) wherever this variable is used, and also
+;; var => (car-safe var) wherever this variable is used, and also
 ;; (setq var value) => (setcar var value) where it is updated.
 ;;
 ;; If defun argument is closure mutable, we letbind it and wrap it's
@@ -79,9 +79,7 @@
 ;;   command-history).
 ;; - canonize code in macro-expand so we don't have to handle (let (var) body)
 ;;   and other oddities.
-;; - new byte codes for unwind-protect, catch, and condition-case so that
-;;   closures aren't needed at all.
-;; - inline source code of different binding mode by first compiling it.
+;; - new byte codes for unwind-protect so that closures aren't needed at all.
 ;; - a reference to a var that is known statically to always hold a constant
 ;;   should be turned into a byte-constant rather than a byte-stack-ref.
 ;;   Hmm... right, that's called constant propagation and could be done here,
@@ -95,6 +93,7 @@
 
 ;; (defmacro dlet (binders &rest body)
 ;;   ;; Works in both lexical and non-lexical mode.
+;;   (declare (indent 1) (debug let))
 ;;   `(progn
 ;;      ,@(mapcar (lambda (binder)
 ;;                  `(defvar ,(if (consp binder) (car binder) binder)))
@@ -143,7 +142,19 @@ Returns a form where all lambdas don't have any free variables."
     ;; Analyze form - fill these variables with new information.
     (cconv-analyse-form form '())
     (setq cconv-freevars-alist (nreverse cconv-freevars-alist))
-    (cconv-convert form nil nil))) ; Env initially empty.
+    (prog1 (cconv-convert form nil nil) ; Env initially empty.
+      (cl-assert (null cconv-freevars-alist)))))
+
+;;;###autoload
+(defun cconv-warnings-only (form)
+  "Add the warnings that closure conversion would encounter."
+  (let ((cconv-freevars-alist '())
+	(cconv-lambda-candidates '())
+	(cconv-captured+mutated '()))
+    ;; Analyze form - fill these variables with new information.
+    (cconv-analyse-form form '())
+    ;; But don't perform the closure conversion.
+    form))
 
 (defconst cconv--dummy-var (make-symbol "ignored"))
 
@@ -199,9 +210,9 @@ Returns a form where all lambdas don't have any free variables."
           ;; If `fv' is a variable that's wrapped in a cons-cell,
           ;; we want to put the cons-cell itself in the closure,
           ;; rather than just a copy of its current content.
-          (`(car ,iexp . ,_)
+          (`(car-safe ,iexp . ,_)
            (push iexp envector)
-           (push `(,fv . (car (internal-get-closed-var ,i))) new-env))
+           (push `(,fv . (car-safe (internal-get-closed-var ,i))) new-env))
           (_
            (push exp envector)
            (push `(,fv . (internal-get-closed-var ,i)) new-env))))
@@ -212,7 +223,7 @@ Returns a form where all lambdas don't have any free variables."
     (dolist (arg args)
       (if (not (member (cons (list arg) parentform) cconv-captured+mutated))
           (if (assq arg new-env) (push `(,arg) new-env))
-        (push `(,arg . (car ,arg)) new-env)
+        (push `(,arg . (car-safe ,arg)) new-env)
         (push `(,arg (list ,arg)) letbind)))
 
     (setq body-new (mapcar (lambda (form)
@@ -242,7 +253,7 @@ ENV is a lexical environment mapping variables to the expression
 used to get its value.  This is used for variables that are copied into
 closures, moved into cons cells, ...
 ENV is a list where each entry takes the shape either:
- (VAR . (car EXP)): VAR has been moved into the car of a cons-cell, and EXP
+ (VAR . (car-safe EXP)): VAR has been moved into the car of a cons-cell, and EXP
     is an expression that evaluates to this cons-cell.
  (VAR . (internal-get-closed-var N)): VAR has been copied into the closure
     environment's Nth slot.
@@ -278,12 +289,15 @@ places where they originally did not directly appear."
 
        (dolist (binder binders)
          (let* ((value nil)
-                (var (if (not (consp binder))
-                         (prog1 binder (setq binder (list binder)))
-                       (setq value (cadr binder))
-                       (car binder)))
-                (new-val
-                 (cond
+		(var (if (not (consp binder))
+			 (prog1 binder (setq binder (list binder)))
+                       (when (cddr binder)
+                         (byte-compile-log-warning
+                          (format "Malformed `%S' binding: %S" letsym binder)))
+		       (setq value (cadr binder))
+		       (car binder)))
+		(new-val
+		 (cond
                   ;; Check if var is a candidate for lambda lifting.
                   ((and (member (cons binder form) cconv-lambda-candidates)
                         (progn
@@ -308,9 +322,9 @@ places where they originally did not directly appear."
                      (push `(,var . (apply-partially ,var . ,fvs)) new-env)
                      (dolist (fv fvs)
                        (cl-pushnew fv new-extend)
-                       (if (and (eq 'car (car-safe (cdr (assq fv env))))
+                       (if (and (eq 'car-safe (car-safe (cdr (assq fv env))))
                                 (not (memq fv funargs)))
-                           (push `(,fv . (car ,fv)) funcbody-env)))
+                           (push `(,fv . (car-safe ,fv)) funcbody-env)))
                      `(function (lambda ,funcvars .
                                   ,(mapcar (lambda (form)
                                              (cconv-convert
@@ -320,7 +334,7 @@ places where they originally did not directly appear."
                   ;; Check if it needs to be turned into a "ref-cell".
                   ((member (cons binder form) cconv-captured+mutated)
                    ;; Declared variable is mutated and captured.
-                   (push `(,var . (car ,var)) new-env)
+                   (push `(,var . (car-safe ,var)) new-env)
                    `(list ,(cconv-convert value env extend)))
 
                   ;; Normal default case.
@@ -409,18 +423,42 @@ places where they originally did not directly appear."
                        forms)))
 
 					;condition-case
-    (`(condition-case ,var ,protected-form . ,handlers)
+    ((and `(condition-case ,var ,protected-form . ,handlers)
+          (guard byte-compile--use-old-handlers))
      (let ((newform (cconv--convert-function
                      () (list protected-form) env form)))
        `(condition-case :fun-body ,newform
-	  ,@(mapcar (lambda (handler)
+          ,@(mapcar (lambda (handler)
                       (list (car handler)
                             (cconv--convert-function
                              (list (or var cconv--dummy-var))
                              (cdr handler) env form)))
                     handlers))))
 
-    (`(,(and head (or `catch `unwind-protect)) ,form . ,body)
+                                        ; condition-case with new byte-codes.
+    (`(condition-case ,var ,protected-form . ,handlers)
+     `(condition-case ,var
+          ,(cconv-convert protected-form env extend)
+        ,@(let* ((cm (and var (member (cons (list var) form)
+                                      cconv-captured+mutated)))
+                 (newenv
+                  (cond (cm (cons `(,var . (car-save ,var)) env))
+                        ((assq var env) (cons `(,var) env))
+                        (t env))))
+            (mapcar
+             (lambda (handler)
+               `(,(car handler)
+                 ,@(let ((body
+                          (mapcar (lambda (form)
+                                    (cconv-convert form newenv extend))
+                                  (cdr handler))))
+                     (if (not cm) body
+                       `((let ((,var (list ,var))) ,@body))))))
+             handlers))))
+
+    (`(,(and head (or (and `catch (guard byte-compile--use-old-handlers))
+                      `unwind-protect))
+       ,form . ,body)
      `(,head ,(cconv-convert form env extend)
         :fun-body ,(cconv--convert-function () body env form)))
 
@@ -436,7 +474,7 @@ places where they originally did not directly appear."
                 (value (cconv-convert (pop forms) env extend)))
            (push (pcase sym-new
                    ((pred symbolp) `(setq ,sym-new ,value))
-                   (`(car ,iexp) `(setcar ,iexp ,value))
+                   (`(car-safe ,iexp) `(setcar ,iexp ,value))
                    ;; This "should never happen", but for variables which are
                    ;; mutated+captured+unused, we may end up trying to `setq'
                    ;; on a closed-over variable, so just drop the setq.
@@ -460,7 +498,7 @@ places where they originally did not directly appear."
                      ,@(mapcar (lambda (fv)
                                  (let ((exp (or (cdr (assq fv env)) fv)))
                                    (pcase exp
-                                     (`(car ,iexp . ,_) iexp)
+                                     (`(car-safe ,iexp . ,_) iexp)
                                      (_ exp))))
                                fvs)
                      ,@(mapcar (lambda (arg)
@@ -479,7 +517,7 @@ places where they originally did not directly appear."
 
     (`(,func . ,forms)
      ;; First element is function or whatever function-like forms are: or, and,
-     ;; if, progn, prog1, prog2, while, until
+     ;; if, catch, progn, prog1, prog2, while, until
      `(,func . ,(mapcar (lambda (form)
                           (cconv-convert form env extend))
                         forms)))
@@ -489,6 +527,7 @@ places where they originally did not directly appear."
 (unless (fboundp 'byte-compile-not-lexical-var-p)
   ;; Only used to test the code in non-lexbind Emacs.
   (defalias 'byte-compile-not-lexical-var-p 'boundp))
+(defvar byte-compile-lexical-variables)
 
 (defun cconv--analyse-use (vardata form varkind)
   "Analyze the use of a variable.
@@ -530,6 +569,7 @@ FORM is the parent form that binds this var."
          ;; outside of it.
          (envcopy
           (mapcar (lambda (vdata) (list (car vdata) nil nil nil nil)) env))
+         (byte-compile-bound-variables byte-compile-bound-variables)
          (newenv envcopy))
     ;; Push it before recursing, so cconv-freevars-alist contains entries in
     ;; the order they'll be used by closure-convert-rec.
@@ -538,9 +578,11 @@ FORM is the parent form that binds this var."
       (cond
        ((byte-compile-not-lexical-var-p arg)
         (byte-compile-log-warning
-         (format "Argument %S is not a lexical variable" arg)))
+         (format "Lexical argument shadows the dynamic variable %S"
+                 arg)))
        ((eq ?& (aref (symbol-name arg) 0)) nil) ;Ignore &rest, &optional, ...
        (t (let ((varstruct (list arg nil nil nil nil)))
+            (cl-pushnew arg byte-compile-lexical-variables)
             (push (cons (list arg) (cdr varstruct)) newvars)
             (push varstruct newenv)))))
     (dolist (form body)                   ;Analyze body forms.
@@ -579,6 +621,7 @@ and updates the data stored in ENV."
      (let ((orig-env env)
            (newvars nil)
            (var nil)
+           (byte-compile-bound-variables byte-compile-bound-variables)
            (value nil))
        (dolist (binder binders)
          (if (not (consp binder))
@@ -592,6 +635,7 @@ and updates the data stored in ENV."
            (cconv-analyse-form value (if (eq letsym 'let*) env orig-env)))
 
          (unless (byte-compile-not-lexical-var-p var)
+           (cl-pushnew var byte-compile-lexical-variables)
            (let ((varstruct (list var nil nil nil nil)))
              (push (cons binder (cdr varstruct)) newvars)
              (push varstruct env))))
@@ -616,7 +660,8 @@ and updates the data stored in ENV."
 
     (`((lambda . ,_) . ,_)             ; First element is lambda expression.
      (byte-compile-log-warning
-      "Use of deprecated ((lambda ...) ...) form" t :warning)
+      (format "Use of deprecated ((lambda %s ...) ...) form" (nth 1 (car form)))
+      t :warning)
      (dolist (exp `((function ,(car form)) . ,(cdr form)))
        (cconv-analyse-form exp env)))
 
@@ -627,16 +672,32 @@ and updates the data stored in ENV."
     (`(quote . ,_) nil)                 ; quote form
     (`(function . ,_) nil)              ; same as quote
 
-    (`(condition-case ,var ,protected-form . ,handlers)
+    ((and `(condition-case ,var ,protected-form . ,handlers)
+          (guard byte-compile--use-old-handlers))
      ;; FIXME: The bytecode for condition-case forces us to wrap the
-     ;; form and handlers in closures (for handlers, it's understandable
-     ;; but not for the protected form).
+     ;; form and handlers in closures.
      (cconv--analyse-function () (list protected-form) env form)
      (dolist (handler handlers)
-       (cconv--analyse-function (if var (list var)) (cdr handler) env form)))
+       (cconv--analyse-function (if var (list var)) (cdr handler)
+                                env form)))
 
-    ;; FIXME: The bytecode for catch forces us to wrap the body.
-    (`(,(or `catch `unwind-protect) ,form . ,body)
+    (`(condition-case ,var ,protected-form . ,handlers)
+     (cconv-analyse-form protected-form env)
+     (when (and var (symbolp var) (byte-compile-not-lexical-var-p var))
+       (byte-compile-log-warning
+        (format "Lexical variable shadows the dynamic variable %S" var)))
+     (let* ((varstruct (list var nil nil nil nil)))
+       (if var (push varstruct env))
+       (dolist (handler handlers)
+         (dolist (form (cdr handler))
+           (cconv-analyse-form form env)))
+       (if var (cconv--analyse-use (cons (list var) (cdr varstruct))
+                                   form "variable"))))
+
+    ;; FIXME: The bytecode for unwind-protect forces us to wrap the unwind.
+    (`(,(or (and `catch (guard byte-compile--use-old-handlers))
+            `unwind-protect)
+       ,form . ,body)
      (cconv-analyse-form form env)
      (cconv--analyse-function () body env form))
 
@@ -645,6 +706,7 @@ and updates the data stored in ENV."
     (`(track-mouse . ,body)
      (cconv--analyse-function () body env form))
 
+    (`(defvar ,var) (push var byte-compile-bound-variables))
     (`(,(or `defconst `defvar) ,var ,value . ,_)
      (push var byte-compile-bound-variables)
      (cconv-analyse-form value env))
@@ -668,7 +730,9 @@ and updates the data stored in ENV."
      ;; seem worth the trouble.
      (dolist (form forms) (cconv-analyse-form form nil)))
 
-    (`(declare . ,_) nil)               ;The args don't contain code.
+    ;; `declare' should now be macro-expanded away (and if they're not, we're
+    ;; in trouble because they *can* contain code nowadays).
+    ;; (`(declare . ,_) nil)               ;The args don't contain code.
 
     (`(,_ . ,body-forms)    ; First element is a function or whatever.
      (dolist (form body-forms) (cconv-analyse-form form env)))

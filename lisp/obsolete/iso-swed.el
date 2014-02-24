@@ -1,9 +1,9 @@
 ;;; iso-swed.el --- set up char tables for ISO 8859/1 for Swedish/Finnish ttys
 
-;; Copyright (C) 1987, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: i18n
 ;; Obsolete-since: 22.1
 

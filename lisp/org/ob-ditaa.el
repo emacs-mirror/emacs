@@ -1,6 +1,6 @@
 ;;; ob-ditaa.el --- org-babel functions for ditaa evaluation
 
-;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -34,21 +34,42 @@
 ;; 3) we are adding the "file" and "cmdline" header arguments
 ;;
 ;; 4) there are no variables (at least for now)
-;;
-;; 5) it depends on a variable defined in org-exp-blocks (namely
-;;    `org-ditaa-jar-path') so be sure you have org-exp-blocks loaded
 
 ;;; Code:
 (require 'ob)
 (require 'org-compat)
-
-(defvar org-ditaa-jar-path) ;; provided by org-exp-blocks
 
 (defvar org-babel-default-header-args:ditaa
   '((:results . "file")
     (:exports . "results")
     (:java . "-Dfile.encoding=UTF-8"))
   "Default arguments for evaluating a ditaa source block.")
+
+(defcustom org-ditaa-jar-path (expand-file-name
+			       "ditaa.jar"
+			       (file-name-as-directory
+				(expand-file-name
+				 "scripts"
+				 (file-name-as-directory
+				  (expand-file-name
+				   "../contrib"
+				   (file-name-directory (org-find-library-dir "org")))))))
+  "Path to the ditaa jar executable."
+  :group 'org-babel
+  :type 'string)
+
+(defcustom org-babel-ditaa-java-cmd "java"
+  "Java executable to use when evaluating ditaa blocks."
+  :group 'org-babel
+  :type 'string)
+
+(defcustom org-ditaa-eps-jar-path
+  (expand-file-name "DitaaEps.jar" (file-name-directory org-ditaa-jar-path))
+  "Path to the DitaaEps.jar executable."
+  :group 'org-babel
+  :version "24.4"
+  :package-version '(Org . "8.0")
+  :type 'string)
 
 (defcustom org-ditaa-jar-option "-jar"
   "Option for the ditaa jar file.
@@ -61,24 +82,33 @@ Do not leave leading or trailing spaces in this string."
   "Execute a block of Ditaa code with org-babel.
 This function is called by `org-babel-execute-src-block'."
   (let* ((result-params (split-string (or (cdr (assoc :results params)) "")))
-	 (out-file ((lambda (el)
-		      (or el
-			  (error
-			   "ditaa code block requires :file header argument")))
-		    (cdr (assoc :file params))))
+	 (out-file (let ((el (cdr (assoc :file params))))
+                     (or el
+                         (error
+                          "ditaa code block requires :file header argument"))))
 	 (cmdline (cdr (assoc :cmdline params)))
 	 (java (cdr (assoc :java params)))
 	 (in-file (org-babel-temp-file "ditaa-"))
-	 (cmd (concat "java " java " " org-ditaa-jar-option " "
+	 (eps (cdr (assoc :eps params)))
+	 (cmd (concat org-babel-ditaa-java-cmd
+		      " " java " " org-ditaa-jar-option " "
 		      (shell-quote-argument
-		       (expand-file-name org-ditaa-jar-path))
+		       (expand-file-name
+			(if eps org-ditaa-eps-jar-path org-ditaa-jar-path)))
 		      " " cmdline
 		      " " (org-babel-process-file-name in-file)
-		      " " (org-babel-process-file-name out-file))))
+		      " " (org-babel-process-file-name out-file)))
+	 (pdf-cmd (when (and (or (string= (file-name-extension out-file) "pdf")
+				 (cdr (assoc :pdf params))))
+		    (concat
+		     "epstopdf"
+		     " " (org-babel-process-file-name (concat in-file ".eps"))
+		     " -o=" (org-babel-process-file-name out-file)))))
     (unless (file-exists-p org-ditaa-jar-path)
       (error "Could not find ditaa.jar at %s" org-ditaa-jar-path))
     (with-temp-file in-file (insert body))
     (message cmd) (shell-command cmd)
+    (when pdf-cmd (message pdf-cmd) (shell-command pdf-cmd))
     nil)) ;; signal that output has already been written to file
 
 (defun org-babel-prep-session:ditaa (session params)

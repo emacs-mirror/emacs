@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Lists
@@ -270,8 +270,10 @@ are numbered starting with zero, so the @sc{car} of @var{list} is
 element number zero.  If the length of @var{list} is @var{n} or less,
 the value is @code{nil}.
 
-If @var{n} is negative, @code{nth} returns the first element of
-@var{list}.
+@c Behavior for -ve n undefined since 2013/08; see bug#15059.
+@ignore
+If @var{n} is negative, @code{nth} returns the first element of @var{list}.
+@end ignore
 
 @example
 @group
@@ -281,10 +283,6 @@ If @var{n} is negative, @code{nth} returns the first element of
 @group
 (nth 10 '(1 2 3 4))
      @result{} nil
-@end group
-@group
-(nth -3 '(1 2 3 4))
-     @result{} 1
 
 (nth n x) @equiv{} (car (nthcdr n x))
 @end group
@@ -300,7 +298,8 @@ This function returns the @var{n}th @sc{cdr} of @var{list}.  In other
 words, it skips past the first @var{n} links of @var{list} and returns
 what follows.
 
-If @var{n} is zero or negative, @code{nthcdr} returns all of
+@c "or negative" removed 2013/08; see bug#15059.
+If @var{n} is zero, @code{nthcdr} returns all of
 @var{list}.  If the length of @var{list} is @var{n} or less,
 @code{nthcdr} returns @code{nil}.
 
@@ -314,7 +313,7 @@ If @var{n} is zero or negative, @code{nthcdr} returns all of
      @result{} nil
 @end group
 @group
-(nthcdr -3 '(1 2 3 4))
+(nthcdr 0 '(1 2 3 4))
      @result{} (1 2 3 4)
 @end group
 @end example
@@ -1045,6 +1044,7 @@ x1
 @node Rearrangement
 @subsection Functions that Rearrange Lists
 @cindex rearrangement of lists
+@cindex reordering, of elements in lists
 @cindex modification of lists
 
   Here are some functions that rearrange lists ``destructively'' by

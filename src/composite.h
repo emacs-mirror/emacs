@@ -1,5 +1,5 @@
 /* Header for composite sequence handler.
-   Copyright (C) 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 2001-2014 Free Software Foundation, Inc.
    Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
@@ -25,10 +25,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_COMPOSITE_H
 #define EMACS_COMPOSITE_H
 
+#include "font.h"
+
 INLINE_HEADER_BEGIN
-#ifndef COMPOSITE_INLINE
-# define COMPOSITE_INLINE INLINE
-#endif
 
 /* Methods to display a sequence of components of a composition.  */
 enum composition_method {
@@ -49,68 +48,40 @@ enum composition_method {
 /* Maximum number of components a single composition can have.  */
 #define MAX_COMPOSITION_COMPONENTS 16
 
-/* These macros access information about a composition that
+/* These operations access information about a composition that
    has `composition' property PROP.  PROP is:
 	((LENGTH . COMPONENTS) . MODIFICATION-FUNC)
    or
 	(COMPOSITION-ID . (LENGTH COMPONENTS . MODIFICATION-FUNC))
    They don't check validity of PROP.  */
 
-/* Temporary variable used only in the following macros.  */
-extern Lisp_Object composition_temp;
-
-/* Return 1 if the composition is already registered.  */
-#define COMPOSITION_REGISTERD_P(prop) INTEGERP (XCAR (prop))
+/* Return true if PROP is already registered.  */
+INLINE bool
+composition_registered_p (Lisp_Object prop)
+{
+  return INTEGERP (XCAR (prop));
+}
 
 /* Return ID number of the already registered composition.  */
 #define COMPOSITION_ID(prop) XINT (XCAR (prop))
 
 /* Return length of the composition.  */
 #define COMPOSITION_LENGTH(prop)	\
-  (COMPOSITION_REGISTERD_P (prop)	\
+  (composition_registered_p (prop)	\
    ? XINT (XCAR (XCDR (prop)))		\
    : XINT (XCAR (XCAR (prop))))
 
 /* Return components of the composition.  */
 #define COMPOSITION_COMPONENTS(prop)	\
-  (COMPOSITION_REGISTERD_P (prop)	\
+  (composition_registered_p (prop)	\
    ? XCAR (XCDR (XCDR (prop)))		\
    : XCDR (XCAR (prop)))
 
 /* Return modification function of the composition.  */
 #define COMPOSITION_MODIFICATION_FUNC(prop)	\
-  (COMPOSITION_REGISTERD_P (prop)		\
+  (composition_registered_p (prop)		\
    ? XCDR (XCDR (XCDR (prop)))			\
    : CONSP (prop) ? XCDR (prop) : Qnil)
-
-/* Return the method of composition.  */
-#define COMPOSITION_METHOD(prop)					\
-  (COMPOSITION_REGISTERD_P (prop)					\
-   ? composition_table[COMPOSITION_ID (prop)]->method			\
-   : (composition_temp = XCDR (XCAR (prop)),				\
-      (NILP (composition_temp)						\
-       ? COMPOSITION_RELATIVE						\
-       : (INTEGERP (composition_temp) || STRINGP (composition_temp))	\
-       ? COMPOSITION_WITH_ALTCHARS					\
-       : COMPOSITION_WITH_RULE_ALTCHARS)))
-
-/* Return 1 if the composition is valid.  It is valid if length of
-   the composition equals to (END - START).  */
-#define COMPOSITION_VALID_P(start, end, prop)			\
-  (CONSP (prop)							\
-   && (COMPOSITION_REGISTERD_P (prop)				\
-       ? (COMPOSITION_ID (prop) >= 0				\
-	  && COMPOSITION_ID (prop) <= n_compositions		\
-	  && CONSP (XCDR (prop)))				\
-       : (composition_temp = XCAR (prop),			\
-	  (CONSP (composition_temp)				\
-	   && (composition_temp = XCDR (composition_temp),	\
-	       (NILP (composition_temp)				\
-		|| STRINGP (composition_temp)			\
-		|| VECTORP (composition_temp)			\
-		|| INTEGERP (composition_temp)			\
-		|| CONSP (composition_temp))))))		\
-   && (end - start) == COMPOSITION_LENGTH (prop))
 
 /* Return the Nth glyph of composition specified by CMP.  CMP is a
    pointer to `struct composition'.  */
@@ -141,7 +112,7 @@ extern Lisp_Object composition_temp;
     gref = (rule_code) / 12;						\
     if (gref > 12) gref = 11;						\
     nref = (rule_code) % 12;						\
-  } while (0)
+  } while (false)
 
 /* Like COMPOSITION_DECODE_REFS (RULE_CODE, GREF, NREF), but also
    decode RULE_CODE into XOFF and YOFF (vertical offset).  */
@@ -151,7 +122,7 @@ extern Lisp_Object composition_temp;
     xoff = (rule_code) >> 16;						\
     yoff = ((rule_code) >> 8) & 0xFF;					\
     COMPOSITION_DECODE_REFS (rule_code, gref, nref);			\
-  } while (0)
+  } while (false)
 
 /* Nonzero if the global reference point GREF and new reference point NREF are
    valid.  */
@@ -227,11 +198,47 @@ extern bool find_composition (ptrdiff_t, ptrdiff_t, ptrdiff_t *, ptrdiff_t *,
 			      Lisp_Object *, Lisp_Object);
 extern void update_compositions (ptrdiff_t, ptrdiff_t, int);
 extern void make_composition_value_copy (Lisp_Object);
-extern void compose_region (int, int, Lisp_Object, Lisp_Object,
-                            Lisp_Object);
 extern void syms_of_composite (void);
 extern void compose_text (ptrdiff_t, ptrdiff_t, Lisp_Object, Lisp_Object,
                           Lisp_Object);
+
+/* Return the method of a composition with property PROP.  */
+
+INLINE enum composition_method
+composition_method (Lisp_Object prop)
+{
+  if (composition_registered_p (prop))
+    return composition_table[COMPOSITION_ID (prop)]->method;
+  else
+    {
+      Lisp_Object temp = XCDR (XCAR (prop));
+      return (NILP (temp)
+	      ? COMPOSITION_RELATIVE
+	      : INTEGERP (temp) || STRINGP (temp)
+	      ? COMPOSITION_WITH_ALTCHARS
+	      : COMPOSITION_WITH_RULE_ALTCHARS);
+    }
+}
+
+/* Given offsets START and END, return true if PROP is a valid composition
+   property with length END - START.  */
+
+INLINE bool
+composition_valid_p (ptrdiff_t start, ptrdiff_t end, Lisp_Object prop)
+{
+  return (CONSP (prop)
+	  && (composition_registered_p (prop)
+	      ? (COMPOSITION_ID (prop) >= 0
+		 && COMPOSITION_ID (prop) <= n_compositions
+		 && CONSP (XCDR (prop)))
+	      : (CONSP (XCAR (prop))
+		  && (NILP (XCDR (XCAR (prop)))
+		      || STRINGP (XCDR (XCAR (prop)))
+		      || VECTORP (XCDR (XCAR (prop)))
+		      || INTEGERP (XCDR (XCAR (prop)))
+		      || CONSP (XCDR (XCAR (prop))))))
+	  && COMPOSITION_LENGTH (prop) == end - start);
+}
 
 /* Macros for lispy glyph-string.  This is completely different from
    struct glyph_string.  */
@@ -252,7 +259,7 @@ extern void compose_text (ptrdiff_t, ptrdiff_t, Lisp_Object, Lisp_Object,
 #define LGSTRING_GLYPH_LEN(lgs) (ASIZE ((lgs)) - 2)
 #define LGSTRING_GLYPH(lgs, idx) AREF ((lgs), (idx) + 2)
 #define LGSTRING_SET_GLYPH(lgs, idx, val) ASET ((lgs), (idx) + 2, (val))
-COMPOSITE_INLINE Lisp_Object *
+INLINE Lisp_Object *
 lgstring_glyph_addr (Lisp_Object lgs, ptrdiff_t idx)
 {
   return aref_addr (lgs, idx + 2);
@@ -303,10 +310,6 @@ enum lglyph_indices
 			? XINT (AREF (LGLYPH_ADJUSTMENT (g), 1)) : 0)
 #define LGLYPH_WADJUST(g) (VECTORP (LGLYPH_ADJUSTMENT (g)) \
 			   ? XINT (AREF (LGLYPH_ADJUSTMENT (g), 2)) : 0)
-
-struct composition_it;
-struct face;
-struct font_metrics;
 
 extern Lisp_Object composition_gstring_put_cache (Lisp_Object, ptrdiff_t);
 extern Lisp_Object composition_gstring_from_id (ptrdiff_t);

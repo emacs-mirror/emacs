@@ -1,5 +1,5 @@
 /* Input routines for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1995, 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -23,7 +23,7 @@ extern int w32_console_unicode_input;
 
 extern int w32_console_read_socket (struct terminal *term,
 				    struct input_event *hold_quit);
-extern void w32_console_mouse_position (FRAME_PTR *f, int insist,
+extern void w32_console_mouse_position (struct frame **f, int insist,
 					Lisp_Object *bar_window,
 					enum scroll_bar_part *part,
 					Lisp_Object *x, Lisp_Object *y,

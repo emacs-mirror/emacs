@@ -1,11 +1,11 @@
 ;;; diff.el --- run `diff'  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994, 1996, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1992, 1994, 1996, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Frank Bresz
 ;; (according to authors.el)
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: unix, vc, tools
 
 ;; This file is part of GNU Emacs.

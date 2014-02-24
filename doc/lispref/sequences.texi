@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Sequences Arrays Vectors
@@ -471,11 +471,11 @@ each initialized to @var{object}.
 @cindex copying vectors
 This function returns a new vector containing all the elements of
 @var{sequences}.  The arguments @var{sequences} may be true lists,
-vectors, strings or bool-vectors.  If no @var{sequences} are given, an
-empty vector is returned.
+vectors, strings or bool-vectors.  If no @var{sequences} are given,
+the empty vector is returned.
 
-The value is a newly constructed vector that is not @code{eq} to any
-existing vector.
+The value is either the empty vector, or is a newly constructed
+nonempty vector that is not @code{eq} to any existing vector.
 
 @example
 @group
@@ -711,6 +711,54 @@ each one initialized to @var{initial}.
 @defun bool-vector-p object
 This returns @code{t} if @var{object} is a bool-vector,
 and @code{nil} otherwise.
+@end defun
+
+There are also some bool-vector set operation functions, described below:
+
+@defun bool-vector-exclusive-or a b &optional c
+Return @dfn{bitwise exclusive or} of bool vectors @var{a} and @var{b}.
+If optional argument @var{c} is given, the result of this operation is
+stored into @var{c}.  All arguments should be bool vectors of the same length.
+@end defun
+
+@defun bool-vector-union a b &optional c
+Return @dfn{bitwise or} of bool vectors @var{a} and @var{b}.  If
+optional argument @var{c} is given, the result of this operation is
+stored into @var{c}.  All arguments should be bool vectors of the same length.
+@end defun
+
+@defun bool-vector-intersection a b &optional c
+Return @dfn{bitwise and} of bool vectors @var{a} and @var{b}.  If
+optional argument @var{c} is given, the result of this operation is
+stored into @var{c}.  All arguments should be bool vectors of the same length.
+@end defun
+
+@defun bool-vector-set-difference a b &optional c
+Return @dfn{set difference} of bool vectors @var{a} and @var{b}.  If
+optional argument @var{c} is given, the result of this operation is
+stored into @var{c}.  All arguments should be bool vectors of the same length.
+@end defun
+
+@defun bool-vector-not a &optional b
+Return @dfn{set complement} of bool vector @var{a}.  If optional
+argument @var{b} is given, the result of this operation is stored into
+@var{b}.  All arguments should be bool vectors of the same length.
+@end defun
+
+@defun bool-vector-subsetp a b
+Return @code{t} if every @code{t} value in @var{a} is also t in
+@var{b}, nil otherwise.  All arguments should be bool vectors of the
+same length.
+@end defun
+
+@defun bool-vector-count-consecutive a b i
+Return the number of consecutive elements in @var{a} equal @var{b}
+starting at @var{i}.  @code{a} is a bool vector, @var{b} is @code{t}
+or @code{nil}, and @var{i} is an index into @code{a}.
+@end defun
+
+@defun bool-vector-count-population a
+Return the number of elements that are @code{t} in bool vector @var{a}.
 @end defun
 
   Here is an example of creating, examining, and updating a

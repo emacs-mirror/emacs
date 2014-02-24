@@ -1,7 +1,6 @@
 Known Problems with GNU Emacs
 
-Copyright (C) 1987-1989, 1993-1999, 2001-2013 Free Software Foundation,
-Inc.
+Copyright (C) 1987-1989, 1993-1999, 2001-2014 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -12,7 +11,7 @@ Outline mode.)  Information about systems that are no longer supported,
 and old Emacs releases, has been removed.  Consult older versions of
 this file if you are interested in that information.
 
-* Mule-UCS doesn't work in Emacs 23.
+* Mule-UCS doesn't work in Emacs 23 onwards
 
 It's completely redundant now, as far as we know.
 
@@ -25,8 +24,7 @@ A typical error message might be something like
   No fonts match `-*-fixed-medium-r-*--6-*-*-*-*-*-iso8859-1'
 
 This happens because some X resource specifies a bad font family for
-Emacs to use.  The possible places where this specification might be
-are:
+Emacs to use.  The possible places where this specification might be are:
 
   - in your ~/.Xdefaults file
 
@@ -61,7 +59,7 @@ If your system uses Terminfo rather than termcap (most modern
 systems do), this could happen if the proper version of
 ncurses is not visible to the Emacs configure script (i.e. it
 cannot be found along the usual path the linker looks for
-libraries). It can happen because your version of ncurses is
+libraries).  It can happen because your version of ncurses is
 obsolete, or is available only in form of binaries.
 
 The solution is to install an up-to-date version of ncurses in
@@ -107,63 +105,12 @@ If this command prints any file names, some of these files are stale,
 and should be deleted or their directories removed from your
 load-path.
 
-** With X11R6.4, public-patch-3, Emacs crashes at startup.
-
-Reportedly this patch in X fixes the problem.
-
-    --- xc/lib/X11/imInt.c~	Wed Jun 30 13:31:56 1999
-    +++ xc/lib/X11/imInt.c	Thu Jul  1 15:10:27 1999
-    @@ -1,4 +1,4 @@
-    -/* $TOG: imInt.c /main/5 1998/05/30 21:11:16 kaleb $ */
-    +/* $TOG: imInt.c /main/5 1998/05/30 21:11:16 kaleb $  */
-     /******************************************************************
-
-                Copyright 1992, 1993, 1994 by FUJITSU LIMITED
-    @@ -166,8 +166,8 @@
-     _XimMakeImName(lcd)
-         XLCd      lcd;
-     {
-    -    char* begin;
-    -    char* end;
-    +    char* begin = NULL;
-    +    char* end = NULL;
-         char* ret;
-         int	i = 0;
-         char* ximmodifier = XIMMODIFIER;
-    @@ -182,7 +182,11 @@
-         }
-         ret = Xmalloc(end - begin + 2);
-         if (ret != NULL) {
-    -           (void)strncpy(ret, begin, end - begin + 1);
-    +	if (begin != NULL) {
-    +             (void)strncpy(ret, begin, end - begin + 1);
-    +        } else {
-    +     ret[0] = '\0';
-    +	}
-            ret[end - begin + 1] = '\0';
-         }
-         return ret;
-
-** Emacs crashes on startup after a glibc upgrade.
-
-This is caused by a binary incompatible change to the malloc
-implementation in glibc 2.5.90-22.  As a result, Emacs binaries built
-using prior versions of glibc crash when run under 2.5.90-22.
-
-This problem was first seen in pre-release versions of Fedora 7, and
-may be fixed in the final Fedora 7 release.  To stop the crash from
-happening, first try upgrading to the newest version of glibc; if this
-does not work, rebuild Emacs with the same version of glibc that you
-will run it under.  For details, see
-
-https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=239344
-
 * Crash bugs
 
 ** Emacs crashes when running in a terminal, if compiled with GCC 4.5.0
 This version of GCC is buggy: see
 
-  http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6031
+  http://debbugs.gnu.org/6031
   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=43904
 
 You can work around this error in gcc-4.5 by omitting sibling call
@@ -205,6 +152,10 @@ added a line like this at the beginning of files of Lisp code:
 
 If your tar has this problem, install GNU tar--if you can manage to
 untar it :-).
+
+** Emacs can crash when displaying PNG images with transparency.
+This is due to a bug introduced in ImageMagick 6.8.2-3.  The bug should
+be fixed in ImageMagick 6.8.3-10.  See <URL:http://debbugs.gnu.org/13867>.
 
 ** Crashes when displaying GIF images in Emacs built with version
 libungif-4.1.0 are resolved by using version libungif-4.1.0b1.
@@ -276,7 +227,7 @@ normally in the ld search path, but if you want to use OpenMPI,
 you must issue the command "module load openmpi".  This adds
 /usr/lib/openmpi/lib to LD_LIBRARY_PATH.  If you then start Emacs from
 the same shell, you will encounter this crash.
-Ref: <URL:https://bugzilla.redhat.com/show_bug.cgi?id=806031>
+Ref: <URL:https://bugzilla.redhat.com/show_bug.cgi?id=844776>
 
 There is no good solution to this problem if you need to use both
 OpenMPI and Emacs with libotf support.  The best you can do is use a
@@ -296,17 +247,18 @@ Then the old .elc files will be loaded, and your changes
 will not be seen.  To fix this, do M-x byte-recompile-directory
 and specify the directory that contains the Lisp files.
 
-Emacs should print a warning when loading a .elc file which is older
+Emacs prints a warning when loading a .elc file which is older
 than the corresponding .el file.
 
-*** Watch out for .emacs files and EMACSLOADPATH environment vars.
+Alternatively, if you set the option `load-prefer-newer' non-nil,
+Emacs will load whichever version of a file is the newest.
 
-These control the actions of Emacs.
-~/.emacs is your Emacs init file.
+*** Watch out for the EMACSLOADPATH environment variable
+
 EMACSLOADPATH overrides which directories the function "load" will search.
 
-If you observe strange problems, check for these and get rid
-of them, then try again.
+If you observe strange problems, check for this variable in your
+environment.
 
 *** Using epop3.el package causes Emacs to signal an error.
 
@@ -327,8 +279,8 @@ documentation for the hooks involved.  BBDB 2.00.06 fixes the problem.
 
 *** The Hyperbole package causes *Help* buffers not to be displayed in
 Help mode due to setting `temp-buffer-show-hook' rather than using
-`add-hook'.  Using `(add-hook 'temp-buffer-show-hook
-'help-mode-maybe)' after loading Hyperbole should fix this.
+`add-hook'.  Using `(add-hook 'temp-buffer-show-hook 'help-mode-finish)'
+after loading Hyperbole should fix this.
 
 ** Keyboard problems
 
@@ -355,17 +307,6 @@ them to two different keys.
 You are probably using a shell that doesn't support job control, even
 though the system itself is capable of it.  Either use a different shell,
 or set the variable `cannot-suspend' to a non-nil value.
-
-*** With M-x enable-flow-control, you need to type C-\ twice
-to do incremental search--a single C-\ gets no response.
-
-This has been traced to communicating with your machine via kermit,
-with C-\ as the kermit escape character.  One solution is to use
-another escape character in kermit.  One user did
-
-   set escape-character 17
-
-in his .kermrc file, to make C-q the kermit escape character.
 
 ** Mailers and other helper programs
 
@@ -415,25 +356,6 @@ The solution is to use gawk (GNU awk).
 
 ** Problems with hostname resolution
 
-*** Emacs fails to understand most Internet host names, even though
-the names work properly with other programs on the same system.
-*** Emacs won't work with X-windows if the value of DISPLAY is HOSTNAME:0.
-*** Gnus can't make contact with the specified host for nntp.
-
-This typically happens on Suns and other systems that use shared
-libraries.  The cause is that the site has installed a version of the
-shared library which uses a name server--but has not installed a
-similar version of the unshared library which Emacs uses.
-
-The result is that most programs, using the shared library, work with
-the nameserver, but Emacs does not.
-
-The fix is to install an unshared library that corresponds to what you
-installed in the shared library, and then relink Emacs.
-
-If you have already installed the name resolver in the file libresolv.a,
-then you need to compile Emacs to use that library.
-
 *** Emacs does not know your host's fully-qualified domain name.
 
 For example, (system-name) returns some variation on
@@ -446,7 +368,7 @@ You need to configure your machine with a fully qualified domain name,
 If you cannot fix the configuration, you can set the Lisp variable
 mail-host-address to the value you want.
 
-** NFS and RFS
+** NFS
 
 *** Emacs says it has saved a file, but the file does not actually
 appear on disk.
@@ -457,55 +379,6 @@ implementations), and there is apparently nothing Emacs can do to
 detect the problem.  Emacs checks the failure codes of all the system
 calls involved in writing a file, including `close'; but in the case
 where the problem occurs, none of those system calls fails.
-
-*** Editing files through RFS gives spurious "file has changed" warnings.
-It is possible that a change in Emacs 18.37 gets around this problem,
-but in case not, here is a description of how to fix the RFS bug that
-causes it.
-
-    There was a serious pair of bugs in the handling of the fsync() system
-    call in the RFS server.
-
-    The first is that the fsync() call is handled as another name for the
-    close() system call (!!).  It appears that fsync() is not used by very
-    many programs; Emacs version 18 does an fsync() before closing files
-    to make sure that the bits are on the disk.
-
-    This is fixed by the enclosed patch to the RFS server.
-
-    The second, more serious problem, is that fsync() is treated as a
-    non-blocking system call (i.e., it's implemented as a message that
-    gets sent to the remote system without waiting for a reply).  Fsync is
-    a useful tool for building atomic file transactions.  Implementing it
-    as a non-blocking RPC call (when the local call blocks until the sync
-    is done) is a bad idea; unfortunately, changing it will break the RFS
-    protocol.  No fix was supplied for this problem.
-
-    (as always, your line numbers may vary)
-
-    % rcsdiff -c -r1.2 serversyscall.c
-    RCS file: RCS/serversyscall.c,v
-    retrieving revision 1.2
-    diff -c -r1.2 serversyscall.c
-    *** /tmp/,RCSt1003677   Wed Jan 28 15:15:02 1987
-    --- serversyscall.c     Wed Jan 28 15:14:48 1987
-    ***************
-    *** 163,169 ****
-            /*
-             * No return sent for close or fsync!
-             */
-    !       if (syscall == RSYS_close || syscall == RSYS_fsync)
-                    proc->p_returnval = deallocate_fd(proc, msg->m_args[0]);
-            else
-            {
-    --- 166,172 ----
-            /*
-             * No return sent for close or fsync!
-             */
-    !       if (syscall == RSYS_close)
-                    proc->p_returnval = deallocate_fd(proc, msg->m_args[0]);
-            else
-            {
 
 ** PSGML conflicts with sgml-mode.
 
@@ -541,13 +414,14 @@ This is a known limitation of Emacs with no solution at this time.
 
 *** Emacs uses 100% of CPU time
 
-This is a known problem with some versions of the Semantic package.
-The solution is to upgrade Semantic to version 2.0pre4 (distributed
-with CEDET 1.0pre4) or later.
+This was a known problem with some old versions of the Semantic package.
+The solution was to upgrade Semantic to version 2.0pre4 (distributed
+with CEDET 1.0pre4) or later.  Note that Emacs includes Semantic since
+23.2, and this issue does not apply to the included version.
 
 *** Self-documentation messages are garbled.
 
-This means that the file `etc/DOC-...' doesn't properly correspond
+This means that the file `etc/DOC' doesn't properly correspond
 with the Emacs executable.  Redumping Emacs and then installing the
 corresponding pair of files should fix the problem.
 
@@ -604,13 +478,6 @@ ftp client.  On a Debian system, type
   update-alternatives --config ftp
 
 and then choose /usr/bin/netkit-ftp.
-
-*** JPEG images aren't displayed.
-
-This has been reported when Emacs is built with jpeg-6a library.
-Upgrading to jpeg-6b solves the problem.  Configure checks for the
-correct version, but this problem could occur if a binary built
-against a shared libjpeg is run on a system with an older version.
 
 *** Dired is very slow.
 
@@ -669,19 +536,12 @@ backtraces like this:
    4 _rld_text_resolve(0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0)
  ["/comp2/mtibuild/v73/workarea/v7.3/rld/rld_bridge.s":175, 0xfb6032c]
 
-(`rld' is the dynamic linker.)  We don't know yet why this
+(`rld' is the dynamic linker.)  We don't know why this
 happens, but setting the environment variable LD_BIND_NOW to 1 (which
 forces the dynamic linker to bind all shared objects early on) seems
 to work around the problem.
 
 Please refer to the documentation of your dynamic linker for details.
-
-*** You request inverse video, and the first Emacs frame is in inverse
-video, but later frames are not in inverse video.
-
-This can happen if you have an old version of the custom library in
-your search path for Lisp packages.  Use M-x list-load-path-shadows to
-check whether this is true.  If it is, delete the old custom library.
 
 *** When you run Ispell from Emacs, it reports a "misalignment" error.
 
@@ -780,20 +640,6 @@ This is because these fonts contain characters a little taller than
 the font's nominal height.  Emacs needs to make sure that lines do not
 overlap.
 
-** Loading fonts is very slow.
-
-You might be getting scalable fonts instead of precomputed bitmaps.
-Known scalable font directories are "Type1" and "Speedo".  A font
-directory contains scalable fonts if it contains the file
-"fonts.scale".
-
-If this is so, re-order your X windows font path to put the scalable
-font directories last.  See the documentation of `xset' for details.
-
-With some X servers, it may be necessary to take the scalable font
-directories out of your path entirely, at least for Emacs 19.26.
-Changes in the future may make this unnecessary.
-
 ** Font Lock displays portions of the buffer in incorrect faces.
 
 By far the most frequent cause of this is a parenthesis `(' or a brace
@@ -820,13 +666,6 @@ be done _after_ turning on Font Lock.)
 
 Another alternative is to avoid a paren in column zero.  For example,
 in a Lisp string you could precede the paren with a backslash.
-
-** With certain fonts, when the cursor appears on a character, the
-character doesn't appear--you get a solid box instead.
-
-One user on a Linux-based GNU system reported that this problem went
-away with installation of a new X server.  The failing server was
-XFree86 3.1.1.  XFree86 3.1.2 works.
 
 ** Emacs pauses for several seconds when changing the default font.
 
@@ -932,7 +771,7 @@ Try other font set sizes (S-mouse-1).  If the problem persists with
 other sizes as well, your text is corrupted, probably through software
 that is not 8-bit clean.  If the problem goes away with another font
 size, it's probably because some fonts pretend to be ISO-8859-1 fonts
-when they are really ASCII fonts. In particular the schumacher-clean
+when they are really ASCII fonts.  In particular the schumacher-clean
 fonts have this bug in some versions of X.
 
 To see what glyphs are included in a font, use `xfd', like this:
@@ -952,13 +791,6 @@ slots now.  The current built-in Unicode support is actually more
 flexible.  (Use option `utf-translate-cjk-mode' if you need CJK
 support.)  Files encoded as emacs-mule using oc-unicode aren't
 generally read correctly by Emacs 21.
-
-** After a while, Emacs slips into unibyte mode.
-
-The VM mail package, which is not part of Emacs, sometimes does
-  (standard-display-european t)
-That should be changed to
-  (standard-display-european 1 t)
 
 * X runtime problems
 
@@ -1021,11 +853,8 @@ you want to be able to bind one of these key sequences within Emacs.
 
 *** Under X, C-v and/or other keys don't work.
 
-These may have been intercepted by your window manager.  In
-particular, AfterStep 1.6 is reported to steal C-v in its default
-configuration.  Various Meta keys are also likely to be taken by the
-configuration of the `feel'.  See the WM's documentation for how to
-change this.
+These may have been intercepted by your window manager.
+See the WM's documentation for how to change this.
 
 *** Clicking C-mouse-2 in the scroll bar doesn't split the window.
 
@@ -1085,7 +914,7 @@ to happen in *.UTF-8 locales; zh_CN.GB2312 and zh_CN.GBK locales, for
 example, work fine.  A bug report has been filed in the Gnome
 bugzilla: http://bugzilla.gnome.org/show_bug.cgi?id=357032
 
-*** Gnome: Emacs' xterm-mouse-mode doesn't work on the Gnome terminal.
+*** Gnome: Emacs's xterm-mouse-mode doesn't work on the Gnome terminal.
 
 A symptom of this bug is that double-clicks insert a control sequence
 into the buffer.  The reason this happens is an apparent
@@ -1165,8 +994,7 @@ graphical file dialog boxes do not work properly.  The "OK", "Filter"
 and "Cancel" buttons do not respond to mouse clicks.  Dragging the
 file dialog window usually causes the buttons to work again.
 
-The solution is to use LessTif instead.  LessTif is a free replacement
-for Motif.  See the file INSTALL for information on how to do this.
+As a workaround, you can try building Emacs using Motif or LessTif instead.
 
 Another workaround is not to use the mouse to trigger file prompts,
 but to use the keyboard.  This way, you will be prompted for a file in
@@ -1185,9 +1013,9 @@ successful.  The binary GNU/Linux package
 lesstif-devel-0.92.0-1.i386.rpm was reported to have problems with
 menu placement.
 
-On some systems, even with Motif 1.2 emulation, Emacs occasionally
-locks up, grabbing all mouse and keyboard events.  We still don't know
-what causes these problems; they are not reproducible by Emacs developers.
+On some systems, Emacs occasionally locks up, grabbing all mouse and
+keyboard events.  We don't know what causes these problems; they are
+not reproducible by Emacs developers.
 
 *** Motif: The Motif version of Emacs paints the screen a solid color.
 
@@ -1196,7 +1024,7 @@ This has been observed to result from the following X resource:
    Emacs*default.attributeFont:	-*-courier-medium-r-*-*-*-140-*-*-*-*-iso8859-*
 
 That the resource has this effect indicates a bug in something, but we
-do not yet know what.  If it is an Emacs bug, we hope someone can
+do not know what.  If it is an Emacs bug, we hope someone can
 explain what the bug is so we can fix it.  In the mean time, removing
 the resource prevents the problem.
 
@@ -1247,7 +1075,7 @@ be carried out at the same time:
 1) If you don't need X Input Methods (XIM) for entering text in some
    language you use, you can improve performance on WAN links by using
    the X resource useXIM to turn off use of XIM.  This does not affect
-   the use of Emacs' own input methods, which are part of the Leim
+   the use of Emacs's own input methods, which are part of the Leim
    package.
 
 2) If the connection is very slow, you might also want to consider
@@ -1400,6 +1228,23 @@ Updating to the latest version of the manager can help.
 For example, in the Xfce 4.8 desktop environment, the clipboard
 manager in versions of xfce4-settings-helper before 4.8.2 is buggy;
 https://bugzilla.xfce.org/show_bug.cgi?id=7588 .
+
+*** Warning messages when running in Ubuntu
+
+When you start Emacs you may see something like this:
+
+(emacs:2286): LIBDBUSMENU-GTK-CRITICAL **: watch_submenu: assertion 
+`GTK_IS_MENU_SHELL(menu)' failed
+
+This happens if the Emacs binary has been renamed.  The cause is the Ubuntu
+appmenu concept.  It tries to track Emacs menus and show them in the top
+panel, instead of in each Emacs window.  This is not properly implemented,
+so it fails for Emacs.  The order of menus is wrong, and things like copy/paste
+that depend on what state Emacs is in are usually wrong (i.e. paste disabled
+even if you should be able to paste, and similar).
+
+You can get back menus on each frame by starting emacs like this:
+% env UBUNTU_MENUPROXY= emacs
 
 * Runtime problems on character terminals
 
@@ -1696,7 +1541,7 @@ global-font-lock-mode RET" or by customizing the variable
 `global-font-lock-mode'.
 
 ** Unexpected characters inserted into the buffer when you start Emacs.
-See eg http://debbugs.gnu.org/11129
+See e.g. <URL:http://debbugs.gnu.org/11129>
 
 This can happen when you start Emacs in -nw mode in an Xterm.
 For example, in the *scratch* buffer, you might see something like:
@@ -1735,7 +1580,7 @@ exec 2> >(exec cat >&2 2>/dev/null)
 exec ssh "$@"
 
 *** GNU/Linux: Truncated svn annotate output with SSH.
-http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7791
+http://debbugs.gnu.org/7791
 
 The symptoms are: you are accessing a svn repository over SSH.
 You use vc-annotate on a large (several thousand line) file, and the
@@ -1746,13 +1591,6 @@ This may be a similar libc/SSH issue to the one mentioned above for CVS.
 A similar workaround seems to be effective: create a script with the
 same contents as the one used above for CVS_RSH, and set the SVN_SSH
 environment variable to point to it.
-
-*** GNU/Linux: On Linux-based GNU systems using libc versions 5.4.19 through
-5.4.22, Emacs crashes at startup with a segmentation fault.
-
-This problem happens if libc defines the symbol __malloc_initialized.
-One known solution is to upgrade to a newer libc version.  5.4.33 is
-known to work.
 
 *** GNU/Linux: After upgrading to a newer version of Emacs,
 the Meta key stops working.
@@ -1851,27 +1689,7 @@ produce a modified terminfo entry.
 Alternatively, if you want a blinking underscore as your Emacs cursor,
 change the "cvvis" capability to send the "\E[?25h\E[?0c" command.
 
-*** GNU/Linux: Error messages `internal facep []' happen on GNU/Linux systems.
-
-There is a report that replacing libc.so.5.0.9 with libc.so.5.2.16
-caused this to start happening.  People are not sure why, but the
-problem seems unlikely to be in Emacs itself.  Some suspect that it
-is actually Xlib which won't work with libc.so.5.2.16.
-
-Using the old library version is a workaround.
-
 ** FreeBSD
-
-*** FreeBSD 2.1.5: useless symbolic links remain in /tmp or other
-directories that have the +t bit.
-
-This is because of a kernel bug in FreeBSD 2.1.5 (fixed in 2.2).
-Emacs uses symbolic links to implement file locks.  In a directory
-with +t bit, the directory owner becomes the owner of the symbolic
-link, so that it cannot be removed by anyone else.
-
-If you don't like those useless links, you can customize
-the option `create-lockfiles'.
 
 *** FreeBSD: Getting a Meta key on the console.
 
@@ -1899,8 +1717,8 @@ to make the Windows key the Meta key.  Load the new keymap with
 christos@theory.tn.cornell.edu says:
 
 The problem is that in your .cshrc you have something that tries to
-execute `tty`. If you are not running the shell on a real tty then
-tty will print "not a tty". Csh expects one word in some places,
+execute `tty`.  If you are not running the shell on a real tty then
+tty will print "not a tty".  Csh expects one word in some places,
 but tty is giving it back 3.
 
 The solution is to add a pair of quotes around `tty` to make it a single
@@ -1943,12 +1761,6 @@ configures the X server.
     keysym Meta_R = Mode_switch
     add mod2 = Mode_switch
     EOF
-
-*** HP/UX: "Cannot find callback list" messages from dialog boxes in
-Emacs built with Motif.
-
-This problem resulted from a bug in GCC 2.4.5.  Newer GCC versions
-such as 2.7.0 fix the problem.
 
 *** HP/UX: Emacs does not recognize the AltGr key.
 
@@ -2081,10 +1893,6 @@ compiling with GCC 4.2.3 or CC 5.7, with no optimizations.
 
 ** Irix
 
-*** Irix 6.5: Emacs crashes on the SGI R10K, when compiled with GCC.
-
-This seems to be fixed in GCC 2.95.
-
 *** Irix: Trouble using ptys, or running out of ptys.
 
 The program mkpts (which may be in `/usr/adm' or `/usr/sbin') needs to
@@ -2092,6 +1900,55 @@ be set-UID to root, or non-root programs like Emacs will not be able
 to allocate ptys reliably.
 
 * Runtime problems specific to MS-Windows
+
+** Emacs on Windows 9X requires UNICOWS.DLL
+
+If that DLL is not available, Emacs will display an error dialog
+stating its absence, and refuse to run.
+
+This is because Emacs 24.4 and later uses functions whose non-stub
+implementation is only available in UNICOWS.DLL, which implements the
+Microsoft Layer for Unicode on Windows 9X, or "MSLU".  This article on
+MSDN:
+
+  http://msdn.microsoft.com/en-us/goglobal/bb688166.aspx
+
+includes a short description of MSLU and a link where it can be
+downloaded.
+
+** A few seconds delay is seen at startup and for many file operations
+
+This happens when the Net Logon service is enabled.  During Emacs
+startup, this service issues many DNS requests looking up for the
+Windows Domain Controller.  When Emacs accesses files on networked
+drives, it automatically logs on the user into those drives, which
+again causes delays when Net Logon is running.
+
+The solution seems to be to disable Net Logon with this command typed
+at the Windows shell prompt:
+
+  net stop netlogon
+
+To start the service again, type "net start netlogon".  (You can also
+stop and start the service from the Computer Management application,
+accessible by right-clicking "My Computer" or "Computer", selecting
+"Manage", then clicking on "Services".)
+
+** Emacs crashes when exiting the Emacs session
+
+This was reported to happen when some optional DLLs, such as those
+used for displaying images or the GnuTLS library, which are loaded
+on-demand, have a runtime dependency on the libgcc DLL,
+libgcc_s_dw2-1.dll.  The reason seems to be a bug in libgcc which
+rears its ugly head whenever the libgcc DLL is loaded after Emacs has
+started.
+
+One solution for this problem is to find an alternative build of the
+same optional library that does not depend on the libgcc DLL.
+
+Another possibility is to rebuild Emacs with the -shared-libgcc
+switch, which will force Emacs to load libgcc_s_dw2-1.dll on startup,
+ahead of any optional DLLs loaded on-demand later in the session.
 
 ** PATH can contain unexpanded environment variables
 
@@ -2112,11 +1969,11 @@ XKeymacs completely is reported to solve the problem.
 
 ** Windows 95 and networking.
 
-To support server sockets, Emacs 22.1 loads ws2_32.dll.  If this file
-is missing, all Emacs networking features are disabled.
+To support server sockets, Emacs loads ws2_32.dll.  If this file is
+missing, all Emacs networking features are disabled.
 
 Old versions of Windows 95 may not have the required DLL.  To use
-Emacs' networking features on Windows 95, you must install the
+Emacs's networking features on Windows 95, you must install the
 "Windows Socket 2" update available from MicroSoft's support Web.
 
 ** Emacs exits with "X protocol error" when run with an X server for MS-Windows.
@@ -2127,32 +1984,40 @@ problem.
 
 ** Emacs crashes when opening a file with a UNC path and rails-mode is loaded.
 
-Loading rails-mode seems to interfere with UNC path handling. This has been
+Loading rails-mode seems to interfere with UNC path handling.  This has been
 reported as a bug against both Emacs and rails-mode, so look for an updated
 rails-mode that avoids this crash, or avoid using UNC paths if using
 rails-mode.
 
-** Known problems with the MS-Windows port of Emacs 22.3
+** M-x term does not work on MS-Windows.
 
-M-x term does not work on MS-Windows.  TTY emulation on Windows is
-undocumented, and programs such as stty which are used on posix platforms
-to control tty emulation do not exist for native windows terminals.
+TTY emulation on Windows is undocumented, and programs such as stty
+which are used on posix platforms to control tty emulation do not
+exist for native windows terminals.
 
-Using create-fontset-from-ascii-font or the --font startup parameter
+** Using create-fontset-from-ascii-font or the --font startup parameter
 with a Chinese, Japanese or Korean font leads to display problems.
-Use a Latin-only font as your default font. If you want control over
+Use a Latin-only font as your default font.  If you want control over
 which font is used to display Chinese, Japanese or Korean character,
 use create-fontset-from-fontset-spec to define a fontset.
 
-Frames are not refreshed while the File or Font dialog or a pop-up menu
-is displayed. This also means help text for pop-up menus is not
-displayed at all.  This is because message handling under Windows is
-synchronous, so we cannot handle repaint (or any other) messages while
-waiting for a system function to return the result of the dialog or
-pop-up menu interaction.
+** Frames are not refreshed while dialogs or menus are displayed
+
+This means no redisplay while the File or Font dialog or a pop-up menu
+is displayed.  This also means tooltips with help text for pop-up
+menus is not displayed at all (except in a TTY session, where the help
+text is shown in the echo area).  This is because message handling
+under Windows is synchronous, so we cannot handle repaint (or any
+other) messages while waiting for a system function, which popped up
+the menu/dialog, to return the result of the dialog or pop-up menu
+interaction.
+
+** Help text in tooltips does not work on old Windows versions
 
 Windows 95 and Windows NT up to version 4.0 do not support help text
 for menus.  Help text is only available in later versions of Windows.
+
+** Display problems with ClearType method of smoothing
 
 When "ClearType" method is selected as the "method to smooth edges of
 screen fonts" (in Display Properties, Appearance tab, under
@@ -2165,6 +2030,8 @@ has some code to enlarge the width of the bounding box.  Apparently,
 this display feature needs more changes to get it 100% right.  A
 workaround is to disable ClearType.
 
+** Problems with mouse-tracking and focus management
+
 There are problems with display if mouse-tracking is enabled and the
 mouse is moved off a frame, over another frame then back over the first
 frame.  A workaround is to click the left mouse button inside the frame
@@ -2176,25 +2043,25 @@ not as severely as in 21.1.
 An inactive cursor remains in an active window after the Windows
 Manager driven switch of the focus, until a key is pressed.
 
-Windows input methods are not recognized by Emacs.  However, some
-of these input methods cause the keyboard to send characters encoded
-in the appropriate coding system (e.g., ISO 8859-1 for Latin-1
-characters, ISO 8859-8 for Hebrew characters, etc.).  To make these
-input methods work with Emacs, set the keyboard coding system to the
-appropriate value after you activate the Windows input method.  For
-example, if you activate the Hebrew input method, type this:
+** Problems with Windows input methods
+
+Some of the Windows input methods cause the keyboard to send
+characters encoded in the appropriate coding system (e.g., ISO 8859-1
+for Latin-1 characters, ISO 8859-8 for Hebrew characters, etc.).  To
+make these input methods work with Emacs on Windows 9X, you might need
+to set the keyboard coding system to the appropriate value after you
+activate the Windows input method.  For example, if you activate the
+Hebrew input method, type this:
 
    C-x RET k hebrew-iso-8bit RET
 
-(Emacs ought to recognize the Windows language-change event and set up
-the appropriate keyboard encoding automatically, but it doesn't do
-that yet.)  In addition, to use these Windows input methods, you
-should set your "Language for non-Unicode programs" (on Windows XP,
-this is on the Advanced tab of Regional Settings) to the language of
-the input method.
+In addition, to use these Windows input methods, you might need to set
+your "Language for non-Unicode programs" (on Windows XP, this is on
+the Advanced tab of Regional Settings) to the language of the input
+method.
 
 To bind keys that produce non-ASCII characters with modifiers, you
-must specify raw byte codes. For instance, if you want to bind
+must specify raw byte codes.  For instance, if you want to bind
 META-a-grave to a command, you need to specify this in your `~/.emacs':
 
   (global-set-key [?\M-\340] ...)
@@ -2203,19 +2070,27 @@ The above example is for the Latin-1 environment where the byte code
 of the encoded a-grave is 340 octal.  For other environments, use the
 encoding appropriate to that environment.
 
+** Problems with the %b format specifier for format-time-string
+
 The %b specifier for format-time-string does not produce abbreviated
 month names with consistent widths for some locales on some versions
-of Windows. This is caused by a deficiency in the underlying system
+of Windows.  This is caused by a deficiency in the underlying system
 library function.
+
+** Problems with set-time-zone-rule function
 
 The function set-time-zone-rule gives incorrect results for many
 non-US timezones.  This is due to over-simplistic handling of
 daylight savings switchovers by the Windows libraries.
 
+** Files larger than 4GB report wrong size
+
 Files larger than 4GB cause overflow in the size (represented as a
 32-bit integer) reported by `file-attributes'.  This affects Dired as
 well, since the Windows port uses a Lisp emulation of `ls' that relies
 on `file-attributes'.
+
+** Playing sound doesn't support the :data method
 
 Sound playing is not supported with the `:data DATA' key-value pair.
 You _must_ use the `:file FILE' method.
@@ -2270,7 +2145,7 @@ likely to be a global one, and not Emacs specific.
 
 Many cheap inkjet, and even some cheap laser printers, do not
 print plain text anymore, they will only print through graphical
-printer drivers. A workaround on MS-Windows is to use Windows' basic
+printer drivers.  A workaround on MS-Windows is to use Windows' basic
 built in editor to print (this is possibly the only useful purpose it
 has):
 
@@ -2292,20 +2167,20 @@ or disable it entirely.
 
 ** Pressing the mouse button on MS-Windows does not give a mouse-2 event.
 
-This is usually a problem with the mouse driver. Because most Windows
+This is usually a problem with the mouse driver.  Because most Windows
 programs do not do anything useful with the middle mouse button, many
 mouse drivers allow you to define the wheel press to do something
-different. Some drivers do not even have the option to generate a
-middle button press. In such cases, setting the wheel press to
-"scroll" sometimes works if you press the button twice. Trying a
+different.  Some drivers do not even have the option to generate a
+middle button press.  In such cases, setting the wheel press to
+"scroll" sometimes works if you press the button twice.  Trying a
 generic mouse driver might help.
 
 ** Scrolling the mouse wheel on MS-Windows always scrolls the top window.
 
-This is another common problem with mouse drivers. Instead of
+This is another common problem with mouse drivers.  Instead of
 generating scroll events, some mouse drivers try to fake scroll bar
-movement. But they are not intelligent enough to handle multiple
-scroll bars within a frame. Trying a generic mouse driver might help.
+movement.  But they are not intelligent enough to handle multiple
+scroll bars within a frame.  Trying a generic mouse driver might help.
 
 ** Mail sent through Microsoft Exchange in some encodings appears to be
 mangled and is not seen correctly in Rmail or Gnus.  We don't know
@@ -2324,7 +2199,7 @@ combination, whenever it sees Right-Alt and Left-Ctrl it assumes that
 AltGr has been pressed.  The variable `w32-recognize-altgr' can be set
 to nil to tell Emacs that AltGr is really Ctrl and Alt.
 
-** Under some X-servers running on MS-Windows, Emacs' display is incorrect.
+** Under some X-servers running on MS-Windows, Emacs's display is incorrect.
 
 The symptoms are that Emacs does not completely erase blank areas of the
 screen during scrolling or some other screen operations (e.g., selective
@@ -2347,19 +2222,6 @@ If you do, please send it to bug-gnu-emacs@gnu.org so we can list it here.
 * Build-time problems
 
 ** Configuration
-
-*** The `configure' script doesn't find the jpeg library.
-
-There are reports that this happens on some systems because the linker
-by default only looks for shared libraries, but jpeg distribution by
-default only installs a nonshared version of the library, `libjpeg.a'.
-
-If this is the problem, you can configure the jpeg library with the
-`--enable-shared' option and then rebuild libjpeg.  This produces a
-shared version of libjpeg, which you need to install.  Finally, rerun
-the Emacs configure script, which should now find the jpeg library.
-Alternatively, modify the generated src/Makefile to link the .a file
-explicitly, and edit src/config.h to define HAVE_JPEG.
 
 *** `configure' warns ``accepted by the compiler, rejected by the preprocessor''.
 
@@ -2418,7 +2280,7 @@ The solution is to remove this line from `etc/fstab'.
 *** Building a 32-bit executable on a 64-bit GNU/Linux architecture.
 
 First ensure that the necessary 32-bit system libraries and include
-files are installed. Then use:
+files are installed.  Then use:
 
   env CC="gcc -m32" ./configure --build=i386-linux-gnu \
     --x-libraries=/usr/X11R6/lib
@@ -2470,7 +2332,7 @@ __MSVCRT__, like so:
 *** Building the MS-Windows port fails with a CreateProcess failure.
 
 Some versions of mingw32 make on some versions of Windows do not seem
-to detect the shell correctly. Try "make SHELL=cmd.exe", or if that
+to detect the shell correctly.  Try "make SHELL=cmd.exe", or if that
 fails, try running make from Cygwin bash instead.
 
 *** Building `ctags' for MS-Windows with the MinGW port of GCC fails.
@@ -2521,7 +2383,7 @@ described here most likely applies:
 through SDKPAINT
 
 The Emacs icon contains a high resolution PNG icon for Vista, which is
-not recognized by older versions of the resource compiler. There are
+not recognized by older versions of the resource compiler.  There are
 several workarounds for this problem:
 	1. Use Free MinGW tools to compile, which do not have this problem.
 	2. Install the latest Windows SDK.
@@ -2571,10 +2433,6 @@ and you need to add -lansi just before -lc.
 The precise file names depend on the compiler version, so we
 cannot easily arrange to supply them.
 
-*** Linking says that the functions insque and remque are undefined.
-
-Change oldXMenu/Makefile by adding insque.o to the variable OBJS.
-
 *** `tparam' reported as a multiply-defined symbol when linking with ncurses.
 
 This problem results from an incompatible change in ncurses, in
@@ -2595,72 +2453,56 @@ with development builds, since the .elc files are pre-compiled in releases.
 Compiling the lisp files fails at random places, complaining:
 "No rule to make target `/path/to/some/lisp.elc'".
 The causes of this problem are not understood.  Using GNU make 3.81 compiled
-from source, rather than the Ubuntu version, worked. See Bug#327,821.
+from source, rather than the Ubuntu version, worked.
+See <URL:http://debbugs.gnu.org/327, <URL:http://debbugs.gnu.org/821>.
 
 ** Dumping
 
-*** Linux: Segfault during `make bootstrap' under certain recent versions of the Linux kernel.
+*** Segfault during `make bootstrap' under the Linux kernel.
 
-With certain recent Linux kernels (like the one of Red Hat Fedora Core
-1 and newer), the new "Exec-shield" functionality is enabled by default, which
-creates a different memory layout that breaks the emacs dumper.  Emacs tries
-to handle this at build time, but if the workaround used fails, these
-instructions can be useful.
-The work-around explained here is not enough on Fedora Core 4 (and possible
-newer). Read the next item.
+In Red Hat Linux kernels, "Exec-shield" functionality is enabled by
+default, which creates a different memory layout that can break the
+emacs dumper.  Emacs tries to handle this at build time, but if this
+fails, the following instructions may be useful.
 
-Configure can overcome the problem of exec-shield if the architecture is
-x86 and the program setarch is present.  On other architectures no
-workaround is known.
-
-You can check the Exec-shield state like this:
+Exec-shield is enabled on your system if
 
     cat /proc/sys/kernel/exec-shield
 
-It returns non-zero when Exec-shield is enabled, 0 otherwise.  Please
-read your system documentation for more details on Exec-shield and
-associated commands.  Exec-shield can be turned off with this command:
+prints a value other than 0.  (Please read your system documentation
+for more details on Exec-shield and associated commands.)
 
-    echo "0" > /proc/sys/kernel/exec-shield
+Additionally, Linux kernel versions since 2.6.12 randomize the virtual
+address space of a process by default.  If this feature is enabled on
+your system, then
 
-When Exec-shield is enabled, building Emacs will segfault during the
-execution of this command:
+   cat /proc/sys/kernel/randomize_va_space
+
+prints a value other than 0.
+
+When these features are enabled, building Emacs may segfault during
+the execution of this command:
 
     ./temacs --batch --load loadup [dump|bootstrap]
 
-To work around this problem, it is necessary to temporarily disable
-Exec-shield while building Emacs, or, on x86, by using the `setarch'
-command when running temacs like this:
+To work around this problem, you can temporarily disable these
+features while building Emacs.  You can do so using the following
+commands (as root).  Remember to re-enable them when you are done,
+by echoing the original values back to the files.
 
-    setarch i386 ./temacs --batch --load loadup [dump|bootstrap]
+    echo 0 > /proc/sys/kernel/exec-shield
+    echo 0 > /proc/sys/kernel/randomize_va_space
 
+Or, on x86, you can try using the `setarch' command when running
+temacs, like this:
 
-*** Fedora Core 4 GNU/Linux: Segfault during dumping.
-
-In addition to exec-shield explained above "Linux: Segfault during
-`make bootstrap' under certain recent versions of the Linux kernel"
-item, Linux kernel shipped with Fedora Core 4 randomizes the virtual
-address space of a process. As the result dumping may fail even if
-you turn off exec-shield. In this case, use the -R option to the setarch
-command:
-
-   setarch i386 -R ./temacs --batch --load loadup [dump|bootstrap]
+    setarch i386 -R ./temacs --batch --load loadup [dump|bootstrap]
 
 or
 
-   setarch i386 -R make bootstrap
+    setarch i386 -R make
 
-*** Fatal signal in the command  temacs -l loadup inc dump.
-
-This command is the final stage of building Emacs.  It is run by the
-Makefile in the src subdirectory.
-
-It has been known to get fatal errors due to insufficient swapping
-space available on the machine.
-
-On 68000s, it has also happened because of bugs in the
-subroutine `alloca'.  Verify that `alloca' works right, even
-for large blocks (many pages).
+(The -R option disables address space randomization.)
 
 *** test-distrib says that the distribution has been clobbered.
 *** or, temacs prints "Command key out of range 0-127".
@@ -2671,32 +2513,12 @@ This can be because the .elc files have been garbled.  Do not be
 fooled by the fact that most of a .elc file is text: these are
 binary files and can contain all 256 byte values.
 
-In particular `shar' cannot be used for transmitting GNU Emacs.
-It typically truncates "lines".  What appear to be "lines" in
-a binary file can of course be of any length.  Even once `shar'
-itself is made to work correctly, `sh' discards null characters
-when unpacking the shell archive.
+If you have a copy of Emacs whose .elc files have been damaged in this
+way, you should be able to fix it by using:
 
-I have also seen character \177 changed into \377.  I do not know
-what transfer means caused this problem.  Various network
-file transfer programs are suspected of clobbering the high bit.
+ make bootstrap
 
-If you have a copy of Emacs that has been damaged in its
-nonprinting characters, you can fix them:
-
- 1) Record the names of all the .elc files.
- 2) Delete all the .elc files.
- 3) Recompile alloc.c with a value of PURESIZE twice as large.
-     (See puresize.h.)  You might as well save the old alloc.o.
- 4) Remake emacs.  It should work now.
- 5) Running emacs, do Meta-x byte-compile-file repeatedly
-  to recreate all the .elc files that used to exist.
-  You may need to increase the value of the variable
-  max-lisp-eval-depth to succeed in running the compiler interpreted
-  on certain .el files.  400 was sufficient as of last report.
- 6) Reinstall the old alloc.o (undoing changes to alloc.c if any)
-  and remake temacs.
- 7) Remake emacs.  It should work now, with valid .elc files.
+to regenerate all the .elc files.
 
 *** temacs prints "Pure Lisp storage exhausted".
 
@@ -2739,26 +2561,6 @@ It is/will be fixed in an openSUSE update.
 
 ** Installation
 
-*** Installing Emacs gets an error running `install-info'.
-
-You need to install a recent version of Texinfo; that package
-supplies the `install-info' command.
-
-*** Installing to a directory with spaces in the name fails.
-
-For example, if you call configure with a directory-related option
-with spaces in the value, eg --enable-locallisppath='/path/with\ spaces'.
-Using directory paths with spaces is not supported at this time: you
-must re-configure without using spaces.
-
-*** Installing to a directory with non-ASCII characters in the name fails.
-
-Installation may fail, or the Emacs executable may not start
-correctly, if a directory name containing non-ASCII characters is used
-as a `configure' argument (e.g. `--prefix').  The problem can also
-occur if a non-ASCII directory is specified in the EMACSLOADPATH
-envvar.
-
 *** On Solaris, use GNU Make when installing an out-of-tree build
 
 The Emacs configuration process allows you to configure the
@@ -2799,38 +2601,18 @@ as a macro.  If the definition (in both unex*.c and malloc.c) is wrong,
 it can cause problems like this.  You might be able to find the correct
 value in the man page for a.out (5).
 
-* Runtime problems on legacy systems
+* Problems on legacy systems
 
 This section covers bugs reported on very old hardware or software.
 If you are using hardware and an operating system shipped after 2000,
 it is unlikely you will see any of these.
 
-*** OPENSTEP 4.2: Compiling syntax.c with gcc 2.7.2.1 fails.
-
-The compiler was reported to crash while compiling syntax.c with the
-following message:
-
-   cc: Internal compiler error: program cc1obj got fatal signal 11
-
-To work around this, replace the macros UPDATE_SYNTAX_TABLE_FORWARD,
-INC_BOTH, and INC_FROM with functions.  To this end, first define 3
-functions, one each for every macro.  Here's an example:
-
-    static int update_syntax_table_forward(int from)
-    {
-        return(UPDATE_SYNTAX_TABLE_FORWARD(from));
-    }/*update_syntax_table_forward*/
-
-Then replace all references to UPDATE_SYNTAX_TABLE_FORWARD in syntax.c
-with a call to the function update_syntax_table_forward.
-
 *** Solaris 2.x
 
 **** Strange results from format %d in a few cases, on a Sun.
 
-Sun compiler version SC3.0 has been found to miscompile part of
-editfns.c.  The workaround is to compile with some other compiler such
-as GCC.
+Sun compiler version SC3.0 has been found to miscompile part of editfns.c.
+The workaround is to compile with some other compiler such as GCC.
 
 **** On Solaris, Emacs dumps core if lisp-complete-symbol is called.
 
@@ -2889,38 +2671,6 @@ should do.
 
 pen@lysator.liu.se says (Feb 1998) that the Compose key does work
 if you link with the MIT X11 libraries instead of the Solaris X11 libraries.
-
-*** HP/UX: Emacs is slow using X11R5.
-
-This happens if you use the MIT versions of the X libraries--it
-doesn't run as fast as HP's version.  People sometimes use the version
-because they see the HP version doesn't have the libraries libXaw.a,
-libXmu.a, libXext.a and others.  HP/UX normally doesn't come with
-those libraries installed.  To get good performance, you need to
-install them and rebuild Emacs.
-
-*** UnixWare 2.1: Error 12 (virtual memory exceeded) when dumping Emacs.
-
-Paul Abrahams (abrahams@acm.org) reports that with the installed
-virtual memory settings for UnixWare 2.1.2, an Error 12 occurs during
-the "make" that builds Emacs, when running temacs to dump emacs.  That
-error indicates that the per-process virtual memory limit has been
-exceeded.  The default limit is probably 32MB.  Raising the virtual
-memory limit to 40MB should make it possible to finish building Emacs.
-
-You can do this with the command `ulimit' (sh) or `limit' (csh).
-But you have to be root to do it.
-
-According to Martin Sohnius, you can also retune this in the kernel:
-
-    # /etc/conf/bin/idtune SDATLIM 33554432         ## soft data size limit
-    # /etc/conf/bin/idtune HDATLIM 33554432         ## hard "
-    # /etc/conf/bin/idtune SVMMSIZE unlimited       ## soft process size limit
-    # /etc/conf/bin/idtune HVMMSIZE unlimited       ## hard "
-    # /etc/conf/bin/idbuild -B
-
-(He recommends you not change the stack limit, though.)
-These changes take effect when you reboot.
 
 ** MS-Windows 95, 98, ME, and NT
 
@@ -2995,9 +2745,9 @@ You can enter M-f6 by typing ESC f6.
 *** MS-Windows 95/98/ME: subprocesses do not terminate properly.
 
 This is a limitation of the Operating System, and can cause problems
-when shutting down Windows. Ensure that all subprocesses are exited
-cleanly before exiting Emacs. For more details, see the FAQ at
-http://www.gnu.org/software/emacs/windows/.
+when shutting down Windows.  Ensure that all subprocesses are exited
+cleanly before exiting Emacs.  For more details, see the Emacs on MS
+Windows FAQ (info manual "efaq-w32").
 
 *** MS-Windows 95/98/ME: crashes when Emacs invokes non-existent programs.
 
@@ -3135,7 +2885,7 @@ properly truncated.
 
 ** Archaic window managers and toolkits
 
-*** OpenLook: Under OpenLook, the Emacs window disappears when you type M-q.
+*** Open Look: Under Open Look, the Emacs window disappears when you type M-q.
 
 Some versions of the Open Look window manager interpret M-q as a quit
 command for whatever window you are typing at.  If you want to use

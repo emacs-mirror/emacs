@@ -1,10 +1,10 @@
 ;;; delsel.el --- delete selection if you insert
 
-;; Copyright (C) 1992, 1997-1998, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1992, 1997-1998, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Matthieu Devin <devin@lucid.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 14 Jul 92
 ;; Keywords: convenience emulations
 
@@ -49,7 +49,7 @@
 ;;      The normal case: delete the active region prior to executing
 ;;      the command which will insert replacement text.
 ;;  <function>
-;;      For commands which need to dynamically determine this behaviour.
+;;      For commands which need to dynamically determine this behavior.
 ;;      The function should return one of the above values or nil.
 
 ;;; Code:
@@ -64,22 +64,22 @@ With a prefix argument ARG, enable Delete Selection mode if ARG
 is positive, and disable it otherwise.  If called from Lisp,
 enable the mode if ARG is omitted or nil.
 
-When Delete Selection mode is enabled, Transient Mark mode is also
-enabled and typed text replaces the selection if the selection is
-active.  Otherwise, typed text is just inserted at point regardless of
-any selection."
+When Delete Selection mode is enabled, typed text replaces the selection
+if the selection is active.  Otherwise, typed text is just inserted at
+point regardless of any selection."
   :global t :group 'editing-basics
   (if (not delete-selection-mode)
       (remove-hook 'pre-command-hook 'delete-selection-pre-hook)
-    (add-hook 'pre-command-hook 'delete-selection-pre-hook)
-    (transient-mark-mode t)))
+    (add-hook 'pre-command-hook 'delete-selection-pre-hook)))
 
 (defun delete-active-region (&optional killp)
   "Delete the active region.
 If KILLP in not-nil, the active region is killed instead of deleted."
   (if killp
-      (kill-region (point) (mark))
-    (delete-region (point) (mark)))
+      ;; Don't allow `kill-region' to change the value of `this-command'.
+      (let (this-command)
+	(kill-region (point) (mark) t))
+    (funcall region-extract-function 'delete-only))
   t)
 
 (defun delete-selection-helper (type)
@@ -98,11 +98,17 @@ If KILLP in not-nil, the active region is killed instead of deleted."
      The normal case: delete the active region prior to executing
      the command which will insert replacement text.
  FUNCTION
-     For commands which need to dynamically determine this behaviour.
+     For commands which need to dynamically determine this behavior.
      FUNCTION should take no argument and return one of the above values or nil."
   (condition-case data
       (cond ((eq type 'kill)
-	     (delete-active-region t))
+	     (delete-active-region t)
+	     (if (and overwrite-mode
+		      (eq this-command 'self-insert-command))
+		 (let ((overwrite-mode nil))
+		   (self-insert-command
+		    (prefix-numeric-value current-prefix-arg))
+		   (setq this-command 'ignore))))
 	    ((eq type 'yank)
 	     ;; Before a yank command, make sure we don't yank the
 	     ;; head of the kill-ring that really comes from the
@@ -114,7 +120,11 @@ If KILLP in not-nil, the active region is killed instead of deleted."
 			(fboundp 'mouse-region-match)
 			(mouse-region-match))
 	       (current-kill 1))
-	     (delete-active-region))
+             (let ((pos (copy-marker (region-beginning))))
+               (delete-active-region)
+               ;; If the region was, say, rectangular, make sure we yank
+               ;; from the top, to "replace".
+               (goto-char pos)))
 	    ((eq type 'supersede)
 	     (let ((empty-region (= (point) (mark))))
 	       (delete-active-region)
@@ -165,16 +175,17 @@ See `delete-selection-helper'."
        (not (run-hook-with-args-until-success
              'self-insert-uses-region-functions))))
 
-(put 'self-insert-iso 'delete-selection t)
+(put 'insert-char 'delete-selection t)
+(put 'quoted-insert 'delete-selection t)
 
 (put 'yank 'delete-selection 'yank)
 (put 'clipboard-yank 'delete-selection 'yank)
 (put 'insert-register 'delete-selection t)
-
-(put 'delete-backward-char 'delete-selection 'supersede)
-(put 'backward-delete-char-untabify 'delete-selection 'supersede)
+;; delete-backward-char and delete-forward-char already delete the selection by
+;; default, but not delete-char.
 (put 'delete-char 'delete-selection 'supersede)
 
+(put 'reindent-then-newline-and-indent 'delete-selection t)
 (put 'newline-and-indent 'delete-selection t)
 (put 'newline 'delete-selection t)
 (put 'open-line 'delete-selection 'kill)
@@ -186,7 +197,7 @@ See `delete-selection-helper'."
 In Delete Selection mode, if the mark is active, just deactivate it;
 then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (interactive)
-  (if (and delete-selection-mode transient-mark-mode mark-active)
+  (if (and delete-selection-mode (region-active-p))
       (setq deactivate-mark t)
     (abort-recursive-edit)))
 
@@ -203,9 +214,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (define-key minibuffer-local-completion-map "\C-g" 'abort-recursive-edit)
   (define-key minibuffer-local-must-match-map "\C-g" 'abort-recursive-edit)
   (define-key minibuffer-local-isearch-map "\C-g" 'abort-recursive-edit)
-  (dolist (sym '(self-insert-command self-insert-iso yank clipboard-yank
-		 insert-register delete-backward-char backward-delete-char-untabify
-		 delete-char newline-and-indent newline open-line))
+  (dolist (sym '(self-insert-command insert-char quoted-insert yank
+                 clipboard-yank insert-register newline-and-indent
+                 reindent-then-newline-and-indent newline open-line))
     (put sym 'delete-selection nil))
   ;; continue standard unloading
   nil)

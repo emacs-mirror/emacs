@@ -48,8 +48,8 @@
 
 2008-06-07  Glenn Morris  <rgm@gnu.org>
 
-	* erc/erc-autoaway.el, erc/erc-ibuffer.el, erc/erc-menu.el:
-	* erc/erc-stamp.el, erc/erc.el: Remove unnecessary eval-when-compiles.
+	* erc-autoaway.el, erc-ibuffer.el, erc-menu.el:
+	* erc-stamp.el, erc.el: Remove unnecessary eval-when-compiles.
 
 2008-05-30  Diane Murray  <disumu@x3y2z1.net>
 
@@ -405,7 +405,7 @@
 
 See ChangeLog.07 for earlier changes.
 
-	Copyright (C) 2008-2013 Free Software Foundation, Inc.
+	Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

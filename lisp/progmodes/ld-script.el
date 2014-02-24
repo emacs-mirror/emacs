@@ -1,6 +1,6 @@
 ;;; ld-script.el --- GNU linker script editing mode for Emacs
 
-;; Copyright (C) 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO<jet@gyve.org>
 ;; Keywords: languages, faces
@@ -48,7 +48,7 @@
     (modify-syntax-entry ?\) ")(" st)
     (modify-syntax-entry ?\[ "(]" st)
     (modify-syntax-entry ?\] ")[" st)
-    (modify-syntax-entry ?_ "w"   st)
+    (modify-syntax-entry ?_ "_"   st)
     (modify-syntax-entry ?. "_"   st)
     (modify-syntax-entry ?\\  "\\" st)
     (modify-syntax-entry ?: "." st)
@@ -154,10 +154,10 @@
 
 (defvar ld-script-font-lock-keywords
   (append
-   `((,(regexp-opt ld-script-keywords 'words)
-      1 font-lock-keyword-face)
-     (,(regexp-opt ld-script-builtins 'words)
-      1 font-lock-builtin-face)
+   `((,(concat "\\_<" (regexp-opt ld-script-keywords) "\\_>")
+      0 font-lock-keyword-face)
+     (,(concat "\\_<" (regexp-opt ld-script-builtins) "\\_>")
+      0 font-lock-builtin-face)
      ;; 3.6.7 Output Section Discarding
      ;; 3.6.4.1 Input Section Basics
      ;; 3.6.8.7 Output Section Phdr

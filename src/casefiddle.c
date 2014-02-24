@@ -1,6 +1,6 @@
 /* GNU Emacs case conversion functions.
 
-Copyright (C) 1985, 1994, 1997-1999, 2001-2013 Free Software Foundation,
+Copyright (C) 1985, 1994, 1997-1999, 2001-2014 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -102,7 +102,7 @@ casify_object (enum case_action flag, Lisp_Object obj)
 	    inword = (SYNTAX (c) == Sword);
 	  if (c != c1)
 	    {
-		  MAKE_CHAR_UNIBYTE (c);
+	      MAKE_CHAR_UNIBYTE (c);
 	      /* If the char can't be converted to a valid byte, just don't
 		 change it.  */
 	      if (c >= 0 && c < 256)
@@ -214,7 +214,7 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
   validate_region (&b, &e);
   start = XFASTINT (b);
   end = XFASTINT (e);
-  modify_region_1 (start, end, false);
+  modify_text (start, end);
   record_change (start, end - start);
   start_byte = CHAR_TO_BYTE (start);
 
@@ -365,7 +365,11 @@ operate_on_word (Lisp_Object arg, ptrdiff_t *newpoint)
 }
 
 DEFUN ("upcase-word", Fupcase_word, Supcase_word, 1, 1, "p",
-       doc: /* Convert following word (or ARG words) to upper case, moving over.
+       doc: /* Convert to upper case from point to end of word, moving over.
+
+If point is in the middle of a word, the part of that word before point
+is ignored when moving forward.
+
 With negative argument, convert previous words but do not move.
 See also `capitalize-word'.  */)
   (Lisp_Object arg)
@@ -380,7 +384,11 @@ See also `capitalize-word'.  */)
 }
 
 DEFUN ("downcase-word", Fdowncase_word, Sdowncase_word, 1, 1, "p",
-       doc: /* Convert following word (or ARG words) to lower case, moving over.
+       doc: /* Convert to lower case from point to end of word, moving over.
+
+If point is in the middle of a word, the part of that word before point
+is ignored when moving forward.
+
 With negative argument, convert previous words but do not move.  */)
   (Lisp_Object arg)
 {
@@ -394,9 +402,14 @@ With negative argument, convert previous words but do not move.  */)
 }
 
 DEFUN ("capitalize-word", Fcapitalize_word, Scapitalize_word, 1, 1, "p",
-       doc: /* Capitalize the following word (or ARG words), moving over.
+       doc: /* Capitalize from point to the end of word, moving over.
+With numerical argument ARG, capitalize the next ARG-1 words as well.
 This gives the word(s) a first character in upper case
 and the rest lower case.
+
+If point is in the middle of a word, the part of that word before point
+is ignored when moving forward.
+
 With negative argument, capitalize previous words but do not move.  */)
   (Lisp_Object arg)
 {

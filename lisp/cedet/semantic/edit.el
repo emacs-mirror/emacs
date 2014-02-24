@@ -1,6 +1,6 @@
 ;;; semantic/edit.el --- Edit Management for Semantic
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -141,8 +141,9 @@ Argument START, END, and LENGTH specify the bounds of the change."
    (setq semantic-unmatched-syntax-cache-check t)
    (let ((inhibit-point-motion-hooks t)
 	 )
-     (run-hook-with-args 'semantic-change-functions start end length)
-     ))
+     (save-match-data
+       (run-hook-with-args 'semantic-change-functions start end length)
+       )))
 
 (defun semantic-changes-in-region (start end &optional buffer)
   "Find change overlays which exist in whole or in part between START and END.
@@ -881,8 +882,9 @@ pre-positioned to a convenient location."
 	    ;; reparse
 	    (semantic-parse-changes-failed "Splice-remove failed.  Empty buffer?")
 	    ))
-      (message "To Remove Middle Tag: (%s)"
-	       (semantic-format-tag-name first)))
+      (when semantic-edits-verbose-flag
+	(message "To Remove Middle Tag: (%s)"
+		 (semantic-format-tag-name first))))
     ;; Find in the cache the preceding tag
     (while (and cachestart (not (eq first (car (cdr cachestart)))))
       (setq cachestart (cdr cachestart)))
@@ -905,11 +907,11 @@ pre-positioned to a convenient location."
 
 (defun semantic-edits-splice-insert (newtags parent cachelist)
   "Insert NEWTAGS into PARENT using CACHELIST.
-PARENT could be nil, in which case CACHLIST is the buffer cache
+PARENT could be nil, in which case CACHELIST is the buffer cache
 which must be updated.
 CACHELIST must be searched to find where NEWTAGS are to be inserted.
 The positions of NEWTAGS must be synchronized with those in
-CACHELIST for this to work.  Some routines pre-position CACHLIST at a
+CACHELIST for this to work.  Some routines pre-position CACHELIST at a
 convenient location, so use that."
   (let* ((start (semantic-tag-start (car newtags)))
 	 (newtagendcell (nthcdr (1- (length newtags)) newtags))

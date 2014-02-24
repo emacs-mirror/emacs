@@ -1,6 +1,6 @@
 ;;; nndir.el --- single directory newsgroup access for Gnus
 
-;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -90,8 +90,7 @@
   (nnml-request-article 0 nndir-current-group 0 0)
   (nnmh-request-group nndir-current-group 0 0)
   (nnml-close-group nndir-current-group 0)
-  (nnml-request-list (nnoo-current-server 'nndir) nndir-directory)
-  (nnml-request-newsgroups (nnoo-current-server 'nndir) nndir-directory))
+  (nnml-request-list (nnoo-current-server 'nndir)))
 
 (provide 'nndir)
 

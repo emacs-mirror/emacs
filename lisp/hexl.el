@@ -1,10 +1,9 @@
 ;;; hexl.el --- edit a file in a hex dump format using the hexl filter -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1994, 1998, 2001-2013 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1989, 1994, 1998, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: data
 
 ;; This file is part of GNU Emacs.
@@ -91,7 +90,7 @@ as that will override any bit grouping options set here."
 (defcustom hexl-mode-hook '(hexl-follow-line hexl-activate-ruler)
   "Normal hook run when entering Hexl mode."
   :type 'hook
-  :options '(hexl-follow-line hexl-activate-ruler turn-on-eldoc-mode)
+  :options '(hexl-follow-line hexl-activate-ruler eldoc-mode)
   :group 'hexl)
 
 (defface hexl-address-region

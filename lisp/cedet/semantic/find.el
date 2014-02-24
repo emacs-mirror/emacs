@@ -1,6 +1,6 @@
 ;;; semantic/find.el --- Search routines for Semantic
 
-;; Copyright (C) 1999-2005, 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -265,9 +265,9 @@ TABLE is a semantic tags table.  See `semantic-something-to-tag-table'."
   "Find the first tag with NAME in TABLE.
 NAME is a string.
 TABLE is a semantic tags table.  See `semantic-something-to-tag-table'.
-This routine uses `assoc' to quickly find the first matching entry."
-  (funcall (if semantic-case-fold 'assoc-ignore-case 'assoc)
-           name (semantic-something-to-tag-table table)))
+Respects `semantic-case-fold'."
+  (assoc-string name (semantic-something-to-tag-table table)
+		semantic-case-fold))
 
 (defmacro semantic-find-tags-by-name (name &optional table)
   "Find all tags with NAME in TABLE.
@@ -311,6 +311,15 @@ CLASS is a symbol representing the class of the token, such as
 TABLE is a tag table.  See `semantic-something-to-tag-table'."
   `(semantic--find-tags-by-macro
     (eq ,class (semantic-tag-class (car tags)))
+    ,table))
+
+(defmacro semantic-filter-tags-by-class (class &optional table)
+  "Find all tags of class not in the list CLASS in TABLE.
+CLASS is a list of symbols representing the class of the token,
+such as 'variable, of 'function..
+TABLE is a tag table.  See `semantic-something-to-tag-table'."
+  `(semantic--find-tags-by-macro
+    (not (memq (semantic-tag-class (car tags)) ,class))
     ,table))
 
 (defmacro semantic-find-tags-by-type (type &optional table)
@@ -448,13 +457,11 @@ TABLE is a tag table.  See `semantic-something-to-tag-table'."
   "Find a tag NAME within STREAMORBUFFER.  NAME is a string.
 If SEARCH-PARTS is non-nil, search children of tags.
 If SEARCH-INCLUDE was never implemented.
+Respects `semantic-case-fold'.
 
 Use `semantic-find-first-tag-by-name' instead."
   (let* ((stream (semantic-something-to-tag-table streamorbuffer))
-         (assoc-fun (if semantic-case-fold
-                        #'assoc-ignore-case
-                      #'assoc))
-	 (m (funcall assoc-fun name stream)))
+	 (m (assoc-string name stream semantic-case-fold)))
     (if m
 	m
       (let ((toklst stream)

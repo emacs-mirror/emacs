@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MSDOS
-rem   Copyright (C) 1994-1999, 2001-2013 Free Software Foundation, Inc.
+rem   Copyright (C) 1994-1999, 2001-2014 Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -155,10 +155,10 @@ rm -f epaths.tmp
 rem   Create "config.h"
 rm -f config.h2 config.tmp
 if exist config.in sed -e '' config.in > config.tmp
-if exist ..\autogen\config.in sed -e '' ../autogen/config.in > config.tmp
+if exist ..\msdos\autogen\config.in sed -e '' ../msdos/autogen/config.in > config.tmp
 if "%X11%" == "" goto src4
 if exist config.in sed -f ../msdos/sed2x.inp < config.in > config.tmp
-if exist ..\autogen\config.in sed -f ../msdos/sed2x.inp < ..\autogen\config.in > config.tmp
+if exist ..\msdos\autogen\config.in sed -f ../msdos/sed2x.inp < ..\msdos\autogen\config.in > config.tmp
 :src4
 sed -f ../msdos/sed2v2.inp <config.tmp >config.h2
 Rem See if they have libxml2 later than v2.2.0 installed
@@ -279,7 +279,7 @@ If Exist sys_types.in.h update sys_types.in.h sys_types.in-h
 If Exist time.in.h update time.in.h time.in-h
 If Exist unistd.in.h update unistd.in.h unistd.in-h
 If Exist Makefile.in sed -f ../msdos/sedlibcf.inp < Makefile.in > makefile.tmp
-If Exist ..\autogen\Makefile.in sed -f ../msdos/sedlibcf.inp < ..\autogen\Makefile.in > makefile.tmp
+If Exist ..\msdos\autogen\Makefile.in sed -f ../msdos/sedlibcf.inp < ..\msdos\autogen\Makefile.in > makefile.tmp
 sed -f ../msdos/sedlibmk.inp < makefile.tmp > Makefile
 rm -f makefile.tmp
 Rem Create .Po files for new files in lib/

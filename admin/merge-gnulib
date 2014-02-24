@@ -4,7 +4,7 @@
 #
 #	admin/merge-gnulib
 
-# Copyright 2012-2013 Free Software Foundation, Inc.
+# Copyright 2012-2014 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -26,22 +26,25 @@
 GNULIB_URL=git://git.savannah.gnu.org/gnulib.git
 
 GNULIB_MODULES='
-  alloca-opt c-ctype c-strcase
-  careadlinkat close-stream crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512
+  alloca-opt byteswap c-ctype c-strcase
+  careadlinkat close-stream count-one-bits count-trailing-zeros
+  crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512
   dtoastr dtotimespec dup2 environ execinfo faccessat
-  fcntl-h fdopendir filemode fstatat getloadavg getopt-gnu gettime gettimeofday
-  ignore-value intprops largefile lstat
-  manywarnings memrchr mktime
-  pselect pthread_sigmask putenv readlink readlinkat
+  fcntl fcntl-h fdatasync fdopendir filemode fstatat fsync
+  getloadavg getopt-gnu gettime gettimeofday
+  intprops largefile lstat
+  manywarnings memrchr mkostemp mktime
+  pipe2 pselect pthread_sigmask putenv qacl readlink readlinkat
   sig2str socklen stat-time stdalign stdarg stdbool stdio
   strftime strtoimax strtoumax symlink sys_stat
-  sys_time time timer-time timespec-add timespec-sub unsetenv utimens
+  sys_time time timer-time timespec-add timespec-sub
+  unsetenv update-copyright utimens
   warnings
 '
 
 GNULIB_TOOL_FLAGS='
-  --avoid=dup
-  --avoid=errno --avoid=fchdir --avoid=fcntl --avoid=fstat
+  --avoid=close --avoid=dup
+  --avoid=fchdir --avoid=fstat
   --avoid=malloc-posix --avoid=msvc-inval --avoid=msvc-nothrow
   --avoid=open --avoid=openat-die --avoid=opendir
   --avoid=raise
@@ -89,7 +92,8 @@ test -x "$gnulib_srcdir"/gnulib-tool || {
 }
 
 "$gnulib_srcdir"/gnulib-tool --dir="$src" $GNULIB_TOOL_FLAGS $GNULIB_MODULES &&
-rm -- "$src"m4/fcntl-o.m4 "$src"m4/gnulib-cache.m4 "$src"m4/warn-on-use.m4 &&
+rm -- "$src"lib/gl_openssl.h "$src"m4/fcntl-o.m4 "$src"m4/gl-openssl.m4 \
+      "$src"m4/gnulib-cache.m4"$src" m4/warn-on-use.m4 &&
 cp -- "$gnulib_srcdir"/build-aux/texinfo.tex "$src"doc/misc &&
 cp -- "$gnulib_srcdir"/build-aux/move-if-change "$src"build-aux &&
 autoreconf -i -I m4 -- ${src:+"$src"}

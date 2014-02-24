@@ -173,19 +173,19 @@
 
 1999-12-21  Christoph Wedler  <Christoph.Wedler@sap.com>
 
-	* antlr-mode.el: Version 1.2 is released.
+	* progmodes/antlr-mode.el: Version 1.2 is released.
 	(antlr): This package has a web page.
 
 1999-12-21  Christoph Wedler  <Christoph.Wedler@sap.com>
 
-	* antlr-mode.el: Menu/keymap additions for commenting/uncommenting
+	* progmodes/antlr-mode.el: Menu/keymap additions for commenting/uncommenting
 	regions.  Suggested by Dale Davis <Dale_Davis@securify.com>.
 	(antlr-mode-map): New binding [C-c C-c].
 	(antlr-mode-menu): New entries.
 
 1999-12-21  Christoph Wedler  <Christoph.Wedler@sap.com>
 
-	* antlr-mode.el: Respect Emacs conventions.
+	* progmodes/antlr-mode.el: Respect Emacs conventions.
 	((require 'cl)): Only use during compilation.
 	(antlr-language-for-option): New function to avoid using `find'.
 	(antlr-mode): Use it.
@@ -199,10 +199,10 @@
 
 1999-11-21  Christoph Wedler  <Christoph.Wedler@sap.com>
 
-	* antlr-mode.el: Really use `antlr-tab-offset-alist'.
+	* progmodes/antlr-mode.el: Really use `antlr-tab-offset-alist'.
 	(antlr-set-tabs): Don't use hard-coded values.
 
-	* antlr-mode.el: Minor navigation changes.  Not perfect, but this
+	* progmodes/antlr-mode.el: Minor navigation changes.  Not perfect, but this
 	won't be possible without a huge time penalty.
 	(antlr-skip-exception-part): Be more specific.
 	(antlr-skip-file-prelude): Don't skip action prelude of next rule.
@@ -212,7 +212,7 @@
 	(antlr-beginning-of-body): Better error message.
 	(antlr-imenu-create-index-function): Skip rule action prelude.
 
-	* antlr-mode.el: Minor syntax highlighting changes.
+	* progmodes/antlr-mode.el: Minor syntax highlighting changes.
 	(antlr-font-lock-default-face): Deletia.
 	(antlr-font-lock-tokendef-face): Changed color.
 	(antlr-font-lock-tokenref-face): Changed color.
@@ -295,7 +295,7 @@
 	(font-lock-removed-keywords-alist): New variable.
 	(font-lock-add-keywords): Updates `font-lock-removed-keywords-alist'.
 	Empty `font-lock-keywords-alist' when `append' is `set' to avoid
-	growing datastructures.
+	growing data structures.
 	(font-lock-set-defaults): Removes keywords stored in
 	`font-lock-removed-keywords-alist' after local keywords added.
 
@@ -403,7 +403,7 @@
 	`t' command key can change `reftex-toc-max-level';
 	(eval-when-compile (require 'cl)) added.
 
-	* textmode/reftex-sel.el (reftex-insert-docstruct): Respect
+	* textmodes/reftex-sel.el (reftex-insert-docstruct): Respect
 	`reftex-toc-max-level'.  (eval-when-compile (require 'cl)) added.
 
 	* textmodes/reftex-auc.el: (eval-when-compile (require 'cl)) added.
@@ -420,7 +420,7 @@
 	(reftex-section-info): Deal with environment matches;
 	(eval-when-compile (require 'cl)) added.
 
-	* reftex-global.el: (eval-when-compile (require 'cl)) added.
+	* textmodes/reftex-global.el: (eval-when-compile (require 'cl)) added.
 
 1999-12-15  Kenichi Handa  <handa@etl.go.jp>
 
@@ -1991,7 +1991,7 @@
 
 1999-10-22  Paul Eggert  <eggert@twinsun.com>
 
-	* international/mule-cmds.c (locale-language-names):
+	* international/mule-cmds.el (locale-language-names):
 	Use Latin-1 (not Latin-3) for Afrikaans, Galician.
 	Use Latin-5 (not Cyrillic-ISO) for Byelorussian, Bulgarian,
 	Macedonian, Russian, Ukrainian, Serbian (Cyrillic alphabet).
@@ -2355,7 +2355,7 @@
 
 1999-10-12  Emmanuel Briot  <briot@gnat.com>
 
-	* ada-stmt.el: Doc-string fixes.
+	* progmodes/ada-stmt.el: Doc-string fixes.
 
 1999-10-12  Gerd Moellmann  <gerd@gnu.org>
 
@@ -2472,28 +2472,26 @@
 
 1999-10-07  Emmanuel Briot  <briot@gnat.com>
 
-	* ada-xref.el: New file
+	* progmodes/ada-xref.el, progmodes/ada-prj.el: New files.
 
-	* ada-prj.el: New file
+	* progmodes/ada-stmt.el (ada-stmt-add-to-ada-menu): New function.
 
-	* ada-stmt.el (ada-stmt-add-to-ada-menu): New function
+	* progmodes/ada-stmt.el (ada-subprogram-body): Correctly find
+	the name of the subprogram being created.
 
-	* ada-stmt.el (ada-subprogram-body): Correctly find the name of the
-	subprogram being created.
+	* progmodes/ada-mode.el (ada-get-indent-*, ada-indent-current)
+	(ada-goto-*, ada-indent-newline-indent):
+	Rewritten to support the new indentation scheme.
 
-	* ada-mode.el (ada-get-indent-*, ada-indent-current, ada-goto-*,
-	ada-indent-newline-indent): Rewritten to support the new indentation
-	scheme
+	* progmodes/ada-mode.el (ada-case-read-exceptions)
+	(ada-create-case-exceptions): New functions.
 
-	* ada-mode.el (ada-case-read-exceptions, ada-create-case-exceptions):
-	New functions
+	* progmodes/ada-mode.el (ada-fill-comment-paragraph):
+	Add support for the justification parameter
 
-	* ada-mode.el (ada-fill-comment-paragraph): Add support for the
-	justification parameter
-
-	* ada-mode.el (ada-make-body, ada-gen-treat-proc,
-	ada-make-subprogram-body): Rewritten to benefit from the gnatstub
-	external program
+	* progmodes/ada-mode.el (ada-make-body, ada-gen-treat-proc)
+	(ada-make-subprogram-body): Rewritten to benefit from the gnatstub
+	external program.
 
 1999-10-07  Dave Love  <fx@gnu.org>
 
@@ -6871,7 +6869,7 @@
 1999-01-17  Ian T Zimmerman  <itz@transbay.net>
 
 	Patch failed to install:
-	* gametree.el: Document scoring functionality.
+	* play/gametree.el: Document scoring functionality.
 	(gametree-score-regexp): Add optional plus sign.
 	(gametree-score-opener): Replace `:' with `=' as the former
 	conflicts with gametree-half-ply-regexp.
@@ -7393,7 +7391,7 @@
 
 1998-12-25  Ilya Zakharevich  <ilya@math.ohio-state.edu>
 
-	* cperl-mode.el:
+	* progmodes/cperl-mode.el:
 	Can use linear algorithm for indentation if Emacs supports it.
 	(cperl-after-expr-p): It is BLOCK if we reach lim when backup sexp.
 	(cperl-after-block-p): Likewise.
@@ -9224,8 +9222,9 @@
 
 1998-09-27  Kurt Hornik  <Kurt.Hornik@ci.tuwien.ac.at>
 
-	* octave-inf.el (inferior-octave-prompt): Also match prompts of the
-	form `octave.bin:1>' which come from using precompiled binary versions.
+	* progmodes/octave-inf.el (inferior-octave-prompt):
+	Also match prompts of the form `octave.bin:1>',
+	which come from using precompiled binary versions.
 
 1998-09-27  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
@@ -9993,7 +9992,7 @@ See ChangeLog.7 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1999, 2001-2013 Free Software Foundation, Inc.
+    Copyright (C) 1999, 2001-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

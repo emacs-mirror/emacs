@@ -1,9 +1,9 @@
-;;; filesets.el --- handle group of files
+;;; filesets.el --- handle group of files -*- coding: utf-8 -*-
 
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: Thomas Link <sanobast-emacs@yahoo.de>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: filesets convenience
 
 ;; This file is part of GNU Emacs.
@@ -149,7 +149,7 @@ is loaded before custom.el, set this variable to t.")
 (defun filesets-filter-list (lst cond-fn)
   "Remove all elements not conforming to COND-FN from list LST.
 COND-FN takes one argument: the current element."
-;  (remove* 'dummy lst :test (lambda (dummy elt)
+;  (cl-remove 'dummy lst :test (lambda (dummy elt)
 ;			      (not (funcall cond-fn elt)))))
   (let ((rv nil))
     (dolist (elt lst rv)
@@ -175,7 +175,7 @@ Like `some', return the first value of FSS-PRED that is non-nil."
       (let ((fss-rv (funcall fss-pred fss-this)))
 	(when fss-rv
 	  (throw 'exit fss-rv))))))
-;(fset 'filesets-some 'some) ;; or use the cl function
+;(fset 'filesets-some 'cl-some) ;; or use the cl function
 
 (defun filesets-member (fsm-item fsm-lst &rest fsm-keys)
   "Find the first occurrence of FSM-ITEM in FSM-LST.
@@ -186,7 +186,7 @@ key is supported."
     (filesets-ormap (lambda (fsm-this)
 		      (funcall fsm-test fsm-item fsm-this))
 		    fsm-lst)))
-;(fset 'filesets-member 'member*) ;; or use the cl function
+;(fset 'filesets-member 'cl-member) ;; or use the cl function
 
 (defun filesets-sublist (lst beg &optional end)
   "Get the sublist of LST from BEG to END - 1."
@@ -214,8 +214,8 @@ key is supported."
 
 (defun filesets-which-command-p (cmd)
   "Call \"which CMD\" and return non-nil if the command was found."
-  (when (string-match (format "\\(/[^/]+\\)?/%s" cmd)
-		      (filesets-which-command cmd))
+  (when (string-match-p (format "\\(/[^/]+\\)?/%s" cmd)
+			(filesets-which-command cmd))
     cmd))
 
 (defun filesets-message (level &rest args)
@@ -805,8 +805,8 @@ In order to view pdf or rtf files in an Emacs buffer, you could use these:
        (:match-number 2)
        (:get-file-name (lambda (master file)
 			 (filesets-which-file master file load-path))))))
-    ("^\\([A-Zƒ÷‹][a-z‰ˆ¸ﬂ]+\\([A-Zƒ÷‹][a-z‰ˆ¸ﬂ]+\\)+\\)$" t
-     (((:pattern "\\<\\([A-Zƒ÷‹][a-z‰ˆ¸ﬂ]+\\([A-Zƒ÷‹][a-z‰ˆ¸ﬂ]+\\)+\\)\\>")
+    ("^\\([A-Z√Ñ√ñ√ú][a-z√§√∂√º√ü]+\\([A-Z√Ñ√ñ√ú][a-z√§√∂√º√ü]+\\)+\\)$" t
+     (((:pattern "\\<\\([A-Z√Ñ√ñ√ú][a-z√§√∂√º√ü]+\\([A-Z√Ñ√ñ√ú][a-z√§√∂√º√ü]+\\)+\\)\\>")
        (:scan-depth 5)
        (:stubp (lambda (a b) (not (filesets-files-in-same-directory-p a b))))
        (:case-sensitive t)
@@ -1082,7 +1082,7 @@ defined in `filesets-ingroup-patterns'."
 
     (require 'easymenu)
 
-    (defun filesets-error (class &rest args)
+    (defun filesets-error (_class &rest args)
       "`error' wrapper."
       (error "%s" (mapconcat 'identity args " ")))
 
@@ -1093,10 +1093,10 @@ defined in `filesets-ingroup-patterns'."
 If NEGATIVE is non-nil, remove all directory names."
   (filesets-filter-list lst
 			(lambda (x)
-			  (and (not (string-match "^\\.+/$" x))
+			  (and (not (string-match-p "^\\.+/$" x))
 			       (if negative
-				   (not (string-match "[:/\\]$" x))
-				 (string-match "[:/\\]$" x))))))
+				   (not (string-match-p "[:/\\]$" x))
+				 (string-match-p "[:/\\]$" x))))))
 
 (defun filesets-conditional-sort (lst &optional access-fn)
   "Return a sorted copy of LST, LST being a list of strings.
@@ -1130,18 +1130,18 @@ Return full path if FULL-FLAG is non-nil."
 	  (dirs  nil))
       (dolist (this (file-name-all-completions "" dir))
 	(cond
-	 ((string-match "^\\.+/$" this)
+	 ((string-match-p "^\\.+/$" this)
 	  nil)
-	 ((string-match "[:/\\]$" this)
+	 ((string-match-p "[:/\\]$" this)
 	  (when (or (not match-dirs-flag)
 		    (not pattern)
-		    (string-match pattern this))
+		    (string-match-p pattern this))
 	    (filesets-message 5 "Filesets: matched dir %S with pattern %S"
 			      this pattern)
 	    (setq dirs (cons this dirs))))
 	 (t
 	  (when (or (not pattern)
-		    (string-match pattern this))
+		    (string-match-p pattern this))
 	    (filesets-message 5 "Filesets: matched file %S with pattern %S"
 			      this pattern)
 	    (setq files (cons (if full-flag
@@ -1249,7 +1249,7 @@ Return full path if FULL-FLAG is non-nil."
   (let ((filename (file-name-nondirectory file)))
     (filesets-some
      (lambda (entry)
-       (when (and (string-match (nth 0 entry) filename)
+       (when (and (string-match-p (nth 0 entry) filename)
 		  (filesets-eviewer-constraint-p entry))
 	 entry))
      filesets-external-viewers)))
@@ -1767,7 +1767,7 @@ Use LOOKUP-NAME for searching additional data if provided."
 				    n name)))
 	      (dolist (this files nil)
 		(filesets-file-open open-function this))
-	    (message "Filesets: cancelled")))
+	    (message "Filesets: canceled")))
       (filesets-error 'error "Filesets: Unknown fileset: " name))))
 
 (defun filesets-close (&optional mode name lookup-name)
@@ -2004,7 +2004,7 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
 	(fn (or fun (lambda (a b)
 		      (and (stringp a)
 			   (stringp b)
-			   (string-match a b))))))
+			   (string-match-p a b))))))
     (filesets-some (lambda (x)
 		     (if (funcall fn (car x) masterfile)
 			 (nth pos x)

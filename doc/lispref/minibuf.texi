@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Minibuffers
@@ -211,25 +211,39 @@ This function works by calling the
 @end smallexample
 @end defun
 
-@defun read-regexp prompt &optional default history
+@defun read-regexp prompt &optional defaults history
 This function reads a regular expression as a string from the
-minibuffer and returns it.  The argument @var{prompt} is used as in
-@code{read-from-minibuffer}.
+minibuffer and returns it.  If the minibuffer prompt string
+@var{prompt} does not end in @samp{:} (followed by optional
+whitespace), the function adds @samp{: } to the end, preceded by the
+default return value (see below), if that is non-empty.
 
-The optional argument @var{default} specifies a default value to
-return if the user enters null input; it should be a string, or
-@code{nil}, which is equivalent to an empty string.
+The optional argument @var{defaults} controls the default value to
+return if the user enters null input, and should be one of: a string;
+@code{nil}, which is equivalent to an empty string; a list of strings;
+or a symbol.
 
-The optional argument @var{history}, if non-@code{nil}, is a symbol
-specifying a minibuffer history list to use (@pxref{Minibuffer
-History}).  If it is omitted or @code{nil}, the history list defaults
-to @code{regexp-history}.
+If @var{defaults} is a symbol, @code{read-regexp} consults the value
+of the variable @code{read-regexp-defaults-function} (see below), and
+if that is non-@code{nil} uses it in preference to @var{defaults}.
+The value in this case should be either:
 
-@code{read-regexp} also collects a few useful candidates for input and
-passes them to @code{read-from-minibuffer}, to make them available to
-the user as the ``future minibuffer history list'' (@pxref{Minibuffer
-History, future list,, emacs, The GNU Emacs Manual}).  These
-candidates are:
+@itemize @minus
+@item
+@code{regexp-history-last}, which means to use the first element of
+the appropriate minibuffer history list (see below).
+
+@item
+A function of no arguments, whose return value (which should be
+@code{nil}, a string, or a list of strings) becomes the value of
+@var{defaults}.
+@end itemize
+
+@code{read-regexp} now ensures that the result of processing
+@var{defaults} is a list (i.e., if the value is @code{nil} or a
+string, it converts it to a list of one element).  To this list,
+@code{read-regexp} then appends a few potentially useful candidates for
+input.  These are:
 
 @itemize @minus
 @item
@@ -242,9 +256,36 @@ The last string used in an incremental search.
 The last string or pattern used in query-replace commands.
 @end itemize
 
-This function works by calling the @code{read-from-minibuffer}
-function, after computing the list of defaults as described above.
+The function now has a list of regular expressions that it passes to
+@code{read-from-minibuffer} to obtain the user's input.  The first
+element of the list is the default result in case of empty input.  All
+elements of the list are available to the user as the ``future
+minibuffer history list'' (@pxref{Minibuffer History, future list,,
+emacs, The GNU Emacs Manual}).
+
+The optional argument @var{history}, if non-@code{nil}, is a symbol
+specifying a minibuffer history list to use (@pxref{Minibuffer
+History}).  If it is omitted or @code{nil}, the history list defaults
+to @code{regexp-history}.
 @end defun
+
+@defvar read-regexp-defaults-function
+The function @code{read-regexp} may use the value of this variable to
+determine its list of default regular expressions.  If non-@code{nil},
+the value of this variable should be either:
+
+@itemize @minus
+@item
+The symbol @code{regexp-history-last}.
+
+@item
+A function of no arguments that returns either @code{nil}, a string,
+or a list of strings.
+@end itemize
+
+@noindent
+See @code{read-regexp} above for details of how these values are used.
+@end defvar
 
 @defvar minibuffer-allow-text-properties
 If this variable is @code{nil}, then @code{read-from-minibuffer}
@@ -889,6 +930,7 @@ Here is an example:
 @c FIXME?  completion-table-with-context?
 @findex completion-table-case-fold
 @findex completion-table-in-turn
+@findex completion-table-merge
 @findex completion-table-subvert
 @findex completion-table-with-quoting
 @findex completion-table-with-predicate
@@ -897,9 +939,10 @@ Here is an example:
 @cindex completion tables, combining
 There are several functions that take an existing completion table and
 return a modified version.  @code{completion-table-case-fold} returns
-a case-insensitive table.  @code{completion-table-in-turn} combines
-multiple input tables.  @code{completion-table-subvert} alters a table
-to use a different initial prefix.  @code{completion-table-with-quoting}
+a case-insensitive table.  @code{completion-table-in-turn} and
+@code{completion-table-merge} combine multiple input tables in
+different ways.  @code{completion-table-subvert} alters a table to use
+a different initial prefix.  @code{completion-table-with-quoting}
 returns a table suitable for operating on quoted text.
 @code{completion-table-with-predicate} filters a table with a
 predicate function.  @code{completion-table-with-terminator} adds a
@@ -1099,7 +1142,7 @@ The list of completions is displayed as text in a buffer named
 @file{*Completions*}.
 @end deffn
 
-@defun display-completion-list completions &optional common-substring
+@defun display-completion-list completions
 This function displays @var{completions} to the stream in
 @code{standard-output}, usually a buffer.  (@xref{Read and Print}, for more
 information about streams.)  The argument @var{completions} is normally
@@ -1110,13 +1153,6 @@ which is printed as if the strings were concatenated.  The first of
 the two strings is the actual completion, the second string serves as
 annotation.
 
-The argument @var{common-substring} is the prefix that is common to
-all the completions.  With normal Emacs completion, it is usually the
-same as the string that was completed.  @code{display-completion-list}
-uses this to highlight text in the completion list for better visual
-feedback.  This is not needed in the minibuffer; for minibuffer
-completion, you can pass @code{nil}.
-
 This function is called by @code{minibuffer-completion-help}.  A
 common way to use it is together with
 @code{with-output-to-temp-buffer}, like this:
@@ -1124,8 +1160,7 @@ common way to use it is together with
 @example
 (with-output-to-temp-buffer "*Completions*"
   (display-completion-list
-    (all-completions (buffer-string) my-alist)
-    (buffer-string)))
+    (all-completions (buffer-string) my-alist)))
 @end example
 @end defun
 
@@ -2222,12 +2257,6 @@ entire contents of the current buffer.
 @defun minibuffer-contents-no-properties
 This is like @code{minibuffer-contents}, except that it does not copy text
 properties, just the characters themselves.  @xref{Text Properties}.
-@end defun
-
-@defun minibuffer-completion-contents
-This is like @code{minibuffer-contents}, except that it returns only
-the contents before point.  That is the part that completion commands
-operate on.  @xref{Minibuffer Completion}.
 @end defun
 
 @defun delete-minibuffer-contents

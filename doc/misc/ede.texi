@@ -1,11 +1,12 @@
 \input texinfo
 @setfilename ../../info/ede
 @settitle Emacs Development Environment
+@documentencoding UTF-8
 
 @copying
 This file describes EDE, the Emacs Development Environment.
 
-Copyright @copyright{} 1998--2001, 2004--2005, 2008--2013
+Copyright @copyright{} 1998--2001, 2004--2005, 2008--2014
 Free Software Foundation, Inc.
 
 @quotation
@@ -30,6 +31,9 @@ modify this GNU manual.''
 @center @titlefont{EDE (The Emacs Development Environment)}
 @sp 4
 @center by Eric Ludlam
+@page
+@vskip 0pt plus 1filll
+@insertcopying
 @end titlepage
 @page
 
@@ -1564,26 +1568,22 @@ Type: @code{string} @*
 Default Value: @code{"Untitled"}
 
 The name used when generating distribution files.
-@refill
 
 @item :version
 Type: @code{string} @*
 Default Value: @code{"1.0"}
 
 The version number used when distributing files.
-@refill
 
 @item :directory
 Type: @code{string}
 
 Directory this project is associated with.
-@refill
 
 @item :file
 Type: @code{string}
 
 File name where this project is stored.
-@refill
 
 @end table
 
@@ -1656,35 +1656,30 @@ Make sure placeholder @var{THIS} is replaced with the real thing, and pass throu
 Type: @code{list}
 
 List of top level targets in this project.
-@refill
 
 @item :tool-cache
 Type: @code{list}
 
 List of tool cache configurations in this project.
 This allows any tool to create, manage, and persist project-specific settings.
-@refill
 
 @item :web-site-url
 Type: @code{string} @*
 
 URL to this projects web site.
 This is a URL to be sent to a web site for documentation.
-@refill
 
 @item :web-site-directory @*
 
 A directory where web pages can be found by Emacs.
 For remote locations use a path compatible with ange-ftp or EFS@.
 You can also use TRAMP for use with rcp & scp.
-@refill
 
 @item :web-site-file @*
 
 A file which contains the home page for this project.
 This file can be relative to slot @code{web-site-directory}.
 This can be a local file, use ange-ftp, EFS, or TRAMP.
-@refill
 
 @item :ftp-site
 Type: @code{string} @*
@@ -1692,7 +1687,6 @@ Type: @code{string} @*
 FTP site where this project's distribution can be found.
 This FTP site should be in Emacs form, as needed by @code{ange-ftp}, but can
 also be of a form used by TRAMP for use with scp, or rcp.
-@refill
 
 @item :ftp-upload-site
 Type: @code{string} @*
@@ -1700,7 +1694,6 @@ Type: @code{string} @*
 FTP Site to upload new distributions to.
 This FTP site should be in Emacs form as needed by @code{ange-ftp}.
 If this slot is @code{nil}, then use @code{ftp-site} instead.
-@refill
 
 @item :configurations
 Type: @code{list} @*
@@ -1709,19 +1702,16 @@ Default Value: @code{("debug" "release")}
 List of available configuration types.
 Individual target/project types can form associations between a configuration,
 and target specific elements such as build variables.
-@refill
 
 @item :configuration-default @*
 Default Value: @code{"debug"}
 
 The default configuration.
-@refill
 
 @item :local-variables @*
 Default Value: @code{nil}
 
 Project local variables
-@refill
 
 @end table
 
@@ -1966,7 +1956,6 @@ buffer's @code{default-directory} (not starting with a /).  Directories
 that are relative to the project's root should start with a /, such
 as  "/include", meaning the directory @code{include} off the project root
 directory.
-@refill
 
 @item :system-include-path
 Type: @code{list} @*
@@ -1976,7 +1965,6 @@ The system include path for files in this project.
 C files initialized in an ede-cpp-root-project have their semantic
 system include path set to this value.  If this is @code{nil}, then the
 semantic path is not modified.
-@refill
 
 @item :spp-table
 Type: @code{list} @*
@@ -1988,7 +1976,6 @@ These macros might be passed in through the command line compiler, or
 are critical symbols derived from header files.  Providing header files
 macro values through this slot improves accuracy and performance.
 Use `:spp-files' to use these files directly.
-@refill
 
 @item :spp-files
 Type: @code{list} @*
@@ -1998,14 +1985,12 @@ C header file with Preprocessor macros for your files.
 The PreProcessor symbols appearing in these files will be used while
 parsing files in this project.
 See @code{semantic-lex-c-preprocessor-symbol-map} for more on how this works.
-@refill
 
 @item :header-match-regexp
 Type: @code{string} @*
 Default Value: @code{"\\.\\(h\\(h\\|xx\\|pp\\|\\+\\+\\)?\\|H\\)$\\|\\<\\w+$"}
 
 Regexp used to identify C/C++ header files.
-@refill
 
 @item :locate-fcn
 Type: @code{(or null function)} @*
@@ -2020,7 +2005,6 @@ The function symbol must take two arguments:
 
 It should return the fully qualified file name passed in from NAME@.  If that file does not
 exist, it should return nil.
-@refill
 
 @end table
 
@@ -2144,14 +2128,12 @@ The type of Makefile to generate.
 Can be one of @code{'Makefile}, 'Makefile.in, or 'Makefile.am.
 If this value is NOT @code{'Makefile}, then that overrides the @code{:makefile} slot
 in targets.
-@refill
 
 @item :variables
 Type: @code{list} @*
 Default Value: @code{nil}
 
 Variables to set in this Makefile.
-@refill
 
 @item :configuration-variables
 Type: @code{list} @*
@@ -2159,27 +2141,23 @@ Default Value: @code{("debug" (("DEBUG" . "1")))}
 
 Makefile variables to use in different configurations.
 These variables are used in the makefile when a configuration becomes active.
-@refill
 
 @item :inference-rules @*
 Default Value: @code{nil}
 
 Inference rules to add to the makefile.
-@refill
 
 @item :include-file @*
 Default Value: @code{nil}
 
 Additional files to include.
 These files can contain additional rules, variables, and customizations.
-@refill
 
 @item :automatic-dependencies
 Type: @code{boolean} @*
 Default Value: @code{t}
 
 Non-@code{nil} to do implement automatic dependencies in the Makefile.
-@refill
 
 @item :metasubproject
 Type: @code{boolean} @*
@@ -2190,7 +2168,6 @@ Usually, a subproject is determined by a parent project.  If multiple top level
 projects are grouped into a large project not maintained by EDE, then you need
 to set this to non-nil.  The only effect is that the @code{dist} rule will then avoid
 making a tar file.
-@refill
 
 @end table
 
@@ -2380,7 +2357,6 @@ Type: @code{list} @*
 Default Value: @code{nil}
 
 Variables to set in this Makefile, at top of file.
-@refill
 
 @item :additional-variables
 Type: @code{(or null list)} @*
@@ -2388,7 +2364,6 @@ Default Value: @code{nil}
 
 Arbitrary variables needed from this project.
 It is safe to leave this blank.
-@refill
 
 @item :additional-rules
 Type: @code{(or null list)} @*
@@ -2396,7 +2371,6 @@ Default Value: @code{nil}
 
 Arbitrary rules and dependencies needed to make this target.
 It is safe to leave this blank.
-@refill
 
 @item :installation-domain
 Type: @code{symbol} @*
@@ -2404,7 +2378,6 @@ Default Value: @code{user}
 
 Installation domain specification.
 The variable GNUSTEP_INSTALLATION_DOMAIN is set at this value.
-@refill
 
 @item :preamble
 Type: @code{(or null list)} @*
@@ -2412,7 +2385,6 @@ Default Value: @code{(quote ("GNUmakefile.preamble"))}
 
 The auxiliary makefile for additional variables.
 Included just before the specific target files.
-@refill
 
 @item :postamble
 Type: @code{(or null list)} @*
@@ -2420,7 +2392,6 @@ Default Value: @code{(quote ("GNUmakefile.postamble"))}
 
 The auxiliary makefile for additional rules.
 Included just after the specific target files.
-@refill
 
 @item :metasubproject
 Type: @code{boolean} @*
@@ -2431,7 +2402,6 @@ Usually, a subproject is determined by a parent project.  If multiple top level
 projects are grouped into a large project not maintained by EDE, then you need
 to set this to non-nil.  The only effect is that the @code{dist} rule will then avoid
 making a tar file.
-@refill
 
 @end table
 
@@ -2536,21 +2506,18 @@ Commit change to local variables in @var{PROJ}.
 Type: @code{string}
 
 Name of this target.
-@refill
 
 @item :path
 Type: @code{string}
 
 The path to the sources of this target.
 Relative to the path of the project it belongs to.
-@refill
 
 @item :source
 Type: @code{list} @*
 Default Value: @code{nil}
 
 Source files in this target.
-@refill
 
 @item :versionsource
 Type: @code{list} @*
@@ -2560,7 +2527,6 @@ Source files with a version string in them.
 These files are checked for a version string whenever the EDE version
 of the master project is changed.  When strings are found, the version
 previously there is updated.
-@refill
 
 @end table
 
@@ -2752,14 +2718,12 @@ Retrieves the slot @code{menu} from an object of class @code{ede-target}
 Type: @code{string}
 
 Name of this target.
-@refill
 
 @item :path
 Type: @code{string}
 
 The path to the sources of this target.
 Relative to the path of the project it belongs to.
-@refill
 
 @item :auxsource
 Type: @code{list} @*
@@ -2768,7 +2732,6 @@ Default Value: @code{nil}
 Auxiliary source files included in this target.
 Each of these is considered equivalent to a source file, but it is not
 distributed, and each should have a corresponding rule to build it.
-@refill
 
 @item :compiler
 Type: @code{(or null symbol)} @*
@@ -2778,7 +2741,6 @@ The compiler to be used to compile this object.
 This should be a symbol, which contains the object defining the compiler.
 This enables save/restore to do so by name, permitting the sharing
 of these compiler resources, and global customization thereof.
-@refill
 
 @item :linker
 Type: @code{(or null symbol)} @*
@@ -2788,7 +2750,6 @@ The linker to be used to link compiled sources for this object.
 This should be a symbol, which contains the object defining the linker.
 This enables save/restore to do so by name, permitting the sharing
 of these linker resources, and global customization thereof.
-@refill
 
 @end table
 
@@ -2950,7 +2911,6 @@ Type: @code{string} @*
 Default Value: @code{"Makefile"}
 
 File name of generated Makefile.
-@refill
 
 @item :partofall
 Type: @code{boolean} @*
@@ -2959,7 +2919,6 @@ Default Value: @code{t}
 Non @code{nil} means the rule created is part of the all target.
 Setting this to @code{nil} creates the rule to build this item, but does not
 include it in the ALL`all:' rule.
-@refill
 
 @item :configuration-variables
 Type: @code{list} @*
@@ -2969,7 +2928,6 @@ Makefile variables appended to use in different configurations.
 These variables are used in the makefile when a configuration becomes active.
 Target variables are always renamed such as foo_CFLAGS, then included into
 commands where the variable would usually appear.
-@refill
 
 @item :rules
 Type: @code{list} @*
@@ -2977,7 +2935,6 @@ Default Value: @code{nil}
 
 Arbitrary rules and dependencies needed to make this target.
 It is safe to leave this blank.
-@refill
 
 @end table
 
@@ -3221,7 +3178,6 @@ The linker flag "-l" is automatically prepended.  Do not include a "lib"
 prefix, or a ".so" suffix.
 
 Note: Currently only used for Automake projects.
-@refill
 
 @item :ldflags
 Type: @code{list} @*
@@ -3232,7 +3188,6 @@ Use ldlibs to add addition libraries.  Use this to specify specific
 options to the linker.
 
 Note: Not currently used.  This bug needs to be fixed.
-@refill
 
 @end table
 
@@ -3358,7 +3313,6 @@ Additional packages needed.
 There should only be one toplevel package per auxiliary tool needed.
 These packages location is found, and added to the compile time
 load path.
-@refill
 
 @end table
 
@@ -3439,7 +3393,6 @@ Default Value: @code{"loaddefs.el"}
 The file that autoload definitions are placed in.
 There should be one load defs file for a given package.  The load defs are created
 for all Emacs Lisp sources that exist in the directory of the created target.
-@refill
 
 @item :autoload-dirs
 Type: @code{list} @*
@@ -3447,7 +3400,6 @@ Default Value: @code{nil}
 
 The directories to scan for autoload definitions.
 If @code{nil} defaults to the current directory.
-@refill
 
 @end table
 
@@ -3547,7 +3499,6 @@ Default Value: @code{""}
 
 Miscellaneous sources which have a specialized makefile.
 The sub-makefile is used to build this target.
-@refill
 
 @end table
 
@@ -3604,7 +3555,6 @@ Default Value: @code{""}
 
 The main menu resides in this file.
 All other sources should be included independently.
-@refill
 
 @end table
 
@@ -3687,7 +3637,6 @@ Type: @code{string} @*
 Default Value: @code{"guile"}
 
 The preferred interpreter for this code.
-@refill
 
 @end table
 
@@ -3817,7 +3766,6 @@ No children
 Default Value: @code{nil}
 
 Additional LD args.
-@refill
 @end table
 @end table
 
@@ -3949,7 +3897,6 @@ No children
 Default Value: @code{nil}
 
 Additional texinfo included in this one.
-@refill
 
 @end table
 @end table
@@ -4036,21 +3983,18 @@ Type: @code{eieio-instance-inheritor-child}
 The parent of this instance.
 If a slot of this class is reference, and is unbound, then  the parent
 is checked for a value.
-@refill
 
 @item :name
 Type: @code{string}
 
 The name of this type of source code.
 Such as "C" or "Emacs Lisp"
-@refill
 
 @item :sourcepattern
 Type: @code{string} @*
 Default Value: @code{".*"}
 
 Emacs regex matching sourcecode this target accepts.
-@refill
 
 @item :auxsourcepattern
 Type: @code{(or null string)} @*
@@ -4059,7 +4003,6 @@ Default Value: @code{nil}
 Emacs regex matching auxiliary source code this target accepts.
 Aux source are source code files needed for compilation, which are not compiled
 themselves.
-@refill
 
 @item :enable-subdirectories
 Type: @code{boolean} @*
@@ -4069,7 +4012,6 @@ Non @code{nil} if this sourcecode type uses subdirectores.
 If sourcecode always lives near the target creating it, this should be nil.
 If sourcecode can, or typically lives in a subdirectory of the owning
 target, set this to t.
-@refill
 
 @item :garbagepattern
 Type: @code{list} @*
@@ -4078,7 +4020,6 @@ Default Value: @code{nil}
 Shell file regex matching files considered as garbage.
 This is a list of items added to an @code{rm} command when executing a @code{clean}
 type directive.
-@refill
 
 @end table
 
@@ -4158,13 +4099,11 @@ Type: @code{eieio-instance-inheritor-child}
 The parent of this instance.
 If a slot of this class is reference, and is unbound, then  the parent
 is checked for a value.
-@refill
 
 @item :name
 Type: @code{string}
 
 Name of this type of compiler.
-@refill
 
 @item :variables
 Type: @code{list}
@@ -4173,7 +4112,6 @@ Variables needed in the Makefile for this compiler.
 An assoc list where each element is (VARNAME . VALUE) where VARNAME
 is a string, and VALUE is either a string, or a list of strings.
 For example, GCC would define CC=gcc, and emacs would define EMACS=emacs.
-@refill
 
 @item :sourcetype
 Type: @code{list}
@@ -4181,7 +4119,6 @@ Type: @code{list}
 A list of @code{ede-sourcecode} @xref{ede-sourcecode}. objects this class will handle.
 This is used to match target objects with the compilers and linkers
 they can use, and which files this object is interested in.
-@refill
 
 @item :rules
 Type: @code{list} @*
@@ -4189,7 +4126,6 @@ Default Value: @code{nil}
 
 Auxiliary rules needed for this compiler to run.
 For example, yacc/lex files need additional chain rules, or inferences.
-@refill
 
 @item :commands
 Type: @code{list}
@@ -4197,7 +4133,6 @@ Type: @code{list}
 The commands used to execute this compiler.
 The object which uses this compiler will place these commands after
 it's rule definition.
-@refill
 
 @item :autoconf
 Type: @code{list} @*
@@ -4208,14 +4143,12 @@ When a project is in Automake mode, this defines the autoconf function to
 call to initialize automake to use this compiler.
 For example, there may be multiple C compilers, but they all probably
 use the same autoconf form.
-@refill
 
 @item :objectextention
 Type: @code{string}
 
 A string which is the extension used for object files.
 For example, C code uses .o on unix, and Emacs Lisp uses .elc.
-@refill
 
 @end table
 
@@ -4285,13 +4218,11 @@ Type: @code{eieio-instance-inheritor-child}
 The parent of this instance.
 If a slot of this class is reference, and is unbound, then  the parent
 is checked for a value.
-@refill
 
 @item :name
 Type: @code{string}
 
 Name of this type of compiler.
-@refill
 
 @item :variables
 Type: @code{list}
@@ -4300,7 +4231,6 @@ Variables needed in the Makefile for this compiler.
 An assoc list where each element is (VARNAME . VALUE) where VARNAME
 is a string, and VALUE is either a string, or a list of strings.
 For example, GCC would define CC=gcc, and emacs would define EMACS=emacs.
-@refill
 
 @item :sourcetype
 Type: @code{list}
@@ -4308,7 +4238,6 @@ Type: @code{list}
 A list of @code{ede-sourcecode} @xref{ede-sourcecode}. objects this class will handle.
 This is used to match target objects with the compilers and linkers
 they can use, and which files this object is interested in.
-@refill
 
 @item :commands
 Type: @code{list}
@@ -4316,21 +4245,18 @@ Type: @code{list}
 The commands used to execute this compiler.
 The object which uses this compiler will place these commands after
 it's rule definition.
-@refill
 
 @item :objectextention
 Type: @code{string}
 
 A string which is the extension used for object files.
 For example, C code uses .o on unix, and Emacs Lisp uses .elc.
-@refill
 
 @item :makedepends
 Type: @code{boolean} @*
 Default Value: @code{nil}
 
 Non-@code{nil} if this compiler can make dependencies.
-@refill
 
 @item :uselinker
 Type: @code{boolean} @*
@@ -4339,7 +4265,6 @@ Default Value: @code{nil}
 Non-@code{nil} if this compiler creates code that can be linked.
 This requires that the containing target also define a list of available
 linkers that can be used.
-@refill
 
 @end table
 
@@ -4399,7 +4324,6 @@ Default Value: @code{t}
 Type: @code{list}
 
 A variable dedicated to dependency generation.
-@refill
 @end table
 @end table
 
@@ -4439,7 +4363,6 @@ No children
 Type: @code{string}
 
 Name of this type of compiler.
-@refill
 
 @item :variables
 Type: @code{list}
@@ -4448,7 +4371,6 @@ Variables needed in the Makefile for this compiler.
 An assoc list where each element is (VARNAME . VALUE) where VARNAME
 is a string, and VALUE is either a string, or a list of strings.
 For example, GCC would define CC=gcc, and emacs would define EMACS=emacs.
-@refill
 
 @item :sourcetype
 Type: @code{list}
@@ -4456,7 +4378,6 @@ Type: @code{list}
 A list of @code{ede-sourcecode} @xref{ede-sourcecode}. objects this class will handle.
 This is used to match target objects with the compilers and linkers
 they can use, and which files this object is interested in.
-@refill
 
 @item :commands
 Type: @code{list}
@@ -4464,14 +4385,12 @@ Type: @code{list}
 The commands used to execute this compiler.
 The object which uses this compiler will place these commands after
 it's rule definition.
-@refill
 
 @item :objectextention
 Type: @code{string}
 
 A string which is the extension used for object files.
 For example, C code uses .o on unix, and Emacs Lisp uses .elc.
-@refill
 
 @end table
 @end table

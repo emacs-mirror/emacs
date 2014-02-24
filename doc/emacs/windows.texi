@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Windows
@@ -258,7 +258,7 @@ Make all windows the same height (@code{balance-windows}).
 the space that it occupied is given to an adjacent window (but not the
 minibuffer window, even if that is active at the time).  Deleting the
 window has no effect on the buffer it used to display; the buffer
-continues to exist, and you can still switch to with @kbd{C-x b}.
+continues to exist, and you can still switch to it with @kbd{C-x b}.
 
 @findex kill-buffer-and-window
 @kindex C-x 4 0

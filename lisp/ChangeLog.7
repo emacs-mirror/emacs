@@ -417,7 +417,7 @@
 
 1998-08-05  Sam Steingold  <sds@goems.com>
 
-	* cl-indent.el (top-level let): Add defsubst.
+	* emacs-lisp/cl-indent.el (top-level let): Add defsubst.
 
 1998-08-04  Andrew Innes  <andrewi@harlequin.co.uk>
 
@@ -2956,7 +2956,7 @@
 
 1998-05-21  Sam Steingold  <sds@usa.net>
 
-	* cl-indent.el: Indent `with-standard-io-syntax' correctly.
+	* emacs-lisp/cl-indent.el: Indent `with-standard-io-syntax' correctly.
 
 1998-05-21  Michael Ernst  <ernst@cs.washington.edu>
 
@@ -4097,7 +4097,7 @@
 
 1998-04-24  Sam Steingold  <sds@usa.net>
 
-	* cl-indent.el: Indent defpackage correctly.
+	* emacs-lisp/cl-indent.el: Indent defpackage correctly.
 
 	* font-lock.el (lisp-font-lock-keywords-2): Added `defpackage'.
 
@@ -4471,8 +4471,8 @@
 
 1998-04-16  Ilya Zakharevich  <ilya@math.ohio-state.edu>
 
-	* cperl-mode.el (cperl-style-alist): New variable, since `c-mode'
-	is no longer loaded.
+	* progmodes/cperl-mode.el (cperl-style-alist):
+	New variable, since `c-mode' is no longer loaded.
 	- (Somebody who uses the styles should check that they work OK!)
 	- (a lot of work is needed, especially with new
 	  `cperl-fix-line-spacing').
@@ -7617,7 +7617,7 @@
 	Delete the binding for toggle-enable-multibyte-characters.
 	(mule-menu-keymap): Delete the menu item for it.
 
-1997-12-17  Peter Galbraith  <galbraith@mixing.qc.dfo.ca>
+1997-12-17  Peter S Galbraith  <galbraith@mixing.qc.dfo.ca>
 
 	* simple.el (copy-region-as-kill):
 	Deactivate mark in transient-mark-mode.
@@ -7681,7 +7681,7 @@
 
 	* progmodes/scheme.el, progmodes/tcl-mode.el, progmodes/f90.el,
 	* progmodes/fortran.el, progmodes/c-mode.el, progmodes/ada-mode.el,
-	* cc-mode.el, progmodes/cplus-md.el, progmodes/dcl-mode.el,
+	* progmodes/cc-mode.el, progmodes/cplus-md.el, progmodes/dcl-mode.el,
 	* progmodes/pascal.el, progmodes/perl-mode.el, textmodes/bibtex.el,
 	* textmodes/texinfo.el, emacs-lisp/lisp-mode.el, generic.el,
 	* progmodes/octave-mod.el: Use imenu-case-fold-search.
@@ -12109,32 +12109,34 @@
 
 1997-08-15  Barry A. Warsaw  <cc-mode-help@python.org>
 
-	* cc-styles.el (c-style-alist):
+	* progmodes/cc-styles.el (c-style-alist):
 	"python" style requires c-comment-continuation-stars be "".
 
-	* cc-engine.el (c-end-of-statement-1):
+	* progmodes/cc-engine.el (c-end-of-statement-1):
 	Eliminate false hits on important characters
 	inside literals (strings, comments).
 
-	* cc-cmds.el (c-comment-line-break-function):
+	* progmodes/cc-cmds.el (c-comment-line-break-function):
 	In this function, and the defadvice,
 	call indent-new-comment-line if not in a comment.
 
-	* cc-cmds.el (c-fill-paragraph):
+	* progmodes/cc-cmds.el (c-fill-paragraph):
 	Remove conditional on obsolete variable
 	c-double-slash-is-comments-p.
 
-	* cc-vars.el (c-buffer-is-cc-mode): Definition moved to cc-mode.el.
+	* progmodes/cc-vars.el (c-buffer-is-cc-mode):
+	Definition moved to cc-mode.el.
 
-	* cc-mode.el (c-buffer-is-cc-mode):
+	* progmodes/cc-mode.el (c-buffer-is-cc-mode):
 	Definition moved here from cc-vars.el.  Also,
 	put permanent-local property on variable so its value won't get
 	killed by kill-all-local-variables.
 
-	* cc-mode.el (c++-mode, java-mode, objc-mode, idl-mode):
+	* progmodes/cc-mode.el (c++-mode, java-mode, objc-mode, idl-mode):
 	Remove obsolete variable c-double-slash-is-comments-p.
 
-	* cc-langs.el (c-double-slash-is-comments-p): Remove obsolete variable.
+	* progmodes/cc-langs.el (c-double-slash-is-comments-p):
+	Remove obsolete variable.
 
 1997-08-15  Boris Goldowsky  <boris@gnu.ai.mit.edu>
 
@@ -12273,42 +12275,44 @@
 
 	* Release 5.15
 
-	* cc-align.el (c-lineup-java-throws):
+	* progmodes/cc-align.el (c-lineup-java-throws):
 	Change the `when' clause to an `if-progn'.
 
-	* cc-cmds.el (indent-new-comment-line): On older Emacs versions,
-	add advice, to work around lack of comment-line-break-function.
+	* progmodes/cc-cmds.el (indent-new-comment-line):
+	On older Emacs versions, add advice, to work around
+	lack of comment-line-break-function.
 
-	* cc-cmds.el (c-electric-slash):
+	* progmodes/cc-cmds.el (c-electric-slash):
 	Make this work as the final slash in a */ block
 	oriented comment closing token.
 
-	* cc-cmds.el (c-comment-line-break-function): New function.
+	* progmodes/cc-cmds.el (c-comment-line-break-function): New function.
 
-	* cc-vars.el (c-buffer-is-cc-mode): New variable.
+	* progmodes/cc-vars.el (c-buffer-is-cc-mode): New variable.
 
-	* cc-vars.el (c-comment-continuation-stars): New variable.
+	* progmodes/cc-vars.el (c-comment-continuation-stars): New variable.
 
-	* cc-mode.el (c-initialize-cc-mode): Set c-buffer-is-cc-mode to t.
+	* progmodes/cc-mode.el (c-initialize-cc-mode):
+	Set c-buffer-is-cc-mode to t.
 
-	* cc-mode.el (c-initialize-cc-mode): Require 'cc-mode-19
+	* progmodes/cc-mode.el (c-initialize-cc-mode): Require 'cc-mode-19
 	if functionp is not bound.  Check cc-mode-19 interface requirements.
 
-	* cc-mode.el (c-mode, c++-mode, objc-mode, java-mode, idl-mode):
-	Don't set comment-multi-line here.
+	* progmodes/cc-mode.el (c-mode, c++-mode, objc-mode, java-mode)
+	(idl-mode): Don't set comment-multi-line here.
 
-	* cc-mode.el (c-mode): c-comment-start-regexp uses
+	* progmodes/cc-mode.el (c-mode): c-comment-start-regexp uses
 	c-C++-comment-start-regexp to support line oriented comments.
 
-	* cc-langs.el (c-mode-base-map, c++-mode-map):
+	* progmodes/cc-langs.el (c-mode-base-map, c++-mode-map):
 	Move `/' as an electric character
 	from c++-mode-map to c-mode-base-map for all languages.
 
-	* cc-langs.el (c-common-init): Set comment-multi-line and
+	* progmodes/cc-langs.el (c-common-init): Set comment-multi-line and
 	comment-line-break-function here for all modes.
 	Make comment-line-break-function buffer local iff it's boundp.
 
-	* cc-langs.el (c-C-comment-start-regexp): Obsolete.
+	* progmodes/cc-langs.el (c-C-comment-start-regexp): Obsolete.
 
 	(c-comment-start-regexp): Initialize from c-C++-comment-start-regexp.
 
@@ -12319,19 +12323,19 @@
 
 	(c-enable-//-in-c-mode): Obsolete.
 
-	* cc-langs.el (c++-mode-syntax-table, java-mode-syntax-table)
+	* progmodes/cc-langs.el (c++-mode-syntax-table, java-mode-syntax-table)
 	(objc-mode-syntax-table, idl-mode-syntax-table): Added autoload
 	cookies.  c-mode-syntax-table already has one.  Use the new syntax
 	table initialization idioms.
 
-	* cc-engine.el (c-guess-basic-syntax):
+	* progmodes/cc-engine.el (c-guess-basic-syntax):
 	CASE 5D.4: template argument continuation
 	lines are now analyzed as template-args-cont.
 
-	* cc-styles.el (c-offsets-alist):
+	* progmodes/cc-styles.el (c-offsets-alist):
 	Added template-args-cont syntactic symbol.
 
-	* cc-styles.el (c-styles-alist):
+	* progmodes/cc-styles.el (c-styles-alist):
 	In "java" style, set c-hanging-comment-starter-p to
 	nil to preserve Javadoc starter lines.
 
@@ -13689,7 +13693,7 @@
 
 1997-07-10  Rob Riepel  <riepel@Stanford.EDU>
 
-	* emulations/tpu-edt.el (tpu-set-mode-line) Added
+	* emulation/tpu-edt.el (tpu-set-mode-line) Added
 	mode-line-mule-info and mode-line-frame-identification.
 
 1997-07-10  Andreas Schwab  <schwab@issan.informatik.uni-dortmund.de>
@@ -13706,9 +13710,10 @@
 	* progmodes/cc-styles.el (c-copy-tree): New function.
 	(c-initialize-builtin-style): Use c-copy-tree.
 
-	* cc-align.el, cc-cmds.el, cc-compat.el, cc-defs.el, cc-engine.el:
-	* cc-langs.el, cc-menus.el, cc-mode.el, cc-styles.el, cc-vars.el:
-	New version of CC mode installed.
+	* progmodes/cc-align.el, progmodes/cc-cmds.el, progmodes/cc-compat.el:
+	* progmodes/cc-defs.el, progmodes/cc-engine.el, progmodes/cc-langs.el:
+	* progmodes/cc-menus.el, progmodes/cc-mode.el, progmodes/cc-styles.el:
+	* progmodes/cc-vars.el: New version of CC mode installed.
 	Old files completely replaced.
 
 1997-07-10  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
@@ -19198,7 +19203,6 @@
 	* widget.el (:text-format): New keyword.
 	* wid-edit.el (push-button): Define it.
 	(widget-push-button-value-create): Use it.
-	* widget.texi (push-button): Documented it.
 
 1997-04-11  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
@@ -19637,7 +19641,7 @@
 
 	* term/x-win.el (function-key-map): Define iso-lefttab.
 
-1997-03-24  Vince Del Vecchio  <vdelvecc@spd.analog.com>
+1997-03-24  Vincent Del Vecchio  <vdelvecc@spd.analog.com>
 
 	* mh-utils.el (mh-find-progs): When looking for mh-lib, construct
 	likely paths based on mh-progs rather than using a static list.
@@ -23106,7 +23110,7 @@ See ChangeLog.6 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-	Copyright (C) 1997-1998, 2001-2013 Free Software Foundation,
+	Copyright (C) 1997-1998, 2001-2014 Free Software Foundation,
 	Inc.
 
   This file is part of GNU Emacs.

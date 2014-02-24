@@ -1,6 +1,6 @@
 ;;; windmove.el --- directional window-selection routines
 ;;
-;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2014 Free Software Foundation, Inc.
 ;;
 ;; Author: Hovav Shacham (hovav@cs.stanford.edu)
 ;; Created: 17 October 1998
@@ -459,24 +459,17 @@ movement is relative to."
                windmove-window-distance-delta))) ; (x, y1+d-1)
      (t (error "Invalid direction of movement: %s" dir)))))
 
+;; Rewritten on 2013-12-13 using `window-in-direction'.  After the
+;; pixelwise change the old approach didn't work any more.  martin
 (defun windmove-find-other-window (dir &optional arg window)
   "Return the window object in direction DIR.
 DIR, ARG, and WINDOW are handled as by `windmove-other-window-loc'."
-  (let* ((actual-current-window (or window (selected-window)))
-         (raw-other-window-loc
-          (windmove-other-window-loc dir arg actual-current-window))
-         (constrained-other-window-loc
-          (windmove-constrain-loc-for-movement raw-other-window-loc
-                                               actual-current-window
-                                               dir))
-         (other-window-loc
-          (if windmove-wrap-around
-            (windmove-wrap-loc-for-movement constrained-other-window-loc
-                                            actual-current-window)
-            constrained-other-window-loc)))
-    (window-at (car other-window-loc)
-               (cdr other-window-loc))))
-
+  (window-in-direction
+   (cond
+    ((eq dir 'up) 'above)
+    ((eq dir 'down) 'below)
+    (t dir))
+   window nil arg windmove-wrap-around t))
 
 ;; Selects the window that's hopefully at the location returned by
 ;; `windmove-other-window-loc', or screams if there's no window there.

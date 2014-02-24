@@ -1,6 +1,6 @@
 ;;; url-handlers.el --- file-name-handler stuff for URL loading
 
-;; Copyright (C) 1996-1999, 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2014 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -28,15 +28,19 @@
 ;; (require 'url-util)
 (eval-when-compile (require 'mm-decode))
 ;; (require 'mailcap)
-;; The following functions in the byte compiler's warnings are known not
-;; to cause any real problem for the following reasons:
-;; - mm-save-part-to-file, mm-destroy-parts: always used
-;;   after mm-dissect-buffer and defined in the same file.
 ;; The following are autoloaded instead of `require'd to avoid eagerly
 ;; loading all of URL when turning on url-handler-mode in the .emacs.
 (autoload 'url-expand-file-name "url-expand" "Convert url to a fully specified url, and canonicalize it.")
 (autoload 'mm-dissect-buffer "mm-decode" "Dissect the current buffer and return a list of MIME handles.")
 (autoload 'url-scheme-get-property "url-methods" "Get property of a URL SCHEME.")
+
+;; Always used after mm-dissect-buffer and defined in the same file.
+(declare-function mm-save-part-to-file "mm-decode" (handle file))
+(declare-function mm-destroy-parts "mm-decode" (handles))
+;; mm-decode loads mm-bodies.
+(declare-function mm-decode-string "mm-bodies" (string charset))
+;; mm-decode loads mail-parse.
+(declare-function mail-content-type-get "mail-parse" (ct attribute))
 
 ;; Implementation status
 ;; ---------------------
@@ -307,11 +311,17 @@ They count bytes from the beginning of the body."
 (put 'insert-file-contents 'url-file-handlers 'url-insert-file-contents)
 
 (defun url-file-name-completion (url directory &optional predicate)
-  (error "Unimplemented"))
+  ;; Even if it's not implemented, it's not an error to ask for completion,
+  ;; in case it's available (bug#14806).
+  ;; (error "Unimplemented")
+  url)
 (put 'file-name-completion 'url-file-handlers 'url-file-name-completion)
 
 (defun url-file-name-all-completions (file directory)
-  (error "Unimplemented"))
+  ;; Even if it's not implemented, it's not an error to ask for completion,
+  ;; in case it's available (bug#14806).
+  ;; (error "Unimplemented")
+  nil)
 (put 'file-name-all-completions
      'url-file-handlers 'url-file-name-all-completions)
 

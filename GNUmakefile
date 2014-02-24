@@ -1,6 +1,6 @@
 # Build Emacs from a fresh tarball or version-control checkout.
 
-# Copyright (C) 2011-2013 Free Software Foundation, Inc.
+# Copyright (C) 2011-2014 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -32,7 +32,6 @@
 # run "configure" by hand.  But run autogen.sh first, if the source
 # was checked out directly from the repository.
 
-
 # If a Makefile already exists, just use it.
 
 ifeq ($(wildcard Makefile),Makefile)
@@ -63,8 +62,8 @@ default $(filter-out configure Makefile,$(MAKECMDGOALS)): Makefile
 
 configure:
 	@echo >&2 'There seems to be no "configure" file in this directory.'
-	@echo >&2 'Running ./autogen.sh || autogen/copy_autogen ...'
-	./autogen.sh || autogen/copy_autogen
+	@echo >&2 'Running ./autogen.sh ...'
+	./autogen.sh
 	@echo >&2 '"configure" file built.'
 
 Makefile: configure

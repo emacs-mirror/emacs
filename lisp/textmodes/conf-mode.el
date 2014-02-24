@@ -1,6 +1,6 @@
-;;; conf-mode.el --- Simple major mode for editing conf/ini/properties files
+;;; conf-mode.el --- Simple major mode for editing conf/ini/properties files -*- coding: utf-8 -*-
 
-;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2014 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: conf ini windows java
@@ -23,7 +23,7 @@
 ;;; Commentary:
 ;;
 ;; This mode is designed to edit many similar varieties of Conf/Ini files and
-;; Java properties.  It started out from Aurélien Tisné's ini-mode.
+;; Java properties.  It started out from AurÃ©lien TisnÃ©'s ini-mode.
 ;; `conf-space-keywords' were inspired by Robert Fitzgerald's any-ini-mode.
 
 

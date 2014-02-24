@@ -1,9 +1,10 @@
 \input texinfo  @c -*-texinfo-*-
 @setfilename ../../info/ada-mode
 @settitle Ada Mode
+@documentencoding UTF-8
 
 @copying
-Copyright @copyright{} 1999--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

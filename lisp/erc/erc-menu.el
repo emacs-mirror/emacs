@@ -1,9 +1,9 @@
 ;; erc-menu.el -- Menu-bar definitions for ERC
 
-;; Copyright (C) 2001-2002, 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2002, 2004-2014 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: comm, processes, menu
 
 ;; This file is part of GNU Emacs.
@@ -29,6 +29,10 @@
 
 (require 'erc)
 (require 'easymenu)
+
+(defgroup erc-menu nil
+  "ERC menu support."
+  :group 'erc)
 
 (defvar erc-menu-definition
   (list "ERC"

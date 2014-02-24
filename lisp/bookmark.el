@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later
 
-;; Copyright (C) 1993-1997, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -129,9 +129,16 @@ recently set ones come first, oldest ones come last)."
   :type 'boolean
   :group 'bookmark)
 
+(defcustom bookmark-bmenu-use-header-line t
+  "Non-nil means to use an immovable header line.
+This is as opposed to inline text at the top of the buffer."
+  :version "24.4"
+  :type 'boolean
+  :group 'bookmark)
 
-(defconst bookmark-bmenu-header-height 2
-  "Number of lines used for the *Bookmark List* header.")
+(defconst bookmark-bmenu-inline-header-height 2
+  "Number of lines used for the *Bookmark List* header
+\(only significant when `bookmark-bmenu-use-header-line' is nil\).")
 
 (defconst bookmark-bmenu-marks-width 2
   "Number of columns (chars) used for the *Bookmark List* marks column,
@@ -150,6 +157,10 @@ A non-nil value may result in truncated bookmark names."
   :type 'boolean
   :group 'bookmark)
 
+(defface bookmark-menu-bookmark
+  '((t (:weight bold)))
+  "Face used to highlight bookmark names in bookmark menu buffers."
+  :group 'bookmark)
 
 (defcustom bookmark-menu-length 70
   "Maximum length of a bookmark name displayed on a popup menu."
@@ -160,7 +171,7 @@ A non-nil value may result in truncated bookmark names."
 (defcustom bookmark-search-delay 0.2
   "Time before `bookmark-bmenu-search' updates the display."
   :group 'bookmark
-  :type  'integer)
+  :type  'number)
 
 (defface bookmark-menu-heading
   '((t (:inherit font-lock-type-face)))
@@ -417,8 +428,8 @@ just return it."
   "Prompting with PROMPT, read a bookmark name in completion.
 PROMPT will get a \": \" stuck on the end no matter what, so you
 probably don't want to include one yourself.
-Optional second arg DEFAULT is a string to return if the user enters
-the empty string."
+Optional arg DEFAULT is a string to return if the user input is empty.
+If DEFAULT is nil then return empty string for empty input."
   (bookmark-maybe-load-default-file) ; paranoia
   (if (listp last-nonmenu-event)
       (bookmark-menu-popup-paned-menu t prompt
@@ -427,22 +438,17 @@ the empty string."
 						'string-lessp)
 					(bookmark-all-names)))
     (let* ((completion-ignore-case bookmark-completion-ignore-case)
-	   (default default)
+           (default (unless (equal "" default) default))
 	   (prompt (concat prompt (if default
                                       (format " (%s): " default)
-                                    ": ")))
-	   (str
-	    (completing-read prompt
-			     (lambda (string pred action)
-                               (if (eq action 'metadata)
-                                   '(metadata (category . bookmark))
-                                 (complete-with-action
-                                  action bookmark-alist string pred)))
-			     nil
-			     0
-			     nil
-			     'bookmark-history)))
-      (if (string-equal "" str) default str))))
+                                    ": "))))
+      (completing-read prompt
+                       (lambda (string pred action)
+                         (if (eq action 'metadata)
+                             '(metadata (category . bookmark))
+                             (complete-with-action
+                              action bookmark-alist string pred)))
+                       nil 0 nil 'bookmark-history default))))
 
 
 (defmacro bookmark-maybe-historicize-string (string)
@@ -476,19 +482,18 @@ equivalently just return ALIST without NAME.")
 (defun bookmark-make-record ()
   "Return a new bookmark record (NAME . ALIST) for the current location."
   (let ((record (funcall bookmark-make-record-function)))
+    ;; Set up default name if the function does not provide one.
+    (unless (stringp (car record))
+      (if (car record) (push nil record))
+      (setcar record (or bookmark-current-bookmark (bookmark-buffer-name))))
     ;; Set up defaults.
     (bookmark-prop-set
      record 'defaults
      (delq nil (delete-dups (append (bookmark-prop-get record 'defaults)
 				    (list bookmark-current-bookmark
-					  (bookmark-buffer-name))))))
-    ;; Set up default name.
-    (if (stringp (car record))
-        ;; The function already provided a default name.
-        record
-      (if (car record) (push nil record))
-      (setcar record (or bookmark-current-bookmark (bookmark-buffer-name)))
-      record)))
+					  (car record)
+                                          (bookmark-buffer-name))))))
+    record))
 
 (defun bookmark-store (name alist no-overwrite)
   "Store the bookmark NAME with data ALIST.
@@ -858,31 +863,25 @@ It takes one argument, the name of the bookmark, as a string.")
     map)
   "Keymap for editing an annotation of a bookmark.")
 
-
-(defun bookmark-edit-annotation-mode (bookmark-name-or-record)
-  "Mode for editing the annotation of bookmark BOOKMARK-NAME-OR-RECORD.
-When you have finished composing, type \\[bookmark-send-annotation].
-
-\\{bookmark-edit-annotation-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (make-local-variable 'bookmark-annotation-name)
-  (setq bookmark-annotation-name bookmark-name-or-record)
-  (use-local-map bookmark-edit-annotation-mode-map)
-  (setq major-mode 'bookmark-edit-annotation-mode
-        mode-name "Edit Bookmark Annotation")
+(defun bookmark-insert-annotation (bookmark-name-or-record)
   (insert (funcall bookmark-edit-annotation-text-func bookmark-name-or-record))
   (let ((annotation (bookmark-get-annotation bookmark-name-or-record)))
     (if (and annotation (not (string-equal annotation "")))
-	(insert annotation)))
-  (run-mode-hooks 'text-mode-hook))
+	(insert annotation))))
+
+(define-derived-mode bookmark-edit-annotation-mode
+  text-mode "Edit Bookmark Annotation"
+  "Mode for editing the annotation of bookmarks.
+When you have finished composing, type \\[bookmark-send-annotation].
+
+\\{bookmark-edit-annotation-mode-map}")
 
 
 (defun bookmark-send-edited-annotation ()
   "Use buffer contents as annotation for a bookmark.
 Lines beginning with `#' are ignored."
   (interactive)
-  (if (not (eq major-mode 'bookmark-edit-annotation-mode))
+  (if (not (derived-mode-p 'bookmark-edit-annotation-mode))
       (error "Not in bookmark-edit-annotation-mode"))
   (goto-char (point-min))
   (while (< (point) (point-max))
@@ -902,7 +901,10 @@ Lines beginning with `#' are ignored."
 (defun bookmark-edit-annotation (bookmark-name-or-record)
   "Pop up a buffer for editing bookmark BOOKMARK-NAME-OR-RECORD's annotation."
   (pop-to-buffer (generate-new-buffer-name "*Bookmark Annotation Compose*"))
-  (bookmark-edit-annotation-mode bookmark-name-or-record))
+  (bookmark-insert-annotation bookmark-name-or-record)
+  (bookmark-edit-annotation-mode)
+  (set (make-local-variable 'bookmark-annotation-name)
+       bookmark-name-or-record))
 
 
 (defun bookmark-buffer-name ()
@@ -1108,12 +1110,9 @@ then offer interactively to relocate BOOKMARK-NAME-OR-RECORD."
     (setq bookmark-current-bookmark bookmark-name-or-record))
   nil)
 
-(put 'bookmark-error-no-filename
-     'error-conditions
-     '(error bookmark-errors bookmark-error-no-filename))
-(put 'bookmark-error-no-filename
-     'error-message
-     "Bookmark has no associated file (or directory)")
+(define-error 'bookmark-errors nil)
+(define-error 'bookmark-error-no-filename
+  "Bookmark has no associated file (or directory)" 'bookmark-errors)
 
 (defun bookmark-default-handler (bmk-record)
   "Default handler to jump to a particular bookmark location.
@@ -1176,18 +1175,7 @@ Optional second arg NO-HISTORY means don't record this in the
 minibuffer history list `bookmark-history'."
   (interactive (list (bookmark-completing-read "Insert bookmark location")))
   (or no-history (bookmark-maybe-historicize-string bookmark-name))
-  (let ((start (point)))
-    (prog1
-	(insert (bookmark-location bookmark-name))
-      (if (display-mouse-p)
-	  (add-text-properties
-	   start
-	   (save-excursion (re-search-backward
-			    "[^ \t]")
-                           (1+ (point)))
-	   '(mouse-face highlight
-	     follow-link t
-	     help-echo "mouse-2: go to this bookmark in other window"))))))
+  (insert (bookmark-location bookmark-name)))
 
 ;;;###autoload
 (defalias 'bookmark-locate 'bookmark-insert-location)
@@ -1552,7 +1540,8 @@ deletion, or > if it is flagged for displaying."
       (set-buffer buf)))
   (let ((inhibit-read-only t))
     (erase-buffer)
-    (insert "% Bookmark\n- --------\n")
+    (if (not bookmark-bmenu-use-header-line)
+      (insert "% Bookmark\n- --------\n"))    
     (add-text-properties (point-min) (point)
 			 '(font-lock-face bookmark-menu-heading))
     (dolist (full-record (bookmark-maybe-sort-alist))
@@ -1571,23 +1560,44 @@ deletion, or > if it is flagged for displaying."
         (when (display-mouse-p)
           (add-text-properties
            (+ bookmark-bmenu-marks-width start) end
-           '(mouse-face highlight
+           '(font-lock-face bookmark-menu-bookmark
+	     mouse-face highlight
              follow-link t
              help-echo "mouse-2: go to this bookmark in other window")))
         (insert "\n")))
     (set-buffer-modified-p (not (= bookmark-alist-modification-count 0)))
     (goto-char (point-min))
-    (forward-line 2)
     (bookmark-bmenu-mode)
-    (if bookmark-bmenu-toggle-filenames
-        (bookmark-bmenu-toggle-filenames t))))
+    (if bookmark-bmenu-use-header-line
+	(bookmark-bmenu-set-header)
+      (forward-line bookmark-bmenu-inline-header-height))
+    (when (and bookmark-alist bookmark-bmenu-toggle-filenames)
+      (bookmark-bmenu-toggle-filenames t))))
 
 ;;;###autoload
 (defalias 'list-bookmarks 'bookmark-bmenu-list)
 ;;;###autoload
 (defalias 'edit-bookmarks 'bookmark-bmenu-list)
 
-
+(defun bookmark-bmenu-set-header ()
+  "Sets the immutable header line."
+  (let ((header (concat "%% " "Bookmark")))
+    (when bookmark-bmenu-toggle-filenames 
+      (setq header (concat header 
+			   (make-string (- bookmark-bmenu-file-column 
+					   (- (length header) 3))  ?\s)
+			   "File")))
+    (let ((pos 0))
+      (while (string-match "[ \t\n]+" header pos)
+	(setq pos (match-end 0))
+	(put-text-property (match-beginning 0) pos 'display
+			   (list 'space :align-to (- pos 1))
+			   header)))
+    (put-text-property 0 2 'face 'fixed-pitch header)
+    (setq header (concat (propertize " " 'display '(space :align-to 0))
+			 header))
+    ;; Code derived from `buff-menu.el'.
+    (setq header-line-format header)))
 
 (define-derived-mode bookmark-bmenu-mode special-mode "Bookmark Menu"
   "Major mode for editing a list of bookmarks.
@@ -1640,7 +1650,9 @@ Optional argument SHOW means show them unconditionally."
     (setq bookmark-bmenu-toggle-filenames nil))
    (t
     (bookmark-bmenu-show-filenames)
-    (setq bookmark-bmenu-toggle-filenames t))))
+    (setq bookmark-bmenu-toggle-filenames t)))
+  (when bookmark-bmenu-use-header-line
+    (bookmark-bmenu-set-header)))
 
 
 (defun bookmark-bmenu-show-filenames (&optional force)
@@ -1653,7 +1665,8 @@ mainly for debugging, and should not be necessary in normal use."
      (save-excursion
        (save-window-excursion
          (goto-char (point-min))
-         (forward-line 2)
+	 (if (not bookmark-bmenu-use-header-line)
+	     (forward-line bookmark-bmenu-inline-header-height))
          (setq bookmark-bmenu-hidden-bookmarks ())
          (let ((inhibit-read-only t))
            (while (< (point) (point-max))
@@ -1681,7 +1694,8 @@ mainly for debugging, and should not be necessary in normal use."
     (with-buffer-modified-unmodified
      (save-excursion
        (goto-char (point-min))
-       (forward-line 2)
+       (if (not bookmark-bmenu-use-header-line)
+	   (forward-line bookmark-bmenu-inline-header-height))
        (setq bookmark-bmenu-hidden-bookmarks
              (nreverse bookmark-bmenu-hidden-bookmarks))
        (let ((inhibit-read-only t))
@@ -1695,8 +1709,9 @@ mainly for debugging, and should not be necessary in normal use."
              (if (display-mouse-p)
                  (add-text-properties
                   start (point)
-                  '(mouse-face
-                    highlight follow-link t help-echo
+                  '(font-lock-face bookmark-menu-bookmark
+		    mouse-face highlight
+		    follow-link t help-echo
                     "mouse-2: go to this bookmark in other window"))))
            (forward-line 1)))))))
 
@@ -1705,9 +1720,11 @@ mainly for debugging, and should not be necessary in normal use."
   "If point is not on a bookmark line, move it to one.
 If before the first bookmark line, move to the first; if after the
 last full line, move to the last full line.  The return value is undefined."
-  (cond ((< (count-lines (point-min) (point)) bookmark-bmenu-header-height)
+  (cond ((and (not bookmark-bmenu-use-header-line)
+	      (< (count-lines (point-min) (point))
+		 bookmark-bmenu-inline-header-height))
          (goto-char (point-min))
-         (forward-line bookmark-bmenu-header-height))
+         (forward-line bookmark-bmenu-inline-header-height))
         ((and (bolp) (eobp))
          (beginning-of-line 0))))
 
@@ -1970,7 +1987,8 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
                        (progn (end-of-line) (point))))))
         (o-col     (current-column)))
     (goto-char (point-min))
-    (forward-line 1)
+    (unless bookmark-bmenu-use-header-line
+      (forward-line 1))
     (while (re-search-forward "^D" (point-max) t)
       (bookmark-delete (bookmark-bmenu-bookmark) t)) ; pass BATCH arg
     (bookmark-bmenu-list)
@@ -2158,8 +2176,7 @@ strings returned are not."
   "Save bookmark state, if necessary, at Emacs exit time.
 This also runs `bookmark-exit-hook'."
   (run-hooks 'bookmark-exit-hook)
-  (and bookmark-alist
-       (bookmark-time-to-save-p t)
+  (and (bookmark-time-to-save-p t)
        (bookmark-save)))
 
 (unless noninteractive

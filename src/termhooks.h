@@ -1,6 +1,6 @@
 /* Parameters and display hooks for terminal devices.
 
-Copyright (C) 1985-1986, 1993-1994, 2001-2013 Free Software Foundation,
+Copyright (C) 1985-1986, 1993-1994, 2001-2014 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -18,21 +18,17 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
+#ifndef EMACS_TERMHOOKS_H
+#define EMACS_TERMHOOKS_H
+
 /* Miscellanea.   */
 
 #include "systime.h" /* for Time */
 
 INLINE_HEADER_BEGIN
-#ifndef TERMHOOKS_INLINE
-# define TERMHOOKS_INLINE INLINE
-#endif
-
-struct glyph;
-struct frame;
-
 
 enum scroll_bar_part {
+  scroll_bar_nowhere = -1,
   scroll_bar_above_handle,
   scroll_bar_handle,
   scroll_bar_below_handle,
@@ -44,12 +40,18 @@ enum scroll_bar_part {
   scroll_bar_move_ratio
 };
 
-/* If the value of the frame parameter changed, whis hook is called.
-   For example, if going from fullscreen to not fullscreen this hook
-   may do something OS dependent, like extended window manager hints on X11.  */
-extern void (*fullscreen_hook) (struct frame *f);
+/* Output method of a terminal (and frames on this terminal, respectively).  */
 
-
+enum output_method
+{
+  output_initial,
+  output_termcap,
+  output_x_window,
+  output_msdos_raw,
+  output_w32,
+  output_ns
+};
+
 /* Input queue declarations and hooks.  */
 
 enum event_kind
@@ -172,6 +174,8 @@ enum event_kind
      `switch-frame' events in kbd_buffer_get_event, if necessary.  */
   FOCUS_IN_EVENT,
 
+  FOCUS_OUT_EVENT,
+
   /* Generated when mouse moves over window not currently selected.  */
   SELECT_WINDOW_EVENT,
 
@@ -212,7 +216,7 @@ enum event_kind
   , NS_NONKEY_EVENT
 #endif
 
-#if defined (HAVE_INOTIFY) || defined (HAVE_NTGUI)
+#ifdef USE_FILE_NOTIFY
   /* File or directory was changed.  */
   , FILE_NOTIFY_EVENT
 #endif
@@ -239,7 +243,6 @@ struct input_event
      For a mouse event, this is the button number.
      For a HELP_EVENT, this is the position within the object
       (stored in ARG below) where the help was found.  */
-  /* In WindowsNT, for a mouse wheel event, this is the delta.  */
   ptrdiff_t code;
   enum scroll_bar_part part;
 
@@ -319,11 +322,6 @@ extern void term_mouse_moveto (int, int);
 extern struct tty_display_info *gpm_tty;
 #endif
 
-
-struct ns_display_info;
-struct x_display_info;
-struct w32_display_info;
-
 /* Terminal-local parameters. */
 struct terminal
 {
@@ -382,7 +380,7 @@ struct terminal
   struct image_cache *image_cache;
 #endif /* HAVE_WINDOW_SYSTEM */
 
-  /* Device-type dependent data shared amongst all frames on this terminal. */
+  /* Device-type dependent data shared amongst all frames on this terminal.  */
   union display_info
   {
     struct tty_display_info *tty;     /* termchar.h */
@@ -402,23 +400,6 @@ struct terminal
      structure contains information of a coding-system specified by
      the function `set-keyboard-coding-system'.  */
   struct coding_system *keyboard_coding;
-
-  /* Terminal characteristics. */
-  /* XXX Are these really used on non-termcap displays? */
-
-  int must_write_spaces;	/* Nonzero means spaces in the text must
-				   actually be output; can't just skip over
-				   some columns to leave them blank.  */
-  int fast_clear_end_of_line;   /* Nonzero means terminal has a `ce' string */
-
-  int line_ins_del_ok;          /* Terminal can insert and delete lines */
-  int char_ins_del_ok;          /* Terminal can insert and delete chars */
-  int scroll_region_ok;         /* Terminal supports setting the scroll
-                                   window */
-  int scroll_region_cost;	/* Cost of setting the scroll window,
-                                   measured in characters. */
-  int memory_below_frame;	/* Terminal remembers lines scrolled
-                                   off bottom */
 
   /* Window-based redisplay interface for this device (0 for tty
      devices). */
@@ -492,7 +473,7 @@ struct terminal
      windows.  */
   void (*frame_raise_lower_hook) (struct frame *f, int raise_flag);
 
-  /* If the value of the frame parameter changed, whis hook is called.
+  /* If the value of the frame parameter changed, this hook is called.
      For example, if going from fullscreen to not fullscreen this hook
      may do something OS dependent, like extended window manager hints on X11.  */
   void (*fullscreen_hook) (struct frame *f);
@@ -606,27 +587,26 @@ struct terminal
 
 /* Most code should use these functions to set Lisp fields in struct
    terminal.  */
-TERMHOOKS_INLINE void
+INLINE void
 tset_charset_list (struct terminal *t, Lisp_Object val)
 {
   t->charset_list = val;
 }
-TERMHOOKS_INLINE void
+INLINE void
 tset_selection_alist (struct terminal *t, Lisp_Object val)
 {
   t->Vselection_alist = val;
 }
 
-/* Chain of all terminal devices currently in use. */
+/* Chain of all terminal devices currently in use.  */
 extern struct terminal *terminal_list;
 
-#define FRAME_MUST_WRITE_SPACES(f) ((f)->terminal->must_write_spaces)
-#define FRAME_FAST_CLEAR_END_OF_LINE(f) ((f)->terminal->fast_clear_end_of_line)
-#define FRAME_LINE_INS_DEL_OK(f) ((f)->terminal->line_ins_del_ok)
-#define FRAME_CHAR_INS_DEL_OK(f) ((f)->terminal->char_ins_del_ok)
-#define FRAME_SCROLL_REGION_OK(f) ((f)->terminal->scroll_region_ok)
-#define FRAME_SCROLL_REGION_COST(f) ((f)->terminal->scroll_region_cost)
-#define FRAME_MEMORY_BELOW_FRAME(f) ((f)->terminal->memory_below_frame)
+#define FRAME_MUST_WRITE_SPACES(f) (FRAME_TTY (f)->must_write_spaces)
+#define FRAME_LINE_INS_DEL_OK(f) (FRAME_TTY (f)->line_ins_del_ok)
+#define FRAME_CHAR_INS_DEL_OK(f) (FRAME_TTY (f)->char_ins_del_ok)
+#define FRAME_SCROLL_REGION_OK(f) (FRAME_TTY (f)->scroll_region_ok)
+#define FRAME_SCROLL_REGION_COST(f) (FRAME_TTY (f)->scroll_region_cost)
+#define FRAME_MEMORY_BELOW_FRAME(f) (FRAME_TTY (f)->memory_below_frame)
 
 #define FRAME_TERMINAL_CODING(f) ((f)->terminal->terminal_coding)
 #define FRAME_KEYBOARD_CODING(f) ((f)->terminal->keyboard_coding)
@@ -638,21 +618,48 @@ extern struct terminal *terminal_list;
 
 #define FRAME_TERMINAL(f) ((f)->terminal)
 
-/* Return true if the terminal device is not suspended. */
-#define TERMINAL_ACTIVE_P(d) (((d)->type != output_termcap && (d)->type !=output_msdos_raw) || (d)->display_info.tty->input)
+/* Return true if the terminal device is not suspended.  */
+#define TERMINAL_ACTIVE_P(d)						\
+  (((d)->type != output_termcap && (d)->type != output_msdos_raw)	\
+   || (d)->display_info.tty->input)
 
-extern struct terminal *get_terminal (Lisp_Object terminal, int);
+/* Return font cache data for the specified terminal.  The historical
+   name is grossly misleading, actually it is (NAME . FONT-LIST-CACHE).  */
+#if defined (HAVE_X_WINDOWS)
+#define TERMINAL_FONT_CACHE(t)						\
+  (t->type == output_x_window ? t->display_info.x->name_list_element : Qnil)
+#elif defined (HAVE_NTGUI)
+#define TERMINAL_FONT_CACHE(t)						\
+  (t->type == output_w32 ? t->display_info.w32->name_list_element : Qnil)
+#elif defined (HAVE_NS)
+#define TERMINAL_FONT_CACHE(t)						\
+  (t->type == output_ns ? t->display_info.ns->name_list_element : Qnil)
+#endif
+
+extern struct terminal *get_terminal (Lisp_Object terminal, bool);
 extern struct terminal *create_terminal (void);
 extern void delete_terminal (struct terminal *);
 
-/* The initial terminal device, created by initial_term_init. */
+/* The initial terminal device, created by initial_term_init.  */
 extern struct terminal *initial_terminal;
 
+#ifdef WINDOWSNT
 extern unsigned char *encode_terminal_code (struct glyph *, int,
 					    struct coding_system *);
+#endif
 
 #ifdef HAVE_GPM
 extern void close_gpm (int gpm_fd);
 #endif
 
+#ifdef WINDOWSNT
+extern int cursorX (struct tty_display_info *);
+extern int cursorY (struct tty_display_info *);
+#else
+#define cursorX(t)  curX(t)
+#define cursorY(t)  curY(t)
+#endif
+
 INLINE_HEADER_END
+
+#endif /* EMACS_TERMHOOKS_H */

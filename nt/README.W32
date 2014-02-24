@@ -1,4 +1,4 @@
-Copyright (C) 2001-2013 Free Software Foundation, Inc.
+Copyright (C) 2001-2014 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 			   Emacs for Windows
@@ -10,37 +10,27 @@ See the end of the file for license conditions.
    	ftp://ftp.gnu.org/gnu/emacs/windows/
 
   This server contains other distributions, including the full Emacs
-  source distribution and a barebin distribution which can be installed
-  over it, as well as older releases of Emacs for Windows.
+  source distribution, as well as older releases of Emacs for Windows.
 
   Information on how to compile Emacs from sources on Windows is in
-  the files README and INSTALL in this directory.  If you received
-  this file as part of the Emacs source distribution, please read
-  those 2 files and not this one.
-
-  Answers to frequently asked questions, and further information about
-  this port of GNU Emacs and related software packages can be found via
-  http:
-
-	http://www.gnu.org/software/emacs/windows/
+  the files README and INSTALL in the nt/ sub-directory of the
+  top-level Emacs directory in the source distribution.  If you
+  received this file as part of the Emacs source distribution, and are
+  looking for information on how to build Emacs on MS-Windows, please
+  read those 2 files and not this one.
 
 * Preliminaries
 
-  Along with this file should be six subdirectories (bin, etc, info,
-  lisp, leim, site-lisp).  If you have downloaded the barebin
-  distribution, then it will contain only the bin directory and the
-  built in documentation in etc/DOC-X, the rest of the subdirectories
-  are in the src distribution, which the barebin distribution is
-  designed to be used with.
+  Along with this file should be four subdirectories (bin, libexec,
+  share, and var).
 
 * Setting up Emacs
 
   To install Emacs, simply unpack all the files into a directory of
-  your choice, but note that you might encounter minor problems if
-  there is a space anywhere in the directory name.  To complete the
-  installation process, you can optionally run the program addpm.exe
-  in the bin subdirectory.  This will put an icon for Emacs in the
-  Start Menu under "Start -> Programs -> Gnu Emacs".
+  your choice.  To complete the installation process, you can
+  optionally run the program addpm.exe in the bin subdirectory.  This
+  will put an icon for Emacs in the Start Menu under
+  "Start -> Programs -> Gnu Emacs".
 
   Some users have reported that the Start Menu item is not created for
   them.  If this happens, just create your own shortcut to runemacs.exe,
@@ -62,9 +52,7 @@ See the end of the file for license conditions.
   downloaded from the Microsoft site, and comes in a form of a single
   dynamic library called UNICOWS.DLL.  If this library is not
   accessible to Emacs, it will pop up a dialog saying that it cannot
-  find the library, and will refuse to start up a GUI session.
-  (However, it is still possible to use Emacs in text mode, even
-  without UNICOWS.DLL, by invoking it as "emacs -nw", see below.)
+  find the library, and will refuse to start up.
 
 * Starting Emacs
 
@@ -105,16 +93,24 @@ See the end of the file for license conditions.
   + addpm.exe - A basic installer that creates Start Menu icons for Emacs.
     Running this is optional.
 
-  + cmdproxy.exe - Used internally by Emacs to work around problems with
-    the native shells in various versions of Windows.
-
   + ctags.exe, etags.exe - Tools for generating tag files.  See the
     `Tags' node of the Emacs manual.
 
   + ebrowse.exe - A tool for generating C++ browse information.  See the
     `Ebrowse' manual.
 
-  + ddeclient.exe - A tool for interacting with DDE servers.
+  Several helper programs are in a version-specific subdirectory of
+  the libexec directory:
+
+  + cmdproxy.exe - Used internally by Emacs to work around problems with
+    the native shells in various versions of Windows.
+
+  + ddeclient.exe - A tool for interacting with DDE servers.  To be
+    invoked as "ddeclient SERVER [TOPIC]", where SERVER is the DDE
+    server name, and sends each line of its standard input to the DDE
+    server using the DdeClientTransaction API.  This program is
+    supposed to be invoked via the 'call-process-region' Emacs
+    primitive.
 
   + hexl.exe - A tool for producing hex dumps of binary files.  See the
     `Editing Binary Files' node of the Emacs manual.
@@ -123,21 +119,43 @@ See the end of the file for license conditions.
     a mail spool or POP server to a local user mailbox.  See the
     `Movemail' node of the Emacs manual.
 
+  + profile.exe - A helper program that generates periodic events for
+    profiling Emacs Lisp code.
+
+  + update-game-score.exe - A utility for updating the score files of
+    Emacs games.
+
 * Image support
 
   Emacs has built in support for XBM and PPM/PGM/PBM images, and the
   libXpm library is bundled, providing XPM support (required for color
   toolbar icons and splash screen).  Source for libXpm should be available
-  on the same place as you got this binary distribution from.
+  from the same place from which you got this binary distribution.
 
   Emacs can also support some other image formats with appropriate
-  libraries.  These libraries are all available as part of GTK
-  download for Windows (http://www.gtk.org/download/win32.php), or
-  from the GnuWin32 project.  Emacs will find them if the directory
-  they are installed in is on the PATH.
+  libraries.  These libraries are all available on the following sites:
+
+  1. http://sourceforge.net/projects/ezwinports/files/
+     -- leaner, more up-to-date builds, only for 32-bit Emacs
+  2. http://www.gtk.org/download/win32.php
+     http://www.gtk.org/download/win64.php
+     -- the GTK project site; offers much fatter builds, but includes
+        64-bit DLLs (from the 2nd URL)
+  3. GnuWin32 project -- very old builds, not recommended
+
+  The libraries to download are mentioned below.  Some libraries
+  depend on others that need to be downloaded separately from the same
+  site; please consult the download instructions on each site for the
+  details.  In general, the ezwinports site mentioned above has all
+  the dependencies bundled in the same zip archive, so installing from
+  there is the easiest.
+
+  Emacs will find these libraries if the directory they are installed
+  in is on the PATH or in the same directory where you have emacs.exe.
+  Here are some specific comments about each image type:
 
       PNG: requires the PNG reference library 1.4 or later, which will
-      be named libpng14.dll or libpng14-14.dll.  LibPNG requires zlib,
+      be named libpngNN.dll or libpngNN-NN.dll.  LibPNG requires zlib,
       which should come from the same source as you got libpng.
       Starting with Emacs 23.3, the precompiled Emacs binaries are
       built with libpng 1.4.x and later, and are incompatible with
@@ -148,31 +166,38 @@ See the end of the file for license conditions.
       JPEG: requires the Independent JPEG Group's libjpeg 6b or later,
       which will be called jpeg62.dll, libjpeg.dll, jpeg-62.dll or jpeg.dll.
 
-      TIFF: requires libTIFF 3.0 or later, which will be called libtiff3.dll
-      or libtiff.dll.
+      TIFF: requires libTIFF 3.0 or later, which will be called libtiffN.dll
+      or libtiff-N.dll or libtiff.dll.
 
       GIF: requires libungif or giflib 4.1 or later, which will be
-      called giflib4.dll, libungif4.dll or libungif.dll.
+      called libgif-6.dll, giflib4.dll, libungif4.dll or libungif.dll.
+
+      SVG: requires librsvg 2.x whose DLL will be called
+      librsvg-2-2.dll.  SVG also requires several dependency DLLs,
+      such as Pango, Cairo, and Glib, all of them found on the
+      above-mentioned sites.  If you download from the ezwinports
+      site, you need only librsvg-2.nn.mm-x-w32-bin.zip, it comes with
+      all the other dependencies bundled.
 
    If you have image support DLLs under different names, customize the
    value of `dynamic-library-alist'.
 
-   In addition, Emacs can be compiled to support SVG.  This precompiled
-   distribution has not been compiled that way, since the SVG library
-   or one or more of its extensive dependencies appear to be
-   unreliable under Windows.  See nt/INSTALL in the src distribution if
-   you wish to compile Emacs with SVG support.
-
 * GnuTLS support
+
+  GnuTLS provides SSL/TLS network support for Emacs (https, imaps and
+  so on.)
 
   In order to support GnuTLS at runtime, Emacs must be able to find
   the relevant DLLs during startup; failure to do so is not an error,
   but GnuTLS won't be available to the running session.
 
-  You can get pre-built binaries (including any required DLL and the
-  header files) at http://sourceforge.net/projects/ezwinports/files/.
+  You can get pre-built binaries (including any dependency DLLs) at
+  http://sourceforge.net/projects/ezwinports/files/.
 
 * libxml2 support
+
+  libxml2 provides HTML parsing support for Emacs, which is necessary
+  to use the built-in eww browser.
 
   In order to support libxml2 at runtime, a libxml2-enabled Emacs must
   be able to find the relevant DLLs during startup; failure to do so
@@ -237,14 +262,10 @@ See the end of the file for license conditions.
 
 * Further information
 
-  If you have access to the World Wide Web, I would recommend pointing
-  your favorite web browser to the following document (if you haven't
-  already):
+  The FAQ for the MS Windows port of Emacs is distributed with Emacs
+  (info manual "efaq-w32"), and also available at
 
-	http://www.gnu.org/software/emacs/windows/
-
-  This document serves as an FAQ and a source for further information
-  about the Windows port and related software packages.
+        http://www.gnu.org/software/emacs/manual/efaq-w32.html
 
   In addition to the FAQ, there is a mailing list for discussing issues
   related to the Windows port of Emacs.  For information about the

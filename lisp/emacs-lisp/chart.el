@@ -1,6 +1,6 @@
 ;;; chart.el --- Draw charts (bar charts, etc)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 1998-1999, 2001, 2004-2005, 2007-2013 Free
+;; Copyright (C) 1996, 1998-1999, 2001, 2004-2005, 2007-2014 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam  <zappo@gnu.org>
@@ -86,10 +86,10 @@ Useful if new Emacs is used on B&W display.")
   :group 'eieio
   :type 'boolean)
 
+(declare-function x-display-color-cells "xfns.c" (&optional terminal))
+
 (defvar chart-face-list
-  (if (if (fboundp 'display-color-p)
-          (display-color-p)
-        window-system)
+  (if (display-color-p)
       (let ((cl chart-face-color-list)
             (pl chart-face-pixmap-list)
             (faces ())
@@ -470,7 +470,7 @@ See `chart-sort-matchlist' for more details."
 	  (progn
 	    (chart-sort-matchlist s2 s1 pred)
 	    (setq s (oref s2 data)))
-	(error "Sorting of chart %s not supported" (object-name c))))
+	(error "Sorting of chart %s not supported" (eieio-object-name c))))
     (if (eq (oref c direction) 'horizontal)
 	(oset (oref c y-axis) items s)
       (oset (oref c x-axis) items s)

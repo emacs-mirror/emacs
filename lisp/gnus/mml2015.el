@@ -1,6 +1,6 @@
 ;;; mml2015.el --- MIME Security with Pretty Good Privacy (PGP)
 
-;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: PGP MIME MML
@@ -47,6 +47,9 @@
                   (config &optional minimum-version))
 (declare-function epg-configuration "ext:epg-config" ())
 
+;; Maybe this should be in eg mml-sec.el (and have a different name).
+;; Then mml1991 would not need to require mml2015, and mml1991-use
+;; could be removed.
 (defvar mml2015-use (or
 		     (condition-case nil
 			 (progn
@@ -142,6 +145,12 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
   "If t, GnuPG skip key validation on encryption."
   :group 'mime-security
   :type 'boolean)
+
+(defcustom mml2015-maximum-key-image-dimension 64
+  "The maximum dimension (width or height) of any key images."
+  :version "24.4"
+  :group 'mime-security
+  :type 'integer)
 
 ;; Extract plaintext from cleartext signature.  IMO, this kind of task
 ;; should be done by GnuPG rather than Elisp, but older PGP backends
@@ -857,6 +866,8 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	(setq secret-keys (cdr secret-keys))))
     secret-key))
 
+(autoload 'gnus-create-image "gnus-ems")
+
 (defun mml2015-epg-key-image (key-id)
   "Return the image of a key, if any"
   (with-temp-buffer
@@ -868,16 +879,27 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
                           (shell-quote-argument epg-gpg-program) key-id))))
       (when (> (length data) 0)
         (insert (substring data 16))
-        (create-image (buffer-string) nil t)))))
+	(condition-case nil
+	    (gnus-create-image (buffer-string) nil t)
+	  (error))))))
+
+(autoload 'gnus-rescale-image "gnus-util")
 
 (defun mml2015-epg-key-image-to-string (key-id)
   "Return a string with the image of a key, if any"
-  (let* ((result "")
-         (key-image (mml2015-epg-key-image key-id)))
-    (when key-image
-      (setq result "  ")
-      (put-text-property 1 2 'display key-image result))
-    result))
+  (let ((key-image (mml2015-epg-key-image key-id)))
+    (if (not key-image)
+	""
+      (condition-case error
+	  (let ((result "  "))
+	    (put-text-property
+	     1 2 'display
+	     (gnus-rescale-image key-image
+				 (cons mml2015-maximum-key-image-dimension
+				       mml2015-maximum-key-image-dimension))
+	     result)
+	    result)
+	(error "")))))
 
 (defun mml2015-epg-signature-to-string (signature)
   (concat (epg-signature-to-string signature)
@@ -1082,6 +1104,10 @@ If no one is selected, default secret key is used.  "
 	(epg-context-set-passphrase-callback
 	 context
 	 #'mml2015-epg-passphrase-callback))
+    ;; Signed data must end with a newline (RFC 3156, 5).
+    (goto-char (point-max))
+    (unless (bolp)
+      (insert "\n"))
     (condition-case error
 	(setq signature (epg-sign-string context (buffer-string) t)
 	      mml2015-epg-secret-key-id-list nil)
@@ -1106,7 +1132,7 @@ If no one is selected, default secret key is used.  "
     (insert (format "\n--%s\n" boundary))
     (goto-char (point-max))
     (insert (format "\n--%s\n" boundary))
-    (insert "Content-Type: application/pgp-signature\n\n")
+    (insert "Content-Type: application/pgp-signature; name=\"signature.asc\"\n\n")
     (insert signature)
     (goto-char (point-max))
     (insert (format "--%s--\n" boundary))

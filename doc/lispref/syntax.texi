@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Syntax Tables
@@ -141,6 +141,7 @@ Internals}.
 
 @node Syntax Class Table
 @subsection Table of Syntax Classes
+@cindex syntax class table
 
   Here is a table of syntax classes, the characters that designate
 them, their meanings, and examples of their use.
@@ -335,6 +336,7 @@ that this kind of comment can be nested.  For a two-character
 comment delimiter, @samp{n} on either character makes it
 nestable.
 
+@cindex comment style
 Emacs supports several comment styles simultaneously in any one syntax
 table.  A comment style is a set of flags @samp{b}, @samp{c}, and
 @samp{n}, so there can be up to 8 different comment styles.
@@ -409,6 +411,7 @@ is not a syntax table.
 @end defun
 
 @deffn Command modify-syntax-entry char syntax-descriptor  &optional table
+@cindex syntax entry, setting
 This function sets the syntax entry for @var{char} according to
 @var{syntax-descriptor}.  @var{char} must be a character, or a cons
 cell of the form @code{(@var{min} . @var{max})}; in the latter case,
@@ -505,6 +508,11 @@ It returns @var{table}.
 This function returns the current syntax table, which is the table for
 the current buffer.
 @end defun
+
+@deffn Command describe-syntax &optional buffer
+This command displays the contents of the syntax table of
+@var{buffer} (by default, the current buffer) in a help buffer.
+@end deffn
 
 @defmac with-syntax-table table body@dots{}
 This macro executes @var{body} using @var{table} as the current syntax
@@ -1052,6 +1060,7 @@ standard categories are available in all modes.
 the range @w{@samp{ }} to @samp{~}.  You specify the name of a category
 when you define it with @code{define-category}.
 
+@cindex category set
   The category table is actually a char-table (@pxref{Char-Tables}).
 The element of the category table at index @var{c} is a @dfn{category
 set}---a bool-vector---that indicates which categories character @var{c}

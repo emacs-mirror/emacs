@@ -1,6 +1,6 @@
 ;;; newsticker.el --- A Newsticker for Emacs.
 
-;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2014 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newsticker.el
@@ -378,7 +378,7 @@
 ;;      * Remove stupid newlines in titles (headlines) -- Thanks to
 ;;        Jeff Rancier.
 
-;; 0.94 * Added clickerability and description for channel headings.
+;; 0.94 * Added clickability and description for channel headings.
 ;;      * Made it work for (at least some) rss 0.9<something> feeds.
 
 ;; 0.93 * Added some more sites.

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Files
@@ -285,6 +285,10 @@ ordinary Emacs window visits the file using that window.  As an
 exception, dropping a file into a window displaying a Dired buffer
 moves or copies the file into the displayed directory.  For details,
 see @ref{Drag and Drop}, and @ref{Misc Dired Features}.
+
+  On text-mode terminals and on graphical displays when Emacs was
+built without a GUI toolkit, you can visit files via the menu-bar
+``File'' menu, which has a ``Visit New File'' item.
 
   Each time you visit a file, Emacs automatically scans its contents
 to detect what character encoding and end-of-line convention it uses,
@@ -705,13 +709,27 @@ setting the latter variable, you can control how these modes handle
 final newlines.
 
 @vindex write-region-inhibit-fsync
-  When Emacs saves a file, it invokes the @code{fsync} system call to
-force the data immediately out to disk.  This is important for safety
-if the system crashes or in case of power outage.  However, it can be
-disruptive on laptops using power saving, as it may force a disk
-spin-up each time you save a file.  If you accept an increased risk of
-data loss, you can set @code{write-region-inhibit-fsync} to a
-non-@code{nil} value to disable the synchronization.
+  Normally, when a program writes a file, the operating system briefly
+caches the file's data in main memory before committing the data to
+disk.  This can greatly improve performance; for example, when running
+on laptops, it can avoid a disk spin-up each time a file is written.
+However, it risks data loss if the operating system crashes before
+committing the cache to disk.
+
+  To lessen this risk, Emacs can invoke the @code{fsync} system call
+after saving a file.  Using @code{fsync} does not eliminate the risk
+of data loss, partly because many systems do not implement
+@code{fsync} properly, and partly because Emacs's file-saving
+procedure typically relies also on directory updates that might not
+survive a crash even if @code{fsync} works properly.
+
+  The @code{write-region-inhibit-fsync} variable controls whether
+Emacs invokes @code{fsync} after saving a file.  The variable's
+default value is @code{nil} when Emacs is interactive, and @code{t}
+when Emacs runs in batch mode.
+
+  Emacs never uses @code{fsync} when writing auto-save files, as these
+files might lose data anyway.
 
 @node Interlocking
 @subsection Protection against Simultaneous Editing
@@ -734,9 +752,10 @@ file.
 @cindex locking files
   When you make the first modification in an Emacs buffer that is
 visiting a file, Emacs records that the file is @dfn{locked} by you.
-(It does this by creating a specially-named symbolic link or regular
-file with special contents in the same directory.)  Emacs removes the
-lock when you save the changes.  The idea is that the file is locked
+(It does this by creating a specially-named symbolic link@footnote{If
+your file system does not support symbolic links, a regular file is
+used.} with special contents in the same directory.)  Emacs removes the lock
+when you save the changes.  The idea is that the file is locked
 whenever an Emacs buffer visiting it has unsaved changes.
 
 @vindex create-lockfiles
@@ -1071,7 +1090,7 @@ of data with the command @kbd{M-x recover-file @key{RET} @var{file}
 restores the contents from its auto-save file @file{#@var{file}#}.
 You can then save with @kbd{C-x C-s} to put the recovered text into
 @var{file} itself.  For example, to recover file @file{foo.c} from its
-auto-save file @file{#foo.c#}, do:@refill
+auto-save file @file{#foo.c#}, do:
 
 @example
 M-x recover-file @key{RET} foo.c @key{RET}
@@ -1253,9 +1272,12 @@ minibuffer, and displays the differences between the two files in a
 buffer named @file{*diff*}.  This works by running the @command{diff}
 program, using options taken from the variable @code{diff-switches}.
 The value of @code{diff-switches} should be a string; the default is
-@code{"-c"} to specify a context diff.  @xref{Top,, Diff, diff,
-Comparing and Merging Files}, for more information about the
-@command{diff} program.
+@code{"-c"} to specify a context diff.
+@c Note that the actual name of the info file is diffutils.info,
+@c but it adds a dir entry for diff too.
+@c On older systems, only "info diff" works, not "info diffutils".
+@xref{Top,, Diff, diff, Comparing and Merging Files}, for more
+information about the @command{diff} program.
 
   The output of the @code{diff} command is shown using a major mode
 called Diff mode.  @xref{Diff Mode}.
@@ -1398,6 +1420,7 @@ In a multi-file patch, kill the current file part.
 
 @item C-c C-a
 @findex diff-apply-hunk
+@cindex patches, applying
 Apply this hunk to its target file (@code{diff-apply-hunk}).  With a
 prefix argument of @kbd{C-u}, revert this hunk.
 
@@ -1922,10 +1945,9 @@ point.  Partial Completion mode offers other features extending
 
 @findex image-mode
 @findex image-toggle-display
-@findex image-toggle-animation
+@findex image-next-file
+@findex image-previous-file
 @cindex images, viewing
-@cindex image animation
-@cindex animated images
   Visiting image files automatically selects Image mode.  In this
 major mode, you can type @kbd{C-c C-c} (@code{image-toggle-display})
 to toggle between displaying the file as an image in the Emacs buffer,
@@ -1934,10 +1956,33 @@ Displaying the file as an image works only if Emacs is compiled with
 support for displaying such images.  If the displayed image is wider
 or taller than the frame, the usual point motion keys (@kbd{C-f},
 @kbd{C-p}, and so forth) cause different parts of the image to be
-displayed.  If the image can be animated, the command @kbd{RET}
+displayed.  You can press @kbd{n} (@code{image-next-file}) and @kbd{p}
+(@code{image-previous-file}) to visit the next image file and the
+previous image file in the same directory, respectively.
+
+@findex image-toggle-animation
+@findex image-next-frame
+@findex image-previous-frame
+@findex image-goto-frame
+@findex image-increase-speed
+@findex image-decrease-speed
+@findex image-reset-speed
+@findex image-reverse-speed
+@vindex image-animate-loop
+@cindex image animation
+@cindex animated images
+  If the image can be animated, the command @kbd{RET}
 (@code{image-toggle-animation}) starts or stops the animation.
 Animation plays once, unless the option @code{image-animate-loop} is
-non-@code{nil}.
+non-@code{nil}.  With @kbd{f} (@code{image-next-frame}) and @kbd{b}
+(@code{image-previous-frame}) you can step through the individual
+frames.  Both commands accept a numeric prefix to step through several
+frames at once.  You can go to a specific frame with @kbd{F}
+(@code{image-goto-frame}).  Typing @kbd{a +}
+(@code{image-increase-speed}) increases the speed of the animation,
+@kbd{a -} (@code{image-decrease-speed}) decreases it, and @kbd{a r}
+(@code{image-reverse-speed}) reverses it.  The command @kbd{a 0}
+(@code{image-reset-speed}) resets the speed to the original value.
 
 @cindex ImageMagick support
 @vindex imagemagick-enabled-types
@@ -1965,6 +2010,7 @@ thumbnails.  @xref{Image-Dired}.
 @node Filesets
 @section Filesets
 @cindex filesets
+@cindex sets of files
 
 @findex filesets-init
   If you regularly edit a certain group of files, you can define them

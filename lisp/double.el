@@ -1,6 +1,6 @@
 ;;; double.el --- support for keyboard remapping with double clicking
 
-;; Copyright (C) 1994, 1997-1998, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1994, 1997-1998, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>

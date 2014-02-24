@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998, 2001-2013 Free Software Foundation,
+@c Copyright (C) 1990-1994, 1998, 2001-2014 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Evaluation
@@ -242,11 +242,9 @@ it obtains a non-symbol.  @xref{Function Names}, for more information
 about symbol function indirection.
 
   One possible consequence of this process is an infinite loop, in the
-event that a symbol's function cell refers to the same symbol.  Or a
-symbol may have a void function cell, in which case the subroutine
-@code{symbol-function} signals a @code{void-function} error.  But if
-neither of these things happens, we eventually obtain a non-symbol,
-which ought to be a function or other suitable object.
+event that a symbol's function cell refers to the same symbol.
+Otherwise, we eventually obtain a non-symbol, which ought to be a
+function or other suitable object.
 
 @kindex invalid-function
   More precisely, we should now have a Lisp function (a lambda
@@ -255,12 +253,12 @@ a special form, or an autoload object.  Each of these types is a case
 described in one of the following sections.  If the object is not one
 of these types, Emacs signals an @code{invalid-function} error.
 
-  The following example illustrates the symbol indirection process.  We
-use @code{fset} to set the function cell of a symbol and
+  The following example illustrates the symbol indirection process.
+We use @code{fset} to set the function cell of a symbol and
 @code{symbol-function} to get the function cell contents
-(@pxref{Function Cells}).  Specifically, we store the symbol @code{car}
-into the function cell of @code{first}, and the symbol @code{first} into
-the function cell of @code{erste}.
+(@pxref{Function Cells}).  Specifically, we store the symbol
+@code{car} into the function cell of @code{first}, and the symbol
+@code{first} into the function cell of @code{erste}.
 
 @example
 @group
@@ -432,6 +430,19 @@ do.
 and which are used without evaluation.  Whether a particular argument is
 evaluated may depend on the results of evaluating other arguments.
 
+  If an expression's first symbol is that of a special form, the
+expression should follow the rules of that special form; otherwise,
+Emacs's behavior is not well-defined (though it will not crash).  For
+example, @code{((lambda (x) x . 3) 4)} contains a subexpression that
+begins with @code{lambda} but is not a well-formed @code{lambda}
+expression, so Emacs may signal an error, or may return 3 or 4 or
+@code{nil}, or may behave in other ways.
+
+@defun special-form-p object
+This predicate tests whether its argument is a special form, and
+returns @code{t} if so, @code{nil} otherwise.
+@end defun
+
   Here is a list, in alphabetical order, of all of the special forms in
 Emacs Lisp with a reference to where each is described.
 
@@ -462,6 +473,9 @@ Emacs Lisp with a reference to where each is described.
 
 @item interactive
 @pxref{Interactive Call}
+
+@item lambda
+@pxref{Lambda Expressions}
 
 @item let
 @itemx let*
@@ -512,7 +526,7 @@ GNU Emacs Lisp and Common Lisp.  @code{setq}, @code{if}, and
 doesn't exist in Common Lisp.  @code{throw} is a special form in
 Common Lisp (because it must be able to throw multiple values), but it
 is a function in Emacs Lisp (which doesn't have multiple
-values).@refill
+values).
 @end quotation
 
 @node Autoloading
@@ -699,12 +713,18 @@ arguments.
 
 @defun eval form &optional lexical
 This is the basic function for evaluating an expression.  It evaluates
-@var{form} in the current environment and returns the result.  How the
-evaluation proceeds depends on the type of the object (@pxref{Forms}).
+@var{form} in the current environment, and returns the result.  The
+type of the @var{form} object determines how it is evaluated.
+@xref{Forms}.
 
-The argument @var{lexical}, if non-@code{nil}, means to evaluate
-@var{form} using lexical scoping rules for variables, instead of the
-default dynamic scoping rules.  @xref{Lexical Binding}.
+The argument @var{lexical} specifies the scoping rule for local
+variables (@pxref{Variable Scoping}).  If it is omitted or @code{nil},
+that means to evaluate @var{form} using the default dynamic scoping
+rule.  If it is @code{t}, that means to use the lexical scoping rule.
+The value of @var{lexical} can also be a non-empty alist specifying a
+particular @dfn{lexical environment} for lexical bindings; however,
+this feature is only useful for specialized purposes, such as in Emacs
+Lisp debuggers.  @xref{Lexical Binding}.
 
 Since @code{eval} is a function, the argument expression that appears
 in a call to @code{eval} is evaluated twice: once as preparation before

@@ -1,3 +1,429 @@
+2014-02-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* Makefile.in (install): Create destination directory before copying
+	README.W32, and use ${datadir} to refer to the file (bug#16772).
+
+2014-02-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* Makefile.in (datarootdir, datadir, INSTALL_DATA): Declare.
+	(install): Copy README.W32 to $(datadir)/emacs/$(version).
+	(uninstall): Remove README.W32.  (Bug#14757)
+
+2014-02-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Update for Emacs 24.4.
+
+	* README: Update for Emacs 24.4.
+
+	* README.W32: Update and improve instructions.  (Bug#14762)
+
+2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* README.W32: Say what GnuTLS and libxml2 does (bug#14762).
+
+2014-01-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* runemacs.c (ensure_unicows_dll): Don't tell in the message box
+	that "emacs -nw" can do without UNICOWS.DLL on Windows 9X.  See
+	w32.c:maybe_load_unicows_dll and its callers for the reason.
+
+2014-01-11  Claudio Bley  <claudio.bley@googlemail.com>
+
+	* inc/sys/stat.h (_WSTAT_DEFINED): Define, to avoid compilation
+	failures when wchar.h is included.
+
+2014-01-11  Fabrice Popineau  <fabrice.popineau@supelec.fr>
+
+	* inc/ms-w32.h (pthread_sigmask): Undefine if defined, for MinGW64.
+
+2013-12-31  Fabrice Popineau  <fabrice.popineau@supelec.fr>
+
+	* inc/ms-w32.h (sys_kill): Fix prototype.
+
+2013-12-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (umask) [emacs]: Redirect to sys_umask.  (Bug#16299)
+
+2013-12-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* README.W32:
+	* INSTALL: Update instructions for downloading and using image
+	libraries in general, and librsvg in particular.
+
+2013-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-x64.manifest:
+	* emacs-x86.manifest: Declare that we target Windows 8.1 as well
+	as earlier versions.  This is so GetVersion and GetVersionEx APIs
+	used for bug reporting and other purposes return accurate version
+	number on Windows 8.1.  See the discussion on MSDN
+	http://msdn.microsoft.com/en-us/library/windows/desktop/dn302074.aspx
+	for more details.
+
+2013-12-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (MAX_UTF8_PATH): New macro.
+	(opendir, closedir, readdir, seekdir): Redirect to replacement
+	functions.
+	* inc/dirent.h: Make d_name[] be MAXNAMELEN*4 characters long.
+
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* README.W32:
+	* addpm.c (env_vars):
+	* epaths.nt (PATH_LOADSEARCH, PATH_DUMPLOADSEARCH):
+	* paths.h (PATH_LOADSEARCH): No more leim directory.
+
+2013-11-26  Glenn Morris  <rgm@gnu.org>
+
+	* epaths.nt (PATH_DUMPLOADSEARCH): Add leim/.
+
+2013-11-12  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* msysconfig.sh: Remove.
+	* INSTALL: Update for this.
+
+2013-11-09  Glenn Morris  <rgm@gnu.org>
+
+	* mingw-cfg.site: No need for this to be executable.
+
+2013-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(DESTDIR)${archlibdir}):
+	Avoid non-portable "`\" nesting.
+
+	* Makefile.in (abs_top_srcdir): New, set by configure.
+
+2013-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(DESTDIR)${archlibdir}, install, uninstall):
+	Quote entities that might contain whitespace.
+
+2013-10-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/mingw_time.h: New file.
+
+	* inc/ms-w32.h: Include mingw_time.h instead of doing its job.
+
+2013-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/dirent.h (struct dirent) [__MINGW_MAJOR_VERSION >= 4]: Make
+	the layout of 'struct dirent' be compatible with MinGW32 runtime
+	versions 4.0 and later.
+
+	* inc/ms-w32.h (__MINGW_MAJOR_VERSION, __MINGW_MINOR_VERSION)
+	(__MINGW_PATCHLEVEL) [!__MINGW64_VERSION_MAJOR]: Define, if not
+	defined, but not for MinGW64.
+	(_USE_32BIT_TIME_T) [__MINGW64_VERSION_MAJOR]: Define, to force
+	use of 32-bit time_t type.
+
+2013-10-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve support for popcount and counting trailing zeros (Bug#15550).
+	* gnulib.mk: Merge changes from ../lib/gnulib.mk.
+
+2013-10-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* gnulib.mk: Create <byteswap.h> from <byteswap.in.h>.
+
+2013-09-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* mingw-cfg.site (gl_cv_sys_struct_timeval_tv_sec): Set to "yes"
+	to avoid gnulib replacement of 'struct timeval' and the resulting
+	compilation of lib/gettimeofday.c with incompatible version of
+	gettimeofday.  Related discussions on emacs-devel:
+	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00286.html
+	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00361.html
+
+2013-08-31  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: Rename from INSTALL.MSYS.
+	* INSTALL.OLD: Rename from INSTALL.
+	* configure.bat: Update for INSTALL name changes.
+
+2013-08-25  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* configure.bat: Rather than disabling, make configure.bat produce
+	some warning that building with configure.bat is deprecated and
+	ask for confirmation to continue.
+
+2013-08-25  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: Refer to INSTALL.MSYS.
+	* configure.bat: Disable it.
+
+2013-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* mingw-cfg.site (ac_cv_func_mkostemp): New var with value of "yes".
+
+	* inc/ms-w32.h (mkostemp): Declare prototype.
+	(mktemp): Don't redirect to sys_mktemp.
+
+	* config.nt (HAVE_MKOSTEMP): Define to 1.  (Bug#15015)
+
+2013-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/socket.h (F_SETFD, O_CLOEXEC, F_DUPFD_CLOEXEC)
+	(FD_CLOEXEC): New macros.
+
+2013-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make file descriptors close-on-exec when possible (Bug#14803).
+	* gnulib.mk: Remove empty gl_GNULIB_ENABLED_verify section;
+	otherwise, gnulib-tool complains given close-on-exec changes.
+	* inc/ms-w32.h (pipe): Remove.
+	* mingw-cfg.site (ac_cv_func_fcntl, gl_cv_func_fcntl_f_dupfd_cloexec)
+	(gl_cv_func_fcntl_f_dupfd_works, ac_cv_func_pipe2): New vars.
+
+2013-06-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Add warning to the help text about using the
+	MSYS/MinGW building procedure.
+
+2013-06-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL.MSYS: mingw-get is not a GUI program (yet).
+	msys-automake is not suitable for MinGW builds.  Mention the
+	--enable-locallisppath switch to msysconfig.sh.  Suggested by
+	Óscar Fuentes <ofv@wanadoo.es>.
+
+2013-06-07  Richard Copley  <rcopley@gmail.com>  (tiny change)
+
+	* epaths.nt (PATH_SITELOADSEARCH): Fix commentary.
+
+2013-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt: Add HAVE_GFILENOTIFY, HAVE_W32NOTIFY and USE_FILE_NOTIFY.
+
+2013-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h (struct timeval): Remove the _W64 guards.
+
+2013-06-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h [!_TIMEZONE_DEFINED]: Define _TIMEZONE_DEFINED to
+	avoid multiple definition errors on MinGW64.
+
+2013-05-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h (gettimeofday): Use '__restrict' instead of
+	'restrict', which is a C99 extension.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2013-05/msg00588.html
+	and the following discussion for the problem this caused in the
+	old nt/configure.bat build.
+
+2013-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (emacs.res): Include srcdir when preprocessing
+	resources, for out-of-tree builds.
+	(mostlyclean): Remove *.res files.
+
+2013-05-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* runemacs.c (WinMain): Support invocation of un-installed
+	nt/runemacs.exe, by looking for src/emacs.exe.
+
+2013-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/stdint.h (SIZE_MAX) [!__GNUC__]: Define.  (Bug#14409)
+
+	* msysconfig.sh: New file.
+
+	* mingw-cfg.site: New file.
+
+	* makefile.w32-in (LOCAL_FLAGS): Add -DOLD_PATHS=1.
+
+	* inc/unistd.h: Include pwd.h and sys/types.h.
+
+	* inc/sys/time.h (_TIMEVAL_DEFINED, timerisset, timercmp)
+	(timerclear): Define.
+	(gettimeofday): Adjust signature to be Posix compatible, by using
+	the 'restrict' keyword.
+
+	* inc/sys/stat.h (UTIME_NOW, UTIME_OMIT): Define.
+	(struct _stat, struct _stati64): Define.
+
+	* inc/sys/socket.h (timeval): Define only for MSVC.
+	(FD_SET, FD_CLR, FD_ISSET, fd_set): Redefine only if
+	EMACS_CONFIG_H is defined.
+	(timeval): Undefine only for MSVC.
+
+	* inc/ms-w32.h (HAVE___BUILTIN_UNWIND_INIT, restrict)
+	(HAVE_WINDOW_SYSTEM, HAVE_MENUS, EMACS_CONFIGURATION)
+	(EMACS_CONFIG_OPTIONS, HAVE_LONG_LONG_INT)
+	(HAVE_UNSIGNED_LONG_LONG_INT): Define only if not already defined.
+	(fileno): Move definition after including stdio.h.
+	(sigset_t): Guard typedef by _W64.
+
+	* gnulib.mk: New file.
+
+	* epaths.nt: New file.
+
+	* addpm.c [!OLD_PATHS]: Include src/epaths.h, instead of having a
+	copy of the file names there.
+	<env_vars> [!OLD_PATHS]: Use macros from epaths.h instead of
+	literal strings.
+
+	* Makefile.in: New file.
+
+	* INSTALL.MSYS: New file.
+
+	* INSTALL: Mention INSTALL.MSYS.
+
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* makefile.w32-in (clean, top-distclean): DOC-X doesn't exist any more.
+
+2013-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_ACLSORT, HAVE_ACLV_H, HAVE_ACLX_GET, HAVE_ACL_COPY_EXT_NATIVE)
+	(HAVE_ACL_CREATE_ENTRY_NP, HAVE_ACL_DELETE_DEF_FILE)
+	(HAVE_ACL_DELETE_FD_NP, HAVE_ACL_DELETE_FILE_NP, HAVE_ACL_ENTRIES)
+	(HAVE_ACL_EXTENDED_FILE, HAVE_ACL_FIRST_ENTRY, HAVE_ACL_FREE)
+	(HAVE_ACL_FREE_TEXT, HAVE_ACL_FROM_MODE, HAVE_ACL_FROM_TEXT)
+	(HAVE_ACL_GET_FD, HAVE_ACL_GET_FILE, HAVE_ACL_LIBACL_H, HAVE_ACL_SET_FD)
+	(HAVE_ACL_TO_SHORT_TEXT, HAVE_ACL_TRIVIAL, HAVE_ACL_TYPE_EXTENDED)
+	(HAVE_FACL, HAVE_GETACL, HAVE_STATACL, HAVE_SYS_ACL_H, HAVE_XINERAMA)
+	(HAVE_XRANDR, HAVE_XRRGETOUTPUTPRIMARY)
+	(HAVE_XRRGETSCREENRESOURCESCURRENT, USE_ACL): New macros.
+
+2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib ACL implementation, for benefit of Solaris etc.  (Bug#14295)
+	* config.nt (HAVE_ACL_SET_FILE): Rename from HAVE_POSIX_ACL.
+	* inc/ms-w32.h (EOPNOTSUPP): New macro.
+
+2013-04-09  Ken Brown  <kbrown@cornell.edu>
+
+	* emacs.rc: Use 64-bit manifest for 64-bit Cygwin build.
+	(Bug#12993)
+
+2013-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* README: A better documentation of ddeclient.exe.
+
+	* README.W32: A better documentation of ddeclient.exe.
+
+	* paths.h (PATH_EXEC): Add nt/oo-spd/i386 and nt/oo/i386
+	subdirectories.
+
+2013-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (TERM_HEADER): Remove definition.
+
+	* config.nt (TERM_HEADER): Move the definition to "w32term.h" from
+	ms-w32.h.
+
+2013-03-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (copysign) [_MSC_VER]: Redirect to _copysign.
+
+	* config.nt (HAVE_COPYSIGN): Define.
+
+2013-03-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_XKBGETKEYBOARD): Remove.
+	(HAVE_XKB): New macro.
+
+2013-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (all-other-dirs-nmake, all-other-dirs-gmake)
+	(bootstrap, bootstrap-nmake, bootstrap-gmake, install-addpm):
+	Depend on .exe files.
+
+	* inc/ms-w32.h (sys_localtime) [_W64]: Provide a prototype, to
+	avoid MinGW64 compiler warnings in editfns.c.
+
+	Fix rules for parallel builds.
+	* makefile.w32-in (ALL): Depend on *.exe files, not on phony names
+	without the .exe suffix.
+	(addpm, ddeclient, cmdproxy, addsection, preprep): Remove phony
+	targets.
+	(.PHONY): Remove.
+
+	* addpm.c (_WIN32_IE) [_W64]: Move after inclusion of standard
+	headers, since that's where _W64 is declared by MinGW64.
+
+2013-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (USE_NO_MINGW_SETJMP_TWO_ARGS): Don't define.
+	(HAVE__SETJMP) [_W64]: Undefine for MinGW64.
+
+	* addsection.c (_ANONYMOUS_UNION, _ANONYMOUS_STRUCT): Do not
+	define for MinGW64.
+
+	* preprep.c (_ANONYMOUS_UNION, _ANONYMOUS_STRUCT): Do not define
+	for MinGW64.
+
+	Fix more incompatibilities between MinGW.org and MinGW64 headers
+	reported by Óscar Fuentes in
+	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00733.html
+	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00699.html
+	and in
+	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00707.html.
+	* inc/ms-w32.h (USE_NO_MINGW_SETJMP_TWO_ARGS) [_W64]: Define to 1.
+	For MinGW64, include sys/types.h and time.h.
+	(_WIN32_WINNT) [!_W64]: Don't define for MinGW64.
+
+	* inc/sys/stat.h (chmod): Remove _CRTIMP from prototype.
+
+	* inc/sys/time.h (struct timeval) [!_W64]: Guard definition with
+	_W64.
+	(struct timezone) [!_TIMEZONE_DEFINED]: Guard definition with
+	_TIMEZONE_DEFINED.
+
+	* addpm.c (_WIN32_IE) [_W64]: For MinGW64, don't define to 0x400.
+
+	* inc/sys/stat.h: Remove _CRTIMP from prototypes of fstat, stat,
+	lstat, and fstatat.
+
+2013-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix incompatibilities between MinGW.org and MinGW64 headers
+	reported by Óscar Fuentes in
+	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00611.html.
+	* inc/ms-w32.h (struct timespec): Don't define if
+	_TIMESPEC_DEFINED is already defined.
+	(sigset_t) [!_POSIX]: Typedef for MinGW64.
+	(_WIN32_WINNT, WIN32_LEAN_AND_MEAN): Move definitions before
+	including the first system header, to avoid redefinition if some
+	system header defines a default value.
+
+	* inc/sys/time.h (struct itimerval): Don't define if
+	_TIMESPEC_DEFINED is already defined.
+
+2013-03-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the MSVC build.  (Bug#13939)
+	* inc/stdint.h (UINTPTR_MAX): Define.
+
+	* nmake.defs (libc): Fix syntax of !if conditional.
+
+2013-03-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BSD_SYSTEM, BSD_SYSTEM_AHB, HAVE_ALARM, HAVE__PUTENV): Remove.
+	(HAVE_DECL_ALARM, HAVE_DECL_FDATASYNC, HAVE_DECL__PUTENV)
+	(HAVE_FDATASYNC): New macros.
+
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	File synchronization fixes (Bug#13944).
+	* inc/ms-w32.h (fdatasync): New macro, suggested by Eli Zaretskii.
+
+2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	FILE's lock is now always .#FILE and may be a regular file (Bug#13807).
+	* inc/unistd.h (O_NOFOLLOW): New macro.
+
+2013-03-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(DATA_START, ORDINARY_LINK): Remove.
+	(HAVE_DATA_START, HAVE__PUTENV): New macros.
+
 2013-02-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/ms-w32.h (BOOT_TIME_FILE): Define.
@@ -392,7 +818,7 @@
 
 2012-09-01  Daniel Colascione  <dancol@dancol.org>
 
-	* inc/ms-w32.h (TERM_HEADER): Add for refactoring
+	* inc/ms-w32.h (TERM_HEADER): Add for refactoring.
 
 2012-08-22  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -690,8 +1116,8 @@
 	(install-other-dirs-nmake, install-other-dirs-gmake): Depend on `all'.
 	(install-shortcuts): Depend on $(INSTALL_DIR)/bin.  Copy addpm.exe
 	here.
-	(maybe-copy-distfiles-CMD, maybe-copy-distfiles-SH, dist): Depend
-	on create-tmp-dist-dir.
+	(maybe-copy-distfiles-CMD, maybe-copy-distfiles-SH, dist):
+	Depend on create-tmp-dist-dir.
 
 	* nmake.defs (DIRNAME): New variable.
 	(IFNOTSAMEDIR): Use $(DIRNAME)_same-dir.tst instead of
@@ -2706,7 +3132,7 @@
 
 1997-06-19  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* makefile.def, emacs.bat: Use windows95 and windowsnt instead
+	* makefile.def, emacs.bat.in: Use windows95 and windowsnt instead
 	of win95 and winnt, respectively.
 
 1997-01-04  Geoff Voelker  <voelker@cs.washington.edu>
@@ -2888,10 +3314,10 @@
 
 1995-05-09  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* _emacs, config.h, ebuild.bat, emacs.bat, emacs.rc,
-	fast-install.bat, install.bat, makefile.def, makefile.nt, paths.h,
-	inc/pwd.h, inc/sys/dir.h, inc/sys/file.h, inc/sys/ioctl.h,
-	inc/sys/param.h: Removed carriage-returns.
+	* _emacs, config.h, ebuild.bat, emacs.bat, emacs.rc:
+	* fast-install.bat, install.bat, makefile.def, makefile.nt, paths.h:
+	* inc/pwd.h, inc/sys/dir.h, inc/sys/file.h, inc/sys/ioctl.h:
+	* inc/sys/param.h: Removed carriage-returns.
 
 1995-05-06  Geoff Voelker  <voelker@cs.washington.edu>
 
@@ -2901,9 +3327,7 @@
 
 1995-04-10  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* src: Remove directory.
-
-	* src\config.h, src\paths.h: Moved to parent dir, src removed.
+	* src/config.h, src/paths.h: Moved to parent dir, src/ removed.
 
 1995-04-09  Geoff Voelker  <voelker@cs.washington.edu>
 
@@ -2959,7 +3383,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-  Copyright (C) 1995-1999, 2001-2013 Free Software Foundation, Inc.
+  Copyright (C) 1995-1999, 2001-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

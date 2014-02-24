@@ -1,6 +1,6 @@
 ;;; edt-mapper.el --- create an EDT LK-201 map file for X-Windows Emacs
 
-;; Copyright (C) 1994-1995, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <Kevin.Gallagher@boeing.com>
 ;; Maintainer: Kevin Gallagher <Kevin.Gallagher@boeing.com>
@@ -95,6 +95,10 @@
 ;;  Version 4.0    2000    Added 2 New Features
 
 ;;; Code:
+
+;; Otherwise it just hangs.  This seems preferable.
+(if noninteractive
+    (error "edt-mapper cannot be loaded in batch mode"))
 
 ;;;
 ;;;  Decide Emacs Variant, GNU Emacs or XEmacs (aka Lucid Emacs).
@@ -293,26 +297,26 @@
 
     Here's a picture of the standard LK-201 keypad for reference:
 
-          _______________________    _______________________________
-         | HELP  |      DO       |  |  F17  |  F18  |  F19  |  F20  |
-         |       |               |  |       |       |       |       |
-         |_______|_______________|  |_______|_______|_______|_______|
-          _______________________    _______________________________
-         | FIND  |INSERT |REMOVE |  |  PF1  |  PF2  |  PF3  |  PF4  |
-         |       |       |       |  |       |       |       |       |
-         |_______|_______|_______|  |_______|_______|_______|_______|
-         |SELECT |PREVIOU| NEXT  |  |  KP7  |  KP8  |  KP9  |  KP-  |
-         |       |       |       |  |       |       |       |       |
-         |_______|_______|_______|  |_______|_______|_______|_______|
-                 |   UP  |          |  KP4  |  KP5  |  KP6  |  KP,  |
-                 |       |          |       |       |       |       |
-          _______|_______|_______   |_______|_______|_______|_______|
-         |  LEFT |  DOWN | RIGHT |  |  KP1  |  KP2  |  KP3  |       |
-         |       |       |       |  |       |       |       |       |
-         |_______|_______|_______|  |_______|_______|_______|  KPE  |
-                                    |      KP0      |  KPP  |       |
-                                    |               |       |       |
-                                    |_______________|_______|_______|
+          ________________________    _______________________________
+         | HELP  |      DO        |  |  F17  |  F18  |  F19  |  F20  |
+         |       |                |  |       |       |       |       |
+         |_______|________________|  |_______|_______|_______|_______|
+          ________________________   _______________________________
+         | FIND  |INSERT  |REMOVE |  |  PF1  |  PF2  |  PF3  |  PF4  |
+         |       |        |       |  |       |       |       |       |
+         |_______|________|_______|  |_______|_______|_______|_______|
+         |SELECT |PREVIOUS|NEXT   |  |  KP7  |  KP8  |  KP9  |  KP-  |
+         |       |        |       |  |       |       |       |       |
+         |_______|________|_______|  |_______|_______|_______|_______|
+                 |   UP   |          |  KP4  |  KP5  |  KP6  |  KP,  |
+                 |        |          |       |       |       |       |
+          _______|________|_______   |_______|_______|_______|_______|
+         |  LEFT |  DOWN  | RIGHT |  |  KP1  |  KP2  |  KP3  |       |
+         |       |        |       |  |       |       |       |       |
+         |_______|________|_______|  |_______|_______|_______|  KPE  |
+                                     |      KP0      |  KPP  |       |
+                                     |               |       |       |
+                                     |_______________|_______|_______|
 
          REMEMBER:  JUST PRESS RETURN TO SKIP MAPPING A KEY.
 
@@ -325,20 +329,20 @@
 
           PRESS THE KEY SPECIFIED IN THE MINIBUFFER BELOW.
 
-          _______________________    _______________________________
-         | HELP  |      DO       |  |  F17  |  F18  |  F19  |  F20  |
-         |_______|_______________|  |_______|_______|_______|_______|
-          _______________________    _______________________________
-         | FIND  |INSERT |REMOVE |  |  PF1  |  PF2  |  PF3  |  PF4  |
-         |_______|_______|_______|  |_______|_______|_______|_______|
-         |SELECT |PREVIOU| NEXT  |  |  KP7  |  KP8  |  KP9  |  KP-  |
-         |_______|_______|_______|  |_______|_______|_______|_______|
-                 |   UP  |          |  KP4  |  KP5  |  KP6  |  KP,  |
-          _______|_______|_______   |_______|_______|_______|_______|
-         |  LEFT |  DOWN | RIGHT |  |  KP1  |  KP2  |  KP3  |       |
-         |_______|_______|_______|  |_______|_______|_______|  KPE  |
-                                    |      KP0      |  KPP  |       |
-                                    |_______________|_______|_______|
+          ________________________    _______________________________
+         | HELP  |       DO       |  |  F17  |  F18  |  F19  |  F20  |
+         |_______|________________|  |_______|_______|_______|_______|
+          ________________________    _______________________________
+         | FIND  |INSERT  |REMOVE |  |  PF1  |  PF2  |  PF3  |  PF4  |
+         |_______|________|_______|  |_______|_______|_______|_______|
+         |SELECT |PREVIOUS| NEXT  |  |  KP7  |  KP8  |  KP9  |  KP-  |
+         |_______|________|_______|  |_______|_______|_______|_______|
+                 |   UP   |          |  KP4  |  KP5  |  KP6  |  KP,  |
+          _______|________|_______   |_______|_______|_______|_______|
+         |  LEFT |  DOWN  | RIGHT |  |  KP1  |  KP2  |  KP3  |       |
+         |_______|________|_______|  |_______|_______|_______|  KPE  |
+                                     |      KP0      |  KPP  |       |
+                                     |_______________|_______|_______|
 
          REMEMBER:  JUST PRESS RETURN TO SKIP MAPPING A KEY.")))
 
@@ -349,7 +353,7 @@
 (defun edt-map-key (ident descrip)
   (interactive)
   (if (featurep 'xemacs)
-      (progn 
+      (progn
 	(setq edt-key-seq (read-key-sequence (format "Press %s%s: " ident descrip)))
 	(setq edt-key (concat "[" (format "%s" (event-key (aref edt-key-seq 0))) "]"))
 	(cond ((not (equal edt-key edt-return))

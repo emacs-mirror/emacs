@@ -1,6 +1,6 @@
 /* Client process that communicates with GNU Emacs acting as server.
 
-Copyright (C) 1986-1987, 1994, 1999-2013 Free Software Foundation, Inc.
+Copyright (C) 1986-1987, 1994, 1999-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -101,14 +101,6 @@ char *getenv (const char *);
 
 #ifndef EXIT_FAILURE
 #define EXIT_FAILURE 1
-#endif
-
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef TRUE
-#define TRUE 1
 #endif
 
 /* Additional space when allocating buffers for filenames, etc.  */
@@ -433,9 +425,9 @@ ttyname (int fd)
 
 /* Display a normal or error message.
    On Windows, use a message box if compiled as a Windows app.  */
-static void message (int, const char *, ...) ATTRIBUTE_FORMAT_PRINTF (2, 3);
+static void message (bool, const char *, ...) ATTRIBUTE_FORMAT_PRINTF (2, 3);
 static void
-message (int is_error, const char *format, ...)
+message (bool is_error, const char *format, ...)
 {
   va_list args;
 
@@ -528,7 +520,7 @@ decode_options (int argc, char **argv)
 	  break;
 
 	case 'V':
-	  message (FALSE, "emacsclient %s\n", VERSION);
+	  message (false, "emacsclient %s\n", VERSION);
 	  exit (EXIT_SUCCESS);
 	  break;
 
@@ -555,7 +547,7 @@ decode_options (int argc, char **argv)
           break;
 
 	default:
-	  message (TRUE, "Try `%s --help' for more information\n", progname);
+	  message (true, "Try `%s --help' for more information\n", progname);
 	  exit (EXIT_FAILURE);
 	  break;
 	}
@@ -614,7 +606,7 @@ decode_options (int argc, char **argv)
 
   if (alternate_editor && alternate_editor[0] == '\0')
     {
-      message (TRUE, "--alternate-editor argument or ALTERNATE_EDITOR variable cannot be\n\
+      message (true, "--alternate-editor argument or ALTERNATE_EDITOR variable cannot be\n\
 an empty string");
       exit (EXIT_FAILURE);
     }
@@ -629,8 +621,8 @@ print_help_and_exit (void)
      message aligns properly both in a tty and in a Windows message box.
      Please try to preserve them; otherwise the output is very hard to read
      when using emacsclientw.  */
-  message (FALSE,
-	   "Usage: %s [OPTIONS] FILE...\n\
+  message (false,
+	   "Usage: %s [OPTIONS] FILE...\n%s%s%s", progname, "\
 Tell the Emacs server to visit the specified files.\n\
 Every FILE can be either just a FILENAME or [+LINE[:COLUMN]] FILENAME.\n\
 \n\
@@ -640,6 +632,7 @@ The following OPTIONS are accepted:\n\
 -nw, -t, --tty 		Open a new Emacs frame on the current terminal\n\
 -c, --create-frame    	Create a new frame instead of trying to\n\
 			use the current Emacs frame\n\
+", "\
 -F ALIST, --frame-parameters=ALIST\n\
 			Set the parameters of a new frame\n\
 -e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
@@ -647,6 +640,7 @@ The following OPTIONS are accepted:\n\
 -q, --quiet		Don't display messages on success\n\
 -d DISPLAY, --display=DISPLAY\n\
 			Visit the file in the given display\n\
+", "\
 --parent-id=ID          Open in parent window ID, via XEmbed\n"
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
 "-s SOCKET, --socket-name=SOCKET\n\
@@ -661,7 +655,7 @@ The following OPTIONS are accepted:\n\
 			mode and try connecting again\n"
 #endif /* not WINDOWSNT */
 "\n\
-Report bugs with M-x report-emacs-bug.\n", progname);
+Report bugs with M-x report-emacs-bug.\n");
   exit (EXIT_SUCCESS);
 }
 
@@ -677,7 +671,7 @@ fail (void)
       int i = optind - 1;
 
       execvp (alternate_editor, main_argv + i);
-      message (TRUE, "%s: error executing alternate editor \"%s\"\n",
+      message (true, "%s: error executing alternate editor \"%s\"\n",
 	       progname, alternate_editor);
     }
   exit (EXIT_FAILURE);
@@ -691,7 +685,7 @@ main (int argc, char **argv)
 {
   main_argv = argv;
   progname = argv[0];
-  message (TRUE, "%s: Sorry, the Emacs server is supported only\n"
+  message (true, "%s: Sorry, the Emacs server is supported only\n"
 	   "on systems with Berkeley sockets.\n",
 	   argv[0]);
   fail ();
@@ -722,11 +716,11 @@ sock_err_message (const char *function_name)
                  | FORMAT_MESSAGE_ARGUMENT_ARRAY,
                  NULL, WSAGetLastError (), 0, (LPTSTR)&msg, 0, NULL);
 
-  message (TRUE, "%s: %s: %s\n", progname, function_name, msg);
+  message (true, "%s: %s: %s\n", progname, function_name, msg);
 
   LocalFree (msg);
 #else
-  message (TRUE, "%s: %s: %s\n", progname, function_name, strerror (errno));
+  message (true, "%s: %s: %s\n", progname, function_name, strerror (errno));
 #endif
 }
 
@@ -757,7 +751,7 @@ send_to_emacs (HSOCKET s, const char *data)
 	  int sent = send (s, send_buffer, sblen, 0);
 	  if (sent < 0)
 	    {
-	      message (TRUE, "%s: failed to send %d bytes to socket: %s\n",
+	      message (true, "%s: failed to send %d bytes to socket: %s\n",
 		       progname, sblen, strerror (errno));
 	      fail ();
 	    }
@@ -852,25 +846,25 @@ static int
 file_name_absolute_p (const char *filename)
 {
   /* Sanity check, it shouldn't happen.  */
-  if (! filename) return FALSE;
+  if (! filename) return false;
 
   /* /xxx is always an absolute path.  */
-  if (filename[0] == '/') return TRUE;
+  if (filename[0] == '/') return true;
 
   /* Empty filenames (which shouldn't happen) are relative.  */
-  if (filename[0] == '\0') return FALSE;
+  if (filename[0] == '\0') return false;
 
 #ifdef WINDOWSNT
   /* X:\xxx is always absolute.  */
   if (isalpha ((unsigned char) filename[0])
       && filename[1] == ':' && (filename[2] == '\\' || filename[2] == '/'))
-    return TRUE;
+    return true;
 
   /* Both \xxx and \\xxx\yyy are absolute.  */
-  if (filename[0] == '\\') return TRUE;
+  if (filename[0] == '\\') return true;
 #endif
 
-  return FALSE;
+  return false;
 }
 
 #ifdef WINDOWSNT
@@ -889,7 +883,7 @@ initialize_sockets (void)
 
   if (WSAStartup (MAKEWORD (2, 0), &wsaData))
     {
-      message (TRUE, "%s: error initializing WinSock2\n", progname);
+      message (true, "%s: error initializing WinSock2\n", progname);
       exit (EXIT_FAILURE);
     }
 
@@ -940,14 +934,14 @@ get_server_config (const char *config_file, struct sockaddr_in *server,
     }
 
   if (! config)
-    return FALSE;
+    return false;
 
   if (fgets (dotted, sizeof dotted, config)
       && (port = strchr (dotted, ':')))
     *port++ = '\0';
   else
     {
-      message (TRUE, "%s: invalid configuration info\n", progname);
+      message (true, "%s: invalid configuration info\n", progname);
       exit (EXIT_FAILURE);
     }
 
@@ -957,13 +951,13 @@ get_server_config (const char *config_file, struct sockaddr_in *server,
 
   if (! fread (authentication, AUTH_KEY_LENGTH, 1, config))
     {
-      message (TRUE, "%s: cannot read authentication info\n", progname);
+      message (true, "%s: cannot read authentication info\n", progname);
       exit (EXIT_FAILURE);
     }
 
   fclose (config);
 
-  return TRUE;
+  return true;
 }
 
 static HSOCKET
@@ -978,7 +972,7 @@ set_tcp_socket (const char *local_server_file)
     return INVALID_SOCKET;
 
   if (server.sin_addr.s_addr != inet_addr ("127.0.0.1") && !quiet)
-    message (FALSE, "%s: connected to remote socket at %s\n",
+    message (false, "%s: connected to remote socket at %s\n",
              progname, inet_ntoa (server.sin_addr));
 
   /* Open up an AF_INET socket.  */
@@ -1031,7 +1025,7 @@ find_tty (const char **tty_type, const char **tty_name, int noabort)
 	return 0;
       else
 	{
-	  message (TRUE, "%s: could not get terminal name\n", progname);
+	  message (true, "%s: could not get terminal name\n", progname);
 	  fail ();
 	}
     }
@@ -1042,7 +1036,7 @@ find_tty (const char **tty_type, const char **tty_name, int noabort)
 	return 0;
       else
 	{
-	  message (TRUE, "%s: please set the TERM variable to your terminal type\n",
+	  message (true, "%s: please set the TERM variable to your terminal type\n",
 		   progname);
 	  fail ();
 	}
@@ -1055,7 +1049,7 @@ find_tty (const char **tty_type, const char **tty_name, int noabort)
       else
 	{
 	  /* This causes nasty, MULTI_KBOARD-related input lockouts. */
-	  message (TRUE, "%s: opening a frame in an Emacs term buffer"
+	  message (true, "%s: opening a frame in an Emacs term buffer"
 		   " is not supported\n", progname);
 	  fail ();
 	}
@@ -1186,7 +1180,7 @@ set_local_socket (const char *local_socket_name)
   /* Open up an AF_UNIX socket in this person's home directory.  */
   if ((s = socket (AF_UNIX, SOCK_STREAM, 0)) < 0)
     {
-      message (TRUE, "%s: socket: %s\n", progname, strerror (errno));
+      message (true, "%s: socket: %s\n", progname, strerror (errno));
       return INVALID_SOCKET;
     }
 
@@ -1237,7 +1231,7 @@ set_local_socket (const char *local_socket_name)
       strcpy (server.sun_path, local_socket_name);
     else
       {
-        message (TRUE, "%s: socket-name %s too long\n",
+        message (true, "%s: socket-name %s too long\n",
                  progname, local_socket_name);
         fail ();
       }
@@ -1276,7 +1270,7 @@ set_local_socket (const char *local_socket_name)
 		  strcpy (server.sun_path, user_socket_name);
 		else
 		  {
-		    message (TRUE, "%s: socket-name %s too long\n",
+		    message (true, "%s: socket-name %s too long\n",
 			     progname, user_socket_name);
 		    exit (EXIT_FAILURE);
 		  }
@@ -1300,7 +1294,7 @@ set_local_socket (const char *local_socket_name)
 	   we are root. */
 	if (0 != geteuid ())
 	  {
-	    message (TRUE, "%s: Invalid socket owner\n", progname);
+	    message (true, "%s: Invalid socket owner\n", progname);
 	    return INVALID_SOCKET;
 	  }
 	break;
@@ -1308,12 +1302,12 @@ set_local_socket (const char *local_socket_name)
       case 2:
 	/* `stat' failed */
 	if (saved_errno == ENOENT)
-	  message (TRUE,
+	  message (true,
 		   "%s: can't find socket; have you started the server?\n\
 To start the server in Emacs, type \"M-x server-start\".\n",
 		   progname);
 	else
-	  message (TRUE, "%s: can't stat %s: %s\n",
+	  message (true, "%s: can't stat %s: %s\n",
 		   progname, server.sun_path, strerror (saved_errno));
 	return INVALID_SOCKET;
       }
@@ -1322,7 +1316,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
   if (connect (s, (struct sockaddr *) &server, strlen (server.sun_path) + 2)
       < 0)
     {
-      message (TRUE, "%s: connect: %s\n", progname, strerror (errno));
+      message (true, "%s: connect: %s\n", progname, strerror (errno));
       return INVALID_SOCKET;
     }
 
@@ -1345,7 +1339,7 @@ set_socket (int no_exit_if_error)
       s = set_local_socket (socket_name);
       if ((s != INVALID_SOCKET) || no_exit_if_error)
 	return s;
-      message (TRUE, "%s: error accessing socket \"%s\"\n",
+      message (true, "%s: error accessing socket \"%s\"\n",
 	       progname, socket_name);
       exit (EXIT_FAILURE);
     }
@@ -1361,7 +1355,7 @@ set_socket (int no_exit_if_error)
       if ((s != INVALID_SOCKET) || no_exit_if_error)
 	return s;
 
-      message (TRUE, "%s: error accessing server file \"%s\"\n",
+      message (true, "%s: error accessing server file \"%s\"\n",
 	       progname, local_server_file);
       exit (EXIT_FAILURE);
     }
@@ -1379,7 +1373,7 @@ set_socket (int no_exit_if_error)
     return s;
 
   /* No implicit or explicit socket, and no alternate editor.  */
-  message (TRUE, "%s: No socket or alternate editor.  Please use:\n\n"
+  message (true, "%s: No socket or alternate editor.  Please use:\n\n"
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
 "\t--socket-name\n"
 #endif
@@ -1488,15 +1482,15 @@ start_daemon_and_retry_set_socket (void)
 
       if ((w == -1) || !WIFEXITED (status) || WEXITSTATUS (status))
 	{
-	  message (TRUE, "Error: Could not start the Emacs daemon\n");
+	  message (true, "Error: Could not start the Emacs daemon\n");
 	  exit (EXIT_FAILURE);
 	}
 
       /* Try connecting, the daemon should have started by now.  */
-      message (TRUE, "Emacs daemon should have started, trying to connect again\n");
+      message (true, "Emacs daemon should have started, trying to connect again\n");
       if ((emacs_socket = set_socket (1)) == INVALID_SOCKET)
 	{
-	  message (TRUE, "Error: Cannot connect even after starting the Emacs daemon\n");
+	  message (true, "Error: Cannot connect even after starting the Emacs daemon\n");
 	  exit (EXIT_FAILURE);
 	}
     }
@@ -1509,7 +1503,10 @@ start_daemon_and_retry_set_socket (void)
     {
       char emacs[] = "emacs";
       char daemon_option[] = "--daemon";
-      char *d_argv[] = {emacs, daemon_option, 0 };
+      char *d_argv[3];
+      d_argv[0] = emacs;
+      d_argv[1] = daemon_option;
+      d_argv[2] = 0;
       if (socket_name != NULL)
 	{
 	  /* Pass  --daemon=socket_name as argument.  */
@@ -1521,7 +1518,7 @@ start_daemon_and_retry_set_socket (void)
 	  d_argv[1] = daemon_arg;
 	}
       execvp ("emacs", d_argv);
-      message (TRUE, "%s: error starting emacs daemon\n", progname);
+      message (true, "%s: error starting emacs daemon\n", progname);
     }
 #endif /* WINDOWSNT */
 }
@@ -1551,7 +1548,7 @@ main (int argc, char **argv)
 
   if ((argc - optind < 1) && !eval && current_frame)
     {
-      message (TRUE, "%s: file name or argument required\n"
+      message (true, "%s: file name or argument required\n"
 	       "Try `%s --help' for more information\n",
 	       progname, progname);
       exit (EXIT_FAILURE);
@@ -1574,7 +1571,7 @@ main (int argc, char **argv)
   cwd = get_current_dir_name ();
   if (cwd == 0)
     {
-      message (TRUE, "%s: %s\n", progname,
+      message (true, "%s: %s\n", progname,
 	       "Cannot get current working directory");
       fail ();
     }
@@ -1724,7 +1721,8 @@ main (int argc, char **argv)
       needlf = 2;
     }
   fflush (stdout);
-  fsync (1);
+  while (fdatasync (1) != 0 && errno == EINTR)
+    continue;
 
   /* Now, wait for an answer and print any messages.  */
   while (exit_status == EXIT_SUCCESS)
@@ -1825,7 +1823,8 @@ main (int argc, char **argv)
   if (needlf)
     printf ("\n");
   fflush (stdout);
-  fsync (1);
+  while (fdatasync (1) != 0 && errno == EINTR)
+    continue;
 
   if (rl < 0)
     exit_status = EXIT_FAILURE;

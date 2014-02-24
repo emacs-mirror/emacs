@@ -1,6 +1,6 @@
 ;;; autoarg.el --- make digit keys supply prefix args
 
-;; Copyright (C) 1998, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author:  Dave Love <fx@gnu.org>
 ;; Created: 1998-09-04
@@ -75,7 +75,6 @@
 	   (setq prefix-arg (if (zerop digit) '- (- digit))))
 	  (t
 	   (setq prefix-arg digit))))
-  (setq universal-argument-num-events (length (this-command-keys)))
   (setq overriding-terminal-local-map universal-argument-map))
 
 (defvar autoarg-kp-mode-map

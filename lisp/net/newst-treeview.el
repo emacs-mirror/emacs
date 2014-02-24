@@ -1,6 +1,6 @@
 ;;; newst-treeview.el --- Treeview frontend for newsticker.
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-treeview.el
@@ -1909,13 +1909,9 @@ Return t if groups have changed, nil otherwise."
     map)
   "Mode map for newsticker treeview.")
 
-(defun newsticker-treeview-mode ()
+(define-derived-mode newsticker-treeview-mode fundamental-mode "Newsticker TV"
   "Major mode for Newsticker Treeview.
 \\{newsticker-treeview-mode-map}"
-  (kill-all-local-variables)
-  (use-local-map newsticker-treeview-mode-map)
-  (setq major-mode 'newsticker-treeview-mode)
-  (setq mode-name "Newsticker TV")
   (if (boundp 'tool-bar-map)
       (set (make-local-variable 'tool-bar-map)
            newsticker-treeview-tool-bar-map))

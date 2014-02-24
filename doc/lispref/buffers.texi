@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Buffers
@@ -488,8 +488,9 @@ Normally, this function asks the user for confirmation if there
 already is a buffer visiting @var{filename}.  If @var{no-query} is
 non-@code{nil}, that prevents asking this question.  If there already
 is a buffer visiting @var{filename}, and the user confirms or
-@var{query} is non-@code{nil}, this function makes the new buffer name
-unique by appending a number inside of @samp{<@dots{}>} to @var{filename}.
+@var{no-query} is non-@code{nil}, this function makes the new
+buffer name unique by appending a number inside of @samp{<@dots{}>} to
+@var{filename}.
 
 If @var{along-with-file} is non-@code{nil}, that means to assume that
 the former visited file has been renamed to @var{filename}.  In this
@@ -631,13 +632,12 @@ exceptional places where the usual test to avoid overwriting a changed
 file should not be done.
 @end defun
 
-@c Emacs 19 feature
 @defun visited-file-modtime
 This function returns the current buffer's recorded last file
 modification time, as a list of the form @code{(@var{high} @var{low}
-@var{microsec} @var{picosec})}.
-(This is the same format that @code{file-attributes} uses to return
-time values; see @ref{File Attributes}.)
+@var{microsec} @var{picosec})}.  (This is the same format that
+@code{file-attributes} uses to return time values; @pxref{File
+Attributes}.)
 
 If the buffer has no recorded last modification time, this function
 returns zero.  This case occurs, for instance, if the buffer is not
@@ -647,17 +647,9 @@ visiting a file or if the time has been explicitly cleared by
 too.  For instance, in a Dired buffer listing a directory, it returns
 the last modification time of that directory, as recorded by Dired.
 
-For a new buffer visiting a not yet existing file, @var{high} is
-@minus{}1 and @var{low} is 65535, that is,
-@ifnottex
-@w{2**16 @minus{} 1.}
-@end ifnottex
-@tex
-@math{2^{16}-1}.
-@end tex
+If the buffer is not visiting a file, this function returns -1.
 @end defun
 
-@c Emacs 19 feature
 @defun set-visited-file-modtime &optional time
 This function updates the buffer's record of the last modification time
 of the visited file, to the value specified by @var{time} if @var{time}
@@ -1064,7 +1056,7 @@ Buffer foo.changed modified; kill anyway? (yes or no) @kbd{yes}
 @end deffn
 
 @defvar kill-buffer-query-functions
-After confirming unsaved changes, @code{kill-buffer} calls the functions
+Before confirming unsaved changes, @code{kill-buffer} calls the functions
 in the list @code{kill-buffer-query-functions}, in order of appearance,
 with no arguments.  The buffer being killed is the current buffer when
 they are called.  The idea of this feature is that these functions will

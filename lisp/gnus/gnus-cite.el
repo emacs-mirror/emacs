@@ -1,6 +1,6 @@
 ;;; gnus-cite.el --- parse citations in articles for Gnus
 
-;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2014 Free Software Foundation, Inc.
 
 ;; Author: Per Abhiddenware
 
@@ -1096,7 +1096,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 	(skip-chars-backward " \t")
 	(setq to (point))
 	(when (< from to)
-	  (push (setq overlay (gnus-make-overlay from to))
+	  (push (setq overlay (gnus-make-overlay from to nil t))
 		gnus-cite-overlay-list)
 	  (gnus-overlay-put overlay 'evaporate t)
 	  (gnus-overlay-put overlay 'face face))))))
@@ -1250,7 +1250,7 @@ When enabled, it automatically turns on `font-lock-mode'."
 (provide 'gnus-cite)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; gnus-cite.el ends here

@@ -1,3 +1,112 @@
+2014-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* erc.el (erc-accidental-paste-threshold-seconds): Doc tweak.
+
+2014-01-25  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* erc.el (erc): Link to info manual.
+
+2013-12-28  Glenn Morris  <rgm@gnu.org>
+
+	* erc-log.el (erc-log-file-coding-system): Specify custom type.
+
+2013-11-25  Glenn Morris  <rgm@gnu.org>
+
+	* erc-button.el (erc-nick-popup): Make `nick' available in the
+	eval environment.  (Bug#15969)
+
+2013-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-pcomplete.el (erc-pcomplete): Set this-command.
+
+2013-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* erc.el (erc-invite-only-mode, erc-toggle-channel-mode):
+	Remove unused local variable `erc-force-send'.
+
+2013-09-19  Glenn Morris  <rgm@gnu.org>
+
+	* erc-button.el (erc-button-click-button, erc-button-press-button):
+	* erc-list.el (erc-list-handle-322):
+	Mark unused arguments.
+
+	* erc.el (erc-open-server-buffer-p): Actually use the `buffer' arg.
+	* erc-backend.el (erc-server-process-alive): Take optional `buffer' arg.
+
+2013-09-18  Glenn Morris  <rgm@gnu.org>
+
+	* erc-button.el (erc-button-add-buttons): Remove unused local vars.
+
+2013-09-14  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* erc.el (erc-update-mode-line-buffer):
+	Handle absent topic.  (Bug#15377)
+
+2013-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* erc-desktop-notifications.el (dbus-debug): Declare.
+
+2013-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc.el: Use lexical-binding.
+	(erc-user-full-name): Minor CSE simplification.
+	(erc-mode-map): Assume command-remapping is available.
+	(erc-once-with-server-event): Replace `forms' arg with a function arg.
+	(erc-once-with-server-event-global): Remove.
+	(erc-ison-p): Adjust to change in erc-once-with-server-event.
+	(erc-get-buffer-create): Remove arg `proc'.
+	(iswitchb-make-buflist-hook): Declare.
+	(erc-setup-buffer): Use pcase; avoid ((lambda ..) ..).
+	(read-passwd): Assume it exists.
+	(erc-display-line, erc-cmd-IDLE): Avoid add-to-list, adjust to change
+	in erc-once-with-server-event.
+	(erc-cmd-JOIN, erc-set-channel-limit, erc-set-channel-key)
+	(erc-add-query): Minor CSE simplification.
+	(erc-cmd-BANLIST, erc-cmd-MASSUNBAN): Adjust to change
+	in erc-once-with-server-event.
+	(erc-echo-notice-in-user-and-target-buffers): Avoid add-to-list.
+	* erc-track.el: Use lexical-binding.
+	(erc-make-mode-line-buffer-name): Use closures instead of `(lambda...).
+	(erc-faces-in): Avoid add-to-list.
+	* erc-notify.el: Use lexical-binding.
+	(erc-notify-timer): Adjust to change in erc-once-with-server-event.
+	(erc-notify-QUIT): Use a closure instead of `(lambda...).
+	* erc-list.el: Use lexical-binding.
+	(erc-list-install-322-handler, erc-cmd-LIST): Adjust to change in
+	erc-once-with-server-event.
+	* erc-button.el: Use lexical-binding.
+	(erc-button-next-function): Use a closure instead of `(lambda...).
+
+2013-05-30  Glenn Morris  <rgm@gnu.org>
+
+	* erc-backend.el: Require erc at run-time too.
+
+2013-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* erc-log.el (erc-network-name): Declare.
+
+	* erc-notify.el (pcomplete--here): Declare.
+	(pcomplete/erc-mode/NOTIFY): Require pcomplete.
+
+	* erc.el (erc-quit-reason-various-alist)
+	(erc-part-reason-various-alist): Don't mention zippy.
+	(erc-quit-reason, erc-part-reason): Remove zippy options.
+	(erc-quit-reason-zippy, erc-part-reason-zippy): Make obsolete.
+	If yow is not defined, fall back to -normal versions.
+
+2013-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* erc-list.el (erc-list):
+	* erc-menu.el (erc-menu):
+	* erc-ring.el (erc-ring): Define custom groups, for define-erc-module.
+
+	* erc-list.el: Provide a feature.
+
+2013-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* erc-desktop-notifications.el (erc-notifications-icon):
+	Fix custom type.
+
 2013-02-13  Aidan Gauland  <aidalgol@no8wireless.co.nz>
 
 	* erc-match.el (erc-match-message): Fix last commit.
@@ -99,7 +208,7 @@
 
 2012-10-04  Julien Danjou  <julien@danjou.info>
 
-	* erc-desktop-notifications.el: Rename from erc-notifications to
+	* erc-desktop-notifications.el: Rename from erc-notifications.el to
 	avoid clash with 8+3 filename format and erc-notify.el.
 
 2012-09-25  Chong Yidong  <cyd@gnu.org>
@@ -111,7 +220,7 @@
 	* erc-page.el (erc-page-function):
 	* erc-stamp.el (erc-stamp): Doc fix.
 
-2012-08-21  Josh Feinstein <jlf@foxtail.org>
+2012-08-21  Josh Feinstein  <jlf@foxtail.org>
 
 	* erc-join.el (erc-autojoin-timing): Fix defcustom type.
 
@@ -121,7 +230,7 @@
 	Use `erc-match-exclude-server-buffer' not
 	`erc-track-exclude-server-buffer'.
 
-2012-08-20  Josh Feinstein <jlf@foxtail.org>
+2012-08-20  Josh Feinstein  <jlf@foxtail.org>
 
 	* erc.el (erc-display-message): Abstract message hiding decision
 	to new function erc-hide-current-message-p.
@@ -333,6 +442,10 @@
 	(erc-modified-channels-update): Remove
 	erc-modified-channels-update from post-command-hook after update.
 
+2011-02-01  Sam Steingold  <sds@gnu.org>
+
+	* erc-list.el (erc-list-menu-mode): Inherit from `special-mode'.
+
 2011-01-31  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
 
 	* erc-track.el (track): Don't reset erc-modified-channels-object
@@ -435,7 +548,7 @@
 
 2009-07-22  Kevin Ryde  <user42@zip.com.au>
 
-	* erc/erc.el (erc-cmd-MODE): Hyperlink urls in docstring with URL `...'.
+	* erc.el (erc-cmd-MODE): Hyperlink urls in docstring with URL `...'.
 
 2009-03-13  D. Goel  <deego3@gmail.com>
 
@@ -471,7 +584,7 @@
 
 See ChangeLog.08 for earlier changes.
 
-	Copyright (C) 2009-2013 Free Software Foundation, Inc.
+	Copyright (C) 2009-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

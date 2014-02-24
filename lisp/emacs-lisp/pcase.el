@@ -1,6 +1,6 @@
 ;;; pcase.el --- ML-style pattern-matching macro for Elisp -*- lexical-binding: t; coding: utf-8 -*-
 
-;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -353,22 +353,33 @@ MATCH is the pattern that needs to be matched, of the form:
     (symbolp . numberp)
     (symbolp . consp)
     (symbolp . arrayp)
+    (symbolp . vectorp)
     (symbolp . stringp)
     (symbolp . byte-code-function-p)
     (integerp . consp)
     (integerp . arrayp)
+    (integerp . vectorp)
     (integerp . stringp)
     (integerp . byte-code-function-p)
     (numberp . consp)
     (numberp . arrayp)
+    (numberp . vectorp)
     (numberp . stringp)
     (numberp . byte-code-function-p)
     (consp . arrayp)
+    (consp . vectorp)
     (consp . stringp)
     (consp . byte-code-function-p)
-    (arrayp . stringp)
     (arrayp . byte-code-function-p)
+    (vectorp . byte-code-function-p)
+    (stringp . vectorp)
     (stringp . byte-code-function-p)))
+
+(defun pcase--mutually-exclusive-p (pred1 pred2)
+  (or (member (cons pred1 pred2)
+              pcase-mutually-exclusive-predicates)
+      (member (cons pred2 pred1)
+              pcase-mutually-exclusive-predicates)))
 
 (defun pcase--split-match (sym splitter match)
   (cond
@@ -433,10 +444,7 @@ MATCH is the pattern that needs to be matched, of the form:
    ;; A QPattern but not for a cons, can only go to the `else' side.
    ((eq (car-safe pat) '\`) '(:pcase--fail . nil))
    ((and (eq (car-safe pat) 'pred)
-         (or (member (cons 'consp (cadr pat))
-                     pcase-mutually-exclusive-predicates)
-             (member (cons (cadr pat) 'consp)
-                     pcase-mutually-exclusive-predicates)))
+         (pcase--mutually-exclusive-p #'consp (cadr pat)))
     '(:pcase--fail . nil))))
 
 (defun pcase--split-equal (elem pat)
@@ -453,9 +461,10 @@ MATCH is the pattern that needs to be matched, of the form:
    ((and (eq (car-safe pat) 'pred)
          (symbolp (cadr pat))
          (get (cadr pat) 'side-effect-free))
-    (if (funcall (cadr pat) elem)
-        '(:pcase--succeed . nil)
-      '(:pcase--fail . nil)))))
+    (ignore-errors
+      (if (funcall (cadr pat) elem)
+	  '(:pcase--succeed . nil)
+	'(:pcase--fail . nil))))))
 
 (defun pcase--split-member (elems pat)
   ;; Based on pcase--split-equal.
@@ -476,24 +485,35 @@ MATCH is the pattern that needs to be matched, of the form:
    ((and (eq (car-safe pat) 'pred)
          (symbolp (cadr pat))
          (get (cadr pat) 'side-effect-free)
-         (let ((p (cadr pat)) (all t))
-           (dolist (elem elems)
-             (unless (funcall p elem) (setq all nil)))
-           all))
+	 (ignore-errors
+	   (let ((p (cadr pat)) (all t))
+	     (dolist (elem elems)
+	       (unless (funcall p elem) (setq all nil)))
+	     all)))
     '(:pcase--succeed . nil))))
 
-(defun pcase--split-pred (upat pat)
-  ;; FIXME: For predicates like (pred (> a)), two such predicates may
-  ;; actually refer to different variables `a'.
+(defun pcase--split-pred (vars upat pat)
   (let (test)
     (cond
-     ((equal upat pat) '(:pcase--succeed . :pcase--fail))
+     ((and (equal upat pat)
+           ;; For predicates like (pred (> a)), two such predicates may
+           ;; actually refer to different variables `a'.
+           (or (and (eq 'pred (car upat)) (symbolp (cadr upat)))
+               ;; FIXME: `vars' gives us the environment in which `upat' will
+               ;; run, but we don't have the environment in which `pat' will
+               ;; run, so we can't do a reliable verification.  But let's try
+               ;; and catch at least the easy cases such as (bug#14773).
+               (not (pcase--fgrep (mapcar #'car vars) (cadr upat)))))
+      '(:pcase--succeed . :pcase--fail))
      ((and (eq 'pred (car upat))
-           (eq 'pred (car-safe pat))
-           (or (member (cons (cadr upat) (cadr pat))
-                       pcase-mutually-exclusive-predicates)
-               (member (cons (cadr pat) (cadr upat))
-                       pcase-mutually-exclusive-predicates)))
+           (let ((otherpred
+                  (cond ((eq 'pred (car-safe pat)) (cadr pat))
+                        ((not (eq '\` (car-safe pat))) nil)
+                        ((consp (cadr pat)) #'consp)
+                        ((vectorp (cadr pat)) #'vectorp)
+                        ((byte-code-function-p (cadr pat))
+                         #'byte-code-function-p))))
+             (pcase--mutually-exclusive-p (cadr upat) otherpred)))
       '(:pcase--fail . nil))
      ((and (eq 'pred (car upat))
            (eq '\` (car-safe pat))
@@ -589,7 +609,7 @@ Otherwise, it defers to REST which is a list of branches of the form
         (if (eq (car upat) 'pred) (pcase--mark-used sym))
         (let* ((splitrest
                 (pcase--split-rest
-                 sym (lambda (pat) (pcase--split-pred upat pat)) rest))
+                 sym (lambda (pat) (pcase--split-pred vars upat pat)) rest))
                (then-rest (car splitrest))
                (else-rest (cdr splitrest)))
           (pcase--if (if (and (eq (car upat) 'pred) (symbolp (cadr upat)))
@@ -652,11 +672,15 @@ Otherwise, it defers to REST which is a list of branches of the form
               (memq-fine t))
           (when all
             (dolist (alt (cdr upat))
-              (unless (or (pcase--self-quoting-p alt)
-                          (and (eq (car-safe alt) '\`)
-                               (or (symbolp (cadr alt)) (integerp (cadr alt))
-                                   (setq memq-fine nil)
-                                   (stringp (cadr alt)))))
+              (unless (if (pcase--self-quoting-p alt)
+                          (progn
+                            (unless (or (symbolp alt) (integerp alt))
+                              (setq memq-fine nil))
+                            t)
+                        (and (eq (car-safe alt) '\`)
+                             (or (symbolp (cadr alt)) (integerp (cadr alt))
+                                 (setq memq-fine nil)
+                                 (stringp (cadr alt)))))
                 (setq all nil))))
           (if all
               ;; Use memq for (or `a `b `c `d) rather than a big tree.
@@ -739,14 +763,14 @@ Otherwise, it defers to REST which is a list of branches of the form
        ;; `then-body', but only within some sub-branch).
        (macroexp-let*
         `(,@(if (get syma 'pcase-used) `((,syma (car ,sym))))
-              ,@(if (get symd 'pcase-used) `((,symd (cdr ,sym)))))
+          ,@(if (get symd 'pcase-used) `((,symd (cdr ,sym)))))
         then-body)
        (pcase--u else-rest))))
    ((or (integerp qpat) (symbolp qpat) (stringp qpat))
-      (let* ((splitrest (pcase--split-rest
-                         sym (lambda (pat) (pcase--split-equal qpat pat)) rest))
-             (then-rest (car splitrest))
-             (else-rest (cdr splitrest)))
+    (let* ((splitrest (pcase--split-rest
+                       sym (lambda (pat) (pcase--split-equal qpat pat)) rest))
+           (then-rest (car splitrest))
+           (else-rest (cdr splitrest)))
       (pcase--if (cond
                   ((stringp qpat) `(equal ,sym ,qpat))
                   ((null qpat) `(null ,sym))

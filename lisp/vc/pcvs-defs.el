@@ -1,6 +1,6 @@
 ;;; pcvs-defs.el --- variable definitions for PCL-CVS
 
-;; Copyright (C) 1991-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2014 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs
@@ -245,13 +245,6 @@ Output from cvs is placed here for asynchronous commands.")
 
 
 ;;;;
-;;;; Internal variables, used in the process buffer.
-;;;;
-
-(defvar cvs-postprocess nil
-  "(Buffer local) what to do once the process exits.")
-
-;;;;
 ;;;; Internal variables for the *cvs* buffer.
 ;;;;
 
@@ -431,6 +424,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
 
 (defcustom cvs-minor-mode-prefix "\C-xc"
   "Prefix key for the `cvs-mode' bindings in `cvs-minor-mode'."
+  :type 'string
   :group 'pcl-cvs)
 
 (easy-mmode-defmap cvs-minor-mode-map

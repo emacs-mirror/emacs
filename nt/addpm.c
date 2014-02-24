@@ -1,5 +1,5 @@
 /* Add entries to the GNU Emacs Program Manager folder.
-   Copyright (C) 1995, 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -34,16 +34,25 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    installed, then the DDE fallback for creating icons the Windows 3.1
    progman way will be used instead, but that is prone to lockups
    caused by other applications not servicing their message queues.  */
+#include <stdlib.h>
+#include <stdio.h>
+#include <malloc.h>
+
+/* MinGW64 defines _W64 and barfs if _WIN32_IE is defined to anything
+   below 0x500.  */
+#ifndef _W64
 #define _WIN32_IE 0x400
+#endif
 /* Request C Object macros for COM interfaces.  */
 #define COBJMACROS 1
 
 #include <windows.h>
 #include <shlobj.h>
 #include <ddeml.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <malloc.h>
+
+#ifndef OLD_PATHS
+#include "../src/epaths.h"
+#endif
 
 HDDEDATA CALLBACK
 DdeCallback (UINT uType, UINT uFmt, HCONV hconv,
@@ -71,8 +80,9 @@ static struct entry
 }
 env_vars[] =
 {
+#ifdef OLD_PATHS
   {"emacs_dir", NULL},
-  {"EMACSLOADPATH", "%emacs_dir%/site-lisp;%emacs_dir%/../site-lisp;%emacs_dir%/lisp;%emacs_dir%/leim"},
+  {"EMACSLOADPATH", "%emacs_dir%/site-lisp;%emacs_dir%/../site-lisp;%emacs_dir%/lisp"},
   {"SHELL", "%emacs_dir%/bin/cmdproxy.exe"},
   {"EMACSDATA", "%emacs_dir%/etc"},
   {"EMACSPATH", "%emacs_dir%/bin"},
@@ -81,6 +91,18 @@ env_vars[] =
   /*  {"INFOPATH", "%emacs_dir%/info"},  */
   {"EMACSDOC", "%emacs_dir%/etc"},
   {"TERM", "cmd"}
+#else  /* !OLD_PATHS */
+  {"emacs_dir", NULL},
+  {"EMACSLOADPATH", PATH_SITELOADSEARCH ";" PATH_LOADSEARCH},
+  {"SHELL", PATH_EXEC "/cmdproxy.exe"},
+  {"EMACSDATA", PATH_DATA},
+  {"EMACSPATH", PATH_EXEC},
+  /* We no longer set INFOPATH because Info-default-directory-list
+     is then ignored.  */
+  /*  {"INFOPATH", "%emacs_dir%/info"},  */
+  {"EMACSDOC", PATH_DOC},
+  {"TERM", "cmd"}
+#endif
 };
 
 BOOL

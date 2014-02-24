@@ -1,6 +1,6 @@
 ;;; shadowfile.el --- automatic file copying
 
-;; Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: comm files
@@ -34,21 +34,22 @@
 ;;  documentation for these functions for information on how and when to use
 ;;  them).  After doing this once, everything should be automatic.
 
-;;  The lists of clusters and shadows are saved in a file called .shadows,
-;;  so that they can be remembered from one Emacs session to another, even
-;;  (as much as possible) if the Emacs session terminates abnormally.  The
-;;  files needing to be copied are stored in .shadow_todo; if a file cannot
-;;  be copied for any reason, it will stay on the list to be tried again
-;;  next time.  The .shadows file should itself have shadows on all your
-;;  accounts so that the information in it is consistent everywhere, but
-;;  .shadow_todo is local information and should have no shadows.
+;;  The lists of clusters and shadows are saved in a ~/.emacs.d/shadows
+;;  (`shadow-info-file') file, so that they can be remembered from one
+;;  Emacs session to another, even (as much as possible) if the Emacs
+;;  session terminates abnormally.  The files needing to be copied are
+;;  stored in `shadow-todo-file'; if a file cannot be copied for any
+;;  reason, it will stay on the list to be tried again next time.  The
+;;  `shadow-info-file' file should itself have shadows on all your accounts
+;;  so that the information in it is consistent everywhere, but
+;;  `shadow-todo-file' is local information and should have no shadows.
 
 ;;  If you do not want to copy a particular file, you can answer "no" and
 ;;  be asked again next time you hit C-x 4 s or exit Emacs.  If you do not
 ;;  want to be asked again, use shadow-cancel, and you will not be asked
 ;;  until you change the file and save it again.  If you do not want to
-;;  shadow that file ever again, you can edit it out of the .shadows
-;;  buffer.  Anytime you edit the .shadows buffer, you must type M-x
+;;  shadow that file ever again, you can edit it out of the shadows
+;;  buffer.  Anytime you edit the shadows buffer, you must type M-x
 ;;  shadow-read-files to load in the new information, or your changes will
 ;;  be overwritten!
 
@@ -74,6 +75,7 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'ange-ftp)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -105,10 +107,13 @@ files that have been changed and need to be copied to other systems."
   :type 'boolean
   :group 'shadow)
 
+;; FIXME in a sense, this changed in 24.4 (addition of locate-user-emacs-file),
+;; but due to the weird way this variable is initialized to nil, it didn't
+;; literally change.  Same for shadow-todo-file.
 (defcustom shadow-info-file nil
   "File to keep shadow information in.
 The `shadow-info-file' should be shadowed to all your accounts to
-ensure consistency.  Default: ~/.shadows"
+ensure consistency.  Default: ~/.emacs.d/shadows"
   :type '(choice (const nil) file)
   :group 'shadow)
 
@@ -118,7 +123,7 @@ This means that if a remote system is down, or for any reason you cannot or
 decide not to copy your shadow files at the end of one Emacs session, it will
 remember and ask you again in your next Emacs session.
 This file must NOT be shadowed to any other system, it is host-specific.
-Default: ~/.shadow_todo"
+Default: ~/.emacs.d/shadow_todo"
   :type '(choice (const nil) file)
   :group 'shadow)
 
@@ -180,15 +185,6 @@ created by `shadow-define-regexp-group'.")
     (setq list (cdr list)))
   (car list))
 
-(defun shadow-remove-if (func list)
-  "Remove elements satisfying FUNC from LIST.
-Nondestructive; actually returns a copy of the list with the elements removed."
-  (if list
-      (if (funcall func (car list))
-	  (shadow-remove-if func (cdr list))
-	(cons (car list) (shadow-remove-if func (cdr list))))
-    nil))
-
 (defun shadow-regexp-superquote (string)
   "Like `regexp-quote', but includes the ^ and $.
 This makes sure regexp matches nothing but STRING."
@@ -238,9 +234,8 @@ instead."
 Replace old definition, if any.  PRIMARY and REGEXP are the
 information defining the cluster.  For interactive use, call
 `shadow-define-cluster' instead."
-  (let ((rest (shadow-remove-if
-	       (function (lambda (x) (equal name (car x))))
-	       shadow-clusters)))
+  (let ((rest (cl-remove-if (lambda (x) (equal name (car x)))
+			    shadow-clusters)))
     (setq shadow-clusters
 	  (cons (shadow-make-cluster name primary regexp)
 		rest))))
@@ -602,9 +597,8 @@ and to are absolute file names."
 Consider them as regular expressions if third arg REGEXP is true."
   (if groups
       (let ((nonmatching
-	     (shadow-remove-if
-	      (function (lambda (x) (shadow-file-match x file regexp)))
-	      (car groups))))
+	     (cl-remove-if (lambda (x) (shadow-file-match x file regexp))
+			   (car groups))))
 	(append (cond ((equal nonmatching (car groups)) nil)
 		      (regexp
 		       (let ((realname (nth 2 (shadow-parse-fullname file))))
@@ -635,8 +629,7 @@ Consider them as regular expressions if third arg REGEXP is true."
   "Remove PAIR from `shadow-files-to-copy'.
 PAIR must be `eq' to one of the elements of that list."
   (setq shadow-files-to-copy
-	(shadow-remove-if (function (lambda (s) (eq s pair)))
-			  shadow-files-to-copy)))
+	(cl-remove-if (lambda (s) (eq s pair)) shadow-files-to-copy)))
 
 (defun shadow-read-files ()
   "Visit and load `shadow-info-file' and `shadow-todo-file'.
@@ -651,7 +644,7 @@ Return t unless files were locked; then return nil."
 	(beep)
 	(sit-for 3)
 	nil)
-    (save-excursion
+    (save-current-buffer
       (when shadow-info-file
 	(set-buffer (setq shadow-info-buffer
 			  (find-file-noselect shadow-info-file)))
@@ -683,7 +676,7 @@ Also clear `shadow-hashtable', since when there are new shadows
 defined, the old hashtable info is invalid."
   (shadow-invalidate-hashtable)
   (if shadow-info-file
-      (save-excursion
+      (save-current-buffer
 	(if (not shadow-info-buffer)
 	    (setq shadow-info-buffer (find-file-noselect shadow-info-file)))
 	(set-buffer shadow-info-buffer)
@@ -802,11 +795,13 @@ look for files that have been changed and need to be copied to other systems."
 	    (file-name-as-directory (shadow-expand-file-name "~"))))
   (if (null shadow-info-file)
       (setq shadow-info-file
-	    (shadow-expand-file-name (convert-standard-filename "~/.shadows"))))
+            ;; FIXME: Move defaults to their defcustom.
+	    (shadow-expand-file-name
+             (locate-user-emacs-file "shadows" ".shadows"))))
   (if (null shadow-todo-file)
       (setq shadow-todo-file
 	    (shadow-expand-file-name
-	     (convert-standard-filename "~/.shadow_todo"))))
+	     (locate-user-emacs-file "shadow_todo" ".shadow_todo"))))
   (if (not (shadow-read-files))
       (progn
 	(message "Shadowfile information files not found - aborting")

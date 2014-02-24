@@ -1,6 +1,6 @@
 ;;; macroexp.el --- Additional macro-expansion support -*- lexical-binding: t; coding: utf-8 -*-
 ;;
-;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2014 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: lisp, compiler, macros
@@ -111,15 +111,20 @@ and also to avoid outputting the warning during normal execution."
        (funcall (eval (cadr form)))
        (byte-compile-constant nil)))
 
+(defun macroexp--compiling-p ()
+  "Return non-nil if we're macroexpanding for the compiler."
+  ;; FIXME: ¡¡Major Ugly Hack!! To determine whether the output of this
+  ;; macro-expansion will be processed by the byte-compiler, we check
+  ;; circumstantial evidence.
+  (member '(declare-function . byte-compile-macroexpand-declare-function)
+          macroexpand-all-environment))
+
+
 (defun macroexp--warn-and-return (msg form)
   (let ((when-compiled (lambda () (byte-compile-log-warning msg t))))
     (cond
      ((null msg) form)
-     ;; FIXME: ¡¡Major Ugly Hack!! To determine whether the output of this
-     ;; macro-expansion will be processed by the byte-compiler, we check
-     ;; circumstantial evidence.
-     ((member '(declare-function . byte-compile-macroexpand-declare-function)
-                macroexpand-all-environment)
+     ((macroexp--compiling-p)
       `(progn
          (macroexp--funcall-if-compiled ',when-compiled)
          ,form))

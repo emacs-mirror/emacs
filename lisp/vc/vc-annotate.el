@@ -1,9 +1,9 @@
-;;; vc-annotate.el --- VC Annotate Support
+;;; vc-annotate.el --- VC Annotate Support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-1998, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author:     Martin Lorentzson  <emwson@emw.ericsson.se>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: vc tools
 ;; Package: vc
 
@@ -306,15 +306,17 @@ use; you may override this using the second optional arg MODE."
 	 (vc-annotate-display-default (or vc-annotate-ratio 1.0)))
         ;; One of the auto-scaling modes
 	((eq vc-annotate-display-mode 'scale)
-	 (vc-exec-after `(vc-annotate-display-autoscale)))
+	 (vc-run-delayed (vc-annotate-display-autoscale)))
 	((eq vc-annotate-display-mode 'fullscale)
-	 (vc-exec-after `(vc-annotate-display-autoscale t)))
+	 (vc-run-delayed (vc-annotate-display-autoscale t)))
 	((numberp vc-annotate-display-mode) ; A fixed number of days lookback
 	 (vc-annotate-display-default
 	  (/ vc-annotate-display-mode
              (vc-annotate-oldest-in-map vc-annotate-color-map))))
 	(t (error "No such display mode: %s"
 		  vc-annotate-display-mode))))
+
+(defvar vc-sentinel-movepoint)
 
 ;;;###autoload
 (defun vc-annotate (file rev &optional display-mode buf move-point-to vc-bk)
@@ -397,16 +399,16 @@ mode-specific menu.  `vc-annotate-color-map' and
                display-mode))))
 
     (with-current-buffer temp-buffer-name
-      (vc-exec-after
-       `(progn
-          ;; Ideally, we'd rather not move point if the user has already
-          ;; moved it elsewhere, but really point here is not the position
-          ;; of the user's cursor :-(
-          (when ,current-line           ;(and (bobp))
-            (goto-line ,current-line)
-            (setq vc-sentinel-movepoint (point)))
-          (unless (active-minibuffer-window)
-            (message "Annotating... done")))))))
+      (vc-run-delayed
+       ;; Ideally, we'd rather not move point if the user has already
+       ;; moved it elsewhere, but really point here is not the position
+       ;; of the user's cursor :-(
+       (when current-line           ;(and (bobp))
+         (goto-char (point-min))
+         (forward-line (1- current-line))
+         (setq vc-sentinel-movepoint (point)))
+       (unless (active-minibuffer-window)
+         (message "Annotating... done"))))))
 
 (defun vc-annotate-prev-revision (prefix)
   "Visit the annotation of the revision previous to this one.
@@ -630,7 +632,7 @@ or OFFSET if present."
 	      (vc-call-backend vc-annotate-backend 'annotate-current-time))
 	  next-time))))
 
-(defun vc-default-annotate-current-time (backend)
+(defun vc-default-annotate-current-time (_backend)
   "Return the current time, encoded as fractional days."
   (vc-annotate-convert-time (current-time)))
 

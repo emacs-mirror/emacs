@@ -1,6 +1,6 @@
 ;;; artist.el --- draw ascii graphics with your mouse
 
-;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
 ;; Author:       Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Maintainer:   Tomas Abrahamsson <tab@lysator.liu.se>
@@ -1448,6 +1448,8 @@ Keymap summary
 	(picture-mode)
 	(message "")))
   (artist-mode-line-show-curr-operation artist-key-is-drawing))
+
+(declare-function picture-mode-exit "picture" (&optional nostrip))
 
 (defun artist-mode-exit ()
   "Exit Artist mode.  This will call the hook `artist-mode-hook'."

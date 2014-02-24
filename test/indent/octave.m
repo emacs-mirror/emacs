@@ -1,5 +1,5 @@
-## -*- octave -*-
-
+## -*- mode: octave; coding: utf-8 -*-
+0;				# Don't make this a function file
 function res = tcomp (fn)
   %% res = tcomp (fn)
   %%     imports components and rearranges them.
@@ -35,7 +35,7 @@ function res = tcomp (fn)
 
 endfunction
 
-## Copyright (C) 2005, 2006, 2007, 2008, 2009 S�ren Hauberg
+## Copyright (C) 2005, 2006, 2007, 2008, 2009 Søren Hauberg
 ##
 ## This file is part of Octave.
 ##
@@ -1089,13 +1089,13 @@ function [pkg_idx_struct] = parse_pkg_idx (packdir)
 
   while (! feof (fid) || line != -1)
     if (! any (! isspace (line)) || line(1) == "#" || any (line == "="))
-    ## Comments,  blank lines or comments about unimplemented
-    ## functions: do nothing
-    ## FIXME: probably comments and pointers to external functions
-    ## could be treated better when printing to screen?
+      ## Comments,  blank lines or comments about unimplemented
+      ## functions: do nothing
+      ## FIXME: probably comments and pointers to external functions
+      ## could be treated better when printing to screen?
     elseif (! isempty (strfind (line, ">>")))
-    ## Skip package name and description as they are in DESCRIPTION
-    ## already.
+      ## Skip package name and description as they are in DESCRIPTION
+      ## already.
     elseif (! isspace (line(1)))
       ## Category.
       if (! isempty (pkg_idx_struct{cat_num}.functions))
@@ -1658,7 +1658,7 @@ function desc = get_description (filename)
   line = fgetl (fid);
   while (line != -1)
     if (line(1) == "#")
-    ## Comments, do nothing.
+      ## Comments, do nothing.
     elseif (isspace(line(1)))
       ## Continuation lines
       if (exist ("keyword", "var") && isfield (desc, keyword))
@@ -1752,9 +1752,9 @@ function deps_cell = fix_depends (depends)
       endif
       version  = fix_version (parts{2});
 
-    ## If no version is specified for the dependency
-    ## we say that the version should be greater than
-    ## or equal to "0.0.0".
+      ## If no version is specified for the dependency
+      ## we say that the version should be greater than
+      ## or equal to "0.0.0".
     else
       package = tolower (strip (dep));
       operator = ">=";
@@ -1859,7 +1859,7 @@ function bad_deps = get_unsatisfied_deps (desc, installed_pkgs_lst)
       if (! compare_versions (OCTAVE_VERSION, dep.version, dep.operator))
         bad_deps{end+1} = dep;
       endif
-    ## Is the current dependency not Octave?
+      ## Is the current dependency not Octave?
     else
       ok = false;
       for i = 1:length (installed_pkgs_lst)
@@ -2025,7 +2025,7 @@ function load_packages (files, handle_deps, local_list, global_list)
   ## Load all.
   if (length (files) == 1 && strcmp (files{1}, "all"))
     idx = [1:length(installed_pkgs_lst)];
-  ## Load auto.
+    ## Load auto.
   elseif (length (files) == 1 && strcmp (files{1}, "auto"))
     idx = [];
     for i = 1:length (installed_pkgs_lst)
@@ -2033,7 +2033,7 @@ function load_packages (files, handle_deps, local_list, global_list)
 	idx (end + 1) = i;
       endif
     endfor
-  ## Load package_name1 ...
+    ## Load package_name1 ...
   else
     idx = [];
     for i = 1:length (files)
@@ -2100,8 +2100,8 @@ function unload_packages (files, handle_deps, local_list, global_list)
     idx = strcmp (p, d);
     if (any (idx))
       rmpath (d);
-    ## FIXME: We should also check if we need to remove items from
-    ## EXEC_PATH.
+      ## FIXME: We should also check if we need to remove items from
+      ## EXEC_PATH.
     endif
   endfor
 endfunction
@@ -2310,7 +2310,9 @@ function dep = is_architecture_dependent (nm)
       isglob = true;
       ext(end) = [];
     else
-      isglob = false;
+      isglob = false;		# I am a test
+				#%% me too
+### I shall align to column 0
     endif
     pos = findstr (nm, ext);
     if (pos)
@@ -2322,3 +2324,17 @@ function dep = is_architecture_dependent (nm)
     endif
   endfor
 endfunction
+
+%!assert(norm(logm([1 -1;0 1]) - [0 -1; 0 0]) < 1e-5);
+%!assert(norm(expm(logm([-1 2 ; 4 -1])) - [-1 2 ; 4 -1]) < 1e-5);
+%!assert(logm([1 -1 -1;0 1 -1; 0 0 1]), [0 -1 -1.5; 0 0 -1; 0 0 0], 1e-5);
+%!assert (logm (expm ([0 1i; -1i 0])), [0 1i; -1i 0], 10 * eps)
+
+%% Test input validation
+%!error logm ();
+%!error logm (1, 2, 3);
+%!error <logm: A must be a square matrix> logm([1 0;0 1; 2 2]);
+
+%!assert (logm (10), log (10))
+%!assert (full (logm (eye (3))), logm (full (eye (3))))
+%!assert (full (logm (10*eye (3))), logm (full (10*eye (3))), 8*eps)

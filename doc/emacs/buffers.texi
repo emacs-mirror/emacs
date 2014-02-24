@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Buffers
@@ -43,15 +43,15 @@ variables}---variables that can have a different value in each buffer.
   A buffer's size cannot be larger than some maximum, which is defined
 by the largest buffer position representable by @dfn{Emacs integers}.
 This is because Emacs tracks buffer positions using that data type.
-For typical 64-bit machines, this maximum buffer size is @math{2^61 -
-2} bytes, or about 2 EiB@.  For typical 32-bit machines, the maximum is
-usually @math{2^29 - 2} bytes, or about 512 MiB@.  Buffer sizes are
+For typical 64-bit machines, this maximum buffer size is @math{2^{61} - 2}
+bytes, or about 2 EiB@.  For typical 32-bit machines, the maximum is
+usually @math{2^{29} - 2} bytes, or about 512 MiB@.  Buffer sizes are
 also limited by the amount of memory in the system.
 
 @menu
 * Select Buffer::       Creating a new buffer or reselecting an old one.
 * List Buffers::        Getting a list of buffers that exist.
-* Misc Buffer::         Renaming; changing read-onlyness; copying text.
+* Misc Buffer::         Renaming; changing read-only status; copying text.
 * Kill Buffer::         Killing buffers you no longer need.
 * Several Buffers::     How to go through the list of all buffers
                           and operate variously on several of them.
@@ -174,7 +174,7 @@ List the existing buffers (@code{list-buffers}).
 @kindex C-x C-b
 @findex list-buffers
   To display a list of existing buffers, type @kbd{C-x C-b}.  Each
-line in the list shows one buffer's name, major mode and visited file.
+line in the list shows one buffer's name, size, major mode and visited file.
 The buffers are listed in the order that they were current; the
 buffers that were current most recently come first.
 
@@ -194,7 +194,7 @@ CRM Buffer                Size  Mode              File
  %  HELLO                 1607  Fundamental       ~/cvs/emacs/etc/HELLO
  %  NEWS                481184  Outline           ~/cvs/emacs/etc/NEWS
     *scratch*              191  Lisp Interaction
-  * *Messages*            1554  Fundamental
+  * *Messages*            1554  Messages
 @end smallexample
 
 @noindent
@@ -598,7 +598,7 @@ convenient to switch between buffers.
 
 @menu
 * Uniquify::               Making buffer names unique with directory parts.
-* Iswitchb::               Switching between buffers with substrings.
+* Icomplete::              Fast minibuffer selection.
 * Buffer Menus::           Configurable buffer menu.
 @end menu
 
@@ -608,32 +608,37 @@ convenient to switch between buffers.
 @cindex unique buffer names
 @cindex directories in buffer names
   When several buffers visit identically-named files, Emacs must give
-the buffers distinct names.  The usual method for making buffer names
-unique adds @samp{<2>}, @samp{<3>}, etc. to the end of the buffer
-names (all but one of them).
+the buffers distinct names.  The default method
+(@code{uniquify-buffer-name-style} set to
+@code{post-forward-angle-brackets}) for making buffer names unique
+adds @samp{<dir1>}, @samp{<dir2>}, etc. to the end of the buffer
+names.
 
 @vindex uniquify-buffer-name-style
-  Other methods work by adding parts of each file's directory to the
-buffer name.  To select one, load the library @file{uniquify} (e.g.,
-using @code{(require 'uniquify)}), and customize the variable
-@code{uniquify-buffer-name-style} (@pxref{Easy Customization}).
+  There are several styles to make buffer names unique.  To select
+one, customize the variable @code{uniquify-buffer-name-style}
+(@pxref{Easy Customization}).
 
-  To begin with, the @code{forward} naming method includes part of the
-file's directory name at the beginning of the buffer name; using this
-method, buffers visiting the files @file{/u/rms/tmp/Makefile} and
+  The @code{forward} naming method includes part of the file's
+directory name at the beginning of the buffer name; using this method,
+buffers visiting the files @file{/u/rms/tmp/Makefile} and
 @file{/usr/projects/zaphod/Makefile} would be named
-@samp{tmp/Makefile} and @samp{zaphod/Makefile}, respectively (instead
-of @samp{Makefile} and @samp{Makefile<2>}).
+@samp{tmp/Makefile} and @samp{zaphod/Makefile}.
 
   In contrast, the @code{post-forward} naming method would call the
-buffers @samp{Makefile|tmp} and @samp{Makefile|zaphod}, and the
+buffers @samp{Makefile|tmp} and @samp{Makefile|zaphod}.  The default
+method @code{post-forward-angle-brackets} is like @code{post-forward}
+except that it prepends the unique path in angle brackets.  The
 @code{reverse} naming method would call them @samp{Makefile\tmp} and
 @samp{Makefile\zaphod}.  The nontrivial difference between
 @code{post-forward} and @code{reverse} occurs when just one directory
 name is not enough to distinguish two files; then @code{reverse} puts
 the directory names in reverse order, so that @file{/top/middle/file}
 becomes @samp{file\middle\top}, while @code{post-forward} puts them in
-forward order after the file name, as in @samp{file|top/middle}.
+forward order after the file name, as in @samp{file|top/middle}.  If
+@code{uniquify-buffer-name-style} is set to @code{nil}, the buffer
+names simply get a @samp{<2>} etc. prepended.  This used to be the
+default behavior in Emacs versions up to 24.4.
 
   Which rule to follow for putting the directory names in the buffer
 name is not very important if you are going to @emph{look} at the
@@ -641,39 +646,31 @@ buffer names before you type one.  But as an experienced user, if you
 know the rule, you won't have to look.  And then you may find that one
 rule or another is easier for you to remember and apply quickly.
 
-@node Iswitchb
-@subsection Switching Between Buffers using Substrings
+@node Icomplete
+@subsection Fast minibuffer selection
 
-@findex iswitchb-mode
-@cindex Iswitchb mode
-@cindex mode, Iswitchb
-@kindex C-x b @r{(Iswitchb mode)}
-@kindex C-x 4 b @r{(Iswitchb mode)}
-@kindex C-x 5 b @r{(Iswitchb mode)}
-@kindex C-x 4 C-o @r{(Iswitchb mode)}
+@findex icomplete-mode
+@cindex Icomplete mode
 
-  Iswitchb global minor mode provides convenient switching between
-buffers using substrings of their names.  It replaces the normal
-definitions of @kbd{C-x b}, @kbd{C-x 4 b}, @kbd{C-x 5 b}, and @kbd{C-x
-4 C-o} with alternative commands that are somewhat ``smarter''.
+  Icomplete global minor mode provides a convenient way to quickly select an
+element among the possible completions in a minibuffer.  When enabled, typing
+in the minibuffer continuously displays a list of possible completions that
+match the string you have typed.
 
-  When one of these commands prompts you for a buffer name, you can
-type in just a substring of the name you want to choose.  As you enter
-the substring, Iswitchb mode continuously displays a list of buffers
-that match the substring you have typed.
-
-  At any time, you can type @key{RET} to select the first buffer in
-the list.  So the way to select a particular buffer is to make it the
+  At any time, you can type @key{C-j} to select the first completion in
+the list.  So the way to select a particular completion is to make it the
 first in the list.  There are two ways to do this.  You can type more
-of the buffer name and thus narrow down the list, excluding unwanted
-buffers above the desired one.  Alternatively, you can use @kbd{C-s}
-and @kbd{C-r} to rotate the list until the desired buffer is first.
+of the completion name and thus narrow down the list, excluding unwanted
+completions above the desired one.  Alternatively, you can use @kbd{C-.}
+and @kbd{C-,} to rotate the list until the desired buffer is first.
 
-  @key{TAB} while entering the buffer name performs completion on the
-string you have entered, based on the displayed list of buffers.
+  @key{M-TAB} will select the first completion in the list, like @key{C-j} but
+without exiting the minibuffer, so you can edit it further.  This is typically
+used when entering a file name, where @key{M-TAB} can be used a few times to
+descend in the hierarchy of directories.
 
-  To enable Iswitchb mode, type @kbd{M-x iswitchb-mode}, or customize
-the variable @code{iswitchb-mode} to @code{t} (@pxref{Easy
+  To enable Icomplete mode, type @kbd{M-x icomplete-mode}, or customize
+the variable @code{icomplete-mode} to @code{t} (@pxref{Easy
 Customization}).
 
 @node Buffer Menus

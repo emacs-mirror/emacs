@@ -1,6 +1,6 @@
 ;;; ede/simple.el --- Overlay an EDE structure on an existing project
 
-;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -117,5 +117,9 @@ Each directory needs a project file to control it.")
   proj)
 
 (provide 'ede/simple)
+
+;; Local variables:
+;; generated-autoload-load-name: "ede/simple"
+;; End:
 
 ;;; ede/simple.el ends here

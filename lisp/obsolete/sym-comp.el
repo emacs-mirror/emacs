@@ -1,6 +1,6 @@
 ;;; sym-comp.el --- mode-dependent symbol completion
 
-;; Copyright (C) 2004, 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: extensions
@@ -139,16 +139,23 @@ to be set buffer-locally.  Variables `symbol-completion-symbol-function',
                                pattern))
          ;; In case the transform needs to access it.
          (symbol-completion-predicate predicate)
-         (completion-annotate-function
+         (completion-extra-properties
           (if (functionp symbol-completion-transform-function)
-              (lambda (str)
-                (car-safe (cdr-safe
-                           (funcall symbol-completion-transform-function
-                                    str)))))))
+              '(:annotation-function
+                (lambda (str)
+                  (car-safe (cdr-safe
+                             (funcall symbol-completion-transform-function
+                                      str))))))))
     (completion-in-region (- (point) (length pattern)) (point)
                           completions predicate)))
 
-(eval-when-compile (require 'hippie-exp))
+(defvar he-search-string)
+(defvar he-tried-table)
+(defvar he-expand-list)
+(declare-function he-init-string "hippie-exp" (beg end))
+(declare-function he-string-member "hippie-exp" (str lst &optional trans-case))
+(declare-function he-substitute-string "hippie-exp" (str &optional trans-case))
+(declare-function he-reset-string "hippie-exp" ())
 
 ;;;###autoload
 (defun symbol-completion-try-complete (old)

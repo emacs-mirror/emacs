@@ -1,10 +1,10 @@
 ;;; iso-acc.el --- minor mode providing electric accent keys
 
-;; Copyright (C) 1993-1994, 1996, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1993-1994, 1996, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Johan Vromans
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: i18n
 ;; Obsolete-since: 22.1
 

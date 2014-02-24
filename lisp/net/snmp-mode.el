@@ -1,6 +1,6 @@
 ;;; snmp-mode.el --- SNMP & SNMPv2 MIB major mode
 
-;; Copyright (C) 1995, 1998, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Paul D. Smith <psmith@BayNetworks.com>
 ;; Keywords: data
@@ -85,8 +85,9 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'imenu)   ; Need this stuff when compiling for imenu macros, etc.
-  (require 'tempo))
+  (require 'imenu))   ; Need this stuff when compiling for imenu macros, etc.
+
+(require 'tempo)
 
 ;;;----------------------------------------------------------------------------
 ;;
@@ -539,8 +540,6 @@ lines for the purposes of this function."
 ;;                              Tempo Setup
 ;;
 ;;;----------------------------------------------------------------------------
-
-(require 'tempo)
 
 ;; Perform a completing-read with info given
 ;;

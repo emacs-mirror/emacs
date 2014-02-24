@@ -1,14 +1,14 @@
 GNU Emacs Installation Guide
-Copyright (C) 1992, 1994, 1996-1997, 2000-2013
-  Free Software Foundation, Inc.
+Copyright (C) 1992, 1994, 1996-1997, 2000-2014 Free Software Foundation,
+Inc.
 See the end of the file for license conditions.
 
 
 This file contains general information on building GNU Emacs.
 For more information specific to the MS-Windows, GNUstep/Mac OS X, and
 MS-DOS ports, also read the files nt/INSTALL, nextstep/INSTALL, and
-msdos/INSTALL.  For information about building from a Bazaar checkout
-(rather than a release), also read the file INSTALL.BZR.
+msdos/INSTALL.  For information about building from a repository checkout
+(rather than a release), also read the file INSTALL.REPO.
 
 
 BASIC INSTALLATION
@@ -62,32 +62,24 @@ sections if you need to.
      name, where to find various headers and libraries, etc.
      Refer to the section DETAILED BUILDING AND INSTALLATION below.
 
-     If `configure' didn't find some (optional) image support libraries,
-     such as Xpm, jpeg, etc., and you want to use them, refer to the
-     subsection "Image support libraries" below.
+     If `configure' didn't find some image support libraries, such as
+     Xpm and jpeg, refer to "Image support libraries" below.
 
      If the details printed by `configure' don't make any sense to
      you, but there are no obvious errors, assume that `configure' did
      its job and proceed.
 
-  4. If you need to run the `configure' script more than once (e.g.,
-     with some non-default options), always clean the source
-     directories before running `configure' again:
-
-		make distclean
-		./configure
-
-  5. Invoke the `make' program:
+  4. Invoke the `make' program:
 
 		 make
 
-  6. If `make' succeeds, it will build an executable program `emacs'
+  5. If `make' succeeds, it will build an executable program `emacs'
      in the `src' directory.  You can try this program, to make sure
      it works:
 
 		 src/emacs -Q
 
-  7. Assuming that the program `src/emacs' starts and displays its
+  6. Assuming that the program `src/emacs' starts and displays its
      opening screen, you can install the program and its auxiliary
      files into their installation directories:
 
@@ -101,6 +93,10 @@ sections if you need to.
 
   You can delete the entire build directory if you do not plan to
   build Emacs again, but it can be useful to keep for debugging.
+  If you want to build Emacs again with different configure options,
+  first clean the source directories:
+
+		make distclean
 
   Note that the install automatically saves space by compressing
   (provided you have the `gzip' program) those installed Lisp source (.el)
@@ -120,19 +116,7 @@ packages.  Note that if there is a separate `dev' or `devel' package,
 for use at compilation time rather than run time, you will need that
 as well as the corresponding run time package; typically the dev
 package will contain header files and a library archive.  Otherwise,
-you can download and build libraries from sources.
-
-The sources of these libraries are available by anonymous CVS from
-cvs.m17n.org.
-
-    % cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/m17n login
-    % cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/m17n co m17n-db
-    % cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/m17n co m17n-lib
-    % cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/m17n co libotf
-
-For m17n-lib, if you have problems with making the whole package
-because you lack some other packages on which m17n-lib depends, try to
-configure it with the option "--without-gui".
+you can download the libraries from <http://www.nongnu.org/m17n/>.
 
 Note that Emacs cannot support complex scripts on a TTY, unless the
 terminal includes such a support.
@@ -157,37 +141,40 @@ in the intlfonts/README file.
 
 * Image support libraries
 
-Emacs needs optional libraries to be able to display images (with the
-exception of PBM and XBM images whose support is built-in).
+Emacs needs libraries to display images, with the exception of PBM and
+XBM images whose support is built-in.
 
 On some systems, particularly on GNU/Linux, these libraries may
-already be present or available as additional packages.  Note that if
+already be present or available as additional packages.  If
 there is a separate `dev' or `devel' package, for use at compilation
 time rather than run time, you will need that as well as the
 corresponding run time package; typically the dev package will
 contain header files and a library archive.  Otherwise, you can
-download and build libraries from sources.  None of them are vital for
-running Emacs; however, note that Emacs will not be able to use
-colored icons in the toolbar if XPM support is not compiled in.
+download and build libraries from sources.  Although none of them are
+essential for running Emacs, some are important enough that
+'configure' will report an error if they are absent from a system that
+has X11 support, unless 'configure' is specifically told to omit them.
 
-Here's the list of some of these optional libraries, and the URLs
-where they can be found (in the unlikely event that your distribution
-does not provide them):
+Here's a list of some of these libraries, and the URLs where they
+can be found (in the unlikely event that your distribution does not
+provide them).  By default, libraries marked with an X are required if
+X11 is being used.
 
-  . libXaw3d          http://directory.fsf.org/project/xaw3d/
-  . libxpm for XPM:   http://www.x.org/releases/current/src/lib/
-  . libpng for PNG:   http://www.libpng.org/
-  . libz (for PNG):   http://www.zlib.net/
-  . libjpeg for JPEG: http://www.ijg.org/
-  . libtiff for TIFF: http://www.libtiff.org/
-  . libgif for GIF:   http://sourceforge.net/projects/giflib/
+    libXaw3d          http://directory.fsf.org/project/xaw3d/
+  X libxpm for XPM:   http://www.x.org/releases/current/src/lib/
+  X libpng for PNG:   http://www.libpng.org/
+    libz (for PNG):   http://www.zlib.net/
+  X libjpeg for JPEG: http://www.ijg.org/
+  X libtiff for TIFF: http://www.remotesensing.org/libtiff/
+  X libgif for GIF:   http://sourceforge.net/projects/giflib/
 
-Emacs will configure itself to build with these libraries if the
-`configure' script finds them on your system, unless you supply the
-appropriate --without-LIB option.  In some cases, older versions of
-these libraries won't work because some routines are missing, and
-configure should avoid such old versions.  If that happens, use the
---without-LIB options to `configure', if you need to.
+If you supply the appropriate --without-LIB option, 'configure' will
+omit the corresponding library from Emacs, even if that makes for a
+less-pleasant user interface.  Otherwise, Emacs will configure itself
+to build with these libraries if 'configure' finds them on your
+system, and 'configure' will complain and exit if a library marked 'X'
+is not found on a system that uses X11.  Use --without-LIB if your
+version of a library won't work because some routines are missing.
 
 * Extra fonts
 
@@ -212,7 +199,7 @@ The names of the packages that you need varies according to the
 GNU/Linux distribution that you use, and the options that you want to
 configure Emacs with.  On Debian-based systems, you can install all the
 packages needed to build the installed version of Emacs with a command
-like `apt-get build-dep emacs23'.  On Red Hat systems, the
+like `apt-get build-dep emacs24'.  On Red Hat systems, the
 corresponding command is `yum-builddep emacs'.
 
 
@@ -267,14 +254,11 @@ accept a list of directories, separated with colons.
 To get more attractive menus, you can specify an X toolkit when you
 configure Emacs; use the option `--with-x-toolkit=TOOLKIT', where
 TOOLKIT is `gtk' (the default), `athena', or `motif' (`yes' and
-`lucid' are synonyms for `athena').  On some systems, it does not work
-to use a toolkit with shared libraries.  A free implementation of
-Motif, called LessTif, is available from <http://www.lesstif.org>.
-Compiling with LessTif or Motif causes a standard File Selection
-Dialog to pop up when you invoke file commands with the mouse.  You
-can get fancy 3D-style scroll bars, even without Gtk or LessTif/Motif,
-if you have the Xaw3d library installed (see "Image support libraries"
-above for Xaw3d availability).
+`lucid' are synonyms for `athena').  Compiling with Motif causes a
+standard File Selection Dialog to pop up when you invoke file commands
+with the mouse.  You can get fancy 3D-style scroll bars, even without
+Gtk or Motif, if you have the Xaw3d library installed (see
+"Image support libraries" above for Xaw3d availability).
 
 You can tell configure where to search for GTK by specifying
 `--with-pkg-config-prog=PATH' where PATH is the pathname to
@@ -295,7 +279,7 @@ individual users--see the Rmail chapter of the Emacs manual.
 
 For image support you may have to download, build, and install the
 appropriate image support libraries for image types other than XBM and
-PBM, see the list of URLs in "ADDITIONAL DISTRIBUTION FILES" above.
+PBM, see the list of URLs in "Image support libraries" above.
 (Note that PNG support requires libz in addition to libpng.)
 
 To disable individual types of image support in Emacs for some reason,
@@ -308,8 +292,7 @@ or more of these options:
   --without-gif        for GIF image support
   --without-png        for PNG image support
 
-Use --without-toolkit-scroll-bars to disable LessTif/Motif or Xaw3d
-scroll bars.
+Use --without-toolkit-scroll-bars to disable Motif or Xaw3d scroll bars.
 
 Use --without-xim to inhibit the default use of X Input Methods.
 In this case, the X resource useXIM can be used to turn on use of XIM.
@@ -326,14 +309,15 @@ equivalent to --without-sound --without-dbus --without-libotf
 --without-selinux --without-xft --without-gsettings --without-gnutls
 --without-rsvg --without-xml2 --without-gconf --without-imagemagick
 --without-m17n-flt --without-jpeg --without-tiff --without-gif
---without-png --without-gpm.  Note that --without-all leaves X support
-enabled, and using the GTK2 or GTK3 toolkit creates a lot of library
-dependencies.  So if you want to build a small executable with very basic
-X support, use --without-all --with-x-toolkit=no.  For the smallest possible
-executable without X, use --without-all --without-x.  If you want to build
-with just a few features enabled, you can combine --without-all with
---with-FEATURE.  For example, you can use --without-all --with-dbus
-to build with DBus support and nothing more.
+--without-png --without-gpm --without-file-notification.  Note that
+--without-all leaves X support enabled, and using the GTK2 or GTK3
+toolkit creates a lot of library dependencies.  So if you want to
+build a small executable with very basic X support, use --without-all
+--with-x-toolkit=no.  For the smallest possible executable without X,
+use --without-all --without-x.  If you want to build with just a few
+features enabled, you can combine --without-all with --with-FEATURE.
+For example, you can use --without-all --with-dbus to build with DBus
+support and nothing more.
 
 Use --with-wide-int to implement Emacs values with the type 'long long',
 even on hosts where a narrower type would do.  With this option, on a
@@ -481,10 +465,6 @@ Before you override a variable this way, *look at the value* that the
 variable gets by default!  Make sure you know what kind of value the
 variable should have.  If you don't pay attention to what you are
 doing, you'll make a mistake.
-
-If you set load-path to a different value in site-init.el or
-site-load.el, Emacs will use *precisely* that value when it starts up
-again.  If you do this, you are on your own!
 
 The `site-*.el' files are nonexistent in the distribution.  You do not
 need to create them if you have nothing to put in them.
@@ -656,13 +636,17 @@ Here is a complete list of the variables you may want to set.
 	path variables - `bindir' and `libexecdir'.
 
 The above variables serve analogous purposes in the makefiles for all
-GNU software; the following variable is specific to Emacs.
+GNU software; the following variables are specific to Emacs.
 
 `archlibdir' indicates where Emacs installs and expects the executable
 	files and other architecture-dependent data it uses while
 	running.  Its default value, based on `libexecdir' (which
 	see), is `/usr/local/libexec/emacs/VERSION/CONFIGURATION-NAME'
 	(where VERSION and CONFIGURATION-NAME are as described above).
+
+`GZIP_PROG' is the name of the executable that compresses installed info,
+	manual, and .el files.  It defaults to gzip.  Setting it to
+	the empty string suppresses compression.
 
 Remember that you must specify any variable values you need each time
 you run `make' in the top directory.  If you run `make' once to build

@@ -1,6 +1,6 @@
 ;;; help-at-pt.el --- local help through the keyboard
 
-;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2014 Free Software Foundation, Inc.
 
 ;; Author: Luc Teirlinck <teirllm@auburn.edu>
 ;; Keywords: help
@@ -61,13 +61,18 @@ property, or nil, is returned.
 If KBD is non-nil, `kbd-help' is used instead, and any
 `help-echo' property is ignored.  In this case, the return value
 can also be t, if that is the value of the `kbd-help' property."
-  (let* ((prop (if kbd 'kbd-help 'help-echo))
-	 (pair (get-char-property-and-overlay (point) prop))
-	 (val (car pair))
-	 (ov (cdr pair)))
-    (if (functionp val)
-	(funcall val (selected-window) (if ov ov (current-buffer)) (point))
-      (eval val))))
+  (save-excursion
+    (let* ((prop (if kbd 'kbd-help 'help-echo))
+           (pair (get-char-property-and-overlay (point) prop))
+           (pair (if (car pair) pair
+                     (unless (bobp)
+                       (backward-char)
+                       (get-char-property-and-overlay (point) prop))))
+           (val (car pair))
+           (ov (cdr pair)))
+      (if (functionp val)
+          (funcall val (selected-window) (if ov ov (current-buffer)) (point))
+          (eval val)))))
 
 ;;;###autoload
 (defun help-at-pt-kbd-string ()
@@ -235,7 +240,13 @@ properties, to enable buffer local values."
 		(catch 'found
 		  (dolist (prop help-at-pt-display-when-idle)
 		    (if (get-char-property (point) prop)
-			(throw 'found t))))))
+			(throw 'found t)))
+                  (unless (bobp)
+                    (save-excursion
+                      (backward-char)
+                      (dolist (prop help-at-pt-display-when-idle)
+                        (if (get-char-property (point) prop)
+                            (throw 'found t))))))))
        (or (not (current-message))
 	   (string= (current-message) "Quit"))
        (display-local-help t)))

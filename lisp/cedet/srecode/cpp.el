@@ -1,6 +1,6 @@
 ;;; srecode/cpp.el --- C++ specific handlers for Semantic Recoder
 
-;; Copyright (C) 2007, 2009-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2009-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 ;;         Jan Moringen <scymtym@users.sourceforge.net>
@@ -70,8 +70,7 @@ HEADER - Shown section if in a header file."
       (srecode-dictionary-show-section dict "NOTHEADER"))
 
     ;; Strip out bad characters
-    (while (string-match "\\.\\| " fsym)
-      (setq fsym (replace-match "_" t t fsym)))
+    (setq fsym (replace-regexp-in-string "[^a-zA-Z0-9_]" "_" fsym))
     (srecode-dictionary-set-value dict "FILENAME_SYMBOL" fsym)
     )
   )

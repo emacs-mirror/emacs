@@ -1,5 +1,5 @@
 /* Deal with the X Resource Manager.
-   Copyright (C) 1990, 1993-1994, 2000-2013 Free Software Foundation,
+   Copyright (C) 1990, 1993-1994, 2000-2014 Free Software Foundation,
    Inc.
 
 Author: Joseph Arceneaux
@@ -48,10 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #endif
 
-char *x_get_string_resource (XrmDatabase rdb, const char *name,
-			     const char *class);
-
-
 /* X file search path processing.  */
 
 
@@ -75,17 +71,8 @@ x_get_customization_string (XrmDatabase db, const char *name,
   sprintf (full_class, "%s.%s", class, "Customization");
 
   result = x_get_string_resource (db, full_name, full_class);
-
-  if (result)
-    {
-      char *copy = xmalloc (strlen (result) + 1);
-      strcpy (copy, result);
-      return copy;
-    }
-  else
-    return 0;
+  return result ? xstrdup (result) : NULL;
 }
-
 
 /* Expand all the Xt-style %-escapes in STRING, whose length is given
    by STRING_LEN.  Here are the escapes we're supposed to recognize:
@@ -192,7 +179,7 @@ magic_db (const char *string, ptrdiff_t string_len, const char *class,
       else
 	next = p, next_len = 1;
 
-      /* Do we have room for this component followed by a '\0' ?  */
+      /* Do we have room for this component followed by a '\0'?  */
       if (path_size - path_len <= next_len)
 	{
 	  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 - 1 - path_len < next_len)
@@ -247,9 +234,7 @@ gethomedir (void)
 
   copy = xmalloc (strlen (ptr) + 2);
   strcpy (copy, ptr);
-  strcat (copy, "/");
-
-  return copy;
+  return strcat (copy, "/");
 }
 
 
@@ -605,7 +590,7 @@ x_get_string_resource (XrmDatabase rdb, const char *name, const char *class)
   if (x_get_resource (rdb, name, class, x_rm_string, &value))
     return (char *) value.addr;
 
-  return (char *) 0;
+  return 0;
 }
 
 /* Stand-alone test facilities.  */
@@ -634,10 +619,7 @@ member (char *elt, List list)
 static void
 fatal (char *msg, char *prog)
 {
-  if (errno)
-    perror (prog);
-
-  (void) fprintf (stderr, msg, prog);
+  fprintf (stderr, msg, prog);
   exit (1);
 }
 
@@ -658,10 +640,7 @@ main (int argc, char **argv)
     displayname = "localhost:0.0";
 
   lp = member ("-xrm", arg_list);
-  if (! NIL (lp))
-    resource_string = car (cdr (lp));
-  else
-    resource_string = (char *) 0;
+  resource_string = NIL (lp) ? 0 : car (cdr (lp));
 
   lp = member ("-c", arg_list);
   if (! NIL (lp))

@@ -1,6 +1,6 @@
 /* Provide a more complete sys/time.h.
 
-   Copyright (C) 2007-2013 Free Software Foundation, Inc.
+   Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,6 +23,15 @@
 @PRAGMA_SYSTEM_HEADER@
 #endif
 @PRAGMA_COLUMNS@
+
+/* On Cygwin and on many BSDish systems, <sys/time.h> includes itself
+   recursively via <sys/select.h>.
+   Simply delegate to the system's header in this case; it is a no-op.
+   Without this extra ifdef, the C++ gettimeofday declaration below
+   would be a forward declaration in gnulib's nested <sys/time.h>.  */
+#if defined _CYGWIN_SYS_TIME_H || defined _SYS_TIME_H || defined _SYS_TIME_H_
+# @INCLUDE_NEXT@ @NEXT_SYS_TIME_H@
+#else
 
 /* The include_next requires a split double-inclusion guard.  */
 #if @HAVE_SYS_TIME_H@
@@ -200,4 +209,5 @@ _GL_WARN_ON_USE (gettimeofday, "gettimeofday is unportable - "
 #endif
 
 #endif /* _@GUARD_PREFIX@_SYS_TIME_H */
+#endif /* _CYGWIN_SYS_TIME_H */
 #endif /* _@GUARD_PREFIX@_SYS_TIME_H */

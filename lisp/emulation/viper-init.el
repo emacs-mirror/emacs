@@ -1,6 +1,6 @@
 ;;; viper-init.el --- some common definitions for Viper
 
-;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2014 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -424,7 +424,7 @@ delete the text being replaced, as in standard Vi."
 ;; (defcustom viper-emacs-state-cursor-color "Magenta"
 (defcustom viper-emacs-state-cursor-color nil
   "Cursor color when Viper is in Emacs state."
-  :type 'string
+  :type '(choice (const nil) string)
   :group 'viper)
 
 ;; internal var, used to remember the default cursor color of emacs frames
@@ -690,7 +690,7 @@ to a new place after repeating previous Vi command."
 the window will be scrolled up or down appropriately, to reveal context.
 If you want Viper search to behave as usual in Vi, set this variable to a
 negative number."
-  :type 'boolean
+  :type 'integer
   :group 'viper-search)
 
 (defcustom viper-re-query-replace t
@@ -922,7 +922,7 @@ value refers to the number of characters affected."
 
 (defcustom viper-vi-style-in-minibuffer t
   "If t, use vi-style editing in minibuffer.
-Should be set in `~/.viper' file."
+Should be set in `viper-custom-file-name'."
   :type 'boolean
   :group 'viper)
 

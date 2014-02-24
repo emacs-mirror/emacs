@@ -1,6 +1,6 @@
-;;; eldoc.el --- show function arglist or variable docstring in echo area
+;;; eldoc.el --- show function arglist or variable docstring in echo area  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Maintainer: friedman@splode.com
@@ -36,9 +36,10 @@
 ;; One useful way to enable this minor mode is to put the following in your
 ;; .emacs:
 ;;
-;;      (add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
-;;      (add-hook 'lisp-interaction-mode-hook 'turn-on-eldoc-mode)
-;;      (add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
+;;      (add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
+;;      (add-hook 'lisp-interaction-mode-hook 'eldoc-mode)
+;;      (add-hook 'ielm-mode-hook 'eldoc-mode)
+;;      (add-hook 'eval-expression-minibuffer-setup-hook 'eldoc-mode)
 
 ;; Major modes for other languages may use ElDoc by defining an
 ;; appropriate function as the buffer-local value of
@@ -60,6 +61,12 @@ last input, no documentation will be printed.
 
 If this variable is set to 0, no idle time is required."
   :type 'number
+  :group 'eldoc)
+
+(defcustom eldoc-print-after-edit nil
+  "If non-nil eldoc info is only shown when editing.
+Changing the value requires toggling `eldoc-mode'."
+  :type 'boolean
   :group 'eldoc)
 
 ;;;###autoload
@@ -146,6 +153,20 @@ directly.  Instead, use `eldoc-add-command' and `eldoc-remove-command'.")
   "Idle time delay currently in use by timer.
 This is used to determine if `eldoc-idle-delay' is changed by the user.")
 
+(defvar eldoc-message-function #'eldoc-minibuffer-message
+  "The function used by `eldoc-message' to display messages.
+It should receive the same arguments as `message'.")
+
+(defun eldoc-edit-message-commands ()
+  (let ((cmds (make-vector 31 0))
+	(re (regexp-opt '("delete" "insert" "edit" "electric" "newline"))))
+    (mapatoms (lambda (s)
+		(and (commandp s)
+		     (string-match-p re (symbol-name s))
+		     (intern (symbol-name s) cmds)))
+	      obarray)
+    cmds))
+
 
 ;;;###autoload
 (define-minor-mode eldoc-mode
@@ -164,29 +185,58 @@ expression point is on."
   (setq eldoc-last-message nil)
   (if eldoc-mode
       (progn
+	(when eldoc-print-after-edit
+	  (setq-local eldoc-message-commands (eldoc-edit-message-commands)))
 	(add-hook 'post-command-hook 'eldoc-schedule-timer nil t)
-	(add-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area t))
-   (remove-hook 'post-command-hook 'eldoc-schedule-timer)
-   (remove-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area)))
+	(add-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area nil t))
+    (kill-local-variable 'eldoc-message-commands)
+    (remove-hook 'post-command-hook 'eldoc-schedule-timer t)
+    (remove-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area t)))
 
 ;;;###autoload
-(defun turn-on-eldoc-mode ()
-  "Unequivocally turn on ElDoc mode (see command `eldoc-mode')."
-  (interactive)
-  (eldoc-mode 1))
+(define-obsolete-function-alias 'turn-on-eldoc-mode 'eldoc-mode "24.4")
 
 
 (defun eldoc-schedule-timer ()
   (or (and eldoc-timer
            (memq eldoc-timer timer-idle-list))
       (setq eldoc-timer
-            (run-with-idle-timer eldoc-idle-delay t
-                                 'eldoc-print-current-symbol-info)))
+            (run-with-idle-timer
+	     eldoc-idle-delay t
+	     (lambda () (and eldoc-mode (eldoc-print-current-symbol-info))))))
 
   ;; If user has changed the idle delay, update the timer.
   (cond ((not (= eldoc-idle-delay eldoc-current-idle-delay))
          (setq eldoc-current-idle-delay eldoc-idle-delay)
          (timer-set-idle-time eldoc-timer eldoc-idle-delay t))))
+
+(defvar eldoc-mode-line-string nil)
+(put 'eldoc-mode-line-string 'risky-local-variable t)
+
+(defun eldoc-minibuffer-message (format-string &rest args)
+  "Display messages in the mode-line when in the minibuffer.
+Otherwise work like `message'."
+  (if (minibufferp)
+      (progn
+	(add-hook 'minibuffer-exit-hook
+		  (lambda () (setq eldoc-mode-line-string nil))
+		  nil t)
+	(with-current-buffer
+	    (window-buffer
+	     (or (window-in-direction 'above (minibuffer-window))
+		 (minibuffer-selected-window)
+		 (get-largest-window)))
+	  (unless (and (listp mode-line-format)
+		       (assq 'eldoc-mode-line-string mode-line-format))
+	    (setq mode-line-format
+		  (list "" '(eldoc-mode-line-string
+			     (" " eldoc-mode-line-string " "))
+			mode-line-format)))
+          (setq eldoc-mode-line-string
+                (when (stringp format-string)
+                  (apply 'format format-string args)))
+          (force-mode-line-update)))
+    (apply 'message format-string args)))
 
 (defun eldoc-message (&rest args)
   (let ((omessage eldoc-last-message))
@@ -203,9 +253,14 @@ expression point is on."
     ;; they are Legion.
     ;; Emacs way of preventing log messages.
     (let ((message-log-max nil))
-      (cond (eldoc-last-message (message "%s" eldoc-last-message))
-	    (omessage (message nil)))))
+      (cond (eldoc-last-message
+	     (funcall eldoc-message-function "%s" eldoc-last-message))
+	    (omessage (funcall eldoc-message-function nil)))))
   eldoc-last-message)
+
+(defun eldoc--message-command-p (command)
+  (and (symbolp command)
+       (intern-soft (symbol-name command) eldoc-message-commands)))
 
 ;; This function goes on pre-command-hook for XEmacs or when using idle
 ;; timers in Emacs.  Motion commands clear the echo area for some reason,
@@ -215,8 +270,12 @@ expression point is on."
 ;; This doesn't seem to be required for Emacs 19.28 and earlier.
 (defun eldoc-pre-command-refresh-echo-area ()
   (and eldoc-last-message
-       (if (eldoc-display-message-no-interference-p)
-           (eldoc-message eldoc-last-message)
+       (not (minibufferp))      ;We don't use the echo area when in minibuffer.
+       (if (and (eldoc-display-message-no-interference-p)
+		(eldoc--message-command-p this-command))
+	   (eldoc-message eldoc-last-message)
+         ;; No need to call eldoc-message since the echo area will be cleared
+         ;; for us, but do note that the last-message will be gone.
          (setq eldoc-last-message nil))))
 
 ;; Decide whether now is a good time to display a message.
@@ -226,21 +285,14 @@ expression point is on."
        ;; timer, we're still in the middle of executing a command,
        ;; e.g. a query-replace where it would be annoying to
        ;; overwrite the echo area.
-       (and (not this-command)
-	    (symbolp last-command)
-	    (intern-soft (symbol-name last-command)
-			 eldoc-message-commands))))
+       (not this-command)
+       (eldoc--message-command-p last-command)))
+
 
 ;; Check various conditions about the current environment that might make
 ;; it undesirable to print eldoc messages right this instant.
 (defun eldoc-display-message-no-interference-p ()
-  (and eldoc-mode
-       (not executing-kbd-macro)
-       (not (and (boundp 'edebug-active) edebug-active))
-       ;; Having this mode operate in an active minibuffer/echo area causes
-       ;; interference with what's going on there.
-       (not cursor-in-echo-area)
-       (not (eq (selected-window) (minibuffer-window)))))
+  (not (or executing-kbd-macro (bound-and-true-p edebug-active))))
 
 
 ;;;###autoload
@@ -261,27 +313,30 @@ This variable is expected to be made buffer-local by modes (other than
 Emacs Lisp mode) that support ElDoc.")
 
 (defun eldoc-print-current-symbol-info ()
-  (condition-case err
-      (and (eldoc-display-message-p)
-	   (if eldoc-documentation-function
-	       (eldoc-message (funcall eldoc-documentation-function))
-	     (let* ((current-symbol (eldoc-current-symbol))
-		    (current-fnsym  (eldoc-fnsym-in-current-sexp))
-		    (doc (cond
-			  ((null current-fnsym)
-			   nil)
-			  ((eq current-symbol (car current-fnsym))
-			   (or (apply 'eldoc-get-fnsym-args-string
-				      current-fnsym)
-			       (eldoc-get-var-docstring current-symbol)))
-			  (t
-			   (or (eldoc-get-var-docstring current-symbol)
-			       (apply 'eldoc-get-fnsym-args-string
-				      current-fnsym))))))
-	       (eldoc-message doc))))
-    ;; This is run from post-command-hook or some idle timer thing,
-    ;; so we need to be careful that errors aren't ignored.
-    (error (message "eldoc error: %s" err))))
+  ;; This is run from post-command-hook or some idle timer thing,
+  ;; so we need to be careful that errors aren't ignored.
+  (with-demoted-errors "eldoc error: %s"
+    (and (or (eldoc-display-message-p)
+             ;; Erase the last message if we won't display a new one.
+             (when eldoc-last-message
+               (eldoc-message nil)
+               nil))
+	 (if eldoc-documentation-function
+	     (eldoc-message (funcall eldoc-documentation-function))
+	   (let* ((current-symbol (eldoc-current-symbol))
+		  (current-fnsym  (eldoc-fnsym-in-current-sexp))
+		  (doc (cond
+			((null current-fnsym)
+			 nil)
+			((eq current-symbol (car current-fnsym))
+			 (or (apply 'eldoc-get-fnsym-args-string
+				    current-fnsym)
+			     (eldoc-get-var-docstring current-symbol)))
+			(t
+			 (or (eldoc-get-var-docstring current-symbol)
+			     (apply 'eldoc-get-fnsym-args-string
+				    current-fnsym))))))
+	     (eldoc-message doc))))))
 
 (defun eldoc-get-fnsym-args-string (sym &optional index)
   "Return a string containing the parameter list of the function SYM.
@@ -440,11 +495,11 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
 (defun eldoc-beginning-of-sexp ()
   (let ((parse-sexp-ignore-comments t)
 	(num-skipped-sexps 0))
-    (condition-case err
+    (condition-case _
 	(progn
 	  ;; First account for the case the point is directly over a
 	  ;; beginning of a nested sexp.
-	  (condition-case err
+	  (condition-case _
 	      (let ((p (point)))
 		(forward-sexp -1)
 		(forward-sexp 1)
@@ -468,10 +523,9 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
 
 ;; Do indirect function resolution if possible.
 (defun eldoc-symbol-function (fsym)
-  (let ((defn (and (fboundp fsym)
-                   (symbol-function fsym))))
+  (let ((defn (symbol-function fsym)))
     (and (symbolp defn)
-         (condition-case err
+         (condition-case _
              (setq defn (indirect-function fsym))
            (error (setq defn nil))))
     defn))

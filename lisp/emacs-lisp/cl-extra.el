@@ -1,6 +1,6 @@
 ;;; cl-extra.el --- Common Lisp features, part 2  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: extensions
@@ -597,8 +597,11 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
                   (macroexp-let2 nil d def
                     (funcall do `(cl-getf ,getter ,k ,d)
                              (lambda (v)
-                               (funcall setter
-                                        `(cl--set-getf ,getter ,k ,v))))))))))
+                               (macroexp-let2 nil val v
+                                 `(progn
+                                    ,(funcall setter
+                                              `(cl--set-getf ,getter ,k ,val))
+                                    ,val))))))))))
   (setplist '--cl-getf-symbol-- plist)
   (or (get '--cl-getf-symbol-- tag)
       ;; Originally we called cl-get here,

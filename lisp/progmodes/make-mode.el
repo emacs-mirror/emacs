@@ -1,10 +1,10 @@
 ;;; make-mode.el --- makefile editing commands for Emacs -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1994, 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Adapted-By: ESR
 ;; Keywords: unix, tools
 
@@ -241,7 +241,7 @@ to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \"it seems necessary\"."
   "List of special targets.
 You will be offered to complete on one of those in the minibuffer whenever
 you enter a \".\" at the beginning of a line in `makefile-mode'."
-  :type '(repeat (list string))
+  :type '(repeat string)
   :group 'makefile)
 (put 'makefile-special-targets-list 'risky-local-variable t)
 
@@ -712,7 +712,9 @@ The function must satisfy this calling convention:
     (modify-syntax-entry ?\` "\"    " st)
     (modify-syntax-entry ?#  "<     " st)
     (modify-syntax-entry ?\n ">     " st)
-    st))
+    (modify-syntax-entry ?= "." st)
+    st)
+  "Syntax table used in `makefile-mode'.")
 
 (defvar makefile-imake-mode-syntax-table
   (let ((st (make-syntax-table makefile-mode-syntax-table)))
@@ -1298,7 +1300,8 @@ Fill comments, backslashed lines, and variable definitions specially."
                  (point))))
 	    (end
 	     (save-excursion
-	       (while (= (preceding-char) ?\\)
+	       (while (and (= (preceding-char) ?\\)
+			   (not (eobp)))
 		 (end-of-line 2))
 	       (point))))
 	(save-restriction

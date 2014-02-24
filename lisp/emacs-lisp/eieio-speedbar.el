@@ -1,6 +1,6 @@
 ;;; eieio-speedbar.el -- Classes for managing speedbar displays.
 
-;; Copyright (C) 1999-2002, 2005, 2007-2013 Free Software Foundation,
+;; Copyright (C) 1999-2002, 2005, 2007-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -230,9 +230,9 @@ object edit buffer doing an in-place edit.
 If your object represents some other item, override this method
 and take the appropriate action."
   (require 'eieio-custom)
-  (speedbar-with-attached-buffer
+  (dframe-with-attached-buffer
    (eieio-customize-object object))
-  (speedbar-maybee-jump-to-attached-frame))
+  (dframe-maybee-jump-to-attached-frame))
 
 
 ;;; Class definitions

@@ -1,6 +1,6 @@
 ;;; w32-common-fns.el --- Lisp routines for Windows and Cygwin-w32
 
-;; Copyright (C) 1994, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2014 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -22,6 +22,8 @@
 ;;; This file contains functions that are used by both native NT Emacs
 ;;; and Cygwin Emacs compiled to use the native Windows widget
 ;;; library.
+
+(declare-function x-server-version "w32fns.c" (&optional terminal))
 
 (defun w32-version ()
   "Return the MS-Windows version numbers.
@@ -77,7 +79,8 @@ all upper-case names.  The most often used ones, in addition to
 `PRIMARY', are `SECONDARY' and `CLIPBOARD'.
 
 DATA-TYPE is usually `STRING', but can also be one of the symbols
-in `selection-converter-alist', which see."
+in `selection-converter-alist', which see.  This argument is
+ignored on MS-Windows and MS-DOS."
   (get 'x-selections (or type 'PRIMARY)))
 
 ;; x-selection-owner-p is used in simple.el
@@ -100,6 +103,7 @@ in `selection-converter-alist', which see."
 ;; current selection against it, and avoid passing back our own text
 ;; from x-selection-value.
 (defvar x-last-selected-text nil)
+(defvar x-select-enable-clipboard)
 
 (defun x-get-selection-value ()
   "Return the value of the current selection.
@@ -107,9 +111,8 @@ Consult the selection.  Treat empty strings as if they were unset."
   (if x-select-enable-clipboard
       (let (text)
 	;; Don't die if x-get-selection signals an error.
-	(condition-case c
-	    (setq text (w32-get-clipboard-data))
-	  (error (message "w32-get-clipboard-data:%s" c)))
+	(with-demoted-errors "w32-get-clipboard-data:%s"
+	  (setq text (w32-get-clipboard-data)))
 	(if (string= text "") (setq text nil))
 	(cond
 	 ((not text) nil)

@@ -1,5 +1,5 @@
-Instructions to create pretest or release tarballs.
--- originally written by Gerd Moellmann, amended by Francesco Potortì
+Instructions to create pretest or release tarballs. -*- coding: utf-8 -*-
+-- originally written by Gerd Moellmann, amended by Francesco PotortÃ¬
    with the initial help of Eli Zaretskii
 
 
@@ -28,14 +28,10 @@ General steps (for each step, check for possible errors):
       M-: (require 'authors) RET
       M-x authors RET
 
-    There is almost guaranteed to be an "*Authors Errors*" buffer with
-    problems caused by certain bad ChangeLog entries.  You can ignore
-    the very old ones (eg lisp/erc has a lot).  If there are errors
-    related to new entries (especially entries that are new since the
-    last pretest), see if you can fix them.  If there was a ChangeLog
-    typo, fix it.  If a file was deleted or renamed, consider adding
-    an appropriate entry to authors-ignored-files, authors-valid-file-names,
-    or authors-renamed-files-alist.
+    If there is an "*Authors Errors*" buffer, address the issues.
+    If there was a ChangeLog typo, fix it.  If a file was deleted or
+    renamed, consider adding an appropriate entry to authors-ignored-files,
+    authors-valid-file-names, or authors-renamed-files-alist.
 
     If necessary, repeat M-x authors after making those changes.
     Save the "*Authors*" buffer as etc/AUTHORS.
@@ -50,8 +46,19 @@ General steps (for each step, check for possible errors):
     For a pretest, start at version .90.  After .99, use .990 (so that
     it sorts).
 
+    The final pretest should be a release candidate.  Set the version
+    number to that of the actual release.  Pick a date about a week
+    from now when you intend to make the release.  Use M-x add-release-logs
+    to add the ChangeLog entries for that date to the tar file (but
+    not yet to the repository).  Name the tar file as
+    emacs-XX.Y-rc1.tar.  If all goes well in the following week, you
+    can simply rename the file and use it for the actual release.
+
 5.   autoreconf -i -I m4 --force
      make bootstrap
+
+     make -C etc/refcards
+     make -C etc/refcards clean
 
 6.  Copy lisp/loaddefs.el to lisp/ldefs-boot.el.
 
@@ -77,7 +84,8 @@ General steps (for each step, check for possible errors):
     compile-NEW.log and compare it against an old one.  The easiest way
     to do that is to visit the old log in Emacs, change the version
     number of the old Emacs to __, do the same with the new log and do
-    M-x ediff.  Especially check that Info files aren't built.
+    M-x ediff.  Especially check that Info files aren't built, and that
+    no autotools (autoconf etc) run.
 
 9.  cd EMACS_ROOT_DIR && bzr tag TAG
     TAG is emacs-XX.Y.ZZ for a pretest, emacs-XX.Y for a release.
@@ -135,6 +143,8 @@ General steps (for each step, check for possible errors):
     Download them and check the signatures.  Check they build.
 
 12. For a pretest, announce it on emacs-devel and info-gnu-emacs@gnu.org.
+    Probably should also include the platform-testers list:
+    https://lists.gnu.org/mailman/listinfo/platform-testers
     For a release, also announce it on info-gnu@gnu.org.  (Probably
     bcc the info- addresses to make it less likely that people will
     followup on those lists.)

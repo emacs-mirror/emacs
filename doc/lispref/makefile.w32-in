@@ -1,6 +1,6 @@
 # -*- Makefile -*- for the GNU Emacs Lisp Reference Manual.
 
-# Copyright (C) 2003-2013 Free Software Foundation, Inc.
+# Copyright (C) 2003-2014 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -49,7 +49,6 @@ texinputdir = $(srcdir)\..\..\nt\envadd.bat \
 srcs = \
   $(emacsdir)/emacsver.texi \
   $(srcdir)/abbrevs.texi \
-  $(srcdir)/advice.texi \
   $(srcdir)/anti.texi \
   $(srcdir)/backups.texi \
   $(srcdir)/buffers.texi \

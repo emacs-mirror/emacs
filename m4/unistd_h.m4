@@ -1,5 +1,5 @@
-# unistd_h.m4 serial 66
-dnl Copyright (C) 2006-2013 Free Software Foundation, Inc.
+# unistd_h.m4 serial 67
+dnl Copyright (C) 2006-2014 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -160,6 +160,7 @@ AC_DEFUN([gl_UNISTD_H_DEFAULTS],
   REPLACE_FTRUNCATE=0;    AC_SUBST([REPLACE_FTRUNCATE])
   REPLACE_GETCWD=0;       AC_SUBST([REPLACE_GETCWD])
   REPLACE_GETDOMAINNAME=0; AC_SUBST([REPLACE_GETDOMAINNAME])
+  REPLACE_GETDTABLESIZE=0; AC_SUBST([REPLACE_GETDTABLESIZE])
   REPLACE_GETLOGIN_R=0;   AC_SUBST([REPLACE_GETLOGIN_R])
   REPLACE_GETGROUPS=0;    AC_SUBST([REPLACE_GETGROUPS])
   REPLACE_GETPAGESIZE=0;  AC_SUBST([REPLACE_GETPAGESIZE])

@@ -1,6 +1,6 @@
 ;;; reftex-parse.el --- parser functions for RefTeX
 
-;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2014 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -49,7 +49,8 @@
   (reftex-access-scan-info '(16)))
 
 (defun reftex-do-parse (rescan &optional file)
-  "Do a document rescan.  When allowed, do only a partial scan from FILE."
+  "Do a document rescan.
+When allowed, do only a partial scan from FILE."
 
   ;; Normalize the rescan argument
   (setq rescan (cond ((eq rescan t) t)
@@ -191,7 +192,7 @@ of master file."
 (defvar index-tags)
 
 (defun reftex-parse-from-file (file docstruct master-dir)
-  ;; Scan the buffer for labels and save them in a list.
+  "Scan the buffer for labels and save them in a list."
   (let ((regexp (reftex-everything-regexp))
         (bound 0)
         file-found tmp include-file
@@ -234,8 +235,19 @@ of master file."
 
                 ((match-end 1)
                  ;; It is a label
-                 (push (reftex-label-info (reftex-match-string 1) file bound)
-                       docstruct))
+		 (when (or (null reftex-label-ignored-macros-and-environments)
+			   ;; \label{} defs should always be honored,
+			   ;; just no keyval style [label=foo] defs.
+			   (string-equal "\label{" (substring (reftex-match-string 0) 0 7))
+                           (if (and (fboundp 'TeX-current-macro)
+                                    (fboundp 'LaTeX-current-environment))
+                               (not (or (member (save-match-data (TeX-current-macro))
+                                                reftex-label-ignored-macros-and-environments)
+                                        (member (save-match-data (LaTeX-current-environment))
+                                                reftex-label-ignored-macros-and-environments)))
+                             t))
+		   (push (reftex-label-info (reftex-match-string 1) file bound)
+			 docstruct)))
 
                 ((match-end 3)
                  ;; It is a section
@@ -338,21 +350,38 @@ of master file."
     ;; Return the list
     docstruct))
 
-(defun reftex-locate-bibliography-files (master-dir &optional files)
-  ;; Scan buffer for bibliography macro and return file list.
+(defun reftex-using-biblatex-p ()
+  "Return non-nil iff we are using biblatex rather than bibtex."
+  (if (boundp 'TeX-active-styles)
+      ;; the sophisticated AUCTeX way
+      (member "biblatex" TeX-active-styles)
+    ;; poor-man's check...
+    (save-excursion
+      (re-search-forward "^[^%]*\\\\usepackage.*{biblatex}" nil t))))
 
+(defun reftex-locate-bibliography-files (master-dir &optional files)
+  "Scan buffer for bibliography macros and return file list."
   (unless files
     (save-excursion
       (goto-char (point-min))
-      (if (re-search-forward
-           (concat
-;           "\\(\\`\\|[\n\r]\\)[^%]*\\\\\\("
-            "\\(^\\)[^%\n\r]*\\\\\\("
-            (mapconcat 'identity reftex-bibliography-commands "\\|")
-            "\\){[ \t]*\\([^}]+\\)") nil t)
-          (setq files
-                (split-string (reftex-match-string 3)
-                              "[ \t\n\r]*,[ \t\n\r]*")))))
+      ;; when biblatex is used, multiple \bibliography or
+      ;; \addbibresource macros are allowed.  With plain bibtex, only
+      ;; the first is used.
+      (let ((using-biblatex (reftex-using-biblatex-p))
+	    (again t))
+	(while (and again
+		    (re-search-forward
+		     (concat
+		      ;;           "\\(\\`\\|[\n\r]\\)[^%]*\\\\\\("
+		      "\\(^\\)[^%\n\r]*\\\\\\("
+		      (mapconcat 'identity reftex-bibliography-commands "\\|")
+		      "\\)\\(\\[.+?\\]\\)?{[ \t]*\\([^}]+\\)") nil t))
+	  (setq files
+		(append files
+			(split-string (reftex-match-string 4)
+				      "[ \t\n\r]*,[ \t\n\r]*")))
+	  (unless using-biblatex
+	    (setq again nil))))))
   (when files
     (setq files
           (mapcar
@@ -368,10 +397,10 @@ of master file."
     (delq nil files)))
 
 (defun reftex-replace-label-list-segment (old insert &optional entirely)
-  ;; Replace the segment in OLD which corresponds to INSERT.
-  ;; Works with side effects, directly changes old.
-  ;; If entirely is t, just return INSERT.
-  ;; This function also makes sure the old toc markers do not point anywhere.
+  "Replace the segment in OLD which corresponds to INSERT.
+Works with side effects, directly changes old.
+If ENTIRELY is t, just return INSERT.
+This function also makes sure the old toc markers do not point anywhere."
 
   (cond
    (entirely
@@ -393,8 +422,8 @@ of master file."
         new))))
 
 (defun reftex-section-info (file)
-  ;; Return a section entry for the current match.
-  ;; Careful: This function expects the match-data to be still in place!
+  "Return a section entry for the current match.
+Careful: This function expects the match-data to be still in place!"
   (let* ((marker (set-marker (make-marker) (1- (match-beginning 3))))
          (macro (reftex-match-string 3))
          (prefix (save-match-data
@@ -429,9 +458,9 @@ of master file."
           literal (marker-position marker))))
 
 (defun reftex-ensure-index-support (&optional abort)
-  ;; When index support is turned off, ask to turn it on and
-  ;; set the current prefix argument so that `reftex-access-scan-info'
-  ;; will rescan the entire document.
+  "When index support is turned off, ask to turn it on and
+set the current prefix argument so that `reftex-access-scan-info'
+will rescan the entire document."
   (cond
    (reftex-support-index t)
    ((y-or-n-p "Turn on index support and rescan entire document? ")
@@ -449,8 +478,8 @@ of master file."
 
 (defvar test-dummy)
 (defun reftex-index-info (file)
-  ;; Return an index entry for the current match.
-  ;; Careful: This function expects the match-data to be still in place!
+  "Return an index entry for the current match.
+Careful: This function expects the match-data to be still in place!"
   (catch 'exit
     (let* ((macro (reftex-match-string 10))
            (bom (match-beginning 10))
@@ -497,7 +526,7 @@ of master file."
       (list 'index index-tag context file bom arg key showkey sortkey key-end))))
 
 (defun reftex-short-context (env parse &optional bound derive)
-  ;; Get about one line of useful context for the label definition at point.
+  "Get about one line of useful context for the label definition at point."
 
   (if (consp parse)
       (setq parse (if derive (cdr parse) (car parse))))
@@ -557,9 +586,9 @@ of master file."
      "INVALID VALUE OF PARSE"))))
 
 (defun reftex-where-am-I ()
-  ;; Return the docstruct entry above point.  Actually returns a cons
-  ;; cell in which the cdr is a flag indicating if the information is
-  ;; exact (t) or approximate (nil).
+  "Return the docstruct entry above point.
+Actually returns a cons cell in which the cdr is a flag indicating
+if the information is exact (t) or approximate (nil)."
 
   (let ((docstruct (symbol-value reftex-docstruct-symbol))
         (cnt 0) rtn rtn-if-no-other
@@ -737,10 +766,10 @@ of master file."
   )
 
 (defsubst reftex-move-to-previous-arg (&optional bound)
-  ;; Assuming that we are in front of a macro argument,
-  ;; move backward to the closing parenthesis of the previous argument.
-  ;; This function understands the splitting of macros over several lines
-  ;; in TeX.
+  "Assuming that we are in front of a macro argument,
+move backward to the closing parenthesis of the previous argument.
+This function understands the splitting of macros over several lines
+in TeX."
   (cond
    ;; Just to be quick:
    ((memq (preceding-char) '(?\] ?\})))
@@ -753,28 +782,27 @@ of master file."
    (t nil)))
 
 (defun reftex-what-macro-safe (which &optional bound)
-  ;; reftex-what-macro with special syntax table.
+  "Call `reftex-what-macro' with special syntax table."
   (reftex-with-special-syntax
    (reftex-what-macro which bound)))
 
 (defun reftex-what-macro (which &optional bound)
-  ;; Find out if point is within the arguments of any TeX-macro.
-  ;; The return value is either ("\\macro" . (point)) or a list of them.
+  "Find out if point is within the arguments of any TeX-macro.
+The return value is either (\"\\macro\" . (point)) or a list of them.
 
-  ;; If WHICH is nil, immediately return nil.
-  ;; If WHICH is 1, return innermost enclosing macro.
-  ;; If WHICH is t, return list of all macros enclosing point.
-  ;; If WHICH is a list of macros, look only for those macros and return the
-  ;;    name of the first macro in this list found to enclose point.
-  ;; If the optional BOUND is an integer, bound backwards directed
-  ;;    searches to this point.  If it is nil, limit to nearest \section -
-  ;;    like statement.
+If WHICH is nil, immediately return nil.
+If WHICH is 1, return innermost enclosing macro.
+If WHICH is t, return list of all macros enclosing point.
+If WHICH is a list of macros, look only for those macros and return the
+  name of the first macro in this list found to enclose point.
+If the optional BOUND is an integer, bound backwards directed
+  searches to this point.  If it is nil, limit to nearest \\section -
+  like statement.
 
-  ;; This function is pretty stable, but can be fooled if the text contains
-  ;; things like \macro{aa}{bb} where \macro is defined to take only one
-  ;; argument.  As RefTeX cannot know this, the string "bb" would still be
-  ;; considered an argument of macro \macro.
-
+This function is pretty stable, but can be fooled if the text contains
+things like \\macro{aa}{bb} where \\macro is defined to take only one
+argument.  As RefTeX cannot know this, the string \"bb\" would still be
+considered an argument of macro \\macro."
   (unless reftex-section-regexp (reftex-compile-variables))
   (catch 'exit
     (if (null which) (throw 'exit nil))
@@ -821,20 +849,19 @@ of master file."
         (nreverse cmd-list)))))
 
 (defun reftex-what-environment (which &optional bound)
-  ;; Find out if point is inside a LaTeX environment.
-  ;; The return value is (e.g.) either ("equation" . (point)) or a list of
-  ;; them.
+  "Find out if point is inside a LaTeX environment.
+The return value is (e.g.) either (\"equation\" . (point)) or a list of
+them.
 
-  ;; If WHICH is nil, immediately return nil.
-  ;; If WHICH is 1, return innermost enclosing environment.
-  ;; If WHICH is t, return list of all environments enclosing point.
-  ;; If WHICH is a list of environments, look only for those environments and
-  ;;   return the name of the first environment in this list found to enclose
-  ;;   point.
+If WHICH is nil, immediately return nil.
+If WHICH is 1, return innermost enclosing environment.
+If WHICH is t, return list of all environments enclosing point.
+If WHICH is a list of environments, look only for those environments and
+  return the name of the first environment in this list found to enclose
+  point.
 
-  ;; If the optional BOUND is an integer, bound backwards directed searches to
-  ;; this point.  If it is nil, limit to nearest \section - like statement.
-
+If the optional BOUND is an integer, bound backwards directed searches to
+this point.  If it is nil, limit to nearest \\section - like statement."
   (unless reftex-section-regexp (reftex-compile-variables))
   (catch 'exit
     (save-excursion
@@ -859,18 +886,17 @@ of master file."
         (nreverse env-list)))))
 
 (defun reftex-what-special-env (which &optional bound)
-  ;; Run the special environment parsers and return the matches.
-  ;;
-  ;; The return value is (e.g.) either ("my-parser-function" . (point))
-  ;; or a list of them.
+  "Run the special environment parsers and return the matches.
 
-  ;; If WHICH is nil, immediately return nil.
-  ;; If WHICH is 1, return innermost enclosing environment.
-  ;; If WHICH is t, return list of all environments enclosing point.
-  ;; If WHICH is a list of environments, look only for those environments and
-  ;;   return the name of the first environment in this list found to enclose
-  ;;   point.
+The return value is (e.g.) either (\"my-parser-function\" . (point))
+or a list of them.
 
+If WHICH is nil, immediately return nil.
+If WHICH is 1, return innermost enclosing environment.
+If WHICH is t, return list of all environments enclosing point.
+If WHICH is a list of environments, look only for those environments and
+  return the name of the first environment in this list found to enclose
+  point."
   (unless reftex-section-regexp (reftex-compile-variables))
   (catch 'exit
     (save-excursion
@@ -900,10 +926,10 @@ of master file."
           (car specials))))))
 
 (defsubst reftex-move-to-next-arg (&optional ignore)
-  ;; Assuming that we are at the end of a macro name or a macro argument,
-  ;; move forward to the opening parenthesis of the next argument.
-  ;; This function understands the splitting of macros over several lines
-  ;; in TeX.
+  "Assuming that we are at the end of a macro name or a macro argument,
+move forward to the opening parenthesis of the next argument.
+This function understands the splitting of macros over several lines
+in TeX."
   (cond
    ;; Just to be quick:
    ((memq (following-char) '(?\[ ?\{)))
@@ -919,8 +945,8 @@ of master file."
     (reftex-nth-arg (nth 5 entry) (nth 6 entry))))
 
 (defun reftex-nth-arg (n &optional opt-args)
-  ;; Return the nth following {} or [] parentheses content.
-  ;; OPT-ARGS is a list of argument numbers which are optional.
+  "Return the Nth following {} or [] parentheses content.
+OPT-ARGS is a list of argument numbers which are optional."
 
   ;; If we are sitting at a macro start, skip to end of macro name.
   (and (eq (following-char) ?\\) (skip-chars-forward "a-zA-Z*\\\\"))
@@ -963,8 +989,8 @@ of master file."
     (error nil)))
 
 (defun reftex-context-substring (&optional to-end)
-  ;; Return up to 150 chars from point
-  ;; When point is just after a { or [, limit string to matching parenthesis
+  "Return up to 150 chars from point.
+When point is just after a { or [, limit string to matching parenthesis"
   (cond
    (to-end
     ;; Environment - find next \end
@@ -996,8 +1022,7 @@ of master file."
 (defvar reftex-section-numbers (make-vector reftex-max-section-depth 0))
 
 (defun reftex-init-section-numbers (&optional toc-entry appendix)
-  ;; Initialize the section numbers with zeros or with what is found
-  ;; in the toc entry.
+  "Initialize the section numbers with zeros or with what is found in the TOC-ENTRY."
   (let* ((level  (or (nth 5 toc-entry) -1))
          (numbers (nreverse (split-string (or (nth 6 toc-entry) "") "\\.")))
          (depth (1- (length reftex-section-numbers)))
@@ -1015,8 +1040,8 @@ of master file."
   (put 'reftex-section-numbers 'appendix appendix))
 
 (defun reftex-section-number (&optional level star)
-  ;; Return a string with the current section number.
-  ;; When LEVEL is non-nil, increase section numbers on that level.
+  "Return a string with the current section number.
+When LEVEL is non-nil, increase section numbers on that level."
   (let* ((depth (1- (length reftex-section-numbers))) idx n (string "")
          (appendix (get 'reftex-section-numbers 'appendix))
          (partspecial (and (not reftex-part-resets-chapter)
@@ -1062,7 +1087,7 @@ of master file."
         string))))
 
 (defun reftex-roman-number (n)
-  ;; Return as a string the roman number equal to N.
+  "Return as a string the roman number equal to N."
   (let ((nrest n)
         (string "")
         (list '((1000 . "M") ( 900 . "CM") ( 500 . "D") ( 400 . "CD")

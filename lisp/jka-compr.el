@@ -1,10 +1,9 @@
 ;;; jka-compr.el --- reading/writing/loading compressed files
 
-;; Copyright (C) 1993-1995, 1997, 1999-2013 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1993-1995, 1997, 1999-2014 Free Software Foundation, Inc.
 
-;; Author: jka@ece.cmu.edu (Jay K. Adams)
-;; Maintainer: FSF
+;; Author: Jay K. Adams <jka@ece.cmu.edu>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: data
 
 ;; This file is part of GNU Emacs.
@@ -109,8 +108,7 @@ data appears to be compressed already.")
 (put 'jka-compr-really-do-compress 'permanent-local t)
 
 
-(put 'compression-error 'error-conditions '(compression-error file-error error))
-
+(define-error 'compression-error nil 'file-error)
 
 (defvar jka-compr-acceptable-retval-list '(0 2 141))
 

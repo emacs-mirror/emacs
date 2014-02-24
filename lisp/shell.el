@@ -1,11 +1,11 @@
 ;;; shell.el --- specialized comint.el for running the shell -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1993-1997, 2000-2013 Free Software Foundation,
+;; Copyright (C) 1988, 1993-1997, 2000-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
-;; Maintainer: FSF <emacs-devel@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -111,9 +111,10 @@
   "Directory support in shell mode."
   :group 'shell)
 
-(defgroup shell-faces nil
-  "Faces in shell buffers."
-  :group 'shell)
+;; Unused.
+;;; (defgroup shell-faces nil
+;;;   "Faces in shell buffers."
+;;;   :group 'shell)
 
 ;;;###autoload
 (defcustom shell-dumb-shell-regexp (purecopy "cmd\\(proxy\\)?\\.exe")
@@ -283,21 +284,9 @@ Value is a list of strings, which may be nil."
 ;; Note: There are no explicit references to the variable `explicit-bash-args'.
 ;; It is used implicitly by M-x shell when the interactive shell is `bash'.
 (defcustom explicit-bash-args
-  (let* ((prog (or (and (boundp 'explicit-shell-file-name) explicit-shell-file-name)
-		   (getenv "ESHELL") shell-file-name))
-	 (name (file-name-nondirectory prog)))
-    ;; Tell bash not to use readline, except for bash 1.x which
-    ;; doesn't grok --noediting.  Bash 1.x has -nolineediting, but
-    ;; process-send-eof cannot terminate bash if we use it.
-    (if (and (not purify-flag)
-	     (equal name "bash")
-	     (file-executable-p prog)
-	     (string-match "bad option"
-			   (shell-command-to-string
-			    (concat (shell-quote-argument prog)
-				    " --noediting"))))
-	'("-i")
-      '("--noediting" "-i")))
+  ;; Tell bash not to use readline.  It's safe to assume --noediting now,
+  ;; as it was introduced in 1996 in Bash version 2.
+  '("--noediting" "-i")
   "Args passed to inferior shell by \\[shell], if the shell is bash.
 Value is a list of strings, which may be nil."
   :type '(repeat (string :tag "Argument"))
@@ -803,7 +792,7 @@ and `shell-pushd-dunique' control the behavior of the relevant command.
 Environment variables are expanded, see function `substitute-in-file-name'."
   (if shell-dirtrackp
       ;; We fail gracefully if we think the command will fail in the shell.
-      (condition-case nil
+      (with-demoted-errors "Couldn't cd: %s"
 	  (let ((start (progn (string-match
 			       (concat "^" shell-command-separator-regexp)
 			       str) ; skip whitespace
@@ -836,8 +825,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 	      (setq start (progn (string-match shell-command-separator-regexp
 					       str end)
 				 ;; skip again
-				 (match-end 0)))))
-	(error "Couldn't cd"))))
+				 (match-end 0))))))))
 
 (defun shell-unquote-argument (string)
   "Remove all kinds of shell quoting from STRING."
@@ -919,7 +907,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 	   (cond ((> num (length shell-dirstack))
 		  (message "Directory stack not that deep."))
 		 ((= num 0)
-		  (error (message "Couldn't cd")))
+		  (error "Couldn't cd"))
 		 (shell-pushd-dextract
 		  (let ((dir (nth (1- num) shell-dirstack)))
 		    (shell-process-popd arg)
@@ -1026,12 +1014,11 @@ command again."
 			 ds))
 	  (setq i (match-end 0)))
 	(let ((ds (nreverse ds)))
-	  (condition-case nil
-	      (progn (shell-cd (car ds))
-		     (setq shell-dirstack (cdr ds)
-			   shell-last-dir (car shell-dirstack))
-		     (shell-dirstack-message))
-	    (error (message "Couldn't cd"))))))
+	  (with-demoted-errors "Couldn't cd: %s"
+	    (shell-cd (car ds))
+	    (setq shell-dirstack (cdr ds)
+		  shell-last-dir (car shell-dirstack))
+	    (shell-dirstack-message)))))
     (if started-at-pmark (goto-char (marker-position pmark)))))
 
 ;; For your typing convenience:
@@ -1122,18 +1109,19 @@ See `shell-command-regexp'."
 (defun shell-dynamic-complete-command ()
   "Dynamically complete the command at point.
 This function is similar to `comint-dynamic-complete-filename', except that it
-searches `exec-path' (minus the trailing Emacs library path) for completion
+searches `exec-path' (minus trailing `exec-directory') for completion
 candidates.  Note that this may not be the same as the shell's idea of the
 path.
 
-Completion is dependent on the value of `shell-completion-execonly', plus
-those that effect file completion.
+Completion is dependent on the value of `shell-completion-execonly',
+`shell-completion-fignore', plus those that affect file completion.  See Info
+node `Shell Options'.
 
 Returns t if successful."
   (interactive)
   (let ((data (shell-command-completion)))
     (if data
-	(prog2 (unless (window-minibuffer-p (selected-window))
+	(prog2 (unless (window-minibuffer-p)
 		 (message "Completing command name..."))
 	    (apply #'completion-in-region data)))))
 
@@ -1152,7 +1140,9 @@ Returns t if successful."
          (start (if (zerop (length filename)) (point) (match-beginning 0)))
          (end (if (zerop (length filename)) (point) (match-end 0)))
 	 (filenondir (file-name-nondirectory filename))
-	 (path-dirs (cdr (reverse exec-path))) ;FIXME: Why `cdr'?
+	 ; why cdr? see `shell-dynamic-complete-command'
+	 (path-dirs (append (cdr (reverse exec-path))
+	   (if (memq system-type '(windows-nt ms-dos)) '("."))))
 	 (cwd (file-name-as-directory (expand-file-name default-directory)))
 	 (ignored-extensions
 	  (and comint-completion-fignore
@@ -1243,7 +1233,7 @@ Returns non-nil if successful."
   (interactive)
   (let ((data (shell-environment-variable-completion)))
     (if data
-	(prog2 (unless (window-minibuffer-p (selected-window))
+	(prog2 (unless (window-minibuffer-p)
 		 (message "Completing variable name..."))
 	    (apply #'completion-in-region data)))))
 

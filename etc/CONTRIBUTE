@@ -1,4 +1,4 @@
-Copyright (C) 2006-2013 Free Software Foundation, Inc.
+Copyright (C) 2006-2014 Free Software Foundation, Inc.
 See end for license conditions.
 
 
@@ -60,6 +60,11 @@ answer any questions you may have (or point you to the people with the
 answers), at the emacs-devel@gnu.org mailing list.
 
 A copyright disclaimer is also a possibility, but we prefer an assignment.
+Note that the disclaimer, like an assignment, involves you sending
+signed paperwork to the FSF (simply saying "this is in the public domain"
+is not enough).  Also, a disclaimer cannot be applied to future work, it
+has to be repeated each time you want to send something new.
+
 We can accept small changes (roughly, fewer than 15 lines) without
 an assignment.  This is a cumulative limit (e.g. three separate 5 line
 patches) over all your contributions.
@@ -72,8 +77,8 @@ latest version.  If you start from an older version, your patch may be
 outdated (so that maintainers will have a hard time applying it), or
 changes in Emacs may have made your patch unnecessary.
 
-After you have downloaded the Bazaar source, you should read the file
-INSTALL.BZR for build instructions (they differ to some extent from a
+After you have downloaded the repository source, you should read the file
+INSTALL.REPO for build instructions (they differ to some extent from a
 normal build).
 
 Ref: http://savannah.gnu.org/projects/emacs
@@ -94,8 +99,7 @@ revise your patch, send it as a followup to the initial topic.
 
 ** Description
 
-For bug fixes, a description of the bug and how your patch fixes this
-bug.
+For bug fixes, a description of the bug and how your patch fixes it.
 
 For new features, a description of the feature and your implementation.
 
@@ -103,7 +107,7 @@ For new features, a description of the feature and your implementation.
 
 A ChangeLog entry as plaintext (separate from the patch).
 
-See the various ChangeLog files for format and content.  Note that,
+See the existing ChangeLog files for format and content.  Note that,
 unlike some other projects, we do require ChangeLogs also for
 documentation, i.e. Texinfo files.
 
@@ -112,24 +116,16 @@ Manual, for how to write good log entries.
 
 ** The patch itself.
 
-Please use "Context Diff" format.
-
 If you are accessing the Bazaar repository, make sure your copy is
 up-to-date (e.g. with `bzr pull'), then use
         bzr diff --no-aliases --diff-options=-cp
 Else, use
 	diff -cp OLD NEW
 
-If your version of diff does not support these options, then get the
-latest version of GNU Diff.
-
 ** Mail format.
 
-We prefer to get the patches as inline plain text.
-
-Please be aware of line wrapping which will make the patch unreadable
-and useless for us.  To avoid that, you can use MIME attachments or,
-as a last resort, uuencoded gzipped text.
+We prefer to get the patches as plain text, either inline (be careful
+your mail client does not change line breaks) or as MIME attachments.
 
 ** Please reread your patch before submitting it.
 
@@ -163,7 +159,7 @@ included in Emacs.
 ** Write access to the Emacs repository.
 
 Once you become a frequent contributor to Emacs, we can consider
-giving you write access to the Bazaar repository.
+giving you write access to the version-control repository.
 
 
 ** Emacs Mailing lists.
@@ -179,18 +175,12 @@ by following links from http://savannah.gnu.org/mail/?group=emacs .
 
 ** Document your changes.
 
-Think carefully about whether your change requires updating the
-documentation.  If it does, you can either do this yourself or add an
-item to the NEWS file.
+Any change that matters to end-users should have a NEWS entry.
 
-If you document your change in NEWS, please mark the NEWS entry with
-the documentation status of the change: if you submit the changes for
-the manuals, mark it with "+++"; if it doesn't need to be documented,
-mark it with "---"; if it needs to be documented, but you didn't
-submit documentation changes, leave the NEWS entry unmarked.  (These
-marks are checked by the Emacs maintainers to make sure every change
-was reflected in the manuals.)
-
+Think about whether your change requires updating the documentation
+(both manuals and doc-strings).  If you know it does not, mark the NEWS
+entry with "---".  If you know that *all* the necessary documentation
+updates have been made, mark the entry with "+++". Otherwise do not mark it.
 
 ** Understanding Emacs Internals.
 

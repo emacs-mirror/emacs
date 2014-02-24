@@ -1,9 +1,9 @@
 ;;; text-mode.el --- text mode, and its idiosyncratic commands
 
-;; Copyright (C) 1985, 1992, 1994, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1985, 1992, 1994, 2001-2014 Free Software Foundation,
 ;; Inc.
 
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: wp
 ;; Package: emacs
 
@@ -51,6 +51,27 @@ Use (derived-mode-p 'text-mode) instead.")
 (defvar text-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\e\t" 'ispell-complete-word)
+    (define-key map [menu-bar text]
+      (cons "Text" (make-sparse-keymap "Text")))
+    (bindings--define-key map [menu-bar text toggle-text-mode-auto-fill]
+      '(menu-item "Auto Fill" toggle-text-mode-auto-fill
+                  :button (:toggle . (memq 'turn-on-auto-fill text-mode-hook))
+                  :help "Automatically fill text while typing in text modes (Auto Fill mode)"))
+    (bindings--define-key map [menu-bar text paragraph-indent-minor-mode]
+      '(menu-item "Paragraph Indent" paragraph-indent-minor-mode
+                  :button (:toggle . (bound-and-true-p paragraph-indent-minor-mode))
+                  :help "Toggle paragraph indent minor mode"))
+    (bindings--define-key map [menu-bar text sep] menu-bar-separator)
+    (bindings--define-key map [menu-bar text center-region]
+      '(menu-item "Center Region" center-region
+                  :help "Center the marked region"
+                  :enable (region-active-p)))
+    (bindings--define-key map [menu-bar text center-paragraph]
+      '(menu-item "Center Paragraph" center-paragraph
+                  :help "Center the current paragraph"))
+    (bindings--define-key map [menu-bar text center-line]
+      '(menu-item "Center Line" center-line
+                  :help "Center the current line"))
     map)
   "Keymap for `text-mode'.
 Many other modes, such as `mail-mode', `outline-mode' and `indented-text-mode',
@@ -101,9 +122,10 @@ Turning on Paragraph-Indent minor mode runs the normal hook
                (concat ps-re paragraph-start)))))
   ;; Change the indentation function.
   (if paragraph-indent-minor-mode
-      (set (make-local-variable 'indent-line-function) 'indent-to-left-margin)
-    (if (eq indent-line-function 'indent-to-left-margin)
-        (set (make-local-variable 'indent-line-function) 'indent-region))))
+      (add-function :override (local 'indent-line-function)
+                    #'indent-to-left-margin)
+    (remove-function (local 'indent-line-function)
+                     #'indent-to-left-margin)))
 
 (defalias 'indented-text-mode 'text-mode)
 

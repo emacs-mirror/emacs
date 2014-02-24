@@ -1,4 +1,4 @@
-/* Copyright (C) 1985-1988, 1990, 1992, 1999-2013 Free Software
+/* Copyright (C) 1985-1988, 1990, 1992, 1999-2014 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -386,18 +386,19 @@ temacs:
    Instead we read the whole file, modify it, and write it out.  */
 
 #include <config.h>
-#include <unexec.h>
+#include "unexec.h"
+#include "lisp.h"
 
-extern void fatal (const char *msgid, ...);
-
-#include <sys/types.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <limits.h>
+#include <memory.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <sys/stat.h>
-#include <memory.h>
-#include <errno.h>
+#include <sys/types.h>
 #include <unistd.h>
-#include <fcntl.h>
+
 #if !defined (__NetBSD__) && !defined (__OpenBSD__)
 #include <elf.h>
 #endif /* not __NetBSD__ and not __OpenBSD__ */
@@ -519,6 +520,18 @@ typedef struct {
 # define ElfW(type) ElfExpandBitsW (ELFSIZE, type)
 #endif
 
+/* The code often converts ElfW (Half) values like e_shentsize to ptrdiff_t;
+   check that this doesn't lose information.  */
+#include <intprops.h>
+#include <verify.h>
+verify ((! TYPE_SIGNED (ElfW (Half))
+	 || PTRDIFF_MIN <= TYPE_MINIMUM (ElfW (Half)))
+	&& TYPE_MAXIMUM (ElfW (Half)) <= PTRDIFF_MAX);
+
+#ifdef UNEXELF_DEBUG
+# define DEBUG_LOG(expr) fprintf (stderr, #expr " 0x%jx\n", (uintmax_t) (expr))
+#endif
+
 /* Get the address of a particular section or program header entry,
  * accounting for the size of the entries.
  */
@@ -546,17 +559,21 @@ typedef struct {
    Apr 23, 1996
    */
 
-#define OLD_SECTION_H(n) \
-     (*(ElfW (Shdr) *) ((byte *) old_section_h + old_file_h->e_shentsize * (n)))
-#define NEW_SECTION_H(n) \
-     (*(ElfW (Shdr) *) ((byte *) new_section_h + new_file_h->e_shentsize * (n)))
-#define NEW_PROGRAM_H(n) \
-     (*(ElfW (Phdr) *) ((byte *) new_program_h + new_file_h->e_phentsize * (n)))
+static void *
+entry_address (void *section_h, ptrdiff_t idx, ptrdiff_t entsize)
+{
+  char *h = section_h;
+  return h + idx * entsize;
+}
 
-#define PATCH_INDEX(n) \
-  do { \
-	 if ((int) (n) >= old_bss_index) \
-	   (n)++; } while (0)
+#define OLD_SECTION_H(n) \
+  (*(ElfW (Shdr) *) entry_address (old_section_h, n, old_file_h->e_shentsize))
+#define NEW_SECTION_H(n) \
+  (*(ElfW (Shdr) *) entry_address (new_section_h, n, new_file_h->e_shentsize))
+#define NEW_PROGRAM_H(n) \
+  (*(ElfW (Phdr) *) entry_address (new_program_h, n, new_file_h->e_phentsize))
+
+#define PATCH_INDEX(n) ((n) += old_bss_index <= (n))
 typedef unsigned char byte;
 
 /* Round X up to a multiple of Y.  */
@@ -564,7 +581,7 @@ typedef unsigned char byte;
 static ElfW (Addr)
 round_up (ElfW (Addr) x, ElfW (Addr) y)
 {
-  int rem = x % y;
+  ElfW (Addr) rem = x % y;
   if (rem == 0)
     return x;
   return x - rem + y;
@@ -575,33 +592,28 @@ round_up (ElfW (Addr) x, ElfW (Addr) y)
    about the file we are looking in.
 
    If we don't find the section NAME, that is a fatal error
-   if NOERROR is 0; we return -1 if NOERROR is nonzero.  */
+   if NOERROR is false; return -1 if NOERROR is true.  */
 
-static int
+static ptrdiff_t
 find_section (const char *name, const char *section_names, const char *file_name,
-	      ElfW (Ehdr) *old_file_h, ElfW (Shdr) *old_section_h, int noerror)
+	      ElfW (Ehdr) *old_file_h, ElfW (Shdr) *old_section_h,
+	      bool noerror)
 {
-  int idx;
+  ptrdiff_t idx;
 
   for (idx = 1; idx < old_file_h->e_shnum; idx++)
     {
-#ifdef DEBUG
-      fprintf (stderr, "Looking for %s - found %s\n", name,
-	       section_names + OLD_SECTION_H (idx).sh_name);
+      char const *found_name = section_names + OLD_SECTION_H (idx).sh_name;
+#ifdef UNEXELF_DEBUG
+      fprintf (stderr, "Looking for %s - found %s\n", name, found_name);
 #endif
-      if (!strcmp (section_names + OLD_SECTION_H (idx).sh_name,
-		   name))
-	break;
-    }
-  if (idx == old_file_h->e_shnum)
-    {
-      if (noerror)
-	return -1;
-      else
-	fatal ("Can't find %s in %s.\n", name, file_name);
+      if (strcmp (name, found_name) == 0)
+	return idx;
     }
 
-  return idx;
+  if (! noerror)
+    fatal ("Can't find %s in %s", name, file_name);
+  return -1;
 }
 
 /* ****************************************************************
@@ -616,11 +628,9 @@ find_section (const char *name, const char *section_names, const char *file_name
 void
 unexec (const char *new_name, const char *old_name)
 {
-  int new_file, old_file, new_file_size;
-
-#if defined (emacs) || !defined (DEBUG)
+  int new_file, old_file;
+  off_t new_file_size;
   void *new_break;
-#endif
 
   /* Pointers to the base of the image of the two files.  */
   caddr_t old_base, new_base;
@@ -647,30 +657,31 @@ unexec (const char *new_name, const char *old_name)
   ElfW (Off)  old_bss_offset;
   ElfW (Word) new_data2_incr;
 
-  int n, nn;
-  int old_bss_index, old_sbss_index, old_plt_index;
-  int old_data_index, new_data2_index;
+  ptrdiff_t n, nn;
+  ptrdiff_t old_bss_index, old_sbss_index, old_plt_index;
+  ptrdiff_t old_data_index, new_data2_index;
 #if defined _SYSTYPE_SYSV || defined __sgi
-  int old_mdebug_index;
+  ptrdiff_t old_mdebug_index;
 #endif
   struct stat stat_buf;
-  int old_file_size;
+  off_t old_file_size;
+  int mask;
 
   /* Open the old file, allocate a buffer of the right size, and read
      in the file contents.  */
 
-  old_file = open (old_name, O_RDONLY);
+  old_file = emacs_open (old_name, O_RDONLY, 0);
 
   if (old_file < 0)
-    fatal ("Can't open %s for reading: errno %d\n", old_name, errno);
+    fatal ("Can't open %s for reading: %s", old_name, strerror (errno));
 
-  if (fstat (old_file, &stat_buf) == -1)
-    fatal ("Can't fstat (%s): errno %d\n", old_name, errno);
+  if (fstat (old_file, &stat_buf) != 0)
+    fatal ("Can't fstat (%s): %s", old_name, strerror (errno));
 
 #if MAP_ANON == 0
-  mmap_fd = open ("/dev/zero", O_RDONLY);
+  mmap_fd = emacs_open ("/dev/zero", O_RDONLY, 0);
   if (mmap_fd < 0)
-    fatal ("Can't open /dev/zero for reading: errno %d\n", errno, 0);
+    fatal ("Can't open /dev/zero for reading: %s", strerror (errno));
 #endif
 
   /* We cannot use malloc here because that may use sbrk.  If it does,
@@ -678,13 +689,15 @@ unexec (const char *new_name, const char *old_name)
      extra careful to use the correct value of sbrk(0) after
      allocating all buffers in the code below, which we aren't.  */
   old_file_size = stat_buf.st_size;
+  if (! (0 <= old_file_size && old_file_size <= SIZE_MAX))
+    fatal ("File size out of range");
   old_base = mmap (NULL, old_file_size, PROT_READ | PROT_WRITE,
 		   MAP_ANON | MAP_PRIVATE, mmap_fd, 0);
   if (old_base == MAP_FAILED)
-    fatal ("Can't allocate buffer for %s\n", old_name, 0);
+    fatal ("Can't allocate buffer for %s: %s", old_name, strerror (errno));
 
-  if (read (old_file, old_base, stat_buf.st_size) != stat_buf.st_size)
-    fatal ("Didn't read all of %s: errno %d\n", old_name, errno);
+  if (read (old_file, old_base, old_file_size) != old_file_size)
+    fatal ("Didn't read all of %s: %s", old_name, strerror (errno));
 
   /* Get pointers to headers & section names */
 
@@ -755,12 +768,8 @@ unexec (const char *new_name, const char *old_name)
   old_data_index = find_section (".data", old_section_names,
 				 old_name, old_file_h, old_section_h, 0);
 
-#if defined (emacs) || !defined (DEBUG)
   new_break = sbrk (0);
   new_bss_addr = (ElfW (Addr)) new_break;
-#else
-  new_bss_addr = old_bss_addr + old_bss_size + 0x1234;
-#endif
   new_data2_addr = old_bss_addr;
   new_data2_size = new_bss_addr - old_bss_addr;
   new_data2_offset = OLD_SECTION_H (old_data_index).sh_offset
@@ -771,38 +780,38 @@ unexec (const char *new_name, const char *old_name)
      section) was unaligned.  */
   new_data2_incr = new_data2_size + (new_data2_offset - old_bss_offset);
 
-#ifdef DEBUG
-  fprintf (stderr, "old_bss_index %d\n", old_bss_index);
-  fprintf (stderr, "old_bss_addr %x\n", old_bss_addr);
-  fprintf (stderr, "old_bss_size %x\n", old_bss_size);
-  fprintf (stderr, "old_bss_offset %x\n", old_bss_offset);
-  fprintf (stderr, "new_bss_addr %x\n", new_bss_addr);
-  fprintf (stderr, "new_data2_addr %x\n", new_data2_addr);
-  fprintf (stderr, "new_data2_size %x\n", new_data2_size);
-  fprintf (stderr, "new_data2_offset %x\n", new_data2_offset);
-  fprintf (stderr, "new_data2_incr %x\n", new_data2_incr);
+#ifdef UNEXELF_DEBUG
+  fprintf (stderr, "old_bss_index %td\n", old_bss_index);
+  DEBUG_LOG (old_bss_addr);
+  DEBUG_LOG (old_bss_size);
+  DEBUG_LOG (old_bss_offset);
+  DEBUG_LOG (new_bss_addr);
+  DEBUG_LOG (new_data2_addr);
+  DEBUG_LOG (new_data2_size);
+  DEBUG_LOG (new_data2_offset);
+  DEBUG_LOG (new_data2_incr);
 #endif
 
-  if ((uintptr_t) new_bss_addr < (uintptr_t) old_bss_addr + old_bss_size)
-    fatal (".bss shrank when undumping???\n", 0, 0);
+  if (new_bss_addr < old_bss_addr + old_bss_size)
+    fatal (".bss shrank when undumping");
 
   /* Set the output file to the right size.  Allocate a buffer to hold
      the image of the new file.  Set pointers to various interesting
-     objects.  stat_buf still has old_file data.  */
+     objects.  */
 
-  new_file = open (new_name, O_RDWR | O_CREAT, 0666);
+  new_file = emacs_open (new_name, O_RDWR | O_CREAT, 0666);
   if (new_file < 0)
-    fatal ("Can't creat (%s): errno %d\n", new_name, errno);
+    fatal ("Can't creat (%s): %s", new_name, strerror (errno));
 
-  new_file_size = stat_buf.st_size + old_file_h->e_shentsize + new_data2_incr;
+  new_file_size = old_file_size + old_file_h->e_shentsize + new_data2_incr;
 
   if (ftruncate (new_file, new_file_size))
-    fatal ("Can't ftruncate (%s): errno %d\n", new_name, errno);
+    fatal ("Can't ftruncate (%s): %s", new_name, strerror (errno));
 
   new_base = mmap (NULL, new_file_size, PROT_READ | PROT_WRITE,
 		   MAP_ANON | MAP_PRIVATE, mmap_fd, 0);
   if (new_base == MAP_FAILED)
-    fatal ("Can't allocate buffer for %s\n", old_name, 0);
+    fatal ("Can't allocate buffer for %s: %s", old_name, strerror (errno));
 
   new_file_h = (ElfW (Ehdr) *) new_base;
   new_program_h = (ElfW (Phdr) *) ((byte *) new_base + old_file_h->e_phoff);
@@ -825,11 +834,11 @@ unexec (const char *new_name, const char *old_name)
   new_file_h->e_shoff += new_data2_incr;
   new_file_h->e_shnum += 1;
 
-#ifdef DEBUG
-  fprintf (stderr, "Old section offset %x\n", old_file_h->e_shoff);
-  fprintf (stderr, "Old section count %d\n", old_file_h->e_shnum);
-  fprintf (stderr, "New section offset %x\n", new_file_h->e_shoff);
-  fprintf (stderr, "New section count %d\n", new_file_h->e_shnum);
+#ifdef UNEXELF_DEBUG
+  DEBUG_LOG (old_file_h->e_shoff);
+  fprintf (stderr, "Old section count %td\n", (ptrdiff_t) old_file_h->e_shnum);
+  DEBUG_LOG (new_file_h->e_shoff);
+  fprintf (stderr, "New section count %td\n", (ptrdiff_t) new_file_h->e_shnum);
 #endif
 
   /* Fix up a new program header.  Extend the writable data segment so
@@ -839,7 +848,7 @@ unexec (const char *new_name, const char *old_name)
      to adjust the offset and address of any segment that is above
      data2, just in case we decide to allow this later.  */
 
-  for (n = new_file_h->e_phnum - 1; n >= 0; n--)
+  for (n = new_file_h->e_phnum; --n >= 0; )
     {
       /* Compute maximum of all requirements for alignment of section.  */
       ElfW (Word) alignment = (NEW_PROGRAM_H (n)).p_align;
@@ -857,7 +866,7 @@ unexec (const char *new_name, const char *old_name)
 	  > (old_sbss_index == -1
 	     ? old_bss_addr
 	     : round_up (old_bss_addr, alignment)))
-	  fatal ("Program segment above .bss in %s\n", old_name, 0);
+	  fatal ("Program segment above .bss in %s", old_name);
 
       if (NEW_PROGRAM_H (n).p_type == PT_LOAD
 	  && (round_up ((NEW_PROGRAM_H (n)).p_vaddr
@@ -867,7 +876,7 @@ unexec (const char *new_name, const char *old_name)
 	break;
     }
   if (n < 0)
-    fatal ("Couldn't find segment next to .bss in %s\n", old_name, 0);
+    fatal ("Couldn't find segment next to .bss in %s", old_name);
 
   /* Make sure that the size includes any padding before the old .bss
      section.  */
@@ -875,7 +884,7 @@ unexec (const char *new_name, const char *old_name)
   NEW_PROGRAM_H (n).p_memsz = NEW_PROGRAM_H (n).p_filesz;
 
 #if 0 /* Maybe allow section after data2 - does this ever happen? */
-  for (n = new_file_h->e_phnum - 1; n >= 0; n--)
+  for (n = new_file_h->e_phnum; --n >= 0; )
     {
       if (NEW_PROGRAM_H (n).p_vaddr
 	  && NEW_PROGRAM_H (n).p_vaddr >= new_data2_addr)
@@ -894,7 +903,7 @@ unexec (const char *new_name, const char *old_name)
 
   /* Walk through all section headers, insert the new data2 section right
      before the new bss section. */
-  for (n = 1, nn = 1; n < (int) old_file_h->e_shnum; n++, nn++)
+  for (n = 1, nn = 1; n < old_file_h->e_shnum; n++, nn++)
     {
       caddr_t src;
       /* If it is (s)bss section, insert the new data2 section before it.  */
@@ -1076,8 +1085,9 @@ temacs:
       if (NEW_SECTION_H (nn).sh_type == SHT_MIPS_DEBUG
 	  && old_mdebug_index != -1)
 	{
-	  int diff = NEW_SECTION_H (nn).sh_offset
-		- OLD_SECTION_H (old_mdebug_index).sh_offset;
+	  ptrdiff_t new_offset = NEW_SECTION_H (nn).sh_offset;
+	  ptrdiff_t old_offset = OLD_SECTION_H (old_mdebug_index).sh_offset;
+	  ptrdiff_t diff = new_offset - old_offset;
 	  HDRR *phdr = (HDRR *)(NEW_SECTION_H (nn).sh_offset + new_base);
 
 	  if (diff)
@@ -1157,7 +1167,7 @@ temacs:
 	  || NEW_SECTION_H (nn).sh_type == SHT_DYNSYM)
 	{
 	  ElfW (Shdr) *spt = &NEW_SECTION_H (nn);
-	  unsigned int num = spt->sh_size / spt->sh_entsize;
+	  ptrdiff_t num = spt->sh_size / spt->sh_entsize;
 	  ElfW (Sym) * sym = (ElfW (Sym) *) (NEW_SECTION_H (nn).sh_offset +
 					   new_base);
 	  for (; num--; sym++)
@@ -1173,7 +1183,7 @@ temacs:
     }
 
   /* Update the symbol values of _edata and _end.  */
-  for (n = new_file_h->e_shnum - 1; n; n--)
+  for (n = new_file_h->e_shnum; 0 < --n; )
     {
       byte *symnames;
       ElfW (Sym) *symp, *symendp;
@@ -1233,7 +1243,7 @@ temacs:
 
   /* This loop seeks out relocation sections for the data section, so
      that it can undo relocations performed by the runtime linker.  */
-  for (n = new_file_h->e_shnum - 1; n; n--)
+  for (n = new_file_h->e_shnum; 0 < --n; )
     {
       ElfW (Shdr) section = NEW_SECTION_H (n);
 
@@ -1293,29 +1303,29 @@ temacs:
   /* Write out new_file, and free the buffers.  */
 
   if (write (new_file, new_base, new_file_size) != new_file_size)
-    fatal ("Didn't write %d bytes to %s: errno %d\n",
-	   new_file_size, new_name, errno);
+    fatal ("Didn't write %lu bytes to %s: %s",
+	   (unsigned long) new_file_size, new_name, strerror (errno));
   munmap (old_base, old_file_size);
   munmap (new_base, new_file_size);
 
   /* Close the files and make the new file executable.  */
 
 #if MAP_ANON == 0
-  close (mmap_fd);
+  emacs_close (mmap_fd);
 #endif
 
-  if (close (old_file))
-    fatal ("Can't close (%s): errno %d\n", old_name, errno);
+  if (emacs_close (old_file) != 0)
+    fatal ("Can't close (%s): %s", old_name, strerror (errno));
 
-  if (close (new_file))
-    fatal ("Can't close (%s): errno %d\n", new_name, errno);
+  if (emacs_close (new_file) != 0)
+    fatal ("Can't close (%s): %s", new_name, strerror (errno));
 
-  if (stat (new_name, &stat_buf) == -1)
-    fatal ("Can't stat (%s): errno %d\n", new_name, errno);
+  if (stat (new_name, &stat_buf) != 0)
+    fatal ("Can't stat (%s): %s", new_name, strerror (errno));
 
-  n = umask (777);
-  umask (n);
-  stat_buf.st_mode |= 0111 & ~n;
-  if (chmod (new_name, stat_buf.st_mode) == -1)
-    fatal ("Can't chmod (%s): errno %d\n", new_name, errno);
+  mask = umask (777);
+  umask (mask);
+  stat_buf.st_mode |= 0111 & ~mask;
+  if (chmod (new_name, stat_buf.st_mode) != 0)
+    fatal ("Can't chmod (%s): %s", new_name, strerror (errno));
 }

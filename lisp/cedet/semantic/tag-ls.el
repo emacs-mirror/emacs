@@ -1,6 +1,6 @@
 ;;; semantic/tag-ls.el --- Language Specific override functions for tags
 
-;; Copyright (C) 1999-2004, 2006-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2004, 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -146,36 +146,42 @@ are the same.
 IGNORABLE-ATTRIBUTES are tag attributes that can be ignored.
 
 See `semantic-tag-similar-p' for details."
-  (let* ((ignore (append ignorable-attributes semantic-tag-similar-ignorable-attributes))
-	 (A1 (and (semantic--tag-similar-names-p tag1 tag2 (memq :name ignore))
-		  (semantic--tag-similar-types-p tag1 tag2)
-		  (semantic-tag-of-class-p tag1 (semantic-tag-class tag2))))
-	 (attr1 (semantic-tag-attributes tag1))
-	 (attr2 (semantic-tag-attributes tag2))
-	 (A2 t)
-	 (A3 t)
-	 )
-    ;; Test if there are non-ignorable attributes in A2 which are not present in A1
-    (while (and A2 attr2)
-      (let ((a (car attr2)))
-	(unless (or (eq a :type) (memq a ignore))
-	  (setq A2 (semantic-tag-get-attribute tag1 a)))
-	(setq attr2 (cdr (cdr attr2)))))
-    (while (and A2 attr1 A3)
-      (let ((a (car attr1)))
+  (or
+   ;; Tags are similar if they have the exact same lisp object
+   ;; Added for performance when testing a relatively common case in some uses
+   ;; of this code.
+   (eq tag1 tag2)
+   ;; More complex similarity test.
+   (let* ((ignore (append ignorable-attributes semantic-tag-similar-ignorable-attributes))
+	  (A1 (and (semantic--tag-similar-names-p tag1 tag2 (memq :name ignore))
+		   (semantic--tag-similar-types-p tag1 tag2)
+		   (semantic-tag-of-class-p tag1 (semantic-tag-class tag2))))
+	  (attr1 (semantic-tag-attributes tag1))
+	  (attr2 (semantic-tag-attributes tag2))
+	  (A2 t)
+	  (A3 t)
+	  )
+     ;; Test if there are non-ignorable attributes in A2 which are not present in A1
+     (while (and A2 attr2)
+       (let ((a (car attr2)))
+	 (unless (or (eq a :type) (memq a ignore))
+	   (setq A2 (semantic-tag-get-attribute tag1 a)))
+	 (setq attr2 (cdr (cdr attr2)))))
+     (while (and A2 attr1 A3)
+       (let ((a (car attr1)))
 
-	(cond ((or (eq a :type) ;; already tested above.
-		   (memq a ignore)) ;; Ignore them...
-	       nil)
+	 (cond ((or (eq a :type)	;; already tested above.
+		    (memq a ignore))	;; Ignore them...
+		nil)
 
-	      (t
-	       (setq A3
-		     (semantic--tag-attribute-similar-p
-		      a (car (cdr attr1)) (semantic-tag-get-attribute tag2 a)
-		      ignorable-attributes)))
-	      ))
-      (setq attr1 (cdr (cdr attr1))))
-    (and A1 A2 A3)))
+	       (t
+		(setq A3
+		      (semantic--tag-attribute-similar-p
+		       a (car (cdr attr1)) (semantic-tag-get-attribute tag2 a)
+		       ignorable-attributes)))
+	       ))
+       (setq attr1 (cdr (cdr attr1))))
+     (and A1 A2 A3))))
 
 ;;; FULL NAMES
 ;;

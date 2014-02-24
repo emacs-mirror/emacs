@@ -1,6 +1,6 @@
 ;;; ede/files.el --- Associate projects with files and directories.
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -50,12 +50,13 @@
 There is no completion at the prompt.  FILE is searched for within
 the current EDE project."
   (interactive "sFile: ")
-  (let ((fname (ede-expand-filename (ede-current-project) file))
+  (let* ((proj (ede-current-project))
+	 (fname (ede-expand-filename proj file))
 	)
     (unless fname
       (error "Could not find %s in %s"
 	     file
-	     (ede-project-root-directory (ede-current-project))))
+	     (ede-project-root-directory proj)))
     (find-file fname)))
 
 (defun ede-flush-project-hash ()
@@ -507,6 +508,26 @@ Argument DIR is the directory to trim upwards."
 			  ; c:/ for DOS like systems.
 	nil
       fnd)))
+
+(defun ede-find-project-root (prj-file-name &optional dir)
+  "Tries to find directory with given project file"
+  (let ((prj-dir (locate-dominating-file (or dir default-directory)
+					 prj-file-name)))
+    (when prj-dir
+      (expand-file-name prj-dir))))
+
+(defun ede-files-find-existing (dir prj-list)
+  "Find a project in the list of projects stored in given variable.
+DIR is the directory to search from."
+  (let ((projs prj-list)
+        (ans nil))
+    (while (and projs (not ans))
+      (let ((root (ede-project-root-directory (car projs))))
+        (when (string-match (concat "^" (regexp-quote root)) dir)
+          (setq ans (car projs))))
+      (setq projs (cdr projs)))
+    ans))
+
 
 (provide 'ede/files)
 

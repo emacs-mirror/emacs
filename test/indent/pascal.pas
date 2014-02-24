@@ -1,12 +1,12 @@
 { GPC demo program for the CRT unit.
 
-Copyright (C) 1999-2006, 2013 Free Software Foundation, Inc.
+Copyright (C) 1999-2006, 2013-2014 Free Software Foundation, Inc.
 
 Author: Frank Heckenbach <frank@pascal.gnu.de>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation, version 2.
+published by the Free Software Foundation, version 3.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +25,10 @@ by the GNU General Public License. }
 
 {$gnu-pascal,I+}
 
+(* second style of comment *)
 // Free-pascal style comment.
+var x:Char = 12 /* 45;   // This /* does not start a comment.
+var x:Char = (/ 4);      // This (/ does not start a comment.
 
 program CRTDemo;
 
@@ -685,7 +688,7 @@ var
       NoSound;
       RestoreTerminalClearCRT;
       WriteLn (StdErr, 'You''re trying to kill me. Since I have break checking turned off,');
-      WriteLn (StdErr, 'I''m not dying, but I''ll do you a favour and terminate now.');
+      WriteLn (StdErr, 'I''m not dying, but I''ll do you a favor and terminate now.');
       Halt (3)
    end;
 

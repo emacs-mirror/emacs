@@ -1,6 +1,6 @@
 ;;; semantic/java.el --- Semantic functions for Java
 
-;;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 
@@ -479,5 +479,9 @@ removed from the result list."
   )
 
 (provide 'semantic/java)
+
+;; Local variables:
+;; generated-autoload-load-name: "semantic/java"
+;; End:
 
 ;;; semantic/java.el ends here

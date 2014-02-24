@@ -1,3 +1,17 @@
+2013-12-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* autogen/Makefile.in: Update copyright year.
+
+2013-11-05  Glenn Morris  <rgm@gnu.org>
+
+	* autogen/config.in:
+	* autogen/Makefile.in: Move here from ../autogen.
+	* mainmake.v2: Use msdos/autogen rather than autogen.
+
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sed1x.inp: Don't rewrite DOC any more.
+
 2013-02-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sedlibmk.inp: Sync with changes in lib/Makefile.in.
@@ -34,7 +48,7 @@
 2012-10-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib.
-	* msdos/sedlibmk.inp (REPLACE_PTSNAME): Edit to appropriate value.
+	* sedlibmk.inp (REPLACE_PTSNAME): Edit to appropriate value.
 
 2012-09-27  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -1490,7 +1504,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1994-1999, 2001-2013 Free Software Foundation, Inc.
+  Copyright (C) 1994-1999, 2001-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

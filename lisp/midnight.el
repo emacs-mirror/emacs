@@ -1,6 +1,6 @@
 ;;; midnight.el --- run something every midnight, e.g., kill old buffers
 
-;; Copyright (C) 1998, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Sam Steingold <sds@gnu.org>
 ;; Maintainer: Sam Steingold <sds@gnu.org>
@@ -87,7 +87,7 @@ displayed more than this many seconds ago."
   :type 'integer
   :group 'midnight)
 
-(defcustom clean-buffer-list-kill-regexps nil
+(defcustom clean-buffer-list-kill-regexps '("^\\*Man ")
   "List of regexps saying which buffers will be killed at midnight.
 If buffer name matches a regexp in the list and the buffer was not displayed
 in the last `clean-buffer-list-delay-special' seconds, it is killed by
@@ -101,7 +101,7 @@ See also `clean-buffer-list-kill-buffer-names',
   :group 'midnight)
 
 (defcustom clean-buffer-list-kill-buffer-names
-    '("*Help*" "*Apropos*" "*Man " "*Buffer List*" "*Compile-Log*" "*info*"
+    '("*Help*" "*Apropos*" "*Buffer List*" "*Compile-Log*" "*info*"
       "*vc*" "*vc-diff*" "*diff*")
   "List of strings saying which buffers will be killed at midnight.
 Buffers with names in this list, which were not displayed in the last

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Control Structures
@@ -218,15 +218,11 @@ list is the @var{condition}; the remaining elements, if any, the
 @code{cond} tries the clauses in textual order, by evaluating the
 @var{condition} of each clause.  If the value of @var{condition} is
 non-@code{nil}, the clause ``succeeds''; then @code{cond} evaluates its
-@var{body-forms}, and the value of the last of @var{body-forms} becomes
-the value of the @code{cond}.  The remaining clauses are ignored.
+@var{body-forms}, and returns the value of the last of @var{body-forms}.
+Any remaining clauses are ignored.
 
 If the value of @var{condition} is @code{nil}, the clause ``fails'', so
-the @code{cond} moves on to the following clause, trying its
-@var{condition}.
-
-If every @var{condition} evaluates to @code{nil}, so that every clause
-fails, @code{cond} returns @code{nil}.
+the @code{cond} moves on to the following clause, trying its @var{condition}.
 
 A clause may also look like this:
 
@@ -235,8 +231,11 @@ A clause may also look like this:
 @end example
 
 @noindent
-Then, if @var{condition} is non-@code{nil} when tested, the value of
-@var{condition} becomes the value of the @code{cond} form.
+Then, if @var{condition} is non-@code{nil} when tested, the @code{cond}
+form returns the value of @var{condition}.
+
+If every @var{condition} evaluates to @code{nil}, so that every clause
+fails, @code{cond} returns @code{nil}.
 
 The following example has four clauses, which test for the cases where
 the value of @code{x} is a number, string, buffer and symbol,
@@ -323,13 +322,14 @@ In the last clause, @code{code} is a variable that gets bound to the value that
 was returned by @code{(get-return-code x)}.
 
 To give a more complex example, a simple interpreter for a little
-expression language could look like:
+expression language could look like (note that this example requires
+lexical binding):
 
 @example
 (defun evaluate (exp env)
   (pcase exp
     (`(add ,x ,y)         (+ (evaluate x env) (evaluate y env)))
-    (`(call ,fun ,arg)    (funcall (evaluate fun) (evaluate arg env)))
+    (`(call ,fun ,arg)    (funcall (evaluate fun env) (evaluate arg env)))
     (`(fn ,arg ,body)     (lambda (val)
                             (evaluate body (cons (cons arg val) env))))
     ((pred numberp)       exp)
@@ -342,6 +342,15 @@ element list starting with the symbol @code{add}, then extracts the second and
 third elements and binds them to the variables @code{x} and @code{y}.
 @code{(pred numberp)} is a pattern that simply checks that @code{exp}
 is a number, and @code{_} is the catch-all pattern that matches anything.
+
+Here are some sample programs including their evaluation results:
+
+@example
+(evaluate '(add 1 2) nil)                 ;=> 3
+(evaluate '(add x y) '((x . 1) (y . 2)))  ;=> 3
+(evaluate '(call (fn x (add 1 x)) 2) nil) ;=> 3
+(evaluate '(sub 1 2) nil)                 ;=> error
+@end example
 
 There are two kinds of patterns involved in @code{pcase}, called
 @emph{U-patterns} and @emph{Q-patterns}.  The @var{upattern} mentioned above
@@ -373,7 +382,7 @@ symbol to the value that it matched, so that you can later refer to it, either
 in the @var{body-forms} or also later in the pattern.
 @item _
 This so-called @emph{don't care} pattern matches anything, like the previous
-one, but unless symbol patterns it does not bind any variable.
+one, but unlike symbol patterns it does not bind any variable.
 @item (pred @var{pred})
 This pattern matches if the function @var{pred} returns non-@code{nil} when
 called with the object being matched.
@@ -890,9 +899,8 @@ argument @var{data} is a list of additional Lisp objects relevant to
 the circumstances of the error.
 
 The argument @var{error-symbol} must be an @dfn{error symbol}---a symbol
-bearing a property @code{error-conditions} whose value is a list of
-condition names.  This is how Emacs Lisp classifies different sorts of
-errors. @xref{Error Symbols}, for a description of error symbols,
+defined with @code{define-error}.  This is how Emacs Lisp classifies different
+sorts of errors. @xref{Error Symbols}, for a description of error symbols,
 error conditions and condition names.
 
 If the error is not handled, the two arguments are used in printing
@@ -1118,8 +1126,8 @@ Here are examples of handlers:
 @end example
 
 Each error that occurs has an @dfn{error symbol} that describes what
-kind of error it is.  The @code{error-conditions} property of this
-symbol is a list of condition names (@pxref{Error Symbols}).  Emacs
+kind of error it is, and which describes also a list of condition names
+(@pxref{Error Symbols}).  Emacs
 searches all the active @code{condition-case} forms for a handler that
 specifies one or more of these condition names; the innermost matching
 @code{condition-case} handles the error.  Within this
@@ -1244,10 +1252,13 @@ Here's the example at the beginning of this subsection rewritten using
 @end example
 @end defmac
 
-@defmac with-demoted-errors body@dots{}
+@defmac with-demoted-errors format body@dots{}
 This macro is like a milder version of @code{ignore-errors}.  Rather
 than suppressing errors altogether, it converts them into messages.
-Use this form around code that is not expected to signal errors, but
+It uses the string @var{format} to format the message.
+@var{format} should contain a single @samp{%}-sequence; e.g.,
+@code{"Error: %S"}.  Use @code{with-demoted-errors} around code
+that is not expected to signal errors, but
 should be robust if one does occur.  Note that this macro uses
 @code{condition-case-unless-debug} rather than @code{condition-case}.
 @end defmac
@@ -1259,6 +1270,7 @@ should be robust if one does occur.  Note that this macro uses
 @cindex condition name
 @cindex user-defined error
 @kindex error-conditions
+@kindex define-error
 
   When you signal an error, you specify an @dfn{error symbol} to specify
 the kind of error you have in mind.  Each error has one and only one
@@ -1275,42 +1287,38 @@ Thus, each error has one or more condition names: @code{error}, the
 error symbol if that is distinct from @code{error}, and perhaps some
 intermediate classifications.
 
-  In order for a symbol to be an error symbol, it must have an
-@code{error-conditions} property which gives a list of condition names.
-This list defines the conditions that this kind of error belongs to.
-(The error symbol itself, and the symbol @code{error}, should always be
-members of this list.)  Thus, the hierarchy of condition names is
-defined by the @code{error-conditions} properties of the error symbols.
-Because quitting is not considered an error, the value of the
-@code{error-conditions} property of @code{quit} is just @code{(quit)}.
+@defun define-error name message &optional parent
+  In order for a symbol to be an error symbol, it must be defined with
+@code{define-error} which takes a parent condition (defaults to @code{error}).
+This parent defines the conditions that this kind of error belongs to.
+The transitive set of parents always includes the error symbol itself, and the
+symbol @code{error}.  Because quitting is not considered an error, the set of
+parents of @code{quit} is just @code{(quit)}.
+@end defun
 
 @cindex peculiar error
-  In addition to the @code{error-conditions} list, the error symbol
-should have an @code{error-message} property whose value is a string to
-be printed when that error is signaled but not handled.  If the
-error symbol has no @code{error-message} property or if the
-@code{error-message} property exists, but is not a string, the error
-message @samp{peculiar error} is used.  @xref{Definition of signal}.
+  In addition to its parents, the error symbol has a @var{message} which
+is a string to be printed when that error is signaled but not handled.  If that
+message is not valid, the error message @samp{peculiar error} is used.
+@xref{Definition of signal}.
+
+Internally, the set of parents is stored in the @code{error-conditions}
+property of the error symbol and the message is stored in the
+@code{error-message} property of the error symbol.
 
   Here is how we define a new error symbol, @code{new-error}:
 
 @example
 @group
-(put 'new-error
-     'error-conditions
-     '(error my-own-errors new-error))
-@result{} (error my-own-errors new-error)
-@end group
-@group
-(put 'new-error 'error-message "A new error")
-@result{} "A new error"
+(define-error 'new-error "A new error" 'my-own-errors)
 @end group
 @end example
 
 @noindent
-This error has three condition names: @code{new-error}, the narrowest
+This error has several condition names: @code{new-error}, the narrowest
 classification; @code{my-own-errors}, which we imagine is a wider
-classification; and @code{error}, which is the widest of all.
+classification; and all the conditions of @code{my-own-errors} which should
+include @code{error}, which is the widest of all.
 
   The error string should start with a capital letter but it should
 not end with a period.  This is for consistency with the rest of Emacs.
@@ -1326,7 +1334,7 @@ your code can do this:
 @end group
 @end example
 
-  This error can be handled through any of the three condition names.
+  This error can be handled through any of its condition names.
 This example handles @code{new-error} and any other errors in the class
 @code{my-own-errors}:
 

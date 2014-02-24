@@ -1,6 +1,6 @@
 ;;; filecache.el --- find files using a pre-loaded cache
 
-;; Copyright (C) 1996, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 10 1996
@@ -453,8 +453,9 @@ message reporting the number of file names deleted."
     (dolist (f files)
       (if (file-cache-delete-file f)
 	  (setq n (1+ n))))
-    (message "Filecache: uncached %d file name%s."
-	     n (if (= n 1) "" "s"))))
+    (when message
+      (message "Filecache: uncached %d file name%s."
+	       n (if (= n 1) "" "s")))))
 
 (defun file-cache-delete-file-regexp (regexp)
   "Delete files matching REGEXP from the file cache."
@@ -679,10 +680,7 @@ match REGEXP."
 		"*File Cache Files Matching*")))
     (erase-buffer)
     (insert
-     (mapconcat
-      'identity
-      results
-      "\n"))
+     (mapconcat #'identity results "\n"))
     (goto-char (point-min))
     (display-buffer buf)))
 

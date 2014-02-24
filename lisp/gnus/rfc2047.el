@@ -1,6 +1,6 @@
 ;;; rfc2047.el --- functions for encoding and decoding rfc2047 messages
 
-;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -235,85 +235,96 @@ Should be called narrowed to the head of the message."
   (interactive "*")
   (save-excursion
     (goto-char (point-min))
-    (let (alist elem method)
+    (let (alist elem method charsets)
       (while (not (eobp))
 	(save-restriction
 	  (rfc2047-narrow-to-field)
 	  (setq method nil
-		alist rfc2047-header-encoding-alist)
-	  (while (setq elem (pop alist))
-	    (when (or (and (stringp (car elem))
-			   (looking-at (car elem)))
-		      (eq (car elem) t))
-	      (setq alist nil
-		    method (cdr elem))))
-	  (if (not (rfc2047-encodable-p))
-	      (prog2
-		  (when (eq method 'address-mime)
-		    (rfc2047-quote-special-characters-in-quoted-strings))
-		  (if (and (eq (mm-body-7-or-8) '8bit)
-			   (mm-multibyte-p)
-			   (mm-coding-system-p
-			    (car message-posting-charset)))
-		      ;; 8 bit must be decoded.
-		      (mm-encode-coding-region
-		       (point-min) (point-max)
-		       (mm-charset-to-coding-system
-			(car message-posting-charset))))
-		;; No encoding necessary, but folding is nice
-		(when nil
-		  (rfc2047-fold-region
-		   (save-excursion
-		     (goto-char (point-min))
-		     (skip-chars-forward "^:")
-		     (when (looking-at ": ")
-		       (forward-char 2))
-		     (point))
-		   (point-max))))
-	    ;; We found something that may perhaps be encoded.
-	    (re-search-forward "^[^:]+: *" nil t)
-	    (cond
-	     ((eq method 'address-mime)
-	      (rfc2047-encode-region (point) (point-max)))
-	     ((eq method 'mime)
-	      (let ((rfc2047-encoding-type 'mime))
-		(rfc2047-encode-region (point) (point-max))))
-	     ((eq method 'default)
-	      (if (and (featurep 'mule)
-		       (if (boundp 'enable-multibyte-characters)
-			   (default-value 'enable-multibyte-characters))
-		       mail-parse-charset)
-		  (mm-encode-coding-region (point) (point-max)
-					   mail-parse-charset)))
-	     ;; We get this when CC'ing messages to newsgroups with
-	     ;; 8-bit names.  The group name mail copy just got
-	     ;; unconditionally encoded.  Previously, it would ask
-	     ;; whether to encode, which was quite confusing for the
-	     ;; user.  If the new behavior is wrong, tell me.  I have
-	     ;; left the old code commented out below.
-	     ;; -- Per Abrahamsen <abraham@dina.kvl.dk> Date: 2001-10-07.
-	     ;; Modified by Dave Love, with the commented-out code changed
-	     ;; in accordance with changes elsewhere.
-	     ((null method)
-	      (rfc2047-encode-region (point) (point-max)))
-;;; 	     ((null method)
-;;; 	      (if (or (message-options-get
-;;; 		       'rfc2047-encode-message-header-encode-any)
-;;; 		      (message-options-set
-;;; 		       'rfc2047-encode-message-header-encode-any
-;;; 		       (y-or-n-p
-;;; 			"Some texts are not encoded. Encode anyway?")))
-;;; 		  (rfc2047-encode-region (point-min) (point-max))
-;;; 		(error "Cannot send unencoded text")))
-	     ((mm-coding-system-p method)
-	      (if (or (and (featurep 'mule)
-			   (if (boundp 'enable-multibyte-characters)
-			       (default-value 'enable-multibyte-characters)))
-		      (featurep 'file-coding))
-		  (mm-encode-coding-region (point) (point-max) method)))
-	     ;; Hm.
-	     (t)))
-	  (goto-char (point-max)))))))
+		alist rfc2047-header-encoding-alist
+		charsets (mm-find-mime-charset-region (point-min) (point-max)))
+	  ;; M$ Outlook boycotts decoding of a header if it consists
+	  ;; of two or more encoded words and those charsets differ;
+	  ;; it seems to decode all words in a header from a charset
+	  ;; found first in the header.  So, we unify the charsets into
+	  ;; a single one used for encoding the whole text in a header.
+	  (let ((mm-coding-system-priorities
+		 (if (= (length charsets) 1)
+		     (cons (mm-charset-to-coding-system (car charsets))
+			   mm-coding-system-priorities)
+		   mm-coding-system-priorities)))
+	    (while (setq elem (pop alist))
+	      (when (or (and (stringp (car elem))
+			     (looking-at (car elem)))
+			(eq (car elem) t))
+		(setq alist nil
+		      method (cdr elem))))
+	    (if (not (rfc2047-encodable-p))
+		(prog2
+		    (when (eq method 'address-mime)
+		      (rfc2047-quote-special-characters-in-quoted-strings))
+		    (if (and (eq (mm-body-7-or-8) '8bit)
+			     (mm-multibyte-p)
+			     (mm-coding-system-p
+			      (car message-posting-charset)))
+			;; 8 bit must be decoded.
+			(mm-encode-coding-region
+			 (point-min) (point-max)
+			 (mm-charset-to-coding-system
+			  (car message-posting-charset))))
+		  ;; No encoding necessary, but folding is nice
+		  (when nil
+		    (rfc2047-fold-region
+		     (save-excursion
+		       (goto-char (point-min))
+		       (skip-chars-forward "^:")
+		       (when (looking-at ": ")
+			 (forward-char 2))
+		       (point))
+		     (point-max))))
+	      ;; We found something that may perhaps be encoded.
+	      (re-search-forward "^[^:]+: *" nil t)
+	      (cond
+	       ((eq method 'address-mime)
+		(rfc2047-encode-region (point) (point-max)))
+	       ((eq method 'mime)
+		(let ((rfc2047-encoding-type 'mime))
+		  (rfc2047-encode-region (point) (point-max))))
+	       ((eq method 'default)
+		(if (and (featurep 'mule)
+			 (if (boundp 'enable-multibyte-characters)
+			     (default-value 'enable-multibyte-characters))
+			 mail-parse-charset)
+		    (mm-encode-coding-region (point) (point-max)
+					     mail-parse-charset)))
+	       ;; We get this when CC'ing messages to newsgroups with
+	       ;; 8-bit names.  The group name mail copy just got
+	       ;; unconditionally encoded.  Previously, it would ask
+	       ;; whether to encode, which was quite confusing for the
+	       ;; user.  If the new behavior is wrong, tell me.  I have
+	       ;; left the old code commented out below.
+	       ;; -- Per Abrahamsen <abraham@dina.kvl.dk> Date: 2001-10-07.
+	       ;; Modified by Dave Love, with the commented-out code changed
+	       ;; in accordance with changes elsewhere.
+	       ((null method)
+		(rfc2047-encode-region (point) (point-max)))
+;;;	       ((null method)
+;;;		(if (or (message-options-get
+;;;			 'rfc2047-encode-message-header-encode-any)
+;;;			(message-options-set
+;;;			 'rfc2047-encode-message-header-encode-any
+;;;			 (y-or-n-p
+;;;			  "Some texts are not encoded. Encode anyway?")))
+;;;		    (rfc2047-encode-region (point-min) (point-max))
+;;;		  (error "Cannot send unencoded text")))
+	       ((mm-coding-system-p method)
+		(if (or (and (featurep 'mule)
+			     (if (boundp 'enable-multibyte-characters)
+				 (default-value 'enable-multibyte-characters)))
+			(featurep 'file-coding))
+		    (mm-encode-coding-region (point) (point-max) method)))
+	       ;; Hm.
+	       (t)))
+	    (goto-char (point-max))))))))
 
 ;; Fixme: This, and the require below may not be the Right Thing, but
 ;; should be safe just before release.  -- fx 2001-02-08

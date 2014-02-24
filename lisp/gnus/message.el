@@ -1,6 +1,6 @@
 ;;; message.el --- composing mail and news messages
 
-;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -264,7 +264,7 @@ This is a list of regexps and regexp matches."
   :type 'sexp)
 
 (defcustom message-ignored-news-headers
-  "^NNTP-Posting-Host:\\|^Xref:\\|^[BGF]cc:\\|^Resent-Fcc:\\|^X-Draft-From:\\|^X-Gnus-Agent-Meta-Information:\\|^X-Message-SMTP-Method:"
+  "^NNTP-Posting-Host:\\|^Xref:\\|^[BGF]cc:\\|^Resent-Fcc:\\|^X-Draft-From:\\|^X-Gnus-Agent-Meta-Information:\\|^X-Message-SMTP-Method:\\|^X-Gnus-Delayed:"
   "*Regexp of headers to be removed unconditionally before posting."
   :group 'message-news
   :group 'message-headers
@@ -527,7 +527,7 @@ If t, use `message-user-organization-file'."
 	(setq orgfile f)))
     orgfile)
   "*Local news organization file."
-  :type 'file
+  :type '(choice (const nil) file)
   :link '(custom-manual "(message)News Headers")
   :group 'message-headers)
 
@@ -944,6 +944,8 @@ the signature is inserted."
     (set-keymap-parent map minibuffer-local-map)
     map)
   "Keymap for `message-read-from-minibuffer'."
+  ;; FIXME improve type.
+  :type '(restricted-sexp :match-alternatives (symbolp keymapp))
   :version "22.1"
   :group 'message-various)
 
@@ -1098,9 +1100,9 @@ e.g. using `gnus-posting-styles':
 
   (eval (set (make-local-variable 'message-cite-reply-position) 'above))"
   :version "24.1"
-  :type '(choice (const :tag "Reply inline" 'traditional)
-		 (const :tag "Reply above" 'above)
-		 (const :tag "Reply below" 'below))
+  :type '(choice (const :tag "Reply inline" traditional)
+		 (const :tag "Reply above" above)
+		 (const :tag "Reply below" below))
   :group 'message-insertion)
 
 (defcustom message-cite-style nil
@@ -1743,7 +1745,7 @@ no, only reply back to the author."
 				   (file-error))
 				 (mm-coding-system-p 'utf-8)
 				 (executable-find idna-program)
-				 (string= (idna-to-ascii "räksmörgås")
+				 (string= (idna-to-ascii "rÃ¤ksmÃ¶rgÃ¥s")
 					  "xn--rksmrgs-5wao1o")
 				 t)
   "Whether to encode non-ASCII in domain names into ASCII according to IDNA.
@@ -2939,7 +2941,6 @@ C-c M-n  `message-insert-disposition-notification-to'  (request receipt).
 C-c M-m  `message-mark-inserted-region' (mark region with enclosing tags).
 C-c M-f  `message-mark-insert-file' (insert file marked with enclosing tags).
 M-RET    `message-newline-and-reformat' (break the line and reformat)."
-  (setq local-abbrev-table text-mode-abbrev-table)
   (set (make-local-variable 'message-reply-buffer) nil)
   (set (make-local-variable 'message-inserted-headers) nil)
   (set (make-local-variable 'message-send-actions) nil)
@@ -3945,18 +3946,19 @@ See `message-citation-line-format'."
 	    (let ((i ?A) lst)
 	      (when (stringp name)
 		;; Guess first name and last name:
-		(cond ((string-match
-			"\\`\\(\\w\\|[-.]\\)+ \\(\\w\\|[-.]\\)+\\'" name)
-		       (setq fname (nth 0 (split-string name "[ \t]+"))
-			     lname (nth 1 (split-string name "[ \t]+"))))
-		      ((string-match
-			"\\`\\(\\w\\|[-.]\\)+, \\(\\w\\|[-.]\\)+\\'" name)
-		       (setq fname (nth 1 (split-string name "[ \t,]+"))
-			     lname (nth 0 (split-string name "[ \t,]+"))))
-		      ((string-match
-			"\\`\\(\\w\\|[-.]\\)+\\'" name)
-		       (setq fname name
-			     lname ""))))
+                (let* ((names (delq nil (mapcar (lambda (x)
+                                                 (if (string-match "\\`\\(\\w\\|[-.]\\)+\\'" x) x nil))
+                                               (split-string name "[ \t]+"))))
+                      (count (length names)))
+                  (cond ((= count 1) (setq fname (car names)
+                                           lname ""))
+                        ((or (= count 2) (= count 3)) (setq fname (car names)
+                                                            lname (mapconcat 'identity (cdr names) " ")))
+                        ((> count 3) (setq fname (mapconcat 'identity (butlast names (- count 2)) " ")
+                                           lname (mapconcat 'identity (nthcdr 2 names) " "))) )
+                  (when (string-match "\\(.*\\),\\'" fname)
+                    (let ((newlname (match-string 1 fname)))
+                      (setq fname lname lname newlname)))))
 	      ;; The following letters are not used in `format-time-string':
 	      (push ?E lst) (push "<E>" lst)
 	      (push ?F lst) (push fname lst)
@@ -4097,11 +4099,12 @@ Instead, just auto-save the buffer and then bury it."
 
 (defun message-bury (buffer)
   "Bury this mail BUFFER."
+  ;; Note that this is not quite the same as (bury-buffer buffer),
+  ;; since bury-buffer does extra stuff with a nil argument.
+  ;; Eg http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg00539.html
+  (with-current-buffer buffer (bury-buffer))
   (if message-return-action
-      (progn
-        (bury-buffer buffer)
-        (apply (car message-return-action) (cdr message-return-action)))
-    (with-current-buffer buffer (bury-buffer))))
+      (apply (car message-return-action) (cdr message-return-action))))
 
 (defun message-send (&optional arg)
   "Send the message in the current buffer.
@@ -4739,7 +4742,9 @@ that instead."
 			    (list resend-to-addresses)
 			  '("-t"))))))
 	    (unless (or (null cpr) (and (numberp cpr) (zerop cpr)))
-              (if errbuf (pop-to-buffer errbuf))
+	      (when errbuf
+		(pop-to-buffer errbuf)
+		(setq errbuf nil))
 	      (error "Sending...failed with exit value %d" cpr)))
 	  (when message-interactive
 	    (with-current-buffer errbuf
@@ -6271,6 +6276,9 @@ they are."
   :link '(custom-manual "(message)Movement")
   :type 'boolean)
 
+(defvar visual-line-mode)
+(declare-function beginning-of-visual-line "simple" (&optional n))
+
 (defun message-beginning-of-line (&optional n)
   "Move point to beginning of header value or to beginning of line.
 The prefix argument N is passed directly to `beginning-of-line'.
@@ -6297,7 +6305,9 @@ between beginning of field and beginning of line."
 	(goto-char
 	 (if (and eoh (or (< eoh here) (= bol here)))
 	     eoh bol)))
-    (beginning-of-line n)))
+    (if (and (boundp 'visual-line-mode) visual-line-mode)
+	(beginning-of-visual-line n)
+      (beginning-of-line n))))
 
 (defun message-buffer-name (type &optional to group)
   "Return a new (unique) buffer name based on TYPE and TO."
@@ -7145,7 +7155,7 @@ If ARG, allow editing of the cancellation message."
 	(erase-buffer)
 	(insert "Newsgroups: " newsgroups "\n"
 		"From: " from "\n"
-		"Subject: cmsg cancel " message-id "\n"
+		"Subject: cancel " message-id "\n"
 		"Control: cancel " message-id "\n"
 		(if distribution
 		    (concat "Distribution: " distribution "\n")
@@ -7205,7 +7215,7 @@ header line with the old Message-ID."
 	   (let ((buffer-read-only nil))
 	     (erase-buffer)
 	     (insert-file-contents file-name nil)))
-	  (t (error "message-recover cancelled")))))
+	  (t (error "message-recover canceled")))))
 
 ;;; Washing Subject:
 
@@ -7918,8 +7928,9 @@ If nil, the function bound in `text-mode-map' or `global-map' is executed."
 
 (defun message-tab ()
   "Complete names according to `message-completion-alist'.
-Execute function specified by `message-tab-body-function' when not in
-those headers."
+Execute function specified by `message-tab-body-function' when
+not in those headers.  If that variable is nil, indent with the
+regular text mode tabbing command."
   (interactive)
   (cond
    ((if (and (boundp 'completion-fail-discreetly)
@@ -7947,37 +7958,36 @@ those headers."
         ;; falling back to message-tab-body-function.
         (lambda () (funcall fun) 'completion-attempted)))))
 
-(eval-and-compile
-  (condition-case nil
-      (with-temp-buffer
-	(let ((standard-output (current-buffer)))
-	  (eval '(display-completion-list nil "")))
-	(defalias 'message-display-completion-list 'display-completion-list))
-    (error ;; Don't use `wrong-number-of-arguments' here because of XEmacs.
-     (defun message-display-completion-list (completions &optional ignore)
-       "Display the list of completions, COMPLETIONS, using `standard-output'."
-       (display-completion-list completions)))))
-
 (defun message-expand-group ()
   "Expand the group name under point."
-  (let* ((b (save-excursion
-	      (save-restriction
-		(narrow-to-region
-		 (save-excursion
-		   (beginning-of-line)
-		   (skip-chars-forward "^:")
-		   (1+ (point)))
-		 (point))
-		(skip-chars-backward "^, \t\n") (point))))
-	 (completion-ignore-case t)
-         (e (progn (skip-chars-forward "^,\t\n ") (point)))
-	 (hashtb (and (boundp 'gnus-active-hashtb) gnus-active-hashtb)))
-    (message-completion-in-region e b hashtb)))
+  (let ((b (save-excursion
+	     (save-restriction
+	       (narrow-to-region
+		(save-excursion
+		  (beginning-of-line)
+		  (skip-chars-forward "^:")
+		  (1+ (point)))
+		(point))
+	       (skip-chars-backward "^, \t\n") (point))))
+	(completion-ignore-case t)
+	(e (progn (skip-chars-forward "^,\t\n ") (point)))
+	group collection)
+    (when (and (boundp 'gnus-active-hashtb)
+	       gnus-active-hashtb)
+      (mapatoms
+       (lambda (symbol)
+	 (setq group (symbol-name symbol))
+	 (push (if (string-match "[^\000-\177]" group)
+		   (gnus-group-decoded-name group)
+		 group)
+	       collection))
+       gnus-active-hashtb))
+    (message-completion-in-region b e collection)))
 
 (defalias 'message-completion-in-region
   (if (fboundp 'completion-in-region)
       'completion-in-region
-    (lambda (e b hashtb)
+    (lambda (b e hashtb)
       (let* ((string (buffer-substring b e))
              (completions (all-completions string hashtb))
              comp)
@@ -8002,8 +8012,7 @@ those headers."
               (let ((buffer-read-only nil))
                 (erase-buffer)
                 (let ((standard-output (current-buffer)))
-                  (message-display-completion-list (sort completions 'string<)
-                                                   string))
+                  (display-completion-list (sort completions 'string<)))
                 (setq buffer-read-only nil)
                 (goto-char (point-min))
                 (delete-region (point)
@@ -8421,7 +8430,7 @@ Used in `message-simplify-recipients'."
 (run-hooks 'message-load-hook)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; message.el ends here

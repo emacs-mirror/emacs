@@ -1,6 +1,6 @@
-;;; nxml-util.el --- utility functions for nxml-*.el
+;;; nxml-util.el --- utility functions for nxml-*.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -45,7 +45,7 @@
 
 (defmacro nxml-debug-clear-inside (start end)
   (when nxml-debug
-    `(loop for overlay in (overlays-in ,start ,end)
+    `(cl-loop for overlay in (overlays-in ,start ,end)
            if (overlay-get overlay 'nxml-inside-debug)
            do (delete-overlay overlay)
            finally (nxml-debug-change "nxml-clear-inside" ,start ,end))))
@@ -70,6 +70,7 @@ This is the inverse of `nxml-make-namespace'."
   (nxml-make-namespace "http://www.w3.org/2000/xmlns/"))
 
 (defmacro nxml-with-degradation-on-error (context &rest body)
+  (declare (indent 1) (debug t))
   (if (not nxml-debug)
       (let ((error-symbol (make-symbol "err")))
         `(condition-case ,error-symbol
@@ -78,34 +79,11 @@ This is the inverse of `nxml-make-namespace'."
             (nxml-degrade ,context ,error-symbol))))
     `(progn ,@body)))
 
-(defmacro nxml-with-unmodifying-text-property-changes (&rest body)
-  "Evaluate BODY without any text property changes modifying the buffer.
-Any text properties changes happen as usual but the changes are not treated as
-modifications to the buffer."
-  (let ((modified (make-symbol "modified")))
-    `(let ((,modified (buffer-modified-p))
-	   (inhibit-read-only t)
-	   (inhibit-modification-hooks t)
-	   (buffer-undo-list t)
-	   (deactivate-mark nil)
-	   ;; Apparently these avoid file locking problems.
-	   (buffer-file-name nil)
-	   (buffer-file-truename nil))
-       (unwind-protect
-	   (progn ,@body)
-	 (unless ,modified
-	   (restore-buffer-modified-p nil))))))
-
-(put 'nxml-with-unmodifying-text-property-changes 'lisp-indent-function 0)
-(def-edebug-spec nxml-with-unmodifying-text-property-changes t)
-
 (defmacro nxml-with-invisible-motion (&rest body)
   "Evaluate body without calling any point motion hooks."
+  (declare (indent 0) (debug t))
   `(let ((inhibit-point-motion-hooks t))
      ,@body))
-
-(put 'nxml-with-invisible-motion 'lisp-indent-function 0)
-(def-edebug-spec nxml-with-invisible-motion t)
 
 (defun nxml-display-file-parse-error (err)
   (let* ((filename (nth 1 err))
@@ -122,13 +100,8 @@ modifications to the buffer."
   (signal (or error-symbol 'nxml-file-parse-error)
 	  (list file pos message)))
 
-(put 'nxml-file-parse-error
-     'error-conditions
-     '(error nxml-file-parse-error))
-
-(put 'nxml-parse-file-error
-     'error-message
-     "Error parsing file")
+(define-error 'nxml-error nil)
+(define-error 'nxml-file-parse-error "Error parsing file" 'nxml-error)
 
 (provide 'nxml-util)
 

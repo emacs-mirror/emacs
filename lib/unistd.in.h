@@ -1,5 +1,5 @@
 /* Substitute for and wrapper around <unistd.h>.
-   Copyright (C) 2003-2013 Free Software Foundation, Inc.
+   Copyright (C) 2003-2014 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -61,8 +61,10 @@
 /* mingw, MSVC, BeOS, Haiku declare environ in <stdlib.h>, not in
    <unistd.h>.  */
 /* Solaris declares getcwd not only in <unistd.h> but also in <stdlib.h>.  */
+/* OSF Tru64 Unix cannot see gnulib rpl_strtod when system <stdlib.h> is
+   included here.  */
 /* But avoid namespace pollution on glibc systems.  */
-#ifndef __GLIBC__
+#if !defined __GLIBC__ && !defined __osf__
 # define __need_system_stdlib_h
 # include <stdlib.h>
 # undef __need_system_stdlib_h
@@ -114,6 +116,9 @@
 # include <getopt.h>
 #endif
 
+#ifndef _GL_INLINE_HEADER_BEGIN
+ #error "Please include config.h first."
+#endif
 _GL_INLINE_HEADER_BEGIN
 #ifndef _GL_UNISTD_INLINE
 # define _GL_UNISTD_INLINE _GL_INLINE
@@ -649,10 +654,19 @@ _GL_WARN_ON_USE (getdomainname, "getdomainname is unportable - "
 #if @GNULIB_GETDTABLESIZE@
 /* Return the maximum number of file descriptors in the current process.
    In POSIX, this is same as sysconf (_SC_OPEN_MAX).  */
-# if !@HAVE_GETDTABLESIZE@
+# if @REPLACE_GETDTABLESIZE@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef getdtablesize
+#   define getdtablesize rpl_getdtablesize
+#  endif
+_GL_FUNCDECL_RPL (getdtablesize, int, (void));
+_GL_CXXALIAS_RPL (getdtablesize, int, (void));
+# else
+#  if !@HAVE_GETDTABLESIZE@
 _GL_FUNCDECL_SYS (getdtablesize, int, (void));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (getdtablesize, int, (void));
+# endif
 _GL_CXXALIASWARN (getdtablesize);
 #elif defined GNULIB_POSIXCHECK
 # undef getdtablesize

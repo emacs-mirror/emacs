@@ -1,6 +1,6 @@
 ;;; tetris.el --- implementation of Tetris for Emacs
 
-;; Copyright (C) 1997, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Version: 2.01
@@ -77,20 +77,13 @@ If the return value is a number, it is used as the timer period."
   ["blue" "white" "yellow" "magenta" "cyan" "green" "red"]
   "Vector of colors of the various shapes in text mode."
   :group 'tetris
-  :type (let ((names `("Shape 1" "Shape 2" "Shape 3"
-		       "Shape 4" "Shape 5" "Shape 6" "Shape 7"))
-	      (result nil))
-	  (while names
-	    (add-to-list 'result
-			 (cons 'choice
-			       (cons :tag
-				     (cons (car names)
-					   (mapcar (lambda (color)
-						     (list 'const color))
-						   (defined-colors)))))
-			 t)
-	    (setq names (cdr names)))
-	  result))
+  :type '(vector (color :tag "Shape 1")
+		 (color :tag "Shape 2")
+		 (color :tag "Shape 3")
+		 (color :tag "Shape 4")
+		 (color :tag "Shape 5")
+		 (color :tag "Shape 6")
+		 (color :tag "Shape 7")))
 
 (defcustom tetris-x-colors
   [[0 0 1] [0.7 0 1] [1 1 0] [1 0 1] [0 1 1] [0 1 0] [1 0 0]]

@@ -1293,9 +1293,9 @@
 
 2004-11-26  Jay Belanger  <belanger@truman.edu>
 
-	* calc-misc.el (calc-last-why-command): Declare it.
+	* calc/calc-misc.el (calc-last-why-command): Declare it.
 
-	* calc-vec.el (math-grade-vec): New variable.
+	* calc/calc-vec.el (math-grade-vec): New variable.
 	(calcFunc-grade, calcFunc-rgrade, math-grade-beforep):
 	Replace variable grade-vec by declared variable.
 	(math-rb-close): New variable.
@@ -1424,7 +1424,8 @@
 
 2004-11-26  Lars Hansen  <larsh@math.ku.dk>
 
-	* tramp.el (tramp-handle-directory-files-and-attributes): New function.
+	* net/tramp.el (tramp-handle-directory-files-and-attributes):
+	New function.
 	(tramp-perl-directory-files-and-attributes): New constant.
 	(tramp-file-name-handler-alist): Delete file-directory-files, add
 	directory-files-and-attributes.
@@ -3141,7 +3142,7 @@
 
 	* subr.el (read-passwd): Move back from password.el.
 
-	* password.el: Remove, not ready yet.
+	* net/password.el: Remove, not ready yet.
 
 2004-10-29  Andreas Schwab  <schwab@suse.de>
 
@@ -6641,7 +6642,7 @@
 
 2004-05-29  Pavel Kobiakov  <pk_at_work@yahoo.com>
 
-	* flymake.el: New file.
+	* progmodes/flymake.el: New file.
 
 2004-05-28  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -6729,17 +6730,6 @@
 
 	* mail/smtpmail.el (smtpmail-open-stream):
 	Bind starttls-extra-arguments too, if starttls.el uses GnuTLS.
-
-2004-05-26  Simon Josefsson  <jas@extundo.com>
-
-	* starttls.el: Merge with my GnuTLS based starttls.el.
-	(starttls-gnutls-program, starttls-use-gnutls)
-	(starttls-extra-arguments, starttls-process-connection-type)
-	(starttls-connect, starttls-failure, starttls-success): New variables.
-	(starttls-program, starttls-extra-args): Doc fix.
-	(starttls-negotiate-gnutls, starttls-open-stream-gnutls): New funs.
-	(starttls-negotiate, starttls-open-stream): Check `starttls-use-gnutls'
-	and pass on to corresponding *-gnutls function if it is set.
 
 2004-05-27  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -8081,8 +8071,6 @@
 
 	* mail/rmail.el (rmail-variables): Bind desktop-save-buffer to t.
 
-	* mh-e/mh-e.el (mh-folder-mode): Bind desktop-save-buffer to t.
-
 2004-04-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* progmodes/gud.el (gud-pdb-command-name): Change default to "pydb".
@@ -8228,7 +8216,6 @@
 2004-04-22  Lars Hansen  <larsh@math.ku.dk>
 
 	* info.el (Info-restore-desktop-buffer): Delete with-no-warnings.
-	* mh-e/mh-e.el (mh-restore-desktop-buffer): Delete with-no-warnings.
 
 2004-04-22  Kim F. Storm  <storm@cua.dk>
 
@@ -8337,9 +8324,6 @@
 	(Info-mode): Bind desktop-buffer-misc-data-function.
 
 	* mail/rmail.el (rmail-restore-desktop-buffer): Move from desktop.el.
-	Add Parameters.
-
-	* mh-e/mh-e.el (mh-restore-desktop-buffer): Move from desktop.el.
 	Add Parameters.
 
 2003-04-21  Paul Pogonyshev  <pogonyshev@gmx.net>
@@ -11950,7 +11934,7 @@
 
 2003-11-16  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-engine.el (c-guess-continued-construct)
+	* progmodes/cc-engine.el (c-guess-continued-construct)
 	(c-guess-basic-syntax): Check a little more carefully if it's a
 	function declaration when an unknown construct followed by a block
 	is found inside a statement context.  This avoids macros followed
@@ -11964,7 +11948,8 @@
 	start is in a position so that `c-beginning-of-statement-1' jumped
 	to the beginning of the same statement.
 
-	* cc-fonts.el, cc-engine.el (c-forward-<>-arglist-recur):
+	* progmodes/cc-fonts.el, progmodes/cc-engine.el
+	(c-forward-<>-arglist-recur):
 	Don't accept binary operators in the arglist if we're in a function
 	call context, i.e. if `c-restricted-<>-arglists' is set.  That avoids
 	template recognition in cases like "if (a < b || c > d)".
@@ -11974,38 +11959,39 @@
 
 	Accessing functions updated for the variable name change.
 
-	* cc-engine.el (c-syntactic-re-search-forward): Fix bug where the
-	match data could get clobbered if NOT-INSIDE-TOKEN is used.
+	* progmodes/cc-engine.el (c-syntactic-re-search-forward): Fix bug
+	where the match data could get clobbered if NOT-INSIDE-TOKEN is used.
 
-	* cc-engine.el (c-beginning-of-statement-1): Don't allow parens in
-	labels.
+	* progmodes/cc-engine.el (c-beginning-of-statement-1):
+	Don't allow parens in labels.
 
 	(c-backward-to-decl-anchor): Use `c-beginning-of-statement-1'
 	instead of duplicating parts of it.  This fixes bogus label
 	recognition.
 
-	* cc-align.el (c-gnu-impose-minimum): Revert to the old method
+	* progmodes/cc-align.el (c-gnu-impose-minimum): Revert to the old method
 	of checking the context in which to apply the minimum indentation,
 	so that it isn't enforced in e.g. namespace blocks.
 
-	* cc-vars.el (c-inside-block-syms): New constant used by
+	* progmodes/cc-vars.el (c-inside-block-syms): New constant used by
 	`c-gnu-impose-minimum'.  It's defined close to `c-offsets-alist'
 	to somewhat reduce the risk of becoming stale.
 
-	* cc-cmds.el, cc-engine.el (c-shift-line-indentation): Move from
-	cc-cmds to cc-engine to allow use from cc-align.
+	* progmodes/cc-cmds.el, progmodes/cc-engine.el
+	(c-shift-line-indentation): Move from cc-cmds to cc-engine
+	to allow use from cc-align.
 
-	* cc-engine.el (c-beginning-of-inheritance-list): Cope with fully
-	qualified identifiers containing "::".
+	* progmodes/cc-engine.el (c-beginning-of-inheritance-list):
+	Cope with fully qualified identifiers containing "::".
 
-	* cc-defs.el (c-make-keywords-re): Add kludge for bug in
+	* progmodes/cc-defs.el (c-make-keywords-re): Add kludge for bug in
 	`regexp-opt' in Emacs 20 and XEmacs when strings contain newlines.
 
-	* cc-vars.el (c-emacs-features): Use a space in front of the name
-	of the temporary buffer.  That also avoids dumping problems in
+	* progmodes/cc-vars.el (c-emacs-features): Use a space in front of
+	the name of the temporary buffer.  That also avoids dumping problems in
 	XEmacs due to undo info being left around after the buffer is killed.
 
-	* cc-engine.el (c-in-knr-argdecl): Look closer at the function
+	* progmodes/cc-engine.el (c-in-knr-argdecl): Look closer at the function
 	arglist to see if it's a K&R style declaration.
 
 	(c-guess-basic-syntax): CASE 5B.2: Check with `c-in-knr-argdecl'
@@ -12534,7 +12520,7 @@
 	(gdb-update-flag): New variables.
 	(gdb-var-update, gdb-var-update-handler,gdb-var-delete)
 	(gdb-speedbar-expand-node, gdb-var-evaluate-expression-handler)
-	(gud-watch, gdb-var-create-handler) : New functions.
+	(gud-watch, gdb-var-create-handler): New functions.
 	(gdb-var-list-children, gdb-var-list-children-handler)
 	(gdb-var-create-regexp, gdb-var-update-regexp)
 	(gdb-var-list-children-regexp): New constants.
@@ -13103,10 +13089,10 @@
 
 2003-08-29  Thierry Emery  <thierry.emery@club-internet.fr>  (tiny change)
 
-	* kinsoku.el (kinsoku-longer, kinsoku-shorter): Do not choose a
-	line break position in the middle of a non-kinsoku (e.g. latin)
-	word, making it skip until either a space or a character with
-	category "|".
+	* international/kinsoku.el (kinsoku-longer, kinsoku-shorter):
+	Do not choose a line break position in the middle of a
+	non-kinsoku (e.g. latin) word, making it skip until either
+	a space or a character with category "|".
 	(kinsoku-longer): Test for end of buffer.
 
 2003-08-28  Eli Zaretskii  <eliz@gnu.org>
@@ -13476,20 +13462,20 @@
 
 2003-08-11  Carsten Dominik  <dominik@sand.science.uva.nl>
 
-	* reftex-toc.el (reftex-toc-rename-label): New function.
+	* textmodes/reftex-toc.el (reftex-toc-rename-label): New function.
 	(reftex-toc-check-docstruct): New function.
 
-	* reftex.el (reftex-region-active-p): New function.
+	* textmodes/reftex.el (reftex-region-active-p): New function.
 
-	* reftex-parse.el (reftex-locate-bibliography-files): Improved the
+	* textmodes/reftex-parse.el (reftex-locate-bibliography-files): Improved the
 	regexp to find the \bibliography macro.
 
-	* reftex-vars.el (reftex-section-levels): Removed subsubparagraph,
+	* textmodes/reftex-vars.el (reftex-section-levels): Removed subsubparagraph,
 	which does not exist in LaTeX.
 	(reftex-cite-format-builtin): Added amsrefs support.
 	(reftex-toc-confirm-promotion): New option
 
-	* reftex-toc.el
+	* textmodes/reftex-toc.el
 	(reftex-toc): Use `reftex-toc-split-windows-fraction'.
 	(reftex-toc-demote, reftex-toc-promote)
 	(reftex-toc-do-promote, reftex-toc-promote-prepare)
@@ -13512,9 +13498,8 @@
 	(reftex-toc-quit): Adapted to delete frame when called in
 	dedicated frame.
 
-	* reftex-index.el (reftex-index-phrase-match-is-indexed): Check
+	* textmodes/reftex-index.el (reftex-index-phrase-match-is-indexed): Check
 	all enclosing macros.
-
 
 2003-08-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
@@ -13628,10 +13613,10 @@
 	* calendar/cal-tex.el (cal-tex-day-name-format): Doc fix.
 	(cal-tex-LaTeX-hourbox): Move definition before use.
 
-	* calendar/cal-china.el, cal-hebrew.el, cal-islam.el
-	* cal-julian.el, cal-menu.el, cal-move.el, holidays.el
-	* lunar.el, solar.el (displayed-month, displayed-year):
-	Define for compiler.
+	* calendar/cal-china.el, calendar/cal-hebrew.el, calendar/cal-islam.el:
+	* calendar/cal-julian.el, calendar/cal-menu.el, calendar/cal-move.el:
+	* calendar/holidays.el, calendar/lunar.el, calendar/solar.el:
+	(displayed-month, displayed-year): Define for compiler.
 
 2003-08-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
@@ -14336,7 +14321,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2003-2011, 2013 Free Software Foundation, Inc.
+  Copyright (C) 2003-2011, 2013-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1987, 1993-1995, 1997, 2001-2013 Free Software
+@c Copyright (C) 1987, 1993-1995, 1997, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node X Resources
@@ -27,7 +27,7 @@ system registry (@pxref{MS-Windows Registry}).
 * Resources::           Using X resources with Emacs (in general).
 * Table of Resources::  Table of specific X resources that affect Emacs.
 * Lucid Resources::     X resources for Lucid menus.
-* LessTif Resources::   X resources for LessTif and Motif menus.
+* Motif Resources::     X resources for Motif and LessTif menus.
 * GTK resources::       Resources for GTK widgets.
 @end menu
 
@@ -260,7 +260,7 @@ compiled with GTK+ support.
 @ifnottex
 @item @code{selectionFont} (class @code{SelectionFont})
 Font name for pop-up menu items, in non-toolkit versions of Emacs.  (For
-toolkit versions, see @ref{Lucid Resources}, also see @ref{LessTif
+toolkit versions, see @ref{Lucid Resources}, also see @ref{Motif
 Resources}.)
 
 @item @code{selectionTimeout} (class @code{SelectionTimeout})
@@ -370,15 +370,15 @@ elements.  Default is 1.
 Margin of the menu bar, in characters.  Default is 1.
 @end table
 
-@node LessTif Resources
-@appendixsec LessTif Menu X Resources
-@cindex Menu X Resources (LessTif widgets)
-@cindex LessTif Widget X Resources
+@node Motif Resources
+@appendixsec Motif Menu X Resources
+@cindex Menu X Resources (Motif widgets)
+@cindex Motif Widget X Resources
 
-  If Emacs is compiled with the X toolkit support using LessTif or
-Motif widgets, you can use X resources to customize the appearance of
-the menu bar, pop-up menus, and dialog boxes.  However, the resources
-are organized differently from Lucid widgets.
+  If Emacs is compiled with the X toolkit support using Motif or
+LessTif widgets, you can use X resources to customize the appearance
+of the menu bar, pop-up menus, and dialog boxes.  However, the
+resources are organized differently from Lucid widgets.
 
   The resource names for the menu bar are in the @samp{pane.menubar}
 class, and they must be specified in this form:

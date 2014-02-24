@@ -1,9 +1,9 @@
 ;;; tty-colors.el --- color support for character terminals
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: terminals, faces
 
 ;; This file is part of GNU Emacs.
@@ -767,7 +767,7 @@
     (yes . 8))
   "An alist of supported standard tty color modes and their aliases.")
 
-(defun tty-color-alist (&optional frame)
+(defun tty-color-alist (&optional _frame)
   "Return an alist of colors supported by FRAME's terminal.
 FRAME defaults to the selected frame.
 Each element of the returned alist is of the form:
@@ -840,7 +840,7 @@ If FRAME is not specified or is nil, it defaults to the selected frame."
   (tty-modify-color-alist
    (append (list (tty-color-canonicalize name) index) rgb) frame))
 
-(defun tty-color-clear (&optional frame)
+(defun tty-color-clear (&optional _frame)
   "Clear the list of supported tty colors for frame FRAME.
 If FRAME is unspecified or nil, it defaults to the selected frame."
   (setq tty-defined-color-alist nil))

@@ -1,6 +1,6 @@
 ;;; semantic/bovine/gcc.el --- gcc querying special code for the C parser
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -157,7 +157,11 @@ It should also include other symbols GCC was compiled with.")
                     ;; `cpp' command in `semantic-gcc-setup' doesn't work on
                     ;; Mac, try `gcc'.
                     (apply 'semantic-gcc-query "gcc" cpp-options))))
-         (defines (semantic-cpp-defs query))
+         (defines (if (stringp query)
+		      (semantic-cpp-defs query)
+		    (message (concat "Could not query gcc for defines. "
+				     "Maybe g++ is not installed."))
+		    nil))
          (ver (cdr (assoc 'version fields)))
          (host (or (cdr (assoc 'target fields))
                    (cdr (assoc '--target fields))
@@ -206,7 +210,8 @@ It should also include other symbols GCC was compiled with.")
       (semantic-add-system-include D 'c-mode))
     (dolist (D (semantic-gcc-get-include-paths "c++"))
       (semantic-add-system-include D 'c++-mode)
-      (let ((cppconfig (list (concat D "/bits/c++config.h") (concat D "/sys/cdefs.h"))))
+      (let ((cppconfig (list (concat D "/bits/c++config.h") (concat D "/sys/cdefs.h")
+			     (concat D "/features.h"))))
 	(dolist (cur cppconfig)
 	  ;; Presumably there will be only one of these files in the try-paths list...
 	  (when (file-readable-p cur)

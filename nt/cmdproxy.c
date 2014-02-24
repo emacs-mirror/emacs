@@ -1,5 +1,5 @@
 /* Proxy shell designed for use with Emacs on Windows 95 and NT.
-   Copyright (C) 1997, 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 1997, 2001-2014 Free Software Foundation, Inc.
 
    Accepts subset of Unix sh(1) command-line options, for compatibility
    with elisp code written for Unix.  When possible, executes external
@@ -319,7 +319,7 @@ try_dequote_cmdline (char* cmdline)
   /* Dequoting can only subtract characters, so the length of the
      original command line is a bound on the amount of scratch space
      we need.  This length, in turn, is bounded by the 32k
-     CreateProces limit.  */
+     CreateProcess limit.  */
   char * old_pos = cmdline;
   char * new_cmdline = alloca (strlen(cmdline));
   char * new_pos = new_cmdline;
@@ -843,4 +843,3 @@ main (int argc, char ** argv)
 
   return 0;
 }
-

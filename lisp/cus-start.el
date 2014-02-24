@@ -1,6 +1,6 @@
 ;;; cus-start.el --- define customization properties of builtins
 
-;; Copyright (C) 1997, 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -252,7 +252,9 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (use-file-dialog menu boolean "22.1")
 	     (focus-follows-mouse frames boolean "20.3")
 	     ;; fontset.c
-	     (vertical-centering-font-regexp display regexp)
+	     ;; FIXME nil is the initial value, fontset.el setqs it.
+	     (vertical-centering-font-regexp display
+					     (choice (const nil) regexp))
 	     ;; frame.c
 	     (default-frame-alist frames
 	       (repeat (cons :format "%v"
@@ -270,6 +272,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (tool-bar-mode (frames mouse) boolean nil
 ;			    :initialize custom-initialize-default
 			    :set custom-set-minor-mode)
+	     (frame-resize-pixelwise windows boolean "24.4")
 	     ;; fringe.c
 	     (overflow-newline-into-fringe fringe boolean)
 	     ;; image.c
@@ -309,6 +312,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;;    			:format "%[Current dir?%] %v"
 	     ;;    			(const :tag " current dir" nil)
 	     ;;    			(directory :format "%v"))))
+	     (load-prefer-newer lisp boolean "24.4")
 	     ;; minibuf.c
 	     (enable-recursive-minibuffers minibuffer boolean)
 	     (history-length minibuffer
@@ -398,6 +402,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (ns-antialias-text ns boolean "23.1")
 	     (ns-auto-hide-menu-bar ns boolean "24.0")
 	     (ns-use-native-fullscreen ns boolean "24.4")
+	     (ns-use-srgb-colorspace ns boolean "24.4")
 	     ;; process.c
 	     (delete-exited-processes processes-basics boolean)
 	     ;; syntax.c
@@ -446,15 +451,22 @@ since it could result in memory overflow and make Emacs crash."
 			      :value display-buffer)
 		       (other :tag "Always (t)" :value t))
 	      "24.3")
+	     (window-resize-pixelwise windows boolean "24.4")
 	     ;; xdisp.c
-	     (show-trailing-whitespace whitespace-faces boolean nil
+	     ;; The whitespace group is for whitespace.el.
+	     (show-trailing-whitespace editing-basics boolean nil
 				       :safe booleanp)
 	     (scroll-step windows integer)
 	     (scroll-conservatively windows integer)
 	     (scroll-margin windows integer)
 	     (hscroll-margin windows integer "22.1")
 	     (hscroll-step windows number "22.1")
-	     (truncate-partial-width-windows display boolean "23.1")
+	     (truncate-partial-width-windows
+	      display
+	      (choice (integer :tag "Truncate if narrower than")
+		      (const :tag "Respect `truncate-lines'" nil)
+		      (other :tag "Truncate if not full-width" t))
+	      "23.1")
 	     (make-cursor-line-fully-visible windows boolean)
 	     (mode-line-in-non-selected-windows mode-line boolean "22.1")
 	     (line-number-display-limit display

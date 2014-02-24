@@ -1,6 +1,6 @@
 ;;; ede/pconf.el --- configure.ac maintenance for EDE
 
-;;; Copyright (C) 1998-2000, 2005, 2008-2013 Free Software Foundation,
+;;; Copyright (C) 1998-2000, 2005, 2008-2014 Free Software Foundation,
 ;;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -152,7 +152,7 @@ don't do it.  A value of nil means to just do it.")
 (defmethod ede-proj-configure-recreate ((this ede-proj-project))
   "Delete project THIS's configure script and start over."
   (if (not (ede-proj-configure-file this))
-      (error "Could not determine configure.ac for %S" (object-name this)))
+      (error "Could not determine configure.ac for %S" (eieio-object-name this)))
   (let ((b (get-file-buffer (ede-proj-configure-file this))))
     ;; Destroy all evidence of the old configure.ac
     (delete-file (ede-proj-configure-file this))

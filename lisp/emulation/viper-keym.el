@@ -1,6 +1,6 @@
 ;;; viper-keym.el --- Viper keymaps
 
-;; Copyright (C) 1994-1997, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -147,8 +147,8 @@ viper-insert-basic-map.  Not recommended, except for novice users.")
 (defvar viper-empty-keymap (make-sparse-keymap))
 
 ;; This was the main Vi mode in old versions of VIP which may have been
-;; extensively used by VIP users.  We declare it as a global var
-;; and, after .viper is loaded, we add this keymap to viper-vi-basic-map.
+;; extensively used by VIP users.  We declare it as a global var and, after
+;; viper-custom-file-name is loaded, we add this keymap to viper-vi-basic-map.
 (defvar viper-mode-map (make-sparse-keymap))
 
 ;; Some important keys used in viper
@@ -192,7 +192,7 @@ Enter as a sexp.  Examples: \"\\C-z\", [(control ?z)]."
   :type 'string
   :group 'viper)
 
-(defvar viper-ESC-key (kbd "ESC")
+(defconst viper-ESC-key [escape]
   "Key used to ESC.")
 
 

@@ -1,6 +1,6 @@
 ;;; meta-mode.el --- major mode for editing Metafont or MetaPost sources -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Ulrik Vieth <vieth@thphy.uni-duesseldorf.de>
 ;; Version: 1.0
@@ -794,6 +794,7 @@ The environment marked is the one that contains point or follows point."
 
 (defvar meta-common-mode-syntax-table
   (let ((st (make-syntax-table)))
+    ;; FIXME: This goes against the convention!
     ;; underscores are word constituents
     (modify-syntax-entry ?_  "w"  st)
     ;; miscellaneous non-word symbols

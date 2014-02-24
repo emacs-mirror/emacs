@@ -1,6 +1,6 @@
 ;;; gnus-setup.el --- Initialization & Setup for Gnus 5
 
-;; Copyright (C) 1995-1996, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Steven L. Baur <steve@miranova.com>
 ;; Keywords: news
@@ -59,7 +59,7 @@
   "Set this if you want to use MH-E for mail reading.")
 (defvar gnus-use-rmail nil
   "Set this if you want to use RMAIL for mail reading.")
-(defvar gnus-use-sendmail t
+(defvar gnus-use-sendmail nil
   "Set this if you want to use SENDMAIL for mail reading.")
 (defvar gnus-use-vm nil
   "Set this if you want to use the VM package for mail reading.")

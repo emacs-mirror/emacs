@@ -1,5 +1,5 @@
 /* Menu support for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2013 Free
+   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2014 Free
    Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -82,8 +82,8 @@ typedef BOOL (WINAPI * SetMenuItemInfoA_Proc) (
     IN LPCMENUITEMINFOA);
 typedef int (WINAPI * MessageBoxW_Proc) (
     IN HWND window,
-    IN WCHAR *text,
-    IN WCHAR *caption,
+    IN const WCHAR *text,
+    IN const WCHAR *caption,
     IN UINT type);
 
 #ifdef NTGUI_UNICODE
@@ -98,15 +98,15 @@ AppendMenuW_Proc unicode_append_menu = NULL;
 MessageBoxW_Proc unicode_message_box = NULL;
 #endif /* NTGUI_UNICODE */
 
-Lisp_Object Qdebug_on_next_call;
+Lisp_Object Qdebug_on_next_call, Qunsupported__w32_dialog;
 
-void set_frame_menubar (FRAME_PTR, bool, bool);
+void set_frame_menubar (struct frame *, bool, bool);
 
 #ifdef HAVE_DIALOGS
-static Lisp_Object w32_dialog_show (FRAME_PTR, int, Lisp_Object, char**);
+static Lisp_Object w32_dialog_show (struct frame *, int, Lisp_Object, char**);
 #else
 static int is_simple_dialog (Lisp_Object);
-static Lisp_Object simple_dialog_show (FRAME_PTR, Lisp_Object, Lisp_Object);
+static Lisp_Object simple_dialog_show (struct frame *, Lisp_Object, Lisp_Object);
 #endif
 
 static void utf8to16 (unsigned char *, int, WCHAR *);
@@ -114,128 +114,42 @@ static int fill_in_menu (HMENU, widget_value *);
 
 void w32_free_menu_strings (HWND);
 
-#ifdef HAVE_MENUS
-
-DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 3, 0,
-       doc: /* Pop up a dialog box and return user's selection.
-POSITION specifies which frame to use.
-This is normally a mouse button event or a window or frame.
-If POSITION is t, it means to use the frame the mouse is on.
-The dialog box appears in the middle of the specified frame.
-
-CONTENTS specifies the alternatives to display in the dialog box.
-It is a list of the form (TITLE ITEM1 ITEM2...).
-Each ITEM is a cons cell (STRING . VALUE).
-The return value is VALUE from the chosen item.
-
-An ITEM may also be just a string--that makes a nonselectable item.
-An ITEM may also be nil--that means to put all preceding items
-on the left of the dialog box and all following items on the right.
-\(By default, approximately half appear on each side.)
-
-If HEADER is non-nil, the frame title for the box is "Information",
-otherwise it is "Question". */)
-  (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
+Lisp_Object
+w32_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
 {
-  FRAME_PTR f = NULL;
-  Lisp_Object window;
 
-  check_w32 ();
-
-  /* Decode the first argument: find the window or frame to use.  */
-  if (EQ (position, Qt)
-      || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
-                               || EQ (XCAR (position), Qtool_bar))))
-    {
-#if 0 /* Using the frame the mouse is on may not be right.  */
-      /* Use the mouse's current position.  */
-      FRAME_PTR new_f = SELECTED_FRAME ();
-      Lisp_Object bar_window;
-      enum scroll_bar_part part;
-      Time time;
-      Lisp_Object x, y;
-
-      (*mouse_position_hook) (&new_f, 1, &bar_window, &part, &x, &y, &time);
-
-      if (new_f != 0)
-	XSETFRAME (window, new_f);
-      else
-	window = selected_window;
-#endif
-      window = selected_window;
-    }
-  else if (CONSP (position))
-    {
-      Lisp_Object tem = XCAR (position);
-      if (CONSP (tem))
-	window = Fcar (XCDR (position));
-      else
-	{
-	  tem = Fcar (XCDR (position));  /* EVENT_START (position) */
-	  window = Fcar (tem);	     /* POSN_WINDOW (tem) */
-	}
-    }
-  else if (WINDOWP (position) || FRAMEP (position))
-    window = position;
-  else
-    window = Qnil;
-
-  /* Decode where to put the menu.  */
-
-  if (FRAMEP (window))
-    f = XFRAME (window);
-  else if (WINDOWP (window))
-    {
-      CHECK_LIVE_WINDOW (window);
-      f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
-    }
-  else
-    /* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
-       but I don't want to make one now.  */
-    CHECK_WINDOW (window);
+  check_window_system (f);
 
 #ifndef HAVE_DIALOGS
 
-  {
-    /* Handle simple Yes/No choices as MessageBox popups.  */
-    if (is_simple_dialog (contents))
-      return simple_dialog_show (f, contents, header);
-    else
-      {
-	/* Display a menu with these alternatives
-	   in the middle of frame F.  */
-	Lisp_Object x, y, frame, newpos;
-	XSETFRAME (frame, f);
-	XSETINT (x, x_pixel_width (f) / 2);
-	XSETINT (y, x_pixel_height (f) / 2);
-	newpos = Fcons (Fcons (x, Fcons (y, Qnil)), Fcons (frame, Qnil));
-	return Fx_popup_menu (newpos,
-			      Fcons (Fcar (contents), Fcons (contents, Qnil)));
-      }
-  }
-#else /* HAVE_DIALOGS */
-  {
-    Lisp_Object title;
-    char *error_name;
-    Lisp_Object selection;
+  /* Handle simple Yes/No choices as MessageBox popups.  */
+  if (is_simple_dialog (contents))
+    return simple_dialog_show (f, contents, header);
+  else
+    return Qunsupported__w32_dialog;
+#else  /* HAVE_DIALOGS */
+    {
+      Lisp_Object title;
+      char *error_name;
+      Lisp_Object selection;
 
-    /* Decode the dialog items from what was specified.  */
-    title = Fcar (contents);
-    CHECK_STRING (title);
+      /* Decode the dialog items from what was specified.  */
+      title = Fcar (contents);
+      CHECK_STRING (title);
 
-    list_of_panes (Fcons (contents, Qnil));
+      list_of_panes (Fcons (contents, Qnil));
 
-    /* Display them in a dialog box.  */
-    block_input ();
-    selection = w32_dialog_show (f, 0, title, header, &error_name);
-    unblock_input ();
+      /* Display them in a dialog box.  */
+      block_input ();
+      selection = w32_dialog_show (f, 0, title, header, &error_name);
+      unblock_input ();
 
-    discard_menu_items ();
-    FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
+      discard_menu_items ();
+      FRAME_DISPLAY_INFO (f)->grabbed = 0;
 
-    if (error_name) error (error_name);
-    return selection;
-  }
+      if (error_name) error (error_name);
+      return selection;
+    }
 #endif /* HAVE_DIALOGS */
 }
 
@@ -252,7 +166,7 @@ otherwise it is "Question". */)
    This way we can safely execute Lisp code.  */
 
 void
-x_activate_menubar (FRAME_PTR f)
+x_activate_menubar (struct frame *f)
 {
   set_frame_menubar (f, 0, 1);
 
@@ -269,7 +183,7 @@ x_activate_menubar (FRAME_PTR f)
    and put the appropriate events into the keyboard buffer.  */
 
 void
-menubar_selection_callback (FRAME_PTR f, void * client_data)
+menubar_selection_callback (struct frame *f, void * client_data)
 {
   Lisp_Object prefix, entry;
   Lisp_Object vector;
@@ -361,7 +275,7 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
    it is set the first time this is called, from initialize_frame_menubar.  */
 
 void
-set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
+set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
 {
   HMENU menubar_widget = f->output_data.w32->menubar_widget;
   Lisp_Object items;
@@ -396,7 +310,7 @@ set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
       if (! menubar_widget)
 	previous_menu_items_used = 0;
 
-      buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->buffer;
+      buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->contents;
       specbind (Qinhibit_quit, Qt);
       /* Don't let the debugger step into this code
 	 because it is not reentrant.  */
@@ -601,7 +515,7 @@ set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
     /* Force the window size to be recomputed so that the frame's text
        area remains the same, if menubar has just been created.  */
     if (old_widget == NULL)
-      x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
+      x_set_window_size (f, 0, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 1);
   }
 
   unblock_input ();
@@ -613,7 +527,7 @@ set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
    is visible.  */
 
 void
-initialize_frame_menubar (FRAME_PTR f)
+initialize_frame_menubar (struct frame *f)
 {
   /* This function is called before the first chance to redisplay
      the frame.  It has to be, so the frame will have the right size.  */
@@ -625,7 +539,7 @@ initialize_frame_menubar (FRAME_PTR f)
    This is used when deleting a frame, and when turning off the menu bar.  */
 
 void
-free_frame_menubar (FRAME_PTR f)
+free_frame_menubar (struct frame *f)
 {
   block_input ();
 
@@ -656,7 +570,7 @@ free_frame_menubar (FRAME_PTR f)
    (We return nil on failure, but the value doesn't actually matter.)  */
 
 Lisp_Object
-w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
+w32_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 	       Lisp_Object title, const char **error)
 {
   int i;
@@ -681,6 +595,8 @@ w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
       *error = "Empty menu";
       return Qnil;
     }
+
+  block_input ();
 
   /* Create a tree of widget_value objects
      representing the panes and their items.  */
@@ -723,7 +639,7 @@ w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	{
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
-	  char *pane_string;
+	  const char *pane_string;
 	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
 	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
 
@@ -883,7 +799,7 @@ w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   /* Clean up extraneous mouse events which might have been generated
      during the call. */
   discard_mouse_events ();
-  FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
+  FRAME_DISPLAY_INFO (f)->grabbed = 0;
 
   /* Free the widget_value objects we used to specify the contents.  */
   free_menubar_widget_value_tree (first_wv);
@@ -940,6 +856,7 @@ w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 			if (!NILP (subprefix_stack[j]))
 			  entry = Fcons (subprefix_stack[j], entry);
 		    }
+		  unblock_input ();
 		  return entry;
 		}
 	      i += MENU_ITEMS_ITEM_LENGTH;
@@ -947,9 +864,13 @@ w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	}
     }
   else if (!for_click)
-    /* Make "Cancel" equivalent to C-g.  */
-    Fsignal (Qquit, Qnil);
+    {
+      unblock_input ();
+      /* Make "Cancel" equivalent to C-g.  */
+      Fsignal (Qquit, Qnil);
+    }
 
+  unblock_input ();
   return Qnil;
 }
 
@@ -983,7 +904,7 @@ static char * button_names [] = {
   "button6", "button7", "button8", "button9", "button10" };
 
 static Lisp_Object
-w32_dialog_show (FRAME_PTR f, int keymaps,
+w32_dialog_show (struct frame *f, int keymaps,
 		 Lisp_Object title, Lisp_Object header,
 		 char **error)
 {
@@ -1123,7 +1044,7 @@ w32_dialog_show (FRAME_PTR f, int keymaps,
   lw_pop_up_all_widgets (dialog_id);
 
   /* Process events that apply to the menu.  */
-  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), dialog_id);
+  popup_get_selection ((XEvent *) 0, FRAME_DISPLAY_INFO (f), dialog_id);
 
   lw_destroy_all_widgets (dialog_id);
 
@@ -1219,7 +1140,7 @@ is_simple_dialog (Lisp_Object contents)
 }
 
 static Lisp_Object
-simple_dialog_show (FRAME_PTR f, Lisp_Object contents, Lisp_Object header)
+simple_dialog_show (struct frame *f, Lisp_Object contents, Lisp_Object header)
 {
   int answer;
   UINT type;
@@ -1234,7 +1155,8 @@ simple_dialog_show (FRAME_PTR f, Lisp_Object contents, Lisp_Object header)
   /* Use Unicode if possible, so any language can be displayed.  */
   if (unicode_message_box)
     {
-      WCHAR *text, *title;
+      WCHAR *text;
+      const WCHAR *title;
       USE_SAFE_ALLOCA;
 
       if (STRINGP (temp))
@@ -1269,7 +1191,7 @@ simple_dialog_show (FRAME_PTR f, Lisp_Object contents, Lisp_Object header)
     }
   else
     {
-      char *text, *title;
+      const char *text, *title;
 
       /* Fall back on ANSI message box, but at least use system
 	 encoding so questions representable by the system codepage
@@ -1690,21 +1612,15 @@ w32_free_menu_strings (HWND hwnd)
   current_popup_menu = NULL;
 }
 
-#endif /* HAVE_MENUS */
-
 /* The following is used by delayed window autoselection.  */
 
 DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
        doc: /* Return t if a menu or popup dialog is active on selected frame.  */)
   (void)
 {
-#ifdef HAVE_MENUS
-  FRAME_PTR f;
+  struct frame *f;
   f = SELECTED_FRAME ();
   return (f->output_data.w32->menubar_active > 0) ? Qt : Qnil;
-#else
-  return Qnil;
-#endif /* HAVE_MENUS */
 }
 
 void
@@ -1715,11 +1631,9 @@ syms_of_w32menu (void)
   current_popup_menu = NULL;
 
   DEFSYM (Qdebug_on_next_call, "debug-on-next-call");
+  DEFSYM (Qunsupported__w32_dialog, "unsupported--w32-dialog");
 
   defsubr (&Smenu_or_popup_active_p);
-#ifdef HAVE_MENUS
-  defsubr (&Sx_popup_dialog);
-#endif
 }
 
 /*

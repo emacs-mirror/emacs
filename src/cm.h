@@ -1,5 +1,5 @@
 /* Cursor motion calculation definitions for GNU Emacs
-   Copyright (C) 1985, 1989, 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1989, 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -47,7 +47,7 @@ struct cm
     char *cm_abs;		/* absolute (cm) */
     const char *cm_habs;	/* horizontal absolute (ch) */
     const char *cm_vabs;	/* vertical absolute (cv) */
-#if 0
+#if false
     const char *cm_ds;		/* "don't send" string (ds) */
 #endif
     const char *cm_multiup;	/* multiple up (UP) */
@@ -57,19 +57,19 @@ struct cm
     int cm_cols;		/* number of cols on screen (co) */
     int cm_rows;		/* number of rows on screen (li) */
     int cm_tabwidth;		/* tab width (it) */
-    unsigned int cm_autowrap:1;	/* autowrap flag (am) */
-    unsigned int cm_magicwrap:1; /* VT-100: cursor stays in last col but
+    bool_bf cm_autowrap : 1;	/* autowrap flag (am) */
+    bool_bf cm_magicwrap : 1;	/* VT-100: cursor stays in last col but
 				    will cm_wrap if next char is
 				    printing (xn) */
-    unsigned int cm_usetabs:1;	/* if set, use tabs */
-    unsigned int cm_losewrap:1;	/* if reach right margin, forget cursor
+    bool_bf cm_usetabs : 1;	/* if set, use tabs */
+    bool_bf cm_losewrap : 1;	/* if reach right margin, forget cursor
 				   location */
-    unsigned int cm_autolf:1;	/* \r performs a \r\n (rn) */
+    bool_bf cm_autolf : 1;	/* \r performs a \r\n (rn) */
 
     /* Parameterized capabilities.  This needs to be a struct since
        the costs are accessed through pointers.  */
 
-#if 0
+#if false
     struct parmcap cc_abs;	/* absolute (cm) */
     struct parmcap cc_habs;	/* horizontal absolute (ch) */
     struct parmcap cc_vabs;	/* vertical absolute (cv) */
@@ -139,7 +139,7 @@ struct cm
 #define MultiDownCost(tty)	(tty)->Wcm->cc_multidown
 #define MultiLeftCost(tty)	(tty)->Wcm->cc_multileft
 #define MultiRightCost(tty)	(tty)->Wcm->cc_multiright
-#endif
+#endif	/* NoCMShortHand */
 
 #define cmat(tty,row,col)	(curY(tty) = (row), curX(tty) = (col))
 #define cmplus(tty,n)					            \

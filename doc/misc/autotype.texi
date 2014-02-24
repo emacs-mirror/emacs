@@ -1,16 +1,17 @@
 \input texinfo
 @c This is an annex of the Emacs manual.
-@c Author: Daniel.Pfeiffer@Informatik.START.dbp.de, fax (+49 69) 7588-2389
+@c Author: Daniel Pfeiffer <Daniel.Pfeiffer@Informatik.START.dbp.de>
 @setfilename ../../info/autotype
 @c @node Autotypist, Picture, Abbrevs, Top
 @c @chapter Features for Automatic Typing
 @settitle Features for Automatic Typing
+@documentencoding UTF-8
 @c  @cindex text
 @c  @cindex selfinserting text
 @c  @cindex autotypist
 
 @copying
-Copyright @copyright{} 1994--1995, 1999, 2001--2013
+Copyright @copyright{} 1994--1995, 1999, 2001--2014
 Free Software Foundation, Inc.
 
 @quotation
@@ -28,8 +29,8 @@ modify this GNU manual.''
 
 @dircategory Emacs misc features
 @direntry
-* Autotype: (autotype).         Convenient features for text that you
-                                  enter frequently in Emacs.
+* Autotype: (autotype).         Convenient features for text that you enter
+                                  frequently in Emacs.
 @end direntry
 
 @titlepage
@@ -301,7 +302,7 @@ of the same name as the command and can thus be overridden from your
   Various characters usually appear in pairs.  When, for example, you insert
 an open parenthesis, no matter whether you are programming or writing prose,
 you will surely enter a closing one later.  By entering both at the same time
-and leaving the cursor inbetween, Emacs can guarantee you that such
+and leaving the cursor in between, Emacs can guarantee you that such
 parentheses are always balanced.  And if you have a non-qwerty keyboard, where
 typing some of the stranger programming language symbols makes you bend your
 fingers backwards, this can be quite relieving too.

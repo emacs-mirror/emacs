@@ -491,7 +491,7 @@
 	members has been made some time ago.  Clean up the various tries to
 	do this in the past.
 
-	erc-macs.el: Removed.  erc-members.el: Removed.
+	* erc-macs.el, erc-members.el: Removed.
 
 2004-08-10  Jorgen Schaefer  <forcer@users.sourceforge.net>
 
@@ -2072,7 +2072,7 @@
 
 See ChangeLog.03 for earlier changes.
 
-	Copyright (C) 2004, 2006-2013 Free Software Foundation, Inc.
+	Copyright (C) 2004, 2006-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

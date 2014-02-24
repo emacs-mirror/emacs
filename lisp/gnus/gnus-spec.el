@@ -1,6 +1,6 @@
 ;;; gnus-spec.el --- format spec functions for Gnus
 
-;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -81,7 +81,6 @@ text properties. This is only needed on XEmacs, as Emacs does this anyway."
 (defvar gnus-tmp-unread-and-unselected)
 (defvar gnus-tmp-news-method)
 (defvar gnus-tmp-news-server)
-(defvar gnus-tmp-article-number)
 (defvar gnus-mouse-face)
 (defvar gnus-mouse-face-prop)
 (defvar gnus-tmp-header)
@@ -418,7 +417,7 @@ characters when given a pad value."
   ;; them will have the balloon-help text property.
   (let ((case-fold-search nil))
     (if (string-match
-	 "\\`\\(.*\\)%[0-9]?[{(«]\\(.*\\)%[0-9]?[»})]\\(.*\n?\\)\\'\\|%[-0-9]*=\\|%[-0-9]*\\*"
+	 "\\`\\(.*\\)%[0-9]?[{(Â«]\\(.*\\)%[0-9]?[Â»})]\\(.*\n?\\)\\'\\|%[-0-9]*=\\|%[-0-9]*\\*"
 	 format)
 	(gnus-parse-complex-format format spec-alist)
       ;; This is a simple format.
@@ -435,13 +434,13 @@ characters when given a pad value."
       (goto-char (point-min))
       (insert "(\"")
       ;; Convert all font specs into font spec lists.
-      (while (re-search-forward "%\\([0-9]+\\)?\\([«»{}()]\\)" nil t)
+      (while (re-search-forward "%\\([0-9]+\\)?\\([Â«Â»{}()]\\)" nil t)
 	(let ((number (if (match-beginning 1)
 			  (match-string 1) "0"))
 	      (delim (aref (match-string 2) 0)))
 	  (if (or (= delim ?\()
 		  (= delim ?\{)
-		  (= delim ?\«))
+		  (= delim 171)) ; Â«
 	      (replace-match (concat "\"("
 				     (cond ((= delim ?\() "mouse")
 					   ((= delim ?\{) "face")
@@ -512,7 +511,8 @@ are supported for %s."
 	  (delete-char -1))
 	 (t
 	  (if (null args)
-	      (error 'wrong-number-of-arguments #'my-format n fstring))
+	      (signal 'wrong-number-of-arguments
+		      (list #'gnus-xmas-format n fstring)))
 	  (let* ((minlen (string-to-number (or (match-string 2) "")))
 		 (arg (car args))
 		 (str (if (stringp arg) arg (format "%s" arg)))
@@ -733,7 +733,7 @@ If PROPS, insert the result."
 (provide 'gnus-spec)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; gnus-spec.el ends here

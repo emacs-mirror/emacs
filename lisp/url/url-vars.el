@@ -1,6 +1,6 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool
 
-;; Copyright (C) 1996-1999, 2001, 2004-2013 Free Software Foundation,
+;; Copyright (C) 1996-1999, 2001, 2004-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
@@ -28,6 +28,8 @@
 (defgroup url nil
   "Uniform Resource Locator tool."
   :version "22.1"
+  :link '(custom-manual "(url) Top")
+  :link '(info-link "(url) Customization")
   :group 'comm)
 
 (defgroup url-file nil
@@ -72,7 +74,7 @@ requests will be honored.  If t, all refresh requests will be honored.
 If non-nil and not t, the user will be asked for each refresh request."
   :type '(choice (const :tag "off" nil)
 		 (const :tag "on" t)
-		 (const :tag "ask" 'ask))
+		 (other :tag "ask" ask))
   :group 'url-hairy)
 
 (defcustom url-automatic-caching nil
@@ -210,8 +212,9 @@ Should be an assoc list of headers/contents.")
 
 (defvar url-request-method nil "The method to use for the next request.")
 
-;; FIXME!!  (RFC 2616 gives examples like `compress, gzip'.)
-(defvar url-mime-encoding-string nil
+(defvar url-mime-encoding-string (and (fboundp 'zlib-available-p)
+				      (zlib-available-p)
+				      "gzip")
   "String to send in the Accept-encoding: field in HTTP requests.")
 
 (defvar mm-mime-mule-charset-alist)

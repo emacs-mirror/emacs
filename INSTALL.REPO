@@ -1,0 +1,98 @@
+Copyright (C) 2002-2014 Free Software Foundation, Inc.
+See the end of the file for license conditions.
+
+
+	     Building and Installing Emacs from the Repository
+
+Building Emacs from the source-code repository requires some tools
+that are not needed when building from a release.  You will need:
+
+autoconf  - at least the version specified near the start of
+  configure.ac (in the AC_PREREQ command).
+automake  - at least the version specified near the start of
+  configure.ac (in the AM_INIT_AUTOMAKE command).
+makeinfo  - not strictly necessary, but highly recommended, so that
+  you can build the manuals.
+
+The `autogen.sh' script can help you figure out if you have the
+necessary tools.
+
+The first time you build, there are a couple of extra steps.
+First, generate the `configure' script and some related files:
+
+  $ ./autogen.sh
+
+(or you can just run `autoreconf -i -I m4').
+
+You can then configure your build (use `./configure --help' to see
+options you can set):
+
+  $ ./configure
+
+If you want later builds to go faster, at the expense of sometimes
+doing the wrong thing if you update the build procedure, you can
+invoke "./configure -C" instead.
+
+Some of the files that are included in the Emacs tarball, such as
+byte-compiled Lisp files, are not stored in the repository.  Therefore, to
+build from the repository you must run "make bootstrap" instead of
+just "make":
+
+  $ make bootstrap
+
+Normally, it is not necessary to use "make bootstrap" after every
+update from the repository.  "make" should work in 90% of the cases and be
+much quicker.
+
+  $ make
+
+(If you want to install the Emacs binary, type "make install" instead
+of "make" in the last command.)
+
+Occasionally the file "lisp/loaddefs.el" (and similar automatically
+generated files, such as esh-groups.el, and *-loaddefs.el in some
+subdirectories of lisp/, e.g. mh-e/ and calendar/) will need to be
+updated to reflect new autoloaded functions.  If you see errors (rather
+than warnings) about undefined lisp functions during compilation, that
+may be the reason.  Finally, sometimes there can be build failures
+related to *loaddefs.el (e.g. "required feature `esh-groups' was not
+provided").  In that case, follow the instructions below.
+
+To update loaddefs.el (and similar files), do:
+
+  $ cd lisp
+  $ make autoloads
+
+If either of the above partial procedures fails, try "make bootstrap".
+If CPU time is not an issue, the most thorough way to rebuild, and
+avoid any spurious problems, is always to use this method.
+
+Users of non-Posix systems (MS-Windows etc.) should run the
+platform-specific configuration scripts (nt/configure.bat, config.bat,
+etc.) before "make bootstrap" or "make"; the rest of the procedure is
+applicable to those systems as well.
+
+Because the repository version of Emacs is a work in progress, it will
+sometimes fail to build.  Please wait a day or so (and check the
+archives of the emacs-buildstatus, emacs-devel, and bug-gnu-emacs
+mailing lists) before reporting such problems.  In most cases, the
+problem is known about and is just waiting for someone to fix it.
+This is especially true for Lisp compilation errors, which are almost
+never platform-specific.
+
+
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.

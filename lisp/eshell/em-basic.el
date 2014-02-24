@@ -1,6 +1,6 @@
-;;; em-basic.el --- basic shell builtin commands
+;;; em-basic.el --- basic shell builtin commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -59,9 +59,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'esh-util))
-
+(require 'esh-util)
 (require 'eshell)
 (require 'esh-opt)
 

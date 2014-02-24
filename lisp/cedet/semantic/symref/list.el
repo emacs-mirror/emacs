@@ -1,6 +1,6 @@
 ;;; semantic/symref/list.el --- Symref Output List UI.
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -48,18 +48,18 @@ they are used in.
 Display the references in `semantic-symref-results-mode'."
   (interactive)
   (semantic-fetch-tags)
-  (let ((ct (semantic-current-tag))
-	(res nil)
-	)
+  (let ((ct (semantic-current-tag)))
     ;; Must have a tag...
     (when (not ct) (error "Place cursor inside tag to be searched for"))
     ;; Check w/ user.
-    (when (not (y-or-n-p (format "Find references for %s? " (semantic-tag-name ct))))
+    (when (not (y-or-n-p (format "Find references for %s? "
+                                 (semantic-tag-name ct))))
       (error "Quit"))
     ;; Gather results and tags
     (message "Gathering References...")
-    (setq res (semantic-symref-find-references-by-name (semantic-tag-name ct)))
-    (semantic-symref-produce-list-on-results res (semantic-tag-name ct))))
+    (let* ((name (semantic-tag-name ct))
+           (res (semantic-symref-find-references-by-name name)))
+      (semantic-symref-produce-list-on-results res name))))
 
 ;;;###autoload
 (defun semantic-symref-symbol (sym)
@@ -72,11 +72,9 @@ Display the references in `semantic-symref-results-mode'."
   (interactive (list (semantic-tag-name (semantic-complete-read-tag-project
 					 "Symrefs for: "))))
   (semantic-fetch-tags)
-  (let ((res nil)
-	)
-    ;; Gather results and tags
-    (message "Gathering References...")
-    (setq res (semantic-symref-find-references-by-name sym))
+  ;; Gather results and tags
+  (message "Gathering References...")
+  (let ((res (semantic-symref-find-references-by-name sym)))
     (semantic-symref-produce-list-on-results res sym)))
 
 ;;;###autoload
@@ -90,27 +88,10 @@ Display the references in`semantic-symref-results-mode'."
   (interactive (list (semantic-tag-name (semantic-complete-read-tag-buffer-deep
 					 "Symrefs for: "))))
   (semantic-fetch-tags)
-  (let ((res nil)
-	)
-    ;; Gather results and tags
-    (message "Gathering References...")
-    (setq res (semantic-symref-find-text sym))
+  (message "Gathering References...")
+  ;; Gather results and tags
+  (let ((res (semantic-symref-find-text sym)))
     (semantic-symref-produce-list-on-results res sym)))
-
-
-(defun semantic-symref-produce-list-on-results (res str)
-  "Produce a symref list mode buffer on the results RES."
-    (when (not res) (error "No references found"))
-    (semantic-symref-result-get-tags res t)
-    (message "Gathering References...done")
-    ;; Build a references buffer.
-    (let ((buff (get-buffer-create
-		 (format "*Symref %s" str)))
-	  )
-      (switch-to-buffer-other-window buff)
-      (set-buffer buff)
-      (semantic-symref-results-mode res))
-    )
 
 ;;; RESULTS MODE
 ;;
@@ -178,36 +159,35 @@ Display the references in`semantic-symref-results-mode'."
 
 (defcustom semantic-symref-auto-expand-results nil
   "Non-nil to expand symref results on buffer creation."
-  :group 'semantic-symref
   :type 'boolean)
 
 (defcustom semantic-symref-results-mode-hook nil
   "Hook run when `semantic-symref-results-mode' starts."
-  :group 'semantic-symref
   :type 'hook)
 
 (defvar semantic-symref-current-results nil
   "The current results in a results mode buffer.")
 
-(defun semantic-symref-results-mode (results)
-  ;; FIXME: Use define-derived-mode.
-  "Major-mode for displaying Semantic Symbol Reference RESULTS.
-RESULTS is an object of class `semantic-symref-results'."
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'semantic-symref-results-mode
-        mode-name "Symref"
-	)
-  (use-local-map semantic-symref-results-mode-map)
-  (set (make-local-variable 'semantic-symref-current-results)
-       results)
-  (semantic-symref-results-dump results)
-  (goto-char (point-min))
+(defun semantic-symref-produce-list-on-results (res str)
+  "Produce a symref list mode buffer on the results RES."
+  (when (not res) (error "No references found"))
+  (semantic-symref-result-get-tags res t)
+  (message "Gathering References...done")
+  ;; Build a references buffer.
+  (let ((buff (get-buffer-create (format "*Symref %s" str))))
+    (switch-to-buffer-other-window buff)
+    (set-buffer buff)
+    (semantic-symref-results-mode)
+    (set (make-local-variable 'semantic-symref-current-results) res)
+    (semantic-symref-results-dump res)
+    (goto-char (point-min))))
+
+(define-derived-mode semantic-symref-results-mode nil "Symref"
+  "Major-mode for displaying Semantic Symbol Reference results."
   (buffer-disable-undo)
+  ;; FIXME: Why bother turning off font-lock?
   (set (make-local-variable 'font-lock-global-modes) nil)
-  (font-lock-mode -1)
-  (run-mode-hooks 'semantic-symref-results-mode-hook)
-  )
+  (font-lock-mode -1))
 
 (defun semantic-symref-hide-buffer ()
   "Hide buffer with semantic-symref results."
@@ -215,9 +195,8 @@ RESULTS is an object of class `semantic-symref-results'."
   (bury-buffer))
 
 (defcustom semantic-symref-results-summary-function 'semantic-format-tag-prototype
-  "*Function to use when creating items in Imenu.
+  "Function to use when creating items in Imenu.
 Some useful functions are found in `semantic-format-tag-functions'."
-  :group 'semantic-symref
   :type semantic-format-tag-custom-list)
 
 (defun semantic-symref-results-dump (results)

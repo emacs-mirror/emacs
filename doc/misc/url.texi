@@ -2,6 +2,8 @@
 @setfilename ../../info/url
 @settitle URL Programmer's Manual
 
+@documentencoding UTF-8
+
 @iftex
 @c @finalout
 @end iftex
@@ -20,7 +22,7 @@
 @copying
 This is the manual for the @code{url} Emacs Lisp library.
 
-Copyright @copyright{} 1993--1999, 2002, 2004--2013 Free Software
+Copyright @copyright{} 1993--1999, 2002, 2004--2014 Free Software
 Foundation, Inc.
 
 @quotation
@@ -138,7 +140,7 @@ Given a parsed URI, this function returns the corresponding URI string.
   The return value of @code{url-generic-parse-url}, and the argument
 expected by @code{url-recreate-url}, is a @dfn{parsed URI}: a CL
 structure whose slots hold the various components of the URI@.
-@xref{top,the CL Manual,,cl,GNU Emacs Common Lisp Emulation}, for
+@xref{Top,the CL Manual,,cl,GNU Emacs Common Lisp Emulation}, for
 details about CL structures.  Most of the other functions in the
 @code{url} library act on parsed URIs.
 
@@ -407,6 +409,13 @@ ignored; any other value means to ask the user on each request.
 
 @node Cookies
 @subsection Cookies
+
+@findex url-cookie-delete
+@defun url-cookie-list
+This command creates a @file{*url cookies*} buffer listing the current
+cookies, if there are any.  You can remove a cookie using the
+@kbd{C-k} (@code{url-cookie-delete}) command.
+@end defun
 
 @defopt url-cookie-file
 The file in which cookies are stored, defaulting to @file{cookies} in

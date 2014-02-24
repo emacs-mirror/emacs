@@ -1,6 +1,6 @@
 ;;; mml.el --- A package for parsing and validating MML documents
 
-;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -1212,8 +1212,8 @@ If not set, `default-directory' will be used."
 	string
       default)))
 
-(defun mml-minibuffer-read-description ()
-  (let ((description (read-string "One line description: ")))
+(defun mml-minibuffer-read-description (&optional default)
+  (let ((description (read-string "One line description: " default)))
     (when (string-match "\\`[ \t]*\\'" description)
       (setq description nil))
     description))

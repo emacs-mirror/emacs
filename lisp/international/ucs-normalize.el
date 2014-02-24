@@ -1,6 +1,6 @@
 ;;; ucs-normalize.el --- Unicode normalization NFC/NFD/NFKD/NFKC
 
-;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2014 Free Software Foundation, Inc.
 
 ;; Author: Taichi Kawabata <kawabata.taichi@gmail.com>
 ;; Keywords: unicode, normalization
@@ -131,7 +131,7 @@
   This list is taken from
     http://www.unicode.org/Public/UNIDATA/5.2/CompositionExclusions.txt")
 
-  ;; Unicode ranges that decompositions & combinings are defined.
+  ;; Unicode ranges that decompositions & combining characters are defined.
   (defvar check-range nil)
     (setq check-range '((#x00a0 . #x3400) (#xA600 . #xAC00) (#xF900 . #x110ff) (#x1d000 . #x1dfff) (#x1f100 . #x1f2ff) (#x2f800 . #x2faff)))
 

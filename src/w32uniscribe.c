@@ -1,5 +1,5 @@
 /* Font backend for the Microsoft W32 Uniscribe API.
-   Copyright (C) 2008-2013 Free Software Foundation, Inc.
+   Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -69,28 +69,27 @@ memq_no_quit (Lisp_Object elt, Lisp_Object list)
 
 /* Font backend interface implementation.  */
 static Lisp_Object
-uniscribe_list (Lisp_Object frame, Lisp_Object font_spec)
+uniscribe_list (struct frame *f, Lisp_Object font_spec)
 {
-  Lisp_Object fonts = w32font_list_internal (frame, font_spec, 1);
+  Lisp_Object fonts = w32font_list_internal (f, font_spec, 1);
   FONT_ADD_LOG ("uniscribe-list", font_spec, fonts);
   return fonts;
 }
 
 static Lisp_Object
-uniscribe_match (Lisp_Object frame, Lisp_Object font_spec)
+uniscribe_match (struct frame *f, Lisp_Object font_spec)
 {
-  Lisp_Object entity = w32font_match_internal (frame, font_spec, 1);
+  Lisp_Object entity = w32font_match_internal (f, font_spec, 1);
   FONT_ADD_LOG ("uniscribe-match", font_spec, entity);
   return entity;
 }
 
 static Lisp_Object
-uniscribe_list_family (Lisp_Object frame)
+uniscribe_list_family (struct frame *f)
 {
   Lisp_Object list = Qnil;
   LOGFONT font_match_pattern;
   HDC dc;
-  FRAME_PTR f = XFRAME (frame);
 
   memset (&font_match_pattern, 0, sizeof (font_match_pattern));
   /* Limit enumerated fonts to outline fonts to save time.  */
@@ -107,7 +106,7 @@ uniscribe_list_family (Lisp_Object frame)
 }
 
 static Lisp_Object
-uniscribe_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
+uniscribe_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
 {
   Lisp_Object font_object
     = font_make_object (VECSIZE (struct uniscribe_font_info),
@@ -136,7 +135,7 @@ uniscribe_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
 }
 
 static void
-uniscribe_close (FRAME_PTR f, struct font *font)
+uniscribe_close (struct font *font)
 {
   struct uniscribe_font_info *uniscribe_font
     = (struct uniscribe_font_info *) font;
@@ -144,7 +143,7 @@ uniscribe_close (FRAME_PTR f, struct font *font)
   if (uniscribe_font->cache)
     ScriptFreeCache (&(uniscribe_font->cache));
 
-  w32font_close (f, font);
+  w32font_close (font);
 }
 
 /* Return a list describing which scripts/languages FONT supports by
@@ -333,7 +332,7 @@ uniscribe_shape (Lisp_Object lgstring)
 
 		  if (NILP (lglyph))
 		    {
-		      lglyph = Fmake_vector (make_number (LGLYPH_SIZE), Qnil);
+		      lglyph = LGLYPH_NEW ();
 		      LGSTRING_SET_GLYPH (lgstring, lglyph_index, lglyph);
 		    }
 		  /* Copy to a 32-bit data type to shut up the
@@ -600,8 +599,8 @@ uniscribe_encode_char (struct font *font, int c)
                        int x, int y, int with_background);
 
    Unused:
-   int uniscribe_prepare_face (FRAME_PTR f, struct face *face);
-   void uniscribe_done_face (FRAME_PTR f, struct face *face);
+   int uniscribe_prepare_face (struct frame *f, struct face *face);
+   void uniscribe_done_face (struct frame *f, struct face *face);
    int uniscribe_get_bitmap (struct font *font, unsigned code,
                              struct font_bitmap *bitmap, int bits_per_pixel);
    void uniscribe_free_bitmap (struct font *font, struct font_bitmap *bitmap);
@@ -609,8 +608,8 @@ uniscribe_encode_char (struct font *font, int c)
    void uniscribe_free_outline (struct font *font, void *outline);
    int uniscribe_anchor_point (struct font *font, unsigned code,
                                int index, int *x, int *y);
-   int uniscribe_start_for_frame (FRAME_PTR f);
-   int uniscribe_end_for_frame (FRAME_PTR f);
+   int uniscribe_start_for_frame (struct frame *f);
+   int uniscribe_end_for_frame (struct frame *f);
 
 */
 
@@ -965,7 +964,7 @@ font_table_error:
 
 struct font_driver uniscribe_font_driver =
   {
-    0, /* Quniscribe */
+    LISP_INITIALLY_ZERO, /* Quniscribe */
     0, /* case insensitive */
     w32font_get_cache,
     uniscribe_list,

@@ -3201,7 +3201,7 @@
 	* syntax.c (update_syntax_table): Properly update `position'
 	field of used intervals.
 
-	* interval.c (update_interval): Properly update `position'
+	* intervals.c (update_interval): Properly update `position'
 	field of used intervals.
 
 1998-02-28  Richard Stallman  <rms@psilocin.gnu.org>
@@ -8530,7 +8530,7 @@
 	* data.c (Faref, Faset): Adjusted for the new structure of
 	Lisp_Char_Table.
 
-	* disptab.c (disp_char_vector): Extern it.
+	* disptab.h (disp_char_vector): Extern it.
 	(DISP_CHAR_VECTOR): Handle multibyte characters.
 
 	* fns.c (copy_sub_char_table): New function.
@@ -11091,7 +11091,7 @@ See ChangeLog.6 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1997-1998, 2001-2013 Free Software Foundation, Inc.
+  Copyright (C) 1997-1998, 2001-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

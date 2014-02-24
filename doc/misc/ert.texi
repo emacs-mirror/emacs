@@ -2,15 +2,16 @@
 @c %**start of header
 @setfilename ../../info/ert
 @settitle Emacs Lisp Regression Testing
+@documentencoding UTF-8
 @c %**end of header
 
 @dircategory Emacs misc features
 @direntry
-* ERT: (ert).        Emacs Lisp regression testing tool.
+* ERT: (ert).                   Emacs Lisp regression testing tool.
 @end direntry
 
 @copying
-Copyright @copyright{} 2008, 2010--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2008, 2010--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -25,8 +26,20 @@ modify this GNU manual.''
 @end quotation
 @end copying
 
+@titlepage
+@title Emacs Lisp Regression Testing
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
 @node Top
 @top ERT: Emacs Lisp Regression Testing
+
+@insertcopying
 
 ERT is a tool for automated testing in Emacs Lisp.  Its main features
 are facilities for defining tests, running them and reporting the
@@ -85,6 +98,7 @@ Appendix
 
 @end detailmenu
 @end menu
+@end ifnottex
 
 @node Introduction
 @chapter Introduction
@@ -183,9 +197,10 @@ tests run.  It looks like this:
 
 @example
 Selector: t
-Passed: 31
-Failed: 2 (2 unexpected)
-Total:  33/33
+Passed:  31
+Skipped: 0
+Failed:  2 (2 unexpected)
+Total:   33/33
 
 Started at:   2008-09-11 08:39:25-0700
 Finished.
@@ -453,6 +468,19 @@ versions, specific architectures, etc.:
 
 @node Tests and Their Environment
 @section Tests and Their Environment
+
+Sometimes, it doesn't make sense to run a test due to missing
+preconditions.  A required Emacs feature might not be compiled in, the
+function to be tested could call an external binary which might not be
+available on the test machine, you name it.  In this case, the macro
+@code{skip-unless} could be used to skip the test:
+
+@lisp
+(ert-deftest test-dbus ()
+  "A test that checks D-BUS functionality."
+  (skip-unless (featurep 'dbusbind))
+  ...)
+@end lisp
 
 The outcome of running a test should not depend on the current state
 of the environment, and each test should leave its environment in the

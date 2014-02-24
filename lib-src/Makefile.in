@@ -1,5 +1,6 @@
-# Makefile for lib-src subdirectory in GNU Emacs.
-# Copyright (C) 1985, 1987-1988, 1993-1994, 2001-2013 Free Software
+### @configure_input@
+
+# Copyright (C) 1985, 1987-1988, 1993-1994, 2001-2014 Free Software
 # Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -17,10 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-
-# Avoid trouble on systems where the `SHELL' variable might be
-# inherited from the environment.
-SHELL = /bin/sh
+SHELL = @SHELL@
 
 # Following ../lisp/Makefile.in.
 EMACS = ../src/emacs
@@ -39,6 +37,7 @@ C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
 PROFILING_CFLAGS = @PROFILING_CFLAGS@
 WARN_CFLAGS = @WARN_CFLAGS@
 WERROR_CFLAGS = @WERROR_CFLAGS@
+UPDATE_MANIFEST = @UPDATE_MANIFEST@
 
 # Program name transformation.
 TRANSFORM = @program_transform_name@
@@ -85,6 +84,8 @@ VPATH=@srcdir@
 
 # The top-level source directory, also set by configure.
 top_srcdir=@top_srcdir@
+# MinGW CPPFLAGS may use this.
+abs_top_srcdir=@abs_top_srcdir@
 
 # ==================== Emacs-specific directories ====================
 
@@ -113,8 +114,11 @@ MKDIR_P = @MKDIR_P@
 
 # ========================== Lists of Files ===========================
 
+# emacsclientw.exe for MinGW, empty otherwise
+CLIENTW = @CLIENTW@
+
 # Things that a user might actually run, which should be installed in bindir.
-INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} \
+INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} $(CLIENTW) \
                ebrowse${EXEEXT}
 
 INSTALLABLE_SCRIPTS = grep-changelog
@@ -128,7 +132,7 @@ DONT_INSTALL= test-distrib${EXEEXT} make-docfile${EXEEXT}
 
 # Like UTILITIES, but they're not system-dependent, and should not be
 #  deleted by the distclean target.
-SCRIPTS= rcs2log
+SCRIPTS= rcs2log $(UPDATE_MANIFEST)
 
 # All files that are created by the linker, i.e., whose names end in ${EXEEXT}.
 EXE_FILES = ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}
@@ -143,17 +147,17 @@ MOVE_FLAGS=
 ## Empty if either MAIL_USE_FLOCK or MAIL_USE_LOCKF, else need-blessmail.
 BLESSMAIL_TARGET=@BLESSMAIL_TARGET@
 
-## -lkrb if HAVE_LIBKRB or -lkrb4 if HAVE_LIBKRB4
+## -lkrb or -lkrb4 if needed
 KRB4LIB=@KRB4LIB@
-## -ldes if HAVE_LIBDES or -ldes425 if HAVE_LIBDES425
+## -ldes or -ldes425 if needed
 DESLIB=@DESLIB@
-## -lkrb5 if HAVE_LIBKRB5
+## -lkrb5 if needed
 KRB5LIB=@KRB5LIB@
-## -lk5crypto if HAVE_LIBK5CRYPTO or -lcrypto if HAVE_LIBCRYPTO
+## -lk5crypto or -lcrypto if needed
 CRYPTOLIB=@CRYPTOLIB@
-## -lcom_err if HAVE_LIBCOM_ERR
+## -lcom_err if needed
 COM_ERRLIB=@COM_ERRLIB@
-## -lhesiod if HAVE_LIBHESIOD
+## -lhesiod if needed
 LIBHESIOD=@LIBHESIOD@
 ## -lresolv if HAVE_LIBRESOLV
 LIBRESOLV=@LIBRESOLV@
@@ -161,10 +165,23 @@ LIBRESOLV=@LIBRESOLV@
 LIBS_MAIL=@LIBS_MAIL@
 ## empty or -lrt or -lposix4 if HAVE_CLOCK_GETTIME
 LIB_CLOCK_GETTIME = @LIB_CLOCK_GETTIME@
+## empty or -lrt or -lposix4 if HAVE_FDATASYNC
+LIB_FDATASYNC = @LIB_FDATASYNC@
+## empty or -lwsock2 for MinGW
+LIB_WSOCK32=@LIB_WSOCK32@
 
 ## Extra libraries to use when linking movemail.
 LIBS_MOVE = $(LIBS_MAIL) $(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) \
-            $(COM_ERRLIB) $(LIBHESIOD) $(LIBRESOLV)
+            $(COM_ERRLIB) $(LIBHESIOD) $(LIBRESOLV) $(LIB_WSOCK32)
+
+## Extra libraries when linking emacsclient
+## (empty or -lcomctl32 for MinGW)
+LIBS_ECLIENT = @LIBS_ECLIENT@
+
+## Extra object files for linking for MinGW
+NTLIB = @NTLIB@
+CLIENTRES = @CLIENTRES@
+WINDRES = @WINDRES@
 
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM = @LIBS_SYSTEM@
@@ -199,10 +216,10 @@ blessmail:
 need-blessmail: blessmail
 	@if [ `wc -l <blessmail` != 2 ] ; then \
 	  dir=`sed -n -e 's/echo mail directory = \(.*\)/\1/p' blessmail`; \
-	  echo Assuming $$dir is really the mail spool directory, you should; \
-	  echo run  lib-src/blessmail $(DESTDIR)${archlibdir}/movemail${EXEEXT}; \
-	  echo as root, to give  movemail${EXEEXT}  appropriate permissions.; \
-	  echo Do that after running  make install.; \
+	  echo "Assuming $$dir is really the mail spool directory, you should"; \
+	  echo "run  lib-src/blessmail $(DESTDIR)${archlibdir}/movemail${EXEEXT}"; \
+	  echo "as root, to give  movemail${EXEEXT}  appropriate permissions."; \
+	  echo "Do that after running  make install."; \
 	fi
 
 ## This is the target invoked by the top-level Makefile.
@@ -216,23 +233,24 @@ maybe-blessmail: $(BLESSMAIL_TARGET)
 $(DESTDIR)${archlibdir}: all
 	@echo
 	@echo "Installing utilities run internally by Emacs."
-	umask 022; ${MKDIR_P} $(DESTDIR)${archlibdir}
-	if [ `cd $(DESTDIR)${archlibdir} && /bin/pwd` != `/bin/pwd` ]; then \
+	umask 022; ${MKDIR_P} "$(DESTDIR)${archlibdir}"
+	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && /bin/pwd`; \
+	if [ "$$exp_archlibdir" != "`/bin/pwd`" ]; then \
 	  for file in ${UTILITIES}; do \
-	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file $(DESTDIR)${archlibdir}/$$file ; \
+	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file "$(DESTDIR)${archlibdir}/$$file" ; \
 	  done ; \
         fi
-	umask 022; ${MKDIR_P} $(DESTDIR)${gamedir}; \
-	touch $(DESTDIR)${gamedir}/snake-scores; \
-	touch $(DESTDIR)${gamedir}/tetris-scores
-	-if chown ${gameuser} $(DESTDIR)${archlibdir}/update-game-score && chmod u+s $(DESTDIR)${archlibdir}/update-game-score; then \
-	  chown ${gameuser} $(DESTDIR)${gamedir}; \
-	  chmod u=rwx,g=rwx,o=rx $(DESTDIR)${gamedir}; \
+	umask 022; ${MKDIR_P} "$(DESTDIR)${gamedir}"; \
+	touch "$(DESTDIR)${gamedir}/snake-scores"; \
+	touch "$(DESTDIR)${gamedir}/tetris-scores"
+	-if chown ${gameuser} "$(DESTDIR)${archlibdir}/update-game-score${EXEEXT}" && chmod u+s "$(DESTDIR)${archlibdir}/update-game-score${EXEEXT}"; then \
+	  chown ${gameuser} "$(DESTDIR)${gamedir}"; \
+	  chmod u=rwx,g=rwx,o=rx "$(DESTDIR)${gamedir}"; \
 	fi
-	if [ `cd $(DESTDIR)${archlibdir} && /bin/pwd` \
-             != `cd ${srcdir} && /bin/pwd` ]; then \
+	if [ "`cd \"$(DESTDIR)${archlibdir}\" && /bin/pwd`" \
+             != "`cd ${srcdir} && /bin/pwd`" ]; then \
 	  for file in ${SCRIPTS}; do \
-	    $(INSTALL_SCRIPT) ${srcdir}/$$file $(DESTDIR)${archlibdir}/$$file; \
+	    $(INSTALL_SCRIPT) ${srcdir}/$$file "$(DESTDIR)${archlibdir}/$$file"; \
 	  done ; \
 	fi
 
@@ -242,27 +260,27 @@ $(DESTDIR)${archlibdir}: all
 install: $(DESTDIR)${archlibdir}
 	@echo
 	@echo "Installing utilities for users to run."
-	umask 022; ${MKDIR_P} $(DESTDIR)${bindir}
+	umask 022; ${MKDIR_P} "$(DESTDIR)${bindir}"
 	for file in ${INSTALLABLES} ; do \
-	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} $(DESTDIR)${bindir}/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
+	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} "$(DESTDIR)${bindir}"/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
 	done
 	for file in ${INSTALLABLE_SCRIPTS} ; do \
-	  $(INSTALL_SCRIPT) ${srcdir}/$${file} $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'`  ; \
+	  $(INSTALL_SCRIPT) ${srcdir}/$${file} "$(DESTDIR)${bindir}"/`echo $${file} | sed '$(TRANSFORM)'`  ; \
 	done
 
 uninstall:
 	for file in ${INSTALLABLES}; do \
-	  rm -f $(DESTDIR)${bindir}/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
+	  rm -f "$(DESTDIR)${bindir}"/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
 	done
 	for file in ${INSTALLABLE_SCRIPTS}; do \
-	  rm -f $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'` ; \
+	  rm -f "$(DESTDIR)${bindir}"/`echo $${file} | sed '$(TRANSFORM)'` ; \
 	done
-	if [ -d $(DESTDIR)${archlibdir} ]; then \
-	  (cd $(DESTDIR)${archlibdir} && rm -f ${UTILITIES} ${SCRIPTS}) \
+	if [ -d "$(DESTDIR)${archlibdir}" ]; then \
+	  (cd "$(DESTDIR)${archlibdir}" && rm -f ${UTILITIES} ${SCRIPTS}) \
 	fi
 
 mostlyclean:
-	-rm -f core *.o
+	-rm -f core *.o *.res
 
 clean: mostlyclean
 	-rm -f ${EXE_FILES}
@@ -290,57 +308,77 @@ TAGS: etags${EXEEXT}
 ## distribute Emacs.  If they were clobbered, all the .elc files were
 ## clobbered too.
 test-distrib${EXEEXT}: ${srcdir}/test-distrib.c
-	$(CC) ${ALL_CFLAGS} -o test-distrib ${srcdir}/test-distrib.c
+	$(CC) ${ALL_CFLAGS} -o test-distrib${EXEEXT} ${srcdir}/test-distrib.c
 	./test-distrib ${srcdir}/testfile
 
 ../lib/libgnu.a: $(config_h)
 	cd ../lib && $(MAKE) libgnu.a
 
 regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h $(config_h)
-	${CC} -c ${CPP_CFLAGS} -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER \
-	  ${srcdir}/../src/regex.c
+	${CC} -c ${CPP_CFLAGS} ${srcdir}/../src/regex.c
 
-etags${EXEEXT}: ${srcdir}/etags.c regex.o $(config_h)
+etags${EXEEXT}: ${srcdir}/etags.c regex.o $(NTLIB) $(config_h)
 	$(CC) ${ALL_CFLAGS} -DEMACS_NAME="\"GNU Emacs\"" \
 	  -DVERSION="\"${version}\"" ${srcdir}/etags.c \
-	  regex.o $(LOADLIBES) -o etags
+	  regex.o $(LOADLIBES) $(NTLIB) -o etags${EXEEXT}
 
-ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ${srcdir}/../lib/min-max.h $(config_h)
+ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ${srcdir}/../lib/min-max.h $(NTLIB) \
+                   $(config_h)
 	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" \
-	  ${srcdir}/ebrowse.c $(LOADLIBES) -o ebrowse
+	  ${srcdir}/ebrowse.c $(LOADLIBES) $(NTLIB) -o ebrowse${EXEEXT}
 
 ## We depend on etags to assure that parallel makes do not write two
 ## etags.o files on top of each other.
 ctags${EXEEXT}: etags${EXEEXT}
 	$(CC) ${ALL_CFLAGS} -DCTAGS -DEMACS_NAME="\"GNU Emacs\"" \
 	  -DVERSION="\"${version}\"" ${srcdir}/etags.c \
-	  regex.o $(LOADLIBES) -o ctags
+	  regex.o $(LOADLIBES) $(NTLIB) -o ctags${EXEEXT}
 
-profile${EXEEXT}: ${srcdir}/profile.c $(config_h)
+profile${EXEEXT}: ${srcdir}/profile.c $(NTLIB) $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/profile.c \
-	  $(LOADLIBES) $(LIB_CLOCK_GETTIME) -o profile
+	  $(LOADLIBES) $(NTLIB) $(LIB_CLOCK_GETTIME) -o profile${EXEEXT}
 
-make-docfile${EXEEXT}: ${srcdir}/make-docfile.c $(config_h)
-	$(CC) ${ALL_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) \
-	  -o make-docfile
+make-docfile${EXEEXT}: ${srcdir}/make-docfile.c $(NTLIB) $(config_h)
+	$(CC) ${ALL_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) $(NTLIB) \
+	  -o make-docfile${EXEEXT}
 
-movemail${EXEEXT}: ${srcdir}/movemail.c pop.o $(config_h)
+movemail${EXEEXT}: ${srcdir}/movemail.c pop.o $(NTLIB) $(config_h)
 	$(CC) ${ALL_CFLAGS} ${MOVE_FLAGS} ${srcdir}/movemail.c pop.o \
-	  $(LOADLIBES) $(LIBS_MOVE) -o movemail
+	  $(LOADLIBES) $(NTLIB) $(LIBS_MOVE) -o movemail${EXEEXT}
 
-pop.o: ${srcdir}/pop.c ${srcdir}/../lib/min-max.h $(config_h)
+pop.o: ${srcdir}/pop.c ${srcdir}/pop.h ${srcdir}/../lib/min-max.h $(config_h)
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/pop.c
 
-emacsclient${EXEEXT}: ${srcdir}/emacsclient.c $(config_h)
+emacsclient${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c \
-	   -DVERSION="\"${version}\"" \
-	   $(LOADLIBES) -o emacsclient
+	   -DVERSION="\"${version}\"" $(NTLIB) $(LOADLIBES) $(LIB_FDATASYNC) \
+	   $(LIB_WSOCK32) $(LIBS_ECLIENT) -o emacsclient${EXEEXT}
 
-hexl${EXEEXT}: ${srcdir}/hexl.c $(config_h)
-	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
+emacsclientw${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(CLIENTRES) $(config_h)
+	$(CC) ${ALL_CFLAGS} $(CLIENTRES) -mwindows ${srcdir}/emacsclient.c \
+	   -DVERSION="\"${version}\"" $(LOADLIBES) $(LIB_FDATASYNC) \
+	   $(LIB_WSOCK32) $(LIBS_ECLIENT) -o emacsclientw${EXEEXT}
 
-update-game-score${EXEEXT}: ${srcdir}/update-game-score.c $(config_h)
+NTINC = ${srcdir}/../nt/inc
+NTDEPS = $(NTINC)/ms-w32.h $(NTINC)/sys/stat.h $(NTINC)/inttypes.h \
+ $(NTINC)/stdint.h $(NTINC)/pwd.h $(NTINC)/sys/time.h $(NTINC)/stdbool.h \
+ $(NTINC)/sys/wait.h $(NTINC)/unistd.h $(NTINC)/sys/file.h $(NTINC)/netdb.h
+
+# The dependency on $(NTDEPS) is a trick intended to cause recompile of
+# programs on MinGW whenever some private header in nt/inc is modified.
+ntlib.o: ${srcdir}/ntlib.c ${srcdir}/ntlib.h $(NTDEPS)
+	$(CC) -c ${CPP_CFLAGS} ${srcdir}/ntlib.c
+
+hexl${EXEEXT}: ${srcdir}/hexl.c $(NTLIB) $(config_h)
+	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl${EXEEXT}
+
+update-game-score${EXEEXT}: ${srcdir}/update-game-score.c $(NTLIB) $(config_h)
 	$(CC) ${ALL_CFLAGS} -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\"" \
-	  ${srcdir}/update-game-score.c $(LOADLIBES) -o update-game-score
+	  ${srcdir}/update-game-score.c $(LOADLIBES) $(NTLIB) \
+	  -o update-game-score${EXEEXT}
+
+emacsclient.res: $(NTINC)/../emacsclient.rc
+	$(WINDRES) -O coff --include-dir=$(NTINC)/.. -o emacsclient.res \
+	  $(NTINC)/../emacsclient.rc
 
 ## Makefile ends here.

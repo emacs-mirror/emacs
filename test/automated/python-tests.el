@@ -1,6 +1,6 @@
 ;;; python-tests.el --- Test suite for python.el
 
-;; Copyright (C) 2013 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2014 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -21,6 +21,7 @@
 
 ;;; Code:
 
+(require 'ert)
 (require 'python)
 
 (defmacro python-tests-with-temp-buffer (contents &rest body)
@@ -39,7 +40,8 @@ always located at the beginning of buffer."
 BODY is code to be executed within the temp buffer.  Point is
 always located at the beginning of buffer."
   (declare (indent 1) (debug t))
-  `(let* ((temp-file (concat (make-temp-file "python-tests") ".py"))
+  ;; temp-file never actually used for anything?
+  `(let* ((temp-file (make-temp-file "python-tests" nil ".py"))
           (buffer (find-file-noselect temp-file)))
      (unwind-protect
          (with-current-buffer buffer
@@ -47,7 +49,8 @@ always located at the beginning of buffer."
            (insert ,contents)
            (goto-char (point-min))
            ,@body)
-       (and buffer (kill-buffer buffer)))))
+       (and buffer (kill-buffer buffer))
+       (delete-file temp-file))))
 
 (defun python-tests-look-at (string &optional num restore-point)
   "Move point at beginning of STRING in the current buffer.
@@ -195,6 +198,83 @@ foo = long_function_name(
    (python-tests-look-at "var_three, var_four)")
    (should (eq (car (python-indent-context)) 'inside-paren))
    (should (= (python-indent-calculate-indentation) 4))))
+
+(ert-deftest python-indent-after-comment-1 ()
+  "The most simple after-comment case that shouldn't fail."
+  (python-tests-with-temp-buffer
+   "# Contents will be modified to correct indentation
+class Blag(object):
+    def _on_child_complete(self, child_future):
+        if self.in_terminal_state():
+            pass
+        # We only complete when all our async children have entered a
+    # terminal state. At that point, if any child failed, we fail
+# with the exception with which the first child failed.
+"
+   (python-tests-look-at "# We only complete")
+   (should (eq (car (python-indent-context)) 'after-line))
+   (should (= (python-indent-calculate-indentation) 8))
+   (python-tests-look-at "# terminal state")
+   (should (eq (car (python-indent-context)) 'after-comment))
+   (should (= (python-indent-calculate-indentation) 8))
+   (python-tests-look-at "# with the exception")
+   (should (eq (car (python-indent-context)) 'after-comment))
+   ;; This one indents relative to previous block, even given the fact
+   ;; that it was under-indented.
+   (should (= (python-indent-calculate-indentation) 4))
+   (python-tests-look-at "# terminal state" -1)
+   ;; It doesn't hurt to check again.
+   (should (eq (car (python-indent-context)) 'after-comment))
+   (python-indent-line)
+   (should (= (current-indentation) 8))
+   (python-tests-look-at "# with the exception")
+   (should (eq (car (python-indent-context)) 'after-comment))
+   ;; Now everything should be lined up.
+   (should (= (python-indent-calculate-indentation) 8))))
+
+(ert-deftest python-indent-after-comment-2 ()
+  "Test after-comment in weird cases."
+  (python-tests-with-temp-buffer
+   "# Contents will be modified to correct indentation
+def func(arg):
+    # I don't do much
+    return arg
+    # This comment is badly indented just because.
+    # But we won't mess with the user in this line.
+
+now_we_do_mess_cause_this_is_not_a_comment = 1
+
+# yeah, that.
+"
+   (python-tests-look-at "# I don't do much")
+   (should (eq (car (python-indent-context)) 'after-beginning-of-block))
+   (should (= (python-indent-calculate-indentation) 4))
+   (python-tests-look-at "return arg")
+   ;; Comment here just gets ignored, this line is not a comment so
+   ;; the rules won't apply here.
+   (should (eq (car (python-indent-context)) 'after-beginning-of-block))
+   (should (= (python-indent-calculate-indentation) 4))
+   (python-tests-look-at "# This comment is badly")
+   (should (eq (car (python-indent-context)) 'after-line))
+   ;; The return keyword moves indentation backwards 4 spaces, but
+   ;; let's assume this comment was placed there because the user
+   ;; wanted to (manually adding spaces or whatever).
+   (should (= (python-indent-calculate-indentation) 0))
+   (python-tests-look-at "# but we won't mess")
+   (should (eq (car (python-indent-context)) 'after-comment))
+   (should (= (python-indent-calculate-indentation) 4))
+   ;; Behave the same for blank lines: potentially a comment.
+   (forward-line 1)
+   (should (eq (car (python-indent-context)) 'after-comment))
+   (should (= (python-indent-calculate-indentation) 4))
+   (python-tests-look-at "now_we_do_mess")
+   ;; Here is where comment indentation starts to get ignored and
+   ;; where the user can't freely indent anymore.
+   (should (eq (car (python-indent-context)) 'after-line))
+   (should (= (python-indent-calculate-indentation) 0))
+   (python-tests-look-at "# yeah, that.")
+   (should (eq (car (python-indent-context)) 'after-line))
+   (should (= (python-indent-calculate-indentation) 0))))
 
 (ert-deftest python-indent-inside-paren-1 ()
   "The most simple inside-paren case that shouldn't fail."
@@ -378,6 +458,28 @@ def foo(a, b, c):
    (should (eq (car (python-indent-context)) 'after-beginning-of-block))
    (should (= (python-indent-calculate-indentation) 12))))
 
+(ert-deftest python-indent-dedenters-2 ()
+  "Check one-liner block special case.."
+  (python-tests-with-temp-buffer
+   "
+cond = True
+if cond:
+
+    if cond: print 'True'
+else: print 'False'
+
+else:
+    return
+"
+   (python-tests-look-at "else: print 'False'")
+   ;; When a block has code after ":" it's just considered a simple
+   ;; line as that's a common thing to happen in one-liners.
+   (should (eq (car (python-indent-context)) 'after-line))
+   (should (= (python-indent-calculate-indentation) 4))
+   (python-tests-look-at "else:")
+   (should (eq (car (python-indent-context)) 'after-line))
+   (should (= (python-indent-calculate-indentation) 0))))
+
 (ert-deftest python-indent-after-backslash-1 ()
   "The most common case."
   (python-tests-with-temp-buffer
@@ -443,6 +545,49 @@ objects = Thing.objects.all() \\\\
    (forward-line 1)
    (should (eq (car (python-indent-context)) 'after-line))
    (should (= (python-indent-calculate-indentation) 0))))
+
+(ert-deftest python-indent-block-enders-1 ()
+  "Test `python-indent-block-enders' value honoring."
+  (python-tests-with-temp-buffer
+   "
+Class foo(object):
+
+    def bar(self):
+        if self.baz:
+            return (1,
+                    2,
+                    3)
+
+        else:
+            pass
+"
+   (python-tests-look-at "3)")
+   (forward-line 1)
+   (should (= (python-indent-calculate-indentation) 8))
+   (python-tests-look-at "pass")
+   (forward-line 1)
+   (should (= (python-indent-calculate-indentation) 8))))
+
+(ert-deftest python-indent-block-enders-2 ()
+  "Test `python-indent-block-enders' value honoring."
+  (python-tests-with-temp-buffer
+   "
+Class foo(object):
+    '''raise lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do
+
+    eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    '''
+    def bar(self):
+        \"return (1, 2, 3).\"
+        if self.baz:
+            return (1,
+                    2,
+                    3)
+"
+   (python-tests-look-at "def")
+   (should (= (python-indent-calculate-indentation) 4))
+   (python-tests-look-at "if")
+   (should (= (python-indent-calculate-indentation) 8))))
 
 
 ;;; Navigation
@@ -652,6 +797,201 @@ def decoratorFunctionWithArguments(arg1, arg2, arg3):
                 (python-tests-look-at "return wrapped_f")
                 (line-beginning-position))))))
 
+(ert-deftest python-nav-backward-defun-1 ()
+  (python-tests-with-temp-buffer
+   "
+class A(object): # A
+
+    def a(self): # a
+        pass
+
+    def b(self): # b
+        pass
+
+    class B(object): # B
+
+        class C(object): # C
+
+            def d(self): # d
+                pass
+
+            # def e(self): # e
+            #     pass
+
+    def c(self): # c
+        pass
+
+    # def d(self): # d
+    #     pass
+"
+   (goto-char (point-max))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "    def c(self): # c" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "            def d(self): # d" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "        class C(object): # C" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "    class B(object): # B" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "    def b(self): # b" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "    def a(self): # a" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "class A(object): # A" -1)))
+   (should (not (python-nav-backward-defun)))))
+
+(ert-deftest python-nav-backward-defun-2 ()
+  (python-tests-with-temp-buffer
+   "
+def decoratorFunctionWithArguments(arg1, arg2, arg3):
+    '''print decorated function call data to stdout.
+
+    Usage:
+
+    @decoratorFunctionWithArguments('arg1', 'arg2')
+    def func(a, b, c=True):
+        pass
+    '''
+
+    def wwrap(f):
+        print 'Inside wwrap()'
+        def wrapped_f(*args):
+            print 'Inside wrapped_f()'
+            print 'Decorator arguments:', arg1, arg2, arg3
+            f(*args)
+            print 'After f(*args)'
+        return wrapped_f
+    return wwrap
+"
+   (goto-char (point-max))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "        def wrapped_f(*args):" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "    def wwrap(f):" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "def decoratorFunctionWithArguments(arg1, arg2, arg3):" -1)))
+   (should (not (python-nav-backward-defun)))))
+
+(ert-deftest python-nav-backward-defun-3 ()
+  (python-tests-with-temp-buffer
+   "
+'''
+    def u(self):
+        pass
+
+    def v(self):
+        pass
+
+    def w(self):
+        pass
+'''
+
+class A(object):
+    pass
+"
+   (goto-char (point-min))
+   (let ((point (python-tests-look-at "class A(object):")))
+     (should (not (python-nav-backward-defun)))
+     (should (= point (point))))))
+
+(ert-deftest python-nav-forward-defun-1 ()
+  (python-tests-with-temp-buffer
+   "
+class A(object): # A
+
+    def a(self): # a
+        pass
+
+    def b(self): # b
+        pass
+
+    class B(object): # B
+
+        class C(object): # C
+
+            def d(self): # d
+                pass
+
+            # def e(self): # e
+            #     pass
+
+    def c(self): # c
+        pass
+
+    # def d(self): # d
+    #     pass
+"
+   (goto-char (point-min))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(object): # A")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(self): # a")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(self): # b")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(object): # B")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(object): # C")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(self): # d")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(self): # c")))
+   (should (not (python-nav-forward-defun)))))
+
+(ert-deftest python-nav-forward-defun-2 ()
+  (python-tests-with-temp-buffer
+   "
+def decoratorFunctionWithArguments(arg1, arg2, arg3):
+    '''print decorated function call data to stdout.
+
+    Usage:
+
+    @decoratorFunctionWithArguments('arg1', 'arg2')
+    def func(a, b, c=True):
+        pass
+    '''
+
+    def wwrap(f):
+        print 'Inside wwrap()'
+        def wrapped_f(*args):
+            print 'Inside wrapped_f()'
+            print 'Decorator arguments:', arg1, arg2, arg3
+            f(*args)
+            print 'After f(*args)'
+        return wrapped_f
+    return wwrap
+"
+   (goto-char (point-min))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(arg1, arg2, arg3):")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(f):")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(*args):")))
+   (should (not (python-nav-forward-defun)))))
+
+(ert-deftest python-nav-forward-defun-3 ()
+  (python-tests-with-temp-buffer
+   "
+class A(object):
+    pass
+
+'''
+    def u(self):
+        pass
+
+    def v(self):
+        pass
+
+    def w(self):
+        pass
+'''
+"
+   (goto-char (point-min))
+   (let ((point (python-tests-look-at "(object):")))
+     (should (not (python-nav-forward-defun)))
+     (should (= point (point))))))
 
 (ert-deftest python-nav-beginning-of-statement-1 ()
   (python-tests-with-temp-buffer
@@ -999,28 +1339,6 @@ if request.user.is_authenticated():
               (python-tests-look-at
                "if request.user.is_authenticated():" -1)))))
 
-(ert-deftest python-nav-lisp-forward-sexp-safe-1 ()
-  (python-tests-with-temp-buffer
-   "
-profile = Profile.objects.create(user=request.user)
-profile.notify()
-"
-   (python-tests-look-at "profile =")
-   (python-nav-lisp-forward-sexp-safe 4)
-   (should (looking-at "(user=request.user)"))
-   (python-tests-look-at "user=request.user")
-   (python-nav-lisp-forward-sexp-safe -1)
-   (should (looking-at "(user=request.user)"))
-   (python-nav-lisp-forward-sexp-safe -4)
-   (should (looking-at "profile ="))
-   (python-tests-look-at "user=request.user")
-   (python-nav-lisp-forward-sexp-safe 3)
-   (should (looking-at ")"))
-   (python-nav-lisp-forward-sexp-safe 1)
-   (should (looking-at "$"))
-   (python-nav-lisp-forward-sexp-safe 1)
-   (should (looking-at ".notify()"))))
-
 (ert-deftest python-nav-forward-sexp-1 ()
   (python-tests-with-temp-buffer
    "
@@ -1137,6 +1455,29 @@ def another_statement():
    (python-nav-forward-sexp -1)
    (should (looking-at "from some_module import some_sub_module"))))
 
+(ert-deftest python-nav-forward-sexp-safe-1 ()
+  (python-tests-with-temp-buffer
+   "
+profile = Profile.objects.create(user=request.user)
+profile.notify()
+"
+   (python-tests-look-at "profile =")
+   (python-nav-forward-sexp-safe 1)
+   (should (looking-at "$"))
+   (beginning-of-line 1)
+   (python-tests-look-at "user=request.user")
+   (python-nav-forward-sexp-safe -1)
+   (should (looking-at "(user=request.user)"))
+   (python-nav-forward-sexp-safe -4)
+   (should (looking-at "profile ="))
+   (python-tests-look-at "user=request.user")
+   (python-nav-forward-sexp-safe 3)
+   (should (looking-at ")"))
+   (python-nav-forward-sexp-safe 1)
+   (should (looking-at "$"))
+   (python-nav-forward-sexp-safe 1)
+   (should (looking-at "$"))))
+
 (ert-deftest python-nav-up-list-1 ()
   (python-tests-with-temp-buffer
    "
@@ -1228,9 +1569,7 @@ def f():
   "Check the command to execute is calculated correctly.
 Using `python-shell-interpreter' and
 `python-shell-interpreter-args'."
-  :expected-result (if (executable-find python-tests-shell-interpreter)
-                       :passed
-                     :failed)
+  (skip-unless (executable-find python-tests-shell-interpreter))
   (let ((python-shell-interpreter (executable-find
                                    python-tests-shell-interpreter))
         (python-shell-interpreter-args "-B"))
@@ -1302,10 +1641,12 @@ Using `python-shell-interpreter' and
 
 (ert-deftest python-shell-make-comint-1 ()
   "Check comint creation for global shell buffer."
-  :expected-result (if (executable-find python-tests-shell-interpreter)
-                       :passed
-                     :failed)
-  (let* ((python-shell-interpreter
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  ;; The interpreter can get killed too quickly to allow it to clean
+  ;; up the tempfiles that the default python-shell-setup-codes create,
+  ;; so it leaves tempfiles behind, which is a minor irritation.
+  (let* ((python-shell-setup-codes nil)
+         (python-shell-interpreter
           (executable-find python-tests-shell-interpreter))
          (proc-name (python-shell-get-process-name nil))
          (shell-buffer
@@ -1324,10 +1665,9 @@ Using `python-shell-interpreter' and
 
 (ert-deftest python-shell-make-comint-2 ()
   "Check comint creation for internal shell buffer."
-  :expected-result (if (executable-find python-tests-shell-interpreter)
-                       :passed
-                     :failed)
-  (let* ((python-shell-interpreter
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (let* ((python-shell-setup-codes nil)
+         (python-shell-interpreter
           (executable-find python-tests-shell-interpreter))
          (proc-name (python-shell-internal-get-process-name))
          (shell-buffer
@@ -1346,12 +1686,11 @@ Using `python-shell-interpreter' and
 
 (ert-deftest python-shell-get-process-1 ()
   "Check dedicated shell process preference over global."
-  :expected-result (if (executable-find python-tests-shell-interpreter)
-                       :passed
-                     :failed)
+  (skip-unless (executable-find python-tests-shell-interpreter))
   (python-tests-with-temp-file
       ""
-    (let* ((python-shell-interpreter
+    (let* ((python-shell-setup-codes nil)
+           (python-shell-interpreter
             (executable-find python-tests-shell-interpreter))
            (global-proc-name (python-shell-get-process-name nil))
            (dedicated-proc-name (python-shell-get-process-name t))
@@ -1407,9 +1746,7 @@ Using `python-shell-interpreter' and
 
 (ert-deftest python-shell-internal-get-or-create-process-1 ()
   "Check internal shell process creation fallback."
-  :expected-result (if (executable-find python-tests-shell-interpreter)
-                       :passed
-                     :failed)
+  (skip-unless (executable-find python-tests-shell-interpreter))
   (python-tests-with-temp-file
       ""
     (should (not (process-live-p (python-shell-internal-get-process-name))))
@@ -1456,66 +1793,232 @@ Using `python-shell-interpreter' and
 
 
 ;;; Imenu
-(ert-deftest python-imenu-prev-index-position-1 ()
-  (require 'imenu)
+
+(ert-deftest python-imenu-create-index-1 ()
   (python-tests-with-temp-buffer
    "
-def decoratorFunctionWithArguments(arg1, arg2, arg3):
+class Foo(models.Model):
+    pass
+
+
+class Bar(models.Model):
+    pass
+
+
+def decorator(arg1, arg2, arg3):
     '''print decorated function call data to stdout.
 
     Usage:
 
-    @decoratorFunctionWithArguments('arg1', 'arg2')
+    @decorator('arg1', 'arg2')
     def func(a, b, c=True):
         pass
     '''
 
-    def wwrap(f):
-        print 'Inside wwrap()'
+    def wrap(f):
+        print ('wrap')
         def wrapped_f(*args):
-            print 'Inside wrapped_f()'
-            print 'Decorator arguments:', arg1, arg2, arg3
+            print ('wrapped_f')
+            print ('Decorator arguments:', arg1, arg2, arg3)
             f(*args)
-            print 'After f(*args)'
+            print ('called f(*args)')
         return wrapped_f
-    return wwrap
+    return wrap
 
-def test(): # Some comment
-    'This is a test function'
-    print 'test'
 
-class C(object):
+class Baz(object):
 
-    def m(self):
-        self.c()
+    def a(self):
+        pass
 
-        def b():
+    def b(self):
+        pass
+
+    class Frob(object):
+
+        def c(self):
+            pass
+"
+   (goto-char (point-max))
+   (should (equal
+            (list
+             (cons "Foo (class)" (copy-marker 2))
+             (cons "Bar (class)" (copy-marker 38))
+             (list
+              "decorator (def)"
+              (cons "*function definition*" (copy-marker 74))
+              (list
+               "wrap (def)"
+               (cons "*function definition*" (copy-marker 254))
+               (cons "wrapped_f (def)" (copy-marker 294))))
+             (list
+              "Baz (class)"
+              (cons "*class definition*" (copy-marker 519))
+              (cons "a (def)" (copy-marker 539))
+              (cons "b (def)" (copy-marker 570))
+              (list
+               "Frob (class)"
+               (cons "*class definition*" (copy-marker 601))
+               (cons "c (def)" (copy-marker 626)))))
+            (python-imenu-create-index)))))
+
+(ert-deftest python-imenu-create-index-2 ()
+  (python-tests-with-temp-buffer
+   "
+class Foo(object):
+    def foo(self):
+        def foo1():
             pass
 
-        def a():
-            pass
-
-    def c(self):
+    def foobar(self):
         pass
 "
-   (let ((expected
-          '(("*Rescan*" . -99)
-            ("decoratorFunctionWithArguments" . 2)
-            ("decoratorFunctionWithArguments.wwrap" . 224)
-            ("decoratorFunctionWithArguments.wwrap.wrapped_f" . 273)
-            ("test" . 500)
-            ("C" . 575)
-            ("C.m" . 593)
-            ("C.m.b" . 628)
-            ("C.m.a" . 663)
-            ("C.c" . 698))))
-     (mapc
-      (lambda (elt)
-        (should (= (cdr (assoc-string (car elt) expected))
-                   (if (markerp (cdr elt))
-                       (marker-position (cdr elt))
-                     (cdr elt)))))
-      (imenu--make-index-alist)))))
+   (goto-char (point-max))
+   (should (equal
+            (list
+             (list
+              "Foo (class)"
+              (cons "*class definition*" (copy-marker 2))
+              (list
+               "foo (def)"
+               (cons "*function definition*" (copy-marker 21))
+               (cons "foo1 (def)" (copy-marker 40)))
+              (cons "foobar (def)"  (copy-marker 78))))
+            (python-imenu-create-index)))))
+
+(ert-deftest python-imenu-create-index-3 ()
+  (python-tests-with-temp-buffer
+   "
+class Foo(object):
+    def foo(self):
+        def foo1():
+            pass
+        def foo2():
+            pass
+"
+   (goto-char (point-max))
+   (should (equal
+            (list
+             (list
+              "Foo (class)"
+              (cons "*class definition*" (copy-marker 2))
+              (list
+               "foo (def)"
+               (cons "*function definition*" (copy-marker 21))
+               (cons "foo1 (def)" (copy-marker 40))
+               (cons "foo2 (def)" (copy-marker 77)))))
+            (python-imenu-create-index)))))
+
+(ert-deftest python-imenu-create-index-4 ()
+  (python-tests-with-temp-buffer
+   "
+class Foo(object):
+    class Bar(object):
+        def __init__(self):
+            pass
+
+        def __str__(self):
+            pass
+
+    def __init__(self):
+            pass
+"
+   (goto-char (point-max))
+   (should (equal
+            (list
+             (list
+              "Foo (class)"
+              (cons "*class definition*" (copy-marker 2))
+              (list
+               "Bar (class)"
+               (cons "*class definition*" (copy-marker 21))
+               (cons "__init__ (def)" (copy-marker 44))
+               (cons "__str__ (def)" (copy-marker 90)))
+              (cons "__init__ (def)" (copy-marker 135))))
+            (python-imenu-create-index)))))
+
+(ert-deftest python-imenu-create-flat-index-1 ()
+  (python-tests-with-temp-buffer
+   "
+class Foo(models.Model):
+    pass
+
+
+class Bar(models.Model):
+    pass
+
+
+def decorator(arg1, arg2, arg3):
+    '''print decorated function call data to stdout.
+
+    Usage:
+
+    @decorator('arg1', 'arg2')
+    def func(a, b, c=True):
+        pass
+    '''
+
+    def wrap(f):
+        print ('wrap')
+        def wrapped_f(*args):
+            print ('wrapped_f')
+            print ('Decorator arguments:', arg1, arg2, arg3)
+            f(*args)
+            print ('called f(*args)')
+        return wrapped_f
+    return wrap
+
+
+class Baz(object):
+
+    def a(self):
+        pass
+
+    def b(self):
+        pass
+
+    class Frob(object):
+
+        def c(self):
+            pass
+"
+   (goto-char (point-max))
+   (should (equal
+            (list (cons "Foo" (copy-marker 2))
+                  (cons "Bar" (copy-marker 38))
+                  (cons "decorator" (copy-marker 74))
+                  (cons "decorator.wrap" (copy-marker 254))
+                  (cons "decorator.wrap.wrapped_f" (copy-marker 294))
+                  (cons "Baz" (copy-marker 519))
+                  (cons "Baz.a" (copy-marker 539))
+                  (cons "Baz.b" (copy-marker 570))
+                  (cons "Baz.Frob" (copy-marker 601))
+                  (cons "Baz.Frob.c" (copy-marker 626)))
+            (python-imenu-create-flat-index)))))
+
+(ert-deftest python-imenu-create-flat-index-2 ()
+  (python-tests-with-temp-buffer
+   "
+class Foo(object):
+    class Bar(object):
+        def __init__(self):
+            pass
+
+        def __str__(self):
+            pass
+
+    def __init__(self):
+            pass
+"
+   (goto-char (point-max))
+   (should (equal
+            (list
+             (cons "Foo" (copy-marker 2))
+             (cons "Foo.Bar" (copy-marker 21))
+             (cons "Foo.Bar.__init__" (copy-marker 44))
+             (cons "Foo.Bar.__str__" (copy-marker 90))
+             (cons "Foo.__init__"  (copy-marker 135)))
+            (python-imenu-create-flat-index)))))
 
 
 ;;; Misc helpers
@@ -1546,13 +2049,13 @@ class C(object):
             return []
 
         def b():
-            pass
+            do_b()
 
         def a():
-            pass
+            do_a()
 
     def c(self):
-        pass
+        do_c()
 "
    (forward-line 1)
    (should (string= "C" (python-info-current-defun)))
@@ -1582,7 +2085,7 @@ class C(object):
    (python-tests-look-at "def c(self):")
    (should (string= "C.c" (python-info-current-defun)))
    (should (string= "def C.c" (python-info-current-defun t)))
-   (python-tests-look-at "pass")
+   (python-tests-look-at "do_c()")
    (should (string= "C.c" (python-info-current-defun)))
    (should (string= "def C.c" (python-info-current-defun t)))))
 

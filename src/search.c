@@ -1,6 +1,6 @@
 /* String search routines for GNU Emacs.
 
-Copyright (C) 1985-1987, 1993-1994, 1997-1999, 2001-2013 Free Software
+Copyright (C) 1985-1987, 1993-1994, 1997-1999, 2001-2014 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -22,10 +22,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include "lisp.h"
-#include "syntax.h"
 #include "category.h"
 #include "character.h"
 #include "buffer.h"
+#include "syntax.h"
 #include "charset.h"
 #include "region-cache.h"
 #include "commands.h"
@@ -49,8 +49,8 @@ struct regexp_cache
   Lisp_Object syntax_table;
   struct re_pattern_buffer buf;
   char fastmap[0400];
-  /* Nonzero means regexp was compiled to do full POSIX backtracking.  */
-  char posix;
+  /* True means regexp was compiled to do full POSIX backtracking.  */
+  bool posix;
 };
 
 /* The instances of that struct.  */
@@ -100,7 +100,7 @@ static EMACS_INT boyer_moore (EMACS_INT, unsigned char *, ptrdiff_t,
                               ptrdiff_t, int);
 static EMACS_INT search_buffer (Lisp_Object, ptrdiff_t, ptrdiff_t,
                                 ptrdiff_t, ptrdiff_t, EMACS_INT, int,
-                                Lisp_Object, Lisp_Object, int);
+                                Lisp_Object, Lisp_Object, bool);
 
 static _Noreturn void
 matcher_overflow (void)
@@ -112,13 +112,14 @@ matcher_overflow (void)
    PATTERN is the pattern to compile.
    CP is the place to put the result.
    TRANSLATE is a translation table for ignoring case, or nil for none.
-   POSIX is nonzero if we want full backtracking (POSIX style)
-   for this pattern.  0 means backtrack only enough to get a valid match.
+   POSIX is true if we want full backtracking (POSIX style) for this pattern.
+   False means backtrack only enough to get a valid match.
 
    The behavior also depends on Vsearch_spaces_regexp.  */
 
 static void
-compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern, Lisp_Object translate, int posix)
+compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern,
+		   Lisp_Object translate, bool posix)
 {
   char *val;
   reg_syntax_t old;
@@ -205,12 +206,12 @@ clear_regexp_cache (void)
    values that will result from matching this pattern.
    If it is 0, we should compile the pattern not to record any
    subexpression bounds.
-   POSIX is nonzero if we want full backtracking (POSIX style)
-   for this pattern.  0 means backtrack only enough to get a valid match.  */
+   POSIX is true if we want full backtracking (POSIX style) for this pattern.
+   False means backtrack only enough to get a valid match.  */
 
 struct re_pattern_buffer *
 compile_pattern (Lisp_Object pattern, struct re_registers *regp,
-		 Lisp_Object translate, int posix, bool multibyte)
+		 Lisp_Object translate, bool posix, bool multibyte)
 {
   struct regexp_cache *cp, **cpp;
 
@@ -267,7 +268,7 @@ compile_pattern (Lisp_Object pattern, struct re_registers *regp,
 
 
 static Lisp_Object
-looking_at_1 (Lisp_Object string, int posix)
+looking_at_1 (Lisp_Object string, bool posix)
 {
   Lisp_Object val;
   unsigned char *p1, *p2;
@@ -325,20 +326,20 @@ looking_at_1 (Lisp_Object string, int posix)
   if (i == -2)
     matcher_overflow ();
 
-  val = (0 <= i ? Qt : Qnil);
+  val = (i >= 0 ? Qt : Qnil);
   if (NILP (Vinhibit_changing_match_data) && i >= 0)
+  {
     for (i = 0; i < search_regs.num_regs; i++)
       if (search_regs.start[i] >= 0)
 	{
 	  search_regs.start[i]
 	    = BYTE_TO_CHAR (search_regs.start[i] + BEGV_BYTE);
-	  search_regs.end[i]
-	    = BYTE_TO_CHAR (search_regs.end[i] + BEGV_BYTE);
-	}
-
-  /* Set last_thing_searched only when match data is changed.  */
-  if (NILP (Vinhibit_changing_match_data))
+         search_regs.end[i]
+           = BYTE_TO_CHAR (search_regs.end[i] + BEGV_BYTE);
+       }
+    /* Set last_thing_searched only when match data is changed.  */
     XSETBUFFER (last_thing_searched, current_buffer);
+  }
 
   return val;
 }
@@ -365,7 +366,8 @@ data if you want to preserve them.  */)
 }
 
 static Lisp_Object
-string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start, int posix)
+string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start,
+		bool posix)
 {
   ptrdiff_t val;
   struct re_pattern_buffer *bufp;
@@ -596,32 +598,56 @@ fast_looking_at (Lisp_Object regexp, ptrdiff_t pos, ptrdiff_t pos_byte,
 
 /* The newline cache: remembering which sections of text have no newlines.  */
 
-/* If the user has requested newline caching, make sure it's on.
+/* If the user has requested the long scans caching, make sure it's on.
    Otherwise, make sure it's off.
    This is our cheezy way of associating an action with the change of
    state of a buffer-local variable.  */
-static void
+static struct region_cache *
 newline_cache_on_off (struct buffer *buf)
 {
-  if (NILP (BVAR (buf, cache_long_line_scans)))
+  struct buffer *base_buf = buf;
+  bool indirect_p = false;
+
+  if (buf->base_buffer)
     {
-      /* It should be off.  */
-      if (buf->newline_cache)
-        {
-          free_region_cache (buf->newline_cache);
-          buf->newline_cache = 0;
-        }
+      base_buf = buf->base_buffer;
+      indirect_p = true;
+    }
+
+  /* Don't turn on or off the cache in the base buffer, if the value
+     of cache-long-scans of the base buffer is inconsistent with that.
+     This is because doing so will just make the cache pure overhead,
+     since if we turn it on via indirect buffer, it will be
+     immediately turned off by its base buffer.  */
+  if (NILP (BVAR (buf, cache_long_scans)))
+    {
+      if (!indirect_p
+	  || NILP (BVAR (base_buf, cache_long_scans)))
+	{
+	  /* It should be off.  */
+	  if (base_buf->newline_cache)
+	    {
+	      free_region_cache (base_buf->newline_cache);
+	      base_buf->newline_cache = 0;
+	    }
+	}
+      return NULL;
     }
   else
     {
-      /* It should be on.  */
-      if (buf->newline_cache == 0)
-        buf->newline_cache = new_region_cache ();
+      if (!indirect_p
+	  || !NILP (BVAR (base_buf, cache_long_scans)))
+	{
+	  /* It should be on.  */
+	  if (base_buf->newline_cache == 0)
+	    base_buf->newline_cache = new_region_cache ();
+	}
+      return base_buf->newline_cache;
     }
 }
 
 
-/* Search for COUNT newlines between START and END.
+/* Search for COUNT newlines between START/START_BYTE and END/END_BYTE.
 
    If COUNT is positive, search forwards; END must be >= START.
    If COUNT is negative, search backwards for the -COUNTth instance;
@@ -645,12 +671,13 @@ newline_cache_on_off (struct buffer *buf)
    except when inside redisplay.  */
 
 ptrdiff_t
-find_newline (ptrdiff_t start, ptrdiff_t end, ptrdiff_t count,
-	      ptrdiff_t *shortage, ptrdiff_t *bytepos, bool allow_quit)
+find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
+	      ptrdiff_t end_byte, ptrdiff_t count, ptrdiff_t *shortage,
+	      ptrdiff_t *bytepos, bool allow_quit)
 {
   struct region_cache *newline_cache;
-  ptrdiff_t start_byte = -1, end_byte = -1;
   int direction;
+  struct buffer *cache_buffer;
 
   if (count > 0)
     {
@@ -667,8 +694,11 @@ find_newline (ptrdiff_t start, ptrdiff_t end, ptrdiff_t count,
   if (end_byte == -1)
     end_byte = CHAR_TO_BYTE (end);
 
-  newline_cache_on_off (current_buffer);
-  newline_cache = current_buffer->newline_cache;
+  newline_cache = newline_cache_on_off (current_buffer);
+  if (current_buffer->base_buffer)
+    cache_buffer = current_buffer->base_buffer;
+  else
+    cache_buffer = current_buffer;
 
   if (shortage != 0)
     *shortage = 0;
@@ -692,7 +722,7 @@ find_newline (ptrdiff_t start, ptrdiff_t end, ptrdiff_t count,
             ptrdiff_t next_change;
             immediate_quit = 0;
             while (region_cache_forward
-                   (current_buffer, newline_cache, start, &next_change))
+                   (cache_buffer, newline_cache, start, &next_change))
               start = next_change;
             immediate_quit = allow_quit;
 
@@ -706,7 +736,7 @@ find_newline (ptrdiff_t start, ptrdiff_t end, ptrdiff_t count,
                next_change is the position of the next known region. */
             ceiling_byte = min (CHAR_TO_BYTE (next_change) - 1, ceiling_byte);
           }
-	else
+	else if (start_byte == -1)
 	  start_byte = CHAR_TO_BYTE (start);
 
         /* The dumb loop can only scan text stored in contiguous
@@ -718,42 +748,45 @@ find_newline (ptrdiff_t start, ptrdiff_t end, ptrdiff_t count,
 
         {
           /* The termination address of the dumb loop.  */
-          register unsigned char *ceiling_addr
-	    = BYTE_POS_ADDR (ceiling_byte) + 1;
-          register unsigned char *cursor
-	    = BYTE_POS_ADDR (start_byte);
-          unsigned char *base = cursor;
+	  unsigned char *lim_addr = BYTE_POS_ADDR (ceiling_byte) + 1;
+	  ptrdiff_t lim_byte = ceiling_byte + 1;
 
-          while (cursor < ceiling_addr)
-            {
+	  /* Nonpositive offsets (relative to LIM_ADDR and LIM_BYTE)
+	     of the base, the cursor, and the next line.  */
+	  ptrdiff_t base = start_byte - lim_byte;
+	  ptrdiff_t cursor, next;
+
+	  for (cursor = base; cursor < 0; cursor = next)
+	    {
               /* The dumb loop.  */
-	      unsigned char *nl = memchr (cursor, '\n', ceiling_addr - cursor);
+	      unsigned char *nl = memchr (lim_addr + cursor, '\n', - cursor);
+	      next = nl ? nl - lim_addr : 0;
 
               /* If we're looking for newlines, cache the fact that
-                 the region from start to cursor is free of them. */
+                 this line's region is free of them. */
               if (newline_cache)
 		{
-		  unsigned char *low = cursor;
-		  unsigned char *lim = nl ? nl : ceiling_addr;
-		  know_region_cache (current_buffer, newline_cache,
-				     BYTE_TO_CHAR (low - base + start_byte),
-				     BYTE_TO_CHAR (lim - base + start_byte));
+		  know_region_cache (cache_buffer, newline_cache,
+				     BYTE_TO_CHAR (lim_byte + cursor),
+				     BYTE_TO_CHAR (lim_byte + next));
+		  /* know_region_cache can relocate buffer text.  */
+		  lim_addr = BYTE_POS_ADDR (ceiling_byte) + 1;
 		}
 
               if (! nl)
 		break;
+	      next++;
 
 	      if (--count == 0)
 		{
 		  immediate_quit = 0;
 		  if (bytepos)
-		    *bytepos = nl + 1 - base + start_byte;
-		  return BYTE_TO_CHAR (nl + 1 - base + start_byte);
+		    *bytepos = lim_byte + next;
+		  return BYTE_TO_CHAR (lim_byte + next);
 		}
-	      cursor = nl + 1;
             }
 
-	  start_byte += ceiling_addr - base;
+	  start_byte = lim_byte;
 	  start = BYTE_TO_CHAR (start_byte);
         }
       }
@@ -769,7 +802,7 @@ find_newline (ptrdiff_t start, ptrdiff_t end, ptrdiff_t count,
             ptrdiff_t next_change;
             immediate_quit = 0;
             while (region_cache_backward
-                   (current_buffer, newline_cache, start, &next_change))
+                   (cache_buffer, newline_cache, start, &next_change))
               start = next_change;
             immediate_quit = allow_quit;
 
@@ -783,7 +816,7 @@ find_newline (ptrdiff_t start, ptrdiff_t end, ptrdiff_t count,
                next_change is the position of the next known region. */
             ceiling_byte = max (CHAR_TO_BYTE (next_change), ceiling_byte);
           }
-	else
+	else if (start_byte == -1)
 	  start_byte = CHAR_TO_BYTE (start);
 
         /* Stop scanning before the gap.  */
@@ -792,24 +825,28 @@ find_newline (ptrdiff_t start, ptrdiff_t end, ptrdiff_t count,
 
         {
           /* The termination address of the dumb loop.  */
-          register unsigned char *ceiling_addr = BYTE_POS_ADDR (ceiling_byte);
-          register unsigned char *cursor = BYTE_POS_ADDR (start_byte - 1);
-          unsigned char *base = cursor;
+	  unsigned char *ceiling_addr = BYTE_POS_ADDR (ceiling_byte);
 
-          while (cursor >= ceiling_addr)
+	  /* Offsets (relative to CEILING_ADDR and CEILING_BYTE) of
+	     the base, the cursor, and the previous line.  These
+	     offsets are at least -1.  */
+	  ptrdiff_t base = start_byte - ceiling_byte;
+	  ptrdiff_t cursor, prev;
+
+	  for (cursor = base; 0 < cursor; cursor = prev)
             {
-	      unsigned char *nl = memrchr (ceiling_addr, '\n',
-					   cursor + 1 - ceiling_addr);
+	      unsigned char *nl = memrchr (ceiling_addr, '\n', cursor);
+	      prev = nl ? nl - ceiling_addr : -1;
 
               /* If we're looking for newlines, cache the fact that
-                 the region from after the cursor to start is free of them.  */
+                 this line's region is free of them. */
               if (newline_cache)
 		{
-		  unsigned char *low = nl ? nl : ceiling_addr - 1;
-		  unsigned char *lim = cursor;
-		  know_region_cache (current_buffer, newline_cache,
-				     BYTE_TO_CHAR (low - base + start_byte),
-				     BYTE_TO_CHAR (lim - base + start_byte));
+		  know_region_cache (cache_buffer, newline_cache,
+				     BYTE_TO_CHAR (ceiling_byte + prev + 1),
+				     BYTE_TO_CHAR (ceiling_byte + cursor));
+		  /* know_region_cache can relocate buffer text.  */
+		  ceiling_addr = BYTE_POS_ADDR (ceiling_byte);
 		}
 
               if (! nl)
@@ -819,13 +856,12 @@ find_newline (ptrdiff_t start, ptrdiff_t end, ptrdiff_t count,
 		{
 		  immediate_quit = 0;
 		  if (bytepos)
-		    *bytepos = nl - base + start_byte;
-		  return BYTE_TO_CHAR (nl - base + start_byte);
+		    *bytepos = ceiling_byte + prev + 1;
+		  return BYTE_TO_CHAR (ceiling_byte + prev + 1);
 		}
-	      cursor = nl - 1;
             }
 
-	  start_byte += ceiling_addr - 1 - base;
+	  start_byte = ceiling_byte;
 	  start = BYTE_TO_CHAR (start_byte);
         }
       }
@@ -857,106 +893,41 @@ find_newline (ptrdiff_t start, ptrdiff_t end, ptrdiff_t count,
    If ALLOW_QUIT, set immediate_quit.  That's good to do
    except in special cases.  */
 
-EMACS_INT
+ptrdiff_t
 scan_newline (ptrdiff_t start, ptrdiff_t start_byte,
 	      ptrdiff_t limit, ptrdiff_t limit_byte,
-	      EMACS_INT count, bool allow_quit)
+	      ptrdiff_t count, bool allow_quit)
 {
-  int direction = ((count > 0) ? 1 : -1);
+  ptrdiff_t charpos, bytepos, shortage;
 
-  unsigned char *cursor;
-  unsigned char *base;
-
-  ptrdiff_t ceiling;
-  unsigned char *ceiling_addr;
-
-  bool old_immediate_quit = immediate_quit;
-
-  if (allow_quit)
-    immediate_quit++;
-
-  if (count > 0)
-    {
-      while (start_byte < limit_byte)
-	{
-	  ceiling =  BUFFER_CEILING_OF (start_byte);
-	  ceiling = min (limit_byte - 1, ceiling);
-	  ceiling_addr = BYTE_POS_ADDR (ceiling) + 1;
-	  base = (cursor = BYTE_POS_ADDR (start_byte));
-
-	  do
-	    {
-	      unsigned char *nl = memchr (cursor, '\n', ceiling_addr - cursor);
-	      if (! nl)
-		break;
-	      if (--count == 0)
-		{
-		  immediate_quit = old_immediate_quit;
-		  start_byte += nl - base + 1;
-		  start = BYTE_TO_CHAR (start_byte);
-		  TEMP_SET_PT_BOTH (start, start_byte);
-		  return 0;
-		}
-	      cursor = nl + 1;
-	    }
-	  while (cursor < ceiling_addr);
-
-	  start_byte += ceiling_addr - base;
-	}
-    }
+  charpos = find_newline (start, start_byte, limit, limit_byte,
+			  count, &shortage, &bytepos, allow_quit);
+  if (shortage)
+    TEMP_SET_PT_BOTH (limit, limit_byte);
   else
-    {
-      while (start_byte > limit_byte)
-	{
-	  ceiling = BUFFER_FLOOR_OF (start_byte - 1);
-	  ceiling = max (limit_byte, ceiling);
-	  ceiling_addr = BYTE_POS_ADDR (ceiling);
-	  base = (cursor = BYTE_POS_ADDR (start_byte - 1) + 1);
-	  while (1)
-	    {
-	      unsigned char *nl = memrchr (ceiling_addr, '\n',
-					   cursor - ceiling_addr);
-	      if (! nl)
-		break;
-
-	      if (++count == 0)
-		{
-		  immediate_quit = old_immediate_quit;
-		  /* Return the position AFTER the match we found.  */
-		  start_byte += nl - base + 1;
-		  start = BYTE_TO_CHAR (start_byte);
-		  TEMP_SET_PT_BOTH (start, start_byte);
-		  return 0;
-		}
-
-	      cursor = nl;
-	    }
-	  start_byte += ceiling_addr - base;
-	}
-    }
-
-  TEMP_SET_PT_BOTH (limit, limit_byte);
-  immediate_quit = old_immediate_quit;
-
-  return count * direction;
+    TEMP_SET_PT_BOTH (charpos, bytepos);
+  return shortage;
 }
 
+/* Like find_newline, but doesn't allow QUITting and doesn't return
+   SHORTAGE.  */
 ptrdiff_t
-find_next_newline_no_quit (ptrdiff_t from, ptrdiff_t cnt, ptrdiff_t *bytepos)
+find_newline_no_quit (ptrdiff_t from, ptrdiff_t frombyte,
+		      ptrdiff_t cnt, ptrdiff_t *bytepos)
 {
-  return find_newline (from, 0, cnt, NULL, bytepos, 0);
+  return find_newline (from, frombyte, 0, -1, cnt, NULL, bytepos, 0);
 }
 
-/* Like find_next_newline, but returns position before the newline,
-   not after, and only search up to TO.  This isn't just
-   find_next_newline (...)-1, because you might hit TO.  */
+/* Like find_newline, but returns position before the newline, not
+   after, and only search up to TO.
+   This isn't just find_newline_no_quit (...)-1, because you might hit TO.  */
 
 ptrdiff_t
 find_before_next_newline (ptrdiff_t from, ptrdiff_t to,
 			  ptrdiff_t cnt, ptrdiff_t *bytepos)
 {
   ptrdiff_t shortage;
-  ptrdiff_t pos = find_newline (from, to, cnt, &shortage, bytepos, 1);
+  ptrdiff_t pos = find_newline (from, -1, to, -1, cnt, &shortage, bytepos, 1);
 
   if (shortage == 0)
     {
@@ -972,9 +943,9 @@ find_before_next_newline (ptrdiff_t from, ptrdiff_t to,
 
 static Lisp_Object
 search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
-		Lisp_Object count, int direction, int RE, int posix)
+		Lisp_Object count, int direction, int RE, bool posix)
 {
-  register EMACS_INT np;
+  EMACS_INT np;
   EMACS_INT lim;
   ptrdiff_t lim_byte;
   EMACS_INT n = direction;
@@ -1044,9 +1015,9 @@ search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
   return make_number (np);
 }
 
-/* Return 1 if REGEXP it matches just one constant string.  */
+/* Return true if REGEXP it matches just one constant string.  */
 
-static int
+static bool
 trivial_regexp_p (Lisp_Object regexp)
 {
   ptrdiff_t len = SBYTES (regexp);
@@ -1115,7 +1086,7 @@ static struct re_registers search_regs_1;
 static EMACS_INT
 search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	       ptrdiff_t lim, ptrdiff_t lim_byte, EMACS_INT n,
-	       int RE, Lisp_Object trt, Lisp_Object inverse_trt, int posix)
+	       int RE, Lisp_Object trt, Lisp_Object inverse_trt, bool posix)
 {
   ptrdiff_t len = SCHARS (string);
   ptrdiff_t len_byte = SBYTES (string);
@@ -1270,7 +1241,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
       /* Set to positive if we find a non-ASCII char that need
 	 translation.  Otherwise set to zero later.  */
       int char_base = -1;
-      int boyer_moore_ok = 1;
+      bool boyer_moore_ok = 1;
 
       /* MULTIBYTE says whether the text to be searched is multibyte.
 	 We must convert PATTERN to match that, or we will not really
@@ -2279,12 +2250,12 @@ since only regular expressions have distinguished subexpressions.  */)
   (Lisp_Object newtext, Lisp_Object fixedcase, Lisp_Object literal, Lisp_Object string, Lisp_Object subexp)
 {
   enum { nochange, all_caps, cap_initial } case_action;
-  register ptrdiff_t pos, pos_byte;
-  int some_multiletter_word;
-  int some_lowercase;
-  int some_uppercase;
-  int some_nonuppercase_initial;
-  register int c, prevc;
+  ptrdiff_t pos, pos_byte;
+  bool some_multiletter_word;
+  bool some_lowercase;
+  bool some_uppercase;
+  bool some_nonuppercase_initial;
+  int c, prevc;
   ptrdiff_t sub;
   ptrdiff_t opoint, newpoint;
 
@@ -2429,7 +2400,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	    {
 	      ptrdiff_t substart = -1;
 	      ptrdiff_t subend = 0;
-	      int delbackslash = 0;
+	      bool delbackslash = 0;
 
 	      FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
 
@@ -2445,7 +2416,7 @@ since only regular expressions have distinguished subexpressions.  */)
 		  else if (c >= '1' && c <= '9')
 		    {
 		      if (c - '0' < search_regs.num_regs
-			  && 0 <= search_regs.start[c - '0'])
+			  && search_regs.start[c - '0'] >= 0)
 			{
 			  substart = search_regs.start[c - '0'];
 			  subend = search_regs.end[c - '0'];
@@ -2526,11 +2497,11 @@ since only regular expressions have distinguished subexpressions.  */)
       ptrdiff_t substed_alloc_size, substed_len;
       bool buf_multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
       bool str_multibyte = STRING_MULTIBYTE (newtext);
-      int really_changed = 0;
+      bool really_changed = 0;
 
-      substed_alloc_size = ((STRING_BYTES_BOUND - 100) / 2 < length
-			    ? STRING_BYTES_BOUND
-			    : length * 2 + 100);
+      substed_alloc_size = (length <= (STRING_BYTES_BOUND - 100) / 2
+			    ? length * 2 + 100
+			    : STRING_BYTES_BOUND);
       substed = xmalloc (substed_alloc_size);
       substed_len = 0;
 
@@ -2692,7 +2663,7 @@ since only regular expressions have distinguished subexpressions.  */)
 }
 
 static Lisp_Object
-match_limit (Lisp_Object num, int beginningp)
+match_limit (Lisp_Object num, bool beginningp)
 {
   EMACS_INT n;
 
@@ -2965,9 +2936,9 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
   return Qnil;
 }
 
-/* If non-zero the match data have been saved in saved_search_regs
+/* If true the match data have been saved in saved_search_regs
    during the execution of a sentinel or filter. */
-static int search_regs_saved;
+static bool search_regs_saved;
 static struct re_registers saved_search_regs;
 static Lisp_Object saved_last_thing_searched;
 
@@ -3011,11 +2982,11 @@ restore_search_regs (void)
     }
 }
 
-static Lisp_Object
+static void
 unwind_set_match_data (Lisp_Object list)
 {
   /* It is NOT ALWAYS safe to free (evaporate) the markers immediately.  */
-  return Fset_match_data (list, Qt);
+  Fset_match_data (list, Qt);
 }
 
 /* Called to unwind protect the match data.  */
@@ -3032,9 +3003,9 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
        doc: /* Return a regexp string which matches exactly STRING and nothing else.  */)
   (Lisp_Object string)
 {
-  register char *in, *out, *end;
-  register char *temp;
-  int backslashes_added = 0;
+  char *in, *out, *end;
+  char *temp;
+  ptrdiff_t backslashes_added = 0;
 
   CHECK_STRING (string);
 

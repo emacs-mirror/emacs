@@ -1,6 +1,6 @@
 ;;; rfn-eshadow.el --- Highlight `shadowed' part of read-file-name input text
 ;;
-;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience minibuffer
@@ -176,11 +176,11 @@ This is intended to be used as a minibuffer `post-command-hook' for
 `file-name-shadow-mode'; the minibuffer should have already
 been set up by `rfn-eshadow-setup-minibuffer'."
   (condition-case nil
-      (let ((goal (substitute-in-file-name (minibuffer-contents)))
-            (mid (overlay-end rfn-eshadow-overlay))
-            (start (minibuffer-prompt-end))
-            (end (point-max))
-	    (non-essential t))
+      (let* ((non-essential t)
+	     (goal (substitute-in-file-name (minibuffer-contents)))
+	     (mid (overlay-end rfn-eshadow-overlay))
+	     (start (minibuffer-prompt-end))
+	     (end (point-max)))
         (unless
             ;; Catch the common case where the shadow does not need to move.
             (and mid

@@ -1,6 +1,6 @@
 /* Declarations of functions and data types used for SHA256 and SHA224 sum
    library functions.
-   Copyright (C) 2005-2006, 2008-2013 Free Software Foundation, Inc.
+   Copyright (C) 2005-2006, 2008-2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,10 +21,23 @@
 # include <stdio.h>
 # include <stdint.h>
 
+# if HAVE_OPENSSL_SHA256
+#  include <openssl/sha.h>
+# endif
+
 # ifdef __cplusplus
 extern "C" {
 # endif
 
+enum { SHA224_DIGEST_SIZE = 224 / 8 };
+enum { SHA256_DIGEST_SIZE = 256 / 8 };
+
+# if HAVE_OPENSSL_SHA256
+#  define GL_OPENSSL_NAME 224
+#  include "gl_openssl.h"
+#  define GL_OPENSSL_NAME 256
+#  include "gl_openssl.h"
+# else
 /* Structure to save state of computation between the single steps.  */
 struct sha256_ctx
 {
@@ -34,9 +47,6 @@ struct sha256_ctx
   size_t buflen;
   uint32_t buffer[32];
 };
-
-enum { SHA224_DIGEST_SIZE = 224 / 8 };
-enum { SHA256_DIGEST_SIZE = 256 / 8 };
 
 /* Initialize structure containing state of computation. */
 extern void sha256_init_ctx (struct sha256_ctx *ctx);
@@ -71,18 +81,20 @@ extern void *sha256_read_ctx (const struct sha256_ctx *ctx, void *resbuf);
 extern void *sha224_read_ctx (const struct sha256_ctx *ctx, void *resbuf);
 
 
-/* Compute SHA256 (SHA224) message digest for bytes read from STREAM.  The
-   resulting message digest number will be written into the 32 (28) bytes
-   beginning at RESBLOCK.  */
-extern int sha256_stream (FILE *stream, void *resblock);
-extern int sha224_stream (FILE *stream, void *resblock);
-
 /* Compute SHA256 (SHA224) message digest for LEN bytes beginning at BUFFER.  The
    result is always in little endian byte order, so that a byte-wise
    output yields to the wanted ASCII representation of the message
    digest.  */
 extern void *sha256_buffer (const char *buffer, size_t len, void *resblock);
 extern void *sha224_buffer (const char *buffer, size_t len, void *resblock);
+
+# endif
+/* Compute SHA256 (SHA224) message digest for bytes read from STREAM.  The
+   resulting message digest number will be written into the 32 (28) bytes
+   beginning at RESBLOCK.  */
+extern int sha256_stream (FILE *stream, void *resblock);
+extern int sha224_stream (FILE *stream, void *resblock);
+
 
 # ifdef __cplusplus
 }

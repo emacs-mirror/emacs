@@ -1,6 +1,6 @@
 ;;; viper-ex.el --- functions implementing the Ex commands for Viper
 
-;; Copyright (C) 1994-1998, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -39,14 +39,7 @@
 (defvar viper-case-fold-search)
 (defvar explicit-shell-file-name)
 (defvar compile-command)
-
-;; loading happens only in non-interactive compilation
-;; in order to spare non-viperized emacs from being viperized
-(if noninteractive
-    (eval-when-compile
-      (if (not (featurep 'viper-cmd))
-	  (require 'viper-cmd))
-      ))
+(require 'viper-keym)
 ;; end pacifier
 
 (require 'viper-util)
@@ -462,7 +455,7 @@ reversed."
 	       (while (and (not (eolp)) cont)
 		 ;;(re-search-forward "[^/]*/")
 		 (re-search-forward "[^/]*\\(/\\|\n\\)")
-		 (if (not (viper-looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\/"))
+		 (if (not (looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\/"))
 		     (setq cont nil))))
 	     (backward-char 1)
 	     (setq ex-token (buffer-substring (point) (mark t)))
@@ -475,7 +468,7 @@ reversed."
 	       (while (and (not (eolp)) cont)
 		 ;;(re-search-forward "[^\\?]*\\?")
 		 (re-search-forward "[^\\?]*\\(\\?\\|\n\\)")
-		 (if (not (viper-looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\\\?"))
+		 (if (not (looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\\\?"))
 		     (setq cont nil))
 		 (backward-char 1)
 		 (if (not (looking-at "\n")) (forward-char 1))))
@@ -553,10 +546,12 @@ reversed."
       (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
       (set-buffer viper-ex-work-buf)
       (goto-char (point-max)))
-    (cond ((viper-looking-back quit-regex1) (exit-minibuffer))
-	  ((viper-looking-back stay-regex)  (insert " "))
-	  ((viper-looking-back quit-regex2) (exit-minibuffer))
+    (cond ((looking-back quit-regex1) (exit-minibuffer))
+	  ((looking-back stay-regex)  (insert " "))
+	  ((looking-back quit-regex2) (exit-minibuffer))
 	  (t (insert " ")))))
+
+(declare-function viper-tmp-insert-at-eob "viper-cmd" (msg))
 
 ;; complete Ex command
 (defun ex-cmd-complete ()
@@ -568,14 +563,14 @@ reversed."
 	    save-pos (point)))
 
     (if (or (= dist 0)
-	    (viper-looking-back "\\([ \t]*['`][ \t]*[a-z]*\\)")
-	    (viper-looking-back
+	    (looking-back "\\([ \t]*['`][ \t]*[a-z]*\\)")
+	    (looking-back
 	     "^[ \t]*[a-zA-Z!=>&~][ \t]*[/?]*[ \t]+[a-zA-Z!=>&~]+"))
 	;; Preceding characters are not the ones allowed in an Ex command
 	;; or we have typed past command name.
 	;; Note: we didn't do parsing, so there can be surprises.
-	(if (or (viper-looking-back "[a-zA-Z!=>&~][ \t]*[/?]*[ \t]*")
-		(viper-looking-back "\\([ \t]*['`][ \t]*[a-z]*\\)")
+	(if (or (looking-back "[a-zA-Z!=>&~][ \t]*[/?]*[ \t]*")
+		(looking-back "\\([ \t]*['`][ \t]*[a-z]*\\)")
 		(looking-at "[^ \t\n\C-m]"))
 	    nil
 	  (with-output-to-temp-buffer "*Completions*"
@@ -604,6 +599,11 @@ reversed."
 		    (viper-alist-to-list (reverse compl-list)))))))
       )))
 
+
+(declare-function viper-enlarge-region "viper-cmd" (beg end))
+(declare-function viper-read-string-with-history "viper-cmd"
+		  (prompt &optional viper-initial history-var
+			  default keymap init-message))
 
 ;; Read Ex commands
 ;; ARG is a prefix argument. If given, the ex command runs on the region
@@ -746,7 +746,7 @@ reversed."
 		    (if (member ex-token '("global" "vglobal"))
 			(error "Missing closing delimiter for global regexp")
 		      (goto-char (point-max))))
-		(if (not (viper-looking-back
+		(if (not (looking-back
 			  (format "[^\\\\]\\(\\\\\\\\\\)*\\\\%c" c)))
 		    (setq cont nil)
 		  ;; we are at an escaped delimiter: unescape it and continue
@@ -825,6 +825,9 @@ reversed."
 	    (t (let ((ans (viper-get-ex-address-subr address (point-marker))))
 		 (if ans (setq address ans))))))
     address))
+
+(declare-function viper-register-to-point "viper-cmd"
+		  (char &optional enforce-buffer))
 
 ;; Returns an address as a point
 (defun viper-get-ex-address-subr (old-address dot)
@@ -960,7 +963,7 @@ reversed."
       (while (re-search-forward "%\\|#" nil t)
 	(let ((data (match-data))
 	      (char (buffer-substring (match-beginning 0) (match-end 0))))
-	  (if (viper-looking-back (concat "\\\\" char))
+	  (if (looking-back (concat "\\\\" char))
 	      (replace-match char)
 	    (store-match-data data)
 	    (if (string= char "%")
@@ -986,7 +989,7 @@ reversed."
                                  (get-buffer-create viper-ex-work-buf-name))
 	(skip-chars-forward " \t")
 	(if (looking-at "!")
-	    (if (and (not (viper-looking-back "[ \t]"))
+	    (if (and (not (looking-back "[ \t]"))
 		     ;; read doesn't have a corresponding :r! form, so ! is
 		     ;; immediately interpreted as a shell command.
 		     (not (string= ex-token "read")))
@@ -1063,7 +1066,7 @@ reversed."
   (cond ((ex-cmd-accepts-multiple-files-p ex-token) (exit-minibuffer))
 	;; apparently the argument to an Ex command is
 	;; supposed to be a shell command
-	((viper-looking-back "^[ \t]*!.*")
+	((looking-back "^[ \t]*!.*")
 	 (setq ex-cmdfile t)
 	 (insert " "))
 	(t
@@ -1202,6 +1205,8 @@ reversed."
       (forward-line 1))
       (insert (current-kill 0))))
 
+(declare-function viper-append-to-register "viper-cmd" (reg start end))
+
 ;; Ex delete command
 (defun ex-delete ()
   (viper-default-ex-addresses)
@@ -1238,6 +1243,7 @@ reversed."
 	(kill-region (point) (mark t))))))
 
 
+(declare-function viper-change-state-to-vi "viper-cmd" ())
 
 ;; Ex edit command
 ;; In Viper, `e' and `e!' behave identically.  In both cases, the user is
@@ -1307,6 +1313,8 @@ reversed."
 	  (t (find-file filespec)))
     ))
 
+
+(declare-function viper-backward-char-carefully "viper-cmd" (&optional arg))
 
 ;; Ex global command
 ;; This is executed in response to:
@@ -1415,6 +1423,8 @@ reversed."
       (setq point (point)))
     (goto-char (1- point))
     (beginning-of-line)))
+
+(declare-function viper-forward-char-carefully "viper-cmd" (&optional arg))
 
 (defun ex-line-subr (com beg end)
   (cond ((string= com "join")
@@ -1566,6 +1576,9 @@ reversed."
   (message "Autosaving all buffers that need to be saved...")
   (do-auto-save t))
 
+(declare-function viper-Put-back "viper-cmd" (arg))
+(declare-function viper-put-back "viper-cmd" (arg))
+
 ;; Ex put
 (defun ex-put ()
   (let ((point (if (null ex-addresses) (point) (car ex-addresses))))
@@ -1588,6 +1601,8 @@ reversed."
       (save-buffers-kill-emacs)
     (kill-buffer (current-buffer))))
 
+
+(declare-function viper-add-newline-at-eob-if-necessary "viper-cmd" ())
 
 ;; Ex read command
 ;; ex-read doesn't support wildcards, because file completion is a better
@@ -1872,7 +1887,8 @@ Please contact your system administrator. "
 			    (if (featurep 'xemacs) "X" "")
 			    ))))))
 
-;; Ex source command.  Loads the file specified as argument or `~/.viper'
+;; Ex source command.
+;; Loads the file specified as argument or viper-custom-file-name.
 (defun ex-source ()
   (viper-get-ex-file)
   (if (string= ex-file "")
@@ -1974,6 +1990,8 @@ Please contact your system administrator. "
     (if matched-pos (goto-char matched-pos))
     (beginning-of-line)
     (if opt-c (message "done"))))
+
+(declare-function viper-change-state-to-emacs "viper-cmd" ())
 
 ;; Ex tag command
 (defun ex-tag ()
@@ -2159,7 +2177,7 @@ Please contact your system administrator. "
 	  (goto-char beg)
 	  (set-mark end)
 	  (viper-enlarge-region (point) (mark t))
-	  (shell-command-on-region (point) (mark t) command t))
+	  (shell-command-on-region (point) (mark t) command t t))
 	(goto-char beg)))))
 
 (defun ex-compile ()

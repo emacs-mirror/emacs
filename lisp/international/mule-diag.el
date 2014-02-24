@@ -1,6 +1,6 @@
 ;;; mule-diag.el --- show diagnosis of multilingual environment (Mule)
 
-;; Copyright (C) 1997-1998, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2014 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -1104,8 +1104,7 @@ system which uses fontsets)."
 
       (insert-section 2 "Display")
       (if window-system
-	  (insert (format "Window-system: %s, version %s"
-			  window-system window-system-version))
+	  (insert (format "Window-system: %s" window-system))
 	(insert "Terminal: " (getenv "TERM")))
       (insert "\n\n")
 

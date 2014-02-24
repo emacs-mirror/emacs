@@ -1,6 +1,6 @@
 ;;; mm-util.el --- Utility functions for Mule and low level things
 
-;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -129,22 +129,6 @@
      (multibyte-char-to-unibyte . identity)
      ;; `set-buffer-multibyte' is an Emacs function, not available in XEmacs.
      (set-buffer-multibyte . ignore)
-     ;; `special-display-p' is an Emacs function, not available in XEmacs.
-     (special-display-p
-      . ,(lambda (buffer-name)
-	   "Returns non-nil if a buffer named BUFFER-NAME gets a special frame."
-	   (and special-display-function
-		(or (and (member buffer-name special-display-buffer-names) t)
-		    (cdr (assoc buffer-name special-display-buffer-names))
-		    (catch 'return
-		      (dolist (elem special-display-regexps)
-			(and (stringp elem)
-			     (string-match elem buffer-name)
-			     (throw 'return t))
-			(and (consp elem)
-			     (stringp (car elem))
-			     (string-match (car elem) buffer-name)
-			     (throw 'return (cdr elem)))))))))
      ;; `substring-no-properties' is available only in Emacs 22.1 or greater.
      (substring-no-properties
       . ,(lambda (string &optional from to)
@@ -173,6 +157,25 @@ to the contents of the accessible portion of the buffer."
 	       (goto-char opoint)
 	       (forward-line 0)
 	       (1+ (count-lines start (point))))))))))
+
+;; `special-display-p' is an Emacs function, not available in XEmacs.
+(defalias 'mm-special-display-p
+  (if (featurep 'emacs)
+      'special-display-p
+    (lambda (buffer-name)
+      "Returns non-nil if a buffer named BUFFER-NAME gets a special frame."
+      (and special-display-function
+	   (or (and (member buffer-name special-display-buffer-names) t)
+	       (cdr (assoc buffer-name special-display-buffer-names))
+	       (catch 'return
+		 (dolist (elem special-display-regexps)
+		   (and (stringp elem)
+			(string-match elem buffer-name)
+			(throw 'return t))
+		   (and (consp elem)
+			(stringp (car elem))
+			(string-match (car elem) buffer-name)
+			(throw 'return (cdr elem))))))))))
 
 ;; `decode-coding-string', `encode-coding-string', `decode-coding-region'
 ;; and `encode-coding-region' are available in Emacs and XEmacs built with
@@ -845,17 +848,17 @@ Valid elements include:
 	   (not lang) nil)
 	  ;; In XEmacs 21.5 it may be the one like "Japanese (UTF-8)".
 	  ((string-match "\\`Japanese" lang)
-	   ;; Japanese users prefer iso-2022-jp to euc-japan or
-	   ;; shift_jis, however iso-8859-1 should be used when
-	   ;; there are only ASCII text and Latin-1 characters.
-	   '(iso-8859-1 iso-2022-jp iso-2022-jp-2 shift_jis utf-8))))
+	   ;; Japanese users prefer iso-2022-jp to others usually used
+	   ;; for `buffer-file-coding-system', however iso-8859-1 should
+	   ;; be used when there are only ASCII and Latin-1 characters.
+	   '(iso-8859-1 iso-2022-jp utf-8))))
   "Preferred coding systems for encoding outgoing messages.
 
 More than one suitable coding system may be found for some text.
 By default, the coding system with the highest priority is used
 to encode outgoing messages (see `sort-coding-systems').  If this
 variable is set, it overrides the default priority."
-  :version "21.2"
+  :version "24.4"
   :type '(repeat (symbol :tag "Coding system"))
   :group 'mime)
 
@@ -1375,17 +1378,18 @@ If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'."
     (write-region start end filename append visit lockname)))
 
 (autoload 'gmm-write-region "gmm-utils")
+(declare-function help-function-arglist "help-fns"
+		  (def &optional preserve-names))
 
 ;; It is not a MIME function, but some MIME functions use it.
 (if (and (fboundp 'make-temp-file)
 	 (ignore-errors
-	   (let ((def (symbol-function 'make-temp-file)))
-	     (and (byte-code-function-p def)
-		  (setq def (if (fboundp 'compiled-function-arglist)
-				;; XEmacs
-				(eval (list 'compiled-function-arglist def))
-			      (aref def 0)))
-		  (>= (length def) 4)
+	   (let ((def (if (fboundp 'compiled-function-arglist) ;; XEmacs
+			  (eval (list 'compiled-function-arglist
+				      (symbol-function 'make-temp-file)))
+			(require 'help-fns)
+			(help-function-arglist 'make-temp-file t))))
+	     (and (>= (length def) 4)
 		  (eq (nth 3 def) 'suffix)))))
     (defalias 'mm-make-temp-file 'make-temp-file)
   ;; Stolen (and modified for XEmacs) from Emacs 22.
@@ -1508,8 +1512,8 @@ To make this function work with XEmacs, the APEL package is required."
 		      (fboundp 'coding-system-to-mime-charset)))
 	     (coding-system-to-mime-charset coding-system)))))
 
-(eval-when-compile
-  (require 'jka-compr))
+(defvar jka-compr-acceptable-retval-list)
+(declare-function jka-compr-make-temp-name "jka-compr" (&optional local))
 
 (defun mm-decompress-buffer (filename &optional inplace force)
   "Decompress buffer's contents, depending on jka-compr.

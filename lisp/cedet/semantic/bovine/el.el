@@ -1,6 +1,6 @@
 ;;; semantic/bovine/el.el --- Semantic details for Emacs Lisp
 
-;; Copyright (C) 1999-2005, 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -25,6 +25,7 @@
 
 (require 'semantic)
 (require 'semantic/bovine)
+(require 'semantic/db-el)
 (require 'find-func)
 
 (require 'semantic/ctxt)
@@ -474,7 +475,7 @@ Return a bovination list to use."
        ((and name (file-exists-p (concat name ".el.gz")))
 	;; This is the linux distro case.
 	(concat name ".el.gz"))
-       ;; source file does not exists
+       ;; Source file does not exist.
        (name
 	(message "semantic: cannot find source file %s" (concat name ".el")))
        (t
@@ -940,8 +941,11 @@ ELisp variables can be pretty long, so track this one too.")
 (define-child-mode lisp-mode emacs-lisp-mode
   "Make `lisp-mode' inherit mode local behavior from `emacs-lisp-mode'.")
 
+;;;###autoload
 (defun semantic-default-elisp-setup ()
   "Setup hook function for Emacs Lisp files and Semantic."
+  ;; This is here mostly to get this file loaded when a .el file is
+  ;; loaded into Emacs.
   )
 
 (add-hook 'emacs-lisp-mode-hook 'semantic-default-elisp-setup)
@@ -960,6 +964,12 @@ ELisp variables can be pretty long, so track this one too.")
   '(require 'semantic/db-el)
   )
 
+
 (provide 'semantic/bovine/el)
+
+;; Local variables:
+;; generated-autoload-file: "../loaddefs.el"
+;; generated-autoload-load-name: "semantic/bovine/el"
+;; End:
 
 ;;; semantic/bovine/el.el ends here

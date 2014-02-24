@@ -84,6 +84,22 @@ static uniprop_decoder_t uniprop_get_decoder (Lisp_Object);
   (STRINGP (OBJ) && SCHARS (OBJ) > 0	\
    && ((SREF (OBJ, 0) == 1 || (SREF (OBJ, 0) == 2))))
 
+static void
+CHECK_CHAR_TABLE (Lisp_Object x)
+{
+  CHECK_TYPE (CHAR_TABLE_P (x), Qchar_table_p, x);
+}
+
+static void
+set_char_table_ascii (Lisp_Object table, Lisp_Object val)
+{
+  XCHAR_TABLE (table)->ascii = val;
+}
+static void
+set_char_table_parent (Lisp_Object table, Lisp_Object val)
+{
+  XCHAR_TABLE (table)->parent = val;
+}
 
 DEFUN ("make-char-table", Fmake_char_table, Smake_char_table, 1, 2, 0,
        doc: /* Return a newly created char-table, with purpose PURPOSE.
@@ -112,7 +128,7 @@ the char-table has no extra slot.  */)
       n_extras = XINT (n);
     }
 
-  size = VECSIZE (struct Lisp_Char_Table) - 1 + n_extras;
+  size = CHAR_TABLE_STANDARD_SLOTS + n_extras;
   vector = Fmake_vector (make_number (size), init);
   XSETPVECTYPE (XVECTOR (vector), PVEC_CHAR_TABLE);
   set_char_table_parent (vector, Qnil);
@@ -125,7 +141,8 @@ static Lisp_Object
 make_sub_char_table (int depth, int min_char, Lisp_Object defalt)
 {
   Lisp_Object table;
-  int size = VECSIZE (struct Lisp_Sub_Char_Table) - 1 + chartab_size[depth];
+  int size = (PSEUDOVECSIZE (struct Lisp_Sub_Char_Table, contents)
+	      + chartab_size[depth]);
 
   table = Fmake_vector (make_number (size), defalt);
   XSETPVECTYPE (XVECTOR (table), PVEC_SUB_CHAR_TABLE);
@@ -191,7 +208,7 @@ copy_char_table (Lisp_Object table)
 	? copy_sub_char_table (XCHAR_TABLE (table)->contents[i])
 	: XCHAR_TABLE (table)->contents[i]));
   set_char_table_ascii (copy, char_table_ascii (copy));
-  size -= VECSIZE (struct Lisp_Char_Table) - 1;
+  size -= CHAR_TABLE_STANDARD_SLOTS;
   for (i = 0; i < size; i++)
     set_char_table_extras (copy, i, XCHAR_TABLE (table)->extras[i]);
 
@@ -1255,7 +1272,7 @@ uniprop_encode_value_run_length (Lisp_Object table, Lisp_Object value)
 
 
 /* Encode VALUE as an element of char-table TABLE which adopts RUN-LENGTH
-   compression and contains numbers as elements .  */
+   compression and contains numbers as elements.  */
 
 static Lisp_Object
 uniprop_encode_value_numeric (Lisp_Object table, Lisp_Object value)

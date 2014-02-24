@@ -3,6 +3,7 @@
 @set TITLE Enhanced Implementation of Emacs Interpreted Objects
 @set AUTHOR Eric M. Ludlam
 @settitle @value{TITLE}
+@documentencoding UTF-8
 
 @c *************************************************************************
 @c @ Header
@@ -11,7 +12,7 @@
 @copying
 This manual documents EIEIO, an object framework for Emacs Lisp.
 
-Copyright @copyright{} 2007--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -35,21 +36,22 @@ modify this GNU manual.''
 @center @titlefont{@value{TITLE}}
 @sp 4
 @center by @value{AUTHOR}
-@end titlepage
 @page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
 
 @macro eieio{}
 @i{EIEIO}
 @end macro
 
-@node Top, Quick Start, (dir), (dir)
-@comment  node-name,  next,  previous,  up
+@node Top
 @top EIEIO
 
-@eieio{} (``Enhanced Implementation of Emacs Interpreted Objects'') is
-a CLOS (Common Lisp Object System) compatibility layer for Emacs Lisp.
-It provides a framework for writing object-oriented applications in
-Emacs.
+@eieio{} (``Enhanced Implementation of Emacs Interpreted Objects'')
+provides an Object Oriented layer for Emacs Lisp, following the basic
+concepts of the Common Lisp Object System (CLOS).  It provides a
+framework for writing object-oriented applications in Emacs.
 
 @ifnottex
 @insertcopying
@@ -70,7 +72,6 @@ Emacs.
 * Base Classes::          Additional classes you can inherit from.
 * Browsing::              Browsing your class lists.
 * Class Values::          Displaying information about a class or object.
-* Documentation::         Automatically creating texinfo documentation.
 * Default Superclass::    The root superclasses.
 * Signals::               When you make errors.
 * Naming Conventions::    Name your objects in an Emacs friendly way.
@@ -173,12 +174,19 @@ some other data type, Emacs signals a @code{no-method-definition}
 error.  @ref{Signals}.
 
 @node Introduction
-@comment  node-name,  next,  previous,  up
 @chapter Introduction
 
-Due to restrictions in the Emacs Lisp language, CLOS cannot be
-completely supported, and a few functions have been added in place of
-setf.
+First off, please note that this manual cannot serve as a complete
+introduction to object oriented programming and generic functions in
+LISP.  Although EIEIO is not a complete implementation of the Common
+Lisp Object System (CLOS) and also differs from it in several aspects,
+it follows the same basic concepts.  Therefore, it is highly
+recommended to learn those from a textbook or tutorial first,
+especially if you only know OOP from languages like C++ or Java.  If
+on the other hand you are already familiar with CLOS, you should be
+aware that @eieio{} does not implement the full CLOS specification and
+also differs in some other aspects which are mentioned below (also
+@pxref{CLOS compatibility}).
 
 @eieio{} supports the following features:
 
@@ -201,8 +209,6 @@ Byte compilation support of methods.
 @item
 Help system extensions for classes and methods.
 @item
-Automatic texinfo documentation generator.
-@item
 Several base classes for interesting tasks.
 @item
 Simple test suite.
@@ -212,20 +218,33 @@ Public and private classifications for slots (extensions to CLOS)
 Customization support in a class (extension to CLOS)
 @end enumerate
 
-Here are some CLOS features that @eieio{} presently lacks:
+Due to restrictions in the Emacs Lisp language, CLOS cannot be
+completely supported, and a few functions have been added in place of
+setf.  Here are some important CLOS features that @eieio{} presently
+lacks:
 
 @table @asis
-@item Complete @code{defclass} tag support
-All CLOS tags are currently supported, but the following are not
-currently implemented correctly:
 
-@table @code
-@item :metaclass
-There is only one base superclass for all @eieio{} classes, which is
-the @code{eieio-default-superclass}.
-@item :default-initargs
+@item Method dispatch
+EIEO does not support method dispatch for built-in types and multiple
+arguments types.  In other words, method dispatch only looks at the
+first argument, and this one must be an @eieio{} type.
+
+@item Support for metaclasses
+There is just one default metaclass, @code{eieio-default-superclass},
+and you cannot define your own.  The @code{:metaclass} tag in
+@code{defclass} is ignored.  Also, functions like `find-class', which
+should return instances of the metaclass, behave differently in
+@eieio{} in that they return symbols or plain structures instead.
+
+@item EQL specialization
+EIEIO does not support it.
+
+@item @code{:around} method tag
+This CLOS method tag is non-functional.
+
+@item :default-initargs in @code{defclass}
 Each slot has an @code{:initarg} tag, so this is not really necessary.
-@end table
 
 @item Mock object initializers
 Each class contains a mock object used for fast initialization of
@@ -233,13 +252,9 @@ instantiated objects.  Using functions with side effects on object slot
 values can potentially cause modifications in the mock object.  @eieio{}
 should use a deep copy but currently does not.
 
-@item @code{:around} method tag
-This CLOS method tag is non-functional.
-
 @end table
 
 @node Building Classes
-@comment  node-name,  next,  previous,  up
 @chapter Building Classes
 
 A @dfn{class} is a definition for organizing data and methods
@@ -615,7 +630,6 @@ function of @code{:initform}.
 @eieio{}-specific tags.
 
 @node Making New Objects
-@comment  node-name,  next,  previous,  up
 @chapter Making New Objects
 
 Suppose we have a simple class is defined, such as:
@@ -685,7 +699,6 @@ a string.
 @end defun
 
 @node Accessing Slots
-@comment  node-name,  next,  previous,  up
 @chapter Accessing Slots
 
 There are several ways to access slot values in an object.  The naming
@@ -802,7 +815,6 @@ variable name of the same name as the slot.
 @end defun
 
 @node Writing Methods
-@comment  node-name,  next,  previous,  up
 @chapter Writing Methods
 
 Writing a method in @eieio{} is similar to writing a function.  The
@@ -1019,7 +1031,6 @@ Retrieved from: http://192.220.96.201/dylan/linearization-oopsla96.html
 @end table
 
 @node Predicates
-@comment  node-name,  next,  previous,  up
 @chapter Predicates and Utilities
 
 Now that we know how to create classes, access slots, and define
@@ -1052,7 +1063,7 @@ make a slot unbound.
 @var{object} can be an instance or a class.
 @end defun
 
-@defun class-name class
+@defun eieio-class-name class
 Return a string of the form @samp{#<class myclassname>} which should look
 similar to other Lisp objects like buffers and processes.  Printing a
 class results only in a symbol.
@@ -1076,7 +1087,7 @@ constructor is a function used to create new instances of
 without knowing what it is.  This is not a part of CLOS.
 @end defun
 
-@defun object-name obj
+@defun eieio-object-name obj
 Return a string of the form @samp{#<object-class myobjname>} for @var{obj}.
 This should look like Lisp symbols from other parts of Emacs such as
 buffers and processes, and is shorter and cleaner than printing the
@@ -1085,43 +1096,39 @@ and object's print form, as this allows the object to add extra display
 information into the symbol.
 @end defun
 
-@defun object-class obj
+@defun eieio-object-class obj
 Returns the class symbol from @var{obj}.
 @end defun
 
-@defun class-of obj
-CLOS symbol which does the same thing as @code{object-class}
-@end defun
-
-@defun object-class-fast obj
-Same as @code{object-class} except this is a macro, and no
+@defun eieio--object-class obj
+Same as @code{eieio-object-class} except this is a macro, and no
 type-checking is performed.
 @end defun
 
-@defun object-class-name obj
+@defun eieio-object-class-name obj
 Returns the symbol of @var{obj}'s class.
 @end defun
 
-@defun class-parents class
+@defun eieio-class-parents class
 Returns the direct parents class of @var{class}.  Returns @code{nil} if
 it is a superclass.
 @end defun
 
-@defun class-parents-fast class
-Just like @code{class-parent} except it is a macro and no type checking
+@defun eieio-class-parents-fast class
+Just like @code{eieio-class-parents} except it is a macro and no type checking
 is performed.
 @end defun
 
-@defun class-parent class
+@defun eieio-class-parent class
 Deprecated function which returns the first parent of @var{class}.
 @end defun
 
-@defun class-children class
+@defun eieio-class-children class
 Return the list of classes inheriting from @var{class}.
 @end defun
 
-@defun class-children-fast class
-Just like @code{class-children}, but with no checks.
+@defun eieio-class-children-fast class
+Just like @code{eieio-class-children}, but with no checks.
 @end defun
 
 @defun same-class-p obj class
@@ -1180,7 +1187,6 @@ all its subclasses.
 @end defun
 
 @node Customizing
-@comment node-name, next, previous, up
 @chapter Customizing Objects
 
 @eieio{} supports the Custom facility through two new widget types.
@@ -1262,7 +1268,6 @@ nil.
 @end defun
 
 @node Base Classes
-@comment  node-name,  next,  previous,  up
 @chapter Base Classes
 
 All defined classes, if created with no specified parent class,
@@ -1284,7 +1289,6 @@ even inherit from more than one of these classes at once.)
 @end menu
 
 @node eieio-instance-inheritor
-@comment  node-name,  next,  previous,  up
 @section @code{eieio-instance-inheritor}
 
 This class is defined in the package @file{eieio-base}.
@@ -1349,7 +1353,6 @@ list of objects to be searched.
 @end deffn
 
 @node eieio-singleton
-@comment  node-name,  next,  previous,  up
 @section @code{eieio-singleton}
 
 This class is defined in the package @file{eieio-base}.
@@ -1361,7 +1364,6 @@ only ever be one instance of this class.  Multiple calls to
 @end deftp
 
 @node eieio-persistent
-@comment  node-name,  next,  previous,  up
 @section @code{eieio-persistent}
 
 This class is defined in the package @file{eieio-base}.
@@ -1413,7 +1415,6 @@ being pedantic.
 @end defun
 
 @node eieio-named
-@comment  node-name,  next,  previous,  up
 @section @code{eieio-named}
 
 This class is defined in the package @file{eieio-base}.
@@ -1425,7 +1426,6 @@ access to it.
 @end deftp
 
 @node eieio-speedbar
-@comment  node-name,  next,  previous,  up
 @section @code{eieio-speedbar}
 
 This class is in package @file{eieio-speedbar}.
@@ -1520,7 +1520,6 @@ on how speedbar modes work
 @end deffn
 
 @node Browsing
-@comment  node-name,  next,  previous,  up
 @chapter Browsing class trees
 
 The command @kbd{M-x eieio-browse} displays a buffer listing all the
@@ -1543,63 +1542,15 @@ Note: new classes are consed into the inheritance lists, so the tree
 comes out upside-down.
 
 @node Class Values
-@comment  node-name,  next,  previous,  up
 @chapter Class Values
 
-Details about any class or object can be retrieved using the function
-@code{eieio-describe-class}.  Interactively, type in the name of
-a class.  In a program, pass it a string with the name of a class, a
-class symbol, or an object.  The resulting buffer will display all slot
-names.
-
-Additionally, all methods defined to have functionality on this class is
-displayed.
-
-@node Documentation
-@comment  node-name,  next,  previous,  up
-@chapter Documentation
-
-It is possible to automatically create documentation for your classes in
-texinfo format by using the tools in the file @file{eieio-doc.el}
-
-@deffn Command eieiodoc-class class indexstring &optional skiplist
-
-This will start at the current point, and create an indented menu of
-all the child classes of, and including @var{class}, but skipping any
-classes that might be in @var{skiplist}.  It will then create nodes for
-all these classes, subsection headings, and indexes.
-
-Each class will be indexed using the texinfo labeled index
-@var{indexstring} which is a two letter description.
-@xref{New Indices,,,texinfo,Texinfo manual}.
-
-To use this command, the texinfo macro
-
-@example
-@@defindex @@var @{ indexstring @}
-@end example
-
-@noindent
-where @var{indexstring} is replaced with the two letter code.
-
-Next, an inheritance tree will be created listing all parents of that
-section's class.
-
-Then, all the slots will be expanded in tables, and described
-using the documentation strings from the code.  Default values will also
-be displayed.  Only those slots with @code{:initarg} specified will be
-expanded, others will be hidden.  If a slot is inherited from a parent,
-that slot will also be skipped unless the default value is different.
-If there is a change, then the documentation part of the slot will be
-replace with an @@xref back to the parent.
-
-This command can only display documentation for classes whose
-definitions have been loaded in this Emacs session.
-
-@end deffn
+You can use the normal @code{describe-function} command to retrieve
+information about a class.  Running it on constructors will show a
+full description of the generated class.  If you call it on a generic
+function, all implementations of that generic function will be listed,
+together with links through which you can directly jump to the source.
 
 @node Default Superclass
-@comment  node-name,  next,  previous,  up
 @chapter Default Superclass
 
 All defined classes, if created with no specified parent class, will
@@ -1608,7 +1559,6 @@ inherit from a special class stored in
 with it, certain default methods or attributes can be added to all
 objects.  In CLOS, this would be named @code{STANDARD-CLASS}, and that
 symbol is an alias to @code{eieio-default-superclass}.
-@refill
 
 Currently, the default superclass is defined as follows:
 
@@ -1675,9 +1625,9 @@ sure to call @dfn{call-next-method} first and modify the returned object.
 
 @defun object-print this &rest strings
 @anchor{object-print}
-Pretty printer for object @var{this}.  Call function @dfn{object-name} with @var{strings}.
+Pretty printer for object @var{this}.  Call function @dfn{eieio-object-name} with @var{strings}.
 The default method for printing object @var{this} is to use the
-function @dfn{object-name}.
+function @dfn{eieio-object-name}.
 
 It is sometimes useful to put a summary of the object into the
 default #<notation> string when using eieio browsing tools.
@@ -1776,7 +1726,6 @@ return value of @dfn{call-next-method}.
 @end defun
 
 @node Signals
-@comment  node-name,  next,  previous,  up
 @chapter Signals
 
 There are new condition names (signals) that can be caught when using
@@ -1821,7 +1770,6 @@ This signal is called when an attempt to reference @var{slot} in
 @end deffn
 
 @node Naming Conventions
-@comment  node-name,  next,  previous,  up
 @chapter Naming Conventions
 
 @xref{Tips,,Tips and Conventions,elisp,GNU Emacs Lisp Reference
@@ -1850,7 +1798,6 @@ must ``require'' that library with the @code{require} command.
 @end itemize
 
 @node CLOS compatibility
-@comment  node-name,  next,  previous,  up
 @chapter CLOS compatibility
 
 Currently, the following functions should behave almost as expected from
@@ -1909,10 +1856,9 @@ loaded so the form @code{(setf (slot-value object slot) t)} should
 work.
 @end table
 
-CLOS supports the @code{describe} command, but @eieio{} only provides
-@code{eieio-describe-class}, and @code{eieio-describe-generic}.  These
-functions are adviced into @code{describe-variable}, and
-@code{describe-function}.
+CLOS supports the @code{describe} command, but @eieio{} provides
+support for using the standard @code{describe-function} command on a
+constructor or generic function.
 
 When creating a new class (@pxref{Building Classes}) there are several
 new keywords supported by @eieio{}.
@@ -1930,8 +1876,9 @@ Some important compatibility features that would be good to add are:
 
 @enumerate
 @item
+Support for metaclasses and EQL specialization.
+@item
 @code{:around} method key.
-
 @item
 Method dispatch for built-in types.
 @item

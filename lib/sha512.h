@@ -1,6 +1,6 @@
 /* Declarations of functions and data types used for SHA512 and SHA384 sum
    library functions.
-   Copyright (C) 2005-2006, 2008-2013 Free Software Foundation, Inc.
+   Copyright (C) 2005-2006, 2008-2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,13 +19,25 @@
 # define SHA512_H 1
 
 # include <stdio.h>
-
 # include "u64.h"
+
+# if HAVE_OPENSSL_SHA512
+#  include <openssl/sha.h>
+# endif
 
 # ifdef __cplusplus
 extern "C" {
 # endif
 
+enum { SHA384_DIGEST_SIZE = 384 / 8 };
+enum { SHA512_DIGEST_SIZE = 512 / 8 };
+
+# if HAVE_OPENSSL_SHA512
+#  define GL_OPENSSL_NAME 384
+#  include "gl_openssl.h"
+#  define GL_OPENSSL_NAME 512
+#  include "gl_openssl.h"
+# else
 /* Structure to save state of computation between the single steps.  */
 struct sha512_ctx
 {
@@ -35,9 +47,6 @@ struct sha512_ctx
   size_t buflen;
   u64 buffer[32];
 };
-
-enum { SHA384_DIGEST_SIZE = 384 / 8 };
-enum { SHA512_DIGEST_SIZE = 512 / 8 };
 
 /* Initialize structure containing state of computation. */
 extern void sha512_init_ctx (struct sha512_ctx *ctx);
@@ -75,18 +84,20 @@ extern void *sha512_read_ctx (const struct sha512_ctx *ctx, void *resbuf);
 extern void *sha384_read_ctx (const struct sha512_ctx *ctx, void *resbuf);
 
 
-/* Compute SHA512 (SHA384) message digest for bytes read from STREAM.  The
-   resulting message digest number will be written into the 64 (48) bytes
-   beginning at RESBLOCK.  */
-extern int sha512_stream (FILE *stream, void *resblock);
-extern int sha384_stream (FILE *stream, void *resblock);
-
 /* Compute SHA512 (SHA384) message digest for LEN bytes beginning at BUFFER.  The
    result is always in little endian byte order, so that a byte-wise
    output yields to the wanted ASCII representation of the message
    digest.  */
 extern void *sha512_buffer (const char *buffer, size_t len, void *resblock);
 extern void *sha384_buffer (const char *buffer, size_t len, void *resblock);
+
+# endif
+/* Compute SHA512 (SHA384) message digest for bytes read from STREAM.  The
+   resulting message digest number will be written into the 64 (48) bytes
+   beginning at RESBLOCK.  */
+extern int sha512_stream (FILE *stream, void *resblock);
+extern int sha384_stream (FILE *stream, void *resblock);
+
 
 # ifdef __cplusplus
 }

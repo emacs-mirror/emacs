@@ -1,10 +1,10 @@
-;;; gomoku.el --- Gomoku game between you and Emacs
+;;; gomoku.el --- Gomoku game between you and Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1988, 1994, 1996, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1988, 1994, 1996, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Adapted-By: ESR, Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: games
 
@@ -176,14 +176,9 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
     ("[-|/\\]" 0 (if gomoku-emacs-won 'gomoku-O 'gomoku-X)))
   "Font lock rules for Gomoku.")
 
-(put 'gomoku-mode 'front-sticky
-     (put 'gomoku-mode 'rear-nonsticky '(intangible)))
-(put 'gomoku-mode 'intangible 1)
 ;; This one is for when they set view-read-only to t: Gomoku cannot
 ;; allow View Mode to be activated in its buffer.
-(put 'gomoku-mode 'mode-class 'special)
-
-(define-derived-mode gomoku-mode nil "Gomoku"
+(define-derived-mode gomoku-mode special-mode "Gomoku"
   "Major mode for playing Gomoku against Emacs.
 You and Emacs play in turn by marking a free square.  You mark it with X
 and Emacs marks it with O.  The winner is the first to get five contiguous
@@ -196,7 +191,8 @@ Other useful commands:\n
   (gomoku-display-statistics)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(gomoku-font-lock-keywords t)
-	buffer-read-only t))
+	buffer-read-only t)
+  (add-hook 'post-command-hook #'gomoku--intangible nil t))
 
 ;;;
 ;;; THE BOARD.
@@ -836,8 +832,7 @@ Use \\[describe-mode] for more info."
 	(min (max (/ (+ (- (cdr click)
 			   gomoku-y-offset
 			   1)
-			(let ((inhibit-point-motion-hooks t))
-			  (count-lines 1 (window-start)))
+                        (count-lines (point-min) (window-start))
 			gomoku-square-height
 			(% gomoku-square-height 2)
 			(/ gomoku-square-height 2))
@@ -948,29 +943,28 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-max-width ()
   "Largest possible board width for the current window."
-  (1+ (/ (- (window-width (selected-window))
+  (1+ (/ (- (window-width)
 	    gomoku-x-offset gomoku-x-offset 1)
 	 gomoku-square-width)))
 
 (defun gomoku-max-height ()
   "Largest possible board height for the current window."
-  (1+ (/ (- (window-height (selected-window))
+  (1+ (/ (- (window-height)
 	    gomoku-y-offset gomoku-y-offset 2)
 	 ;; 2 instead of 1 because WINDOW-HEIGHT includes the mode line !
 	 gomoku-square-height)))
 
 (defun gomoku-point-y ()
   "Return the board row where point is."
-  (let ((inhibit-point-motion-hooks t))
-    (1+ (/ (- (count-lines 1 (point)) gomoku-y-offset (if (bolp) 0 1))
-	   gomoku-square-height))))
+  (1+ (/ (- (count-lines (point-min) (point))
+            gomoku-y-offset (if (bolp) 0 1))
+         gomoku-square-height)))
 
 (defun gomoku-point-square ()
   "Return the index of the square point is on."
-  (let ((inhibit-point-motion-hooks t))
-    (gomoku-xy-to-index (1+ (/ (- (current-column) gomoku-x-offset)
-			       gomoku-square-width))
-			(gomoku-point-y))))
+  (gomoku-xy-to-index (1+ (/ (- (current-column) gomoku-x-offset)
+                             gomoku-square-width))
+                      (gomoku-point-y)))
 
 (defun gomoku-goto-square (index)
   "Move point to square number INDEX."
@@ -978,20 +972,18 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-goto-xy (x y)
   "Move point to square at X, Y coords."
-  (let ((inhibit-point-motion-hooks t))
-    (goto-char (point-min))
-    (forward-line (+ gomoku-y-offset (* gomoku-square-height (1- y)))))
+  (goto-char (point-min))
+  (forward-line (+ gomoku-y-offset (* gomoku-square-height (1- y))))
   (move-to-column (+ gomoku-x-offset (* gomoku-square-width (1- x)))))
 
 (defun gomoku-plot-square (square value)
   "Draw 'X', 'O' or '.' on SQUARE depending on VALUE, leave point there."
   (or (= value 1)
       (gomoku-goto-square square))
-  (let ((inhibit-read-only t)
-	(inhibit-point-motion-hooks t))
-    (insert-and-inherit (cond ((= value 1) ?X)
-			      ((= value 6) ?O)
-			      (?.)))
+  (let ((inhibit-read-only t))
+    (insert (cond ((= value 1) ?X)
+                  ((= value 6) ?O)
+                  (?.)))
     (and (zerop value)
 	 (add-text-properties
 	  (1- (point)) (point)
@@ -1004,8 +996,7 @@ If the game is finished, this command requests for another game."
   "Display an N by M Gomoku board."
   (buffer-disable-undo (current-buffer))
   (let ((inhibit-read-only t)
-	(point 1) opoint
-	(intangible t)
+	(point (point-min)) opoint
 	(i m) j x)
     ;; Try to minimize number of chars (because of text properties)
     (setq tab-width
@@ -1014,17 +1005,15 @@ If the game is finished, this command requests for another game."
 	    (max (/ (+ (% gomoku-x-offset gomoku-square-width)
 		       gomoku-square-width 1) 2) 2)))
     (erase-buffer)
-    (newline gomoku-y-offset)
+    (insert-char ?\n gomoku-y-offset)
     (while (progn
 	     (setq j n
 		   x (- gomoku-x-offset gomoku-square-width))
 	     (while (>= (setq j (1- j)) 0)
-	       (insert-char ?\t (/ (- (setq x (+ x gomoku-square-width))
-				      (current-column))
-				   tab-width))
-	       (insert-char ?  (- x (current-column)))
-	       (if (setq intangible (not intangible))
-		   (put-text-property point (point) 'intangible 2))
+               (insert-char ?\t (/ (- (setq x (+ x gomoku-square-width))
+                                      (current-column))
+                                   tab-width))
+               (insert-char ?\s (- x (current-column)))
 	       (and (zerop j)
 		    (= i (- m 2))
 		    (progn
@@ -1042,16 +1031,9 @@ If the game is finished, this command requests for another game."
       (if (= i (1- m))
 	  (setq opoint point))
       (insert-char ?\n gomoku-square-height))
-    (or (eq (char-after 1) ?.)
-	(put-text-property 1 2 'point-entered
-			   (lambda (_x _y) (if (bobp) (forward-char)))))
-    (or intangible
-	(put-text-property point (point) 'intangible 2))
-    (put-text-property point (point) 'point-entered
-		       (lambda (_x _y) (if (eobp) (backward-char))))
-    (put-text-property (point-min) (point) 'category 'gomoku-mode))
+    (insert-char ?\n))
   (gomoku-goto-xy (/ (1+ n) 2) (/ (1+ m) 2)) ; center of the board
-  (sit-for 0))				; Display NOW
+  (sit-for 0))                               ; Display NOW
 
 (defun gomoku-display-statistics ()
   "Obnoxiously display some statistics about previous games in mode line."
@@ -1114,8 +1096,7 @@ If the game is finished, this command requests for another game."
   "Cross every square between SQUARE1 and SQUARE2 in the DX, DY direction."
   (save-excursion			; Not moving point from last square
     (let ((depl (gomoku-xy-to-index dx dy))
-	  (inhibit-read-only t)
-	  (inhibit-point-motion-hooks t))
+	  (inhibit-read-only t))
       ;; WARNING: this function assumes DEPL > 0 and SQUARE2 > SQUARE1
       (while (/= square1 square2)
 	(gomoku-goto-square square1)
@@ -1134,36 +1115,57 @@ If the game is finished, this command requests for another game."
 	       (setq n (1+ n))
 	       (forward-line 1)
 	       (indent-to column)
-	       (insert-and-inherit ?|))))
+	       (insert ?|))))
 	  ((= dx -1)			; 1st Diagonal
 	   (indent-to (prog1 (- (current-column) (/ gomoku-square-width 2))
 			(forward-line (/ gomoku-square-height 2))))
-	   (insert-and-inherit ?/))
+	   (insert ?/))
 	  (t				; 2nd Diagonal
 	   (indent-to (prog1 (+ (current-column) (/ gomoku-square-width 2))
 			(forward-line (/ gomoku-square-height 2))))
-	   (insert-and-inherit ?\\))))))
+	   (insert ?\\))))))
   (sit-for 0))				; Display NOW
 
 ;;;
 ;;; CURSOR MOTION.
 ;;;
+
+(defvar-local gomoku--last-pos 0)
+
+(defconst gomoku--intangible-chars "- \t\n|/\\\\")
+
+(defun gomoku--intangible ()
+  (when (or (eobp)
+            (save-excursion
+              (not (zerop (skip-chars-forward gomoku--intangible-chars)))))
+    (if (<= gomoku--last-pos (point))   ;Moving forward.
+        (progn
+          (skip-chars-forward gomoku--intangible-chars)
+          (when (eobp)
+            (skip-chars-backward gomoku--intangible-chars)
+            (forward-char -1)))
+      (skip-chars-backward gomoku--intangible-chars)
+      (if (bobp)
+          (skip-chars-forward gomoku--intangible-chars)
+        (forward-char -1))))
+  (setq gomoku--last-pos (point)))
+
 ;; previous-line and next-line don't work right with intangible newlines
 (defun gomoku-move-down ()
   "Move point down one row on the Gomoku board."
   (interactive)
-  (if (< (gomoku-point-y) gomoku-board-height)
-      (let ((column (current-column)))
-	(forward-line gomoku-square-height)
-	(move-to-column column))))
+  (when (< (gomoku-point-y) gomoku-board-height)
+    (let ((column (current-column)))
+      (forward-line gomoku-square-height)
+      (move-to-column column))))
 
 (defun gomoku-move-up ()
   "Move point up one row on the Gomoku board."
   (interactive)
-  (if (> (gomoku-point-y) 1)
-      (let ((column (current-column)))
-	(forward-line (- 1 gomoku-square-height))
-	(move-to-column column))))
+  (when (> (gomoku-point-y) 1)
+    (let ((column (current-column)))
+      (forward-line (- gomoku-square-height))
+      (move-to-column column))))
 
 (defun gomoku-move-ne ()
   "Move point North East on the Gomoku board."

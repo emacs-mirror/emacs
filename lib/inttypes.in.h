@@ -1,4 +1,4 @@
-/* Copyright (C) 2006-2013 Free Software Foundation, Inc.
+/* Copyright (C) 2006-2014 Free Software Foundation, Inc.
    Written by Paul Eggert, Bruno Haible, Derek Price.
    This file is part of gnulib.
 
@@ -1105,12 +1105,22 @@ _GL_WARN_ON_USE (strtoimax, "strtoimax is unportable - "
 #endif
 
 #if @GNULIB_STRTOUMAX@
-# if !@HAVE_DECL_STRTOUMAX@
-#  undef strtoumax
+# if @REPLACE_STRTOUMAX@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef strtoumax
+#   define strtoumax rpl_strtoumax
+#  endif
+_GL_FUNCDECL_RPL (strtoumax, uintmax_t,
+                  (const char *, char **, int) _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL (strtoumax, uintmax_t, (const char *, char **, int));
+# else
+#  if !@HAVE_DECL_STRTOUMAX@
+#   undef strtoumax
 _GL_FUNCDECL_SYS (strtoumax, uintmax_t,
                   (const char *, char **, int) _GL_ARG_NONNULL ((1)));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (strtoumax, uintmax_t, (const char *, char **, int));
+# endif
 _GL_CXXALIASWARN (strtoumax);
 #elif defined GNULIB_POSIXCHECK
 # undef strtoumax

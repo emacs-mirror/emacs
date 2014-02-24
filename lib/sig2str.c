@@ -1,6 +1,6 @@
 /* sig2str.c -- convert between signal names and numbers
 
-   Copyright (C) 2002, 2004, 2006, 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2004, 2006, 2009-2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -325,21 +325,25 @@ sig2str (int signum, char *signame)
   {
     int rtmin = SIGRTMIN;
     int rtmax = SIGRTMAX;
+    int base, delta;
 
     if (! (rtmin <= signum && signum <= rtmax))
       return -1;
 
     if (signum <= rtmin + (rtmax - rtmin) / 2)
       {
-        int delta = signum - rtmin;
-        sprintf (signame, delta ? "RTMIN+%d" : "RTMIN", delta);
+        strcpy (signame, "RTMIN");
+        base = rtmin;
       }
     else
       {
-        int delta = rtmax - signum;
-        sprintf (signame, delta ? "RTMAX-%d" : "RTMAX", delta);
+        strcpy (signame, "RTMAX");
+        base = rtmax;
       }
 
+    delta = signum - base;
+    if (delta != 0)
+      sprintf (signame + 5, "%+d", delta);
     return 0;
   }
 }

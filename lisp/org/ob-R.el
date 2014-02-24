@@ -1,6 +1,6 @@
 ;;; ob-R.el --- org-babel functions for R code evaluation
 
-;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;;	Dan Davison
@@ -28,9 +28,6 @@
 
 ;;; Code:
 (require 'ob)
-(require 'ob-ref)
-(require 'ob-comint)
-(require 'ob-eval)
 (eval-when-compile (require 'cl))
 
 (declare-function orgtbl-to-tsv "org-table" (table params))
@@ -88,16 +85,22 @@
 	 (or graphics-file (org-babel-R-graphical-output-file params))))
     (mapconcat
      #'identity
-     ((lambda (inside)
-	(if graphics-file
-	    (append
-	     (list (org-babel-R-construct-graphics-device-call
-		    graphics-file params))
-	     inside
-	     (list "dev.off()"))
-	  inside))
-      (append (org-babel-variable-assignments:R params)
-	      (list body))) "\n")))
+     (let ((inside
+            (append
+             (when (cdr (assoc :prologue params))
+               (list (cdr (assoc :prologue params))))
+             (org-babel-variable-assignments:R params)
+             (list body)
+             (when (cdr (assoc :epilogue params))
+               (list (cdr (assoc :epilogue params)))))))
+       (if graphics-file
+           (append
+            (list (org-babel-R-construct-graphics-device-call
+                   graphics-file params))
+            inside
+            (list "dev.off()"))
+         inside))
+     "\n")))
 
 (defun org-babel-execute:R (body params)
   "Execute a block of R code.
@@ -212,6 +215,9 @@ This function is called by `org-babel-execute-src-block'."
       (if (org-babel-comint-buffer-livep session)
 	  session
 	(save-window-excursion
+	  (when (get-buffer session)
+	    ;; Session buffer exists, but with dead process
+	    (set-buffer session))
 	  (require 'ess) (R)
 	  (rename-buffer
 	   (if (bufferp session)
@@ -234,31 +240,40 @@ current code buffer."
   (and (member "graphics" (cdr (assq :result-params params)))
        (cdr (assq :file params))))
 
+(defvar org-babel-R-graphics-devices
+  '((:bmp "bmp" "filename")
+    (:jpg "jpeg" "filename")
+    (:jpeg "jpeg" "filename")
+    (:tikz "tikz" "file")
+    (:tiff "tiff" "filename")
+    (:png "png" "filename")
+    (:svg "svg" "file")
+    (:pdf "pdf" "file")
+    (:ps "postscript" "file")
+    (:postscript "postscript" "file"))
+  "An alist mapping graphics file types to R functions.
+
+Each member of this list is a list with three members:
+1. the file extension of the graphics file, as an elisp :keyword
+2. the R graphics device function to call to generate such a file
+3. the name of the argument to this function which specifies the
+   file to write to (typically \"file\" or \"filename\")")
+
 (defun org-babel-R-construct-graphics-device-call (out-file params)
   "Construct the call to the graphics device."
-  (let ((devices
-	 '((:bmp . "bmp")
-	   (:jpg . "jpeg")
-	   (:jpeg . "jpeg")
-	   (:tex . "tikz")
-	   (:tiff . "tiff")
-	   (:png . "png")
-	   (:svg . "svg")
-	   (:pdf . "pdf")
-	   (:ps . "postscript")
-	   (:postscript . "postscript")))
-	(allowed-args '(:width :height :bg :units :pointsize
-			       :antialias :quality :compression :res
-			       :type :family :title :fonts :version
-			       :paper :encoding :pagecentre :colormodel
-			       :useDingbats :horizontal))
-	(device (and (string-match ".+\\.\\([^.]+\\)" out-file)
-		     (match-string 1 out-file)))
-	(extra-args (cdr (assq :R-dev-args params))) filearg args)
-    (setq device (or (and device (cdr (assq (intern (concat ":" device))
-					    devices))) "png"))
-    (setq filearg
-	  (if (member device '("pdf" "postscript" "svg" "tikz")) "file" "filename"))
+  (let* ((allowed-args '(:width :height :bg :units :pointsize
+				:antialias :quality :compression :res
+				:type :family :title :fonts :version
+				:paper :encoding :pagecentre :colormodel
+				:useDingbats :horizontal))
+	 (device (and (string-match ".+\\.\\([^.]+\\)" out-file)
+		      (match-string 1 out-file)))
+	 (device-info (or (assq (intern (concat ":" device))
+				org-babel-R-graphics-devices)
+                          (assq :png org-babel-R-graphics-devices)))
+        (extra-args (cdr (assq :R-dev-args params))) filearg args)
+    (setq device (nth 1 device-info))
+    (setq filearg (nth 2 device-info))
     (setq args (mapconcat
 		(lambda (pair)
 		  (if (member (car pair) allowed-args)
@@ -302,14 +317,15 @@ last statement in BODY, as elisp."
 			       (format "{function ()\n{\n%s\n}}()" body)
 			       (org-babel-process-file-name tmp-file 'noquote)))
        (org-babel-R-process-value-result
-	(if (or (member "scalar" result-params)
-		(member "verbatim" result-params))
-	    (with-temp-buffer
-	      (insert-file-contents tmp-file)
-	      (buffer-string))
+	(org-babel-result-cond result-params
+	  (with-temp-buffer
+	    (insert-file-contents tmp-file)
+	    (buffer-string))
 	  (org-babel-import-elisp-from-file tmp-file '(16)))
 	column-names-p)))
     (output (org-babel-eval org-babel-R-command body))))
+
+(defvar ess-eval-visibly-p)
 
 (defun org-babel-R-evaluate-session
   (session body result-type result-params column-names-p row-names-p)
@@ -335,11 +351,10 @@ last statement in BODY, as elisp."
 		  "FALSE")
 		".Last.value" (org-babel-process-file-name tmp-file 'noquote)))
        (org-babel-R-process-value-result
-	(if (or (member "scalar" result-params)
-		(member "verbatim" result-params))
-	    (with-temp-buffer
-	      (insert-file-contents tmp-file)
-	      (buffer-string))
+	(org-babel-result-cond result-params
+	  (with-temp-buffer
+	    (insert-file-contents tmp-file)
+	    (buffer-string))
 	  (org-babel-import-elisp-from-file tmp-file '(16)))
 	column-names-p)))
     (output

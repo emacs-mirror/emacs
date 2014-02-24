@@ -1,6 +1,6 @@
 ;;; xt-mouse.el --- support the mouse when emacs run in an xterm
 
-;; Copyright (C) 1994, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: mouse, terminals
@@ -135,20 +135,6 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 		      (terminal-parameter nil 'xterm-mouse-y))))
   pos)
 
-;; Read XTerm sequences above ASCII 127 (#x7f)
-(defun xterm-mouse-event-read ()
-  ;; We get the characters decoded by the keyboard coding system.  Try
-  ;; to recover the raw character.
-  (let ((c (read-event)))
-    (cond ;; If meta-flag is t we get a meta character
-	  ((>= c ?\M-\^@)
-	   (- c (- ?\M-\^@ 128)))
-	  ;; Reencode the character in the keyboard coding system, if
-	  ;; this is a non-ASCII character.
-	  ((>= c #x80)
-	   (aref (encode-coding-string (string c) (keyboard-coding-system)) 0))
-	  (t c))))
-
 (defun xterm-mouse-truncate-wrap (f)
   "Truncate with wrap-around."
   (condition-case nil
@@ -167,7 +153,7 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 ;; Normal terminal mouse click reporting: expect three bytes, of the
 ;; form <BUTTON+32> <X+32> <Y+32>.  Return a list (EVENT-TYPE X Y).
 (defun xterm-mouse--read-event-sequence-1000 ()
-  (list (let ((code (- (xterm-mouse-event-read) 32)))
+  (list (let ((code (- (read-event) 32)))
 	  (intern
 	   ;; For buttons > 3, the release-event looks differently
 	   ;; (see xc/programs/xterm/button.c, function EditorButton),
@@ -188,19 +174,19 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 		  (setq xterm-mouse-last code)
 		  (format "down-mouse-%d" (+ 1 code))))))
 	;; x and y coordinates
-	(- (xterm-mouse-event-read) 33)
-	(- (xterm-mouse-event-read) 33)))
+	(- (read-event) 33)
+	(- (read-event) 33)))
 
 ;; XTerm's 1006-mode terminal mouse click reporting has the form
 ;; <BUTTON> ; <X> ; <Y> <M or m>, where the button and ordinates are
 ;; in encoded (decimal) form.  Return a list (EVENT-TYPE X Y).
 (defun xterm-mouse--read-event-sequence-1006 ()
   (let (button-bytes x-bytes y-bytes c)
-    (while (not (eq (setq c (xterm-mouse-event-read)) ?\;))
+    (while (not (eq (setq c (read-event)) ?\;))
       (push c button-bytes))
-    (while (not (eq (setq c (xterm-mouse-event-read)) ?\;))
+    (while (not (eq (setq c (read-event)) ?\;))
       (push c x-bytes))
-    (while (not (memq (setq c (xterm-mouse-event-read)) '(?m ?M)))
+    (while (not (memq (setq c (read-event)) '(?m ?M)))
       (push c y-bytes))
     (list (let* ((code (string-to-number
 			(apply 'string (nreverse button-bytes))))

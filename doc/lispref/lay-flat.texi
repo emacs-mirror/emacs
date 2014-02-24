@@ -1,12 +1,13 @@
 \input texinfo    @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2001-2013 Free Software Foundation, Inc.
+@c Copyright (C) 2001-2014 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @c
 @comment %**start of header
 @setfilename inner-covers.info
 @settitle Inner Covers
 @smallbook
+@documentencoding UTF-8
 @comment %**end of header
 
 @headings off

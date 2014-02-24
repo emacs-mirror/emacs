@@ -1,11 +1,10 @@
 ;;; idlw-help.el --- HTML Help code for IDLWAVE
 
-;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 ;;
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
-;; Version: 6.1.22
 ;; Package: idlwave
 
 ;; This file is part of GNU Emacs.
@@ -90,16 +89,15 @@ Defaults to `browse-url-browser-function', which see."
 (defcustom idlwave-help-browser-generic-program browse-url-generic-program
   "Program to run if using `browse-url-generic-program'."
   :group 'idlwave-online-help
-  :type 'string)
+  :type '(choice (const nil) string))
 
-(defvar browse-url-generic-args)
-
+;; AFAICS, never used since it was introduced in 2004.
 (defcustom idlwave-help-browser-generic-args
   (if (boundp 'browse-url-generic-args)
       browse-url-generic-args "")
   "Program args to use if using `browse-url-generic-program'."
   :group 'idlwave-online-help
-  :type 'string)
+  :type '(repeat string))
 
 (defcustom idlwave-help-browser-is-local nil
   "Whether the browser will display locally in an Emacs window.
@@ -1179,7 +1177,7 @@ Useful when source code is displayed as help.  See the option
   (if (featurep 'font-lock)
       (let ((major-mode 'idlwave-mode)
 	    (font-lock-verbose
-	     (if (interactive-p) font-lock-verbose nil))
+	     (if (called-interactively-p 'interactive) font-lock-verbose nil))
 	    (syntax-table (syntax-table)))
 	(unwind-protect
 	    (progn

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Loading
@@ -28,6 +28,8 @@ loadable file; any form in a file may equally well be typed directly
 into a buffer and evaluated there.  (Indeed, most code is tested this
 way.)  Most often, the forms are function definitions and variable
 definitions.
+
+For on-demand loading of external libraries, @pxref{Dynamic Libraries}.
 
 @menu
 * How Programs Do Loading:: The @code{load} function and others.
@@ -90,6 +92,10 @@ If the optional argument @var{must-suffix} is non-@code{nil}, then
 @code{load} insists that the file name used must end in either
 @samp{.el} or @samp{.elc} (possibly extended with a compression
 suffix), unless it contains an explicit directory name.
+
+If the option @code{load-prefer-newer} is non-@code{nil}, then when
+searching suffixes, @code{load} selects whichever version of a file
+(@samp{.elc}, @samp{.el}, etc.) has been modified most recently.
 
 If @var{filename} is a relative file name, such as @file{foo} or
 @file{baz/foo.bar}, @code{load} searches for the file using the variable
@@ -244,6 +250,12 @@ value of @code{(get-load-suffixes)} and then those in
 it skips the former group, and if @var{must-suffix} is non-@code{nil},
 it skips the latter group.
 
+@defopt load-prefer-newer
+If this option is non-@code{nil}, then rather than stopping at the
+first suffix that exists, @code{load} tests them all, and uses
+whichever file is the newest.
+@end defopt
+
 @node Library Search
 @section Library Search
 @cindex library search
@@ -253,37 +265,41 @@ it skips the latter group.
 in a list of directories specified by the variable @code{load-path}.
 
 @defvar load-path
-@cindex @env{EMACSLOADPATH} environment variable
 The value of this variable is a list of directories to search when
 loading files with @code{load}.  Each element is a string (which must be
 a directory name) or @code{nil} (which stands for the current working
 directory).
 @end defvar
 
-  Each time Emacs starts up, it sets up the value of @code{load-path}
-in several steps.  First, it initializes @code{load-path} to the
-directories specified by the environment variable @env{EMACSLOADPATH},
-if that exists.  The syntax of @env{EMACSLOADPATH} is the same as used
-for @code{PATH}; directory names are separated by @samp{:} (or
-@samp{;}, on some operating systems), and @samp{.} stands for the
-current default directory.  Here is an example of how to set
-@env{EMACSLOADPATH} variable from @command{sh}:
+  When Emacs starts up, it sets up the value of @code{load-path}
+in several steps.  First, it initializes @code{load-path} using
+default locations set when Emacs was compiled.  Normally, this
+is a directory something like
 
 @example
-export EMACSLOADPATH
-EMACSLOADPATH=/home/foo/.emacs.d/lisp:/opt/emacs/lisp
+"/usr/local/share/emacs/@var{version}/lisp"
 @end example
 
-@noindent
-Here is how to set it from @code{csh}:
+(In this and the following examples, replace @file{/usr/local} with
+the installation prefix appropriate for your Emacs.)
+These directories contain the standard Lisp files that come with
+Emacs.  If Emacs cannot find them, it will not start correctly.
 
-@example
-setenv EMACSLOADPATH /home/foo/.emacs.d/lisp:/opt/emacs/lisp
-@end example
+If you run Emacs from the directory where it was built---that is, an
+executable that has not been formally installed---Emacs instead
+initializes @code{load-path} using the @file{lisp}
+directory in the directory containing the sources from which it
+was built.
+@c Though there should be no *.el files in builddir/lisp, so it's pointless.
+If you built Emacs in a separate directory from the
+sources, it also adds the lisp directories from the build directory.
+(In all cases, elements are represented as absolute file names.)
 
 @cindex site-lisp directories
-  If @env{EMACSLOADPATH} is not set (which is usually the case), Emacs
-initializes @code{load-path} with the following two directories:
+Unless you start Emacs with the @option{--no-site-lisp} option,
+it then adds two more @file{site-lisp} directories to the front of
+@code{load-path}.  These are intended for locally installed Lisp files,
+and are normally of the form:
 
 @example
 "/usr/local/share/emacs/@var{version}/site-lisp"
@@ -297,26 +313,54 @@ and
 @end example
 
 @noindent
-The first one is for locally installed packages for a particular Emacs
-version; the second is for locally installed packages meant for use
-with all installed Emacs versions.
+The first one is for locally installed files for a specific Emacs
+version; the second is for locally installed files meant for use
+with all installed Emacs versions.  (If Emacs is running uninstalled,
+it also adds @file{site-lisp} directories from the source and build
+directories, if they exist.  Normally these directories do not contain
+@file{site-lisp} directories.)
 
-  If you run Emacs from the directory where it was built---that is, an
-executable that has not been formally installed---Emacs puts two more
-directories in @code{load-path}.  These are the @code{lisp} and
-@code{site-lisp} subdirectories of the main build directory.  (Both
-are represented as absolute file names.)
+@cindex @env{EMACSLOADPATH} environment variable
+If the environment variable @env{EMACSLOADPATH} is set, it modifies
+the above initialization procedure.  Emacs initializes
+@code{load-path} based on the value of the environment variable.
 
-  Next, Emacs ``expands'' the initial list of directories in
-@code{load-path} by adding the subdirectories of those directories.
-Both immediate subdirectories and subdirectories multiple levels down
-are added.  But it excludes subdirectories whose names do not start
-with a letter or digit, and subdirectories named @file{RCS} or
-@file{CVS}, and subdirectories containing a file named
-@file{.nosearch}.
+The syntax of @env{EMACSLOADPATH} is the same as used for @code{PATH};
+directory names are separated by @samp{:} (or @samp{;}, on some
+operating systems).
+@ignore
+@c AFAICS, does not (yet) work right to specify non-absolute elements.
+and @samp{.} stands for the current default directory.
+@end ignore
+Here is an example of how to set @env{EMACSLOADPATH} variable (from a
+@command{sh}-style shell):
 
-  Next, Emacs adds any extra load directory that you specify using the
-@samp{-L} command-line option (@pxref{Action Arguments,,,emacs, The
+@example
+export EMACSLOADPATH=/home/foo/.emacs.d/lisp:
+@end example
+
+An empty element in the value of the environment variable, whether
+trailing (as in the above example), leading, or embedded, is replaced
+by the default value of @code{load-path} as determined by the standard
+initialization procedure.  If there are no such empty elements, then
+@env{EMACSLOADPATH} specifies the entire @code{load-path}.  You must
+include either an empty element, or the explicit path to the directory
+containing the standard Lisp files, else Emacs will not function.
+(Another way to modify @code{load-path} is to use the @option{-L}
+command-line option when starting Emacs; see below.)
+
+  For each directory in @code{load-path}, Emacs then checks to see if
+it contains a file @file{subdirs.el}, and if so, loads it.  The
+@file{subdirs.el} file is created when Emacs is built/installed,
+and contains code that causes Emacs to add any subdirectories of those
+directories to @code{load-path}.  Both immediate subdirectories and
+subdirectories multiple levels down are added.  But it excludes
+subdirectories whose names do not start with a letter or digit, and
+subdirectories named @file{RCS} or @file{CVS}, and subdirectories
+containing a file named @file{.nosearch}.
+
+  Next, Emacs adds any extra load directories that you specify using the
+@option{-L} command-line option (@pxref{Action Arguments,,,emacs, The
 GNU Emacs Manual}).  It also adds the directories where optional
 packages are installed, if any (@pxref{Packaging Basics}).
 
@@ -327,12 +371,10 @@ add one or more directories to @code{load-path}.  For example:
 (push "~/.emacs.d/lisp" load-path)
 @end example
 
-  Dumping Emacs uses a special value of @code{load-path}.  If the
-value of @code{load-path} at the end of dumping is unchanged (that is,
-still the same special value), the dumped Emacs switches to the
-ordinary @code{load-path} value when it starts up, as described above.
-But if @code{load-path} has any other value at the end of dumping,
-that value is used for execution of the dumped Emacs also.
+  Dumping Emacs uses a special value of @code{load-path}.  If you use
+a @file{site-load.el} or @file{site-init.el} file to customize the
+dumped Emacs (@pxref{Building Emacs}), any changes to @code{load-path}
+that these files make will be lost after dumping.
 
 @deffn Command locate-library library &optional nosuffix path interactive-call
 This command finds the precise file name for library @var{library}.  It
@@ -461,7 +503,7 @@ and calls @code{define-key}; not even if the variable name is the same
 symbol @var{function}.
 
 @cindex function cell in autoload
-if @var{function} already has non-void function definition that is not
+If @var{function} already has a non-void function definition that is not
 an autoload object, this function does nothing and returns @code{nil}.
 Otherwise, it constructs an autoload object (@pxref{Autoload Type}),
 and stores it as the function definition for @var{function}.  The
@@ -483,7 +525,7 @@ For example,
 @noindent
 In this case, @code{"prolog"} is the name of the file to load, 169681
 refers to the documentation string in the
-@file{emacs/etc/DOC-@var{version}} file (@pxref{Documentation Basics}),
+@file{emacs/etc/DOC} file (@pxref{Documentation Basics}),
 @code{t} means the function is interactive, and @code{nil} that it is
 not a macro or a keymap.
 @end defun
@@ -990,19 +1032,18 @@ file that was just loaded.
 @end defvar
 
 If you want code to be executed when a @emph{particular} library is
-loaded, use the function @code{eval-after-load}:
+loaded, use the macro @code{with-eval-after-load}:
 
-@defun eval-after-load library form
-This function arranges to evaluate @var{form} at the end of loading
+@defmac with-eval-after-load library body@dots{}
+This macro arranges to evaluate @var{body} at the end of loading
 the file @var{library}, each time @var{library} is loaded.  If
-@var{library} is already loaded, it evaluates @var{form} right away.
-Don't forget to quote @var{form}!
+@var{library} is already loaded, it evaluates @var{body} right away.
 
 You don't need to give a directory or extension in the file name
 @var{library}.  Normally, you just give a bare file name, like this:
 
 @example
-(eval-after-load "edebug" '(def-edebug-spec c-point t))
+(with-eval-after-load "edebug" (def-edebug-spec c-point t))
 @end example
 
 To restrict which files can trigger the evaluation, include a
@@ -1014,16 +1055,16 @@ example, @file{my_inst.elc} or @file{my_inst.elc.gz} in some directory
 @file{my_inst.el}:
 
 @example
-(eval-after-load "foo/bar/my_inst.elc" @dots{})
+(with-eval-after-load "foo/bar/my_inst.elc" @dots{})
 @end example
 
 @var{library} can also be a feature (i.e., a symbol), in which case
-@var{form} is evaluated at the end of any file where
+@var{body} is evaluated at the end of any file where
 @code{(provide @var{library})} is called.
 
-An error in @var{form} does not undo the load, but does prevent
-execution of the rest of @var{form}.
-@end defun
+An error in @var{body} does not undo the load, but does prevent
+execution of the rest of @var{body}.
+@end defmac
 
 Normally, well-designed Lisp programs should not use
 @code{eval-after-load}.  If you need to examine and set the variables
@@ -1031,18 +1072,3 @@ defined in another library (those meant for outside use), you can do
 it immediately---there is no need to wait until the library is loaded.
 If you need to call functions defined by that library, you should load
 the library, preferably with @code{require} (@pxref{Named Features}).
-
-@defvar after-load-alist
-This variable stores an alist built by @code{eval-after-load},
-containing the expressions to evaluate when certain libraries are
-loaded.  Each element looks like this:
-
-@example
-(@var{regexp-or-feature} @var{forms}@dots{})
-@end example
-
-The key @var{regexp-or-feature} is either a regular expression or a
-symbol, and the value is a list of forms.  The forms are evaluated
-when the key matches the absolute true name or feature name of the
-library being loaded.
-@end defvar

@@ -1,5 +1,5 @@
 /* Flags and parameters describing terminal's characteristics.
-   Copyright (C) 1985-1986, 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,6 +16,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#include "dispextern.h"
+
 /* Each termcap frame points to its own struct tty_output object in
    the output_data.tty field.  The tty_output structure contains the
    information that is specific to termcap frames. */
@@ -27,6 +29,8 @@ struct tty_output
 
   /* There is nothing else here at the moment... */
 };
+
+enum { TERMCAP_BUFFER_SIZE = 4096 };
 
 /* Parameters that are shared between frames on the same tty device. */
 
@@ -50,7 +54,8 @@ struct tty_display_info
 
   struct emacs_tty *old_tty;    /* The initial tty mode bits */
 
-  unsigned term_initted : 1;    /* 1 if we have been through init_sys_modes. */
+  bool_bf term_initted : 1;	/* True if we have been through
+				   init_sys_modes. */
 
   int reference_count;          /* Number of frames that are on this display. */
 
@@ -73,13 +78,12 @@ struct tty_display_info
   Mouse_HLInfo mouse_highlight;
 
   /* Buffer used internally by termcap (see tgetent in the Termcap
-     manual).  Only init_tty and delete_tty should change this.  */
-  char *termcap_term_buffer;
+     manual).  Only init_tty should use this.  */
+  char termcap_term_buffer[TERMCAP_BUFFER_SIZE];
 
   /* Buffer storing terminal description strings (see tgetstr in the
-     Termcap manual).  Only init_tty and delete_tty should change
-     this.  */
-  char *termcap_strings_buffer;
+     Termcap manual).  Only init_tty should use this.  */
+  char termcap_strings_buffer[TERMCAP_BUFFER_SIZE];
 
   /* Strings, numbers and flags taken from the termcap entry.  */
 
@@ -163,12 +167,12 @@ struct tty_display_info
 
   int RPov;                     /* # chars to start a TS_repeat */
 
-  unsigned delete_in_insert_mode : 1;    /* delete mode == insert mode */
+  bool_bf delete_in_insert_mode : 1;    /* delete mode == insert mode */
 
-  unsigned costs_set : 1;       /* Nonzero if costs have been calculated. */
+  bool_bf costs_set : 1;	/* True if costs have been calculated. */
 
-  unsigned insert_mode : 1;     /* Nonzero when in insert mode.  */
-  unsigned standout_mode : 1;   /* Nonzero when in standout mode.  */
+  bool_bf insert_mode : 1;	/* True when in insert mode.  */
+  bool_bf standout_mode : 1;	/* True when in standout mode.  */
 
   /* 1 if should obey 0200 bit in input chars as "Meta", 2 if should
      keep 0200 bit in input chars.  0 to ignore the 0200 bit.  */
@@ -186,11 +190,33 @@ struct tty_display_info
 
   /* Flag used in tty_show/hide_cursor.  */
 
-  unsigned cursor_hidden : 1;
+  bool_bf cursor_hidden : 1;
 
-  /* Nonzero means use ^S/^Q for flow control.  */
+  /* True means use ^S/^Q for flow control.  */
 
-  unsigned flow_control : 1;
+  bool_bf flow_control : 1;
+
+  /* True means we are displaying a TTY menu on this tty.  */
+  bool_bf showing_menu : 1;
+
+  /* True means spaces in the text must actually be output;
+     can't just skip over some columns to leave them blank.  */
+  bool_bf must_write_spaces : 1;
+
+  /* True if TTY can insert and delete lines.  */
+  bool_bf line_ins_del_ok : 1;
+
+  /* True if TTY can insert and delete chars.  */
+  bool_bf char_ins_del_ok : 1;
+
+  /* True if TTY supports setting the scroll window.  */
+  bool_bf scroll_region_ok : 1;
+
+  /* True if TTY remembers lines scrolled off bottom.  */
+  bool_bf memory_below_frame : 1;
+
+  /* Cost of setting the scroll window, measured in characters.  */
+  int scroll_region_cost;
 };
 
 /* A chain of structures for all tty devices currently in use. */

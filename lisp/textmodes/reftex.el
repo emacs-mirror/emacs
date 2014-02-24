@@ -1,5 +1,5 @@
 ;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX
-;; Copyright (C) 1997-2000, 2003-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2000, 2003-2014 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -135,7 +135,9 @@
  "Make a citation using BibTeX database files." t)
 (autoload 'reftex-default-bibliography "reftex-cite")
 (autoload 'reftex-bib-or-thebib "reftex-cite")
-(autoload 'reftex-create-bibtex-file "reftex-cite")
+(autoload 'reftex-create-bibtex-file "reftex-cite"
+  "Create a new BibTeX database BIBFILE with all entries referenced in document."
+  t)
 
 ;; Selection
 (autoload 'reftex-select-label-mode "reftex-sel")
@@ -547,7 +549,7 @@ will deactivate it."
 	     (when (member style list)
 	       (setq reftex-tables-dirty t
 		     changed t)
-	       (delete style list)))
+	       (setq list (delete style list))))
 	    (t
 	     (if (member style list)
 		 (delete style list)
@@ -1081,13 +1083,7 @@ This enforces rescanning the buffer on next use."
            (wbol "\\(^\\)[ \t]*") ; Need to keep the empty group because
                                   ; match numbers are hard coded
            (label-re (concat "\\(?:"
-			     ;; Normal \label{...}
-			     "\\\\label{\\([^}]*\\)}"
-			     "\\|"
-			     ;; keyvals [..., label = {foo}, ...]
-			     ;; forms used by ctable, listings,
-			     ;; minted, ...
-			     "\\[[^]]*label[[:space:]]*=[[:space:]]*{?\\(?1:[^],}]+\\)}?"
+			     (mapconcat 'identity reftex-label-regexps "\\|")
 			     "\\)"))
            (include-re (concat wbol
                                "\\\\\\("
@@ -2261,6 +2257,8 @@ IGNORE-WORDS List of words which should be removed from the string."
   (unless (key-binding [(shift mouse-2)])
     (define-key reftex-mode-map [(shift mouse-2)]
       'reftex-mouse-view-crossref)))
+
+(defvar bibtex-mode-map)
 
 ;; Bind `reftex-view-crossref-from-bibtex' in BibTeX mode map
 (eval-after-load

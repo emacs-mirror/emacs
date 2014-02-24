@@ -1,6 +1,6 @@
 ;;; cc-vars.el --- user customization variables for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2014 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -42,23 +42,25 @@
 
 (cc-require 'cc-defs)
 
-;; Silence the compiler.
-(cc-bytecomp-defun get-char-table)	; XEmacs
-
 (cc-eval-when-compile
   (require 'custom)
   (require 'widget))
 
 ;;; Helpers
 
-;; This widget exists in newer versions of the Custom library
-(or (get 'other 'widget-type)
-    (define-widget 'other 'sexp
-      "Matches everything, but doesn't let the user edit the value.
+
+;; Emacs has 'other since at least version 21.1.
+;; FIXME this is probably broken, since the widget is defined
+;; in wid-edit, which this file does not load.  So we will always
+;; define the widget, even when we don't need to.
+(when (featurep 'xemacs)
+  (or (get 'other 'widget-type)
+      (define-widget 'other 'sexp
+	"Matches everything, but doesn't let the user edit the value.
 Useful as last item in a `choice' widget."
-      :tag "Other"
-      :format "%t%n"
-      :value 'other))
+	:tag "Other"
+	:format "%t%n"
+	:value 'other)))
 
 ;; The next defun will supersede c-const-symbol.
 (eval-and-compile
@@ -1622,27 +1624,6 @@ names)."))
 )
 (make-variable-buffer-local 'c-macro-with-semi-re)
 
-(defun c-make-macro-with-semi-re ()
-  ;; Convert `c-macro-names-with-semicolon' into the regexp
-  ;; `c-macro-with-semi-re' (or just copy it if it's already a re).
-  (setq c-macro-with-semi-re
-	(and
-	 c-opt-cpp-macro-define
-	 (cond
-	  ((stringp c-macro-names-with-semicolon)
-	   (copy-sequence c-macro-names-with-semicolon))
-	  ((consp c-macro-names-with-semicolon)
-	   (concat
-	    "\\<"
-	    (regexp-opt c-macro-names-with-semicolon)
-	    "\\>"))   ; N.B. the PAREN param of regexp-opt isn't supported by
-		      ; all XEmacsen.
-	  ((null c-macro-names-with-semicolon)
-	   nil)
-	  (t (error "c-make-macro-with-semi-re: invalid \
-c-macro-names-with-semicolon: %s"
-		    c-macro-names-with-semicolon))))))
-
 (defvar c-macro-names-with-semicolon
   '("Q_OBJECT" "Q_PROPERTY" "Q_DECLARE" "Q_ENUMS")
   "List of #defined symbols whose expansion ends with a semicolon.
@@ -1660,6 +1641,28 @@ variables.
 Note that currently \(2008-11-04) this variable is a prototype,
 and is likely to disappear or change its form soon.")
 (make-variable-buffer-local 'c-macro-names-with-semicolon)
+
+(defun c-make-macro-with-semi-re ()
+  ;; Convert `c-macro-names-with-semicolon' into the regexp
+  ;; `c-macro-with-semi-re' (or just copy it if it's already a re).
+  (setq c-macro-with-semi-re
+	(and
+	 (boundp 'c-opt-cpp-macro-define)
+	 c-opt-cpp-macro-define
+	 (cond
+	  ((stringp c-macro-names-with-semicolon)
+	   (copy-sequence c-macro-names-with-semicolon))
+	  ((consp c-macro-names-with-semicolon)
+	   (concat
+	    "\\<"
+	    (regexp-opt c-macro-names-with-semicolon)
+	    "\\>"))   ; N.B. the PAREN param of regexp-opt isn't supported by
+		      ; all XEmacsen.
+	  ((null c-macro-names-with-semicolon)
+	   nil)
+	  (t (error "c-make-macro-with-semi-re: invalid \
+c-macro-names-with-semicolon: %s"
+		    c-macro-names-with-semicolon))))))
 
 (defvar c-file-style nil
   "Variable interface for setting style via File Local Variables.

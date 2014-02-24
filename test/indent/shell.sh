@@ -5,6 +5,12 @@ setlock -n /tmp/getmail.lock && echo getmail isn\'t running
 
 # adsgsdg
 
+if foo; then
+    if bar; then
+	toto
+    fi
+fi                              # bug#15613
+
 case $X in
     foo)
         do_something
@@ -29,7 +35,7 @@ echo $[1<<8]                    # bug#11263
 declare -a VERSION
 for i in $(ls "$PREFIX/sbin") ; do
     echo -e $N')' $i
-    VERSION[${#VERSION[*]}]=$i         #bug#11946.
+    VERSION[${#VERSION[*]}]=$i  # bug#11946.
     N=$(($N + 1))
 done
 

@@ -1,6 +1,6 @@
 ;;; rng-nxml.el --- make nxml-mode take advantage of rng-validate-mode
 
-;; Copyright (C) 2003, 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, RelaxNG
@@ -380,9 +380,7 @@ set `xmltok-dtd'.  Returns the position of the end of the token."
 		(< rng-validate-up-to-date-end pos))
       ;; Display percentage validated.
       (force-mode-line-update)
-      ;; Force redisplay but don't allow idle timers to run.
-      (let ((timer-idle-list nil))
-	(sit-for 0)))
+      (sit-for 0))
     (message "Parsing...done"))
   (save-excursion
     (save-restriction

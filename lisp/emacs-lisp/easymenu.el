@@ -1,6 +1,6 @@
-;;; easymenu.el --- support the easymenu interface for defining a menu
+;;; easymenu.el --- support the easymenu interface for defining a menu  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1996, 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996, 1998-2014 Free Software Foundation, Inc.
 
 ;; Keywords: emulations
 ;; Author: Richard Stallman <rms@gnu.org>
@@ -218,21 +218,22 @@ MENU-NAME is a string, the name of the menu.  MENU-ITEMS is a list of items
 possibly preceded by keyword pairs as described in `easy-menu-define'."
   (let ((menu (make-sparse-keymap menu-name))
         (easy-menu-avoid-duplicate-keys nil)
-	prop keyword arg label enable filter visible help)
+	prop keyword label enable filter visible help)
     ;; Look for keywords.
     (while (and menu-items
 		(cdr menu-items)
 		(keywordp (setq keyword (car menu-items))))
-      (setq arg (cadr menu-items))
-      (setq menu-items (cddr menu-items))
-      (pcase keyword
-       (`:filter
-	(setq filter `(lambda (menu)
-			(easy-menu-filter-return (,arg menu) ,menu-name))))
-       ((or `:enable `:active) (setq enable (or arg ''nil)))
-       (`:label (setq label arg))
-       (`:help (setq help arg))
-       ((or `:included `:visible) (setq visible (or arg ''nil)))))
+      (let ((arg (cadr menu-items)))
+        (setq menu-items (cddr menu-items))
+        (pcase keyword
+          (`:filter
+           (setq filter (lambda (menu)
+                          (easy-menu-filter-return (funcall arg menu)
+                                                   menu-name))))
+          ((or `:enable `:active) (setq enable (or arg ''nil)))
+          (`:label (setq label arg))
+          (`:help (setq help arg))
+          ((or `:included `:visible) (setq visible (or arg ''nil))))))
     (if (equal visible ''nil)
 	nil				; Invisible menu entry, return nil.
       (if (and visible (not (easy-menu-always-true-p visible)))
@@ -496,7 +497,7 @@ Contrary to XEmacs, this is a nop on Emacs since menus are automatically
 
 \(fn MENU)")
 
-(defun easy-menu-add (menu &optional map)
+(defun easy-menu-add (_menu &optional _map)
   "Add the menu to the menubar.
 On Emacs, menus are already automatically activated when the
 corresponding keymap is activated.  On XEmacs this is needed to

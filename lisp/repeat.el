@@ -1,6 +1,6 @@
 ;;; repeat.el --- convenient way to repeat the previous command  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Will Mengarini <seldon@eskimo.com>
 ;; Created: Mo 02 Mar 98
@@ -109,9 +109,11 @@
 (defvar repeat-message-function nil
   "If non-nil, function used by `repeat' command to say what it's doing.
 Message is something like \"Repeating command glorp\".
-To disable such messages, set this variable to `ignore'.  To customize
-display, assign a function that takes one string as an arg and displays
-it however you want.")
+A value of `ignore' will disable such messages.  To customize
+display, assign a function that takes one string as an arg and
+displays it however you want.
+If this variable is nil, the normal `message' function will be
+used to display the messages.")
 
 (defcustom repeat-on-final-keystroke t
   "Allow `repeat' to re-execute for repeating lastchar of a key sequence.
@@ -278,7 +280,7 @@ recently executed command not bound to an input event\"."
               (execute-kbd-macro last-repeatable-command))
           (call-interactively last-repeatable-command))))
     (when repeat-repeat-char
-      (set-temporary-overlay-map
+      (set-transient-map
        (let ((map (make-sparse-keymap)))
          (define-key map (vector repeat-repeat-char)
            (if (null repeat-message-function) 'repeat

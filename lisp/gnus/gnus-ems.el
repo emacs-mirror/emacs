@@ -1,6 +1,6 @@
 ;;; gnus-ems.el --- functions for making Gnus work under different Emacsen
 
-;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -165,10 +165,10 @@
 
 (defun gnus-image-type-available-p (type)
   (and (fboundp 'image-type-available-p)
-       (image-type-available-p type)
        (if (fboundp 'display-images-p)
 	   (display-images-p)
-	 t)))
+	 t)
+       (image-type-available-p type)))
 
 (defun gnus-create-image (file &optional type data-p &rest props)
   (let ((face (plist-get props :face)))
@@ -221,8 +221,8 @@
         'window-inside-pixel-edges
       'window-pixel-edges))
 
-  (if (fboundp 'set-process-plist)
-      (progn
+  (if (or (featurep 'emacs) (fboundp 'set-process-plist))
+      (progn				; these exist since Emacs 22.1
 	(defalias 'gnus-set-process-plist 'set-process-plist)
 	(defalias 'gnus-process-plist 'process-plist)
 	(defalias 'gnus-process-get 'process-get)

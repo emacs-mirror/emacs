@@ -1,6 +1,6 @@
 ;;; url-future.el --- general futures facility for url.el
 
-;; Copyright (C) 2011-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2014 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 ;; Keywords: data
@@ -84,7 +84,9 @@
             (setf (url-future-value url-future)
                   (funcall ff))
           (error (url-future-errored url-future catcher)))
-        (url-future-value url-future)))
+        ;; Unused return value.
+;;;        (url-future-value url-future)
+        ))
     (if (url-future-errored-p url-future)
         url-future
       (url-future-finish url-future))))

@@ -1,5 +1,5 @@
-# serial 24
-dnl Copyright (C) 2002-2003, 2005-2007, 2009-2013 Free Software Foundation,
+# serial 25
+dnl Copyright (C) 2002-2003, 2005-2007, 2009-2014 Free Software Foundation,
 dnl Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -14,7 +14,7 @@ AC_DEFUN([gl_FUNC_MKTIME],
   dnl We don't use AC_FUNC_MKTIME any more, because it is no longer maintained
   dnl in Autoconf and because it invokes AC_LIBOBJ.
   AC_CHECK_HEADERS_ONCE([unistd.h])
-  AC_CHECK_FUNCS_ONCE([alarm])
+  AC_CHECK_DECLS_ONCE([alarm])
   AC_REQUIRE([gl_MULTIARCH])
   if test $APPLE_UNIVERSAL_BUILD = 1; then
     # A universal build on Apple Mac OS X platforms.
@@ -34,8 +34,8 @@ AC_DEFUN([gl_FUNC_MKTIME],
 # include <unistd.h>
 #endif
 
-#ifndef HAVE_ALARM
-# define alarm(X) /* empty */
+#if HAVE_DECL_ALARM
+# include <signal.h>
 #endif
 
 /* Work around redefinition to rpl_putenv by other config tests.  */
@@ -171,10 +171,13 @@ main ()
   int time_t_signed_magnitude = (time_t) ~ (time_t) 0 < (time_t) -1;
   int time_t_signed = ! ((time_t) 0 < (time_t) -1);
 
+#if HAVE_DECL_ALARM
   /* This test makes some buggy mktime implementations loop.
      Give up after 60 seconds; a mktime slower than that
      isn't worth using anyway.  */
+  signal (SIGALRM, SIG_DFL);
   alarm (60);
+#endif
 
   time_t_max = (! time_t_signed
                 ? (time_t) -1

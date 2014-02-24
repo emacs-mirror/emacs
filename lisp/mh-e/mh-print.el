@@ -1,6 +1,6 @@
 ;;; mh-print.el --- MH-E printing support
 
-;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2014 Free Software Foundation, Inc.
 
 ;; Author: Jeffrey C Honig <jch@honig.net>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -139,11 +139,11 @@ commands \\[mh-ps-print-toggle-color] and
   (interactive (list (mh-interactive-range "Print") (mh-ps-print-preprint 1)))
   (mh-ps-print-range range file))
 
-(defun mh-ps-print-preprint (prefix-arg)
+(defun mh-ps-print-preprint (arg)
   "Provide a better default file name for `ps-print-preprint'.
-Pass along the PREFIX-ARG to it."
+Pass along the prefix ARG to it."
   (let ((buffer-file-name (format "mh-%s" (substring (buffer-name) 1))))
-    (ps-print-preprint prefix-arg)))
+    (ps-print-preprint arg)))
 
 ;;;###mh-autoload
 (defun mh-ps-print-toggle-faces ()

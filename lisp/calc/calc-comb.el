@@ -1,6 +1,6 @@
 ;;; calc-comb.el --- combinatoric functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -815,8 +815,14 @@
 			 (list nil v)
 		       '(t))))
 		  ((not (equal n (car math-prime-test-cache)))
-		   (cond ((= (% (nth 1 n) 2) 0) '(nil 2))
-			 ((= (% (nth 1 n) 5) 0) '(nil 5))
+		   (cond ((if (consp n)
+                              (= (% (nth 1 n) 2) 0)
+                            (= (% n 2) 0))
+                          '(nil 2))
+			 ((if (consp n)
+                              (= (% (nth 1 n) 5) 0)
+                            (= (% n 5) 0))
+                          '(nil 5))
 			 (t (let ((q n) (sum 0))
                               (while (not (eq q 0))
                                 (setq sum (%

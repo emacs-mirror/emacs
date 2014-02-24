@@ -1,9 +1,9 @@
 ;;; skeleton.el --- Lisp language extension for writing statement skeletons -*- coding: utf-8 -*-
 
-;; Copyright (C) 1993-1996, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1996, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: extensions, abbrev, languages, tools
 
 ;; This file is part of GNU Emacs.
@@ -30,6 +30,8 @@
 ;; user configurable.
 
 ;;; Code:
+
+(eval-when-compile (require 'cl-lib))
 
 ;; page 1:	statement skeleton language definition & interpreter
 ;; page 2:	paired insertion
@@ -84,13 +86,11 @@ The variables `v1' and `v2' are still set when calling this.")
   "When non-nil, indent rigidly under current line for element `\\n'.
 Else use mode's `indent-line-function'.")
 
-(defvar skeleton-further-elements ()
+(defvar-local skeleton-further-elements ()
   "A buffer-local varlist (see `let') of mode specific skeleton elements.
 These variables are bound while interpreting a skeleton.  Their value may
 in turn be any valid skeleton element if they are themselves to be used as
 skeleton elements.")
-(make-variable-buffer-local 'skeleton-further-elements)
-
 
 (defvar skeleton-subprompt
   (substitute-command-keys
@@ -260,8 +260,10 @@ When done with skeleton, but before going back to `_'-point call
 	  skeleton-modified skeleton-point resume: help input v1 v2)
       (setq skeleton-positions nil)
       (unwind-protect
-	  (eval `(let ,skeleton-further-elements
-		   (skeleton-internal-list skeleton str)))
+	  (cl-progv
+              (mapcar #'car skeleton-further-elements)
+              (mapcar (lambda (x) (eval (cadr x))) skeleton-further-elements)
+            (skeleton-internal-list skeleton str))
 	(run-hooks 'skeleton-end-hook)
 	(sit-for 0)
 	(or (pos-visible-in-window-p beg)
@@ -354,15 +356,6 @@ automatically, and you are prompted to fill in the variable parts.")))
       (signal 'quit 'recursive)
     recursive))
 
-(defun skeleton-newline ()
-  (if (or (eq (point) skeleton-point)
-          (eq (point) (car skeleton-positions)))
-      ;; If point is recorded, avoid `newline' since it may do things like
-      ;; strip trailing spaces, and since recorded points are commonly placed
-      ;; right after a trailing space, calling `newline' can destroy the
-      ;; position and renders the recorded position incorrect.
-      (insert "\n")
-    (newline)))
 
 (defun skeleton-internal-1 (element &optional literal recursive)
   (cond
@@ -382,7 +375,7 @@ automatically, and you are prompted to fill in the variable parts.")))
     (let ((pos (if (eq element '>) (point))))
       (cond
        ((and skeleton-regions (eq (nth 1 skeleton-il) '_))
-	(or (eolp) (newline))
+	(or (eolp) (insert "\n"))
 	(if pos (save-excursion (goto-char pos) (indent-according-to-mode)))
 	(indent-region (line-beginning-position)
 		       (car skeleton-regions) nil))
@@ -391,13 +384,13 @@ automatically, and you are prompted to fill in the variable parts.")))
 	(if pos (indent-according-to-mode)))
        (skeleton-newline-indent-rigidly
 	(let ((pt (point)))
-	  (skeleton-newline)
+          (insert "\n")
 	  (indent-to (save-excursion
 		       (goto-char pt)
 		       (if pos (indent-according-to-mode))
 		       (current-indentation)))))
        (t (if pos (reindent-then-newline-and-indent)
-	    (skeleton-newline)
+	    (insert "\n")
 	    (indent-according-to-mode))))))
    ((eq element '>)
     (if (and skeleton-regions (eq (nth 1 skeleton-il) '_))
@@ -516,7 +509,6 @@ symmetrical ones, and the same character twice for the others."
     (let* ((mark (and skeleton-autowrap
 		      (or (eq last-command 'mouse-drag-region)
 			  (and transient-mark-mode mark-active))))
-	   (skeleton-end-hook)
 	   (char last-command-event)
 	   (skeleton (or (assq char skeleton-pair-alist)
 			 (assq char skeleton-pair-default-alist)
@@ -527,7 +519,9 @@ symmetrical ones, and the same character twice for the others."
 		       (if (not skeleton-pair-on-word) (looking-at "\\w"))
 		       (funcall skeleton-pair-filter-function))))
 	  (self-insert-command (prefix-numeric-value arg))
-	(skeleton-insert (cons nil skeleton) (if mark -1))))))
+	;; Newlines not desirable for inserting pairs.  See bug#16138.
+	(let ((skeleton-end-newline nil))
+	  (skeleton-insert (cons nil skeleton) (if mark -1)))))))
 
 
 ;; A more serious example can be found in sh-script.el

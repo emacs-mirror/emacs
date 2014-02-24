@@ -1,10 +1,10 @@
 ;;; reposition.el --- center a Lisp function or comment on the screen
 
-;; Copyright (C) 1991, 1994, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Michael D. Ernst <mernst@theory.lcs.mit.edu>
 ;; Created: Jan 1991
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 
 ;; This file is part of GNU Emacs.
 
@@ -61,7 +61,7 @@ first comment line visible (if point is in a comment)."
 	 (here (point))
 	 ;; change this name once I've gotten rid of references to ht.
 	 ;; this is actually the number of the last screen line
-	 (ht (- (window-height (selected-window)) 2))
+	 (ht (- (window-height) 2))
 	 (line (repos-count-screen-lines (window-start) (point)))
 	 (comment-height
 	  ;; The call to max deals with the case of cursor between defuns.

@@ -1,10 +1,10 @@
 ;;; vc-bzr.el --- VC backend for the bzr revision control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; 	   Riccardo Murri <riccardo.murri@gmail.com>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: vc tools
 ;; Created: Sept 2006
 ;; Package: vc
@@ -47,8 +47,8 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'vc)  ;; for vc-exec-after
-  (require 'vc-dir))
+  (require 'vc-dispatcher)
+  (require 'vc-dir))                    ; vc-dir-at-event
 
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
@@ -320,6 +320,11 @@ in the repository root directory of FILE."
     ("^Using saved parent location: \\(.+\\)" 1 nil nil 0))
   "Value of `compilation-error-regexp-alist' in *vc-bzr* buffers.")
 
+;; To be called via vc-pull from vc.el, which requires vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+(declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
+(declare-function vc-compilation-mode "vc-dispatcher" (backend))
+
 (defun vc-bzr-pull (prompt)
   "Pull changes into the current Bzr branch.
 Normally, this runs \"bzr pull\".  However, if the branch is a
@@ -348,8 +353,9 @@ prompt for the Bzr command to run."
       (setq vc-bzr-program (car  args)
 	    command        (cadr args)
 	    args           (cddr args)))
+    (require 'vc-dispatcher)
     (let ((buf (apply 'vc-bzr-async-command command args)))
-      (with-current-buffer buf (vc-exec-after '(vc-compilation-mode 'bzr)))
+      (with-current-buffer buf (vc-run-delayed (vc-compilation-mode 'bzr)))
       (vc-set-async-update buf))))
 
 (defun vc-bzr-merge-branch ()
@@ -380,7 +386,7 @@ default if it is available."
 	 (command        (cadr cmd))
 	 (args           (cddr cmd)))
     (let ((buf (apply 'vc-bzr-async-command command args)))
-      (with-current-buffer buf (vc-exec-after '(vc-compilation-mode 'bzr)))
+      (with-current-buffer buf (vc-run-delayed (vc-compilation-mode 'bzr)))
       (vc-set-async-update buf))))
 
 (defun vc-bzr-status (file)
@@ -646,6 +652,11 @@ REV non-nil gets an error."
           (vc-bzr-command "cat" t 0 file "-r" rev)
         (vc-bzr-command "cat" t 0 file))))
 
+(defun vc-bzr-find-ignore-file (file)
+  "Return the root directory of the repository of FILE."
+  (expand-file-name ".bzrignore"
+		    (vc-bzr-root file)))
+
 (defun vc-bzr-checkout (_file &optional _editable rev)
   (if rev (error "Operation not supported")
     ;; Else, there's nothing to do.
@@ -653,7 +664,7 @@ REV non-nil gets an error."
 
 (defun vc-bzr-revert (file &optional contents-done)
   (unless contents-done
-    (with-temp-buffer (vc-bzr-command "revert" t 0 file))))
+    (with-temp-buffer (vc-bzr-command "revert" t 0 file "--no-backup"))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
@@ -693,8 +704,13 @@ REV non-nil gets an error."
 		    (2 'change-log-email))
 		   ("^ *timestamp: \\(.*\\)" (1 'change-log-date-face)))))))
 
+(autoload 'vc-setup-buffer "vc-dispatcher")
+
 (defun vc-bzr-print-log (files buffer &optional shortlog start-revision limit)
-  "Get bzr change log for FILES into specified BUFFER."
+  "Print commit log associated with FILES into specified BUFFER.
+If SHORTLOG is non-nil, use --line format.
+If START-REVISION is non-nil, it is the newest revision to show.
+If LIMIT is non-nil, show no more than this many entries."
   ;; `vc-do-command' creates the buffer, but we need it before running
   ;; the command.
   (vc-setup-buffer buffer)
@@ -707,8 +723,33 @@ REV non-nil gets an error."
     (apply 'vc-bzr-command "log" buffer 'async files
 	   (append
 	    (when shortlog '("--line"))
-	    (when start-revision (list (format "-r..%s" start-revision)))
+	    ;; The extra complications here when start-revision and limit
+	    ;; are set are due to bzr log's --forward argument, which
+	    ;; could be enabled via an alias in bazaar.conf.
+	    ;; Svn, for example, does not have this problem, because
+	    ;; it doesn't have --forward.  Instead, you can use
+	    ;; svn --log -r HEAD:0 or -r 0:HEAD as you prefer.
+	    ;; Bzr, however, insists in -r X..Y that X come before Y.
+	    (if start-revision
+		(list (format
+		       (if (and limit (= limit 1))
+			   ;; This means we don't have to use --no-aliases.
+			   ;; Is -c any different to -r in this case?
+			   "-r%s"
+			 "-r..%s") start-revision)))
 	    (when limit (list "-l" (format "%s" limit)))
+	    ;; There is no sensible way to combine --limit and --forward,
+	    ;; and it breaks the meaning of START-REVISION as the
+	    ;; _newest_ revision.  See bug#14168.
+	    ;; Eg bzr log --forward -r ..100 --limit 50 prints
+	    ;; revisions 1-50 rather than 50-100.  There
+	    ;; seems no way in general to get bzr to print revisions
+	    ;; 50-100 in --forward order in that case.
+	    ;; FIXME There may be other alias stuff we want to keep.
+	    ;; Is there a way to just suppress --forward?
+	    ;; As of 2013/4 the only caller uses limit = 1, so it does
+	    ;; not matter much.
+	    (and start-revision limit (> limit 1) '("--no-aliases"))
 	    (if (stringp vc-bzr-log-switches)
 		(list vc-bzr-log-switches)
 	      vc-bzr-log-switches)))))
@@ -749,6 +790,8 @@ REV non-nil gets an error."
 	    (setq found t))
 	(goto-char (point-min)))
       found)))
+
+(autoload 'vc-switches "vc")
 
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."
@@ -870,6 +913,8 @@ stream.  Standard error output is discarded."
             (:conc-name vc-bzr-extra-fileinfo->))
   extra-name)         ;; original name for rename targets, new name for
 
+(declare-function vc-default-dir-printer "vc-dir" (backend fileentry))
+
 (defun vc-bzr-dir-printer (info)
   "Pretty-printer for the vc-dir-fileinfo structure."
   (let ((extra (vc-dir-fileinfo->extra info)))
@@ -951,23 +996,23 @@ stream.  Standard error output is discarded."
 (defun vc-bzr-dir-status (dir update-function)
   "Return a list of conses (file . state) for DIR."
   (vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S")
-  (vc-exec-after
-   `(vc-bzr-after-dir-status (quote ,update-function)
-			     ;; "bzr status" results are relative to
-			     ;; the bzr root directory, NOT to the
-			     ;; directory "bzr status" was invoked in.
-			     ;; Ugh.
-			     ;; We pass the relative directory here so
-			     ;; that `vc-bzr-after-dir-status' can
-			     ;; frob the results accordingly.
-			     (file-relative-name ,dir (vc-bzr-root ,dir)))))
+  (vc-run-delayed
+   (vc-bzr-after-dir-status update-function
+                            ;; "bzr status" results are relative to
+                            ;; the bzr root directory, NOT to the
+                            ;; directory "bzr status" was invoked in.
+                            ;; Ugh.
+                            ;; We pass the relative directory here so
+                            ;; that `vc-bzr-after-dir-status' can
+                            ;; frob the results accordingly.
+                            (file-relative-name dir (vc-bzr-root dir)))))
 
 (defun vc-bzr-dir-status-files (dir files _default-state update-function)
   "Return a list of conses (file . state) for DIR."
   (apply 'vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S" files)
-  (vc-exec-after
-   `(vc-bzr-after-dir-status (quote ,update-function)
-			     (file-relative-name ,dir (vc-bzr-root ,dir)))))
+  (vc-run-delayed
+   (vc-bzr-after-dir-status update-function
+                            (file-relative-name dir (vc-bzr-root dir)))))
 
 (defvar vc-bzr-shelve-map
   (let ((map (make-sparse-keymap)))
@@ -1082,6 +1127,10 @@ stream.  Standard error output is discarded."
 		     'help-echo shelve-help-echo
 		     'face 'font-lock-variable-name-face))))))
 
+;; Follows vc-bzr-command, which uses vc-do-command from vc-dispatcher.
+(declare-function vc-resynch-buffer "vc-dispatcher"
+                  (file &optional keep noquery reset-vc-info))
+
 (defun vc-bzr-shelve (name)
   "Create a shelve."
   (interactive "sShelf name: ")
@@ -1140,6 +1189,9 @@ stream.  Standard error output is discarded."
     (if (looking-at "^ +\\([0-9]+\\):")
 	(match-string 1)
       (error "Cannot find shelf at point"))))
+
+;; vc-bzr-shelve-delete-at-point must be called from a vc-dir buffer.
+(declare-function vc-dir-refresh "vc-dir" ())
 
 (defun vc-bzr-shelve-delete-at-point ()
   (interactive)

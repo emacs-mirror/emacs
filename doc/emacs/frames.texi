@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames
@@ -39,7 +39,7 @@ doing so on GNU and Unix systems; and
 @ifnottex
 @pxref{MS-DOS Mouse},
 @end ifnottex
-for doing so on MS-DOS).
+for doing so on MS-DOS).  Menus are supported on all text terminals.
 
 @menu
 * Mouse Commands::      Moving, cutting, and pasting, with the mouse.
@@ -136,7 +136,7 @@ the position where you clicked and inserts the contents of the primary
 selection (@code{mouse-yank-primary}).  @xref{Primary Selection}.
 This behavior is consistent with other X applications.  Alternatively,
 you can rebind @kbd{Mouse-2} to @code{mouse-yank-at-click}, which
-performs a yank at point.
+performs a yank at the position you click.
 
 @vindex mouse-yank-at-point
   If you change the variable @code{mouse-yank-at-point} to a
@@ -453,6 +453,16 @@ cycles through all the frames on your terminal.
 @kindex C-x 5 1
 @findex delete-other-frames
 Delete all frames on the current terminal, except the selected one.
+
+@item M-<F10>
+@kindex M-<F10>
+@findex toggle-frame-maximized
+Toggle maximization state of the current frame.
+
+@item <F11>
+@kindex <F11>
+@findex toggle-frame-fullscreen
+Toggle fullscreen mode of the current frame.
 @end table
 
   The @kbd{C-x 5 0} (@code{delete-frame}) command deletes the selected
@@ -919,6 +929,17 @@ support (following the old convention for X applications).
 or disable the scroll bars (@pxref{Resources}).  To control the scroll
 bar width, change the @code{scroll-bar-width} frame parameter
 (@pxref{Frame Parameters,,, elisp, The Emacs Lisp Reference Manual}).
+
+@vindex scroll-bar-adjust-thumb-portion
+@cindex overscrolling
+If you're using Emacs on X (with GTK+ or Motif), you can customize the
+variable @code{scroll-bar-adjust-thumb-portion} to control
+@dfn{overscrolling} of the scroll bar, i.e. dragging the thumb down even
+when the end of the buffer is visible.  If its value is
+non-@code{nil}, the scroll bar can be dragged downwards even if the
+end of the buffer is shown; if @code{nil}, the thumb will be at the
+bottom when the end of the buffer is shown.  You can not over-scroll
+when the entire buffer is visible.
 
 @node Drag and Drop
 @section Drag and Drop

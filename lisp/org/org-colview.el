@@ -1,6 +1,6 @@
 ;;; org-colview.el --- Column View in Org-mode
 
-;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2014 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -36,7 +36,7 @@
 (declare-function org-clock-sum-today "org-clock" (&optional headline-filter))
 
 (when (featurep 'xemacs)
-  (error "Do not load this file into XEmacs, use `org-colview-xemacs.el'"))
+  (error "Do not load this file into XEmacs, use `org-colview-xemacs.el' from the contrib/ directory"))
 
 ;;; Column View
 
@@ -169,8 +169,10 @@ This is the compiled version of the format.")
 			    (get-text-property (point-at-bol) 'face))
 		       'default))
 	 (color (list :foreground (face-attribute ref-face :foreground)))
-	 (face (list color 'org-column ref-face))
-	 (face1 (list color 'org-agenda-column-dateline ref-face))
+	 (font (list :height (face-attribute 'default :height)
+		     :family (face-attribute 'default :family)))
+	 (face (list color font 'org-column ref-face))
+	 (face1 (list color font 'org-agenda-column-dateline ref-face))
 	 (cphr (get-text-property (point-at-bol) 'org-complex-heading-regexp))
 	 pom property ass width f string ov column val modval s2 title calc)
     ;; Check if the entry is in another buffer.
@@ -223,7 +225,7 @@ This is the compiled version of the format.")
       (setq s2 (org-columns-add-ellipses (or modval val) width))
       (setq string (format f s2))
       ;; Create the overlay
-      (org-unmodified
+      (org-with-silent-modifications
        (setq ov (org-columns-new-overlay
 		 beg (setq beg (1+ beg)) string (if dateline face1 face)))
        (overlay-put ov 'keymap org-columns-map)
@@ -321,6 +323,7 @@ for the duration of the command.")
 (defvar org-colview-initial-truncate-line-value nil
   "Remember the value of `truncate-lines' across colview.")
 
+;;;###autoload
 (defun org-columns-remove-overlays ()
   "Remove all currently active column overlays."
   (interactive)
@@ -332,7 +335,7 @@ for the duration of the command.")
 	(remove-hook 'post-command-hook 'org-columns-hscoll-title 'local))
       (move-marker org-columns-begin-marker nil)
       (move-marker org-columns-top-level-marker nil)
-      (org-unmodified
+      (org-with-silent-modifications
        (mapc 'delete-overlay org-columns-overlays)
        (setq org-columns-overlays nil)
        (let ((inhibit-read-only t))
@@ -384,7 +387,7 @@ CPHR is the complex heading regexp to use for parsing ITEM."
 (defun org-columns-quit ()
   "Remove the column overlays and in this way exit column editing."
   (interactive)
-  (org-unmodified
+  (org-with-silent-modifications
    (org-columns-remove-overlays)
    (let ((inhibit-read-only t))
      (remove-text-properties (point-min) (point-max) '(read-only t))))
@@ -413,6 +416,10 @@ If yes, throw an error indicating that changing it does not make sense."
 		    (get-char-property (point) 'org-columns-value))
       (org-columns-next-allowed-value)
     (org-columns-edit-value "TAGS")))
+
+(defvar org-agenda-overriding-columns-format nil
+  "When set, overrides any other format definition for the agenda.
+Don't set this, this is meant for dynamic scoping.")
 
 (defun org-columns-edit-value (&optional key)
   "Edit the value of the property at point in column view.
@@ -488,7 +495,7 @@ Where possible, use the standard interface for changing this line."
 	  (org-agenda-columns)))
        (t
 	(let ((inhibit-read-only t))
-	  (org-unmodified
+	  (org-with-silent-modifications
 	   (remove-text-properties
 	    (max (point-min) (1- bol)) eol '(read-only t)))
 	  (unwind-protect
@@ -589,9 +596,9 @@ an integer, select that value."
       (if (= nth -1) (setq nth 9)))
     (when (equal key "ITEM")
       (error "Cannot edit item headline from here"))
-    (unless (or allowed (member key '("SCHEDULED" "DEADLINE")))
+    (unless (or allowed (member key '("SCHEDULED" "DEADLINE" "CLOCKSUM")))
       (error "Allowed values for this property have not been defined"))
-    (if (member key '("SCHEDULED" "DEADLINE"))
+    (if (member key '("SCHEDULED" "DEADLINE" "CLOCKSUM"))
 	(setq nval (if previous 'earlier 'later))
       (if previous (setq allowed (reverse allowed)))
       (cond
@@ -664,6 +671,7 @@ around it."
   (let ((value (get-char-property (point) 'org-columns-value)))
     (org-open-link-from-string value arg)))
 
+;;;###autoload
 (defun org-columns-get-format-and-top-level ()
   (let ((fmt (org-columns-get-format)))
     (org-columns-goto-top-level)
@@ -899,10 +907,6 @@ display, or in the #+COLUMNS line of the current buffer."
 		(insert-before-markers "#+COLUMNS: " fmt "\n")))
 	    (org-set-local 'org-columns-default-format fmt))))))
 
-(defvar org-agenda-overriding-columns-format nil
-  "When set, overrides any other format definition for the agenda.
-Don't set this, this is meant for dynamic scoping.")
-
 (defun org-columns-get-autowidth-alist (s cache)
   "Derive the maximum column widths from the format and the cache."
   (let ((start 0) rtn)
@@ -920,7 +924,7 @@ Don't set this, this is meant for dynamic scoping.")
 
 (defun org-columns-compute-all ()
   "Compute all columns that have operators defined."
-  (org-unmodified
+  (org-with-silent-modifications
    (remove-text-properties (point-min) (point-max) '(org-summaries t)))
   (let ((columns org-columns-current-fmt-compiled)
 	(org-columns-time (time-to-number-of-days (current-time)))
@@ -949,6 +953,8 @@ Don't set this, this is meant for dynamic scoping.")
 
 (defvar org-inlinetask-min-level
   (if (featurep 'org-inlinetask) org-inlinetask-min-level 15))
+
+;;;###autoload
 (defun org-columns-compute (property)
   "Sum the values of property PROPERTY hierarchically, for the entire buffer."
   (interactive)
@@ -996,7 +1002,7 @@ Don't set this, this is meant for dynamic scoping.")
 	  (if (assoc property sum-alist)
 	      (setcdr (assoc property sum-alist) useval)
 	    (push (cons property useval) sum-alist)
-	    (org-unmodified
+	    (org-with-silent-modifications
 	     (add-text-properties sumpos (1+ sumpos)
 				  (list 'org-summaries sum-alist))))
 	  (when (and val (not (equal val (if flag str val))))
@@ -1052,14 +1058,14 @@ Don't set this, this is meant for dynamic scoping.")
 	(setq sum (+ (string-to-number (pop l)) (/ sum 60))))
       sum)))
 
+;;;###autoload
 (defun org-columns-number-to-string (n fmt &optional printf)
   "Convert a computed column number to a string value, according to FMT."
   (cond
    ((memq fmt '(estimate)) (org-estimate-print n printf))
    ((not (numberp n)) "")
    ((memq fmt '(add_times max_times min_times mean_times))
-    (let* ((h (floor n)) (m (floor (+ 0.5 (* 60 (- n h))))))
-      (format org-time-clocksum-format h m)))
+    (org-hours-to-clocksum-string n))
    ((eq fmt 'checkbox)
     (cond ((= n (floor n)) "[X]")
 	  ((> n 1.) "[-]")
@@ -1305,10 +1311,10 @@ PARAMS is a property list of parameters:
 			    (if (eq 'hline x) x (cons "" x)))
 			  tbl))
 	(setq tbl (append tbl (list (cons "/" (make-list nfields "<>"))))))
-      (setq pos (point))
       (when content-lines
 	(while (string-match "^#" (car content-lines))
 	  (insert (pop content-lines) "\n")))
+      (setq pos (point))
       (insert (org-listtable-to-string tbl))
       (when (plist-get params :width)
 	(insert "\n|" (mapconcat (lambda (x) (format "<%d>" (max 3 x)))
@@ -1404,7 +1410,7 @@ and tailing newline characters."
 	    ;; OK, the property is not defined.  Use appointment duration?
 	    (when (and org-agenda-columns-add-appointments-to-effort-sum
 		       (setq d (get-text-property (point) 'duration)))
-	      (setq d (org-minutes-to-hh:mm-string d))
+	      (setq d (org-minutes-to-clocksum-string d))
 	      (put-text-property 0 (length d) 'face 'org-warning d)
 	      (push (cons org-effort-property d) p)))
 	  (push (cons (org-current-line) p) cache))
@@ -1510,9 +1516,8 @@ This will add overlays to the date lines, to show the summary for each day."
 	(save-excursion
 	  (save-restriction
 	    (widen)
-	    (org-unmodified
-	     (remove-text-properties (point-min) (point-max)
-				     '(org-summaries t)))
+	    (org-with-silent-modifications
+	     (remove-text-properties (point-min) (point-max) '(org-summaries t)))
 	    (goto-char (point-min))
 	    (org-columns-get-format-and-top-level)
 	    (while (setq fm (pop fmt))

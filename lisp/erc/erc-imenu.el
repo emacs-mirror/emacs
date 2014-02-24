@@ -1,10 +1,10 @@
 ;;; erc-imenu.el -- Imenu support for ERC
 
-;; Copyright (C) 2001-2002, 2004, 2006-2013 Free Software Foundation,
+;; Copyright (C) 2001-2002, 2004, 2006-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: comm
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcImenu
 

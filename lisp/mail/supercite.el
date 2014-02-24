@@ -1,10 +1,10 @@
 ;;; supercite.el --- minor mode for citing mail and news replies
 
-;; Copyright (C) 1993, 1997, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1997, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
-;; Maintainer:    Glenn Morris <rgm@gnu.org>
-;; Created:       February 1993
+;; Maintainer: emacs-devel@gnu.org
+;; Created: February 1993
 ;; Keywords: mail, news
 
 ;; This file is part of GNU Emacs.

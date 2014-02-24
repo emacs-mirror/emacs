@@ -11,7 +11,7 @@ This file contains two sections:
 ====================== 1) EBNF tag file description =====================
 
 Productions created from current behavior to aid extensions
-Francesco Potorti` <pot@gnu.org> 2002
+Francesco Potortì <pot@gnu.org> 2002
 ----------------
 
 FF ::= #x0c				   /* tag section starter */
@@ -94,7 +94,7 @@ those.
 
 ===================== end of discussion of tag names =====================
 
-Copyright (C) 2002-2013 Free Software Foundation, Inc.
+Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 COPYING PERMISSIONS:
 

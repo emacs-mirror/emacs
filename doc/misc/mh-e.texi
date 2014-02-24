@@ -1,19 +1,20 @@
-\input texinfo   @c -*-texinfo-*-
+\input texinfo   @c -*- mode: texinfo; coding: utf-8; -*-
 @c
 @c Note: This document requires makeinfo version 4.6 or greater to build.
 @c
 @c %**start of header
 @setfilename ../../info/mh-e
 @settitle The MH-E Manual
+@documentencoding UTF-8
 @c %**end of header
 
 @c Version of the software and manual.
-@set VERSION 8.4
+@set VERSION 8.5
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
 @set EDITION
-@set UPDATED 2012-11-25
-@set UPDATE-MONTH November, 2012
+@set UPDATED 2013-03-02
+@set UPDATE-MONTH March, 2013
 
 @c Other variables.
 @set MH-BOOK-HOME http://rand-mh.sourceforge.net/book/mh
@@ -24,7 +25,7 @@
 This is version @value{VERSION}@value{EDITION} of @cite{The MH-E
 Manual}, last updated @value{UPDATED}.
 
-Copyright @copyright{} 1995, 2001--2003, 2005--2013 Free Software
+Copyright @copyright{} 1995, 2001--2003, 2005--2014 Free Software
 Foundation, Inc.
 
 @c This dual license has been agreed upon by the FSF.
@@ -233,10 +234,10 @@ read an online tutorial by starting GNU Emacs and typing @kbd{C-h t}
 @cite{GNU Emacs Manual},
 @end iftex
 @ifinfo
-@ref{top, , GNU Emacs Manual, emacs, GNU Emacs Manual},
+@ref{Top, , GNU Emacs Manual, emacs, GNU Emacs Manual},
 @end ifinfo
 @ifhtml
-@uref{http://www.gnu.org/software/emacs/manual/html_node/,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/,
 @cite{GNU Emacs Manual}},
 @end ifhtml
 from the Free Software Foundation.
@@ -245,7 +246,8 @@ If more information is needed, you can go to the Unix manual pages of
 the individual MH commands. When the name is not obvious, I'll guide
 you to a relevant MH manual page that describes the action more fully.
 
-@cindex @cite{MH & nmh: Email for Users & Programmers}
+@c ":" does not work in index entries in Info.
+@cindex @cite{MH & nmh - Email for Users & Programmers}
 @cindex MH book
 @cindex info
 @kindex C-h i
@@ -255,9 +257,9 @@ version is distributed with Emacs and can be accessed with the
 @command{info} command (@samp{info mh-e}) or within Emacs (@kbd{C-h i
 m mh-e @key{RET}}). The online version is available at
 @uref{http://mh-e.sourceforge.net/manual/, SourceForge}. Another great
-online resource is the book @uref{http://www.ics.uci.edu/~mh/book/,
-@cite{MH & nmh: Email for Users & Programmers}} (also known as
-@dfn{the MH book}).
+online resource is the book
+@uref{http://rand-mh.sourceforge.net/book/, @cite{MH & nmh: Email for
+Users & Programmers}} (also known as @dfn{the MH book}).
 
 I hope you enjoy this manual! If you have any comments, or suggestions
 for this document, please let me know.
@@ -384,7 +386,7 @@ GNU Emacs Manual}.
 @end ifnothtml
 @ifhtml
 See section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Easy-Customization.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Easy-Customization.html,
 Easy Customization} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 @xref{Options}.
@@ -404,7 +406,7 @@ GNU Emacs Manual}.
 @end ifnothtml
 @ifhtml
 See section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Face-Customization.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Face-Customization.html,
 Face Customization} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -422,7 +424,7 @@ Emacs Manual}
 @end ifnothtml
 @ifhtml
 See section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Hooks.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Hooks.html,
 Hooks} in @cite{The GNU Emacs Manual}
 @end ifhtml
 for a description about @dfn{normal hooks} and @dfn{abnormal hooks}.
@@ -473,7 +475,7 @@ point.
 @end ifnothtml
 @ifhtml
 See the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Completion.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Completion.html,
 Completion} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 Note that @key{SPC} cannot be used for completing filenames and
@@ -550,12 +552,12 @@ to install MH or tell MH-E where to find MH.
 @cindex GNU mailutils MH
 
 If you don't have MH on your system already, you must install a
-variant of MH@. The Debian mh-e package does this for you automatically
-(@pxref{Getting MH-E}). Most people use
+variant of MH@. The Debian mh-e package does this for you
+automatically (@pxref{Getting MH-E}). Most people use
 @uref{http://www.nongnu.org/nmh/, nmh}, but you may be interested in
-trying out @uref{http://www.gnu.org/software/mailutils/, GNU mailutils
-MH}, which supports IMAP@. Your GNU/Linux distribution probably has
-packages for both of these.
+trying out @uref{http://mailutils.org/, GNU mailutils MH}, which
+supports IMAP@. Your GNU/Linux distribution probably has packages for
+both of these.
 
 @cindex @command{install-mh}
 @cindex MH commands, @command{install-mh}
@@ -571,10 +573,10 @@ you need to know about MH to use MH-E, but the more you know about MH,
 the more you can leverage its power. See the
 @uref{@value{MH-BOOK-HOME}/../, MH book} to learn more about MH.
 
-@cindex @samp{Path:} MH profile component
+@cindex @samp{Path} MH profile component
 @cindex MH profile
 @cindex MH profile component
-@cindex MH profile component, @samp{Path:}
+@cindex MH profile component, @samp{Path}
 
 Your MH environment includes your @dfn{MH profile} which is found in
 the file @file{~/.mh_profile}, or the file named in the environment
@@ -627,14 +629,14 @@ actually cause problems.
 @end quotation
 @sp 1
 
-@cindex MH profile component, @samp{Draft-Folder:}
-@cindex MH profile component, @samp{Path:}
-@cindex MH profile component, @samp{Previous-Sequence:}
-@cindex MH profile component, @samp{Unseen-Sequence:}
-@cindex @samp{Draft-Folder:} MH profile component
-@cindex @samp{Path:} MH profile component
-@cindex @samp{Previous-Sequence:} MH profile component
-@cindex @samp{Unseen-Sequence:} MH profile component
+@cindex MH profile component, @samp{Draft-Folder}
+@cindex MH profile component, @samp{Path}
+@cindex MH profile component, @samp{Previous-Sequence}
+@cindex MH profile component, @samp{Unseen-Sequence}
+@cindex @samp{Draft-Folder} MH profile component
+@cindex @samp{Path} MH profile component
+@cindex @samp{Previous-Sequence} MH profile component
+@cindex @samp{Unseen-Sequence} MH profile component
 @findex mh-find-path
 @vindex mh-draft-folder
 @vindex mh-find-path-hook
@@ -1121,38 +1123,23 @@ exist,
 @footnote{The @cite{GNU Emacs Lisp Reference Manual} may be available
 online in the Info system by typing @kbd{C-h i m Emacs Lisp
 @key{RET}}. It is also available online at @*
-@uref{http://www.gnu.org/software/emacs/elisp-manual/html_node/}. You
-can also order a printed manual, which has the desirable side-effect
-of helping to support the Free Software Foundation which made all this
-great software available. You can find an order form by running
-@kbd{C-h C-d}, or you can request an order form from @i{gnu at
-gnu.org}.}
+@uref{http://www.gnu.org/software/emacs/manual/elisp.html}.}
 @end iftex
 @ifinfo
 @footnote{@xref{Top, The GNU Emacs Lisp Reference Manual, , elisp, GNU
 Emacs Lisp Reference Manual}, which may be available online in the
 Info system. It is also available online at
-@uref{http://www.gnu.org/software/emacs/elisp-manual/html_node/}. You
-can also order a printed manual, which has the desirable side-effect
-of helping to support the Free Software Foundation which made all this
-great software available. You can find an order form by running
-@kbd{C-h C-d}, or you can request an order form from @i{gnu at
-gnu.org}.}
+@uref{http://www.gnu.org/software/emacs/manual/elisp.html}.}
 @end ifinfo
 @ifhtml
 @footnote{The
-@uref{http://www.gnu.org/software/emacs/elisp-manual/html_node/,
+@uref{http://www.gnu.org/software/emacs/manual/elisp.html,
 The GNU Emacs Lisp Reference Manual} may also be available online in
-the Info system by typing @kbd{C-h i m Emacs Lisp @key{RET}}. You can
-also order a printed manual, which has the desirable side-effect of
-helping to support the Free Software Foundation which made all this
-great software available. You can find an order form by running
-@kbd{C-h C-d}, or you can request an order form from @i{gnu at
-gnu.org}.}
+the Info system by typing @kbd{C-h i m Emacs Lisp @key{RET}}.}
 @end ifhtml
 and you can look at the code itself for examples. Look in the Emacs
 Lisp directory on your system (such as
-@file{/usr/local/lib/emacs/lisp/mh-e}) and find all the @file{mh-*.el}
+@file{/usr/local/share/emacs/lisp/mh-e}) and find all the @file{mh-*.el}
 files there. When calling MH-E and other Emacs Lisp functions directly
 from Emacs Lisp code, you'll need to know the correct arguments. Use
 the online help for this. For example, try @kbd{C-h f
@@ -1311,7 +1298,7 @@ When you choose a folder in MH-E via a command such as @kbd{o}
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Completion.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Completion.html,
 Completion} in @cite{The GNU Emacs Manual}).
 @end ifhtml
 In addition, MH-E has several ways of choosing a suitable default so
@@ -2089,15 +2076,14 @@ expressions are not allowed. Unique fields should have a @samp{:}
 suffix; otherwise, the element can be used to render invisible an
 entire class of fields that start with the same prefix. If you think a
 header field should be generally ignored, please update
-@uref{https://sourceforge.net/tracker/index.php?func=detail&aid=1916032&group_id=13357&atid=113357,
-SF #1916032}.
+@uref{https://sourceforge.net/p/mh-e/bugs/245/, SF #245}.
 
-@cindex header field, @samp{Face:}
-@cindex header field, @samp{X-Face:}
-@cindex header field, @samp{X-Image-URL:}
-@cindex @samp{Face:} header field
-@cindex @samp{X-Face:} header field
-@cindex @samp{X-Image-URL:} header field
+@cindex header field, @samp{Face}
+@cindex header field, @samp{X-Face}
+@cindex header field, @samp{X-Image-URL}
+@cindex @samp{Face} header field
+@cindex @samp{X-Face} header field
+@cindex @samp{X-Image-URL} header field
 @vindex mh-show-use-xface-flag
 
 MH-E can display the content of @samp{Face:}, @samp{X-Face:}, and
@@ -2142,12 +2128,12 @@ Finally, MH-E will display images referenced by the
 @samp{X-Face:} fields are present@footnote{The display of the images
 requires the @uref{http://www.gnu.org/software/wget/wget.html,
 @command{wget} program} to fetch the image and the @command{convert}
-program from the @uref{http://www.imagemagick.org/, ImageMagick
-suite}.}. Of the three header fields this is the most efficient in
-terms of network usage since the image doesn't need to be transmitted
-with every single mail. The option @code{mh-fetch-x-image-url}
-controls the fetching of the @samp{X-Image-URL:} header field image
-with the following values:
+program from the @uref{http://www.imagemagick.org/script/index.php,
+ImageMagick suite}.}. Of the three header fields this is the most
+efficient in terms of network usage since the image doesn't need to be
+transmitted with every single mail. The option
+@code{mh-fetch-x-image-url} controls the fetching of the
+@samp{X-Image-URL:} header field image with the following values:
 
 @table @samp
 @item Ask Before Fetching
@@ -2468,9 +2454,9 @@ permanently by turning on the option
 MH-E cannot display all attachments inline however. It can display
 text (including @sc{html}) and images.
 
-@cindex header field, @samp{Content-Disposition:}
+@cindex header field, @samp{Content-Disposition}
 @cindex inline images
-@cindex @samp{Content-Disposition:} header field
+@cindex @samp{Content-Disposition} header field
 @vindex mh-max-inline-image-height
 @vindex mh-max-inline-image-width
 
@@ -2849,7 +2835,7 @@ See @cite{The PGG Manual}.
 @end ifinfo
 @ifhtml
 See
-@uref{http://www.dk.xemacs.org/Documentation/packages/html/pgg.html,
+@uref{http://www.gnu.org/software/emacs/manual/pgg.html,
 @cite{The PGG Manual}}.
 @end ifhtml
 
@@ -3773,8 +3759,8 @@ Use this hook with care. If there is a bug in your hook which returns
 @cindex @file{.mh_profile}
 @cindex files, @file{.mh_profile}
 @cindex MH commands, @command{sortm}
-@cindex MH profile component, @samp{sortm:}
-@cindex @samp{sortm:} MH profile component
+@cindex MH profile component, @samp{sortm}
+@cindex @samp{sortm} MH profile component
 @kindex F S
 @vindex mh-sortm-args
 
@@ -4060,8 +4046,8 @@ If you prefer to be prompted for the recipient and subject fields
 before the MH-Letter buffer appears, turn on the option
 @code{mh-compose-prompt-flag}.
 
-@cindex header field, @samp{X-Mailer:}
-@cindex @samp{X-Mailer:} header field
+@cindex header field, @samp{X-Mailer}
+@cindex @samp{X-Mailer} header field
 @vindex mh-insert-x-mailer-flag
 
 MH-E adds an @samp{X-Mailer:} header field to the header that includes
@@ -4189,8 +4175,8 @@ reply to a message, you can change the option
 @samp{Prompt} to one of the choices listed above. You can always edit
 the recipients in the draft.
 
-@cindex @samp{repl:} MH profile component
-@cindex MH profile component, @samp{repl:}
+@cindex @samp{repl} MH profile component
+@cindex MH profile component, @samp{repl}
 @cindex MH-Letter mode
 @cindex MH-Show mode
 @cindex draft
@@ -4252,8 +4238,8 @@ hook @code{mh-forward-hook} is called on the draft.
 
 @cindex @file{.mh_profile}
 @cindex files, @file{.mh_profile}
-@cindex MH profile component, @samp{forw:}
-@cindex @samp{forw:} MH profile component
+@cindex MH profile component, @samp{forw}
+@cindex @samp{forw} MH profile component
 @vindex mh-compose-forward-as-mime-flag
 
 By default, the option @code{mh-compose-forward-as-mime-flag} is on
@@ -4765,25 +4751,25 @@ detail in the following sections.
 @node Editing Message, Inserting Letter, Editing Drafts, Editing Drafts
 @section Editing the Message
 
-@cindex @samp{Bcc:} header field
-@cindex @samp{Cc:} header field
-@cindex @samp{Dcc:} header field
-@cindex @samp{From:} header field
-@cindex @samp{Mail-Followup-To:} header field
-@cindex @samp{Mail-Reply-To:} header field
-@cindex @samp{Reply-To:} header field
-@cindex @samp{Subject:} header field
-@cindex @samp{To:} header field
+@cindex @samp{Bcc} header field
+@cindex @samp{Cc} header field
+@cindex @samp{Dcc} header field
+@cindex @samp{From} header field
+@cindex @samp{Mail-Followup-To} header field
+@cindex @samp{Mail-Reply-To} header field
+@cindex @samp{Reply-To} header field
+@cindex @samp{Subject} header field
+@cindex @samp{To} header field
 @cindex editing header
-@cindex header field, @samp{Bcc:}
-@cindex header field, @samp{Cc:}
-@cindex header field, @samp{Dcc:}
-@cindex header field, @samp{From:}
-@cindex header field, @samp{Mail-Followup-To:}
-@cindex header field, @samp{Mail-Reply-To:}
-@cindex header field, @samp{Reply-To:}
-@cindex header field, @samp{Subject:}
-@cindex header field, @samp{To:}
+@cindex header field, @samp{Bcc}
+@cindex header field, @samp{Cc}
+@cindex header field, @samp{Dcc}
+@cindex header field, @samp{From}
+@cindex header field, @samp{Mail-Followup-To}
+@cindex header field, @samp{Mail-Reply-To}
+@cindex header field, @samp{Reply-To}
+@cindex header field, @samp{Subject}
+@cindex header field, @samp{To}
 @findex mh-to-field
 @kindex C-c C-f C-t
 @kindex C-c C-f t
@@ -4969,7 +4955,7 @@ Michael W Thelen <thelenm@@stop.mail-abuse.org> wrote:
 The attribution consists of the sender's name and email address
 followed by the content of the option
 @code{mh-extract-from-attribution-verb}. This option can be set to
-@samp{wrote:}, @samp{a écrit:}, and @samp{schrieb:}. You can also use
+@samp{wrote:}, @samp{a Ã©crit:}, and @samp{schrieb:}. You can also use
 the @samp{Custom String} menu item to enter your own verb.
 
 @vindex mail-citation-hook
@@ -5059,7 +5045,7 @@ for the next hook function. The standard prefix
 @vindex mh-yank-behavior
 
 For example, if you use the hook function
-@uref{http://shasta.cs.uiuc.edu/~lrclause/tc.html,
+@uref{http://www.emacswiki.org/emacs/TrivialCite,
 @code{trivial-cite}} (which is NOT part of Emacs), set
 @code{mh-yank-behavior} to @samp{Body and Header}.
 
@@ -5157,12 +5143,12 @@ mail user agent is sophisticated enough. In MH-E, this is done by
 placing your image in the file named by the option
 @code{mh-x-face-file} which is @file{~/.face} by default.
 
-@cindex @samp{Face:} header field
-@cindex @samp{X-Face:} header field
-@cindex @samp{X-Image-URL:} header field
-@cindex header field, @samp{Face:}
-@cindex header field, @samp{X-Face:}
-@cindex header field, @samp{X-Image-URL:}
+@cindex @samp{Face} header field
+@cindex @samp{X-Face} header field
+@cindex @samp{X-Image-URL} header field
+@cindex header field, @samp{Face}
+@cindex header field, @samp{X-Face}
+@cindex header field, @samp{X-Image-URL}
 
 If the file starts with either of the strings @samp{X-Face:},
 @samp{Face:} or @samp{X-Image-URL:} then the contents are added to the
@@ -5616,12 +5602,12 @@ See @cite{The PGG Manual}.
 @end ifinfo
 @ifhtml
 See
-@uref{http://www.dk.xemacs.org/Documentation/packages/html/pgg.html,
+@uref{http://www.gnu.org/software/emacs/manual/pgg.html,
 @cite{The PGG Manual}}.
 @end ifhtml
 
-@cindex header field, @samp{Fcc:}
-@cindex @samp{Fcc:} header field
+@cindex header field, @samp{Fcc}
+@cindex @samp{Fcc} header field
 @vindex pgg-encrypt-for-me
 
 In particular, I turn on the option @code{pgg-encrypt-for-me} so that
@@ -5856,9 +5842,9 @@ Recipients}.
 
 @cindex @command{ali}
 @cindex @file{/etc/nmh/MailAliases}
-@cindex @samp{Aliasfile:} MH profile component
+@cindex @samp{Aliasfile} MH profile component
 @cindex MH commands, @command{ali}
-@cindex MH profile component, @samp{Aliasfile:}
+@cindex MH profile component, @samp{Aliasfile}
 @cindex files, @file{/etc/nmh/MailAliases}
 
 MH-E loads aliases for completion and folder name hints from various
@@ -6025,7 +6011,7 @@ GNU Emacs Manual}).
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Regexps.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
 Syntax of Regular Expressions} in
 @cite{The GNU Emacs Manual}).
 @end ifhtml
@@ -6100,8 +6086,8 @@ the @samp{INS} button with the label @samp{Add at least one item
 below}. The @samp{Value Menu} has the following menu items:
 
 @table @samp
-@cindex header field, @samp{From:}
-@cindex @samp{From:} header field
+@cindex header field, @samp{From}
+@cindex @samp{From} header field
 @item From Field
 Specify an alternate @samp{From:} header field. You must include a
 valid email address. A standard format is @samp{First Last
@@ -6109,8 +6095,8 @@ valid email address. A standard format is @samp{First Last
 must quote your name as in @samp{"First I. Last"
 <login@@host.domain>}.
 @c -------------------------
-@cindex header field, @samp{Organization:}
-@cindex @samp{Organization:} header field
+@cindex header field, @samp{Organization}
+@cindex @samp{Organization} header field
 @item Organization Field
 People usually list the name of the company where they work here.
 @c -------------------------
@@ -6175,7 +6161,7 @@ GNU Emacs Manual}).
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Regexps.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
 Syntax of Regular Expressions} in
 @cite{The GNU Emacs Manual}).
 @end ifhtml
@@ -6188,15 +6174,15 @@ Select an identity from those configured in @code{mh-identity-list}.
 All of the information for that identity will be added if the
 recipient matches.
 @c -------------------------
-@cindex @samp{Fcc:} header field
-@cindex header field, @samp{Fcc:}
+@cindex @samp{Fcc} header field
+@cindex header field, @samp{Fcc}
 @item Fcc Field
 Insert an @samp{Fcc:} header field with the folder you provide. When
 you send the message, MH will put a copy of your message in this
 folder.
 @c -------------------------
-@cindex @samp{Mail-Followup-To:} header field
-@cindex header field, @samp{Mail-Followup-To:}
+@cindex @samp{Mail-Followup-To} header field
+@cindex header field, @samp{Mail-Followup-To}
 @item Mail-Followup-To Field
 Insert an @samp{Mail-Followup-To:} header field with the recipients
 you provide. If the recipient's mail user agent supports this header
@@ -6283,7 +6269,7 @@ You can also use the speedbar
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Speedbar.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Speedbar.html,
 Speedbar Frames} in @cite{The GNU Emacs Manual})
 @end ifhtml
 to view your folders. To bring up the speedbar, run @kbd{M-x speedbar
@@ -6415,7 +6401,7 @@ For a description of the menu bar, please
 @end ifnothtml
 @ifhtml
 see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Menu-Bar.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Menu-Bar.html,
 The Menu Bar} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -6437,7 +6423,7 @@ tool bar, please
 @end ifnothtml
 @ifhtml
 see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Tool-Bars.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Tool-Bars.html,
 Tool Bars} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -6808,8 +6794,8 @@ argument.
 
 @cindex @command{procmail}
 @cindex Unix commands, @command{procmail}
-@cindex @samp{X-MHE-Checksum:} header field
-@cindex header field, @samp{X-MHE-Checksum:}
+@cindex @samp{X-MHE-Checksum} header field
+@cindex header field, @samp{X-MHE-Checksum}
 
 Note: This command uses an @samp{X-MHE-Checksum:} header field to
 cache the MD5 checksum of a message. This means that if an incoming
@@ -7472,9 +7458,9 @@ folder (default is current folder) with @kbd{S l}
 (@code{mh-list-sequences}). The list appears in a buffer named
 @samp{*MH-E Sequences*} (@pxref{Miscellaneous}).
 
-@cindex MH profile component, @samp{Previous-Sequence:}
+@cindex MH profile component, @samp{Previous-Sequence}
 @cindex @samp{cur} sequence
-@cindex @samp{Previous-Sequence:} MH profile component
+@cindex @samp{Previous-Sequence} MH profile component
 @cindex sequence, @samp{cur}
 @cindex sequence, @samp{Previous-Sequence}
 @vindex mh-refile-preserves-sequences-flag
@@ -7499,10 +7485,10 @@ this deletes only the sequence, not the messages in the sequence. If
 you want to delete the messages, use @kbd{C-u d} (@pxref{Reading
 Mail}).
 
-@cindex @samp{Unseen-Sequence:} MH profile component
+@cindex @samp{Unseen-Sequence} MH profile component
 @cindex @samp{cur} sequence
 @cindex @samp{tick} sequence
-@cindex MH profile component, @samp{Unseen-Sequence:}
+@cindex MH profile component, @samp{Unseen-Sequence}
 @cindex sequence, @samp{Unseen-Sequence}
 @cindex sequence, @samp{cur}
 @cindex sequence, @samp{tick}
@@ -7678,9 +7664,9 @@ reclassifies a range of messages (@pxref{Ranges}) as ham if it were
 incorrectly classified as spam. It then refiles the message into the
 @file{+inbox} folder.
 
-@cindex MH profile component, @samp{Previous-Sequence:}
+@cindex MH profile component, @samp{Previous-Sequence}
 @cindex @samp{cur} sequence
-@cindex @samp{Previous-Sequence:} MH profile component
+@cindex @samp{Previous-Sequence} MH profile component
 @cindex sequence, @samp{cur}
 @cindex sequence, @samp{Previous-Sequence}
 @vindex mh-whitelist-preserves-sequences-flag
@@ -7723,10 +7709,10 @@ it from your local distribution or from the
 To use SpamAssassin, add the following recipes to @file{~/.procmailrc}:
 
 @cindex @command{spamc}
-@cindex @samp{X-Spam-Level:} header field
-@cindex @samp{X-Spam-Status:} header field
-@cindex header field, @samp{X-Spam-Level:}
-@cindex header field, @samp{X-Spam-Status:}
+@cindex @samp{X-Spam-Level} header field
+@cindex @samp{X-Spam-Status} header field
+@cindex header field, @samp{X-Spam-Level}
+@cindex header field, @samp{X-Spam-Status}
 
 @smallexample
 PATH=$PATH:/usr/bin/mh
@@ -7848,8 +7834,8 @@ each type of message to start doing a good job.
 
 To use bogofilter, add the following recipes to @file{~/.procmailrc}:
 
-@cindex @samp{X-Bogosity:} header field
-@cindex header field, @samp{X-Bogosity:}
+@cindex @samp{X-Bogosity} header field
+@cindex header field, @samp{X-Bogosity}
 
 @smallexample
 PATH=$PATH:/usr/bin/mh
@@ -7901,8 +7887,8 @@ SpamProbe web site}.
 To use SpamProbe, add the following recipes to @file{~/.procmailrc}:
 
 @cindex @command{formail}
-@cindex @samp{X-SpamProbe:} header field
-@cindex header field, @samp{X-SpamProbe:}
+@cindex @samp{X-SpamProbe} header field
+@cindex header field, @samp{X-SpamProbe}
 
 @smallexample
 PATH=$PATH:/usr/bin/mh
@@ -7937,12 +7923,12 @@ eliminate any message with a Windows executable (which is most likely
 a virus). The second is to eliminate mail in character sets that you
 can't read.
 
-@cindex @samp{Content-Transfer-Encoding:} header field
-@cindex @samp{Content-Type:} header field
-@cindex @samp{Subject:} header field
-@cindex header field, @samp{Content-Transfer-Encoding:}
-@cindex header field, @samp{Content-Type:}
-@cindex header field, @samp{Subject:}
+@cindex @samp{Content-Transfer-Encoding} header field
+@cindex @samp{Content-Type} header field
+@cindex @samp{Subject} header field
+@cindex header field, @samp{Content-Transfer-Encoding}
+@cindex header field, @samp{Content-Type}
+@cindex header field, @samp{Subject}
 
 @smallexample
 PATH=$PATH:/usr/bin/mh
@@ -8219,7 +8205,7 @@ GNU Emacs Manual}.
 @end ifnothtml
 @ifhtml
 section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Regexps.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
 Syntax of Regular Expressions} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -8594,8 +8580,8 @@ anything to my knowledge@footnote{See
 Savannah issue #4361} to see if @command{rcvstore} locking is still an
 issue.}.
 
-@cindex @samp{Unseen-Sequence:} MH profile component
-@cindex MH profile component, @samp{Unseen-Sequence:}
+@cindex @samp{Unseen-Sequence} MH profile component
+@cindex MH profile component, @samp{Unseen-Sequence}
 
 Line 16 uses the following script, @code{myrcvstore}, to massage the
 message as described in the comment and file the message in the given
@@ -8712,12 +8698,11 @@ I also point out some additional sources of information.
 @kindex M-x mh-version
 
 Bug reports should be filed at
-@uref{https://sourceforge.net/tracker/?group_id=13357&atid=113357,
-SourceForge}. You need to be a SourceForge user to submit bug reports,
-but this is easy enough to do that it shouldn't be a restriction for
-you. Please include the output of @kbd{M-x mh-version}
-(@pxref{Miscellaneous}) in any bug report you send unless you're 110%
-positive we won't ask for it.
+@uref{https://sourceforge.net/p/mh-e/bugs/, SourceForge}. You need to
+be a SourceForge user to submit bug reports, but this is easy enough
+to do that it shouldn't be a restriction for you. Please include the
+output of @kbd{M-x mh-version} (@pxref{Miscellaneous}) in any bug
+report you send unless you're 110% positive we won't ask for it.
 
 @node Mailing Lists, MH FAQ and Support, Bug Reports, Odds and Ends
 @appendixsec MH-E Mailing Lists
@@ -8728,7 +8713,7 @@ positive we won't ask for it.
 There are several mailing lists for MH-E@. They are @i{mh-e-users at
 lists.sourceforge.net}, @i{mh-e-announce at lists.sourceforge.net},
 and @i{mh-e-devel at lists.sourceforge.net}. You can subscribe or view
-the archives at @uref{https://sourceforge.net/mail/?group_id=13357,
+the archives at @uref{https://sourceforge.net/p/mh-e/mailman/,
 SourceForge}. Do not report bugs on these lists; please submit them
 via SourceForge (@pxref{Bug Reports}).
 
@@ -8746,11 +8731,10 @@ itself which you will find useful.
 
 @cindex support
 
-You can find FAQs on MH-E at the
-@uref{https://sourceforge.net/tracker/?group_id=13357&atid=213357,
-Support Requests} page on SourceForge. If you don't find the answer to
-your question, file a support request and your question will become a
-new FAQ!
+You can find FAQs on MH-E by searching for @i{labels:support} on the
+@uref{https://sourceforge.net/p/mh-e/bugs/search/?q=labels%3Asupport,
+Tickets} page on SourceForge. If you don't find the answer to your
+question, file a ticket and your question will become a new FAQ!
 
 @node Getting MH-E,  , MH FAQ and Support, Odds and Ends
 @appendixsec Getting MH-E
@@ -8768,13 +8752,13 @@ distribution in @file{miscellany/mh-e}.
 @cindex release notes
 
 New MH-E releases are always available for downloading at
-@uref{https://sourceforge.net/project/showfiles.php?group_id=13357,
-SourceForge} before they appear in an Emacs release. You can read the
-release notes on that page to determine if the given release of MH-E
-is already installed in your version of Emacs. You can also read the
-change log to see if you are interested in what the given release of
-MH-E has to offer (although we have no doubt that you will be
-extremely interested in all new releases).
+@uref{https://sourceforge.net/projects/mh-e/files/, SourceForge}
+before they appear in an Emacs release. You can read the release notes
+on that page to determine if the given release of MH-E is already
+installed in your version of Emacs. You can also read the change log
+to see if you are interested in what the given release of MH-E has to
+offer (although we have no doubt that you will be extremely interested
+in all new releases).
 
 @cindex Debian
 
@@ -8802,10 +8786,10 @@ MH-E@. Check that you're running the new version with the command
 @cindex documentation
 
 In addition to the mh-e package, the
-@uref{https://sourceforge.net/project/showfiles.php?group_id=13357,
-SourceForge} site also contains doc and contrib packages. The former
-is the latest release of this manual, and the latter contains a few
-contributed packages you might find useful.
+@uref{https://sourceforge.net/projects/mh-e/files/, SourceForge} site
+also contains doc and contrib packages. The former is the latest
+release of this manual, and the latter contains a few contributed
+packages you might find useful.
 
 @node History, GFDL, Odds and Ends, Top
 @appendix History of MH-E

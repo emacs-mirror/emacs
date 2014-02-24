@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Rmail
@@ -101,6 +101,7 @@ frequent that it deserves to be easier.
 @item @key{SPC}
 Scroll forward (@code{scroll-up-command}).
 @item @key{DEL}
+@itemx @key{S-SPC}
 Scroll backward (@code{scroll-down-command}).
 @item .
 Scroll to start of message (@code{rmail-beginning-of-message}).
@@ -110,10 +111,11 @@ Scroll to end of message (@code{rmail-end-of-message}).
 
 @kindex SPC @r{(Rmail)}
 @kindex DEL @r{(Rmail)}
+@kindex S-SPC @r{(Rmail)}
   Since the most common thing to do while reading a message is to
 scroll through it by screenfuls, Rmail makes @key{SPC} and @key{DEL}
-do the same as @kbd{C-v} (@code{scroll-up-command}) and @kbd{M-v}
-(@code{scroll-down-command}) respectively.
+(or @key{S-SPC}) do the same as @kbd{C-v} (@code{scroll-up-command})
+and @kbd{M-v} (@code{scroll-down-command}) respectively.
 
 @kindex . @r{(Rmail)}
 @kindex / @r{(Rmail)}
@@ -367,12 +369,20 @@ the rest of Rmail, since only Rmail operates on the Rmail file.
 @end enumerate
 
 @c FIXME remove this in Emacs 25; won't be relevant any more.
+@cindex Babyl files
+@cindex mbox files
   Rmail was originally written to use the Babyl format as its internal
 format.  Since then, we have recognized that the usual inbox format
 (@samp{mbox}) on Unix and GNU systems is adequate for the job, and so
 since Emacs 23 Rmail uses that as its internal format.  The Rmail file
 is still separate from the inbox file, even though their format is the
 same.
+@c But this bit should stay in some form.
+@vindex rmail-mbox-format
+(In fact, there are a few slightly different mbox formats.
+The differences are not very important, but you can set the variable
+@code{rmail-mbox-format} to tell Rmail which form your system uses.
+See that variable's documentation for more details.)
 
 @vindex rmail-preserve-inbox
   When getting new mail, Rmail first copies the new mail from the
@@ -1274,6 +1284,17 @@ It reads the name of a coding system, and then redecodes the message
 using the coding system you specified.  If you specified the right
 coding system, the result should be readable.
 
+@vindex rmail-file-coding-system
+  When you get new mail in Rmail, each message is translated
+automatically from the coding system it is written in, as if it were a
+separate file.  This uses the priority list of coding systems that you
+have specified.  If a MIME message specifies a character set, Rmail
+obeys that specification.  For reading and saving Rmail files
+themselves, Emacs uses the coding system specified by the variable
+@code{rmail-file-coding-system}.  The default value is @code{nil},
+which means that Rmail files are not translated (they are read and
+written in the Emacs internal character code).
+
 @node Rmail Editing
 @section Editing Within a Message
 
@@ -1370,6 +1391,7 @@ mailboxes, etc.  It is able to access remote mailboxes using the POP3
 or IMAP4 protocol, and can retrieve mail from them using a TLS
 encrypted channel.  It also accepts mailbox arguments in @acronym{URL}
 form.  The detailed description of mailbox @acronym{URL}s can be found
+@c Note this node seems to be missing in some versions of mailutils.info?
 in @ref{URL,,,mailutils,Mailbox URL Formats}.  In short, a
 @acronym{URL} is:
 

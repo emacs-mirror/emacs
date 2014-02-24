@@ -1,6 +1,6 @@
 ;;; org-bbdb.el --- Support for links to BBDB entries from within Org-mode
 
-;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2014 Free Software Foundation, Inc.
 
 ;; Authors: Carsten Dominik <carsten at orgmode dot org>
 ;;       Thomas Baumann <thomas dot baumann at ch dot tum dot de>
@@ -116,8 +116,10 @@
 (declare-function bbdb-search-name "ext:bbdb-com" (regexp &optional layout))
 (declare-function bbdb-search-organization "ext:bbdb-com" (regexp &optional layout))
 
-;; `bbdb-record-note' is part of BBDB v3.x
+;; `bbdb-record-note' was part of BBDB v3.x
 (declare-function bbdb-record-note "ext:bbdb" (record label))
+;; `bbdb-record-xfield' replaces it in recent BBDB v3.x+
+(declare-function bbdb-record-xfield "ext:bbdb" (record label))
 
 (declare-function calendar-leap-year-p "calendar" (year))
 (declare-function diary-ordinal-suffix "diary-lib" (n))
@@ -306,14 +308,17 @@ The hash table is created on first use.")
   "Create a hash with anniversaries extracted from BBDB, for fast access.
 The anniversaries are assumed to be stored `org-bbdb-anniversary-field'."
   (let ((old-bbdb (fboundp 'bbdb-record-getprop))
+	(record-func (if (fboundp 'bbdb-record-xfield)
+			 'bbdb-record-xfield
+		       'bbdb-record-note))
 	split tmp annivs)
     (clrhash org-bbdb-anniv-hash)
     (dolist (rec (bbdb-records))
       (when (setq annivs (if old-bbdb
 			     (bbdb-record-getprop
 			      rec org-bbdb-anniversary-field)
-			   (bbdb-record-note
-			    rec org-bbdb-anniversary-field)))
+			   (funcall record-func
+				    rec org-bbdb-anniversary-field)))
         (setq annivs (if old-bbdb
 			 (bbdb-split annivs "\n")
 		       ;; parameter order is reversed in new bbdb

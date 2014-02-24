@@ -1,6 +1,6 @@
 ;;; ediff-merg.el --- merging utilities
 
-;; Copyright (C) 1994-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2014 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -32,11 +32,8 @@
 (defvar ediff-merge-window-share)
 (defvar ediff-window-config-saved)
 
-(eval-when-compile
-  (require 'ediff-util))
-;; end pacifier
-
 (require 'ediff-init)
+(require 'ediff-util)
 
 (defcustom ediff-quit-merge-hook 'ediff-maybe-save-and-delete-merge
   "Hooks to run before quitting a merge job.
@@ -94,6 +91,8 @@ Buffer B."
   :group 'ediff-merge
   )
 (make-variable-buffer-local 'ediff-skip-merge-regions-that-differ-from-default)
+
+(defvar state-of-merge)			; dynamic var
 
 ;; check if there is no clash between the ancestor and one of the variants.
 ;; if it is not a merge job then return true
@@ -353,8 +352,6 @@ Combining is done according to the specifications in variable
 
 	(reverse delim-regs-list)
 	)))
-
-(defvar state-of-merge)			; dynamic var
 
 ;; Check if the non-preferred merge has been modified since originally set.
 ;; This affects only the regions that are marked as default-A/B or combined.

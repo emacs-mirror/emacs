@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Numbers
@@ -354,9 +354,9 @@ can have just one integer object for any given value because it has a
 limited range of integer values.
 @end quotation
 
-@defun = number-or-marker1 number-or-marker2
-This function tests whether its arguments are numerically equal, and
-returns @code{t} if so, @code{nil} otherwise.
+@defun = number-or-marker &rest number-or-markers
+This function tests whether all its arguments are numerically equal,
+and returns @code{t} if so, @code{nil} otherwise.
 @end defun
 
 @defun eql value1 value2
@@ -371,26 +371,27 @@ This function tests whether its arguments are numerically equal, and
 returns @code{t} if they are not, and @code{nil} if they are.
 @end defun
 
-@defun <  number-or-marker1 number-or-marker2
-This function tests whether its first argument is strictly less than
-its second argument.  It returns @code{t} if so, @code{nil} otherwise.
-@end defun
-
-@defun <=  number-or-marker1 number-or-marker2
-This function tests whether its first argument is less than or equal
-to its second argument.  It returns @code{t} if so, @code{nil}
+@defun <  number-or-marker &rest number-or-markers
+This function tests whether every argument is strictly less than the
+respective next argument.  It returns @code{t} if so, @code{nil}
 otherwise.
 @end defun
 
-@defun >  number-or-marker1 number-or-marker2
-This function tests whether its first argument is strictly greater
-than its second argument.  It returns @code{t} if so, @code{nil}
+@defun <= number-or-marker &rest number-or-markers
+This function tests whether every argument is less than or equal to
+the respective next argument.  It returns @code{t} if so, @code{nil}
 otherwise.
 @end defun
 
-@defun >=  number-or-marker1 number-or-marker2
-This function tests whether its first argument is greater than or
-equal to its second argument.  It returns @code{t} if so, @code{nil}
+@defun > number-or-marker &rest number-or-markers
+This function tests whether every argument is strictly greater than
+the respective next argument.  It returns @code{t} if so, @code{nil}
+otherwise.
+@end defun
+
+@defun >= number-or-marker &rest number-or-markers
+This function tests whether every argument is greater than or equal to
+the respective next argument.  It returns @code{t} if so, @code{nil}
 otherwise.
 @end defun
 
@@ -446,7 +447,7 @@ may be integers or floating point numbers.  @var{divisor} may also be
 functions convert @var{number} to an integer, or return it unchanged
 if it already is an integer.  If @var{divisor} is non-@code{nil}, they
 divide @var{number} by @var{divisor} and convert the result to an
-integer.  integer.  If @var{divisor} is zero (whether integer or
+integer.  If @var{divisor} is zero (whether integer or
 floating-point), Emacs signals an @code{arith-error} error.
 
 @defun truncate number &optional divisor
@@ -1154,11 +1155,6 @@ This function returns the logarithm of @var{arg}, with base
 @var{base}.  If you don't specify @var{base}, the natural base
 @math{e} is used.  If @var{arg} or @var{base} is negative, @code{log}
 returns a NaN.
-@end defun
-
-@defun log10 arg
-This function returns the logarithm of @var{arg}, with base 10:
-@code{(log10 @var{x})} @equiv{} @code{(log @var{x} 10)}.
 @end defun
 
 @defun expt x y

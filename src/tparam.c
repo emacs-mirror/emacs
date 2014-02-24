@@ -1,6 +1,6 @@
 /* Merge parameters into a termcap entry string.
-   Copyright (C) 1985, 1987, 1993, 1995, 2000-2008, 2013 Free Software
-   Foundation, Inc.
+   Copyright (C) 1985, 1987, 1993, 1995, 2000-2008, 2013-2014 Free
+   Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -79,7 +79,7 @@ tparam1 (const char *string, char *outstring, int len,
   register int tem;
   int *old_argp = argp;                 /* can move */
   int *fixed_argp = argp;               /* never moves */
-  int explicit_param_p = 0;             /* set by %p */
+  bool explicit_param_p = 0;            /* set by %p */
   ptrdiff_t doleft = 0;
   ptrdiff_t doup = 0;
   ptrdiff_t append_len = 0;

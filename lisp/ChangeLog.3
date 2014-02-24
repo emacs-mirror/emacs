@@ -432,7 +432,7 @@
 	current-time-string and current-time-zone.  Adjust to new format
 	returned by current-time-zone.
 
-	* xfaces.el (face-equal): Doc fix.
+	* faces.el (face-equal): Doc fix.
 
 1993-05-19  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -768,7 +768,7 @@
 	(x-initialize-frame-faces): Use the NOERROR argument to the
 	font manipulation functions to avoid errors while starting up.
 	Remove initialization of isearch font.
-	* xfaces.c (internal-x-complain-about-font): Add new frame
+	(internal-x-complain-about-font): Add new frame
 	argument, so we can check the frame parameters to find the
 	default font.  Callers changed.
 
@@ -2120,11 +2120,6 @@
 	A boatload of changes to terminal support and terminal capability
 	initialization that make it a lot smarter, with a more uniform
 	and featureful interface across many different keyboard types.
-
-	* term.c (fkey_table): Has been expanded to handle the entire
-	intersection of the capability sets defined by X keysyms and
-	terminfo.  That is, every keysym for which there is a natural
-	equivalent in terminfo is now bound to that by the startup code.
 
 	* loaddefs.el (global-map): Natural default keybindings set up for
 	almost all supported keysyms other than function keys.  All
@@ -10108,7 +10103,7 @@
 
 1990-02-07  David Lawrence  (tale@galapas)
 
-	* inf-lisp.el: inferior-lisp-program can be a list of the programme
+	* inf-lisp.el: inferior-lisp-program can be a list of the program
 	name and its arguments.
 
 1990-02-06  Ed Reingold  (reingold@emr.cs.uiuc.edu)
@@ -10458,7 +10453,7 @@
 	Moved bindings off of C-c LETTER.
 	Cleaned up references to cmu* files.
 	Made comint-send-input do unconditional end-of-line before processing.
-	cominit-exec will signal an error if no programme name.
+	cominit-exec will signal an error if no program name.
 	Removed full-copy-sparse-keymap and comint-log-user.
 
 1989-12-04  Joseph Arceneaux  (jla@spiff)
@@ -11004,7 +10999,7 @@
 1989-06-23  Joseph Arceneaux  (jla@all-bran.ai.mit.edu)
 
 	* term/x-win.el (x-pop-up-window): Run hook x-pop-up-window-hook.
-	(x-color-screen-p): New macro; used to be C function.
+	(x-color-screen-p): New macro; used to be C function in xfns.c.
 
 1989-06-22  Richard Stallman  (rms@mole.ai.mit.edu)
 
@@ -12438,7 +12433,7 @@ See ChangeLog.2 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 1989, 1993, 2001-2013 Free Software Foundation, Inc.
+    Copyright (C) 1989, 1993, 2001-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,4 +1,4 @@
-\input texinfo  @c -*- coding: iso-latin-1 -*-
+\input texinfo  @c -*- coding: utf-8 -*-
 
 @setfilename ../../info/emacs
 @settitle GNU Emacs Manual
@@ -26,7 +26,7 @@ This is the @cite{GNU Emacs Manual},
 @end ifnottex
 updated for Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1985--1987, 1993--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 1985--1987, 1993--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -44,11 +44,11 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@documentencoding ISO-8859-1
+@documentencoding UTF-8
 
 @dircategory Emacs
 @direntry
-* Emacs: (emacs).       The extensible self-documenting text editor.
+* Emacs: (emacs).               The extensible self-documenting text editor.
 @end direntry
 
 @c in general, keep the following line commented out, unless doing a
@@ -111,9 +111,21 @@ Cover art by Etienne Suvasa; cover design by Matt Lee.
 @top The Emacs Editor
 
 Emacs is the extensible, customizable, self-documenting real-time
-display editor.  This Info file describes how to edit with Emacs and
+display editor.  This manual describes how to edit with Emacs and
 some of the ways to customize it; it corresponds to GNU Emacs version
 @value{EMACSVER}.
+
+@c See `manual-html-mono' and `manual-html-node' in admin/admin.el.
+@ifset WWW_GNU_ORG
+@html
+The homepage for GNU Emacs is at
+<a href="/software/emacs/">http://www.gnu.org/software/emacs/</a>.<br>
+To view this manual in other formats, click
+<a href="/software/emacs/manual/emacs.html">here</a>.<br>
+You can also purchase a printed copy from the
+<a href="http://shop.fsf.org/product/emacs-manual/">FSF store</a>.
+@end html
+@end ifset
 
 @ifinfo
 If you are reading this in Emacs, type @kbd{h} to read a basic
@@ -178,6 +190,7 @@ Advanced Features
 * Rmail::               Reading mail in Emacs.
 * Gnus::                A flexible mail and news reader.
 * Document View::       Viewing PDF, PS and DVI files.
+* EWW::                 A web browser in Emacs.
 * Shell::               Executing shell commands from Emacs.
 * Emacs Server::        Using Emacs as an editing server.
 * Printing::            Printing hardcopies of buffers or regions.
@@ -333,13 +346,14 @@ Yanking
 
 Registers
 
-* Position Registers::      Saving positions in registers.
-* Text Registers::          Saving text in registers.
-* Rectangle Registers::     Saving rectangles in registers.
-* Configuration Registers:: Saving window configurations in registers.
-* Number Registers::        Numbers in registers.
-* File Registers::          File names in registers.
-* Bookmarks::               Bookmarks are like registers, but persistent.
+* Position Registers::       Saving positions in registers.
+* Text Registers::           Saving text in registers.
+* Rectangle Registers::      Saving rectangles in registers.
+* Configuration Registers::  Saving window configurations in registers.
+* Number Registers::         Numbers in registers.
+* File Registers::           File names in registers.
+* Keyboard Macro Registers:: Keyboard macros in registers.
+* Bookmarks::                Bookmarks are like registers, but persistent.
 
 Controlling the Display
 
@@ -385,14 +399,14 @@ Searching and Replacement
 
 Incremental Search
 
-* Basic Isearch::       Basic incremental search commands.
-* Repeat Isearch::      Searching for the same string again.
-* Error in Isearch::    When your string is not found.
-* Special Isearch::     Special input in incremental search.
-* Isearch Yank::        Commands that grab text into the search string
-                          or else edit the search string.
-* Isearch Scroll::      Scrolling during an incremental search.
-* Isearch Minibuffer::  Incremental search of the minibuffer history.
+* Basic Isearch::        Basic incremental search commands.
+* Repeat Isearch::       Searching for the same string again.
+* Error in Isearch::     When your string is not found.
+* Special Isearch::      Special input in incremental search.
+* Isearch Yank::         Commands that grab text into the search string
+                           or else edit the search string.
+* Not Exiting Isearch::  Prefix argument and scrolling commands.
+* Isearch Minibuffer::   Incremental search of the minibuffer history.
 
 Replacement Commands
 
@@ -479,7 +493,7 @@ Using Multiple Buffers
 
 * Select Buffer::       Creating a new buffer or reselecting an old one.
 * List Buffers::        Getting a list of buffers that exist.
-* Misc Buffer::         Renaming; changing read-onlyness; copying text.
+* Misc Buffer::         Renaming; changing read-only status; copying text.
 * Kill Buffer::         Killing buffers you no longer need.
 * Several Buffers::     How to go through the list of all buffers
                           and operate variously on several of them.
@@ -490,7 +504,7 @@ Using Multiple Buffers
 Convenience Features and Customization of Buffer Handling
 
 * Uniquify::            Making buffer names unique with directory parts.
-* Iswitchb::            Switching between buffers with substrings.
+* Icomplete::           Fast minibuffer selection.
 * Buffer Menus::        Configurable buffer menu.
 
 Multiple Windows
@@ -533,7 +547,6 @@ Frames and Graphical Displays
 International Character Set Support
 
 * International Chars::     Basic concepts of multibyte characters.
-* Disabling Multibyte::     Controlling whether to use multibyte characters.
 * Language Environments::   Setting things up for the language you use.
 * Input Methods::           Entering text characters not on your keyboard.
 * Select Input Method::     Specifying your choice of input methods.
@@ -655,7 +668,7 @@ Editing Programs
 * Documentation::       Getting documentation of functions you plan to call.
 * Hideshow::            Displaying blocks selectively.
 * Symbol Completion::   Completion on symbol names of your program or language.
-* Glasses::             Making identifiersLikeThis more readable.
+* MixedCase Words::     Dealing with identifiersLikeThis.
 * Semantic::            Suite of editing tools based on source code parsing.
 * Misc for Programs::   Other Emacs features useful for editing programs.
 * C Modes::             Special commands of C, C++, Objective-C,
@@ -787,6 +800,7 @@ Version Control
 * Old Revisions::       Examining and comparing old versions.
 * VC Change Log::       Viewing the VC Change Log.
 * VC Undo::             Canceling changes before or after committing.
+* VC Ignore::           Ignore files under version control system.
 * VC Directory Mode::   Listing files managed by version control.
 * Branches::            Multiple lines of development.
 @ifnottex
@@ -945,7 +959,6 @@ Conversion To and From Other Calendars
                              (aside from Gregorian).
 * To Other Calendar::      Converting the selected date to various calendars.
 * From Other Calendar::    Moving to a date specified in another calendar.
-* Mayan Calendar::         Moving to a date specified in a Mayan calendar.
 
 The Diary
 
@@ -960,6 +973,7 @@ More advanced features of the Calendar and Diary
 
 * Calendar Customizing::   Calendar layout and hooks.
 * Holiday Customizing::    Defining your own holidays.
+* Mayan Calendar::         Moving to a date specified in a Mayan calendar.
 * Date Display Format::    Changing the format.
 * Time Display Format::    Changing the format.
 * Diary Customizing::      Defaults you can set.
@@ -1178,7 +1192,7 @@ X Options and Resources
 * Resources::           Using X resources with Emacs (in general).
 * Table of Resources::  Table of specific X resources that affect Emacs.
 * Lucid Resources::     X resources for Lucid menus.
-* LessTif Resources::   X resources for LessTif and Motif menus.
+* Motif Resources::     X resources for Motif and LessTif menus.
 * GTK resources::       Resources for GTK widgets.
 
 GTK resources
@@ -1325,9 +1339,12 @@ If you find GNU Emacs useful, please @strong{send a donation} to the
 Free Software Foundation to support our work.  Donations to the Free
 Software Foundation are tax deductible in the US@.  If you use GNU Emacs
 at your workplace, please suggest that the company make a donation.
-For more information on how you can help, see
+To donate, see @url{https://my.fsf.org/donate/}.
+For other ways in which you can help, see
 @url{http://www.gnu.org/help/help.html}.
 
+@c The command view-order-manuals uses this anchor.
+@anchor{Printed Books}
 We also sell hardcopy versions of this manual and @cite{An
 Introduction to Programming in Emacs Lisp}, by Robert J. Chassell.
 You can visit our online store at @url{http://shop.fsf.org/}.
@@ -1351,35 +1368,35 @@ USA
 
 Contributors to GNU Emacs include Jari Aalto, Per Abrahamsen, Tomas
 Abrahamsson, Jay K. Adams, Alon Albert, Michael Albinus, Nagy
-Andras, Benjamin Andresen, Ralf Angeli, Dmitry Antipov, Joe Arceneaux, Emil ≈strˆm,
+Andras, Benjamin Andresen, Ralf Angeli, Dmitry Antipov, Joe Arceneaux, Emil √Östr√∂m,
 Miles Bader, David Bakhash, Juanma Barranquero, Eli Barzilay, Thomas
 Baumann, Steven L. Baur, Jay Belanger, Alexander L. Belikoff,
 Thomas Bellman, Scott Bender, Boaz Ben-Zvi, Sergey Berezin, Karl
 Berry, Anna M. Bigatti, Ray Blaak, Martin Blais, Jim Blandy, Johan
-BockgÂrd, Jan Bˆcker, Joel Boehland, Lennart Borgman, Per Bothner,
+Bockg√•rd, Jan B√∂cker, Joel Boehland, Lennart Borgman, Per Bothner,
 Terrence Brannon, Frank Bresz, Peter Breton, Emmanuel Briot, Kevin
 Broadey, Vincent Broman, Michael Brouwer, David M. Brown, Stefan Bruda,
-Georges Brun-Cottan, Joe Buehler, Scott Byer, W@l{}odek Bzyl,
+Georges Brun-Cottan, Joe Buehler, Scott Byer, W≈Çodek Bzyl,
 Bill Carpenter, Per Cederqvist, Hans Chalupsky, Chris Chase, Bob
 Chassell, Andrew Choi, Chong Yidong, Sacha Chua, Stewart Clamen, James
 Clark, Mike Clarkson, Glynn Clements, Andrew Cohen, Daniel Colascione,
-Edward O'Connor, Christoph Conrad, Ludovic CourtËs, Andrew Csillag,
+Christoph Conrad, Ludovic Court√®s, Andrew Csillag,
 Toby Cubitt, Baoqiu Cui, Doug Cutting, Mathias Dahl, Julien Danjou, Satyaki
 Das, Vivek Dasmohapatra, Dan Davison, Michael DeCorte, Gary Delp, Nachum
 Dershowitz, Dave Detlefs, Matthieu Devin, Christophe de Dinechin, Eri
-Ding, Jan Dj‰rv, Lawrence R. Dodd, Carsten Dominik, Scott Draves,
+Ding, Jan Dj√§rv, Lawrence R. Dodd, Carsten Dominik, Scott Draves,
 Benjamin Drieu, Viktor Dukhovni, Jacques Duthen, Dmitry Dzhus, John
 Eaton, Rolf Ebert, Carl Edman, David Edmondson, Paul Eggert, Stephen
-Eglen, Christian Egli, Torbjˆrn Einarsson, Tsugutomo Enami, David
+Eglen, Christian Egli, Torbj√∂rn Einarsson, Tsugutomo Enami, David
 Engster, Hans Henrik Eriksen, Michael Ernst, Ata Etemadi, Frederick
 Farnbach, Oscar Figueiredo, Fred Fish, Steve Fisk, Karl Fogel, Gary
 Foster, Eric S. Fraga, Romain Francoise, Noah Friedman, Andreas
 Fuchs, Shigeru Fukaya, Hallvard Furuseth, Keith Gabryelski, Peter S.
-Galbraith, Kevin Gallagher, Fabi·n E. Gallina, Kevin Gallo, Juan LeÛn Lahoz GarcÌa,
+Galbraith, Kevin Gallagher, Fabi√°n E. Gallina, Kevin Gallo, Juan Le√≥n Lahoz Garc√≠a,
 Howard Gayle, Daniel German, Stephen Gildea, Julien Gilles, David
 Gillespie, Bob Glickstein, Deepak Goel, David De La Harpe Golden, Boris
 Goldowsky, David Goodger, Chris Gray, Kevin Greiner, Michelangelo Grigni, Odd
-Gripenstam, Kai Groﬂjohann, Michael Gschwind, Bastien Guerry, Henry
+Gripenstam, Kai Gro√üjohann, Michael Gschwind, Bastien Guerry, Henry
 Guillaume, Doug Gwyn, Bruno Haible, Ken'ichi Handa, Lars Hansen, Chris
 Hanson, Jesper Harder, Alexandru Harsanyi, K. Shane Hartman, John
 Heidemann, Jon K. Hellan, Magnus Henoch, Markus Heritsch, Dirk
@@ -1388,35 +1405,35 @@ Jeffrey C. Honig, Tassilo Horn, Kurt Hornik, Tom Houlder, Joakim
 Hove, Denis Howe, Lars Ingebrigtsen, Andrew Innes, Seiichiro Inoue,
 Philip Jackson, Martyn Jago, Pavel Janik, Paul Jarc, Ulf Jasper,
 Thorsten Jolitz, Michael K. Johnson, Kyle Jones, Terry Jones, Simon
-Josefsson, Alexandre Julliard, Arne J¯rgensen, Tomoji Kagatani,
+Josefsson, Alexandre Julliard, Arne J√∏rgensen, Tomoji Kagatani,
 Brewster Kahle, Tokuya Kameshima, Lute Kamstra, Ivan Kanis, David
 Kastrup, David Kaufman, Henry Kautz, Taichi Kawabata, Taro Kawagishi,
 Howard Kaye, Michael Kifer, Richard King, Peter Kleiweg, Karel
-KlÌ@v{c}, Shuhei Kobayashi, Pavel Kobyakov, Larry K. Kolodney, David
+Kl√≠ƒç, Shuhei Kobayashi, Pavel Kobyakov, Larry K. Kolodney, David
 M. Koppelman, Koseki Yoshinori, Robert Krawitz, Sebastian Kremer,
-Ryszard Kubiak, Igor Kuzmin, David KÂgedal, Daniel LaLiberte, Karl
+Ryszard Kubiak, Igor Kuzmin, David K√•gedal, Daniel LaLiberte, Karl
 Landstrom, Mario Lang, Aaron Larson, James R. Larus, Vinicius Jose
 Latorre, Werner Lemberg, Frederic Lepied, Peter Liljenberg, Christian
 Limpach, Lars Lindberg, Chris Lindblad, Anders Lindgren, Thomas Link,
 Juri Linkov, Francis Litterio, Sergey Litvinov, Emilio C. Lopes,
-Martin Lorentzon, Dave Love, Eric Ludlam, K·roly L@H{o}rentey, Sascha
-L¸decke, Greg McGary, Roland McGrath, Michael McNamara, Alan Mackenzie,
+Martin Lorentzon, Dave Love, Eric Ludlam, K√°roly L≈ërentey, Sascha
+L√ºdecke, Greg McGary, Roland McGrath, Michael McNamara, Alan Mackenzie,
 Christopher J. Madsen, Neil M. Mager, Ken Manheimer, Bill Mann,
 Brian Marick, Simon Marshall, Bengt Martensson, Charlie Martin,
 Yukihiro Matsumoto, Tomohiro Matsuyama, David Maus, Thomas May, Will Mengarini, David
 Megginson, Stefan Merten, Ben A. Mesander, Wayne Mesard, Brad
-Miller, Lawrence Mitchell, Richard Mlynarik, Gerd Moellmann, Stefan
+Miller, Lawrence Mitchell, Richard Mlynarik, Gerd M√∂llmann, Stefan
 Monnier, Keith Moore, Jan Moringen, Morioka Tomohiko, Glenn Morris,
 Don Morrison, Diane Murray, Riccardo Murri, Sen Nagata, Erik Naggum,
 Gergely Nagy, Nobuyoshi Nakada, Thomas Neumann, Mike Newton, Thien-Thi Nguyen,
-Jurgen Nickelsen, Dan Nicolaescu, Hrvoje Niksic, Jeff Norden,
-Andrew Norman, Kentaro Ohkouchi, Christian Ohler,
+Jurgen Nickelsen, Dan Nicolaescu, Hrvoje Nik≈°iƒá, Jeff Norden,
+Andrew Norman, Edward O'Connor, Kentaro Ohkouchi, Christian Ohler,
 Kenichi Okada, Alexandre Oliva, Bob Olson, Michael Olson, Takaaki Ota,
 Pieter E. J. Pareit, Ross Patterson, David Pearson, Juan Pechiar,
 Jeff Peck, Damon Anton Permezel, Tom Perrine, William M. Perry, Per
 Persson, Jens Petersen, Daniel Pfeiffer, Justus Piater, Richard L.
-Pieri, Fred Pierresteguy, FranÁois Pinard, Daniel Pittman, Christian
-Plaunt, Alexander Pohoyda, David Ponce, Francesco A. Potorti,
+Pieri, Fred Pierresteguy, Fran√ßois Pinard, Daniel Pittman, Christian
+Plaunt, Alexander Pohoyda, David Ponce, Francesco A. Potort√¨,
 Michael D. Prange, Mukesh Prasad, Ken Raeburn, Marko Rahamaa, Ashwin
 Ram, Eric S. Raymond, Paul Reilly, Edward M. Reingold, David
 Reitter, Alex Rezinsky, Rob Riepel, Lara Rios, Adrian Robert, Nick
@@ -1424,13 +1441,13 @@ Roberts, Roland B. Roberts, John Robinson, Denis B. Roegel, Danny
 Roozendaal, Sebastian Rose, William Rosenblatt, Markus Rost, Guillermo
 J. Rozas, Martin Rudalics, Ivar Rummelhoff, Jason Rumney, Wolfgang
 Rupprecht, Benjamin Rutt, Kevin Ryde, James B. Salem, Masahiko Sato,
-Timo Savola, Jorgen Schaefer, Holger Schauer, William Schelter, Ralph
+Timo Savola, Jorgen Sch√§fer, Holger Schauer, William Schelter, Ralph
 Schleicher, Gregor Schmid, Michael Schmidt, Ronald S. Schnell,
 Philippe Schnoebelen, Jan Schormann, Alex Schroeder, Stefan Schoef,
-Rainer Schoepf, Raymond Scholz, Eric Schulte, Andreas Schwab, Randal
+Rainer Sch√∂pf, Raymond Scholz, Eric Schulte, Andreas Schwab, Randal
 Schwartz, Oliver Seidel, Manuel Serrano, Paul Sexton, Hovav Shacham,
 Stanislav Shalunov, Marc Shapiro, Richard Sharman, Olin Shivers, Tibor
-@v{S}imko, Espen Skoglund, Rick Sladkey, Lynn Slater, Chris Smith,
+≈†imko, Espen Skoglund, Rick Sladkey, Lynn Slater, Chris Smith,
 David Smith, Paul D. Smith, Wilson Snyder, William Sommerfeld, Simon
 South, Andre Spiegel, Michael Staats, Thomas Steffen, Ulf Stegemann,
 Reiner Steib, Sam Steingold, Ake Stenhoff, Peter Stephenson, Ken
@@ -1449,7 +1466,7 @@ Wohler, Steven A. Wood, Dale R. Worley, Francis J. Wright, Felix
 S. T. Wu, Tom Wurgler, Yamamoto Mitsuharu, Katsumi Yamaoka,
 Masatake Yamato, Jonathan Yavner, Ryan Yeske, Ilya Zakharevich, Milan
 Zamazal, Victor Zandy, Eli Zaretskii, Jamie Zawinski, Andrew Zhilin,
-Shenghuo Zhu, Piotr Zielinski, Ian T. Zimmermann, Reto Zimmermann,
+Shenghuo Zhu, Piotr Zieli≈Ñski, Ian T. Zimmermann, Reto Zimmermann,
 Neal Ziring, Teodor Zlatanov, and Detlev Zundel.
 @end iftex
 
@@ -1458,7 +1475,7 @@ Neal Ziring, Teodor Zlatanov, and Detlev Zundel.
 
   You are reading about GNU Emacs, the GNU incarnation of the
 advanced, self-documenting, customizable, extensible editor Emacs.
-(The `G' in `GNU' is not silent.)
+(The @samp{G} in @acronym{GNU, @acronym{GNU}'s Not Unix} is not silent.)
 
   We call Emacs @dfn{advanced} because it can do much more than simple
 insertion and deletion of text.  It can control subprocesses, indent

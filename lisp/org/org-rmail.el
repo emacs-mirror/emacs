@@ -1,6 +1,6 @@
 ;;; org-rmail.el --- Support for links to Rmail messages from within Org-mode
 
-;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2014 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -95,7 +95,10 @@
 (defun org-rmail-follow-link (folder article)
   "Follow an Rmail link to FOLDER and ARTICLE."
   (require 'rmail)
-  (setq article (org-add-angle-brackets article))
+  (cond ((null article) (setq article ""))
+	((stringp article)
+	 (setq article (org-add-angle-brackets article)))
+	(t (user-error "Wrong RMAIL link format")))
   (let (message-number)
     (save-excursion
       (save-window-excursion
@@ -105,8 +108,7 @@
 		(rmail-widen)
 		(goto-char (point-max))
 		(if (re-search-backward
-		     (concat "^Message-ID:\\s-+" (regexp-quote
-						  (or article "")))
+		     (concat "^Message-ID:\\s-+" (regexp-quote article))
 		     nil t)
 		    (rmail-what-message))))))
     (if message-number

@@ -1,4 +1,4 @@
-Copyright (C) 1993, 2001-2013 Free Software Foundation, Inc.
+Copyright (C) 1993, 2001-2014 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -55,7 +55,7 @@ are listed in src/term.c; look for the string `keys' in that file.
 terminal mode as on an X console.  If there are differences, you can bet
 they'll frustrate you after you've forgotten about them.
 
-   For another, the X keysms provide a standard set of names that Emacs knows
+   For another, the X keysyms provide a standard set of names that Emacs knows
 about.  It tries to bind many of them to useful things at startup, before your
 .emacs is read (so you can override them).  In some ways, the X keysym standard
 is a admittedly poor one; it's incomplete, and not well matched to the set of

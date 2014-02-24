@@ -48,7 +48,19 @@ subst(X, V, FV, lambda(Y, Ti, Bi), lambda(Y1, To, Bo)) :-
           subst(Y, Y1, [], Bi, Bi1);
       Y1 = Y, Bi1 = Bi),
      %% Perform substitution on the body.
-     subst(X, V, FV, Bi1, Bo)).
+     subst(X, V, FV, Bi1, Bo)),
+    (	X = Y
+     %% If X is equal to Y, X is shadowed, so no subst can take place.
+     ->	Y1 = Y, Bo = Bi
+     ;	(member((Y, _), FV)
+	 %% If Y appears in FV, it can appear in V, so we need to
+	 %% rename it to avoid name capture.
+	 -> new_atom(Y, Y1),
+	    subst(Y, Y1, [], Bi, Bi1)
+	 ; Y1 = Y, Bi1 = Bi),
+	%% Perform substitution on the body.
+	subst(X, V, FV, Bi1, Bo)
+    ).
 subst(X, V, FV, pi(Y, Ti, Bi), pi(Y1, To, Bo)) :-
     subst(X, V, FV, lambda(Y, Ti, Bi), lambda(Y1, To, Bo)).
 subst(X, V, FV, forall(Y, Ti, Bi), forall(Y1, To, Bo)) :-

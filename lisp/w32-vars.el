@@ -1,6 +1,6 @@
 ;;; w32-vars.el --- MS-Windows specific user options
 
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: Jason Rumney <jasonr@gnu.org>
 ;; Keywords: internal
@@ -148,6 +148,8 @@ menu if the variable `w32-use-w32-font-dialog' is nil."
 		      (string :tag "Menu text")
 		      (string :tag "Font")))))))
     :group 'w32)
+
+(make-obsolete-variable 'w32-enable-synthesized-fonts nil "24.4")
 
 (provide 'w32-vars)
 

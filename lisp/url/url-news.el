@@ -1,6 +1,6 @@
 ;;; url-news.el --- News Uniform Resource Locator retrieval code
 
-;; Copyright (C) 1996-1999, 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2014 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -28,9 +28,10 @@
 (autoload 'url-warn "url")
 (autoload 'gnus-group-read-ephemeral-group "gnus-group")
 
-(defgroup url-news nil
-  "News related options."
-  :group 'url)
+;; Unused.
+;;; (defgroup url-news nil
+;;;   "News related options."
+;;;   :group 'url)
 
 (defun url-news-open-host (host port user pass)
   (if (fboundp 'nnheader-init-server-buffer)

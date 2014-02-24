@@ -1,6 +1,6 @@
 ;;; org-macs.el --- Top-level definitions for Org-mode
 
-;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2014 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -33,7 +33,9 @@
 
 (eval-and-compile
   (unless (fboundp 'declare-function)
-    (defmacro declare-function (fn file &optional arglist fileonly)))
+    (defmacro declare-function (fn file &optional arglist fileonly)
+      `(autoload ',fn ,file)))
+
   (if (>= emacs-major-version 23)
       (defsubst org-char-to-string(c)
 	"Defsubst to decode UTF-8 character values in emacs 23 and beyond."
@@ -63,14 +65,6 @@
       `(interactive-p))))
 (def-edebug-spec org-called-interactively-p (&optional ("quote" symbolp)))
 
-(when (and (not (fboundp 'with-silent-modifications))
-	   (or (< emacs-major-version 23)
-	       (and (= emacs-major-version 23)
-		    (< emacs-minor-version 2))))
-  (defmacro with-silent-modifications (&rest body)
-    `(org-unmodified ,@body))
-  (def-edebug-spec with-silent-modifications (body)))
-
 (defmacro org-bound-and-true-p (var)
   "Return the value of symbol VAR if it is bound, else nil."
   `(and (boundp (quote ,var)) ,var))
@@ -86,16 +80,6 @@
   "If V not nil, and also not the string \"nil\", then return V.
 Otherwise return nil."
   (and v (not (equal v "nil")) v))
-
-(defmacro org-unmodified (&rest body)
-  "Execute body without changing `buffer-modified-p'.
-Also, do not record undo information."
-  `(set-buffer-modified-p
-    (prog1 (buffer-modified-p)
-      (let ((buffer-undo-list t)
-	    (inhibit-modification-hooks t))
-	,@body))))
-(def-edebug-spec org-unmodified (body))
 
 (defun org-substitute-posix-classes (re)
   "Substitute posix classes in regular expression RE."
@@ -126,14 +110,18 @@ Also, do not record undo information."
 	 (org-move-to-column ,col)))))
 (def-edebug-spec org-preserve-lc (body))
 
-;; Copied from bookmark.el
-(defmacro org-with-buffer-modified-unmodified (&rest body)
+;; Use `org-with-silent-modifications' to ignore cosmetic changes and
+;; `org-unmodified' to ignore real text modifications
+(defmacro org-unmodified (&rest body)
   "Run BODY while preserving the buffer's `buffer-modified-p' state."
   (org-with-gensyms (was-modified)
     `(let ((,was-modified (buffer-modified-p)))
        (unwind-protect
-           (progn ,@body)
-         (set-buffer-modified-p ,was-modified)))))
+           (let ((buffer-undo-list t)
+		 (inhibit-modification-hooks t))
+	     ,@body)
+	 (set-buffer-modified-p ,was-modified)))))
+(def-edebug-spec org-unmodified (body))
 
 (defmacro org-without-partial-completion (&rest body)
   `(if (and (boundp 'partial-completion-mode)
@@ -176,46 +164,17 @@ We use a macro so that the test can happen at compilation time."
   (cons (if (fboundp 'with-no-warnings) 'with-no-warnings 'progn) body))
 (def-edebug-spec org-no-warnings (body))
 
-(defmacro org-if-unprotected (&rest body)
-  "Execute BODY if there is no `org-protected' text property at point."
-  `(unless (get-text-property (point) 'org-protected)
-     ,@body))
-(def-edebug-spec org-if-unprotected (body))
-
-(defmacro org-if-unprotected-1 (&rest body)
-  "Execute BODY if there is no `org-protected' text property at point-1."
-  `(unless (get-text-property (1- (point)) 'org-protected)
-     ,@body))
-(def-edebug-spec org-if-unprotected-1 (body))
-
-(defmacro org-if-unprotected-at (pos &rest body)
-  "Execute BODY if there is no `org-protected' text property at POS."
-  `(unless (get-text-property ,pos 'org-protected)
-     ,@body))
-(def-edebug-spec org-if-unprotected-at (form body))
-(put 'org-if-unprotected-at 'lisp-indent-function 1)
-
-(defun org-re-search-forward-unprotected (&rest args)
-  "Like re-search-forward, but stop only in unprotected places."
-  (catch 'exit
-    (while t
-      (unless (apply 're-search-forward args)
-	(throw 'exit nil))
-      (unless (get-text-property (match-beginning 0) 'org-protected)
-	(throw 'exit (point))))))
-
-;; FIXME: Normalize argument names
-(defmacro org-with-remote-undo (_buffer &rest _body)
+(defmacro org-with-remote-undo (buffer &rest body)
   "Execute BODY while recording undo information in two buffers."
   (org-with-gensyms (cline cmd buf1 buf2 undo1 undo2 c1 c2)
     `(let ((,cline (org-current-line))
 	   (,cmd this-command)
 	   (,buf1 (current-buffer))
-	   (,buf2 ,_buffer)
+	   (,buf2 ,buffer)
 	   (,undo1 buffer-undo-list)
-	   (,undo2 (with-current-buffer ,_buffer buffer-undo-list))
+	   (,undo2 (with-current-buffer ,buffer buffer-undo-list))
 	   ,c1 ,c2)
-       ,@_body
+       ,@body
        (when org-agenda-allow-remote-undo
 	 (setq ,c1 (org-verify-change-for-undo
 		    ,undo1 (with-current-buffer ,buf1 buffer-undo-list))
@@ -324,14 +283,6 @@ we turn off invisibility temporarily.  Use this in a `let' form."
        (<= (match-beginning n) pos)
        (>= (match-end n) pos)))
 
-(defun org-autoload (file functions)
-  "Establish autoload for all FUNCTIONS in FILE, if not bound already."
-  (let ((d (format "Documentation will be available after `%s.el' is loaded."
-		   file))
-	f)
-    (while (setq f (pop functions))
-      (or (fboundp f) (autoload f file d t)))))
-
 (defun org-match-line (re)
   "Looking-at at the beginning of the current line."
   (save-excursion
@@ -426,6 +377,13 @@ the value in cdr."
   (when flat
     (cons (list (car flat) (cadr flat))
 	  (org-make-parameter-alist (cddr flat)))))
+
+;;;###autoload
+(defmacro org-load-noerror-mustsuffix (file)
+  "Load FILE with optional arguments NOERROR and MUSTSUFFIX.  Drop the MUSTSUFFIX argument for XEmacs, which doesn't recognize it."
+  (if (featurep 'xemacs)
+      `(load ,file 'noerror)
+    `(load ,file 'noerror nil nil 'mustsuffix)))
 
 (provide 'org-macs)
 

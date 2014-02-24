@@ -1,9 +1,10 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Glossary
 @unnumbered Glossary
+@cindex glossary
 
 @table @asis
 @anchor{Glossary---Abbrev}
@@ -18,7 +19,10 @@ Aborting means getting out of a recursive edit (q.v.).  The
 commands @kbd{C-]} and @kbd{M-x top-level} are used for this.
 @xref{Quitting}.
 
-@c FIXME?  Active Region
+@item Active Region
+Setting the mark (q.v.@:) at a position in the text also activates it.
+When the mark is active, we call the region an active region.
+@xref{Mark}.
 
 @item Alt
 Alt is the name of a modifier bit that a keyboard input character may
@@ -252,7 +256,7 @@ abbreviation for a name into the entire name.  Completion is done for
 minibuffer (q.v.@:) arguments when the set of possible valid inputs
 is known; for example, on command names, buffer names, and
 file names.  Completion usually occurs when @key{TAB}, @key{SPC} or
-@key{RET} is typed.  @xref{Completion}.@refill
+@key{RET} is typed.  @xref{Completion}.
 
 @anchor{Glossary---Continuation Line}
 @item Continuation Line
@@ -869,6 +873,7 @@ The Emacs major modes are a mutually exclusive set of options, each of
 which configures Emacs for editing a certain sort of text.  Ideally,
 each programming language has its own major mode.  @xref{Major Modes}.
 
+@c FIXME: Mention margins for filling?
 @item Margin
 The space between the usable part of a window (including the
 fringe) and the window edge.
@@ -948,9 +953,15 @@ another.  The usual way to move text is by killing (q.v.@:) it and then
 yanking (q.v.@:) it.  @xref{Killing}.
 
 @item MULE
-MULE refers to the Emacs features for editing multilingual
-non-@acronym{ASCII} text using multibyte characters (q.v.).
-@xref{International}.
+@cindex MULE
+Prior to Emacs 23, @acronym{MULE} was the name of a software package
+which provided a @dfn{MULtilingual Enhancement} to Emacs, by adding
+support for multiple character sets (q.v.).  @acronym{MULE} was later
+integrated into Emacs, and much of it was replaced when Emacs gained
+internal Unicode support in version 23.
+
+Some parts of Emacs that deal with character set support still use the
+@acronym{MULE} name.  @xref{International}.
 
 @item Multibyte Character
 A multibyte character is a character that takes up several bytes in a
@@ -1365,7 +1376,11 @@ are not in a recursive editing level (q.v.@:) or the minibuffer
 (q.v.), and not in the middle of a command.  You can get back to top
 level by aborting (q.v.@:) and quitting (q.v.).  @xref{Quitting}.
 
-@c FIXME?  Transient Mark Mode
+@item Transient Mark Mode
+The default behavior of the mark (q.v.@:) and region (q.v.), in which
+setting the mark activates it and highlights the region, is called
+Transient Mark mode.  In GNU Emacs 23 and onwards, it is enabled by
+default.  @xref{Disabled Transient Mark}.
 
 @item Transposition
 Transposing two units of text means putting each one into the place

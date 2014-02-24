@@ -1,6 +1,6 @@
 ;;; vip.el --- a VI Package for GNU Emacs
 
-;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2013 Free Software
+;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masahiko Sato <ms@sail.stanford.edu>
@@ -159,7 +159,7 @@ If nil then it is bound to `delete-backward-char'."
 
 (defvar vip-inhibit-startup-message nil)
 
-(defvar vip-startup-file (convert-standard-filename "~/.vip")
+(defvar vip-startup-file (locate-user-emacs-file "vip" ".vip")
   "Filename used as startup file for vip.")
 
 ;; key bindings
@@ -775,7 +775,7 @@ to vip-d-com for later use by vip-repeat"
 		  (if (= com ?!)
 		      (setq vip-last-shell-com (vip-read-string "!"))
 		    vip-last-shell-com)
-		  t)))
+		  t t)))
 	      ((= com ?=)
 	       (save-excursion
 		 (set-mark vip-com-point)
@@ -3042,7 +3042,7 @@ vip-s-string"
 	  (goto-char beg)
 	  (set-mark end)
 	  (vip-enlarge-region (point) (mark))
-	  (shell-command-on-region (point) (mark) command t))
+	  (shell-command-on-region (point) (mark) command t t))
 	(goto-char beg)))))
 
 (defun ex-line-no ()

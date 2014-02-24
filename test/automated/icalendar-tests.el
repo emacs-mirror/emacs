@@ -1,6 +1,6 @@
 ;; icalendar-tests.el --- Test suite for icalendar.el
 
-;; Copyright (C) 2005, 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2008-2014 Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        March 2005
@@ -428,12 +428,16 @@ Argument EXPECTED-OUTPUT expected iCalendar result string.
 
 European style input data must use german month names.  American
 and ISO style input data must use english month names."
-  (let ((tz (cadr (current-time-zone)))
+  (let ((tz (getenv "TZ"))
 	(calendar-date-style 'iso)
 	(icalendar-recurring-start-year 2000))
     (unwind-protect
 	(progn
-	  (set-time-zone-rule "CET")
+;;;	  (message "Current time zone: %s" (current-time-zone))
+	  ;; Use this form so as not to rely on system tz database.
+	  ;; Eg hydra.nixos.org.
+	  (setenv "TZ" "CET-1CEST,M3.5.0/2,M10.5.0/3")
+;;;	  (message "Current time zone: %s" (current-time-zone))
 	  (when input-iso
 	    (let ((calendar-month-name-array
 		   ["January" "February" "March" "April" "May" "June" "July" "August"
@@ -461,8 +465,8 @@ and ISO style input data must use english month names."
 		    "Saturday"]))
 	      (setq calendar-date-style 'american)
 	      (icalendar-tests--do-test-export input-american expected-output))))
-      ;; restore time-zone if something went terribly wrong
-      (set-time-zone-rule tz))))
+      ;; restore time-zone even if something went terribly wrong
+      (setenv "TZ" tz))))
 
 (defun icalendar-tests--do-test-export (input expected-output)
   "Actually perform export test.
@@ -671,37 +675,43 @@ Argument INPUT icalendar event string.
 Argument EXPECTED-ISO expected iso style diary string.
 Argument EXPECTED-EUROPEAN expected european style diary string.
 Argument EXPECTED-AMERICAN expected american style diary string."
-  (let ((timezone (cadr (current-time-zone))))
-    (set-time-zone-rule "CET")
-    (with-temp-buffer
-      (if (string-match "^BEGIN:VCALENDAR" input)
-          (insert input)
-        (insert "BEGIN:VCALENDAR\nPRODID:-//Emacs//NONSGML icalendar.el//EN\n")
-        (insert "VERSION:2.0\nBEGIN:VEVENT\n")
-        (insert input)
-        (unless (eq (char-before) ?\n)
-          (insert "\n"))
-        (insert "END:VEVENT\nEND:VCALENDAR\n"))
-      (let ((icalendar-import-format "%s%d%l%o%t%u%c%U")
-            (icalendar-import-format-summary "%s")
-            (icalendar-import-format-location "\n Location: %s")
-            (icalendar-import-format-description "\n Desc: %s")
-            (icalendar-import-format-organizer "\n Organizer: %s")
-            (icalendar-import-format-status "\n Status: %s")
-            (icalendar-import-format-url "\n URL: %s")
-            (icalendar-import-format-class "\n Class: %s")
-            (icalendar-import-format-uid "\n UID: %s")
-            calendar-date-style)
-        (when expected-iso
-          (setq calendar-date-style 'iso)
-          (icalendar-tests--do-test-import input expected-iso))
-        (when expected-european
-          (setq calendar-date-style 'european)
-          (icalendar-tests--do-test-import input expected-european))
-        (when expected-american
-          (setq calendar-date-style 'american)
-          (icalendar-tests--do-test-import input expected-american))))
-    (set-time-zone-rule timezone)))
+  (let ((timezone (getenv "TZ")))
+    (unwind-protect
+	(progn
+;;;	  (message "Current time zone: %s" (current-time-zone))
+	  ;; Use this form so as not to rely on system tz database.
+	  ;; Eg hydra.nixos.org.
+	  (setenv "TZ" "CET-1CEST,M3.5.0/2,M10.5.0/3")
+;;;	  (message "Current time zone: %s" (current-time-zone))
+	  (with-temp-buffer
+	    (if (string-match "^BEGIN:VCALENDAR" input)
+		(insert input)
+	      (insert "BEGIN:VCALENDAR\nPRODID:-//Emacs//NONSGML icalendar.el//EN\n")
+	      (insert "VERSION:2.0\nBEGIN:VEVENT\n")
+	      (insert input)
+	      (unless (eq (char-before) ?\n)
+		(insert "\n"))
+	      (insert "END:VEVENT\nEND:VCALENDAR\n"))
+	    (let ((icalendar-import-format "%s%d%l%o%t%u%c%U")
+		  (icalendar-import-format-summary "%s")
+		  (icalendar-import-format-location "\n Location: %s")
+		  (icalendar-import-format-description "\n Desc: %s")
+		  (icalendar-import-format-organizer "\n Organizer: %s")
+		  (icalendar-import-format-status "\n Status: %s")
+		  (icalendar-import-format-url "\n URL: %s")
+		  (icalendar-import-format-class "\n Class: %s")
+		  (icalendar-import-format-uid "\n UID: %s")
+		  calendar-date-style)
+	      (when expected-iso
+		(setq calendar-date-style 'iso)
+		(icalendar-tests--do-test-import input expected-iso))
+	      (when expected-european
+		(setq calendar-date-style 'european)
+		(icalendar-tests--do-test-import input expected-european))
+	      (when expected-american
+		(setq calendar-date-style 'american)
+		(icalendar-tests--do-test-import input expected-american)))))
+      (setenv "TZ" timezone))))
 
 (defun icalendar-tests--do-test-import (input expected-output)
   "Actually perform import test.
@@ -1194,8 +1204,7 @@ Argument INPUT icalendar event string."
 	      (should (string= org-input cycled)))))
       ;; clean up
       (kill-buffer (find-buffer-visiting temp-diary))
-      (save-excursion
-	(set-buffer (find-buffer-visiting temp-ics))
+      (with-current-buffer (find-buffer-visiting temp-ics)
 	(set-buffer-modified-p nil)
 	(kill-buffer (current-buffer)))
       (delete-file temp-diary)

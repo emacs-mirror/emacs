@@ -1,6 +1,6 @@
 ;;; ietf-drums.el --- Functions for parsing RFC822bis headers
 
-;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -214,7 +214,8 @@ backslash and doublequote.")
 		(mapconcat 'identity (reverse display-name) " "))
 	(setq display-string (ietf-drums-get-comment string)))
       (if (not mailbox)
-	  (when (string-match "@" display-string)
+	  (when (and display-string
+		     (string-match "@" display-string))
 	    (cons
 	     (mapconcat 'identity (nreverse display-name) "")
 	     (ietf-drums-get-comment string)))

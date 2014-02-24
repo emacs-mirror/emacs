@@ -1,5 +1,5 @@
 /* Declarations useful when processing input.
-   Copyright (C) 1985-1987, 1993, 2001-2013 Free Software Foundation,
+   Copyright (C) 1985-1987, 1993, 2001-2014 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -17,13 +17,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include "systime.h"		/* for EMACS_TIME, Time */
+#include "systime.h"		/* for struct timespec, Time */
 #include "coding.h"             /* for ENCODE_UTF_8 and ENCODE_SYSTEM */
+#include "termhooks.h"
 
 INLINE_HEADER_BEGIN
-#ifndef KEYBOARD_INLINE
-# define KEYBOARD_INLINE INLINE
-#endif
 
 /* Most code should use this macro to access Lisp fields in struct kboard.  */
 
@@ -171,49 +169,49 @@ struct kboard
     char kbd_queue_has_data;
 
     /* True means echo each character as typed.  */
-    unsigned immediate_echo : 1;
+    bool_bf immediate_echo : 1;
 
     /* If we have echoed a prompt string specified by the user,
        this is its length in characters.  Otherwise this is -1.  */
     ptrdiff_t echo_after_prompt;
   };
 
-KEYBOARD_INLINE void
+INLINE void
 kset_default_minibuffer_frame (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vdefault_minibuffer_frame) = val;
 }
-KEYBOARD_INLINE void
+INLINE void
 kset_defining_kbd_macro (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (defining_kbd_macro) = val;
 }
-KEYBOARD_INLINE void
+INLINE void
 kset_input_decode_map (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vinput_decode_map) = val;
 }
-KEYBOARD_INLINE void
+INLINE void
 kset_last_command (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vlast_command) = val;
 }
-KEYBOARD_INLINE void
+INLINE void
 kset_last_kbd_macro (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vlast_kbd_macro) = val;
 }
-KEYBOARD_INLINE void
+INLINE void
 kset_prefix_arg (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vprefix_arg) = val;
 }
-KEYBOARD_INLINE void
+INLINE void
 kset_system_key_alist (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vsystem_key_alist) = val;
 }
-KEYBOARD_INLINE void
+INLINE void
 kset_window_system (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vwindow_system) = val;
@@ -229,9 +227,6 @@ extern KBOARD *initial_kboard;
    right now considering input.  We can consider input from another
    kboard, but doing so requires throwing to wrong_kboard_jmpbuf.  */
 extern KBOARD *current_kboard;
-
-/* A list of all kboard objects, linked through next_kboard.  */
-extern KBOARD *all_kboards;
 
 /* Total number of times read_char has returned, modulo UINTMAX_MAX + 1.  */
 extern uintmax_t num_input_events;
@@ -341,7 +336,7 @@ enum menu_item_idx
   MENU_ITEMS_ITEM_LENGTH
 };
 
-extern Lisp_Object unuse_menu_items (Lisp_Object dummy);
+extern void unuse_menu_items (void);
 
 /* This is how to deal with multibyte text if HAVE_MULTILINGUAL_MENU
    isn't defined.  The use of HAVE_MULTILINGUAL_MENU could probably be
@@ -421,18 +416,18 @@ typedef struct _widget_value
   (EVENT_HAS_PARAMETERS (event) ? XCAR (event) : (event))
 
 /* Extract the starting and ending positions from a composite event.  */
-#define EVENT_START(event) (XCAR (XCDR (event)))
-#define EVENT_END(event) (XCAR (XCDR (XCDR (event))))
+#define EVENT_START(event) (CAR_SAFE (CDR_SAFE (event)))
+#define EVENT_END(event) (CAR_SAFE (CDR_SAFE (CDR_SAFE (event))))
 
 /* Extract the click count from a multi-click event.  */
 #define EVENT_CLICK_COUNT(event) (Fnth (make_number (2), (event)))
 
 /* Extract the fields of a position.  */
-#define POSN_WINDOW(posn) (XCAR (posn))
-#define POSN_POSN(posn) (XCAR (XCDR (posn)))
+#define POSN_WINDOW(posn) (CAR_SAFE (posn))
+#define POSN_POSN(posn) (CAR_SAFE (CDR_SAFE (posn)))
 #define POSN_SET_POSN(posn,x) (XSETCAR (XCDR (posn), (x)))
-#define POSN_WINDOW_POSN(posn) (XCAR (XCDR (XCDR (posn))))
-#define POSN_TIMESTAMP(posn) (XCAR (XCDR (XCDR (XCDR (posn)))))
+#define POSN_WINDOW_POSN(posn) (CAR_SAFE (CDR_SAFE (CDR_SAFE (posn))))
+#define POSN_TIMESTAMP(posn) (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (posn)))))
 #define POSN_SCROLLBAR_PART(posn)	(Fnth (make_number (4), (posn)))
 
 /* A cons (STRING . STRING-CHARPOS), or nil in mouse-click events.
@@ -462,13 +457,14 @@ extern Lisp_Object Qhelp_echo;
 
 /* Symbols to use for non-text mouse positions.  */
 extern Lisp_Object Qmode_line, Qvertical_line, Qheader_line;
+extern Lisp_Object Qright_divider, Qbottom_divider;
 
 /* True while doing kbd input.  */
 extern bool waiting_for_input;
 
-/* Address (if not 0) of EMACS_TIME to zero out if a SIGIO interrupt
+/* Address (if not 0) of struct timespec to zero out if a SIGIO interrupt
    happens.  */
-extern EMACS_TIME *input_available_clear_time;
+extern struct timespec *input_available_clear_time;
 
 #if defined HAVE_WINDOW_SYSTEM && !defined USE_GTK && !defined HAVE_NS
 extern bool ignore_mouse_drag_p;
@@ -477,13 +473,10 @@ extern bool ignore_mouse_drag_p;
 /* The primary selection.  */
 extern Lisp_Object QPRIMARY;
 
-/* Forward declaration for prototypes.  */
-struct input_event;
-
 extern Lisp_Object parse_modifiers (Lisp_Object);
 extern Lisp_Object reorder_modifiers (Lisp_Object);
 extern Lisp_Object read_char (int, Lisp_Object, Lisp_Object,
-                              bool *, EMACS_TIME *);
+                              bool *, struct timespec *);
 extern int parse_solitary_modifier (Lisp_Object symbol);
 
 
@@ -501,10 +494,6 @@ extern Lisp_Object QCtoggle, QCradio;
    speed up parse_modifiers.  */
 extern Lisp_Object Qevent_symbol_element_mask;
 
-/* The timestamp of the last input event we received from the X server.
-   X Windows wants this for selection ownership.  */
-extern Time last_event_timestamp;
-
 extern int quit_char;
 
 extern unsigned int timers_run;
@@ -512,7 +501,7 @@ extern unsigned int timers_run;
 extern bool menu_separator_name_p (const char *);
 extern bool parse_menu_item (Lisp_Object, int);
 
-extern void init_kboard (KBOARD *);
+extern KBOARD *allocate_kboard (Lisp_Object);
 extern void delete_kboard (KBOARD *);
 extern void not_single_kboard_state (KBOARD *);
 extern void push_kboard (struct kboard *);
@@ -529,7 +518,9 @@ extern bool input_polling_used (void);
 extern void clear_input_pending (void);
 extern bool requeued_events_pending_p (void);
 extern void bind_polling_period (int);
+#if HAVE_NTGUI
 extern int make_ctrl_char (int) ATTRIBUTE_CONST;
+#endif
 extern void stuff_buffered_input (Lisp_Object);
 extern void clear_waiting_for_input (void);
 extern void swallow_events (bool);
@@ -549,7 +540,7 @@ extern bool kbd_buffer_events_waiting (void);
 extern void add_user_signal (int, const char *);
 
 extern int tty_read_avail_input (struct terminal *, struct input_event *);
-extern EMACS_TIME timer_check (void);
+extern struct timespec timer_check (void);
 extern void mark_kboards (void);
 
 #ifdef HAVE_NTGUI

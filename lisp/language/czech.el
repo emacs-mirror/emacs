@@ -1,9 +1,9 @@
-;;; czech.el --- support for Czech -*- coding: iso-2022-7bit -*-
+;;; czech.el --- support for Czech -*- coding: utf-8 -*-
 
-;; Copyright (C) 1998, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
-;; Maintainer: Pavel Jan,Am(Bk <Pavel@Janik.cz>
+;; Maintainer: Pavel Janík <Pavel@Janik.cz>
 ;; Keywords: multilingual, Czech
 
 ;; This file is part of GNU Emacs.
@@ -35,7 +35,7 @@
 	   (nonascii-translation . iso-8859-2)
 	   (unibyte-display . iso-8859-2)
 	   (tutorial . "TUTORIAL.cs")
-	   (sample-text . "P,Bx(Bejeme v,Ba(Bm hezk,B}(B den!")
+	   (sample-text . "Přejeme vám hezký den!")
 	   (documentation . "\
 This language environment is almost the same as Latin-2,
 but sets the default input method to \"czech\",

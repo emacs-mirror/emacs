@@ -1,6 +1,6 @@
-;;; vietnamese.el --- support for Vietnamese -*- coding: iso-2022-7bit; -*-
+;;; vietnamese.el --- support for Vietnamese -*- coding: utf-8; -*-
 
-;; Copyright (C) 1998, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2014 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -80,7 +80,7 @@
 		(input-method . "vietnamese-viqr")
 		(unibyte-display . vietnamese-viscii)
 		(features viet-util)
-		(sample-text . "Vietnamese (Ti,1*(Bng Vi,1.(Bt)	Ch,1`(Bo b,1U(Bn")
+		(sample-text . "Vietnamese (Tiếng Việt)	Chào bạn")
 		(documentation . "\
 For Vietnamese, Emacs uses special charsets internally.
 They can be decoded from and encoded to VISCII, VSCII, TCVN-5712, VIQR

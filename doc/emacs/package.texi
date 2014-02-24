@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Packages
@@ -126,6 +126,12 @@ dependencies; also, delete all packages marked with @kbd{d}
 Refresh the package list (@code{package-menu-refresh}).  This fetches
 the list of available packages from the package archive again, and
 recomputes the package list.
+
+@item f
+Filter the package list (@code{package-menu-filter}).  This prompts
+for a keyword (e.g., @samp{games}), then shows only the packages
+that relate to that keyword.  To restore the full package list,
+type @kbd{q}.
 @end table
 
 @noindent

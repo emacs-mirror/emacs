@@ -1,6 +1,6 @@
 ;;; srecode-template.wy --- Semantic Recoder Template parser
 
-;; Copyright (C) 2005-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -125,6 +125,10 @@ opt-read-fcn
 variable
   : SET symbol insertable-string-list newline
     (VARIABLE-TAG $2 nil $3)
+  | SET symbol number newline
+    ;; This so a common error w/ priority works.
+    ;; Note that "number" still has a string value in the lexer.
+    (VARIABLE-TAG $2 nil (list $3))
   | SHOW symbol newline
     (VARIABLE-TAG $2 nil t)
   ;
@@ -260,8 +264,8 @@ It ignores whitespace, newlines and comments."
   srecode-template-separator-block
   srecode-template-wy--<keyword>-keyword-analyzer
   srecode-template-property-analyzer
-  srecode-template-wy--<symbol>-regexp-analyzer
   srecode-template-wy--<number>-regexp-analyzer
+  srecode-template-wy--<symbol>-regexp-analyzer
   srecode-template-wy--<string>-sexp-analyzer
   srecode-template-wy--<punctuation>-string-analyzer
   semantic-lex-default-action

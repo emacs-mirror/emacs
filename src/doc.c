@@ -1,6 +1,6 @@
 /* Record indices of function doc strings stored in a file.
 
-Copyright (C) 1985-1986, 1993-1995, 1997-2013 Free Software Foundation,
+Copyright (C) 1985-1986, 1993-1995, 1997-2014 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/file.h>	/* Must be after sys/types.h for USG.  */
 #include <fcntl.h>
@@ -33,7 +34,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "keyboard.h"
 #include "keymap.h"
-#include "buildobj.h"
 
 Lisp_Object Qfunction_documentation;
 
@@ -58,7 +58,7 @@ read_bytecode_char (bool unreadflag)
 }
 
 /* Extract a doc string from a file.  FILEPOS says where to get it.
-   If it is an integer, use that position in the standard DOC-... file.
+   If it is an integer, use that position in the standard DOC file.
    If it is (FILE . INTEGER), use FILE as the file name
    and INTEGER as the position in that file.
    But if INTEGER is negative, make it positive.
@@ -85,6 +85,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   int offset;
   EMACS_INT position;
   Lisp_Object file, tem, pos;
+  ptrdiff_t count;
   USE_SAFE_ALLOCA;
 
   if (INTEGERP (filepos))
@@ -144,9 +145,14 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 	}
 #endif
       if (fd < 0)
-	return concat3 (build_string ("Cannot open doc string file \""),
-			file, build_string ("\"\n"));
+	{
+	  SAFE_FREE ();
+	  return concat3 (build_string ("Cannot open doc string file \""),
+			  file, build_string ("\"\n"));
+	}
     }
+  count = SPECPDL_INDEX ();
+  record_unwind_protect_int (close_file_unwind, fd);
 
   /* Seek only to beginning of disk block.  */
   /* Make sure we read at least 1024 bytes before `position'
@@ -154,13 +160,8 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   offset = min (position, max (1024, position % (8 * 1024)));
   if (TYPE_MAXIMUM (off_t) < position
       || lseek (fd, position - offset, 0) < 0)
-    {
-      emacs_close (fd);
-      error ("Position %"pI"d out of range in doc string file \"%s\"",
-	     position, name);
-    }
-
-  SAFE_FREE ();
+    error ("Position %"pI"d out of range in doc string file \"%s\"",
+	   position, name);
 
   /* Read the doc string into get_doc_string_buffer.
      P points beyond the data just read.  */
@@ -190,10 +191,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 	space_left = 1024 * 8;
       nread = emacs_read (fd, p, space_left);
       if (nread < 0)
-	{
-	  emacs_close (fd);
-	  error ("Read error on documentation file");
-	}
+	report_file_error ("Read error on documentation file", file);
       p[nread] = 0;
       if (!nread)
 	break;
@@ -209,20 +207,27 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 	}
       p += nread;
     }
-  emacs_close (fd);
+  unbind_to (count, Qnil);
+  SAFE_FREE ();
 
   /* Sanity checking.  */
   if (CONSP (filepos))
     {
       int test = 1;
-      if (get_doc_string_buffer[offset - test++] != ' ')
-	return Qnil;
-      while (get_doc_string_buffer[offset - test] >= '0'
-	     && get_doc_string_buffer[offset - test] <= '9')
-	test++;
-      if (get_doc_string_buffer[offset - test++] != '@'
-	  || get_doc_string_buffer[offset - test] != '#')
-	return Qnil;
+      /* A dynamic docstring should be either at the very beginning of a "#@
+	 comment" or right after a dynamic docstring delimiter (in case we
+	 pack several such docstrings within the same comment).  */
+      if (get_doc_string_buffer[offset - test] != '\037')
+	{
+	  if (get_doc_string_buffer[offset - test++] != ' ')
+	    return Qnil;
+	  while (get_doc_string_buffer[offset - test] >= '0'
+		 && get_doc_string_buffer[offset - test] <= '9')
+	    test++;
+	  if (get_doc_string_buffer[offset - test++] != '@'
+	      || get_doc_string_buffer[offset - test] != '#')
+	    return Qnil;
+	}
     }
   else
     {
@@ -411,21 +416,6 @@ string is passed through `substitute-command-keys'.  */)
       xsignal1 (Qinvalid_function, fun);
     }
 
-  /* Check for a dynamic docstring.  These come with
-     a dynamic-docstring-function text property.  */
-  if (STRINGP (doc))
-    {
-      Lisp_Object func
-	= Fget_text_property (make_number (0),
-			      intern ("dynamic-docstring-function"),
-				      doc);
-      if (!NILP (func))
-	/* Pass both `doc' and `function' since `function' can be needed, and
-	   finding `doc' can be annoying: calling `documentation' is not an
-	   option because it would infloop.  */
-	doc = call2 (func, doc, function);
-    }
-
   /* If DOC is 0, it's typically because of a dumped file missing
      from the DOC file (bug in src/Makefile.in).  */
   if (EQ (doc, make_number (0)))
@@ -549,7 +539,6 @@ store_function_docstring (Lisp_Object obj, ptrdiff_t offset)
     }
 }
 
-static const char buildobj[] = BUILDOBJ;
 
 DEFUN ("Snarf-documentation", Fsnarf_documentation, Ssnarf_documentation,
        1, 1, 0,
@@ -569,6 +558,7 @@ the same file name is found in the `doc-directory'.  */)
   Lisp_Object sym;
   char *p, *name;
   bool skip_file = 0;
+  ptrdiff_t count;
 
   CHECK_STRING (filename);
 
@@ -592,32 +582,26 @@ the same file name is found in the `doc-directory'.  */)
 
   /* Vbuild_files is nil when temacs is run, and non-nil after that.  */
   if (NILP (Vbuild_files))
-  {
-    const char *beg, *end;
-
-    for (beg = buildobj; *beg; beg = end)
-      {
-        ptrdiff_t len;
-
-        while (*beg && c_isspace (*beg)) ++beg;
-
-        for (end = beg; *end && ! c_isspace (*end); ++end)
-          if (*end == '/') beg = end+1;  /* skip directory part  */
-
-        len = end - beg;
-        if (len > 4 && end[-4] == '.' && end[-3] == 'o')
-          len -= 2;  /* Just take .o if it ends in .obj  */
-
-        if (len > 0)
-          Vbuild_files = Fcons (make_string (beg, len), Vbuild_files);
-      }
-    Vbuild_files = Fpurecopy (Vbuild_files);
-  }
+    {
+      static char const *const buildobj[] =
+	{
+	  #include "buildobj.h"
+	};
+      int i = sizeof buildobj / sizeof *buildobj;
+      while (0 <= --i)
+	Vbuild_files = Fcons (build_string (buildobj[i]), Vbuild_files);
+      Vbuild_files = Fpurecopy (Vbuild_files);
+    }
 
   fd = emacs_open (name, O_RDONLY, 0);
   if (fd < 0)
-    report_file_error ("Opening doc string file",
-		       Fcons (build_string (name), Qnil));
+    {
+      int open_errno = errno;
+      report_file_errno ("Opening doc string file", build_string (name),
+			 open_errno);
+    }
+  count = SPECPDL_INDEX ();
+  record_unwind_protect_int (close_file_unwind, fd);
   Vdoc_file_name = filename;
   filled = 0;
   pos = 0;
@@ -695,8 +679,7 @@ the same file name is found in the `doc-directory'.  */)
       filled -= end - buf;
       memmove (buf, end, filled);
     }
-  emacs_close (fd);
-  return Qnil;
+  return unbind_to (count, Qnil);
 }
 
 DEFUN ("substitute-command-keys", Fsubstitute_command_keys,
@@ -752,9 +735,7 @@ Otherwise, return a new string, without any text properties.  */)
      or a specified local map (which means search just that and the
      global map).  If non-nil, it might come from Voverriding_local_map,
      or from a \\<mapname> construct in STRING itself..  */
-  keymap = KVAR (current_kboard, Voverriding_terminal_local_map);
-  if (NILP (keymap))
-    keymap = Voverriding_local_map;
+  keymap = Voverriding_local_map;
 
   bsize = SBYTES (string);
   bufp = buf = xmalloc (bsize);
@@ -854,6 +835,7 @@ Otherwise, return a new string, without any text properties.  */)
 	  /* This is for computing the SHADOWS arg for describe_map_tree.  */
 	  Lisp_Object active_maps = Fcurrent_active_maps (Qnil, Qnil);
 	  Lisp_Object earlier_maps;
+	  ptrdiff_t count = SPECPDL_INDEX ();
 
 	  changed = 1;
 	  strp += 2;		/* skip \{ or \< */
@@ -890,6 +872,10 @@ Otherwise, return a new string, without any text properties.  */)
 	  /* Now switch to a temp buffer.  */
 	  oldbuf = current_buffer;
 	  set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
+	  /* This is for an unusual case where some after-change
+	     function uses 'format' or 'prin1' or something else that
+	     will thrash Vprin1_to_string_buffer we are using.  */
+	  specbind (Qinhibit_modification_hooks, Qt);
 
 	  if (NILP (tem))
 	    {
@@ -909,11 +895,12 @@ Otherwise, return a new string, without any text properties.  */)
 		 If this one's not active, get nil.  */
 	      earlier_maps = Fcdr (Fmemq (tem, Freverse (active_maps)));
 	      describe_map_tree (tem, 1, Fnreverse (earlier_maps),
-				 Qnil, (char *)0, 1, 0, 0, 1);
+				 Qnil, 0, 1, 0, 0, 1);
 	    }
 	  tem = Fbuffer_string ();
 	  Ferase_buffer ();
 	  set_buffer_internal (oldbuf);
+	  unbind_to (count, Qnil);
 
 	subst_string:
 	  start = SDATA (tem);

@@ -1,6 +1,6 @@
 ;;; srecode/srt.el --- argument handlers for SRT files
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -69,6 +69,7 @@ DEFAULT is the default if RET is hit."
 		   nil initial (or hist 'srecode-read-major-mode-history))
   )
 
+;;;###autoload
 (defun srecode-semantic-handle-:srt (dict)
   "Add macros into the dictionary DICT based on the current SRT file.
 Adds the following:
@@ -103,5 +104,10 @@ MODE - The mode of this buffer.  If not declared yet, guess."
     ))
 
 (provide 'srecode/srt)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-load-name: "srecode/srt"
+;; End:
 
 ;;; srecode/srt.el ends here

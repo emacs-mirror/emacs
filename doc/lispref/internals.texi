@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1993, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node GNU Emacs Internals
@@ -116,6 +116,11 @@ time.)
 expect in an ordinary unmodified Emacs.  If you feel you must override
 normal features for your site, do it with @file{default.el}, so that
 users can override your changes if they wish.  @xref{Startup Summary}.
+Note that if either @file{site-load.el} or @file{site-init.el} changes
+@code{load-path}, the changes will be lost after dumping.
+@xref{Library Search}.  To make a permanent change to
+@code{load-path}, use the @option{--enable-locallisppath} option
+of @command{configure}.
 
   In a package that can be preloaded, it is sometimes necessary (or
 useful) to delay certain evaluations until Emacs subsequently starts
@@ -661,15 +666,25 @@ equivalent of @code{&rest}).  Both @code{UNEVALLED} and @code{MANY} are
 macros.  If @var{max} is a number, it must be more than @var{min} but
 less than 8.
 
+@cindex interactive specification in primitives
 @item interactive
-This is an interactive specification, a string such as might be used as
-the argument of @code{interactive} in a Lisp function.  In the case of
-@code{or}, it is 0 (a null pointer), indicating that @code{or} cannot be
-called interactively.  A value of @code{""} indicates a function that
-should receive no arguments when called interactively.  If the value
-begins with a @samp{(}, the string is evaluated as a Lisp form.
-For examples of the last two forms, see @code{widen} and
-@code{narrow-to-region} in @file{editfns.c}.
+This is an interactive specification, a string such as might be used
+as the argument of @code{interactive} in a Lisp function.  In the case
+of @code{or}, it is 0 (a null pointer), indicating that @code{or}
+cannot be called interactively.  A value of @code{""} indicates a
+function that should receive no arguments when called interactively.
+If the value begins with a @samp{"(}, the string is evaluated as a
+Lisp form.  For example:
+
+@example
+@group
+DEFUN ("foo", Ffoo, Sfoo, 0, UNEVALLED,
+       "(list (read-char-by-name \"Insert character: \")\
+              (prefix-numeric-value current-prefix-arg)\
+              t))",
+  doc: /* @dots{} /*)
+@end group
+@end example
 
 @item doc
 This is the documentation string.  It uses C comment syntax rather
@@ -1454,12 +1469,10 @@ process.  For a network or serial process, it is @code{nil} if the
 process is running or @code{t} if the process is stopped.
 
 @item filter
-If non-@code{nil}, a function used to accept output from the process
-instead of a buffer.
+A function used to accept output from the process.
 
 @item sentinel
-If non-@code{nil}, a function called whenever the state of the process
-changes.
+A function called whenever the state of the process changes.
 
 @item buffer
 The associated buffer of the process.

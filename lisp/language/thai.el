@@ -1,6 +1,6 @@
-;;; thai.el --- support for Thai -*- coding: iso-2022-7bit -*-
+;;; thai.el --- support for Thai -*- coding: utf-8 -*-
 
-;; Copyright (C) 1997-1998, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2014 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -55,7 +55,7 @@
 	  (exit-function . exit-thai-language-environment-internal)
 	  (sample-text
 	   . (thai-compose-string
-	      (copy-sequence "Thai (,T@RIRd7B(B)		,TJGQJ4U$CQ:(B, ,TJGQJ4U$hP(B")))
+	      (copy-sequence "Thai (ภาษาไทย)		สวัสดีครับ, สวัสดีค่ะ")))
 	  (documentation . t)))
 
 (define-coding-system 'cp874
@@ -75,12 +75,12 @@ This is the same as `thai-tis620' with the addition of no-break-space."
   :charset-list '(iso-8859-11))
 
 ;; For automatic composition.
-(let ((chars ",TQTUVWXYZghijklmn(B")
-      (elt '(["[,T!(B-,TO(B].[,Thijkl(B]?,TS(B?" 1 thai-composition-function]
+(let ((chars "ัิีึืฺุู็่้๊๋์ํ๎")
+      (elt '(["[ก-ฯ].[่้๊๋์]?ำ?" 1 thai-composition-function]
 	     [nil 0 thai-composition-function])))
   (dotimes (i (length chars))
     (aset composition-function-table (aref chars i) elt)))
-(aset composition-function-table ?,TS(B '(["[,T!(B-,TO(B]." 1 thai-composition-function]))
+(aset composition-function-table ?ำ '(["[ก-ฯ]." 1 thai-composition-function]))
 
 (provide 'thai)
 

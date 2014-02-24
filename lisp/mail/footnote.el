@@ -1,6 +1,6 @@
 ;;; footnote.el --- footnote support for message mode  -*- coding: utf-8;-*-
 
-;; Copyright (C) 1997, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Steven L Baur <steve@xemacs.org>
 ;; Keywords: mail, news
@@ -45,6 +45,7 @@
 
 (defcustom footnote-mode-line-string " FN"
   "String to display in modes section of the mode-line."
+  :type 'string
   :group 'footnote)
 
 (defcustom footnote-mode-hook nil
@@ -86,10 +87,8 @@ displaying footnotes."
   "Prefix key to use for Footnote command in Footnote minor mode.
 The value of this variable is checked as part of loading Footnote mode.
 After that, changing the prefix key requires manipulating keymaps."
-  ;; FIXME: the type should be a key-sequence, but it seems Custom
-  ;; doesn't support that yet.
-  ;; :type  'string
-  )
+  :type 'key-sequence
+  :group 'footnote)
 
 ;;; Interface variables that probably shouldn't be changed
 

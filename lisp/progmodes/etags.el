@@ -1,10 +1,10 @@
 ;;; etags.el --- etags facility for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1988-1989, 1992-1996, 1998, 2000-2013 Free
+;; Copyright (C) 1985-1986, 1988-1989, 1992-1996, 1998, 2000-2014 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: tools
 
 ;; This file is part of GNU Emacs.
@@ -982,7 +982,7 @@ See documentation of variable `tags-file-name'."
   ;; selected window's buffer; without the hair, point is moved in both
   ;; windows.  To prevent this, we save the selected window's point before
   ;; doing find-tag-noselect, and restore it after.
-  (let* ((window-point (window-point (selected-window)))
+  (let* ((window-point (window-point))
 	 (tagbuf (find-tag-noselect tagname next-p regexp-p))
 	 (tagpoint (progn (set-buffer tagbuf) (point))))
     (set-window-point (prog1

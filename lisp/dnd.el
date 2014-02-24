@@ -1,9 +1,9 @@
 ;;; dnd.el --- drag and drop support.  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2005-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2014 Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
-;; Maintainer: FSF
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: window, drag, drop
 ;; Package: emacs
 
@@ -152,10 +152,13 @@ Return nil if URI is not a local file."
   (let ((f (cond ((string-match "^file:///" uri)	; XDND format.
 		  (substring uri (1- (match-end 0))))
 		 ((string-match "^file:" uri)		; Old KDE, Motif, Sun
-		  (substring uri (match-end 0))))))
-    (and f (setq f (decode-coding-string (dnd-unescape-uri f)
-                                         (or file-name-coding-system
-                                             default-file-name-coding-system))))
+		  (substring uri (match-end 0)))))
+	(coding (if (equal system-type 'windows-nt)
+		    ;; W32 pretends that file names are UTF-8 encoded.
+		    'utf-8
+		  (or file-name-coding-system
+		      default-file-name-coding-system))))
+    (and f (setq f (decode-coding-string (dnd-unescape-uri f) coding)))
     (when (and f must-exist (not (file-readable-p f)))
       (setq f nil))
     f))

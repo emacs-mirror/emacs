@@ -1,6 +1,6 @@
 ;;; calc.el --- the GNU Emacs calculator
 
-;; Copyright (C) 1990-1993, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -146,6 +146,7 @@
 (declare-function calc-set-language "calc-lang" (lang &optional option no-refresh))
 (declare-function calc-edit-finish "calc-yank" (&optional keep))
 (declare-function calc-edit-cancel "calc-yank" ())
+(declare-function calc-locate-cursor-element "calc-yank" (pt))
 (declare-function calc-do-quick-calc "calc-aent" ())
 (declare-function calc-do-calc-eval "calc-aent" (str separator args))
 (declare-function calc-do-keypad "calc-keypd" (&optional full-display interactive))
@@ -426,10 +427,10 @@ when converting units."
   :version "24.3"
   :type 'boolean)
 
-(defcustom calc-allow-units-as-numbers
-  t
-  "If non-nil, allow unit expressions to be treated like numbers 
-when converting units, if the expression can be simplified to be unitless."
+(defcustom calc-context-sensitive-enter
+  nil
+  "If non-nil, the stack element under the cursor will be copied by `calc-enter'
+and deleted by `calc-pop'."
   :group 'calc
   :version "24.4"
   :type 'boolean)
@@ -929,15 +930,12 @@ Used by `calc-user-invocation'.")
 (put 'calc-mode 'mode-class 'special)
 (put 'calc-trail-mode 'mode-class 'special)
 
-;; Define "inexact-result" as an e-lisp error symbol.
-(put 'inexact-result 'error-conditions '(error inexact-result calc-error))
-(put 'inexact-result 'error-message "Calc internal error (inexact-result)")
+(define-error 'calc-error "Calc internal error")
+(define-error 'inexact-result
+  "Calc internal error (inexact-result)" 'calc-error)
 
-;; Define "math-overflow" and "math-underflow" as e-lisp error symbols.
-(put 'math-overflow 'error-conditions '(error math-overflow calc-error))
-(put 'math-overflow 'error-message "Floating-point overflow occurred")
-(put 'math-underflow 'error-conditions '(error math-underflow calc-error))
-(put 'math-underflow 'error-message "Floating-point underflow occurred")
+(define-error 'math-overflow "Floating-point overflow occurred" 'calc-error)
+(define-error 'math-underflow "Floating-point underflow occurred" 'calc-error)
 
 (defvar calc-trail-pointer nil
   "The \"current\" entry in trail buffer.")
@@ -1398,7 +1396,12 @@ Notations:  3.14e6     3.14 * 10^6
 	      (calc-check-defines))
 	  (setplist 'calc-define nil)))))
 
-(defun calc-trail-mode (&optional buf)
+(defvar calc-trail-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map calc-mode-map)
+    map))
+
+(define-derived-mode calc-trail-mode fundamental-mode "Calc Trail"
   "Calc Trail mode.
 This mode is used by the *Calc Trail* buffer, which records all results
 obtained by the GNU Emacs Calculator.
@@ -1408,26 +1411,18 @@ the Trail.
 
 This buffer uses the same key map as the *Calculator* buffer; calculator
 commands given here will actually operate on the *Calculator* stack."
-  (interactive)
-  (fundamental-mode)
-  (use-local-map calc-mode-map)
-  (setq major-mode 'calc-trail-mode)
-  (setq mode-name "Calc Trail")
   (setq truncate-lines t)
   (setq buffer-read-only t)
   (make-local-variable 'overlay-arrow-position)
   (make-local-variable 'overlay-arrow-string)
-  (when buf
-    (set (make-local-variable 'calc-main-buffer) buf))
   (when (= (buffer-size) 0)
     (let ((buffer-read-only nil))
-      (insert (propertize "Emacs Calculator Trail\n" 'face 'italic))))
-  (run-mode-hooks 'calc-trail-mode-hook))
+      (insert (propertize "Emacs Calculator Trail\n" 'face 'italic)))))
 
 (defun calc-create-buffer ()
   "Create and initialize a buffer for the Calculator."
   (set-buffer (get-buffer-create "*Calculator*"))
-  (or (eq major-mode 'calc-mode)
+  (or (derived-mode-p 'calc-mode)
       (calc-mode))
   (setq max-lisp-eval-depth (max max-lisp-eval-depth 1000))
   (when calc-always-load-extensions
@@ -1449,8 +1444,8 @@ commands given here will actually operate on the *Calculator* stack."
 	    (calc-keypad))))
     (when (get-buffer-window "*Calc Keypad*")
       (calc-keypad)
-      (set-buffer (window-buffer (selected-window))))
-    (if (eq major-mode 'calc-mode)
+      (set-buffer (window-buffer)))
+    (if (derived-mode-p 'calc-mode)
 	(calc-quit)
       (let ((oldbuf (current-buffer)))
 	(calc-create-buffer)
@@ -1501,7 +1496,7 @@ commands given here will actually operate on the *Calculator* stack."
   (if (and (equal (buffer-name) "*Gnuplot Trail*")
 	   (> (recursion-depth) 0))
       (exit-recursive-edit)
-    (if (eq major-mode 'calc-edit-mode)
+    (if (derived-mode-p 'calc-edit-mode)
 	(calc-edit-finish arg)
       (if calc-was-keypad-mode
           (calc-keypad)
@@ -1515,13 +1510,13 @@ commands given here will actually operate on the *Calculator* stack."
   (if (and (equal (buffer-name) "*Gnuplot Trail*")
 	   (> (recursion-depth) 0))
       (exit-recursive-edit))
-  (if (eq major-mode 'calc-edit-mode)
+  (if (derived-mode-p 'calc-edit-mode)
       (calc-edit-cancel)
     (if (and interactive
              calc-embedded-info
              (eq (current-buffer) (aref calc-embedded-info 0)))
         (calc-embedded nil)
-      (unless (eq major-mode 'calc-mode)
+      (unless (derived-mode-p 'calc-mode)
         (calc-create-buffer))
       (run-hooks 'calc-end-hook)
       (if (integerp calc-undo-length)
@@ -1642,10 +1637,10 @@ See calc-keypad for details."
 	     (if (math-lessp 1 time)
 		 (calc-record time "(t)"))))
       (or (memq 'no-align calc-command-flags)
-	  (eq major-mode 'calc-trail-mode)
+	  (derived-mode-p 'calc-trail-mode)
 	  (calc-align-stack-window))
       (and (memq 'position-point calc-command-flags)
-	   (if (eq major-mode 'calc-mode)
+	   (if (derived-mode-p 'calc-mode)
 	       (progn
 		 (goto-char (point-min))
 		 (forward-line (1- calc-final-point-line))
@@ -1675,7 +1670,7 @@ See calc-keypad for details."
     (setq calc-command-flags (cons f calc-command-flags))))
 
 (defun calc-select-buffer ()
-  (or (eq major-mode 'calc-mode)
+  (or (derived-mode-p 'calc-mode)
       (if calc-main-buffer
 	  (set-buffer calc-main-buffer)
 	(let ((buf (get-buffer "*Calculator*")))
@@ -1812,7 +1807,7 @@ See calc-keypad for details."
 	(and calc-embedded-info (calc-embedded-mode-line-change))))))
 
 (defun calc-align-stack-window ()
-  (if (eq major-mode 'calc-mode)
+  (if (derived-mode-p 'calc-mode)
       (progn
 	(let ((win (get-buffer-window (current-buffer))))
 	  (if win
@@ -1999,7 +1994,7 @@ See calc-keypad for details."
 (defvar calc-any-evaltos nil)
 (defun calc-refresh (&optional align)
   (interactive)
-  (and (eq major-mode 'calc-mode)
+  (and (derived-mode-p 'calc-mode)
        (not calc-executing-macro)
        (let* ((buffer-read-only nil)
 	      (save-point (point))
@@ -2027,7 +2022,7 @@ See calc-keypad for details."
 	     (calc-align-stack-window)
 	   (goto-char save-point))
 	 (if save-mark (set-mark save-mark))))
-  (and calc-embedded-info (not (eq major-mode 'calc-mode))
+  (and calc-embedded-info (not (derived-mode-p 'calc-mode))
        (with-current-buffer (aref calc-embedded-info 1)
 	 (calc-refresh align)))
   (setq calc-refresh-count (1+ calc-refresh-count)))
@@ -2089,12 +2084,13 @@ the United States."
 	   (null (buffer-name calc-trail-buffer)))
        (save-excursion
 	 (setq calc-trail-buffer (get-buffer-create "*Calc Trail*"))
-	 (let ((buf (or (and (not (eq major-mode 'calc-mode))
+	 (let ((buf (or (and (not (derived-mode-p 'calc-mode))
 			     (get-buffer "*Calculator*"))
 			(current-buffer))))
 	   (set-buffer calc-trail-buffer)
-	   (or (eq major-mode 'calc-trail-mode)
-	       (calc-trail-mode buf)))))
+	   (unless (derived-mode-p 'calc-trail-mode)
+             (calc-trail-mode)
+             (set (make-local-variable 'calc-main-buffer) buf)))))
   (or (and calc-trail-pointer
 	   (eq (marker-buffer calc-trail-pointer) calc-trail-buffer))
       (with-current-buffer calc-trail-buffer
@@ -2163,7 +2159,7 @@ the United States."
 
 (defun calc-trail-here ()
   (interactive)
-  (if (eq major-mode 'calc-trail-mode)
+  (if (derived-mode-p 'calc-trail-mode)
       (progn
 	(beginning-of-line)
 	(if (bobp)
@@ -2264,39 +2260,47 @@ the United States."
 
 (defun calc-enter (n)
   (interactive "p")
-  (calc-wrapper
-   (cond ((< n 0)
-	  (calc-push-list (calc-top-list 1 (- n))))
-	 ((= n 0)
-	  (calc-push-list (calc-top-list (calc-stack-size))))
-	 (t
-	  (calc-push-list (calc-top-list n))))))
-
+  (let ((num (if calc-context-sensitive-enter (max 1 (calc-locate-cursor-element (point))))))
+    (calc-wrapper
+     (cond ((< n 0)
+            (calc-push-list (calc-top-list 1 (- n))))
+           ((= n 0)
+            (calc-push-list (calc-top-list (calc-stack-size))))
+           (num
+            (calc-push-list (calc-top-list n num)))
+           (t
+            (calc-push-list (calc-top-list n)))))
+    (if (and calc-context-sensitive-enter (> n 0)) (calc-cursor-stack-index (+ num n)))))
 
 (defun calc-pop (n)
   (interactive "P")
-  (calc-wrapper
-   (let* ((nn (prefix-numeric-value n))
-	  (top (and (null n) (calc-top 1))))
-     (cond ((and (null n)
-		 (eq (car-safe top) 'incomplete)
-		 (> (length top) (if (eq (nth 1 top) 'intv) 3 2)))
-	    (calc-pop-push-list 1 (let ((tt (copy-sequence top)))
-				    (setcdr (nthcdr (- (length tt) 2) tt) nil)
-				    (list tt))))
-	   ((< nn 0)
-	    (if (and calc-any-selections
-		     (calc-top-selected 1 (- nn)))
-		(calc-delete-selection (- nn))
-	      (calc-pop-stack 1 (- nn) t)))
-	   ((= nn 0)
-	    (calc-pop-stack (calc-stack-size) 1 t))
-	   (t
-	    (if (and calc-any-selections
-		     (= nn 1)
-		     (calc-top-selected 1 1))
-		(calc-delete-selection 1)
-	      (calc-pop-stack nn)))))))
+  (let ((num (if calc-context-sensitive-enter (max 1 (calc-locate-cursor-element (point))))))
+    (calc-wrapper
+     (let* ((nn (prefix-numeric-value n))
+            (top (and (null n) (calc-top 1))))
+       (cond ((and calc-context-sensitive-enter (> num 1))
+              (calc-pop-stack nn num))
+             ((and (null n)
+                   (eq (car-safe top) 'incomplete)
+                   (> (length top) (if (eq (nth 1 top) 'intv) 3 2)))
+              (calc-pop-push-list 1 (let ((tt (copy-sequence top)))
+                                      (setcdr (nthcdr (- (length tt) 2) tt) nil)
+                                      (list tt))))
+             ((< nn 0)
+              (if (and calc-any-selections
+                       (calc-top-selected 1 (- nn)))
+                  (calc-delete-selection (- nn))
+                (calc-pop-stack 1 (- nn) t)))
+             ((= nn 0)
+              (calc-pop-stack (calc-stack-size) 1 t))
+             (t
+              (if (and calc-any-selections
+                       (= nn 1)
+                       (calc-top-selected 1 1))
+                  (calc-delete-selection 1)
+                (calc-pop-stack nn))))))
+    (if calc-context-sensitive-enter (calc-cursor-stack-index (1- num)))))
+    
 
 
 
@@ -2493,7 +2497,7 @@ the United States."
 
 
 (defconst math-bignum-digit-length
-  (truncate (/ (log10 (/ most-positive-fixnum 2)) 2))
+  (truncate (/ (log (/ most-positive-fixnum 2) 10) 2))
   "The length of a \"digit\" in Calc bignums.
 If a big integer is of the form (bigpos N0 N1 ...), this is the
 length of the allowable Emacs integers N0, N1,...
@@ -2709,7 +2713,6 @@ largest Emacs integer.")
 				  (cons (car math-normalize-a) args))
 		 nil)
 		(wrong-type-argument
-                 (setq math-normalize-error t)
 		 (or calc-next-why
                      (calc-record-why "Wrong type of argument"
                                       (cons (car math-normalize-a) args)))
@@ -2720,7 +2723,6 @@ largest Emacs integer.")
                                   (cons (car math-normalize-a) args))
 		 nil)
 		(inexact-result
-                 (setq math-normalize-error t)
 		 (calc-record-why "No exact representation for result"
 				  (cons (car math-normalize-a) args))
 		 nil)
