@@ -311,7 +311,7 @@ Res ControlInit(Arena arena)
 
   AVERT(Arena, arena);
   AVER(sizeof(arena->control) >= poolClass->size);
-  AVER((char *)ArenaControlPool(arena) - (char *)&arena->control == poolClass->offset);
+  AVER((Size)((char *)ArenaControlPool(arena) - (char *)&arena->control) == poolClass->offset);
 
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, CONTROL_EXTEND_BY);
