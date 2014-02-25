@@ -1,3 +1,8 @@
+2014-02-25  Glenn Morris  <rgm@gnu.org>
+
+	* org-version.el (org-odt-data-dir):
+	Remove incorrect, duplicate definition.  (Bug#16734)
+
 2014-01-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Spelling fixes.
