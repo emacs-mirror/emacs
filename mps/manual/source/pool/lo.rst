@@ -59,6 +59,9 @@ LO properties
 * Garbage collections are scheduled automatically. See
   :ref:`topic-collection-schedule`.
 
+* Does not use :term:`generational garbage collection`, so blocks are
+  never promoted out of the generation in which they are allocated.
+
 * Blocks may not contain :term:`references` to blocks in automatically
   managed pools.
 
@@ -105,12 +108,27 @@ LO interface
     Return the :term:`pool class` for an LO (Leaf Object)
     :term:`pool`.
 
-    When creating an LO pool, :c:func:`mps_pool_create_k` require one
+    When creating an LO pool, :c:func:`mps_pool_create_k` requires one
     :term:`keyword argument`:
 
     * :c:macro:`MPS_KEY_FORMAT` (type :c:type:`mps_fmt_t`) specifies
       the :term:`object format` for the objects allocated in the pool.
       The format must provide a :term:`skip method`.
+
+    It accepts two optional keyword arguments:
+
+    * :c:macro:`MPS_KEY_CHAIN` (type :c:type:`mps_chain_t`) specifies
+      the :term:`generation chain` for the pool. If not specified, the
+      pool will use the arena's default chain.
+
+    * :c:macro:`MPS_KEY_GEN` (type :c:type:`unsigned`) specifies the
+      :term:`generation` in the chain into which new objects will be
+      allocated. If you pass your own chain, then this defaults to
+      ``0``, but if you didn't (and so use the arena's default chain),
+      then an appropriate generation is used.
+
+      Note that LO does not use generational garbage collection, so
+      blocks remain in this generation and are not promoted.
 
     For example::
 
