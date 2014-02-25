@@ -175,8 +175,8 @@ If the buffer @file{*scratch*} exists and is still in Fundamental mode
 
 @item
 If started on a text terminal, it loads the terminal-specific
-Lisp library, which is specified by the variable
-@code{term-file-prefix} (@pxref{Terminal-Specific}).  This is not done
+Lisp library (@pxref{Terminal-Specific}), and runs the hook
+@code{tty-setup-hook}.  This is not done
 in @code{--batch} mode, nor if @code{term-file-prefix} is @code{nil}.
 
 @c Now command-line calls command-line-1.
@@ -210,7 +210,7 @@ empty, it inserts @code{initial-scratch-message} into that buffer.
 @c daemon/session restore step?
 
 @item
-It runs @code{emacs-startup-hook} and then @code{term-setup-hook}.
+It runs @code{emacs-startup-hook}.
 
 @item
 It calls @code{frame-notice-user-settings}, which modifies the
@@ -408,8 +408,7 @@ terminal) and processing the command-line action arguments.
 
 @defvar emacs-startup-hook
 This normal hook is run, once, just after handling the command line
-arguments, just before @code{term-setup-hook}.  In batch mode, Emacs
-does not run either of these hooks.
+arguments.  In batch mode, Emacs does not run this hook.
 @end defvar
 
 @defvar user-init-file
@@ -440,12 +439,12 @@ trying the @samp{.elc} and @samp{.el} suffixes.
   The usual role of a terminal-specific library is to enable special
 keys to send sequences that Emacs can recognize.  It may also need to
 set or add to @code{input-decode-map} if the Termcap or Terminfo entry
-does not specify all the terminal's function keys.  @xref{Terminal
-Input}.
+does not specify all the terminal's function keys.  @xref{Terminal Input}.
 
-  When the name of the terminal type contains a hyphen or underscore, and no library
-is found whose name is identical to the terminal's name, Emacs strips
-from the terminal's name the last hyphen or underscore and everything that follows
+  When the name of the terminal type contains a hyphen or underscore,
+and no library is found whose name is identical to the terminal's
+name, Emacs strips from the terminal's name the last hyphen or
+underscore and everything that follows
 it, and tries again.  This process is repeated until Emacs finds a
 matching library, or until there are no more hyphens or underscores in the name
 (i.e., there is no terminal-specific library).  For example, if the
@@ -454,17 +453,13 @@ terminal name is @samp{xterm-256color} and there is no
 @file{term/xterm.el}.  If necessary, the terminal library can evaluate
 @code{(getenv "TERM")} to find the full name of the terminal type.
 
-  Your init file can prevent the loading of the
-terminal-specific library by setting the variable
-@code{term-file-prefix} to @code{nil}.  This feature is useful when
-experimenting with your own peculiar customizations.
+  Your init file can prevent the loading of the terminal-specific
+library by setting the variable @code{term-file-prefix} to @code{nil}.
 
   You can also arrange to override some of the actions of the
-terminal-specific library by setting the variable
-@code{term-setup-hook}.  This is a normal hook that Emacs runs
-at the end of its initialization, after loading both
-your init file and any terminal-specific libraries.  You could
-use this hook to define initializations for terminals that do not
+terminal-specific library by using @code{tty-setup-hook}.  This is
+a normal hook that Emacs runs after initializing a new text terminal.
+You could use this hook to define initializations for terminals that do not
 have their own libraries.  @xref{Hooks}.
 
 @defvar term-file-prefix
@@ -484,13 +479,13 @@ terminal-initialization file.
 On MS-DOS, Emacs sets the @env{TERM} environment variable to @samp{internal}.
 @end defvar
 
-@defvar term-setup-hook
-This variable is a normal hook that Emacs runs after loading your
-init file, the default initialization file (if any) and the
-terminal-specific Lisp file.
-
-You can use @code{term-setup-hook} to override the definitions made by a
-terminal-specific file.
+@defvar tty-setup-hook
+This variable is a normal hook that Emacs runs after initializing a
+new text terminal.  (This applies when Emacs starts up in non-windowed
+mode, and when making a tty @command{emacsclient} connection.)  The
+hook runs after loading your init file (if applicable) and the
+terminal-specific Lisp file, so you can use it to adjust the
+definitions made by that file.
 
 For a related feature, @pxref{Window Systems, window-setup-hook}.
 @end defvar

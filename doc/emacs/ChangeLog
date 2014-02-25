@@ -1,3 +1,8 @@
+2014-02-25  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Terminal Init):
+	Replace term-setup-hook with tty-setup-hook.
+
 2014-02-23  Glenn Morris  <rgm@gnu.org>
 
 	* rmail.texi (Rmail Inbox): Mention rmail-mbox-format.

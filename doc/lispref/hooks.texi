@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1998, 2001-2014 Free Software Foundation,
-@c Inc.
+@c Copyright (C) 1990-1993, 1998, 2001-2014 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Standard Hooks
 @appendix Standard Hooks
@@ -213,7 +212,7 @@ Hook run when about to switch windows with a mouse command.
 @itemx temp-buffer-show-hook
 @xref{Temporary Displays}.
 
-@item term-setup-hook
+@item tty-setup-hook
 @xref{Terminal-Specific}.
 
 @item window-configuration-change-hook

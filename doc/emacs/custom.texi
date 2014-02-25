@@ -2474,8 +2474,8 @@ variable @code{term-file-prefix} and the terminal type.  Your @file{.emacs}
 file can prevent the loading of the terminal-specific library by setting
 @code{term-file-prefix} to @code{nil}.
 
-@vindex term-setup-hook
-  Emacs runs the hook @code{term-setup-hook} at the end of
+@vindex tty-setup-hook
+  Emacs runs the hook @code{tty-setup-hook} at the end of
 initialization, after both your @file{.emacs} file and any
 terminal-specific library have been read in.  Add hook functions to this
 hook if you wish to override part of any of the terminal-specific

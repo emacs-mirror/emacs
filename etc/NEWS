@@ -1202,7 +1202,12 @@ The function `display-popup-menus-p' will now return non-nil for a
 display or frame whenever a mouse is supported on that display or
 frame.
 
-*** New hook `tty-setup-hook'.
++++
+*** New hook `tty-setup-hook', run at the end of initializing a text terminal.
+
++++
+*** The hook `term-setup-hook' is obsolete.  It is entirely equivalent
+to `emacs-startup-hook'.  See also the new `tty-setup-hook'.
 
 ** Window Handling
 

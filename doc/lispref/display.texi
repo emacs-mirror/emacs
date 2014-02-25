@@ -6378,7 +6378,7 @@ This variable is a normal hook which Emacs runs after handling the
 initialization files.  Emacs runs this hook after it has completed
 loading your init file, the default initialization file (if
 any), and the terminal-specific Lisp code, and running the hook
-@code{term-setup-hook}.
+@code{emacs-startup-hook}.
 
 This hook is used for internal purposes: setting up communication with
 the window system, and creating the initial window.  Users should not

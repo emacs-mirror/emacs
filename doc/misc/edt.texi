@@ -91,7 +91,7 @@ initiate an Emacs session, by adding the following line to your
 @file{.emacs} file:
 
 @example
-(add-hook term-setup-hook 'edt-emulation-on)
+(add-hook 'emacs-startup-hook 'edt-emulation-on)
 @end example
 
 @noindent @strong{Important:} Be sure to read the rest of this manual.
@@ -295,7 +295,7 @@ initiate an Emacs session, by adding the following line to your
 @file{.emacs} file:
 
 @example
-(add-hook term-setup-hook 'edt-emulation-on)
+(add-hook 'emacs-startup-hook 'edt-emulation-on)
 @end example
 
 A reference sheet is included (later on) listing the default EDT

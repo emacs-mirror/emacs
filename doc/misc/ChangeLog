@@ -1,5 +1,10 @@
 2014-02-25  Glenn Morris  <rgm@gnu.org>
 
+	* edt.texi (Quick start, Starting emulation): Update hook details.
+	* efaq.texi (Fullscreen mode on MS-Windows)
+	(Terminal setup code works after Emacs has begun): Update hook details.
+	* vip.texi (Loading VIP): Fix hook example.
+
 	* efaq-w32.texi (Bash): Don't use setq with hooks.
 
 2014-02-24  Paul Eggert  <eggert@cs.ucla.edu>

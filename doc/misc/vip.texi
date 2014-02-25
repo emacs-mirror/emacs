@@ -165,7 +165,7 @@ directory and it will be executed every time you invoke Emacs.  If you wish
 to be in vi mode whenever Emacs starts up, you can include the following
 line in your @file{.emacs} file instead of the above line:
 @example
-(setq term-setup-hook 'vip-mode)
+(add-hook 'emacs-startup-hook 'vip-mode)
 @end example
 @noindent
 (@xref{Vi Mode}, for the explanation of vi mode.)

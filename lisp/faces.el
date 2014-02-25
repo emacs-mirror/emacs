@@ -2107,12 +2107,16 @@ the above example."
 
 (defvar tty-setup-hook nil
   "Hook run after running the initialization function of a new text terminal.
+Specifically, `tty-run-terminal-initialization' runs this.
 This can be used to fine tune the `input-decode-map', for example.")
 
 (defun tty-run-terminal-initialization (frame &optional type)
   "Run the special initialization code for the terminal type of FRAME.
 The optional TYPE parameter may be used to override the autodetected
-terminal type to a different value."
+terminal type to a different value.  As a final step, this runs the
+hook `tty-setup-hook'.
+
+If you set `term-file-prefix' to nil, this function does nothing."
   (setq type (or type (tty-type frame)))
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.

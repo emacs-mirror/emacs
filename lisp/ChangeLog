@@ -1,3 +1,12 @@
+2014-02-25  Glenn Morris  <rgm@gnu.org>
+
+	* faces.el (tty-setup-hook, tty-run-terminal-initialization): Doc fixes.
+	* startup.el (term-setup-hook): Doc fix.  Make obsolete.
+	* term/sun.el (sun-raw-prefix-hooks):
+	Use tty-setup-hook instead of term-setup-hook.
+	(terminal-init-sun): Construct message from bytecomp plist.
+	* term/wyse50.el (enable-arrow-keys): Doc fix.
+
 2014-02-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* term/sun.el (kill-region-and-unmark, sun-raw-prefix-hooks):

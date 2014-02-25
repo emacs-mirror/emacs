@@ -1,7 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-2014 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1985-1986, 1992, 1994-2014 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -282,10 +281,15 @@ these functions will invoke the debugger.")
   "Normal hook run after loading init files and handling the command line.")
 
 (defvar term-setup-hook nil
-  "Normal hook run after loading terminal-specific Lisp code.
-It also follows `emacs-startup-hook'.  This hook exists for users to set,
-so as to override the definitions made by the terminal-specific file.
-Emacs never sets this variable itself.")
+  "Normal hook run immediately after `emacs-startup-hook'.
+In new code, there is no reason to use this instead of `emacs-startup-hook'.
+If you want to execute terminal-specific Lisp code, for example
+to override the definitions made by the terminal-specific file,
+see `tty-setup-hook'.")
+
+(make-obsolete-variable 'term-setup-hook
+			"use either `emacs-startup-hook' or \
+`tty-setup-hook' instead." "24.4")
 
 (defvar inhibit-startup-hooks nil
   "Non-nil means don't run `term-setup-hook' and `emacs-startup-hook'.

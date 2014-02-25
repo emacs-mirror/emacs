@@ -1,3 +1,12 @@
+2014-02-25  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Window Systems):
+	Replace term-setup-hook with emacs-startup-hook.
+	* hooks.texi (Standard Hooks):
+	Replace term-setup-hook with tty-setup-hook.
+	* os.texi (Startup Summary, Init File, Terminal-Specific):
+	Replace term-setup-hook with tty-setup-hook, and update.
+
 2014-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* functions.texi (Declare Form): Document gv-expander, gv-setter, and

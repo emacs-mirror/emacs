@@ -279,7 +279,7 @@ If you wish to be in vi mode just after you startup Emacs,
 include the line:
 
 \hskip 5ex
-\kbd{(setq term-setup-hook 'vip-mode)}
+\kbd{(add-hook 'emacs-startup-hook 'vip-mode)}
 
 in your \kbd{.emacs} file.
 Or, you can put the following alias in your \kbd{.cshrc} file.

@@ -123,7 +123,8 @@
 
 (defvar sun-raw-prefix-hooks nil
   "List of forms to evaluate after setting `sun-raw-prefix'.")
-(make-obsolete-variable 'sun-raw-prefix-hooks 'term-setup-hook "21.1")
+;; Obsolete since 21.1, but tty-setup-hook only exists since 24.4.
+(make-obsolete-variable 'sun-raw-prefix-hooks 'tty-setup-hook "21.1")
 
 
 
@@ -149,7 +150,9 @@
   (global-set-key [f7]	'enlarge-window)
 
   (when sun-raw-prefix-hooks
-    (message "sun-raw-prefix-hooks is obsolete!  Use term-setup-hook instead!")
+    (message "sun-raw-prefix-hooks is obsolete!  Use %s instead!"
+	     (or (car-safe (get 'sun-raw-prefix-hooks 'byte-obsolete-variable))
+		 "emacs-startup-hook"))
     (let ((hooks sun-raw-prefix-hooks))
       (while hooks
 	(eval (car hooks))
