@@ -548,8 +548,6 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream)
  * This is a primitive allocator used to allocate pages for the arena CBS.
  * It is called rarely and can use a simple search.  It may not use the
  * CBS or any pool, because it is used as part of the bootstrap.
- *
- * FIXME: Might this allocate a page that is in a free CBS?
  */
 
 static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
@@ -582,8 +580,6 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
 {
   Res res;
   
-  /* FIXME: Remove from CBS? */
-  
   /* Favour the primary pool, because pages allocated this way aren't
      currently freed, and we don't want to prevent chunks being destroyed. */
   res = arenaAllocPageInChunk(baseReturn, arena->primary, pool);
@@ -605,7 +601,6 @@ static void arenaFreePage(Arena arena, Addr base, Pool pool)
 {
   AVERT(Arena, arena);
   AVERT(Pool, pool);
-  /* FIXME: Add to CBS? */
   (*arena->class->free)(base, ArenaAlign(arena), pool);
 }
 
@@ -726,18 +721,32 @@ Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit)
 
 void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit)
 {
-  RangeStruct range;
+  RangeStruct range, oldRange;
   Res res;
-  Count nodes;
 
   RangeInit(&range, base, limit);
-  nodes = arena->freeCBS.splayTreeSize;
-  res = CBSDelete(&range, &arena->freeCBS, &range);
+  res = CBSDelete(&oldRange, &arena->freeCBS, &range);
   
-  /* This should never fail because it is only used to delete whole chunks
-     that are represented by single nodes in the CBS tree. */
-  /* FIXME: Need a better way of checking this. */
-  STATISTIC_STAT(AVER(arena->freeCBS.splayTreeSize == nodes - 1));
+  if (res == ResFAIL) {
+    /* FIXME: This code needs exercising! */
+    /* The address space must be divided between the freeCBS and zoneCBSs. */
+    while (base < limit) {
+      Addr stripeLimit = AddrAlignUp(AddrAdd(base, 1), ArenaStripeSize(arena));
+      CBS zoneCBS;
+      if (stripeLimit > limit)
+        stripeLimit = limit;
+      zoneCBS = ArenaZoneCBS(arena, AddrZone(arena, base));
+      res = CBSDelete(&oldRange, zoneCBS, &range);
+      if (res == ResFAIL) {
+        res = CBSDelete(&oldRange, ArenaFreeCBS(arena), &range);
+        AVER(res != ResFAIL); /* must be in one of the CBSs */
+      }
+      AVER(res == ResOK); /* end of range, shouldn't fail */
+      base = RangeLimit(&oldRange);
+    }
+  }
+  
+  /* Shouldn't be any other kind of failure. */
   AVER(res == ResOK);
 }
 
@@ -1171,13 +1180,19 @@ void ArenaFree(Addr base, Size size, Pool pool)
   /* If the freed address space is entirely within one zone, add it to
      the zone CBS so that it can be reallocated quickly.  Otherwise add
      it to the freeCBS, and it'll get chopped up later. */
-  /* FIXME: Consider moving empty zone stripes back to freeCBS. */
-  if (size <= (Size)1 << ArenaZoneShift(arena) &&
+  if (size <= ArenaStripeSize(arena) &&
       AddrZone(arena, base) == AddrZone(arena, AddrAdd(base, size - 1)))
     cbs = ArenaZoneCBS(arena, AddrZone(arena, base));
   else
     cbs = ArenaFreeCBS(arena);
   arenaCBSInsertSteal(&oldRange, arena, cbs, &range);
+
+  /* TODO: Consider moving empty zone stripes back to freeCBS. At the
+     moment we do not do this, partly for simplicity, and partly to
+     keep large objects apart from smaller ones, at the possible cost
+     of address space fragmentation.  We probably do not want to do it
+     eagerly in any case, but lazily if we're unable to find address
+     space, even though that reduces first-fit. */
 
   (*arena->class->free)(RangeBase(&range), RangeSize(&range), pool);
 
