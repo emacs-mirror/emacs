@@ -1108,12 +1108,12 @@ handle_sigcont (int signalnum)
 
   if (tcgetpgrp (1) == getpgrp ())
     {
-      /* We are in the foreground. */
+      /* We are in the foreground.  */
       send_to_emacs (emacs_socket, "-resume \n");
     }
-  else
+  else if (tty)
     {
-      /* We are in the background; cancel the continue. */
+      /* We are in the background; cancel the continue.  */
       raise (SIGSTOP);
     }
 

@@ -1,3 +1,8 @@
+2014-02-25  Andreas Amann  <a.amann@ucc.ie>  (tiny change)
+	
+	Fix emacsclient's handling of SIGCONT (Bug#16883).
+	* emacsclient.c (handle_sigcont): Cancel the continue only if tty.
+
 2014-01-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* update-game-score.c (write_scores) [WINDOWSNT]: Use chmod
