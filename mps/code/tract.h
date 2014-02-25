@@ -96,7 +96,6 @@ extern void TractFinish(Tract tract);
 typedef struct PageSpareStruct {
   PagePoolUnion pool;         /* spare tract, pool.state == PoolStateSPARE */
   RingStruct spareRing;       /* link in arena spare ring, LRU order */
-  RingStruct freeRing;        /* link in free cache ring, FIFO order */
 } PageSpareStruct;
 
 typedef union PageUnion {     /* page structure */
@@ -112,9 +111,7 @@ typedef union PageUnion {     /* page structure */
 #define PageIsAllocated(page) RVALUE(PagePool(page) != NULL)
 #define PageState(page)       RVALUE((page)->pool.state)
 #define PageSpareRing(page)   RVALUE(&(page)->spare.spareRing)
-#define PageFreeRing(page)    RVALUE(&(page)->spare.freeRing)
 #define PageOfSpareRing(node) PARENT(PageUnion, spare, RING_ELT(PageSpare, spareRing, node))
-#define PageOfFreeRing(node)  PARENT(PageUnion, spare, RING_ELT(PageSpare, freeRing, node))
 
 #define PageSetPool(page, _pool) \
   BEGIN \

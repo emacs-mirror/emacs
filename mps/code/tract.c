@@ -653,7 +653,6 @@ void PageInit(Chunk chunk, Index pi)
   PageSetPool(page, NULL);
   PageSetType(page, PageStateFREE);
   RingInit(PageSpareRing(page));
-  RingInit(PageFreeRing(page));
 }
 
 
