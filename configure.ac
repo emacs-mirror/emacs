@@ -468,14 +468,8 @@ dnl quotation begins
 
 ### If you add support for a new configuration, add code to this
 ### switch statement to recognize your configuration name and select
-### the appropriate operating system file.
+### the appropriate opsys.
 
-### You would hope that you could choose an s/*.h
-### file based on the operating system portion.  However, it turns out
-### that each s/*.h file is pretty manufacturer-specific.
-### So we basically have to have a special case for each
-### configuration name.
-###
 ### As far as handling version numbers on operating systems is
 ### concerned, make sure things will fail in a fixable way.  If
 ### /etc/MACHINES doesn't say anything about version numbers, be
