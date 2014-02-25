@@ -326,6 +326,17 @@ void rnd_state_set_v2(unsigned long seed0_v2)
 }
 
 
+/* res_strings -- human readable MPS result codes */
+
+static struct {
+  const char *ident;
+  const char *doc;
+} res_strings[] = {
+#define RES_STRINGS_ROW(X, ident, doc) {#ident, #doc},
+_mps_RES_ENUM(RES_STRINGS_ROW, X)
+};
+
+
 /* verror -- die with message */
 
 void verror(const char *format, va_list args)
@@ -359,23 +370,24 @@ void error(const char *format, ...)
 }
 
 
-/* die -- Test a return code, and exit on error */
-
-void die(mps_res_t res, const char *s)
-{
-  if (res != MPS_RES_OK) {
-    error("\n%s: %d\n", s, res);
-  }
-}
-
-
 /* die_expect -- Test a return code, and exit on unexpected result */
 
 void die_expect(mps_res_t res, mps_res_t expected, const char *s)
 {
   if (res != expected) {
-    error("\n%s: %d\n", s, res);
+    if (0 <= res && (unsigned)res < sizeof(res_strings) / sizeof(res_strings[0]))
+      error("\n%s: %s: %s\n", s, res_strings[res].ident, res_strings[res].doc);
+    else
+      error("\n%s: %d: unknown result code\n", s, res);
   }
+}
+
+
+/* die -- Test a return code, and exit on error */
+
+void die(mps_res_t res, const char *s)
+{
+  die_expect(res, MPS_RES_OK, s);
 }
 
 
