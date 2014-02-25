@@ -1,5 +1,7 @@
 2014-02-25  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/edebug.el (defmacro): Fix debug spec.  (Bug#16868)
+
 	* faces.el (tty-setup-hook, tty-run-terminal-initialization): Doc fixes.
 	* startup.el (term-setup-hook): Doc fix.  Make obsolete.
 	* term/sun.el (sun-raw-prefix-hooks):

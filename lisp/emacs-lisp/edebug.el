@@ -1,7 +1,6 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988-1995, 1997, 1999-2014 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1988-1995, 1997, 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1936,11 +1935,11 @@ expressions; a `progn' form will be returned enclosing these forms."
 	   [&optional stringp]
 	   [&optional ("interactive" interactive)]
 	   def-body))
-;; FIXME? Isn't this missing the doc-string?  Cf defun.
 (def-edebug-spec defmacro
   ;; FIXME: Improve `declare' so we can Edebug gv-expander and
   ;; gv-setter declarations.
-  (&define name lambda-list [&optional ("declare" &rest sexp)] def-body))
+  (&define name lambda-list [&optional stringp]
+           [&optional ("declare" &rest sexp)] def-body))
 
 (def-edebug-spec arglist lambda-list)  ;; deprecated - use lambda-list.
 
