@@ -23,11 +23,11 @@ This document contains procedures and checklists for branching and merging durin
 #. If you are creating a development branch to fix a problem, make
    sure that there's a job recording the problem.
 
-#. Create a branch specification.
+#. Create a branch specification. For example::
 
         p4 branch mps/branch/2013-08-21/lii6ll
 
-   The specification should look something like this::
+   The specification should look like this::
 
         Branch:	mps/branch/2013-08-21/lii6ll
 
@@ -37,7 +37,7 @@ This document contains procedures and checklists for branching and merging durin
         View:
                 //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/mps/branch/2013-08-21/lii6ll/...
 
-#. If you're working on a problem that's specific to customer, then
+#. If you're working on a problem that's specific to a customer, then
    map the mainline for that customer rather than the master sources::
 
         View:

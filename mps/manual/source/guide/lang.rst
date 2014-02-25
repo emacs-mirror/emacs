@@ -674,55 +674,6 @@ code must be added to ``obj_scan`` and ``obj_skip``::
 
 
 .. index::
-   single: generation chain
-   single: chain; generation
-   single: Scheme; generation chain
-
-Generation chains
------------------
-
-The AMC pool requires not only an object format but a
-:term:`generation chain`. This specifies the generation structure of
-the :term:`generational garbage collection`.
-
-You create a generation chain by constructing an array of structures
-of type :c:type:`mps_gen_param_s`, one for each generation, and
-passing them to :c:func:`mps_chain_create`. Each of these structures
-contains two values, the *capacity* of the generation in
-:term:`kilobytes`, and the *mortality*, the proportion of
-objects in the generation that you expect to survive a collection of
-that generation.
-
-These numbers are *hints* to the MPS that it may use to make decisions
-about when and what to collect: nothing will go wrong (other than
-suboptimal performance) if you make poor choices. Making good choices
-for the capacity and mortality of each generation is not easy, and is postponed to the chapter :ref:`guide-perf`.
-
-Here's the code for creating the generation chain for the toy Scheme
-interpreter::
-
-    mps_gen_param_s obj_gen_params[] = {
-        { 150, 0.85 },
-        { 170, 0.45 },
-    };
-
-    res = mps_chain_create(&obj_chain,
-                           arena,
-                           LENGTH(obj_gen_params),
-                           obj_gen_params);
-    if (res != MPS_RES_OK) error("Couldn't create obj chain");
-
-Note that these numbers have have been deliberately chosen to be
-small, so that the MPS is forced to collect often, so that you can see
-it working. Don't just copy these numbers unless you also want to see
-frequent garbage collections!
-
-.. topics::
-
-    :ref:`topic-collection`.
-
-
-.. index::
    single: pool; creating
    single: Scheme; pool
 
@@ -748,25 +699,10 @@ Second, the :term:`object format`::
     } MPS_ARGS_END(args);
     if (res != MPS_RES_OK) error("Couldn't create obj format");
 
-Third, the :term:`generation chain`::
-
-    mps_gen_param_s obj_gen_params[] = {
-        { 150, 0.85 },
-        { 170, 0.45 },
-    };
-
-    mps_chain_t obj_chain;
-    res = mps_chain_create(&obj_chain,
-                           arena,
-                           LENGTH(obj_gen_params),
-                           obj_gen_params);
-    if (res != MPS_RES_OK) error("Couldn't create obj chain");
-
 And finally the :term:`pool`::
 
     mps_pool_t obj_pool;
     MPS_ARGS_BEGIN(args) {
-        MPS_ARGS_ADD(args, MPS_KEY_CHAIN, obj_chain);
         MPS_ARGS_ADD(args, MPS_KEY_FORMAT, obj_fmt);
         MPS_ARGS_DONE(args);
         res = mps_pool_create_k(&obj_pool, arena, mps_class_amc(), args);
@@ -1206,10 +1142,12 @@ tracking down the causes, appear in the chapter :ref:`guide-debug`.
 Tidying up
 ----------
 
-When your program is done with the MPS, it's good practice to tear
-down all the MPS data structures. This causes the MPS to check the
-consistency of its data structures and report any problems it
-detects. It also causes the MPS to flush its :term:`telemetry stream`.
+When your program is done with the MPS, it's good practice to
+:term:`park <parked state>` the arena (by calling
+:c:func:`mps_arena_park`) and then tear down all the MPS data
+structures. This causes the MPS to check the consistency of its data
+structures and report any problems it detects. It also causes the MPS
+to flush its :term:`telemetry stream`.
 
 MPS data structures must be destroyed or deregistered in the reverse
 order to that in which they were registered or created. So you must
@@ -1218,16 +1156,15 @@ destroy all :term:`allocation points` created in a
 were created in an :term:`arena` before destroying the arena, and so
 on.
 
-Here's the tear-down code from the toy Scheme interpreter::
+For example::
 
-    mps_arena_park(arena);
-    mps_ap_destroy(obj_ap);
-    mps_pool_destroy(obj_pool);
-    mps_chain_destroy(obj_chain);
-    mps_fmt_destroy(obj_fmt);
-    mps_root_destroy(reg_root);
-    mps_thread_dereg(thread);
-    mps_arena_destroy(arena);
+    mps_arena_park(arena);      /* ensure no collection is running */
+    mps_ap_destroy(obj_ap);     /* destroy ap before pool */
+    mps_pool_destroy(obj_pool); /* destroy pool before fmt */
+    mps_fmt_destroy(obj_fmt);   /* destroy fmt before arena */
+    mps_root_destroy(reg_root); /* destroy root before arena */
+    mps_thread_dereg(thread);   /* deregister thread before arena */
+    mps_arena_destroy(arena);   /* last of all */
 
 
 What next?
