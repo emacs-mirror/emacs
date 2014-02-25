@@ -141,21 +141,41 @@ static Res MFSInit(Pool pool, ArgList args)
 }
 
 
+void MFSFinishTracts(Pool pool, MFSTractVisitor visitor,
+                     void *closureP, Size closureS)
+{
+  MFS mfs;
+
+  AVERT(Pool, pool);
+  mfs = PoolPoolMFS(pool);
+  AVERT(MFS, mfs);
+  
+  while (mfs->tractList != NULL) {
+    Tract nextTract = (Tract)TractP(mfs->tractList);   /* .tract.chain */
+    visitor(pool, TractBase(mfs->tractList), mfs->extendBy, closureP, closureS);
+    mfs->tractList = nextTract;
+  }
+}
+
+
+static void MFSTractFreeVisitor(Pool pool, Addr base, Size size,
+                                void *closureP, Size closureS)
+{
+  UNUSED(closureP);
+  UNUSED(closureS);
+  ArenaFree(base, size, pool);
+}
+
+
 static void MFSFinish(Pool pool)
 {
-  Tract tract;
   MFS mfs;
 
   AVERT(Pool, pool);
   mfs = PoolPoolMFS(pool);
   AVERT(MFS, mfs);
 
-  tract = mfs->tractList;
-  while(tract != NULL) {
-    Tract nextTract = (Tract)TractP(tract);   /* .tract.chain */
-    ArenaFree(TractBase(tract), mfs->extendBy, pool);
-    tract = nextTract;
-  }
+  MFSFinishTracts(pool, MFSTractFreeVisitor, NULL, 0);
 
   mfs->sig = SigInvalid;
 }

@@ -15,14 +15,18 @@
 SRCID(arena, "$Id$");
 
 
-/* ArenaControlPool -- get the control pool */
-
 #define ArenaControlPool(arena) MV2Pool(&(arena)->controlPoolStruct)
+#define ArenaCBSBlockPool(arena)  (&(arena)->cbsBlockPoolStruct.poolStruct)
+#define ArenaFreeCBS(arena)       (&(arena)->freeCBS)
+#define ArenaZoneCBS(arena, z)    (&(arena)->zoneCBS[i])
 
 
 /* Forward declarations */
 
 static void ArenaTrivCompact(Arena arena, Trace trace);
+static void arenaFreePage(Arena arena, Addr base, Pool pool);
+static Res arenaCBSInit(Arena arena);
+static void arenaCBSFinish(Arena arena);
 
 
 /* ArenaTrivDescribe -- produce trivial description of an arena */
@@ -154,6 +158,9 @@ Bool ArenaCheck(Arena arena)
   CHECKD(ChunkCacheEntry, &arena->chunkCache);
   
   CHECKL(LocusCheck(arena));
+
+  /* FIXME: Check CBSs */
+  AVER(NELEMS(arena->zoneCBS) == sizeof(ZoneSet) * CHAR_BIT);
   
   return TRUE;
 }
@@ -206,42 +213,10 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment)
     goto failGlobalsInit;
 
   arena->sig = ArenaSig;
-
-  MPS_ARGS_BEGIN(piArgs) {
-    MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
-    MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, arena->alignment);
-    MPS_ARGS_ADD(piArgs, MFSExtendSelf, FALSE); /* FIXME: Explain why */
-    MPS_ARGS_DONE(piArgs);
-    res = PoolInit(&arena->cbsBlockPoolStruct.poolStruct, arena,
-                   PoolClassMFS(), piArgs);
-  } MPS_ARGS_END(piArgs);
-  AVER(res == ResOK); /* no allocation, no failure expected */
-  if (res != ResOK)
-    goto failMFSInit;
-
-  /* Initialise the freeCBS after the rest is initialised so that the CBS
-     code can check the arena and pick up the alignment. */
-  MPS_ARGS_BEGIN(cbsiArgs) {
-    MPS_ARGS_ADD(cbsiArgs, CBSBlockPool, &arena->cbsBlockPoolStruct.poolStruct);
-    MPS_ARGS_DONE(cbsiArgs);
-    res = CBSInit(arena, &arena->freeCBS, arena, arena->alignment, TRUE, cbsiArgs);
-  } MPS_ARGS_END(cbsiArgs);
-  AVER(res == ResOK); /* no allocation, no failure expected */
+  
+  res = arenaCBSInit(arena);
   if (res != ResOK)
     goto failCBSInit;
-  /* Note that although freeCBS is initialised, it doesn't have any memory
-     for its blocks, so hasFreeCBS remains FALSE until later. */
-
-  for (i = 0; i < NELEMS(arena->zoneCBS); ++i) {
-    MPS_ARGS_BEGIN(cbsiArgs) {
-      MPS_ARGS_ADD(cbsiArgs, CBSBlockPool, &arena->cbsBlockPoolStruct.poolStruct);
-      MPS_ARGS_DONE(cbsiArgs);
-      res = CBSInit(arena, &arena->zoneCBS[i], arena, arena->alignment, TRUE, cbsiArgs);
-    } MPS_ARGS_END(cbsiArgs);
-    AVER(res == ResOK); /* no allocation, no failure expected */
-    if (res != ResOK)
-      goto failZoneCBSInit;
-  }
   
   /* initialize the reservoir, <design/reservoir/> */
   res = ReservoirInit(&arena->reservoirStruct, arena);
@@ -252,15 +227,8 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment)
   return ResOK;
 
 failReservoirInit:
-failZoneCBSInit:
-  while (i > 0) {
-    --i;
-    CBSFinish(&arena->zoneCBS[i]);
-  }
-  CBSFinish(&arena->freeCBS);
+  arenaCBSFinish(arena);
 failCBSInit:
-  PoolFinish(&arena->cbsBlockPoolStruct.poolStruct);
-failMFSInit:
   GlobalsFinish(ArenaGlobals(arena));
 failGlobalsInit:
   return res;
@@ -363,7 +331,6 @@ void ArenaFinish(Arena arena)
 
 void ArenaDestroy(Arena arena)
 {
-  Index i;
 
   AVERT(Arena, arena);
 
@@ -375,29 +342,7 @@ void ArenaDestroy(Arena arena)
   arena->poolReady = FALSE;
   ControlFinish(arena);
 
-  /* We must tear down the freeCBS before the chunks, because pages
-     containing CBS blocks might be allocated in those chunks. */
-  AVER(arena->hasFreeCBS);
-  arena->hasFreeCBS = FALSE;
-  for (i = 0; i < NELEMS(arena->zoneCBS); ++i)
-    CBSFinish(&arena->zoneCBS[i]);
-  CBSFinish(&arena->freeCBS);
-
-  /* FIXME: The CBS MFS can't free via ArenaFree because that'll use the CBS,
-     so manually get rid of all its tracts first.  Ought to reset the
-     CBS tree first, so that there are no dangling pointers. */
-  {
-    Pool pool = &arena->cbsBlockPoolStruct.poolStruct;
-    Tract tract = arena->cbsBlockPoolStruct.tractList;
-    Size size = ArenaAlign(arena);
-    while(tract != NULL) {
-      Tract nextTract = (Tract)TractP(tract);   /* .tract.chain */
-      (*arena->class->free)(TractBase(tract), size, pool);
-      tract = nextTract;
-    }
-    arena->cbsBlockPoolStruct.tractList = NULL;
-  }
-  PoolFinish(&arena->cbsBlockPoolStruct.poolStruct);
+  arenaCBSFinish(arena);
 
   /* Call class-specific finishing.  This will call ArenaFinish. */
   (*arena->class->finish)(arena);
@@ -626,6 +571,7 @@ static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
 
   AVER(baseReturn != NULL);
   AVERT(Chunk, chunk);
+  AVERT(Pool, pool);
   arena = ChunkArena(chunk);
   
   if (!BTFindShortResRange(&basePageIndex, &limitPageIndex,
@@ -662,6 +608,13 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
     }
   }
   return res;
+}
+
+static void arenaFreePage(Arena arena, Addr base, Pool pool)
+{
+  AVERT(Arena, arena);
+  AVERT(Pool, pool);
+  (*arena->class->free)(base, ArenaAlign(arena), pool);
 }
 
 
@@ -726,6 +679,108 @@ void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit)
 }
 
 
+/* arenaCBSInit -- initialise the arena's free CBSs */
+
+static Res arenaCBSInit(Arena arena)
+{
+  Res res;
+  Index i;
+
+  AVERT(Arena, arena);
+  AVER(!arena->hasFreeCBS);
+
+  /* Initialise a pool to hold the arena's CBS blocks.  This pool can't be
+     allowed to extend itself using ArenaAlloc because it is used during
+     ArenaAlloc, so MFSExtendSelf is set to FALSE.  Failures to extend are
+     handled where the CBS is used. */
+
+  MPS_ARGS_BEGIN(piArgs) {
+    MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
+    MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, arena->alignment);
+    MPS_ARGS_ADD(piArgs, MFSExtendSelf, FALSE); /* FIXME: Explain why */
+    MPS_ARGS_DONE(piArgs);
+    res = PoolInit(ArenaCBSBlockPool(arena), arena, PoolClassMFS(), piArgs);
+  } MPS_ARGS_END(piArgs);
+  AVER(res == ResOK); /* no allocation, no failure expected */
+  if (res != ResOK)
+    goto failMFSInit;
+
+  /* Initialise the freeCBS. */
+  MPS_ARGS_BEGIN(cbsiArgs) {
+    MPS_ARGS_ADD(cbsiArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
+    MPS_ARGS_DONE(cbsiArgs);
+    res = CBSInit(arena, ArenaFreeCBS(arena), arena,
+                  arena->alignment, TRUE, cbsiArgs);
+  } MPS_ARGS_END(cbsiArgs);
+  AVER(res == ResOK); /* no allocation, no failure expected */
+  if (res != ResOK)
+    goto failCBSInit;
+  /* Note that although freeCBS is initialised, it doesn't have any memory
+     for its blocks, so hasFreeCBS remains FALSE until later. */
+
+  /* Initialise the zoneCBSs. */
+  for (i = 0; i < NELEMS(arena->zoneCBS); ++i) {
+    MPS_ARGS_BEGIN(cbsiArgs) {
+      MPS_ARGS_ADD(cbsiArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
+      MPS_ARGS_DONE(cbsiArgs);
+      res = CBSInit(arena, ArenaZoneCBS(arena, i), arena,
+                    arena->alignment, TRUE, cbsiArgs);
+    } MPS_ARGS_END(cbsiArgs);
+    AVER(res == ResOK); /* no allocation, no failure expected */
+    if (res != ResOK)
+      goto failZoneCBSInit;
+  }
+  
+  return ResOK;
+
+failZoneCBSInit:
+  while (i > 0) {
+    --i;
+    CBSFinish(&arena->zoneCBS[i]);
+  }
+  CBSFinish(&arena->freeCBS);
+failCBSInit:
+  PoolFinish(ArenaCBSBlockPool(arena));
+failMFSInit:
+  return res;
+}
+
+
+/* arenaCBSFinish -- finish the arena's free CBSs */
+
+static void arenaMFSPageFreeVisitor(Pool pool, Addr base, Size size,
+                                    void *closureP, Size closureS)
+{
+  AVERT(Pool, pool);
+  UNUSED(closureP);
+  UNUSED(closureS);
+  UNUSED(size);
+  AVER(size == ArenaAlign(PoolArena(pool)));
+  arenaFreePage(PoolArena(pool), base, pool);
+}
+
+static void arenaCBSFinish(Arena arena)
+{
+  Index i;
+  
+  AVERT(Arena, arena);
+
+  /* We must tear down the freeCBS before the chunks, because pages
+     containing CBS blocks might be allocated in those chunks. */
+  AVER(arena->hasFreeCBS);
+  arena->hasFreeCBS = FALSE;
+  for (i = 0; i < NELEMS(arena->zoneCBS); ++i)
+    CBSFinish(&arena->zoneCBS[i]);
+  CBSFinish(&arena->freeCBS);
+  
+  /* The CBS block pool can't free its own memory via ArenaFree because
+     that would use the freeCBS. */
+  MFSFinishTracts(ArenaCBSBlockPool(arena),
+                  arenaMFSPageFreeVisitor, NULL, 0);
+  PoolFinish(ArenaCBSBlockPool(arena));
+}
+
+
 /* arenaAllocFromCBS -- allocate memory using the free CBS
  *
  * The free CBS contains all the free address space we have in chunks,
@@ -733,62 +788,54 @@ void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit)
  * FIXME: Needs to take a "high" option to use CBSFindLastInZones.
  */
 
-static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones,
-                             Size size, Pool pool)
+static Bool arenaAllocFindSpare(Chunk *chunkReturn,
+                                Index *baseIndexReturn,
+                                Count *pagesReturn,
+                                Arena arena, ZoneSet zones, Size size)
 {
-  Arena arena;
-  RangeStruct range, oldRange;
-  Chunk chunk;
-  Bool b;
-  Index baseIndex;
-  Count pages;
-  Res res;
   Index i;
-
-  AVER(tractReturn != NULL);
-  /* ZoneSet is arbitrary */
-  AVER(size > (Size)0);
-  AVERT(Pool, pool);
-  arena = PoolArena(pool);
-  AVER(SizeIsAligned(size, arena->alignment));
   
-  /* TODO: What about a range that crosses chunks?! Every chunk has
-     some unallocated space at the beginning with page tables in it.
-     This assumption needs documenting and asserting! */
-
-#if 0
-  /* Try to reuse single pages from the already-mapped spare pages list */
   if (size == ArenaAlign(arena)) {
     for (i = 0; i < NELEMS(arena->freeRing); ++i) {
       Ring ring = &arena->freeRing[i];
       if (ZoneSetIsMember(zones, i) && !RingIsSingle(ring)) {
         Page page = PageOfFreeRing(RingNext(ring));
-        b = ChunkOfAddr(&chunk, arena, (Addr)page);
+        Chunk chunk;
+        Bool b = ChunkOfAddr(&chunk, arena, (Addr)page);
         AVER(b);
         AVER(ChunkPageSize(chunk) == size);
-        baseIndex = (Index)(page - chunk->pageTable);
-        res = (*arena->class->pagesMarkAllocated)(arena, chunk, baseIndex, 1, pool);
-        if (res == ResOK) {
-          *tractReturn = PageTract(&chunk->pageTable[baseIndex]); /* FIXME: method for this? */
-          return ResOK;
-        }
+        *chunkReturn = chunk;
+        *baseIndexReturn = (Index)(page - chunk->pageTable);
+        *pagesReturn = 1;
+        return TRUE;
       }
     }
   }
-#endif
+  return FALSE;
+}
 
-  /* Attempt to allocate from the CBS for the zone. */
-
+static Bool arenaAllocFindInZoneCBS(Range rangeReturn,
+                                    Arena arena, ZoneSet zones, Size size)
+{
+  Index i;
+  RangeStruct oldRange;
   for (i = 0; i < NELEMS(arena->zoneCBS); ++i)
     if (ZoneSetIsMember(zones, i) &&
-        CBSFindFirst(&range, &oldRange, &arena->zoneCBS[i], size,
+        CBSFindFirst(rangeReturn, &oldRange, &arena->zoneCBS[i], size,
                      FindDeleteLOW)) /* FIXME: use HIGH according to segpref */
-      goto found;
+      return TRUE;
+  return FALSE;
+}
 
-  /* FIXME: Allocate a whole stripe from freeCBS. */
-  if (CBSFindFirstInZones(&range, &oldRange, &arena->freeCBS, size,
+static Bool arenaAllocFindInFreeCBS(Range rangeReturn,
+                                    Arena arena, ZoneSet zones, Size size)
+{
+  Res res;
+  RangeStruct oldRange;
+  
+  if (CBSFindFirstInZones(rangeReturn, &oldRange, &arena->freeCBS, size,
                           arena, zones)) {
-    Addr allocLimit = RangeLimit(&range);
+    Addr allocLimit = RangeLimit(rangeReturn);
     Addr stripeLimit = AddrAlignUp(allocLimit, (Size)1 << ArenaZoneShift(arena));
     Addr oldLimit = RangeLimit(&oldRange);
     Addr limit = oldLimit < stripeLimit ? oldLimit : stripeLimit;
@@ -803,17 +850,47 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones,
       res = CBSInsert(&oldRange, zoneCBS, &restRange);
       AVER(res == ResOK); /* FIXME: might not be! */
     }
-    goto found;
+    return TRUE;
+  }
+  return FALSE;
+}
+
+static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones,
+                             Size size, Pool pool)
+{
+  Arena arena;
+  RangeStruct range, oldRange;
+  Chunk chunk;
+  Bool b;
+  Index baseIndex;
+  Count pages;
+  Res res;
+  
+  AVER(tractReturn != NULL);
+  /* ZoneSet is arbitrary */
+  AVER(size > (Size)0);
+  AVERT(Pool, pool);
+  arena = PoolArena(pool);
+  AVER(SizeIsAligned(size, arena->alignment));
+  
+  /* TODO: What about a range that crosses chunks?! Every chunk has
+     some unallocated space at the beginning with page tables in it.
+     This assumption needs documenting and asserting! */
+
+  if (arenaAllocFindSpare(&chunk, &baseIndex, &pages, arena, zones, size)) {
+    Addr base = PageIndexBase(chunk, baseIndex);
+    RangeInit(&range, base, AddrAdd(base, ChunkPageSize(chunk) * pages));
+  } else {
+    if (!arenaAllocFindInZoneCBS(&range, arena, zones, size))
+      if (!arenaAllocFindInFreeCBS(&range, arena, zones, size))
+        return ResRESOURCE;
+    b = CHUNK_OF_ADDR(&chunk, arena, range.base);
+    AVER(b);
+    AVER(RangeIsAligned(&range, ChunkPageSize(chunk)));
+    baseIndex = INDEX_OF_ADDR(chunk, range.base);
+    pages = ChunkSizeToPages(chunk, RangeSize(&range));
   }
 
-  return ResRESOURCE;
-  
-found:
-  b = CHUNK_OF_ADDR(&chunk, arena, range.base);
-  AVER(b);
-  AVER(RangeIsAligned(&range, ChunkPageSize(chunk)));
-  baseIndex = INDEX_OF_ADDR(chunk, range.base);
-  pages = ChunkSizeToPages(chunk, RangeSize(&range));
   res = (*arena->class->pagesMarkAllocated)(arena, chunk, baseIndex, pages, pool);
   if (res != ResOK)
     goto failMark;
@@ -825,6 +902,7 @@ found:
   return ResOK;
 
 failMark:
+   NOTREACHED; /* FIXME */
    {
      Res insertRes = CBSInsert(&oldRange, &arena->freeCBS, &range);
      AVER(insertRes == ResOK); /* We only just deleted it. */
