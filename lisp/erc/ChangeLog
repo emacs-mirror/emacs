@@ -1,3 +1,8 @@
+2014-02-25  Julien Danjou  <julien@danjou.info>
+
+	* erc-networks.el (erc-determine-network): Check that NETWORK as a
+	value, some servers set it to nothing.
+
 2014-01-31  Glenn Morris  <rgm@gnu.org>
 
 	* erc.el (erc-accidental-paste-threshold-seconds): Doc tweak.
