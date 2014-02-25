@@ -252,7 +252,6 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
     cbs->ownPool = TRUE;
   }
 
-  cbs->blockPool = blockPool;
   cbs->splayTreeSize = 0;
 
   cbs->fastFind = fastFind;
