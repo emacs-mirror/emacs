@@ -18,7 +18,7 @@ SRCID(arena, "$Id$");
 #define ArenaControlPool(arena) MV2Pool(&(arena)->controlPoolStruct)
 #define ArenaCBSBlockPool(arena)  (&(arena)->cbsBlockPoolStruct.poolStruct)
 #define ArenaFreeCBS(arena)       (&(arena)->freeCBS)
-#define ArenaZoneCBS(arena, z)    (&(arena)->zoneCBS[i])
+#define ArenaZoneCBS(arena, z)    (&(arena)->zoneCBS[z])
 
 
 /* Forward declarations */
@@ -115,8 +115,6 @@ Bool ArenaClassCheck(ArenaClass class)
 
 Bool ArenaCheck(Arena arena)
 {
-  Index i;
-
   CHECKS(Arena, arena);
   CHECKD(Globals, ArenaGlobals(arena));
   CHECKD(ArenaClass, arena->class);
@@ -127,9 +125,6 @@ Bool ArenaCheck(Arena arena)
     CHECKD(MV, &arena->controlPoolStruct);
     CHECKD(Reservoir, &arena->reservoirStruct);
   }
-
-  for (i = 0; i < NELEMS(arena->freeRing); ++i)
-    CHECKL(RingCheck(&arena->freeRing[i]));
 
   /* Can't check that limit>=size because we may call ArenaCheck */
   /* while the size is being adjusted. */
@@ -175,7 +170,6 @@ Bool ArenaCheck(Arena arena)
 Res ArenaInit(Arena arena, ArenaClass class, Align alignment)
 {
   Res res;
-  Index i;
 
   /* We do not check the arena argument, because it's _supposed_ to */
   /* point to an uninitialized block of memory. */
@@ -203,9 +197,6 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment)
   arena->chunkSerial = (Serial)0;
   ChunkCacheEntryInit(&arena->chunkCache);
   
-  for (i = 0; i < NELEMS(arena->freeRing); ++i)
-    RingInit(&arena->freeRing[i]);
-
   LocusInit(arena);
   
   res = GlobalsInit(ArenaGlobals(arena));
@@ -316,10 +307,7 @@ failInit:
 
 void ArenaFinish(Arena arena)
 {
-  Index i;
   ReservoirFinish(ArenaReservoir(arena));
-  for (i = 0; i < NELEMS(arena->freeRing); ++i)
-    RingFinish(&arena->freeRing[i]);
   arena->sig = SigInvalid;
   GlobalsFinish(ArenaGlobals(arena));
   LocusFinish(arena);
@@ -593,6 +581,8 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
 {
   Res res;
   
+  /* FIXME: Remove from CBS? */
+  
   /* Favour the primary pool, because pages allocated this way aren't
      currently freed, and we don't want to prevent chunks being destroyed. */
   res = arenaAllocPageInChunk(baseReturn, arena->primary, pool);
@@ -614,6 +604,7 @@ static void arenaFreePage(Arena arena, Addr base, Pool pool)
 {
   AVERT(Arena, arena);
   AVERT(Pool, pool);
+  /* FIXME: Add to CBS? */
   (*arena->class->free)(base, ArenaAlign(arena), pool);
 }
 
@@ -788,32 +779,6 @@ static void arenaCBSFinish(Arena arena)
  * FIXME: Needs to take a "high" option to use CBSFindLastInZones.
  */
 
-static Bool arenaAllocFindSpare(Chunk *chunkReturn,
-                                Index *baseIndexReturn,
-                                Count *pagesReturn,
-                                Arena arena, ZoneSet zones, Size size)
-{
-  Index i;
-  
-  if (size == ArenaAlign(arena)) {
-    for (i = 0; i < NELEMS(arena->freeRing); ++i) {
-      Ring ring = &arena->freeRing[i];
-      if (ZoneSetIsMember(zones, i) && !RingIsSingle(ring)) {
-        Page page = PageOfFreeRing(RingNext(ring));
-        Chunk chunk;
-        Bool b = ChunkOfAddr(&chunk, arena, (Addr)page);
-        AVER(b);
-        AVER(ChunkPageSize(chunk) == size);
-        *chunkReturn = chunk;
-        *baseIndexReturn = (Index)(page - chunk->pageTable);
-        *pagesReturn = 1;
-        return TRUE;
-      }
-    }
-  }
-  return FALSE;
-}
-
 static Bool arenaAllocFindInZoneCBS(Range rangeReturn,
                                     Arena arena, ZoneSet zones, Size size)
 {
@@ -831,28 +796,28 @@ static Bool arenaAllocFindInFreeCBS(Range rangeReturn,
                                     Arena arena, ZoneSet zones, Size size)
 {
   Res res;
-  RangeStruct oldRange;
+  RangeStruct oldRange, restRange;
+  Addr allocLimit, stripeLimit, oldLimit, limit;
+  CBS zoneCBS;
   
-  if (CBSFindFirstInZones(rangeReturn, &oldRange, &arena->freeCBS, size,
-                          arena, zones)) {
-    Addr allocLimit = RangeLimit(rangeReturn);
-    Addr stripeLimit = AddrAlignUp(allocLimit, (Size)1 << ArenaZoneShift(arena));
-    Addr oldLimit = RangeLimit(&oldRange);
-    Addr limit = oldLimit < stripeLimit ? oldLimit : stripeLimit;
-    RangeStruct restRange;
-    CBS zoneCBS;
-    RangeInit(&restRange, allocLimit, limit);
-    AVER(RangesNest(&oldRange, &restRange));
-    if (allocLimit < limit) { /* FIXME: RangeIsEmpty */
-      res = CBSDelete(&oldRange, &arena->freeCBS, &restRange);
-      AVER(res == ResOK); /* we should just be bumping up a base */
-      zoneCBS = &arena->zoneCBS[AddrZone(arena, RangeBase(&restRange))];
-      res = CBSInsert(&oldRange, zoneCBS, &restRange);
-      AVER(res == ResOK); /* FIXME: might not be! */
-    }
-    return TRUE;
+  if (!CBSFindFirstInZones(rangeReturn, &oldRange, &arena->freeCBS, size,
+                          arena, zones))
+    return FALSE;
+
+  allocLimit = RangeLimit(rangeReturn);
+  stripeLimit = AddrAlignUp(allocLimit, (Size)1 << ArenaZoneShift(arena));
+  oldLimit = RangeLimit(&oldRange);
+  limit = oldLimit < stripeLimit ? oldLimit : stripeLimit;
+  RangeInit(&restRange, allocLimit, limit);
+  AVER(RangesNest(&oldRange, &restRange));
+  if (allocLimit < limit) { /* FIXME: RangeIsEmpty */
+    res = CBSDelete(&oldRange, &arena->freeCBS, &restRange);
+    AVER(res == ResOK); /* we should just be bumping up a base */
+    zoneCBS = ArenaZoneCBS(arena, AddrZone(arena, RangeBase(&restRange)));
+    res = CBSInsert(&oldRange, zoneCBS, &restRange);
+    AVER(res == ResOK); /* FIXME: might not be! */
   }
-  return FALSE;
+  return TRUE;
 }
 
 static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones,
@@ -877,19 +842,15 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones,
      some unallocated space at the beginning with page tables in it.
      This assumption needs documenting and asserting! */
 
-  if (arenaAllocFindSpare(&chunk, &baseIndex, &pages, arena, zones, size)) {
-    Addr base = PageIndexBase(chunk, baseIndex);
-    RangeInit(&range, base, AddrAdd(base, ChunkPageSize(chunk) * pages));
-  } else {
-    if (!arenaAllocFindInZoneCBS(&range, arena, zones, size))
-      if (!arenaAllocFindInFreeCBS(&range, arena, zones, size))
-        return ResRESOURCE;
-    b = CHUNK_OF_ADDR(&chunk, arena, range.base);
-    AVER(b);
-    AVER(RangeIsAligned(&range, ChunkPageSize(chunk)));
-    baseIndex = INDEX_OF_ADDR(chunk, range.base);
-    pages = ChunkSizeToPages(chunk, RangeSize(&range));
-  }
+  if (!arenaAllocFindInZoneCBS(&range, arena, zones, size))
+    if (!arenaAllocFindInFreeCBS(&range, arena, zones, size))
+      return ResRESOURCE;
+
+  b = CHUNK_OF_ADDR(&chunk, arena, range.base);
+  AVER(b);
+  AVER(RangeIsAligned(&range, ChunkPageSize(chunk)));
+  baseIndex = INDEX_OF_ADDR(chunk, range.base);
+  pages = ChunkSizeToPages(chunk, RangeSize(&range));
 
   res = (*arena->class->pagesMarkAllocated)(arena, chunk, baseIndex, pages, pool);
   if (res != ResOK)
