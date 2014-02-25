@@ -756,6 +756,7 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones,
      some unallocated space at the beginning with page tables in it.
      This assumption needs documenting and asserting! */
 
+#if 0
   /* Try to reuse single pages from the already-mapped spare pages list */
   if (size == ArenaAlign(arena)) {
     for (i = 0; i < NELEMS(arena->freeRing); ++i) {
@@ -774,16 +775,38 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones,
       }
     }
   }
+#endif
+
+  /* Attempt to allocate from the CBS for the zone. */
 
   for (i = 0; i < NELEMS(arena->zoneCBS); ++i)
-    if ((((ZoneSet)1 << i) & zones) != 0 && /* FIXME: ZoneSetIsMember */
-        CBSFindFirst(&range, &oldRange, &arena->zoneCBS[i], size, TRUE))
+    if (ZoneSetIsMember(zones, i) &&
+        CBSFindFirst(&range, &oldRange, &arena->zoneCBS[i], size,
+                     FindDeleteLOW)) /* FIXME: use HIGH according to segpref */
       goto found;
 
   /* FIXME: Allocate a whole stripe from freeCBS. */
-  if (!CBSFindFirstInZones(&range, &oldRange, &arena->freeCBS, size,
-                           arena, zones))
-    return ResRESOURCE;
+  if (CBSFindFirstInZones(&range, &oldRange, &arena->freeCBS, size,
+                          arena, zones)) {
+    Addr allocLimit = RangeLimit(&range);
+    Addr stripeLimit = AddrAlignUp(allocLimit, (Size)1 << ArenaZoneShift(arena));
+    Addr oldLimit = RangeLimit(&oldRange);
+    Addr limit = oldLimit < stripeLimit ? oldLimit : stripeLimit;
+    RangeStruct restRange;
+    CBS zoneCBS;
+    RangeInit(&restRange, allocLimit, limit);
+    AVER(RangesNest(&oldRange, &restRange));
+    if (allocLimit < limit) { /* FIXME: RangeIsEmpty */
+      res = CBSDelete(&oldRange, &arena->freeCBS, &restRange);
+      AVER(res == ResOK); /* we should just be bumping up a base */
+      zoneCBS = &arena->zoneCBS[AddrZone(arena, RangeBase(&restRange))];
+      res = CBSInsert(&oldRange, zoneCBS, &restRange);
+      AVER(res == ResOK); /* FIXME: might not be! */
+    }
+    goto found;
+  }
+
+  return ResRESOURCE;
   
 found:
   b = CHUNK_OF_ADDR(&chunk, arena, range.base);
@@ -1017,9 +1040,14 @@ void ArenaFree(Addr base, Size size, Pool pool)
   /* Add the freed address space back into the freeCBS so that ArenaAlloc
      can find it again. */
   {
+    CBS zoneCBS;
     RangeStruct rangeStruct;
     RangeInit(&rangeStruct, base, limit);
-    res = CBSInsert(&rangeStruct, &arena->freeCBS, &rangeStruct);
+    /* FIXME: Multi-zone frees should go straight to freeCBS. */
+    AVER(AddrZone(arena, base) == AddrZone(arena, AddrAdd(base, AddrOffset(base, limit) - 1)));
+    AVER(AddrOffset(base, limit) <= (Size)1 << ArenaZoneShift(arena));
+    zoneCBS = &arena->zoneCBS[AddrZone(arena, base)];
+    res = CBSInsert(&rangeStruct, zoneCBS, &rangeStruct);
     if (res != ResOK) {
       /* The CBS's MFS doesn't have enough space to describe the free memory.
          Give it some of the memory we're about to free and try again. */
