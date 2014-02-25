@@ -665,7 +665,6 @@ typedef struct mps_arena_s {
   CBSStruct freeCBS;            /* CBS of free address space */
   CBSStruct zoneCBS[MPS_WORD_WIDTH]; /* free address space per zone */
   ZoneSet freeZones;            /* zones not yet allocated */
-  RingStruct freeRing[MPS_WORD_WIDTH]; /* free page caches, per zone */
 
   /* locus fields (<code/locus.c>) */
   GenDescStruct topGen;         /* generation descriptor for dynamic gen */

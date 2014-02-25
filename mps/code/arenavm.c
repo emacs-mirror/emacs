@@ -782,7 +782,6 @@ static void sparePageRelease(VMChunk vmChunk, Index pi)
 
   arena->spareCommitted -= ChunkPageSize(chunk);
   RingRemove(PageSpareRing(page));
-  RingRemove(PageFreeRing(page));
 }
 
 
@@ -1064,9 +1063,6 @@ static void VMFree(Addr base, Size size, Pool pool)
        tract and will contain junk. */
     RingInit(PageSpareRing(page));
     RingAppend(&vmArena->spareRing, PageSpareRing(page));
-    RingInit(PageFreeRing(page));
-    RingInsert(&arena->freeRing[AddrZone(arena, PageIndexBase(chunk, pi))],
-               PageFreeRing(page));
   }
   arena->spareCommitted += ChunkPagesToSize(chunk, piLimit - piBase);
   BTResRange(chunk->allocTable, piBase, piLimit);
