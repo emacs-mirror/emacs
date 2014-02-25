@@ -1,5 +1,8 @@
 2014-02-25  Glenn Morris  <rgm@gnu.org>
 
+	* image.el (image-animate, image-animate-timeout):
+	Stop animating images in dead buffers.  (Bug#16878)
+
 	* emacs-lisp/edebug.el (defmacro): Fix debug spec.  (Bug#16868)
 
 	* faces.el (tty-setup-hook, tty-run-terminal-initialization): Doc fixes.
