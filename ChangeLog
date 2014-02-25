@@ -1,3 +1,8 @@
+2014-02-25  Paul Eggert  <eggert@penguin.cs.ucla.edu>
+
+	Merge from gnulib (Bug#16825).
+	2014-02-25 unistd: port readlink to Mac OS X 10.3.9
+
 2014-02-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
