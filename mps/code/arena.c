@@ -155,6 +155,7 @@ Bool ArenaCheck(Arena arena)
   CHECKL(LocusCheck(arena));
 
   /* FIXME: Check CBSs */
+  /* TODO: Thorough check summing CBSs against totals. */
   AVER(NELEMS(arena->zoneCBS) == sizeof(ZoneSet) * CHAR_BIT);
   
   return TRUE;
@@ -609,47 +610,118 @@ static void arenaFreePage(Arena arena, Addr base, Pool pool)
 }
 
 
-/* arenaFreeCBSInsert -- add block to free CBS, extending pool if necessary
+/* arenaCBSInsert -- add a block to an arena CBS, extending pool if necessary
  *
- * The arena's freeCBS can't get memory in the usual way because it is used
+ * The arena's CBSs can't get memory in the usual way because they are used
  * in the basic allocator, so we allocate pages specially.
  */
 
-Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit)
+static Res arenaCBSInsert(Range rangeReturn, Arena arena, CBS cbs, Range range)
 {
-  Pool pool = &arena->cbsBlockPoolStruct.poolStruct;
-  RangeStruct range;
   Res res;
+  
+  AVER(rangeReturn != NULL);
+  AVERT(Arena, arena);
+  AVERT(CBS, cbs);
+  AVERT(Range, range);
 
-  RangeInit(&range, base, limit);
-  res = CBSInsert(&range, &arena->freeCBS, &range);
+  res = CBSInsert(rangeReturn, cbs, range);
+
   if (res == ResLIMIT) { /* freeCBS MFS pool ran out of blocks */
     Addr pageBase;
+    RangeStruct pageRange, oldRange;
 
-    res = arenaAllocPage(&pageBase, arena, pool);
+    /* Add a page to the CBS block pool without using any CBS. */
+    res = arenaAllocPage(&pageBase, arena, ArenaCBSBlockPool(arena));
     if (res != ResOK)
       return res;
+    MFSExtend(ArenaCBSBlockPool(arena), pageBase, ArenaAlign(arena));
 
-    MFSExtend(pool, pageBase, arena->alignment);
-
-    /* Add the chunk's whole free area to the arena's CBS. */
-    res = CBSInsert(&range, &arena->freeCBS, &range);
-    AVER(res == ResOK); /* we just gave memory to the CBS */
+    /* Try again. */
+    res = CBSInsert(rangeReturn, &arena->freeCBS, range);
+    AVER(res == ResOK); /* we just gave memory to the CBSs */
 
     /* Exclude the page we specially allocated for the MFS from the CBS
        so that it doesn't get reallocated. */
-    RangeInit(&range, pageBase, AddrAdd(pageBase, arena->alignment));
-    res = CBSDelete(&range, &arena->freeCBS, &range);
-    AVER(res == ResOK); /* we just gave memory to the CBS */
+    RangeInit(&pageRange, pageBase, AddrAdd(pageBase, ArenaAlign(arena)));
+    res = CBSDelete(&oldRange,
+                    ArenaZoneCBS(arena, AddrZone(arena, pageBase)),
+                    &pageRange);
+    if (res == ResFAIL) /* block wasn't in zone CBS */
+      res = CBSDelete(&oldRange, ArenaFreeCBS(arena), &pageRange);
+    AVER(res == ResOK); /* we just gave memory to the CBSs */
   }
   
   return ResOK;
 }
 
 
+/* ArenaFreeCBSInsert -- insert a block an arena CBS, maybe stealing memory
+ *
+ * See arenaCBSInsert.  This function may only be applied to mapped pages
+ * and may steal them to store CBS nodes if it's unable to allocate
+ * space for CBS nodes.
+ *
+ * IMPORTANT: May update rangeIO.
+ */
+
+static void arenaCBSInsertSteal(Range rangeReturn, Arena arena,
+                                CBS cbs, Range rangeIO)
+{
+  Res res;
+  
+  AVER(rangeReturn != NULL);
+  AVERT(Arena, arena);
+  AVERT(CBS, cbs);
+  AVERT(Range, rangeIO);
+
+  res = arenaCBSInsert(rangeReturn, arena, cbs, rangeIO);
+  
+  if (res != ResOK) {
+    Addr pageBase;
+    Tract tract;
+    AVER(ResIsAllocFailure(res));
+
+    /* Steal a page from the memory we're about to free. */
+    AVER(RangeSize(rangeIO) >= ArenaAlign(arena));
+    pageBase = RangeBase(rangeIO);
+    RangeInit(rangeIO, AddrAdd(pageBase, ArenaAlign(arena)),
+                       RangeLimit(rangeIO));
+
+    /* Steal the tract from its owning pool. */
+    tract = TractOfBaseAddr(arena, pageBase);
+    TractFinish(tract);
+    TractInit(tract, ArenaCBSBlockPool(arena), pageBase);
+  
+    MFSExtend(ArenaCBSBlockPool(arena), pageBase, ArenaAlign(arena));
+
+    /* Try again. */
+    res = CBSInsert(rangeReturn, cbs, rangeIO);
+    AVER(res == ResOK); /* we just gave memory to the CBS */
+  }
+
+  AVER(res == ResOK); /* not expecting other kinds of error from the CBS */
+}
+
+
+/* ArenaFreeCBSInsert -- add block to free CBS, extending pool if necessary */
+
+Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit)
+{
+  RangeStruct range, oldRange;
+  AVERT(Arena, arena);
+  RangeInit(&range, base, limit);
+  return arenaCBSInsert(&oldRange, arena, ArenaFreeCBS(arena), &range);
+}
+
+
 /* ArenaFreeCBSDelete -- remove a block from free CBS, extending pool if necessary
  *
  * See ArenaFreeCBSInsert.
+ *
+ * FIXME: When a chunk is deleted the address space might be spread between
+ * the freeCBS and the zoneCBSs.  Need to sort that out here if we're not
+ * eagerly returning memory from one to the other.
  */
 
 void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit)
@@ -688,7 +760,7 @@ static Res arenaCBSInit(Arena arena)
   MPS_ARGS_BEGIN(piArgs) {
     MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
     MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, arena->alignment);
-    MPS_ARGS_ADD(piArgs, MFSExtendSelf, FALSE); /* FIXME: Explain why */
+    MPS_ARGS_ADD(piArgs, MFSExtendSelf, FALSE);
     MPS_ARGS_DONE(piArgs);
     res = PoolInit(ArenaCBSBlockPool(arena), arena, PoolClassMFS(), piArgs);
   } MPS_ARGS_END(piArgs);
@@ -782,11 +854,20 @@ static void arenaCBSFinish(Arena arena)
 static Bool arenaAllocFindInZoneCBS(Range rangeReturn,
                                     Arena arena, ZoneSet zones, Size size)
 {
-  Index i;
   RangeStruct oldRange;
+  Index i;
+
+  /* TODO: Use __builtin_ffsl or similar like this for 5% speed-up.
+     zones &= nonEmptyZoneCBS;
+     while (zones != ZoneSetEMPTY) {
+       int z = __builtin_ffsl((long)zones) - 1;
+       ...
+       zones &= ~((ZoneSet)1 << z);
+     } */
+
   for (i = 0; i < NELEMS(arena->zoneCBS); ++i)
     if (ZoneSetIsMember(zones, i) &&
-        CBSFindFirst(rangeReturn, &oldRange, &arena->zoneCBS[i], size,
+        CBSFindFirst(rangeReturn, &oldRange, ArenaZoneCBS(arena, i), size,
                      FindDeleteLOW)) /* FIXME: use HIGH according to segpref */
       return TRUE;
   return FALSE;
@@ -798,23 +879,27 @@ static Bool arenaAllocFindInFreeCBS(Range rangeReturn,
   Res res;
   RangeStruct oldRange, restRange;
   Addr allocLimit, stripeLimit, oldLimit, limit;
+  Index zone;
   CBS zoneCBS;
   
   if (!CBSFindFirstInZones(rangeReturn, &oldRange, &arena->freeCBS, size,
                           arena, zones))
     return FALSE;
-
+  
+  /* Add the rest of the zone stripe to the zoneCBS so that subsequent
+     allocations in the zone are fast. */
   allocLimit = RangeLimit(rangeReturn);
   stripeLimit = AddrAlignUp(allocLimit, (Size)1 << ArenaZoneShift(arena));
   oldLimit = RangeLimit(&oldRange);
   limit = oldLimit < stripeLimit ? oldLimit : stripeLimit;
   RangeInit(&restRange, allocLimit, limit);
   AVER(RangesNest(&oldRange, &restRange));
-  if (allocLimit < limit) { /* FIXME: RangeIsEmpty */
-    res = CBSDelete(&oldRange, &arena->freeCBS, &restRange);
+  if (allocLimit < limit) { /* TODO: Use RangeIsEmpty when merged */
+    res = CBSDelete(&oldRange, ArenaFreeCBS(arena), &restRange);
     AVER(res == ResOK); /* we should just be bumping up a base */
-    zoneCBS = ArenaZoneCBS(arena, AddrZone(arena, RangeBase(&restRange)));
-    res = CBSInsert(&oldRange, zoneCBS, &restRange);
+    zone = AddrZone(arena, RangeBase(&restRange));
+    zoneCBS = ArenaZoneCBS(arena, zone);
+    res = arenaCBSInsert(&oldRange, arena, zoneCBS, &restRange);
     AVER(res == ResOK); /* FIXME: might not be! */
   }
   return TRUE;
@@ -842,6 +927,8 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones,
      some unallocated space at the beginning with page tables in it.
      This assumption needs documenting and asserting! */
 
+  /* FIXME: No need to check zoneCBS if size > stripeSize */
+
   if (!arenaAllocFindInZoneCBS(&range, arena, zones, size))
     if (!arenaAllocFindInFreeCBS(&range, arena, zones, size))
       return ResRESOURCE;
@@ -865,7 +952,8 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones,
 failMark:
    NOTREACHED; /* FIXME */
    {
-     Res insertRes = CBSInsert(&oldRange, &arena->freeCBS, &range);
+     Res insertRes = arenaCBSInsert(&oldRange, arena,
+                                    ArenaFreeCBS(arena), &range);
      AVER(insertRes == ResOK); /* We only just deleted it. */
      /* If the insert does fail, we lose some address space permanently. */
    }
@@ -1041,6 +1129,8 @@ void ArenaFree(Addr base, Size size, Pool pool)
   Res res;
   Addr wholeBase;
   Size wholeSize;
+  RangeStruct range, oldRange;
+  CBS cbs;
 
   AVERT(Pool, pool);
   AVER(base != NULL);
@@ -1076,45 +1166,24 @@ void ArenaFree(Addr base, Size size, Pool pool)
   /* Just in case the shenanigans with the reservoir mucked this up. */
   AVER(limit == AddrAdd(base, size));
 
-  /* Add the freed address space back into the freeCBS so that ArenaAlloc
-     can find it again. */
-  {
-    CBS zoneCBS;
-    RangeStruct rangeStruct;
-    RangeInit(&rangeStruct, base, limit);
-    /* FIXME: Multi-zone frees should go straight to freeCBS. */
-    AVER(AddrZone(arena, base) == AddrZone(arena, AddrAdd(base, AddrOffset(base, limit) - 1)));
-    AVER(AddrOffset(base, limit) <= (Size)1 << ArenaZoneShift(arena));
-    zoneCBS = &arena->zoneCBS[AddrZone(arena, base)];
-    res = CBSInsert(&rangeStruct, zoneCBS, &rangeStruct);
-    if (res != ResOK) {
-      /* The CBS's MFS doesn't have enough space to describe the free memory.
-         Give it some of the memory we're about to free and try again. */
-      Tract tract = TractOfBaseAddr(arena, base);
-      Pool mfs = &arena->cbsBlockPoolStruct.poolStruct;
-      AVER(size >= ArenaAlign(arena));
-      TractFinish(tract);
-      TractInit(tract, mfs, base);
-      MFSExtend(mfs, base, ArenaAlign(arena));
-      base = AddrAdd(base, ArenaAlign(arena)); /* FIXME: = all chunk's pagesizes */
-      size -= ArenaAlign(arena);
-      if (size == 0)
-        goto allTransferred;
-      RangeInit(&rangeStruct, base, limit);
-      res = CBSInsert(&rangeStruct, &arena->freeCBS, &rangeStruct);
-      AVER(res == ResOK);
-      /* If this fails, we lose some address space forever. */
-    }
-  }
+  RangeInit(&range, base, limit);
 
-  AVER(limit == AddrAdd(base, size));
+  /* If the freed address space is entirely within one zone, add it to
+     the zone CBS so that it can be reallocated quickly.  Otherwise add
+     it to the freeCBS, and it'll get chopped up later. */
+  /* FIXME: Consider moving empty zone stripes back to freeCBS. */
+  if (size <= (Size)1 << ArenaZoneShift(arena) &&
+      AddrZone(arena, base) == AddrZone(arena, AddrAdd(base, size - 1)))
+    cbs = ArenaZoneCBS(arena, AddrZone(arena, base));
+  else
+    cbs = ArenaFreeCBS(arena);
+  arenaCBSInsertSteal(&oldRange, arena, cbs, &range);
 
-  (*arena->class->free)(base, size, pool);
+  (*arena->class->free)(RangeBase(&range), RangeSize(&range), pool);
 
   /* Freeing memory might create spare pages, but not more than this. */
   CHECKL(arena->spareCommitted <= arena->spareCommitLimit);
 
-allTransferred:
 allDeposited:
   EVENT3(ArenaFree, arena, wholeBase, wholeSize);
   return;

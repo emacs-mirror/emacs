@@ -662,7 +662,7 @@ typedef struct mps_arena_s {
   
   Bool hasFreeCBS;              /* Is freeCBS available? */
   MFSStruct cbsBlockPoolStruct; /* Shared pool for CBS blocks */
-  CBSStruct freeCBS;            /* CBS of free address space */
+  CBSStruct freeCBS;            /* CBS of free address space not in zoneCBS */
   CBSStruct zoneCBS[MPS_WORD_WIDTH]; /* free address space per zone */
   ZoneSet freeZones;            /* zones not yet allocated */
 
