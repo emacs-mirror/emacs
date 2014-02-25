@@ -1464,7 +1464,7 @@ default shell in Emacs, you can place the following in your init file:
   (setq comint-eol-on-send t)
   (setq w32-quote-process-args ?\")
 
-(setq shell-mode-hook 'my-shell-setup)
+(add-hook 'shell-mode-hook 'my-shell-setup)
 @end example
 
 If you find that you are having trouble with Emacs tracking drive

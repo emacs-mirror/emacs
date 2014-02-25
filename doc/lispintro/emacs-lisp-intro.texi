@@ -17755,7 +17755,7 @@ file that set values:
 
 @group
 ;; Set calendar highlighting colors
-(setq calendar-load-hook
+(add-hook 'calendar-load-hook
       (lambda ()
         (set-face-foreground 'diary-face   "skyblue")
         (set-face-background 'holiday-face "slate blue")

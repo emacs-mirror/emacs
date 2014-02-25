@@ -1,3 +1,7 @@
+2014-02-25  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (X11 Colors): Don't use setq with hooks.
+
 2014-02-06  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp-intro.texi (Recursive Patterns):
