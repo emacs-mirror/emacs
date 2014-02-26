@@ -103,16 +103,12 @@ AMS interface
     :term:`pool`.
 
     When creating an AMS pool, :c:func:`mps_pool_create_k` requires
-    two :term:`keyword arguments`:
+    one :term:`keyword argument`:
 
     * :c:macro:`MPS_KEY_FORMAT` (type :c:type:`mps_fmt_t`) specifies
       the :term:`object format` for the objects allocated in the pool.
       The format must provide a :term:`scan method` and a :term:`skip
       method`.
-
-    * :c:macro:`MPS_KEY_CHAIN` (type :c:type:`mps_chain_t`) specifies
-      the :term:`generation chain` for the pool. It must have a single
-      generation.
 
     It accepts three optional keyword arguments:
 
@@ -186,7 +182,7 @@ AMS interface
     class.
 
     When creating a debugging AMS pool, :c:func:`mps_pool_create_k`
-    requires three keyword arguments: :c:macro:`MPS_KEY_FORMAT` and
+    takes three keyword arguments: :c:macro:`MPS_KEY_FORMAT` and
     :c:macro:`MPS_KEY_CHAIN` are as described above, and
     :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS` specifies the debugging
     options. See :c:type:`mps_debug_option_s`.
