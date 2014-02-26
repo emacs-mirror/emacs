@@ -67,19 +67,15 @@ the pool alignment. This is because nailboards are per-segment, and
 the pool may know the minimum size of an object in a particular
 segment.
 
-_`.impl.table.1`: The level 1 bit table has one bit for each ``scale``
-bits in the level 0 bit table (this bit is set if any bit in the
-corresponding word in the level 0 table is set).
+_`.impl.table.k`: The level *k* bit table has one bit for each ``scale``
+bits in the level *k*−1 bit table (this bit is set if any bit in the
+corresponding word in the level *k*−1 table is set).
 
 _`.impl.scale`: Here ``scale`` is an arbitrary scale factor that must
 be a power of 2. It could be supplied as a parameter of the nailboard,
 but in the current implementation it is always :c:func:`MPS_WORD_WIDTH`.
 
-_`.impl.table.2`: The level 2 bit table has one bit for each ``scale``
-bits in the level 1 bit table.
-
-_`.impl.table.n`: And so on until we reach the level *n* bit table
-which is one word long or shorter.
+_`.impl.table.last`: The last bit table is one word long or shorter.
 
 _`.impl.size`: The size of the level *i* bit table is the ceiling of
 
@@ -100,84 +96,13 @@ and since ``align`` and ``scale`` are powers of 2, that's
 _`.impl.set`: Setting a nail for an address *a* in a nailboard is on
 the critical path: it is called for every fix of an ambiguous
 reference to an address in an AMC pool. When setting a nail, we set
-the corresponding bit in every level of the nailboard. See
+the corresponding bit in every level of the nailboard. See the function
 :c:func:`NailboardSet`.
 
-_`.impl.get`: Testing a range of addresses to see if any nails are set
+_`.impl.isresrange`: Testing a range of addresses to see if any nails are set
 is also on the critical path: it is called when scanning any AMC
-segment with a nailboard. See :c:func:`NailboardIsResRange`.
+segment with a nailboard. See the function :c:func:`NailboardIsResRange`.
 
-
-Interface
----------
-
-``typedef NailboardStruct *Nailboard``
-
-``Nailboard`` is the type of a nailboard. It is an alias for
-``NailboardStruct *``.
-
-``Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment, Addr base, Addr limit)``
-
-Allocate a nailboard in the control pool for ``arena``, to cover the
-given range of addresses, which must be non-empty. If successful, set
-``*boardReturn`` to point to the nailboard and return ``ResOK``.
-Otherwise, return a result code to indicate failure.
-
-``alignment`` specifies the granularity of the nails: that is, the
-number of bytes covered by each nail.
-
-``void NailboardDestroy(Nailboard board)``
-
-Destroy the nailboard and reclaim the associated space.
-
-``Align NailboardAlignment(Nailboard board)``
-
-Return the granularity of the nailboard (the ``alignment`` value that
-was originally passed to ``NailboardCreate``).
-
-``void NailboardClearNewNails(Nailboard board)``
-
-Clear the "new nails" flag in the nailboard.
-
-``Bool NailboardNewNails(Nailboard board)``
-
-Return ``TRUE`` if any new nails have been set in the nailboard since
-the last call to ``NailboardClearNewNails`` (or since the nailboard
-was created, if there have never been any such calls), ``FALSE``
-otherwise.
-
-``Bool NailboardGet(Nailboard board, Addr addr)``
-
-Return the nail in the nailboard corresponding to the address
-``addr``. It is an error if ``addr`` does not lie in the range covered
-by the nailboard.
-
-``Bool NailboardSet(Nailboard board, Addr addr)``
-
-Set the nail in the nailboard corresponding to the address ``addr``.
-Return the old nail at that position. It is an error if ``addr`` does
-not lie in the range covered by the nailboard.
-
-``void NailboardSetRange(Nailboard board, Addr base, Addr limit)``
-
-Set all nails in the nailboard corresponding to the given range. It is
-an error if any nail in the range is set.
-
-``Bool NailboardIsSetRange(Nailboard board, Addr base, Addr limit)``
-
-Return ``TRUE`` if all nails are set in the given range, or ``FALSE``
-if any nail is unset.
-
-``Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)``
-
-Return ``TRUE`` if no nails are set in the given range, or ``FALSE``
-if any nail is set.
-
-``Bool NailboardIsResClientRange(Nailboard board, Size headerSize, Addr base, Addr limit)``
-
-Return ``TRUE`` if no nails are set in the given range, or ``FALSE``
-if any nail is set. The ``base`` and ``limit`` arguments are client
-addresses in a pool where objects have the given header size.
 
 
 Document History

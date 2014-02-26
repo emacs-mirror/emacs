@@ -54,6 +54,7 @@
 				3104AFFE156D37C6000A585A /* PBXTargetDependency */,
 				3104B000156D37C8000A585A /* PBXTargetDependency */,
 				3114A68D156E9686001E0AA3 /* PBXTargetDependency */,
+				22C2ACB218BE4056006B3677 /* PBXTargetDependency */,
 				31D6004F156D3EF700337B26 /* PBXTargetDependency */,
 				3114A5B6156E92DC001E0AA3 /* PBXTargetDependency */,
 				3104B002156D37CB000A585A /* PBXTargetDependency */,
@@ -101,6 +102,9 @@
 		2291A5ED175CB5E2001D4920 /* fbmtest.c in Sources */ = {isa = PBXBuildFile; fileRef = 2291A5E9175CB4EC001D4920 /* fbmtest.c */; };
 		22B2BC2E18B6434F00C33E63 /* mps.c in Sources */ = {isa = PBXBuildFile; fileRef = 31A47BA3156C1E130039B1C2 /* mps.c */; };
 		22B2BC3718B6437C00C33E63 /* scheme-advanced.c in Sources */ = {isa = PBXBuildFile; fileRef = 22B2BC2B18B6434000C33E63 /* scheme-advanced.c */; };
+		22C2ACA718BE400A006B3677 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
+		22C2ACA918BE400A006B3677 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
+		22C2ACB018BE4049006B3677 /* nailboardtest.c in Sources */ = {isa = PBXBuildFile; fileRef = 22C2ACA018BE3FEC006B3677 /* nailboardtest.c */; };
 		22FA176916E8D6FC0098B23F /* fmtdy.c in Sources */ = {isa = PBXBuildFile; fileRef = 3124CAC6156BE48D00753214 /* fmtdy.c */; };
 		22FA176A16E8D6FC0098B23F /* fmtdytst.c in Sources */ = {isa = PBXBuildFile; fileRef = 3124CAC7156BE48D00753214 /* fmtdytst.c */; };
 		22FA176B16E8D6FC0098B23F /* fmthe.c in Sources */ = {isa = PBXBuildFile; fileRef = 3124CAE4156BE6D500753214 /* fmthe.c */; };
@@ -356,6 +360,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = 6313D46718A400B200EB03EF;
 			remoteInfo = gcbench;
+		};
+		22C2ACA418BE400A006B3677 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 31EEABFA156AAF9D00714D05;
+			remoteInfo = mps;
+		};
+		22C2ACB118BE4056006B3677 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 22C2ACA218BE400A006B3677;
+			remoteInfo = nailboardtest;
 		};
 		22CDE92D16E9EB9300366D0A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -874,6 +892,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
+		22C2ACAA18BE400A006B3677 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		22FA177016E8D6FC0098B23F /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1228,6 +1255,8 @@
 		2291A5F0175CB7A4001D4920 /* testlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = testlib.h; sourceTree = "<group>"; };
 		22B2BC2B18B6434000C33E63 /* scheme-advanced.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "scheme-advanced.c"; path = "../example/scheme/scheme-advanced.c"; sourceTree = "<group>"; };
 		22B2BC3618B6434F00C33E63 /* scheme-advanced */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "scheme-advanced"; sourceTree = BUILT_PRODUCTS_DIR; };
+		22C2ACA018BE3FEC006B3677 /* nailboardtest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = nailboardtest.c; sourceTree = "<group>"; };
+		22C2ACAF18BE400A006B3677 /* nailboardtest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = nailboardtest; sourceTree = BUILT_PRODUCTS_DIR; };
 		22E30E821886FF1400D98EA9 /* nailboard.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = nailboard.c; sourceTree = "<group>"; };
 		22E30E831886FF1400D98EA9 /* nailboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = nailboard.h; sourceTree = "<group>"; };
 		22FA177516E8D6FC0098B23F /* amcssth */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = amcssth; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1549,6 +1578,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		22C2ACA818BE400A006B3677 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				22C2ACA918BE400A006B3677 /* libmps.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2005,6 +2042,7 @@
 				31EEAC74156AB58E00714D05 /* mpmss.c */,
 				3124CADE156BE65900753214 /* mpsicv.c */,
 				3114A686156E9674001E0AA3 /* mv2test.c */,
+				22C2ACA018BE3FEC006B3677 /* nailboardtest.c */,
 				31D6004A156D3EE600337B26 /* poolncv.c */,
 				3114A5B7156E92F0001E0AA3 /* qs.c */,
 				3104AFD6156D3602000A585A /* sacss.c */,
@@ -2103,6 +2141,7 @@
 				6313D47218A400B200EB03EF /* gcbench */,
 				22B2BC3618B6434F00C33E63 /* scheme-advanced */,
 				22FACEED18880983000FDBC1 /* airtest */,
+				22C2ACAF18BE400A006B3677 /* nailboardtest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2373,6 +2412,24 @@
 			name = "scheme-advanced";
 			productName = scheme;
 			productReference = 22B2BC3618B6434F00C33E63 /* scheme-advanced */;
+			productType = "com.apple.product-type.tool";
+		};
+		22C2ACA218BE400A006B3677 /* nailboardtest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 22C2ACAB18BE400A006B3677 /* Build configuration list for PBXNativeTarget "nailboardtest" */;
+			buildPhases = (
+				22C2ACA518BE400A006B3677 /* Sources */,
+				22C2ACA818BE400A006B3677 /* Frameworks */,
+				22C2ACAA18BE400A006B3677 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				22C2ACA318BE400A006B3677 /* PBXTargetDependency */,
+			);
+			name = nailboardtest;
+			productName = mv2test;
+			productReference = 22C2ACAF18BE400A006B3677 /* nailboardtest */;
 			productType = "com.apple.product-type.tool";
 		};
 		22FA176416E8D6FC0098B23F /* amcssth */ = {
@@ -3104,6 +3161,7 @@
 				31EEAC64156AB52600714D05 /* mpmss */,
 				3124CAD3156BE64A00753214 /* mpsicv */,
 				3114A67B156E9668001E0AA3 /* mv2test */,
+				22C2ACA218BE400A006B3677 /* nailboardtest */,
 				31D6003D156D3EC700337B26 /* poolncv */,
 				3114A5A6156E92C0001E0AA3 /* qs */,
 				3104AFC7156D35E2000A585A /* sacss */,
@@ -3134,7 +3192,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Not listed here:\n# bttest and teletest -- interactive and so cannot be run unattended.\n# zcoll -- takes too long to be useful as a regularly run smoke test.\n\nTESTCASES=\"abqtest airtest amcss amcsshe amcssth amsss amssshe apss \\\n           arenacv awlut awlutth awluthe btcv expt825 exposet0 fbmtest \\\n           finalcv finaltest fotest lockcov locv messtest mpmss mpsicv \\\n           mv2test poolncv qs sacss segsmss steptest walkt0 zmess\"\n\n../tool/testrun.sh $(for TEST in $TESTCASES; do echo $TARGET_BUILD_DIR/$TEST; done)\n\n# Coverage\nif [ \"$CONFIGURATION\" == \"Debug\" ]; then\n    (cd xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/x86_64 &&\n    gcov mps.c 2> /dev/null) | ../tool/gcovfmt.py\nfi";
+			shellScript = "# Not listed here:\n# bttest and teletest -- interactive and so cannot be run unattended.\n# zcoll -- takes too long to be useful as a regularly run smoke test.\n\nTESTCASES=\"abqtest airtest amcss amcsshe amcssth amsss amssshe apss \\\n           arenacv awlut awlutth awluthe btcv expt825 exposet0 fbmtest \\\n           finalcv finaltest fotest lockcov locv messtest mpmss mpsicv \\\n           mv2test nailboardtest poolncv qs sacss segsmss steptest \\\n           walkt0 zmess\"\n\n../tool/testrun.sh $(for TEST in $TESTCASES; do echo $TARGET_BUILD_DIR/$TEST; done)\n\n# Coverage\nif [ \"$CONFIGURATION\" == \"Debug\" ]; then\n    (cd xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/x86_64 &&\n    gcov mps.c 2> /dev/null) | ../tool/gcovfmt.py\nfi";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -3192,6 +3250,15 @@
 			files = (
 				22B2BC2E18B6434F00C33E63 /* mps.c in Sources */,
 				22B2BC3718B6437C00C33E63 /* scheme-advanced.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		22C2ACA518BE400A006B3677 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				22C2ACB018BE4049006B3677 /* nailboardtest.c in Sources */,
+				22C2ACA718BE400A006B3677 /* testlib.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3659,6 +3726,16 @@
 			target = 6313D46718A400B200EB03EF /* gcbench */;
 			targetProxy = 22B2BC3E18B643B700C33E63 /* PBXContainerItemProxy */;
 		};
+		22C2ACA318BE400A006B3677 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 31EEABFA156AAF9D00714D05 /* mps */;
+			targetProxy = 22C2ACA418BE400A006B3677 /* PBXContainerItemProxy */;
+		};
+		22C2ACB218BE4056006B3677 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 22C2ACA218BE400A006B3677 /* nailboardtest */;
+			targetProxy = 22C2ACB118BE4056006B3677 /* PBXContainerItemProxy */;
+		};
 		22CDE92E16E9EB9300366D0A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 3104AFF1156D37A0000A585A /* all */;
@@ -4090,6 +4167,40 @@
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
 				PRODUCT_NAME = "scheme-advanced";
+			};
+			name = RASH;
+		};
+		22C2ACA118BE3FEC006B3677 /* RASH */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = mv2test;
+			};
+			name = RASH;
+		};
+		22C2ACAC18BE400A006B3677 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
+				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
+				PRODUCT_NAME = nailboardtest;
+			};
+			name = Debug;
+		};
+		22C2ACAD18BE400A006B3677 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
+				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
+				PRODUCT_NAME = nailboardtest;
+			};
+			name = Release;
+		};
+		22C2ACAE18BE400A006B3677 /* RASH */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
+				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
+				PRODUCT_NAME = nailboardtest;
 			};
 			name = RASH;
 		};
@@ -5415,6 +5526,16 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		22C2ACAB18BE400A006B3677 /* Build configuration list for PBXNativeTarget "nailboardtest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				22C2ACAC18BE400A006B3677 /* Debug */,
+				22C2ACAD18BE400A006B3677 /* Release */,
+				22C2ACAE18BE400A006B3677 /* RASH */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		22CDE8F016E9E97E00366D0A /* Build configuration list for PBXAggregateTarget "testrun" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -5441,6 +5562,7 @@
 				22FACEEA18880983000FDBC1 /* Debug */,
 				22FACEEB18880983000FDBC1 /* Release */,
 				22FACEEC18880983000FDBC1 /* WE */,
+				22C2ACA118BE3FEC006B3677 /* RASH */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
