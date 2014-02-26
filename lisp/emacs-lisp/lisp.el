@@ -719,8 +719,10 @@ considered."
       (dolist (p (nth 9 ppss))
         (push (cdr (syntax-after p)) closer))
       (setq closer (apply #'string closer))
-      (let* ((sexp (car (read-from-string
-                         (concat txt "lisp--witness--lisp" closer))))
+      (let* ((sexp (condition-case nil
+                       (car (read-from-string
+                             (concat txt "lisp--witness--lisp" closer)))
+                     (end-of-file nil)))
              (macroexpand-advice (lambda (expander form &rest args)
                                    (condition-case nil
                                        (apply expander form args)

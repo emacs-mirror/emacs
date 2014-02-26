@@ -1,5 +1,8 @@
 2014-02-26  Dmitry Gutov  <dgutov@yandex.ru>
 
+	* emacs-lisp/lisp.el (lisp--local-variables): Catch `end-of-file'
+	error from `read-from-string'.  (Bug#16850)
+
 	* emacs-lisp/ert.el (ert-run-tests-interactively): `read' the
 	result of `completing-read' in the interactive form.  (Bug#16854)
 
