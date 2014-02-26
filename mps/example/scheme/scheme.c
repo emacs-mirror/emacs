@@ -4392,7 +4392,6 @@ int main(int argc, char *argv[])
      It holds all the MPS "global" state and is where everything happens. */
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 32 * 1024 * 1024);
-    MPS_ARGS_DONE(args);
     res = mps_arena_create_k(&arena, mps_arena_class_vm(), args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create arena");
@@ -4407,7 +4406,6 @@ int main(int argc, char *argv[])
     MPS_ARGS_ADD(args, MPS_KEY_FMT_FWD, obj_fwd);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_ISFWD, obj_isfwd);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_PAD, obj_pad);
-    MPS_ARGS_DONE(args);
     res = mps_fmt_create_k(&obj_fmt, arena, args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create obj format");
@@ -4424,7 +4422,6 @@ int main(int argc, char *argv[])
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_CHAIN, obj_chain);
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, obj_fmt);
-    MPS_ARGS_DONE(args);
     res = mps_pool_create_k(&obj_pool, arena, mps_class_amc(), args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create obj pool");

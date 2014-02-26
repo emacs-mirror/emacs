@@ -96,7 +96,6 @@ MV interface
             MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, 32);
             MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, 1024);
             MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, 1024 * 1024);
-            MPS_ARGS_DONE(args);
             res = mps_pool_create_k(&pool, arena, mps_class_mfs(), args);
         } MPS_ARGS_END(args);
 
