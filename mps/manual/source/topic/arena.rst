@@ -170,7 +170,6 @@ Client arenas
         MPS_ARGS_BEGIN(args) {
             MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, base);
             MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size);
-            MPS_ARGS_DONE(args);
             res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
         } MPS_ARGS_END(args);
 
@@ -281,7 +280,6 @@ Virtual memory arenas
 
         MPS_ARGS_BEGIN(args) {
             MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size);
-            MPS_ARGS_DONE(args);
             res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
         } MPS_ARGS_END(args);
 

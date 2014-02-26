@@ -240,7 +240,6 @@ static void arena_setup(gcthread_fn_t fn,
 {
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, arenasize);
-    MPS_ARGS_DONE(args);
     RESMUST(mps_arena_create_k(&arena, mps_arena_class_vm(), args));
   } MPS_ARGS_END(args);
   RESMUST(dylan_fmt(&format, arena));
@@ -253,7 +252,6 @@ static void arena_setup(gcthread_fn_t fn,
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
     if (ngen > 0)
       MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
-    MPS_ARGS_DONE(args);
     RESMUST(mps_pool_create_k(&pool, arena, pool_class, args));
   } MPS_ARGS_END(args);
   watch(fn, name);
