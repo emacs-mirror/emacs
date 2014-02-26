@@ -3,7 +3,8 @@
  * $Id$
  * Copyright (C) 2014 Ravenbrook Limited.  See end of file for license.
  *
- * Simple binary trees, for use as building blocks.
+ * Simple binary trees with utilities, for use as building blocks.
+ * Keep it simple, like Rings (see ring.h).
  */
 
 #ifndef tree_h

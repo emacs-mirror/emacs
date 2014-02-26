@@ -2,6 +2,9 @@
  *
  * $Id$
  * Copyright (C) 2014 Ravenbrook Limited.  See end of file for license.
+ *
+ * Simple binary trees with utilities, for use as building blocks.
+ * Keep it simple, like Rings (see ring.h).
  */
 
 #include "tree.h"
@@ -154,10 +157,11 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
  *
  * <http://en.wikipedia.org/wiki/Tree_traversal#Morris_in-order_traversal_using_threading>
  *
- * The tree may not be modified during the traversal, and the traversal
- * must complete.
+ * The tree may not be accessed or modified during the traversal, and
+ * the traversal must complete in order to repair the tree.
  *
- * TreeTraverse is generally superior if comparisons are cheap.
+ * TreeTraverse is generally superior if comparisons are cheap, but
+ * TreeTraverseMorris does not require any comparison function.
  */
 
 Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
@@ -202,7 +206,13 @@ Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
 }
 
 
-/* TreeTraverse -- traverse tree using pointer reversal */
+/* TreeTraverse -- traverse tree using pointer reversal
+ *
+ * The tree may not be accessed or modified during the traversal, and
+ * the traversal must complete in order to repair the tree.
+ *
+ * TreeTraverseMorris is an alternative when no cheap comparison is available.
+ */
 
 static Tree stepDownLeft(Tree node, Tree *parentIO)
 {
@@ -300,7 +310,8 @@ abort:
 /* TreeRotateLeft -- Rotate right child edge of node
  *
  * Rotates node, right child of node, and left child of right
- * child of node, leftwards in the order stated.
+ * child of node, leftwards in the order stated.  Preserves tree
+ * ordering.
  */
 
 void TreeRotateLeft(Tree *treeIO)
@@ -323,7 +334,8 @@ void TreeRotateLeft(Tree *treeIO)
 /* TreeRotateRight -- Rotate left child edge of node
  *
  * Rotates node, left child of node, and right child of left
- * child of node, leftwards in the order stated.
+ * child of node, leftwards in the order stated.  Preserves tree
+ * ordering.
  */
 
 void TreeRotateRight(Tree *treeIO) {
