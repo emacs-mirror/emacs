@@ -803,6 +803,8 @@ static Bool cbsTestNodeInZones(SplayTree tree, SplayNode node,
   UNUSED(tree);
   AVER(closureSize == sizeof(cbsTestNodeInZonesClosureStruct));
   UNUSED(closureSize);
+
+  /* FIXME: RangeInZoneSet needs to work in both directions. */
   
   return CBSBlockSize(block) >= closure->size &&
          RangeInZoneSet(&closure->base, &closure->limit,
@@ -810,9 +812,11 @@ static Bool cbsTestNodeInZones(SplayTree tree, SplayNode node,
                         closure->arena, closure->zoneSet, closure->size);
 }
 
-Res CBSFindFirstInZones(Range rangeReturn, Range oldRangeReturn,
-                        CBS cbs, Size size,
-                        Arena arena, ZoneSet zoneSet)
+static Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
+                          CBS cbs, Size size,
+                          Arena arena, ZoneSet zoneSet,
+                          CBSFindMethod cbsFind,
+                          SplayFindMethod splayFind)
 {
   SplayNode node;
   cbsTestNodeInZonesClosureStruct closure;
@@ -823,7 +827,7 @@ Res CBSFindFirstInZones(Range rangeReturn, Range oldRangeReturn,
   if (zoneSet == ZoneSetEMPTY)
     return ResFAIL;
   if (zoneSet == ZoneSetUNIV)
-    return CBSFindFirst(rangeReturn, oldRangeReturn, cbs, size, FindDeleteLOW);
+    return cbsFind(rangeReturn, oldRangeReturn, cbs, size, FindDeleteLOW);
   if (ZoneSetIsSingle(zoneSet)) {
     if (size > ArenaStripeSize(arena))
       return ResFAIL;
@@ -849,10 +853,10 @@ Res CBSFindFirstInZones(Range rangeReturn, Range oldRangeReturn,
   closure.arena = arena;
   closure.zoneSet = zoneSet;
   closure.size = size;
-  if (SplayFindFirst(&node, splayTreeOfCBS(cbs),
-                         &cbsTestNodeInZones,
-                         &cbsTestTree,
-                         &closure, sizeof(closure))) {
+  if (splayFind(&node, splayTreeOfCBS(cbs),
+                &cbsTestNodeInZones,
+                &cbsTestTree,
+                &closure, sizeof(closure))) {
     CBSBlock block = cbsBlockOfSplayNode(node);
     RangeStruct rangeStruct, oldRangeStruct;
 
@@ -872,6 +876,22 @@ Res CBSFindFirstInZones(Range rangeReturn, Range oldRangeReturn,
 
   cbsLeave(cbs);
   return res;
+}
+
+Res CBSFindFirstInZones(Range rangeReturn, Range oldRangeReturn,
+                        CBS cbs, Size size,
+                        Arena arena, ZoneSet zoneSet)
+{
+  return CBSFindInZones(rangeReturn, oldRangeReturn, cbs, size,
+                        arena, zoneSet, CBSFindFirst, SplayFindFirst);
+}
+
+Res CBSFindLastInZones(Range rangeReturn, Range oldRangeReturn,
+                       CBS cbs, Size size,
+                       Arena arena, ZoneSet zoneSet)
+{
+  return CBSFindInZones(rangeReturn, oldRangeReturn, cbs, size,
+                        arena, zoneSet, CBSFindLast, SplayFindLast);
 }
 
 
