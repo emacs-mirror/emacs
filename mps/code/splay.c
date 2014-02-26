@@ -4,7 +4,8 @@
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Splay trees are used to manage potentially unbounded
- * collections of ordered things.
+ * collections of ordered things.  In the MPS these are usually
+ * address-ordered memory blocks.
  *
  * .source: <design/splay/>
  *
@@ -34,6 +35,11 @@ SRCID(splay, "$Id$");
 #define SplayHasUpdate(splay) ((splay)->updateNode != SplayTrivUpdate)
 
 
+/* SplayTreeCheck -- check consistency of SplayTree
+ *
+ * See guide.impl.c.adt.check and design.mps.check.
+ */
+
 Bool SplayTreeCheck(SplayTree splay)
 {
   UNUSED(splay);
@@ -45,6 +51,18 @@ Bool SplayTreeCheck(SplayTree splay)
   return TRUE;
 }
 
+
+/* SplayTreeInit -- initialise a splay tree
+ *
+ * ``compare`` must provide a total ordering on node keys.
+ *
+ * ``nodeKey`` extracts a key from a tree node for passing to ``compare``.
+ *
+ * ``updateNode`` will be applied to nodes from bottom to top when the
+ * tree is restructured in order to maintain client properties (see
+ * design.mps.splay.prop).  If SplayTrivUpdate may be passed, faster
+ * algorithms are chosen for splaying (FIXME: xref design).
+ */
 
 void SplayTreeInit(SplayTree splay,
                    TreeCompare compare,
@@ -65,6 +83,14 @@ void SplayTreeInit(SplayTree splay,
   AVERT(SplayTree, splay);
 }
 
+
+/* SplayTreeFinish -- finish a splay tree
+ *
+ * Does not attempt to descend or finish any tree nodes.
+ *
+ * TODO: Should probably fail on non-empty tree, so that client code is
+ * forced to decide what to do about that.
+ */
 
 void SplayTreeFinish(SplayTree splay)
 {
@@ -218,29 +244,39 @@ static Tree SplayZagZag(Tree middle, Tree *leftLastIO, Tree leftPrev)
 }
 
 
+/* SplayState -- the state of splaying between "split" and "assemble"
+ *
+ * Splaying is divided into two phases: splitting the tree into three,
+ * and then assembling a final tree.  This allows for optimisation of
+ * certain operations, the key one being SplayTreeNeighbours, which is
+ * critical for coalescing memory blocks (see CBSInsert).
+ *
+ * Note that SplaySplitDown and SplaySplitRev use the trees slightly
+ * differently.  SplaySplitRev does not provide "left" and "right", and
+ * "leftLast" and "rightFirst" are pointer-reversed spines.
+ */
+
+typedef struct SplayStateStruct {
+  Tree middle;      /* always non-empty, has the found node at the root */
+  Tree left;        /* nodes less than search key during split */
+  Tree leftLast;    /* rightmost node on right spine of "left" */
+  Tree right;       /* nodes greater than search key during split */
+  Tree rightFirst;  /* leftmost node on left spine of "right" */
+} SplayStateStruct, *SplayState;
+
+
 /* SplaySplitDown -- divide the tree around a key
  *
  * Split a tree into three according to a key and a comparison,
  * splaying nested left and right nodes.  Preserves tree ordering.
+ * This is a top-down splay procedure, and does not use any recursion
+ * or require any parent pointers (see design.mps.impl.top-down).
  *
  * Returns cmp, the relationship of the root of the middle tree to the key,
- * and a SplayState:
- *   middle -- the middle tree, with the nearest match for the key at the top
- *   leftTop -- a tree of nodes that were less than node
- *   leftLast -- the greatest node in leftTop (rightmost child)
- *   rightTop -- a tree of nodes that were greater than node
- *   rightFirst -- the least node in rightTop (leftmost child)
+ * and a SplayState.
  *
- * Does *not* maintain client properties.  See SplaySplitRev.
+ * Does *not* call update to maintain client properties.  See SplaySplitRev.
  */
-
-typedef struct SplayStateStruct {
-  Tree middle;
-  Tree left;
-  Tree leftLast;
-  Tree right;
-  Tree rightFirst;
-} SplayStateStruct, *SplayState;
 
 static Compare SplaySplitDown(SplayStateStruct *stateReturn,
                               SplayTree splay, TreeKey key, TreeCompare compare)
@@ -590,6 +626,8 @@ static void SplayAssembleRev(SplayTree splay, SplayState state)
 }
 
 
+/* SplaySplit -- call SplaySplitDown or SplaySplitRev as appropriate */
+
 static Compare SplaySplit(SplayStateStruct *stateReturn,
                           SplayTree splay, TreeKey key, TreeCompare compare)
 {
@@ -598,6 +636,9 @@ static Compare SplaySplit(SplayStateStruct *stateReturn,
   else
     return SplaySplitDown(stateReturn, splay, key, compare);
 }
+
+
+/* SplayAssemble -- call SplayAssembleDown or SplayAssembleRev as appropriate */
 
 static void SplayAssemble(SplayTree splay, SplayState state)
 {
@@ -610,8 +651,11 @@ static void SplayAssemble(SplayTree splay, SplayState state)
 
 /* SplaySplay -- splay the tree around a given key
  *
- * If the key is not found, splays around an arbitrary neighbour.
- * Returns the relationship of the new tree root to the key.
+ * Uses SplaySplitRev/SplayAssembleRev or SplaySplitDown/SplayAssembleDown
+ * as appropriate, but also catches the empty tree case and shortcuts
+ * the common case where the wanted node is already at the root (due
+ * to a previous splay).  The latter shortcut has a significant effect
+ * on run time.
  *
  * See <design/splay/#impl.splay>.
  */
@@ -649,10 +693,13 @@ static Compare SplaySplay(SplayTree splay, TreeKey key, TreeCompare compare)
 }
 
 
-/* SplayTreeInsert -- Insert a node into a splay tree
+/* SplayTreeInsert -- insert a node into a splay tree
  *
- * See <design/splay/#function.splay.tree.insert> and
- * <design/splay/#impl.insert>.
+ *
+ * This function is used to insert a node into the tree.  Splays the
+ * tree at the node's key.  If an attempt is made to insert a node that
+ * compares ``CompareEQUAL`` to an existing node in the tree, then
+ * ``FALSE`` will be returned and the node will not be inserted.
  *
  * NOTE: It would be possible to use split here, then assemble around
  * the new node, leaving the neighbour where it was, but it's probably
@@ -702,13 +749,17 @@ Bool SplayTreeInsert(SplayTree splay, Tree node) {
 }
 
 
-/* SplayTreeDelete -- Delete a node from a splay tree
+/* SplayTreeDelete -- delete a node from a splay tree
  *
- * See <design/splay/#function.splay.tree.delete> and
- * <design/splay/#impl.delete>.
+ * Delete a node from the tree.  If the tree does not contain the given
+ * node, or the then ``FALSE`` will be returned, and the node will
+ * not be deleted. The function first splays the tree at the given key.
+ * The client must not pass a node whose key compares equal to a different
+ * node in the tree.
  *
- * TODO: Consider using SplaySplit.  If the found node has zero
- * or one children, then the replacement will be leftLast or rightFirst.
+ * TODO: If the node has zero or one children, then the replacement
+ * would be the leftLast or rightFirst after a SplaySplit, and would
+ * avoid a search for a replacement in more cases.
  */
 
 Bool SplayTreeDelete(SplayTree splay, Tree node) {
@@ -753,8 +804,9 @@ Bool SplayTreeDelete(SplayTree splay, Tree node) {
 
 /* SplayTreeFind -- search for a node in a splay tree matching a key
  *
- * See <design/splay/#function.splay.tree.search> and
- * <design/splay/#impl.search>.
+ * Search the tree for a node that compares ``CompareEQUAL`` to a key
+ * Splays the tree at the key.  Returns ``FALSE`` if there is no such
+ * node in the tree, otherwise ``*nodeReturn`` will be set to the node.
  */
 
 Bool SplayTreeFind(Tree *nodeReturn, SplayTree splay, TreeKey key) {
@@ -772,7 +824,7 @@ Bool SplayTreeFind(Tree *nodeReturn, SplayTree splay, TreeKey key) {
 }
 
 
-/* SplayTreeSuccessor -- Splays a tree at the root's successor
+/* SplayTreeSuccessor -- splays a tree at the root's successor
  *
  * Must not be called on en empty tree.  Successor need not exist,
  * in which case TreeEMPTY is returned, and the tree is unchanged.
@@ -807,13 +859,19 @@ static Tree SplayTreeSuccessor(SplayTree splay) {
 /* SplayTreeNeighbours
  *
  * Search for the two nodes in a splay tree neighbouring a key.
+ * Splays the tree at the key. ``*leftReturn`` will be the neighbour
+ * which compares less than the key if such a neighbour exists; otherwise
+ * it will be ``TreeEMPTY``. ``*rightReturn`` will be the neighbour which
+ * compares greater than the key if such a neighbour exists; otherwise
+ * it will be ``TreeEMPTY``. The function returns ``FALSE`` if any node
+ * in the tree compares ``CompareEQUAL`` with the given key.
  *
  * TODO: Change to SplayTreeCoalesce that takes a function that can
  * direct the deletion of one of the neighbours, since this is a
  * good moment to do it, avoiding another search and splay.
  *
- * See <design/splay/#function.splay.tree.neighbours> and
- * <design/splay/#impl.neighbours>.
+ * This implementation uses SplaySplit to find both neighbours in a
+ * single splay (see design.mps.splay.impl.neighbours).
  */
 
 Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
@@ -872,20 +930,22 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
 }
 
 
-/* SplayTreeFirst, SplayTreeNext -- Iterators
+/* SplayTreeFirst, SplayTreeNext -- iterators
  *
  * SplayTreeFirst receives a key that must precede all
  * nodes in the tree.  It returns TreeEMPTY if the tree is empty.
  * Otherwise, it splays the tree to the first node, and returns the
- * new root.  See <design/splay/#function.splay.tree.first>.
+ * new root.
  *
- * SplayTreeNext takes a tree and splays it to the successor of the
- * old root, and returns the new root.  Returns TreeEMPTY is there are
- * no successors.  It takes a key for the old root.  See
- * <design/splay/#function.splay.tree.next>.
+ * SplayTreeNext takes a tree and splays it to the successor of a key
+ * and returns the new root.  Returns TreeEMPTY is there are no successors.
  *
- * Iterating over the tree using these functions will leave the tree
- * totally unbalanced.  Consider using TreeTraverse.
+ * SplayTreeFirst and SplayTreeNext do not require the tree to remain
+ * unmodified.
+ *
+ * IMPORTANT: Iterating over the tree using these functions will leave
+ * the tree totally unbalanced, throwing away optimisations of the tree
+ * shape caused by previous splays.  Consider using TreeTraverse instead.
  */
 
 Tree SplayTreeFirst(SplayTree splay) {
@@ -970,6 +1030,21 @@ static Res SplayNodeDescribe(Tree node, mps_lib_FILE *stream,
 }
 
 
+/* SplayFindFirstCompare, SplayFindLastCompare -- filtering searches
+ *
+ * These are used by SplayFindFirst and SplayFindLast as comparison
+ * functions to SplaySplit in order to home in on a node using client
+ * tests.  The way to understand them is that the comparison values
+ * they return have nothing to do with the tree ordering, but are instead
+ * like commands that tell SplaySplit whether to "go left", "stop", or
+ * "go right" according to the results of testNode and testTree.
+ * Since splaying preserves the order of the tree, any tests can be
+ * applied to navigate to a destination.
+ *
+ * In the MPS these are mainly used by the CBS to search for memory
+ * blocks above a certain size.  Their performance is quite critical.
+ */
+
 typedef struct SplayFindClosureStruct {
   SplayTestNodeMethod testNode;
   SplayTestTreeMethod testTree;
@@ -990,6 +1065,8 @@ static Compare SplayFindFirstCompare(Tree node, TreeKey key)
   AVERT(Tree, node);
   AVER(key != NULL);
 
+  /* Lift closure values into variables so that they aren't aliased by
+     calls to the test functions. */
   closure = (SplayFindClosure)key;
   closureP = closure->p;
   closureS = closure->s;
@@ -1021,6 +1098,8 @@ static Compare SplayFindLastCompare(Tree node, TreeKey key)
   AVERT(Tree, node);
   AVER(key != NULL);
 
+  /* Lift closure values into variables so that they aren't aliased by
+     calls to the test functions. */
   closure = (SplayFindClosure)key;
   closureP = closure->p;
   closureS = closure->s;
@@ -1047,6 +1126,8 @@ static Compare SplayFindLastCompare(Tree node, TreeKey key)
  * tree that satisfies some property defined by the client.  The
  * property is such that the client can detect, given a sub-tree,
  * whether that sub-tree contains any nodes satisfying the property.
+ * If there is no satisfactory node, ``FALSE`` is returned, otherwise
+ * ``*nodeReturn`` is set to the node.
  *
  * The given callbacks testNode and testTree detect this property in
  * a single node or a sub-tree rooted at a node, and both receive the
@@ -1115,14 +1196,16 @@ Bool SplayFindLast(Tree *nodeReturn, SplayTree splay,
 }
 
 
-/* SplayNodeRefresh -- Updates the client property that has changed at a node
+/* SplayNodeRefresh -- updates the client property that has changed at a node
  *
  * This function undertakes to call the client updateNode callback for each
  * node affected by the change in properties at the given node (which has
  * the given key) in an appropriate order.
  *
  * The function fullfils its job by first splaying at the given node, and
- * updating the single node.  This may change.
+ * updating the single node.  In the MPS it is used by the CBS during
+ * coalescing, when the node is likely to be at (or adjacent to) the top
+ * of the tree anyway.
  */
 
 void SplayNodeRefresh(SplayTree splay, Tree node)
