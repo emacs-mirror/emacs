@@ -243,7 +243,6 @@ static Res MVInit(Pool pool, ArgList args)
   MPS_ARGS_BEGIN(piArgs) {
     MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, blockExtendBy);
     MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(MVBlockStruct));
-    MPS_ARGS_DONE(piArgs);
     res = PoolInit(&mv->blockPoolStruct.poolStruct, arena, PoolClassMFS(), piArgs);
   } MPS_ARGS_END(piArgs);
   if(res != ResOK)
@@ -254,7 +253,6 @@ static Res MVInit(Pool pool, ArgList args)
   MPS_ARGS_BEGIN(piArgs) {
     MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, spanExtendBy);
     MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(MVSpanStruct));
-    MPS_ARGS_DONE(piArgs);
     res = PoolInit(&mv->spanPoolStruct.poolStruct, arena, PoolClassMFS(), piArgs);
   } MPS_ARGS_END(piArgs);
   if(res != ResOK)

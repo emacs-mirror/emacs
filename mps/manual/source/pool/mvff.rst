@@ -170,7 +170,6 @@ MVFF interface
             MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, 1);
             MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, 1);
             MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, 0);
-            MPS_ARGS_DONE(args);
             res = mps_pool_create_k(&pool, arena, mps_class_mvff(), args);
         } MPS_ARGS_END(args);
 
