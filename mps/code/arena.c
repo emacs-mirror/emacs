@@ -967,16 +967,21 @@ static Bool arenaAllocFindInZoneCBS(Range rangeReturn,
 }
 
 static Bool arenaAllocFindInFreeCBS(Range rangeReturn,
-                                    Arena arena, ZoneSet zones, Size size)
+                                    Arena arena, ZoneSet zones, Bool high,
+                                    Size size)
 {
   Res res;
   RangeStruct oldRange, restRange;
   Addr allocLimit, stripeLimit, oldLimit, limit;
   Index zone;
   CBS zoneCBS;
-
-  res = CBSFindFirstInZones(rangeReturn, &oldRange, &arena->freeCBS, size,
-                            arena, zones);
+  
+  if (high)
+    res = CBSFindLastInZones(rangeReturn, &oldRange, &arena->freeCBS, size,
+                             arena, zones);
+  else
+    res = CBSFindFirstInZones(rangeReturn, &oldRange, &arena->freeCBS, size,
+                              arena, zones);
 
   if (res == ResLIMIT) { /* CBS block pool full */
     RangeStruct pageRange;
@@ -1043,7 +1048,7 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
      zoneCBSs, but this probably isn't a win. */
 
   if (!arenaAllocFindInZoneCBS(&range, arena, zones, high, size))
-    if (!arenaAllocFindInFreeCBS(&range, arena, zones, size))
+    if (!arenaAllocFindInFreeCBS(&range, arena, zones, high, size))
       return ResRESOURCE;
 
   /* Step 2. Make memory available in the address space range. */
