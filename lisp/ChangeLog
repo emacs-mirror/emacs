@@ -1,3 +1,8 @@
+2014-02-26  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/ert.el (ert-run-tests-interactively): `read' the
+	result of `completing-read' in the interactive form.  (Bug#16854)
+
 2014-02-25  Glenn Morris  <rgm@gnu.org>
 
 	* image.el (image-animate, image-animate-timeout):
