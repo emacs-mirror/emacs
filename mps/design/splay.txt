@@ -21,8 +21,8 @@ implementation.
 
 _`.readership`: This document is intended for any MM developer.
 
-_`.source`: The primary sources for this design are paper.st85(0) and
-paper.sleator96(0). Also as CBS is a client, design.mps.cbs. As
+_`.source`: The primary sources for this design are [ST85]_ and
+[Sleator96]_. Also as CBS is a client, design.mps.cbs. As
 PoolMVFF is an indirect client, design.mps.poolmvff(1). Also, as
 PoolMV2 is an (obsolescent?) indirect client, design.mps.poolmv2.
 
@@ -912,6 +912,18 @@ _`.future.reverse`: The assembly phase could be made more efficient if
 the link left and link right operations were modified to add to the
 left and right trees with pointers reversed. This would remove the
 need for the assembly phase to reverse them.
+
+
+References
+----------
+
+.. [ST85] "Self-Adjusting Binary Search Trees"; Daniel Dominic Sleator,
+   Robert Endre Tarjan; AT&T Bell Laboratories, Murray Hill, NJ; 1985-07;
+   Journal of the ACM, Vol. 32, Num. 3, pp. 652-686, July 1985;
+   <http://www.cs.cmu.edu/~sleator/papers/self-adjusting.pdf>.
+
+.. [Sleator96] "Splay Trees"; Daniel Dominic Sleator; CMU, 22/02/96;
+   CMU 15-211; <http://langevin.usc.edu/BST/Sleator-SplayTrees.ps>.
 
 
 Document History
