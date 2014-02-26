@@ -2452,6 +2452,16 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 		  ? WINDOW_RIGHT_FRINGE_WIDTH (w)
 		  : 0)));
       width = WINDOW_SCROLL_BAR_AREA_WIDTH (w);
+      goto row_glyph;
+
+    case ON_RIGHT_DIVIDER:
+      gx = WINDOW_RIGHT_PIXEL_EDGE (w) - WINDOW_RIGHT_DIVIDER_WIDTH (w);
+      width = WINDOW_RIGHT_DIVIDER_WIDTH (w);
+      goto row_glyph;
+
+    case ON_BOTTOM_DIVIDER:
+      gx = 0;
+      width = WINDOW_RIGHT_PIXEL_EDGE (w) - WINDOW_RIGHT_DIVIDER_WIDTH (w);
 
     row_glyph:
       gr = 0, gy = 0;

@@ -1,3 +1,12 @@
+2014-02-26  Martin Rudalics  <rudalics@gmx.at>
+
+	Fixes around Bug#16647.
+	* xdisp.c (remember_mouse_glyph): Handle ON_RIGHT_DIVIDER and
+	ON_BOTTOM_DIVIDER cases.
+	* window.c (coordinates_in_window): Return ON_VERTICAL_BORDER
+	only if the window has no right divider.
+	(Fcoordinates_in_window_p): Fix doc-string.
+
 2014-02-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* lread.c (Funintern): Fix doc to match advertised calling convention.

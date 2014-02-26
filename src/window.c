@@ -1269,12 +1269,12 @@ coordinates_in_window (register struct window *w, int x, int y)
   /* On vertical window divider (which prevails horizontal
      dividers)?  */
   if (!WINDOW_RIGHTMOST_P (w)
-      && WINDOW_RIGHT_DIVIDER_WIDTH (w)
+      && WINDOW_RIGHT_DIVIDER_WIDTH (w) > 0
       && x >= right_x - WINDOW_RIGHT_DIVIDER_WIDTH (w)
       && x <= right_x)
     return ON_RIGHT_DIVIDER;
   /* On the horizontal window divider?  */
-  else if (WINDOW_BOTTOM_DIVIDER_WIDTH (w)
+  else if (WINDOW_BOTTOM_DIVIDER_WIDTH (w) > 0
 	   && y >= (bottom_y - WINDOW_BOTTOM_DIVIDER_WIDTH (w))
 	   && y <= bottom_y)
     return ON_BOTTOM_DIVIDER;
@@ -1294,9 +1294,10 @@ coordinates_in_window (register struct window *w, int x, int y)
 	 resize windows horizontally in case we're using toolkit scroll
 	 bars.  Note: If scrollbars are on the left, the window that
 	 must be eventually resized is that on the left of WINDOW.  */
-      if ((WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
-	   && !WINDOW_LEFTMOST_P (w)
-	   && eabs (x - left_x) < grabbable_width)
+      if ((WINDOW_RIGHT_DIVIDER_WIDTH (w) == 0)
+	  && (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
+	      && !WINDOW_LEFTMOST_P (w)
+	      && eabs (x - left_x) < grabbable_width)
 	  || (!WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
 	      && !WINDOW_RIGHTMOST_P (w)
 	      && eabs (x - right_x) < grabbable_width))
@@ -1331,6 +1332,7 @@ coordinates_in_window (register struct window *w, int x, int y)
   if (FRAME_WINDOW_P (f))
     {
       if (!w->pseudo_window_p
+	  && WINDOW_RIGHT_DIVIDER_WIDTH (w) == 0
 	  && !WINDOW_HAS_VERTICAL_SCROLL_BAR (w)
 	  && !WINDOW_RIGHTMOST_P (w)
 	  && (eabs (x - right_x) < grabbable_width))
@@ -1339,6 +1341,7 @@ coordinates_in_window (register struct window *w, int x, int y)
   /* Need to say "x > right_x" rather than >=, since on character
      terminals, the vertical line's x coordinate is right_x.  */
   else if (!w->pseudo_window_p
+	   && WINDOW_RIGHT_DIVIDER_WIDTH (w) == 0
 	   && !WINDOW_RIGHTMOST_P (w)
 	   /* Why check ux if we are not the rightmost window?  Also
 	      shouldn't a pseudo window always be rightmost?  */
@@ -1352,8 +1355,8 @@ coordinates_in_window (register struct window *w, int x, int y)
 	      ? (x >= left_x + WINDOW_LEFT_FRINGE_WIDTH (w))
 	      : (x < left_x + lmargin_width)))
 	return ON_LEFT_MARGIN;
-
-      return ON_LEFT_FRINGE;
+      else
+	return ON_LEFT_FRINGE;
     }
 
   if (x >= text_right)
@@ -1363,8 +1366,8 @@ coordinates_in_window (register struct window *w, int x, int y)
 	      ? (x < right_x - WINDOW_RIGHT_FRINGE_WIDTH (w))
 	      : (x >= right_x - rmargin_width)))
 	return ON_RIGHT_MARGIN;
-
-      return ON_RIGHT_FRINGE;
+      else
+	return ON_RIGHT_FRINGE;
     }
 
   /* Everything special ruled out - must be on text area */
@@ -1419,8 +1422,10 @@ measured in characters from the upper-left corner of the frame.
 frame.
 If COORDINATES are in the text portion of WINDOW,
    the coordinates relative to the window are returned.
+If they are in the bottom divider of WINDOW, `bottom-divider' is returned.
+If they are in the right divider of WINDOW, `right-divider' is returned.
 If they are in the mode line of WINDOW, `mode-line' is returned.
-If they are in the top mode line of WINDOW, `header-line' is returned.
+If they are in the header line of WINDOW, `header-line' is returned.
 If they are in the left fringe of WINDOW, `left-fringe' is returned.
 If they are in the right fringe of WINDOW, `right-fringe' is returned.
 If they are on the border between WINDOW and its right sibling,
