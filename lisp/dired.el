@@ -3845,7 +3845,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
   (let* ((dired-dir (car misc-data))
          (dir (if (consp dired-dir) (car dired-dir) dired-dir)))
     (if (file-directory-p (file-name-directory dir))
-        (progn
+        (with-demoted-errors "Desktop: Problem restoring directory: %S"
           (dired dired-dir)
           ;; The following elements of `misc-data' are the keys
           ;; from `dired-subdir-alist'.

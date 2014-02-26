@@ -1,3 +1,8 @@
+2014-02-26  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-restore-desktop-buffer): Demote errors;
+	eg in case a glob match fails.  (Bug#16884)
+
 2014-02-26  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* emacs-lisp/lisp.el (lisp--local-variables): Catch `end-of-file'
@@ -13,7 +18,8 @@
 
 	* emacs-lisp/edebug.el (defmacro): Fix debug spec.  (Bug#16868)
 
-	* faces.el (tty-setup-hook, tty-run-terminal-initialization): Doc fixes.
+	* faces.el (tty-setup-hook, tty-run-terminal-initialization):
+	Doc fixes.
 	* startup.el (term-setup-hook): Doc fix.  Make obsolete.
 	* term/sun.el (sun-raw-prefix-hooks):
 	Use tty-setup-hook instead of term-setup-hook.
