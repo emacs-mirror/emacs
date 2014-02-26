@@ -929,10 +929,13 @@ static void arenaCBSFinish(Arena arena)
  */
 
 static Bool arenaAllocFindInZoneCBS(Range rangeReturn,
-                                    Arena arena, ZoneSet zones, Size size)
+                                    Arena arena, ZoneSet zones, Bool high,
+                                    Size size)
 {
   RangeStruct oldRange;
   Index i;
+  CBSFindMethod find;
+  FindDelete fd;
 
   /* TODO: Use __builtin_ffsl or similar like this for 5% speed-up.
      zones &= nonEmptyZoneCBS;
@@ -942,11 +945,24 @@ static Bool arenaAllocFindInZoneCBS(Range rangeReturn,
        zones &= ~((ZoneSet)1 << z);
      } */
 
-  for (i = 0; i < NELEMS(arena->zoneCBS); ++i)
-    if (ZoneSetIsMember(zones, i) &&
-        CBSFindFirst(rangeReturn, &oldRange, ArenaZoneCBS(arena, i), size,
-                     FindDeleteLOW)) /* FIXME: use HIGH according to segpref */
+  /* TODO: Does "high" really make sense for zone stripes? */
+  /* TODO: How do we disable zones anyway?  Just make zoneShift = WORD_WIDTH?
+     DL points out that if we had two zones, they'd both be blacklisted. */
+
+  /* Even though we have no guarantee that zone zero is at the bottom end
+     of anything, it makes sense to reverse the search when "high" is set,
+     because the point of it (presumably) is to separate memory usage into
+     two sets (high and low) that avoid interference. */
+
+  find = high ? CBSFindLast : CBSFindFirst;
+  fd = high ? FindDeleteHIGH : FindDeleteLOW;
+
+  for (i = 0; i < NELEMS(arena->zoneCBS); ++i) {
+    Index zone = high ? NELEMS(arena->zoneCBS) - i - 1 : i;
+    if (ZoneSetIsMember(zones, zone) &&
+        find(rangeReturn, &oldRange, ArenaZoneCBS(arena, zone), size, fd))
       return TRUE;
+  }
   return FALSE;
 }
 
@@ -1003,7 +1019,7 @@ static Bool arenaAllocFindInFreeCBS(Range rangeReturn,
   return TRUE;
 }
 
-static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones,
+static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
                              Size size, Pool pool)
 {
   Arena arena;
@@ -1020,13 +1036,17 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones,
   AVERT(Pool, pool);
   arena = PoolArena(pool);
   AVER(SizeIsAligned(size, arena->alignment));
+
+  /* Step 1. Find a range of address space. */
   
   /* We could check zoneCBS if size > stripeSize to avoid looking in the
      zoneCBSs, but this probably isn't a win. */
 
-  if (!arenaAllocFindInZoneCBS(&range, arena, zones, size))
+  if (!arenaAllocFindInZoneCBS(&range, arena, zones, high, size))
     if (!arenaAllocFindInFreeCBS(&range, arena, zones, size))
       return ResRESOURCE;
+
+  /* Step 2. Make memory available in the address space range. */
 
   b = CHUNK_OF_ADDR(&chunk, arena, range.base);
   AVER(b);
@@ -1092,7 +1112,7 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
   /* FIXME: Takes no account of other zones fields */
   zones = pref->zones;
   if (zones != ZoneSetEMPTY) {
-    res = arenaAllocFromCBS(&tract, zones, size, pool);
+    res = arenaAllocFromCBS(&tract, zones, pref->high, size, pool);
     if (res == ResOK)
       goto found;
   }
@@ -1103,7 +1123,7 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
      should consider extending the arena first if address space is plentiful */
   moreZones = ZoneSetUnion(zones, ZoneSetDiff(arena->freeZones, pref->avoid));
   if (moreZones != zones) {
-    res = arenaAllocFromCBS(&tract, moreZones, size, pool);
+    res = arenaAllocFromCBS(&tract, moreZones, pref->high, size, pool);
     if (res == ResOK)
       goto found;
   }
@@ -1115,13 +1135,13 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
       return res;
     zones = pref->zones;
     if (zones != ZoneSetEMPTY) {
-      res = arenaAllocFromCBS(&tract, zones, size, pool);
+      res = arenaAllocFromCBS(&tract, zones, pref->high, size, pool);
       if (res == ResOK)
         goto found;
     }
     if (moreZones != zones) {
       zones = ZoneSetUnion(zones, ZoneSetDiff(arena->freeZones, pref->avoid));
-      res = arenaAllocFromCBS(&tract, moreZones, size, pool);
+      res = arenaAllocFromCBS(&tract, moreZones, pref->high, size, pool);
       if (res == ResOK)
         goto found;
     }
@@ -1133,7 +1153,7 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
   /* TODO: log an event for this */
   evenMoreZones = ZoneSetUnion(moreZones, ZoneSetDiff(ZoneSetUNIV, pref->avoid));
   if (evenMoreZones != moreZones) {
-    res = arenaAllocFromCBS(&tract, evenMoreZones, size, pool);
+    res = arenaAllocFromCBS(&tract, evenMoreZones, pref->high, size, pool);
     if (res == ResOK)
       goto found;
   }
@@ -1142,7 +1162,7 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
      common ambiguous bit patterns pin them down, causing the zone check
      to give even more false positives permanently, and possibly retaining
      garbage indefinitely. */
-  res = arenaAllocFromCBS(&tract, ZoneSetUNIV, size, pool);
+  res = arenaAllocFromCBS(&tract, ZoneSetUNIV, pref->high, size, pool);
   if (res == ResOK)
     goto found;
 
@@ -1251,8 +1271,6 @@ void ArenaFree(Addr base, Size size, Pool pool)
     res = ReservoirEnsureFull(reservoir);
     if (res != ResOK) {
       AVER(ResIsAllocFailure(res));
-      /* FIXME: This appears to deposit the whole area into the reservoir
-         no matter how big it is, possibly making the reservoir huge. */
       if (!ReservoirDeposit(reservoir, &base, &size))
         goto allDeposited;
     }
