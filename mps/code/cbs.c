@@ -810,23 +810,23 @@ static Bool cbsTestNodeInZones(SplayTree tree, SplayNode node,
                         closure->arena, closure->zoneSet, closure->size);
 }
 
-Bool CBSFindFirstInZones(Range rangeReturn, Range oldRangeReturn,
-                         CBS cbs, Size size,
-                         Arena arena, ZoneSet zoneSet)
+Res CBSFindFirstInZones(Range rangeReturn, Range oldRangeReturn,
+                        CBS cbs, Size size,
+                        Arena arena, ZoneSet zoneSet)
 {
   SplayNode node;
   cbsTestNodeInZonesClosureStruct closure;
-  Bool found;
+  Res res;
   
   /* Check whether the size will fit in the zoneSet at all. */
   /* FIXME: Perhaps this should be a function in ref.c */
   if (zoneSet == ZoneSetEMPTY)
-    return FALSE;
+    return ResFAIL;
   if (zoneSet == ZoneSetUNIV)
     return CBSFindFirst(rangeReturn, oldRangeReturn, cbs, size, FindDeleteLOW);
   if (ZoneSetIsSingle(zoneSet)) {
     if (size > ArenaStripeSize(arena))
-      return FALSE;
+      return ResFAIL;
   } else {
     /* Check whether any run of bits in zoneSet can accommodate the size. */
 #if 0
@@ -836,7 +836,7 @@ Bool CBSFindFirstInZones(Range rangeReturn, Range oldRangeReturn,
       if (ZoneSetSub(BS_ROTATE_LEFT(ZoneSet, mask, i), zoneSet))
         goto found;
     }
-    return FALSE;
+    return ResFAIL;
   found:;
 #endif
   }
@@ -849,14 +849,12 @@ Bool CBSFindFirstInZones(Range rangeReturn, Range oldRangeReturn,
   closure.arena = arena;
   closure.zoneSet = zoneSet;
   closure.size = size;
-  found = SplayFindFirst(&node, splayTreeOfCBS(cbs),
+  if (SplayFindFirst(&node, splayTreeOfCBS(cbs),
                          &cbsTestNodeInZones,
                          &cbsTestTree,
-                         &closure, sizeof(closure));
-  if (found) {
+                         &closure, sizeof(closure))) {
     CBSBlock block = cbsBlockOfSplayNode(node);
     RangeStruct rangeStruct, oldRangeStruct;
-    Res res;
 
     AVER(CBSBlockBase(block) <= closure.base);
     AVER(AddrOffset(closure.base, closure.limit) >= size);
@@ -865,16 +863,15 @@ Bool CBSFindFirstInZones(Range rangeReturn, Range oldRangeReturn,
 
     RangeInit(&rangeStruct, closure.base, AddrAdd(closure.base, size));
     res = cbsDeleteFromTree(&oldRangeStruct, cbs, &rangeStruct);
-    if (res != ResOK)  /* not enough memory to split block FIXME: Think about this! */
-      found = FALSE;
-    else {
+    if (res == ResOK) {  /* enough memory to split block */
       RangeCopy(rangeReturn, &rangeStruct);
       RangeCopy(oldRangeReturn, &oldRangeStruct);
     }
-  }
+  } else
+    res = ResFAIL;
 
   cbsLeave(cbs);
-  return found;
+  return res;
 }
 
 
