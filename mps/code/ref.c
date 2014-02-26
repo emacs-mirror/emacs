@@ -128,7 +128,7 @@ Bool RangeInZoneSet(Addr *baseReturn, Addr *limitReturn,
   }
   
   /* A "zebra" is the size of a complete set of stripes. */
-  zebra = sizeof(ZoneSet) * CHAR_BIT << arena->zoneShift;
+  zebra = (sizeof(ZoneSet) * CHAR_BIT) << arena->zoneShift;
   if (size >= zebra) {
     AVER(zoneSet != ZoneSetUNIV);
     return FALSE;
