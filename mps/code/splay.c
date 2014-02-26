@@ -7,7 +7,7 @@
  * collections of ordered things.  In the MPS these are usually
  * address-ordered memory blocks.
  *
- * .source: <design/splay/>
+ * .source: <design/splay>
  *
  * .note.stack: It's important that the MPS have a bounded stack
  * size, and this is a problem for tree algorithms.  Basically,
@@ -37,7 +37,7 @@ SRCID(splay, "$Id$");
 
 /* SplayTreeCheck -- check consistency of SplayTree
  *
- * See guide.impl.c.adt.check and design.mps.check.
+ * See guide.impl.c.adt.check and <design/check>.
  */
 
 Bool SplayTreeCheck(SplayTree splay)
@@ -60,7 +60,7 @@ Bool SplayTreeCheck(SplayTree splay)
  *
  * ``updateNode`` will be applied to nodes from bottom to top when the
  * tree is restructured in order to maintain client properties (see
- * design.mps.splay.prop).  If SplayTrivUpdate may be passed, faster
+ * design.mps.splay.prop).  If SplayTrivUpdate is be passed, faster
  * algorithms are chosen for splaying (FIXME: xref design).
  */
 
