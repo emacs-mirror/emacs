@@ -314,7 +314,6 @@ Res ControlInit(Arena arena)
   AVERT(Arena, arena);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, CONTROL_EXTEND_BY);
-    MPS_ARGS_DONE(args);
     res = PoolInit(&arena->controlPoolStruct.poolStruct, arena,
                    PoolClassMV(), args);
   } MPS_ARGS_END(args);

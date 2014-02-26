@@ -767,7 +767,6 @@ static void *test(void *arg, size_t s)
 
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
-    MPS_ARGS_DONE(args);
     die(mps_pool_create_k(&pool, arena, mps_class_amst(), args),
         "pool_create(amst)");
   } MPS_ARGS_END(args);

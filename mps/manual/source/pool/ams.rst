@@ -134,7 +134,6 @@ AMS interface
         MPS_ARGS_BEGIN(args) {
             MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
             MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, 1);
-            MPS_ARGS_DONE(args);
             res = mps_pool_create_k(&pool, arena, mps_class_ams(), args);
         } MPS_ARGS_END(args);
 
@@ -164,7 +163,6 @@ AMS interface
 
         MPS_ARGS_BEGIN(args) {
             MPS_ARGS_ADD(args, MPS_KEY_RANK, mps_rank_ambig());
-            MPS_ARGS_DONE(args);
             res = mps_ap_create_k(&ap, ams_pool, args);
         } MPS_ARGS_END(args);
 

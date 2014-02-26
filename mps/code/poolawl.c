@@ -467,7 +467,6 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
     return ResMEMORY;
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u, rankSet);
-    MPS_ARGS_DONE(args);
     res = ChainAlloc(&seg, awl->chain, awl->pgen.nr, AWLSegClassGet(),
                      size, pool, reservoirPermit, args);
   } MPS_ARGS_END(args);
