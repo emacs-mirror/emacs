@@ -1285,7 +1285,8 @@ the `--debug-init' option to view a complete error backtrace."
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
   (unless (or noninteractive
-              initial-window-system)
+              initial-window-system
+              (daemonp))
     (tty-run-terminal-initialization (selected-frame) nil t))
 
   ;; Update the out-of-memory error message based on user's key bindings

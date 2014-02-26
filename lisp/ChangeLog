@@ -1,5 +1,7 @@
 2014-02-26  Glenn Morris  <rgm@gnu.org>
 
+	* startup.el (command-line): Don't init the tty in daemon mode.
+
 	Avoid calling tty-setup-hook twice, eg if a term file
 	explicitly calls tty-run-terminal-initialization.  (Bug#16859)
 	* faces.el (tty-run-terminal-initialization): Add run-hook argument.
