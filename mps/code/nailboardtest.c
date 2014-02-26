@@ -1,53 +1,75 @@
-/* nailboard.h: NAILBOARD INTERFACE
+/* nailboardtest.c: NAILBOARD TEST
  *
- * $Id$
+ * $Id: //info.ravenbrook.com/project/mps/branch/2014-01-15/nailboard/code/fotest.c#1 $
  * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
  *
- * .source: <design/nailboard/>.
  */
 
-#ifndef nailboard_h
-#define nailboard_h
+#include "mpm.h"
+#include "mps.h"
+#include "mpsavm.h"
+#include "testlib.h"
+#include "bt.h"
+#include "nailboard.h"
 
-#include "mpmtypes.h"
-#include "range.h"
 
-typedef struct NailboardStruct *Nailboard;
+static void test(mps_arena_t arena)
+{
+  BT bt;
+  Nailboard board;
+  Align align;
+  Count nails;
+  Addr base, limit;
+  Index i, j, k;
 
-typedef struct NailboardStruct {
-  Sig sig;
-  Arena arena;
-  RangeStruct range;   /* range of addresses covered by nailboard */
-  Count levels;        /* number of levels */
-  Count nails;         /* number of calls to NailboardSet */
-  Count distinctNails; /* number of nails in the board */
-  Bool newNails;       /* set to TRUE if a new nail is set */
-  Shift alignShift;    /* shift due to address alignment */
-  Shift levelShift;    /* additional shift for each level */
-  BT level[1];         /* bit tables for each level */
-} NailboardStruct;
+  align = 1 << (rnd() % 10);
+  align = 1;
+  nails = 1 << (rnd() % 16);
+  base = AddrAlignUp(0, align);
+  limit = AddrAdd(base, nails * align);
 
-#define NailboardSig ((Sig)0x5194A17B) /* SIGnature NAILBoard */
+  die(BTCreate(&bt, arena, nails), "BTCreate");
+  die(NailboardCreate(&board, arena, align, base, limit), "NailboardCreate");
 
-extern Bool NailboardCheck(Nailboard board);
-extern Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment, Addr base, Addr limit);
-extern void NailboardDestroy(Nailboard board);
-extern void NailboardClearNewNails(Nailboard board);
-extern Bool NailboardNewNails(Nailboard board);
-extern Bool NailboardGet(Nailboard board, Addr addr);
-extern Bool NailboardSet(Nailboard board, Addr addr);
-extern void NailboardSetRange(Nailboard board, Addr base, Addr limit);
-extern Bool NailboardIsSetRange(Nailboard board, Addr base, Addr limit);
-extern Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit);
-extern Bool NailboardIsResClientRange(Nailboard board, Size headerSize, Addr base, Addr limit);
-extern Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream);
+  for (i = 0; i < nails / 8; ++i) {
+    j = rnd() % nails;
+    BTSet(bt, j);
+    NailboardSet(board, AddrAdd(base, j * align));
+    for (k = 0; k < nails / 8; ++k) {
+      Index b, l;
+      b = rnd() % nails;
+      l = b + rnd() % (nails - b) + 1;
+      if (BTIsResRange(bt, b, l)
+          != NailboardIsResRange(board, AddrAdd(base, b * align),
+                                 AddrAdd(base, l * align)))
+      {
+        NailboardIsResRange(board, AddrAdd(base, b * align),
+                            AddrAdd(base, l * align));
+      }
+    }
+  }
+}
 
-#endif /* nailboard.h */
+int main(int argc, char **argv)
+{
+  mps_arena_t arena;
+
+  randomize(argc, argv);
+  mps_lib_assert_fail_install(assert_die);
+  die(mps_arena_create(&arena, mps_arena_class_vm(), 1024 * 1024),
+      "mps_arena_create");
+
+  test(arena);
+
+  mps_arena_destroy(arena);
+  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
+  return 0;
+}
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
@@ -85,3 +107,4 @@ extern Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream);
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+

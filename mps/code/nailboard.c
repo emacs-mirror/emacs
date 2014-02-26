@@ -19,7 +19,6 @@ Bool NailboardCheck(Nailboard board)
   CHECKS(Nailboard, board);
   CHECKU(Arena, board->arena);
   CHECKL(RangeCheck(&board->range));
-  CHECKL(0 < board->alignShift);
   CHECKL(0 < board->levelShift);
   for (i = 0; i < board->levels; ++i) {
     /* weak check for BTs @@@@ */
@@ -49,7 +48,7 @@ static Size nailboardLevelsSize(Count nails, Count levels, Shift shift)
   Index i;
   Size size;
   AVER(nails >> ((levels - 1) * shift) != 0);
-  AVER(nails >> (levels * shift) == 0);
+  AVER(nails >> (levels * shift) <= 1);
   size = 0;
   for (i = 0; i < levels; ++i) {
     size += BTSize(nails >> (i * shift));
@@ -57,6 +56,16 @@ static Size nailboardLevelsSize(Count nails, Count levels, Shift shift)
   return size;
 }
 
+/* NailboardCreate -- allocate a nailboard
+ *
+ * Allocate a nailboard in the control pool for arena, to cover the
+ * range of addresses from base to limit (which must be non-empty). If
+ * successful, set *boardReturn to point to the nailboard and return
+ * ResOK. Otherwise, return a result code to indicate failure.
+ * 
+ * alignment specifies the granularity of the nails: that is, the
+ * number of bytes covered by each nail.
+ */
 Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
                     Addr base, Addr limit)
 {
@@ -78,7 +87,7 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
   nails = AddrOffset(base, limit) / alignment;
   levels = SizeRoundUp(SizeLog2(nails), levelShift) / levelShift;
   AVER((nails >> ((levels - 1) * levelShift)) > 0);
-  AVER((nails >> (levels * levelShift)) == 0);
+  AVER((nails >> (levels * levelShift)) <= 1);
 
   structSize = nailboardStructSize(levels);
   levelsSize = nailboardLevelsSize(nails, levels, levelShift);
@@ -112,6 +121,8 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
   return ResOK;
 }
 
+/* NailboardDestroy -- destroy a nailboard */
+
 void NailboardDestroy(Nailboard board)
 {
   Arena arena;
@@ -129,11 +140,19 @@ void NailboardDestroy(Nailboard board)
   ControlFree(arena, board, structSize + levelsSize);
 }
 
+/* NailboardClearNewNails -- clear the "new nails" flag */
+
 void NailboardClearNewNails(Nailboard board)
 {
   board->newNails = FALSE;
 }
 
+/* NailboardNewNails -- return the "new nails" flag
+ *
+ * Return TRUE if any new nails have been set in the nailboard since
+ * the last call to NailboardClearNewNails (or since the nailboard was
+ * created, if there have never been any such calls), FALSE otherwise.
+ */
 Bool NailboardNewNails(Nailboard board)
 {
   return board->newNails;
@@ -148,6 +167,15 @@ static Index nailboardIndex(Nailboard board, Index level, Addr addr)
     >> (board->alignShift + level * board->levelShift);
 }
 
+/* nailboardAddr -- return the address corresponding to the index in
+ * the given level.
+ */
+static Addr nailboardAddr(Nailboard board, Index level, Index index)
+{
+  return AddrAdd(RangeBase(&board->range),
+                 index << (board->alignShift + level * board->levelShift));
+}
+
 /* nailboardIndexRange -- update *ibaseReturn and *ilimitReturn to be
  * the indexes of the nail corresponding to base and limit
  * respectively, in the given level.
@@ -160,6 +188,12 @@ static void nailboardIndexRange(Index *ibaseReturn, Index *ilimitReturn,
   *ilimitReturn = nailboardIndex(board, level, AddrSub(limit, 1)) + 1;
 }
 
+/* NailboardGet -- return nail corresponding to address
+ * 
+ * Return the nail in the nailboard corresponding to the address addr.
+ * It is an error if addr does not lie in the range of addresses
+ * covered by the nailboard.
+ */
 Bool NailboardGet(Nailboard board, Addr addr)
 {
   AVERT(Nailboard, board);
@@ -167,6 +201,12 @@ Bool NailboardGet(Nailboard board, Addr addr)
   return BTGet(board->level[0], nailboardIndex(board, 0, addr));
 }
 
+/* NailboardSet -- set nail corresponding to address
+ *
+ * Set the nail in the nailboard corresponding to the address addr.
+ * Return the old nail at that position. It is an error if addr does
+ * not lie in the range of addresses covered by the nailboard.
+ */
 Bool NailboardSet(Nailboard board, Addr addr)
 {
   Bool isNew = FALSE;
@@ -192,6 +232,12 @@ Bool NailboardSet(Nailboard board, Addr addr)
   return TRUE;
 }
 
+/* NailboardSetRange -- set all nails in range
+ *
+ * Set all nails in the nailboard corresponding to the range between
+ * base and limit. It is an error if any part of the range is not
+ * covered by the nailboard, or if any nail in the range is set.
+ */
 void NailboardSetRange(Nailboard board, Addr base, Addr limit)
 {
   Index i, ibase, ilimit;
@@ -206,6 +252,12 @@ void NailboardSetRange(Nailboard board, Addr base, Addr limit)
   }
 }
 
+/* NailboardIsSetRange -- test if all nails are set in a range
+ *
+ * Return TRUE if all nails are set in the range between base and
+ * limit, or FALSE if any nail is unset. It is an error if any part of
+ * the range is not covered by the nailboard.
+ */
 Bool NailboardIsSetRange(Nailboard board, Addr base, Addr limit)
 {
   Index ibase, ilimit;
@@ -215,31 +267,75 @@ Bool NailboardIsSetRange(Nailboard board, Addr base, Addr limit)
     && BTIsSetRange(board->level[0], ibase, ilimit);
 }
 
+/* NailboardIsResRange -- test if all nails are reset in a range
+ *
+ * Return TRUE if no nails are set in the range between base and
+ * limit, or FALSE if any nail is set. It is an error if any part of
+ * the range is not covered by the nailboard.
+ */
 Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)
 {
-  Index i;
+  Index i, ibase, ilimit;
+  Addr leftLimit, rightBase;
   AVERT_CRITICAL(Nailboard, board);
-  i = board->levels;
+  i = board->levels - 1;
+  nailboardIndexRange(&ibase, &ilimit, board, i, base, limit);
+  if (BTIsResRange(board->level[i], ibase, ilimit))
+    return TRUE;
+  if (ibase + 1 < ilimit - 1
+      && !BTIsResRange(board->level[i], ibase + 1, ilimit - 1))
+    return FALSE;
+  leftLimit = nailboardAddr(board, i, ibase + 1);
+  if (leftLimit > limit) leftLimit = limit;
+  rightBase = nailboardAddr(board, i, ilimit - 1);
+  if (rightBase < base) rightBase = base;
+
+  /* Left splinter */
+  i = board->levels - 1;
   while (i > 0) {
-    Index ibase, ilimit;
     i -= 1;
-    nailboardIndexRange(&ibase, &ilimit, board, i, base, limit);
-    if (BTIsResRange(board->level[i], ibase, ilimit))
-      return TRUE;
-    if (ibase + 1 < ilimit - 1
-        && !BTIsResRange(board->level[i], ibase + 1, ilimit - 1))
+    nailboardIndexRange(&ibase, &ilimit, board, i, base, leftLimit);
+    if (ibase + 1 < ilimit
+        && !BTIsResRange(board->level[i], ibase + 1, ilimit))
       return FALSE;
+    if (!BTGet(board->level[i], ibase))
+      goto leftSplinterRes;
+    leftLimit = nailboardAddr(board, i, ibase + 1);
+    if (leftLimit > limit) leftLimit = limit;
   }
   return FALSE;
+ leftSplinterRes:
+
+  /* Right splinter */
+  i = board->levels - 1;
+  while (i > 0) {
+    i -= 1;
+    nailboardIndexRange(&ibase, &ilimit, board, i, rightBase, limit);
+    if (ibase < ilimit - 1
+        && !BTIsResRange(board->level[i], ibase, ilimit - 1))
+      return FALSE;
+    if (!BTGet(board->level[i], ilimit - 1))
+      goto rightSplinterRes;
+    rightBase = nailboardAddr(board, i, ilimit - 1);
+    if (rightBase < base) rightBase = base;
+  }
+  return FALSE;
+ rightSplinterRes:
+
+  return TRUE;
 }
 
+/* NailboardIsResClientRange -- test if all nails are reset in a range
+ *
+ * As NailboardIsResRange, except that the addresses are client
+ * addresses for objects with the given header size.
+ */
 Bool NailboardIsResClientRange(Nailboard board, Size headerSize, Addr base, Addr limit)
 {
   return NailboardIsResRange(board, AddrSub(base, headerSize),
                              AddrSub(limit, headerSize));
 }
 
-Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream);
 Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream)
 {
   Count nails;
