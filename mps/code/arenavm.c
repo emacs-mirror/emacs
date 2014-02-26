@@ -71,8 +71,6 @@ typedef struct VMArenaStruct {  /* VM arena structure */
   VM vm;                        /* VM where the arena itself is stored */
   char vmParams[VMParamSize];   /* VM parameter block */
   Size spareSize;              /* total size of spare pages */
-  ZoneSet blacklist;             /* zones to use last */
-  ZoneSet freeSet;               /* unassigned zones */
   Size extendBy;                /* desired arena increment */
   Size extendMin;               /* minimum arena increment */
   ArenaVMExtendedCallback extended;
@@ -164,7 +162,6 @@ static Bool VMArenaCheck(VMArena vmArena)
   CHECKD(Arena, arena);
   /* spare pages are committed, so must be less spare than committed. */
   CHECKL(vmArena->spareSize <= arena->committed);
-  CHECKL(vmArena->blacklist != ZoneSetUNIV);
 
   CHECKL(vmArena->extendBy > 0);
   CHECKL(vmArena->extendMin <= vmArena->extendBy);
@@ -208,8 +205,7 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
   */
 
   res = WriteF(stream,
-               "  freeSet:       $B\n", (WriteFB)vmArena->freeSet,
-               "  blacklist:     $B\n", (WriteFB)vmArena->blacklist,
+               "  spareSize:     $U\n", (WriteFU)vmArena->spareSize,
                NULL);
   if(res != ResOK)
     return res;
@@ -536,30 +532,9 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   AVER(sizeof(vmArena->vmParams) == sizeof(vmParams));
   mps_lib_memcpy(vmArena->vmParams, vmParams, sizeof(vmArena->vmParams));
 
-  /* .blacklist: We blacklist the zones that could be referenced by small
-     integers misinterpreted as references.  This isn't a perfect simulation,
-     but it should catch the common cases. */
-  {
-    union {
-      mps_word_t word;
-      mps_addr_t addr;
-      int i;
-      long l;
-    } nono;
-    vmArena->blacklist = ZoneSetEMPTY;
-    nono.word = 0;
-    nono.i = 1;
-    vmArena->blacklist = ZoneSetAddAddr(arena, vmArena->blacklist, nono.addr);
-    nono.i = -1;
-    vmArena->blacklist = ZoneSetAddAddr(arena, vmArena->blacklist, nono.addr);
-    nono.l = 1;
-    vmArena->blacklist = ZoneSetAddAddr(arena, vmArena->blacklist, nono.addr);
-    nono.l = -1;
-    vmArena->blacklist = ZoneSetAddAddr(arena, vmArena->blacklist, nono.addr);
-  }
-  EVENT2(ArenaBlacklistZone, vmArena, vmArena->blacklist);
+  /* FIXME: Delete event?
+     EVENT2(ArenaBlacklistZone, vmArena, vmArena->blacklist); */
   
-  vmArena->freeSet = ZoneSetUNIV; /* includes blacklist */
   /* <design/arena/#coop-vm.struct.vmarena.extendby.init> */
   vmArena->extendBy = userSize;
   vmArena->extendMin = 0;
@@ -740,13 +715,20 @@ static Res vmArenaGrow(Arena arena, SegPref pref, Size size)
       }
     }
   }
-
+  
 vmArenaGrow_Done:
   EVENT2(vmArenaExtendDone, chunkSize, VMArenaReserved(VMArena2Arena(vmArena)));
   vmArena->extended(VMArena2Arena(vmArena),
 		    newChunk->base,
 		    AddrOffset(newChunk->base, newChunk->limit));
 
+  {
+    if (res == ResOK) {
+      ZoneSet chunkZoneSet = ZoneSetOfRange(arena, newChunk->base, newChunk->limit);
+      AVER(ZoneSetSuper(chunkZoneSet, pref->zones));
+    }
+  }
+      
   return res;
 }
 
