@@ -850,12 +850,12 @@ completing buffer and file names, respectively."
              (setq table (pop new))
              (setq point (pop new))
              (pop new))))
-       (result
-        (completion--some (lambda (style)
-                            (funcall (nth n (assq style
-                                                  completion-styles-alist))
-                                     string table pred point))
-                          (completion--styles metadata))))
+        (result
+         (completion--some (lambda (style)
+                             (funcall (nth n (assq style
+                                                   completion-styles-alist))
+                                      string table pred point))
+                           (completion--styles metadata))))
     (if requote
         (funcall requote result n)
       result)))
