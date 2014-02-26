@@ -47,6 +47,8 @@ extern void CBSIterate(CBS cbs, CBSIterateMethod iterate,
 
 extern Res CBSDescribe(CBS cbs, mps_lib_FILE *stream);
 
+typedef Bool (*CBSFindMethod)(Range rangeReturn, Range oldRangeReturn,
+                              CBS cbs, Size size, FindDelete findDelete);
 extern Bool CBSFindFirst(Range rangeReturn, Range oldRangeReturn,
                          CBS cbs, Size size, FindDelete findDelete);
 extern Bool CBSFindLast(Range rangeReturn, Range oldRangeReturn,
