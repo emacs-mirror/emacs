@@ -615,6 +615,46 @@ static void arenaFreePage(Arena arena, Addr base, Pool pool)
 }
 
 
+/* arenaExtendCBSBlockPool -- add a page of memory to the CBS block pool
+ *
+ * IMPORTANT: Must be followed by arenaExcludePage to ensure that the
+ * page doesn't get allocated by ArenaAlloc.
+ */
+
+static Res arenaExtendCBSBlockPool(Range pageRangeReturn, Arena arena)
+{
+  Addr pageBase;
+  Res res;
+
+  res = arenaAllocPage(&pageBase, arena, ArenaCBSBlockPool(arena));
+  if (res != ResOK)
+    return res;
+  MFSExtend(ArenaCBSBlockPool(arena), pageBase, ArenaAlign(arena));
+
+  RangeInit(pageRangeReturn, pageBase, AddrAdd(pageBase, ArenaAlign(arena)));
+  return ResOK;
+}
+
+/* arenaExcludePage -- exclude CBS block pool's page from CBSs
+ *
+ * Exclude the page we specially allocated for the CBS block pool
+ * so that it doesn't get reallocated.
+ */
+
+static void arenaExcludePage(Arena arena, Range pageRange)
+{
+  RangeStruct oldRange;
+  Res res;
+
+  res = CBSDelete(&oldRange,
+                  ArenaZoneCBS(arena, AddrZone(arena, RangeBase(pageRange))),
+                  pageRange);
+  if (res == ResFAIL) /* block wasn't in zone CBS */
+    res = CBSDelete(&oldRange, ArenaFreeCBS(arena), pageRange);
+  AVER(res == ResOK); /* we just gave memory to the CBSs */
+}
+
+
 /* arenaCBSInsert -- add a block to an arena CBS, extending pool if necessary
  *
  * The arena's CBSs can't get memory in the usual way because they are used
@@ -633,28 +673,13 @@ static Res arenaCBSInsert(Range rangeReturn, Arena arena, CBS cbs, Range range)
   res = CBSInsert(rangeReturn, cbs, range);
 
   if (res == ResLIMIT) { /* freeCBS MFS pool ran out of blocks */
-    Addr pageBase;
-    RangeStruct pageRange, oldRange;
-
-    /* Add a page to the CBS block pool without using any CBS. */
-    res = arenaAllocPage(&pageBase, arena, ArenaCBSBlockPool(arena));
+    RangeStruct pageRange;
+    res = arenaExtendCBSBlockPool(&pageRange, arena);
     if (res != ResOK)
       return res;
-    MFSExtend(ArenaCBSBlockPool(arena), pageBase, ArenaAlign(arena));
-
-    /* Try again. */
     res = CBSInsert(rangeReturn, &arena->freeCBS, range);
     AVER(res == ResOK); /* we just gave memory to the CBSs */
-
-    /* Exclude the page we specially allocated for the MFS from the CBS
-       so that it doesn't get reallocated. */
-    RangeInit(&pageRange, pageBase, AddrAdd(pageBase, ArenaAlign(arena)));
-    res = CBSDelete(&oldRange,
-                    ArenaZoneCBS(arena, AddrZone(arena, pageBase)),
-                    &pageRange);
-    if (res == ResFAIL) /* block wasn't in zone CBS */
-      res = CBSDelete(&oldRange, ArenaFreeCBS(arena), &pageRange);
-    AVER(res == ResOK); /* we just gave memory to the CBSs */
+    arenaExcludePage(arena, &pageRange);
   }
   
   return ResOK;
@@ -709,14 +734,29 @@ static void arenaCBSInsertSteal(Range rangeReturn, Arena arena,
 }
 
 
-/* ArenaFreeCBSInsert -- add block to free CBS, extending pool if necessary */
+/* ArenaFreeCBSInsert -- add block to free CBS, extending pool if necessary
+ *
+ * The inserted block of address space may not abut any existing block.
+ * This restriction ensures that we don't coalesce chunks and allocate
+ * object across the boundary, preventing chunk deletion.
+ */
 
 Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit)
 {
   RangeStruct range, oldRange;
+  Res res;
+
   AVERT(Arena, arena);
+
   RangeInit(&range, base, limit);
-  return arenaCBSInsert(&oldRange, arena, ArenaFreeCBS(arena), &range);
+  res = arenaCBSInsert(&oldRange, arena, ArenaFreeCBS(arena), &range);
+  if (res != ResOK)
+    return res;
+
+  /* Make sure it didn't coalesce. */
+  AVER(RangesEqual(&oldRange, &range));
+
+  return ResOK;
 }
 
 
@@ -735,21 +775,42 @@ void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit)
   res = CBSDelete(&oldRange, &arena->freeCBS, &range);
   
   if (res == ResFAIL) {
-    /* FIXME: This code needs exercising! */
     /* The address space must be divided between the freeCBS and zoneCBSs. */
     while (base < limit) {
       Addr stripeLimit = AddrAlignUp(AddrAdd(base, 1), ArenaStripeSize(arena));
       CBS zoneCBS;
+      RangeStruct stripe;
       if (stripeLimit > limit)
         stripeLimit = limit;
       zoneCBS = ArenaZoneCBS(arena, AddrZone(arena, base));
-      res = CBSDelete(&oldRange, zoneCBS, &range);
-      if (res == ResFAIL) {
-        res = CBSDelete(&oldRange, ArenaFreeCBS(arena), &range);
-        AVER(res != ResFAIL); /* must be in one of the CBSs */
+      RangeInit(&stripe, base, stripeLimit);
+      res = CBSDelete(&oldRange, ArenaFreeCBS(arena), &stripe);
+
+      /* Delete and skip over the rest of the block we found in the
+         freeCBS, up to the next block that's in a zoneCBS (or the end). */
+      if (res == ResOK && !RangesEqual(&oldRange, &stripe)) {
+        Addr skipLimit = RangeLimit(&oldRange);
+        if (skipLimit > limit)
+          skipLimit = limit;
+        if (stripeLimit < skipLimit) {
+          RangeStruct restOfBlock;
+          RangeInit(&restOfBlock, stripeLimit, skipLimit);
+          res = CBSDelete(&oldRange, ArenaFreeCBS(arena), &restOfBlock);
+          AVER(RangesEqual(&restOfBlock, &oldRange));
+          base = skipLimit;
+          continue;
+        }
       }
+
+      if (res == ResFAIL) {
+        res = CBSDelete(&oldRange, zoneCBS, &stripe);
+        AVER(res != ResFAIL); /* must be in one of the CBSs */
+        AVER(RangesEqual(&oldRange, &stripe));
+      }
+
       AVER(res == ResOK); /* end of range, shouldn't fail */
-      base = RangeLimit(&oldRange);
+      /* Could possibly delete up to the end of oldRange and save time. */
+      base = stripeLimit;
     }
   }
   
@@ -897,11 +958,28 @@ static Bool arenaAllocFindInFreeCBS(Range rangeReturn,
   Addr allocLimit, stripeLimit, oldLimit, limit;
   Index zone;
   CBS zoneCBS;
-  
-  if (!CBSFindFirstInZones(rangeReturn, &oldRange, &arena->freeCBS, size,
-                          arena, zones))
+
+  res = CBSFindFirstInZones(rangeReturn, &oldRange, &arena->freeCBS, size,
+                            arena, zones);
+
+  if (res == ResLIMIT) { /* CBS block pool full */
+    RangeStruct pageRange;
+    res = arenaExtendCBSBlockPool(&pageRange, arena);
+    if  (res != ResOK) { /* couldn't get any memory for CBS nodes */
+      /* Things are pretty dire at this point.  We can't even get a bit
+         of memory to remember about allocating memory.  So we'll pretend
+         that we couldn't find any.  FIXME: Think about this. */
+      return FALSE;
+    }
+    arenaExcludePage(arena, &pageRange);
+    res = CBSFindFirstInZones(rangeReturn, &oldRange, &arena->freeCBS, size,
+                              arena, zones);
+    AVER(res == ResOK);
+  }
+
+  if (res == ResFAIL) /* no suitable range, also defensive */
     return FALSE;
-  
+
   /* Add the rest of the zone stripe to the zoneCBS so that subsequent
      allocations in the zone are fast. */
   allocLimit = RangeLimit(rangeReturn);
@@ -910,13 +988,17 @@ static Bool arenaAllocFindInFreeCBS(Range rangeReturn,
   limit = oldLimit < stripeLimit ? oldLimit : stripeLimit;
   RangeInit(&restRange, allocLimit, limit);
   AVER(RangesNest(&oldRange, &restRange));
-  if (allocLimit < limit) { /* TODO: Use RangeIsEmpty when merged */
+  if (allocLimit < limit) {
     res = CBSDelete(&oldRange, ArenaFreeCBS(arena), &restRange);
     AVER(res == ResOK); /* we should just be bumping up a base */
     zone = AddrZone(arena, RangeBase(&restRange));
     zoneCBS = ArenaZoneCBS(arena, zone);
     res = arenaCBSInsert(&oldRange, arena, zoneCBS, &restRange);
-    AVER(res == ResOK); /* FIXME: might not be! */
+    if (res != ResOK) { /* disasterously short on memory */
+      /* Put it back.  This should succeed. */
+      res = CBSInsert(&oldRange, ArenaFreeCBS(arena), &restRange);
+      AVER(res == ResOK);
+    }
   }
   return TRUE;
 }
@@ -939,11 +1021,8 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones,
   arena = PoolArena(pool);
   AVER(SizeIsAligned(size, arena->alignment));
   
-  /* TODO: What about a range that crosses chunks?! Every chunk has
-     some unallocated space at the beginning with page tables in it.
-     This assumption needs documenting and asserting! */
-
-  /* FIXME: No need to check zoneCBS if size > stripeSize */
+  /* We could check zoneCBS if size > stripeSize to avoid looking in the
+     zoneCBSs, but this probably isn't a win. */
 
   if (!arenaAllocFindInZoneCBS(&range, arena, zones, size))
     if (!arenaAllocFindInFreeCBS(&range, arena, zones, size))
@@ -962,7 +1041,7 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones,
   arena->freeZones = ZoneSetDiff(arena->freeZones,
                                  ZoneSetOfRange(arena, range.base, range.limit));
 
-  *tractReturn = PageTract(&chunk->pageTable[baseIndex]); /* FIXME: method for this? */
+  *tractReturn = PageTract(ChunkPage(chunk, baseIndex));
   return ResOK;
 
 failMark:
