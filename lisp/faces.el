@@ -2080,7 +2080,7 @@ If PARAMETERS contains a `reverse' parameter, handle that."
           (unless (terminal-parameter frame 'terminal-initted)
             (set-terminal-parameter frame 'terminal-initted t)
             (set-locale-environment nil frame)
-            (tty-run-terminal-initialization frame))
+            (tty-run-terminal-initialization frame nil t))
 	  (frame-set-background-mode frame t)
 	  (face-set-after-frame-default frame parameters)
 	  (setq success t))
@@ -2110,11 +2110,13 @@ the above example."
 Specifically, `tty-run-terminal-initialization' runs this.
 This can be used to fine tune the `input-decode-map', for example.")
 
-(defun tty-run-terminal-initialization (frame &optional type)
+(defun tty-run-terminal-initialization (frame &optional type run-hook)
   "Run the special initialization code for the terminal type of FRAME.
 The optional TYPE parameter may be used to override the autodetected
-terminal type to a different value.  As a final step, this runs the
-hook `tty-setup-hook'.
+terminal type to a different value.
+
+If optional argument RUN-HOOK is non-nil, then as a final step,
+this runs the hook `tty-setup-hook'.
 
 If you set `term-file-prefix' to nil, this function does nothing."
   (setq type (or type (tty-type frame)))
@@ -2139,7 +2141,7 @@ If you set `term-file-prefix' to nil, this function does nothing."
 	(when (fboundp term-init-func)
 	  (funcall term-init-func))
 	(set-terminal-parameter frame 'terminal-initted term-init-func)
-	(run-hooks 'tty-setup-hook)))))
+	(if run-hook (run-hooks 'tty-setup-hook))))))
 
 ;; Called from C function init_display to initialize faces of the
 ;; dumped terminal frame on startup.

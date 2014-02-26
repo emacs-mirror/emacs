@@ -1286,7 +1286,7 @@ the `--debug-init' option to view a complete error backtrace."
   ;; User init file can set term-file-prefix to nil to prevent this.
   (unless (or noninteractive
               initial-window-system)
-    (tty-run-terminal-initialization (selected-frame)))
+    (tty-run-terminal-initialization (selected-frame) nil t))
 
   ;; Update the out-of-memory error message based on user's key bindings
   ;; for save-some-buffers.

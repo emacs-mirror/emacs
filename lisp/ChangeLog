@@ -1,5 +1,12 @@
 2014-02-26  Glenn Morris  <rgm@gnu.org>
 
+	Avoid calling tty-setup-hook twice, eg if a term file
+	explicitly calls tty-run-terminal-initialization.  (Bug#16859)
+	* faces.el (tty-run-terminal-initialization): Add run-hook argument.
+	(tty-create-frame-with-faces): Use it.
+	* startup.el (command-line): Pass run-hook argument
+	to tty-run-terminal-initialization.
+
 	* dired.el (dired-restore-desktop-buffer): Demote errors;
 	eg in case a glob match fails.  (Bug#16884)
 
