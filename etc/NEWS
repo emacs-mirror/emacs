@@ -826,6 +826,7 @@ symbol found near point added to the search string initially.
 *** `C-x 8 RET' in Isearch mode reads a character by its Unicode name
 and adds it to the search string.
 
++++
 *** `M-s i' in Isearch mode toggles whether search matches invisible text.
 
 *** `query-replace' skips invisible text when `search-invisible' is nil,
@@ -1349,6 +1350,7 @@ conveniently prepend/append new face properties.
 *** Face specs set via Custom themes now replace the `defface' spec
 rather than inheriting from it (as do face specs set via Customize).
 
+---
 *** New face characteristic (supports :underline (:style wave))
 specifies whether or not the terminal can display a wavy line.
 
