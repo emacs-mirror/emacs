@@ -222,9 +222,10 @@ extern const struct mps_key_s _mps_key_fmt_class;
 
 #define MPS_ARGS_BEGIN(_var) \
   MPS_BEGIN \
-      mps_arg_s _var[MPS_ARGS_MAX]; \
-      unsigned _var##_i = 0; \
-      MPS_BEGIN
+    mps_arg_s _var[MPS_ARGS_MAX]; \
+    unsigned _var##_i = 0; \
+    _var[_var##_i].key = MPS_KEY_ARGS_END; \
+    MPS_BEGIN
 
 #define MPS_ARGS_ADD_FIELD(_var, _key, _field, _val)  \
   MPS_BEGIN \
@@ -232,6 +233,7 @@ extern const struct mps_key_s _mps_key_fmt_class;
     _var[_var##_i].key = (_key); \
     _var[_var##_i].val._field = (_val); \
     ++_var##_i; \
+    _var[_var##_i].key = MPS_KEY_ARGS_END; \
   MPS_END
 
 #define MPS_ARGS_ADD(_var, _key, _val) \

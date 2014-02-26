@@ -183,7 +183,6 @@ int main(int argc, char *argv[])
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, rnd() % 2);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, rnd() % 2);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, rnd() % 2);
-    MPS_ARGS_DONE(args);
     die(mps_pool_create_k(&pool, arena, mps_class_mvff(), args), "create MVFF");
   } MPS_ARGS_END(args);
   {
@@ -203,7 +202,6 @@ int main(int argc, char *argv[])
     MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, (1 + rnd() % 4) * 1024);
     MPS_ARGS_ADD(args, MPS_KEY_MVT_RESERVE_DEPTH, (1 + rnd() % 64) * 16);
     MPS_ARGS_ADD(args, MPS_KEY_MVT_FRAG_LIMIT, (rnd() % 101) / 100.0);
-    MPS_ARGS_DONE(args);
     die(mps_pool_create_k(&pool, arena, mps_class_mvt(), args), "create MVFF");
   } MPS_ARGS_END(args);
   {
