@@ -121,7 +121,6 @@ Bool ArenaCheck(Arena arena)
 
   CHECKL(BoolCheck(arena->poolReady));
   if (arena->poolReady) { /* <design/arena/#pool.ready> */
-    CHECKD(CBS, &arena->freeCBS);
     CHECKD(MV, &arena->controlPoolStruct);
     CHECKD(Reservoir, &arena->reservoirStruct);
   }
@@ -154,8 +153,19 @@ Bool ArenaCheck(Arena arena)
   
   CHECKL(LocusCheck(arena));
 
-  /* FIXME: Check CBSs */
-  /* TODO: Thorough check summing CBSs against totals. */
+  CHECKL(BoolCheck(arena->hasFreeCBS));
+  if (arena->hasFreeCBS) {
+    Index i;
+    CHECKD(Pool, ArenaCBSBlockPool(arena));
+    CHECKD(CBS, ArenaFreeCBS(arena));
+    for (i = 0; i < NELEMS(arena->zoneCBS); ++i)
+      CHECKD(CBS, ArenaZoneCBS(arena, i));
+  }
+
+  /* TODO: Thorough check summing CBSs against totals.  The sum of the
+     sizes of the contents of the zone CBSs and the freeCBS should equal
+     the total allocatable free space in the chunks. */
+
   AVER(NELEMS(arena->zoneCBS) == sizeof(ZoneSet) * CHAR_BIT);
   
   return TRUE;
@@ -712,11 +722,8 @@ Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit)
 
 /* ArenaFreeCBSDelete -- remove a block from free CBS, extending pool if necessary
  *
- * See ArenaFreeCBSInsert.
- *
- * FIXME: When a chunk is deleted the address space might be spread between
- * the freeCBS and the zoneCBSs.  Need to sort that out here if we're not
- * eagerly returning memory from one to the other.
+ * This is called from ChunkFinish in order to remove address space from
+ * the arena.
  */
 
 void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit)
