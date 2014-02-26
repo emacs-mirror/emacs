@@ -32,7 +32,6 @@ typedef struct NailboardStruct {
 extern Bool NailboardCheck(Nailboard board);
 extern Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment, Addr base, Addr limit);
 extern void NailboardDestroy(Nailboard board);
-extern Align NailboardAlignment(Nailboard board);
 extern void NailboardClearNewNails(Nailboard board);
 extern Bool NailboardNewNails(Nailboard board);
 extern Bool NailboardGet(Nailboard board, Addr addr);
