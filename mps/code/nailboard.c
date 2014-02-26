@@ -129,11 +129,6 @@ void NailboardDestroy(Nailboard board)
   ControlFree(arena, board, structSize + levelsSize);
 }
 
-Align NailboardAlignment(Nailboard board)
-{
-  return (Align)1 << board->alignShift;
-}
-
 void NailboardClearNewNails(Nailboard board)
 {
   board->newNails = FALSE;

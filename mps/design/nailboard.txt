@@ -39,8 +39,8 @@ objects may be this small, and we must be able to preserve or reclaim
 individual objects.)
 
 _`.req.set`: A nailboard must be able set a nail corresponding to any
-address in the range covered. (Because ambiguous references may have
-arbitrary values.)
+aligned address in the range covered. (Because ambiguous references
+may have arbitrary values.)
 
 _`.req.range`: A nailboard must be able to determine if any nail is
 set in a continguous range. (Because we must preserve the whole object
@@ -55,23 +55,38 @@ be proportional to the number of objects, not to their size.)
 Implementation
 --------------
 
-_`.impl.table`: We maintain a (level 0) bit table with one bit for
-each (aligned) address in the range. In addition, we maintain a
-(level 1) bit table with one bit for each ``scale`` bits in the level
-0 bit table (this bit is set if any bit in the corresponding word in
-the level 0 table is set). And so on until we reach the level *n* bit
-table which is just one word long.
+_`.impl.table`: The nailboard consists of a header structure and one
+or more bit tables. Each bit table covers the whole range of
+addresses, but at a different level of detail.
+
+_`.impl.table.0`: The level 0 bit table has one bit for each aligned
+address in the range.
+
+_`.impl.align`: The alignment of the nailboard need not be the same as
+the pool alignment. This is because nailboards are per-segment, and
+the pool may know the minimum size of an object in a particular
+segment.
+
+_`.impl.table.1`: The level 1 bit table has one bit for each ``scale``
+bits in the level 0 bit table (this bit is set if any bit in the
+corresponding word in the level 0 table is set).
 
 _`.impl.scale`: Here ``scale`` is an arbitrary scale factor that must
 be a power of 2. It could be supplied as a parameter of the nailboard,
 but in the current implementation it is always :c:func:`MPS_WORD_WIDTH`.
+
+_`.impl.table.2`: The level 2 bit table has one bit for each ``scale``
+bits in the level 1 bit table.
+
+_`.impl.table.n`: And so on until we reach the level *n* bit table
+which is one word long or shorter.
 
 _`.impl.size`: The size of the level *i* bit table is the ceiling of
 
    (``limit`` − ``base``) / (``align`` × ``scale``\ :superscript:`i`\ )
 
 where ``base`` and ``limit`` are the bounds of the address range being
-represented in the nailboard and ``align`` is the pool alignment.
+represented in the nailboard and ``align`` is the alignment.
 
 _`.impl.address`: The address *a* may be looked up in the level *i*
 bit table at the bit
