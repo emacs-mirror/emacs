@@ -64,6 +64,10 @@ extern SplayNode SplayTreeFirst(SplayTree tree, void *zeroKey);
 extern SplayNode SplayTreeNext(SplayTree tree, SplayNode oldNode,
                                void *oldKey);
 
+typedef Bool (*SplayFindMethod)(SplayNode *nodeReturn, SplayTree tree,
+                                SplayTestNodeMethod testNode,
+                                SplayTestTreeMethod testTree,
+                                void *closureP, Size closureS);
 extern Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree,
                            SplayTestNodeMethod testNode,
                            SplayTestTreeMethod testTree,
