@@ -2419,7 +2419,13 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 	    }
 
 	  if (part != ON_MODE_LINE && part != ON_HEADER_LINE)
-	    gx += window_box_left_offset (w, area);
+	    {
+	      gx += window_box_left_offset (w, area);
+	      /* Don't expand over the modeline to make sure the vertical
+		 drag cursor is shown early enough.  */
+	      height = min (height,
+			    max (0, WINDOW_BOX_HEIGHT_NO_MODE_LINE (w) - gy));
+	    }
 	}
       else
 	{
@@ -2427,6 +2433,10 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 	  gx = (x / width) * width;
 	  y -= gy;
 	  gy += (y / height) * height;
+	  if (part != ON_MODE_LINE && part != ON_HEADER_LINE)
+	    /* See comment above.  */
+	    height = min (height,
+			  max (0, WINDOW_BOX_HEIGHT_NO_MODE_LINE (w) - gy));
 	}
       break;
 
@@ -2441,7 +2451,22 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
       gx = (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
 	    ? window_box_right_offset (w, RIGHT_MARGIN_AREA)
 	    : window_box_right_offset (w, TEXT_AREA));
-      width = WINDOW_RIGHT_FRINGE_WIDTH (w);
+      if (WINDOW_RIGHT_DIVIDER_WIDTH (w) == 0
+	  && !WINDOW_HAS_VERTICAL_SCROLL_BAR (w)
+	  && !WINDOW_RIGHTMOST_P (w))
+	if (gx < WINDOW_PIXEL_WIDTH (w) - width)
+	  /* Make sure the vertical border can get her own glyph to the
+	     right of the one we build here.  */
+	  width = WINDOW_RIGHT_FRINGE_WIDTH (w) - width;
+	else
+	  width = WINDOW_PIXEL_WIDTH (w) - gx;
+      else
+	width = WINDOW_RIGHT_FRINGE_WIDTH (w);
+
+      goto row_glyph;
+
+    case ON_VERTICAL_BORDER:
+      gx = WINDOW_PIXEL_WIDTH (w) - width;
       goto row_glyph;
 
     case ON_SCROLL_BAR:
@@ -2452,16 +2477,6 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 		  ? WINDOW_RIGHT_FRINGE_WIDTH (w)
 		  : 0)));
       width = WINDOW_SCROLL_BAR_AREA_WIDTH (w);
-      goto row_glyph;
-
-    case ON_RIGHT_DIVIDER:
-      gx = WINDOW_RIGHT_PIXEL_EDGE (w) - WINDOW_RIGHT_DIVIDER_WIDTH (w);
-      width = WINDOW_RIGHT_DIVIDER_WIDTH (w);
-      goto row_glyph;
-
-    case ON_BOTTOM_DIVIDER:
-      gx = 0;
-      width = WINDOW_RIGHT_PIXEL_EDGE (w) - WINDOW_RIGHT_DIVIDER_WIDTH (w);
 
     row_glyph:
       gr = 0, gy = 0;
@@ -2481,6 +2496,21 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 	  gy += (y / height) * height;
 	}
       break;
+
+    case ON_RIGHT_DIVIDER:
+      gx = WINDOW_PIXEL_WIDTH (w) - WINDOW_RIGHT_DIVIDER_WIDTH (w);
+      width = WINDOW_RIGHT_DIVIDER_WIDTH (w);
+      gy = 0;
+      /* The bottom divider prevails. */
+      height = WINDOW_PIXEL_HEIGHT (w) - WINDOW_BOTTOM_DIVIDER_WIDTH (w);
+      goto add_edge;;
+
+    case ON_BOTTOM_DIVIDER:
+      gx = 0;
+      width = WINDOW_PIXEL_WIDTH (w);
+      gy = WINDOW_PIXEL_HEIGHT (w) - WINDOW_BOTTOM_DIVIDER_WIDTH (w);
+      height = WINDOW_BOTTOM_DIVIDER_WIDTH (w);
+      goto add_edge;
 
     default:
       ;
@@ -2502,6 +2532,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
       goto store_rect;
     }
 
+ add_edge:
   gx += WINDOW_LEFT_EDGE_X (w);
   gy += WINDOW_TOP_EDGE_Y (w);
 
@@ -3923,6 +3954,15 @@ handle_face_prop (struct it *it)
 	     For strings from wrap-prefix and line-prefix properties,
 	     use the default face, possibly remapped via
 	     Vface_remapping_alist.  */
+	  /* Note that the fact that we use the face at _buffer_
+	     position means that a 'display' property on an overlay
+	     string will not inherit the face of that overlay string,
+	     but will instead revert to the face of buffer text
+	     covered by the overlay.  This is visible, e.g., when the
+	     overlay specifies a box face, but neither the buffer nor
+	     the display string do.  This sounds like a design bug,
+	     but Emacs always did that since v21.1, so changing that
+	     might be a big deal.  */
 	  base_face_id = it->string_from_prefix_prop_p
 	    ? (!NILP (Vface_remapping_alist)
 	       ? lookup_basic_face (it->f, DEFAULT_FACE_ID)
@@ -5956,7 +5996,16 @@ pop_it (struct it *it)
       it->object = it->w->contents;
       break;
     case GET_FROM_STRING:
-      it->object = it->string;
+      {
+	struct face *face = FACE_FROM_ID (it->f, it->face_id);
+
+	/* Restore the face_box_p flag, since it could have been
+	   overwritten by the face of the object that we just finished
+	   displaying.  */
+	if (face)
+	  it->face_box_p = face->box != FACE_NO_BOX;
+	it->object = it->string;
+      }
       break;
     case GET_FROM_DISPLAY_VECTOR:
       if (it->s)
@@ -7043,21 +7092,44 @@ get_next_display_element (struct it *it)
 		 If this is the last string character displayed, check
 		 the next buffer location.  */
 	      else if ((IT_STRING_CHARPOS (*it) >= SCHARS (it->string) - 1)
-		       && (it->current.overlay_string_index
-			   == it->n_overlay_strings - 1))
+		       /* n_overlay_strings is unreliable unless
+			  overlay_string_index is non-negative.  */
+		       && ((it->current.overlay_string_index >= 0
+			    && (it->current.overlay_string_index
+				== it->n_overlay_strings - 1))
+			   /* A string from display property.  */
+			   || it->from_disp_prop_p))
 		{
 		  ptrdiff_t ignore;
 		  int next_face_id;
 		  struct text_pos pos = it->current.pos;
-		  INC_TEXT_POS (pos, it->multibyte_p);
 
-		  next_face_id = face_at_buffer_position
-		    (it->w, CHARPOS (pos), &ignore,
-		     (IT_CHARPOS (*it) + TEXT_PROP_DISTANCE_LIMIT), 0,
-		     -1);
-		  it->end_of_box_run_p
-		    = (FACE_FROM_ID (it->f, next_face_id)->box
-		       == FACE_NO_BOX);
+		  /* For a string from a display property, the next
+		     buffer position is stored in the 'position'
+		     member of the iteration stack slot below the
+		     current one, see handle_single_display_spec.  By
+		     contrast, it->current.pos was is not yet updated
+		     to point to that buffer position; that will
+		     happen in pop_it, after we finish displaying the
+		     current string.  Note that we already checked
+		     above that it->sp is positive, so subtracting one
+		     from it is safe.  */
+		  if (it->from_disp_prop_p)
+		    pos = (it->stack + it->sp - 1)->position;
+		  else
+		    INC_TEXT_POS (pos, it->multibyte_p);
+
+		  if (CHARPOS (pos) >= ZV)
+		    it->end_of_box_run_p = true;
+		  else
+		    {
+		      next_face_id = face_at_buffer_position
+			(it->w, CHARPOS (pos), &ignore,
+			 CHARPOS (pos) + TEXT_PROP_DISTANCE_LIMIT, 0, -1);
+		      it->end_of_box_run_p
+			= (FACE_FROM_ID (it->f, next_face_id)->box
+			   == FACE_NO_BOX);
+		    }
 		}
 	    }
 	}
@@ -28641,10 +28713,15 @@ note_mouse_highlight (struct frame *f, int x, int y)
       help_echo_string = build_string ("drag-mouse-1: resize");
     }
   else if (part == ON_BOTTOM_DIVIDER)
-    {
-      cursor = FRAME_X_OUTPUT (f)->vertical_drag_cursor;
-      help_echo_string = build_string ("drag-mouse-1: resize");
-    }
+    if (! WINDOW_BOTTOMMOST_P (w)
+	|| minibuf_level
+	|| NILP (Vresize_mini_windows))
+      {
+	cursor = FRAME_X_OUTPUT (f)->vertical_drag_cursor;
+	help_echo_string = build_string ("drag-mouse-1: resize");
+      }
+    else
+      cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
   else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE
 	   || part == ON_SCROLL_BAR)
     cursor = FRAME_X_OUTPUT (f)->nontext_cursor;

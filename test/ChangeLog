@@ -1,3 +1,24 @@
+2014-02-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp--test-enabled): Move connection
+	cleanup into this function.  Remove respective code from all test
+	cases.
+	(tramp--instrument-test-case): Declare `indent' and `debug'.
+	Handle other errors as well.
+	(tramp-test14-delete-directory): Check for `file-error' error.
+	(tramp-test15-copy-directory): Ignore return value of
+	`copy-directory'.  It's too much hassle to handle it for tramp-adb.el.
+	(tramp-test19-directory-files-and-attributes): Take care of
+	timestamp of "../".
+	(tramp-test20-file-modes, tramp-test27-start-file-process)
+	(tramp-test28-shell-command): Skip for tramp-adb.el.
+	(tramp-test21-file-links): `file-truename' shall preserve trailing
+	link of directories.
+	(tramp-test22-file-times): Skip if `set-file-times' returns nil.
+	(tramp-test26-process-file, tramp-test28-shell-command): Let-bind
+	`kill-buffer-query-functions' to nil.
+	(tramp-test28-shell-command): Run `async-shell-command' with timeouts.
+
 2014-02-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el

@@ -35,7 +35,7 @@
 
 ;; Declare used subroutines and variables.
 (declare-function dbus-message-internal "dbusbind.c")
-(declare-function dbus-init-bus-1 "dbusbind.c")
+(declare-function dbus--init-bus "dbusbind.c")
 (defvar dbus-message-type-invalid)
 (defvar dbus-message-type-method-call)
 (defvar dbus-message-type-method-return)
@@ -54,6 +54,9 @@
 
 (defconst dbus-path-dbus "/org/freedesktop/DBus"
   "The object path used to talk to the bus itself.")
+
+(defconst dbus-path-local (concat dbus-path-dbus "/Local")
+  "The object path used in local/in-process-generated messages.")
 
 ;; Default D-Bus interfaces.
 
@@ -129,6 +132,15 @@ See URL `http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interf
 ;;   </signal>
 ;; </interface>
 
+(defconst dbus-interface-local (concat dbus-interface-dbus ".Local")
+  "An interface whose methods can only be invoked by the local implementation.")
+
+;; <interface name="org.freedesktop.DBus.Local">
+;;   <signal name="Disconnected">
+;;     <arg name="object_path"               type="o"/>
+;;   </signal>
+;; </interface>
+
 ;; Emacs defaults.
 (defconst dbus-service-emacs "org.gnu.Emacs"
   "The well known service name of Emacs.")
@@ -167,15 +179,20 @@ caught in `condition-case' by `dbus-error'.")
 A key in this hash table is a list (:serial BUS SERIAL), like in
 `dbus-registered-objects-table'.  BUS is either a Lisp symbol,
 `:system' or `:session', or a string denoting the bus address.
-SERIAL is the serial number of the reply message.")
+SERIAL is the serial number of the reply message.
+
+The value of an entry is a cons (STATE . RESULT).  STATE can be
+either `:pending' (we are still waiting for the result),
+`:complete' (the result is available) or `:error' (the reply
+message was an error message).")
 
 (defun dbus-call-method-handler (&rest args)
   "Handler for reply messages of asynchronous D-Bus message calls.
 It calls the function stored in `dbus-registered-objects-table'.
 The result will be made available in `dbus-return-values-table'."
-  (let* ((key (list  :serial
-                     (dbus-event-bus-name last-input-event)
-                     (dbus-event-serial-number last-input-event)))
+  (let* ((key (list :serial
+		    (dbus-event-bus-name last-input-event)
+		    (dbus-event-serial-number last-input-event)))
          (result (gethash key dbus-return-values-table)))
     (when (consp result)
       (setcar result :complete)
@@ -183,9 +200,9 @@ The result will be made available in `dbus-return-values-table'."
 
 (defun dbus-notice-synchronous-call-errors (ev er)
   "Detect errors resulting from pending synchronous calls."
-  (let* ((key (list  :serial
-                     (dbus-event-bus-name ev)
-                     (dbus-event-serial-number ev)))
+  (let* ((key (list :serial
+		    (dbus-event-bus-name ev)
+		    (dbus-event-serial-number ev)))
          (result (gethash key dbus-return-values-table)))
     (when (consp result)
       (setcar result :error)
@@ -1718,7 +1735,7 @@ pending at the time of disconnect to fail."
                 nil
                 nil
                 value)
-          '(dbus-error "Bus disconnected"))
+          (list 'dbus-error "Bus disconnected" bus))
          (push key keys-to-remove)))
      dbus-registered-objects-table)
     (dolist (key keys-to-remove)
@@ -1745,14 +1762,11 @@ This can be used, if it is necessary to distinguish from another
 connection used in the same Emacs process, like the one established by
 GTK+.  It should be used with care for at least the `:system' and
 `:session' buses, because other Emacs Lisp packages might already use
-this connection to those buses.
-"
-  (dbus-init-bus-1 bus private)
-  (dbus-register-signal bus nil
-                        "/org/freedesktop/DBus/Local"
-                        "org.freedesktop.DBus.Local"
-                        "Disconnected"
-                        #'dbus-handle-bus-disconnect))
+this connection to those buses."
+  (dbus--init-bus bus private)
+  (dbus-register-signal
+   bus nil dbus-path-local dbus-interface-local
+   "Disconnected" #'dbus-handle-bus-disconnect))
 
  
 ;; Initialize `:system' and `:session' buses.  This adds their file

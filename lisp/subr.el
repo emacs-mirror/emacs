@@ -2206,14 +2206,16 @@ is nil and `use-dialog-box' is non-nil."
   ;; ¡Beware! when I tried to edebug this code, Emacs got into a weird state
   ;; where all the keys were unbound (i.e. it somehow got triggered
   ;; within read-key, apparently).  I had to kill it.
-  (let ((answer 'recenter))
+  (let ((answer 'recenter)
+	(padded (lambda (prompt &optional dialog)
+		  (let ((l (length prompt)))
+		    (concat prompt
+			    (if (or (zerop l) (eq ?\s (aref prompt (1- l))))
+				"" " ")
+			    (if dialog "" "(y or n) "))))))
     (cond
      (noninteractive
-      (setq prompt (concat prompt
-                           (if (or (zerop (length prompt))
-                                   (eq ?\s (aref prompt (1- (length prompt)))))
-                               "" " ")
-                           "(y or n) "))
+      (setq prompt (funcall padded prompt))
       (let ((temp-prompt prompt))
 	(while (not (memq answer '(act skip)))
 	  (let ((str (read-string temp-prompt)))
@@ -2224,14 +2226,10 @@ is nil and `use-dialog-box' is non-nil."
      ((and (display-popup-menus-p)
 	   (listp last-nonmenu-event)
 	   use-dialog-box)
-      (setq answer
-	    (x-popup-dialog t `(,prompt ("Yes" . act) ("No" . skip)))))
+      (setq prompt (funcall padded prompt t)
+	    answer (x-popup-dialog t `(,prompt ("Yes" . act) ("No" . skip)))))
      (t
-      (setq prompt (concat prompt
-                           (if (or (zerop (length prompt))
-                                   (eq ?\s (aref prompt (1- (length prompt)))))
-                               "" " ")
-                           "(y or n) "))
+      (setq prompt (funcall padded prompt))
       (while
           (let* ((scroll-actions '(recenter scroll-up scroll-down
 				   scroll-other-window scroll-other-window-down))
@@ -2264,9 +2262,7 @@ is nil and `use-dialog-box' is non-nil."
         (discard-input))))
     (let ((ret (eq answer 'act)))
       (unless noninteractive
-        ;; FIXME this prints one too many spaces, since prompt
-        ;; already ends in a space.  Eg "... (y or n)  y".
-        (message "%s %s" prompt (if ret "y" "n")))
+        (message "%s%c" prompt (if ret ?y ?n)))
       ret)))
 
 

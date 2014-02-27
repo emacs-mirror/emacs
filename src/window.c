@@ -1266,18 +1266,18 @@ coordinates_in_window (register struct window *w, int x, int y)
   if (y < top_y || y >= bottom_y || x < left_x || x >= right_x)
     return ON_NOTHING;
 
-  /* On vertical window divider (which prevails horizontal
-     dividers)?  */
-  if (!WINDOW_RIGHTMOST_P (w)
-      && WINDOW_RIGHT_DIVIDER_WIDTH (w) > 0
-      && x >= right_x - WINDOW_RIGHT_DIVIDER_WIDTH (w)
-      && x <= right_x)
-    return ON_RIGHT_DIVIDER;
-  /* On the horizontal window divider?  */
-  else if (WINDOW_BOTTOM_DIVIDER_WIDTH (w) > 0
-	   && y >= (bottom_y - WINDOW_BOTTOM_DIVIDER_WIDTH (w))
-	   && y <= bottom_y)
+  /* On the horizontal window divider (which prevails the vertical
+     divider)?  */
+  if (WINDOW_BOTTOM_DIVIDER_WIDTH (w) > 0
+      && y >= (bottom_y - WINDOW_BOTTOM_DIVIDER_WIDTH (w))
+      && y <= bottom_y)
     return ON_BOTTOM_DIVIDER;
+  /* On vertical window divider?  */
+  else if (!WINDOW_RIGHTMOST_P (w)
+	   && WINDOW_RIGHT_DIVIDER_WIDTH (w) > 0
+	   && x >= right_x - WINDOW_RIGHT_DIVIDER_WIDTH (w)
+	   && x <= right_x)
+    return ON_RIGHT_DIVIDER;
   /* On the mode or header line?   */
   else if ((WINDOW_WANTS_MODELINE_P (w)
 	    && y >= (bottom_y
@@ -1295,12 +1295,12 @@ coordinates_in_window (register struct window *w, int x, int y)
 	 bars.  Note: If scrollbars are on the left, the window that
 	 must be eventually resized is that on the left of WINDOW.  */
       if ((WINDOW_RIGHT_DIVIDER_WIDTH (w) == 0)
-	  && (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
-	      && !WINDOW_LEFTMOST_P (w)
-	      && eabs (x - left_x) < grabbable_width)
-	  || (!WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
-	      && !WINDOW_RIGHTMOST_P (w)
-	      && eabs (x - right_x) < grabbable_width))
+	  && ((WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
+	       && !WINDOW_LEFTMOST_P (w)
+	       && eabs (x - left_x) < grabbable_width)
+	      || (!WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
+		  && !WINDOW_RIGHTMOST_P (w)
+		  && eabs (x - right_x) < grabbable_width)))
 	return ON_VERTICAL_BORDER;
       else
 	return part;
@@ -1386,6 +1386,8 @@ window_relative_x_coord (struct window *w, enum window_part part, int x)
     case ON_TEXT:
       return x - window_box_left (w, TEXT_AREA);
 
+    case ON_HEADER_LINE:
+    case ON_MODE_LINE:
     case ON_LEFT_FRINGE:
       return x - left_x;
 

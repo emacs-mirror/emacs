@@ -1,3 +1,35 @@
+2014-02-27  Martin Rudalics  <rudalics@gmx.at>
+
+	More fixes for mouse glyph calculations (Bug#16647).
+	* window.c (coordinates_in_window): In intersection of
+	horizontal and vertical window dividers prefer the horizontal
+	one.  Add some extra parens to last fix.
+	(window_relative_x_coord): Return x-coordinate for header and
+	mode line too.
+	* xdisp.c (remember_mouse_glyph): In text area don't extend
+	glyph into mode line to show the vertical drag cursor there
+	immediately.  Subdivide mouse glyphs in right fringes to show a
+	horizontal drag cursor as soon as we enter the "grabbable width"
+	portion.  Handle vertical border case separately.  Do not
+	subdivide window divider areas.
+	(note_mouse_highlight): On bottom divider of bottommost windows
+	show vertical drag cursor only when the minibuffer window can be
+	resized.
+
+2014-02-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (pop_it): Restore the it->face_box_p flag which could be
+	reset by the face of the object just displayed.  See also bug#76.
+	(get_next_display_element): If the string came from a display
+	property, examine the box face attribute at it->position, not at
+	it->current.pos, since the latter was not updated yet.  (Bug#16870)
+	(handle_face_prop): Improve commentary.
+
+2014-02-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus__init_bus, Qdbus__init_bus, Sdbus__init_bus):
+	Rename from Fdbus_init_bus_1, Qdbus_init_bus_1, Sdbus_init_bus_1.
+
 2014-02-26  Martin Rudalics  <rudalics@gmx.at>
 
 	Fixes around Bug#16647.
