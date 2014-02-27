@@ -1717,7 +1717,7 @@ is value of @code{indent-line-function} in Paragraph-Indent Text mode.
 
 @defopt left-margin
 This variable specifies the base left margin column.  In Fundamental
-mode, @kbd{C-j} indents to this column.  This variable automatically
+mode, @kbd{RET} indents to this column.  This variable automatically
 becomes buffer-local when set in any fashion.
 @end defopt
 

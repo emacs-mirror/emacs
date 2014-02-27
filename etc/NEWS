@@ -128,6 +128,7 @@ POSIX ACL interfaces.
 
 ** Multi-monitor support has been added.
 
++++
 *** New functions `display-monitor-attributes-list' and
 `frame-monitor-attributes' can be used to obtain information about
 each physical monitor on multi-monitor setups.

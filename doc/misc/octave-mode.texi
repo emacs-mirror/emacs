@@ -148,6 +148,7 @@ and return values which have to be entered without parentheses
 in one of your Emacs startup files.
 @end table
 
+@c FIXME: `electric-indent-mode' is enabled by default in GNU Emacs 24.4.
 A common problem is that the @key{RET} key does @emph{not} indent the
 line to where the new text should go after inserting the newline.  This
 is because the standard Emacs convention is that @key{RET} (aka

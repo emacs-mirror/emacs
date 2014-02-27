@@ -1568,6 +1568,7 @@ Set mark and push previous mark on mark ring (@code{set-mark-command}).
 @kindex 011 TAB (@code{indent-for-tab-command})
 Indent line for current major mode (@code{indent-for-tab-command}).
 @item C-j
+@c FIXME: This should be `electric-indent-just-newline' since GNU Emacs 24.4.
 @kindex 012 @kbd{C-j} (@code{newline-and-indent})
 Insert a newline, then indent according to mode (@code{newline-and-indent}).
 @item C-k

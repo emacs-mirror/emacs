@@ -1,3 +1,12 @@
+2014-02-27  Xue Fuqiao  <xfq@gnu.org>
+
+	* programs.texi (Basic Indent):
+	(Other C Commands): Fix the description of RET and `C-j'.
+
+	* indent.texi (Indentation Commands): Move the description of
+	`C-j' from here...
+	* basic.texi (Inserting Text): ... to here.
+
 2014-02-25  Glenn Morris  <rgm@gnu.org>
 
 	* custom.texi (Terminal Init):
