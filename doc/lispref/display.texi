@@ -3849,6 +3849,12 @@ bar actually occupies.
 @var{horizontal-type} is not actually meaningful.
 @end defun
 
+@defun window-scroll-bar-width &optional window
+This function returns the width of @var{window}'s vertical scrollbar,
+in pixels.  @var{window} must be a live window.  If @var{window} is
+@code{nil} or omitted, it will be the selected window.
+@end defun
+
 If you don't specify these values for a window with
 @code{set-window-scroll-bars}, the buffer-local variables
 @code{scroll-bar-mode} and @code{scroll-bar-width} in the buffer being
