@@ -1,3 +1,21 @@
+2014-02-27  Martin Rudalics  <rudalics@gmx.at>
+
+	More fixes for mouse glyph calculations (Bug#16647).
+	* window.c (coordinates_in_window): In intersection of
+	horizontal and vertical window dividers prefer the horizontal
+	one.  Add some extra parens to last fix.
+	(window_relative_x_coord): Return x-coordinate for header and
+	mode line too.
+	* xdisp.c (remember_mouse_glyph): In text area don't extend
+	glyph into mode line to show the vertical drag cursor there
+	immediately.  Subdivide mouse glyphs in right fringes to show a
+	horizontal drag cursor as soon as we enter the "grabbable width"
+	portion.  Handle vertical border case separately.  Do not
+	subdivide window divider areas.
+	(note_mouse_highlight): On bottom divider of bottommost windows
+	show vertical drag cursor only when the minibuffer window can be
+	resized.
+
 2014-02-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (pop_it): Restore the it->face_box_p flag which could be

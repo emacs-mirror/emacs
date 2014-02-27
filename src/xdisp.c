@@ -2419,7 +2419,13 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 	    }
 
 	  if (part != ON_MODE_LINE && part != ON_HEADER_LINE)
-	    gx += window_box_left_offset (w, area);
+	    {
+	      gx += window_box_left_offset (w, area);
+	      /* Don't expand over the modeline to make sure the vertical
+		 drag cursor is shown early enough.  */
+	      height = min (height,
+			    max (0, WINDOW_BOX_HEIGHT_NO_MODE_LINE (w) - gy));
+	    }
 	}
       else
 	{
@@ -2427,6 +2433,10 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 	  gx = (x / width) * width;
 	  y -= gy;
 	  gy += (y / height) * height;
+	  if (part != ON_MODE_LINE && part != ON_HEADER_LINE)
+	    /* See comment above.  */
+	    height = min (height,
+			  max (0, WINDOW_BOX_HEIGHT_NO_MODE_LINE (w) - gy));
 	}
       break;
 
@@ -2441,7 +2451,22 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
       gx = (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
 	    ? window_box_right_offset (w, RIGHT_MARGIN_AREA)
 	    : window_box_right_offset (w, TEXT_AREA));
-      width = WINDOW_RIGHT_FRINGE_WIDTH (w);
+      if (WINDOW_RIGHT_DIVIDER_WIDTH (w) == 0
+	  && !WINDOW_HAS_VERTICAL_SCROLL_BAR (w)
+	  && !WINDOW_RIGHTMOST_P (w))
+	if (gx < WINDOW_PIXEL_WIDTH (w) - width)
+	  /* Make sure the vertical border can get her own glyph to the
+	     right of the one we build here.  */
+	  width = WINDOW_RIGHT_FRINGE_WIDTH (w) - width;
+	else
+	  width = WINDOW_PIXEL_WIDTH (w) - gx;
+      else
+	width = WINDOW_RIGHT_FRINGE_WIDTH (w);
+
+      goto row_glyph;
+
+    case ON_VERTICAL_BORDER:
+      gx = WINDOW_PIXEL_WIDTH (w) - width;
       goto row_glyph;
 
     case ON_SCROLL_BAR:
@@ -2452,16 +2477,6 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 		  ? WINDOW_RIGHT_FRINGE_WIDTH (w)
 		  : 0)));
       width = WINDOW_SCROLL_BAR_AREA_WIDTH (w);
-      goto row_glyph;
-
-    case ON_RIGHT_DIVIDER:
-      gx = WINDOW_RIGHT_PIXEL_EDGE (w) - WINDOW_RIGHT_DIVIDER_WIDTH (w);
-      width = WINDOW_RIGHT_DIVIDER_WIDTH (w);
-      goto row_glyph;
-
-    case ON_BOTTOM_DIVIDER:
-      gx = 0;
-      width = WINDOW_RIGHT_PIXEL_EDGE (w) - WINDOW_RIGHT_DIVIDER_WIDTH (w);
 
     row_glyph:
       gr = 0, gy = 0;
@@ -2481,6 +2496,21 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 	  gy += (y / height) * height;
 	}
       break;
+
+    case ON_RIGHT_DIVIDER:
+      gx = WINDOW_PIXEL_WIDTH (w) - WINDOW_RIGHT_DIVIDER_WIDTH (w);
+      width = WINDOW_RIGHT_DIVIDER_WIDTH (w);
+      gy = 0;
+      /* The bottom divider prevails. */
+      height = WINDOW_PIXEL_HEIGHT (w) - WINDOW_BOTTOM_DIVIDER_WIDTH (w);
+      goto add_edge;;
+
+    case ON_BOTTOM_DIVIDER:
+      gx = 0;
+      width = WINDOW_PIXEL_WIDTH (w);
+      gy = WINDOW_PIXEL_HEIGHT (w) - WINDOW_BOTTOM_DIVIDER_WIDTH (w);
+      height = WINDOW_BOTTOM_DIVIDER_WIDTH (w);
+      goto add_edge;
 
     default:
       ;
@@ -2502,6 +2532,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
       goto store_rect;
     }
 
+ add_edge:
   gx += WINDOW_LEFT_EDGE_X (w);
   gy += WINDOW_TOP_EDGE_Y (w);
 
@@ -28682,10 +28713,15 @@ note_mouse_highlight (struct frame *f, int x, int y)
       help_echo_string = build_string ("drag-mouse-1: resize");
     }
   else if (part == ON_BOTTOM_DIVIDER)
-    {
-      cursor = FRAME_X_OUTPUT (f)->vertical_drag_cursor;
-      help_echo_string = build_string ("drag-mouse-1: resize");
-    }
+    if (! WINDOW_BOTTOMMOST_P (w)
+	|| minibuf_level
+	|| NILP (Vresize_mini_windows))
+      {
+	cursor = FRAME_X_OUTPUT (f)->vertical_drag_cursor;
+	help_echo_string = build_string ("drag-mouse-1: resize");
+      }
+    else
+      cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
   else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE
 	   || part == ON_SCROLL_BAR)
     cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
