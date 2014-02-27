@@ -1,3 +1,8 @@
+2014-02-27  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.texi (Programmed Completion):
+	Mention completion-table-with-cache.
+
 2014-02-25  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (Window Systems):

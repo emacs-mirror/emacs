@@ -1,5 +1,8 @@
 2014-02-27  Glenn Morris  <rgm@gnu.org>
 
+	* minibuffer.el (completion-table-dynamic)
+	(completion-table-with-cache): Doc fixes.
+
 	* emacs-lisp/crm.el (crm-default-separator, crm-separator)
 	(completing-read-multiple): Doc fixes.
 

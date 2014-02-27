@@ -179,7 +179,9 @@ FUN will be called in the buffer from which the minibuffer was entered.
 
 The result of the `completion-table-dynamic' form is a function
 that can be used as the COLLECTION argument to `try-completion' and
-`all-completions'.  See Info node `(elisp)Programmed Completion'."
+`all-completions'.  See Info node `(elisp)Programmed Completion'.
+
+See also the related function `completion-table-with-cache'."
   (lambda (string pred action)
     (if (or (eq (car-safe action) 'boundaries) (eq action 'metadata))
         ;; `fun' is not supposed to return another function but a plain old
@@ -191,13 +193,15 @@ that can be used as the COLLECTION argument to `try-completion' and
         (complete-with-action action (funcall fun string) string pred)))))
 
 (defun completion-table-with-cache (fun &optional ignore-case)
-  "Create dynamic completion table from FUN, with cache.
-This wraps `completion-table-dynamic', but saves the last
+  "Create dynamic completion table from function FUN, with cache.
+This is a wrapper for `completion-table-dynamic' that saves the last
 argument-result pair from FUN, so that several lookups with the
 same argument (or with an argument that starts with the first one)
-only need to call FUN once.  Most useful when FUN performs a relatively
-slow operation, such as calling an external process (see Bug#11906).
+only need to call FUN once.  This can be useful when FUN performs a
+relatively slow operation, such as calling an external process.
+
 When IGNORE-CASE is non-nil, FUN is expected to be case-insensitive."
+  ;; See eg bug#11906.
   (let* (last-arg last-result
          (new-fun
           (lambda (arg)

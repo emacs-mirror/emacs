@@ -1183,15 +1183,17 @@ Either use `completion-all-completions', which returns highlighted
 strings (including for partial or substring completion), or call
 `completion-hilit-commonality' to add the highlight.
 
++++
 *** New function `completion-table-with-cache' is a wrapper for
 `completion-table-dynamic' that caches the result of the last lookup.
 
++++
 *** New function `completion-table-merge' to combine several
 completion tables by merging their completions.
 
 ** New minor modes `prettify-symbols-mode' and `global-prettify-symbols-mode'
-let you enable symbol prettification (replacing a string like "lambda" with
-the Greek lambda character).
+display specified symbols as composed characters.  E.g., in Emacs Lisp mode,
+this replaces the string "lambda" with the Greek lambda character.
 
 ** Terminal changes
 
