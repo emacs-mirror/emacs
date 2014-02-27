@@ -892,6 +892,10 @@ static Compare SplayFindLastCompare(void *key, SplayNode node)
  * The given callbacks testNode and testTree detect this property in
  * a single node or a sub-tree rooted at a node, and both receive the
  * arbitrary closures closureP and closureS.
+ *
+ * TODO: This repeatedly splays failed matches to the root and rotates
+ * them, so it could have quite an unbalancing effect if size is small.
+ * Think about a better search, perhaps using TreeTraverse?
  */
 
 Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree,
@@ -926,6 +930,7 @@ Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree,
   while (!found) {
     SplayNode oldRoot, newRoot;
     
+    /* FIXME: Rename to "seen" and "not yet seen" or something. */
     oldRoot = SplayTreeRoot(tree);
     newRoot = SplayNodeRightChild(oldRoot);
 
@@ -966,6 +971,7 @@ Bool SplayFindLast(SplayNode *nodeReturn, SplayTree tree,
 {
   SplayNode node;
   SplayFindClosureStruct closureStruct;
+  Bool found;
 
   AVER(nodeReturn != NULL);
   AVERT(SplayTree, tree);
@@ -983,13 +989,40 @@ Bool SplayFindLast(SplayNode *nodeReturn, SplayTree tree,
   closureStruct.testTree = testTree;
   closureStruct.tree = tree;
 
-  if (SplaySplay(&node, tree, (void *)&closureStruct,
-                 &SplayFindLastCompare)) {
-    *nodeReturn = node;
-    return TRUE;
-  } else {
-    return FALSE;
+  found = SplaySplay(&node, tree, (void *)&closureStruct,
+                     &SplayFindLastCompare) && closureStruct.found;
+
+  while (!found) {
+    SplayNode oldRoot, newRoot;
+    
+    oldRoot = SplayTreeRoot(tree);
+    newRoot = SplayNodeLeftChild(oldRoot);
+
+    if (newRoot == NULL || !(*testTree)(tree, newRoot, closureP, closureS))
+      return FALSE; /* no suitable nodes in the rest of the tree */
+  
+    /* Temporarily chop off the right half-tree, inclusive of root,
+       so that the search excludes any nodes we've seen already. */
+    SplayTreeSetRoot(tree, newRoot);
+    SplayNodeSetLeftChild(oldRoot, NULL);
+
+    found = SplaySplay(&node, tree, (void *)&closureStruct,
+                       &SplayFindLastCompare) && closureStruct.found;
+
+    /* Restore the right tree, then rotate right so that the node we
+       just splayed is at the root.  Update both. */
+    newRoot = SplayTreeRoot(tree);
+    SplayNodeSetLeftChild(oldRoot, newRoot);
+    SplayTreeSetRoot(tree, oldRoot);
+    SplayRotateRight(&tree->root, tree);
+    if (tree->updateNode != NULL) {
+      SplayNodeUpdate(tree, oldRoot);
+      SplayNodeUpdate(tree, newRoot);
+    }
   }
+
+  *nodeReturn = node;
+  return TRUE;
 }
 
 
