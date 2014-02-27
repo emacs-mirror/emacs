@@ -1,3 +1,8 @@
+2014-02-27  Daniel Colascione  <dancol@dancol.org>
+
+	* net/tramp-sh.el (tramp-get-remote-path): Don't signal error when
+	explicit tramp path is empty.
+
 2014-02-26  Glenn Morris  <rgm@gnu.org>
 
 	* startup.el (command-line): Don't init the tty in daemon mode.
