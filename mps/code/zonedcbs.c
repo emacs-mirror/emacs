@@ -127,6 +127,8 @@ void ZonedCBSFinish(ZonedCBS zcbs)
 
 Res ZonedCBSInsert(Range rangeReturn, ZonedCBS zcbs, Range range)
 {
+  ZoneSet zs;
+
   AVERT(ZonedCBS, zcbs);
 
   /* TODO: Consider moving empty zone stripes back to freeCBS. At the
@@ -135,6 +137,13 @@ Res ZonedCBSInsert(Range rangeReturn, ZonedCBS zcbs, Range range)
      of address space fragmentation.  We probably do not want to do it
      eagerly in any case, but lazily if we're unable to find address
      space, even though that reduces first-fit. */
+
+  zs = ZoneSetOfRange(zcbs->arena, RangeBase(range), RangeLimit(range));
+  if (ZoneSetIsSingle(zs)) {
+    Index zone = AddrZone(zcbs->arena, RangeBase(range));
+    CBS zoneCBS = ZonedCBSZoneCBS(zcbs, zone);
+    return CBSInsert(rangeReturn, zoneCBS, range);
+  }
 
   return CBSInsert(rangeReturn, ZonedCBSFreeCBS(zcbs), range);
 }
