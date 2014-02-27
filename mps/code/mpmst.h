@@ -625,6 +625,22 @@ typedef struct CBSStruct {
 } CBSStruct;
 
 
+/* ZoneCBSStruct -- zoned coalescing block structure
+ *
+ * See <code/zonedcbs.c>.
+ */
+
+#define ZonedCBSSig ((Sig)0x519209ED) /* SIGnature ZONED */
+
+typedef struct ZonedCBSStruct {
+  Sig sig;
+  Arena arena;
+  Pool blockPool;               /* shared pool holding CBS blocks */
+  CBSStruct freeStruct;         /* CBS of free address space not in zoneCBS */
+  CBSStruct zoneStruct[MPS_WORD_WIDTH]; /* free address space per zone */
+} ZonedCBSStruct;
+
+
 /* ArenaStruct -- generic arena
  *
  * See <code/arena.c>.  */
@@ -660,9 +676,8 @@ typedef struct mps_arena_s {
   ChunkCacheEntryStruct chunkCache; /* just one entry */
   
   Bool hasFreeCBS;              /* Is freeCBS available? */
-  MFSStruct cbsBlockPoolStruct; /* Shared pool for CBS blocks */
-  CBSStruct freeCBS;            /* CBS of free address space not in zoneCBS */
-  CBSStruct zoneCBS[MPS_WORD_WIDTH]; /* free address space per zone */
+  MFSStruct zonedCBSBlockPoolStruct;
+  ZonedCBSStruct zonedCBSStruct;
   ZoneSet freeZones;            /* zones not yet allocated */
 
   /* locus fields (<code/locus.c>) */

@@ -74,6 +74,7 @@
 #include "range.c"
 #include "freelist.c"
 #include "sa.c"
+#include "zonedcbs.c"
 
 /* Additional pool classes */
 
