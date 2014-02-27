@@ -427,26 +427,55 @@ height of a frame is not the same as the height of its windows, since
 a frame may also contain an echo area, menu bar, and tool bar
 (@pxref{Size and Position}).
 
-@defun window-total-height &optional window
+@defun window-total-height &optional window round
 This function returns the total height, in lines, of the window
 @var{window}.  If @var{window} is omitted or @code{nil}, it defaults
 to the selected window.  If @var{window} is an internal window, the
 return value is the total height occupied by its descendant windows.
+
+If @var{window}'s pixel height is not an integral multiple of its
+frame's character height, the number of lines occupied by @var{window}
+is rounded internally.  This is done in a way such that, if
+@var{window} is a parent window, the sum of the total heights of all
+its children internally equals the total height of @var{window}.
+
+If the optional argument @var{round} is @code{ceiling}, this function
+will return the smallest integer larger than @var{window}'s pixel
+height divided by the character height of @var{window}'s frame; if it
+is @code{floor}, return the largest integer smaller than
+@var{window}'s pixel height divided by the character height of
+@var{window}'s frame.  Any other value of @var{round} means to return
+the internal total height of @var{window}.
 @end defun
 
-@defun window-total-width &optional window
+@defun window-total-width &optional window round
 This function returns the total width, in columns, of the window
 @var{window}.  If @var{window} is omitted or @code{nil}, it defaults
 to the selected window.  If @var{window} is internal, the return value
 is the total width occupied by its descendant windows.
+
+If @var{window}'s pixel width is not an integral multiple of its
+frame's character width, the number of lines occupied by @var{window}
+is rounded internally.  This is done in a way such that, if
+@var{window} is a parent window, the sum of the total widths of all
+its children internally equals the total width of @var{window}.
+
+If the optional argument @var{round} is @code{ceiling}, this function
+will return the smallest integer larger than @var{window}'s pixel
+width divided by the character width of @var{window}'s frame; if it is
+@code{floor}, return the largest integer smaller than @var{window}'s
+pixel width divided by the character width of @var{window}'s frame.
+Any other value of @var{round} means to return the internal total
+width of @var{window}.
 @end defun
 
-@defun window-total-size &optional window horizontal
+@defun window-total-size &optional window horizontal round
 This function returns either the total height or width of the window
 @var{window}.  If @var{horizontal} is omitted or @code{nil}, this is
 equivalent to calling @code{window-total-height} for @var{window};
 otherwise it is equivalent to calling @code{window-total-width} for
-@var{window}.
+@var{window}.  The optional argument @code{ROUND} is handled as for
+@code{window-total-height} and @code{window-total-width}.
 @end defun
 
 @cindex full-width window
@@ -479,7 +508,7 @@ which does not include the mode or header line.  Similarly, the
 @dfn{body width} is the width of the text area, which does not include
 the scroll bar, fringes, or margins.
 
-@defun window-body-height &optional window
+@defun window-body-height &optional window pixelwise
 This function returns the body height, in lines, of the window
 @var{window}.  If @var{window} is omitted or @code{nil}, it defaults
 to the selected window; otherwise it must be a live window.
@@ -489,7 +518,7 @@ that counts as a whole line; to exclude such a partially-visible line,
 use @code{window-text-height}, below.
 @end defun
 
-@defun window-body-width &optional window
+@defun window-body-width &optional window pixelwise
 This function returns the body width, in columns, of the window
 @var{window}.  If @var{window} is omitted or @code{nil}, it defaults
 to the selected window; otherwise it must be a live window.
@@ -571,7 +600,7 @@ changed except by resizing the frame (@pxref{Size and Position}).
 arguments.  Resizing an internal window causes its child windows to be
 resized to fit the same space.
 
-@defun window-resizable window delta &optional horizontal ignore
+@defun window-resizable window delta &optional horizontal ignore pixelwise
 This function returns @var{delta} if the size of @var{window} can be
 changed vertically by @var{delta} lines.  If the optional argument
 @var{horizontal} is non-@code{nil}, it instead returns @var{delta} if
@@ -596,9 +625,12 @@ Instead, it considers the minimum-height window to be one consisting
 of a header (if any), a mode line, plus a text area one line tall; and
 a minimum-width window as one consisting of fringes, margins, and
 scroll bar (if any), plus a text area two columns wide.
+
+If the optional argument @code{pixelwise} is non-@code{nil},
+@var{delta} will be interpreted as pixels.
 @end defun
 
-@defun window-resize window delta &optional horizontal ignore
+@defun window-resize window delta &optional horizontal ignore pixelwise
 This function resizes @var{window} by @var{delta} increments.  If
 @var{horizontal} is @code{nil}, it changes the height by @var{delta}
 lines; otherwise, it changes the width by @var{delta} columns.  A
@@ -610,6 +642,9 @@ the window cannot be resized as demanded, an error is signaled.
 
 The optional argument @var{ignore} has the same meaning as for the
 function @code{window-resizable} above.
+
+If the optional argument @code{pixelwise} is non-@code{nil},
+@var{delta} will be interpreted as pixels.
 
 The choice of which window edges this function alters depends on the
 values of the option @code{window-combination-resize} and the
@@ -623,11 +658,14 @@ bottom or right edge of a window, use the function
 @c shrink-window, and shrink-window-horizontally are documented in the
 @c Emacs manual.  They are not preferred for calling from Lisp.
 
-@defun adjust-window-trailing-edge window delta &optional horizontal
+@defun adjust-window-trailing-edge window delta &optional horizontal pixelwise
 This function moves @var{window}'s bottom edge by @var{delta} lines.
 If optional argument @var{horizontal} is non-@code{nil}, it instead
 moves the right edge by @var{delta} columns.  If @var{window} is
 @code{nil}, it defaults to the selected window.
+
+If the optional argument @code{pixelwise} is non-@code{nil},
+@var{delta} will be interpreted as pixels.
 
 A positive @var{delta} moves the edge downwards or to the right; a
 negative @var{delta} moves it upwards or to the left.  If the edge
@@ -638,6 +676,21 @@ This function tries to resize windows adjacent to the edge that is
 moved.  If this is not possible for some reason (e.g., if that adjacent
 window is fixed-size), it may resize other windows.
 @end defun
+
+@cindex pixelwise, resizing windows
+@defopt window-resize-pixelwise
+If the value of this user option is non-@code{nil}, window resizing
+operations will be pixelwise.  This currently affects the following
+functions: @code{split-window}, @code{maximize-window},
+@code{minimize-window}, @code{fit-window-to-buffer} and
+@code{fit-frame-to-buffer}, and all functions that symmetrically
+resize a parent window.
+
+Note that when a frame's pixel size is not a multiple of the frame's
+character size, at least one window may get resized pixelwise even if
+this option is nil.  The default value of this user option is
+@code{nil}.
+@end defopt
 
   The following commands resize windows in more specific ways.  When
 called interactively, they act on the selected window.
