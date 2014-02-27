@@ -1,3 +1,7 @@
+2014-02-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (y-or-n-p): Fix double space issue in message.
+
 2014-02-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-call-process): Improve trace message.
