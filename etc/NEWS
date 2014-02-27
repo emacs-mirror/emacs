@@ -1173,8 +1173,9 @@ as a function to call to provide default values.
 
 ** Completion changes
 
-*** The separator for `completing-read-multiple' can now be a regexp.
-The default separator has been changed to allow surrounding spaces
+---
+*** The separator used by `completing-read-multiple' is now a regexp.
+The default `crm-separator' has been changed to allow surrounding spaces
 around the comma.
 
 *** The `common-substring' arg of `display-completion-list' is obsolete.

@@ -1,3 +1,8 @@
+2014-02-27  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/crm.el (crm-default-separator, crm-separator)
+	(completing-read-multiple): Doc fixes.
+
 2014-02-27  Daniel Colascione  <dancol@dancol.org>
 
 	* minibuffer.el (completion--nth-completion): Fix indentation.

@@ -24,27 +24,7 @@
 
 ;; This code defines a function, `completing-read-multiple', which
 ;; provides the ability to read multiple strings in the minibuffer,
-;; with completion.
-
-;; By using this functionality, a user may specify multiple strings at
-;; a single prompt, optionally using completion.
-
-;; Multiple strings are specified by separating each of the strings
-;; with a prespecified separator regexp.  For example, if the
-;; separator regexp is ",", the strings 'alice', 'bob', and
-;; 'eve' would be specified as 'alice,bob,eve'.
-
-;; The default value for the separator regexp is the value of
-;; `crm-default-separator' (comma).  The separator regexp may be
-;; changed by modifying the value of `crm-separator'.
-
-;; Contiguous strings of non-separator-characters are referred to as
-;; 'elements'.  In the aforementioned example, the elements are:
-;; 'alice', 'bob', and 'eve'.
-
-;; Completion is available on a per-element basis.  For example, if
-;; the contents of the minibuffer are 'alice,bob,eve' and point is
-;; between 'l' and 'i', pressing TAB operates on the element 'alice'.
+;; with completion.  See that function's documentation for details.
 
 ;; For the moment, I have decided to not bind any special behavior to
 ;; the separator key.  In the future, the separator key might be used
@@ -96,14 +76,16 @@
 ;;   first revamped version
 
 ;;; Code:
+
+;; FIXME I don't see that this needs to exist as a separate variable.
+;; crm-separator should suffice.
 (defconst crm-default-separator "[ \t]*,[ \t]*"
-  "Default separator regexp for `completing-read-multiple'.")
+  "Default value of `crm-separator'.")
 
 (defvar crm-separator crm-default-separator
   "Separator regexp used for separating strings in `completing-read-multiple'.
 It should be a regexp that does not match the list of completion candidates.
-Modify this value to make `completing-read-multiple' use a separator other
-than `crm-default-separator'.")
+The default value is `crm-default-separator'.")
 
 (defvar crm-local-completion-map
   (let ((map (make-sparse-keymap)))
@@ -247,32 +229,22 @@ exiting the minibuffer."
   (prompt table &optional predicate require-match initial-input
 	  hist def inherit-input-method)
   "Read multiple strings in the minibuffer, with completion.
-By using this functionality, a user may specify multiple strings at a
-single prompt, optionally using completion.
+The arguments are the same as those of `completing-read'.
 \\<crm-local-completion-map>
-Multiple strings are specified by separating each of the strings with
-a prespecified separator regexp.  For example, if the separator
-regexp is \",\", the strings 'alice', 'bob', and 'eve' would be
-specified as 'alice,bob,eve'.
+Input multiple strings by separating each one with a string that
+matches the regexp `crm-separator'.  For example, if the separator
+regexp is \",\", entering \"alice,bob,eve\" specifies the strings
+\"alice\", \"bob\", and \"eve\".
 
-The default value for the separator regexp is the value of
-`crm-default-separator'.  You can change the separator regexp by
-modifying the value of `crm-separator'.
-
-Contiguous strings of non-separator-characters are referred to as
-'elements'.  In the aforementioned example, the elements are: 'alice',
-'bob', and 'eve'.
+We refer to contiguous strings of non-separator-characters as
+\"elements\".  In this example there are three elements.
 
 Completion is available on a per-element basis.  For example, if the
-contents of the minibuffer are 'alice,bob,eve' and point is between
-'l' and 'i', pressing TAB operates on the element 'alice'.
+contents of the minibuffer are \"alice,bob,eve\" and point is between
+\"l\" and \"i\", pressing \\[minibuffer-complete] operates on the element \"alice\".
 
-The return value of this function is a list of the read strings
-with empty strings removed.
-
-See the documentation for `completing-read' for details on the arguments:
-PROMPT, TABLE, PREDICATE, REQUIRE-MATCH, INITIAL-INPUT, HIST, DEF, and
-INHERIT-INPUT-METHOD."
+This function returns a list of the strings that were read,
+with empty strings removed."
   (unwind-protect
       (progn
 	(add-hook 'choose-completion-string-functions
