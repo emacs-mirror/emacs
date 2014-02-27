@@ -1,5 +1,7 @@
 2014-02-27  Xue Fuqiao  <xfq@gnu.org>
 
+	* text.texi (Margins): Fix the description of RET and `C-j'.
+
 	* frames.texi (Multiple Terminals): Document
 	`display-monitor-attributes-list' and `display-monitor-attributes'.
 	(Display Feature Testing): Add some notes about multi-monitor.

@@ -366,9 +366,9 @@ which reformats Lisp objects with nice-looking indentation.
 @table @kbd
 @item @key{TAB}
 Adjust indentation of current line (@code{indent-for-tab-command}).
-@item C-j
+@item @key{RET}
 Insert a newline, then adjust indentation of following line
-(@code{newline-and-indent}).
+(@code{newline}).
 @end table
 
 @kindex TAB @r{(programming modes)}
@@ -382,12 +382,9 @@ the current line, based on the indentation and syntactic content of
 the preceding lines; if the region is active, @key{TAB} indents each
 line within the region, not just the current line.
 
-@kindex C-j @r{(indenting source code)}
-@findex newline-and-indent
-  The command @kbd{C-j} (@code{newline-and-indent}), which was
-documented in @ref{Indentation Commands}, does the same as @key{RET}
-followed by @key{TAB}: it inserts a new line, then adjusts the line's
-indentation.
+  The command @key{RET} (@code{newline}), which was documented in
+@ref{Inserting Text}, does the same as @key{C-j} followed by
+@key{TAB}: it inserts a new line, then adjusts the line's indentation.
 
   When indenting a line that starts within a parenthetical grouping,
 Emacs usually places the start of the line under the preceding line
@@ -1681,18 +1678,18 @@ hungry-delete feature is enabled.
 @findex c-context-line-break
 This command inserts a line break and indents the new line in a manner
 appropriate to the context.  In normal code, it does the work of
-@kbd{C-j} (@code{newline-and-indent}), in a C preprocessor line it
-additionally inserts a @samp{\} at the line break, and within comments
-it's like @kbd{M-j} (@code{c-indent-new-comment-line}).
+@key{RET} (@code{newline}), in a C preprocessor line it additionally
+inserts a @samp{\} at the line break, and within comments it's like
+@kbd{M-j} (@code{c-indent-new-comment-line}).
 
 @code{c-context-line-break} isn't bound to a key by default, but it
 needs a binding to be useful.  The following code will bind it to
-@kbd{C-j}.  We use @code{c-initialization-hook} here to make sure
+@kbd{RET}.  We use @code{c-initialization-hook} here to make sure
 the keymap is loaded before we try to change it.
 
 @example
 (defun my-bind-clb ()
-  (define-key c-mode-base-map "\C-j"
+  (define-key c-mode-base-map "\C-m"
               'c-context-line-break))
 (add-hook 'c-initialization-hook 'my-bind-clb)
 @end example
@@ -1812,6 +1809,7 @@ defines these commands:
 @table @kbd
 @item @key{TAB}
 @code{tab-to-tab-stop}.
+@c FIXME: Maybe this should be consistent with other programming modes.
 @item C-j
 Insert a newline and then indent using @code{tab-to-tab-stop}.
 @item :

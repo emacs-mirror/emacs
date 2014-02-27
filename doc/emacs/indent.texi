@@ -64,11 +64,6 @@ Emacs provides a variety of commands to perform indentation in other
 ways.
 
 @table @kbd
-@item C-j
-@kindex C-j
-@findex newline-and-indent
-Perform @key{RET} followed by @key{TAB} (@code{newline-and-indent}).
-
 @item C-M-o
 @kindex C-M-o
 @findex split-line

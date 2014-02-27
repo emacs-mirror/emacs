@@ -751,6 +751,7 @@ very useful in this case.
 @end itemize
 
 @table @asis
+@c FIXME: This should be `electric-indent-just-newline' since GNU Emacs 24.4.
 @item @kbd{C-j} (@code{newline-and-indent})
 @kindex C-j
 @findex newline-and-indent
@@ -7054,6 +7055,7 @@ Set the variable @code{c-basic-offset}.  @xref{Getting Started}.
 @kindex RET
 @kindex C-j
 @emph{Why doesn't the @kbd{RET} key indent the new line?}
+@c FIXME: `electric-indent-mode' is enabled by default in GNU Emacs 24.4.
 
 Emacs's convention is that @kbd{RET} just adds a newline, and that
 @kbd{C-j} adds a newline and indents it.  You can make @kbd{RET} do this
