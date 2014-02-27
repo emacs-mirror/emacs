@@ -1,3 +1,27 @@
+2014-02-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-call-process): Improve trace message.
+	(tramp-handle-insert-file-contents): Trace error case.
+
+	* net/tramp-adb.el (tramp-adb-file-name-handler-alist)
+	<insert-directory>: Use `tramp-handle-insert-directory'.
+	(tramp-adb-handle-insert-directory): Remove function.
+	(tramp-adb-send-command-and-check): New defun, replacing
+	`tramp-adb-command-exit-status'.  Change all callees.
+	(tramp-adb-handle-file-attributes)
+	(tramp-adb-handle-directory-files-and-attributes): Use it.
+	(tramp-adb-ls-output-name-less-p): Use
+	`directory-listing-before-filename-regexp'.
+	(tramp-adb-handle-delete-directory): Flush also file properties of
+	the truename of directory.
+	(tramp-adb-handle-file-name-all-completions): Add "./" and "../".
+	(tramp-adb-handle-file-local-copy): Make the local copy readable.
+	(tramp-adb-handle-write-region): Implement APPEND.
+	(tramp-adb-handle-rename-file): Make it more robust.  Flush file
+	properties correctly.
+	(tramp-adb-maybe-open-connection): Set `tramp-current-*'
+	variables.  Check for connected devices only when needed.
+
 2014-02-27  Glenn Morris  <rgm@gnu.org>
 
 	* minibuffer.el (completion-table-dynamic)

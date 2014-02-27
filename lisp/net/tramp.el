@@ -3050,10 +3050,13 @@ User is always nil."
 	  v 3 (format "Inserting `%s'" filename)
 	(unwind-protect
 	    (if (not (file-exists-p filename))
-		;; We don't raise a Tramp error, because it might be
-		;; suppressed, like in `find-file-noselect-1'.
-		(signal 'file-error
-			(list "File not found on remote host" filename))
+		(progn
+		  ;; We don't raise a Tramp error, because it might be
+		  ;; suppressed, like in `find-file-noselect-1'.
+		  (tramp-message
+		   v 1 "File not `%s' found on remote host" filename)
+		  (signal 'file-error
+			  (list "File not found on remote host" filename)))
 
 	      (if (and (tramp-local-host-p v)
 		       (let (file-name-handler-alist)
@@ -4082,7 +4085,7 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1.
 Furthermore, traces are written with verbosity of 6."
   (tramp-message
    (vector tramp-current-method tramp-current-user tramp-current-host nil nil)
-   6 "%s %s %s" program infile args)
+   6 "`%s %s' %s" program (mapconcat 'identity args " ") infile)
   (if (executable-find program)
       (apply 'call-process program infile destination display args)
     1))
