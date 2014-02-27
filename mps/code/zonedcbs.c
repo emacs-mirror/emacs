@@ -16,6 +16,8 @@
 
 #include "zonedcbs.h"
 #include "mpm.h"
+#include "cbs.h"
+
 
 #define ZonedCBSBlockPool(zcbs)   RVALUE((zcbs)->blockPool)
 #define ZonedCBSFreeCBS(zcbs)     (&(zcbs)->freeStruct)

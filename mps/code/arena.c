@@ -8,8 +8,11 @@
 #include "tract.h"
 #include "poolmv.h"
 #include "mpm.h"
+#include "cbs.h"
 #include "zonedcbs.h"
 #include "bt.h"
+#include "poolmfs.h"
+#include "mpscmfs.h"
 
 
 SRCID(arena, "$Id$");
