@@ -1,3 +1,8 @@
+2014-02-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus__init_bus, Qdbus__init_bus, Sdbus__init_bus):
+	Rename from Fdbus_init_bus_1, Qdbus_init_bus_1, Sdbus_init_bus_1.
+
 2014-02-26  Martin Rudalics  <rudalics@gmx.at>
 
 	Fixes around Bug#16647.
