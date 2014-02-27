@@ -1,3 +1,9 @@
+2014-02-27  Xue Fuqiao  <xfq@gnu.org>
+
+	* frames.texi (Multiple Terminals): Document
+	`display-monitor-attributes-list' and `display-monitor-attributes'.
+	(Display Feature Testing): Add some notes about multi-monitor.
+
 2014-02-27  Glenn Morris  <rgm@gnu.org>
 
 	* minibuf.texi (Programmed Completion):
