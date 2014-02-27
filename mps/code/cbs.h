@@ -56,6 +56,9 @@ extern Bool CBSFindLast(Range rangeReturn, Range oldRangeReturn,
 extern Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
                            CBS cbs, Size size, FindDelete findDelete);
 
+typedef Res (*CBSFindInZonesMethod)(Range rangeReturn, Range oldRangeReturn,
+                                    CBS cbs, Size size,
+                                    Arena arena, ZoneSet zoneSet);
 extern Res CBSFindFirstInZones(Range rangeReturn, Range oldRangeReturn,
                                CBS cbs, Size size,
                                Arena arena, ZoneSet zoneSet);

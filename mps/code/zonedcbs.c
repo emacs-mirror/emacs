@@ -7,6 +7,11 @@
  * Allocation in zones gives control over some parts of an object's address,
  * so that we can later apply fast filters on the critical path.
  * The Zone CBS is mainly used by the arena to allocate blocks to pools.
+ *
+ * Can be stressed by setting a small arena size.
+ *
+ * This code is essentially an optimisation of CBSFindFirstInZones, but
+ * doesn't have quite the same effect.  FIXME: Be clearer.
  */
 
 #include "zonedcbs.h"
@@ -105,7 +110,8 @@ void ZonedCBSFinish(ZonedCBS zcbs)
 
   zcbs->sig = SigInvalid;
 
-  /* FIXME: Should be asserting that CBSs are empty? */
+  /* FIXME: Should be asserting that CBSs are empty?  Could iterate over
+     chunks and remove their ranges to make sure things are consistent. */
 
   for (i = 0; i < ZonedCBSNZones(zcbs); ++i)
     CBSFinish(ZonedCBSZoneCBS(zcbs, i));
@@ -139,6 +145,11 @@ Res ZonedCBSInsert(Range rangeReturn, ZonedCBS zcbs, Range range)
  * The range may be split between the zone CBSs and the free CBS on zone
  * stripe boundaries, in which case we have to iterate.
  *
+ * .delete.exists: The range must exist in the zoned CBS.  To make the
+ * zoned CBS more general we'd need to unwind the error case where we
+ * found a hole, putting the range we'd already found back.  This isn't
+ * required by the arena.
+ *
  * FIXME: Document guarantees about res.
  */
 
@@ -162,7 +173,6 @@ Res ZonedCBSDelete(Range oldRange, ZonedCBS zcbs, Range range)
   }
 
   res = CBSDelete(oldRange, ZonedCBSFreeCBS(zcbs), range);
-
   if (res != ResFAIL) /* block was in free CBS */
     return res;
   
@@ -206,7 +216,7 @@ Res ZonedCBSDelete(Range oldRange, ZonedCBS zcbs, Range range)
 
     if (res == ResFAIL) {
       res = CBSDelete(&oldStripe, zoneCBS, &stripe);
-      AVER(res != ResFAIL); /* FIXME: not in any of the CBSs, return res */
+      AVER(res != ResFAIL); /* .delete.exists */
       AVER(RangesEqual(&oldStripe, &stripe));
     }
 
@@ -223,31 +233,17 @@ Res ZonedCBSDelete(Range oldRange, ZonedCBS zcbs, Range range)
 
 /* ZonedCBSFindFirst, ZonedCBSFindLast -- find a range in the zoned CBS */
 
-static Res ZonedCBSFind(Range rangeReturn,
-                        Range oldRangeReturn,
-                        ZonedCBS zcbs,
-                        ZoneSet zones,
-                        Size size,
-                        FindDelete findDelete,
-                        Bool high)
+
+static Res ZonedCBSFindInZones(Range rangeReturn,
+                               Range oldRangeReturn,
+                               ZonedCBS zcbs,
+                               ZoneSet zones,
+                               Size size,
+                               FindDelete findDelete,
+                               Bool high)
 {
-  CBSFindMethod find;
   Index i;
-  RangeStruct restRange;
-  Addr allocLimit, stripeLimit, oldLimit, limit;
-  Res res;
-
-  AVER(rangeReturn != NULL);
-  AVER(oldRangeReturn != NULL);
-  AVERT(ZonedCBS, zcbs);
-  AVER(size > 0);
-  /* FIXME: findDelete? */
-  /* FIXME: ZoneSet? */
-  AVER(BoolCheck(high));
-
-  find = high ? CBSFindLast : CBSFindFirst;
-  
-  /* Try the zone CBSs first. */
+  CBSFindMethod find = high ? CBSFindLast : CBSFindFirst;
 
   /* We could check zoneCBS if size > stripeSize to avoid looking in the
      zoneCBSs, but this probably isn't a win for arena allocation. */
@@ -263,6 +259,8 @@ static Res ZonedCBSFind(Range rangeReturn,
 
   /* TODO: Consider masking zones against a ZoneSet of non-empty zone CBSs */
 
+  /* TODO: ZONESET_FOR using __builtin_ffsl or similar. */
+
   for (i = 0; i < ZonedCBSNZones(zcbs); ++i) {
     Index zone = high ? ZonedCBSNZones(zcbs) - i - 1 : i;
     if (ZoneSetIsMember(zones, zone) &&
@@ -270,54 +268,100 @@ static Res ZonedCBSFind(Range rangeReturn,
              size, findDelete))
       return ResOK;
   }
-  
-  /* Try the free CBS. */
 
-  if (high)
-    res = CBSFindLastInZones(rangeReturn, oldRangeReturn,
-                             ZonedCBSFreeCBS(zcbs), size, zcbs->arena, zones);
-  else
-    res = CBSFindFirstInZones(rangeReturn, oldRangeReturn,
-                              ZonedCBSFreeCBS(zcbs), size, zcbs->arena, zones);
+  return ResRESOURCE;
+}
+
+static Res ZonedCBSFindInFree(Range rangeReturn,
+                              Range oldRangeReturn,
+                              ZonedCBS zcbs,
+                              ZoneSet zones,
+                              Size size,
+                              FindDelete findDelete,
+                              Bool high)
+{
+  CBSFindInZonesMethod find = high ? CBSFindLastInZones : CBSFindFirstInZones;
+
+  UNUSED(findDelete); /* FIXME: why is this so? */
+
+  return find(rangeReturn, oldRangeReturn, ZonedCBSFreeCBS(zcbs), size,
+              zcbs->arena, zones);
+}
+
+Res ZonedCBSFind(Range rangeReturn,
+                 Range oldRangeReturn,
+                 ZonedCBS zcbs,
+                 ZoneSet zones,
+                 Size size,
+                 FindDelete findDelete,
+                 Bool high)
+{
+  RangeStruct restRange;
+  Addr allocLimit, stripeLimit, oldLimit, limit;
+  Res res;
+
+  AVER(rangeReturn != NULL);
+  AVER(oldRangeReturn != NULL);
+  AVERT(ZonedCBS, zcbs);
+  AVER(size > 0);
+  /* ZoneSet arbitrary.  TODO: Make a ZoneSetCheck anyway. */
+  AVER(BoolCheck(high));
+
+  /* TODO: Consider the other FindDelete cases. */
+  AVER(findDelete == FindDeleteLOW || findDelete == FindDeleteHIGH);
+  AVER((findDelete == FindDeleteHIGH) == high);
+
+  res = ZonedCBSFindInZones(rangeReturn, oldRangeReturn,
+                            zcbs, zones, size,
+                            findDelete, high);
+  if (res != ResRESOURCE)
+    return res;
+
+  res = ZonedCBSFindInFree(rangeReturn, oldRangeReturn,
+                           zcbs, zones, size,
+                           findDelete, high);
   if (res != ResOK)
     return res;
 
   /* TODO: We may have failed to find because the address space is
      fragmented between the zone CBSs and the free CBS.  This isn't
      a very important case for the arena, but it does make the Zone CBS
-     technically incorrect, and we should fix it.  Flush the zone CBSs
-     back to the free CBS? */
+     technically incorrect as a representation of a set of ranges.
+     Flush the zone CBSs back to the free CBS? */
 
   /* Add the rest of the zone stripe to the zoneCBS so that subsequent
      allocations in the zone are fast.  This is what the ZonedCBS is
      all about! */
+
   allocLimit = RangeLimit(rangeReturn);
   stripeLimit = AddrAlignUp(allocLimit, ArenaStripeSize(zcbs->arena));
   oldLimit = RangeLimit(oldRangeReturn);
   limit = oldLimit < stripeLimit ? oldLimit : stripeLimit;
   RangeInit(&restRange, allocLimit, limit);
   AVER(RangesNest(oldRangeReturn, &restRange));
+
   if (allocLimit < limit) {
     Index zone;
     CBS zoneCBS;
     RangeStruct oldRange;
+
     res = CBSDelete(&oldRange, ZonedCBSFreeCBS(zcbs), &restRange);
     AVER(res == ResOK); /* we should just be bumping up a base */
     zone = AddrZone(zcbs->arena, RangeBase(&restRange));
     zoneCBS = ZonedCBSZoneCBS(zcbs, zone);
+
     res = CBSInsert(&oldRange, zoneCBS, &restRange);
     AVER(res != ResOK || RangesEqual(&oldRange, &restRange)); /* shouldn't coalesce */
-    if (res != ResOK) { /* disasterously short on memory */
-      /* Put it back.  This should succeed. */
+    if (res != ResOK) { /* disasterously short on memory, so put it back */
       res = CBSInsert(&oldRange, ZonedCBSFreeCBS(zcbs), &restRange);
-      AVER(res == ResOK);
+      AVER(res == ResOK); /* should just be lowering a base */
     }
   }
 
   return ResOK;
 }
 
-
+/*
 Res ZonedCBSFindFirst(Range rangeReturn, Range oldRangeReturn,
                       ZonedCBS zcbs, ZoneSet zones,
                       Size size, FindDelete findDelete)
@@ -333,6 +377,7 @@ Bool ZonedCBSFindLast(Range rangeReturn, Range oldRangeReturn,
   return ZonedCBSFind(rangeReturn, oldRangeReturn, zcbs, zones, size,
                       findDelete, TRUE);
 }
+*/
 
 
 /* C. COPYRIGHT AND LICENSE
