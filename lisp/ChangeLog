@@ -1,3 +1,11 @@
+2014-02-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus--init-bus): Declare function.
+	(dbus-path-local, dbus-interface-local): New defconst.
+	(dbus-init-bus): Use them.
+	(dbus-return-values-table): Extend doc.
+	(dbus-handle-bus-disconnect): Extend error message.
+
 2014-02-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (y-or-n-p): Fix double space issue in message.
