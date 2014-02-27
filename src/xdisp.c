@@ -3923,6 +3923,15 @@ handle_face_prop (struct it *it)
 	     For strings from wrap-prefix and line-prefix properties,
 	     use the default face, possibly remapped via
 	     Vface_remapping_alist.  */
+	  /* Note that the fact that we use the face at _buffer_
+	     position means that a 'display' property on an overlay
+	     string will not inherit the face of that overlay string,
+	     but will instead revert to the face of buffer text
+	     covered by the overlay.  This is visible, e.g., when the
+	     overlay specifies a box face, but neither the buffer nor
+	     the display string do.  This sounds like a design bug,
+	     but Emacs always did that since v21.1, so changing that
+	     might be a big deal.  */
 	  base_face_id = it->string_from_prefix_prop_p
 	    ? (!NILP (Vface_remapping_alist)
 	       ? lookup_basic_face (it->f, DEFAULT_FACE_ID)
@@ -5956,7 +5965,16 @@ pop_it (struct it *it)
       it->object = it->w->contents;
       break;
     case GET_FROM_STRING:
-      it->object = it->string;
+      {
+	struct face *face = FACE_FROM_ID (it->f, it->face_id);
+
+	/* Restore the face_box_p flag, since it could have been
+	   overwritten by the face of the object that we just finished
+	   displaying.  */
+	if (face)
+	  it->face_box_p = face->box != FACE_NO_BOX;
+	it->object = it->string;
+      }
       break;
     case GET_FROM_DISPLAY_VECTOR:
       if (it->s)
@@ -7043,21 +7061,44 @@ get_next_display_element (struct it *it)
 		 If this is the last string character displayed, check
 		 the next buffer location.  */
 	      else if ((IT_STRING_CHARPOS (*it) >= SCHARS (it->string) - 1)
-		       && (it->current.overlay_string_index
-			   == it->n_overlay_strings - 1))
+		       /* n_overlay_strings is unreliable unless
+			  overlay_string_index is non-negative.  */
+		       && ((it->current.overlay_string_index >= 0
+			    && (it->current.overlay_string_index
+				== it->n_overlay_strings - 1))
+			   /* A string from display property.  */
+			   || it->from_disp_prop_p))
 		{
 		  ptrdiff_t ignore;
 		  int next_face_id;
 		  struct text_pos pos = it->current.pos;
-		  INC_TEXT_POS (pos, it->multibyte_p);
 
-		  next_face_id = face_at_buffer_position
-		    (it->w, CHARPOS (pos), &ignore,
-		     (IT_CHARPOS (*it) + TEXT_PROP_DISTANCE_LIMIT), 0,
-		     -1);
-		  it->end_of_box_run_p
-		    = (FACE_FROM_ID (it->f, next_face_id)->box
-		       == FACE_NO_BOX);
+		  /* For a string from a display property, the next
+		     buffer position is stored in the 'position'
+		     member of the iteration stack slot below the
+		     current one, see handle_single_display_spec.  By
+		     contrast, it->current.pos was is not yet updated
+		     to point to that buffer position; that will
+		     happen in pop_it, after we finish displaying the
+		     current string.  Note that we already checked
+		     above that it->sp is positive, so subtracting one
+		     from it is safe.  */
+		  if (it->from_disp_prop_p)
+		    pos = (it->stack + it->sp - 1)->position;
+		  else
+		    INC_TEXT_POS (pos, it->multibyte_p);
+
+		  if (CHARPOS (pos) >= ZV)
+		    it->end_of_box_run_p = true;
+		  else
+		    {
+		      next_face_id = face_at_buffer_position
+			(it->w, CHARPOS (pos), &ignore,
+			 CHARPOS (pos) + TEXT_PROP_DISTANCE_LIMIT, 0, -1);
+		      it->end_of_box_run_p
+			= (FACE_FROM_ID (it->f, next_face_id)->box
+			   == FACE_NO_BOX);
+		    }
 		}
 	    }
 	}

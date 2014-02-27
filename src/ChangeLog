@@ -1,3 +1,12 @@
+2014-02-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (pop_it): Restore the it->face_box_p flag which could be
+	reset by the face of the object just displayed.  See also bug#76.
+	(get_next_display_element): If the string came from a display
+	property, examine the box face attribute at it->position, not at
+	it->current.pos, since the latter was not updated yet.  (Bug#16870)
+	(handle_face_prop): Improve commentary.
+
 2014-02-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (Fdbus__init_bus, Qdbus__init_bus, Sdbus__init_bus):
