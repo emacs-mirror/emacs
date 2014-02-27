@@ -240,6 +240,8 @@ exiting the minibuffer."
     t))
 
 ;; superemulates behavior of completing_read in src/minibuf.c
+;; Use \\<crm-local-completion-map> so that help-enable-auto-load can
+;; do its thing.  Any keymap that is defined will do.
 ;;;###autoload
 (defun completing-read-multiple
   (prompt table &optional predicate require-match initial-input
@@ -247,15 +249,15 @@ exiting the minibuffer."
   "Read multiple strings in the minibuffer, with completion.
 By using this functionality, a user may specify multiple strings at a
 single prompt, optionally using completion.
-
+\\<crm-local-completion-map>
 Multiple strings are specified by separating each of the strings with
 a prespecified separator regexp.  For example, if the separator
 regexp is \",\", the strings 'alice', 'bob', and 'eve' would be
 specified as 'alice,bob,eve'.
 
 The default value for the separator regexp is the value of
-`crm-default-separator' (comma).  The separator regexp may be
-changed by modifying the value of `crm-separator'.
+`crm-default-separator'.  You can change the separator regexp by
+modifying the value of `crm-separator'.
 
 Contiguous strings of non-separator-characters are referred to as
 'elements'.  In the aforementioned example, the elements are: 'alice',
