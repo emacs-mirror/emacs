@@ -4846,7 +4846,7 @@ Return ATTR."
       (when elt1
 	(setcdr elt1
 		(append
- 		 (tramp-compat-split-string default-remote-path ":")
+ 		 (tramp-compat-split-string (or default-remote-path "") ":")
 		 (cdr elt1)))
 	(setq remote-path (delq 'tramp-default-remote-path remote-path)))
 
@@ -4854,7 +4854,7 @@ Return ATTR."
       (when elt2
 	(setcdr elt2
 		(append
- 		 (tramp-compat-split-string own-remote-path ":")
+ 		 (tramp-compat-split-string (or own-remote-path "") ":")
 		 (cdr elt2)))
 	(setq remote-path (delq 'tramp-own-remote-path remote-path)))
 

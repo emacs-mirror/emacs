@@ -1,3 +1,10 @@
+2014-02-27  Daniel Colascione  <dancol@dancol.org>
+
+	* minibuffer.el (completion--nth-completion): Fix indentation.
+
+	* net/tramp-sh.el (tramp-get-remote-path): Don't signal error when
+	explicit tramp path is empty.
+
 2014-02-27  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/crm.el (completing-read-multiple):
