@@ -27,12 +27,23 @@ extern Bool ZonedCBSCheck(ZonedCBS zcbs);
 
 extern Res ZonedCBSInsert(Range rangeReturn, ZonedCBS zcbs, Range range);
 extern Res ZonedCBSDelete(Range oldRange, ZonedCBS zcbs, Range range);
+
+extern Res ZonedCBSFind(Range rangeReturn,
+                        Range oldRangeReturn,
+                        ZonedCBS zcbs,
+                        ZoneSet zones,
+                        Size size,
+                        FindDelete findDelete,
+                        Bool high);
+
+/*
 extern Bool ZonedCBSFindFirst(Range rangeReturn, Range oldRangeReturn,
                               ZonedCBS zcbs, ZoneSet zones,
                               Size size, FindDelete findDelete);
 extern Bool ZonedCBSFindLast(Range rangeReturn, Range oldRangeReturn,
                               ZonedCBS zcbs, ZoneSet zones,
                               Size size, FindDelete findDelete);
+ */
 
 
 #endif /* zonedcbs_h */

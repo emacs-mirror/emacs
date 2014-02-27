@@ -681,6 +681,8 @@ static void arenaExcludePage(Arena arena, Range pageRange)
  *
  * The arena's CBSs can't get memory in the usual way because they are used
  * in the basic allocator, so we allocate pages specially.
+ *
+ * Only fails if it can't get a page for the block pool.
  */
 
 static Res arenaCBSInsert(Range rangeReturn, Arena arena, Range range)
@@ -698,6 +700,8 @@ static Res arenaCBSInsert(Range rangeReturn, Arena arena, Range range)
     res = arenaExtendCBSBlockPool(&pageRange, arena);
     if (res != ResOK)
       return res;
+    /* Must insert before exclude so that we can bootstrap when the
+       ZonedCBS is empty. */
     res = ZonedCBSInsert(rangeReturn, ArenaZonedCBS(arena), range);
     AVER(res == ResOK); /* we just gave memory to the CBSs */
     arenaExcludePage(arena, &pageRange);
@@ -783,6 +787,11 @@ Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit)
  *
  * This is called from ChunkFinish in order to remove address space from
  * the arena.
+ *
+ * IMPORTANT: May only be called on whole chunk ranges, because we don't
+ * deal with the case where the range is coalesced.  This restriction would
+ * be easy to lift by extending the block pool on error, but doesn't happen,
+ * so we can't test that path.
  */
 
 void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit)
@@ -820,27 +829,19 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
   AVER(SizeIsAligned(size, arena->alignment));
 
   /* Step 1. Find a range of address space. */
+
   fd = high ? FindDeleteHIGH : FindDeleteLOW;
+  res = ZonedCBSFind(&range, &oldRange, ArenaZonedCBS(arena),
+                     zones, size, fd, high);
 
-  if (high)
-    res = ZonedCBSFindLast(&range, &oldRange, ArenaZonedCBS(arena),
-                           zones, size, fd);
-  else
-    res = ZonedCBSFindFirst(&range, &oldRange, ArenaZonedCBS(arena),
-                            zones, size, fd);
-
-  if (res == ResLIMIT) {
+  if (res == ResLIMIT) { /* found block, but couldn't store info */
     RangeStruct pageRange;
     res = arenaExtendCBSBlockPool(&pageRange, arena);
     if (res != ResOK) /* disasterously short on memory */
       return res;
     arenaExcludePage(arena, &pageRange);
-    if (high)
-      res = ZonedCBSFindLast(&range, &oldRange, ArenaZonedCBS(arena),
-                             zones, size, fd);
-    else
-      res = ZonedCBSFindFirst(&range, &oldRange, ArenaZonedCBS(arena),
-                              zones, size, fd);
+    res = ZonedCBSFind(&range, &oldRange, ArenaZonedCBS(arena),
+                       zones, size, fd, high);
     AVER(res != ResLIMIT);
   }
 
