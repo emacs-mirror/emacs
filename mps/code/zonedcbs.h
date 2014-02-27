@@ -12,6 +12,9 @@
 #ifndef zonedcbs_h
 #define zonedcbs_h
 
+#include "mpm.h"
+#include "range.h"
+
 
 typedef struct ZonedCBSStruct *ZonedCBS;
 
