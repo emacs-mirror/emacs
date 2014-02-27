@@ -912,6 +912,9 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
       return ResCOMMIT_LIMIT;
     }
   }
+
+  /* FIXME: Think about this. We may have barged into a blacklisted zone. */
+  AVER(ZoneSetInter(pref->zones, pref->avoid) == ZoneSetEMPTY);
   
   /* Plan A: allocate from the free CBS in the requested zones */
   /* FIXME: Takes no account of other zones fields */
