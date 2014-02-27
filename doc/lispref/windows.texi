@@ -413,6 +413,22 @@ default font.  Thus, if a window is displaying text with a different
 font or size, the reported height and width for that window may differ
 from the actual number of text lines or columns displayed within it.
 
+@defun window-size &optional window horizontal pixelwise round
+This function returns the height or width of @var{window}.
+@var{window} must be a valid window.  The default value of
+@var{window} is the selected window.
+
+If @var{horizontal} is omitted or nil, return the total height of
+@var{window}, in lines; otherwise return the total width in columns.
+
+The optional argument @var{pixelwise} means return size of
+@var{window}, in pixels.
+
+The optional argument @var{round} is ignored if @var{pixelwise} is
+non-@code{nil}.  Otherwise it is handled as for
+@code{window-total-height} and @code{window-total-width}.
+@end defun
+
 @cindex window height
 @cindex height of a window
 @cindex total height of a window
@@ -2078,6 +2094,15 @@ specified by that entry will override any other window found by the
 methods above, even if that window never showed @var{buffer} before.
 @end defun
 
+@defun display-buffer-at-bottom buffer alist
+This function tries to display @var{buffer} in a window at the bottom
+of the selected frame.
+
+This either splits the window at the bottom of the frame or the
+frame's root window, or reuses an existing window at the bottom of the
+selected frame.
+@end defun
+
 @defun display-buffer-use-some-window buffer alist
 This function tries to display @var{buffer} by choosing an existing
 window and displaying the buffer in that window.  It can fail if all
@@ -3533,6 +3558,7 @@ to clone the state of a frame into an arbitrary live window
 (@code{set-window-configuration} effectively clones the windows of a
 frame into the root window of that very frame only).
 
+@cindex window state
 @defun window-state-get &optional window writable
 This function returns the state of @var{window} as a Lisp object.  The
 argument @var{window} must be a valid window and defaults to the root
@@ -3554,10 +3580,11 @@ written to disk and read back in another session.  In either case, use
 the following function to restore the state of the window.
 
 @defun window-state-put state &optional window ignore
-This function puts the window state @var{state} into @var{window}.  The
-argument @var{state} should be the state of a window returned by an
-earlier invocation of @code{window-state-get}, see above.  The optional
-argument @var{window} must specify a valid window and defaults to the
+This function puts the window state @var{state} into @var{window}.
+The argument @var{state} should be the state of a window returned by
+an earlier invocation of @code{window-state-get}, see above.  The
+optional argument @var{window} can be either a live window or an
+internal window (@pxref{Windows and Frames}) and defaults to the
 selected one.  If @var{window} is not live, it is replaced by a live
 window before putting @var{state} into it.
 

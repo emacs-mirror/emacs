@@ -1,5 +1,13 @@
 2014-02-27  Xue Fuqiao  <xfq@gnu.org>
 
+	* windows.texi (Window Sizes): Document `window-size'.
+	(Display Action Functions): Document `display-buffer-at-bottom'.
+	(Window Configurations): Minor fixes.
+
+	* modes.texi (Header Lines): Document `window-header-line-height'.
+
+	* display.texi (Scroll Bars): Document `window-scroll-bar-width'.
+
 	* windows.texi (Window Sizes, Resizing Windows): Document some
 	pixelwise window operations.
 

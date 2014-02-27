@@ -254,9 +254,11 @@ As a command, it was a special case of `C-x 2' (`split-window-below'),
 and as such superfluous.  After being reimplemented in Lisp, its
 interactive form was mistakenly retained.
 
++++
 *** The functions `window-size' and `window-total-size' now have an
 optional argument to return a rounded size value.
 
++++
 *** `window-state-put' now allows to put a window state into internal
 windows too.
 
@@ -266,10 +268,12 @@ Available only on X, this option allows to control over-scrolling
 using the scroll bar (i.e. dragging the thumb down even when the end
 of the buffer is visible).
 
++++
 *** New basic action function `display-buffer-in-previous-window' has
 `display-buffer' display a buffer in a window previously showing that
 buffer.
 
++++
 *** New basic action function `display-buffer-at-bottom' has
 `display-buffer' choose or make a window at the bottom of the selected
 frame.
