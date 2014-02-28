@@ -1,3 +1,8 @@
+2014-02-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Don't show drag
+	cursor when modeline can't be dragged (Bug#16647).
+
 2014-02-28  Glenn Morris  <rgm@gnu.org>
 
 	* doc.c (Fsnarf_documentation): Snarf not-yet-bound variables

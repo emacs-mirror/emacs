@@ -1,3 +1,9 @@
+2014-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp--test-enabled)
+	(tramp-test15-copy-directory): No special handling of tramp-adb.el
+	anymore.  It's fixed in that package.
+
 2014-02-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp--test-enabled): Move connection

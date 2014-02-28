@@ -28449,6 +28449,10 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
       /* Change the mouse pointer according to what is under it.  */
       if (FRAME_WINDOW_P (f))
 	{
+	  bool draggable = (! WINDOW_BOTTOMMOST_P (w)
+			    || minibuf_level
+			    || NILP (Vresize_mini_windows));
+
 	  dpyinfo = FRAME_DISPLAY_INFO (f);
 	  if (STRINGP (string))
 	    {
@@ -28465,11 +28469,11 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 		  map = Fget_text_property (pos, Qlocal_map, string);
 		  if (!KEYMAPP (map))
 		    map = Fget_text_property (pos, Qkeymap, string);
-		  if (!KEYMAPP (map))
+		  if (!KEYMAPP (map) && draggable)
 		    cursor = dpyinfo->vertical_scroll_bar_cursor;
 		}
 	    }
-	  else
+	  else if (draggable)
 	    /* Default mode-line pointer.  */
 	    cursor = FRAME_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
 	}

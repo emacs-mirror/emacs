@@ -82,10 +82,7 @@ being the result.")
 	   (file-directory-p tramp-test-temporary-file-directory)
 	   (file-writable-p tramp-test-temporary-file-directory))))))
 
-  (when (and (cdr tramp--test-enabled-checked)
-	     (not (eq (tramp-find-foreign-file-name-handler
-		       tramp-test-temporary-file-directory)
-		      'tramp-adb-file-name-handler)))
+  (when (cdr tramp--test-enabled-checked)
     ;; Cleanup connection.  We don't cleanup for adb, because it
     ;; doesn't behave well when is disconnect several times.
     (tramp-cleanup-connection
@@ -751,14 +748,11 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	  (write-region "foo" nil tmp-name4)
 	  (should (file-directory-p tmp-name1))
 	  (should (file-exists-p tmp-name4))
-	  ;; We do not care, whether file permissions and time stamps
-	  ;; are correct.  Sometimes, it is not possible to manage
-	  ;; them, for example in tramp-adb.el.
-	  (ignore-errors (copy-directory tmp-name1 tmp-name2))
+	  (copy-directory tmp-name1 tmp-name2)
 	  (should (file-directory-p tmp-name2))
 	  (should (file-exists-p tmp-name5))
 	  ;; Target directory does exist already.
-	  (ignore-errors (copy-directory tmp-name1 tmp-name2))
+	  (copy-directory tmp-name1 tmp-name2)
 	  (should (file-directory-p tmp-name3))
 	  (should (file-exists-p tmp-name6)))
       (ignore-errors

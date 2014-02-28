@@ -1,3 +1,46 @@
+2014-02-28  Martin Rudalics  <rudalics@gmx.at>
+
+	Revert recent with-temp-buffer-window change (Bug#16816, Bug#16882).
+	* window.el (with-temp-buffer-window): Revert change from
+	2014-02-21.  Suggested by Thierry Volpiatto
+	<thierry.volpiatto@gmail.com>.  Fix doc-string based on a
+	suggestion by Nicolas Richard <theonewiththeevillook@yahoo.fr>.
+	* help.el (with-help-window): Fix doc-string.
+
+2014-02-28  Ivan Kanis  <ivan@kanis.fr>
+
+	* net/shr.el (shr-put-image): Add custom variable
+	`shr-image-animate' to turn off image animation.  It is so slow it
+	will render emacs unusable.
+
+2014-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-adb.el (tramp-adb-parse-device-names):
+	Use `accept-process-output'.
+	(tramp-adb-handle-file-truename): Cache the localname only.
+	(tramp-adb-handle-make-directory)
+	(tramp-adb-handle-delete-directory): Flush file properties correctly.
+	(tramp-adb-handle-set-file-modes): Do not raise an error when file
+	modes cannot be changed.
+
+	* net/tramp-cache.el (tramp-flush-directory-property): Remove also
+	file properties of symlinks.
+
+2014-02-28  Per Starbäck  <starback@stp.lingfil.uu.se>
+
+	* textmodes/bibtex.el (bibtex-biblatex-entry-alist): Update
+	required/optional fields to match development biblatex.  (Bug#16781)
+
+2014-02-28  Andy Sawyer  <andy.sawyer@gmail.com>  (tiny change)
+
+	* saveplace.el (toggle-save-place):
+	Fix argument handling.  (Bug#16673)
+
+2014-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* minibuffer.el (completions-first-difference)
+	(completions-common-part, completion-hilit-commonality): Doc fixes.
+
 2014-02-28  Karl Berry  <karl@gnu.org>
 
 	* info.el (Info-mode-map): Add H for describe-mode,
@@ -3270,7 +3313,8 @@
 	* emacs-lisp/debug.el (debug): Use window-total-height instead
 	of window-total-size.
 	* frame.el (tool-bar-lines-needed): Defalias to tool-bar-height.
-	* help.el (describe-bindings-internal): Call help-buffer
+	* help.el (describe-bindings-internal): Use help-buffer as
+	argument for with-help-window.
 	(temp-buffer-max-width): New option.
 	(resize-temp-buffer-window, help-window-setup)
 	(with-help-window): Rewrite.

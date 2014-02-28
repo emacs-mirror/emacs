@@ -1192,13 +1192,12 @@ as a function to call to provide default values.
 The default `crm-separator' has been changed to allow surrounding spaces
 around the comma.
 
----
++++
 *** The `common-substring' argument of `display-completion-list',
 which has been documented as obsolete since Emacs 23.1, is now _really_
-obsolete, and no longer advertised.  Instead use either
-`completion-all-completions', which returns highlighted strings (including
-for partial or substring completion), or call `completion-hilit-commonality'
-to add the highlight.
+obsolete, and no longer advertised.  Instead either call
+`completion-hilit-commonality' to add the highlighting; or use
+`completion-all-completions', which returns highlighted strings.
 
 +++
 *** New function `completion-table-with-cache' is a wrapper for
