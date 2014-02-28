@@ -84,8 +84,7 @@ Type @kbd{H} to see a summary of all available commands.
 * Index::                       An index of topics, commands, and variables.
 @end menu
 
-@node Getting Started, Advanced, Top, Top
-@comment  node-name,  next,  previous,  up
+@node Getting Started
 @chapter Getting Started
 
 This first part of this Info manual describes how to get around inside
@@ -218,8 +217,7 @@ don't type the Return key afterward---to get to the normal start of
 the course.
 @end ifinfo
 
-@node Help, Help-P, Help-Small-Screen, Getting Started
-@comment  node-name,  next,  previous,  up
+@node Help
 @section How to use Info
 
 You are talking to the program Info, for reading documentation.
@@ -265,8 +263,7 @@ links.
    mouse button on the @samp{Next} link to do the same ``the mouse way''.
 @end format
 
-@node Help-P, Help-^L, Help, Getting Started
-@comment  node-name,  next,  previous,  up
+@node Help-P
 @section Returning to the Previous node
 
 @kindex p @r{(Info mode)}
@@ -298,8 +295,7 @@ coming up.
    the @samp{Next} link, to get to the node @samp{Help-^L} and learn more.
 @end format
 
-@node Help-^L, Help-Inv, Help-P, Getting Started
-@comment  node-name,  next,  previous,  up
+@node Help-^L
 @section The Space, DEL, B and ^L commands
 
   This node's mode line tells you that you are now at node
@@ -423,8 +419,7 @@ the same size screen, it would be impossible to warn you anyway.
    to visit the next node.
 @end format
 
-@node Help-Inv, Help-M, Help-^L, Getting Started
-@comment  node-name,  next,  previous,  up
+@node Help-Inv
 @section Invisible text in Emacs Info
 
   Before discussing menus, we need to make some remarks that are only
@@ -494,8 +489,7 @@ For instance, typing this sequence will come back here in three steps:
 
 Now type @kbd{]} to go to the next node and learn about menus.
 
-@node Help-M, Help-Xref, Help-Inv, Getting Started
-@comment  node-name,  next,  previous,  up
+@node Help-M
 @section Menus and the @kbd{m} command
 
 @cindex menus in an Info document
@@ -733,8 +727,7 @@ pointer shown in the header line (provided that you have a mouse).
 >> Now type @kbd{u} to move back up to @samp{Help-M}.
 @end format
 
-@node Help-Xref, Help-Int, Help-M, Getting Started
-@comment  node-name,  next,  previous,  up
+@node Help-Xref
 @section Following Cross-References
 
 @cindex cross references in Info documents
@@ -816,8 +809,7 @@ set @code{Info-hide-note-references} to a value other than @code{t}
 >> Now type @kbd{n} to learn more commands.
 @end format
 
-@node Help-Int, Help-Q, Help-Xref, Getting Started
-@comment  node-name,  next,  previous,  up
+@node Help-Int
 @section Some intermediate Info commands
 
   The introductory course is almost over; please continue
@@ -906,8 +898,7 @@ is @code{Info-top-node}.
 @c If a menu appears at the end of this node, remove it.
 @c It is an accident of the menu updating command.
 
-@node Help-Q,  , Help-Int, Getting Started
-@comment  node-name,  next,  previous,  up
+@node Help-Q
 @section Quitting Info
 
 @kindex q @r{(Info mode)}
@@ -966,8 +957,7 @@ an actual @samp{?} character, the simplest way is to insert it using
 @end menu
 
 
-@node Search Text, Search Index,  , Advanced
-@comment  node-name,  next,  previous,  up
+@node Search Text
 @section @kbd{s} searches Info documents
 
 @cindex searching Info documents
@@ -1008,8 +998,7 @@ emacs, The GNU Emacs Manual}.  In Emacs, you can disable this behavior
 by setting the variable @code{Info-isearch-search} to @code{nil}
 (@pxref{Emacs Info Variables}).
 
-@node Search Index, Go to node, Search Text, Advanced
-@comment  node-name,  next,  previous,  up
+@node Search Index
 @section @kbd{i} searches the indices for specific subjects
 
 @cindex searching Info indices
@@ -1061,8 +1050,7 @@ index-apropos} command in the stand-alone reader.  It prompts for
 a string and then looks up that string in all the indices of all the
 Info documents installed on your system.
 
-@node Go to node, Choose menu subtopic, Search Index, Advanced
-@comment  node-name,  next,  previous,  up
+@node Go to node
 @section @kbd{g} goes to a node by name
 
 @kindex g @r{(Info mode)}
@@ -1089,8 +1077,7 @@ top node of the Emacs manual.
 all of the current file by typing @kbd{g*@key{RET}} or all of any
 other file with @kbd{g(@var{filename})*@key{RET}}.
 
-@node Choose menu subtopic, Create Info buffer, Go to node, Advanced
-@comment  node-name,  next,  previous,  up
+@node Choose menu subtopic
 @section @kbd{1}--@kbd{9} choose a menu subtopic by its number
 
 @kindex 1 @r{through} 9 @r{(Info mode)}
@@ -1115,8 +1102,7 @@ underlining.  If you need to actually count items, it is better to use
 @kbd{m} instead, and specify the name, or use @key{TAB} to quickly
 move between menu items.
 
-@node Create Info buffer, Emacs Info Variables, Choose menu subtopic, Advanced
-@comment  node-name,  next,  previous,  up
+@node Create Info buffer
 @section @kbd{M-n} creates a new independent Info buffer in Emacs
 
 @kindex M-n @r{(Info mode)}
@@ -1145,8 +1131,7 @@ difficult to remember which buffer is showing which manual.  You can
 use the command @kbd{M-x info-display-manual} to show an Info manual
 by name, reusing an existing buffer if there is one.
 
-@node Emacs Info Variables, , Create Info buffer, Advanced
-@comment  node-name,  next,  previous,  up
+@node Emacs Info Variables
 @section Emacs Info-mode Variables
 
 The following variables may modify the behavior of Info-mode in Emacs;
@@ -1267,8 +1252,7 @@ here is how.
 * Checking::              Checking an Info File.
 @end menu
 
-@node Add, Menus,  , Expert Info
-@comment  node-name,  next,  previous,  up
+@node Add
 @section Adding a new node to Info
 
 To add a new topic to the list in the Info directory, you must:
@@ -1342,8 +1326,7 @@ node is in the same file, it was not necessary to use one.
 line.  The file names are ignored by Info, but they serve as comments
 to help identify the node for the user.
 
-@node Menus, Cross-refs, Add, Expert Info
-@comment  node-name,  next,  previous,  up
+@node Menus
 @section How to Create Menus
 
   Any node in the Info hierarchy may have a @dfn{menu}---a list of subnodes.
@@ -1398,8 +1381,7 @@ collector on the node graph, nothing terrible happens if a substructure
 is not pointed to, but such a substructure is rather useless since nobody
 can ever find out that it exists.
 
-@node Cross-refs, Tags, Menus, Expert Info
-@comment  node-name,  next,  previous,  up
+@node Cross-refs
 @section Creating Cross References
 
 @cindex cross reference format
@@ -1424,7 +1406,7 @@ really exist!
 @end menu
 
 
-@node Help-Cross,  ,  , Cross-refs
+@node Help-Cross
 @subsection The node reached by the cross reference in Info
 
   This is the node reached by the cross reference named @samp{Cross}.
@@ -1440,8 +1422,7 @@ cannot expect this node to have a @samp{Next}, @samp{Previous} or
 >> Type @kbd{l} to return to the node where the cross reference was.
 @end format
 
-@node Tags, Checking, Cross-refs, Expert Info
-@comment  node-name,  next,  previous,  up
+@node Tags
 @section Tags Tables for Info Files
 
 @cindex tags tables in Info files
@@ -1484,7 +1465,7 @@ the beginning of the node's header (ending just after the node name),
 a @samp{DEL} character, and the character position in the file of the
 beginning of the node.
 
-@node Checking, , Tags, Expert Info
+@node Checking
 @section Checking an Info File
 
 When creating an Info file, it is easy to forget the name of a node when

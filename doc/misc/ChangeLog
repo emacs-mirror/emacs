@@ -1,3 +1,7 @@
+2014-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* info.texi: Nuke hand-written node pointers.
+
 2014-02-28  Karl Berry  <karl@gnu.org>
 
 	* info.texi (Top): Mention H for a summary of all commands.
