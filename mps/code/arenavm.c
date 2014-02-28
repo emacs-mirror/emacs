@@ -532,9 +532,6 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   AVER(sizeof(vmArena->vmParams) == sizeof(vmParams));
   mps_lib_memcpy(vmArena->vmParams, vmParams, sizeof(vmArena->vmParams));
 
-  /* FIXME: Delete event?
-     EVENT2(ArenaBlacklistZone, vmArena, vmArena->blacklist); */
-  
   /* <design/arena/#coop-vm.struct.vmarena.extendby.init> */
   vmArena->extendBy = userSize;
   vmArena->extendMin = 0;
