@@ -335,7 +335,7 @@ static void testAllocAndIterate(Arena arena, Pool pool,
 }
 
 
-static void testPageTable(ArenaClass class, Size size, Addr addr)
+static void testPageTable(ArenaClass class, Size size, Addr addr, Bool zoned)
 {
   Arena arena; Pool pool;
   Size pageSize;
@@ -344,6 +344,7 @@ static void testPageTable(ArenaClass class, Size size, Addr addr)
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, addr);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, zoned);
     MPS_ARGS_DONE(args);
     die(ArenaCreate(&arena, class, args), "ArenaCreate");
   } MPS_ARGS_END(args);
@@ -402,14 +403,13 @@ int main(int argc, char *argv[])
   void *block;
   testlib_unused(argc);
 
-  testPageTable((ArenaClass)mps_arena_class_vm(), TEST_ARENA_SIZE, 0);
-#if 0 /* FIXME: Restore when arena can take an option */
-  testPageTable((ArenaClass)mps_arena_class_vmnz(), TEST_ARENA_SIZE, 0);
-#endif
+  testPageTable((ArenaClass)mps_arena_class_vm(), TEST_ARENA_SIZE, 0, TRUE);
+  testPageTable((ArenaClass)mps_arena_class_vm(), TEST_ARENA_SIZE, 0, FALSE);
 
   block = malloc(TEST_ARENA_SIZE);
   cdie(block != NULL, "malloc");
-  testPageTable((ArenaClass)mps_arena_class_cl(), TEST_ARENA_SIZE, block);
+  testPageTable((ArenaClass)mps_arena_class_cl(), TEST_ARENA_SIZE, block, TRUE);
+  testPageTable((ArenaClass)mps_arena_class_cl(), TEST_ARENA_SIZE, block, FALSE);
 
   testSize(TEST_ARENA_SIZE);
 
