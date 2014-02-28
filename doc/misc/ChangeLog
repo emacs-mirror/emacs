@@ -1,5 +1,9 @@
 2014-02-28  Glenn Morris  <rgm@gnu.org>
 
+	* info.texi (Further Reading): Rename node from Expert Info.
+	Remove stuff about writing Info nodes by hand.
+	(Help-Cross): Move node from (mainly deleted) chapter 3 to chapter 1.
+
 	* info.texi: Nuke hand-written node pointers.
 
 2014-02-28  Karl Berry  <karl@gnu.org>

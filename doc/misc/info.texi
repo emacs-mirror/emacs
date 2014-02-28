@@ -79,7 +79,7 @@ Type @kbd{H} to see a summary of all available commands.
 @menu
 * Getting Started::             Getting started using an Info reader.
 * Advanced::                    Advanced Info commands.
-* Expert Info::                 Info commands for experts.
+* Further Reading::             Where to learn more about Info files.
 * GNU Free Documentation License::  The license for this documentation.
 * Index::                       An index of topics, commands, and variables.
 @end menu
@@ -89,9 +89,8 @@ Type @kbd{H} to see a summary of all available commands.
 
 This first part of this Info manual describes how to get around inside
 of Info.  The second part of the manual describes various advanced
-Info commands.  The third part briefly explains how to generate Info
-files from Texinfo files, and describes how to write an Info file
-by hand.
+Info commands.  The third part contains references to other sources,
+which explain how to generate Info files from Texinfo files.
 
 @ifnotinfo
 This manual is primarily designed for browsing with an Info reader
@@ -809,6 +808,24 @@ set @code{Info-hide-note-references} to a value other than @code{t}
 >> Now type @kbd{n} to learn more commands.
 @end format
 
+
+@node Help-Cross, , , Help-Xref
+@subsection The node reached by the cross reference in Info
+
+  This is the node reached by the cross reference named @samp{Cross}.
+
+  While this node is specifically intended to be reached by a cross
+reference, most cross references lead to nodes that ``belong''
+someplace else far away in the structure of an Info document.  So you
+cannot expect this node to have a @samp{Next}, @samp{Previous} or
+@samp{Up} links pointing back to where you came from.  In general, the
+@kbd{l} (el) command is the only way to get back there.
+
+@format
+>> Type @kbd{l} to return to the node where the cross reference was.
+@end format
+
+
 @node Help-Int
 @section Some intermediate Info commands
 
@@ -1217,14 +1234,13 @@ this:
 @end vtable
 
 
-@node Expert Info
-@chapter Info for Experts
+@node Further Reading
+@chapter Further Reading
 @cindex Texinfo
 
-  This chapter explains how to write an Info file by hand.  However,
-in most cases, writing a Texinfo file is better, since you can use it
-to make a printed manual or produce other formats, such as HTML and
-DocBook, as well as for generating Info files.
+  Info files are created from Texinfo source files.  You can use the
+same source file to make a printed manual or produce other formats,
+such as HTML and DocBook.
 
 The @code{makeinfo} command converts a Texinfo file into an Info file;
 @code{texinfo-format-region} and @code{texinfo-format-buffer} are GNU
@@ -1239,250 +1255,6 @@ Format}, for how to create an Info file from a Texinfo file.
 @xref{Installing an Info File,,, texinfo, Texinfo: The GNU
 Documentation Format}, for how to install an Info file after you
 have created one.
-
-However, if you want to edit an Info file manually and install it manually,
-here is how.
-
-@menu
-* Add::                   Describes how to add new nodes to the hierarchy.
-                            Also tells what nodes look like.
-* Menus::                 How to add to or create menus in Info nodes.
-* Cross-refs::            How to add cross-references to Info nodes.
-* Tags::                  How to make tags tables for Info files.
-* Checking::              Checking an Info File.
-@end menu
-
-@node Add
-@section Adding a new node to Info
-
-To add a new topic to the list in the Info directory, you must:
-
-@enumerate
-@item
-Create some nodes, in some file, to document that topic.
-@item
-Put that topic in the menu in the directory.  @xref{Menus, Menu}.
-@end enumerate
-
-@cindex node delimiters
-  The new node can live in an existing documentation file, or in a new
-one.  It must have a @samp{^_} character before it (invisible to the
-user; this node has one but you cannot see it), and it ends with either
-a @samp{^_}, a @samp{^L} (``formfeed''), or the end of file.@footnote{If
-you put in a @samp{^L} to end a new node, be sure that there is a
-@samp{^_} after it to start the next one, since @samp{^L} cannot
-@emph{start} a node.  Also, a nicer way to make a node boundary be a
-page boundary as well is to put a @samp{^L} @emph{right after} the
-@samp{^_}.}
-
-  The @samp{^_} starting a node must be followed by a newline or a
-@samp{^L} newline, after which comes the node's header line.  The
-header line must give the node's name (by which Info finds it), and
-state the names of the @samp{Next}, @samp{Previous}, and @samp{Up}
-nodes (if there are any).  As you can see, this node's @samp{Up} node
-is the node @samp{Expert Info}.  The @samp{Next} node is @samp{Menus}.
-
-@cindex node header line format
-@cindex format of node headers
-  The keywords @dfn{Node}, @dfn{Next}, @dfn{Previous}, and @dfn{Up}
-may appear in any order, anywhere in the header line, but the
-recommended order is the one in this sentence.  Each keyword must be
-followed by a colon, spaces and tabs, and then the appropriate name.
-The name may be terminated with a tab, a comma, or a newline.  A space
-does not end it; node names may contain spaces.  The case of letters
-in the names is insignificant.
-
-@cindex node name format
-@cindex Directory node
-  A node name has two forms.  A node in the current file is named by
-what appears after the @samp{Node: } in that node's first line.  For
-example, this node's name is @samp{Add}.  A node in another file is
-named by @samp{(@var{filename})@var{node-within-file}}, as in
-@samp{(info)Add} for this node.  If the file name starts with @samp{./},
-then it is relative to the current directory; otherwise, it is
-relative starting from the standard directory for Info files of your
-site.  The name @samp{(@var{filename})Top} can be abbreviated to just
-@samp{(@var{filename})}.  By convention, the name @samp{Top} is used
-for the ``highest'' node in any single file---the node whose @samp{Up}
-points out of the file.  The @samp{Directory} node is @file{(dir)}, it
-points to a file @file{dir} which holds a large menu listing all the
-Info documents installed on your site.  The @samp{Top} node of a
-document file listed in the @samp{Directory} should have an @samp{Up:
-(dir)} in it.
-
-@cindex unstructured documents
-  The node name @kbd{*} is special: it refers to the entire file.
-Thus, @kbd{g*} shows you the whole current file.  The use of the
-node @kbd{*} is to make it possible to make old-fashioned,
-unstructured files into nodes of the tree.
-
-  The @samp{Node:} name, in which a node states its own name, must not
-contain a file name, since when Info searches for a node, it does not
-expect a file name to be there.  The @samp{Next}, @samp{Previous} and
-@samp{Up} names may contain them.  In this node, since the @samp{Up}
-node is in the same file, it was not necessary to use one.
-
-  Note that the nodes in this file have a file name in the header
-line.  The file names are ignored by Info, but they serve as comments
-to help identify the node for the user.
-
-@node Menus
-@section How to Create Menus
-
-  Any node in the Info hierarchy may have a @dfn{menu}---a list of subnodes.
-The @kbd{m} command searches the current node's menu for the topic which it
-reads from the terminal.
-
-@cindex menu and menu entry format
-  A menu begins with a line starting with @w{@samp{* Menu:}}.  The
-rest of the line is a comment.  After the starting line, every line
-that begins with a @samp{* } lists a single topic.  The name of the
-topic---what the user must type at the @kbd{m}'s command prompt to
-select this topic---comes right after the star and space, and is
-followed by a colon, spaces and tabs, and the name of the node which
-discusses that topic.  The node name, like node names following
-@samp{Next}, @samp{Previous} and @samp{Up}, may be terminated with a
-tab, comma, or newline; it may also be terminated with a period.
-
-  If the node name and topic name are the same, then rather than
-giving the name twice, the abbreviation @samp{* @var{name}::} may be
-used (and should be used, whenever possible, as it reduces the visual
-clutter in the menu).
-
-  It is considerate to choose the topic names so that they differ
-from each other very near the beginning---this allows the user to type
-short abbreviations.  In a long menu, it is a good idea to capitalize
-the beginning of each item name which is the minimum acceptable
-abbreviation for it (a long menu is more than 5 or so entries).
-
-  The nodes listed in a node's menu are called its ``subnodes,'' and it
-is their ``superior''.  They should each have an @samp{Up:} pointing at
-the superior.  It is often useful to arrange all or most of the subnodes
-in a sequence of @samp{Next} and @samp{Previous} pointers so that
-someone who wants to see them all need not keep revisiting the Menu.
-
-  The Info Directory is simply the menu of the node @samp{(dir)Top}---that
-is, node @samp{Top} in file @file{.../info/dir}.  You can put new entries
-in that menu just like any other menu.  The Info Directory is @emph{not} the
-same as the file directory called @file{info}.  It happens that many of
-Info's files live in that file directory, but they do not have to; and
-files in that directory are not automatically listed in the Info
-Directory node.
-
-  Also, although the Info node graph is claimed to be a ``hierarchy,''
-in fact it can be @emph{any} directed graph.  Shared structures and
-pointer cycles are perfectly possible, and can be used if they are
-appropriate to the meaning to be expressed.  There is no need for all
-the nodes in a file to form a connected structure.  In fact, this file
-has two connected components.  You are in one of them, which is under
-the node @samp{Top}; the other contains the node @samp{Help} which the
-@kbd{h} command goes to.  In fact, since there is no garbage
-collector on the node graph, nothing terrible happens if a substructure
-is not pointed to, but such a substructure is rather useless since nobody
-can ever find out that it exists.
-
-@node Cross-refs
-@section Creating Cross References
-
-@cindex cross reference format
-  A cross reference can be placed anywhere in the text, unlike a menu
-item which must go at the front of a line.  A cross reference looks
-like a menu item except that it has @samp{*note} instead of @samp{*}.
-It @emph{cannot} be terminated by a @samp{)}, because @samp{)}'s are
-so often part of node names.  If you wish to enclose a cross reference
-in parentheses, terminate it with a period first.  Here are two
-examples of cross references pointers:
-
-@example
-*Note details: commands.  (See *note 3: Full Proof.)
-@end example
-
-@noindent
-@emph{These are just examples.}  The places they ``lead to'' do not
-really exist!
-
-@menu
-* Help-Cross::                  Target of a cross-reference.
-@end menu
-
-
-@node Help-Cross
-@subsection The node reached by the cross reference in Info
-
-  This is the node reached by the cross reference named @samp{Cross}.
-
-  While this node is specifically intended to be reached by a cross
-reference, most cross references lead to nodes that ``belong''
-someplace else far away in the structure of an Info document.  So you
-cannot expect this node to have a @samp{Next}, @samp{Previous} or
-@samp{Up} links pointing back to where you came from.  In general, the
-@kbd{l} (el) command is the only way to get back there.
-
-@format
->> Type @kbd{l} to return to the node where the cross reference was.
-@end format
-
-@node Tags
-@section Tags Tables for Info Files
-
-@cindex tags tables in Info files
-  You can speed up the access to nodes of a large Info file by giving
-it a tags table.  Unlike the tags table for a program, the tags table for
-an Info file lives inside the file itself and is used
-automatically whenever Info reads in the file.
-
-@findex Info-tagify
-  To make a tags table, go to a node in the file using Emacs Info mode and type
-@kbd{M-x Info-tagify}.  Then you must use @kbd{C-x C-s} to save the
-file.  Info files produced by the @code{makeinfo} command that is part
-of the Texinfo package always have tags tables to begin with.
-
-@cindex stale tags tables
-@cindex update Info tags table
-  Once the Info file has a tags table, you must make certain it is up
-to date.  If you edit an Info file directly (as opposed to editing its
-Texinfo source), and, as a result of deletion of text, any node moves back
-more than a thousand characters in the file from the position
-recorded in the tags table, Info will no longer be able to find that
-node.  To update the tags table, use the @code{Info-tagify} command
-again.
-
-  An Info file tags table appears at the end of the file and looks like
-this:
-
-@example
-^_^L
-Tag Table:
-File: info, Node: Cross-refs^?21419
-File: info,  Node: Tags^?22145
-^_
-End Tag Table
-@end example
-
-@noindent
-Note that it contains one line per node, and this line contains
-the beginning of the node's header (ending just after the node name),
-a @samp{DEL} character, and the character position in the file of the
-beginning of the node.
-
-@node Checking
-@section Checking an Info File
-
-When creating an Info file, it is easy to forget the name of a node when
-you are making a pointer to it from another node.  If you put in the
-wrong name for a node, this is not detected until someone tries to go
-through the pointer using Info.  Verification of the Info file is an
-automatic process which checks all pointers to nodes and reports any
-pointers which are invalid.  Every @samp{Next}, @samp{Previous}, and
-@samp{Up} is checked, as is every menu item and every cross reference.  In
-addition, any @samp{Next} which does not have a @samp{Previous} pointing
-back is reported.  Only pointers within the file are checked, because
-checking pointers to other files would be terribly slow.  But those are
-usually few.
-
-@findex Info-validate
-To check an Info file, do @kbd{M-x Info-validate} while looking at any
-node of the file with Emacs Info mode.
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
