@@ -1,3 +1,8 @@
+2014-02-28  Emilio C. Lopes  <eclig@gmx.net>
+
+	* progmodes/sql.el (sql-interactive-mode):
+	Avoid setting global comint-input-ring-separator.  (Bug#16814)
+
 2014-02-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus--init-bus): Declare function.
