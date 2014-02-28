@@ -70,6 +70,7 @@ Bool CBSCheck(CBS cbs)
   CHECKL(SplayTreeCheck(splayTreeOfCBS(cbs)));
   /* nothing to check about splayTreeSize */
   CHECKD(Pool, cbs->blockPool);
+  CHECKU(Arena, cbs->arena);
   CHECKL(BoolCheck(cbs->fastFind));
   CHECKL(BoolCheck(cbs->inCBS));
   CHECKL(BoolCheck(cbs->ownPool));
@@ -198,6 +199,48 @@ static void cbsUpdateNode(SplayTree tree, SplayNode node,
 }
 
 
+/* cbsUpdateZonedNode -- update size and zone info after restructuring */
+
+static void cbsUpdateZonedNode(SplayTree tree, SplayNode node,
+                               SplayNode leftChild, SplayNode rightChild)
+{
+  Size maxSize;
+  ZoneSet zones;
+  CBSBlock block;
+  Arena arena;
+
+  AVERT(SplayTree, tree);
+  AVERT(SplayNode, node);
+  if (leftChild != NULL)
+    AVERT(SplayNode, leftChild);
+  if (rightChild != NULL)
+    AVERT(SplayNode, rightChild);
+  AVER(cbsOfSplayTree(tree)->fastFind);
+
+  block = cbsBlockOfSplayNode(node);
+  maxSize = CBSBlockSize(block);
+  arena = cbsOfSplayTree(tree)->arena;
+  zones = ZoneSetOfRange(arena, CBSBlockBase(block), CBSBlockLimit(block));
+
+  if (leftChild != NULL) {
+    Size size = cbsBlockOfSplayNode(leftChild)->maxSize;
+    if (size > maxSize)
+      maxSize = size;
+    zones = ZoneSetUnion(zones, cbsBlockOfSplayNode(leftChild)->zones);
+  }
+
+  if (rightChild != NULL) {
+    Size size = cbsBlockOfSplayNode(rightChild)->maxSize;
+    if (size > maxSize)
+      maxSize = size;
+    zones = ZoneSetUnion(zones, cbsBlockOfSplayNode(rightChild)->zones);
+  }
+
+  block->maxSize = maxSize;
+  block->zones = zones;
+}
+
+
 /* CBSInit -- Initialise a CBS structure
  *
  * See <design/cbs/#function.cbs.init>.
@@ -207,15 +250,21 @@ ARG_DEFINE_KEY(cbs_extend_by, Size);
 ARG_DEFINE_KEY(cbs_block_pool, Pool);
 
 Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
-            Bool fastFind, ArgList args)
+            Bool fastFind, Bool zoned, ArgList args)
 {
   Size extendBy = CBS_EXTEND_BY_DEFAULT;
   Bool extendSelf = TRUE;
   ArgStruct arg;
   Res res;
   Pool blockPool = NULL;
+  SplayUpdateNodeMethod update;
 
   AVERT(Arena, arena);
+  AVER(cbs != NULL);
+  AVER(AlignCheck(alignment));
+  AVER(BoolCheck(fastFind));
+  AVER(BoolCheck(zoned));
+  
 
   if (ArgPick(&arg, args, CBSBlockPool))
     blockPool = arg.val.pool;
@@ -224,8 +273,15 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
   if (ArgPick(&arg, args, MFSExtendSelf))
     extendSelf = arg.val.b;
 
-  SplayTreeInit(splayTreeOfCBS(cbs), &cbsSplayCompare,
-                fastFind ? &cbsUpdateNode : NULL);
+  update = NULL;
+  if (fastFind)
+    update = cbsUpdateNode;
+  if (zoned) {
+    AVER(fastFind);
+    update = cbsUpdateZonedNode;
+  }
+
+  SplayTreeInit(splayTreeOfCBS(cbs), cbsSplayCompare, update);
 
   if (blockPool != NULL) {
     cbs->blockPool = blockPool;
@@ -245,7 +301,9 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
 
   cbs->splayTreeSize = 0;
 
+  cbs->arena = arena;
   cbs->fastFind = fastFind;
+  cbs->zoned = zoned;
   cbs->alignment = alignment;
   cbs->inCBS = TRUE;
 
@@ -812,6 +870,20 @@ static Bool cbsTestNodeInZones(SplayTree tree, SplayNode node,
                         closure->arena, closure->zoneSet, closure->size);
 }
 
+static Bool cbsTestTreeInZones(SplayTree tree, SplayNode node,
+                               void *closureP, Size closureSize)
+{
+  CBSBlock block = cbsBlockOfSplayNode(node);
+  cbsTestNodeInZonesClosure closure = closureP;
+  
+  UNUSED(tree);
+  AVER(closureSize == sizeof(cbsTestNodeInZonesClosureStruct));
+  UNUSED(closureSize);
+  
+  return block->maxSize >= closure->size &&
+         ZoneSetInter(block->zones, closure->zoneSet) != ZoneSetEMPTY;
+}
+
 static Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
                           CBS cbs, Size size,
                           Arena arena, ZoneSet zoneSet,
@@ -855,7 +927,7 @@ static Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
   closure.size = size;
   if (splayFind(&node, splayTreeOfCBS(cbs),
                 &cbsTestNodeInZones,
-                &cbsTestTree,
+                &cbsTestTreeInZones,
                 &closure, sizeof(closure))) {
     CBSBlock block = cbsBlockOfSplayNode(node);
     RangeStruct rangeStruct, oldRangeStruct;

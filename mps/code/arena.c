@@ -9,7 +9,6 @@
 #include "poolmv.h"
 #include "mpm.h"
 #include "cbs.h"
-#include "zonedcbs.h"
 #include "bt.h"
 #include "poolmfs.h"
 #include "mpscmfs.h"
@@ -155,7 +154,7 @@ Bool ArenaCheck(Arena arena)
 
   CHECKL(BoolCheck(arena->hasFreeCBS));
   if (arena->hasFreeCBS)
-    ZonedCBSCheck(ArenaZonedCBS(arena));
+    CBSCheck(ArenaZonedCBS(arena));
 
   return TRUE;
 }
@@ -221,11 +220,18 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment)
   if (res != ResOK)
     goto failMFSInit;
 
-  res = ZonedCBSInit(ArenaZonedCBS(arena), arena, ArenaCBSBlockPool(arena),
-                     ArenaAlign(arena));
+  /* Initialise the freeCBS. */
+  MPS_ARGS_BEGIN(cbsiArgs) {
+    MPS_ARGS_ADD(cbsiArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
+    MPS_ARGS_DONE(cbsiArgs);
+    res = CBSInit(arena, ArenaZonedCBS(arena), arena, alignment, TRUE, TRUE, cbsiArgs);
+  } MPS_ARGS_END(cbsiArgs);
+  AVER(res == ResOK); /* no allocation, no failure expected */
   if (res != ResOK)
     goto failCBSInit;
-  
+  /* Note that although freeCBS is initialised, it doesn't have any memory
+     for its blocks, so hasFreeCBS remains FALSE until later. */
+
   /* initialize the reservoir, <design/reservoir/> */
   res = ReservoirInit(&arena->reservoirStruct, arena);
   if (res != ResOK)
@@ -235,7 +241,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment)
   return ResOK;
 
 failReservoirInit:
-  ZonedCBSFinish(ArenaZonedCBS(arena));
+  CBSFinish(ArenaZonedCBS(arena));
 failCBSInit:
   PoolFinish(ArenaCBSBlockPool(arena));
 failMFSInit:
@@ -364,7 +370,7 @@ void ArenaDestroy(Arena arena)
      containing CBS blocks might be allocated in those chunks. */
   AVER(arena->hasFreeCBS);
   arena->hasFreeCBS = FALSE;
-  ZonedCBSFinish(ArenaZonedCBS(arena));
+  CBSFinish(ArenaZonedCBS(arena));
 
   /* The CBS block pool can't free its own memory via ArenaFree because
      that would use the ZonedCBS. */
@@ -675,7 +681,7 @@ static void arenaExcludePage(Arena arena, Range pageRange)
   RangeStruct oldRange;
   Res res;
 
-  res = ZonedCBSDelete(&oldRange, ArenaZonedCBS(arena), pageRange);
+  res = CBSDelete(&oldRange, ArenaZonedCBS(arena), pageRange);
   AVER(res == ResOK); /* we just gave memory to the CBSs */
 }
 
@@ -696,7 +702,7 @@ static Res arenaCBSInsert(Range rangeReturn, Arena arena, Range range)
   AVERT(Arena, arena);
   AVERT(Range, range);
 
-  res = ZonedCBSInsert(rangeReturn, ArenaZonedCBS(arena), range);
+  res = CBSInsert(rangeReturn, ArenaZonedCBS(arena), range);
 
   if (res == ResLIMIT) { /* freeCBS MFS pool ran out of blocks */
     RangeStruct pageRange;
@@ -704,8 +710,8 @@ static Res arenaCBSInsert(Range rangeReturn, Arena arena, Range range)
     if (res != ResOK)
       return res;
     /* Must insert before exclude so that we can bootstrap when the
-       ZonedCBS is empty. */
-    res = ZonedCBSInsert(rangeReturn, ArenaZonedCBS(arena), range);
+       zoned CBS is empty. */
+    res = CBSInsert(rangeReturn, ArenaZonedCBS(arena), range);
     AVER(res == ResOK); /* we just gave memory to the CBSs */
     arenaExcludePage(arena, &pageRange);
   }
@@ -752,7 +758,7 @@ static void arenaCBSInsertSteal(Range rangeReturn, Arena arena, Range rangeIO)
     MFSExtend(ArenaCBSBlockPool(arena), pageBase, ArenaAlign(arena));
 
     /* Try again. */
-    res = ZonedCBSInsert(rangeReturn, ArenaZonedCBS(arena), rangeIO);
+    res = CBSInsert(rangeReturn, ArenaZonedCBS(arena), rangeIO);
     AVER(res == ResOK); /* we just gave memory to the CBS */
   }
 
@@ -803,7 +809,7 @@ void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit)
   Res res;
 
   RangeInit(&range, base, limit);
-  res = ZonedCBSDelete(&oldRange, ArenaZonedCBS(arena), &range);
+  res = CBSDelete(&oldRange, ArenaZonedCBS(arena), &range);
   
   /* Shouldn't be any other kind of failure because we were only deleting
      a non-coalesced block.  See .chunk.no-coalesce. */
@@ -823,6 +829,7 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
   Count pages;
   Res res;
   FindDelete fd;
+  CBSFindInZonesMethod find;
   
   AVER(tractReturn != NULL);
   /* ZoneSet is arbitrary */
@@ -834,8 +841,8 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
   /* Step 1. Find a range of address space. */
 
   fd = high ? FindDeleteHIGH : FindDeleteLOW;
-  res = ZonedCBSFind(&range, &oldRange, ArenaZonedCBS(arena),
-                     zones, size, fd, high);
+  find = high ? CBSFindLastInZones : CBSFindFirstInZones;
+  res = find(&range, &oldRange, ArenaZonedCBS(arena), size, arena, zones);
 
   if (res == ResLIMIT) { /* found block, but couldn't store info */
     RangeStruct pageRange;
@@ -843,8 +850,7 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
     if (res != ResOK) /* disasterously short on memory */
       return res;
     arenaExcludePage(arena, &pageRange);
-    res = ZonedCBSFind(&range, &oldRange, ArenaZonedCBS(arena),
-                       zones, size, fd, high);
+    res = find(&range, &oldRange, ArenaZonedCBS(arena), size, arena, zones);
     AVER(res != ResLIMIT);
   }
 
@@ -876,7 +882,7 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
 failMark:
    NOTREACHED; /* FIXME */
    {
-     Res insertRes = ZonedCBSInsert(&oldRange, ArenaZonedCBS(arena), &range);
+     Res insertRes = CBSInsert(&oldRange, ArenaZonedCBS(arena), &range);
      AVER(insertRes == ResOK); /* We only just deleted it. */
      /* If the insert does fail, we lose some address space permanently. */
    }

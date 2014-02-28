@@ -1250,8 +1250,6 @@
 		3114A6BA156E9768001E0AA3 /* walkt0.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = walkt0.c; sourceTree = "<group>"; };
 		3114A6C6156E9815001E0AA3 /* mpseventcnv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mpseventcnv; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A6D0156E9829001E0AA3 /* eventcnv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = eventcnv.c; sourceTree = "<group>"; };
-		3115E70118BED7E000385449 /* zonedcbs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zonedcbs.h; sourceTree = "<group>"; };
-		3115E70218BEDA1100385449 /* zonedcbs.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zonedcbs.c; sourceTree = "<group>"; };
 		31160D921899540D0071EB17 /* abq.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = abq.txt; path = ../design/abq.txt; sourceTree = "<group>"; };
 		31160D931899540D0071EB17 /* alloc-frame.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "alloc-frame.txt"; path = "../design/alloc-frame.txt"; sourceTree = "<group>"; };
 		31160D941899540D0071EB17 /* arena.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = arena.txt; path = ../design/arena.txt; sourceTree = "<group>"; };
@@ -2137,8 +2135,6 @@
 				31EEAC0E156AB27B00714D05 /* walk.c */,
 				3112ED3A18ABC57F00CC531A /* sa.h */,
 				3112ED3B18ABC75200CC531A /* sa.c */,
-				3115E70118BED7E000385449 /* zonedcbs.h */,
-				3115E70218BEDA1100385449 /* zonedcbs.c */,
 			);
 			name = "MPM Core";
 			sourceTree = "<group>";
