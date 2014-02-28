@@ -1185,6 +1185,7 @@ as a function to call to provide default values.
 The default `crm-separator' has been changed to allow surrounding spaces
 around the comma.
 
+---
 *** The `common-substring' argument of `display-completion-list',
 which has been documented as obsolete since Emacs 23.1, is now _really_
 obsolete, and no longer advertised.  Instead use either
@@ -1200,6 +1201,7 @@ to add the highlight.
 *** New function `completion-table-merge' to combine several
 completion tables by merging their completions.
 
++++
 ** New minor modes `prettify-symbols-mode' and `global-prettify-symbols-mode'
 display specified symbols as composed characters.  E.g., in Emacs Lisp mode,
 this replaces the string "lambda" with the Greek lambda character.

@@ -670,6 +670,7 @@ Editing Programs
 * Symbol Completion::   Completion on symbol names of your program or language.
 * MixedCase Words::     Dealing with identifiersLikeThis.
 * Semantic::            Suite of editing tools based on source code parsing.
+* Prettifying Symbols:: Display symbols as composed characters.
 * Misc for Programs::   Other Emacs features useful for editing programs.
 * C Modes::             Special commands of C, C++, Objective-C,
                           Java, IDL, Pike and AWK modes.
