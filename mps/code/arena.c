@@ -889,9 +889,8 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
   return ResOK;
 
 failMark:
-   NOTREACHED; /* FIXME: error path */
    {
-     Res insertRes = CBSInsert(&oldRange, ArenaZonedCBS(arena), &range);
+     Res insertRes = arenaCBSInsert(&oldRange, arena, &range);
      AVER(insertRes == ResOK); /* We only just deleted it. */
      /* If the insert does fail, we lose some address space permanently. */
    }
