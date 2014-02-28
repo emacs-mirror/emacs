@@ -105,20 +105,20 @@ Each element has the form (KEYWORD . DESCRIPTION).")
       '(menu-item "Select" finder-select
 		  :help "Select item on current line in a finder buffer"))
     map)
-  "Keymap used in `finder-mode'.")
+  "Keymap used in Finder mode.")
 
 (defvar finder-mode-syntax-table
   (let ((st (make-syntax-table emacs-lisp-mode-syntax-table)))
     (modify-syntax-entry ?\; ".   " st)
     st)
-  "Syntax table used while in `finder-mode'.")
+  "Syntax table used while in Finder mode.")
 
 (defvar finder-font-lock-keywords
   '(("`\\([^'`]+\\)'" 1 font-lock-constant-face prepend))
   "Font-lock keywords for Finder mode.")
 
 (defvar finder-headmark nil
-  "Internal finder-mode variable, local in finder buffer.")
+  "Internal Finder mode variable, local in Finder buffer.")
 
 ;;; Code for regenerating the keyword list.
 
@@ -384,7 +384,7 @@ FILE should be in a form suitable for passing to `locate-library'."
       key)))
 
 (defun finder-select ()
-  "Select item on current line in a finder buffer."
+  "Select item on current line in a Finder buffer."
   (interactive)
   (let ((key (finder-current-item)))
       (if (string-match "\\.el$" key)
@@ -392,7 +392,7 @@ FILE should be in a form suitable for passing to `locate-library'."
 	(finder-list-matches key))))
 
 (defun finder-mouse-select (event)
-  "Select item in a finder buffer with the mouse."
+  "Select item in a Finder buffer with the mouse."
   (interactive "e")
   (with-current-buffer (window-buffer (posn-window (event-start event)))
     (goto-char (posn-point (event-start event)))

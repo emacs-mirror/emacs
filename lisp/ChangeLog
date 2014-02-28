@@ -1,8 +1,16 @@
+2014-02-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dframe.el (dframe-detach):
+	* find-dired.el (find-dired, find-name-dired):
+	* finder.el (finder-mode-map, finder-mode-syntax-table)
+	(finder-headmark, finder-select, finder-mouse-select):
+	Fix docstring typos.
+
 2014-02-28  Martin Rudalics  <rudalics@gmx.at>
 
 	Revert recent with-temp-buffer-window change (Bug#16816, Bug#16882).
 	* window.el (with-temp-buffer-window): Revert change from
-	2014-02-21.  Suggested by Thierry Volpiatto
+	2014-02-21.  Suggested by Thierry Volpiatto.
 	<thierry.volpiatto@gmail.com>.  Fix doc-string based on a
 	suggestion by Nicolas Richard <theonewiththeevillook@yahoo.fr>.
 	* help.el (with-help-window): Fix doc-string.
