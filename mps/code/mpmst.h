@@ -612,8 +612,8 @@ typedef struct GlobalsStruct {
 #define CBSSig ((Sig)0x519CB599) /* SIGnature CBS */
 
 typedef struct CBSStruct {
-  SplayTreeStruct splayTree;
-  STATISTIC_DECL(Count splayTreeSize);
+  SplayTreeStruct tree;
+  STATISTIC_DECL(Count treeSize);
   Arena arena;
   Pool blockPool;
   Align alignment;
@@ -622,7 +622,7 @@ typedef struct CBSStruct {
   Bool inCBS;                   /* prevent reentrance */
   Bool ownPool;                 /* did we create blockPool? */
   /* meters for sizes of search structures at each op */
-  METER_DECL(splaySearch);
+  METER_DECL(treeSearch);
   Sig sig; /* sig at end because embeded */
 } CBSStruct;
 
