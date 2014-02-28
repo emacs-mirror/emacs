@@ -1,3 +1,8 @@
+2014-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* doc.c (Fsnarf_documentation): Snarf not-yet-bound variables
+	from custom-delayed-init-variables.  (Bug#11565)
+
 2014-02-27  Martin Rudalics  <rudalics@gmx.at>
 
 	More fixes for mouse glyph calculations (Bug#16647).
