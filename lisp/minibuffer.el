@@ -1576,15 +1576,26 @@ See also `display-completion-list'.")
 
 (defface completions-first-difference
   '((t (:inherit bold)))
-  "Face added on the first uncommon character in completions in *Completions* buffer.")
+  "Face for the first uncommon character in completions.
+See also the face `completions-common-part'.")
 
 (defface completions-common-part '((t nil))
-  "Face added on the common prefix substring in completions in *Completions* buffer.
-The idea of `completions-common-part' is that you can use it to
-make the common parts less visible than normal, so that the rest
-of the differing parts is, by contrast, slightly highlighted.")
+  "Face for the common prefix substring in completions.
+The idea of this face is that you can use it to make the common parts
+less visible than normal, so that the differing parts are emphasized
+by contrast.
+See also the face `completions-first-difference'.")
 
 (defun completion-hilit-commonality (completions prefix-len base-size)
+  "Apply font-lock highlighting to a list of completions, COMPLETIONS.
+PREFIX-LEN is an integer.  BASE-SIZE is an integer or nil (meaning zero).
+
+This adds the face `completions-common-part' to the first
+\(PREFIX-LEN - BASE-SIZE) characters of each completion, and the face
+`completions-first-difference' to the first character after that.
+
+It returns a list with font-lock properties applied to each element,
+and with BASE-SIZE appended as the last element."
   (when completions
     (let ((com-str-len (- prefix-len (or base-size 0))))
       (nconc
