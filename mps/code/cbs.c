@@ -204,7 +204,6 @@ static void cbsUpdateNode(SplayTree tree, SplayNode node,
 static void cbsUpdateZonedNode(SplayTree tree, SplayNode node,
                                SplayNode leftChild, SplayNode rightChild)
 {
-  Size maxSize;
   ZoneSet zones;
   CBSBlock block;
   Arena arena;
@@ -216,27 +215,20 @@ static void cbsUpdateZonedNode(SplayTree tree, SplayNode node,
   if (rightChild != NULL)
     AVERT_CRITICAL(SplayNode, rightChild);
   AVER_CRITICAL(cbsOfSplayTree(tree)->fastFind);
+  AVER_CRITICAL(cbsOfSplayTree(tree)->zoned);
+
+  cbsUpdateNode(tree, node, leftChild, rightChild);
 
   block = cbsBlockOfSplayNode(node);
-  maxSize = CBSBlockSize(block);
   arena = cbsOfSplayTree(tree)->arena;
   zones = ZoneSetOfRange(arena, CBSBlockBase(block), CBSBlockLimit(block));
 
-  if (leftChild != NULL) {
-    Size size = cbsBlockOfSplayNode(leftChild)->maxSize;
-    if (size > maxSize)
-      maxSize = size;
+  if (leftChild != NULL)
     zones = ZoneSetUnion(zones, cbsBlockOfSplayNode(leftChild)->zones);
-  }
 
-  if (rightChild != NULL) {
-    Size size = cbsBlockOfSplayNode(rightChild)->maxSize;
-    if (size > maxSize)
-      maxSize = size;
+  if (rightChild != NULL)
     zones = ZoneSetUnion(zones, cbsBlockOfSplayNode(rightChild)->zones);
-  }
 
-  block->maxSize = maxSize;
   block->zones = zones;
 }
 
@@ -249,7 +241,7 @@ static void cbsUpdateZonedNode(SplayTree tree, SplayNode node,
 ARG_DEFINE_KEY(cbs_extend_by, Size);
 ARG_DEFINE_KEY(cbs_block_pool, Pool);
 
-Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
+Res CBSInit(CBS cbs, Arena arena, void *owner, Align alignment,
             Bool fastFind, Bool zoned, ArgList args)
 {
   Size extendBy = CBS_EXTEND_BY_DEFAULT;
@@ -264,7 +256,6 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
   AVER(AlignCheck(alignment));
   AVER(BoolCheck(fastFind));
   AVER(BoolCheck(zoned));
-  
 
   if (ArgPick(&arg, args, CBSBlockPool))
     blockPool = arg.val.pool;
@@ -300,7 +291,6 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
   }
 
   cbs->splayTreeSize = 0;
-
   cbs->arena = arena;
   cbs->fastFind = fastFind;
   cbs->zoned = zoned;
@@ -362,8 +352,6 @@ static void cbsBlockDelete(CBS cbs, CBSBlock block)
   block->limit = block->base;
 
   PoolFree(cbsBlockPool(cbs), (Addr)block, sizeof(CBSBlockStruct));
-
-  return;
 }
 
 static void cbsBlockShrunk(CBS cbs, CBSBlock block, Size oldSize)
@@ -548,6 +536,9 @@ fail:
 /* CBSInsert -- Insert a range into the CBS
  *
  * See <design/cbs/#functions.cbs.insert>.
+ *
+ * .insert.alloc: Will only allocate a block if the range does not
+ * abut an existing range.
  */
 
 Res CBSInsert(Range rangeReturn, CBS cbs, Range range)
@@ -648,6 +639,9 @@ failSplayTreeSearch:
 /* CBSDelete -- Remove a range from a CBS
  *
  * See <design/cbs/#function.cbs.delete>.
+ *
+ * .delete.alloc: Will only allocate a block if the range splits
+ * an existing range.
  */
 
 Res CBSDelete(Range rangeReturn, CBS cbs, Range range)
@@ -885,7 +879,7 @@ static Bool cbsTestTreeInZones(SplayTree tree, SplayNode node,
 
 Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
                    CBS cbs, Size size,
-                   Arena arena, ZoneSet zoneSet, Bool high)
+                   ZoneSet zoneSet, Bool high)
 {
   SplayNode node;
   cbsTestNodeInZonesClosureStruct closure;
@@ -908,7 +902,7 @@ Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
     return ResFAIL;
   if (zoneSet == ZoneSetUNIV)
     return cbsFind(rangeReturn, oldRangeReturn, cbs, size, FindDeleteLOW);
-  if (ZoneSetIsSingle(zoneSet) && size > ArenaStripeSize(arena))
+  if (ZoneSetIsSingle(zoneSet) && size > ArenaStripeSize(cbs->arena))
     return ResFAIL;
 
   /* It would be nice if there were a neat way to eliminate all runs of
@@ -916,7 +910,7 @@ Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
 
   cbsEnter(cbs);
 
-  closure.arena = arena;
+  closure.arena = cbs->arena;
   closure.zoneSet = zoneSet;
   closure.size = size;
   if (splayFind(&node, splayTreeOfCBS(cbs),
@@ -928,7 +922,7 @@ Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
 
     AVER(CBSBlockBase(block) <= closure.base);
     AVER(AddrOffset(closure.base, closure.limit) >= size);
-    AVER(ZoneSetSub(ZoneSetOfRange(arena, closure.base, closure.limit), zoneSet));
+    AVER(ZoneSetSub(ZoneSetOfRange(cbs->arena, closure.base, closure.limit), zoneSet));
     AVER(closure.limit <= CBSBlockLimit(block));
 
     RangeInit(&rangeStruct, closure.base, AddrAdd(closure.base, size));
