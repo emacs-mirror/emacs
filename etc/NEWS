@@ -537,6 +537,7 @@ if your version doesn't support that option.  See option `cfengine-cf-promises'.
 after `desktop-auto-save-timeout'.  To disable this, customize that option
 to nil (or zero).
 
++++
 *** `desktop-restore-frames', enabled by default, allows saving and
 restoring the frame/window configuration (frameset).  Additional options
 `desktop-restore-in-current-display', `desktop-restore-reuses-frames'

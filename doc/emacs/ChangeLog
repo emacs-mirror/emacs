@@ -1,3 +1,7 @@
+2014-02-28  Xue Fuqiao  <xfq@gnu.org>
+
+	* misc.texi (Saving Emacs Sessions): Document some new desktop user options.
+
 2014-02-27  Xue Fuqiao  <xfq@gnu.org>
 
 	* programs.texi (Basic Indent):
