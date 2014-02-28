@@ -1220,6 +1220,8 @@
 		3104B02F156D39F2000A585A /* amssshe.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = amssshe.c; sourceTree = "<group>"; };
 		3104B03D156D3AD7000A585A /* segsmss */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = segsmss; sourceTree = BUILT_PRODUCTS_DIR; };
 		3107DC4E173B03D100F705C8 /* arg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = arg.h; sourceTree = "<group>"; };
+		310F5D7118B6675F007EFCBC /* tree.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tree.c; sourceTree = "<group>"; };
+		310F5D7218B6675F007EFCBC /* tree.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tree.h; sourceTree = "<group>"; };
 		3112ED3A18ABC57F00CC531A /* sa.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sa.h; sourceTree = "<group>"; };
 		3112ED3B18ABC75200CC531A /* sa.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sa.c; sourceTree = "<group>"; };
 		3114A590156E913C001E0AA3 /* locv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = locv; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2117,6 +2119,8 @@
 				31EEAC30156AB2F200714D05 /* ring.c */,
 				311F2F7317398B7100C15B6A /* ring.h */,
 				31EEAC1C156AB2B200714D05 /* root.c */,
+				3112ED3B18ABC75200CC531A /* sa.c */,
+				3112ED3A18ABC57F00CC531A /* sa.h */,
 				31EEAC31156AB2F200714D05 /* sac.c */,
 				311F2F7417398B7100C15B6A /* sac.h */,
 				311F2F7517398B8E00C15B6A /* sc.h */,
@@ -2131,10 +2135,10 @@
 				31EEAC1F156AB2B200714D05 /* traceanc.c */,
 				31EEAC0D156AB27B00714D05 /* tract.c */,
 				311F2F7A17398B8E00C15B6A /* tract.h */,
+				310F5D7118B6675F007EFCBC /* tree.c */,
+				310F5D7218B6675F007EFCBC /* tree.h */,
 				31EEAC44156AB32500714D05 /* version.c */,
 				31EEAC0E156AB27B00714D05 /* walk.c */,
-				3112ED3A18ABC57F00CC531A /* sa.h */,
-				3112ED3B18ABC75200CC531A /* sa.c */,
 			);
 			name = "MPM Core";
 			sourceTree = "<group>";
