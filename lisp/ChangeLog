@@ -1,3 +1,16 @@
+2014-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-adb.el (tramp-adb-parse-device-names):
+	Use `accept-process-output'.
+	(tramp-adb-handle-file-truename): Cache the localname only.
+	(tramp-adb-handle-make-directory)
+	(tramp-adb-handle-delete-directory): Flush file properties correctly.
+	(tramp-adb-handle-set-file-modes): Do not raise an error when file
+	modes cannot be changed.
+
+	* net/tramp-cache.el (tramp-flush-directory-property): Remove also
+	file properties of symlinks.
+
 2014-02-28  Per Starbäck  <starback@stp.lingfil.uu.se>
 
 	* textmodes/bibtex.el (bibtex-biblatex-entry-alist): Update

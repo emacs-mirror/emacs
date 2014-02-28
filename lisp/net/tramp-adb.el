@@ -186,7 +186,8 @@ pass to the OPERATION."
 	    result)
 	(tramp-compat-set-process-query-on-exit-flag p nil)
 	(while (eq 'run (process-status p))
-	  (sleep-for 0.1))
+	  (accept-process-output p 0.1))
+	(accept-process-output p 0.1)
 	(goto-char (point-min))
 	(while (search-forward-regexp "^\\(\\S-+\\)[[:space:]]+device$" nil t)
 	  (add-to-list 'result (list nil (match-string 1))))
@@ -227,83 +228,90 @@ pass to the OPERATION."
 ;; code could be shared?
 (defun tramp-adb-handle-file-truename (filename)
   "Like `file-truename' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (with-tramp-file-property v localname "file-truename"
-      (let ((result nil))			; result steps in reverse order
-	(tramp-message v 4 "Finding true name for `%s'" filename)
-	(let* ((directory-sep-char ?/)
-	       (steps (tramp-compat-split-string localname "/"))
-	       (localnamedir (tramp-run-real-handler
-			      'file-name-as-directory (list localname)))
-	       (is-dir (string= localname localnamedir))
-	       (thisstep nil)
-	       (numchase 0)
-	       ;; Don't make the following value larger than
-	       ;; necessary.  People expect an error message in a
-	       ;; timely fashion when something is wrong; otherwise
-	       ;; they might think that Emacs is hung.  Of course,
-	       ;; correctness has to come first.
-	       (numchase-limit 20)
-	       symlink-target)
-	  (while (and steps (< numchase numchase-limit))
-	    (setq thisstep (pop steps))
-	    (tramp-message
-	     v 5 "Check %s"
-	     (mapconcat 'identity
-			(append '("") (reverse result) (list thisstep))
-			"/"))
-	    (setq symlink-target
-		  (nth 0 (file-attributes
-			  (tramp-make-tramp-file-name
-			   method user host
-			   (mapconcat 'identity
-				      (append '("")
-					      (reverse result)
-					      (list thisstep))
-				      "/")))))
-	    (cond ((string= "." thisstep)
-		   (tramp-message v 5 "Ignoring step `.'"))
-		  ((string= ".." thisstep)
-		   (tramp-message v 5 "Processing step `..'")
-		   (pop result))
-		  ((stringp symlink-target)
-		   ;; It's a symlink, follow it.
-		   (tramp-message v 5 "Follow symlink to %s" symlink-target)
-		   (setq numchase (1+ numchase))
-		   (when (file-name-absolute-p symlink-target)
-		     (setq result nil))
-		   ;; If the symlink was absolute, we'll get a string
-		   ;; like "/user@host:/some/target"; extract the
-		   ;; "/some/target" part from it.
-		   (when (tramp-tramp-file-p symlink-target)
-		     (unless (tramp-equal-remote filename symlink-target)
-		       (tramp-error
-			v 'file-error
-			"Symlink target `%s' on wrong host" symlink-target))
-		     (setq symlink-target localname))
-		   (setq steps
-			 (append (tramp-compat-split-string
-				  symlink-target "/")
-				 steps)))
-		  (t
-		   ;; It's a file.
-		   (setq result (cons thisstep result)))))
-	  (when (>= numchase numchase-limit)
-	    (tramp-error
-	     v 'file-error
-	     "Maximum number (%d) of symlinks exceeded" numchase-limit))
-	  (setq result (reverse result))
-	  ;; Combine list to form string.
-	  (setq result
-		(if result
-		    (mapconcat 'identity (cons "" result) "/")
-		  "/"))
-	  (when (and is-dir (or (string= "" result)
-				(not (string= (substring result -1) "/"))))
-	    (setq result (concat result "/"))))
+  (format
+   "%s%s"
+   (with-parsed-tramp-file-name (expand-file-name filename) nil
+     (tramp-make-tramp-file-name
+      method user host
+      (with-tramp-file-property v localname "file-truename"
+	(let ((result nil))			; result steps in reverse order
+	  (tramp-message v 4 "Finding true name for `%s'" filename)
+	  (let* ((directory-sep-char ?/)
+		 (steps (tramp-compat-split-string localname "/"))
+		 (localnamedir (tramp-run-real-handler
+				'file-name-as-directory (list localname)))
+		 (is-dir (string= localname localnamedir))
+		 (thisstep nil)
+		 (numchase 0)
+		 ;; Don't make the following value larger than
+		 ;; necessary.  People expect an error message in a
+		 ;; timely fashion when something is wrong; otherwise
+		 ;; they might think that Emacs is hung.  Of course,
+		 ;; correctness has to come first.
+		 (numchase-limit 20)
+		 symlink-target)
+	    (while (and steps (< numchase numchase-limit))
+	      (setq thisstep (pop steps))
+	      (tramp-message
+	       v 5 "Check %s"
+	       (mapconcat 'identity
+			  (append '("") (reverse result) (list thisstep))
+			  "/"))
+	      (setq symlink-target
+		    (nth 0 (file-attributes
+			    (tramp-make-tramp-file-name
+			     method user host
+			     (mapconcat 'identity
+					(append '("")
+						(reverse result)
+						(list thisstep))
+					"/")))))
+	      (cond ((string= "." thisstep)
+		     (tramp-message v 5 "Ignoring step `.'"))
+		    ((string= ".." thisstep)
+		     (tramp-message v 5 "Processing step `..'")
+		     (pop result))
+		    ((stringp symlink-target)
+		     ;; It's a symlink, follow it.
+		     (tramp-message v 5 "Follow symlink to %s" symlink-target)
+		     (setq numchase (1+ numchase))
+		     (when (file-name-absolute-p symlink-target)
+		       (setq result nil))
+		     ;; If the symlink was absolute, we'll get a string
+		     ;; like "/user@host:/some/target"; extract the
+		     ;; "/some/target" part from it.
+		     (when (tramp-tramp-file-p symlink-target)
+		       (unless (tramp-equal-remote filename symlink-target)
+			 (tramp-error
+			  v 'file-error
+			  "Symlink target `%s' on wrong host" symlink-target))
+		       (setq symlink-target localname))
+		     (setq steps
+			   (append (tramp-compat-split-string
+				    symlink-target "/")
+				   steps)))
+		    (t
+		     ;; It's a file.
+		     (setq result (cons thisstep result)))))
+	    (when (>= numchase numchase-limit)
+	      (tramp-error
+	       v 'file-error
+	       "Maximum number (%d) of symlinks exceeded" numchase-limit))
+	    (setq result (reverse result))
+	    ;; Combine list to form string.
+	    (setq result
+		  (if result
+		      (mapconcat 'identity (cons "" result) "/")
+		    "/"))
+	    (when (and is-dir (or (string= "" result)
+				  (not (string= (substring result -1) "/"))))
+	      (setq result (concat result "/"))))
 
-        (tramp-message v 4 "True name of `%s' is `%s'" filename result)
-        (tramp-make-tramp-file-name method user host result)))))
+	  (tramp-message v 4 "True name of `%s' is `%s'" localname result)
+	  result))))
+
+   ;; Preserve trailing "/".
+   (if (string-equal (file-name-nondirectory filename) "") "/" "")))
 
 (defun tramp-adb-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
@@ -483,14 +491,12 @@ Emacs dired can't find files."
     (tramp-adb-barf-unless-okay
      v (format "mkdir %s" (tramp-shell-quote-argument localname))
      "Couldn't make directory %s" dir)
-    (tramp-flush-directory-property v (file-name-directory localname))))
+    (tramp-flush-file-property v (file-name-directory localname))
+    (tramp-flush-directory-property v localname)))
 
 (defun tramp-adb-handle-delete-directory (directory &optional recursive)
   "Like `delete-directory' for Tramp files."
   (setq directory (expand-file-name directory))
-  (with-parsed-tramp-file-name (file-truename directory) nil
-    (tramp-flush-file-property v (file-name-directory localname))
-    (tramp-flush-directory-property v localname))
   (with-parsed-tramp-file-name directory nil
     (tramp-flush-file-property v (file-name-directory localname))
     (tramp-flush-directory-property v localname)
@@ -621,9 +627,8 @@ But handle the case, if the \"test\" command is not available."
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-property v localname)
-    (tramp-adb-barf-unless-okay
-     v (format "chmod %s %s" (tramp-compat-decimal-to-octal mode) localname)
-     "Error while changing file's mode %s" filename)))
+    (tramp-adb-send-command-and-check
+     v (format "chmod %s %s" (tramp-compat-decimal-to-octal mode) localname))))
 
 (defun tramp-adb-handle-set-file-times (filename &optional time)
   "Like `set-file-times' for Tramp files."
