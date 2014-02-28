@@ -1,3 +1,9 @@
+2014-02-28  Xue Fuqiao  <xfq@gnu.org>
+
+	* elisp.texi (Top):
+	* commands.texi (Generic Commands):
+	(Defining Commands): Document `define-alternatives'.
+
 2014-02-27  Xue Fuqiao  <xfq@gnu.org>
 
 	* windows.texi (Window Sizes): Document `window-size'.

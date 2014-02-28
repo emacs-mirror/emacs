@@ -730,7 +730,7 @@ are lined up to the first one.
 +++
 ** Octave mode
 
-*** Font locking for texinfo comments and new keywords.
+*** Font locking for Texinfo comments and new keywords.
 
 *** Completion in Octave file buffers.
 
@@ -1155,6 +1155,7 @@ treated as regexps rather than literal strings.
 +++
 ** New functions `special-form-p' and `macrop'.
 
++++
 ** New macro `define-alternatives' can be used to define generic commands.
 Generic commands are interactive functions whose implementation can be
 selected among several alternatives, as a matter of user preference.
