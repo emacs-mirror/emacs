@@ -1170,9 +1170,9 @@ there are many different ways to do it.  The added function is also called an
 @emph{advice}.
 
 The function cell of a symbol can be manipulated similarly, but since it can
-contain other things than a plain function, you have to use @var{advice-add}
-and @var{advice-remove} instead, which
-@c use @var{add-function} and @var{remove-function} internally, but
+contain other things than a plain function, you have to use @code{advice-add}
+and @code{advice-remove} instead, which
+@c use @code{add-function} and @code{remove-function} internally, but
 know how to handle cases such as when the function cell holds a macro rather
 than function, or when the function is autoloaded so the advice's activation
 needs to be postponed.

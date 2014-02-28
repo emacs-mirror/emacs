@@ -1,5 +1,7 @@
 2014-02-28  Xue Fuqiao  <xfq@gnu.org>
 
+	* functions.texi (Advising Functions): Tweak markup.
+
 	* display.texi (Defining Faces): Doc fix for `face-spec-set'.
 
 	* elisp.texi (Top):
