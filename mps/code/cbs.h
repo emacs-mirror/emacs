@@ -22,7 +22,7 @@
 
 typedef struct CBSBlockStruct *CBSBlock;
 typedef struct CBSBlockStruct {
-  SplayNodeStruct splayNode;
+  TreeStruct node;
   Addr base;
   Addr limit;
   Size maxSize; /* accurate maximum block size of sub-tree */
