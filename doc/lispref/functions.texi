@@ -1344,9 +1344,9 @@ and its properties.
 @subsection Advising Named Functions
 
 A common use of advice is for named functions and macros.
-Since @var{add-function} does not know how to deal with macros and autoloaded
-functions, Emacs provides a separate set of functions to manipulate pieces of
-advice applied to named functions.
+Since @code{add-function} does not know how to deal with macros and
+autoloaded functions, Emacs provides a separate set of functions to
+manipulate pieces of advice applied to named functions.
 
   Advice can be useful for altering the behavior of an existing
 function without having to redefine the whole function.  However, it
