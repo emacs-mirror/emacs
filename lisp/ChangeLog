@@ -1,5 +1,9 @@
 2014-02-28  Juanma Barranquero  <lekktu@gmail.com>
 
+	* finder.el (finder-unload-function): New function.
+
+2014-02-28  Juanma Barranquero  <lekktu@gmail.com>
+
 	* dframe.el (dframe-detach):
 	* find-dired.el (find-dired, find-name-dired):
 	* finder.el (finder-mode-map, finder-mode-syntax-table)

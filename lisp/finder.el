@@ -431,6 +431,12 @@ Delete the window and kill all Finder-related buffers."
   (let ((buf "*Finder*"))
     (and (get-buffer buf) (kill-buffer buf))))
 
+(defun finder-unload-function ()
+  "Unload the Finder library."
+  (with-demoted-errors (unload-feature 'finder-inf t))
+  ;; continue standard unloading
+  nil)
+
 
 (provide 'finder)
 
