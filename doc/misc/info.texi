@@ -809,6 +809,11 @@ set @code{Info-hide-note-references} to a value other than @code{t}
 @end format
 
 
+@menu
+* Help-Cross::                  Target of a cross-reference.
+@end menu
+
+
 @node Help-Cross, , , Help-Xref
 @subsection The node reached by the cross reference in Info
 
