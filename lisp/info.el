@@ -3962,6 +3962,9 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "f" 'Info-follow-reference)
     (define-key map "g" 'Info-goto-node)
     (define-key map "h" 'Info-help)
+    ;; This is for compatibility with standalone info (>~ version 5.2).
+    ;; Though for some time, standalone info had H and h reversed.
+    ;; See <http://debbugs.gnu.org/16455>.
     (define-key map "H" 'describe-mode)
     (define-key map "i" 'Info-index)
     (define-key map "I" 'Info-virtual-index)
