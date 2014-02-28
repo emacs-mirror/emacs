@@ -614,9 +614,11 @@ typedef struct GlobalsStruct {
 typedef struct CBSStruct {
   SplayTreeStruct splayTree;
   STATISTIC_DECL(Count splayTreeSize);
+  Arena arena;
   Pool blockPool;
   Align alignment;
-  Bool fastFind;
+  Bool fastFind;                /* maintain and use size property? */
+  Bool zoned;                   /* maintain and use zone property? */
   Bool inCBS;                   /* prevent reentrance */
   Bool ownPool;                 /* did we create blockPool? */
   /* meters for sizes of search structures at each op */
@@ -677,7 +679,7 @@ typedef struct mps_arena_s {
   
   Bool hasFreeCBS;              /* Is freeCBS available? */
   MFSStruct zonedCBSBlockPoolStruct;
-  ZonedCBSStruct zonedCBSStruct;
+  CBSStruct zonedCBSStruct;
   ZoneSet freeZones;            /* zones not yet allocated */
 
   /* locus fields (<code/locus.c>) */

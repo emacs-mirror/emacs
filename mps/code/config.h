@@ -307,12 +307,9 @@
 /* @@@@ knows the implementation of ZoneSets */
 /* FIXME: There's no particular reason to think this will avoid GC segments. */
 
-/* .segpref.default: For EPcore, non-DL segments should be placed high */
-/* to reduce fragmentation of DL pools (see request.epcore.170193_). */
-/* .. _request.epcore.170193: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/170193 */
 #define SegPrefDEFAULT { \
   SegPrefSig,          /* sig */ \
-  TRUE,                /* high */ \
+  FALSE,               /* high */ \
   ArenaDefaultZONESET, /* zoneSet */ \
   ZoneSetEMPTY,        /* avoid */ \
 }

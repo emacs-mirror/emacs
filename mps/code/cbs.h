@@ -16,6 +16,10 @@
 #include "splay.h"
 
 
+/* TODO: There ought to be different levels of CBS block with inheritance
+   so that CBSs without fastFind don't allocate the maxSize and zones fields,
+   and CBSs without zoned don't allocate the zones field. */
+
 typedef struct CBSBlockStruct *CBSBlock;
 typedef struct CBSBlockStruct {
   SplayNodeStruct splayNode;
@@ -36,8 +40,8 @@ extern const struct mps_key_s _mps_key_cbs_block_pool;
 #define CBSBlockPool (&_mps_key_cbs_block_pool)
 #define CBSBlockPool_FIELD pool
 
-extern Res CBSInit(Arena arena, CBS cbs, void *owner,
-                   Align alignment, Bool fastFind, ArgList args);
+extern Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
+                   Bool fastFind, Bool zoned, ArgList args);
 extern void CBSFinish(CBS cbs);
 
 extern Res CBSInsert(Range rangeReturn, CBS cbs, Range range);
