@@ -1,3 +1,8 @@
+2014-02-28  Karl Berry  <karl@gnu.org>
+
+	* info.el (Info-mode-map): Add H for describe-mode,
+	to synchronize with standalone Info.
+
 2014-02-28  Emilio C. Lopes  <eclig@gmx.net>
 
 	* progmodes/sql.el (sql-interactive-mode):

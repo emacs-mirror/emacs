@@ -69,6 +69,8 @@ instruction sequence.
 To read about advanced Info commands, type @kbd{n} twice.  This
 brings you to @cite{Advanced Info Commands}, skipping over the `Getting
 Started' chapter.
+
+Type @kbd{H} to see a summary of all available commands.
 @end ifinfo
 @end ifnottex
 

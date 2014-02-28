@@ -3962,6 +3962,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "f" 'Info-follow-reference)
     (define-key map "g" 'Info-goto-node)
     (define-key map "h" 'Info-help)
+    (define-key map "H" 'describe-mode)
     (define-key map "i" 'Info-index)
     (define-key map "I" 'Info-virtual-index)
     (define-key map "l" 'Info-history-back)

@@ -1,3 +1,7 @@
+2014-02-28  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Top): Mention H for a summary of all commands.
+
 2014-02-25  Glenn Morris  <rgm@gnu.org>
 
 	* edt.texi (Quick start, Starting emulation): Update hook details.
