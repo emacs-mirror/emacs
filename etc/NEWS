@@ -122,16 +122,17 @@ a new major mode, with read-only status.  Any code that might create
 the *Messages* buffer should call the function `messages-buffer' to do
 so and set up the mode.
 
++++
 ** Emacs can now support ACLs (access control lists).
 This requires a suitable support library to be found at build time.
+On GNU/Linux, the POSIX ACL interface is used via libacl.
+On MS-Windows, the NT Security APIs are used to emulate the POSIX interface.
 
 +++
 *** Emacs preserves the ACL entries of files when backing up.
 +++
 *** New functions `file-acl' and `set-file-acl' get and set the ACL
-entries of a file.  On GNU/Linux, the POSIX ACL interface is used via
-libacl.  On MS-Windows, the NT Security APIs are used to emulate the
-POSIX ACL interfaces.
+entries of a file.
 
 ** Multi-monitor support has been added.
 
@@ -435,6 +436,7 @@ Also the following files used by the now obsolete otodo-mode.el:
 *** New Lisp debugger command `v' (`debugger-toggle-locals') toggles the
 display of local variables of the current stack frame.
 
++++
 *** The Lisp debugger's `e' command (`debugger-eval-expression') now includes
 the lexical environment when evaluating the code in the context at point
 (and so allows you to access lexical variables).
