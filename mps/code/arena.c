@@ -224,7 +224,8 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment)
   MPS_ARGS_BEGIN(cbsiArgs) {
     MPS_ARGS_ADD(cbsiArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
     MPS_ARGS_DONE(cbsiArgs);
-    res = CBSInit(arena, ArenaZonedCBS(arena), arena, alignment, TRUE, TRUE, cbsiArgs);
+    res = CBSInit(ArenaZonedCBS(arena), arena, arena, alignment,
+                  /* fastFind */ TRUE, /* zoned */ TRUE, cbsiArgs);
   } MPS_ARGS_END(cbsiArgs);
   AVER(res == ResOK); /* no allocation, no failure expected */
   if (res != ResOK)
@@ -812,8 +813,8 @@ void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit)
   res = CBSDelete(&oldRange, ArenaZonedCBS(arena), &range);
   
   /* Shouldn't be any other kind of failure because we were only deleting
-     a non-coalesced block.  See .chunk.no-coalesce. */
-  /* FIXME: Document this rule about CBSs */
+     a non-coalesced block.  See .chunk.no-coalesce and
+     <code/cbs.c#.delete.alloc>. */
   AVER(res == ResOK);
 }
 
@@ -839,7 +840,7 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
   /* Step 1. Find a range of address space. */
   
   res = CBSFindInZones(&range, &oldRange, ArenaZonedCBS(arena),
-                       size, arena, zones, high);
+                       size, zones, high);
 
   if (res == ResLIMIT) { /* found block, but couldn't store info */
     RangeStruct pageRange;
@@ -848,7 +849,7 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
       return res;
     arenaExcludePage(arena, &pageRange);
     res = CBSFindInZones(&range, &oldRange, ArenaZonedCBS(arena),
-                         size, arena, zones, high);
+                         size, zones, high);
     AVER(res != ResLIMIT);
   }
 
@@ -908,7 +909,6 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
   AVERT(Pool, pool);
   
   /* FIXME: Allow arena to take an option to ignore zones. */
-  /* FIXME: Respect pref->high and other fields */
 
   /* Don't attempt to allocate if doing so would definitely exceed the
      commit limit. */
@@ -924,7 +924,6 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
   AVER(ZoneSetInter(pref->zones, pref->avoid) == ZoneSetEMPTY);
   
   /* Plan A: allocate from the free CBS in the requested zones */
-  /* FIXME: Takes no account of other zones fields */
   zones = pref->zones;
   if (zones != ZoneSetEMPTY) {
     res = arenaAllocFromCBS(&tract, zones, pref->high, size, pool);
