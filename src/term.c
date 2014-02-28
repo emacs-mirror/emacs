@@ -2052,17 +2052,9 @@ tty_default_color_capabilities (struct tty_display_info *tty, bool save)
 
   if (save)
     {
-      xfree (default_orig_pair);
-      default_orig_pair = tty->TS_orig_pair ? xstrdup (tty->TS_orig_pair) : NULL;
-
-      xfree (default_set_foreground);
-      default_set_foreground = tty->TS_set_foreground ? xstrdup (tty->TS_set_foreground)
-			       : NULL;
-
-      xfree (default_set_background);
-      default_set_background = tty->TS_set_background ? xstrdup (tty->TS_set_background)
-			       : NULL;
-
+      dupstring (&default_orig_pair, tty->TS_orig_pair);
+      dupstring (&default_set_foreground, tty->TS_set_foreground);
+      dupstring (&default_set_background, tty->TS_set_background);
       default_max_colors = tty->TN_max_colors;
       default_max_pairs = tty->TN_max_pairs;
       default_no_color_video = tty->TN_no_color_video;

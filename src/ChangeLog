@@ -1,3 +1,15 @@
+2014-02-28  Paul Eggert  <eggert@penguin.cs.ucla.edu>
+
+	Fix a few crashes and leaks when cloning C strings.
+	* alloc.c, lisp.h (dupstring): New function.
+	* gtkutil.c (xg_get_font):
+	* term.c (tty_default_color_capabilities):
+	* xsettings.c (store_monospaced_changed)
+	(store_font_name_changed, parse_settings)
+	(read_and_apply_settings, init_gsettings, init_gconf): Use it.
+	This avoids some unlikely crashes due to accessing freed storage,
+	and avoids some minor memory leaks in the more-typical case.
+
 2014-02-28  Martin Rudalics  <rudalics@gmx.at>
 
 	* xdisp.c (note_mode_line_or_margin_highlight): Don't show drag
