@@ -519,7 +519,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   arena = VMArena2Arena(vmArena);
   /* <code/arena.c#init.caller> */
-  res = ArenaInit(arena, class, VMAlign(arenaVM));
+  res = ArenaInit(arena, class, VMAlign(arenaVM), args);
   if (res != ResOK)
     goto failArenaInit;
   arena->committed = VMMapped(arenaVM);

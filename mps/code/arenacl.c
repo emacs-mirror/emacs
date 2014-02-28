@@ -252,7 +252,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   arena = ClientArena2Arena(clientArena);
   /* <code/arena.c#init.caller> */
-  res = ArenaInit(arena, class, ARENA_CLIENT_PAGE_SIZE);
+  res = ArenaInit(arena, class, ARENA_CLIENT_PAGE_SIZE, args);
   if (res != ResOK)
     return res;
 
