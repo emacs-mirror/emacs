@@ -170,12 +170,17 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
 }
 
 
-static void stress_with_arena_class(mps_arena_class_t aclass)
+static void stress_with_arena_class(mps_arena_class_t aclass, Bool zoned)
 {
   mps_arena_t arena;
 
-  die(mps_arena_create(&arena, aclass, testArenaSIZE),
-      "mps_arena_create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, zoned);
+    MPS_ARGS_DONE(args);
+    die(mps_arena_create_k(&arena, aclass, args),
+        "mps_arena_create");
+  } MPS_ARGS_END(args);
 
   min = MPS_PF_ALIGN;
   mean = 42;
@@ -201,10 +206,8 @@ int main(int argc, char *argv[])
 {
   randomize(argc, argv);
 
-  stress_with_arena_class(mps_arena_class_vm());
-#if 0 /* FIXME: Restore when arena can take an option */
-  stress_with_arena_class(mps_arena_class_vmnz());
-#endif
+  stress_with_arena_class(mps_arena_class_vm(), TRUE);
+  stress_with_arena_class(mps_arena_class_vm(), FALSE);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
