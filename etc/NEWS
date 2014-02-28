@@ -24,17 +24,24 @@ otherwise leave it unmarked.
 
 * Installation Changes in Emacs 24.4
 
+---
 ** Emacs can now be compiled with ACL support.
 This happens by default if a suitable support library is found at
 build time, like libacl on GNU/Linux.  To prevent this, use the
-configure option `--disable-acl'.
-FIXME?  Should be --without-acl?
+configure option `--disable-acl'.  See below for related features.
 
+---
 ** Emacs can now be compiled with file notification support.
 This happens by default if a suitable system library is found at
 build time.  To prevent this, use the configure option
 `--without-file-notification'.  See below for file-notify features.
-FIXME?  This feature is not available for the Nextstep port. (?)
+This feature is not available for the Nextstep port.
+
+---
+** Emacs can now be compiled with zlib support.
+This happens by default if zlib is present, which it normally is.
+To prevent this, use the configure option `--without-zlib'.
+This provides the function `zlib-decompress-region'; see below for details.
 
 ---
 ** The configure option `--without-compress-info' has been generalized,
@@ -49,14 +56,9 @@ It is no longer needed, as the crt*.o files are no longer linked specially.
 ** Directories passed to configure option `--enable-locallisppath' are
 no longer created during installation.
 
-** Emacs can be compiled with zlib support.
-If this library is present (which it normally is on most systems), the
-function `zlib-decompress-region' becomes available, which can
-decompress gzip- and zlib-format compressed data.
-
 ---
 ** Emacs for NS (Mac OS X, GNUstep) can be built with ImageMagick support.
-This requires pkg-config to be available at configure time.
+This requires pkg-config to be available at build time.
 
 
 * Startup Changes in Emacs 24.4
@@ -89,6 +91,9 @@ to set up the initial buffer.
 
 * Changes in Emacs 24.4
 
+** New function `zlib-decompress-region', which decompresses gzip- and
+zlib-format compressed data using built-in zlib support, if available.
+
 +++
 ** New option `gnutls-verify-error', if non-nil, means that Emacs
 should reject SSL/TLS certificates that GnuTLS determines as invalid.
@@ -117,7 +122,9 @@ a new major mode, with read-only status.  Any code that might create
 the *Messages* buffer should call the function `messages-buffer' to do
 so and set up the mode.
 
-** Emacs now supports ACLs (access control lists).
+** Emacs can now support ACLs (access control lists).
+This requires a suitable support library to be found at build time.
+
 +++
 *** Emacs preserves the ACL entries of files when backing up.
 +++
