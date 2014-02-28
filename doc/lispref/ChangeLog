@@ -1,5 +1,7 @@
 2014-02-28  Xue Fuqiao  <xfq@gnu.org>
 
+	* display.texi (Defining Faces): Doc fix for `face-spec-set'.
+
 	* elisp.texi (Top):
 	* commands.texi (Generic Commands):
 	(Defining Commands): Document `define-alternatives'.

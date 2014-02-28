@@ -278,6 +278,13 @@ buffer.
 `display-buffer' choose or make a window at the bottom of the selected
 frame.
 
+*** New display action function `display-buffer-no-window' to not
+display the buffer in a window.
+
+*** New display action alist entry `allow-no-window' to indicate the
+caller of `display-buffer' is ready to handle the case of not
+displaying the buffer in a window.
+
 ** Lisp evaluation changes
 +++
 *** `eval-defun' on an already defined defcustom calls the :set function,
@@ -1224,15 +1231,6 @@ frame.
 *** The hook `term-setup-hook' is obsolete.  It is entirely equivalent
 to `emacs-startup-hook'.  See also the new `tty-setup-hook'.
 
-** Window Handling
-
-*** New display action function `display-buffer-no-window' to not
-display the buffer in a window.
-
-*** New display action alist entry `allow-no-window' to indicate the
-caller of `display-buffer' is ready to handle the case of not
-displaying the buffer in a window.
-
 ** New hook `pre-redisplay-function'.
 
 +++
@@ -1353,6 +1351,7 @@ of remote files when set to non-nil.
 
 ** Face changes
 
++++
 *** The function `face-spec-set' is now like `setq' for face specs.
 Its third arg now accepts values specifying a face spec type (defface,
 custom, or override spec), and the relevant spec is set accordingly.
