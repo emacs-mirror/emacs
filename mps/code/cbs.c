@@ -669,10 +669,11 @@ static Res cbsBlockDescribe(CBSBlock block, mps_lib_FILE *stream)
   if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,
-               "[$P,$P) {$U}",
+               "[$P,$P) {$U, $B}",
                (WriteFP)block->base,
                (WriteFP)block->limit,
                (WriteFU)block->maxSize,
+               (WriteFB)block->zones,
                NULL);
   return res;
 }
@@ -900,8 +901,13 @@ Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
   /* FIXME: Perhaps this should be a function in ref.c */
   if (zoneSet == ZoneSetEMPTY)
     return ResFAIL;
-  if (zoneSet == ZoneSetUNIV)
-    return cbsFind(rangeReturn, oldRangeReturn, cbs, size, FindDeleteLOW);
+  if (zoneSet == ZoneSetUNIV) {
+    FindDelete fd = high ? FindDeleteHIGH : FindDeleteLOW;
+    if (cbsFind(rangeReturn, oldRangeReturn, cbs, size, fd))
+      return ResOK;
+    else
+      return ResFAIL;
+  }
   if (ZoneSetIsSingle(zoneSet) && size > ArenaStripeSize(cbs->arena))
     return ResFAIL;
 
