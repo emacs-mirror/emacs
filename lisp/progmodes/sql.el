@@ -3928,8 +3928,8 @@ you entered, right above the output it created.
   ;; People wanting a different history file for each
   ;; buffer/process/client/whatever can change separator and file-name
   ;; on the sql-interactive-mode-hook.
-  (setq comint-input-ring-separator sql-input-ring-separator
-	comint-input-ring-file-name sql-input-ring-file-name)
+  (setq-local comint-input-ring-separator sql-input-ring-separator)
+  (setq comint-input-ring-file-name sql-input-ring-file-name)
   ;; Calling the hook before calling comint-read-input-ring allows users
   ;; to set comint-input-ring-file-name in sql-interactive-mode-hook.
   (comint-read-input-ring t))
