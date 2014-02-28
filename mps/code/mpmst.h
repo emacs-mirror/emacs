@@ -681,6 +681,7 @@ typedef struct mps_arena_s {
   MFSStruct zonedCBSBlockPoolStruct;
   CBSStruct zonedCBSStruct;
   ZoneSet freeZones;            /* zones not yet allocated */
+  Bool zoned;                   /* use zoned allocation? */
 
   /* locus fields (<code/locus.c>) */
   GenDescStruct topGen;         /* generation descriptor for dynamic gen */

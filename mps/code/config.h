@@ -303,6 +303,8 @@
 
 #define ARENA_CLIENT_PAGE_SIZE          ((Size)8192)
 
+#define ARENA_DEFAULT_ZONED     TRUE
+
 #define ArenaDefaultZONESET (ZoneSetUNIV << (MPS_WORD_WIDTH / 2))
 /* @@@@ knows the implementation of ZoneSets */
 /* FIXME: There's no particular reason to think this will avoid GC segments. */
