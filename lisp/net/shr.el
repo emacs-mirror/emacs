@@ -100,6 +100,12 @@ Alternative suggestions are:
   :group 'shr
   :type 'function)
 
+(defcustom shr-image-animate t
+  "If non nil image will be animated."
+  :version "24.4"
+  :group 'shr
+  :type 'boolean)
+
 (defvar shr-content-function nil
   "If bound, this should be a function that will return the content.
 This is used for cid: URLs, and the function is called with the
@@ -765,14 +771,15 @@ element is the data blob and the second element is the content-type."
 	      (insert-sliced-image image (or alt "*") nil 20 1)
 	    (insert-image image (or alt "*")))
 	  (put-text-property start (point) 'image-size size)
-	  (when (cond ((fboundp 'image-multi-frame-p)
+	  (when (and shr-image-animate
+                     (cond ((fboundp 'image-multi-frame-p)
 		       ;; Only animate multi-frame things that specify a
 		       ;; delay; eg animated gifs as opposed to
 		       ;; multi-page tiffs.  FIXME?
-		       (cdr (image-multi-frame-p image)))
-		      ((fboundp 'image-animated-p)
-		       (image-animated-p image)))
-	    (image-animate image nil 60)))
+                            (cdr (image-multi-frame-p image)))
+                           ((fboundp 'image-animated-p)
+                            (image-animated-p image))))
+            (image-animate image nil 60)))
 	image)
     (insert alt)))
 

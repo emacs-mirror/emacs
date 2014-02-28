@@ -1,3 +1,9 @@
+2014-02-28  Ivan Kanis  <ivan@kanis.fr>
+
+	* net/shr.el (shr-put-image): add custom variable
+	`shr-image-animate' to turn off image animation. It is so slow it
+	will render emacs unusable.
+
 2014-02-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-adb.el (tramp-adb-parse-device-names):
