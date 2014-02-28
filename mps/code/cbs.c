@@ -172,13 +172,13 @@ static void cbsUpdateNode(SplayTree tree, SplayNode node,
   Size maxSize;
   CBSBlock block;
 
-  AVERT(SplayTree, tree);
-  AVERT(SplayNode, node);
+  AVERT_CRITICAL(SplayTree, tree);
+  AVERT_CRITICAL(SplayNode, node);
   if (leftChild != NULL)
-    AVERT(SplayNode, leftChild);
+    AVERT_CRITICAL(SplayNode, leftChild);
   if (rightChild != NULL)
-    AVERT(SplayNode, rightChild);
-  AVER(cbsOfSplayTree(tree)->fastFind);
+    AVERT_CRITICAL(SplayNode, rightChild);
+  AVER_CRITICAL(cbsOfSplayTree(tree)->fastFind);
 
   block = cbsBlockOfSplayNode(node);
   maxSize = CBSBlockSize(block);
@@ -209,13 +209,13 @@ static void cbsUpdateZonedNode(SplayTree tree, SplayNode node,
   CBSBlock block;
   Arena arena;
 
-  AVERT(SplayTree, tree);
-  AVERT(SplayNode, node);
+  AVERT_CRITICAL(SplayTree, tree);
+  AVERT_CRITICAL(SplayNode, node);
   if (leftChild != NULL)
-    AVERT(SplayNode, leftChild);
+    AVERT_CRITICAL(SplayNode, leftChild);
   if (rightChild != NULL)
-    AVERT(SplayNode, rightChild);
-  AVER(cbsOfSplayTree(tree)->fastFind);
+    AVERT_CRITICAL(SplayNode, rightChild);
+  AVER_CRITICAL(cbsOfSplayTree(tree)->fastFind);
 
   block = cbsBlockOfSplayNode(node);
   maxSize = CBSBlockSize(block);
@@ -864,8 +864,7 @@ static Bool cbsTestNodeInZones(SplayTree tree, SplayNode node,
 
   /* FIXME: RangeInZoneSet needs to work in both directions. */
   
-  return CBSBlockSize(block) >= closure->size &&
-         RangeInZoneSet(&closure->base, &closure->limit,
+  return RangeInZoneSet(&closure->base, &closure->limit,
                         CBSBlockBase(block), CBSBlockLimit(block),
                         closure->arena, closure->zoneSet, closure->size);
 }
@@ -884,15 +883,24 @@ static Bool cbsTestTreeInZones(SplayTree tree, SplayNode node,
          ZoneSetInter(block->zones, closure->zoneSet) != ZoneSetEMPTY;
 }
 
-static Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
-                          CBS cbs, Size size,
-                          Arena arena, ZoneSet zoneSet,
-                          CBSFindMethod cbsFind,
-                          SplayFindMethod splayFind)
+Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
+                   CBS cbs, Size size,
+                   Arena arena, ZoneSet zoneSet, Bool high)
 {
   SplayNode node;
   cbsTestNodeInZonesClosureStruct closure;
   Res res;
+  CBSFindMethod cbsFind;
+  SplayFindMethod splayFind;
+  
+  AVER(rangeReturn != NULL);
+  AVER(oldRangeReturn != NULL);
+  AVERT(CBS, cbs);
+  /* AVER(ZoneSetCheck(zoneSet)); */
+  AVER(BoolCheck(high));
+
+  cbsFind = high ? CBSFindLast : CBSFindFirst;
+  splayFind = high ? SplayFindLast : SplayFindFirst;
   
   /* Check whether the size will fit in the zoneSet at all. */
   /* FIXME: Perhaps this should be a function in ref.c */
@@ -900,23 +908,9 @@ static Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
     return ResFAIL;
   if (zoneSet == ZoneSetUNIV)
     return cbsFind(rangeReturn, oldRangeReturn, cbs, size, FindDeleteLOW);
-  if (ZoneSetIsSingle(zoneSet)) {
-    if (size > ArenaStripeSize(arena))
-      return ResFAIL;
-  } else {
-    /* Check whether any run of bits in zoneSet can accommodate the size. */
-#if 0
-    ZoneSet mask = ((ZoneSet)1 << SizeAlignUp(size, ArenaStripeSize(arena))) - 1;
-    /* mask == ZoneSetUNIV case very unlikely, so don't bother testing for it */
-    for (i = 0; i < ZONE_SET_WIDTH; ++i) {
-      if (ZoneSetSub(BS_ROTATE_LEFT(ZoneSet, mask, i), zoneSet))
-        goto found;
-    }
+  if (ZoneSetIsSingle(zoneSet) && size > ArenaStripeSize(arena))
     return ResFAIL;
-  found:;
-#endif
-  }
-  
+
   /* It would be nice if there were a neat way to eliminate all runs of
      zones in zoneSet too small for size.*/
 
@@ -948,22 +942,6 @@ static Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
 
   cbsLeave(cbs);
   return res;
-}
-
-Res CBSFindFirstInZones(Range rangeReturn, Range oldRangeReturn,
-                        CBS cbs, Size size,
-                        Arena arena, ZoneSet zoneSet)
-{
-  return CBSFindInZones(rangeReturn, oldRangeReturn, cbs, size,
-                        arena, zoneSet, CBSFindFirst, SplayFindFirst);
-}
-
-Res CBSFindLastInZones(Range rangeReturn, Range oldRangeReturn,
-                       CBS cbs, Size size,
-                       Arena arena, ZoneSet zoneSet)
-{
-  return CBSFindInZones(rangeReturn, oldRangeReturn, cbs, size,
-                        arena, zoneSet, CBSFindLast, SplayFindLast);
 }
 
 
