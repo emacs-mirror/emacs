@@ -907,8 +907,6 @@ Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
   cbsFind = high ? CBSFindLast : CBSFindFirst;
   splayFind = high ? SplayFindLast : SplayFindFirst;
   
-  /* Check whether the size will fit in the zoneSet at all. */
-  /* FIXME: Perhaps this should be a function in ref.c */
   if (zoneSet == ZoneSetEMPTY)
     return ResFAIL;
   if (zoneSet == ZoneSetUNIV) {
