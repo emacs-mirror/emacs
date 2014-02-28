@@ -269,7 +269,8 @@ static Res MVTInit(Pool pool, ArgList args)
   if (abqDepth < 3)
     abqDepth = 3;
 
-  res = CBSInit(arena, MVTCBS(mvt), (void *)mvt, align, FALSE, FALSE, args);
+  res = CBSInit(MVTCBS(mvt), arena, (void *)mvt, align,
+                /* fastFind */ FALSE, /* zoned */ FALSE, args);
   if (res != ResOK)
     goto failCBS;
  

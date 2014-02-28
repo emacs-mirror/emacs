@@ -40,7 +40,8 @@ extern const struct mps_key_s _mps_key_cbs_block_pool;
 #define CBSBlockPool (&_mps_key_cbs_block_pool)
 #define CBSBlockPool_FIELD pool
 
-extern Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
+/* TODO: Passing booleans to affect behaviour is ugly and error-prone. */
+extern Res CBSInit(CBS cbs, Arena arena, void *owner, Align alignment,
                    Bool fastFind, Bool zoned, ArgList args);
 extern void CBSFinish(CBS cbs);
 
@@ -61,8 +62,7 @@ extern Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
                            CBS cbs, Size size, FindDelete findDelete);
 
 extern Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
-                          CBS cbs, Size size,
-                          Arena arena, ZoneSet zoneSet, Bool high);
+                          CBS cbs, Size size, ZoneSet zoneSet, Bool high);
 
 #endif /* cbs_h */
 

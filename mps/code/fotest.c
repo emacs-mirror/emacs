@@ -83,7 +83,7 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 
 static void set_oom(CBS cbs, int oom)
 {
-  cbs->blockPoolStruct.poolStruct.class = oom ? EnsureOOMPoolClass() : PoolClassMFS();
+  cbs->blockPool->class = oom ? EnsureOOMPoolClass() : PoolClassMFS();
 }
 
 

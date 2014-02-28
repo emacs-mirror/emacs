@@ -602,7 +602,8 @@ static Res MVFFInit(Pool pool, ArgList args)
   if (res != ResOK)
     goto failInit;
 
-  res = CBSInit(arena, CBSOfMVFF(mvff), (void *)mvff, align, TRUE, FALSE, args);
+  res = CBSInit(CBSOfMVFF(mvff), arena, (void *)mvff, align,
+                /* fastFind */ TRUE, /* zoned */ FALSE, args);
   if (res != ResOK)
     goto failInit;
 
