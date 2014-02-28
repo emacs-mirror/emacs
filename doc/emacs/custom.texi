@@ -573,7 +573,7 @@ directory specified by the variable @code{custom-theme-directory}
 which are distributed with Emacs, which customize Emacs's faces to fit
 various color schemes.  (Note, however, that Custom themes need not be
 restricted to this purpose; they can be used to customize variables
-too).
+too.)
 
 @vindex custom-theme-load-path
   If you want Emacs to look for Custom themes in some other directory,
