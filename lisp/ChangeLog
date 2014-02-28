@@ -1,3 +1,8 @@
+2014-02-28  Andy Sawyer  <andy.sawyer@gmail.com>  (tiny change)
+
+	* saveplace.el (toggle-save-place):
+	Fix argument handling.  (Bug#16673)
+
 2014-02-28  Glenn Morris  <rgm@gnu.org>
 
 	* minibuffer.el (completions-first-difference)

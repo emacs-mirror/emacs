@@ -155,12 +155,12 @@ file:
   (if (not (or buffer-file-name (and (derived-mode-p 'dired-mode)
 				     dired-directory)))
       (message "Buffer `%s' not visiting a file or directory" (buffer-name))
-    (if (and save-place (or (not parg) (<= parg 0)))
-	(progn
-	  (message "No place will be saved in this file")
-	  (setq save-place nil))
-      (message "Place will be saved")
-      (setq save-place t))))
+    (setq save-place (if parg
+                         (> (prefix-numeric-value parg) 0)
+                       (not save-place)))
+    (message (if save-place
+                 "Place will be saved"
+               "No place will be saved in this file"))))
 
 (declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
 
