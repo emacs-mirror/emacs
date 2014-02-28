@@ -223,7 +223,6 @@ Res ChunkInit(Chunk chunk, Arena arena,
 
   /* As part of the bootstrap, the first created chunk becomes the primary
      chunk.  This step allows AreaFreeCBSInsert to allocate pages. */
-  /* FIXME: Do we need this hack here since we now have arena->hasFreeCBS? */
   if (arena->primary == NULL)
     arena->primary = chunk;
 
@@ -253,7 +252,7 @@ void ChunkFinish(Chunk chunk)
     ArenaFreeCBSDelete(ChunkArena(chunk),
                        PageIndexBase(chunk, chunk->allocBase),
                        chunk->limit);
-  /* FIXME: Do we need this hack here since we now have arena->hasFreeCBS? */
+
   if (chunk->arena->primary == chunk)
     chunk->arena->primary = NULL;
 
