@@ -346,6 +346,30 @@ static Size ClientArenaReserved(Arena arena)
 }
 
 
+/* ClientArenaPagesMarkAllocated -- Mark the pages allocated */
+
+static Res ClientArenaPagesMarkAllocated(Arena arena, Chunk chunk,
+                                         Index baseIndex, Count pages,
+                                         Pool pool)
+{
+  Index i;
+  
+  AVERT(Arena, arena);
+  AVERT(Chunk, chunk);
+  AVER(chunk->allocBase <= baseIndex);
+  AVER(pages > 0);
+  AVER(baseIndex + pages <= chunk->pages);
+  AVERT(Pool, pool);
+
+  for (i = 0; i < pages; ++i)
+    PageAlloc(chunk, baseIndex + i, pool);
+
+  Chunk2ClientChunk(chunk)->freePages -= pages;
+
+  return ResOK;
+}
+
+
 /* ClientFree - free a region in the arena */
 
 static void ClientFree(Addr base, Size size, Pool pool)
@@ -406,6 +430,7 @@ DEFINE_ARENA_CLASS(ClientArenaClass, this)
   this->finish = ClientArenaFinish;
   this->reserved = ClientArenaReserved;
   this->extend = ClientArenaExtend;
+  this->pagesMarkAllocated = ClientArenaPagesMarkAllocated;
   this->free = ClientFree;
   this->chunkInit = ClientChunkInit;
   this->chunkFinish = ClientChunkFinish;

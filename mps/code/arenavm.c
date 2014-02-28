@@ -849,6 +849,14 @@ static Res VMPagesMarkAllocated(Arena arena, Chunk chunk,
                                 Index baseIndex, Count pages, Pool pool)
 {
   Res res;
+
+  AVERT(Arena, arena);
+  AVERT(Chunk, chunk);
+  AVER(chunk->allocBase <= baseIndex);
+  AVER(pages > 0);
+  AVER(baseIndex + pages <= chunk->pages);
+  AVERT(Pool, pool);
+
   res = pagesMarkAllocated(Arena2VMArena(arena),
                            Chunk2VMChunk(chunk),
                            baseIndex,
