@@ -85,9 +85,9 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
   AVER(AddrIsAligned(limit, alignment));
 
   nails = AddrOffset(base, limit) / alignment;
-  levels = SizeRoundUp(SizeLog2(nails), levelShift) / levelShift;
+  levels = SizeRoundUp(SizeLog2(nails) + 1, levelShift) / levelShift;
   AVER((nails >> ((levels - 1) * levelShift)) > 0);
-  AVER((nails >> (levels * levelShift)) <= 1);
+  AVER((nails >> (levels * levelShift)) == 0);
 
   structSize = nailboardStructSize(levels);
   levelsSize = nailboardLevelsSize(nails, levels, levelShift);
