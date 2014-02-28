@@ -828,8 +828,6 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
   Index baseIndex;
   Count pages;
   Res res;
-  FindDelete fd;
-  CBSFindInZonesMethod find;
   
   AVER(tractReturn != NULL);
   /* ZoneSet is arbitrary */
@@ -839,10 +837,9 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
   AVER(SizeIsAligned(size, arena->alignment));
 
   /* Step 1. Find a range of address space. */
-
-  fd = high ? FindDeleteHIGH : FindDeleteLOW;
-  find = high ? CBSFindLastInZones : CBSFindFirstInZones;
-  res = find(&range, &oldRange, ArenaZonedCBS(arena), size, arena, zones);
+  
+  res = CBSFindInZones(&range, &oldRange, ArenaZonedCBS(arena),
+                       size, arena, zones, high);
 
   if (res == ResLIMIT) { /* found block, but couldn't store info */
     RangeStruct pageRange;
@@ -850,7 +847,8 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
     if (res != ResOK) /* disasterously short on memory */
       return res;
     arenaExcludePage(arena, &pageRange);
-    res = find(&range, &oldRange, ArenaZonedCBS(arena), size, arena, zones);
+    res = CBSFindInZones(&range, &oldRange, ArenaZonedCBS(arena),
+                         size, arena, zones, high);
     AVER(res != ResLIMIT);
   }
 
