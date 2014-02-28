@@ -21,9 +21,8 @@
 
 2014-02-28  Ivan Kanis  <ivan@kanis.fr>
 
-	* net/shr.el (shr-put-image): Add custom variable
-	`shr-image-animate' to turn off image animation.  It is so slow it
-	will render emacs unusable.
+	* net/shr.el (shr-image-animate): New option.
+	(shr-put-image): Respect shr-image-animate.
 
 2014-02-28  Michael Albinus  <michael.albinus@gmx.de>
 
