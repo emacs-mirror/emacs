@@ -166,13 +166,18 @@ Bool ArenaCheck(Arena arena)
  * methods, not the generic Create.  This is because the class is
  * responsible for allocating the descriptor.  */
 
-Res ArenaInit(Arena arena, ArenaClass class, Align alignment)
+Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
 {
   Res res;
+  Bool zoned = ARENA_DEFAULT_ZONED;
+  mps_arg_s arg;
 
-  /* We do not check the arena argument, because it's _supposed_ to */
-  /* point to an uninitialized block of memory. */
+  AVER(arena != NULL);
   AVERT(ArenaClass, class);
+  AVER(AlignCheck(alignment));
+  
+  if (ArgPick(&arg, args, MPS_KEY_ARENA_ZONED))
+    zoned = arg.val.b;
 
   arena->class = class;
 
@@ -190,6 +195,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment)
   arena->lastTractBase = NULL;
   arena->hasFreeCBS = FALSE;
   arena->freeZones = ZoneSetUNIV;
+  arena->zoned = zoned;
 
   arena->primary = NULL;
   RingInit(&arena->chunkRing);
@@ -225,7 +231,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment)
     MPS_ARGS_ADD(cbsiArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
     MPS_ARGS_DONE(cbsiArgs);
     res = CBSInit(ArenaZonedCBS(arena), arena, arena, alignment,
-                  /* fastFind */ TRUE, /* zoned */ TRUE, cbsiArgs);
+                  /* fastFind */ TRUE, arena->zoned, cbsiArgs);
   } MPS_ARGS_END(cbsiArgs);
   AVER(res == ResOK); /* no allocation, no failure expected */
   if (res != ResOK)
@@ -266,6 +272,7 @@ ARG_DEFINE_KEY(vmw3_top_down, Bool);
 /* ArenaCreate -- create the arena and call initializers */
 
 ARG_DEFINE_KEY(arena_size, Size);
+ARG_DEFINE_KEY(arena_zoned, Bool);
 
 Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 {
@@ -836,6 +843,9 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
   AVERT(Pool, pool);
   arena = PoolArena(pool);
   AVER(SizeIsAligned(size, arena->alignment));
+  
+  if (!arena->zoned)
+    zones = ZoneSetUNIV;
 
   /* Step 1. Find a range of address space. */
   

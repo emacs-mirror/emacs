@@ -482,9 +482,10 @@ extern AbstractArenaClass AbstractArenaClassGet(void);
 extern Bool ArenaClassCheck(ArenaClass class);
 
 extern Bool ArenaCheck(Arena arena);
-extern Res ArenaCreate(Arena *arenaReturn, ArenaClass class, mps_arg_s args[]);
+extern Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args);
 extern void ArenaDestroy(Arena arena);
-extern Res ArenaInit(Arena arena, ArenaClass class, Align alignment);
+extern Res ArenaInit(Arena arena, ArenaClass class, Align alignment,
+                     ArgList args);
 extern void ArenaFinish(Arena arena);
 extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream);
 extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream);
