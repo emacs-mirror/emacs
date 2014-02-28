@@ -192,9 +192,8 @@
   /* new events for performance analysis of large heaps. */ \
   EVENT(X, TraceCondemnZones  , 0x0083,  TRUE, Trace) \
   EVENT(X, ArenaGenZoneAdd    , 0x0084,  TRUE, Arena) \
-  EVENT(X, ArenaUseFreeZone   , 0x0085,  TRUE, Arena) \
-  EVENT(X, ArenaBlacklistZone , 0x0086,  TRUE, Arena)
-  
+  EVENT(X, ArenaUseFreeZone   , 0x0085,  TRUE, Arena)
+
 
 /* Remember to update EventNameMAX and EventCodeMAX above! 
    (These are checked in EventInit.) */
@@ -740,10 +739,6 @@
 #define EVENT_ArenaUseFreeZone_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena)        /* the arena */ \
   PARAM(X,  1, W, zoneSet)      /* zones that aren't free any longer */
-
-#define EVENT_ArenaBlacklistZone_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, arena)        /* the arena */ \
-  PARAM(X,  1, W, zoneSet)      /* the blacklist zoneset */
 
 
 #endif /* eventdef_h */
