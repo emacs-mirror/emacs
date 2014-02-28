@@ -142,28 +142,27 @@ to `display-buffer'."
 	;; Return the window.
 	window))))
 
-;; Doc is very similar to with-output-to-temp-buffer.
 (defmacro with-temp-buffer-window (buffer-or-name action quit-function &rest body)
-  "Bind `standard-output' to BUFFER-OR-NAME, eval BODY, show the buffer.
-BUFFER-OR-NAME must specify either a live buffer, or the name of a
-buffer (if it does not exist, this macro creates it).
+  "Evaluate BODY in a buffer BUFFER-OR-NAME and show that buffer.
+BUFFER-OR-NAME must specify either a live buffer, or the name of
+a buffer (if it does not exist, this macro creates it).
 
-This construct makes buffer BUFFER-OR-NAME empty before running BODY.
-It does not make the buffer current for BODY.
-Instead it binds `standard-output' to that buffer, so that output
-generated with `prin1' and similar functions in BODY goes into
-the buffer.
+Make the buffer specified by BUFFER-OR-NAME empty before running
+BODY and make that buffer current for running the forms in BODY.
+In addition, bind `standard-output' to that buffer, so that
+output generated with `prin1' and similar functions in BODY goes
+into that buffer.
 
-At the end of BODY, this marks the specified buffer unmodified and
-read-only, and displays it in a window (but does not select it, or make
-the buffer current).  The display happens by calling `display-buffer'
-with the ACTION argument.  If `temp-buffer-resize-mode' is enabled,
-the relevant window shrinks automatically.
+At the end of BODY, mark the specified buffer unmodified and
+read-only, and display it in a window (but do not select it).
+The display happens by calling `display-buffer' passing it the
+ACTION argument.  If `temp-buffer-resize-mode' is enabled, the
+corresponding window may shrink automatically.
 
-This returns the value returned by BODY, unless QUIT-FUNCTION specifies
-a function.  In that case, it runs the function with two arguments -
+Return the value returned by BODY, unless QUIT-FUNCTION specifies
+a function.  In that case, run that function with two arguments -
 the window showing the specified buffer and the value returned by
-BODY - and returns the value returned by that function.
+BODY - and return the value returned by that function.
 
 If the buffer is displayed on a new frame, the window manager may
 decide to select that frame.  In that case, it's usually a good
@@ -172,16 +171,16 @@ before reading any value from the minibuffer; for example, when
 asking a `yes-or-no-p' question.
 
 This runs the hook `temp-buffer-window-setup-hook' before BODY,
-with the specified buffer temporarily current.  It runs the
-hook `temp-buffer-window-show-hook' after displaying the buffer,
-with that buffer temporarily current, and the window that was used to
+with the specified buffer temporarily current.  It runs the hook
+`temp-buffer-window-show-hook' after displaying the buffer, with
+that buffer temporarily current, and the window that was used to
 display it temporarily selected.
 
-This construct is similar to `with-output-to-temp-buffer', but
-runs different hooks.  In particular, it does not run
-`temp-buffer-setup-hook', which usually puts the buffer in Help mode.
-Also, it does not call `temp-buffer-show-function' (the ACTION
-argument replaces this)."
+This construct is similar to `with-output-to-temp-buffer' but,
+unlike that, makes BUFFER-OR-NAME current when running BODY.
+Also, it neither runs `temp-buffer-setup-hook' which usually puts
+the buffer in Help mode, nor `temp-buffer-show-function' (the
+ACTION argument replaces this)."
   (declare (debug t))
   (let ((buffer (make-symbol "buffer"))
 	(window (make-symbol "window"))
@@ -189,8 +188,8 @@ argument replaces this)."
     `(let* ((,buffer (temp-buffer-window-setup ,buffer-or-name))
 	    (standard-output ,buffer)
 	    ,window ,value)
-       (setq ,value (progn ,@body))
        (with-current-buffer ,buffer
+	 (setq ,value (progn ,@body))
 	 (setq ,window (temp-buffer-window-show ,buffer ,action)))
 
        (if (functionp ,quit-function)

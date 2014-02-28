@@ -1194,9 +1194,14 @@ Return VALUE."
 ;; Note: It's usually always wrong to use `help-print-return-message' in
 ;; the body of `with-help-window'.
 (defmacro with-help-window (buffer-name &rest body)
-  "Display buffer with name BUFFER-NAME in a help window evaluating BODY.
-Select help window if the current value of the user option
-`help-window-select' says so.  Return last value in BODY."
+  "Display buffer with name BUFFER-NAME in a help window.
+Evaluate the forms in BODY with the buffer specified by
+BUFFER-NAME current, put that buffer in `help-mode', display the
+buffer in a window (see `with-temp-buffer-window' for details)
+and issue a message how to deal with that \"help\" window when
+it's no more needed.  Select the help window if the current value
+of the user option `help-window-select' says so.  Return last
+value in BODY."
   (declare (indent 1) (debug t))
   `(progn
      ;; Make `help-window-point-marker' point nowhere.  The only place

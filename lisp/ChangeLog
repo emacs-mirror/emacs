@@ -1,7 +1,16 @@
+2014-02-28  Martin Rudalics  <rudalics@gmx.at>
+
+	Revert recent with-temp-buffer-window change (Bug#16816, Bug#16882).
+	* window.el (with-temp-buffer-window): Revert change from
+	2014-02-21.  Suggested by Thierry Volpiatto
+	<thierry.volpiatto@gmail.com>.  Fix doc-string based on a
+	suggestion by Nicolas Richard <theonewiththeevillook@yahoo.fr>.
+	* help.el (with-help-window): Fix doc-string.
+
 2014-02-28  Ivan Kanis  <ivan@kanis.fr>
 
-	* net/shr.el (shr-put-image): add custom variable
-	`shr-image-animate' to turn off image animation. It is so slow it
+	* net/shr.el (shr-put-image): Add custom variable
+	`shr-image-animate' to turn off image animation.  It is so slow it
 	will render emacs unusable.
 
 2014-02-28  Michael Albinus  <michael.albinus@gmx.de>
@@ -3304,7 +3313,8 @@
 	* emacs-lisp/debug.el (debug): Use window-total-height instead
 	of window-total-size.
 	* frame.el (tool-bar-lines-needed): Defalias to tool-bar-height.
-	* help.el (describe-bindings-internal): Call help-buffer
+	* help.el (describe-bindings-internal): Use help-buffer as
+	argument for with-help-window.
 	(temp-buffer-max-width): New option.
 	(resize-temp-buffer-window, help-window-setup)
 	(with-help-window): Rewrite.
