@@ -904,6 +904,10 @@ failMark:
  * This is the code responsible for making decisions about where to allocate
  * memory.  Avoid distributing code for doing this elsewhere, so that policy
  * can be maintained and adjusted.
+ *
+ * TODO: This currently duplicates the policy from VMAllocPolicy in
+ * //info.ravenbrook.com/project/mps/master/code/arenavm.c#36 in order
+ * to avoid disruption to clients, but needs revision.
  */
 
 static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
@@ -918,8 +922,6 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
   AVER(size > (Size)0);
   AVERT(Pool, pool);
   
-  /* FIXME: Allow arena to take an option to ignore zones. */
-
   /* Don't attempt to allocate if doing so would definitely exceed the
      commit limit. */
   if (arena->spareCommitted < size) {
@@ -930,11 +932,8 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
     }
   }
 
-  /* FIXME: Think about this. We may have barged into a blacklisted zone. */
-  AVER(ZoneSetInter(pref->zones, pref->avoid) == ZoneSetEMPTY);
-  
   /* Plan A: allocate from the free CBS in the requested zones */
-  zones = pref->zones;
+  zones = ZoneSetDiff(pref->zones, pref->avoid);
   if (zones != ZoneSetEMPTY) {
     res = arenaAllocFromCBS(&tract, zones, pref->high, size, pool);
     if (res == ResOK)
@@ -945,7 +944,7 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
   /* TODO: Pools without ambiguous roots might not care about the blacklist. */
   /* TODO: zones are precious and (currently) never deallocated, so we
      should consider extending the arena first if address space is plentiful */
-  moreZones = ZoneSetUnion(zones, ZoneSetDiff(arena->freeZones, pref->avoid));
+  moreZones = ZoneSetUnion(pref->zones, ZoneSetDiff(arena->freeZones, pref->avoid));
   if (moreZones != zones) {
     res = arenaAllocFromCBS(&tract, moreZones, pref->high, size, pool);
     if (res == ResOK)
@@ -957,7 +956,6 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
     res = arena->class->grow(arena, pref, size);
     if (res != ResOK)
       return res;
-    zones = pref->zones;
     if (zones != ZoneSetEMPTY) {
       res = arenaAllocFromCBS(&tract, zones, pref->high, size, pool);
       if (res == ResOK)
@@ -975,7 +973,7 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
      objects with those from other generations, causing the zone check
      to give false positives and slowing down the collector. */
   /* TODO: log an event for this */
-  evenMoreZones = ZoneSetUnion(moreZones, ZoneSetDiff(ZoneSetUNIV, pref->avoid));
+  evenMoreZones = ZoneSetDiff(ZoneSetUNIV, pref->avoid);
   if (evenMoreZones != moreZones) {
     res = arenaAllocFromCBS(&tract, evenMoreZones, pref->high, size, pool);
     if (res == ResOK)
