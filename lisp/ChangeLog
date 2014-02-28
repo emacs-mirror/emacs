@@ -1,3 +1,8 @@
+2014-02-28  Per Starbäck  <starback@stp.lingfil.uu.se>
+
+	* textmodes/bibtex.el (bibtex-biblatex-entry-alist): Update
+	required/optional fields to match development biblatex.  (Bug#16781)
+
 2014-02-28  Andy Sawyer  <andy.sawyer@gmail.com>  (tiny change)
 
 	* saveplace.el (toggle-save-place):
