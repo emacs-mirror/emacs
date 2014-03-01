@@ -2132,6 +2132,16 @@ See `font-lock-syntax-table'.")
     ;; Character literals.
     ;; FIXME: Support longer escape sequences.
     ("\\_<\\?\\\\?\\S " 0 font-lock-string-face)
+    ;; Regexp options.
+    ("\\(?:\\s|\\|/\\)\\([imxo]+\\)"
+     1 (when (save-excursion
+               (let ((state (syntax-ppss (match-beginning 0))))
+                 (and (nth 3 state)
+                      (or (eq (char-after) ?/)
+                          (progn
+                            (goto-char (nth 8 state))
+                            (looking-at "%r"))))))
+         font-lock-preprocessor-face))
     )
   "Additional expressions to highlight in Ruby mode.")
 
