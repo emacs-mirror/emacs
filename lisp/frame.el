@@ -610,7 +610,6 @@ The functions are run with one arg, the newly created frame.")
 (define-obsolete-function-alias 'new-frame 'make-frame "22.1")
 
 (defvar frame-inherited-parameters '()
-  ;; FIXME: Shouldn't we add `font' here as well?
   "Parameters `make-frame' copies from the `selected-frame' to the new frame.")
 
 (defvar x-display-name)
@@ -1374,7 +1373,7 @@ frame's display)."
       (with-no-warnings
        (not (null dos-windows-version))))
      ((memq frame-type '(x w32 ns))
-      t)    ;; FIXME?
+      t)
      (t
       nil))))
 
