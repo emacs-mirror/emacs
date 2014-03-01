@@ -1,5 +1,7 @@
 2014-03-01  Glenn Morris  <rgm@gnu.org>
 
+	* isearch.el (search-invisible): Doc fix.
+
 	* minibuffer.el (completion-hilit-commonality):
 	Make `base-size' argument optional.  Short-cut if `prefix-len' is 0.
 	* comint.el (comint-dynamic-list-completions): Doc fix.

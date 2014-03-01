@@ -1132,9 +1132,10 @@ it makes that part of the buffer visible.  If you exit the search at
 that position, the text remains visible.  To toggle whether or not
 an active incremental search can match hidden text, type @kbd{M-s i}.
 To change the default for future searches, customize the option
-@code{search-invisible}.  You can also automatically make text visible
-as you navigate in it by using Reveal mode (@kbd{M-x reveal-mode}), a
-buffer-local minor mode.
+@code{search-invisible}.  (This option also affects how @code{query-replace}
+and related functions treat hidden text, @pxref{Query Replace}.)
+You can also automatically make text visible as you navigate in it by
+using Reveal mode (@kbd{M-x reveal-mode}), a buffer-local minor mode.
 
 @node Outline Views
 @subsection Viewing One Outline in Multiple Views

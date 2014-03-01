@@ -1393,6 +1393,10 @@ line.
 used the minibuffer to read its arguments.  @xref{Repetition, C-x ESC
 ESC}.
 
+@cindex invisible text, and query-replace
+  The option @code{search-invisible} determines how @code{query-replace}
+treats invisible text.  @xref{Outline Search}.
+
   @xref{Operating on Files}, for the Dired @kbd{Q} command which
 performs query replace on selected files.  See also @ref{Transforming
 File Names}, for Dired commands to rename, copy, or link files by

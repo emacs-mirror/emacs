@@ -851,6 +851,7 @@ and adds it to the search string.
 +++
 *** `M-s i' in Isearch mode toggles whether search matches invisible text.
 
++++
 *** `query-replace' skips invisible text when `search-invisible' is nil,
 and opens overlays with hidden text when `search-invisible' is `open'.
 
