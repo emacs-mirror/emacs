@@ -1470,7 +1470,7 @@ by which WINDOW can be shrunk."
 		  (setq delta
 			(+ delta
 			   (max
-			    (- (window-size sub horizontal pixelwise 'ceiling)
+			    (- (window-size sub horizontal pixelwise 'floor)
 			       (window-min-size
 				sub horizontal ignore pixelwise))
 			    0)))))

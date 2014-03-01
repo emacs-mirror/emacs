@@ -1,3 +1,8 @@
+2014-03-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--max-delta-1): Round down when calculating
+	how many lines/columns we can get from a window.
+
 2014-03-01  Glenn Morris  <rgm@gnu.org>
 
 	* isearch.el (search-invisible): Doc fix.
