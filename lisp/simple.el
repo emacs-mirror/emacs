@@ -3468,7 +3468,6 @@ extract characters that are special to a buffer, and should not
 be copied into other buffers."
   (funcall filter-buffer-substring-function beg end delete))
 
-;; FIXME: `with-wrapper-hook' is obsolete
 (defun buffer-substring--filter (beg end &optional delete)
   (with-wrapper-hook filter-buffer-substring-functions (beg end delete)
     (cond
