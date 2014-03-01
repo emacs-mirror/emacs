@@ -1,3 +1,10 @@
+2014-03-01  Martin Rudalics  <rudalics@gmx.at>
+
+	Consider Vother_window_scroll_buffer valid iff it's a live buffer.
+	* window.c (Fother_window_for_scrolling): Don't try to scroll a
+	killed Vother_window_scroll_buffer.
+	(Vother_window_scroll_buffer): Fix doc-string accordingly.
+
 2014-03-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fexpand_file_name) [WINDOWSNT]: Don't treat file names

@@ -5429,8 +5429,9 @@ specifies the window.  This takes precedence over
   if (MINI_WINDOW_P (XWINDOW (selected_window))
       && !NILP (Vminibuf_scroll_window))
     window = Vminibuf_scroll_window;
-  /* If buffer is specified, scroll that buffer.  */
-  else if (!NILP (Vother_window_scroll_buffer))
+  /* If buffer is specified and live, scroll that buffer.  */
+  else if (!NILP (Vother_window_scroll_buffer)
+	   && BUFFER_LIVE_P (XBUFFER (Vother_window_scroll_buffer)))
     {
       window = Fget_buffer_window (Vother_window_scroll_buffer, Qnil);
       if (NILP (window))
@@ -7197,7 +7198,7 @@ is displayed in the `mode-line' face.  */);
   mode_line_in_non_selected_windows = 1;
 
   DEFVAR_LISP ("other-window-scroll-buffer", Vother_window_scroll_buffer,
-	       doc: /* If non-nil, this is a buffer and \\[scroll-other-window] should scroll its window.  */);
+	       doc: /* If this is a live buffer, \\[scroll-other-window] should scroll its window.  */);
   Vother_window_scroll_buffer = Qnil;
 
   DEFVAR_BOOL ("auto-window-vscroll", auto_window_vscroll_p,
