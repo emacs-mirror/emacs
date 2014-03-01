@@ -117,6 +117,11 @@ This variable has no effect when @code{redisplay-dont-pause} is
 non-@code{nil} (the default).
 @end defvar
 
+@defvar pre-redisplay-function
+A function run just before redisplay.  It is called with one argument,
+the set of windows to redisplay.
+@end defvar
+
   Although @code{redisplay} tries immediately to redisplay, it does
 not change how Emacs decides which parts of its frame(s) to redisplay.
 By contrast, the following function adds certain windows to the

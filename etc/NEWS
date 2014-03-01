@@ -1240,6 +1240,7 @@ frame.
 *** The hook `term-setup-hook' is obsolete.  It is entirely equivalent
 to `emacs-startup-hook'.  See also the new `tty-setup-hook'.
 
++++
 ** New hook `pre-redisplay-function'.
 
 +++
