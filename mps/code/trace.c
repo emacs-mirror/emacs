@@ -9,6 +9,7 @@
 
 #include "locus.h"
 #include "mpm.h"
+#include "table.h"
 #include <limits.h> /* for LONG_MAX */
 
 SRCID(trace, "$Id$");
@@ -75,10 +76,12 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
      in TraceFix. */
   ss->fix = NULL;
   ss->fixClosure = NULL;
+  AVER(TraceSetIsSingle(ts));
   TRACE_SET_ITER(ti, trace, ts, arena) {
     if (ss->fix == NULL) {
       ss->fix = trace->fix;
       ss->fixClosure = trace->fixClosure;
+      ss->whiteTable = trace->whiteTable;
     } else {
       AVER(ss->fix == trace->fix);
       AVER(ss->fixClosure == trace->fixClosure);
@@ -354,6 +357,8 @@ Res TraceAddWhite(Trace trace, Seg seg)
 {
   Res res;
   Pool pool;
+  Addr base, addr, limit;
+  Align align;
 
   AVERT(Trace, trace);
   AVERT(Seg, seg);
@@ -362,11 +367,23 @@ Res TraceAddWhite(Trace trace, Seg seg)
   pool = SegPool(seg);
   AVERT(Pool, pool);
 
+  /* Add every arena grain in the segment to the whiteTable for fast
+     lookup in TraceFix.  TODO: Consider other alignments. */
+  base = SegBase(seg);
+  limit = SegLimit(seg);
+  align = ArenaGrainSize(PoolArena(pool));
+  for (addr = base; addr < limit; addr = AddrAdd(addr, align)) {
+    res = TableDefine(trace->whiteTable, (TableKey)addr, seg);
+    AVER(res == ResOK); /* FIXME: no error path to remove entries */
+    if (res != ResOK)
+      goto failDefine;
+  }
+
   /* Give the pool the opportunity to turn the segment white. */
   /* If it fails, unwind. */
   res = PoolWhiten(pool, trace, seg);
   if(res != ResOK)
-    return res;
+    goto failWhiten;
 
   /* Add the segment to the approximation of the white set if the */
   /* pool made it white. */
@@ -378,8 +395,13 @@ Res TraceAddWhite(Trace trace, Seg seg)
                                     ZoneSetOfSeg(trace->arena, seg));
     }
   }
-
+  
   return ResOK;
+
+failWhiten:
+  /* TableRemove(trace->whiteTable, key); */
+failDefine:
+  return res;
 }
 
 
@@ -669,10 +691,27 @@ static void TraceCreatePoolGen(GenDesc gen)
   }
 }
 
+static void *whiteTableAlloc(void *closure, Size size)
+{
+  void *p;
+  Arena arena = (Arena)closure;
+  Res res = ControlAlloc(&p, arena, size, FALSE);
+  if (res != ResOK)
+    return NULL;
+  return p;
+}
+
+static void whiteTableFree(void *closure, void *p, Size size)
+{
+  Arena arena = (Arena)closure;
+  ControlFree(arena, p, size);
+}
+
 Res TraceCreate(Trace *traceReturn, Arena arena, int why)
 {
   TraceId ti;
   Trace trace;
+  Res res;
 
   AVER(traceReturn != NULL);
   AVERT(Arena, arena);
@@ -686,6 +725,12 @@ Res TraceCreate(Trace *traceReturn, Arena arena, int why)
 found:
   trace = ArenaTrace(arena, ti);
   AVER(trace->sig == SigInvalid);       /* <design/arena/#trace.invalid> */
+
+  res = TableCreate(&trace->whiteTable, 1024,
+                    whiteTableAlloc, whiteTableFree,
+                    arena, (Word)1, (Word)2);
+  if (res != ResOK)
+    return res;
 
   trace->arena = arena;
   trace->why = why;
@@ -775,6 +820,7 @@ void TraceDestroyInit(Trace trace)
 
   trace->sig = SigInvalid;
   trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
+  TableDestroy(trace->whiteTable);
 
   /* Clear the emergency flag so the next trace starts normally. */
   ArenaSetEmergency(trace->arena, FALSE);
@@ -835,6 +881,7 @@ void TraceDestroyFinished(Trace trace)
   trace->sig = SigInvalid;
   trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
   trace->arena->flippedTraces = TraceSetDel(trace->arena->flippedTraces, trace);
+  TableDestroy(trace->whiteTable);
 
   /* Hopefully the trace reclaimed some memory, so clear any emergency. */
   ArenaSetEmergency(trace->arena, FALSE);
@@ -1293,6 +1340,8 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   Seg seg;
   Res res;
   Pool pool;
+  void *value;
+  Word key;
 
   /* Special AVER macros are used on the critical path. */
   /* See <design/trace/#fix.noaver> */
@@ -1309,11 +1358,12 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   STATISTIC(++ss->fixRefCount);
   EVENT4(TraceFix, ss, mps_ref_io, ref, ss->rank);
 
-  /* FIXME: Replace with hashtable test. */
-  if (!SegOfAddr(&seg, ss->arena, ref)) {
+  key = (Word)AddrAlignDown(ref, ArenaGrainSize(ss->arena));
+  if (!TableLookup(&value, ss->whiteTable, key)) {
     /* FIXME: Check for exact poitner to chunk but not segment. */
     goto done;
   }
+  seg = (Seg)value;
 
   if (TraceSetInter(SegWhite(seg), ss->traces) == TraceSetEMPTY) {
     /* Reference points to a segment that is not white for any of the
