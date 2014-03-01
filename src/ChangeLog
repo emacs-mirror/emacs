@@ -1,3 +1,8 @@
+2014-03-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fexpand_file_name) [WINDOWSNT]: Don't treat file names
+	that start with more than 2 slashes as UNCs.  (Bug#16751)
+
 2014-02-28  Paul Eggert  <eggert@penguin.cs.ucla.edu>
 
 	Fix a few crashes and leaks when cloning C strings.
