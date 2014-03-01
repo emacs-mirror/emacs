@@ -392,6 +392,7 @@ matches exist."
              ;; a prefix of most, or something else.
 	     (compare (compare-strings name nil nil
 				       most nil nil completion-ignore-case))
+	     (ellipsis (if (char-displayable-p ?…) "…" "..."))
 	     (determ (unless (or (eq t compare) (eq t most-try)
 				 (= (setq compare (1- (abs compare)))
 				    (length most)))
@@ -402,14 +403,14 @@ matches exist."
 				 (substring most compare))
                                 ;; Don't bother truncating if it doesn't gain
                                 ;; us at least 2 columns.
-				((< compare 3) most)
-				(t (concat "…" (substring most compare))))
+				((< compare (+ 2 (length ellipsis))) most)
+				(t (concat ellipsis (substring most compare))))
 			       close-bracket)))
 	     ;;"-prospects" - more than one candidate
 	     (prospects-len (+ (string-width
 				(or determ (concat open-bracket close-bracket)))
 			       (string-width icomplete-separator)
-			       3 ;; take {…} into account
+			       (+ 2 (length ellipsis)) ;; take {…} into account
 			       (string-width (buffer-string))))
              (prospects-max
               ;; Max total length to use, including the minibuffer content.

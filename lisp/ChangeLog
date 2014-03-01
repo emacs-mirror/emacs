@@ -1,3 +1,8 @@
+2014-03-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* icomplete.el (icomplete-completions):
+	Revert back to using "..." when ?… cannot be displayed.
+
 2014-02-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* finder.el (finder-unload-function): New function.
