@@ -101,7 +101,7 @@ static TableEntry tableFind(Table table, TableKey key, Bool skip_deleted)
 
   /* .find.visit: Ensure the length is a power of two so that the stride
      is coprime and so visits all entries in the array eventually. */
-  AVER(WordIsP2(table->length)); /* .find.visit */
+  AVER_CRITICAL(WordIsP2(table->length)); /* .find.visit */
 
   mask = table->length - 1; 
   hash = tableHash(key) & mask;

@@ -30,6 +30,7 @@
 #include "splay.h"
 #include "meter.h"
 #include "tree.h"
+#include "table.h"
 
 
 /* PoolClassStruct -- pool class structure
@@ -459,6 +460,7 @@ typedef struct ScanStateStruct {
   PoolFixMethod fix;            /* third stage fix function */
   void *fixClosure;             /* closure data for fix */
   TraceSet traces;              /* traces to scan for */
+  Table whiteTable;
   Rank rank;                    /* reference rank of scanning */
   Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
   RefSet fixedSummary;          /* accumulated summary of fixed references */
@@ -486,6 +488,7 @@ typedef struct TraceStruct {
   Arena arena;                  /* owning arena */
   int why;                      /* why the trace began */
   ZoneSet white;                /* zones in the white set */
+  Table whiteTable;             /* table of white segments */
   ZoneSet mayMove;              /* zones containing possibly moving objs */
   TraceState state;             /* current state of trace */
   Rank band;                    /* current band */
