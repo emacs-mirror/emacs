@@ -1,3 +1,14 @@
+2014-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* minibuffer.el (completion-hilit-commonality):
+	Make `base-size' argument optional.  Short-cut if `prefix-len' is 0.
+	* comint.el (comint-dynamic-list-completions): Doc fix.
+	* comint.el (comint-dynamic-list-completions):
+	* filecache.el (file-cache-minibuffer-complete):
+	* tempo.el (tempo-display-completions):
+	* eshell/em-hist.el (eshell-list-history):
+	Replace use of obsolete argument of display-completion-list.
+
 2014-03-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* icomplete.el (icomplete-completions):

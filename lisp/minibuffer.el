@@ -1586,7 +1586,7 @@ less visible than normal, so that the differing parts are emphasized
 by contrast.
 See also the face `completions-first-difference'.")
 
-(defun completion-hilit-commonality (completions prefix-len base-size)
+(defun completion-hilit-commonality (completions prefix-len &optional base-size)
   "Apply font-lock highlighting to a list of completions, COMPLETIONS.
 PREFIX-LEN is an integer.  BASE-SIZE is an integer or nil (meaning zero).
 
@@ -1597,34 +1597,36 @@ This adds the face `completions-common-part' to the first
 It returns a list with font-lock properties applied to each element,
 and with BASE-SIZE appended as the last element."
   (when completions
-    (let ((com-str-len (- prefix-len (or base-size 0))))
-      (nconc
-       (mapcar
-        (lambda (elem)
-          (let ((str
-                 ;; Don't modify the string itself, but a copy, since the
-                 ;; the string may be read-only or used for other purposes.
-                 ;; Furthermore, since `completions' may come from
-                 ;; display-completion-list, `elem' may be a list.
-                 (if (consp elem)
-                     (car (setq elem (cons (copy-sequence (car elem))
-                                           (cdr elem))))
-                   (setq elem (copy-sequence elem)))))
-            (font-lock-prepend-text-property
-             0
-             ;; If completion-boundaries returns incorrect
-             ;; values, all-completions may return strings
-             ;; that don't contain the prefix.
-             (min com-str-len (length str))
-             'face 'completions-common-part str)
-            (if (> (length str) com-str-len)
-                (font-lock-prepend-text-property com-str-len (1+ com-str-len)
-                                                 'face
-                                                 'completions-first-difference
-                                                 str)))
-          elem)
-        completions)
-       base-size))))
+    (if (zerop prefix-len)
+        completions
+      (let ((com-str-len (- prefix-len (or base-size 0))))
+        (nconc
+         (mapcar
+          (lambda (elem)
+            (let ((str
+                   ;; Don't modify the string itself, but a copy, since the
+                   ;; the string may be read-only or used for other purposes.
+                   ;; Furthermore, since `completions' may come from
+                   ;; display-completion-list, `elem' may be a list.
+                   (if (consp elem)
+                       (car (setq elem (cons (copy-sequence (car elem))
+                                             (cdr elem))))
+                     (setq elem (copy-sequence elem)))))
+              (font-lock-prepend-text-property
+               0
+               ;; If completion-boundaries returns incorrect
+               ;; values, all-completions may return strings
+               ;; that don't contain the prefix.
+               (min com-str-len (length str))
+               'face 'completions-common-part str)
+              (if (> (length str) com-str-len)
+                  (font-lock-prepend-text-property com-str-len (1+ com-str-len)
+                                                   'face
+                                                   'completions-first-difference
+                                                   str)))
+            elem)
+          completions)
+         base-size)))))
 
 (defun display-completion-list (completions &optional common-substring)
   "Display the list of completions, COMPLETIONS, using `standard-output'.

@@ -2,9 +2,9 @@
 
 ;; Copyright (C) 1994-1995, 2001-2014 Free Software Foundation, Inc.
 
-;; Author: David K}gedal <davidk@lysator.liu.se>
+;; Author: David Kågedal <davidk@lysator.liu.se>
 ;; Created: 16 Feb 1994
-;; K}gedal's last version number: 1.2.4
+;; Kågedal's last version number: 1.2.4
 ;; Keywords: extensions, languages, tools
 
 ;; This file is part of GNU Emacs.
@@ -723,13 +723,13 @@ non-nil, a buffer containing possible completions is displayed."
   (if tempo-leave-completion-buffer
       (with-output-to-temp-buffer "*Completions*"
 	(display-completion-list
-	 (all-completions string tag-list)
-	 string))
+	 (completion-hilit-commonality (all-completions string tag-list)
+				       (length string))))
     (save-window-excursion
       (with-output-to-temp-buffer "*Completions*"
 	(display-completion-list
-	 (all-completions string tag-list)
-	 string))
+	 (completion-hilit-commonality (all-completions string tag-list)
+				       (length string))))
       (sit-for 32767))))
 
 ;;;
@@ -763,3 +763,7 @@ space bar, and looks something like this:
 (provide 'tempo)
 
 ;;; tempo.el ends here
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

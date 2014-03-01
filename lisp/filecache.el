@@ -613,7 +613,9 @@ the name is considered already unique; only the second substitution
                      (append completion-setup-hook
                              (list 'file-cache-completion-setup-function))))
 		(with-output-to-temp-buffer file-cache-completions-buffer
-		  (display-completion-list completion-list string))))
+		  (display-completion-list
+                   (completion-hilit-commonality completion-list
+                                                 (length string))))))
 	  (setq file-cache-string (file-cache-file-name completion-string))
 	  (if (string= file-cache-string (minibuffer-contents))
 	      (minibuffer-message file-cache-sole-match-message)

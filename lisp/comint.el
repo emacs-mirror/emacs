@@ -3274,8 +3274,12 @@ See also `comint-dynamic-complete-filename'."
 
 (defun comint-dynamic-list-completions (completions &optional common-substring)
   "Display a list of sorted COMPLETIONS.
-The meaning of COMMON-SUBSTRING is the same as in `display-completion-list'.
-Typing SPC flushes the completions buffer."
+Typing SPC flushes the completions buffer.
+
+The optional argument COMMON-SUBSTRING, if non-nil, should be a string
+specifying a common substring for adding the faces
+`completions-first-difference' and `completions-common-part' to
+the completions."
   (let ((window (get-buffer-window "*Completions*" 0)))
     (setq completions (sort completions 'string-lessp))
     (if (and (eq last-command this-command)
@@ -3306,7 +3310,8 @@ Typing SPC flushes the completions buffer."
       (setq comint-dynamic-list-completions-config
 	    (current-window-configuration))
       (with-output-to-temp-buffer "*Completions*"
-	(display-completion-list completions common-substring))
+        (display-completion-list
+         (completion-hilit-commonality completions (length common-substring))))
       (if (window-minibuffer-p)
 	  (minibuffer-message "Type space to flush; repeat completion command to scroll")
 	(message "Type space to flush; repeat completion command to scroll")))
