@@ -122,12 +122,19 @@
 (defvar personal-keybindings nil)
 
 (defmacro bind-key (key-name command &optional keymap)
+  "Bind KEY-NAME to COMMAND in KEYMAP (`global-map' if not passed).
+
+KEY-NAME may be a vector, in which case it passed straight to
+`define-key'. Or it may be a string to be interpreted as
+spelled-out keystrokes, e.g., \"C-c C-z\". See documentation of
+`edmacro-mode' for details."
   (let ((namevar (make-symbol "name"))
         (keyvar (make-symbol "key"))
         (bindingvar (make-symbol "binding"))
         (entryvar (make-symbol "entry")))
     `(let* ((,namevar ,(eval key-name))
-            (,keyvar (read-kbd-macro ,namevar))
+            (,keyvar (if (vectorp ,namevar) ,namevar
+                       (read-kbd-macro ,namevar)))
             (,bindingvar (lookup-key (or ,keymap global-map)
                                      ,keyvar)))
        (let ((,entryvar (assoc (cons ,namevar (quote ,keymap))
