@@ -1,3 +1,7 @@
+2014-03-02  Xue Fuqiao  <xfq@gnu.org>
+
+	* sem-user.texi (Create System Databases): Markup fix.
+
 2014-02-28  Glenn Morris  <rgm@gnu.org>
 
 	* info.texi (Further Reading): Rename node from Expert Info.

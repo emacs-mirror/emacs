@@ -483,9 +483,9 @@ for them once, which will be used over and over for tools such as
 summary-mode, or the analyzer.
 
 @deffn Command semanticdb-create-ebrowse-database dir
-Create an @var{ebrowse} database for directory @var{dir}.
-The database file is stored in ~/.semanticdb, or whichever directory
-is specified by @code{semanticdb-default-system-save-directory}.
+Create an Ebrowse database for directory @var{dir}.  The database file
+is stored in ~/.semanticdb, or whichever directory is specified by
+@code{semanticdb-default-system-save-directory}.
 @end deffn
 
 @node Idle Scheduler
