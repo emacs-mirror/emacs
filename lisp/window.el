@@ -7237,7 +7237,7 @@ accessible position."
 	 ((and fit-window-to-buffer-horizontally
 	       (not (window-size-fixed-p window t))
 	       (window-combined-p nil t))
-	  (let* ((total-width (window-size window nil pixelwise))
+	  (let* ((total-width (window-size window t pixelwise))
 		 (min-width
 		  ;; Sanitize MIN-WIDTH.
 		  (if (numberp min-width)
