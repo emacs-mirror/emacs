@@ -1,3 +1,9 @@
+2014-03-02  Barry O'Reilly <gundaetiapo@gmail.com>
+
+	* markers.texi (Moving Marker Positions): Clarify guidance about
+	when to move markers and when to create a new one, as discussed at
+	http://debbugs.gnu.org/cgi/bugreport.cgi?bug=16818#17
+
 2014-03-02  Glenn Morris  <rgm@gnu.org>
 
 	* text.texi (Decompression): New node.
