@@ -403,14 +403,14 @@ matches exist."
 				 (substring most compare))
                                 ;; Don't bother truncating if it doesn't gain
                                 ;; us at least 2 columns.
-				((< compare (+ 2 (length ellipsis))) most)
+				((< compare (+ 2 (string-width ellipsis))) most)
 				(t (concat ellipsis (substring most compare))))
 			       close-bracket)))
 	     ;;"-prospects" - more than one candidate
 	     (prospects-len (+ (string-width
 				(or determ (concat open-bracket close-bracket)))
 			       (string-width icomplete-separator)
-			       (+ 2 (length ellipsis)) ;; take {…} into account
+			       (+ 2 (string-width ellipsis)) ;; take {…} into account
 			       (string-width (buffer-string))))
              (prospects-max
               ;; Max total length to use, including the minibuffer content.
