@@ -101,7 +101,7 @@ Alternative suggestions are:
   :type 'function)
 
 (defcustom shr-image-animate t
-  "If non nil image will be animated."
+  "Non nil means that images that can be animated will be."
   :version "24.4"
   :group 'shr
   :type 'boolean)

@@ -1,10 +1,17 @@
+2014-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* search.texi (Query Replace): Mention search-invisible.
+	* text.texi (Outline Visibility): Mention search-invisible
+	also affects query-replace.
+
 2014-02-28  Xue Fuqiao  <xfq@gnu.org>
 
 	* emacs.texi (Top):
 	* programs.texi (Programs, Prettifying Symbols):
 	Document `prettify-symbols-mode' and `global-prettify-symbols-mode'.
 
-	* misc.texi (Saving Emacs Sessions): Document some new desktop user options.
+	* misc.texi (Saving Emacs Sessions):
+	Document some new desktop user options.
 
 2014-02-27  Xue Fuqiao  <xfq@gnu.org>
 

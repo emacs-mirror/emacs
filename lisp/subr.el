@@ -1461,7 +1461,7 @@ Each hook function definition is used to construct the FUN passed
 to the next hook function, if any.  The last (or \"outermost\")
 FUN is then called once."
   (declare (indent 2) (debug (form sexp body))
-           (obsolete "use a <foo>-function variable modified by add-function."
+           (obsolete "use a <foo>-function variable modified by `add-function'."
                      "24.4"))
   ;; We need those two gensyms because CL's lexical scoping is not available
   ;; for function arguments :-(

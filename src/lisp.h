@@ -4398,6 +4398,7 @@ extern void *xpalloc (void *, ptrdiff_t *, ptrdiff_t, ptrdiff_t, ptrdiff_t);
 
 extern char *xstrdup (const char *);
 extern char *xlispstrdup (Lisp_Object);
+extern void dupstring (char **, char const *);
 extern void xputenv (const char *);
 
 extern char *egetenv (const char *);

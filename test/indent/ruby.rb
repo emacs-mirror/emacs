@@ -29,6 +29,10 @@ a = asub / aslb + bsub / bslb;
 # Highlight the regexp after "if".
 x = toto / foo if /do bar/ =~ "dobar"
 
+# Regexp options are highlighted.
+
+/foo/xi != %r{bar}mo.tee
+
 bar(class: XXX) do              # ruby-indent-keyword-label
   foo
 end

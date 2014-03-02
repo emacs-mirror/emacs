@@ -1,17 +1,61 @@
+2014-03-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* icomplete.el (icomplete-completions): Use string-width.
+	Suggested by Stefan Monier <monnier@iro.umontreal.ca>.
+
+2014-03-01  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight
+	regexp options.  (Bug#16914)
+
+2014-03-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--max-delta-1): Round down when calculating
+	how many lines/columns we can get from a window.
+
+2014-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* isearch.el (search-invisible): Doc fix.
+
+	* minibuffer.el (completion-hilit-commonality):
+	Make `base-size' argument optional.  Short-cut if `prefix-len' is 0.
+	* comint.el (comint-dynamic-list-completions): Doc fix.
+	* comint.el (comint-dynamic-list-completions):
+	* filecache.el (file-cache-minibuffer-complete):
+	* tempo.el (tempo-display-completions):
+	* eshell/em-hist.el (eshell-list-history):
+	Replace use of obsolete argument of display-completion-list.
+
+2014-03-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* icomplete.el (icomplete-completions):
+	Revert back to using "..." when ?… cannot be displayed.
+
+2014-02-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* finder.el (finder-unload-function): New function.
+
+2014-02-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dframe.el (dframe-detach):
+	* find-dired.el (find-dired, find-name-dired):
+	* finder.el (finder-mode-map, finder-mode-syntax-table)
+	(finder-headmark, finder-select, finder-mouse-select):
+	Fix docstring typos.
+
 2014-02-28  Martin Rudalics  <rudalics@gmx.at>
 
 	Revert recent with-temp-buffer-window change (Bug#16816, Bug#16882).
 	* window.el (with-temp-buffer-window): Revert change from
-	2014-02-21.  Suggested by Thierry Volpiatto
+	2014-02-21.  Suggested by Thierry Volpiatto.
 	<thierry.volpiatto@gmail.com>.  Fix doc-string based on a
 	suggestion by Nicolas Richard <theonewiththeevillook@yahoo.fr>.
 	* help.el (with-help-window): Fix doc-string.
 
 2014-02-28  Ivan Kanis  <ivan@kanis.fr>
 
-	* net/shr.el (shr-put-image): Add custom variable
-	`shr-image-animate' to turn off image animation.  It is so slow it
-	will render emacs unusable.
+	* net/shr.el (shr-image-animate): New option.
+	(shr-put-image): Respect shr-image-animate.
 
 2014-02-28  Michael Albinus  <michael.albinus@gmx.de>
 

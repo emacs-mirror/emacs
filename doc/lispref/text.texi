@@ -54,6 +54,7 @@ the character after point.
 * Registers::        How registers are implemented.  Accessing the text or
                        position stored in a register.
 * Transposition::    Swapping two portions of a buffer.
+* Decompression::    Dealing with compressed data.
 * Base 64::          Conversion to or from base 64 encoding.
 * Checksum/Hash::    Computing cryptographic hashes.
 * Parsing HTML/XML:: Parsing HTML and XML.
@@ -4131,6 +4132,35 @@ two characters in their new position.  However, if @var{leave-markers}
 is non-@code{nil}, @code{transpose-regions} does not do this---it leaves
 all markers unrelocated.
 @end defun
+
+@node Decompression
+@section Dealing With Compressed Data
+
+When @code{auto-compression-mode} is enabled, Emacs automatically
+uncompresses compressed files when you visit them, and automatically
+recompresses them if you alter and save them.  @xref{Compressed
+Files,,, emacs, The GNU Emacs Manual}.
+
+The above feature works by calling an external executable (e.g.,
+@command{gzip}).  Emacs can also be compiled with support for built-in
+decompression using the zlib library, which is faster than calling an
+external program.
+
+@defun zlib-available-p
+This function returns non-@code{nil} if built-in zlib decompression is
+available.
+@end defun
+
+@defun zlib-decompress-region start end
+This function decompresses the region between @var{start} and
+@var{end}, using built-in zlib decompression.  The region should
+contain data that were compressed with gzip or zlib.  On success, the
+function replaces the contents of the region with the decompressed
+data.  On failure, the function leaves the region unchanged and
+returns @code{nil}.  This function can be called only in unibyte
+buffers.
+@end defun
+
 
 @node Base 64
 @section Base 64 Encoding

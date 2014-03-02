@@ -1047,10 +1047,9 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
     nm++;
 
   /* Discard any previous drive specifier if nm is now in UNC format.  */
-  if (IS_DIRECTORY_SEP (nm[0]) && IS_DIRECTORY_SEP (nm[1]))
-    {
-      drive = 0;
-    }
+  if (IS_DIRECTORY_SEP (nm[0]) && IS_DIRECTORY_SEP (nm[1])
+      && !IS_DIRECTORY_SEP (nm[2]))
+    drive = 0;
 #endif /* WINDOWSNT */
 #endif /* DOS_NT */
 
@@ -1261,7 +1260,8 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
       && !IS_DIRECTORY_SEP (nm[0])
 #endif
 #ifdef WINDOWSNT
-      && !(IS_DIRECTORY_SEP (nm[0]) && IS_DIRECTORY_SEP (nm[1]))
+      && !(IS_DIRECTORY_SEP (nm[0]) && IS_DIRECTORY_SEP (nm[1])
+	   && !IS_DIRECTORY_SEP (nm[2]))
 #endif
       && !newdir)
     {
@@ -1286,7 +1286,8 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	     && IS_DEVICE_SEP (newdir[1]) && IS_DIRECTORY_SEP (newdir[2]))
 #ifdef WINDOWSNT
 	  /* Detect Windows file names in UNC format.  */
-	  && ! (IS_DIRECTORY_SEP (newdir[0]) && IS_DIRECTORY_SEP (newdir[1]))
+	  && ! (IS_DIRECTORY_SEP (newdir[0]) && IS_DIRECTORY_SEP (newdir[1])
+		&& !IS_DIRECTORY_SEP (newdir[2]))
 #endif
 	  )
 	{
@@ -1346,7 +1347,8 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
       if (IS_DIRECTORY_SEP (nm[0]) && collapse_newdir)
 	{
 #ifdef WINDOWSNT
-	  if (IS_DIRECTORY_SEP (newdir[0]) && IS_DIRECTORY_SEP (newdir[1]))
+	  if (IS_DIRECTORY_SEP (newdir[0]) && IS_DIRECTORY_SEP (newdir[1])
+	      && !IS_DIRECTORY_SEP (newdir[2]))
 	    {
 	      char *adir = strcpy (alloca (strlen (newdir) + 1), newdir);
 	      char *p = adir + 2;

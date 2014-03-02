@@ -131,7 +131,7 @@ a tab, a carriage return (control-M), a newline, and `]+'."
   :version "24.3")
 
 (defcustom search-invisible 'open
-  "If t incremental search can match hidden text.
+  "If t incremental search/query-replace can match hidden text.
 A nil value means don't match invisible text.
 When the value is `open', if the text matched is made invisible by
 an overlay having an `invisible' property and that overlay has a property

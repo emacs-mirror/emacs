@@ -1138,6 +1138,7 @@ Text
 * Registers::               How registers are implemented.  Accessing
                               the text or position stored in a register.
 * Transposition::           Swapping two portions of a buffer.
+* Decompression::           Dealing with compressed data.
 * Base 64::                 Conversion to or from base 64 encoding.
 * Checksum/Hash::           Computing cryptographic hashes.
 * Parsing HTML/XML::        Parsing HTML and XML.

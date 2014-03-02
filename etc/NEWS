@@ -24,17 +24,24 @@ otherwise leave it unmarked.
 
 * Installation Changes in Emacs 24.4
 
+---
 ** Emacs can now be compiled with ACL support.
 This happens by default if a suitable support library is found at
 build time, like libacl on GNU/Linux.  To prevent this, use the
-configure option `--disable-acl'.
-FIXME?  Should be --without-acl?
+configure option `--disable-acl'.  See below for related features.
 
+---
 ** Emacs can now be compiled with file notification support.
 This happens by default if a suitable system library is found at
 build time.  To prevent this, use the configure option
 `--without-file-notification'.  See below for file-notify features.
-FIXME?  This feature is not available for the Nextstep port. (?)
+This feature is not available for the Nextstep port.
+
+---
+** Emacs can now be compiled with zlib support.
+This happens by default if zlib is present, which it normally is.
+To prevent this, use the configure option `--without-zlib'.
+This provides the function `zlib-decompress-region'; see below for details.
 
 ---
 ** The configure option `--without-compress-info' has been generalized,
@@ -49,14 +56,9 @@ It is no longer needed, as the crt*.o files are no longer linked specially.
 ** Directories passed to configure option `--enable-locallisppath' are
 no longer created during installation.
 
-** Emacs can be compiled with zlib support.
-If this library is present (which it normally is on most systems), the
-function `zlib-decompress-region' becomes available, which can
-decompress gzip- and zlib-format compressed data.
-
 ---
 ** Emacs for NS (Mac OS X, GNUstep) can be built with ImageMagick support.
-This requires pkg-config to be available at configure time.
+This requires pkg-config to be available at build time.
 
 
 * Startup Changes in Emacs 24.4
@@ -90,6 +92,10 @@ to set up the initial buffer.
 * Changes in Emacs 24.4
 
 +++
+** New function `zlib-decompress-region', which decompresses gzip- and
+zlib-format compressed data using built-in zlib support, if available.
+
++++
 ** New option `gnutls-verify-error', if non-nil, means that Emacs
 should reject SSL/TLS certificates that GnuTLS determines as invalid.
 (This option defaults to nil at present, but this is expected to change
@@ -117,14 +123,17 @@ a new major mode, with read-only status.  Any code that might create
 the *Messages* buffer should call the function `messages-buffer' to do
 so and set up the mode.
 
-** Emacs now supports ACLs (access control lists).
++++
+** Emacs can now support ACLs (access control lists).
+This requires a suitable support library to be found at build time.
+On GNU/Linux, the POSIX ACL interface is used via libacl.
+On MS-Windows, the NT Security APIs are used to emulate the POSIX interface.
+
 +++
 *** Emacs preserves the ACL entries of files when backing up.
 +++
 *** New functions `file-acl' and `set-file-acl' get and set the ACL
-entries of a file.  On GNU/Linux, the POSIX ACL interface is used via
-libacl.  On MS-Windows, the NT Security APIs are used to emulate the
-POSIX ACL interfaces.
+entries of a file.
 
 ** Multi-monitor support has been added.
 
@@ -428,6 +437,7 @@ Also the following files used by the now obsolete otodo-mode.el:
 *** New Lisp debugger command `v' (`debugger-toggle-locals') toggles the
 display of local variables of the current stack frame.
 
++++
 *** The Lisp debugger's `e' command (`debugger-eval-expression') now includes
 the lexical environment when evaluating the code in the context at point
 (and so allows you to access lexical variables).
@@ -842,6 +852,7 @@ and adds it to the search string.
 +++
 *** `M-s i' in Isearch mode toggles whether search matches invisible text.
 
++++
 *** `query-replace' skips invisible text when `search-invisible' is nil,
 and opens overlays with hidden text when `search-invisible' is `open'.
 
@@ -1230,6 +1241,7 @@ frame.
 *** The hook `term-setup-hook' is obsolete.  It is entirely equivalent
 to `emacs-startup-hook'.  See also the new `tty-setup-hook'.
 
++++
 ** New hook `pre-redisplay-function'.
 
 +++
@@ -1284,6 +1296,7 @@ This is like the old `eval-after-load', but better behaved.
 *** `generic-make-keywords-list'
 *** `get-upcase-table' (use `case-table-get-table' instead).
 
++++
 ** `with-wrapper-hook' is obsoleted by `add-function'.
 The few hooks that used with-wrapper-hook are replaced as follows:
 *** `abbrev-expand-function' obsoletes `abbrev-expand-functions'.
