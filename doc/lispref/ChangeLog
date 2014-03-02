@@ -1,3 +1,8 @@
+2014-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* text.texi (Decompression): New node.
+	* elisp.texi (Top): Update detailed menu.
+
 2014-03-01  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (Forcing Redisplay): Mention pre-redisplay-function.

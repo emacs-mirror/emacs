@@ -91,6 +91,7 @@ to set up the initial buffer.
 
 * Changes in Emacs 24.4
 
++++
 ** New function `zlib-decompress-region', which decompresses gzip- and
 zlib-format compressed data using built-in zlib support, if available.
 
