@@ -371,6 +371,7 @@ conventions.  To use it, add it to the `fill-nobreak-predicate' hook.
 +++
 ** Uniquify is enabled by default, with `post-forward-angle-brackets' style.
 
++++
 ** New command `C-x SPC' (`rectangle-mark-mode') makes a rectangular region.
 Most commands are still unaware of it, but kill/yank do work on the rectangle.
 

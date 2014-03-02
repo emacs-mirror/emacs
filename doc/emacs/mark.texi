@@ -43,6 +43,9 @@ Ordinarily, only the selected window highlights its region; however,
 if the variable @code{highlight-nonselected-windows} is
 non-@code{nil}, each window highlights its own region.
 
+  There is another kind of region: the ``rectangular region''.
+@xref{Rectangles}.
+
 @menu
 * Setting Mark::            Commands to set the mark.
 * Marking Objects::         Commands to put region around textual units.
