@@ -839,6 +839,13 @@ rectangle shifts right.
 @code{string-rectangle}, but inserts the string on each line,
 shifting the original text to the right.
 
+@findex rectangle-mark-mode
+@cindex rectangular region
+  The command @kbd{C-x SPC} (@code{rectangle-mark-mode}) makes a
+@dfn{rectangular region}.  It is a new feature introduced in GNU Emacs
+24.4, and most commands now are still unaware of it, but kill and yank
+(@pxref{Killing}) do work on the rectangle.
+
 @node CUA Bindings
 @section CUA Bindings
 @findex cua-mode

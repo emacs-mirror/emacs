@@ -1,3 +1,8 @@
+2014-03-02  Xue Fuqiao  <xfq@gnu.org>
+
+	* mark.texi (Mark):
+	* killing.texi (Rectangles): Document `rectangle-mark-mode'.
+
 2014-03-01  Glenn Morris  <rgm@gnu.org>
 
 	* search.texi (Query Replace): Mention search-invisible.
