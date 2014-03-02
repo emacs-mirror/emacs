@@ -1,3 +1,10 @@
+2014-03-02  Barry O'Reilly <gundaetiapo@gmail.com>
+
+	* automated/undo-tests.el (undo-test-in-region-not-most-recent):
+	Add new test of undo in region.
+	(undo-test-in-region-eob): Add test case described at
+	http://debbugs.gnu.org/cgi/bugreport.cgi?bug=16411
+
 2014-02-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp--test-enabled)

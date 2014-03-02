@@ -2426,7 +2426,7 @@ If it crosses the edge, we return nil."
 	((stringp (car undo-elt))
 	 ;; (TEXT . POSITION)
 	 (and (>= (abs (cdr undo-elt)) start)
-	      (< (abs (cdr undo-elt)) end)))
+	      (<= (abs (cdr undo-elt)) end)))
 	((and (consp undo-elt) (markerp (car undo-elt)))
 	 ;; This is a marker-adjustment element (MARKER . ADJUSTMENT).
 	 ;; See if MARKER is inside the region.
