@@ -1,3 +1,9 @@
+2014-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* frame.el (display-pixel-height, display-pixel-width)
+	(display-mm-dimensions-alist, display-mm-height)
+	(display-mm-width): Doc tweaks.
+
 2014-03-02  Barry O'Reilly <gundaetiapo@gmail.com>
 
 	* simple.el (undo-elt-in-region): Fix buffer corruption for edge

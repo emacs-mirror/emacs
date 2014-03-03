@@ -2421,7 +2421,6 @@ images, Emacs cannot display a tool bar.
 This function returns the number of screens associated with the display.
 @end defun
 
-@c FIXME: Document `x-display-pixel-{width, height}'?
 @defun display-pixel-height &optional display
 This function returns the height of the screen in pixels.
 On a character terminal, it gives the height in characters.
@@ -2440,7 +2439,6 @@ refers to the pixel width for all physical monitors associated with
 @var{display}.  @xref{Multiple Terminals}.
 @end defun
 
-@c FIXME: Document `x-display-mm-{width, height}'?
 @defun display-mm-height &optional display
 This function returns the height of the screen in millimeters,
 or @code{nil} if Emacs cannot get that information.

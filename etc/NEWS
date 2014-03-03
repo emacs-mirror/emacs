@@ -142,10 +142,11 @@ entries of a file.
 `frame-monitor-attributes' can be used to obtain information about
 each physical monitor on multi-monitor setups.
 
++++
 *** The functions `display-pixel-width' and `display-pixel-height' now
 behave consistently among the platforms: they return the pixel width
 or height for all physical monitors associated with the given display
-as if they were on X11.  To get information for each physical
+as if they were on X.  To get information for each physical
 monitor, use the new functions above.  Similar notes also apply to
 `x-display-pixel-width', `x-display-pixel-height', `display-mm-width',
 `display-mm-height', `x-display-mm-width', and `x-display-mm-height'.
