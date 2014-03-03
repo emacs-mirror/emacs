@@ -68,6 +68,10 @@ extern int posix_memalign (void **, size_t, size_t);
 extern void malloc_enable_thread (void);
 #endif
 
+#ifdef emacs
+extern void emacs_abort (void);
+#endif
+
 /* The allocator divides the heap into blocks of fixed size; large
    requests receive one or more whole blocks, and small requests
    receive a fragment of a block.  Fragment sizes are powers of two,
@@ -1595,7 +1599,7 @@ aligned_alloc (size_t alignment, size_t size)
     {
       /* Reallocate the block with only as much excess as it needs.  */
       free (result);
-      result = malloc (adj + size);
+      result = malloc (size + alignment - adj);
       if (result == NULL)	/* Impossible unless interrupted.  */
 	return NULL;
 
@@ -1605,7 +1609,7 @@ aligned_alloc (size_t alignment, size_t size)
 	 different block with weaker alignment.  If so, this block is too
 	 short to contain SIZE after alignment correction.  So we must
 	 try again and get another block, slightly larger.  */
-    } while (adj > lastadj);
+    } while (adj < lastadj);
 
   if (adj != 0)
     {
@@ -1787,6 +1791,22 @@ freehook (void *ptr)
 
   if (ptr)
     {
+      struct alignlist *l;
+
+      /* If the block was allocated by aligned_alloc, its real pointer
+	 to free is recorded in _aligned_blocks; find that.  */
+      PROTECT_MALLOC_STATE (0);
+      LOCK_ALIGNED_BLOCKS ();
+      for (l = _aligned_blocks; l != NULL; l = l->next)
+	if (l->aligned == ptr)
+	  {
+	    l->aligned = NULL;	/* Mark the slot in the list as free.  */
+	    ptr = l->exact;
+	    break;
+	  }
+      UNLOCK_ALIGNED_BLOCKS ();
+      PROTECT_MALLOC_STATE (1);
+
       hdr = ((struct hdr *) ptr) - 1;
       checkhdr (hdr);
       hdr->magic = MAGICFREE;
@@ -1878,7 +1898,11 @@ mabort (enum mcheck_status status)
 #else
   fprintf (stderr, "mcheck: %s\n", msg);
   fflush (stderr);
+# ifdef emacs
+  emacs_abort ();
+# else
   abort ();
+# endif
 #endif
 }
 

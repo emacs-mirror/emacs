@@ -1,3 +1,13 @@
+2014-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* gmalloc.c (aligned_alloc): Fix adjustment of size of the
+	allocated buffer due to alignment.
+	(freehook): If the block to be freed was allocated by
+	'aligned_alloc', find its real pointer before calling 'free'.
+	(Bug#16901)
+	(mabort) [emacs]: Call 'emacs_abort', not 'abort', to provide a
+	backtrace.
+
 2014-03-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* font.c (toplevel): Adjust comment about font cache layout.
