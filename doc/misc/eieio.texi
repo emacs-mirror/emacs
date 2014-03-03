@@ -610,7 +610,7 @@ This is the default.
 @item :depth-first
 Search for methods in the class hierarchy in a depth first order.
 @item :c3
-Searches for methods in in a linearized way that most closely matches
+Searches for methods in a linearized way that most closely matches
 what CLOS does when a monotonic class structure is defined.
 @end table
 
@@ -644,7 +644,7 @@ It is now possible to create objects of that class type.
 
 Calling @code{defclass} has defined two new functions.  One is the
 constructor @var{record}, and the other is the predicate,
-@var{record-p}.
+@var{record}-p.
 
 @defun record object-name &rest slots
 
@@ -1022,8 +1022,8 @@ This is the default.
 @item :depth-first
 Search for methods in the class hierarchy in a depth first order.
 @item :c3
-Searches for methods in in a linearized way that most closely matches
-what CLOS does when CLOS when a monotonic class structure is defined.
+Searches for methods in a linearized way that most closely matches
+what CLOS does when a monotonic class structure is defined.
 
 This is derived from the Dylan language documents by
 Kim Barrett et al.: A Monotonic Superclass Linearization for Dylan
@@ -1826,7 +1826,7 @@ It therefore has the same issues as that package.  Extensions include
 the ability to provide object names.
 @end table
 
-Defclass also supports class options, but does not currently use values
+defclass also supports class options, but does not currently use values
 of @code{:metaclass}, and @code{:default-initargs}.
 
 @item make-instance

@@ -764,7 +764,7 @@ correctly configured Android SDK via @cedet{} support.
 
 @defun cedet-android-sdk-root
 @anchor{cedet-android-sdk-root}
-The root to the android @var{SDK}.
+The root to the Android @var{SDK}.
 @end defun
 
 Android projects support different configurations including compile,

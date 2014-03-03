@@ -1,3 +1,13 @@
+2014-03-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus.texi:
+	* semantic.texi: Fix whitespace.
+
+	* ede.texi (Android projects):
+	* eieio.texi (Class Options, Making New Objects)
+	(Method Invocation, CLOS compatibility):
+	* sem-user.texi (Tag Decoration Mode): Fix typos.
+
 2014-03-02  Xue Fuqiao  <xfq@gnu.org>
 
 	* sem-user.texi (Create System Databases): Markup fix.

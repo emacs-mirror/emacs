@@ -1303,7 +1303,7 @@ You can create new types of decorations using the following function:
 Define a new decoration style with @var{name}.
 @var{doc} is a documentation string describing the decoration style @var{name}.
 It is appended to auto-generated doc strings.
-An Optional list of @var{flags} can also be specified.  Flags are:
+An optional list of @var{flags} can also be specified.  Flags are:
   @code{:enabled} <value>  - specify the default enabled value for @var{name}.
 
 
