@@ -2515,7 +2515,7 @@ font_match_p (Lisp_Object spec, Lisp_Object font)
 
    where DRIVER-TYPE is a symbol such as `x', `xft', etc., NUM-FRAMES
    is a number frames sharing this cache, and FONT-CACHE-DATA is a
-   cons (FONT-SPEC FONT-ENTITY ...).  */
+   cons (FONT-SPEC . [FONT-ENTITY ...]).  */
 
 static void font_prepare_cache (struct frame *, struct font_driver *);
 static void font_finish_cache (struct frame *, struct font_driver *);
@@ -2585,18 +2585,21 @@ static void
 font_clear_cache (struct frame *f, Lisp_Object cache, struct font_driver *driver)
 {
   Lisp_Object tail, elt;
-  Lisp_Object tail2, entity;
+  Lisp_Object entity;
+  ptrdiff_t i;
 
   /* CACHE = (DRIVER-TYPE NUM-FRAMES FONT-CACHE-DATA ...) */
   for (tail = XCDR (XCDR (cache)); CONSP (tail); tail = XCDR (tail))
     {
       elt = XCAR (tail);
-      /* elt should have the form (FONT-SPEC FONT-ENTITY ...) */
+      /* elt should have the form (FONT-SPEC . [FONT-ENTITY ...]) */
       if (CONSP (elt) && FONT_SPEC_P (XCAR (elt)))
 	{
-	  for (tail2 = XCDR (elt); CONSP (tail2); tail2 = XCDR (tail2))
+	  elt = XCDR (elt);
+	  eassert (VECTORP (elt));
+	  for (i = 0; i < ASIZE (elt); i++)
 	    {
-	      entity = XCAR (tail2);
+	      entity = AREF (elt, i);
 
 	      if (FONT_ENTITY_P (entity)
 		  && EQ (driver->type, AREF (entity, FONT_TYPE_INDEX)))
@@ -4842,6 +4845,14 @@ Type C-l to recover what previously shown.  */)
 }
 #endif
 
+DEFUN ("frame-font-cache", Fframe_font_cache, Sframe_font_cache, 0, 1, 0,
+       doc: /* Return FRAME's font cache.  Mainly used for debugging.
+If FRAME is omitted or nil, use the selected frame.  */)
+  (Lisp_Object frame)
+{
+  return FRAME_DISPLAY_INFO (decode_live_frame (frame))->name_list_element;
+}
+
 #endif	/* FONT_DEBUG */
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -5134,6 +5145,7 @@ syms_of_font (void)
 #if 0
   defsubr (&Sdraw_string);
 #endif
+  defsubr (&Sframe_font_cache);
 #endif	/* FONT_DEBUG */
 #ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sfont_info);

@@ -1,3 +1,11 @@
+2014-03-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.c (toplevel): Adjust comment about font cache layout.
+	(font_clear_cache): Fix to match real font cache layout.
+	Suggested by <namespace_collision@yahoo.com> in Bug#16069.
+	(Fframe_font_cache) [FONT_DEBUG]: New function.
+	(syms_of_font) [FONT_DEBUG]: Defsubr it.
+
 2014-03-01  Martin Rudalics  <rudalics@gmx.at>
 
 	Consider Vother_window_scroll_buffer valid iff it's a live buffer.
