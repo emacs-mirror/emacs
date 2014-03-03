@@ -1,3 +1,29 @@
+2014-03-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* icomplete.el: Miscellaneous doc fixes.
+	Use Icomplete everywhere instead of icomplete for consistency.
+	(icomplete-max-delay-chars): Fix typo.
+	(icomplete-mode): Use \[].
+	(icomplete-tidy, icomplete-exhibit): Reflow.
+	(icomplete-minibuffer-setup-hook, icomplete-completions):
+	Remove superfluous backlashes.
+
+	* ido.el: Miscellaneous doc fixes.
+	Use Ido everywhere instead of ido or `ido' for consistency.
+	(ido-record-ftp-work-directories, ido-merge-ftp-work-directories)
+	(ido-cache-ftp-work-directory-time, ido-slow-ftp-hosts)
+	(ido-slow-ftp-host-regexps, ido-reread-directory): Upcase "ftp".
+	(ido-separator): Extract obsolescence info from docstring and declare
+	with make-obsolete-variable.
+	(ido-minibuffer-setup-hook): Simplify example.
+	(ido-text, ido-text-init, ido-input-stack, ido-report-no-match)
+	(ido-wide-find-file, ido-wide-find-dir, ido-wide-find-dir-or-delete-dir)
+	(ido-completion-help, ido-completing-read): Fix typos in docstrings.
+	(ido-everywhere): Reflow docstring.
+	(ido-toggle-vc): Doc fix.
+	(ido-switch-buffer, ido-find-file): Use tabs to improve legibility
+	of long list of keybindings.
+
 2014-03-03  Glenn Morris  <rgm@gnu.org>
 
 	* frame.el (display-pixel-height, display-pixel-width)
