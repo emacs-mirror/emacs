@@ -9679,6 +9679,10 @@ my_log_handler (const gchar *log_domain, GLogLevelFlags log_level,
 }
 #endif
 
+/* Current X display connection identifier.  Incremented for each next
+   connection established.  */
+static unsigned x_display_id;
+
 /* Open a connection to X display DISPLAY_NAME, and return
    the structure that describes the open display.
    If we cannot contact the display, return null.  */
@@ -9896,6 +9900,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   lim = min (PTRDIFF_MAX, SIZE_MAX) - sizeof "@";
   if (lim - SBYTES (Vinvocation_name) < SBYTES (Vsystem_name))
     memory_full (SIZE_MAX);
+  dpyinfo->x_id = ++x_display_id;
   dpyinfo->x_id_name = xmalloc (SBYTES (Vinvocation_name)
 				+ SBYTES (Vsystem_name) + 2);
   strcat (strcat (strcpy (dpyinfo->x_id_name, SSDATA (Vinvocation_name)), "@"),

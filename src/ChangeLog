@@ -6,6 +6,20 @@
 	(Fframe_font_cache) [FONT_DEBUG]: New function.
 	(syms_of_font) [FONT_DEBUG]: Defsubr it.
 
+	Avoid crashes when X fonts are erroneously freed on reused X
+	'Display *' connection data (Bug#16069).  Note that X font
+	resources still may be leaked, but currently there is no way
+	to completely avoid it.
+	* xterm.h (struct x_display_info): New member x_id.  Add comments.
+	* xterm.c (x_display_id): New variable.
+	(x_term_init): Assign identifier to each opened X connection.
+	* xfont.c (struct xfont): New member x_display_id.
+	(xfont_open): Initialize it with frame's display id.
+	(xfont_close): Check whether font's display id matches the one
+	recorded for the given display.  Adjust comment.
+	* xftfont.c (struct xftfont_info):
+	(xftfont_open, xftfont_close): Exactly as above with xfont stuff.
+
 2014-03-01  Martin Rudalics  <rudalics@gmx.at>
 
 	Consider Vother_window_scroll_buffer valid iff it's a live buffer.
