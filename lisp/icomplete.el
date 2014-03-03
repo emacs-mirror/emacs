@@ -483,7 +483,7 @@ matches exist."
 	    (concat determ
 		    "{"
 		    (mapconcat 'identity prospects icomplete-separator)
-		    (and limit (concat icomplete-separator "…"))
+		    (and limit (concat icomplete-separator ellipsis))
 		    "}")
 	  (concat determ " [Matched]"))))))
 

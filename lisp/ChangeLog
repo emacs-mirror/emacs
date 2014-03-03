@@ -1,5 +1,9 @@
 2014-03-03  Juanma Barranquero  <lekktu@gmail.com>
 
+	* icomplete.el (icomplete-completions): Follow-up to revno:116616.
+
+2014-03-03  Juanma Barranquero  <lekktu@gmail.com>
+
 	* icomplete.el: Miscellaneous doc fixes.
 	Use Icomplete everywhere instead of icomplete for consistency.
 	(icomplete-max-delay-chars): Fix typo.
