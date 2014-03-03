@@ -1,5 +1,7 @@
 2014-03-03  Eli Zaretskii  <eliz@gnu.org>
 
+	* font.c (Fframe_font_cache): Fix last change.  (Bug#16930)
+
 	* gmalloc.c (aligned_alloc): Fix adjustment of size of the
 	allocated buffer due to alignment.
 	(freehook): If the block to be freed was allocated by

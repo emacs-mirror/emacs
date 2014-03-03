@@ -4850,7 +4850,14 @@ DEFUN ("frame-font-cache", Fframe_font_cache, Sframe_font_cache, 0, 1, 0,
 If FRAME is omitted or nil, use the selected frame.  */)
   (Lisp_Object frame)
 {
-  return FRAME_DISPLAY_INFO (decode_live_frame (frame))->name_list_element;
+#ifdef HAVE_WINDOW_SYSTEM
+  struct frame *f = decode_live_frame (frame);
+
+  if (FRAME_WINDOW_P (f))
+    return FRAME_DISPLAY_INFO (f)->name_list_element;
+  else
+#endif
+    return Qnil;
 }
 
 #endif	/* FONT_DEBUG */
