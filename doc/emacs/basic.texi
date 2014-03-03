@@ -46,12 +46,12 @@ forward, so that point remains just after the inserted text.
   To end a line and start a new one, type @key{RET} (@code{newline}).
 (The @key{RET} key may be labeled @key{Return} or @key{Enter} on your
 keyboard, but we refer to it as @key{RET} in this manual.)  This
-command inserts a newline character into the buffer, then indent
-(@pxref{Indentation}) accroding to major mode.  If point is at the end
+command inserts a newline character into the buffer, then indents
+(@pxref{Indentation}) according to the major mode.  If point is at the end
 of the line, the effect is to create a new blank line after it and
 indent the new line; if point is in the middle of a line, the line is
 split at that position.  To turn off the auto-indentation, you can
-either desable Electric Indent mode (@pxref{Indent Convenience}) or
+either disable Electric Indent mode (@pxref{Indent Convenience}) or
 type @kbd{C-j}, which inserts just a newline, without any
 auto-indentation.
 

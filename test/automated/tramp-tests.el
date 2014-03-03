@@ -869,7 +869,7 @@ This tests also `file-readable-p' and `file-regular-p'."
   (skip-unless (tramp--test-enabled))
 
   ;; `directory-files-and-attributes' contains also values for "../".
-  ;; We must nesure, that this doesn't change during tests, for
+  ;; Ensure that this doesn't change during tests, for
   ;; example due to handling temporary files.
   (let* ((tmp-name1 (tramp--test-make-temp-name))
 	 (tmp-name2 (expand-file-name "bla" tmp-name1))
