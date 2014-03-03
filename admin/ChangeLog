@@ -64,10 +64,9 @@
 
 2013-12-27  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* admin.el (manual-misc-manuals, make-manuals):
-	(manual-pdf, cusver-find-files):
-	(cusver-new-version, cusver-scan, cusver-goto-xref):
-	(cusver-check): Doc fix.
+	* admin.el (manual-misc-manuals, make-manuals, manual-pdf)
+	(cusver-find-files, cusver-new-version, cusver-scan)
+	(cusver-goto-xref, cusver-check): Doc fix.
 	(manual-html-node, cusver-check): Use `user-error'.
 
 2013-12-24  Paul Eggert  <eggert@cs.ucla.edu>
@@ -79,9 +78,8 @@
 
 2013-12-24  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* admin.el (add-release-logs):
-	(set-version-in-file, set-version, set-copyright):
-	Use `user-error'.
+	* admin.el (add-release-logs, set-version-in-file, set-version)
+	(set-copyright): Use `user-error'.
 
 2013-12-22  Eli Zaretskii  <eliz@gnu.org>
 
@@ -1055,7 +1053,7 @@
 2011-02-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove no-longer needed getloadavg symbols.
-	* CPP-DEFINES (LOAD_AVE_CVT, LOAD_AVE_TYPE, FSCALE, KERNEL_FILE):
+	* CPP-DEFINES (LOAD_AVE_CVT, LOAD_AVE_TYPE, FSCALE, KERNEL_FILE)
 	(LDAV_SYMBOL): Remove.
 	* notes/copyright: Remove src/getloadavg.c as a special case.
 

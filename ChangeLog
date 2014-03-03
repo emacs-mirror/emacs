@@ -1663,7 +1663,7 @@
 
 	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/fpending.$(O) and
 	$(BLD)/close-stream.$(O).
-	($(BLD)/close-stream.$(O)):
+	($(BLD)/close-stream.$(O))
 	($(BLD)/fpending.$(O)): New dependencies.
 
 2012-11-03  Paul Eggert  <eggert@cs.ucla.edu>
@@ -2317,7 +2317,7 @@
 
 	* configure.ac (opsysfile): Use bsd-common on gnu systems.
 
-	* configure.ac (GNU_LIBRARY_PENDING_OUTPUT_COUNT):
+	* configure.ac (GNU_LIBRARY_PENDING_OUTPUT_COUNT)
 	(SIGNALS_VIA_CHARACTERS): Move here from src/s.
 
 2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
@@ -2533,8 +2533,8 @@
 
 2012-06-24  Eli Zaretskii  <eliz@gnu.org>
 
-	* lib/makefile.w32-in ($(BLD)/dtotimespec.$(O)):
-	($(BLD)/timespec-add.$(O)):
+	* lib/makefile.w32-in ($(BLD)/dtotimespec.$(O))
+	($(BLD)/timespec-add.$(O))
 	($(BLD)/timespec-sub.$(O)): Don't depend on
 	$(EMACS_ROOT)/nt/inc/sys/time.h.
 
@@ -2554,9 +2554,9 @@
 	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/dtotimespec.$(O),
 	$(BLD)/gettime.$(O), $(BLD)/timespec-add.$(O), and
 	$(BLD)/timespec-sub.$(O).
-	($(BLD)/dtotimespec.$(O)):
-	($(BLD)/gettime.$(O)):
-	($(BLD)/timespec-add.$(O)):
+	($(BLD)/dtotimespec.$(O))
+	($(BLD)/gettime.$(O))
+	($(BLD)/timespec-add.$(O))
 	($(BLD)/timespec-sub.$(O)): New dependencies.
 
 	* lib/stat-time.h:
@@ -2686,9 +2686,9 @@
 	* config.bat (lib): Create/update lib/stdalign.in-h and
 	lib/sys_types.in-h.
 
-	* lib/makefile.w32-in ($(BLD)/md5.$(O)):
-	($(BLD)/sha1.$(O)):
-	($(BLD)/sha256.$(O)):
+	* lib/makefile.w32-in ($(BLD)/md5.$(O))
+	($(BLD)/sha1.$(O))
+	($(BLD)/sha256.$(O))
 	($(BLD)/sha512.$(O)): Depend on $(EMACS_ROOT)/nt/inc/stdalign.h.
 	Suggested by Christoph Scholtes <cschol2112@googlemail.com>.
 
@@ -4215,7 +4215,7 @@
 	$(BLD)/time_r.$(O).
 	($(BLD)/dtoastr.$(O)): Depend on $(EMACS_ROOT)/src/s/ms-w32.h and
 	$(EMACS_ROOT)/src/m/intel386.h.
-	($(BLD)/strftime.$(O)):
+	($(BLD)/strftime.$(O))
 	($(BLD)/time_r.$(O)): Define prerequisites.
 
 2011-01-31  Paul Eggert  <eggert@cs.ucla.edu>
@@ -4921,7 +4921,7 @@
 	* configure.in (HAVE_SOUND, HAVE_X_I18N, HAVE_X11R6_XIM):
 	Set with AC_DEFINE rather than AH_BOTTOM.
 
-	* configure.in (C_OPTIMIZE_SWITCH, CANNOT_DUMP, SYSTEM_MALLOC):
+	* configure.in (C_OPTIMIZE_SWITCH, CANNOT_DUMP, SYSTEM_MALLOC)
 	(USE_MMAP_FOR_BUFFERS, C_WARNING_SWITCH, CFLAGS, REAL_CFLAGS):
 	Set with shell, not cpp.
 	(LIBX): Remove, just use -lX11 in the one place this was used.

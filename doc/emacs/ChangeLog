@@ -20,8 +20,8 @@
 
 2014-02-27  Xue Fuqiao  <xfq@gnu.org>
 
-	* programs.texi (Basic Indent):
-	(Other C Commands): Fix the description of RET and `C-j'.
+	* programs.texi (Basic Indent, Other C Commands):
+	Fix the description of RET and `C-j'.
 
 	* indent.texi (Indentation Commands): Move the description of
 	`C-j' from here...
@@ -215,7 +215,7 @@
 	* misc.texi (Shell Mode): Move documentation of
 	shell-completion-fignore from Shell Mode to Shell Options.
 
-2013-12-26  João Távora <joaotavora@gmail.com>
+2013-12-26  João Távora  <joaotavora@gmail.com>
 
 	* emacs.texi (Matching): Describe new features of Electric Pair mode.
 
@@ -253,8 +253,8 @@
 
 2013-12-22  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* search.texi (Special Isearch):
-	(Query Replace): Document negative argument of replacement commands.
+	* search.texi (Special Isearch, Query Replace): Document negative
+	argument of replacement commands.
 	(Symbol Search): Document `isearch-forward-symbol-at-point'.
 
 	* files.texi (File Conveniences): Document `image-next-file' and
@@ -402,8 +402,7 @@
 
 2013-09-22  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* fixit.texi (Transpose):
-	(Fixing Case): Remove @refill.
+	* fixit.texi (Transpose, Fixing Case): Remove @refill.
 
 2013-09-21  Xue Fuqiao  <xfq.free@gmail.com>
 
@@ -2646,7 +2645,7 @@
 
 2011-05-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* mule.texi (Specify Coding, Text Coding, Communication Coding):
+	* mule.texi (Specify Coding, Text Coding, Communication Coding)
 	(File Name Coding, Terminal Coding): Add command names (Bug#8312).
 
 2011-05-18  Glenn Morris  <rgm@gnu.org>

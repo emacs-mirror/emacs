@@ -274,7 +274,7 @@
 
 2011-07-09  Bill Wohler  <wohler@newt.com>
 
-	* mh-speed.el (mh-speed-toggle,mh-speed-view): Document "ignored"
+	* mh-speed.el (mh-speed-toggle, mh-speed-view): Document "ignored"
 	arguments to keep checkdoc happy.
 
 	* mh-search.el (mh-flists-execute): Ditto.
@@ -408,8 +408,8 @@
 2009-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mh-thread.el (mh-thread-set-tables):
-	* mh-speed.el (mh-folder-speedbar-menu-items, mh-speed-stealth-update):
-	(mh-speed-extract-folder-name, mh-speed-parse-flists-output):
+	* mh-speed.el (mh-folder-speedbar-menu-items, mh-speed-stealth-update)
+	(mh-speed-extract-folder-name, mh-speed-parse-flists-output)
 	(mh-speed-invalidate-map, mh-speed-add-folder):
 	* mh-show.el (mh-invalidate-show-buffer, mh-show-sequence-menu):
 	* mh-seq.el (mh-list-sequences):
@@ -427,7 +427,7 @@
 	* mh-e.el (mh-exec-cmd, mh-exec-cmd-error, mh-exec-cmd-daemon)
 	(mh-handle-process-error, mh-variant-info):
 	* mh-comp.el (mh-forward):
-	* mh-alias.el (mh-alias-local-users, mh-alias-which-file-has-alias):
+	* mh-alias.el (mh-alias-local-users, mh-alias-which-file-has-alias)
 	(mh-alias-add-alias-to-file): Use with-current-buffer (closes SF
 	#1903293).
 
@@ -718,7 +718,7 @@
 
 	* mh-acros.el (mh-do-in-gnu-emacs, mh-do-in-xemacs)
 	(with-mh-folder-updating, mh-in-show-buffer)
-	(mh-iterate-on-messages-in-region, mh-iterate-on-range):
+	(mh-iterate-on-messages-in-region, mh-iterate-on-range)
 	(mh-do-at-event-location): Add debug decls.
 	(mh-seq-msgs): Use defsubst.
 

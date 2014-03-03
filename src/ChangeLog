@@ -156,7 +156,7 @@
 	* emacs.c (main): Initialize daemon_pipe[1] here ...
 	(syms_of_emacs): ... instead of here.
 
-2014-02-16  Anders Lindgern <andlind@gmail.com>
+2014-02-16  Anders Lindgern  <andlind@gmail.com>
 
 	* nsterm.m (keyDown:): Check for normal key even if NSNumericPadKeyMask
 	is set (Bug#16505).
@@ -924,7 +924,7 @@
 
 2013-12-25  Chong Yidong  <cyd@gnu.org>
 
-	* keyboard.c (Voverriding_terminal_local_map):
+	* keyboard.c (Voverriding_terminal_local_map)
 	(Voverriding_local_map): Doc fix.
 
 	* keymap.c (Vemulation_mode_map_alists): Doc fix.
@@ -1246,10 +1246,10 @@
 	(decode_coding_c_string):
 	* composite.h (COMPOSITION_DECODE_REFS, COMPOSITION_DECODE_RULE):
 	* conf_post.h (has_attribute):
-	* dispextern.h (trace_redisplay_p):
+	* dispextern.h (trace_redisplay_p)
 	(INC_TEXT_POS, DEC_TEXT_POS, SET_GLYPH_FROM_GLYPH_CODE)
 	(SET_CHAR_GLYPH, SET_CHAR_GLYPH_FROM_GLYPH)
-	(SET_GLYPH_FROM_CHAR_GLYPH):
+	(SET_GLYPH_FROM_CHAR_GLYPH)
 	(WINDOW_WANTS_MODELINE_P, WINDOW_WANTS_HEADER_LINE_P)
 	(FACE_SUITABLE_FOR_ASCII_CHAR_P, FACE_SUITABLE_FOR_CHAR_P)
 	(PRODUCE_GLYPHS, reset_mouse_highlight, in_display_vector_p)
@@ -1268,7 +1268,7 @@
 	(FONT_SET_STYLE, CHECK_FONT, CHECK_FONT_SPEC, CHECK_FONT_ENTITY)
 	(CHECK_FONT_OBJECT, CHECK_FONT_GET_OBJECT, FONT_ADD_LOG)
 	(FONT_DEFERRED_LOG):
-	* frame.h (FRAME_W32_P, FRAME_MSDOS_P, FRAME_WINDOW_P):
+	* frame.h (FRAME_W32_P, FRAME_MSDOS_P, FRAME_WINDOW_P)
 	(FRAME_EXTERNAL_TOOL_BAR, FRAME_EXTERNAL_MENU_BAR, FOR_EACH_FRAME)
 	(FRAME_MOUSE_UPDATE):
 	* fringe.c (Fdefine_fringe_bitmap):
@@ -1337,8 +1337,9 @@
 	* conf_post.h: Include <stdbool.h>.
 	(bool_bf): New type.
 	* dispextern.h (TRACE, PREPARE_FACE_FOR_DISPLAY):
-	* intervals.h (RESET_INTERVAL, COPY_INTERVAL_CACHE, MERGE_INTERVAL_CACHE)
-	Surround statement macro with proper 'do { ... } while (false)' brackets.
+	* intervals.h (RESET_INTERVAL, COPY_INTERVAL_CACHE)
+	(MERGE_INTERVAL_CACHE): Surround statement macro with proper
+	'do { ... } while (false)' brackets.
 	* dispextern.h (IF_DEBUG): Properly parenthesize and convert to void.
 	Args must now be expressions; all callers changed.
 	(SET_MATRIX_ROW_ENABLED_P): Assume 2nd arg is bool.
@@ -3719,7 +3720,7 @@
 
 2013-10-08  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* nsterm.m (windowDidExitFullScreen:):
+	* nsterm.m (windowDidExitFullScreen:)
 	(toggleFullScreen:): Change NS_IMPL_COCOA to HAVE_NATIVE_FS.
 
 2013-10-08  Paul Eggert  <eggert@cs.ucla.edu>
@@ -4078,8 +4079,7 @@
 	* process.c (wait_reading_process_output): Change int pnamelen to
 	socklen_t.
 
-	* nsterm.m (setMarkedText:selectedRange:):
-	(deleteWorkingText):
+	* nsterm.m (setMarkedText:selectedRange:, deleteWorkingText):
 	* nsmenu.m (addDisplayItemWithImage:idx:tag:helpText:enabled:):
 	* nsfont.m (ns_get_covering_families, ns_findfonts): Cast NSLog
 	argument to unsigned long to avoid warning.
@@ -5015,8 +5015,8 @@
 2013-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xterm.c (x_clear_area): Lost 7th arg because it is always False.
-	(x_after_update_window_line, x_scroll_bar_create):
-	(x_scroll_bar_set_handle, XTset_vertical_scroll_bar):
+	(x_after_update_window_line, x_scroll_bar_create)
+	(x_scroll_bar_set_handle, XTset_vertical_scroll_bar)
 	(handle_one_xevent, x_clear_frame_area):
 	* gtkutil.c (xg_clear_under_internal_border, xg_update_scrollbar_pos):
 	* xfns.c (x_set_menu_bar_lines, x_set_tool_bar_lines): Adjust users.
@@ -5986,7 +5986,7 @@
 	(menubar_selection_callback, menu_position_func)
 	(popup_selection_callback, create_and_show_popup_menu)
 	(dialog_selection_callback, create_and_show_dialog):
-	* xrdb.c (x_get_string_resource):
+	* xrdb.c (x_get_string_resource)
 	(main) [TESTRM]:
 	* xsmfns.c (x_session_check_input):
 	* xterm.c (x_draw_glyphless_glyph_string_foreground)
@@ -6313,7 +6313,7 @@
 	Fix last font-related change.
 	* w32font.h (w32font_list_internal, w32font_match_internal):
 	Fix prototype.
-	* w32uniscribe.c (uniscribe_list, uniscribe_match):
+	* w32uniscribe.c (uniscribe_list, uniscribe_match)
 	(uniscribe_list_family): Adjust to match font API change.
 	MS-Windows breakage reported by Juanma Barranquero <lekktu@gmail.com>
 	at http://lists.gnu.org/archive/html/emacs-devel/2013-08/msg00006.html.
@@ -6331,7 +6331,7 @@
 	functions to accept struct frame * as first arg.
 	* font.c (font_score, font_compare, font_sort_entities):
 	Remove prototypes.
-	(font_sort_entities, font_list_entities, font_select_entity):
+	(font_sort_entities, font_list_entities, font_select_entity)
 	(font_find_for_lface, Flist_fonts, Ffont_family_list): Adjust to
 	match font API change.
 	* xfont.c (xfont_list, xfont_match, xfont_list_family):
@@ -6339,7 +6339,7 @@
 	* ftxfont.c (ftxfont_list, ftxfont_match):
 	* xftfont.c (xftfont_list, xftfont_match):
 	* nsfont.m (nsfont_list, nsfont_match, nsfont_list_family):
-	* w32font.c (w32font_list, w32font_match, w32font_list):
+	* w32font.c (w32font_list, w32font_match, w32font_list)
 	(w32font_list_internal, w32_font_match_internal): Likewise.
 	* xfaces.c (Fx_family_fonts): Adjust user.
 
@@ -6364,7 +6364,7 @@
 	have more than one X frame on the same X display.
 	(any_help_event_p, x_draw_glyph_string_background, x_display_ok):
 	Use bool for booleans.
-	(x_draw_glyph_string_background, cvt_string_to_pixel):
+	(x_draw_glyph_string_background, cvt_string_to_pixel)
 	(cvt_pixel_dtor): Drop unnecessary prototypes.
 	* xterm.h (x_display_ok): Adjust prototype.
 
@@ -7310,7 +7310,7 @@
 	(close_on_exec, accept4, process_socket) [!SOCK_CLOEXEC]:
 	New functions.
 	(socket) [!SOCK_CLOEXEC]: Supply a substitute.
-	(Fmake_network_process, Fnetwork_interface_list):
+	(Fmake_network_process, Fnetwork_interface_list)
 	(Fnetwork_interface_info, server_accept_connection):
 	Make newly-created socket close-on-exec.
 	* sysdep.c (emacs_open, emacs_fopen):
@@ -9443,7 +9443,7 @@
 	* image.c (gif_load): Assume pass < 3 to pacify GCC.
 	* process.c (Fset_process_datagram_address)
 	(Fmake_network_process): Check get_lisp_to_sockaddr_size return value.
-	* xdisp.c (get_char_face_and_encoding):
+	* xdisp.c (get_char_face_and_encoding)
 	(get_glyph_face_and_encoding): Ensure that *CHAR2B is initialized.
 	(get_glyph_face_and_encoding): Prepare face before possibly using it.
 	(get_per_char_metric): Don't use CHAR2B if it might not be initialized.

@@ -1,4 +1,4 @@
-2014-03-02  Barry O'Reilly <gundaetiapo@gmail.com>
+2014-03-02  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	* automated/undo-tests.el (undo-test-in-region-not-most-recent):
 	Add new test of undo in region.
@@ -325,7 +325,7 @@
 	(tramp-test20-file-modes, tramp-test21-file-links)
 	(tramp-test22-file-times, tramp-test23-visited-file-modtime)
 	(tramp-test24-file-name-completion, tramp-test25-load)
-	(tramp-test26-process-file, tramp-test27-start-file-process):
+	(tramp-test26-process-file, tramp-test27-start-file-process)
 	(tramp-test28-shell-command): Protect unwindforms with `ignore-errors'.
 	(tramp-test29-utf8): New test.
 
@@ -344,7 +344,7 @@
 	* automated/tramp-tests.el (tramp-test-temporary-file-directory):
 	Check $TRAMP_TEST_TEMPORARY_FILE_DIRECTORY.
 	(tramp-read-passwd): Check $TRAMP_TEST_ALLOW_PASSWORD.
-	(tramp-test09-insert-file-contents, tramp-test10-write-region):
+	(tramp-test09-insert-file-contents, tramp-test10-write-region)
 	(tramp-test26-process-file): Add tests.
 	(tramp-test11-copy-file): Remove debug message.
 	(tramp-test20-file-modes): Special case, if user is "root".
@@ -1618,22 +1618,22 @@
 	Add icalendar-testsuite--test-datestring-to-isodate,
 	icalendar-testsuite--test-datetime-to-diary-date, and
 	icalendar-testsuite--test-calendar-style.
-	(icalendar-testsuite--test-format-ical-event):
+	(icalendar-testsuite--test-format-ical-event)
 	(icalendar-testsuite--test-parse-summary-and-rest):
 	Doc fix.  Remove european-calendar-style.
 	(icalendar-testsuite--get-ical-event): Doc fix.
-	(icalendar-testsuite--test-first-weekday-of-year):
+	(icalendar-testsuite--test-first-weekday-of-year)
 	(icalendar-testsuite--run-cycle-tests): Add doc string.
-	(icalendar-testsuite--test-datestring-to-isodate):
-	(icalendar-testsuite--test-datetime-to-diary-date):
+	(icalendar-testsuite--test-datestring-to-isodate)
+	(icalendar-testsuite--test-datetime-to-diary-date)
 	(icalendar-testsuite--test-calendar-style): New functions.
 	(icalendar-testsuite--test-export): Handle iso date style.
 	New arg INPUT-ISO.  Use calendar-date-style.
 	(icalendar-testsuite--test-import): Handle iso date style.
 	New arg EXPECTED-ISO.  Use calendar-date-style.
 	(icalendar-testsuite--test-cycle): Handle iso date style.
-	(icalendar-testsuite--run-import-tests):
-	(icalendar-testsuite--run-export-tests):
+	(icalendar-testsuite--run-import-tests)
+	(icalendar-testsuite--run-export-tests)
 	(icalendar-testsuite--run-real-world-tests): Add iso style tests.
 
 2008-02-29  Glenn Morris  <rgm@gnu.org>

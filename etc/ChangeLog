@@ -596,7 +596,7 @@
 	Rename to \versionemacs, same as all the other refcards.
 	* refcards/Makefile (ENVADD): New variable.
 	(sk-dired-ref.pdf, sk-survival.pdf, pl-refcard.pdf)
-	(%.pdf, %,dvi, sk-dired-ref.dvi, sk-survival.dvi, pl-refcard.dvi):
+	(%.pdf, %.dvi, sk-dired-ref.dvi, sk-survival.dvi, pl-refcard.dvi):
 	Depend on emacsver.tex.  Add "." to TEXINPUTS for TeX commands.
 
 2012-09-16  Paul Eggert  <eggert@cs.ucla.edu>

@@ -1,4 +1,4 @@
-2014-03-02  Barry O'Reilly <gundaetiapo@gmail.com>
+2014-03-02  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	* markers.texi (Moving Marker Positions): Clarify guidance about
 	when to move markers and when to create a new one, as discussed at
@@ -15,14 +15,14 @@
 
 2014-02-28  Xue Fuqiao  <xfq@gnu.org>
 
-	* functions.texi (Advising Functions):
-	(Advising Named Functions): Tweak markup.
+	* functions.texi (Advising Functions, Advising Named Functions):
+	Tweak markup.
 
 	* display.texi (Defining Faces): Doc fix for `face-spec-set'.
 
 	* elisp.texi (Top):
-	* commands.texi (Generic Commands):
-	(Defining Commands): Document `define-alternatives'.
+	* commands.texi (Generic Commands, Defining Commands):
+	Document `define-alternatives'.
 
 2014-02-27  Xue Fuqiao  <xfq@gnu.org>
 
@@ -467,8 +467,8 @@
 
 2013-11-17  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* os.texi (Time Parsing):
-	(Processor Run Time, Input Modes, Terminal Output): Minor fixes.
+	* os.texi (Time Parsing, Processor Run Time, Input Modes)
+	(Terminal Output): Minor fixes.
 
 2013-11-14  Glenn Morris  <rgm@gnu.org>
 
@@ -609,8 +609,7 @@
 
 2013-10-03  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* syntax.texi (Syntax Flags):
-	(Syntax Table Functions): Add indexes.
+	* syntax.texi (Syntax Flags, Syntax Table Functions): Add indexes.
 
 2013-10-02  Xue Fuqiao  <xfq.free@gmail.com>
 
@@ -692,8 +691,8 @@
 	(Undo): Doc fix for `buffer-undo-list'.
 
 	* positions.texi (Character Motion):
-	* markers.texi (Moving Markers):
-	(Creating Markers): Comment out undefined behavior.
+	* markers.texi (Moving Markers, Creating Markers):
+	Comment out undefined behavior.
 
 2013-08-15  Xue Fuqiao  <xfq.free@gmail.com>
 
@@ -940,7 +939,7 @@
 2013-04-21  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* internals.texi (Writing Emacs Primitives): Remove unnecessary
-	references to the sources. (Bug#13800)
+	references to the sources.  (Bug#13800)
 
 	* searching.texi (Regexp Backslash): Doc fix for backslash
 	constructs in regular expressions.
@@ -1173,7 +1172,7 @@
 
 2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	Fix permissions bugs with setgid directories etc.  (Bug#13125)
 	* files.texi (Testing Accessibility): Document GROUP arg
 	of file-ownership-preserved-p.
 	(File Attributes): Document that 9th element is now
@@ -1808,7 +1807,7 @@
 
 2012-07-06  Richard Stallman  <rms@gnu.org>
 
-	* intro.texi (Evaluation Notation, A Sample Function Description):
+	* intro.texi (Evaluation Notation, A Sample Function Description)
 	(A Sample Variable Description): Improve/undo previous changes.
 
 2012-07-05  Glenn Morris  <rgm@gnu.org>
@@ -2123,7 +2122,7 @@
 	(Resizing Windows, Deleting Windows, Selecting Windows)
 	(Choosing Window Options, Horizontal Scrolling)
 	(Cyclic Window Ordering, Window History, Dedicated Windows)
-	(Quitting Windows, Window Configurations, Textual Scrolling):
+	(Quitting Windows, Window Configurations, Textual Scrolling)
 	(Coordinates and Windows, Window Configurations)
 	(Window Parameters, Window Hooks): Copyedits.
 	(Splitting Windows, Deleting Windows):
@@ -2201,7 +2200,7 @@
 
 	* processes.texi (Output from Processes, Filter Functions):
 	Mention waiting-for-user-input-p.
-	(Sentinels, Query Before Exit, System Processes, Transaction Queues):
+	(Sentinels, Query Before Exit, System Processes, Transaction Queues)
 	(Network Servers, Datagrams, Network Processes, Network Options)
 	(Network Feature Testing, Serial Ports): Copyedits.
 	(Network): Add encrypted network overview paragraph.
@@ -2223,7 +2222,7 @@
 
 2012-04-15  Glenn Morris  <rgm@gnu.org>
 
-	* processes.texi (Processes, Subprocess Creation, Shell Arguments):
+	* processes.texi (Processes, Subprocess Creation, Shell Arguments)
 	(Synchronous Processes, Asynchronous Processes, Deleting Processes):
 	Copyedits.
 	(Subprocess Creation): Discourage modifying exec-path directly.
@@ -2243,8 +2242,7 @@
 
 2012-04-14  Chong Yidong  <cyd@gnu.org>
 
-	* customize.texi (Applying Customizations):
-	(Custom Themes): New nodes.
+	* customize.texi (Applying Customizations, Custom Themes): New nodes.
 
 	* display.texi (Defining Faces): Reference custom-set-faces.
 
@@ -2373,8 +2371,8 @@
 
 2012-03-28  Glenn Morris  <rgm@gnu.org>
 
-	* searching.texi (Regular Expressions, Regexp Special):
-	(Regexp Backslash, Regexp Example, Regexp Functions, Regexp Search):
+	* searching.texi (Regular Expressions, Regexp Special)
+	(Regexp Backslash, Regexp Example, Regexp Functions, Regexp Search)
 	(Simple Match Data, Saving Match Data, Standard Regexps): Copyedits.
 	(Regexp Special): Mention collation.
 	Clarify char classes with an example.
@@ -2605,7 +2603,7 @@
 	(Pure Storage): Small changes.
 	(Memory Usage): Copyedit.
 	(Writing Emacs Primitives): Update Fcoordinates_in_window_p and For
-	example definitions. Give examples of things with non-nil
+	example definitions.  Give examples of things with non-nil
 	interactive args.  Mention eval_sub.  Remove old info about
 	strings and GCPRO.  Mention cus-start.el.
 	(Buffer Internals, Window Internals, Process Internals):
@@ -2781,7 +2779,7 @@
 	(Syntax Class Table): Use a table.
 	(Syntax Properties): Document syntax-propertize-function and
 	syntax-propertize-extend-region-functions.
-	(Motion via Parsing): Clarify scan-lists. Fix indentation.
+	(Motion via Parsing): Clarify scan-lists.  Fix indentation.
 	(Parser State): Update for the new "c" comment style.
 	Fix description of item 7 (comment style).
 
@@ -3820,7 +3818,7 @@
 	Document wide integers better.
 	* files.texi (File Attributes): Document ino_t values better.
 	ino_t values no longer map to anything larger than a single cons.
-	* numbers.texi (Integer Basics, Integer Basics, Arithmetic Operations):
+	* numbers.texi (Integer Basics, Integer Basics, Arithmetic Operations)
 	(Bitwise Operations):
 	* objects.texi (Integer Type): Use a binary notation that is a bit easier
 	to read, and that will port better if 62-bits becomes the default.
@@ -7268,8 +7266,7 @@
 	* positions.texi (List Motion):
 	* hash.texi (Hash Tables, Creating Hash, Defining Hash):
 	* numbers.texi (Arithmetic Operations, Math Functions)
-	(Predicates on Numbers, Comparison of Numbers):
-	(Numeric Conversions):
+	(Predicates on Numbers, Comparison of Numbers, Numeric Conversions):
 	* locals.texi (Standard Buffer-Local Variables):
 	* maps.texi (Standard Keymaps):
 	* os.texi (User Identification, System Environment, Recording Input)

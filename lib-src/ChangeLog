@@ -1,5 +1,5 @@
 2014-02-25  Andreas Amann  <a.amann@ucc.ie>  (tiny change)
-	
+
 	Fix emacsclient's handling of SIGCONT (Bug#16883).
 	* emacsclient.c (handle_sigcont): Cancel the continue only if tty.
 
@@ -466,7 +466,7 @@
 	* make-docfile.c (IF_LINT):
 	* emacsclient.c (IF_LINT): Remove (in config.h now).
 
-	* make-docfile.c (main):
+	* make-docfile.c (main)
 	(fopen) [!WINDOWSNT]:
 	(chdir) [!DOS_NT]: No more need to undef.
 
@@ -690,8 +690,8 @@
 
 2012-06-05  Glenn Morris  <rgm@gnu.org>
 
-	* makefile.w32-in ($(BLD)/getdate.$(O), $(BLD)/leditcfns.$(O)):
-	($(BLD)/make-path.$(O), $(BLD)/qsort.$(O)):
+	* makefile.w32-in ($(BLD)/getdate.$(O), $(BLD)/leditcfns.$(O))
+	($(BLD)/make-path.$(O), $(BLD)/qsort.$(O))
 	($(BLD)/timer.$(O)): Remove cruft.
 
 2012-06-03  Glenn Morris  <rgm@gnu.org>
@@ -1130,7 +1130,7 @@
 
 	* emacsclient.c (main): Avoid dangling 'if'.
 	(xstrdup): Remove; no longer needed.
-	(get_current_dir_name, w32_getenv, get_server_config, find_tty):
+	(get_current_dir_name, w32_getenv, get_server_config, find_tty)
 	(set_local_socket, main):
 	Use const char *, not char *, for pointers that are not assigned
 	through.
@@ -1616,8 +1616,7 @@
 
 	* fakemail.c (action): Convert function definitions to standard C.
 	(add_a_stream):
-	* test-distrib.c (cool_read):
-	(main): Likewise.
+	* test-distrib.c (cool_read, main): Likewise.
 
 2010-07-03  Andreas Schwab  <schwab@linux-m68k.org>
 
@@ -2496,7 +2495,7 @@
 2007-08-29  Jason Rumney  <jasonr@gnu.org>
 
 	* emacsclient.c (SEND_STRING, SEND_QUOTED): Remove obfuscation macros.
-	(quote_argument, set_tcp_socket, handle_sigcont, handle_sigtstp):
+	(quote_argument, set_tcp_socket, handle_sigcont, handle_sigtstp)
 	(main): Expand removed macros inline.
 	(main) [WINDOWSNT]: Don't call ttyname.  Don't recognize -suspend
 	option.
@@ -4132,12 +4131,9 @@
 
 2001-11-30  Andrew Innes  <andrewi@gnu.org>
 
-	* makefile.w32-in (FACE_SUPPORT):
-	(MOUSE_SUPPORT):
-	(FLOAT_SUPPORT):
-	(WINNT_SUPPORT):
-	(lisp): Reference .el files instead of .elc files, to simplify
-	bootstrapping.
+	* makefile.w32-in (FACE_SUPPORT, MOUSE_SUPPORT, FLOAT_SUPPORT)
+	(WINNT_SUPPORT, lisp): Reference .el files instead of .elc files,
+	to simplify bootstrapping.
 	($(DOC)): Change dependency to just `make-docfile'.
 
 2001-11-29  Pavel Janík  <Pavel@Janik.cz>

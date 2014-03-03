@@ -198,7 +198,7 @@
 
 	* org.texi (Global and local cycling): Fix missing '@'.
 
-2013-01-07 Bastien Guerry <bzg@gnu.org>
+2013-01-07  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (Global and local cycling): Mention C-u C-u TAB.
 	(Include files, The Export Dispatcher)
@@ -993,9 +993,9 @@
 
 2013-08-10  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* ido.texi (Working Directories):
-	(Flexible Matching, Regexp Matching, Find File At Point)
-	(Ignoring, Misc Customization): Use @defopt for user options.
+	* ido.texi (Working Directories, Flexible Matching, Regexp Matching)
+	(Find File At Point, Ignoring, Misc Customization): Use @defopt
+	for user options.
 
 2013-08-09  Xue Fuqiao  <xfq.free@gmail.com>
 
@@ -1019,8 +1019,7 @@
 2013-08-07  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* sc.texi (Introduction): Fix index.
-	(Usage Overview):
-	(Citations, Citation Elements, Recognizing Citations)
+	(Usage Overview, Citations, Citation Elements, Recognizing Citations)
 	(Information Keys and the Info Alist, Reference Headers)
 	(The Built-in Header Rewrite Functions)
 	(Electric References, Reply Buffer Initialization)
@@ -1036,8 +1035,7 @@
 
 	* newsticker.texi (Usage): Use @key for RET.
 
-	* cl.texi (Argument Lists):
-	(For Clauses):
+	* cl.texi (Argument Lists, For Clauses)
 	(Macros): Add indexes.
 
 2013-08-05  Xue Fuqiao  <xfq.free@gmail.com>
@@ -1047,7 +1045,7 @@
 2013-08-04  Stephen Berman  <stephen.berman@gmx.net>
 
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS, PDF_TARGETS): Add todo-mode.
-	(todo-mode, $(buildinfodir)/todo-mode$(INFO_EXT)):
+	(todo-mode, $(buildinfodir)/todo-mode$(INFO_EXT))
 	(todo-mode.dvi, todo-mode.pdf): New rules.
 
 	* todo-mode.texi: New file.
@@ -1395,8 +1393,8 @@
 
 2013-02-09  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.texi (Basic Operations on Units):
-	(Customizing Calc): Mention the variable `calc-allow-units-as-numbers'.
+	* calc.texi (Basic Operations on Units, Customizing Calc):
+	Mention the variable `calc-allow-units-as-numbers'.
 
 2013-02-08  Aidan Gauland  <aidalgol@no8wireless.co.nz>
 
@@ -4105,8 +4103,8 @@
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org.texi (Handling links):
-	(In-buffer settings): Document inlining images on startup.
+	* org.texi (Handling links, In-buffer settings):
+	Document inlining images on startup.
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -6260,8 +6258,8 @@
 
 2008-07-23  Vincent Belaïche  <vincent.b.1@hotmail.fr>
 
-	* calc.texi (Editing Stack Entries):
-	(Algebraic Entry): Rewrite introductory sentences so it can be used by
+	* calc.texi (Editing Stack Entries, Algebraic Entry):
+	Rewrite introductory sentences so it can be used by
 	Calc's help functions.  Mention fixing typos.
 	(Customizing Calc): Fix typo.
 
@@ -9835,11 +9833,9 @@
 	* info.texi (Help-Xref):
 	* message.texi (Message Headers):
 	* org.texi (Remember):
-	* reftex.texi (Options (Defining Label Environments)):
-	(Options (Index Support)):
-	(Options (Viewing Cross-References)):
-	(Options (Misc)):
-	(Changes):
+	* reftex.texi (Options (Defining Label Environments))
+	(Options (Index Support), Options (Viewing Cross-References))
+	(Options (Misc), Changes):
 	* speedbar.texi (Creating a display):
 	* tramp.texi (Customizing Completion, Auto-save and Backup):
 	Texinfo usage fix.
@@ -10289,7 +10285,7 @@
 2004-11-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* idlwave.texi (Continued Statement Indentation):
-	* reftex.texi (Options (Index Support)):
+	* reftex.texi (Options (Index Support))
 	(Displaying and Editing the Index, Table of Contents):
 	* speedbar.texi (Creating a display, Major Display Modes):
 	Replace non-nil with non-@code{nil}.

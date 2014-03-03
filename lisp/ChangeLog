@@ -34,7 +34,7 @@
 	(display-mm-dimensions-alist, display-mm-height)
 	(display-mm-width): Doc tweaks.
 
-2014-03-02  Barry O'Reilly <gundaetiapo@gmail.com>
+2014-03-02  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	* simple.el (undo-elt-in-region): Fix buffer corruption for edge
 	case of undo in region.
@@ -47,12 +47,12 @@
 2014-03-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* icomplete.el (icomplete-completions): Use string-width.
-	Suggested by Stefan Monier <monnier@iro.umontreal.ca>.
+	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>.
 
 2014-03-01  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight
-	regexp options.  (Bug#16914)
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords):
+	Highlight regexp options.  (Bug#16914)
 
 2014-03-01  Martin Rudalics  <rudalics@gmx.at>
 
@@ -165,8 +165,8 @@
 	`tramp-adb-command-exit-status'.  Change all callees.
 	(tramp-adb-handle-file-attributes)
 	(tramp-adb-handle-directory-files-and-attributes): Use it.
-	(tramp-adb-ls-output-name-less-p): Use
-	`directory-listing-before-filename-regexp'.
+	(tramp-adb-ls-output-name-less-p):
+	Use `directory-listing-before-filename-regexp'.
 	(tramp-adb-handle-delete-directory): Flush also file properties of
 	the truename of directory.
 	(tramp-adb-handle-file-name-all-completions): Add "./" and "../".
@@ -299,9 +299,9 @@
 
 2014-02-22  Daniel Colascione  <dancol@dancol.org>
 
-	* net/secrets.el (secrets-create-item,secrets-search-items): Check
-	that attribute values are strings, avoiding the construction of
-	invalid dbus messages.
+	* net/secrets.el (secrets-create-item,secrets-search-items):
+	Check that attribute values are strings, avoiding the construction
+	of invalid dbus messages.
 
 2014-02-21  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -543,7 +543,7 @@
 	(sql-oracle-options): New default value ("-L").
 	(sql-mode-oracle-font-lock-keywords): Add placeholder highlighting.
 	(sql-placeholders-filter): Correct placeholder pattern.
-	(sql-read-table-name): Bug fix. Detect absence of SQLi process.
+	(sql-read-table-name): Bug fix.  Detect absence of SQLi process.
 	(sql-login-delay): New variable.
 	(sql-product-interactive): Use it.
 
@@ -878,7 +878,7 @@
 
 2014-02-04  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
-	* progmodes/python.el (python-shell-send-string):
+	* progmodes/python.el (python-shell-send-string)
 	(python-shell-send-string-no-output): Fix docstring (Bug#16547).
 
 2014-02-04  Anders Lindgren  <andlind@gmail.com>
@@ -948,11 +948,13 @@
 
 2014-02-02  Daniel Colascione  <dancol@dancol.org>
 
-	* progmodes/cc-defs.el (c-find-assignment-for-mode): Make loading cc-mode silent.
+	* progmodes/cc-defs.el (c-find-assignment-for-mode):
+	Make loading cc-mode silent.
 
 2014-02-02  Daniel Colascione  <dancol@dancol.org>
 
-	* comint.el (comint-prompt-read-only): Change doc to suggest remap keybinding.
+	* comint.el (comint-prompt-read-only): Change doc to suggest
+	remap keybinding.
 
 2014-02-02  Glenn Morris  <rgm@gnu.org>
 
@@ -1220,7 +1222,7 @@
 
 	* international/quail.el (quail-define-package): Doc fix.
 
-	* emacs-lisp/authors.el (authors-valid-file-names):
+	* emacs-lisp/authors.el (authors-valid-file-names)
 	(authors-renamed-files-alist): Additions.
 
 	* vc/vc-git.el (vc-git-print-log): Remove --follow;
@@ -1356,7 +1358,7 @@
 	* emacs-lisp/authors.el (authors-aliases): Remove unnecessary entries.
 
 	Make M-x authors return zero *Authors Errors* from current logs.
-	* emacs-lisp/authors.el (authors-obsolete-files-regexps):
+	* emacs-lisp/authors.el (authors-obsolete-files-regexps)
 	(authors-ignored-files): Add some entries, remove others.
 	(authors-ambiguous-files, authors-valid-file-names):
 	Add some entries.
@@ -1503,7 +1505,7 @@
 	Spelling fixes.
 	* emacs-lisp/generic.el (generic--normalize-comments):
 	Rename from generic--normalise-comments.  All uses changed.
-	* play/bubbles.el (bubbles--neighborhood-score):
+	* play/bubbles.el (bubbles--neighborhood-score)
 	(bubbles--mark-direct-neighbors, bubbles--mark-neighborhood)
 	(bubbles--neighborhood-available)
 	(bubbles--update-neighborhood-score):
@@ -2014,8 +2016,7 @@
 
 2013-12-25  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
-	* progmodes/python.el:
-	(python-nav--lisp-forward-sexp): New function.
+	* progmodes/python.el (python-nav--lisp-forward-sexp): New function.
 	(python-nav--lisp-forward-sexp-safe): Use it.  Rename from
 	python-nav-lisp-forward-sexp-safe.
 	(python-nav--forward-sexp): New argument SAFE allows switching
@@ -4463,9 +4464,9 @@
 	(find-buffer-file-type-coding-system): Mark obsolete.
 	(w32-find-file-not-found-set-buffer-file-coding-system): Rename from
 	find-file-not-found-set-buffer-file-coding-system.
-	(w32-untranslated-filesystem-list, w32-untranslated-canonical-name):
+	(w32-untranslated-filesystem-list, w32-untranslated-canonical-name)
 	(w32-add-untranslated-filesystem, w32-remove-untranslated-filesystem)
-	(w32-direct-print-region-use-command-dot-com, w32-untranslated-file-p):
+	(w32-direct-print-region-use-command-dot-com, w32-untranslated-file-p)
 	(w32-direct-print-region-helper, w32-direct-print-region-function)
 	(w32-direct-ps-print-region-function): Rename by adding a "w32-" prefix.
 	* startup.el (normal-top-level-add-subdirs-to-load-path):
@@ -4548,8 +4549,7 @@
 
 2013-10-27  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* image.el (defimage):
-	(image-load-path): Doc fixes.
+	* image.el (defimage, image-load-path): Doc fixes.
 
 2013-10-27  Alan Mackenzie  <acm@muc.de>
 
@@ -4925,7 +4925,7 @@
 	(verilog-in-struct-nested-p, verilog-at-struct-mv-p)
 	(verilog-at-close-struct-p): New functions.
 	(verilog-beg-block-re-ordered, verilog-extended-case-re)
-	(verilog-forward-sexp, verilog-set-auto-endcomments):
+	(verilog-forward-sexp, verilog-set-auto-endcomments)
 	(verilog-leap-to-case-head): Handle "unique0" case.
 	(verilog-in-constraint-re): New constant.
 	(verilog-keywords, verilog-type-font-keywords):
@@ -5751,8 +5751,7 @@
 
 2013-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* emacs-lisp/cl-macs.el:
-	(cl--loop-destr-temps): Remove.
+	* emacs-lisp/cl-macs.el (cl--loop-destr-temps): Remove.
 	(cl--loop-iterator-function): Rename from cl--loop-map-form and change
 	its convention.
 	(cl--loop-set-iterator-function): New function.
@@ -7927,25 +7926,24 @@
 2013-08-04  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* vc/vc.el (vc-ignore): Rewrite.
-	(vc-default-ignore-completion-table):
-	(vc--read-lines):
+	(vc-default-ignore-completion-table, vc--read-lines)
 	(vc--add-line, vc--remove-regexp): New functions.
 
 	* vc/vc-svn.el (vc-svn-ignore): Doc fix.
 	(vc-svn-ignore-completion-table): New function.
 
 	* vc/vc-hg.el (vc-hg-ignore): Rewrite.
-	(vc-hg-ignore-completion-table):
+	(vc-hg-ignore-completion-table)
 	(vc-hg-find-ignore-file): New functions.
 
 	* vc/vc-git.el (vc-git-ignore): Rewrite.
-	(vc-git-ignore-completion-table):
+	(vc-git-ignore-completion-table)
 	(vc-git-find-ignore-file): New functions.
 
 	* vc/vc-dir.el (vc-dir-menu-map): Add menu for vc-dir-ignore.
 
 	* vc/vc-bzr.el (vc-bzr-ignore): Rewrite.
-	(vc-bzr-ignore-completion-table):
+	(vc-bzr-ignore-completion-table)
 	(vc-bzr-find-ignore-file): New functions.
 
 2013-08-03  Juanma Barranquero  <lekktu@gmail.com>
@@ -8347,7 +8345,7 @@
 	* net/tramp-sh.el (tramp-sh-handle-file-notify-supported-p):
 	Remove functions.
 
-	* autorevert.el (auto-revert-use-notify):
+	* autorevert.el (auto-revert-use-notify)
 	(auto-revert-notify-add-watch):
 	* net/tramp.el (tramp-file-name-for-operation):
 	* net/tramp-adb.el (tramp-adb-file-name-handler-alist):
@@ -8394,10 +8392,9 @@
 
 2013-07-24  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* ido.el (ido-fractionp):
-	(ido-cache-ftp-work-directory-time, ido-max-prospects, ido-mode)
-	(ido-max-file-prompt-width, ido-unc-hosts-cache)
-	(ido-max-directory-size, ido-max-dir-file-cache)
+	* ido.el (ido-fractionp, ido-cache-ftp-work-directory-time)
+	(ido-max-prospects, ido-mode, ido-max-file-prompt-width)
+	(ido-unc-hosts-cache, ido-max-directory-size, ido-max-dir-file-cache)
 	(ido-decorations): Doc fix.
 
 	* ansi-color.el: Fix old URL.
@@ -8687,7 +8684,7 @@
 
 2013-07-12  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-percent-literals-beg-re):
+	* progmodes/ruby-mode.el (ruby-percent-literals-beg-re)
 	(ruby-syntax-expansion-allowed-p): Support array of symbols, for
 	Ruby 2.0.
 	(ruby-font-lock-keywords): Distinguish calls to functions with
@@ -8931,7 +8928,7 @@
 
 2013-07-06  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-sh.el (tramp-sh-file-gvfs-monitor-dir-process-filter):
+	* net/tramp-sh.el (tramp-sh-file-gvfs-monitor-dir-process-filter)
 	(tramp-sh-file-inotifywait-process-filter): Handle file names with
 	spaces.
 
@@ -9732,7 +9729,7 @@
 	(dired-safe-switches-p, dired-switches-escape-p)
 	(dired-insert-old-subdirs, dired-move-to-end-of-filename)
 	(dired-glob-regexp, dired-in-this-tree, dired-goto-file-1)
-	(dired-sort-set-mode-line, dired-sort-toggle, dired-sort-R-check):
+	(dired-sort-set-mode-line, dired-sort-toggle, dired-sort-R-check)
 	(dired-goto-next-nontrivial-file): Use `string-match-p'.
 	(dired-align-file, dired-insert-directory, dired-mark-files-in-region)
 	(dired-toggle-marks, dired-mark-files-containing-regexp)
@@ -12745,7 +12742,7 @@
 
 	* net/tramp-sh.el (tramp-perl-pack, tramp-perl-unpack): New defconst.
 	(tramp-local-coding-commands, tramp-remote-coding-commands): Use them.
-	(tramp-sh-handle-file-local-copy, tramp-sh-handle-write-region):
+	(tramp-sh-handle-file-local-copy, tramp-sh-handle-write-region)
 	(tramp-find-inline-compress): Improve traces.
 	(tramp-maybe-send-script): Check for Perl binary.
 	(tramp-get-inline-coding): Do not redirect STDOUT for local decoding.

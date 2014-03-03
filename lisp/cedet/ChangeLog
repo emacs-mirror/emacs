@@ -1238,7 +1238,7 @@
 
 	* semantic/wisent/python.el (wisent-python-string-start-re)
 	(wisent-python-string-re, wisent-python-forward-string)
-	(wisent-python-forward-line,wisent-python-lex-string):
+	(wisent-python-forward-line, wisent-python-lex-string):
 	New variables.
 	(wisent-python-forward-balanced-expression): New function.
 
@@ -1341,7 +1341,7 @@
 	(ede-directory-safe-p): Check it.
 	(ede-initialize-state-current-buffer, ede, ede-new)
 	(ede-check-project-directory, ede-rescan-toplevel)
-	(ede-load-project-file, ede-parent-project, ede-current-project):
+	(ede-load-project-file, ede-parent-project, ede-current-project)
 	(ede-target-parent): Avoid loading in a project unless it is safe,
 	since it may involve malicious code.  This security flaw was
 	pointed out by Hiroshi Oota.
@@ -1454,7 +1454,7 @@
 	(semantic-decoration-unknown-include-describe): Fix filenames in
 	docstring.
 
-	* semantic/ede-grammar.el (semantic-ede-grammar-compiler-wisent):
+	* semantic/ede-grammar.el (semantic-ede-grammar-compiler-wisent)
 	(semantic-ede-grammar-compiler-bovine): Fix requires that are
 	added to the grammar-make-script.
 
@@ -1471,7 +1471,7 @@
 
 2011-10-19  Chong Yidong  <cyd@gnu.org>
 
-	* ede.el (ede-minor-mode,global-ede-mode):
+	* ede.el (ede-minor-mode, global-ede-mode):
 	* semantic.el (semantic-mode): Doc fix to reflect new
 	define-minor-mode calling behavior.
 
@@ -1695,10 +1695,10 @@
 	Synch EDE to CEDET 1.0.
 
 	* cedet-idutils.el (cedet-idutils-make-command): New option.
-	(cedet-idutils-mkid-call):
+	(cedet-idutils-mkid-call)
 	(cedet-idutils-create/update-database): New functions.
 
-	* cedet-cscope.el (cedet-cscope-create):
+	* cedet-cscope.el (cedet-cscope-create)
 	(cedet-cscope-create/update-database): New functions.
 	(cedet-cscope-support-for-directory): Make interactive.
 
@@ -1750,7 +1750,7 @@
 	(ede-project-root, ede-project-root-directory): Move to
 	ede/auto.el.
 
-	* ede/locate.el (ede-locate-flush-hash):
+	* ede/locate.el (ede-locate-flush-hash)
 	(ede-locate-create/update-root-database): New methods.
 	(initialize-instance): Use ede-locate-flush-hash.
 
@@ -1863,7 +1863,7 @@
 	(semantic-decoration-on-includes-highlight-default): Check that
 	the include tag has a position.
 
-	* semantic/complete.el (semantic-collector-local-members):
+	* semantic/complete.el (semantic-collector-local-members)
 	(semantic-complete-read-tag-local-members)
 	(semantic-complete-jump-local-members): New class and functions.
 	(semantic-complete-self-insert): Save excursion before completing.
@@ -2035,7 +2035,7 @@
 
 	Use define-minor-mode in CEDET where applicable.
 
-	* srecode/mode.el (srecode-minor-mode,global-srecode-minor-mode):
+	* srecode/mode.el (srecode-minor-mode, global-srecode-minor-mode):
 	Use define-minor-mode.
 
 	* semantic/util-modes.el (semantic-add-minor-mode):
@@ -2522,7 +2522,7 @@
 	(semantic-analyzer-debug-global-symbol)
 	(semantic-analyzer-debug-missing-innertype)
 	(semantic-analyzer-debug-insert-include-summary):
-	* semantic/util.el (semantic-file-tag-table):
+	* semantic/util.el (semantic-file-tag-table)
 	(semantic-describe-buffer-var-helper, semantic-something-to-tag-table)
 	(semantic-recursive-find-nonterminal-by-name):
 	* semantic/tag-ls.el (semantic-tag-calculate-parent-default):
@@ -2530,15 +2530,15 @@
 	* semantic/symref.el (semantic-symref-parse-tool-output):
 	* semantic/sb.el (semantic-sb-fetch-tag-table):
 	* semantic/lex-spp.el (semantic-lex-spp-lex-text-string):
-	* semantic/idle.el (semantic-idle-work-for-one-buffer):
+	* semantic/idle.el (semantic-idle-work-for-one-buffer)
 	(semantic-idle-summary-maybe-highlight):
 	* semantic/ia-sb.el (semantic-ia-speedbar)
 	(semantic-ia-sb-tag-info):
 	* semantic/grammar.el (semantic-analyze-possible-completions):
 	* semantic/find.el (semantic-brute-find-tag-by-position):
-	* semantic/ede-grammar.el (project-compile-target):
+	* semantic/ede-grammar.el (project-compile-target)
 	(ede-proj-makefile-insert-variables):
-	* semantic/debug.el (semantic-debug-set-parser-location):
+	* semantic/debug.el (semantic-debug-set-parser-location)
 	(semantic-debug-set-source-location, semantic-debug-interface-layout)
 	(semantic-debug-mode, semantic-debug):
 	* semantic/db.el (semanticdb-needs-refresh-p):
@@ -2569,10 +2569,10 @@
 	* ede.el (ede-buffer-header-file, ede-find-target)
 	(ede-buffer-documentation-files, ede-project-buffers, ede-set)
 	(ede-target-buffers, ede-buffers, ede-make-project-local-variable):
-	* cedet-idutils.el (cedet-idutils-fnid-call):
+	* cedet-idutils.el (cedet-idutils-fnid-call)
 	(cedet-idutils-lid-call, cedet-idutils-expand-filename)
 	(cedet-idutils-version-check):
-	* cedet-global.el (cedet-gnu-global-call):
+	* cedet-global.el (cedet-gnu-global-call)
 	(cedet-gnu-global-expand-filename, cedet-gnu-global-root)
 	(cedet-gnu-global-version-check, cedet-gnu-global-scan-hits):
 	* cedet-cscope.el (cedet-cscope-call)
