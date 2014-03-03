@@ -1374,8 +1374,10 @@ custom, or override spec), and the relevant spec is set accordingly.
 *** New function `add-face-text-property', which can be used to
 conveniently prepend/append new face properties.
 
+---
 *** Face specs set via Custom themes now replace the `defface' spec
-rather than inheriting from it (as do face specs set via Customize).
+rather than inheriting from it.  In other words, setting a face via a
+theme now behaves like setting it via Customize.
 
 ---
 *** New face characteristic (supports :underline (:style wave))
