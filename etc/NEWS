@@ -1377,7 +1377,9 @@ conveniently prepend/append new face properties.
 ---
 *** Face specs set via Custom themes now replace the `defface' spec
 rather than inheriting from it.  In other words, setting a face via a
-theme now behaves like setting it via Customize.
+theme now behaves like setting it via Customize: you only need to
+specify the attributes that you want, you don't need to unset those
+that you don't want.
 
 ---
 *** New face characteristic (supports :underline (:style wave))
