@@ -1,3 +1,8 @@
+2014-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/util.el (semantic-complete-symbol):
+	Replace use of obsolete argument of display-completion-list.
+
 2014-02-03  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/senator.el (senator-copy-tag-to-register):
