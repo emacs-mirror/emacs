@@ -1753,7 +1753,7 @@ variables.")
            (if completions "Sole completion" "No completions")))
 
       (let* ((last (last completions))
-             (base-size (cdr last))
+             (base-size (or (cdr last) 0))
              (prefix (unless (zerop base-size) (substring string 0 base-size)))
              (all-md (completion--metadata (buffer-substring-no-properties
                                             start (point))
