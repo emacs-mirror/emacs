@@ -1,5 +1,14 @@
 2014-03-04  Juanma Barranquero  <lekktu@gmail.com>
 
+	* hexl.el (hexl-address-region, hexl-ascii-region)
+	(hexl-goto-hex-address, hexl-backward-char, hexl-forward-char)
+	(hexl-backward-short, hexl-forward-short, hexl-backward-word)
+	(hexl-forward-word, hexl-previous-line, hexl-next-line):
+	Use "Hexl mode" for non-hyperlinked hexl-mode references in docstrings.
+	(hexl-mode): Doc fix.
+	(hexl-ascii-start-column, hexl-beginning-of-line, hexl-end-of-line)
+	(hexl-mode-ruler): Fix typos in docstrings.
+
 	* strokes.el (strokes-xpm-header, strokes-rate-stroke): Fix typos.
 	(strokes-character, strokes-get-grid-position, strokes-list-strokes):
 	Remove superfluous backslashes.
