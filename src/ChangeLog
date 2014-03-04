@@ -1,3 +1,8 @@
+2014-03-04  Ken Brown  <kbrown@cornell.edu>
+
+	* gmalloc.c (aligned_alloc): Clarify the code by making `adj'
+	represent the actual adjustment needed for alignment.
+
 2014-03-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* gmalloc.c (aligned_alloc): Don't allocate more memory than

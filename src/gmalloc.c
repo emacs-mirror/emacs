@@ -1597,34 +1597,34 @@ aligned_alloc (size_t alignment, size_t size)
 
   /* Figure out how much we will need to pad this particular block
      to achieve the required alignment.  */
-  adj = (uintptr_t) result % alignment;
-  if (adj == 0)
-    adj = alignment;
+  adj = alignment - (uintptr_t) result % alignment;
+  if (adj == alignment)
+    adj = 0;
 
-  if (adj != 1)
+  if (adj != alignment - 1)
     {
       do
 	{
 	  /* Reallocate the block with only as much excess as it
 	     needs.  */
 	  free (result);
-	  result = malloc (size + alignment - adj);
+	  result = malloc (size + adj);
 	  if (result == NULL)	/* Impossible unless interrupted.  */
 	    return NULL;
 
 	  lastadj = adj;
-	  adj = (uintptr_t) result % alignment;
-	  if (adj == 0)
-	    adj = alignment;
+	  adj = alignment - (uintptr_t) result % alignment;
+	  if (adj == alignment)
+	    adj = 0;
 	  /* It's conceivable we might have been so unlucky as to get
 	     a different block with weaker alignment.  If so, this
 	     block is too short to contain SIZE after alignment
 	     correction.  So we must try again and get another block,
 	     slightly larger.  */
-	} while (adj < lastadj);
+	} while (adj > lastadj);
     }
 
-  if (adj != alignment)
+  if (adj != 0)
     {
       /* Record this block in the list of aligned blocks, so that `free'
 	 can identify the pointer it is passed, which will be in the middle
@@ -1648,7 +1648,7 @@ aligned_alloc (size_t alignment, size_t size)
       if (l != NULL)
 	{
 	  l->exact = result;
-	  result = l->aligned = (char *) result + alignment - adj;
+	  result = l->aligned = (char *) result + adj;
 	}
       UNLOCK_ALIGNED_BLOCKS ();
       if (l == NULL)
