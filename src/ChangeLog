@@ -1,3 +1,8 @@
+2014-03-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.c (x_draw_stretch_glyph_string): Reset clipping.
+	(Bug#16932)
+
 2014-03-04  Michal Nazarewicz  <mina86@mina86.com>
 
 	* cmds.c (delete-char): Update docstring pointing out that the

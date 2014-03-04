@@ -2501,6 +2501,8 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	      XFillRectangle (s->display, s->window, gc, x, y, w, h);
 	      XSetForeground (s->display, gc, xgcv.foreground);
 	    }
+
+	  XSetClipMask (s->display, gc, None);
 	}
     }
   else if (!s->background_filled_p)
