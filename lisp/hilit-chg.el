@@ -333,7 +333,7 @@ enable the mode if ARG is omitted or nil.
 
 When Highlight Changes is enabled, changes are marked with a text
 property.  Normally they are displayed in a distinctive face, but
-command \\[highlight-changes-visible-mode] can be used to toggles
+command \\[highlight-changes-visible-mode] can be used to toggle
 this on and off.
 
 Other functions for buffers in this mode include:
@@ -379,7 +379,7 @@ in a distinctive face.
 The default value can be customized with variable
 `highlight-changes-visibility-initial-state'.
 
-This command does not itself set highlight-changes mode."
+This command does not itself set Highlight Changes mode."
 
   t		;; init-value
   nil		;; lighter
@@ -455,7 +455,7 @@ Otherwise, this list will be constructed when needed from
   "Call function FUNC for each region used by Highlight Changes mode.
 If START-POSITION is nil, (point-min) is used.
 If END-POSITION is nil, (point-max) is used.
-FUNC is called with 3 params: PROPERTY START STOP."
+FUNC is called with three params: PROPERTY START STOP."
   (let ((start (or start-position (point-min)))
 	(limit (or end-position (point-max)))
 	prop end)
@@ -470,8 +470,8 @@ FUNC is called with 3 params: PROPERTY START STOP."
 (defun hilit-chg-display-changes (&optional beg end)
   "Display face information for Highlight Changes mode.
 
-An overlay from BEG to END containing a change face is added from the
-information in the text property of type `hilit-chg'.
+An overlay from BEG to END containing a change face is added
+from the information in the text property of type `hilit-chg'.
 
 This is the opposite of `hilit-chg-hide-changes'."
   (hilit-chg-map-changes 'hilit-chg-make-ov beg end))
@@ -731,7 +731,7 @@ You can automatically rotate colors when the buffer is saved by adding
 this function to `write-file-functions' as a buffer-local value.  To do
 this, eval the following in the buffer to be saved:
 
-  \(add-hook 'write-file-functions 'highlight-changes-rotate-faces nil t)"
+  (add-hook 'write-file-functions 'highlight-changes-rotate-faces nil t)"
   (interactive)
   (when (and highlight-changes-mode highlight-changes-visible-mode)
     (let ((modified (buffer-modified-p))
@@ -1021,6 +1021,12 @@ This is called when `global-highlight-changes-mode' is turned on."
 ;; 			   ))
 ;;
 ;; ================== end of debug ===============
+
+(defun hilit-chg-unload-function ()
+  "Unload the Highlight Changes library."
+  (global-hi-lock-mode -1)
+  ;; continue standard unloading
+  nil)
 
 (provide 'hilit-chg)
 

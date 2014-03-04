@@ -1,3 +1,11 @@
+2014-03-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hilit-chg.el (hilit-chg-unload-function): New function.
+	(highlight-changes-mode, highlight-changes-visible-mode): Fix typos.
+	(hilit-chg-map-changes): Prefer cardinal number to digit.
+	(hilit-chg-display-changes): Reflow docstring.
+	(highlight-changes-rotate-faces): Remove superfluous backslash.
+
 2014-03-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-vc-registered): Do not call
