@@ -197,6 +197,12 @@ content-type that is found in the new variable `image-format-suffixes'.
 ** Frame and window changes
 
 +++
+*** The function `window-in-direction' introduced in Emacs 24.1 now
+takes additional arguments for specifiying a reference point, wrapping
+selection around frame borders, and specifying ways to select the
+minibuffer window.
+
++++
 *** New commands `toggle-frame-fullscreen' and `toggle-frame-maximized',
 bound to <f11> and M-<f10>, respectively.
 

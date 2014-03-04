@@ -1,3 +1,7 @@
+2014-03-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-in-direction): Fix doc-string.
+
 2014-03-04  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/smie.el (smie-config-guess): Doc fix.

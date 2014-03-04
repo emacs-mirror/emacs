@@ -1817,10 +1817,9 @@ or bottom edge of WINDOW as reference position instead of
 top edge of WINDOW as reference position.
 
 Optional argument WRAP non-nil means to wrap DIRECTION around
-frame borders.  This means to return for a WINDOW a the top of
-the frame and DIRECTION `above' to return the minibuffer window
-if the frame has one, and a window at the bottom of the frame
-otherwise.
+frame borders.  This means to return for WINDOW at the top of the
+frame and DIRECTION `above' the minibuffer window if the frame
+has one, and a window at the bottom of the frame otherwise.
 
 Optional argument MINI nil means to return the minibuffer window
 if and only if it is currently active.  MINI non-nil means to

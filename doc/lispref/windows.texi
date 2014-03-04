@@ -137,7 +137,7 @@ window).
 
 Each window belongs to exactly one frame (@pxref{Frames}).
 
-@defun window-frame window
+@defun window-frame &optional window
 This function returns the frame that the window @var{window} belongs
 to.  If @var{window} is @code{nil}, it defaults to the selected
 window.
@@ -257,14 +257,14 @@ window tree are @var{W2}, @var{W4}, and @var{W5}.
   The following functions can be used to retrieve a child window of an
 internal window, and the siblings of a child window.
 
-@defun window-top-child window
+@defun window-top-child &optional window
 This function returns the topmost child window of @var{window}, if
 @var{window} is an internal window whose children form a vertical
 combination.  For any other type of window, the return value is
 @code{nil}.
 @end defun
 
-@defun window-left-child window
+@defun window-left-child &optional window
 This function returns the leftmost child window of @var{window}, if
 @var{window} is an internal window whose children form a horizontal
 combination.  For any other type of window, the return value is
@@ -322,7 +322,7 @@ the assumption that the frame from our canonical example is selected
 @end defun
 
 @cindex window in direction
-@defun window-in-direction direction &optional window ignore
+@defun window-in-direction direction &optional window ignore sign wrap mini
 This function returns the nearest live window in direction
 @var{direction} as seen from the position of @code{window-point} in
 window @var{window}.  The argument @var{direction} must be one of
@@ -337,6 +337,23 @@ function tries to find another window in the indicated direction whose
 @code{no-other-window} parameter is @code{nil}.  If the optional
 argument @var{ignore} is non-@code{nil}, a window may be returned even
 if its @code{no-other-window} parameter is non-@code{nil}.
+
+If the optional argument @var{sign} is a negative number, it means to
+use the right or bottom edge of @var{window} as reference position
+instead of @code{window-point}.  If @var{sign} is a positive number, it
+means to use the left or top edge of @var{window} as reference position.
+
+If the optional argument @var{wrap} is non-@code{nil}, this means to
+wrap @var{direction} around frame borders.  For example, if @var{window}
+is at the top of the frame and @var{direction} is @code{above}, then
+return the minibuffer window provided the frame has one, and a window at
+the bottom of the frame otherwise.
+
+If the optional argument @var{mini} is @code{nil}, this means to return
+the minibuffer window if and only if it is currently active.  If
+@var{mini} is non-@code{nil}, it returns the minibuffer window even when
+it's not active.  However, if @var{wrap} non-@code{nil}, it always acts
+as if @var{mini} were @code{nil}.
 
 If it doesn't find a suitable window, this function returns @code{nil}.
 @end defun
