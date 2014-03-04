@@ -1,5 +1,17 @@
 2014-03-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/cc-mode.el (c-initialize-cc-mode): Only hook into
+	electric-indent-mode-hook if we obey electric-indent-mode.
+	(c-basic-common-init): Use (fboundp 'electric-indent-local-mode) to
+	decide whether we obey electric-indent-mode.
+	(c-change-set-fl-decl-start, c-extend-after-change-region):
+	Silence warnings.
+	(c-electric-indent-mode-hook): Assume we do want to obey
+	electric-indent-mode.
+
+	* electric.el (electric-indent-mode-has-been-called): Remove.
+	(electric-indent-mode): Fix accordingly.
+
 	* files.el (hack-local-variables): Mention file name in warning.
 
 	* htmlfontify.el (hfy-fontify-buffer): Drop `invis-range' message.
