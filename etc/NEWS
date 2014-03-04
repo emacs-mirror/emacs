@@ -896,9 +896,14 @@ All non-ancient Bash versions support this option.
 ---
 *** `sh-mode' now has its own setting for `add-log-current-defun-function'.
 
-** SMIE indentation can be customized via `smie-config'.
-Emacs can learn the appropriate indentation settings if you provide it
-with an indented sample file.
+** SMIE
+
+*** You can customize the indentation of modes that use SMIE via `smie-config'.
+The command `smie-config-guess' can help you derive the appropriate
+indentation settings, if you provide it with an indented sample file.
+Use `smie-config-save' to save the result.
+
+*** New commands `smie-config-show-indent' and `smie-config-set-indent'.
 
 ---
 ** SQL mode

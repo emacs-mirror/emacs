@@ -1,3 +1,9 @@
+2014-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/smie.el (smie-config-guess): Doc fix.
+	Explicit error if no grammar.
+	(smie-config-save): Doc fix.  Fix quote typo.
+
 2014-03-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cc-mode.el (c-initialize-cc-mode): Only hook into
