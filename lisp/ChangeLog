@@ -1,3 +1,8 @@
+2014-03-04  Michal Nazarewicz  <mina86@mina86.com>
+
+	* binding.el: Add comment describing why C-d binds to `delete-char'.
+	* simple.el (delete-forward-char): Mark as interactive-only.
+
 2014-03-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* icomplete.el (icomplete-completions):

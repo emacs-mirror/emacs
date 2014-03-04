@@ -873,6 +873,11 @@ if `inhibit-field-text-motion' is non-nil."
 
 ;; Update tutorial--default-keys if you change these.
 (define-key global-map "\177" 'delete-backward-char)
+;; We explicitly want C-d to use `delete-char' instead of
+;; `delete-forward-char' so that it ignores `delete-active-region':
+;; Most C-d users are old-timers who don't expect
+;; `delete-active-region' here, while newer users who expect
+;; `delete-active-region' use C-d much less.
 (define-key global-map "\C-d" 'delete-char)
 
 (define-key global-map "\C-k" 'kill-line)

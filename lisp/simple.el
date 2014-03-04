@@ -1008,6 +1008,7 @@ KILLFLAG is set if N was explicitly specified."
 
 	;; Otherwise, do simple deletion.
 	(t (delete-char n killflag))))
+(put 'delete-forward-char 'interactive-only 'delete-char)
 
 (defun mark-whole-buffer ()
   "Put point at beginning and mark at end of buffer.

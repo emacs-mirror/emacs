@@ -1,3 +1,8 @@
+2014-03-04  Michal Nazarewicz  <mina86@mina86.com>
+
+	* cmds.c (delete-char): Update docstring pointing out that the
+	function ignores `delete-active-region' and `overwrite-mode'.
+
 2014-03-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* font.c (Fframe_font_cache): Fix last change.  (Bug#16930)
@@ -307,11 +312,11 @@
 
 2014-02-06  Eli Zaretskii  <eliz@gnu.org>
 
-	* w32.c (pMultiByteToWideChar, pWideCharToMultiByte): New
-	variables: pointers through which to call the respective APIs.
+	* w32.c (pMultiByteToWideChar, pWideCharToMultiByte):
+	New variables: pointers through which to call the respective APIs.
 	(filename_to_utf16, filename_from_utf16, filename_to_ansi)
-	(filename_from_ansi, sys_link, check_windows_init_file): Call
-	MultiByteToWideChar and WideCharToMultiByte through pointers.
+	(filename_from_ansi, sys_link, check_windows_init_file):
+	Call MultiByteToWideChar and WideCharToMultiByte through pointers.
 	This is required on Windows 9X, where we dynamically load
 	UNICOWS.DLL which has their non-stub implementations.
 	(maybe_load_unicows_dll): Assign addresses to these 2 function
@@ -321,8 +326,8 @@
 	MultiByteToWideChar and WideCharToMultiByte through function
 	pointers.
 
-	* w32.h (pMultiByteToWideChar, pWideCharToMultiByte): New
-	declarations.
+	* w32.h (pMultiByteToWideChar, pWideCharToMultiByte):
+	New declarations.
 
 2014-02-06  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -362,8 +367,8 @@
 	* w32menu.c (w32_popup_dialog): Don't condition the whole function
 	on HAVE_DIALOGS.  If the dialog is "simple", pop up a message box
 	to show it; otherwise return 'unsupported--w32-dialog' to signal
-	to the caller that emulation with menus is necessary.  This
-	resurrects code inadvertently deleted by the 2013-10-08 commit.
+	to the caller that emulation with menus is necessary.
+	This resurrects code inadvertently deleted by the 2013-10-08 commit.
 	(Bug#16636)
 	(syms_of_w32menu): DEFSYM Qunsupported__w32_dialog.
 
@@ -471,8 +476,8 @@
 	from 2013-03-29.
 	(move_it_to): Re-remove reference to last_max_ascent.
 	(Fwindow_text_pixel_size): Add iterator's max_ascent and
-	max_descent here instead of calling line_bottom_y.  Fix
-	doc-string.
+	max_descent here instead of calling line_bottom_y.
+	Fix doc-string.
 
 2014-01-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -537,8 +542,8 @@
 
 2014-01-24  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	* xdisp.c (reseat_1, Fcurrent_bidi_paragraph_direction): Avoid
-	undefined behavior by initializing display property bit of a
+	* xdisp.c (reseat_1, Fcurrent_bidi_paragraph_direction):
+	Avoid undefined behavior by initializing display property bit of a
 	string processed by the bidirectional iterator.  For details, see
 	<http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01920.html>.
 
@@ -637,8 +642,8 @@
 
 2014-01-13  Daniel Colascione  <dancol@dancol.org>
 
-	* textprop.c (Fremove_list_of_text_properties): Correctly
-	handle reaching the end of the interval tree. (Bug#15344)
+	* textprop.c (Fremove_list_of_text_properties):
+	Correctly handle reaching the end of the interval tree. (Bug#15344)
 
 2014-01-13  Martin Rudalics  <rudalics@gmx.at>
 
@@ -651,7 +656,7 @@
 	* macfont.m: Include termchar.h.
 	(CG_SET_FILL_COLOR_WITH_FACE_FOREGROUND)
 	(CG_SET_FILL_COLOR_WITH_FACE_BACKGROUND)
-	(CG_SET_STROKE_COLOR_WITH_FACE_FOREGROUND): Modified from
+	(CG_SET_STROKE_COLOR_WITH_FACE_FOREGROUND): Modify from
 	*_WITH_GC_* to take face and f as parameters.
 	(macfont_draw): Check for DRAW_MOUSE_FACE and set face accordingly.
 	Use *_WITH_FACE_*, and pass face as parameter (Bug#16425).
@@ -695,8 +700,8 @@
 2014-01-10  Martin Rudalics  <rudalics@gmx.at>
 
 	Fix handling of internal borders (Bug#16348).
-	* dispnew.c (adjust_frame_glyphs_for_window_redisplay): Remove
-	internal border width from pixel width of windows.
+	* dispnew.c (adjust_frame_glyphs_for_window_redisplay):
+	Remove internal border width from pixel width of windows.
 	(change_frame_size_1): Don't return early when frame's pixel
 	size changes - we still have to record the new sizes in the
 	frame structure.
@@ -705,14 +710,14 @@
 	* window.c (check_frame_size): Include internal_border_width in
 	check.
 	* xdisp.c (Ftool_bar_height): Fix doc-string typo.
-	* xfns.c (x_set_menu_bar_lines, x_set_tool_bar_lines): In
-	non-toolkit/non-GTK version clear internal border.
+	* xfns.c (x_set_menu_bar_lines, x_set_tool_bar_lines):
+	In non-toolkit/non-GTK version clear internal border.
 	* xterm.c (x_clear_under_internal_border): New function for
 	non-toolkit/non-GTK version.
 	(x_after_update_window_line): In non-toolkit/non-GTK version
 	don't do that.
-	(handle_one_xevent, x_set_window_size): Call
-	x_clear_under_internal_border in non-toolkit/non-GTK version.
+	(handle_one_xevent, x_set_window_size):
+	Call x_clear_under_internal_border in non-toolkit/non-GTK version.
 	* xterm.h (x_clear_under_internal_border): Extern it.
 
 2014-01-07  Paul Eggert  <eggert@cs.ucla.edu>
@@ -767,8 +772,8 @@
 2014-01-02  Martin Rudalics  <rudalics@gmx.at>
 
 	Further adjust frame/window scrollbar width calculations.
-	* window.c (apply_window_adjustment): Set
-	windows_or_buffers_changed.
+	* window.c (apply_window_adjustment):
+	Set windows_or_buffers_changed.
 	(Fwindow_scroll_bars): Return actual scrollbar width.
 	* xfns.c (x_set_scroll_bar_default_width): Rename wid to unit.
 	For non-toolkit builds again use 14 as minimum width and set
@@ -843,8 +848,8 @@
 	(globals_of_w32): Initialize them to zero.
 	(set_named_security_info): Set them to non-zero if the
 	corresponding API is available.
-	(SetNamedSecurityInfoW_Proc, SetNamedSecurityInfoA_Proc): New
-	function typedefs.
+	(SetNamedSecurityInfoW_Proc, SetNamedSecurityInfoA_Proc):
+	New function typedefs.
 
 2013-12-31  Martin Rudalics  <rudalics@gmx.at>
 
@@ -1464,8 +1469,8 @@
 	ANSI and Unicode APIs.  Use the latter if w32_unicode_filenames is
 	non-zero, else the former.
 	(codepage_for_filenames, filename_to_utf16, )
-	(filename_from_utf16, filename_to_ansi, filename_from_ansi): New
-	functions.
+	(filename_from_utf16, filename_to_ansi, filename_from_ansi):
+	New functions.
 	(init_user_info): Allow $HOME and $SHELL to include non-ANSI
 	characters.
 	(normalize_filename): Lose the DBCS code, now works on UTF-8.
@@ -1608,8 +1613,8 @@
 	* xterm.c (x_make_frame_visible): Restore hack which is needed when
 	input polling is used.  This is still meaningful for Cygwin, see
 	http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00351.html.
-	* keyboard.c (poll_for_input_1, input_polling_used): Define
-	unconditionally.
+	* keyboard.c (poll_for_input_1, input_polling_used):
+	Define unconditionally.
 	* dispextern.h (FACE_SUITABLE_FOR_CHAR_P): Remove unused macro.
 	(FACE_FOR_CHAR): Simplify because face_for_char does the same.
 	* fontset.c (face_suitable_for_char_p) [0]: Remove unused function.
