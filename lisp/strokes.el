@@ -202,7 +202,7 @@ static char * stroke_xpm[] = {
 \"P	c #FFFF0000FFFF\",
 \".	c #45458B8B0000\",
 /* pixels */\n"
-  "The header to all xpm buffers created by strokes.")
+  "The header to all XPM buffers created by strokes.")
 
 ;;; user variables...
 
@@ -221,7 +221,7 @@ static char * stroke_xpm[] = {
 
 (defcustom strokes-character ?@
   "Character used when drawing strokes in the strokes buffer.
-\(The default is `@', which works well.\)"
+\(The default is `@', which works well.)"
   :type 'character
   :group 'strokes)
 
@@ -284,16 +284,15 @@ This is set properly in the function `strokes-update-window-configuration'.")
 
 (defvar strokes-last-stroke nil
   "Last stroke entered by the user.
-Its value gets set every time the function
-`strokes-fill-stroke' gets called,
-since that is the best time to set the variable.")
+Its value gets set every time the function `strokes-fill-stroke'
+gets called, since that is the best time to set the variable.")
 
 (defvar strokes-global-map '()
   "Association list of strokes and their definitions.
 Each entry is (STROKE . COMMAND) where STROKE is itself a list of
 coordinates (X . Y) where X and Y are lists of positions on the
-normalized stroke grid, with the top left at (0 . 0).  COMMAND is the
-corresponding interactive function.")
+normalized stroke grid, with the top left at (0 . 0).  COMMAND is
+the corresponding interactive function.")
 
 (defvar strokes-load-hook nil
   "Functions to be called when Strokes is loaded.")
@@ -349,7 +348,7 @@ corresponding interactive function.")
   (* x x))
 
 (defsubst strokes-distance-squared (p1 p2)
-  "Gets the distance (squared) between to points P1 and P2.
+  "Compute the distance (squared) between to points P1 and P2.
 P1 and P2 are cons cells in the form (X . Y)."
   (let ((x1 (car p1))
 	(y1 (cdr p1))
@@ -434,9 +433,9 @@ or for window START-WINDOW if that is specified."
 ;;;###autoload
 (defun strokes-global-set-stroke (stroke command)
   "Interactively give STROKE the global binding as COMMAND.
-Operated just like `global-set-key', except for strokes.
-COMMAND is a symbol naming an interactively-callable function.  STROKE
-is a list of sampled positions on the stroke grid as described in the
+Works just like `global-set-key', except for strokes.  COMMAND is
+a symbol naming an interactively-callable function.  STROKE is a
+list of sampled positions on the stroke grid as described in the
 documentation for the `strokes-define-stroke' function.
 
 See also `strokes-global-set-stroke-string'."
@@ -450,7 +449,7 @@ See also `strokes-global-set-stroke-string'."
 
 (defun strokes-global-set-stroke-string (stroke string)
   "Interactively give STROKE the global binding as STRING.
-Operated just like `global-set-key', except for strokes.  STRING
+Works just like `global-set-key', except for strokes.  STRING
 is a string to be inserted by the stroke.  STROKE is a list of
 sampled positions on the stroke grid as described in the
 documentation for the `strokes-define-stroke' function.
@@ -476,7 +475,7 @@ Compare `strokes-global-set-stroke'."
 (defun strokes-get-grid-position (stroke-extent position &optional grid-resolution)
   "Map POSITION to a new grid position.
 Do so based on its STROKE-EXTENT and GRID-RESOLUTION.
-STROKE-EXTENT as a list \(\(XMIN . YMIN\) \(XMAX . YMAX\)\).
+STROKE-EXTENT is a list ((XMIN . YMIN) (XMAX . YMAX)).
 If POSITION is a `strokes-lift', then it is itself returned.
 Optional GRID-RESOLUTION may be used in place of `strokes-grid-resolution'.
 The grid is a square whose dimension is [0,GRID-RESOLUTION)."
@@ -651,7 +650,7 @@ NOTE: This is where the global variable `strokes-last-stroke' is set."
                                                    y))))))))))
 
 (defun strokes-rate-stroke (stroke1 stroke2)
-  "Rates STROKE1 with STROKE2 and return a score based on a distance metric.
+  "Rate STROKE1 with STROKE2 and return a score based on a distance metric.
 Note: the rating is an error rating, and therefore, a return of 0
 represents a perfect match.  Also note that the order of stroke
 arguments is order-independent for the algorithm used here."
@@ -857,6 +856,9 @@ Optional EVENT is acceptable as the starting event of the stroke."
 The command will be executed provided one exists for that stroke,
 based on the variable `strokes-minimum-match-score'.
 If no stroke matches, nothing is done and return value is nil."
+  ;; FIXME: Undocument return value.  It is not documented for all cases,
+  ;; and doesn't allow to difference between no stroke matches and
+  ;; command-execute returning nil, anyway.
   (let* ((match (strokes-match-stroke stroke strokes-global-map))
 	 (command (car match))
 	 (score (cdr match)))
@@ -969,8 +971,8 @@ and you can enter in any arbitrary stroke.  Remember: The strokes
 package lets you program in simple and complex (multi-lift) strokes.
 The only difference is how you *invoke* the two.  You will most likely
 use simple strokes, as complex strokes were developed for
-Chinese/Japanese/Korean.  So the shifted middle mouse button (S-mouse-2) will
-invoke the command `strokes-do-stroke'.
+Chinese/Japanese/Korean.  So the shifted middle mouse button (S-mouse-2)
+will invoke the command `strokes-do-stroke'.
 
 If ever you define a stroke which you don't like, then you can unset
 it with the command
@@ -993,8 +995,8 @@ down, then use a prefix argument:
 
 Your strokes are stored as you enter them.  They get saved into the
 file specified by the `strokes-file' variable, along with other strokes
-configuration variables.  You will be prompted to save them when
-you exit Emacs, or you can save them with
+configuration variables.  You will be prompted to save them when you
+exit Emacs, or you can save them with
 
 > M-x strokes-prompt-user-save-strokes
 
@@ -1009,7 +1011,7 @@ If you'd like to create graphical files with strokes, you'll have to
 be running a version of Emacs with XPM support.  You use the binding
 to `strokes-compose-complex-stroke' to start drawing your strokes.
 These are just complex strokes, and thus continue drawing with mouse-1
-or mouse-2 and   end with mouse-3.  Then the stroke image gets inserted
+or mouse-2 and end with mouse-3.  Then the stroke image gets inserted
 into the buffer.  You treat it somewhat like any other character,
 which you can copy, paste, delete, move, etc.  When all is done, you
 may want to send the file, or save it.  This is done with
@@ -1147,7 +1149,7 @@ Returns value of `strokes-use-strokes-buffer'."
 	  (not strokes-use-strokes-buffer))))
 
 (defun strokes-xpm-for-stroke (&optional stroke bufname b/w-only)
-  "Create an XPM pixmap for the given STROKE in buffer ` *strokes-xpm*'.
+  "Create an XPM pixmap for the given STROKE in buffer \" *strokes-xpm*\".
 If STROKE is not supplied, then `strokes-last-stroke' will be used.
 Optional BUFNAME to name something else.
 The pixmap will contain time information via rainbow dot colors
@@ -1318,8 +1320,8 @@ the stroke as a character in some language."
 ;;;###autoload
 (defun strokes-list-strokes (&optional chronological strokes-map)
   "Pop up a buffer containing an alphabetical listing of strokes in STROKES-MAP.
-With CHRONOLOGICAL prefix arg \(\\[universal-argument]\) list strokes
-chronologically by command name.
+With CHRONOLOGICAL prefix arg (\\[universal-argument]) list strokes chronologically
+by command name.
 If STROKES-MAP is not given, `strokes-global-map' will be used instead."
   (interactive "P")
   (setq strokes-map (or strokes-map
@@ -1386,8 +1388,8 @@ If STROKES-MAP is not given, `strokes-global-map' will be used instead."
 (define-minor-mode strokes-mode
   "Toggle Strokes mode, a global minor mode.
 With a prefix argument ARG, enable Strokes mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
 
 \\<strokes-mode-map>
 Strokes are pictographic mouse gestures which invoke commands.
@@ -1540,7 +1542,7 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
 
 (defun strokes-xpm-to-compressed-string (&optional xpm-buffer)
   "Convert XPM in XPM-BUFFER to compressed string representing the stroke.
-XPM-BUFFER defaults to ` *strokes-xpm*'."
+XPM-BUFFER defaults to \" *strokes-xpm*\"."
   (with-current-buffer (setq xpm-buffer (or xpm-buffer " *strokes-xpm*"))
     (goto-char (point-min))
     (search-forward "/* pixels */")	; skip past header junk
@@ -1707,7 +1709,7 @@ Optional FORCE non-nil will ignore the buffer's read-only status."
 
 (defun strokes-xpm-for-compressed-string (compressed-string &optional bufname)
   "Convert the stroke represented by COMPRESSED-STRING into an XPM.
-Store XPM in buffer BUFNAME if supplied \(default is ` *strokes-xpm*'\)"
+Store XPM in buffer BUFNAME if supplied (default is \" *strokes-xpm*\")"
   (or bufname (setq bufname " *strokes-xpm*"))
   (with-current-buffer (get-buffer-create bufname)
     (erase-buffer)

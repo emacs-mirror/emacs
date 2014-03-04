@@ -1,3 +1,16 @@
+2014-03-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* strokes.el (strokes-xpm-header, strokes-rate-stroke): Fix typos.
+	(strokes-character, strokes-get-grid-position, strokes-list-strokes):
+	Remove superfluous backslashes.
+	(strokes-last-stroke, strokes-global-map, strokes-mode):
+	Reflow docstrings.
+	(strokes-xpm-for-stroke, strokes-xpm-to-compressed-string)
+	(strokes-xpm-for-compressed-string): Use quotes with buffer name.
+	(strokes-distance-squared, strokes-global-set-stroke)
+	(strokes-global-set-stroke-string): Doc fixes.
+	(strokes-help): Fix typos; reflow docstring.
+
 2014-03-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-in-direction): Fix doc-string.
