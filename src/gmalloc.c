@@ -38,6 +38,10 @@ License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 #include <w32heap.h>	/* for sbrk */
 #endif
 
+#ifdef emacs
+extern void emacs_abort (void);
+#endif
+
 #ifdef	__cplusplus
 extern "C"
 {
@@ -1594,24 +1598,33 @@ aligned_alloc (size_t alignment, size_t size)
   /* Figure out how much we will need to pad this particular block
      to achieve the required alignment.  */
   adj = (uintptr_t) result % alignment;
+  if (adj == 0)
+    adj = alignment;
 
-  do
+  if (adj != 1)
     {
-      /* Reallocate the block with only as much excess as it needs.  */
-      free (result);
-      result = malloc (size + alignment - adj);
-      if (result == NULL)	/* Impossible unless interrupted.  */
-	return NULL;
+      do
+	{
+	  /* Reallocate the block with only as much excess as it
+	     needs.  */
+	  free (result);
+	  result = malloc (size + alignment - adj);
+	  if (result == NULL)	/* Impossible unless interrupted.  */
+	    return NULL;
 
-      lastadj = adj;
-      adj = (uintptr_t) result % alignment;
-      /* It's conceivable we might have been so unlucky as to get a
-	 different block with weaker alignment.  If so, this block is too
-	 short to contain SIZE after alignment correction.  So we must
-	 try again and get another block, slightly larger.  */
-    } while (adj < lastadj);
+	  lastadj = adj;
+	  adj = (uintptr_t) result % alignment;
+	  if (adj == 0)
+	    adj = alignment;
+	  /* It's conceivable we might have been so unlucky as to get
+	     a different block with weaker alignment.  If so, this
+	     block is too short to contain SIZE after alignment
+	     correction.  So we must try again and get another block,
+	     slightly larger.  */
+	} while (adj < lastadj);
+    }
 
-  if (adj != 0)
+  if (adj != alignment)
     {
       /* Record this block in the list of aligned blocks, so that `free'
 	 can identify the pointer it is passed, which will be in the middle
