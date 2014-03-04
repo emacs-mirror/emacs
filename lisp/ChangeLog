@@ -1,3 +1,8 @@
+2014-03-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-vc-registered): Do not call
+	`tramp-send-command-and-check'.
+
 2014-03-04  Bastien Guerry  <bzg@gnu.org>
 
 	* minibuffer.el (minibuffer-completion-help): Use 0 as the

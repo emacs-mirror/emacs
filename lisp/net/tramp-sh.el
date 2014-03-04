@@ -3341,7 +3341,6 @@ the result will be a local, non-Tramp, filename."
 				tramp-vc-registered-file-names
 				"\n")
 		     tramp-end-of-heredoc))
-		   (tramp-send-command-and-check v nil)
 		   (with-current-buffer (tramp-get-connection-buffer v)
 		     ;; Read the expression.
 		     (goto-char (point-min))
