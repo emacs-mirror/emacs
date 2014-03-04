@@ -1,5 +1,7 @@
 2014-03-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (hack-local-variables): Mention file name in warning.
+
 	* htmlfontify.el (hfy-fontify-buffer): Drop `invis-range' message.
 
 2014-03-04  Michal Nazarewicz  <mina86@mina86.com>

@@ -3340,8 +3340,11 @@ local variables, but directory-local variables may still be applied."
 			      ((eq var 'lexical-binding)
 			       (unless hack-local-variables--warned-lexical
 				 (setq hack-local-variables--warned-lexical t)
-				 (display-warning :warning
-						  "Specify `lexical-binding' on the first line, not at the end")))
+				 (display-warning
+                                  :warning
+                                  (format "%s: `lexical-binding' at end of file unreliable"
+                                          (file-name-nondirectory
+                                           (or buffer-file-name ""))))))
 			      (t
 			       (ignore-errors
 				 (push (cons (if (eq var 'eval)
