@@ -1,3 +1,7 @@
+2014-03-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* htmlfontify.el (hfy-fontify-buffer): Drop `invis-range' message.
+
 2014-03-04  Michal Nazarewicz  <mina86@mina86.com>
 
 	* binding.el: Add comment describing why C-d binds to `delete-char'.
