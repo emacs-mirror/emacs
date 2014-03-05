@@ -598,16 +598,18 @@ static void
 update_various_frame_slots (EmacsFrame ew)
 {
   struct frame *f = ew->emacs_frame.frame;
-  struct x_output *x = f->output_data.x;
+
   /* Don't do that: It confuses the check in change_frame_size_1 whether
      the pixel size of the frame changed due to a change of the internal
      border width.  Bug#16736.  */
-#if 0
-  FRAME_PIXEL_HEIGHT (f) = ew->core.height + x->menubar_height;
-  FRAME_PIXEL_WIDTH (f) = ew->core.width;
-#endif
-  f->internal_border_width = ew->emacs_frame.internal_border_width;
+  if (false)
+    {
+      struct x_output *x = f->output_data.x;
+      FRAME_PIXEL_HEIGHT (f) = ew->core.height + x->menubar_height;
+      FRAME_PIXEL_WIDTH (f) = ew->core.width;
+    }
 
+  f->internal_border_width = ew->emacs_frame.internal_border_width;
 }
 
 static void
@@ -682,13 +684,11 @@ EmacsFrameResize (Widget widget)
 {
   EmacsFrame ew = (EmacsFrame)widget;
   struct frame *f = ew->emacs_frame.frame;
-  struct x_output *x = f->output_data.x;
 
-#if 0  /* Always process resize requests pixelwise.  Frame maximizing
-	  should work even when frame_resize_pixelwise is nil.  */
-  if (frame_resize_pixelwise)
+  /* Always process resize requests pixelwise.  Frame maximizing
+     should work even when frame_resize_pixelwise is nil.  */
+  if (true || frame_resize_pixelwise)
     {
-#endif /* 0 */
       int width, height;
 
       pixel_to_text_size (ew, ew->core.width, ew->core.height, &width, &height);
@@ -698,10 +698,10 @@ EmacsFrameResize (Widget widget)
       update_various_frame_slots (ew);
 
       cancel_mouse_face (f);
-#if 0  /* See comment above.  */
     }
   else
     {
+      struct x_output *x = f->output_data.x;
       int columns, rows;
 
       pixel_to_char_size (ew, ew->core.width, ew->core.height, &columns, &rows);
@@ -717,7 +717,6 @@ EmacsFrameResize (Widget widget)
 	  cancel_mouse_face (f);
 	}
     }
-#endif /* 0 */
 }
 
 static Boolean
