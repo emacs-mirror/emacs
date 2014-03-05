@@ -1,3 +1,7 @@
+2014-03-05  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-make-group): Clarify prompt.
+
 2014-02-22  Daniel Colascione  <dancol@dancol.org>
 
 	* auth-source.el (auth-source-secrets-listify-pattern): New function.
