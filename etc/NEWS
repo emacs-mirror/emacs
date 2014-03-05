@@ -912,7 +912,7 @@ Use `smie-config-save' to save the result.
 
 +++
 *** You can customize the SMIE indentation of a file by adding an entry to
-the file's local variables of the form: `eval: (smie-config-local '(RULES)'.
+the file's local variables of the form: `eval: (smie-config-local '(RULES))'.
 
 +++
 *** New commands `smie-config-show-indent' and `smie-config-set-indent'.
