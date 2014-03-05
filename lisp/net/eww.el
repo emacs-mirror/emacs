@@ -592,8 +592,8 @@ appears in a <link> or <a> tag."
     (define-key map [(control a)] 'eww-beginning-of-text)
     (define-key map [(control c) (control c)] 'eww-submit)
     (define-key map [(control e)] 'eww-end-of-text)
-    (define-key map [tab] 'shr-next-link)
-    (define-key map [backtab] 'shr-previous-link)
+    (define-key map [?\t] 'shr-next-link)
+    (define-key map [?\M-\t] 'shr-previous-link)
     map))
 
 (defvar eww-textarea-map
@@ -601,8 +601,8 @@ appears in a <link> or <a> tag."
     (set-keymap-parent map text-mode-map)
     (define-key map "\r" 'forward-line)
     (define-key map [(control c) (control c)] 'eww-submit)
-    (define-key map [tab] 'shr-next-link)
-    (define-key map [backtab] 'shr-previous-link)
+    (define-key map [?\t] 'shr-next-link)
+    (define-key map [?\M-\t] 'shr-previous-link)
     map))
 
 (defvar eww-select-map

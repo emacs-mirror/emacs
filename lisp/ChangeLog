@@ -18,6 +18,10 @@
 
 	* net/eww.el (eww-mode-map): [tab] doesn't work on tty.
 	(eww-setup-buffer): Clear next/prev/etc more reliably.
+	(eww-textarea-map): [tab] doesn't work on tty.  Reported by Mario
+	Lang.
+
+	* net/shr.el (shr-map): Ditto.
 
 2014-03-04  Glenn Morris  <rgm@gnu.org>
 
