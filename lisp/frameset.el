@@ -941,7 +941,7 @@ Setting position and size parameters as soon as possible helps reducing
 flickering; other parameters, like `minibuffer' and `border-width', can
 not be changed once the frame has been created.  Internal use only."
   (cl-loop for param in '(left top with height border-width minibuffer)
-	   collect (assq param parameters)))
+	   when (assq param parameters) collect it))
 
 (defun frameset--restore-frame (parameters window-state filters force-onscreen)
   "Set up and return a frame according to its saved state.

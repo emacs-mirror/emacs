@@ -1,3 +1,7 @@
+2014-03-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset--initial-params): Filter out null entries.
+
 2014-03-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-min-height, window-min-width): Rewrite
