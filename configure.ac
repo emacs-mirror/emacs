@@ -653,7 +653,7 @@ fi
 dnl quotation ends
 
 if test $unported = yes; then
-  AC_MSG_ERROR([Emacs does not support building on `${canonical}' systems.
+  AC_MSG_ERROR([Emacs does not support `${canonical}' systems.
 If you think it should, please send a report to bug-gnu-emacs@gnu.org.
 Check `etc/MACHINES' for recognized configuration names.])
 fi
