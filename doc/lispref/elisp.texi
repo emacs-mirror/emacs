@@ -903,6 +903,7 @@ Simple Minded Indentation Engine
 * SMIE Indentation::        Specifying indentation rules.
 * SMIE Indentation Helpers:: Helper functions for indentation rules.
 * SMIE Indentation Example:: Sample indentation rules.
+* SMIE Customization::      Customizing indentation.
 
 Documentation
 

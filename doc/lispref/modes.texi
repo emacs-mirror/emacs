@@ -3383,6 +3383,7 @@ resorting to some special tricks (@pxref{SMIE Tricks}).
 * SMIE Indentation::            Specifying indentation rules.
 * SMIE Indentation Helpers::    Helper functions for indentation rules.
 * SMIE Indentation Example::    Sample indentation rules.
+* SMIE Customization::          Customizing indentation.
 @end menu
 
 @node SMIE setup
@@ -3960,6 +3961,52 @@ The advantage of this formulation is that it reuses the indentation of
 the previous @code{"else"}, rather than going all the way back to the
 first @code{"if"} of the sequence.
 @end itemize
+
+@c In some sense this belongs more in the Emacs manual.
+@node SMIE Customization
+@subsubsection Customizing Indentation
+
+If you are using a mode whose indentation is provided by SMIE, you can
+customize the indentation to suit your preferences.  You can do this
+on a per-mode basis (using the option @code{smie-config}), or a
+per-file basis (using the function @code{smie-config-local} in a
+file-local variable specification).
+
+@defopt smie-config
+This option lets you customize indentation on a per-mode basis.
+It is an alist with elements of the form @code{(@var{mode} . @var{rules})}.
+For the precise form of rules, see the variable's documentation; but
+you may find it easier to use the command @code{smie-config-guess}.
+@end defopt
+
+@deffn Command smie-config-guess
+This command tries to work out appropriate settings to produce
+your preferred style of indentation.  Simply call the command while
+visiting a file that is indented with your style.
+@end deffn
+
+@deffn Command smie-config-save
+Call this command after using @code{smie-config-guess}, to save your
+settings for future sessions.
+@end deffn
+
+@deffn Command smie-config-show-indent &optional move
+This command displays the rules that are used to indent the current
+line.
+@end deffn
+
+@deffn Command smie-config-set-indent
+This command adds a local rule to adjust the indentation of the current line.
+@end deffn
+
+@defun smie-config-local rules
+This function adds @var{rules} as indentation rules for the current buffer.
+These add to any mode-specific rules defined by the @code{smie-config} option.
+To specify custom indentation rules for a specific file, add an entry
+to the file's local variables of the form:
+@code{eval: (smie-config-local '(@var{rules}))}.
+@end defun
+
 
 @node Desktop Save Mode
 @section Desktop Save Mode

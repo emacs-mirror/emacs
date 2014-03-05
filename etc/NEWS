@@ -904,11 +904,17 @@ All non-ancient Bash versions support this option.
 
 ** SMIE
 
-*** You can customize the indentation of modes that use SMIE via `smie-config'.
++++
+*** You can customize the SMIE indentation of a mode via `smie-config'.
 The command `smie-config-guess' can help you derive the appropriate
 indentation settings, if you provide it with an indented sample file.
 Use `smie-config-save' to save the result.
 
++++
+*** You can customize the SMIE indentation of a file by adding an entry to
+the file's local variables of the form: `eval: (smie-config-local '(RULES)'.
+
++++
 *** New commands `smie-config-show-indent' and `smie-config-set-indent'.
 
 ---
