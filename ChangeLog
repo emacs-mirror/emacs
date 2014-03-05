@@ -1,3 +1,9 @@
+2014-03-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix configuration bug on Solaris 2.5.1 (Bug#16896).
+	* configure.ac: Fix a bug in shell pattern matching that caused
+	'configure' to treat Solaris 2.5.1 as if it were Solaris 10 or later.
+
 2014-02-25  Paul Eggert  <eggert@penguin.cs.ucla.edu>
 
 	Merge from gnulib (Bug#16825).

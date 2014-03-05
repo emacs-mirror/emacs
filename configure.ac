@@ -575,16 +575,16 @@ case "${canonical}" in
       * )		unported=yes ;;
     esac
     case "${canonical}" in
+      *-sunos5.[1-9][0-9]* | *-solaris2.[1-9][0-9]* )
+		opsys=sol2-10
+		emacs_check_sunpro_c=yes
+		;;
       *-sunos5.6* | *-solaris2.6* )
 		opsys=sol2-6
 		RANLIB="ar -ts"
 		;;
       *-sunos5.[7-9]* | *-solaris2.[7-9]* )
 		opsys=sol2-6
-		emacs_check_sunpro_c=yes
-		;;
-      *-sunos5* | *-solaris* )
-		opsys=sol2-10
 		emacs_check_sunpro_c=yes
 		;;
     esac
