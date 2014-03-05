@@ -1,7 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1997, 1999, 2001-2014 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1993-1997, 1999, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Version: 2.0f
@@ -228,6 +227,7 @@
   '((ash . sh)
     (bash . jsh)
     (bash2 . jsh)
+    (dash . ash)
     (dtksh . ksh)
     (es . rc)
     (itcsh . tcsh)
@@ -255,6 +255,7 @@ rc		Plan 9 Shell
   es		Extensible Shell
 sh		Bourne Shell
   ash		Almquist Shell
+    dash        Debian Almquist Shell
   jsh		Bourne Shell with Job Control
     bash	GNU Bourne Again Shell
     ksh88	Korn Shell '88
@@ -267,6 +268,7 @@ sh		Bourne Shell
   posix		IEEE 1003.2 Shell Standard
   wsh		? Shell"
   :type '(repeat (cons symbol symbol))
+  :version "24.4"                       ; added dash
   :group 'sh-script)
 
 
