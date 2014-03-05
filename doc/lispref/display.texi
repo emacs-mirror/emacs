@@ -24,6 +24,7 @@ that Emacs presents to the user.
                           font, colors, etc.
 * Fringes::             Controlling window fringes.
 * Scroll Bars::         Controlling vertical scroll bars.
+* Window Dividers::     Separating windows visually.
 * Display Property::    Enabling special display features.
 * Images::              Displaying images in Emacs buffers.
 * Buttons::             Adding clickable buttons to Emacs buffers.
@@ -3895,6 +3896,53 @@ This variable, always local in all buffers, specifies the width of the
 buffer's scroll bars, measured in pixels.  A value of @code{nil} means
 to use the value specified by the frame.
 @end defvar
+
+@node Window Dividers
+@section Window Dividers
+@cindex window dividers
+@cindex right dividers
+@cindex bottom dividers
+
+Window dividers are bars drawn between a frame's windows.  A ``right''
+divider is drawn between a window and its sibling(s) on the right.  Its
+width is specified by the frame parameter @code{right-divider-width}.  A
+``bottom'' divider is drawn between a window and its sibling(s) on the
+bottom or the echo area.  Its width is specified by the frame parameter
+@code{bottom-divider-width}.  In either case, specifying a width of zero
+means to not draw such dividers.  @xref{Layout Parameters}.
+
+   Technically, a right divider ``belongs'' to the window on its left,
+which means that its width is part of the total width of that window.  A
+bottom divider ``belongs'' to the window above it, which means that its
+height is part of the total height of that window.  @xref{Window Sizes}.
+When a window has both, a right and a bottom divider, the bottom divider
+``prevails''.  This means that the width of the bottom divider equals
+the total width of the window while the height of the right divider
+equals the total height of the window minus the height of the bottom
+divider.
+
+   Dividers can be dragged with the mouse and are therefore useful for
+adjusting the sizes of adjacent windows with the mouse.  They also serve
+to set windows visually apart from their siblings when no scroll bars or
+mode lines are present.  The following three faces allow to customize
+the appearance of dividers:
+
+@table @code
+@item window-divider
+When a divider is less than three pixels wide, it is drawn solidly with
+the foreground of this face.  For larger dividers this face is used for
+the inner part only, exluding the first and last pixel.
+
+@item window-divider-first-pixel
+This is the face used for drawing the first pixel of a divider that is
+at least three pixels wide.  To obtain a solid appearance, set this to
+the same value used for the @code{window-divider} face.
+
+@item window-divider-last-pixel
+This is the face used for drawing the last pixel of a divider that is at
+least three pixels wide.  To obtain a solid appearance, set this to the
+same value used for the @code{window-divider} face.
+@end table
 
 @node Display Property
 @section The @code{display} Property

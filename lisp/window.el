@@ -319,10 +319,11 @@ Anything less might crash Emacs.")
      (frame-char-size (window-normalize-window window))))
 
 (defcustom window-min-height 4
-  "The minimum number of lines of any window.
-The value has to accommodate a mode- or header-line if present.
-A value less than `window-safe-min-height' is ignored.  The value
-of this variable is honored when windows are resized or split.
+  "The minimum total height, in lines, of any window.
+The value has to accommodate one text line, a mode and header
+line, and a bottom divider, if present.  A value less than
+`window-safe-min-height' is ignored.  The value of this variable
+is honored when windows are resized or split.
 
 Applications should never rebind this variable.  To resize a
 window to a height less than the one specified here, an
@@ -349,11 +350,11 @@ Anything less might crash Emacs.")
      (frame-char-size (window-normalize-window window) t)))
 
 (defcustom window-min-width 10
-  "The minimum number of columns of any window.
-The value has to accommodate margins, fringes, or scrollbars if
-present.  A value less than `window-safe-min-width' is ignored.
-The value of this variable is honored when windows are resized or
-split.
+  "The minimum total width, in columns, of any window.
+The value has to accommodate two text columns as well as margins,
+fringes, a scroll bar and a right divider, if present.  A value
+less than `window-safe-min-width' is ignored.  The value of this
+variable is honored when windows are resized or split.
 
 Applications should never rebind this variable.  To resize a
 window to a width less than the one specified here, an
@@ -1671,16 +1672,17 @@ WINDOW must be a valid window and defaults to the selected one."
   (= (window-pixel-width window)
      (window-pixel-width (frame-root-window window))))
 
-(defun window-body-size (&optional window horizontal)
+(defun window-body-size (&optional window horizontal pixelwise)
   "Return the height or width of WINDOW's text area.
 WINDOW must be a live window and defaults to the selected one.
 
 If HORIZONTAL is omitted or nil, return the height of the text
 area, like `window-body-height'.  Otherwise, return the width of
-the text area, like `window-body-width'."
+the text area, like `window-body-width'.  In either case, the
+optional argument PIXELWISE is passed to the functions."
   (if horizontal
-      (window-body-width window)
-    (window-body-height window)))
+      (window-body-width window pixelwise)
+    (window-body-height window pixelwise)))
 
 (defun window-current-scroll-bars (&optional window)
   "Return the current scroll bar settings for WINDOW.

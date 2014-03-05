@@ -699,9 +699,9 @@ DEFUN ("window-pixel-height", Fwindow_pixel_height, Swindow_pixel_height, 0, 1, 
        doc: /* Return the height of window WINDOW in pixels.
 WINDOW must be a valid window and defaults to the selected one.
 
-The return value includes the mode line and header line, if any.  If
-WINDOW is an internal window, its pixel height is the height of the
-screen areas spanned by its children.  */)
+The return value includes the mode line and header line and the bottom
+divider, if any.  If WINDOW is an internal window, its pixel height is
+the height of the screen areas spanned by its children.  */)
   (Lisp_Object window)
 {
   return make_number (decode_valid_window (window)->pixel_height);

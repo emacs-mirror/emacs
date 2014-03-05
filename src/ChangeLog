@@ -1,6 +1,14 @@
+2014-03-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* dispnew.c (change_frame_size_1): Add new_lines instead of
+	new_height, the latter may be still zero if passed as such.
+	* window.c (Fwindow_pixel_height): Mention bottom divider in
+	doc-string.
+
 2014-03-05  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix "resource temporarily unavailable" with xgselect (Bug#16925).
+	Fix "resource temporarily unavailable" with xgselect
+	(Bug#16925).
 	* xgselect.c: Include <stdbool.h>.
 	(xg_select) [!USE_GTK]: Don't lose track of errno.
 

@@ -5539,7 +5539,7 @@ change_frame_size_1 (struct frame *f, int new_width, int new_height,
       /* MSDOS frames cannot PRETEND, as they change frame size by
 	 manipulating video hardware.  */
       if ((FRAME_TERMCAP_P (f) && !pretend) || FRAME_MSDOS_P (f))
-	FrameRows (FRAME_TTY (f)) = new_height;
+	FrameRows (FRAME_TTY (f)) = new_lines;
     }
 
   if (new_text_width != FRAME_TEXT_WIDTH (f)

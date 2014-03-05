@@ -745,6 +745,18 @@ right fringe.  However, you can force one fringe or the other to a
 precise width by specifying that width as a negative integer.  If both
 widths are negative, only the left fringe gets the specified width.
 
+@vindex right-divider-width, a frame parameter
+@item right-divider-width
+The width of the right divider (@pxref{Window Dividers}) of any window
+on the frame, in pixels.  A value of zero means to not draw right
+dividers.
+
+@vindex bottom-divider-width, a frame parameter
+@item bottom-divider-width
+The width of the bottom divider (@pxref{Window Dividers}) of any window
+on the frame, in pixels.  A value of zero means to not draw bottom
+dividers.
+
 @vindex menu-bar-lines frame parameter
 @item menu-bar-lines
 The number of lines to allocate at the top of the frame for a menu

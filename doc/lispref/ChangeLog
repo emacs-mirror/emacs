@@ -1,3 +1,19 @@
+2014-03-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* display.texi (Window Dividers): New section.
+	* frames.texi (Layout Parameters): Add right-divider-width and
+	bottom-divider-width.
+	* windows.texi (Window Sizes): Redraw schematic and rewrite its
+	description.  Rewrite descriptions of `window-total-height',
+	`window-total-width', `window-total-size', `window-body-height',
+	`window-body-width' and `window-size-fixed'.  Add descriptions
+	for `window-pixel-height', `window-pixel-width',
+	`window-min-height' and `window-min-width'.  Remove description
+	of `window-size-fixed-p' moving part of it to that of
+	`window-size-fixed'.
+	(Resizing Windows): Mention dividers when talking about minimum
+	sizes.
+
 2014-03-05  Glenn Morris  <rgm@gnu.org>
 
 	* modes.texi (SMIE Customization): New section.
