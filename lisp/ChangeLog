@@ -16,11 +16,6 @@
 	* net/tramp-sh.el (tramp-sh-handle-vc-registered): Do not call
 	`tramp-send-command-and-check'.
 
-2014-03-04  Bastien Guerry  <bzg@gnu.org>
-
-	* minibuffer.el (minibuffer-completion-help): Use 0 as the
-	fallback value for `base-size'.  (Bug#16933)
-
 2014-03-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* hexl.el (hexl-address-region, hexl-ascii-region)
