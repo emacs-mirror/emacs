@@ -1,3 +1,8 @@
+2014-03-05  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-mode-map): [tab] doesn't work on tty.
+	(eww-setup-buffer): Clear next/prev/etc more reliably.
+
 2014-03-04  Glenn Morris  <rgm@gnu.org>
 
 	* minibuffer.el (completion-hilit-commonality):
