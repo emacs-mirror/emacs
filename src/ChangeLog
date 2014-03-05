@@ -1,5 +1,9 @@
 2014-03-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix "resource temporarily unavailable" with xgselect (Bug#16925).
+	* xgselect.c: Include <stdbool.h>.
+	(xg_select) [!USE_GTK]: Don't lose track of errno.
+
 	Fix minor --enable-gcc-warnings issues.
 	* widget.c (update_various_frame_slots, EmacsFrameResize):
 	Avoid unused locals.  Prefer 'if' to '#if' when either will do.

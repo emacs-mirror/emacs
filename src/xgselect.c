@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <glib.h>
 #include <errno.h>
+#include <stdbool.h>
 #include <timespec.h>
 #include "frame.h"
 
@@ -43,6 +44,7 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
   int gfds_size = sizeof gfds_buf / sizeof *gfds_buf;
   int n_gfds, retval = 0, our_fds = 0, max_fds = fds_lim - 1;
   int i, nfds, tmo_in_millisec;
+  bool need_to_dispatch;
   USE_SAFE_ALLOCA;
 
   /* Do not try to optimize with an initial check with g_main_context_pending
@@ -127,10 +129,17 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
   /* If Gtk+ is in use eventually gtk_main_iteration will be called,
      unless retval is zero.  */
 #ifdef USE_GTK
-  if (retval == 0)
+  need_to_dispatch = retval == 0;
+#else
+  need_to_dispatch = true;
 #endif
-    while (g_main_context_pending (context))
-      g_main_context_dispatch (context);
+  if (need_to_dispatch)
+    {
+      int pselect_errno = errno;
+      while (g_main_context_pending (context))
+	g_main_context_dispatch (context);
+      errno = pselect_errno;
+    }
 
   /* To not have to recalculate timeout, return like this.  */
   if ((our_fds > 0 || (nfds == 0 && tmop == &tmo)) && (retval == 0))
