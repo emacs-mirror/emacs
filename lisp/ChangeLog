@@ -1,3 +1,8 @@
+2014-03-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* finder.el (finder-mode-map, finder-mode-syntax-table):
+	Revert part of 2014-02-28 change.
+
 2014-03-05  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el (eww-mode-map): [tab] doesn't work on tty.

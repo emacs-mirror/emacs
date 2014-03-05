@@ -105,13 +105,13 @@ Each element has the form (KEYWORD . DESCRIPTION).")
       '(menu-item "Select" finder-select
 		  :help "Select item on current line in a finder buffer"))
     map)
-  "Keymap used in Finder mode.")
+  "Keymap used in `finder-mode'.")
 
 (defvar finder-mode-syntax-table
   (let ((st (make-syntax-table emacs-lisp-mode-syntax-table)))
     (modify-syntax-entry ?\; ".   " st)
     st)
-  "Syntax table used while in Finder mode.")
+  "Syntax table used while in `finder-mode'.")
 
 (defvar finder-font-lock-keywords
   '(("`\\([^'`]+\\)'" 1 font-lock-constant-face prepend))
