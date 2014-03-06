@@ -1180,10 +1180,14 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 		      (zerop (logand flags tramp-gvfs-password-need-username))))
 	    (setq user (read-string "User name: ")))
 	  (when (and (zerop (length domain))
-		     (not (zerop (logand flags tramp-gvfs-password-need-domain))))
+		     (not
+		      (zerop (logand flags tramp-gvfs-password-need-domain))))
 	    (setq domain (read-string "Domain name: ")))
 
 	  (tramp-message l 6 "%S %S %S %d" message user domain flags)
+	  (unless (tramp-get-connection-property l "first-password-request" nil)
+	    (tramp-clear-passwd l))
+
 	  (setq tramp-current-method l-method
 		tramp-current-user user
 		tramp-current-host l-host
@@ -1474,7 +1478,7 @@ connection if a previous connection has died for some reason."
 	      (format "Opening connection for %s using %s" host method)
 	    (format "Opening connection for %s@%s using %s" user host method))
 
-	;; Enable auth-source and password-cache.
+	;; Enable `auth-source'.
 	(tramp-set-connection-property vec "first-password-request" t)
 
 	;; There will be a callback of "askPassword" when a password is

@@ -1560,12 +1560,13 @@ signal identifier to be raised, remaining arguments passed to
 `tramp-message'.  Finally, signal SIGNAL is raised."
   (let (tramp-message-show-message)
     (tramp-backtrace vec-or-proc)
-    (tramp-message
-     vec-or-proc 1 "%s"
-     (error-message-string
-      (list signal
-	    (get signal 'error-message)
-	    (apply 'format fmt-string arguments))))
+    (when vec-or-proc
+      (tramp-message
+       vec-or-proc 1 "%s"
+       (error-message-string
+	(list signal
+	      (get signal 'error-message)
+	      (apply 'format fmt-string arguments)))))
     (signal signal (list (apply 'format fmt-string arguments)))))
 
 (defsubst tramp-error-with-buffer
@@ -3400,6 +3401,12 @@ of."
   (with-current-buffer (process-buffer proc)
     (let ((enable-recursive-minibuffers t)
 	  (case-fold-search t))
+      ;; Let's check whether a wrong password has been sent already.
+      ;; Sometimes, the process returns a new password request
+      ;; immediately after rejecting the previous (wrong) one.
+      (goto-char (point-min))
+      (when (search-forward-regexp tramp-wrong-passwd-regexp nil t)
+	(tramp-clear-passwd vec))
       (tramp-check-for-regexp proc tramp-password-prompt-regexp)
       (tramp-message vec 3 "Sending %s" (match-string 1))
       ;; We don't call `tramp-send-string' in order to hide the
@@ -3508,8 +3515,8 @@ The terminal type can be configured with `tramp-terminal-type'."
 PROC and VEC indicate the remote connection to be used.  POS, if
 set, is the starting point of the region to be deleted in the
 connection buffer."
-  ;; Enable `auth-source' and `password-cache'.  We must use
-  ;; tramp-current-* variables in case we have several hops.
+  ;; Enable `auth-source'.  We must use tramp-current-* variables in
+  ;; case we have several hops.
   (tramp-set-connection-property
    (tramp-dissect-file-name
     (tramp-make-tramp-file-name
@@ -4131,9 +4138,6 @@ Invokes `password-read' if available, `read-passwd' else."
                    "password" tramp-current-host tramp-current-method)))
 	   ;; Try the password cache.
 	   (when (functionp 'password-read)
-	     (unless (tramp-get-connection-property
-		      v "first-password-request" nil)
-	       (tramp-compat-funcall 'password-cache-remove key))
 	     (let ((password
 		    (tramp-compat-funcall 'password-read pw-prompt key)))
 	       (tramp-compat-funcall 'password-cache-add key password)
