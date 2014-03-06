@@ -1266,6 +1266,8 @@ except to shape their child windows.  Emacs Lisp programs usually have
 no access to the parent windows; they operate on the windows at the
 leaves of the tree, which actually display buffers.
 
+@c FIXME: These two slots and the `buffer' slot below were replaced
+@c with a single slot `contents' on 2013-03-28.  --xfq
 @item hchild
 @itemx vchild
 These fields contain the window's leftmost child and its topmost child
