@@ -16,11 +16,8 @@ typedef struct NailboardStruct *Nailboard;
 
 typedef struct NailboardStruct {
   Sig sig;
-  Arena arena;
   RangeStruct range;   /* range of addresses covered by nailboard */
   Count levels;        /* number of levels */
-  Count nails;         /* number of calls to NailboardSet */
-  Count distinctNails; /* number of nails in the board */
   Bool newNails;       /* set to TRUE if a new nail is set */
   Shift alignShift;    /* shift due to address alignment */
   Shift levelShift;    /* additional shift for each level */
@@ -31,7 +28,7 @@ typedef struct NailboardStruct {
 
 extern Bool NailboardCheck(Nailboard board);
 extern Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment, Addr base, Addr limit);
-extern void NailboardDestroy(Nailboard board);
+extern void NailboardDestroy(Nailboard board, Arena arena);
 extern void NailboardClearNewNails(Nailboard board);
 extern Bool NailboardNewNails(Nailboard board);
 extern Bool NailboardGet(Nailboard board, Addr addr);
