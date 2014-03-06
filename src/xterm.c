@@ -7955,17 +7955,18 @@ xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
     {
 #ifdef HAVE_X11R6_XIM
       struct xim_inst_t *xim_inst = xmalloc (sizeof *xim_inst);
+      Bool ret;
 
       dpyinfo->xim_callback_data = xim_inst;
       xim_inst->dpyinfo = dpyinfo;
       xim_inst->resource_name = xstrdup (resource_name);
-      XRegisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
-				      resource_name, emacs_class,
-				      xim_instantiate_callback,
-				      /* This is XPointer in XFree86
-					 but (XPointer *) on Tru64, at
-					 least, hence the configure test.  */
-				      (XRegisterIMInstantiateCallback_arg6) xim_inst);
+      ret = XRegisterIMInstantiateCallback
+	(dpyinfo->display, dpyinfo->xrdb, xim_inst->resource_name,
+	 emacs_class, xim_instantiate_callback,
+	 /* This is XPointer in XFree86 but (XPointer *)
+	    on Tru64, at least, hence the configure test.  */
+	 (XRegisterIMInstantiateCallback_arg6) xim_inst);
+      eassert (ret == True);
 #else /* not HAVE_X11R6_XIM */
       xim_open_dpy (dpyinfo, resource_name);
 #endif /* not HAVE_X11R6_XIM */
@@ -7983,12 +7984,18 @@ xim_close_dpy (struct x_display_info *dpyinfo)
   if (use_xim)
     {
 #ifdef HAVE_X11R6_XIM
+      struct xim_inst_t *xim_inst = dpyinfo->xim_callback_data;
+      
       if (dpyinfo->display)
-	XUnregisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
-					  NULL, emacs_class,
-					  xim_instantiate_callback, NULL);
-      xfree (dpyinfo->xim_callback_data->resource_name);
-      xfree (dpyinfo->xim_callback_data);
+	{
+	  Bool ret = XUnregisterIMInstantiateCallback
+	    (dpyinfo->display, dpyinfo->xrdb, xim_inst->resource_name,
+	     emacs_class, xim_instantiate_callback,
+	     (XRegisterIMInstantiateCallback_arg6) xim_inst);
+	  eassert (ret == True);
+	}
+      xfree (xim_inst->resource_name);
+      xfree (xim_inst);
 #endif /* HAVE_X11R6_XIM */
       if (dpyinfo->display)
 	XCloseIM (dpyinfo->xim);

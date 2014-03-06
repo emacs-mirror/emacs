@@ -1,3 +1,16 @@
+2014-03-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.c (xim_initialize): Always pass a copy of resource name
+	to XRegisterIMInstantiateCallback and eassert whether return
+	value is True.  Passing copy is important because Xlib doesn't
+	make its own copy and resource name argument usually points to
+	SSDATA (Vx_resource_name), which may be changed from Lisp.
+	(xim_close_display): For XUnregisterIMInstantiateCallback,
+	always eassert return value and pass exactly the same values
+	as were used for XRegisterIMInstantiateCallback.  Otherwise
+	XUnregisterIMInstantiateCallback will always fail.  See Xlib
+	sources to check why if you are interested.
+
 2014-03-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* dispnew.c (change_frame_size_1): Add new_lines instead of
