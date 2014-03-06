@@ -1,3 +1,8 @@
+2014-03-06  Glenn Morris  <rgm@gnu.org>
+
+	* mh-compat.el (mh-display-completion-list):
+	Replace use of obsolete argument of display-completion-list.
+
 2013-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mh-print.el (mh-ps-print-preprint): Don't use dynamic-var
