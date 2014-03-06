@@ -115,7 +115,9 @@ See the documentation for `list-load-path-shadows' for further information."
 	  ;; FILE now contains the current file name, with no suffix.
 	  (unless (or (member file files-seen-this-dir)
 		      ;; Ignore these files.
-		      (member file '("subdirs" "leim-list")))
+		      (member file (list "subdirs" "leim-list"
+					 (file-name-sans-extension
+					  dir-locals-file))))
 	    ;; File has not been seen yet in this directory.
 	    ;; This test prevents us declaring that XXX.el shadows
 	    ;; XXX.elc (or vice-versa) when they are in the same directory.

@@ -1,3 +1,8 @@
+2014-03-06  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/shadow.el (load-path-shadows-find):
+	Ignore dir-locals.  (Bug#12357)
+
 2014-03-05  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (interpreter-mode-alist):
