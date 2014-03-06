@@ -691,10 +691,9 @@ lines or columns.  If @var{delta} is non-zero, a return value of 0 means
 that the window cannot be resized.
 
 Normally, the variables @code{window-min-height} and
-@code{window-min-width} specify the smallest allowable window size.
-@xref{Change Window,, Deleting and Rearranging Windows, emacs, The GNU
-Emacs Manual}.  However, if the optional argument @var{ignore} is
-non-@code{nil}, this function ignores @code{window-min-height} and
+@code{window-min-width} specify the smallest allowable window size
+(@pxref{Window Sizes}).  However, if the optional argument @var{ignore}
+is non-@code{nil}, this function ignores @code{window-min-height} and
 @code{window-min-width}, as well as @code{window-size-fixed}.  Instead,
 it considers the minimum-height window to be one consisting of a header,
 a mode line and a bottom divider (if any), plus a text area one line
@@ -755,43 +754,73 @@ window is fixed-size), it may resize other windows.
 
 @cindex pixelwise, resizing windows
 @defopt window-resize-pixelwise
-If the value of this user option is non-@code{nil}, window resizing
-operations will be pixelwise.  This currently affects the following
-functions: @code{split-window}, @code{maximize-window},
-@code{minimize-window}, @code{fit-window-to-buffer} and
-@code{fit-frame-to-buffer}, and all functions that symmetrically
-resize a parent window.
+If the value of this option is non-@code{nil}, windows are resized in
+units of pixels.  This currently affects functions like
+@code{split-window} (@pxref{Splitting Windows}), @code{maximize-window},
+@code{minimize-window}, @code{fit-window-to-buffer},
+@code{shrink-window-if-larger-than-buffer} (all listed below) and
+@code{fit-frame-to-buffer} (@pxref{Size and Position}).
 
 Note that when a frame's pixel size is not a multiple of the frame's
 character size, at least one window may get resized pixelwise even if
-this option is nil.  The default value of this user option is
+this option is @code{nil}.  The default value of this option is
 @code{nil}.
 @end defopt
 
   The following commands resize windows in more specific ways.  When
 called interactively, they act on the selected window.
 
-@deffn Command fit-window-to-buffer &optional window max-height min-height override
-This command adjusts the height of @var{window} to fit the text in it.
-It returns non-@code{nil} if it was able to resize @var{window}, and
-@code{nil} otherwise.  If @var{window} is omitted or @code{nil}, it
-defaults to the selected window.  Otherwise, it should be a live
-window.
+@deffn Command fit-window-to-buffer &optional window max-height min-height max-width min-width
+This command adjusts the height or width of @var{window} to fit the text
+in it.  It returns non-@code{nil} if it was able to resize @var{window},
+and @code{nil} otherwise.  If @var{window} is omitted or @code{nil}, it
+defaults to the selected window.  Otherwise, it should be a live window.
 
-The optional argument @var{max-height}, if non-@code{nil}, specifies
-the maximum total height that this function can give @var{window}.
-The optional argument @var{min-height}, if non-@code{nil}, specifies
-the minimum total height that it can give, which overrides the
-variable @code{window-min-height}.
+If @var{window} is part of a vertical combination, this function adjusts
+@var{window}'s height.  The new height is calculated from the actual
+height of the accessible portion of its buffer.  The optional argument
+@var{max-height}, if non-@code{nil}, specifies the maximum total height
+that this function can give @var{window}.  The optional argument
+@var{min-height}, if non-@code{nil}, specifies the minimum total height
+that it can give, which overrides the variable @code{window-min-height}.
+Both @var{max-height} and @var{min-height} are specified in lines and
+include mode and header line and a bottom divider, if any.
 
-If the optional argument @var{override} is non-@code{nil}, this
-function ignores any size restrictions imposed by
-@code{window-min-height} and @code{window-min-width}.
+If @var{window} is part of a horizontal combination and the value of the
+option @code{fit-window-to-buffer-horizontally} (see below) is
+non-@code{nil}, this function adjusts @var{window}'s height.  The new
+width of @var{window} is calculated from the maximum length of its
+buffer's lines that follow the current start position of @var{window}.
+The optional argument @var{max-width} specifies a maximum width and
+defaults to the width of @var{window}'s frame.  The optional argument
+@var{min-width} specifies a minimum width and defaults to
+@code{window-min-width}.  Both @var{max-width} and @var{min-width} are
+specified in columns and include fringes, margins and scrollbars, if
+any.
 
-@vindex fit-frame-to-buffer
-If the option @code{fit-frame-to-buffer} is non-@code{nil}, this
-command may resize the frame to fit its contents.
+If the option @code{fit-frame-to-buffer} (see below) is non-@code{nil},
+this function will try to resize the frame of @var{window} to fit its
+contents by calling @code{fit-frame-to-buffer} (@pxref{Size and
+Position}).
 @end deffn
+
+@defopt fit-window-to-buffer-horizontally
+If this is non-@code{nil}, @code{fit-window-to-buffer} can resize
+windows horizontally.  If this is @code{nil} (the default)
+@code{fit-window-to-buffer} never resizes windows horizontally.  If this
+is @code{only}, it can resize windows horizontally only.  Any other
+value means @code{fit-window-to-buffer} can resize windows in both
+dimensions.
+@end defopt
+
+@defopt fit-frame-to-buffer
+If this option is non-@code{nil}, @code{fit-window-to-buffer} can fit a
+frame to its buffer.  A frame is fit if and only if its root window is a
+live window and this option is non-@code{nil}.  If this is
+@code{horizontally}, frames are fit horizontally only.  If this is
+@code{vertically}, frames are fit vertically only.  Any other
+non-@code{nil} value means frames can be resized in both dimensions.
+@end defopt
 
 @deffn Command shrink-window-if-larger-than-buffer &optional window
 This command attempts to reduce @var{window}'s height as much as
@@ -804,7 +833,11 @@ it should be a live window.
 This command does nothing if the window is already too short to
 display all of its buffer, or if any of the buffer is scrolled
 off-screen, or if the window is the only live window in its frame.
+
+This command calls @code{fit-window-to-buffer} (see above) to do its
+work.
 @end deffn
+
 
 @cindex balancing window sizes
 @deffn Command balance-windows &optional window-or-frame

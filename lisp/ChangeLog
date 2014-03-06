@@ -1,3 +1,12 @@
+2014-03-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (fit-frame-to-buffer, fit-frame-to-buffer-margins):
+	Fix doc-strings.
+	(fit-frame-to-buffer): New argument ONLY.  Remove dependency on
+	fit-frame-to-buffer variable.  Fix doc-string.
+	(fit-window-to-buffer): Set ONLY argument in call of
+	fit-frame-to-buffer.  Fix doc-string.
+
 2014-03-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-error): VEC-OR-PROC can be nil.

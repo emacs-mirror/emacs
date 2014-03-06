@@ -1,3 +1,8 @@
+2014-03-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fother_window_for_scrolling): Check that
+	Vother_window_scroll_buffer is a buffer.
+
 2014-03-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xterm.c (xim_initialize): Always pass a copy of resource name

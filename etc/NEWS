@@ -226,6 +226,11 @@ resize windows pixelwise.  Most functions for changing or accessing
 window sizes now have an additional argument that allows changes to apply,
 or values to be returned, in pixels instead of lines/columns.
 
++++
+*** The functions `window-body-height' and `window-body-width' now never
+count partially visible lines or columns if called with a nil PIXELWISE
+argument.
+
 *** Emacs can now draw dividers between adjacent windows.  To put
 dividers between side-by-side/vertically stacked windows customize the
 frame parameters `right-divider-width' and `bottom-divider-width' to
@@ -246,14 +251,13 @@ text of a window's buffer in pixels.  This allows functions like
 `fit-frame-to-buffer' and `fit-window-to-buffer' to accurately fit a
 window to its buffer as it will be displayed.
 
-*** `fit-window-to-buffer' can now resize windows horizontally.
+*** `fit-window-to-buffer' can now resize windows in both dimensions.
 This behavior is controlled by the new option
-`fit-window-to-buffer-horizontally'.
+`fit-window-to-buffer-horizontally'.  The new option
+`fit-frame-to-buffer' allows to fit the window's frame to its buffer.
 
-*** `fit-frame-to-buffer' can now fit frames in both directions.
-This behavior is controlled by the option `fit-frame-to-buffer' which
-tells in which direction(s) the frame shall be fit.  The new options
-`fit-frame-to-buffer-margins' and `fit-frame-to-buffer-sizes' allow to
+*** `fit-frame-to-buffer' now fits frames in both dimensions.  The new
+options `fit-frame-to-buffer-margins' and `fit-frame-to-buffer-sizes'
 control the size of the frame and its position on screen.
 
 *** Temp Buffer Resize Mode can now adjust height and width of windows

@@ -5431,6 +5431,7 @@ specifies the window.  This takes precedence over
     window = Vminibuf_scroll_window;
   /* If buffer is specified and live, scroll that buffer.  */
   else if (!NILP (Vother_window_scroll_buffer)
+	   && BUFFERP (Vother_window_scroll_buffer)
 	   && BUFFER_LIVE_P (XBUFFER (Vother_window_scroll_buffer)))
     {
       window = Fget_buffer_window (Vother_window_scroll_buffer, Qnil);

@@ -1,3 +1,13 @@
+2014-03-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* frames.texi (Size and Position): Rewrite entries for
+	`fit-frame-to-buffer' and `fit-frame-to-buffer-margins'.  Add
+	description for `fit-frame-to-buffer-sizes'.
+	* windows.texi (Resizing Windows): Add descriptions for
+	pixelwise resizing.  Add entries for `window-resize-pixelwise'
+	and `fit-window-to-buffer-horizontally'.  Rewrite
+	`fit-window-to-buffer' entry.
+
 2014-03-06  Xue Fuqiao  <xfq@gnu.org>
 
 	* internals.texi (Window Internals): Remove field `region_showing'.

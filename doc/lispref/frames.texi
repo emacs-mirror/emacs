@@ -1180,18 +1180,47 @@ The argument @var{pretend} has the same meaning as in
 
 @c FIXME?  Belongs more in Emacs manual than here?
 @c But, e.g., fit-window-to-buffer is in this manual.
-@deffn Command fit-frame-to-buffer &optional frame max-height min-height
-This command adjusts the height of @var{frame} (the default is the
-selected frame) to fit its contents.  The optional arguments
-@var{max-height} and @var{min-height} specify the maximum and minimum
-new frame heights, respectively.
+If you have a frame that displays only one window, you can fit that
+frame to its buffer using the command @code{fit-frame-to-buffer}.
 
-@vindex fit-frame-to-buffer-bottom-margin
-The default minimum height corresponds to @code{window-min-height}.
-The default maximum height is the screen height below the current top
-position of the frame, minus any margin specified by the option
-@code{fit-frame-to-buffer-bottom-margin}.
+@deffn Command fit-frame-to-buffer &optional frame max-height min-height max-width min-width only
+This command adjusts the size of @var{frame} to display the contents of
+its buffer exactly.  @var{frame} can be any live frame and defaults to
+the selected one.  Fitting is done only if @var{frame}'s root window is
+live.  The arguments @var{max-height}, @var{min-height}, @var{max-width}
+and @var{min-width} specify bounds on the new total size of
+@var{frame}'s root window.  @var{min-height} and @var{min-width} default
+to the values of @code{window-min-height} and @code{window-min-width}
+respectively.
+
+If the optional argument @var{only} is @code{vertically}, this function
+may resize the frame vertically only.  If @var{only} is
+@code{horizontally}, it may resize the frame horizontally only.
 @end deffn
+
+The behavior of @code{fit-frame-to-buffer} can be controlled with the
+help of the two options listed next.
+
+@defopt fit-frame-to-buffer-margins
+This option can be used to specify margins around frames to be fit by
+@code{fit-frame-to-buffer}.  Such margins can be useful to avoid, for
+example, that such frames overlap the taskbar.
+
+It specifies the numbers of pixels to be left free on the left, above,
+the right, and below a frame that shall be fit.  The default specifies
+@code{nil} for each which means to use no margins.  The value specified
+here can be overridden for a specific frame by that frame's
+@code{fit-frame-to-buffer-margins} parameter, if present.
+@end defopt
+
+@defopt fit-frame-to-buffer-sizes
+This option specifies size boundaries for @code{fit-frame-to-buffer}.
+It specifies the total maximum and minimum lines and maximum and minimum
+columns of the root window of any frame that shall be fit to its buffer.
+If any of these values is non-@code{nil}, it overrides the corresponding
+argument of @code{fit-frame-to-buffer}.
+@end defopt
+
 
 @node Geometry
 @subsection Geometry

@@ -6813,34 +6813,27 @@ can resize windows in both dimensions."
 ;; `fit-frame-to-buffer' eventually wants to know the real frame sizes
 ;; counting title bar and outer borders.
 (defcustom fit-frame-to-buffer nil
-  "Non-nil means `fit-frame-to-buffer' can fit a frame to its buffer.
+  "Non-nil means `fit-window-to-buffer' can fit a frame to its buffer.
 A frame is fit if and only if its root window is a live window
 and this option is non-nil.  If this is `horizontally', frames
 are resized horizontally only.  If this is `vertically', frames
 are resized vertically only.  Any other non-nil value means
-frames can be resized in both dimensions.  See also
-`fit-frame-to-buffer-margins' and `fit-frame-to-buffer-sizes'.
-
-If this is non-nil and a window is the only window of its frame,
-`fit-window-to-buffer' will invoke `fit-frame-to-buffer' to fit
-the frame to its buffer."
+frames can be resized in both dimensions."
   :type 'boolean
   :version "24.4"
   :group 'help)
 
 (defcustom fit-frame-to-buffer-margins '(nil nil nil nil)
   "Margins around frame for `fit-frame-to-buffer'.
-This list specifies the numbers of pixels to be left free on the
-left, above, the right, and below a frame that shall be fit to
-its buffer.  The value specified here can be overridden for a
-specific frame by that frame's `fit-frame-to-buffer-margins'
-parameter, if present.
+This option allows to specify the numbers of pixels to be left
+free on the left, above, the right, and below a frame that shall
+be fit to its buffer.  Set these to avoid that such a frame
+obscurs other desktop objects like the taskbar.  The default is
+nil for each side which means to not add any margins.
 
-This variable controls how fitting a frame to the size of its
-buffer coordinates with the size of your display.  If you don't
-specify a value here, the size of the display's workarea is used.
-
-See also `fit-frame-to-buffer-sizes'."
+The value specified here can be overridden for a specific frame
+by that frame's `fit-frame-to-buffer-margins' parameter, if
+present.  See also `fit-frame-to-buffer-sizes'."
   :version "24.4"
   :type '(list
 	  (choice
@@ -6917,7 +6910,7 @@ See also `fit-frame-to-buffer-margins'."
 	     (<= left (- right margin)) (<= margin right))
     margin))
 
-(defun fit-frame-to-buffer (&optional frame max-height min-height max-width min-width)
+(defun fit-frame-to-buffer (&optional frame max-height min-height max-width min-width only)
   "Adjust size of FRAME to display the contents of its buffer exactly.
 FRAME can be any live frame and defaults to the selected one.
 Fit only if FRAME's root window is live.  MAX-HEIGHT, MIN-HEIGHT,
@@ -6925,9 +6918,12 @@ MAX-WIDTH and MIN-WIDTH specify bounds on the new total size of
 FRAME's root window.  MIN-HEIGHT and MIN-WIDTH default to the values of
 `window-min-height' and `window-min-width' respectively.
 
-The option `fit-frame-to-buffer' controls whether this function
-has any effect.  New position and size of FRAME are additionally
-determined by the options `fit-frame-to-buffer-sizes' and
+If the optional argument ONLY is `vertically', resize the frame
+vertically only.  If ONLY is `horizontally', resize the frame
+horizontally only.
+
+The new position and size of FRAME can be additionally determined
+by customizing the options `fit-frame-to-buffer-sizes' and
 `fit-frame-to-buffer-margins' or the corresponding parameters of
 FRAME."
   (interactive)
@@ -6936,13 +6932,7 @@ FRAME."
 	       (fboundp 'display-monitor-attributes-list))
     (user-error "Cannot resize frame in non-graphic Emacs"))
   (setq frame (window-normalize-frame frame))
-  (when (and (window-live-p (frame-root-window frame))
-	     fit-frame-to-buffer
-	     (or (not window-size-fixed)
-		 (and (eq window-size-fixed 'height)
-		      (not (eq fit-frame-to-buffer 'vertically)))
-		 (and (eq window-size-fixed 'width)
-		      (not (eq fit-frame-to-buffer 'horizontally)))))
+  (when (window-live-p (frame-root-window frame))
     (with-selected-window (frame-root-window frame)
       (let* ((window (frame-root-window frame))
 	     (char-width (frame-char-width))
@@ -7069,11 +7059,11 @@ FRAME."
 	     (width (+ (car value) (window-right-divider-width)))
 	     (height (+ (cdr value) (window-bottom-divider-width))))
 	;; Don't change height or width when the window's size is fixed
-	;; in either direction.
+	;; in either direction or ONLY forbids it.
 	(cond
-	 ((eq window-size-fixed 'width)
+	 ((or (eq window-size-fixed 'width) (eq only 'vertically))
 	  (setq width nil))
-	 ((eq window-size-fixed 'height)
+	 ((or (eq window-size-fixed 'height) (eq only 'horizontally))
 	  (setq height nil)))
 	;; Fit width to constraints.
 	(when width
@@ -7141,13 +7131,13 @@ FRAME."
 WINDOW must be a live window and defaults to the selected one.
 
 If WINDOW is part of a vertical combination, adjust WINDOW's
-height.  The new height is calculated from the number of lines of
+height.  The new height is calculated from the actual height of
 the accessible portion of its buffer.  The optional argument
 MAX-HEIGHT specifies a maximum height and defaults to the height
 of WINDOW's frame.  The optional argument MIN-HEIGHT specifies a
 minimum height and defaults to `window-min-height'.  Both
-MAX-HEIGHT and MIN-HEIGHT are specified in lines and include the
-mode line and header line, if any.
+MAX-HEIGHT and MIN-HEIGHT are specified in lines and include mode
+and header line and a bottom divider, if any.
 
 If WINDOW is part of a horizontal combination and the value of
 the option `fit-window-to-buffer-horizontally' is non-nil, adjust
@@ -7157,11 +7147,11 @@ start position of WINDOW.  The optional argument MAX-WIDTH
 specifies a maximum width and defaults to the width of WINDOW's
 frame.  The optional argument MIN-WIDTH specifies a minimum width
 and defaults to `window-min-width'.  Both MAX-WIDTH and MIN-WIDTH
-are specified in columns and include fringes, margins and
-scrollbars, if any.
+are specified in columns and include fringes, margins, a
+scrollbar and a vertical divider, if any.
 
 Fit pixelwise if the option `window-resize-pixelwise' is non-nil.
-If WINDOW is its frame's root window, then if the option
+If WINDOW is its frame's root window and the option
 `fit-frame-to-buffer' is non-nil, call `fit-frame-to-buffer' to
 adjust the frame's size.
 
@@ -7177,7 +7167,9 @@ accessible position."
 	;; Fit WINDOW's frame to buffer.
 	(fit-frame-to-buffer
 	 (window-frame window)
-	 max-height min-height max-width min-width))
+	 max-height min-height max-width min-width
+	 (and (memq fit-frame-to-buffer '(vertically horizontally))
+	      fit-frame-to-buffer)))
     (with-selected-window window
       (let* ((pixelwise window-resize-pixelwise)
 	     (char-height (frame-char-height))
