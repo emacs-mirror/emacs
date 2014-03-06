@@ -194,18 +194,26 @@ Currently this function infloops when the list is circular."
       (push (pop tail) result))
     (or (nreverse result) found)))
 
-(defun use-package-plist-get (plist prop)
+(defun use-package-plist-get (plist prop &optional eval-backquote no-progn)
   "Compatibility layer between classical and modified plists.
 
 If `use-package-mplist-get' returns exactly one value, that is
-returned ; otherwise the list is returned wrapped in a `progn'."
+returned ; otherwise the list is returned wrapped in a `progn'
+unless NO-PROGN is non-nil.
+
+When EVAL-BACKQUOTE is non-nil, the value is first evaluated as
+if it were backquoted."
   (let ((values (use-package-mplist-get plist prop)))
+    (when eval-backquote
+      (setq values (eval (list 'backquote values))))
     (when values
       (cond ((not (listp values))
              values)
             ((eq 1 (length values))
              (car values))
-            (t (cons 'progn values))))))
+            (t (if no-progn
+                   values
+                 (cons 'progn values)))))))
 
 (defun use-package-mplist-keys (plist)
   "Get the keys in PLIST, a modified plist.
@@ -228,10 +236,6 @@ Return the list of recognized keywords."
         (unless (memq keyword use-package-keywords)
           (error "Unrecognized keyword: %s" keyword))))
     (use-package-mplist-keys args)))
-
-(defun use-package-plist-get-value (plist prop)
-  "Return the value of PROP in PLIST as if it was backquoted."
-  (eval (list '\` (use-package-plist-get plist prop))))
 
 (defmacro use-package (name &rest args)
   "Use a package with configuration options.
@@ -266,30 +270,30 @@ For full documentation. please see commentary.
        which they are evaluated.
 :ensure loads package using package.el if necessary."
   (use-package-validate-keywords args) ; error if any bad keyword, ignore result
-  (let* ((commands (use-package-plist-get args :commands))
+  (let* ((commands (use-package-plist-get args :commands t t))
          (pre-init-body (use-package-plist-get args :pre-init))
          (pre-load-body (use-package-plist-get args :pre-load))
          (init-body (use-package-plist-get args :init))
          (config-body (use-package-plist-get args :config))
-         (diminish-var (use-package-plist-get-value args :diminish))
-         (defines (use-package-plist-get-value args :defines))
+         (diminish-var (use-package-plist-get args :diminish t))
+         (defines (use-package-plist-get args :defines t t))
          (idle-body (use-package-plist-get args :idle))
          (idle-priority (use-package-plist-get args :idle-priority))
-         (keybindings-alist (use-package-plist-get-value args :bind))
-         (mode (use-package-plist-get-value args :mode))
+         (keybindings-alist (use-package-plist-get args :bind t t))
+         (mode (use-package-plist-get args :mode t t))
          (mode-alist
           (if (stringp mode) (cons mode name) mode))
-         (interpreter (use-package-plist-get-value args :interpreter))
+         (interpreter (use-package-plist-get args :interpreter t t))
          (interpreter-alist
           (if (stringp interpreter) (cons interpreter name) interpreter))
          (predicate (use-package-plist-get args :if))
-         (pkg-load-path (use-package-plist-get-value args :load-path))
+         (pkg-load-path (use-package-plist-get args :load-path t t))
          (defines-eval (if (null defines)
                            nil
                          (if (listp defines)
                              (mapcar (lambda (var) `(defvar ,var)) defines)
                            `((defvar ,defines)))))
-         (requires (use-package-plist-get-value args :requires))
+         (requires (use-package-plist-get args :requires t))
          (requires-test (if (null requires)
                             t
                           (if (listp requires)
