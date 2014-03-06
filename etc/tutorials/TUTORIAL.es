@@ -332,7 +332,7 @@ pantalla. Si está usando un entorno gráfico, se mostrarán pequeñas
 flechas curvas en las estrechas franjas vacías (los "márgenes" derecho
 e izquierdo) a cada lado del área de texto, para indicar que la línea
 continúa. Si está utilizando una terminal, la continuación se señala
-mediante una barra invertida ("\") en la última columna de la derecha.
+mediante una barra invertida (`\') en la última columna de la derecha.
 
 >> Inserte texto hasta que llegue al margen derecho, y siga
    insertando.  Verá aparecer una línea de continuación.
@@ -350,6 +350,20 @@ de continuación.
    juntará esa línea con la línea anterior.
 
 >> Teclee <Return> para reinsertar la nueva línea que borró.
+
+La tecla <Return> es especial, porque, aparte de insertar un carácter
+de nueva línea, puede tener otros efectos.  En función del texto
+circundante, puede además insertar espacio en blanco tras el carácter
+de fin de línea, de forma que, al seguir tecleando en la línea recién
+creada, el texto que tecleamos quede alineado con el de la línea
+anterior.  Este comportamiento (que la pulsación de una tecla no solo
+inserte el carácter correspondiente) se denomina "eléctrico".
+
+>> Veamos un ejemplo de comportamiento "eléctrico" de <Return>
+   Teclee <Return> al final de esta línea.
+
+Fíjese que, tras insertar el carácter de nueva línea, Emacs inserta
+también espacios para que el cursor se sitúe bajo la "T" de "Teclee".
 
 Recuerde que a la mayoría de los comandos de Emacs se les puede dar un
 factor de repetición; esto incluye los caracteres de texto.  Repetir

@@ -1,3 +1,7 @@
+2014-03-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tutorials/TUTORIAL.es: Adapt to change in English language tutorial.
+
 2014-03-06  Glenn Morris  <rgm@gnu.org>
 
 	* tutorials/TUTORIAL: Mention electric behavior of RET.
