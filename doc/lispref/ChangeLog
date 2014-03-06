@@ -1,3 +1,8 @@
+2014-03-06  Glenn Morris  <rgm@gnu.org>
+
+	* searching.texi (Replacing Match):
+	Remove incorrect, uninteresting return value.  (Bug#16942)
+
 2014-03-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* display.texi (Window Dividers): New section.
