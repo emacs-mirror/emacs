@@ -312,7 +312,7 @@ of text is "continued" onto a second screen line.  If you're using a
 graphical display, little curved arrows appear in the narrow spaces on
 each side of the text area (the left and right "fringes"), to indicate
 where a line has been continued.  If you're using a text terminal, the
-continued line is indicated by a backslash ("\") on the rightmost
+continued line is indicated by a backslash (`\') on the rightmost
 screen column.
 
 >> Insert text until you reach the right margin, and keep on inserting.
@@ -330,6 +330,19 @@ screen width, it will be displayed with a continuation line.
    merges that line with the previous line.
 
 >> Type <Return> to reinsert the Newline you deleted.
+
+The <Return> key is special, in that pressing it may do more than
+just insert a Newline character.  Depending on the surrounding text,
+it may insert whitespace after the Newline character, so that when
+you start typing on the newly created line, the text lines up with
+that on the previous line.  We call this behavior (where pressing a
+key does more than simply inserting the relevant character) "electric".
+
+>> Here is an example of <Return> being electric.
+   Type <Return> at the end of this line.
+
+You should see that after inserting the Newline, Emacs inserts spaces
+so that the cursor moves under the "T" of "Type".
 
 Remember that most Emacs commands can be given a repeat count;
 this includes text characters.  Repeating a text character inserts
@@ -391,7 +404,7 @@ Note that a single C-k kills the contents of the line, and a second
 C-k kills the line itself, and makes all the other lines move up.  C-k
 treats a numeric argument specially: it kills that many lines AND
 their contents.  This is not mere repetition.  C-u 2 C-k kills two
-lines and their newlines; typing C-k twice would not do that.
+lines and their Newlines; typing C-k twice would not do that.
 
 You can yank the killed text either at the same place where it was
 killed, or at some other place in the text you are editing, or even in
