@@ -17,17 +17,12 @@ Bool NailboardCheck(Nailboard board)
 {
   Index i;
   CHECKS(Nailboard, board);
-  CHECKU(Arena, board->arena);
   CHECKL(RangeCheck(&board->range));
   CHECKL(0 < board->levelShift);
   for (i = 0; i < board->levels; ++i) {
     /* weak check for BTs @@@@ */
     CHECKL(board->level[i] != NULL);
   }
-  /* distinctNails must be the same as the number of set bits in
-   * level[0], but we don't want to check this as it's O(n).
-   */
-  CHECKL(board->distinctNails <= board->nails);
   CHECKL(BoolCheck(board->newNails));
   return TRUE;
 }
@@ -96,9 +91,6 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
     return res;
 
   board = p;
-  board->arena = arena;
-  board->nails = 0;
-  board->distinctNails = 0;
   board->newNails = FALSE;
   board->levels = levels;
   board->alignShift = SizeLog2(alignment);
@@ -123,15 +115,14 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
 
 /* NailboardDestroy -- destroy a nailboard */
 
-void NailboardDestroy(Nailboard board)
+void NailboardDestroy(Nailboard board, Arena arena)
 {
-  Arena arena;
   Count nails;
   Size structSize, levelsSize;
 
   AVERT(Nailboard, board);
+  AVERT(Arena, arena);
 
-  arena = board->arena;
   nails = RangeSize(&board->range) >> board->alignShift;
   structSize = nailboardStructSize(board->levels);
   levelsSize = nailboardLevelsSize(nails, board->levels, board->levelShift);
@@ -215,7 +206,6 @@ Bool NailboardSet(Nailboard board, Addr addr)
   AVERT_CRITICAL(Nailboard, board);
   AVER_CRITICAL(RangeContains(&board->range, addr));
 
-  ++ board->nails;
   for (i = 0; i < board->levels; ++i) {
     Index j = nailboardIndex(board, i, addr);
     if (BTGet(board->level[i], j)) {
@@ -226,7 +216,6 @@ Bool NailboardSet(Nailboard board, Addr addr)
   }
   if (isNew) {
     board->newNails = TRUE;
-    ++ board->distinctNails;
     return FALSE;
   }
   return TRUE;
@@ -244,8 +233,6 @@ void NailboardSetRange(Nailboard board, Addr base, Addr limit)
   nailboardIndexRange(&ibase, &ilimit, board, 0, base, limit);
   AVER(BTIsResRange(board->level[0], ibase, ilimit));
   BTSetRange(board->level[0], ibase, ilimit);
-  board->nails += ilimit - ibase;
-  board->distinctNails += ilimit - ibase;
   for (i = 1; i < board->levels; ++i) {
     nailboardIndexRange(&ibase, &ilimit, board, i, base, limit);
     BTSetRange(board->level[i], ibase, ilimit);
@@ -263,8 +250,7 @@ Bool NailboardIsSetRange(Nailboard board, Addr base, Addr limit)
   Index ibase, ilimit;
   AVERT(Nailboard, board);
   nailboardIndexRange(&ibase, &ilimit, board, 0, base, limit);
-  return board->distinctNails >= ilimit - ibase
-    && BTIsSetRange(board->level[0], ibase, ilimit);
+  return BTIsSetRange(board->level[0], ibase, ilimit);
 }
 
 /* NailboardIsResRange -- test if all nails are reset in a range

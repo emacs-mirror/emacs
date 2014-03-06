@@ -1938,7 +1938,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   SegSetNailed(seg, TraceSetDel(SegNailed(seg), trace));
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
   if(SegNailed(seg) == TraceSetEMPTY && amcSegHasNailboard(seg)) {
-    NailboardDestroy(amcSegNailboard(seg));
+    NailboardDestroy(amcSegNailboard(seg), arena);
     Seg2amcSeg(seg)->board = NULL;
   }
 
