@@ -1439,11 +1439,6 @@ The position in the buffer for which the line number is known, or
 @code{nil} meaning none is known.  If it is a buffer, don't display
 the line number as long as the window shows that buffer.
 
-@item region_showing
-If the region (or part of it) is highlighted in this window, this field
-holds the mark position that made one end of that region.  Otherwise,
-this field is @code{nil}.
-
 @item column_number_displayed
 The column number currently displayed in this window's mode line, or @code{nil}
 if column numbers are not being displayed.
