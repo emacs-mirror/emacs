@@ -383,8 +383,9 @@ If option `use-hard-newlines' is non-nil, the newline is marked with the
 text-property `hard'.
 With ARG, insert that many newlines.
 
-To turn off indentation by this command, disable Electric Indent mode
-\(see \\[electric-indent-mode]).
+If `electric-indent-mode' is enabled, this indents the final new line
+that it adds, and reindents the preceding line.  To just insert
+a newline, use \\[electric-indent-just-newline].
 
 Calls `auto-fill-function' if the current column number is greater
 than the value of `fill-column' and ARG is nil.

@@ -351,14 +351,16 @@ means to always load the .elc file.
 
 ** Indentation changes
 
+*** `electric-indent-mode' is now enabled by default.
+E.g., typing RET reindents the current line and indents the new line.
+`C-j' inserts a newline but does not indent.
+
 +++
 *** The behavior of `C-x TAB' (`indent-rigidly') has changed.
 When invoked without a prefix argument, it now activates a transient
 mode in which typing <left>, <right>, <S-left>, and <S-right> adjusts
 the text indentation in the region.  Typing any other key resumes
 normal editing behavior.
-
-*** `electric-indent-mode' is enabled by default.
 
 +++
 *** `tab-stop-list' is now implicitly extended to infinity by repeating

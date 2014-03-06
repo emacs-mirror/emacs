@@ -1,5 +1,7 @@
 2014-03-06  Glenn Morris  <rgm@gnu.org>
 
+	* simple.el (newline): Doc tweak.
+
 	* emacs-lisp/shadow.el (load-path-shadows-find):
 	Ignore dir-locals.  (Bug#12357)
 
