@@ -1,3 +1,12 @@
+2014-03-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2014-03-04 stdint: fix missing SIZE_MAX on Android
+	2013-03-02 sys_types: avoid autoconf warning about gl_SYS_TYPES_H
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+	* lib/stdint.in.h, lib/sys_types.in.h, m4/sys_types_h.m4:
+	Update from gnulib.
+
 2014-03-05  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac: Tweak the "unported" error message.

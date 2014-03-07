@@ -23,7 +23,9 @@
 #ifndef _@GUARD_PREFIX@_SYS_TYPES_H
 
 /* The include_next requires a split double-inclusion guard.  */
+# define _GL_INCLUDING_SYS_TYPES_H
 #@INCLUDE_NEXT@ @NEXT_SYS_TYPES_H@
+# undef _GL_INCLUDING_SYS_TYPES_H
 
 #ifndef _@GUARD_PREFIX@_SYS_TYPES_H
 #define _@GUARD_PREFIX@_SYS_TYPES_H

@@ -1,3 +1,8 @@
+2014-03-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix oversight preventing lib/sys/types.h from being generated.
+	* merge-gnulib (GNULIB_TOOL_FLAGS): Don't avoid sys_types.
+
 2014-02-06  David Engster  <deng@randomsample.de>
 
 	* grammars/c.by (function-pointer): Correctly deal with anonymous
