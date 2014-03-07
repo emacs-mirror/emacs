@@ -632,8 +632,9 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
 {
   Res res;
   
-  /* Favour the primary pool, because pages allocated this way aren't
+  /* Favour the primary chunk, because pages allocated this way aren't
      currently freed, and we don't want to prevent chunks being destroyed. */
+  /* TODO: Consider how the ArenaCBSBlockPool might free pages. */
   res = arenaAllocPageInChunk(baseReturn, arena->primary, pool);
   if (res != ResOK) {
     Ring node, next;
@@ -648,6 +649,9 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
   }
   return res;
 }
+
+
+/* arenaFreePage -- free page allocated by arenaAllocPage */
 
 static void arenaFreePage(Arena arena, Addr base, Pool pool)
 {
