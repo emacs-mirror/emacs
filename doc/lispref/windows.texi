@@ -656,6 +656,36 @@ determine that, use the function @code{window-resizable}.
 @xref{Resizing Windows}.
 @end defvar
 
+The following function tells how small a specific window can get taking
+into account the sizes of its areas and the values of
+@code{window-min-height}, @code{window-min-width} and
+@code{window-size-fixed}.
+
+@defun window-min-size &optional window horizontal ignore pixelwise
+This function returns the minimum size of @var{window}.  @var{window}
+must be a valid window and defaults to the selected one.  The optional
+argument @var{horizontal} non-@code{nil} means to return the minimum
+number of columns of @var{window}; otherwise return the minimum number
+of @var{window}'s lines.
+
+The return value makes sure that all components of @var{window} remain
+fully visible if @var{window}'s size were actually set to it.  With
+@var{horizontal} @code{nil} it includes the mode and header line and the
+bottom divider.  With @var{horizontal} non-@code{nil} it includes the
+fringes, a scroll bar, and a right divider, if present.  It does not,
+however, include the space reserved for the margins.
+
+The optional argument @var{ignore}, if non-@code{nil}, means ignore
+restrictions imposed by fixed size windows, @code{window-min-height} or
+@code{window-min-width} settings.  If @var{ignore} equals @code{safe},
+live windows may get as small as @code{window-safe-min-height} lines and
+@code{window-safe-min-width} columns.  If @var{ignore} is a window,
+ignore restrictions for that window only.  Any other non-@code{nil}
+value means ignore all of the above restrictions for all windows.
+
+The optional argument @var{pixelwise} non-@code{nil} means to return the
+minimum size of @var{window} counted in pixels.
+@end defun
 
 @node Resizing Windows
 @section Resizing Windows
@@ -718,7 +748,7 @@ the window cannot be resized as demanded, an error is signaled.
 The optional argument @var{ignore} has the same meaning as for the
 function @code{window-resizable} above.
 
-If the optional argument @code{pixelwise} is non-@code{nil},
+If the optional argument @var{pixelwise} is non-@code{nil},
 @var{delta} will be interpreted as pixels.
 
 The choice of which window edges this function alters depends on the
@@ -879,7 +909,7 @@ window.
 This section describes functions for creating a new window by
 @dfn{splitting} an existing one.
 
-@defun split-window &optional window size side
+@defun split-window &optional window size side pixelwise
 This function creates a new live window next to the window
 @var{window}.  If @var{window} is omitted or @code{nil}, it defaults
 to the selected window.  That window is ``split'', and reduced in
@@ -894,14 +924,24 @@ value of @var{side}).  If @var{size} is a negative number, the new
 window is given @minus{}@var{size} lines (or columns).
 
 If @var{size} is @code{nil}, this function obeys the variables
-@code{window-min-height} and @code{window-min-width}.  @xref{Change
-Window,,Deleting and Rearranging Windows, emacs, The GNU Emacs
-Manual}.  Thus, it signals an error if splitting would result in
-making a window smaller than those variables specify.  However, a
+@code{window-min-height} and @code{window-min-width} (@pxref{Window
+Sizes}).  Thus, it signals an error if splitting would result in making
+a window smaller than those variables specify.  However, a
 non-@code{nil} value for @var{size} causes those variables to be
-ignored; in that case, the smallest allowable window is considered to
-be one that has space for a text area one line tall and/or two columns
+ignored; in that case, the smallest allowable window is considered to be
+one that has space for a text area one line tall and/or two columns
 wide.
+
+Hence, if @var{size} is specified, it's the caller's responsibility to
+check whether the emanating windows are large enough to encompass all
+areas like a mode line or a scroll bar.  The function
+@code{window-min-size} (@pxref{Window Sizes}) can be used to determine
+the minimum requirements of @var{window} in this regard.  Since the new
+window usually ``inherits'' areas like the mode line or the scroll bar
+from @var{window}, that function is also a good guess for the minimum
+size of the new window.  The caller should specify a smaller size only
+if it correspondingly removes an inherited area before the next
+redisplay.
 
 The optional third argument @var{side} determines the position of the
 new window relative to @var{window}.  If it is @code{nil} or
@@ -913,6 +953,10 @@ If @var{side} is @code{t} or @code{right}, the new window is placed on
 the right of @var{window}.  If @var{side} is @code{left}, the new
 window is placed on the left of @var{window}.  In both these cases,
 @var{size} specifies a total window width, in columns.
+
+The optional fourth argument @var{pixelwise}, if non-@code{nil}, means
+to interpret @var{size} in units of pixels, instead of lines and
+columns.
 
 If @var{window} is a live window, the new window inherits various
 properties from it, including margins and scroll bars.  If

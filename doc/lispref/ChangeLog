@@ -1,3 +1,8 @@
+2014-03-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Window Sizes): Describe `window-min-size'.
+	(Splitting Windows): Update description of `split-window'.
+
 2014-03-06  Martin Rudalics  <rudalics@gmx.at>
 
 	* frames.texi (Size and Position): Rewrite entries for
