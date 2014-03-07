@@ -169,7 +169,7 @@ static Addr nailboardAddr(Nailboard board, Index level, Index index)
 
 /* nailboardIndexRange -- update *ibaseReturn and *ilimitReturn to be
  * the indexes of the nail corresponding to base and limit
- * respectively, in the given level.
+ * respectively, in the given level. See .impl.isresrange.alignment.
  */
 static void nailboardIndexRange(Index *ibaseReturn, Index *ilimitReturn,
                                 Nailboard board, Index level,
@@ -258,6 +258,8 @@ Bool NailboardIsSetRange(Nailboard board, Addr base, Addr limit)
  * Return TRUE if no nails are set in the range between base and
  * limit, or FALSE if any nail is set. It is an error if any part of
  * the range is not covered by the nailboard.
+ *
+ * See <design/nailboard#impl.isresrange>.
  */
 Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)
 {
@@ -267,49 +269,47 @@ Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)
 
   AVERT_CRITICAL(Nailboard, board);
 
-  i = board->levels - 1;
-  for (;;) {
+  for (i = board->levels - 1;; --i) {
     nailboardIndexRange(&ibase, &ilimit, board, i, base, limit);
     if (BTIsResRange(board->level[i], ibase, ilimit))
-      return TRUE;
+      return TRUE;              /* <design/nailboard#impl.isresrange.empty> */
+    if (i == 0)
+      return FALSE;             /* <design/nailboard#impl.isresrange.level0> */
     if (ibase + 1 < ilimit - 1) {
       if (BTIsResRange(board->level[i], ibase + 1, ilimit - 1)) 
         break;
       else
-        return FALSE;
+        return FALSE;           /* <design/nailboard#impl.isresrange.inner> */
     }
-    if (i == 0)
-      return TRUE;
-    -- i;
   }
 
   /* Left splinter */
   for (j = i, jbase = ibase;;) {
-    if (j == 0)
-      break;
     leftLimit = nailboardAddr(board, j, jbase + 1);
     AVER_CRITICAL(base < leftLimit);
     AVER_CRITICAL(leftLimit < limit);
     -- j;
     nailboardIndexRange(&jbase, &jlimit, board, j, base, leftLimit);
     if (jbase + 1 < jlimit && !BTIsResRange(board->level[j], jbase + 1, jlimit))
-      return FALSE;
+      return FALSE;           /* <design/nailboard#impl.isresrange.inner> */
     if (!BTGet(board->level[j], jbase))
+      break;
+    if (j == 0)
       break;
   }
 
   /* Right splinter */
   for (j = i, jlimit = ilimit;;) {
-    if (j == 0)
-      break;
     rightBase = nailboardAddr(board, j, jlimit - 1);
     AVER_CRITICAL(base < rightBase);
     AVER_CRITICAL(rightBase < limit);
     -- j;
     nailboardIndexRange(&jbase, &jlimit, board, j, rightBase, limit);
     if (jbase < jlimit - 1 && !BTIsResRange(board->level[j], jbase, jlimit - 1))
-      return FALSE;
+      return FALSE;           /* <design/nailboard#impl.isresrange.inner> */
     if (!BTGet(board->level[j], jlimit - 1))
+      break;
+    if (j == 0)
       break;
   }
 

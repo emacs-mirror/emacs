@@ -123,6 +123,10 @@ _`.impl.isresrange.empty`: If all bits in the range [``ibase``,
 range of addresses [``base``, ``limit``). This provides an early exit
 with result ``TRUE``.
 
+_`.impl.isresrange.level0`: If the "empty" early exit is not taken,
+and we are looking at the level 0 bit table, then the range is not
+empty. This provides an early exit with result ``FALSE``.
+
 _`.impl.isresrange.inner`: If any bit in the range [``ibase``\+1,
 ``ilimit``\−1) is set, as shown below, then there is a nail in the
 range of addresses [``base``, ``limit``). This provides an early exit
@@ -134,18 +138,27 @@ with result ``FALSE``.
 
     A nail is set in this range.
 
-_`.impl.isresrange.splinter`: If neither early exit is taken (and if
-we are looking at a level other than level 0), then we are in a
-situation like the one shown below, with one or two *splinters*. In
-this situation it is not clear whether the nail is inside the splinter
-or not. We handle this situation by moving up to the next level and
-looking only at the range of addresses covered by the splinter.
+_`.impl.isresrange.splinter`: If none of the three early exits is
+taken, then we are in a situation like the one shown below, with one
+or two *splinters*. In this situation we know that there is a nail,
+but it is not clear whether the nail is inside the splinter or not. We
+handle this situation by moving up to the next level and looking at
+the range of addresses covered by the splinter.
 
 .. figure:: nailboard-3.svg
     :align: center
     :alt: Diagram: it is not clear if a nail is set in this range.
 
     It is not clear if a nail is set in this range.
+
+_`.impl.isresrange.splinter.recurse`: When looking at a splinter, we
+might reach the same situation: namely, that the interior of the
+splinter is empty, but the edge of the splinter is set. We handle this
+by reducing the size of the splinter and moving up to the next level.
+
+_`.impl.isresrange.splinter.one-sided`: This splinter-of-a-splinter is
+one-sided: that is, we don't need to look at the right splinter of a
+left splinter or vice versa, because we know that it is empty.
 
 
 Document History
