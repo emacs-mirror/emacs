@@ -3306,48 +3306,49 @@ the result will be a local, non-Tramp, filename."
       (with-tramp-progress-reporter
 	  v 3 (format "Checking `vc-registered' for %s" file)
 
-	;; There could be new files, created by the vc backend.  We
-	;; cannot reuse the old cache entries, therefore.
-	(let (tramp-vc-registered-file-names
-	      (remote-file-name-inhibit-cache (current-time))
-	      (file-name-handler-alist
-	       `((,tramp-file-name-regexp . tramp-vc-file-name-handler))))
+	(unless remote-file-name-inhibit-cache
+	  ;; There could be new files, created by the vc backend.  We
+	  ;; cannot reuse the old cache entries, therefore.
+	  (let (tramp-vc-registered-file-names
+		(remote-file-name-inhibit-cache (current-time))
+		(file-name-handler-alist
+		 `((,tramp-file-name-regexp . tramp-vc-file-name-handler))))
 
-	  ;; Here we collect only file names, which need an operation.
-	  (ignore-errors (tramp-run-real-handler 'vc-registered (list file)))
-	  (tramp-message v 10 "\n%s" tramp-vc-registered-file-names)
+	    ;; Here we collect only file names, which need an operation.
+	    (ignore-errors (tramp-run-real-handler 'vc-registered (list file)))
+	    (tramp-message v 10 "\n%s" tramp-vc-registered-file-names)
 
-	  ;; Send just one command, in order to fill the cache.
-	  (when tramp-vc-registered-file-names
-	    (tramp-maybe-send-script
-	     v
-	     (format tramp-vc-registered-read-file-names
-		     (tramp-get-file-exists-command v)
-		     (format "%s -r" (tramp-get-test-command v)))
-	     "tramp_vc_registered_read_file_names")
+	    ;; Send just one command, in order to fill the cache.
+	    (when tramp-vc-registered-file-names
+	      (tramp-maybe-send-script
+	       v
+	       (format tramp-vc-registered-read-file-names
+		       (tramp-get-file-exists-command v)
+		       (format "%s -r" (tramp-get-test-command v)))
+	       "tramp_vc_registered_read_file_names")
 
-	    (dolist
-		(elt
-		 (ignore-errors
-		   ;; We cannot use `tramp-send-command-and-read',
-		   ;; because this does not cooperate well with
-		   ;; heredoc documents.
-		   (tramp-send-command
-		    v
-		    (format
-		     "tramp_vc_registered_read_file_names <<'%s'\n%s\n%s\n"
-		     tramp-end-of-heredoc
-		     (mapconcat 'tramp-shell-quote-argument
-				tramp-vc-registered-file-names
-				"\n")
-		     tramp-end-of-heredoc))
-		   (with-current-buffer (tramp-get-connection-buffer v)
-		     ;; Read the expression.
-		     (goto-char (point-min))
-		     (read (current-buffer)))))
+	      (dolist
+		  (elt
+		   (ignore-errors
+		     ;; We cannot use `tramp-send-command-and-read',
+		     ;; because this does not cooperate well with
+		     ;; heredoc documents.
+		     (tramp-send-command
+		      v
+		      (format
+		       "tramp_vc_registered_read_file_names <<'%s'\n%s\n%s\n"
+		       tramp-end-of-heredoc
+		       (mapconcat 'tramp-shell-quote-argument
+				  tramp-vc-registered-file-names
+				  "\n")
+		       tramp-end-of-heredoc))
+		     (with-current-buffer (tramp-get-connection-buffer v)
+		       ;; Read the expression.
+		       (goto-char (point-min))
+		       (read (current-buffer)))))
 
-	      (tramp-set-file-property
-	       v (car elt) (cadr elt) (cadr (cdr elt))))))
+		(tramp-set-file-property
+		 v (car elt) (cadr elt) (cadr (cdr elt)))))))
 
 	;; Second run.  Now all `file-exists-p' or `file-readable-p'
 	;; calls shall be answered from the file cache.  We unset
@@ -3363,17 +3364,18 @@ the result will be a local, non-Tramp, filename."
 Fall back to normal file name handler if no Tramp handler exists."
   (when (and tramp-locked (not tramp-locker))
     (setq tramp-locked nil)
-    (signal 'file-error (list "Forbidden reentrant call of Tramp")))
+    (tramp-error
+     (car-safe tramp-current-connection) 'file-error
+     "Forbidden reentrant call of Tramp"))
   (let ((tl tramp-locked))
+    (setq tramp-locked t)
     (unwind-protect
-	(progn
-	  (setq tramp-locked t)
-	  (let ((tramp-locker t))
-	    (save-match-data
-	      (let ((fn (assoc operation tramp-sh-file-name-handler-alist)))
-		(if fn
-		    (apply (cdr fn) args)
-		  (tramp-run-real-handler operation args))))))
+	(let ((tramp-locker t))
+	  (save-match-data
+	    (let ((fn (assoc operation tramp-sh-file-name-handler-alist)))
+	      (if fn
+		  (apply (cdr fn) args)
+		(tramp-run-real-handler operation args)))))
       (setq tramp-locked tl))))
 
 (defun tramp-vc-file-name-handler (operation &rest args)

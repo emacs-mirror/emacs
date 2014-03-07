@@ -1,3 +1,9 @@
+2014-03-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-vc-registered): Run first pass
+	only when `remote-file-name-inhibit-cache' is nil.
+	(tramp-sh-file-name-handler): Use `tramp-error'.  Simplify code.
+
 2014-03-06  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (fit-frame-to-buffer, fit-frame-to-buffer-margins):
