@@ -23,7 +23,6 @@ static void test(mps_arena_t arena)
   Index i, j, k;
 
   align = 1 << (rnd() % 10);
-  align = 1;
   nails = 1 << (rnd() % 16);
   base = AddrAlignUp(0, align);
   limit = AddrAdd(base, nails * align);
