@@ -1,3 +1,9 @@
+2014-03-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-copy-size-limit): Declare.
+	(tramp-test10-write-region): Extend for out-of-band copy.
+	(tramp-test31-asynchronous-requests): New test.
+
 2014-03-02  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	* automated/undo-tests.el (undo-test-in-region-not-most-recent):

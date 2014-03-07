@@ -44,6 +44,7 @@
 
 (declare-function tramp-find-executable "tramp-sh")
 (declare-function tramp-get-remote-path "tramp-sh")
+(defvar tramp-copy-size-limit)
 
 ;; There is no default value on w32 systems, which could work out of the box.
 (defconst tramp-test-temporary-file-directory
@@ -83,8 +84,7 @@ being the result.")
 	   (file-writable-p tramp-test-temporary-file-directory))))))
 
   (when (cdr tramp--test-enabled-checked)
-    ;; Cleanup connection.  We don't cleanup for adb, because it
-    ;; doesn't behave well when is disconnect several times.
+    ;; Cleanup connection.
     (tramp-cleanup-connection
      (tramp-dissect-file-name tramp-test-temporary-file-directory)
      nil 'keep-password))
@@ -662,8 +662,16 @@ and `file-name-nondirectory'."
 	    (write-region 3 5 tmp-name))
 	  (with-temp-buffer
 	    (insert-file-contents tmp-name)
-	    (should (string-equal (buffer-string) "34"))))
-     (ignore-errors (delete-file tmp-name)))))
+	    (should (string-equal (buffer-string) "34")))
+	  ;; Trigger out-of-band copy.
+	  (let ((string ""))
+	    (while (<= (length string) tramp-copy-size-limit)
+	      (setq string (concat string (md5 string))))
+	    (write-region string nil tmp-name)
+	    (with-temp-buffer
+	      (insert-file-contents tmp-name)
+	      (should (string-equal (buffer-string) string)))))
+      (ignore-errors (delete-file tmp-name)))))
 
 (ert-deftest tramp-test11-copy-file ()
   "Check `copy-file'."
@@ -1314,6 +1322,96 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 			 (sort `(,arabic ,chinese ,russian) 'string-lessp))))
       (ignore-errors (delete-directory tmp-name 'recursive)))))
 
+;; This test is inspired by Bug#16928.
+(ert-deftest tramp-test31-asynchronous-requests ()
+  "Check parallel asynchronous requests.
+Such requests could arrive from timers, process filters and
+process sentinels.  They shall not disturb each other."
+  ;; Mark as failed until bug has been fixed.
+  :expected-result :failed
+  (skip-unless (tramp--test-enabled))
+  (skip-unless
+   (eq
+    (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
+    'tramp-sh-file-name-handler))
+
+  ;; Keep instrumentation verbosity 0 until Tramp bug is fixed.  This
+  ;; has the side effect, that this test fails instead to abort.  Good
+  ;; for hydra.
+  (tramp--instrument-test-case 0
+  (let* ((tmp-name (tramp--test-make-temp-name))
+	 (default-directory tmp-name)
+	 (remote-file-name-inhibit-cache t)
+	 timer buffers kill-buffer-query-functions)
+
+    (unwind-protect
+	(progn
+	  (make-directory tmp-name)
+
+	  ;; Setup a timer in order to raise an ordinary command again
+	  ;; and again.  `vc-registered' is well suited, because there
+	  ;; are many checks.
+	  (setq
+	   timer
+	   (run-at-time
+	    0 1
+	    (lambda ()
+	      (when buffers
+		(vc-registered
+		 (buffer-name (nth (random (length buffers)) buffers)))))))
+
+	  ;; Create temporary buffers.  The number of buffers
+	  ;; corresponds to the number of processes; it could be
+	  ;; increased in order to make pressure on Tramp.
+	  (dotimes (i 5)
+	    (add-to-list 'buffers (generate-new-buffer "*temp*")))
+
+	  ;; Open asynchronous processes.  Set process sentinel.
+	  (dolist (buf buffers)
+	    (async-shell-command "read line; touch $line; echo $line" buf)
+	    (set-process-sentinel
+	     (get-buffer-process buf)
+	     (lambda (proc _state)
+	       (delete-file (buffer-name (process-buffer proc))))))
+
+	  ;; Send a string.  Use a random order of the buffers.  Mix
+	  ;; with regular operation.
+	  (let ((buffers (copy-sequence buffers))
+		buf)
+	    (while buffers
+	      (setq buf (nth (random (length buffers)) buffers))
+	      (process-send-string
+	       (get-buffer-process buf) (format "'%s'\n" buf))
+	      (file-attributes (buffer-name buf))
+	      (setq buffers (delq buf buffers))))
+
+	  ;; Wait until the whole output has been read.
+	  (with-timeout ((* 10 (length buffers))
+			 (ert-fail "`async-shell-command' timed out"))
+	    (let ((buffers (copy-sequence buffers))
+		  buf)
+	      (while buffers
+		(setq buf (nth (random (length buffers)) buffers))
+		(if (ignore-errors
+		      (memq (process-status (get-buffer-process buf))
+			    '(run open)))
+		    (accept-process-output (get-buffer-process buf) 0.1)
+		  (setq buffers (delq buf buffers))))))
+
+	  ;; Check.
+	  (dolist (buf buffers)
+	    (with-current-buffer buf
+	      (should
+	       (string-equal (format "'%s'\n" buf) (buffer-string)))))
+	  (should-not
+	   (directory-files tmp-name nil directory-files-no-dot-files-regexp)))
+
+      ;; Cleanup.
+      (ignore-errors (cancel-timer timer))
+      (ignore-errors (delete-directory tmp-name 'recursive))
+      (dolist (buf buffers)
+	(ignore-errors (kill-buffer buf)))))))
+
 ;; TODO:
 
 ;; * dired-compress-file
@@ -1327,8 +1425,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 ;; * set-file-selinux-context
 
 ;; * Fix `tramp-test27-start-file-process' on MS Windows (`process-send-eof'?).
-;; * Fix `tramp-test28-shell-command' on MS Windows (`process-send-eof'?).
+;; * Fix `tramp-test28-shell-command' on MS Windows (nasty plink message).
 ;; * Fix `tramp-test30-utf8' on MS Windows.  Seems to be in `directory-files'.
+;; * Fix Bug#16928.  Set expected error of `tramp-test31-asynchronous-requests'.
 
 (defun tramp-test-all (&optional interactive)
   "Run all tests for \\[tramp]."
