@@ -612,7 +612,7 @@ typedef struct GlobalsStruct {
 #define CBSSig ((Sig)0x519CB599) /* SIGnature CBS */
 
 typedef struct CBSStruct {
-  SplayTreeStruct tree;
+  SplayTreeStruct splayTreeStruct;
   STATISTIC_DECL(Count treeSize);
   Arena arena;
   Pool blockPool;
@@ -625,22 +625,6 @@ typedef struct CBSStruct {
   METER_DECL(treeSearch);
   Sig sig; /* sig at end because embeded */
 } CBSStruct;
-
-
-/* ZoneCBSStruct -- zoned coalescing block structure
- *
- * See <code/zonedcbs.c>.
- */
-
-#define ZonedCBSSig ((Sig)0x519209ED) /* SIGnature ZONED */
-
-typedef struct ZonedCBSStruct {
-  Sig sig;
-  Arena arena;
-  Pool blockPool;               /* shared pool holding CBS blocks */
-  CBSStruct freeStruct;         /* CBS of free address space not in zoneCBS */
-  CBSStruct zoneStruct[MPS_WORD_WIDTH]; /* free address space per zone */
-} ZonedCBSStruct;
 
 
 /* ArenaStruct -- generic arena
