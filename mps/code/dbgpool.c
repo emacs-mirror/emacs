@@ -188,7 +188,6 @@ static Res DebugPoolInit(Pool pool, ArgList args)
     MPS_ARGS_BEGIN(pcArgs) {
       MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, debug->tagSize); /* FIXME: Check this */
       MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, debug->tagSize);
-      MPS_ARGS_DONE(pcArgs);
       res = PoolCreate(&debug->tagPool, PoolArena(pool), PoolClassMFS(), pcArgs);
     } MPS_ARGS_END(pcArgs);
     if (res != ResOK)

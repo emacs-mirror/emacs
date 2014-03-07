@@ -96,7 +96,6 @@ MV interface
             MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, 32);
             MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, 1024);
             MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, 1024 * 1024);
-            MPS_ARGS_DONE(args);
             res = mps_pool_create_k(&pool, arena, mps_class_mfs(), args);
         } MPS_ARGS_END(args);
 
@@ -118,7 +117,7 @@ MV interface
     class.
 
     When creating a debugging MV pool, :c:func:`mps_pool_create_k`
-    requires four keyword arguments: :c:macro:`MPS_KEY_EXTEND_SIZE`,
+    takes four keyword arguments: :c:macro:`MPS_KEY_EXTEND_SIZE`,
     :c:macro:`MPS_KEY_MEAN_SIZE`, :c:macro:`MPS_KEY_MAX_SIZE` are as
     described above, and :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS`
     specifies the debugging options. See :c:type:`mps_debug_option_s`.

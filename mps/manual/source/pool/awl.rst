@@ -346,7 +346,6 @@ AWL interface
         MPS_ARGS_BEGIN(args) {
             MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
             MPS_ARGS_ADD(args, MPS_KEY_AWL_FIND_DEPENDENT, find_dependent);
-            MPS_ARGS_DONE(args);
             res = mps_pool_create_k(&pool, arena, mps_class_awl(), args);
         } MPS_ARGS_END(args);
 
@@ -375,7 +374,6 @@ AWL interface
 
         MPS_ARGS_BEGIN(args) {
             MPS_ARGS_ADD(args, MPS_KEY_RANK, mps_rank_weak());
-            MPS_ARGS_DONE(args);
             res = mps_ap_create_k(&ap, awl_pool, args);
         } MPS_ARGS_END(args);
 
