@@ -187,7 +187,6 @@ static void arena_wrap(dj_t dj, mps_class_t pool_class, const char *name)
 {
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 256ul * 1024 * 1024); /* FIXME: Why is there no default? */
-    MPS_ARGS_DONE(args);
     DJMUST(mps_arena_create_k(&arena, mps_arena_class_vm(), args));
   } MPS_ARGS_END(args);
   DJMUST(mps_pool_create_k(&pool, arena, pool_class, mps_args_none));

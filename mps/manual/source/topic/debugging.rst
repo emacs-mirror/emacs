@@ -74,7 +74,6 @@ For example::
     MPS_ARGS_BEGIN(args) {
         MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &debug_options);
         MPS_ARGS_ADD(args, MPS_KEY_FORMAT, &fmt);
-        MPS_ARGS_DONE(args);
         res = mps_pool_create_k(&pool, arena, mps_class_ams_debug(), args);
     } MPS_ARGS_END(args);
     if (res != MPS_RES_OK) error("can't create debug pool");
