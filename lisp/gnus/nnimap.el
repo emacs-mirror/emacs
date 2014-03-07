@@ -1099,6 +1099,14 @@ If LIMIT, first try to limit the search to the N last articles."
 	  (nnimap-wait-for-response sequence))))))
 
 (deffoo nnimap-request-accept-article (group &optional server last)
+  (unless group
+    ;; We're respooling.  Find out where mail splitting would place
+    ;; this article.
+    (setq group
+	  (caar
+	   (nnmail-article-group
+	    `(lambda (group)
+	       (nnml-active-number group ,server))))))
   (setq group (nnimap-decode-gnus-group group))
   (when (nnimap-change-group nil server)
     (nnmail-check-syntax)
