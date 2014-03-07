@@ -1,7 +1,14 @@
 2014-03-07  Martin Rudalics  <rudalics@gmx.at>
 
+	* buffers.texi (The Buffer List): Rename node to Buffer List.
+	Describe `buffer-list-update-hook'.
+	* elisp.texi (Top): "The Buffer List" renamed to "Buffer List".
+	Add node for Window Dividers.
+	* hooks.texi (Standard Hooks): Add reference to
+	`buffer-list-update-hook'.
 	* windows.texi (Window Sizes): Describe `window-min-size'.
 	(Splitting Windows): Update description of `split-window'.
+	(Selecting Windows): Update description of `select-window'.
 
 2014-03-06  Martin Rudalics  <rudalics@gmx.at>
 

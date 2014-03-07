@@ -559,7 +559,7 @@ select_window_1 (Lisp_Object window, bool inhibit_point_swap)
 DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
        doc: /* Select WINDOW which must be a live window.
 Also make WINDOW's frame the selected frame and WINDOW that frame's
-selected window.  In addition, make WINDOW's buffer current and set that
+selected window.  In addition, make WINDOW's buffer current and set its
 buffer's value of `point' to the value of WINDOW's `window-point'.
 Return WINDOW.
 
@@ -567,8 +567,17 @@ Optional second arg NORECORD non-nil means do not put this buffer at the
 front of the buffer list and do not make this window the most recently
 selected one.
 
-Note that the main editor command loop sets the current buffer to the
-buffer of the selected window before each command.  */)
+Run `buffer-list-update-hook' unless NORECORD is non-nil.  Note that
+applications and internal routines often select a window temporarily for
+various purposes; mostly, to simplify coding.  As a rule, such
+selections should be not recorded and therefore will not pollute
+`buffer-list-update-hook'.  Selections that "really count" are those
+causing a visible change in the next redisplay of WINDOW's frame and
+should be always recorded.  So if you think of running a function each
+time a window gets selected put it on `buffer-list-update-hook'.
+
+Also note that the main editor command loop sets the current buffer to
+the buffer of the selected window before each command.  */)
   (register Lisp_Object window, Lisp_Object norecord)
 {
   return select_window (window, norecord, 0);

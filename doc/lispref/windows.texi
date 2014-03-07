@@ -1504,16 +1504,27 @@ windows.
 @defun select-window window &optional norecord
 This function makes @var{window} the selected window and the window
 selected within its frame (@pxref{Basic Windows}) and selects that
-frame.  @var{window} must be a live window.  This function also makes
-@var{window}'s buffer (@pxref{Buffers and Windows}) current and sets
-that buffer's value of @code{point} to the value of @code{window-point}
-(@pxref{Window Point}) in @var{window}.  The return value is
-@var{window}.
+frame.  It also makes @var{window}'s buffer (@pxref{Buffers and
+Windows}) current and sets that buffer's value of @code{point} to the
+value of @code{window-point} (@pxref{Window Point}) in @var{window}.
+@var{window} must be a live window.  The return value is @var{window}.
 
 By default, this function also moves @var{window}'s buffer to the front
-of the buffer list (@pxref{The Buffer List}), and makes @var{window} the
+of the buffer list (@pxref{Buffer List}), and makes @var{window} the
 most recently selected window.  However, if the optional argument
 @var{norecord} is non-@code{nil}, these additional actions are omitted.
+
+This function runs @code{buffer-list-update-hook} (@pxref{Buffer List})
+unless @var{norecord} is non-@code{nil}.  Note that applications and
+internal routines often temporarily select a window in order to simplify
+coding.  As a rule, such selections (including those made by the macros
+@code{save-selected-window} and @code{with-selected-window} below) are
+not recorded thus avoiding to pollute @code{buffer-list-update-hook}.
+Selections that ``really count'' are those causing a visible change in
+the next redisplay of @var{window}'s frame and should be always
+recorded.  This also means that to run a function each time a window
+gets selected, putting it on @code{buffer-list-update-hook} should be
+the right choice.
 @end defun
 
 @cindex most recently selected windows
@@ -1882,7 +1893,7 @@ window and make it the current buffer.  It is often used interactively
 return value is the buffer switched to.
 
 If @var{buffer-or-name} is @code{nil}, it defaults to the buffer
-returned by @code{other-buffer} (@pxref{The Buffer List}).  If
+returned by @code{other-buffer} (@pxref{Buffer List}).  If
 @var{buffer-or-name} is a string that is not the name of any existing
 buffer, this function creates a new buffer with that name; the new
 buffer's major mode is determined by the variable @code{major-mode}
@@ -1890,7 +1901,7 @@ buffer's major mode is determined by the variable @code{major-mode}
 
 Normally, the specified buffer is put at the front of the buffer
 list---both the global buffer list and the selected frame's buffer
-list (@pxref{The Buffer List}).  However, this is not done if the
+list (@pxref{Buffer List}).  However, this is not done if the
 optional argument @var{norecord} is non-@code{nil}.
 
 Sometimes, @code{switch-to-buffer} may be unable to display the buffer
@@ -1968,7 +1979,7 @@ possible (@pxref{Input Focus}).  The return value is the buffer that
 was switched to.
 
 If @var{buffer-or-name} is @code{nil}, it defaults to the buffer
-returned by @code{other-buffer} (@pxref{The Buffer List}).  If
+returned by @code{other-buffer} (@pxref{Buffer List}).  If
 @var{buffer-or-name} is a string that is not the name of any existing
 buffer, this function creates a new buffer with that name; the new
 buffer's major mode is determined by the variable @code{major-mode}
@@ -2524,9 +2535,9 @@ or killed, or has been already shown by a recent invocation of
 
 If repeated invocations of this command have already shown all buffers
 previously shown in @var{window}, further invocations will show buffers
-from the buffer list of the frame @var{window} appears on (@pxref{The
-Buffer List}), trying to skip buffers that are already shown in another
-window on that frame.
+from the buffer list of the frame @var{window} appears on (@pxref{Buffer
+List}), trying to skip buffers that are already shown in another window
+on that frame.
 @end deffn
 
 @deffn Command switch-to-next-buffer &optional window
@@ -2537,7 +2548,7 @@ defaults to the selected one.
 
 If there is no recent invocation of @code{switch-to-prev-buffer} that
 can be undone, this function tries to show a buffer from the buffer list
-of the frame @var{window} appears on (@pxref{The Buffer List}).
+of the frame @var{window} appears on (@pxref{Buffer List}).
 @end deffn
 
 By default @code{switch-to-prev-buffer} and @code{switch-to-next-buffer}
@@ -2584,7 +2595,7 @@ called when a buffer gets killed, deletes the window in case (1) and
 behaves like @code{delete-windows-on} otherwise.
 @c FIXME: Does replace-buffer-in-windows _delete_ a window in case (1)?
 
-   When @code{bury-buffer} (@pxref{The Buffer List}) operates on the
+   When @code{bury-buffer} (@pxref{Buffer List}) operates on the
 selected window (which shows the buffer that shall be buried), it
 handles case (2) by calling @code{frame-auto-hide-function}
 (@pxref{Quitting Windows}) to deal with the selected frame.  The other
@@ -2623,7 +2634,7 @@ buffer is shown on a separate frame, you might want to call
 hand, a window has been reused for displaying the buffer, you might
 prefer showing the buffer previously shown in that window, by calling the
 function @code{switch-to-prev-buffer} (@pxref{Window History}).
-Finally, you might want to either bury (@pxref{The Buffer List}) or kill
+Finally, you might want to either bury (@pxref{Buffer List}) or kill
 (@pxref{Killing Buffers}) the window's buffer.
 
    The following command uses information on how the window for
@@ -2705,11 +2716,12 @@ one window that should be either quit, or whose buffer should be buried.
 The function specified by this option is called to automatically hide
 frames.  This function is called with one argument---a frame.
 
-The function specified here is called by @code{bury-buffer} (@pxref{The
-Buffer List}) when the selected window is dedicated and shows the buffer
-to bury.  It is also called by @code{quit-restore-window} (see above)
-when the frame of the window to quit has been specially created for
-displaying that window's buffer and the buffer is not killed.
+The function specified here is called by @code{bury-buffer}
+(@pxref{Buffer List}) when the selected window is dedicated and shows
+the buffer to bury.  It is also called by @code{quit-restore-window}
+(see above) when the frame of the window to quit has been specially
+created for displaying that window's buffer and the buffer is not
+killed.
 
 The default is to call @code{iconify-frame} (@pxref{Visibility of
 Frames}).  Alternatively, you may specify either @code{delete-frame}

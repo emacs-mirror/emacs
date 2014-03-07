@@ -25,7 +25,7 @@ not be displayed in any windows.
 * Modification Time::   Determining whether the visited file was changed
                          "behind Emacs's back".
 * Read Only Buffers::   Modifying text is not allowed in a read-only buffer.
-* The Buffer List::     How to look at all the existing buffers.
+* Buffer List::         How to look at all the existing buffers.
 * Creating Buffers::    Functions that create buffers.
 * Killing Buffers::     Buffers exist until explicitly killed.
 * Indirect Buffers::    An indirect buffer shares text with some other buffer.
@@ -759,7 +759,7 @@ buffer is read-only.  @xref{Using Interactive}, for another way to
 signal an error if the current buffer is read-only.
 @end defun
 
-@node The Buffer List
+@node Buffer List
 @section The Buffer List
 @cindex buffer list
 
@@ -910,6 +910,13 @@ buffer returned by @code{last-buffer} (see above), in the selected
 window.
 @end deffn
 
+@defvar buffer-list-update-hook
+This is a normal hook run whenever the buffer list changes.  Functions
+(implicitly) running this hook are @code{get-buffer-create}
+(@pxref{Creating Buffers}), @code{rename-buffer} (@pxref{Buffer Names}),
+@code{kill-buffer} (@pxref{Killing Buffers}), @code{bury-buffer} (see
+above) and @code{select-window} (@pxref{Selecting Windows}).
+@end defvar
 
 @node Creating Buffers
 @section Creating Buffers

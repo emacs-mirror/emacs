@@ -1,3 +1,9 @@
+2014-03-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (Vbuffer_list_update_hook): Doc-string fix.
+	* window.c (Fselect_window): Explain NORECORD and
+	`buffer-list-update-hook' in doc-string.
+
 2014-03-06  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fother_window_for_scrolling): Check that

@@ -6284,9 +6284,9 @@ The function `kill-all-local-variables' runs this before doing anything else.  *
 
   DEFVAR_LISP ("buffer-list-update-hook", Vbuffer_list_update_hook,
 	       doc: /* Hook run when the buffer list changes.
-Functions running this hook are `get-buffer-create',
+Functions running this hook are, `get-buffer-create',
 `make-indirect-buffer', `rename-buffer', `kill-buffer',
-and `bury-buffer-internal'.  */);
+`bury-buffer-internal' and `select-window'.  */);
   Vbuffer_list_update_hook = Qnil;
   DEFSYM (Qbuffer_list_update_hook, "buffer-list-update-hook");
 

@@ -98,7 +98,7 @@ Hook run after a frame's font changes.
 
 @item buffer-list-update-hook
 @vindex buffer-list-update-hook
-Hook run when the buffer list changes.
+Hook run when the buffer list changes (@pxref{Buffer List}).
 
 @item buffer-quit-function
 @vindex buffer-quit-function
