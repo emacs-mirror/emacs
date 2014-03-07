@@ -262,51 +262,56 @@ Bool NailboardIsSetRange(Nailboard board, Addr base, Addr limit)
 Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)
 {
   Index i, ibase, ilimit;
+  Index j, jbase, jlimit;
   Addr leftLimit, rightBase;
+
   AVERT_CRITICAL(Nailboard, board);
+
   i = board->levels - 1;
-  nailboardIndexRange(&ibase, &ilimit, board, i, base, limit);
-  if (BTIsResRange(board->level[i], ibase, ilimit))
-    return TRUE;
-  if (ibase + 1 < ilimit - 1
-      && !BTIsResRange(board->level[i], ibase + 1, ilimit - 1))
-    return FALSE;
-  leftLimit = nailboardAddr(board, i, ibase + 1);
-  if (leftLimit > limit) leftLimit = limit;
-  rightBase = nailboardAddr(board, i, ilimit - 1);
-  if (rightBase < base) rightBase = base;
+  for (;;) {
+    nailboardIndexRange(&ibase, &ilimit, board, i, base, limit);
+    if (BTIsResRange(board->level[i], ibase, ilimit))
+      return TRUE;
+    if (ibase + 1 < ilimit - 1) {
+      if (BTIsResRange(board->level[i], ibase + 1, ilimit - 1)) 
+        break;
+      else
+        return FALSE;
+    }
+    if (i == 0)
+      return TRUE;
+    -- i;
+  }
 
   /* Left splinter */
-  i = board->levels - 1;
-  while (i > 0) {
-    i -= 1;
-    nailboardIndexRange(&ibase, &ilimit, board, i, base, leftLimit);
-    if (ibase + 1 < ilimit
-        && !BTIsResRange(board->level[i], ibase + 1, ilimit))
+  for (j = i, jbase = ibase;;) {
+    if (j == 0)
+      break;
+    leftLimit = nailboardAddr(board, j, jbase + 1);
+    AVER_CRITICAL(base < leftLimit);
+    AVER_CRITICAL(leftLimit < limit);
+    -- j;
+    nailboardIndexRange(&jbase, &jlimit, board, j, base, leftLimit);
+    if (jbase + 1 < jlimit && !BTIsResRange(board->level[j], jbase + 1, jlimit))
       return FALSE;
-    if (!BTGet(board->level[i], ibase))
-      goto leftSplinterRes;
-    leftLimit = nailboardAddr(board, i, ibase + 1);
-    if (leftLimit > limit) leftLimit = limit;
+    if (!BTGet(board->level[j], jbase))
+      break;
   }
-  return FALSE;
- leftSplinterRes:
 
   /* Right splinter */
-  i = board->levels - 1;
-  while (i > 0) {
-    i -= 1;
-    nailboardIndexRange(&ibase, &ilimit, board, i, rightBase, limit);
-    if (ibase < ilimit - 1
-        && !BTIsResRange(board->level[i], ibase, ilimit - 1))
+  for (j = i, jlimit = ilimit;;) {
+    if (j == 0)
+      break;
+    rightBase = nailboardAddr(board, j, jlimit - 1);
+    AVER_CRITICAL(base < rightBase);
+    AVER_CRITICAL(rightBase < limit);
+    -- j;
+    nailboardIndexRange(&jbase, &jlimit, board, j, rightBase, limit);
+    if (jbase < jlimit - 1 && !BTIsResRange(board->level[j], jbase, jlimit - 1))
       return FALSE;
-    if (!BTGet(board->level[i], ilimit - 1))
-      goto rightSplinterRes;
-    rightBase = nailboardAddr(board, i, ilimit - 1);
-    if (rightBase < base) rightBase = base;
+    if (!BTGet(board->level[j], jlimit - 1))
+      break;
   }
-  return FALSE;
- rightSplinterRes:
 
   return TRUE;
 }
