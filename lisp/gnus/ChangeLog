@@ -1,3 +1,8 @@
+2014-03-07  George McNinch  <gmcninch@gmail.com>  (tiny change)
+
+	* nnir.el (nnir-run-namazu): Parse namazu results that are larger than
+	999 correctly (i.e. "1,342").
+
 2014-03-07  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-agent.el (gnus-agent-update-files-total-fetched-for): Don't bug
