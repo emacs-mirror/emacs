@@ -68,8 +68,8 @@ the pool may know the minimum size of an object in a particular
 segment.
 
 _`.impl.table.k`: The level *k* bit table has one bit for each ``scale``
-bits in the level *k*−1 bit table (this bit is set if any bit in the
-corresponding word in the level *k*−1 table is set).
+bits in the level *k*\−1 bit table (this bit is set if any bit in the
+corresponding word in the level *k*\−1 table is set).
 
 _`.impl.scale`: Here ``scale`` is an arbitrary scale factor that must
 be a power of 2. It could be supplied as a parameter of the nailboard,
@@ -96,13 +96,56 @@ and since ``align`` and ``scale`` are powers of 2, that's
 _`.impl.set`: Setting a nail for an address *a* in a nailboard is on
 the critical path: it is called for every fix of an ambiguous
 reference to an address in an AMC pool. When setting a nail, we set
-the corresponding bit in every level of the nailboard. See the function
-:c:func:`NailboardSet`.
+the corresponding bit in every level of the nailboard.
 
-_`.impl.isresrange`: Testing a range of addresses to see if any nails are set
-is also on the critical path: it is called when scanning any AMC
-segment with a nailboard. See the function :c:func:`NailboardIsResRange`.
+_`.impl.isresrange`: Testing a range of addresses to see if any nails
+are set is also on the critical path: it is called when scanning any
+AMC segment with a nailboard.
 
+_`.impl.isresrange.strategy`: The strategy for testing to see if any
+nails are set in a range is to handle the cases that are expected to
+be common first. In particular, we expect that there will only be few
+nails in a nailboard, so most calls to :c:func:`NailboardIsResRange` will return ``TRUE``.
+
+_`.impl.isresrange.alignment`: When testing a range against a level of
+a nailboard, the base and limit of the range will typically not align
+exactly to the bits of that level. Therefore we test against a
+slightly larger range, as shown in the diagram:
+
+.. figure:: nailboard-1.svg
+    :align: center
+    :alt: Diagram: Testing a range against a level of a nailboard.
+
+    Testing a range against a level of a nailboard.
+
+_`.impl.isresrange.empty`: If all bits in the range [``ibase``,
+``ilimit``) are reset, as shown above, then there are no nails in the
+range of addresses [``base``, ``limit``). This provides an early exit
+with result ``TRUE``.
+
+_`.impl.isresrange.inner`: If any bit in the range [``ibase``\+1,
+``ilimit``\−1) is set, as shown below, then there is a nail in the
+range of addresses [``base``, ``limit``). This provides an early exit
+with result ``FALSE``.
+
+.. figure:: nailboard-2.svg
+    :align: center
+    :alt: Diagram: a nail is set in this range.
+
+    A nail is set in this range.
+
+_`.impl.isresrange.splinter`: If neither early exit is taken (and if
+we are looking at a level other than level 0), then we are in a
+situation like the one shown below, with one or two *splinters*. In
+this situation it is not clear whether the nail is inside the splinter
+or not. We handle this situation by moving up to the next level and
+looking only at the range of addresses covered by the splinter.
+
+.. figure:: nailboard-3.svg
+    :align: center
+    :alt: Diagram: it is not clear if a nail is set in this range.
+
+    It is not clear if a nail is set in this range.
 
 
 Document History

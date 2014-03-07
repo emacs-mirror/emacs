@@ -12,6 +12,7 @@ import os
 import os.path
 import glob
 import re
+import shutil
 import sys
 from sphinx.util.console import bold
 
@@ -131,3 +132,6 @@ def convert_updated(app):
             or os.path.getmtime(converted) < os.path.getmtime(__file__)):
             app.info('converting design %s' % name)
             convert_file(name, design, converted)
+    for diagram in glob.iglob('../design/*.svg'):
+        shutil.copyfile(diagram, 'source/design/%s' % os.path.basename(diagram))
+        
