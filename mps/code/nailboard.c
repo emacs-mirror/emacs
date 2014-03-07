@@ -331,29 +331,46 @@ Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream)
 {
   Count nails;
   Index i, j;
+  Res res;
 
-  if(!TESTT(Nailboard, board))
+  if (!TESTT(Nailboard, board))
     return ResFAIL;
-  if(stream == NULL)
+  if (stream == NULL)
     return ResFAIL;
+
+  res = WriteF(stream,
+               "Nailboard $P\n{\n", (WriteFP)board,
+               "  base: $P\n", (WriteFP)RangeBase(&board->range),
+               "  limit: $P\n", (WriteFP)RangeLimit(&board->range),
+               "  levels: $U\n", (WriteFU)board->levels,
+               "  newNails: $S\n", board->newNails ? "TRUE" : "FALSE",
+               "  alignShift: $U\n", (WriteFU)board->alignShift,
+               "  levelShift: $U\n", (WriteFU)board->levelShift,
+               NULL);
+  if (res != ResOK)
+    return res;
 
   nails = RangeSize(&board->range) >> board->alignShift;
   for(i = 0; i < board->levels; ++i) {
     Count levelNails = nails >> (i * board->levelShift);
-    Res res;
-    res = WriteF(stream, "  Level $U: ", i, NULL);
-    if(res != ResOK)
+    Count resetNails = BTCountResRange(board->level[i], 0, levelNails);
+    res = WriteF(stream, "  Level $U ($U bits, $U set): ",
+                 i, levelNails, levelNails - resetNails, NULL);
+    if (res != ResOK)
       return res;
     for (j = 0; j < levelNails; ++j) {
       char c = BTGet(board->level[i], j) ? '*' : '.';
       res = WriteF(stream, "$C", c, NULL);
-      if(res != ResOK)
+      if (res != ResOK)
         return res;
     }
     res = WriteF(stream, "\n", NULL);
-    if(res != ResOK)
+    if (res != ResOK)
       return res;
   }
+  res = WriteF(stream, "}\n", NULL);
+  if (res != ResOK)
+    return res;
 
   return ResOK;
 }
