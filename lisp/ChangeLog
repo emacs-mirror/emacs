@@ -34,8 +34,8 @@
 
 2014-03-05  Martin Rudalics  <rudalics@gmx.at>
 
-	* window.el (window-min-height, window-min-width): Rewrite
-	doc-strings.
+	* window.el (window-min-height, window-min-width):
+	Rewrite doc-strings.
 	(window-body-size): Add PIXELWISE argument to make it consistent
 	with its callees.
 
@@ -48,8 +48,8 @@
 
 	* net/eww.el (eww-mode-map): [tab] doesn't work on tty.
 	(eww-setup-buffer): Clear next/prev/etc more reliably.
-	(eww-textarea-map): [tab] doesn't work on tty.  Reported by Mario
-	Lang.
+	(eww-textarea-map): [tab] doesn't work on tty.
+	Reported by Mario Lang.
 
 	* net/shr.el (shr-map): Ditto.
 
@@ -219,10 +219,10 @@
 2014-02-28  Martin Rudalics  <rudalics@gmx.at>
 
 	Revert recent with-temp-buffer-window change (Bug#16816, Bug#16882).
-	* window.el (with-temp-buffer-window): Revert change from
-	2014-02-21.  Suggested by Thierry Volpiatto.
-	<thierry.volpiatto@gmail.com>.  Fix doc-string based on a
-	suggestion by Nicolas Richard <theonewiththeevillook@yahoo.fr>.
+	* window.el (with-temp-buffer-window): Revert change from 2014-02-21.
+	Suggested by Thierry Volpiatto <thierry.volpiatto@gmail.com>.
+	Fix doc-string based on a suggestion by Nicolas Richard
+	<theonewiththeevillook@yahoo.fr>.
 	* help.el (with-help-window): Fix doc-string.
 
 2014-02-28  Ivan Kanis  <ivan@kanis.fr>
@@ -426,7 +426,7 @@
 
 2014-02-22  Daniel Colascione  <dancol@dancol.org>
 
-	* net/secrets.el (secrets-create-item,secrets-search-items):
+	* net/secrets.el (secrets-create-item, secrets-search-items):
 	Check that attribute values are strings, avoiding the construction
 	of invalid dbus messages.
 
@@ -5647,7 +5647,7 @@
 	(ruby-smie-rules): Adjust handling of open-paren, now that it's never
 	followed by implicit semi-colons.  Add rule for string concatenation
 	and for indentation at BOB.
-	(ruby-forward-sexp, ruby-backward-sexp): Adjust for when smie is in use.
+	(ruby-forward-sexp, ruby-backward-sexp): Adjust for when SMIE is in use.
 
 	* emacs-lisp/smie.el (smie-next-sexp): Don't go back to pos before
 	calling next-sexp, since next-token may have skipped chars which
@@ -10634,7 +10634,7 @@
 	* eshell/em-term.el (eshell-visual-command-p): New function.
 	(eshell-term-initialize): Move long lambda to separate function
 	eshell-visual-command-p.
-	* eshell/em-dirs.el (eshell-dirs-initialise):
+	* eshell/em-dirs.el (eshell-dirs-initialize):
 	* eshell/em-script.el (eshell-script-initialize):
 	Add missing #' to lambda.
 
@@ -10776,7 +10776,7 @@
 
 2013-06-05  Leo Liu  <sdl.web@gmail.com>
 
-	Re-implement smie matching block highlight using
+	Re-implement SMIE matching block highlight using
 	show-paren-data-function.  (Bug#14395)
 	* emacs-lisp/smie.el (smie-matching-block-highlight)
 	(smie--highlight-matching-block-overlay)
@@ -12936,9 +12936,9 @@
 2013-04-19  Masatake YAMATO  <yamato@redhat.com>
 
 	* progmodes/sh-script.el (sh-imenu-generic-expression):
-	Handle function names with a single character.   (Bug#14111)
+	Handle function names with a single character.  (Bug#14111)
 
-2013-04-19  Dima Kogan  <dima@secretsauce.net>    (tiny change)
+2013-04-19  Dima Kogan  <dima@secretsauce.net>  (tiny change)
 
 	* progmodes/gud.el (gud-perldb-marker-filter): Understand position info
 	for subroutines defined in an eval (bug#14182).
