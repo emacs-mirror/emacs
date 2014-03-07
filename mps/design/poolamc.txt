@@ -368,16 +368,16 @@ Fixing and nailing
     really. David Jones, 1998-02-04.
 
 _`.nailboard`: AMC uses a nailboard structure for recording ambiguous
-references to segments. A nailboard is a bit table with one bit per
-grain in the segment.
+references to segments. See design.mps.nailboard_.
 
-_`.nailboard.create`: Nailboards are allocated dynamically whenever a
-segment becomes newly ambiguously referenced.
+.. _design.mps.nailboard: nailboard
 
-_`.nailboard.destroy`: They are deallocated during reclaim. Ambiguous
-fixes simply set the appropriate bit in this table. This table is used
-by subsequent scans and reclaims in order to work out what objects
-were marked.
+_`.nailboard.create`: A nailboard is allocated dynamically whenever a
+segment becomes newly ambiguously referenced. This table is used by
+subsequent scans and reclaims in order to work out which objects were
+ambiguously referenced.
+
+_`.nailboard.destroy`: The nailboatrd is deallocated during reclaim.
 
 _`.nailboard.emergency`: During emergency tracing two things relating
 to nailboards happen that don't normally:
@@ -426,9 +426,9 @@ segment prevents traces from improving on the findings of each other:
 a later trace could find that a nailed object is no longer nailed or
 even dead. Until the nailboard is discarded, that is.
 
-_`.nailboard.limitations.middle`: An ambiguous reference into the
-middle of an object will cause the segment to survive, even if there
-are no surviving objects on it.
+_`.nailboard.limitations.middle`: An ambiguous reference to a segment
+that does not point into any object in that segment will cause that
+segment to survive even though there are no surviving objects on it.
 
 _`.nailboard.limitations.reclaim`: ``AMCReclaimNailed()`` could cover
 each block of reclaimed objects between two nailed objects with a
