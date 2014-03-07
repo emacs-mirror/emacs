@@ -20895,7 +20895,12 @@ Value is the new character position of point.  */)
 	    new_pos = it.current.pos;
 
 	  while (it.current_x + it.pixel_width <= target_x
-		 && rc == MOVE_X_REACHED)
+		 && (rc == MOVE_X_REACHED
+		     /* Under word-wrap, move_it_in_display_line_to
+			stops at correct coordinates, but sometimes
+			returns MOVE_POS_MATCH_OR_ZV.  */
+		     || (it.line_wrap == WORD_WRAP
+			 && rc == MOVE_POS_MATCH_OR_ZV)))
 	    {
 	      int new_x = it.current_x + it.pixel_width;
 

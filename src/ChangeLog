@@ -1,3 +1,10 @@
+2014-03-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fmove_point_visually): When under word-wrap, accept
+	also return value of MOVE_POS_MATCH_OR_ZV from
+	move_it_in_display_line_to, when moving from beginning of line to
+	point's position.  (Bug#16961)
+
 2014-03-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffer.c (Vbuffer_list_update_hook): Doc-string fix.
