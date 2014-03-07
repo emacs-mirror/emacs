@@ -634,11 +634,11 @@ static Size VMArenaReserved(Arena arena)
 }
 
 
-/* vmArenaGrow -- Extend the arena by making a new chunk
+/* VMArenaGrow -- Extend the arena by making a new chunk
  *
  * The size arg specifies how much we wish to allocate after the extension.
  */
-static Res vmArenaGrow(Arena arena, SegPref pref, Size size)
+static Res VMArenaGrow(Arena arena, SegPref pref, Size size)
 {
   Chunk newChunk;
   Size chunkSize;
@@ -718,13 +718,6 @@ vmArenaGrow_Done:
   vmArena->extended(VMArena2Arena(vmArena),
 		    newChunk->base,
 		    AddrOffset(newChunk->base, newChunk->limit));
-
-  {
-    if (res == ResOK) {
-      ZoneSet chunkZoneSet = ZoneSetOfRange(arena, newChunk->base, newChunk->limit);
-      AVER(ZoneSetSuper(chunkZoneSet, pref->zones));
-    }
-  }
       
   return res;
 }
@@ -1156,7 +1149,7 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
   this->finish = VMArenaFinish;
   this->reserved = VMArenaReserved;
   this->purgeSpare = VMPurgeSpare;
-  this->grow = vmArenaGrow;
+  this->grow = VMArenaGrow;
   this->free = VMFree;
   this->chunkInit = VMChunkInit;
   this->chunkFinish = VMChunkFinish;
