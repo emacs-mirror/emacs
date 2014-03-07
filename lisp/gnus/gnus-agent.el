@@ -4121,8 +4121,8 @@ CLEAN is obsolete and ignored."
 (defun gnus-agent-group-covered-p (group)
   (gnus-agent-method-p (gnus-group-method group)))
 
-(defun gnus-agent-update-files-total-fetched-for
-  (group delta &optional method path)
+(defun gnus-agent-update-files-total-fetched-for (group delta
+							&optional method path)
   "Update, or set, the total disk space used by the articles that the
 agent has fetched."
   (when gnus-agent-total-fetched-hashtb
@@ -4135,27 +4135,29 @@ agent has fetched."
 		       (gnus-sethash path (make-list 3 0)
 				     gnus-agent-total-fetched-hashtb)))
 	    (file-name-coding-system nnmail-pathname-coding-system))
-       (when (listp delta)
-	 (if delta
-	     (let ((sum 0.0)
+       (when (file-exists-p path)
+	 (when (listp delta)
+	   (if delta
+	       (let ((sum 0.0)
+		     file)
+		 (while (setq file (pop delta))
+		   (incf sum (float (or (nth 7 (file-attributes
+						(nnheader-concat
+						 path
+						 (if (numberp file)
+						     (number-to-string file)
+						   file)))) 0))))
+		 (setq delta sum))
+	     (let ((sum (- (nth 2 entry)))
+		   (info (directory-files-and-attributes
+			  path nil "^-?[0-9]+$" t))
 		   file)
-	       (while (setq file (pop delta))
-		 (incf sum (float (or (nth 7 (file-attributes
-					      (nnheader-concat
-					       path
-					       (if (numberp file)
-						   (number-to-string file)
-						 file)))) 0))))
-	       (setq delta sum))
-	   (let ((sum (- (nth 2 entry)))
-		 (info (directory-files-and-attributes path nil "^-?[0-9]+$" t))
-		 file)
-	     (while (setq file (pop info))
-	       (incf sum (float (or (nth 8 file) 0))))
-	     (setq delta sum))))
+	       (while (setq file (pop info))
+		 (incf sum (float (or (nth 8 file) 0))))
+	       (setq delta sum))))
 
-       (setq gnus-agent-need-update-total-fetched-for t)
-       (incf (nth 2 entry) delta)))))
+	 (setq gnus-agent-need-update-total-fetched-for t)
+	 (incf (nth 2 entry) delta))))))
 
 (defun gnus-agent-update-view-total-fetched-for
   (group agent-over &optional method path)
