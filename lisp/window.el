@@ -6825,11 +6825,10 @@ frames can be resized in both dimensions."
 
 (defcustom fit-frame-to-buffer-margins '(nil nil nil nil)
   "Margins around frame for `fit-frame-to-buffer'.
-This option allows to specify the numbers of pixels to be left
-free on the left, above, the right, and below a frame that shall
-be fit to its buffer.  Set these to avoid that such a frame
-obscurs other desktop objects like the taskbar.  The default is
-nil for each side which means to not add any margins.
+This specifies the numbers of pixels to be left free on the left,
+above, on the right, and below a frame fitted to its buffer.  Set
+this to avoid obscuring other desktop objects like the taskbar.
+The default is nil for each side, which means to not add margins.
 
 The value specified here can be overridden for a specific frame
 by that frame's `fit-frame-to-buffer-margins' parameter, if

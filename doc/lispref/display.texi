@@ -3931,7 +3931,7 @@ the appearance of dividers:
 @item window-divider
 When a divider is less than three pixels wide, it is drawn solidly with
 the foreground of this face.  For larger dividers this face is used for
-the inner part only, exluding the first and last pixel.
+the inner part only, excluding the first and last pixel.
 
 @item window-divider-first-pixel
 This is the face used for drawing the first pixel of a divider that is
