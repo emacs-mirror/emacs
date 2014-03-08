@@ -1,3 +1,7 @@
+2014-03-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* tutorials/TUTORIAL.he: Adapt to the recent changes in TUTORIAL.
+
 2014-03-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* tutorials/TUTORIAL.es: Adapt to change in English language tutorial.
