@@ -1,3 +1,8 @@
+2014-03-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset-restore): When no frame is visible, do not
+	generate a list of frames, just make visible the selected one.
+
 2014-03-08  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* vc/vc-git.el (vc-git-command): Turn FILE-OR-LIST into nil when

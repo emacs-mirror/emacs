@@ -1204,7 +1204,7 @@ All keyword parameters default to nil."
 
     ;; Make sure there's at least one visible frame.
     (unless (or (daemonp) (visible-frame-list))
-      (make-frame-visible (car (frame-list))))))
+      (make-frame-visible (selected-frame)))))
 
 
 ;; Register support
