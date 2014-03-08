@@ -1,3 +1,8 @@
+2014-03-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/vc-git.el (vc-git-command): Turn FILE-OR-LIST into nil when
+	it only contains the repository root.  (Bug#16897)
+
 2014-03-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-vc-registered): Run first pass
