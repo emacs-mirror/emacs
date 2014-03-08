@@ -47,7 +47,9 @@
 				3114A5EA156E93C4001E0AA3 /* PBXTargetDependency */,
 				224CC79D175E187C002FF81B /* PBXTargetDependency */,
 				22B2BC3F18B643B700C33E63 /* PBXTargetDependency */,
+				2231BB6D18CA986B002D6322 /* PBXTargetDependency */,
 				31D60034156D3D5A00337B26 /* PBXTargetDependency */,
+				2231BB6F18CA986D002D6322 /* PBXTargetDependency */,
 				3114A5A0156E915A001E0AA3 /* PBXTargetDependency */,
 				3114A6A7156E9739001E0AA3 /* PBXTargetDependency */,
 				3104AFFE156D37C6000A585A /* PBXTargetDependency */,
@@ -74,6 +76,12 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		2231BB5118CA97D8002D6322 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
+		2231BB5318CA97D8002D6322 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
+		2231BB5F18CA97DC002D6322 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
+		2231BB6118CA97DC002D6322 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
+		2231BB6A18CA984F002D6322 /* locusss.c in Sources */ = {isa = PBXBuildFile; fileRef = 2231BB6918CA983C002D6322 /* locusss.c */; };
+		2231BB6B18CA9861002D6322 /* locbwcss.c in Sources */ = {isa = PBXBuildFile; fileRef = 2231BB6818CA9834002D6322 /* locbwcss.c */; };
 		224CC791175E1821002FF81B /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
 		224CC793175E1821002FF81B /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
 		224CC79F175E321C002FF81B /* mv2test.c in Sources */ = {isa = PBXBuildFile; fileRef = 3114A686156E9674001E0AA3 /* mv2test.c */; };
@@ -261,6 +269,34 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		2231BB4E18CA97D8002D6322 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 31EEABFA156AAF9D00714D05;
+			remoteInfo = mps;
+		};
+		2231BB5C18CA97DC002D6322 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 31EEABFA156AAF9D00714D05;
+			remoteInfo = mps;
+		};
+		2231BB6C18CA986B002D6322 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2231BB4C18CA97D8002D6322;
+			remoteInfo = locbwcss;
+		};
+		2231BB6E18CA986D002D6322 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2231BB5A18CA97DC002D6322;
+			remoteInfo = locusss;
+		};
 		224CC78E175E1821002FF81B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
@@ -810,6 +846,24 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		2231BB5418CA97D8002D6322 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		2231BB6218CA97DC002D6322 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		224CC794175E1821002FF81B /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1182,6 +1236,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2231BB5918CA97D8002D6322 /* locbwcss */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = locbwcss; sourceTree = BUILT_PRODUCTS_DIR; };
+		2231BB6718CA97DC002D6322 /* locusss */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = locusss; sourceTree = BUILT_PRODUCTS_DIR; };
+		2231BB6818CA9834002D6322 /* locbwcss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = locbwcss.c; sourceTree = "<group>"; };
+		2231BB6918CA983C002D6322 /* locusss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = locusss.c; sourceTree = "<group>"; };
 		224CC799175E1821002FF81B /* fotest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = fotest; sourceTree = BUILT_PRODUCTS_DIR; };
 		224CC79E175E3202002FF81B /* fotest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fotest.c; sourceTree = "<group>"; };
 		2291A5A8175CAA51001D4920 /* poolmv2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = poolmv2.h; sourceTree = "<group>"; };
@@ -1467,6 +1525,22 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		2231BB5218CA97D8002D6322 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2231BB5318CA97D8002D6322 /* libmps.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2231BB6018CA97DC002D6322 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2231BB6118CA97DC002D6322 /* libmps.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		224CC792175E1821002FF81B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1936,7 +2010,9 @@
 				3124CAE4156BE6D500753214 /* fmthe.c */,
 				3124CACC156BE4C200753214 /* fmtno.c */,
 				224CC79E175E3202002FF81B /* fotest.c */,
+				2231BB6818CA9834002D6322 /* locbwcss.c */,
 				31D60036156D3E0200337B26 /* lockcov.c */,
+				2231BB6918CA983C002D6322 /* locusss.c */,
 				3114A5A1156E9168001E0AA3 /* locv.c */,
 				3114A69F156E9725001E0AA3 /* messtest.c */,
 				31EEAC74156AB58E00714D05 /* mpmss.c */,
@@ -2039,6 +2115,8 @@
 				318DA8CD1892B0F30089718C /* djbench */,
 				6313D47218A400B200EB03EF /* gcbench */,
 				22B2BC3618B6434F00C33E63 /* scheme-advanced */,
+				2231BB5918CA97D8002D6322 /* locbwcss */,
+				2231BB6718CA97DC002D6322 /* locusss */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2214,6 +2292,42 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		2231BB4C18CA97D8002D6322 /* locbwcss */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2231BB5518CA97D8002D6322 /* Build configuration list for PBXNativeTarget "locbwcss" */;
+			buildPhases = (
+				2231BB4F18CA97D8002D6322 /* Sources */,
+				2231BB5218CA97D8002D6322 /* Frameworks */,
+				2231BB5418CA97D8002D6322 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2231BB4D18CA97D8002D6322 /* PBXTargetDependency */,
+			);
+			name = locbwcss;
+			productName = lockcov;
+			productReference = 2231BB5918CA97D8002D6322 /* locbwcss */;
+			productType = "com.apple.product-type.tool";
+		};
+		2231BB5A18CA97DC002D6322 /* locusss */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2231BB6318CA97DC002D6322 /* Build configuration list for PBXNativeTarget "locusss" */;
+			buildPhases = (
+				2231BB5D18CA97DC002D6322 /* Sources */,
+				2231BB6018CA97DC002D6322 /* Frameworks */,
+				2231BB6218CA97DC002D6322 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2231BB5B18CA97DC002D6322 /* PBXTargetDependency */,
+			);
+			name = locusss;
+			productName = lockcov;
+			productReference = 2231BB6718CA97DC002D6322 /* locusss */;
+			productType = "com.apple.product-type.tool";
+		};
 		224CC78C175E1821002FF81B /* fotest */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 224CC795175E1821002FF81B /* Build configuration list for PBXNativeTarget "fotest" */;
@@ -3007,7 +3121,9 @@
 				3114A5D5156E93A0001E0AA3 /* finaltest */,
 				224CC78C175E1821002FF81B /* fotest */,
 				6313D46718A400B200EB03EF /* gcbench */,
+				2231BB4C18CA97D8002D6322 /* locbwcss */,
 				31D60026156D3D3E00337B26 /* lockcov */,
+				2231BB5A18CA97DC002D6322 /* locusss */,
 				3114A58F156E913C001E0AA3 /* locv */,
 				3114A694156E971B001E0AA3 /* messtest */,
 				31EEAC64156AB52600714D05 /* mpmss */,
@@ -3043,12 +3159,30 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Not listed here:\n# awlutth -- fails (job003506).\n# bttest and teletest -- interactive and so cannot be run unattended.\n# zcoll -- takes too long to be useful as a regularly run smoke test.\nTESTCASES=\"abqtest amcss amcsshe amcssth amsss amssshe apss arenacv \\\n           awlut awlutth awluthe btcv expt825 exposet0 fbmtest finalcv \\\n           finaltest fotest lockcov locv messtest mpmss mpsicv mv2test \\\n           poolncv qs sacss segsmss steptest walkt0 zmess\"\n\n../tool/testrun.sh $(for TEST in $TESTCASES; do echo $TARGET_BUILD_DIR/$TEST; done)\n\n# Coverage\nif [ \"$CONFIGURATION\" == \"Debug\" ]; then\n    (cd xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/x86_64 &&\n     gcov mps.c 2> /dev/null) | ../tool/gcovfmt.py\nfi";
+			shellScript = "# Not listed here:\n# bttest and teletest -- interactive and so cannot be run unattended.\n# djbench and gcbench -- benchmarks, not test cases.\n# zcoll -- takes too long to be useful as a regularly run smoke test.\nTESTCASES=\"abqtest amcss amcsshe amcssth amsss amssshe apss arenacv \\\n           awlut awlutth awluthe btcv expt825 exposet0 fbmtest finalcv \\\n           finaltest fotest locbwcss lockcov locusss locv messtest mpmss \\\n           mpsicv mv2test poolncv qs sacss segsmss steptest walkt0 zmess\"\n\n../tool/testrun.sh $(for TEST in $TESTCASES; do echo $TARGET_BUILD_DIR/$TEST; done)\n\n# Coverage\nif [ \"$CONFIGURATION\" == \"Debug\" ]; then\n    (cd xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/x86_64 &&\n     gcov mps.c 2> /dev/null) | ../tool/gcovfmt.py\nfi";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		2231BB4F18CA97D8002D6322 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2231BB6B18CA9861002D6322 /* locbwcss.c in Sources */,
+				2231BB5118CA97D8002D6322 /* testlib.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2231BB5D18CA97DC002D6322 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2231BB6A18CA984F002D6322 /* locusss.c in Sources */,
+				2231BB5F18CA97DC002D6322 /* testlib.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		224CC78F175E1821002FF81B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -3493,6 +3627,26 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		2231BB4D18CA97D8002D6322 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 31EEABFA156AAF9D00714D05 /* mps */;
+			targetProxy = 2231BB4E18CA97D8002D6322 /* PBXContainerItemProxy */;
+		};
+		2231BB5B18CA97DC002D6322 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 31EEABFA156AAF9D00714D05 /* mps */;
+			targetProxy = 2231BB5C18CA97DC002D6322 /* PBXContainerItemProxy */;
+		};
+		2231BB6D18CA986B002D6322 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2231BB4C18CA97D8002D6322 /* locbwcss */;
+			targetProxy = 2231BB6C18CA986B002D6322 /* PBXContainerItemProxy */;
+		};
+		2231BB6F18CA986D002D6322 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2231BB5A18CA97DC002D6322 /* locusss */;
+			targetProxy = 2231BB6E18CA986D002D6322 /* PBXContainerItemProxy */;
+		};
 		224CC78D175E1821002FF81B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 31EEABFA156AAF9D00714D05 /* mps */;
@@ -3886,6 +4040,60 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		2231BB5618CA97D8002D6322 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
+				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
+				PRODUCT_NAME = locbwcss;
+			};
+			name = Debug;
+		};
+		2231BB5718CA97D8002D6322 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
+				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
+				PRODUCT_NAME = locbwcss;
+			};
+			name = Release;
+		};
+		2231BB5818CA97D8002D6322 /* RASH */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
+				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
+				PRODUCT_NAME = locbwcss;
+			};
+			name = RASH;
+		};
+		2231BB6418CA97DC002D6322 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
+				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
+				PRODUCT_NAME = locusss;
+			};
+			name = Debug;
+		};
+		2231BB6518CA97DC002D6322 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
+				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
+				PRODUCT_NAME = locusss;
+			};
+			name = Release;
+		};
+		2231BB6618CA97DC002D6322 /* RASH */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
+				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
+				PRODUCT_NAME = locusss;
+			};
+			name = RASH;
+		};
 		224CC796175E1821002FF81B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -5227,6 +5435,26 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2231BB5518CA97D8002D6322 /* Build configuration list for PBXNativeTarget "locbwcss" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2231BB5618CA97D8002D6322 /* Debug */,
+				2231BB5718CA97D8002D6322 /* Release */,
+				2231BB5818CA97D8002D6322 /* RASH */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2231BB6318CA97DC002D6322 /* Build configuration list for PBXNativeTarget "locusss" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2231BB6418CA97DC002D6322 /* Debug */,
+				2231BB6518CA97DC002D6322 /* Release */,
+				2231BB6618CA97DC002D6322 /* RASH */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		224CC795175E1821002FF81B /* Build configuration list for PBXNativeTarget "fotest" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
