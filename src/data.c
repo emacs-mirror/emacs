@@ -738,6 +738,10 @@ Associates the function with the current load file, if any.
 The optional third argument DOCSTRING specifies the documentation string
 for SYMBOL; if it is omitted or nil, SYMBOL uses the documentation string
 determined by DEFINITION.
+
+Internally, this normally uses `fset', but if SYMBOL has a
+`defalias-fset-function' property, the associated value is used instead.
+
 The return value is undefined.  */)
   (register Lisp_Object symbol, Lisp_Object definition, Lisp_Object docstring)
 {

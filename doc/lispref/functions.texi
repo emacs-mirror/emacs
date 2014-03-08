@@ -592,6 +592,11 @@ If @var{doc} is non-@code{nil}, it becomes the function documentation
 of @var{name}.  Otherwise, any documentation provided by
 @var{definition} is used.
 
+@cindex defalias-fset-function property
+Internally, @code{defalias} normally uses @code{fset} to set the definition.
+If @var{name} has a @code{defalias-fset-function} property, however,
+the associated value is used as a function to call in place of @code{fset}.
+
 The proper place to use @code{defalias} is where a specific function
 name is being defined---especially where that name appears explicitly in
 the source file being loaded.  This is because @code{defalias} records
@@ -1165,9 +1170,9 @@ there are many different ways to do it.  The added function is also called an
 @emph{advice}.
 
 The function cell of a symbol can be manipulated similarly, but since it can
-contain other things than a plain function, you have to use @var{advice-add}
-and @var{advice-remove} instead, which
-@c use @var{add-function} and @var{remove-function} internally, but
+contain other things than a plain function, you have to use @code{advice-add}
+and @code{advice-remove} instead, which
+@c use @code{add-function} and @code{remove-function} internally, but
 know how to handle cases such as when the function cell holds a macro rather
 than function, or when the function is autoloaded so the advice's activation
 needs to be postponed.
@@ -1339,9 +1344,9 @@ and its properties.
 @subsection Advising Named Functions
 
 A common use of advice is for named functions and macros.
-Since @var{add-function} does not know how to deal with macros and autoloaded
-functions, Emacs provides a separate set of functions to manipulate pieces of
-advice applied to named functions.
+Since @code{add-function} does not know how to deal with macros and
+autoloaded functions, Emacs provides a separate set of functions to
+manipulate pieces of advice applied to named functions.
 
   Advice can be useful for altering the behavior of an existing
 function without having to redefine the whole function.  However, it
@@ -1549,14 +1554,17 @@ following effects:
 This acts like a call to @code{set-advertised-calling-convention}
 (@pxref{Obsolete Functions}); @var{signature} specifies the correct
 argument list for calling the function or macro, and @var{when} should
-be a string indicating when the variable was first made obsolete.
+be a string indicating when the old argument list was first made obsolete.
 
 @item (debug @var{edebug-form-spec})
 This is valid for macros only.  When stepping through the macro with
 Edebug, use @var{edebug-form-spec}.  @xref{Instrumenting Macro Calls}.
 
 @item (doc-string @var{n})
-Use element number @var{n}, if any, as the documentation string.
+This is used when defining a function or macro which itself will be used to
+define entities like functions, macros, or variables.  It indicates that
+the @var{n}th argument, if any, should be considered
+as a documentation string.
 
 @item (indent @var{indent-spec})
 Indent calls to this function or macro according to @var{indent-spec}.
@@ -1571,7 +1579,37 @@ instead), a string (specifying the warning message), or @code{nil} (in
 which case the warning message gives no extra details).  @var{when}
 should be a string indicating when the function or macro was first
 made obsolete.
+
+@item (compiler-macro @var{expander})
+This can only be used for functions, and tells the compiler to use
+@var{expander} as an optimization function.  When encountering a call to the
+function, of the form @code{(@var{function} @var{args}@dots{})}, the macro
+expander will call @var{expander} with that form as well as with
+@var{args}@dots{}, and @var{expander} can either return a new expression to use
+instead of the function call, or it can return just the form unchanged,
+to indicate that the function call should be left alone.  @var{expander} can
+be a symbol, or it can be a form @code{(lambda (@var{arg}) @var{body})} in
+which case @var{arg} will hold the original function call expression, and the
+(unevaluated) arguments to the function can be accessed using the function's
+formal arguments.
+
+@item (gv-expander @var{expander})
+Declare @var{expander} to be the function to handle calls to the macro (or
+function) as a generalized variable, similarly to @code{gv-define-expander}.
+@var{expander} can be a symbol or it can be of the form @code{(lambda
+(@var{arg}) @var{body})} in which case that function will additionally have
+access to the macro (or function)'s arguments.
+
+@item (gv-setter @var{setter})
+Declare @var{setter} to be the function to handle calls to the macro (or
+function) as a generalized variable.  @var{setter} can be a symbol in which
+case it will be passed to @code{gv-define-simple-setter}, or it can be of the
+form @code{(lambda (@var{arg}) @var{body})} in which case that function will
+additionally have access to the macro (or function)'s arguments and it will
+passed to @code{gv-define-setter}.
+
 @end table
+
 @end defmac
 
 @node Declaring Functions

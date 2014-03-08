@@ -2684,8 +2684,8 @@ Use the function @code{w32-send-sys-command}.  For example, you can
 put the following in your @file{.emacs} file:
 
 @lisp
-(add-hook 'term-setup-hook
-          #'(lambda () (w32-send-sys-command ?\xF030)))
+(add-hook 'emacs-startup-hook
+          (lambda () (w32-send-sys-command ?\xF030)))
 @end lisp
 
 To avoid the slightly distracting visual effect of Emacs starting with
@@ -3594,12 +3594,12 @@ been executed but is not, then you will experience this problem (this
 code/file execution order is not enforced after startup).
 
 To postpone the execution of Emacs Lisp code until after terminal or
-window-system setup, treat the code as a @dfn{lambda list} and set the
-value of either the @code{term-setup-hook} or @code{window-setup-hook}
-variable to this lambda function.  For example,
+window-system setup, treat the code as a @dfn{lambda list} and add it to
+@code{emacs-startup-hook} (or @code{tty-setup-hook} in Emacs 24.4 and
+newer).  For example,
 
 @lisp
-(add-hook 'term-setup-hook
+(add-hook 'emacs-startup-hook
           (lambda ()
            (when (string-match "\\`vt220" (or (getenv "TERM") ""))
              ;; Make vt220's "Do" key behave like M-x:

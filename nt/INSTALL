@@ -44,7 +44,7 @@ Windows 9X as well).
      It is always preferable to use --prefix to configure Emacs for
      some specific location of its installed tree; the default
      /usr/local is not suitable for Windows (see the detailed
-     instructions for the reasons).
+     instructions for the reasons).  The prefix must be absolute.
 
      You can pass other options to the configure script.  Here's a
      typical example (for an in-place debug build):

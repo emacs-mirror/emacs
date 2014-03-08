@@ -2019,6 +2019,7 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
       XSETINT (errcode, err);
       image_error ("Unable to create bitmap, error code %d", errcode, Qnil);
       x_destroy_x_image (*ximg);
+      *ximg = NULL;
       return 0;
     }
 

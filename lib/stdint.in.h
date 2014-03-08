@@ -38,8 +38,7 @@
    other system header files; just include the system's <stdint.h>.
    Ideally we should test __BIONIC__ here, but it is only defined after
    <sys/cdefs.h> has been included; hence test __ANDROID__ instead.  */
-#if defined __ANDROID__ \
-    && defined _SYS_TYPES_H_ && !defined __need_size_t
+#if defined __ANDROID__ && defined _GL_INCLUDING_SYS_TYPES_H
 # @INCLUDE_NEXT@ @NEXT_STDINT_H@
 #else
 

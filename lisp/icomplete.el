@@ -61,7 +61,7 @@
  'icomplete-prospects-length 'icomplete-prospects-height "23.1")
 
 (defcustom icomplete-separator " | "
-  "String used by icomplete to separate alternatives in the minibuffer."
+  "String used by Icomplete to separate alternatives in the minibuffer."
   :type 'string
   :version "24.4")
 
@@ -77,7 +77,7 @@ When nil, show candidates in full."
   :version "24.4")
 
 (defcustom icomplete-with-completion-tables t
-  "Specialized completion tables with which icomplete should operate.
+  "Specialized completion tables with which Icomplete should operate.
 If this is t, Icomplete operates on all tables.
 Otherwise this should be a list of the completion tables (e.g.,
 `internal-complete-buffer') on which Icomplete should operate."
@@ -87,7 +87,7 @@ Otherwise this should be a list of the completion tables (e.g.,
 		 (repeat function)))
 
 (defface icomplete-first-match '((t :weight bold))
-  "Face used by icomplete for highlighting first match."
+  "Face used by Icomplete for highlighting first match."
   :version "24.4")
 
 ;;;_* User Customization variables
@@ -109,7 +109,7 @@ See `icomplete-delay-completions-threshold'."
   :type 'integer)
 
 (defcustom icomplete-max-delay-chars 3
-  "Maximum number of initial chars to apply icomplete compute delay."
+  "Maximum number of initial chars to apply `icomplete-compute-delay'."
   :type 'integer)
 
 (defvar icomplete-in-buffer nil
@@ -118,12 +118,12 @@ See `icomplete-delay-completions-threshold'."
 (defcustom icomplete-minibuffer-setup-hook nil
   "Icomplete-specific customization of minibuffer setup.
 
-This hook is run during minibuffer setup if icomplete is active.
-It is intended for use in customizing icomplete for interoperation
+This hook is run during minibuffer setup if Icomplete is active.
+It is intended for use in customizing Icomplete for interoperation
 with other features and packages.  For instance:
 
-  \(add-hook 'icomplete-minibuffer-setup-hook
-	     \(lambda () (setq-local max-mini-window-height 3)))
+  (add-hook 'icomplete-minibuffer-setup-hook
+	     (lambda () (setq-local max-mini-window-height 3)))
 
 will constrain Emacs to a maximum minibuffer height of 3 lines when
 icompletion is occurring."
@@ -197,7 +197,7 @@ the string you have typed.  See `icomplete-completions' for a
 description of how prospective completions are displayed.
 
 For more information, see Info node `(emacs)Icomplete'.
-For options you can set, `M-x customize-group icomplete'.
+For options you can set, `\\[customize-group] icomplete'.
 
 You can use the following key bindings to navigate and select
 completions:
@@ -295,16 +295,16 @@ Usually run by inclusion in `minibuffer-setup-hook'."
 
 ;;;_ > icomplete-tidy ()
 (defun icomplete-tidy ()
-  "Remove completions display \(if any) prior to new user input.
-Should be run in on the minibuffer `pre-command-hook'.  See `icomplete-mode'
-and `minibuffer-setup-hook'."
+  "Remove completions display (if any) prior to new user input.
+Should be run in on the minibuffer `pre-command-hook'.
+See `icomplete-mode' and `minibuffer-setup-hook'."
   (delete-overlay icomplete-overlay))
 
 ;;;_ > icomplete-exhibit ()
 (defun icomplete-exhibit ()
-  "Insert icomplete completions display.
-Should be run via minibuffer `post-command-hook'.  See `icomplete-mode'
-and `minibuffer-setup-hook'."
+  "Insert Icomplete completions display.
+Should be run via minibuffer `post-command-hook'.
+See `icomplete-mode' and `minibuffer-setup-hook'."
   (when (and icomplete-mode
              (icomplete-simple-completing-p)) ;Shouldn't be necessary.
     (save-excursion
@@ -352,17 +352,17 @@ The display is updated with each minibuffer keystroke during
 minibuffer completion.
 
 Prospective completion suffixes (if any) are displayed, bracketed by
-one of \(), \[], or \{} pairs.  The choice of brackets is as follows:
+one of (), [], or {} pairs.  The choice of brackets is as follows:
 
-  \(...) - a single prospect is identified and matching is enforced,
-  \[...] - a single prospect is identified but matching is optional, or
-  \{...} - multiple prospects, separated by commas, are indicated, and
+  (...) - a single prospect is identified and matching is enforced,
+  [...] - a single prospect is identified but matching is optional, or
+  {...} - multiple prospects, separated by commas, are indicated, and
           further input is required to distinguish a single one.
 
 If there are multiple possibilities, `icomplete-separator' separates them.
 
 The displays for unambiguous matches have ` [Matched]' appended
-\(whether complete or not), or ` \[No matches]', if no eligible
+\(whether complete or not), or ` [No matches]', if no eligible
 matches exist."
   (let* ((minibuffer-completion-table candidates)
 	 (minibuffer-completion-predicate predicate)
@@ -392,6 +392,7 @@ matches exist."
              ;; a prefix of most, or something else.
 	     (compare (compare-strings name nil nil
 				       most nil nil completion-ignore-case))
+	     (ellipsis (if (char-displayable-p ?…) "…" "..."))
 	     (determ (unless (or (eq t compare) (eq t most-try)
 				 (= (setq compare (1- (abs compare)))
 				    (length most)))
@@ -402,14 +403,14 @@ matches exist."
 				 (substring most compare))
                                 ;; Don't bother truncating if it doesn't gain
                                 ;; us at least 2 columns.
-				((< compare 3) most)
-				(t (concat "…" (substring most compare))))
+				((< compare (+ 2 (string-width ellipsis))) most)
+				(t (concat ellipsis (substring most compare))))
 			       close-bracket)))
 	     ;;"-prospects" - more than one candidate
 	     (prospects-len (+ (string-width
 				(or determ (concat open-bracket close-bracket)))
 			       (string-width icomplete-separator)
-			       3 ;; take {…} into account
+			       (+ 2 (string-width ellipsis)) ;; take {…} into account
 			       (string-width (buffer-string))))
              (prospects-max
               ;; Max total length to use, including the minibuffer content.
@@ -482,7 +483,7 @@ matches exist."
 	    (concat determ
 		    "{"
 		    (mapconcat 'identity prospects icomplete-separator)
-		    (and limit (concat icomplete-separator "…"))
+		    (and limit (concat icomplete-separator ellipsis))
 		    "}")
 	  (concat determ " [Matched]"))))))
 

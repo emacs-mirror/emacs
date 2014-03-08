@@ -1005,6 +1005,9 @@ main (int argc, char **argv)
       exit (0);
     }
 
+  /* Make sure IS_DAEMON starts up as false.  */
+  daemon_pipe[1] = 0;
+
   if (argmatch (argv, argc, "-daemon", "--daemon", 5, NULL, &skip_args)
       || argmatch (argv, argc, "-daemon", "--daemon", 5, &dname_arg, &skip_args))
     {
@@ -2548,7 +2551,4 @@ libraries; only those already known by Emacs will be loaded.  */);
   Vlibrary_cache = Qnil;
   staticpro (&Vlibrary_cache);
 #endif
-
-  /* Make sure IS_DAEMON starts up as false.  */
-  daemon_pipe[1] = 0;
 }

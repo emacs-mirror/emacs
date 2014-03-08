@@ -101,16 +101,6 @@ Known problems:
 	  I plan to implement better user notification and support for
 	  breaking out of single-kboard mode from locked displays.
 
-	* Mac and DOS support is broken, doesn't even
-  	  compile.  Multiple display support will probably not provide
-  	  new Emacs features on these systems, but the multi-tty
-  	  branch changed a few low-level interfaces, and the
-  	  system-dependent source files need to be adapted
-  	  accordingly.  The changes are mostly trivial, so almost
-  	  anyone can help, if only by compiling the branch and
-  	  reporting the compiler errors.
-
-
 TESTING
 -------
 
@@ -504,17 +494,6 @@ THINGS TO DO
 
    (This is likely an error in the CVS trunk.)
 
-** Dan Nicolaescu suggests that -nw should be added as an alias for -t
-   in emacsclient.  Good idea.  (Alas, implementing this is not
-   trivial, getopt_long does not seem to support two-letter ``short''
-   options.  Patches are welcome.)
-
-** Mark Plaksin suggests that emacsclient should accept the same
-   X-related command-line arguments as Emacs.  Most of the X-related
-   argument-handling is done in Lisp, so this should be quite easy to
-   implement.  (For example, Samium Gromoff wants emacsclient to
-   support --geometry; implementing this would add that support.)
-
 ** Gergely Nagy suggests that C-x # should only kill the current
    frame, not any other emacsclient frame that may have the same file
    opened for editing.  I think I agree with him.
@@ -532,21 +511,9 @@ THINGS TO DO
    an initial frame.  (The user would connect to it and open frames
    later, with emacsclient.)
 
-** Fix Mac support (I can't do this entirely myself).  Note that the
-   current state of Mac-specific source files in the multi-tty tree
-   are not useful; before starting work on Mac support, revert to
-   pristine, pre-multi-tty versions.
-
-** Fix DOS support (I can't do this entirely myself).  Note that the
-   current state of DOS-specific source files in the multi-tty tree
-   are not useful; before starting work on DOS support, revert to
-   pristine, pre-multi-tty versions.
-
-** Fix Windows support. Currently bootstrapping works on w32, but Emacs
-   crashes on startup and none of the multi-tty features are
-   implemented. Many XXX comments mark things that probably need
-   updating, ChangeLogs will help in spotting changes to X specific
-   files that may need porting.
+** Implement Mac/Windows/DOS support.  Many XXX comments mark things
+   that probably need updating, ChangeLogs will help in spotting
+   changes to X specific files that may need porting.
 
 ** Do a grep on XXX and ?? for more issues.
 
@@ -1085,18 +1052,6 @@ DIARY OF CHANGES
 
    (Done.)
 
--- Miles Bader suggests that C-x C-c on an emacsclient frame should
-   only close the frame, not exit the entire Emacs session.  Update:
-   see above for a function that does this.  Maybe this should be the
-   new default?
-
-   (Done.  This is the new default.  No complaints so far.)
-
--- Clean up the frame-local variable system.  I think it's ugly and
-   error-prone.  But maybe I just haven't yet fully understood it.
-
-   (Nothing to do.  It doesn't seem ugly any more.  It's rather clever.)
-
 -- Support multiple character locales.  A version of
    `set-locale-environment' needs to be written for setting up
    display-local settings on ttys.  I think calling
@@ -1113,18 +1068,6 @@ DIARY OF CHANGES
 
    (Done, by making `function-key-map' terminal-local (i.e., part of
    struct kboard).  This has probably covered all the remaining problems.)
-
--- Make `function-key-map' and `key-translation-map' terminal-local.
-
-   (Done.)
-
--- Implement `terminal-local-value' and `set-terminal-local-value' to
-   allow deterministic access to terminal local bindings.  The
-   encode-kb package can not set up `key-translation-map' without
-   these.  The terminal-local bindings seem to be independent of what
-   frame is selected.
-
-   (Done.)
 
 -- xt-mouse.el needs to be adapted for multi-tty.  It currently
    signals an error on kill-emacs under X, which prevents the user

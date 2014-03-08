@@ -30,7 +30,7 @@
 (require 'dired)
 
 (defgroup find-dired nil
-  "Run a `find' command and dired the output."
+  "Run a `find' command and Dired the output."
   :group 'dired
   :prefix "find-")
 
@@ -234,7 +234,7 @@ use in place of \"-ls\" as the final argument."
 ;;;###autoload
 (defun find-name-dired (dir pattern)
   "Search DIR recursively for files matching the globbing pattern PATTERN,
-and run dired on those files.
+and run Dired on those files.
 PATTERN is a shell wildcard (not an Emacs regexp) and need not be quoted.
 The default command run (after changing into DIR) is
 

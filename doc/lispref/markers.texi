@@ -344,10 +344,12 @@ specify the insertion type, create them with insertion type
 @section Moving Marker Positions
 
   This section describes how to change the position of an existing
-marker.  When you do this, be sure you know whether the marker is used
-outside of your program, and, if so, what effects will result from
-moving it---otherwise, confusing things may happen in other parts of
-Emacs.
+marker.  When you do this, be sure you know how the marker is used
+outside of your program.  For example, moving a marker to an unrelated
+new position can cause undo to later adjust the marker incorrectly.
+Often when you wish to relocate a marker to an unrelated position, it
+is preferable to make a new marker and set the prior one to point
+nowhere.
 
 @defun set-marker marker position &optional buffer
 This function moves @var{marker} to @var{position}

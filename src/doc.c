@@ -1,7 +1,6 @@
 /* Record indices of function doc strings stored in a file.
 
-Copyright (C) 1985-1986, 1993-1995, 1997-2014 Free Software Foundation,
-Inc.
+Copyright (C) 1985-1986, 1993-1995, 1997-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -559,6 +558,12 @@ the same file name is found in the `doc-directory'.  */)
   char *p, *name;
   bool skip_file = 0;
   ptrdiff_t count;
+  /* Preloaded defcustoms using custom-initialize-delay are added to
+     this list, but kept unbound.  See http://debbugs.gnu.org/11565  */
+  Lisp_Object delayed_init =
+    find_symbol_value (intern ("custom-delayed-init-variables"));
+
+  if (EQ (delayed_init, Qunbound)) delayed_init = Qnil;
 
   CHECK_STRING (filename);
 
@@ -656,7 +661,8 @@ the same file name is found in the `doc-directory'.  */)
 		  /* Install file-position as variable-documentation property
 		     and make it negative for a user-variable
 		     (doc starts with a `*').  */
-                  if (!NILP (Fboundp (sym)))
+                  if (!NILP (Fboundp (sym))
+                      || !NILP (Fmemq (sym, delayed_init)))
                     Fput (sym, Qvariable_documentation,
                           make_number ((pos + end + 1 - buf)
                                        * (end[1] == '*' ? -1 : 1)));

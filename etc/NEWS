@@ -24,16 +24,24 @@ otherwise leave it unmarked.
 
 * Installation Changes in Emacs 24.4
 
+---
 ** Emacs can now be compiled with ACL support.
 This happens by default if a suitable support library is found at
 build time, like libacl on GNU/Linux.  To prevent this, use the
-configure option `--disable-acl'.
+configure option `--disable-acl'.  See below for related features.
 
+---
 ** Emacs can now be compiled with file notification support.
 This happens by default if a suitable system library is found at
 build time.  To prevent this, use the configure option
 `--without-file-notification'.  See below for file-notify features.
-FIXME?  This feature is not available for the Nextstep port. (?)
+This feature is not available for the Nextstep port.
+
+---
+** Emacs can now be compiled with zlib support.
+This happens by default if zlib is present, which it normally is.
+To prevent this, use the configure option `--without-zlib'.
+This provides the function `zlib-decompress-region'; see below for details.
 
 ---
 ** The configure option `--without-compress-info' has been generalized,
@@ -48,14 +56,9 @@ It is no longer needed, as the crt*.o files are no longer linked specially.
 ** Directories passed to configure option `--enable-locallisppath' are
 no longer created during installation.
 
-** Emacs can be compiled with zlib support.
-If this library is present (which it normally is on most systems), the
-function `zlib-decompress-region' becomes available, which can
-decompress gzip- and zlib-format compressed data.
-
 ---
 ** Emacs for NS (Mac OS X, GNUstep) can be built with ImageMagick support.
-This requires pkg-config to be available at configure time.
+This requires pkg-config to be available at build time.
 
 
 * Startup Changes in Emacs 24.4
@@ -89,6 +92,10 @@ to set up the initial buffer.
 * Changes in Emacs 24.4
 
 +++
+** New function `zlib-decompress-region', which decompresses gzip- and
+zlib-format compressed data using built-in zlib support, if available.
+
++++
 ** New option `gnutls-verify-error', if non-nil, means that Emacs
 should reject SSL/TLS certificates that GnuTLS determines as invalid.
 (This option defaults to nil at present, but this is expected to change
@@ -116,25 +123,30 @@ a new major mode, with read-only status.  Any code that might create
 the *Messages* buffer should call the function `messages-buffer' to do
 so and set up the mode.
 
-** Emacs now supports ACLs (access control lists).
++++
+** Emacs can now support ACLs (access control lists).
+This requires a suitable support library to be found at build time.
+On GNU/Linux, the POSIX ACL interface is used via libacl.
+On MS-Windows, the NT Security APIs are used to emulate the POSIX interface.
+
 +++
 *** Emacs preserves the ACL entries of files when backing up.
 +++
 *** New functions `file-acl' and `set-file-acl' get and set the ACL
-entries of a file.  On GNU/Linux, the POSIX ACL interface is used via
-libacl.  On MS-Windows, the NT Security APIs are used to emulate the
-POSIX ACL interfaces.
+entries of a file.
 
 ** Multi-monitor support has been added.
 
++++
 *** New functions `display-monitor-attributes-list' and
 `frame-monitor-attributes' can be used to obtain information about
 each physical monitor on multi-monitor setups.
 
++++
 *** The functions `display-pixel-width' and `display-pixel-height' now
 behave consistently among the platforms: they return the pixel width
 or height for all physical monitors associated with the given display
-as if they were on X11.  To get information for each physical
+as if they were on X.  To get information for each physical
 monitor, use the new functions above.  Similar notes also apply to
 `x-display-pixel-width', `x-display-pixel-height', `display-mm-width',
 `display-mm-height', `x-display-mm-width', and `x-display-mm-height'.
@@ -159,6 +171,7 @@ non-nil, they output the same results.
 +++
 *** The key `?' now describes prefix bindings, like `C-h'.
 
+---
 *** The command `describe-function' has been extended for EIEIO.
 Running it on constructors will show a full description of the
 generated class.  For generic functions, it will show all
@@ -184,6 +197,12 @@ content-type that is found in the new variable `image-format-suffixes'.
 ** Frame and window changes
 
 +++
+*** The function `window-in-direction' introduced in Emacs 24.1 now
+takes additional arguments for specifying a reference point, wrapping
+selection around frame borders, and specifying ways to select the
+minibuffer window.
+
++++
 *** New commands `toggle-frame-fullscreen' and `toggle-frame-maximized',
 bound to <f11> and M-<f10>, respectively.
 
@@ -191,16 +210,63 @@ bound to <f11> and M-<f10>, respectively.
 *** New hooks `focus-in-hook', `focus-out-hook'.
 These are normal hooks run when an Emacs frame gains or loses input focus.
 
----
-*** Emacs can now draw dividers between adjacent windows.
-To put dividers between side-by-side/vertically stacked windows
-customize the frame parameter `right-divider-width'/`bottom-divider-width'
-to some positive integer.  You can drag dividers with the mouse
-(they show a corresponding cursor when the mouse hovers over them).
-You can change the appearance of dividers by customizing the faces
-`window-divider', `window-divider-first-pixel', and
-`window-divider-last-pixel'.  The last two are useful to provide a 3D
-effect, or to better distinguish dividers from surrounding display objects.
+*** Emacs can now change frame sizes in units of pixels, rather than
+text rows or columns.  When maximizing a frame or making it fullscreen,
+remaining extra pixels are no longer given to the minibuffer, the rightmost
+fringe, or other unusable space, but are distributed among the text
+areas of the frame's windows.  If the new option `frame-resize-pixelwise'
+is non-nil, all frame size changes happen pixelwise and set the
+corresponding size hints for the window manager.
+
+*** Emacs can now change window sizes in units of pixels.
+Mouse-dragging a mode line or window divider now changes the size of
+adjacent windows pixelwise.  If the new option `window-resize-pixelwise'
+is non-nil, functions like `balance-windows-area' and `fit-window-to-buffer'
+resize windows pixelwise.  Most functions for changing or accessing
+window sizes now have an additional argument that allows changes to apply,
+or values to be returned, in pixels instead of lines/columns.
+
++++
+*** The functions `window-body-height' and `window-body-width' now never
+count partially visible lines or columns if called with a nil PIXELWISE
+argument.
+
+*** Emacs can now draw dividers between adjacent windows.  To put
+dividers between side-by-side/vertically stacked windows customize the
+frame parameters `right-divider-width' and `bottom-divider-width' to
+some positive integer.  You can drag dividers with the mouse (they show
+a corresponding cursor when the mouse hovers over them).  You can change
+the appearance of dividers by customizing the faces `window-divider',
+`window-divider-first-pixel', and `window-divider-last-pixel'.  The last
+two are useful to provide a 3D effect, or to better distinguish dividers
+from surrounding display objects.
+
+*** New functions are provided to return the pixel sizes of window
+components, namely `window-scroll-bar-width', `window-mode-line-height'
+`window-header-line-height', `window-right-divider-width' and
+`window-bottom-divider-width'.
+
+*** The new function `window-text-pixel-size' returns the size of the
+text of a window's buffer in pixels.  This allows functions like
+`fit-frame-to-buffer' and `fit-window-to-buffer' to accurately fit a
+window to its buffer as it will be displayed.
+
+*** `fit-window-to-buffer' can now resize windows in both dimensions.
+This behavior is controlled by the new option
+`fit-window-to-buffer-horizontally'.  The new option
+`fit-frame-to-buffer' allows to fit the window's frame to its buffer.
+
+*** `fit-frame-to-buffer' now fits frames in both dimensions.  The new
+options `fit-frame-to-buffer-margins' and `fit-frame-to-buffer-sizes'
+control the size of the frame and its position on screen.
+
+*** Temp Buffer Resize Mode can now adjust height and width of windows
+and frames.  `temp-buffer-resize-mode' is now able to adjust the height
+and the width of a window displaying a temporary buffer.  The new option
+`temp-buffer-max-width' allows to control the width of temporary buffer
+windows.  Moreover, if the new option `fit-frame-to-buffer' is non-nil
+and the buffer appears in the root window of a frame, Temp Buffer Resize
+Mode will try to adjust width and/or height of the frame.
 
 ---
 *** `split-window' is now a non-interactive function, not a command.
@@ -209,10 +275,35 @@ and as such superfluous.  After being reimplemented in Lisp, its
 interactive form was mistakenly retained.
 
 +++
+*** The functions `window-size' and `window-total-size' now have an
+optional argument to return a rounded size value.
+
++++
+*** `window-state-put' now allows to put a window state into internal
+windows too.
+
++++
 *** New option `scroll-bar-adjust-thumb-portion'.
 Available only on X, this option allows to control over-scrolling
 using the scroll bar (i.e. dragging the thumb down even when the end
 of the buffer is visible).
+
++++
+*** New basic action function `display-buffer-in-previous-window' has
+`display-buffer' display a buffer in a window previously showing that
+buffer.
+
++++
+*** New basic action function `display-buffer-at-bottom' has
+`display-buffer' choose or make a window at the bottom of the selected
+frame.
+
+*** New display action function `display-buffer-no-window' to not
+display the buffer in a window.
+
+*** New display action alist entry `allow-no-window' to indicate the
+caller of `display-buffer' is ready to handle the case of not
+displaying the buffer in a window.
 
 ** Lisp evaluation changes
 +++
@@ -244,18 +335,13 @@ There is no reason to set this to nil except for debugging purposes.
 This unfinished feature was introduced by accident in Emacs 23.1;
 simply disabling Transient Mark mode does the same thing.
 
+---
 ** The default value of `comment-use-global-state' is now t,
 and this variable has been marked obsolete.
 
 ---
 ** `emacs-bzr-version' has been renamed to `emacs-repository-version',
 and works for git too, if you fetch the repository notes.
-
-** `read-regexp-defaults-function' defines a function to provide default
-values for reading regexps by commands like `rgrep', `lgrep' `occur',
-`highlight-regexp', etc.  You can customize this to specify a function
-that provides a default value from the regexp last history element,
-or from the symbol found at point.
 
 +++
 ** New option `load-prefer-newer' affects how the `load' function chooses
@@ -269,14 +355,16 @@ means to always load the .elc file.
 
 ** Indentation changes
 
+*** `electric-indent-mode' is now enabled by default.
+E.g., typing RET reindents the current line and indents the new line.
+`C-j' inserts a newline but does not indent.
+
 +++
 *** The behavior of `C-x TAB' (`indent-rigidly') has changed.
 When invoked without a prefix argument, it now activates a transient
 mode in which typing <left>, <right>, <S-left>, and <S-right> adjusts
 the text indentation in the region.  Typing any other key resumes
 normal editing behavior.
-
-*** `electric-indent-mode' is enabled by default.
 
 +++
 *** `tab-stop-list' is now implicitly extended to infinity by repeating
@@ -296,6 +384,7 @@ conventions.  To use it, add it to the `fill-nobreak-predicate' hook.
 +++
 ** Uniquify is enabled by default, with `post-forward-angle-brackets' style.
 
++++
 ** New command `C-x SPC' (`rectangle-mark-mode') makes a rectangular region.
 Most commands are still unaware of it, but kill/yank do work on the rectangle.
 
@@ -315,6 +404,7 @@ that summarizes existing registers.  To disable this, set that option to nil.
 Interactive commands that read registers and want to make use of this
 should use `register-read-with-preview' to read register names.
 
++++
 *** New command `frameset-to-register' bound to `C-x r f', replacing
 `frame-configuration-to-register'.  It offers similar functionality,
 plus enhancements like the ability to restore deleted frames.
@@ -361,6 +451,7 @@ Also the following files used by the now obsolete otodo-mode.el:
 *** New Lisp debugger command `v' (`debugger-toggle-locals') toggles the
 display of local variables of the current stack frame.
 
++++
 *** The Lisp debugger's `e' command (`debugger-eval-expression') now includes
 the lexical environment when evaluating the code in the context at point
 (and so allows you to access lexical variables).
@@ -444,6 +535,7 @@ This executes statements while allowing for control transfer to labels.
 
 ** CUA mode
 
++++
 *** CUA mode now uses `delete-selection-mode' and `shift-select-mode'.
 Hence, you can now enable it independently from those modes, and from
 `transient-mark-mode'.
@@ -452,7 +544,9 @@ Hence, you can now enable it independently from those modes, and from
 *** `cua-highlight-region-shift-only' is now obsolete.
 You can disable `transient-mark-mode' to get the same result.
 
-*** CUA's rectangles can now be used via `cua-rectangle-mark-mode'.
++++
+*** CUA's rectangles can now be used without CUA by calling the command
+`cua-rectangle-mark-mode'.
 
 ** CFEngine mode
 
@@ -469,9 +563,12 @@ if your version doesn't support that option.  See option `cfengine-cf-promises'.
 
 ** Desktop
 
-*** `desktop-auto-save-timeout' defines the number of seconds idle time
-before auto-save of the desktop.
++++
+*** `desktop-save-mode' by default now auto-saves an existing desktop file
+after `desktop-auto-save-timeout'.  To disable this, customize that option
+to nil (or zero).
 
++++
 *** `desktop-restore-frames', enabled by default, allows saving and
 restoring the frame/window configuration (frameset).  Additional options
 `desktop-restore-in-current-display', `desktop-restore-reuses-frames'
@@ -488,6 +585,7 @@ The results display in the mode line.
 
 ** Electric Pair mode
 
++++
 *** New option `electric-pair-preserve-balance', enabled by default.
 If non-nil, pairing/skipping only kicks in when that help the balance
 of parentheses and quotes, i.e. the buffer should end up at least as
@@ -496,21 +594,25 @@ balanced as before.
 You can further control this behavior by adjusting the predicates
 stored in `electric-pair-inhibit-predicate' and `electric-pair-skip-self'.
 
++++
 *** New option `electric-pair-delete-adjacent-pairs', enabled by default.
 In `electric-pair-mode', the commands `backward-delete-char' and
 `backward-delete-char-untabify' are now bound to electric variants
 that delete the closer when invoked between adjacent pairs.
 
++++
 *** New option `electric-pair-open-newline-between-pairs', enabled by default.
 In `electric-pair-mode', inserting a newline between adjacent pairs
 opens an extra newline after point, which is indented if
 `electric-indent-mode' is also set.
 
++++
 *** New option `electric-pair-skip-whitespace', enabled by default.
 This controls if skipping over closing delimiters should jump over any
 whitespace slack.  Setting it to `chomp' makes it delete this
 whitespace.  See also the variable `electric-pair-skip-whitespace-chars'.
 
+---
 *** New variables control the pairing in strings and comments.
 You can customize `electric-pair-text-pairs' and
 `electric-pair-text-syntax-table' to tweak pairing behavior inside
@@ -626,6 +728,7 @@ the symbol found near point.
 *** New option `hi-lock-auto-select-face'.  When non-nil, hi-lock commands
 will cycle through faces in `hi-lock-face-defaults' without prompting.
 
+---
 ** New Imenu option `imenu-generic-skip-comments-and-strings'.
 
 ** Info
@@ -658,7 +761,7 @@ are lined up to the first one.
 +++
 ** Octave mode
 
-*** Font locking for texinfo comments and new keywords.
+*** Font locking for Texinfo comments and new keywords.
 
 *** Completion in Octave file buffers.
 
@@ -689,7 +792,7 @@ Use `electric-indent-mode' instead.
 to filter the list of packages by a keyword.
 
 +++
-*** In the `describe-package' buffer, there are now buttons listing the 
+*** In the `describe-package' buffer, there are now buttons listing the
 keywords related to the package.  Click on a button to see other packages
 related to that keyword.
 
@@ -706,22 +809,19 @@ along with the non-SMIE indentation code.
 
 ** Remember
 
-*** The new command `remember-notes' creates a buffer that is saved on
-`kill-emacs'.  You can think of it as a *scratch* buffer whose content
-is preserved.  In fact, it was designed as a replacement for *scratch*
-buffer and can be used that way by setting `initial-buffer-choice' to
-`remember-notes' and `remember-notes-buffer-name' to "*scratch*".
-Without the second change, the *scratch* buffer will still be there
-for notes that do not need to be preserved.
++++
+*** The new command `remember-notes' creates a buffer that is saved on exit.
+You can use it as a more permanent *scratch* buffer.
 
-*** The Remember package can now store notes in separates files.
-You can use the new function `remember-store-in-files' within the
-`remember-handler-functions' option.  See `remember-data-directory'
-and `remember-directory-file-name-format' for new options related to
-this function.
++++
+*** Remember can now store notes in separate files.
+To use this, add `remember-store-in-files' to the `remember-handler-functions'
+option.  The files are saved in `remember-data-directory' using
+names specified by `remember-directory-file-name-format'.
 
 ** Rmail
 
++++
 *** Customize `rmail-mbox-format' to influence some minor aspects of
 how Rmail displays non-MIME messages.
 
@@ -763,10 +863,10 @@ symbol found near point added to the search string initially.
 *** `C-x 8 RET' in Isearch mode reads a character by its Unicode name
 and adds it to the search string.
 
-*** `M-s i' in Isearch mode toggles the variable `isearch-invisible'
-between nil and the value of the option `search-invisible' (or `open'
-when it's nil).
++++
+*** `M-s i' in Isearch mode toggles whether search matches invisible text.
 
++++
 *** `query-replace' skips invisible text when `search-invisible' is nil,
 and opens overlays with hidden text when `search-invisible' is `open'.
 
@@ -808,9 +908,32 @@ All non-ancient Bash versions support this option.
 ---
 *** `sh-mode' now has its own setting for `add-log-current-defun-function'.
 
-** SMIE indentation can be customized via `smie-config'.
-Emacs can learn the appropriate indentation settings if you provide it
-with an indented sample file.
+** SMIE
+
++++
+*** You can customize the SMIE indentation of a mode via `smie-config'.
+The command `smie-config-guess' can help you derive the appropriate
+indentation settings, if you provide it with an indented sample file.
+Use `smie-config-save' to save the result.
+
++++
+*** You can customize the SMIE indentation of a file by adding an entry to
+the file's local variables of the form: `eval: (smie-config-local '(RULES))'.
+
++++
+*** New commands `smie-config-show-indent' and `smie-config-set-indent'.
+
+---
+** SQL mode
+
+*** Improved login monitoring and appropriate response to login failures.
+New variable `sql-login-delay' defines maximum wait time for a connection.
+
+*** Oracle support.
+SQL*Plus script placeholders are properly highlighted and identified
+in `sql-placeholders-filter'.  When starting SQL*Plus, `sql-oracle-options'
+are passed before the logon parameter, as required.  The default now
+includes `-L', to limit the number of logon attempts per invocation.
 
 ---
 ** New Term mode option `term-suppress-hard-newline'.
@@ -990,8 +1113,8 @@ The new optional CHECK-TIMERS parameter allows for the prior behavior.
 ** `defvar' and `defcustom' in a let-binding affect the "external" default.
 
 ---
-** The syntax of ?Â» and ?Â« is now punctuation instead of matched parens.
-Some languages match those as Â»...Â«, and others as Â«...Â», so it is
+** The syntax of ?» and ?« is now punctuation instead of matched parens.
+Some languages match those as »...«, and others as «...», so it is
 better for Emacs to stay neutral by default.
 
 ---
@@ -1010,6 +1133,7 @@ errors.  You should either convert them to utf-8 or add an explicit
 It used to disable the minor mode, major mode, and text-property keymaps,
 whereas now it simply has higher precedence.
 
++++
 ** Default process filters and sentinels are not nil any more.
 Instead they default to a function that does what the nil value used to do.
 
@@ -1074,12 +1198,15 @@ treated as regexps rather than literal strings.
 +++
 ** New functions `special-form-p' and `macrop'.
 
++++
 ** New macro `define-alternatives' can be used to define generic commands.
 Generic commands are interactive functions whose implementation can be
 selected among several alternatives, as a matter of user preference.
 
-** The `defalias-fset-function' property lets you catch `defalias'
-calls, and redirect them to your own function, instead of `fset'.
++++
+** If you give a symbol a `defalias-fset-function' property, `defalias'
+on that symbol will use the associated value as a function to call
+in place of `fset'.
 
 +++
 ** New variable `enable-dir-local-variables'.
@@ -1090,26 +1217,36 @@ respecting file-local variables.
 +++
 ** New function `get-pos-property'.
 
++++
+** `read-regexp' now uses the new variable `read-regexp-defaults-function'
+as a function to call to provide default values.
+
 ** Completion changes
 
-*** The separator for `completing-read-multiple' can now be a regexp.
-The default separator has been changed to allow surrounding spaces
+---
+*** The separator used by `completing-read-multiple' is now a regexp.
+The default `crm-separator' has been changed to allow surrounding spaces
 around the comma.
 
-*** The `common-substring' arg of `display-completion-list' is obsolete.
-Either use `completion-all-completions', which returns highlighted
-strings (including for partial or substring completion), or call
-`completion-hilit-commonality' to add the highlight.
++++
+*** The `common-substring' argument of `display-completion-list',
+which has been documented as obsolete since Emacs 23.1, is now _really_
+obsolete, and no longer advertised.  Instead either call
+`completion-hilit-commonality' to add the highlighting; or use
+`completion-all-completions', which returns highlighted strings.
 
++++
 *** New function `completion-table-with-cache' is a wrapper for
 `completion-table-dynamic' that caches the result of the last lookup.
 
++++
 *** New function `completion-table-merge' to combine several
 completion tables by merging their completions.
 
++++
 ** New minor modes `prettify-symbols-mode' and `global-prettify-symbols-mode'
-let you enable symbol prettification (replacing a string like "lambda" with
-the Greek lambda character).
+display specified symbols as composed characters.  E.g., in Emacs Lisp mode,
+this replaces the string "lambda" with the Greek lambda character.
 
 ** Terminal changes
 
@@ -1122,17 +1259,14 @@ The function `display-popup-menus-p' will now return non-nil for a
 display or frame whenever a mouse is supported on that display or
 frame.
 
-*** New hook `tty-setup-hook'.
++++
+*** New hook `tty-setup-hook', run at the end of initializing a text terminal.
 
-** Window Handling
++++
+*** The hook `term-setup-hook' is obsolete.  It is entirely equivalent
+to `emacs-startup-hook'.  See also the new `tty-setup-hook'.
 
-*** New display action function `display-buffer-no-window' to not
-display the buffer in a window.
-
-*** New display action alist entry `allow-no-window' to indicate the
-caller of `display-buffer' is ready to handle the case of not
-displaying the buffer in a window.
-
++++
 ** New hook `pre-redisplay-function'.
 
 +++
@@ -1187,6 +1321,7 @@ This is like the old `eval-after-load', but better behaved.
 *** `generic-make-keywords-list'
 *** `get-upcase-table' (use `case-table-get-table' instead).
 
++++
 ** `with-wrapper-hook' is obsoleted by `add-function'.
 The few hooks that used with-wrapper-hook are replaced as follows:
 *** `abbrev-expand-function' obsoletes `abbrev-expand-functions'.
@@ -1253,6 +1388,7 @@ of remote files when set to non-nil.
 
 ** Face changes
 
++++
 *** The function `face-spec-set' is now like `setq' for face specs.
 Its third arg now accepts values specifying a face spec type (defface,
 custom, or override spec), and the relevant spec is set accordingly.
@@ -1261,9 +1397,14 @@ custom, or override spec), and the relevant spec is set accordingly.
 *** New function `add-face-text-property', which can be used to
 conveniently prepend/append new face properties.
 
+---
 *** Face specs set via Custom themes now replace the `defface' spec
-rather than inheriting from it (as do face specs set via Customize).
+rather than inheriting from it.  In other words, setting a face via a
+theme now behaves like setting it via Customize: you only need to
+specify the attributes that you want, you don't need to unset those
+that you don't want.
 
+---
 *** New face characteristic (supports :underline (:style wave))
 specifies whether or not the terminal can display a wavy line.
 

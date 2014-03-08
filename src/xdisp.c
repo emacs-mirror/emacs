@@ -2419,7 +2419,13 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 	    }
 
 	  if (part != ON_MODE_LINE && part != ON_HEADER_LINE)
-	    gx += window_box_left_offset (w, area);
+	    {
+	      gx += window_box_left_offset (w, area);
+	      /* Don't expand over the modeline to make sure the vertical
+		 drag cursor is shown early enough.  */
+	      height = min (height,
+			    max (0, WINDOW_BOX_HEIGHT_NO_MODE_LINE (w) - gy));
+	    }
 	}
       else
 	{
@@ -2427,6 +2433,10 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 	  gx = (x / width) * width;
 	  y -= gy;
 	  gy += (y / height) * height;
+	  if (part != ON_MODE_LINE && part != ON_HEADER_LINE)
+	    /* See comment above.  */
+	    height = min (height,
+			  max (0, WINDOW_BOX_HEIGHT_NO_MODE_LINE (w) - gy));
 	}
       break;
 
@@ -2441,7 +2451,22 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
       gx = (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
 	    ? window_box_right_offset (w, RIGHT_MARGIN_AREA)
 	    : window_box_right_offset (w, TEXT_AREA));
-      width = WINDOW_RIGHT_FRINGE_WIDTH (w);
+      if (WINDOW_RIGHT_DIVIDER_WIDTH (w) == 0
+	  && !WINDOW_HAS_VERTICAL_SCROLL_BAR (w)
+	  && !WINDOW_RIGHTMOST_P (w))
+	if (gx < WINDOW_PIXEL_WIDTH (w) - width)
+	  /* Make sure the vertical border can get her own glyph to the
+	     right of the one we build here.  */
+	  width = WINDOW_RIGHT_FRINGE_WIDTH (w) - width;
+	else
+	  width = WINDOW_PIXEL_WIDTH (w) - gx;
+      else
+	width = WINDOW_RIGHT_FRINGE_WIDTH (w);
+
+      goto row_glyph;
+
+    case ON_VERTICAL_BORDER:
+      gx = WINDOW_PIXEL_WIDTH (w) - width;
       goto row_glyph;
 
     case ON_SCROLL_BAR:
@@ -2472,6 +2497,21 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 	}
       break;
 
+    case ON_RIGHT_DIVIDER:
+      gx = WINDOW_PIXEL_WIDTH (w) - WINDOW_RIGHT_DIVIDER_WIDTH (w);
+      width = WINDOW_RIGHT_DIVIDER_WIDTH (w);
+      gy = 0;
+      /* The bottom divider prevails. */
+      height = WINDOW_PIXEL_HEIGHT (w) - WINDOW_BOTTOM_DIVIDER_WIDTH (w);
+      goto add_edge;;
+
+    case ON_BOTTOM_DIVIDER:
+      gx = 0;
+      width = WINDOW_PIXEL_WIDTH (w);
+      gy = WINDOW_PIXEL_HEIGHT (w) - WINDOW_BOTTOM_DIVIDER_WIDTH (w);
+      height = WINDOW_BOTTOM_DIVIDER_WIDTH (w);
+      goto add_edge;
+
     default:
       ;
     virtual_glyph:
@@ -2492,6 +2532,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
       goto store_rect;
     }
 
+ add_edge:
   gx += WINDOW_LEFT_EDGE_X (w);
   gy += WINDOW_TOP_EDGE_Y (w);
 
@@ -2928,7 +2969,7 @@ init_iterator (struct it *it, struct window *w,
       /* If we have a boxed mode line, make the first character appear
 	 with a left box line.  */
       face = FACE_FROM_ID (it->f, remapped_base_face_id);
-      if (face->box != FACE_NO_BOX)
+      if (face && face->box != FACE_NO_BOX)
 	it->start_of_box_run_p = true;
     }
 
@@ -3913,6 +3954,15 @@ handle_face_prop (struct it *it)
 	     For strings from wrap-prefix and line-prefix properties,
 	     use the default face, possibly remapped via
 	     Vface_remapping_alist.  */
+	  /* Note that the fact that we use the face at _buffer_
+	     position means that a 'display' property on an overlay
+	     string will not inherit the face of that overlay string,
+	     but will instead revert to the face of buffer text
+	     covered by the overlay.  This is visible, e.g., when the
+	     overlay specifies a box face, but neither the buffer nor
+	     the display string do.  This sounds like a design bug,
+	     but Emacs always did that since v21.1, so changing that
+	     might be a big deal.  */
 	  base_face_id = it->string_from_prefix_prop_p
 	    ? (!NILP (Vface_remapping_alist)
 	       ? lookup_basic_face (it->f, DEFAULT_FACE_ID)
@@ -5946,7 +5996,16 @@ pop_it (struct it *it)
       it->object = it->w->contents;
       break;
     case GET_FROM_STRING:
-      it->object = it->string;
+      {
+	struct face *face = FACE_FROM_ID (it->f, it->face_id);
+
+	/* Restore the face_box_p flag, since it could have been
+	   overwritten by the face of the object that we just finished
+	   displaying.  */
+	if (face)
+	  it->face_box_p = face->box != FACE_NO_BOX;
+	it->object = it->string;
+      }
       break;
     case GET_FROM_DISPLAY_VECTOR:
       if (it->s)
@@ -7033,21 +7092,44 @@ get_next_display_element (struct it *it)
 		 If this is the last string character displayed, check
 		 the next buffer location.  */
 	      else if ((IT_STRING_CHARPOS (*it) >= SCHARS (it->string) - 1)
-		       && (it->current.overlay_string_index
-			   == it->n_overlay_strings - 1))
+		       /* n_overlay_strings is unreliable unless
+			  overlay_string_index is non-negative.  */
+		       && ((it->current.overlay_string_index >= 0
+			    && (it->current.overlay_string_index
+				== it->n_overlay_strings - 1))
+			   /* A string from display property.  */
+			   || it->from_disp_prop_p))
 		{
 		  ptrdiff_t ignore;
 		  int next_face_id;
 		  struct text_pos pos = it->current.pos;
-		  INC_TEXT_POS (pos, it->multibyte_p);
 
-		  next_face_id = face_at_buffer_position
-		    (it->w, CHARPOS (pos), &ignore,
-		     (IT_CHARPOS (*it) + TEXT_PROP_DISTANCE_LIMIT), 0,
-		     -1);
-		  it->end_of_box_run_p
-		    = (FACE_FROM_ID (it->f, next_face_id)->box
-		       == FACE_NO_BOX);
+		  /* For a string from a display property, the next
+		     buffer position is stored in the 'position'
+		     member of the iteration stack slot below the
+		     current one, see handle_single_display_spec.  By
+		     contrast, it->current.pos was is not yet updated
+		     to point to that buffer position; that will
+		     happen in pop_it, after we finish displaying the
+		     current string.  Note that we already checked
+		     above that it->sp is positive, so subtracting one
+		     from it is safe.  */
+		  if (it->from_disp_prop_p)
+		    pos = (it->stack + it->sp - 1)->position;
+		  else
+		    INC_TEXT_POS (pos, it->multibyte_p);
+
+		  if (CHARPOS (pos) >= ZV)
+		    it->end_of_box_run_p = true;
+		  else
+		    {
+		      next_face_id = face_at_buffer_position
+			(it->w, CHARPOS (pos), &ignore,
+			 CHARPOS (pos) + TEXT_PROP_DISTANCE_LIMIT, 0, -1);
+		      it->end_of_box_run_p
+			= (FACE_FROM_ID (it->f, next_face_id)->box
+			   == FACE_NO_BOX);
+		    }
 		}
 	    }
 	}
@@ -8313,7 +8395,7 @@ move_it_in_display_line_to (struct it *it,
   void *ppos_data = NULL;
   int may_wrap = 0;
   enum it_method prev_method = it->method;
-  ptrdiff_t prev_pos = IT_CHARPOS (*it);
+  ptrdiff_t closest_pos IF_LINT (= 0), prev_pos = IT_CHARPOS (*it);
   int saw_smaller_pos = prev_pos < to_charpos;
 
   /* Don't produce glyphs in produce_glyphs.  */
@@ -8330,16 +8412,21 @@ move_it_in_display_line_to (struct it *it,
   atx_it.sp = -1;
 
   /* Use ppos_it under bidi reordering to save a copy of IT for the
-     position > CHARPOS that is the closest to CHARPOS.  We restore
-     that position in IT when we have scanned the entire display line
-     without finding a match for CHARPOS and all the character
-     positions are greater than CHARPOS.  */
+     initial position.  We restore that position in IT when we have
+     scanned the entire display line without finding a match for
+     TO_CHARPOS and all the character positions are greater than
+     TO_CHARPOS.  We then restart the scan from the initial position,
+     and stop at CLOSEST_POS, which is a position > TO_CHARPOS that is
+     the closest to TO_CHARPOS.  */
   if (it->bidi_p)
     {
-      SAVE_IT (ppos_it, *it, ppos_data);
-      SET_TEXT_POS (ppos_it.current.pos, ZV, ZV_BYTE);
       if ((op & MOVE_TO_POS) && IT_CHARPOS (*it) >= to_charpos)
-	SAVE_IT (ppos_it, *it, ppos_data);
+	{
+	  SAVE_IT (ppos_it, *it, ppos_data);
+	  closest_pos = IT_CHARPOS (*it);
+	}
+      else
+	closest_pos = ZV;
     }
 
 #define BUFFER_POS_REACHED_P()					\
@@ -8483,8 +8570,8 @@ move_it_in_display_line_to (struct it *it,
 	  if (it->bidi_p
 	      && (op & MOVE_TO_POS)
 	      && IT_CHARPOS (*it) > to_charpos
-	      && IT_CHARPOS (*it) < IT_CHARPOS (ppos_it))
-	    SAVE_IT (ppos_it, *it, ppos_data);
+	      && IT_CHARPOS (*it) < closest_pos)
+	    closest_pos = IT_CHARPOS (*it);
 	  continue;
 	}
 
@@ -8564,7 +8651,12 @@ move_it_in_display_line_to (struct it *it,
 			 doesn't fit on the line, e.g. a wide image.  */
 		      it->hpos == 0
 		      || (new_x == it->last_visible_x
-			  && FRAME_WINDOW_P (it->f)))
+			  && FRAME_WINDOW_P (it->f)
+			  /* When word-wrap is ON and we have a valid
+			     wrap point, we don't allow the last glyph
+			     to "just barely fit" on the line.  */
+			  && (it->line_wrap != WORD_WRAP
+			      || wrap_it.sp < 0)))
 		    {
 		      ++it->hpos;
 		      it->current_x = new_x;
@@ -8706,9 +8798,11 @@ move_it_in_display_line_to (struct it *it,
 	    {
 	      if (!saw_smaller_pos && IT_CHARPOS (*it) > to_charpos)
 		{
-		  if (IT_CHARPOS (ppos_it) < ZV)
+		  if (closest_pos < ZV)
 		    {
 		      RESTORE_IT (it, &ppos_it, ppos_data);
+		      move_it_in_display_line_to (it, closest_pos, -1,
+						  MOVE_TO_POS);
 		      result = MOVE_POS_MATCH_OR_ZV;
 		    }
 		  else
@@ -8738,8 +8832,8 @@ move_it_in_display_line_to (struct it *it,
       if (it->bidi_p
 	  && (op & MOVE_TO_POS)
 	  && IT_CHARPOS (*it) >= to_charpos
-	  && IT_CHARPOS (*it) < IT_CHARPOS (ppos_it))
-	SAVE_IT (ppos_it, *it, ppos_data);
+	  && IT_CHARPOS (*it) < closest_pos)
+	closest_pos = IT_CHARPOS (*it);
 
       /* Stop if lines are truncated and IT's current x-position is
 	 past the right edge of the window now.  */
@@ -8765,8 +8859,13 @@ move_it_in_display_line_to (struct it *it,
 		      && IT_CHARPOS (*it) > to_charpos))
 		{
 		  if (it->bidi_p
-		      && !at_eob_p && IT_CHARPOS (ppos_it) < ZV)
-		    RESTORE_IT (it, &ppos_it, ppos_data);
+		      && !BUFFER_POS_REACHED_P ()
+		      && !at_eob_p && closest_pos < ZV)
+		    {
+		      RESTORE_IT (it, &ppos_it, ppos_data);
+		      move_it_in_display_line_to (it, closest_pos, -1,
+						  MOVE_TO_POS);
+		    }
 		  result = MOVE_POS_MATCH_OR_ZV;
 		  break;
 		}
@@ -8780,8 +8879,11 @@ move_it_in_display_line_to (struct it *it,
 		   && !saw_smaller_pos
 		   && IT_CHARPOS (*it) > to_charpos)
 	    {
-	      if (IT_CHARPOS (ppos_it) < ZV)
-		RESTORE_IT (it, &ppos_it, ppos_data);
+	      if (closest_pos < ZV)
+		{
+		  RESTORE_IT (it, &ppos_it, ppos_data);
+		  move_it_in_display_line_to (it, closest_pos, -1, MOVE_TO_POS);
+		}
 	      result = MOVE_POS_MATCH_OR_ZV;
 	      break;
 	    }
@@ -15470,29 +15572,32 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		  /* As soon as we've found the exact match for point,
 		     or the first suitable row whose ends_at_zv_p flag
 		     is set, we are done.  */
-		  at_zv_p =
-		    MATRIX_ROW (w->current_matrix, w->cursor.vpos)->ends_at_zv_p;
-		  if (rv && !at_zv_p
-		      && w->cursor.hpos >= 0
-		      && w->cursor.hpos < MATRIX_ROW_USED (w->current_matrix,
-							   w->cursor.vpos))
+		  if (rv)
 		    {
-		      struct glyph_row *candidate =
-			MATRIX_ROW (w->current_matrix, w->cursor.vpos);
-		      struct glyph *g =
-			candidate->glyphs[TEXT_AREA] + w->cursor.hpos;
-		      ptrdiff_t endpos = MATRIX_ROW_END_CHARPOS (candidate);
+		      at_zv_p = MATRIX_ROW (w->current_matrix,
+					    w->cursor.vpos)->ends_at_zv_p;
+		      if (!at_zv_p
+			  && w->cursor.hpos >= 0
+			  && w->cursor.hpos < MATRIX_ROW_USED (w->current_matrix,
+							       w->cursor.vpos))
+			{
+			  struct glyph_row *candidate =
+			    MATRIX_ROW (w->current_matrix, w->cursor.vpos);
+			  struct glyph *g =
+			    candidate->glyphs[TEXT_AREA] + w->cursor.hpos;
+			  ptrdiff_t endpos = MATRIX_ROW_END_CHARPOS (candidate);
 
-		      exact_match_p =
-			(BUFFERP (g->object) && g->charpos == PT)
-			|| (INTEGERP (g->object)
-			    && (g->charpos == PT
-				|| (g->charpos == 0 && endpos - 1 == PT)));
-		    }
-		  if (rv && (at_zv_p || exact_match_p))
-		    {
-		      rc = CURSOR_MOVEMENT_SUCCESS;
-		      break;
+			  exact_match_p =
+			    (BUFFERP (g->object) && g->charpos == PT)
+			    || (INTEGERP (g->object)
+				&& (g->charpos == PT
+				    || (g->charpos == 0 && endpos - 1 == PT)));
+			}
+		      if (at_zv_p || exact_match_p)
+			{
+			  rc = CURSOR_MOVEMENT_SUCCESS;
+			  break;
+			}
 		    }
 		  if (MATRIX_ROW_BOTTOM_Y (row) == last_y)
 		    break;
@@ -20119,7 +20224,12 @@ display_line (struct it *it)
       /* If we truncate lines, we are done when the last displayed
 	 glyphs reach past the right margin of the window.  */
       if (it->line_wrap == TRUNCATE
-	  && (FRAME_WINDOW_P (it->f) && WINDOW_RIGHT_FRINGE_WIDTH (it->w)
+	  && ((FRAME_WINDOW_P (it->f)
+	       /* Images are preprocessed in produce_image_glyph such
+		  that they are cropped at the right edge of the
+		  window, so an image glyph will always end exactly at
+		  last_visible_x, even if there's no right fringe.  */
+	       && (WINDOW_RIGHT_FRINGE_WIDTH (it->w) || it->what == IT_IMAGE))
 	      ? (it->current_x >= it->last_visible_x)
 	      : (it->current_x > it->last_visible_x)))
 	{
@@ -20152,19 +20262,26 @@ display_line (struct it *it)
 		  i = row->used[TEXT_AREA] - (i + 1);
 		}
 
-	      it->current_x = x_before;
-	      if (!FRAME_WINDOW_P (it->f))
+	      /* produce_special_glyphs overwrites the last glyph, so
+		 we don't want that if we want to keep that last
+		 glyph, which means it's an image.  */
+	      if (it->current_x > it->last_visible_x)
 		{
-		  for (n = row->used[TEXT_AREA]; i < n; ++i)
+		  it->current_x = x_before;
+		  if (!FRAME_WINDOW_P (it->f))
+		    {
+		      for (n = row->used[TEXT_AREA]; i < n; ++i)
+			{
+			  row->used[TEXT_AREA] = i;
+			  produce_special_glyphs (it, IT_TRUNCATION);
+			}
+		    }
+		  else
 		    {
 		      row->used[TEXT_AREA] = i;
 		      produce_special_glyphs (it, IT_TRUNCATION);
 		    }
-		}
-	      else
-		{
-		  row->used[TEXT_AREA] = i;
-		  produce_special_glyphs (it, IT_TRUNCATION);
+		  it->hpos = hpos_before;
 		}
 	    }
 	  else if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
@@ -20183,13 +20300,13 @@ display_line (struct it *it)
 		  goto at_end_of_line;
 		}
 	      it->current_x = x_before;
+	      it->hpos = hpos_before;
 	    }
 
 	  row->truncated_on_right_p = 1;
 	  it->continuation_lines_width = 0;
 	  reseat_at_next_visible_line_start (it, 0);
 	  row->ends_at_zv_p = FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n';
-	  it->hpos = hpos_before;
 	  break;
 	}
     }
@@ -20203,9 +20320,12 @@ display_line (struct it *it)
       && IT_CHARPOS (*it) != CHARPOS (row->start.pos))
     {
       if (!FRAME_WINDOW_P (it->f)
-	  || (row->reversed_p
-	      ? WINDOW_RIGHT_FRINGE_WIDTH (it->w)
-	      : WINDOW_LEFT_FRINGE_WIDTH (it->w)) == 0)
+	  || (((row->reversed_p
+		? WINDOW_RIGHT_FRINGE_WIDTH (it->w)
+		: WINDOW_LEFT_FRINGE_WIDTH (it->w)) == 0)
+	      /* Don't let insert_left_trunc_glyphs overwrite the
+		 first glyph of the row if it is an image.  */
+	      && row->glyphs[TEXT_AREA]->type != IMAGE_GLYPH))
 	insert_left_trunc_glyphs (it);
       row->truncated_on_left_p = 1;
     }
@@ -20742,6 +20862,27 @@ Value is the new character position of point.  */)
 	      move_it_by_lines (&it, -1);
 	      target_x = it.last_visible_x - !FRAME_WINDOW_P (it.f);
 	      target_is_eol_p = true;
+	      /* Under word-wrap, we don't know the x coordinate of
+		 the last character displayed on the previous line,
+		 which immediately precedes the wrap point.  To find
+		 out its x coordinate, we try moving to the right
+		 margin of the window, which will stop at the wrap
+		 point, and then reset target_x to point at the
+		 character that precedes the wrap point.  This is not
+		 needed on GUI frames, because (see below) there we
+		 move from the left margin one grapheme cluster at a
+		 time, and stop when we hit the wrap point.  */
+	      if (!FRAME_WINDOW_P (it.f) && it.line_wrap == WORD_WRAP)
+		{
+		  void *it_data = NULL;
+		  struct it it2;
+
+		  SAVE_IT (it2, it, it_data);
+		  move_it_in_display_line_to (&it, ZV, target_x,
+					      MOVE_TO_POS | MOVE_TO_X);
+		  target_x = it.current_x - 1;
+		  RESTORE_IT (&it, &it2, it_data);
+		}
 	    }
 	}
       else
@@ -20780,7 +20921,12 @@ Value is the new character position of point.  */)
 	    new_pos = it.current.pos;
 
 	  while (it.current_x + it.pixel_width <= target_x
-		 && rc == MOVE_X_REACHED)
+		 && (rc == MOVE_X_REACHED
+		     /* Under word-wrap, move_it_in_display_line_to
+			stops at correct coordinates, but sometimes
+			returns MOVE_POS_MATCH_OR_ZV.  */
+		     || (it.line_wrap == WORD_WRAP
+			 && rc == MOVE_POS_MATCH_OR_ZV)))
 	    {
 	      int new_x = it.current_x + it.pixel_width;
 
@@ -28334,6 +28480,10 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
       /* Change the mouse pointer according to what is under it.  */
       if (FRAME_WINDOW_P (f))
 	{
+	  bool draggable = (! WINDOW_BOTTOMMOST_P (w)
+			    || minibuf_level
+			    || NILP (Vresize_mini_windows));
+
 	  dpyinfo = FRAME_DISPLAY_INFO (f);
 	  if (STRINGP (string))
 	    {
@@ -28350,11 +28500,11 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 		  map = Fget_text_property (pos, Qlocal_map, string);
 		  if (!KEYMAPP (map))
 		    map = Fget_text_property (pos, Qkeymap, string);
-		  if (!KEYMAPP (map))
+		  if (!KEYMAPP (map) && draggable)
 		    cursor = dpyinfo->vertical_scroll_bar_cursor;
 		}
 	    }
-	  else
+	  else if (draggable)
 	    /* Default mode-line pointer.  */
 	    cursor = FRAME_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
 	}
@@ -28598,10 +28748,15 @@ note_mouse_highlight (struct frame *f, int x, int y)
       help_echo_string = build_string ("drag-mouse-1: resize");
     }
   else if (part == ON_BOTTOM_DIVIDER)
-    {
-      cursor = FRAME_X_OUTPUT (f)->vertical_drag_cursor;
-      help_echo_string = build_string ("drag-mouse-1: resize");
-    }
+    if (! WINDOW_BOTTOMMOST_P (w)
+	|| minibuf_level
+	|| NILP (Vresize_mini_windows))
+      {
+	cursor = FRAME_X_OUTPUT (f)->vertical_drag_cursor;
+	help_echo_string = build_string ("drag-mouse-1: resize");
+      }
+    else
+      cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
   else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE
 	   || part == ON_SCROLL_BAR)
     cursor = FRAME_X_OUTPUT (f)->nontext_cursor;

@@ -297,8 +297,7 @@
 	(lw_create_widget, lw_pop_all_widgets, lw_show_busy)
 	(lw_refigure_widget, lw_allow_resizing): Remove alternative K&R
 	declarations.
-	* lwlib-Xlw.c (xlw_update_one_widget):
-	(xlw_pop_instance): Likewise.
+	* lwlib-Xlw.c (xlw_update_one_widget, xlw_pop_instance): Likewise.
 	* lwlib-Xaw.c (xaw_update_one_widget, xaw_pop_instance):
 	Likewise.
 	* lwlib-Xm.c (P_): Remove.
@@ -474,7 +473,7 @@
 	XtCDefaultFace): New.
 
 	* xlwmenuP.h (_window_state): Add max_rest_width and xft_draw.
-	(_XlwMenu_part): Add faceName,xft_fg, xft_bg, xft_disabled_fg and
+	(_XlwMenu_part): Add faceName, xft_fg, xft_bg, xft_disabled_fg and
 	xft_font.
 
 2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
@@ -596,8 +595,7 @@
 
 	* xlwmenuP.h (_XlwMenu_part): Add fontSet resource.
 
-	* xlwmenu.c (string_width):
-	(MENU_FONT_HEIGHT, MENU_FONT_ASCENT): Ditto.
+	* xlwmenu.c (string_width, MENU_FONT_HEIGHT, MENU_FONT_ASCENT): Ditto.
 	(display_menu_item, make_drawing_gcs, XlwMenuInitialize)
 	(XlwMenuSetValues): Use font if fontSet is NULL, use only
 	font for !HAVE_X_I18N.

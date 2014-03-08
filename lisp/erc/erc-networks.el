@@ -724,16 +724,17 @@ MATCHER is used to find a corresponding network to a server while connected to
 server parameter NETWORK if provided, otherwise parse the server name and
 search for a match in `erc-networks-alist'."
   ;; The server made it easy for us and told us the name of the NETWORK
-  (if (assoc "NETWORK" erc-server-parameters)
-      (intern (cdr (assoc "NETWORK" erc-server-parameters)))
-    (or
-     ;; Loop through `erc-networks-alist' looking for a match.
-     (let ((server (or erc-server-announced-name erc-session-server)))
-       (cl-loop for (name matcher) in erc-networks-alist
-		when (and matcher
-			  (string-match (concat matcher "\\'") server))
-		do (cl-return name)))
-     'Unknown)))
+  (let ((network-name (cdr (assoc "NETWORK" erc-server-parameters))))
+    (if network-name
+	(intern network-name)
+      (or
+       ;; Loop through `erc-networks-alist' looking for a match.
+       (let ((server (or erc-server-announced-name erc-session-server)))
+	 (cl-loop for (name matcher) in erc-networks-alist
+		  when (and matcher
+			    (string-match (concat matcher "\\'") server))
+		  do (cl-return name)))
+       'Unknown))))
 
 (defun erc-network ()
   "Return the value of `erc-network' for the current server."

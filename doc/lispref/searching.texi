@@ -1284,7 +1284,7 @@ If you did the last search in a buffer, you should omit the
 the current buffer is the one in which you performed the last search.
 Then this function edits the buffer, replacing the matched text with
 @var{replacement}.  It leaves point at the end of the replacement
-text, and returns @code{t}.
+text.
 
 If you performed the last search on a string, pass the same string as
 @var{string}.  Then this function returns a new string, in which the

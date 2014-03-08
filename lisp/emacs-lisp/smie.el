@@ -2149,8 +2149,11 @@ position corresponding to each rule."
         rules))))
 
 (defun smie-config-guess ()
-  "Try and figure out this buffer's indentation settings."
+  "Try and figure out this buffer's indentation settings.
+To save the result for future sessions, use `smie-config-save'."
   (interactive)
+  (if (eq smie-grammar 'unset)
+      (user-error "This buffer does not seem to be using SMIE"))
   (let ((config (smie-config--guess (point-min) (point-max))))
     (cond
      ((null config) (message "Nothing to change"))
@@ -2168,7 +2171,8 @@ position corresponding to each rule."
       (message "Rules guessed: %S" config)))))
 
 (defun smie-config-save ()
-  "Save local rules for use with this major mode."
+  "Save local rules for use with this major mode.
+One way to generate local rules is the command `smie-config-guess'."
   (interactive)
   (cond
    ((null smie-config--buffer-local)
@@ -2190,7 +2194,7 @@ position corresponding to each rule."
           (setcdr existing config)
         (push (cons major-mode config) smie-config))
       (setq smie-config--mode-local config)
-      (kill-local-variable smie-config--buffer-local)
+      (kill-local-variable 'smie-config--buffer-local)
       (customize-mark-as-set 'smie-config)))))
 
 (provide 'smie)

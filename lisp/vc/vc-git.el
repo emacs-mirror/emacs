@@ -1210,7 +1210,15 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 The difference to vc-do-command is that this function always invokes
 `vc-git-program'."
   (apply 'vc-do-command (or buffer "*vc*") okstatus vc-git-program
-         file-or-list (cons "--no-pager" flags)))
+         ;; http://debbugs.gnu.org/16897
+         (unless (and (not (cdr-safe file-or-list))
+                      (let ((file (or (car-safe file-or-list)
+                                      file-or-list)))
+                        (and file
+                             (eq ?/ (aref file (1- (length file))))
+                             (equal file (vc-git-root file)))))
+           file-or-list)
+         (cons "--no-pager" flags)))
 
 (defun vc-git--empty-db-p ()
   "Check if the git db is empty (no commit done yet)."

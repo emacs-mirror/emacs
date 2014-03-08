@@ -662,6 +662,7 @@ number, play until that number of seconds has elapsed."
     (when animation
       (if (setq timer (image-animate-timer image))
 	  (cancel-timer timer))
+      (plist-put (cdr image) :animate-buffer (current-buffer))
       (run-with-timer 0.2 nil 'image-animate-timeout
 		      image (or index 0) (car animation)
 		      0 limit))))
@@ -726,30 +727,31 @@ The minimum delay between successive frames is `image-minimum-frame-delay'.
 
 If the image has a non-nil :speed property, it acts as a multiplier
 for the animation speed.  A negative value means to animate in reverse."
-  (image-show-frame image n t)
-  (let* ((speed (image-animate-get-speed image))
-	 (time (float-time))
-	 (animation (image-multi-frame-p image))
-	 ;; Subtract off the time we took to load the image from the
-	 ;; stated delay time.
-	 (delay (max (+ (* (or (cdr animation) image-default-frame-delay)
-			   (/ 1 (abs speed)))
-			time (- (float-time)))
-		     image-minimum-frame-delay))
-	 done)
-    (setq n (if (< speed 0)
-		(1- n)
-	      (1+ n)))
-    (if limit
-	(cond ((>= n count) (setq n 0))
-	      ((< n 0) (setq n (1- count))))
-      (and (or (>= n count) (< n 0)) (setq done t)))
-    (setq time-elapsed (+ delay time-elapsed))
-    (if (numberp limit)
-	(setq done (>= time-elapsed limit)))
-    (unless done
-      (run-with-timer delay nil 'image-animate-timeout
-		      image n count time-elapsed limit))))
+  (when (buffer-live-p (plist-get (cdr image) :animate-buffer))
+    (image-show-frame image n t)
+    (let* ((speed (image-animate-get-speed image))
+	   (time (float-time))
+	   (animation (image-multi-frame-p image))
+	   ;; Subtract off the time we took to load the image from the
+	   ;; stated delay time.
+	   (delay (max (+ (* (or (cdr animation) image-default-frame-delay)
+			     (/ 1 (abs speed)))
+			  time (- (float-time)))
+		       image-minimum-frame-delay))
+	   done)
+      (setq n (if (< speed 0)
+		  (1- n)
+		(1+ n)))
+      (if limit
+	  (cond ((>= n count) (setq n 0))
+		((< n 0) (setq n (1- count))))
+	(and (or (>= n count) (< n 0)) (setq done t)))
+      (setq time-elapsed (+ delay time-elapsed))
+      (if (numberp limit)
+	  (setq done (>= time-elapsed limit)))
+      (unless done
+	(run-with-timer delay nil 'image-animate-timeout
+			image n count time-elapsed limit)))))
 
 
 (defvar imagemagick-types-inhibit)

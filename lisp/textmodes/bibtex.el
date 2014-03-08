@@ -546,9 +546,9 @@ alternatives, starting from zero."
       ("location") ("isbn") ("pagetotal") ("addendum") ("pubstate") ("doi")
       ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
     ("InCollection" "Article in a Collection"
-     (("author") ("editor") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("author") ("title") ("year" nil nil 0) ("date" nil nil 0))
      (("booktitle"))
-     (("editora") ("editorb") ("editorc") ("translator") ("annotator")
+     (("editor") ("editora") ("editorb") ("editorc") ("translator") ("annotator")
       ("commentator") ("introduction") ("foreword") ("afterword")
       ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("booksubtitle") ("booktitleaddon")
@@ -616,10 +616,11 @@ alternatives, starting from zero."
       ("addendum") ("pubstate") ("doi") ("eprint") ("eprintclass")
       ("eprinttype") ("url") ("urldate")))
     ("Proceedings" "Single-Volume Conference Proceedings"
-     (("editor") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("title") ("year" nil nil 0) ("date" nil nil 0))
      nil
      (("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("eventtitle") ("eventdate") ("venue") ("language")
+      ("editor")
       ("volume") ("part") ("volumes") ("series") ("number") ("note")
       ("organization") ("publisher") ("location") ("month")
       ("isbn") ("chapter") ("pages") ("pagetotal") ("addendum") ("pubstate")
@@ -633,9 +634,9 @@ alternatives, starting from zero."
       ("isbn") ("pagetotal") ("addendum") ("pubstate")
       ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
     ("InProceedings" "Article in Conference Proceedings"
-     (("author") ("editor") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("author") ("title") ("year" nil nil 0) ("date" nil nil 0))
      (("booktitle"))
-     (("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
+     (("editor") ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("booksubtitle") ("booktitleaddon")
       ("eventtitle") ("eventdate") ("venue") ("language")
       ("volume") ("part") ("volumes") ("series") ("number") ("note")

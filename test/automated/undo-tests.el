@@ -226,6 +226,48 @@
             (should-not (buffer-modified-p))))
       (delete-file tempfile))))
 
+(ert-deftest undo-test-in-region-not-most-recent ()
+  "Test undo in region of an edit not the most recent."
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (transient-mark-mode 1)
+    (insert "1111")
+    (undo-boundary)
+    (goto-char 2)
+    (insert "2")
+    (forward-char 2)
+    (undo-boundary)
+    (insert "3")
+    (undo-boundary)
+    ;; Highlight around "2", not "3"
+    (push-mark (+ 3 (point-min)) t t)
+    (setq mark-active t)
+    (goto-char (point-min))
+    (undo)
+    (should (string= (buffer-string)
+                     "11131"))))
+
+(ert-deftest undo-test-in-region-eob ()
+  "Test undo in region of a deletion at EOB, demonstrating bug 16411."
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (transient-mark-mode 1)
+    (insert "This sentence corrupted?")
+    (undo-boundary)
+    ;; Same as recipe at
+    ;; http://debbugs.gnu.org/cgi/bugreport.cgi?bug=16411
+    (insert "aaa")
+    (undo-boundary)
+    (undo)
+    ;; Select entire buffer
+    (push-mark (point) t t)
+    (setq mark-active t)
+    (goto-char (point-min))
+    ;; Should undo the undo of "aaa", ie restore it.
+    (undo)
+    (should (string= (buffer-string)
+                     "This sentence corrupted?aaa"))))
+
 (defun undo-test-all (&optional interactive)
   "Run all tests for \\[undo]."
   (interactive "p")

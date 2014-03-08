@@ -468,14 +468,8 @@ dnl quotation begins
 
 ### If you add support for a new configuration, add code to this
 ### switch statement to recognize your configuration name and select
-### the appropriate operating system file.
+### the appropriate opsys.
 
-### You would hope that you could choose an s/*.h
-### file based on the operating system portion.  However, it turns out
-### that each s/*.h file is pretty manufacturer-specific.
-### So we basically have to have a special case for each
-### configuration name.
-###
 ### As far as handling version numbers on operating systems is
 ### concerned, make sure things will fail in a fixable way.  If
 ### /etc/MACHINES doesn't say anything about version numbers, be
@@ -581,16 +575,16 @@ case "${canonical}" in
       * )		unported=yes ;;
     esac
     case "${canonical}" in
+      *-sunos5.[1-9][0-9]* | *-solaris2.[1-9][0-9]* )
+		opsys=sol2-10
+		emacs_check_sunpro_c=yes
+		;;
       *-sunos5.6* | *-solaris2.6* )
 		opsys=sol2-6
 		RANLIB="ar -ts"
 		;;
       *-sunos5.[7-9]* | *-solaris2.[7-9]* )
 		opsys=sol2-6
-		emacs_check_sunpro_c=yes
-		;;
-      *-sunos5* | *-solaris* )
-		opsys=sol2-10
 		emacs_check_sunpro_c=yes
 		;;
     esac
@@ -659,7 +653,8 @@ fi
 dnl quotation ends
 
 if test $unported = yes; then
-  AC_MSG_ERROR([Emacs hasn't been ported to `${canonical}' systems.
+  AC_MSG_ERROR([Emacs does not support `${canonical}' systems.
+If you think it should, please send a report to bug-gnu-emacs@gnu.org.
 Check `etc/MACHINES' for recognized configuration names.])
 fi
 
@@ -2236,7 +2231,7 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${opsys}" = 
 fi
 
 HAVE_IMAGEMAGICK=no
-if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes"; then
+if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${HAVE_W32}" = "yes"; then
   if test "${with_imagemagick}" != "no"; then
     ## 6.2.8 is the earliest version known to work, but earlier versions
     ## might work - let us know if you find one.

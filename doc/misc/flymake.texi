@@ -695,8 +695,8 @@ Buildfile values are also cached.
 
 The command line (command name and the list of arguments) for launching a process is returned by the
 initialization function.  Flymake then just calls @code{start-process}
-to start an asynchronous process and configures process filter and
-sentinel which is used for processing the output of the syntax check
+to start an asynchronous process and configures a process filter and
+sentinel, which are used for processing the output of the syntax check
 tool.
 
 @node Parsing the output

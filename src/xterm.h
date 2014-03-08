@@ -198,6 +198,10 @@ struct x_display_info
      mouse-face.  */
   Mouse_HLInfo mouse_highlight;
 
+  /* Logical identifier of this display.  */
+  unsigned x_id;
+
+  /* Default name for all frames on this display.  */
   char *x_id_name;
 
   /* The number of fonts opened for this display.  */

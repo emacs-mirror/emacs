@@ -1,3 +1,89 @@
+2014-03-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-copy-size-limit): Declare.
+	(tramp-test10-write-region): Extend for out-of-band copy.
+	(tramp-test31-asynchronous-requests): New test.
+
+2014-03-02  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	* automated/undo-tests.el (undo-test-in-region-not-most-recent):
+	Add new test of undo in region.
+	(undo-test-in-region-eob): Add test case described at
+	http://debbugs.gnu.org/cgi/bugreport.cgi?bug=16411
+
+2014-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp--test-enabled)
+	(tramp-test15-copy-directory): No special handling of tramp-adb.el
+	anymore.  It's fixed in that package.
+
+2014-02-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp--test-enabled): Move connection
+	cleanup into this function.  Remove respective code from all test
+	cases.
+	(tramp--instrument-test-case): Declare `indent' and `debug'.
+	Handle other errors as well.
+	(tramp-test14-delete-directory): Check for `file-error' error.
+	(tramp-test15-copy-directory): Ignore return value of
+	`copy-directory'.  It's too much hassle to handle it for tramp-adb.el.
+	(tramp-test19-directory-files-and-attributes): Take care of
+	timestamp of "../".
+	(tramp-test20-file-modes, tramp-test27-start-file-process)
+	(tramp-test28-shell-command): Skip for tramp-adb.el.
+	(tramp-test21-file-links): `file-truename' shall preserve trailing
+	link of directories.
+	(tramp-test22-file-times): Skip if `set-file-times' returns nil.
+	(tramp-test26-process-file, tramp-test28-shell-command): Let-bind
+	`kill-buffer-query-functions' to nil.
+	(tramp-test28-shell-command): Run `async-shell-command' with timeouts.
+
+2014-02-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el
+	(tramp-test19-directory-files-and-attributes): Do not include
+	directories in comparison; they might have changed their
+	timestamps already.
+
+2014-02-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp--instrument-test-case): New macro.
+	(tramp-test17-insert-directory): First line could contain more
+	text, when produced by `ls-lisp'.
+	(tramp-test19-directory-files-and-attributes): Instrument failed
+	test case.
+
+2014-02-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test17-insert-directory):
+	Make first line "total 123" optional.
+	(tramp-test20-file-modes, tramp-test22-file-times)
+	(tramp-test26-process-file, tramp-test27-start-file-process)
+	(tramp-test28-shell-command): Skip for tramp-gvfs.el and
+	tramp-smb.el.
+	(tramp-test20-file-modes): Check for "root" only when there is an
+	explicit user name.
+	(tramp-test21-file-links): Handle "... not supported" error.
+	(tramp-test22-file-times): Skip for "don't know" return values.
+	(tramp-test26-process-file, tramp-test28-shell-command):
+	Remove color escape sequences.
+	(tramp-test28-shell-command): Use `accept-process-output' rather
+	than `sit-for'.
+	(tramp-test30-utf8): Set coding system `utf-8'.
+
+2014-02-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test28-shell-command): Perform
+	an initial `sit-for' prior the while loop.
+
+2014-02-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.9.
+
+	* automated/tramp-tests.el (password-cache-expiry): Set to nil.
+	(tramp-test28-shell-command): Make a while loop when waiting for
+	process exit.
+
 2014-02-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (top): Require `vc', `vc-bzr', `vc-git'
@@ -245,7 +331,7 @@
 	(tramp-test20-file-modes, tramp-test21-file-links)
 	(tramp-test22-file-times, tramp-test23-visited-file-modtime)
 	(tramp-test24-file-name-completion, tramp-test25-load)
-	(tramp-test26-process-file, tramp-test27-start-file-process):
+	(tramp-test26-process-file, tramp-test27-start-file-process)
 	(tramp-test28-shell-command): Protect unwindforms with `ignore-errors'.
 	(tramp-test29-utf8): New test.
 
@@ -264,7 +350,7 @@
 	* automated/tramp-tests.el (tramp-test-temporary-file-directory):
 	Check $TRAMP_TEST_TEMPORARY_FILE_DIRECTORY.
 	(tramp-read-passwd): Check $TRAMP_TEST_ALLOW_PASSWORD.
-	(tramp-test09-insert-file-contents, tramp-test10-write-region):
+	(tramp-test09-insert-file-contents, tramp-test10-write-region)
 	(tramp-test26-process-file): Add tests.
 	(tramp-test11-copy-file): Remove debug message.
 	(tramp-test20-file-modes): Special case, if user is "root".
@@ -1538,22 +1624,22 @@
 	Add icalendar-testsuite--test-datestring-to-isodate,
 	icalendar-testsuite--test-datetime-to-diary-date, and
 	icalendar-testsuite--test-calendar-style.
-	(icalendar-testsuite--test-format-ical-event):
+	(icalendar-testsuite--test-format-ical-event)
 	(icalendar-testsuite--test-parse-summary-and-rest):
 	Doc fix.  Remove european-calendar-style.
 	(icalendar-testsuite--get-ical-event): Doc fix.
-	(icalendar-testsuite--test-first-weekday-of-year):
+	(icalendar-testsuite--test-first-weekday-of-year)
 	(icalendar-testsuite--run-cycle-tests): Add doc string.
-	(icalendar-testsuite--test-datestring-to-isodate):
-	(icalendar-testsuite--test-datetime-to-diary-date):
+	(icalendar-testsuite--test-datestring-to-isodate)
+	(icalendar-testsuite--test-datetime-to-diary-date)
 	(icalendar-testsuite--test-calendar-style): New functions.
 	(icalendar-testsuite--test-export): Handle iso date style.
 	New arg INPUT-ISO.  Use calendar-date-style.
 	(icalendar-testsuite--test-import): Handle iso date style.
 	New arg EXPECTED-ISO.  Use calendar-date-style.
 	(icalendar-testsuite--test-cycle): Handle iso date style.
-	(icalendar-testsuite--run-import-tests):
-	(icalendar-testsuite--run-export-tests):
+	(icalendar-testsuite--run-import-tests)
+	(icalendar-testsuite--run-export-tests)
 	(icalendar-testsuite--run-real-world-tests): Add iso style tests.
 
 2008-02-29  Glenn Morris  <rgm@gnu.org>

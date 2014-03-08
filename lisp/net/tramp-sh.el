@@ -60,6 +60,7 @@ files conditionalize this setup based on the TERM environment variable."
   :group 'tramp
   :type 'string)
 
+;;;###tramp-autoload
 (defconst tramp-color-escape-sequence-regexp "\e[[;0-9]+m"
   "Escape sequences produced by the \"ls\" command.")
 
@@ -937,8 +938,11 @@ target of the symlink differ."
 
 (defun tramp-sh-handle-file-truename (filename)
   "Like `file-truename' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (tramp-make-tramp-file-name method user host
+  (format
+   "%s%s"
+   (with-parsed-tramp-file-name (expand-file-name filename) nil
+     (tramp-make-tramp-file-name
+      method user host
       (with-tramp-file-property v localname "file-truename"
 	(let ((result nil))			; result steps in reverse order
 	  (tramp-message v 4 "Finding true name for `%s'" filename)
@@ -1041,7 +1045,10 @@ target of the symlink differ."
 		  (setq result (concat result "/"))))))
 
 	  (tramp-message v 4 "True name of `%s' is `%s'" localname result)
-	  result)))))
+	  result))))
+
+   ;; Preserve trailing "/".
+   (if (string-equal (file-name-nondirectory filename) "") "/" "")))
 
 ;; Basic functions.
 
@@ -1305,22 +1312,29 @@ of."
   "Like `set-file-times' for Tramp files."
   (if (tramp-tramp-file-p filename)
       (with-parsed-tramp-file-name filename nil
-	(tramp-flush-file-property v localname)
-	(let ((time (if (or (null time) (equal time '(0 0)))
-			(current-time)
-		      time))
-	      ;; With GNU Emacs, `format-time-string' has an optional
-	      ;; parameter UNIVERSAL.  This is preferred, because we
-	      ;; could handle the case when the remote host is located
-	      ;; in a different time zone as the local host.
-	      (utc (not (featurep 'xemacs))))
-	  (tramp-send-command-and-check
-	   v (format "%s touch -t %s %s"
-		     (if utc "env TZ=UTC" "")
-		     (if utc
-			 (format-time-string "%Y%m%d%H%M.%S" time t)
-		       (format-time-string "%Y%m%d%H%M.%S" time))
-		     (tramp-shell-quote-argument localname)))))
+	(when (tramp-get-remote-touch v)
+	  (tramp-flush-file-property v localname)
+	  (let ((time (if (or (null time) (equal time '(0 0)))
+			  (current-time)
+			time))
+		;; With GNU Emacs, `format-time-string' has an
+		;; optional parameter UNIVERSAL.  This is preferred,
+		;; because we could handle the case when the remote
+		;; host is located in a different time zone as the
+		;; local host.
+		(utc (not (featurep 'xemacs))))
+	    (tramp-send-command-and-check
+	     v (format
+		"%s %s %s %s"
+		(if utc "env TZ=UTC" "")
+		(tramp-get-remote-touch v)
+		(if (tramp-get-connection-property v "touch-t" nil)
+		    (format "-t %s"
+			    (if utc
+				(format-time-string "%Y%m%d%H%M.%S" time t)
+			      (format-time-string "%Y%m%d%H%M.%S" time)))
+		  "")
+		(tramp-shell-quote-argument localname))))))
 
     ;; We handle also the local part, because in older Emacsen,
     ;; without `set-file-times', this function is an alias for this.
@@ -1562,39 +1576,45 @@ be non-negative integers."
 (defun tramp-sh-handle-directory-files-and-attributes
   (directory &optional full match nosort id-format)
   "Like `directory-files-and-attributes' for Tramp files."
-  (unless id-format (setq id-format 'integer))
-  (when (file-directory-p directory)
-    (setq directory (expand-file-name directory))
-    (let* ((temp
-	    (copy-tree
-	     (with-parsed-tramp-file-name directory nil
-	       (with-tramp-file-property
-		   v localname
-		   (format "directory-files-and-attributes-%s" id-format)
-		 (save-excursion
-		   (mapcar
-		    (lambda (x)
-		      (cons (car x)
-			    (tramp-convert-file-attributes v (cdr x))))
-		    (cond
-		     ((tramp-get-remote-stat v)
-		      (tramp-do-directory-files-and-attributes-with-stat
-		       v localname id-format))
-		     ((tramp-get-remote-perl v)
-		      (tramp-do-directory-files-and-attributes-with-perl
-		       v localname id-format)))))))))
-	   result item)
+  (if (with-parsed-tramp-file-name directory nil
+	(not (or (tramp-get-remote-stat v) (tramp-get-remote-perl v))))
+      (tramp-handle-directory-files-and-attributes
+       directory full match nosort id-format)
 
-      (while temp
-	(setq item (pop temp))
-	(when (or (null match) (string-match match (car item)))
-	  (when full
-	    (setcar item (expand-file-name (car item) directory)))
-	  (push item result)))
+    ;; Do it directly.
+    (unless id-format (setq id-format 'integer))
+    (when (file-directory-p directory)
+      (setq directory (expand-file-name directory))
+      (let* ((temp
+	      (copy-tree
+	       (with-parsed-tramp-file-name directory nil
+		 (with-tramp-file-property
+		     v localname
+		     (format "directory-files-and-attributes-%s" id-format)
+		   (save-excursion
+		     (mapcar
+		      (lambda (x)
+			(cons (car x)
+			      (tramp-convert-file-attributes v (cdr x))))
+		      (cond
+		       ((tramp-get-remote-stat v)
+			(tramp-do-directory-files-and-attributes-with-stat
+			 v localname id-format))
+		       ((tramp-get-remote-perl v)
+			(tramp-do-directory-files-and-attributes-with-perl
+			 v localname id-format)))))))))
+	     result item)
 
-      (if nosort
-	  result
-	(sort result (lambda (x y) (string< (car x) (car y))))))))
+	(while temp
+	  (setq item (pop temp))
+	  (when (or (null match) (string-match match (car item)))
+	    (when full
+	      (setcar item (expand-file-name (car item) directory)))
+	    (push item result)))
+
+	(if nosort
+	    result
+	  (sort result (lambda (x y) (string< (car x) (car y)))))))))
 
 (defun tramp-do-directory-files-and-attributes-with-perl
   (vec localname &optional id-format)
@@ -2502,8 +2522,8 @@ This is like `dired-recursive-delete-directory' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (if (and (featurep 'ls-lisp)
 	     (not (symbol-value 'ls-lisp-use-insert-directory-program)))
-	(tramp-run-real-handler
-	 'insert-directory (list filename switches wildcard full-directory-p))
+	(tramp-handle-insert-directory
+	 filename switches wildcard full-directory-p)
       (when (stringp switches)
         (setq switches (split-string switches)))
       (when (and (member "--dired" switches)
@@ -3286,49 +3306,49 @@ the result will be a local, non-Tramp, filename."
       (with-tramp-progress-reporter
 	  v 3 (format "Checking `vc-registered' for %s" file)
 
-	;; There could be new files, created by the vc backend.  We
-	;; cannot reuse the old cache entries, therefore.
-	(let (tramp-vc-registered-file-names
-	      (remote-file-name-inhibit-cache (current-time))
-	      (file-name-handler-alist
-	       `((,tramp-file-name-regexp . tramp-vc-file-name-handler))))
+	(unless remote-file-name-inhibit-cache
+	  ;; There could be new files, created by the vc backend.  We
+	  ;; cannot reuse the old cache entries, therefore.
+	  (let (tramp-vc-registered-file-names
+		(remote-file-name-inhibit-cache (current-time))
+		(file-name-handler-alist
+		 `((,tramp-file-name-regexp . tramp-vc-file-name-handler))))
 
-	  ;; Here we collect only file names, which need an operation.
-	  (ignore-errors (tramp-run-real-handler 'vc-registered (list file)))
-	  (tramp-message v 10 "\n%s" tramp-vc-registered-file-names)
+	    ;; Here we collect only file names, which need an operation.
+	    (ignore-errors (tramp-run-real-handler 'vc-registered (list file)))
+	    (tramp-message v 10 "\n%s" tramp-vc-registered-file-names)
 
-	  ;; Send just one command, in order to fill the cache.
-	  (when tramp-vc-registered-file-names
-	    (tramp-maybe-send-script
-	     v
-	     (format tramp-vc-registered-read-file-names
-		     (tramp-get-file-exists-command v)
-		     (format "%s -r" (tramp-get-test-command v)))
-	     "tramp_vc_registered_read_file_names")
+	    ;; Send just one command, in order to fill the cache.
+	    (when tramp-vc-registered-file-names
+	      (tramp-maybe-send-script
+	       v
+	       (format tramp-vc-registered-read-file-names
+		       (tramp-get-file-exists-command v)
+		       (format "%s -r" (tramp-get-test-command v)))
+	       "tramp_vc_registered_read_file_names")
 
-	    (dolist
-		(elt
-		 (ignore-errors
-		   ;; We cannot use `tramp-send-command-and-read',
-		   ;; because this does not cooperate well with
-		   ;; heredoc documents.
-		   (tramp-send-command
-		    v
-		    (format
-		     "tramp_vc_registered_read_file_names <<'%s'\n%s\n%s\n"
-		     tramp-end-of-heredoc
-		     (mapconcat 'tramp-shell-quote-argument
-				tramp-vc-registered-file-names
-				"\n")
-		     tramp-end-of-heredoc))
-		   (tramp-send-command-and-check v nil)
-		   (with-current-buffer (tramp-get-connection-buffer v)
-		     ;; Read the expression.
-		     (goto-char (point-min))
-		     (read (current-buffer)))))
+	      (dolist
+		  (elt
+		   (ignore-errors
+		     ;; We cannot use `tramp-send-command-and-read',
+		     ;; because this does not cooperate well with
+		     ;; heredoc documents.
+		     (tramp-send-command
+		      v
+		      (format
+		       "tramp_vc_registered_read_file_names <<'%s'\n%s\n%s\n"
+		       tramp-end-of-heredoc
+		       (mapconcat 'tramp-shell-quote-argument
+				  tramp-vc-registered-file-names
+				  "\n")
+		       tramp-end-of-heredoc))
+		     (with-current-buffer (tramp-get-connection-buffer v)
+		       ;; Read the expression.
+		       (goto-char (point-min))
+		       (read (current-buffer)))))
 
-	      (tramp-set-file-property
-	       v (car elt) (cadr elt) (cadr (cdr elt))))))
+		(tramp-set-file-property
+		 v (car elt) (cadr elt) (cadr (cdr elt)))))))
 
 	;; Second run.  Now all `file-exists-p' or `file-readable-p'
 	;; calls shall be answered from the file cache.  We unset
@@ -3344,17 +3364,18 @@ the result will be a local, non-Tramp, filename."
 Fall back to normal file name handler if no Tramp handler exists."
   (when (and tramp-locked (not tramp-locker))
     (setq tramp-locked nil)
-    (signal 'file-error (list "Forbidden reentrant call of Tramp")))
+    (tramp-error
+     (car-safe tramp-current-connection) 'file-error
+     "Forbidden reentrant call of Tramp"))
   (let ((tl tramp-locked))
+    (setq tramp-locked t)
     (unwind-protect
-	(progn
-	  (setq tramp-locked t)
-	  (let ((tramp-locker t))
-	    (save-match-data
-	      (let ((fn (assoc operation tramp-sh-file-name-handler-alist)))
-		(if fn
-		    (apply (cdr fn) args)
-		  (tramp-run-real-handler operation args))))))
+	(let ((tramp-locker t))
+	  (save-match-data
+	    (let ((fn (assoc operation tramp-sh-file-name-handler-alist)))
+	      (if fn
+		  (apply (cdr fn) args)
+		(tramp-run-real-handler operation args)))))
       (setq tramp-locked tl))))
 
 (defun tramp-vc-file-name-handler (operation &rest args)
@@ -4826,7 +4847,7 @@ Return ATTR."
       (when elt1
 	(setcdr elt1
 		(append
- 		 (tramp-compat-split-string default-remote-path ":")
+ 		 (tramp-compat-split-string (or default-remote-path "") ":")
 		 (cdr elt1)))
 	(setq remote-path (delq 'tramp-default-remote-path remote-path)))
 
@@ -4834,7 +4855,7 @@ Return ATTR."
       (when elt2
 	(setcdr elt2
 		(append
- 		 (tramp-compat-split-string own-remote-path ":")
+ 		 (tramp-compat-split-string (or own-remote-path "") ":")
 		 (cdr elt2)))
 	(setq remote-path (delq 'tramp-own-remote-path remote-path)))
 
@@ -4998,6 +5019,30 @@ Return ATTR."
   (with-tramp-connection-property vec "trash"
     (tramp-message vec 5 "Finding a suitable `trash' command")
     (tramp-find-executable vec "trash" (tramp-get-remote-path vec))))
+
+(defun tramp-get-remote-touch (vec)
+  (with-tramp-connection-property vec "touch"
+    (tramp-message vec 5 "Finding a suitable `touch' command")
+    (let ((result (tramp-find-executable
+		   vec "touch" (tramp-get-remote-path vec)))
+	  (tmpfile
+	   (make-temp-name
+	    (expand-file-name
+	     tramp-temp-name-prefix (tramp-get-remote-tmpdir vec)))))
+      ;; Busyboxes do support the "-t" option only when they have been
+      ;; built with the DESKTOP config option.  Let's check it.
+      (when result
+	(tramp-set-connection-property
+	 vec "touch-t"
+	 (tramp-send-command-and-check
+	  vec
+	  (format
+	   "%s -t %s %s"
+	   result
+	   (format-time-string "%Y%m%d%H%M.%S" (current-time))
+	   (tramp-file-name-handler 'file-remote-p tmpfile 'localname))))
+	(delete-file tmpfile))
+      result)))
 
 (defun tramp-get-remote-gvfs-monitor-dir (vec)
   (with-tramp-connection-property vec "gvfs-monitor-dir"

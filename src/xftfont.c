@@ -59,6 +59,7 @@ struct xftfont_info
   FT_Matrix matrix;
   Display *display;
   XftFont *xftfont;
+  unsigned x_display_id;
 };
 
 /* Structure pointed by (struct face *)->extra  */
@@ -372,6 +373,7 @@ xftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   xftfont_info = (struct xftfont_info *) font;
   xftfont_info->display = display;
   xftfont_info->xftfont = xftfont;
+  xftfont_info->x_display_id = FRAME_DISPLAY_INFO (f)->x_id;
   /* This means that there's no need of transformation.  */
   xftfont_info->matrix.xx = 0;
   if (FcPatternGetMatrix (xftfont->pattern, FC_MATRIX, 0, &matrix)
@@ -481,6 +483,7 @@ xftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 static void
 xftfont_close (struct font *font)
 {
+  struct x_display_info *xdi;
   struct xftfont_info *xftfont_info = (struct xftfont_info *) font;
 
 #ifdef HAVE_LIBOTF
@@ -493,7 +496,8 @@ xftfont_close (struct font *font)
 
   /* See comment in xfont_close.  */
   if (xftfont_info->xftfont
-      && x_display_info_for_display (xftfont_info->display))
+      && ((xdi = x_display_info_for_display (xftfont_info->display))
+	  && xftfont_info->x_display_id == xdi->x_id))
     {
       block_input ();
       XftUnlockFace (xftfont_info->xftfont);

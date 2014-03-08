@@ -2891,8 +2891,12 @@ read_char (int commandflag, Lisp_Object map,
     {
       c = read_decoded_event_from_main_queue (end_time, local_getcjmp,
                                               prev_event, used_mouse_menu);
-      if (end_time && timespec_cmp (*end_time, current_timespec ()) <= 0)
-        goto exit;
+      if (NILP(c) && end_time &&
+          timespec_cmp (*end_time, current_timespec ()) <= 0)
+        {
+          goto exit;
+        }
+
       if (EQ (c, make_number (-2)))
         {
 	  /* This is going to exit from read_char

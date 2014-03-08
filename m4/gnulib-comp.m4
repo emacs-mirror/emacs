@@ -140,6 +140,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module sys_select:
   # Code from module sys_stat:
   # Code from module sys_time:
+  # Code from module sys_types:
   # Code from module tempname:
   # Code from module time:
   # Code from module time_r:
@@ -371,6 +372,8 @@ AC_DEFUN([gl_INIT],
   gl_HEADER_SYS_STAT_H
   AC_PROG_MKDIR_P
   gl_HEADER_SYS_TIME_H
+  AC_PROG_MKDIR_P
+  gl_SYS_TYPES_H
   AC_PROG_MKDIR_P
   gl_HEADER_TIME_H
   gl_TIME_R
@@ -907,6 +910,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/sys_select.in.h
   lib/sys_stat.in.h
   lib/sys_time.in.h
+  lib/sys_types.in.h
   lib/tempname.c
   lib/tempname.h
   lib/time.in.h
@@ -1011,6 +1015,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/sys_socket_h.m4
   m4/sys_stat_h.m4
   m4/sys_time_h.m4
+  m4/sys_types_h.m4
   m4/tempname.m4
   m4/time_h.m4
   m4/time_r.m4

@@ -44,6 +44,7 @@
 
 (declare-function tramp-find-executable "tramp-sh")
 (declare-function tramp-get-remote-path "tramp-sh")
+(defvar tramp-copy-size-limit)
 
 ;; There is no default value on w32 systems, which could work out of the box.
 (defconst tramp-test-temporary-file-directory
@@ -53,7 +54,8 @@
    (t (format "/ssh::%s" temporary-file-directory)))
   "Temporary directory for Tramp tests.")
 
-(setq tramp-verbose 0
+(setq password-cache-expiry nil
+      tramp-verbose 0
       tramp-message-show-message nil)
 
 ;; Disable interactive passwords in batch mode.
@@ -80,6 +82,13 @@ being the result.")
 	   (file-remote-p tramp-test-temporary-file-directory)
 	   (file-directory-p tramp-test-temporary-file-directory)
 	   (file-writable-p tramp-test-temporary-file-directory))))))
+
+  (when (cdr tramp--test-enabled-checked)
+    ;; Cleanup connection.
+    (tramp-cleanup-connection
+     (tramp-dissect-file-name tramp-test-temporary-file-directory)
+     nil 'keep-password))
+
   ;; Return result.
   (cdr tramp--test-enabled-checked))
 
@@ -87,6 +96,26 @@ being the result.")
   "Create a temporary file name for test."
   (expand-file-name
    (make-temp-name "tramp-test") tramp-test-temporary-file-directory))
+
+(defmacro tramp--instrument-test-case (verbose &rest body)
+  "Run BODY with `tramp-verbose' equal VERBOSE.
+Print the the content of the Tramp debug buffer, if BODY does not
+eval properly in `should', `should-not' or `should-error'."
+  (declare (indent 1) (debug (natnump body)))
+  `(let ((tramp-verbose ,verbose)
+	 (tramp-debug-on-error t))
+     (condition-case err
+	 (progn ,@body)
+       (ert-test-skipped
+	(signal (car err) (cdr err)))
+       (error
+	(with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
+	  (with-current-buffer (tramp-get-connection-buffer v)
+	    (message "%s" (buffer-string)))
+	  (with-current-buffer (tramp-get-debug-buffer v)
+	    (message "%s" (buffer-string))))
+	(message "%s" err)
+	(signal (car err) (cdr err))))))
 
 (ert-deftest tramp-test00-availability ()
   "Test availability of Tramp functions."
@@ -556,9 +585,6 @@ and `file-name-nondirectory'."
 (ert-deftest tramp-test07-file-exists-p ()
   "Check `file-exist-p', `write-region' and `delete-file'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let ((tmp-name (tramp--test-make-temp-name)))
     (should-not (file-exists-p tmp-name))
@@ -570,9 +596,6 @@ and `file-name-nondirectory'."
 (ert-deftest tramp-test08-file-local-copy ()
   "Check `file-local-copy'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let ((tmp-name1 (tramp--test-make-temp-name))
 	tmp-name2)
@@ -590,9 +613,6 @@ and `file-name-nondirectory'."
 (ert-deftest tramp-test09-insert-file-contents ()
   "Check `insert-file-contents'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let ((tmp-name (tramp--test-make-temp-name)))
     (unwind-protect
@@ -614,9 +634,6 @@ and `file-name-nondirectory'."
 (ert-deftest tramp-test10-write-region ()
   "Check `write-region'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let ((tmp-name (tramp--test-make-temp-name)))
     (unwind-protect
@@ -645,15 +662,20 @@ and `file-name-nondirectory'."
 	    (write-region 3 5 tmp-name))
 	  (with-temp-buffer
 	    (insert-file-contents tmp-name)
-	    (should (string-equal (buffer-string) "34"))))
-     (ignore-errors (delete-file tmp-name)))))
+	    (should (string-equal (buffer-string) "34")))
+	  ;; Trigger out-of-band copy.
+	  (let ((string ""))
+	    (while (<= (length string) tramp-copy-size-limit)
+	      (setq string (concat string (md5 string))))
+	    (write-region string nil tmp-name)
+	    (with-temp-buffer
+	      (insert-file-contents tmp-name)
+	      (should (string-equal (buffer-string) string)))))
+      (ignore-errors (delete-file tmp-name)))))
 
 (ert-deftest tramp-test11-copy-file ()
   "Check `copy-file'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let ((tmp-name1 (tramp--test-make-temp-name))
 	(tmp-name2 (tramp--test-make-temp-name)))
@@ -672,9 +694,6 @@ and `file-name-nondirectory'."
 (ert-deftest tramp-test12-rename-file ()
   "Check `rename-file'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let ((tmp-name1 (tramp--test-make-temp-name))
 	(tmp-name2 (tramp--test-make-temp-name)))
@@ -693,9 +712,6 @@ and `file-name-nondirectory'."
   "Check `make-directory'.
 This tests also `file-directory-p' and `file-accessible-directory-p'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let ((tmp-name (tramp--test-make-temp-name)))
     (unwind-protect
@@ -708,9 +724,6 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 (ert-deftest tramp-test14-delete-directory ()
   "Check `delete-directory'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let ((tmp-name (tramp--test-make-temp-name)))
     ;; Delete empty directory.
@@ -721,16 +734,13 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
     ;; Delete non-empty directory.
     (make-directory tmp-name)
     (write-region "foo" nil (expand-file-name "bla" tmp-name))
-    (should-error (delete-directory tmp-name))
+    (should-error (delete-directory tmp-name) :type 'file-error)
     (delete-directory tmp-name 'recursive)
     (should-not (file-directory-p tmp-name))))
 
 (ert-deftest tramp-test15-copy-directory ()
   "Check `copy-directory'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let* ((tmp-name1 (tramp--test-make-temp-name))
 	 (tmp-name2 (tramp--test-make-temp-name))
@@ -760,9 +770,6 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 (ert-deftest tramp-test16-directory-files ()
   "Check `directory-files'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let* ((tmp-name1 (tramp--test-make-temp-name))
 	 (tmp-name2 (expand-file-name "bla" tmp-name1))
@@ -791,9 +798,6 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 (ert-deftest tramp-test17-insert-directory ()
   "Check `insert-directory'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let* ((tmp-name1 (tramp--test-make-temp-name))
 	 (tmp-name2 (expand-file-name "foo" tmp-name1)))
@@ -821,16 +825,14 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	     (file-name-as-directory tmp-name1) "-al" nil 'full-directory-p)
 	    (goto-char (point-min))
 	    (should
-	     (looking-at-p "total +[[:digit:]]+\n.+ \\.\n.+ \\.\\.\n.+ foo$"))))
+	     (looking-at-p
+	      "\\(total.+[[:digit:]]+\n\\)?.+ \\.\n.+ \\.\\.\n.+ foo$"))))
       (ignore-errors (delete-directory tmp-name1 'recursive)))))
 
 (ert-deftest tramp-test18-file-attributes ()
   "Check `file-attributes'.
 This tests also `file-readable-p' and `file-regular-p'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let ((tmp-name (tramp--test-make-temp-name))
 	attr)
@@ -873,40 +875,47 @@ This tests also `file-readable-p' and `file-regular-p'."
 (ert-deftest tramp-test19-directory-files-and-attributes ()
   "Check `directory-files-and-attributes'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
-  (let ((tmp-name (tramp--test-make-temp-name))
-	attr)
+  ;; `directory-files-and-attributes' contains also values for "../".
+  ;; Ensure that this doesn't change during tests, for
+  ;; example due to handling temporary files.
+  (let* ((tmp-name1 (tramp--test-make-temp-name))
+	 (tmp-name2 (expand-file-name "bla" tmp-name1))
+	 attr)
     (unwind-protect
 	(progn
-	  (make-directory tmp-name)
-	  (should (file-directory-p tmp-name))
-	  (write-region "foo" nil (expand-file-name "foo" tmp-name))
-	  (write-region "bar" nil (expand-file-name "bar" tmp-name))
-	  (write-region "boz" nil (expand-file-name "boz" tmp-name))
-	  (setq attr (directory-files-and-attributes tmp-name))
+	  (make-directory tmp-name1)
+	  (should (file-directory-p tmp-name1))
+	  (make-directory tmp-name2)
+	  (should (file-directory-p tmp-name2))
+	  (write-region "foo" nil (expand-file-name "foo" tmp-name2))
+	  (write-region "bar" nil (expand-file-name "bar" tmp-name2))
+	  (write-region "boz" nil (expand-file-name "boz" tmp-name2))
+	  (setq attr (directory-files-and-attributes tmp-name2))
 	  (should (consp attr))
 	  (dolist (elt attr)
 	    (should
-	     (equal (file-attributes (expand-file-name (car elt) tmp-name))
+	     (equal (file-attributes (expand-file-name (car elt) tmp-name2))
 		    (cdr elt))))
-	  (setq attr (directory-files-and-attributes tmp-name 'full))
+	  (setq attr (directory-files-and-attributes tmp-name2 'full))
 	  (dolist (elt attr)
 	    (should
 	     (equal (file-attributes (car elt)) (cdr elt))))
-	  (setq attr (directory-files-and-attributes tmp-name nil "^b"))
+	  (setq attr (directory-files-and-attributes tmp-name2 nil "^b"))
 	  (should (equal (mapcar 'car attr) '("bar" "boz"))))
-      (ignore-errors (delete-directory tmp-name 'recursive)))))
+      (ignore-errors (delete-directory tmp-name1 'recursive)))))
 
 (ert-deftest tramp-test20-file-modes ()
   "Check `file-modes'.
 This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
+  (skip-unless
+   (not
+    (memq
+     (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
+     '(tramp-adb-file-name-handler
+       tramp-gvfs-file-name-handler
+       tramp-smb-file-name-handler))))
 
   (let ((tmp-name (tramp--test-make-temp-name)))
     (unwind-protect
@@ -921,7 +930,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	  (should (= (file-modes tmp-name) #o444))
 	  (should-not (file-executable-p tmp-name))
 	  ;; A file is always writable for user "root".
-	  (unless (string-equal (file-remote-p tmp-name 'user) "root")
+	  (when (not (string-equal (file-remote-p tmp-name 'user) "root"))
 	    (should-not (file-writable-p tmp-name))))
       (ignore-errors (delete-file tmp-name)))))
 
@@ -929,9 +938,6 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   "Check `file-symlink-p'.
 This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let ((tmp-name1 (tramp--test-make-temp-name))
 	(tmp-name2 (tramp--test-make-temp-name))
@@ -940,7 +946,15 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	(progn
 	  (write-region "foo" nil tmp-name1)
 	  (should (file-exists-p tmp-name1))
-	  (make-symbolic-link tmp-name1 tmp-name2)
+	  ;; Method "smb" supports `make-symbolic-link' only if the
+	  ;; remote host has CIFS capabilities.  tramp-adb.el and
+	  ;; tramp-gvfs.el do not support symbolic links at all.
+	  (condition-case err
+	      (make-symbolic-link tmp-name1 tmp-name2)
+	    (file-error
+	     (skip-unless
+	      (not (string-equal (error-message-string err)
+				 "make-symbolic-link not supported")))))
 	  (should (file-symlink-p tmp-name2))
 	  (should-error (make-symbolic-link tmp-name1 tmp-name2))
 	  (make-symbolic-link tmp-name1 tmp-name2 'ok-if-already-exists)
@@ -977,14 +991,22 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	   (string-equal (file-truename tmp-name1) (file-truename tmp-name2))))
       (ignore-errors
 	(delete-file tmp-name1)
-	(delete-file tmp-name2)))))
+	(delete-file tmp-name2)))
+
+    ;; `file-truename' shall preserve trailing link of directories.
+    (let* ((dir1 (directory-file-name tramp-test-temporary-file-directory))
+	   (dir2 (file-name-as-directory dir1)))
+      (should (string-equal (file-truename dir1) (expand-file-name dir1)))
+      (should (string-equal (file-truename dir2) (expand-file-name dir2))))))
 
 (ert-deftest tramp-test22-file-times ()
   "Check `set-file-times' and `file-newer-than-file-p'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
+  (skip-unless
+   (not
+    (memq
+     (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
+     '(tramp-gvfs-file-name-handler tramp-smb-file-name-handler))))
 
   (let ((tmp-name1 (tramp--test-make-temp-name))
 	(tmp-name2 (tramp--test-make-temp-name))
@@ -994,8 +1016,14 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (write-region "foo" nil tmp-name1)
 	  (should (file-exists-p tmp-name1))
 	  (should (consp (nth 5 (file-attributes tmp-name1))))
-	  ;; '(0 0) means don't know, and will be replaced by `current-time'.
-	  (set-file-times tmp-name1 '(0 1))
+	  ;; '(0 0) means don't know, and will be replaced by
+	  ;; `current-time'.  Therefore, we use '(0 1).
+	  ;; We skip the test, if the remote handler is not able to
+	  ;; set the correct time.
+	  (skip-unless (set-file-times tmp-name1 '(0 1)))
+	  ;; Dumb busyboxes are not able to return the date correctly.
+	  ;; They say "don't know.
+	  (skip-unless (not (equal (nth 5 (file-attributes tmp-name1)) '(0 0))))
 	  (should (equal (nth 5 (file-attributes tmp-name1)) '(0 1)))
 	  (write-region "bla" nil tmp-name2)
 	  (should (file-exists-p tmp-name2))
@@ -1010,9 +1038,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test23-visited-file-modtime ()
   "Check `set-visited-file-modtime' and `verify-visited-file-modtime'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let ((tmp-name (tramp--test-make-temp-name)))
     (unwind-protect
@@ -1030,9 +1055,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test24-file-name-completion ()
   "Check `file-name-completion' and `file-name-all-completions'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let ((tmp-name (tramp--test-make-temp-name)))
     (unwind-protect
@@ -1055,9 +1077,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test25-load ()
   "Check `load'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let ((tmp-name (tramp--test-make-temp-name)))
     (unwind-protect
@@ -1076,12 +1095,15 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test26-process-file ()
   "Check `process-file'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
+  (skip-unless
+   (not
+    (memq
+     (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
+     '(tramp-gvfs-file-name-handler tramp-smb-file-name-handler))))
 
   (let ((tmp-name (tramp--test-make-temp-name))
-	(default-directory tramp-test-temporary-file-directory))
+	(default-directory tramp-test-temporary-file-directory)
+	kill-buffer-query-functions)
     (unwind-protect
 	(progn
 	  ;; We cannot use "/bin/true" and "/bin/false"; those paths
@@ -1095,6 +1117,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (should
 	     (zerop
 	      (process-file "ls" nil t nil (file-name-nondirectory tmp-name))))
+	    ;; `ls' could produce colorized output.
+	    (goto-char (point-min))
+	    (while (re-search-forward tramp-color-escape-sequence-regexp nil t)
+	      (replace-match "" nil nil))
 	    (should
 	     (string-equal
 	      (format "%s\n" (file-name-nondirectory tmp-name))
@@ -1104,9 +1130,13 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test27-start-file-process ()
   "Check `start-file-process'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
+  (skip-unless
+   (not
+    (memq
+     (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
+     '(tramp-adb-file-name-handler
+       tramp-gvfs-file-name-handler
+       tramp-smb-file-name-handler))))
 
   (let ((default-directory tramp-test-temporary-file-directory)
 	(tmp-name (tramp--test-make-temp-name))
@@ -1152,18 +1182,27 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test28-shell-command ()
   "Check `shell-command'."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
+  (skip-unless
+   (not
+    (memq
+     (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
+     '(tramp-adb-file-name-handler
+       tramp-gvfs-file-name-handler
+       tramp-smb-file-name-handler))))
 
   (let ((tmp-name (tramp--test-make-temp-name))
-	(default-directory tramp-test-temporary-file-directory))
+	(default-directory tramp-test-temporary-file-directory)
+	kill-buffer-query-functions)
     (unwind-protect
 	(with-temp-buffer
 	  (write-region "foo" nil tmp-name)
 	  (should (file-exists-p tmp-name))
 	  (shell-command
 	   (format "ls %s" (file-name-nondirectory tmp-name)) (current-buffer))
+	  ;; `ls' could produce colorized output.
+	  (goto-char (point-min))
+	  (while (re-search-forward tramp-color-escape-sequence-regexp nil t)
+	    (replace-match "" nil nil))
 	  (should
 	   (string-equal
 	    (format "%s\n" (file-name-nondirectory tmp-name)) (buffer-string))))
@@ -1175,7 +1214,17 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should (file-exists-p tmp-name))
           (async-shell-command
 	   (format "ls %s" (file-name-nondirectory tmp-name)) (current-buffer))
-	  (sit-for 1 'nodisplay)
+	  (accept-process-output (get-buffer-process (current-buffer)) 1)
+	  (with-timeout (10 (ert-fail "`async-shell-command' timed out"))
+	    (while
+		(ignore-errors
+		  (memq (process-status (get-buffer-process (current-buffer)))
+			'(run open)))
+	      (accept-process-output (get-buffer-process (current-buffer)) 1)))
+	  ;; `ls' could produce colorized output.
+	  (goto-char (point-min))
+	  (while (re-search-forward tramp-color-escape-sequence-regexp nil t)
+	    (replace-match "" nil nil))
 	  (should
 	   (string-equal
 	    (format "%s\n" (file-name-nondirectory tmp-name)) (buffer-string))))
@@ -1189,7 +1238,13 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (process-send-string
 	   (get-buffer-process (current-buffer))
 	   (format "%s\n" (file-name-nondirectory tmp-name)))
-	  (sit-for 1 'nodisplay)
+	  (accept-process-output (get-buffer-process (current-buffer)) 1)
+	  (with-timeout (10 (ert-fail "`async-shell-command' timed out"))
+	    (while
+		(ignore-errors
+		  (memq (process-status (get-buffer-process (current-buffer)))
+			'(run open)))
+	      (accept-process-output (get-buffer-process (current-buffer)) 1)))
 	  (should
 	   (string-equal
 	    (format "%s\n" (file-name-nondirectory tmp-name)) (buffer-string))))
@@ -1202,9 +1257,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
    (eq
     (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
     'tramp-sh-file-name-handler))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let* ((default-directory tramp-test-temporary-file-directory)
 	 (tmp-name1 (tramp--test-make-temp-name))
@@ -1246,11 +1298,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test30-utf8 ()
   "Check UTF8 encoding in file names and file contents."
   (skip-unless (tramp--test-enabled))
-  (tramp-cleanup-connection
-   (tramp-dissect-file-name tramp-test-temporary-file-directory)
-   nil 'keep-password)
 
   (let ((tmp-name (tramp--test-make-temp-name))
+	(coding-system-for-read 'utf-8)
+	(coding-system-for-write 'utf-8)
 	(arabic "أصبح بوسعك الآن تنزيل نسخة كاملة من موسوعة ويكيبيديا العربية لتصفحها بلا اتصال بالإنترنت")
 	(chinese "银河系漫游指南系列")
 	(russian "Автостопом по гала́ктике"))
@@ -1271,6 +1322,96 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 			 (sort `(,arabic ,chinese ,russian) 'string-lessp))))
       (ignore-errors (delete-directory tmp-name 'recursive)))))
 
+;; This test is inspired by Bug#16928.
+(ert-deftest tramp-test31-asynchronous-requests ()
+  "Check parallel asynchronous requests.
+Such requests could arrive from timers, process filters and
+process sentinels.  They shall not disturb each other."
+  ;; Mark as failed until bug has been fixed.
+  :expected-result :failed
+  (skip-unless (tramp--test-enabled))
+  (skip-unless
+   (eq
+    (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
+    'tramp-sh-file-name-handler))
+
+  ;; Keep instrumentation verbosity 0 until Tramp bug is fixed.  This
+  ;; has the side effect, that this test fails instead to abort.  Good
+  ;; for hydra.
+  (tramp--instrument-test-case 0
+  (let* ((tmp-name (tramp--test-make-temp-name))
+	 (default-directory tmp-name)
+	 (remote-file-name-inhibit-cache t)
+	 timer buffers kill-buffer-query-functions)
+
+    (unwind-protect
+	(progn
+	  (make-directory tmp-name)
+
+	  ;; Setup a timer in order to raise an ordinary command again
+	  ;; and again.  `vc-registered' is well suited, because there
+	  ;; are many checks.
+	  (setq
+	   timer
+	   (run-at-time
+	    0 1
+	    (lambda ()
+	      (when buffers
+		(vc-registered
+		 (buffer-name (nth (random (length buffers)) buffers)))))))
+
+	  ;; Create temporary buffers.  The number of buffers
+	  ;; corresponds to the number of processes; it could be
+	  ;; increased in order to make pressure on Tramp.
+	  (dotimes (i 5)
+	    (add-to-list 'buffers (generate-new-buffer "*temp*")))
+
+	  ;; Open asynchronous processes.  Set process sentinel.
+	  (dolist (buf buffers)
+	    (async-shell-command "read line; touch $line; echo $line" buf)
+	    (set-process-sentinel
+	     (get-buffer-process buf)
+	     (lambda (proc _state)
+	       (delete-file (buffer-name (process-buffer proc))))))
+
+	  ;; Send a string.  Use a random order of the buffers.  Mix
+	  ;; with regular operation.
+	  (let ((buffers (copy-sequence buffers))
+		buf)
+	    (while buffers
+	      (setq buf (nth (random (length buffers)) buffers))
+	      (process-send-string
+	       (get-buffer-process buf) (format "'%s'\n" buf))
+	      (file-attributes (buffer-name buf))
+	      (setq buffers (delq buf buffers))))
+
+	  ;; Wait until the whole output has been read.
+	  (with-timeout ((* 10 (length buffers))
+			 (ert-fail "`async-shell-command' timed out"))
+	    (let ((buffers (copy-sequence buffers))
+		  buf)
+	      (while buffers
+		(setq buf (nth (random (length buffers)) buffers))
+		(if (ignore-errors
+		      (memq (process-status (get-buffer-process buf))
+			    '(run open)))
+		    (accept-process-output (get-buffer-process buf) 0.1)
+		  (setq buffers (delq buf buffers))))))
+
+	  ;; Check.
+	  (dolist (buf buffers)
+	    (with-current-buffer buf
+	      (should
+	       (string-equal (format "'%s'\n" buf) (buffer-string)))))
+	  (should-not
+	   (directory-files tmp-name nil directory-files-no-dot-files-regexp)))
+
+      ;; Cleanup.
+      (ignore-errors (cancel-timer timer))
+      (ignore-errors (delete-directory tmp-name 'recursive))
+      (dolist (buf buffers)
+	(ignore-errors (kill-buffer buf)))))))
+
 ;; TODO:
 
 ;; * dired-compress-file
@@ -1283,11 +1424,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 ;; * set-file-acl
 ;; * set-file-selinux-context
 
-;; * Fix `tramp-test17-insert-directory' for
-;;   `ls-lisp-insert-directory' ("plink" and friends).
-;; * Fix `tramp-test27-start-file-process' on MS Windows
-;;   (`process-send-eof'?).
-;; * Fix `tramp-test29-utf8' on MS Windows.
+;; * Fix `tramp-test27-start-file-process' on MS Windows (`process-send-eof'?).
+;; * Fix `tramp-test28-shell-command' on MS Windows (nasty plink message).
+;; * Fix `tramp-test30-utf8' on MS Windows.  Seems to be in `directory-files'.
+;; * Fix Bug#16928.  Set expected error of `tramp-test31-asynchronous-requests'.
 
 (defun tramp-test-all (&optional interactive)
   "Run all tests for \\[tramp]."

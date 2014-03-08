@@ -29,6 +29,10 @@ a = asub / aslb + bsub / bslb;
 # Highlight the regexp after "if".
 x = toto / foo if /do bar/ =~ "dobar"
 
+# Regexp options are highlighted.
+
+/foo/xi != %r{bar}mo.tee
+
 bar(class: XXX) do              # ruby-indent-keyword-label
   foo
 end
@@ -357,8 +361,21 @@ zoo
   .lose(
     q, p)
 
+a.records().map(&:b).zip(
+  foo)
+
+# FIXME: This is not consistent with the example below it, but this
+# offset only happens if the colon is at eol, which wouldn't be often.
+# Tokenizing `bar:' as `:bar =>' would be better, but it's hard to
+# distinguish from a variable reference inside a ternary operator.
 foo(bar:
       tee)
 
 foo(:bar =>
-      tee)
+    tee)
+
+{'a' => {
+   'b' => 'c',
+   'd' => %w(e f)
+ }
+}

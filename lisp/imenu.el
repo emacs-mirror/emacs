@@ -726,8 +726,12 @@ for modes which use `imenu--generic-function'.  If it is not set, but
 ;; so it needs to be careful never to loop!
 (defun imenu--generic-function (patterns)
   "Return an index alist of the current buffer based on PATTERNS.
-PATTERNS should be an alist which has the same form as
-`imenu-generic-expression'.
+PATTERNS should be an alist with the same form as `imenu-generic-expression'.
+
+If `imenu-generic-skip-comments-and-strings' is non-nil, this ignores
+text inside comments and strings.
+
+If `imenu-case-fold-search' is non-nil, this ignores case.
 
 The return value is an alist of the form
  (INDEX-NAME . INDEX-POSITION)

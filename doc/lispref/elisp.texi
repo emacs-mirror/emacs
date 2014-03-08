@@ -746,6 +746,8 @@ Defining Commands
 * Interactive Codes::       The standard letter-codes for reading arguments
                               in various ways.
 * Interactive Examples::    Examples of how to read interactive arguments.
+* Generic Commands::        Select among command alternatives.
+
 
 Input Events
 
@@ -901,6 +903,7 @@ Simple Minded Indentation Engine
 * SMIE Indentation::        Specifying indentation rules.
 * SMIE Indentation Helpers:: Helper functions for indentation rules.
 * SMIE Indentation Example:: Sample indentation rules.
+* SMIE Customization::      Customizing indentation.
 
 Documentation
 
@@ -989,7 +992,7 @@ Buffers
                               "behind Emacs's back".
 * Read Only Buffers::       Modifying text is not allowed in a
                               read-only buffer.
-* The Buffer List::         How to look at all the existing buffers.
+* Buffer List::             How to look at all the existing buffers.
 * Creating Buffers::        Functions that create buffers.
 * Killing Buffers::         Buffers exist until explicitly killed.
 * Indirect Buffers::        An indirect buffer shares text with some
@@ -1136,6 +1139,7 @@ Text
 * Registers::               How registers are implemented.  Accessing
                               the text or position stored in a register.
 * Transposition::           Swapping two portions of a buffer.
+* Decompression::           Dealing with compressed data.
 * Base 64::                 Conversion to or from base 64 encoding.
 * Checksum/Hash::           Computing cryptographic hashes.
 * Parsing HTML/XML::        Parsing HTML and XML.
@@ -1305,7 +1309,7 @@ Processes
 
 Receiving Output from Processes
 
-* Process Buffers::         If no filter, output is put in a buffer.
+* Process Buffers::         By default, output is put in a buffer.
 * Filter Functions::        Filter functions accept output from the process.
 * Decoding Output::         Filters can get unibyte or multibyte strings.
 * Accepting Output::        How to wait until process output arrives.
@@ -1340,12 +1344,13 @@ Emacs Display
                               for text characters: font, colors, etc.
 * Fringes::                 Controlling window fringes.
 * Scroll Bars::             Controlling vertical scroll bars.
+* Window Dividers::         Separating windows visually.
 * Display Property::        Enabling special display features.
 * Images::                  Displaying images in Emacs buffers.
 * Buttons::                 Adding clickable buttons to Emacs buffers.
 * Abstract Display::        Emacs's Widget for Object Collections.
 * Blinking::                How Emacs shows the matching open parenthesis.
-* Character Display::   How Emacs displays individual characters.
+* Character Display::       How Emacs displays individual characters.
 * Beeping::                 Audible signal to the user.
 * Window Systems::          Which window system is being used.
 * Bidirectional Display::   Display of bidirectional scripts, such as
@@ -1380,10 +1385,10 @@ Faces
 * Attribute Functions::     Functions to examine and set face attributes.
 * Displaying Faces::        How Emacs combines the faces specified for
                               a character.
-* Face Remapping::         Remapping faces to alternative definitions.
+* Face Remapping::          Remapping faces to alternative definitions.
 * Face Functions::          How to define and examine faces.
 * Auto Faces::              Hook for automatic face assignment.
-* Basic Faces::         Faces that are defined by default.
+* Basic Faces::             Faces that are defined by default.
 * Font Selection::          Finding the best available font for a face.
 * Font Lookup::             Looking up the names of available fonts
                               and information about them.

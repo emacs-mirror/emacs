@@ -100,6 +100,12 @@ Alternative suggestions are:
   :group 'shr
   :type 'function)
 
+(defcustom shr-image-animate t
+  "Non nil means that images that can be animated will be."
+  :version "24.4"
+  :group 'shr
+  :type 'boolean)
+
 (defvar shr-content-function nil
   "If bound, this should be a function that will return the content.
 This is used for cid: URLs, and the function is called with the
@@ -141,8 +147,8 @@ cid: URL as the argument.")
     (define-key map "a" 'shr-show-alt-text)
     (define-key map "i" 'shr-browse-image)
     (define-key map "z" 'shr-zoom-image)
-    (define-key map [tab] 'shr-next-link)
-    (define-key map [backtab] 'shr-previous-link)
+    (define-key map [?\t] 'shr-next-link)
+    (define-key map [?\M-\t] 'shr-previous-link)
     (define-key map [follow-link] 'mouse-face)
     (define-key map [mouse-2] 'shr-browse-url)
     (define-key map "I" 'shr-insert-image)
@@ -765,14 +771,15 @@ element is the data blob and the second element is the content-type."
 	      (insert-sliced-image image (or alt "*") nil 20 1)
 	    (insert-image image (or alt "*")))
 	  (put-text-property start (point) 'image-size size)
-	  (when (cond ((fboundp 'image-multi-frame-p)
+	  (when (and shr-image-animate
+                     (cond ((fboundp 'image-multi-frame-p)
 		       ;; Only animate multi-frame things that specify a
 		       ;; delay; eg animated gifs as opposed to
 		       ;; multi-page tiffs.  FIXME?
-		       (cdr (image-multi-frame-p image)))
-		      ((fboundp 'image-animated-p)
-		       (image-animated-p image)))
-	    (image-animate image nil 60)))
+                            (cdr (image-multi-frame-p image)))
+                           ((fboundp 'image-animated-p)
+                            (image-animated-p image))))
+            (image-animate image nil 60)))
 	image)
     (insert alt)))
 

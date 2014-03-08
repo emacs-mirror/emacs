@@ -1266,6 +1266,8 @@ except to shape their child windows.  Emacs Lisp programs usually have
 no access to the parent windows; they operate on the windows at the
 leaves of the tree, which actually display buffers.
 
+@c FIXME: These two slots and the `buffer' slot below were replaced
+@c with a single slot `contents' on 2013-03-28.  --xfq
 @item hchild
 @itemx vchild
 These fields contain the window's leftmost child and its topmost child
@@ -1437,11 +1439,6 @@ The position in the buffer for which the line number is known, or
 @code{nil} meaning none is known.  If it is a buffer, don't display
 the line number as long as the window shows that buffer.
 
-@item region_showing
-If the region (or part of it) is highlighted in this window, this field
-holds the mark position that made one end of that region.  Otherwise,
-this field is @code{nil}.
-
 @item column_number_displayed
 The column number currently displayed in this window's mode line, or @code{nil}
 if column numbers are not being displayed.
@@ -1469,12 +1466,10 @@ process.  For a network or serial process, it is @code{nil} if the
 process is running or @code{t} if the process is stopped.
 
 @item filter
-If non-@code{nil}, a function used to accept output from the process
-instead of a buffer.
+A function used to accept output from the process.
 
 @item sentinel
-If non-@code{nil}, a function called whenever the state of the process
-changes.
+A function called whenever the state of the process changes.
 
 @item buffer
 The associated buffer of the process.

@@ -196,7 +196,7 @@ RSS or Atom file.  The file is retrieved by calling wget, or whatever you
 specify as `newsticker-wget-name'.
 
 URL may also be a function which returns news data.  In this case
-`newsticker-retrieval-method' etc.  are ignored for this feed.
+`newsticker-retrieval-method' etc. are ignored for this feed.
 
 The START-TIME can be either a string, or nil.  If it is a string it
 specifies a fixed time at which this feed shall be retrieved for the

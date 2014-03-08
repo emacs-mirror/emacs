@@ -95,12 +95,12 @@ as that will override any bit grouping options set here."
 
 (defface hexl-address-region
   '((t (:inherit header-line)))
-  "Face used in address area of hexl-mode buffer."
+  "Face used in address area of Hexl mode buffer."
   :group 'hexl)
 
 (defface hexl-ascii-region
   '((t (:inherit header-line)))
-  "Face used in ascii area of hexl-mode buffer."
+  "Face used in ASCII area of Hexl mode buffer."
   :group 'hexl)
 
 (defvar hexl-max-address 0
@@ -282,10 +282,10 @@ using the function `hexlify-buffer'.
 Each line in the buffer has an \"address\" (displayed in hexadecimal)
 representing the offset into the file that the characters on this line
 are at and 16 characters from the file (displayed as hexadecimal
-values grouped every `hexl-bits' bits) and as their ASCII values.
+values grouped every `hexl-bits' bits, and as their ASCII values).
 
 If any of the characters (displayed as ASCII characters) are
-unprintable (control or meta characters) they will be replaced as
+unprintable (control or meta characters) they will be replaced by
 periods.
 
 If `hexl-mode' is invoked with an argument the buffer is assumed to be
@@ -309,8 +309,8 @@ A sample format:
   000000b0: 7461 626c 6520 6368 6172 6163 7465 7220  table character
   000000c0: 7265 6769 6f6e 2e0a                      region..
 
-Movement is as simple as movement in a normal Emacs text buffer.  Most
-cursor movement bindings are the same: use \\[hexl-backward-char], \\[hexl-forward-char], \\[hexl-next-line], and \\[hexl-previous-line]
+Movement is as simple as movement in a normal Emacs text buffer.
+Most cursor movement bindings are the same: use \\[hexl-backward-char], \\[hexl-forward-char], \\[hexl-next-line], and \\[hexl-previous-line]
 to move the cursor left, right, down, and up.
 
 Advanced cursor movement commands (ala \\[hexl-beginning-of-line], \\[hexl-end-of-line], \\[hexl-beginning-of-buffer], and \\[hexl-end-of-buffer]) are
@@ -335,7 +335,7 @@ into the buffer at the current point.
 \\[hexl-insert-decimal-char] will insert a given decimal value (if it is between 0 and 255)
 into the buffer at the current point.
 
-\\[hexl-mode-exit] will exit hexl-mode.
+\\[hexl-mode-exit] will exit `hexl-mode'.
 
 Note: saving the file with any of the usual Emacs commands
 will actually convert it back to binary format while saving.
@@ -565,7 +565,7 @@ This function is intended to be used as eldoc callback."
     (format "Current address is %d/0x%08x" addr addr)))
 
 (defun hexl-ascii-start-column ()
-  "Column at which the ascii portion of the hexl display starts."
+  "Column at which the ASCII portion of the hexl display starts."
   (+ 43 (/ 128 hexl-bits)))
 
 (defun hexl-address-to-marker (address)
@@ -586,7 +586,7 @@ Signal error if ADDRESS is out of range."
   (goto-char (hexl-address-to-marker address)))
 
 (defun hexl-goto-hex-address (hex-address)
-  "Go to hexl-mode address (hex string) HEX-ADDRESS.
+  "Go to Hexl mode address (hex string) HEX-ADDRESS.
 Signal error if HEX-ADDRESS is out of range."
   (interactive "sHex Address: ")
   (hexl-goto-address (hexl-hex-string-to-integer hex-address)))
@@ -615,17 +615,17 @@ Signal error if HEX-ADDRESS is out of range."
 ;; move point functions
 
 (defun hexl-backward-char (arg)
-  "Move to left ARG bytes (right if ARG negative) in hexl-mode."
+  "Move to left ARG bytes (right if ARG negative) in Hexl mode."
   (interactive "p")
   (hexl-goto-address (- (hexl-current-address) arg)))
 
 (defun hexl-forward-char (arg)
-  "Move to right ARG bytes (left if ARG negative) in hexl-mode."
+  "Move to right ARG bytes (left if ARG negative) in Hexl mode."
   (interactive "p")
   (hexl-goto-address (+ (hexl-current-address) arg)))
 
 (defun hexl-backward-short (arg)
-  "Move to left ARG shorts (right if ARG negative) in hexl-mode."
+  "Move to left ARG shorts (right if ARG negative) in Hexl mode."
   (interactive "p")
   (hexl-goto-address (let ((address (hexl-current-address)))
 		       (if (< arg 0)
@@ -657,12 +657,12 @@ Signal error if HEX-ADDRESS is out of range."
 		       address)))
 
 (defun hexl-forward-short (arg)
-  "Move to right ARG shorts (left if ARG negative) in hexl-mode."
+  "Move to right ARG shorts (left if ARG negative) in Hexl mode."
   (interactive "p")
   (hexl-backward-short (- arg)))
 
 (defun hexl-backward-word (arg)
-  "Move to left ARG words (right if ARG negative) in hexl-mode."
+  "Move to left ARG words (right if ARG negative) in Hexl mode."
   (interactive "p")
   (hexl-goto-address (let ((address (hexl-current-address)))
 		       (if (< arg 0)
@@ -694,18 +694,18 @@ Signal error if HEX-ADDRESS is out of range."
 		       address)))
 
 (defun hexl-forward-word (arg)
-  "Move to right ARG words (left if ARG negative) in hexl-mode."
+  "Move to right ARG words (left if ARG negative) in Hexl mode."
   (interactive "p")
   (hexl-backward-word (- arg)))
 
 (defun hexl-previous-line (arg)
-  "Move vertically up ARG lines [16 bytes] (down if ARG negative) in hexl-mode.
+  "Move vertically up ARG lines [16 bytes] (down if ARG negative) in Hexl mode.
 If there is no byte at the target address move to the last byte in that line."
   (interactive "p")
   (hexl-next-line (- arg)))
 
 (defun hexl-next-line (arg)
-  "Move vertically down ARG lines [16 bytes] (up if ARG negative) in hexl-mode.
+  "Move vertically down ARG lines [16 bytes] (up if ARG negative) in Hexl mode.
 If there is no byte at the target address move to the last byte in that line."
   (interactive "p")
   (hexl-goto-address (let ((address (+ (hexl-current-address) (* arg 16))))
@@ -739,12 +739,12 @@ With prefix arg N, puts point N bytes of the way from the true beginning."
   (hexl-goto-address (- hexl-max-address (1- arg))))
 
 (defun hexl-beginning-of-line ()
-  "Goto beginning of line in hexl mode."
+  "Goto beginning of line in Hexl mode."
   (interactive)
   (goto-char (+ (* (/ (point) (hexl-line-displen)) (hexl-line-displen)) 11)))
 
 (defun hexl-end-of-line ()
-  "Goto end of line in hexl mode."
+  "Goto end of line in Hexl mode."
   (interactive)
   (hexl-goto-address (let ((address (logior (hexl-current-address) 15)))
 		       (if (> address hexl-max-address)
@@ -1099,7 +1099,7 @@ This function is assumed to be used as callback function for `hl-line-mode'."
     ))
 
 (defun hexl-mode-ruler ()
-  "Return a string ruler for hexl mode."
+  "Return a string ruler for Hexl mode."
   (let* ((highlight (mod (hexl-current-address) 16))
 	 (s (cdr (assq hexl-bits hexl-rulers)))
 	 (pos 0))

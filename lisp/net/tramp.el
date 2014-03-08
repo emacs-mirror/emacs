@@ -49,9 +49,8 @@
 ;;            http://lists.gnu.org/mailman/listinfo/tramp-devel
 ;;
 ;; For the adventurous, the current development sources are available
-;; via CVS.  You can find instructions about this at the following URL:
+;; via Git.  You can find instructions about this at the following URL:
 ;;            http://savannah.gnu.org/projects/tramp/
-;; Click on "CVS" in the navigation bar near the top.
 ;;
 ;; Don't forget to put on your asbestos longjohns, first!
 
@@ -66,6 +65,7 @@
 (defvar directory-sep-char)
 (defvar eshell-path-env)
 (defvar file-notify-descriptors)
+(defvar ls-lisp-use-insert-directory-program)
 (defvar outline-regexp)
 
 ;;; User Customizable Internal Variables:
@@ -1560,12 +1560,13 @@ signal identifier to be raised, remaining arguments passed to
 `tramp-message'.  Finally, signal SIGNAL is raised."
   (let (tramp-message-show-message)
     (tramp-backtrace vec-or-proc)
-    (tramp-message
-     vec-or-proc 1 "%s"
-     (error-message-string
-      (list signal
-	    (get signal 'error-message)
-	    (apply 'format fmt-string arguments))))
+    (when vec-or-proc
+      (tramp-message
+       vec-or-proc 1 "%s"
+       (error-message-string
+	(list signal
+	      (get signal 'error-message)
+	      (apply 'format fmt-string arguments)))))
     (signal signal (list (apply 'format fmt-string arguments)))))
 
 (defsubst tramp-error-with-buffer
@@ -3007,6 +3008,38 @@ User is always nil."
 
       (tramp-run-real-handler 'find-backup-file-name (list filename)))))
 
+(defun tramp-handle-insert-directory
+  (filename switches &optional wildcard full-directory-p)
+  "Like `insert-directory' for Tramp files."
+  (unless switches (setq switches ""))
+  ;; Mark trailing "/".
+  (when (and (zerop (length (file-name-nondirectory filename)))
+	     (not full-directory-p))
+    (setq switches (concat switches "F")))
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
+    (with-tramp-progress-reporter v 0 (format "Opening directory %s" filename)
+      (require 'ls-lisp)
+      (let (ls-lisp-use-insert-directory-program start)
+	(tramp-run-real-handler
+	 'insert-directory
+	 (list filename switches wildcard full-directory-p))
+	;; `ls-lisp' always returns full listings.  We must remove
+	;; superfluous parts.
+	(unless (string-match "l" switches)
+	  (save-excursion
+	    (goto-char (point-min))
+	    (while (setq start
+			 (text-property-not-all
+			  (point) (point-at-eol) 'dired-filename t))
+	      (delete-region
+	       start
+	       (or (text-property-any start (point-at-eol) 'dired-filename t)
+		   (point-at-eol)))
+	      (if (=  (point-at-bol) (point-at-eol))
+		  ;; Empty line.
+		  (delete-region (point) (progn (forward-line) (point)))
+		(forward-line)))))))))
+
 (defun tramp-handle-insert-file-contents
   (filename &optional visit beg end replace)
   "Like `insert-file-contents' for Tramp files."
@@ -3018,10 +3051,13 @@ User is always nil."
 	  v 3 (format "Inserting `%s'" filename)
 	(unwind-protect
 	    (if (not (file-exists-p filename))
-		;; We don't raise a Tramp error, because it might be
-		;; suppressed, like in `find-file-noselect-1'.
-		(signal 'file-error
-			(list "File not found on remote host" filename))
+		(progn
+		  ;; We don't raise a Tramp error, because it might be
+		  ;; suppressed, like in `find-file-noselect-1'.
+		  (tramp-message
+		   v 1 "File not `%s' found on remote host" filename)
+		  (signal 'file-error
+			  (list "File not found on remote host" filename)))
 
 	      (if (and (tramp-local-host-p v)
 		       (let (file-name-handler-alist)
@@ -3149,6 +3185,13 @@ User is always nil."
 		(tramp-compat-load local-copy noerror t nosuffix must-suffix)
 	      (delete-file local-copy)))))
       t)))
+
+(defun tramp-handle-make-symbolic-link
+  (filename linkname &optional ok-if-already-exists)
+  "Like `make-symbolic-link' for Tramp files."
+  (with-parsed-tramp-file-name
+      (if (tramp-tramp-file-p filename) filename linkname) nil
+    (tramp-error v 'file-error "make-symbolic-link not supported")))
 
 (defun tramp-handle-shell-command
   (command &optional output-buffer error-buffer)
@@ -3358,6 +3401,12 @@ of."
   (with-current-buffer (process-buffer proc)
     (let ((enable-recursive-minibuffers t)
 	  (case-fold-search t))
+      ;; Let's check whether a wrong password has been sent already.
+      ;; Sometimes, the process returns a new password request
+      ;; immediately after rejecting the previous (wrong) one.
+      (goto-char (point-min))
+      (when (search-forward-regexp tramp-wrong-passwd-regexp nil t)
+	(tramp-clear-passwd vec))
       (tramp-check-for-regexp proc tramp-password-prompt-regexp)
       (tramp-message vec 3 "Sending %s" (match-string 1))
       ;; We don't call `tramp-send-string' in order to hide the
@@ -3466,8 +3515,8 @@ The terminal type can be configured with `tramp-terminal-type'."
 PROC and VEC indicate the remote connection to be used.  POS, if
 set, is the starting point of the region to be deleted in the
 connection buffer."
-  ;; Enable `auth-source' and `password-cache'.  We must use
-  ;; tramp-current-* variables in case we have several hops.
+  ;; Enable `auth-source'.  We must use tramp-current-* variables in
+  ;; case we have several hops.
   (tramp-set-connection-property
    (tramp-dissect-file-name
     (tramp-make-tramp-file-name
@@ -3819,9 +3868,17 @@ be granted."
        (or
         result
         (let ((file-attr
-               (tramp-get-file-property
-                vec (tramp-file-name-localname vec)
-                (concat "file-attributes-" suffix) nil))
+	       (or
+		(tramp-get-file-property
+		 vec (tramp-file-name-localname vec)
+		 (concat "file-attributes-" suffix) nil)
+		(file-attributes
+		 (tramp-make-tramp-file-name
+		  (tramp-file-name-method vec)
+		  (tramp-file-name-user vec)
+		  (tramp-file-name-host vec)
+		  (tramp-file-name-localname vec))
+		 (intern suffix))))
               (remote-uid
                (tramp-get-connection-property
                 vec (concat "uid-" suffix) nil))
@@ -4035,7 +4092,7 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1.
 Furthermore, traces are written with verbosity of 6."
   (tramp-message
    (vector tramp-current-method tramp-current-user tramp-current-host nil nil)
-   6 "%s %s %s" program infile args)
+   6 "`%s %s' %s" program (mapconcat 'identity args " ") infile)
   (if (executable-find program)
       (apply 'call-process program infile destination display args)
     1))
@@ -4081,9 +4138,6 @@ Invokes `password-read' if available, `read-passwd' else."
                    "password" tramp-current-host tramp-current-method)))
 	   ;; Try the password cache.
 	   (when (functionp 'password-read)
-	     (unless (tramp-get-connection-property
-		      v "first-password-request" nil)
-	       (tramp-compat-funcall 'password-cache-remove key))
 	     (let ((password
 		    (tramp-compat-funcall 'password-read pw-prompt key)))
 	       (tramp-compat-funcall 'password-cache-add key password)

@@ -1,3 +1,33 @@
+2014-03-07  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-accept-article): Make respooling to nnimap
+	groups work again.
+
+2014-03-07  George McNinch  <gmcninch@gmail.com>  (tiny change)
+
+	* nnir.el (nnir-run-namazu): Parse namazu results that are larger than
+	999 correctly (i.e. "1,342").
+
+2014-03-07  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-agent.el (gnus-agent-update-files-total-fetched-for): Don't bug
+	out if the directory doesn't exist.
+
+2014-03-05  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-make-group): Clarify prompt.
+
+2014-02-22  Daniel Colascione  <dancol@dancol.org>
+
+	* auth-source.el (auth-source-secrets-listify-pattern): New function.
+	(auth-source-secrets-search): Don't pass invalid patterns to secrets.el;
+	instead, build list of patterns.
+
+2014-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-sources): Add pointer to what the .gpg extension
+	in `auth-sources' means and link to EPA docs.
+
 2014-02-12  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nnmail.el (nnmail-expand-newtext): Further sub-match fixups
@@ -11333,7 +11363,7 @@
 
 2010-03-30  Chong Yidong  <cyd@stupidchicken.com>
 
-	* message.el (message-default-mail-headers):
+	* message.el (message-default-mail-headers)
 	(message-default-headers): Carry the value mail-default-headers over
 	into message-default-mail-headers, rather than message-default-headers.
 
@@ -25353,10 +25383,10 @@
 2002-08-07  Simon Josefsson  <jas@extundo.com>
 
 	* sieve-manage.el (require): Use SASL, not RFC2104/MD5.
-	(sieve-manage-authenticators):
+	(sieve-manage-authenticators)
 	(sieve-manage-authenticator-alist): Add some SASL mechs.
 	(sieve-sasl-auth): New function.
-	(sieve-manage-cram-md5-auth):
+	(sieve-manage-cram-md5-auth)
 	(sieve-manage-plain-auth): Rewrite using SASL library.
 	(sieve-manage-digest-md5-p, sieve-manage-digest-md5-auth)
 	(sieve-manage-scram-md5-p, sieve-manage-scram-md5-auth)

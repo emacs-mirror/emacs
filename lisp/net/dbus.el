@@ -35,7 +35,7 @@
 
 ;; Declare used subroutines and variables.
 (declare-function dbus-message-internal "dbusbind.c")
-(declare-function dbus-init-bus "dbusbind.c")
+(declare-function dbus--init-bus "dbusbind.c")
 (defvar dbus-message-type-invalid)
 (defvar dbus-message-type-method-call)
 (defvar dbus-message-type-method-return)
@@ -54,6 +54,9 @@
 
 (defconst dbus-path-dbus "/org/freedesktop/DBus"
   "The object path used to talk to the bus itself.")
+
+(defconst dbus-path-local (concat dbus-path-dbus "/Local")
+  "The object path used in local/in-process-generated messages.")
 
 ;; Default D-Bus interfaces.
 
@@ -129,6 +132,15 @@ See URL `http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interf
 ;;   </signal>
 ;; </interface>
 
+(defconst dbus-interface-local (concat dbus-interface-dbus ".Local")
+  "An interface whose methods can only be invoked by the local implementation.")
+
+;; <interface name="org.freedesktop.DBus.Local">
+;;   <signal name="Disconnected">
+;;     <arg name="object_path"               type="o"/>
+;;   </signal>
+;; </interface>
+
 ;; Emacs defaults.
 (defconst dbus-service-emacs "org.gnu.Emacs"
   "The well known service name of Emacs.")
@@ -154,7 +166,7 @@ Otherwise, return result of last form in BODY, or all other errors."
 
 (define-obsolete-variable-alias 'dbus-event-error-hooks
   'dbus-event-error-functions "24.3")
-(defvar dbus-event-error-functions nil
+(defvar dbus-event-error-functions '(dbus-notice-synchronous-call-errors)
   "Functions to be called when a D-Bus error happens in the event handler.
 Every function must accept two arguments, the event and the error variable
 caught in `condition-case' by `dbus-error'.")
@@ -167,17 +179,34 @@ caught in `condition-case' by `dbus-error'.")
 A key in this hash table is a list (:serial BUS SERIAL), like in
 `dbus-registered-objects-table'.  BUS is either a Lisp symbol,
 `:system' or `:session', or a string denoting the bus address.
-SERIAL is the serial number of the reply message.")
+SERIAL is the serial number of the reply message.
+
+The value of an entry is a cons (STATE . RESULT).  STATE can be
+either `:pending' (we are still waiting for the result),
+`:complete' (the result is available) or `:error' (the reply
+message was an error message).")
 
 (defun dbus-call-method-handler (&rest args)
   "Handler for reply messages of asynchronous D-Bus message calls.
 It calls the function stored in `dbus-registered-objects-table'.
 The result will be made available in `dbus-return-values-table'."
-  (puthash (list  :serial
-		  (dbus-event-bus-name last-input-event)
-		 (dbus-event-serial-number last-input-event))
-	   (if (= (length args) 1) (car args) args)
-	   dbus-return-values-table))
+  (let* ((key (list :serial
+		    (dbus-event-bus-name last-input-event)
+		    (dbus-event-serial-number last-input-event)))
+         (result (gethash key dbus-return-values-table)))
+    (when (consp result)
+      (setcar result :complete)
+      (setcdr result (if (= (length args) 1) (car args) args)))))
+
+(defun dbus-notice-synchronous-call-errors (ev er)
+  "Detect errors resulting from pending synchronous calls."
+  (let* ((key (list :serial
+		    (dbus-event-bus-name ev)
+		    (dbus-event-serial-number ev)))
+         (result (gethash key dbus-return-values-table)))
+    (when (consp result)
+      (setcar result :error)
+      (setcdr result er))))
 
 (defun dbus-call-method (bus service path interface method &rest args)
   "Call METHOD on the D-Bus BUS.
@@ -260,27 +289,42 @@ object is returned instead of a list containing this single Lisp object.
       (signal 'wrong-type-argument (list 'stringp method)))
 
   (let ((timeout (plist-get args :timeout))
+        (check-interval 0.001)
 	(key
 	 (apply
 	  'dbus-message-internal dbus-message-type-method-call
-	  bus service path interface method 'dbus-call-method-handler args)))
+	  bus service path interface method 'dbus-call-method-handler args))
+        (result (cons :pending nil)))
 
     ;; Wait until `dbus-call-method-handler' has put the result into
     ;; `dbus-return-values-table'.  If no timeout is given, use the
     ;; default 25".  Events which are not from D-Bus must be restored.
     ;; `read-event' performs a redisplay.  This must be suppressed; it
     ;; hurts when reading D-Bus events asynchronously.
-    (with-timeout ((if timeout (/ timeout 1000.0) 25))
-      (while (eq (gethash key dbus-return-values-table :ignore) :ignore)
-	(let ((event (let ((inhibit-redisplay t) unread-command-events)
-		       (read-event nil nil 0.1))))
-	  (when (and event (not (ignore-errors (dbus-check-event event))))
-	    (setq unread-command-events
-		  (append unread-command-events (list event)))))))
 
-    ;; Cleanup `dbus-return-values-table'.  Return the result.
-    (prog1
-	(gethash key dbus-return-values-table)
+    ;; Work around bug#16775 by busy-waiting with gradual backoff for
+    ;; dbus calls to complete.  A better approach would involve either
+    ;; adding arbitrary wait condition support to read-event or
+    ;; restructuring dbus as a kind of process object.  Poll at most
+    ;; about once per second for completion.
+
+    (puthash key result dbus-return-values-table)
+    (unwind-protect
+         (progn
+           (with-timeout ((if timeout (/ timeout 1000.0) 25)
+                          (signal 'dbus-error (list "call timed out")))
+             (while (eq (car result) :pending)
+               (let ((event (let ((inhibit-redisplay t) unread-command-events)
+                              (read-event nil nil check-interval))))
+                 (when event
+                   (setf unread-command-events
+                         (nconc unread-command-events
+                                (cons event nil))))
+                 (when (< check-interval 1)
+                   (setf check-interval (* check-interval 1.05))))))
+           (when (eq (car result) :error)
+             (signal (cadr result) (cddr result)))
+           (cdr result))
       (remhash key dbus-return-values-table))))
 
 ;; `dbus-call-method' works non-blocking now.
@@ -911,7 +955,8 @@ not well formed."
 	       ;; Service.
 	       (or (= dbus-message-type-method-return (nth 2 event))
 		   (= dbus-message-type-error (nth 2 event))
-		   (stringp (nth 4 event)))
+                   (or (stringp (nth 4 event))
+                       (null (nth 4 event))))
 	       ;; Object path.
 	       (or (= dbus-message-type-method-return (nth 2 event))
 		   (= dbus-message-type-error (nth 2 event))
@@ -962,7 +1007,7 @@ If the HANDLER returns a `dbus-error', it is propagated as return message."
 	  (nth 1 event) (nth 4 event) (nth 3 event) (cadr err))))
      ;; Propagate D-Bus error messages.
      (run-hook-with-args 'dbus-event-error-functions event err)
-     (when (or dbus-debug (= dbus-message-type-error (nth 2 event)))
+     (when dbus-debug
        (signal (car err) (cdr err))))))
 
 (defun dbus-event-bus-name (event)
@@ -1667,6 +1712,61 @@ It will be registered for all objects created by `dbus-register-method'."
 	    (cons :array (mapcar (lambda (y) (cons :dict-entry y)) (cdr x)))))
 	 result)
 	'(:signature "{oa{sa{sv}}}"))))))
+
+(defun dbus-handle-bus-disconnect ()
+  "React to a bus disconnection.
+BUS is the bus that disconnected.  This routine unregisters all
+handlers on the given bus and causes all synchronous calls
+pending at the time of disconnect to fail."
+  (let ((bus (dbus-event-bus-name last-input-event))
+        (keys-to-remove))
+    (maphash
+     (lambda (key value)
+       (when (and (eq (nth 0 key) :serial)
+                  (eq (nth 1 key) bus))
+         (run-hook-with-args
+          'dbus-event-error-functions
+          (list 'dbus-event
+                bus
+                dbus-message-type-error
+                (nth 2 key)
+                nil
+                nil
+                nil
+                nil
+                value)
+          (list 'dbus-error "Bus disconnected" bus))
+         (push key keys-to-remove)))
+     dbus-registered-objects-table)
+    (dolist (key keys-to-remove)
+      (remhash key dbus-registered-objects-table))))
+
+(defun dbus-init-bus (bus &optional private)
+  "Establish the connection to D-Bus BUS.
+
+BUS can be either the symbol `:system' or the symbol `:session', or it
+can be a string denoting the address of the corresponding bus.  For
+the system and session buses, this function is called when loading
+`dbus.el', there is no need to call it again.
+
+The function returns a number, which counts the connections this Emacs
+session has established to the BUS under the same unique name (see
+`dbus-get-unique-name').  It depends on the libraries Emacs is linked
+with, and on the environment Emacs is running.  For example, if Emacs
+is linked with the gtk toolkit, and it runs in a GTK-aware environment
+like Gnome, another connection might already be established.
+
+When PRIVATE is non-nil, a new connection is established instead of
+reusing an existing one.  It results in a new unique name at the bus.
+This can be used, if it is necessary to distinguish from another
+connection used in the same Emacs process, like the one established by
+GTK+.  It should be used with care for at least the `:system' and
+`:session' buses, because other Emacs Lisp packages might already use
+this connection to those buses."
+  (dbus--init-bus bus private)
+  (dbus-register-signal
+   bus nil dbus-path-local dbus-interface-local
+   "Disconnected" #'dbus-handle-bus-disconnect))
 
  
 ;; Initialize `:system' and `:session' buses.  This adds their file

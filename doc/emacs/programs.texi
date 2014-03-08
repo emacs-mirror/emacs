@@ -38,6 +38,7 @@ Highlight program syntax (@pxref{Font Lock}).
 * Symbol Completion::   Completion on symbol names of your program or language.
 * MixedCase Words::     Dealing with identifiersLikeThis.
 * Semantic::            Suite of editing tools based on source code parsing.
+* Prettifying Symbols:: Display symbols as composed characters.
 * Misc for Programs::   Other Emacs features useful for editing programs.
 * C Modes::             Special commands of C, C++, Objective-C, Java,
                           IDL, Pike and AWK modes.
@@ -366,9 +367,9 @@ which reformats Lisp objects with nice-looking indentation.
 @table @kbd
 @item @key{TAB}
 Adjust indentation of current line (@code{indent-for-tab-command}).
-@item C-j
+@item @key{RET}
 Insert a newline, then adjust indentation of following line
-(@code{newline-and-indent}).
+(@code{newline}).
 @end table
 
 @kindex TAB @r{(programming modes)}
@@ -382,12 +383,9 @@ the current line, based on the indentation and syntactic content of
 the preceding lines; if the region is active, @key{TAB} indents each
 line within the region, not just the current line.
 
-@kindex C-j @r{(indenting source code)}
-@findex newline-and-indent
-  The command @kbd{C-j} (@code{newline-and-indent}), which was
-documented in @ref{Indentation Commands}, does the same as @key{RET}
-followed by @key{TAB}: it inserts a new line, then adjusts the line's
-indentation.
+  The command @key{RET} (@code{newline}), which was documented in
+@ref{Inserting Text}, does the same as @key{C-j} followed by
+@key{TAB}: it inserts a new line, then adjusts the line's indentation.
 
   When indenting a line that starts within a parenthetical grouping,
 Emacs usually places the start of the line under the preceding line
@@ -867,7 +865,7 @@ makes inserting inserting a newline between two adjacent pairs also
 automatically open and extra newline after point.
 
 @item
-@code{electric-skip-whitespace}, when non-@code{nil}, causes the minor
+@code{electric-pair-skip-whitespace}, when non-@code{nil}, causes the minor
 mode to skip whitespace forward before deciding whether to skip over
 the closing delimiter.
 @end itemize
@@ -1435,6 +1433,37 @@ is idle.
 @xref{Top, Semantic,, semantic, Semantic}, for details.
 @end ifnottex
 
+@node Prettifying Symbols
+@section Prettifying Symbols
+@cindex prettifying symbols
+@cindex symbol, prettifying
+
+@code{prettify-symbols-mode} and @code{global-prettify-symbols-mode}
+are two minor modes (@pxref{Minor Modes}) that can display specified
+symbols as composed characters.  For instance, in Emacs Lisp mode
+(@pxref{Lisp Eval}), this mode will replace the string ``lambda'' with
+the Greek lambda character.
+
+@findex prettify-symbols-mode
+@vindex prettify-symbols-alist
+When Prettify Symbols mode and Font Lock mode (@pxref{Font Lock}) are
+enabled, symbols are prettified (displayed as composed characters)
+according to the rules in @code{prettify-symbols-alist}, which are
+locally defined by major modes (@pxref{Major Modes}) supporting
+prettifying.  To add further customizations for a given major mode,
+you can modify @code{prettify-symbols-alist}.  For example:
+
+@example
+(add-hook 'emacs-lisp-mode-hook
+	  (lambda ()
+	    (push '("<=" . ?≤) prettify-symbols-alist)))
+@end example
+
+@findex global-prettify-symbols-mode
+You can enable this mode locally in desired buffers, or use
+@code{global-prettify-symbols-mode} to enable it for all modes that
+support it.
+
 @node Misc for Programs
 @section Other Features Useful for Editing Programs
 
@@ -1681,18 +1710,18 @@ hungry-delete feature is enabled.
 @findex c-context-line-break
 This command inserts a line break and indents the new line in a manner
 appropriate to the context.  In normal code, it does the work of
-@kbd{C-j} (@code{newline-and-indent}), in a C preprocessor line it
-additionally inserts a @samp{\} at the line break, and within comments
-it's like @kbd{M-j} (@code{c-indent-new-comment-line}).
+@key{RET} (@code{newline}), in a C preprocessor line it additionally
+inserts a @samp{\} at the line break, and within comments it's like
+@kbd{M-j} (@code{c-indent-new-comment-line}).
 
 @code{c-context-line-break} isn't bound to a key by default, but it
 needs a binding to be useful.  The following code will bind it to
-@kbd{C-j}.  We use @code{c-initialization-hook} here to make sure
+@kbd{RET}.  We use @code{c-initialization-hook} here to make sure
 the keymap is loaded before we try to change it.
 
 @example
 (defun my-bind-clb ()
-  (define-key c-mode-base-map "\C-j"
+  (define-key c-mode-base-map "\C-m"
               'c-context-line-break))
 (add-hook 'c-initialization-hook 'my-bind-clb)
 @end example
@@ -1812,6 +1841,7 @@ defines these commands:
 @table @kbd
 @item @key{TAB}
 @code{tab-to-tab-stop}.
+@c FIXME: Maybe this should be consistent with other programming modes.
 @item C-j
 Insert a newline and then indent using @code{tab-to-tab-stop}.
 @item :

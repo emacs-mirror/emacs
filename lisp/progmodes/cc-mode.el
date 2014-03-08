@@ -75,7 +75,7 @@
 
 ;; For Emacs < 22.2.
 (eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest _r))))
 
 (eval-when-compile
   (let ((load-path
@@ -188,7 +188,12 @@ control).  See \"cc-mode.el\" for more info."
 		(setq c-block-comment-prefix
 		      (symbol-value 'c-comment-continuation-stars)))
 	    (add-hook 'change-major-mode-hook 'c-leave-cc-mode-mode)
-	    (setq c-initialization-ok t))
+	    (setq c-initialization-ok t)
+	    ;; Connect up with Emacs's electric-indent-mode, for >= Emacs 24.4
+            (when (fboundp 'electric-indent-local-mode)
+	      (add-hook 'electric-indent-mode-hook 'c-electric-indent-mode-hook)
+              (add-hook 'electric-indent-local-mode-hook
+                        'c-electric-indent-local-mode-hook)))
 	;; Will try initialization hooks again if they failed.
 	(put 'c-initialize-cc-mode initprop c-initialization-ok))))
 
@@ -578,6 +583,15 @@ that requires a literal mode spec at compile time."
   ;; setup the comment indent variable in a Emacs version portable way
   (set (make-local-variable 'comment-indent-function) 'c-comment-indent)
 
+  ;; In Emacs 24.4 onwards, prevent Emacs's built in electric indentation from
+  ;; messing up CC Mode's, and set `c-electric-flag' if `electric-indent-mode'
+  ;; has been called by the user.
+  (when (boundp 'electric-indent-inhibit) (setq electric-indent-inhibit t))
+  ;; CC-mode should obey Emacs's generic preferences, tho only do it if
+  ;; Emacs's generic preferences can be set per-buffer (Emacs>=24.4).
+  (when (fboundp 'electric-indent-local-mode)
+    (setq c-electric-flag electric-indent-mode))
+
 ;;   ;; Put submode indicators onto minor-mode-alist, but only once.
 ;;   (or (assq 'c-submode-indicators minor-mode-alist)
 ;;       (setq minor-mode-alist
@@ -807,7 +821,7 @@ Note that the style variables are always made local to the buffer."
     `(progn ,@(mapcar (lambda (hook) `(run-hooks ,hook)) hooks))))
 
 
-;;; Change hooks, linking with Font Lock.
+;;; Change hooks, linking with Font Lock and electric-indent-mode.
 
 ;; Buffer local variables recording Beginning/End-of-Macro position before a
 ;; change, when a macro straddles, respectively, the BEG or END (or both) of
@@ -1151,7 +1165,7 @@ Note that the style variables are always made local to the buffer."
       (backward-char))
     new-pos))				; back over (, [, <.
 
-(defun c-change-set-fl-decl-start (beg end old-len)
+(defun c-change-set-fl-decl-start (_beg _end _old-len)
   ;; Set c-new-BEG to the beginning of a "local" declaration if it('s BOL) is
   ;; inside one.  This is called from an after-change-function, but the
   ;; parameters BEG END and OLD-LEN are ignored.  See `c-set-fl-decl-start'
@@ -1225,7 +1239,7 @@ This function is called from `c-common-init', once per mode initialization."
       (make-local-hook 'font-lock-mode-hook))
   (add-hook 'font-lock-mode-hook 'c-after-font-lock-init nil t))
 
-(defun c-extend-after-change-region (beg end old-len)
+(defun c-extend-after-change-region (_beg _end _old-len)
   "Extend the region to be fontified, if necessary."
   ;; Note: the parameters are ignored here.  This somewhat indirect
   ;; implementation exists because it is minimally different from the
@@ -1237,6 +1251,25 @@ This function is called from `c-common-init', once per mode initialization."
   ;; (the languages with #define) and AWK Mode make non-null use of this
   ;; function.
   (cons c-new-BEG c-new-END))
+
+;; Connect up to `electric-indent-mode' (Emacs 24.4 and later).
+(defun c-electric-indent-mode-hook ()
+  ;; Emacs has en/disabled `electric-indent-mode'.  Propagate this through to
+  ;; each CC Mode buffer.
+  (mapc (lambda (buf)
+          (with-current-buffer buf
+            (when c-buffer-is-cc-mode
+              ;; Don't use `c-toggle-electric-state' here due to recursion.
+              (setq c-electric-flag electric-indent-mode)
+              (c-update-modeline))))
+        (buffer-list)))
+
+(defun c-electric-indent-local-mode-hook ()
+  ;; Emacs has en/disabled `electric-indent-local-mode' for this buffer.
+  ;; Propagate this through to this buffer's value of `c-electric-flag'
+  (when c-buffer-is-cc-mode
+    (setq c-electric-flag electric-indent-mode)
+    (c-update-modeline)))
 
 
 ;; Support for C

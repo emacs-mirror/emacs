@@ -96,12 +96,18 @@ expected to return an integer."
 (defmacro mh-display-completion-list (completions &optional common-substring)
   "Display the list of COMPLETIONS.
 See documentation for `display-completion-list' for a description of the
-arguments COMPLETIONS and perhaps COMMON-SUBSTRING.
-This macro is used by Emacs versions that lack a COMMON-SUBSTRING
-argument, introduced in Emacs 22."
-  (if (< emacs-major-version 22)
-      `(display-completion-list ,completions)
-    `(display-completion-list ,completions ,common-substring)))
+arguments COMPLETIONS.
+The optional argument COMMON-SUBSTRING, if non-nil, should be a string
+specifying a common substring for adding the faces
+`completions-first-difference' and `completions-common-part' to
+the completions."
+  (cond ((< emacs-major-version 22) `(display-completion-list ,completions))
+        ((fboundp 'completion-hilit-commonality) ; Emacs 23.1 and later
+         `(display-completion-list
+           (completion-hilit-commonality ,completions
+                                         ,(length common-substring) nil)))
+        (t                              ; Emacs 22
+         `(display-completion-list ,completions ,common-substring))))
 
 (defmacro mh-face-foreground (face &optional frame inherit)
   "Return the foreground color name of FACE, or nil if unspecified.

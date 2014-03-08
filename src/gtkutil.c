@@ -2106,8 +2106,7 @@ xg_get_font (struct frame *f, const char *default_name)
 	  font = Ffont_spec (8, args);
 
 	  pango_font_description_free (desc);
-	  xfree (x_last_font_name);
-	  x_last_font_name = xstrdup (name);
+	  dupstring (&x_last_font_name, name);
 	}
 
 #else /* Use old font selector, which just returns the font name.  */

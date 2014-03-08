@@ -38,6 +38,10 @@ License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 #include <w32heap.h>	/* for sbrk */
 #endif
 
+#ifdef emacs
+extern void emacs_abort (void);
+#endif
+
 #ifdef	__cplusplus
 extern "C"
 {
@@ -66,6 +70,10 @@ extern int posix_memalign (void **, size_t, size_t);
 #ifdef USE_PTHREAD
 /* Set up mutexes and make malloc etc. thread-safe.  */
 extern void malloc_enable_thread (void);
+#endif
+
+#ifdef emacs
+extern void emacs_abort (void);
 #endif
 
 /* The allocator divides the heap into blocks of fixed size; large
@@ -1589,23 +1597,32 @@ aligned_alloc (size_t alignment, size_t size)
 
   /* Figure out how much we will need to pad this particular block
      to achieve the required alignment.  */
-  adj = (uintptr_t) result % alignment;
+  adj = alignment - (uintptr_t) result % alignment;
+  if (adj == alignment)
+    adj = 0;
 
-  do
+  if (adj != alignment - 1)
     {
-      /* Reallocate the block with only as much excess as it needs.  */
-      free (result);
-      result = malloc (adj + size);
-      if (result == NULL)	/* Impossible unless interrupted.  */
-	return NULL;
+      do
+	{
+	  /* Reallocate the block with only as much excess as it
+	     needs.  */
+	  free (result);
+	  result = malloc (size + adj);
+	  if (result == NULL)	/* Impossible unless interrupted.  */
+	    return NULL;
 
-      lastadj = adj;
-      adj = (uintptr_t) result % alignment;
-      /* It's conceivable we might have been so unlucky as to get a
-	 different block with weaker alignment.  If so, this block is too
-	 short to contain SIZE after alignment correction.  So we must
-	 try again and get another block, slightly larger.  */
-    } while (adj > lastadj);
+	  lastadj = adj;
+	  adj = alignment - (uintptr_t) result % alignment;
+	  if (adj == alignment)
+	    adj = 0;
+	  /* It's conceivable we might have been so unlucky as to get
+	     a different block with weaker alignment.  If so, this
+	     block is too short to contain SIZE after alignment
+	     correction.  So we must try again and get another block,
+	     slightly larger.  */
+	} while (adj > lastadj);
+    }
 
   if (adj != 0)
     {
@@ -1631,7 +1648,7 @@ aligned_alloc (size_t alignment, size_t size)
       if (l != NULL)
 	{
 	  l->exact = result;
-	  result = l->aligned = (char *) result + alignment - adj;
+	  result = l->aligned = (char *) result + adj;
 	}
       UNLOCK_ALIGNED_BLOCKS ();
       if (l == NULL)
@@ -1787,6 +1804,22 @@ freehook (void *ptr)
 
   if (ptr)
     {
+      struct alignlist *l;
+
+      /* If the block was allocated by aligned_alloc, its real pointer
+	 to free is recorded in _aligned_blocks; find that.  */
+      PROTECT_MALLOC_STATE (0);
+      LOCK_ALIGNED_BLOCKS ();
+      for (l = _aligned_blocks; l != NULL; l = l->next)
+	if (l->aligned == ptr)
+	  {
+	    l->aligned = NULL;	/* Mark the slot in the list as free.  */
+	    ptr = l->exact;
+	    break;
+	  }
+      UNLOCK_ALIGNED_BLOCKS ();
+      PROTECT_MALLOC_STATE (1);
+
       hdr = ((struct hdr *) ptr) - 1;
       checkhdr (hdr);
       hdr->magic = MAGICFREE;
@@ -1878,7 +1911,11 @@ mabort (enum mcheck_status status)
 #else
   fprintf (stderr, "mcheck: %s\n", msg);
   fflush (stderr);
+# ifdef emacs
+  emacs_abort ();
+# else
   abort ();
+# endif
 #endif
 }
 

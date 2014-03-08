@@ -1,3 +1,23 @@
+2014-03-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* tutorials/TUTORIAL.he: Adapt to the recent changes in TUTORIAL.
+
+2014-03-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tutorials/TUTORIAL.es: Adapt to change in English language tutorial.
+
+2014-03-06  Glenn Morris  <rgm@gnu.org>
+
+	* tutorials/TUTORIAL: Mention electric behavior of RET.
+
+2014-02-25  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/vipcard.tex: Hook fix.
+
+2014-02-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Fix references to ?« and ?» that got mangled somehow.
+
 2014-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* NEWS: Mention all the Apropos face options that have been
@@ -588,7 +608,7 @@
 	Rename to \versionemacs, same as all the other refcards.
 	* refcards/Makefile (ENVADD): New variable.
 	(sk-dired-ref.pdf, sk-survival.pdf, pl-refcard.pdf)
-	(%.pdf, %,dvi, sk-dired-ref.dvi, sk-survival.dvi, pl-refcard.dvi):
+	(%.pdf, %.dvi, sk-dired-ref.dvi, sk-survival.dvi, pl-refcard.dvi):
 	Depend on emacsver.tex.  Add "." to TEXINPUTS for TeX commands.
 
 2012-09-16  Paul Eggert  <eggert@cs.ucla.edu>

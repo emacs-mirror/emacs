@@ -630,9 +630,11 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
            (save-excursion
              ;; Traverse up the parents until the parent is "." at
              ;; indentation, or any other token.
-             (while (and (progn
-                           (goto-char (1- (cadr (smie-indent--parent))))
-                           (not (ruby-smie--bosp)))
+             (while (and (let ((parent (smie-indent--parent)))
+                           (goto-char (cadr parent))
+                           (save-excursion
+                             (unless (integerp (car parent)) (forward-char -1))
+                             (not (ruby-smie--bosp))))
                          (progn
                            (setq smie--parent nil)
                            (smie-rule-parent-p "."))))
@@ -653,7 +655,6 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
      (if (smie-rule-sibling-p)
          (and ruby-align-chained-calls 0)
        ruby-indent-level))
-    (`(:after . "=>") ruby-indent-level)
     (`(:before . ,(or `"else" `"then" `"elsif" `"rescue" `"ensure"))
      (smie-rule-parent))
     (`(:before . "when")
@@ -2062,7 +2063,7 @@ See `font-lock-syntax-table'.")
           "refine"
           "using")
         'symbols))
-     (1 (unless (looking-at " *\\(?:[]|,.)}]\\|$\\)")
+     (1 (unless (looking-at " *\\(?:[]|,.)}=]\\|$\\)")
           font-lock-builtin-face)))
     ;; Kernel methods that have no required arguments.
     (,(concat
@@ -2131,6 +2132,16 @@ See `font-lock-syntax-table'.")
     ;; Character literals.
     ;; FIXME: Support longer escape sequences.
     ("\\_<\\?\\\\?\\S " 0 font-lock-string-face)
+    ;; Regexp options.
+    ("\\(?:\\s|\\|/\\)\\([imxo]+\\)"
+     1 (when (save-excursion
+               (let ((state (syntax-ppss (match-beginning 0))))
+                 (and (nth 3 state)
+                      (or (eq (char-after) ?/)
+                          (progn
+                            (goto-char (nth 8 state))
+                            (looking-at "%r"))))))
+         font-lock-preprocessor-face))
     )
   "Additional expressions to highlight in Ruby mode.")
 
@@ -2174,7 +2185,7 @@ See `font-lock-syntax-table'.")
                                      "\\|jbuilder\\|gemspec\\|podspec"
                                      "\\|/"
                                      "\\(?:Gem\\|Rake\\|Cap\\|Thor"
-                                     "Vagrant\\|Guard\\|Pod\\)file"
+                                     "\\|Vagrant\\|Guard\\|Pod\\)file"
                                      "\\)\\'")) 'ruby-mode))
 
 ;;;###autoload

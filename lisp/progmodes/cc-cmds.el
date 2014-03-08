@@ -356,6 +356,8 @@ left out."
   (interactive "P")
   (setq c-electric-flag (c-calculate-state arg c-electric-flag))
   (c-update-modeline)
+  (when (fboundp 'electric-indent-local-mode) ; Emacs 24.4 or later.
+    (electric-indent-local-mode (if c-electric-flag 1 0)))
   (c-keep-region-active))
 
 

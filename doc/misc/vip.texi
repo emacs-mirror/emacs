@@ -165,7 +165,7 @@ directory and it will be executed every time you invoke Emacs.  If you wish
 to be in vi mode whenever Emacs starts up, you can include the following
 line in your @file{.emacs} file instead of the above line:
 @example
-(setq term-setup-hook 'vip-mode)
+(add-hook 'emacs-startup-hook 'vip-mode)
 @end example
 @noindent
 (@xref{Vi Mode}, for the explanation of vi mode.)
@@ -1568,6 +1568,7 @@ Set mark and push previous mark on mark ring (@code{set-mark-command}).
 @kindex 011 TAB (@code{indent-for-tab-command})
 Indent line for current major mode (@code{indent-for-tab-command}).
 @item C-j
+@c FIXME: This should be `electric-indent-just-newline' since GNU Emacs 24.4.
 @kindex 012 @kbd{C-j} (@code{newline-and-indent})
 Insert a newline, then indent according to mode (@code{newline-and-indent}).
 @item C-k

@@ -3284,6 +3284,7 @@ As always, hidden subdirs are not affected."
   "History list of regular expressions used in Dired commands.")
 
 (defun dired-read-regexp (prompt &optional default history)
+  "Read a regexp using `read-regexp'."
   (read-regexp prompt default (or history 'dired-regexp-history)))
 
 (defun dired-mark-files-regexp (regexp &optional marker-char)
@@ -3844,7 +3845,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
   (let* ((dired-dir (car misc-data))
          (dir (if (consp dired-dir) (car dired-dir) dired-dir)))
     (if (file-directory-p (file-name-directory dir))
-        (progn
+        (with-demoted-errors "Desktop: Problem restoring directory: %S"
           (dired dired-dir)
           ;; The following elements of `misc-data' are the keys
           ;; from `dired-subdir-alist'.

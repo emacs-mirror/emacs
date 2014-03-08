@@ -559,7 +559,7 @@ select_window_1 (Lisp_Object window, bool inhibit_point_swap)
 DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
        doc: /* Select WINDOW which must be a live window.
 Also make WINDOW's frame the selected frame and WINDOW that frame's
-selected window.  In addition, make WINDOW's buffer current and set that
+selected window.  In addition, make WINDOW's buffer current and set its
 buffer's value of `point' to the value of WINDOW's `window-point'.
 Return WINDOW.
 
@@ -567,8 +567,17 @@ Optional second arg NORECORD non-nil means do not put this buffer at the
 front of the buffer list and do not make this window the most recently
 selected one.
 
-Note that the main editor command loop sets the current buffer to the
-buffer of the selected window before each command.  */)
+Run `buffer-list-update-hook' unless NORECORD is non-nil.  Note that
+applications and internal routines often select a window temporarily for
+various purposes; mostly, to simplify coding.  As a rule, such
+selections should be not recorded and therefore will not pollute
+`buffer-list-update-hook'.  Selections that "really count" are those
+causing a visible change in the next redisplay of WINDOW's frame and
+should be always recorded.  So if you think of running a function each
+time a window gets selected put it on `buffer-list-update-hook'.
+
+Also note that the main editor command loop sets the current buffer to
+the buffer of the selected window before each command.  */)
   (register Lisp_Object window, Lisp_Object norecord)
 {
   return select_window (window, norecord, 0);
@@ -699,9 +708,9 @@ DEFUN ("window-pixel-height", Fwindow_pixel_height, Swindow_pixel_height, 0, 1, 
        doc: /* Return the height of window WINDOW in pixels.
 WINDOW must be a valid window and defaults to the selected one.
 
-The return value includes the mode line and header line, if any.  If
-WINDOW is an internal window, its pixel height is the height of the
-screen areas spanned by its children.  */)
+The return value includes the mode line and header line and the bottom
+divider, if any.  If WINDOW is an internal window, its pixel height is
+the height of the screen areas spanned by its children.  */)
   (Lisp_Object window)
 {
   return make_number (decode_valid_window (window)->pixel_height);
@@ -972,6 +981,15 @@ WINDOW must be a live window and defaults to the selected one.  */)
   (Lisp_Object window)
 {
   return (make_number (WINDOW_BOTTOM_DIVIDER_WIDTH (decode_live_window (window))));
+}
+
+DEFUN ("window-scroll-bar-width", Fwindow_scroll_bar_width,
+       Swindow_scroll_bar_width, 0, 1, 0,
+       doc: /* Return the width in pixels of WINDOW's vertical scrollbar.
+WINDOW must be a live window and defaults to the selected one.  */)
+  (Lisp_Object window)
+{
+  return (make_number (WINDOW_SCROLL_BAR_AREA_WIDTH (decode_live_window (window))));
 }
 
 DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
@@ -1257,18 +1275,18 @@ coordinates_in_window (register struct window *w, int x, int y)
   if (y < top_y || y >= bottom_y || x < left_x || x >= right_x)
     return ON_NOTHING;
 
-  /* On vertical window divider (which prevails horizontal
-     dividers)?  */
-  if (!WINDOW_RIGHTMOST_P (w)
-      && WINDOW_RIGHT_DIVIDER_WIDTH (w)
-      && x >= right_x - WINDOW_RIGHT_DIVIDER_WIDTH (w)
-      && x <= right_x)
-    return ON_RIGHT_DIVIDER;
-  /* On the horizontal window divider?  */
-  else if (WINDOW_BOTTOM_DIVIDER_WIDTH (w)
-	   && y >= (bottom_y - WINDOW_BOTTOM_DIVIDER_WIDTH (w))
-	   && y <= bottom_y)
+  /* On the horizontal window divider (which prevails the vertical
+     divider)?  */
+  if (WINDOW_BOTTOM_DIVIDER_WIDTH (w) > 0
+      && y >= (bottom_y - WINDOW_BOTTOM_DIVIDER_WIDTH (w))
+      && y <= bottom_y)
     return ON_BOTTOM_DIVIDER;
+  /* On vertical window divider?  */
+  else if (!WINDOW_RIGHTMOST_P (w)
+	   && WINDOW_RIGHT_DIVIDER_WIDTH (w) > 0
+	   && x >= right_x - WINDOW_RIGHT_DIVIDER_WIDTH (w)
+	   && x <= right_x)
+    return ON_RIGHT_DIVIDER;
   /* On the mode or header line?   */
   else if ((WINDOW_WANTS_MODELINE_P (w)
 	    && y >= (bottom_y
@@ -1285,12 +1303,13 @@ coordinates_in_window (register struct window *w, int x, int y)
 	 resize windows horizontally in case we're using toolkit scroll
 	 bars.  Note: If scrollbars are on the left, the window that
 	 must be eventually resized is that on the left of WINDOW.  */
-      if ((WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
-	   && !WINDOW_LEFTMOST_P (w)
-	   && eabs (x - left_x) < grabbable_width)
-	  || (!WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
-	      && !WINDOW_RIGHTMOST_P (w)
-	      && eabs (x - right_x) < grabbable_width))
+      if ((WINDOW_RIGHT_DIVIDER_WIDTH (w) == 0)
+	  && ((WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
+	       && !WINDOW_LEFTMOST_P (w)
+	       && eabs (x - left_x) < grabbable_width)
+	      || (!WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
+		  && !WINDOW_RIGHTMOST_P (w)
+		  && eabs (x - right_x) < grabbable_width)))
 	return ON_VERTICAL_BORDER;
       else
 	return part;
@@ -1322,6 +1341,7 @@ coordinates_in_window (register struct window *w, int x, int y)
   if (FRAME_WINDOW_P (f))
     {
       if (!w->pseudo_window_p
+	  && WINDOW_RIGHT_DIVIDER_WIDTH (w) == 0
 	  && !WINDOW_HAS_VERTICAL_SCROLL_BAR (w)
 	  && !WINDOW_RIGHTMOST_P (w)
 	  && (eabs (x - right_x) < grabbable_width))
@@ -1330,6 +1350,7 @@ coordinates_in_window (register struct window *w, int x, int y)
   /* Need to say "x > right_x" rather than >=, since on character
      terminals, the vertical line's x coordinate is right_x.  */
   else if (!w->pseudo_window_p
+	   && WINDOW_RIGHT_DIVIDER_WIDTH (w) == 0
 	   && !WINDOW_RIGHTMOST_P (w)
 	   /* Why check ux if we are not the rightmost window?  Also
 	      shouldn't a pseudo window always be rightmost?  */
@@ -1343,8 +1364,8 @@ coordinates_in_window (register struct window *w, int x, int y)
 	      ? (x >= left_x + WINDOW_LEFT_FRINGE_WIDTH (w))
 	      : (x < left_x + lmargin_width)))
 	return ON_LEFT_MARGIN;
-
-      return ON_LEFT_FRINGE;
+      else
+	return ON_LEFT_FRINGE;
     }
 
   if (x >= text_right)
@@ -1354,8 +1375,8 @@ coordinates_in_window (register struct window *w, int x, int y)
 	      ? (x < right_x - WINDOW_RIGHT_FRINGE_WIDTH (w))
 	      : (x >= right_x - rmargin_width)))
 	return ON_RIGHT_MARGIN;
-
-      return ON_RIGHT_FRINGE;
+      else
+	return ON_RIGHT_FRINGE;
     }
 
   /* Everything special ruled out - must be on text area */
@@ -1374,6 +1395,8 @@ window_relative_x_coord (struct window *w, enum window_part part, int x)
     case ON_TEXT:
       return x - window_box_left (w, TEXT_AREA);
 
+    case ON_HEADER_LINE:
+    case ON_MODE_LINE:
     case ON_LEFT_FRINGE:
       return x - left_x;
 
@@ -1410,8 +1433,10 @@ measured in characters from the upper-left corner of the frame.
 frame.
 If COORDINATES are in the text portion of WINDOW,
    the coordinates relative to the window are returned.
+If they are in the bottom divider of WINDOW, `bottom-divider' is returned.
+If they are in the right divider of WINDOW, `right-divider' is returned.
 If they are in the mode line of WINDOW, `mode-line' is returned.
-If they are in the top mode line of WINDOW, `header-line' is returned.
+If they are in the header line of WINDOW, `header-line' is returned.
 If they are in the left fringe of WINDOW, `left-fringe' is returned.
 If they are in the right fringe of WINDOW, `right-fringe' is returned.
 If they are on the border between WINDOW and its right sibling,
@@ -5413,8 +5438,10 @@ specifies the window.  This takes precedence over
   if (MINI_WINDOW_P (XWINDOW (selected_window))
       && !NILP (Vminibuf_scroll_window))
     window = Vminibuf_scroll_window;
-  /* If buffer is specified, scroll that buffer.  */
-  else if (!NILP (Vother_window_scroll_buffer))
+  /* If buffer is specified and live, scroll that buffer.  */
+  else if (!NILP (Vother_window_scroll_buffer)
+	   && BUFFERP (Vother_window_scroll_buffer)
+	   && BUFFER_LIVE_P (XBUFFER (Vother_window_scroll_buffer)))
     {
       window = Fget_buffer_window (Vother_window_scroll_buffer, Qnil);
       if (NILP (window))
@@ -7181,7 +7208,7 @@ is displayed in the `mode-line' face.  */);
   mode_line_in_non_selected_windows = 1;
 
   DEFVAR_LISP ("other-window-scroll-buffer", Vother_window_scroll_buffer,
-	       doc: /* If non-nil, this is a buffer and \\[scroll-other-window] should scroll its window.  */);
+	       doc: /* If this is a live buffer, \\[scroll-other-window] should scroll its window.  */);
   Vother_window_scroll_buffer = Qnil;
 
   DEFVAR_BOOL ("auto-window-vscroll", auto_window_vscroll_p,
@@ -7300,11 +7327,10 @@ respectively are not installed by `window-state-put'.  */);
   Vwindow_persistent_parameters = list1 (Fcons (Qclone_of, Qt));
 
   DEFVAR_BOOL ("window-resize-pixelwise", window_resize_pixelwise,
-	       doc: /*  Non-nil means resizing windows works pixelwise.
-Functions currently affected by this option are `split-window',
-`maximize-window', `minimize-window', `fit-window-to-buffer' and
-`fit-frame-to-buffer' and all functions symmetrically resizing a
-parent window.
+	       doc: /*  Non-nil means resize windows pixelwise.
+This currently affects the functions: `split-window', `maximize-window',
+`minimize-window', `fit-window-to-buffer' and `fit-frame-to-buffer', and
+all functions that symmetrically resize a parent window.
 
 Note that when a frame's pixel size is not a multiple of the
 frame's character size, at least one window may get resized
@@ -7363,6 +7389,7 @@ pixelwise even if this option is nil.  */);
   defsubr (&Swindow_header_line_height);
   defsubr (&Swindow_right_divider_width);
   defsubr (&Swindow_bottom_divider_width);
+  defsubr (&Swindow_scroll_bar_width);
   defsubr (&Swindow_inside_edges);
   defsubr (&Swindow_inside_pixel_edges);
   defsubr (&Swindow_inside_absolute_pixel_edges);

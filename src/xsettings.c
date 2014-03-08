@@ -91,8 +91,7 @@ store_monospaced_changed (const char *newfont)
   if (current_mono_font != NULL && strcmp (newfont, current_mono_font) == 0)
     return; /* No change. */
 
-  xfree (current_mono_font);
-  current_mono_font = xstrdup (newfont);
+  dupstring (&current_mono_font, newfont);
 
   if (dpyinfo_valid (first_dpyinfo) && use_system_font)
     {
@@ -111,8 +110,7 @@ store_font_name_changed (const char *newfont)
   if (current_font != NULL && strcmp (newfont, current_font) == 0)
     return; /* No change. */
 
-  xfree (current_font);
-  current_font = xstrdup (newfont);
+  dupstring (&current_font, newfont);
 
   if (dpyinfo_valid (first_dpyinfo))
     {
@@ -492,13 +490,13 @@ parse_settings (unsigned char *prop,
           ++settings_seen;
           if (strcmp (name, XSETTINGS_TOOL_BAR_STYLE) == 0)
             {
-              settings->tb_style = xstrdup (sval);
+              dupstring (&settings->tb_style, sval);
               settings->seen |= SEEN_TB_STYLE;
             }
 #ifdef HAVE_XFT
           else if (strcmp (name, XSETTINGS_FONT_NAME) == 0)
             {
-              settings->font = xstrdup (sval);
+              dupstring (&settings->font, sval);
               settings->seen |= SEEN_FONT;
             }
           else if (strcmp (name, "Xft/Antialias") == 0)
@@ -742,10 +740,7 @@ read_and_apply_settings (struct x_display_info *dpyinfo, int send_event_p)
       if (send_event_p)
         store_font_name_changed (settings.font);
       else
-        {
-          xfree (current_font);
-          current_font = xstrdup (settings.font);
-        }
+	dupstring (&current_font, settings.font);
       xfree (settings.font);
     }
 #endif
@@ -835,7 +830,7 @@ init_gsettings (void)
     {
       g_variant_ref_sink (val);
       if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
-        current_mono_font = xstrdup (g_variant_get_string (val, NULL));
+	dupstring (&current_mono_font, g_variant_get_string (val, NULL));
       g_variant_unref (val);
     }
 
@@ -844,7 +839,7 @@ init_gsettings (void)
     {
       g_variant_ref_sink (val);
       if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
-        current_font = xstrdup (g_variant_get_string (val, NULL));
+        dupstring (&current_font, g_variant_get_string (val, NULL));
       g_variant_unref (val);
     }
 #endif /* HAVE_XFT */
@@ -886,13 +881,13 @@ init_gconf (void)
   s = gconf_client_get_string (gconf_client, GCONF_MONO_FONT, NULL);
   if (s)
     {
-      current_mono_font = xstrdup (s);
+      dupstring (&current_mono_font, s);
       g_free (s);
     }
   s = gconf_client_get_string (gconf_client, GCONF_FONT_NAME, NULL);
   if (s)
     {
-      current_font = xstrdup (s);
+      dupstring (&current_font, s);
       g_free (s);
     }
   gconf_client_add_dir (gconf_client,

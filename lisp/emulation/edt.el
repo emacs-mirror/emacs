@@ -1,7 +1,6 @@
 ;;; edt.el --- enhanced EDT keypad mode emulation for GNU Emacs
 
-;; Copyright (C) 1986, 1992-1995, 2000-2014 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1986, 1992-1995, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <Kevin.Gallagher@boeing.com>
 ;; Maintainer: Kevin Gallagher <Kevin.Gallagher@boeing.com>
@@ -51,7 +50,7 @@
 ;; you initiate a GNU Emacs session, by adding the following line to
 ;; your init file:
 ;;
-;;    (add-hook term-setup-hook 'edt-emulation-on)
+;;    (add-hook 'emacs-startup-hook 'edt-emulation-on)
 
 ;; IMPORTANT: Be sure to read the Info node `edt' for more details.
 ;; It contains very helpful user information.

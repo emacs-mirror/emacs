@@ -181,6 +181,9 @@ See `delete-selection-helper'."
 (put 'yank 'delete-selection 'yank)
 (put 'clipboard-yank 'delete-selection 'yank)
 (put 'insert-register 'delete-selection t)
+;; delete-backward-char and delete-forward-char already delete the selection by
+;; default, but not delete-char.
+(put 'delete-char 'delete-selection 'supersede)
 
 (put 'reindent-then-newline-and-indent 'delete-selection t)
 (put 'newline-and-indent 'delete-selection t)

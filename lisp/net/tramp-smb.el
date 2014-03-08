@@ -929,6 +929,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   "Like `insert-directory' for Tramp files."
   (setq filename (expand-file-name filename))
   (unless switches (setq switches ""))
+  ;; Mark trailing "/".
+  (when (and (zerop (length (file-name-nondirectory filename)))
+	     (not full-directory-p))
+    (setq switches (concat switches "F")))
   (if full-directory-p
       ;; Called from `dired-add-entry'.
       (setq filename (file-name-as-directory filename))
@@ -991,38 +995,41 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(mapc
 	 (lambda (x)
 	   (when (not (zerop (length (nth 0 x))))
-	     (let ((attr
-		    (when (tramp-smb-get-stat-capability v)
-		      (ignore-errors
-			(file-attributes filename 'string)))))
-	       (insert
-		(format
-		 "%10s %3d %-8s %-8s %8s %s "
-		 (or (nth 8 attr) (nth 1 x)) ; mode
-		 (or (nth 1 attr) 1) ; inode
-		 (or (nth 2 attr) "nobody") ; uid
-		 (or (nth 3 attr) "nogroup") ; gid
-		 (or (nth 7 attr) (nth 2 x)) ; size
-		 (format-time-string
-		  (if (tramp-time-less-p
-		       (tramp-time-subtract (current-time) (nth 3 x))
-		       tramp-half-a-year)
-		      "%b %e %R"
-		    "%b %e  %Y")
-		  (nth 3 x)))) ; date
-	       ;; We mark the file name.  The inserted name could be
-	       ;; from somewhere else, so we use the relative file
-	       ;; name of `default-directory'.
-	       (let ((start (point)))
+	     (when (string-match "l" switches)
+	       (let ((attr
+		      (when (tramp-smb-get-stat-capability v)
+			(ignore-errors
+			  (file-attributes filename 'string)))))
 		 (insert
 		  (format
-		   "%s\n"
-		   (file-relative-name
-		    (expand-file-name
-		     (nth 0 x) (file-name-directory filename)))))
-		 (put-text-property start (1- (point)) 'dired-filename t))
-	       (forward-line)
-	       (beginning-of-line))))
+		   "%10s %3d %-8s %-8s %8s %s "
+		   (or (nth 8 attr) (nth 1 x)) ; mode
+		   (or (nth 1 attr) 1) ; inode
+		   (or (nth 2 attr) "nobody") ; uid
+		   (or (nth 3 attr) "nogroup") ; gid
+		   (or (nth 7 attr) (nth 2 x)) ; size
+		   (format-time-string
+		    (if (tramp-time-less-p
+			 (tramp-time-subtract (current-time) (nth 3 x))
+			 tramp-half-a-year)
+			"%b %e %R"
+		      "%b %e  %Y")
+		    (nth 3 x)))))) ; date
+
+	     ;; We mark the file name.  The inserted name could be
+	     ;; from somewhere else, so we use the relative file name
+	     ;; of `default-directory'.
+	     (let ((start (point)))
+	       (insert
+		(format
+		 "%s\n"
+		 (file-relative-name
+		  (expand-file-name
+		   (nth 0 x) (file-name-directory filename))
+		  (when full-directory-p (file-name-directory filename)))))
+	       (put-text-property start (1- (point)) 'dired-filename t))
+	     (forward-line)
+	     (beginning-of-line)))
 	 entries)))))
 
 (defun tramp-smb-handle-make-directory (dir &optional parents)

@@ -461,7 +461,7 @@ Group Buffer
 * Selecting a Group::           Actually reading news.
 * Subscription Commands::       Unsubscribing, killing, subscribing.
 * Group Data::                  Changing the info for a group.
-* Group Levels::                Levels? What are those, then?
+* Group Levels::                Levels?  What are those, then?
 * Group Score::                 A mechanism for finding out what groups you like.
 * Marking Groups::              You can mark groups for later processing.
 * Foreign Groups::              Creating and editing groups.
@@ -521,7 +521,7 @@ Summary Buffer
 * Charsets::                    Character set issues.
 * Article Commands::            Doing various things with the article buffer.
 * Summary Sorting::             Sorting the summary buffer in various ways.
-* Finding the Parent::          No child support? Get the parent.
+* Finding the Parent::          No child support?  Get the parent.
 * Alternative Approaches::      Reading using non-default summaries.
 * Tree Display::                A more visual display of threads.
 * Mail Group Commands::         Some commands can only be used in mail groups.
@@ -1095,7 +1095,7 @@ your mail without bothering with the server at all, you can use the
 if you're in a hurry as well.  This command will not attempt to contact
 your primary server---instead, it will just activate all groups on level
 1 and 2.  (You should preferably keep no native groups on those two
-levels.) Also @pxref{Group Levels}.
+levels.)  Also @pxref{Group Levels}.
 
 
 @node Slave Gnusae
@@ -1678,7 +1678,7 @@ long as Gnus is active.
 * Selecting a Group::           Actually reading news.
 * Subscription Commands::       Unsubscribing, killing, subscribing.
 * Group Data::                  Changing the info for a group.
-* Group Levels::                Levels? What are those, then?
+* Group Levels::                Levels?  What are those, then?
 * Group Score::                 A mechanism for finding out what groups you like.
 * Marking Groups::              You can mark groups for later processing.
 * Foreign Groups::              Creating and editing groups.
@@ -2854,7 +2854,7 @@ If the group parameter list has the element @code{(visible . t)},
 that group will always be visible in the Group buffer, regardless
 of whether it has any unread articles.
 
-This parameter cannot be set via @code{gnus-parameters}. See
+This parameter cannot be set via @code{gnus-parameters}.  See
 @code{gnus-permanently-visible-groups} as an alternative.
 
 @item broken-reply-to
@@ -3036,8 +3036,8 @@ like this in the group parameters:
 
 If you're using topics to organize your group buffer
 (@pxref{Group Topics}), note that posting styles can also be set in
-the topics parameters. Posting styles in topic parameters apply to all
-groups in this topic. More precisely, the posting-style settings for a
+the topics parameters.  Posting styles in topic parameters apply to all
+groups in this topic.  More precisely, the posting-style settings for a
 group result from the hierarchical merging of all posting-style
 entries in the parameters of this group and all the topics it belongs
 to.
@@ -4750,7 +4750,7 @@ command or better use it as a prefix key.  For example:
 * Charsets::                    Character set issues.
 * Article Commands::            Doing various things with the article buffer.
 * Summary Sorting::             Sorting the summary buffer in various ways.
-* Finding the Parent::          No child support? Get the parent.
+* Finding the Parent::          No child support?  Get the parent.
 * Alternative Approaches::      Reading using non-default summaries.
 * Tree Display::                A more visual display of threads.
 * Mail Group Commands::         Some commands can only be used in mail groups.
@@ -8508,7 +8508,7 @@ pseudo-articles when decoding.  It is @code{t} by default.
 
 So; there you are, reading your @emph{pseudo-articles} in your
 @emph{virtual newsgroup} from the @emph{virtual server}; and you think:
-Why isn't anything real anymore? How did we get here?
+Why isn't anything real anymore?  How did we get here?
 
 
 @node Article Treatment
@@ -9546,7 +9546,7 @@ Display the original date (@code{gnus-article-date-original}).  This can
 be useful if you normally use some other conversion function and are
 worried that it might be doing something totally wrong.  Say, claiming
 that the article was posted in 1854.  Although something like that is
-@emph{totally} impossible.  Don't you trust me? *titter*
+@emph{totally} impossible.  Don't you trust me?  *titter*
 
 @end table
 
@@ -14302,7 +14302,7 @@ Here's a complete example @code{nnimap} backend with a client-side
 @cindex reading mail
 @cindex mail
 
-Reading mail with a newsreader---isn't that just plain WeIrD@? But of
+Reading mail with a newsreader---isn't that just plain WeIrD@?  But of
 course.
 
 @menu
@@ -16001,7 +16001,7 @@ this, it keeps a cache of old @code{Message-ID}s:
 default.  The approximate maximum number of @code{Message-ID}s stored
 there is controlled by the @code{nnmail-message-id-cache-length}
 variable, which is 1000 by default.  (So 1000 @code{Message-ID}s will be
-stored.) If all this sounds scary to you, you can set
+stored.)  If all this sounds scary to you, you can set
 @code{nnmail-treat-duplicates} to @code{warn} (which is what it is by
 default), and @code{nnmail} won't delete duplicate mails.  Instead it
 will insert a warning into the head of the mail saying that it thinks
@@ -16767,11 +16767,11 @@ incompatible group parameters, slightly different from those of other
 mail back ends.
 
 @code{nnmaildir} is largely similar to @code{nnml}, with some notable
-differences. Each message is stored in a separate file, but the
+differences.  Each message is stored in a separate file, but the
 filename is unrelated to the article number in Gnus. @code{nnmaildir}
 also stores the equivalent of @code{nnml}'s overview files in one file
 per article, so it uses about twice as many inodes as @code{nnml}.
-(Use @code{df -i} to see how plentiful your inode supply is.) If this
+(Use @code{df -i} to see how plentiful your inode supply is.)  If this
 slows you down or takes up very much space, a non-block-structured
 file system.
 
@@ -18100,7 +18100,7 @@ sending the diary message to them as well.
 @item
 However, since @code{nndiary} also has a @code{request-post} method, you
 can also use @kbd{C-u a} instead of @kbd{C-u m} on a diary group and the
-message won't actually be sent; just stored locally in the group. This
+message won't actually be sent; just stored locally in the group.  This
 comes in very handy for private appointments.
 @end itemize
 
@@ -20934,7 +20934,7 @@ very interesting:
 @end example
 
 Suppose you're reading a high volume group and you're only interested
-in replies. The plan is to score down all articles that don't have
+in replies.  The plan is to score down all articles that don't have
 subject that begin with "Re:", "Fw:" or "Fwd:" and then score up all
 parents of articles that have subjects that begin with reply marks.
 
@@ -21065,7 +21065,7 @@ comparison of nnir, nnmairix, contrib/gnus-namazu would be nice
 as well.
 
 This chapter describes tools for searching groups and servers for
-articles matching a query and then retrieving those articles. Gnus
+articles matching a query and then retrieving those articles.  Gnus
 provides a simpler mechanism for searching through articles in a summary buffer
 to find those matching a pattern. @xref{Searching for Articles}.
 
@@ -21091,13 +21091,13 @@ within gnus.
 @subsection What is nnir?
 
 @code{nnir} is a Gnus interface to a number of tools for searching
-through mail and news repositories. Different backends (like
+through mail and news repositories.  Different backends (like
 @code{nnimap} and @code{nntp}) work with different tools (called
 @dfn{engines} in @code{nnir} lingo), but all use the same basic search
 interface.
 
 The @code{nnimap} and @code{gmane} search engines should work with no
-configuration. Other engines require a local index that needs to be
+configuration.  Other engines require a local index that needs to be
 created and maintained outside of Gnus.
 
 
@@ -21108,35 +21108,35 @@ In the group buffer typing @kbd{G G} will search the group on the
 current line by calling @code{gnus-group-make-nnir-group}.  This prompts
 for a query string, creates an ephemeral @code{nnir} group containing
 the articles that match this query, and takes you to a summary buffer
-showing these articles. Articles may then be read, moved and deleted
+showing these articles.  Articles may then be read, moved and deleted
 using the usual commands.
 
 The @code{nnir} group made in this way is an @code{ephemeral} group,
 and some changes are not permanent: aside from reading, moving, and
-deleting, you can't act on the original article. But there is an
+deleting, you can't act on the original article.  But there is an
 alternative: you can @emph{warp} (i.e., jump) to the original group
 for the article on the current line with @kbd{A W}, aka
-@code{gnus-warp-to-article}. Even better, the function
+@code{gnus-warp-to-article}.  Even better, the function
 @code{gnus-summary-refer-thread}, bound by default in summary buffers
 to @kbd{A T}, will first warp to the original group before it works
-its magic and includes all the articles in the thread. From here you
+its magic and includes all the articles in the thread.  From here you
 can read, move and delete articles, but also copy them, alter article
-marks, whatever. Go nuts.
+marks, whatever.  Go nuts.
 
 You say you want to search more than just the group on the current line?
-No problem: just process-mark the groups you want to search. You want
-even more? Calling for an nnir search with the cursor on a topic heading
+No problem: just process-mark the groups you want to search.  You want
+even more?  Calling for an nnir search with the cursor on a topic heading
 will search all the groups under that heading.
 
-Still not enough? OK, in the server buffer
+Still not enough?  OK, in the server buffer
 @code{gnus-group-make-nnir-group} (now bound to @kbd{G}) will search all
-groups from the server on the current line. Too much? Want to ignore
-certain groups when searching, like spam groups? Just customize
+groups from the server on the current line.  Too much?  Want to ignore
+certain groups when searching, like spam groups?  Just customize
 @code{nnir-ignored-newsgroups}.
 
 One more thing: individual search engines may have special search
-features. You can access these special features by giving a prefix-arg
-to @code{gnus-group-make-nnir-group}. If you are searching multiple
+features.  You can access these special features by giving a prefix-arg
+to @code{gnus-group-make-nnir-group}.  If you are searching multiple
 groups with different search engines you will be prompted for the
 special search features for each engine separately.
 
@@ -21144,16 +21144,16 @@ special search features for each engine separately.
 @node Setting up nnir
 @subsection Setting up nnir
 
-To set up nnir you may need to do some prep work. Firstly, you may need
-to configure the search engines you plan to use. Some of them, like
-@code{imap} and @code{gmane}, need no special configuration. Others,
+To set up nnir you may need to do some prep work.  Firstly, you may need
+to configure the search engines you plan to use.  Some of them, like
+@code{imap} and @code{gmane}, need no special configuration.  Others,
 like @code{namazu} and @code{swish}, require configuration as described
-below. Secondly, you need to associate a search engine with a server or
+below.  Secondly, you need to associate a search engine with a server or
 a backend.
 
 If you just want to use the @code{imap} engine to search @code{nnimap}
 servers, and the @code{gmane} engine to search @code{gmane} then you
-don't have to do anything. But you might want to read the details of the
+don't have to do anything.  But you might want to read the details of the
 query language anyway.
 
 @menu
@@ -21173,9 +21173,9 @@ query language anyway.
 
 
 When searching a group, @code{nnir} needs to know which search engine to
-use. You can configure a given server to use a particular engine by
+use.  You can configure a given server to use a particular engine by
 setting the server variable @code{nnir-search-engine} to the engine
-name. For example to use the @code{namazu} engine to search the server
+name.  For example to use the @code{namazu} engine to search the server
 named @code{home} you can use
 
 @lisp
@@ -21186,14 +21186,14 @@ named @code{home} you can use
 @end lisp
 
 Alternatively you might want to use a particular engine for all servers
-with a given backend. For example, you might want to use the @code{imap}
-engine for all servers using the @code{nnimap} backend. In this case you
-can customize the variable @code{nnir-method-default-engines}. This is
-an alist of pairs of the form @code{(backend . engine)}. By default this
+with a given backend.  For example, you might want to use the @code{imap}
+engine for all servers using the @code{nnimap} backend.  In this case you
+can customize the variable @code{nnir-method-default-engines}.  This is
+an alist of pairs of the form @code{(backend . engine)}.  By default this
 variable is set to use the @code{imap} engine for all servers using the
 @code{nnimap} backend, and the @code{gmane} backend for @code{nntp}
-servers. (Don't worry, the @code{gmane} search engine won't actually try
-to search non-gmane @code{nntp} servers.) But if you wanted to use
+servers.  (Don't worry, the @code{gmane} search engine won't actually try
+to search non-gmane @code{nntp} servers.)  But if you wanted to use
 @code{namazu} for all your servers with an @code{nnimap} backend you
 could change this to
 
@@ -21215,10 +21215,10 @@ features (inspired by the Google search input language):
 
 @item Boolean query operators
 AND, OR, and NOT are supported, and parentheses can be used to control
-operator precedence, e.g., (emacs OR xemacs) AND linux. Note that
+operator precedence, e.g., (emacs OR xemacs) AND linux.  Note that
 operators must be written with all capital letters to be
-recognized. Also preceding a term with a @minus{} sign is equivalent to NOT
-term.
+recognized.  Also preceding a term with a @minus{} sign is equivalent
+to NOT term.
 
 @item Automatic AND queries
 If you specify multiple words then they will be treated as an AND
@@ -21230,20 +21230,20 @@ literal string.
 
 @end table
 
-By default the whole message will be searched. The query can be limited
-to a specific part of a message by using a prefix-arg. After inputting
+By default the whole message will be searched.  The query can be limited
+to a specific part of a message by using a prefix-arg.  After inputting
 the query this will prompt (with completion) for a message part.
 Choices include ``Whole message'', ``Subject'', ``From'', and
-``To''. Any unrecognized input is interpreted as a header name. For
+``To''.  Any unrecognized input is interpreted as a header name.  For
 example, typing @kbd{Message-ID} in response to this prompt will limit
 the query to the Message-ID header.
 
 Finally selecting ``Imap'' will interpret the query as a raw
-@acronym{IMAP} search query. The format of such queries can be found in
+@acronym{IMAP} search query.  The format of such queries can be found in
 RFC3501.
 
 If you don't like the default of searching whole messages you can
-customize @code{nnir-imap-default-search-key}. For example to use
+customize @code{nnir-imap-default-search-key}.  For example to use
 @acronym{IMAP} queries by default
 
 @lisp
@@ -21273,14 +21273,14 @@ The search engine converts all text to utf-8, so searching should work
 in any language.
 
 @item Stopwords
-Common English words (like 'the' and 'a') are ignored by default. You
+Common English words (like 'the' and 'a') are ignored by default.  You
 can override this by prefixing such words with a + (e.g., +the) or
 enclosing the word in quotes (e.g., "the").
 
 @end table
 
 The query can be limited to articles by a specific author using a
-prefix-arg. After inputting the query this will prompt for an author
+prefix-arg.  After inputting the query this will prompt for an author
 name (or part of a name) to match.
 
 @node The swish++ Engine
@@ -21294,15 +21294,15 @@ Documentation for swish++ may be found at the swish++ sourceforge page:
 @table @code
 
 @item nnir-swish++-program
-The name of the swish++ executable. Defaults to @code{search}
+The name of the swish++ executable.  Defaults to @code{search}
 
 @item nnir-swish++-additional-switches
 A list of strings to be given as additional arguments to
-swish++. @code{nil} by default.
+swish++.  @code{nil} by default.
 
 @item nnir-swish++-remove-prefix
 The prefix to remove from each file name returned by swish++ in order
-to get a group name. By default this is @code{$HOME/Mail}.
+to get a group name.  By default this is @code{$HOME/Mail}.
 
 @end table
 
@@ -21317,15 +21317,15 @@ Documentation for swish-e may be found at the swish-e homepage
 @table @code
 
 @item nnir-swish-e-program
-The name of the swish-e search program. Defaults to @code{swish-e}.
+The name of the swish-e search program.  Defaults to @code{swish-e}.
 
 @item nnir-swish-e-additional-switches
 A list of strings to be given as additional arguments to
-swish-e. @code{nil} by default.
+swish-e.  @code{nil} by default.
 
 @item nnir-swish-e-remove-prefix
 The prefix to remove from each file name returned by swish-e in order
-to get a group name. By default this is @code{$HOME/Mail}.
+to get a group name.  By default this is @code{$HOME/Mail}.
 
 @end table
 
@@ -21338,7 +21338,7 @@ where to find them by setting the @code{nnir-namazu-index-directory}
 variable.
 
 To work correctly the @code{nnir-namazu-remove-prefix} variable must
-also be correct. This is the prefix to remove from each file name
+also be correct.  This is the prefix to remove from each file name
 returned by Namazu in order to get a proper group name (albeit with `/'
 instead of `.').
 
@@ -21358,7 +21358,7 @@ output format.  Good switches to use include `--sort', `--ascending',
 information on valid switches.
 
 Mail must first be indexed  with the `mknmz' program.  Read the documentation
-for namazu to create a configuration file. Here is an example:
+for namazu to create a configuration file.  Here is an example:
 
 @cartouche
 @example
@@ -21423,8 +21423,8 @@ This engine is obsolete.
 @table @code
 
 @item nnir-method-default-engines
-Alist of pairs of server backends and search engines. The default associations
-are
+Alist of pairs of server backends and search engines.  The default
+associations are
 @example
 (nnimap . imap)
 (nntp . gmane)
@@ -21451,9 +21451,9 @@ If nil (the default) this will use @code{gnus-summary-line-format}.
 If non-nil, a function that retrieves article headers rather than using
 the gnus built-in function.  This function takes an article list and
 group as arguments and populates the `nntp-server-buffer' with the
-retrieved headers. It should then return either 'nov or 'headers
-indicating the retrieved header format. Failure to retrieve headers
-should return @code{nil}
+retrieved headers.  It should then return either 'nov or 'headers
+indicating the retrieved header format.  Failure to retrieve headers
+should return @code{nil}.
 
 If this variable is nil, or if the provided function returns nil for a
 search result, @code{gnus-retrieve-headers} will be called instead."
@@ -21881,104 +21881,104 @@ tips and tricks}).
 @subsection Propagating marks
 
 First of: you really need a patched mairix binary for using the marks
-propagation feature efficiently. Otherwise, you would have to update
-the mairix database all the time. You can get the patch at
+propagation feature efficiently.  Otherwise, you would have to update
+the mairix database all the time.  You can get the patch at
 
 @uref{http://www.randomsample.de/mairix-maildir-patch.tar}
 
 You need the mairix v0.21 source code for this patch; everything else
-is explained in the accompanied readme file. If you don't want to use
+is explained in the accompanied readme file.  If you don't want to use
 marks propagation, you don't have to apply these patches, but they also
 fix some annoyances regarding changing maildir flags, so it might still
 be useful to you.
 
 With the patched mairix binary, you can use @code{nnmairix} as an
-alternative to mail splitting (@pxref{Fancy Mail Splitting}). For
+alternative to mail splitting (@pxref{Fancy Mail Splitting}).  For
 example, instead of splitting all mails from @samp{david@@foobar.com}
 into a group, you can simply create a search group with the query
-@samp{f:david@@foobar.com}. This is actually what ``smart folders'' are
+@samp{f:david@@foobar.com}.  This is actually what ``smart folders'' are
 all about: simply put everything in one mail folder and dynamically
-create searches instead of splitting. This is more flexible, since you
-can dynamically change your folders any time you want to. This also
+create searches instead of splitting.  This is more flexible, since you
+can dynamically change your folders any time you want to.  This also
 implies that you will usually read your mails in the @code{nnmairix}
 groups instead of your ``real'' mail groups.
 
 There is one problem, though: say you got a new mail from
 @samp{david@@foobar.com}; it will now show up in two groups, the
 ``real'' group (your INBOX, for example) and in the @code{nnmairix}
-search group (provided you have updated the mairix database). Now you
-enter the @code{nnmairix} group and read the mail. The mail will be
+search group (provided you have updated the mairix database).  Now you
+enter the @code{nnmairix} group and read the mail.  The mail will be
 marked as read, but only in the @code{nnmairix} group---in the ``real''
 mail group it will be still shown as unread.
 
 You could now catch up the mail group (@pxref{Group Data}), but this is
 tedious and error prone, since you may overlook mails you don't have
-created @code{nnmairix} groups for. Of course, you could first use
+created @code{nnmairix} groups for.  Of course, you could first use
 @code{nnmairix-goto-original-article} (@pxref{nnmairix keyboard
 shortcuts}) and then read the mail in the original group, but that's
 even more cumbersome.
 
 Clearly, the easiest way would be if marks could somehow be
-automatically set for the original article. This is exactly what
+automatically set for the original article.  This is exactly what
 @emph{marks propagation} is about.
 
-Marks propagation is inactive by default. You can activate it for a
+Marks propagation is inactive by default.  You can activate it for a
 certain @code{nnmairix} group with
 @code{nnmairix-group-toggle-propmarks-this-group} (bound to @kbd{G b
-p}). This function will warn you if you try to use it with your default
+p}).  This function will warn you if you try to use it with your default
 search group; the reason is that the default search group is used for
 temporary searches, and it's easy to accidentally propagate marks from
-this group. However, you can ignore this warning if you really want to.
+this group.  However, you can ignore this warning if you really want to.
 
 With marks propagation enabled, all the marks you set in a @code{nnmairix}
-group should now be propagated to the original article. For example,
+group should now be propagated to the original article.  For example,
 you can now tick an article (by default with @kbd{!}) and this mark should
 magically be set for the original article, too.
 
 A few more remarks which you may or may not want to know:
 
 @vindex nnmairix-propagate-marks-upon-close
-Marks will not be set immediately, but only upon closing a group. This
+Marks will not be set immediately, but only upon closing a group.  This
 not only makes marks propagation faster, it also avoids problems with
 dangling symlinks when dealing with maildir files (since changing flags
-will change the file name). You can also control when to propagate marks
+will change the file name).  You can also control when to propagate marks
 via @code{nnmairix-propagate-marks-upon-close} (see the doc-string for
 details).
 
 Obviously, @code{nnmairix} will have to look up the original group for every
-article you want to set marks for. If available, @code{nnmairix} will first use
-the registry for determining the original group. The registry is very
+article you want to set marks for.  If available, @code{nnmairix} will first
+use the registry for determining the original group.  The registry is very
 fast, hence you should really, really enable the registry when using
-marks propagation. If you don't have to worry about RAM and disc space,
+marks propagation.  If you don't have to worry about RAM and disc space,
 set @code{gnus-registry-max-entries} to a large enough value; to be on
 the safe side, choose roughly the amount of mails you index with mairix.
 
 @vindex nnmairix-only-use-registry
 If you don't want to use the registry or the registry hasn't seen the
 original article yet, @code{nnmairix} will use an additional mairix
-search for determining the file name of the article. This, of course, is
+search for determining the file name of the article.  This, of course, is
 way slower than the registry---if you set hundreds or even thousands of
-marks this way, it might take some time. You can avoid this situation by
+marks this way, it might take some time.  You can avoid this situation by
 setting @code{nnmairix-only-use-registry} to t.
 
 Maybe you also want to propagate marks the other way round, i.e., if you
 tick an article in a "real" mail group, you'd like to have the same
-article in a @code{nnmairix} group ticked, too. For several good
-reasons, this can only be done efficiently if you use maildir. To
+article in a @code{nnmairix} group ticked, too.  For several good
+reasons, this can only be done efficiently if you use maildir.  To
 immediately contradict myself, let me mention that it WON'T work with
 @code{nnmaildir}, since @code{nnmaildir} stores the marks externally and
-not in the file name. Therefore, propagating marks to @code{nnmairix}
+not in the file name.  Therefore, propagating marks to @code{nnmairix}
 groups will usually only work if you use an IMAP server which uses
 maildir as its file format.
 
 @vindex nnmairix-propagate-marks-to-nnmairix-groups
 If you work with this setup, just set
 @code{nnmairix-propagate-marks-to-nnmairix-groups} to @code{t} and see what
-happens. If you don't like what you see, just set it to @code{nil} again. One
-problem might be that you get a wrong number of unread articles; this
+happens.  If you don't like what you see, just set it to @code{nil} again.
+One problem might be that you get a wrong number of unread articles; this
 usually happens when you delete or expire articles in the original
-groups. When this happens, you can recreate the @code{nnmairix} group on the
-back end using @kbd{G b d}.
+groups.  When this happens, you can recreate the @code{nnmairix} group on
+the back end using @kbd{G b d}.
 
 @node nnmairix tips and tricks
 @subsection nnmairix tips and tricks
@@ -21988,7 +21988,7 @@ back end using @kbd{G b d}.
 Checking Mail
 
 @findex nnmairix-update-groups
-I put all my important mail groups at group level 1. The mairix groups
+I put all my important mail groups at group level 1.  The mairix groups
 have group level 5, so they do not get checked at start up (@pxref{Group
 Levels}).
 
@@ -22006,7 +22006,7 @@ I use the following to check for mails:
 @end lisp
 
 Instead of @samp{"mairixsearch"} use the name of your @code{nnmairix}
-server. See the doc string for @code{nnmairix-update-groups} for
+server.  See the doc string for @code{nnmairix-update-groups} for
 details.
 
 @item
@@ -22018,13 +22018,13 @@ articles always stay unread:
 Hit @kbd{G b g}, enter group name (e.g., @samp{important}), use
 @samp{F:f} as query and do not include threads.
 
-Now activate marks propagation for this group by using @kbd{G b p}. Then
+Now activate marks propagation for this group by using @kbd{G b p}.  Then
 activate the always-unread feature by using @kbd{G b r} twice.
 
 So far so good---but how do you remove the tick marks in the @code{nnmairix}
 group?  There are two options: You may simply use
 @code{nnmairix-remove-tick-mark-original-article} (bound to @kbd{$ u}) to remove
-tick marks from the original article. The other possibility is to set
+tick marks from the original article.  The other possibility is to set
 @code{nnmairix-propagate-marks-to-nnmairix-groups} to @code{t}, but see the above
 comments about this option.  If it works for you, the tick marks should
 also exist in the @code{nnmairix} group and you can remove them as usual,
@@ -22033,19 +22033,19 @@ e.g., by marking an article as read.
 When you have removed a tick mark from the original article, this
 article should vanish from the @code{nnmairix} group after you have updated the
 mairix database and updated the group.  Fortunately, there is a function
-for doing exactly that: @code{nnmairix-update-groups}. See the previous code
+for doing exactly that: @code{nnmairix-update-groups}.  See the previous code
 snippet and the doc string for details.
 
 @item
 Dealing with auto-subscription of mail groups
 
 As described before, all @code{nnmairix} groups are in fact stored on
-the mail back end in the form @samp{zz_mairix-<NAME>-<NUMBER>}. You can
-see them when you enter the back end server in the server buffer. You
-should not subscribe these groups! Unfortunately, these groups will
+the mail back end in the form @samp{zz_mairix-<NAME>-<NUMBER>}.  You can
+see them when you enter the back end server in the server buffer.  You
+should not subscribe these groups!  Unfortunately, these groups will
 usually get @emph{auto-subscribed} when you use @code{nnmaildir} or
 @code{nnml}, i.e., you will suddenly see groups of the form
-@samp{zz_mairix*} pop up in your group buffer. If this happens to you,
+@samp{zz_mairix*} pop up in your group buffer.  If this happens to you,
 simply kill these groups with C-k.  For avoiding this, turn off
 auto-subscription completely by setting the variable
 @code{gnus-auto-subscribed-groups} to @code{nil} (@pxref{Filtering New
@@ -22103,25 +22103,25 @@ mairix does only support us-ascii characters.
 @code{nnmairix} uses a rather brute force method to force Gnus to
 completely reread the group on the mail back end after mairix was
 called---it simply deletes and re-creates the group on the mail
-back end. So far, this has worked for me without any problems, and I
+back end.  So far, this has worked for me without any problems, and I
 don't see how @code{nnmairix} could delete other mail groups than its
 own, but anyway: you really should have a backup of your mail
 folders.
 
 @item
 All necessary information is stored in the group parameters
-(@pxref{Group Parameters}). This has the advantage that no active file
+(@pxref{Group Parameters}).  This has the advantage that no active file
 is needed, but also implies that when you kill a @code{nnmairix} group,
 it is gone for good.
 
 @item
 @findex nnmairix-purge-old-groups
 If you create and kill a lot of @code{nnmairix} groups, the
-``zz_mairix-*'' groups will accumulate on the mail back end server. To
+``zz_mairix-*'' groups will accumulate on the mail back end server.  To
 delete old groups which are no longer needed, call
-@code{nnmairix-purge-old-groups}. Note that this assumes that you don't
+@code{nnmairix-purge-old-groups}.  Note that this assumes that you don't
 save any ``real'' mail in folders of the form
-@code{zz_mairix-<NAME>-<NUMBER>}. You can change the prefix of
+@code{zz_mairix-<NAME>-<NUMBER>}.  You can change the prefix of
 @code{nnmairix} groups by changing the variable
 @code{nnmairix-group-prefix}.
 
@@ -22132,14 +22132,14 @@ for mairix (@pxref{Propagating marks}):
 A problem can occur when using @code{nnmairix} with maildir folders and
 comes with the fact that maildir stores mail flags like @samp{Seen} or
 @samp{Replied} by appending chars @samp{S} and @samp{R} to the message
-file name, respectively. This implies that currently you would have to
+file name, respectively.  This implies that currently you would have to
 update the mairix database not only when new mail arrives, but also when
-mail flags are changing. The same applies to new mails which are indexed
+mail flags are changing.  The same applies to new mails which are indexed
 while they are still in the @samp{new} folder but then get moved to
-@samp{cur} when Gnus has seen the mail. If you don't update the database
+@samp{cur} when Gnus has seen the mail.  If you don't update the database
 after this has happened, a mairix query can lead to symlinks pointing to
-non-existing files. In Gnus, these messages will usually appear with
-``(none)'' entries in the header and can't be accessed. If this happens
+non-existing files.  In Gnus, these messages will usually appear with
+``(none)'' entries in the header and can't be accessed.  If this happens
 to you, using @kbd{G b u} and updating the group will usually fix this.
 
 @end itemize
@@ -23479,7 +23479,7 @@ Using the last function would be something like this:
 @c #### FIXME: faces and x-faces' implementations should really be harmonized.
 
 @code{Face} headers are essentially a funkier version of @code{X-Face}
-ones. They describe a 48x48 pixel colored image that's supposed to
+ones.  They describe a 48x48 pixel colored image that's supposed to
 represent the author of the message.
 
 @cindex face
@@ -23511,7 +23511,7 @@ easier insertion of Face headers in outgoing messages.
 converts the file to Face format by using the
 @code{gnus-convert-image-to-face-command} shell command.
 
-Here's how you would typically use this function. Put something like the
+Here's how you would typically use this function.  Put something like the
 following in your @file{~/.gnus.el} file:
 
 @lisp
@@ -23690,7 +23690,7 @@ The following variables offer control over how things are displayed.
 
 @item gnus-gravatar-size
 @vindex gnus-gravatar-size
-The size in pixels of gravatars. Gravatars are always square, so one
+The size in pixels of gravatars.  Gravatars are always square, so one
 number for the size is enough.
 
 @item gnus-gravatar-properties
@@ -27874,7 +27874,7 @@ The estimated number of unread articles in the group buffer should now
 be correct for nnimap groups.  This is achieved by calling
 @code{nnimap-fixup-unread-after-getting-new-news} from the
 @code{gnus-setup-news-hook} (called on startup) and
-@code{gnus-after-getting-new-news-hook}. (called after getting new
+@code{gnus-after-getting-new-news-hook} (called after getting new
 mail).  If you have modified those variables from the default, you may
 want to add @code{nnimap-fixup-unread-after-getting-new-news} again.  If
 you were happy with the estimate and want to save some (minimal) time
@@ -28760,7 +28760,7 @@ specified by RFC 1153.
 @cindex splitting, terminology
 @cindex mail sorting
 @cindex mail filtering (splitting)
-The action of sorting your emails according to certain rules. Sometimes
+The action of sorting your emails according to certain rules.  Sometimes
 incorrectly called mail filtering.
 
 @end table

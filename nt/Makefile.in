@@ -171,7 +171,8 @@ install: $(DESTDIR)${archlibdir}
 	for file in ${INSTALLABLES} ; do \
 	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} "$(DESTDIR)${bindir}"/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
 	done
-	$(INSTALL_DATA) README.W32 "$(DESTDIR)${datadir}/emacs/$(version)"
+	${MKDIR_P} "$(DESTDIR)${datadir}/emacs/$(version)"
+	$(INSTALL_DATA) ${srcdir}/README.W32 "$(DESTDIR)${datadir}/emacs/$(version)"
 
 uninstall:
 	rm -f "$(DESTDIR)${datadir}/emacs/$(version)/README.W32"

@@ -2517,6 +2517,7 @@ and `magic-mode-alist', which determines modes based on file contents.")
      ("scm" . scheme-mode)
      ("[acjkwz]sh" . sh-mode)
      ("r?bash2?" . sh-mode)
+     ("dash" . sh-mode)
      ("\\(dt\\|pd\\|w\\)ksh" . sh-mode)
      ("es" . sh-mode)
      ("i?tcsh" . sh-mode)
@@ -3340,8 +3341,11 @@ local variables, but directory-local variables may still be applied."
 			      ((eq var 'lexical-binding)
 			       (unless hack-local-variables--warned-lexical
 				 (setq hack-local-variables--warned-lexical t)
-				 (display-warning :warning
-						  "Specify `lexical-binding' on the first line, not at the end")))
+				 (display-warning
+                                  :warning
+                                  (format "%s: `lexical-binding' at end of file unreliable"
+                                          (file-name-nondirectory
+                                           (or buffer-file-name ""))))))
 			      (t
 			       (ignore-errors
 				 (push (cons (if (eq var 'eval)

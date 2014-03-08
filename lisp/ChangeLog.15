@@ -12151,7 +12151,7 @@
 	(version-list-not-zero, version<, version<=, version=): Doc fix.
 	(Bug#5744).
 
-2010-02-31  Dan Nicolaescu  <dann@ics.uci.edu>
+2010-03-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-root-diff): Doc fix.
 

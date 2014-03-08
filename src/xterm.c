@@ -2501,6 +2501,8 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	      XFillRectangle (s->display, s->window, gc, x, y, w, h);
 	      XSetForeground (s->display, gc, xgcv.foreground);
 	    }
+
+	  XSetClipMask (s->display, gc, None);
 	}
     }
   else if (!s->background_filled_p)
@@ -7953,17 +7955,18 @@ xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
     {
 #ifdef HAVE_X11R6_XIM
       struct xim_inst_t *xim_inst = xmalloc (sizeof *xim_inst);
+      Bool ret;
 
       dpyinfo->xim_callback_data = xim_inst;
       xim_inst->dpyinfo = dpyinfo;
       xim_inst->resource_name = xstrdup (resource_name);
-      XRegisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
-				      resource_name, emacs_class,
-				      xim_instantiate_callback,
-				      /* This is XPointer in XFree86
-					 but (XPointer *) on Tru64, at
-					 least, hence the configure test.  */
-				      (XRegisterIMInstantiateCallback_arg6) xim_inst);
+      ret = XRegisterIMInstantiateCallback
+	(dpyinfo->display, dpyinfo->xrdb, xim_inst->resource_name,
+	 emacs_class, xim_instantiate_callback,
+	 /* This is XPointer in XFree86 but (XPointer *)
+	    on Tru64, at least, hence the configure test.  */
+	 (XRegisterIMInstantiateCallback_arg6) xim_inst);
+      eassert (ret == True);
 #else /* not HAVE_X11R6_XIM */
       xim_open_dpy (dpyinfo, resource_name);
 #endif /* not HAVE_X11R6_XIM */
@@ -7981,12 +7984,18 @@ xim_close_dpy (struct x_display_info *dpyinfo)
   if (use_xim)
     {
 #ifdef HAVE_X11R6_XIM
+      struct xim_inst_t *xim_inst = dpyinfo->xim_callback_data;
+      
       if (dpyinfo->display)
-	XUnregisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
-					  NULL, emacs_class,
-					  xim_instantiate_callback, NULL);
-      xfree (dpyinfo->xim_callback_data->resource_name);
-      xfree (dpyinfo->xim_callback_data);
+	{
+	  Bool ret = XUnregisterIMInstantiateCallback
+	    (dpyinfo->display, dpyinfo->xrdb, xim_inst->resource_name,
+	     emacs_class, xim_instantiate_callback,
+	     (XRegisterIMInstantiateCallback_arg6) xim_inst);
+	  eassert (ret == True);
+	}
+      xfree (xim_inst->resource_name);
+      xfree (xim_inst);
 #endif /* HAVE_X11R6_XIM */
       if (dpyinfo->display)
 	XCloseIM (dpyinfo->xim);
@@ -9679,6 +9688,10 @@ my_log_handler (const gchar *log_domain, GLogLevelFlags log_level,
 }
 #endif
 
+/* Current X display connection identifier.  Incremented for each next
+   connection established.  */
+static unsigned x_display_id;
+
 /* Open a connection to X display DISPLAY_NAME, and return
    the structure that describes the open display.
    If we cannot contact the display, return null.  */
@@ -9896,6 +9909,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   lim = min (PTRDIFF_MAX, SIZE_MAX) - sizeof "@";
   if (lim - SBYTES (Vinvocation_name) < SBYTES (Vsystem_name))
     memory_full (SIZE_MAX);
+  dpyinfo->x_id = ++x_display_id;
   dpyinfo->x_id_name = xmalloc (SBYTES (Vinvocation_name)
 				+ SBYTES (Vsystem_name) + 2);
   strcat (strcat (strcpy (dpyinfo->x_id_name, SSDATA (Vinvocation_name)), "@"),

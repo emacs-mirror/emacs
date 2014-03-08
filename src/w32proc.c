@@ -566,7 +566,7 @@ init_timers (void)
 static int
 start_timer_thread (int which)
 {
-  DWORD exit_code;
+  DWORD exit_code, tid;
   HANDLE th;
   struct itimer_data *itimer =
     (which == ITIMER_REAL) ? &real_itimer : &prof_itimer;
@@ -604,7 +604,7 @@ start_timer_thread (int which)
      the way of threads we start to wait for subprocesses.  See also
      new_child below.  */
   itimer->timer_thread = CreateThread (NULL, 64 * 1024, timer_loop,
-				       (void *)itimer, 0x00010000, NULL);
+				       (void *)itimer, 0x00010000, &tid);
 
   if (!itimer->timer_thread)
     {

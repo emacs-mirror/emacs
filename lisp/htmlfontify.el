@@ -1709,7 +1709,7 @@ FILE, if set, is the file name."
     ;; think we only need to relocate the hfy-endl property, as the hfy-linkp
     ;; property has already served its main purpose by this point.
     ;;(message "mapcar over the CSS-MAP")
-    (message "invis-ranges:\n%S" invis-ranges)
+    ;; (message "invis-ranges:\n%S" invis-ranges)
     (dolist (point-face css-map)
       (let ((pt (car point-face))
             (fn (cdr point-face))

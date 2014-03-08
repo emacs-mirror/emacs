@@ -3868,7 +3868,8 @@ DEFUN ("unintern", Funintern, Sunintern, 1, 2, 0,
 The value is t if a symbol was found and deleted, nil otherwise.
 NAME may be a string or a symbol.  If it is a symbol, that symbol
 is deleted, if it belongs to OBARRAY--no other symbol is deleted.
-OBARRAY defaults to the value of the variable `obarray'.  */)
+OBARRAY, if nil, defaults to the value of the variable `obarray'.
+usage: (unintern NAME OBARRAY)  */)
   (Lisp_Object name, Lisp_Object obarray)
 {
   register Lisp_Object string, tem;

@@ -48,7 +48,7 @@ GNULIB_TOOL_FLAGS='
   --avoid=malloc-posix --avoid=msvc-inval --avoid=msvc-nothrow
   --avoid=open --avoid=openat-die --avoid=opendir
   --avoid=raise
-  --avoid=save-cwd --avoid=select --avoid=sigprocmask --avoid=sys_types
+  --avoid=save-cwd --avoid=select --avoid=sigprocmask
   --avoid=threadlib
   --conditional-dependencies --import --no-changelog --no-vc-files
   --makefile-name=gnulib.mk

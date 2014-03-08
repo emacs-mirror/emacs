@@ -254,7 +254,7 @@ We do this by executing it with `--version' and analyzing its output."
 	(cond
 	 ((looking-at ".*movemail: invalid option")
 	  'emacs)    ;; Possibly...
-	 ((looking-at "movemail (GNU Mailutils .*)")
+	 ((looking-at "movemail (GNU Mailutils")
 	  'mailutils)
 	 (t
 	  ;; FIXME:

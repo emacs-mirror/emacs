@@ -186,12 +186,6 @@ word(s) will be searched for via `eww-search-prefix'."
   (let ((redirect (plist-get status :redirect)))
     (when redirect
       (setq url redirect)))
-  (setq-local eww-next-url nil)
-  (setq-local eww-previous-url nil)
-  (setq-local eww-up-url nil)
-  (setq-local eww-home-url nil)
-  (setq-local eww-start-url nil)
-  (setq-local eww-contents-url nil)
   (let* ((headers (eww-parse-headers))
 	 (content-type
 	  (mail-header-parse-content-type
@@ -393,7 +387,13 @@ word(s) will be searched for via `eww-search-prefix'."
     (remove-overlays)
     (erase-buffer))
   (unless (eq major-mode 'eww-mode)
-    (eww-mode)))
+    (eww-mode))
+  (setq-local eww-next-url nil)
+  (setq-local eww-previous-url nil)
+  (setq-local eww-up-url nil)
+  (setq-local eww-home-url nil)
+  (setq-local eww-start-url nil)
+  (setq-local eww-contents-url nil))
 
 (defun eww-view-source ()
   (interactive)
@@ -412,8 +412,8 @@ word(s) will be searched for via `eww-search-prefix'."
     (suppress-keymap map)
     (define-key map "q" 'quit-window)
     (define-key map "g" 'eww-reload)
-    (define-key map [tab] 'shr-next-link)
-    (define-key map [backtab] 'shr-previous-link)
+    (define-key map [?\t] 'shr-next-link)
+    (define-key map [?\M-\t] 'shr-previous-link)
     (define-key map [delete] 'scroll-down-command)
     (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map "\177" 'scroll-down-command)
@@ -592,8 +592,8 @@ appears in a <link> or <a> tag."
     (define-key map [(control a)] 'eww-beginning-of-text)
     (define-key map [(control c) (control c)] 'eww-submit)
     (define-key map [(control e)] 'eww-end-of-text)
-    (define-key map [tab] 'shr-next-link)
-    (define-key map [backtab] 'shr-previous-link)
+    (define-key map [?\t] 'shr-next-link)
+    (define-key map [?\M-\t] 'shr-previous-link)
     map))
 
 (defvar eww-textarea-map
@@ -601,8 +601,8 @@ appears in a <link> or <a> tag."
     (set-keymap-parent map text-mode-map)
     (define-key map "\r" 'forward-line)
     (define-key map [(control c) (control c)] 'eww-submit)
-    (define-key map [tab] 'shr-next-link)
-    (define-key map [backtab] 'shr-previous-link)
+    (define-key map [?\t] 'shr-next-link)
+    (define-key map [?\M-\t] 'shr-previous-link)
     map))
 
 (defvar eww-select-map

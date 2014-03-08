@@ -179,7 +179,9 @@ FUN will be called in the buffer from which the minibuffer was entered.
 
 The result of the `completion-table-dynamic' form is a function
 that can be used as the COLLECTION argument to `try-completion' and
-`all-completions'.  See Info node `(elisp)Programmed Completion'."
+`all-completions'.  See Info node `(elisp)Programmed Completion'.
+
+See also the related function `completion-table-with-cache'."
   (lambda (string pred action)
     (if (or (eq (car-safe action) 'boundaries) (eq action 'metadata))
         ;; `fun' is not supposed to return another function but a plain old
@@ -191,13 +193,15 @@ that can be used as the COLLECTION argument to `try-completion' and
         (complete-with-action action (funcall fun string) string pred)))))
 
 (defun completion-table-with-cache (fun &optional ignore-case)
-  "Create dynamic completion table from FUN, with cache.
-This wraps `completion-table-dynamic', but saves the last
+  "Create dynamic completion table from function FUN, with cache.
+This is a wrapper for `completion-table-dynamic' that saves the last
 argument-result pair from FUN, so that several lookups with the
 same argument (or with an argument that starts with the first one)
-only need to call FUN once.  Most useful when FUN performs a relatively
-slow operation, such as calling an external process (see Bug#11906).
+only need to call FUN once.  This can be useful when FUN performs a
+relatively slow operation, such as calling an external process.
+
 When IGNORE-CASE is non-nil, FUN is expected to be case-insensitive."
+  ;; See eg bug#11906.
   (let* (last-arg last-result
          (new-fun
           (lambda (arg)
@@ -850,12 +854,12 @@ completing buffer and file names, respectively."
              (setq table (pop new))
              (setq point (pop new))
              (pop new))))
-       (result
-        (completion--some (lambda (style)
-                            (funcall (nth n (assq style
-                                                  completion-styles-alist))
-                                     string table pred point))
-                          (completion--styles metadata))))
+        (result
+         (completion--some (lambda (style)
+                             (funcall (nth n (assq style
+                                                   completion-styles-alist))
+                                      string table pred point))
+                           (completion--styles metadata))))
     (if requote
         (funcall requote result n)
       result)))
@@ -1371,7 +1375,7 @@ appear to be a match."
 				   (concat before ext after)
 				   table predicate (1+ point) md))
 				exts))))
-	  (when (and (= 1 (length comps) (consp (car comps))))
+	  (when (and (null (cdr comps)) (consp (car comps)))
 	    (setq comp (car comps)))))
 
       ;; Completing a single word is actually more difficult than completing
@@ -1572,15 +1576,26 @@ See also `display-completion-list'.")
 
 (defface completions-first-difference
   '((t (:inherit bold)))
-  "Face added on the first uncommon character in completions in *Completions* buffer.")
+  "Face for the first uncommon character in completions.
+See also the face `completions-common-part'.")
 
 (defface completions-common-part '((t nil))
-  "Face added on the common prefix substring in completions in *Completions* buffer.
-The idea of `completions-common-part' is that you can use it to
-make the common parts less visible than normal, so that the rest
-of the differing parts is, by contrast, slightly highlighted.")
+  "Face for the common prefix substring in completions.
+The idea of this face is that you can use it to make the common parts
+less visible than normal, so that the differing parts are emphasized
+by contrast.
+See also the face `completions-first-difference'.")
 
-(defun completion-hilit-commonality (completions prefix-len base-size)
+(defun completion-hilit-commonality (completions prefix-len &optional base-size)
+  "Apply font-lock highlighting to a list of completions, COMPLETIONS.
+PREFIX-LEN is an integer.  BASE-SIZE is an integer or nil (meaning zero).
+
+This adds the face `completions-common-part' to the first
+\(PREFIX-LEN - BASE-SIZE) characters of each completion, and the face
+`completions-first-difference' to the first character after that.
+
+It returns a list with font-lock properties applied to each element,
+and with BASE-SIZE appended as the last element."
   (when completions
     (let ((com-str-len (- prefix-len (or base-size 0))))
       (nconc

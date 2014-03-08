@@ -567,7 +567,8 @@ and ediff-after-flag.  On a non-window system, differences are always
 highlighted using ASCII flags."
   :type 'boolean
   :group 'ediff-highlighting)
-(ediff-defvar-local ediff-use-faces t "")
+(make-variable-buffer-local 'ediff-use-faces)
+(put 'ediff-use-faces 'permanent-local t)
 
 ;; this indicates that diff regions are word-size, so fine diffs are
 ;; permanently nixed; used in ediff-windows-wordwise and ediff-regions-wordwise
@@ -610,7 +611,8 @@ Otherwise, all difference regions are highlighted, but the selected region is
 shown in brighter colors."
   :type 'boolean
   :group 'ediff-highlighting)
-(ediff-defvar-local ediff-highlight-all-diffs t "")
+(make-variable-buffer-local 'ediff-highlight-all-diffs)
+(put 'ediff-highlight-all-diffs 'permanent-local t)
 
 
 ;; The suffix of the control buffer name.
