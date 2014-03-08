@@ -1,3 +1,10 @@
+2014-03-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.h (MAC_OS_X_VERSION_10_9): Add.
+
+	* nsterm.m (constrainFrameRect:toScreen:): Constrain normally when frame
+	is only on one screen (Bug#14713).
+
 2014-03-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_in_display_line_to): If word-wrap is ON, and
