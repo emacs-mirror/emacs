@@ -8651,7 +8651,12 @@ move_it_in_display_line_to (struct it *it,
 			 doesn't fit on the line, e.g. a wide image.  */
 		      it->hpos == 0
 		      || (new_x == it->last_visible_x
-			  && FRAME_WINDOW_P (it->f)))
+			  && FRAME_WINDOW_P (it->f)
+			  /* When word-wrap is ON and we have a valid
+			     wrap point, we don't allow the last glyph
+			     to "just barely fit" on the line.  */
+			  && (it->line_wrap != WORD_WRAP
+			      || wrap_it.sp < 0)))
 		    {
 		      ++it->hpos;
 		      it->current_x = new_x;
@@ -20857,6 +20862,27 @@ Value is the new character position of point.  */)
 	      move_it_by_lines (&it, -1);
 	      target_x = it.last_visible_x - !FRAME_WINDOW_P (it.f);
 	      target_is_eol_p = true;
+	      /* Under word-wrap, we don't know the x coordinate of
+		 the last character displayed on the previous line,
+		 which immediately precedes the wrap point.  To find
+		 out its x coordinate, we try moving to the right
+		 margin of the window, which will stop at the wrap
+		 point, and then reset target_x to point at the
+		 character that precedes the wrap point.  This is not
+		 needed on GUI frames, because (see below) there we
+		 move from the left margin one grapheme cluster at a
+		 time, and stop when we hit the wrap point.  */
+	      if (!FRAME_WINDOW_P (it.f) && it.line_wrap == WORD_WRAP)
+		{
+		  void *it_data = NULL;
+		  struct it it2;
+
+		  SAVE_IT (it2, it, it_data);
+		  move_it_in_display_line_to (&it, ZV, target_x,
+					      MOVE_TO_POS | MOVE_TO_X);
+		  target_x = it.current_x - 1;
+		  RESTORE_IT (&it, &it2, it_data);
+		}
 	    }
 	}
       else

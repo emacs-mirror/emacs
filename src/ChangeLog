@@ -1,3 +1,18 @@
+2014-03-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): If word-wrap is ON, and
+	there's a valid wrap point in the display line, the last glyph
+	cannot "just barely fit" on this row, because display_line doesn't
+	let it.  Instead, proceed as if the last glyph didn't fit, so that
+	we eventually back up the iterator to the wrap point.  This avoids
+	delusional behavior of move_it_to, whereby it proceeds to the next
+	display line, but sets current_x to zero for all the glyphs that
+	without word-wrap would fit on the previous display line.  One
+	result was that visual-order cursor movement behaved erratically
+	under word-wrap.
+	(Fmove_point_visually): Add code to find the x coordinate of the
+	last character before wrap point, under word-wrap on a TTY.
+
 2014-03-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (Fmove_point_visually): When under word-wrap, accept
