@@ -263,13 +263,10 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
 
   if(amcSegHasNailboard(seg)) {
     res = WriteF(stream, "  Boarded\n", NULL);
-    /* @@@@ should have NailboardDescribe() */
+  } else if(SegNailed(seg) == TraceSetEMPTY) {
+    res = WriteF(stream, "  Mobile\n", NULL);
   } else {
-    if(SegNailed(seg) == TraceSetEMPTY) {
-      res = WriteF(stream, "  Mobile\n", NULL);
-    } else {
-      res = WriteF(stream, "  Stuck\n", NULL);
-    }
+    res = WriteF(stream, "  Stuck\n", NULL);
   }
   if(res != ResOK)
     return res;
@@ -1281,6 +1278,18 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
 }
 
 
+/* amcNailboardIsResClientRange -- wrapper for NailboardIsResRange,
+ * except that the addresses are client addresses for objects with the
+ * given header size.
+ */
+static Bool amcNailboardIsResClientRange(Nailboard board, Size headerSize,
+                                         Addr base, Addr limit)
+{
+  return NailboardIsResRange(board, AddrSub(base, headerSize),
+                             AddrSub(limit, headerSize));
+}
+
+
 /* amcScanNailedRange -- make one scanning pass over a range of
  * addresses in a nailed segment.
  */
@@ -1299,7 +1308,7 @@ static Res amcScanNailedRange(Bool *totalReturn, Bool *moreReturn,
   while (p < clientLimit) {
     Addr q;
     q = (*format->skip)(p);
-    if (!NailboardIsResClientRange(board, headerSize, p, q)) {
+    if (!amcNailboardIsResClientRange(board, headerSize, p, q)) {
       Res res;
       res = (*format->scan)(&ss->ss_s, p, q);
       if(res != ResOK) {
@@ -1644,8 +1653,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* If object is nailed already then we mustn't copy it: */
     if (SegNailed(seg) != TraceSetEMPTY
         && !(amcSegHasNailboard(seg)
-             && NailboardIsResClientRange(amcSegNailboard(seg),
-                                          0, ref, clientQ)))
+             && NailboardIsResRange(amcSegNailboard(seg), ref, clientQ)))
     {
       /* Segment only needs greying if there are new traces for */
       /* which we are nailing. */
@@ -1792,8 +1800,8 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* If object is nailed already then we mustn't copy it: */
     if (SegNailed(seg) != TraceSetEMPTY
         && !(amcSegHasNailboard(seg)
-             && NailboardIsResClientRange(amcSegNailboard(seg),
-                                          headerSize, ref, clientQ)))
+             && amcNailboardIsResClientRange(amcSegNailboard(seg),
+                                             headerSize, ref, clientQ)))
     {
       /* Segment only needs greying if there are new traces for */
       /* which we are nailing. */
@@ -1909,8 +1917,8 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     q = AddrSub(clientQ, headerSize);
     length = AddrOffset(p, q);
     if(amcSegHasNailboard(seg)) {
-      preserve = !NailboardIsResClientRange(amcSegNailboard(seg), headerSize,
-                                            clientP, clientQ);
+      preserve = !amcNailboardIsResClientRange(amcSegNailboard(seg), headerSize,
+                                               clientP, clientQ);
     } else {
       /* There's no nailboard, so preserve everything that hasn't been
        * forwarded. In this case, preservedInPlace* become somewhat

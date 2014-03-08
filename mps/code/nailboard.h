@@ -18,25 +18,26 @@ typedef struct NailboardStruct {
   Sig sig;
   RangeStruct range;   /* range of addresses covered by nailboard */
   Count levels;        /* number of levels */
-  Bool newNails;       /* set to TRUE if a new nail is set */
   Shift alignShift;    /* shift due to address alignment */
-  Shift levelShift;    /* additional shift for each level */
+  Bool newNails;       /* set to TRUE if a new nail is set */
   BT level[1];         /* bit tables for each level */
 } NailboardStruct;
 
 #define NailboardSig ((Sig)0x5194A17B) /* SIGnature NAILBoard */
 
+#define NailboardClearNewNails(board) ((board)->newNails = FALSE)
+#define NailboardNewNails(board) RVALUE((board)->newNails)
+
 extern Bool NailboardCheck(Nailboard board);
 extern Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment, Addr base, Addr limit);
 extern void NailboardDestroy(Nailboard board, Arena arena);
-extern void NailboardClearNewNails(Nailboard board);
-extern Bool NailboardNewNails(Nailboard board);
+extern void (NailboardClearNewNails)(Nailboard board);
+extern Bool (NailboardNewNails)(Nailboard board);
 extern Bool NailboardGet(Nailboard board, Addr addr);
 extern Bool NailboardSet(Nailboard board, Addr addr);
 extern void NailboardSetRange(Nailboard board, Addr base, Addr limit);
 extern Bool NailboardIsSetRange(Nailboard board, Addr base, Addr limit);
 extern Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit);
-extern Bool NailboardIsResClientRange(Nailboard board, Size headerSize, Addr base, Addr limit);
 extern Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream);
 
 #endif /* nailboard.h */

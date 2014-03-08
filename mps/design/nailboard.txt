@@ -20,9 +20,10 @@ Pool System.
 
 _`.readership`: Any MPS developer.
 
-_`.overview`: A nailboard is a specialized bit table. It maps
-addresses within a range to *nails* (that is, bits in a table). The
-mapping has granularity, so that all addresses within a word, say,
+_`.overview`: A nailboard represents a set of addresses to which
+ambiguous references have been found. It is implemented as a
+specialized bit table that maps addresses within a range to *nails*.
+The mapping has granularity, so that all addresses within a word, say,
 will map to the same nail.
 
 _`.purpose`: Nailboards are used by the AMC pool class to record
@@ -38,9 +39,14 @@ addresses down to the grain size of the segment. (Because individual
 objects may be this small, and we must be able to preserve or reclaim
 individual objects.)
 
-_`.req.set`: A nailboard must be able set a nail corresponding to any
-aligned address in the range covered. (Because ambiguous references
-may have arbitrary values.)
+_`.req.set`: A nailboard must be able to set a nail corresponding to
+any aligned address in the range covered. (Because ambiguous
+references may have arbitrary values.)
+
+_`.req.reset.not`: A nailboard is *not* required to be able to reset a
+nail. (Because resetting a nail would correspond to proving that there
+is *no* ambiguous reference to that address, but that can only be
+established when the trace is complete.)
 
 _`.req.range`: A nailboard must be able to determine if any nail is
 set in a continguous range. (Because we must preserve the whole object
@@ -59,8 +65,8 @@ _`.impl.table`: The nailboard consists of a header structure and one
 or more bit tables. Each bit table covers the whole range of
 addresses, but at a different level of detail.
 
-_`.impl.table.0`: The level 0 bit table has one bit for each aligned
-address in the range.
+_`.impl.table.level0`: The level 0 bit table has one bit for each
+aligned address in the range.
 
 _`.impl.align`: The alignment of the nailboard need not be the same as
 the pool alignment. This is because nailboards are per-segment, and
@@ -72,8 +78,9 @@ bits in the level *k*\−1 bit table (this bit is set if any bit in the
 corresponding word in the level *k*\−1 table is set).
 
 _`.impl.scale`: Here ``scale`` is an arbitrary scale factor that must
-be a power of 2. It could be supplied as a parameter of the nailboard,
-but in the current implementation it is always :c:func:`MPS_WORD_WIDTH`.
+be a power of 2. It could in future be supplied as a parameter when
+creating a nailboard, but in the current implementation it is always
+:c:macro:`MPS_WORD_WIDTH`.
 
 _`.impl.table.last`: The last bit table is one word long or shorter.
 
@@ -99,8 +106,9 @@ reference to an address in an AMC pool. When setting a nail, we set
 the corresponding bit in every level of the nailboard.
 
 _`.impl.isresrange`: Testing a range of addresses to see if any nails
-are set is also on the critical path: it is called when scanning any
-AMC segment with a nailboard.
+are set is also on the critical path: it is called for every object in
+any AMC segment with a nailboard when the segment is scanned and when
+it is reclaimed.
 
 _`.impl.isresrange.strategy`: The strategy for testing to see if any
 nails are set in a range is to handle the cases that are expected to
