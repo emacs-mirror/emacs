@@ -30,21 +30,20 @@ static void test(mps_arena_t arena)
   die(BTCreate(&bt, arena, nails), "BTCreate");
   die(NailboardCreate(&board, arena, align, base, limit), "NailboardCreate");
 
-  for (i = 0; i < nails / 8; ++i) {
+  for (i = 0; i <= nails / 8; ++i) {
+    Bool old;
     j = rnd() % nails;
+    old = BTGet(bt, j);
     BTSet(bt, j);
-    NailboardSet(board, AddrAdd(base, j * align));
+    cdie(NailboardSet(board, AddrAdd(base, j * align)) == old, "NailboardSet");
     for (k = 0; k < nails / 8; ++k) {
       Index b, l;
       b = rnd() % nails;
       l = b + rnd() % (nails - b) + 1;
-      if (BTIsResRange(bt, b, l)
-          != NailboardIsResRange(board, AddrAdd(base, b * align),
-                                 AddrAdd(base, l * align)))
-      {
-        NailboardIsResRange(board, AddrAdd(base, b * align),
-                            AddrAdd(base, l * align));
-      }
+      cdie(BTIsResRange(bt, b, l)
+           == NailboardIsResRange(board, AddrAdd(base, b * align),
+                                  AddrAdd(base, l * align)),
+           "NailboardIsResRange");
     }
   }
 }
