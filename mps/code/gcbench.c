@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <alloca.h>
 #include <pthread.h>
 #include "getopt.h"
 #include "testlib.h"
@@ -219,16 +218,16 @@ static void weave1(gcthread_fn_t fn)
 
 static void watch(gcthread_fn_t fn, const char *name)
 {
-  clock_t start, finish;
+  clock_t begin, end;
   
-  start = clock();
+  begin = clock();
   if (nthreads == 1)
     weave1(fn);
   else
     weave(fn);
-  finish = clock();
+  end = clock();
   
-  printf("%s: %g\n", name, (double)(finish - start) / CLOCKS_PER_SEC);
+  printf("%s: %g\n", name, (double)(end - begin) / CLOCKS_PER_SEC);
 }
 
 
