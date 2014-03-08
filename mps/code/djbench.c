@@ -123,8 +123,8 @@ DJRUN(dj_alloc, MPS_ALLOC, MPS_FREE)
 #define RESERVE_ALLOC(p, s) \
   do { \
     size_t _s = ALIGN_UP(s, (size_t)MPS_PF_ALIGN); \
-    mps_reserve(&p, ap, _s); \
-    mps_commit(ap, p, _s); \
+    (void)mps_reserve(&p, ap, _s); \
+    (void)mps_commit(ap, p, _s); \
   } while(0)
 #define RESERVE_FREE(p, s)  do { mps_free(pool, p, s); } while(0)
 

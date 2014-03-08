@@ -401,7 +401,7 @@ $(PFM)/$(VARIETY)/fotest: $(PFM)/$(VARIETY)/fotest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/gcbench: $(PFM)/$(VARIETY)/gcbench.o \
-	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/locbwcss: $(PFM)/$(VARIETY)/locbwcss.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
