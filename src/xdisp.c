@@ -20880,7 +20880,10 @@ Value is the new character position of point.  */)
 		  SAVE_IT (it2, it, it_data);
 		  move_it_in_display_line_to (&it, ZV, target_x,
 					      MOVE_TO_POS | MOVE_TO_X);
-		  target_x = it.current_x - 1;
+		  /* If we arrived at target_x, that _is_ the last
+		     character on the previous line.  */
+		  if (it.current_x != target_x)
+		    target_x = it.current_x - 1;
 		  RESTORE_IT (&it, &it2, it_data);
 		}
 	    }
