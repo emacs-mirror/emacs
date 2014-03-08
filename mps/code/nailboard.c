@@ -13,40 +13,62 @@
 
 SRCID(nailboard, "$Id$");
 
+#define LEVEL_SHIFT MPS_WORD_SHIFT
+
+/* nailboardLevels -- return the number of levels in a nailboard with
+ * the given number of nails.
+ */
+static Count nailboardLevels(Count nails)
+{
+  return SizeRoundUp(SizeLog2(nails) + 1, LEVEL_SHIFT) / LEVEL_SHIFT;
+}
+
+/* nailboardLevelBits -- return the number of bits in the bit table
+ * for the given level.
+ */
+static Count nailboardLevelBits(Nailboard board, Index level)
+{
+  /* Don't AVER(level < board->levels): see .check.levels */
+  return RangeSize(&board->range) >> (board->alignShift + level * LEVEL_SHIFT);
+}
+
 Bool NailboardCheck(Nailboard board)
 {
   Index i;
   CHECKS(Nailboard, board);
   CHECKL(RangeCheck(&board->range));
-  CHECKL(0 < board->levelShift);
+  CHECKL(0 < board->levels);
+  CHECKL(board->levels == nailboardLevels(nailboardLevelBits(board, 0)));
+  CHECKL(nailboardLevelBits(board, board->levels - 1) != 0);
+  CHECKL(nailboardLevelBits(board, board->levels) == 0); /* .check.levels */
+  CHECKL(BoolCheck(board->newNails));
   for (i = 0; i < board->levels; ++i) {
-    /* weak check for BTs @@@@ */
     CHECKL(board->level[i] != NULL);
   }
-  CHECKL(BoolCheck(board->newNails));
   return TRUE;
 }
 
 /* nailboardStructSize -- return the size of the nailboard structure,
- * including its array of pointers to levels.
+ * plus the array of pointers to levels.
  */
 static Size nailboardStructSize(Count levels)
 {
-  return sizeof(NailboardStruct) + sizeof(BT *) * (levels - 1);
+  return offsetof(NailboardStruct, level) + sizeof(BT *) * levels;
 }
 
-/* nailboardLevelsSize -- return the total size of the bit tables for
- * all the levels in a nailboard with the given number of paramaters.
+/* nailboardSize -- return the total size of the nailboard
+ *
+ * This is the size of the nailboard structure plus the combined sizes
+ * of the bit tables.
  */
-static Size nailboardLevelsSize(Count nails, Count levels, Shift shift)
+static Size nailboardSize(Count nails, Count levels)
 {
   Index i;
   Size size;
-  AVER(nails >> ((levels - 1) * shift) != 0);
-  AVER(nails >> (levels * shift) <= 1);
-  size = 0;
+  size = nailboardStructSize(levels);
   for (i = 0; i < levels; ++i) {
-    size += BTSize(nails >> (i * shift));
+    size += BTSize(nails);
+    nails >>= LEVEL_SHIFT;
   }
   return size;
 }
@@ -68,9 +90,7 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
   Nailboard board;
   Count nails, levels;
   Index i;
-  Size structSize, levelsSize;
   Res res;
-  Shift levelShift = MPS_WORD_SHIFT;
 
   AVER(boardReturn != NULL);
   AVERT(Arena, arena);
@@ -80,31 +100,24 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
   AVER(AddrIsAligned(limit, alignment));
 
   nails = AddrOffset(base, limit) / alignment;
-  levels = SizeRoundUp(SizeLog2(nails) + 1, levelShift) / levelShift;
-  AVER((nails >> ((levels - 1) * levelShift)) > 0);
-  AVER((nails >> (levels * levelShift)) == 0);
-
-  structSize = nailboardStructSize(levels);
-  levelsSize = nailboardLevelsSize(nails, levels, levelShift);
-  res = ControlAlloc(&p, arena, structSize + levelsSize, FALSE);
+  levels = nailboardLevels(nails);
+  res = ControlAlloc(&p, arena, nailboardSize(nails, levels), FALSE);
   if (res != ResOK)
     return res;
 
   board = p;
-  board->newNails = FALSE;
+  RangeInit(&board->range, base, limit);
   board->levels = levels;
   board->alignShift = SizeLog2(alignment);
-  board->levelShift = levelShift;
-  RangeInit(&board->range, base, limit);
+  board->newNails = FALSE;
 
-  AVER(nails == RangeSize(&board->range) >> board->alignShift);
-  p = AddrAdd(p, structSize);
+  p = AddrAdd(p, nailboardStructSize(levels));
   for (i = 0; i < levels; ++i) {
-    Count levelNails = nails >> (i * levelShift);
-    AVER(levelNails > 0);
+    AVER(nails > 0);
     board->level[i] = p;
-    BTResRange(board->level[i], 0, levelNails);
-    p = AddrAdd(p, BTSize(levelNails));
+    BTResRange(board->level[i], 0, nails);
+    p = AddrAdd(p, BTSize(nails));
+    nails >>= LEVEL_SHIFT;
   }
 
   board->sig = NailboardSig;
@@ -117,24 +130,22 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
 
 void NailboardDestroy(Nailboard board, Arena arena)
 {
-  Count nails;
-  Size structSize, levelsSize;
+  Size size;
 
   AVERT(Nailboard, board);
   AVERT(Arena, arena);
 
-  nails = RangeSize(&board->range) >> board->alignShift;
-  structSize = nailboardStructSize(board->levels);
-  levelsSize = nailboardLevelsSize(nails, board->levels, board->levelShift);
+  size = nailboardSize(nailboardLevelBits(board, 0), board->levels);
 
   board->sig = SigInvalid;
-  ControlFree(arena, board, structSize + levelsSize);
+  ControlFree(arena, board, size);
 }
 
 /* NailboardClearNewNails -- clear the "new nails" flag */
 
-void NailboardClearNewNails(Nailboard board)
+void (NailboardClearNewNails)(Nailboard board)
 {
+  AVERT(Nailboard, board);
   board->newNails = FALSE;
 }
 
@@ -144,8 +155,9 @@ void NailboardClearNewNails(Nailboard board)
  * the last call to NailboardClearNewNails (or since the nailboard was
  * created, if there have never been any such calls), FALSE otherwise.
  */
-Bool NailboardNewNails(Nailboard board)
+Bool (NailboardNewNails)(Nailboard board)
 {
+  AVERT(Nailboard, board);
   return board->newNails;
 }
 
@@ -155,7 +167,7 @@ Bool NailboardNewNails(Nailboard board)
 static Index nailboardIndex(Nailboard board, Index level, Addr addr)
 {
   return AddrOffset(RangeBase(&board->range), addr)
-    >> (board->alignShift + level * board->levelShift);
+    >> (board->alignShift + level * LEVEL_SHIFT);
 }
 
 /* nailboardAddr -- return the address corresponding to the index in
@@ -164,7 +176,7 @@ static Index nailboardIndex(Nailboard board, Index level, Addr addr)
 static Addr nailboardAddr(Nailboard board, Index level, Index index)
 {
   return AddrAdd(RangeBase(&board->range),
-                 index << (board->alignShift + level * board->levelShift));
+                 index << (board->alignShift + level * LEVEL_SHIFT));
 }
 
 /* nailboardIndexRange -- update *ibaseReturn and *ilimitReturn to be
@@ -200,25 +212,24 @@ Bool NailboardGet(Nailboard board, Addr addr)
  */
 Bool NailboardSet(Nailboard board, Addr addr)
 {
-  Bool isNew = FALSE;
-  Index i;
+  Index i, j;
 
   AVERT_CRITICAL(Nailboard, board);
   AVER_CRITICAL(RangeContains(&board->range, addr));
 
-  for (i = 0; i < board->levels; ++i) {
-    Index j = nailboardIndex(board, i, addr);
-    if (BTGet(board->level[i], j)) {
+  j = nailboardIndex(board, 0, addr);
+  if (BTGet(board->level[0], j))
+    return TRUE;
+  board->newNails = TRUE;
+  BTSet(board->level[0], j);
+
+  for (i = 1; i < board->levels; ++i) {
+    j = nailboardIndex(board, i, addr);
+    if (BTGet(board->level[i], j))
       break;
-    }
     BTSet(board->level[i], j);
-    isNew = TRUE;
   }
-  if (isNew) {
-    board->newNails = TRUE;
-    return FALSE;
-  }
-  return TRUE;
+  return FALSE;
 }
 
 /* NailboardSetRange -- set all nails in range
@@ -244,6 +255,8 @@ void NailboardSetRange(Nailboard board, Addr base, Addr limit)
  * Return TRUE if all nails are set in the range between base and
  * limit, or FALSE if any nail is unset. It is an error if any part of
  * the range is not covered by the nailboard.
+ *
+ * This function is not expected to be efficient.
  */
 Bool NailboardIsSetRange(Nailboard board, Addr base, Addr limit)
 {
@@ -259,7 +272,11 @@ Bool NailboardIsSetRange(Nailboard board, Addr base, Addr limit)
  * limit, or FALSE if any nail is set. It is an error if any part of
  * the range is not covered by the nailboard.
  *
- * See <design/nailboard#impl.isresrange>.
+ * This function is on the critical path as it is called for every
+ * object in every nailed segment. It must take time that is no more
+ * than logarithmic in the size of the range.
+ *
+ *  See <design/nailboard#impl.isresrange>.
  */
 Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)
 {
@@ -295,7 +312,7 @@ Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)
     if (!BTGet(board->level[j], jbase))
       break;
     if (j == 0)
-      break;
+      return FALSE;
   }
 
   /* Right splinter */
@@ -310,26 +327,14 @@ Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)
     if (!BTGet(board->level[j], jlimit - 1))
       break;
     if (j == 0)
-      break;
+      return FALSE;
   }
 
   return TRUE;
 }
 
-/* NailboardIsResClientRange -- test if all nails are reset in a range
- *
- * As NailboardIsResRange, except that the addresses are client
- * addresses for objects with the given header size.
- */
-Bool NailboardIsResClientRange(Nailboard board, Size headerSize, Addr base, Addr limit)
-{
-  return NailboardIsResRange(board, AddrSub(base, headerSize),
-                             AddrSub(limit, headerSize));
-}
-
 Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream)
 {
-  Count nails;
   Index i, j;
   Res res;
 
@@ -345,14 +350,12 @@ Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream)
                "  levels: $U\n", (WriteFU)board->levels,
                "  newNails: $S\n", board->newNails ? "TRUE" : "FALSE",
                "  alignShift: $U\n", (WriteFU)board->alignShift,
-               "  levelShift: $U\n", (WriteFU)board->levelShift,
                NULL);
   if (res != ResOK)
     return res;
 
-  nails = RangeSize(&board->range) >> board->alignShift;
   for(i = 0; i < board->levels; ++i) {
-    Count levelNails = nails >> (i * board->levelShift);
+    Count levelNails = nailboardLevelBits(board, i);
     Count resetNails = BTCountResRange(board->level[i], 0, levelNails);
     res = WriteF(stream, "  Level $U ($U bits, $U set): ",
                  i, levelNails, levelNails - resetNails, NULL);
