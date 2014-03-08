@@ -1,7 +1,7 @@
 /* locusss.c: LOCUS STRESS TEST
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpscmvff.h"
@@ -133,7 +133,7 @@ static mps_res_t allocMultiple(PoolStat stat)
 
 /* reportResults - print a report on a PoolStat */
 
-static void reportResults(PoolStat stat, char *name)
+static void reportResults(PoolStat stat, const char *name)
 {
   printf("\nResults for ");
   printf("%s", name);
@@ -251,7 +251,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *
