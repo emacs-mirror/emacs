@@ -29,8 +29,8 @@ Note que se superponen dos líneas cuando se mueve de pantalla en
 pantalla; esto provee una continuidad para que pueda seguir leyendo el
 texto.
 
-Lo primero que necesita saber es como moverse de un lugar a otro en el
-texto.  Ya sabe como avanzar una pantalla, con C-v.  Para retroceder
+Lo primero que necesita saber es cómo moverse de un lugar a otro en el
+texto.  Ya sabe cómo avanzar una pantalla, con C-v.  Para retroceder
 una pantalla teclee M-v (mantenga oprimida la tecla META y teclee v, o
 teclee <ESC>v si no tiene las teclas META, EDIT o ALT).
 
@@ -52,7 +52,7 @@ Los siguientes comandos son útiles para ver pantallas completas:
    Luego teclee C-l.  Encuentre el cursor otra vez y note que el mismo
    texto está todavía cerca del cursor, pero ahora está en el centro
    de la pantalla.
-   Si vuelve teclear C-l, ese texto se moverá al principio de la
+   Si vuelve a teclear C-l, ese texto se moverá al principio de la
    pantalla.  Al teclear C-l otra vez, se moverá al final de la
    pantalla.
 
@@ -104,7 +104,7 @@ pero Emacs no requiere que sea así.)
 
 C-f puede moverse a través de una nueva línea igual que C-b.
 
->> Teclee algunos C-b más para que sienta por donde se encuentra el
+>> Teclee algunos C-b más para que sienta por dónde se encuentra el
    cursor.
    Luego teclee C-f para regresar al final de la línea.
    Luego teclee otro C-f más para moverse a la línea siguiente.
@@ -118,7 +118,7 @@ especificado en el texto sin moverlo fuera de la pantalla.
    observe lo que sucede.
 
 Si moverse por caracteres es muy lento, puede moverse por palabras.
-M-f (META-f) mueve adelante una palabra y M-b mueva atrás una palabra.
+M-f (META-f) mueve adelante una palabra y M-b mueve atrás una palabra.
 
 >> Teclee algunos M-f y M-b
 
@@ -281,7 +281,7 @@ desactivado, conteste la pregunta con "n".
 ----------
 
 Emacs puede tener varias "ventanas", cada una mostrando su propio texto.
-Explicaremos después como usar múltiples ventanas.  Ahora mismo
+Explicaremos después cómo usar múltiples ventanas.  Ahora mismo
 queremos explicar cómo deshacerse de ventanas adicionales y volver a
 la edición básica en una ventana.  Es sencillo:
 
@@ -415,7 +415,7 @@ eliminado se llama "yanking" o "pegar".  Generalmente, los comandos
 que pueden quitar mucho texto lo eliminan (para que pueda pegarlo de
 nuevo) mientras que los comandos que quitan solo un carácter, o solo
 líneas en blanco y espacios, borran (y por tanto no se puede pegar lo
-borrado).  Si se normalmente, sin pasar un argumento, <DEL> y C-d
+borrado).  Si se usa normalmente, sin pasar un argumento, <DEL> y C-d
 borran.  Con un argumento, eliminan.
 
 >> Mueva el cursor al comienzo de una línea que no esté vacía.
@@ -534,7 +534,7 @@ un archivo con Emacs, el nombre de ese archivo aparecerá en ese mismo
 punto.
 
 Una cosa especial acerca del comando para encontrar un archivo, es que
-tendrá que decir que nombre de archivo desea.  Decimos que el comando
+tendrá que decir qué nombre de archivo desea.  Decimos que el comando
 "lee un argumento" (en este caso, el argumento es el nombre del
 archivo).  Después de teclear el comando:
 
@@ -586,7 +586,7 @@ editando un archivo existente.
 ---------
 
 Si visita un segundo archivo con C-x C-f, el primer archivo permanece
-dentro de Emacs.  Puede volver a el encontrándolo de nuevo con C-x
+dentro de Emacs.  Puede volver a él encontrándolo de nuevo con C-x
 C-f.  De esta forma puede mantener un gran número de archivos dentro
 de Emacs.
 
@@ -624,7 +624,7 @@ muestra el nombre de cada buffer y de su archivo correspondiente.
 Algunos buffers no corresponden a un archivo.  El buffer llamado
 "*Buffer List*", que contiene la lista de buffers que ha creado con
 C-x C-b, no tiene archivo.  Este buffer TUTORIAL.es al principio no
-tenía archivo, pero ahora ya sí, porque en la sección anterior tecleó
+tenía archivo, pero ahora sí, porque en la sección anterior tecleó
 C-x C-s y lo guardó en un archivo.
 
 El buffer llamado "*Messages*" tampoco tiene un archivo
@@ -645,7 +645,7 @@ con C-x C-s sería una molestia.  Por tanto, tenemos
 	C-x s 	Guardar algunos buffers
 
 C-x s le pregunta sobre cada buffer que contenga cambios que no haya
-guardada.  Le pregunta, por cada buffer, si quiere guardarlo o no.
+guardado.  Le pregunta, por cada buffer, si quiere guardarlo o no.
 
 >> Inserte una línea de texto, luego teclee C-x s.
    Debería preguntarle si desea guardar el buffer llamado TUTORIAL.es.
@@ -803,7 +803,7 @@ debería usar el modo de texto.
 
 No se preocupe, ninguno de los comandos de Emacs que ha aprendido
 cambia de manera significativa.  Pero puede observar que M-f y M-b
-tratan los apóstrofes como parte de las palabras.  Previamente, en
+tratan los apóstrofos como parte de las palabras.  Previamente, en
 modo Fundamental, M-f y M-b trataban los apóstrofes como separadores
 de palabras.
 
@@ -818,7 +818,7 @@ Para ver la documentación del modo mayor actual, teclee C-h m.
 >> Use C-l C-l para traer esta línea a la parte superior de la
    pantalla.
 
->> Teclee C-h m, para ver como el modo de Texto difiere del modo
+>> Teclee C-h m para ver cómo el modo de Texto difiere del modo
    Fundamental.
 
 >> Teclee C-x 1 para eliminar la documentación de la pantalla.
@@ -853,7 +853,7 @@ un argumento numérico.
 
 >> Teclee C-x f con un argumento de 20.  (C-u 2 0 C-x f).  Luego
    teclee algún texto y vea como Emacs lo parte en líneas de 20
-   caracteres.  A continuación ponga de nuevo el margen a 70 usando
+   caracteres.  A continuación ponga de nuevo el margen en 70 usando
    otra vez C-x f.
 
 Si hace cambios en el medio de un párrafo, el modo Auto Fill no lo
@@ -951,7 +951,7 @@ Emacs contiene un Glosario de términos.)
 Puede continuar usando C-x o para cambiar entre las ventanas.  La
 "ventana seleccionada", donde tiene lugar casi toda la edición, es la
 que tiene un cursor muy visible que parpadea cuando usted no está
-tecleando.  Las otras ventanas tienen sus propia posición del cursor;
+tecleando.  Las otras ventanas tienen su propia posición del cursor;
 si está ejecutando Emacs en una pantalla gráfica, esos cursores se
 muestran como rectángulos vacíos que no parpadean.
 
@@ -1143,7 +1143,7 @@ ahorra teclear, y dired, que simplifica el manejo de archivos.
 
 La completación es una manera de ahorrar teclear innecesariamente.
 Por ejemplo, si quiere cambiarse al buffer "*Messages*", puede teclear
-C-x b *M<Tab> y emacs encontrará el resto del nombre del buffer tan
+C-x b *M<Tab> y Emacs encontrará el resto del nombre del buffer tan
 lejos como pueda determinar de lo que ya haya tecleado.  La
 completación también funciona con nombres de comandos y de archivos.
 La completación se describe en el Info del manual de Emacs en el nodo
@@ -1193,6 +1193,7 @@ La versión en español ha sido revisada y corregida por:
 	Vladimir Támara <vtamara@gnu.org>
         Rafael Sepúlveda <drs@gnulinux.org.mx>
         Juanma Barranquero <lektu@terra.es>
+        Luis Felipe López Acevedo <felipe.lopac@gmail.com>
 
 La versión en español ha sido actualizada por:
 
