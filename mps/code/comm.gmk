@@ -3,7 +3,7 @@
 # comm.gmk: COMMON GNUMAKEFILE FRAGMENT
 #
 # $Id$
-# Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
 #
 # DESCRIPTION
 #
@@ -225,17 +225,19 @@ LIB_TARGETS=mps.a mpsplan.a
 # build) as an automated test case, add it to AUTO_TEST_TARGETS.
 
 AUTO_TEST_TARGETS=abqtest amcss amcsshe amcssth amsss amssshe apss      \
-    arenacv awlut awluthe awlutth btcv exposet0 expt825 fbmtest finalcv \
-    finaltest fotest lockcov locv messtest mpmss mpsicv mv2test         \
-    poolncv qs sacss segsmss steptest walkt0 zmess
+    arenacv awlut awluthe awlutth btcv exposet0 expt825 fbmtest         \
+    finalcv finaltest fotest locbwcss lockcov locusss locv messtest     \
+    mpmss mpsicv mv2test poolncv qs sacss segsmss steptest walkt0       \
+    zmess
 
 # If it is not runnable as an automated test case, but is buildable,
 # add it to OTHER_TEST_TARGETS with a note.
 #
 # bttest and teletest -- interactive and so cannot be run unattended.
+# djbench and gcbench -- benchmarks, not test cases.
 # zcoll -- takes too long to be useful as a regularly run smoke test.
 
-OTHER_TEST_TARGETS=bttest teletest zcoll
+OTHER_TEST_TARGETS=bttest teletest djbench gcbench zcoll
 
 # This target records programs that we were once able to build but
 # can't at the moment:
@@ -377,6 +379,9 @@ $(PFM)/$(VARIETY)/btcv: $(PFM)/$(VARIETY)/btcv.o \
 $(PFM)/$(VARIETY)/bttest: $(PFM)/$(VARIETY)/bttest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
+$(PFM)/$(VARIETY)/djbench: $(PFM)/$(VARIETY)/djbench.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
 $(PFM)/$(VARIETY)/exposet0: $(PFM)/$(VARIETY)/exposet0.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
@@ -395,7 +400,16 @@ $(PFM)/$(VARIETY)/finaltest: $(PFM)/$(VARIETY)/finaltest.o \
 $(PFM)/$(VARIETY)/fotest: $(PFM)/$(VARIETY)/fotest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
+$(PFM)/$(VARIETY)/gcbench: $(PFM)/$(VARIETY)/gcbench.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/locbwcss: $(PFM)/$(VARIETY)/locbwcss.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
 $(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/locusss: $(PFM)/$(VARIETY)/locusss.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/locv: $(PFM)/$(VARIETY)/locv.o \
@@ -567,7 +581,7 @@ find-puns: phony
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 
