@@ -1,7 +1,7 @@
 /* pool.c: POOL IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2001 Global Graphics Software.
  *
  * DESIGN
@@ -409,14 +409,14 @@ Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
 Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO)
 {
-  AVERT(Pool, pool);
-  AVERT(ScanState, ss);
-  AVERT(Seg, seg);
-  AVER(pool == SegPool(seg));
-  AVER(refIO != NULL);
+  AVERT_CRITICAL(Pool, pool);
+  AVERT_CRITICAL(ScanState, ss);
+  AVERT_CRITICAL(Seg, seg);
+  AVER_CRITICAL(pool == SegPool(seg));
+  AVER_CRITICAL(refIO != NULL);
 
   /* Should only be fixing references to white segments. */
-  AVER(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
+  AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
 
   return PoolFix(pool, ss, seg, refIO);
 }
@@ -425,17 +425,17 @@ Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO)
 {
   Res res;
 
-  AVERT(Pool, pool);
-  AVERT(ScanState, ss);
-  AVERT(Seg, seg);
-  AVER(pool == SegPool(seg));
-  AVER(refIO != NULL);
+  AVERT_CRITICAL(Pool, pool);
+  AVERT_CRITICAL(ScanState, ss);
+  AVERT_CRITICAL(Seg, seg);
+  AVER_CRITICAL(pool == SegPool(seg));
+  AVER_CRITICAL(refIO != NULL);
 
   /* Should only be fixing references to white segments. */
-  AVER(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
+  AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
 
   res = (pool->class->fixEmergency)(pool, ss, seg, refIO);
-  AVER(res == ResOK);
+  AVER_CRITICAL(res == ResOK);
   return res;
 }
 
@@ -684,7 +684,7 @@ Bool PoolHasRange(Pool pool, Addr base, Addr limit)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
