@@ -1,3 +1,13 @@
+2014-03-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix emacsclient terminal corruption when in background (Bug#16892).
+	* emacsclient.c (handle_sigcont): Check for tcgetpgrp failure.
+	Cancel the continue only if tty.  Send SIGTTIN to the process
+	group, not SIGSTOP to self, as this is what the glibc manual
+	recommends.
+	(main): If tty, and if started in the background, send SIGTTIN
+	to the process group.
+
 2014-02-25  Andreas Amann  <a.amann@ucc.ie>  (tiny change)
 
 	Fix emacsclient's handling of SIGCONT (Bug#16883).
