@@ -51,8 +51,8 @@
 	* progmodes/hideshow.el (hs-minor-mode-menu): Fix omission bug;
 	was used but not declared.
 
-	(hs-discard-overlays, hs-isearch-show, hs-isearch-show-temporary,
-	hs-find-block-beginning): Add or modify docstrings.
+	(hs-discard-overlays, hs-isearch-show, hs-isearch-show-temporary)
+	(hs-find-block-beginning): Add or modify docstrings.
 
 	(hs-isearch-show): Rewrite.
 
@@ -307,8 +307,8 @@
 	* font-lock.el (c-keywords): Only highlight preprocessor
 	directives when spelled correctly.
 
-	* font-lock.el (font-lock-match-c++-structor-declaration,
-	c++-keywords): Fontify constructors and destructors with function
+	* font-lock.el (font-lock-match-c++-structor-declaration)
+	(c++-keywords): Fontify constructors and destructors with function
 	face inside C++ class declarations.
 
 1999-12-16  Gerd Moellmann  <gerd@gnu.org>
@@ -444,8 +444,8 @@
 	ps-mule-cmpchar-prologue-generated.
 	(ps-mule-composition-prologue): New named from
 	ps-mule-cmpchar-prologue.  Modified for new composition.
-	(ps-mule-plot-rule-cmpchar, ps-mule-plot-cmpchar,
-	ps-mule-prepare-cmpchar-font): Deleted.
+	(ps-mule-plot-rule-cmpchar, ps-mule-plot-cmpchar)
+	(ps-mule-prepare-cmpchar-font): Deleted.
 	(ps-mule-string-encoding): New arg NO-SETFONT.
 	(ps-mule-bitmap-prologue): In PostScript code of BuildGlyphCommon,
 	check Composing, not Cmpchar.
@@ -646,8 +646,8 @@
 
 1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-align.el (c-indent-multi-line-block,
-	c-lineup-whitesmith-in-block): Two new lineup functions for
+	* cc-align.el (c-indent-multi-line-block)
+	(c-lineup-whitesmith-in-block): Two new lineup functions for
 	use in whitesmith style.
 
 	* cc-styles.el (c-style-alist): More fixes to whitesmith
@@ -857,8 +857,8 @@
 	beginning-of-defun/end-of-defun wrappers separated from
 	c-point.
 
-	* cc-menus.el (imenu-generic-expression,
-	imenu-case-fold-search, imenu-progress-message): Dummy
+	* cc-menus.el (imenu-generic-expression)
+	(imenu-case-fold-search, imenu-progress-message): Dummy
 	definitions to avoid compiler warnings if imenu can't be
 	loaded.
 	* cc-menus.el (cc-imenu-init): New function called at mode
@@ -1019,10 +1019,10 @@
 
 1999-12-06  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* viper-cmd.el (viper-minibuffer-standard-hook,
-	viper-minibuffer-real-start): Mew functions.
-	(viper-read-string-with-history,viper-file-add-suffix,
-	viper-trim-replace-chars-to-delete-if-necessary): Adapt to the
+	* viper-cmd.el (viper-minibuffer-standard-hook)
+	(viper-minibuffer-real-start): Mew functions.
+	(viper-read-string-with-history, viper-file-add-suffix)
+	(viper-trim-replace-chars-to-delete-if-necessary): Adapt to the
 	change in the status of the minibuffer prompt.
 
 1999-12-06  Gerd Moellmann  <gerd@gnu.org>
@@ -1055,8 +1055,8 @@
 	for better approximation of X colors.
 	(msdos-face-setup): Call tty-color-clear.  Remove code that sets
 	up tty-color-alist (it is now on startup.el).
-	(x-display-color-p, x-color-defined-p, x-color-values,
-	x-defined-colors, face-color-supported-p, face-color-gray-p):
+	(x-display-color-p, x-color-defined-p, x-color-values)
+	(x-defined-colors, face-color-supported-p, face-color-gray-p):
 	Remove.
 
 	* facemenu.el (facemenu-read-color, list-colors-display): Use
@@ -1071,8 +1071,8 @@
 	of frames.
 	(defined-colors, color-defined-p, color-values, display-color-p):
 	New functions.
-	(x-defined-colors, x-color-defined-p, x-color-values,
-	x-display-color-p): Aliases for the above.
+	(x-defined-colors, x-color-defined-p, x-color-values)
+	(x-display-color-p): Aliases for the above.
 
 	* startup.el (command-line): Register terminal colors for frame
 	types other than x and w32, but only if the terminal supports
@@ -1544,11 +1544,11 @@
 
 1999-11-15  Sam Steingold  <sds@goems.com>
 
-	* goto-addr.el (goto-address-at-mouse,
-	goto-address-find-address-at-point): Use compose-mail.
+	* goto-addr.el (goto-address-at-mouse)
+	(goto-address-find-address-at-point): Use compose-mail.
 	(goto-address-mail-method): Removed variable.
-	(goto-address-send-using-mh-e, goto-address-send-using-mhe,
-	goto-address-send-using-mail): Removed functions.
+	(goto-address-send-using-mh-e, goto-address-send-using-mhe)
+	(goto-address-send-using-mail): Removed functions.
 
 1998-11-15  Sam Steingold  <sds@goems.com>
 
@@ -1797,7 +1797,7 @@
 	windows.
 	(ediff-file-checked-in-p): Don't consider CVS
 	files checked in.
-	(ediff-make-temp-file,ediff-make-empty-tmp-file): Make sure you
+	(ediff-make-temp-file, ediff-make-empty-tmp-file): Make sure you
 	are writing to a newly created empty file.
 
 	* ediff-mult.el (ediff-show-session-group-hook): New default.
@@ -1818,13 +1818,13 @@
 
 	* viper-util.el (viper-nontrivial-find-file-function): Deleted.
 	(viper-glob-unix-files, viper-glob-mswindows-files): New functions.
-	(viper-save-cursor-color,viper-restore-cursor-color):
+	(viper-save-cursor-color, viper-restore-cursor-color):
 	Improved cursor color handling.
 	(viper-get-saved-cursor-color-in-replace-mode)
 	(viper-get-saved-cursor-color-in-insert-mode): New functions for
 	better cursor color handling.
 
-	* viper-ex.el (ex-read,ex-edit):
+	* viper-ex.el (ex-read, ex-edit):
 	Fixes for correct interpretation of #,%.
 	(viper-ex): Now works correctly when called from other functions.
 	(viper-glob-function): New variable.
@@ -2655,7 +2655,7 @@
 	* textmodes/reftex-cite.el (reftex-pop-to-bibtex-entry): Fixed bug
 	with recentering window.
 	(reftex-extract-bib-entries-from-thebibliography)
-	(reftex-offer-bib-menu,reftex-bibtex-selection-callback):
+	(reftex-offer-bib-menu, reftex-bibtex-selection-callback):
 	Deal with multiple thebibliography environments.
 
 	* textmodes/reftex-vars.el (reftex-section-levels):
@@ -2835,8 +2835,8 @@
 	Changes from Didier Verna:
 	(custom-prompt-variable): Optional third arg makes prompt for a
 	comment string.
-	(customize-set-value, customize-set-variable,
-	customize-save-variable): Optional prefix makes function handle
+	(customize-set-value, customize-set-variable)
+	(customize-save-variable): Optional prefix makes function handle
 	variable comments.
 	(customize-customized, customize-saved, custom-variable-state-set)
 	(custom-variable-set, custom-variable-save, custom-face-state-set)
@@ -3606,12 +3606,12 @@
 	thrown in gratuitously.
 	(hanoi): Changed default number of rings back to 3.
 	(hanoi-unix, hanoi-unix-64): New commands.
-	(hanoi-horizontal-flag, hanoi-move-period, hanoi-use-faces,
-	hanoi-pole-face, hanoi-base-face, hanoi-even-ring-face,
-	hanoi-odd-ring-face): New variables.
-	(hanoi-internal, hanoi-current-time-float, hanoi-put-face,
-	hanoi-n, hanoi-insert-ring, hanoi-goto-char, hanoi-sit-for,
-	hanoi-ring-to-pos, hanoi-pos-on-tower-p): New functions.
+	(hanoi-horizontal-flag, hanoi-move-period, hanoi-use-faces)
+	(hanoi-pole-face, hanoi-base-face, hanoi-even-ring-face)
+	(hanoi-odd-ring-face): New variables.
+	(hanoi-internal, hanoi-current-time-float, hanoi-put-face)
+	(hanoi-n, hanoi-insert-ring, hanoi-goto-char, hanoi-sit-for)
+	(hanoi-ring-to-pos, hanoi-pos-on-tower-p): New functions.
 	(hanoi-0): Renamed from hanoi0, for symmetry with hanoi-n.
 	(hanoi-topos, hanoi-draw-ring): Removed.
 
@@ -3769,7 +3769,7 @@
 	* progmodes/ada-mode.el (ada-tmp-directory):
 	Use temporary-file-directory.
 
-	* progmodes/compile.el (compilation-parsing-end,compilation-setup)
+	* progmodes/compile.el (compilation-parsing-end, compilation-setup)
 	(compilation-filter, compilation-forget-errors)
 	(compilation-parse-errors): Use a marker instead of an integer for
 	`compilation-parsing-end'.
@@ -6384,8 +6384,8 @@
 	* international/mule.el (coding-system-lessp): Moved here from
 	mule-util.el.
 	(add-to-coding-system-list): New function.
-	(make-subsidiary-coding-system, make-coding-system,
-	define-coding-system-alias): Use it instead of setting
+	(make-subsidiary-coding-system, make-coding-system)
+	(define-coding-system-alias): Use it instead of setting
 	coding-system-list directly.
 
 1999-02-07  Dave Love  <fx@gnu.org>
@@ -6723,9 +6723,9 @@
 	(speedbar-buffers-line-path): Return is dir name only.
 	(speedbar-mode-functions-list): New variable.
 	(speedbar-mouse-item-info): Rewrote to be a replaceable fn.
-	(speedbar-item-info-file-helper, speedbar-item-info-tag-helper
-	speedbar-files-item-info speedbar-buffers-item-info): New functions.
-	(speedbar-fetch-replacement-function,speedbar-add-mode-functions-list):
+	(speedbar-item-info-file-helper, speedbar-item-info-tag-helpe)
+	(speedbar-files-item-info speedbar-buffers-item-info): New functions.
+	(speedbar-fetch-replacement-function, speedbar-add-mode-functions-list):
 	New functions.
 	(speedbar-line-file): Broke out part that fetches file from a line.
 	(speedbar-line-text): New function extracted from speedbar-line-file.
@@ -6947,8 +6947,8 @@
 	(ps-mule-generate-font): If FONT-NAME is a cons cell, use its car.
 	(ps-mule-prepare-font): Likewise.
 
-	* international/codepage.el (cp855-decode-table,
-	cp850-decode-table): Fill some nil entries.
+	* international/codepage.el (cp855-decode-table)
+	(cp850-decode-table): Fill some nil entries.
 
 1999-01-16  Dave Love  <fx@gnu.org>
 
@@ -7152,9 +7152,9 @@
 	set-coding-priority, so that the internal array of priorities is
 	also updated.
 
-	* international/mule-util.el:
-	(coding-system-change-eol-conversion,
-	coding-system-change-text-conversion): Don't define here.
+	* international/mule-util.el
+	(coding-system-change-eol-conversion)
+	(coding-system-change-text-conversion): Don't define here.
 
 	* international/mule-cmds.el: Define them here.  Remove the
 	autoload cookies.
@@ -7966,8 +7966,8 @@
 
 1998-12-02  Andre Spiegel  <spiegel@inf.fu-berlin.de>
 
-	* vc.el (vc-dired-window-configuration, vc-ediff-windows,
-	vc-ediff-result, vc-dired-switches, vc-dired-terse-mode):
+	* vc.el (vc-dired-window-configuration, vc-ediff-windows)
+	(vc-ediff-result, vc-dired-switches, vc-dired-terse-mode):
 	Added defvars to suppress compilation warnings.
 
 1998-11-30  Ken Stevens  <k.stevens@ieee.org>
@@ -8275,7 +8275,7 @@
 
 	* textmodes/reftex.el (reftex-finding-files): Group documentation fixed.
 	(reftex-toc-toggle-file-boundary, reftex-toc-toggle-labels)
-	(reftex-toc-toggle-context,reftex-find-start-point): New functions.
+	(reftex-toc-toggle-context, reftex-find-start-point): New functions.
 	(reftex-toc-include-labels, reftex-toc-include-context)
 	(reftex-toc-include-file-boundaries, reftex-toc-keep-other-windows):
 	New options.
@@ -8574,8 +8574,8 @@
 	* international/mule-diag.el (describe-coding-system): Describe
 	all flags.
 
-	* mail/sendmail.el (sendmail-coding-system,
-	default-sendmail-coding-system): Doc fix.
+	* mail/sendmail.el (sendmail-coding-system)
+	(default-sendmail-coding-system): Doc fix.
 
 	* simple.el (shell-command-on-region): Doc fix.
 
@@ -9381,8 +9381,8 @@
 	(eldoc-get-var-docstring): Here also.
 	(eldoc-docstring-first-line): Minimize interim string consing.
 	Call substitute-command-keys on the result.
-	(eldoc-print-var-docstrings, eldoc-print-docstring,
-	eldoc-docstring-message): Functions removed.
+	(eldoc-print-var-docstrings, eldoc-print-docstring)
+	(eldoc-docstring-message): Functions removed.
 	(eldoc-docstring-format-sym-doc): New function, functionality
 	ripped out of eldoc-docstring-message.
 	(eldoc-get-fnsym-args-string, eldoc-get-var-docstring): Use it.
@@ -9408,13 +9408,13 @@
 
 	* mail/rmail.el (rmail-movemail-program): Fix customize type.
 
-	* mail/feedmail.el (feedmail-x-mailer-line-user-appendage,
-	feedmail-fiddle-plex-user-list,
-	feedmail-spray-address-fiddle-plex-list,
-	feedmail-prompt-before-queue-user-alist,
-	feedmail-prompt-before-queue-help-supplement,
-	feedmail-queue-reminder-alist, feedmail-queue-default-file-slug,
-	feedmail-queue-alternative-mail-header-separator): Fix customize
+	* mail/feedmail.el (feedmail-x-mailer-line-user-appendage)
+	(feedmail-fiddle-plex-user-list)
+	(feedmail-spray-address-fiddle-plex-list)
+	(feedmail-prompt-before-queue-user-alist)
+	(feedmail-prompt-before-queue-help-supplement)
+	(feedmail-queue-reminder-alist, feedmail-queue-default-file-slug)
+	(feedmail-queue-alternative-mail-header-separator): Fix customize
 	type.
 
 	* startup.el (site-run-file): Fix customize type.
@@ -9427,16 +9427,16 @@
 	* ps-print.el (ps-font-info-database): Add missing dots in value.
 	Improve layout of customize type.
 
-	* net-utils.el (traceroute-program-options, ping-program-options,
-	ipconfig-program-options, netstat-program-options,
-	arp-program-options, route-program-options,
-	nslookup-program-options, ftp-program-options): Fix customize
+	* net-utils.el (traceroute-program-options, ping-program-options)
+	(ipconfig-program-options, netstat-program-options)
+	(arp-program-options, route-program-options)
+	(nslookup-program-options, ftp-program-options): Fix customize
 	type.
 
-	* midnight.el (clean-buffer-list-kill-regexps,
-	clean-buffer-list-kill-buffer-names,
-	clean-buffer-list-kill-never-buffer-names,
-	clean-buffer-list-kill-never-regexps): Fix customize type.
+	* midnight.el (clean-buffer-list-kill-regexps)
+	(clean-buffer-list-kill-buffer-names)
+	(clean-buffer-list-kill-never-buffer-names)
+	(clean-buffer-list-kill-never-regexps): Fix customize type.
 
 	* man.el (Man-init-defvars): Avoid trailing nil on
 	Man-filter-list.
@@ -9934,16 +9934,16 @@
 	(ps-mule-prepare-font): New fun.
 	(ps-mule-charset-list): New var.
 	(ps-mule-prologue-generated, ps-mule-prologue): New vars.
-	(ps-mule-skip-same-charset, ps-mule-find-wrappoint,
-	ps-mule-plot-string): New funs.
+	(ps-mule-skip-same-charset, ps-mule-find-wrappoint)
+	(ps-mule-plot-string): New funs.
 	(ps-mule-cmpchar-prologue-generated, ps-mule-cmpchar-prologue):
 	New vars.
-	(ps-mule-plot-rule-cmpchar, ps-mule-plot-cmpchar,
-	ps-mule-prepare-cmpchar-font): New funs.
+	(ps-mule-plot-rule-cmpchar, ps-mule-plot-cmpchar)
+	(ps-mule-prepare-cmpchar-font): New funs.
 	(ps-mule-bitmap-prologue-generated, ps-mule-bitmap-prologue): New
 	vars.
-	(ps-mule-generate-bitmap-prologue, ps-mule-generate-bitmap-font,
-	ps-mule-generate-bitmap-glyph): New funs.
+	(ps-mule-generate-bitmap-prologue, ps-mule-generate-bitmap-font)
+	(ps-mule-generate-bitmap-glyph): New funs.
 	(ps-mule-initialize, ps-mule-begin): New funs.
 	(ps-output-string-prim): Insert string as unibyte.
 	(ps-output-prologue): New fun.

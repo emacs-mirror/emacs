@@ -1,6 +1,6 @@
 2014-03-08  Luis Felipe López Acevedo  <felipe.lopac@gmail.com>  (tiny change)
 
-	* tutorials/TUTORIAL.es: Fix typos.
+	* tutorials/TUTORIAL.es: Fix typos.  (Bug#116707)
 
 2014-03-08  Eli Zaretskii  <eliz@gnu.org>
 
