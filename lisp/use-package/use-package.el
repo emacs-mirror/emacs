@@ -58,19 +58,18 @@
   :type 'number
   :group 'use-package)
 
-(defmacro use-package-with-elapsed-timer (text &rest forms)
-  (let ((body `(progn ,@forms)))
-    (if use-package-verbose
-        (let ((nowvar (make-symbol "now")))
-          `(let ((,nowvar (current-time)))
-             (message "%s..." ,text)
-             (prog1 ,body
-               (let ((elapsed
-                      (float-time (time-subtract (current-time) ,nowvar))))
-                 (if (> elapsed ,use-package-minimum-reported-time)
-                     (message "%s...done (%.3fs)" ,text elapsed)
-                   (message "%s...done" ,text))))))
-      body)))
+(defmacro use-package-with-elapsed-timer (text &rest body)
+  (let ((nowvar (make-symbol "now")))
+    `(if use-package-verbose
+         (let ((,nowvar (current-time)))
+           (message "%s..." ,text)
+           (prog1 (progn ,@body)
+             (let ((elapsed
+                    (float-time (time-subtract (current-time) ,nowvar))))
+               (if (> elapsed ,use-package-minimum-reported-time)
+                   (message "%s...done (%.3fs)" ,text elapsed)
+                 (message "%s...done" ,text)))))
+       ,@body)))
 
 (put 'use-package-with-elapsed-timer 'lisp-indent-function 1)
 
