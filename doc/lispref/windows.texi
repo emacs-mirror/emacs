@@ -618,6 +618,29 @@ argument @var{pixelwise} is passed to the function called.
 @code{window-width} is an alias for @code{window-body-width}.  These
 aliases are considered obsolete and will be removed in the future.
 
+   The pixel heights of a window's mode and header line can be retrieved
+with the functions given below.  Their return value is usually accurate
+unless the window has not been displayed before: In that case, the
+return value is based on an estimate of the font used for the window's
+frame.
+
+@defun window-mode-line-height &optional window
+This function returns the height in pixels of @var{window}'s mode line.
+@var{window} must be a live window and defaults to the selected one.  If
+@var{window} has no mode line, the return value is zero.
+@end defun
+
+@defun window-header-line-height &optional window
+This function returns the height in pixels of @var{window}'s header
+line.  @var{window} must be a live window and defaults to the selected
+one.  If @var{window} has no header line, the return value is zero.
+@end defun
+
+Functions for retrieving the height and/or width of window dividers
+(@pxref{Window Dividers}), fringes (@pxref{Fringes}), scroll bars
+(@pxref{Scroll Bars}), and display margins (@pxref{Display Margins}) are
+described in the corresponding sections.
+
 @cindex fixed-size window
 @vindex window-min-height
 @vindex window-min-width
@@ -3476,18 +3499,18 @@ coordinate of the topmost row, the X coordinate one column to the
 right of the rightmost column, and the Y coordinate one row down from
 the bottommost row.
 
-Note that these are the actual outer edges of the window, including
-any header line, mode line, scroll bar, fringes, and display margins.
-On a text terminal, if the window has a neighbor on its right, its
-right edge includes the separator line between the window and its
+Note that these are the actual outer edges of the window, including any
+header line, mode line, scroll bar, fringes, window divider and display
+margins.  On a text terminal, if the window has a neighbor on its right,
+its right edge includes the separator line between the window and its
 neighbor.
 @end defun
 
 @defun window-inside-edges &optional window
 This function is similar to @code{window-edges}, but the returned edge
 values are for the text area of the window.  They exclude any header
-line, mode line, scroll bar, fringes, display margins, and vertical
-separator.
+line, mode line, scroll bar, fringes, window divider, display margins,
+and vertical separator.
 @end defun
 
 @defun window-top-line &optional window
@@ -3535,6 +3558,14 @@ The coordinates are in the mode line of @var{window}.
 
 @item header-line
 The coordinates are in the header line of @var{window}.
+
+@item right-divider
+The coordinates are in the divider separating @var{window} from a
+window on the right.
+
+@item right-divider
+The coordinates are in the divider separating @var{window} from a
+window beneath.
 
 @item vertical-line
 The coordinates are in the vertical line between @var{window} and its
@@ -3596,6 +3627,17 @@ This function is like @code{window-inside-pixel-edges}, except that it
 returns the edge pixel coordinates relative to the top left corner of
 the display screen.  @var{window} must specify a live window.
 @end defun
+
+@defun window-pixel-left &optional window
+This function returns the left pixel edge of window @var{window}.
+@var{window} must be a valid window and defaults to the selected one.
+@end defun
+
+@defun window-pixel-top &optional window
+This function returns the top pixel edge of window @var{window}.
+@var{window} must be a valid window and defaults to the selected one.
+@end defun
+
 
 @node Window Configurations
 @section Window Configurations

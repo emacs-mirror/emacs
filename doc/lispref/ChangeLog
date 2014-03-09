@@ -1,3 +1,20 @@
+2014-03-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* elisp.texi (Top): Rename section "Width" to "Size of Displayed
+	Text".
+	* text.texi (Primitive Indent):
+	* strings.texi (String Basics):
+	* sequences.texi (Sequence Functions): Update references
+	accordingly.
+	* display.texi (Size of Displayed Text): Rename section from
+	"Width".  Add description for `window-text-pixel-size'.
+	(Window Dividers): Reword description of window dividers.
+	* frames.texi (Layout Parameters): Improve description of window
+	divider parameters.
+	* windows.texi (Window Sizes): Add descriptions of
+	`window-mode-line-height' and `window-header-line-height'.
+	(Coordinates and Windows): Mention window dividers.
+
 2014-03-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffers.texi (The Buffer List): Rename node to Buffer List.

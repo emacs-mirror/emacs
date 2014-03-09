@@ -747,15 +747,15 @@ widths are negative, only the left fringe gets the specified width.
 
 @vindex right-divider-width, a frame parameter
 @item right-divider-width
-The width of the right divider (@pxref{Window Dividers}) of any window
-on the frame, in pixels.  A value of zero means to not draw right
-dividers.
+The width (thickness) reserved for the right divider (@pxref{Window
+Dividers}) of any window on the frame, in pixels.  A value of zero means
+to not draw right dividers.
 
 @vindex bottom-divider-width, a frame parameter
 @item bottom-divider-width
-The width of the bottom divider (@pxref{Window Dividers}) of any window
-on the frame, in pixels.  A value of zero means to not draw bottom
-dividers.
+The width (thickness) reserved for the bottom divider (@pxref{Window
+Dividers}) of any window on the frame, in pixels.  A value of zero means
+to not draw bottom dividers.
 
 @vindex menu-bar-lines frame parameter
 @item menu-bar-lines

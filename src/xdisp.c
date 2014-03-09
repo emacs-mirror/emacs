@@ -9600,19 +9600,23 @@ character.  TO, if non-nil, specifies the last text position and
 defaults to the maximum accessible position of the buffer.  If TO is t,
 use the maximum accessible position that is not a newline character.
 
-The optional argument X_LIMIT, if non-nil, specifies the maximum text
-width that can be returned.  X_LIMIT nil or omitted, means to use the
+The optional argument X-LIMIT, if non-nil, specifies the maximum text
+width that can be returned.  X-LIMIT nil or omitted, means to use the
 pixel-width of WINDOW's body; use this if you do not intend to change
 the width of WINDOW.  Use the maximum width WINDOW may assume if you
-intend to change WINDOW's width.
+intend to change WINDOW's width.  In any case, text whose x-coordinate
+is beyond X-LIMIT is ignored.  Since calculating the width of long lines
+can take some time, it's always a good idea to make this argument as
+small as possible; in particular, if the buffer contains long lines that
+shall be truncated anyway.
 
-The optional argument Y_LIMIT, if non-nil, specifies the maximum text
+The optional argument Y-LIMIT, if non-nil, specifies the maximum text
 height that can be returned.  Text lines whose y-coordinate is beyond
-Y_LIMIT are ignored.  Since calculating the text height of a large
+Y-LIMIT are ignored.  Since calculating the text height of a large
 buffer can take some time, it makes sense to specify this argument if
 the size of the buffer is unknown.
 
-Optional argument MODE_AND_HEADER_LINE nil or omitted means do not
+Optional argument MODE-AND-HEADER-LINE nil or omitted means do not
 include the height of the mode- or header-line of WINDOW in the return
 value.  If it is either the symbol `mode-line' or `header-line', include
 only the height of that line, if present, in the return value.  If t,

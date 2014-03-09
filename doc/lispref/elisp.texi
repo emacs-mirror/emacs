@@ -1338,7 +1338,7 @@ Emacs Display
 * Selective Display::       Hiding part of the buffer text (the old way).
 * Temporary Displays::      Displays that go away automatically.
 * Overlays::                Use overlays to highlight parts of the buffer.
-* Width::                   How wide a character or string is on the screen.
+* Size of Displayed Text::  How large displayed text is.
 * Line Height::             Controlling the height of lines.
 * Faces::                   A face defines a graphics style
                               for text characters: font, colors, etc.

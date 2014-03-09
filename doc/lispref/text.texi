@@ -2202,7 +2202,7 @@ count from zero at the left margin.
 
   This section describes the primitive functions used to count and
 insert indentation.  The functions in the following sections use these
-primitives.  @xref{Width}, for related functions.
+primitives.  @xref{Size of Displayed Text}, for related functions.
 
 @defun current-indentation
 @comment !!Type Primitive Function

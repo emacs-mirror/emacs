@@ -18,7 +18,7 @@ that Emacs presents to the user.
 * Selective Display::   Hiding part of the buffer text (the old way).
 * Temporary Displays::  Displays that go away automatically.
 * Overlays::            Use overlays to highlight parts of the buffer.
-* Width::               How wide a character or string is on the screen.
+* Size of Displayed Text::  How large displayed text is.
 * Line Height::         Controlling the height of lines.
 * Faces::               A face defines a graphics style for text characters:
                           font, colors, etc.
@@ -1765,8 +1765,8 @@ changes.
     (point)))
 @end smallexample
 
-@node Width
-@section Width
+@node Size of Displayed Text
+@section Size of Displayed Text
 
 Since not all characters have the same width, these functions let you
 check the width of a character.  @xref{Primitive Indent}, and
@@ -1822,6 +1822,54 @@ to or less than the display width of @var{ellipsis}.  If
      @result{} "    ab  "
 @end example
 @end defun
+
+The following function returns the size in pixels of text as if it were
+displayed in a given window.  This function is used by
+@code{fit-window-to-buffer} (@pxref{Resizing Windows}) and
+@code{fit-frame-to-buffer} (@pxref{Size and Position}) to make a window
+exactly as large as the text it contains.
+
+@defun window-text-pixel-size &optional window from to x-limit y-limit mode-and-header-line
+This function returns the size of the text of @var{window}'s buffer in
+pixels.  @var{window} must be a live window and defaults to the selected
+one.  The return value is a cons of the maximum pixel-width of any text
+line and the maximum pixel-height of all text lines.
+
+The optional argument @var{from}, if non-@code{nil}, specifies the first
+text position to consider and defaults to the minimum accessible
+position of the buffer.  If @var{from} is @code{t}, it uses the minimum
+accessible position that is not a newline character.  The optional
+argument @var{to}, if non-@code{nil}, specifies the last text position
+to consider and defaults to the maximum accessible position of the
+buffer.  If @var{to} is @code{t}, it uses the maximum accessible
+position that is not a newline character.
+
+The optional argument @var{x-limit}, if non-@code{nil}, specifies the
+maximum pixel-width that can be returned.  @var{x-limit} @code{nil} or
+omitted, means to use the pixel-width of @var{window}'s body
+(@pxref{Window Sizes}); this is useful when the caller does not intend
+to change the width of @var{window}.  Otherwise, the caller should
+specify here the maximum width @var{window}'s body may assume.  Text
+whose x-coordinate is beyond @var{x-limit} is ignored.  Since
+calculating the width of long lines can take some time, it's always a
+good idea to make this argument as small as needed; in particular, if
+the buffer might contain long lines that will be truncated anyway.
+
+The optional argument @var{y-limit}, if non-@code{nil}, specifies the
+maximum pixel-height that can be returned.  Text lines whose
+y-coordinate is beyond @var{y-limit} are ignored.  Since calculating the
+pixel-height of a large buffer can take some time, it makes sense to
+specify this argument; in particular, if the caller does not know the
+size of the buffer.
+
+The optional argument @var{mode-and-header-line} @code{nil} or omitted
+means to not include the height of the mode- or header-line of
+@var{window} in the return value.  If it is either the symbol
+@code{mode-line} or @code{header-line}, include only the height of that
+line, if present, in the return value.  If it is @code{t}, include the
+height of both, if present, in the return value.
+@end defun
+
 
 @node Line Height
 @section Line Height
@@ -3904,28 +3952,28 @@ to use the value specified by the frame.
 @cindex bottom dividers
 
 Window dividers are bars drawn between a frame's windows.  A ``right''
-divider is drawn between a window and its sibling(s) on the right.  Its
-width is specified by the frame parameter @code{right-divider-width}.  A
-``bottom'' divider is drawn between a window and its sibling(s) on the
-bottom or the echo area.  Its width is specified by the frame parameter
-@code{bottom-divider-width}.  In either case, specifying a width of zero
-means to not draw such dividers.  @xref{Layout Parameters}.
+divider is drawn between a window and any adjacent windows on the right.
+Its width (thickness) is specified by the frame parameter
+@code{right-divider-width}.  A ``bottom'' divider is drawn between a
+window and adjacent windows on the bottom or the echo area.  Its width
+is specified by the frame parameter @code{bottom-divider-width}.  In
+either case, specifying a width of zero means to not draw such dividers.
+@xref{Layout Parameters}.
 
    Technically, a right divider ``belongs'' to the window on its left,
-which means that its width is part of the total width of that window.  A
-bottom divider ``belongs'' to the window above it, which means that its
-height is part of the total height of that window.  @xref{Window Sizes}.
-When a window has both, a right and a bottom divider, the bottom divider
-``prevails''.  This means that the width of the bottom divider equals
-the total width of the window while the height of the right divider
-equals the total height of the window minus the height of the bottom
-divider.
+which means that its width contributes to the total width of that
+window.  A bottom divider ``belongs'' to the window above it, which
+means that its width contributes to the total height of that window.
+@xref{Window Sizes}.  When a window has both, a right and a bottom
+divider, the bottom divider ``prevails''.  This means that a bottom
+divider is drawn over the full total width of its window while the right
+divider ends above the bottom divider.
 
    Dividers can be dragged with the mouse and are therefore useful for
 adjusting the sizes of adjacent windows with the mouse.  They also serve
-to set windows visually apart from their siblings when no scroll bars or
-mode lines are present.  The following three faces allow to customize
-the appearance of dividers:
+to visually set apart adjacent windows when no scroll bars or mode lines
+are present.  The following three faces allow to customize the
+appearance of dividers:
 
 @table @code
 @item window-divider
@@ -3943,6 +3991,23 @@ This is the face used for drawing the last pixel of a divider that is at
 least three pixels wide.  To obtain a solid appearance, set this to the
 same value used for the @code{window-divider} face.
 @end table
+
+You can get the sizes of the dividers of a specific window with the
+following two functions.
+
+@defun window-right-divider-width &optional window
+Return the width (thickness) in pixels of @var{window}'s right divider.
+@var{window} must be a live window and defaults to the selected one.
+The return value is always zero for a rightmost window.
+@end defun
+
+@defun window-bottom-divider-width &optional window
+Return the width (thickness) in pixels of @var{window}'s bottom divider.
+@var{window} must be a live window and defaults to the selected one.
+The return value is zero for the minibuffer window or a bottommost
+window on a minibuffer-less frame.
+@end defun
+
 
 @node Display Property
 @section The @code{display} Property
