@@ -59,6 +59,7 @@
   :group 'use-package)
 
 (defmacro use-package-with-elapsed-timer (text &rest body)
+  (declare (indent 1))
   (let ((nowvar (make-symbol "now")))
     `(if use-package-verbose
          (let ((,nowvar (current-time)))
