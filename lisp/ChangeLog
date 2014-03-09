@@ -1,3 +1,11 @@
+2014-03-09  Juri Linkov  <juri@jurta.org>
+
+	* ansi-color.el (ansi-color-names-vector): Copy default colors
+	from `xterm-standard-colors' that look well on the default white
+	background (and also on the black background) to avoid illegible
+	color combinations like yello-on-white and white-on-white.
+	http://lists.gnu.org/archive/html/emacs-devel/2014-02/msg00157.html
+
 2014-03-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el (frameset-restore): When no frame is visible, do not
