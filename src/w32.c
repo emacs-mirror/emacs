@@ -4745,10 +4745,9 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
       return -1;
     }
 
-  /* Remove trailing directory separator, unless name is the root
-     directory of a drive or UNC volume in which case ensure there
-     is a trailing separator. */
   len = strlen (name);
+  /* Allocate 1 extra byte so that we could append a slash to a root
+     directory, down below.  */
   name = strcpy (alloca (len + 2), name);
 
   /* Avoid a somewhat costly call to is_symlink if the filesystem
@@ -4963,6 +4962,7 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	}
       else if (rootdir)
 	{
+	  /* Make sure root directories end in a slash.  */
 	  if (!IS_DIRECTORY_SEP (name[len-1]))
 	    strcat (name, "\\");
 	  if (GetDriveType (name) < 2)
@@ -4978,6 +4978,8 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	{
 	  int have_wfd = -1;
 
+	  /* Make sure non-root directories do NOT end in a slash,
+	     otherwise FindFirstFile might fail.  */
 	  if (IS_DIRECTORY_SEP (name[len-1]))
 	    name[len - 1] = 0;
 
