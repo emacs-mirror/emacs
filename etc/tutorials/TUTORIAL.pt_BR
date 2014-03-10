@@ -326,7 +326,7 @@ posição corrente do cursor.
    pessoal dele.
 
 Quando uma linha de texto fica muito grande na tela, a linha do texto é
-continuada na linha seguinte. Uma barra invertida ("\") na margem
+continuada na linha seguinte. Uma barra invertida (`\') na margem
 direita indica a linha que foi continuada.
 
 >> Insira texto até que você alcance a margem direita, e mantenha

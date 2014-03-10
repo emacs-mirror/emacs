@@ -322,7 +322,7 @@ När en rad blir för lång för att rymmas på en skärmbredd så fortsätter
 den på raden under. Om du använder ett fönstersystem, visas små böjda
 pilar i det lilla utrymmet på bägge sidor om textmassan (i vänster och
 höger marginal) för att ange var en rad fortsätter, Om du använder
-en textterminal anges med ett bakstreck ("\") i kolumnen längst till
+en textterminal anges med ett bakstreck (`\') i kolumnen längst till
 höger att raden fortsätter.
 
 >>  Skriv in lite text så att du kommer till slutet av raden och

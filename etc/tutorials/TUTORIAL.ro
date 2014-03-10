@@ -328,7 +328,7 @@ cursorului.
 
 Când o linie de text devine prea mare pentru a putea fi reprezentată
 pe o linie de ecran, linia de text este continuată pe următoarea linie
-de pe ecran.  Un caracter backslash ("\") la marginea din dreapta
+de pe ecran.  Un caracter backslash (`\') la marginea din dreapta
 indică o linie care a fost continuată.
 
 >> Introduceţi text până când depăşiţi cu câteva caractere marginea

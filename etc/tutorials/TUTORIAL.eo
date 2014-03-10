@@ -318,7 +318,7 @@ la nuna kursorloko.
    kopio por vi.
 
 Kiam linio da teksto iĝas pli longa ol la ekrana linio, la teksta
-linio transiras sur la sekvan ekranan linion.  Retroklino ("\") -- aŭ,
+linio transiras sur la sekvan ekranan linion.  Retroklino (`\') -- aŭ,
 en grafika fenestrosistemo, kurba sageto -- en la dekstra marĝeno
 indikas tian transiron.
 

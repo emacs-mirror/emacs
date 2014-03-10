@@ -319,7 +319,7 @@ della posizione attuale del cursore.
 
 Quando una riga di testo diventa troppo lunga per essere visualizzata su
 una riga di schermo essa viene "continuata" su una seconda riga dello
-schermo.  Un carattere barra retroversa ("\") posto accanto al margine
+schermo.  Un carattere barra retroversa (`\') posto accanto al margine
 sinistro indica la prosecuzione della riga precedente.  Quando si usa un
 sistema a finestre grafico, invece della barra retroversa comparirà una
 piccola freccia ricurva.

@@ -323,7 +323,7 @@ Všeobecne, <Delback> maže znak bezprostredne pred momentálnou pozíciou kurzo
 
 Keď sa riadok textu zväčší natoľko, že presiahne jeden riadok obrazovky, je
 zobrazený na viacerých riadkoch obrazovky.  Riadok textu, ktorý pokračuje na
-ďalšom riadku obrazovky, je indikovaný spätným lomítkom ("\") (alebo, ak
+ďalšom riadku obrazovky, je indikovaný spätným lomítkom (`\') (alebo, ak
 používate grafický systém, malá zakrivená šípka) na pravom okraji obrazovky.
 
 >> Vkladajte text, pokiaľ nedosiahnete pravého okraju, a pokračujte vo

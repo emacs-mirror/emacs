@@ -304,7 +304,7 @@ kurzoru.
 
 Když se řádek textu zvětší natolik, že přesáhne jeden řádek obrazovky,
 je zobrazen na více řádcích obrazovky.  Řádek textu, který pokračuje na
-dalším řádku obrazovky, je indikován zpětným lomítkem ("\") na pravém
+dalším řádku obrazovky, je indikován zpětným lomítkem (`\') na pravém
 okraji obrazovky.
 
 >> Vkládejte text, až dosáhnete pravého okraje, a pokračujte ve vkládání.

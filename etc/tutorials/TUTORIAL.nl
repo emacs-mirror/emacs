@@ -339,7 +339,7 @@ Als een regel tekst te lang wordt om helemaal op het scherm getoond te
 worden, dan gaat hij verder op de volgende schermregel.  Als je een
 grafisch scherm gebruikt verschijnen kleine gebogen pijltjes links en
 rechts van het tekstgebied om aan te geven waar een regel voortgezet
-is.  In een tekstvenster of terminal geeft een backslash ("\") in de
+is.  In een tekstvenster of terminal geeft een backslash (`\') in de
 laatste kolom een vervolgregel aan.
 
 >> Voeg nu tekst toe totdat je de rechter kantlijn raakt, en blijf
