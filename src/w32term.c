@@ -4684,8 +4684,7 @@ w32_read_socket (struct terminal *terminal,
 		  {
 		    bool iconified = FRAME_ICONIFIED_P (f);
 
-		    if (iconified)
-		      SET_FRAME_VISIBLE (f, 1);
+		    SET_FRAME_VISIBLE (f, 1);
 		    SET_FRAME_ICONIFIED (f, 0);
 
 		    /* wait_reading_process_output will notice this
