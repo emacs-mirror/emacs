@@ -1,5 +1,7 @@
 2014-03-10  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (find-file): Doc fix: update info node name.
+
 	* emacs-lisp/advice.el (ad-add-advice, defadvice):
 	Doc fix: remove references to deleted info nodes.
 
