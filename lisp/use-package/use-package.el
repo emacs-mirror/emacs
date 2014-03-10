@@ -58,19 +58,19 @@
   :type 'number
   :group 'use-package)
 
-(defmacro use-package-with-elapsed-timer (text &rest forms)
-  (let ((body `(progn ,@forms)))
-    (if use-package-verbose
-        (let ((nowvar (make-symbol "now")))
-          `(let ((,nowvar (current-time)))
-             (message "%s..." ,text)
-             (prog1 ,body
-               (let ((elapsed
-                      (float-time (time-subtract (current-time) ,nowvar))))
-                 (if (> elapsed ,use-package-minimum-reported-time)
-                     (message "%s...done (%.3fs)" ,text elapsed)
-                   (message "%s...done" ,text))))))
-      body)))
+(defmacro use-package-with-elapsed-timer (text &rest body)
+  (declare (indent 1))
+  (let ((nowvar (make-symbol "now")))
+    `(if use-package-verbose
+         (let ((,nowvar (current-time)))
+           (message "%s..." ,text)
+           (prog1 (progn ,@body)
+             (let ((elapsed
+                    (float-time (time-subtract (current-time) ,nowvar))))
+               (if (> elapsed ,use-package-minimum-reported-time)
+                   (message "%s...done (%.3fs)" ,text elapsed)
+                 (message "%s...done" ,text)))))
+       ,@body)))
 
 (put 'use-package-with-elapsed-timer 'lisp-indent-function 1)
 
@@ -404,7 +404,7 @@ For full documentation. please see commentary.
 (put 'use-package 'lisp-indent-function 'defun)
 
 (defconst use-package-font-lock-keywords
-  '(("(\\(use-package\\)\\_>[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?"
+  '(("(\\(use-package\\(?:-with-elapsed-timer\\)?\\)\\_>[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?"
      (1 font-lock-keyword-face)
      (2 font-lock-constant-face nil t))))
 
