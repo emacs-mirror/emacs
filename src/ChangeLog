@@ -4,11 +4,6 @@
 	with a slash: this fails the subsequent call to stat_worker on
 	Windows 9X.  Reported by oslsachem <oslsachem@gmail.com>.
 
-2014-03-10  Martin Rudalics  <rudalics@gmx.at>
-
-	* w32term.c (w32_read_socket): In SIZE_RESTORED case
-	unconditionally set visibility of frame to 1.
-
 2014-03-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* xdisp.c (Fwindow_text_pixel_size): Adjust doc-string.
