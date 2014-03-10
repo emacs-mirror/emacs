@@ -1,3 +1,8 @@
+2014-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* desktop.el (desktop-create-buffer): Don't run activate-mark-hook
+	(bug#14430).
+
 2014-03-09  Juri Linkov  <juri@jurta.org>
 
 	* ansi-color.el (ansi-color-names-vector): Copy default colors

@@ -491,13 +491,13 @@ Handlers are called with argument list
 
 Furthermore, they may use the following variables:
 
-   desktop-file-version
-   desktop-buffer-major-mode
-   desktop-buffer-minor-modes
-   desktop-buffer-point
-   desktop-buffer-mark
-   desktop-buffer-read-only
-   desktop-buffer-locals
+   `desktop-file-version'
+   `desktop-buffer-major-mode'
+   `desktop-buffer-minor-modes'
+   `desktop-buffer-point'
+   `desktop-buffer-mark'
+   `desktop-buffer-read-only'
+   `desktop-buffer-locals'
 
 If a handler returns a buffer, then the saved mode settings
 and variable values for that buffer are copied into it.
@@ -551,15 +551,15 @@ Handlers are called with argument list
 
 Furthermore, they may use the following variables:
 
-   desktop-file-version
-   desktop-buffer-file-name
-   desktop-buffer-name
-   desktop-buffer-major-mode
-   desktop-buffer-minor-modes
-   desktop-buffer-point
-   desktop-buffer-mark
-   desktop-buffer-read-only
-   desktop-buffer-misc
+   `desktop-file-version'
+   `desktop-buffer-file-name'
+   `desktop-buffer-name'
+   `desktop-buffer-major-mode'
+   `desktop-buffer-minor-modes'
+   `desktop-buffer-point'
+   `desktop-buffer-mark'
+   `desktop-buffer-read-only'
+   `desktop-buffer-misc'
 
 When a handler is called, the buffer has been created and the major mode has
 been set, but local variables listed in desktop-buffer-locals has not yet been
@@ -1380,20 +1380,21 @@ after that many seconds of idle time."
 		 (eval desktop-buffer-point)
 	       (error (message "%s" (error-message-string err)) 1))))
 	  (when desktop-buffer-mark
-	    (if (consp desktop-buffer-mark)
-		(progn
-		  (set-mark (car desktop-buffer-mark))
-		  (setq mark-active (car (cdr desktop-buffer-mark))))
-	      (set-mark desktop-buffer-mark)))
+            (if (consp desktop-buffer-mark)
+                (progn
+                  (move-marker (mark-marker) (car desktop-buffer-mark))
+                  ;; FIXME: Should we call (de)activate-mark instead?
+                  (setq mark-active (car (cdr desktop-buffer-mark))))
+              (move-marker (mark-marker) desktop-buffer-mark)))
 	  ;; Never override file system if the file really is read-only marked.
 	  (when desktop-buffer-read-only (setq buffer-read-only desktop-buffer-read-only))
 	  (dolist (this desktop-buffer-locals)
 	    (if (consp this)
-		;; an entry of this form `(symbol . value)'
+		;; An entry of this form `(symbol . value)'.
 		(progn
 		  (make-local-variable (car this))
 		  (set (car this) (cdr this)))
-	      ;; an entry of the form `symbol'
+	      ;; An entry of the form `symbol'.
 	      (make-local-variable this)
 	      (makunbound this))))))))
 
