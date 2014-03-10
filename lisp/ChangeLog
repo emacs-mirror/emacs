@@ -1,3 +1,8 @@
+2014-03-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/advice.el (ad-add-advice, defadvice):
+	Doc fix: remove references to deleted info nodes.
+
 2014-03-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-open-connection-setup-interactive-shell):

@@ -2079,9 +2079,7 @@ mapped to the closest extremal position).
 
 If FUNCTION was not advised already, its advice info will be
 initialized.  Redefining a piece of advice whose name is part of
-the cache-id will clear the cache.
-
-See Info node `(elisp)Computed Advice' for detailed documentation."
+the cache-id will clear the cache."
   (cond ((not (ad-is-advised function))
          (ad-initialize-advice-info function)
 	 (ad-set-advice-info-field
@@ -3149,7 +3147,6 @@ time.  This generates a compiled advised definition according to the current
 advice state that will be used during activation if appropriate.  Only use
 this if the `defadvice' gets actually compiled.
 
-See Info node `(elisp)Advising Functions' for comprehensive documentation.
 usage: (defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
           [DOCSTRING] [INTERACTIVE-FORM]
           BODY...)"
