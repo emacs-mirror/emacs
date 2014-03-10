@@ -219,7 +219,9 @@ Otherwise work like `message'."
   (if (minibufferp)
       (progn
 	(add-hook 'minibuffer-exit-hook
-		  (lambda () (setq eldoc-mode-line-string nil))
+		  (lambda () (setq eldoc-mode-line-string nil
+			      ;; http://debbugs.gnu.org/16920
+			      eldoc-last-message nil))
 		  nil t)
 	(with-current-buffer
 	    (window-buffer
