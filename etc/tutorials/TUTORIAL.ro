@@ -328,7 +328,7 @@ cursorului.
 
 Când o linie de text devine prea mare pentru a putea fi reprezentată
 pe o linie de ecran, linia de text este continuată pe următoarea linie
-de pe ecran.  Un caracter backslash (`\') la marginea din dreapta
+de pe ecran.  Un caracter backslash („\”) la marginea din dreapta
 indică o linie care a fost continuată.
 
 >> Introduceţi text până când depăşiţi cu câteva caractere marginea
@@ -636,13 +636,13 @@ C-z este comanda cu care puteţi ieşi din Emacs *temporar* - astfel
 Pe sistemele unde este posibil, C-z "suspendă" Emacs-ul; asta înseamnă
 că, deşi vă veţi întoarce la prompt-ul shell-ului, Emacs-ul nu a fost
 distrus.  În shell-urile (interpretoarele de comenzi Unix) cele mai
-uzuale puteţi reactiva Emacs-ul cu comanda `fg' sau `%emacs'.
+uzuale puteţi reactiva Emacs-ul cu comanda "fg" sau "%emacs".
 
 Pe sistemele care nu implementează mecanismele de suspendare, C-z
 creează un subshell care rulează sub Emacs pentru a vă oferi
 posibilitatea de a rula alte programe şi de a vă întoarce la Emacs mai
 târziu; pe aceste sisteme C-z nu iese cu adevărat din Emacs - comanda
-`exit' la promptul subshell-ului este modalitatea uzuală de a vă
+"exit" la promptul subshell-ului este modalitatea uzuală de a vă
 întoarce în Emacs.
 
 În general C-x C-c se foloseşte înainte de părăsirea sistemului.

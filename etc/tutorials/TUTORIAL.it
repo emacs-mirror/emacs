@@ -319,7 +319,7 @@ della posizione attuale del cursore.
 
 Quando una riga di testo diventa troppo lunga per essere visualizzata su
 una riga di schermo essa viene "continuata" su una seconda riga dello
-schermo.  Un carattere barra retroversa (`\') posto accanto al margine
+schermo.  Un carattere barra retroversa («\») posto accanto al margine
 sinistro indica la prosecuzione della riga precedente.  Quando si usa un
 sistema a finestre grafico, invece della barra retroversa comparirà una
 piccola freccia ricurva.
@@ -379,7 +379,7 @@ testo posto tra i due estremi.
    C-SPC.  Emacs dovrebbe mostrarti il messaggio "Mark set" nella parte
    bassa dello schermo.  Muovi il cursore sulla s di "estremi" del
    paragrafo precedente.  Premi C-w.  Questo cancellerà il testo a partire
-   dalla `P' e fino alla lettera che precede `s'.
+   dalla "P" e fino alla lettera che precede "s".
 
 La differenza tra "killing" (eliminazione) e "deleting" (cancellazione) è
 che il testo "eliminato" può essere inserito di nuovo, mentre quello che
@@ -628,13 +628,13 @@ poter tornare alla stessa sessione di Emacs in un momento successivo.
 Su sistemi che lo permettono C-z "sospende" Emacs, cioè riporta alla shell
 che lo aveva invocato senza però porre termine alla sessione attuale.
 Nelle shell più comuni si può riaprire la sessione in corso con il comando
-`fg' oppure con `%emacs'.
+"fg" oppure con "%emacs".
 
 Su sistemi che non prevedono la possibilità di "sospensione", C-z crea una
 subshell che funziona all'interno di Emacs per dare la possibilità di
 usare altri programmi e poi tornare a Emacs successivamente; in pratica
 non fa "uscire" veramente da Emacs.  In questo caso il comando di shell
-`exit' è il modo comune per tornare ad Emacs dalla subshell.
+"exit" è il modo comune per tornare ad Emacs dalla subshell.
 
 Il momento di usare C-x C-c è quando si sta per effettuare il log-out dal
 sistema.  È anche il comando giusto quando si deve chiudere Emacs che è
@@ -838,7 +838,7 @@ di eco", ciò significa che Emacs aspetta che si indichi ciò che deve
 cercare.  <Invio> serve a concludere la ricerca.
 
 >> Adesso usa C-s per inziare la ricerca.  LENTAMENTE, una lettera alla
-   volta, inserisci la parola `cursore', facendo una pausa dopo ogni
+   volta, inserisci la parola "cursore", facendo una pausa dopo ogni
    carattere scritto per vedere cosa succede al cursore.  Hai cercato
    "cursore" una volta sola.
 >> Usa C-s un'altra volta per trovare il punto in cui la parola "cursore"
@@ -849,7 +849,7 @@ cercare.  <Invio> serve a concludere la ricerca.
 Hai visto cos'è successo?  Durante una ricerca incrementale Emacs prova ad
 andare al punto successivo in cui compare la stringa indicata fino a quel
 momento.  Per raggiungere il punto successivo in cui compare di nuovo
-`cursore' basta solo premere C-s ancora una volta.  Se la stringa cercata
+"cursore" basta solo premere C-s ancora una volta.  Se la stringa cercata
 non compare in alcun punto successivo Emacs emette un "beep" e informa che
 la ricerca non è andata a buon fine ("failing").  C-g è un modo
 alternativo per concludere la ricerca.
@@ -1045,7 +1045,7 @@ come "find-file".
 >> Usa C-x 1 per eliminare la finestra di aiuto.
 
     C-h i    Leggi la documentazione.  Questo comando apre un buffer
-             speciale chiamato `*info*' in cui puoi leggere i manuali
+             speciale chiamato "*info*" in cui puoi leggere i manuali
              on-line dei pacchetti installati sul tuo sistema.  Batti m
              emacs <Invio> per leggere il manuale di Emacs.  Se non hai
              mai usato il sistema Info prima d'ora premi ? ed Emacs ti

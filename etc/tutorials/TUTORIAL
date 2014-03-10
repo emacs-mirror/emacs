@@ -312,7 +312,7 @@ of text is "continued" onto a second screen line.  If you're using a
 graphical display, little curved arrows appear in the narrow spaces on
 each side of the text area (the left and right "fringes"), to indicate
 where a line has been continued.  If you're using a text terminal, the
-continued line is indicated by a backslash (`\') on the rightmost
+continued line is indicated by a backslash ('\') on the rightmost
 screen column.
 
 >> Insert text until you reach the right margin, and keep on inserting.
@@ -646,7 +646,7 @@ C-z is the command to exit Emacs *temporarily*--so that you can go
 back to the same Emacs session afterward.  When Emacs is running on a
 text terminal, C-z "suspends" Emacs; that is, it returns to the shell
 but does not destroy the Emacs job.  In the most common shells, you
-can resume Emacs with the `fg' command or with `%emacs'.
+can resume Emacs with the "fg" command or with "%emacs".
 
 The time to use C-x C-c is when you are about to log out.  It's also
 the right thing to use to exit an Emacs invoked for a quick edit, such
@@ -835,7 +835,7 @@ called an incremental search waiting for you to type the thing that
 you want to search for.  <Return> terminates a search.
 
 >> Now type C-s to start a search.  SLOWLY, one letter at a time,
-   type the word 'cursor', pausing after you type each
+   type the word "cursor", pausing after you type each
    character to notice what happens to the cursor.
    Now you have searched for "cursor", once.
 >> Type C-s again, to search for the next occurrence of "cursor".
@@ -844,7 +844,7 @@ you want to search for.  <Return> terminates a search.
 
 Did you see what happened?  Emacs, in an incremental search, tries to
 go to the occurrence of the string that you've typed out so far.  To
-go to the next occurrence of 'cursor' just type C-s again.  If no such
+go to the next occurrence of "cursor" just type C-s again.  If no such
 occurrence exists, Emacs beeps and tells you the search is currently
 "failing".  C-g would also terminate the search.
 
@@ -1060,7 +1060,7 @@ corresponding command names (such as C-x C-f beside find-file).
 >> Type C-x 1 to delete the help window.
 
    C-h i	Read included Manuals (a.k.a. Info).  This command puts
-		you into a special buffer called `*info*' where you
+		you into a special buffer called "*info*" where you
 		can read manuals for the packages installed on your system.
 		Type m emacs <Return> to read the Emacs manual.
 		If you have never before used Info, type ? and Emacs
@@ -1131,4 +1131,3 @@ and comes with permission to distribute copies on certain conditions:
 Please read the file COPYING and then do give copies of GNU Emacs to
 your friends.  Help stamp out software obstructionism ("ownership") by
 using, writing, and sharing free software!
-

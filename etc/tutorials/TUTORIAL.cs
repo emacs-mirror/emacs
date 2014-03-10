@@ -304,7 +304,7 @@ kurzoru.
 
 Když se řádek textu zvětší natolik, že přesáhne jeden řádek obrazovky,
 je zobrazen na více řádcích obrazovky.  Řádek textu, který pokračuje na
-dalším řádku obrazovky, je indikován zpětným lomítkem (`\') na pravém
+dalším řádku obrazovky, je indikován zpětným lomítkem („\“) na pravém
 okraji obrazovky.
 
 >> Vkládejte text, až dosáhnete pravého okraje, a pokračujte ve vkládání.
@@ -599,13 +599,13 @@ spuštěného Emacsu vrátit.
 
 Na systémech, které to umožňují, C-z Emacs "pozastaví"; tzn. vrátí vás
 do shellu, avšak Emacs neukončí.  V nejběžnějších shellech se můžete do
-Emacsu vrátit příkazem `fg' nebo pomocí `%emacs'.
+Emacsu vrátit příkazem "fg" nebo pomocí "%emacs".
 
 Na systémech, které pozastavování procesů nemají implementováno, C-z
 vytvoří subshell běžící pod Emacsem, aby vám dal šanci spustit jiné
 programy a pak se do Emacsu vrátit; neprovede tedy pravé opuštění
 Emacsu.  V tom případě je obvyklou cestou návratu ze subshellu do Emacsu
-shellovský příkaz `exit'.
+shellovský příkaz "exit".
 
 Chvíle pro použití C-x C-c nastane, když se chystáte odhlásit ze
 systému.  Správné je to také při ukončování Emacsu vyvolaného poštovním
@@ -788,7 +788,7 @@ Když stisknete C-s, uvidíte v echo oblasti prompt "I-search".  To vám
 a čeká, až mu zadáte, co chcete hledat.  <RET> hledání ukončí.
 
 >> Nyní zahajte hledání stiskem C-s.  POMALU, písmeno po písmenu, pište
-   slovo 'kurzor'.  Po každém písmenu si všimněte, co se děje s kurzorem.
+   slovo "kurzor".  Po každém písmenu si všimněte, co se děje s kurzorem.
    Teď jste vyhledali "kurzor" poprvé.
 >> Stiskněte C-s znovu, abyste nalezli další výskyt "kurzor".
 >> Nyní čtyřikrát stiskněte <Delete> a pozorujte, jak se kurzor
@@ -797,7 +797,7 @@ a čeká, až mu zadáte, co chcete hledat.  <RET> hledání ukončí.
 
 Viděli jste, co se stalo?  Emacs se v inkrementálním hledání pokouší
 přejít na další výskyt řetězce, který jste dosud napsali.  Chcete-li
-přejít na další výskyt 'kurzor', jednoduše stiskněte C-s znovu.
+přejít na další výskyt "kurzor", jednoduše stiskněte C-s znovu.
 Jestliže už žádný takový výskyt není, Emacs pípne a řekne vám, že
 hledání momentálně "selhává", C-g hledání ukončí.
 
@@ -983,7 +983,7 @@ odpovídajících jmen příkazů jako find-file.
 >> Stiskněte C-x 1 pro smazání okna s nápovědou.
 
    C-h i	Čtení on-line manuálů (též Info).  Tento příkaz
-		vás přepne do speciálního bufferu s názvem `*info*',
+		vás přepne do speciálního bufferu s názvem "*info*",
 		ve kterém můžete číst on-line manuály pro balíky
 		nainstalované na vašem systému.  Pokud stisknete
 		m emacs <Return> můžete si například přečíst manuál

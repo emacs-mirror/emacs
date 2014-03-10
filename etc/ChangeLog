@@ -1,3 +1,18 @@
+2014-03-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix "\" problem in tutorials by using natural-language quotes.
+	* tutorials/TUTORIAL, tutorials/TUTORIAL.cs, tutorials/TUTORIAL.eo:
+	* tutorials/TUTORIAL.es, tutorials/TUTORIAL.it, tutorials/TUTORIAL.ja:
+	* tutorials/TUTORIAL.ko, tutorials/TUTORIAL.nl, tutorials/TUTORIAL.pl:
+	* tutorials/TUTORIAL.pt_BR, tutorials/TUTORIAL.ro:
+	* tutorials/TUTORIAL.ru, tutorials/TUTORIAL.sk, tutorials/TUTORIAL.sv:
+	* tutorials/TUTORIAL.th:
+	Avoid using ` for natural-language quotes.  Instead, work around
+	the problem with "\" by using non-" quotation marks appropriate
+	for the natural language in question, e.g., «...» for Spanish.
+	For English “...” could be used, but use '...' instead so that
+	TUTORIAL continues to be encoded in ASCII.
+
 2014-03-10  Bastien Guerry  <bzg@gnu.org>
 
 	* tutorials/TUTORIAL.fr: Adapt to the recent changes in TUTORIAL.

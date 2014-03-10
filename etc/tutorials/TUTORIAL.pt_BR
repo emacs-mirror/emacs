@@ -326,7 +326,7 @@ posição corrente do cursor.
    pessoal dele.
 
 Quando uma linha de texto fica muito grande na tela, a linha do texto é
-continuada na linha seguinte. Uma barra invertida (`\') na margem
+continuada na linha seguinte. Uma barra invertida (“\”) na margem
 direita indica a linha que foi continuada.
 
 >> Insira texto até que você alcance a margem direita, e mantenha
@@ -630,12 +630,12 @@ voltar para a mesma seção do Emacs depois.
 
 Em sistemas que permitem isso, C-z "suspende" o Emacs; isso e, retorna
 ao shell mas não destrói o Emacs. Nos shells mais comum, você pode
-resumir o Emacs com o comando 'fg' ou com '%emacs'.
+resumir o Emacs com o comando "fg" ou com "%emacs".
 
 Nos sistemas que não implementam suspensão, C-z cria um subshell rodando
 sobre o Emacs para dar a você a chance de rodar outros programas e
 retornar ao Emacs depois; isso não "sai" verdadeiramente do Emacs. Nesse
-caso, o comando shell 'exit' é o comando usual para voltar ao Emacs do
+caso, o comando shell "exit" é o comando usual para voltar ao Emacs do
 subshell.
 
 A hora de usar o C-x C-c é quando você esta prestes a sair do sistema
@@ -829,7 +829,7 @@ esta no que chamamos de pesquisa incremental esperando que você digite o
 que você quer procurar. <Return> termina a pesquisa.
 
 >> Agora digite C-s para iniciar a pesquisa. DEVAGAR, uma letra por vez,
-   digite o caractere 'cursor', pausando cada vez que você digitar um
+   digite o caractere "cursor", pausando cada vez que você digitar um
    caractere, perceba o que acontece com o cursor. Agora que você
    pesquisou por "cursor", uma vez.
 >> Digite C-s novamente, para pesquisa a próxima ocorrência de "cursor".
@@ -838,7 +838,7 @@ que você quer procurar. <Return> termina a pesquisa.
 
 Você viu o que aconteceu? O Emacs, em uma pesquisa incremental, tenta ir
 para a ocorrência que você digitou ate o momento. Para ir para próxima
-ocorrência de 'cursor' apenas digite C-s novamente. Se nenhuma
+ocorrência de "cursor" apenas digite C-s novamente. Se nenhuma
 ocorrência existir, o Emacs bipa e te diz que a pesquisa atual
 falhou. C-g também termina a pesquisa.
 

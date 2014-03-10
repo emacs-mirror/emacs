@@ -323,7 +323,7 @@ Všeobecne, <Delback> maže znak bezprostredne pred momentálnou pozíciou kurzo
 
 Keď sa riadok textu zväčší natoľko, že presiahne jeden riadok obrazovky, je
 zobrazený na viacerých riadkoch obrazovky.  Riadok textu, ktorý pokračuje na
-ďalšom riadku obrazovky, je indikovaný spätným lomítkom (`\') (alebo, ak
+ďalšom riadku obrazovky, je indikovaný spätným lomítkom („\“) (alebo, ak
 používate grafický systém, malá zakrivená šípka) na pravom okraji obrazovky.
 
 >> Vkladajte text, pokiaľ nedosiahnete pravého okraju, a pokračujte vo
@@ -632,13 +632,13 @@ spusteného Emacsu vrátiť.
 
 Na systémoch, ktoré to umožňujú, C-z Emacs "pozastaví"; tzn. vráti Vás
 do shellu, ale Emacs neskončí.  V najbežnejších shelloch sa môžete do
-Emacsu vrátiť príkazom `fg' alebo pomocou `%emacs'.
+Emacsu vrátiť príkazom "fg" alebo pomocou "%emacs".
 
 Na systémoch, ktoré pozastavovanie procesov nemajú implementované, C-z
 vytvorí subshell bežiaci pod Emacsom, aby Vám dal šancu spustiť iné
 programy a potom sa do Emacsu vrátiť; nevykoná teda pravé opustenie
 Emacsu.  V tom prípade je obvyklou cestou návratu zo subshellu do Emacsu
-shellový príkaz `exit'.
+shellový príkaz "exit".
 
 Chvíľa pre použitie C-x C-c nastane vtedy, keď sa chystáte odhlásiť sa zo
 systému.  Správne je to tiež pri ukončovaní Emacsu vyvolaného poštovým
@@ -1022,7 +1022,7 @@ zodpovedajúcich mien príkazov ako find-file.
 >> Stlačte C-x 1 pre zmazanie okna s nápovedou.
 
    C-h i        Čítanie on-line manuálov (tiež Info).  Tento príkaz
-        Vás prepne do špeciálneho buffera s názvom `*info*',
+        Vás prepne do špeciálneho buffera s názvom "*info*",
 		v ktorom môžete čítať on-line manuály pre balíky
         inštalované na vašom systéme.  Ak stlačíte m emacs <Return>,
 		môžete si napríklad prečítať manuál k Emacsu.  Ak ste

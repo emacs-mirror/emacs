@@ -332,7 +332,7 @@ pantalla. Si está usando un entorno gráfico, se mostrarán pequeñas
 flechas curvas en las estrechas franjas vacías (los "márgenes" derecho
 e izquierdo) a cada lado del área de texto, para indicar que la línea
 continúa. Si está utilizando una terminal, la continuación se señala
-mediante una barra invertida (`\') en la última columna de la derecha.
+mediante una barra invertida («\») en la última columna de la derecha.
 
 >> Inserte texto hasta que llegue al margen derecho, y siga
    insertando.  Verá aparecer una línea de continuación.
@@ -682,7 +682,7 @@ regresar a la misma sesión de Emacs después.  Cuando Emacs está
 ejecutándose en una terminal, C-z "suspende" Emacs; esto es, se
 regresa al intérprete de comandos pero no se destruye Emacs.  En los
 intérpretes de comandos más comunes, puede reanudar Emacs con el
-comando `fg' o con `%emacs'.
+comando "fg" o con "%emacs".
 
 El momento para usar C-x C-c es cuando está listo para salir del
 sistema.  Es además el paso correcto para salir de un Emacs invocado
@@ -885,7 +885,7 @@ se conoce como búsqueda incremental, esperando que teclee lo que
 quiere buscar.  <Return> termina una búsqueda.
 
 >> Ahora teclee C-s para comenzar la búsqueda.  LENTAMENTE, una letra
-   a la vez, teclee la palabra 'cursor', haciendo pausa después de
+   a la vez, teclee la palabra "cursor", haciendo pausa después de
    cada carácter para notar lo que pasa con el cursor.
    Ahora ha buscado "cursor", una vez.
 >> Teclee C-s de nuevo, para buscar la siguiente ocurrencia de
@@ -895,7 +895,7 @@ quiere buscar.  <Return> termina una búsqueda.
 
 ¿Vió lo que ocurrió?  Emacs, en una búsqueda incremental, trata de ir
 a la ocurrencia de la cadena que ha tecleado hasta el momento.  Para
-ir a la próxima ocurrencia de 'cursor' solo teclee C-s de nuevo.  Si
+ir a la próxima ocurrencia de "cursor" solo teclee C-s de nuevo.  Si
 tal ocurrencia no existe, Emacs pita y le dice que la búsqueda actual
 está fallando ("failing").  C-g también termina la búsqueda.
 
@@ -1123,7 +1123,7 @@ ejemplo, C-x C-f junto a find-file).
 >> Teclee C-x 1 para borrar la ventana de ayuda.
 
    C-h i        Leer los manuales incluidos (alias Info).  Este comando
-                lo pone en un buffer especial llamado `*info*' donde
+                lo pone en un buffer especial llamado "*info*" donde
                 puede leer manuales de los paquetes instalados en su
                 sistema. Teclee m emacs <Return> para leer el manual
                 de Emacs.  Si nunca ha usado Info, teclee ? y Emacs y
