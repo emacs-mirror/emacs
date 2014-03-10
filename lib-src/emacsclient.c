@@ -1556,6 +1556,7 @@ main (int argc, char **argv)
       exit (EXIT_FAILURE);
     }
 
+#ifndef WINDOWSNT
   if (tty)
     {
       pid_t pgrp = getpgrp ();
@@ -1563,6 +1564,7 @@ main (int argc, char **argv)
       if (0 <= tcpgrp && tcpgrp != pgrp)
 	kill (-pgrp, SIGTTIN);
     }
+#endif /* !WINDOWSNT */
 
   /* If alternate_editor is the empty string, start the emacs daemon
      in case of failure to connect.  */

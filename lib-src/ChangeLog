@@ -1,3 +1,7 @@
+2014-03-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (main): #ifdef out previous change on Windows.
+
 2014-03-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix emacsclient terminal corruption when in background (Bug#16892).
