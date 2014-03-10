@@ -5138,7 +5138,10 @@ fstatat (int fd, char const *name, struct stat *st, int flags)
 
   if (fd != AT_FDCWD)
     {
-      if (_snprintf (fullname, sizeof fullname, "%s/%s", dir_pathname, name)
+      char lastc = dir_pathname[strlen (dir_pathname) - 1];
+
+      if (_snprintf (fullname, sizeof fullname, "%s%s%s",
+		     dir_pathname, IS_DIRECTORY_SEP (lastc) ? "" : "/", name)
 	  < 0)
 	{
 	  errno = ENAMETOOLONG;
