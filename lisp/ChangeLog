@@ -1,3 +1,10 @@
+2014-03-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-open-connection-setup-interactive-shell):
+	Do not add `nil' to the environment, when there's no remote `locale'.
+	(tramp-find-inline-encoding): Check, that the remote host has
+	installed perl, before sending scripts.
+
 2014-03-10  Leo Liu  <sdl.web@gmail.com>
 
 	* emacs-lisp/eldoc.el (eldoc-minibuffer-message): Clear

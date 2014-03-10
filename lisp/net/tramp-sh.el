@@ -3951,7 +3951,8 @@ process to set up.  VEC specifies the connection."
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")
 
-  (let ((env (append `(,(tramp-get-remote-locale vec))
+  (let ((env (append (when (tramp-get-remote-locale vec) ; Discard `(nil)'.
+		       `(,(tramp-get-remote-locale vec)))
 		     (copy-sequence tramp-remote-process-environment)))
 	unset item)
     (while env
@@ -4090,6 +4091,10 @@ Goes through the list `tramp-local-coding-commands' and
 		     vec 5 "Checking remote test command `%s'" rem-test)
 		    (unless (tramp-send-command-and-check vec rem-test t)
 		      (throw 'wont-work-remote nil)))
+		  ;; Check if remote perl exists when necessary.
+		  (when (and (not (stringp rem-enc))
+			     (not (tramp-get-remote-perl vec)))
+		    (throw 'wont-work-remote nil))
 		  ;; Check if remote encoding and decoding commands can be
 		  ;; called remotely with null input and output.  This makes
 		  ;; sure there are no syntax errors and the command is really
@@ -5313,6 +5318,8 @@ function cell is returned to be applied on a buffer."
 ;; * Keep a second connection open for out-of-band methods like scp or
 ;;   rsync.
 ;; * Try telnet+curl as new method.  It might be useful for busybox,
+;;   without built-in uuencode/uudecode.
+;; * Try telnet+nc as new method.  It might be useful for busybox,
 ;;   without built-in uuencode/uudecode.
 
 ;;; tramp-sh.el ends here
