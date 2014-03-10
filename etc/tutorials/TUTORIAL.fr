@@ -365,11 +365,24 @@ continuation.
 
 >> Faites <Entrée> pour remettre le Newline que vous avez supprimé.
 
+La touche <Entrée> est particulière : l'appuyer peut faire plus que
+simplement insérer le caractère Newline.  En fonction du texte autour,
+des espaces pourront être insérées après le caractère Newline, de
+façon à ce qu'en commençant à taper dans la ligne nouvelle créée, le
+texte s'aligne avec celui de la ligne précédente.  Nous appelons ce
+comportement (où le fait d'appuyer sur une touche fait plus que de
+simplement insérer le caractère correspondant) « électrique ».
+
+>> Voici un exemple de touche <Entrée> « électrique ».
+   Tapez <Entrée> à la fin de cette ligne.
+
+Vous devriez voir qu'après l'insertion du Newline, Emacs insère des espaces de façon à ce que le curseur se déplace sous le « T » de « Tapez ».
+
 Rappelez-vous que la plupart des commandes Emacs peuvent utiliser un
 nombre de répétitions ; les caractères de texte font de même. La
 répétition d'un caractère de texte l'insère plusieurs fois.
 
->> Faites C-u 8 * pour insérer ********.
+>> Essayez ça tout de suite -- tapez C-u 8 * pour insérer ********.
 
 Vous connaissez maintenant la méthode la plus simple pour taper du
 texte dans Emacs et pour corriger les erreurs. Vous pouvez également
