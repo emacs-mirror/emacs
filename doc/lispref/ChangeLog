@@ -134,7 +134,7 @@
 2014-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* functions.texi (Declare Form): Document gv-expander, gv-setter, and
-	compiler-macro (bug#16829).
+	compiler-macro (bug#16829, bug#15093).
 
 2014-02-21  Juanma Barranquero  <lekktu@gmail.com>
 
