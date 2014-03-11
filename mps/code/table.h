@@ -1,7 +1,7 @@
 /* table.h: Interface for a dictionary
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * A table is a hashed mapping from keys to values.
  */
@@ -23,14 +23,23 @@ typedef struct TableEntryStruct {
   TableValue value;
 } TableEntryStruct, *TableEntry;
 
+/* We use malloc-like calls here because tables are used from non-MPS
+   code for processing events.  See eventtxt.c. */
+
 typedef void *(*TableAllocFunction)(void *closure, size_t size);
 typedef void (*TableFreeFunction)(void *closure, void *p, size_t size);
+
+typedef struct TableHashParamStruct *TableHashParam;
+typedef struct TableHashParamStruct {
+  Word multiplicand;
+  Word addend;
+} TableHashParamStruct;
 
 #define TableSig        ((Sig)0x5192AB13) /* SIGnature TABLE */
 
 typedef struct TableStruct {
   Sig sig;                      /* <design/sig/> */
-  Count length;                 /* Number of slots in the array */
+  Shift log2length;             /* zero or log2 number of slots in the array */
   Count count;                  /* Active entries in the table */
   TableEntry array;             /* Array of table slots */
   TableAllocFunction alloc;
@@ -38,6 +47,8 @@ typedef struct TableStruct {
   void *allocClosure;
   TableKey unusedKey;           /* key marking unused (undefined) entries */
   TableKey deletedKey;          /* key marking deleted entries */
+  Count maxChainLength;
+  TableHashParamStruct posHashParamStruct, skipHashParamStruct;
 } TableStruct;
 
 extern Res TableCreate(Table *tableReturn,
@@ -54,9 +65,8 @@ extern Res TableRedefine(Table table, TableKey key, TableValue value);
 extern Bool TableLookup(TableValue *valueReturn, Table table, TableKey key);
 extern Res TableRemove(Table table, TableKey key);
 extern Count TableCount(Table table);
-extern void TableMap(Table table,
-                     void(*fun)(void *closure, TableKey key, TableValue value),
-                     void *closure);
+typedef void (*TableVisitor)(void *closure, TableKey key, TableValue value);
+extern void TableMap(Table table, TableVisitor visit, void *closure);
 extern Res TableGrow(Table table, Count extraCapacity);
 
 
@@ -65,7 +75,7 @@ extern Res TableGrow(Table table, Count extraCapacity);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
