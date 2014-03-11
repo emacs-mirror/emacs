@@ -5,9 +5,18 @@
  *
  * Simple binary trees with utilities, for use as building blocks.
  * Keep it simple, like Rings (see ring.h).
+ *
+ * The performance requirements on tree implementation will depend on
+ * how each individual function is applied in the MPS.
+ *
+ * .note.stack: It's important that the MPS have a bounded stack
+ * size, and this is a problem for tree algorithms.  Basically,
+ * we have to avoid recursion.  TODO: Design documentation for this
+ * requirement, meanwhile see job003651 and job003640.
  */
 
 #include "tree.h"
+#include "mpm.h"
 
 SRCID(tree, "$Id$");
 
@@ -37,6 +46,7 @@ Bool TreeCheckLeaf(Tree tree)
  * This function may be called from a debugger or temporarily inserted
  * during development to check a tree's integrity.  It may not be called
  * from the production MPS because it uses indefinite stack depth.
+ * See .note.stack.
  */
 
 static Count TreeDebugCountBetween(Tree node,
@@ -60,6 +70,8 @@ Count TreeDebugCount(Tree tree, TreeCompare compare, TreeKeyMethod key)
 }
 
 
+#if 0 /* This code is not currently in use in the MPS */
+
 /* TreeFind -- search for a node matching the key
  *
  * If a matching node is found, sets *treeReturn to that node and returns
@@ -75,7 +87,7 @@ Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
   Tree node, parent;
   Compare cmp = CompareEQUAL;
   
-  AVER(TreeCheck(root));
+  AVERT(Tree, root);
   AVER(treeReturn != NULL);
   AVER(FUNCHECK(compare));
   /* key is arbitrary */
@@ -94,6 +106,7 @@ Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
       return cmp;
     case CompareGREATER:
       node = node->right;
+      break;
     default:
       NOTREACHED;
       *treeReturn = NULL;
@@ -121,7 +134,7 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
   Compare cmp;
   
   AVER(treeReturn != NULL);
-  AVER(TreeCheck(root));
+  AVER(Tree, root);
   AVER(TreeCheckLeaf(node));
   AVER(FUNCHECK(compare));
   /* key is arbitrary */
@@ -145,7 +158,7 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
   default:
     NOTREACHED;
     *treeReturn = NULL;
-    return cmp;
+    return FALSE;
   }
   
   *treeReturn = root;
@@ -153,15 +166,21 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
 }
 
 
-/* TreeTraverseMorris -- traverse tree in constant space, n log n time
- *
- * <http://en.wikipedia.org/wiki/Tree_traversal#Morris_in-order_traversal_using_threading>
+/* TreeTraverseMorris -- traverse tree inorder in constant space
  *
  * The tree may not be accessed or modified during the traversal, and
  * the traversal must complete in order to repair the tree.
  *
+ * The visitor should return FALSE to terminate the traversal early,
+ * in which case FALSE is returned.
+ *
  * TreeTraverse is generally superior if comparisons are cheap, but
  * TreeTraverseMorris does not require any comparison function.
+ *
+ * <http://en.wikipedia.org/wiki/Tree_traversal#Morris_in-order_traversal_using_threading>
+ *
+ * Joseph M. Morris (1979). "Traversing Binary Trees Simply and Cheaply".
+ * Information Processing Letters 9:5 pp. 197–200.
  */
 
 Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
@@ -170,7 +189,7 @@ Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
   Tree node;
   Bool visiting = TRUE;
   
-  AVER(TreeCheck(tree));
+  AVERT(Tree, tree);
   AVER(FUNCHECK(visit));
   /* closureP, closureS arbitrary */
   
@@ -205,11 +224,16 @@ Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
   return visiting;
 }
 
+#endif /* not currently in use */
 
-/* TreeTraverse -- traverse tree using pointer reversal
+
+/* TreeTraverse -- traverse tree in-order using pointer reversal
  *
  * The tree may not be accessed or modified during the traversal, and
  * the traversal must complete in order to repair the tree.
+ *
+ * The visitor should return FALSE to terminate the traversal early,
+ * in which case FALSE is returned.
  *
  * TreeTraverseMorris is an alternative when no cheap comparison is available.
  */
@@ -257,7 +281,7 @@ Bool TreeTraverse(Tree tree,
 {
   Tree parent, node;
   
-  AVER(TreeCheck(tree));
+  AVERT(Tree, tree);
   AVER(FUNCHECK(visit));
   /* closureP, closureS arbitrary */
 
@@ -358,8 +382,8 @@ void TreeRotateRight(Tree *treeIO) {
  *
  * Descends the left spine of a tree, updating each node's left child
  * to point to its parent instead.  The root's left child is set to
- * TreeEMPTY.  Returns the leftmost child in *leftReturn, or TreeEMPTY
- * if the tree was empty.
+ * TreeEMPTY.  Returns the leftmost child, or TreeEMPTY if the tree
+ * was empty.
  */
 
 Tree TreeReverseLeftSpine(Tree tree)
@@ -385,8 +409,8 @@ Tree TreeReverseLeftSpine(Tree tree)
  *
  * Descends the right spine of a tree, updating each node's right child
  * to point to its parent instead.  The root's right child is set to
- * TreeEMPTY.  Returns the rightmost child in *rightReturn, or TreeEMPTY
- * if the tree was empty.
+ * TreeEMPTY.  Returns the rightmost child or TreeEMPTY if the tree
+ * was empty.
  */
 
 Tree TreeReverseRightSpine(Tree tree)
@@ -406,6 +430,9 @@ Tree TreeReverseRightSpine(Tree tree)
   
   return parent;
 }
+
+
+#if 0 /* This code is currently not in use in the MPS */
 
 
 /* TreeToVine -- unbalance a tree into a single right spine */
@@ -459,6 +486,9 @@ void TreeBalance(Tree *treeIO)
     } while (n > 1);
   }
 }
+
+
+#endif /* not currently in use in the MPS */
 
 
 /* C. COPYRIGHT AND LICENSE

@@ -31,8 +31,8 @@ typedef struct CBSBlockStruct {
 
 
 typedef struct CBSStruct *CBS;
-typedef Bool (*CBSIterateMethod)(CBS cbs, Range range,
-                                 void *closureP, Size closureS);
+typedef Bool (*CBSVisitor)(CBS cbs, Range range,
+                           void *closureP, Size closureS);
 
 extern Bool CBSCheck(CBS cbs);
 
@@ -47,7 +47,7 @@ extern void CBSFinish(CBS cbs);
 
 extern Res CBSInsert(Range rangeReturn, CBS cbs, Range range);
 extern Res CBSDelete(Range rangeReturn, CBS cbs, Range range);
-extern void CBSIterate(CBS cbs, CBSIterateMethod iterate,
+extern void CBSIterate(CBS cbs, CBSVisitor visitor,
                        void *closureP, Size closureS);
 
 extern Res CBSDescribe(CBS cbs, mps_lib_FILE *stream);

@@ -11,7 +11,8 @@
  *
  * .note.stack: It's important that the MPS have a bounded stack
  * size, and this is a problem for tree algorithms.  Basically,
- * we have to avoid recursion.  FIXME: Reference requirement.
+ * we have to avoid recursion.  TODO: Design documentation for this
+ * requirement, meanwhile see job003651 and job003640.
  */
 
 
@@ -61,7 +62,8 @@ Bool SplayTreeCheck(SplayTree splay)
  * ``updateNode`` will be applied to nodes from bottom to top when the
  * tree is restructured in order to maintain client properties (see
  * design.mps.splay.prop).  If SplayTrivUpdate is be passed, faster
- * algorithms are chosen for splaying (FIXME: xref design).
+ * algorithms are chosen for splaying.  Compare SplaySplitDown with
+ * SplaySplitRev.
  */
 
 void SplayTreeInit(SplayTree splay,
@@ -146,7 +148,7 @@ static Compare compareGreater(Tree tree, TreeKey key)
  *
  * A debugging utility to recursively update the client property of
  * a subtree.  May not be used in production MPS because it has
- * indefinite stack usage.  FIXME: Ref to requirement.
+ * indefinite stack usage.  See .note.stack.
  */
 
 void SplayDebugUpdate(SplayTree splay, Tree tree)
@@ -164,7 +166,7 @@ void SplayDebugUpdate(SplayTree splay, Tree tree)
 /* SplayZig -- move to left child, prepending to right tree
  *
  * Link the top node of the middle tree into the left child of the
- * right tree, then step to the left child.
+ * right tree, then step to the left child.  Returns new middle.
  *
  * See <design/splay/#impl.link.right>.
  *
@@ -192,13 +194,14 @@ static Tree SplayZig(Tree middle, Tree *rightFirstIO, Tree *rightNextReturn)
 /* SplayZigZig -- move to left child, rotating on on to right tree
  *
  * Rotate the top node of the middle tree over the left child of the
- * right tree, then step to the left child.
+ * right tree, then step to the left child, completing a splay "zig zig"
+ * after an initial SplayZig.  Returns new middle.
  *
  *    middle     rightNext           middle       rightNext
  *      B          E                   A              E
  *     / \        / \          =>                    / \
- *    A   C      D   F                        right B   F
- *             right                                 \
+ *    A   C      D   F                   rightFirst B   F
+ *          rightFirst                               \
  *                                                    D
  *                                                   /
  *                                                  C
@@ -288,6 +291,7 @@ static Compare SplaySplitDown(SplayStateStruct *stateReturn,
   AVERT(SplayTree, splay);
   AVER(FUNCHECK(compare));
   AVER(!SplayTreeIsEmpty(splay));
+  AVER(!SplayHasUpdate(splay));
   
   TreeInit(&sentinel);
   leftLast = &sentinel;
@@ -388,6 +392,7 @@ static void SplayAssembleDown(SplayTree splay, SplayState state)
 {
   AVERT(SplayTree, splay);
   AVER(state->middle != TreeEMPTY);
+  AVER(!SplayHasUpdate(splay));
 
   if (state->left != TreeEMPTY) {
     AVER_CRITICAL(state->leftLast != TreeEMPTY);
@@ -657,6 +662,13 @@ static void SplayAssemble(SplayTree splay, SplayState state)
  * to a previous splay).  The latter shortcut has a significant effect
  * on run time.
  *
+ * If a matching node is found, it is splayed to the root and the function
+ * returns CompareEQUAL, or if the tree is empty, will also return
+ * CompareEQUAL.  Otherwise, CompareGREATER or CompareLESS is returned
+ * meaning either the key is greater or less than the new root.  In this
+ * case the new root is the last node visited which is either the closest
+ * node left or the closest node right of the key.
+ *
  * See <design/splay/#impl.splay>.
  */
 
@@ -752,10 +764,10 @@ Bool SplayTreeInsert(SplayTree splay, Tree node) {
 /* SplayTreeDelete -- delete a node from a splay tree
  *
  * Delete a node from the tree.  If the tree does not contain the given
- * node, or the then ``FALSE`` will be returned, and the node will
- * not be deleted. The function first splays the tree at the given key.
- * The client must not pass a node whose key compares equal to a different
- * node in the tree.
+ * node then ``FALSE`` will be returned.  The client must not pass a
+ * node whose key compares equal to a different node in the tree.
+ *
+ * The function first splays the tree at the given key.
  *
  * TODO: If the node has zero or one children, then the replacement
  * would be the leftLast or rightFirst after a SplaySplit, and would
@@ -777,10 +789,10 @@ Bool SplayTreeDelete(SplayTree splay, Tree node) {
 
   if (cmp != CompareEQUAL) {
     return FALSE;
-  } else if (TreeLeft(node) == TreeEMPTY) {
+  } else if (!TreeHasLeft(node)) {
     SplayTreeSetRoot(splay, TreeRight(node));
     TreeClearRight(node);
-  } else if (TreeRight(node) == TreeEMPTY) {
+  } else if (!TreeHasRight(node)) {
     SplayTreeSetRoot(splay, TreeLeft(node));
     TreeClearLeft(node);
   } else {
@@ -791,7 +803,7 @@ Bool SplayTreeDelete(SplayTree splay, Tree node) {
     SplaySplay(splay, NULL, compareGreater);
     leftLast = SplayTreeRoot(splay);
     AVER(leftLast != TreeEMPTY);
-    AVER(TreeRight(leftLast) == TreeEMPTY);
+    AVER(!TreeHasRight(leftLast));
     TreeSetRight(leftLast, rightHalf);
     splay->updateNode(splay, leftLast);
   }
@@ -1004,7 +1016,7 @@ static Res SplayNodeDescribe(Tree node, mps_lib_FILE *stream,
   res = WriteF(stream, "( ", NULL);
   if (res != ResOK) return res;
 
-  if (TreeLeft(node) != TreeEMPTY) {
+  if (TreeHasLeft(node)) {
     res = SplayNodeDescribe(TreeLeft(node), stream, nodeDescribe);
     if (res != ResOK) return res;
 
@@ -1015,7 +1027,7 @@ static Res SplayNodeDescribe(Tree node, mps_lib_FILE *stream,
   res = (*nodeDescribe)(node, stream);
   if (res != ResOK) return res;
 
-  if (TreeRight(node) != TreeEMPTY) {
+  if (TreeHasRight(node)) {
     res = WriteF(stream, " \\ ", NULL);
     if (res != ResOK) return res;
 
