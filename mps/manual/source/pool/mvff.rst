@@ -170,7 +170,6 @@ MVFF interface
             MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, 1);
             MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, 1);
             MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, 0);
-            MPS_ARGS_DONE(args);
             res = mps_pool_create_k(&pool, arena, mps_class_mvff(), args);
         } MPS_ARGS_END(args);
 
@@ -195,7 +194,7 @@ MVFF interface
     class.
 
     When creating a debugging MVFF pool, :c:func:`mps_pool_create_k`
-    requires seven :term:`keyword arguments`.
+    takes seven :term:`keyword arguments`.
 
     * :c:macro:`MPS_KEY_EXTEND_BY`, :c:macro:`MPS_KEY_MEAN_SIZE`,
       :c:macro:`MPS_KEY_ALIGN`, :c:macro:`MPS_KEY_MVFF_ARENA_HIGH`,

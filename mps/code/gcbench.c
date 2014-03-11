@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <alloca.h>
 #include <pthread.h>
 #include "getopt.h"
 #include "testlib.h"
@@ -220,16 +219,16 @@ static void weave1(gcthread_fn_t fn)
 
 static void watch(gcthread_fn_t fn, const char *name)
 {
-  clock_t start, finish;
+  clock_t begin, end;
   
-  start = clock();
+  begin = clock();
   if (nthreads == 1)
     weave1(fn);
   else
     weave(fn);
-  finish = clock();
+  end = clock();
   
-  printf("%s: %g\n", name, (double)(finish - start) / CLOCKS_PER_SEC);
+  printf("%s: %g\n", name, (double)(end - begin) / CLOCKS_PER_SEC);
 }
 
 
@@ -242,7 +241,6 @@ static void arena_setup(gcthread_fn_t fn,
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, arenasize);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, zoned);
-    MPS_ARGS_DONE(args);
     RESMUST(mps_arena_create_k(&arena, mps_arena_class_vm(), args));
   } MPS_ARGS_END(args);
   RESMUST(dylan_fmt(&format, arena));
@@ -255,7 +253,6 @@ static void arena_setup(gcthread_fn_t fn,
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
     if (ngen > 0)
       MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
-    MPS_ARGS_DONE(args);
     RESMUST(mps_pool_create_k(&pool, arena, pool_class, args));
   } MPS_ARGS_END(args);
   watch(fn, name);

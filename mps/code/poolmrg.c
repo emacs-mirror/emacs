@@ -526,7 +526,6 @@ static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg,
   
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, mrgKeyLinkSeg, p, linkseg); /* .ref.initarg */
-    MPS_ARGS_DONE(args);
     res = SegAlloc(&segRefPart, EnsureMRGRefSegClass(),
                    SegPrefDefault(), mrg->extendBy, pool,
                    withReservoirPermit, args);

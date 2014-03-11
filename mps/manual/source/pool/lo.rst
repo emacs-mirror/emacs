@@ -134,7 +134,6 @@ LO interface
 
         MPS_ARGS_BEGIN(args) {
             MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
-            MPS_ARGS_DONE(args);
             res = mps_pool_create_k(&pool, arena, mps_class_lo(), args);
         } MPS_ARGS_END(args);
 

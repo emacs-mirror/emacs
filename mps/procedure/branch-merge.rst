@@ -70,7 +70,7 @@ This document contains procedures and checklists for branching and merging durin
 
 #. Is there an automated test case?
 
-#. Does the test suite pass?
+#. Does the test suite pass on all supported platforms?
 
 #. If there are interface changes, is there documentation?
 
@@ -103,8 +103,8 @@ This document contains procedures and checklists for branching and merging durin
 
          p4 submit -d "Catch-up merge from the master sources to $BRANCH"
 
-#. Update the branch on other platforms and check that the test suite
-   passes.
+#. Update the branch on all supported platforms and check that the
+   test suite passes.
 
 #. Backward merge into the master sources (or the appropriate
    customer-specific mainline)::
