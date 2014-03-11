@@ -18,8 +18,8 @@ SRCID(arena, "$Id$");
 
 
 #define ArenaControlPool(arena) MV2Pool(&(arena)->controlPoolStruct)
-#define ArenaCBSBlockPool(arena)  (&(arena)->zonedCBSBlockPoolStruct.poolStruct)
-#define ArenaZonedCBS(arena)    (&(arena)->zonedCBSStruct)
+#define ArenaCBSBlockPool(arena)  (&(arena)->freeCBSBlockPoolStruct.poolStruct)
+#define ArenaFreeCBS(arena)    (&(arena)->freeCBSStruct)
 
 
 /* Forward declarations */
@@ -99,6 +99,7 @@ Bool ArenaClassCheck(ArenaClass class)
   CHECKL(FUNCHECK(class->reserved));
   CHECKL(FUNCHECK(class->purgeSpare));
   CHECKL(FUNCHECK(class->extend));
+  CHECKL(FUNCHECK(class->grow));
   CHECKL(FUNCHECK(class->free));
   CHECKL(FUNCHECK(class->chunkInit));
   CHECKL(FUNCHECK(class->chunkFinish));
@@ -154,7 +155,7 @@ Bool ArenaCheck(Arena arena)
 
   CHECKL(BoolCheck(arena->hasFreeCBS));
   if (arena->hasFreeCBS)
-    CBSCheck(ArenaZonedCBS(arena));
+    CBSCheck(ArenaFreeCBS(arena));
 
   return TRUE;
 }
@@ -162,9 +163,13 @@ Bool ArenaCheck(Arena arena)
 
 /* ArenaInit -- initialize the generic part of the arena
  *
- * .init.caller: Unlike PoolInit, this is called by the class init
- * methods, not the generic Create.  This is because the class is
- * responsible for allocating the descriptor.  */
+ * .init.caller: ArenaInit is called by class->init (which is called
+ * by ArenaCreate). The initialization must proceed in this order, as
+ * opposed to class->init being called by ArenaInit, which would
+ * correspond to the initialization order for pools and other objects,
+ * because the memory for the arena structure is not available until
+ * it has been allocated by the arena class.
+ */
 
 Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
 {
@@ -230,7 +235,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
   MPS_ARGS_BEGIN(cbsiArgs) {
     MPS_ARGS_ADD(cbsiArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
     MPS_ARGS_DONE(cbsiArgs);
-    res = CBSInit(ArenaZonedCBS(arena), arena, arena, alignment,
+    res = CBSInit(ArenaFreeCBS(arena), arena, arena, alignment,
                   /* fastFind */ TRUE, arena->zoned, cbsiArgs);
   } MPS_ARGS_END(cbsiArgs);
   AVER(res == ResOK); /* no allocation, no failure expected */
@@ -248,7 +253,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
   return ResOK;
 
 failReservoirInit:
-  CBSFinish(ArenaZonedCBS(arena));
+  CBSFinish(ArenaFreeCBS(arena));
 failCBSInit:
   PoolFinish(ArenaCBSBlockPool(arena));
 failMFSInit:
@@ -363,7 +368,6 @@ static void arenaMFSPageFreeVisitor(Pool pool, Addr base, Size size,
 
 void ArenaDestroy(Arena arena)
 {
-
   AVERT(Arena, arena);
 
   GlobalsPrepareToDestroy(ArenaGlobals(arena));
@@ -378,7 +382,7 @@ void ArenaDestroy(Arena arena)
      containing CBS blocks might be allocated in those chunks. */
   AVER(arena->hasFreeCBS);
   arena->hasFreeCBS = FALSE;
-  CBSFinish(ArenaZonedCBS(arena));
+  CBSFinish(ArenaFreeCBS(arena));
 
   /* The CBS block pool can't free its own memory via ArenaFree because
      that would use the ZonedCBS. */
@@ -664,7 +668,7 @@ static void arenaFreePage(Arena arena, Addr base, Pool pool)
 /* arenaExtendCBSBlockPool -- add a page of memory to the CBS block pool
  *
  * IMPORTANT: Must be followed by arenaExcludePage to ensure that the
- * page doesn't get allocated by ArenaAlloc.
+ * page doesn't get allocated by ArenaAlloc.  See .insert.exclude.
  */
 
 static Res arenaExtendCBSBlockPool(Range pageRangeReturn, Arena arena)
@@ -692,7 +696,7 @@ static void arenaExcludePage(Arena arena, Range pageRange)
   RangeStruct oldRange;
   Res res;
 
-  res = CBSDelete(&oldRange, ArenaZonedCBS(arena), pageRange);
+  res = CBSDelete(&oldRange, ArenaFreeCBS(arena), pageRange);
   AVER(res == ResOK); /* we just gave memory to the CBSs */
 }
 
@@ -713,16 +717,16 @@ static Res arenaCBSInsert(Range rangeReturn, Arena arena, Range range)
   AVERT(Arena, arena);
   AVERT(Range, range);
 
-  res = CBSInsert(rangeReturn, ArenaZonedCBS(arena), range);
+  res = CBSInsert(rangeReturn, ArenaFreeCBS(arena), range);
 
   if (res == ResLIMIT) { /* freeCBS MFS pool ran out of blocks */
     RangeStruct pageRange;
     res = arenaExtendCBSBlockPool(&pageRange, arena);
     if (res != ResOK)
       return res;
-    /* Must insert before exclude so that we can bootstrap when the
-       zoned CBS is empty. */
-    res = CBSInsert(rangeReturn, ArenaZonedCBS(arena), range);
+    /* .insert.exclude: Must insert before exclude so that we can
+       bootstrap when the zoned CBS is empty. */
+    res = CBSInsert(rangeReturn, ArenaFreeCBS(arena), range);
     AVER(res == ResOK); /* we just gave memory to the CBSs */
     arenaExcludePage(arena, &pageRange);
   }
@@ -731,7 +735,7 @@ static Res arenaCBSInsert(Range rangeReturn, Arena arena, Range range)
 }
 
 
-/* ArenaFreeCBSInsert -- insert a block an arena CBS, maybe stealing memory
+/* ArenaFreeCBSInsert -- add a block to arena CBS, maybe stealing memory
  *
  * See arenaCBSInsert.  This function may only be applied to mapped pages
  * and may steal them to store CBS nodes if it's unable to allocate
@@ -769,7 +773,7 @@ static void arenaCBSInsertSteal(Range rangeReturn, Arena arena, Range rangeIO)
     MFSExtend(ArenaCBSBlockPool(arena), pageBase, ArenaAlign(arena));
 
     /* Try again. */
-    res = CBSInsert(rangeReturn, ArenaZonedCBS(arena), rangeIO);
+    res = CBSInsert(rangeReturn, ArenaFreeCBS(arena), rangeIO);
     AVER(res == ResOK); /* we just gave memory to the CBS */
   }
 
@@ -796,7 +800,9 @@ Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit)
   if (res != ResOK)
     return res;
 
-  /* .chunk.no-coalesce: Make sure it didn't coalesce. */
+  /* .chunk.no-coalesce: Make sure it didn't coalesce.  We don't want
+     chunks to coalesce so that there are no chunk-crossing allocations
+     that would prevent chunks being destroyed. */
   AVER(RangesEqual(&oldRange, &range));
 
   return ResOK;
@@ -820,7 +826,7 @@ void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit)
   Res res;
 
   RangeInit(&range, base, limit);
-  res = CBSDelete(&oldRange, ArenaZonedCBS(arena), &range);
+  res = CBSDelete(&oldRange, ArenaFreeCBS(arena), &range);
   
   /* Shouldn't be any other kind of failure because we were only deleting
      a non-coalesced block.  See .chunk.no-coalesce and
@@ -852,16 +858,16 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
 
   /* Step 1. Find a range of address space. */
   
-  res = CBSFindInZones(&range, &oldRange, ArenaZonedCBS(arena),
+  res = CBSFindInZones(&range, &oldRange, ArenaFreeCBS(arena),
                        size, zones, high);
 
   if (res == ResLIMIT) { /* found block, but couldn't store info */
     RangeStruct pageRange;
     res = arenaExtendCBSBlockPool(&pageRange, arena);
-    if (res != ResOK) /* disasterously short on memory */
+    if (res != ResOK) /* disastrously short on memory */
       return res;
     arenaExcludePage(arena, &pageRange);
-    res = CBSFindInZones(&range, &oldRange, ArenaZonedCBS(arena),
+    res = CBSFindInZones(&range, &oldRange, ArenaFreeCBS(arena),
                          size, zones, high);
     AVER(res != ResLIMIT);
   }
@@ -875,10 +881,10 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
   
   /* Step 2. Make memory available in the address space range. */
 
-  b = CHUNK_OF_ADDR(&chunk, arena, range.base);
+  b = CHUNK_OF_ADDR(&chunk, arena, RangeBase(&range));
   AVER(b);
   AVER(RangeIsAligned(&range, ChunkPageSize(chunk)));
-  baseIndex = INDEX_OF_ADDR(chunk, range.base);
+  baseIndex = INDEX_OF_ADDR(chunk, RangeBase(&range));
   pages = ChunkSizeToPages(chunk, RangeSize(&range));
 
   res = (*arena->class->pagesMarkAllocated)(arena, chunk, baseIndex, pages, pool);
@@ -886,7 +892,9 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
     goto failMark;
 
   arena->freeZones = ZoneSetDiff(arena->freeZones,
-                                 ZoneSetOfRange(arena, range.base, range.limit));
+                                 ZoneSetOfRange(arena,
+                                                RangeBase(&range),
+                                                RangeLimit(&range)));
 
   *tractReturn = PageTract(ChunkPage(chunk, baseIndex));
   return ResOK;
@@ -945,7 +953,8 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
   /* Plan B: add free zones that aren't blacklisted */
   /* TODO: Pools without ambiguous roots might not care about the blacklist. */
   /* TODO: zones are precious and (currently) never deallocated, so we
-     should consider extending the arena first if address space is plentiful */
+     should consider extending the arena first if address space is plentiful.
+     See also job003384. */
   moreZones = ZoneSetUnion(pref->zones, ZoneSetDiff(arena->freeZones, pref->avoid));
   if (moreZones != zones) {
     res = arenaAllocFromCBS(&tract, moreZones, pref->high, size, pool);
