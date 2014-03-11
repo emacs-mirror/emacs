@@ -226,7 +226,6 @@ int main(int argc, char *argv[])
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
     MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, FALSE);
     MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &freecheckOptions);
-    MPS_ARGS_DONE(args);
     die(mps_pool_create_k(&pool, arena, mps_class_ams_debug(), args),
         "pool_create(ams_debug,share)");
   } MPS_ARGS_END(args);
@@ -239,7 +238,6 @@ int main(int argc, char *argv[])
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
     MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &freecheckOptions);
-    MPS_ARGS_DONE(args);
     die(mps_pool_create_k(&pool, arena, mps_class_ams_debug(), args),
         "pool_create(ams_debug,ambig)");
   } MPS_ARGS_END(args);
@@ -252,7 +250,6 @@ int main(int argc, char *argv[])
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
     MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &freecheckOptions);
-    MPS_ARGS_DONE(args);
     die(mps_pool_create_k(&pool, arena, mps_class_ams(), args),
         "pool_create(ams,ambig)");
   } MPS_ARGS_END(args);
@@ -265,7 +262,6 @@ int main(int argc, char *argv[])
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
     MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, FALSE);
     MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &freecheckOptions);
-    MPS_ARGS_DONE(args);
     die(mps_pool_create_k(&pool, arena, mps_class_ams(), args),
         "pool_create(ams,share)");
   } MPS_ARGS_END(args);

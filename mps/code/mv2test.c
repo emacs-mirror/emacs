@@ -187,7 +187,6 @@ static void stress_with_arena_class(mps_arena_class_t aclass)
     MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, max);
     MPS_ARGS_ADD(args, MPS_KEY_MVT_RESERVE_DEPTH, TEST_SET_SIZE/2);
     MPS_ARGS_ADD(args, MPS_KEY_MVT_FRAG_LIMIT, 0.3);
-    MPS_ARGS_DONE(args);
     die(stress(mps_class_mvt(), arena, randomSize, args), "stress MVT");
   } MPS_ARGS_END(args);
 
