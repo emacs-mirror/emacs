@@ -1,10 +1,7 @@
-/* table.h: A dictionary mapping a Word to a void*
+/* table.c: A dictionary mapping a Word to a void*
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
- *
- * .note.good-hash: As is common in hash table implementations, we
- * assume that the hash function is good.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "table.h"
@@ -16,75 +13,69 @@
 SRCID(table, "$Id$");
 
 
-/* tableHash -- return a hash value from an address
- *
- * This uses a single cycle of an MLCG, more commonly seen as a 
- * pseudorandom number generator.  It works extremely well as a 
- * hash function.
- *
- * (In particular, it is substantially better than simply doing this:
- *   seed = (unsigned long)addr * 48271;
- * Tested by RHSK 2010-12-28.)
- *
- * This MLCG is a full period generator: it cycles through every 
- * number from 1 to m-1 before repeating.  Therefore, no two numbers 
- * in that range hash to the same value.  Furthermore, it has prime 
- * modulus, which tends to avoid recurring patterns in the low-order 
- * bits, which is good because the hash will be used modulus the 
- * number of slots in the table.
- *
- * Of course it's only a 31-bit cycle, so we start by losing the top 
- * bit of the address, but that's hardly a great problem.
- *
- * See `rnd` in testlib.c for more technical details.
- *
- * The implementation is quite subtle.  See rnd() in testlib.c, where 
- * it has been exhaustively (ie: totally) tested.  RHSK 2010-12-28.
- *
- * NOTE: According to NB, still a fine function for producing a 31-bit hash
- * value, although of course it only hashes on the lower 31 bits of the
- * key; we could cheaply make it choose a different 31 bits if we'd prefer
- * (e.g. ((key >> 2) & 0x7FFFFFFF)), or combine more of the key bits (e.g.
- * ((key ^ (key >> 31)) & 0x7fffffff)).
- */
- 
-#define R_m 2147483647UL
-#define R_a 48271UL
+#define TABLE_REHASH_TRIES  8
 
-typedef Word Hash;
-
-static Hash tableHash(TableKey key)
-{
-  Hash hash = (Hash)(key & 0x7FFFFFFF);
-  /* requires m == 2^31-1, a < 2^16 */
-  Hash bot = R_a * (hash & 0x7FFF);
-  Hash top = R_a * (hash >> 15);
-  hash = bot + ((top & 0xFFFF) << 15) + (top >> 16);
-  if(hash > R_m)
-    hash -= R_m;
-  return hash;
-}
+#define TableLength(table) ((Count)1 << (table)->log2length)
 
 
 Bool TableCheck(Table table)
 {
   CHECKS(Table, table);
-  CHECKL(table->count <= table->length);
-  CHECKL(table->length == 0 || table->array != NULL);
+  CHECKL(table->count <= TableLength(table));
+  CHECKL(table->array != NULL);
+  CHECKL(table->maxChainLength >= 2);
+  CHECKL(table->maxChainLength <= TableLength(table));
   CHECKL(FUNCHECK(table->alloc));
   CHECKL(FUNCHECK(table->free));
   /* can't check allocClosure -- it could be anything */
   CHECKL(table->unusedKey != table->deletedKey);
+  CHECKL((table->posHashParamStruct.multiplicand & 1) != 0);
+  CHECKL((table->skipHashParamStruct.multiplicand & 1) != 0);
   return TRUE;
 }
 
 
-static Bool entryIsActive(Table table, TableEntry entry)
+/* <https://en.wikipedia.org/wiki/Universal_hashing> */
+
+/* FIXME: This is a copy of the random number generator from
+   testlib.c.  It probably needs importing into the MPS properly,
+   perhaps in its own module, and the unit tests moving out of
+   testlib.c as well. */
+
+static unsigned long tableSeed = 1;
+#define R_m 2147483647UL
+#define R_a 48271UL
+
+static unsigned long tableRnd(void)
 {
-  return !(entry->key == table->unusedKey ||
-           entry->key == table->deletedKey);
+  /* requires m == 2^31-1, a < 2^16 */
+  unsigned long bot = R_a * (tableSeed & 0x7FFF);
+  unsigned long top = R_a * (tableSeed >> 15);
+  tableSeed = bot + ((top & 0xFFFF) << 15) + (top >> 16);
+  if(tableSeed > R_m)
+    tableSeed -= R_m;
+  return tableSeed;
+  /* Have you modified this code?  Run rnd_verify(3) please!  RHSK */
 }
 
+static Word tableRnd64(void)
+{
+  return ((Word)tableRnd() << 32) | (Word)tableRnd();
+}
+
+static void tableHashParamInit(TableHashParam param)
+{
+  param->multiplicand = tableRnd64() | 1;
+  param->addend = tableRnd64();
+}
+
+static Word tableHash(TableHashParam param, TableKey key, Shift log2length)
+{
+  Word product = key * param->multiplicand;
+  Word sum = product + param->addend;
+  return sum >> (sizeof(Word) * CHAR_BIT - log2length);
+}
+  
 
 /* tableFind -- finds the entry for this key, or NULL
  *
@@ -93,31 +84,224 @@ static Bool entryIsActive(Table table, TableEntry entry)
  * that all the items still fit in after growing the table.
  */
 
-static TableEntry tableFind(Table table, TableKey key, Bool skip_deleted)
+static void tablePos(Index *posReturn, Count *skipReturn, Table table, TableKey key)
 {
-  Hash hash;
+  *posReturn = tableHash(&table->posHashParamStruct, key, table->log2length);
+  *skipReturn = tableHash(&table->skipHashParamStruct, key, table->log2length) | 1;
+}
+
+static Index tableStep(Index pos, Count skip, Count length)
+{
+  return (pos + skip) & (length - 1);
+}
+
+static TableEntry tableFind(Table table, TableKey key)
+{
   Index i;
-  Word mask;
+  Count length = (Count)1 << table->log2length;
+  Index pos;
+  Count skip;
 
-  /* .find.visit: Ensure the length is a power of two so that the stride
-     is coprime and so visits all entries in the array eventually. */
-  AVER_CRITICAL(WordIsP2(table->length)); /* .find.visit */
-
-  mask = table->length - 1; 
-  hash = tableHash(key) & mask;
-  i = hash;
-  do {
-    Word k = table->array[i].key;
-    if (k == key ||
-        k == table->unusedKey ||
-        (!skip_deleted && key == table->deletedKey))
-      return &table->array[i];
-    i = (i + (hash | 1)) & mask; /* .find.visit */
-  } while(i != hash);
-
+  tablePos(&pos, &skip, table, key);
+  for (i = 0; i < table->maxChainLength; ++i) {
+    if (table->array[pos].key == key)
+      return &table->array[pos];
+    pos = tableStep(pos, skip, length);
+  }
+  
   return NULL;
 }
 
+
+#ifdef TABLE_DEBUG
+static Bool tableFindBrute(Table table, TableKey key)
+{
+  Index i;
+  for (i = 0; i < TableLength(table); ++i)
+    if (table->array[i].key == key)
+      return TRUE;
+  return FALSE;
+}
+#endif
+
+
+/* tablePut -- put a key/value pair into the table
+ *
+ * Attempts to add a key/value pair to the table.  Returns ResFAIL if
+ * the key (or another key) is duplicated in the table, or ResLIMIT if
+ * it was not possible to place the key in a chain not longer than
+ * maxChainLength hops using the current hash function.
+ *
+ * Uses a displacing mechanism similar to a cuckoo hash to move
+ * entries out of the way, in order to guarantee O(1) lookups.  If
+ * insert fails with ResLIMIT, *keyIO and *valueIO contain a displaced
+ * key/value pair, which is no longer in the table.
+ */
+
+static Res tablePut(Table table, TableKey *keyIO, TableValue *valueIO)
+{
+  Index j;
+  TableKey key = *keyIO;
+  TableValue value = *valueIO;
+  Count length = TableLength(table);
+
+  for (j = 0; j < length; ++j) { /* detect cycle */
+    Index i;
+    Index pos, last;
+    Count skip;
+    TableKey tk;
+    TableValue tv;
+
+#ifdef TABLE_DEBUG
+    AVER(!tableFindBrute(table, key));
+#endif
+
+    tablePos(&pos, &skip, table, key);
+    for (i = 0; i < table->maxChainLength; ++i) {
+      tk = table->array[pos].key;
+      if (tk == table->unusedKey || tk == table->deletedKey) {
+        table->array[pos].key = key;
+        table->array[pos].value = value;
+        ++table->count;
+        return ResOK;
+      }
+      if (tk == key)
+        return ResFAIL;
+      last = pos;
+      pos = tableStep(pos, skip, length);
+    }
+    
+    /* Chain is full.  Kick out last slot and try to insert it elsewhere. */
+    tk = table->array[last].key;
+    tv = table->array[last].value;
+    AVER(tk != key);
+    AVER(tk != table->unusedKey);
+    AVER(tk != table->deletedKey);
+    table->array[last].key = key;
+    table->array[last].value = value;
+    key = tk;
+    value = tv;
+  }
+  
+  /* Cycle detected.  Give up. */
+  *keyIO = key;
+  *valueIO = value;
+  
+  return ResLIMIT;
+}
+
+
+/* tablePutSomewhere -- put the key/value pair somewhere random
+ *
+ * Adds a key/value pair to a random unoccupied slot in the table.
+ * This makes the table invalid, since the key is unlikely to be
+ * found.  It is intended for forcing a key/value pair into the table
+ * before a rehash.
+ */
+
+static void tablePutSomewhere(Table table, TableKey key, TableValue value)
+{
+  Index i;
+  AVER(table->count < TableLength(table));
+  for (i = 0; i < TableLength(table); ++i) {
+    TableKey tk = table->array[i].key;
+    AVER(tk != key);
+    if (tk == table->unusedKey || tk == table->deletedKey)
+      goto found;
+  }
+  NOTREACHED;
+found:
+  table->array[i].key = key;
+  table->array[i].value = value;
+  ++table->count;
+  for (i++; i < TableLength(table); ++i) {
+    AVER(table->array[i].key != key);
+  }
+}
+
+
+/* tableClear -- set all entries in a table to unused */
+
+static void tableClear(Table table)
+{
+  Count length = TableLength(table);
+  TableEntry array = table->array;
+  TableKey unusedKey = table->unusedKey;
+  Index i;
+  for (i = 0; i < length; ++i)
+    array[i].key = unusedKey;
+}
+
+
+/* tableRehashTry -- make one attempt to rehash the table
+ *
+ * Generate a new random hash function and make a pass over the table
+ * rehashing in place.  Returns ResLIMIT if it was not possible to
+ * rehash with chains not longer than maxChainLength hops using the
+ * hash function.
+ */
+
+static Res tableRehashTry(Table table)
+{
+  Index i;
+  Res res;
+  Count length = TableLength(table);
+  TableEntry array = table->array;
+
+  tableHashParamInit(&table->posHashParamStruct);
+  tableHashParamInit(&table->skipHashParamStruct);
+
+  for (i = 0; i < length; ++i) {
+    if (array[i].key != table->unusedKey) {
+      TableKey key = array[i].key;
+      TableValue value = array[i].value;
+      array[i].key = table->unusedKey;
+      --table->count;
+      res = tablePut(table, &key, &value);
+      if (res != ResOK) {
+	AVER(res != ResFAIL); /* duplicate key */
+        tablePutSomewhere(table, key, value);
+        return res;
+      }
+    }
+  }
+  
+  return ResOK;
+}
+
+
+/* tableRehash -- rehash the table making with multiple attempts
+ *
+ * Make TABLE_REHASH_TRIES attempts to randomly rehash the table.  If
+ * that fails, increase the maximum chain length and try again.  This
+ * is guaranteed to terminate since the chain length will eventually
+ * equal the table length, resulting in a very poor hash table.
+ * However, this is extraordinarily unlikely.
+ *
+ * TODO: Experiment with growing the table instead of extending the
+ * chain length, to keep lookup times down.  In fact, that may support
+ * a fixed chain length of 2 and a faster cuckoo lookup.
+ */
+
+static void tableRehash(Table table)
+{
+  Index i;
+
+  for (;;) {
+    for (i = 0; i < TABLE_REHASH_TRIES; ++i) {
+      Res res = tableRehashTry(table);
+      if (res == ResOK)
+        return;
+      AVER(res == ResLIMIT);
+    }
+    ++table->maxChainLength;
+
+    /* Even in the worst case (a single chain) the maximum chain length
+       can't exceed the number of table entries. */
+    AVER(table->maxChainLength <= table->count);
+  }
+}
+  
 
 /* TableGrow -- increase the capacity of the table
  *
@@ -145,14 +329,14 @@ static TableEntry tableFind(Table table, TableKey key, Bool skip_deleted)
  *     occupancy <= capacity < enough <= cSlots
  */
 
-#define SPACEFRACTION 0.75      /* .hash.spacefraction */
+#define SPACEFRACTION 0.5      /* .hash.spacefraction */
 
 Res TableGrow(Table table, Count extraCapacity)
 {
   TableEntry oldArray, newArray;
   Count oldLength, newLength;
   Count required, minimum;
-  Count i, found;
+  Count oldCount;
 
   required = table->count + extraCapacity;
   if (required < table->count)  /* overflow? */
@@ -165,7 +349,7 @@ Res TableGrow(Table table, Count extraCapacity)
     return ResLIMIT;
 
   /* Double the table length until it's larger than the minimum */
-  oldLength = table->length;
+  oldLength = TableLength(table);
   newLength = oldLength;
   while(newLength < minimum) {
     Count doubled = newLength > 0 ? newLength * 2 : 1; /* .hash.growth */
@@ -185,27 +369,14 @@ Res TableGrow(Table table, Count extraCapacity)
   if(newArray == NULL)
     return ResMEMORY;
 
-  for(i = 0; i < newLength; ++i) {
-    newArray[i].key = table->unusedKey;
-    newArray[i].value = NULL;
-  }
- 
-  table->length = newLength;
+  table->log2length = SizeLog2(newLength);
   table->array = newArray;
+  oldCount = table->count;
 
-  found = 0;
-  for(i = 0; i < oldLength; ++i) {
-    if (entryIsActive(table, &oldArray[i])) {
-      TableEntry entry;
-      entry = tableFind(table, oldArray[i].key, FALSE /* none deleted */);
-      AVER(entry != NULL);
-      AVER(entry->key == table->unusedKey);
-      entry->key = oldArray[i].key;
-      entry->value = oldArray[i].value;
-      ++found;
-    }
-  }
-  AVER(found == table->count);
+  tableClear(table);
+  mps_lib_memcpy(newArray, oldArray, sizeof(TableEntryStruct) * oldLength);
+  tableRehash(table);
+  AVER(table->count == oldCount);
 
   if (oldLength > 0) {
     AVER(oldArray != NULL);
@@ -240,7 +411,7 @@ extern Res TableCreate(Table *tableReturn,
   if(table == NULL)
     return ResMEMORY;
 
-  table->length = 0;
+  table->log2length = SizeLog2(length);
   table->count = 0;
   table->array = NULL;
   table->alloc = tableAlloc;
@@ -248,16 +419,29 @@ extern Res TableCreate(Table *tableReturn,
   table->allocClosure = allocClosure;
   table->unusedKey = unusedKey;
   table->deletedKey = deletedKey;
+  table->maxChainLength = 2;
+  
+  table->array = tableAlloc(allocClosure, sizeof(TableEntryStruct) * length);
+  if (table->array == NULL) {
+    res = ResMEMORY;
+    goto failArrayAlloc;
+  }
+  
+  tableHashParamInit(&table->posHashParamStruct);
+  tableHashParamInit(&table->skipHashParamStruct);
+
   table->sig = TableSig;
+
+  tableClear(table);
   
   AVERT(Table, table);
 
-  res = TableGrow(table, length);
-  if (res != ResOK)
-    return res;
- 
   *tableReturn = table;
   return ResOK;
+
+failArrayAlloc:
+  tableFree(allocClosure, table, sizeof(TableEntryStruct) * length);
+  return res;
 }
 
 
@@ -266,12 +450,9 @@ extern Res TableCreate(Table *tableReturn,
 extern void TableDestroy(Table table)
 {
   AVER(table != NULL);
-  if (table->length > 0) {
-    AVER(table->array != NULL);
-    table->free(table->allocClosure,
-                table->array,
-                sizeof(TableEntryStruct) * table->length);
-  }
+  table->free(table->allocClosure,
+              table->array,
+              sizeof(TableEntryStruct) * TableLength(table));
   table->sig = SigInvalid;
   table->free(table->allocClosure, table, sizeof(TableStruct));
 }
@@ -281,10 +462,16 @@ extern void TableDestroy(Table table)
 
 extern Bool TableLookup(TableValue *valueReturn, Table table, TableKey key)
 {
-  TableEntry entry = tableFind(table, key, TRUE /* skip deleted */);
+  TableEntry entry;
 
-  if(entry == NULL || !entryIsActive(table, entry))
+  AVERT(Table, table);
+  AVER(key != table->unusedKey);
+  AVER(key != table->deletedKey);
+  
+  entry = tableFind(table, key);
+  if (entry == NULL)
     return FALSE;
+
   *valueReturn = entry->value;
   return TRUE;
 }
@@ -294,33 +481,32 @@ extern Bool TableLookup(TableValue *valueReturn, Table table, TableKey key)
 
 extern Res TableDefine(Table table, TableKey key, TableValue value)
 {
-  TableEntry entry;
-  
+  Res res;
+  TableKey origKey = key;
+  TableValue origValue = value;
+
+  AVERT(Table, table);
   AVER(key != table->unusedKey);
   AVER(key != table->deletedKey);
+  /* value is arbitrary */
 
-  if (table->count >= table->length * SPACEFRACTION) {
-    Res res = TableGrow(table, 1);
+  res = tablePut(table, &key, &value);
+  if (res == ResLIMIT) {
+    res = TableGrow(table, 1);
     if (res != ResOK)
       return res;
-    entry = tableFind(table, key, FALSE /* no deletions yet */);
-    AVER(entry != NULL);
-    if (entryIsActive(table, entry))
-      return ResFAIL;
-  } else {
-    entry = tableFind(table, key, TRUE /* skip deleted */);
-    if (entry != NULL && entryIsActive(table, entry))
-      return ResFAIL;
-    /* Search again to find the best slot, deletions included. */
-    entry = tableFind(table, key, FALSE /* don't skip deleted */);
-    AVER(entry != NULL);
+    res = tablePut(table, &key, &value);
+    if (res == ResLIMIT) { /* doesn't fit with current hash */
+      tablePutSomewhere(table, key, value);
+      tableRehash(table);
+      res = ResOK;
+    }
   }
+  
+  AVER(res == ResOK || key == origKey);
+  AVER(res == ResOK || value == origValue);
 
-  entry->key = key;
-  entry->value = value;
-  ++table->count;
-
-  return ResOK;
+  return res;
 }
 
 
@@ -329,15 +515,18 @@ extern Res TableDefine(Table table, TableKey key, TableValue value)
 extern Res TableRedefine(Table table, TableKey key, TableValue value)
 {
   TableEntry entry;
- 
+
+  AVERT(Table, table);
   AVER(key != table->unusedKey);
   AVER(key != table->deletedKey);
+  /* value is arbitrary */
 
-  entry = tableFind(table, key, TRUE /* skip deletions */);
-  if (entry == NULL || !entryIsActive(table, entry))
+  entry = tableFind(table, key);
+  if (entry == NULL)
     return ResFAIL;
   AVER(entry->key == key);
   entry->value = value;
+
   return ResOK;
 }
 
@@ -348,28 +537,30 @@ extern Res TableRemove(Table table, TableKey key)
 {
   TableEntry entry;
 
+  AVERT(Table, table);
   AVER(key != table->unusedKey);
   AVER(key != table->deletedKey);
 
-  entry = tableFind(table, key, TRUE);
-  if (entry == NULL || !entryIsActive(table, entry))
+  entry = tableFind(table, key);
+  if (entry == NULL)
     return ResFAIL;
   entry->key = table->deletedKey;
   --table->count;
+
   return ResOK;
 }
 
 
 /* TableMap -- apply a function to all the mappings */
 
-extern void TableMap(Table table,
-                     void (*fun)(void *closure, TableKey key, TableValue value),
-                     void *closure)
+extern void TableMap(Table table, TableVisitor visit, void *closure)
 {
   Index i;
-  for (i = 0; i < table->length; i++)
-    if (entryIsActive(table, &table->array[i]))
-      (*fun)(closure, table->array[i].key, table->array[i].value);
+  for (i = 0; i < TableLength(table); i++) {
+    TableKey tk = table->array[i].key;
+    if (tk != table->unusedKey && tk != table->deletedKey)
+      visit(closure, table->array[i].key, table->array[i].value);
+  }
 }
 
 
@@ -383,7 +574,7 @@ extern Count TableCount(Table table)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
