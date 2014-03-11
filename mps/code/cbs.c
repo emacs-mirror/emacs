@@ -274,7 +274,6 @@ Res CBSInit(CBS cbs, Arena arena, void *owner, Align alignment,
       MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
       MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, extendBy);
       MPS_ARGS_ADD(pcArgs, MFSExtendSelf, extendSelf);
-      MPS_ARGS_DONE(pcArgs);
       res = PoolCreate(&cbs->blockPool, arena, PoolClassMFS(), pcArgs);
     } MPS_ARGS_END(pcArgs);
     if (res != ResOK)
