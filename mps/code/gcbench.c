@@ -415,7 +415,7 @@ int main(int argc, char *argv[]) {
               "  -x n, --seed=n\n"
               "    Random number seed (default from entropy)\n"
               "  -z, --arena-unzoned\n"
-              "    Disabled zoned allocation in the arena\n"
+              "    Disable zoned allocation in the arena\n"
               "Tests:\n"
               "  amc   pool class AMC\n"
               "  ams   pool class AMS\n",
