@@ -26,8 +26,8 @@ SRCID(cbs, "$Id$");
 #define CBSBlockSize(block) AddrOffset((block)->base, (block)->limit)
 
 
-#define cbsOfTree(_tree) PARENT(CBSStruct, tree, (_tree))
-#define cbsBlockOfNode(_node) PARENT(CBSBlockStruct, node, (_node))
+#define cbsOfTree(_tree) TREE_ELT(CBS, tree, _tree)
+#define cbsBlockOfNode(_node) PARENT(CBSBlockStruct, node, _node)
 #define treeOfCBS(cbs) (&((cbs)->tree))
 #define nodeOfCBSBlock(block) (&((block)->node))
 #define keyOfCBSBlock(block) (&((block)->base))
@@ -106,6 +106,7 @@ static Compare cbsCompare(Tree node, TreeKey key)
   CBSBlock cbsBlock;
 
   AVER(node != NULL);
+  AVER(node != TreeEMPTY);
 
   base1 = *(Addr *)key;
   cbsBlock = cbsBlockOfNode(node);
@@ -461,7 +462,7 @@ static Res cbsInsertIntoTree(Range rangeReturn, CBS cbs, Range range)
    * range to fit, we need limit <= rightCBS->base too. Hence the extra
    * check and the possibility of failure in the second case.
    */
-  if (leftSplay == NULL) {
+  if (leftSplay == TreeEMPTY) {
     leftCBS = NULL;
     leftMerge = FALSE;
   } else {
@@ -470,7 +471,7 @@ static Res cbsInsertIntoTree(Range rangeReturn, CBS cbs, Range range)
     leftMerge = leftCBS->limit == base;
   }
 
-  if (rightSplay == NULL) {
+  if (rightSplay == TreeEMPTY) {
     rightCBS = NULL;
     rightMerge = FALSE;
   } else {
@@ -656,7 +657,8 @@ static Res cbsBlockDescribe(CBSBlock block, mps_lib_FILE *stream)
 {
   Res res;
 
-  if (stream == NULL) return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = WriteF(stream,
                "[$P,$P) {$U, $B}",
@@ -672,28 +674,39 @@ static Res cbsSplayNodeDescribe(Tree node, mps_lib_FILE *stream)
 {
   Res res;
 
-  if (node == NULL) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (node == TreeEMPTY)
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = cbsBlockDescribe(cbsBlockOfNode(node), stream);
   return res;
 }
 
 
-/* CBSIterate -- Iterate all blocks in CBS
+/* CBSIterate -- iterate over all blocks in CBS
  *
- * This is not necessarily efficient.
+ * Applies a visitor to all isolated contiguous ranges in a CBS.
+ * It receives a pointer, ``Size`` closure pair to pass on to the
+ * visitor function, and an visitor function to invoke on every range
+ * in address order. If the visitor returns ``FALSE``, then the iteration
+ * is terminated.
+ *
+ * The visitor function may not modify the CBS during the iteration.
+ * This is because CBSIterate uses TreeTraverse, which does not permit
+ * modification, for speed and to avoid perturbing the splay tree balance.
+ *
  * See <design/cbs/#function.cbs.iterate>.
  */
 
 typedef struct CBSIterateClosure {
   CBS cbs;
-  CBSIterateMethod iterate;
+  CBSVisitor iterate;
   void *closureP;
   Size closureS;
 } CBSIterateClosure;
 
-static Bool CBSIterateVisit(Tree tree, void *closureP, Size closureS)
+static Bool cbsIterateVisit(Tree tree, void *closureP, Size closureS)
 {
   CBSIterateClosure *closure = closureP;
   RangeStruct range;
@@ -710,7 +723,7 @@ static Bool CBSIterateVisit(Tree tree, void *closureP, Size closureS)
   return TRUE;
 }
 
-void CBSIterate(CBS cbs, CBSIterateMethod iterate,
+void CBSIterate(CBS cbs, CBSVisitor visitor,
                 void *closureP, Size closureS)
 {
   SplayTree tree;
@@ -718,7 +731,7 @@ void CBSIterate(CBS cbs, CBSIterateMethod iterate,
 
   AVERT(CBS, cbs);
   cbsEnter(cbs);
-  AVER(FUNCHECK(iterate));
+  AVER(FUNCHECK(visitor));
 
   tree = treeOfCBS(cbs);
   /* .splay-iterate.slow: We assume that splay tree iteration does */
@@ -726,11 +739,11 @@ void CBSIterate(CBS cbs, CBSIterateMethod iterate,
   METER_ACC(cbs->treeSearch, cbs->treeSize);
 
   closure.cbs = cbs;
-  closure.iterate = iterate;
+  closure.iterate = visitor;
   closure.closureP = closureP;
   closure.closureS = closureS;
   (void)TreeTraverse(SplayTreeRoot(tree), tree->compare, tree->nodeKey,
-                     CBSIterateVisit, &closure, 0);
+                     cbsIterateVisit, &closure, 0);
 
   cbsLeave(cbs);
   return;
@@ -1008,7 +1021,7 @@ Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
   if (!SplayTreeIsEmpty(treeOfCBS(cbs))) {
     RangeStruct range;
     CBSBlock block;
-    Tree node = NULL;    /* suppress "may be used uninitialized" */
+    Tree node = TreeEMPTY;    /* suppress "may be used uninitialized" */
     Size maxSize;
 
     maxSize = cbsBlockOfNode(SplayTreeRoot(treeOfCBS(cbs)))->maxSize;
@@ -1040,8 +1053,10 @@ Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
 {
   Res res;
 
-  if (!TESTT(CBS, cbs)) return ResFAIL;
-  if (stream == NULL) return ResFAIL;
+  if (!TESTT(CBS, cbs))
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
 
   res = WriteF(stream,
                "CBS $P {\n", (WriteFP)cbs,
