@@ -18,7 +18,7 @@
 
 typedef struct CBSStruct *CBS;
 typedef Bool (*CBSVisitor)(CBS cbs, Range range,
-                                 void *closureP, Size closureS);
+                           void *closureP, Size closureS);
 
 
 #define CBSSig ((Sig)0x519CB599) /* SIGnature CBS */

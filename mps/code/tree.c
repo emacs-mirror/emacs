@@ -61,6 +61,8 @@ Count TreeDebugCount(Tree tree, TreeCompare compare, TreeKeyMethod key)
 }
 
 
+#if 0 /* This code is not currently in use in the MPS */
+
 /* TreeFind -- search for a node matching the key
  *
  * If a matching node is found, sets *treeReturn to that node and returns
@@ -95,6 +97,7 @@ Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
       return cmp;
     case CompareGREATER:
       node = node->right;
+      break;
     default:
       NOTREACHED;
       *treeReturn = NULL;
@@ -156,13 +159,19 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
 
 /* TreeTraverseMorris -- traverse tree in constant space, n log n time
  *
- * <http://en.wikipedia.org/wiki/Tree_traversal#Morris_in-order_traversal_using_threading>
- *
  * The tree may not be accessed or modified during the traversal, and
  * the traversal must complete in order to repair the tree.
  *
+ * The visitor should return FALSE to terminate the traversal early,
+ * in which case FALSE is returned.
+ *
  * TreeTraverse is generally superior if comparisons are cheap, but
  * TreeTraverseMorris does not require any comparison function.
+ *
+ * <http://en.wikipedia.org/wiki/Tree_traversal#Morris_in-order_traversal_using_threading>
+ *
+ * Joseph M. Morris (1979). "Traversing Binary Trees Simply and Cheaply".
+ * Information Processing Letters 9:5 pp. 197–200.
  */
 
 Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
@@ -206,11 +215,16 @@ Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
   return visiting;
 }
 
+#endif /* not currently in use */
+
 
 /* TreeTraverse -- traverse tree using pointer reversal
  *
  * The tree may not be accessed or modified during the traversal, and
  * the traversal must complete in order to repair the tree.
+ *
+ * The visitor should return FALSE to terminate the traversal early,
+ * in which case FALSE is returned.
  *
  * TreeTraverseMorris is an alternative when no cheap comparison is available.
  */
@@ -409,6 +423,9 @@ Tree TreeReverseRightSpine(Tree tree)
 }
 
 
+#if 0 /* This code is currently not in use in the MPS */
+
+
 /* TreeToVine -- unbalance a tree into a single right spine */
 
 Count TreeToVine(Tree *link)
@@ -460,6 +477,9 @@ void TreeBalance(Tree *treeIO)
     } while (n > 1);
   }
 }
+
+
+#endif /* not currently in use in the MPS */
 
 
 /* C. COPYRIGHT AND LICENSE
