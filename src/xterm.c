@@ -9305,6 +9305,22 @@ x_free_frame_resources (struct frame *f)
 	  f->output_data.x->black_relief.gc = 0;
 	}
 
+      /* Free cursors.  */
+      if (f->output_data.x->text_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->text_cursor);
+      if (f->output_data.x->nontext_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->nontext_cursor);
+      if (f->output_data.x->modeline_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->modeline_cursor);
+      if (f->output_data.x->hand_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->hand_cursor);
+      if (f->output_data.x->hourglass_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->hourglass_cursor);
+      if (f->output_data.x->horizontal_drag_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->horizontal_drag_cursor);
+      if (f->output_data.x->vertical_drag_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->vertical_drag_cursor);
+
       XFlush (FRAME_X_DISPLAY (f));
     }
 

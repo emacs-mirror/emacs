@@ -716,6 +716,7 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     XRecolorCursor (dpy, hand_cursor, &fore_color, &back_color);
     XRecolorCursor (dpy, hourglass_cursor, &fore_color, &back_color);
     XRecolorCursor (dpy, horizontal_drag_cursor, &fore_color, &back_color);
+    XRecolorCursor (dpy, vertical_drag_cursor, &fore_color, &back_color);
   }
 
   if (FRAME_X_WINDOW (f) != 0)

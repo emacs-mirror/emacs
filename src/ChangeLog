@@ -1,3 +1,8 @@
+2014-03-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xfns.c (x_set_mouse_color): Recolor vertical_drag_cursor.
+	* xterm.c (x_free_frame_resources): Free all allocated cursors.
+
 2014-03-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (fstatat): Don't add an extra slash if the argument ends
