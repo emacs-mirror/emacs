@@ -1,3 +1,19 @@
+2014-03-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el: Separate options for reusing frames and cleaning up.
+	(frameset--reuse-list): Remove definition; declare.
+	(frameset--action-map): Declare.
+	(frameset--find-frame-if): Doc fix.
+	(frameset--restore-frame): Cache frame action.
+	(frameset-restore): New keyword arg CLEANUP-FRAMES, allows to select
+	how to clean up the frame list after restoring.  Remove cleaning
+	options from REUSE-FRAMES.  Change all keyword values to symbols.
+	(frameset--jump-to-register): Simplify by using CLEANUP-FRAMES.
+
+	* desktop.el (desktop-restore-forces-onscreen)
+	(desktop-restore-reuses-frames): Use non-keyword values.
+	(desktop-restore-frameset): Use CLEANUP-FRAMES arg of frameset-restore.
+
 2014-03-10  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (find-file): Doc fix: update info node name.

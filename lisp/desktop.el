@@ -404,12 +404,12 @@ If `delete', frames on other displays are deleted instead of restored."
 
 (defcustom desktop-restore-forces-onscreen t
   "If t, offscreen frames are restored onscreen instead.
-If `:all', frames that are partially offscreen are also forced onscreen.
+If `all', frames that are partially offscreen are also forced onscreen.
 NOTE: Checking of frame boundaries is only approximate and can fail
 to reliably detect frames whose onscreen/offscreen state depends on a
 few pixels, especially near the right / bottom borders of the screen."
   :type '(choice (const :tag "Only fully offscreen frames" t)
-		 (const :tag "Also partially offscreen frames" :all)
+		 (const :tag "Also partially offscreen frames" all)
 		 (const :tag "Do not force frames onscreen" nil))
   :group 'desktop
   :version "24.4")
@@ -417,7 +417,7 @@ few pixels, especially near the right / bottom borders of the screen."
 (defcustom desktop-restore-reuses-frames t
   "If t, restoring frames reuses existing frames.
 If nil, existing frames are deleted.
-If `:keep', existing frames are kept and not reused."
+If `keep', existing frames are kept and not reused."
   :type '(choice (const :tag "Reuse existing frames" t)
 		 (const :tag "Delete existing frames" nil)
 		 (const :tag "Keep existing frames" :keep))
@@ -692,7 +692,7 @@ if different)."
 			(frame-parameter frame 'desktop-dont-clear))
 	      (delete-frame frame))
 	  (error
-	 (delay-warning 'desktop (error-message-string err))))))))
+	   (delay-warning 'desktop (error-message-string err))))))))
 
 ;; ----------------------------------------------------------------------------
 (unless noninteractive
@@ -1058,7 +1058,8 @@ This function depends on the value of `desktop-saved-frameset'
 being set (usually, by reading it from the desktop)."
   (when (desktop-restoring-frameset-p)
     (frameset-restore desktop-saved-frameset
-		      :reuse-frames desktop-restore-reuses-frames
+		      :reuse-frames (eq desktop-restore-reuses-frames t)
+		      :cleanup-frames (not (eq desktop-restore-reuses-frames 'keep))
 		      :force-display desktop-restore-in-current-display
 		      :force-onscreen desktop-restore-forces-onscreen)))
 

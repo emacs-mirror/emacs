@@ -786,10 +786,9 @@ PROPERTIES is a user-defined property list to add to the frameset."
 
 ;; Restoring framesets
 
-(defvar frameset--reuse-list nil
-  "The list of frames potentially reusable.
-Its value is only meaningful during execution of `frameset-restore'.
-Internal use only.")
+;; Dynamically bound in `frameset-restore'.
+(defvar frameset--reuse-list)
+(defvar frameset--action-map)
 
 (defun frameset-compute-pos (value left/top right/bottom)
   "Return an absolute positioning value for a frame.
@@ -871,7 +870,7 @@ NOTE: This only works for non-iconified frames."
 	  (modify-frame-parameters frame params))))))
 
 (defun frameset--find-frame-if (predicate display &rest args)
-  "Find a frame in `frameset--reuse-list' satisfying PREDICATE.
+  "Find a reusable frame satisfying PREDICATE.
 Look through available frames whose display property matches DISPLAY
 and return the first one for which (PREDICATE frame ARGS) returns t.
 If PREDICATE is nil, it is always satisfied.  Internal use only."
@@ -982,16 +981,20 @@ Internal use only."
 	(push visible alt-cfg)
 	(push (cons 'fullscreen fullscreen) alt-cfg)))
 
-    ;; Time to find or create a frame an apply the big bunch of parameters.
-    ;; If a frame needs to be created and it falls partially or fully offscreen,
-    ;; sometimes it gets "pushed back" onscreen; however, moving it afterwards is
-    ;; allowed.  So we create the frame as invisible and then reapply the full
-    ;; parameter alist (including position and size parameters).
-    (setq frame (or (and frameset--reuse-list
-			 (frameset--reuse-frame display filtered-cfg))
-		    (make-frame-on-display display
-					   (cons '(visibility)
-						 (frameset--initial-params filtered-cfg)))))
+    ;; Time to find or create a frame and apply the big bunch of parameters.
+    (setq frame (and frameset--reuse-list
+		     (frameset--reuse-frame display filtered-cfg)))
+    (if frame
+	(puthash frame :reused frameset--action-map)
+      ;; If a frame needs to be created and it falls partially or fully offscreen,
+      ;; sometimes it gets "pushed back" onscreen; however, moving it afterwards is
+      ;; allowed.  So we create the frame as invisible and then reapply the full
+      ;; parameter alist (including position and size parameters).
+      (setq frame (make-frame-on-display display
+					 (cons '(visibility)
+					       (frameset--initial-params filtered-cfg))))
+      (puthash frame :created frameset--action-map))
+
     (modify-frame-parameters frame
 			     (if (eq (frame-parameter frame 'fullscreen) fullscreen)
 				 ;; Workaround for bug#14949
@@ -1038,7 +1041,8 @@ For the meaning of FORCE-DISPLAY, see `frameset-restore'."
 ;;;###autoload
 (cl-defun frameset-restore (frameset
 			    &key predicate filters reuse-frames
-				 force-display force-onscreen)
+				 force-display force-onscreen
+				 cleanup-frames)
   "Restore a FRAMESET into the current display(s).
 
 PREDICATE is a function called with two arguments, the parameter alist
@@ -1050,58 +1054,79 @@ and window-state is not restored.
 FILTERS is an alist of parameter filters; if nil, the value of
 `frameset-filter-alist' is used instead.
 
-REUSE-FRAMES selects the policy to use to reuse frames when restoring:
-  t        Reuse existing frames if possible, and delete those not reused.
-  nil      Restore frameset in new frames and delete existing frames.
-  :keep    Restore frameset in new frames and keep the existing ones.
-  LIST     A list of frames to reuse; only these are reused (if possible).
-	     Remaining frames in this list are deleted; other frames not
-	     included on the list are left untouched.
+REUSE-FRAMES selects the policy to reuse frames when restoring:
+  t        All existing frames can be reused.
+  nil      No existing frame can be reused.
+  match    Only frames with matching frame ids can be reused.
+  PRED     A predicate function; it receives as argument a live frame,
+             and must return non-nil to allow reusing it, nil otherwise.
 
 FORCE-DISPLAY can be:
   t        Frames are restored in the current display.
   nil      Frames are restored, if possible, in their original displays.
-  :delete  Frames in other displays are deleted instead of restored.
+  delete   Frames in other displays are deleted instead of restored.
   PRED     A function called with two arguments, the parameter alist and
 	     the window state (in that order).  It must return t, nil or
-	     `:delete', as above but affecting only the frame that will
+	     `delete', as above but affecting only the frame that will
 	     be created from that parameter alist.
 
 FORCE-ONSCREEN can be:
   t        Force onscreen only those frames that are fully offscreen.
   nil      Do not force any frame back onscreen.
-  :all     Force onscreen any frame fully or partially offscreen.
+  all      Force onscreen any frame fully or partially offscreen.
   PRED     A function called with three arguments,
 	   - the live frame just restored,
 	   - a list (LEFT TOP WIDTH HEIGHT), describing the frame,
 	   - a list (LEFT TOP WIDTH HEIGHT), describing the workarea.
 	   It must return non-nil to force the frame onscreen, nil otherwise.
 
+CLEANUP-FRAMES allows to \"clean up\" the frame list after restoring a frameset:
+  t        Delete all frames that were not created or restored upon.
+  nil      Keep all frames.
+  FUNC     A function called with two arguments:
+           - FRAME, a live frame.
+           - ACTION, which can be one of
+             :rejected  Frame existed, but was not a candidate for reuse.
+             :ignored   Frame existed, was a candidate, but wasn't reused.
+             :reused    Frame existed, was a candidate, and restored upon.
+             :created   Frame didn't exist, was created and restored upon.
+           Return value is ignored.
+
 Note the timing and scope of the operations described above: REUSE-FRAMES
 affects existing frames; PREDICATE, FILTERS and FORCE-DISPLAY affect the frame
-being restored before that happens; and FORCE-ONSCREEN affects the frame once
-it has been restored.
+being restored before that happens; FORCE-ONSCREEN affects the frame once
+it has been restored; and CLEANUP-FRAMES affects all frames alive after the
+restoration, including those that have been reused or created anew.
 
 All keyword parameters default to nil."
 
   (cl-assert (frameset-valid-p frameset))
 
-  (let (other-frames)
+  (let* ((frames (frame-list))
+	 (frameset--action-map (make-hash-table :test #'eq))
+	 ;; frameset--reuse-list is a list of frames potentially reusable.  Later we
+	 ;; will decide which ones can be reused, and how to deal with any leftover.
+	 (frameset--reuse-list
+	  (pcase reuse-frames
+	    (`t
+	     frames)
+	    (`nil
+	     nil)
+	    (`match
+	     (cl-loop for (state) in (frameset-states frameset)
+		      when (frameset-frame-with-id (frameset-cfg-id state) frames)
+		      collect it))
+	    ((pred functionp)
+	     (cl-remove-if-not reuse-frames frames))
+	    (_
+	     (error "Invalid arg :reuse-frames %s" reuse-frames)))))
 
-    ;; frameset--reuse-list is a list of frames potentially reusable.  Later we
-    ;; will decide which ones can be reused, and how to deal with any leftover.
-    (pcase reuse-frames
-      ((or `nil `:keep)
-       (setq frameset--reuse-list nil
-	     other-frames (frame-list)))
-      ((pred consp)
-       (setq frameset--reuse-list (copy-sequence reuse-frames)
-	     other-frames (cl-delete-if (lambda (frame)
-					  (memq frame frameset--reuse-list))
-					(frame-list))))
-      (_
-       (setq frameset--reuse-list (frame-list)
-	     other-frames nil)))
+    ;; Mark existing frames in the map; candidates to reuse are marked as :ignored;
+    ;; they will be reassigned later, if chosen.
+    (dolist (frame frames)
+      (puthash frame
+	       (if (memq frame frameset--reuse-list) :ignored :rejected)
+	       frameset--action-map))
 
     ;; Sort saved states to guarantee that minibufferless frames will be created
     ;; after the frames that contain their minibuffer windows.
@@ -1131,17 +1156,15 @@ All keyword parameters default to nil."
 		;; - we're switching displays, and the user chose the option to delete, or
 		;; - we're switching to tty, and the frame to restore is minibuffer-only.
 		(unless (and frameset--target-display
-			     (or (eq force-display :delete)
+			     (or (eq force-display 'delete)
 				 (and to-tty
 				      (eq (cdr (assq 'minibuffer frame-cfg)) 'only))))
 		  ;; To avoid duplicating frame ids after restoration, we note any
 		  ;; existing frame whose id matches a frame configuration in the
 		  ;; frameset.  Once the frame config is properly restored, we can
 		  ;; reset the old frame's id to nil.
-		  (setq duplicate (and other-frames
-				       (or (eq reuse-frames :keep) (consp reuse-frames))
-				       (frameset-frame-with-id (frameset-cfg-id frame-cfg)
-							       other-frames)))
+		  (setq duplicate (frameset-frame-with-id (frameset-cfg-id frame-cfg)
+							  frames))
 		  ;; Restore minibuffers.  Some of this stuff could be done in a filter
 		  ;; function, but it would be messy because restoring minibuffers affects
 		  ;; global state; it's best to do it here than add a bunch of global
@@ -1187,20 +1210,27 @@ All keyword parameters default to nil."
     ;; other frames are already visible (discussed in thread for bug#14841).
     (sit-for 0 t)
 
-    ;; Delete remaining frames, but do not fail if some resist being deleted.
-    (unless (eq reuse-frames :keep)
-      (dolist (frame (sort (nconc (if (listp reuse-frames) nil other-frames)
-				  frameset--reuse-list)
-			   ;; Minibufferless frames must go first to avoid
-			   ;; errors when attempting to delete a frame whose
-			   ;; minibuffer window is used by another frame.
-			   #'frameset-minibufferless-first-p))
-	(condition-case err
-	    (delete-frame frame)
-	  (error
-	   (delay-warning 'frameset (error-message-string err))))))
-    (setq frameset--reuse-list nil
-	  frameset--target-display nil)
+    ;; Clean temporary caches
+    (setq frameset--target-display nil)
+
+    ;; Clean up the frame list
+    (when cleanup-frames
+      (let ((map nil)
+	    (cleanup (if (eq cleanup-frames t)
+			 (lambda (frame action)
+			   (when (memq action '(:rejected :ignored))
+			     (delete-frame frame)))
+		       cleanup-frames)))
+	(maphash (lambda (frame _action) (push frame map)) frameset--action-map)
+	(dolist (frame (sort map
+			     ;; Minibufferless frames must go first to avoid
+			     ;; errors when attempting to delete a frame whose
+			     ;; minibuffer window is used by another frame.
+			     #'frameset-minibufferless-first-p))
+	  (condition-case-unless-debug err
+	      (funcall cleanup frame (gethash frame frameset--action-map))
+	    (error
+	     (delay-warning 'frameset (error-message-string err) :warning))))))
 
     ;; Make sure there's at least one visible frame.
     (unless (or (daemonp) (visible-frame-list))
@@ -1212,23 +1242,21 @@ All keyword parameters default to nil."
 (defun frameset--jump-to-register (data)
   "Restore frameset from DATA stored in register.
 Called from `jump-to-register'.  Internal use only."
-  (let ((fs (aref data 0))
-	reuse-frames iconify-list)
-    (if current-prefix-arg
-	;; Reuse all frames and delete any left unused
-	(setq reuse-frames t)
-      ;; Reuse matching frames and leave others to be iconified
-      (setq iconify-list (frame-list))
-      (dolist (state (frameset-states fs))
-	(let ((frame (frameset-frame-with-id (frameset-cfg-id (car state))
-					     iconify-list)))
-	  (when frame
-	    (push frame reuse-frames)
-	    (setq iconify-list (delq frame iconify-list))))))
-    (frameset-restore fs
-		      :filters frameset-session-filter-alist
-		      :reuse-frames reuse-frames)
-    (mapc #'iconify-frame iconify-list))
+  (frameset-restore
+   (aref data 0)
+   :filters frameset-session-filter-alist
+   :reuse-frames (if current-prefix-arg t 'match)
+   :cleanup-frames (if current-prefix-arg
+		       ;; delete frames
+		       nil
+		     ;; iconify frames
+		     (lambda (frame action)
+		       (pcase action
+			 (`rejected (iconify-frame frame))
+			 ;; In the unexpected case that a frame was a candidate
+			 ;; (matching frame id) and yet not restored, remove it
+			 ;; because it is in fact a duplicate.
+			 (`ignored (delete-frame frame))))))
 
   ;; Restore selected frame, buffer and point.
   (let ((frame (frameset-frame-with-id (aref data 1)))
