@@ -1,3 +1,10 @@
+2014-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el (advice--make-1): Fix autoloading avoidance.
+	(advice-add): Add a :advice--pending marker, so advice--make-1 knows
+	when the advice is pending.
+	(advice-remove): Remove this marker when not needed any more.
+
 2014-03-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el: Separate options for reusing frames and cleaning up.

@@ -141,11 +141,12 @@ Each element has the form (WHERE BYTECODE STACK) where:
   (let ((adv-sig (gethash main advertised-signature-table))
         (advice
          (apply #'make-byte-code 128 byte-code
-                (vector #'apply function main props) stack-depth
-                nil
+                (vector #'apply function main props) stack-depth nil
                 (and (or (commandp function) (commandp main))
-		     (not (and (symbolp main) ;; Don't autoload too eagerly!
-			       (autoloadp (symbol-function main))))
+		     ;; If we're adding the advice on advice--pending, don't
+		     ;; build an interactive-form, which won't be used anyway
+		     ;; and would risk autoloading `main' (or `function').
+		     (not (eq main :advice--pending))
                      (list (advice--make-interactive-form
                             function main))))))
     (when adv-sig (puthash advice adv-sig advertised-signature-table))
@@ -392,6 +393,8 @@ is defined as a macro, alias, command, ..."
                          ;; - `autoload' does nothing if the function is
                          ;;   not an autoload or undefined.
                          ((or (not nf) (autoloadp nf))
+			  (unless (get symbol 'advice--pending)
+			    (put symbol 'advice--pending :advice--pending))
                           (get symbol 'advice--pending))
                          (t (symbol-function symbol)))
                   function props)
@@ -416,6 +419,8 @@ of the piece of advice."
                      function)
     (unless (advice--p (advice--symbol-function symbol))
       ;; Not advised any more.
+      (when (eq (get symbol 'advice--pending) :advice--pending)
+	(put symbol 'advice--pending nil))
       (remove-function (get symbol 'defalias-fset-function)
                        #'advice--defalias-fset)
       (let ((asr (get symbol 'advice--saved-rewrite)))
