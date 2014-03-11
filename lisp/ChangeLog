@@ -1,3 +1,9 @@
+2014-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (set-mark): Ensure mark-active is nil if the mark is nil
+	(bug#16975).  Deactivate the mark before setting it to nil.
+	(activate-mark): Do nothing if region is already active.
+
 2014-03-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el (frameset--target-display): Remove definition; declare.
@@ -42,8 +48,8 @@
 
 2014-03-10  Leo Liu  <sdl.web@gmail.com>
 
-	* emacs-lisp/eldoc.el (eldoc-minibuffer-message): Clear
-	eldoc-last-message.  (Bug#16920)
+	* emacs-lisp/eldoc.el (eldoc-minibuffer-message):
+	Clear eldoc-last-message.  (Bug#16920)
 
 2014-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 

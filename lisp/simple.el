@@ -4392,12 +4392,12 @@ run `deactivate-mark-hook'."
   "Activate the mark.
 If NO-TMM is non-nil, leave `transient-mark-mode' alone."
   (when (mark t)
-    (unless (and mark-active transient-mark-mode)
-      (force-mode-line-update)) ;Refresh toolbar (bug#16382).
-    (setq mark-active t)
-    (unless (or transient-mark-mode no-tmm)
-      (setq transient-mark-mode 'lambda))
-    (run-hooks 'activate-mark-hook)))
+    (unless (region-active-p)
+      (force-mode-line-update) ;Refresh toolbar (bug#16382).
+      (setq mark-active t)
+      (unless (or transient-mark-mode no-tmm)
+        (setq transient-mark-mode 'lambda))
+      (run-hooks 'activate-mark-hook))))
 
 (defun set-mark (pos)
   "Set this buffer's mark to POS.  Don't use this function!
@@ -4415,14 +4415,18 @@ To remember a location for internal use in the Lisp program,
 store it in a Lisp variable.  Example:
 
    (let ((beg (point))) (forward-line 1) (delete-region beg (point)))."
-
-  (set-marker (mark-marker) pos (current-buffer))
   (if pos
-      (activate-mark 'no-tmm)
+      (progn
+        (set-marker (mark-marker) pos (current-buffer))
+        (activate-mark 'no-tmm))
     ;; Normally we never clear mark-active except in Transient Mark mode.
     ;; But when we actually clear out the mark value too, we must
     ;; clear mark-active in any mode.
-    (deactivate-mark t)))
+    (deactivate-mark t)
+    ;; `deactivate-mark' sometimes leaves mark-active non-nil, but
+    ;; it should never be nil if the mark is nil.
+    (setq mark-active nil)
+    (set-marker (mark-marker) nil)))
 
 (defcustom use-empty-active-region nil
   "Whether \"region-aware\" commands should act on empty regions.
