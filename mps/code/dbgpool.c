@@ -27,7 +27,7 @@ typedef struct tagStruct {
 } tagStruct;
 
 #define TagTree(tag)    (&(tag)->treeStruct)
-#define TagOfTree(tree) PARENT(tagStruct, treeStruct, tree)
+#define TagOfTree(tree) TREE_ELT(tag, treeStruct, tree)
 
 typedef tagStruct *Tag;
 
