@@ -108,7 +108,6 @@ SNC introspection
 
         MPS_ARGS_BEGIN(args) {
             MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
-            MPS_ARGS_DONE(args);
             res = mps_pool_create_k(&pool, arena, mps_class_snc(), args);
         } MPS_ARGS_END(args);
 
@@ -132,7 +131,6 @@ SNC introspection
 
         MPS_ARGS_BEGIN(args) {
             MPS_ARGS_ADD(args, MPS_KEY_RANK, mps_rank_exact());
-            MPS_ARGS_DONE(args);
             res = mps_ap_create_k(&ap, awl_pool, args);
         } MPS_ARGS_END(args);
 

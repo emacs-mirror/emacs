@@ -32,7 +32,6 @@ help with forming keyword argument lists::
     MPS_ARGS_BEGIN(args) {
         MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 6553600);
         MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, base_address);
-        MPS_ARGS_DONE(args);
         res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
     } MPS_ARGS_END(args);
 
@@ -128,14 +127,12 @@ now :c:macro:`MPS_KEY_ARGS_END`.
         MPS_ARGS_BEGIN(args) {
             MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 6553600);
             MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, base_address);
-            MPS_ARGS_DONE(args);
             res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
         } MPS_ARGS_END(args);
 
     That is, you must call :c:func:`MPS_ARGS_ADD` (or
-    :c:func:`MPS_ARGS_ADD_FIELD`) zero or more times, and then call
-    :c:func:`MPS_ARGS_DONE` before passing the arguments to a
-    function.
+    :c:func:`MPS_ARGS_ADD_FIELD`) zero or more times, and then pass
+    the arguments to a function.
 
     ``args`` is the name of the array that contains the keyword
     arguments. The array is stack-allocated, and exists between
@@ -185,19 +182,6 @@ now :c:macro:`MPS_KEY_ARGS_END`.
         you don't need to look up the name of the field.
 
 
-.. c:function:: MPS_ARGS_DONE(args)
-
-    Finalize a list of keyword arguments. This macro must be used only
-    between :c:macro:`MPS_ARGS_BEGIN` and :c:macro:`MPS_ARGS_END`.
-
-    ``args`` is the name of array that contains the keyword arguments.
-    It must match the argument to the preceding call to
-    :c:func:`MPS_ARGS_BEGIN`.
-
-    After calling this macro, the array ``args`` is ready to pass to a
-    function.
-
-
 .. c:function:: MPS_ARGS_END(args)
 
     Finish using a list of keyword arguments whose construction was
@@ -206,3 +190,11 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     ``args`` is the name of array that contains the keyword arguments.
     It must match the argument to the preceding call to
     :c:func:`MPS_ARGS_BEGIN`.
+
+
+.. c:function:: MPS_ARGS_DONE(args)
+
+    .. deprecated:: starting with version 1.113.
+
+        Formerly this was used to finalize a list of keyword arguments
+        before passing it to a function. It is no longer needed.

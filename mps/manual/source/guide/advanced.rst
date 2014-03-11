@@ -691,7 +691,6 @@ points::
     MPS_ARGS_BEGIN(args) {
         MPS_ARGS_ADD(args, MPS_KEY_FORMAT, buckets_fmt);
         MPS_ARGS_ADD(args, MPS_KEY_AWL_FIND_DEPENDENT, buckets_find_dependent);
-        MPS_ARGS_DONE(args);
         res = mps_pool_create_k(&buckets_pool, arena, mps_class_awl(), args);
     } MPS_ARGS_END(args);
     if (res != MPS_RES_OK) error("Couldn't create buckets pool");
@@ -699,13 +698,11 @@ points::
     /* Create allocation points for weak and strong buckets. */
     MPS_ARGS_BEGIN(args) {
         MPS_ARGS_ADD(args, MPS_KEY_RANK, mps_rank_exact());
-        MPS_ARGS_DONE(args);
         res = mps_ap_create_k(&strong_buckets_ap, buckets_pool, args);
     } MPS_ARGS_END(args);
     if (res != MPS_RES_OK) error("Couldn't create strong buckets allocation point");
     MPS_ARGS_BEGIN(args) {
         MPS_ARGS_ADD(args, MPS_KEY_RANK, mps_rank_weak());
-        MPS_ARGS_DONE(args);
         res = mps_ap_create_k(&weak_buckets_ap, buckets_pool, args);
     } MPS_ARGS_END(args);
     if (res != MPS_RES_OK) error("Couldn't create weak buckets allocation point");
@@ -880,7 +877,6 @@ Second, the leaf objects must be allocated on ``leaf_ap`` instead of
     MPS_ARGS_BEGIN(args) {
         MPS_ARGS_ADD(args, MPS_KEY_CHAIN, obj_chain);
         MPS_ARGS_ADD(args, MPS_KEY_FORMAT, obj_fmt);
-        MPS_ARGS_DONE(args);
         res = mps_pool_create_k(&leaf_pool, arena, mps_class_amcz(), args);
     } MPS_ARGS_END(args);
     if (res != MPS_RES_OK) error("Couldn't create leaf pool");

@@ -4458,7 +4458,6 @@ int main(int argc, char *argv[])
      It holds all the MPS "global" state and is where everything happens. */
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 32 * 1024 * 1024);
-    MPS_ARGS_DONE(args);
     res = mps_arena_create_k(&arena, mps_arena_class_vm(),  args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create arena");
@@ -4473,7 +4472,6 @@ int main(int argc, char *argv[])
     MPS_ARGS_ADD(args, MPS_KEY_FMT_FWD, obj_fwd);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_ISFWD, obj_isfwd);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_PAD, obj_pad);
-    MPS_ARGS_DONE(args);
     res = mps_fmt_create_k(&obj_fmt, arena, args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create obj format");
@@ -4490,7 +4488,6 @@ int main(int argc, char *argv[])
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_CHAIN, obj_chain);
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, obj_fmt);
-    MPS_ARGS_DONE(args);
     res = mps_pool_create_k(&obj_pool, arena, mps_class_amc(), args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create obj pool");
@@ -4507,7 +4504,6 @@ int main(int argc, char *argv[])
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_CHAIN, obj_chain);
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, obj_fmt);
-    MPS_ARGS_DONE(args);
     res = mps_pool_create_k(&leaf_pool, arena, mps_class_amcz(), args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create leaf pool");
@@ -4521,7 +4517,6 @@ int main(int argc, char *argv[])
     MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, ALIGNMENT);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_SCAN, buckets_scan);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_SKIP, buckets_skip);
-    MPS_ARGS_DONE(args);
     res = mps_fmt_create_k(&buckets_fmt, arena, args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create buckets format");
@@ -4531,7 +4526,6 @@ int main(int argc, char *argv[])
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, buckets_fmt);
     MPS_ARGS_ADD(args, MPS_KEY_AWL_FIND_DEPENDENT, buckets_find_dependent);
-    MPS_ARGS_DONE(args);
     res = mps_pool_create_k(&buckets_pool, arena, mps_class_awl(), args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create buckets pool");
@@ -4539,13 +4533,11 @@ int main(int argc, char *argv[])
   /* Create allocation points for weak and strong buckets. */
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_RANK, mps_rank_exact());
-    MPS_ARGS_DONE(args);
     res = mps_ap_create_k(&strong_buckets_ap, buckets_pool, args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create strong buckets allocation point");
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_RANK, mps_rank_weak());
-    MPS_ARGS_DONE(args);
     res = mps_ap_create_k(&weak_buckets_ap, buckets_pool, args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create weak buckets allocation point");
