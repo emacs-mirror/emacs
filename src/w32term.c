@@ -4684,6 +4684,10 @@ w32_read_socket (struct terminal *terminal,
 		  {
 		    bool iconified = FRAME_ICONIFIED_P (f);
 
+		    /* The following was made unconditional in a
+		       pathetic attempt to fix bug#16967 in revision
+		       116716 but, considered counterproductive was made
+		       conditional again in revision 116727.  martin */
 		    if (iconified)
 		      SET_FRAME_VISIBLE (f, 1);
 		    SET_FRAME_ICONIFIED (f, 0);
