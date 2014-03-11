@@ -34,13 +34,13 @@ extern Count TreeDebugCount(Tree tree, TreeCompare compare, TreeKeyMethod key);
     AVER(_tree != NULL); \
     _tree->left = TreeEMPTY; \
     _tree->right = TreeEMPTY; \
-    AVER(TreeCheck(_tree)); \
+    AVERT(Tree, _tree); \
   END
 
 #define TreeFinish(tree) \
   BEGIN \
     Tree _tree = (tree); \
-    AVER(TreeCheckLeaf(_tree)); \
+    AVERT(Tree, _tree); \
   END
 
 #define TREE_ELT(type, field, node) \

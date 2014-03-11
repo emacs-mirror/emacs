@@ -34,8 +34,8 @@ typedef struct CBSBlockStruct {
 #define CBSBlockSize(block) AddrOffset((block)->base, (block)->limit)
 
 
-#define cbsOfTree(_tree) PARENT(CBSStruct, tree, (_tree))
-#define cbsBlockOfNode(_node) PARENT(CBSBlockStruct, node, (_node))
+#define cbsOfTree(_tree) TREE_ELT(CBS, tree, _tree)
+#define cbsBlockOfNode(_node) PARENT(CBSBlockStruct, node, _node)
 #define treeOfCBS(cbs) (&((cbs)->tree))
 #define nodeOfCBSBlock(block) (&((block)->node))
 #define keyOfCBSBlock(block) (&((block)->base))
