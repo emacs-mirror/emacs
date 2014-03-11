@@ -8,6 +8,7 @@
  */
 
 #include "tree.h"
+#include "mpm.h"
 
 SRCID(tree, "$Id$");
 
