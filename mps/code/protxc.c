@@ -1,7 +1,7 @@
 /* protxc.c: PROTECTION EXCEPTION HANDLER FOR OS X MACH
  *
  * $Id$
- * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2013-2014 Ravenbrook Limited.  See end of file for license.
  *
  * This is the protection exception handling code for OS X using the
  * Mach interface (not pthreads).
@@ -283,9 +283,9 @@ static void protCatchOne(void)
  */
 
 static void *protCatchThread(void *p) {
+  UNUSED(p);
   for (;;)
     protCatchOne();
-  return p;
 }
 
 
@@ -403,7 +403,7 @@ void ProtSetup(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -278,7 +278,6 @@ static void *setup(void *v, size_t s)
        weaknesss and want things to die in it promptly. */
     MPS_ARGS_ADD(args, MPS_KEY_GEN, 0);
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, dylanfmt);
-    MPS_ARGS_DONE(args);
     die(mps_pool_create_k(&leafpool, arena, mps_class_lo(), args),
         "Leaf Pool Create\n");
   } MPS_ARGS_END(args);
