@@ -417,11 +417,11 @@ Properties can be set with
 ;; `frameset-filter-params' can be useful, even if you're not using
 ;; framesets.  The interface of `frameset-filter-params' is generic
 ;; and does not depend of global state, with one exception: it uses
-;; the internal variable `frameset--target-display' to decide if, and
-;; how, to modify the `display' parameter of FILTERED.  But that
-;; should not represent any problem, because it's only meaningful
-;; when restoring, and customized uses of `frameset-filter-params'
-;; are likely to use their own filter alist and just call
+;; the dynamically bound variable `frameset--target-display' to decide
+;; if, and how, to modify the `display' parameter of FILTERED.  That
+;; should not represent a problem, because it's only meaningful when
+;; restoring, and customized uses of `frameset-filter-params' are
+;; likely to use their own filter alist and just call
 ;;
 ;;   (setq my-filtered (frameset-filter-params my-params my-filters t))
 ;;
@@ -522,13 +522,13 @@ It must return:
 Frame parameters not on this alist are passed intact, as if they were
 defined with ACTION = nil.")
 
-(defvar frameset--target-display nil
-  ;; Either (minibuffer . VALUE) or nil.
-  ;; This refers to the current frame config being processed inside
-  ;; `frameset-restore' and its auxiliary functions (like filtering).
-  ;; If nil, there is no need to change the display.
-  ;; If non-nil, display parameter to use when creating the frame.
-  "Internal use only.")
+;; Dynamically bound in `frameset-save', `frameset-restore'.
+(defvar frameset--target-display)
+;; Either (display . VALUE) or nil.
+;; This refers to the current frame config being processed with
+;; `frameset-filter-params' and its auxiliary filtering functions.
+;; If nil, there is no need to change the display.
+;; If non-nil, display parameter to use when creating the frame.
 
 (defun frameset-switch-to-gui-p (parameters)
   "True when switching to a graphic display.
@@ -760,6 +760,7 @@ PREDICATE is a predicate function, which must return non-nil for frames that
 should be saved; if PREDICATE is nil, all frames from FRAME-LIST are saved.
 PROPERTIES is a user-defined property list to add to the frameset."
   (let* ((list (or (copy-sequence frame-list) (frame-list)))
+	 (frameset--target-display nil)
 	 (frames (cl-delete-if-not #'frame-live-p
 				   (if predicate
 				       (cl-delete-if-not predicate list)
@@ -1141,16 +1142,15 @@ All keyword parameters default to nil."
 		     (force-display (if (functionp force-display)
 					(funcall force-display frame-cfg window-cfg)
 				      force-display))
+		     (frameset--target-display nil)
 		     frame to-tty duplicate)
 		;; Only set target if forcing displays and the target display is different.
-		(cond ((frameset-keep-original-display-p force-display)
-		       (setq frameset--target-display nil))
-		      ((eq (frame-parameter nil 'display) (cdr (assq 'display frame-cfg)))
-		       (setq frameset--target-display nil))
-		      (t
-		       (setq frameset--target-display (cons 'display
-							    (frame-parameter nil 'display))
-			     to-tty (null (cdr frameset--target-display)))))
+		(unless (or (frameset-keep-original-display-p force-display)
+			    (eq (frame-parameter nil 'display)
+				(cdr (assq 'display frame-cfg))))
+		  (setq frameset--target-display (cons 'display
+						       (frame-parameter nil 'display))
+			to-tty (null (cdr frameset--target-display))))
 		;; Time to restore frames and set up their minibuffers as they were.
 		;; We only skip a frame (thus deleting it) if either:
 		;; - we're switching displays, and the user chose the option to delete, or
@@ -1209,9 +1209,6 @@ All keyword parameters default to nil."
     ;; In case we try to delete the initial frame, we want to make sure that
     ;; other frames are already visible (discussed in thread for bug#14841).
     (sit-for 0 t)
-
-    ;; Clean temporary caches
-    (setq frameset--target-display nil)
 
     ;; Clean up the frame list
     (when cleanup-frames
