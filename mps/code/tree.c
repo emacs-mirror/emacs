@@ -78,7 +78,7 @@ Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
   Tree node, parent;
   Compare cmp = CompareEQUAL;
   
-  AVER(TreeCheck(root));
+  AVERT(Tree, root);
   AVER(treeReturn != NULL);
   AVER(FUNCHECK(compare));
   /* key is arbitrary */
@@ -125,7 +125,7 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
   Compare cmp;
   
   AVER(treeReturn != NULL);
-  AVER(TreeCheck(root));
+  AVER(Tree, root);
   AVER(TreeCheckLeaf(node));
   AVER(FUNCHECK(compare));
   /* key is arbitrary */
@@ -149,7 +149,7 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
   default:
     NOTREACHED;
     *treeReturn = NULL;
-    return cmp;
+    return FALSE;
   }
   
   *treeReturn = root;
@@ -180,7 +180,7 @@ Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
   Tree node;
   Bool visiting = TRUE;
   
-  AVER(TreeCheck(tree));
+  AVERT(Tree, tree);
   AVER(FUNCHECK(visit));
   /* closureP, closureS arbitrary */
   
@@ -272,7 +272,7 @@ Bool TreeTraverse(Tree tree,
 {
   Tree parent, node;
   
-  AVER(TreeCheck(tree));
+  AVERT(Tree, tree);
   AVER(FUNCHECK(visit));
   /* closureP, closureS arbitrary */
 
@@ -373,8 +373,8 @@ void TreeRotateRight(Tree *treeIO) {
  *
  * Descends the left spine of a tree, updating each node's left child
  * to point to its parent instead.  The root's left child is set to
- * TreeEMPTY.  Returns the leftmost child in *leftReturn, or TreeEMPTY
- * if the tree was empty.
+ * TreeEMPTY.  Returns the leftmost child, or TreeEMPTY if the tree
+ * was empty.
  */
 
 Tree TreeReverseLeftSpine(Tree tree)
@@ -400,8 +400,8 @@ Tree TreeReverseLeftSpine(Tree tree)
  *
  * Descends the right spine of a tree, updating each node's right child
  * to point to its parent instead.  The root's right child is set to
- * TreeEMPTY.  Returns the rightmost child in *rightReturn, or TreeEMPTY
- * if the tree was empty.
+ * TreeEMPTY.  Returns the rightmost child or TreeEMPTY if the tree
+ * was empty.
  */
 
 Tree TreeReverseRightSpine(Tree tree)
