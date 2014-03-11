@@ -662,8 +662,8 @@ typedef struct mps_arena_s {
   ChunkCacheEntryStruct chunkCache; /* just one entry */
   
   Bool hasFreeCBS;              /* Is freeCBS available? */
-  MFSStruct zonedCBSBlockPoolStruct;
-  CBSStruct zonedCBSStruct;
+  MFSStruct freeCBSBlockPoolStruct;
+  CBSStruct freeCBSStruct;
   ZoneSet freeZones;            /* zones not yet allocated */
   Bool zoned;                   /* use zoned allocation? */
 
