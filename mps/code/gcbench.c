@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <alloca.h>
 #include <pthread.h>
 #include "getopt.h"
 #include "testlib.h"
@@ -33,9 +32,6 @@ static mps_arena_t arena;
 static mps_pool_t pool;
 static mps_fmt_t format;
 static mps_chain_t chain;
-static mps_gen_param_s genDefault[] = {
-  {  5 * 1024 * 1024, 0.85 },
-  { 50 * 1024 * 1024, 0.45 } };
 
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
 #define objNULL           ((obj_t)MPS_WORD_CONST(0xDECEA5ED))
@@ -52,6 +48,7 @@ static double pupdate = 0.1;      /* probability of update */
 static unsigned ngen = 0;         /* number of generations specified */
 static mps_gen_param_s gen[genLIMIT]; /* generation parameters */
 static size_t arenasize = 256ul * 1024 * 1024; /* arena size */
+static unsigned pinleaf = FALSE;  /* are leaf objects pinned at start */
 
 typedef struct gcthread_s *gcthread_t;
 
@@ -82,13 +79,13 @@ static void aset(obj_t v, size_t i, obj_t val) {
 }
 
 /* mktree - make a tree of nodes with depth d. */
-static obj_t mktree(mps_ap_t ap, unsigned d) {
+static obj_t mktree(mps_ap_t ap, unsigned d, obj_t leaf) {
   obj_t tree;
   size_t i;
-  if (d <= 0) return objNULL;
+  if (d <= 0) return leaf;
   tree = mkvector(ap, width);
   for (i = 0; i < width; ++i) {
-    aset(tree, i, mktree(ap, d - 1));
+    aset(tree, i, mktree(ap, d - 1, leaf));
   }
   return tree;
 }
@@ -154,8 +151,9 @@ static obj_t update_tree(mps_ap_t ap, obj_t oldtree, unsigned d) {
 static void *gc_tree(gcthread_t thread) {
   unsigned i, j;
   mps_ap_t ap = thread->ap;
+  obj_t leaf = pinleaf ? mktree(ap, 1, objNULL) : objNULL;
   for (i = 0; i < niter; ++i) {
-    obj_t tree = mktree(ap, depth);
+    obj_t tree = mktree(ap, depth, leaf);
     for (j = 0 ; j < npass; ++j) {
       if (preuse < 1.0)
         tree = new_tree(ap, tree, depth);
@@ -220,16 +218,16 @@ static void weave1(gcthread_fn_t fn)
 
 static void watch(gcthread_fn_t fn, const char *name)
 {
-  clock_t start, finish;
+  clock_t begin, end;
   
-  start = clock();
+  begin = clock();
   if (nthreads == 1)
     weave1(fn);
   else
     weave(fn);
-  finish = clock();
+  end = clock();
   
-  printf("%s: %g\n", name, (double)(finish - start) / CLOCKS_PER_SEC);
+  printf("%s: %g\n", name, (double)(end - begin) / CLOCKS_PER_SEC);
 }
 
 
@@ -241,24 +239,25 @@ static void arena_setup(gcthread_fn_t fn,
 {
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, arenasize);
-    MPS_ARGS_DONE(args);
     RESMUST(mps_arena_create_k(&arena, mps_arena_class_vm(), args));
   } MPS_ARGS_END(args);
   RESMUST(dylan_fmt(&format, arena));
   /* Make wrappers now to avoid race condition. */
   /* dylan_make_wrappers() uses malloc. */
   RESMUST(dylan_make_wrappers());
-  RESMUST(mps_chain_create(&chain, arena, ngen, gen));
+  if (ngen > 0)
+    RESMUST(mps_chain_create(&chain, arena, ngen, gen));
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
-    MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
-    MPS_ARGS_DONE(args);
+    if (ngen > 0)
+      MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
     RESMUST(mps_pool_create_k(&pool, arena, pool_class, args));
   } MPS_ARGS_END(args);
   watch(fn, name);
   mps_pool_destroy(pool);
   mps_fmt_destroy(format);
-  mps_chain_destroy(chain);
+  if (ngen > 0)
+    mps_chain_destroy(chain);
   mps_arena_destroy(arena);
 }
 
@@ -276,6 +275,8 @@ static struct option longopts[] = {
   {"depth",     required_argument,  NULL,   'd'},
   {"preuse",    required_argument,  NULL,   'r'},
   {"pupdate",   required_argument,  NULL,   'u'},
+  {"pin-leaf",  no_argument,        NULL,   'l'},
+  {"seed",      required_argument,  NULL,   'x'},
   {NULL,        0,                  NULL,   0}
 };
 
@@ -295,10 +296,17 @@ static struct {
 int main(int argc, char *argv[]) {
   int ch;
   unsigned i;
+  int k;
 
   seed = rnd_seed();
+  for(k=0; k<argc; k++) {
+    printf("%s", argv[k]);
+    if (k + 1 < argc)
+      putchar(' ');
+  }
+  putchar('\n');
   
-  while ((ch = getopt_long(argc, argv, "ht:i:p:g:m:w:d:r:u:x:", longopts, NULL)) != -1)
+  while ((ch = getopt_long(argc, argv, "ht:i:p:g:m:w:d:r:u:lx:", longopts, NULL)) != -1)
     switch (ch) {
     case 't':
       nthreads = (unsigned)strtoul(optarg, NULL, 10);
@@ -360,6 +368,12 @@ int main(int argc, char *argv[]) {
     case 'u':
       pupdate = strtod(optarg, NULL);
       break;
+    case 'l':
+      pinleaf = TRUE;
+      break;
+    case 'x':
+      seed = strtoul(optarg, NULL, 10);
+      break;
     default:
       fprintf(stderr,
               "Usage: %s [option...] [test...]\n"
@@ -390,6 +404,10 @@ int main(int argc, char *argv[]) {
               "    Probability of reusing a node (default %g)\n"
               "  -u p, --pupdate=p\n"
               "    Probability of updating a node (default %g)\n"
+              "  -l --pin-leaf\n"
+              "    Make a pinned object to use for leaves.\n"
+              "  -x n, --seed=n\n"
+              "    Random number seed (default from entropy)\n"
               "Tests:\n"
               "  amc   pool class AMC\n"
               "  ams   pool class AMS\n",
@@ -401,11 +419,6 @@ int main(int argc, char *argv[]) {
   argc -= optind;
   argv += optind;
 
-  if (ngen == 0) {
-    memcpy(gen, genDefault, sizeof(genDefault));
-    ngen = sizeof(genDefault) / sizeof(genDefault[0]);
-  }
-  
   printf("seed: %lu\n", seed);
   
   while (argc > 0) {
