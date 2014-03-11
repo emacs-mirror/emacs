@@ -5,6 +5,14 @@
  *
  * Simple binary trees with utilities, for use as building blocks.
  * Keep it simple, like Rings (see ring.h).
+ *
+ * The performance requirements on tree implementation will depend on
+ * how each individual function is applied in the MPS.
+ *
+ * .note.stack: It's important that the MPS have a bounded stack
+ * size, and this is a problem for tree algorithms.  Basically,
+ * we have to avoid recursion.  TODO: Design documentation for this
+ * requirement, meanwhile see job003651 and job003640.
  */
 
 #include "tree.h"
@@ -38,6 +46,7 @@ Bool TreeCheckLeaf(Tree tree)
  * This function may be called from a debugger or temporarily inserted
  * during development to check a tree's integrity.  It may not be called
  * from the production MPS because it uses indefinite stack depth.
+ * See .note.stack.
  */
 
 static Count TreeDebugCountBetween(Tree node,
@@ -157,7 +166,7 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
 }
 
 
-/* TreeTraverseMorris -- traverse tree in constant space, n log n time
+/* TreeTraverseMorris -- traverse tree inorder in constant space
  *
  * The tree may not be accessed or modified during the traversal, and
  * the traversal must complete in order to repair the tree.
@@ -218,7 +227,7 @@ Bool TreeTraverseMorris(Tree tree, TreeVisitor visit,
 #endif /* not currently in use */
 
 
-/* TreeTraverse -- traverse tree using pointer reversal
+/* TreeTraverse -- traverse tree in-order using pointer reversal
  *
  * The tree may not be accessed or modified during the traversal, and
  * the traversal must complete in order to repair the tree.
