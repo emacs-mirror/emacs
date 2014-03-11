@@ -95,7 +95,7 @@ MPMCOMMON = <abq> <arena> <arenacl> <arenavm> <arg> <boot> <bt>		\
     <freelist> <global> <ld> <lockw3> <locus> <message> <meter> <mpm>	\
     <mpsi> <mpsiw3> <pool> <poolabs> <poolmfs> <poolmrg> <poolmv2>	\
     <poolmv> <protocol> <protw3> <range> <ref> <reserv> <ring> <root>	\
-    <sac> <seg> <shield> <splay> <ss> <table> <thw3> <trace>		\
+    <sa> <sac> <seg> <shield> <splay> <ss> <table> <thw3> <trace>	\
     <traceanc> <tract> <tree> <vmw3> <walk>
 PLINTH = <mpsliban> <mpsioan>
 AMC = <poolamc>
