@@ -13,14 +13,41 @@
 #include "check.h"
 #include "mpmtypes.h"
 
+
+/* TreeStruct -- binary tree structure
+ *
+ * The tree structure is used in a field in other structures in order
+ * to link them together in a binary tree.
+ */
+
 typedef struct TreeStruct *Tree;
 typedef struct TreeStruct {
   Tree left, right;
 } TreeStruct;
 
+
+/* TreeKey and TreeCompare -- ordered binary trees
+ *
+ * Binary trees are almost always ordered, and these types provide the
+ * abstraction for ordering.  A TreeCompare method returns whether a key
+ * is less than, equal to, or greater than the key in a tree node.  A
+ * TreeKeyMethod extracts a key from a node, depending on how TreeStruct
+ * is embedded within its parent structure.
+ */
+
 typedef void *TreeKey;
 typedef Compare (*TreeCompare)(Tree tree, TreeKey key);
 typedef TreeKey (*TreeKeyMethod)(Tree tree);
+
+
+/* TreeEMPTY -- the empty tree
+ *
+ * TreeEMPTY is the tree with no nodes, and hence unable to satisfy its
+ * olfactory senses.  Empty trees should not be represented with NULL,
+ * as this is ambiguous.  However, TreeEMPTY is in fact a null pointer for
+ * performance.  To check whether you have it right, try temporarily
+ * defining TreeEMPTY to (Tree)1 or similar.
+ */
 
 #define TreeEMPTY ((Tree)0)
 
