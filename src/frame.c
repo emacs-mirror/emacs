@@ -2848,14 +2848,14 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
   /* Provide default values for HEIGHT and WIDTH.  */
   width = (f->new_width
 	   ? (f->new_pixelwise
-	      ? (f->new_width / FRAME_COLUMN_WIDTH (f))
-	      : f->new_width)
-	   : FRAME_COLS (f));
+	      ? f->new_width
+	      : (f->new_width * FRAME_COLUMN_WIDTH (f)))
+	   : FRAME_TEXT_WIDTH (f));
   height = (f->new_height
 	    ? (f->new_pixelwise
-	       ? (f->new_height / FRAME_LINE_HEIGHT (f))
-	       : f->new_height)
-	    : FRAME_LINES (f));
+	       ? f->new_height
+	       : (f->new_height * FRAME_LINE_HEIGHT (f)))
+	    : FRAME_TEXT_HEIGHT (f));
 
   /* Process foreground_color and background_color before anything else.
      They are independent of other properties, but other properties (e.g.,
@@ -2899,12 +2899,12 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
       if (EQ (prop, Qwidth) && RANGED_INTEGERP (0, val, INT_MAX))
         {
           size_changed = 1;
-          width = XFASTINT (val);
+          width = XFASTINT (val) * FRAME_COLUMN_WIDTH (f) ;
         }
       else if (EQ (prop, Qheight) && RANGED_INTEGERP (0, val, INT_MAX))
         {
           size_changed = 1;
-          height = XFASTINT (val);
+          height = XFASTINT (val) * FRAME_LINE_HEIGHT (f);
         }
       else if (EQ (prop, Qtop))
 	top = val;
@@ -2986,15 +2986,15 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
     Lisp_Object frame;
 
     /* Make this 1, eventually.  */
-    check_frame_size (f, &width, &height, 0);
+    check_frame_size (f, &width, &height, 1);
 
     XSETFRAME (frame, f);
 
     if (size_changed
-        && (width != FRAME_COLS (f)
-            || height != FRAME_LINES (f)
+        && (width != FRAME_TEXT_WIDTH (f)
+            || height != FRAME_TEXT_HEIGHT (f)
             || f->new_height || f->new_width))
-      Fset_frame_size (frame, make_number (width), make_number (height), Qnil);
+      Fset_frame_size (frame, make_number (width), make_number (height), Qt);
 
     if ((!NILP (left) || !NILP (top))
 	&& ! (left_no_change && top_no_change)

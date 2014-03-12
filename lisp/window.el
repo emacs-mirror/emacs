@@ -7043,7 +7043,7 @@ FRAME."
 		(- (* (nth 2 sizes) char-width) window-extra-width))
 	       ((numberp max-width)
 		(- (* max-width char-width) window-extra-width))
-	       (t display-height)))
+	       (t display-width)))
 	     (min-width
 	      (cond
 	       ((numberp (nth 3 sizes))

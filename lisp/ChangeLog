@@ -1,3 +1,8 @@
+2014-03-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (fit-frame-to-buffer): Get maximum width from
+	display's width instead of height.
+
 2014-03-12  Glenn Morris  <rgm@gnu.org>
 
 	* desktop.el (desktop-restore-frames)

@@ -1,3 +1,8 @@
+2014-03-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (x_set_frame_parameters): Always calculate new sizes
+	pixelwise to avoid potential loss when rounding.
+
 2014-03-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xfns.c (x_set_mouse_color): Recolor vertical_drag_cursor.
