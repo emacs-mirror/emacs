@@ -17,21 +17,21 @@
 
 
 typedef struct CBSStruct *CBS;
-typedef Bool (*CBSIterateMethod)(CBS cbs, Range range,
-                                 void *closureP, Size closureS);
+typedef Bool (*CBSVisitor)(CBS cbs, Range range,
+                           void *closureP, Size closureS);
 
 
 #define CBSSig ((Sig)0x519CB599) /* SIGnature CBS */
 
 typedef struct CBSStruct {
-  SplayTreeStruct splayTree;
-  Count splayTreeSize;
+  SplayTreeStruct tree;
+  Count treeSize;
   Pool blockPool;
   Align alignment;
   Bool fastFind;
   Bool inCBS; /* prevent reentrance */
   /* meters for sizes of search structures at each op */
-  METER_DECL(splaySearch);
+  METER_DECL(treeSearch);
   Sig sig; /* sig at end because embeded */
 } CBSStruct;
 
@@ -43,7 +43,7 @@ extern void CBSFinish(CBS cbs);
 
 extern Res CBSInsert(Range rangeReturn, CBS cbs, Range range);
 extern Res CBSDelete(Range rangeReturn, CBS cbs, Range range);
-extern void CBSIterate(CBS cbs, CBSIterateMethod iterate,
+extern void CBSIterate(CBS cbs, CBSVisitor visitor,
                        void *closureP, Size closureS);
 
 extern Res CBSDescribe(CBS cbs, mps_lib_FILE *stream);
