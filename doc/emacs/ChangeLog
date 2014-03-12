@@ -303,7 +303,7 @@
 
 	* display.texi (Cursor Display): Document `blink-cursor-blinks'.
 
-	* buffers.texi: Update list-buffers "screeshot" to show Messages
+	* buffers.texi: Update list-buffers "screenshot" to show Messages
 	as major-mode.
 
 	* entering.texi: Document `initial-buffer-choice' changes.
