@@ -1,5 +1,8 @@
 2014-03-12  Glenn Morris  <rgm@gnu.org>
 
+	* eww.texi (History and Acknowledgments):
+	Don't list everyone who changed the code.
+
 	* ada-mode.texi, auth.texi, calc.texi, ebrowse.texi, efaq.texi:
 	* emacs-gnutls.texi, epa.texi, ert.texi, eshell.texi, eww.texi:
 	* flymake.texi, gnus.texi, info.texi, message.texi, mh-e.texi:

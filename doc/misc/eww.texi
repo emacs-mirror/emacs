@@ -206,24 +206,7 @@ Emacs Web Wowser.  EWW was announced on 16 June 2013:
 @url{http://lars.ingebrigtsen.no/2013/06/16/eww/}.
 
 EWW was then moved from the Gnus repository to GNU Emacs and several
-developers started contributing to it as well.  A list of contributors
-at the time of writing this manual:
-
-@itemize @bullet
-@item Daniel Hackney
-@item Eli Zaretskii
-@item Glenn Morris
-@item Ivan Kanis
-@item Juri Linkov
-@item Katsumi Yamaoka
-@item Kenjiro NAKAYAMA
-@item Lars Magne Ingebrigtsen
-@item Leo Liu
-@item Paul Eggert
-@item Rüdiger Sonderfeld
-@item Stefan Monnier
-@item Ted Zlatanov
-@end itemize
+developers started contributing to it as well.
 
 @node GNU Free Documentation License
 @chapter GNU Free Documentation License
