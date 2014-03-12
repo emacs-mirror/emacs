@@ -294,9 +294,11 @@ With a prefix argument ARG, enable Electric Indent mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
 the mode if ARG is omitted or nil.
 
-This is a global minor mode.  When enabled, it reindents whenever
-the hook `electric-indent-functions' returns non-nil, or you
-insert a character from `electric-indent-chars'."
+When enabled, this reindents whenever the hook `electric-indent-functions'
+returns non-nil, or if you insert a character from `electric-indent-chars'.
+
+This is a global minor mode.  To toggle the mode in a single buffer,
+use `electric-indent-local-mode'."
   :global t :group 'electricity
   :initialize 'custom-initialize-delay
   :init-value t

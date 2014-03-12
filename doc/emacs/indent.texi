@@ -251,4 +251,5 @@ indentation; otherwise, it inserts a tab character.
   Electric Indent mode is a global minor mode that automatically
 indents the line after every @key{RET} you type.  This mode is enabled
 by default.  To toggle this minor mode, type @kbd{M-x
-electric-indent-mode}.
+electric-indent-mode}.  To toggle the mode in a single buffer,
+use @kbd{M-x electric-indent-local-mode}.

@@ -1,3 +1,7 @@
+2014-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* indent.texi (Indent Convenience): Mention electric-indent-local-mode.
+
 2014-03-02  Xue Fuqiao  <xfq@gnu.org>
 
 	* mark.texi (Mark):

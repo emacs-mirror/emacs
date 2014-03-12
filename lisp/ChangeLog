@@ -1,3 +1,7 @@
+2014-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* electric.el (electric-indent-mode): Doc fix.
+
 2014-03-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc/pcvs.el (cvs-temp-buffer, defun-cvs-mode, cvs-get-cvsroot)

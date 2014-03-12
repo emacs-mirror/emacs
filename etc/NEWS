@@ -359,6 +359,7 @@ means to always load the .elc file.
 E.g., typing RET reindents the current line and indents the new line.
 `C-j' inserts a newline but does not indent.
 
++++
 *** New buffer-local `electric-indent-local-mode'.
 
 +++
