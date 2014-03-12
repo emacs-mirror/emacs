@@ -4,11 +4,6 @@
 @settitle The Org Manual
 @set VERSION 8.2.5c
 
-@c Use proper quote and backtick for code sections in PDF output
-@c Cf. Texinfo manual 14.2
-@set txicodequoteundirected
-@set txicodequotebacktick
-
 @c Version and Contact Info
 @set MAINTAINERSITE @uref{http://orgmode.org,maintainers web page}
 @set AUTHOR Carsten Dominik
