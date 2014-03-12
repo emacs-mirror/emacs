@@ -10,75 +10,67 @@
 #define splay_h
 
 #include "mpmtypes.h" /* for Res, etc. */
+#include "tree.h"
 
 
 typedef struct SplayTreeStruct *SplayTree;
-typedef struct SplayNodeStruct *SplayNode;
-typedef unsigned Compare;
-typedef Compare (*SplayCompareMethod)(void *key, SplayNode node);
-typedef Bool (*SplayTestNodeMethod)(SplayTree tree, SplayNode node,
-                                    void *closureP, Size closureS);
-typedef Bool (*SplayTestTreeMethod)(SplayTree tree, SplayNode node,
-                                    void *closureP, Size closureS);
-typedef void (*SplayUpdateNodeMethod)(SplayTree tree, SplayNode node,
-                                      SplayNode leftChild,
-                                      SplayNode rightChild);
-typedef Res (*SplayNodeDescribeMethod)(SplayNode node, mps_lib_FILE *stream);
-enum {
-  CompareLESS = 1,
-  CompareEQUAL,
-  CompareGREATER
-};
 
+typedef Bool (*SplayTestNodeMethod)(SplayTree splay, Tree node,
+                                    void *closureP, Size closureS);
+typedef Bool (*SplayTestTreeMethod)(SplayTree splay, Tree node,
+                                    void *closureP, Size closureS);
+typedef Res (*SplayNodeDescribeMethod)(Tree node, mps_lib_FILE *stream);
+
+typedef void (*SplayUpdateNodeMethod)(SplayTree splay, Tree node);
+extern void SplayTrivUpdate(SplayTree splay, Tree node);
+
+#define SplayTreeSig      ((Sig)0x5195B1A1) /* SIGnature SPLAY */
 
 typedef struct SplayTreeStruct {
-  SplayCompareMethod compare;
+  Sig sig;
+  TreeCompare compare;
+  TreeKeyMethod nodeKey;
   SplayUpdateNodeMethod updateNode;
-  SplayNode root;
+  Tree root;
 } SplayTreeStruct;
 
-typedef struct SplayNodeStruct {
-  SplayNode left;
-  SplayNode right;
-} SplayNodeStruct;
+#define SplayTreeRoot(splay)    RVALUE((splay)->root)
+#define SplayTreeIsEmpty(splay) (SplayTreeRoot(splay) == TreeEMPTY)
 
-
-extern Bool SplayTreeCheck(SplayTree tree);
-extern Bool SplayNodeCheck(SplayNode node);
-extern void SplayTreeInit(SplayTree tree, SplayCompareMethod compare,
+extern Bool SplayTreeCheck(SplayTree splay);
+extern void SplayTreeInit(SplayTree splay,
+                          TreeCompare compare,
+                          TreeKeyMethod nodeKey,
                           SplayUpdateNodeMethod updateNode);
-extern void SplayNodeInit(SplayNode node);
-extern void SplayNodeFinish(SplayNode node);
-extern void SplayTreeFinish(SplayTree tree);
+extern void SplayTreeFinish(SplayTree splay);
 
-extern Res SplayTreeInsert(SplayTree tree, SplayNode node, void *key);
-extern Res SplayTreeDelete(SplayTree tree, SplayNode node, void *key);
+extern Bool SplayTreeInsert(SplayTree splay, Tree node);
+extern Bool SplayTreeDelete(SplayTree splay, Tree node);
 
-extern Res SplayTreeSearch(SplayNode *nodeReturn,
-                           SplayTree tree, void *key );
-extern Res SplayTreeNeighbours(SplayNode *leftReturn,
-                               SplayNode *rightReturn,
-                               SplayTree tree, void *key);
+extern Bool SplayTreeFind(Tree *nodeReturn, SplayTree splay, TreeKey key);
 
-extern SplayNode SplayTreeFirst(SplayTree tree, void *zeroKey);
-extern SplayNode SplayTreeNext(SplayTree tree, SplayNode oldNode,
-                               void *oldKey);
+extern Bool SplayTreeNeighbours(Tree *leftReturn,
+                                Tree *rightReturn,
+                                SplayTree splay, TreeKey key);
 
-extern Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree,
+extern Tree SplayTreeFirst(SplayTree splay);
+extern Tree SplayTreeNext(SplayTree splay, TreeKey oldKey);
+
+extern Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
                            SplayTestNodeMethod testNode,
                            SplayTestTreeMethod testTree,
                            void *closureP, Size closureS);
-extern Bool SplayFindLast(SplayNode *nodeReturn, SplayTree tree,
+extern Bool SplayFindLast(Tree *nodeReturn, SplayTree splay,
                           SplayTestNodeMethod testNode,
                           SplayTestTreeMethod testTree,
                           void *closureP, Size closureS);
 
-extern void SplayNodeRefresh(SplayTree tree, SplayNode node, void *key);
+extern void SplayNodeRefresh(SplayTree splay, Tree node);
 
-extern Res SplayTreeDescribe(SplayTree tree, mps_lib_FILE *stream,
+extern Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream,
                              SplayNodeDescribeMethod nodeDescribe);
 
-extern Bool SplayRoot(SplayNode *nodeReturn, SplayTree tree);
+extern void SplayDebugUpdate(SplayTree splay, Tree tree);
 
 
 #endif /* splay_h */
