@@ -1,3 +1,8 @@
+2014-03-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset-restore): When checking for a visible frame,
+	use the action map instead of calling visible-frame-list.
+
 2014-03-12  Jonas Bernoulli  <jonas@bernoul.li>
 
 	* emacs-lisp/eieio.el (with-slots): Use cl-symbol-macrolet (bug#16998).

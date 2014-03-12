@@ -1230,7 +1230,12 @@ All keyword parameters default to nil."
 	     (delay-warning 'frameset (error-message-string err) :warning))))))
 
     ;; Make sure there's at least one visible frame.
-    (unless (or (daemonp) (visible-frame-list))
+    (unless (or (daemonp)
+		(catch 'visible
+		  (maphash (lambda (frame _)
+			     (and (frame-live-p frame) (frame-visible-p frame)
+				  (throw 'visible t)))
+			   frameset--action-map)))
       (make-frame-visible (selected-frame)))))
 
 
