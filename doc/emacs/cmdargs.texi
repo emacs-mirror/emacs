@@ -495,9 +495,12 @@ compatibility @file{C:/} will be used instead if a @file{.emacs} file
 is found there.
 @item HOSTNAME
 The name of the machine that Emacs is running on.
+@c complete.el is obsolete since 24.1.
+@ignore
 @item INCPATH
 A colon-separated list of directories.  Used by the @code{complete} package
 to search for files.
+@end ignore
 @item INFOPATH
 A colon-separated list of directories in which to search for Info files.
 @item LC_ALL
