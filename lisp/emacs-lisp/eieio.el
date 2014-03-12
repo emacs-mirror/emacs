@@ -246,13 +246,13 @@ Where each VAR is the local variable given to the associated
 SLOT.  A slot specified without a variable name is given a
 variable name of the same name as the slot."
   (declare (indent 2))
-  ;; Transform the spec-list into a symbol-macrolet spec-list.
+  ;; Transform the spec-list into a cl-symbol-macrolet spec-list.
   (let ((mappings (mapcar (lambda (entry)
 			    (let ((var  (if (listp entry) (car entry) entry))
 				  (slot (if (listp entry) (cadr entry) entry)))
 			      (list var `(slot-value ,object ',slot))))
 			  spec-list)))
-    (append (list 'symbol-macrolet mappings)
+    (append (list 'cl-symbol-macrolet mappings)
 	    body)))
 
 ;;; Simple generators, and query functions.  None of these would do
