@@ -352,7 +352,7 @@ Invoke @samp{Ada | Project | Load}, and load a project file that specifies @code
 
 The @code{Check file}, @code{Compile file}, and @code{Build} commands
 all place compilation errors in a separate buffer named
-@code{*compilation*}.
+@file{*compilation*}.
 
 Each line in this buffer will become active: you can simply click on
 it with the middle button of the mouse, or move point to it and press
@@ -374,8 +374,8 @@ An Emacs Ada mode project file specifies what directories hold sources
 for your project, and allows you to customize the compilation commands
 and other things on a per-project basis.
 
-Note that Ada mode project files @samp{*.adp} are different than GNAT
-compiler project files @samp{*.gpr}. However, Emacs Ada mode can use a
+Note that Ada mode project files @file{*.adp} are different than GNAT
+compiler project files @file{*.gpr}. However, Emacs Ada mode can use a
 GNAT project file to specify the project directories. If no
 other customization is needed, a GNAT project file can be used without
 an Emacs Ada mode project file.
@@ -728,7 +728,7 @@ Yes, this is missing the keyword @code{body}; another compiler error
 example.
 
 In buffer @file{hello.adb}, invoke @samp{Ada | Check file}. You should
-get a @code{*compilation*} buffer containing something like (the
+get a @file{*compilation*} buffer containing something like (the
 directory paths will be different):
 
 @smallexample
@@ -815,7 +815,7 @@ Emacs has remembered the main file, in the project variable
 @code{main}, and used it for the Build command.
 
 Finally, again while in @file{hello_pkg.adb}, invoke @samp{Ada | Run}.
-The @code{*run*} buffer displays @code{Hello from hello_pkg.adb}.
+The @file{*run*} buffer displays @code{Hello from hello_pkg.adb}.
 
 One final point. If you switch back to buffer @file{hello.adb}, and
 invoke @samp{Ada | Run}, @file{hello_2.exe} will be run. That is
@@ -876,7 +876,7 @@ In buffer @file{hello.adb}, invoke @samp{Ada | Project | Load...}, and
 select @file{Example_2/hello.adp}.
 
 Then, again in buffer @file{hello.adb}, invoke @samp{Ada | Set main and
-Build}. You should get a @code{*compilation*} buffer containing
+Build}. You should get a @file{*compilation*} buffer containing
 something like (the directory paths will be different):
 
 @example
@@ -960,7 +960,7 @@ In buffer @file{hello_3.adb}, invoke @samp{Ada | Project | Load...}, and
 select @file{Example_3/Other/other.adp}.
 
 Then, again in @file{hello_3.adb}, invoke @samp{Ada | Set main and
-Build}. You should get a @code{*compilation*} buffer containing
+Build}. You should get a @file{*compilation*} buffer containing
 something like (the directory paths will be different):
 
 @example
@@ -1043,7 +1043,7 @@ In buffer @file{hello_4.adb}, invoke @samp{Ada | Project | Load...}, and
 select @file{Example_4/Gnat_Project/hello_4.gpr}.
 
 Then, again in @file{hello_4.adb}, invoke @samp{Ada | Set main and
-Build}. You should get a @code{*compilation*} buffer containing
+Build}. You should get a @file{*compilation*} buffer containing
 something like (the directory paths will be different):
 
 @smallexample
@@ -1110,7 +1110,7 @@ In buffer @file{hello_5.adb}, invoke @samp{Ada | Project | Load...}, and
 select @file{Example_5/hello_5.adp}.
 
 Then, again in @file{hello_5.adb}, invoke @samp{Ada | Set main and
-Build}. You should get a @code{*compilation*} buffer containing
+Build}. You should get a @file{*compilation*} buffer containing
 something like (the directory paths will be different):
 
 @smallexample

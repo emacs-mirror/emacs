@@ -1,3 +1,12 @@
+2014-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* ada-mode.texi, auth.texi, calc.texi, ebrowse.texi, efaq.texi:
+	* emacs-gnutls.texi, epa.texi, ert.texi, eshell.texi, eww.texi:
+	* flymake.texi, gnus.texi, info.texi, message.texi, mh-e.texi:
+	* newsticker.texi, pcl-cvs.texi, rcirc.texi, sem-user.texi:
+	* smtpmail.texi, url.texi, viper.texi, wisent.texi, woman.texi:
+	Use @file for buffers, per the Texinfo manual.
+
 2014-03-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* org.texi: Don't set txicodequoteundirected and txicodequotebacktick

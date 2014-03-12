@@ -826,7 +826,7 @@ shows manual sections and subsections by default, but you can change
 this by customizing @code{woman-imenu-generic-expression}.
 
 WoMan is configured not to replace spaces in an imenu
-@code{*Completion*} buffer.  For further documentation on the use of
+@file{*Completion*} buffer.  For further documentation on the use of
 imenu, such as menu sorting, see the source file @file{imenu.el}, which
 is distributed with GNU Emacs.
 
@@ -852,7 +852,7 @@ customization should be possible via existing user options.
 @vtable @code
 @item woman-show-log
 A boolean value that defaults to @code{nil}.  If non-@code{nil} then show the
-@code{*WoMan-Log*} buffer if appropriate, i.e., if any warning messages
+@file{*WoMan-Log*} buffer if appropriate, i.e., if any warning messages
 are written to it.  @xref{Log, , The *WoMan-Log* Buffer}.
 
 @item woman-pre-format-hook
@@ -1295,7 +1295,7 @@ on @uref{http://savannah.gnu.org/projects/emacs/}.  If it still fails, please
 @item
 use @kbd{M-x report-emacs-bug} to send a bug report.
 Please include the entry from the
-@code{*WoMan-Log*} buffer relating to the problem file, together with
+@file{*WoMan-Log*} buffer relating to the problem file, together with
 a brief description of the problem.  Please indicate where you got the
 man source file from, but do not send it unless asked to send it.
 @end enumerate

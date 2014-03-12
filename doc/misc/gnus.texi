@@ -998,7 +998,7 @@ terminology section (@pxref{Terminology}).
 @cindex finding news
 
 First of all, you should know that there is a special buffer called
-@code{*Server*} that lists all the servers Gnus knows about.  You can
+@file{*Server*} that lists all the servers Gnus knows about.  You can
 press @kbd{^} from the Group buffer to see it.  In the Server buffer,
 you can press @kbd{RET} on a defined server to see all the groups it
 serves (subscribed or not!).  You can also add or delete servers, edit
@@ -5888,7 +5888,7 @@ have posted almost the same article twice.
 If you have just posted the article, and change your mind right away,
 there is a trick you can use to cancel/supersede the article without
 waiting for the article to appear on your site first.  You simply return
-to the post buffer (which is called @code{*sent ...*}).  There you will
+to the post buffer (which is called @file{*sent ...*}).  There you will
 find the article you just posted, with all the headers intact.  Change
 the @code{Message-ID} header to a @code{Cancel} or @code{Supersedes}
 header by substituting one of those words for the word
@@ -11139,7 +11139,7 @@ If you're in the habit of exiting groups, and then changing your mind
 about it, you might set @code{gnus-kill-summary-on-exit} to @code{nil}.
 If you do that, Gnus won't kill the summary buffer when you exit it.
 (Quelle surprise!)  Instead it will change the name of the buffer to
-something like @samp{*Dead Summary ... *} and install a minor mode
+something like @file{*Dead Summary ... *} and install a minor mode
 called @code{gnus-dead-summary-mode}.  Now, if you switch back to this
 buffer, you'll find that all keys are mapped to a function called
 @code{gnus-summary-wake-up-the-dead}.  So tapping any keys in a dead
@@ -13732,7 +13732,7 @@ A hook run before attempting to connect to an @acronym{NNTP} server.
 @item nntp-record-commands
 @vindex nntp-record-commands
 If non-@code{nil}, @code{nntp} will log all commands it sends to the
-@acronym{NNTP} server (along with a timestamp) in the @samp{*nntp-log*}
+@acronym{NNTP} server (along with a timestamp) in the @file{*nntp-log*}
 buffer.  This is useful if you are debugging a Gnus/@acronym{NNTP} connection
 that doesn't seem to work.
 
@@ -19438,7 +19438,7 @@ Display the score of the current article
 @kindex V t (Summary)
 @findex gnus-score-find-trace
 Display all score rules that have been used on the current article
-(@code{gnus-score-find-trace}).  In the @code{*Score Trace*} buffer, you
+(@code{gnus-score-find-trace}).  In the @file{*Score Trace*} buffer, you
 may type @kbd{e} to edit score file corresponding to the score rule on
 current line and @kbd{f} to format (@code{gnus-score-pretty-print}) the
 score file and edit it.
@@ -25919,7 +25919,7 @@ Fortunately, setting up the Gnus registry is pretty easy:
 @end lisp
 
 This adds registry saves to Gnus newsrc saves (which happen on exit
-and when you press @kbd{s} from the @code{*Group*} buffer.  It also
+and when you press @kbd{s} from the @file{*Group*} buffer.  It also
 adds registry calls to article actions in Gnus (copy, move, etc.)@: so
 it's not easy to undo the initialization.  See
 @code{gnus-registry-initialize} for the gory details.
@@ -26204,8 +26204,8 @@ This variable controls whether to add timestamps to messages that are
 controlled by @code{gnus-verbose} and @code{gnus-verbose-backends} and
 are issued.  The default value is @code{nil} which means never to add
 timestamp.  If it is @code{log}, add timestamps to only the messages
-that go into the @samp{*Messages*} buffer (in XEmacs, it is the
-@w{@samp{ *Message-Log*}} buffer).  If it is neither @code{nil} nor
+that go into the @file{*Messages*} buffer (in XEmacs, it is the
+@w{@file{ *Message-Log*}} buffer).  If it is neither @code{nil} nor
 @code{log}, add timestamps not only to log messages but also to the ones
 displayed in the echo area.
 

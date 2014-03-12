@@ -354,7 +354,7 @@ M-x viper-mode
 @end lisp
 
 When Emacs first comes up, if you have not specified a file on the
-command line, it will show the @samp{*scratch*} buffer, in the
+command line, it will show the @file{*scratch*} buffer, in the
 @samp{Lisp Interaction} mode.  After you invoke Viper, you can start
 editing files by using @kbd{:e}, @kbd{:vi}, or @kbd{v} commands.
 (@xref{File and Buffer Handling}, for more information on @kbd{v} and other
@@ -1840,7 +1840,7 @@ usually most effective:
 (set-face-background viper-replace-overlay-face "yellow")
 @end smallexample
 For a complete list of colors available to you, evaluate the expression
-@code{(x-defined-colors)}.  (Type it in the buffer @code{*scratch*} and then
+@code{(x-defined-colors)}.  (Type it in the buffer @file{*scratch*} and then
 hit the @kbd{C-j} key.
 
 @item viper-replace-overlay-cursor-color  "Red"

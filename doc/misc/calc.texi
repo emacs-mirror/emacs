@@ -3960,7 +3960,7 @@ Next, let's add the line we got from our least-squares fit.
 @ifinfo
 (If you are reading this tutorial on-line while running Calc, typing
 @kbd{g a} may cause the tutorial to disappear from its window and be
-replaced by a buffer named @samp{*Gnuplot Commands*}.  The tutorial
+replaced by a buffer named @file{*Gnuplot Commands*}.  The tutorial
 will reappear when you terminate GNUPLOT by typing @kbd{g q}.)
 @end ifinfo
 
@@ -9617,8 +9617,8 @@ numeric entry, undo, numeric prefix arguments, etc.
 @cindex Starting the Calculator
 @cindex Running the Calculator
 To start the Calculator in its standard interface, type @kbd{M-x calc}.
-By default this creates a pair of small windows, @samp{*Calculator*}
-and @samp{*Calc Trail*}.  The former displays the contents of the
+By default this creates a pair of small windows, @file{*Calculator*}
+and @file{*Calc Trail*}.  The former displays the contents of the
 Calculator stack and is manipulated exclusively through Calc commands.
 It is possible (though not usually necessary) to create several Calc
 mode buffers each of which has an independent stack, undo list, and
@@ -9626,7 +9626,7 @@ mode settings.  There is exactly one Calc Trail buffer; it records a
 list of the results of all calculations that have been done.  The
 Calc Trail buffer uses a variant of Calc mode, so Calculator commands
 still work when the trail buffer's window is selected.  It is possible
-to turn the trail window off, but the @samp{*Calc Trail*} buffer itself
+to turn the trail window off, but the @file{*Calc Trail*} buffer itself
 still exists and is updated silently.  @xref{Trail Commands}.
 
 @kindex C-x * c
@@ -10150,10 +10150,10 @@ forget what it was, just run @code{C-x * q} again and enter
 @samp{$} as the formula.
 
 If this is the first time you have used the Calculator in this Emacs
-session, the @kbd{C-x * q} command will create the @code{*Calculator*}
+session, the @kbd{C-x * q} command will create the @file{*Calculator*}
 buffer and perform all the usual initializations; it simply will
 refrain from putting that buffer up in a new window.  The Quick
-Calculator refers to the @code{*Calculator*} buffer for all mode
+Calculator refers to the @file{*Calculator*} buffer for all mode
 settings.  Thus, for example, to set the precision that the Quick
 Calculator uses, simply run the full Calculator momentarily and use
 the regular @kbd{p} command.
@@ -10341,9 +10341,9 @@ that you must always press @kbd{w} yourself to see the messages).
 @pindex another-calc
 It is possible to have any number of Calc mode buffers at once.
 Usually this is done by executing @kbd{M-x another-calc}, which
-is similar to @kbd{C-x * c} except that if a @samp{*Calculator*}
+is similar to @kbd{C-x * c} except that if a @file{*Calculator*}
 buffer already exists, a new, independent one with a name of the
-form @samp{*Calculator*<@var{n}>} is created.  You can also use the
+form @file{*Calculator*<@var{n}>} is created.  You can also use the
 command @code{calc-mode} to put any buffer into Calculator mode, but
 this would ordinarily never be done.
 
@@ -10358,7 +10358,7 @@ global default values of these variables are used only when a new
 Calculator buffer is created.  The @code{calc-quit} command saves
 the stack and mode settings of the buffer being quit as the new defaults.
 
-There is only one trail buffer, @samp{*Calc Trail*}, used by all
+There is only one trail buffer, @file{*Calc Trail*}, used by all
 Calculator buffers.
 
 @node Troubleshooting Commands,  , Multiple Calculators, Introduction
@@ -11882,7 +11882,7 @@ the stack objects at the levels determined by the point and the mark.
 @pindex calc-edit-finish
 @cindex Editing the stack with Emacs
 The @kbd{`} (@code{calc-edit}) command creates a temporary buffer
-(@samp{*Calc Edit*}) for editing the top-of-stack value using regular
+(@file{*Calc Edit*}) for editing the top-of-stack value using regular
 Emacs commands.  Note that @kbd{`} is a backquote, not a quote. With a
 numeric prefix argument, it edits the specified number of stack entries
 at once.  (An argument of zero edits the entire stack; a negative
@@ -11895,9 +11895,9 @@ usual meaning (``insert a newline'') if it's a situation where you
 might want to insert new lines into the editing buffer.
 
 When you finish editing, the Calculator parses the lines of text in
-the @samp{*Calc Edit*} buffer as numbers or formulas, replaces the
+the @file{*Calc Edit*} buffer as numbers or formulas, replaces the
 original stack elements in the original buffer with these new values,
-then kills the @samp{*Calc Edit*} buffer.  The original Calculator buffer
+then kills the @file{*Calc Edit*} buffer.  The original Calculator buffer
 continues to exist during editing, but for best results you should be
 careful not to change it until you have finished the edit.  You can
 also cancel the edit by killing the buffer with @kbd{C-x k}.
@@ -11908,7 +11908,7 @@ For example, editing @samp{a + 2} to @samp{3 + 2} and pressing
 finish, Calc will put the result on the stack without evaluating it.
 
 If you give a prefix argument to @kbd{C-c C-c},
-Calc will not kill the @samp{*Calc Edit*} buffer.  You can switch
+Calc will not kill the @file{*Calc Edit*} buffer.  You can switch
 back to that buffer and continue editing if you wish.  However, you
 should understand that if you initiated the edit with @kbd{`}, the
 @kbd{C-c C-c} operation will be programmed to replace the top of the
@@ -11918,13 +11918,13 @@ with other editing commands, though, such as @kbd{s e}
 (@code{calc-edit-variable}; @pxref{Operations on Variables}).
 
 If the @code{calc-edit} command involves more than one stack entry,
-each line of the @samp{*Calc Edit*} buffer is interpreted as a
+each line of the @file{*Calc Edit*} buffer is interpreted as a
 separate formula.  Otherwise, the entire buffer is interpreted as
 one formula, with line breaks ignored.  (You can use @kbd{C-o} or
 @kbd{C-q C-j} to insert a newline in the buffer without pressing @key{RET}.)
 
 The @kbd{`} key also works during numeric or algebraic entry.  The
-text entered so far is moved to the @code{*Calc Edit*} buffer for
+text entered so far is moved to the @file{*Calc Edit*} buffer for
 more extensive editing than is convenient in the minibuffer.
 
 @node Trail Commands, Keep Arguments, Editing Stack Entries, Stack and Trail
@@ -23604,7 +23604,7 @@ of 3 is used.  The lower this limit is, the greater the chance that Calc
 will be unable to integrate a function it could otherwise handle.  Raising
 this limit allows the Calculator to solve more integrals, though the time
 it takes may grow exponentially.  You can monitor the integrator's actions
-by creating an Emacs buffer called @code{*Trace*}.  If such a buffer
+by creating an Emacs buffer called @file{*Trace*}.  If such a buffer
 exists, the @kbd{a i} command will write a log of its actions there.
 
 If you want to manipulate integrals in a purely symbolic way, you can
@@ -27653,17 +27653,17 @@ only during integration by @kbd{a i}.
 @subsection Debugging Rewrites
 
 @noindent
-If a buffer named @samp{*Trace*} exists, the rewrite mechanism will
+If a buffer named @file{*Trace*} exists, the rewrite mechanism will
 record some useful information there as it operates.  The original
 formula is written there, as is the result of each successful rewrite,
 and the final result of the rewriting.  All phase changes are also
 noted.
 
-Calc always appends to @samp{*Trace*}.  You must empty this buffer
+Calc always appends to @file{*Trace*}.  You must empty this buffer
 yourself periodically if it is in danger of growing unwieldy.
 
 Note that the rewriting mechanism is substantially slower when the
-@samp{*Trace*} buffer exists, even if the buffer is not visible on
+@file{*Trace*} buffer exists, even if the buffer is not visible on
 the screen.  Once you are done, you will probably want to kill this
 buffer (with @kbd{C-x k *Trace* @key{RET}}).  If you leave it in
 existence and forget about it, all your future rewrite commands will
@@ -27986,7 +27986,7 @@ be considered a ``femto-ton,'' but it is written as @samp{1000 at}
 @kindex u v
 @pindex calc-enter-units-table
 The @kbd{u v} (@code{calc-enter-units-table}) command displays the units table
-in another buffer called @code{*Units Table*}.  Each entry in this table
+in another buffer called @file{*Units Table*}.  Each entry in this table
 gives the unit name as it would appear in an expression, the definition
 of the unit in terms of simpler units, and a full name or description of
 the unit.  Fundamental units are defined as themselves; these are the
@@ -29267,7 +29267,7 @@ result is a surface plot where
 is the height of the point
 at coordinate @expr{(x_i, y_j)} on the surface.  The 3D graph will
 be displayed from a certain default viewpoint; you can change this
-viewpoint by adding a @samp{set view} to the @samp{*Gnuplot Commands*}
+viewpoint by adding a @samp{set view} to the @file{*Gnuplot Commands*}
 buffer as described later.  See the GNUPLOT documentation for a
 description of the @samp{set view} command.
 
@@ -29330,7 +29330,7 @@ you give the @kbd{g p} command, all the curves will be drawn superimposed
 on the same axes.
 
 The @kbd{g a} command (and many others that affect the current graph)
-will cause a special buffer, @samp{*Gnuplot Commands*}, to be displayed
+will cause a special buffer, @file{*Gnuplot Commands*}, to be displayed
 in another window.  This buffer is a template of the commands that will
 be sent to GNUPLOT when it is time to draw the graph.  The first
 @kbd{g a} command adds a @code{plot} command to this buffer.  Succeeding
@@ -29341,7 +29341,7 @@ directly, but you can if you wish.  The only constraint is that there
 must be only one @code{plot} command, and it must be the last command
 in the buffer.  If you want to save and later restore a complete graph
 configuration, you can use regular Emacs commands to save and restore
-the contents of the @samp{*Gnuplot Commands*} buffer.
+the contents of the @file{*Gnuplot Commands*} buffer.
 
 @vindex PlotData1
 @vindex PlotData2
@@ -29393,10 +29393,10 @@ separate ``z''s).  With a zero prefix, it takes three stack entries
 but the ``z'' entry is a vector of curve values.  With a negative
 prefix @expr{-n}, it takes @expr{n} vectors of the form @expr{[x, y, z]}.
 The @kbd{g A} command works by adding a @code{splot} (surface-plot)
-command to the @samp{*Gnuplot Commands*} buffer.
+command to the @file{*Gnuplot Commands*} buffer.
 
 (Although @kbd{g a} adds a 2D @code{plot} command to the
-@samp{*Gnuplot Commands*} buffer, Calc changes this to @code{splot}
+@file{*Gnuplot Commands*} buffer, Calc changes this to @code{splot}
 before sending it to GNUPLOT if it notices that the data points are
 evaluating to @code{xyz} calls.  It will not work to mix 2D and 3D
 @kbd{g a} curves in a single graph, although Calc does not currently
@@ -29428,7 +29428,7 @@ affect the last curve in the list.
 @kindex g p
 @pindex calc-graph-plot
 The @kbd{g p} (@code{calc-graph-plot}) command uses GNUPLOT to draw
-the graph described in the @samp{*Gnuplot Commands*} buffer.  Any
+the graph described in the @file{*Gnuplot Commands*} buffer.  Any
 GNUPLOT parameters which are not defined by commands in this buffer
 are reset to their default values.  The variables named in the @code{plot}
 command are written to a temporary data file and the variable names
@@ -29462,7 +29462,7 @@ the current graph is three-dimensional.
 The @kbd{g P} (@code{calc-graph-print}) command is like @kbd{g p},
 except that it sends the output to a printer instead of to the
 screen.  More precisely, @kbd{g p} looks for @samp{set terminal}
-or @samp{set output} commands in the @samp{*Gnuplot Commands*} buffer;
+or @samp{set output} commands in the @file{*Gnuplot Commands*} buffer;
 lacking these it uses the default settings.  However, @kbd{g P}
 ignores @samp{set terminal} and @samp{set output} commands and
 uses a different set of default values.  All of these values are
@@ -29481,7 +29481,7 @@ The @kbd{g g} (@code{calc-graph-grid}) command turns the ``grid''
 on and off.  It is off by default; tick marks appear only at the
 edges of the graph.  With the grid turned on, dotted lines appear
 across the graph at each tick mark.  Note that this command only
-changes the setting in @samp{*Gnuplot Commands*}; to see the effects
+changes the setting in @file{*Gnuplot Commands*}; to see the effects
 of the change you must give another @kbd{g p} command.
 
 @kindex g b
@@ -29519,7 +29519,7 @@ time. This is usually more than adequate, but there are cases where
 it will not be.  For example, plotting @expr{1 + x} with @expr{x} in the
 interval @samp{[0 ..@: 1e-6]} will round all the data points down
 to 1.0!  Putting the command @samp{set precision @var{n}} in the
-@samp{*Gnuplot Commands*} buffer will cause the data to be computed
+@file{*Gnuplot Commands*} buffer will cause the data to be computed
 at precision @var{n} instead of 5.  Since this is such a rare case,
 there is no keystroke-based command to set the precision.
 
@@ -29534,9 +29534,9 @@ The default title is blank (no title).
 The @kbd{g n} (@code{calc-graph-name}) command sets the title of an
 individual curve.  Like the other curve-manipulating commands, it
 affects the most recently added curve, i.e., the last curve on the
-list in the @samp{*Gnuplot Commands*} buffer.  To set the title of
+list in the @file{*Gnuplot Commands*} buffer.  To set the title of
 the other curves you must first juggle them to the end of the list
-with @kbd{g j}, or edit the @samp{*Gnuplot Commands*} buffer by hand.
+with @kbd{g j}, or edit the @file{*Gnuplot Commands*} buffer by hand.
 Curve titles appear in the key; if the key is turned off they are
 not used.
 
@@ -29549,7 +29549,7 @@ The @kbd{g t} (@code{calc-graph-title-x}) and @kbd{g T}
 and ``y'' axes, respectively.  These titles appear next to the
 tick marks on the left and bottom edges of the graph, respectively.
 Calc does not have commands to control the tick marks themselves,
-but you can edit them into the @samp{*Gnuplot Commands*} buffer if
+but you can edit them into the @file{*Gnuplot Commands*} buffer if
 you wish.  See the GNUPLOT documentation for details.
 
 @kindex g r
@@ -29663,7 +29663,7 @@ value.
 The @code{dumb} device is an interface to ``dumb terminals,'' i.e.,
 terminals with no special graphics facilities.  It writes a crude
 picture of the graph composed of characters like @code{-} and @code{|}
-to a buffer called @samp{*Gnuplot Trail*}, which Calc then displays.
+to a buffer called @file{*Gnuplot Trail*}, which Calc then displays.
 The graph is made the same size as the Emacs screen, which on most
 dumb terminals will be
 @texline @math{80\times24}
@@ -29678,7 +29678,7 @@ spaces.  These are the desired width and height of the graph in
 characters.  Also, the device name @code{big} is like @code{dumb}
 but creates a graph four times the width and height of the Emacs
 screen.  You will then have to scroll around to view the entire
-graph.  In the @samp{*Gnuplot Trail*} buffer, @key{SPC}, @key{DEL},
+graph.  In the @file{*Gnuplot Trail*} buffer, @key{SPC}, @key{DEL},
 @kbd{<}, and @kbd{>} are defined to scroll by one screenful in each
 of the four directions.
 
@@ -29697,7 +29697,7 @@ used.  Many other ``devices'' are really file formats like
 @code{postscript}; in these cases the output in the desired format
 goes into the file you name with @kbd{g O}.  Type @kbd{g O stdout
 @key{RET}} to set GNUPLOT to write to its standard output stream,
-i.e., to @samp{*Gnuplot Trail*}.  This is the default setting.
+i.e., to @file{*Gnuplot Trail*}.  This is the default setting.
 
 Another special output name is @code{tty}, which means that GNUPLOT
 is going to write graphics commands directly to its standard output,
@@ -29721,7 +29721,7 @@ permanently by the @kbd{m m} (@code{calc-save-modes}) command.  The
 default number of data points (see @kbd{g N}) and the X geometry
 (see @kbd{g X}) are also saved.  Other graph information is @emph{not}
 saved; you can save a graph's configuration simply by saving the contents
-of the @samp{*Gnuplot Commands*} buffer.
+of the @file{*Gnuplot Commands*} buffer.
 
 @vindex calc-gnuplot-plot-command
 @vindex calc-gnuplot-default-device
@@ -29762,7 +29762,7 @@ Entering @samp{800x500+0+0} would create an 800-by-500 pixel
 window in the upper-left corner of the screen.  This command has no
 effect if the current device is @code{windows}.
 
-The buffer called @samp{*Gnuplot Trail*} holds a transcript of the
+The buffer called @file{*Gnuplot Trail*} holds a transcript of the
 session with GNUPLOT@.  This shows the commands Calc has ``typed'' to
 GNUPLOT and the responses it has received.  Calc tries to notice when an
 error message has appeared here and display the buffer for you when
@@ -29779,7 +29779,7 @@ usage of GNUPLOT.
 @pindex calc-graph-command
 The @kbd{g C} (@code{calc-graph-command}) command prompts you to
 enter any line of text, then simply sends that line to the current
-GNUPLOT process.  The @samp{*Gnuplot Trail*} buffer looks deceptively
+GNUPLOT process.  The @file{*Gnuplot Trail*} buffer looks deceptively
 like a Shell buffer but you can't type commands in it yourself.
 Instead, you must use @kbd{g C} for this purpose.
 
@@ -29788,21 +29788,21 @@ Instead, you must use @kbd{g C} for this purpose.
 @pindex calc-graph-view-commands
 @pindex calc-graph-view-trail
 The @kbd{g v} (@code{calc-graph-view-commands}) and @kbd{g V}
-(@code{calc-graph-view-trail}) commands display the @samp{*Gnuplot Commands*}
-and @samp{*Gnuplot Trail*} buffers, respectively, in another window.
+(@code{calc-graph-view-trail}) commands display the @file{*Gnuplot Commands*}
+and @file{*Gnuplot Trail*} buffers, respectively, in another window.
 This happens automatically when Calc thinks there is something you
 will want to see in either of these buffers.  If you type @kbd{g v}
 or @kbd{g V} when the relevant buffer is already displayed, the
-buffer is hidden again.  (Note that on MS-Windows, the @samp{*Gnuplot
+buffer is hidden again.  (Note that on MS-Windows, the @file{*Gnuplot
 Trail*} buffer will usually show nothing of interest, because
 GNUPLOT's responses are not communicated back to Calc.)
 
 One reason to use @kbd{g v} is to add your own commands to the
-@samp{*Gnuplot Commands*} buffer.  Press @kbd{g v}, then use
+@file{*Gnuplot Commands*} buffer.  Press @kbd{g v}, then use
 @kbd{C-x o} to switch into that window.  For example, GNUPLOT has
 @samp{set label} and @samp{set arrow} commands that allow you to
 annotate your plots.  Since Calc doesn't understand these commands,
-you have to add them to the @samp{*Gnuplot Commands*} buffer
+you have to add them to the @file{*Gnuplot Commands*} buffer
 yourself, then use @w{@kbd{g p}} to replot using these new commands.  Note
 that your commands must appear @emph{before} the @code{plot} command.
 To get help on any GNUPLOT feature, type, e.g., @kbd{g C help set label}.
@@ -29826,7 +29826,7 @@ exit Emacs if you haven't killed it manually by then.
 @kindex g K
 @pindex calc-graph-kill
 The @kbd{g K} (@code{calc-graph-kill}) command is like @kbd{g q}
-except that it also views the @samp{*Gnuplot Trail*} buffer so that
+except that it also views the @file{*Gnuplot Trail*} buffer so that
 you can see the process being killed.  This is better if you are
 killing GNUPLOT because you think it has gotten stuck.
 
@@ -30181,7 +30181,7 @@ trail all at once.  This mode would normally be used when running
 Calc standalone (@pxref{Standalone Operation}).
 
 If you aren't using the X window system, you must switch into
-the @samp{*Calc Keypad*} window, place the cursor on the desired
+the @file{*Calc Keypad*} window, place the cursor on the desired
 ``key,'' and type @key{SPC} or @key{RET}.  If you think this
 is easier than using Calc normally, go right ahead.
 
@@ -32313,7 +32313,7 @@ after Calc itself is loaded.
 The properties of @code{calc-define} are evaluated in the same order
 that they were added.  They can assume that the Calc modules @file{calc.el},
 @file{calc-ext.el}, and @file{calc-macs.el} have been fully loaded, and
-that the @samp{*Calculator*} buffer will be the current buffer.
+that the @file{*Calculator*} buffer will be the current buffer.
 
 If your @code{calc-define} property only defines algebraic functions,
 you can be sure that it will have been evaluated before Calc tries to
@@ -32400,9 +32400,9 @@ the function with code that looks roughly like this:
 @end smallexample
 
 @findex calc-select-buffer
-The @code{calc-select-buffer} function selects the @samp{*Calculator*}
+The @code{calc-select-buffer} function selects the @file{*Calculator*}
 buffer if necessary, say, because the command was invoked from inside
-the @samp{*Calc Trail*} window.
+the @file{*Calc Trail*} window.
 
 @findex calc-set-command-flag
 You can call, for example, @code{(calc-set-command-flag 'no-align)} to
@@ -32432,7 +32432,7 @@ Do not clear @code{calc-inverse-flag}, @code{calc-hyperbolic-flag},
 and @code{calc-keep-args-flag} at the end of this command.
 
 @item do-edit
-Switch to buffer @samp{*Calc Edit*} after this command.
+Switch to buffer @file{*Calc Edit*} after this command.
 
 @item hold-trail
 Do not move trail pointer to end of trail when something is recorded
@@ -33154,7 +33154,7 @@ It is, of course, polite to put the Calc stack back the way you
 found it when you are done, unless the user of your program is
 actually expecting it to affect the stack.
 
-Note that you do not actually have to switch into the @samp{*Calculator*}
+Note that you do not actually have to switch into the @file{*Calculator*}
 buffer in order to use @code{calc-eval}; it temporarily switches into
 the stack buffer if necessary.
 
@@ -33689,7 +33689,7 @@ entries.)
 @end defun
 
 @defun calc-refresh
-Erase the @code{*Calculator*} buffer and reformat its contents from memory.
+Erase the @file{*Calculator*} buffer and reformat its contents from memory.
 This must be called after changing any parameter, such as the current
 display radix, which might change the appearance of existing stack
 entries.  (During a keyboard macro invoked by the @kbd{X} key, refreshing

@@ -1086,7 +1086,7 @@ on a desert island with a laptop and are without your manuals, you can
 get a summary of all these commands with GNU Emacs online help: use
 @kbd{C-h m} (@code{describe-mode}) for a brief summary of commands,
 @kbd{?} (@code{mh-help}) for an even briefer summary@footnote{This
-help appears in a buffer called @samp{*MH-E Help*}
+help appears in a buffer called @file{*MH-E Help*}
 (@pxref{Miscellaneous}).} (@kbd{C-c ?} in MH-Letter mode), or @kbd{C-h
 i} to read this manual via Info. The online help is quite good; try
 running @kbd{C-h C-h}. This brings up a list of available help topics,
@@ -3692,8 +3692,8 @@ Set the options @code{mh-new-messages-folders} and
 folders. Otherwise, list the folders that should be searched with the
 @samp{Choose Folders} menu item. See @code{mh-recursive-folders-flag}.
 
-@cindex buffers, @samp{*MH-E Folders*}
-@cindex @samp{*MH-E Folders*}
+@cindex buffers, @file{*MH-E Folders*}
+@cindex @file{*MH-E Folders*}
 @findex mh-kill-folder
 @findex mh-list-folders
 @findex mh-pack-folder
@@ -3707,7 +3707,7 @@ folders. Otherwise, list the folders that should be searched with the
 
 Other commands you can perform on folders include: @kbd{F l}
 (@code{mh-list-folders}), to place a listing of all the folders in
-your mail directory in a buffer called @samp{*MH-E Folders*}
+your mail directory in a buffer called @file{*MH-E Folders*}
 (@pxref{Miscellaneous}); @kbd{F k} (@code{mh-kill-folder}), to remove
 a folder; @kbd{F S} (@code{mh-sort-folder}), to sort the messages by
 date (see @command{sortm}(1) to see how to sort by other criteria);
@@ -3781,7 +3781,7 @@ When you want to quit using MH-E and go back to editing, you can use
 the @kbd{q} (@code{mh-quit}) command. This buries the buffers of the
 current MH-E folder and restores the buffers that were present when
 you first ran @kbd{M-x mh-rmail}. It also removes any MH-E working
-buffers whose name begins with @samp{ *mh-} or @samp{*MH-E }
+buffers whose name begins with @samp{ *mh-} or @file{*MH-E }
 (@pxref{Miscellaneous}). You can later restore your MH-E session by
 selecting the @samp{+inbox} buffer or by running @kbd{M-x mh-rmail}
 again.
@@ -5618,10 +5618,10 @@ field, this setting is vital so that you can read the mail you write!
 @node Checking Recipients, Sending Message, Sending PGP, Editing Drafts
 @section Checking Recipients
 
-@cindex @samp{*MH-E Recipients*}
+@cindex @file{*MH-E Recipients*}
 @cindex @command{whom}
 @cindex MH commands, @command{whom}
-@cindex buffers, @samp{*MH-E Recipients*}
+@cindex buffers, @file{*MH-E Recipients*}
 @cindex checking recipients
 @cindex recipients, checking
 @findex mh-check-whom
@@ -5629,7 +5629,7 @@ field, this setting is vital so that you can read the mail you write!
 
 The command @kbd{C-c C-w} (@code{mh-check-whom}) expands aliases so
 you can check the actual address(es) in the alias. A new buffer named
-@samp{*MH-E Recipients*} is created with the output of @command{whom}
+@file{*MH-E Recipients*} is created with the output of @command{whom}
 (@pxref{Miscellaneous})@footnote{See the section
 @uref{@value{MH-BOOK-HOME}/senove.html#WhaPro, What now?---and the
 whatnow Program} in the MH book.}.
@@ -5637,8 +5637,8 @@ whatnow Program} in the MH book.}.
 @node Sending Message, Killing Draft, Checking Recipients, Editing Drafts
 @section Sending a Message
 
-@cindex buffers, @samp{*MH-E Mail Delivery*}
-@cindex @samp{*MH-E Mail Delivery*}
+@cindex buffers, @file{*MH-E Mail Delivery*}
+@cindex @file{*MH-E Mail Delivery*}
 @cindex sending mail
 @findex mh-send-letter
 @kindex C-c C-c
@@ -5646,7 +5646,7 @@ whatnow Program} in the MH book.}.
 When you are all through editing a message, you send it with the
 command @kbd{C-c C-c} (@code{mh-send-letter}). You can give a prefix
 argument (as in @kbd{C-u C-c C-c}) to monitor the first stage of the
-delivery; this output can be found in a buffer called @samp{*MH-E Mail
+delivery; this output can be found in a buffer called @file{*MH-E Mail
 Delivery*} (@pxref{Miscellaneous}).
 
 @cindex sending mail
@@ -7157,7 +7157,7 @@ MH-E has been byte-compiled, you could try running @samp{locate
 mh-thread.elc} or otherwise find MH-E on your system and ensure that
 @file{mh-thread.elc} exists. If you have multiple versions and you
 find that one is compiled but the other is not, then go into your
-@samp{*scratch*} buffer in Emacs, enter @kbd{load-path C-j}, and
+@file{*scratch*} buffer in Emacs, enter @kbd{load-path C-j}, and
 ensure that the byte-compiled version appears first in the
 @code{load-path}. If you find that MH-E is not compiled and you
 installed MH-E yourself, please refer to the installation directions
@@ -7443,8 +7443,8 @@ sequence, use @kbd{S '} (@code{mh-narrow-to-tick}). When you want to
 widen the view to all your messages again, use @kbd{S w}
 (@code{mh-widen}).
 
-@cindex buffers, @samp{*MH-E Sequences*}
-@cindex @samp{*MH-E Sequences*}
+@cindex buffers, @file{*MH-E Sequences*}
+@cindex @file{*MH-E Sequences*}
 @findex mh-list-sequences
 @findex mh-msg-is-in-seq
 @kindex S l
@@ -7456,7 +7456,7 @@ display the sequences in which another message appears (as in @kbd{C-u
 42 S s @key{RET}}). Or, you can list all sequences in a selected
 folder (default is current folder) with @kbd{S l}
 (@code{mh-list-sequences}). The list appears in a buffer named
-@samp{*MH-E Sequences*} (@pxref{Miscellaneous}).
+@file{*MH-E Sequences*} (@pxref{Miscellaneous}).
 
 @cindex MH profile component, @samp{Previous-Sequence}
 @cindex @samp{cur} sequence
@@ -7676,8 +7676,8 @@ If a message is in any sequence (except @samp{Previous-Sequence:} and
 sequences in the destination folder. If this behavior is not desired,
 then turn off the option @code{mh-whitelist-preserves-sequences-flag}.
 
-@cindex @samp{*MH-E Log*}
-@cindex buffers, @samp{*MH-E Log*}
+@cindex @file{*MH-E Log*}
+@cindex buffers, @file{*MH-E Log*}
 @findex call-process
 @vindex mh-junk-background
 
@@ -7688,7 +7688,7 @@ turning on the option @code{mh-junk-background}. @footnote{Note that
 the option @code{mh-junk-background} is used as the @code{display}
 argument in the call to @code{call-process}. Therefore, turning on
 this option means setting its value to @samp{0}. You can also set its
-value to @samp{t} to direct the programs' output to the @samp{*MH-E
+value to @samp{t} to direct the programs' output to the @file{*MH-E
 Log*} buffer; this may be useful for debugging.}
 
 The following sections discuss the various counter-spam measures that
@@ -7976,16 +7976,16 @@ Display version information about MH-E and the MH mail handling
 system.
 @end ftable
 
-@cindex buffers, @samp{*MH-E Info*}
+@cindex buffers, @file{*MH-E Info*}
 @cindex MH-E version
-@cindex @samp{*MH-E Info*}
+@cindex @file{*MH-E Info*}
 @cindex version
 @kindex M-x mh-version
 
 One command worth noting is @kbd{M-x mh-version}. You can compare the
 version this command prints to the latest release (@pxref{Getting
 MH-E}). The output of @kbd{M-x mh-version}, found in a buffer named
-@samp{*MH-E Info*}, should usually be included with any bug report you
+@file{*MH-E Info*}, should usually be included with any bug report you
 submit (@pxref{Bug Reports}).
 
 @subheading MH-E Buffers
@@ -7994,16 +7994,16 @@ Besides the MH-Folder, MH-Show, and MH-Letter buffers, MH-E creates
 several other buffers. They are:
 
 @table @samp
-@cindex @samp{*MH-E Folders*}
-@cindex buffers, @samp{*MH-E Folders*}
+@cindex @file{*MH-E Folders*}
+@cindex buffers, @file{*MH-E Folders*}
 @findex mh-list-folders
 @item *MH-E Folders*
 @kindex F l
 This buffer contains the output of @kbd{F l} (@code{mh-list-folders}).
 @xref{Folders}.
 @c -------------------------
-@cindex @samp{*MH-E Help*}
-@cindex buffers, @samp{*MH-E Help*}
+@cindex @file{*MH-E Help*}
+@cindex buffers, @file{*MH-E Help*}
 @findex mh-help
 @item *MH-E Help*
 @kindex ?
@@ -8011,25 +8011,25 @@ This buffer contains the output of @kbd{F l} (@code{mh-list-folders}).
 This buffer contains the output of @kbd{?} (@code{mh-help}) and
 @kbd{C-c ?} in MH-Letter mode. @xref{Using This Manual}.
 @c -------------------------
-@cindex @samp{*MH-E Info*}
-@cindex buffers, @samp{*MH-E Info*}
+@cindex @file{*MH-E Info*}
+@cindex buffers, @file{*MH-E Info*}
 @item *MH-E Info*
 This buffer contains the output of @kbd{M-x mh-version @key{RET}}.
 @c -------------------------
-@cindex @samp{*MH-E Log*}
-@cindex buffers, @samp{*MH-E Log*}
+@cindex @file{*MH-E Log*}
+@cindex buffers, @file{*MH-E Log*}
 @item *MH-E Log*
 This buffer contains the last 100 lines of the output of the various
 MH commands.
 @c -------------------------
-@cindex @samp{*MH-E Mail Delivery*}
-@cindex buffers, @samp{*MH-E Mail Delivery*}
+@cindex @file{*MH-E Mail Delivery*}
+@cindex buffers, @file{*MH-E Mail Delivery*}
 @item *MH-E Mail Delivery*
 This buffer contains the transcript of a mail delivery. @xref{Sending
 Message}.
 @c -------------------------
-@cindex @samp{*MH-E Recipients*}
-@cindex buffers, @samp{*MH-E Recipients*}
+@cindex @file{*MH-E Recipients*}
+@cindex buffers, @file{*MH-E Recipients*}
 @findex mh-check-whom
 @item *MH-E Recipients*
 @kindex C-c C-w
@@ -8037,14 +8037,14 @@ This buffer contains the output of @kbd{C-c C-w}
 (@code{mh-check-whom}) and is killed when draft is sent.
 @xref{Checking Recipients}.
 @c -------------------------
-@cindex @samp{*MH-E Sequences*}
-@cindex buffers, @samp{*MH-E Sequences*}
+@cindex @file{*MH-E Sequences*}
+@cindex buffers, @file{*MH-E Sequences*}
 @item *MH-E Sequences*
 This buffer contains the output of @kbd{S l}
 (@code{mh-list-sequences}). @xref{Sequences}.
 @c -------------------------
-@cindex @samp{*mh-temp*}
-@cindex buffers, @samp{*mh-temp*}
+@cindex @file{*mh-temp*}
+@cindex buffers, @file{*mh-temp*}
 @item *mh-temp*
 This is a scratch, ephemeral, buffer used by MH-E functions. Note that
 it is hidden because the first character in the name is a space.

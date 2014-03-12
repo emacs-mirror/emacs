@@ -255,7 +255,7 @@ syntax check tool).
 
 Flymake uses a simple logging facility for indicating important points
 in the control flow.  The logging facility sends logging messages to
-the @code{*Messages*} buffer.  The information logged can be used for
+the @file{*Messages*} buffer.  The information logged can be used for
 resolving various problems related to Flymake.
 
 Logging output is controlled by the @code{flymake-log-level}
@@ -326,7 +326,7 @@ started after @code{flymake-no-changes-timeout} seconds.
 @item flymake-gui-warnings-enabled
 A boolean flag indicating whether Flymake will show message boxes for
 non-recoverable errors.  If @code{flymake-gui-warnings-enabled} is
-@code{nil}, these errors will only be logged to the @code{*Messages*}
+@code{nil}, these errors will only be logged to the @file{*Messages*}
 buffer.
 
 @item flymake-start-syntax-check-on-newline

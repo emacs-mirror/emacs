@@ -903,12 +903,12 @@ at a given buffer position.  The return value is an EIEIO object
 describing the context at @var{pos} (@pxref{Top,,,eieio,EIEIO
 manual}).
 
-When called interactively, this displays a @samp{*Semantic Context
+When called interactively, this displays a @file{*Semantic Context
 Analysis*} buffer containing a summary of the context at point.
 @end deffn
 
 @noindent
-The Prefix section of the @samp{*Semantic Context Analysis*} buffer
+The Prefix section of the @file{*Semantic Context Analysis*} buffer
 lists the tags based on the text at point.  If it shows only a simple
 string, the Semantic was unable to identify what the data type was.
 

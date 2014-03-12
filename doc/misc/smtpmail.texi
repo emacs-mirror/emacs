@@ -409,7 +409,7 @@ clues to the reason for the error.
 @vindex smtpmail-debug-info
   The variable @code{smtpmail-debug-info} controls whether to print
 the SMTP protocol exchange in the minibuffer, and retain the entire
-exchange in a buffer @samp{*trace of SMTP session to @var{server}*},
+exchange in a buffer @file{*trace of SMTP session to @var{server}*},
 where @var{server} is the name of the mail server to which you send
 mail.
 

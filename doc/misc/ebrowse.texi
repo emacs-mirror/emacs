@@ -495,7 +495,7 @@ The same functionality is available from the menu opened with
 
 @node Member Display
 @section Displaying Members
-@cindex @samp{*Members*} buffer
+@cindex @file{*Members*} buffer
 @cindex @samp{*Globals*}
 @cindex freezing a member buffer
 @cindex member lists, in tree buffers

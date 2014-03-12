@@ -104,7 +104,7 @@ properly.  Well, there's something to be done in the last case.
 @defvar gnutls-log-level
 The @code{gnutls-log-level} variable sets the log level.  1 is
 verbose.  2 is very verbose.  5 is crazy.  Crazy!  Set it to 1 or 2
-and look in the @code{*Messages*} buffer for the debugging
+and look in the @file{*Messages*} buffer for the debugging
 information.
 @end defvar
 
@@ -148,7 +148,7 @@ instead.
 
 Because of the low-level interactions with the GnuTLS library, there
 is no way currently to ask if a certificate can be accepted.  You have
-to look in the @code{*Messages*} buffer.
+to look in the @file{*Messages*} buffer.
 @end defvar
 
 @defvar gnutls-min-prime-bits

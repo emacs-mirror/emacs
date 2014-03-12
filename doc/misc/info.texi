@@ -1145,7 +1145,7 @@ select in another window.
   Another way to produce new Info buffers in Emacs is to use a numeric
 prefix argument for the @kbd{C-h i} command (@code{info}) which
 switches to the Info buffer with that number.  Thus, @kbd{C-u 2 C-h i}
-switches to the buffer @samp{*info*<2>}, creating it if necessary.
+switches to the buffer @file{*info*<2>}, creating it if necessary.
 
 @findex info-display-manual
   If you have created many Info buffers in Emacs, you might find it

@@ -1249,7 +1249,7 @@ if it exists.
 @defopt url-debug
 @cindex debugging
 Specifies the types of debug messages which are logged to
-the @code{*URL-DEBUG*} buffer.
+the @file{*URL-DEBUG*} buffer.
 @code{t} means log all messages.
 A number means log all messages and show them with @code{message}.
 It may also be a list of the types of messages to be logged.

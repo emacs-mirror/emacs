@@ -513,7 +513,7 @@ occurs even if the test fails.
 
 An exception to this are messages that the code under test prints with
 @code{message} and similar logging; tests should not bother restoring
-the @code{*Message*} buffer to its original state.
+the @file{*Message*} buffer to its original state.
 
 The above guidelines imply that tests should avoid calling highly
 customizable commands such as @code{find-file}, except, of course, if

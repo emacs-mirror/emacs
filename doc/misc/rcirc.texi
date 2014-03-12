@@ -212,7 +212,7 @@ Emacs, or join @code{#rcirc}, the channel about @code{rcirc}.
 
 @cindex server buffer
 When you have answered these questions, @code{rcirc} will create a server
-buffer, which will be named something like @code{*irc.freenode.net*},
+buffer, which will be named something like @file{*irc.freenode.net*},
 and a channel buffer for each of the channels you wanted to join.
 
 @kindex RET

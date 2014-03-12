@@ -97,7 +97,7 @@ EasyPG Assistant commands are prefixed by @samp{epa-}.  For example,
 
 EasyPG Assistant provides several cryptographic features which can be
 integrated into other Emacs functionalities.  For example, automatic
-encryption/decryption of @samp{*.gpg} files.
+encryption/decryption of @file{*.gpg} files.
 
 @node Commands
 @chapter Commands
@@ -161,7 +161,7 @@ Show all keys matched with @var{name} from the private keyring.
 @end deffn
 
 @noindent
-In @samp{*Keys*} buffer, several commands are available.  The common
+In @file{*Keys*} buffer, several commands are available.  The common
 use case is to export some keys to a file.  To do that, type @kbd{m}
 to select keys, type @kbd{o}, and then supply the filename.
 
@@ -355,10 +355,10 @@ use that option to ignore specific recipients for encryption purposes.
 
 @node Encrypting/decrypting gpg files
 @section Encrypting/decrypting gpg files
-By default, every file whose name ends with @samp{.gpg} will be
+By default, every file whose name ends with @file{.gpg} will be
 treated as encrypted.  That is, when you open such a file, the
 decrypted text is inserted in the buffer rather than encrypted one.
-Similarly, when you save the buffer to a @samp{foo.gpg} file,
+Similarly, when you save the buffer to a @file{foo.gpg} file,
 encrypted data is written.
 
 The file name pattern for encrypted files can be controlled by
@@ -492,7 +492,7 @@ collect necessary information to fix the bug, such as:
 
 Before reporting the bug, you should set @code{epg-debug} in the
 @file{~/.emacs} file and repeat the bug.  Then, include the contents
-of the @samp{ *epg-debug*} buffer.  Note that the first letter of the
+of the @file{ *epg-debug*} buffer.  Note that the first letter of the
 buffer name is a whitespace.
 
 @node GNU Free Documentation License

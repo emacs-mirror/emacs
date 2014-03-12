@@ -2410,12 +2410,12 @@ printed an error message?  If so, compiling from within Emacs using the
 @kbd{M-x compile} and @kbd{M-x recompile} commands is a much more
 effective way of doing that.  Emacs automatically intercepts the compile
 error messages, inserts them into a special buffer called
-@code{*compilation*}, and lets you visit the locus of each message in
+@file{*compilation*}, and lets you visit the locus of each message in
 the source.  Type @kbd{C-x `} to step through the offending lines one by
 one (starting with Emacs 22, you can also use @kbd{M-g M-p} and
 @kbd{M-g M-n} to go to the previous and next matches directly).  Click
 @kbd{Mouse-2} or press @key{RET} on a message text in the
-@code{*compilation*} buffer to go to the line whose number is mentioned
+@file{*compilation*} buffer to go to the line whose number is mentioned
 in that message.
 
 But if you indeed need to go to a certain text line, type @kbd{M-g M-g}

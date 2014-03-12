@@ -116,7 +116,7 @@ Commands
 * Removing handled entries::    Uninteresting lines can easily be removed.
 * Ignoring files::              Telling CVS to ignore generated files.
 * Viewing differences::         Commands to @samp{diff} different versions.
-* Invoking Ediff::              Running @samp{ediff} from @samp{*cvs*} buffer.
+* Invoking Ediff::              Running @samp{ediff} from @file{*cvs*} buffer.
 * Updating files::              Updating files that Need-update.
 * Tagging files::               Tagging files.
 * Miscellaneous commands::      Miscellaneous commands.
@@ -264,7 +264,7 @@ The function @code{cvs-examine} will ask for a directory.  The command
 @samp{cvs -n update} will be run in that directory.  (It should contain
 files that have been checked out from a CVS archive.)  The output from
 @code{cvs} will be parsed and presented in a table in a buffer called
-@samp{*cvs*}.  It might look something like this:
+@file{*cvs*}.  It might look something like this:
 
 @example
 Repository : /usr/CVSroot
@@ -298,7 +298,7 @@ You can move the cursor up and down in the buffer with @kbd{C-n} and
 repository. @xref{Committing changes}.  You can also press @kbd{O} to
 update any of the files that are marked @samp{Need-Update}.  You can
 also run @kbd{M-x cvs-update @key{RET}} (bound to @kbd{M-u} in the
-@samp{*cvs*} buffer) to update all the files.
+@file{*cvs*} buffer) to update all the files.
 
 You can then press @kbd{=} to easily get a @samp{diff} between your
 modified file and the base version that you started from, or you can
@@ -309,7 +309,7 @@ about files}).
 @node Buffer contents
 @chapter Buffer contents
 @cindex Buffer contents
-@cindex @code{*cvs*} buffer contents
+@cindex @file{*cvs*} buffer contents
 
 The display contains several columns, some of which are optional.
 These columns are, from left to right:
@@ -449,7 +449,7 @@ marks are not ignored) or whichever file or directory the cursor is on.
 
 If a directory is selected but the command cannot be applied to a
 directory, then it will be applied to the set of files under this
-directory which are in the @samp{*cvs*} buffer.
+directory which are in the @file{*cvs*} buffer.
 
 @findex cvs-mode-force-command
 @findex cvs-allow-dir-commit
@@ -504,7 +504,7 @@ you can use in PCL-CVS@.  They are grouped together by type.
 * Removing handled entries::    Uninteresting lines can easily be removed.
 * Ignoring files::              Telling CVS to ignore generated files.
 * Viewing differences::         Commands to @samp{diff} different versions.
-* Invoking Ediff::              Running @samp{ediff} from @samp{*cvs*} buffer.
+* Invoking Ediff::              Running @samp{ediff} from @file{*cvs*} buffer.
 * Updating files::              Updating files that Need-update.
 * Tagging files::               Tagging files.
 * Miscellaneous commands::      Miscellaneous commands.
@@ -520,10 +520,10 @@ you can use in PCL-CVS@.  They are grouped together by type.
 @findex cvs-quickdir
 @cindex Creating the *cvs* buffer
 
-Most commands in PCL-CVS require that you have a @samp{*cvs*}
+Most commands in PCL-CVS require that you have a @file{*cvs*}
 buffer.  The commands that you use to get one are listed below.
 For each, a @samp{cvs} process will be run, the output will be parsed by
-PCL-CVS, and the result will be printed in the @samp{*cvs*} buffer (see
+PCL-CVS, and the result will be printed in the @file{*cvs*} buffer (see
 @ref{Buffer contents}, for a description of the buffer's contents).
 
 @table @kbd
@@ -547,7 +547,7 @@ in which the @samp{cvs update} will be run and the module to be checked
 out.
 
 @item M-x cvs-quickdir
-Populate the @samp{*cvs*} buffer by just looking at the @file{CVS/Entries}
+Populate the @file{*cvs*} buffer by just looking at the @file{CVS/Entries}
 files.  This is very much like @code{cvs-examine} except that it does
 not access the CVS repository, which is a major advantage when the
 repository is far away.  But of course, it will not be able to detect
@@ -628,7 +628,7 @@ to the ones PCL-CVS thinks are relevant.
 @end table
 
 @node Updating the buffer
-@section Updating the @samp{*cvs*} buffer
+@section Updating the @file{*cvs*} buffer
 @findex cvs-update
 @findex cvs-examine
 @findex cvs-status
@@ -636,7 +636,7 @@ to the ones PCL-CVS thinks are relevant.
 @findex cvs-mode-examine
 @findex cvs-mode-status
 
-The following commands can be used from within the @samp{*cvs*} buffer
+The following commands can be used from within the @file{*cvs*} buffer
 to update the display:
 
 @table @kbd
@@ -667,7 +667,7 @@ top-level directory, this is equivalent to @kbd{M-e}.
 @item s
 Runs @code{cvs-mode-status} on the selected files.  When run on the
 top-level directory, this is equivalent to @kbd{M-s}, except that
-CVS output will be shown in a @samp{*cvs-info*} buffer that will be
+CVS output will be shown in a @file{*cvs-info*} buffer that will be
 put in @samp{cvs-status-mode}.
 @end table
 
@@ -775,7 +775,7 @@ Committing changes basically works as follows:
 @item
 After having selected the files you want to commit, you type either
 @kbd{c} or @kbd{C} which brings up a special buffer
-@samp{*cvs-commit*}.
+@file{*cvs-commit*}.
 
 @item
 You type in the log message describing the changes you're about to
@@ -800,8 +800,8 @@ change this last detail with @code{log-edit-confirm}.
 
 As for the difference between @kbd{c} (i.e., @code{cvs-mode-commit}) and
 @kbd{C} (i.e., @code{cvs-mode-commit-setup}) is that the first gets you
-straight to @samp{*cvs-commit*} without erasing it or changing anything
-to its content, while the second first erases @samp{*cvs-commit*}
+straight to @file{*cvs-commit*} without erasing it or changing anything
+to its content, while the second first erases @file{*cvs-commit*}
 and tries to initialize it with a sane default (it does that by either
 using a template provided by the CVS administrator or by extracting a
 relevant log message from a @file{ChangeLog} file).
@@ -866,12 +866,12 @@ directory (@code{cvs-mode-add-change-log-entry-other-window}).
 @item l
 Call the command @code{cvs-mode-log} which runs @samp{cvs log} on all
 selected files, and show the result in a temporary buffer
-@samp{*cvs-info*} (@pxref{Log View Mode}).
+@file{*cvs-info*} (@pxref{Log View Mode}).
 
 @item s
 Call the command @code{cvs-mode-status} which runs @samp{cvs status} on
 all selected files, and show the result in a temporary buffer
-@samp{*cvs-info*}.
+@file{*cvs-info*}.
 @c Fixme: reinstate when node is written:
 @c (@pxref{CVS Status Mode}).
 @end table
@@ -1142,11 +1142,11 @@ Byte compile all selected files that end in @file{.el}.
 
 @item M-x cvs-mode-delete-lock
 This command deletes the lock files that
-the @samp{*cvs*} buffer informs you about.  You should normally never have to
+the @file{*cvs*} buffer informs you about.  You should normally never have to
 use this command, since CVS tries very carefully to always remove the
 lock files itself.
 
-You can only use this command when a message in the @samp{*cvs*} buffer tells
+You can only use this command when a message in the @file{*cvs*} buffer tells
 you so.  You should wait a while before using this command in case
 someone else is running a @code{cvs} command.
 
@@ -1161,7 +1161,7 @@ area (@code{cvs-help}).
 Bury the PCL-CVS buffer (@code{cvs-bury-buffer}).
 
 @item M-x cvs-mode-quit
-Quit PCL-CVS, killing the @samp{*cvs*} buffer.
+Quit PCL-CVS, killing the @file{*cvs*} buffer.
 @end table
 
 @node Log Edit Mode
@@ -1260,7 +1260,7 @@ entries}.
 @item cvs-auto-remove-directories
 If this variable is set to any non-@code{nil} value, directories that do
 not contain any files to be checked in will not be listed in the
-@samp{*cvs*} buffer.
+@file{*cvs*} buffer.
 
 @item cvs-auto-revert
 If this variable is set to any non-@samp{nil} value any buffers you have
@@ -1284,7 +1284,7 @@ useful if your site has several repositories.
 @item log-edit-require-final-newline
 @c wordy to avoid underfull hbox
 When you enter a log message by typing into the
-@samp{*cvs-commit-message*} buffer, PCL-CVS normally automatically
+@file{*cvs-commit-message*} buffer, PCL-CVS normally automatically
 inserts a trailing newline, unless there already is one.  This behavior
 can be controlled via @samp{cvs-commit-buffer-require-final-newline}.
 If it is @samp{t} (the default behavior), a newline will always be
@@ -1340,7 +1340,7 @@ default.
 @vindex cvs-msg (face)
 
 PCL-CVS adds a few extra features, including menus, mouse bindings, and
-fontification of the @samp{*cvs*} buffer.  The faces defined for
+fontification of the @file{*cvs*} buffer.  The faces defined for
 fontification are listed below:
 
 @table @samp
@@ -1402,10 +1402,10 @@ Below is a partial list of currently known problems with PCL-CVS.
 @table @asis
 @item Unexpected output from CVS
 Unexpected output from CVS may confuse PCL-CVS@.  It will create
-warning messages in the @samp{*cvs*} buffer alerting you to any parse errors.
+warning messages in the @file{*cvs*} buffer alerting you to any parse errors.
 If you get these messages, please send a bug report to the email
-addresses listed above.  Include the contents of the @samp{*cvs*} buffer, the
-output of the CVS process (which should be found in the @samp{ *cvs-tmp*}
+addresses listed above.  Include the contents of the @file{*cvs*} buffer, the
+output of the CVS process (which should be found in the @file{ *cvs-tmp*}
 buffer), and the versions of Emacs, PCL-CVS and CVS you are using.
 @end table
 

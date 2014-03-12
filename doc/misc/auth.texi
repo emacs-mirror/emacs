@@ -127,7 +127,7 @@ later.
 
 If you have problems with the search, set @code{auth-source-debug} to
 @code{'trivia} and see what host, port, and user the library is
-checking in the @samp{*Messages*} buffer.  Ditto for any other
+checking in the @file{*Messages*} buffer.  Ditto for any other
 problems, your first step is always to see what's being checked.  The
 second step, of course, is to write a blog entry about it and wait for
 the answer in the comments.
@@ -382,7 +382,7 @@ The auth-source library lets you control logging output easily.
 
 @defvar auth-source-debug
 Set this variable to @code{'trivia} to see lots of output in
-@samp{*Messages*}, or set it to a function that behaves like
+@file{*Messages*}, or set it to a function that behaves like
 @code{message} to do your own logging.
 @end defvar
 

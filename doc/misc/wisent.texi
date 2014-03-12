@@ -689,7 +689,7 @@ Toggle whether to report verbose information on generated parser.
 @end deffn
 
 The verbose report is printed in the temporary buffer
-@code{*wisent-log*} when running interactively, or in file
+@file{*wisent-log*} when running interactively, or in file
 @file{wisent.output} when running in batch mode.  Different
 reports are separated from each other by a line like this:
 
@@ -760,7 +760,7 @@ Grammar contains 7 shift/reduce conflicts
 @end group
 @end example
 
-The @samp{*wisent-log*} buffer details things!
+The @file{*wisent-log*} buffer details things!
 
 The first section reports conflicts that were solved using precedence
 and/or associativity:

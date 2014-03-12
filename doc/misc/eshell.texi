@@ -665,7 +665,7 @@ virtual devices.
 The buffer redirection operator, @code{>>>}, expects a buffer object
 on the right-hand side, into which it inserts the output of the
 left-hand side.  e.g., @samp{echo hello >>> #<buffer *scratch*>}
-inserts the string @code{"hello"} into the @code{*scratch*} buffer.
+inserts the string @code{"hello"} into the @file{*scratch*} buffer.
 
 @code{eshell-virtual-targets} is a list of mappings of virtual device
 names to functions.  Eshell comes with two virtual devices:

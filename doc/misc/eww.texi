@@ -91,7 +91,7 @@ either prefix the file name with @code{file://} or use the command
 @kindex q
 @kindex w
 @kindex g
-  If loading the URL was successful the buffer @code{*eww*} is opened
+  If loading the URL was successful the buffer @file{*eww*} is opened
 and the web page is rendered in it.  You can leave EWW by pressing
 @kbd{q} or exit the browser by calling @kbd{eww-quit}.  To reload the
 web page hit @kbd{g} (@code{eww-reload}).  Pressing @kbd{w}
@@ -117,7 +117,7 @@ forth between them.  By pressing @kbd{l} (@code{eww-back-url}) you go
 to the previous URL.  You can go forward again with @kbd{r}
 (@code{eww-forward-url}).  If you want an overview of your browsing
 history press @kbd{H} (@code{eww-list-histories}) to open the history
-buffer @code{*eww history*}.  The history is lost when EWW is quit.
+buffer @file{*eww history*}.  The history is lost when EWW is quit.
 If you want to remember websites you can use bookmarks.
 
 @findex eww-add-bookmark
@@ -129,7 +129,7 @@ If you want to remember websites you can use bookmarks.
 (@code{eww-add-bookmark}) to store a bookmark for the current website.
 You can view stored bookmarks with @kbd{B}
 (@code{eww-list-bookmarks}).  This will open the bookmark buffer
-@code{*eww bookmarks*}.
+@file{*eww bookmarks*}.
 
 @findex eww-browse-with-external-browser
 @vindex shr-external-browser
@@ -156,7 +156,7 @@ browser by customizing
 @cindex Viewing Source
   You can view the source of a website with @kbd{v}
 (@code{eww-view-source}).  This will open a new buffer
-@code{*eww-source*} and insert the source.  The buffer will be set to
+@file{*eww-source*} and insert the source.  The buffer will be set to
 @code{html-mode} if available.
 
 @findex url-cookie-list
