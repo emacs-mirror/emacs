@@ -1,3 +1,11 @@
+2014-03-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* mule.texi (International Chars): Adjust C-u C-x = description.
+	Change it to match Emacs's current behavior.  Also, change the
+	example to use ê instead of À, as the isolated grave accent in the
+	latter's decomposition listing was confusingly transliterated to
+	left single quote in the PDF version of the manual.
+
 2014-03-12  Glenn Morris  <rgm@gnu.org>
 
 	* indent.texi (Indent Convenience): Mention electric-indent-local-mode.

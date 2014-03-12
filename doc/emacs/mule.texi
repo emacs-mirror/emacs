@@ -196,15 +196,15 @@ within that character set; @acronym{ASCII} characters are identified
 as belonging to the @code{ascii} character set.
 
 @item
-The character's syntax and categories.
-
-@item
-The character's encodings, both internally in the buffer, and externally
-if you were to save the file.
+The character's script, syntax and categories.
 
 @item
 What keys to type to input the character in the current input method
 (if it supports the character).
+
+@item
+The character's encodings, both internally in the buffer, and externally
+if you were to save the file.
 
 @item
 If you are running Emacs on a graphical display, the font name and
@@ -218,28 +218,29 @@ faces used to display the character, and any overlays containing it
 (@pxref{Overlays,,, elisp, the same manual}).
 @end itemize
 
-  Here's an example showing the Latin-1 character A with grave accent,
-in a buffer whose coding system is @code{utf-8-unix}:
+  Here's an example, with some lines folded to fit into this manual:
 
 @smallexample
              position: 1 of 1 (0%), column: 0
-            character: @`A (displayed as @`A) (codepoint 192, #o300, #xc0)
+            character: @^e (displayed as @^e) (codepoint 234, #o352, #xea)
     preferred charset: unicode (Unicode (ISO10646))
-code point in charset: 0xC0
-               syntax: w       which means: word
-             category: .:Base, L:Left-to-right (strong),
+code point in charset: 0xEA
+               script: latin
+               syntax: w        which means: word
+             category: .:Base, L:Left-to-right (strong), c:Chinese,
                        j:Japanese, l:Latin, v:Viet
-          buffer code: #xC3 #x80
-            file code: not encodable by coding system undecided-unix
+             to input: type "C-x 8 RET HEX-CODEPOINT" or "C-x 8 RET NAME"
+          buffer code: #xC3 #xAA
+            file code: #xC3 #xAA (encoded by coding system utf-8-unix)
               display: by this font (glyph code)
     xft:-unknown-DejaVu Sans Mono-normal-normal-
-        normal-*-13-*-*-*-m-0-iso10646-1 (#x82)
+        normal-*-15-*-*-*-m-0-iso10646-1 (#xAC)
 
 Character code properties: customize what to show
-  name: LATIN CAPITAL LETTER A WITH GRAVE
-  old-name: LATIN CAPITAL LETTER A GRAVE
-  general-category: Lu (Letter, Uppercase)
-  decomposition: (65 768) ('A' '`')
+  name: LATIN SMALL LETTER E WITH CIRCUMFLEX
+  old-name: LATIN SMALL LETTER E CIRCUMFLEX
+  general-category: Ll (Letter, Lowercase)
+  decomposition: (101 770) ('e' '^')
 @end smallexample
 
 @node Language Environments
