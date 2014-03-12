@@ -2138,7 +2138,9 @@ to another.  Once you save the Emacs @dfn{desktop}---the buffers,
 their file names, major modes, buffer positions, and so on---then
 subsequent Emacs sessions reload the saved desktop.  By default,
 the desktop also tries to save the frame and window configuration.
-To disable this, customize @code{desktop-restore-frames} to @code{nil}.
+To disable this, set @code{desktop-restore-frames} to @code{nil}.
+(See that variable's documentation for some related options
+that you can customize to fine-tune this behavior.)
 
 @findex desktop-save
 @vindex desktop-save-mode
