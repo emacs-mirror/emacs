@@ -387,15 +387,18 @@ modes are restored automatically; they should not be listed here."
   :group 'desktop)
 
 (defcustom desktop-restore-frames t
-  "When non-nil, save frames to desktop file."
+  "When non-nil, save and restore the frame and window configuration.
+See related options `desktop-restore-reuses-frames',
+`desktop-restore-in-current-display', and `desktop-restore-forces-onscreen'."
   :type 'boolean
   :group 'desktop
   :version "24.4")
 
 (defcustom desktop-restore-in-current-display nil
-  "If t, frames are restored in the current display.
-If nil, frames are restored, if possible, in their original displays.
-If `delete', frames on other displays are deleted instead of restored."
+  "Controls how restoring of frames treats displays.
+If t, restores frames into the current display.
+If nil, restores frames into their original displays (if possible).
+If `delete', deletes frames on other displays instead of restoring them."
   :type '(choice (const :tag "Restore in current display" t)
 		 (const :tag "Restore in original display" nil)
 		 (const :tag "Delete frames in other displays" delete))
@@ -403,11 +406,13 @@ If `delete', frames on other displays are deleted instead of restored."
   :version "24.4")
 
 (defcustom desktop-restore-forces-onscreen t
-  "If t, offscreen frames are restored onscreen instead.
-If `all', frames that are partially offscreen are also forced onscreen.
-NOTE: Checking of frame boundaries is only approximate and can fail
-to reliably detect frames whose onscreen/offscreen state depends on a
-few pixels, especially near the right / bottom borders of the screen."
+  "If t, restores frames that are fully offscreen onscreen instead.
+If `all', also restores frames that are partially offscreen onscreen.
+
+Note that checking of frame boundaries is only approximate.
+It can fail to reliably detect frames whose onscreen/offscreen state
+depends on a few pixels, especially near the right / bottom borders
+of the screen."
   :type '(choice (const :tag "Only fully offscreen frames" t)
 		 (const :tag "Also partially offscreen frames" all)
 		 (const :tag "Do not force frames onscreen" nil))
@@ -416,8 +421,8 @@ few pixels, especially near the right / bottom borders of the screen."
 
 (defcustom desktop-restore-reuses-frames t
   "If t, restoring frames reuses existing frames.
-If nil, existing frames are deleted.
-If `keep', existing frames are kept and not reused."
+If nil, deletes existing frames.
+If `keep', keeps existing frames and does not reuse them."
   :type '(choice (const :tag "Reuse existing frames" t)
 		 (const :tag "Delete existing frames" nil)
 		 (const :tag "Keep existing frames" :keep))

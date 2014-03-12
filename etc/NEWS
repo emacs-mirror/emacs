@@ -572,10 +572,10 @@ after `desktop-auto-save-timeout'.  To disable this, customize that option
 to nil (or zero).
 
 +++
-*** `desktop-restore-frames', enabled by default, allows saving and
-restoring the frame/window configuration (frameset).  Additional options
-`desktop-restore-in-current-display', `desktop-restore-reuses-frames'
-and `desktop-restore-forces-onscreen' offer further customization.
+*** Desktop now saves and restores the frame/window configuration.
+To disable this, set `desktop-restore-frames' to nil.
+See also related options `desktop-restore-reuses-frames',
+`desktop-restore-in-current-display', and `desktop-restore-forces-onscreen'.
 
 +++
 ** New Dired minor mode `dired-hide-details-mode' toggles whether details,

@@ -2132,10 +2132,13 @@ hexl-@key{RET}} for details.
 @cindex reload files
 @cindex desktop
 
+@vindex desktop-restore-frames
    Use the desktop library to save the state of Emacs from one session
 to another.  Once you save the Emacs @dfn{desktop}---the buffers,
 their file names, major modes, buffer positions, and so on---then
-subsequent Emacs sessions reload the saved desktop.
+subsequent Emacs sessions reload the saved desktop.  By default,
+the desktop also tries to save the frame and window configuration.
+To disable this, customize @code{desktop-restore-frames} to @code{nil}.
 
 @findex desktop-save
 @vindex desktop-save-mode
@@ -2192,32 +2195,6 @@ listed in @code{desktop-globals-to-clear}.  If you want this to
 preserve certain buffers, customize the variable
 @code{desktop-clear-preserve-buffers-regexp}, whose value is a regular
 expression matching the names of buffers not to kill.
-
-@vindex desktop-restore-frames
-@code{desktop-restore-frames}, enabled by default, a non-@code{nil}
-means save frames (@pxref{Frames}) to desktop file.
-
-@vindex desktop-restore-in-current-display
-If the value of @code{desktop-restore-in-current-display} is @code{t},
-frames are restored in the current display.  If @code{nil} (the
-default), frames are restored in their original displays if possible.
-If @samp{delete}, frames on other displays are deleted instead of
-restored.
-
-@vindex desktop-restore-reuses-frames
-If the value of @code{desktop-restore-reuses-frames} is @code{t} (the
-default), restoring frames will reuse existing frames.  If @code{nil},
-existing frames are deleted.  If @samp{:keep}, existing frames are
-kept but not reused.
-
-@vindex desktop-restore-forces-onscreen
-If the value of @code{desktop-restore-forces-onscreen} is @code{t}
-(the default), offscreen frames are restored onscreen.  If
-@samp{:all}, frames that are partially offscreen are also forced
-onscreen.  @strong{Notice:} Checking of frame boundaries is
-approximate.  It may not reliably detect frames whose
-onscreen/offscreen state depends on a few pixels, especially near the
-right and/or bottom borders of the screen.
 
   If you want to save minibuffer history from one session to
 another, use the @code{savehist} library.

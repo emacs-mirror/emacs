@@ -1,5 +1,9 @@
 2014-03-12  Glenn Morris  <rgm@gnu.org>
 
+	* desktop.el (desktop-restore-frames)
+	(desktop-restore-in-current-display, desktop-restore-forces-onscreen)
+	(desktop-restore-reuses-frames): Doc tweaks.
+
 	* electric.el (electric-indent-mode): Doc fix.
 
 2014-03-12  Juanma Barranquero  <lekktu@gmail.com>

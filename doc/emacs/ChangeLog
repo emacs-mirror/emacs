@@ -8,6 +8,9 @@
 
 2014-03-12  Glenn Morris  <rgm@gnu.org>
 
+	* misc.texi (Saving Emacs Sessions): Be briefer about desktop's
+	handling of frames.
+
 	* indent.texi (Indent Convenience): Mention electric-indent-local-mode.
 
 2014-03-02  Xue Fuqiao  <xfq@gnu.org>
