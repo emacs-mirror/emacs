@@ -306,8 +306,9 @@
 #define ARENA_DEFAULT_ZONED     TRUE
 
 #define ArenaDefaultZONESET (ZoneSetUNIV << (MPS_WORD_WIDTH / 2))
-/* @@@@ knows the implementation of ZoneSets */
-/* FIXME: There's no particular reason to think this will avoid GC segments. */
+/* TODO: This is left over from before the branch/2014-01-29/mps-chain-zones
+   and 2014-01-17/cbs-tract-alloc reformed allocation, and may now be doing
+   more harm than good.  Experiment with setting to ZoneSetUNIV. */
 
 #define SegPrefDEFAULT { \
   SegPrefSig,          /* sig */ \

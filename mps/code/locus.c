@@ -256,7 +256,7 @@ Res ChainAlloc(Seg *segReturn, Chain chain, Serial genNr, SegClass class,
     zones = arena->topGen.zones;
 
   SegPrefInit(&pref);
-  pref.high = FALSE; /* crudely separate GC'd memory from manual */
+  pref.high = FALSE;
   pref.zones = zones;
   pref.avoid = ZoneSetBlacklist(arena);
   res = SegAlloc(&seg, class, &pref, size, pool, withReservoirPermit, args);

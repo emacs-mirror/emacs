@@ -193,15 +193,15 @@ void MFSExtend(Pool pool, Addr base, Size size)
   mfs = PoolPoolMFS(pool);
   AVERT(MFS, mfs);
   AVER(size == mfs->extendBy);
+
+  /* Ensure that the memory we're adding belongs to this pool.  This is
+     automatic if it was allocated using ArenaAlloc, but if the memory is
+     being inserted from elsewhere then it must have been set up correctly. */
+  AVER(PoolHasAddr(pool, base));
   
   /* .tract.chain: chain first tracts through TractP(tract) */
   tract = TractOfBaseAddr(PoolArena(pool), base);
 
-  /* Ensure that the memory we're adding belongs to this pool.  This is
-     automatic if it was allocated ArenaAlloc, but if the memory is being
-     inserted from elsewhere then it must have been set up correctly.
-     FIXME: Reference the design.
-     FIXME: Use PoolHasAddr before getting the tract. */
   AVER(TractPool(tract) == pool);
 
   TractSetP(tract, (void *)mfs->tractList);
