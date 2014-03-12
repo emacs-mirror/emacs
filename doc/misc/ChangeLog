@@ -1,3 +1,8 @@
+2014-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* octave-mode.texi (Using Octave Mode): Remove outdated stuff
+	about RET and indentation.
+
 2014-03-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus.texi:
