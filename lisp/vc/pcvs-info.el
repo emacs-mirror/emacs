@@ -142,7 +142,7 @@ to confuse some users sometimes."
 
 (easy-mmode-defmap cvs-status-map
   '(([(mouse-2)] . cvs-mode-toggle-mark))
-  "Local keymap for text properties of status")
+  "Local keymap for text properties of status.")
 
 ;; Constructor:
 
@@ -301,8 +301,8 @@ to confuse some users sometimes."
     (DEAD		)
     (MESSAGE))
   "Fileinfo state descriptions for pcl-cvs.
-This is an assoc list.  Each element consists of (STATE . FUNS)
-- STATE (described in `cvs-create-fileinfo') is the key
+This is an assoc list.  Each element consists of (STATE . FUNS):
+- STATE (described in `cvs-create-fileinfo') is the key.
 - FUNS is the list of applicable operations.
   The first one (if any) should be the \"default\" action.
 Most of the actions have the obvious meaning.
@@ -332,7 +332,7 @@ FI-OR-TYPE can either be a symbol (a fileinfo-type) or a fileinfo."
 
 (defun cvs-fileinfo-pp (fileinfo)
   "Pretty print FILEINFO.  Insert a printed representation in current buffer.
-For use by the cookie package."
+For use by the ewoc package."
   (cvs-check-fileinfo fileinfo)
   (let ((type (cvs-fileinfo->type fileinfo))
 	(subtype (cvs-fileinfo->subtype fileinfo)))
@@ -416,7 +416,7 @@ fileinfo will appear first, followed by all files (alphabetically)."
 
 (defun cvs-fileinfo-from-entries (dir &optional all)
   "List of fileinfos for DIR, extracted from CVS/Entries.
-Unless ALL is optional, returns only the files that are not up-to-date.
+Unless ALL is non-nil, returns only the files that are not up-to-date.
 DIR can also be a file."
   (let* ((singlefile
 	  (cond

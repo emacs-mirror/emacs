@@ -253,7 +253,7 @@ arguments.  If ARGS is not a list, no argument will be passed."
 Optional argument DESC will be used for the prompt.
 If ARG (or a prefix argument) is nil, just use the 0th default.
 If it is a non-negative integer, use the corresponding default.
-If it is a negative integer query for a new value of the corresponding
+If it is a negative integer, query for a new value of the corresponding
   default and return that new value.
 If it is \\[universal-argument], just query and return a value without
   altering the defaults.
@@ -286,7 +286,7 @@ If it is \\[universal-argument] \\[universal-argument], behave just
       (nth numarg defaults))))
 
 (defsubst cvs-flags-set (sym index value)
-  "Set SYM's INDEX'th setting to VALUE."
+  "Set SYM's INDEXth setting to VALUE."
   (setf (nth index (cvs-flags-defaults (symbol-value sym))) value))
 
 ;;;;
@@ -323,7 +323,7 @@ See `cvs-prefix-set' for further description of the behavior."))
   "Set the cvs-prefix contained in SYM.
 If ARG is between 0 and 9, it selects the corresponding default.
 If ARG is negative (or \\[universal-argument] which corresponds to negative 0),
-  it queries the user and sets the -ARG'th default.
+  it queries the user and sets the -ARGth default.
 If ARG is greater than 9 (or \\[universal-argument] \\[universal-argument]),
   the (ARG mod 10)'th prefix is made persistent.
 If ARG is nil toggle the PREFIX's value between its 0th default and nil

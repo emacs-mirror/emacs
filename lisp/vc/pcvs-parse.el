@@ -165,13 +165,13 @@ Match RE and if successful, execute MATCHES."
 TYPE can either be a type symbol or a cons of the form (TYPE . SUBTYPE).
 PATH is the filename.
 DIRECTORY influences the way PATH is interpreted:
-- if it's a string, it denotes the directory in which PATH (which should then be
+- if a string, it denotes the directory in which PATH (which should then be
   a plain file name with no directory component) resides.
 - if it's nil, the PATH should not be trusted: if it has a directory
   component, use it, else, assume it is relative to the current directory.
-- else, the PATH should be trusted to be relative to the root
-  directory (i.e. if there is no directory component, it means the file
-  is inside the main directory).
+- else, the PATH should be trusted to be relative to the root directory
+  (i.e. if there is no directory component, it means the file is inside
+  the main directory).
 The remaining KEYS are passed directly to `cvs-create-fileinfo'."
   (let ((dir directory)
 	(file path))

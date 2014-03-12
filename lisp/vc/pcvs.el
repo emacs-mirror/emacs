@@ -341,11 +341,11 @@ the \\[cvs-mode-map] prefix."
 (defun cvs-temp-buffer (&optional cmd normal nosetup)
   "Create a temporary buffer to run CMD in.
 If CMD is a string, use it to lookup `cvs-buffer-name-alist' to find
-the buffer name to be used and its `major-mode'.
+the buffer name to be used and its major mode.
 
 The selected window will not be changed.  The new buffer will not maintain undo
 information and will be read-only unless NORMAL is non-nil.  It will be emptied
-\(unless NOSETUP is non-nil\) and its `default-directory' will be inherited
+\(unless NOSETUP is non-nil) and its `default-directory' will be inherited
 from the current buffer."
   (let* ((cvs-buf (current-buffer))
 	 (info (cdr (assoc cmd cvs-buffer-name-alist)))
@@ -750,13 +750,13 @@ FUN can be either a symbol (i.e. STYLE is nil) or a cons (FUN . STYLE).
 ARGS and DOCSTRING are the normal argument list.
 INTERACT is the interactive specification or nil for non-commands.
 
-STYLE can be either SIMPLE, NOARGS or DOUBLE.  It's an error for it
+STYLE can be either `SIMPLE', `NOARGS' or `DOUBLE'.  It's an error for it
 to have any other value, unless other details of the function make it
 clear what alternative to use.
-- SIMPLE will get all the interactive arguments from the original buffer.
-- NOARGS will get all the arguments from the *cvs* buffer and will
+- `SIMPLE' will get all the interactive arguments from the original buffer.
+- `NOARGS' will get all the arguments from the *cvs* buffer and will
   always behave as if called interactively.
-- DOUBLE is the generic case."
+- `DOUBLE' is the generic case."
   (declare (debug (&define sexp lambda-list stringp
                            ("interactive" interactive) def-body))
 	   (doc-string 3))
@@ -910,7 +910,7 @@ RM-MSGS if non-nil means remove messages."
 	(setq rerun t)))))
 
 (defun cvs-get-cvsroot ()
-  "Gets the CVSROOT for DIR."
+  "Get the CVSROOT for DIR."
   (let ((cvs-cvsroot-file (expand-file-name "Root" "CVS")))
     (or (cvs-file-to-string cvs-cvsroot-file t)
 	cvs-cvsroot
@@ -940,7 +940,7 @@ This usually doesn't really work but is a handy initval in a prompt."
 
 ;;;###autoload
 (defun cvs-checkout (modules dir flags &optional root)
-  "Run a 'cvs checkout MODULES' in DIR.
+  "Run a `cvs checkout MODULES' in DIR.
 Feed the output to a *cvs* buffer, display it in the current window,
 and run `cvs-mode' on it.
 
@@ -964,7 +964,7 @@ With a prefix argument, prompt for cvs FLAGS to use."
 		:noexist t)))
 
 (defun-cvs-mode (cvs-mode-checkout . NOARGS) (dir)
-  "Run cvs checkout against the current branch.
+  "Run `cvs checkout' against the current branch.
 The files are stored to DIR."
   (interactive
    (let* ((branch (cvs-prefix-get 'cvs-branch-prefix))
@@ -1082,7 +1082,7 @@ Optional argument NOSHOW if non-nil means not to display the buffer."
 	      :noshow noshow :dont-change-disc t))
 
 (defun cvs-update-filter (proc string)
-  "Filter function for pcl-cvs.
+  "Filter function for PCL-CVS.
 This function gets the output that CVS sends to stdout.  It inserts
 the STRING into (process-buffer PROC) but it also checks if CVS is waiting
 for a lock file.  If so, it inserts a message cookie in the *cvs* buffer."
@@ -1229,7 +1229,7 @@ If a prefix argument is given, move by that many lines."
 (defun-cvs-mode cvs-mode-mark (&optional arg)
   "Mark the fileinfo on the current line.
 If the fileinfo is a directory, all the contents of that directory are
-marked instead. A directory can never be marked."
+marked instead.  A directory can never be marked."
   (interactive)
   (let* ((tin (ewoc-locate cvs-cookies))
 	 (fi (ewoc-data tin)))
@@ -1397,7 +1397,7 @@ an empty list if it doesn't point to a file at all."
     (nreverse fis)))
 
 (cl-defun cvs-mode-marked (filter &optional cmd
-				&key read-only one file noquery)
+				  &key read-only one file noquery)
   "Get the list of marked FIS.
 CMD is used to determine whether to use the marks or not.
 Only files for which FILTER is applicable are returned.
@@ -1636,25 +1636,25 @@ See also `cvs-diff-ignore-marks'."
 
 (defun-cvs-mode (cvs-mode-diff-head . SIMPLE) (flags)
   "Diff the selected files against the head of the current branch.
-See ``cvs-mode-diff'' for more info."
+See `cvs-mode-diff' for more info."
   (interactive (list (cvs-flags-query 'cvs-diff-flags "cvs diff flags")))
   (cvs-mode-diff-1 (cons "-rHEAD" flags)))
 
 (defun-cvs-mode (cvs-mode-diff-repository . SIMPLE) (flags)
   "Diff the files for changes in the repository since last co/update/commit.
-See ``cvs-mode-diff'' for more info."
+See `cvs-mode-diff' for more info."
   (interactive (list (cvs-flags-query 'cvs-diff-flags "cvs diff flags")))
   (cvs-mode-diff-1 (cons "-rBASE" (cons "-rHEAD" flags))))
 
 (defun-cvs-mode (cvs-mode-diff-yesterday . SIMPLE) (flags)
   "Diff the selected files against yesterday's head of the current branch.
-See ``cvs-mode-diff'' for more info."
+See `cvs-mode-diff' for more info."
   (interactive (list (cvs-flags-query 'cvs-diff-flags "cvs diff flags")))
   (cvs-mode-diff-1 (cons "-Dyesterday" flags)))
 
 (defun-cvs-mode (cvs-mode-diff-vendor . SIMPLE) (flags)
   "Diff the selected files against the head of the vendor branch.
-See ``cvs-mode-diff'' for more info."
+See `cvs-mode-diff' for more info."
   (interactive (list (cvs-flags-query 'cvs-diff-flags "cvs diff flags")))
   (cvs-mode-diff-1 (cons (concat "-r" cvs-vendor-branch) flags)))
 
@@ -1904,7 +1904,7 @@ Executes `cvs CVSARGS CMD FLAGS' on the selected files.
 FILTER is passed to `cvs-applicable-p' to only apply the command to
   files for which it makes sense.
 SHOW indicates that CMD should be not be run in the default temp buffer and
-  should be shown to the user.  The buffer and mode to be used is determined
+  should be shown to the user.  The buffer and mode to be used are determined
   by `cvs-buffer-name-alist'.
 DONT-CHANGE-DISC non-nil indicates that the command will not change the
   contents of files.  This is only used by the parser."
@@ -1999,7 +1999,7 @@ This command ignores files that are not flagged as `Unknown'."
 
 
 (defun cvs-mode-view-file-other-window (e)
-  "View the file."
+  "View the file in another window."
   (interactive (list last-input-event))
   (cvs-mode-find-file e t t))
 
@@ -2209,7 +2209,7 @@ With prefix argument, prompt for cvs flags."
 ;; Byte compile files.
 
 (defun-cvs-mode cvs-mode-byte-compile-files ()
-  "Run byte-compile-file on all selected files that end in '.el'."
+  "Run byte-compile-file on all selected files with '.el' extension."
   (interactive)
   (let ((marked (cvs-get-marked (cvs-ignore-marks-p "byte-compile"))))
     (dolist (fi marked)
@@ -2318,7 +2318,7 @@ this file, or a list of arguments to send to the program."
 
 
 (defun cvs-change-cvsroot (newroot)
-  "Change the cvsroot."
+  "Change the CVSROOT."
   (interactive "DNew repository: ")
   (if (or (file-directory-p (expand-file-name "CVSROOT" newroot))
 	  (y-or-n-p (concat "Warning: no CVSROOT found inside repository."
@@ -2344,7 +2344,7 @@ Sensible values are `cvs-examine', `cvs-status' and `cvs-quickdir'."
 (defcustom cvs-dired-use-hook '(4)
   "Whether or not opening a CVS directory should run PCL-CVS.
 A value of nil means never do it.
-ALWAYS means to always do it unless a prefix argument is given to the
+`always' means to always do it unless a prefix argument is given to the
   command that prompted the opening of the directory.
 Anything else means to do it only if the prefix arg is equal to this value."
   :group 'pcl-cvs

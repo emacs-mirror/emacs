@@ -1,5 +1,28 @@
 2014-03-12  Juanma Barranquero  <lekktu@gmail.com>
 
+	* vc/pcvs.el (cvs-temp-buffer, defun-cvs-mode, cvs-get-cvsroot)
+	(cvs-checkout, cvs-mode-checkout, cvs-update-filter, cvs-mode-mark)
+	(cvs-mode-diff-head, cvs-mode-diff-repository, cvs-mode-diff-yesterday)
+	(cvs-mode-diff-vendor, cvs-mode-do, cvs-change-cvsroot)
+	(cvs-dired-use-hook): Fix docstring typos.
+	(cvs-mode-view-file-other-window, cvs-mode-byte-compile-files):
+	Doc fixes.
+
+	* vc/pcvs-defs.el (cvs-auto-remove-handled)
+	(cvs-auto-remove-directories, cvs-default-ignore-marks)
+	(cvs-idiff-imerge-handlers, cvs-reuse-cvs-buffer)
+	(cvs-execute-single-dir): Fix docstring typos.
+
+	* vc/pcvs-info.el (cvs-status-map, cvs-states): Fix docstring typos.
+	(cvs-fileinfo-pp, cvs-fileinfo-from-entries): Doc fixes.
+
+	* vc/pcvs-parse.el (cvs-parsed-fileinfo): Reflow docstring.
+
+	* vc/pcvs-util.el (cvs-flags-query, cvs-flags-set, cvs-prefix-set):
+	Fix docstring typos.
+
+2014-03-12  Juanma Barranquero  <lekktu@gmail.com>
+
 	* frameset.el (frameset--jump-to-register): Add autoload; it could be
 	called from jump-to-register after unloading the frameset package.
 
