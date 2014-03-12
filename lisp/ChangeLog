@@ -1,5 +1,8 @@
 2014-03-12  Juanma Barranquero  <lekktu@gmail.com>
 
+	* register.el (register-separator, copy-to-register): Doc fixes.
+	(register-preview-default): Remove unnecessary call to concat.
+
 	* frameset.el (frameset-restore): When checking for a visible frame,
 	use the action map instead of calling visible-frame-list.
 
