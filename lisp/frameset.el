@@ -1236,6 +1236,7 @@ All keyword parameters default to nil."
 
 ;; Register support
 
+;;;###autoload
 (defun frameset--jump-to-register (data)
   "Restore frameset from DATA stored in register.
 Called from `jump-to-register'.  Internal use only."
