@@ -406,7 +406,6 @@ int main(int argc, char *argv[])
 
   block = malloc(TEST_ARENA_SIZE);
   cdie(block != NULL, "malloc");
-  testPageTable((ArenaClass)mps_arena_class_cl(), TEST_ARENA_SIZE, block, TRUE);
   testPageTable((ArenaClass)mps_arena_class_cl(), TEST_ARENA_SIZE, block, FALSE);
 
   testSize(TEST_ARENA_SIZE);
