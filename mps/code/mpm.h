@@ -864,9 +864,15 @@ extern Bool RankSetCheck(RankSet rankSet);
 
 extern ZoneSet ZoneSetOfRange(Arena arena, Addr base, Addr limit);
 extern ZoneSet ZoneSetOfSeg(Arena arena, Seg seg);
-extern Bool RangeInZoneSet(Addr *baseReturn, Addr *limitReturn,
-                           Addr base, Addr limit,
-                           Arena arena, ZoneSet zoneSet, Size size);
+typedef Bool (*RangeInZoneSet)(Addr *baseReturn, Addr *limitReturn,
+                               Addr base, Addr limit,
+                               Arena arena, ZoneSet zoneSet, Size size);
+extern Bool RangeInZoneSetFirst(Addr *baseReturn, Addr *limitReturn,
+                                Addr base, Addr limit,
+                                Arena arena, ZoneSet zoneSet, Size size);
+extern Bool RangeInZoneSetLast(Addr *baseReturn, Addr *limitReturn,
+                               Addr base, Addr limit,
+                               Arena arena, ZoneSet zoneSet, Size size);
 extern ZoneSet ZoneSetBlacklist(Arena arena);
 
 

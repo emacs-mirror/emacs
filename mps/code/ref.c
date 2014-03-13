@@ -81,7 +81,7 @@ ZoneSet ZoneSetOfSeg(Arena arena, Seg seg)
 }
 
 
-/* RangeInZoneSet -- find an area of address space within a zone set
+/* RangeInZoneSetFirst -- find an area of address space within a zone set
  *
  * Given a range of addresses, find the first sub-range of at least size that
  * is also within a zone set.  i.e. ZoneSetOfRange is a subset of the zone set.
@@ -97,9 +97,9 @@ static Addr nextStripe(Addr base, Addr limit, Arena arena)
   return next;
 }
 
-Bool RangeInZoneSet(Addr *baseReturn, Addr *limitReturn,
-                    Addr base, Addr limit,
-                    Arena arena, ZoneSet zoneSet, Size size)
+Bool RangeInZoneSetFirst(Addr *baseReturn, Addr *limitReturn,
+                         Addr base, Addr limit,
+                         Arena arena, ZoneSet zoneSet, Size size)
 {
   Size zebra;
   Addr searchLimit;
@@ -119,16 +119,13 @@ Bool RangeInZoneSet(Addr *baseReturn, Addr *limitReturn,
     return FALSE;
   
   if (zoneSet == ZoneSetUNIV) {
-    if (AddrOffset(base, limit) >= size) {
-      *baseReturn = base;
-      *limitReturn = limit;
-      return TRUE;
-    }
-    return FALSE;
+    *baseReturn = base;
+    *limitReturn = limit;
+    return TRUE;
   }
-  
+
   /* A "zebra" is the size of a complete set of stripes. */
-  zebra = (sizeof(ZoneSet) * CHAR_BIT) << arena->zoneShift;
+  zebra = (sizeof(ZoneSet) * CHAR_BIT) << ArenaZoneShift(arena);
   if (size >= zebra) {
     AVER(zoneSet != ZoneSetUNIV);
     return FALSE;
@@ -143,6 +140,7 @@ Bool RangeInZoneSet(Addr *baseReturn, Addr *limitReturn,
     Addr next;
 
     /* Search for a stripe in the zoneSet and within the block. */
+    /* (Find the first set bit in the zoneSet not below the base zone.) */
     while (!ZoneSetHasAddr(arena, zoneSet, base)) {
       base = nextStripe(base, limit, arena);
       if (base >= limit)
@@ -150,10 +148,11 @@ Bool RangeInZoneSet(Addr *baseReturn, Addr *limitReturn,
     }
 
     /* Search for a run stripes in the zoneSet and within the block. */
+    /* (Find a run of set bits in the zoneSet.) */
     next = base;
     do
       next = nextStripe(next, limit, arena);
-    while(next < limit && ZoneSetHasAddr(arena, zoneSet, next));
+    while (next < limit && ZoneSetHasAddr(arena, zoneSet, next));
     
     /* Is the run big enough to satisfy the size? */
     if (AddrOffset(base, next) >= size) {
@@ -163,6 +162,95 @@ Bool RangeInZoneSet(Addr *baseReturn, Addr *limitReturn,
     }
 
     base = next;
+  } while (base < limit);
+
+  return FALSE;
+}
+
+
+/* RangeInZoneSetLast -- find an area of address space within a zone set
+ *
+ * Given a range of addresses, find the last sub-range of at least size that
+ * is also within a zone set.  i.e. ZoneSetOfRange is a subset of the zone set.
+ * Returns FALSE if no range satisfying the conditions could be found.
+ */
+
+static Addr prevStripe(Addr base, Addr limit, Arena arena)
+{
+  Addr prev;
+  AVER(limit != (Addr)0);
+  prev = AddrAlignDown(AddrSub(limit, 1), ArenaStripeSize(arena));
+  AVER(prev < limit);
+  if (prev < base)
+    prev = base;
+  return prev;
+}
+
+Bool RangeInZoneSetLast(Addr *baseReturn, Addr *limitReturn,
+                        Addr base, Addr limit,
+                        Arena arena, ZoneSet zoneSet, Size size)
+{
+  Size zebra;
+  Addr searchBase;
+
+  AVER(baseReturn != NULL);
+  AVER(limitReturn != NULL);
+  AVER(base < limit);
+  AVERT(Arena, arena);
+  AVER(size > 0);
+  AVER(zoneSet != ZoneSetEMPTY);
+  
+  /* TODO: Consider whether this search is better done by bit twiddling
+     zone sets, e.g. by constructing a mask of zone bits as wide as the
+     size and rotating the zoneSet. */
+
+  if (AddrOffset(base, limit) < size)
+    return FALSE;
+  
+  if (zoneSet == ZoneSetUNIV) {
+    *baseReturn = base;
+    *limitReturn = limit;
+    return TRUE;
+  }
+
+  /* A "zebra" is the size of a complete set of stripes. */
+  zebra = (sizeof(ZoneSet) * CHAR_BIT) << ArenaZoneShift(arena);
+  if (size >= zebra) {
+    AVER(zoneSet != ZoneSetUNIV);
+    return FALSE;
+  }
+  
+  /* There's no point searching through the zoneSet more than once. */
+  searchBase = AddrSub(AddrAlignDown(limit, ArenaStripeSize(arena)), zebra);
+  if (searchBase < limit && base < searchBase)
+    base = searchBase;
+  
+  do {
+    Addr prev;
+
+    /* Search for a stripe in the zoneSet and within the block. */
+    /* (Find the last set bit in the zoneSet below the limit zone.) */
+    while (!ZoneSetHasAddr(arena, zoneSet, AddrSub(limit, 1))) {
+      limit = prevStripe(base, limit, arena);
+      if (base >= limit)
+        return FALSE;
+    }
+
+    /* Search for a run stripes in the zoneSet and within the block. */
+    /* (Find a run of set bits in the zoneSet.) */
+    prev = limit;
+    do
+      prev = prevStripe(base, prev, arena);
+    while (prev > base && ZoneSetHasAddr(arena, zoneSet, AddrSub(prev, 1)));
+    
+    /* Is the run big enough to satisfy the size? */
+    if (AddrOffset(prev, limit) >= size) {
+      *baseReturn = prev;
+      *limitReturn = limit;
+      return TRUE;
+    }
+
+    limit = prev;
   } while (base < limit);
 
   return FALSE;
