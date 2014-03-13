@@ -654,8 +654,7 @@ static Res AMSSegSizePolicy(Size *sizeReturn,
 /* AMSSegCreate -- create a single AMSSeg */
 
 static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
-                        SegPref segPref, RankSet rankSet,
-                        Bool withReservoirPermit)
+                        RankSet rankSet, Bool withReservoirPermit)
 {
   Seg seg;
   AMS ams;
@@ -667,7 +666,6 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
   AVERT(Pool, pool);
   AVER(size > 0);
   AVERT(RankSet, rankSet);
-  AVERT(SegPref, segPref);
   AVER(BoolCheck(withReservoirPermit));
 
   ams = Pool2AMS(pool);
@@ -924,7 +922,6 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   Addr baseAddr, limitAddr;
   RankSet rankSet;
   Bool b;                       /* the return value of amsSegAlloc */
-  SegPrefStruct segPrefStruct;
   Size allocatedSize;
 
   AVER(baseReturn != NULL);
@@ -961,9 +958,7 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
 
   /* No suitable segment found; make a new one. */
-  SegPrefInit(&segPrefStruct);
-  SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
-  res = AMSSegCreate(&seg, pool, size, &segPrefStruct, rankSet,
+  res = AMSSegCreate(&seg, pool, size, rankSet,
                      withReservoirPermit);
   if (res != ResOK)
     return res;

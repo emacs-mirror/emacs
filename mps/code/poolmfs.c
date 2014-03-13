@@ -90,10 +90,12 @@ static void MFSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 }
 
 ARG_DEFINE_KEY(mfs_unit_size, Size);
+ARG_DEFINE_KEY(MFSExtendSelf, Bool);
 
 static Res MFSInit(Pool pool, ArgList args)
 {
   Size extendBy = MFS_EXTEND_BY_DEFAULT;
+  Bool extendSelf = TRUE;
   Size unitSize;
   MFS mfs;
   Arena arena;
@@ -110,8 +112,11 @@ static Res MFSInit(Pool pool, ArgList args)
     if (extendBy < unitSize)
       extendBy = unitSize;
   }
+  if (ArgPick(&arg, args, MFSExtendSelf))
+    extendSelf = arg.val.b;
 
   AVER(extendBy >= unitSize);
+  AVER(BoolCheck(extendSelf));
  
   mfs = PoolPoolMFS(pool);
   arena = PoolArena(pool);
@@ -124,35 +129,104 @@ static Res MFSInit(Pool pool, ArgList args)
   extendBy = SizeAlignUp(extendBy, ArenaAlign(arena));
 
   mfs->extendBy = extendBy;
+  mfs->extendSelf = extendSelf;
   mfs->unitSize = unitSize;
-  mfs->unitsPerExtent = extendBy/unitSize;
   mfs->freeList = NULL;
   mfs->tractList = NULL;
   mfs->sig = MFSSig;
 
   AVERT(MFS, mfs);
-  EVENT4(PoolInitMFS, pool, arena, extendBy, unitSize);
+  EVENT5(PoolInitMFS, pool, arena, extendBy, extendSelf, unitSize);
   return ResOK;
+}
+
+
+void MFSFinishTracts(Pool pool, MFSTractVisitor visitor,
+                     void *closureP, Size closureS)
+{
+  MFS mfs;
+
+  AVERT(Pool, pool);
+  mfs = PoolPoolMFS(pool);
+  AVERT(MFS, mfs);
+  
+  while (mfs->tractList != NULL) {
+    Tract nextTract = (Tract)TractP(mfs->tractList);   /* .tract.chain */
+    visitor(pool, TractBase(mfs->tractList), mfs->extendBy, closureP, closureS);
+    mfs->tractList = nextTract;
+  }
+}
+
+
+static void MFSTractFreeVisitor(Pool pool, Addr base, Size size,
+                                void *closureP, Size closureS)
+{
+  UNUSED(closureP);
+  UNUSED(closureS);
+  ArenaFree(base, size, pool);
 }
 
 
 static void MFSFinish(Pool pool)
 {
-  Tract tract;
   MFS mfs;
 
   AVERT(Pool, pool);
   mfs = PoolPoolMFS(pool);
   AVERT(MFS, mfs);
 
-  tract = mfs->tractList;
-  while(tract != NULL) {
-    Tract nextTract = (Tract)TractP(tract);   /* .tract.chain */
-    ArenaFree(TractBase(tract), mfs->extendBy, pool);
-    tract = nextTract;
-  }
+  MFSFinishTracts(pool, MFSTractFreeVisitor, NULL, 0);
 
   mfs->sig = SigInvalid;
+}
+
+
+void MFSExtend(Pool pool, Addr base, Size size)
+{
+  MFS mfs;
+  Tract tract;
+  Word i, unitsPerExtent;
+  Size unitSize;
+  Header header = NULL;
+
+  AVERT(Pool, pool);
+  mfs = PoolPoolMFS(pool);
+  AVERT(MFS, mfs);
+  AVER(size == mfs->extendBy);
+
+  /* Ensure that the memory we're adding belongs to this pool.  This is
+     automatic if it was allocated using ArenaAlloc, but if the memory is
+     being inserted from elsewhere then it must have been set up correctly. */
+  AVER(PoolHasAddr(pool, base));
+  
+  /* .tract.chain: chain first tracts through TractP(tract) */
+  tract = TractOfBaseAddr(PoolArena(pool), base);
+
+  AVER(TractPool(tract) == pool);
+
+  TractSetP(tract, (void *)mfs->tractList);
+  mfs->tractList = tract;
+
+  /* Sew together all the new empty units in the region, working down */
+  /* from the top so that they are in ascending order of address on the */
+  /* free list. */
+
+  unitSize = mfs->unitSize;
+  unitsPerExtent = size/unitSize;
+  AVER(unitsPerExtent > 0);
+
+#define SUB(b, s, i)    ((Header)AddrAdd(b, (s)*(i)))
+
+  for(i = 0; i < unitsPerExtent; ++i)
+  {
+    header = SUB(base, unitSize, unitsPerExtent-i - 1);
+    AVER(AddrIsAligned(header, pool->alignment));
+    AVER(AddrAdd((Addr)header, unitSize) <= AddrAdd(base, size));
+    header->next = mfs->freeList;
+    mfs->freeList = header;
+  }
+
+#undef SUB
 }
 
 
@@ -184,11 +258,10 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
 
   if(f == NULL)
   {
-    Tract tract;
-    Word i, unitsPerExtent;
-    Size unitSize;
     Addr base;
-    Header header = NULL, next;
+    
+    if (!mfs->extendSelf)
+      return ResLIMIT;
 
     /* Create a new region and attach it to the pool. */
     res = ArenaAlloc(&base, SegPrefDefault(), mfs->extendBy, pool,
@@ -196,34 +269,10 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
     if(res != ResOK)
       return res;
 
-    /* .tract.chain: chain first tracts through TractP(tract) */
-    tract = TractOfBaseAddr(PoolArena(pool), base);
-    TractSetP(tract, (void *)mfs->tractList);
-    mfs->tractList = tract;
-
-    /* Sew together all the new empty units in the region, working down */
-    /* from the top so that they are in ascending order of address on the */
-    /* free list. */
-
-    unitsPerExtent = mfs->unitsPerExtent;
-    unitSize = mfs->unitSize;
-    next = NULL;
-
-#define SUB(b, s, i)    ((Header)AddrAdd(b, (s)*(i)))
-
-    for(i=0; i<unitsPerExtent; ++i)
-    {
-      header = SUB(base, unitSize, unitsPerExtent-i - 1);
-      AVER(AddrIsAligned(header, pool->alignment));
-      AVER(AddrAdd((Addr)header, unitSize) <= AddrAdd(base, mfs->extendBy));
-      header->next = next;
-      next = header;
-    }
-
-#undef SUB
+    MFSExtend(pool, base, mfs->extendBy);
 
     /* The first unit in the region is now the head of the new free list. */
-    f = header;
+    f = mfs->freeList;
   }
 
   AVER(f != NULL);
@@ -277,7 +326,6 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream)
                "  unrounded unit size $W\n", (WriteFW)mfs->unroundedUnitSize,
                "  unit size $W\n",           (WriteFW)mfs->unitSize,
                "  extent size $W\n",         (WriteFW)mfs->extendBy,
-               "  units per extent $U\n",    (WriteFU)mfs->unitsPerExtent,
                "  free list begins at $P\n", (WriteFP)mfs->freeList,
                "  tract list begin at $P\n", (WriteFP)mfs->tractList,
                NULL);
@@ -323,11 +371,11 @@ Bool MFSCheck(MFS mfs)
   CHECKL(mfs->poolStruct.class == EnsureMFSPoolClass());
   CHECKL(mfs->unroundedUnitSize >= UNIT_MIN);
   CHECKL(mfs->extendBy >= UNIT_MIN);
+  CHECKL(BoolCheck(mfs->extendSelf));
   arena = PoolArena(&mfs->poolStruct);
   CHECKL(SizeIsAligned(mfs->extendBy, ArenaAlign(arena)));
   CHECKL(SizeAlignUp(mfs->unroundedUnitSize, mfs->poolStruct.alignment) ==
          mfs->unitSize);
-  CHECKL(mfs->unitsPerExtent == mfs->extendBy/mfs->unitSize);
   if(mfs->tractList != NULL) {
     CHECKL(TractCheck(mfs->tractList));
   }

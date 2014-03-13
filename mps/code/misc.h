@@ -24,7 +24,7 @@ enum BoolEnum {
 
 
 typedef int Compare;
-enum {
+enum CompareEnum {
   CompareLESS = -1,
   CompareEQUAL = 0,
   CompareGREATER = 1

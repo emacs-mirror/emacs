@@ -146,6 +146,7 @@ typedef struct mps_arg_s {
     mps_fmt_isfwd_t fmt_isfwd;
     mps_fmt_pad_t fmt_pad;
     mps_fmt_class_t fmt_class;
+    mps_pool_t pool;
   } val;
 } mps_arg_s;
 
@@ -156,6 +157,9 @@ extern mps_arg_s mps_args_none[];
 extern const struct mps_key_s _mps_key_arena_size;
 #define MPS_KEY_ARENA_SIZE      (&_mps_key_arena_size)
 #define MPS_KEY_ARENA_SIZE_FIELD size
+extern const struct mps_key_s _mps_key_arena_zoned;
+#define MPS_KEY_ARENA_ZONED     (&_mps_key_arena_zoned)
+#define MPS_KEY_ARENA_ZONED_FIELD b
 extern const struct mps_key_s _mps_key_format;
 #define MPS_KEY_FORMAT          (&_mps_key_format)
 #define MPS_KEY_FORMAT_FIELD    format
