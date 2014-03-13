@@ -30,7 +30,6 @@ typedef struct RangeStruct *Range;
 #define RangeIsEmpty(range) (RangeSize(range) == 0)
 
 extern void RangeInit(Range range, Addr base, Addr limit);
-extern void RangeInitCopy(Range dest, Range src);
 extern void RangeFinish(Range range);
 extern Res RangeDescribe(Range range, mps_lib_FILE *stream);
 extern Bool RangeCheck(Range range);
