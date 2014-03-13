@@ -121,13 +121,16 @@ typedef void (*ArenaFinishMethod)(Arena arena);
 typedef Size (*ArenaReservedMethod)(Arena arena);
 typedef Size (*ArenaPurgeSpareMethod)(Arena arena, Size size);
 typedef Res (*ArenaExtendMethod)(Arena arena, Addr base, Size size);
-typedef Res (*ArenaAllocMethod)(Addr *baseReturn, Tract *baseTractReturn,
-                                SegPref pref, Size size, Pool pool);
+typedef Res (*ArenaGrowMethod)(Arena arena, SegPref pref, Size size);
 typedef void (*ArenaFreeMethod)(Addr base, Size size, Pool pool);
 typedef Res (*ArenaChunkInitMethod)(Chunk chunk, BootBlock boot);
 typedef void (*ArenaChunkFinishMethod)(Chunk chunk);
 typedef void (*ArenaCompactMethod)(Arena arena, Trace trace);
 typedef Res (*ArenaDescribeMethod)(Arena arena, mps_lib_FILE *stream);
+typedef Res (*ArenaPagesMarkAllocatedMethod)(Arena arena, Chunk chunk,
+                                             Index baseIndex, Count pages,
+                                             Pool pool);
+
 
 /* These are not generally exposed and public, but are part of a commercial
    extension to the MPS. */
@@ -312,7 +315,6 @@ enum {
   SegPrefHigh = 1,
   SegPrefLow, 
   SegPrefZoneSet,
-  SegPrefCollected,
   SegPrefLIMIT
 };
 

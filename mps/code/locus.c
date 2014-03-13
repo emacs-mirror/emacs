@@ -25,7 +25,7 @@ Bool SegPrefCheck(SegPref pref)
   CHECKS(SegPref, pref);
   CHECKL(BoolCheck(pref->high));
   /* zones can't be checked because it's arbitrary. */
-  CHECKL(BoolCheck(pref->isCollected));
+  /* avoid can't be checked because it's arbitrary. */
   return TRUE;
 }
 
@@ -68,11 +68,6 @@ void SegPrefExpress(SegPref pref, SegPrefKind kind, void *p)
   case SegPrefZoneSet:
     AVER(p != NULL);
     pref->zones = *(ZoneSet *)p;
-    break;
-
-  case SegPrefCollected:
-    AVER(p == NULL);
-    pref->isCollected = TRUE;
     break;
 
   default:
@@ -261,8 +256,9 @@ Res ChainAlloc(Seg *segReturn, Chain chain, Serial genNr, SegClass class,
     zones = arena->topGen.zones;
 
   SegPrefInit(&pref);
-  SegPrefExpress(&pref, SegPrefCollected, NULL);
-  SegPrefExpress(&pref, SegPrefZoneSet, &zones);
+  pref.high = FALSE;
+  pref.zones = zones;
+  pref.avoid = ZoneSetBlacklist(arena);
   res = SegAlloc(&seg, class, &pref, size, pool, withReservoirPermit, args);
   if (res != ResOK)
     return res;
