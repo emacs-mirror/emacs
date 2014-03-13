@@ -1,3 +1,8 @@
+2014-03-13  Tom Willemse  <tom@ryuslash.org>  (tiny change)
+
+	* emacs-lisp/package.el (package--prepare-dependencies):
+	Accept requirements without explicit version (bug#14941).
+
 2014-03-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* register.el (register-separator, copy-to-register): Doc fixes.

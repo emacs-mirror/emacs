@@ -1128,6 +1128,8 @@ is wrapped around any parts requiring it."
                  ((symbolp dep) `(,dep "0"))
                  ((stringp dep)
                   (error "Invalid requirement specifier: %S" dep))
+                 ((and (listp dep) (null (cdr dep)))
+                  (list (car dep) "0"))
                  (t dep)))
               deps))))
 
