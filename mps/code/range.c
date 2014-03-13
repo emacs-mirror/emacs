@@ -33,12 +33,6 @@ void RangeInit(Range range, Addr base, Addr limit)
   AVERT(Range, range);
 }
 
-void RangeInitCopy(Range dest, Range src)
-{
-  AVERT(Range, src);
-  RangeInit(dest, RangeBase(src), RangeLimit(src));
-}
-
 void RangeFinish(Range range)
 {
   AVERT(Range, range);
