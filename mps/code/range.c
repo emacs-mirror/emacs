@@ -109,6 +109,12 @@ Size (RangeSize)(Range range) {
   return RangeSize(range);
 }
 
+void RangeCopy(Range to, Range from)
+{
+  AVERT(Range, from);
+  RangeInit(to, RangeBase(from), RangeLimit(from));
+}
+
 
 /* C. COPYRIGHT AND LICENSE
  *

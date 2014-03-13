@@ -1063,6 +1063,7 @@ typedef struct SplayFindClosureStruct {
   void *p;
   Size s;
   SplayTree splay;
+  Bool found;
 } SplayFindClosureStruct, *SplayFindClosure;
 
 static Compare SplayFindFirstCompare(Tree node, TreeKey key)
@@ -1085,15 +1086,23 @@ static Compare SplayFindFirstCompare(Tree node, TreeKey key)
   testNode = closure->testNode;
   testTree = closure->testTree;
   splay = closure->splay;
-
+  
   if (TreeHasLeft(node) &&
      (*testTree)(splay, TreeLeft(node), closureP, closureS)) {
     return CompareLESS;
   } else if ((*testNode)(splay, node, closureP, closureS)) {
+    closure->found = TRUE;
     return CompareEQUAL;
   } else {
-    AVER(TreeHasRight(node));
-    AVER((*testTree)(splay, TreeRight(node), closureP, closureS));
+    /* If there's a right subtree but it doesn't satisfy the tree test
+       then we want to terminate the splay right now.  SplaySplay will
+       return TRUE, so the caller must check closure->found to find out
+       whether the result node actually satisfies testNode. */
+    if (TreeHasRight(node) &&
+        !(*testTree)(splay, TreeRight(node), closureP, closureS)) {
+      closure->found = FALSE;
+      return CompareEQUAL;
+    }
     return CompareGREATER;
   }
 }
@@ -1123,10 +1132,15 @@ static Compare SplayFindLastCompare(Tree node, TreeKey key)
      (*testTree)(splay, TreeRight(node), closureP, closureS)) {
      return CompareGREATER;
   } else if ((*testNode)(splay, node, closureP, closureS)) {
+    closure->found = TRUE;
     return CompareEQUAL;
   } else {
-    AVER(TreeHasLeft(node));
-    AVER((*testTree)(splay, TreeLeft(node), closureP, closureS));
+    /* See SplayFindFirstCompare. */
+    if (TreeHasLeft(node) &&
+        !(*testTree)(splay, TreeLeft(node), closureP, closureS)) {
+      closure->found = FALSE;
+      return CompareEQUAL;
+    }
     return CompareLESS;
   }
 }
@@ -1144,6 +1158,10 @@ static Compare SplayFindLastCompare(Tree node, TreeKey key)
  * The given callbacks testNode and testTree detect this property in
  * a single node or a sub-tree rooted at a node, and both receive the
  * arbitrary closures closureP and closureS.
+ *
+ * TODO: This repeatedly splays failed matches to the root and rotates
+ * them, so it could have quite an unbalancing effect if size is small.
+ * Think about a better search, perhaps using TreeTraverse?
  */
 
 Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
@@ -1152,7 +1170,7 @@ Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
                     void *closureP, Size closureS)
 {
   SplayFindClosureStruct closureStruct;
-  Compare cmp;
+  Bool found;
 
   AVER(nodeReturn != NULL);
   AVERT(SplayTree, splay);
@@ -1168,9 +1186,40 @@ Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
   closureStruct.testNode = testNode;
   closureStruct.testTree = testTree;
   closureStruct.splay = splay;
+  closureStruct.found = FALSE;
 
-  cmp = SplaySplay(splay, &closureStruct, SplayFindFirstCompare);
-  AVER(cmp == CompareEQUAL);
+  found = SplaySplay(splay, &closureStruct,
+                     SplayFindFirstCompare) == CompareEQUAL &&
+          closureStruct.found;
+
+  while (!found) {
+    Tree oldRoot, newRoot;
+    
+    /* FIXME: Rename to "seen" and "not yet seen" or something. */
+    oldRoot = SplayTreeRoot(splay);
+    newRoot = TreeRight(oldRoot);
+
+    if (newRoot == TreeEMPTY || !(*testTree)(splay, newRoot, closureP, closureS))
+      return FALSE; /* no suitable nodes in the rest of the tree */
+  
+    /* Temporarily chop off the left half-tree, inclusive of root,
+       so that the search excludes any nodes we've seen already. */
+    SplayTreeSetRoot(splay, newRoot);
+    TreeSetRight(oldRoot, TreeEMPTY);
+
+    found = SplaySplay(splay, &closureStruct,
+                       SplayFindFirstCompare) == CompareEQUAL &&
+            closureStruct.found;
+
+    /* Restore the left tree, then rotate left so that the node we
+       just splayed is at the root.  Update both. */
+    newRoot = SplayTreeRoot(splay);
+    TreeSetRight(oldRoot, newRoot);
+    SplayTreeSetRoot(splay, oldRoot);
+    TreeRotateLeft(&splay->root);
+    splay->updateNode(splay, oldRoot);
+    splay->updateNode(splay, newRoot);
+  }
 
   *nodeReturn = SplayTreeRoot(splay);
   return TRUE;
@@ -1185,7 +1234,7 @@ Bool SplayFindLast(Tree *nodeReturn, SplayTree splay,
                    void *closureP, Size closureS)
 {
   SplayFindClosureStruct closureStruct;
-  Compare cmp;
+  Bool found;
 
   AVER(nodeReturn != NULL);
   AVERT(SplayTree, splay);
@@ -1202,8 +1251,37 @@ Bool SplayFindLast(Tree *nodeReturn, SplayTree splay,
   closureStruct.testTree = testTree;
   closureStruct.splay = splay;
 
-  cmp = SplaySplay(splay, &closureStruct, SplayFindLastCompare);
-  AVER(cmp == CompareEQUAL);
+  found = SplaySplay(splay, &closureStruct,
+                     SplayFindLastCompare) == CompareEQUAL &&
+          closureStruct.found;
+
+  while (!found) {
+    Tree oldRoot, newRoot;
+    
+    oldRoot = SplayTreeRoot(splay);
+    newRoot = TreeLeft(oldRoot);
+
+    if (newRoot == TreeEMPTY || !(*testTree)(splay, newRoot, closureP, closureS))
+      return FALSE; /* no suitable nodes in the rest of the tree */
+  
+    /* Temporarily chop off the right half-tree, inclusive of root,
+       so that the search excludes any nodes we've seen already. */
+    SplayTreeSetRoot(splay, newRoot);
+    TreeSetLeft(oldRoot, TreeEMPTY);
+
+    found = SplaySplay(splay, &closureStruct,
+                       SplayFindLastCompare) == CompareEQUAL &&
+            closureStruct.found;
+
+    /* Restore the right tree, then rotate right so that the node we
+       just splayed is at the root.  Update both. */
+    newRoot = SplayTreeRoot(splay);
+    TreeSetLeft(oldRoot, newRoot);
+    SplayTreeSetRoot(splay, oldRoot);
+    TreeRotateRight(&splay->root);
+    splay->updateNode(splay, oldRoot);
+    splay->updateNode(splay, newRoot);
+  }
 
   *nodeReturn = SplayTreeRoot(splay);
   return TRUE;

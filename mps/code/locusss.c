@@ -217,8 +217,13 @@ static void runArenaTest(size_t size,
 {
   mps_arena_t arena;
 
-  die(mps_arena_create(&arena, mps_arena_class_vmnz(), size),
-      "mps_arena_create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, FALSE);
+    MPS_ARGS_DONE(args);
+    die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
+        "mps_arena_create");
+  } MPS_ARGS_END(args);
 
   die(mps_arena_commit_limit_set(arena, size - chunkSize),
       "mps_arena_commit_limit_set");

@@ -482,13 +482,17 @@ extern AbstractArenaClass AbstractArenaClassGet(void);
 extern Bool ArenaClassCheck(ArenaClass class);
 
 extern Bool ArenaCheck(Arena arena);
-extern Res ArenaCreate(Arena *arenaReturn, ArenaClass class, mps_arg_s args[]);
+extern Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args);
 extern void ArenaDestroy(Arena arena);
-extern Res ArenaInit(Arena arena, ArenaClass class);
+extern Res ArenaInit(Arena arena, ArenaClass class, Align alignment,
+                     ArgList args);
 extern void ArenaFinish(Arena arena);
 extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream);
 extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream);
 extern Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context);
+extern Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit);
+extern void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit);
+
 
 extern Bool GlobalsCheck(Globals arena);
 extern Res GlobalsInit(Globals arena);
@@ -505,6 +509,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaEpoch(arena)       ((arena)->epoch) /* .epoch.ts */
 #define ArenaTrace(arena, ti)   (&(arena)->trace[ti])
 #define ArenaZoneShift(arena)   ((arena)->zoneShift)
+#define ArenaStripeSize(arena)  ((Size)1 << ArenaZoneShift(arena))
 #define ArenaAlign(arena)       ((arena)->alignment)
 #define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
 #define ArenaPoolRing(arena) (&ArenaGlobals(arena)->poolRing)
@@ -589,6 +594,7 @@ extern Res ArenaSetCommitLimit(Arena arena, Size limit);
 extern Size ArenaSpareCommitLimit(Arena arena);
 extern void ArenaSetSpareCommitLimit(Arena arena, Size limit);
 extern Size ArenaNoPurgeSpare(Arena arena, Size size);
+extern Res ArenaNoGrow(Arena arena, SegPref pref, Size size);
 
 extern double ArenaMutatorAllocSize(Arena arena);
 extern Size ArenaAvail(Arena arena);
@@ -603,6 +609,7 @@ extern Res ArenaDefinalize(Arena arena, Ref obj);
 extern Bool ArenaIsReservedAddr(Arena arena, Addr addr);
 
 #define ArenaReservoir(arena) (&(arena)->reservoirStruct)
+#define ReservoirPool(reservoir) (&(reservoir)->poolStruct)
 
 extern Bool ReservoirCheck(Reservoir reservoir);
 extern Res ReservoirInit(Reservoir reservoir, Arena arena);
@@ -611,7 +618,7 @@ extern Size ReservoirLimit(Reservoir reservoir);
 extern void ReservoirSetLimit(Reservoir reservoir, Size size);
 extern Size ReservoirAvailable(Reservoir reservoir);
 extern Res ReservoirEnsureFull(Reservoir reservoir);
-extern void ReservoirDeposit(Reservoir reservoir, Addr base, Size size);
+extern Bool ReservoirDeposit(Reservoir reservoir, Addr *baseIO, Size *sizeIO);
 extern Res ReservoirWithdraw(Addr *baseReturn, Tract *baseTractReturn,
                              Reservoir reservoir, Size size, Pool pool);
 
@@ -848,6 +855,7 @@ extern Bool RankSetCheck(RankSet rankSet);
   BS_ADD(ZoneSet, zs, AddrZone(arena, addr))
 #define ZoneSetHasAddr(arena, zs, addr) \
   BS_IS_MEMBER(zs, AddrZone(arena, addr))
+#define ZoneSetIsSingle(zs)    BS_IS_SINGLE(zs)
 #define ZoneSetSub(zs1, zs2)   BS_SUB(zs1, zs2)
 #define ZoneSetSuper(zs1, zs2) BS_SUPER(zs1, zs2)
 #define ZoneSetComp(zs)        BS_COMP(zs)
@@ -856,6 +864,16 @@ extern Bool RankSetCheck(RankSet rankSet);
 
 extern ZoneSet ZoneSetOfRange(Arena arena, Addr base, Addr limit);
 extern ZoneSet ZoneSetOfSeg(Arena arena, Seg seg);
+typedef Bool (*RangeInZoneSet)(Addr *baseReturn, Addr *limitReturn,
+                               Addr base, Addr limit,
+                               Arena arena, ZoneSet zoneSet, Size size);
+extern Bool RangeInZoneSetFirst(Addr *baseReturn, Addr *limitReturn,
+                                Addr base, Addr limit,
+                                Arena arena, ZoneSet zoneSet, Size size);
+extern Bool RangeInZoneSetLast(Addr *baseReturn, Addr *limitReturn,
+                               Addr base, Addr limit,
+                               Arena arena, ZoneSet zoneSet, Size size);
+extern ZoneSet ZoneSetBlacklist(Arena arena);
 
 
 /* Shield Interface -- see <code/shield.c> */

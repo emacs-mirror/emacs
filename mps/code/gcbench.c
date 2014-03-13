@@ -49,6 +49,7 @@ static unsigned ngen = 0;         /* number of generations specified */
 static mps_gen_param_s gen[genLIMIT]; /* generation parameters */
 static size_t arenasize = 256ul * 1024 * 1024; /* arena size */
 static unsigned pinleaf = FALSE;  /* are leaf objects pinned at start */
+static mps_bool_t zoned = TRUE;   /* arena allocates using zones */
 
 typedef struct gcthread_s *gcthread_t;
 
@@ -239,6 +240,7 @@ static void arena_setup(gcthread_fn_t fn,
 {
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, arenasize);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, zoned);
     RESMUST(mps_arena_create_k(&arena, mps_arena_class_vm(), args));
   } MPS_ARGS_END(args);
   RESMUST(dylan_fmt(&format, arena));
@@ -277,6 +279,7 @@ static struct option longopts[] = {
   {"pupdate",   required_argument,  NULL,   'u'},
   {"pin-leaf",  no_argument,        NULL,   'l'},
   {"seed",      required_argument,  NULL,   'x'},
+  {"arena-unzoned", no_argument,    NULL,   'z'},
   {NULL,        0,                  NULL,   0}
 };
 
@@ -306,7 +309,7 @@ int main(int argc, char *argv[]) {
   }
   putchar('\n');
   
-  while ((ch = getopt_long(argc, argv, "ht:i:p:g:m:w:d:r:u:lx:", longopts, NULL)) != -1)
+  while ((ch = getopt_long(argc, argv, "ht:i:p:g:m:w:d:r:u:lx:z", longopts, NULL)) != -1)
     switch (ch) {
     case 't':
       nthreads = (unsigned)strtoul(optarg, NULL, 10);
@@ -374,6 +377,9 @@ int main(int argc, char *argv[]) {
     case 'x':
       seed = strtoul(optarg, NULL, 10);
       break;
+    case 'z':
+      zoned = FALSE;
+      break;
     default:
       fprintf(stderr,
               "Usage: %s [option...] [test...]\n"
@@ -408,6 +414,8 @@ int main(int argc, char *argv[]) {
               "    Make a pinned object to use for leaves.\n"
               "  -x n, --seed=n\n"
               "    Random number seed (default from entropy)\n"
+              "  -z, --arena-unzoned\n"
+              "    Disable zoned allocation in the arena\n"
               "Tests:\n"
               "  amc   pool class AMC\n"
               "  ams   pool class AMS\n",

@@ -27,6 +27,8 @@
 #include "protocol.h"
 #include "ring.h"
 #include "chain.h"
+#include "splay.h"
+#include "meter.h"
 
 
 /* PoolClassStruct -- pool class structure
@@ -131,8 +133,8 @@ typedef struct MFSStruct {      /* MFS outer structure */
   PoolStruct poolStruct;        /* generic structure */
   Size unroundedUnitSize;       /* the unit size requested */
   Size extendBy;                /* arena alloc size rounded using unitSize */
+  Bool extendSelf;              /* whether to allocate tracts */
   Size unitSize;                /* rounded for management purposes */
-  Word unitsPerExtent;          /* number of units per arena alloc */
   struct MFSHeaderStruct *freeList; /* head of the free list */
   Tract tractList;              /* the first tract */
   Sig sig;                      /* <design/sig/> */
@@ -312,7 +314,7 @@ typedef struct SegPrefStruct {  /* segment placement preferences */
   Sig sig;                      /* <code/misc.h#sig> */
   Bool high;                    /* high or low */
   ZoneSet zones;                /* preferred zones */
-  Bool isCollected;             /* whether segment will be collected */
+  ZoneSet avoid;                /* zones to avoid */
 } SegPrefStruct;
 
 
@@ -540,12 +542,13 @@ typedef struct mps_arena_class_s {
   ArenaReservedMethod reserved;
   ArenaPurgeSpareMethod purgeSpare;
   ArenaExtendMethod extend;
-  ArenaAllocMethod alloc;
+  ArenaGrowMethod grow;
   ArenaFreeMethod free;
   ArenaChunkInitMethod chunkInit;
   ArenaChunkFinishMethod chunkFinish;
   ArenaCompactMethod compact;
   ArenaDescribeMethod describe;
+  ArenaPagesMarkAllocatedMethod pagesMarkAllocated;
   Sig sig;
 } ArenaClassStruct;
 
@@ -601,6 +604,29 @@ typedef struct GlobalsStruct {
 } GlobalsStruct;
 
 
+/* CBSStruct -- coalescing block structure
+ *
+ * See <code/cbs.c>.
+ */
+
+#define CBSSig ((Sig)0x519CB599) /* SIGnature CBS */
+
+typedef struct CBSStruct {
+  SplayTreeStruct splayTreeStruct;
+  STATISTIC_DECL(Count treeSize);
+  Arena arena;
+  Pool blockPool;
+  Align alignment;
+  Bool fastFind;                /* maintain and use size property? */
+  Bool zoned;                   /* maintain and use zone property? */
+  Bool inCBS;                   /* prevent reentrance */
+  Bool ownPool;                 /* did we create blockPool? */
+  /* meters for sizes of search structures at each op */
+  METER_DECL(treeSearch);
+  Sig sig; /* sig at end because embeded */
+} CBSStruct;
+
+
 /* ArenaStruct -- generic arena
  *
  * See <code/arena.c>.  */
@@ -634,6 +660,12 @@ typedef struct mps_arena_s {
   RingStruct chunkRing;         /* all the chunks */
   Serial chunkSerial;           /* next chunk number */
   ChunkCacheEntryStruct chunkCache; /* just one entry */
+  
+  Bool hasFreeCBS;              /* Is freeCBS available? */
+  MFSStruct freeCBSBlockPoolStruct;
+  CBSStruct freeCBSStruct;
+  ZoneSet freeZones;            /* zones not yet allocated */
+  Bool zoned;                   /* use zoned allocation? */
 
   /* locus fields (<code/locus.c>) */
   GenDescStruct topGen;         /* generation descriptor for dynamic gen */

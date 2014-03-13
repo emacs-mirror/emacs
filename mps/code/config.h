@@ -303,17 +303,18 @@
 
 #define ARENA_CLIENT_PAGE_SIZE          ((Size)8192)
 
-#define ArenaDefaultZONESET (ZoneSetUNIV << (MPS_WORD_WIDTH / 2))
-/* @@@@ knows the implementation of ZoneSets */
+#define ARENA_DEFAULT_ZONED     TRUE
 
-/* .segpref.default: For EPcore, non-DL segments should be placed high */
-/* to reduce fragmentation of DL pools (see request.epcore.170193_). */
-/* .. _request.epcore.170193: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/170193 */
+#define ArenaDefaultZONESET (ZoneSetUNIV << (MPS_WORD_WIDTH / 2))
+/* TODO: This is left over from before the branch/2014-01-29/mps-chain-zones
+   and 2014-01-17/cbs-tract-alloc reformed allocation, and may now be doing
+   more harm than good.  Experiment with setting to ZoneSetUNIV. */
+
 #define SegPrefDEFAULT { \
   SegPrefSig,          /* sig */ \
-  TRUE,                /* high */ \
+  FALSE,               /* high */ \
   ArenaDefaultZONESET, /* zoneSet */ \
-  FALSE,               /* isCollected */ \
+  ZoneSetEMPTY,        /* avoid */ \
 }
 
 #define LDHistoryLENGTH ((Size)4)
