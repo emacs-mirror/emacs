@@ -2127,7 +2127,7 @@ See `font-lock-syntax-table'.")
     (ruby-match-expression-expansion
      2 font-lock-variable-name-face t)
     ;; Negation char.
-    ("[^[:alnum:]_]\\(!\\)[^=]"
+    ("\\(?:^\\|[^[:alnum:]_]\\)\\(!+\\)[^=]"
      1 font-lock-negation-char-face)
     ;; Character literals.
     ;; FIXME: Support longer escape sequences.

@@ -1,3 +1,8 @@
+2014-03-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Fontify
+	multiple adjacent negation chars.  (Bug#17004)
+
 2014-03-13  Tom Willemse  <tom@ryuslash.org>  (tiny change)
 
 	* emacs-lisp/package.el (package--prepare-dependencies):
