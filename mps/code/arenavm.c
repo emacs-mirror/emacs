@@ -700,11 +700,12 @@ static Res VMArenaGrow(Arena arena, SegPref pref, Size size)
       AVER(sliceSize > 0);
       
       /* remove slices, down to chunkHalf but no further */
+      res = ResRESOURCE;
       for(; chunkSize > chunkHalf; chunkSize -= sliceSize) {
         if(chunkSize < chunkMin) {
           EVENT2(vmArenaExtendFail, chunkMin,
                  VMArenaReserved(VMArena2Arena(vmArena)));
-          return ResRESOURCE;
+          return res;
         }
         res = VMChunkCreate(&newChunk, vmArena, chunkSize);
         if(res == ResOK)
