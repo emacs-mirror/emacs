@@ -9,37 +9,29 @@
 @cindex multibyte characters
 @cindex encoding of characters
 
-@cindex Celtic
+@cindex Arabic
+@cindex Bengali
 @cindex Chinese
 @cindex Cyrillic
-@cindex Czech
-@cindex Devanagari
+@cindex Han
 @cindex Hindi
-@cindex Marathi
 @cindex Ethiopic
-@cindex German
+@cindex Georgian
 @cindex Greek
+@cindex Hangul
 @cindex Hebrew
+@cindex Hindi
 @cindex IPA
 @cindex Japanese
 @cindex Korean
-@cindex Lao
 @cindex Latin
-@cindex Polish
-@cindex Romanian
-@cindex Slovak
-@cindex Slovenian
 @cindex Thai
-@cindex Tibetan
-@cindex Turkish
 @cindex Vietnamese
-@cindex Dutch
-@cindex Spanish
   Emacs supports a wide variety of international character sets,
 including European and Vietnamese variants of the Latin alphabet, as
-well as Cyrillic, Devanagari (for Hindi and Marathi), Ethiopic, Greek,
-Han (for Chinese and Japanese), Hangul (for Korean), Hebrew, IPA,
-Kannada, Lao, Malayalam, Tamil, Thai, Tibetan, and Vietnamese scripts.
+well as Arabic scripts, Brahmic scripts (for languages such as
+Bengali, Hindi, and Thai), Cyrillic, Ethiopic, Georgian, Greek, Han
+(for Chinese and Japanese), Hangul (for Korean), Hebrew and IPA@.
 Emacs also supports various encodings of these characters that are used by
 other internationalized software, such as word processors and mailers.
 
@@ -267,25 +259,129 @@ language environment also specifies a default input method.
 @code{current-language-environment} or use the command @kbd{M-x
 set-language-environment}.  It makes no difference which buffer is
 current when you use this command, because the effects apply globally
-to the Emacs session.  The supported language environments
-(see the variable @code{language-info-alist}) include:
+to the Emacs session.  See the variable @code{language-info-alist} for
+the list of supported language environments, and use the command
+@kbd{C-h L @var{lang-env} @key{RET}} (@code{describe-language-environment})
+for more information about the language environment @var{lang-env}.
+Supported language environments include:
 
-@cindex Euro sign
-@cindex UTF-8
 @quotation
-ASCII, Belarusian, Bengali, Brazilian Portuguese, Bulgarian, Cham,
-Chinese-BIG5, Chinese-CNS, Chinese-EUC-TW, Chinese-GB, Chinese-GBK,
-Chinese-GB18030, Croatian, Cyrillic-ALT, Cyrillic-ISO, Cyrillic-KOI8,
-Czech, Devanagari, Dutch, English, Esperanto, Ethiopic, French,
-Georgian, German, Greek, Gujarati, Hebrew, IPA, Italian, Japanese,
-Kannada, Khmer, Korean, Lao, Latin-1, Latin-2, Latin-3, Latin-4,
-Latin-5, Latin-6, Latin-7, Latin-8 (Celtic), Latin-9 (updated Latin-1
-with the Euro sign), Latvian, Lithuanian, Malayalam, Oriya, Polish,
-Punjabi, Romanian, Russian, Sinhala, Slovak, Slovenian, Spanish,
-Swedish, TaiViet, Tajik, Tamil, Telugu, Thai, Tibetan, Turkish, UTF-8
-(for a setup which prefers Unicode characters and files encoded in
-UTF-8), Ukrainian, Vietnamese, Welsh, and Windows-1255 (for a setup
-which prefers Cyrillic characters and files encoded in Windows-1255).
+@cindex ASCII
+ASCII,
+@cindex Arabic
+Arabic,
+@cindex Belarusian
+Belarusian,
+@cindex Bengali
+Bengali,
+@cindex Brazilian Portuguese
+Brazilian Portuguese,
+@cindex Bulgarian
+Bulgarian,
+@cindex Burmese
+Burmese,
+@cindex Cham
+Cham,
+@cindex Chinese
+Chinese-BIG5, Chinese-CNS, Chinese-EUC-TW, Chinese-GB,
+Chinese-GB18030, Chinese-GBK,
+@cindex Croatian
+Croatian,
+@cindex Cyrillic
+Cyrillic-ALT, Cyrillic-ISO, Cyrillic-KOI8,
+@cindex Czech
+Czech,
+@cindex Devanagari
+Devanagari,
+@cindex Dutch
+Dutch,
+@cindex English
+English,
+@cindex Esperanto
+Esperanto,
+@cindex Ethiopic
+Ethiopic,
+@cindex French
+French,
+@cindex Georgian
+Georgian,
+@cindex German
+German,
+@cindex Greek
+Greek,
+@cindex Gujarati
+Gujarati,
+@cindex Hebrew
+Hebrew,
+@cindex IPA
+IPA,
+@cindex Italian
+Italian,
+@cindex Japanese
+Japanese,
+@cindex Kannada
+Kannada,
+@cindex Khmer
+Khmer,
+@cindex Korean
+Korean,
+@cindex Lao
+Lao,
+@cindex Latin
+Latin-1, Latin-2, Latin-3, Latin-4, Latin-5, Latin-6, Latin-7,
+Latin-8, Latin-9,
+@cindex Latvian
+Latvian,
+@cindex Lithuanian
+Lithuanian,
+@cindex Malayalam
+Malayalam,
+@cindex Oriya
+Oriya,
+@cindex Persian
+Persian,
+@cindex Polish
+Polish,
+@cindex Punjabi
+Punjabi,
+@cindex Romanian
+Romanian,
+@cindex Russian
+Russian,
+@cindex Sinhala
+Sinhala,
+@cindex Slovak
+Slovak,
+@cindex Slovenian
+Slovenian,
+@cindex Spanish
+Spanish,
+@cindex Swedish
+Swedish,
+@cindex TaiViet
+TaiViet,
+@cindex Tajik
+Tajik,
+@cindex Tamil
+Tamil,
+@cindex Telugu
+Telugu,
+@cindex Thai
+Thai,
+@cindex Tibetan
+Tibetan,
+@cindex Turkish
+Turkish,
+@cindex UTF-8
+UTF-8,
+@cindex Ukrainian
+Ukrainian,
+@cindex Vietnamese
+Vietnamese,
+@cindex Welsh
+Welsh, and
+@cindex Windows-1255
+Windows-1255.
 @end quotation
 
   To display the script(s) used by your language environment on a

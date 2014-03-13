@@ -1,3 +1,10 @@
+2014-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* mule.texi (International, Language Environments): Update
+	the list of language environments to what Emacs currently
+	supports.  Add the full list to the index.  Suggest C-h L for
+	details rather than trying to give very brief details here.
+
 2014-03-12  Glenn Morris  <rgm@gnu.org>
 
 	* cmdargs.texi (General Variables): Don't mention INCPATH,
