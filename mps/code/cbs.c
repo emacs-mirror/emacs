@@ -867,6 +867,7 @@ typedef struct cbsTestNodeInZonesClosureStruct {
   ZoneSet zoneSet;
   Addr base;
   Addr limit;
+  Bool high;
 } cbsTestNodeInZonesClosureStruct, *cbsTestNodeInZonesClosure;
 
 static Bool cbsTestNodeInZones(SplayTree splay, Tree tree,
@@ -874,16 +875,17 @@ static Bool cbsTestNodeInZones(SplayTree splay, Tree tree,
 {
   CBSBlock block = cbsBlockOfTree(tree);
   cbsTestNodeInZonesClosure closure = closureP;
+  RangeInZoneSet search;
   
   UNUSED(splay);
   AVER(closureSize == sizeof(cbsTestNodeInZonesClosureStruct));
   UNUSED(closureSize);
 
-  /* FIXME: RangeInZoneSet needs to work in both directions. */
-  
-  return RangeInZoneSet(&closure->base, &closure->limit,
-                        CBSBlockBase(block), CBSBlockLimit(block),
-                        closure->arena, closure->zoneSet, closure->size);
+  search = closure->high ? RangeInZoneSetLast : RangeInZoneSetFirst;
+
+  return search(&closure->base, &closure->limit,
+                CBSBlockBase(block), CBSBlockLimit(block),
+                closure->arena, closure->zoneSet, closure->size);
 }
 
 static Bool cbsTestTreeInZones(SplayTree splay, Tree tree,
@@ -939,6 +941,7 @@ Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
   closure.arena = cbs->arena;
   closure.zoneSet = zoneSet;
   closure.size = size;
+  closure.high = high;
   if (splayFind(&tree, cbsSplay(cbs),
                 cbsTestNodeInZones,
                 cbsTestTreeInZones,
@@ -951,7 +954,10 @@ Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
     AVER(ZoneSetSub(ZoneSetOfRange(cbs->arena, closure.base, closure.limit), zoneSet));
     AVER(closure.limit <= CBSBlockLimit(block));
 
-    RangeInit(&rangeStruct, closure.base, AddrAdd(closure.base, size));
+    if (!high)
+      RangeInit(&rangeStruct, closure.base, AddrAdd(closure.base, size));
+    else
+      RangeInit(&rangeStruct, AddrSub(closure.limit, size), closure.limit);
     res = cbsDeleteFromTree(&oldRangeStruct, cbs, &rangeStruct);
     if (res == ResOK) {  /* enough memory to split block */
       RangeCopy(rangeReturn, &rangeStruct);
