@@ -1,3 +1,8 @@
+2014-03-14  Glenn Morris  <rgm@gnu.org>
+
+	* finder.el (finder--builtins-descriptions): New constant.
+	(finder-compile-keywords): Use finder--builtins-descriptions.
+
 2014-03-14  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* simple.el (blink-matching-paren): Describe the new value,

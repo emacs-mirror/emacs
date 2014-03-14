@@ -140,6 +140,17 @@ cus-load\\|finder-inf\\|esh-groups\\|subdirs\\|leim-list\\)\\.el$\\)"
 
 (autoload 'autoload-rubric "autoload")
 
+(defconst finder--builtins-descriptions
+  ;; I have no idea whether these are supposed to be capitalized
+  ;; and/or end in a full-stop.  Existing file headers are inconsistent,
+  ;; but mainly seem to not do so.
+  '((emacs . "the extensible text editor")
+    (nxml . "a new XML mode"))
+  "Alist of built-in package descriptions.
+Entries have the form (PACKAGE-SYMBOL . DESCRIPTION).
+When generating `package--builtins', this overrides what the description
+would otherwise be.")
+
 (defvar finder--builtins-alist
   '(("calc" . calc)
     ("ede"  . ede)
@@ -155,6 +166,10 @@ cus-load\\|finder-inf\\|esh-groups\\|subdirs\\|leim-list\\)\\.el$\\)"
     ("decorate" . semantic)
     ("symref" . semantic)
     ("wisent" . semantic)
+    ;; This should really be ("nxml" . nxml-mode), because nxml-mode.el
+    ;; is the main file for the package.  Then we would not need an
+    ;; entry in finder--builtins-descriptions.  But I do not know if
+    ;; it is safe to change this, in case it is already in use.
     ("nxml" . nxml)
     ("org"  . org)
     ("srecode" . srecode)
@@ -202,16 +217,19 @@ from; the default is `load-path'."
 ;; but it does not, because the duplicates are (at time of writing)
 ;; all due to files in cedet, which end up with package-override set.
 ;; FIXME this is obviously fragile.
-;; Make the (eq base-name package) case below issue a warning?
+;; Make the (eq base-name package) case below issue a warning if
+;; package-override is nil?
 ;;	    (push base-name processed)
 	    (with-temp-buffer
 	      (insert-file-contents (expand-file-name f d))
-	      (setq summary  (lm-synopsis)
-		    keywords (mapcar 'intern (lm-keywords-list))
+	      (setq keywords (mapcar 'intern (lm-keywords-list))
 		    package  (or package-override
 				 (let ((str (lm-header "package")))
 				   (if str (intern str)))
 				 base-name)
+		    summary  (or (cdr
+				  (assq package finder--builtins-descriptions))
+				 (lm-synopsis))
 		    version  (lm-header "version")))
 	    (when summary
 	      (setq version (ignore-errors (version-to-list version)))
@@ -220,6 +238,9 @@ from; the default is `load-path'."
 		     (push (cons package
                                  (package-make-builtin version summary))
 			   package--builtins))
+		    ;; The idea here is that eg calc.el gets to define
+		    ;; the description of the calc package.
+		    ;; This does not work for eg nxml-mode.el.
 		    ((eq base-name package)
 		     (setq desc (cdr entry))
 		     (aset desc 0 version)
