@@ -1,5 +1,8 @@
 2014-03-14  Glenn Morris  <rgm@gnu.org>
 
+	* finder.el (finder-list-matches): Include unversioned packages
+	in the result of a keyword search.
+
 	* finder.el (finder--builtins-descriptions): New constant.
 	(finder-compile-keywords): Use finder--builtins-descriptions.
 

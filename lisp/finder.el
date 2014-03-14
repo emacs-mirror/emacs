@@ -353,7 +353,8 @@ not `finder-known-keywords'."
 	 (packages (gethash id finder-keywords-hash)))
     (unless packages
       (error "No packages matching key `%s'" key))
-    (package-show-package-list packages)))
+    (let ((package-list-unversioned t))
+      (package-show-package-list packages))))
 
 (define-button-type 'finder-xref 'action #'finder-goto-xref)
 
