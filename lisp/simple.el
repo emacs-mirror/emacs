@@ -6341,8 +6341,12 @@ If called from Lisp, enable the mode if ARG is omitted or nil."
   :group 'paren-matching)
 
 (defcustom blink-matching-paren t
-  "Non-nil means show matching open-paren when close-paren is inserted."
-  :type 'boolean
+  "Non-nil means show matching open-paren when close-paren is inserted.
+If t, highlight the paren.  If `jump', move cursor to its position."
+  :type '(choice
+          (const :tag "Disable" nil)
+          (const :tag "Highlight" t)
+          (const :tag "Move cursor" jump))
   :group 'paren-blinking)
 
 (defcustom blink-matching-paren-on-screen t
@@ -6452,17 +6456,21 @@ The function should return non-nil if the two tokens do not match.")
             (message "No matching parenthesis found"))))
        ((not blinkpos) nil)
        ((pos-visible-in-window-p blinkpos)
-        ;; Matching open within window, temporarily highlight char
-        ;; after blinkpos but only if `blink-matching-paren-on-screen'
+        ;; Matching open within window, temporarily move to or highlight
+        ;; char after blinkpos but only if `blink-matching-paren-on-screen'
         ;; is non-nil.
         (and blink-matching-paren-on-screen
              (not show-paren-mode)
-             (unwind-protect
-                 (progn
-                   (move-overlay blink-matching--overlay blinkpos (1+ blinkpos)
-                                 (current-buffer))
+             (if (eq blink-matching-paren 'jump)
+                 (save-excursion
+                   (goto-char blinkpos)
                    (sit-for blink-matching-delay))
-               (delete-overlay blink-matching--overlay))))
+               (unwind-protect
+                   (progn
+                     (move-overlay blink-matching--overlay blinkpos (1+ blinkpos)
+                                   (current-buffer))
+                     (sit-for blink-matching-delay))
+                 (delete-overlay blink-matching--overlay)))))
        (t
         (save-excursion
           (goto-char blinkpos)

@@ -1,3 +1,9 @@
+2014-03-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* simple.el (blink-matching-paren): Describe the new value,
+	`jump', enabling the old behavior.
+	(blink-matching-open): Use that value.  (Bug#17008)
+
 2014-03-14  Glenn Morris  <rgm@gnu.org>
 
 	* finder.el (finder-no-scan-regexp): Add leim-list.
