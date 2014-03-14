@@ -177,7 +177,7 @@ from; the default is `load-path'."
   (setq package--builtins nil)
   (setq finder-keywords-hash (make-hash-table :test 'eq))
   (let ((el-file-regexp "^\\([^=].*\\)\\.el\\(\\.\\(gz\\|Z\\)\\)?$")
-	package-override files base-name processed
+	package-override files base-name ; processed
 	summary keywords package version entry desc)
     (dolist (d (or dirs load-path))
       (when (file-exists-p (directory-file-name d))
@@ -192,8 +192,8 @@ from; the default is `load-path'."
 	  (unless (or (string-match finder-no-scan-regexp f)
 		      (null (setq base-name
 				  (and (string-match el-file-regexp f)
-				       (intern (match-string 1 f)))))
-		      (memq base-name processed))
+				       (intern (match-string 1 f))))))
+;;		      (memq base-name processed))
 ;; There are multiple files in the tree with the same basename.
 ;; So skipping files based on basename means you randomly (depending
 ;; on which order the files are traversed in) miss some packages.
