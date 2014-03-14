@@ -1,5 +1,11 @@
 2014-03-14  Glenn Morris  <rgm@gnu.org>
 
+	* finder.el (finder-no-scan-regexp): Add leim-list.
+	(finder-compile-keywords):
+	Don't skip files with same basename.  (Bug#14010)
+	* Makefile.in (setwins_finder): New, excluding leim.
+	(finder-data): Use setwins_finder.
+
 	* help-fns.el (help-split-fundoc, help-add-fundoc-usage)
 	(help-function-arglist, help-make-usage): Move from here...
 	* help.el (help-split-fundoc, help-add-fundoc-usage)

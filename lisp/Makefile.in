@@ -124,6 +124,15 @@ setwins_almost=for file in `find ${srcdir} -type d -print`; do \
 	   esac; \
         done
 
+# Find all subdirectories except `obsolete', `term', and `leim' (and subdirs).
+# We don't want the leim files listed as packages, especially
+# since many share basenames with files in language/.
+setwins_finder=for file in `find ${srcdir} -type d -print`; do \
+	   case $$file in ${srcdir}*/obsolete | ${srcdir}*/term | ${srcdir}*/leim* ) ;; \
+	     *) wins="$$wins$${wins:+ }$$file" ;; \
+	   esac; \
+        done
+
 # Find all subdirectories in which we might want to create subdirs.el.
 setwins_for_subdirs=for file in `find ${srcdir} -type d -print`; do \
 	   case $$file in \
@@ -166,7 +175,7 @@ custom-deps: doit
 $(lisp)/finder-inf.el:
 	$(MAKE) $(MFLAGS) finder-data
 finder-data: doit
-	$(setwins_almost); \
+	$(setwins_finder); \
 	echo Directories: $$wins; \
 	$(emacs) -l finder \
 	  --eval '(setq generated-finder-keywords-file (unmsys--file-name "$(srcdir)/finder-inf.el"))' \

@@ -135,7 +135,7 @@ Keywords and package names both should be symbols.")
 ;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-01/msg00469.html
 ;; ldefs-boot is not auto-generated, but has nothing useful.
 (defvar finder-no-scan-regexp "\\(^\\.#\\|\\(loaddefs\\|ldefs-boot\\|\
-cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
+cus-load\\|finder-inf\\|esh-groups\\|subdirs\\|leim-list\\)\\.el$\\)"
   "Regexp matching file names not to scan for keywords.")
 
 (autoload 'autoload-rubric "autoload")
@@ -194,7 +194,16 @@ from; the default is `load-path'."
 				  (and (string-match el-file-regexp f)
 				       (intern (match-string 1 f)))))
 		      (memq base-name processed))
-	    (push base-name processed)
+;; There are multiple files in the tree with the same basename.
+;; So skipping files based on basename means you randomly (depending
+;; on which order the files are traversed in) miss some packages.
+;; http://debbugs.gnu.org/14010
+;; You might think this could lead to two files providing the same package,
+;; but it does not, because the duplicates are (at time of writing)
+;; all due to files in cedet, which end up with package-override set.
+;; FIXME this is obviously fragile.
+;; Make the (eq base-name package) case below issue a warning?
+;;	    (push base-name processed)
 	    (with-temp-buffer
 	      (insert-file-contents (expand-file-name f d))
 	      (setq summary  (lm-synopsis)
