@@ -1,3 +1,11 @@
+2014-03-14  Glenn Morris  <rgm@gnu.org>
+
+	* help-fns.el (help-split-fundoc, help-add-fundoc-usage)
+	(help-function-arglist, help-make-usage): Move from here...
+	* help.el (help-split-fundoc, help-add-fundoc-usage)
+	(help-function-arglist, help-make-usage): ... to here.  (Bug#17001)
+	* emacs-lisp/bytecomp.el (byte-compile-lambda): Do not load help-fns.
+
 2014-03-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/socks.el (socks, socks-override-functions)
