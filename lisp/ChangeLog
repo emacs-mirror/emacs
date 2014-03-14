@@ -1,3 +1,25 @@
+2014-03-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/socks.el (socks, socks-override-functions)
+	(socks-find-services-entry): FT
+	* progmodes/hideif.el (hif-set-var, hif-nexttoken, hif-comma)
+	(hif-find-ifdef-block):
+	* progmodes/modula2.el (m2-indent): Fix docstring typos.
+
+	* net/tls.el (tls-program): Reflow docstring.
+
+	* progmodes/pascal.el (pascal-mode-abbrev-table)
+	(pascal-imenu-generic-expression, pascal-auto-endcomments)
+	(pascal-mark-defun, pascal-comment-area, pascal-indent-level)
+	(pascal-outline-mode): Fix docstring typos.
+	(pascal-mode): Let define-derived-mode document mode hook.
+	(pascal-uncomment-area): Reflow.
+	(pascal-exclude-str-start, pascal-exclude-str-end): Add docstring.
+
+	* progmodes/opascal.el (opascal-compound-block-indent)
+	(opascal-case-label-indent): Fix docstring typos.
+	(opascal-mode): Fix typos; let defined-derived-mode document mode hook.
+
 2014-03-13  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Fontify

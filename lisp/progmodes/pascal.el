@@ -64,7 +64,7 @@
   :group 'languages)
 
 (defvar pascal-mode-abbrev-table nil
-  "Abbrev table in use in Pascal-mode buffers.")
+  "Abbrev table in use in Pascal mode buffers.")
 (define-abbrev-table 'pascal-mode-abbrev-table ())
 
 (defvar pascal-mode-map
@@ -99,7 +99,7 @@
 
 (defvar pascal-imenu-generic-expression
   '((nil "^[ \t]*\\(function\\|procedure\\)[ \t\n]+\\([a-zA-Z0-9_.:]+\\)" 2))
-  "Imenu expression for Pascal-mode.  See `imenu-generic-expression'.")
+  "Imenu expression for Pascal mode.  See `imenu-generic-expression'.")
 
 (defvar pascal-keywords
   '("and" "array" "begin" "case" "const" "div" "do" "downto" "else" "end"
@@ -126,8 +126,10 @@
   "\\<\\(label\\|var\\|type\\|const\\|until\\|end\\|begin\\|repeat\\|else\\)\\>")
 
 ;;; Strings used to mark beginning and end of excluded text
-(defconst pascal-exclude-str-start "{-----\\/----- EXCLUDED -----\\/-----")
-(defconst pascal-exclude-str-end " -----/\\----- EXCLUDED -----/\\-----}")
+(defconst pascal-exclude-str-start "{-----\\/----- EXCLUDED -----\\/-----"
+  "String used to mark beginning of excluded text.")
+(defconst pascal-exclude-str-end " -----/\\----- EXCLUDED -----/\\-----}"
+  "String used to mark end of excluded text.")
 
 (defvar pascal-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -227,7 +229,7 @@ and follows non-whitespace text."
 
 (defcustom pascal-auto-endcomments t
   "Non-nil means automatically insert comments after certain `end's.
-Specifically, this is done after the ends of cases statements and functions.
+Specifically, this is done after the ends of case statements and functions.
 The name of the function or case is included between the braces."
   :type 'boolean
   :group 'pascal)
@@ -314,7 +316,7 @@ are handled in another way, and should not be added to this list."
 
 ;;;###autoload
 (define-derived-mode pascal-mode prog-mode "Pascal"
-  "Major mode for editing Pascal code. \\<pascal-mode-map>
+  "Major mode for editing Pascal code.\\<pascal-mode-map>
 TAB indents for Pascal code.  Delete converts tabs to spaces as it moves back.
 
 \\[completion-at-point] completes the word around current point with respect \
@@ -355,10 +357,7 @@ Variables controlling indentation/edit style:
     List of contexts where auto lineup of :'s or ='s should be done.
 
 See also the user variables `pascal-type-keywords', `pascal-start-keywords' and
-`pascal-separator-keywords'.
-
-Turning on Pascal mode calls the value of the variable pascal-mode-hook with
-no args, if that value is non-nil."
+`pascal-separator-keywords'."
   (setq-local local-abbrev-table pascal-mode-abbrev-table)
   (setq-local indent-line-function 'pascal-indent-line)
   (setq-local comment-indent-function 'pascal-indent-comment)
@@ -507,7 +506,7 @@ no args, if that value is non-nil."
   (insert "  "))
 
 (defun pascal-mark-defun ()
-  "Mark the current pascal function (or procedure).
+  "Mark the current Pascal function (or procedure).
 This puts the mark at the end, and point at the beginning."
   (interactive)
   (push-mark (point))
@@ -518,14 +517,14 @@ This puts the mark at the end, and point at the beginning."
     (zmacs-activate-region)))
 
 (defun pascal-comment-area (start end)
-  "Put the region into a Pascal comment.
+  "Put the region into a Pascal comment.\\<pascal-mode-map>
 The comments that are in this area are \"deformed\":
 `*)' becomes `!(*' and `}' becomes `!{'.
 These deformed comments are returned to normal if you use
 \\[pascal-uncomment-area] to undo the commenting.
 
-The commented area starts with `pascal-exclude-str-start', and ends with
-`pascal-include-str-end'.  But if you change these variables,
+The commented area starts with `pascal-exclude-str-start', and ends
+with `pascal-exclude-str-end'.  But if you change these variables,
 \\[pascal-uncomment-area] won't recognize the comments."
   (interactive "r")
   (save-excursion
@@ -553,8 +552,8 @@ The commented area starts with `pascal-exclude-str-start', and ends with
 
 (defun pascal-uncomment-area ()
   "Uncomment a commented area; change deformed comments back to normal.
-This command does nothing if the pointer is not in a commented
-area.  See also `pascal-comment-area'."
+This command does nothing if the pointer is not in a commented area.
+See also `pascal-comment-area'."
   (interactive)
   (save-excursion
     (let ((start (point))
@@ -938,7 +937,7 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 
 (defun pascal-indent-level ()
   "Return the indent-level the current statement has.
-Do not count labels, case-statements or records."
+Do not count labels, case statements or records."
   (save-excursion
     (beginning-of-line)
     (if (looking-at "[ \t]*[0-9a-zA-Z]+[ \t]*:[^=]")
@@ -995,7 +994,7 @@ Do not count labels, case-statements or records."
 
 (defun pascal-indent-paramlist (&optional arg)
   "Indent current line in parameterlist.
-If optional arg is non-nil, just return the
+If optional ARG is non-nil, just return the
 indent of the current line in parameterlist."
   (save-excursion
     (let* ((oldpos (point))
@@ -1414,7 +1413,7 @@ and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil.
 
 When enabled, portions of the text being edited may be made
-invisible. \\<pascal-outline-map>
+invisible.\\<pascal-outline-map>
 
 Pascal Outline mode provides some additional commands.
 
@@ -1428,7 +1427,7 @@ Pascal Outline mode provides some additional commands.
 \\[pascal-show-all]\t- Show the whole buffer.
 \\[pascal-hide-other-defuns]\
 \t- Hide everything but the current function (function under the cursor).
-\\[pascal-outline]\t- Leave pascal-outline-mode."
+\\[pascal-outline]\t- Leave Pascal Outline mode."
   :init-value nil :lighter " Outl" :keymap pascal-outline-map
   (add-to-invisibility-spec '(pascal . t))
   (unless pascal-outline-mode

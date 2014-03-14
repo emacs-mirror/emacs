@@ -102,7 +102,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 ;;; Customization support
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defgroup socks nil
-  "SOCKS Support"
+  "SOCKS support."
   :version "22.2"
   :prefix "socks-"
   :group 'processes)
@@ -347,7 +347,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 ;; could get a wrapper hook, or defer to open-network-stream-function.
 
 (defvar socks-override-functions nil
-  "Whether to overwrite the open-network-stream function with the SOCKSified
+  "Whether to overwrite the `open-network-stream' function with the SOCKSified
 version.")
 
 (require 'network-stream)
@@ -533,7 +533,7 @@ version.")
 			     socks-tcp-services))))))
 
 (defun socks-find-services-entry (service &optional udp)
-  "Return the port # associated with SERVICE"
+  "Return the port # associated with SERVICE."
   (if (= (hash-table-count socks-tcp-services) 0)
       (socks-parse-services))
   (gethash (downcase service)

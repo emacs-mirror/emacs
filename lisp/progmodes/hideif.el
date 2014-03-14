@@ -327,7 +327,7 @@ that form should be displayed.")
 
 
 (defun hif-set-var (var value)
-  "Prepend (var value) pair to hide-ifdef-env."
+  "Prepend (var value) pair to `hide-ifdef-env'."
   (setq hide-ifdef-env (cons (cons var value) hide-ifdef-env)))
 
 (declare-function semantic-c-hideif-lookup  "semantic/bovine/c" (var))
@@ -479,7 +479,7 @@ that form should be displayed.")
 ;;  | Comma                | ,                           | left-to-right |
 
 (defsubst hif-nexttoken ()
-  "Pop the next token from token-list into the let variable \"hif-token\"."
+  "Pop the next token from token-list into the let variable `hif-token'."
   (setq hif-token (pop hif-token-list)))
 
 (defun hif-parse-if-exp (token-list)
@@ -712,7 +712,7 @@ that form should be displayed.")
 
 
 (defun hif-comma (&rest expr)
-  "Evaluate a list of expr, return the result of the last item"
+  "Evaluate a list of expr, return the result of the last item."
   (let ((result nil))
     (dolist (e expr)
       (ignore-errors
@@ -1118,7 +1118,7 @@ Turn off hiding by calling `show-ifdefs'."
 
 
 (defun hif-find-ifdef-block ()
-  "Utility for hide and show `ifdef-block'.
+  "Utility to hide and show ifdef block.
 Return as (TOP . BOTTOM) the extent of ifdef block."
   (let (max-bottom)
     (cons (save-excursion
