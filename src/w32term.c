@@ -5648,6 +5648,31 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
       pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height);
     }
 
+  if (!frame_resize_pixelwise)
+    {
+      /* If we don't resize frames pixelwise, round sizes to multiples
+	 of character sizes.  Otherwise, Windows may clip our frame
+	 rectangle at a character size boundary and we risk losing our
+	 mode line.  Bug#16923 might be a consequence of this.
+
+	 So far, this is a Windows specific problem; other toolkits may
+	 prefer to not resize the frame if the delta is not large enough
+	 (GTK) or resize the frame pixelwise as requested (Lucid,
+	 Motif).  Windows just doesn't call us back (probably because of
+	 the size hint settings which it apparently interprets strictly)
+	 neither when the user tries to mouse-drag a frame border by,
+	 nor when calling `set-frame-size' with a delta of less than the
+	 canonical character size.  If w32_enable_frame_resize_hack is
+	 enabled (which it now is by default) we'd then below resize the
+	 frame's root window in preparation of a WM_SIZE message to come
+	 which, however, is not going to happen. */
+      int unit_width = FRAME_COLUMN_WIDTH (f);
+      int unit_height = FRAME_LINE_HEIGHT (f);
+
+      pixelwidth = (pixelwidth / unit_width) * unit_width;
+      pixelheight = (pixelheight / unit_height) * unit_height;
+    }
+
   f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, (long) 0, 0);
 
@@ -5670,39 +5695,40 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
   }
 
   /* If w32_enable_frame_resize_hack is non-nil, immediately apply the
-     new pixel sizes to the frame and its subwindows.  See discussion
-     of Bug#16028 for why we need this.  */
+     new pixel sizes to the frame and its subwindows.  This approach is
+     fragile because Windows might not honor the resize request issued
+     by my_set_window_pos with a WM_SIZE message (see previous comment).
 
-  if (w32_enable_frame_resize_hack)
-    /* The following mirrors what is done in xterm.c. It appears to be
-     for informing lisp of the new size immediately, while the actual
-     resize will happen asynchronously. But on Windows, the menu bar
-     automatically wraps when the frame is too narrow to contain it,
-     and that causes any calculations made here to come out wrong. The
-     end is some nasty buggy behavior, including the potential loss
-     of the minibuffer.
+     Jason Rumney earlier refused to call change_frame_size right here
+     with the following argument:
+
+     The following mirrors what is done in xterm.c. It appears to be for
+     informing lisp of the new size immediately, while the actual resize
+     will happen asynchronously. But on Windows, the menu bar
+     automatically wraps when the frame is too narrow to contain it, and
+     that causes any calculations made here to come out wrong.  The end
+     is some nasty buggy behavior, including the potential loss of the
+     minibuffer.
 
      Disabling this code is either not sufficient to fix the problems
      completely, or it causes fresh problems, but at least it removes
      the most problematic symptom of the minibuffer becoming unusable.
 
-     -----------------------------------------------------------------
+     However, as the discussion about how to handle frame size
+     parameters on Windows (Bug#1348, Bug#16028) shows, that cure seems
+     worse than the disease.  In particular, menu bar wrapping looks
+     like a non-issue - maybe so because Windows eventually gets back to
+     us with the correct client rectangle anyway.  But we have to avoid
+     calling change_frame_size with a delta of less than one canoncial
+     character size when frame_resize_pixelwise is nil, as explained in
+     the comment above.  */
 
-     Now, strictly speaking, we can't be sure that this is accurate,
-     but the window manager will get around to dealing with the size
-     change request eventually, and we'll hear how it went when the
-     ConfigureNotify event gets here.
+  if (w32_enable_frame_resize_hack)
 
-     We could just not bother storing any of this information here,
-     and let the ConfigureNotify event set everything up, but that
-     might be kind of confusing to the Lisp code, since size changes
-     wouldn't be reported in the frame parameters until some random
-     point in the future when the ConfigureNotify event arrives.
-
-     We pass 1 for DELAY since we can't run Lisp code inside of
-     a BLOCK_INPUT.  */
     {
-      change_frame_size (f, width, height, 0, 1, 0, pixelwise);
+      change_frame_size (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, pixelwidth),
+			 FRAME_PIXEL_TO_TEXT_HEIGHT (f, pixelheight),
+			 0, 1, 0, 1);
       SET_FRAME_GARBAGED (f);
 
       /* If cursor was outside the new size, mark it as off.  */
@@ -5711,7 +5737,8 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
       /* Clear out any recollection of where the mouse highlighting was,
 	 since it might be in a place that's outside the new frame size.
 	 Actually checking whether it is outside is a pain in the neck,
-	 so don't try--just let the highlighting be done afresh with new size.  */
+	 so don't try--just let the highlighting be done afresh with new
+	 size.  */
       cancel_mouse_face (f);
     }
 

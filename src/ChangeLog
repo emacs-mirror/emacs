@@ -1,3 +1,9 @@
+2014-03-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32term.c (x_set_window_size): When frame-resize-pixelwise is
+	nil, always resize character wise to avoid potential loss of the
+	mode line (Bug#16923 related).
+
 2014-03-12  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (x_set_frame_parameters): Always calculate new sizes

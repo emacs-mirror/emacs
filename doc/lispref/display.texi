@@ -1175,12 +1175,11 @@ is current, and the window it was displayed in is selected.
 @end defvar
 
 @defmac with-temp-buffer-window buffer-or-name action quit-function forms@dots{}
-This macro is similar to @code{with-output-to-temp-buffer}.
-Like that construct, it executes @var{forms} while arranging to insert
-any output they print into the buffer named @var{buffer-or-name}.
-Finally, the buffer is displayed in some window, but not selected.
-Unlike @code{with-output-to-temp-buffer}, this does not switch to Help
-mode.
+This macro is similar to @code{with-output-to-temp-buffer}.  Like that
+construct, it executes @var{forms} while arranging to insert any output
+they print into the buffer named @var{buffer-or-name} and displays the
+buffer in some window.  Unlike @code{with-output-to-temp-buffer},
+however, this makes the buffer current and does not switch to Help mode.
 
 The argument @var{buffer-or-name} specifies the temporary buffer.
 It can be either a buffer, which must already exist, or a string,

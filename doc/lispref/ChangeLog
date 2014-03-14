@@ -1,3 +1,11 @@
+2014-03-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* display.texi (Temporary Displays): Say that
+	with-temp-buffer-window makes its buffer current.
+	* frames.texi (Size and Position): Describe new option
+	`frame-resize-pixelwise'.  Rewrite descriptions of
+	`set-frame-size', `set-frame-height' and `set-frame-width'.
+
 2014-03-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* elisp.texi (Top): Rename section "Width" to "Size of Displayed
