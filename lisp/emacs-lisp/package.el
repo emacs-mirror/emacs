@@ -1626,7 +1626,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
       '(menu-item "Help" package-menu-quick-help
 		  :help "Show short key binding help for package-menu-mode"))
     (define-key menu-map [mc]
-      '(menu-item "View Commentary" package-menu-view-commentary
+      '(menu-item "Describe Package" package-menu-describe-package
 		  :help "Display information about this package"))
     map)
   "Local keymap for `package-menu-mode' buffers.")

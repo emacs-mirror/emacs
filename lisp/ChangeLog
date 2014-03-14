@@ -1,5 +1,8 @@
 2014-03-14  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/package.el (package-menu-mode-map):
+	Replace use of obsolete function alias.  Tweak menu item text.
+
 	* info.el (Info-finder-find-node):
 	Ignore the `emacs' metapackage.  (Bug#10813)
 
