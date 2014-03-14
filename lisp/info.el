@@ -3698,7 +3698,9 @@ Build a menu of the possible matches."
 	  hits desc)
       (dolist (keyword keywords)
 	(push (copy-tree (gethash keyword finder-keywords-hash)) hits))
-      (setq hits (delete-dups (apply 'append hits)))
+      (setq hits (delete-dups (apply 'append hits))
+	    ;; Not a meaningful package.
+	    hits (delete 'emacs hits))
       (dolist (package hits)
 	(setq desc (cdr-safe (assq package package--builtins)))
 	(when (vectorp desc)
@@ -3713,6 +3715,9 @@ Build a menu of the possible matches."
     (insert "*****************\n\n")
     (insert
      "Commentary section of the package `" nodename "':\n\n")
+    ;; FIXME this assumes that a file named package.el exists,
+    ;; which is not always true.  E.g. for the nxml package,
+    ;; there is no "nxml.el" (it's nxml-mode.el).
     (let ((str (lm-commentary (find-library-name nodename))))
       (if (null str)
 	  (insert "Can't find any Commentary section\n\n")

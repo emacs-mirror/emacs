@@ -1,5 +1,8 @@
 2014-03-14  Glenn Morris  <rgm@gnu.org>
 
+	* info.el (Info-finder-find-node):
+	Ignore the `emacs' metapackage.  (Bug#10813)
+
 	* finder.el (finder-list-matches): Include unversioned packages
 	in the result of a keyword search.
 
