@@ -1,3 +1,31 @@
+2014-03-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/python.el (defconst, python-syntax-count-quotes)
+	(python-indent-region, python-indent-shift-right)
+	(python-indent-dedent-line-backspace, python-nav-backward-sexp)
+	(python-nav-backward-sexp-safe, python-nav-backward-up-list)
+	(python-shell-prompt-block-regexp, python-shell-prompt-output-regexp)
+	(python-shell-prompt-pdb-regexp, python-shell-enable-font-lock)
+	(inferior-python-mode, python-shell-make-comint, run-python-internal)
+	(python-shell-buffer-substring, python-shell-send-buffer)
+	(python-pdbtrack-activate, python-pdbtrack-stacktrace-info-regexp)
+	(python-completion-complete-at-point, python-fill-docstring-style)
+	(python-eldoc-function, python-imenu-format-item-label)
+	(python-imenu-format-parent-item-label)
+	(python-imenu-format-parent-item-jump-label)
+	(python-imenu--build-tree, python-imenu-create-index)
+	(python-imenu-create-flat-index): Fix docstring typos.
+	(python-indent-context, python-shell-prompt-regexp, run-python):
+	Remove superfluous backslashes.
+	(python-indent-line, python-nav-beginning-of-defun)
+	(python-shell-get-buffer, python-shell-get-process)
+	(python-info-current-defun, python-info-current-line-comment-p)
+	(python-info-current-line-empty-p, python-util-popn): Doc fixes.
+	(python-indent-post-self-insert-function, python-shell-send-file)
+	(python-shell-completion-get-completions)
+	(python-shell-completion-complete-or-indent)
+	(python-eldoc--get-doc-at-point): Reflow docstrings.
+
 2014-03-14  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/package.el (package-menu-mode-map):
@@ -35,7 +63,7 @@
 2014-03-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/socks.el (socks, socks-override-functions)
-	(socks-find-services-entry): FT
+	(socks-find-services-entry):
 	* progmodes/hideif.el (hif-set-var, hif-nexttoken, hif-comma)
 	(hif-find-ifdef-block):
 	* progmodes/modula2.el (m2-indent): Fix docstring typos.
