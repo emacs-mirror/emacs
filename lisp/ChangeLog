@@ -1,5 +1,11 @@
 2014-03-15  Juanma Barranquero  <lekktu@gmail.com>
 
+	* term/ns-win.el (x-command-line-resources): Rename from ns-... version,
+	for compatibility with other ports.
+	(ns-initialize-window-system): Use it.  It is set in term/common-win.el
+	from the -xrm command line argument, but in the Nextstep port its value
+	is irrelevant because nsfns.m:Fx_open_connection ignores it for now.
+
 	* progmodes/python.el (defconst, python-syntax-count-quotes)
 	(python-indent-region, python-indent-shift-right)
 	(python-indent-dedent-line-backspace, python-nav-backward-sexp)
