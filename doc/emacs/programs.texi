@@ -813,13 +813,13 @@ as in @samp{[x)}---a warning message is displayed in the echo area.
 @itemize @bullet
 @item
 @code{blink-matching-paren} turns the feature on or off: @code{nil}
-disables it, but the default is @code{t} to enable it.
+disables it, but the default is @code{t} to enable it.  Set it to
+@code{jump} to make indication work through cursor movement.
 
 @item
-@code{blink-matching-delay} says how many seconds to leave the cursor
-on the matching opening delimiter, before bringing it back to the real
-location of point.  This may be an integer or floating-point number;
-the default is 1.
+@code{blink-matching-delay} says how many seconds to keep indicating
+the matching opening delimiter.  This may be an integer or
+floating-point number; the default is 1.
 
 @item
 @code{blink-matching-paren-distance} specifies how many characters

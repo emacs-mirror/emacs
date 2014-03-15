@@ -423,6 +423,7 @@ macros in registers.
 This searches the region for identical lines, and removes all but one
 copy of each repeated line.  The lines need not be sorted.
 
++++
 ** `blink-matching-paren' now only highlights the matching open-paren
 by default, instead of moving cursor.  Set this variable to `jump' to
 enable the old behavior.

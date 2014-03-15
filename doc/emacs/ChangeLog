@@ -1,3 +1,8 @@
+2014-03-15  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* programs.texi (Matching): Update WRT to the new
+	`blink-matchin-paren' behavior.
+
 2014-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* mule.texi (International, Language Environments): Update

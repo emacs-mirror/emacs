@@ -5957,18 +5957,19 @@ parenthesis before giving up.
 @end defopt
 
 @defopt blink-matching-delay
-This variable specifies the number of seconds for the cursor to remain
-at the matching parenthesis.  A fraction of a second often gives
-good results, but the default is 1, which works on all systems.
+This variable specifies the number of seconds to keep indicating the
+matching parenthesis.  A fraction of a second often gives good
+results, but the default is 1, which works on all systems.
 @end defopt
 
 @deffn Command blink-matching-open
 This function is the default value of @code{blink-paren-function}.  It
-assumes that point follows a character with close parenthesis syntax and
-moves the cursor momentarily to the matching opening character.  If that
-character is not already on the screen, it displays the character's
-context in the echo area.  To avoid long delays, this function does not
-search farther than @code{blink-matching-paren-distance} characters.
+assumes that point follows a character with close parenthesis syntax
+and applies the appropriate effect momentarily to the matching opening
+character.  If that character is not already on the screen, it
+displays the character's context in the echo area.  To avoid long
+delays, this function does not search farther than
+@code{blink-matching-paren-distance} characters.
 
 Here is an example of calling this function explicitly.
 
