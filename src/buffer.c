@@ -2187,11 +2187,12 @@ set_buffer_temp (struct buffer *b)
 
 DEFUN ("set-buffer", Fset_buffer, Sset_buffer, 1, 1, 0,
        doc: /* Make buffer BUFFER-OR-NAME current for editing operations.
-BUFFER-OR-NAME may be a buffer or the name of an existing buffer.  See
-also `with-current-buffer' when you want to make a buffer current
+BUFFER-OR-NAME may be a buffer or the name of an existing buffer.
+See also `with-current-buffer' when you want to make a buffer current
 temporarily.  This function does not display the buffer, so its effect
 ends when the current command terminates.  Use `switch-to-buffer' or
-`pop-to-buffer' to switch buffers permanently.  */)
+`pop-to-buffer' to switch buffers permanently.
+The return value is the buffer made current.  */)
   (register Lisp_Object buffer_or_name)
 {
   register Lisp_Object buffer;

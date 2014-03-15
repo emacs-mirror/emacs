@@ -1,3 +1,7 @@
+2014-03-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (Fset_buffer): Document return value (bug#17015).
+
 2014-03-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* w32term.c (x_set_window_size): When frame-resize-pixelwise is
