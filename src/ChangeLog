@@ -1,3 +1,9 @@
+2014-03-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.c (find_newline): Speed up the function when using the
+	newline cache, by halving the number of call to
+	region_cache_forward and region_cache_backward.  (Bug#16830)
+
 2014-03-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buffer.c (Fset_buffer): Document return value (bug#17015).

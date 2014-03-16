@@ -715,18 +715,61 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
            examine.  */
 	ptrdiff_t tem, ceiling_byte = end_byte - 1;
 
-        /* If we're looking for a newline, consult the newline cache
-           to see where we can avoid some scanning.  */
+        /* If we're using the newline cache, consult it to see whether
+           we can avoid some scanning.  */
         if (newline_cache)
           {
             ptrdiff_t next_change;
-            immediate_quit = 0;
-            while (region_cache_forward
-                   (cache_buffer, newline_cache, start, &next_change))
-              start = next_change;
-            immediate_quit = allow_quit;
+	    int result = 1;
 
-	    start_byte = CHAR_TO_BYTE (start);
+            immediate_quit = 0;
+            while (start < end && result)
+	      {
+		ptrdiff_t lim1;
+
+		result = region_cache_forward (cache_buffer, newline_cache,
+					       start, &next_change);
+		if (result)
+		  {
+		    start = next_change;
+		    lim1 = next_change = end;
+		  }
+		else
+		  lim1 = min (next_change, end);
+
+		/* The cache returned zero for this region; see if
+		   this is because the region is known and includes
+		   only newlines.  While at that, count any newlines
+		   we bump into, and exit if we found enough off them.  */
+		start_byte = CHAR_TO_BYTE (start);
+		while (start < lim1
+		       && FETCH_BYTE (start_byte) == '\n')
+		  {
+		    start_byte++;
+		    start++;
+		    if (--count == 0)
+		      {
+			if (bytepos)
+			  *bytepos = start_byte;
+			return start;
+		      }
+		  }
+		/* If we found a non-newline character before hitting
+		   position where the cache will again return non-zero
+		   (i.e. no newlines beyond that position), it means
+		   this region is not yet known to the cache, and we
+		   must resort to the "dumb loop" method.  */
+		if (start < next_change && !result)
+		  break;
+		result = 1;
+	      }
+	    if (start >= end)
+	      {
+		start = end;
+		start_byte = end_byte;
+		break;
+	      }
+            immediate_quit = allow_quit;
 
             /* START should never be after END.  */
             if (start_byte > ceiling_byte)
@@ -762,9 +805,9 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 	      unsigned char *nl = memchr (lim_addr + cursor, '\n', - cursor);
 	      next = nl ? nl - lim_addr : 0;
 
-              /* If we're looking for newlines, cache the fact that
-                 this line's region is free of them. */
-              if (newline_cache)
+              /* If we're using the newline cache, cache the fact that
+                 the region we just traversed is free of newlines. */
+              if (newline_cache && cursor != next)
 		{
 		  know_region_cache (cache_buffer, newline_cache,
 				     BYTE_TO_CHAR (lim_byte + cursor),
@@ -800,13 +843,46 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
         if (newline_cache)
           {
             ptrdiff_t next_change;
-            immediate_quit = 0;
-            while (region_cache_backward
-                   (cache_buffer, newline_cache, start, &next_change))
-              start = next_change;
-            immediate_quit = allow_quit;
+	    int result = 1;
 
-	    start_byte = CHAR_TO_BYTE (start);
+            immediate_quit = 0;
+            while (start > end && result)
+	      {
+		ptrdiff_t lim1;
+
+		result = region_cache_backward (cache_buffer, newline_cache,
+						start, &next_change);
+		if (result)
+		  {
+		    start = next_change;
+		    lim1 = next_change = end;
+		  }
+		else
+		  lim1 = max (next_change, end);
+		start_byte = CHAR_TO_BYTE (start);
+		while (start > lim1
+		       && FETCH_BYTE (start_byte - 1) == '\n')
+		  {
+		    if (++count == 0)
+		      {
+			if (bytepos)
+			  *bytepos = start_byte;
+			return start;
+		      }
+		    start_byte--;
+		    start--;
+		  }
+		if (start > next_change && !result)
+		  break;
+		result = 1;
+	      }
+	    if (start <= end)
+	      {
+		start = end;
+		start_byte = end_byte;
+		break;
+	      }
+            immediate_quit = allow_quit;
 
             /* Start should never be at or before end.  */
             if (start_byte <= ceiling_byte)
@@ -840,7 +916,7 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 
               /* If we're looking for newlines, cache the fact that
                  this line's region is free of them. */
-              if (newline_cache)
+              if (newline_cache && cursor != prev + 1)
 		{
 		  know_region_cache (cache_buffer, newline_cache,
 				     BYTE_TO_CHAR (ceiling_byte + prev + 1),
