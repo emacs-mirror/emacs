@@ -1,3 +1,22 @@
+2014-03-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/rst.el (rst-arabic-to-roman, rst-roman-to-arabic):
+	Implement inserting into current buffer, documented in their docstrings.
+	(rst-define-key, rst-compare-adornments, rst-insert-list-new-item)
+	(rst-section-tree-point, rst-forward-section, rst-indent)
+	(rst-compute-tabs, rst-font-lock-find-unindented-line-end)
+	(rst-font-lock-find-unindented-line-limit, rst-adornment-level)
+	(rst-font-lock-handle-adornment-pre-match-form)
+	(rst-repeat-last-character): Reflow docstrings.
+	(rst-preferred-adornments, rst-update-section, rst-find-title-line)
+	(rst-adjust-adornment-work, rst-initial-items, rst-insert-list)
+	(rst-toc-insert-style, rst-toc-insert-node, rst-goto-section)
+	(rst-compile, rst-imenu-convert-cell, rst-imenu-create-index):
+	Fix docstring typos.
+	(rst-all-sections, rst-section-hierarchy, rst-adjust): Doc fixes.
+	(rst-uncomment-region, rst-font-lock-find-unindented-line-match)
+	(rst-font-lock-handle-adornment-matcher): Mark unused arguments.
+
 2014-03-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* term/ns-win.el (x-command-line-resources): Rename from ns-... version,

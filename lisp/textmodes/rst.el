@@ -608,8 +608,8 @@ After interpretation of ARGS the results are concatenated as for
 (defun rst-define-key (keymap key def &rest deprecated)
   "Bind like `define-key' but add deprecated key definitions.
 KEYMAP, KEY, and DEF are as in `define-key'.  DEPRECATED key
-definitions should be in vector notation.  These are defined as
-well but give an additional message."
+definitions should be in vector notation.  These are defined
+as well but give an additional message."
   (define-key keymap key def)
   (when deprecated
     (let* ((command-name (symbol-name def))
@@ -994,10 +994,10 @@ for modes derived from Text mode, like Mail mode."
 
 A list consisting of lists of the form (CHARACTER STYLE INDENT).
 CHARACTER is the character used.  STYLE is one of the symbols
-OVER-AND-UNDER or SIMPLE.  INDENT is an integer giving the wanted
-indentation for STYLE OVER-AND-UNDER.  CHARACTER and STYLE are
-always used when a section adornment is described.  In other
-places t instead of a list stands for a transition.
+`over-and-under' or `simple'.  INDENT is an integer giving the
+wanted indentation for STYLE `over-and-under'.  CHARACTER and
+STYLE are always used when a section adornment is described.
+In other places, t instead of a list stands for a transition.
 
 This sequence is consulted to offer a new adornment suggestion
 when we rotate the underlines at the end of the existing
@@ -1034,8 +1034,8 @@ style."
 (defun rst-compare-adornments (ado1 ado2)
   "Compare adornments.
 Return true if both ADO1 and ADO2 adornments are equal,
-according to restructured text semantics (only the character and
-the style are compared, the indentation does not matter)."
+according to restructured text semantics (only the character
+and the style are compared, the indentation does not matter)."
   (and (eq (car ado1) (car ado2))
        (eq (cadr ado1) (cadr ado2))))
 
@@ -1091,9 +1091,9 @@ better match."
 (defun rst-update-section (char style &optional indent)
   "Unconditionally update the style of a section adornment.
 
-Do this using the given character CHAR, with STYLE 'simple
-or 'over-and-under, and with indent INDENT.  If the STYLE
-is 'simple, whitespace before the title is removed (indent
+Do this using the given character CHAR, with STYLE `simple'
+or `over-and-under', and with indent INDENT.  If the STYLE
+is `simple', whitespace before the title is removed (indent
 is always assumed to be 0).
 
 If there are existing overline and/or underline from the
@@ -1270,8 +1270,8 @@ point is on a suitable title line use it.
 If no title line is found return nil.
 
 Otherwise return as `rst-classify-adornment' does.  However, if
-the title line has no syntactically valid adornment STYLE is nil
-in the first element.  If there is no adornment around the title
+the title line has no syntactically valid adornment, STYLE is nil
+in the first element.  If there is no adornment around the title,
 CHARACTER is also nil and match groups for overline and underline
 are nil."
   (save-excursion
@@ -1325,15 +1325,15 @@ are nil."
 
 (defvar rst-all-sections nil
   "All section adornments in the buffer as found by `rst-find-all-adornments'.
-t when no section adornments were found.")
+Set to t when no section adornments were found.")
 (make-variable-buffer-local 'rst-all-sections)
 
 ;; FIXME: If this variable is set to a different value font-locking of section
 ;;        headers is wrong.
 (defvar rst-section-hierarchy nil
   "Section hierarchy in the buffer as determined by `rst-get-hierarchy'.
-t when no section adornments were found.  Value depends on
-`rst-all-sections'.")
+Set to t when no section adornments were found.
+Value depends on `rst-all-sections'.")
 (make-variable-buffer-local 'rst-section-hierarchy)
 
 (rst-testcover-add-1value 'rst-reset-section-caches)
@@ -1502,8 +1502,8 @@ REVERSE-DIRECTION is used to reverse the cycling order."
 
 Adjust/rotate the section adornment for the section title around
 point or promote/demote the adornments inside the region,
-depending on if the region is active.  This function is meant to
-be invoked possibly multiple times, and can vary its behavior
+depending on whether the region is active.  This function is meant
+to be invoked possibly multiple times, and can vary its behavior
 with a positive PFXARG (toggle style), or with a negative
 PFXARG (alternate behavior).
 
@@ -1609,7 +1609,7 @@ The adornments consist in
 
 1. a CHARACTER
 
-2. a STYLE which can be either of 'simple' or 'over-and-under'.
+2. a STYLE which can be either `simple' or `over-and-under'.
 
 3. an INDENT (meaningful for the over-and-under style only)
    which determines how many characters and over-and-under
@@ -1652,8 +1652,8 @@ Case 2: Incomplete Adornment
 
 If the current line does have an existing adornment, but the
 adornment is incomplete, that is, the underline/overline does
-not extend to exactly the end of the title line (it is either too
-short or too long), we simply extend the length of the
+not extend to exactly the end of the title line (it is either
+too short or too long), we simply extend the length of the
 underlines/overlines to fit exactly the section title.
 
 If TOGGLE-STYLE we toggle the style of the adornment as well.
@@ -1922,7 +1922,7 @@ in order to adapt it to our preferred style."
 Obviously, NUM must be greater than zero.  Don't blame me, blame the
 Romans, I mean \"what have the Romans ever _done_ for /us/?\" (with
 apologies to Monty Python).
-If optional prefix ARG is non-nil, insert in current buffer."
+If optional ARG is non-nil, insert in current buffer."
   (let ((map rst-arabic-to-roman)
         res)
     (while (and map (> num 0))
@@ -1931,13 +1931,13 @@ If optional prefix ARG is non-nil, insert in current buffer."
           (setq res (concat res (cdar map))
                 num (- num (caar map)))
         (setq map (cdr map))))
-    res))
+    (if arg (insert (or res "")) res)))
 
 (defun rst-roman-to-arabic (string &optional arg)
   "Convert STRING of Roman numerals to an Arabic number.
 
-If STRING contains a letter which isn't a valid Roman numeral, the rest
-of the string from that point onwards is ignored.
+If STRING contains a letter which isn't a valid Roman numeral,
+the rest of the string from that point onwards is ignored.
 
 Hence:
 MMD == 2500
@@ -1951,7 +1951,7 @@ If optional ARG is non-nil, insert in current buffer."
           (setq res (+ res (caar map))
                 string (replace-match "" nil t string))
         (setq map (cdr map))))
-    res))
+    (if arg (insert res) res)))
 ;=================================================
 
 (defun rst-find-pfx-in-region (beg end pfx-re)
@@ -2020,20 +2020,20 @@ Other situations are just ignored and left to users themselves."
 ;; FIXME: Isn't this a `defconst'?
 (defvar rst-initial-items
   (append (mapcar 'char-to-string rst-bullets) rst-initial-enums)
-  "List of initial items.  It's collection of bullets and enumerations.")
+  "List of initial items.  It's a collection of bullets and enumerations.")
 
 (defun rst-insert-list-new-item ()
   "Insert a new list item.
 
-User is asked to select the item style first, for example (a), i), +.  Use TAB
-for completion and choices.
+User is asked to select the item style first, for example (a), i), +.
+Use TAB for completion and choices.
 
 If user selects bullets or #, it's just added with position arranged by
 `rst-insert-list-pos'.
 
-If user selects enumerations, a further prompt is given.  User need to input a
-starting item, for example 'e' for 'A)' style.  The position is also arranged by
-`rst-insert-list-pos'."
+If user selects enumerations, a further prompt is given.  User need to
+input a starting item, for example 'e' for 'A)' style.  The position is
+also arranged by `rst-insert-list-pos'."
   (interactive)
   ;; FIXME: Make this comply to `interactive' standards.
   (let* ((itemstyle (completing-read
@@ -2140,7 +2140,7 @@ for completion and choices.
 The position of the new list is arranged according to whether or not the
 current line and the previous line are blank lines.
 
-2. When continuing a list, one thing need to be noticed:
+2. When continuing a list, one thing needs to be noticed:
 
 List style alphabetical list, such as 'a.', and roman numerical list, such as
 'i.', have some overlapping items, for example 'v.' The function can deal with
@@ -2271,13 +2271,11 @@ without UNPROCESSED."
   "Return section containing POINT by returning the closest node in TREE.
 TREE is a section tree as returned by `rst-section-tree'
 consisting of (NODE CHILD...) entries.  POINT defaults to the
-current point.  A NODE must have the structure (IGNORED MARKER
-...).
+current point.  A NODE must have the structure (IGNORED MARKER...).
 
 Return (PATH NODE CHILD...).  NODE is the node where POINT is in
 if any.  PATH is a list of nodes from the top of the tree down to
-and including NODE.  List of CHILD are the children of NODE if
-any."
+and including NODE.  List of CHILD are the children of NODE if any."
   (setq point (or point (point)))
   (let ((cur (car tree))
 	(children (cdr tree)))
@@ -2318,10 +2316,10 @@ Also used for formatting insertion, when numbering is disabled."
   "Insertion style for table-of-contents.
 Set this to one of the following values to determine numbering and
 indentation style:
-- plain: no numbering (fixed indentation)
-- fixed: numbering, but fixed indentation
-- aligned: numbering, titles aligned under each other
-- listed: numbering, with dashes like list items (EXPERIMENTAL)"
+- `plain': no numbering (fixed indentation)
+- `fixed': numbering, but fixed indentation
+- `aligned': numbering, titles aligned under each other
+- `listed': numbering, with dashes like list items (EXPERIMENTAL)"
   :type '(choice (const plain)
                  (const fixed)
                  (const aligned)
@@ -2384,7 +2382,7 @@ The TOC is inserted indented at the current column."
 
 (defun rst-toc-insert-node (node level indent pfx)
   "Insert tree node NODE in table-of-contents.
-Recursive function that does printing of the inserted toc.
+Recursive function that does printing of the inserted TOC.
 LEVEL is the depth level of the sections in the tree.
 INDENT is the indentation string.  PFX is the prefix numbering,
 that includes the alignment necessary for all the children of
@@ -2611,7 +2609,7 @@ brings the cursor in that section."
 ;;        paragraph.
 (defun rst-goto-section (&optional kill)
   "Go to the section the current line describes.
-If KILL a toc buffer is destroyed."
+If KILL a TOC buffer is destroyed."
   (interactive)
   (let ((pos (rst-toc-mode-find-section)))
     (when kill
@@ -2682,8 +2680,8 @@ EVENT is the input event."
 
 (defun rst-forward-section (&optional offset)
   "Skip to the next reStructuredText section title.
-OFFSET specifies how many titles to skip.  Use a negative OFFSET to move
-backwards in the file (default is to use 1)."
+OFFSET specifies how many titles to skip.  Use a negative OFFSET
+to move backwards in the file (default is to use 1)."
   (interactive)
   (rst-reset-section-caches)
   (let* (;; Default value for offset.
@@ -2848,10 +2846,9 @@ first of a paragraph."
 (defgroup rst-indent nil "Settings for indentation in reStructuredText.
 
 In reStructuredText indentation points are usually determined by
-preceding lines. Sometimes the syntax allows arbitrary
-indentation points such as where to start the first line
-following a directive. These indentation widths can be customized
-here."
+preceding lines.  Sometimes the syntax allows arbitrary indentation
+points such as where to start the first line following a directive.
+These indentation widths can be customized here."
   :group 'rst
   :package-version '(rst . "1.1.0"))
 
@@ -2957,11 +2954,11 @@ and not from inner alignment points."
 
 (defun rst-compute-tabs (pt)
   "Build the list of possible tabs for all lines above.
-Search backwards from point PT to build the list of possible
-tabs.  Return a list of tabs sorted by likeliness to continue
-writing like `rst-line-tabs'.  Nearer lines have generally a
-higher likeliness than farther lines.  Return nil if no tab is found
-in the text above."
+Search backwards from point PT to build the list of possible tabs.
+Return a list of tabs sorted by likeliness to continue writing
+like `rst-line-tabs'.  Nearer lines have generally a higher
+likeliness than farther lines.  Return nil if no tab is found in
+the text above."
   (save-excursion
     (goto-char pt)
     (let (leftmost ; Leftmost column found so far.
@@ -3136,7 +3133,7 @@ Region is from from BEG to END.  Uncomment if ARG."
 	(indent-line-to ind)
 	(insert (comment-string-strip comment-start t t))))))
 
-(defun rst-uncomment-region (beg end &optional arg)
+(defun rst-uncomment-region (beg end &optional _arg)
   "Uncomment the current region.
 Region is from BEG to END.  ARG is ignored"
   (save-excursion
@@ -3774,8 +3771,7 @@ point is not moved."
 
 (defvar rst-font-lock-find-unindented-line-end nil
   "End of the match as determined by `rst-font-lock-find-unindented-line-limit'.
-Also used as a trigger for
-`rst-font-lock-find-unindented-line-match'.")
+Also used as a trigger for `rst-font-lock-find-unindented-line-match'.")
 
 (defun rst-font-lock-find-unindented-line-limit (ind-pnt)
   "Find the next unindented line relative to indentation at IND-PNT.
@@ -3783,8 +3779,7 @@ Return this point, the end of the buffer or nil if nothing found.
 If IND-PNT is `next' take the indentation from the next line if
 this is not empty and indented more than the current one.  If
 IND-PNT is non-nil but not a number take the indentation from the
-next non-empty line if this is indented more than the current
-one."
+next non-empty line if this is indented more than the current one."
   (setq rst-font-lock-find-unindented-line-begin ind-pnt)
   (setq rst-font-lock-find-unindented-line-end
 	(save-excursion
@@ -3824,12 +3819,11 @@ one."
 	    (or (rst-forward-indented-block nil (point-max))
 		(point-max))))))
 
-(defun rst-font-lock-find-unindented-line-match (limit)
+(defun rst-font-lock-find-unindented-line-match (_limit)
   "Set the match found earlier if match were found.
-Match has been found by
-`rst-font-lock-find-unindented-line-limit' the first time called
-or no match is found.  Return non-nil if match was found.  LIMIT
-is not used but mandated by the caller."
+Match has been found by `rst-font-lock-find-unindented-line-limit'
+the first time called or no match is found.  Return non-nil if
+match was found.  LIMIT is not used but mandated by the caller."
   (when rst-font-lock-find-unindented-line-end
     (set-match-data
      (list rst-font-lock-find-unindented-line-begin
@@ -3850,10 +3844,9 @@ Either section level of the current adornment or t for a transition.")
 
 (defun rst-adornment-level (key)
   "Return section level for adornment KEY.
-KEY is the first element of the return list of
-`rst-classify-adornment'.  If KEY is not a cons return it.  If KEY is found
-in the hierarchy return its level.  Otherwise return a level one
-beyond the existing hierarchy."
+KEY is the first element of the return list of `rst-classify-adornment'.
+If KEY is not a cons return it.  If KEY is found in the hierarchy return
+its level.  Otherwise return a level one beyond the existing hierarchy."
   (if (not (consp key))
       key
     (let* ((hier (rst-get-hierarchy))
@@ -3875,9 +3868,8 @@ as a trigger for `rst-font-lock-handle-adornment-matcher'.")
 (defun rst-font-lock-handle-adornment-pre-match-form (ado ado-end)
   "Determine limit for adornments.
 Determine all things necessary for font-locking section titles
-and transitions and put the result to
-`rst-font-lock-adornment-match' and
-`rst-font-lock-adornment-level'.  ADO is the complete adornment
+and transitions and put the result to `rst-font-lock-adornment-match'
+and `rst-font-lock-adornment-level'.  ADO is the complete adornment
 matched.  ADO-END is the point where ADO ends.  Return the point
 where the whole adorned construct ends.
 
@@ -3892,7 +3884,7 @@ Called as a PRE-MATCH-FORM in the sense of `font-lock-keywords'."
       (goto-char (nth 1 ado-data)) ; Beginning of construct.
       (nth 2 ado-data)))) ; End of construct.
 
-(defun rst-font-lock-handle-adornment-matcher (limit)
+(defun rst-font-lock-handle-adornment-matcher (_limit)
   "Set the match found earlier if match were found.
 Match has been found by
 `rst-font-lock-handle-adornment-pre-match-form' the first time
@@ -3989,7 +3981,7 @@ string)) to be used for converting the document."
 (defun rst-compile (&optional use-alt)
   "Compile command to convert reST document into some output file.
 Attempts to find configuration file, if it can, overrides the
-options.  There are two commands to choose from, with USE-ALT,
+options.  There are two commands to choose from; with USE-ALT,
 select the alternative tool-set."
   (interactive "P")
   ;; Note: maybe we want to check if there is a Makefile too and not do anything
@@ -4094,7 +4086,7 @@ buffer, if the region is not selected."
     a))
 
 (defun rst-imenu-convert-cell (elt adornments)
-  "Convert a cell ELT in a tree returned from `rst-section-tree' to imenu index.
+  "Convert a cell ELT in a tree returned from `rst-section-tree' to Imenu index.
 ADORNMENTS is used as hint information for conversion."
   (let* ((kar (car elt))
 	 (kdr (cdr elt))
@@ -4128,7 +4120,7 @@ ADORNMENTS is used as hint information for conversion."
 ;; FIXME: Document title and subtitle need to be handled properly. They should
 ;;        get an own "Document" top level entry.
 (defun rst-imenu-create-index ()
-  "Create index for imenu.
+  "Create index for Imenu.
 Return as described for `imenu--index-alist'."
   (rst-reset-section-caches)
   (let ((tree (rst-section-tree))
@@ -4190,8 +4182,8 @@ This is useful for filling list item paragraphs."
 ;; be useful for creating separators.
 (defun rst-repeat-last-character (use-next)
   "Fill the current line using the last character on the current line.
-Fill up to the length of the preceding line or up to
-`fill-column' if preceding line is empty.
+Fill up to the length of the preceding line or up to `fill-column' if preceding
+line is empty.
 
 If USE-NEXT, use the next line rather than the preceding line.
 
