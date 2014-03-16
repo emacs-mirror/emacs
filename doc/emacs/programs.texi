@@ -798,12 +798,12 @@ make it easy to see how and whether parentheses (or other delimiters)
 match up.
 
   Whenever you type a self-inserting character that is a closing
-delimiter, the cursor moves momentarily to the location of the
-matching opening delimiter, provided that is on the screen.  If it is
-not on the screen, Emacs displays some of the text near it in the echo
-area.  Either way, you can tell which grouping you are closing off.
-If the opening delimiter and closing delimiter are mismatched---such
-as in @samp{[x)}---a warning message is displayed in the echo area.
+delimiter, Emacs briefly indicates the location of the matching
+opening delimiter, provided that is on the screen.  If it is not on
+the screen, Emacs displays some of the text near it in the echo area.
+Either way, you can tell which grouping you are closing off.  If the
+opening delimiter and closing delimiter are mismatched---such as in
+@samp{[x)}---a warning message is displayed in the echo area.
 
 @vindex blink-matching-paren
 @vindex blink-matching-paren-distance

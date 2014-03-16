@@ -1,3 +1,7 @@
+2014-03-16  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* programs.texi (Matching): Update the missed spot.  (Bug#17008)
+
 2014-03-15  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* programs.texi (Matching): Update WRT to the new
