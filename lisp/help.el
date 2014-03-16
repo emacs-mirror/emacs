@@ -133,7 +133,9 @@ This function assumes that `standard-output' is the help buffer.
 It computes a message, and applies the optional argument FUNCTION to it.
 If FUNCTION is nil, it applies `message', thus displaying the message.
 In addition, this function sets up `help-return-method', which see, that
-specifies what to do when the user exits the help buffer."
+specifies what to do when the user exits the help buffer.
+
+Do not call this in the scope of `with-help-window'."
   (and (not (get-buffer-window standard-output))
        (let ((first-message
 	      (cond ((or
@@ -498,7 +500,10 @@ The optional argument PREFIX, if non-nil, should be a key sequence;
 then we display only bindings that start with that prefix."
   (let ((buf (current-buffer)))
     (with-help-window (help-buffer)
-      (describe-buffer-bindings buf prefix menus))))
+      ;; Be aware that `describe-buffer-bindings' puts its output into
+      ;; the current buffer.
+      (with-current-buffer (help-buffer)
+	(describe-buffer-bindings buf prefix menus)))))
 
 (defun where-is (definition &optional insert)
   "Print message listing key sequences that invoke the command DEFINITION.
@@ -1180,28 +1185,25 @@ Return VALUE."
 ;; providing the following additional twists:
 
 ;; (1) It puts the buffer in `help-mode' (via `help-mode-setup') and
-;; adds cross references (via `help-mode-finish').
+;;     adds cross references (via `help-mode-finish').
 
 ;; (2) It issues a message telling how to scroll and quit the help
-;; window (via `help-window-setup').
+;;     window (via `help-window-setup').
 
 ;; (3) An option (customizable via `help-window-select') to select the
-;; help window automatically.
+;;     help window automatically.
 
 ;; (4) A marker (`help-window-point-marker') to move point in the help
-;; window to an arbitrary buffer position.
-
-;; Note: It's usually always wrong to use `help-print-return-message' in
-;; the body of `with-help-window'.
+;;     window to an arbitrary buffer position.
 (defmacro with-help-window (buffer-name &rest body)
-  "Display buffer with name BUFFER-NAME in a help window.
-Evaluate the forms in BODY with the buffer specified by
-BUFFER-NAME current, put that buffer in `help-mode', display the
-buffer in a window (see `with-temp-buffer-window' for details)
-and issue a message how to deal with that \"help\" window when
-it's no more needed.  Select the help window if the current value
-of the user option `help-window-select' says so.  Return last
-value in BODY."
+  "Display buffer named BUFFER-NAME in a help window.
+Evaluate the forms in BODY with standard output bound to a buffer
+called BUFFER-NAME (creating it if it does not exist), put that
+buffer in `help-mode', display the buffer in a window (see
+`with-temp-buffer-window' for details) and issue a message how to
+deal with that \"help\" window when it's no more needed.  Select
+the help window if the current value of the user option
+`help-window-select' says so.  Return last value in BODY."
   (declare (indent 1) (debug t))
   `(progn
      ;; Make `help-window-point-marker' point nowhere.  The only place

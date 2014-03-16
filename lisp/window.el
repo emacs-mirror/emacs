@@ -143,21 +143,22 @@ to `display-buffer'."
 	window))))
 
 (defmacro with-temp-buffer-window (buffer-or-name action quit-function &rest body)
-  "Evaluate BODY in a buffer BUFFER-OR-NAME and show that buffer.
+  "Bind `standard-output' to BUFFER-OR-NAME, eval BODY, show the buffer.
 BUFFER-OR-NAME must specify either a live buffer, or the name of
 a buffer (if it does not exist, this macro creates it).
 
 Make the buffer specified by BUFFER-OR-NAME empty before running
-BODY and make that buffer current for running the forms in BODY.
-In addition, bind `standard-output' to that buffer, so that
-output generated with `prin1' and similar functions in BODY goes
-into that buffer.
+BODY and bind `standard-output' to that buffer, so that output
+generated with `prin1' and similar functions in BODY goes into
+that buffer.  Do not make that buffer current for running the
+forms in BODY.  Use `with-current-buffer-window' instead if you
+need to run BODY with that buffer current.
 
 At the end of BODY, mark the specified buffer unmodified and
 read-only, and display it in a window (but do not select it).
 The display happens by calling `display-buffer' passing it the
 ACTION argument.  If `temp-buffer-resize-mode' is enabled, the
-corresponding window may shrink automatically.
+corresponding window may be resized automatically.
 
 Return the value returned by BODY, unless QUIT-FUNCTION specifies
 a function.  In that case, run that function with two arguments -
@@ -177,10 +178,29 @@ that buffer temporarily current, and the window that was used to
 display it temporarily selected.
 
 This construct is similar to `with-output-to-temp-buffer' but,
-unlike that, makes BUFFER-OR-NAME current when running BODY.
-Also, it neither runs `temp-buffer-setup-hook' which usually puts
-the buffer in Help mode, nor `temp-buffer-show-function' (the
-ACTION argument replaces this)."
+neither runs `temp-buffer-setup-hook' which usually puts the
+buffer in Help mode, nor `temp-buffer-show-function' (the ACTION
+argument replaces this)."
+  (declare (debug t))
+  (let ((buffer (make-symbol "buffer"))
+	(window (make-symbol "window"))
+	(value (make-symbol "value")))
+    `(let* ((,buffer (temp-buffer-window-setup ,buffer-or-name))
+	    (standard-output ,buffer)
+	    ,window ,value)
+       (setq ,value (progn ,@body))
+       (with-current-buffer ,buffer
+	 (setq ,window (temp-buffer-window-show ,buffer ,action)))
+
+       (if (functionp ,quit-function)
+	   (funcall ,quit-function ,window ,value)
+	 ,value))))
+
+(defmacro with-current-buffer-window (buffer-or-name action quit-function &rest body)
+  "Evaluate BODY with a buffer BUFFER-OR-NAME current and show that buffer.
+This construct is like `with-temp-buffer-window' but unlike that
+makes the buffer specified by BUFFER-OR-NAME current for running
+BODY."
   (declare (debug t))
   (let ((buffer (make-symbol "buffer"))
 	(window (make-symbol "window"))

@@ -1,3 +1,20 @@
+2014-03-16  Martin Rudalics  <rudalics@gmx.at>
+
+	Fix behavior of with-temp-buffer-window (Bug#16816, Bug#17007).
+	* window.el (with-temp-buffer-window): Don't make BUFFER-OR-NAME
+	current (Bug#16816, Bug#17007).
+	(with-current-buffer-window): New macro doing the same as
+	`with-temp-buffer-window' but with BUFFER-OR-NAME current.
+	* help.el (help-print-return-message): Warn in doc-string to not
+	use this in `with-help-window'.
+	(describe-bindings-internal): Call `describe-buffer-bindings'
+	from within help buffer.  See Juanma's scenario in (Bug#16816).
+	(with-help-window): Update doc-string.
+	* dired.el (dired-mark-pop-up):
+	* files.el (save-buffers-kill-emacs):
+	* register.el (register-preview): Use `with-current-buffer-window'
+	instead of `with-temp-buffer-window'.
+
 2014-03-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/rst.el (rst-arabic-to-roman, rst-roman-to-arabic):

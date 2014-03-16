@@ -1,3 +1,10 @@
+2014-03-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* display.texi (Temporary Displays): Rewrite descriptions of
+	`with-output-to-temp-buffer' and `with-temp-buffer-window'.
+	* help.texi (Help Functions): Rewrite description of
+	`with-help-window'.
+
 2014-03-15  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* display.texi (Blinking): Update WRT to the new
@@ -6,7 +13,7 @@
 2014-03-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* display.texi (Temporary Displays): Say that
-	with-temp-buffer-window makes its buffer current.
+	`with-temp-buffer-window' makes its buffer current.
 	* frames.texi (Size and Position): Describe new option
 	`frame-resize-pixelwise'.  Rewrite descriptions of
 	`set-frame-size', `set-frame-height' and `set-frame-width'.

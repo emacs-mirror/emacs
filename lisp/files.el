@@ -6534,7 +6534,7 @@ if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
 		    (setq active t))
 	       (setq processes (cdr processes)))
 	     (or (not active)
-		 (with-temp-buffer-window
+		 (with-current-buffer-window
 		  (get-buffer-create "*Process List*") nil
 		  #'(lambda (window _value)
 		      (with-selected-window window

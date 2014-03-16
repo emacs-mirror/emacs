@@ -3087,7 +3087,7 @@ argument or confirmation)."
       (apply function args)
     (let ((buffer (get-buffer-create (or buffer-or-name " *Marked Files*"))))
       (with-current-buffer buffer
-	(with-temp-buffer-window
+	(with-current-buffer-window
 	 buffer
 	 (cons 'display-buffer-below-selected
 	       '((window-height . fit-window-to-buffer)))

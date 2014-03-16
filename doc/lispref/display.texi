@@ -1094,29 +1094,29 @@ You can use a display table to substitute other text for the ellipsis
 buffer and then present it to the user for perusal rather than for
 editing.  Many help commands use this feature.
 
-@defmac with-output-to-temp-buffer buffer-name forms@dots{}
-This function executes @var{forms} while arranging to insert any output
-they print into the buffer named @var{buffer-name}, which is first
-created if necessary, and put into Help mode.  Finally, the buffer is
-displayed in some window, but not selected.  (See the similar
-form @code{with-temp-buffer-window} below.)
+@defmac with-output-to-temp-buffer buffer-name body@dots{}
+This function executes the forms in @var{body} while arranging to insert
+any output they print into the buffer named @var{buffer-name}, which is
+first created if necessary, and put into Help mode.  (See the similar
+form @code{with-temp-buffer-window} below.)  Finally, the buffer is
+displayed in some window, but that window is not selected.
 
-If the @var{forms} do not change the major mode in the output buffer,
-so that it is still Help mode at the end of their execution, then
-@code{with-output-to-temp-buffer} makes this buffer read-only at the
-end, and also scans it for function and variable names to make them
-into clickable cross-references.  @xref{Docstring hyperlinks, , Tips
-for Documentation Strings}, in particular the item on hyperlinks in
+If the forms in @var{body} do not change the major mode in the output
+buffer, so that it is still Help mode at the end of their execution,
+then @code{with-output-to-temp-buffer} makes this buffer read-only at
+the end, and also scans it for function and variable names to make them
+into clickable cross-references.  @xref{Docstring hyperlinks, , Tips for
+Documentation Strings}, in particular the item on hyperlinks in
 documentation strings, for more details.
 
-The string @var{buffer-name} specifies the temporary buffer, which
-need not already exist.  The argument must be a string, not a buffer.
-The buffer is erased initially (with no questions asked), and it is
-marked as unmodified after @code{with-output-to-temp-buffer} exits.
+The string @var{buffer-name} specifies the temporary buffer, which need
+not already exist.  The argument must be a string, not a buffer.  The
+buffer is erased initially (with no questions asked), and it is marked
+as unmodified after @code{with-output-to-temp-buffer} exits.
 
 @code{with-output-to-temp-buffer} binds @code{standard-output} to the
-temporary buffer, then it evaluates the forms in @var{forms}.  Output
-using the Lisp output functions within @var{forms} goes by default to
+temporary buffer, then it evaluates the forms in @var{body}.  Output
+using the Lisp output functions within @var{body} goes by default to
 that buffer (but screen display and messages in the echo area, although
 they are ``output'' in the general sense of the word, are not affected).
 @xref{Output Functions}.
@@ -1124,7 +1124,7 @@ they are ``output'' in the general sense of the word, are not affected).
 Several hooks are available for customizing the behavior
 of this construct; they are listed below.
 
-The value of the last form in @var{forms} is returned.
+The value of the last form in @var{body} is returned.
 
 @example
 @group
@@ -1174,28 +1174,34 @@ displaying the temporary buffer.  When the hook runs, the temporary buffer
 is current, and the window it was displayed in is selected.
 @end defvar
 
-@defmac with-temp-buffer-window buffer-or-name action quit-function forms@dots{}
+@defmac with-temp-buffer-window buffer-or-name action quit-function body@dots{}
 This macro is similar to @code{with-output-to-temp-buffer}.  Like that
-construct, it executes @var{forms} while arranging to insert any output
-they print into the buffer named @var{buffer-or-name} and displays the
+construct, it executes @var{body} while arranging to insert any output
+it prints into the buffer named @var{buffer-or-name} and displays that
 buffer in some window.  Unlike @code{with-output-to-temp-buffer},
-however, this makes the buffer current and does not switch to Help mode.
+however, it does not automatically switch that buffer to Help mode.
 
-The argument @var{buffer-or-name} specifies the temporary buffer.
-It can be either a buffer, which must already exist, or a string,
-in which case a buffer of that name is created if necessary.
-The buffer is marked as unmodified and read-only when
-@code{with-temp-buffer-window} exits.
+Like @code{with-output-to-temp-buffer} it neither makes the buffer
+specified by @var{buffer-or-name} current when executing @var{body}.
+@findex with-current-buffer-window
+The otherwise identical macro @code{with-current-buffer-window} can be
+used to execute @var{body} with that buffer current.
+
+The argument @var{buffer-or-name} specifies the temporary buffer.  It
+can be either a buffer, which must already exist, or a string, in which
+case a buffer of that name is created, if necessary.  The buffer is
+marked as unmodified and read-only when @code{with-temp-buffer-window}
+exits.
 
 This macro does not call @code{temp-buffer-show-function}.  Rather, it
 passes the @var{action} argument to @code{display-buffer} in order to
 display the buffer.
 
-The value of the last form in @var{forms} is returned, unless the
-argument @var{quit-function} is specified.  In that case,
-it is called with two arguments: the window showing the buffer
-and the result of @var{forms}.  The final return value is then
-whatever @var{quit-function} returns.
+The value of the last form in @var{body} is returned, unless the
+argument @var{quit-function} is specified.  In that case, it is called
+with two arguments: the window showing the buffer and the result of
+@var{body}.  The final return value is then whatever
+@var{quit-function} returns.
 
 @vindex temp-buffer-window-setup-hook
 @vindex temp-buffer-window-show-hook

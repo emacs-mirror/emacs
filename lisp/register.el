@@ -134,7 +134,7 @@ Returns a string.")
 If SHOW-EMPTY is non-nil show the window even if no registers.
 Format of each entry is controlled by the variable `register-preview-function'."
   (when (or show-empty (consp register-alist))
-    (with-temp-buffer-window
+    (with-current-buffer-window
      buffer
      (cons 'display-buffer-below-selected
 	   '((window-height . fit-window-to-buffer)))
