@@ -2246,7 +2246,9 @@ The method used must be an out-of-band method."
 	(aset v 3 localname)
 
 	;; Check which ones of source and target are Tramp files.
-	(setq source (if t1 (tramp-make-copy-program-file-name v) filename)
+	(setq source (if t1
+			 (tramp-make-copy-program-file-name v)
+		       (shell-quote-argument filename))
 	      target (funcall
 		      (if (and (file-directory-p filename)
 			       (string-equal
@@ -2254,7 +2256,9 @@ The method used must be an out-of-band method."
 				(file-name-nondirectory newname)))
 			  'file-name-directory
 			'identity)
-		      (if t2 (tramp-make-copy-program-file-name v) newname)))
+		      (if t2
+			  (tramp-make-copy-program-file-name v)
+			(shell-quote-argument newname))))
 
 	;; Check for host and port number.  We cannot use
 	;; `tramp-file-name-port', because this returns also
@@ -2376,7 +2380,6 @@ The method used must be an out-of-band method."
 		     (buffer-substring (point-min) (point-at-eol))))))
 
 	    ;; Reset the transfer process properties.
-	    (tramp-message orig-vec 6 "\n%s" (buffer-string))
 	    (tramp-set-connection-property v "process-name" nil)
 	    (tramp-set-connection-property v "process-buffer" nil)))
 
