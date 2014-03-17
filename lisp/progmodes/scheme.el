@@ -140,11 +140,8 @@
   (setq-local add-log-current-defun-function #'lisp-current-defun-name)
   (setq-local comment-start ";")
   (setq-local comment-add 1)
-  ;; Look within the line for a ; following an even number of backslashes
-  ;; after either a non-backslash or the line beginning.
-  (setq-local comment-start-skip
-	      "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+[ \t]*")
-  (setq-local font-lock-comment-start-skip ";+ *")
+  (setq-local comment-start-skip ";+[ \t]*")
+  (setq-local comment-use-syntax t)
   (setq-local comment-column 40)
   (setq-local parse-sexp-ignore-comments t)
   (setq-local lisp-indent-function 'scheme-indent-function)

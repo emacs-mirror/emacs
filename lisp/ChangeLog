@@ -1,3 +1,13 @@
+2014-03-17  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Set
+	`comment-use-syntax' to t to avoid the unnecessary runtime check.
+	Set `comment-start-skip' to a simpler value that doesn't try to
+	check if the semicolon is escaped (this is handled by
+	`syntax-ppss' now).  (Bug#16971)
+
+	* progmodes/scheme.el (scheme-mode-variables): Same.
+
 2014-03-16  Martin Rudalics  <rudalics@gmx.at>
 
 	Fix behavior of with-temp-buffer-window (Bug#16816, Bug#17007).
