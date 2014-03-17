@@ -523,7 +523,12 @@ the same as `comment-search-backward'."
         (when (nth 4 state)
           (goto-char (nth 8 state))
           (prog1 (point)
-            (when (looking-at comment-start-skip)
+            (when (or (looking-at comment-start-skip)
+                      ;; Some older modes use regexps that check the
+                      ;; char before the comment for quoting.  (Bug#16971)
+                      (save-excursion
+                        (forward-char -1)
+                        (looking-at comment-start-skip)))
               (goto-char (match-end 0))))))
     ;; Can't rely on the syntax table, let's guess based on font-lock.
     (unless (eq (get-text-property (point) 'face) 'font-lock-string-face)

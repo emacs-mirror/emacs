@@ -1,5 +1,8 @@
 2014-03-17  Dmitry Gutov  <dgutov@yandex.ru>
 
+	* newcomment.el (comment-beginning): If `comment-start-skip'
+	doesn't match, move back one char and try again.  (Bug#16971)
+
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Set
 	`comment-use-syntax' to t to avoid the unnecessary runtime check.
 	Set `comment-start-skip' to a simpler value that doesn't try to
