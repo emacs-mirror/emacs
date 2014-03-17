@@ -1,3 +1,10 @@
+2014-03-17  Stefan  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el (advice--interactive-form): New function.
+	(advice--make-interactive-form): Use it to avoid (auto)loading function.
+	(advice--make-1, advice-add, advice-remove):
+	Remove braindead :advice-pending hack.
+
 2014-03-17  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-generate-month): Apply weekend

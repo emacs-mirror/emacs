@@ -123,30 +123,34 @@ Each element has the form (WHERE BYTECODE STACK) where:
    ;; ((functionp spec) (funcall spec))
    (t (eval spec))))
 
+(defun advice--interactive-form (function)
+  ;; Like `interactive-form' but tries to avoid autoloading functions.
+  (when (commandp function)
+    (if (not (and (symbolp function) (autoloadp (symbol-function function))))
+        (interactive-form function)
+      `(interactive (advice-eval-interactive-spec
+                     (cadr (interactive-form ',function)))))))
+
 (defun advice--make-interactive-form (function main)
   ;; TODO: make it so that interactive spec can be a constant which
   ;; dynamically checks the advice--car/cdr to do its job.
   ;; For that, advice-eval-interactive-spec needs to be more faithful.
-  (let ((fspec (cadr (interactive-form function))))
+  (let* ((iff (advice--interactive-form function))
+         (ifm (advice--interactive-form main))
+         (fspec (cadr iff)))
     (when (eq 'function (car-safe fspec)) ;; Macroexpanded lambda?
       (setq fspec (nth 1 fspec)))
     (if (functionp fspec)
-        `(funcall ',fspec
-                  ',(cadr (interactive-form main)))
-  (cadr (or (interactive-form function)
-                (interactive-form main))))))
+        `(funcall ',fspec ',(cadr ifm))
+      (cadr (or iff ifm)))))
 
-(defsubst advice--make-1 (byte-code stack-depth function main props)
+(defun advice--make-1 (byte-code stack-depth function main props)
   "Build a function value that adds FUNCTION to MAIN."
   (let ((adv-sig (gethash main advertised-signature-table))
         (advice
          (apply #'make-byte-code 128 byte-code
                 (vector #'apply function main props) stack-depth nil
                 (and (or (commandp function) (commandp main))
-		     ;; If we're adding the advice on advice--pending, don't
-		     ;; build an interactive-form, which won't be used anyway
-		     ;; and would risk autoloading `main' (or `function').
-		     (not (eq main :advice--pending))
                      (list (advice--make-interactive-form
                             function main))))))
     (when adv-sig (puthash advice adv-sig advertised-signature-table))
@@ -387,14 +391,11 @@ is defined as a macro, alias, command, ..."
                          ;; Reasons to delay installation of the advice:
                          ;; - If the function is not yet defined, installing
                          ;;   the advice would affect `fboundp'ness.
-                         ;; - If it's an autoloaded command,
-                         ;;   advice--make-interactive-form would end up
-                         ;;   loading the command eagerly.
+                         ;; - the symbol-function slot of an autoloaded
+                         ;;   function is not itself a function value.
                          ;; - `autoload' does nothing if the function is
                          ;;   not an autoload or undefined.
                          ((or (not nf) (autoloadp nf))
-			  (unless (get symbol 'advice--pending)
-			    (put symbol 'advice--pending :advice--pending))
                           (get symbol 'advice--pending))
                          (t (symbol-function symbol)))
                   function props)
@@ -418,9 +419,6 @@ of the piece of advice."
                       (t (symbol-function symbol)))
                      function)
     (unless (advice--p (advice--symbol-function symbol))
-      ;; Not advised any more.
-      (when (eq (get symbol 'advice--pending) :advice--pending)
-	(put symbol 'advice--pending nil))
       (remove-function (get symbol 'defalias-fset-function)
                        #'advice--defalias-fset)
       (let ((asr (get symbol 'advice--saved-rewrite)))
