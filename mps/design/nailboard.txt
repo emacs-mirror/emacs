@@ -150,8 +150,8 @@ _`.impl.isresrange.splinter`: If none of the three early exits is
 taken, then we are in a situation like the one shown below, with one
 or two *splinters*. In this situation we know that there is a nail,
 but it is not clear whether the nail is inside the splinter or not. We
-handle this situation by moving up to the next level and looking at
-the range of addresses covered by the splinter.
+handle this situation by moving up to the previous level and looking
+at the range of addresses covered by the splinter.
 
 .. figure:: nailboard-3.svg
     :align: center
@@ -162,7 +162,8 @@ the range of addresses covered by the splinter.
 _`.impl.isresrange.splinter.recurse`: When looking at a splinter, we
 might reach the same situation: namely, that the interior of the
 splinter is empty, but the edge of the splinter is set. We handle this
-by reducing the size of the splinter and moving up to the next level.
+by reducing the size of the splinter and moving up to the previous
+level.
 
 _`.impl.isresrange.splinter.one-sided`: This splinter-of-a-splinter is
 one-sided: that is, we don't need to look at the right splinter of a
