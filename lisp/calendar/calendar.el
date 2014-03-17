@@ -1546,7 +1546,8 @@ line."
          (last (calendar-last-day-of-month month year))
          (trunc (min calendar-intermonth-spacing
                      (1- calendar-left-margin)))
-         (day 1))
+         (day 1)
+         j)
    (goto-char (point-min))
    (calendar-move-to-column indent)
    (insert
@@ -1556,11 +1557,11 @@ line."
    (calendar-insert-at-column indent calendar-intermonth-header trunc)
    ;; Use the first N characters of each day to head the columns.
    (dotimes (i 7)
+     (setq j (mod (+ calendar-week-start-day i) 7))
      (insert
       (truncate-string-to-width
-       (propertize (calendar-day-name (mod (+ calendar-week-start-day i) 7)
-                                      'header t)
-                   'font-lock-face (if (memq i '(0 6))
+       (propertize (calendar-day-name j 'header t)
+                   'font-lock-face (if (memq j '(0 6))
                                        'calendar-weekend-header
                                      'calendar-weekday-header))
        calendar-day-header-width nil ?\s)

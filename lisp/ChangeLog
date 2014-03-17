@@ -1,3 +1,8 @@
+2014-03-17  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-generate-month): Apply weekend
+	face to the right days; fixes 2013-08-06 change.  (Bug#17028)
+
 2014-03-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-action-out-of-band): Read pending output.
