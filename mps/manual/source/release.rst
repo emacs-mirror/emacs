@@ -31,6 +31,17 @@ Interface changes
    argument to :c:func:`mps_pool_create_k`.
 
 
+Other changes
+.............
+
+#. The MPS now retains some unused memory instead of returning it to
+   the operating system. This reduces unnecessary overhead due to
+   system calls, thrashing the operating system's page table, and
+   zeroing memory when re-allocated. See job003700_.
+
+   .. _job003700: https://www.ravenbrook.com/project/mps/issue/job003700/
+
+
 .. _release-notes-1.112:
 
 Release 1.112.0
