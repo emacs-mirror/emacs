@@ -22,11 +22,20 @@ SRCID(version, "$Id$");
 
 /* MPS_RELEASE -- the release name
  *
- * .release: When making a new release, change the expansion of
- * MPS_RELEASE to be a string of the form "release/1.106.1" or
- * whatever.
+ * .release.use: This macro is used (i) to prepare MPSVersionString
+ * (see below) and so identify any binary built using this source
+ * file; (ii) by the Sphinx documentation (see manual/source/conf.py)
+ * to identify the documentation; (iii) by the Autoconf script (see
+ * configure.ac) to identify the configure script.
  *
- * (Note: before 2006-02-01 the style was "release.epcore.chub")
+ * .release.meaning: This names the next release that is expected to
+ * be built from these sources.
+ *
+ * .release.procedure: After making a version branch, update this
+ * string in the master sources to name the next version. After making
+ * a point release, update this string to name the next point release.
+ *
+ * .release.old: before 2006-02-01 the style was "release.epcore.chub".
  */
 
 #define MPS_RELEASE "release/1.113.0"
