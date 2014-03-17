@@ -52,34 +52,23 @@ All relative paths are relative to
         VERSION=A.BBB
         RELEASE=$VERSION.N
 
-#. Ensure that ``version/$VERSION/readme.txt`` contains an up-to-date
-   description of the release you intend to build and the correct
-   release name.
+#. Check that the macro ``MPS_RELEASE`` in ``code/version.c`` has the
+   correct value.
 
-#. Ensure that ``version/$VERSION/manual/source/release.rst`` contains
-   a section with an up-to-date description of significant
-   user-visible changes since the previous release.
+#. Check that ``readme.txt`` contains an up-to-date description of the
+   release you intend to build. For example, is the list of supported
+   platforms still correct?
 
-#. In ``version/$VERSION/code/version.c``, set ``MPS_RELEASE`` to the
-   correct value (see the rules in the comments), and check strings that
-   contain copyright dates, etc.
-
-#. In ``version/$VERSION/configure.ac`` edit the second argument of
-   ``AC_INIT`` to be ``[release $RELEASE]``, then open
-   ``version/$VERSION/configure`` for edit and run ``autoreconf -vif``
-   to bring the configure script up to date.
-
-#. Submit ``readme.txt``, ``manual/source/release.rst``,
-   ``version.c``, ``configure.ac`` and ``configure`` (if changed) to
-   Perforce::
-
-        p4 submit -d "Updated files preparatory to release $RELEASE."
+#. Check that ``manual/source/release.rst`` contains a section with an
+   up-to-date description of significant user-visible changes since
+   the previous release.
 
 #. Determine the *CHANGELEVEL* at which you’re going to make the
-   release. This will usually be the latest submitted changelevel on the
-   version branch; to get it, use ``p4 changes -m 1``::
+   release. This will usually be the latest submitted changelevel on
+   the branch from which you are making the release; to get it, use
+   ``p4 changes -m 1``::
 
-        CHANGELEVEL=$(p4 changes -m 1 version/$VERSION/... | cut -d' ' -f2)
+        CHANGELEVEL=$(p4 changes -m 1 ... | cut -d' ' -f2)
 
 
 4. Pre-release testing
