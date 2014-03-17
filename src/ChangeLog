@@ -1,3 +1,7 @@
+2014-03-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c (Fgnutls_boot): Fix case of :verify-error = t.
+
 2014-03-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* search.c (find_newline): Speed up the function when using the
