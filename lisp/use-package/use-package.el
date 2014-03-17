@@ -75,7 +75,7 @@
 (put 'use-package-with-elapsed-timer 'lisp-indent-function 1)
 
 (defvar use-package-idle-timer nil)
-(defvar use-package-idle-forms nil)
+(defvar use-package-idle-forms (make-hash-table))
 
 (defun use-package-start-idle-timer ()
   "Ensure that the idle timer is running."
@@ -85,17 +85,38 @@
            3 t
            'use-package-idle-eval))))
 
-(defun use-package-init-on-idle (form)
+(defun use-package-init-on-idle (form priority)
   "Add a new form to the idle queue."
   (use-package-start-idle-timer)
-  (if use-package-idle-forms
-      (add-to-list 'use-package-idle-forms
-                   form t)
-    (setq use-package-idle-forms (list form))))
+  (puthash priority
+           (append (gethash priority use-package-idle-forms)
+                   (list form))
+           use-package-idle-forms))
+
+(defun use-package-idle-priorities ()
+  "Get a list of all priorities in the idle queue.
+The list is sorted in the order forms should be run."
+  (let ((priorities nil))
+    (maphash (lambda (priority forms)
+               (setq priorities (cons priority priorities)))
+             use-package-idle-forms)
+    (sort priorities '<)))
+
+(defun use-package-idle-pop ()
+  "Pop the top-priority task from the idle queue.
+Return nil when the queue is empty."
+  (let* ((priority        (car (use-package-idle-priorities)))
+         (forms           (gethash priority use-package-idle-forms))
+         (first-form      (car forms))
+         (forms-remaining (cdr forms)))
+      (if forms-remaining
+          (puthash priority forms-remaining use-package-idle-forms)
+        (remhash priority use-package-idle-forms))
+      first-form))
 
 (defun use-package-idle-eval()
   "Start to eval idle-commands from the idle queue."
-  (let ((next (pop use-package-idle-forms)))
+  (let ((next (use-package-idle-pop)))
     (if next
         (progn
           (when use-package-verbose
@@ -130,6 +151,7 @@
      :disabled
      :ensure
      :idle
+     :idle-priority
      :if
      :init
      :interpreter
@@ -233,6 +255,10 @@ For full documentation. please see commentary.
 :load-path Add to `load-path' before loading.
 :diminish Support for diminish package (if it's installed).
 :idle adds a form to run on an idle timer
+:idle-priority schedules the :idle form to run with the given
+       priority (lower priorities run first). Default priority
+       is 5; forms with the same priority are run in the order in
+       which they are evaluated.
 :ensure loads package using package.el if necessary."
   (use-package-validate-keywords args) ; error if any bad keyword, ignore result
   (let* ((commands (use-package-plist-get args :commands))
@@ -243,6 +269,7 @@ For full documentation. please see commentary.
          (diminish-var (use-package-plist-get-value args :diminish))
          (defines (use-package-plist-get-value args :defines))
          (idle-body (use-package-plist-get args :idle))
+         (idle-priority (use-package-plist-get args :idle-priority))
          (keybindings-alist (use-package-plist-get-value args :bind))
          (mode (use-package-plist-get-value args :mode))
          (mode-alist
@@ -306,10 +333,12 @@ For full documentation. please see commentary.
 
 
       (when idle-body
+        (when (null idle-priority)
+          (setq idle-priority 5))
         (setq init-body
               `(progn
                  (require 'use-package)
-                 (use-package-init-on-idle (lambda () ,idle-body))
+                 (use-package-init-on-idle (lambda () ,idle-body) ,idle-priority)
                  ,init-body)))
 
 
