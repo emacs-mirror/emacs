@@ -1,3 +1,9 @@
+2014-03-16  Bill Wohler  <wohler@newt.com>
+
+	* mh-folder.el (mh-regenerate-headers): Fix scan: bad message list
+	`unseen' error (closes SF #471).
+	* mh-e.el (mh-version): Add +bzr to version.
+
 2014-03-06  Glenn Morris  <rgm@gnu.org>
 
 	* mh-compat.el (mh-display-completion-list):
