@@ -3,6 +3,18 @@
 Release notes
 =============
 
+.. _release-notes-1.113:
+
+Release 1.113.0
+---------------
+
+Interface changes
+.................
+
+#. When creating a list of keyword arguments, there is no longer any
+   need to call :c:macro:`MPS_ARGS_DONE`. See :ref:`topic-keyword`.
+
+
 .. _release-notes-1.112:
 
 Release 1.112.0
