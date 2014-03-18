@@ -11,23 +11,23 @@ explains what functions are, how they accept arguments, and how to
 define them.
 
 @menu
-* What Is a Function::    Lisp functions vs. primitives; terminology.
-* Lambda Expressions::    How functions are expressed as Lisp objects.
-* Function Names::        A symbol can serve as the name of a function.
-* Defining Functions::    Lisp expressions for defining functions.
-* Calling Functions::     How to use an existing function.
-* Mapping Functions::     Applying a function to each element of a list, etc.
-* Anonymous Functions::   Lambda expressions are functions with no names.
-* Function Cells::        Accessing or setting the function definition
+* What Is a Function::          Lisp functions vs. primitives; terminology.
+* Lambda Expressions::          How functions are expressed as Lisp objects.
+* Function Names::              A symbol can serve as the name of a function.
+* Defining Functions::          Lisp expressions for defining functions.
+* Calling Functions::           How to use an existing function.
+* Mapping Functions::           Applying a function to each element of a list, etc.
+* Anonymous Functions::         Lambda expressions are functions with no names.
+* Function Cells::              Accessing or setting the function definition
                             of a symbol.
-* Closures::              Functions that enclose a lexical environment.
-* Advising Functions::    Adding to the definition of a function.
-* Obsolete Functions::    Declaring functions obsolete.
-* Inline Functions::      Functions that the compiler will expand inline.
-* Declare Form::          Adding additional information about a function.
-* Declaring Functions::   Telling the compiler that a function is defined.
-* Function Safety::       Determining whether a function is safe to call.
-* Related Topics::        Cross-references to specific Lisp primitives
+* Closures::                    Functions that enclose a lexical environment.
+* Advising Functions::          Adding to the definition of a function.
+* Obsolete Functions::          Declaring functions obsolete.
+* Inline Functions::            Functions that the compiler will expand inline.
+* Declare Form::                Adding additional information about a function.
+* Declaring Functions::         Telling the compiler that a function is defined.
+* Function Safety::             Determining whether a function is safe to call.
+* Related Topics::              Cross-references to specific Lisp primitives
                             that have a special bearing on how functions work.
 @end menu
 
@@ -208,10 +208,10 @@ Before going into these details, the following subsections describe
 the components of a lambda expression and what they do.
 
 @menu
-* Lambda Components::       The parts of a lambda expression.
-* Simple Lambda::           A simple example.
-* Argument List::           Details and special features of argument lists.
-* Function Documentation::  How to put documentation in a function.
+* Lambda Components::           The parts of a lambda expression.
+* Simple Lambda::               A simple example.
+* Argument List::               Details and special features of argument lists.
+* Function Documentation::      How to put documentation in a function.
 @end menu
 
 @node Lambda Components
@@ -1142,19 +1142,32 @@ examining or altering the structure of closure objects.
 @cindex advising functions
 @cindex piece of advice
 
-Any variable or object field which holds a function can be modified with the
-appropriate setter function, such as @code{set-process-filter}, @code{fset}, or
-@code{setq}, but those can be too blunt, completely throwing away the
+When you need to modify a function defined in another library, or when you need
+to modify a hook like @code{@var{foo}-function}, a process filter, or basically
+any variable or object field which holds a function value, you can use the
+appropriate setter function, such as @code{fset} or @code{defun} for named
+functions, @code{setq} for hook variables, or @code{set-process-filter} for
+process filters, but those are often too blunt, completely throwing away the
 previous value.
 
-In order to modify such hooks in a more controlled way, Emacs provides the
-macros @code{add-function} and @code{remove-function}, which let you modify the
-existing function value by composing it with another function.
+  The @dfn{advice} feature lets you add to the existing definition of
+a function, by @dfn{advising the function}.  This is a cleaner method
+than redefining the whole function.
 
-For example, in order to trace the calls to a process filter, you can use:
+Emacs's advice system provides two sets of primitives for that: the core set,
+for function values held in variables and object fields (with the corresponding
+primitives being @code{add-function} and @code{remove-function}) and another
+set layered on top of it for named functions (with the main primitives being
+@code{advice-add} and @code{advice-remove}).
+
+For example, in order to trace the calls to the process filter of a process
+@var{proc}, you could use:
 
 @example
-(add-function :before (process-filter proc) #'my-tracing-function)
+(defun my-tracing-function (proc string)
+  (message "Proc %S received %S" proc string))
+
+(add-function :before (process-filter @var{proc}) #'my-tracing-function)
 @end example
 
 This will cause the process's output to be passed first to
@@ -1162,32 +1175,54 @@ This will cause the process's output to be passed first to
 When you're done with it, you can revert to the untraced behavior with:
 
 @example
-(remove-function (process-filter proc) #'my-tracing-function)
+(remove-function (process-filter @var{proc}) #'my-tracing-function)
 @end example
 
-The argument @code{:before} specifies how the two functions are composed, since
-there are many different ways to do it.  The added function is also called an
-@emph{advice}.
+Similarly, if you want to trace the execution of the function named
+@code{display-buffer}, you could use:
 
-The function cell of a symbol can be manipulated similarly, but since it can
-contain other things than a plain function, you have to use @code{advice-add}
-and @code{advice-remove} instead, which
-@c use @code{add-function} and @code{remove-function} internally, but
-know how to handle cases such as when the function cell holds a macro rather
-than function, or when the function is autoloaded so the advice's activation
-needs to be postponed.
+@example
+(defun his-tracing-function (orig-fun &rest args)
+  (message "display-buffer called with args %S" args)
+  (let ((res (apply orig-fun args)))
+    (message "display-buffer returned %S" res)
+    res))
+
+(advice-add 'display-buffer :around #'his-tracing-function)
+@end example
+
+and when you're tired of seeing this output, you can revert to the untraced
+behavior with:
+
+@example
+(advice-remove 'display-buffer #'his-tracing-function)
+@end example
+
+The arguments @code{:before} and @code{:above} used in the above examples
+specify how the two functions are composed, since there are many different
+ways to do it.  The added function is also called an @emph{advice}.
 
 @menu
-* Advising Primitives::		Primitives to Manipulate Advices
-* Advising Named Functions::	Advising Named Functions
+* Core Advising Primitives::    Primitives to Manipulate Advices
+* Advising Named Functions::    Advising Named Functions
+* Porting old advices::         Adapting code using the old defadvice
 @end menu
 
-@node Advising Primitives
-@subsection Primitives to manipulate advice
+@node Core Advising Primitives
+@subsection Primitives to manipulate advices
 
 @defmac add-function where place function &optional props
 This macro is the handy way to add the advice @var{function} to the function
 stored in @var{place} (@pxref{Generalized Variables}).
+
+If @var{function} is not interactive, then the combined function will inherit
+the interactive spec, if any, of the original function.  Else, the combined
+function will be interactive and will use the interactive spec of
+@var{function}.  One exception: if the interactive spec of @var{function}
+is a function (rather than an expression or a string), then the interactive
+spec of the combined function will be a call to that function with as sole
+argument the interactive spec of the original function.  To interpret the spec
+received as argument, use @code{advice-eval-interactive-spec}.
 
 @var{where} determines how @var{function} is composed with the
 existing function.  It can be one of the following:
@@ -1340,21 +1375,39 @@ Call the function @var{f} for every advice that was added to
 and its properties.
 @end defun
 
+@defun advice-eval-interactive-spec spec
+Evaluate the interactive @var{spec} just like an interactive call to a function
+with such a spec would, and then return the corresponding list of arguments
+that was built.  E.g. @code{(advice-eval-interactive-spec "r\nP")} will
+return a list of three elements, containing the boundaries of the region and
+the current prefix argument.
+@end defun
+
 @node Advising Named Functions
 @subsection Advising Named Functions
 
 A common use of advice is for named functions and macros.
-Since @code{add-function} does not know how to deal with macros and
-autoloaded functions, Emacs provides a separate set of functions to
-manipulate pieces of advice applied to named functions.
+You could just use @code{add-function} as in:
 
-  Advice can be useful for altering the behavior of an existing
-function without having to redefine the whole function.  However, it
-can be a source of bugs, since existing callers to the function may
-assume the old behavior, and work incorrectly when the behavior is
-changed by advice.  Advice can also cause confusion in debugging, if
-the person doing the debugging does not notice or remember that the
-function has been modified by advice.
+@example
+(add-function :around (symbol-function '@var{fun}) #'his-tracing-function)
+@end example
+
+  But you should use @code{advice-add} and @code{advice-remove} for that
+instead.  This separate set of functions to manipulate pieces of advice applied
+to named functions, offers the following extra features compared to
+@code{add-function}: they know how to deal with macros and autoloaded
+functions, they let @code{describe-function} preserve the original docstring as
+well as document the added advice, and they let you add and remove advices
+before a function is even defined.
+
+  @code{advice-add} can be useful for altering the behavior of existing calls
+to an existing function without having to redefine the whole function.
+However, it can be a source of bugs, since existing callers to the function may
+assume the old behavior, and work incorrectly when the behavior is changed by
+advice.  Advice can also cause confusion in debugging, if the person doing the
+debugging does not notice or remember that the function has been modified
+by advice.
 
   For these reasons, advice should be reserved for the cases where you
 cannot modify a function's behavior in any other way.  If it is
@@ -1399,6 +1452,88 @@ Call @var{function} for every advice that was added to the named function
 @var{symbol}.  @var{function} is called with two arguments: the advice function
 and its properties.
 @end defun
+
+@node Porting old advices
+@subsection Adapting code using the old defadvice
+
+A lot of code uses the old @code{defadvice} mechanism, which is largely made
+obsolete by the new @code{advice-add}, whose implementation and semantics is
+significantly simpler.
+
+An old advice such as:
+
+@example
+(defadvice previous-line (before next-line-at-end
+                                 (&optional arg try-vscroll))
+  "Insert an empty line when moving up from the top line."
+  (if (and next-line-add-newlines (= arg 1)
+           (save-excursion (beginning-of-line) (bobp)))
+      (progn
+        (beginning-of-line)
+        (newline))))
+@end example
+
+could be translated in the new advice mechanism into a plain function:
+
+@example
+(defun previous-line--next-line-at-end (&optional arg try-vscroll)
+  "Insert an empty line when moving up from the top line."
+  (if (and next-line-add-newlines (= arg 1)
+           (save-excursion (beginning-of-line) (bobp)))
+      (progn
+        (beginning-of-line)
+        (newline))))
+@end example
+
+Obviously, this does not actually modify @code{previous-line}.  For that the
+old advice needed:
+@example
+(ad-activate 'previous-line)
+@end example
+whereas the new advice mechanism needs:
+@example
+(advice-add 'previous-line :before #'previous-line--next-line-at-end)
+@end example
+
+Note that @code{ad-activate} had a global effect: it activated all pieces of
+advice enabled for that specified function.  If you wanted to only activate or
+deactivate a particular advice, you needed to @emph{enable} or @emph{disable}
+that advice with @code{ad-enable-advice} and @code{ad-disable-advice}.
+The new mechanism does away with this distinction.
+
+An around advice such as:
+
+@example
+(defadvice foo (around foo-around)
+  "Ignore case in `foo'."
+  (let ((case-fold-search t))
+    ad-do-it))
+(ad-activate 'foo)
+@end example
+
+could translate into:
+
+@example
+(defun foo--foo-around (orig-fun &rest args)
+  "Ignore case in `foo'."
+  (let ((case-fold-search t))
+    (apply orig-fun args)))
+(advice-add 'foo :around #'foo--foo-around)
+@end example
+
+Regarding the advice's @emph{class}, note that the new @code{:before} is not
+quite equivalent to the old @code{before}, because in the old advice you could
+modify the function's arguments (e.g., with @code{ad-set-arg}), and that would
+affect the argument values seen by the original function, whereas in the new
+@code{:before}, modifying an argument via @code{setq} in the advice has no
+effect on the arguments seen by the original function.
+When porting a @code{before} advice which relied on this behavior, you'll need
+to turn it into a new @code{:around} or @code{:filter-args} advice instead.
+
+Similarly an old @code{after} advice could modify the returned value by
+changing @code{ad-return-value}, whereas a new @code{:after} advice cannot, so
+when porting such an old @code{after} advice, you'll need to turn it into a new
+@code{:around} or @code{:filter-return} advice instead.
 
 @node Obsolete Functions
 @section Declaring Functions Obsolete

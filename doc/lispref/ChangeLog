@@ -1,3 +1,13 @@
+2014-03-18  Stefan  <monnier@iro.umontreal.ca>
+
+	* functions.texi (Advising Functions): Try and improve the text.
+	Add example use of advice-add (bug#16959).
+	(Core Advising Primitives): Rename.  Explain handling of interactive
+	specs, including advice-eval-interactive-spec.
+	(Advising Named Functions): Try and better explain the difference with
+	add-function.
+	(Porting old advices): New node.
+
 2014-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Style fixes for floating-point doc.
@@ -16,8 +26,7 @@
 
 	* display.texi (Temporary Displays): Rewrite descriptions of
 	`with-output-to-temp-buffer' and `with-temp-buffer-window'.
-	* help.texi (Help Functions): Rewrite description of
-	`with-help-window'.
+	* help.texi (Help Functions): Rewrite description of `with-help-window'.
 
 2014-03-15  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -34,12 +43,10 @@
 
 2014-03-09  Martin Rudalics  <rudalics@gmx.at>
 
-	* elisp.texi (Top): Rename section "Width" to "Size of Displayed
-	Text".
+	* elisp.texi (Top): Rename section "Width" to "Size of Displayed Text".
 	* text.texi (Primitive Indent):
 	* strings.texi (String Basics):
-	* sequences.texi (Sequence Functions): Update references
-	accordingly.
+	* sequences.texi (Sequence Functions): Update references accordingly.
 	* display.texi (Size of Displayed Text): Rename section from
 	"Width".  Add description for `window-text-pixel-size'.
 	(Window Dividers): Reword description of window dividers.
@@ -64,12 +71,12 @@
 2014-03-06  Martin Rudalics  <rudalics@gmx.at>
 
 	* frames.texi (Size and Position): Rewrite entries for
-	`fit-frame-to-buffer' and `fit-frame-to-buffer-margins'.  Add
-	description for `fit-frame-to-buffer-sizes'.
+	`fit-frame-to-buffer' and `fit-frame-to-buffer-margins'.
+	Add description for `fit-frame-to-buffer-sizes'.
 	* windows.texi (Resizing Windows): Add descriptions for
 	pixelwise resizing.  Add entries for `window-resize-pixelwise'
-	and `fit-window-to-buffer-horizontally'.  Rewrite
-	`fit-window-to-buffer' entry.
+	and `fit-window-to-buffer-horizontally'.
+	Rewrite `fit-window-to-buffer' entry.
 
 2014-03-06  Xue Fuqiao  <xfq@gnu.org>
 
@@ -93,8 +100,7 @@
 	`window-min-height' and `window-min-width'.  Remove description
 	of `window-size-fixed-p' moving part of it to that of
 	`window-size-fixed'.
-	(Resizing Windows): Mention dividers when talking about minimum
-	sizes.
+	(Resizing Windows): Mention dividers when talking about minimum sizes.
 
 2014-03-05  Glenn Morris  <rgm@gnu.org>
 
@@ -349,8 +355,7 @@
 
 2013-12-28  Chong Yidong  <cyd@gnu.org>
 
-	* modes.texi (Auto Major Mode): Document interpreter-mode-alist
-	change.
+	* modes.texi (Auto Major Mode): Document interpreter-mode-alist change.
 
 	* buffers.texi (Modification Time): Document visited-file-modtime
 	change.
@@ -387,8 +392,7 @@
 
 	* display.texi (Font Selection): Tweak example.
 
-	* commands.texi (Event Input Misc): Document new arg to
-	input-pending-p.
+	* commands.texi (Event Input Misc): Document new arg to input-pending-p.
 
 	* nonascii.texi (Specifying Coding Systems): Don't refer to
 	emacs-mule-dos.
@@ -633,7 +637,8 @@
 	* display.texi (Showing Images): Add an index for image-size.
 	Use @code instead of @var for a normal variable.
 	(Multi-Frame Images): Improve indexing.
-	(Button Buffer Commands): Use @code instead of @var for a normal variable.
+	(Button Buffer Commands): Use @code instead of @var for a normal
+	variable.
 	(Abstract Display): Explain the meaning of Ewoc.
 
 2013-10-27  Xue Fuqiao  <xfq.free@gmail.com>
