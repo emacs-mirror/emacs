@@ -510,14 +510,17 @@ consistent with Calendar's calendrical system and day numbering.
 
 *** EDE
 
++++
 **** The cpp-root project now supports executing a compile command.
 It can be set through the new :compile-command slot or the
 buffer-local variable `compile-command'.
 
++++
 **** Better selection of include directories for the 'linux' project.
 Include directories now support out-of-tree build directories and
 target architecture auto-detection.
 
+---
 *** Semantic
 
 **** Improved detection of used namespaces in current scope in C++.
