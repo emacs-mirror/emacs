@@ -1,3 +1,7 @@
+2014-03-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* functions.texi (Advising Named Functions): Fix reference.
+
 2014-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve documentation for integer and floating-point basics.

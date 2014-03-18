@@ -1433,7 +1433,7 @@ code) obey the advice and other calls (from C code) do not.
 @defun advice-add symbol where function &optional props
 Add the advice @var{function} to the named function @var{symbol}.
 @var{where} and @var{props} have the same meaning as for @code{add-function}
-(@pxref{Advising Primitives}).
+(@pxref{Core Advising Primitives}).
 @end defun
 
 @defun advice-remove symbol function
