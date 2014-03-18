@@ -1,3 +1,14 @@
+2014-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve documentation for integer and floating-point basics.
+	* numbers.texi (Numbers, Integer Basics, Float Basics):
+	Document the basics a bit more precisely.  Say more clearly
+	that Emacs floating-point numbers are IEEE doubles on all
+	current platforms.  Give more details about frexp.
+	Say more clearly that '1.' is an integer.
+	(Predicates on Numbers): Fix wholenump typo.
+	* objects.texi (Integer Type): Adjust to match numbers.texi.
+
 2014-03-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* functions.texi (Advising Functions): Try and improve the text.

@@ -161,8 +161,8 @@ latter are unique to Emacs Lisp.
 @node Integer Type
 @subsection Integer Type
 
-  The range of values for integers in Emacs Lisp is @minus{}536870912 to
-536870911 (30 bits; i.e.,
+  The range of values for an integer depends on the machine.  The
+minimum range is @minus{}536,870,912 to 536,870,911 (30 bits; i.e.,
 @ifnottex
 @minus{}2**29
 @end ifnottex
@@ -176,9 +176,9 @@ to
 @tex
 @math{2^{29}-1})
 @end tex
-on typical 32-bit machines.  (Some machines provide a wider range.)
-Emacs Lisp arithmetic functions do not check for overflow.  Thus
-@code{(1+ 536870911)} is @minus{}536870912 if Emacs integers are 30 bits.
+but many machines provide a wider range.
+Emacs Lisp arithmetic functions do not check for integer overflow.  Thus
+@code{(1+ 536870911)} is @minus{}536,870,912 if Emacs integers are 30 bits.
 
   The read syntax for integers is a sequence of (base ten) digits with an
 optional sign at the beginning and an optional period at the end.  The
@@ -215,8 +215,8 @@ this records a power of 2 rather than a power of 10.
 
   The printed representation for floating-point numbers requires either
 a decimal point (with at least one digit following), an exponent, or
-both.  For example, @samp{1500.0}, @samp{15e2}, @samp{15.0e2},
-@samp{1.5e3}, and @samp{.15e4} are five ways of writing a floating-point
+both.  For example, @samp{1500.0}, @samp{+15e2}, @samp{15.0e+2},
+@samp{+1500000e-3}, and @samp{.15e4} are five ways of writing a floating-point
 number whose value is 1500.  They are all equivalent.
 
   @xref{Numbers}, for more information.
