@@ -1,3 +1,8 @@
+2014-03-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* customize.texi (Variable Definitions): Recommend avoiding
+	destructive modification of the value argument of :set (bug#16755).
+
 2014-03-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* modes.texi (Auto-Indentation): Mention electric-indent variables.

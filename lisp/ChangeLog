@@ -1,3 +1,8 @@
+2014-03-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* custom.el (defcustom): Doc fix: recommend avoiding destructive
+	modification of the value argument of :set (bug#16755).
+
 2014-03-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (newline-and-indent): Do autofill (bug#17031).

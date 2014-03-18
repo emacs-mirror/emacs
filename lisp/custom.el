@@ -232,9 +232,10 @@ The following keywords are meaningful:
 	given in the `defcustom' call.  The default is
 	`custom-initialize-reset'.
 :set	VALUE should be a function to set the value of the symbol
-        when using the Customize user interface.
-	It takes two arguments, the symbol to set and the value to
-	give it.  The default choice of function is `set-default'.
+	when using the Customize user interface.  It takes two arguments,
+	the symbol to set and the value to give it.  The function should
+	not modify its value argument destructively.  The default choice
+	of function is `set-default'.
 :get	VALUE should be a function to extract the value of symbol.
 	The function takes one argument, a symbol, and should return
 	the current value for that symbol.  The default choice of function
