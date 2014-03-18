@@ -751,13 +751,6 @@ very useful in this case.
 @end itemize
 
 @table @asis
-@c FIXME: This should be `electric-indent-just-newline' since GNU Emacs 24.4.
-@item @kbd{C-j} (@code{newline-and-indent})
-@kindex C-j
-@findex newline-and-indent
-Inserts a newline and indents the new blank line, ready to start
-typing.  This is a standard (X)Emacs command.
-
 @item @kbd{C-M-q} (@code{c-indent-exp})
 @kindex C-M-q
 @findex c-indent-exp
@@ -7054,19 +7047,20 @@ Set the variable @code{c-basic-offset}.  @xref{Getting Started}.
 @item
 @kindex RET
 @kindex C-j
-@emph{Why doesn't the @kbd{RET} key indent the new line?}
-@c FIXME: `electric-indent-mode' is enabled by default in GNU Emacs 24.4.
+@emph{Why does/doesn't the @kbd{RET} key indent the new line?}
 
-Emacs's convention is that @kbd{RET} just adds a newline, and that
-@kbd{C-j} adds a newline and indents it.  You can make @kbd{RET} do this
-too by adding this to your @code{c-initialization-hook}:
+Emacs's convention used to be that @kbd{RET} just adds a newline, and that
+@kbd{C-j} adds a newline and indents it.  In Emacs-24.4, this convention was
+reversed.
+
+If you use an older Emacs and you want @kbd{RET} do this
+too, add this to your @code{c-initialization-hook}:
 
 @example
 (define-key c-mode-base-map "\C-m" 'c-context-line-break)
 @end example
 
-@xref{Getting Started}.  This is a very common question.  If you want
-this to be the default behavior, don't lobby us, lobby RMS@!  @t{:-)}
+@xref{Getting Started}.  This was a very common question.
 
 @item
 @emph{How do I stop my code jumping all over the place when I type?}

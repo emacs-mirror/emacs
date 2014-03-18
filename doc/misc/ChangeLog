@@ -1,10 +1,18 @@
+2014-03-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vip.texi (Other Vi Commands): Adjust doc of C-j.
+
+	* cc-mode.texi (Indentation Commands): Remove C-j, since it's not
+	defined by CC-mode but globally.
+	(FAQ): Tweak text about RET and auto-indentation.
+
 2014-03-18  David Engster  <deng@randomsample.de>
 
 	* ede.texi (Project Local Variables): Remove reference to
 	`ede-java-root' and the example using it.
 	(Android projects, ede-java-root): Remove nodes since they are
 	only in CEDET upstream (Bug#17030).  All nodes updated.
-        (ede-cpp-root): Document the :compile-command slot.
+	(ede-cpp-root): Document the :compile-command slot.
 	(ede-linux): Document new variables
 	`project-linux-build-directory-default' and
 	`project-linux-architecture-default'.
@@ -11205,7 +11213,7 @@
 
 1998-03-01  Kim-Minh Kaplan  <KimMinh.Kaplan@utopia.eunet.fr>
 
-	* gnus.texi (Easy Picons): Removed references to
+	* gnus.texi (Easy Picons): Remove references to
 	`gnus-group-display-picons'.
 	(Hard Picons): Ditto.
 

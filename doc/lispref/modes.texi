@@ -3303,18 +3303,28 @@ reasonably fast.
 @section Automatic Indentation of code
 
 For programming languages, an important feature of a major mode is to
-provide automatic indentation.  This is controlled in Emacs by
-@code{indent-line-function} (@pxref{Mode-Specific Indent}).
-Writing a good indentation function can be difficult and to a large
-extent it is still a black art.
+provide automatic indentation.  There are two parts: one is to decide what
+is the right indentation of a line, and the other is to decide when to
+reindent a line.  By default, Emacs reindents a line whenever you
+type a character in @code{electric-indent-chars}, which by default only
+includes Newline.  Major modes can add chars to @code{electric-indent-chars}
+according to the syntax of the language.
 
-Many major mode authors will start by writing a simple indentation
-function that works for simple cases, for example by comparing with the
-indentation of the previous text line.  For most programming languages
-that are not really line-based, this tends to scale very poorly:
-improving such a function to let it handle more diverse situations tends
-to become more and more difficult, resulting in the end with a large,
-complex, unmaintainable indentation function which nobody dares to touch.
+Deciding what is the right indentation is controlled in Emacs by
+@code{indent-line-function} (@pxref{Mode-Specific Indent}).  For some modes,
+the @emph{right} indentation cannot be known reliably, typically because
+indentation is significant so several indentations are valid but with different
+meanings.  In that case, the mode should set @code{electric-indent-inhibit} to
+make sure the line is not constantly re-indented against the user's wishes.
+
+Writing a good indentation function can be difficult and to a large extent it
+is still a black art.  Many major mode authors will start by writing a simple
+indentation function that works for simple cases, for example by comparing with
+the indentation of the previous text line.  For most programming languages that
+are not really line-based, this tends to scale very poorly: improving
+such a function to let it handle more diverse situations tends to become more
+and more difficult, resulting in the end with a large, complex, unmaintainable
+indentation function which nobody dares to touch.
 
 A good indentation function will usually need to actually parse the
 text, according to the syntax of the language.  Luckily, it is not
@@ -3332,7 +3342,7 @@ programming languages are designed to be parsed forward, but for the
 purpose of indentation it has the advantage of not needing to
 guess a ``safe'' starting point, and it generally enjoys the property
 that only a minimum of text will be analyzed to decide the indentation
-of a line, so indentation will tend to be unaffected by syntax errors in
+of a line, so indentation will tend to be less affected by syntax errors in
 some earlier unrelated piece of code.  Parsing forward on the other hand
 is usually easier and has the advantage of making it possible to
 reindent efficiently a whole region at a time, with a single parse.

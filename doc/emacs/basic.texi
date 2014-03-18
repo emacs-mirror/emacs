@@ -42,7 +42,7 @@ forward, so that point remains just after the inserted text.
 @kindex RET
 @kindex C-j
 @cindex newline
-@findex electric-indent-just-newline
+@c @findex electric-indent-just-newline
   To end a line and start a new one, type @key{RET} (@code{newline}).
 (The @key{RET} key may be labeled @key{Return} or @key{Enter} on your
 keyboard, but we refer to it as @key{RET} in this manual.)  This

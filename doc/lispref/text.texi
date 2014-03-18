@@ -3946,7 +3946,7 @@ single interval.  But suppose instead that we have two adjacent
 intervals with the same properties, and we kill the text of one interval
 and yank it back.  The same interval-coalescence feature that rescues
 the other case causes trouble in this one: after yanking, we have just
-one interval.  One again, editing does not preserve the distinction
+one interval.  Once again, editing does not preserve the distinction
 between one interval and two.
 
   Insertion of text at the border between intervals also raises
