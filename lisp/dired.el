@@ -3673,9 +3673,6 @@ Values matching `dired-sort-by-date-regexp' or `dired-sort-by-name-regexp'
 set the minor mode accordingly, others appear literally in the mode line.
 With optional second arg NO-REVERT, don't refresh the listing afterwards."
   (dired-sort-R-check switches)
-  (unless (string-match "\\(\\`\\| \\)-\\([b-zA-Z]*\\)a"
-			switches)
-    (debug "No -a in Dired switches"))
   (setq dired-actual-switches switches)
   (dired-sort-set-mode-line)
   (or no-revert (revert-buffer)))
