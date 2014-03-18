@@ -120,8 +120,9 @@ Comments might be indented to a different value in order not to go beyond
 ;;;###autoload
 (defvar comment-start-skip nil
   "Regexp to match the start of a comment plus everything up to its body.
-If there are any \\(...\\) pairs, the comment delimiter text is held to begin
-at the place matched by the close of the first pair.")
+If there are any \\(...\\) pairs and `comment-use-syntax' is nil,
+the comment delimiter text is held to begin at the place matched
+by the close of the first pair.")
 ;;;###autoload
 (put 'comment-start-skip 'safe-local-variable 'stringp)
 
@@ -378,7 +379,10 @@ function should first call this function explicitly."
 		 ;; In case comment-start has changed since last time.
 		 (string-match comment-start-skip comment-start))
       (set (make-local-variable 'comment-start-skip)
-	   (concat "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(\\s<+\\|"
+	   (concat (unless (eq comment-use-syntax t)
+                     ;; `syntax-ppss' will detect escaping.
+                     "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)")
+                   "\\(\\s<+\\|"
 		   (regexp-quote (comment-string-strip comment-start t t))
 		   ;; Let's not allow any \s- but only [ \t] since \n
 		   ;; might be both a comment-end marker and \s-.
@@ -523,12 +527,11 @@ the same as `comment-search-backward'."
         (when (nth 4 state)
           (goto-char (nth 8 state))
           (prog1 (point)
-            (when (or (looking-at comment-start-skip)
-                      ;; Some older modes use regexps that check the
-                      ;; char before the comment for quoting.  (Bug#16971)
-                      (save-excursion
-                        (forward-char -1)
-                        (looking-at comment-start-skip)))
+            (when (save-restriction
+                    ;; `comment-start-skip' sometimes checks that the
+                    ;; comment char is not escaped.  (Bug#16971)
+                    (narrow-to-region (point) (point-max))
+                    (looking-at comment-start-skip))
               (goto-char (match-end 0))))))
     ;; Can't rely on the syntax table, let's guess based on font-lock.
     (unless (eq (get-text-property (point) 'face) 'font-lock-string-face)

@@ -1,3 +1,12 @@
+2014-03-18  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* newcomment.el (comment-normalize-vars): Only add escaping check
+	to `comment-start-skip' if not `comment-use-syntax'.  (Bug#16971)
+	(comment-beginning): Use `narrow-to-region' instead of moving back
+	one character.
+	(http://lists.gnu.org/archive/html/emacs-devel/2014-03/msg00488.html)
+	(comment-start-skip): Update the docstring.
+
 2014-03-18  Daniel Colascione  <dancol@dancol.org>
 
 	* startup.el (tty-handle-args): Remove debug message from 2007.
