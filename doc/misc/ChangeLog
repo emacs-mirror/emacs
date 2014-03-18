@@ -1,3 +1,10 @@
+2014-03-18  David Engster  <deng@randomsample.de>
+
+	* ede.texi (Project Local Variables): Remove reference to
+	`ede-java-root' and the example using it.
+	(Android projects, ede-java-root): Remove nodes since they are
+	only in CEDET upstream (Bug#17030).  All nodes updated.
+
 2014-03-12  Glenn Morris  <rgm@gnu.org>
 
 	* eww.texi (History and Acknowledgments):

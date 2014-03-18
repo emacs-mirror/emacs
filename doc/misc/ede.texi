@@ -598,17 +598,6 @@ the format is an association list.  For example:
                          (compile-command . "make -f MyCustomMakefile all")))
 @end example
 
-The same is true when you use project-local variables with
-@ref{ede-java-root}.  For example:
-
-@example
-(ede-java-root-project "SOMENAME"
-                       :file "/dir/to/some/file"
-                       :local-variables
-                       '((grep-command . "grep -nHi -e ")
-                         (compile-command . "ant")))
-@end example
-
 @node EDE Project Features,  , Project Local Variables, Modifying your project
 @section EDE Project Features
 
@@ -724,12 +713,10 @@ To activate the speedbar in this mode, type @kbd{C-c . s}
 @menu
 * Make and Automake projects::  Project types of @samp{ede-project}
 * Automake direct projects::    Project interface on hand-written automake files.
-* Android projects::            Projects for Android development
-* Arduino projects::            Projects for Arduino sketches
 * Simple projects::             Projects @ede{} doesn't manage.
 @end menu
 
-@node Make and Automake projects
+@node Make and Automake projects, Automake direct projects, Miscellaneous commands, Miscellaneous commands
 @section Make and Automake projects
 
 A project of @samp{ede-project} type creates a file called
@@ -741,7 +728,7 @@ in @samp{Makefile} mode, then this project will autogenerate a
 routines will also import and maintain a configure.am script and a
 host of other files required by Automake.
 
-@node Automake direct projects
+@node Automake direct projects, Simple projects, Make and Automake projects, Miscellaneous commands
 @section Automake direct projects
 
 The project type that reads @file{Makefile.am} directly is derived
@@ -751,39 +738,7 @@ distributed independently.  This mode eventually became @ede{}.  The
 not generate them automatically, or create new ones.  As such, it is
 useful as a browsing tool, or as maintenance in managing file lists.
 
-@node Android projects
-@section Android projects
-
-An Android project of type @samp{ede-android-project} will detect and
-support development of Android apps.  Android projects use an
-@file{AndroidManifest.xml} file.  Always load your Manifest first in a
-running Emacs to make sure the project is identified correctly.
-
-Android projects can be created with @code{ede-new} but depend on a
-correctly configured Android SDK via @cedet{} support.
-
-@defun cedet-android-sdk-root
-@anchor{cedet-android-sdk-root}
-The root to the Android @var{SDK}.
-@end defun
-
-Android projects support different configurations including compile,
-and install, which will upload a program to your Android device.  It
-also supports several debugging tools via @file{android.el}.
-
-@node Arduino projects
-@section Arduino projects
-
-An arduino project of type @samp{ede-arduino-project} will read your
-@file{~/.arduino/preferences.txt} file, and identify your sketches.
-You will still need the Arduino IDE to set up your preferences and
-locate your arduino.  After quitting the IDE, Emacs will be able to
-find your sketches, compile them, and upload them to your arduino.
-
-If you have the @file{arduino} command on your path, @ede{} will be
-able to find your SDK and compile your programs.
-
-@node Simple projects
+@node Simple projects,  , Automake direct projects, Miscellaneous commands
 @section Simple Projects
 
 There is a wide array of simple projects.  In this case a simple
@@ -795,14 +750,13 @@ belonging to a project, but doesn't provide many features of a typical
 
 @menu
 * ede-cpp-root::                This project marks the root of a C/C++ code project.
-* ede-java-root::               This project marks the root of a Java project.
 * ede-emacs::                   A project for working with Emacs.
 * ede-linux::                   A project for working with Linux kernels.
 * ede-generic-project::         A project type for wrapping build systems with EDE.
 * Custom Locate::               Customizing how to locate files in a simple project
 @end menu
 
-@node ede-cpp-root, ede-java-root, Simple projects, Simple projects
+@node ede-cpp-root, ede-emacs, Simple projects, Simple projects
 @subsection ede-cpp-root
 
 The @code{ede-cpp-root} project type allows you to create a single
@@ -939,90 +893,7 @@ of project.
 @xref{ede-cpp-root-project}, for details about the class that defines
 the @code{ede-cpp-root} project type.
 
-@node ede-java-root, ede-emacs, ede-cpp-root, Simple projects
-@subsection ede-java-root
-
-Much like the project type @ref{ede-cpp-root}, the java variant is
-can be setup in your @file{.emacs} file and just marks a directory as
-the root of a java source tree.
-
-The @code{ede-java-root} project class knows a few things about Java
-projects.  In particular, you can use it to control your classpath at
-both the system level, and for your project.  If it is insufficient,
-you can subclass @code{ede-java-root-project} and add your own tweaks
-in just a few lines.  See @ref{ede-cpp-root} for an example using the
-C++ variant.
-
-In the most basic case, add this to your @file{.emacs} file, modifying
-appropriate bits as needed.
-
-@example
-(ede-java-root-project "SOMENAME" :file "/dir/to/some/file" :srcroot '("src"))
-@end example
-
-Replace @var{SOMENAME} with whatever name you want, and the filename
-to an actual file at the root of your project.  It might be a
-Makefile, a README file.  Whatever.  It doesn't matter.  It's just a
-key to hang the rest of @ede{} off of.
-
-Replace the value of :srcroot with a list of directories under the
-project root which contains Java sources.  For example, if you have:
-
-@example
-~/myprojects/P1/
-~/myprojects/P1/src/
-~/myprojects/P1/src/com/ericsoft/MyCode.java
-~/myprojects/P1/doc/
-@end example
-
-Then @file{src} represents the directory under which all your Java
-code is.  It is important that @file{src} is one step above the
-directory that is the base of your package name, such as
-@file{com/ericsoft} in the example above so that new files can be
-discovered via fully qualified name.  You can have multiple such
-directories in one project, and each will be accessible.
-
-You can specify your classpath like this:
-
-@example
-(ede-java-root-project "NAME" :file "FILENAME"
-    :srcroot '("src")
-    :classpath '("/absolute/path.jar")
-    :localclasspath '( "/relative/path.jar" ))
-@end example
-
-In this example, @code{:classpath} specifies absolute paths somewhere
-on your system, and the explicit jar or source root directories
-@semantic{} will search when performing completions.
-
-The @code{:localclasspath} is like @code{:classpath}, but it will
-contain path names relative to the root of your project.
-
-If you want to override the file-finding tool with your own
-function you can do this:
-
-@example
-(ede-java-root-project "NAME" :file "FILENAME" :locate-fcn 'MYFCN)
-@end example
-
-Where @var{MYFCN} is a symbol for a function.  The locate function can
-be used in place of @code{ede-expand-filename} so you can quickly
-customize your custom target to use specialized local routines instead
-of the default @ede{} routines.  The function symbol must take two
-arguments:
-
-@table @var
-@item NAME
-The name of the file to find.
-@item DIR
-The directory root for this java-root project.
-@end table
-
-If you would like to create your Java projects dynamically, instead of
-putting them all in your @file{.emacs}, you can do that too.  See
-@ref{ede-cpp-root} for details that can be applied to this project type.
-
-@node ede-emacs, ede-linux, ede-java-root, Simple projects
+@node ede-emacs, ede-linux, ede-cpp-root, Simple projects
 @subsection ede-emacs
 
 The @code{ede-emacs} project automatically identifies an Emacs source
@@ -4395,7 +4266,7 @@ For example, C code uses .o on unix, and Emacs Lisp uses .elc.
 @end table
 @end table
 
-@node GNU Free Documentation License, , Extending EDE, Top
+@node GNU Free Documentation License,  , Extending EDE, Top
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
