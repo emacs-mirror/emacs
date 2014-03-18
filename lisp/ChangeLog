@@ -7,6 +7,10 @@
 	(http://lists.gnu.org/archive/html/emacs-devel/2014-03/msg00488.html)
 	(comment-start-skip): Update the docstring.
 
+2014-03-18  Richard Stallman  <rms@gnu.org>
+
+	* dired.el (dired-display-file): Force use of other window.
+
 2014-03-18  Daniel Colascione  <dancol@dancol.org>
 
 	* startup.el (tty-handle-args): Remove debug message from 2007.
@@ -1600,6 +1604,7 @@
 	* net/shr.el (shr-tag-img): Prefer the title over the alt text
 	(bug#16537).
 
+>>>>>>> MERGE-SOURCE
 2014-01-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/eww.el (eww-download-callback):

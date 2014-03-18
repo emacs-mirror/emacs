@@ -2136,7 +2136,8 @@ Otherwise, display it in another buffer."
 (defun dired-display-file ()
   "In Dired, display this file or directory in another window."
   (interactive)
-  (display-buffer (find-file-noselect (dired-get-file-for-visit))))
+  (display-buffer (find-file-noselect (dired-get-file-for-visit))
+		  t))
 
 ;;; Functions for extracting and manipulating file names in Dired buffers.
 
@@ -3639,6 +3640,7 @@ With a prefix argument, edit the current listing switches instead."
 	;; Remove a switch of the form -XtY for some X and Y.
 	(setq dired-actual-switches
 	      (replace-match "" t t dired-actual-switches 3))))
+
     ;; Now, if we weren't sorting by date before, add the -t switch.
     ;; Some simple-minded ls implementations (eg ftp servers) only
     ;; allow a single option string, so try not to add " -t" if possible.
@@ -3671,6 +3673,9 @@ Values matching `dired-sort-by-date-regexp' or `dired-sort-by-name-regexp'
 set the minor mode accordingly, others appear literally in the mode line.
 With optional second arg NO-REVERT, don't refresh the listing afterwards."
   (dired-sort-R-check switches)
+  (unless (string-match "\\(\\`\\| \\)-\\([b-zA-Z]*\\)a"
+			switches)
+    (debug "No -a in Dired switches"))
   (setq dired-actual-switches switches)
   (dired-sort-set-mode-line)
   (or no-revert (revert-buffer)))
