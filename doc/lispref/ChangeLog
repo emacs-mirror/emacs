@@ -1,3 +1,17 @@
+2014-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Style fixes for floating-point doc.
+	* commands.texi, customize.texi, display.texi, elisp.texi, files.texi:
+	* frames.texi, hash.texi, internals.texi, keymaps.texi, lists.texi:
+	* minibuf.texi, nonascii.texi, numbers.texi, objects.texi, os.texi:
+	* processes.texi, streams.texi, strings.texi, text.texi:
+	* variables.texi, windows.texi:
+	Hyphenate "floating-point" iff it precedes a noun.
+	Reword to avoid nouns and hyphenation when that's easy.
+	Prefer "integer" to "integer number" and "is floating point"
+	to "is a floating point number".
+	Prefer "@minus{}" to "-" when it's a minus.
+
 2014-03-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* display.texi (Temporary Displays): Rewrite descriptions of

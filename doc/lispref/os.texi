@@ -1043,7 +1043,7 @@ number of processes trying to run on the system.
 
 By default, the values are integers that are 100 times the system load
 averages, but if @var{use-float} is non-@code{nil}, then they are
-returned as floating point numbers without multiplying by 100.
+returned as floating-point numbers without multiplying by 100.
 
 If it is impossible to obtain the load average, this function signals
 an error.  On some platforms, access to load averages requires
@@ -1149,24 +1149,24 @@ Titles}).
 @cindex UID
 @defun user-real-uid
 This function returns the real @acronym{UID} of the user.
-The value may be a floating point number, in the (unlikely) event that
+The value may be floating point, in the (unlikely) event that
 the UID is too large to fit in a Lisp integer.
 @end defun
 
 @defun user-uid
 This function returns the effective @acronym{UID} of the user.
-The value may be a floating point number.
+The value may be floating point.
 @end defun
 
 @cindex GID
 @defun group-gid
 This function returns the effective @acronym{GID} of the Emacs process.
-The value may be a floating point number.
+The value may be floating point.
 @end defun
 
 @defun group-real-gid
 This function returns the real @acronym{GID} of the Emacs process.
-The value may be a floating point number.
+The value may be floating point.
 @end defun
 
 @defun system-users
@@ -1196,7 +1196,7 @@ integers, @code{(@var{sec-high} @var{sec-low} @var{microsec}
 integers, @code{(@var{sec-high} @var{sec-low} @var{microsec})}, or of
 two integers, @code{(@var{sec-high} @var{sec-low})}.  The integers
 @var{sec-high} and @var{sec-low} give the high and low bits of an
-integer number of seconds.  This integer number,
+integer number of seconds.  This integer,
 @ifnottex
 @var{high} * 2**16 + @var{low},
 @end ifnottex
@@ -1518,9 +1518,9 @@ system.
 @end defun
 
 @defun seconds-to-time seconds
-This function converts @var{seconds}, a floating point number of
-seconds since the epoch, to a time value and returns that.  To perform
-the inverse conversion, use @code{float-time} (@pxref{Time of Day}).
+This function converts @var{seconds}, the number of seconds since the
+epoch, to a time value and returns that.  To convert back, use
+@code{float-time} (@pxref{Time of Day}).
 @end defun
 
 @defun format-seconds format-string seconds
@@ -1805,9 +1805,8 @@ work just like ordinary timers.
 
 @deffn Command run-with-idle-timer secs repeat function &rest args
 Set up a timer which runs the next time Emacs is idle for @var{secs}
-seconds.  The value of @var{secs} may be an integer or a floating
-point number; a value of the type returned by @code{current-idle-time}
-is also allowed.
+seconds.  The value of @var{secs} may be a number or a value of the type
+returned by @code{current-idle-time}.
 
 If @var{repeat} is @code{nil}, the timer runs just once, the first time
 Emacs remains idle for a long enough time.  More often @var{repeat} is
@@ -2155,7 +2154,7 @@ system-specific keysym.  Each element has the form @code{(@var{code}
 . @var{symbol})}, where @var{code} is the numeric keysym code (not
 including the ``vendor specific'' bit,
 @ifnottex
--2**28),
+@minus{}2**28),
 @end ifnottex
 @tex
 $-2^{28}$),
@@ -2165,7 +2164,7 @@ and @var{symbol} is the name for the function key.
 For example @code{(168 . mute-acute)} defines a system-specific key (used
 by HP X servers) whose numeric code is
 @ifnottex
--2**28
+@minus{}2**28
 @end ifnottex
 @tex
 $-2^{28}$
@@ -2329,10 +2328,10 @@ be anything, though implementations are free not to display it.
 
 @item :timeout @var{timeout}
 The timeout time in milliseconds since the display of the notification
-at which the notification should automatically close.  If -1, the
+at which the notification should automatically close.  If @minus{}1, the
 notification's expiration time is dependent on the notification
 server's settings, and may vary for the type of notification.  If 0,
-the notification never expires.  Default value is -1.
+the notification never expires.  Default value is @minus{}1.
 
 @item :urgency @var{urgency}
 The urgency level.  It can be @code{low}, @code{normal}, or @code{critical}.

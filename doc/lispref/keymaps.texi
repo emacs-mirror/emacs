@@ -2760,7 +2760,7 @@ The value is an integer, a number of pixels.  The default is 1.
 
 @defvar tool-bar-border
 This variable specifies the height of the border drawn below the tool
-bar area.  An integer value specifies height as a number of pixels.
+bar area.  An integer specifies height as a number of pixels.
 If the value is one of @code{internal-border-width} (the default) or
 @code{border-width}, the tool bar border height corresponds to the
 corresponding frame parameter.

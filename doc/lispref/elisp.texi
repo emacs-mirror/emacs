@@ -296,7 +296,7 @@ Lisp Data Types
 Programming Types
 
 * Integer Type::        Numbers without fractional parts.
-* Floating Point Type:: Numbers with fractional parts and with a large range.
+* Floating-Point Type:: Numbers with fractional parts and with a large range.
 * Character Type::      The representation of letters, numbers and
                           control characters.
 * Symbol Type::         A multi-use object that refers to a function,
@@ -361,7 +361,7 @@ Numbers
 * Comparison of Numbers::   Equality and inequality predicates.
 * Numeric Conversions::     Converting float to integer and vice versa.
 * Arithmetic Operations::   How to add, subtract, multiply and divide.
-* Rounding Operations::     Explicitly rounding floating point numbers.
+* Rounding Operations::     Explicitly rounding floating-point numbers.
 * Bitwise Operations::      Logical and, or, not, shifting.
 * Math Functions::          Trig, exponential and logarithmic functions.
 * Random Numbers::          Obtaining random integers, predictable or not.

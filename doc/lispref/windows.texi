@@ -2208,7 +2208,7 @@ adjust the window's height, use an entry whose @sc{car} is
 
 @item
 A number specifies the desired height of the new window.  An integer
-number specifies the number of lines of the window.  A floating point
+specifies the number of lines of the window.  A floating-point
 number gives the fraction of the window's height with respect to the
 height of the frame's root window.
 
@@ -2229,7 +2229,7 @@ To adjust the window's width, use an entry whose @sc{car} is
 
 @item
 A number specifies the desired width of the new window.  An integer
-number specifies the number of columns of the window.  A floating point
+specifies the number of columns of the window.  A floating-point
 number gives the fraction of the window's width with respect to the
 width of the frame's root window.
 

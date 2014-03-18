@@ -554,8 +554,7 @@ This normal hook is run whenever the echo area is cleared---either by
 
 @defopt echo-keystrokes
 This variable determines how much time should elapse before command
-characters echo.  Its value must be an integer or floating point number,
-which specifies the
+characters echo.  Its value must be a number, and specifies the
 number of seconds to wait before echoing.  If the user types a prefix
 key (such as @kbd{C-x}) and then delays this many seconds before
 continuing, the prefix key is echoed in the echo area.  (Once echoing
@@ -1508,7 +1507,7 @@ of them:
 @table @code
 @item priority
 @kindex priority @r{(overlay property)}
-This property's value (which should be a non-negative integer number)
+This property's value (which should be a non-negative integer)
 determines the priority of the overlay.  No priority, or @code{nil},
 means zero.
 
@@ -1949,14 +1948,14 @@ parts of Emacs text.
 lines in a frame, using the @code{line-spacing} frame parameter
 (@pxref{Layout Parameters}).  However, if the default value of
 @code{line-spacing} is non-@code{nil}, it overrides the
-frame's @code{line-spacing} parameter.  An integer value specifies the
-number of pixels put below lines.  A floating point number specifies
+frame's @code{line-spacing} parameter.  An integer specifies the
+number of pixels put below lines.  A floating-point number specifies
 the spacing relative to the frame's default line height.
 
 @vindex line-spacing
   You can specify the line spacing for all lines in a buffer via the
-buffer-local @code{line-spacing} variable.  An integer value specifies
-the number of pixels put below lines.  A floating point number
+buffer-local @code{line-spacing} variable.  An integer specifies
+the number of pixels put below lines.  A floating-point number
 specifies the spacing relative to the default frame line height.  This
 overrides line spacings specified for the frame.
 
@@ -2070,11 +2069,11 @@ Relative character width.  This should be one of the symbols
 The height of the font.  In the simplest case, this is an integer in
 units of 1/10 point.
 
-The value can also be a floating point number or a function, which
+The value can also be floating point or a function, which
 specifies the height relative to an @dfn{underlying face}
-(@pxref{Displaying Faces}).  If the value is a floating point number,
-that specifies the amount by which to scale the height of the
-underlying face.  If the value is a function, that function is called
+(@pxref{Displaying Faces}).  A floating-point value
+specifies the amount by which to scale the height of the
+underlying face.  A function value is called
 with one argument, the height of the underlying face, and returns the
 height of the new face.  If the function is passed an integer
 argument, it must return an integer.
@@ -3320,7 +3319,7 @@ These have the same meanings as the face attributes of the same name.
 
 @item :size
 The font size---either a non-negative integer that specifies the pixel
-size, or a floating point number that specifies the point size.
+size, or a floating-point number that specifies the point size.
 
 @item :adstyle
 Additional typographic style information for the font, such as
@@ -4104,7 +4103,7 @@ can use in @var{props} to specify the weight of the space:
 
 @table @code
 @item :width @var{width}
-If @var{width} is an integer or floating point number, it specifies
+If @var{width} is a number, it specifies
 that the space width should be @var{width} times the normal character
 width.  @var{width} can also be a @dfn{pixel width} specification
 (@pxref{Pixel Specification}).
@@ -4128,7 +4127,7 @@ also specify the height of the space, with these properties:
 @table @code
 @item :height @var{height}
 Specifies the height of the space.
-If @var{height} is an integer or floating point number, it specifies
+If @var{height} is a number, it specifies
 that the space height should be @var{height} times the normal character
 height.  The @var{height} may also be a @dfn{pixel height} specification
 (@pxref{Pixel Specification}).
@@ -4251,7 +4250,7 @@ This specification together with @code{image} specifies a @dfn{slice}
 (a partial area) of the image to display.  The elements @var{y} and
 @var{x} specify the top left corner of the slice, within the image;
 @var{width} and @var{height} specify the width and height of the
-slice.  Integer values are numbers of pixels.  A floating point number
+slice.  Integers are numbers of pixels.  A floating-point number
 in the range 0.0--1.0 stands for that fraction of the width or height
 of the entire image.
 
@@ -5072,7 +5071,7 @@ The argument @var{slice} specifies a slice of the image to insert.  If
 Otherwise, @var{slice} is a list @code{(@var{x} @var{y} @var{width}
 @var{height})} which specifies the @var{x} and @var{y} positions and
 @var{width} and @var{height} of the image area to insert.  Integer
-values are in units of pixels.  A floating point number in the range
+values are in units of pixels.  A floating-point number in the range
 0.0--1.0 stands for that fraction of the width or height of the entire
 image.
 
@@ -5143,8 +5142,8 @@ will load.  Emacs will refuse to load (and display) any image that is
 larger than this limit.
 
 If the value is an integer, it directly specifies the maximum
-image height and width, measured in pixels.  If it is a floating
-point number, it specifies the maximum image height and width
+image height and width, measured in pixels.  If it is floating
+point, it specifies the maximum image height and width
 as a ratio to the frame height and width.  If the value is
 non-numeric, there is no explicit limit on the size of images.
 

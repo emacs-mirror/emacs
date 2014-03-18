@@ -824,7 +824,7 @@ to bind it to @code{nil} when you bind @code{print-continuous-numbering}.
 @end defvar
 
 @defvar float-output-format
-This variable specifies how to print floating point numbers.  The
+This variable specifies how to print floating-point numbers.  The
 default is @code{nil}, meaning use the shortest output
 that represents the number without losing information.
 

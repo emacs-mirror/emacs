@@ -136,7 +136,7 @@ latter are unique to Emacs Lisp.
 
 @menu
 * Integer Type::        Numbers without fractional parts.
-* Floating Point Type:: Numbers with fractional parts and with a large range.
+* Floating-Point Type:: Numbers with fractional parts and with a large range.
 * Character Type::      The representation of letters, numbers and
                         control characters.
 * Symbol Type::         A multi-use object that refers to a function,
@@ -164,7 +164,7 @@ latter are unique to Emacs Lisp.
   The range of values for integers in Emacs Lisp is @minus{}536870912 to
 536870911 (30 bits; i.e.,
 @ifnottex
--2**29
+@minus{}2**29
 @end ifnottex
 @tex
 @math{-2^{29}}
@@ -187,7 +187,7 @@ leading @samp{+} or a final @samp{.}.
 
 @example
 @group
--1               ; @r{The integer -1.}
+-1               ; @r{The integer @minus{}1.}
 1                ; @r{The integer 1.}
 1.               ; @r{Also the integer 1.}
 +1               ; @r{Also the integer 1.}
@@ -197,26 +197,26 @@ leading @samp{+} or a final @samp{.}.
 @noindent
 As a special exception, if a sequence of digits specifies an integer
 too large or too small to be a valid integer object, the Lisp reader
-reads it as a floating-point number (@pxref{Floating Point Type}).
+reads it as a floating-point number (@pxref{Floating-Point Type}).
 For instance, if Emacs integers are 30 bits, @code{536870912} is read
 as the floating-point number @code{536870912.0}.
 
   @xref{Numbers}, for more information.
 
-@node Floating Point Type
-@subsection Floating Point Type
+@node Floating-Point Type
+@subsection Floating-Point Type
 
-  Floating point numbers are the computer equivalent of scientific
-notation; you can think of a floating point number as a fraction
+  Floating-point numbers are the computer equivalent of scientific
+notation; you can think of a floating-point number as a fraction
 together with a power of ten.  The precise number of significant
 figures and the range of possible exponents is machine-specific; Emacs
 uses the C data type @code{double} to store the value, and internally
 this records a power of 2 rather than a power of 10.
 
-  The printed representation for floating point numbers requires either
+  The printed representation for floating-point numbers requires either
 a decimal point (with at least one digit following), an exponent, or
 both.  For example, @samp{1500.0}, @samp{15e2}, @samp{15.0e2},
-@samp{1.5e3}, and @samp{.15e4} are five ways of writing a floating point
+@samp{1.5e3}, and @samp{.15e4} are five ways of writing a floating-point
 number whose value is 1500.  They are all equivalent.
 
   @xref{Numbers}, for more information.

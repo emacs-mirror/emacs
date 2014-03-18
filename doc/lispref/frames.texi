@@ -998,7 +998,7 @@ used instead.
 @cindex gamma correction
 If this is a number, Emacs performs ``gamma correction'' which adjusts
 the brightness of all colors.  The value should be the screen gamma of
-your display, a floating point number.
+your display.
 
 Usual PC monitors have a screen gamma of 2.2, so color values in
 Emacs, and in X windows generally, are calibrated to display properly

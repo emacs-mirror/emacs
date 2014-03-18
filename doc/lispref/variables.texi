@@ -828,7 +828,7 @@ following example:
 
 @example
 @group
-(defvar x -99)  ; @r{@code{x} receives an initial value of -99.}
+(defvar x -99)  ; @r{@code{x} receives an initial value of @minus{}99.}
 
 (defun getx ()
   x)            ; @r{@code{x} is used ``free'' in this function.}
@@ -838,7 +838,7 @@ following example:
      @result{} 1
 
 ;; @r{After the @code{let} form finishes, @code{x} reverts to its}
-;; @r{previous value, which is -99.}
+;; @r{previous value, which is @minus{}99.}
 
 (getx)
      @result{} -99
@@ -852,14 +852,14 @@ that @code{defun} construct itself.  When we call @code{getx} from
 within a @code{let} form in which @code{x} is (dynamically) bound, it
 retrieves the local value (i.e., 1).  But when we call @code{getx}
 outside the @code{let} form, it retrieves the global value (i.e.,
--99).
+@minus{}99).
 
   Here is another example, which illustrates setting a dynamically
 bound variable using @code{setq}:
 
 @example
 @group
-(defvar x -99)      ; @r{@code{x} receives an initial value of -99.}
+(defvar x -99)      ; @r{@code{x} receives an initial value of @minus{}99.}
 
 (defun addx ()
   (setq x (1+ x)))  ; @r{Add 1 to @code{x} and return its new value.}
@@ -870,7 +870,7 @@ bound variable using @code{setq}:
      @result{} 3           ; @r{The two @code{addx} calls add to @code{x} twice.}
 
 ;; @r{After the @code{let} form finishes, @code{x} reverts to its}
-;; @r{previous value, which is -99.}
+;; @r{previous value, which is @minus{}99.}
 
 (addx)
      @result{} -98
@@ -1976,7 +1976,7 @@ will set them to @code{t}:
 This variable holds a list of all variables of type @code{DEFVAR_BOOL}.
 @end defvar
 
-  Variables of type @code{DEFVAR_INT} can only take on integer values.
+  Variables of type @code{DEFVAR_INT} can take on only integer values.
 Attempting to assign them any other value will result in an error:
 
 @example

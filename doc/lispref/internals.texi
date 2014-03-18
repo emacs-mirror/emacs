@@ -517,8 +517,8 @@ done so far in this Emacs session.
 
 @defvar gc-elapsed
 This variable contains the total number of seconds of elapsed time
-during garbage collection so far in this Emacs session, as a floating
-point number.
+during garbage collection so far in this Emacs session, as a
+floating-point number.
 @end defvar
 
 @node Memory Usage
@@ -917,7 +917,7 @@ following basic data types: integer, symbol, string, cons cell, float,
 vectorlike or miscellaneous object.  Each of these data types has the
 corresponding tag value.  All tags are enumerated by @code{enum Lisp_Type}
 and placed into a 3-bit bitfield of the @code{Lisp_Object}.  The rest of the
-bits is the value itself.  Integer values are immediate, i.e., directly
+bits is the value itself.  Integers are immediate, i.e., directly
 represented by those @dfn{value bits}, and all other objects are represented
 by the C pointers to a corresponding object allocated from the heap.  Width
 of the @code{Lisp_Object} is platform- and configuration-dependent: usually
@@ -945,7 +945,7 @@ Array, a fixed-size set of Lisp objects which may be accessed by an index.
 Symbol, the unique-named entity commonly used as an identifier.
 
 @item struct Lisp_Float
-Floating point value.
+Floating-point value.
 
 @item union Lisp_Misc
 Miscellaneous kinds of objects which don't fit into any of the above.
@@ -1606,7 +1606,7 @@ although @code{off_t} is always signed, @code{time_t} need not be.
 
 @item
 Prefer the Emacs-defined type @code{printmax_t} for representing
-values that might be any signed integer value that can be printed,
+values that might be any signed integer that can be printed,
 using a @code{printf}-family function.
 
 @item

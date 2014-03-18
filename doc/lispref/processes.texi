@@ -1484,7 +1484,7 @@ returns after that much time, whether or not there has been any
 subprocess output.
 
 The argument @var{millisec} is obsolete (and should not be used),
-because @var{seconds} can be a floating point number to specify
+because @var{seconds} can be floating point to specify
 waiting a fractional number of seconds.  If @var{seconds} is 0, the
 function accepts whatever output is pending but does not wait.
 
@@ -1684,7 +1684,7 @@ attribute and @var{value} is the value of that attribute.  The various
 attribute @var{key}s that this function can return are listed below.
 Not all platforms support all of these attributes; if an attribute is
 not supported, its association will not appear in the returned alist.
-Values that are numbers can be either integer or floating-point,
+Values that are numbers can be either integer or floating point,
 depending on the magnitude of the value.
 
 @table @code

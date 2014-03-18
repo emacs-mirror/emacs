@@ -3269,7 +3269,7 @@ overlay and text property strings present at the current buffer
 position.  You can place the cursor on any desired character of these
 strings by giving that character a non-@code{nil} @code{cursor} text
 property.  In addition, if the value of the @code{cursor} property is
-an integer number, it specifies the number of buffer's character
+an integer, it specifies the number of buffer's character
 positions, starting with the position where the overlay or the
 @code{display} property begins, for which the cursor should be
 displayed on that character.  Specifically, if the value of the
@@ -3283,7 +3283,7 @@ text property begins in the buffer.
 In other words, the string character with the @code{cursor} property
 of any non-@code{nil} value is the character where to display the
 cursor.  The value of the property says for which buffer positions to
-display the cursor there.  If the value is an integer number @var{n},
+display the cursor there.  If the value is an integer @var{n},
 the cursor is displayed there when point is anywhere between the
 beginning of the overlay or @code{display} property and @var{n}
 positions after that.  If the value is anything else and

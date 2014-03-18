@@ -593,9 +593,8 @@ are used primarily for making help messages.
 @cindex integer to string
 @cindex integer to decimal
 This function returns a string consisting of the printed base-ten
-representation of @var{number}, which may be an integer or a floating
-point number.  The returned value starts with a minus sign if the argument is
-negative.
+representation of @var{number}.  The returned value starts with a
+minus sign if the argument is negative.
 
 @example
 (number-to-string 256)
@@ -619,12 +618,12 @@ See also the function @code{format} in @ref{Formatting Strings}.
 This function returns the numeric value of the characters in
 @var{string}.  If @var{base} is non-@code{nil}, it must be an integer
 between 2 and 16 (inclusive), and integers are converted in that base.
-If @var{base} is @code{nil}, then base ten is used.  Floating point
+If @var{base} is @code{nil}, then base ten is used.  Floating-point
 conversion only works in base ten; we have not implemented other
-radices for floating point numbers, because that would be much more
+radices for floating-point numbers, because that would be much more
 work and does not seem useful.  If @var{string} looks like an integer
 but its value is too large to fit into a Lisp integer,
-@code{string-to-number} returns a floating point result.
+@code{string-to-number} returns a floating-point result.
 
 The parsing skips spaces and tabs at the beginning of @var{string},
 then reads as much of @var{string} as it can interpret as a number in
@@ -787,15 +786,15 @@ integer.  @samp{%x} uses lower case and @samp{%X} uses upper case.
 Replace the specification with the character which is the value given.
 
 @item %e
-Replace the specification with the exponential notation for a floating
-point number.
+Replace the specification with the exponential notation for a
+floating-point number.
 
 @item %f
-Replace the specification with the decimal-point notation for a floating
-point number.
+Replace the specification with the decimal-point notation for a
+floating-point number.
 
 @item %g
-Replace the specification with notation for a floating point number,
+Replace the specification with notation for a floating-point number,
 using either exponential notation or decimal-point notation, whichever
 is shorter.
 

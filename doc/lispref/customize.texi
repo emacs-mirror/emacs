@@ -571,7 +571,7 @@ The value must be an integer.
 The value must be a number (floating point or integer).
 
 @item float
-The value must be a floating point number.
+The value must be floating point.
 
 @item string
 The value must be a string.  The customization buffer shows the string

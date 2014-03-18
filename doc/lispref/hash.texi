@@ -73,7 +73,7 @@ alternatives:
 @item eql
 Keys which are numbers are ``the same'' if they are @code{equal}, that
 is, if they are equal in value and either both are integers or both
-are floating point numbers; otherwise, two distinct objects are never
+are floating point; otherwise, two distinct objects are never
 ``the same''.
 
 @item eq
@@ -134,7 +134,7 @@ larger, at that time.
 
 If @var{rehash-size} is an integer, it should be positive, and the hash
 table grows by adding that much to the nominal size.  If
-@var{rehash-size} is a floating point number, it had better be greater
+@var{rehash-size} is floating point, it had better be greater
 than 1, and the hash table grows by multiplying the old size by that
 number.
 
@@ -143,7 +143,7 @@ The default value is 1.5.
 @item :rehash-threshold @var{threshold}
 This specifies the criterion for when the hash table is ``full'' (so
 it should be made larger).  The value, @var{threshold}, should be a
-positive floating point number, no greater than 1.  The hash table is
+positive floating-point number, no greater than 1.  The hash table is
 ``full'' whenever the actual number of entries exceeds this fraction
 of the nominal size.  The default for @var{threshold} is 0.8.
 @end table
@@ -266,7 +266,7 @@ return non-@code{nil} if they are considered ``the same''.
 
 The function @var{hash-fn} should accept one argument, a key, and return
 an integer that is the ``hash code'' of that key.  For good results, the
-function should use the whole range of integer values for hash codes,
+function should use the whole range of integers for hash codes,
 including negative integers.
 
 The specified functions are stored in the property list of @var{name}

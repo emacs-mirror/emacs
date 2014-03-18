@@ -1967,7 +1967,7 @@ appears on the screen at a time.
 Like @code{y-or-n-p}, except that if the user fails to answer within
 @var{seconds} seconds, this function stops waiting and returns
 @var{default}.  It works by setting up a timer; see @ref{Timers}.
-The argument @var{seconds} may be an integer or a floating point number.
+The argument @var{seconds} should be a number.
 @end defun
 
 @defun yes-or-no-p prompt

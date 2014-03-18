@@ -646,8 +646,8 @@ If @var{separation} is 0 and @var{to} is neither @code{nil} nor
 numerically equal to @var{from}, @code{number-sequence} signals an
 error, since those arguments specify an infinite sequence.
 
-All arguments can be integers or floating point numbers.  However,
-floating point arguments can be tricky, because floating point
+All arguments are numbers.
+Floating-point arguments can be tricky, because floating-point
 arithmetic is inexact.  For instance, depending on the machine, it may
 quite well happen that @code{(number-sequence 0.4 0.6 0.2)} returns
 the one element list @code{(0.4)}, whereas
@@ -1405,7 +1405,7 @@ sample-list
 @defun memql object list
 The function @code{memql} tests to see whether @var{object} is a member
 of @var{list}, comparing members with @var{object} using @code{eql},
-so floating point elements are compared by value.
+so floating-point elements are compared by value.
 If @var{object} is a member, @code{memql} returns a list starting with
 its first occurrence in @var{list}.  Otherwise, it returns @code{nil}.
 
