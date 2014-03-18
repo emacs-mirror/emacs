@@ -611,7 +611,7 @@ In some text modes, where TAB inserts a tab, this command indents to the
 column specified by the function `current-left-margin'."
   (interactive "*")
   (delete-horizontal-space t)
-  (newline 1 t)
+  (newline nil t)
   (indent-according-to-mode))
 
 (defun reindent-then-newline-and-indent ()
