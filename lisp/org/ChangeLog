@@ -8620,7 +8620,7 @@
 	(org-agenda-run-series): Remove any old agenda markers in the
 	buffer that is going to take the new block agenda.
 	(org-prepare-agenda): Reset markers before erasing the buffer anc
-	running `org-agenda-mode', because after that hte local variable
+	running `org-agenda-mode', because after that the local variable
 	`org-agenda-markers' will have gone away.
 	(org-agenda-Quit):
 	(org-finalize-agenda): Install the marker resetter into the

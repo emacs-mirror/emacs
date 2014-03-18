@@ -1,4 +1,8 @@
-2014-03-17  Stefan  <monnier@iro.umontreal.ca>
+2014-03-18  Daniel Colascione  <dancol@dancol.org>
+
+	* startup.el (tty-handle-args): Remove debug message from 2007.
+
+2014-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/nadvice.el (advice--interactive-form): New function.
 	(advice--make-interactive-form): Use it to avoid (auto)loading function.
@@ -66,10 +70,6 @@
 	(rst-all-sections, rst-section-hierarchy, rst-adjust): Doc fixes.
 	(rst-uncomment-region, rst-font-lock-find-unindented-line-match)
 	(rst-font-lock-handle-adornment-matcher): Mark unused arguments.
-
-2014-03-18  Daniel Colascione  <dancol@dancol.org>
-
-	* startup.el (tty-handle-args): Remove debug message from 2007.
 
 2014-03-15  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -163,8 +163,8 @@
 
 2014-03-13  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Fontify
-	multiple adjacent negation chars.  (Bug#17004)
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords):
+	Fontify multiple adjacent negation chars.  (Bug#17004)
 
 2014-03-13  Tom Willemse  <tom@ryuslash.org>  (tiny change)
 
