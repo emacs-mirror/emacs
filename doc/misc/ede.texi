@@ -792,6 +792,7 @@ override the default include path and system include path like this:
 (ede-cpp-root-project "NAME" :file "FILENAME"
     :include-path '( "/include" "../include" "/c/include" )
     :system-include-path '( "/usr/include/c++/3.2.2/" )
+    :compile-command "make compile"
     :spp-table '( ("MOOSE" . "")
                   ("CONST" . "const") ) )
 @end example
@@ -808,6 +809,9 @@ name is expanded.
 The @code{:system-include-path} allows you to specify full directory
 names to include directories where system header files can be found.
 These will be applied to files in this project only.
+
+With @code{:compile-command} you can provide a command which should be
+run when calling @code{ede-compile-project}.
 
 The @code{:spp-table} provides a list of project specific #define
 style macros that are unique to this project, passed in to the
@@ -910,6 +914,12 @@ Kernel source tree, and enable EDE project mode for it.
 
 It pre-populates the C Preprocessor symbol map for reasonable parsing,
 and has an optimized include file identification function.
+
+Through the variables @code{project-linux-build-directory-default} and
+@code{project-linux-architecture-default}, you can set the build
+directory and its architecture, resp.  The default is to assume that
+the build happens in the source directory and to auto-detect the
+architecture; if the auto-detection fails, you will be asked.
 
 @node ede-generic-project, Custom Locate, ede-linux, Simple projects
 @subsection ede-generic-project

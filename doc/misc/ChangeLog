@@ -4,6 +4,10 @@
 	`ede-java-root' and the example using it.
 	(Android projects, ede-java-root): Remove nodes since they are
 	only in CEDET upstream (Bug#17030).  All nodes updated.
+        (ede-cpp-root): Document the :compile-command slot.
+	(ede-linux): Document new variables
+	`project-linux-build-directory-default' and
+	`project-linux-architecture-default'.
 
 2014-03-12  Glenn Morris  <rgm@gnu.org>
 
