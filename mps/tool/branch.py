@@ -97,7 +97,7 @@ def main(argv):
     if not args.changelevel:
         cmd = p4.run('changes', '-m', '1', fmt('{root}/{project}/{parent}/...'))
         args.changelevel = int(next(cmd)['change'])
-        print("changelevel={changelevel}".format(**vars(args)))
+        print(fmt("changelevel={changelevel}"))
 
     if args.task:
         if not re.match(TASK_RE, args.task):
