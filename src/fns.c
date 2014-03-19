@@ -79,8 +79,17 @@ See Info node `(elisp)Random Numbers' for more details.  */)
     seed_random (SSDATA (limit), SBYTES (limit));
 
   val = get_random ();
-  if (NATNUMP (limit) && XFASTINT (limit) != 0)
-    val %= XFASTINT (limit);
+  if (INTEGERP (limit) && 0 < XINT (limit))
+    while (true)
+      {
+	/* Return the remainder, except reject the rare case where
+	   get_random returns a number so close to INTMASK that the
+	   remainder isn't random.  */
+	EMACS_INT remainder = val % XINT (limit);
+	if (val - remainder <= INTMASK - XINT (limit) + 1)
+	  return make_number (remainder);
+	val = get_random ();
+      }
   return make_number (val);
 }
 

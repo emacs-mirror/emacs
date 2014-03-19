@@ -1,5 +1,7 @@
 2014-03-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fns.c (Frandom): Fix rare bug where the result isn't random.
+
 	Fix porting inconsistency about rounding to even.
 	* floatfns.c (emacs_rint) [!HAVE_RINT]: Round to even.
 	This way, the unusual !HAVE_RINT case acts like the usual
