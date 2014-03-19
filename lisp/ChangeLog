@@ -1,3 +1,8 @@
+2014-03-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/package.el (describe-package-1):
+	Decode commentary (bug#16733).
+
 2014-03-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* custom.el (defcustom): Doc fix: recommend avoiding destructive
