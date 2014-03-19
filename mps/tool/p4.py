@@ -6,7 +6,10 @@
 #             Gareth Rees, Ravenbrook Limited, 2001-03-07
 
 from collections import Iterator
+from contextlib import contextmanager
 import marshal
+import os
+import re
 from subprocess import Popen, PIPE
 
 class Error(Exception):
@@ -44,16 +47,19 @@ class Command(Iterator):
 
     Call the done() method to finish executing the Perforce command,
     closing the input, discarding any output, and raising Error if it
-    failed. For most Perforce commands this is unnecessary, but there
-    are a few that need it, for example, the sync command needs to be
-    called like this:
+    failed. For example:
 
-        >>> conn.run('sync', filespec).done()
+        >>> conn.run('edit', filespec).done()
 
     The send() method returns the Command object, to allow method calls to
     be chained:
 
         >>> conn.run('client', '-i').send(client).done()
+
+    In the common case where run() is immediately followed by done(),
+    use the do() method:
+
+        >>> conn.do('submit', '-d', description)
 
     """
     def __init__(self, *args, **kwargs):
@@ -114,6 +120,8 @@ class Connection(object):
         if user: self.args.extend(['-u', user])
         if client: self.args.extend(['-c', client])
         self.encoding = encoding
+        self.kwargs = dict(p4=p4, port=port, client=client, user=user,
+                           encoding=encoding)
 
     def run(self, *args):
         """Run a Perforce command.
@@ -127,6 +135,10 @@ class Connection(object):
         """
         return Command(*(self.args + list(args)), encoding=self.encoding)
 
+    def do(self, *args):
+        """Run a Perforce command and consume its output."""
+        self.run(*args).done()
+
     def contents(self, filespec):
         """Return the contents of the file whose specification is given as a
         string. If the file does not exist, raise p4.Error.
@@ -135,13 +147,47 @@ class Connection(object):
         return ''.join(t['data'] for t in self.run('print', filespec)
                        if 'data' in t)
 
+    @contextmanager
+    def temp_client(self, client_spec):
+        """Return a context manager that creates a temporary client workspace
+        on entry and deletes it on exit.
 
-# For backwards compatibility.
-def run(*args):
-    return Connection().run(*args)
+        The client specification should omit the Client and Root keys:
+        these are added automatically. The workspace views should use
+        __CLIENT__ and this is replaced by the chosen client name.
 
-def contents(filespec):
-    return Connection().contents(filespec)
+        This context manager yields a tuple of the new Connection
+        object, and the root directory of the client workspace.
+
+        """
+        import shutil
+        import tempfile
+        import uuid
+        name = 'tmp-{}'.format(uuid.uuid4())
+        root = tempfile.mkdtemp()
+        spec = {k: re.sub(r'__CLIENT__', name, v)
+                if re.match(r'View\d+$', k) else v
+                for k, v in client_spec.items()}
+        spec.update(Client=name, Root=root)
+        try:
+            conn = Connection(**dict(self.kwargs, client=name))
+            conn.run('client', '-i').send(spec).done()
+            yield conn, root
+            try:
+                conn.do('revert', '-k', '//...')
+            except Error:
+                pass
+            conn.do('client', '-d', name)
+        finally:
+            shutil.rmtree(root)
+
+
+# Convenience interface for the default connection.
+_conn = Connection()
+run = _conn.run
+do = _conn.do
+contents = _conn.contents
+temp_client = _conn.temp_client
 
 
 # A. REFERENCES
@@ -171,6 +217,10 @@ def contents(filespec):
 # 2014-03-18 GDR Refactor into classes: Connection (holding the
 # client/server configuration) and Command (a single command and its
 # output).
+#
+# 2014-03-19 GDR New methods Connection.temp_client for creating a
+# temporary client workspace, and Connection.do for encapsulating
+# run().done().
 #
 #
 # C. COPYRIGHT AND LICENCE
