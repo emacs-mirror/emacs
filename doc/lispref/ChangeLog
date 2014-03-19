@@ -1,5 +1,9 @@
 2014-03-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* numbers.texi: Improve and clarify a bit, and fix some minor bugs.
+	Remove now-obsolete hypothetical note about negative division,
+	as the C standard has changed.
+
 	Fix porting inconsistency about rounding to even.
 	* numbers.texi (Numeric Conversions, Rounding Operations):
 	Document that 'round' and 'fround' round to even.

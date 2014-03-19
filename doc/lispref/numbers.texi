@@ -116,8 +116,8 @@ use the @samp{...} notation to make binary integers easier to read.)
 @minus{}1 is represented as 30 ones.  (This is called @dfn{two's
 complement} notation.)
 
-  The negative integer, @minus{}5, is creating by subtracting 4 from
-@minus{}1.  In binary, the decimal integer 4 is 100.  Consequently,
+  Subtracting 4 from @minus{}1 returns the negative integer @minus{}5.
+In binary, the decimal integer 4 is 100.  Consequently,
 @minus{}5 looks like this:
 
 @example
@@ -190,8 +190,8 @@ on 64-bit platforms.
 @end defvar
 
   In Emacs Lisp, text characters are represented by integers.  Any
-integer between zero and the value of @code{max-char}, inclusive, is
-considered to be valid as a character.  @xref{String Basics}.
+integer between zero and the value of @code{(max-char)}, inclusive, is
+considered to be valid as a character.  @xref{Character Codes}.
 
 @node Float Basics
 @section Floating-Point Basics
@@ -252,7 +252,7 @@ This function returns a cons cell @code{(@var{s} . @var{e})},
 where @var{s} and @var{e} are respectively the significand and
 exponent of the floating-point number @var{x}.
 
-If @var{x} is finite, @var{s} is a floating-point number between 0.5
+If @var{x} is finite, then @var{s} is a floating-point number between 0.5
 (inclusive) and 1.0 (exclusive), @var{e} is an integer, and
 @ifnottex
 @var{x} = @var{s} * 2**@var{e}.
@@ -260,9 +260,9 @@ If @var{x} is finite, @var{s} is a floating-point number between 0.5
 @tex
 @math{x = s 2^e}.
 @end tex
-If @var{x} is zero or infinity, @var{s} is the same as @var{x}.
-If @var{x} is a NaN, @var{s} is also a NaN.
-If @var{x} is zero, @var{e} is 0.
+If @var{x} is zero or infinity, then @var{s} is the same as @var{x}.
+If @var{x} is a NaN, then @var{s} is also a NaN.
+If @var{x} is zero, then @var{e} is 0.
 @end defun
 
 @defun ldexp sig &optional exp
@@ -275,9 +275,9 @@ This function copies the sign of @var{x2} to the value of @var{x1},
 and returns the result.  @var{x1} and @var{x2} must be floating point.
 @end defun
 
-@defun logb number
-This function returns the binary exponent of @var{number}.  More
-precisely, the value is the logarithm of |@var{number}| base 2, rounded
+@defun logb x
+This function returns the binary exponent of @var{x}.  More
+precisely, the value is the logarithm base 2 of @math{|x|}, rounded
 down to an integer.
 
 @example
@@ -367,7 +367,7 @@ Here's a function to do this:
 @example
 (defvar fuzz-factor 1.0e-6)
 (defun approx-equal (x y)
-  (or (and (= x 0) (= y 0))
+  (or (= x y)
       (< (/ (abs (- x y))
             (max (abs x) (abs y)))
          fuzz-factor)))
@@ -648,10 +648,6 @@ number or a marker.
 
 If all the arguments are integers, the result is an integer, obtained
 by rounding the quotient towards zero after each division.
-(Hypothetically, some machines may have different rounding behavior
-for negative arguments, because @code{/} is implemented using the C
-division operator, which permits machine-dependent rounding; but this
-does not happen in practice.)
 
 @example
 @group
@@ -706,8 +702,7 @@ For any two integers @var{dividend} and @var{divisor},
 @end example
 
 @noindent
-always equals @var{dividend}.  If @var{divisor} is zero, Emacs signals
-an @code{arith-error} error.
+always equals @var{dividend} if @var{divisor} is nonzero.
 
 @example
 (% 9 4)
@@ -769,7 +764,8 @@ For any two numbers @var{dividend} and @var{divisor},
 
 @noindent
 always equals @var{dividend}, subject to rounding error if either
-argument is floating point.  For @code{floor}, see @ref{Numeric
+argument is floating point and to an @code{arith-error} if @var{dividend} is an
+integer and @var{divisor} is 0.  For @code{floor}, see @ref{Numeric
 Conversions}.
 @end defun
 
@@ -1194,8 +1190,8 @@ non-integer, @code{expt} returns a NaN.
 @end defun
 
 @defun sqrt arg
-This returns the square root of @var{arg}.  If @var{arg} is negative,
-@code{sqrt} returns a NaN.
+This returns the square root of @var{arg}.  If @var{arg} is finite
+and less than zero, @code{sqrt} returns a NaN.
 @end defun
 
 In addition, Emacs defines the following common mathematical
@@ -1244,8 +1240,8 @@ any integer representable in Lisp, i.e., an integer between
 @code{most-negative-fixnum} and @code{most-positive-fixnum}
 (@pxref{Integer Basics}).
 
-If @var{limit} is @code{t}, it means to choose a new seed based on the
-current time of day and on Emacs's process @acronym{ID} number.
+If @var{limit} is @code{t}, it means to choose a new seed as if Emacs
+were restarting.
 
 If @var{limit} is a string, it means to choose a new seed based on the
 string's contents.
