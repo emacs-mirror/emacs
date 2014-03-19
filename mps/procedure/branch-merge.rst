@@ -29,18 +29,18 @@ This document contains procedures and checklists for branching and merging durin
 
 Run the script ``tool/branch.py``, passing the options:
 
-* ``-P mps`` -- project name
-* ``-p PARENT`` -- parent branch: for example ``master`` or ``custom/cet/main``
-* ``-C CHANGELEVEL`` -- changelevel at which to make the branch
-* ``-t TASK`` -- task name: for example ``lii6ll``
-* ``-d "DESCRIPTION"`` -- the description of the branch
-* ``-y`` -- yes, really create the branch
+* ``-P mps`` — project name
+* ``-p PARENT`` — parent branch: for example ``master`` or ``custom/cet/main``
+* ``-C CHANGELEVEL`` — changelevel at which to make the branch
+* ``-t TASK`` — task name: for example ``lii6ll``
+* ``-d "DESCRIPTION"`` — the description of the branch
+* ``-y`` — yes, really create the branch
 
 If omitted, the project and parent branch are deduced from the current
 directory, and the changelevel defaults to the most recent change on
 the parent branch. So a typical invocation looks like this::
 
-    tool/branch.py -t lii6ll -d "Adding new supported platform lii6ll (job003596)." -y
+    tool/branch.py -p master -t lii6ll -d "Adding new supported platform lii6ll (job003596)." -y
 
 
 4. Creating a development branch (manual procedure)
