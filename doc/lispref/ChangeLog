@@ -1,3 +1,9 @@
+2014-03-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix porting inconsistency about rounding to even.
+	* numbers.texi (Numeric Conversions, Rounding Operations):
+	Document that 'round' and 'fround' round to even.
+
 2014-03-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* customize.texi (Variable Definitions): Recommend avoiding

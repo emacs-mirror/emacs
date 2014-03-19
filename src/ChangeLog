@@ -1,3 +1,10 @@
+2014-03-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix porting inconsistency about rounding to even.
+	* floatfns.c (emacs_rint) [!HAVE_RINT]: Round to even.
+	This way, the unusual !HAVE_RINT case acts like the usual
+	HAVE_RINT case, and we can fix the documentation accordingly.
+
 2014-03-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (reset_modifiers): Zero out keystate[] before using it.

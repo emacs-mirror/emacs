@@ -428,7 +428,9 @@ round2 (EMACS_INT i1, EMACS_INT i2)
 static double
 emacs_rint (double d)
 {
-  return floor (d + 0.5);
+  double d1 = d + 0.5;
+  double r = floor (d1);
+  return r - (r == d1 && fmod (r, 2) != 0);
 }
 #endif
 

@@ -534,8 +534,7 @@ This returns @var{number}, converted to an integer by rounding upward
 @defun round number &optional divisor
 This returns @var{number}, converted to an integer by rounding towards the
 nearest integer.  Rounding a value equidistant between two integers
-may choose the integer closer to zero, or it may prefer an even integer,
-depending on your machine.
+returns the even integer.
 
 @example
 (round 1.2)
@@ -803,6 +802,7 @@ returns that value as a floating-point number.
 @defun fround float
 This function rounds @var{float} to the nearest integral value,
 and returns that value as a floating-point number.
+Rounding a value equidistant between two integers returns the even integer.
 @end defun
 
 @node Bitwise Operations
