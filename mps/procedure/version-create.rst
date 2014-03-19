@@ -88,18 +88,18 @@ evolution. A version has these parts:
 
 Run the script ``tool/branch.py``, passing the options:
 
-* ``-P mps`` -- project name
-* ``-p master`` -- parent branch
-* ``-C CHANGELEVEL`` -- changelevel at which to make the branch
-* ``-v`` -- request a version branch
-* ``-d "DESCRIPTION"`` -- description of the branch
-* ``-y`` -- yes, really create the branch
+* ``-P mps`` — project name
+* ``-p master`` — parent branch
+* ``-C CHANGELEVEL`` — changelevel at which to make the branch
+* ``-v`` — request a version branch
+* ``-d "DESCRIPTION"`` — description of the branch
+* ``-y`` — yes, really create the branch
 
 If omitted, the project and parent branch are deduced from the current
 directory, and the changelevel defaults to the most recent change on
-the parent branch. So a typical invocation looks like this::
+the parent branch. A typical invocation looks like this::
 
-    tool/branch.py -v -d "Simplified interface to generation chains." -y
+    tool/branch.py -p master -v -d "Simplified interface to generation chains." -y
 
 
 3.3. Manual procedure
