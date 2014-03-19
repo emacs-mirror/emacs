@@ -63,7 +63,7 @@ VERSION_BRANCH_ENTRY = '''
       {description}
     </td>
     <td>
-      <a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@describe+{base}">base</a><br>
+      <a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@describe+{base}">base</a><br />
       <a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@changes+{depot}/project/{project}/{child}/...">changelists</a>
     </td>
   </tr>
@@ -80,9 +80,8 @@ def main(argv):
                         help='Changelevel at which to make the branch.')
     parser.add_argument('-d', '--description',
                         help='Description of the branch (for the branch spec).')
-    parser.add_argument('-y', '--commit', action='store_true',
-                        help='Carry out the operation (by default, just '
-                        'show a preview).')
+    parser.add_argument('-y', '--yes', action='store_true',
+                        help='Yes, really make the branch.')
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('-c', '--child',
                        help='Name of the child branch.')
@@ -92,6 +91,7 @@ def main(argv):
                        help='Name of the task branch.')
     args = parser.parse_args(argv[1:])
     args.depot = DEPOT
+    args.today = datetime.date.today().strftime('%Y-%m-%d')
     fmt = lambda s: s.format_map(vars(args))
 
     if not args.project:
@@ -133,8 +133,7 @@ def main(argv):
     if args.task:
         if not re.match(TASK_RE, args.task):
             raise Error(fmt("Invalid task: {task}"))
-        args.child = fmt(datetime.date.today()
-                         .strftime('branch/%Y-%m-%d/{task}'))
+        args.child = fmt('branch/{today}/{task}')
         print(fmt("child={child}"))
     elif args.version:
         # Deduce version number from code/version.c.
@@ -172,12 +171,12 @@ def main(argv):
     if any(p4.run('branches', '-E', args.branch)):
         print(fmt("Branch spec {branch} already exists: skipping."))
         have_branch = True
-    elif args.commit:
+    elif args.yes:
         print(fmt("Creating branch spec {branch}."))
         p4.run('branch', '-i').send(branch_spec).done()
         have_branch = True
     else:
-        print("-y/--commit not specified: skipping branch creation.")
+        print("--yes omitted: skipping branch creation.")
 
     # Populate the branch
     if any(p4.run('dirs', fmt('{depot}/project/{project}/{child}'))):
@@ -188,15 +187,15 @@ def main(argv):
                          '-b', args.branch,
                          '-d', fmt("Branching {parent} to {child}."),
                          '-s', srcs]
-        if args.commit:
+        if args.yes:
             print(fmt("Populating branch {branch}..."))
             populate_args.remove('-n')
             p4.do(*populate_args)
         elif have_branch:
-            print("-y/--commit not specified: dry-run (-n) only.")
+            print("--yes omitted: populate -n ...")
             p4.do(*populate_args)
         else:
-            print("-y/--commit not specified: skipping populate.")
+            print("--yes omitted: skipping populate.")
 
     # Determine the first change on the branch
     cmd = p4.run('changes', fmt('{depot}/project/{project}/{child}/...'))
@@ -204,7 +203,7 @@ def main(argv):
         args.base = int(deque(cmd, maxlen=1).pop()['change'])
         print(fmt("base={base}"))
     except IndexError:
-        args.commit = False
+        args.yes = False
         args.base = args.changelevel
         print(fmt("Branch {child} not populated: using base={base}"))
 
@@ -225,11 +224,10 @@ def main(argv):
             for result in conn.run('diff'):
                 if 'data' in result:
                     print(result['data'])
-            if args.commit:
+            if args.yes:
                 conn.do('submit', '-d', fmt("Registering {child}."), filename)
             else:
-                print(fmt("-y/--commit not specified: skipping submit of\n"
-                          "  {filespec}."))
+                print(fmt("--yes omitted: skipping submit of {filespec}"))
 
     # Task branches
     if not args.version:
@@ -247,7 +245,7 @@ def main(argv):
         if any(p4.run('clients', '-E', args.git_client)):
             print(fmt("client {git_client} already exists: skipping."))
             have_git_branch = True
-        elif args.commit:
+        elif args.yes:
             client_spec = dict(
                 Client=args.git_client,
                 Description=fmt("Git-fusion client for syncing {project} "
@@ -260,7 +258,7 @@ def main(argv):
             p4.run('client', '-i').send(client_spec).done()
             have_git_branch = True
         else:
-            print("-y/--commit not specified: skipping git branch creation.")
+            print(fmt("--yes omitted: skipping {git_client}"))
 
         # Update table of pushes
         register('{depot}/infosys/robots/git-fusion/etc/pushes',

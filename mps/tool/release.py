@@ -20,6 +20,7 @@
 from __future__ import unicode_literals
 import argparse
 from contextlib import contextmanager
+import datetime
 import os
 import re
 import subprocess
@@ -39,14 +40,33 @@ def pushdir(dir):
     yield
     os.chdir(cwd)
 
-ROOT = '//info.ravenbrook.com/project'
+DEPOT = '//info.ravenbrook.com'
 PROJECT_RE = r'[a-z][a-z0-9.-]*'
-PROJECT_FILESPEC_RE = r'{}/({})/'.format(re.escape(ROOT), PROJECT_RE)
+PROJECT_FILESPEC_RE = r'{}/project/({})/'.format(re.escape(DEPOT), PROJECT_RE)
 VERSION_RE = r'\d+\.\d+'
 CUSTOMER_RE = r'[a-z][a-z0-9.-]*'
 BRANCH_RE = (r'master|(?:custom/({})/)?(?:main|version/({}))'
              .format(CUSTOMER_RE, VERSION_RE))
 BRANCH_FILESPEC_RE = r'{}({})(?:/|$)'.format(PROJECT_FILESPEC_RE, BRANCH_RE)
+
+RELEASE_ENTRY = '''
+
+<tr valign="top">
+  <td><a href="{release}/">{release}</a></td>
+  <td>{today}<br />
+  <a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@files+{origin}/...@{changelevel}">{branch}/...@{changelevel}</a></td>
+  <td>
+    {description}
+  </td>
+  <td>
+    <a href="/project/{project}/issue/?action=known&amp;sort=Priority%3AJob&amp;release={release}">Known</a> <br />
+    <a href="/project/{project}/issue/?action=fixed&amp;release={release}">Fixed</a>
+  </td>
+</tr>
+'''
+
+VERSION_ENTRY = '''    <a href="/project/{project}/release/{release}/">{release}</a>
+'''
 
 def main(argv):
     parser = argparse.ArgumentParser()
@@ -56,11 +76,13 @@ def main(argv):
                         help='Name of the branch to make the release from.')
     parser.add_argument('-C', '--changelevel', type=int,
                         help='Changelevel at which to make the release.')
-    parser.add_argument('-y', '--commit', action='store_true',
-                        help='Carry out the operation (by default, just '
-                        'show a preview).')
+    parser.add_argument('-d', '--description',
+                        help='Description of the release.')
+    parser.add_argument('-y', '--yes', action='store_true',
+                        help='Yes, really make the release.')
     args = parser.parse_args(argv[1:])
-    args.root = ROOT
+    args.depot = DEPOT
+    args.today = datetime.date.today().strftime('%Y-%m-%d')
     fmt = lambda s: s.format_map(vars(args))
 
     if not args.project:
@@ -72,7 +94,7 @@ def main(argv):
         args.project = m.group(1)
         print(fmt("project={project}"))
 
-    if not any(p4.run('dirs', fmt('{root}/{project}'))):
+    if not any(p4.run('dirs', fmt('{depot}/project/{project}'))):
         raise Error(fmt("No such project: {project}"))
 
     if not args.branch:
@@ -97,16 +119,17 @@ def main(argv):
     if args.version:
         print(fmt("version={version}"))
 
-    if not any(p4.run('dirs', fmt('{root}/{project}/{branch}'))):
+    args.origin = fmt('{depot}/project/{project}/{branch}')
+    if not any(p4.run('dirs', args.origin)):
         raise Error(fmt("No such branch: {branch}"))
 
     if not args.changelevel:
-        cmd = p4.run('changes', '-m', '1', fmt('{root}/{project}/{branch}/...'))
+        cmd = p4.run('changes', '-m', '1', fmt('{origin}/...'))
         args.changelevel = int(next(cmd)['change'])
         print(fmt("changelevel={changelevel}"))
 
     # Deduce release from code/version.c.
-    f = fmt('{root}/{project}/{branch}/code/version.c@{changelevel}')
+    f = fmt('{origin}/code/version.c@{changelevel}')
     m = re.search(r'^#define MPS_RELEASE "release/((\d+\.\d+)\.\d+)"$',
                   p4.contents(f), re.M)
     if not m:
@@ -116,15 +139,19 @@ def main(argv):
     if args.version and args.version != m.group(2):
         raise Error(fmt("Version {version} does not match release {release}"))
     if args.customer:
-        args.reldir = fmt('{root}/{project}/custom/{customer}/release/{release}')
+        args.reldir = fmt('{depot}/project/{project}/custom/{customer}/release/{release}')
     else:
-        args.reldir = fmt('{root}/{project}/release/{release}')
+        args.reldir = fmt('{depot}/project/{project}/release/{release}')
+
+    if not args.description:
+        args.description = fmt("Release {release}.")
+        print(fmt("description={description}"))
 
     args.kit = fmt('mps-kit-{release}')
     client_spec = dict(
-        View0=fmt('{root}/{project}/{branch}/... //__CLIENT__/{kit}/...'),
+        View0=fmt('{origin}/... //__CLIENT__/{kit}/...'),
         View1=fmt('{reldir}/... //__CLIENT__/release/{release}/...'))
-    srcs = fmt('{root}/{project}/{branch}/...@{changelevel}')
+    srcs = fmt('{origin}/...@{changelevel}')
     for line_end, args.ext, cmd in (('local', 'tar.gz', ['tar', 'czf']),
                                     ('win',   'zip',    ['zip', '-r'])):
         client_spec['LineEnd'] = line_end
@@ -139,8 +166,8 @@ def main(argv):
                     os.makedirs(fmt('release/{release}'))
                     subprocess.check_call(cmd + [archive, args.kit],
                                           stdout=subprocess.DEVNULL)
-                if not args.commit:
-                    print("-y/--commit not specified: skipping.")
+                if not args.yes:
+                    print(fmt("--yes omitted: skipping submit of {kit}.{ext}"))
                 else:
                     conn.do('add', os.path.join(client_root, archive))
                     desc = fmt("Adding the MPS Kit {ext} archive for "
@@ -149,6 +176,39 @@ def main(argv):
             else:
                 print("{} already exists: skipping.".format(archive))
 
+    def register(filespec, search, replace):
+        args.filespec = fmt(filespec)
+        if p4.contents(args.filespec).find(args.release) != -1:
+            print(fmt("{filespec} already updated: skipping."))
+            return
+        client_spec = dict(View0=fmt('{filespec} //__CLIENT__/target'))
+        with p4.temp_client(client_spec) as (conn, client_root):
+            filename = os.path.join(client_root, 'target')
+            conn.do('sync', filename)
+            conn.do('edit', filename)
+            with open(filename, encoding='utf8') as f:
+                text = re.sub(search, fmt(replace), f.read(), 1)
+            with open(filename, 'w', encoding='utf8') as f:
+                f.write(text)
+            for result in conn.run('diff'):
+                if 'data' in result:
+                    print(result['data'])
+            if args.yes:
+                conn.do('submit', '-d', fmt("Registering release {release}."),
+                        filename)
+            else:
+                print(fmt("--yes omitted: skipping submit of {filespec}"))
+
+    if not args.customer:
+        register('{depot}/project/{project}/release/index.html',
+                 '(?<=<tbody>\n)', RELEASE_ENTRY)
+        register('{depot}/project/{project}/version/index.html',
+                 (r'(?<=<td><a href="{0}/">{0}</a></td>\n  <td>\n)'
+                  .format(re.escape(args.version), re.escape(args.project))),
+                 VERSION_ENTRY)
+        register('{depot}/project/{project}/index.rst',
+                 r'release/\d+\.\d+\.\d+', 'release/{release}')
+             
 
 if __name__ == '__main__':
     main(sys.argv)
