@@ -183,10 +183,6 @@ On a Unix (including OS X) machine:
         p4 -c $CLIENT client -d $CLIENT
         rm -rf /tmp/$CLIENT
 
-
-7. Registering the release
---------------------------
-
 #. Edit the index of releases (``release/index.html``) and add the
    release to the table, in a manner consistent with previous releases.
 
@@ -200,6 +196,10 @@ On a Unix (including OS X) machine:
 #. Submit these changes to Perforce:
 
         p4 submit -d "MPS: registered release $RELEASE."
+
+
+7. Registering the release
+--------------------------
 
 #. Visit the `project
    updater <http://info.ravenbrook.com/infosys/cgi/data_update.cgi>`__,
