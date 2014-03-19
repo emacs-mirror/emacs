@@ -18,26 +18,57 @@
 
 from __future__ import unicode_literals
 import argparse
+from collections import deque
 import datetime
+import os
 import re
 import subprocess
 import sys
-
 import p4
+
+if sys.version_info < (3,):
+    from codecs import open
 
 class Error(Exception): pass
 
-ROOT = '//info.ravenbrook.com/project'
+DEPOT = '//info.ravenbrook.com'
 PROJECT_RE = r'[a-z][a-z0-9.-]*'
-PROJECT_FILESPEC_RE = r'{}/({})/'.format(re.escape(ROOT), PROJECT_RE)
+PROJECT_FILESPEC_RE = r'{}/project/({})/'.format(re.escape(DEPOT), PROJECT_RE)
 CUSTOMER_RE = r'[a-z][a-z0-9.-]*'
 PARENT_RE = r'master|custom/({})/main'.format(CUSTOMER_RE)
 PARENT_FILESPEC_RE = r'{}({})(?:/|$)'.format(PROJECT_FILESPEC_RE, PARENT_RE)
 TASK_RE = r'[a-zA-Z][a-zA-Z0-9._-]*'
 TASK_BRANCH_RE = r'branch/\d\d\d\d-\d\d-\d\d/{}'.format(TASK_RE)
 VERSION_RE = r'\d+\.\d+'
-VERSION_BRANCH_RE = r'(?:custom/{}/)?version/{}'.format(CUSTOMER_RE, VERSION_RE)
-CHILD_RE = r'({}|{})$'.format(TASK_BRANCH_RE, VERSION_BRANCH_RE)
+VERSION_BRANCH_RE = (r'(?:custom/({})/)?version/({})'
+                     .format(CUSTOMER_RE, VERSION_RE))
+CHILD_RE = r'(?:{}|{})$'.format(TASK_BRANCH_RE, VERSION_BRANCH_RE)
+
+TASK_BRANCH_ENTRY = '''
+  <tr valign="top">
+    <td><code><a href="{child}/">{child}</a></code></td>
+    <td><a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@changes+{depot}/project/{project}/{child}/...">Changes</a></td>
+    <td>{description}</td>
+    <td>In development (<a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@diff2+{depot}/project/{project}/{child}/...@{base}+{depot}/project/{project}/{child}/...">diffs</a>).</td>
+  </tr>
+
+'''
+
+VERSION_BRANCH_ENTRY = '''
+  <tr valign="top">
+    <td> <a href="{version}/">{version}</a> </td>
+    <td> None. </td>
+    <td> <a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@files+{depot}/project/{project}/{parent}/...@{changelevel}">{parent}/...@{changelevel}</a> </td>
+    <td>
+      {description}
+    </td>
+    <td>
+      <a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@describe+{base}">base</a><br>
+      <a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@changes+{depot}/project/{project}/{child}/...">changelists</a>
+    </td>
+  </tr>
+
+'''
 
 def main(argv):
     parser = argparse.ArgumentParser()
@@ -48,7 +79,7 @@ def main(argv):
     parser.add_argument('-C', '--changelevel', type=int,
                         help='Changelevel at which to make the branch.')
     parser.add_argument('-d', '--description',
-                        help='Description of the branch.')
+                        help='Description of the branch (for the branch spec).')
     parser.add_argument('-y', '--commit', action='store_true',
                         help='Carry out the operation (by default, just '
                         'show a preview).')
@@ -60,8 +91,8 @@ def main(argv):
     group.add_argument('-t', '--task',
                        help='Name of the task branch.')
     args = parser.parse_args(argv[1:])
-    args.root = ROOT
-    fmt = lambda s: s.format(**vars(args))
+    args.depot = DEPOT
+    fmt = lambda s: s.format_map(vars(args))
 
     if not args.project:
         # Deduce project from current directory.
@@ -72,7 +103,7 @@ def main(argv):
         args.project = m.group(1)
         print(fmt("project={project}"))
 
-    if not any(p4.run('dirs', fmt('{root}/{project}'))):
+    if not any(p4.run('dirs', fmt('{depot}/project/{project}'))):
         raise Error(fmt("No such project: {project}"))
 
     if not args.parent:
@@ -90,64 +121,154 @@ def main(argv):
     m = re.match(PARENT_RE, args.parent)
     if not m:
         raise Error("Invalid parent branch: must be master or custom/*/main.")
-    customer = m.group(1)
-    if not any(p4.run('dirs', fmt('{root}/{project}/{parent}'))):
+    args.customer = m.group(1)
+    if not any(p4.run('dirs', fmt('{depot}/project/{project}/{parent}'))):
         raise Error(fmt("No such branch: {parent}"))
 
     if not args.changelevel:
-        cmd = p4.run('changes', '-m', '1', fmt('{root}/{project}/{parent}/...'))
+        cmd = p4.run('changes', '-m', '1', fmt('{depot}/project/{project}/{parent}/...'))
         args.changelevel = int(next(cmd)['change'])
         print(fmt("changelevel={changelevel}"))
 
     if args.task:
         if not re.match(TASK_RE, args.task):
             raise Error(fmt("Invalid task: {task}"))
-        args.child = fmt(datetime.date.today().strftime('branch/%Y-%m-%d/{task}'))
+        args.child = fmt(datetime.date.today()
+                         .strftime('branch/%Y-%m-%d/{task}'))
         print(fmt("child={child}"))
     elif args.version:
         # Deduce version number from code/version.c.
-        f = fmt('{root}/{project}/{parent}/code/version.c@{changelevel}')
+        f = fmt('{depot}/project/{project}/{parent}/code/version.c@{changelevel}')
         m = re.search(r'^#define MPS_RELEASE "release/(\d+\.\d+)\.\d+"$',
                       p4.contents(f), re.M)
         if not m:
             raise Error("Failed to extract version from {}.".format(f))
-        version = m.group(1)
+        args.version = m.group(1)
         if args.parent == 'master':
-            args.child = 'version/{}'.format(version)
+            args.child = fmt('version/{version}')
         else:
-            args.child = 'custom/{}/version/{}'.format(customer, version)
+            args.child = fmt('custom/{customer}/version/{version}')
         print(fmt("child={child}"))
 
-    if not re.match(CHILD_RE, args.child):
+    m = re.match(CHILD_RE, args.child)
+    if not m:
         raise Error(fmt("Invalid child: {child}"))
+    if args.customer != m.group(1):
+        raise Error(fmt("Customer mismatch between {parent} and {child}."))
+    args.version = m.group(2)
 
     if not args.description:
         args.description = fmt("Branching {parent} to {child}.")
         print(fmt("description={description}"))
 
+    # Create the branch specification
     args.branch = fmt('{project}/{child}')
     branch_spec = dict(Branch=args.branch,
                        Description=args.description,
-                       View0=fmt('{root}/{project}/{parent}/... '
-                                 '{root}/{project}/{child}/...'))
+                       View0=fmt('{depot}/project/{project}/{parent}/... '
+                                 '{depot}/project/{project}/{child}/...'))
     print("view={}".format(branch_spec['View0']))
+    have_branch = False
     if any(p4.run('branches', '-E', args.branch)):
-        print("Branch spec already exists: not creating.")
-    else:
+        print(fmt("Branch spec {branch} already exists: skipping."))
+        have_branch = True
+    elif args.commit:
+        print(fmt("Creating branch spec {branch}."))
         p4.run('branch', '-i').send(branch_spec).done()
-
-    if any(p4.run('dirs', fmt('{root}/{project}/{child}'))):
-        print("Child branch already populated: not creating.")
+        have_branch = True
     else:
-        populate_args = ['populate', '-n', '-f',
+        print("-y/--commit not specified: skipping branch creation.")
+
+    # Populate the branch
+    if any(p4.run('dirs', fmt('{depot}/project/{project}/{child}'))):
+        print("Child branch already populated: skipping.")
+    else:
+        srcs = fmt('{depot}/project/{project}/{parent}/...@{changelevel}')
+        populate_args = ['populate', '-n',
                          '-b', args.branch,
-                         '-d', args.description,
-                         '-s', fmt('{root}/{project}/{parent}/...@{changelevel}')]
+                         '-d', fmt("Branching {parent} to {child}."),
+                         '-s', srcs]
         if args.commit:
+            print(fmt("Populating branch {branch}..."))
             populate_args.remove('-n')
-        print("cmd={}".format(populate_args))
-        for result in p4.run(*populate_args):
-            print(result)
+            p4.do(*populate_args)
+        elif have_branch:
+            print("-y/--commit not specified: dry-run (-n) only.")
+            p4.do(*populate_args)
+        else:
+            print("-y/--commit not specified: skipping populate.")
+
+    # Determine the first change on the branch
+    cmd = p4.run('changes', fmt('{depot}/project/{project}/{child}/...'))
+    try:
+        args.base = int(deque(cmd, maxlen=1).pop()['change'])
+        print(fmt("base={base}"))
+    except IndexError:
+        args.commit = False
+        args.base = args.changelevel
+        print(fmt("Branch {child} not populated: using base={base}"))
+
+    def register(filespec, search, replace):
+        args.filespec = fmt(filespec)
+        if p4.contents(args.filespec).find(args.child) != -1:
+            print(fmt("{filespec} already updated: skipping."))
+            return
+        client_spec = dict(View0=fmt('{filespec} //__CLIENT__/target'))
+        with p4.temp_client(client_spec) as (conn, client_root):
+            filename = os.path.join(client_root, 'target')
+            conn.do('sync', filename)
+            conn.do('edit', filename)
+            with open(filename, encoding='utf8') as f:
+                text = re.sub(search, fmt(replace), f.read(), 1)
+            with open(filename, 'w', encoding='utf8') as f:
+                f.write(text)
+            for result in conn.run('diff'):
+                if 'data' in result:
+                    print(result['data'])
+            if args.commit:
+                conn.do('submit', '-d', fmt("Registering {child}."), filename)
+            else:
+                print(fmt("-y/--commit not specified: skipping submit of\n"
+                          "  {filespec}."))
+
+    # Task branches
+    if not args.version:
+        register('{depot}/project/{project}/branch/index.html',
+                 '(?=</table>\n)', TASK_BRANCH_ENTRY)
+
+    # Public version branches
+    elif args.version and not args.customer:
+        register('{depot}/project/{project}/version/index.html',
+                 '(?=</table>\n)', VERSION_BRANCH_ENTRY)
+
+        # Create git-fusion client spec
+        have_git_branch = False
+        args.git_client = fmt('git-fusion-{project}-version-{version}')
+        if any(p4.run('clients', '-E', args.git_client)):
+            print(fmt("client {git_client} already exists: skipping."))
+            have_git_branch = True
+        elif args.commit:
+            client_spec = dict(
+                Client=args.git_client,
+                Description=fmt("Git-fusion client for syncing {project} "
+                                "version {version}"),
+                Root=fmt('/home/git-fusion/.git-fusion/views/'
+                         '{project}-version-{version}/p4'),
+                View0=fmt('{depot}/project/{project}/{child}/... '
+                          '//{git_client}/...'))
+            print(fmt("Creating client spec {git_client}"))
+            p4.run('client', '-i').send(client_spec).done()
+            have_git_branch = True
+        else:
+            print("-y/--commit not specified: skipping git branch creation.")
+
+        # Update table of pushes
+        register('{depot}/infosys/robots/git-fusion/etc/pushes',
+                 r"\n*\Z",
+                 '\n{project}-version-{version}\t'
+                 'git@github.com:Ravenbrook/mps-temporary.git\t'
+                 '{child}\n')
+
 
 if __name__ == '__main__':
     main(sys.argv)

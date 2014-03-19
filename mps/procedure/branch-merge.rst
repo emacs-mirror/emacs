@@ -17,11 +17,34 @@ This document contains procedures and checklists for branching and merging durin
 .. _release-build: release-build
 
 
-2. Creating a development branch
---------------------------------
+2. Pre-branch checklist
+-----------------------
 
-#. If you are creating a development branch to fix a problem, make
-   sure that there's a job recording the problem.
+#. Have you created a job recording the problem you are planning to
+   solve on the development branch?
+
+
+3. Creating a development branch (automated procedure)
+------------------------------------------------------
+
+Run the script ``tool/branch.py``, passing the options:
+
+* ``-P mps`` -- project name
+* ``-p PARENT`` -- parent branch: for example ``master`` or ``custom/cet/main``
+* ``-C CHANGELEVEL`` -- changelevel at which to make the branch
+* ``-t TASK`` -- task name: for example ``lii6ll``
+* ``-d "DESCRIPTION"`` -- the description of the branch
+* ``-y`` -- yes, really create the branch
+
+If omitted, the project and parent branch are deduced from the current
+directory, and the changelevel defaults to the most recent change on
+the parent branch. So a typical invocation looks like this::
+
+    tool/branch.py -t lii6ll -d "Adding new supported platform lii6ll (job003596)." -y
+
+
+4. Creating a development branch (manual procedure)
+---------------------------------------------------
 
 #. Create a branch specification. For example::
 
@@ -43,18 +66,9 @@ This document contains procedures and checklists for branching and merging durin
         View:
                 //info.ravenbrook.com/project/mps/custom/cet/main/... //info.ravenbrook.com/project/mps/branch/2013-11-04/cet-i6-stack-probe/...
 
-#. If you're just going to work on a subset of the sources, then just
-   map the files you need::
+#. Populate the branch::
 
-        View:
-                //info.ravenbrook.com/project/mps/custom/cet/main/code/... //info.ravenbrook.com/project/mps/branch/2013-07-02/cet-ap-key/code/...
-
-#. Ensure that the branch is mapped in your client specification.
-
-#. Integrate and submit::
-
-        p4 integrate -b mps/branch/2013-08-21/lii6ll
-        p4 submit -d "Branching to add new supported platform lii6ll (job003596)."
+        p4 populate -b mps/branch/2013-08-21/lii6ll -d "Branching to add new supported platform lii6ll (job003596)."
 
 #. Edit the index of branches::
 
@@ -63,7 +77,7 @@ This document contains procedures and checklists for branching and merging durin
    and add an entry to the "Active branches" section.
 
 
-3. Pre-merge checklist
+5. Pre-merge checklist
 ----------------------
 
 #. Have you solved the problem?
@@ -73,6 +87,9 @@ This document contains procedures and checklists for branching and merging durin
 #. Does the test suite pass on all supported platforms?
 
 #. If there are interface changes, is there documentation?
+
+#. If the changes are significant and user-visible, have you updated
+   the release notes (``master/manual/source/release.rst``)?
 
 #. If this is work on a customer-specific branch, and you've added new
    customer-specific interfaces, have you ensured that these
@@ -86,7 +103,7 @@ This document contains procedures and checklists for branching and merging durin
 #. Has there been a code review?
 
 
-4. Merging a development branch
+6. Merging a development branch
 -------------------------------
 
 #. Do a catch-up merge from the master sources (or the appropriate
@@ -132,9 +149,6 @@ This document contains procedures and checklists for branching and merging durin
    "Active branches" to "Dormant branches" section and linking the
    change in which the branch was merged.
 
-#. If the change is significant and user-visible, update the release
-   notes (``master/manual/source/release.rst``).
-
 
 
 A. References
@@ -146,6 +160,7 @@ B. Document History
 
 ==========  =====  ==================================================
 2014-01-09  GDR_   Created.
+2014-03-19  GDR_   Describe automated procedure.
 ==========  =====  ==================================================
 
 .. _GDR: mailto:gdr@ravenbrook.com

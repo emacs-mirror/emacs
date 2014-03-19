@@ -69,13 +69,41 @@ evolution. A version has these parts:
 ---------------------------------------
 
 
-3.1. Prerequisites
-~~~~~~~~~~~~~~~~~~
+3.1. Pre-branch checklist
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#. Make sure that you are an authenticated Git Fusion user (follow the
-   git-fusion_ procedure if not).
+#. Are you an authenticated Git Fusion user? If not, follow the
+   git-fusion_ procedure.
 
    .. _git-fusion: /procedure/git-fusion
+
+#. Does ``code/version.c`` in the master sources contain the correct
+   value for the ``MPS_RELEASE`` macro? It should be the name of the
+   first release from the version you are about to create. If it is
+   wrong, correct and submit it.
+
+
+3.2. Automated procedure
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Run the script ``tool/branch.py``, passing the options:
+
+* ``-P mps`` -- project name
+* ``-p master`` -- parent branch
+* ``-C CHANGELEVEL`` -- changelevel at which to make the branch
+* ``-v`` -- request a version branch
+* ``-d "DESCRIPTION"`` -- description of the branch
+* ``-y`` -- yes, really create the branch
+
+If omitted, the project and parent branch are deduced from the current
+directory, and the changelevel defaults to the most recent change on
+the parent branch. So a typical invocation looks like this::
+
+    tool/branch.py -v -d "Simplified interface to generation chains." -y
+
+
+3.3. Manual procedure
+~~~~~~~~~~~~~~~~~~~~~
 
 #. Make sure that the sources for the version you are about to create,
    for the table of versions, and for the table of Git Fusion pushes,
@@ -84,23 +112,6 @@ evolution. A version has these parts:
         //info.ravenbrook.com/project/mps/version/$VERSION/...
         //info.ravenbrook.com/project/mps/branch/index.html
         //info.ravenbrook.com/infosys/robots/git-fusion/etc/pushes
-
-
-3.2. Create the version branch
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-#. Update the following files in the master sources that contain a
-   version number, so that they refer to the version that you are
-   about to create::
-
-        code/version.c
-
-   Submit these files to Perforce.
-
-   (If there are other files that need updating, update this procedure
-   and add them here. But it is better to parse the information out of
-   ``code/version.c`` so that the version number is mentioned just
-   once. See for example ``manual/source/conf.py``.)
 
 #. Create the version branch specification by running::
 
@@ -128,29 +139,9 @@ evolution. A version has these parts:
 
    Note the latest change that was in before the integrate.
 
-#. Edit ``configure.ac`` on the version branch, replacing ``[master]``
-   with ``[version A.BBB]``, and then submit it::
-
-        p4 submit -d "Update 'master' to 'version $VERSION'"
-
-   (If there are other files that need updating, update this procedure
-   and add them here. But it is better to organize the sources so that
-   this is not necessary.)
-
-#. Do an empty integrate of this change back on to the masters, so
-   Perforce knows that it's not wanted::
-
-        p4 integrate -r -b $BRANCH
-        p4 resolve -ay
-        p4 submit -d "Ignoring update of 'master' to 'version $VERSION' from version branch"
-
-
-3.3. Register the new version branch
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 #. Update the `table of versions <https://info.ravenbrook.com/project/mps/version/>`_.
 
-#. Make a client specification that can be used by the `git-fusion robot <https://info.ravenbrook.com/infosys/robots>`_ to sync the version:
+#. Make a client specification that can be used by the `git-fusion robot <https://info.ravenbrook.com/infosys/robots>`_ to sync the version::
 
         p4 client -i <<END
         Client: git-fusion-mps-version-$VERSION
@@ -159,7 +150,7 @@ evolution. A version has these parts:
         View: //info.ravenbrook.com/project/mps/version/$VERSION/... //git-fusion-mps-version-$VERSION/...
         END
 
-   Add an entry to the `list of repositories to push to GitHub <https://info.ravenbrook.com/infosys/robots/git-fusion/etc/pushes>`_:
+#. Add an entry to the `list of repositories to push to GitHub <https://info.ravenbrook.com/infosys/robots/git-fusion/etc/pushes>`_::
 
         PUSHES=$(p4 have //info.ravenbrook.com/infosys/robots/git-fusion/etc/pushes | cut -d' ' -f3)
         p4 edit $PUSHES
@@ -186,6 +177,7 @@ B. Document History
 2010-11-06  RHSK_  Correctly format example of p4 branch -o mps/version/1.105
 2014-01-13  GDR_   Make procedure less error-prone by giving exact sequence of commands (where possible) based on experience of version 1.112.
 2014-01-14  GDR_   Step for adding to Git Fusion.
+2014-03-19  GDR_   Describe automated procedure.
 ==========  =====  ========================================================
 
 .. _GDR: mailto:gdr@ravenbrook.com

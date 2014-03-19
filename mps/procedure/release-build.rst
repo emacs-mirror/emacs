@@ -103,8 +103,25 @@ All relative paths are relative to
    On other platforms they are as shown above.
 
 
-5. MPS Kit Tarball and Zip file
--------------------------------
+5. Making the release (automated procedure)
+-------------------------------------------
+
+Run the script ``tool/release.py``, passing the options:
+
+* ``-P mps`` -- project name
+* ``-b BRANCH`` -- branch to make the release from: for example ``version/1.113``
+* ``-C CHANGELEVEL`` -- changelevel at which to make the release
+* ``-y`` -- yes, really create the branch
+
+If omitted, the project and branch are deduced from the current
+directory, and the changelevel defaults to the most recent change on
+the branch. So a typical invocation looks like this::
+
+    tool/release.py -y
+
+
+6. Making the release (manual procedure)
+----------------------------------------
 
 .. note::
 
@@ -167,7 +184,7 @@ On a Unix (including OS X) machine:
         rm -rf /tmp/$CLIENT
 
 
-6. Registering the release
+7. Registering the release
 --------------------------
 
 #. Edit the index of releases (``release/index.html``) and add the
@@ -183,14 +200,6 @@ On a Unix (including OS X) machine:
 #. Submit these changes to Perforce:
 
         p4 submit -d "MPS: registered release $RELEASE."
-
-#. Integrate the changes you made on the version branch back to the
-   master sources, ignoring changes that don't apply to the master
-   sources::
-
-        p4 integrate -r -b $BRANCH
-        p4 resolve
-        p4 submit -d "Merging updates preparatory to release $RELEASE."
 
 #. Visit the `project
    updater <http://info.ravenbrook.com/infosys/cgi/data_update.cgi>`__,
