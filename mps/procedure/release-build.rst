@@ -108,16 +108,17 @@ All relative paths are relative to
 
 Run the script ``tool/release.py``, passing the options:
 
-* ``-P mps`` -- project name
-* ``-b BRANCH`` -- branch to make the release from: for example ``version/1.113``
-* ``-C CHANGELEVEL`` -- changelevel at which to make the release
-* ``-y`` -- yes, really create the branch
+* ``-P mps`` — project name
+* ``-b BRANCH`` — branch to make the release from: for example ``version/1.113``
+* ``-C CHANGELEVEL`` — changelevel at which to make the release
+* ``-d "DESCRIPTION"`` — changelevel at which to make the release
+* ``-y`` — yes, really make the release
 
 If omitted, the project and branch are deduced from the current
 directory, and the changelevel defaults to the most recent change on
-the branch. So a typical invocation looks like this::
+the branch. A typical invocation looks like this::
 
-    tool/release.py -y
+    tool/release.py -b version/1.113 -d "Simplified interface to generation chains." -y
 
 
 6. Making the release (manual procedure)
@@ -193,7 +194,7 @@ On a Unix (including OS X) machine:
 #. Edit the main MPS Project index page (``index.rst``), updating the
    "Download the latest release" link.
 
-#. Submit these changes to Perforce:
+#. Submit these changes to Perforce::
 
         p4 submit -d "MPS: registered release $RELEASE."
 
