@@ -12,6 +12,9 @@
 #
 # This script automates the process of making a release, based on
 # [RELEASE-BUILD].
+#
+# This script is idempotent: that is, you can run it repeatedly and it
+# will skip steps that have already been performed.
 
 
 from __future__ import unicode_literals
@@ -19,12 +22,8 @@ import argparse
 from contextlib import contextmanager
 import os
 import re
-import shutil
 import subprocess
 import sys
-import tempfile
-import uuid
-
 import p4
 
 class Error(Exception): pass
@@ -51,7 +50,7 @@ BRANCH_FILESPEC_RE = r'{}({})(?:/|$)'.format(PROJECT_FILESPEC_RE, BRANCH_RE)
 
 def main(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p', '--project',
+    parser.add_argument('-P', '--project',
                         help='Name of the project.')
     parser.add_argument('-b', '--branch',
                         help='Name of the branch to make the release from.')
@@ -62,7 +61,7 @@ def main(argv):
                         'show a preview).')
     args = parser.parse_args(argv[1:])
     args.root = ROOT
-    fmt = lambda s: s.format(**vars(args))
+    fmt = lambda s: s.format_map(vars(args))
 
     if not args.project:
         # Deduce project from current directory.
@@ -115,67 +114,41 @@ def main(argv):
     args.release = m.group(1)
     print(fmt("release={release}"))
     if args.version and args.version != m.group(2):
-        raise Error(fmt("Version {version} incompatible with release {release}"))
+        raise Error(fmt("Version {version} does not match release {release}"))
     if args.customer:
         args.reldir = fmt('{root}/{project}/custom/{customer}/release/{release}')
     else:
         args.reldir = fmt('{root}/{project}/release/{release}')
 
-    if any(p4.run('dirs', args.reldir)):
-        raise Error(fmt("Release {release} already exists."))
+    args.kit = fmt('mps-kit-{release}')
+    client_spec = dict(
+        View0=fmt('{root}/{project}/{branch}/... //__CLIENT__/{kit}/...'),
+        View1=fmt('{reldir}/... //__CLIENT__/release/{release}/...'))
+    srcs = fmt('{root}/{project}/{branch}/...@{changelevel}')
+    for line_end, args.ext, cmd in (('local', 'tar.gz', ['tar', 'czf']),
+                                    ('win',   'zip',    ['zip', '-r'])):
+        client_spec['LineEnd'] = line_end
+        archive = fmt('release/{release}/{kit}.{ext}')
+        with p4.temp_client(client_spec) as (conn, client_root):
+            try:
+                conn.do('files', fmt('{reldir}/{kit}.{ext}'))
+            except p4.Error as e:
+                print("Adding {}".format(archive))
+                conn.do('sync', '-f', srcs)
+                with pushdir(client_root):
+                    os.makedirs(fmt('release/{release}'))
+                    subprocess.check_call(cmd + [archive, args.kit],
+                                          stdout=subprocess.DEVNULL)
+                if not args.commit:
+                    print("-y/--commit not specified: skipping.")
+                else:
+                    conn.do('add', os.path.join(client_root, archive))
+                    desc = fmt("Adding the MPS Kit {ext} archive for "
+                               "release {release}.")
+                    conn.do('submit', '-d', desc)
+            else:
+                print("{} already exists: skipping.".format(archive))
 
-    # Create a fresh Perforce client workspace
-    args.client = 'mps-{}'.format(uuid.uuid4())
-    client_root = tempfile.mkdtemp()
-    client_spec = dict(Client=args.client,
-                       Root=client_root,
-                       Description=fmt("Temporary client for making MPS Kit "
-                                       "release {release}"),
-                       LineEnd='local',
-                       View0=fmt('{root}/{project}/{branch}/... '
-                                 '//{client}/mps-kit-{release}/...'),
-                       View1=fmt('{reldir}/... '
-                                 '//{client}/release/{release}/...'))
-    try:
-        conn = p4.Connection(client=args.client)
-        conn.run('client', '-i').send(client_spec).done()
-        try:
-            # Sync this client to changelevel for the release
-            srcs = fmt('{root}/{project}/{branch}/...@{changelevel}')
-            conn.run('sync', '-f', srcs).done()
-
-            # Create a tarball containing the sources, and open it for add
-            tarball = fmt('release/{release}/mps-kit-{release}.tar.gz')
-            with pushdir(client_root):
-                os.makedirs(fmt('release/{release}'))
-                subprocess.check_call(['tar', 'czf', tarball,
-                                       fmt('mps-kit-{release}')])
-
-            # Switch the client workspace to Windows (CRLF) line endings
-            client_spec['LineEnd'] = 'win'
-            conn.run('client', '-i').send(client_spec).done()
-
-            # Sync the sources again
-            conn.run('sync', '-f', srcs).done()
-
-            # Create a zip file containing the sources, and open it for add
-            zipfile = fmt('release/{release}/mps-kit-{release}.zip')
-            with pushdir(client_root):
-                subprocess.check_call(['zip', '-r', zipfile,
-                                       fmt('mps-kit-{release}')],
-                                      stdout=subprocess.DEVNULL)
-
-            # Submit the release files to Perforce
-            if args.commit:
-                conn.run('add', os.path.join(client_root, tarball)).done()
-                conn.run('add', os.path.join(client_root, zipfile)).done()
-                description = fmt("Adding the MPS Kit tarball and zip file "
-                                  "for release {release}.")
-                conn.run('submit', '-d', description).done()
-        finally:
-            conn.run('client', '-d', args.client).done()
-    finally:
-        shutil.rmtree(client_root)
 
 if __name__ == '__main__':
     main(sys.argv)
