@@ -25,7 +25,6 @@
 
 ;; Iimage is a minor mode that displays images, when image-filename
 ;; exists in the buffer.
-;; http://www.netlaputa.ne.jp/~kose/Emacs/iimage.html
 ;;
 ;; ** Display images in *Info* buffer.
 ;;
