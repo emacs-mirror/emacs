@@ -172,12 +172,14 @@ class Connection(object):
         try:
             conn = Connection(**dict(self.kwargs, client=name))
             conn.run('client', '-i').send(spec).done()
-            yield conn, root
             try:
-                conn.do('revert', '-k', '//...')
-            except Error:
-                pass
-            conn.do('client', '-d', name)
+                yield conn, root
+            finally:
+                try:
+                    conn.do('revert', '-k', '//...')
+                except Error:
+                    pass
+                conn.do('client', '-d', name)
         finally:
             shutil.rmtree(root)
 
