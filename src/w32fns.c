@@ -2099,6 +2099,7 @@ reset_modifiers (void)
 
 #define CURRENT_STATE(key) ((GetAsyncKeyState (key) & 0x8000) >> 8)
 
+    memset (keystate, 0, sizeof (keystate));
     GetKeyboardState (keystate);
     keystate[VK_SHIFT] = CURRENT_STATE (VK_SHIFT);
     keystate[VK_CONTROL] = CURRENT_STATE (VK_CONTROL);
@@ -3444,6 +3445,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	  tme.cbSize = sizeof (tme);
 	  tme.dwFlags = TME_LEAVE;
 	  tme.hwndTrack = hwnd;
+	  tme.dwHoverTime = HOVER_DEFAULT;
 
 	  track_mouse_event_fn (&tme);
 	  track_mouse_window = hwnd;

@@ -1,3 +1,9 @@
+2014-03-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (reset_modifiers): Zero out keystate[] before using it.
+	(w32_wnd_proc): Initialize the dwHoverTime member of
+	TRACKMOUSEEVENT structure.
+
 2014-03-17  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnutls.c (Fgnutls_boot): Fix case of :verify-error = t.
