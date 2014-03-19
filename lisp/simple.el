@@ -4386,7 +4386,8 @@ run `deactivate-mark-hook'."
       (if (eq (car-safe transient-mark-mode) 'only)
 	  (setq transient-mark-mode (cdr transient-mark-mode)))
       (setq mark-active nil)
-      (run-hooks 'deactivate-mark-hook))))
+      (run-hooks 'deactivate-mark-hook))
+    (redisplay--update-region-highlight (selected-window))))
 
 (defun activate-mark (&optional no-tmm)
   "Activate the mark.

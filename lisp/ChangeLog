@@ -1,3 +1,9 @@
+2014-03-19  Stefan-W. Hahn  <stefan.hahn@s-hahn.de>
+
+	* ps-print.el (ps-generate-postscript-with-faces):
+	Explicitly deactivate the mark (bug#16866).
+	* simple.el (deactivate-mark): Update region highlight.
+
 2014-03-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/package.el (describe-package-1):

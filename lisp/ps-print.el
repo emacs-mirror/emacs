@@ -6429,6 +6429,7 @@ If FACE is not a valid face name, use default face."
   (save-restriction
     (narrow-to-region from to)
     (ps-print-ensure-fontified from to)
+    (deactivate-mark)                   ;bug#16866.
     (ps-generate-postscript-with-faces1 from to)))
 
 (defun ps-generate-postscript (from to)
