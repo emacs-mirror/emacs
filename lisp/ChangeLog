@@ -1,4 +1,4 @@
-2014-03-19  Stefan-W. Hahn  <stefan.hahn@s-hahn.de>
+2014-03-19  Stefan-W. Hahn  <stefan.hahn@s-hahn.de>  (tiny change)
 
 	* ps-print.el (ps-generate-postscript-with-faces):
 	Explicitly deactivate the mark (bug#16866).
