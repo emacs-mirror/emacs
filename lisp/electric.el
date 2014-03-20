@@ -286,7 +286,8 @@ mode set `electric-indent-inhibit', but this can be used as a workaround.")
   (let ((electric-indent-mode nil))
     (newline arg 'interactive)))
 
-;;;###autoload(define-key global-map "\C-j" 'electric-newline-and-maybe-indent)
+;;;###autoload
+(define-key global-map "\C-j" 'electric-newline-and-maybe-indent)
 ;;;###autoload
 (defun electric-newline-and-maybe-indent ()
   "Insert a newline.
