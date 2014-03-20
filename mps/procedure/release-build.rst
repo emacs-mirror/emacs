@@ -106,7 +106,7 @@ All relative paths are relative to
 5. Making the release (automated procedure)
 -------------------------------------------
 
-Run the script ``tool/release.py``, passing the options:
+Run the script ``tool/release``, passing the options:
 
 * ``-P mps`` — project name
 * ``-b BRANCH`` — branch to make the release from: for example ``version/1.113``
@@ -118,7 +118,7 @@ If omitted, the project and branch are deduced from the current
 directory, and the changelevel defaults to the most recent change on
 the branch. A typical invocation looks like this::
 
-    tool/release.py -b version/1.113 -d "Simplified interface to generation chains." -y
+    tool/release -b version/1.113 -d "Simplified interface to generation chains." -y
 
 
 6. Making the release (manual procedure)
