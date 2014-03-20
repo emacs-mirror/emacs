@@ -1,3 +1,7 @@
+2014-03-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doc.c (store_function_docstring): Fix pointer signedness mismatch.
+
 2014-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc.c (store_function_docstring): Warn when we don't know where to
