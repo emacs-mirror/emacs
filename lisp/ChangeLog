@@ -1,5 +1,7 @@
 2014-03-20  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacs-lisp/cl-extra.el (cl--map-overlays): Remove obsolete code.
+
 	* skeleton.el (skeleton-autowrap): Mark as obsolete.  Doc fix.
 
 2014-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
