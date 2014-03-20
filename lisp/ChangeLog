@@ -1,5 +1,8 @@
 2014-03-20  Juanma Barranquero  <lekktu@gmail.com>
 
+	* progmodes/hideif.el (hif-string-to-number): New function.
+	(hif-tokenize): Use it to understand non-decimal floats.
+
 	* emacs-lisp/cl-extra.el (cl--map-overlays): Remove obsolete code.
 
 	* skeleton.el (skeleton-autowrap): Mark as obsolete.  Doc fix.
