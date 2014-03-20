@@ -86,7 +86,7 @@ evolution. A version has these parts:
 3.2. Automated procedure
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Run the script ``tool/branch.py``, passing the options:
+Run the script ``tool/branch``, passing the options:
 
 * ``-P mps`` — project name
 * ``-p master`` — parent branch
@@ -99,7 +99,7 @@ If omitted, the project and parent branch are deduced from the current
 directory, and the changelevel defaults to the most recent change on
 the parent branch. A typical invocation looks like this::
 
-    tool/branch.py -p master -v -d "Simplified interface to generation chains." -y
+    tool/branch -p master -v -d "Simplified interface to generation chains." -y
 
 
 3.3. Manual procedure
