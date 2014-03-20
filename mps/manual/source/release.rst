@@ -8,6 +8,45 @@ Release notes
 Release 1.113.0
 ---------------
 
+New features
+............
+
+#. In previous releases there was an implicit connection between
+   blocks allocated by blocks allocated by :ref:`pool-awl` and
+   :ref:`pool-lo` pools, and blocks allocated by other automatically
+   managed pool classes.
+
+   In particular, blocks allocated by AWL and LO pools were garbage
+   collected together with blocks allocated by :ref:`pool-ams` pools,
+   and blocks allocated by :ref:`pool-amc` pools in generation 1 of
+   their chains.
+
+   This is no longer the case: to arrange for blocks to be collected
+   together you need to ensure that they are allocated in the *same*
+   generation chain, using the :c:macro:`MPS_KEY_CHAIN` and
+   :c:macro:`MPS_KEY_GEN` keyword arguments to
+   :c:func:`mps_pool_create_k`.
+
+   So if you have code like this::
+
+       res = mps_pool_create(&my_amc, arena, mps_class_amc(), my_chain);
+       res = mps_pool_create(&my_awl, arena, mps_class_awl());
+
+   and you want to retain the connection between these pools, then you
+   must ensure that they use the same generation chain::
+
+       MPS_ARGS_BEGIN(args) {
+         MPS_ARGS_ADD(args, MPS_KEY_CHAIN, my_chain);
+         res = mps_pool_create_k(&my_amc, arena, mps_class_amc(), args);
+       } MPS_ARGS_END(args);
+
+       MPS_ARGS_BEGIN(args) {
+         MPS_ARGS_ADD(args, MPS_KEY_CHAIN, my_chain);
+         MPS_ARGS_ADD(args, MPS_KEY_GEN, 1);
+         res = mps_pool_create_k(&my_awl, arena, mps_class_awl(), args);
+       } MPS_ARGS_END(args);
+
+
 Interface changes
 .................
 
