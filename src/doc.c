@@ -535,6 +535,9 @@ store_function_docstring (Lisp_Object obj, ptrdiff_t offset)
 	 docstring, since we've found a docstring for it.  */
       if ((ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK) > COMPILED_DOC_STRING)
 	ASET (fun, COMPILED_DOC_STRING, make_number (offset));
+      else
+	message ("No docstring slot for %s",
+		 SYMBOLP (obj) ? SDATA (SYMBOL_NAME (obj)) : "<anonymous>");
     }
 }
 
@@ -707,7 +710,7 @@ as the keymap for future \\=\\[COMMAND] substrings.
 thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ into the output.
 
 Return the original STRING if no substitutions are made.
-Otherwise, return a new string, without any text properties.  */)
+Otherwise, return a new string.  */)
   (Lisp_Object string)
 {
   char *buf;

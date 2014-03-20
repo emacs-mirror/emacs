@@ -1,5 +1,11 @@
 2014-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* doc.c (store_function_docstring): Warn when we don't know where to
+	put a docstring.
+	(Fsubstitute_command_keys): Don't advertise the fact that
+	text-properties are dropped, since we think it's a bug that we'll fix
+	in 24.5.
+
 	* frame.h (SET_FRAME_VISIBLE): Keep frame_garbaged up to date.
 	* xterm.c (handle_one_xevent) <MapNotify>: Don't garbage the frame.
 	* frame.c (frame_garbaged): Make "docstring" more precise.

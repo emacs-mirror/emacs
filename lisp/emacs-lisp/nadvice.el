@@ -74,12 +74,19 @@ Each element has the form (WHERE BYTECODE STACK) where:
 
 (defun advice--make-docstring (function)
   "Build the raw docstring for FUNCTION, presumably advised."
-  (let ((flist (indirect-function function))
-        (docstring nil))
+  (let* ((flist (indirect-function function))
+         (docfun nil)
+         (docstring nil))
     (if (eq 'macro (car-safe flist)) (setq flist (cdr flist)))
     (while (advice--p flist)
       (let ((bytecode (aref flist 1))
+            (doc (aref flist 4))
             (where nil))
+        ;; Hack attack!  For advices installed before calling
+        ;; Snarf-documentation, the integer offset into the DOC file will not
+        ;; be installed in the "core unadvised function" but in the advice
+        ;; object instead!  So here we try to undo the damage.
+        (if (integerp doc) (setq docfun flist))
         (dolist (elem advice--where-alist)
           (if (eq bytecode (cadr elem)) (setq where (car elem))))
         (setq docstring
@@ -101,8 +108,9 @@ Each element has the form (WHERE BYTECODE STACK) where:
                "\n")))
       (setq flist (advice--cdr flist)))
     (if docstring (setq docstring (concat docstring "\n")))
-    (let* ((origdoc (unless (eq function flist) ;Avoid inf-loops.
-                      (documentation flist t)))
+    (unless docfun (setq docfun flist))
+    (let* ((origdoc (unless (eq function docfun) ;Avoid inf-loops.
+                      (documentation docfun t)))
            (usage (help-split-fundoc origdoc function)))
       (setq usage (if (null usage)
                       (let ((arglist (help-function-arglist flist)))
