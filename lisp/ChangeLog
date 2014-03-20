@@ -1,3 +1,7 @@
+2014-03-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* skeleton.el (skeleton-autowrap): Mark as obsolete.  Doc fix.
+
 2014-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* electric.el (electric-newline-and-maybe-indent): New command.
