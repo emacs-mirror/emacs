@@ -27253,7 +27253,7 @@ show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw)
   if (/* If window is in the process of being destroyed, don't bother
 	 to do anything.  */
       w->current_matrix != NULL
-      /* Don't update mouse highlight if hidden */
+      /* Don't update mouse highlight if hidden.  */
       && (draw != DRAW_MOUSE_FACE || !hlinfo->mouse_face_hidden)
       /* Recognize when we are called to operate on rows that don't exist
 	 anymore.  This can happen when a window is split.  */

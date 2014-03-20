@@ -125,8 +125,7 @@ Lisp_Object selected_frame;
 
 static struct frame *last_nonminibuf_frame;
 
-/* Nonzero means there is at least one garbaged frame.  */
-
+/* False means there are no visible garbaged frames.  */
 bool frame_garbaged;
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -621,7 +620,7 @@ make_terminal_frame (struct terminal *terminal)
   FRAME_MENU_BAR_LINES (f) = NILP (Vmenu_bar_mode) ? 0 : 1;
   FRAME_MENU_BAR_HEIGHT (f) = FRAME_MENU_BAR_LINES (f) * FRAME_LINE_HEIGHT (f);
 
-  /* Set the top frame to the newly created frame. */
+  /* Set the top frame to the newly created frame.  */
   if (FRAMEP (FRAME_TTY (f)->top_frame)
       && FRAME_LIVE_P (XFRAME (FRAME_TTY (f)->top_frame)))
     SET_FRAME_VISIBLE (XFRAME (FRAME_TTY (f)->top_frame), 2); /* obscured */

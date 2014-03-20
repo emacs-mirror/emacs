@@ -3054,7 +3054,7 @@ free_saved_screen (struct glyph_matrix *saved)
   int i;
 
   if (!saved)
-    return;	/* already freed */
+    return;	/* Already freed!  */
 
   for (i = 0; i < saved->nrows; ++i)
     {
@@ -3170,7 +3170,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   int statecount, x, y, i;
   bool leave, onepane;
   int result IF_LINT (= 0);
-  int title_faces[4];		/* face to display the menu title */
+  int title_faces[4];		/* Face to display the menu title.  */
   int faces[4], buffers_num_deleted = 0;
   struct frame *sf = SELECTED_FRAME ();
   struct tty_display_info *tty = FRAME_TTY (sf);
@@ -3332,7 +3332,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 		       have been opened.  That does not include an open and
 		       active submenu.  */
 		    if (i != statecount - 2
-			|| state[i].menu->submenu[dy] != state[i+1].menu)
+			|| state[i].menu->submenu[dy] != state[i + 1].menu)
 		      while (i != statecount - 1)
 			{
 			  statecount--;
@@ -3383,7 +3383,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   screen_update (sf, state[0].screen_behind);
   while (statecount--)
     free_saved_screen (state[statecount].screen_behind);
-  tty_show_cursor (tty);	/* turn cursor back on */
+  tty_show_cursor (tty);	/* Turn cursor back on.  */
   fflush (tty->output);
 
 /* Clean up any mouse events that are waiting inside Emacs event queue.
@@ -3474,7 +3474,7 @@ tty_menu_last_menubar_item (struct frame *f)
 	    break;
 	  i += 4;
 	}
-      i -= 4;	/* went one too far */
+      i -= 4;	/* Went one too far!  */
     }
   return i;
 }
@@ -3519,7 +3519,7 @@ tty_menu_new_item_coords (struct frame *f, int which, int *x, int *y)
 		  if (i < last_i)
 		    *x = XINT (AREF (items, i + 4 + 3));
 		  else
-		    *x = 0;	/* wrap around to the first item */
+		    *x = 0;	/* Wrap around to the first item.  */
 		}
 	      else if (prev_x < 0)
 		{
@@ -3647,7 +3647,7 @@ tty_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 
 	  if (!NILP (descrip))
 	    {
-	      /* if alloca is fast, use that to make the space,
+	      /* If alloca is fast, use that to make the space,
 		 to reduce gc needs.  */
 	      item_data = (char *) alloca (maxwidth + SBYTES (descrip) + 1);
 	      memcpy (item_data, SSDATA (item_name), SBYTES (item_name));
@@ -3694,7 +3694,7 @@ tty_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
       uly = dispheight - height;
     }
 
-  if (FRAME_HAS_MINIBUF_P (f) && uly+height > dispheight - 2)
+  if (FRAME_HAS_MINIBUF_P (f) && uly + height > dispheight - 2)
     {
       /* Move the menu away of the echo area, to avoid overwriting the
 	 menu with help echo messages or vice versa.  */
@@ -3723,8 +3723,8 @@ tty_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
       /* If position was not given by a mouse click, adjust so upper left
          corner of the menu as a whole ends up at given coordinates.  This
          is what x-popup-menu says in its documentation.  */
-      x += width/2;
-      y += 1.5*height/(maxlines+2);
+      x += width / 2;
+      y += 1.5 * height / (maxlines + 2);
     }
 #endif
 

@@ -5667,7 +5667,7 @@ static struct input_event *current_hold_quit;
 
 /* This is the filter function invoked by the GTK event loop.
    It is invoked before the XEvent is translated to a GdkEvent,
-   so we have a chance to act on the event before GTK. */
+   so we have a chance to act on the event before GTK.  */
 static GdkFilterReturn
 event_handler_gdk (GdkXEvent *gxev, GdkEvent *ev, gpointer data)
 {
@@ -5696,9 +5696,9 @@ event_handler_gdk (GdkXEvent *gxev, GdkEvent *ev, gpointer data)
       if (! dpyinfo)
         current_finish = X_EVENT_NORMAL;
       else
-	current_count +=
-	  handle_one_xevent (dpyinfo, xev, &current_finish,
-			     current_hold_quit);
+	current_count
+	  += handle_one_xevent (dpyinfo, xev, &current_finish,
+				current_hold_quit);
     }
   else
     current_finish = x_dispatch_event (xev, xev->xany.display);
@@ -6142,14 +6142,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (f)
         {
 	  bool iconified = FRAME_ICONIFIED_P (f);
-          /* wait_reading_process_output will notice this and update
-             the frame's display structures.
-             If we where iconified, we should not set garbaged,
-             because that stops redrawing on Expose events.  This looks
-             bad if we are called from a recursive event loop
-             (x_dispatch_event), for example when a dialog is up.  */
-          if (!iconified)
-            SET_FRAME_GARBAGED (f);
 
           /* Check if fullscreen was specified before we where mapped the
              first time, i.e. from the command line.  */
@@ -6700,7 +6692,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 #ifdef USE_GTK
           /* GTK creates windows but doesn't map them.
-             Only get real positions when mapped. */
+             Only get real positions when mapped.  */
           if (FRAME_GTK_OUTER_WIDGET (f)
               && gtk_widget_get_mapped (FRAME_GTK_OUTER_WIDGET (f)))
 #endif

@@ -1,3 +1,9 @@
+2014-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.h (SET_FRAME_VISIBLE): Keep frame_garbaged up to date.
+	* xterm.c (handle_one_xevent) <MapNotify>: Don't garbage the frame.
+	* frame.c (frame_garbaged): Make "docstring" more precise.
+
 2014-03-20  Glenn Morris  <rgm@gnu.org>
 
 	* charset.c (init_charset): When we cannot find the charsets directory,
@@ -74,8 +80,8 @@
 	we eventually back up the iterator to the wrap point.  This avoids
 	delusional behavior of move_it_to, whereby it proceeds to the next
 	display line, but sets current_x to zero for all the glyphs that
-	without word-wrap would fit on the previous display line.  One
-	result was that visual-order cursor movement behaved erratically
+	without word-wrap would fit on the previous display line.
+	One result was that visual-order cursor movement behaved erratically
 	under word-wrap.
 	(Fmove_point_visually): Add code to find the x coordinate of the
 	last character before wrap point, under word-wrap on a TTY.
@@ -107,8 +113,8 @@
 	SSDATA (Vx_resource_name), which may be changed from Lisp.
 	(xim_close_display): For XUnregisterIMInstantiateCallback,
 	always eassert return value and pass exactly the same values
-	as were used for XRegisterIMInstantiateCallback.  Otherwise
-	XUnregisterIMInstantiateCallback will always fail.  See Xlib
+	as were used for XRegisterIMInstantiateCallback.
+	Otherwise XUnregisterIMInstantiateCallback will always fail.  See Xlib
 	sources to check why if you are interested.
 
 2014-03-05  Martin Rudalics  <rudalics@gmx.at>

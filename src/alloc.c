@@ -1138,8 +1138,8 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
     }
 
   abase = ABLOCK_ABASE (free_ablock);
-  ABLOCKS_BUSY (abase) =
-    (struct ablocks *) (2 + (intptr_t) ABLOCKS_BUSY (abase));
+  ABLOCKS_BUSY (abase)
+    = (struct ablocks *) (2 + (intptr_t) ABLOCKS_BUSY (abase));
   val = free_ablock;
   free_ablock = free_ablock->x.next_free;
 

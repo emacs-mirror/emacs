@@ -439,7 +439,7 @@ struct frame
   /* The baud rate that was used to calculate costs for this frame.  */
   int cost_calculation_baud_rate;
 
-  /* frame opacity
+  /* Frame opacity
      alpha[0]: alpha transparency of the active frame
      alpha[1]: alpha transparency of inactive frames
      Negative values mean not to change alpha.  */
@@ -453,7 +453,7 @@ struct frame
   /* Additional space to put between text lines on this frame.  */
   int extra_line_spacing;
 
-  /* All display backends seem to need these two pixel values. */
+  /* All display backends seem to need these two pixel values.  */
   unsigned long background_pixel;
   unsigned long foreground_pixel;
 };
@@ -946,6 +946,9 @@ default_pixels_per_inch_y (void)
       }								\
   } while (false)
 
+/* False means there are no visible garbaged frames.  */
+extern bool frame_garbaged;
+
 /* Set visibility of frame F.
    We call redisplay_other_windows to make sure the frame gets redisplayed
    if some changes were applied to it while it wasn't visible (and hence
@@ -955,8 +958,13 @@ INLINE void
 SET_FRAME_VISIBLE (struct frame *f, int v)
 {
   eassert (0 <= v && v <= 2);
-  if (v == 1 && f->visible != 1)
-    redisplay_other_windows ();
+  if (v)
+    {
+      if (v == 1 && f->visible != 1)
+	redisplay_other_windows ();
+      if (FRAME_GARBAGED_P (f))
+	frame_garbaged = true;
+    }
   f->visible = v;
 }
 
@@ -971,9 +979,6 @@ extern Lisp_Object Qtty, Qtty_type;
 extern Lisp_Object Qtty_color_mode;
 extern Lisp_Object Qterminal;
 extern Lisp_Object Qnoelisp;
-
-/* True means there is at least one garbaged frame.  */
-extern bool frame_garbaged;
 
 extern void set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern struct frame *decode_window_system_frame (Lisp_Object);
