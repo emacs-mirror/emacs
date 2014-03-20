@@ -1568,7 +1568,7 @@ Set mark and push previous mark on mark ring (@code{set-mark-command}).
 @kindex 011 TAB (@code{indent-for-tab-command})
 Indent line for current major mode (@code{indent-for-tab-command}).
 @item C-j
-@kindex 012 @kbd{C-j} (@code{electric-indent-just-newline'} or @code{newline-and-indent})
+@kindex 012 @kbd{C-j} (@code{electric-newline-and-maybe-indent})
 Insert a newline, and maybe indent according to mode.
 @item C-k
 @kindex 013 @kbd{C-k} (@code{kill-line})

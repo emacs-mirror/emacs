@@ -162,110 +162,110 @@ TUTORIAL.zh
 
 ** Check the manual.
 
-abbrevs.texi      cyd
-ack.texi          rgm
-anti.texi         cyd
-arevert-xtra.texi cyd
-basic.texi        cyd
-buffers.texi      cyd
-building.texi     cyd
-calendar.texi     rgm
-cal-xtra.texi     rgm
-cmdargs.texi      cyd
-commands.texi     cyd
-custom.texi       cyd
-dired.texi        cyd
-dired-xtra.texi   rgm
-display.texi      cyd
-emacs.texi        rgm
-emacs-xtra.texi   rgm
-emerge-xtra.texi  rgm
-entering.texi     cyd
-files.texi        cyd
-fixit.texi        cyd
-fortran-xtra.texi rgm
-frames.texi       cyd
-glossary.texi     rgm
-help.texi         cyd
-indent.texi       cyd
-killing.texi      cyd
-kmacro.texi       cyd
-macos.texi        rgm  (can't actually test any of it though)
-maintaining.texi  cyd
-mark.texi         cyd
-mini.texi         rgm
-misc.texi         cyd
-modes.texi        cyd
-msdog.texi        rgm  (can't actually test any of it though)
-msdog-xtra.texi   rgm  (can't actually test any of it though)
-mule.texi         rgm  (not 100% sure about "Fontsets")
-m-x.texi          cyd
-package.texi      cyd
-picture-xtra.texi rgm
-programs.texi     cyd
-regs.texi         cyd
-rmail.texi        rgm
-screen.texi       cyd
-search.texi       cyd
-sending.texi      cyd
-text.texi         cyd
-trouble.texi      cyd
-vc-xtra.texi      cyd
-vc1-xtra.texi     cyd
-windows.texi      cyd
-xresources.texi   cyd
+abbrevs.texi      
+ack.texi          
+anti.texi         
+arevert-xtra.texi 
+basic.texi        
+buffers.texi      
+building.texi     
+calendar.texi     
+cal-xtra.texi     
+cmdargs.texi      
+commands.texi     
+custom.texi       
+dired.texi        
+dired-xtra.texi   
+display.texi      
+emacs.texi        
+emacs-xtra.texi   
+emerge-xtra.texi  
+entering.texi     
+files.texi        
+fixit.texi        
+fortran-xtra.texi 
+frames.texi       
+glossary.texi     
+help.texi         
+indent.texi       
+killing.texi      
+kmacro.texi       
+macos.texi        
+maintaining.texi  
+mark.texi         
+mini.texi         
+misc.texi         
+modes.texi        
+msdog.texi        
+msdog-xtra.texi   
+mule.texi         
+m-x.texi          
+package.texi      
+picture-xtra.texi 
+programs.texi     
+regs.texi         
+rmail.texi        
+screen.texi       
+search.texi       
+sending.texi      
+text.texi         
+trouble.texi      
+vc-xtra.texi      
+vc1-xtra.texi     
+windows.texi      
+xresources.texi   
 
 ** Check the Lisp manual.
 
-abbrevs.texi      rgm
-anti.texi         rgm
-back.texi         rgm
-backups.texi      cyd
-buffers.texi      cyd
-commands.texi     cyd
-compile.texi      cyd
-control.texi      cyd
-customize.texi    cyd
-debugging.texi    cyd
-display.texi      cyd
-edebug.texi       rgm
+abbrevs.texi      
+anti.texi         
+back.texi         
+backups.texi      
+buffers.texi      
+commands.texi     
+compile.texi      
+control.texi      
+customize.texi    
+debugging.texi    
+display.texi      
+edebug.texi       
 elisp.texi
-errors.texi       rgm
-eval.texi         cyd
-files.texi        cyd
-frames.texi       cyd
-functions.texi    cyd
-hash.texi         cyd
-help.texi         cyd
-hooks.texi        rgm
+errors.texi       
+eval.texi         
+files.texi        
+frames.texi       
+functions.texi    
+hash.texi         
+help.texi         
+hooks.texi        
 index.texi
-internals.texi    rgm  cyd
-intro.texi        cyd
-keymaps.texi      cyd
-lists.texi        cyd
-loading.texi      cyd
-macros.texi       cyd
-maps.texi         rgm
-markers.texi      rgm
-minibuf.texi      rgm
-modes.texi        cyd
-nonascii.texi     cyd
-numbers.texi      cyd
-objects.texi      cyd
-os.texi           cyd
-package.texi      rgm
-positions.texi    cyd
-processes.texi    rgm
-searching.texi    rgm
-sequences.texi    cyd
-streams.texi      cyd
-strings.texi      cyd
-symbols.texi      cyd
-syntax.texi       cyd
-text.texi         cyd
-tips.texi         rgm
-variables.texi    cyd
-windows.texi      rgm (skimmed)
+internals.texi    
+intro.texi        
+keymaps.texi      
+lists.texi        
+loading.texi      
+macros.texi       
+maps.texi         
+markers.texi      
+minibuf.texi      
+modes.texi        
+nonascii.texi     
+numbers.texi      Paul Eggert (24.4)
+objects.texi      
+os.texi           
+package.texi      
+positions.texi    
+processes.texi    
+searching.texi    
+sequences.texi    
+streams.texi      
+strings.texi      
+symbols.texi      
+syntax.texi       
+text.texi         
+tips.texi         
+variables.texi    
+windows.texi      
 
 
 Local variables:

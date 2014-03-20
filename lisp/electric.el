@@ -286,6 +286,20 @@ mode set `electric-indent-inhibit', but this can be used as a workaround.")
   (let ((electric-indent-mode nil))
     (newline arg 'interactive)))
 
+;;;###autoload(define-key global-map "\C-j" 'electric-newline-and-maybe-indent)
+;;;###autoload
+(defun electric-newline-and-maybe-indent ()
+  "Insert a newline.
+If `electric-indent-mode' is enabled, that's that, but if it
+is *disabled* then additionally indent according to major mode.
+Indentation is done using the value of `indent-line-function'.
+In programming language modes, this is the same as TAB.
+In some text modes, where TAB inserts a tab, this command indents to the
+column specified by the function `current-left-margin'."
+  (interactive "*")
+  (if electric-indent-mode
+      (electric-indent-just-newline nil)
+    (newline-and-indent)))
 
 ;;;###autoload
 (define-minor-mode electric-indent-mode
@@ -303,14 +317,12 @@ use `electric-indent-local-mode'."
   :initialize 'custom-initialize-delay
   :init-value t
   (if (not electric-indent-mode)
-      (progn
-        (when (eq (lookup-key global-map [?\C-j])
-                  'electric-indent-just-newline)
-          (define-key global-map [?\C-j] 'newline-and-indent))
+      (unless (catch 'found
+                (dolist (buf (buffer-list))
+                  (with-current-buffer buf
+                    (if electric-indent-mode (throw 'found t)))))
         (remove-hook 'post-self-insert-hook
                      #'electric-indent-post-self-insert-function))
-    (when (eq (lookup-key global-map [?\C-j]) 'newline-and-indent)
-      (define-key global-map [?\C-j] 'electric-indent-just-newline))
     (add-hook 'post-self-insert-hook
               #'electric-indent-post-self-insert-function)
     (electric--sort-post-self-insertion-hook)))
