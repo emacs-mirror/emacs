@@ -1,3 +1,8 @@
+2014-03-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* internals.texi (C Integer Types): Prefer 'false' and 'true'
+	to '0' and '1' for booleans.
+
 2014-03-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* numbers.texi: Improve and clarify a bit, and fix some minor bugs.
