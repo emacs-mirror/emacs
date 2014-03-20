@@ -1620,10 +1620,10 @@ might not be.  Single-bit bit fields are invariably @code{unsigned
 int} so that their values are 0 and 1.
 
 @item
-In C, Emacs commonly uses @code{bool}, 1, and 0 for boolean values.
-Using @code{bool} for booleans can make programs easier to read and a
-bit faster than using @code{int}.  Although it is also OK to use
-@code{int}, this older style is gradually being phased out.  When
+Prefer @code{bool}, @code{false} and @code{true} for booleans.
+Using @code{bool} can make programs easier to read and a bit faster than
+using @code{int}.  Although it is also OK to use @code{int}, @code{0}
+and @code{1}, this older style is gradually being phased out.  When
 using @code{bool}, respect the limitations of the replacement
 implementation of @code{bool}, as documented in the source file
 @file{lib/stdbool.in.h}, so that Emacs remains portable to pre-C99
