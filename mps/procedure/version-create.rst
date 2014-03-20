@@ -99,7 +99,7 @@ If omitted, the project and parent branch are deduced from the current
 directory, and the changelevel defaults to the most recent change on
 the parent branch. A typical invocation looks like this::
 
-    tool/branch -p master -v -d "Simplified interface to generation chains." -y
+    tool/branch -p master -v -d "Improved interface to generation chains." -y
 
 
 3.3. Manual procedure
