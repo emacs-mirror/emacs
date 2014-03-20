@@ -1,3 +1,8 @@
+2014-03-20  Glenn Morris  <rgm@gnu.org>
+
+	* charset.c (init_charset): When we cannot find the charsets directory,
+	mention if EMACSDATA is set.
+
 2014-03-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fns.c (Frandom): Fix rare bug where the result isn't random.

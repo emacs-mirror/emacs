@@ -2305,9 +2305,11 @@ init_charset (void)
          obscure problem (eg bug#6401), so better abort.  */
       fprintf (stderr, "Error: charsets directory not found:\n\
 %s\n\
-Emacs will not function correctly without the character map files.\n\
+Emacs will not function correctly without the character map files.\n%s\
 Please check your installation!\n",
-                   SDATA (tempdir));
+               SDATA (tempdir),
+               egetenv("EMACSDATA") ? "The EMACSDATA environment \
+variable is set, maybe it has the wrong value?\n" : "");
       exit (1);
     }
 
