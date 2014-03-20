@@ -12,9 +12,8 @@ New features
 ............
 
 #. In previous releases there was an implicit connection between
-   blocks allocated by blocks allocated by :ref:`pool-awl` and
-   :ref:`pool-lo` pools, and blocks allocated by other automatically
-   managed pool classes.
+   blocks allocated by :ref:`pool-awl` and :ref:`pool-lo` pools, and
+   blocks allocated by other automatically managed pool classes.
 
    In particular, blocks allocated by AWL and LO pools were garbage
    collected together with blocks allocated by :ref:`pool-ams` pools,
