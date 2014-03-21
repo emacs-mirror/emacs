@@ -923,10 +923,10 @@ not included in this list."
             (setq already pkg)))
       (cond
        (already
-        (if (version-list-< next-version (package-desc-version already))
+        (if (version-list-<= next-version (package-desc-version already))
             ;; Move to front, so it gets installed early enough (bug#14082).
             (setq packages (cons already (delq already packages)))
-          (error "Need package `%s-%s', but only %s is available"
+          (error "Need package `%s-%s', but only %s is being installed"
                  next-pkg (package-version-join next-version)
                  (package-version-join (package-desc-version already)))))
 

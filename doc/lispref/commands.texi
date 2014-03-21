@@ -123,11 +123,10 @@ value for this property takes precedence over any @code{interactive}
 form in the function body itself.  This feature is seldom used.
 
 @cindex @code{interactive-only} property
-  Sometimes, a named command is only intended to be called
-interactively, never directly from Lisp.  In that case, give it a
-non-@code{nil} @code{interactive-only} property.  In that case, the
-byte compiler will print a warning message if the command is called
-from Lisp.
+  Sometimes, a function is only intended to be called interactively,
+never directly from Lisp.  In that case, give the function a
+non-@code{nil} @code{interactive-only} property.  This causes the
+byte compiler to warn if the command is called from Lisp.
 
 @menu
 * Using Interactive::     General rules for @code{interactive}.

@@ -2280,6 +2280,15 @@ window and displaying the buffer in that window.  It can fail if all
 windows are dedicated to another buffer (@pxref{Dedicated Windows}).
 @end defun
 
+@defun display-buffer-no-window buffer alist
+If @var{alist} has a non-@code{nil} @code{allow-no-window} entry, then
+this function does not display @code{buffer}.  This allows to override
+the default action and avoid displaying the buffer.  It is assumed that
+when the caller specifies a non-@code{nil} @code{allow-no-window} value
+it can handle a @code{nil} value returned from @code{display-buffer} in
+this case.
+@end defun
+
 To illustrate the use of action functions, consider the following
 example.
 

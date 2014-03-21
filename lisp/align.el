@@ -937,7 +937,7 @@ throughout the line.
 See `align-rules-list' for more information about these options.
 
 The non-interactive form of the previous example would look something like:
-  \(align-regexp (point-min) (point-max) \"\\\\(\\\\s-*\\\\)(\")
+  (align-regexp (point-min) (point-max) \"\\\\(\\\\s-*\\\\)(\")
 
 This function is a nothing more than a small wrapper that helps you
 construct a rule to pass to `align-region', which does the real work."

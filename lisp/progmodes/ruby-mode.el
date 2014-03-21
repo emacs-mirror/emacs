@@ -650,6 +650,10 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
        ;; because we want to reject hanging tokens at bol, too.
        (unless (or (eolp) (forward-comment 1))
          (cons 'column (current-column)))))
+    (`(:before . " @ ")
+     (save-excursion
+       (skip-chars-forward " \t")
+       (cons 'column (current-column))))
     (`(:before . "do") (ruby-smie--indent-to-stmt))
     (`(:before . ".")
      (if (smie-rule-sibling-p)

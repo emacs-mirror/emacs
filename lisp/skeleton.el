@@ -180,7 +180,7 @@ of `str' whereas the skeleton's interactor is then ignored."
 With optional second argument REGIONS, wrap first interesting point
 \(`_') in skeleton around next REGIONS words, if REGIONS is positive.
 If REGIONS is negative, wrap REGIONS preceding interregions into first
-REGIONS interesting positions \(successive `_'s) in skeleton.
+REGIONS interesting positions (successive `_'s) in skeleton.
 
 An interregion is the stretch of text between two contiguous marked
 points.  If you marked A B C [] (where [] is the cursor) in
@@ -205,21 +205,21 @@ If ELEMENT is a string or a character it gets inserted (see also
 	@	add position to `skeleton-positions'
 	&	do next ELEMENT if previous moved point
 	|	do next ELEMENT if previous didn't move point
-	-num	delete num preceding characters (see `skeleton-untabify')
+	-NUM	delete NUM preceding characters (see `skeleton-untabify')
 	resume:	skipped, continue here if quit is signaled
 	nil	skipped
 
 After termination, point will be positioned at the last occurrence of -
 or at the first occurrence of _ or at the end of the inserted text.
 
-Further elements can be defined via `skeleton-further-elements'.  ELEMENT may
-itself be a SKELETON with an INTERACTOR.  The user is prompted repeatedly for
-different inputs.  The SKELETON is processed as often as the user enters a
-non-empty string.  \\[keyboard-quit] terminates skeleton insertion, but
-continues after `resume:' and positions at `_' if any.  If INTERACTOR in such
-a subskeleton is a prompt-string which contains a \".. %s ..\" it is
-formatted with `skeleton-subprompt'.  Such an INTERACTOR may also be a list of
-strings with the subskeleton being repeated once for each string.
+Further elements can be defined via `skeleton-further-elements'.
+ELEMENT may itself be a SKELETON with an INTERACTOR.  The user is prompted
+repeatedly for different inputs.  The SKELETON is processed as often as
+the user enters a non-empty string.  \\[keyboard-quit] terminates skeleton insertion, but
+continues after `resume:' and positions at `_' if any.  If INTERACTOR in
+such a subskeleton is a prompt-string which contains a \".. %s ..\" it is
+formatted with `skeleton-subprompt'.  Such an INTERACTOR may also be a list
+of strings with the subskeleton being repeated once for each string.
 
 Quoted Lisp expressions are evaluated for their side-effects.
 Other Lisp expressions are evaluated and the value treated as above.

@@ -1892,6 +1892,7 @@ static void
 x_draw_image_relief (struct glyph_string *s)
 {
   int x1, y1, thick, raised_p, top_p, bot_p, left_p, right_p;
+  int extra_x, extra_y;
   RECT r;
   int x = s->x;
   int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
@@ -1925,16 +1926,31 @@ x_draw_image_relief (struct glyph_string *s)
 
   x1 = x + s->slice.width - 1;
   y1 = y + s->slice.height - 1;
+
+  extra_x = extra_y = 0;
+  if (s->face->id == TOOL_BAR_FACE_ID)
+    {
+      if (CONSP (Vtool_bar_button_margin)
+	  && INTEGERP (XCAR (Vtool_bar_button_margin))
+	  && INTEGERP (XCDR (Vtool_bar_button_margin)))
+	{
+	  extra_x = XINT (XCAR (Vtool_bar_button_margin));
+	  extra_y = XINT (XCDR (Vtool_bar_button_margin));
+	}
+      else if (INTEGERP (Vtool_bar_button_margin))
+	extra_x = extra_y = XINT (Vtool_bar_button_margin);
+    }
+
   top_p = bot_p = left_p = right_p = 0;
 
   if (s->slice.x == 0)
-    x -= thick, left_p = 1;
+    x -= thick + extra_x, left_p = 1;
   if (s->slice.y == 0)
-    y -= thick, top_p = 1;
+    y -= thick + extra_y, top_p = 1;
   if (s->slice.x + s->slice.width == s->img->width)
-    x1 += thick, right_p = 1;
+    x1 += thick + extra_x, right_p = 1;
   if (s->slice.y + s->slice.height == s->img->height)
-    y1 += thick, bot_p = 1;
+    y1 += thick + extra_y, bot_p = 1;
 
   x_setup_relief_colors (s);
   get_glyph_string_clip_rect (s, &r);
@@ -5651,21 +5667,11 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
   if (!frame_resize_pixelwise)
     {
       /* If we don't resize frames pixelwise, round sizes to multiples
-	 of character sizes.  Otherwise, Windows may clip our frame
-	 rectangle at a character size boundary and we risk losing our
-	 mode line.  Bug#16923 might be a consequence of this.
-
-	 So far, this is a Windows specific problem; other toolkits may
-	 prefer to not resize the frame if the delta is not large enough
-	 (GTK) or resize the frame pixelwise as requested (Lucid,
-	 Motif).  Windows just doesn't call us back (probably because of
-	 the size hint settings which it apparently interprets strictly)
-	 neither when the user tries to mouse-drag a frame border by,
-	 nor when calling `set-frame-size' with a delta of less than the
-	 canonical character size.  If w32_enable_frame_resize_hack is
-	 enabled (which it now is by default) we'd then below resize the
-	 frame's root window in preparation of a WM_SIZE message to come
-	 which, however, is not going to happen. */
+	 of character sizes here.  Otherwise, when enforcing size hints
+	 while processing WM_WINDOWPOSCHANGING in w32_wnd_proc, we might
+	 clip our frame rectangle to a multiple of the frame's character
+	 size and subsequently lose our mode line or scroll bar.
+	 Bug#16923 could be one possible consequence of this.  */
       int unit_width = FRAME_COLUMN_WIDTH (f);
       int unit_height = FRAME_LINE_HEIGHT (f);
 
@@ -5695,9 +5701,7 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
   }
 
   /* If w32_enable_frame_resize_hack is non-nil, immediately apply the
-     new pixel sizes to the frame and its subwindows.  This approach is
-     fragile because Windows might not honor the resize request issued
-     by my_set_window_pos with a WM_SIZE message (see previous comment).
+     new pixel sizes to the frame and its subwindows.
 
      Jason Rumney earlier refused to call change_frame_size right here
      with the following argument:

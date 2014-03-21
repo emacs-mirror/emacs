@@ -1,3 +1,51 @@
+2014-03-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Add docstring for `tramp-login-env'
+	and `tramp-copy-env'.
+
+	* net/tramp-sh.el (tramp-methods) <sudo>: Add `tramp-login-env'.
+	(tramp-maybe-open-connection): Handle `tramp-login-env'.
+
+2014-03-21  Glenn Morris  <rgm@gnu.org>
+
+	* electric.el (electric-indent-post-self-insert-function): Add doc.
+
+2014-03-21  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/package.el (package-compute-transaction):
+	Use `version-list-<=' to compare the requirement version against
+	the version of package already to be installed.  Update the error
+	message.  (Bug#16826)
+
+	* progmodes/ruby-mode.el (ruby-smie-rules):
+	Add indentation rule for ` @ '.  (Bug#17050)
+
+2014-03-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* align.el (align-regexp): Remove superfluous backslash.
+
+	* ffap.el (ffap-ftp-default-user, ffap-url-regexp)
+	(ffap-pass-wildcards-to-dired, dired-at-point-require-prefix)
+	(ffap-rfc-path, ffap-ftp-sans-slash-regexp, ffap-menu-regexp):
+	Fix docstring typos.
+	(ffap-next): Use C-u in docstring.
+	(ffap-machine-p, ffap-list-env, ffap-alist, ffap-alist)
+	(ffap-string-at-point-mode-alist, ffap-menu, ffap-menu-ask):
+	Remove superfluous backslashes.
+	(ffap-string-at-point): Reflow docstring.
+
+	* server.el (server-host): Reflow docstring.
+	(server-unload-function): Fix docstring typo.
+	(server-eval-at): Remove superfluous backslash.
+
+	* skeleton.el (skeleton-insert): Remove superfluous backslash.
+	(skeleton-insert): Doc fix.
+	(skeleton-insert): Reflow docstring.
+
+	* term/tty-colors.el (tty-color-alist, tty-modify-color-alist)
+	(tty-color-approximate, tty-color-by-index, tty-color-values)
+	(tty-color-desc): Remove superfluous backslashes.
+
 2014-03-21  Glenn Morris  <rgm@gnu.org>
 
 	* cus-start.el (history-length): Bump :version.
