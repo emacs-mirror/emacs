@@ -1,5 +1,8 @@
 2014-03-21  Richard Stallman  <rms@gnu.org>
 
+	* battery.el (battery-linux-sysfs): Search for each field
+	from the beginning of the buffer.
+
 	* subr.el (set-transient-map): Clear out function and value
 	of the temporary symbol when we're done with it.
 
