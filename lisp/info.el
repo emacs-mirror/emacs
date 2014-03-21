@@ -3633,6 +3633,18 @@ Build a menu of the possible matches."
 (defvar finder-keywords-hash)
 (defvar package--builtins)		; finder requires package
 
+(defun info--prettify-description (desc)
+  (if (stringp desc)
+      (with-temp-buffer
+	(insert desc)
+	(if (equal ?. (char-before))
+	    (delete-char -1))
+	(goto-char (point-min))
+	(or (let (case-fold-search) (looking-at-p "\\.\\|[[:upper:]]"))
+	    (capitalize-word 1))
+	(buffer-string))
+    desc))
+
 (defun Info-finder-find-node (_filename nodename &optional _no-going-back)
   "Finder-specific implementation of `Info-find-node-2'."
   (require 'finder)
@@ -3651,7 +3663,7 @@ Build a menu of the possible matches."
 	(insert (format "* %s %s.\n"
 			(concat (symbol-name keyword) ": "
 				"Keyword " (symbol-name keyword) ".")
-			(cdr assoc))))))
+			(info--prettify-description (cdr assoc)))))))
    ((equal nodename "Keyword unknown")
     ;; Display unknown keywords
     (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
@@ -3679,7 +3691,7 @@ Build a menu of the possible matches."
 	(when (vectorp desc)
 	  (insert (format "* %-16s %s.\n"
 			  (concat (symbol-name (car package)) "::")
-			  (aref desc 2)))))))
+			  (info--prettify-description (aref desc 2))))))))
    ((string-match "\\`Keyword " nodename)
     (setq nodename (substring nodename (match-end 0)))
     ;; Display packages that match the keyword
@@ -3700,27 +3712,31 @@ Build a menu of the possible matches."
 	(push (copy-tree (gethash keyword finder-keywords-hash)) hits))
       (setq hits (delete-dups (apply 'append hits))
 	    ;; Not a meaningful package.
-	    hits (delete 'emacs hits))
+	    hits (delete 'emacs hits)
+	    hits (sort hits (lambda (a b) (string< (symbol-name a)
+						   (symbol-name b)))))
       (dolist (package hits)
 	(setq desc (cdr-safe (assq package package--builtins)))
 	(when (vectorp desc)
 	  (insert (format "* %-16s %s.\n"
 			  (concat (symbol-name package) "::")
-			  (aref desc 2)))))))
+			  (info--prettify-description (aref desc 2))))))))
    (t
     ;; Display commentary section
     (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
 		    Info-finder-file nodename))
-    (insert "Finder Commentary\n")
-    (insert "*****************\n\n")
+    (insert "Package Description\n")
+    (insert "*******************\n\n")
     (insert
-     "Commentary section of the package `" nodename "':\n\n")
-    ;; FIXME this assumes that a file named package.el exists,
+     "Description of the package `" nodename "':\n\n")
+    ;; This assumes that a file named package.el exists,
     ;; which is not always true.  E.g. for the nxml package,
     ;; there is no "nxml.el" (it's nxml-mode.el).
-    (let ((str (lm-commentary (find-library-name nodename))))
+    ;; But package.el makes the same assumption.
+    ;; I think nxml is the only exception - maybe it should be just be renamed.
+    (let ((str (ignore-errors (lm-commentary (find-library-name nodename)))))
       (if (null str)
-	  (insert "Can't find any Commentary section\n\n")
+	  (insert "Can't find package description.\n\n")
 	(insert
 	 (with-temp-buffer
 	   (insert str)
