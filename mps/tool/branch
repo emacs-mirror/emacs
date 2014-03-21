@@ -94,7 +94,7 @@ def main(argv):
     args = parser.parse_args(argv[1:])
     args.depot = DEPOT
     args.date = datetime.date.today().strftime('%Y-%m-%d')
-    fmt = lambda s: s.format_map(vars(args))
+    fmt = lambda s: s.format(**vars(args))
 
     if not args.project:
         # Deduce project from current directory.
