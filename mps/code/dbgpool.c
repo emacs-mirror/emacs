@@ -22,11 +22,12 @@ typedef struct tagStruct {
   /* We don't want to pay the expense of a sig in every tag */
   Addr addr;
   Size size;
-  SplayNodeStruct splayNode;
+  TreeStruct treeStruct;
   char userdata[1 /* actually variable length */];
 } tagStruct;
 
-#define SplayNode2Tag(node) PARENT(tagStruct, splayNode, (node))
+#define TagTree(tag)    (&(tag)->treeStruct)
+#define TagOfTree(tree) TREE_ELT(tag, treeStruct, tree)
 
 typedef tagStruct *Tag;
 
@@ -43,20 +44,25 @@ static void TagTrivInit(void* tag, va_list args)
 
 /* TagComp -- splay comparison function for address ordering of tags */
 
-static Compare TagComp(void *key, SplayNode node)
+static Compare TagCompare(Tree node, TreeKey key)
 {
   Addr addr1, addr2;
 
   addr1 = *(Addr *)key;
-  addr2 = SplayNode2Tag(node)->addr;
+  addr2 = TagOfTree(node)->addr;
   if (addr1 < addr2)
     return CompareLESS;
   else if (addr1 > addr2) {
     /* Check key is not inside the object of this tag */
-    AVER_CRITICAL(AddrAdd(addr2, SplayNode2Tag(node)->size) <= addr1);
+    AVER_CRITICAL(AddrAdd(addr2, TagOfTree(node)->size) <= addr1);
     return CompareGREATER;
   } else
     return CompareEQUAL;
+}
+
+static TreeKey TagKey(Tree node)
+{
+  return &TagOfTree(node)->addr;
 }
 
 
@@ -74,7 +80,7 @@ Bool PoolDebugMixinCheck(PoolDebugMixin debug)
     CHECKD(Pool, debug->tagPool);
     CHECKL(COMPATTYPE(Addr, void*)); /* tagPool relies on this */
     /* Nothing to check about missingTags */
-    CHECKL(SplayTreeCheck(&debug->index));
+    CHECKD(SplayTree, &debug->index);
   }
   UNUSED(debug); /* see <code/mpm.c#check.unused> */
   return TRUE;
@@ -193,7 +199,7 @@ static Res DebugPoolInit(Pool pool, ArgList args)
     if (res != ResOK)
       goto tagFail;
     debug->missingTags = 0;
-    SplayTreeInit(&debug->index, TagComp, NULL);
+    SplayTreeInit(&debug->index, TagCompare, TagKey, SplayTrivUpdate);
   }
 
   debug->sig = PoolDebugMixinSig;
@@ -429,6 +435,7 @@ static Res tagAlloc(PoolDebugMixin debug,
 {
   Tag tag;
   Res res;
+  Bool b;
   Addr addr;
 
   UNUSED(pool);
@@ -443,10 +450,10 @@ static Res tagAlloc(PoolDebugMixin debug,
   }
   tag = (Tag)addr;
   tag->addr = new; tag->size = size;
-  SplayNodeInit(&tag->splayNode);
+  TreeInit(TagTree(tag));
   /* In the future, we might call debug->tagInit here. */
-  res = SplayTreeInsert(&debug->index, &tag->splayNode, (void *)&new);
-  AVER(res == ResOK);
+  b = SplayTreeInsert(&debug->index, TagTree(tag));
+  AVER(b);
   return ResOK;
 }
 
@@ -455,25 +462,25 @@ static Res tagAlloc(PoolDebugMixin debug,
 
 static void tagFree(PoolDebugMixin debug, Pool pool, Addr old, Size size)
 {
-  SplayNode node;
+  Tree node;
   Tag tag;
-  Res res;
+  Bool b;
 
   AVERT(PoolDebugMixin, debug);
   AVERT(Pool, pool);
   AVER(size > 0);
 
-  res = SplayTreeSearch(&node, &debug->index, (void *)&old);
-  if (res != ResOK) {
+  if (!SplayTreeFind(&node, &debug->index, &old)) {
     AVER(debug->missingTags > 0);
     debug->missingTags--;
     return;
   }
-  tag = SplayNode2Tag(node);
+  tag = TagOfTree(node);
   AVER(tag->size == size);
-  res = SplayTreeDelete(&debug->index, node, (void *)&old);
-  AVER(res == ResOK);
-  SplayNodeFinish(node);
+  AVER(tag->addr == old);
+  b = SplayTreeDelete(&debug->index, node);
+  AVER(b); /* expect tag to be in the tree */
+  TreeFinish(node);
   PoolFree(debug->tagPool, (Addr)tag, debug->tagSize);
 }
 
@@ -554,10 +561,8 @@ typedef void (*ObjectsStepMethod)(Addr addr, Size size, Format fmt,
 
 static void TagWalk(Pool pool, ObjectsStepMethod step, void *p)
 {
-  SplayNode node;
+  Tree node;
   PoolDebugMixin debug;
-  Addr dummy = NULL; /* Breaks <design/type/#addr.use>, but it's */
-                     /* only temporary until SplayTreeFirst is fixed. */
 
   AVERT(Pool, pool);
   AVERT(ObjectsStepMethod, step);
@@ -567,12 +572,12 @@ static void TagWalk(Pool pool, ObjectsStepMethod step, void *p)
   AVER(debug != NULL);
   AVERT(PoolDebugMixin, debug);
 
-  node = SplayTreeFirst(&debug->index, (void *)&dummy);
+  node = SplayTreeFirst(&debug->index);
   while (node != NULL) {
-    Tag tag = SplayNode2Tag(node);
+    Tag tag = TagOfTree(node);
 
     step(tag->addr, tag->size, NULL, pool, &tag->userdata, p);
-    node = SplayTreeNext(&debug->index, node, (void *)&tag->addr);
+    node = SplayTreeNext(&debug->index, &tag->addr);
   }
 }
 

@@ -23,6 +23,14 @@ enum BoolEnum {
 };
 
 
+typedef int Compare;
+enum CompareEnum {
+  CompareLESS = -1,
+  CompareEQUAL = 0,
+  CompareGREATER = 1
+};
+
+
 /* SrcId -- source identification
  *
  * Every C source file should start with a SRCID declaration to

@@ -11,7 +11,6 @@
 
 
 extern mps_arena_class_t mps_arena_class_vm(void);
-extern mps_arena_class_t mps_arena_class_vmnz(void);
 
 
 /* The vm arena class supports extensions to the arena protocol: */

@@ -3,7 +3,7 @@
 # comm.gmk: COMMON GNUMAKEFILE FRAGMENT
 #
 # $Id$
-# Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
 #
 # DESCRIPTION
 #
@@ -170,7 +170,7 @@ MPMCOMMON = abq.c arena.c arenacl.c arenavm.c arg.c boot.c bt.c         \
     global.c ld.c locus.c message.c meter.c mpm.c mpsi.c nailboard.c    \
     pool.c poolabs.c poolmfs.c poolmrg.c poolmv.c protocol.c range.c    \
     ref.c reserv.c ring.c root.c sa.c sac.c seg.c shield.c splay.c ss.c      \
-    table.c trace.c traceanc.c tract.c walk.c
+    table.c trace.c traceanc.c tract.c tree.c walk.c
 MPM = $(MPMCOMMON) $(MPMPF)
 
 
@@ -228,16 +228,18 @@ LIB_TARGETS=mps.a mpsplan.a
 
 AUTO_TEST_TARGETS=abqtest airtest amcss amcsshe amcssth amsss amssshe   \
     apss arenacv awlut awluthe awlutth btcv exposet0 expt825 fbmtest    \
-    finalcv finaltest fotest lockcov locv messtest mpmss mpsicv         \
-    mv2test nailboardtest poolncv qs sacss segsmss steptest walkt0 zmess
+    finalcv finaltest fotest locbwcss lockcov locusss locv messtest     \
+    mpmss mpsicv mv2test nailboardtest poolncv qs sacss segsmss         \
+    steptest walkt0 zmess
 
 # If it is not runnable as an automated test case, but is buildable,
 # add it to OTHER_TEST_TARGETS with a note.
 #
 # bttest and teletest -- interactive and so cannot be run unattended.
+# djbench and gcbench -- benchmarks, not test cases.
 # zcoll -- takes too long to be useful as a regularly run smoke test.
 
-OTHER_TEST_TARGETS=bttest teletest zcoll
+OTHER_TEST_TARGETS=bttest teletest djbench gcbench zcoll
 
 # This target records programs that we were once able to build but
 # can't at the moment:
@@ -382,6 +384,9 @@ $(PFM)/$(VARIETY)/btcv: $(PFM)/$(VARIETY)/btcv.o \
 $(PFM)/$(VARIETY)/bttest: $(PFM)/$(VARIETY)/bttest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
+$(PFM)/$(VARIETY)/djbench: $(PFM)/$(VARIETY)/djbench.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
 $(PFM)/$(VARIETY)/exposet0: $(PFM)/$(VARIETY)/exposet0.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
@@ -400,7 +405,16 @@ $(PFM)/$(VARIETY)/finaltest: $(PFM)/$(VARIETY)/finaltest.o \
 $(PFM)/$(VARIETY)/fotest: $(PFM)/$(VARIETY)/fotest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
+$(PFM)/$(VARIETY)/gcbench: $(PFM)/$(VARIETY)/gcbench.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/locbwcss: $(PFM)/$(VARIETY)/locbwcss.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
 $(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/locusss: $(PFM)/$(VARIETY)/locusss.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/locv: $(PFM)/$(VARIETY)/locv.o \
@@ -575,7 +589,7 @@ find-puns: phony
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

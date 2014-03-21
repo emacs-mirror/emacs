@@ -1,7 +1,7 @@
 /* locusss.c: LOCUS STRESS TEST
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpscmvff.h"
@@ -133,7 +133,7 @@ static mps_res_t allocMultiple(PoolStat stat)
 
 /* reportResults - print a report on a PoolStat */
 
-static void reportResults(PoolStat stat, char *name)
+static void reportResults(PoolStat stat, const char *name)
 {
   printf("\nResults for ");
   printf("%s", name);
@@ -217,8 +217,13 @@ static void runArenaTest(size_t size,
 {
   mps_arena_t arena;
 
-  die(mps_arena_create(&arena, mps_arena_class_vmnz(), size),
-      "mps_arena_create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, FALSE);
+    MPS_ARGS_DONE(args);
+    die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
+        "mps_arena_create");
+  } MPS_ARGS_END(args);
 
   die(mps_arena_commit_limit_set(arena, size - chunkSize),
       "mps_arena_commit_limit_set");
@@ -251,7 +256,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

@@ -10,44 +10,50 @@
 #define cbs_h
 
 #include "arg.h"
-#include "meter.h"
 #include "mpmtypes.h"
+#include "mpmst.h"
 #include "range.h"
 #include "splay.h"
 
 
+/* TODO: There ought to be different levels of CBS block with inheritance
+   so that CBSs without fastFind don't allocate the maxSize and zones fields,
+   and CBSs without zoned don't allocate the zones field. */
+
+typedef struct CBSBlockStruct *CBSBlock;
+typedef struct CBSBlockStruct {
+  TreeStruct treeStruct;
+  Addr base;
+  Addr limit;
+  Size maxSize; /* accurate maximum block size of sub-tree */
+  ZoneSet zones; /* union zone set of all ranges in sub-tree */
+} CBSBlockStruct;
+
+
 typedef struct CBSStruct *CBS;
-typedef Bool (*CBSIterateMethod)(CBS cbs, Range range,
-                                 void *closureP, Size closureS);
-
-
-#define CBSSig ((Sig)0x519CB599) /* SIGnature CBS */
-
-typedef struct CBSStruct {
-  SplayTreeStruct splayTree;
-  Count splayTreeSize;
-  Pool blockPool;
-  Align alignment;
-  Bool fastFind;
-  Bool inCBS; /* prevent reentrance */
-  /* meters for sizes of search structures at each op */
-  METER_DECL(splaySearch);
-  Sig sig; /* sig at end because embeded */
-} CBSStruct;
+typedef Bool (*CBSVisitor)(CBS cbs, Range range,
+                           void *closureP, Size closureS);
 
 extern Bool CBSCheck(CBS cbs);
 
-extern Res CBSInit(Arena arena, CBS cbs, void *owner,
-                   Align alignment, Bool fastFind, ArgList args);
+extern const struct mps_key_s _mps_key_cbs_block_pool;
+#define CBSBlockPool (&_mps_key_cbs_block_pool)
+#define CBSBlockPool_FIELD pool
+
+/* TODO: Passing booleans to affect behaviour is ugly and error-prone. */
+extern Res CBSInit(CBS cbs, Arena arena, void *owner, Align alignment,
+                   Bool fastFind, Bool zoned, ArgList args);
 extern void CBSFinish(CBS cbs);
 
 extern Res CBSInsert(Range rangeReturn, CBS cbs, Range range);
 extern Res CBSDelete(Range rangeReturn, CBS cbs, Range range);
-extern void CBSIterate(CBS cbs, CBSIterateMethod iterate,
+extern void CBSIterate(CBS cbs, CBSVisitor visitor,
                        void *closureP, Size closureS);
 
 extern Res CBSDescribe(CBS cbs, mps_lib_FILE *stream);
 
+typedef Bool (*CBSFindMethod)(Range rangeReturn, Range oldRangeReturn,
+                              CBS cbs, Size size, FindDelete findDelete);
 extern Bool CBSFindFirst(Range rangeReturn, Range oldRangeReturn,
                          CBS cbs, Size size, FindDelete findDelete);
 extern Bool CBSFindLast(Range rangeReturn, Range oldRangeReturn,
@@ -55,6 +61,8 @@ extern Bool CBSFindLast(Range rangeReturn, Range oldRangeReturn,
 extern Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
                            CBS cbs, Size size, FindDelete findDelete);
 
+extern Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
+                          CBS cbs, Size size, ZoneSet zoneSet, Bool high);
 
 #endif /* cbs_h */
 

@@ -539,7 +539,6 @@ static Res MVFFInit(Pool pool, ArgList args)
   Arena arena;
   Res res;
   void *p;
-  ZoneSet zones;
   ArgStruct arg;
 
   AVERT(Pool, pool);
@@ -595,9 +594,6 @@ static Res MVFFInit(Pool pool, ArgList args)
   mvff->segPref = (SegPref)p;
   SegPrefInit(mvff->segPref);
   SegPrefExpress(mvff->segPref, arenaHigh ? SegPrefHigh : SegPrefLow, NULL);
-  /* If using zoneset placement, just put it apart from the others. */
-  zones = ZoneSetComp(ArenaDefaultZONESET);
-  SegPrefExpress(mvff->segPref, SegPrefZoneSet, (void *)&zones);
 
   mvff->total = 0;
   mvff->free = 0;
@@ -606,7 +602,8 @@ static Res MVFFInit(Pool pool, ArgList args)
   if (res != ResOK)
     goto failInit;
 
-  res = CBSInit(arena, CBSOfMVFF(mvff), (void *)mvff, align, TRUE, args);
+  res = CBSInit(CBSOfMVFF(mvff), arena, (void *)mvff, align,
+                /* fastFind */ TRUE, /* zoned */ FALSE, args);
   if (res != ResOK)
     goto failInit;
 

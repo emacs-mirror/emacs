@@ -92,12 +92,12 @@ ALL_TARGETS=$(LIB_TARGETS) $(AUTO_TEST_TARGETS) $(OTHER_TEST_TARGETS) $(EXTRA_TA
 # %%PART: When adding a new part, add the sources for the new part here.
 
 MPMCOMMON = <abq> <arena> <arenacl> <arenavm> <arg> <boot> <bt>         \
-    <buffer> <cbs> <dbgpool> <dbgpooli> <event> <format>                \
-    <freelist> <global> <ld> <lockw3> <locus> <message> <meter> <mpm>   \
-    <mpsi> <mpsiw3> <nailboard> <pool> <poolabs> <poolmfs> <poolmrg>    \
+    <buffer> <cbs> <dbgpool> <dbgpooli> <event> <format> <freelist>     \
+    <global> <ld> <lockw3> <locus> <message> <meter> <mpm> <mpsi>       \
+    <mpsiw3> <nailboard> <pool> <poolabs> <poolmfs> <poolmrg>           \
     <poolmv2> <poolmv> <protocol> <protw3> <range> <ref> <reserv>       \
-    <ring> <root> <sa> <sac> <seg> <shield> <splay> <ss> <table> <thw3> \
-    <trace> <traceanc> <tract> <vmw3> <walk>
+    <ring> <root> <sa> <sac> <seg> <shield> <splay> <ss> <table>        \
+    <thw3> <trace> <traceanc> <tract> <tree> <vmw3> <walk>
 PLINTH = <mpsliban> <mpsioan>
 AMC = <poolamc>
 AMS = <poolams> <poolamsi>

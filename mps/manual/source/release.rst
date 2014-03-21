@@ -3,6 +3,45 @@
 Release notes
 =============
 
+.. _release-notes-1.113:
+
+Release 1.113.0
+---------------
+
+Interface changes
+.................
+
+#. When creating a list of keyword arguments, there is no longer any
+   need to call :c:func:`MPS_ARGS_DONE`. See :ref:`topic-keyword`.
+
+#. When creating an automatically managed pool using
+   :c:func:`mps_pool_create_k`, it is no longer necessary to pass in a
+   generation chain. The arena has a default generation chain and this
+   is used by all automatically managed pools where no generation
+   chain was specified.
+
+#. It is now possible to specify a generation chain for
+   :ref:`pool-awl` and :ref:`pool-lo` pool classes, by using the
+   optional :c:macro:`MPS_KEY_CHAIN` keyword argument to
+   :c:func:`mps_pool_create_k`.
+
+#. It is now possible to specify which generation the :ref:`pool-ams`,
+   :ref:`pool-awl`, and :ref:`pool-lo` pool classes allocate new
+   objects into, using the optional :c:macro:`MPS_KEY_GEN` keyword
+   argument to :c:func:`mps_pool_create_k`.
+
+
+Other changes
+.............
+
+#. The MPS now retains some unused memory instead of returning it to
+   the operating system. This reduces unnecessary overhead due to
+   system calls, thrashing the operating system's page table, and
+   zeroing memory when re-allocated. See job003700_.
+
+   .. _job003700: https://www.ravenbrook.com/project/mps/issue/job003700/
+
+
 .. _release-notes-1.112:
 
 Release 1.112.0
