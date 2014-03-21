@@ -1,3 +1,11 @@
+2014-03-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Add docstring for `tramp-login-env'
+	and `tramp-copy-env'.
+
+	* net/tramp-sh.el (tramp-methods) <sudo>: Add `tramp-login-env'.
+	(tramp-maybe-open-connection): Handle `tramp-login-env'.
+
 2014-03-21  Glenn Morris  <rgm@gnu.org>
 
 	* electric.el (electric-indent-post-self-insert-function): Add doc.

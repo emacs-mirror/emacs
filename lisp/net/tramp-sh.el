@@ -227,6 +227,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
   '("sudo"
     (tramp-login-program        "sudo")
     (tramp-login-args           (("-u" "%u") ("-s") ("-H") ("-p" "Password:")))
+    ;; Local $SHELL could be a nasty one, like zsh or fish.  Let's override it.
+    (tramp-login-env            (("SHELL") ("/bin/sh")))
     (tramp-remote-shell         "/bin/sh")
     (tramp-remote-shell-args    ("-c"))
     (tramp-connection-timeout   10)))
@@ -4492,6 +4494,9 @@ connection if a previous connection has died for some reason."
 			 (login-args
 			  (tramp-get-method-parameter
 			   l-method 'tramp-login-args))
+			 (login-env
+			  (tramp-get-method-parameter
+			   l-method 'tramp-login-env))
 			 (async-args
 			  (tramp-get-method-parameter
 			   l-method 'tramp-async-args))
@@ -4548,6 +4553,24 @@ connection if a previous connection has died for some reason."
 		    (setq tramp-current-method (or g-method l-method)
 			  tramp-current-user   (or g-user   l-user)
 			  tramp-current-host   (or g-host   l-host))
+
+		    ;; Add login environment.
+		    (when login-env
+		      (setq
+		       login-env
+		       (mapcar
+			(lambda (x)
+			  (setq x (mapcar (lambda (y) (format-spec y spec)) x))
+			  (unless (member "" x) (mapconcat 'identity x " ")))
+			login-env))
+		      (while login-env
+			(setq command
+			      (format
+			       "%s=%s %s"
+			       (pop login-env)
+			       (tramp-shell-quote-argument (pop login-env))
+			       command)))
+		      (setq command (concat "env " command)))
 
 		    ;; Replace `login-args' place holders.
 		    (setq
