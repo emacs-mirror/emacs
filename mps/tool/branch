@@ -38,7 +38,7 @@ CUSTOMER_RE = r'[a-z][a-z0-9.-]*'
 PARENT_RE = r'master|custom/({})/main'.format(CUSTOMER_RE)
 PARENT_FILESPEC_RE = r'{}({})(?:/|$)'.format(PROJECT_FILESPEC_RE, PARENT_RE)
 TASK_RE = r'[a-zA-Z][a-zA-Z0-9._-]*'
-TASK_BRANCH_RE = r'branch/\d\d\d\d-\d\d-\d\d/{}'.format(TASK_RE)
+TASK_BRANCH_RE = r'branch/(\d\d\d\d-\d\d-\d\d)/({})'.format(TASK_RE)
 VERSION_RE = r'\d+\.\d+'
 VERSION_BRANCH_RE = (r'(?:custom/({})/)?version/({})'
                      .format(CUSTOMER_RE, VERSION_RE))
@@ -80,6 +80,8 @@ def main(argv):
                         help='Changelevel at which to make the branch.')
     parser.add_argument('-d', '--description',
                         help='Description of the branch (for the branch spec).')
+    parser.add_argument('-g', '--github', action='store_true',
+                        help='Push this branch to GitHub.')
     parser.add_argument('-y', '--yes', action='store_true',
                         help='Yes, really make the branch.')
     group = parser.add_mutually_exclusive_group(required=True)
@@ -91,7 +93,7 @@ def main(argv):
                        help='Name of the task branch.')
     args = parser.parse_args(argv[1:])
     args.depot = DEPOT
-    args.today = datetime.date.today().strftime('%Y-%m-%d')
+    args.date = datetime.date.today().strftime('%Y-%m-%d')
     fmt = lambda s: s.format_map(vars(args))
 
     if not args.project:
@@ -133,7 +135,7 @@ def main(argv):
     if args.task:
         if not re.match(TASK_RE, args.task):
             raise Error(fmt("Invalid task: {task}"))
-        args.child = fmt('branch/{today}/{task}')
+        args.child = fmt('branch/{date}/{task}')
         print(fmt("child={child}"))
     elif args.version:
         # Deduce version number from code/version.c.
@@ -152,9 +154,9 @@ def main(argv):
     m = re.match(CHILD_RE, args.child)
     if not m:
         raise Error(fmt("Invalid child: {child}"))
-    if args.customer != m.group(1):
+    if args.customer != m.group(3):
         raise Error(fmt("Customer mismatch between {parent} and {child}."))
-    args.version = m.group(2)
+    args.date, args.task, _, args.version = m.groups()
 
     if not args.description:
         args.description = fmt("Branching {parent} to {child}.")
@@ -229,19 +231,28 @@ def main(argv):
             else:
                 print(fmt("--yes omitted: skipping submit of {filespec}"))
 
-    # Task branches
     if not args.version:
+        # Task branch
         register('{depot}/project/{project}/branch/index.html',
                  '(?=</table>\n)', TASK_BRANCH_ENTRY)
-
-    # Public version branches
+        args.git_name = fmt('{project}-{task}')
+        args.git_branch = fmt('dev/{date}/{task}')
     elif args.version and not args.customer:
+        # Public version branch
         register('{depot}/project/{project}/version/index.html',
                  '(?=</table>\n)', VERSION_BRANCH_ENTRY)
+        args.github = True
+        args.git_name = fmt('{project}-version-{version}')
+        args.git_branch = fmt('version/{version}')
+    else:
+        args.git_name = None
 
+    if args.github and not args.git_name:
+        print(fmt("Don't know how to push {child} to GitHub: skipping."))
+    elif args.github:
         # Create git-fusion client spec
         have_git_branch = False
-        args.git_client = fmt('git-fusion-{project}-version-{version}')
+        args.git_client = fmt('git-fusion-{git_name}')
         if any(p4.run('clients', '-E', args.git_client)):
             print(fmt("client {git_client} already exists: skipping."))
             have_git_branch = True
@@ -250,8 +261,7 @@ def main(argv):
                 Client=args.git_client,
                 Description=fmt("Git-fusion client for syncing {project} "
                                 "version {version}"),
-                Root=fmt('/home/git-fusion/.git-fusion/views/'
-                         '{project}-version-{version}/p4'),
+                Root=fmt('/home/git-fusion/.git-fusion/views/{git_name}/p4'),
                 View0=fmt('{depot}/project/{project}/{child}/... '
                           '//{git_client}/...'))
             print(fmt("Creating client spec {git_client}"))
@@ -263,9 +273,9 @@ def main(argv):
         # Update table of pushes
         register('{depot}/infosys/robots/git-fusion/etc/pushes',
                  r"\n*\Z",
-                 '\n{project}-version-{version}\t'
+                 '\n{git_name}\t'
                  'git@github.com:Ravenbrook/mps-temporary.git\t'
-                 '{child}\n')
+                 '{git_branch}\n')
 
 
 if __name__ == '__main__':
