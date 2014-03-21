@@ -3449,47 +3449,64 @@ STATE non-nil means mark as deleted."
   "Delete this message and stay on it."
   (interactive)
   (rmail-set-attribute rmail-deleted-attr-index t)
-  (run-hooks 'rmail-delete-message-hook))
-
-(defun rmail-undelete-previous-message ()
-  "Back up to deleted message, select it, and undelete it."
-  (interactive)
-  (set-buffer rmail-buffer)
-  (let ((msg rmail-current-message))
-    (while (and (> msg 0)
-		(not (rmail-message-deleted-p msg)))
-      (setq msg (1- msg)))
-    (if (= msg 0)
-	(error "No previous deleted message")
-      (if (/= msg rmail-current-message)
-	  (rmail-show-message msg))
-      (rmail-set-attribute rmail-deleted-attr-index nil)
-      (if (rmail-summary-exists)
-	  (with-current-buffer rmail-summary-buffer
-	    (rmail-summary-mark-undeleted msg)))
-      (rmail-maybe-display-summary))))
-
-(defun rmail-delete-forward (&optional backward)
-  "Delete this message and move to next nondeleted one.
-Deleted messages stay in the file until the \\[rmail-expunge] command is given.
-With prefix argument, delete and move backward.
-
-Returns t if a new message is displayed after the delete, or nil otherwise."
-  (interactive "P")
-  (rmail-set-attribute rmail-deleted-attr-index t)
   (run-hooks 'rmail-delete-message-hook)
   (let ((del-msg rmail-current-message))
     (if (rmail-summary-exists)
 	(rmail-select-summary
-	 (rmail-summary-mark-deleted del-msg)))
-    (prog1 (rmail-next-undeleted-message (if backward -1 1))
-      (rmail-maybe-display-summary))))
+	 (rmail-summary-mark-deleted del-msg)))))
 
-(defun rmail-delete-backward ()
+(defun rmail-undelete-previous-message (count)
+  "Back up to deleted message, select it, and undelete it."
+  (interactive "p")
+  (set-buffer rmail-buffer)
+  (let (value)
+    (dotimes (i count)
+      (let ((msg rmail-current-message))
+	(while (and (> msg 0)
+		    (not (rmail-message-deleted-p msg)))
+	  (setq msg (1- msg)))
+	(if (= msg 0)
+	    (error "No previous deleted message")
+	  (if (/= msg rmail-current-message)
+	      (rmail-show-message msg))
+	  (rmail-set-attribute rmail-deleted-attr-index nil)
+	  (if (rmail-summary-exists)
+	      (with-current-buffer rmail-summary-buffer
+		(rmail-summary-mark-undeleted msg))))))
+    (rmail-maybe-display-summary)))
+
+(defun rmail-delete-forward (&optional count)
+  "Delete this message and move to next nondeleted one.
+Deleted messages stay in the file until the \\[rmail-expunge] command is given.
+A prefix argument is a repeat count;
+negative argument means move backwards instead of forwards.
+
+Returns t if a new message is displayed after the delete, or nil otherwise."
+  (interactive "p")
+  (let (value backward)
+    (if (< count 0)
+	(setq count (- count) backward t))
+    (dotimes (i count)
+      (rmail-set-attribute rmail-deleted-attr-index t)
+      (run-hooks 'rmail-delete-message-hook)
+      (let ((del-msg rmail-current-message))
+	(if (rmail-summary-exists)
+	    (rmail-select-summary
+	     (rmail-summary-mark-deleted del-msg)))
+	(setq value (rmail-next-undeleted-message (if backward -1 1)))))
+    (rmail-maybe-display-summary)
+    value))
+
+(defun rmail-delete-backward (count)
   "Delete this message and move to previous nondeleted one.
-Deleted messages stay in the file until the \\[rmail-expunge] command is given."
-  (interactive)
-  (rmail-delete-forward t))
+Deleted messages stay in the file until the \\[rmail-expunge] command is given.
+A prefix argument is a repeat count;
+negative argument means move forwards instead of backwards.
+
+Returns t if a new message is displayed after the delete, or nil otherwise."
+
+  (interactive "p")
+  (rmail-delete-forward (- count)))
 
 ;; Expunging.
 

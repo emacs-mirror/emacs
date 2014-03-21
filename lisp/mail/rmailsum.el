@@ -914,7 +914,10 @@ a negative argument means to delete and move backward."
   (unless (numberp count) (setq count 1))
   (let (end del-msg
 	    (backward (< count 0)))
-    (while (/= count 0)
+    (while (and (/= count 0)
+		;; Don't waste time if we are at the beginning
+		;; and trying to go backward.
+		(not (and backward (bobp))))
       (rmail-summary-goto-msg)
       (with-current-buffer rmail-buffer
 	(rmail-delete-message)
@@ -924,11 +927,13 @@ a negative argument means to delete and move backward."
 		  (save-excursion (beginning-of-line)
 				  (looking-at " *[0-9]+D")))
 	(forward-line (if backward -1 1)))
-      ;; It looks ugly to move to the empty line at end of buffer.
-      (and (eobp) (not backward)
-	   (forward-line -1))
       (setq count
-	    (if (> count 0) (1- count) (1+ count))))))
+	    (if (> count 0) (1- count) (1+ count)))
+      ;; It looks ugly to move to the empty line at end of buffer.
+      ;; And don't waste time after hitting the end.
+      (and (eobp) (not backward)
+	   (progn (setq count 0)
+		  (forward-line -1))))))
 
 (defun rmail-summary-delete-backward (&optional count)
   "Delete this message and move to previous nondeleted one.
@@ -939,8 +944,9 @@ a negative argument means to delete and move forward."
   (rmail-summary-delete-forward (- count)))
 
 (defun rmail-summary-mark-deleted (&optional n undel)
-  ;; Since third arg is t, this only alters the summary, not the Rmail buf.
-  (and n (rmail-summary-goto-msg n t t))
+  (and n (not (eq n (rmail-summary-msg-number)))
+       ;; Since third arg is t, this only alters summary, not the Rmail buf.
+       (rmail-summary-goto-msg n t t))
   (or (eobp)
       (not (overlay-get rmail-summary-overlay 'face))
       (let ((buffer-read-only nil))
@@ -951,9 +957,9 @@ a negative argument means to delete and move forward."
 		(progn (delete-char 1) (insert " ")))
 	  (delete-char 1)
 	  (insert "D"))
-	;; Register a new summary line.
+	;; Discard cached new summary line.
 	(with-current-buffer rmail-buffer
-	  (aset rmail-summary-vector (1- n) (rmail-create-summary-line n)))))
+	  (aset rmail-summary-vector (1- n) nil))))
   (beginning-of-line))
 
 (defun rmail-summary-update-line (n)
@@ -1002,7 +1008,7 @@ Optional prefix ARG means undelete ARG previous messages."
 		 (set-buffer rmail-buffer)
 	       (rmail-pop-to-buffer rmail-buffer))
 	     (and (rmail-message-deleted-p rmail-current-message)
-		  (rmail-undelete-previous-message))
+		  (rmail-undelete-previous-message 1))
 	     (if rmail-enable-mime
 		 (rmail-pop-to-buffer rmail-buffer))
 	     (rmail-pop-to-buffer rmail-summary-buffer))
@@ -1011,26 +1017,35 @@ Optional prefix ARG means undelete ARG previous messages."
 (defun rmail-summary-undelete-many (&optional n)
   "Undelete all deleted msgs, optional prefix arg N means undelete N prev msgs."
   (interactive "P")
-  (with-current-buffer rmail-buffer
-    (let* ((init-msg (if n rmail-current-message rmail-total-messages))
-	   (rmail-current-message init-msg)
-	   (n (or n rmail-total-messages))
-	   (msgs-undeled 0))
-      (while (and (> rmail-current-message 0)
-		  (< msgs-undeled n))
-	(if (rmail-message-deleted-p rmail-current-message)
-	    (progn (rmail-set-attribute rmail-deleted-attr-index nil)
-		   (setq msgs-undeled (1+ msgs-undeled))))
-	(setq rmail-current-message (1- rmail-current-message)))
-      (set-buffer rmail-summary-buffer)
-      (setq rmail-current-message init-msg msgs-undeled 0)
-      (while (and (> rmail-current-message 0)
-		  (< msgs-undeled n))
-	(if (rmail-summary-deleted-p rmail-current-message)
-	    (progn (rmail-summary-mark-undeleted rmail-current-message)
-		   (setq msgs-undeled (1+ msgs-undeled))))
-	(setq rmail-current-message (1- rmail-current-message))))
-    (rmail-summary-goto-msg)))
+  (if n
+      (while (and (> n 0) (not (eobp)))
+	(rmail-summary-goto-msg)
+	(let (del-msg)
+	  (when (rmail-summary-deleted-p)
+	    (with-current-buffer rmail-buffer
+	      (rmail-undelete-previous-message 1)
+	      (setq del-msg rmail-current-message))
+	    (rmail-summary-mark-undeleted del-msg)))
+	(while (and (not (eobp))
+		    (save-excursion (beginning-of-line)
+				    (looking-at " *[0-9]+ ")))
+	  (forward-line 1))
+	(setq n (1- n)))
+    (rmail-summary-goto-msg 1)
+    (dotimes (i rmail-total-messages)
+      (rmail-summary-goto-msg)
+      (let (del-msg)
+	(when (rmail-summary-deleted-p)
+	  (with-current-buffer rmail-buffer
+	    (rmail-undelete-previous-message 1)
+	    (setq del-msg rmail-current-message))
+	  (rmail-summary-mark-undeleted del-msg)))
+      (if (not (eobp))
+	  (forward-line 1))))
+
+  ;; It looks ugly to move to the empty line at end of buffer.
+  (and (eobp)
+       (forward-line -1)))
 
 ;; Rmail Summary mode is suitable only for specially formatted data.
 (put 'rmail-summary-mode 'mode-class 'special)
@@ -1187,6 +1202,13 @@ Search, the `unseen' attribute is restored.")
   (interactive "@e")
   (goto-char (posn-point (event-end event)))
   (rmail-summary-goto-msg))
+
+(defun rmail-summary-msg-number ()
+  (save-excursion
+    (beginning-of-line)
+    (string-to-number
+     (buffer-substring (point)
+		       (min (point-max) (+ 6 (point)))))))
 
 (defun rmail-summary-goto-msg (&optional n nowarn skip-rmail)
   "Go to message N in the summary buffer and the Rmail buffer.

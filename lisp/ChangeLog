@@ -1,3 +1,17 @@
+2014-03-21  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmailsum.el (rmail-summary-delete-forward):
+	Optimize case of reaching end and handling count.
+	(rmail-summary-mark-deleted): Optimize when N is current msg.
+	Don't create new summary line.
+	(rmail-summary-undelete): Pass arg to rmail-undelete-previous-message.
+	(rmail-summary-undelete-many): Rewrite for speed.
+	(rmail-summary-msg-number): New function.
+
+	* mail/rmail.el (rmail-delete-message): Update summary.
+	(rmail-undelete-previous-message): Handle repeat count arg.
+	(rmail-delete-backward, rmail-delete-forward): Likewise.
+
 2014-03-21  Daniel Colascione  <dancol@dancol.org>
 
 	* mail/emacsbug.el (report-emacs-bug): Include memory usage
