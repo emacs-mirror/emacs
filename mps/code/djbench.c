@@ -16,7 +16,6 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <alloca.h>
 #include <pthread.h>
 #include "getopt.h"
 #include "testlib.h"
@@ -48,6 +47,7 @@ static unsigned sshift = 18;      /* log2 max block size in words */
 static double pact = 0.2;         /* probability per pass of acting */
 static unsigned rinter = 75;      /* pass interval for recursion */
 static unsigned rmax = 10;        /* maximum recursion depth */
+static mps_bool_t zoned = TRUE;   /* arena allocates using zones */
 
 #define DJRUN(fname, alloc, free) \
   static unsigned fname##_inner(mps_ap_t ap, unsigned depth, unsigned r) { \
@@ -124,8 +124,8 @@ DJRUN(dj_alloc, MPS_ALLOC, MPS_FREE)
 #define RESERVE_ALLOC(p, s) \
   do { \
     size_t _s = ALIGN_UP(s, (size_t)MPS_PF_ALIGN); \
-    mps_reserve(&p, ap, _s); \
-    mps_commit(ap, p, _s); \
+    (void)mps_reserve(&p, ap, _s); \
+    (void)mps_commit(ap, p, _s); \
   } while(0)
 #define RESERVE_FREE(p, s)  do { mps_free(pool, p, s); } while(0)
 
@@ -187,6 +187,7 @@ static void arena_wrap(dj_t dj, mps_class_t pool_class, const char *name)
 {
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 256ul * 1024 * 1024); /* FIXME: Why is there no default? */
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, zoned);
     DJMUST(mps_arena_create_k(&arena, mps_arena_class_vm(), args));
   } MPS_ARGS_END(args);
   DJMUST(mps_pool_create_k(&pool, arena, pool_class, mps_args_none));
@@ -209,6 +210,7 @@ static struct option longopts[] = {
   {"rinter",  required_argument,  NULL,   'r'},
   {"rmax",    required_argument,  NULL,   'd'},
   {"seed",    required_argument,  NULL,   'x'},
+  {"arena-unzoned", no_argument,  NULL,   'z'},
   {NULL,      0,                  NULL,   0}
 };
 
@@ -242,7 +244,7 @@ int main(int argc, char *argv[]) {
 
   seed = rnd_seed();
   
-  while ((ch = getopt_long(argc, argv, "ht:i:p:b:s:a:r:d:x:", longopts, NULL)) != -1)
+  while ((ch = getopt_long(argc, argv, "ht:i:p:b:s:a:r:d:x:z", longopts, NULL)) != -1)
     switch (ch) {
     case 't':
       nthreads = (unsigned)strtoul(optarg, NULL, 10);
@@ -270,6 +272,9 @@ int main(int argc, char *argv[]) {
       break;
     case 'x':
       seed = strtoul(optarg, NULL, 10);
+      break;
+    case 'z':
+      zoned = FALSE;
       break;
     default:
       fprintf(stderr,
@@ -300,6 +305,8 @@ int main(int argc, char *argv[]) {
               "    Maximum recursion depth (default %u).\n"
               "  -x n, --seed=n\n"
               "    Random number seed (default from entropy).\n"
+              "  -z, --arena-unzoned\n"
+              "    Disabled zoned allocation in the arena\n"
               "Tests:\n"
               "  mvt   pool class MVT\n"
               "  mvff  pool class MVFF\n"
@@ -334,7 +341,7 @@ int main(int argc, char *argv[]) {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

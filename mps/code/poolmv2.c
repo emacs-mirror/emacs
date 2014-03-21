@@ -53,7 +53,6 @@ static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena);
 static ABQ MVTABQ(MVT mvt);
 static CBS MVTCBS(MVT mvt);
 static Freelist MVTFreelist(MVT mvt);
-static SegPref MVTSegPref(MVT mvt);
 
 
 /* Types */
@@ -64,7 +63,6 @@ typedef struct MVTStruct
   CBSStruct cbsStruct;          /* The coalescing block structure */
   FreelistStruct flStruct;      /* The emergency free list structure */
   ABQStruct abqStruct;          /* The available block queue */
-  SegPrefStruct segPrefStruct;  /* The preferences for segments */
   /* <design/poolmvt/#arch.parameters> */
   Size minSize;                 /* Pool parameter */
   Size meanSize;                /* Pool parameter */
@@ -182,12 +180,6 @@ static Freelist MVTFreelist(MVT mvt)
 }
 
 
-static SegPref MVTSegPref(MVT mvt)
-{
-  return &mvt->segPrefStruct;
-}
-
-
 /* Methods */
 
 
@@ -277,7 +269,8 @@ static Res MVTInit(Pool pool, ArgList args)
   if (abqDepth < 3)
     abqDepth = 3;
 
-  res = CBSInit(arena, MVTCBS(mvt), (void *)mvt, align, FALSE, args);
+  res = CBSInit(MVTCBS(mvt), arena, (void *)mvt, align,
+                /* fastFind */ FALSE, /* zoned */ FALSE, args);
   if (res != ResOK)
     goto failCBS;
  
@@ -286,14 +279,6 @@ static Res MVTInit(Pool pool, ArgList args)
     goto failABQ;
 
   FreelistInit(MVTFreelist(mvt), align);
-
-  {
-    ZoneSet zones;
-    /* --- Loci needed here, what should the pref be? */
-    SegPrefInit(MVTSegPref(mvt));
-    zones = ZoneSetComp(ArenaDefaultZONESET);
-    SegPrefExpress(MVTSegPref(mvt), SegPrefZoneSet, (void *)&zones);
-  }
 
   pool->alignment = align;
   mvt->reuseSize = reuseSize;
@@ -378,7 +363,6 @@ static Bool MVTCheck(MVT mvt)
   CHECKD(ABQ, &mvt->abqStruct);
   /* CHECKL(ABQCheck(MVTABQ(mvt))); */
   CHECKD(Freelist, &mvt->flStruct);
-  CHECKD(SegPref, &mvt->segPrefStruct);
   CHECKL(mvt->reuseSize >= 2 * mvt->fillSize);
   CHECKL(mvt->fillSize >= mvt->maxSize);
   CHECKL(mvt->maxSize >= mvt->meanSize);
@@ -1202,7 +1186,7 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
   /* Can't use plain old SegClass here because we need to call
    * SegBuffer() in MVTFree(). */
   Res res = SegAlloc(segReturn, GCSegClassGet(),
-                     MVTSegPref(mvt), size, MVT2Pool(mvt), withReservoirPermit,
+                     SegPrefDefault(), size, MVT2Pool(mvt), withReservoirPermit,
                      argsNone);
 
   if (res == ResOK) {

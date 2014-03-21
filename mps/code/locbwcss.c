@@ -1,7 +1,7 @@
 /* locbwcss.c: LOCUS BACKWARDS COMPATIBILITY STRESS TEST
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpscmvff.h"
@@ -129,7 +129,7 @@ static void allocMultiple(PoolStat stat)
 
 /* reportResults - print a report on a PoolStat */
 
-static void reportResults(PoolStat stat, char *name)
+static void reportResults(PoolStat stat, const char *name)
 {
   printf("\nResults for ");
   fputs(name, stdout);
@@ -196,8 +196,13 @@ int main(int argc, char *argv[])
   randomize(argc, argv);
   mps_lib_assert_fail_install(assert_die);
 
-  die(mps_arena_create(&arena, mps_arena_class_vmnz(), testArenaSIZE),
-      "mps_arena_create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, FALSE);
+    MPS_ARGS_DONE(args);
+    die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
+        "mps_arena_create");
+  } MPS_ARGS_END(args);
 
   testInArena(arena);
 
@@ -210,7 +215,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

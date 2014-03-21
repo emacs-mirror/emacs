@@ -199,14 +199,23 @@ int main(int argc, char *argv[])
   testInArena(arena, &fenceOptions);
   mps_arena_destroy(arena);
 
-  die(mps_arena_create(&arena, mps_arena_class_vmnz(), 2*testArenaSIZE),
-      "mps_arena_create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 2 * testArenaSIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, FALSE);
+    MPS_ARGS_DONE(args);
+    die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
+        "mps_arena_create");
+  } MPS_ARGS_END(args);
   testInArena(arena, bothOptions);
   mps_arena_destroy(arena);
 
-  die(mps_arena_create(&arena, mps_arena_class_cl(),
-                       testArenaSIZE, malloc(testArenaSIZE)),
-      "mps_arena_create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, FALSE);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, malloc(testArenaSIZE));
+    die(mps_arena_create_k(&arena, mps_arena_class_cl(), args),
+        "mps_arena_create");
+  } MPS_ARGS_END(args);
   testInArena(arena, bothOptions);
   mps_arena_destroy(arena);
 

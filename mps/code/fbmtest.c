@@ -585,7 +585,8 @@ extern int main(int argc, char *argv[])
            (char *)dummyBlock + ArraySize);
   }
 
-  die((mps_res_t)CBSInit(arena, &cbsStruct, arena, align, TRUE, mps_args_none),
+  die((mps_res_t)CBSInit(&cbsStruct, arena, arena, align,
+                         /* fastFind */ TRUE, /* zoned */ FALSE, mps_args_none),
       "failed to initialise CBS");
   state.type = FBMTypeCBS;
   state.align = align;

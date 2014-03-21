@@ -40,8 +40,7 @@ extern Bool RangesEqual(Range range1, Range range2);
 extern Addr (RangeBase)(Range range);
 extern Addr (RangeLimit)(Range range);
 extern Size (RangeSize)(Range range);
-extern Bool (RangeContains)(Range range, Addr addr);
-extern Bool (RangeIsEmpty)(Range range);
+extern void RangeCopy(Range to, Range from);
 
 
 /* Types */
