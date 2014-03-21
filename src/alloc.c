@@ -403,6 +403,23 @@ XFLOAT_INIT (Lisp_Object f, double n)
   XFLOAT (f)->u.data = n;
 }
 
+static bool
+pointers_fit_in_lispobj_p (void)
+{
+  return (UINTPTR_MAX <= VAL_MAX) || USE_LSB_TAG;
+}
+
+static bool
+mmap_lisp_allowed_p (void)
+{
+  /* If we can't store all memory addresses in our lisp objects, it's
+     risky to let the heap use mmap and give us addresses from all
+     over our address space.  We also can't use mmap for lisp objects
+     if we might dump: unexec doesn't preserve the contents of mmaped
+     regions.  */
+  return pointers_fit_in_lispobj_p () && !might_dump;
+}
+
 
 /************************************************************************
 				Malloc
@@ -1073,10 +1090,8 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
       intptr_t aligned; /* int gets warning casting to 64-bit pointer.  */
 
 #ifdef DOUG_LEA_MALLOC
-      /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
-	 because mapped region contents are not preserved in
-	 a dumped Emacs.  */
-      mallopt (M_MMAP_MAX, 0);
+      if (!mmap_lisp_allowed_p ())
+        mallopt (M_MMAP_MAX, 0);
 #endif
 
 #ifdef USE_ALIGNED_ALLOC
@@ -1097,8 +1112,8 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
 	((void **) abase)[-1] = base;
 
 #ifdef DOUG_LEA_MALLOC
-      /* Back to a reasonable maximum of mmap'ed areas.  */
-      mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
+      if (!mmap_lisp_allowed_p ())
+          mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
 
 #if ! USE_LSB_TAG
@@ -1733,23 +1748,15 @@ allocate_string_data (struct Lisp_String *s,
       size_t size = offsetof (struct sblock, data) + needed;
 
 #ifdef DOUG_LEA_MALLOC
-      /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
-	 because mapped region contents are not preserved in
-	 a dumped Emacs.
-
-         In case you think of allowing it in a dumped Emacs at the
-         cost of not being able to re-dump, there's another reason:
-         mmap'ed data typically have an address towards the top of the
-         address space, which won't fit into an EMACS_INT (at least on
-         32-bit systems with the current tagging scheme).  --fx  */
-      mallopt (M_MMAP_MAX, 0);
+      if (!mmap_lisp_allowed_p ())
+        mallopt (M_MMAP_MAX, 0);
 #endif
 
       b = lisp_malloc (size + GC_STRING_EXTRA, MEM_TYPE_NON_LISP);
 
 #ifdef DOUG_LEA_MALLOC
-      /* Back to a reasonable maximum of mmap'ed areas.  */
-      mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
+      if (!mmap_lisp_allowed_p ())
+        mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
 
       b->next_free = b->data;
@@ -3050,10 +3057,8 @@ allocate_vectorlike (ptrdiff_t len)
       size_t nbytes = header_size + len * word_size;
 
 #ifdef DOUG_LEA_MALLOC
-      /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
-	 because mapped region contents are not preserved in
-	 a dumped Emacs.  */
-      mallopt (M_MMAP_MAX, 0);
+      if (!mmap_lisp_allowed_p ())
+        mallopt (M_MMAP_MAX, 0);
 #endif
 
       if (nbytes <= VBLOCK_BYTES_MAX)
@@ -3070,8 +3075,8 @@ allocate_vectorlike (ptrdiff_t len)
 	}
 
 #ifdef DOUG_LEA_MALLOC
-      /* Back to a reasonable maximum of mmap'ed areas.  */
-      mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
+      if (!mmap_lisp_allowed_p ())
+        mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
 
       consing_since_gc += nbytes;

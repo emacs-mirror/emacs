@@ -1,3 +1,9 @@
+2014-03-21  Daniel Colascione  <dancol@dancol.org>
+
+	* alloc.c (lisp_align_malloc, allocate_string_data)
+	(allocate_vectorlike): Allow mmap allocation of lisp objects.
+	(pointers_fit_in_lispobj_p,mmap_lisp_allowed_p): New functions.
+
 2014-03-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (Fw32_shell_execute) [!CYGWIN]: Use ShellExecuteEx, to
