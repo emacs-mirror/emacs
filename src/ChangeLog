@@ -1,5 +1,8 @@
 2014-03-21  Daniel Colascione  <dancol@dancol.org>
 
+	* xterm.c (x_bitmap_icon): Stop reading the icon bitmap from disk
+	every time we switch to minibuffer.
+
 	* alloc.c (lisp_align_malloc, allocate_string_data)
 	(allocate_vectorlike): Allow mmap allocation of lisp objects.
 	(pointers_fit_in_lispobj_p,mmap_lisp_allowed_p): New functions.
