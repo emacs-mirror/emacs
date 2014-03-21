@@ -1,3 +1,8 @@
+2014-03-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Fw32_shell_execute) [!CYGWIN]: Use ShellExecuteEx, to
+	support more "verbs".
+
 2014-03-21  Daniel Colascione  <dancol@dancol.org>
 
 	Always prohibit dumping a dumped Emacs.
