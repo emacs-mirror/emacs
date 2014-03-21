@@ -1,3 +1,8 @@
+2014-03-21  Daniel Colascione  <dancol@dancol.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Include memory usage
+	information in bug reports.
+
 2014-03-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-methods): Add docstring for `tramp-login-env'
