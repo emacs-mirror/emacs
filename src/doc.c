@@ -537,7 +537,7 @@ store_function_docstring (Lisp_Object obj, ptrdiff_t offset)
 	ASET (fun, COMPILED_DOC_STRING, make_number (offset));
       else
 	message ("No docstring slot for %s",
-		 SYMBOLP (obj) ? SDATA (SYMBOL_NAME (obj)) : "<anonymous>");
+		 SYMBOLP (obj) ? SSDATA (SYMBOL_NAME (obj)) : "<anonymous>");
     }
 }
 
