@@ -12,6 +12,10 @@
 #
 # This shell script pulls Open Dylan from GitHub and builds it against
 # the MPS.
+#
+# Supported platforms: lii3gc.
+#
+# Prerequisites: autoconf, bunzip2, curl, git.
 
 
 # 2. CONFIGURATION
