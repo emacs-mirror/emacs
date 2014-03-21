@@ -6,6 +6,10 @@
  (simple-depend .
                 [(1 0)
                  ((simple-single (1 3))) "A single-file package with a dependency." single])
+ (simple-two-depend .
+                [(1 1)
+                 ((simple-depend (1 0)) (simple-single (1 3)))
+                 "A single-file package with two dependencies." single])
  (multi-file .
              [(0 2 3)
               nil "Example of a multi-file tar package" tar

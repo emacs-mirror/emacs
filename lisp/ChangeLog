@@ -1,5 +1,10 @@
 2014-03-21  Dmitry Gutov  <dgutov@yandex.ru>
 
+	* emacs-lisp/package.el (package-compute-transaction):
+	Use `version-list-<=' to compare the requirement version against
+	the version of package already to be installed.  Update the error
+	message.  (Bug#16826)
+
 	* progmodes/ruby-mode.el (ruby-smie-rules):
 	Add indentation rule for ` @ '.  (Bug#17050)
 

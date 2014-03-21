@@ -203,12 +203,22 @@ Must called from within a `tar-mode' buffer."
     (should (package-installed-p 'simple-single))
     (should (package-installed-p 'simple-depend))))
 
+(ert-deftest package-test-install-two-dependencies ()
+  "Install a package which includes a dependency."
+  (with-package-test ()
+    (package-initialize)
+    (package-refresh-contents)
+    (package-install 'simple-two-depend)
+    (should (package-installed-p 'simple-single))
+    (should (package-installed-p 'simple-depend))
+    (should (package-installed-p 'simple-two-depend))))
+
 (ert-deftest package-test-refresh-contents ()
   "Parse an \"archive-contents\" file."
   (with-package-test ()
     (package-initialize)
     (package-refresh-contents)
-    (should (eq 3 (length package-archive-contents)))))
+    (should (eq 4 (length package-archive-contents)))))
 
 (ert-deftest package-test-install-single-from-archive ()
   "Install a single package from a package archive."
