@@ -108,16 +108,10 @@ Size (RangeSize)(Range range)
   return RangeSize(range);
 }
 
-Bool (RangeContains)(Range range, Addr addr)
+void RangeCopy(Range to, Range from)
 {
-  AVERT(Range, range);
-  return RangeContains(range, addr);
-}
-
-Bool (RangeIsEmpty)(Range range)
-{
-  AVERT(Range, range);
-  return RangeIsEmpty(range);
+  AVERT(Range, from);
+  RangeInit(to, RangeBase(from), RangeLimit(from));
 }
 
 
