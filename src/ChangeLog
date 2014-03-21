@@ -1,3 +1,9 @@
+2014-03-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	Fix regression introduced by patch for Bug#10500.
+	* xterm.c (x_draw_image_relief): Respect Vtool_bar_button_margin.
+	* w32term.c (x_draw_image_relief): Likewise.
+
 2014-03-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* w32fns.c (w32_wnd_proc): For WM_WINDOWPOSCHANGING don't
