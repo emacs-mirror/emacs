@@ -1,5 +1,8 @@
 2014-03-21  Richard Stallman  <rms@gnu.org>
 
+	* subr.el (set-transient-map): Clear out function and value
+	of the temporary symbol when we're done with it.
+
 	* mail/rmailsum.el (rmail-summary-delete-forward):
 	Optimize case of reaching end and handling count.
 	(rmail-summary-mark-deleted): Optimize when N is current msg.
