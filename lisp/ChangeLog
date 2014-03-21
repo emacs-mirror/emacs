@@ -1,3 +1,29 @@
+2014-03-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* align.el (align-regexp): Remove superfluous backslash.
+
+	* ffap.el (ffap-ftp-default-user, ffap-url-regexp)
+	(ffap-pass-wildcards-to-dired, dired-at-point-require-prefix)
+	(ffap-rfc-path, ffap-ftp-sans-slash-regexp, ffap-menu-regexp):
+	Fix docstring typos.
+	(ffap-next): Use C-u in docstring.
+	(ffap-machine-p, ffap-list-env, ffap-alist, ffap-alist)
+	(ffap-string-at-point-mode-alist, ffap-menu, ffap-menu-ask):
+	Remove superfluous backslashes.
+	(ffap-string-at-point): Reflow docstring.
+
+	* server.el (server-host): Reflow docstring.
+	(server-unload-function): Fix docstring typo.
+	(server-eval-at): Remove superfluous backslash.
+
+	* skeleton.el (skeleton-insert): Remove superfluous backslash.
+	(skeleton-insert): Doc fix.
+	(skeleton-insert): Reflow docstring.
+
+	* term/tty-colors.el (tty-color-alist, tty-modify-color-alist)
+	(tty-color-approximate, tty-color-by-index, tty-color-values)
+	(tty-color-desc): Remove superfluous backslashes.
+
 2014-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* electric.el (electric-newline-and-maybe-indent): New command.

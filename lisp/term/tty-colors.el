@@ -771,7 +771,7 @@
   "Return an alist of colors supported by FRAME's terminal.
 FRAME defaults to the selected frame.
 Each element of the returned alist is of the form:
- \(NAME INDEX R G B\)
+ (NAME INDEX R G B)
 where NAME is the name of the color, a string;
 INDEX is the index of this color to be sent to the terminal driver
 when the color should be displayed; it is typically a small integer;
@@ -785,10 +785,10 @@ color."
 
 (defun tty-modify-color-alist (elt &optional frame)
   "Put the association ELT into the alist of terminal colors for FRAME.
-ELT should be of the form  \(NAME INDEX R G B\) (see `tty-color-alist'
+ELT should be of the form  (NAME INDEX R G B) (see `tty-color-alist'
 for details).
 If the association for NAME already exists in the color alist, it is
-modified to specify \(INDEX R G B\) as its cdr.  Otherwise, ELT is
+modified to specify (INDEX R G B) as its cdr.  Otherwise, ELT is
 appended to the end of the color alist.
 If FRAME is unspecified or nil, it defaults to the selected frame.
 Value is the modified color alist for FRAME."
@@ -856,7 +856,7 @@ of gray, thus the name."
 
 (defun tty-color-approximate (rgb &optional frame)
   "Find the color in `tty-color-alist' that best approximates RGB.
-Value is a list of the form \(NAME INDEX R G B\).
+Value is a list of the form (NAME INDEX R G B).
 The argument RGB should be an rgb value, that is, a list of three
 integers in the 0..65535 range.
 FRAME defaults to the selected frame."
@@ -981,7 +981,7 @@ If FRAME is unspecified or nil, it defaults to the selected frame."
   "Given a numeric index of a tty color, return its description.
 
 FRAME, if unspecified or nil, defaults to the selected frame.
-Value is a list of the form \(NAME INDEX R G B\)."
+Value is a list of the form (NAME INDEX R G B)."
   (and idx
        (let ((colors (tty-color-alist frame))
 	     desc found)
@@ -997,14 +997,14 @@ Value is a list of the form \(NAME INDEX R G B\)."
 
 If COLOR is not directly supported by the display, return the RGB
 values for a supported color that is its best approximation.
-The value is a list of integer RGB values--\(RED GREEN BLUE\).
+The value is a list of integer RGB values--(RED GREEN BLUE).
 These values range from 0 to 65535; white is (65535 65535 65535).
 If FRAME is omitted or nil, use the selected frame."
   (cddr (tty-color-desc color frame)))
 
 (defun tty-color-desc (color &optional frame)
   "Return the description of the color COLOR for a character terminal.
-Value is a list of the form \(NAME INDEX R G B\).  The returned NAME or
+Value is a list of the form (NAME INDEX R G B).  The returned NAME or
 RGB value may not be the same as the argument COLOR, because the latter
 might need to be approximated if it is not supported directly."
   (and (stringp color)

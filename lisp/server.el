@@ -104,10 +104,10 @@
   "The name or IP address to use as host address of the server process.
 If set, the server accepts remote connections; otherwise it is local.
 
-DO NOT give this a non-nil value unless you know what you are
-doing!  On unsecured networks, accepting remote connections is
-very dangerous, because server-client communication (including
-session authentication) is not encrypted."
+DO NOT give this a non-nil value unless you know what you are doing!
+On unsecured networks, accepting remote connections is very dangerous,
+because server-client communication (including session authentication)
+is not encrypted."
   :group 'server
   :type '(choice
           (string :tag "Name or IP address")
@@ -1634,7 +1634,7 @@ only these files will be asked to be saved."
 (define-key ctl-x-map "#" 'server-edit)
 
 (defun server-unload-function ()
-  "Unload the server library."
+  "Unload the Server library."
   (server-mode -1)
   (substitute-key-definition 'server-edit nil ctl-x-map)
   (save-current-buffer
@@ -1648,7 +1648,7 @@ only these files will be asked to be saved."
   "Contact the Emacs server named SERVER and evaluate FORM there.
 Returns the result of the evaluation, or signals an error if it
 cannot contact the specified server.  For example:
-  \(server-eval-at \"server\" '(emacs-pid))
+  (server-eval-at \"server\" '(emacs-pid))
 returns the process ID of the Emacs instance running \"server\"."
   (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
 	 (server-file (expand-file-name server server-dir))
