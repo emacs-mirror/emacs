@@ -1,3 +1,8 @@
+2014-03-21  Daniel Colascione  <dancol@dancol.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Include memory usage
+	information in bug reports.
+
 2014-03-21  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in ($(MH_E_DIR)/mh-loaddefs.el)
