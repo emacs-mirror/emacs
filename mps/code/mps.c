@@ -214,6 +214,21 @@
 #include "spw3i6mv.c"   /* Windows on 64-bit stack probe for Microsoft C */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
+/* Windows on 32-bit Intel with Pelles C */
+
+#elif defined(MPS_PF_W3I3PC)
+
+#include "lockw3.c"     /* Windows locks */
+#include "thw3.c"       /* Windows threading */
+#include "thw3i3.c"     /* Windows on 32-bit Intel thread stack scan */
+#include "vmw3.c"       /* Windows virtual memory */
+#include "protw3.c"     /* Windows protection */
+#include "proti3.c"     /* 32-bit Intel mutator context decoding */
+#include "prmci3w3.c"   /* Windows on 32-bit Intel mutator context */
+#include "ssw3i3pc.c"   /* Windows on 32-bit stack scan for Pelles C */
+#include "spw3i3mv.c"   /* Intel stack probe */
+#include "mpsiw3.c"     /* Windows interface layer extras */
+
 #else
 
 #error "Unknown platform -- can't determine platform specific parts."

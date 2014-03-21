@@ -197,10 +197,13 @@ void EventInit(void)
   AVER((Bool)Event##name##Always == always); \
   AVERT(Bool, always); \
   AVER(0 <= Event##name##Kind); \
-  AVER((EventKind)Event##name##Kind < EventKindLIMIT); \
+  AVER((EventKind)Event##name##Kind < EventKindLIMIT);
+
+#define EVENT_CHECK_PARAMS(X, name, code, always, kind) \
   EVENT_##name##_PARAMS(EVENT_PARAM_CHECK, name)
 
-  EVENT_LIST(EVENT_CHECK, X)
+    /*EVENT_LIST(EVENT_CHECK, X)*/
+    /*EVENT_LIST(EVENT_CHECK_PARAMS, X)*/
   
   /* Ensure that no event can be larger than the maximum event size. */
   AVER(EventBufferSIZE <= EventSizeMAX);
