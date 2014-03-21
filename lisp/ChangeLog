@@ -1,3 +1,8 @@
+2014-03-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset--print-register): New function.
+	(frameset-to-register): Use it.
+
 2014-03-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/hideif.el (hif-string-to-number): New function.
