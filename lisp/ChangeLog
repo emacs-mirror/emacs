@@ -1,3 +1,8 @@
+2014-03-21  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie-rules):
+	Add indentation rule for ` @ '.  (Bug#17050)
+
 2014-03-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* align.el (align-regexp): Remove superfluous backslash.

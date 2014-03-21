@@ -379,3 +379,20 @@ foo(:bar =>
    'd' => %w(e f)
  }
 }
+
+# Bug#17050
+
+return render json: {
+                errors: { base: [message] },
+                copying: copying
+              },
+              status: 400
+
+top test(
+      some,
+      top,
+      test)
+
+foo bar, {
+      tee: qux
+    }
