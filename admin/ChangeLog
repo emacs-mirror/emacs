@@ -1,3 +1,9 @@
+2014-03-21  Glenn Morris  <rgm@gnu.org>
+
+	* update_autogen: Auto-detect VCS in use.
+	(vcs): New variable.
+	(status, commit, main): Handle git.
+
 2014-03-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix oversight preventing lib/sys/types.h from being generated.

@@ -47,6 +47,14 @@ cd $PD
 cd ../
 [ -d admin ] || die "Could not locate admin directory"
 
+if [ -d .bzr ]; then
+    vcs=bzr
+elif [ -d .git ]; then
+    vcs=git
+else
+    die "Cannot determine vcs"
+fi
+
 
 usage ()
 {
@@ -143,7 +151,10 @@ OPTIND=1
 ## Run status on inputs, list modified files on stdout.
 status ()
 {
-    bzr status -S "$@" >| $tempfile || die "bzr status error for $@"
+    local statflag="-S"
+    [ "$vcs" = "git" ] && statflag="-s"
+
+    $vcs status $statflag "$@" >| $tempfile || die "$vcs status error for $@"
 
     local stat file modified
 
@@ -217,8 +228,11 @@ commit ()
 
     echo "Committing..."
 
-    ## bzr status output is always relative to top-level, not PWD.
-    bzr commit -m "Auto-commit of $type files." "$@" || return $?
+    $vcs commit -m "Auto-commit of $type files." "$@" || return $?
+
+    [ "$vcs" = "git" ] && {
+        $vcs push || return $?
+    }
 
     echo "Committed files: $@"
 }                               # function commit
@@ -257,7 +271,7 @@ EOF
                 *-xtra.texi|*efaq-w32.texi) continue ;;
             esac
 
-            dircat=`sed -n -e 's/@value{emacsname}/Emacs/' -e 's/^@dircategory //p' $file`
+            dircat=$(sed -n -e 's/@value{emacsname}/Emacs/' -e 's/^@dircategory //p' $file)
 
             ## TODO warn about unknown topics (check-info in top-level
             ## Makefile does this).
@@ -291,7 +305,8 @@ EOF
 
     modified=$(status $basegen) || die
 
-    cd $oldpwd
+    ## bzr status output is always relative to top-level, not PWD.
+    [ "$vcs" = "bzr" ] && cd $oldpwd
 
     commit "generated" $modified || die "commit error"
 
@@ -364,7 +379,8 @@ echo "Checking status of loaddef files..."
 modified=$(status $genfiles ${ldefs_out#lisp/}) || die
 
 
-cd ../
+## bzr status output is always relative to top-level, not PWD.
+[ "$vcs" = "bzr" ] && cd ../
 
 
 commit "loaddefs" $modified || die "commit error"
