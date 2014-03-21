@@ -917,7 +917,7 @@ and has an optimized include file identification function.
 
 Through the variables @code{project-linux-build-directory-default} and
 @code{project-linux-architecture-default}, you can set the build
-directory and its architecture, resp.  The default is to assume that
+directory and its architecture, respectively.  The default is to assume that
 the build happens in the source directory and to auto-detect the
 architecture; if the auto-detection fails, you will be asked.
 

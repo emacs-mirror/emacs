@@ -569,7 +569,7 @@ in the current window, while @kbd{S} selects buffer in another window.
 @kindex 1300 @kbd{X} (@code{vip-ctl-x-equivalent})
 These keys will exit from vi mode and return to emacs mode temporarily.
 If you type @kbd{C} (@kbd{X}), Emacs will be in emacs mode and will believe
-that you have typed @kbd{C-c} (@kbd{C-x}, resp.) in emacs mode. Moreover,
+that you have typed @kbd{C-c} (@kbd{C-x}) in emacs mode. Moreover,
 if the following character you type is an upper-case letter, then Emacs
 will believe that you have typed the corresponding control character.
 You will be in vi mode again after the command is executed.  For example,
