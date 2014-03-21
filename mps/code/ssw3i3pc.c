@@ -1,10 +1,16 @@
-/* ssw3i3mv.c: STACK SCANNING FOR WIN32 WITH MICROSOFT C
+/* ssw3i3pc.c: STACK SCANNING FOR WIN32 WITH PELLES C
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * This scans the stack and fixes the registers which may contain roots.
  * See <design/thread-manager/>.
+ *
+ * .assume.ms-compat: We rely on the fact that Pelles C's setjmp stores
+ * the callee-save registers in the jmp_buf and is compatible with Microsoft
+ * C.  The Pelles C 7.00 setjmp.h header has a comment "MS compatible".  See
+ * also "Is Pelles C's jmp_buf compatible with Microsoft C's?"
+ * <http://forum.pellesc.de/index.php?topic=5464>
  *
  * REFERENCES
  *
@@ -19,23 +25,33 @@
 #include "mpm.h"
 #include <setjmp.h>
 
-SRCID(ssw3i3mv, "$Id$");
+SRCID(ssw3i3pc, "$Id$");
+
+
+/* This definition isn't in the Pelles C headers, so we reproduce it here.
+ * See .assume.ms-compat. */
+
+typedef struct __JUMP_BUFFER {
+    unsigned long Ebp;
+    unsigned long Ebx;
+    unsigned long Edi;
+    unsigned long Esi;
+    unsigned long Esp;
+    unsigned long Eip;
+    unsigned long Registration;
+    unsigned long TryLevel;
+    unsigned long Cookie;
+    unsigned long UnwindFunc;
+    unsigned long UnwindData[6];
+} _JUMP_BUFFER;
 
 
 Res StackScan(ScanState ss, Addr *stackBot)
 {
   jmp_buf jb;
 
-  /* We rely on the fact that Microsoft C's setjmp stores the callee-save
-     registers in the jmp_buf. */
+  /* .assume.ms-compat */
   (void)setjmp(jb);
-
-  /* These checks will just serve to warn us at compile-time if the
-     setjmp.h header changes to indicate that the registers we want aren't
-     saved any more. */
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Edi) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Esi) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Ebx) == sizeof(Addr));
 
   /* Ensure that the callee-save registers will be found by
      StackScanInner when it's passed the address of the Ebx field. */
@@ -45,9 +61,10 @@ Res StackScan(ScanState ss, Addr *stackBot)
   return StackScanInner(ss, stackBot, (Addr *)&((_JUMP_BUFFER *)jb)->Ebx, 3);
 }
 
+
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
