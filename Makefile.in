@@ -288,7 +288,7 @@ SUBDIR_MAKEFILES = `echo $(SUBDIR_MAKEFILES_IN:.in=) | sed 's|$(srcdir)/||g'`
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp
 COPYDESTS = "$(DESTDIR)${etcdir}" "$(DESTDIR)${lispdir}"
 
-all: ${SUBDIR}
+all: ${SUBDIR} info
 
 .PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32 FRC
 
