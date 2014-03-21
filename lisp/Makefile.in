@@ -416,7 +416,6 @@ $(MH_E_DIR)/mh-loaddefs.el: $(MH_E_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
 	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(MH_E_DIR)
 
 # Update TRAMP internal autoloads. Maybe we could move tramp*.el into
@@ -434,7 +433,6 @@ $(TRAMP_DIR)/tramp-loaddefs.el: $(TRAMP_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###tramp-autoload\")" \
 	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(TRAMP_DIR)
 
 CAL_DIR = $(lisp)/calendar
@@ -456,21 +454,18 @@ $(CAL_DIR)/cal-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###cal-autoload\")" \
 	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
 $(CAL_DIR)/diary-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###diary-autoload\")" \
 	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
 $(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###holiday-autoload\")" \
 	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
 .PHONY: bootstrap-clean distclean maintainer-clean

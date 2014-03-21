@@ -1,5 +1,10 @@
 2014-03-21  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in ($(MH_E_DIR)/mh-loaddefs.el)
+	($(TRAMP_DIR)/tramp-loaddefs.el, $(CAL_DIR)/cal-loaddefs.el)
+	($(CAL_DIR)/diary-loaddefs.el, $(CAL_DIR)/hol-loaddefs.el):
+	Don't set `make-backup-files'.
+
 	* info.el (info--prettify-description): New function,
 	to give info-finder descriptions consistent case, punctuation.
 	(Info-finder-find-node): Use it.  Sort packages.
