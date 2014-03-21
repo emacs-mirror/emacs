@@ -734,6 +734,10 @@ main (int argc, char **argv)
   xputenv ("G_SLICE=always-malloc");
 #endif
 
+#ifndef CANNOT_DUMP
+  might_dump = !initialized;
+#endif
+
 #ifdef GNU_LINUX
   if (!initialized)
     {
@@ -1632,10 +1636,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   else
     moncontrol (0);
 #endif
-#endif
-
-#ifndef CANNOT_DUMP
-  might_dump = !initialized;
 #endif
 
   initialized = 1;
