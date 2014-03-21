@@ -228,6 +228,10 @@ not try to reindent lines.  It is normally better to make the major
 mode set `electric-indent-inhibit', but this can be used as a workaround.")
 
 (defun electric-indent-post-self-insert-function ()
+  "Function that `electric-indent-mode' adds to `post-self-insert-hook'.
+This indents if the hook `electric-indent-functions' returns non-nil,
+or if a member of `electric-indent-chars' was typed; but not in a string
+or comment."
   ;; FIXME: This reindents the current line, but what we really want instead is
   ;; to reindent the whole affected text.  That's the current line for simple
   ;; cases, but not all cases.  We do take care of the newline case in an

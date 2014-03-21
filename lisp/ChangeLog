@@ -1,3 +1,7 @@
+2014-03-21  Glenn Morris  <rgm@gnu.org>
+
+	* electric.el (electric-indent-post-self-insert-function): Add doc.
+
 2014-03-21  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* emacs-lisp/package.el (package-compute-transaction):
