@@ -800,6 +800,7 @@ extern _Noreturn Lisp_Object wrong_type_argument (Lisp_Object, Lisp_Object);
 
 /* Defined in emacs.c.  */
 extern bool initialized;
+extern bool might_dump;
 
 /* Defined in eval.c.  */
 extern Lisp_Object Qautoload;

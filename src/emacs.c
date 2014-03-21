@@ -121,6 +121,9 @@ Lisp_Object Vlibrary_cache;
    on subsequent starts.  */
 bool initialized;
 
+/* Set to true if this instance of Emacs might dump.  */
+bool might_dump;
+
 #ifdef DARWIN_OS
 extern void unexec_init_emacs_zone (void);
 #endif
@@ -1631,6 +1634,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
 #endif
 
+#ifndef CANNOT_DUMP
+  might_dump = !initialized;
+#endif
+
   initialized = 1;
 
 #ifdef LOCALTIME_CACHE
@@ -2081,6 +2088,9 @@ You must run Emacs in batch mode in order to dump it.  */)
 
   if (! noninteractive)
     error ("Dumping Emacs works only in batch mode");
+
+  if (!might_dump)
+    error ("Emacs can be dumped only once");
 
 #ifdef GNU_LINUX
 
