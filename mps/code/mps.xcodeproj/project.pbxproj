@@ -3163,7 +3163,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Not listed here:\n# bttest and teletest -- interactive and so cannot be run unattended.\n# djbench and gcbench -- benchmarks, not test cases.\n# zcoll -- takes too long to be useful as a regularly run smoke test.\nTESTCASES=\"abqtest amcss amcsshe amcssth amsss amssshe apss arenacv \\\n           awlut awlutth awluthe btcv expt825 exposet0 fbmtest finalcv \\\n           finaltest fotest locbwcss lockcov locusss locv messtest mpmss \\\n           mpsicv mv2test poolncv qs sacss segsmss steptest walkt0 zmess\"\n\n../tool/testrun.sh $(for TEST in $TESTCASES; do echo $TARGET_BUILD_DIR/$TEST; done)\n\n# Coverage\nif [ \"$CONFIGURATION\" == \"Debug\" ]; then\n    (cd xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/x86_64 &&\n     gcov mps.c 2> /dev/null) | ../tool/gcovfmt\nfi";
+			shellScript = "# Not listed here:\n# bttest and teletest -- interactive and so cannot be run unattended.\n# djbench and gcbench -- benchmarks, not test cases.\n# zcoll -- takes too long to be useful as a regularly run smoke test.\nTESTCASES=\"abqtest amcss amcsshe amcssth amsss amssshe apss arenacv \\\n           awlut awlutth awluthe btcv expt825 exposet0 fbmtest finalcv \\\n           finaltest fotest locbwcss lockcov locusss locv messtest mpmss \\\n           mpsicv mv2test poolncv qs sacss segsmss steptest walkt0 zmess\"\n\n../tool/testrun.sh $(for TEST in $TESTCASES; do echo $TARGET_BUILD_DIR/$TEST; done)\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -4047,8 +4047,6 @@
 		2231BB5618CA97D8002D6322 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = locbwcss;
 			};
 			name = Debug;
@@ -4056,8 +4054,6 @@
 		2231BB5718CA97D8002D6322 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = locbwcss;
 			};
 			name = Release;
@@ -4065,8 +4061,6 @@
 		2231BB5818CA97D8002D6322 /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = locbwcss;
 			};
 			name = RASH;
@@ -4074,8 +4068,6 @@
 		2231BB6418CA97DC002D6322 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = locusss;
 			};
 			name = Debug;
@@ -4083,8 +4075,6 @@
 		2231BB6518CA97DC002D6322 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = locusss;
 			};
 			name = Release;
@@ -4092,8 +4082,6 @@
 		2231BB6618CA97DC002D6322 /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = locusss;
 			};
 			name = RASH;
@@ -4101,8 +4089,6 @@
 		224CC796175E1821002FF81B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4110,8 +4096,6 @@
 		224CC797175E1821002FF81B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4119,8 +4103,6 @@
 		2291A5BA175CAB2F001D4920 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4128,8 +4110,6 @@
 		2291A5BB175CAB2F001D4920 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4137,8 +4117,6 @@
 		2291A5CE175CAFCA001D4920 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4146,8 +4124,6 @@
 		2291A5CF175CAFCA001D4920 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4155,8 +4131,6 @@
 		2291A5E0175CB05F001D4920 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4164,8 +4138,6 @@
 		2291A5E1175CB05F001D4920 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4211,8 +4183,6 @@
 		22FA177216E8D6FC0098B23F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4220,8 +4190,6 @@
 		22FA177316E8D6FC0098B23F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4230,8 +4198,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_C_LANGUAGE_STANDARD = c99;
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4247,8 +4213,6 @@
 		2D604B9F16514B1A003AAF46 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4263,8 +4227,6 @@
 		3104AFBA156D357B000A585A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4272,8 +4234,6 @@
 		3104AFBB156D357B000A585A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4281,8 +4241,6 @@
 		3104AFD0156D35E2000A585A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4290,8 +4248,6 @@
 		3104AFD1156D35E2000A585A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4299,8 +4255,6 @@
 		3104AFE5156D3682000A585A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4308,8 +4262,6 @@
 		3104AFE6156D3682000A585A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4333,8 +4285,6 @@
 		3104B011156D38F3000A585A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4342,8 +4292,6 @@
 		3104B012156D38F3000A585A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4351,8 +4299,6 @@
 		3104B02A156D39D4000A585A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4360,8 +4306,6 @@
 		3104B02B156D39D4000A585A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4369,8 +4313,6 @@
 		3104B045156D3AD8000A585A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4378,8 +4320,6 @@
 		3104B046156D3AD8000A585A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4387,8 +4327,6 @@
 		3114A597156E913C001E0AA3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4396,8 +4334,6 @@
 		3114A598156E913C001E0AA3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4405,8 +4341,6 @@
 		3114A5AF156E92C0001E0AA3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4414,8 +4348,6 @@
 		3114A5B0156E92C0001E0AA3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4423,8 +4355,6 @@
 		3114A5C5156E9315001E0AA3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4432,8 +4362,6 @@
 		3114A5C6156E9315001E0AA3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4441,8 +4369,6 @@
 		3114A5DE156E93A0001E0AA3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4450,8 +4376,6 @@
 		3114A5DF156E93A0001E0AA3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4459,8 +4383,6 @@
 		3114A5F7156E93E7001E0AA3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4468,8 +4390,6 @@
 		3114A5F8156E93E7001E0AA3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4477,8 +4397,6 @@
 		3114A60D156E9430001E0AA3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4486,8 +4404,6 @@
 		3114A60E156E9430001E0AA3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4495,8 +4411,6 @@
 		3114A624156E9485001E0AA3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4504,8 +4418,6 @@
 		3114A625156E9485001E0AA3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4513,8 +4425,6 @@
 		3114A63B156E94DB001E0AA3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4522,8 +4432,6 @@
 		3114A63C156E94DB001E0AA3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4531,8 +4439,6 @@
 		3114A654156E9596001E0AA3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4540,8 +4446,6 @@
 		3114A655156E9596001E0AA3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4549,8 +4453,6 @@
 		3114A66A156E95D9001E0AA3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4558,8 +4460,6 @@
 		3114A66B156E95D9001E0AA3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4567,8 +4467,6 @@
 		3114A684156E9669001E0AA3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4576,8 +4474,6 @@
 		3114A685156E9669001E0AA3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4585,8 +4481,6 @@
 		3114A69D156E971B001E0AA3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4594,8 +4488,6 @@
 		3114A69E156E971B001E0AA3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4603,8 +4495,6 @@
 		3114A6B4156E9759001E0AA3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4612,8 +4502,6 @@
 		3114A6B5156E9759001E0AA3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4621,8 +4509,6 @@
 		3114A6CE156E9815001E0AA3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4637,8 +4523,6 @@
 		3124CAC0156BE3EC00753214 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4646,8 +4530,6 @@
 		3124CAC1156BE3EC00753214 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4655,8 +4537,6 @@
 		3124CADC156BE64A00753214 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4664,8 +4544,6 @@
 		3124CADD156BE64A00753214 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4673,8 +4551,6 @@
 		3124CAF3156BE7F300753214 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4682,8 +4558,6 @@
 		3124CAF4156BE7F300753214 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4783,8 +4657,6 @@
 		318DA8D71892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4792,8 +4664,6 @@
 		318DA8D81892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4801,8 +4671,6 @@
 		318DA8D91892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4810,8 +4678,6 @@
 		318DA8DA1892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4819,8 +4685,6 @@
 		318DA8DB1892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4828,8 +4692,6 @@
 		318DA8DC1892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4837,8 +4699,6 @@
 		318DA8DD1892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4846,8 +4706,6 @@
 		318DA8DE1892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4855,8 +4713,6 @@
 		318DA8DF1892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4864,8 +4720,6 @@
 		318DA8E01892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4873,8 +4727,6 @@
 		318DA8E11892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4882,8 +4734,6 @@
 		318DA8E21892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4891,8 +4741,6 @@
 		318DA8E31892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4900,8 +4748,6 @@
 		318DA8E41892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4909,8 +4755,6 @@
 		318DA8E51892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4918,8 +4762,6 @@
 		318DA8E61892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4927,8 +4769,6 @@
 		318DA8E71892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4936,8 +4776,6 @@
 		318DA8E81892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4945,8 +4783,6 @@
 		318DA8E91892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4954,8 +4790,6 @@
 		318DA8EA1892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4963,8 +4797,6 @@
 		318DA8EB1892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4972,8 +4804,6 @@
 		318DA8EC1892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4981,8 +4811,6 @@
 		318DA8ED1892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4990,8 +4818,6 @@
 		318DA8EE1892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -4999,8 +4825,6 @@
 		318DA8EF1892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -5008,8 +4832,6 @@
 		318DA8F01892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -5017,8 +4839,6 @@
 		318DA8F11892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -5026,8 +4846,6 @@
 		318DA8F21892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -5035,8 +4853,6 @@
 		318DA8F31892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -5044,8 +4860,6 @@
 		318DA8F41892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -5053,8 +4867,6 @@
 		318DA8F51892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -5062,8 +4874,6 @@
 		318DA8F61892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -5071,8 +4881,6 @@
 		318DA8F71892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -5080,8 +4888,6 @@
 		318DA8F81892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -5134,8 +4940,6 @@
 		31D60015156D3CB200337B26 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5143,8 +4947,6 @@
 		31D60016156D3CB200337B26 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5152,8 +4954,6 @@
 		31D6002F156D3D3F00337B26 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5161,8 +4961,6 @@
 		31D60030156D3D3F00337B26 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5170,8 +4968,6 @@
 		31D60046156D3EC700337B26 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5179,8 +4975,6 @@
 		31D60047156D3EC700337B26 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5188,8 +4982,6 @@
 		31D6005C156D3F3500337B26 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5197,8 +4989,6 @@
 		31D6005D156D3F3500337B26 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5206,8 +4996,6 @@
 		31D60079156D3FBC00337B26 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5215,8 +5003,6 @@
 		31D6007A156D3FBC00337B26 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5224,8 +5010,6 @@
 		31D60094156D402900337B26 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5233,8 +5017,6 @@
 		31D60095156D402900337B26 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5362,8 +5144,6 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5381,8 +5161,6 @@
 		31EEAC6D156AB52600714D05 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5390,8 +5168,6 @@
 		31EEAC6E156AB52600714D05 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
