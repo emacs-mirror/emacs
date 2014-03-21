@@ -30,6 +30,9 @@ otherwise leave it unmarked.
 
 * Changes in Emacs 24.5
 
+---
+** The default value of `history-length' has increased to 100.
+
 
 * Editing Changes in Emacs 24.5
 

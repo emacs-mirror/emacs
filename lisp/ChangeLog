@@ -1,5 +1,7 @@
 2014-03-21  Glenn Morris  <rgm@gnu.org>
 
+	* cus-start.el (history-length): Bump :version.
+
 	* Makefile.in ($(MH_E_DIR)/mh-loaddefs.el)
 	($(TRAMP_DIR)/tramp-loaddefs.el, $(CAL_DIR)/cal-loaddefs.el)
 	($(CAL_DIR)/diary-loaddefs.el, $(CAL_DIR)/hol-loaddefs.el):
