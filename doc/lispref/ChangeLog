@@ -1,3 +1,7 @@
+2014-03-21  Glenn Morris  <rgm@gnu.org>
+
+	* commands.texi (Defining Commands): Copyedit re `interactive-only'.
+
 2014-03-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* internals.texi (C Integer Types): Prefer 'false' and 'true'
