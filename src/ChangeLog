@@ -1,3 +1,12 @@
+2014-03-21  Daniel Colascione  <dancol@dancol.org>
+
+	Always prohibit dumping a dumped Emacs.
+
+	* emacs.c (might_dump): New variable.
+	(Fdump_emacs): Always prohibit dumping of dumped Emacs.
+	* lisp.h (might_dump): Declare.
+	* unexcw.c (unexec): Remove now-redundant multiple-dump detection code.
+
 2014-03-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* doc.c (store_function_docstring): Fix pointer signedness mismatch.

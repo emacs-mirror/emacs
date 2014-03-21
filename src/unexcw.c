@@ -286,13 +286,6 @@ unexec (const char *outfile, const char *infile)
   int ret;
   int ret2;
 
-  if (bss_sbrk_did_unexec)
-    {
-      /* can only dump once */
-      printf ("You can only dump Emacs once on this platform.\n");
-      return;
-    }
-
   report_sheap_usage (1);
 
   infile = add_exe_suffix_if_necessary (infile, infile_buffer);
