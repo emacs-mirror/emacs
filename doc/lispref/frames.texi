@@ -1163,10 +1163,7 @@ on the toolkit used: Dragging the frame border with the mouse is usually
 always done character-wise.  Calling @code{set-frame-size} (see below)
 with arguments that do not specify the frame size as an integer multiple
 of its character size may be, however, either ignored or cause a
-rounding (GTK+, Windows) or get accepted (Lucid, Motif).  This also
-means that with some toolkits and a display whose size is not an
-integral multiple of your default font, you may have to set this to
-non-@code{nil} in order to fully maximize a frame.
+rounding (GTK+, Windows) or get accepted (Lucid, Motif).
 @end defopt
 
 @defun set-frame-size frame width height pixelwise

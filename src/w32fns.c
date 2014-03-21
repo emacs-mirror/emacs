@@ -3805,7 +3805,8 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	wp.length = sizeof (WINDOWPLACEMENT);
 	GetWindowPlacement (hwnd, &wp);
 
-	if (wp.showCmd != SW_SHOWMINIMIZED && (lppos->flags & SWP_NOSIZE) == 0)
+	if (wp.showCmd != SW_SHOWMAXIMIZED && wp.showCmd != SW_SHOWMINIMIZED
+	    && (lppos->flags & SWP_NOSIZE) == 0)
 	  {
 	    RECT rect;
 	    int wdiff;

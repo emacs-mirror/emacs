@@ -1,3 +1,9 @@
+2014-03-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32fns.c (w32_wnd_proc): For WM_WINDOWPOSCHANGING don't
+	constrain frame size in SW_SHOWMAXIMIZED case so we can truly
+	maximize a frame for odd default fonts.
+
 2014-03-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* doc.c (store_function_docstring): Fix pointer signedness mismatch.

@@ -210,6 +210,7 @@ bound to <f11> and M-<f10>, respectively.
 *** New hooks `focus-in-hook', `focus-out-hook'.
 These are normal hooks run when an Emacs frame gains or loses input focus.
 
++++
 *** Emacs can now change frame sizes in units of pixels, rather than
 text rows or columns.  When maximizing a frame or making it fullscreen,
 remaining extra pixels are no longer given to the minibuffer, the rightmost
@@ -218,6 +219,7 @@ areas of the frame's windows.  If the new option `frame-resize-pixelwise'
 is non-nil, all frame size changes happen pixelwise and set the
 corresponding size hints for the window manager.
 
++++
 *** Emacs can now change window sizes in units of pixels.
 Mouse-dragging a mode line or window divider now changes the size of
 adjacent windows pixelwise.  If the new option `window-resize-pixelwise'
@@ -231,6 +233,7 @@ or values to be returned, in pixels instead of lines/columns.
 count partially visible lines or columns if called with a nil PIXELWISE
 argument.
 
++++
 *** Emacs can now draw dividers between adjacent windows.  To put
 dividers between side-by-side/vertically stacked windows customize the
 frame parameters `right-divider-width' and `bottom-divider-width' to
@@ -241,25 +244,30 @@ the appearance of dividers by customizing the faces `window-divider',
 two are useful to provide a 3D effect, or to better distinguish dividers
 from surrounding display objects.
 
++++
 *** New functions are provided to return the pixel sizes of window
 components, namely `window-scroll-bar-width', `window-mode-line-height'
 `window-header-line-height', `window-right-divider-width' and
 `window-bottom-divider-width'.
 
++++
 *** The new function `window-text-pixel-size' returns the size of the
 text of a window's buffer in pixels.  This allows functions like
 `fit-frame-to-buffer' and `fit-window-to-buffer' to accurately fit a
 window to its buffer as it will be displayed.
 
++++
 *** `fit-window-to-buffer' can now resize windows in both dimensions.
 This behavior is controlled by the new option
 `fit-window-to-buffer-horizontally'.  The new option
 `fit-frame-to-buffer' allows to fit the window's frame to its buffer.
 
++++
 *** `fit-frame-to-buffer' now fits frames in both dimensions.  The new
 options `fit-frame-to-buffer-margins' and `fit-frame-to-buffer-sizes'
 control the size of the frame and its position on screen.
 
+---
 *** Temp Buffer Resize Mode can now adjust height and width of windows
 and frames.  `temp-buffer-resize-mode' is now able to adjust the height
 and the width of a window displaying a temporary buffer.  The new option
@@ -298,9 +306,11 @@ buffer.
 `display-buffer' choose or make a window at the bottom of the selected
 frame.
 
++++
 *** New display action function `display-buffer-no-window' to not
 display the buffer in a window.
 
++++
 *** New display action alist entry `allow-no-window' to indicate the
 caller of `display-buffer' is ready to handle the case of not
 displaying the buffer in a window.
