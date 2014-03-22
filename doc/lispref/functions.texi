@@ -1231,7 +1231,7 @@ received as argument, use @code{advice-eval-interactive-spec}.
 
 @var{where} determines how @var{function} is composed with the
 existing function, e.g. whether @var{function} should be called before, or
-after the original function.  See @xref{Advice combinators} for the list of
+after the original function.  @xref{Advice combinators}, for the list of
 available ways to compose the two functions.
 
 When modifying a variable (whose name will usually end with @code{-function}),

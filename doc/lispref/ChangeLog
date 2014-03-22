@@ -1,3 +1,8 @@
+2014-03-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* functions.texi (Core Advising Primitives): Fix cross-reference
+	in last change.
+
 2014-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* functions.texi (Advising Functions): Explain a bit more how
