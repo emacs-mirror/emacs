@@ -41,10 +41,13 @@ This document is not confidential.
                    it is invoked from the Xcode project.
 =================  ==========================================================
 
+.. _branch: branch
 .. _gcovfmt: gcovfmt
+.. _release: release
+.. _testcoverage: testcoverage
+.. _testopendylan: testopendylan
 .. _testrun.bat: testrun.bat
 .. _testrun.sh: testrun.sh
-.. _test-runner.py: test-runner.py
 
 
 A. References
@@ -60,6 +63,8 @@ B. Document History
 2013-05-24  GDR_    Added ``gcovfmt.py`` and ``testrun.sh``. 
                     ``test-runner.py`` is no longer used.
 2014-01-13  GDR_    Converted to reStructuredText. Added ``testrun.bat``.
+2014-03-22  GDR_    Add ``branch``, ``release``, ``testcoverage``, and 
+                    ``testopendylan``.
 ==========  ======  ========================================================
 
 .. _GDR: mailto:gdr@ravenbrook.com
