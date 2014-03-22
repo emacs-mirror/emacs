@@ -2010,10 +2010,22 @@ conv_sockaddr_to_lisp (struct sockaddr *sa, int len)
     case AF_LOCAL:
       {
 	struct sockaddr_un *sockun = (struct sockaddr_un *) sa;
-	for (i = 0; i < sizeof (sockun->sun_path); i++)
-	  if (sockun->sun_path[i] == 0)
-	    break;
-	return make_unibyte_string (sockun->sun_path, i);
+        ptrdiff_t name_length = len - offsetof (struct sockaddr_un, sun_path);
+        /* If the first byte is NUL, the name is a Linux abstract
+           socket name, and the name can contain embedded NULs.  If
+           it's not, we have a NUL-terminated string.  Be careful not
+           to walk past the end of the object looking for the name
+           terminator, however.  */
+        if (name_length > 0 && sockun->sun_path[0] != '\0')
+          {
+            const char* terminator =
+              memchr (sockun->sun_path, '\0', name_length);
+
+            if (terminator)
+              name_length = terminator - (const char*) sockun->sun_path;
+          }
+
+	return make_unibyte_string (sockun->sun_path, name_length);
       }
 #endif
     default:

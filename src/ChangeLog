@@ -1,3 +1,9 @@
+2014-03-22  Daniel Colascione  <dancol@dancol.org>
+
+	* process.c (conv_sockaddr_to_lisp): When extracting the string
+	names of AF_LOCAL sockets, stop before reading uninitialized
+	memory.
+
 2014-03-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	Fix regression introduced by patch for Bug#10500.
