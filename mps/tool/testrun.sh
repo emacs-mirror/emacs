@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # 
 # $Id$
 # Copyright (c) 2013-2014 Ravenbrook Limited. See end of file for license.
@@ -14,7 +14,7 @@
 # 
 #     testrun.sh DIR [CASE1 CASE2 ...]
 
-ALL_TEST_CASES=(
+ALL_TEST_CASES="
     abqtest
     amcss
     amcsshe
@@ -48,12 +48,12 @@ ALL_TEST_CASES=(
     steptest
     walkt0
     zmess
-    # bttest -- interactive, so cannot be run unattended
-    # djbench -- benchmark, not test case
-    # gcbench -- benchmark, not test case
-    # teletest -- interactive, so cannot be run unattended
-    # zcoll -- takes too long to be useful as a regularly run smoke test
-)
+"
+# bttest -- interactive, so cannot be run unattended
+# djbench -- benchmark, not test case
+# gcbench -- benchmark, not test case
+# teletest -- interactive, so cannot be run unattended
+# zcoll -- takes too long to be useful as a regularly run smoke test
 
 # Make a temporary output directory for the test logs.
 LOGDIR=$(mktemp -d /tmp/mps.log.XXXXXX)
@@ -62,7 +62,7 @@ echo "MPS test suite"
 echo "Logging test output to $LOGDIR"
 echo "Test directory: $TEST_DIR"
 shift
-TEST_CASES=${*:-${ALL_TEST_CASES[*]}}
+TEST_CASES=${*:-${ALL_TEST_CASES}}
 
 SEPARATOR="----------------------------------------"
 TEST_COUNT=0
