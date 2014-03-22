@@ -1,5 +1,8 @@
 2014-03-22  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (etags_deps, etags_args): New, to reduce duplication.
+	(etags${EXEEXT}, ctags${EXEEXT}): Use etags_deps, etags_args.
+
 	* Makefile.in (etags${EXEEXT}, ebrowse${EXEEXT}, ctags${EXEEXT})
 	(profile${EXEEXT}, make-docfile${EXEEXT}, movemail${EXEEXT})
 	(emacsclient${EXEEXT}, emacsclientw${EXEEXT}, hexl${EXEEXT})
