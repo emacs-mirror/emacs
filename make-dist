@@ -383,7 +383,7 @@ echo "Making links to \`lib'"
 echo "Making links to \`lib-src'"
 (cd lib-src
  ln [a-zA-Z]*.[ch] ../${tempdir}/lib-src
- ln ChangeLog Makefile.in README testfile ../${tempdir}/lib-src
+ ln ChangeLog Makefile.in README ../${tempdir}/lib-src
  ln grep-changelog rcs2log ../${tempdir}/lib-src
  ln makefile.w32-in ../${tempdir}/lib-src)
 

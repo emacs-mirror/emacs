@@ -1,3 +1,10 @@
+2014-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (DONT_INSTALL): Remove test-distrib.
+	(test-distrib${EXEEXT}): Remove rule.
+
+	* test-distrib.c, testfile: Remove.
+
 2014-03-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (main): #ifdef out previous change on Windows.

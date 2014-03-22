@@ -2504,22 +2504,6 @@ or
 
 (The -R option disables address space randomization.)
 
-*** test-distrib says that the distribution has been clobbered.
-*** or, temacs prints "Command key out of range 0-127".
-*** or, temacs runs and dumps emacs, but emacs totally fails to work.
-*** or, temacs gets errors dumping emacs.
-
-This can be because the .elc files have been garbled.  Do not be
-fooled by the fact that most of a .elc file is text: these are
-binary files and can contain all 256 byte values.
-
-If you have a copy of Emacs whose .elc files have been damaged in this
-way, you should be able to fix it by using:
-
- make bootstrap
-
-to regenerate all the .elc files.
-
 *** temacs prints "Pure Lisp storage exhausted".
 
 This means that the Lisp code loaded from the .elc and .el files

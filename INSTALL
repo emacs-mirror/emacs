@@ -726,8 +726,8 @@ Strictly speaking, not all of the executables in `./lib-src' need be copied.
     are used by Emacs; they do need to be copied.
 - The programs `etags', `ctags', and `emacsclient' are intended to be
     run by users; they are handled below.
-- The programs `make-docfile' and `test-distrib' were
-    used in building Emacs, and are not needed any more.
+- The program `make-docfile' was used in building Emacs, and is
+    not needed any more.
 
 2) Copy the files in `./info' to the place specified in
 `./lisp/site-init.el' or `./lisp/info.el'.  Note that if the

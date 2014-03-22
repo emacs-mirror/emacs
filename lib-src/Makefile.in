@@ -128,7 +128,7 @@ INSTALLABLE_SCRIPTS = grep-changelog
 UTILITIES = profile${EXEEXT} movemail${EXEEXT} hexl${EXEEXT} \
             update-game-score${EXEEXT}
 
-DONT_INSTALL= test-distrib${EXEEXT} make-docfile${EXEEXT}
+DONT_INSTALL= make-docfile${EXEEXT}
 
 # Like UTILITIES, but they're not system-dependent, and should not be
 #  deleted by the distclean target.
@@ -302,14 +302,6 @@ check:
 tags: TAGS
 TAGS: etags${EXEEXT}
 	etags *.[ch]
-
-## This verifies that the non-ASCII characters in the file \`testfile\'
-## have not been clobbered by whatever means were used to copy and
-## distribute Emacs.  If they were clobbered, all the .elc files were
-## clobbered too.
-test-distrib${EXEEXT}: ${srcdir}/test-distrib.c
-	$(CC) ${ALL_CFLAGS} -o test-distrib${EXEEXT} ${srcdir}/test-distrib.c
-	./test-distrib ${srcdir}/testfile
 
 ../lib/libgnu.a: $(config_h)
 	cd ../lib && $(MAKE) libgnu.a

@@ -1,3 +1,7 @@
+2014-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* quick-install-emacs (AVOID): Remove testfile and test-distrib.
+
 2014-03-21  Glenn Morris  <rgm@gnu.org>
 
 	* update_autogen: Auto-detect VCS in use.
