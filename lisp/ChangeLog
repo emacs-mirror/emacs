@@ -1,5 +1,11 @@
 2014-03-22  Glenn Morris  <rgm@gnu.org>
 
+	* dired.el (dired-read-regexp): Make obsolete.
+	(dired-mark-files-regexp, dired-mark-files-containing-regexp)
+	(dired-flag-files-regexp):
+	* dired-aux.el (dired-mark-read-regexp):
+	* dired-x.el (dired-mark-unmarked-files): Use read-regexp directly.
+
 	* startup.el (fancy-startup-text):
 	* help.el (describe-gnu-project): Visit online info about GNU project.
 
