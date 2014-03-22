@@ -128,12 +128,13 @@ form in the function body itself.  This feature is seldom used.
 never directly from Lisp.  In that case, give the function a
 non-@code{nil} @code{interactive-only} property, either directly
 or via @code{declare} (@pxref{Declare Form}).  This causes the
-byte compiler to warn if the command is called from Lisp.  The value
-of the property can be: a string, which the byte-compiler will
-use directly in its warning (it should end with a period,
-and not start with a capital, e.g. ``use @dots{} instead.''); @code{t};
-any other symbol, which should be an alternative function to use in
-Lisp code.
+byte compiler to warn if the command is called from Lisp.  The output
+of @code{describe-function} will include similar information.
+The value of the property can be: a string, which the byte-compiler
+will use directly in its warning (it should end with a period, and not
+start with a capital, e.g. ``use @dots{} instead.''); @code{t}; any
+other symbol, which should be an alternative function to use in Lisp
+code.
 
 @menu
 * Using Interactive::     General rules for @code{interactive}.

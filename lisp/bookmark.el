@@ -1298,8 +1298,8 @@ is greater than `bookmark-alist-modification-count'."
 
 ;;;###autoload
 (defun bookmark-write ()
-  "Write bookmarks to a file (reading the file name with the minibuffer).
-Don't use this in Lisp programs; use `bookmark-save' instead."
+  "Write bookmarks to a file (reading the file name with the minibuffer)."
+  (declare (interactive-only bookmark-save))
   (interactive)
   (bookmark-maybe-load-default-file)
   (bookmark-save t))

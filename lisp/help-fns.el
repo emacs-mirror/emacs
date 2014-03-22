@@ -1,7 +1,7 @@
 ;;; help-fns.el --- Complex help functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2014
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, internal
@@ -430,6 +430,28 @@ FILE is the file where FUNCTION was probably defined."
       (setq load-hist (cdr load-hist)))
     found))
 
+(defun help-fns--interactive-only (function)
+  "Insert some help blurb if FUNCTION should only be used interactively."
+  ;; Ignore lambda constructs, keyboard macros, etc.
+  (and (symbolp function)
+       (not (eq (car-safe (symbol-function function)) 'macro))
+       (let* ((interactive-only
+               (or (get function 'interactive-only)
+                   (if (boundp 'byte-compile-interactive-only-functions)
+                       (memq function
+                             byte-compile-interactive-only-functions)))))
+         (when interactive-only
+           (insert "\nThis function is for interactive use only"
+                   ;; Cf byte-compile-form.
+                   (cond ((stringp interactive-only)
+                          (format ";\nin Lisp code %s" interactive-only))
+                         ((and (symbolp 'interactive-only)
+                               (not (eq interactive-only t)))
+                          (format ";\nin Lisp code use `%s' instead."
+                                  interactive-only))
+                         (t "."))
+                   "\n")))))
+
 ;;;###autoload
 (defun describe-function-1 (function)
   (let* ((advised (and (symbolp function)
@@ -554,6 +576,7 @@ FILE is the file where FUNCTION was probably defined."
 
 ;; Add defaults to `help-fns-describe-function-functions'.
 (add-hook 'help-fns-describe-function-functions #'help-fns--obsolete)
+(add-hook 'help-fns-describe-function-functions #'help-fns--interactive-only)
 (add-hook 'help-fns-describe-function-functions #'help-fns--parent-mode)
 (add-hook 'help-fns-describe-function-functions #'help-fns--compiler-macro)
 

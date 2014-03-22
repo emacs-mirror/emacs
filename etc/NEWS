@@ -54,6 +54,7 @@ to delete or undelete multiple messages.
 
 +++
 ** You can specify a function's interactive-only property via `declare'.
+However you specify it, the property affects `describe-function' output.
 
 
 * Changes in Emacs 24.5 on Non-Free Operating Systems

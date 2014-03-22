@@ -4999,6 +4999,7 @@ With prefix ARG, mark buffer as modified, so \\[save-buffer] will save.
 
 It is not a good idea to use this function in Lisp programs, because it
 prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
+  (declare (interactive-only set-buffer-modified-p))
   (interactive "P")
   (message (if arg "Modification-flag set"
 	       "Modification-flag cleared"))

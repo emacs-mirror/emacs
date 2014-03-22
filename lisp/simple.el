@@ -870,10 +870,7 @@ If the buffer is narrowed, this command uses the beginning of the
 accessible part of the buffer.
 
 If Transient Mark mode is disabled, leave mark at previous
-position, unless a \\[universal-argument] prefix is supplied.
-
-Don't use this command in Lisp programs!
-\(goto-char (point-min)) is faster."
+position, unless a \\[universal-argument] prefix is supplied."
   (declare (interactive-only "use `(goto-char (point-min))' instead."))
   (interactive "^P")
   (or (consp arg)
@@ -897,10 +894,7 @@ If the buffer is narrowed, this command uses the end of the
 accessible part of the buffer.
 
 If Transient Mark mode is disabled, leave mark at previous
-position, unless a \\[universal-argument] prefix is supplied.
-
-Don't use this command in Lisp programs!
-\(goto-char (point-max)) is faster."
+position, unless a \\[universal-argument] prefix is supplied."
   (declare (interactive-only "use `(goto-char (point-max))' instead."))
   (interactive "^P")
   (or (consp arg) (region-active-p) (push-mark))
@@ -1016,6 +1010,7 @@ If narrowing is in effect, only uses the accessible part of the buffer.
 You probably should not use this function in Lisp programs;
 it is usually a mistake for a Lisp function to use any subroutine
 that uses or sets the mark."
+  (declare (interactive-only t))
   (interactive)
   (push-mark (point))
   (push-mark (point-max) nil t)
@@ -4240,10 +4235,7 @@ If ARG is zero, move to the beginning of the current line."
 (defun insert-buffer (buffer)
   "Insert after point the contents of BUFFER.
 Puts mark after the inserted text.
-BUFFER may be a buffer or a buffer name.
-
-This function is meant for the user to run interactively.
-Don't call it from programs: use `insert-buffer-substring' instead!"
+BUFFER may be a buffer or a buffer name."
   (declare (interactive-only insert-buffer-substring))
   (interactive
    (list
@@ -4841,11 +4833,7 @@ this command moves to the specified goal column (or as close as possible).
 The goal column is stored in the variable `goal-column', which is nil
 when there is no goal column.  Note that setting `goal-column'
 overrides `line-move-visual' and causes this command to move by buffer
-lines rather than by display lines.
-
-If you are thinking of using this in a Lisp program, consider
-using `forward-line' instead.  It is usually easier to use
-and more reliable (no dependence on goal column, etc.)."
+lines rather than by display lines."
   (declare (interactive-only forward-line))
   (interactive "^p\np")
   (or arg (setq arg 1))
@@ -4888,11 +4876,7 @@ this command moves to the specified goal column (or as close as possible).
 The goal column is stored in the variable `goal-column', which is nil
 when there is no goal column.  Note that setting `goal-column'
 overrides `line-move-visual' and causes this command to move by buffer
-lines rather than by display lines.
-
-If you are thinking of using this in a Lisp program, consider using
-`forward-line' with a negative argument instead.  It is usually easier
-to use and more reliable (no dependence on goal column, etc.)."
+lines rather than by display lines."
   (declare (interactive-only
             "use `forward-line' with negative argument instead."))
   (interactive "^p\np")

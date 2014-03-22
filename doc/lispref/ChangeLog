@@ -1,5 +1,8 @@
 2014-03-22  Glenn Morris  <rgm@gnu.org>
 
+	* commands.texi (Defining Commands):
+	Mention that interactive-only also affects describe-function.
+
 	* functions.texi (Declare Form): Add interactive-only.
 	* commands.texi (Defining Commands) Mention declare.
 

@@ -1,5 +1,19 @@
 2014-03-22  Glenn Morris  <rgm@gnu.org>
 
+	* help-fns.el (help-fns--interactive-only): New function.
+	(help-fns-describe-function-functions): Add the above function.
+	* simple.el (beginning-of-buffer, end-of-buffer, insert-buffer)
+	(next-line, previous-line): Remove hand-written interactive-only
+	information from doc strings, it is auto-generated now.
+	* bookmark.el (bookmark-write):
+	* epa-mail.el (epa-mail-decrypt, epa-mail-verify, epa-mail-sign)
+	(epa-mail-import-keys): Mark interactive-only,
+	and remove hand-written interactive-only information from doc strings.
+	* epa.el (epa-decrypt-armor-in-region, epa-verify-region)
+	(epa-verify-cleartext-in-region, epa-sign-region, epa-encrypt-region):
+	* files.el (not-modified):
+	* simple.el (mark-whole-buffer): Mark interactive-only.
+
 	* emacs-lisp/byte-run.el (defun-declarations-alist):
 	Add interactive-only.  Doc tweak.
 	(macro-declarations-alist): Doc tweak.
