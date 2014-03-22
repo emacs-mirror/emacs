@@ -129,8 +129,9 @@ non-@code{nil} @code{interactive-only} property.  This causes the
 byte compiler to warn if the command is called from Lisp.  The value
 of the property can be: a string, which the byte-compiler will
 use directly in its warning (it should end with a period,
-and not start with a capital); @code{t}; any other symbol, which
-should be an alternative function to use in Lisp code.
+and not start with a capital, e.g. ``use @dots{} instead.''); @code{t};
+any other symbol, which should be an alternative function to use in
+Lisp code.
 
 @menu
 * Using Interactive::     General rules for @code{interactive}.
