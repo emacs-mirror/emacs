@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # 
 # $Id$
 # Copyright (c) 2013-2014 Ravenbrook Limited. See end of file for license.
