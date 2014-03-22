@@ -861,7 +861,6 @@ You can get Tkinfo at
 @cindex Files included with Emacs
 @cindex @file{COPYING}, description of file
 @cindex @file{DISTRIB}, description of file
-@cindex @file{GNU}, description of file
 @cindex @file{MACHINES}, description of file
 @cindex @file{NEWS}, description of file
 
