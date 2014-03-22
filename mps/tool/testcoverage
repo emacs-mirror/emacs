@@ -12,16 +12,18 @@
 #
 # This shell script runs the MPS test suite and prepares a test
 # coverage report.
+#
+# Supported platforms: xc.
 
 ARCH=$(uname -m)
 OS=$(uname -s)
 PROJECT=mps
-CONFIGURATION=Debug
 TOOL=$(dirname "$0")
 CODE=$TOOL/../code
 
 case "$ARCH-$OS" in
     *-Darwin)
+        CONFIGURATION=Debug
         (
             cd -- "$CODE"
             xcodebuild -config "$CONFIGURATION" clean
