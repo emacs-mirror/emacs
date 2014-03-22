@@ -1,3 +1,8 @@
+2014-03-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32-common-fns.el (x-selection-owner-p): Add empty docstring for the
+	benefit of doc.c; change parameter profile to match the X function.
+
 2014-03-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-methods): Add docstring for `tramp-login-env'
