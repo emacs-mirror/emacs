@@ -746,11 +746,11 @@ The buffer name is made by surrounding the file name of PROGRAM with `*'s.
 The file name is used to make a symbol name, such as `comint-sh-hook', and any
 hooks on this symbol are run in the buffer.
 See `make-comint' and `comint-exec'."
+  (declare (interactive-only make-comint))
   (interactive "sRun program: ")
   (let ((name (file-name-nondirectory program)))
     (switch-to-buffer (make-comint name program))
     (run-hooks (intern-soft (concat "comint-" name "-hook")))))
-(put 'comint-run 'interactive-only 'make-comint)
 
 (defun comint-exec (buffer name command startfile switches)
   "Start up a process named NAME in buffer BUFFER for Comint modes.

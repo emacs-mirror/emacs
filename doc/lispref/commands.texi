@@ -122,10 +122,12 @@ function symbol's @code{interactive-form} property.  A non-@code{nil}
 value for this property takes precedence over any @code{interactive}
 form in the function body itself.  This feature is seldom used.
 
+@anchor{The interactive-only property}
 @cindex @code{interactive-only} property
   Sometimes, a function is only intended to be called interactively,
 never directly from Lisp.  In that case, give the function a
-non-@code{nil} @code{interactive-only} property.  This causes the
+non-@code{nil} @code{interactive-only} property, either directly
+or via @code{declare} (@pxref{Declare Form}).  This causes the
 byte compiler to warn if the command is called from Lisp.  The value
 of the property can be: a string, which the byte-compiler will
 use directly in its warning (it should end with a period,

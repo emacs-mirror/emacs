@@ -1,5 +1,8 @@
 2014-03-22  Glenn Morris  <rgm@gnu.org>
 
+	* functions.texi (Declare Form): Add interactive-only.
+	* commands.texi (Defining Commands) Mention declare.
+
 	* commands.texi (Defining Commands): List interactive-only values.
 
 2014-03-22  Eli Zaretskii  <eliz@gnu.org>

@@ -1,3 +1,16 @@
+2014-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/byte-run.el (defun-declarations-alist):
+	Add interactive-only.  Doc tweak.
+	(macro-declarations-alist): Doc tweak.
+	* subr.el (declare): Doc tweak (add xref to manual).
+	* comint.el (comint-run):
+	* files.el (insert-file-literally, insert-file):
+	* replace.el (replace-string, replace-regexp):
+	* simple.el (beginning-of-buffer, end-of-buffer, delete-backward-char)
+	(delete-forward-char, goto-line, insert-buffer, next-line)
+	(previous-line): Set interactive-only via declare.
+
 2014-03-22  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* emacs-lisp/package.el (package-desc): Use the contents of the

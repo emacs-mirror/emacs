@@ -1742,6 +1742,10 @@ Indent calls to this function or macro according to @var{indent-spec}.
 This is typically used for macros, though it works for functions too.
 @xref{Indenting Macros}.
 
+@item (interactive-only @var{value})
+Set the function's @code{interactive-only} property to @var{value}.
+@xref{The interactive-only property}.
+
 @item (obsolete @var{current-name} @var{when})
 Mark the function or macro as obsolete, similar to a call to
 @code{make-obsolete} (@pxref{Obsolete Functions}).  @var{current-name}

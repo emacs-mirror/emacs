@@ -265,7 +265,9 @@ information about the function or macro; these go into effect
 during the evaluation of the `defun' or `defmacro' form.
 
 The possible values of SPECS are specified by
-`defun-declarations-alist' and `macro-declarations-alist'."
+`defun-declarations-alist' and `macro-declarations-alist'.
+
+For more information, see info node `(elisp)Declare Form'."
   ;; FIXME: edebug spec should pay attention to defun-declarations-alist.
   nil)
 

@@ -69,6 +69,7 @@ The return value of this function is not used."
 ;; handle declarations in macro definitions and this is the first file
 ;; loaded by loadup.el that uses declarations in macros.
 
+;; Add any new entries to info node `(elisp)Declare Form'.
 (defvar defun-declarations-alist
   (list
    ;; We can only use backquotes inside the lambdas and not for those
@@ -81,6 +82,10 @@ The return value of this function is not used."
          #'(lambda (f _args new-name when)
              (list 'make-obsolete
                    (list 'quote f) (list 'quote new-name) (list 'quote when))))
+   (list 'interactive-only
+         #'(lambda (f _args instead)
+             (list 'put (list 'quote f) ''interactive-only
+                   (list 'quote instead))))
    (list 'compiler-macro
          #'(lambda (f args compiler-function)
              `(eval-and-compile
@@ -101,7 +106,9 @@ Each element of the list takes the form (PROP FUN) where FUN is
 a function.  For each (PROP . VALUES) in a function's declaration,
 the FUN corresponding to PROP is called with the function name,
 the function's arglist, and the VALUES and should return the code to use
-to set this property.")
+to set this property.
+
+This is used by `declare'.")
 
 (defvar macro-declarations-alist
   (cons
@@ -115,7 +122,9 @@ to set this property.")
 Each element of the list takes the form (PROP FUN) where FUN is a function.
 For each (PROP . VALUES) in a macro's declaration, the FUN corresponding
 to PROP is called with the macro name, the macro's arglist, and the VALUES
-and should return the code to use to set this property.")
+and should return the code to use to set this property.
+
+This is used by `declare'.")
 
 (put 'defmacro 'doc-string-elt 3)
 (put 'defmacro 'lisp-indent-function 2)

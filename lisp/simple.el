@@ -874,6 +874,7 @@ position, unless a \\[universal-argument] prefix is supplied.
 
 Don't use this command in Lisp programs!
 \(goto-char (point-min)) is faster."
+  (declare (interactive-only "use `(goto-char (point-min))' instead."))
   (interactive "^P")
   (or (consp arg)
       (region-active-p)
@@ -888,8 +889,6 @@ Don't use this command in Lisp programs!
 			(/ (+ 10 (* size (prefix-numeric-value arg))) 10)))
 		 (point-min))))
   (if (and arg (not (consp arg))) (forward-line 1)))
-(put 'beginning-of-buffer 'interactive-only
-     "use `(goto-char (point-min))' instead.")
 
 (defun end-of-buffer (&optional arg)
   "Move point to the end of the buffer.
@@ -902,6 +901,7 @@ position, unless a \\[universal-argument] prefix is supplied.
 
 Don't use this command in Lisp programs!
 \(goto-char (point-max)) is faster."
+  (declare (interactive-only "use `(goto-char (point-max))' instead."))
   (interactive "^P")
   (or (consp arg) (region-active-p) (push-mark))
   (let ((size (- (point-max) (point-min))))
@@ -922,7 +922,6 @@ Don't use this command in Lisp programs!
 	 ;; then scroll specially to put it near, but not at, the bottom.
 	 (overlay-recenter (point))
 	 (recenter -3))))
-(put 'end-of-buffer 'interactive-only "use `(goto-char (point-max))' instead.")
 
 (defcustom delete-active-region t
   "Whether single-char deletion commands delete an active region.
@@ -963,6 +962,7 @@ arg, and KILLFLAG is set if N is explicitly specified.
 In Overwrite mode, single character backward deletion may replace
 tabs with spaces so as to back over columns, unless point is at
 the end of the line."
+  (declare (interactive-only delete-char))
   (interactive "p\nP")
   (unless (integerp n)
     (signal 'wrong-type-argument (list 'integerp n)))
@@ -985,7 +985,6 @@ the end of the line."
 	     (insert-char ?\s (- ocol (current-column)) nil))))
 	;; Otherwise, do simple deletion.
 	(t (delete-char (- n) killflag))))
-(put 'delete-backward-char 'interactive-only 'delete-char)
 
 (defun delete-forward-char (n &optional killflag)
   "Delete the following N characters (previous if N is negative).
@@ -996,6 +995,7 @@ To disable this, set variable `delete-active-region' to nil.
 Optional second arg KILLFLAG non-nil means to kill (save in kill
 ring) instead of delete.  Interactively, N is the prefix arg, and
 KILLFLAG is set if N was explicitly specified."
+  (declare (interactive-only delete-char))
   (interactive "p\nP")
   (unless (integerp n)
     (signal 'wrong-type-argument (list 'integerp n)))
@@ -1009,7 +1009,6 @@ KILLFLAG is set if N was explicitly specified."
 
 	;; Otherwise, do simple deletion.
 	(t (delete-char n killflag))))
-(put 'delete-forward-char 'interactive-only 'delete-char)
 
 (defun mark-whole-buffer ()
   "Put point at beginning and mark at end of buffer.
@@ -1045,6 +1044,7 @@ What you probably want instead is something like:
   (forward-line (1- N))
 If at all possible, an even better solution is to use char counts
 rather than line counts."
+  (declare (interactive-only forward-line))
   (interactive
    (if (and current-prefix-arg (not (consp current-prefix-arg)))
        (list (prefix-numeric-value current-prefix-arg))
@@ -1084,7 +1084,6 @@ rather than line counts."
     (if (eq selective-display t)
 	(re-search-forward "[\n\C-m]" nil 'end (1- line))
       (forward-line (1- line)))))
-(put 'goto-line 'interactive-only 'forward-line)
 
 (defun count-words-region (start end &optional arg)
   "Count the number of words in the region.
@@ -4245,6 +4244,7 @@ BUFFER may be a buffer or a buffer name.
 
 This function is meant for the user to run interactively.
 Don't call it from programs: use `insert-buffer-substring' instead!"
+  (declare (interactive-only insert-buffer-substring))
   (interactive
    (list
     (progn
@@ -4259,7 +4259,6 @@ Don't call it from programs: use `insert-buffer-substring' instead!"
      (insert-buffer-substring (get-buffer buffer))
      (point)))
   nil)
-(put 'insert-buffer 'interactive-only 'insert-buffer-substring)
 
 (defun append-to-buffer (buffer start end)
   "Append to specified buffer the text of the region.
@@ -4847,6 +4846,7 @@ lines rather than by display lines.
 If you are thinking of using this in a Lisp program, consider
 using `forward-line' instead.  It is usually easier to use
 and more reliable (no dependence on goal column, etc.)."
+  (declare (interactive-only forward-line))
   (interactive "^p\np")
   (or arg (setq arg 1))
   (if (and next-line-add-newlines (= arg 1))
@@ -4863,7 +4863,6 @@ and more reliable (no dependence on goal column, etc.)."
 	   (signal (car err) (cdr err))))
       (line-move arg nil nil try-vscroll)))
   nil)
-(put 'next-line 'interactive-only 'forward-line)
 
 (defun previous-line (&optional arg try-vscroll)
   "Move cursor vertically up ARG lines.
@@ -4894,6 +4893,8 @@ lines rather than by display lines.
 If you are thinking of using this in a Lisp program, consider using
 `forward-line' with a negative argument instead.  It is usually easier
 to use and more reliable (no dependence on goal column, etc.)."
+  (declare (interactive-only
+            "use `forward-line' with negative argument instead."))
   (interactive "^p\np")
   (or arg (setq arg 1))
   (if (called-interactively-p 'interactive)
@@ -4903,8 +4904,6 @@ to use and more reliable (no dependence on goal column, etc.)."
 	 (signal (car err) (cdr err))))
     (line-move (- arg) nil nil try-vscroll))
   nil)
-(put 'previous-line 'interactive-only
-     "use `forward-line' with negative argument instead.")
 
 (defcustom track-eol nil
   "Non-nil means vertical motion starting at end of line keeps to ends of lines.
