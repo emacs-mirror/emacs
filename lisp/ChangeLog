@@ -1,3 +1,8 @@
+2014-03-22  Leo Liu  <sdl.web@gmail.com>
+
+	* help.el (temp-buffer-setup-hook): Remove help-mode-setup.
+	(temp-buffer-show-hook): Remove help-mode-finish.  (Bug#16038)
+
 2014-03-21  Richard Stallman  <rms@gnu.org>
 
 	* battery.el (battery-linux-sysfs): Search for each field

@@ -33,10 +33,6 @@
 ;; or run interpreted, but not when the compiled code is loaded.
 (eval-when-compile (require 'help-macro))
 
-;; This makes `with-output-to-temp-buffer' buffers use `help-mode'.
-(add-hook 'temp-buffer-setup-hook 'help-mode-setup)
-(add-hook 'temp-buffer-show-hook 'help-mode-finish)
-
 ;; `help-window-point-marker' is a marker you can move to a valid
 ;; position of the buffer shown in the help window in order to override
 ;; the standard positioning mechanism (`point-min') chosen by
