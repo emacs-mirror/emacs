@@ -1,5 +1,8 @@
 2014-03-22  Glenn Morris  <rgm@gnu.org>
 
+	* startup.el (fancy-startup-text):
+	* help.el (describe-gnu-project): Visit online info about GNU project.
+
 	* help-fns.el (help-fns--interactive-only): New function.
 	(help-fns-describe-function-functions): Add the above function.
 	* simple.el (beginning-of-buffer, end-of-buffer, insert-buffer)

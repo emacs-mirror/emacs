@@ -1,3 +1,7 @@
+2014-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* help.texi (Help Files): Update C-h g description.
+
 2014-03-16  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* programs.texi (Matching): Update the missed spot.  (Bug#17008)

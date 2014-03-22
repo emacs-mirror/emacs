@@ -883,9 +883,6 @@ GNU General Public License
 @item DISTRIB
 Emacs Availability Information
 
-@item GNU
-The GNU Manifesto
-
 @item MACHINES
 Status of Emacs on Various Machines and Systems
 

@@ -1617,13 +1617,13 @@ init_callproc (void)
 
       srcdir = Fexpand_file_name (build_string ("../src/"), lispdir);
 
-      tem = Fexpand_file_name (build_string ("GNU"), Vdata_directory);
+      tem = Fexpand_file_name (build_string ("NEWS"), Vdata_directory);
       tem1 = Ffile_exists_p (tem);
       if (!NILP (Fequal (srcdir, Vinvocation_directory)) || NILP (tem1))
 	{
 	  Lisp_Object newdir;
 	  newdir = Fexpand_file_name (build_string ("../etc/"), lispdir);
-	  tem = Fexpand_file_name (build_string ("GNU"), newdir);
+	  tem = Fexpand_file_name (build_string ("NEWS"), newdir);
 	  tem1 = Ffile_exists_p (tem);
 	  if (!NILP (tem1))
 	    Vdata_directory = newdir;

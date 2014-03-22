@@ -161,13 +161,6 @@ etc/letter.pbm,letter.xpm
 etc/FTP, ORDERS
   - trivial (at time of writing), no license needed
 
-etc/GNU, INTERVIEW, LINUX-GNU, MOTIVATION, SERVICE, THE-GNU-PROJECT,
-WHY-FREE
-  rms: "These are statements of opinion or testimony. Their licenses
-  should permit verbatim copying only. Please don't change the
-  licenses that they have. They are distributed with Emacs but they
-  are not part of Emacs."
-
 etc/HELLO
   standard notices. Just a note that although the file itself is not
   really copyrightable, in the wider context of it being part of

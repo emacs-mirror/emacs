@@ -1,3 +1,7 @@
+2014-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* efaq.texi (Informational files for Emacs): Do not mention etc/GNU.
+
 2014-03-21  Glenn Morris  <rgm@gnu.org>
 
 	* ede.texi (ede-linux):

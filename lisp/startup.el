@@ -1400,8 +1400,9 @@ If this is nil, no message will be displayed."
             `("GNU/Linux"
               ,(lambda (_button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
 	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
-          `("GNU" ,(lambda (_button) (describe-gnu-project))
-	   "Display info on the GNU project")))
+          `("GNU" ,(lambda (_button)
+		     (browse-url "http://www.gnu.org/gnu/thegnuproject.html"))
+	    "Browse http://www.gnu.org/gnu/thegnuproject.html")))
      " operating system.\n\n"
      :face variable-pitch
      :link ("Emacs Tutorial" ,(lambda (_button) (help-with-tutorial)))

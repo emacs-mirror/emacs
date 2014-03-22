@@ -614,7 +614,7 @@ be different.
 It is generally recommended to use `system-configuration' rather
 than `system-type'.
 
-See the file LINUX-GNU in this directory for more about this.
+See <http://www.gnu.org/gnu/linux-and-gnu.html> for more about this.
 
 ** The functions shell-command and dired-call-process
 now run file name handlers for default-directory, if it has them.

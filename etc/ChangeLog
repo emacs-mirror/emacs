@@ -1,3 +1,8 @@
+2014-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* CENSORSHIP, GNU, LINUX-GNU, THE-GNU-PROJECT, WHY-FREE: Replace
+	contents with pointers to www.gnu.org or emacs.info, mark obsolete.
+
 2014-03-14  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* tutorials/TUTORIAL.de: Adapt to recent changes in TUTORIAL.

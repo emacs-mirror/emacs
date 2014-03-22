@@ -1,7 +1,6 @@
 ;;; help.el --- help commands for Emacs
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2014 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, internal
@@ -293,10 +292,11 @@ If that doesn't give a function, return nil."
   (interactive)
   (view-help-file "COPYING"))
 
+;; Maybe this command should just be removed.
 (defun describe-gnu-project ()
-  "Display info on the GNU project."
+  "Browse online information on the GNU project."
   (interactive)
-  (view-help-file "THE-GNU-PROJECT"))
+  (browse-url "http://www.gnu.org/gnu/thegnuproject.html"))
 
 (define-obsolete-function-alias 'describe-project 'describe-gnu-project "22.2")
 
