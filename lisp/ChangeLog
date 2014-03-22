@@ -1,3 +1,9 @@
+2014-03-22  Matthias Dahl  <matthias.dahl@binary-island.eu>
+
+	* faces.el (face-spec-recalc): Doc fix.  Call
+	make-face-x-resource-internal earlier, and condition that on
+	no-init-from-resources being nil. (Bug#16694)
+
 2014-03-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32-common-fns.el (x-selection-owner-p): Add empty docstring for the
