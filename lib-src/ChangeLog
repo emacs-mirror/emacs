@@ -1,5 +1,10 @@
 2014-03-22  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (etags${EXEEXT}, ebrowse${EXEEXT}, ctags${EXEEXT})
+	(profile${EXEEXT}, make-docfile${EXEEXT}, movemail${EXEEXT})
+	(emacsclient${EXEEXT}, emacsclientw${EXEEXT}, hexl${EXEEXT})
+	(update-game-score${EXEEXT}, emacsclient.res): Use $@.
+
 	* Makefile.in (../lib/libgnu.a): Explicitly pass MFLAGS.
 
 	* Makefile.in (DONT_INSTALL): Remove test-distrib.
