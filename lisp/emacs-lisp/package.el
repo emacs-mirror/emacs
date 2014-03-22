@@ -334,7 +334,7 @@ contrast, `package-user-dir' contains packages for personal use."
                                  (when value
                                    (push (cons (car rest-plist)
                                                (if (eq (car-safe value) 'quote)
-                                                   (cdr value)
+                                                   (cadr value)
                                                  value))
                                          alist))))
                              (setq rest-plist (cddr rest-plist)))

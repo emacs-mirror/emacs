@@ -1,3 +1,20 @@
+2014-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* commands.texi (Defining Commands): List interactive-only values.
+
+2014-03-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* functions.texi (Core Advising Primitives): Fix cross-reference
+	in last change.
+
+2014-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* functions.texi (Advising Functions): Explain a bit more how
+	arguments work.
+	(Advice combinators): New node.
+	(Core Advising Primitives): Use it.  Expand description of "depth".
+	(Advising Named Functions): Document limitation of advices on macros.
+
 2014-03-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* frames.texi (Size and Position): In `frame-resize-pixelwise'

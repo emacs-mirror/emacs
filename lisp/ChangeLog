@@ -1,3 +1,13 @@
+2014-03-22  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/package.el (package-desc): Use the contents of the
+	quoted form, not its cdr.  (Bug#16873)
+
+2014-03-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32-common-fns.el (x-selection-owner-p): Add empty docstring for the
+	benefit of doc.c; change parameter profile to match the X function.
+
 2014-03-22  Leo Liu  <sdl.web@gmail.com>
 
 	* help.el (temp-buffer-setup-hook): Remove help-mode-setup.

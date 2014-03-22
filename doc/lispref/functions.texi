@@ -1170,9 +1170,10 @@ For example, in order to trace the calls to the process filter of a process
 (add-function :before (process-filter @var{proc}) #'my-tracing-function)
 @end example
 
-This will cause the process's output to be passed first to
-@code{my-tracing-function} and then to the original process filter.
-When you're done with it, you can revert to the untraced behavior with:
+This will cause the process's output to be passed to @code{my-tracing-function}
+before being passed to the original process filter.  @code{my-tracing-function}
+receives the same arguments as the original function.  When you're done with
+it, you can revert to the untraced behavior with:
 
 @example
 (remove-function (process-filter @var{proc}) #'my-tracing-function)
@@ -1191,20 +1192,24 @@ Similarly, if you want to trace the execution of the function named
 (advice-add 'display-buffer :around #'his-tracing-function)
 @end example
 
-and when you're tired of seeing this output, you can revert to the untraced
+Here, @code{his-tracing-function} is called instead of the original function
+and receives the original function (additionally to that function's arguments)
+as argument, so it can call it if and when it needs to.
+When you're tired of seeing this output, you can revert to the untraced
 behavior with:
 
 @example
 (advice-remove 'display-buffer #'his-tracing-function)
 @end example
 
-The arguments @code{:before} and @code{:above} used in the above examples
+The arguments @code{:before} and @code{:around} used in the above examples
 specify how the two functions are composed, since there are many different
 ways to do it.  The added function is also called an @emph{advice}.
 
 @menu
 * Core Advising Primitives::    Primitives to Manipulate Advices
 * Advising Named Functions::    Advising Named Functions
+* Advice combinators::          Ways to compose advices
 * Porting old advices::         Adapting code using the old defadvice
 @end menu
 
@@ -1225,104 +1230,9 @@ argument the interactive spec of the original function.  To interpret the spec
 received as argument, use @code{advice-eval-interactive-spec}.
 
 @var{where} determines how @var{function} is composed with the
-existing function.  It can be one of the following:
-
-@table @code
-@item :before
-Call @var{function} before the old function.  Both functions receive the
-same arguments, and the return value of the composition is the return value of
-the old function.  More specifically, the composition of the two functions
-behaves like:
-@example
-(lambda (&rest r) (apply @var{function} r) (apply @var{oldfun} r))
-@end example
-This is similar to @code{(add-hook @var{hook} @var{function})}, except that it
-applies to single-function hooks rather than normal hooks.
-
-@item :after
-Call @var{function} after the old function.  Both functions receive the
-same arguments, and the return value of the composition is the return value of
-the old function.  More specifically, the composition of the two functions
-behaves like:
-@example
-(lambda (&rest r) (prog1 (apply @var{oldfun} r) (apply @var{function} r)))
-@end example
-This is similar to @code{(add-hook @var{hook} @var{function} nil 'append)},
-except that it applies to single-function hooks rather than normal hooks.
-
-@item :override
-This completely replaces the old function with the new one.  The old function
-can of course be recovered if you later call @code{remove-function}.
-
-@item :around
-Call @var{function} instead of the old function, but provide the old function
-as an extra argument to @var{function}.  This is the most flexible composition.
-For example, it lets you call the old function with different arguments, or
-within a let-binding, or you can sometimes delegate the work to the old
-function and sometimes override it completely.  More specifically, the
-composition of the two functions behaves like:
-@example
-(lambda (&rest r) (apply @var{function} @var{oldfun} r))
-@end example
-
-@item :before-while
-Call @var{function} before the old function and don't call the old
-function if @var{function} returns @code{nil}.  Both functions receive the
-same arguments, and the return value of the composition is the return value of
-the old function.  More specifically, the composition of the two functions
-behaves like:
-@example
-(lambda (&rest r) (and (apply @var{function} r) (apply @var{oldfun} r)))
-@end example
-This is reminiscent of @code{(add-hook @var{hook} @var{function})}, when
-@var{hook} is run via @code{run-hook-with-args-until-failure}.
-
-@item :before-until
-Call @var{function} before the old function and only call the old function if
-@var{function} returns @code{nil}.  More specifically, the composition of the
-two functions behaves like:
-@example
-(lambda (&rest r) (or (apply @var{function} r) (apply @var{oldfun} r)))
-@end example
-This is reminiscent of @code{(add-hook @var{hook} @var{function})}, when
-@var{hook} is run via @code{run-hook-with-args-until-success}.
-
-@item :after-while
-Call @var{function} after the old function and only if the old function
-returned non-@code{nil}.  Both functions receive the same arguments, and the
-return value of the composition is the return value of @var{function}.
-More specifically, the composition of the two functions behaves like:
-@example
-(lambda (&rest r) (and (apply @var{oldfun} r) (apply @var{function} r)))
-@end example
-This is reminiscent of @code{(add-hook @var{hook} @var{function} nil 'append)},
-when @var{hook} is run via @code{run-hook-with-args-until-failure}.
-
-@item :after-until
-Call @var{function} after the old function and only if the old function
-returned @code{nil}.  More specifically, the composition of the two functions
-behaves like:
-@example
-(lambda (&rest r) (or  (apply @var{oldfun} r) (apply @var{function} r)))
-@end example
-This is reminiscent of @code{(add-hook @var{hook} @var{function} nil 'append)},
-when @var{hook} is run via @code{run-hook-with-args-until-success}.
-
-@item :filter-args
-Call @var{function} first and use the result (which should be a list) as the
-new arguments to pass to the old function.  More specifically, the composition
-of the two functions behaves like:
-@example
-(lambda (&rest r) (apply @var{oldfun} (funcall @var{function} r)))
-@end example
-
-@item :filter-return
-Call the old function first and pass the result to @var{function}.
-More specifically, the composition of the two functions behaves like:
-@example
-(lambda (&rest r) (funcall @var{function} (apply @var{oldfun} r)))
-@end example
-@end table
+existing function, e.g. whether @var{function} should be called before, or
+after the original function.  @xref{Advice combinators}, for the list of
+available ways to compose the two functions.
 
 When modifying a variable (whose name will usually end with @code{-function}),
 you can choose whether @var{function} is used globally or only in the current
@@ -1343,11 +1253,22 @@ identify which function to remove.  Typically used when @var{function} is an
 anonymous function.
 
 @item depth
-This specifies where to place the advice, in case several advices are present.
+This specifies how to order the advices, in case several advices are present.
 By default, the depth is 0.  A depth of 100 indicates that this advice should
 be kept as deep as possible, whereas a depth of -100 indicates that it
 should stay as the outermost advice.  When two advices specify the same depth,
 the most recently added advice will be outermost.
+
+For a @code{:before} advice, being outermost means that this advice will be run
+first, before any other advice, whereas being innermost means that it will run
+right before the original function, with no other advice run between itself and
+the original function.  Similarly, for an @code{:after} advice innermost means
+that it will run right after the original function, with no other advice run in
+between, whereas outermost means that it will be run very last after all
+other advices.  An innermost @code{:override} advice will only override the
+original function and other advices will apply to it, whereas an outermost
+@code{:override} advice will override not only the original function but all
+other advices applied to it as well.
 @end table
 @end defmac
 
@@ -1419,8 +1340,10 @@ In particular, Emacs's own source files should not put advice on
 functions in Emacs.  (There are currently a few exceptions to this
 convention, but we aim to correct them.)
 
-  Macros can also be advised, in much the same way as functions.
-However, special forms (@pxref{Special Forms}) cannot be advised.
+  Special forms (@pxref{Special Forms}) cannot be advised, however macros can
+be advised, in much the same way as functions.  Of course, this will not affect
+code that has already been macro-expanded, so you need to make sure the advice
+is installed before the macro is expanded.
 
   It is possible to advise a primitive (@pxref{What Is a Function}),
 but one should typically @emph{not} do so, for two reasons.  Firstly,
@@ -1452,6 +1375,119 @@ Call @var{function} for every advice that was added to the named function
 @var{symbol}.  @var{function} is called with two arguments: the advice function
 and its properties.
 @end defun
+
+@node Advice combinators
+@subsection Ways to compose advices
+
+Here are the different possible values for the @var{where} argument of
+@code{add-function} and @code{advice-add}, specifying how the advice
+@var{function} and the original function should be composed.
+
+@table @code
+@item :before
+Call @var{function} before the old function.  Both functions receive the
+same arguments, and the return value of the composition is the return value of
+the old function.  More specifically, the composition of the two functions
+behaves like:
+@example
+(lambda (&rest r) (apply @var{function} r) (apply @var{oldfun} r))
+@end example
+@code{(add-function :before @var{funvar} @var{function})} is comparable for
+single-function hooks to @code{(add-hook '@var{hookvar} @var{function})} for
+normal hooks.
+
+@item :after
+Call @var{function} after the old function.  Both functions receive the
+same arguments, and the return value of the composition is the return value of
+the old function.  More specifically, the composition of the two functions
+behaves like:
+@example
+(lambda (&rest r) (prog1 (apply @var{oldfun} r) (apply @var{function} r)))
+@end example
+@code{(add-function :after @var{funvar} @var{function})} is comparable for
+single-function hooks to @code{(add-hook '@var{hookvar} @var{function}
+'append)} for normal hooks.
+
+@item :override
+This completely replaces the old function with the new one.  The old function
+can of course be recovered if you later call @code{remove-function}.
+
+@item :around
+Call @var{function} instead of the old function, but provide the old function
+as an extra argument to @var{function}.  This is the most flexible composition.
+For example, it lets you call the old function with different arguments, or
+many times, or within a let-binding, or you can sometimes delegate the work to
+the old function and sometimes override it completely.  More specifically, the
+composition of the two functions behaves like:
+@example
+(lambda (&rest r) (apply @var{function} @var{oldfun} r))
+@end example
+
+@item :before-while
+Call @var{function} before the old function and don't call the old
+function if @var{function} returns @code{nil}.  Both functions receive the
+same arguments, and the return value of the composition is the return value of
+the old function.  More specifically, the composition of the two functions
+behaves like:
+@example
+(lambda (&rest r) (and (apply @var{function} r) (apply @var{oldfun} r)))
+@end example
+@code{(add-function :before-while @var{funvar} @var{function})} is comparable
+for single-function hooks to @code{(add-hook '@var{hookvar} @var{function})}
+when @var{hookvar} is run via @code{run-hook-with-args-until-failure}.
+
+@item :before-until
+Call @var{function} before the old function and only call the old function if
+@var{function} returns @code{nil}.  More specifically, the composition of the
+two functions behaves like:
+@example
+(lambda (&rest r) (or (apply @var{function} r) (apply @var{oldfun} r)))
+@end example
+@code{(add-function :before-until @var{funvar} @var{function})} is comparable
+for single-function hooks to @code{(add-hook '@var{hookvar} @var{function})}
+when @var{hookvar} is run via @code{run-hook-with-args-until-success}.
+
+@item :after-while
+Call @var{function} after the old function and only if the old function
+returned non-@code{nil}.  Both functions receive the same arguments, and the
+return value of the composition is the return value of @var{function}.
+More specifically, the composition of the two functions behaves like:
+@example
+(lambda (&rest r) (and (apply @var{oldfun} r) (apply @var{function} r)))
+@end example
+@code{(add-function :after-while @var{funvar} @var{function})} is comparable
+for single-function hooks to @code{(add-hook '@var{hookvar} @var{function}
+'append)} when @var{hookvar} is run via
+@code{run-hook-with-args-until-failure}.
+
+@item :after-until
+Call @var{function} after the old function and only if the old function
+returned @code{nil}.  More specifically, the composition of the two functions
+behaves like:
+@example
+(lambda (&rest r) (or  (apply @var{oldfun} r) (apply @var{function} r)))
+@end example
+@code{(add-function :after-until @var{funvar} @var{function})} is comparable
+for single-function hooks to @code{(add-hook '@var{hookvar} @var{function}
+'append)} when @var{hookvar} is run via
+@code{run-hook-with-args-until-success}.
+
+@item :filter-args
+Call @var{function} first and use the result (which should be a list) as the
+new arguments to pass to the old function.  More specifically, the composition
+of the two functions behaves like:
+@example
+(lambda (&rest r) (apply @var{oldfun} (funcall @var{function} r)))
+@end example
+
+@item :filter-return
+Call the old function first and pass the result to @var{function}.
+More specifically, the composition of the two functions behaves like:
+@example
+(lambda (&rest r) (funcall @var{function} (apply @var{oldfun} r)))
+@end example
+@end table
+
 
 @node Porting old advices
 @subsection Adapting code using the old defadvice
