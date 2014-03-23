@@ -1,7 +1,8 @@
 2014-03-23  Daniel Colascione  <dancol@dancol.org>
 
-	* xfns.c (create_frame_xic): If XCreateIC fails, try again without
-	XNStatusAttributes; works around flaky XIM modules, apparently.
+	* xfns.c (create_frame_xic): Pass XNStatusAttributes to XCreateIC
+	only if xic_style calls for it.  This change allows Emacs to work
+	with ibus.  Also, don't leak resources if create_frame_xic fails.
 
 2014-03-23  Daniel Colascione  <dancol@dancol.org>
 
