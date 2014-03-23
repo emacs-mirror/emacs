@@ -1,3 +1,16 @@
+2014-03-23  Daniel Colascione  <dancol@dancol.org>
+
+	Split gc_sweep into discrete functions for legibility and better
+	stack traces.
+
+	* alloc.c (sweep_strings,sweep_vectors): Add NO_INLINE
+	(sweep_vectors): Fix typo in comment.
+	(sweep_conses,sweep_floats,sweep_intervals)
+	(sweep_symbols,sweep_misc,sweep_buffers): New functions.
+	(gc_sweep): Call new functions, to which existing functionality is
+	moved.
+	* fns.c (sweep_weak_hash_tables): Add NO_INLINE.
+
 2014-03-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32fns.c (Fw32_shell_execute): Declare `result' only on Cygwin.

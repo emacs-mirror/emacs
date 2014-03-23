@@ -1817,6 +1817,7 @@ allocate_string_data (struct Lisp_String *s,
 
 /* Sweep and compact strings.  */
 
+NO_INLINE /* For better stack traces */
 static void
 sweep_strings (void)
 {
@@ -2933,6 +2934,7 @@ cleanup_vector (struct Lisp_Vector *vector)
 
 /* Reclaim space used by unmarked vectors.  */
 
+NO_INLINE /* For better stack traces */
 static void
 sweep_vectors (void)
 {
@@ -2987,7 +2989,7 @@ sweep_vectors (void)
 
 	      if (vector == (struct Lisp_Vector *) block->data
 		  && !VECTOR_IN_BLOCK (next, block))
-		/* This block should be freed because all of it's
+		/* This block should be freed because all of its
 		   space was coalesced into the only free vector.  */
 		free_this_block = 1;
 	      else
@@ -6340,8 +6342,335 @@ survives_gc_p (Lisp_Object obj)
 
 
 
-/* Sweep: find all structures not marked, and free them.  */
 
+NO_INLINE /* For better stack traces */
+static void
+sweep_conses (void)
+{
+  register struct cons_block *cblk;
+  struct cons_block **cprev = &cons_block;
+  register int lim = cons_block_index;
+  EMACS_INT num_free = 0, num_used = 0;
+
+  cons_free_list = 0;
+
+  for (cblk = cons_block; cblk; cblk = *cprev)
+    {
+      register int i = 0;
+      int this_free = 0;
+      int ilim = (lim + BITS_PER_INT - 1) / BITS_PER_INT;
+
+      /* Scan the mark bits an int at a time.  */
+      for (i = 0; i < ilim; i++)
+        {
+          if (cblk->gcmarkbits[i] == -1)
+            {
+              /* Fast path - all cons cells for this int are marked.  */
+              cblk->gcmarkbits[i] = 0;
+              num_used += BITS_PER_INT;
+            }
+          else
+            {
+              /* Some cons cells for this int are not marked.
+                 Find which ones, and free them.  */
+              int start, pos, stop;
+
+              start = i * BITS_PER_INT;
+              stop = lim - start;
+              if (stop > BITS_PER_INT)
+                stop = BITS_PER_INT;
+              stop += start;
+
+              for (pos = start; pos < stop; pos++)
+                {
+                  if (!CONS_MARKED_P (&cblk->conses[pos]))
+                    {
+                      this_free++;
+                      cblk->conses[pos].u.chain = cons_free_list;
+                      cons_free_list = &cblk->conses[pos];
+#if GC_MARK_STACK
+                      cons_free_list->car = Vdead;
+#endif
+                    }
+                  else
+                    {
+                      num_used++;
+                      CONS_UNMARK (&cblk->conses[pos]);
+                    }
+                }
+            }
+        }
+
+      lim = CONS_BLOCK_SIZE;
+      /* If this block contains only free conses and we have already
+         seen more than two blocks worth of free conses then deallocate
+         this block.  */
+      if (this_free == CONS_BLOCK_SIZE && num_free > CONS_BLOCK_SIZE)
+        {
+          *cprev = cblk->next;
+          /* Unhook from the free list.  */
+          cons_free_list = cblk->conses[0].u.chain;
+          lisp_align_free (cblk);
+        }
+      else
+        {
+          num_free += this_free;
+          cprev = &cblk->next;
+        }
+    }
+  total_conses = num_used;
+  total_free_conses = num_free;
+}
+
+NO_INLINE /* For better stack traces */
+static void
+sweep_floats (void)
+{
+  register struct float_block *fblk;
+  struct float_block **fprev = &float_block;
+  register int lim = float_block_index;
+  EMACS_INT num_free = 0, num_used = 0;
+
+  float_free_list = 0;
+
+  for (fblk = float_block; fblk; fblk = *fprev)
+    {
+      register int i;
+      int this_free = 0;
+      for (i = 0; i < lim; i++)
+        if (!FLOAT_MARKED_P (&fblk->floats[i]))
+          {
+            this_free++;
+            fblk->floats[i].u.chain = float_free_list;
+            float_free_list = &fblk->floats[i];
+          }
+        else
+          {
+            num_used++;
+            FLOAT_UNMARK (&fblk->floats[i]);
+          }
+      lim = FLOAT_BLOCK_SIZE;
+      /* If this block contains only free floats and we have already
+         seen more than two blocks worth of free floats then deallocate
+         this block.  */
+      if (this_free == FLOAT_BLOCK_SIZE && num_free > FLOAT_BLOCK_SIZE)
+        {
+          *fprev = fblk->next;
+          /* Unhook from the free list.  */
+          float_free_list = fblk->floats[0].u.chain;
+          lisp_align_free (fblk);
+        }
+      else
+        {
+          num_free += this_free;
+          fprev = &fblk->next;
+        }
+    }
+  total_floats = num_used;
+  total_free_floats = num_free;
+}
+
+NO_INLINE /* For better stack traces */
+static void
+sweep_intervals (void)
+{
+  register struct interval_block *iblk;
+  struct interval_block **iprev = &interval_block;
+  register int lim = interval_block_index;
+  EMACS_INT num_free = 0, num_used = 0;
+
+  interval_free_list = 0;
+
+  for (iblk = interval_block; iblk; iblk = *iprev)
+    {
+      register int i;
+      int this_free = 0;
+
+      for (i = 0; i < lim; i++)
+        {
+          if (!iblk->intervals[i].gcmarkbit)
+            {
+              set_interval_parent (&iblk->intervals[i], interval_free_list);
+              interval_free_list = &iblk->intervals[i];
+              this_free++;
+            }
+          else
+            {
+              num_used++;
+              iblk->intervals[i].gcmarkbit = 0;
+            }
+        }
+      lim = INTERVAL_BLOCK_SIZE;
+      /* If this block contains only free intervals and we have already
+         seen more than two blocks worth of free intervals then
+         deallocate this block.  */
+      if (this_free == INTERVAL_BLOCK_SIZE && num_free > INTERVAL_BLOCK_SIZE)
+        {
+          *iprev = iblk->next;
+          /* Unhook from the free list.  */
+          interval_free_list = INTERVAL_PARENT (&iblk->intervals[0]);
+          lisp_free (iblk);
+        }
+      else
+        {
+          num_free += this_free;
+          iprev = &iblk->next;
+        }
+    }
+  total_intervals = num_used;
+  total_free_intervals = num_free;
+}
+
+NO_INLINE /* For better stack traces */
+static void
+sweep_symbols (void)
+{
+  register struct symbol_block *sblk;
+  struct symbol_block **sprev = &symbol_block;
+  register int lim = symbol_block_index;
+  EMACS_INT num_free = 0, num_used = 0;
+
+  symbol_free_list = NULL;
+
+  for (sblk = symbol_block; sblk; sblk = *sprev)
+    {
+      int this_free = 0;
+      union aligned_Lisp_Symbol *sym = sblk->symbols;
+      union aligned_Lisp_Symbol *end = sym + lim;
+
+      for (; sym < end; ++sym)
+        {
+          /* Check if the symbol was created during loadup.  In such a case
+             it might be pointed to by pure bytecode which we don't trace,
+             so we conservatively assume that it is live.  */
+          bool pure_p = PURE_POINTER_P (XSTRING (sym->s.name));
+
+          if (!sym->s.gcmarkbit && !pure_p)
+            {
+              if (sym->s.redirect == SYMBOL_LOCALIZED)
+                xfree (SYMBOL_BLV (&sym->s));
+              sym->s.next = symbol_free_list;
+              symbol_free_list = &sym->s;
+#if GC_MARK_STACK
+              symbol_free_list->function = Vdead;
+#endif
+              ++this_free;
+            }
+          else
+            {
+              ++num_used;
+              if (!pure_p)
+                eassert (!STRING_MARKED_P (XSTRING (sym->s.name)));
+              sym->s.gcmarkbit = 0;
+            }
+        }
+
+      lim = SYMBOL_BLOCK_SIZE;
+      /* If this block contains only free symbols and we have already
+         seen more than two blocks worth of free symbols then deallocate
+         this block.  */
+      if (this_free == SYMBOL_BLOCK_SIZE && num_free > SYMBOL_BLOCK_SIZE)
+        {
+          *sprev = sblk->next;
+          /* Unhook from the free list.  */
+          symbol_free_list = sblk->symbols[0].s.next;
+          lisp_free (sblk);
+        }
+      else
+        {
+          num_free += this_free;
+          sprev = &sblk->next;
+        }
+    }
+  total_symbols = num_used;
+  total_free_symbols = num_free;
+}
+
+NO_INLINE /* For better stack traces */
+static void
+sweep_misc (void)
+{
+  register struct marker_block *mblk;
+  struct marker_block **mprev = &marker_block;
+  register int lim = marker_block_index;
+  EMACS_INT num_free = 0, num_used = 0;
+
+  /* Put all unmarked misc's on free list.  For a marker, first
+     unchain it from the buffer it points into.  */
+
+  marker_free_list = 0;
+
+  for (mblk = marker_block; mblk; mblk = *mprev)
+    {
+      register int i;
+      int this_free = 0;
+
+      for (i = 0; i < lim; i++)
+        {
+          if (!mblk->markers[i].m.u_any.gcmarkbit)
+            {
+              if (mblk->markers[i].m.u_any.type == Lisp_Misc_Marker)
+                unchain_marker (&mblk->markers[i].m.u_marker);
+              /* Set the type of the freed object to Lisp_Misc_Free.
+                 We could leave the type alone, since nobody checks it,
+                 but this might catch bugs faster.  */
+              mblk->markers[i].m.u_marker.type = Lisp_Misc_Free;
+              mblk->markers[i].m.u_free.chain = marker_free_list;
+              marker_free_list = &mblk->markers[i].m;
+              this_free++;
+            }
+          else
+            {
+              num_used++;
+              mblk->markers[i].m.u_any.gcmarkbit = 0;
+            }
+        }
+      lim = MARKER_BLOCK_SIZE;
+      /* If this block contains only free markers and we have already
+         seen more than two blocks worth of free markers then deallocate
+         this block.  */
+      if (this_free == MARKER_BLOCK_SIZE && num_free > MARKER_BLOCK_SIZE)
+        {
+          *mprev = mblk->next;
+          /* Unhook from the free list.  */
+          marker_free_list = mblk->markers[0].m.u_free.chain;
+          lisp_free (mblk);
+        }
+      else
+        {
+          num_free += this_free;
+          mprev = &mblk->next;
+        }
+    }
+
+  total_markers = num_used;
+  total_free_markers = num_free;
+}
+
+NO_INLINE /* For better stack traces */
+static void
+sweep_buffers (void)
+{
+  register struct buffer *buffer, **bprev = &all_buffers;
+
+  total_buffers = 0;
+  for (buffer = all_buffers; buffer; buffer = *bprev)
+    if (!VECTOR_MARKED_P (buffer))
+      {
+        *bprev = buffer->next;
+        lisp_free (buffer);
+      }
+    else
+      {
+        VECTOR_UNMARK (buffer);
+        /* Do not use buffer_(set|get)_intervals here.  */
+        buffer->text->intervals = balance_intervals (buffer->text->intervals);
+        total_buffers++;
+        bprev = &buffer->next;
+      }
+}
+
+/* Sweep: find all structures not marked, and free them.  */
 static void
 gc_sweep (void)
 {
@@ -6351,325 +6680,15 @@ gc_sweep (void)
 
   sweep_strings ();
   check_string_bytes (!noninteractive);
-
-  /* Put all unmarked conses on free list.  */
-  {
-    register struct cons_block *cblk;
-    struct cons_block **cprev = &cons_block;
-    register int lim = cons_block_index;
-    EMACS_INT num_free = 0, num_used = 0;
-
-    cons_free_list = 0;
-
-    for (cblk = cons_block; cblk; cblk = *cprev)
-      {
-	register int i = 0;
-	int this_free = 0;
-	int ilim = (lim + BITS_PER_INT - 1) / BITS_PER_INT;
-
-	/* Scan the mark bits an int at a time.  */
-	for (i = 0; i < ilim; i++)
-	  {
-	    if (cblk->gcmarkbits[i] == -1)
-	      {
-		/* Fast path - all cons cells for this int are marked.  */
-		cblk->gcmarkbits[i] = 0;
-		num_used += BITS_PER_INT;
-	      }
-	    else
-	      {
-		/* Some cons cells for this int are not marked.
-		   Find which ones, and free them.  */
-		int start, pos, stop;
-
-		start = i * BITS_PER_INT;
-		stop = lim - start;
-		if (stop > BITS_PER_INT)
-		  stop = BITS_PER_INT;
-		stop += start;
-
-		for (pos = start; pos < stop; pos++)
-		  {
-		    if (!CONS_MARKED_P (&cblk->conses[pos]))
-		      {
-			this_free++;
-			cblk->conses[pos].u.chain = cons_free_list;
-			cons_free_list = &cblk->conses[pos];
-#if GC_MARK_STACK
-			cons_free_list->car = Vdead;
-#endif
-		      }
-		    else
-		      {
-			num_used++;
-			CONS_UNMARK (&cblk->conses[pos]);
-		      }
-		  }
-	      }
-	  }
-
-	lim = CONS_BLOCK_SIZE;
-	/* If this block contains only free conses and we have already
-	   seen more than two blocks worth of free conses then deallocate
-	   this block.  */
-	if (this_free == CONS_BLOCK_SIZE && num_free > CONS_BLOCK_SIZE)
-	  {
-	    *cprev = cblk->next;
-	    /* Unhook from the free list.  */
-	    cons_free_list = cblk->conses[0].u.chain;
-	    lisp_align_free (cblk);
-	  }
-	else
-	  {
-	    num_free += this_free;
-	    cprev = &cblk->next;
-	  }
-      }
-    total_conses = num_used;
-    total_free_conses = num_free;
-  }
-
-  /* Put all unmarked floats on free list.  */
-  {
-    register struct float_block *fblk;
-    struct float_block **fprev = &float_block;
-    register int lim = float_block_index;
-    EMACS_INT num_free = 0, num_used = 0;
-
-    float_free_list = 0;
-
-    for (fblk = float_block; fblk; fblk = *fprev)
-      {
-	register int i;
-	int this_free = 0;
-	for (i = 0; i < lim; i++)
-	  if (!FLOAT_MARKED_P (&fblk->floats[i]))
-	    {
-	      this_free++;
-	      fblk->floats[i].u.chain = float_free_list;
-	      float_free_list = &fblk->floats[i];
-	    }
-	  else
-	    {
-	      num_used++;
-	      FLOAT_UNMARK (&fblk->floats[i]);
-	    }
-	lim = FLOAT_BLOCK_SIZE;
-	/* If this block contains only free floats and we have already
-	   seen more than two blocks worth of free floats then deallocate
-	   this block.  */
-	if (this_free == FLOAT_BLOCK_SIZE && num_free > FLOAT_BLOCK_SIZE)
-	  {
-	    *fprev = fblk->next;
-	    /* Unhook from the free list.  */
-	    float_free_list = fblk->floats[0].u.chain;
-	    lisp_align_free (fblk);
-	  }
-	else
-	  {
-	    num_free += this_free;
-	    fprev = &fblk->next;
-	  }
-      }
-    total_floats = num_used;
-    total_free_floats = num_free;
-  }
-
-  /* Put all unmarked intervals on free list.  */
-  {
-    register struct interval_block *iblk;
-    struct interval_block **iprev = &interval_block;
-    register int lim = interval_block_index;
-    EMACS_INT num_free = 0, num_used = 0;
-
-    interval_free_list = 0;
-
-    for (iblk = interval_block; iblk; iblk = *iprev)
-      {
-	register int i;
-	int this_free = 0;
-
-	for (i = 0; i < lim; i++)
-	  {
-	    if (!iblk->intervals[i].gcmarkbit)
-	      {
-		set_interval_parent (&iblk->intervals[i], interval_free_list);
-		interval_free_list = &iblk->intervals[i];
-		this_free++;
-	      }
-	    else
-	      {
-		num_used++;
-		iblk->intervals[i].gcmarkbit = 0;
-	      }
-	  }
-	lim = INTERVAL_BLOCK_SIZE;
-	/* If this block contains only free intervals and we have already
-	   seen more than two blocks worth of free intervals then
-	   deallocate this block.  */
-	if (this_free == INTERVAL_BLOCK_SIZE && num_free > INTERVAL_BLOCK_SIZE)
-	  {
-	    *iprev = iblk->next;
-	    /* Unhook from the free list.  */
-	    interval_free_list = INTERVAL_PARENT (&iblk->intervals[0]);
-	    lisp_free (iblk);
-	  }
-	else
-	  {
-	    num_free += this_free;
-	    iprev = &iblk->next;
-	  }
-      }
-    total_intervals = num_used;
-    total_free_intervals = num_free;
-  }
-
-  /* Put all unmarked symbols on free list.  */
-  {
-    register struct symbol_block *sblk;
-    struct symbol_block **sprev = &symbol_block;
-    register int lim = symbol_block_index;
-    EMACS_INT num_free = 0, num_used = 0;
-
-    symbol_free_list = NULL;
-
-    for (sblk = symbol_block; sblk; sblk = *sprev)
-      {
-	int this_free = 0;
-	union aligned_Lisp_Symbol *sym = sblk->symbols;
-	union aligned_Lisp_Symbol *end = sym + lim;
-
-	for (; sym < end; ++sym)
-	  {
-	    /* Check if the symbol was created during loadup.  In such a case
-	       it might be pointed to by pure bytecode which we don't trace,
-	       so we conservatively assume that it is live.  */
-	    bool pure_p = PURE_POINTER_P (XSTRING (sym->s.name));
-
-	    if (!sym->s.gcmarkbit && !pure_p)
-	      {
-		if (sym->s.redirect == SYMBOL_LOCALIZED)
-		  xfree (SYMBOL_BLV (&sym->s));
-		sym->s.next = symbol_free_list;
-		symbol_free_list = &sym->s;
-#if GC_MARK_STACK
-		symbol_free_list->function = Vdead;
-#endif
-		++this_free;
-	      }
-	    else
-	      {
-		++num_used;
-		if (!pure_p)
-		  eassert (!STRING_MARKED_P (XSTRING (sym->s.name)));
-		sym->s.gcmarkbit = 0;
-	      }
-	  }
-
-	lim = SYMBOL_BLOCK_SIZE;
-	/* If this block contains only free symbols and we have already
-	   seen more than two blocks worth of free symbols then deallocate
-	   this block.  */
-	if (this_free == SYMBOL_BLOCK_SIZE && num_free > SYMBOL_BLOCK_SIZE)
-	  {
-	    *sprev = sblk->next;
-	    /* Unhook from the free list.  */
-	    symbol_free_list = sblk->symbols[0].s.next;
-	    lisp_free (sblk);
-	  }
-	else
-	  {
-	    num_free += this_free;
-	    sprev = &sblk->next;
-	  }
-      }
-    total_symbols = num_used;
-    total_free_symbols = num_free;
-  }
-
-  /* Put all unmarked misc's on free list.
-     For a marker, first unchain it from the buffer it points into.  */
-  {
-    register struct marker_block *mblk;
-    struct marker_block **mprev = &marker_block;
-    register int lim = marker_block_index;
-    EMACS_INT num_free = 0, num_used = 0;
-
-    marker_free_list = 0;
-
-    for (mblk = marker_block; mblk; mblk = *mprev)
-      {
-	register int i;
-	int this_free = 0;
-
-	for (i = 0; i < lim; i++)
-	  {
-	    if (!mblk->markers[i].m.u_any.gcmarkbit)
-	      {
-		if (mblk->markers[i].m.u_any.type == Lisp_Misc_Marker)
-		  unchain_marker (&mblk->markers[i].m.u_marker);
-		/* Set the type of the freed object to Lisp_Misc_Free.
-		   We could leave the type alone, since nobody checks it,
-		   but this might catch bugs faster.  */
-		mblk->markers[i].m.u_marker.type = Lisp_Misc_Free;
-		mblk->markers[i].m.u_free.chain = marker_free_list;
-		marker_free_list = &mblk->markers[i].m;
-		this_free++;
-	      }
-	    else
-	      {
-		num_used++;
-		mblk->markers[i].m.u_any.gcmarkbit = 0;
-	      }
-	  }
-	lim = MARKER_BLOCK_SIZE;
-	/* If this block contains only free markers and we have already
-	   seen more than two blocks worth of free markers then deallocate
-	   this block.  */
-	if (this_free == MARKER_BLOCK_SIZE && num_free > MARKER_BLOCK_SIZE)
-	  {
-	    *mprev = mblk->next;
-	    /* Unhook from the free list.  */
-	    marker_free_list = mblk->markers[0].m.u_free.chain;
-	    lisp_free (mblk);
-	  }
-	else
-	  {
-	    num_free += this_free;
-	    mprev = &mblk->next;
-	  }
-      }
-
-    total_markers = num_used;
-    total_free_markers = num_free;
-  }
-
-  /* Free all unmarked buffers */
-  {
-    register struct buffer *buffer, **bprev = &all_buffers;
-
-    total_buffers = 0;
-    for (buffer = all_buffers; buffer; buffer = *bprev)
-      if (!VECTOR_MARKED_P (buffer))
-	{
-	  *bprev = buffer->next;
-	  lisp_free (buffer);
-	}
-      else
-	{
-	  VECTOR_UNMARK (buffer);
-	  /* Do not use buffer_(set|get)_intervals here.  */
-	  buffer->text->intervals = balance_intervals (buffer->text->intervals);
-	  total_buffers++;
-	  bprev = &buffer->next;
-	}
-  }
-
+  sweep_conses ();
+  sweep_floats ();
+  sweep_intervals ();
+  sweep_symbols ();
+  sweep_misc ();
+  sweep_buffers ();
   sweep_vectors ();
   check_string_bytes (!noninteractive);
 }
-
-
 
 
 /* Debugging aids.  */
