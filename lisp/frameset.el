@@ -1146,8 +1146,8 @@ All keyword parameters default to nil."
 		     frame to-tty duplicate)
 		;; Only set target if forcing displays and the target display is different.
 		(unless (or (frameset-keep-original-display-p force-display)
-			    (eq (frame-parameter nil 'display)
-				(cdr (assq 'display frame-cfg))))
+			    (equal (frame-parameter nil 'display)
+				   (cdr (assq 'display frame-cfg))))
 		  (setq frameset--target-display (cons 'display
 						       (frame-parameter nil 'display))
 			to-tty (null (cdr frameset--target-display))))

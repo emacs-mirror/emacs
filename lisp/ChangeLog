@@ -1,5 +1,7 @@
 2014-03-23  Juanma Barranquero  <lekktu@gmail.com>
 
+	* frameset.el (frameset-restore): Compare display strings with equal.
+
 	* frame.el (make-frame): Don't quote display name in error message,
 	it is already a string.
 
