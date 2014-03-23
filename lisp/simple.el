@@ -4476,6 +4476,11 @@ also checks the value of `use-empty-active-region'."
           (funcall redisplay-unhighlight-region-function rol)
           (overlay-put nrol 'window window)
           (overlay-put nrol 'face 'region)
+          ;; Normal priority so that a large region doesn't hide all the
+          ;; overlays within it, but high secondary priority so that if it
+          ;; ends/starts in the middle of a small overlay, that small overlay
+          ;; won't hide the region's boundaries.
+          (overlay-put nrol 'priority '(nil . 100))
           nrol)
       (unless (and (eq (overlay-buffer rol) (current-buffer))
                    (eq (overlay-start rol) start)

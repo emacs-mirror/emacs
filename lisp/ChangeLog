@@ -1,3 +1,8 @@
+2014-03-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (redisplay-highlight-region-function): Increase priority of
+	overlay to make sure boundaries are visible (bug#15899).
+
 2014-03-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el (frameset-restore): Compare display strings with equal.

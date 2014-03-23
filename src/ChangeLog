@@ -1,3 +1,9 @@
+2014-03-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (struct sortvec): Add field `spriority'.
+	(compare_overlays): Use it.
+	(sort_overlays): Set it.
+
 2014-03-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (redisplay_window): If all previous attempts to find the
