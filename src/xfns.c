@@ -2021,6 +2021,16 @@ create_frame_xic (struct frame *f)
 		       XNStatusAttributes, status_attr,
 		       XNPreeditAttributes, preedit_attr,
 		       NULL);
+
+      /* Some input methods don't support a status pixel.  */
+      if (xic == NULL)
+        xic = XCreateIC (xim,
+                         XNInputStyle, xic_style,
+                         XNClientWindow, FRAME_X_WINDOW (f),
+                         XNFocusWindow, FRAME_X_WINDOW (f),
+                         XNPreeditAttributes, preedit_attr,
+                         NULL);
+
       XFree (preedit_attr);
       XFree (status_attr);
     }
