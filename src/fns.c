@@ -4032,6 +4032,7 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
    current garbage collection.  Remove weak tables that don't survive
    from Vweak_hash_tables.  Called from gc_sweep.  */
 
+NO_INLINE /* For better stack traces */
 void
 sweep_weak_hash_tables (void)
 {
