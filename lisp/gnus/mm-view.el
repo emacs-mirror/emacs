@@ -22,9 +22,6 @@
 
 ;;; Code:
 
-;; For Emacs <22.2 and XEmacs.
-(eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile (require 'cl))
 (require 'mail-parse)
 (require 'mailcap)
@@ -51,7 +48,6 @@
 
 (defvar mm-text-html-renderer-alist
   '((shr . mm-shr)
-    (w3 . mm-inline-text-html-render-with-w3)
     (w3m . mm-inline-text-html-render-with-w3m)
     (w3m-standalone . mm-inline-text-html-render-with-w3m-standalone)
     (gnus-w3m . gnus-article-html)
@@ -129,91 +125,6 @@
   (if (featurep 'xemacs)
       (defalias 'mm-inline-image 'mm-inline-image-xemacs)
     (defalias 'mm-inline-image 'mm-inline-image-emacs)))
-
-;; External.
-(declare-function w3-do-setup       "ext:w3"         ())
-(declare-function w3-region         "ext:w3-display" (st nd))
-(declare-function w3-prepare-buffer "ext:w3-display" (&rest args))
-
-(defvar mm-w3-setup nil)
-(defun mm-setup-w3 ()
-  (unless mm-w3-setup
-    (require 'w3)
-    (w3-do-setup)
-    (require 'url)
-    (require 'w3-vars)
-    (require 'url-vars)
-    (setq mm-w3-setup t)))
-
-(defun mm-inline-text-html-render-with-w3 (handle)
-  (mm-setup-w3)
-  (let ((text (mm-get-part handle))
-	(b (point))
-	(url-standalone-mode t)
-	(url-gateway-unplugged t)
-	(w3-honor-stylesheets nil)
-	(url-current-object
-	 (url-generic-parse-url (format "cid:%s" (mm-handle-id handle))))
-	(width (window-width))
-	(charset (mail-content-type-get
-		  (mm-handle-type handle) 'charset)))
-    (save-excursion
-      (insert (if charset (mm-decode-string text charset) text))
-      (save-restriction
-	(narrow-to-region b (point))
-	(unless charset
-	  (goto-char (point-min))
-	  (when (or (and (boundp 'w3-meta-content-type-charset-regexp)
-			 (re-search-forward
-			  w3-meta-content-type-charset-regexp nil t))
-		    (and (boundp 'w3-meta-charset-content-type-regexp)
-			 (re-search-forward
-			  w3-meta-charset-content-type-regexp nil t)))
-	    (setq charset
-		  (let ((bsubstr (buffer-substring-no-properties
-				  (match-beginning 2)
-				  (match-end 2))))
-		    (if (fboundp 'w3-coding-system-for-mime-charset)
-			(w3-coding-system-for-mime-charset bsubstr)
-		      (mm-charset-to-coding-system bsubstr nil t))))
-	    (delete-region (point-min) (point-max))
-	    (insert (mm-decode-string text charset))))
-	(save-window-excursion
-	  (save-restriction
-	    (let ((w3-strict-width width)
-		  ;; Don't let w3 set the global version of
-		  ;; this variable.
-		  (fill-column fill-column))
-	      (if (or debug-on-error debug-on-quit)
-		  (w3-region (point-min) (point-max))
-		(condition-case ()
-		    (w3-region (point-min) (point-max))
-		  (error
-		   (delete-region (point-min) (point-max))
-		   (let ((b (point))
-			 (charset (mail-content-type-get
-				   (mm-handle-type handle) 'charset)))
-		     (if (or (eq charset 'gnus-decoded)
-			     (eq mail-parse-charset 'gnus-decoded))
-		       (save-restriction
-			 (narrow-to-region (point) (point))
-			 (mm-insert-part handle)
-			 (goto-char (point-max)))
-		       (insert (mm-decode-string (mm-get-part handle)
-						 charset))))
-		   (message
-		    "Error while rendering html; showing as text/plain")))))))
-	(mm-handle-set-undisplayer
-	 handle
-	 `(lambda ()
-	    (let ((inhibit-read-only t))
-	      ,@(if (functionp 'remove-specifier)
-                    '((dolist (prop '(background background-pixmap foreground))
-                        (remove-specifier
-                         (face-property 'default prop)
-                         (current-buffer)))))
-	      (delete-region ,(point-min-marker)
-			     ,(point-max-marker)))))))))
 
 (defvar mm-w3m-setup nil
   "Whether gnus-article-mode has been setup to use emacs-w3m.")
@@ -498,13 +409,6 @@
 
 (defun mm-inline-audio (handle)
   (message "Not implemented"))
-
-(defun mm-w3-prepare-buffer ()
-  (require 'w3)
-  (let ((url-standalone-mode t)
-	(url-gateway-unplugged t)
-	(w3-honor-stylesheets nil))
-    (w3-prepare-buffer)))
 
 (defun mm-view-message ()
   (mm-enable-multibyte)

@@ -24,10 +24,6 @@
 
 ;;; Code:
 
-;; For Emacs <22.2 and XEmacs.
-(eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
-
 (eval-when-compile
   (require 'cl))
 
@@ -43,6 +39,24 @@
   :version "22.1"
   :group 'gnus-fun
   :type 'directory)
+
+(defcustom gnus-x-face-omit-files nil
+  "Regexp to match faces in `gnus-x-face-directory' to be omitted."
+  :version "24.5"
+  :group 'gnus-fun
+  :type 'string)
+
+(defcustom gnus-face-directory (expand-file-name "faces" gnus-directory)
+  "*Directory where Face PNG files are stored."
+  :version "24.5"
+  :group 'gnus-fun
+  :type 'directory)
+
+(defcustom gnus-face-omit-files nil
+  "Regexp to match faces in `gnus-face-directory' to be omitted."
+  :version "24.5"
+  :group 'gnus-fun
+  :type 'string)
 
 (defcustom gnus-convert-pbm-to-x-face-command "pbmtoxbm %s | compface"
   "Command for converting a PBM to an X-Face."
@@ -86,35 +100,57 @@ PNG format."
 		  nil shell-command-switch command)))
 
 ;;;###autoload
-(defun gnus-random-x-face ()
-  "Return X-Face header data chosen randomly from `gnus-x-face-directory'."
-  (interactive)
-  (when (file-exists-p gnus-x-face-directory)
-    (let* ((files (directory-files gnus-x-face-directory t "\\.pbm$"))
-	   (file (nth (random (length files)) files)))
+(defun gnus--random-face-with-type (dir ext omit fun)
+  "Return file from DIR with extension EXT, omitting matches of OMIT, processed by FUN."
+  (when (file-exists-p dir)
+    (let* ((files
+            (remove nil (mapcar
+                         (lambda (f) (unless (string-match (or omit "^$") f) f))
+                         (directory-files dir t ext))))
+           (file (nth (random (length files)) files)))
       (when file
-	(gnus-shell-command-to-string
-	 (format gnus-convert-pbm-to-x-face-command
-		 (shell-quote-argument file)))))))
+        (funcall fun file)))))
 
+;;;###autoload
 (autoload 'message-goto-eoh "message" nil t)
+(autoload 'message-insert-header "message" nil t)
+
+(defun gnus--insert-random-face-with-type (fun type)
+  "Get a random face using FUN and insert it as a header TYPE.
+
+For instance, to insert an X-Face use `gnus-random-x-face' as FUN
+  and \"X-Face\" as TYPE."
+  (let ((data (funcall fun)))
+    (save-excursion
+      (if data
+          (progn (message-goto-eoh)
+                 (insert  type ": " data "\n"))
+	(message
+	 "No face returned by the function %s." (symbol-name fun))))))
+
+
+
+;;;###autoload
+(defun gnus-random-x-face ()
+  "Return X-Face header data chosen randomly from `gnus-x-face-directory'.
+
+Files matching `gnus-x-face-omit-files' are not considered."
+  (interactive)
+  (gnus--random-face-with-type gnus-x-face-directory "\\.pbm$" gnus-x-face-omit-files
+                         (lambda (file)
+                           (gnus-shell-command-to-string
+                            (format gnus-convert-pbm-to-x-face-command
+                                    (shell-quote-argument file))))))
 
 ;;;###autoload
 (defun gnus-insert-random-x-face-header ()
   "Insert a random X-Face header from `gnus-x-face-directory'."
   (interactive)
-  (let ((data (gnus-random-x-face)))
-    (save-excursion
-      (message-goto-eoh)
-      (if data
-	  (insert "X-Face: " data)
-	(message
-	 "No face returned by `gnus-random-x-face'.  Does %s/*.pbm exist?"
-	 gnus-x-face-directory)))))
+  (gnus--insert-random-face-with-type 'gnus-random-x-face 'X-Face))
 
 ;;;###autoload
 (defun gnus-x-face-from-file (file)
-  "Insert an X-Face header based on an image file.
+  "Insert an X-Face header based on an image FILE.
 
 Depending on `gnus-convert-image-to-x-face-command' it may accept
 different input formats."
@@ -126,7 +162,7 @@ different input formats."
 
 ;;;###autoload
 (defun gnus-face-from-file (file)
-  "Return a Face header based on an image file.
+  "Return a Face header based on an image FILE.
 
 Depending on `gnus-convert-image-to-face-command' it may accept
 different input formats."
@@ -190,6 +226,21 @@ FILE should be a PNG file that's 48x48 and smaller than or equal to
       (error "The file is %d bytes long, which is too long"
 	     (buffer-size)))
     (gnus-face-encode)))
+
+;;;###autoload
+(defun gnus-random-face ()
+  "Return randomly chosen Face from `gnus-face-directory'.
+
+Files matching `gnus-face-omit-files' are not considered."
+  (interactive)
+  (gnus--random-face-with-type gnus-face-directory "\\.png$"
+                         gnus-face-omit-files
+                         'gnus-convert-png-to-face))
+
+;;;###autoload
+(defun gnus-insert-random-face-header ()
+  "Insert a randome Face header from `gnus-face-directory'."
+  (gnus--insert-random-face-with-type 'gnus-random-face 'Face))
 
 (defface gnus-x-face '((t (:foreground "black" :background "white")))
   "Face to show X-Face.

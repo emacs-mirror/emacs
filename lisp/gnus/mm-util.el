@@ -23,10 +23,6 @@
 
 ;;; Code:
 
-;; For Emacs <22.2 and XEmacs.
-(eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
-
 (eval-when-compile (require 'cl))
 (require 'mail-prsvr)
 

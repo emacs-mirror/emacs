@@ -30,6 +30,7 @@
 (require 'gnus-spec)
 (require 'gnus-range)
 (require 'gnus-util)
+(require 'gnus-cloud)
 (autoload 'message-make-date "message")
 (autoload 'gnus-agent-read-servers-validate "gnus-agent")
 (autoload 'gnus-agent-save-local "gnus-agent")

@@ -24,9 +24,6 @@
 
 ;;; Code:
 
-;; For Emacs <22.2 and XEmacs.
-(eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
   (require 'cl))
 (defvar tool-bar-map)
@@ -4728,7 +4725,10 @@ If ALL-HEADERS is non-nil, no headers are hidden."
 	  gnus-article-image-alist nil)
     (gnus-run-hooks 'gnus-tmp-internal-hook)
     (when gnus-display-mime-function
-      (funcall gnus-display-mime-function))))
+      (funcall gnus-display-mime-function))
+    ;; Add attachment buttons to the header.
+    (when gnus-mime-display-attachment-buttons-in-header
+      (gnus-mime-buttonize-attachments-in-header))))
 
 ;;;
 ;;; Gnus Sticky Article Mode
@@ -5331,7 +5331,7 @@ Compressed files like .gz and .bz2 are decompressed."
 		    (mm-read-coding-system "Charset: "))))
 	 ((mm-handle-undisplayer handle)
 	  (mm-remove-part handle)))
-	(forward-line 2)
+	(forward-line 1)
         (mm-display-inline handle)
 	(goto-char b)))))
 
@@ -5656,33 +5656,32 @@ all parts."
 		  (if (mm-handle-displayed-p handle)
 		      ;; This will remove the part.
 		      (mm-display-part handle)
-		    (save-restriction
-		      (narrow-to-region (point)
-					(if (eobp) (point) (1+ (point))))
-		      (gnus-bind-safe-url-regexp (mm-display-part handle))
-		      ;; We narrow to the part itself and
-		      ;; then call the treatment functions.
-		      (goto-char (point-min))
-		      (forward-line 1)
-		      (narrow-to-region (point) (point-max))
-		      (gnus-treat-article
-		       nil id
-		       (gnus-article-mime-total-parts)
-		       (mm-handle-media-type handle)))))
+		    (save-window-excursion
+		      (save-restriction
+			(narrow-to-region (point)
+					  (if (eobp) (point) (1+ (point))))
+			(gnus-bind-safe-url-regexp (mm-display-part handle))
+			;; We narrow to the part itself and
+			;; then call the treatment functions.
+			(goto-char (point-min))
+			(forward-line 1)
+			(narrow-to-region (point) (point-max))
+			(gnus-treat-article
+			 nil id
+			 (gnus-article-mime-total-parts)
+			 (mm-handle-media-type handle))))))
 	      (if (window-live-p window)
-		  (select-window window)))))
-      (goto-char point)
-      (gnus-delete-line)
-      (gnus-insert-mime-button
-       handle id (list (mm-handle-displayed-p handle)))
-      (goto-char point))))
+		  (select-window window))))))))
 
 (defun gnus-article-goto-part (n)
   "Go to MIME part N."
   (when gnus-break-pages
     (widen))
+  (article-goto-body)
   (prog1
-      (let ((start (text-property-any (point-min) (point-max) 'gnus-part n))
+      (let ((start (or (text-property-any (point) (point-max) 'gnus-part n)
+		       ;; There may be header buttons.
+		       (text-property-any (point-min) (point) 'gnus-part n)))
 	    part handle end next handles)
 	(when start
 	  (goto-char start)
@@ -5736,8 +5735,6 @@ all parts."
 					  (concat "; " gnus-tmp-name))))
     (unless (equal gnus-tmp-description "")
       (setq gnus-tmp-type-long (concat " --- " gnus-tmp-type-long)))
-    (unless (bolp)
-      (insert "\n"))
     (setq b (point))
     (gnus-eval-format
      gnus-mime-button-line-format gnus-mime-button-line-format-alist
@@ -5862,6 +5859,16 @@ If displaying \"text/html\" is discouraged \(see
   :group 'gnus-article-mime
   :type 'boolean)
 
+(defcustom gnus-mime-display-attachment-buttons-in-header t
+  "Add attachment buttons in the end of the header of an article.
+Since MIME attachments tend to be put at the end of an article, we may
+overlook them if there is a huge body.  This option offers you a copy
+of all non-inlinable MIME parts as buttons shown in front of an article.
+If nil, don't show those extra buttons."
+  :version "24.5"
+  :group 'gnus-article
+  :type 'boolean)
+
 (defun gnus-mime-display-part (handle)
   (cond
    ;; Maybe a broken MIME message.
@@ -5884,14 +5891,6 @@ If displaying \"text/html\" is discouraged \(see
    ((and (equal (car handle) "multipart/related")
 	 (not (or gnus-mime-display-multipart-as-mixed
 		  gnus-mime-display-multipart-related-as-mixed)))
-    ;;;!!!We should find the start part, but we just default
-    ;;;!!!to the first part.
-    ;;(gnus-mime-display-part (cadr handle))
-    ;;;!!! Most multipart/related is an HTML message plus images.
-    ;;;!!! Unfortunately we are unable to let W3 display those
-    ;;;!!! included images, so we just display it as a mixed multipart.
-    ;;(gnus-mime-display-mixed (cdr handle))
-    ;;;!!! No, w3 can display everything just fine.
     (gnus-mime-display-part (cadr handle)))
    ((equal (car handle) "multipart/signed")
     (gnus-add-wash-type 'signed)
@@ -6110,7 +6109,10 @@ If displaying \"text/html\" is discouraged \(see
 	  (goto-char (point-max))
 	  (setcdr begend (point-marker)))))
     (when ibegend
-      (goto-char point))))
+      (goto-char point)))
+  ;; Redraw attachment buttons in the header.
+  (when gnus-mime-display-attachment-buttons-in-header
+    (gnus-mime-buttonize-attachments-in-header)))
 
 (defconst gnus-article-wash-status-strings
   (let ((alist '((cite "c" "Possible hidden citation text"
@@ -6215,6 +6217,104 @@ Provided for backwards compatibility."
 						 'gnus-image-category 'shr)))))
     (when image
       (gnus-add-image 'shr image))))
+
+(defun gnus-mime-buttonize-attachments-in-header (&optional interactive)
+  "Show attachments as buttons in the end of the header of an article.
+This function toggles the display when called interactively.  Note that
+buttons to be added to the header are only the ones that aren't inlined
+in the body.  Use `gnus-header-face-alist' to highlight buttons."
+  (interactive (list t))
+  (gnus-with-article-buffer
+    (gmm-labels
+	;; Function that returns a flattened version of
+	;; `gnus-article-mime-handle-alist'.
+	((flattened-alist
+	  (&optional alist id all)
+	  (if alist
+	      (let ((i 1) newid flat)
+		(dolist (handle alist flat)
+		  (setq newid (append id (list i))
+			i (1+ i))
+		  (if (stringp (car handle))
+		      (setq flat (nconc flat (flattened-alist (cdr handle)
+							      newid all)))
+		    (delq (rassq handle all) all)
+		    (setq flat (nconc flat (list (cons newid handle)))))))
+	    (let ((flat (list nil)))
+	      ;; Assume that elements of `gnus-article-mime-handle-alist'
+	      ;; are in the decreasing order, but unnumbered subsidiaries
+	      ;; in each element are in the increasing order.
+	      (dolist (handle (reverse gnus-article-mime-handle-alist))
+		(if (stringp (cadr handle))
+		    (setq flat (nconc flat (flattened-alist (cddr handle)
+							    (list (car handle))
+							    flat)))
+		  (delq (rassq (cdr handle) flat) flat)
+		  (setq flat (nconc flat (list (cons (list (car handle))
+						     (cdr handle)))))))
+	      (setq flat (cdr flat))
+	      (mapc (lambda (handle)
+		      (if (cdar handle)
+			  ;; This is a hidden (i.e. unnumbered) handle.
+			  (progn
+			    (setcar handle
+				    (1+ (caar gnus-article-mime-handle-alist)))
+			    (push handle gnus-article-mime-handle-alist))
+			(setcar handle (caar handle))))
+		    flat)
+	      flat))))
+      (let ((case-fold-search t) buttons st)
+	(save-excursion
+	  (save-restriction
+	    (widen)
+	    (article-narrow-to-head)
+	    ;; Header buttons exist?
+	    (while (and (not buttons)
+			(re-search-forward "^attachments?:[\n ]+" nil t))
+	      (when (get-char-property (match-end 0)
+				       'gnus-button-attachment-extra)
+		(setq buttons (match-beginning 0))))
+	    (widen)
+	    (when buttons
+	      ;; Delete header buttons.
+	      (delete-region buttons (if (re-search-forward "^[^ ]" nil t)
+					 (match-beginning 0)
+				       (point-max))))
+	    (unless (and interactive buttons)
+	      ;; Find buttons.
+	      (setq buttons nil)
+	      (dolist (handle (flattened-alist))
+		(when (and (not (stringp (cadr handle)))
+			   (or (equal (car (mm-handle-disposition
+					    (cdr handle)))
+				      "attachment")
+			       (not (and (mm-inlinable-p (cdr handle))
+					 (mm-inlined-p (cdr handle))))))
+		  (push handle buttons)))
+	      (when buttons
+		;; Add header buttons.
+		(article-goto-body)
+		(forward-line -1)
+		(narrow-to-region (point) (point))
+		(insert "Attachment" (if (cdr buttons) "s" "") ":")
+		(dolist (button (nreverse buttons))
+		  (setq st (point))
+		  (insert " ")
+		  (gnus-insert-mime-button (cdr button) (car button))
+		  (skip-chars-backward "\t\n ")
+		  (delete-region (point) (point-max))
+		  (when (> (current-column) (window-width))
+		    (goto-char st)
+		    (insert "\n")
+		    (end-of-line)))
+		(insert "\n")
+		(dolist (ovl (gnus-overlays-in (point-min) (point)))
+		  (gnus-overlay-put ovl 'gnus-button-attachment-extra t)
+		  (gnus-overlay-put ovl 'face nil))
+		(let ((gnus-treatment-function-alist
+		       '((gnus-treat-highlight-headers
+			  gnus-article-highlight-headers))))
+		  (gnus-treat-article 'head))))))))))
 
 ;;; Article savers.
 

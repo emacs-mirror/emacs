@@ -23,10 +23,6 @@
 
 ;;; Code:
 
-;; For Emacs <22.2 and XEmacs.
-(eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
-
 (require 'mail-parse)
 (require 'mm-bodies)
 (eval-when-compile (require 'cl))
@@ -124,7 +120,6 @@
 	((executable-find "w3m") 'gnus-w3m)
 	((executable-find "links") 'links)
 	((executable-find "lynx") 'lynx)
-	((locate-library "w3") 'w3)
 	((locate-library "html2text") 'html2text)
 	(t nil))
   "Render of HTML contents.
@@ -136,13 +131,11 @@ The defined renderer types are:
 `w3m-standalone': use plain w3m;
 `links': use links;
 `lynx': use lynx;
-`w3': use Emacs/W3;
 `html2text': use html2text;
 nil    : use external viewer (default web browser)."
   :version "24.1"
   :type '(choice (const shr)
                  (const gnus-w3m)
-                 (const w3)
                  (const w3m :tag "emacs-w3m")
 		 (const w3m-standalone :tag "standalone w3m" )
 		 (const links)
@@ -153,9 +146,9 @@ nil    : use external viewer (default web browser)."
   :group 'mime-display)
 
 (defcustom mm-inline-text-html-with-images nil
-  "If non-nil, Gnus will allow retrieving images in HTML contents with
-the <img> tags.  It has no effect on Emacs/w3.  See also the
-documentation for the `mm-w3m-safe-url-regexp' variable."
+  "If non-nil, Gnus will allow retrieving images in HTML that has <img> tags.
+See also the documentation for the `mm-w3m-safe-url-regexp'
+variable."
   :version "22.1"
   :type 'boolean
   :group 'mime-display)

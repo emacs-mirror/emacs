@@ -1,3 +1,139 @@
+2014-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-toggle-header): Display header attachment
+	buttons when toggling the header off.
+
+2014-03-23  Daiki Ueno  <ueno@gnu.org>
+
+	* mml2015.el (mml2015-use): Don't check the availability of GnuPG
+	commands here; instead, only check if epg-config.el is available.
+
+2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mml.el (mml-expand-html-into-multipart-related): Allow sending HTML
+	messages with embedded images.
+	(mml-generate-mime): Don't bug out if you don't have libxml.
+
+2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-make-html-message-with-image-files): New command.
+
+2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mml.el (mml-insert-mime-headers): Allow `recipient-filename'.
+
+2014-03-23  David Engster  <deng@randomsample.de>
+
+	* auth-source.el (auth-source-netrc-saver): Do not depend on `cl-lib'
+	to stay compatible with older Emacsen, so replace `cl-loop' with
+	`loop'.
+
+2014-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-prepare, gnus-article-prepare-display):
+	Display header attachment buttons by gnus-article-prepare-display
+	rather than gnus-article-prepare so as to view in mml-preview as well.
+
+2014-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-goto-part): Find a button in the body first.
+	(gnus-mime-buttonize-attachments-in-header): Number hidden buttons.
+
+2014-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-buttonize-attachments-in-header): Display
+	buttons that are hidden in unselected alternative part as well.
+	(gnus-mime-display-alternative): Redraw attachment buttons in header.
+
+	* gmm-utils.el (gmm-labels): Add edebug spec.
+
+2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-srvr.el (gnus-server-toggle-cloud-server): New command and
+	keystroke.
+	(gnus-server-toggle-cloud-server): Only allow clouding applicable
+	types.
+
+2014-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.el (gnus-copy-overlay, gnus-overlays-at): New functions.
+
+	* gnus-art.el (gnus-mime-display-attachment-buttons-in-header):
+	New user option.
+	(gnus-mime-buttonize-attachments-in-header): New function.
+	(gnus-article-prepare): Use it.
+	(gnus-mime-inline-part): Suppress extra newline.
+	(gnus-mm-display-part): Save excursion;
+	remove useless deleting and adding of buttons.
+	(gnus-insert-mime-button): Allow insertion in the middle of a line.
+
+	* gnus-sum.el (gnus-summary-wash-mime-map, gnus-summary-article-menu):
+	Add gnus-mime-buttonize-attachments-in-header.
+
+2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-articles): New command to download several
+	articles at once.
+
+	* gnus.el (gnus-variable-list): Save Cloud variables.
+
+2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-cloud.el: New file to provide the Emacs Cloud.
+
+	* gravatar.el (gravatar-retrieve-synchronously): XEmacs also has
+	`url-retrieve-synchronously', apparently.
+
+	* gnus-notifications.el (gravatar-retrieve-synchronously): Declare for
+	XEmacs.
+
+	* nnrss.el (libxml-parse-html-region): Silence compilation error.
+
+2014-03-23  Daniel Dehennin  <daniel.dehennin@baby-gnu.org>
+
+	* gnus-mlspl.el (gnus-group-split-fancy): Use `gnus-parameters' in
+	`gnus-group-split-fancy'.
+
+2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-remove-header): Doc fix.
+	(message-forward-included-headers): New variable.
+	(message-remove-ignored-headers): Use it.
+
+2014-03-23  Dave Abrahams  <dave@boostpro.com>
+
+	* gnus-sum.el (gnus-summary-open-group-with-article): New command.
+
+2014-03-23  Rasmus Pank Roulund  <emacs@pank.eu>
+
+	* gnus-fun.el (gnus-x-face-omit-files): Regexp to omit matched results
+	from random face commands.
+	(gnus-face-directory): Like `gnus-x-face-directory` for png files and
+	Face.
+	(gnus-face-omit-files): Like `gnus-x-face-omit-files` for Face.
+	(gnus--random-face-with-type): Generic function returning a face-type
+	as a string.
+	(gnus--insert-random-face-with-type): Generic function inserting a face
+	in a message buffer header.
+	(gnus-random-x-face): Rewritten to use `gnus--random-face-with-type`.
+	(gnus-insert-random-x-face-header): Rewritten to use
+	`gnus--insert-random-face-with-type`.
+	(gnus-random-face): Return random (png) Face as string.
+	(nus-insert-random-face-header): Insert random (png) Face in a message
+	buffer.
+
+2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-url.el: Remove all usage of w3.
+
+	* nnrss.el: Ditto.
+
+	* mm-decode.el: Ditto.
+
+	* mm-view.el: Ditto.
+
+	* gnus-setup.el: Remove outdated file.
+
 2014-03-07  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-request-accept-article): Make respooling to nnimap

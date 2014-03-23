@@ -45,7 +45,7 @@
   :group 'gnus-server
   :type 'hook)
 
-(defcustom gnus-server-line-format "     {%(%h:%w%)} %s%a\n"
+(defcustom gnus-server-line-format "     {%(%h:%w%)} %s%a%c\n"
   "Format of server lines.
 It works along the same lines as a normal formatting string,
 with some simple extensions.
@@ -85,7 +85,8 @@ If nil, a faster, but more primitive, buffer is used instead."
     (?n gnus-tmp-name ?s)
     (?w gnus-tmp-where ?s)
     (?s gnus-tmp-status ?s)
-    (?a gnus-tmp-agent ?s)))
+    (?a gnus-tmp-agent ?s)
+    (?c gnus-tmp-cloud ?s)))
 
 (defvar gnus-server-mode-line-format-alist
   `((?S gnus-tmp-news-server ?s)
@@ -127,6 +128,7 @@ If nil, a faster, but more primitive, buffer is used instead."
        ["Close" gnus-server-close-server t]
        ["Offline" gnus-server-offline-server t]
        ["Deny" gnus-server-deny-server t]
+       ["Toggle Cloud" gnus-server-toggle-cloud-server t]
        "---"
        ["Open All" gnus-server-open-all-servers t]
        ["Close All" gnus-server-close-all-servers t]
@@ -172,6 +174,8 @@ If nil, a faster, but more primitive, buffer is used instead."
 
     "z" gnus-server-compact-server
 
+    "i" gnus-server-toggle-cloud-server
+
     "\C-c\C-i" gnus-info-find-node
     "\C-c\C-b" gnus-bug))
 
@@ -184,6 +188,13 @@ If nil, a faster, but more primitive, buffer is used instead."
 ;; backward-compatibility alias
 (put 'gnus-server-agent-face 'face-alias 'gnus-server-agent)
 (put 'gnus-server-agent-face 'obsolete-face "22.1")
+
+(defface gnus-server-cloud
+  '((((class color) (background light)) (:foreground "ForestGreen" :bold t))
+    (((class color) (background dark)) (:foreground "PaleGreen" :bold t))
+    (t (:bold t)))
+  "Face used for displaying AGENTIZED servers"
+  :group 'gnus-server-visual)
 
 (defface gnus-server-opened
   '((((class color) (background light)) (:foreground "Green3" :bold t))
@@ -228,6 +239,7 @@ If nil, a faster, but more primitive, buffer is used instead."
 
 (defvar gnus-server-font-lock-keywords
   '(("(\\(agent\\))" 1 'gnus-server-agent)
+    ("(\\(cloud\\))" 1 'gnus-server-cloud)
     ("(\\(opened\\))" 1 'gnus-server-opened)
     ("(\\(closed\\))" 1 'gnus-server-closed)
     ("(\\(offline\\))" 1 'gnus-server-offline)
@@ -282,6 +294,9 @@ The following commands are available:
 	 (gnus-tmp-agent (if (and gnus-agent
 				  (gnus-agent-method-p method))
 			     " (agent)"
+			   ""))
+	 (gnus-tmp-cloud (if (gnus-cloud-server-p gnus-tmp-name)
+			     " (cloud)"
 			   "")))
     (beginning-of-line)
     (gnus-add-text-properties
@@ -1083,6 +1098,27 @@ Requesting compaction of %s... (this may take a long time)"
       ;; #### will not happen very often, I think this is acceptable.
       (let ((original (get-buffer gnus-original-article-buffer)))
 	(and original (gnus-kill-buffer original))))))
+
+(defun gnus-server-toggle-cloud-server ()
+  "Make the server under point be replicated in the Emacs Cloud."
+  (interactive)
+  (let ((server (gnus-server-server-name)))
+    (unless server
+      (error "No server on the current line"))
+
+    (unless (gnus-method-option-p server 'cloud)
+      (error "The server under point doesn't support cloudiness"))
+
+    (if (gnus-cloud-server-p server)
+	(setq gnus-cloud-covered-servers
+	      (delete server gnus-cloud-covered-servers))
+      (push server gnus-cloud-covered-servers))
+
+    (gnus-server-update-server server)
+    (gnus-message 1 (if (gnus-cloud-server-p server)
+			"Replication of %s in the cloud will start"
+		      "Replication of %s in the cloud will stop")
+		  server)))
 
 (provide 'gnus-srvr)
 

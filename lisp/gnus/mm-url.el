@@ -21,7 +21,7 @@
 
 ;;; Commentary:
 
-;; Some codes are stolen from w3 and url packages. Some are moved from
+;; Some code is stolen from w3 and url packages. Some are moved from
 ;; nnweb.
 
 ;; TODO: Support POST, cookie.
@@ -264,8 +264,6 @@ This is taken from RFC 2396.")
 		(require 'url-parse)
 		(require 'url-vars))
 	    (error nil))
-    ;; w3-4.0pre0.46 or earlier version.
-    (require 'w3-vars)
     (require 'url)))
 
 ;;;###autoload
