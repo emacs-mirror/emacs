@@ -6913,8 +6913,9 @@ a ShowWindow flag:
   char *errstr;
   Lisp_Object current_dir = BVAR (current_buffer, directory);;
   wchar_t *doc_w = NULL, *params_w = NULL, *ops_w = NULL;
+#ifdef CYGWIN
   intptr_t result;
-#ifndef CYGWIN
+#else
   int use_unicode = w32_unicode_filenames;
   char *doc_a = NULL, *params_a = NULL, *ops_a = NULL;
   Lisp_Object absdoc, handler;
