@@ -1,3 +1,8 @@
+2014-03-23  Daniel Colascione  <dancol@dancol.org>
+
+	* process.c (DATAGRAM_CONN_P): Don't underflow datagram_address
+	array.  (ASAN caught.)
+
 2014-03-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	Fix regression introduced by patch for Bug#10500.
