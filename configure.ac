@@ -3834,6 +3834,10 @@ AC_CHECK_FUNCS(snprintf)
 dnl Check this late.  It depends on what other libraries (lrsvg, Gtk+ etc)
 dnl Emacs uses.
 XGSELOBJ=
+OLDCFLAGS="$CFLAGS"
+OLDLIBS="$LIBS"
+CFLAGS="$CFLAGS $GFILENOTIFY_CFLAGS"
+LIBS="$LIBS $GFILENOTIFY_LIBS"
 AC_MSG_CHECKING([whether GLib is linked in])
 AC_LINK_IFELSE([AC_LANG_PROGRAM(
 	[[#include <glib.h>
@@ -3848,6 +3852,8 @@ if test "${links_glib}" = "yes"; then
     XGSELOBJ=xgselect.o
   fi
 fi
+CFLAGS="$OLDCFLAGS"
+LIBS="$OLDLIBS"
 AC_SUBST(XGSELOBJ)
 
 dnl Adapted from Haible's version.
