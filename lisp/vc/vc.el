@@ -2450,7 +2450,7 @@ depending on the underlying version-control system."
 	(error "Please revert all modified workfiles before rollback")))
     ;; Accumulate changes associated with the fileset
     (vc-setup-buffer "*vc-diff*")
-    (not-modified)
+    (set-buffer-modified-p nil)
     (message "Finding changes...")
     (let* ((tip (vc-working-revision (car files)))
            ;; FIXME: `previous-revision' should take the fileset.
