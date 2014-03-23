@@ -1,3 +1,8 @@
+2014-03-23  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/package.el (package-show-package-list): If the buffer
+	is already displayed in another window, switch to that window.
+
 2014-03-21  Daniel Colascione  <dancol@dancol.org>
 
 	* mail/emacsbug.el (report-emacs-bug): Include memory usage

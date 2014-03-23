@@ -2117,11 +2117,14 @@ When KEYWORDS are given, only packages with those KEYWORDS are
 shown."
   (interactive)
   (require 'finder-inf nil t)
-  (let ((buf (get-buffer-create "*Packages*")))
+  (let* ((buf (get-buffer-create "*Packages*"))
+         (win (get-buffer-window buf)))
     (with-current-buffer buf
       (package-menu-mode)
       (package-menu--generate nil packages keywords))
-    (switch-to-buffer buf)))
+    (if win
+        (select-window win)
+      (switch-to-buffer buf))))
 
 ;; package-menu--generate rebinds "q" on the fly, so we have to
 ;; hard-code the binding in the doc-string here.
