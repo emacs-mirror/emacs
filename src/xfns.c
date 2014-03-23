@@ -1956,8 +1956,6 @@ best_xim_style (XIMStyles *user, XIMStyles *xim)
 
 /* Create XIC for frame F. */
 
-static XIMStyle xic_style;
-
 void
 create_frame_xic (struct frame *f)
 {
@@ -1969,29 +1967,34 @@ create_frame_xic (struct frame *f)
   XRectangle s_area;
   XPoint spot;
   XIMStyles supported_list;
+  XIMStyle xic_style;
 
   if (FRAME_XIC (f))
-    return;
-
-  /* Create X fontset. */
-  xfs = xic_create_xfontset (f);
-  FRAME_XIC_FONTSET (f) = xfs;
+    goto out;
 
   xim = FRAME_X_XIM (f);
-  if (xim)
+  if (!xim)
+    goto out;
+
+  /* Determine XIC style.  */
+  supported_list.count_styles = (sizeof supported_xim_styles
+                                 / sizeof supported_xim_styles[0]);
+  supported_list.supported_styles = supported_xim_styles;
+  xic_style = best_xim_style (&supported_list, FRAME_X_XIM_STYLES (f));
+
+  /* Create X fontset. */
+  if (xic_style & (XIMPreeditPosition | XIMStatusArea))
+    {
+      xfs = xic_create_xfontset (f);
+      if (!xfs)
+        goto out;
+
+      FRAME_XIC_FONTSET (f) = xfs;
+    }
+
+  if (xic_style & XIMPreeditPosition)
     {
       spot.x = 0; spot.y = 1;
-
-      /* Determine XIC style.  */
-      if (xic_style == 0)
-	{
-	  supported_list.count_styles = (sizeof supported_xim_styles
-					 / sizeof supported_xim_styles[0]);
-	  supported_list.supported_styles = supported_xim_styles;
-	  xic_style = best_xim_style (&supported_list,
-				      FRAME_X_XIM_STYLES (f));
-	}
-
       preedit_attr = XVaCreateNestedList (0,
 					  XNFontSet, xfs,
 					  XNForeground,
@@ -2006,49 +2009,61 @@ create_frame_xic (struct frame *f)
 
       if (!preedit_attr)
         goto out;
-
-      if (xic_style & XIMStatusArea)
-        {
-          s_area.x = 0; s_area.y = 0; s_area.width = 1; s_area.height = 1;
-          status_attr = XVaCreateNestedList (0,
-                                             XNArea,
-                                             &s_area,
-                                             XNFontSet,
-                                             xfs,
-                                             XNForeground,
-                                             FRAME_FOREGROUND_PIXEL (f),
-                                             XNBackground,
-                                             FRAME_BACKGROUND_PIXEL (f),
-                                             NULL);
-
-          if (!status_attr)
-            goto out;
-
-          xic = XCreateIC (xim,
-                           XNInputStyle, xic_style,
-                           XNClientWindow, FRAME_X_WINDOW (f),
-                           XNFocusWindow, FRAME_X_WINDOW (f),
-                           XNStatusAttributes, status_attr,
-                           XNPreeditAttributes, preedit_attr,
-                           NULL);
-        }
-      else
-        {
-          xic = XCreateIC (xim,
-                           XNInputStyle, xic_style,
-                           XNClientWindow, FRAME_X_WINDOW (f),
-                           XNFocusWindow, FRAME_X_WINDOW (f),
-                           XNPreeditAttributes, preedit_attr,
-                           NULL);
-        }
-
-      if (!xic)
-        goto out;
-
-      FRAME_XIC (f) = xic;
-      FRAME_XIC_STYLE (f) = xic_style;
-      xfs = NULL; /* Don't free below.  */
     }
+
+  if (xic_style & XIMStatusArea)
+    {
+      s_area.x = 0; s_area.y = 0; s_area.width = 1; s_area.height = 1;
+      status_attr = XVaCreateNestedList (0,
+                                         XNArea,
+                                         &s_area,
+                                         XNFontSet,
+                                         xfs,
+                                         XNForeground,
+                                         FRAME_FOREGROUND_PIXEL (f),
+                                         XNBackground,
+                                         FRAME_BACKGROUND_PIXEL (f),
+                                         NULL);
+
+      if (!status_attr)
+        goto out;
+    }
+
+  if (preedit_attr && status_attr)
+    xic = XCreateIC (xim,
+                     XNInputStyle, xic_style,
+                     XNClientWindow, FRAME_X_WINDOW (f),
+                     XNFocusWindow, FRAME_X_WINDOW (f),
+                     XNStatusAttributes, status_attr,
+                     XNPreeditAttributes, preedit_attr,
+                     NULL);
+  else if (preedit_attr)
+    xic = XCreateIC (xim,
+                     XNInputStyle, xic_style,
+                     XNClientWindow, FRAME_X_WINDOW (f),
+                     XNFocusWindow, FRAME_X_WINDOW (f),
+                     XNPreeditAttributes, preedit_attr,
+                     NULL);
+  else if (status_attr)
+    xic = XCreateIC (xim,
+                     XNInputStyle, xic_style,
+                     XNClientWindow, FRAME_X_WINDOW (f),
+                     XNFocusWindow, FRAME_X_WINDOW (f),
+                     XNStatusAttributes, status_attr,
+                     NULL);
+  else
+    xic = XCreateIC (xim,
+                     XNInputStyle, xic_style,
+                     XNClientWindow, FRAME_X_WINDOW (f),
+                     XNFocusWindow, FRAME_X_WINDOW (f),
+                     NULL);
+
+  if (!xic)
+    goto out;
+
+  FRAME_XIC (f) = xic;
+  FRAME_XIC_STYLE (f) = xic_style;
+  xfs = NULL; /* Don't free below.  */
 
  out:
 

@@ -2,7 +2,8 @@
 
 	* xfns.c (create_frame_xic): Pass XNStatusAttributes to XCreateIC
 	only if xic_style calls for it.  This change allows Emacs to work
-	with ibus.  Also, don't leak resources if create_frame_xic fails.
+	with ibus.  Also, don't leak resources if create_frame_xic fails,
+	and stop caching xic_style across different displays.
 
 2014-03-23  Daniel Colascione  <dancol@dancol.org>
 
