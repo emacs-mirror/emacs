@@ -1,3 +1,26 @@
+2014-03-23  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/package-test.el (package-test-describe-package):
+	Fix test failure in non-graphical mode.
+
+2014-03-22  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/package-test.el (package-test-describe-package):
+	Check for the "Keywords: " line.
+
+	* automated/data/package/archive-contents: Include the :keywords
+	field in `simple-single' data form.
+
+2014-03-21  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/package-test.el
+	(package-test-install-two-dependencies): New test (bug#16826).
+
+	* automated/data/package/simple-two-depend-1.1.el: New file.
+
+	* automated/data/package/archive-contents:
+	Add info about the new package.
+
 2014-03-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp-copy-size-limit): Declare.
