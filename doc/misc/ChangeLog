@@ -1,3 +1,26 @@
+2014-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Ma Gnus): Mention header attachment buttons.
+
+2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* emacs-mime.texi (MML Definition): Document recipient-filename.
+
+2014-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (MIME Commands): Mention
+	gnus-mime-buttonize-attachments-in-header and
+	gnus-mime-display-attachment-buttons-in-header.
+
+2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* message.texi (Forwarding): Mention
+	`message-forward-included-headers'.
+
+2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi: w3 is no longer supported by Gnus.
+
 2014-03-22  Glenn Morris  <rgm@gnu.org>
 
 	* efaq.texi (Informational files for Emacs): Do not mention etc/GNU.

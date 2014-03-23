@@ -405,7 +405,7 @@ variable will cause @samp{text/html} parts to be treated as attachments.
 @item mm-text-html-renderer
 @vindex mm-text-html-renderer
 This selects the function used to render @acronym{HTML}.  The predefined
-renderers are selected by the symbols @code{gnus-article-html}, @code{w3},
+renderers are selected by the symbols @code{gnus-article-html},
 @code{w3m}@footnote{See @uref{http://emacs-w3m.namazu.org/} for more
 information about emacs-w3m}, @code{links}, @code{lynx},
 @code{w3m-standalone} or @code{html2text}.  If @code{nil} use an
@@ -418,11 +418,11 @@ Some @acronym{HTML} mails might have the trick of spammers using
 @samp{<img>} tags.  It is likely to be intended to verify whether you
 have read the mail.  You can prevent your personal information from
 leaking by setting this option to @code{nil} (which is the default).
-It is currently ignored by Emacs/w3.  For emacs-w3m, you may use the
-command @kbd{t} on the image anchor to show an image even if it is
-@code{nil}.@footnote{The command @kbd{T} will load all images.  If you
-have set the option @code{w3m-key-binding} to @code{info}, use @kbd{i}
-or @kbd{I} instead.}
+For emacs-w3m, you may use the command @kbd{t} on the image anchor to
+show an image even if it is @code{nil}.@footnote{The command @kbd{T}
+will load all images.  If you have set the option
+@code{w3m-key-binding} to @code{info}, use @kbd{i} or @kbd{I}
+instead.}
 
 @item mm-w3m-safe-url-regexp
 @vindex mm-w3m-safe-url-regexp
@@ -647,6 +647,12 @@ The @acronym{MIME} type of the part (@code{Content-Type}).
 @item filename
 Use the contents of the file in the body of the part
 (@code{Content-Disposition}).
+
+@item recipient-filename
+Use this as the file name in the generated @acronym{MIME} message for
+the recipient.  That is, even if the file is called @file{foo.txt}
+locally, use this name instead in the @code{Content-Disposition} in
+the sent message.
 
 @item charset
 The contents of the body of the part are to be encoded in the character

@@ -723,7 +723,7 @@ POP3 mail source.  See @pxref{Mail Source Specifiers} for VALUE.
                 the top of the article buffer?
 * FAQ 4-6::     I'd like Gnus NOT to render HTML-mails but show me the
                 text part if it's available. How to do it?
-* FAQ 4-7::     Can I use some other browser than w3 to render my
+* FAQ 4-7::     Can I use some other browser than shr to render my
                 HTML-mails?
 * FAQ 4-8::     Is there anything I can do to make poorly formatted
                 mails more readable?
@@ -868,12 +868,12 @@ too.
 @node FAQ 4-7
 @subsubheading Question 4.7
 
-Can I use some other browser than w3 to render my HTML-mails?
+Can I use some other browser than w3m to render my HTML-mails?
 
 @subsubheading Answer
 
 Only if you use Gnus 5.10 or younger. In this case you've got the
-choice between w3, w3m, links, lynx and html2text, which
+choice between shr, w3m, links, lynx and html2text, which
 one is used can be specified in the variable
 mm-text-html-renderer, so if you want links to render your
 mail say

@@ -704,7 +704,6 @@ Browsing the Web
 * Archiving Mail::
 * Web Searches::                Creating groups from articles that match a string.
 * RSS::                         Reading RDF site summary.
-* Customizing W3::              Doing stuff to Emacs/W3 from Gnus.
 
 Other Sources
 
@@ -9140,9 +9139,6 @@ Use Gnus simple html renderer.
 @item gnus-w3m
 Use Gnus rendered based on w3m.
 
-@item w3
-Use Emacs/W3.
-
 @item w3m
 Use @uref{http://emacs-w3m.namazu.org/, emacs-w3m}.
 
@@ -9804,6 +9800,19 @@ the group (if you want).
 Make all the @acronym{MIME} parts have buttons in front of them.  This is
 mostly useful if you wish to save (or perform other actions) on inlined
 parts.
+
+@item W M h
+@kindex W M h (Summary)
+@findex gnus-mime-buttonize-attachments-in-header
+@vindex gnus-mime-display-attachment-buttons-in-header
+Display @acronym{MIME} part buttons in the end of the header of an
+article (@code{gnus-mime-buttonize-attachments-in-header}).  This
+command toggles the display.  Note that buttons to be added to the
+header are only the ones that aren't inlined in the body.  If you want
+those buttons always to be displayed, set
+@code{gnus-mime-display-attachment-buttons-in-header} to non-@code{nil}.
+The default is @code{t}.  To change the appearance of buttons, customize
+@code{gnus-header-face-alist}.
 
 @item K m
 @kindex K m (Summary)
@@ -16841,11 +16850,7 @@ interfaces to these sources.
 * Archiving Mail::
 * Web Searches::                Creating groups from articles that match a string.
 * RSS::                         Reading RDF site summary.
-* Customizing W3::              Doing stuff to Emacs/W3 from Gnus.
 @end menu
-
-All the web sources require Emacs/W3 and the url library or those
-alternatives to work.
 
 The main caveat with all these web sources is that they probably won't
 work for a very long time.  Gleaning information from the @acronym{HTML} data
@@ -16921,10 +16926,6 @@ providers if they were to do this---their @emph{raison d'@^etre} is to
 make money off of advertisements, not to provide services to the
 community.  Since @code{nnweb} washes the ads off all the articles, one
 might think that the providers might be somewhat miffed.  We'll see.
-
-You must have the @code{url} and @code{W3} package or those alternatives
-(try @code{customize-group} on the @samp{mm-url} variable group)
-installed to be able to use @code{nnweb}.
 
 Virtual server variables:
 
@@ -17121,38 +17122,6 @@ Parameters}) in order to display @samp{text/html} parts only in
  'gnus-parameters
  '("\\`nnrss:" (mm-discouraged-alternatives nil)))
 @end lisp
-
-
-@node Customizing W3
-@subsection Customizing W3
-@cindex W3
-@cindex html
-@cindex url
-@cindex Netscape
-
-Gnus uses the url library to fetch web pages and Emacs/W3 (or those
-alternatives) to display web pages.  Emacs/W3 is documented in its own
-manual, but there are some things that may be more relevant for Gnus
-users.
-
-For instance, a common question is how to make Emacs/W3 follow links
-using the @code{browse-url} functions (which will call some external web
-browser like Netscape).  Here's one way:
-
-@lisp
-(eval-after-load "w3"
-  '(progn
-    (fset 'w3-fetch-orig (symbol-function 'w3-fetch))
-    (defun w3-fetch (&optional url target)
-      (interactive (list (w3-read-url-with-default)))
-      (if (eq major-mode 'gnus-article-mode)
-          (browse-url url)
-        (w3-fetch-orig url target)))))
-@end lisp
-
-Put that in your @file{.emacs} file, and hitting links in W3-rendered
-@acronym{HTML} in the Gnus article buffers will use @code{browse-url} to
-follow the link.
 
 
 @node Other Sources
@@ -26338,7 +26307,7 @@ XEmacs is distributed as a collection of packages.  You should install
 whatever packages the Gnus XEmacs package requires.  The current
 requirements are @samp{gnus}, @samp{mail-lib}, @samp{xemacs-base},
 @samp{eterm}, @samp{sh-script}, @samp{net-utils}, @samp{os-utils},
-@samp{dired}, @samp{mh-e}, @samp{sieve}, @samp{ps-print}, @samp{W3},
+@samp{dired}, @samp{mh-e}, @samp{sieve}, @samp{ps-print},
 @samp{pgg}, @samp{mailcrypt}, @samp{ecrypto}, and @samp{sasl}.
 
 
@@ -28414,6 +28383,19 @@ Gnus.
 New features in Ma Gnus:
 
 @itemize @bullet
+
+@item Changes in summary and article mode
+@c **************************************
+
+@itemize @bullet
+
+@item
+By default, @acronym{MIME} part buttons for attachments (if any) will
+appear in the end of the article header in addition to the bottom of the
+article body, so you can easily find them without scrolling the article
+again and again.  @xref{MIME Commands}.
+
+@end itemize
 
 @item Changes in Message mode and related Gnus features
 @c ****************************************************

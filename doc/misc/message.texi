@@ -310,7 +310,13 @@ news.
 @table @code
 @item message-forward-ignored-headers
 @vindex message-forward-ignored-headers
-All headers that match this regexp will be deleted when forwarding a message.
+In non-@code{nil}, all headers that match this regexp will be deleted
+when forwarding a message.
+
+@item message-forward-included-headers
+@vindex message-forward-included-headers
+In non-@code{nil}, only headers that match this regexp will be kept
+when forwarding a message.
 
 @item message-make-forward-subject-function
 @vindex message-make-forward-subject-function
