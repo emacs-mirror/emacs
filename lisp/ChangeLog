@@ -1,3 +1,8 @@
+2014-03-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frame.el (make-frame): Don't quote display name in error message,
+	it is already a string.
+
 2014-03-23  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* net/tramp.el (tramp-read-passwd): Suspend the timers while reading
