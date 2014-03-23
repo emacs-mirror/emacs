@@ -1,3 +1,9 @@
+2014-03-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): If all previous attempts to find the
+	cursor row failed, try a few alternatives before falling back to
+	the top-most row of the window.  (Bug#17047)
+
 2014-03-22  Daniel Colascione  <dancol@dancol.org>
 
 	* process.c (conv_sockaddr_to_lisp): When extracting the string
