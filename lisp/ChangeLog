@@ -1,5 +1,26 @@
 2014-03-23  Daniel Colascione  <dancol@dancol.org>
 
+	Change subword-mode to use `find-word-boundary-function-table' and
+	replace `capitalized-words-mode'.  Also, convert to lexical
+	binding.
+
+	* progmodes/cap-words.el: Delete now-obsolete file.
+	* progmodes/subword.el: Reimplement using
+	`find-word-boundary-function-table'.
+	(subword-mode-map): Hollow out.
+	(capitalized-words-mode): Define as obsolete alias for
+	`subword-mode'.
+	(subword-mode,superword-mode): Tweak documentation to reflect new
+	implementation; call `subword-setup-buffer'.
+	(subword-forward,subword-capitalize): Add underscore to indicate
+	unused variable.
+	(subword-find-word-boundary-function-table): New constant.
+	(subword-empty-char-table): New constant.
+	(subword-setup-buffer): New function.
+	(subword-find-word-boundary): New function.
+
+2014-03-23  Daniel Colascione  <dancol@dancol.org>
+
 	* emacs-lisp/cl-macs.el (cl--do-arglist): Use a little `cl-loop'
 	list to look for keyword arguments instead of `memq', fixing
 	(Bug#3647) --- unfortunately, only for freshly-compiled code.

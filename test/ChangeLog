@@ -1,5 +1,9 @@
 2014-03-23  Daniel Colascione  <dancol@dancol.org>
 
+	* automated/subword-tests.el (subword-tests2): More subword tests.
+
+2014-03-23  Daniel Colascione  <dancol@dancol.org>
+
 	* automated/cl-lib.el (cl-lib-keyword-names-versus-values): New
 	test: correct parsing of keyword arguments.
 

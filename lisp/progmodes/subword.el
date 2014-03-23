@@ -1,4 +1,4 @@
-;;; subword.el --- Handling capitalized subwords in a nomenclature
+;;; subword.el --- Handling capitalized subwords in a nomenclature -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2004-2014 Free Software Foundation, Inc.
 
@@ -21,13 +21,10 @@
 
 ;;; Commentary:
 
-;; This package was cc-submode.el before it was recognized being
-;; useful in general and not tied to C and c-mode at all.
-
-;; This package provides `subword' oriented commands and a minor mode
-;; (`subword-mode') that substitutes the common word handling
-;; functions with them.  It also provides the `superword-mode' minor
-;; mode that treats symbols as words, the opposite of `subword-mode'.
+;; This package provides the `subword' minor mode, which merges the
+;; old remap-based subword.el (derived from cc-mode code) and
+;; cap-words.el, which takes advantage of core Emacs
+;; word-motion-customization functionality.
 
 ;; In spite of GNU Coding Standards, it is popular to name a symbol by
 ;; mixing uppercase and lowercase letters, e.g. "GtkWidget",
@@ -46,25 +43,6 @@
 ;; subwords in a nomenclature to move between them and to edit them as
 ;; words.  You also get a mode to treat symbols as words instead,
 ;; called `superword-mode' (the opposite of `subword-mode').
-
-;; In the minor mode, all common key bindings for word oriented
-;; commands are overridden by the subword oriented commands:
-
-;; Key     Word oriented command      Subword oriented command (also superword)
-;; ============================================================
-;; M-f     `forward-word'             `subword-forward'
-;; M-b     `backward-word'            `subword-backward'
-;; M-@     `mark-word'                `subword-mark'
-;; M-d     `kill-word'                `subword-kill'
-;; M-DEL   `backward-kill-word'       `subword-backward-kill'
-;; M-t     `transpose-words'          `subword-transpose'
-;; M-c     `capitalize-word'          `subword-capitalize'
-;; M-u     `upcase-word'              `subword-upcase'
-;; M-l     `downcase-word'            `subword-downcase'
-;;
-;; Note: If you have changed the key bindings for the word oriented
-;; commands in your .emacs or a similar place, the keys you've changed
-;; to are also used for the corresponding subword oriented commands.
 
 ;; To make the mode turn on automatically, put the following code in
 ;; your .emacs:
@@ -102,17 +80,15 @@
   "Regexp used by `subword-backward-internal'.")
 
 (defvar subword-mode-map
-  (let ((map (make-sparse-keymap)))
-    (dolist (cmd '(forward-word backward-word mark-word kill-word
-				backward-kill-word transpose-words
-                                capitalize-word upcase-word downcase-word
-                                left-word right-word))
-      (let ((othercmd (let ((name (symbol-name cmd)))
-                        (string-match "\\([[:alpha:]-]+\\)-word[s]?" name)
-                        (intern (concat "subword-" (match-string 1 name))))))
-        (define-key map (vector 'remap cmd) othercmd)))
-    map)
+  ;; We originally remapped motion keys here, but now use Emacs core
+  ;; hooks.  Leave this keymap around so that user additions to it
+  ;; keep working.
+  (make-sparse-keymap)
   "Keymap used in `subword-mode' minor mode.")
+
+;;;###autoload
+(define-obsolete-function-alias
+  'capitalized-words-mode 'subword-mode "24.5")
 
 ;;;###autoload
 (define-minor-mode subword-mode
@@ -121,8 +97,8 @@ With a prefix argument ARG, enable Subword mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
 the mode if ARG is omitted or nil.
 
-Subword mode is a buffer-local minor mode.  Enabling it remaps
-word-based editing commands to subword-based commands that handle
+Subword mode is a buffer-local minor mode.  Enabling it changes
+the definition of a word so that word-based commands stop inside
 symbols with mixed uppercase and lowercase letters,
 e.g. \"GtkWidget\", \"EmacsFrameClass\", \"NSGraphicsContext\".
 
@@ -136,13 +112,13 @@ called a `subword'.  Here are some examples:
   EmacsFrameClass    =>  \"Emacs\", \"Frame\" and \"Class\"
   NSGraphicsContext  =>  \"NS\", \"Graphics\" and \"Context\"
 
-The subword oriented commands activated in this minor mode recognize
-subwords in a nomenclature to move between subwords and to edit them
-as words.
+This mode changes the definition of a word so that word commands
+treat nomenclature boundaries as word bounaries.
 
 \\{subword-mode-map}"
     :lighter " ,"
-    (when subword-mode (superword-mode -1)))
+    (when subword-mode (superword-mode -1))
+    (subword-setup-buffer))
 
 (define-obsolete-function-alias 'c-subword-mode 'subword-mode "23.2")
 
@@ -150,6 +126,13 @@ as words.
 (define-global-minor-mode global-subword-mode subword-mode
   (lambda () (subword-mode 1))
   :group 'convenience)
+
+;; N.B. These commands aren't used unless explicitly invoked; they're
+;; here for compatibility.  Today, subword-mode leaves motion commands
+;; alone and uses `find-word-boundary-function-table' to change how
+;; `forward-word' and other low-level commands detect word bounaries.
+;; This way, all word-related activities, not just the images we
+;; imagine here, get subword treatment.
 
 (defun subword-forward (&optional arg)
   "Do the same as `forward-word' but on subwords.
@@ -159,10 +142,10 @@ Optional argument ARG is the same as for `forward-word'."
   (unless arg (setq arg 1))
   (cond
    ((< 0 arg)
-    (dotimes (i arg (point))
+    (dotimes (_i arg (point))
       (funcall subword-forward-function)))
    ((> 0 arg)
-    (dotimes (i (- arg) (point))
+    (dotimes (_i (- arg) (point))
       (funcall subword-backward-function)))
    (t
     (point))))
@@ -262,7 +245,7 @@ Optional argument ARG is the same as for `capitalize-word'."
             (start (point))
             (advance (>= arg 0)))
 
-        (dotimes (i count)
+        (dotimes (_i count)
           (if advance
               (progn
                 (re-search-forward "[[:alpha:]]")
@@ -290,17 +273,15 @@ With a prefix argument ARG, enable Superword mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
 the mode if ARG is omitted or nil.
 
-Superword mode is a buffer-local minor mode.  Enabling it remaps
-word-based editing commands to superword-based commands that
-treat symbols as words, e.g. \"this_is_a_symbol\".
-
-The superword oriented commands activated in this minor mode
-recognize symbols as superwords to move between superwords and to
-edit them as words.
+Superword mode is a buffer-local minor mode.  Enabling it changes
+the definition of words such that symbols characters are treated
+as parts of words: e.g., in `superword-mode',
+\"this_is_a_symbol\" counts as one word.
 
 \\{superword-mode-map}"
     :lighter " ²"
-    (when superword-mode (subword-mode -1)))
+    (when superword-mode (subword-mode -1))
+    (subword-setup-buffer))
 
 ;;;###autoload
 (define-global-minor-mode global-superword-mode superword-mode
@@ -347,9 +328,43 @@ edit them as words.
            (1+ (match-beginning 0)))))
       (backward-word 1))))
 
+(defconst subword-find-word-boundary-function-table
+  (let ((tab (make-char-table nil)))
+    (set-char-table-range tab t #'subword-find-word-boundary)
+    tab)
+  "Assigned to `find-word-boundary-function-table' in
+`subword-mode' and `superword-mode'; defers to
+`subword-find-word-bounary'.")
+
+(defconst subword-empty-char-table
+  (make-char-table nil)
+  "Assigned to `find-word-boundary-function-table' while we're
+searching subwords in order to avoid unwanted reentrancy.")
+
+(defun subword-setup-buffer ()
+  (set (make-local-variable 'find-word-boundary-function-table)
+       (if (or subword-mode superword-mode)
+           subword-find-word-boundary-function-table
+         subword-empty-char-table)))
+
+(defun subword-find-word-boundary (pos limit)
+  "Catch-all handler in `subword-find-word-boundary-function-table'."
+  (let ((find-word-boundary-function-table subword-empty-char-table))
+    (save-match-data
+      (save-excursion
+        (save-restriction
+          (if (< pos limit)
+              (progn
+                (narrow-to-region (point-min) limit)
+                (funcall subword-forward-function))
+            (narrow-to-region limit (point-max))
+            (funcall subword-backward-function))
+          (point))))))
+
 
 
 (provide 'subword)
 (provide 'superword)
+(provide 'cap-words) ; Obsolete alias
 
 ;;; subword.el ends here
