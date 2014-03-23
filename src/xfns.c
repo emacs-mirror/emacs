@@ -1964,27 +1964,27 @@ create_frame_xic (struct frame *f)
   XIM xim;
   XIC xic = NULL;
   XFontSet xfs = NULL;
+  XVaNestedList status_attr = NULL;
+  XVaNestedList preedit_attr = NULL;
+  XRectangle s_area;
+  XPoint spot;
+  XIMStyles supported_list;
 
   if (FRAME_XIC (f))
     return;
 
   /* Create X fontset. */
   xfs = xic_create_xfontset (f);
+  FRAME_XIC_FONTSET (f) = xfs;
+
   xim = FRAME_X_XIM (f);
   if (xim)
     {
-      XRectangle s_area;
-      XPoint spot;
-      XVaNestedList preedit_attr;
-      XVaNestedList status_attr;
-
-      s_area.x = 0; s_area.y = 0; s_area.width = 1; s_area.height = 1;
       spot.x = 0; spot.y = 1;
 
       /* Determine XIC style.  */
       if (xic_style == 0)
 	{
-	  XIMStyles supported_list;
 	  supported_list.count_styles = (sizeof supported_xim_styles
 					 / sizeof supported_xim_styles[0]);
 	  supported_list.supported_styles = supported_xim_styles;
@@ -2003,31 +2003,63 @@ create_frame_xic (struct frame *f)
 					   : NULL),
 					  &spot,
 					  NULL);
-      status_attr = XVaCreateNestedList (0,
-					 XNArea,
-					 &s_area,
-					 XNFontSet,
-					 xfs,
-					 XNForeground,
-					 FRAME_FOREGROUND_PIXEL (f),
-					 XNBackground,
-					 FRAME_BACKGROUND_PIXEL (f),
-					 NULL);
 
-      xic = XCreateIC (xim,
-		       XNInputStyle, xic_style,
-		       XNClientWindow, FRAME_X_WINDOW (f),
-		       XNFocusWindow, FRAME_X_WINDOW (f),
-		       XNStatusAttributes, status_attr,
-		       XNPreeditAttributes, preedit_attr,
-		       NULL);
-      XFree (preedit_attr);
-      XFree (status_attr);
+      if (!preedit_attr)
+        goto out;
+
+      if (xic_style & XIMStatusArea)
+        {
+          s_area.x = 0; s_area.y = 0; s_area.width = 1; s_area.height = 1;
+          status_attr = XVaCreateNestedList (0,
+                                             XNArea,
+                                             &s_area,
+                                             XNFontSet,
+                                             xfs,
+                                             XNForeground,
+                                             FRAME_FOREGROUND_PIXEL (f),
+                                             XNBackground,
+                                             FRAME_BACKGROUND_PIXEL (f),
+                                             NULL);
+
+          if (!status_attr)
+            goto out;
+
+          xic = XCreateIC (xim,
+                           XNInputStyle, xic_style,
+                           XNClientWindow, FRAME_X_WINDOW (f),
+                           XNFocusWindow, FRAME_X_WINDOW (f),
+                           XNStatusAttributes, status_attr,
+                           XNPreeditAttributes, preedit_attr,
+                           NULL);
+        }
+      else
+        {
+          xic = XCreateIC (xim,
+                           XNInputStyle, xic_style,
+                           XNClientWindow, FRAME_X_WINDOW (f),
+                           XNFocusWindow, FRAME_X_WINDOW (f),
+                           XNPreeditAttributes, preedit_attr,
+                           NULL);
+        }
+
+      if (!xic)
+        goto out;
+
+      FRAME_XIC (f) = xic;
+      FRAME_XIC_STYLE (f) = xic_style;
+      xfs = NULL; /* Don't free below.  */
     }
 
-  FRAME_XIC (f) = xic;
-  FRAME_XIC_STYLE (f) = xic_style;
-  FRAME_XIC_FONTSET (f) = xfs;
+ out:
+
+  if (xfs)
+    free_frame_xic (f);
+
+  if (preedit_attr)
+    XFree (preedit_attr);
+
+  if (status_attr)
+    XFree (status_attr);
 }
 
 
