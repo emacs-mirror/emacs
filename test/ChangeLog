@@ -1,16 +1,14 @@
-2014-03-23  Daniel Colascione  <dancol@dancol.org>
-
-	* automated/subword-tests.el (subword-tests2): More subword tests.
-
-2014-03-23  Daniel Colascione  <dancol@dancol.org>
-
-	* automated/cl-lib.el (cl-lib-keyword-names-versus-values): New
-	test: correct parsing of keyword arguments.
-
 2014-03-23  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* automated/package-test.el (package-test-describe-package):
 	Fix test failure in non-graphical mode.
+
+2014-03-23  Daniel Colascione  <dancol@dancol.org>
+
+	* automated/subword-tests.el (subword-tests2): More subword tests.
+
+	* automated/cl-lib.el (cl-lib-keyword-names-versus-values): New
+	test: correct parsing of keyword arguments.
 
 2014-03-22  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -29,11 +27,6 @@
 
 	* automated/data/package/archive-contents:
 	Add info about the new package.
-
-2014-03-23  Daniel Colascione  <dancol@dancol.org>
-
-	* automated/cl-lib.el (cl-lib-keyword-names-versus-values): New
-	test: correct parsing of keyword arguments.
 
 2014-03-07  Michael Albinus  <michael.albinus@gmx.de>
 
