@@ -1,3 +1,19 @@
+2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* calendar/parse-time.el (parse-time-iso8601-regexp)
+	(parse-iso8601-time-string): Copied from `url-dav' so that we can use
+	it more generally.
+
+2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* net/dns.el (network-interface-list): Define for XEmacs.
+
+2014-03-23  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* net/dns.el (dns-servers-up-to-date-p): New function to see whether
+	the network interfaces changed.
+	(dns-query): Use it to flush the data.
+
 2014-03-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc/vc.el (vc-rollback): Use set-buffer-modified-p.

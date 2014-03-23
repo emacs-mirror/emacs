@@ -31,6 +31,12 @@
   "List of DNS servers to query.
 If nil, /etc/resolv.conf and nslookup will be consulted.")
 
+(defvar dns-servers-valid-for-interfaces nil
+  "The return value of `network-interface-list' when `dns-servers' was set.
+If the set of network interfaces and/or their IP addresses
+change, then presumably the list of DNS servers needs to be
+updated.  Set this variable to t to disable the check.")
+
 ;;; Internal code:
 
 (defvar dns-query-types
@@ -297,6 +303,17 @@ If TCP-P, the first two bytes of the package with be the length field."
            (t string)))
       (goto-char point))))
 
+(declare-function network-interface-list "process.c")
+
+(defun dns-servers-up-to-date-p ()
+  "Return false if we need to recheck the list of DNS servers."
+  (and dns-servers
+       (or (eq dns-servers-valid-for-interfaces t)
+	   ;; `network-interface-list' was introduced in Emacs 22.1.
+	   (not (fboundp 'network-interface-list))
+	   (equal dns-servers-valid-for-interfaces
+		  (network-interface-list)))))
+
 (defun dns-set-servers ()
   "Set `dns-servers' to a list of DNS servers or nil if none are found.
 Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
@@ -314,7 +331,9 @@ Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
 	  (goto-char (point-min))
 	  (re-search-forward
 	   "^Address:[ \t]*\\([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\)" nil t)
-	  (setq dns-servers (list (match-string 1)))))))
+	  (setq dns-servers (list (match-string 1))))))
+  (when (fboundp 'network-interface-list)
+    (setq dns-servers-valid-for-interfaces (network-interface-list))))
 
 (defun dns-read-txt (string)
   (if (> (length string) 1)
@@ -378,7 +397,7 @@ Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
 If FULLP, return the entire record returned.
 If REVERSEP, look up an IP address."
   (setq type (or type 'A))
-  (unless dns-servers
+  (unless (dns-servers-up-to-date-p)
     (dns-set-servers))
 
   (when reversep
