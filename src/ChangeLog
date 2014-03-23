@@ -1,3 +1,7 @@
+2014-03-23  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (Ffile_symlink_p): Doc fix. (Bug#17073)
+
 2014-03-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.c (struct sortvec): Add field `spriority'.

@@ -2682,8 +2682,7 @@ DEFUN ("file-symlink-p", Ffile_symlink_p, Sfile_symlink_p, 1, 1, 0,
 The value is the link target, as a string.
 Otherwise it returns nil.
 
-This function returns t when given the name of a symlink that
-points to a nonexistent file.  */)
+This function does not check whether the link target exists.  */)
   (Lisp_Object filename)
 {
   Lisp_Object handler;
