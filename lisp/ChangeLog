@@ -1,3 +1,8 @@
+2014-03-23  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* net/tramp.el (tramp-read-passwd): Suspend the timers while reading
+	the password.
+
 2014-03-23  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* emacs-lisp/package.el (package-show-package-list): If the buffer

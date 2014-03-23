@@ -4119,40 +4119,48 @@ Invokes `password-read' if available, `read-passwd' else."
 	      (with-current-buffer (process-buffer proc)
 		(tramp-check-for-regexp proc tramp-password-prompt-regexp)
 		(format "%s for %s " (capitalize (match-string 1)) key))))
-         auth-info auth-passwd)
-    (with-parsed-tramp-file-name key nil
-      (prog1
-	  (or
-	   ;; See if auth-sources contains something useful, if it's
-	   ;; bound.  `auth-source-user-or-password' is an obsoleted
-	   ;; function, it has been replaced by `auth-source-search'.
-	   (and (boundp 'auth-sources)
-		(tramp-get-connection-property v "first-password-request" nil)
-		;; Try with Tramp's current method.
-                (if (fboundp 'auth-source-search)
-		    (setq auth-info
-			  (tramp-compat-funcall
-			   'auth-source-search
-			   :max 1
-			   :user (or tramp-current-user t)
-			   :host tramp-current-host
-			   :port tramp-current-method)
-			  auth-passwd (plist-get (nth 0 auth-info) :secret)
-			  auth-passwd (if (functionp auth-passwd)
-					  (funcall auth-passwd)
-					auth-passwd))
-                  (tramp-compat-funcall
-                   'auth-source-user-or-password
-                   "password" tramp-current-host tramp-current-method)))
-	   ;; Try the password cache.
-	   (when (functionp 'password-read)
-	     (let ((password
-		    (tramp-compat-funcall 'password-read pw-prompt key)))
-	       (tramp-compat-funcall 'password-cache-add key password)
-	       password))
-	   ;; Else, get the password interactively.
-	   (read-passwd pw-prompt))
-	(tramp-set-connection-property v "first-password-request" nil)))))
+	 ;; We suspend the timers while reading the password.
+         (stimers (with-timeout-suspend))
+	 auth-info auth-passwd)
+
+    (unwind-protect
+	(with-parsed-tramp-file-name key nil
+	  (prog1
+	      (or
+	       ;; See if auth-sources contains something useful, if
+	       ;; it's bound.  `auth-source-user-or-password' is an
+	       ;; obsoleted function, it has been replaced by
+	       ;; `auth-source-search'.
+	       (and (boundp 'auth-sources)
+		    (tramp-get-connection-property
+		     v "first-password-request" nil)
+		    ;; Try with Tramp's current method.
+		    (if (fboundp 'auth-source-search)
+			(setq auth-info
+			      (tramp-compat-funcall
+			       'auth-source-search
+			       :max 1
+			       :user (or tramp-current-user t)
+			       :host tramp-current-host
+			       :port tramp-current-method)
+			      auth-passwd (plist-get (nth 0 auth-info) :secret)
+			      auth-passwd (if (functionp auth-passwd)
+					      (funcall auth-passwd)
+					    auth-passwd))
+		      (tramp-compat-funcall
+		       'auth-source-user-or-password
+		       "password" tramp-current-host tramp-current-method)))
+	       ;; Try the password cache.
+	       (when (functionp 'password-read)
+		 (let ((password
+			(tramp-compat-funcall 'password-read pw-prompt key)))
+		   (tramp-compat-funcall 'password-cache-add key password)
+		   password))
+	       ;; Else, get the password interactively.
+	       (read-passwd pw-prompt))
+	    (tramp-set-connection-property v "first-password-request" nil)))
+      ;; Reenable the timers.
+      (with-timeout-unsuspend stimers))))
 
 ;;;###tramp-autoload
 (defun tramp-clear-passwd (vec)
