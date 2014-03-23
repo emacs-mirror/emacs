@@ -326,7 +326,7 @@ Must called from within a `tar-mode' buffer."
      (should (search-forward "Summary: A single-file package with no dependencies"
                              nil t))
      (should (search-forward "Homepage: http://doodles.au" nil t))
-     (should (search-forward "Keywords: frobnicate"))
+     (should (re-search-forward "Keywords: \\[?frobnicate\\]?" nil t))
      ;; No description, though. Because at this point we don't know
      ;; what archive the package originated from, and we don't have
      ;; its readme file saved.

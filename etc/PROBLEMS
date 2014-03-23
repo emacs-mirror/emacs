@@ -29,8 +29,7 @@ Emacs to use.  The possible places where this specification might be are:
   - in your ~/.Xdefaults file
 
   - client-side X resource file, such as  ~/Emacs or
-    /usr/X11R6/lib/app-defaults/Emacs or
-    /usr/X11R6/lib/X11/app-defaults/Emacs
+    /usr/share/X11/app-defaults/Emacs
 
 One of these files might have bad or malformed specification of a
 fontset that Emacs should use.  To fix the problem, you need to find
@@ -108,6 +107,7 @@ load-path.
 * Crash bugs
 
 ** Emacs crashes when running in a terminal, if compiled with GCC 4.5.0
+
 This version of GCC is buggy: see
 
   http://debbugs.gnu.org/6031
@@ -154,10 +154,12 @@ If your tar has this problem, install GNU tar--if you can manage to
 untar it :-).
 
 ** Emacs can crash when displaying PNG images with transparency.
+
 This is due to a bug introduced in ImageMagick 6.8.2-3.  The bug should
 be fixed in ImageMagick 6.8.3-10.  See <URL:http://debbugs.gnu.org/13867>.
 
 ** Crashes when displaying GIF images in Emacs built with version
+
 libungif-4.1.0 are resolved by using version libungif-4.1.0b1.
 Configure checks for the correct version, but this problem could occur
 if a binary built against a shared libungif is run on a system with an
@@ -207,6 +209,7 @@ If you need Emacs to be able to recover from closing displays, compile
 it with the Lucid toolkit instead of GTK.
 
 ** Emacs crashes when you try to view a file with complex characters.
+
 For example, the etc/HELLO file (as shown by C-h h).
 The message "symbol lookup error: /usr/bin/emacs: undefined symbol: OTF_open"
 is shown in the terminal from which you launched Emacs.
@@ -600,22 +603,20 @@ and Latin-1 version of this character to display a space.
 *** Some of the fonts called for in your fontset may not exist on your
 X server.
 
-Each X11 font covers just a fraction of the characters that Emacs
+Each X font covers just a fraction of the characters that Emacs
 supports.  To display the whole range of Emacs characters requires
 many different fonts, collected into a fontset.  You can remedy the
 problem by installing additional fonts.
 
 The intlfonts distribution includes a full spectrum of fonts that can
 display all the characters Emacs supports.  The etl-unicode collection
-of fonts (available from <URL:ftp://ftp.x.org/contrib/fonts/> and
-<URL:ftp://ftp.xfree86.org/pub/mirror/X.Org/contrib/fonts/>) includes
+of fonts (available from <URL:ftp://ftp.x.org/contrib/fonts/>) includes
 fonts that can display many Unicode characters; they can also be used
 by ps-print and ps-mule to print Unicode characters.
 
-** Under X11, some characters appear improperly aligned in their lines.
+** Under X, some characters appear improperly aligned in their lines.
 
-You may have bad X11 fonts; try installing the intlfonts distribution
-or the etl-unicode collection (see above).
+You may have bad fonts.
 
 ** Under X, an unexpected monospace font is used as the default font.
 
@@ -799,7 +800,7 @@ generally read correctly by Emacs 21.
 *** You "lose characters" after typing Compose Character key.
 
 This is because the Compose Character key is defined as the keysym
-Multi_key, and Emacs (seeing that) does the proper X11
+Multi_key, and Emacs (seeing that) does the proper X
 character-composition processing.  If you don't want your Compose key
 to do that, you can redefine it with xmodmap.
 
@@ -900,7 +901,7 @@ into Meta.  This is because of the great importance of Meta in Emacs.
 
 This happens sometimes when using Metacity.  Resizing Emacs or ALT-Tab:bing
 makes the system unresponsive to the mouse or the keyboard.  Killing Emacs
-or shifting out from X11 and back again usually cures it (i.e. Ctrl-Alt-F1
+or shifting out from X and back again usually cures it (i.e. Ctrl-Alt-F1
 and then Alt-F7).  A bug for it is here:
 https://bugs.launchpad.net/ubuntu/+source/metacity/+bug/231034.
 Note that a permanent fix seems to be to disable "assistive technologies".
@@ -1030,7 +1031,7 @@ the resource prevents the problem.
 
 ** General X problems
 
-*** Redisplay using X11 is much slower than previous Emacs versions.
+*** Redisplay using X is much slower than previous Emacs versions.
 
 We've noticed that certain X servers draw the text much slower when
 scroll bars are on the left.  We don't know why this happens.  If this
@@ -1249,6 +1250,7 @@ You can get back menus on each frame by starting emacs like this:
 * Runtime problems on character terminals
 
 ** The meta key does not work on xterm.
+
 Typing M-x rings the terminal bell, and inserts a string like ";120~".
 For recent xterm versions (>= 216), Emacs uses xterm's modifyOtherKeys
 feature to generate strings for key combinations that are not
@@ -2145,7 +2147,7 @@ likely to be a global one, and not Emacs specific.
 
 Many cheap inkjet, and even some cheap laser printers, do not
 print plain text anymore, they will only print through graphical
-printer drivers.  A workaround on MS-Windows is to use Windows' basic
+printer drivers.  A workaround on MS-Windows is to use Windows's basic
 built in editor to print (this is possibly the only useful purpose it
 has):
 
@@ -2215,7 +2217,7 @@ running `Xconfig' from within NT, choosing "X selection", then
 un-checking the boxes "auto-copy X selection" and "auto-paste to X
 selection".
 
-Of this does not work, please inform bug-gnu-emacs@gnu.org.  Then
+If this does not work, please inform bug-gnu-emacs@gnu.org.  Then
 please call support for your X-server and see if you can get a fix.
 If you do, please send it to bug-gnu-emacs@gnu.org so we can list it here.
 
@@ -2282,8 +2284,7 @@ The solution is to remove this line from `etc/fstab'.
 First ensure that the necessary 32-bit system libraries and include
 files are installed.  Then use:
 
-  env CC="gcc -m32" ./configure --build=i386-linux-gnu \
-    --x-libraries=/usr/X11R6/lib
+  env CC="gcc -m32" ./configure --build=i386-linux-gnu --x-libraries=/usr/lib
 
 (using the location of the 32-bit X libraries on your system).
 
@@ -2506,8 +2507,8 @@ or
 
 *** temacs prints "Pure Lisp storage exhausted".
 
-This means that the Lisp code loaded from the .elc and .el files
-during temacs -l loadup inc dump took up more space than was allocated.
+This means that the Lisp code loaded from the .elc and .el files during
+`temacs --batch --load loadup dump' took up more space than was allocated.
 
 This could be caused by
  1) adding code to the preloaded Lisp files
