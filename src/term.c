@@ -4031,12 +4031,15 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
        open a frame on the same terminal.  */
     int flags = O_RDWR | O_NOCTTY | (ctty ? 0 : O_IGNORE_CTTY);
     int fd = emacs_open (name, flags, 0);
-    tty->input = tty->output = fd < 0 || ! isatty (fd) ? 0 : fdopen (fd, "w+");
+    tty->input = tty->output =
+      ((fd < 0 || ! isatty (fd))
+       ? NULL
+       : fdopen (fd, "w+"));
 
     if (! tty->input)
       {
 	char const *diagnostic
-	  = tty->input ? "Not a tty device: %s" : "Could not open file: %s";
+	  = (fd < 0) ? "Could not open file: %s" : "Not a tty device: %s";
 	emacs_close (fd);
 	maybe_fatal (must_succeed, terminal, diagnostic, diagnostic, name);
       }
