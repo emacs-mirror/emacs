@@ -1,3 +1,10 @@
+2014-03-23  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/cl-macs.el (cl--do-arglist): Use a little `cl-loop'
+	list to look for keyword arguments instead of `memq', fixing
+	(Bug#3647) --- unfortunately, only for freshly-compiled code.
+	Please make bootstrap.
+
 2014-03-23  Richard Stallman  <rms@gnu.org>
 
 	* battery.el (battery-linux-sysfs): Search for each field

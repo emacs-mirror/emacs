@@ -195,4 +195,10 @@
   (should (eql (cl-mismatch "Aa" "aA") 0))
   (should (eql (cl-mismatch '(a b c) '(a b d)) 2)))
 
+(ert-deftest cl-lib-keyword-names-versus-values ()
+  (should (equal
+           (funcall (cl-function (lambda (&key a b) (list a b)))
+                    :b :a :a 42)
+           '(42 :a))))
+
 ;;; cl-lib.el ends here
