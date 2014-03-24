@@ -151,9 +151,9 @@ Platform     OS          Architecture    Compiler      Makefile
 Historically, the MPS worked on a much wider variety of platforms, and
 still could: IRIX, OSF/1 (Tru64), Solaris, SunOS, Classic Mac OS;
 MIPS, PowerPC, ALPHA, SPARC v8, SPARC v9; Metrowerks Codewarrior,
-SunPro C, Digital C, EGCS.  If you are interested in support on any of
-these platforms or any new platforms, please contact Ravenbrook at
-`mps-questions@ravenbrook.com <mailto:mps-questions@ravenbrook.com>`_.
+SunPro C, Digital C, EGCS, Pelles C. If you are interested in support
+on any of these platforms or any new platforms, please contact
+Ravenbrook at `mps-questions@ravenbrook.com <mailto:mps-questions@ravenbrook.com>`_.
 
 
 Running make
