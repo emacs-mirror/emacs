@@ -11,7 +11,7 @@
 #define mpsw3_h
 
 #include "mps.h"               /* needed for mps_tramp_t */
-#include <windows.h>           /* needed for SEH filter */
+#include "mpswin.h"            /* needed for SEH filter */
 
 
 extern LONG mps_SEH_filter(LPEXCEPTION_POINTERS, void **, size_t *);

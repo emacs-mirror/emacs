@@ -49,7 +49,7 @@ typedef union EventClockUnion {
    using Microsoft Visual Studio 6 because of support for CodeView debugging
    information. */
 
-#include <windows.h> /* KILL IT WITH FIRE! */
+#include "mpswin.h" /* KILL IT WITH FIRE! */
 
 #define EVENT_CLOCK(lvalue) \
   BEGIN \
