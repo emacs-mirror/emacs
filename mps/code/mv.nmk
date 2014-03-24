@@ -2,7 +2,7 @@
 #
 # mv.nmk: NMAKE FRAGMENT FOR MICROSOFT VISUAL C/C++
 #
-# $Id: //info.ravenbrook.com/project/mps/branch/2014-03-21/pellesc/code/gc.gmk#1 $
+# $Id$
 # Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
 #
 # This file is included by platform nmake files that use the Microsoft
