@@ -111,11 +111,6 @@ allocFail:
 }
 
 
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-
-#define alignUp(w, a)       (((w) + (a) - 1) & ~((size_t)(a) - 1))
-
-
 /* randomSizeAligned -- produce sizes both large and small,
  * aligned by platform alignment */
 

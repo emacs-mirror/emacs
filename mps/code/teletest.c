@@ -209,13 +209,14 @@ extern int main(int argc, char *argv[])
   while(1) {
     char input[INPUT_BUFFER_SIZE];
     printf("telemetry test> ");
-    fflush(stdout);
+    (void)fflush(stdout);
     if (fgets(input, INPUT_BUFFER_SIZE , stdin)) {
       obeyCommand(input);
     } else {
-      doQuit();
+      break;
     }
   }
+  doQuit();
   return EXIT_SUCCESS;
 }
 

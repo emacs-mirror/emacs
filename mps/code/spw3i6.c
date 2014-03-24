@@ -1,4 +1,4 @@
-/* spw3i6mv.c: STACK PROBE FOR 64-BIT WINDOWS
+/* spw3i6.c: STACK PROBE FOR 64-BIT WINDOWS
  *
  * $Id$
  * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.

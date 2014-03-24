@@ -109,11 +109,13 @@ LONG WINAPI ProtSEHfilter(LPEXCEPTION_POINTERS info)
 
 void ProtSetup(void)
 {
+  void *handler;
   /* See "AddVectoredExceptionHandler function (Windows)"
      <http://msdn.microsoft.com/en-us/library/windows/desktop/ms679274%28v=vs.85%29.aspx> */
   /* ProtSetup is called only once per process, not once per arena, so
      this exception handler is only installed once. */
-  AddVectoredExceptionHandler(1uL, ProtSEHfilter);
+  handler = AddVectoredExceptionHandler(1uL, ProtSEHfilter);
+  AVER(handler != NULL);
 }
 
 
