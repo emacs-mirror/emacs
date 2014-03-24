@@ -4,6 +4,8 @@
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
+#include <stdlib.h> /* malloc */
+
 #include "mpm.h"
 #include "testlib.h"
 #include "mpslib.h"

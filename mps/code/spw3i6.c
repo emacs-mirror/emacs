@@ -16,8 +16,9 @@
  * to be entered recursively.
  */
 
+#include <stdlib.h> /* _alloca */
+
 #include "mpm.h"
-#include <malloc.h>
 
 void StackProbe(Size depth)
 {
