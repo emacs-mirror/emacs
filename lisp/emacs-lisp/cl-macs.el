@@ -503,8 +503,7 @@ its argument list allows full Common Lisp conventions."
 		   (varg (if (consp (car arg)) (cl-cadar arg) (car arg)))
 		   (def (if (cdr arg) (cadr arg)
 			  (or (car cl--bind-defs) (cadr (assq varg cl--bind-defs)))))
-		   (look `(cl-loop for cl--arg on ,restarg by #'cddr
-                               when (eq (car cl--arg) ',karg) return cl--arg)))
+                   (look `(plist-member ,restarg ',karg)))
 	      (and def cl--bind-enquote (setq def `',def))
 	      (if (cddr arg)
 		  (let* ((temp (or (nth 2 arg) (make-symbol "--cl-var--")))
