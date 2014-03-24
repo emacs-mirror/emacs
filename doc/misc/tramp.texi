@@ -3053,13 +3053,26 @@ setting the cursor at the top of the buffer, and applying the expression
 If it fails, or the cursor is not moved at the end of the buffer, your
 prompt is not recognized correctly.
 
-A special problem is the zsh, which uses left-hand side and right-hand
-side prompts in parallel.  Therefore, it is necessary to disable the
-zsh line editor on the remote host.  You shall add to @file{~/.zshrc}
-the following command:
+A special problem is the zsh shell, which uses left-hand side and
+right-hand side prompts in parallel.  Therefore, it is necessary to
+disable the zsh line editor on the remote host.  You shall add to
+@file{~/.zshrc} the following command:
 
 @example
 [ $TERM = "dumb" ] && unsetopt zle && PS1='$ '
+@end example
+
+Similar fancy prompt settings are known from the fish shell.  Here you
+must add in @file{~/.config/fish/config.fish}:
+
+@example
+function fish_prompt
+  if test $TERM = "dumb"
+     echo "\$ "
+  else
+     @dots{}
+  end
+end
 @end example
 
 Furthermore it has been reported, that @value{tramp} (like sshfs,
