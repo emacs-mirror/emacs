@@ -1,3 +1,8 @@
+2014-03-24  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32term.c (x_set_window_size): Refine fix from 2014-03-14
+	(Bug#17077).
+
 2014-03-23  Glenn Morris  <rgm@gnu.org>
 
 	* fileio.c (Ffile_symlink_p): Doc fix. (Bug#17073)
