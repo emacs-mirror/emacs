@@ -254,4 +254,4 @@ temp_client = _conn.temp_client
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# $Id: //info.ravenbrook.com/infosys/cgi/issue.cgi#30 $
+# $Id$
