@@ -1047,14 +1047,9 @@ Also, add the originating archive to the `package-desc' structure."
          (existing-packages (assq name package-archive-contents))
          (pinned-to-archive (assoc name package-pinned-packages)))
     (cond
-     ;; Skip entirely if pinned to another archive or already installed.
-     ((or (and pinned-to-archive
-               (not (equal (cdr pinned-to-archive) archive)))
-          (let ((bi (assq name package--builtin-versions)))
-            (and bi (version-list-= version (cdr bi))))
-          (let ((ins (cdr (assq name package-alist))))
-            (and ins (version-list-= version
-                                     (package-desc-version (car ins))))))
+     ;; Skip entirely if pinned to another archive.
+     ((and pinned-to-archive
+           (not (equal (cdr pinned-to-archive) archive)))
       nil)
      ((not existing-packages)
       (push (list name pkg-desc) package-archive-contents))
@@ -1090,8 +1085,11 @@ in an archive in `package-archives'.  Interactively, prompt for its name."
        (package-refresh-contents))
      (list (intern (completing-read
                     "Install package: "
-                    (mapcar (lambda (elt) (symbol-name (car elt)))
-                            package-archive-contents)
+                    (delq nil
+                          (mapcar (lambda (elt)
+                                    (unless (package-installed-p (car elt))
+                                      (symbol-name (car elt))))
+                                  package-archive-contents))
                     nil t)))))
   (package-download-transaction
    (if (package-desc-p pkg)

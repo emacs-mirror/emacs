@@ -1,3 +1,11 @@
+2014-03-24  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/package.el (package--add-to-archive-contents):
+	Include already installed and built-in packages in
+	`package-archive-contents'.
+	(package-install): Don't include already installed packages in the
+	options during interactive invocation.  (Bug#16762)
+
 2014-03-24  Daniel Colascione  <dancol@dancol.org>
 
 	* emacs-lisp/cl-macs.el (cl--do-arglist): Use `plist-member'
