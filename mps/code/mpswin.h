@@ -16,6 +16,9 @@
 #pragma warning(disable: 4115 4201 4209 4214)
 #endif
 
+/* Speed up the build process by excluding parts of windows.h that we
+ * don't use. See <http://support.microsoft.com/kb/166474> */
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #ifdef MPS_BUILD_MV
