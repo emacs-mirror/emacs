@@ -1,7 +1,7 @@
 /* lockutw3.c: LOCK UTILIZATION TEST
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpm.h"
@@ -71,6 +71,8 @@ int main(int argc, char *argv[])
   HANDLE t[10];
   unsigned i;
 
+  testlib_init(argc, argv);
+
   lock = malloc(LockSize());
   Insist(lock != NULL);
 
@@ -96,7 +98,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

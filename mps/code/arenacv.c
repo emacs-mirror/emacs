@@ -1,7 +1,7 @@
 /* arenacv.c: ARENA COVERAGE TEST
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .coverage: At the moment, we're only trying to cover the new code
  * (partial mapping of the page table and vm overflow).
@@ -399,7 +399,8 @@ static void testSize(Size size)
 int main(int argc, char *argv[])
 {
   void *block;
-  testlib_unused(argc);
+
+  testlib_init(argc, argv);
 
   testPageTable((ArenaClass)mps_arena_class_vm(), TEST_ARENA_SIZE, 0, TRUE);
   testPageTable((ArenaClass)mps_arena_class_vm(), TEST_ARENA_SIZE, 0, FALSE);
@@ -417,7 +418,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -25,23 +25,29 @@ This document is not confidential.
 2. Tools
 --------
 
-=================  =========================================================
-`gcovfmt.py`_      Formats the output of the ``gcov`` coverage tool into a
-                   summary table. It runs only on OS X, where it is invoked
-                   from the Xcode project after running the test suite for
-                   the “Debug” configuration.
+=================  ==========================================================
+`branch`_          Make a version or development branch.
+`gcovfmt`_         Formats the output of the ``gcov`` coverage tool into a
+                   summary table.
+`release`_         Make a product release.
+`testcoverage`_    Instrument the test suite for coverage, run it, and output
+                   a coverage report.
+`testopendylan`_   Download the latest version of Open Dylan and build it
+                   against the MPS sources.
 `testrun.bat`_     Implements the ``testrun`` make target on Windows, where
                    it is invoked from ``commpost.nmk``.
 `testrun.sh`_      Implements the ``testrun`` make target on FreeBSD and
-                   Linux, it is invoked from ``comm.gmk``, and on OS X,
-                   where it is invoked from the Xcode project.
-`test-runner.py`_  Builds and runs tests. As of 2013-05-24 it is not used.
-=================  =========================================================
+                   Linux, it is invoked from ``comm.gmk``, and on OS X, where
+                   it is invoked from the Xcode project.
+=================  ==========================================================
 
-.. _gcovfmt.py: gcovfmt.py
+.. _branch: branch
+.. _gcovfmt: gcovfmt
+.. _release: release
+.. _testcoverage: testcoverage
+.. _testopendylan: testopendylan
 .. _testrun.bat: testrun.bat
 .. _testrun.sh: testrun.sh
-.. _test-runner.py: test-runner.py
 
 
 A. References
@@ -57,6 +63,8 @@ B. Document History
 2013-05-24  GDR_    Added ``gcovfmt.py`` and ``testrun.sh``. 
                     ``test-runner.py`` is no longer used.
 2014-01-13  GDR_    Converted to reStructuredText. Added ``testrun.bat``.
+2014-03-22  GDR_    Add ``branch``, ``release``, ``testcoverage``, and 
+                    ``testopendylan``.
 ==========  ======  ========================================================
 
 .. _GDR: mailto:gdr@ravenbrook.com

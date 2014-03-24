@@ -3163,7 +3163,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Not listed here:\n# bttest and teletest -- interactive and so cannot be run unattended.\n# djbench and gcbench -- benchmarks, not test cases.\n# zcoll -- takes too long to be useful as a regularly run smoke test.\nTESTCASES=\"abqtest amcss amcsshe amcssth amsss amssshe apss arenacv \\\n           awlut awlutth awluthe btcv expt825 exposet0 fbmtest finalcv \\\n           finaltest fotest locbwcss lockcov locusss locv messtest mpmss \\\n           mpsicv mv2test poolncv qs sacss segsmss steptest walkt0 zmess\"\n\n../tool/testrun.sh $(for TEST in $TESTCASES; do echo $TARGET_BUILD_DIR/$TEST; done)\n";
+			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

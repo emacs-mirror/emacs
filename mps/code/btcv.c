@@ -1,7 +1,7 @@
 /* btss.c: BIT TABLE COVERAGE TEST
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: MPS developers
  *
@@ -550,8 +550,7 @@ int main(int argc, char *argv[])
   /* tests need 4 whole words plus a few extra bits */
   btSize = MPS_WORD_WIDTH * 4 + 10;
 
-  testlib_unused(argc);
-  testlib_unused(argv);
+  testlib_init(argc, argv);
 
   die(mps_arena_create(&mpsArena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
@@ -572,7 +571,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

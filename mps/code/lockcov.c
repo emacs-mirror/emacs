@@ -1,7 +1,7 @@
 /* lockcov.c: LOCK COVERAGE TEST
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpm.h"
@@ -14,7 +14,8 @@ int main(int argc, char *argv[])
 {
   Lock a = malloc(LockSize());
   Lock b = malloc(LockSize());
-  testlib_unused(argc);
+
+  testlib_init(argc, argv);
 
   Insist(a != NULL);
   Insist(b != NULL);
@@ -53,7 +54,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
