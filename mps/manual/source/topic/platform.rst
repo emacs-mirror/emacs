@@ -300,6 +300,7 @@ Formerly supported compiler toolchains:
 ``gp``  GCC with profiling                       ``MPS_BUILD_GP``
 ``lc``  LCC                                      ``MPS_BUILD_LC``
 ``mw``  Metrowerks CodeWarrior                   ``MPS_BUILD_MW``
+``pc``  Pelles C                                 ``MPS_BUILD_PC``
 ``sc``  SunPro C                                 ``MPS_BUILD_SC``
 ======  =======================================  ================
 
@@ -348,7 +349,9 @@ Platform    Status
 ``w3almv``  *Not supported*
 ``w3i3m9``  *Not supported*
 ``w3i3mv``  Supported
+``w3i3pc``  *Not supported*
 ``w3i6mv``  Supported
+``w3i6pc``  *Not supported*
 ``w3ppmv``  *Not supported*
 ``xci3gc``  *Not supported*
 ``xci3ll``  Supported
