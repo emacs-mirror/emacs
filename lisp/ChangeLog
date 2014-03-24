@@ -1,3 +1,11 @@
+2014-03-24  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-expression-expansion-re):
+	Match special global variables without curlies, too.
+	(ruby-font-lock-keywords): Simplify the matcher for special global
+	variables.  Don't require a non-word character after the variable.
+	(Bug#17057)
+
 2014-03-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (redisplay-highlight-region-function): Increase priority of
