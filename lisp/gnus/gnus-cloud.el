@@ -125,7 +125,7 @@
 	(let ((spec (ignore-errors (read (current-buffer))))
 	      length)
 	  (when (and (consp spec)
-		     (memq (getf spec :type) '(:file :data :deleta)))
+		     (memq (plist-get spec :type) '(:file :data :deleta)))
 	    (setq length (plist-get spec :length))
 	    (push (append spec
 			  (list
@@ -228,6 +228,11 @@
 	      (null old)
 	      (string< old timestamp))
       timestamp)))
+
+(declare-function gnus-activate-group "gnus-start"
+		  (group &optional scan dont-check method dont-sub-check))
+(declare-function gnus-subscribe-group "gnus-start"
+		  (group &optional previous method))
 
 (defun gnus-cloud-ensure-cloud-group ()
   (let ((method (if (stringp gnus-cloud-method)

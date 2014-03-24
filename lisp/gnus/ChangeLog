@@ -1,3 +1,11 @@
+2014-03-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-cloud.el (gnus-cloud-parse-version-1):
+	Use plist-get rather than CL's getf.
+	(gnus-activate-group, gnus-subscribe-group): Declare.
+
+	* gnus-sum.el (gnus-mime-buttonize-attachments-in-header: Declare.
+
 2014-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-summary-toggle-header): Display header attachment

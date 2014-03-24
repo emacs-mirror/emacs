@@ -9783,6 +9783,8 @@ If ARG is a negative number, turn header display off."
 (declare-function article-narrow-to-head "gnus-art" ())
 (declare-function gnus-article-hidden-text-p "gnus-art" (type))
 (declare-function gnus-delete-wash-type "gnus-art" (type))
+(declare-function gnus-mime-buttonize-attachments-in-header
+		  "gnus-art" (&optional interactive))
 
 (defun gnus-summary-toggle-header (&optional arg)
   "Show the headers if they are hidden, or hide them if they are shown.
