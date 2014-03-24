@@ -231,7 +231,7 @@ static void *test(void *arg, size_t s)
     if (objs % 1024 == 0) {
       report(arena);
       putchar('.');
-      fflush(stdout);
+      (void)fflush(stdout);
     }
 
     ++objs;

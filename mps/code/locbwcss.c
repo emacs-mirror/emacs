@@ -131,8 +131,7 @@ static void allocMultiple(PoolStat stat)
 
 static void reportResults(PoolStat stat, const char *name)
 {
-  printf("\nResults for ");
-  fputs(name, stdout);
+  printf("\nResults for %s\n", name);
   printf("\n");
   printf("   Allocated  %"PRIuLONGEST" objects\n", (ulongest_t)stat->aCount);
   printf("   Freed      %"PRIuLONGEST" objects\n", (ulongest_t)stat->fCount);

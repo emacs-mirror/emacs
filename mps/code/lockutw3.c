@@ -84,8 +84,10 @@ int main(int argc, char *argv[])
   for(i = 0; i < nTHREADS; i++)
     t[i] = CreateThread(NULL, 0, thread0, NULL, 0, &id);
 
-  for(i = 0; i < nTHREADS; i++)
-    WaitForSingleObject(t[i], INFINITE);
+  for(i = 0; i < nTHREADS; i++) {
+    cdie(WaitForSingleObject(t[i], INFINITE) == WAIT_OBJECT_0,
+         "WaitForSingleObject");
+  }
 
   Insist(shared == nTHREADS*COUNT);
 

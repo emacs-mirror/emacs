@@ -65,9 +65,9 @@ static void mps_lib_assert_fail_default(const char *file,
                                         unsigned line,
                                         const char *condition)
 {
-  fflush(stdout); /* synchronize */
-  fprintf(stderr, "%s:%u: MPS ASSERTION FAILED: %s\n", file, line, condition);
-  fflush(stderr); /* make sure the message is output */
+  (void)fflush(stdout); /* synchronize */
+  (void)fprintf(stderr, "%s:%u: MPS ASSERTION FAILED: %s\n", file, line, condition);
+  (void)fflush(stderr); /* make sure the message is output */
   ASSERT_ABORT(); /* see config.h */
 }
 

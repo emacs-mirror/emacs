@@ -419,7 +419,7 @@ void EventDump(mps_lib_FILE *stream)
   /* This can happen if there's a backtrace very early in the life of
      the MPS, and will cause an access violation if we continue. */
   if (!eventInited) {
-    WriteF(stream, "No events\n", NULL);
+    (void)WriteF(stream, "No events\n", NULL);
     return;
   }
 

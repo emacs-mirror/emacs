@@ -69,6 +69,20 @@
 #endif /* MPS_BUILD_MV */
 
 
+/* Suppress Pelles C warnings at warning level 2 */
+/* Some of these are also done in config.h. */
+
+#ifdef MPS_BUILD_PC
+
+/* "Structured Exception Handling is not portable." (mps_tramp). */
+#pragma warn(disable: 2008)
+
+/* "Unreachable code" (AVER, if condition is constantly true). */
+#pragma warn(disable: 2154)
+
+#endif /* MPS_BUILD_PC */
+
+
 /* ulongest_t -- longest unsigned integer type
  *
  * Define a longest unsigned integer type for testing, scanning, and
@@ -117,6 +131,20 @@ typedef long longest_t;
  */
 
 #define testlib_unused(v) ((void)(v))
+
+
+/* max -- return larger value
+ * 
+ * Note: evaluates its arguments twice.
+ */
+
+#undef max
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+
+
+/* alignUp -- align word to alignment */
+
+#define alignUp(w, a) (((w) + (a) - 1) & ~((size_t)(a) - 1))
 
 
 /* die -- succeed or die

@@ -107,7 +107,7 @@ Bool ABQPush(ABQ abq, void *element)
   if (ABQIsFull(abq))
     return FALSE;
  
-  mps_lib_memcpy(ABQElement(abq, abq->in), element, abq->elementSize);
+  (void)mps_lib_memcpy(ABQElement(abq, abq->in), element, abq->elementSize);
   abq->in = ABQNextIndex(abq, abq->in);
 
   AVERT(ABQ, abq);
@@ -126,7 +126,7 @@ Bool ABQPop(ABQ abq, void *elementReturn)
   if (ABQIsEmpty(abq))
     return FALSE;
 
-  mps_lib_memcpy(elementReturn, ABQElement(abq, abq->out), abq->elementSize);
+  (void)mps_lib_memcpy(elementReturn, ABQElement(abq, abq->out), abq->elementSize);
 
   abq->out = ABQNextIndex(abq, abq->out);
  
@@ -146,7 +146,7 @@ Bool ABQPeek(ABQ abq, void *elementReturn)
   if (ABQIsEmpty(abq))
     return FALSE;
 
-  mps_lib_memcpy(elementReturn, ABQElement(abq, abq->out), abq->elementSize);
+  (void)mps_lib_memcpy(elementReturn, ABQElement(abq, abq->out), abq->elementSize);
 
   /* Identical to pop, but don't increment out */
 
@@ -261,7 +261,7 @@ void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP, Size closureS
     AVERT(Bool, delete);
     if (!delete) {
       if (copy != index)
-        mps_lib_memcpy(ABQElement(abq, copy), element, abq->elementSize);
+        (void)mps_lib_memcpy(ABQElement(abq, copy), element, abq->elementSize);
       copy = ABQNextIndex(abq, copy);
     }
     index = ABQNextIndex(abq, index);
@@ -272,8 +272,8 @@ void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP, Size closureS
   /* If any elements were deleted, need to copy remainder of queue. */
   if (copy != index) {
     while (index != in) {
-      mps_lib_memcpy(ABQElement(abq, copy), ABQElement(abq, index),
-                     abq->elementSize);
+      (void)mps_lib_memcpy(ABQElement(abq, copy), ABQElement(abq, index),
+                           abq->elementSize);
       copy = ABQNextIndex(abq, copy);
       index = ABQNextIndex(abq, index);
     }

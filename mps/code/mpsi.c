@@ -1737,12 +1737,12 @@ mps_word_t mps_telemetry_control(mps_word_t resetMask, mps_word_t flipMask)
 
 void mps_telemetry_set(mps_word_t setMask)
 {
-  EventControl((Word)setMask, (Word)setMask);
+  (void)EventControl((Word)setMask, (Word)setMask);
 }
 
 void mps_telemetry_reset(mps_word_t resetMask)
 {
-  EventControl((Word)resetMask, 0);
+  (void)EventControl((Word)resetMask, 0);
 }
 
 mps_word_t mps_telemetry_get(void)

@@ -59,9 +59,9 @@ set TEST_COUNT=0
 set PASS_COUNT=0
 set FAIL_COUNT=0
 set SEPARATOR=----------------------------------------
-set LOGDIR=%TMP%\mps-%VARIETY%-log
+set LOGDIR=%TMP%\mps-%PFM%-%VARIETY%-log
 echo Logging test output to %LOGDIR%
-rmdir /q /s %LOGDIR%
+rmdir /q /s %LOGDIR% 2> NUL
 mkdir %LOGDIR%
 
 if "%1"=="" call :run_tests %ALL_TEST_CASES%

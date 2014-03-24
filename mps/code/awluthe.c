@@ -221,7 +221,7 @@ static void test(mps_arena_t arena,
     }
   }
 
-  mps_arena_collect(arena);
+  die(mps_arena_collect(arena), "mps_arena_collect");
   mps_arena_release(arena);
 
   for(i = 0; i < TABLE_SLOTS; ++i) {
@@ -274,8 +274,8 @@ static void *setup(void *v, size_t s)
   die(mps_root_create_reg(&stack, arena, mps_rank_ambig(), 0, thr,
                           mps_stack_scan_ambig, v, 0),
       "Root Create\n");
-  EnsureHeaderFormat(&dylanfmt, arena);
-  EnsureHeaderWeakFormat(&dylanweakfmt, arena);
+  die(EnsureHeaderFormat(&dylanfmt, arena), "EnsureHeaderFormat");
+  die(EnsureHeaderWeakFormat(&dylanweakfmt, arena), "EnsureHeaderWeakFormat");
   MPS_ARGS_BEGIN(args) {
     /* Ask the leafpool to allocate in the nursery, as we're using it to test
        weaknesss and want things to die in it promptly. */

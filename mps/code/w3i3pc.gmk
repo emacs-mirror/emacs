@@ -1,5 +1,0 @@
-%.obj: %.c
-	pocc /Ze $<
-
-amcss.exe: amcss.obj abq.obj arena.obj arenacl.obj arenavm.obj arg.obj boot.obj bt.obj buffer.obj cbs.obj dbgpool.obj dbgpooli.obj event.obj fmtdy.obj fmtdy.obj fmtdytst.obj fmthe.obj fmtno.obj fmtno.obj format.obj freelist.obj global.obj ld.obj lockw3.obj locus.obj message.obj meter.obj mpm.obj mpsi.obj mpsioan.obj mpsiw3.obj mpsliban.obj pool.obj poolabs.obj poolamc.obj poolams.obj poolamsi.obj poolawl.obj poollo.obj poolmfs.obj poolmrg.obj poolmv2.obj poolmv.obj poolmvff.obj pooln.obj poolsnc.obj proti3.obj prmci3w3.obj protocol.obj protw3.obj range.obj ref.obj reserv.obj ring.obj root.obj sa.obj sac.obj seg.obj shield.obj spw3i3mv.obj splay.obj ss.obj ssw3i3pc.obj table.obj testlib.obj thw3.obj thw3i3.obj trace.obj traceanc.obj tract.obj tree.obj version.obj vmw3.obj walk.obj
-	polink $^ /OUT:$@

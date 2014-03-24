@@ -242,7 +242,7 @@ static void testscriptC(mps_arena_t arena, const char *script)
       }
       case 'C': {
         printf("  Collect\n");
-        mps_arena_collect(arena);
+        die(mps_arena_collect(arena), "mps_arena_collect");
         break;
       }
       case 'F': {

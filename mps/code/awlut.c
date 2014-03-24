@@ -216,7 +216,7 @@ static void test(mps_arena_t arena,
     }
   }
   
-  mps_arena_collect(arena);
+  die(mps_arena_collect(arena), "mps_arena_collect");
   mps_arena_release(arena);
 
   for(i = 0; i < TABLE_SLOTS; ++i) {

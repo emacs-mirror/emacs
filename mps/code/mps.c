@@ -194,8 +194,8 @@
 #include "protw3.c"     /* Windows protection */
 #include "proti3.c"     /* 32-bit Intel mutator context decoding */
 #include "prmci3w3.c"   /* Windows on 32-bit Intel mutator context */
-#include "ssw3i3mv.c"   /* Windows on 32-bit stack scan for Microsoft C */
-#include "spw3i3mv.c"   /* Windows on 32-bit stack probe for Microsoft C */
+#include "ssw3i3mv.c"   /* Windows on 32-bit Intel stack scan for Microsoft C */
+#include "spw3i3.c"     /* Windows on 32-bit Intel stack probe */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
 /* Windows on 64-bit Intel with Microsoft Visual Studio */
@@ -210,8 +210,8 @@
 #include "protw3.c"     /* Windows protection */
 #include "proti6.c"     /* 64-bit Intel mutator context decoding */
 #include "prmci6w3.c"   /* Windows on 64-bit Intel mutator context */
-#include "ssw3i6mv.c"   /* Windows on 64-bit stack scan for Microsoft C */
-#include "spw3i6mv.c"   /* Windows on 64-bit stack probe for Microsoft C */
+#include "ssw3i6mv.c"   /* Windows on 64-bit Intel stack scan for Microsoft C */
+#include "spw3i6.c"     /* Windows on 64-bit Intel stack probe */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
 /* Windows on 32-bit Intel with Pelles C */
@@ -226,7 +226,7 @@
 #include "proti3.c"     /* 32-bit Intel mutator context decoding */
 #include "prmci3w3.c"   /* Windows on 32-bit Intel mutator context */
 #include "ssw3i3pc.c"   /* Windows on 32-bit stack scan for Pelles C */
-#include "spw3i3mv.c"   /* Intel stack probe */
+#include "spw3i3.c"     /* 32-bit Intel stack probe */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
 #else

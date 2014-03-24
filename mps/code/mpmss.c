@@ -92,11 +92,6 @@ static mps_res_t stress(mps_class_t class, size_t (*size)(int i),
 }
 
 
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-
-#define alignUp(w, a) (((w) + (a) - 1) & ~((size_t)(a) - 1))
-
-
 /* randomSize -- produce sizes both latge and small */
 
 static size_t randomSize(int i)
@@ -153,7 +148,7 @@ static mps_pool_debug_option_s fenceOptions = {
 
 /* testInArena -- test all the pool classes in the given arena */
 
-static int testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
+static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
 {
   /* IWBN to test MVFFDebug, but the MPS doesn't support debugging */
   /* cross-segment allocation (possibly MVFF ought not to). */
@@ -176,8 +171,6 @@ static int testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
   die(stress(mps_class_mv(), randomSize, arena,
              (size_t)65536, (size_t)32, (size_t)65536),
       "stress MV");
-
-  return 0;
 }
 
 

@@ -172,7 +172,7 @@
 /* "constant conditional" (MPS_END) */
 #pragma warning(disable: 4127)
 
-/* "unreachable code" (ASSERT, if cond is constantly true). */
+/* "unreachable code" (AVER, if cond is constantly true). */
 #pragma warning(disable: 4702)
 
 /* "expression evaluates to a function which is missing an argument list" */
@@ -209,6 +209,17 @@
 #endif /* AVER_AND_CHECK_NONE */
 
 #endif /* MPS_BUILD_MV */
+
+
+/* Suppress Pelles C warnings at warning level 2 */
+/* Essentially the same settings are done in testlib.h. */
+
+#ifdef MPS_BUILD_PC
+
+/* "Unreachable code" (AVER, if condition is constantly true). */
+#pragma warn(disable: 2154)
+
+#endif /* MPS_BUILD_PC */
 
 
 /* EPVMDefaultSubsequentSegSIZE is a default for the alignment of
