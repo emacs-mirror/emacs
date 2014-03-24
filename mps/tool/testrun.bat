@@ -1,5 +1,16 @@
 @rem $Id: //info.ravenbrook.com/project/mps/master/tool/testrun.sh#1 $
 @rem Copyright (c) 2013 Ravenbrook Limited. See end of file for license.
+@rem 
+@rem This program runs a series of test cases, capturing the output of
+@rem each one to a temporary file. In addition, the output of any test
+@rem case that fails gets printed to standard output so that it is not
+@rem lost when the test is running on a temporary build server (see
+@rem job003489). Finally, it prints a summary of passes and failures, and
+@rem if there were any failures, it exits with a non-zero status code.
+@rem
+@rem Usage::
+@rem 
+@rem     testrun.sh PLATFORM VARIETY [CASE1 CASE2 ...]
 
 @echo off
 
@@ -8,7 +19,44 @@ shift
 set VARIETY=%1
 shift
 
+set ALL_TEST_CASES=^
+    abqtest.exe ^
+    amcss.exe ^
+    amcsshe.exe ^
+    amsss.exe ^
+    amssshe.exe ^
+    apss.exe ^
+    arenacv.exe ^
+    awlut.exe ^
+    awluthe.exe ^
+    btcv.exe ^
+    exposet0.exe ^
+    expt825.exe ^
+    fbmtest.exe ^
+    finalcv.exe ^
+    finaltest.exe ^
+    fotest.exe ^
+    locbwcss.exe ^
+    lockcov.exe ^
+    lockutw3.exe ^
+    locusss.exe ^
+    locv.exe ^
+    messtest.exe ^
+    mpmss.exe ^
+    mpsicv.exe ^
+    mv2test.exe ^
+    poolncv.exe ^
+    qs.exe ^
+    sacss.exe ^
+    segsmss.exe ^
+    steptest.exe ^
+    walkt0.exe ^
+    zmess.exe
+
+@rem Ensure that test cases don't pop up dialog box on abort()
+set MPS_TESTLIB_NOABORT=true
 set TEST_COUNT=0
+set PASS_COUNT=0
 set FAIL_COUNT=0
 set SEPARATOR=----------------------------------------
 set LOGDIR=%TMP%\mps-%VARIETY%-log
@@ -16,27 +64,31 @@ echo Logging test output to %LOGDIR%
 rmdir /q /s %LOGDIR%
 mkdir %LOGDIR%
 
-:loop
-if "%1"=="" goto continue
-    set /a TEST_COUNT=%TEST_COUNT%+1
-    echo Running %1
-    %PFM%\%VARIETY%\%1 > %LOGDIR%\%1
-    if "%errorlevel%"=="0" goto success
-        echo %SEPARATOR%%SEPARATOR%
-        type %LOGDIR%\%1
-        echo %SEPARATOR%%SEPARATOR%
-        set /a FAIL_COUNT=%FAIL_COUNT%+1
-    :success
-shift
-goto loop
-:continue
+if "%1"=="" call :run_tests %ALL_TEST_CASES%
 
-if "%FAIL_COUNT%"=="0" goto allpass
-    echo Tests: %TEST_COUNT%  Failures: %FAIL_COUNT%
+if "%FAIL_COUNT%"=="0" (
+    echo Tests: %TEST_COUNT%. All tests pass.
+    exit 0
+) else (
+    echo Tests: %TEST_COUNT%. Passes: %PASS_COUNT%. Failures: %FAIL_COUNT%.
     exit 1
+)
 
-:allpass
-echo Tests: %TEST_COUNT%  All tests pass.
+:run_tests
+if "%1"=="" exit /b
+set /a TEST_COUNT=%TEST_COUNT%+1
+echo Running %1
+%PFM%\%VARIETY%\%1 > %LOGDIR%\%1
+if "%errorlevel%"=="0" (
+    set /a PASS_COUNT=%PASS_COUNT%+1
+) else (
+    echo %SEPARATOR%%SEPARATOR%
+    type %LOGDIR%\%1
+    echo %SEPARATOR%%SEPARATOR%
+    set /a FAIL_COUNT=%FAIL_COUNT%+1
+)
+shift
+goto run_tests
 
 
 @rem C. COPYRIGHT AND LICENSE
