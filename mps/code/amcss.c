@@ -285,7 +285,7 @@ static void test(mps_arena_t arena)
     if (objs % 1024 == 0) {
       report(arena);
       putchar('.');
-      fflush(stdout);
+      (void)fflush(stdout);
     }
 
     ++objs;

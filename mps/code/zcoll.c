@@ -119,12 +119,11 @@ static void showStatsAscii(size_t notcon, size_t con, size_t live, size_t alimit
   count = (a < 200) ? a + 1 : c;
   
   for(i = 0; i < count; i++) {
-    printf( (i == a)  ? "A"
-            : (i < n) ? "n"
-            : (i < l) ? "L"
-            : (i < c) ? "_"
-            : " "
-          );
+    putchar((i == a)  ? 'A'
+            : (i < n) ? 'n'
+            : (i < l) ? 'L'
+            : (i < c) ? '_'
+            :           ' ');
   }
   printf("\n");
 }
@@ -370,7 +369,7 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
   myrootExact[CatalogRootIndex] = Catalog;
   get(arena);
 
-  fflush(stdout);
+  (void)fflush(stdout);
   CatalogCheck();
 
   for(i = 0; i < CatalogVar; i += 1) {
@@ -383,7 +382,7 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
     get(arena);
     
     printf("Page %d: make articles\n", i);
-    fflush(stdout);
+    (void)fflush(stdout);
     
     for(j = 0; j < PageVar; j += 1) {
       die(make_dylan_vector(&v, ap, ArtFix + ArtVar), "Art");
@@ -405,7 +404,7 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
       }
     }
   }
-  fflush(stdout);
+  (void)fflush(stdout);
   CatalogCheck();
 }
 
@@ -625,7 +624,7 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         script += sb;
         printf("  Collect\n");
         stackwipe();
-        mps_arena_collect(arena);
+        die(mps_arena_collect(arena), "mps_arena_collect");
         mps_arena_release(arena);
         break;
       }

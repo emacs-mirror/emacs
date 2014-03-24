@@ -278,7 +278,9 @@ static Res MVTInit(Pool pool, ArgList args)
   if (res != ResOK)
     goto failABQ;
 
-  FreelistInit(MVTFreelist(mvt), align);
+  res = FreelistInit(MVTFreelist(mvt), align);
+  if (res != ResOK)
+    goto failABQ;
 
   pool->alignment = align;
   mvt->reuseSize = reuseSize;
@@ -757,9 +759,11 @@ static Bool MVTDeleteOverlapping(Bool *deleteReturn, void *element,
 
 
 /* MVTReserve -- add a range to the available range queue, and if the
- * queue is full, return segments to the arena.
+ * queue is full, return segments to the arena. Return TRUE if it
+ * succeeded in adding the range to the queue, FALSE if the queue
+ * overflowed.
  */
-static Res MVTReserve(MVT mvt, Range range)
+static Bool MVTReserve(MVT mvt, Range range)
 {
   AVERT(MVT, mvt);
   AVERT(Range, range);
@@ -774,18 +778,18 @@ static Res MVTReserve(MVT mvt, Range range)
     SURELY(ABQPeek(MVTABQ(mvt), &oldRange));
     AVERT(Range, &oldRange);
     if (!MVTReturnSegs(mvt, &oldRange, arena))
-      goto failOverflow;
+      goto overflow;
     METER_ACC(mvt->returns, RangeSize(&oldRange));
     if (!ABQPush(MVTABQ(mvt), range))
-      goto failOverflow;
+      goto overflow;
   }
 
-  return ResOK;
+  return TRUE;
 
-failOverflow:
+overflow:
   mvt->abqOverflow = TRUE;
   METER_ACC(mvt->overflows, RangeSize(range));
-  return ResFAIL;
+  return FALSE;
 }
 
 
@@ -820,7 +824,7 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
      * are coalesced on the ABQ.
      */
     ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &newRange, 0);
-    MVTReserve(mvt, &newRange);
+    (void)MVTReserve(mvt, &newRange);
   }
 
   return ResOK;
@@ -875,11 +879,11 @@ static Res MVTDelete(MVT mvt, Addr base, Addr limit)
    */
   RangeInit(&rangeLeft, RangeBase(&rangeOld), base);
   if (RangeSize(&rangeLeft) >= mvt->reuseSize)
-    MVTReserve(mvt, &rangeLeft);
+    (void)MVTReserve(mvt, &rangeLeft);
 
   RangeInit(&rangeRight, limit, RangeLimit(&rangeOld));
   if (RangeSize(&rangeRight) >= mvt->reuseSize)
-    MVTReserve(mvt, &rangeRight);
+    (void)MVTReserve(mvt, &rangeRight);
 
   return ResOK;
 }
@@ -1269,8 +1273,6 @@ static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena)
  */
 static Bool MVTRefillCallback(MVT mvt, Range range)
 {
-  Res res;
-
   AVERT(ABQ, MVTABQ(mvt));
   AVERT(Range, range);
 
@@ -1278,11 +1280,7 @@ static Bool MVTRefillCallback(MVT mvt, Range range)
     return TRUE;
 
   METER_ACC(mvt->refillPushes, ABQDepth(MVTABQ(mvt)));
-  res = MVTReserve(mvt, range);
-  if (res != ResOK)
-    return FALSE;
-
-  return TRUE;
+  return MVTReserve(mvt, range);
 }
 
 static Bool MVTCBSRefillCallback(CBS cbs, Range range,

@@ -83,13 +83,13 @@ static Index (indexOfAddr)(FBMState state, Addr a)
 static void describe(FBMState state) {
   switch (state->type) {
   case FBMTypeCBS:
-    CBSDescribe(state->the.cbs, mps_lib_get_stdout());
+    die(CBSDescribe(state->the.cbs, mps_lib_get_stdout()), "CBSDescribe");
     break;
   case FBMTypeFreelist:
-    FreelistDescribe(state->the.fl, mps_lib_get_stdout());
+    die(FreelistDescribe(state->the.fl, mps_lib_get_stdout()), "FreelistDescribe");
     break;
   default:
-    fail();
+    cdie(0, "invalid state->type");
     break;
   }
 }
@@ -157,7 +157,7 @@ static void check(FBMState state)
     FreelistIterate(state->the.fl, checkFLCallback, (void *)&closure, 0);
     break;
   default:
-    fail();
+    cdie(0, "invalid state->type");
     return;
   }
 
@@ -311,7 +311,7 @@ static void allocate(FBMState state, Addr base, Addr limit)
     res = FreelistDelete(&oldRange, state->the.fl, &range);
     break;
   default:
-    fail();
+    cdie(0, "invalid state->type");
     return;
   }
 
@@ -387,7 +387,7 @@ static void deallocate(FBMState state, Addr base, Addr limit)
     res = FreelistInsert(&freeRange, state->the.fl, &range);
     break;
   default:
-    fail();
+    cdie(0, "invalid state->type");
     return;
   }
 
@@ -467,7 +467,7 @@ static void find(FBMState state, Size size, Bool high, FindDelete findDelete)
       (&foundRange, &oldRange, state->the.fl, size * state->align, findDelete);
     break;
   default:
-    fail();
+    cdie(0, "invalid state->type");
     return;
   }
 
@@ -538,7 +538,7 @@ static void test(FBMState state, unsigned n) {
       find(state, size, high, findDelete);
       break;
     default:
-      fail();
+      cdie(0, "invalid state->type");
       return;
     }
     if ((i + 1) % 1000 == 0)

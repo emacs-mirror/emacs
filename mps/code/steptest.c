@@ -109,7 +109,8 @@ static double my_clock(void)
 {
     FILETIME ctime, etime, ktime, utime;
     double dk, du;
-    GetProcessTimes(currentProcess, &ctime, &etime, &ktime, &utime);
+    cdie(GetProcessTimes(currentProcess, &ctime, &etime, &ktime, &utime) != 0,
+         "GetProcessTimes");
     dk = ktime.dwHighDateTime * 4096.0 * 1024.0 * 1024.0 +
         ktime.dwLowDateTime;
     dk /= 10.0;
@@ -391,7 +392,7 @@ static void *test(void *arg, size_t s)
         if (collections > old_collections) {
             old_collections = collections;
             putchar('.');
-            fflush(stdout);
+            (void)fflush(stdout);
         }
     }
 
