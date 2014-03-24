@@ -3,9 +3,10 @@
  * $Id: //info.ravenbrook.com/project/mps/branch/2014-01-15/nailboard/code/fotest.c#1 $
  * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
  *
- * This test case creates a bunch of string objects, registers them
- * for finalization, and then discards the base pointers to those
- * objects, keeping only ambiguous interior references.
+ * This test case creates a bunch of vectors, registers them for
+ * finalization, and then discards the base pointers to those objects,
+ * keeping only ambiguous interior references to the vector entries in
+ * the stack-allocated table s.
  *
  * If any of these objects are finalized, then this means that the
  * ambiguous interior references has failed to keep the object alive.
