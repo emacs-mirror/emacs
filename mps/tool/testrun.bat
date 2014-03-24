@@ -1,5 +1,5 @@
-@rem $Id: //info.ravenbrook.com/project/mps/master/tool/testrun.sh#1 $
-@rem Copyright (c) 2013 Ravenbrook Limited. See end of file for license.
+@rem $Id$
+@rem Copyright (c) 2013-2014 Ravenbrook Limited. See end of file for license.
 @rem 
 @rem This program runs a series of test cases, capturing the output of
 @rem each one to a temporary file. In addition, the output of any test
@@ -93,7 +93,7 @@ goto run_tests
 
 @rem C. COPYRIGHT AND LICENSE
 @rem
-@rem Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+@rem Copyright (C) 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
 @rem All rights reserved.  This is an open source license.  Contact
 @rem Ravenbrook for commercial licensing options.
 @rem 
