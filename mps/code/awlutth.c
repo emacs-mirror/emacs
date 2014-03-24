@@ -1,7 +1,7 @@
 /* awlutth.c: THREADING UNIT TEST USING POOL CLASS AWL
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * DESIGN
  *
@@ -316,8 +316,7 @@ int main(int argc, char *argv[])
   mps_arena_t arena;
   pthread_t pthread1;
 
-  randomize(argc, argv);
-  mps_lib_assert_fail_install(assert_die);
+  testlib_init(argc, argv);
 
   initialise_wrapper(wrapper_wrapper);
   initialise_wrapper(string_wrapper);
@@ -337,7 +336,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

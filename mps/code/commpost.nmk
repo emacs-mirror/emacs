@@ -53,16 +53,12 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 !ENDIF
 !ENDIF
 
-mpsicv.cov:
-	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ VARIETY=cv variety
-
 # testrun
 # Runs automated test cases.
 
-testrun: $(AUTO_TEST_TARGETS)
+testrun: $(TEST_TARGETS)
 !IFDEF VARIETY
-	set MPS_TESTLIB_NOABORT=true
-	..\tool\testrun.bat $(PFM) $(VARIETY) $(AUTO_TEST_TARGETS)
+	..\tool\testrun.bat $(PFM) $(VARIETY)
 !ELSE
 	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot testrun
 	$(MAKE) /nologo /f $(PFM).nmk VARIETY=cool testrun
