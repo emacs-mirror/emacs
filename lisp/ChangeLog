@@ -1,3 +1,7 @@
+2014-03-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset--initial-params): Fix typo in parameter name.
+
 2014-03-24  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
 
 	* align.el (align-region): Do not fail when end-mark is nil (bug#17088).
