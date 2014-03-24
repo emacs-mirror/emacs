@@ -1,7 +1,7 @@
 #!/bin/sh
 # 
 # $Id$
-# Copyright (c) 2013 Ravenbrook Limited. See end of file for license.
+# Copyright (c) 2013-2014 Ravenbrook Limited. See end of file for license.
 # 
 # This program runs a series of test cases, capturing the output of
 # each one to a temporary file. In addition, the output of any test
@@ -12,28 +12,73 @@
 #
 # Usage::
 # 
-#     testrun.sh case1 case2 ...
+#     testrun.sh DIR [CASE1 CASE2 ...]
+
+ALL_TEST_CASES="
+    abqtest
+    amcss
+    amcsshe
+    amcssth
+    amsss
+    amssshe
+    apss
+    arenacv
+    awlut
+    awluthe
+    awlutth
+    btcv
+    exposet0
+    expt825
+    fbmtest
+    finalcv
+    finaltest
+    fotest
+    locbwcss
+    lockcov
+    locusss
+    locv
+    messtest
+    mpmss
+    mpsicv
+    mv2test
+    poolncv
+    qs
+    sacss
+    segsmss
+    steptest
+    walkt0
+    zmess
+"
+# bttest -- interactive, so cannot be run unattended
+# djbench -- benchmark, not test case
+# gcbench -- benchmark, not test case
+# teletest -- interactive, so cannot be run unattended
+# zcoll -- takes too long to be useful as a regularly run smoke test
 
 # Make a temporary output directory for the test logs.
 LOGDIR=$(mktemp -d /tmp/mps.log.XXXXXX)
+TEST_DIR=$1
 echo "MPS test suite"
 echo "Logging test output to $LOGDIR"
+echo "Test directory: $TEST_DIR"
+shift
+TEST_CASES=${*:-${ALL_TEST_CASES}}
 
 SEPARATOR="----------------------------------------"
 TEST_COUNT=0
 PASS_COUNT=0
 FAIL_COUNT=0
-for TESTCASE in "$@"; do
-    TEST="$(basename "$TESTCASE")"
+for TESTCASE in $TEST_CASES; do
+    TEST="$(basename -- "$TESTCASE")"
     LOGTEST="$LOGDIR/$TEST"
     echo "Running $TEST"
     TEST_COUNT=$(expr $TEST_COUNT + 1)
-    if "$TESTCASE" > "$LOGTEST" 2>&1; then
+    if "$TEST_DIR/$TESTCASE" > "$LOGTEST" 2>&1; then
         PASS_COUNT=$(expr $PASS_COUNT + 1)
     else
         echo "$TEST failed: log follows"
         echo ${SEPARATOR}${SEPARATOR}
-        cat "$LOGTEST"
+        cat -- "$LOGTEST"
         echo
         echo ${SEPARATOR}${SEPARATOR}
         FAIL_COUNT=$(expr $FAIL_COUNT + 1)
@@ -49,7 +94,7 @@ fi
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

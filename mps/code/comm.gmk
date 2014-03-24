@@ -221,32 +221,55 @@ endif
 
 LIB_TARGETS=mps.a mpsplan.a
 
-# If it is suitable for running regularly (for example, after every
-# build) as an automated test case, add it to AUTO_TEST_TARGETS.
+# Test executables go in TEST_TARGETS.
 
-AUTO_TEST_TARGETS=abqtest amcss amcsshe amcssth amsss amssshe apss      \
-    arenacv awlut awluthe awlutth btcv exposet0 expt825 fbmtest         \
-    finalcv finaltest fotest locbwcss lockcov locusss locv messtest     \
-    mpmss mpsicv mv2test poolncv qs sacss segsmss steptest walkt0       \
+TEST_TARGETS=\
+    abqtest \
+    amcss \
+    amcsshe \
+    amcssth \
+    amsss \
+    amssshe \
+    apss \
+    arenacv \
+    awlut \
+    awluthe \
+    awlutth \
+    btcv \
+    bttest \
+    djbench \
+    exposet0 \
+    expt825 \
+    fbmtest \
+    finalcv \
+    finaltest \
+    fotest \
+    gcbench \
+    locbwcss \
+    lockcov \
+    locusss \
+    locv \
+    messtest \
+    mpmss \
+    mpsicv \
+    mv2test \
+    poolncv \
+    qs \
+    sacss \
+    segsmss \
+    steptest \
+    teletest \
+    walkt0 \
+    zcoll \
     zmess
-
-# If it is not runnable as an automated test case, but is buildable,
-# add it to OTHER_TEST_TARGETS with a note.
-#
-# bttest and teletest -- interactive and so cannot be run unattended.
-# djbench and gcbench -- benchmarks, not test cases.
-# zcoll -- takes too long to be useful as a regularly run smoke test.
-
-OTHER_TEST_TARGETS=bttest teletest djbench gcbench zcoll
 
 # This target records programs that we were once able to build but
 # can't at the moment:
-# 
-# replay -- depends on the EPVM pool.
 
-UNBUILDABLE_TARGETS=replay
+UNBUILDABLE_TARGETS=\
+    replay # depends on the EPVM pool
 
-ALL_TARGETS=$(LIB_TARGETS) $(AUTO_TEST_TARGETS) $(OTHER_TEST_TARGETS) $(EXTRA_TARGETS)
+ALL_TARGETS=$(LIB_TARGETS) $(TEST_TARGETS) $(EXTRA_TARGETS)
 
 
 # == Pseudo-targets ==
@@ -256,8 +279,8 @@ all: $(ALL_TARGETS)
 
 # Run the automated tests.
 
-testrun: $(AUTO_TEST_TARGETS)
-	../tool/testrun.sh $(addprefix $(PFM)/$(VARIETY)/,$(AUTO_TEST_TARGETS))
+testrun: $(TEST_TARGETS)
+	../tool/testrun.sh "$(PFM)/$(VARIETY)"
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in selected varieties (or none, for the latter rule).
