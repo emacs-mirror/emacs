@@ -1603,7 +1603,7 @@ aligner would have dealt with are."
 	    rule-index (1+ rule-index)))
     ;; This function can use a lot of temporary markers, so instead of
     ;; waiting for the next GC we delete them immediately (Bug#10047).
-    (set-marker end-mark nil)
+    (when end-mark (set-marker end-mark nil))
     (dolist (m markers)
       (set-marker m nil))
 
