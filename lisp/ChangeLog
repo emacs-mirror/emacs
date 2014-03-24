@@ -1,3 +1,8 @@
+2014-03-24  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/cl-macs.el (cl--do-arglist): Use `plist-member'
+	instead of cl-loop search function.
+
 2014-03-23  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* calendar/parse-time.el (parse-time-iso8601-regexp)
