@@ -4,7 +4,7 @@
 	Use plist-get rather than CL's getf.
 	(gnus-activate-group, gnus-subscribe-group): Declare.
 
-	* gnus-sum.el (gnus-mime-buttonize-attachments-in-header: Declare.
+	* gnus-sum.el (gnus-mime-buttonize-attachments-in-header): Declare.
 
 2014-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
