@@ -269,7 +269,7 @@ TEST_TARGETS=\
 UNBUILDABLE_TARGETS=\
     replay # depends on the EPVM pool
 
-ALL_TARGETS=$(LIB_TARGETS) $(TEST_TARGETS) $(EXTRA_TARGETS)
+ALL_TARGETS=$(LIB_TARGETS) $(TEST_TARGETS) $(EXTRA_TARGETS) testrun
 
 
 # == Pseudo-targets ==
@@ -279,8 +279,9 @@ all: $(ALL_TARGETS)
 
 # Run the automated tests.
 
-testrun: $(TEST_TARGETS)
+$(PFM)/$(VARIETY)/testrun: $(TEST_TARGETS)
 	../tool/testrun.sh "$(PFM)/$(VARIETY)"
+
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in selected varieties (or none, for the latter rule).
