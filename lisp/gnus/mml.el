@@ -28,6 +28,7 @@
 (require 'mm-decode)
 (require 'mml-sec)
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'url))
 (eval-when-compile
   (when (featurep 'xemacs)
     (require 'easy-mmode))) ; for `define-minor-mode'

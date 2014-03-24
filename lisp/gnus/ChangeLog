@@ -1,5 +1,7 @@
 2014-03-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* mml.el: Require url when compiling.
+
 	* gnus-cloud.el (gnus-cloud-parse-version-1):
 	Use plist-get rather than CL's getf.
 	(gnus-activate-group, gnus-subscribe-group): Declare.
