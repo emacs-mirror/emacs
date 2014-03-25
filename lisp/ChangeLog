@@ -7,6 +7,8 @@
 	`remote-file-name-inhibit-cache' to nil in the second pass.
 	(tramp-find-executable): Do not call "which" on SunOS.
 	(tramp-send-command-and-check): Fix docstring.
+	(tramp-do-copy-or-rename-file-directly): In the `rename' case,
+	check whether source directory has set the sticky bit.
 
 2014-03-24  Barry O'Reilly  <gundaetiapo@gmail.com>
 

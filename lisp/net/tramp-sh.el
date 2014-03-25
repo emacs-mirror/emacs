@@ -2110,6 +2110,12 @@ the uid and gid from FILENAME."
 	   ;; We can do it directly.
 	   ((let (file-name-handler-alist)
 	      (and (file-readable-p localname1)
+		   ;; No sticky bit when renaming.
+		   (or (eq op 'copy)
+		       (zerop
+			(logand
+			 (file-modes (file-name-directory localname1))
+			 (tramp-compat-octal-to-decimal "1000"))))
 		   (file-writable-p (file-name-directory localname2))
 		   (or (file-directory-p localname2)
 		       (file-writable-p localname2))))
