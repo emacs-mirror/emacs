@@ -185,7 +185,8 @@ static void *test(void *arg, size_t s)
 
     if (collections != c) {
       collections = c;
-      printf("\nCollection %lu started, %lu objects.\n", c, objs);
+      printf("\nCollection %"PRIuLONGEST" started, %lu objects.\n",
+             (ulongest_t)c, objs);
 
       report(arena);
       for (i = 0; i < exactRootsCOUNT; ++i) {

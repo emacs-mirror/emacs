@@ -43,14 +43,14 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 
 /* stress -- create a pool of the requested type and allocate in it */
 
-static mps_res_t stress(mps_class_t class, size_t (*size)(unsigned long i),
+static mps_res_t stress(mps_class_t class, size_t (*size)(size_t i),
                         mps_arena_t arena, ...)
 {
   mps_res_t res = MPS_RES_OK;
   mps_pool_t pool;
   mps_ap_t ap;
   va_list arg;
-  unsigned long i, k;
+  size_t i, k;
   int *ps[testSetSIZE];
   size_t ss[testSetSIZE];
 
@@ -78,7 +78,7 @@ static mps_res_t stress(mps_class_t class, size_t (*size)(unsigned long i),
   for (k=0; k<testLOOPS; ++k) {
     /* shuffle all the objects */
     for (i=0; i<testSetSIZE; ++i) {
-      unsigned long j = rnd()%(testSetSIZE-i);
+      size_t j = rnd()%(testSetSIZE-i);
       void *tp;
       size_t ts;
      
@@ -114,7 +114,7 @@ allocFail:
 /* randomSizeAligned -- produce sizes both large and small,
  * aligned by platform alignment */
 
-static size_t randomSizeAligned(unsigned long i)
+static size_t randomSizeAligned(size_t i)
 {
   size_t maxSize = 2 * 160 * 0x2000;
   /* Reduce by a factor of 2 every 10 cycles.  Total allocation about 40 MB. */

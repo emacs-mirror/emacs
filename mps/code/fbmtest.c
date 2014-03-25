@@ -605,10 +605,14 @@ extern int main(int argc, char *argv[])
 
   mps_arena_destroy(arena);
 
-  printf("\nNumber of allocations attempted: %ld\n", NAllocateTried);
-  printf("Number of allocations succeeded: %ld\n", NAllocateSucceeded);
-  printf("Number of deallocations attempted: %ld\n", NDeallocateTried);
-  printf("Number of deallocations succeeded: %ld\n", NDeallocateSucceeded);
+  printf("\nNumber of allocations attempted: %"PRIuLONGEST"\n",
+         (ulongest_t)NAllocateTried);
+  printf("Number of allocations succeeded: %"PRIuLONGEST"\n",
+         (ulongest_t)NAllocateSucceeded);
+  printf("Number of deallocations attempted: %"PRIuLONGEST"\n",
+         (ulongest_t)NDeallocateTried);
+  printf("Number of deallocations succeeded: %"PRIuLONGEST"\n",
+         (ulongest_t)NDeallocateSucceeded);
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
 }

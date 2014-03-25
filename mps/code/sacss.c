@@ -47,13 +47,13 @@ static mps_res_t make(mps_addr_t *p, mps_sac_t sac, size_t size)
 
 static mps_res_t stress(mps_class_t class,
                         size_t classes_count, mps_sac_classes_s *classes,
-                        size_t (*size)(int i), mps_arena_t arena, ...)
+                        size_t (*size)(size_t i), mps_arena_t arena, ...)
 {
   mps_res_t res;
   mps_pool_t pool;
   mps_sac_t sac;
   va_list arg;
-  int i, k;
+  size_t i, k;
   int *ps[testSetSIZE];
   size_t ss[testSetSIZE];
 
@@ -127,7 +127,7 @@ static mps_res_t stress(mps_class_t class,
 
 /* randomSize8 -- produce sizes both latge and small */
 
-static size_t randomSize8(int i)
+static size_t randomSize8(size_t i)
 {
   size_t maxSize = 2 * 160 * 0x2000;
   size_t size;

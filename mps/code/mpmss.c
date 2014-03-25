@@ -30,13 +30,13 @@ extern mps_class_t PoolClassMFS(void);
 
 /* stress -- create a pool of the requested type and allocate in it */
 
-static mps_res_t stress(mps_class_t class, size_t (*size)(int i),
+static mps_res_t stress(mps_class_t class, size_t (*size)(size_t i),
                         mps_arena_t arena, ...)
 {
   mps_res_t res;
   mps_pool_t pool;
   va_list arg;
-  int i, k;
+  size_t i, k;
   int *ps[testSetSIZE];
   size_t ss[testSetSIZE];
 
@@ -94,7 +94,7 @@ static mps_res_t stress(mps_class_t class, size_t (*size)(int i),
 
 /* randomSize -- produce sizes both latge and small */
 
-static size_t randomSize(int i)
+static size_t randomSize(size_t i)
 {
   /* Make the range large enough to span three pages in the segment table: */
   /* 160 segments/page, page size max 0x2000. */
@@ -106,7 +106,7 @@ static size_t randomSize(int i)
 
 /* randomSize8 -- produce sizes both latge and small, 8-byte aligned */
 
-static size_t randomSize8(int i)
+static size_t randomSize8(size_t i)
 {
   size_t maxSize = 2 * 160 * 0x2000;
   /* Reduce by a factor of 2 every 10 cycles.  Total allocation about 40 MB. */

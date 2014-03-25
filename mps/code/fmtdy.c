@@ -493,15 +493,15 @@ extern mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
       break;
 
       case 4:                   /* non-word */
-      es = (vh & 0xff) >> 3;
-      vb = (vh >> 16) & 0xff;
+      es = (unsigned)(vh & 0xff) >> 3;
+      vb = (unsigned)((vh >> 16) & 0xff);
       vt += vb;
       p += NONWORD_LENGTH(vt, es);
       break;
 
       case 5:                   /* stretchy non-word */
-      es = (vh & 0xff) >> 3;
-      vb = (vh >> 16) & 0xff;
+      es = (unsigned)(vh & 0xff) >> 3;
+      vb = (unsigned)((vh >> 16) & 0xff);
       vt += vb;
       p += NONWORD_LENGTH(vt, es) + 1;
       notreached();             /* DW doesn't create them yet */
@@ -678,8 +678,8 @@ static mps_addr_t dylan_skip(mps_addr_t object)
 
     if((vf & 6) == 4)           /* non-word */
     {
-      es = (vh & 0xff) >> 3;
-      vb = (vh >> 16) & 0xff;
+      es = (unsigned)(vh & 0xff) >> 3;
+      vb = (unsigned)((vh >> 16) & 0xff);
       vt += vb;
       p += NONWORD_LENGTH(vt, es);
     }

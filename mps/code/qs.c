@@ -186,7 +186,7 @@ static void swap(void)
 
 static void makerndlist(unsigned l)
 {
-  unsigned i;
+  size_t i;
   mps_word_t r;
   mps_addr_t addr;
 

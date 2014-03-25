@@ -202,8 +202,10 @@ static void *test(void *arg, size_t s)
                   testlib_unused(obj);
           }
           finals += final_this_time;
-          printf("%lu objects finalized: total %lu of %lu\n",
-                 final_this_time, finals, object_count);
+          printf("%"PRIuLONGEST" objects finalized: total %"PRIuLONGEST
+                 " of %"PRIuLONGEST"\n",
+                 (ulongest_t)final_this_time, (ulongest_t)finals,
+                 (ulongest_t)object_count);
   }
 
   object_count = 0;
@@ -243,8 +245,10 @@ static void *test(void *arg, size_t s)
                   testlib_unused(obj);
           }
           finals += final_this_time;
-          printf("%lu objects finalized: total %lu of %lu\n",
-                 final_this_time, finals, object_count);
+          printf("%"PRIuLONGEST" objects finalized: total %"PRIuLONGEST
+                 " of %"PRIuLONGEST"\n",
+                 (ulongest_t)final_this_time, (ulongest_t)finals,
+                 (ulongest_t)object_count);
   }
 
   mps_ap_destroy(ap);
