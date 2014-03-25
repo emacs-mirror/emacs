@@ -1,6 +1,6 @@
 2014-03-24  Barry O'Reilly  <gundaetiapo@gmail.com>
 
-	* undo-tests.el (undo-test-marker-adjustment-nominal):
+	* automated/undo-tests.el (undo-test-marker-adjustment-nominal):
 	(undo-test-region-t-marker): New tests of marker adjustments.
 	(undo-test-marker-adjustment-moved):
 	(undo-test-region-mark-adjustment): New tests to demonstrate
