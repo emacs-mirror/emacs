@@ -950,22 +950,26 @@ as directories, symbolic links, and ordinary files.
 @defun file-symlink-p filename
 @cindex file symbolic links
 If the file @var{filename} is a symbolic link, the
-@code{file-symlink-p} function returns the (non-recursive) link target
-as a string.  (Determining the file name that the link points to from
-the target is nontrivial.)  First, this function recursively follows
-symbolic links at all levels of parent directories.
+@code{file-symlink-p} function returns its (non-recursive) link target
+as a string.  (The link target string is not necessarily the full
+absolute file name of the target; determining the full file name that
+the link points to is nontrivial, see below.)  If the leading
+directories of @var{filename} include symbolic links, this function
+recursively follows them.
 
-If the file @var{filename} is not a symbolic link (or there is no such file),
+If the file @var{filename} is not a symbolic link, or does not exist,
 @code{file-symlink-p} returns @code{nil}.
+
+Here are a few examples of using this function:
 
 @example
 @group
-(file-symlink-p "foo")
+(file-symlink-p "not-a-symlink")
      @result{} nil
 @end group
 @group
 (file-symlink-p "sym-link")
-     @result{} "foo"
+     @result{} "not-a-symlink"
 @end group
 @group
 (file-symlink-p "sym-link2")
@@ -976,6 +980,40 @@ If the file @var{filename} is not a symbolic link (or there is no such file),
      @result{} "/pub/bin"
 @end group
 @end example
+
+Note that in the third example, the function returned @file{sym-link},
+but did not proceed to resolve it, although that file is itself a
+symbolic link.  This is what we meant by ``non-recursive'' above---the
+process of following the symbolic links does not recurse if the link
+target is itself a link.
+
+The string that this function returns is what is recorded in the
+symbolic link; it may or may not include any leading directories.
+This function does @emph{not} expand the link target to produce a
+fully-qualified file name, and in particular does not use the leading
+directories, if any, of the @var{filename} argument if the link target
+is not an absolute file name.  Here's an example:
+
+@example
+@group
+(file-symlink-p "/foo/bar/baz")
+     @result{} "some-file"
+@end group
+@end example
+
+@noindent
+Here, although @file{/foo/bar/baz} was given as a fully-qualified file
+name, the result is not, and in fact does not have any leading
+directories at all.  And since @file{some-file} might itself be a
+symbolic link, you cannot simply prepend leading directories to it,
+nor even naively use @code{expand-file-name} (@pxref{File Name
+Expansion}) to produce its absolute file name.
+
+For this reason, this function is seldom useful if you need to
+determine more than just the fact that a file is or isn't a symbolic
+link.  If you actually need the file name of the link target, use
+@code{file-chase-links} or @code{file-truename}, described in
+@ref{Truenames}.
 @end defun
 
 The next two functions recursively follow symbolic links at
