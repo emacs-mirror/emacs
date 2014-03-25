@@ -179,7 +179,8 @@ static void report(mps_arena_t arena, const char *pm, Bool discard)
         mps_message_finalization_ref(&objaddr, arena, message);
         obj = objaddr;
         objind = DYLAN_INT_INT(DYLAN_VECTOR_SLOT(obj, 0));
-        printf("    Finalization for object %lu at %p\n", objind, objaddr);
+        printf("    Finalization for object %"PRIuLONGEST" at %p\n",
+               (ulongest_t)objind, objaddr);
         cdie(myroot[objind] == NULL, "finalized live");
         cdie(state[objind] == finalizableSTATE, "not finalizable");
         state[objind] = finalizedSTATE;
@@ -308,7 +309,7 @@ static void *testscriptB(void *arg, size_t s)
   mps_root_t root_table;
   mps_ap_t ap;
   mps_root_t root_stackreg;
-  int i;
+  size_t i;
   int N = myrootCOUNT - 1;
   void *stack_starts_here;  /* stack scanning starts here */
 

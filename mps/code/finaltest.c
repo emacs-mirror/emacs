@@ -188,7 +188,8 @@ static void *test(void *arg, size_t s)
                   ++ final_this_time;
           }
           finals += final_this_time;
-          printf("%lu objects finalized: total %lu of %lu\n",
+          printf("%"PRIuLONGEST" objects finalized: total %"PRIuLONGEST
+                 " of %"PRIuLONGEST"\n",
                  final_this_time, finals, object_count);
   }
 
@@ -226,7 +227,8 @@ static void *test(void *arg, size_t s)
                   ++ final_this_time;
           }
           finals += final_this_time;
-          printf("%lu objects finalized: total %lu of %lu\n",
+          printf("%"PRIuLONGEST" objects finalized: total %"PRIuLONGEST
+                 " of %"PRIuLONGEST"\n",
                  final_this_time, finals, object_count);
   }
 

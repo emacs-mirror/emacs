@@ -196,8 +196,8 @@ static void get(mps_arena_t arena)
     switch(type) {
       case mps_message_type_gc_start(): {
         mclockBegin = mps_message_clock(arena, message);
-        printf("    %5lu: (%5lu)",
-               mclockBegin, mclockBegin - mclockEnd);
+        printf("    %5"PRIuLONGEST": (%5"PRIuLONGEST")",
+               (ulongest_t)mclockBegin, (ulongest_t)(mclockBegin - mclockEnd));
         printf("    Coll Begin                                     (%s)\n",
                mps_message_gc_start_why(arena, message));
         break;
@@ -211,8 +211,8 @@ static void get(mps_arena_t arena)
 
         mclockEnd = mps_message_clock(arena, message);
         
-        printf("    %5lu: (%5lu)",
-               mclockEnd, mclockEnd - mclockBegin);
+        printf("    %5"PRIuLONGEST": (%5"PRIuLONGEST")",
+               (ulongest_t)mclockEnd, (ulongest_t)(mclockEnd - mclockBegin));
         printf("    Coll End  ");
         showStatsText(notcon, con, live);
         if(rnd()==0) showStatsAscii(notcon, con, live, alimit);
@@ -222,7 +222,8 @@ static void get(mps_arena_t arena)
         mps_message_finalization_ref(&objaddr, arena, message);
         obj = objaddr;
         objind = DYLAN_INT_INT(DYLAN_VECTOR_SLOT(obj, 0));
-        printf("    Finalization for object %lu at %p\n", objind, objaddr);
+        printf("    Finalization for object %"PRIuLONGEST" at %p\n",
+               (ulongest_t)objind, objaddr);
         break;
       }
       default: {
@@ -301,7 +302,7 @@ static void CatalogCheck(void)
   mps_word_t w;
   void *Catalog, *Page, *Art, *Poly;
   unsigned long Catalogs = 0, Pages = 0, Arts = 0, Polys = 0;
-  int i, j, k;
+  size_t i, j, k;
 
   /* retrieve Catalog from root */
   Catalog = myrootExact[CatalogRootIndex];
@@ -359,7 +360,7 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
 {
   mps_word_t v;
   void *Catalog, *Page, *Art, *Poly;
-  int i, j, k;
+  size_t i, j, k;
 
   die(make_dylan_vector(&v, ap, CatalogFix + CatalogVar), "Catalog");
   DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(CatalogSig);
@@ -381,7 +382,7 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
     DYLAN_VECTOR_SLOT(Catalog, CatalogFix + i) = (mps_word_t)Page;
     get(arena);
     
-    printf("Page %d: make articles\n", i);
+    printf("Page %"PRIuLONGEST": make articles\n", (ulongest_t)i);
     (void)fflush(stdout);
     
     for(j = 0; j < PageVar; j += 1) {
@@ -531,7 +532,7 @@ static void Make(mps_arena_t arena, mps_ap_t ap, unsigned randm, unsigned keep1i
 
 static void Rootdrop(char rank_char)
 {
-  unsigned i;
+  size_t i;
   
   if(rank_char == 'A') {
     for(i = 0; i < myrootAmbigCOUNT; ++i) {
@@ -550,7 +551,7 @@ static void Rootdrop(char rank_char)
 #define stackwipedepth 50000
 static void stackwipe(void)
 {
-  unsigned iw;
+  size_t iw;
   unsigned long aw[stackwipedepth];
   
   /* Do some pointless work that the compiler won't optimise away, so that
@@ -734,7 +735,7 @@ static void *testscriptB(void *arg, size_t s)
   mps_fmt_t fmt;
   mps_chain_t chain;
   mps_pool_t amc;
-  int i;
+  size_t i;
   mps_root_t root_table_Ambig;
   mps_root_t root_table_Exact;
   mps_ap_t ap;

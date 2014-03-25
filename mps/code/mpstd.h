@@ -97,6 +97,27 @@
 #define MPS_PF_ALIGN    8
 
 
+/* PellesC version 7.00.25 with /Ze option (Microsoft compatibility mode)
+ * and /Tarm64-coff (Create a COFF object file for a X64 processor).
+ * Help node "Predefined preprocessor symbols (POCC)"
+ */
+
+#elif defined(__POCC__) && defined(_WIN32) && defined(_WIN64) && defined(_M_X64)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_W3I6PC)
+#error "specified CONFIG_PF_... inconsistent with detected w3i6pc"
+#endif
+#define MPS_PF_W3I6PC
+#define MPS_PF_STRING   "w3i6pc"
+#define MPS_OS_W3
+#define MPS_ARCH_I6
+#define MPS_BUILD_PC
+#define MPS_T_WORD      unsigned __int64
+#define MPS_T_ULONGEST  unsigned __int64
+#define MPS_WORD_WIDTH  64
+#define MPS_WORD_SHIFT  6
+#define MPS_PF_ALIGN    16
+
+
 /* GCC 4.0.1 (As supplied by Apple on Mac OS X 10.4.8 on an Intel Mac),
  * gcc -E -dM
  * And above for xcppgc.
