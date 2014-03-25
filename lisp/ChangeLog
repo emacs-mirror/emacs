@@ -1,3 +1,13 @@
+2014-03-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods, tramp-connection-timeout): Fix docstring.
+
+	* net/tramp-sh.el (tramp-sh-handle-vc-registered): Revert change
+	from 2014-03-07, it decreases performance unnecessarily.  Let-bind
+	`remote-file-name-inhibit-cache' to nil in the second pass.
+	(tramp-find-executable): Do not call "which" on SunOS.
+	(tramp-send-command-and-check): Fix docstring.
+
 2014-03-24  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	* simple.el (primitive-undo): Only process marker adjustments

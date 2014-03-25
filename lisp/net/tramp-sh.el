@@ -3311,55 +3311,57 @@ the result will be a local, non-Tramp, filename."
       (with-tramp-progress-reporter
 	  v 3 (format "Checking `vc-registered' for %s" file)
 
-	(unless remote-file-name-inhibit-cache
-	  ;; There could be new files, created by the vc backend.  We
-	  ;; cannot reuse the old cache entries, therefore.
-	  (let (tramp-vc-registered-file-names
-		(remote-file-name-inhibit-cache (current-time))
-		(file-name-handler-alist
-		 `((,tramp-file-name-regexp . tramp-vc-file-name-handler))))
+	;; There could be new files, created by the vc backend.  We
+	;; cannot reuse the old cache entries, therefore.  In
+	;; `tramp-get-file-property', `remote-file-name-inhibit-cache'
+	;; could also be a timestamp as `current-time' returns.  This
+	;; means invalidate all cache entries with an older timestamp.
+	(let (tramp-vc-registered-file-names
+	      (remote-file-name-inhibit-cache (current-time))
+	      (file-name-handler-alist
+	       `((,tramp-file-name-regexp . tramp-vc-file-name-handler))))
 
-	    ;; Here we collect only file names, which need an operation.
-	    (ignore-errors (tramp-run-real-handler 'vc-registered (list file)))
-	    (tramp-message v 10 "\n%s" tramp-vc-registered-file-names)
+	  ;; Here we collect only file names, which need an operation.
+	  (ignore-errors (tramp-run-real-handler 'vc-registered (list file)))
+	  (tramp-message v 10 "\n%s" tramp-vc-registered-file-names)
 
-	    ;; Send just one command, in order to fill the cache.
-	    (when tramp-vc-registered-file-names
-	      (tramp-maybe-send-script
-	       v
-	       (format tramp-vc-registered-read-file-names
-		       (tramp-get-file-exists-command v)
-		       (format "%s -r" (tramp-get-test-command v)))
-	       "tramp_vc_registered_read_file_names")
+	  ;; Send just one command, in order to fill the cache.
+	  (when tramp-vc-registered-file-names
+	    (tramp-maybe-send-script
+	     v
+	     (format tramp-vc-registered-read-file-names
+		     (tramp-get-file-exists-command v)
+		     (format "%s -r" (tramp-get-test-command v)))
+	     "tramp_vc_registered_read_file_names")
 
-	      (dolist
-		  (elt
-		   (ignore-errors
-		     ;; We cannot use `tramp-send-command-and-read',
-		     ;; because this does not cooperate well with
-		     ;; heredoc documents.
-		     (tramp-send-command
-		      v
-		      (format
-		       "tramp_vc_registered_read_file_names <<'%s'\n%s\n%s\n"
-		       tramp-end-of-heredoc
-		       (mapconcat 'tramp-shell-quote-argument
-				  tramp-vc-registered-file-names
-				  "\n")
-		       tramp-end-of-heredoc))
-		     (with-current-buffer (tramp-get-connection-buffer v)
-		       ;; Read the expression.
-		       (goto-char (point-min))
-		       (read (current-buffer)))))
+	    (dolist
+		(elt
+		 (ignore-errors
+		   ;; We cannot use `tramp-send-command-and-read',
+		   ;; because this does not cooperate well with
+		   ;; heredoc documents.
+		   (tramp-send-command
+		    v
+		    (format
+		     "tramp_vc_registered_read_file_names <<'%s'\n%s\n%s\n"
+		     tramp-end-of-heredoc
+		     (mapconcat 'tramp-shell-quote-argument
+				tramp-vc-registered-file-names
+				"\n")
+		     tramp-end-of-heredoc))
+		   (with-current-buffer (tramp-get-connection-buffer v)
+		     ;; Read the expression.
+		     (goto-char (point-min))
+		     (read (current-buffer)))))
 
-		(tramp-set-file-property
-		 v (car elt) (cadr elt) (cadr (cdr elt)))))))
+	      (tramp-set-file-property
+	       v (car elt) (cadr elt) (cadr (cdr elt))))))
 
 	;; Second run.  Now all `file-exists-p' or `file-readable-p'
 	;; calls shall be answered from the file cache.  We unset
-	;; `process-file-side-effects' in order to keep the cache when
-	;; `process-file' calls appear.
-	(let (process-file-side-effects)
+	;; `process-file-side-effects' and `remote-file-name-inhibit-cache'
+	;; in order to keep the cache.
+	(let (remote-file-name-inhibit-cache process-file-side-effects)
 	  (ignore-errors
 	    (tramp-run-real-handler 'vc-registered (list file))))))))
 
@@ -3604,8 +3606,13 @@ This function expects to be in the right *tramp* buffer."
     (let (result)
       ;; Check whether the executable is in $PATH. "which(1)" does not
       ;; report always a correct error code; therefore we check the
-      ;; number of words it returns.
-      (unless ignore-path
+      ;; number of words it returns.  "SunOS 5.10" (and maybe "SunOS
+      ;; 5.11") have problems with this command, we disable the call
+      ;; therefore.
+      (unless (or ignore-path
+		  (string-match
+		   (regexp-opt '("SunOS 5.10" "SunOS 5.11"))
+		   (tramp-get-connection-property vec "uname" "")))
 	(tramp-send-command vec (format "which \\%s | wc -w" progname))
 	(goto-char (point-min))
 	(if (looking-at "^\\s-*1$")
@@ -4677,8 +4684,9 @@ function waits for output unless NOOUTPUT is set."
 (defun tramp-send-command-and-check
   (vec command &optional subshell dont-suppress-err)
   "Run COMMAND and check its exit status.
-Sends `echo $?' along with the COMMAND for checking the exit status.  If
-COMMAND is nil, just sends `echo $?'.  Returns the exit status found.
+Sends `echo $?' along with the COMMAND for checking the exit status.
+If COMMAND is nil, just sends `echo $?'.  Returns `t' if the exit
+status is 0, and `nil' otherwise.
 
 If the optional argument SUBSHELL is non-nil, the command is
 executed in a subshell, ie surrounded by parentheses.  If

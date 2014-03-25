@@ -241,7 +241,7 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
   * `tramp-copy-program'
     This specifies the name of the program to use for remotely copying
     the file; this might be the absolute filename of rcp or the name of
-    a workalike program.
+    a workalike program.  It is always applied on the local host.
   * `tramp-copy-args'
     This specifies the list of parameters to pass to the above mentioned
     program, the hints for `tramp-login-args' also apply here.
@@ -1044,7 +1044,9 @@ opening a connection to a remote host."
 
 (defcustom tramp-connection-timeout 60
   "Defines the max time to wait for establishing a connection (in seconds).
-This can be overwritten for different connection types in `tramp-methods'."
+This can be overwritten for different connection types in `tramp-methods'.
+
+The timeout does not include the time reading a password."
   :group 'tramp
   :version "24.4"
   :type 'integer)
