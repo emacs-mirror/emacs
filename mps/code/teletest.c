@@ -19,18 +19,9 @@ SRCID(teletest, "$Id$");
 
 static mps_arena_t arena;
 
-
+#define WORD_FORMAT "%" PRIwWORD PRIuLONGEST
 #define MAX_ARGS 3
 #define INPUT_BUFFER_SIZE 512
-
-#if (MPS_WORD_WIDTH == 32)
-#define WORD_FORMAT "0x%08lx"
-#elif (MPS_WORD_WIDTH == 64)
-#define WORD_FORMAT "0x%016lx"
-#else
-#error "Unrecognized word width"
-#endif
-
 
 static mps_word_t args[MAX_ARGS];
 static char *stringArg;
@@ -43,7 +34,8 @@ static void callControl(mps_word_t reset, mps_word_t flip)
   old = mps_telemetry_control(reset, flip);
   new = mps_telemetry_control((mps_word_t)0, (mps_word_t)0);
 
-  (void)printf(WORD_FORMAT " -> " WORD_FORMAT "\n", old, new);
+  (void)printf(WORD_FORMAT " -> " WORD_FORMAT "\n",
+               (ulongest_t)old, (ulongest_t)new);
 }
 
 
@@ -58,7 +50,7 @@ static void doRead(void)
   mps_word_t old;
   old = mps_telemetry_control((mps_word_t)0, (mps_word_t)0);
       
-  (void)printf(WORD_FORMAT "\n", old);
+  (void)printf(WORD_FORMAT "\n", (ulongest_t)old);
 }
 
 
@@ -85,7 +77,7 @@ static void doIntern(void)
   mps_word_t id;
 
   id = mps_telemetry_intern(stringArg);
-  (void)printf(WORD_FORMAT "\n", id);
+  (void)printf(WORD_FORMAT "\n", (ulongest_t)id);
 }
 
 static void doLabel(void)

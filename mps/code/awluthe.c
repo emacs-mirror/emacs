@@ -130,7 +130,7 @@ static mps_word_t *alloc_table(unsigned long n, mps_ap_t ap)
   objsize = (3 + n) * sizeof(mps_word_t);
   objsize = size_tAlignUp(objsize, MPS_PF_ALIGN);
   do {
-    unsigned long i;
+    size_t i;
 
     die(mps_reserve(&p, ap, objsize + headerSIZE), "Reserve Table\n");
     object = (mps_word_t *)((char *)p + headerSIZE);
@@ -150,7 +150,7 @@ static mps_word_t *alloc_table(unsigned long n, mps_ap_t ap)
 /* gets the nth slot from a table
  * .assume.dylan-obj
  */
-static mps_word_t *table_slot(mps_word_t *table, unsigned long n)
+static mps_word_t *table_slot(mps_word_t *table, size_t n)
 {
   return (mps_word_t *)table[3+n];
 }
@@ -159,8 +159,7 @@ static mps_word_t *table_slot(mps_word_t *table, unsigned long n)
 /* sets the nth slot in a table
  * .assume.dylan-obj
  */
-static void set_table_slot(mps_word_t *table,
-                           unsigned long n, mps_word_t *p)
+static void set_table_slot(mps_word_t *table, size_t n, mps_word_t *p)
 {
   cdie(table[0] == (mps_word_t)table_wrapper, "set_table_slot");
   table[3+n] = (mps_word_t)p;
@@ -187,7 +186,7 @@ static void test(mps_arena_t arena,
   mps_word_t *exacttable;
   mps_word_t *preserve[TABLE_SLOTS];    /* preserves objects in the weak */
                                         /* table by referring to them */
-  unsigned long i, j;
+  size_t i, j;
   void *p;
 
   exacttable = alloc_table(TABLE_SLOTS, exactap);

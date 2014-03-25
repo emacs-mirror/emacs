@@ -22,7 +22,7 @@
 
 void StackProbe(Size depth)
 {
-  _alloca(depth*sizeof(Word));
+  (void)_alloca(depth*sizeof(Word));
 }
 
 

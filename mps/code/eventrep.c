@@ -31,7 +31,7 @@
 #include "mpstd.h"
 
 
-#ifdef MPS_PF_W3I6MV
+#if defined(MPS_OS_w3) && defined(MPS_ARCH_I6)
 #define PRIuLONGEST "llu"
 #define PRIXPTR     "016llX"
 typedef unsigned long long ulongest_t;

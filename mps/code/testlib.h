@@ -101,7 +101,7 @@
 #error "How many beans make five?"
 #endif
 
-#ifdef MPS_PF_W3I6MV
+#if defined(MPS_OS_W3) && defined(MPS_ARCH_I6)
 #define PRIuLONGEST "llu"
 #define SCNuLONGEST "llu"
 #define SCNXLONGEST "llX"

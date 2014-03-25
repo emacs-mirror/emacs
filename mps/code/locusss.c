@@ -110,7 +110,7 @@ static void poolStatInit(PoolStat stat, mps_pool_t pool, size_t objSize)
 static mps_res_t allocMultiple(PoolStat stat)
 {
   mps_addr_t objects[contigAllocs];
-  int i;
+  size_t i;
 
   /* allocate a few objects, and record stats for them */
   for (i = 0; i < contigAllocs; i++) {

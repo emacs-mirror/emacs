@@ -212,12 +212,15 @@
 
 
 /* Suppress Pelles C warnings at warning level 2 */
-/* Essentially the same settings are done in testlib.h. */
+/* Some of the same settings are done in testlib.h. */
 
 #ifdef MPS_BUILD_PC
 
 /* "Unreachable code" (AVER, if condition is constantly true). */
 #pragma warn(disable: 2154)
+
+/* "Consider changing type to 'size_t' for loop variable" */
+#pragma warn(disable: 2804)
 
 #endif /* MPS_BUILD_PC */
 
