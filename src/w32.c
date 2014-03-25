@@ -8702,6 +8702,13 @@ w32_delayed_load (Lisp_Object library_id)
 			       /* Possibly truncated */
 			       ? make_specified_string (name, -1, len, 1)
 			       : Qnil);
+		/* This prevents thread start and end notifications
+		   from being sent to the DLL, for every thread we
+		   start.  We don't need those notifications because
+		   threads we create never use any of these DLLs, only
+		   the main thread uses them.  This is supposed to
+		   speed up thread creation.  */
+		DisableThreadLibraryCalls (dll_handle);
 		break;
 	      }
 	  }
