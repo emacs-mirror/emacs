@@ -62,7 +62,7 @@ static mps_res_t stress(mps_class_t class, size_t (*size)(size_t i),
   for (k=0; k<testLOOPS; ++k) {
     /* shuffle all the objects */
     for (i=0; i<testSetSIZE; ++i) {
-      unsigned j = rnd()%(unsigned)(testSetSIZE-i);
+      size_t j = rnd()%(testSetSIZE-i);
       void *tp;
       size_t ts;
      
@@ -118,7 +118,7 @@ static size_t randomSize8(size_t i)
 
 static size_t fixedSizeSize = 0;
 
-static size_t fixedSize(int i)
+static size_t fixedSize(size_t i)
 {
   testlib_unused(i);
   return fixedSizeSize;
