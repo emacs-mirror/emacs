@@ -1663,6 +1663,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   bool pty_flag = 0;
   char pty_name[PTY_NAME_SIZE];
   Lisp_Object lisp_pty_name = Qnil;
+  sigset_t oldset;
 
   inchannel = outchannel = -1;
 
@@ -1728,7 +1729,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   setup_process_coding_systems (process);
 
   block_input ();
-  block_child_signal ();
+  block_child_signal (&oldset);
 
 #ifndef WINDOWSNT
   /* vfork, and prevent local vars from being clobbered by the vfork.  */
@@ -1852,7 +1853,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       signal (SIGPIPE, SIG_DFL);
 
       /* Stop blocking SIGCHLD in the child.  */
-      unblock_child_signal ();
+      unblock_child_signal (&oldset);
 
       if (pty_flag)
 	child_setup_tty (xforkout);
@@ -1871,7 +1872,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
     p->alive = 1;
 
   /* Stop blocking in the parent.  */
-  unblock_child_signal ();
+  unblock_child_signal (&oldset);
   unblock_input ();
 
   if (pid < 0)
@@ -7070,8 +7071,9 @@ void
 catch_child_signal (void)
 {
   struct sigaction action, old_action;
+  sigset_t oldset;
   emacs_sigaction_init (&action, deliver_child_signal);
-  block_child_signal ();
+  block_child_signal (&oldset);
   sigaction (SIGCHLD, &action, &old_action);
   eassert (! (old_action.sa_flags & SA_SIGINFO));
 
@@ -7080,7 +7082,7 @@ catch_child_signal (void)
       = (old_action.sa_handler == SIG_DFL || old_action.sa_handler == SIG_IGN
 	 ? dummy_handler
 	 : old_action.sa_handler);
-  unblock_child_signal ();
+  unblock_child_signal (&oldset);
 }
 
 

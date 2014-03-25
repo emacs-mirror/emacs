@@ -3944,9 +3944,10 @@ dissociate_if_controlling_tty (int fd)
       /* setsid failed, presumably because Emacs is already a process
 	 group leader.  Fall back on the obsolescent way to dissociate
 	 a controlling tty.  */
-      block_tty_out_signal ();
+      sigset_t oldset;
+      block_tty_out_signal (&oldset);
       ioctl (fd, TIOCNOTTY, 0);
-      unblock_tty_out_signal ();
+      unblock_tty_out_signal (&oldset);
 #endif
     }
 }
@@ -3970,6 +3971,7 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
   int status;
   struct tty_display_info *tty = NULL;
   struct terminal *terminal = NULL;
+  sigset_t oldset;
   bool ctty = false;  /* True if asked to open controlling tty.  */
 
   if (!terminal_type)
@@ -4059,11 +4061,11 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
 
   /* On some systems, tgetent tries to access the controlling
      terminal.  */
-  block_tty_out_signal ();
+  block_tty_out_signal (&oldset);
   status = tgetent (tty->termcap_term_buffer, terminal_type);
   if (tty->termcap_term_buffer[TERMCAP_BUFFER_SIZE - 1])
     emacs_abort ();
-  unblock_tty_out_signal ();
+  unblock_tty_out_signal (&oldset);
 
   if (status < 0)
     {

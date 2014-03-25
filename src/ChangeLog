@@ -1,3 +1,25 @@
+2014-03-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Handle sigmask better with nested signal handlers  (Bug#15561).
+	* atimer.c (sigmask_atimers): Remove.
+	Remaining use rewritten to use body of this function.
+	* atimer.c (block_atimers, unblock_atimers):
+	* callproc.c (block_child_signal, unblock_child_signal):
+	* sysdep.c (block_tty_out_signal, unblock_tty_out_signal):
+	New arg OLDSET.  All callers changed.
+	* atimer.c (block_atimers, unblock_atimers):
+	* callproc.c (block_child_signal, unblock_child_signal):
+	* keyboard.c (handle_interrupt):
+	* sound.c (vox_configure, vox_close):
+	Restore the old signal mask rather than unilaterally clearing bits
+	from the mask, in case a handler is running within another
+	handler.  All callers changed.
+	* lisp.h, process.c, process.h, term.c:
+	Adjust decls and callers to match new API.
+	* sysdep.c (emacs_sigaction_init): Don't worry about masking SIGFPE;
+	signal handlers aren't supposed to use floating point anyway.
+	(handle_arith_signal): Unblock just SIGFPE rather than clearing mask.
+
 2014-03-23  Daniel Colascione  <dancol@dancol.org>
 
 	Split gc_sweep into discrete functions for legibility and better

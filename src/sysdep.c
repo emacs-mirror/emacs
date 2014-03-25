@@ -692,21 +692,21 @@ init_foreground_group (void)
 /* Block and unblock SIGTTOU.  */
 
 void
-block_tty_out_signal (void)
+block_tty_out_signal (sigset_t *oldset)
 {
 #ifdef SIGTTOU
   sigset_t blocked;
   sigemptyset (&blocked);
   sigaddset (&blocked, SIGTTOU);
-  pthread_sigmask (SIG_BLOCK, &blocked, 0);
+  pthread_sigmask (SIG_BLOCK, &blocked, oldset);
 #endif
 }
 
 void
-unblock_tty_out_signal (void)
+unblock_tty_out_signal (sigset_t const *oldset)
 {
 #ifdef SIGTTOU
-  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
+  pthread_sigmask (SIG_SETMASK, oldset, 0);
 #endif
 }
 
@@ -721,10 +721,11 @@ static void
 tcsetpgrp_without_stopping (int fd, pid_t pgid)
 {
 #ifdef SIGTTOU
+  sigset_t oldset;
   block_input ();
-  block_tty_out_signal ();
+  block_tty_out_signal (&oldset);
   tcsetpgrp (fd, pgid);
-  unblock_tty_out_signal ();
+  unblock_tty_out_signal (&oldset);
   unblock_input ();
 #endif
 }
@@ -1525,9 +1526,6 @@ emacs_sigaction_init (struct sigaction *action, signal_handler_t handler)
 #endif
     }
 
-  if (! IEEE_FLOATING_POINT)
-    sigaddset (&action->sa_mask, SIGFPE);
-
   action->sa_handler = handler;
   action->sa_flags = emacs_sigaction_flags ();
 }
@@ -1643,7 +1641,10 @@ deliver_fatal_thread_signal (int sig)
 static _Noreturn void
 handle_arith_signal (int sig)
 {
-  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
+  sigset_t blocked;
+  sigemptyset (&blocked);
+  sigaddset (&blocked, sig);
+  pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
   xsignal0 (Qarith_error);
 }
 

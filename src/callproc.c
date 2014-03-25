@@ -108,20 +108,20 @@ static Lisp_Object call_process (ptrdiff_t, Lisp_Object *, int, ptrdiff_t);
 /* Block SIGCHLD.  */
 
 void
-block_child_signal (void)
+block_child_signal (sigset_t *oldset)
 {
   sigset_t blocked;
   sigemptyset (&blocked);
   sigaddset (&blocked, SIGCHLD);
-  pthread_sigmask (SIG_BLOCK, &blocked, 0);
+  pthread_sigmask (SIG_BLOCK, &blocked, oldset);
 }
 
 /* Unblock SIGCHLD.  */
 
 void
-unblock_child_signal (void)
+unblock_child_signal (sigset_t const *oldset)
 {
-  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
+  pthread_sigmask (SIG_SETMASK, oldset, 0);
 }
 
 /* Return the current buffer's working directory, or the home
@@ -162,7 +162,8 @@ encode_current_directory (void)
 void
 record_kill_process (struct Lisp_Process *p, Lisp_Object tempfile)
 {
-  block_child_signal ();
+  sigset_t oldset;
+  block_child_signal (&oldset);
 
   if (p->alive)
     {
@@ -171,7 +172,7 @@ record_kill_process (struct Lisp_Process *p, Lisp_Object tempfile)
       kill (- p->pid, SIGKILL);
     }
 
-  unblock_child_signal ();
+  unblock_child_signal (&oldset);
 }
 
 /* Clean up files, file descriptors and processes created by Fcall_process.  */
@@ -313,6 +314,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   char *tempfile = NULL;
   int pid;
 #else
+  sigset_t oldset;
   pid_t pid;
 #endif
   int child_errno;
@@ -629,7 +631,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 #ifndef MSDOS
 
   block_input ();
-  block_child_signal ();
+  block_child_signal (&oldset);
 
 #ifdef WINDOWSNT
   pid = child_setup (filefd, fd_output, fd_error, new_argv, 0, current_dir);
@@ -671,7 +673,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
   if (pid == 0)
     {
-      unblock_child_signal ();
+      unblock_child_signal (&oldset);
 
       setsid ();
 
@@ -707,7 +709,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	}
     }
 
-  unblock_child_signal ();
+  unblock_child_signal (&oldset);
   unblock_input ();
 
 #endif /* not MSDOS */
