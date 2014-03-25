@@ -1270,7 +1270,8 @@ This kind of element indicates how to reinsert text that was deleted.
 The deleted text itself is the string @var{text}.  The place to
 reinsert it is @code{(abs @var{position})}.  If @var{position} is
 positive, point was at the beginning of the deleted text, otherwise it
-was at the end.
+was at the end.  Zero or more (@var{marker} . @var{adjustment})
+elements follow immediately after this element.
 
 @item (t . @var{time-flag})
 This kind of element indicates that an unmodified buffer became
@@ -1296,8 +1297,10 @@ Here's how you might undo the change:
 @item (@var{marker} . @var{adjustment})
 This kind of element records the fact that the marker @var{marker} was
 relocated due to deletion of surrounding text, and that it moved
-@var{adjustment} character positions.  Undoing this element moves
-@var{marker} @minus{} @var{adjustment} characters.
+@var{adjustment} character positions.  If the marker's location is
+consistent with the (@var{text} . @var{position}) element preceding it
+in the undo list, then undoing this element moves @var{marker}
+@minus{} @var{adjustment} characters.
 
 @item (apply @var{funname} . @var{args})
 This is an extensible undo item, which is undone by calling

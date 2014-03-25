@@ -1,3 +1,15 @@
+2014-03-24  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	* simple.el (primitive-undo): Only process marker adjustments
+	validated against their corresponding (TEXT . POS).  Issue warning
+	for lone marker adjustments in undo history.  (Bug#16818)
+	(undo-make-selective-list): Add marker adjustments to selective
+	undo list based on whether their corresponding (TEXT . POS) is in
+	the region.  Remove variable adjusted-markers, which was unused
+	and only non nil during undo-make-selective-list.
+	(undo-elt-in-region): Return nil when passed a marker adjustment
+	and explain in function doc.
+
 2014-03-24  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* emacs-lisp/package.el (package--add-to-archive-contents):

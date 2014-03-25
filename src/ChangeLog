@@ -1,3 +1,31 @@
+2014-03-24  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	Have (MARKER . ADJUSTMENT) undo records always be immediately
+	after their corresponding (TEXT . POS) record in undo list.
+	(Bug#16818)
+	* lisp.h (record-delete): New arg record_markers.
+	(record_marker_adjustment): No longer needed outside undo.c.
+	* insdel.c (adjust_markers_for_delete): Move calculation of marker
+	adjustments to undo.c's record_marker_adjustments.  Note that
+	fileio.c's decide_coding_unwind is another caller to
+	adjust_markers_for_delete.  Because it has undo list bound to t,
+	it does not rely on adjust_markers_for_delete to record marker
+	adjustments.
+	(del_range_2): Swap call to record_delete and
+	adjust_markers_for_delete so as undo marker adjustments are
+	recorded before current deletion's adjustments, as before.
+	(adjust_after_replace):
+	(replace_range): Pass value for new record_markers arg to
+	delete_record.
+	* undo.c (record_marker_adjustment): Renamed to
+	record_marker_adjustments and made static.
+	(record_delete): Check record_markers arg and call
+	record_marker_adjustments.
+	(record_change): Pass value for new record_markers arg to
+	delete_record.
+	(record_point): at_boundary calculation no longer needs to account
+	for marker adjustments.
+
 2014-03-24  Martin Rudalics  <rudalics@gmx.at>
 
 	* w32term.c (x_set_window_size): Refine fix from 2014-03-14
