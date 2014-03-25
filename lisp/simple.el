@@ -2321,9 +2321,10 @@ Return what remains of the list."
            ;; Even though these elements are not expected in the undo
            ;; list, adjust them to be conservative for the 24.4
            ;; release.  (Bug#16818)
-           (set-marker marker
-                       (- marker offset)
-                       (marker-buffer marker)))
+           (when (marker-buffer marker)
+             (set-marker marker
+                         (- marker offset)
+                         (marker-buffer marker))))
           (_ (error "Unrecognized entry in undo list %S" next))))
       (setq arg (1- arg)))
     ;; Make sure an apply entry produces at least one undo entry,

@@ -1,3 +1,7 @@
+2014-03-25  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	* simple.el (primitive-undo): Correction to 2014-03-24 change.
+
 2014-03-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-methods, tramp-connection-timeout): Fix docstring.
