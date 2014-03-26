@@ -15,8 +15,8 @@
 # Assumes the following variables and definitions:
 # EXTRA_TARGETS     a list of extra targets to build
 # CFLAGSCOMPILER    a list of flags for all compilations
-# CFLAGSSTRICT      a list of flags for almost all compilations
-# CFLAGSLAX         a list of flags for compilations which can't be as
+# CFLAGSCOMPILERSTRICT a list of flags for almost all compilations
+# CFLAGSCOMPILERLAX a list of flags for compilations which can't be as
 #                   strict (e.g. because they have to include a third-
 #                   party header file that isn't -ansi -pedantic).
 # CFLAGSDEBUG       a list of flags for compilations with maximum debug
@@ -108,7 +108,7 @@ endif
 # These flags are included in all compilations.
 # Avoid using PFMDEFS in platform makefiles, as they prevent the MPS being
 # built with a simple command like "cc -c mps.c".
-CFLAGSCOMMON = $(PFMDEFS) $(CFLAGSCOMPILER) $(CFLAGSCOMPILERSTRICT)
+CFLAGSCOMMONSTRICT = $(PFMDEFS) $(CFLAGSCOMPILER) $(CFLAGSCOMPILERSTRICT)
 CFLAGSCOMMONLAX = $(PFMDEFS) $(CFLAGSCOMPILER) $(CFLAGSCOMPILERLAX)
 
 # %%VARIETY: When adding a new variety, define a macro containing the set
@@ -119,20 +119,17 @@ CFRASH = -DCONFIG_VAR_RASH -DNDEBUG $(CFLAGSOPT)
 CFHOT  = -DCONFIG_VAR_HOT  -DNDEBUG $(CFLAGSOPT)
 CFCOOL = -DCONFIG_VAR_COOL          $(CFLAGSDEBUG)
 
-# Bind CFLAGS to the appropriate set of flags for the variety.
-# %%VARIETY: When adding a new variety, add a test for the variety and set
-# CFLAGS here.
+# Bind CFLAGSVARIETY to the appropriate set of flags for the variety.
+# %%VARIETY: When adding a new variety, add a test for the variety and
+# set CFLAGSVARIETY here.
 ifeq ($(VARIETY),rash)
-CFLAGS=$(CFLAGSCOMMON) $(CFRASH)
-CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFRASH)
+CFLAGSVARIETY=$(CFRASH)
 else
 ifeq ($(VARIETY),hot)
-CFLAGS=$(CFLAGSCOMMON) $(CFHOT)
-CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFHOT)
+CFLAGSVARIETY=$(CFHOT)
 else
 ifeq ($(VARIETY),cool)
-CFLAGS=$(CFLAGSCOMMON) $(CFCOOL)
-CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFCOOL)
+CFLAGSVARIETY=$(CFCOOL)
 else
 ifneq ($(VARIETY),)
 $(error Variety "$(VARIETY)" not recognized: must be rash/hot/cool)
@@ -141,7 +138,8 @@ endif
 endif
 endif
 
-
+CFLAGSSTRICT=$(CFLAGSCOMMONSTRICT) $(CFLAGSVARIETY) $(CFLAGS)
+CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFLAGSVARIETY) $(CFLAGS)
 ARFLAGS=rc$(ARFLAGSPFM)
 
 
@@ -273,7 +271,7 @@ TEST_TARGETS=\
 UNBUILDABLE_TARGETS=\
     replay # depends on the EPVM pool
 
-ALL_TARGETS=$(LIB_TARGETS) $(TEST_TARGETS) $(EXTRA_TARGETS) testrun
+ALL_TARGETS=$(LIB_TARGETS) $(TEST_TARGETS) $(EXTRA_TARGETS)
 
 
 # == Pseudo-targets ==
@@ -290,7 +288,7 @@ $(PFM)/$(VARIETY)/testrun: $(TEST_TARGETS)
 # These convenience targets allow one to type "make foo" to build target
 # foo in selected varieties (or none, for the latter rule).
 
-$(ALL_TARGETS): phony
+$(ALL_TARGETS) testrun: phony
 ifdef VARIETY
 	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
 else
@@ -513,11 +511,11 @@ endif
 
 # Object files
 
-define run-cc
+define run-cc-strict
 $(ECHO) "$(PFM): $@"
 mkdir -p $(PFM)
 mkdir -p $(PFM)/$(VARIETY)
-$(CC) $(CFLAGS) -c -o $@ $<
+$(CC) $(CFLAGSSTRICT) -c -o $@ $<
 endef
 
 define run-cc-lax
@@ -529,16 +527,16 @@ endef
 
 # .rule.c-to-o:
 $(PFM)/$(VARIETY)/%.o: %.c
-	$(run-cc)
+	$(run-cc-strict)
 
 $(PFM)/$(VARIETY)/eventsql.o: eventsql.c
 	$(run-cc-lax)                              
 
 $(PFM)/$(VARIETY)/%.o: %.s
-	$(run-cc)
+	$(run-cc-strict)
 
 $(PFM)/$(VARIETY)/%.o: %.S
-	$(run-cc)
+	$(run-cc-strict)
 
 # Dependencies
 #
@@ -587,7 +585,7 @@ endif
 $(PFM)/$(VARIETY)/%.a:
 	$(ECHO) "$(PFM): $@"
 	rm -f $@
-	$(CC) $(CFLAGS) -c -o $(PFM)/$(VARIETY)/version.o version.c
+	$(CC) $(CFLAGSSTRICT) -c -o $(PFM)/$(VARIETY)/version.o version.c
 	$(AR) $(ARFLAGS) $@ $^ $(PFM)/$(VARIETY)/version.o
 	$(RANLIB) $@
 
@@ -595,11 +593,11 @@ $(PFM)/$(VARIETY)/%.a:
 
 $(PFM)/$(VARIETY)/%:
 	$(ECHO) "$(PFM): $@"
-	$(CC) $(CFLAGS) $(LINKFLAGS) -o $@ $^ $(LIBS)
+	$(CC) $(CFLAGSSTRICT) $(LINKFLAGS) -o $@ $^ $(LIBS)
 
 $(PFM)/$(VARIETY)/mpseventsql:
 	$(ECHO) "$(PFM): $@"
-	$(CC) $(CFLAGS) $(LINKFLAGS) -o $@ $^ $(LIBS) -lsqlite3
+	$(CC) $(CFLAGSLAX) $(LINKFLAGS) -o $@ $^ $(LIBS) -lsqlite3
 
 # Special targets for development
 
