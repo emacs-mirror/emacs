@@ -160,6 +160,7 @@ XPutPixel (XImagePtr ximage, int x, int y, unsigned long pixel)
 
 /* Functions to access the contents of a bitmap, given an id.  */
 
+#ifdef HAVE_X_WINDOWS
 static int
 x_bitmap_height (struct frame *f, ptrdiff_t id)
 {
@@ -171,6 +172,7 @@ x_bitmap_width (struct frame *f, ptrdiff_t id)
 {
   return FRAME_DISPLAY_INFO (f)->bitmaps[id - 1].width;
 }
+#endif
 
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI)
 ptrdiff_t

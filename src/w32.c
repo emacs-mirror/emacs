@@ -2413,7 +2413,6 @@ unsetenv (const char *name)
 {
   char *var;
   size_t name_len;
-  int retval;
 
   if (name == NULL || *name == '\0' || strchr (name, '=') != NULL)
     {
@@ -9261,8 +9260,6 @@ ssize_t
 emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
 {
   int n, err;
-  SELECT_TYPE fdset;
-  struct timespec timeout;
   struct Lisp_Process *process = (struct Lisp_Process *)p;
   int fd = process->infd;
 

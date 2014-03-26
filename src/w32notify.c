@@ -247,7 +247,6 @@ watch_worker (LPVOID arg)
 
   do {
     BOOL status;
-    DWORD sleep_result;
     DWORD bytes_ret = 0;
 
     if (dirwatch->dir)
@@ -275,7 +274,7 @@ watch_worker (LPVOID arg)
     /* Sleep indefinitely until awoken by the I/O completion, which
        could be either a change notification or a cancellation of the
        watch.  */
-    sleep_result = SleepEx (INFINITE, TRUE);
+    SleepEx (INFINITE, TRUE);
   } while (!dirwatch->terminate);
 
   return 0;
@@ -287,7 +286,6 @@ static struct notification *
 start_watching (const char *file, HANDLE hdir, BOOL subdirs, DWORD flags)
 {
   struct notification *dirwatch = xzalloc (sizeof (struct notification));
-  HANDLE thr;
 
   dirwatch->signature = DIRWATCH_SIGNATURE;
   dirwatch->buf = xmalloc (16384);

@@ -2299,8 +2299,10 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
                                     bool *used_mouse_menu)
 {
 #define MAX_ENCODED_BYTES 16
+#ifndef WINDOWSNT
   Lisp_Object events[MAX_ENCODED_BYTES];
   int n = 0;
+#endif
   while (true)
     {
       Lisp_Object nextevt

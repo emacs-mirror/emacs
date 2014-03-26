@@ -4752,8 +4752,8 @@ w32_read_socket (struct terminal *terminal,
 	      width = rect.right - rect.left;
 	      text_width = FRAME_PIXEL_TO_TEXT_WIDTH (f, width);
 	      text_height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, height);
-	      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height);
-	      columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width);
+	      /* rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height); */
+	      /* columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width); */
 
 	      /* TODO: Clip size to the screen dimensions.  */
 
@@ -5794,7 +5794,9 @@ x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 void
 x_focus_frame (struct frame *f)
 {
+#if 0
   struct w32_display_info *dpyinfo = &one_w32_display_info;
+#endif
 
   /* Give input focus to frame.  */
   block_input ();

@@ -603,6 +603,7 @@ init_sigio (int fd)
 #endif
 }
 
+#ifndef DOS_NT
 static void
 reset_sigio (int fd)
 {
@@ -610,6 +611,7 @@ reset_sigio (int fd)
   fcntl (fd, F_SETFL, old_fcntl_flags[fd]);
 #endif
 }
+#endif
 
 void
 request_sigio (void)

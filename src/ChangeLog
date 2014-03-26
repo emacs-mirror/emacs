@@ -1,3 +1,25 @@
+2014-03-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (x_bitmap_height, x_bitmap_width) [HAVE_X_WINDOWS]:
+	* sysdep.c (reset_sigio) [!DOS_NT]: Declare conditionally.
+
+	* keyboard.c (read_decoded_event_from_main_queue): #ifdef out
+	variables on Windows.
+
+	* w32fns.c (Ffile_system_info): Use parenthesis in and/or expression.
+
+	* w32.c (unsetenv): Remove unused var `retval'.
+	(emacs_gnutls_pull): Remove unused vars `fdset' and `timeout'.
+
+	* w32notify.c (watch_worker): Remove unnecesary var sleep_result.
+	(start_watching): Remove unused var `thr'.
+
+	* w32proc.c (sys_spawnve): Comment out unused vars `first', `last'.
+	(find_child_console): Remove unnecesary var `thread_id'.
+
+	* w32term.c (w32_read_socket): Comment out unused vars `row', `columns'.
+	(x_focus_frame): #ifdef 0 unused variable `dpyinfo'.
+
 2014-03-26  Glenn Morris  <rgm@gnu.org>
 
 	* filelock.c (Flock_buffer): Doc tweak.

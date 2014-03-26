@@ -7528,8 +7528,8 @@ If the underlying system call fails, value is nil.  */)
       (char *, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER)
       = GetProcAddress (hKernel, "GetDiskFreeSpaceExA");
     bool have_pfn_GetDiskFreeSpaceEx =
-      (w32_unicode_filenames && pfn_GetDiskFreeSpaceExW
-       || !w32_unicode_filenames && pfn_GetDiskFreeSpaceExA);
+      ((w32_unicode_filenames && pfn_GetDiskFreeSpaceExW)
+       || (!w32_unicode_filenames && pfn_GetDiskFreeSpaceExA));
 
     /* On Windows, we may need to specify the root directory of the
        volume holding FILENAME.  */

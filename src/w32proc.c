@@ -1772,12 +1772,12 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       if (need_quotes)
 	{
 	  int escape_char_run = 0;
-	  char * first;
-	  char * last;
+	  /* char * first; */
+	  /* char * last; */
 
 	  p = *targ;
-	  first = p;
-	  last = p + strlen (p) - 1;
+	  /* first = p; */
+	  /* last = p + strlen (p) - 1; */
 	  *parg++ = '"';
 #if 0
 	  /* This version does not escape quotes if they occur at the
@@ -2249,10 +2249,9 @@ static BOOL CALLBACK
 find_child_console (HWND hwnd, LPARAM arg)
 {
   child_process * cp = (child_process *) arg;
-  DWORD thread_id;
   DWORD process_id;
 
-  thread_id = GetWindowThreadProcessId (hwnd, &process_id);
+  GetWindowThreadProcessId (hwnd, &process_id);
   if (process_id == cp->procinfo.dwProcessId)
     {
       char window_class[32];
