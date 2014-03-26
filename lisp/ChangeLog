@@ -1155,7 +1155,7 @@
 	dbus-call-method check for completion using a busy-wait loop with
 	gradual backoff.
 
-2013-10-02  Michael Albinus  <michael.albinus@gmx.de>
+2014-02-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.9.
 
