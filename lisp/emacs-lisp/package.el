@@ -205,13 +205,9 @@ If VERSION is nil, the package is not loaded (it is \"disabled\")."
 
 (defvar Info-directory-list)
 (declare-function info-initialize "info" ())
-(declare-function url-http-parse-response "url-http" ())
 (declare-function url-http-file-exists-p "url-http" (url))
 (declare-function lm-header "lisp-mnt" (header))
 (declare-function lm-commentary "lisp-mnt" (&optional file))
-(defvar url-http-end-of-headers)
-(declare-function url-recreate-url "url-parse" (urlobj))
-(defvar url-http-target-url)
 
 (defcustom package-archives '(("gnu" . "http://elpa.gnu.org/packages/"))
   "An alist of archives from which to fetch.
@@ -770,38 +766,14 @@ This macro retrieves FILE from LOCATION into a temporary buffer,
 and evaluates BODY while that buffer is current.  This work
 buffer is killed afterwards.  Return the last value in BODY."
   (declare (indent 2) (debug t))
-  `(let* ((http (string-match "\\`https?:" ,location))
-	  (buffer
-	   (if http
-	       (url-retrieve-synchronously (concat ,location ,file))
-	     (generate-new-buffer "*package work buffer*"))))
-     (prog1
-	 (with-current-buffer buffer
-	   (if http
-	       (progn (package-handle-response)
-		      (re-search-forward "^$" nil 'move)
-		      (forward-char)
-		      (delete-region (point-min) (point)))
-	     (unless (file-name-absolute-p ,location)
-	       (error "Archive location %s is not an absolute file name"
-		      ,location))
-	     (insert-file-contents (expand-file-name ,file ,location)))
-	   ,@body)
-       (kill-buffer buffer))))
-
-(defun package-handle-response ()
-  "Handle the response from a `url-retrieve-synchronously' call.
-Parse the HTTP response and throw if an error occurred.
-The url package seems to require extra processing for this.
-This should be called in a `save-excursion', in the download buffer.
-It will move point to somewhere in the headers."
-  ;; We assume HTTP here.
-  (require 'url-http)
-  (let ((response (url-http-parse-response)))
-    (when (or (< response 200) (>= response 300))
-      (error "Error downloading %s:%s"
-	     (url-recreate-url url-http-target-url)
-	     (buffer-substring-no-properties (point) (line-end-position))))))
+  `(with-temp-buffer
+     (if (string-match-p "\\`https?:" ,location)
+	 (url-insert-file-contents (concat ,location ,file))
+       (unless (file-name-absolute-p ,location)
+	 (error "Archive location %s is not an absolute file name"
+		,location))
+       (insert-file-contents (expand-file-name ,file ,location)))
+     ,@body))
 
 (defun package--archive-file-exists-p (location file)
   (let ((http (string-match "\\`https?:" location)))
@@ -1270,7 +1242,7 @@ similar to an entry in `package-alist'.  Save the cached copy to
 		     (car archive)))))
       ;; Read the retrieved buffer to make sure it is valid (e.g. it
       ;; may fetch a URL redirect page).
-      (when (listp (read buffer))
+      (when (listp (read (current-buffer)))
 	(make-directory dir t)
 	(setq buffer-file-name (expand-file-name file dir))
 	(let ((version-control 'never)
@@ -1529,8 +1501,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
                        (setq readme-string (buffer-string))
                        t))
 		 (error nil))
-	       (let ((coding (detect-coding-string readme-string t)))
-		 (insert (decode-coding-string readme-string coding t))))
+	       (insert readme-string))
 	      ((file-readable-p readme)
 	       (insert-file-contents readme)
 	       (goto-char (point-max))))))))
