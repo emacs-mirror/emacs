@@ -52,34 +52,23 @@ All relative paths are relative to
         VERSION=A.BBB
         RELEASE=$VERSION.N
 
-#. Ensure that ``version/$VERSION/readme.txt`` contains an up-to-date
-   description of the release you intend to build and the correct
-   release name.
+#. Check that the macro ``MPS_RELEASE`` in ``code/version.c`` has the
+   correct value.
 
-#. Ensure that ``version/$VERSION/manual/source/release.rst`` contains
-   a section with an up-to-date description of significant
-   user-visible changes since the previous release.
+#. Check that ``readme.txt`` contains an up-to-date description of the
+   release you intend to build. For example, is the list of supported
+   platforms still correct?
 
-#. In ``version/$VERSION/code/version.c``, set ``MPS_RELEASE`` to the
-   correct value (see the rules in the comments), and check strings that
-   contain copyright dates, etc.
-
-#. In ``version/$VERSION/configure.ac`` edit the second argument of
-   ``AC_INIT`` to be ``[release $RELEASE]``, then open
-   ``version/$VERSION/configure`` for edit and run ``autoreconf -vif``
-   to bring the configure script up to date.
-
-#. Submit ``readme.txt``, ``manual/source/release.rst``,
-   ``version.c``, ``configure.ac`` and ``configure`` (if changed) to
-   Perforce::
-
-        p4 submit -d "Updated files preparatory to release $RELEASE."
+#. Check that ``manual/source/release.rst`` contains a section with an
+   up-to-date description of significant user-visible changes since
+   the previous release.
 
 #. Determine the *CHANGELEVEL* at which you’re going to make the
-   release. This will usually be the latest submitted changelevel on the
-   version branch; to get it, use ``p4 changes -m 1``::
+   release. This will usually be the latest submitted changelevel on
+   the branch from which you are making the release; to get it, use
+   ``p4 changes -m 1``::
 
-        CHANGELEVEL=$(p4 changes -m 1 version/$VERSION/... | cut -d' ' -f2)
+        CHANGELEVEL=$(p4 changes -m 1 ... | cut -d' ' -f2)
 
 
 4. Pre-release testing
@@ -114,8 +103,26 @@ All relative paths are relative to
    On other platforms they are as shown above.
 
 
-5. MPS Kit Tarball and Zip file
--------------------------------
+5. Making the release (automated procedure)
+-------------------------------------------
+
+Run the script ``tool/release``, passing the options:
+
+* ``-P mps`` — project name
+* ``-b BRANCH`` — branch to make the release from: for example ``version/1.113``
+* ``-C CHANGELEVEL`` — changelevel at which to make the release
+* ``-d "DESCRIPTION"`` — changelevel at which to make the release
+* ``-y`` — yes, really make the release
+
+If omitted, the project and branch are deduced from the current
+directory, and the changelevel defaults to the most recent change on
+the branch. A typical invocation looks like this::
+
+    tool/release -b version/1.113 -d "Improved interface to generation chains." -y
+
+
+6. Making the release (manual procedure)
+----------------------------------------
 
 .. note::
 
@@ -177,10 +184,6 @@ On a Unix (including OS X) machine:
         p4 -c $CLIENT client -d $CLIENT
         rm -rf /tmp/$CLIENT
 
-
-6. Registering the release
---------------------------
-
 #. Edit the index of releases (``release/index.html``) and add the
    release to the table, in a manner consistent with previous releases.
 
@@ -191,17 +194,13 @@ On a Unix (including OS X) machine:
 #. Edit the main MPS Project index page (``index.rst``), updating the
    "Download the latest release" link.
 
-#. Submit these changes to Perforce:
+#. Submit these changes to Perforce::
 
         p4 submit -d "MPS: registered release $RELEASE."
 
-#. Integrate the changes you made on the version branch back to the
-   master sources, ignoring changes that don't apply to the master
-   sources::
 
-        p4 integrate -r -b $BRANCH
-        p4 resolve
-        p4 submit -d "Merging updates preparatory to release $RELEASE."
+7. Registering the release
+--------------------------
 
 #. Visit the `project
    updater <http://info.ravenbrook.com/infosys/cgi/data_update.cgi>`__,

@@ -237,9 +237,7 @@ static void runArenaTest(size_t size,
 
 int main(int argc, char *argv[])
 {
-
-  randomize(argc, argv);
-  mps_lib_assert_fail_install(assert_die);
+  testlib_init(argc, argv);
 
   printf("\nRunning test with no information about peak usage.\n");
   runArenaTest(smallArenaSize, FALSE, FALSE);

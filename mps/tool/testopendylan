@@ -1,0 +1,161 @@
+#!/bin/sh
+#
+#                              Ravenbrook
+#                     <http://www.ravenbrook.com/>
+#
+#            TESTOPENDYLAN -- TEST THE MPS WITH OPENDYLAN
+#
+#             Gareth Rees, Ravenbrook Limited, 2014-03-20
+#
+#
+# 1. INTRODUCTION
+#
+# This shell script pulls Open Dylan from GitHub and builds it against
+# the MPS.
+#
+# Supported platforms: lii3gc.
+#
+# Prerequisites: autoconf, bunzip2, curl, git.
+
+
+# 2. CONFIGURATION
+
+# MPS sources we are testing against
+MPS=$(cd -- "$(dirname "$0")/.." && pwd)
+
+# OpenDylan version for bootstrapping
+VERSION=2013.2
+
+# OpenDylan git repository
+REMOTE=https://github.com/dylan-lang/opendylan.git
+
+# Directory to put everything in
+TESTDIR="$PWD/.test"
+mkdir -p -- "$TESTDIR"
+cd -- "$TESTDIR"
+
+
+# 3. PROCEDURE
+
+# 3.1. Clone the git repository and pull. See [OPENDYLAN].
+
+REPO=opendylan
+
+if [ -d "$REPO" ]; then
+    echo "$REPO exists: skipping clone."
+else
+    echo "cloning $REMOTE into $REPO."
+    git clone --recursive -- "$REMOTE" "$REPO"
+fi
+( 
+    cd -- "$REPO" && 
+    git pull;
+)
+
+
+# 3.2. Download the binary distribution, for bootstrapping. See [DOWNLOAD].
+
+UNAME=$(uname -m)-$(uname -s)
+case "$UNAME" in
+    i686-Linux)
+        PLATFORM=x86-linux ;;
+    *) 
+        echo "Platform $UNAME not supported."
+        exit 1
+esac
+
+URL="http://opendylan.org/downloads/opendylan/$VERSION/opendylan-$VERSION-$PLATFORM.tar.bz2"
+PACKAGE=$(basename "$URL")
+PACKAGE_DIR="opendylan-$VERSION"
+
+if [ -f "$PACKAGE" ]; then
+    echo "$PACKAGE exists: skipping download."
+else
+    echo "Downloading $URL..."
+    curl --url "$URL" --output "$PACKAGE"
+fi
+
+if [ -d "$PACKAGE_DIR" ]; then
+    echo "$PACKAGE_DIR exists: skipping unpack."
+else
+    echo "Unpacking $PACKAGE..."
+    bunzip2 --stdout "$PACKAGE" | tar xf - 
+fi
+
+
+# 3.3. Set up PATH and check that the compiler runs.
+
+PATH="$PWD/$PACKAGE_DIR/bin:$PATH"
+export PATH
+COMPILER_VERSION=$(dylan-compiler -version)
+
+if [ "$COMPILER_VERSION" != "Version $VERSION" ]; then
+    echo "Unexpected version: $COMPILER_VERSION"
+    exit 1
+fi
+
+
+# 3.4. Configure and build. See "Building" section of [WELCOME].
+
+PREFIX="$PWD/prefix"
+
+if [ -f "$REPO/Makefile" ]; then
+    echo "$REPO/Makefile exists: skipping configure"
+else (
+    cd -- "$REPO" &&
+    ./autogen.sh &&
+    ./configure --with-mps="$MPS" --prefix="$PREFIX"
+) fi
+(
+    cd -- "$REPO" &&
+    make 3-stage-bootstrap
+)
+
+
+# A. REFERENCES
+#
+# [DOWNLOAD] "Open Dylan Downloads"
+# <http://opendylan.org/download/>
+#
+# [OPENDYLAN] "dylan-lang/opendylan project on GitHub"
+# <https://github.com/dylan-lang/opendylan>
+#
+# [WELCOME] "Welcome to Open Dylan!"
+# <https://github.com/dylan-lang/opendylan/blob/master/README.rst>
+#
+#
+# B. DOCUMENT HISTORY
+#
+# 2014-03-20 GDR Created based on [WELCOME].
+#
+#
+# C. COPYRIGHT AND LICENCE
+#
+# Copyright (c) 2014 Ravenbrook Ltd.  All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the
+#    distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#
+# $Id$

@@ -1,7 +1,7 @@
 /* event.c: EVENT LOGGING
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: mps.design.event
  *
@@ -468,7 +468,7 @@ EventStringId EventInternString(const char *label)
   UNUSED(label);
   /* EventInternString is reached in varieties without events, but the result
      is not used for anything. */
-  return (EventStringId)0x9024EAC8;
+  return (EventStringId)0x4026EAC8;
 }
 
 
@@ -477,7 +477,7 @@ Word EventInternGenString(size_t len, const char *label)
   UNUSED(len); UNUSED(label);
   /* EventInternGenString is reached in varieties without events, but
      the result is not used for anything. */
-  return (EventStringId)0x9024EAC8;
+  return (EventStringId)0x4026EAC8;
 }
 
 
@@ -517,7 +517,7 @@ extern void EventDump(mps_lib_FILE *stream)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

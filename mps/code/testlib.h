@@ -227,6 +227,11 @@ extern double rnd_double(void);
 extern void randomize(int argc, char *argv[]);
 
 
+/* testlib_init -- install assertion handler and seed RNG */
+
+extern void testlib_init(int argc, char *argv[]);
+
+
 #endif /* testlib_h */
 
 
