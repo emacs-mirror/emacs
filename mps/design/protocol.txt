@@ -55,7 +55,7 @@ replace) the behaviour of protocol functions, such as a mechanism for
 invoking the "next-method".
 
 _`.req.ideal.extend`: The object system must provide a standard way
-for classes to implement the protocol supported by they superclass and
+for classes to implement the protocol supported by their superclass and
 additionally add new methods of their own which can be specialized by
 subclasses.
 

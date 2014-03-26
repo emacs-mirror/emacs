@@ -1,7 +1,7 @@
 /* global.c: ARENA-GLOBAL INTERFACES
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: See <design/arena/>.  design.mps.thread-safety is relevant
@@ -441,20 +441,23 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   Arena arena;
   TraceId ti;
   Trace trace;
+  Chain defaultChain;
 
   AVERT(Globals, arenaGlobals);
 
   arena = GlobalsArena(arenaGlobals);
   arenaDenounce(arena);
 
-  ChainDestroy(arenaGlobals->defaultChain);
+  defaultChain = arenaGlobals->defaultChain;
   arenaGlobals->defaultChain = NULL;
+  ChainDestroy(defaultChain);
 
   LockReleaseMPM(arenaGlobals->lock);
   /* Theoretically, another thread could grab the lock here, but it's */
   /* not worth worrying about, since an attempt after the lock has been */
   /* destroyed would lead to a crash just the same. */
   LockFinish(arenaGlobals->lock);
+  arenaGlobals->lock = NULL;
 
   TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
     /* <design/message-gc/#lifecycle> */
@@ -1140,7 +1143,7 @@ Bool ArenaEmergency(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -1,0 +1,82 @@
+#!/bin/sh
+#
+#                              Ravenbrook
+#                     <http://www.ravenbrook.com/>
+#
+#          TESTCOVERAGE -- TEST COVERAGE REPORT FOR THE MPS
+#
+#             Gareth Rees, Ravenbrook Limited, 2014-03-21
+#
+#
+# 1. INTRODUCTION
+#
+# This shell script runs the MPS test suite and prepares a test
+# coverage report.
+#
+# Supported platforms: xc.
+
+ARCH=$(uname -m)
+OS=$(uname -s)
+PROJECT=mps
+TOOL=$(dirname "$0")
+CODE=$TOOL/../code
+
+case "$ARCH-$OS" in
+    *-Darwin)
+        CONFIGURATION=Debug
+        (
+            cd -- "$CODE"
+            xcodebuild -config "$CONFIGURATION" clean
+            xcodebuild -config "$CONFIGURATION" -target testrun \
+                GCC_GENERATE_TEST_COVERAGE_FILES=YES \
+                GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=YES
+        )
+        (
+            cd -- "$CODE/xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/$ARCH"
+            gcov mps.c 2> /dev/null
+        ) | "$TOOL/gcovfmt"
+        ;;
+    *)
+        echo "Platform $ARCH-$OS not supported."
+        ;;
+esac
+
+
+# A. REFERENCES
+#
+#
+# B. DOCUMENT HISTORY
+#
+# 2014-03-21 GDR Created.
+#
+#
+# C. COPYRIGHT AND LICENCE
+#
+# Copyright (c) 2014 Ravenbrook Ltd.  All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the
+#    distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#
+# $Id$

@@ -1,7 +1,7 @@
 /* testlib.c: TEST LIBRARY
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -409,10 +409,18 @@ void assert_die(const char *file, unsigned line, const char *condition)
 }
 
 
+/* testlib_init -- install assertion handler and seed RNG */
+
+void testlib_init(int argc, char *argv[])
+{
+  mps_lib_assert_fail_install(assert_die);
+  randomize(argc, argv);
+}
+
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

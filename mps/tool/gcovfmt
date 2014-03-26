@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # 
 # $Id$
-# Copyright (c) 2013 Ravenbrook Limited. See end of file for license.
+# Copyright (c) 2013-2014 Ravenbrook Limited. See end of file for license.
 # 
 # This program takes the output of gcov on standard input and writes a
 # human-readable table with a summary, to the file named on the
@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

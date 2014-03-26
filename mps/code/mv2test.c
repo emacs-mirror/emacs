@@ -1,7 +1,7 @@
 /* mv2test.c: POOLMVT STRESS TEST
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #include <stdio.h>
@@ -203,7 +203,7 @@ static void stress_with_arena_class(mps_arena_class_t aclass, Bool zoned)
 
 int main(int argc, char *argv[])
 {
-  randomize(argc, argv);
+  testlib_init(argc, argv);
 
   stress_with_arena_class(mps_arena_class_vm(), TRUE);
   stress_with_arena_class(mps_arena_class_vm(), FALSE);
@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -1,7 +1,7 @@
 /* traceanc.c: ANCILLARY SUPPORT FOR TRACER
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.
  * See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
@@ -239,8 +239,8 @@ void TracePostStartMessage(Trace trace)
     traceStartWhyToTextBuffer(tsMessage->why,
                               sizeof tsMessage->why, trace->why);
 
-    MessagePost(arena, TraceStartMessageMessage(tsMessage));
     arena->tsMessage[ti] = NULL;
+    MessagePost(arena, TraceStartMessageMessage(tsMessage));
   } else {
     arena->droppedMessages += 1;
   }
@@ -406,8 +406,8 @@ void TracePostMessage(Trace trace)
     tMessage->condemnedSize = trace->condemned;
     tMessage->notCondemnedSize = trace->notCondemned;
 
-    MessagePost(arena, TraceMessageMessage(tMessage));
     arena->tMessage[ti] = NULL;
+    MessagePost(arena, TraceMessageMessage(tMessage));
   } else {
     arena->droppedMessages += 1;
   }
@@ -479,10 +479,11 @@ Res TraceIdMessagesCreate(Arena arena, TraceId ti)
 
   traceStartMessageInit(arena, tsMessage);
   AVERT(TraceStartMessage, tsMessage);
-  arena->tsMessage[ti] = tsMessage;
 
   traceMessageInit(arena, tMessage);
   AVERT(TraceMessage, tMessage);
+
+  arena->tsMessage[ti] = tsMessage;
   arena->tMessage[ti] = tMessage;
   
   AVER(TraceIdMessagesCheck(arena, ti));
@@ -793,7 +794,7 @@ static void arenaForgetProtection(Globals globals)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited
+ * Copyright (C) 2001-2014 Ravenbrook Limited
  * <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
