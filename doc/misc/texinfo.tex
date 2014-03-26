@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2014-02-16.16}
+\def\texinfoversion{2014-03-17.07}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -3935,18 +3935,22 @@ end
 }
 
 % multitable-only commands.
-%
-% @headitem starts a heading row, which we typeset in bold.
-% Assignments have to be global since we are inside the implicit group
-% of an alignment entry.  \everycr resets \everytab so we don't have to
+% 
+% @headitem starts a heading row, which we typeset in bold.  Assignments
+% have to be global since we are inside the implicit group of an
+% alignment entry.  \everycr below resets \everytab so we don't have to
 % undo it ourselves.
 \def\headitemfont{\b}% for people to use in the template row; not changeable
 \def\headitem{%
   \checkenv\multitable
   \crcr
+  \gdef\headitemcrhook{\nobreak}% attempt to avoid page break after headings
   \global\everytab={\bf}% can't use \headitemfont since the parsing differs
   \the\everytab % for the first item
 }%
+%
+% default for tables with no headings.
+\let\headitemcrhook=\relax
 %
 % A \tab used to include \hskip1sp.  But then the space in a template
 % line is not enough.  That is bad.  So let's go back to just `&' until
@@ -3978,15 +3982,15 @@ end
   %
   \everycr = {%
     \noalign{%
-      \global\everytab={}%
+      \global\everytab={}% Reset from possible headitem.
       \global\colcount=0 % Reset the column counter.
-      % Check for saved footnotes, etc.
+      %
+      % Check for saved footnotes, etc.:
       \checkinserts
-      % Keeps underfull box messages off when table breaks over pages.
-      %\filbreak
-	% Maybe so, but it also creates really weird page breaks when the
-	% table breaks over pages. Wouldn't \vfil be better?  Wait until the
-	% problem manifests itself, so it can be fixed for real --karl.
+      %
+      % Perhaps a \nobreak, then reset:
+      \headitemcrhook
+      \global\let\headitemcrhook=\relax
     }%
   }%
   %

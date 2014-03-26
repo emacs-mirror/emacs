@@ -1,3 +1,9 @@
+2014-03-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2014-03-26 strftime: wrap macros in "do {...} while(0)"
+	* lib/strftime.c: Update from gnulib.
+
 2014-03-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
