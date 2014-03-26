@@ -1,7 +1,7 @@
 /* steptest.c: TEST FOR ARENA STEPPING
  *
  * $Id$
- * Copyright (c) 1998-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 1998-2014 Ravenbrook Limited.  See end of file for license.
  *
  * Loosely based on <code/amcss.c>.
  */
@@ -492,8 +492,7 @@ int main(int argc, char *argv[])
 {
     prepare_clock();
 
-    randomize(argc, argv);
-    mps_lib_assert_fail_install(assert_die);
+    testlib_init(argc, argv);
 
     while (test_number < TESTS) {
         mps_arena_t arena;
@@ -519,7 +518,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *
