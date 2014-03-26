@@ -162,11 +162,12 @@ TESTLIB = testlib.c
 FMTDY = fmtdy.c fmtno.c
 FMTDYTST = fmtdy.c fmtno.c fmtdytst.c
 FMTHETST = fmthe.c fmtdy.c fmtno.c fmtdytst.c
+FMTSCM = fmtscheme.c
 PLINTH = mpsliban.c mpsioan.c
 EVENTPROC = eventcnv.c table.c
 MPMCOMMON = abq.c arena.c arenacl.c arenavm.c arg.c boot.c bt.c         \
-    buffer.c cbs.c dbgpool.c dbgpooli.c event.c format.c         \
-    freelist.c global.c ld.c locus.c message.c meter.c mpm.c mpsi.c     \
+    buffer.c cbs.c dbgpool.c dbgpooli.c event.c format.c freelist.c     \
+    global.c ld.c locus.c message.c meter.c mpm.c mpsi.c nailboard.c    \
     pool.c poolabs.c poolmfs.c poolmrg.c poolmv.c protocol.c range.c    \
     ref.c reserv.c ring.c root.c sa.c sac.c seg.c shield.c splay.c ss.c      \
     table.c trace.c traceanc.c tract.c tree.c walk.c
@@ -207,6 +208,7 @@ FMTDYDEP = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTDYTSTOBJ = $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTHETSTOBJ = $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTHETSTDEP = $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.d)
+FMTSCMTSTOBJ = $(FMTSCM:%.c=$(PFM)/$(VARIETY)/%.o)
 PLINTHOBJ = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.o)
 PLINTHDEP = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.d)
 EVENTPROCOBJ = $(EVENTPROC:%.c=$(PFM)/$(VARIETY)/%.o)
@@ -225,6 +227,7 @@ LIB_TARGETS=mps.a mpsplan.a
 
 TEST_TARGETS=\
     abqtest \
+    airtest \
     amcss \
     amcsshe \
     amcssth \
@@ -253,6 +256,7 @@ TEST_TARGETS=\
     mpmss \
     mpsicv \
     mv2test \
+    nailboardtest \
     poolncv \
     qs \
     sacss \
@@ -367,6 +371,9 @@ ifdef VARIETY
 $(PFM)/$(VARIETY)/abqtest: $(PFM)/$(VARIETY)/abqtest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
+$(PFM)/$(VARIETY)/airtest: $(PFM)/$(VARIETY)/airtest.o \
+	$(FMTSCMTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
 $(PFM)/$(VARIETY)/amcss: $(PFM)/$(VARIETY)/amcss.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
@@ -449,6 +456,9 @@ $(PFM)/$(VARIETY)/mpsicv: $(PFM)/$(VARIETY)/mpsicv.o \
 	$(FMTDYTSTOBJ) $(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mv2test: $(PFM)/$(VARIETY)/mv2test.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/nailboardtest: $(PFM)/$(VARIETY)/nailboardtest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
