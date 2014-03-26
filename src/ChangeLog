@@ -1,4 +1,8 @@
-2014-03-26  Paul Eggert  <eggert@cs.ucla.edu>
+2014-03-26  Paul Eggert  <eggert@penguin.cs.ucla.edu>
+
+	More backward-compatible fix to char-equal core dump (Bug#17011).
+	* editfns.c (Fchar_equal): In unibyte buffers, assume values in
+	range 128-255 are raw bytes.  Suggested by Eli Zaretskii.
 
 	Fix core dump in char-equal (Bug#17011).
 	* editfns.c (Fchar_equal): Do not use MAKE_CHAR_MULTIBYTE in
