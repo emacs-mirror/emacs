@@ -225,6 +225,22 @@
 #endif /* MPS_BUILD_PC */
 
 
+/* MPS_FILE -- expands to __FILE__ in nested macros */
+
+#ifdef MPS_BUILD_PC
+
+/* Pelles C loses definition of __FILE__ in deeply nested macro
+ * expansions. See <http://forum.pellesc.de/index.php?topic=5474.0>
+ */
+#define MPS_FILE "<__FILE__ unavailable in " MPS_PF_STRING ">"
+
+#else
+
+#define MPS_FILE __FILE__
+
+#endif
+
+
 /* Function attributes */
 /* These are also defined in testlib.h */
 
