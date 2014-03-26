@@ -164,6 +164,33 @@
 #endif
 
 
+/* CONFIG_THREAD_SINGLE -- support single-threaded execution only
+ *
+ * This symbol causes the MPS to be built for single-threaded
+ * execution only, where locks are not needed and so lock operations
+ * can be defined as no-ops by lock.h.
+ */
+
+#if defined(CONFIG_THREAD_SINGLE)
+#define THREAD_SINGLE
+#else
+#define THREAD_MULTI
+#endif
+
+/* CONFIG_PROTECTION_NONE -- no support for memory protection
+ *
+ * This symbol causes the MPS to built for an environment where there
+ * is no memory protection, and so segment summaries cannot be
+ * maintained by seg.c.
+ */
+
+#if defined(CONFIG_PROTECTION_NONE)
+#define PROTECTION_NONE
+#else
+#define PROTECTION
+#endif
+
+
 #define MPS_VARIETY_STRING \
   MPS_ASSERT_STRING "." MPS_LOG_STRING "." MPS_STATS_STRING
 
@@ -517,8 +544,6 @@
 
 #define MPS_PROD_STRING         "mps"
 #define MPS_PROD_MPS
-#define THREAD_MULTI
-#define PROTECTION
 #define PROD_CHECKLEVEL_INITIAL CheckLevelSHALLOW
 
 /* TODO: This should be proportional to the memory usage of the MPS, not
