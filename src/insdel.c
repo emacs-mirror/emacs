@@ -1,6 +1,6 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs.
-   Copyright (C) 1985-1986, 1993-1995, 1997-2014 Free Software
-   Foundation, Inc.
+
+Copyright (C) 1985-1986, 1993-1995, 1997-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1829,21 +1829,11 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
   else
     base_buffer = current_buffer;
 
-#ifdef CLASH_DETECTION
   if (!NILP (BVAR (base_buffer, file_truename))
       /* Make binding buffer-file-name to nil effective.  */
       && !NILP (BVAR (base_buffer, filename))
       && SAVE_MODIFF >= MODIFF)
     lock_file (BVAR (base_buffer, file_truename));
-#else
-  /* At least warn if this file has changed on disk since it was visited.  */
-  if (!NILP (BVAR (base_buffer, filename))
-      && SAVE_MODIFF >= MODIFF
-      && NILP (Fverify_visited_file_modtime (Fcurrent_buffer ()))
-      && !NILP (Ffile_exists_p (BVAR (base_buffer, filename))))
-    call1 (intern ("ask-user-about-supersession-threat"),
-	   BVAR (base_buffer,filename));
-#endif /* not CLASH_DETECTION */
 
   /* If `select-active-regions' is non-nil, save the region text.  */
   /* FIXME: Move this to Elisp (via before-change-functions).  */

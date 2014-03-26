@@ -55,8 +55,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32.h"	/* for dostounix_filename */
 #endif
 
-#ifdef CLASH_DETECTION
-
 #ifdef HAVE_UTMP_H
 #include <utmp.h>
 #endif
@@ -837,8 +835,6 @@ t if it is locked by you, else a string saying which user has locked it.  */)
   return ret;
 }
 
-#endif /* CLASH_DETECTION */
-
 void
 syms_of_filelock (void)
 {
@@ -850,9 +846,7 @@ syms_of_filelock (void)
 	       doc: /* Non-nil means use lockfiles to avoid editing collisions.  */);
   create_lockfiles = 1;
 
-#ifdef CLASH_DETECTION
   defsubr (&Sunlock_buffer);
   defsubr (&Slock_buffer);
   defsubr (&Sfile_locked_p);
-#endif
 }

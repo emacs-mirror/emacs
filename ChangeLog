@@ -1,7 +1,11 @@
+2014-03-26  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (CLASH_DETECTION): Remove option.  Every platform
+	supports it, and the runtime option `create-lockfiles' replaces it.
+
 2014-03-23  Daniel Colascione  <dancol@dancol.org>
 
-	* configure.ac: (Bug#17069) Include GFILENOTIFY objects in glib
-	check.
+	* configure.ac: (Bug#17069) Include GFILENOTIFY objects in glib check.
 
 2014-03-22  Glenn Morris  <rgm@gnu.org>
 

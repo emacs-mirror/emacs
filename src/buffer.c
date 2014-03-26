@@ -1,7 +1,6 @@
 /* Buffer manipulation primitives for GNU Emacs.
 
-Copyright (C) 1985-1989, 1993-1995, 1997-2014 Free Software Foundation,
-Inc.
+Copyright (C) 1985-1989, 1993-1995, 1997-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1380,7 +1379,6 @@ It is not ensured that mode lines will be updated to show the modified
 state of the current buffer.  Use with care.  */)
   (Lisp_Object flag)
 {
-#ifdef CLASH_DETECTION
   Lisp_Object fn;
 
   /* If buffer becoming modified, lock the file.
@@ -1400,7 +1398,6 @@ state of the current buffer.  Use with care.  */)
       else if (already && NILP (flag))
 	unlock_file (fn);
     }
-#endif /* CLASH_DETECTION */
 
   /* Here we have a problem.  SAVE_MODIFF is used here to encode
      buffer-modified-p (as SAVE_MODIFF<MODIFF) as well as
@@ -1820,10 +1817,8 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 
   /* Now there is no question: we can kill the buffer.  */
 
-#ifdef CLASH_DETECTION
   /* Unlock this buffer's file, if it is locked.  */
   unlock_buffer (b);
-#endif /* CLASH_DETECTION */
 
   GCPRO1 (buffer);
   kill_buffer_processes (buffer);

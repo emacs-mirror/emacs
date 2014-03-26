@@ -1,3 +1,8 @@
+2014-03-26  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (lock-buffer, unlock-buffer, file-locked-p):
+	Remove fallback aliases, since they are always defined now.
+
 2014-03-24  Daniel Colascione  <dancol@dancol.org>
 
 	* emacs-lisp/cl-macs.el (cl--do-arglist): Use `plist-member'

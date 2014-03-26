@@ -1,3 +1,12 @@
+2014-03-26  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (Frestore_buffer_modified_p, Fkill_buffer):
+	* emacs.c (shut_down_emacs):
+	* fileio.c (Finsert_file_contents, write_region):
+	* filelock.c (top-level, syms_of_filelock):
+	* insdel.c (prepare_to_modify_buffer_1):
+	CLASH_DETECTION is always defined now.
+
 2014-03-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (w32_delayed_load): Call DisableThreadLibraryCalls on the

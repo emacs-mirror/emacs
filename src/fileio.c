@@ -4079,13 +4079,11 @@ by calling `format-decode', which see.  */)
 
   if (NILP (visit) && total > 0)
     {
-#ifdef CLASH_DETECTION
       if (!NILP (BVAR (current_buffer, file_truename))
 	  /* Make binding buffer-file-name to nil effective.  */
 	  && !NILP (BVAR (current_buffer, filename))
 	  && SAVE_MODIFF >= MODIFF)
 	we_locked_file = 1;
-#endif /* CLASH_DETECTION */
       prepare_to_modify_buffer (GPT, GPT, NULL);
     }
 
@@ -4185,10 +4183,8 @@ by calling `format-decode', which see.  */)
 
   if (inserted == 0)
     {
-#ifdef CLASH_DETECTION
       if (we_locked_file)
 	unlock_file (BVAR (current_buffer, file_truename));
-#endif
       Vdeactivate_mark = old_Vdeactivate_mark;
     }
   else
@@ -4337,14 +4333,12 @@ by calling `format-decode', which see.  */)
       SAVE_MODIFF = MODIFF;
       BUF_AUTOSAVE_MODIFF (current_buffer) = MODIFF;
       XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
-#ifdef CLASH_DETECTION
       if (NILP (handler))
 	{
 	  if (!NILP (BVAR (current_buffer, file_truename)))
 	    unlock_file (BVAR (current_buffer, file_truename));
 	  unlock_file (filename);
 	}
-#endif /* CLASH_DETECTION */
       if (not_regular)
 	xsignal2 (Qfile_error,
 		  build_string ("not a regular file"), orig_filename);
@@ -4814,13 +4808,11 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
   if (!STRINGP (start) && !NILP (BVAR (current_buffer, selective_display)))
     coding.mode |= CODING_MODE_SELECTIVE_DISPLAY;
 
-#ifdef CLASH_DETECTION
   if (open_and_close_file && !auto_saving)
     {
       lock_file (lockname);
       file_locked = 1;
     }
-#endif /* CLASH_DETECTION */
 
   encoded_filename = ENCODE_FILE (filename);
   fn = SSDATA (encoded_filename);
@@ -4842,10 +4834,8 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
       if (desc < 0)
 	{
 	  int open_errno = errno;
-#ifdef CLASH_DETECTION
 	  if (file_locked)
 	    unlock_file (lockname);
-#endif /* CLASH_DETECTION */
 	  UNGCPRO;
 	  report_file_errno ("Opening output file", filename, open_errno);
 	}
@@ -4860,10 +4850,8 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
       if (ret < 0)
 	{
 	  int lseek_errno = errno;
-#ifdef CLASH_DETECTION
 	  if (file_locked)
 	    unlock_file (lockname);
-#endif /* CLASH_DETECTION */
 	  UNGCPRO;
 	  report_file_errno ("Lseek error", filename, lseek_errno);
 	}
@@ -5006,10 +4994,8 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 
   unbind_to (count, Qnil);
 
-#ifdef CLASH_DETECTION
   if (file_locked)
     unlock_file (lockname);
-#endif /* CLASH_DETECTION */
 
   /* Do this before reporting IO error
      to avoid a "file has changed on disk" warning on

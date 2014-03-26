@@ -1,7 +1,7 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2014 Free Software
-Foundation, Inc.
+Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2014
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2032,9 +2032,7 @@ shut_down_emacs (int sig, Lisp_Object stuff)
   kill_buffer_processes (Qnil);
   Fdo_auto_save (Qt, Qnil);
 
-#ifdef CLASH_DETECTION
   unlock_all_files ();
-#endif
 
   /* There is a tendency for a SIGIO signal to arrive within exit,
      and cause a SIGHUP because the input descriptor is already closed.  */

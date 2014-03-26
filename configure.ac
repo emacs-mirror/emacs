@@ -3897,14 +3897,6 @@ if test "${opsys}" != "mingw32"; then
      in the full name stands for the login id.])
 fi
 
-dnl Every platform that uses configure supports this.
-dnl There is a create-lockfiles option you can
-dnl customize if you do not want the lock files to be written.
-dnl So it is not clear that this #define still needs to exist.
-AC_DEFINE(CLASH_DETECTION, 1, [Define if you want lock files to be written,
-  so that Emacs can tell instantly when you try to modify a file that
-  someone else has modified in his/her Emacs.])
-
 dnl Everybody supports this, except MS.
 dnl Seems like the kind of thing we should be testing for, though.
 ## Note: PTYs are broken on darwin <6.  Use at your own risk.

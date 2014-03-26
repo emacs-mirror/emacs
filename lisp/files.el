@@ -559,14 +559,6 @@ A value of nil means ignore them; anything else means query."
 		 (other :tag "Query" other))
   :group 'find-file)
 
-;; Avoid losing in versions where CLASH_DETECTION is disabled.
-(or (fboundp 'lock-buffer)
-    (defalias 'lock-buffer 'ignore))
-(or (fboundp 'unlock-buffer)
-    (defalias 'unlock-buffer 'ignore))
-(or (fboundp 'file-locked-p)
-    (defalias 'file-locked-p 'ignore))
-
 (defcustom view-read-only nil
   "Non-nil means buffers visiting files read-only do so in view mode.
 In fact, this means that all read-only buffers normally have
