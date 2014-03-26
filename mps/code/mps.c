@@ -95,9 +95,9 @@
 #include "mpsioan.c"
 #endif
 
-/* ANSI back end. */
+/* Generic ("ANSI") platform */
 
-#if defined(CONFIG_ANSI)
+#if defined(PLATFORM_ANSI)
 
 #include "lockan.c"     /* generic locks */
 #include "than.c"       /* generic threads manager */

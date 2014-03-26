@@ -152,6 +152,18 @@
 #endif
 
 
+/* CONFIG_PF_ANSI -- use the ANSI platform 
+ *
+ * This symbol tells mps.c to exclude the sources for the
+ * auto-detected platform, and use the generic ("ANSI") platform
+ * instead.
+ */
+
+#if defined(CONFIG_PF_ANSI)
+#define PLATFORM_ANSI
+#endif
+
+
 #define MPS_VARIETY_STRING \
   MPS_ASSERT_STRING "." MPS_LOG_STRING "." MPS_STATS_STRING
 
