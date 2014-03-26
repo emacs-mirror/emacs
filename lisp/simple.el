@@ -3269,6 +3269,11 @@ support pty association, if PROGRAM is nil."
 
 (defvar process-menu-query-only nil)
 
+(defvar process-menu-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [?d] 'process-menu-delete-process)
+    map))
+
 (define-derived-mode process-menu-mode tabulated-list-mode "Process Menu"
   "Major mode for listing the processes called by Emacs."
   (setq tabulated-list-format [("Process" 15 t)
@@ -3280,6 +3285,12 @@ support pty association, if PROGRAM is nil."
   (setq tabulated-list-sort-key (cons "Process" nil))
   (add-hook 'tabulated-list-revert-hook 'list-processes--refresh nil t)
   (tabulated-list-init-header))
+
+(defun process-menu-delete-process ()
+  "Kill process at point in a `list-processes' buffer."
+  (interactive)
+  (delete-process (tabulated-list-get-id))
+  (revert-buffer))
 
 (defun list-processes--refresh ()
   "Recompute the list of processes for the Process List buffer.

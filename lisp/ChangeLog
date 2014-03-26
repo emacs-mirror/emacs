@@ -1,3 +1,8 @@
+2014-03-26  Daniel Colascione  <dancol@dancol.org>
+
+	* simple.el (process-menu-mode-map): New variable.
+	(process-menu-delete-process): New command.
+
 2014-03-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/package.el: Fix bug#16733 (again).
