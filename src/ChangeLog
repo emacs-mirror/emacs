@@ -1,5 +1,10 @@
 2014-03-26  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix core dump in char-equal (Bug#17011).
+	* editfns.c (Fchar_equal): Do not use MAKE_CHAR_MULTIBYTE in
+	unibyte buffers, as we can't tell whether the characters are
+	actually unibyte.
+
 	* insdel.c (adjust_markers_for_delete): Remove unused local.
 
 2014-03-24  Barry O'Reilly  <gundaetiapo@gmail.com>
