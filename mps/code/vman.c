@@ -63,11 +63,12 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM *vmReturn, Size size)
+Res VMCreate(VM *vmReturn, Size size, void *params)
 {
   VM vm;
 
   AVER(vmReturn != NULL);
+  AVER(params != NULL);
 
   /* Note that because we add VMANPageALIGNMENT rather than */
   /* VMANPageALIGNMENT-1 we are not in danger of overflowing */

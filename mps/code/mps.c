@@ -95,9 +95,21 @@
 #include "mpsioan.c"
 #endif
 
+/* ANSI back end. */
+
+#if defined(CONFIG_ANSI)
+
+#include "lockan.c"     /* generic locks */
+#include "than.c"       /* generic threads manager */
+#include "vman.c"       /* malloc-based pseudo memory mapping */
+#include "protan.c"     /* generic memory protection */
+#include "prmcan.c"     /* generic protection mutator context */
+#include "span.c"       /* generic stack probe */
+#include "ssan.c"       /* generic stack scanner */
+
 /* Mac OS X on 32-bit Intel built with Clang or GCC */
 
-#if defined(MPS_PF_XCI3LL) || defined(MPS_PF_XCI3GC)
+#elif defined(MPS_PF_XCI3LL) || defined(MPS_PF_XCI3GC)
 
 #include "lockix.c"     /* Posix locks */
 #include "thxc.c"       /* OS X Mach threading */

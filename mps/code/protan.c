@@ -59,7 +59,7 @@ void ProtSync(Arena arena)
           ShieldLeave(arena);
           synced = FALSE;
         }
-      } while(SegNext(&seg, arena, base));
+      } while(SegNext(&seg, arena, seg));
     }
   } while(!synced);
 }
