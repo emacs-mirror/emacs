@@ -3,9 +3,15 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * This module provides zero functionality.  It exists to feed the
- * linker (prevent linker errors).
+ * This module makes a best effort to scan the stack and fix the
+ * registers which may contain roots, using only the features of the
+ * Standard C library.
+ * 
+ * .assume.setjmp: The implementation assumes that setjmp stores all
+ * the registers that need to be scanned in the jmp_buf.
  */
+
+#include <setjmp.h>
 
 #include "mpmtypes.h"
 #include "misc.h"
@@ -17,8 +23,17 @@ SRCID(ssan, "$Id$");
 
 Res StackScan(ScanState ss, Addr *stackBot)
 {
-  UNUSED(ss); UNUSED(stackBot);
-  return ResUNIMPL;
+  jmp_buf jb;
+  void *stackTop = &jb;
+
+  /* .assume.stack: This implementation assumes that the stack grows
+   * downwards, so that the address of the jmp_buf is the limit of the
+   * part of the stack that needs to be scanned. (StackScanInner makes
+   * the same assumption.)
+   */
+  AVER(stackTop < (void *)stackBot);
+
+  return StackScanInner(ss, stackBot, stackTop, sizeof jb / sizeof(Addr*));
 }
 
 
