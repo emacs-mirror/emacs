@@ -1181,9 +1181,8 @@ written @file{easymenu.el}, a facility for defining Emacs menus;
 color; and also co-authored portions of CC mode.
 
 @item
-Sam Steingold wrote @file{gulp.el}, a facility for asking package
-maintainers for updated versions of their packages via e-mail, and
-@file{midnight.el}, a package for running a command every midnight.
+Sam Steingold wrote @file{midnight.el}, a package for running a
+command every midnight.
 
 @item
 Ake Stenhoff and Lars Lindberg wrote @file{imenu.el}, a framework for

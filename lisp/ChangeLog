@@ -1,5 +1,7 @@
 2014-03-26  Glenn Morris  <rgm@gnu.org>
 
+	* obsolete/gulp.el: Move here from emacs-lisp/.
+
 	* files.el (lock-buffer, unlock-buffer, file-locked-p):
 	Remove fallback aliases, since they are always defined now.
 

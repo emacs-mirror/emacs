@@ -43,6 +43,11 @@ otherwise leave it unmarked.
 ** The Rmail commands d, C-d and u now handle repeat counts
 to delete or undelete multiple messages.
 
+** Obsolete packages
+
+---
+*** gulp.el
+
 
 * New Modes and Packages in Emacs 24.5
 
