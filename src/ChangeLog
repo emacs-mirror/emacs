@@ -1,3 +1,61 @@
+2014-03-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix core dump in char-equal (Bug#17011).
+	* editfns.c (Fchar_equal): Do not use MAKE_CHAR_MULTIBYTE in
+	unibyte buffers, as we can't tell whether the characters are
+	actually unibyte.
+
+	* insdel.c (adjust_markers_for_delete): Remove unused local.
+
+2014-03-26  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	Have (MARKER . ADJUSTMENT) undo records always be immediately
+	after their corresponding (TEXT . POS) record in undo list.
+	(Bug#16818)
+	* lisp.h (record-delete): New arg record_markers.
+	(record_marker_adjustment): No longer needed outside undo.c.
+	* insdel.c (adjust_markers_for_delete): Move calculation of marker
+	adjustments to undo.c's record_marker_adjustments.  Note that
+	fileio.c's decide_coding_unwind is another caller to
+	adjust_markers_for_delete.  Because it has undo list bound to t,
+	it does not rely on adjust_markers_for_delete to record marker
+	adjustments.
+	(del_range_2): Swap call to record_delete and
+	adjust_markers_for_delete so as undo marker adjustments are
+	recorded before current deletion's adjustments, as before.
+	(adjust_after_replace):
+	(replace_range): Pass value for new record_markers arg to
+	delete_record.
+	* undo.c (record_marker_adjustment): Renamed to
+	record_marker_adjustments and made static.
+	(record_delete): Check record_markers arg and call
+	record_marker_adjustments.
+	(record_change): Pass value for new record_markers arg to
+	delete_record.
+	(record_point): at_boundary calculation no longer needs to account
+	for marker adjustments.
+
+2014-03-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32term.c (x_set_window_size): Refine fix from 2014-03-14
+	(Bug#17077).
+
+2014-03-26  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (Ffile_symlink_p): Doc fix. (Bug#17073)
+
+2014-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (struct sortvec): Add field `spriority'.
+	(compare_overlays): Use it.
+	(sort_overlays): Set it.
+
+2014-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): If all previous attempts to find the
+	cursor row failed, try a few alternatives before falling back to
+	the top-most row of the window.  Use row_containing_pos.  (Bug#17047)
+
 2014-03-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image.c (x_bitmap_height, x_bitmap_width) [HAVE_X_WINDOWS]:

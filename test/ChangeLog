@@ -1,3 +1,11 @@
+2014-03-26  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	* automated/undo-tests.el (undo-test-marker-adjustment-nominal):
+	(undo-test-region-t-marker): New tests of marker adjustments.
+	(undo-test-marker-adjustment-moved):
+	(undo-test-region-mark-adjustment): New tests to demonstrate
+	bug#16818, which fail without the fix.
+
 2014-03-23  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* automated/package-test.el (package-test-describe-package):

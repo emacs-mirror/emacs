@@ -106,7 +106,7 @@
   "Regexp to match the beginning of a heredoc.")
 
   (defconst ruby-expression-expansion-re
-    "\\(?:[^\\]\\|\\=\\)\\(\\\\\\\\\\)*\\(#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\)\\)"))
+    "\\(?:[^\\]\\|\\=\\)\\(\\\\\\\\\\)*\\(#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\|\\$[^a-zA-Z \n]\\)\\)"))
 
 (defun ruby-here-doc-end-match ()
   "Return a regexp to find the end of a heredoc.
@@ -2113,8 +2113,8 @@ See `font-lock-syntax-table'.")
     ("\\(^\\|[^:]\\)\\(:\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\|@?\\(\\w\\|_\\)+\\([!?=]\\|\\b_*\\)\\|#{[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\)\\)"
      2 font-lock-constant-face)
     ;; Variables.
-    ("\\(\\$\\([^a-zA-Z0-9 \n]\\|[0-9]\\)\\)\\W"
-     1 font-lock-variable-name-face)
+    ("\\$[^a-zA-Z \n]"
+     0 font-lock-variable-name-face)
     ("\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+"
      0 font-lock-variable-name-face)
     ;; Constants.

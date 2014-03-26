@@ -1,3 +1,78 @@
+2014-03-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/package.el: Fix bug#16733 (again).
+	(url-http-parse-response, url-http-end-of-headers, url-recreate-url)
+	(url-http-target-url): Remove unused declarations.
+	(package-handle-response): Remove.
+	(package--with-work-buffer): Use url-insert-file-contents and simplify.
+	(package--download-one-archive): Use current-buffer instead of
+	dynamic binding of `buffer'.
+	(describe-package-1): Do not decode readme-string.
+
+2014-03-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods, tramp-connection-timeout): Fix docstring.
+
+	* net/tramp-sh.el (tramp-sh-handle-vc-registered): Revert change
+	from 2014-03-07, it decreases performance unnecessarily.  Let-bind
+	`remote-file-name-inhibit-cache' to nil in the second pass.
+	(tramp-find-executable): Do not call "which" on SunOS.
+	(tramp-send-command-and-check): Fix docstring.
+	(tramp-do-copy-or-rename-file-directly): In the `rename' case,
+	check whether source directory has set the sticky bit.
+
+2014-03-26  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	* simple.el (primitive-undo): Only process marker adjustments
+	validated against their corresponding (TEXT . POS).  Issue warning
+	for lone marker adjustments in undo history.  (Bug#16818)
+	(undo-make-selective-list): Add marker adjustments to selective
+	undo list based on whether their corresponding (TEXT . POS) is in
+	the region.  Remove variable adjusted-markers, which was unused
+	and only non nil during undo-make-selective-list.
+	(undo-elt-in-region): Return nil when passed a marker adjustment
+	and explain in function doc.
+
+2014-03-26  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
+
+	* align.el (align-region): Do not fail when end-mark is nil (bug#17088).
+
+2014-03-26  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-expression-expansion-re):
+	Match special global variables without curlies, too.
+	(ruby-font-lock-keywords): Simplify the matcher for special global
+	variables.  Don't require a non-word character after the variable.
+	(Bug#17057)
+
+2014-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (redisplay-highlight-region-function): Increase priority of
+	overlay to make sure boundaries are visible (bug#15899).
+
+2014-03-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset--initial-params): Fix typo in parameter name.
+	(frameset-restore): Compare display strings with equal.
+
+	* frame.el (make-frame): Don't quote display name in error message,
+	it is already a string.
+
+2014-03-26  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* net/tramp.el (tramp-read-passwd): Suspend the timers while reading
+	the password.
+
+2014-03-26  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/package.el (package--add-to-archive-contents):
+	Include already installed and built-in packages in
+	`package-archive-contents'.
+	(package-install): Don't include already installed packages in the
+	options during interactive invocation.  (Bug#16762)
+	(package-show-package-list): If the buffer is already displayed in
+	another window, switch to that window.
+
 2014-03-26  Reto Zimmermann  <reto@gnu.org>
 
 	Sync with upstream vhdl mode v3.35.1.
@@ -1247,7 +1322,7 @@
 	dbus-call-method check for completion using a busy-wait loop with
 	gradual backoff.
 
-2013-10-02  Michael Albinus  <michael.albinus@gmx.de>
+2014-02-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.9.
 

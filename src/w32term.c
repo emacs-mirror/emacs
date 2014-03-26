@@ -5653,30 +5653,41 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
 
   compute_fringe_widths (f, 0);
 
-  if (pixelwise)
+  if (frame_resize_pixelwise)
     {
-      pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, width);
-      pixelheight = FRAME_TEXT_TO_PIXEL_HEIGHT (f, height);
+      if (pixelwise)
+	{
+	  pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, width);
+	  pixelheight = FRAME_TEXT_TO_PIXEL_HEIGHT (f, height);
+	}
+      else
+	{
+	  pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, width);
+	  pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height);
+	}
     }
   else
-    {
-      pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, width);
-      pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height);
-    }
-
-  if (!frame_resize_pixelwise)
     {
       /* If we don't resize frames pixelwise, round sizes to multiples
 	 of character sizes here.  Otherwise, when enforcing size hints
 	 while processing WM_WINDOWPOSCHANGING in w32_wnd_proc, we might
 	 clip our frame rectangle to a multiple of the frame's character
 	 size and subsequently lose our mode line or scroll bar.
-	 Bug#16923 could be one possible consequence of this.  */
+	 Bug#16923 could be one possible consequence of this.  Carefully
+	 reverse-engineer what WM_WINDOWPOSCHANGING does here since
+	 otherwise we might make our frame too small, see Bug#17077.  */
       int unit_width = FRAME_COLUMN_WIDTH (f);
       int unit_height = FRAME_LINE_HEIGHT (f);
 
-      pixelwidth = (pixelwidth / unit_width) * unit_width;
-      pixelheight = (pixelheight / unit_height) * unit_height;
+      pixelwidth = (((((pixelwise ? width : (width * FRAME_COLUMN_WIDTH (f)))
+		       + FRAME_TOTAL_FRINGE_WIDTH (f))
+		      / unit_width) * unit_width)
+		    + FRAME_SCROLL_BAR_AREA_WIDTH (f)
+		    + 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
+
+      pixelheight = ((((pixelwise ? height : (height * FRAME_LINE_HEIGHT (f)))
+		       / unit_height) * unit_height)
+		     + 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
     }
 
   f->win_gravity = NorthWestGravity;

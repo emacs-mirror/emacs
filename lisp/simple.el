@@ -2283,20 +2283,38 @@ Return what remains of the list."
            (when (let ((apos (abs pos)))
                    (or (< apos (point-min)) (> apos (point-max))))
              (error "Changes to be undone are outside visible portion of buffer"))
-           (if (< pos 0)
-               (progn
-                 (goto-char (- pos))
-                 (insert string))
-             (goto-char pos)
-             ;; Now that we record marker adjustments
-             ;; (caused by deletion) for undo,
-             ;; we should always insert after markers,
-             ;; so that undoing the marker adjustments
-             ;; put the markers back in the right place.
-             (insert string)
-             (goto-char pos)))
+           (let (valid-marker-adjustments)
+             ;; Check that marker adjustments which were recorded
+             ;; with the (STRING . POS) record are still valid, ie
+             ;; the markers haven't moved.  We check their validity
+             ;; before reinserting the string so as we don't need to
+             ;; mind marker insertion-type.
+             (while (and (markerp (car-safe (car list)))
+                         (integerp (cdr-safe (car list))))
+               (let* ((marker-adj (pop list))
+                      (m (car marker-adj)))
+                 (and (eq (marker-buffer m) (current-buffer))
+                      (= pos m)
+                      (push marker-adj valid-marker-adjustments))))
+             ;; Insert string and adjust point
+             (if (< pos 0)
+                 (progn
+                   (goto-char (- pos))
+                   (insert string))
+               (goto-char pos)
+               (insert string)
+               (goto-char pos))
+             ;; Adjust the valid marker adjustments
+             (dolist (adj valid-marker-adjustments)
+               (set-marker (car adj)
+                           (- (car adj) (cdr adj))))))
           ;; (MARKER . OFFSET) means a marker MARKER was adjusted by OFFSET.
           (`(,(and marker (pred markerp)) . ,(and offset (pred integerp)))
+           (warn "Encountered %S entry in undo list with no matching (TEXT . POS) entry"
+                 next)
+           ;; Even though these elements are not expected in the undo
+           ;; list, adjust them to be conservative for the 24.4
+           ;; release.  (Bug#16818)
            (when (marker-buffer marker)
              (set-marker marker
                          (- marker offset)
@@ -2335,8 +2353,6 @@ are ignored.  If BEG and END are nil, all undo elements are used."
 	    (undo-make-selective-list (min beg end) (max beg end))
 	  buffer-undo-list)))
 
-(defvar undo-adjusted-markers)
-
 (defun undo-make-selective-list (start end)
   "Return a list of undo elements for the region START to END.
 The elements come from `buffer-undo-list', but we keep only
@@ -2345,7 +2361,6 @@ If we find an element that crosses an edge of this region,
 we stop and ignore all further elements."
   (let ((undo-list-copy (undo-copy-list buffer-undo-list))
 	(undo-list (list nil))
-	undo-adjusted-markers
 	some-rejected
 	undo-elt temp-undo-list delta)
     (while undo-list-copy
@@ -2355,15 +2370,30 @@ we stop and ignore all further elements."
 		    ;; This is a "was unmodified" element.
 		    ;; Keep it if we have kept everything thus far.
 		    (not some-rejected))
+                   ;; Skip over marker adjustments, instead relying on
+                   ;; finding them after (TEXT . POS) elements
+                   ((markerp (car-safe undo-elt))
+                    nil)
 		   (t
 		    (undo-elt-in-region undo-elt start end)))))
 	(if keep-this
 	    (progn
 	      (setq end (+ end (cdr (undo-delta undo-elt))))
 	      ;; Don't put two nils together in the list
-	      (if (not (and (eq (car undo-list) nil)
-			    (eq undo-elt nil)))
-		  (setq undo-list (cons undo-elt undo-list))))
+	      (when (not (and (eq (car undo-list) nil)
+                              (eq undo-elt nil)))
+                (setq undo-list (cons undo-elt undo-list))
+                ;; If (TEXT . POS), "keep" its subsequent (MARKER
+                ;; . ADJUSTMENT) whose markers haven't moved.
+                (when (and (stringp (car-safe undo-elt))
+                           (integerp (cdr-safe undo-elt)))
+                  (let ((list-i (cdr undo-list-copy)))
+                    (while (markerp (car-safe (car list-i)))
+                      (let* ((adj-elt (pop list-i))
+                             (m (car adj-elt)))
+                        (and (eq (marker-buffer m) (current-buffer))
+                             (= (cdr undo-elt) m)
+                             (push adj-elt undo-list))))))))
 	  (if (undo-elt-crosses-region undo-elt start end)
 	      (setq undo-list-copy nil)
 	    (setq some-rejected t)
@@ -2411,7 +2441,12 @@ we stop and ignore all further elements."
 
 (defun undo-elt-in-region (undo-elt start end)
   "Determine whether UNDO-ELT falls inside the region START ... END.
-If it crosses the edge, we return nil."
+If it crosses the edge, we return nil.
+
+Generally this function is not useful for determining
+whether (MARKER . ADJUSTMENT) undo elements are in the region,
+because markers can be arbitrarily relocated.  Instead, pass the
+marker adjustment's corresponding (TEXT . POS) element."
   (cond ((integerp undo-elt)
 	 (and (>= undo-elt start)
 	      (<= undo-elt end)))
@@ -2424,17 +2459,8 @@ If it crosses the edge, we return nil."
 	 (and (>= (abs (cdr undo-elt)) start)
 	      (<= (abs (cdr undo-elt)) end)))
 	((and (consp undo-elt) (markerp (car undo-elt)))
-	 ;; This is a marker-adjustment element (MARKER . ADJUSTMENT).
-	 ;; See if MARKER is inside the region.
-	 (let ((alist-elt (assq (car undo-elt) undo-adjusted-markers)))
-	   (unless alist-elt
-	     (setq alist-elt (cons (car undo-elt)
-				   (marker-position (car undo-elt))))
-	     (setq undo-adjusted-markers
-		   (cons alist-elt undo-adjusted-markers)))
-	   (and (cdr alist-elt)
-		(>= (cdr alist-elt) start)
-		(<= (cdr alist-elt) end))))
+	 ;; (MARKER . ADJUSTMENT)
+         (<= start (car undo-elt) end))
 	((null (car undo-elt))
 	 ;; (nil PROPERTY VALUE BEG . END)
 	 (let ((tail (nthcdr 3 undo-elt)))
@@ -4467,6 +4493,11 @@ also checks the value of `use-empty-active-region'."
           (funcall redisplay-unhighlight-region-function rol)
           (overlay-put nrol 'window window)
           (overlay-put nrol 'face 'region)
+          ;; Normal priority so that a large region doesn't hide all the
+          ;; overlays within it, but high secondary priority so that if it
+          ;; ends/starts in the middle of a small overlay, that small overlay
+          ;; won't hide the region's boundaries.
+          (overlay-put nrol 'priority '(nil . 100))
           nrol)
       (unless (and (eq (overlay-buffer rol) (current-buffer))
                    (eq (overlay-start rol) start)

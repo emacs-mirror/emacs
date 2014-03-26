@@ -1,3 +1,16 @@
+2014-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Kinds of Files): Improve documentation of
+	file-symlink-p.  (Bug#17073)  Add cross-references.
+
+2014-03-26  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	* markers.texi (Moving Marker Positions): The 2014-03-02 doc
+	change mentioning undo's inability to handle relocated markers no
+	longer applies.  See bug#16818.
+	* text.texi (Undo): Expand documentation of (TEXT . POS) and
+	(MARKER . ADJUSTMENT) undo elements.
+
 2014-03-26  Glenn Morris  <rgm@gnu.org>
 
 	* files.texi (File Locks): All systems support locking.

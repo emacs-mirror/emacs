@@ -940,7 +940,7 @@ is the parameter alist of the frame being restored.  Internal use only."
 Setting position and size parameters as soon as possible helps reducing
 flickering; other parameters, like `minibuffer' and `border-width', can
 not be changed once the frame has been created.  Internal use only."
-  (cl-loop for param in '(left top with height border-width minibuffer)
+  (cl-loop for param in '(left top width height border-width minibuffer)
 	   when (assq param parameters) collect it))
 
 (defun frameset--restore-frame (parameters window-state filters force-onscreen)
@@ -1146,8 +1146,8 @@ All keyword parameters default to nil."
 		     frame to-tty duplicate)
 		;; Only set target if forcing displays and the target display is different.
 		(unless (or (frameset-keep-original-display-p force-display)
-			    (eq (frame-parameter nil 'display)
-				(cdr (assq 'display frame-cfg))))
+			    (equal (frame-parameter nil 'display)
+				   (cdr (assq 'display frame-cfg))))
 		  (setq frameset--target-display (cons 'display
 						       (frame-parameter nil 'display))
 			to-tty (null (cdr frameset--target-display))))

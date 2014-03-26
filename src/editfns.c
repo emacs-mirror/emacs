@@ -4377,18 +4377,13 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
   if (NILP (BVAR (current_buffer, case_fold_search)))
     return Qnil;
 
+  /* FIXME: When enable-multibyte-characters is nil, it's still possible
+     to manipulate multibyte chars, which means there is a bug for chars
+     in the range 128-255 as we can't tell whether they are eight-bit
+     bytes or Latin-1 chars.  For now, assume the latter.  See Bug#17011.
+     Also see casefiddle.c's casify_object, which has a similar problem.  */
   i1 = XFASTINT (c1);
-  if (NILP (BVAR (current_buffer, enable_multibyte_characters))
-      && ! ASCII_CHAR_P (i1))
-    {
-      MAKE_CHAR_MULTIBYTE (i1);
-    }
   i2 = XFASTINT (c2);
-  if (NILP (BVAR (current_buffer, enable_multibyte_characters))
-      && ! ASCII_CHAR_P (i2))
-    {
-      MAKE_CHAR_MULTIBYTE (i2);
-    }
   return (downcase (i1) == downcase (i2) ? Qt :  Qnil);
 }
 

@@ -668,7 +668,7 @@ the new frame according to its own rules."
 	      (cdr (assq 'window-system parameters)))
              (display
               (or (window-system-for-display display)
-                  (error "Don't know how to interpret display \"%S\""
+                  (error "Don't know how to interpret display %S"
                          display)))
 	     (t window-system)))
 	 (frame-creation-function (cdr (assq w frame-creation-function-alist)))

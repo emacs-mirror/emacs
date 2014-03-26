@@ -3142,6 +3142,7 @@ struct sortvec
   Lisp_Object overlay;
   ptrdiff_t beg, end;
   EMACS_INT priority;
+  EMACS_INT spriority;		/* Secondary priority.  */
 };
 
 static int
@@ -3149,19 +3150,28 @@ compare_overlays (const void *v1, const void *v2)
 {
   const struct sortvec *s1 = v1;
   const struct sortvec *s2 = v2;
+  /* Return 1 if s1 should take precedence, -1 if v2 should take precedence,
+     and 0 if they're equal.  */
   if (s1->priority != s2->priority)
     return s1->priority < s2->priority ? -1 : 1;
-  if (s1->beg != s2->beg)
-    return s1->beg < s2->beg ? -1 : 1;
-  if (s1->end != s2->end)
+  /* If the priority is equal, give precedence to the one not covered by the
+     other.  If neither covers the other, obey spriority.  */
+  else if (s1->beg < s2->beg)
+    return (s1->end < s2->end && s1->spriority > s2->spriority ? 1 : -1);
+  else if (s1->beg > s2->beg)
+    return (s1->end > s2->end && s1->spriority < s2->spriority ? -1 : 1);
+  else if (s1->end != s2->end)
     return s2->end < s1->end ? -1 : 1;
-  /* Avoid the non-determinism of qsort by choosing an arbitrary ordering
-     between "equal" overlays.  The result can still change between
-     invocations of Emacs, but it won't change in the middle of
-     `find_field' (bug#6830).  */
-  if (!EQ (s1->overlay, s2->overlay))
+  else if (s1->spriority != s2->spriority)
+    return (s1->spriority < s2->spriority ? -1 : 1);
+  else if (EQ (s1->overlay, s2->overlay))
+    return 0;
+  else
+    /* Avoid the non-determinism of qsort by choosing an arbitrary ordering
+       between "equal" overlays.  The result can still change between
+       invocations of Emacs, but it won't change in the middle of
+       `find_field' (bug#6830).  */
     return XLI (s1->overlay) < XLI (s2->overlay) ? -1 : 1;
-  return 0;
 }
 
 /* Sort an array of overlays by priority.  The array is modified in place.
@@ -3204,10 +3214,23 @@ sort_overlays (Lisp_Object *overlay_vec, ptrdiff_t noverlays, struct window *w)
 	  sortvec[j].beg = OVERLAY_POSITION (OVERLAY_START (overlay));
 	  sortvec[j].end = OVERLAY_POSITION (OVERLAY_END (overlay));
 	  tem = Foverlay_get (overlay, Qpriority);
-	  if (INTEGERP (tem))
-	    sortvec[j].priority = XINT (tem);
-	  else
-	    sortvec[j].priority = 0;
+	  if (NILP (tem))
+	    {
+	      sortvec[j].priority = 0;
+	      sortvec[j].spriority = 0;
+	    }
+	  else if (INTEGERP (tem))
+	    {
+	      sortvec[j].priority = XINT (tem);
+	      sortvec[j].spriority = 0;
+	    }
+	  else if (CONSP (tem))
+	    {
+	      Lisp_Object car = XCAR (tem);
+	      Lisp_Object cdr = XCDR (tem);
+	      sortvec[j].priority  = INTEGERP (car) ? XINT (car) : 0;
+	      sortvec[j].spriority = INTEGERP (cdr) ? XINT (cdr) : 0;
+	    }
 	  j++;
 	}
     }

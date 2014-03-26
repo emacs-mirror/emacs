@@ -33,6 +33,7 @@
 (autoload 'url-expand-file-name "url-expand" "Convert url to a fully specified url, and canonicalize it.")
 (autoload 'mm-dissect-buffer "mm-decode" "Dissect the current buffer and return a list of MIME handles.")
 (autoload 'url-scheme-get-property "url-methods" "Get property of a URL SCHEME.")
+(autoload 'url-http-parse-response "url-http" "Parse just the response code.")
 
 ;; Always used after mm-dissect-buffer and defined in the same file.
 (declare-function mm-save-part-to-file "mm-decode" (handle file))
@@ -293,8 +294,15 @@ They count bytes from the beginning of the body."
 ;;;###autoload
 (defun url-insert-file-contents (url &optional visit beg end replace)
   (let ((buffer (url-retrieve-synchronously url)))
-    (if (not buffer)
-	(error "Opening input file: No such file or directory, %s" url))
+    (unless buffer (signal 'file-error (list url "No Data")))
+    (with-current-buffer buffer
+      (let ((response (url-http-parse-response)))
+        (if (and (>= response 200) (< response 300))
+            (goto-char (point-min))
+          (let ((desc (buffer-substring-no-properties (1+ (point))
+                                                      (line-end-position))))
+            (kill-buffer buffer)
+            (signal 'file-error (list url desc))))))
     (if visit (setq buffer-file-name url))
     (save-excursion
       (let* ((start (point))

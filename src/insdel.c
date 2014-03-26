@@ -214,9 +214,8 @@ void
 adjust_markers_for_delete (ptrdiff_t from, ptrdiff_t from_byte,
 			   ptrdiff_t to, ptrdiff_t to_byte)
 {
-  Lisp_Object marker;
-  register struct Lisp_Marker *m;
-  register ptrdiff_t charpos;
+  struct Lisp_Marker *m;
+  ptrdiff_t charpos;
 
   for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {
@@ -233,33 +232,8 @@ adjust_markers_for_delete (ptrdiff_t from, ptrdiff_t from_byte,
       /* Here's the case where a marker is inside text being deleted.  */
       else if (charpos > from)
 	{
-	  if (! m->insertion_type)
-	    { /* Normal markers will end up at the beginning of the
-	       re-inserted text after undoing a deletion, and must be
-	       adjusted to move them to the correct place.  */
-	      XSETMISC (marker, m);
-	      record_marker_adjustment (marker, from - charpos);
-	    }
-	  else if (charpos < to)
-	    { /* Before-insertion markers will automatically move forward
-	       upon re-inserting the deleted text, so we have to arrange
-	       for them to move backward to the correct position.  */
-	      XSETMISC (marker, m);
-	      record_marker_adjustment (marker, to - charpos);
-	    }
 	  m->charpos = from;
 	  m->bytepos = from_byte;
-	}
-      /* Here's the case where a before-insertion marker is immediately
-	 before the deleted region.  */
-      else if (charpos == from && m->insertion_type)
-	{
-	  /* Undoing the change uses normal insertion, which will
-	     incorrectly make MARKER move forward, so we arrange for it
-	     to then move backward to the correct place at the beginning
-	     of the deleted region.  */
-	  XSETMISC (marker, m);
-	  record_marker_adjustment (marker, to - from);
 	}
     }
 }
@@ -1219,7 +1193,7 @@ adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
 			       from + len, from_byte + len_byte, 0);
 
   if (nchars_del > 0)
-    record_delete (from, prev_text);
+    record_delete (from, prev_text, false);
   record_insert (from, len);
 
   if (len > nchars_del)
@@ -1384,7 +1358,7 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
   if (!NILP (deletion))
     {
       record_insert (from + SCHARS (deletion), inschars);
-      record_delete (from, deletion);
+      record_delete (from, deletion, false);
     }
 
   GAP_SIZE -= outgoing_insbytes;
@@ -1716,13 +1690,14 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
   else
     deletion = Qnil;
 
-  /* Relocate all markers pointing into the new, larger gap
-     to point at the end of the text before the gap.
-     Do this before recording the deletion,
-     so that undo handles this after reinserting the text.  */
+  /* Record marker adjustments, and text deletion into undo
+     history.  */
+  record_delete (from, deletion, true);
+
+  /* Relocate all markers pointing into the new, larger gap to point
+     at the end of the text before the gap.  */
   adjust_markers_for_delete (from, from_byte, to, to_byte);
 
-  record_delete (from, deletion);
   MODIFF++;
   CHARS_MODIFF = MODIFF;
 

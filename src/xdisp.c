@@ -16400,12 +16400,50 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
   /* Consider the following case: Window starts at BEGV, there is
      invisible, intangible text at BEGV, so that display starts at
      some point START > BEGV.  It can happen that we are called with
-     PT somewhere between BEGV and START.  Try to handle that case.  */
+     PT somewhere between BEGV and START.  Try to handle that case,
+     and similar ones.  */
   if (w->cursor.vpos < 0)
     {
-      struct glyph_row *row = w->current_matrix->rows;
-      if (row->mode_line_p)
-	++row;
+      /* First, try locating the proper glyph row for PT.  */
+      struct glyph_row *row =
+	row_containing_pos (w, PT, w->current_matrix->rows, NULL, 0);
+
+      /* Sometimes point is at the beginning of invisible text that is
+	 before the 1st character displayed in the row.  In that case,
+	 row_containing_pos fails to find the row, because no glyphs
+	 with appropriate buffer positions are present in the row.
+	 Therefore, we next try to find the row which shows the 1st
+	 position after the invisible text.  */
+      if (!row)
+	{
+	  Lisp_Object val =
+	    get_char_property_and_overlay (make_number (PT), Qinvisible,
+					   Qnil, NULL);
+
+	  if (TEXT_PROP_MEANS_INVISIBLE (val))
+	    {
+	      ptrdiff_t alt_pos;
+	      Lisp_Object invis_end =
+		Fnext_single_char_property_change (make_number (PT), Qinvisible,
+						   Qnil, Qnil);
+
+	      if (NATNUMP (invis_end))
+		alt_pos = XFASTINT (invis_end);
+	      else
+		alt_pos = ZV;
+	      row = row_containing_pos (w, alt_pos, w->current_matrix->rows,
+					NULL, 0);
+	    }
+	}
+      /* Finally, fall back on the first row of the window after the
+	 header line (if any).  This is slightly better than not
+	 displaying the cursor at all.  */
+      if (!row)
+	{
+	  row = w->current_matrix->rows;
+	  if (row->mode_line_p)
+	    ++row;
+	}
       set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
     }
 
