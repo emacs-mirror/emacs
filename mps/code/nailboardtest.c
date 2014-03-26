@@ -1,62 +1,73 @@
-/* range.h: ADDRESS RANGE INTERFACE
+/* nailboardtest.c: NAILBOARD TEST
  *
- * $Id$
- * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
+ * $Id: //info.ravenbrook.com/project/mps/branch/2014-01-15/nailboard/code/fotest.c#1 $
+ * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
  *
- * .purpose: Representation of address ranges.
- *
- * .design: <design/range/>
  */
 
-#ifndef range_h
-#define range_h
-
-#include "mpmtypes.h"
-
-
-/* Signatures */
-
-#define RangeSig ((Sig)0x5196A493) /* SIGnature RANGE */
+#include "mpm.h"
+#include "mps.h"
+#include "mpsavm.h"
+#include "testlib.h"
+#include "bt.h"
+#include "nailboard.h"
 
 
-/* Prototypes */
+static void test(mps_arena_t arena)
+{
+  BT bt;
+  Nailboard board;
+  Align align;
+  Count nails;
+  Addr base, limit;
+  Index i, j, k;
 
-typedef struct RangeStruct *Range;
+  align = 1 << (rnd() % 10);
+  nails = 1 << (rnd() % 16);
+  base = AddrAlignUp(0, align);
+  limit = AddrAdd(base, nails * align);
 
-#define RangeBase(range) ((range)->base)
-#define RangeLimit(range) ((range)->limit)
-#define RangeSize(range) (AddrOffset(RangeBase(range), RangeLimit(range)))
-#define RangeContains(range, addr) ((range)->base <= (addr) && (addr) < (range)->limit)
-#define RangeIsEmpty(range) (RangeSize(range) == 0)
+  die(BTCreate(&bt, arena, nails), "BTCreate");
+  die(NailboardCreate(&board, arena, align, base, limit), "NailboardCreate");
 
-extern void RangeInit(Range range, Addr base, Addr limit);
-extern void RangeFinish(Range range);
-extern Res RangeDescribe(Range range, mps_lib_FILE *stream);
-extern Bool RangeCheck(Range range);
-extern Bool RangeIsAligned(Range range, Align align);
-extern Bool RangesOverlap(Range range1, Range range2);
-extern Bool RangesNest(Range outer, Range inner);
-extern Bool RangesEqual(Range range1, Range range2);
-extern Addr (RangeBase)(Range range);
-extern Addr (RangeLimit)(Range range);
-extern Size (RangeSize)(Range range);
-extern void RangeCopy(Range to, Range from);
+  for (i = 0; i <= nails / 8; ++i) {
+    Bool old;
+    j = rnd() % nails;
+    old = BTGet(bt, j);
+    BTSet(bt, j);
+    cdie(NailboardSet(board, AddrAdd(base, j * align)) == old, "NailboardSet");
+    for (k = 0; k < nails / 8; ++k) {
+      Index b, l;
+      b = rnd() % nails;
+      l = b + rnd() % (nails - b) + 1;
+      cdie(BTIsResRange(bt, b, l)
+           == NailboardIsResRange(board, AddrAdd(base, b * align),
+                                  AddrAdd(base, l * align)),
+           "NailboardIsResRange");
+    }
+  }
+}
 
+int main(int argc, char **argv)
+{
+  mps_arena_t arena;
 
-/* Types */
+  randomize(argc, argv);
+  mps_lib_assert_fail_install(assert_die);
+  die(mps_arena_create(&arena, mps_arena_class_vm(), 1024 * 1024),
+      "mps_arena_create");
 
-typedef struct RangeStruct {
-  Sig sig;
-  Addr base;
-  Addr limit;
-} RangeStruct;
+  test(arena);
 
-#endif /* range_h */
+  mps_arena_destroy(arena);
+  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
+  return 0;
+}
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
@@ -94,3 +105,4 @@ typedef struct RangeStruct {
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
