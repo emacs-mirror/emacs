@@ -1,3 +1,25 @@
+2014-03-26  Reto Zimmermann  <reto@gnu.org>
+
+	Sync with upstream vhdl mode v3.35.1.
+	* progmodes/vhdl-mode.el (vhdl-version, vhdl-time-stamp): Update.
+	(vhdl-compiler-alist): Doc fix.
+	(vhdl-goto-line): Remove.
+	(vhdl-mode-abbrev-table-init): Add XEmacs compat.
+	(vhdl-mode) <paragraph-start>: Fix value.
+	(vhdl-fix-statement-region): Not `for' in wait-statement.
+	(vhdl-beautify-region): Also (un)tabify.
+	(vhdl-get-visible-signals):
+	Scan declarative part of generate statements.
+	(vhdl-template-record): Fix indentation for record type declaration.
+	(vhdl-expand-abbrev, vhdl-expand-paren): FIXME.
+	(vhdl-scan-directory-contents): Tweak.
+	(vhdl-speedbar-find-file, vhdl-speedbar-port-copy)
+	(vhdl-compose-components-package):
+	Replace vhdl-goto-line with forward-line.
+	(top-level): Tweak speedbar frame selection.
+	(vhdl-generate-makefile-1): Support for compilers with no
+	unit-to-file name mapping (create directory with dummy files).
+
 2014-03-26  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	Sync with upstream verilog-mode revision 702457d.
