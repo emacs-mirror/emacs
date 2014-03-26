@@ -1,3 +1,14 @@
+2014-03-26  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	Sync with upstream verilog-mode revision 702457d.
+	* progmodes/verilog-mode.el (verilog-mode-version): Update.
+	(create-lockfiles): Declare.
+	(verilog-read-decls): Fix module header imports, bug709.
+	Reported by Victor Lau.
+	Fix parsing 'var' in AUTOs, msg1294.  Reported by Dominique Chen.
+	(verilog-auto-inout-module): Fix AUTOINOUTMODULE not inserting
+	interface-only modules, bug721.	 Reported by Dean Hoyt.
+
 2014-03-26  Glenn Morris  <rgm@gnu.org>
 
 	* obsolete/gulp.el: Move here from emacs-lisp/.
