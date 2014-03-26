@@ -50,6 +50,7 @@ static const char *logFileName = NULL;
 
 /* everror -- error signalling */
 
+ATTRIBUTE_FORMAT((printf, 1, 2))
 static void everror(const char *format, ...)
 {
   va_list args;

@@ -83,6 +83,23 @@
 #endif /* MPS_BUILD_PC */
 
 
+/* Function attributes */
+/* These are also defined in config.h */
+
+#if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
+
+/* GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html#index-Wformat-2850>
+ * Clang: <http://clang.llvm.org/docs/AttributeReference.html#format-gnu-format>
+ */
+#define ATTRIBUTE_FORMAT(ARGLIST) __attribute__((__format__ ARGLIST))
+
+#else
+
+#define ATTRIBUTE_FORMAT(ARGLIST)
+
+#endif
+
+
 /* ulongest_t -- longest unsigned integer type
  *
  * Define a longest unsigned integer type for testing, scanning, and
@@ -195,7 +212,9 @@ void assert_die(const char *file, unsigned line, const char *condition);
 
 /* error, verror -- die with message */
 
+ATTRIBUTE_FORMAT((printf, 1, 2))
 extern void error(const char *format, ...);
+ATTRIBUTE_FORMAT((printf, 1, 0))
 extern void verror(const char *format, va_list args);
 
 

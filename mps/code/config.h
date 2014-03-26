@@ -225,6 +225,23 @@
 #endif /* MPS_BUILD_PC */
 
 
+/* Function attributes */
+/* These are also defined in testlib.h */
+
+#if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
+
+/* GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html#index-Wformat-2850>
+ * Clang: <http://clang.llvm.org/docs/AttributeReference.html#format-gnu-format>
+ */
+#define ATTRIBUTE_FORMAT(ARGLIST) __attribute__((__format__ ARGLIST))
+
+#else
+
+#define ATTRIBUTE_FORMAT(ARGLIST)
+
+#endif
+
+
 /* EPVMDefaultSubsequentSegSIZE is a default for the alignment of
  * subsequent segments (non-initial at each save level) in EPVM.  See
  * design.mps.poolepvm.arch.segment.size.
