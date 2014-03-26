@@ -771,7 +771,9 @@ DEFUN ("lock-buffer", Flock_buffer, Slock_buffer,
        0, 1, 0,
        doc: /* Lock FILE, if current buffer is modified.
 FILE defaults to current buffer's visited file,
-or else nothing is done if current buffer isn't visiting a file.  */)
+or else nothing is done if current buffer isn't visiting a file.
+
+If the option `create-lockfiles' is nil, this does nothing.  */)
   (Lisp_Object file)
 {
   if (NILP (file))

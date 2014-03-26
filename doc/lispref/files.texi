@@ -709,15 +709,15 @@ some other job.
 This function locks the file @var{filename}, if the current buffer is
 modified.  The argument @var{filename} defaults to the current buffer's
 visited file.  Nothing is done if the current buffer is not visiting a
-file, or is not modified, or if the system does not support locking.
+file, or is not modified, or if the option @code{create-lockfiles} is
+@code{nil}.
 @end defun
 
 @defun unlock-buffer
 This function unlocks the file being visited in the current buffer,
 if the buffer is modified.  If the buffer is not modified, then
 the file should not be locked, so this function does nothing.  It also
-does nothing if the current buffer is not visiting a file, or if the
-system does not support locking.
+does nothing if the current buffer is not visiting a file, or is not locked.
 @end defun
 
 @defopt create-lockfiles

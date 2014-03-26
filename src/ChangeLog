@@ -1,5 +1,7 @@
 2014-03-26  Glenn Morris  <rgm@gnu.org>
 
+	* filelock.c (Flock_buffer): Doc tweak.
+
 	* buffer.c (Frestore_buffer_modified_p, Fkill_buffer):
 	* emacs.c (shut_down_emacs):
 	* fileio.c (Finsert_file_contents, write_region):

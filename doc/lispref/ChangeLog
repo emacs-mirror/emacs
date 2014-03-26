@@ -1,3 +1,7 @@
+2014-03-26  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (File Locks): All systems support locking.
+
 2014-03-22  Glenn Morris  <rgm@gnu.org>
 
 	* commands.texi (Defining Commands):
