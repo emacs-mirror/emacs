@@ -11,7 +11,8 @@
 	(vhdl-get-visible-signals):
 	Scan declarative part of generate statements.
 	(vhdl-template-record): Fix indentation for record type declaration.
-	(vhdl-expand-abbrev, vhdl-expand-paren): FIXME.
+	(vhdl-expand-abbrev, vhdl-expand-paren):
+	Revert to using fset again rather than defalias.
 	(vhdl-scan-directory-contents): Tweak.
 	(vhdl-speedbar-find-file, vhdl-speedbar-port-copy)
 	(vhdl-compose-components-package):
