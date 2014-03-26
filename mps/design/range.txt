@@ -1,7 +1,7 @@
 .. mode: -*- rst -*-
 
-Ranges
-======
+Ranges of addresses
+===================
 
 :Tag: design.mps.range
 :Author: Gareth Rees
@@ -9,6 +9,7 @@ Ranges
 :Status: complete design
 :Revision: $Id$
 :Copyright: See section `Copyright and License`_.
+:Index terms: pair: address range; design
 
 
 Introduction
@@ -50,6 +51,10 @@ between ``base`` (inclusive) and ``limit`` (exclusive). It must be the
 case that ``base <= limit``. If ``base == limit`` then the range is
 empty.
 
+``void RangeInitCopy(Range dest, Range src)``
+
+Initialize ``dest`` to be a copy of ``src``.
+
 ``void RangeFinish(Range range)``
 
 Finish a range object. Because a range object uses no heap resources
@@ -72,6 +77,18 @@ there is a function too.)
 Return the size of the range. (This is implemented as a macro, but
 there is a function too. The macro evaluates its argument twice.)
 
+``Bool RangeContains(Range range, Addr addr)``
+
+Return ``TRUE`` if ``addr`` belongs to the range, or ``FALSE`` if it
+does not. (This is implemented as a macro, but there is a function
+too. The macro evaluates its arguments twice.)
+
+``Bool RangeIsEmpty(Range range)``
+
+Return ``TRUE`` if the range is empty (contains no addresses),
+``FALSE`` otherwise. (This is implemented as a macro, but there is a
+function too. The macro evaluates its argument twice.)
+
 ``Bool RangeIsAligned(Range range, Align alignment)``
 
 Return ``TRUE`` if the base and limit of the range are both aligned to
@@ -93,6 +110,7 @@ Document history
 ----------------
 
 - 2013-05-21 GDR_ Created.
+- 2014-01-15 GDR_ Added ``RangeContains``.
 
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 

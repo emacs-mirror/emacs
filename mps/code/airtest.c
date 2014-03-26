@@ -1,62 +1,58 @@
-/* range.h: ADDRESS RANGE INTERFACE
+/* airtest.c: AMBIGUOUS INTERIOR REFERENCE TEST
  *
- * $Id$
- * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
+ * $Id: //info.ravenbrook.com/project/mps/branch/2014-01-15/nailboard/code/fotest.c#1 $
+ * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
  *
- * .purpose: Representation of address ranges.
+ * This test case creates a bunch of vectors, registers them for
+ * finalization, and then discards the base pointers to those objects,
+ * keeping only ambiguous interior references to the vector entries in
+ * the stack-allocated table s.
  *
- * .design: <design/range/>
+ * If any of these objects are finalized, then this means that the
+ * ambiguous interior references has failed to keep the object alive.
  */
 
-#ifndef range_h
-#define range_h
+#include "mps.h"
+#include "fmtscheme.h"
+#include "testlib.h"
 
-#include "mpmtypes.h"
+#define OBJ_LEN (1u << 4)
+#define OBJ_COUNT 10
 
-
-/* Signatures */
-
-#define RangeSig ((Sig)0x5196A493) /* SIGnature RANGE */
-
-
-/* Prototypes */
-
-typedef struct RangeStruct *Range;
-
-#define RangeBase(range) ((range)->base)
-#define RangeLimit(range) ((range)->limit)
-#define RangeSize(range) (AddrOffset(RangeBase(range), RangeLimit(range)))
-#define RangeContains(range, addr) ((range)->base <= (addr) && (addr) < (range)->limit)
-#define RangeIsEmpty(range) (RangeSize(range) == 0)
-
-extern void RangeInit(Range range, Addr base, Addr limit);
-extern void RangeFinish(Range range);
-extern Res RangeDescribe(Range range, mps_lib_FILE *stream);
-extern Bool RangeCheck(Range range);
-extern Bool RangeIsAligned(Range range, Align align);
-extern Bool RangesOverlap(Range range1, Range range2);
-extern Bool RangesNest(Range outer, Range inner);
-extern Bool RangesEqual(Range range1, Range range2);
-extern Addr (RangeBase)(Range range);
-extern Addr (RangeLimit)(Range range);
-extern Size (RangeSize)(Range range);
-extern void RangeCopy(Range to, Range from);
-
-
-/* Types */
-
-typedef struct RangeStruct {
-  Sig sig;
-  Addr base;
-  Addr limit;
-} RangeStruct;
-
-#endif /* range_h */
+void test_main(void)
+{
+  size_t i, j;
+  obj_t *s[OBJ_COUNT];
+  mps_message_type_enable(scheme_arena, mps_message_type_finalization());
+  for (j = 0; j < OBJ_COUNT; ++j) {
+    obj_t n = scheme_make_integer((long)j);
+    obj_t obj = scheme_make_vector(OBJ_LEN, n);
+    mps_addr_t ref = obj;
+    mps_finalize(scheme_arena, &ref);
+    s[j] = obj->vector.vector;
+  }
+  for (i = 1; i < OBJ_LEN; ++i) {
+    obj_t n = scheme_make_integer((long)i);
+    mps_message_t msg;
+    for (j = 0; j + 1 < OBJ_COUNT; ++j) {
+      *++s[j] = n;
+    }
+    mps_arena_collect(scheme_arena);
+    mps_arena_release(scheme_arena);
+    if (mps_message_get(&msg, scheme_arena, mps_message_type_finalization())) {
+      mps_addr_t ref;
+      obj_t o;
+      mps_message_finalization_ref(&ref, scheme_arena, msg);
+      o = ref;
+      error("wrongly finalized vector %ld at %p", o->vector.vector[0]->integer.integer, o);
+    }
+  }
+}
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
@@ -94,3 +90,4 @@ typedef struct RangeStruct {
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+

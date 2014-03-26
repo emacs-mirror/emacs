@@ -345,26 +345,18 @@ Segments
 --------
 
 _`.seg.class`: AMC allocates segments of class ``AMCSegClass``, which
-is a subclass of ``GCSegClass``. Instances contain a ``segTypeP``
-field, which is of type ``int*``.
+is a subclass of ``GCSegClass``.
 
-_`.seg.gen`: AMC organizes the segments it manages into generations.  
+_`.seg.gen`: AMC organizes the segments it manages into generations.
 
 _`.seg.gen.map`: Every segment is in exactly one generation.
 
-_`.seg.gen.ind`: The segment's ``segTypeP`` field indicates which
+_`.seg.gen.ind`: The segment's ``gen`` field indicates which
 generation (that the segment is in) (an ``AMCGenStruct`` see blah
 below).
 
-_`.seg.typep`: The ``segTypeP`` field actually points to either the
-type field of a generation or to the type field of a nail board.
-
-_`.seg.typep.distinguish`: The ``type`` field (which can be accessed
-in either case) determines whether the ``segTypeP`` field is pointing
-to a generation or to a nail board.
-
 _`.seg.gen.get`: The map from segment to generation is implemented by
-``AMCSegGen()`` which deals with all this.
+``amcSegGen()`` which deals with all this.
 
 
 Fixing and nailing
@@ -375,42 +367,42 @@ Fixing and nailing
     This section contains placeholders for design rather than design
     really. David Jones, 1998-02-04.
 
-_`.nailboard`: AMC uses a nail board structure for recording ambiguous
-references to segments. A nail board is a bit table with one bit per
-grain in the segment.
+_`.nailboard`: AMC uses a nailboard structure for recording ambiguous
+references to segments. See design.mps.nailboard_.
 
-_`.nailboard.create`: Nail boards are allocated dynamically whenever a
-segment becomes newly ambiguously referenced.
+.. _design.mps.nailboard: nailboard
 
-_`.nailboard.destroy`: They are deallocated during reclaim. Ambiguous
-fixes simply set the appropriate bit in this table. This table is used
-by subsequent scans and reclaims in order to work out what objects
-were marked.
+_`.nailboard.create`: A nailboard is allocated dynamically whenever a
+segment becomes newly ambiguously referenced. This table is used by
+subsequent scans and reclaims in order to work out which objects were
+ambiguously referenced.
+
+_`.nailboard.destroy`: The nailboatrd is deallocated during reclaim.
 
 _`.nailboard.emergency`: During emergency tracing two things relating
-to nail boards happen that don't normally:
+to nailboards happen that don't normally:
 
-#. _`.nailboard.emergency.nonew`: Nail boards aren't allocated when we
+#. _`.nailboard.emergency.nonew`: Nailboards aren't allocated when we
    have new ambiguous references to segments.
 
    _`.nailboard.emergency.nonew.justify`: We could try and allocate a
-   nail board, but we're in emergency mode so short of memory so it's
+   nailboard, but we're in emergency mode so short of memory so it's
    unlikely to succeed, and there would be additional code for yet
    another error path which complicates things.
 
-#. _`.nailboard.emergency.exact`: nail boards are used to record exact
+#. _`.nailboard.emergency.exact`: nailboards are used to record exact
    references in order to avoid copying the objects.
 
-   _`.nailboard.hyper-conservative`: Not creating new nail boards
+   _`.nailboard.hyper-conservative`: Not creating new nailboards
    (`.nailboard.emergency.nonew`_ above) means that when we have a new
    reference to a segment during emergency tracing then we nail the
    entire segment and preserve everything in place.
 
 _`.fix.nail.states`: Partition the segment states into four sets:
 
-#. white segment and not nailed (and has no nail board);
-#. white segment and nailed and has no nail board;
-#. white segment and nailed and has nail board;
+#. white segment and not nailed (and has no nailboard);
+#. white segment and nailed and has no nailboard;
+#. white segment and nailed and has nailboard;
 #. the rest.
 
 _`.fix.nail.why`: A segment is recorded as being nailed when either
@@ -420,26 +412,23 @@ wasn't enough memory to allocate the copy). In either of these cases
 reclaim cannot simply destroy the segment (usually the segment will
 not be destroyed because it will have live objects on it, though see
 `.nailboard.limitations.middle`_ below). If the segment is nailed then
-we might be using a nail board to mark objects on the segment.
-However, we cannot guarantee that being nailed implies a nail board,
-because we might not be able to allocate the nail board. Hence all
+we might be using a nailboard to mark objects on the segment.
+However, we cannot guarantee that being nailed implies a nailboard,
+because we might not be able to allocate the nailboard. Hence all
 these states actually occur in practice.
 
 _`.fix.nail.distinguish`: The nailed bits in the segment descriptor
-(``SegStruct``) are used to record whether a segment is nailed or not.
-The ``segTypeP`` field of the segment either points to (the "type"
-field of) an ``AMCGen`` or to an ``AMCNailBoard``, the type field can
-be used to determine which of these is the case. (see `.seg.typep`_
-above).
+(``SegStruct``) are used to record the set of traces for which a
+segment has nailed objects.
 
-_`.nailboard.limitations.single`: Just having a single nail board per
+_`.nailboard.limitations.single`: Just having a single nailboard per
 segment prevents traces from improving on the findings of each other:
 a later trace could find that a nailed object is no longer nailed or
-even dead. Until the nail board is discarded, that is.
+even dead. Until the nailboard is discarded, that is.
 
-_`.nailboard.limitations.middle`: An ambiguous reference into the
-middle of an object will cause the segment to survive, even if there
-are no surviving objects on it.
+_`.nailboard.limitations.middle`: An ambiguous reference to a segment
+that does not point into any object in that segment will cause that
+segment to survive even though there are no surviving objects on it.
 
 _`.nailboard.limitations.reclaim`: ``AMCReclaimNailed()`` could cover
 each block of reclaimed objects between two nailed objects with a
@@ -453,13 +442,13 @@ _`.emergency.fix`: ``AMCFixEmergency()`` is at the core of AMC's
 emergency tracing policy (unsurprisingly). ``AMCFixEmergency()``
 chooses exactly one of three options:
 
-#. use the existing nail board structure to record the fix;
+#. use the existing nailboard structure to record the fix;
 #. preserve and nail the segment in its entirety;
 #. snapout an exact (or high rank) pointer to a broken heart to the
    broken heart's forwarding pointer.
 
 If the rank of the reference is ``RankAMBIG`` then it either does (1)
-or (2) depending on wether there is an existing nail board or not.
+or (2) depending on wether there is an existing nailboard or not.
 Otherwise (the rank is exact or higher) if there is a broken heart it
 is used to snapout the pointer. Otherwise it is as for an
 ``RankAMBIG`` reference: we either do (1) or (2).
@@ -548,8 +537,8 @@ one generation.
 _`.gen.rep`: Generations are represented using an ``AMCGenStruct``
 structure.
 
-_`.gen.create`: All the generation are create when the pool is created
-(during ``AMCInitComm()``).
+_`.gen.create`: All the generations are created when the pool is
+created (during ``AMCInitComm()``).
 
 _`.gen.manage.ring`: An AMC's generations are kept on a ring attached
 to the ``AMCStruct`` (the ``genRing`` field).
