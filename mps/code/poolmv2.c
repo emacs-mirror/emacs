@@ -280,7 +280,7 @@ static Res MVTInit(Pool pool, ArgList args)
 
   res = FreelistInit(MVTFreelist(mvt), align);
   if (res != ResOK)
-    goto failABQ;
+    goto failFreelist;
 
   pool->alignment = align;
   mvt->reuseSize = reuseSize;
@@ -345,6 +345,8 @@ static Res MVTInit(Pool pool, ArgList args)
                reserveDepth, fragLimit);
   return ResOK;
 
+failFreelist:
+  ABQFinish(arena, MVTABQ(mvt));
 failABQ:
   CBSFinish(MVTCBS(mvt));
 failCBS:

@@ -339,6 +339,7 @@ _mps_RES_ENUM(RES_STRINGS_ROW, X)
 
 /* verror -- die with message */
 
+ATTRIBUTE_FORMAT((printf, 1, 0))
 void verror(const char *format, va_list args)
 {
   (void)fflush(stdout); /* synchronize */
@@ -360,6 +361,7 @@ void verror(const char *format, va_list args)
 
 /* error -- die with message */
 
+ATTRIBUTE_FORMAT((printf, 1, 2))
 void error(const char *format, ...)
 {
  va_list args;

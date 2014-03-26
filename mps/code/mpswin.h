@@ -20,6 +20,7 @@
  * don't use. See <http://support.microsoft.com/kb/166474> */
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#undef WIN32_LEAN_AND_MEAN
 
 #ifdef MPS_BUILD_MV
 #pragma warning(default: 4115 4201 4209 4214)

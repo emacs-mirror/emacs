@@ -121,7 +121,7 @@ static mps_word_t *alloc_string(const char *s, mps_ap_t ap)
  * .assume.dylan-obj
  */
 
-static mps_word_t *alloc_table(unsigned long n, mps_ap_t ap)
+static mps_word_t *alloc_table(size_t n, mps_ap_t ap)
 {
   size_t objsize;
   void *p;
@@ -226,11 +226,13 @@ static void test(mps_arena_t arena,
   for(i = 0; i < TABLE_SLOTS; ++i) {
     if (preserve[i] == 0) {
       if (table_slot(weaktable, i)) {
-        error("Strongly unreachable weak table entry found, slot %lu.\n", i);
+        error("Strongly unreachable weak table entry found, "
+              "slot %"PRIuLONGEST".\n", (ulongest_t)i);
       } else {
         if (table_slot(exacttable, i) != 0) {
           error("Weak table entry deleted, but corresponding "
-                "exact table entry not deleted, slot %lu.\n", i);
+                "exact table entry not deleted, slot %"PRIuLONGEST".\n",
+                (ulongest_t)i);
         }
       }
     }

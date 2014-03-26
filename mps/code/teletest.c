@@ -19,7 +19,7 @@ SRCID(teletest, "$Id$");
 
 static mps_arena_t arena;
 
-#define WORD_FORMAT "%" PRIwWORD PRIuLONGEST
+#define WORD_FORMAT "0x%0" PRIwWORD PRIuLONGEST
 #define MAX_ARGS 3
 #define INPUT_BUFFER_SIZE 512
 
