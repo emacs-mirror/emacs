@@ -62,6 +62,7 @@ static const char *prog; /* program name */
 
 /* fevwarn -- flush stdout, write message to stderr */
 
+ATTRIBUTE_FORMAT((printf, 2, 0))
 static void fevwarn(const char *prefix, const char *format, va_list args)
 {
   (void)fflush(stdout); /* sync */
@@ -74,6 +75,7 @@ static void fevwarn(const char *prefix, const char *format, va_list args)
 
 /* evwarn -- flush stdout, warn to stderr */
 
+ATTRIBUTE_FORMAT((printf, 1, 2))
 static void evwarn(const char *format, ...)
 {
   va_list args;
@@ -85,6 +87,7 @@ static void evwarn(const char *format, ...)
 
 /* everror -- flush stdout, message to stderr, exit */
 
+ATTRIBUTE_FORMAT((printf, 1, 2))
 static void everror(const char *format, ...)
 {
   va_list args;

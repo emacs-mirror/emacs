@@ -116,6 +116,7 @@ typedef struct apRepStruct *apRep;
 
 /* error -- error signalling */
 
+ATTRIBUTE_FORMAT((printf, 1, 2))
 static void error(const char *format, ...)
 {
   va_list args;
