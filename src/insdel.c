@@ -214,9 +214,8 @@ void
 adjust_markers_for_delete (ptrdiff_t from, ptrdiff_t from_byte,
 			   ptrdiff_t to, ptrdiff_t to_byte)
 {
-  Lisp_Object marker;
-  register struct Lisp_Marker *m;
-  register ptrdiff_t charpos;
+  struct Lisp_Marker *m;
+  ptrdiff_t charpos;
 
   for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {

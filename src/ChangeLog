@@ -1,3 +1,7 @@
+2014-03-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* insdel.c (adjust_markers_for_delete): Remove unused local.
+
 2014-03-24  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	Have (MARKER . ADJUSTMENT) undo records always be immediately
