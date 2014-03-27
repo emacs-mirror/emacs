@@ -1,3 +1,8 @@
+2014-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: Require GNU make.
+	(HAVE_GNU_MAKE): Remove.
+
 2014-03-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

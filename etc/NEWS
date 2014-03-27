@@ -24,6 +24,9 @@ otherwise leave it unmarked.
 
 * Installation Changes in Emacs 24.5
 
++++
+** Building Emacs now requires GNU make.
+
 
 * Startup Changes in Emacs 24.5
 

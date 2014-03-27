@@ -24,6 +24,9 @@ find some things, or what options to use.
 `src/config.h' file containing system-dependent definitions.
 Running the `make' utility then builds the package for your system.
 
+Building Emacs requires GNU make, <http://www.gnu.org/software/make/>.
+On most systems that Emacs supports, this is the default `make' program.
+
 Here's the procedure to build Emacs using `configure' on systems which
 are supported by it.  In some cases, if the simplified procedure fails,
 you might need to use various non-default options, and maybe perform
@@ -49,7 +52,6 @@ sections if you need to.
 		 SOURCE-DIR/configure
 
       where SOURCE-DIR is the top-level Emacs source directory.
-      This may not work unless you use GNU make.
 
   3. When `configure' finishes, it prints several lines of details
      about the system configuration.  Read those details carefully
@@ -435,12 +437,8 @@ SOURCE-DIR refers to the top-level Emacs source directory which is
 where Emacs's configure script is located.  `configure' looks for the
 Emacs source code in the directory that `configure' is in.
 
-To build in a separate directory, you must use a version of `make'
-that supports the `VPATH' variable, such as GNU `make'.
-
-(Do not try to build in a separate directory by creating many links
-to the real source directory--there is no need, and installation will
-fail.)
+(Do not try to build in a separate directory by creating many links to
+the real source directory--there is no need, and installation will fail.)
 
 4) Put into `./lisp/site-init.el' or `./lisp/site-load.el' any Emacs
 Lisp code you want Emacs to load before it is dumped out.  Use

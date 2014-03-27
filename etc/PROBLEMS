@@ -2544,27 +2544,6 @@ occurring with older versions of GCC (e.g. 3.3.5).
 This is due to a bug in the bcopy implementation in openSUSE 10.3.
 It is/will be fixed in an openSUSE update.
 
-** Installation
-
-*** On Solaris, use GNU Make when installing an out-of-tree build
-
-The Emacs configuration process allows you to configure the
-build environment so that you can build emacs in a directory
-outside of the distribution tree.  When installing Emacs from an
-out-of-tree build directory on Solaris, you may need to use GNU
-make.  The make programs bundled with Solaris support the VPATH
-macro but use it differently from the way the VPATH macro is
-used by GNU make.  The differences will cause the "make install"
-step to fail, leaving you with an incomplete emacs
-installation.  GNU make is available in /usr/sfw/bin on Solaris
-10 and can be installed as /opt/sfw/bin/gmake from the Solaris 9
-Software Companion CDROM.
-
-The problems due to the VPATH processing differences affect only
-out of tree builds so, if you are on a Solaris installation
-without GNU make, you can install Emacs completely by installing
-from a build environment using the original emacs distribution tree.
-
 ** First execution
 
 *** Emacs binary is not in executable format, and cannot be run.

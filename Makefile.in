@@ -60,8 +60,8 @@
 
 SHELL = @SHELL@
 
-# This may not work with certain non-GNU make's.  It only matters when
-# inheriting a CDPATH not starting with the current directory.
+# This only matters when inheriting a CDPATH not starting with the
+# current directory.
 CDPATH=
 
 # If Make doesn't predefine MAKE, set it here.

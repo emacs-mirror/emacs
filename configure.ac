@@ -441,8 +441,7 @@ AC_SUBST(PROFILING_CFLAGS)
 AC_ARG_ENABLE(autodepend,
 [AS_HELP_STRING([--enable-autodepend],
 		[automatically generate dependencies to .h-files.
- 		 Requires GNU Make and Gcc. Enabled if GNU Make and Gcc is
- 		 found])],
+ 		 Requires gcc, enabled if found.])],
 [ac_enable_autodepend="${enableval}"],[ac_enable_autodepend=yes])
 
 AC_ARG_ENABLE(gtk-deprecation-warnings,
@@ -656,6 +655,18 @@ if test $unported = yes; then
   AC_MSG_ERROR([Emacs does not support `${canonical}' systems.
 If you think it should, please send a report to bug-gnu-emacs@gnu.org.
 Check `etc/MACHINES' for recognized configuration names.])
+fi
+
+
+AC_MSG_CHECKING([whether we are using GNU Make])
+testval=`${MAKE-make} --version 2>/dev/null | grep 'GNU Make'`
+if test "x$testval" != x; then
+  AC_MSG_RESULT([yes])
+else
+  AC_MSG_RESULT([no])
+  AC_MSG_ERROR([Building Emacs requires GNU make.
+If you have it installed under a name other than 'make',
+set the MAKE environment variable, and try again.])
 fi
 
 
@@ -1526,27 +1537,16 @@ dnl AC_PROG_MAKE_SET is done by Automake.
 DEPFLAGS=
 MKDEPDIR=":"
 deps_frag=deps.mk
-dnl check for GNU Make if we have GCC and autodepend is on.
+dnl check if we have GCC and autodepend is on.
 if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
-   AC_MSG_CHECKING([whether we are using GNU Make])
-   HAVE_GNU_MAKE=no
-   testval=`${MAKE-make} --version 2>/dev/null | grep 'GNU Make'`
-   if test "x$testval" != x; then
-      HAVE_GNU_MAKE=yes
-   else
-      ac_enable_autodepend=no
-   fi
-   AC_MSG_RESULT([$HAVE_GNU_MAKE])
-   if test $HAVE_GNU_MAKE = yes; then
-      AC_MSG_CHECKING([whether gcc understands -MMD -MF])
-      SAVE_CFLAGS="$CFLAGS"
-      CFLAGS="$CFLAGS -MMD -MF deps.d -MP"
-      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])], , ac_enable_autodepend=no)
-      CFLAGS="$SAVE_CFLAGS"
-      test -f deps.d || ac_enable_autodepend=no
-      rm -rf deps.d
-      AC_MSG_RESULT([$ac_enable_autodepend])
-   fi
+   AC_MSG_CHECKING([whether gcc understands -MMD -MF])
+   SAVE_CFLAGS="$CFLAGS"
+   CFLAGS="$CFLAGS -MMD -MF deps.d -MP"
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])], , ac_enable_autodepend=no)
+   CFLAGS="$SAVE_CFLAGS"
+   test -f deps.d || ac_enable_autodepend=no
+   rm -rf deps.d
+   AC_MSG_RESULT([$ac_enable_autodepend])
    if test $ac_enable_autodepend = yes; then
       DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d -MP'
       ## MKDIR_P is documented (see AC_PROG_MKDIR_P) to be parallel-safe.
