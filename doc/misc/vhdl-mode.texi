@@ -1,87 +1,60 @@
 \input texinfo   @c -*- texinfo -*-
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment %**start of header (This is for running Texinfo on a region)
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@setfilename ../../info/vhdl-mode
+@settitle VHDL Mode, an Emacs mode for editing VHDL code
 
-@setfilename  vhdl-mode.info
-@settitle     VHDL Mode Version 3 Documentation
-@footnotestyle end
+@c Adapted from the VHDL Mode texinfo manual version 2 by Rodney J. Whitby.
+@c Adapted from the CC Mode texinfo manual by Barry A. Warsaw.
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment @setchapternewpage odd !! we don't want blank pages !!
-@comment %**end of header (This is for running Texinfo on a region)
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@copying
+This file documents VHDL Mode, an Emacs mode for editing VHDL code.
 
+Copyright @copyright{} 1995--2008, 2010, 2012, 2014 Free Software
+Foundation, Inc.
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment 
-@comment texinfo manual for @file{vhdl-mode.el} version 3
-@comment manual version: 3.1
-@comment adapted from the VHDL Mode texinfo manual version 2 by
-@comment Rodney J. Whitby <rwhitby@geocities.com>
-@comment adapted from the CC Mode texinfo manual by Barry A. Warsaw
-@comment <bwarsaw@cnri.reston.va.us>
-@comment 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License.''
 
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.''
+@end quotation
+@end copying
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment The following line inserts the copyright notice 
-@comment into the Info file.
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@dircategory Emacs editing modes
+@direntry
+* VHDL Mode: (vhdl-mode).       Emacs mode for editing VHDL code.
+@end direntry
 
-@ifinfo
-Copyright @copyright{} 1997 - 2002 Reto Zimmermann <reto@@gnu.org>
-Copyright @copyright{} 1995 - 1997 Rodney J. Whitby <software.vhdl-mode@@rwhitby.net>
-@end ifinfo
-
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment !!!The titlepage section does not appear in the Info file.!!!
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@finalout
 
 @titlepage
-@sp 10
-
-
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment The title is printed in a large font.
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-@center @titlefont{VHDL Mode Version 3}
+@title VHDL Mode
 @sp 2
-@center A GNU Emacs mode for editing VHDL code.
-@center (manual revision: 3.1)
+@subtitle A GNU Emacs mode for editing VHDL code.
 @sp 2
-@center Reto Zimmermann
-@center @code{Reto.Zimmermann@@iaeth.ch}
-@center Rod Whitby
-@center @code{rwhitby@@geocities.com}
-
-
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment  The following two commands start the copyright page
-@comment  for the printed manual.  This will not appear in the Info file.
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@author Reto Zimmermann
+@author @email{reto@@gnu.org}
+@author Rod Whitby
+@author @email{software.vhdl-mode@@rwhitby.net}
 
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1997 Reto Zimmermann <Reto.Zimmermann@@iaeth.ch>
-Copyright @copyright{} 1995 - 1997 Rodney J. Whitby <rwhitby@@geocities.com>
+@insertcopying
 @end titlepage
 
+@contents
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment The Top node contains the master menu for the Info file.
-@comment This appears only in the Info file, not the printed manual.
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@ifnottex
+@node Top
+@top VHDL Mode, an Emacs mode for editing VHDL code
 
-@node    Top, Introduction, (dir), (dir)
-@comment node-name, next, previous, up
-
-
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@insertcopying
+@end ifnottex
 
 @menu
 * Introduction::                
@@ -89,29 +62,24 @@ Copyright @copyright{} 1995 - 1997 Rodney J. Whitby <rwhitby@@geocities.com>
 * New Indentation Engine::
 * Customizing Indentation::
 * Syntactic Symbols::
-* Indentation Commands::
 * Frequently Asked Questions::
 * Getting the latest VHDL Mode release::
 * Sample .emacs File::
-* Requirements::                
-* Limitations and Known Bugs::  
+* Limitations and Known Bugs::
 * Mailing Lists and Submitting Bug Reports::  
+* GNU Free Documentation License:: The license for this documentation.
 * Concept Index::               
 * Command Index::               Command Index
 * Key Index::                   Key Index
 * Variable Index::              Variable Index
 @end menu
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-@node     Introduction, Getting Connected, Top, Top
-@comment  node-name, next, previous, up
+@node     Introduction
 @chapter  Introduction
 @cindex   Introduction
 
-Welcome to VHDL Mode version 3. This is a GNU Emacs mode for editing
-files containing VHDL code.
+Welcome to VHDL Mode. This is a GNU Emacs mode for editing files
+containing VHDL code.
 
 This manual will describe the following:
 
@@ -145,119 +113,16 @@ within the mode itself by typing @kbd{C-c C-h}. Also, all commands and
 customization of most variables are available through the menu, which
 makes everything highly self-explaining.
 
-
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-@node     Getting Connected, New Indentation Engine, Introduction, Top
-@comment  node-name, next, previous, up
+@node     Getting Connected
 @chapter  Getting Connected
 @cindex   Getting Connected
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+To get started, simply visit a @file{.vhd} file in Emacs; or type
+@kbd{M-x vhdl-mode RET}.
 
-VHDL Mode works well under GNU Emacs 20 and XEmacs 19.15 and higher.
-GNU Emacs 19 is not supported anymore since several new features of
-Emacs 20 are used in this VHDL Mode version (you can download VHDL
-Mode version 1.10 for Emacs 19).
-
-@cindex .emacs file
-The first thing you will want to do is put @file{vhdl-mode.el} somewhere
-on your @code{load-path} so Emacs can find it.  Do a @kbd{C-h v
-load-path RET} to see all the directories Emacs looks at when loading a
-file.  If none of these directories are appropriate, create a new
-directory and add it to your @code{load-path}:
-
-@noindent
-@emph{[in the shell]}
-@example
-@group
-
-% cd
-% mkdir mylisp
-% mv vhdl-mode.el mylisp
-% cd mylisp
-
-@end group
-@end example
-
-@noindent
-@emph{[in your .emacs file add]}
-@example
-
-(setq load-path (cons "~/mylisp" load-path))
-
-@end example
-
-@cindex byte compile
-Next you want to @dfn{byte compile} @file{vhdl-mode.el}.  The mode uses a
-lot of macros so if you don't byte compile it, things will be unbearably
-slow.  @emph{You can ignore all byte-compiler warnings!}  They are the
-result of the supporting different versions of Emacs, and none of the
-warnings have any effect on operation. Let me say this again:
-@strong{You really can ignore all byte-compiler warnings!}
-
-Here's what to do to byte-compile the file [in emacs]:
-@example
-
-M-x byte-compile-file RET ~/mylisp/vhdl-mode.el RET
-
-@end example
-
-Now add the following autoloads to your @file{.emacs} file so that
-@code{vhdl-mode} gets loaded at the right time:
-@example
-
-(autoload 'vhdl-mode "vhdl-mode" "VHDL Editing Mode" t)
-
-@end example
-
-Alternatively, if you want to make sure VHDL Mode is loaded when
-Emacs starts up, you could use this line instead of the autoload above:
-@example
-
-(require 'vhdl-mode)
-
-@end example
-
-Next, you will want to set up Emacs so that it edits VHDL files in
-VHDL Mode. All users should add the following to their
-@file{.emacs} file.  Note that this assumes you'll be editing @code{.vhd}
-and files as VHDL. YMMV:
-@example
-@group
-
-(setq auto-mode-alist
-  (append
-    '(("\\.vhd$" . vhdl-mode)
-     ) auto-mode-alist))
-
-@end group
-@end example
-
-That's all you need -- I know, I know, it sounds like a lot @code{:-)},
-but after you've done all this, you should only need to quit and restart
-Emacs.  The next time you visit a VHDL file you should be using
-VHDL Mode.  You can check this easily by hitting @kbd{M-x
-vhdl-version RET} in the VHDL Mode buffer.  You should see this
-message in the echo area:
-@example
-
-Using VHDL Mode version 3.@var{XX}
-
-@end example
-
-@noindent
-where @var{XX} will be some minor revision number.
-
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-@node     New Indentation Engine, Indentation Commands, Getting Connected, Top
-@comment  node-name, next, previous, up
-
+@node     New Indentation Engine
 @chapter  New Indentation Engine
 @cindex   New Indentation Engine
-
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 VHDL Mode has a new indentation engine, providing a simplified, yet
 flexible and general mechanism for customizing indentation. It breaks
@@ -271,19 +136,14 @@ VHDL Mode. It is important to understand the indentation model
 being used so that you will know how to customize VHDL Mode for
 your personal coding style.
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @menu
 * Syntactic Analysis::       Step 1 -- Syntactic Analysis
 * Indentation Calculation::  Step 2 -- Indentation Calculation
 @end menu
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node  Syntactic Analysis, Indentation Calculation, , New Indentation Engine
-@comment  node-name, next, previous, up
+@node  Syntactic Analysis
 @section  Syntactic Analysis
 @cindex   Syntactic Analysis
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @vindex vhdl-offsets-alist
 @vindex offsets-alist (vhdl-)
@@ -375,12 +235,9 @@ so you can see that the syntactic component list contains two syntactic
 components.  Also notice that the first component,
 @samp{(comment-intro)} has no relative buffer position.
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node  Indentation Calculation, , Syntactic Analysis, New Indentation Engine
-@comment  node-name, next, previous, up
+@node  Indentation Calculation
 @section  Indentation Calculation
 @cindex   Indentation Calculation
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @vindex vhdl-offsets-alist
 @vindex offsets-alist (vhdl-)
@@ -451,23 +308,18 @@ syntactic component list and calculated offset will always be echoed in
 the minibuffer when you hit @kbd{TAB}.
 
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node  Indentation Commands, Customizing Indentation, New Indentation Engine, Top
-@comment  node-name, next, previous, up
-
+@ignore
+@node  Indentation Commands
 @chapter  Indentation Commands
 @cindex   Indentation Commands
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @strong{<TBD>}
+@end ignore
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node     Customizing Indentation, Syntactic Symbols, Indentation Commands, Top
-@comment  node-name, next, previous, up
 
+@node     Customizing Indentation
 @chapter  Customizing Indentation
 @cindex   Customizing Indentation
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @cindex vhdl-set-offset
 @cindex set-offset (vhdl-)
@@ -478,7 +330,7 @@ O} (@code{vhdl-set-offset}) as the way to set offsets, both
 interactively and from your mode hook.  Also, you can set up
 @emph{styles} of indentation.  Most likely, you'll find one of the
 pre-defined styles will suit your needs, but if not, this section will
-describe how to set up basic editing configurations.  @xref{Styles} for
+describe how to set up basic editing configurations.  @xref{Styles}, for
 an explanation of how to set up named styles.
 
 @cindex vhdl-basic-offset
@@ -532,13 +384,9 @@ interactively, then I'll describe how to make changes to your
 * Advanced Customizations::
 @end menu
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node     Interactive Customization, Permanent Customization, , Customizing Indentation
-@comment  node-name, next, previous, up
-
+@node     Interactive Customization
 @section  Interactive Customization
 @cindex   Interactive Customization
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 As an example of how to customize indentation, let's change the
 style of the example above from:
@@ -620,13 +468,9 @@ examples, this may not always work.  The general approach to take is to
 always start adjusting offsets for lines higher up in the file, then
 re-indent and see if any following lines need further adjustments.
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node     Permanent Customization, Styles, Interactive Customization, Customizing Indentation
-@comment  node-name, next, previous, up
-
+@node     Permanent Customization
 @section  Permanent Indentation
 @cindex   Permanent Indentation
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @vindex vhdl-mode-hook
 @cindex hooks
@@ -639,11 +483,8 @@ Here's a simplified example of what you can add to your @file{.emacs}
 file to make the changes described in the previous section
 (@ref{Interactive Customization}) more permanent.  See the Emacs
 manuals for more information on customizing Emacs via hooks.
-@xref{Sample .emacs File} for a more complete sample @file{.emacs} file.
-@footnote{The use of @code{add-hook} in this example only works for
-Emacs 19.  Workarounds are available if you are using Emacs 18, but this
-just points out another reason for you to upgrade to Emacs 19!
-@code{:-)}}
+@xref{Sample .emacs File}, for a more complete sample @file{.emacs} file.
+
 @example
 @group
 
@@ -659,19 +500,15 @@ just points out another reason for you to upgrade to Emacs 19!
 
 For complex customizations, you will probably want to set up a
 @emph{style} that groups all your customizations under a single
-name. @xref{Styles} for details.
+name.  @xref{Styles}.
 
 The offset value can also be a function, and this is how power users
-gain enormous flexibility in customizing indentation. @xref{Advanced
-Customizations} for details.
+gain enormous flexibility in customizing indentation.  @xref{Advanced
+Customizations}.
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node     Styles, Advanced Customizations, Permanent Customization, Customizing Indentation
-@comment  node-name, next, previous, up
-
+@node     Styles
 @section  Styles
 @cindex   Styles
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 Most people only need to edit code formatted in just a few well-defined
 and consistent styles.  For example, their organization might impose a
@@ -692,13 +529,9 @@ describes how to set up styles and how to edit your C code using styles.
 @end menu
 
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node     Built-in Styles, Adding Styles, , Styles
-@comment  node-name, next, previous, up
-
+@node     Built-in Styles
 @subsection  Built-in Styles
 @cindex   Built-in Styles
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 If you're lucky, one of VHDL Mode's built-in styles might be just
 what you're looking for.  Some of the most common VHDL styles are
@@ -714,20 +547,15 @@ already built-in.  These include:
 @findex vhdl-set-style
 @findex set-style (vhdl-)
 If you'd like to experiment with these built-in styles you can simply
-type the following in a VHDL Mode buffer:
-@example
-@group
+type @kbd{M-x vhdl-set-style RET} in a VHDL Mode buffer.
 
-@kbd{M-x vhdl-set-style RET}.
-
-@end group
-@end example
-@noindent
 You will be prompted for one of the above styles (with completion).
 Enter one of the styles and hit @kbd{RET}.  Note however that setting a
 style in this way does @emph{not} automatically re-indent your file.
+@ignore
 For commands that you can use to view the effect of your changes, see
 @ref{Indentation Commands}.
+@end ignore
 
 Once you find a built-in style you like, you can make the change
 permanent by adding a call to your @file{.emacs} file.  Let's say for
@@ -749,13 +577,9 @@ files.  You would add this:
 @noindent
 @xref{Permanent Customization}.
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node     Adding Styles, File Styles, Built-in Styles, Styles
-@comment  node-name, next, previous, up
-
+@node     Adding Styles
 @subsection  Adding Styles
 @cindex   Adding Styles
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @vindex vhdl-style-alist
 @vindex style-alist (vhdl-)
@@ -777,13 +601,9 @@ institutes the new style in the current buffer.
 The sample @file{.emacs} file provides a concrete example of how a new
 style can be added and automatically set.  @xref{Sample .emacs File}.
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node     File Styles, ,  Adding Styles, Styles
-@comment  node-name, next, previous, up
-
+@node     File Styles
 @subsection  File Styles
 @cindex   File Styles
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @cindex local variables
 The Emacs manual describes how you can customize certain variables on a
@@ -816,13 +636,9 @@ Note that file style settings (i.e. @code{vhdl-file-style}) are applied
 before file offset settings (i.e. @code{vhdl-file-offsets}).
 
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node     Advanced Customizations, , Styles, Customizing Indentation
-@comment  node-name, next, previous, up
-
+@node     Advanced Customizations
 @section  Advanced Customizations
 @cindex   Advanced Customizations
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @vindex vhdl-style-alist
 @vindex style-alist (vhdl-)
@@ -844,13 +660,9 @@ not handled by the mode directly.
 * Other Special Indentations::
 @end menu
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node     Custom Indentation Functions, Other Special Indentations, , Advanced Customizations
-@comment  node-name, next, previous, up
-
+@node     Custom Indentation Functions
 @subsection  Custom Indentation Functions
 @cindex   Custom Indentation Functions
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @cindex custom indentation functions
 One of the most common ways to customize VHDL Mode is by writing
@@ -959,13 +771,9 @@ a custom indentation function associated with it.  Note however that
 using many custom indentation functions may have a performance impact on
 VHDL Mode.
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node     Other Special Indentations, , Custom Indentation Functions, Advanced Customizations
-@comment  node-name, next, previous, up
-
+@node     Other Special Indentations
 @subsection  Other Special Indentations
 @cindex   Other Special Indentations
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @vindex vhdl-special-indent-hook
 @vindex special-indent-hook (vhdl-)
@@ -979,13 +787,9 @@ component instantiation, etc.  Note however, that you should not change
 functions.
 
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node  Syntactic Symbols, Frequently Asked Questions, Customizing Indentation, Top
-@comment  node-name, next, previous, up
-
+@node  Syntactic Symbols
 @chapter  Syntactic Symbols
 @cindex   Syntactic Symbols
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @vindex vhdl-offsets-alist
 The complete list of recognized syntactic symbols is described in the
@@ -1012,13 +816,9 @@ suffix @code{-block-intro}.
 @strong{<TBD> include the name and a brief example of every syntactic
 symbol currently recognized}
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node  Frequently Asked Questions, Getting the latest VHDL Mode release, Syntactic Symbols, Top
-@comment  node-name, next, previous, up
-
+@node  Frequently Asked Questions
 @chapter  Frequently Asked Questions
 @cindex   Frequently Asked Questions
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @kindex C-x h
 @kindex ESC C-\
@@ -1057,24 +857,6 @@ marked.
 C-q}.
 @sp 2
 
-@strong{Q.} @emph{Why doesn't the @key{RET} key indent the line to
-where the new text should go after inserting the newline?}
-
-@strong{A.} Emacs' convention is that @key{RET} just adds a newline,
-and that @key{LFD} adds a newline and indents it.  You can make
-@key{RET} do this too by adding this to your
-@code{vhdl-mode-hook} (see the sample @file{.emacs} file
-@ref{Sample .emacs File}):
-@example
-
-(define-key vhdl-mode-map "\C-m" 'newline-and-indent)
-
-@end example
-
-This is a very common question. @code{:-)} If you want this to be the
-default behavior, don't lobby me, lobby RMS!
-@sp 2
-
 @strong{Q.} @emph{I put @code{(vhdl-set-offset 'statement-cont 0)}
 in my @file{.emacs} file but I get an error saying that
 @code{vhdl-set-offset}'s function definition is void.}
@@ -1097,31 +879,23 @@ details.
 @end quotation
 
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node  Getting the latest VHDL Mode release, Sample .emacs File, Frequently Asked Questions, Top
-@comment  node-name, next, previous, up
-
+@node  Getting the latest VHDL Mode release
 @chapter  Getting the latest VHDL Mode release
 @cindex   Getting the latest VHDL Mode release
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 The best way to be sure you always have the latest VHDL Mode release
 is to join the @code{vhdl-mode-announce} mailing list.  If you are a
 brave soul, and wish to participate in beta testing of new releases of
 VHDL Mode, you may also join the @code{vhdl-mode-victims} mailing
-list.  Send email to the maintainer <reto@@gnu.org> to join
+list.  Send email to the maintainer @email{reto@@gnu.org} to join
 either of these lists.
 
 The official Emacs VHDL Mode Home Page can be found at
-<http://www.iis.ee.ethz.ch/~zimmi/emacs/vhdl-mode.html>.
+@uref{http://www.iis.ee.ethz.ch/~zimmi/emacs/vhdl-mode.html}.
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node  Sample .emacs File, Requirements, Getting the latest VHDL Mode release, Top
-@comment  node-name, next, previous, up
-
+@node  Sample .emacs File
 @chapter  Sample @file{.emacs} file
 @cindex   Sample @file{.emacs} file
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 Most customizations can be done using the `Customize' entry in the
 VHDL Mode menu, which requires no editing of the .emacs file.
@@ -1157,43 +931,27 @@ If you want to customize indentation, here you go:
   (define-key vhdl-mode-map "\C-m" 'newline-and-indent)
   )
 
-;; the following only works in Emacs 19
-;; Emacs 18ers can use (setq vhdl-mode-hook 'my-vhdl-mode-hook)
 (add-hook 'vhdl-mode-hook 'my-vhdl-mode-hook)
 @end example
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node  Requirements, Limitations and Known Bugs, Sample .emacs File, Top
-@comment  node-name, next, previous, up
-@chapter  Requirements
-@cindex   Requirements
-@comment * Requirements
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-All required files are distributed with GNU Emacs 20 and XEmacs 19.15.
-
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node  Limitations and Known Bugs, Mailing Lists and Submitting Bug Reports, Requirements, Top
-@comment  node-name, next, previous, up
+@node  Limitations and Known Bugs
 @chapter  Limitations and Known Bugs
 @cindex   Limitations and Known Bugs
-@comment * Limitations and Known Bugs
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @itemize @bullet
 @item
 Re-indenting large regions or expressions can be slow.
 
+@ignore
 @item
 The index menu does not work on my XEmacs installation (don't know why).
+@end ignore
 
 @end itemize
 
-@node  Mailing Lists and Submitting Bug Reports, Concept Index, Limitations and Known Bugs, Top
-@comment  node-name, next, previous, up
+@node  Mailing Lists and Submitting Bug Reports
 @chapter  Mailing Lists and Submitting Bug Reports
 @cindex   Mailing Lists and Submitting Bug Reports
-@comment * Mailing Lists and Submitting Bug Reports
 
 @kindex C-c C-b
 @findex vhdl-submit-bug-report
@@ -1208,35 +966,32 @@ to reproduce the problem, and include an exact recipe of steps needed to
 expose the bug.  Be especially sure to include any code that appears
 @emph{before} your bug example.
 
-For other help or suggestions, send a message to <reto@@gnu.org>.
+For other help or suggestions, send a message to @email{reto@@gnu.org}.
 
-Send an add message to <reto@@gnu.org> to get on the
+Send an add message to @email{reto@@gnu.org} to get on the
 @code{vhdl-mode-victims} beta testers list where beta releases of
 VHDL Mode are posted.  Note that you shouldn't expect beta
 releases to be as stable as public releases.
 
 There is also an announce only list where the latest public releases
 of VHDL Mode are posted.  Send an add message to
-<reto@@gnu.org> to be added to this list.
+@email{reto@@gnu.org} to be added to this list.
 
-@c !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Concept Index, Command Index,  Mailing Lists and Submitting Bug Reports, Top
-@comment node-name, next, previous, up
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+
+@node    Concept Index
 @unnumbered Concept Index
-@c !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @printindex cp
 
 
-@c !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Command Index, Key Index,  Concept Index, Top
-@comment node-name, next, previous, up
+@node    Command Index
 @unnumbered Command Index
-@c !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-@ifinfo
-
-@end ifinfo
 Since all VHDL Mode commands are prepended with the string
 @samp{vhdl-}, each appears under its @code{vhdl-<thing>} name and its
 @code{<thing> (vhdl-)} name.
@@ -1246,24 +1001,15 @@ Since all VHDL Mode commands are prepended with the string
 @printindex fn
 
 
-@c !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Key Index, Variable Index,  Command Index, Top
-@comment node-name, next, previous, up
+@node    Key Index
 @unnumbered Key Index
-@c !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @printindex ky
 
 
-@c !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Variable Index,    ,  Key Index, Top
-@comment node-name, next, previous, up
+@node    Variable Index
 @unnumbered Variable Index
-@c !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-@ifinfo
-
-@end ifinfo
 Since all VHDL Mode variables are prepended with the string
 @samp{vhdl-}, each appears under its @code{vhdl-<thing>} name and its
 @code{<thing> (vhdl-)} name.
@@ -1271,6 +1017,5 @@ Since all VHDL Mode variables are prepended with the string
 @sp 2
 @end iftex
 @printindex vr
-@summarycontents
-@contents
+
 @bye

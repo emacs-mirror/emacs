@@ -1,3 +1,12 @@
+2014-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* vhdl-mode.texi: General clean-up.  Set copyright to FSF, add license.
+	Remove hand-written node pointers.  Remove info re old Emacs versions.
+	Markup fixes.
+	(Getting Connected): Remove irrelevant info.
+	(Indentation Commands, Requirements): Remove empty/irrelevant nodes.
+	(Frequently Asked Questions): Electric indent is now enabled.
+
 2014-03-27  Reto Zimmermann  <reto@gnu.org>
 	    Rod Whitby  <software.vhdl-mode@rwhitby.net>
 
