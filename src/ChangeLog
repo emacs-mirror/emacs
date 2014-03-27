@@ -1,3 +1,9 @@
+2014-03-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* w32term.c (x_draw_image_glyph_string): Fix computation of height
+	and width of image background when it is displayed with a 'box'
+	face.  (Bug#17115)
+
 2014-03-26  Paul Eggert  <eggert@penguin.cs.ucla.edu>
 
 	More backward-compatible fix to char-equal core dump (Bug#17011).
