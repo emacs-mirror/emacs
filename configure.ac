@@ -665,8 +665,8 @@ if test "x$testval" != x; then
 else
   AC_MSG_RESULT([no])
   AC_MSG_ERROR([Building Emacs requires GNU make.
-If you have it installed under a name other than 'make',
-set the MAKE environment variable, and try again.])
+If you have it installed under another name, configure with 'MAKE=...'.
+For example, run './configure MAKE=gmake'.])
 fi
 
 
