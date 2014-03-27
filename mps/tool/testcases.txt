@@ -6,8 +6,8 @@ airtest
 amcss
 amcsshe
 amcssth        =B =T =X          job003561, job003703
-amsss
-amssshe
+amsss          =B                job001549
+amssshe        =B                job001549
 apss
 arenacv
 awlut
