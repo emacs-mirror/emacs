@@ -162,7 +162,7 @@ void (LockReleaseMPM)(Lock lock)
 
 /* LockClaimRecursive -- claim a lock (recursive) */
 
-void L(ockClaimRecursive)(Lock lock)
+void (LockClaimRecursive)(Lock lock)
 {
   int res;
 
