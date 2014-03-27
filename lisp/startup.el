@@ -292,8 +292,9 @@ see `tty-setup-hook'.")
 `tty-setup-hook' instead." "24.4")
 
 (defvar inhibit-startup-hooks nil
-  "Non-nil means don't run `term-setup-hook' and `emacs-startup-hook'.
-This is because we already did so.")
+  "Non-nil means don't run some startup hooks, because we already did.
+Currently this applies to: `emacs-startup-hook', `term-setup-hook',
+and `window-setup-hook'.")
 
 (defvar keyboard-type nil
   "The brand of keyboard you are using.
@@ -644,9 +645,7 @@ It is the default value of the variable `top-level'."
 				       (emacs-pid)
 				       (system-name))))))))
 	(unless inhibit-startup-hooks
-	  (run-hooks 'emacs-startup-hook)
-	  (and term-setup-hook
-	       (run-hooks 'term-setup-hook)))
+	  (run-hooks 'emacs-startup-hook 'term-setup-hook))
 
 	;; Don't do this if we failed to create the initial frame,
 	;; for instance due to a dense colormap.
@@ -682,8 +681,8 @@ It is the default value of the variable `top-level'."
 	;; Now we know the user's default font, so add it to the menu.
 	(if (fboundp 'font-menu-add-default)
 	    (font-menu-add-default))
-	(and window-setup-hook
-	     (run-hooks 'window-setup-hook))))
+	(unless inhibit-startup-hooks
+	  (run-hooks 'window-setup-hook))))
     ;; Subprocesses of Emacs do not have direct access to the terminal, so
     ;; unless told otherwise they should only assume a dumb terminal.
     ;; We are careful to do it late (after term-setup-hook), although the
@@ -2431,10 +2430,7 @@ A fancy display is used on graphic displays, normal otherwise."
       ;; If there are no switches to process, we might as well
       ;; run this hook now, and there may be some need to do it
       ;; before doing any output.
-      (run-hooks 'emacs-startup-hook)
-      (and term-setup-hook
-	   (run-hooks 'term-setup-hook))
-      (setq inhibit-startup-hooks t)
+      (run-hooks 'emacs-startup-hook 'term-setup-hook)
 
       ;; It's important to notice the user settings before we
       ;; display the startup message; otherwise, the settings
@@ -2446,10 +2442,9 @@ A fancy display is used on graphic displays, normal otherwise."
       ;; If there are no switches to process, we might as well
       ;; run this hook now, and there may be some need to do it
       ;; before doing any output.
-      (when window-setup-hook
-	(run-hooks 'window-setup-hook)
-	;; Don't let the hook be run twice.
-	(setq window-setup-hook nil))
+      (run-hooks 'window-setup-hook)
+
+      (setq inhibit-startup-hooks t)
 
       ;; ;; Do this now to avoid an annoying delay if the user
       ;; ;; clicks the menu bar during the sit-for.

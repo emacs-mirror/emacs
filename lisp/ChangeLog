@@ -1,5 +1,10 @@
 2014-03-27  Glenn Morris  <rgm@gnu.org>
 
+	* startup.el (inhibit-startup-hooks): Doc tweak.
+	(normal-top-level): Simplify running of hooks.
+	For window-setup-hook, respect inhibit-startup-hooks.
+	(command-line-1): Don't set window-setup-hook to nil.
+
 	Allow selective autoloading from obsolete/ directory.
 	* Makefile.in (obsolete-autoloads): New rule.
 	(autoloads): Run obsolete-autoloads.
