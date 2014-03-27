@@ -26,7 +26,7 @@ echo "Test directory: $TEST_DIR"
 
 # Determine which tests to run.
 TEST_CASE_DB=$(dirname -- "$0")/testcases.txt
-if [ $# == 1 ]; then
+if [ $# -eq 1 ]; then
     TEST_SUITE=$1
     echo "Test suite: $TEST_SUITE"
     case $TEST_SUITE in
