@@ -7,6 +7,30 @@
 	objects = {
 
 /* Begin PBXAggregateTarget section */
+		225F0AFC18E4453A003F2183 /* testci */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 225F0B0018E4453A003F2183 /* Build configuration list for PBXAggregateTarget "testci" */;
+			buildPhases = (
+				225F0AFF18E4453A003F2183 /* ShellScript */,
+			);
+			dependencies = (
+				225F0AFD18E4453A003F2183 /* PBXTargetDependency */,
+			);
+			name = testci;
+			productName = testrun;
+		};
+		225F0B0418E44549003F2183 /* testall */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 225F0B0818E44549003F2183 /* Build configuration list for PBXAggregateTarget "testall" */;
+			buildPhases = (
+				225F0B0718E44549003F2183 /* ShellScript */,
+			);
+			dependencies = (
+				225F0B0518E44549003F2183 /* PBXTargetDependency */,
+			);
+			name = testall;
+			productName = testrun;
+		};
 		22CDE8EF16E9E97D00366D0A /* testrun */ = {
 			isa = PBXAggregateTarget;
 			buildConfigurationList = 22CDE8F016E9E97E00366D0A /* Build configuration list for PBXAggregateTarget "testrun" */;
@@ -319,6 +343,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = 224CC78C175E1821002FF81B;
 			remoteInfo = mvfftest;
+		};
+		225F0AFE18E4453A003F2183 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3104AFF1156D37A0000A585A;
+			remoteInfo = all;
+		};
+		225F0B0618E44549003F2183 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3104AFF1156D37A0000A585A;
+			remoteInfo = all;
 		};
 		2275798816C5422900B662B0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1326,8 +1364,6 @@
 		22FACED5188807FF000FDBC1 /* fmtno.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fmtno.h; sourceTree = "<group>"; };
 		22FACED6188807FF000FDBC1 /* fmtscheme.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fmtscheme.c; sourceTree = "<group>"; };
 		22FACED7188807FF000FDBC1 /* fmtscheme.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fmtscheme.h; sourceTree = "<group>"; };
-		22FACED8188807FF000FDBC1 /* locbwcss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = locbwcss.c; sourceTree = "<group>"; };
-		22FACED9188807FF000FDBC1 /* locusss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = locusss.c; sourceTree = "<group>"; };
 		22FACEDA1888088A000FDBC1 /* ss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ss.c; sourceTree = "<group>"; };
 		22FACEDB188808D5000FDBC1 /* mpscmfs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mpscmfs.h; sourceTree = "<group>"; };
 		22FACEDC18880933000FDBC1 /* poolmfs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = poolmfs.h; sourceTree = "<group>"; };
@@ -3248,6 +3284,8 @@
 			targets = (
 				3104AFF1156D37A0000A585A /* all */,
 				22CDE8EF16E9E97D00366D0A /* testrun */,
+				225F0AFC18E4453A003F2183 /* testci */,
+				225F0B0418E44549003F2183 /* testall */,
 				31EEABFA156AAF9D00714D05 /* mps */,
 				3114A632156E94DB001E0AA3 /* abqtest */,
 				22FACEE018880983000FDBC1 /* airtest */,
@@ -3299,6 +3337,34 @@
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		225F0AFF18E4453A003F2183 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"";
+			showEnvVarsInLog = 0;
+		};
+		225F0B0718E44549003F2183 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"";
+			showEnvVarsInLog = 0;
+		};
 		22CDE8F416E9E9D400366D0A /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -3310,7 +3376,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\"\n";
+			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -3827,6 +3893,16 @@
 			target = 224CC78C175E1821002FF81B /* fotest */;
 			targetProxy = 224CC79C175E187C002FF81B /* PBXContainerItemProxy */;
 		};
+		225F0AFD18E4453A003F2183 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3104AFF1156D37A0000A585A /* all */;
+			targetProxy = 225F0AFE18E4453A003F2183 /* PBXContainerItemProxy */;
+		};
+		225F0B0518E44549003F2183 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3104AFF1156D37A0000A585A /* all */;
+			targetProxy = 225F0B0618E44549003F2183 /* PBXContainerItemProxy */;
+		};
 		2275798916C5422900B662B0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 2D604B9B16514B1A003AAF46 /* mpseventtxt */;
@@ -4286,6 +4362,48 @@
 			};
 			name = Release;
 		};
+		225F0B0118E4453A003F2183 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testrun copy";
+			};
+			name = Debug;
+		};
+		225F0B0218E4453A003F2183 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testrun copy";
+			};
+			name = Release;
+		};
+		225F0B0318E4453A003F2183 /* RASH */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testrun copy";
+			};
+			name = RASH;
+		};
+		225F0B0918E44549003F2183 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testrun copy copy";
+			};
+			name = Debug;
+		};
+		225F0B0A18E44549003F2183 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testrun copy copy";
+			};
+			name = Release;
+		};
+		225F0B0B18E44549003F2183 /* RASH */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testrun copy copy";
+			};
+			name = RASH;
+		};
 		2291A5BA175CAB2F001D4920 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -4362,8 +4480,6 @@
 		22C2ACAC18BE400A006B3677 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = nailboardtest;
 			};
 			name = Debug;
@@ -4371,8 +4487,6 @@
 		22C2ACAD18BE400A006B3677 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = nailboardtest;
 			};
 			name = Release;
@@ -4380,8 +4494,6 @@
 		22C2ACAE18BE400A006B3677 /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = nailboardtest;
 			};
 			name = RASH;
@@ -4417,8 +4529,6 @@
 		22FACEEA18880983000FDBC1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
 				PRODUCT_NAME = airtest;
 			};
 			name = Debug;
@@ -4426,8 +4536,6 @@
 		22FACEEB18880983000FDBC1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = airtest;
 			};
 			name = Release;
@@ -4435,8 +4543,6 @@
 		22FACEEC18880983000FDBC1 /* WE */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = airtest;
 			};
 			name = WE;
@@ -4686,10 +4792,6 @@
 		3114A654156E9596001E0AA3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"CONFIG_VAR_COOL=1",
-					"CONFIG_ANSI=1",
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5496,6 +5598,26 @@
 				224CC796175E1821002FF81B /* Debug */,
 				224CC797175E1821002FF81B /* Release */,
 				318DA8E91892C0D00089718C /* RASH */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		225F0B0018E4453A003F2183 /* Build configuration list for PBXAggregateTarget "testci" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				225F0B0118E4453A003F2183 /* Debug */,
+				225F0B0218E4453A003F2183 /* Release */,
+				225F0B0318E4453A003F2183 /* RASH */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		225F0B0818E44549003F2183 /* Build configuration list for PBXAggregateTarget "testall" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				225F0B0918E44549003F2183 /* Debug */,
+				225F0B0A18E44549003F2183 /* Release */,
+				225F0B0B18E44549003F2183 /* RASH */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
