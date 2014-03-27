@@ -68,11 +68,10 @@ make-install-dirs:
 install: @INSTALL_TARGET@
 
 test-make-build: @BUILD_TARGET@
-	$(MAKE) $(TARGET_OPTS) VARIETY=cool testrun
-	$(MAKE) $(TARGET_OPTS) VARIETY=hot  testrun
+	$(MAKE) $(TARGET_OPTS) testci
 
 test-xcode-build:
-	$(XCODEBUILD) -config Release -target testrun
-	$(XCODEBUILD) -config Debug   -target testrun
+	$(XCODEBUILD) -config Release -target testci
+	$(XCODEBUILD) -config Debug   -target testci
 
 test: @TEST_TARGET@

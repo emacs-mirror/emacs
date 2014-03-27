@@ -279,16 +279,22 @@ ALL_TARGETS=$(LIB_TARGETS) $(TEST_TARGETS) $(EXTRA_TARGETS)
 all: $(ALL_TARGETS)
 
 
-# Run the automated tests.
+# == Automated test suites ==
+#
+# testrun = "smoke test", fast enough to run before every commit
+# testci = continuous integration tests, must be known good
+# testall = all test cases, for ensuring quality of a release
 
-$(PFM)/$(VARIETY)/testrun: $(TEST_TARGETS)
-	../tool/testrun.sh "$(PFM)/$(VARIETY)"
+TEST_SUITES=testrun testci testall
+
+$(addprefix $(PFM)/$(VARIETY)/,$(TEST_SUITES)): $(TEST_TARGETS)
+	../tool/testrun.sh "$(PFM)/$(VARIETY)" "$(notdir $@)"
 
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in selected varieties (or none, for the latter rule).
 
-$(ALL_TARGETS) testrun: phony
+$(ALL_TARGETS) $(TEST_SUITES): phony
 ifdef VARIETY
 	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
 else
