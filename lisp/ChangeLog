@@ -1,3 +1,8 @@
+2014-03-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/package-x.el (package--archive-contents-from-url):
+	Use url-insert-file-contents; package-handle-response no longer exists.
+
 2014-03-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/package.el: Fix bug#16733 (again).
