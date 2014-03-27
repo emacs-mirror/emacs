@@ -30,15 +30,15 @@ if [ $# == 1 ]; then
     TEST_SUITE=$1
     echo "Test suite: $TEST_SUITE"
     case $TEST_SUITE in
-        testrun) EXCLUDE="=[LNW]" ;;
-        testci)  EXCLUDE="=[BNW]" ;;
-        testall) EXCLUDE="=[NW]" ;;
+        testrun) EXCLUDE="LNW" ;;
+        testci)  EXCLUDE="BNW" ;;
+        testall) EXCLUDE="NW" ;;
         *)
             echo "Test suite $TEST_SUITE not recognized."
             exit 1 ;;
     esac
     TEST_CASES=$(<"$TEST_CASE_DB" grep -e '^[a-z]' | 
-        grep -v -e "$EXCLUDE" |
+        grep -v -e "=[$EXCLUDE]" |
         cut -d' ' -f1)
 else
     echo "$# test cases from the command line"

@@ -14,56 +14,28 @@
 
 @echo off
 
-@rem First two arguments are platform and variety.
+@rem Find test case database in same directory as this script.
+for %%F in ("%0") do set TEST_CASE_DB=%%~dpF%testcases.txt
+
 set PFM=%1
 shift
 set VARIETY=%1
 shift
+set TESTSUITE=%1
 
 @rem Make a temporary output directory for the test logs.
 set LOGDIR=%TMP%\mps-%PFM%-%VARIETY%-log
+echo MPS test suite
 echo Logging test output to %LOGDIR%
+echo Test directory: %PFM%\%VARIETY%
 rmdir /q /s %LOGDIR%
 mkdir %LOGDIR%
 
 @rem Determine which tests to run.
-
-
-set ALL_TEST_CASES=^
-    abqtest.exe ^
-    airtest.exe ^
-    amcss.exe ^
-    amcsshe.exe ^
-    amsss.exe ^
-    amssshe.exe ^
-    apss.exe ^
-    arenacv.exe ^
-    awlut.exe ^
-    awluthe.exe ^
-    btcv.exe ^
-    exposet0.exe ^
-    expt825.exe ^
-    fbmtest.exe ^
-    finalcv.exe ^
-    finaltest.exe ^
-    fotest.exe ^
-    locbwcss.exe ^
-    lockcov.exe ^
-    lockutw3.exe ^
-    locusss.exe ^
-    locv.exe ^
-    messtest.exe ^
-    mpmss.exe ^
-    mpsicv.exe ^
-    mv2test.exe ^
-    nailboardtest.exe ^
-    poolncv.exe ^
-    qs.exe ^
-    sacss.exe ^
-    segsmss.exe ^
-    steptest.exe ^
-    walkt0.exe ^
-    zmess.exe
+set EXCLUDE=
+if "%TESTSUITE%"=="testrun" set EXCLUDE=LNX
+if "%TESTSUITE%"=="testci"  set EXCLUDE=BNX
+if "%TESTSUITE%"=="testall" set EXCLUDE=NX
 
 @rem Ensure that test cases don't pop up dialog box on abort()
 set MPS_TESTLIB_NOABORT=true
@@ -72,18 +44,28 @@ set PASS_COUNT=0
 set FAIL_COUNT=0
 set SEPARATOR=----------------------------------------
 
-if "%1"=="" call :run_tests %ALL_TEST_CASES%
+if "%EXCLUDE%"=="" goto :args
+for /f "tokens=1" %%T IN ('type %TEST_CASE_DB% ^|^
+     findstr /b /r [abcdefghijklmnopqrstuvwxyz] ^|^
+     findstr /v /r =[%EXCLUDE%]') do call :run_test %%T
+goto :done
 
+:args
+if "%1"=="" goto :done
+call :run_test %1
+shift
+goto :args
+
+:done
 if "%FAIL_COUNT%"=="0" (
     echo Tests: %TEST_COUNT%. All tests pass.
-    exit 0
+    exit /b 0
 ) else (
     echo Tests: %TEST_COUNT%. Passes: %PASS_COUNT%. Failures: %FAIL_COUNT%.
-    exit 1
+    exit /b 1
 )
 
-:run_tests
-if "%1"=="" exit /b
+:run_test
 set /a TEST_COUNT=%TEST_COUNT%+1
 echo Running %1
 %PFM%\%VARIETY%\%1 > %LOGDIR%\%1
@@ -95,8 +77,7 @@ if "%errorlevel%"=="0" (
     echo %SEPARATOR%%SEPARATOR%
     set /a FAIL_COUNT=%FAIL_COUNT%+1
 )
-shift
-goto run_tests
+exit /b
 
 
 @rem C. COPYRIGHT AND LICENSE
