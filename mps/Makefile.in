@@ -74,7 +74,7 @@ test-make-build:
 	$(MAKE) $(TARGET_OPTS) testci
 
 test-xcode-build:
-	$(XCODEBUILD) -config Debug   -target testci
 	$(XCODEBUILD) -config Release -target testci
+	$(XCODEBUILD) -config Debug   -target testci
 
 test: @TEST_TARGET@
