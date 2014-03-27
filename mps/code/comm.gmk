@@ -284,8 +284,9 @@ all: $(ALL_TARGETS)
 # testrun = "smoke test", fast enough to run before every commit
 # testci = continuous integration tests, must be known good
 # testall = all test cases, for ensuring quality of a release
+# testansi = tests that run on the generic ("ANSI") platform
 
-TEST_SUITES=testrun testci testall
+TEST_SUITES=testrun testci testall testansi
 
 $(addprefix $(PFM)/$(VARIETY)/,$(TEST_SUITES)): $(TEST_TARGETS)
 	../tool/testrun.sh "$(PFM)/$(VARIETY)" "$(notdir $@)"

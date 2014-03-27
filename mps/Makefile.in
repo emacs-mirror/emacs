@@ -67,11 +67,14 @@ make-install-dirs:
 
 install: @INSTALL_TARGET@
 
-test-make-build: @BUILD_TARGET@
+test-make-build:
+	$(MAKE) clean
+	$(MAKE) $(TARGET_OPTS) VARIETY=hot CFLAGS="-DCONFIG_PF_ANSI -DCONFIG_THREAD_SINGLE -DCONFIG_PROTECTION_NONE" testansi
+	$(MAKE) clean
 	$(MAKE) $(TARGET_OPTS) testci
 
 test-xcode-build:
-	$(XCODEBUILD) -config Release -target testci
 	$(XCODEBUILD) -config Debug   -target testci
+	$(XCODEBUILD) -config Release -target testci
 
 test: @TEST_TARGET@
