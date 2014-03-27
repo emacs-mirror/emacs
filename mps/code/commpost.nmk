@@ -53,15 +53,15 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 !ENDIF
 !ENDIF
 
-# testrun
+# testrun testci testall
 # Runs automated test cases.
 
-testrun: $(TEST_TARGETS)
+testrun testci testall: $(TEST_TARGETS)
 !IFDEF VARIETY
-	..\tool\testrun.bat $(PFM) $(VARIETY)
+	..\tool\testrun.bat $(PFM) $(VARIETY) $@
 !ELSE
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot testrun
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=cool testrun
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot $@
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=cool $@
 !ENDIF
 
 
