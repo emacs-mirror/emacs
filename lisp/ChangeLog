@@ -1,3 +1,11 @@
+2014-03-27  Glenn Morris  <rgm@gnu.org>
+
+	Allow selective autoloading from obsolete/ directory.
+	* Makefile.in (obsolete-autoloads): New rule.
+	(autoloads): Run obsolete-autoloads.
+	* obsolete/iswitchb.el (iswitchb-mode): Use obsolete-autoload.
+	* simple.el (iswitchb-mode): Remove hand-written autoloads.
+
 2014-03-27  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight

@@ -196,6 +196,17 @@ autoloads: $(LOADDEFS) doit
 	    --eval '(setq autoload-builtin-package-versions t)' \
 	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$(srcdir)/loaddefs.el")))' \
 	    -f batch-update-autoloads $$wins
+	$(MAKE) $(MFLAGS) obsolete-autoloads
+
+# The obsolete/ subdirectory is normally not scanned for autoloads.
+# Sometimes we still want to autoload something from that directory,
+# eg iswitchb.
+.PHONY: obsolete-autoloads
+obsolete-autoloads: ${lisp}/obsolete/*.el
+	$(emacs) -l autoload \
+	    --eval '(setq generate-autoload-cookie ";;;###obsolete-autoload")' \
+	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$(srcdir)/loaddefs.el")))' \
+	    -f batch-update-autoloads ${lisp}/obsolete
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
 # we know that if we have an emacs executable, we also have a subdirs.el.
