@@ -1812,6 +1812,7 @@ It will be properly highlighted even when the call omits parens.")
       ("[!?]"
        (0 (unless (save-excursion
                     (or (nth 8 (syntax-ppss (match-beginning 0)))
+                        (eq (char-before) ?:)
                         (let (parse-sexp-lookup-properties)
                           (zerop (skip-syntax-backward "w_")))
                         (memq (preceding-char) '(?@ ?$))))
