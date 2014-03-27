@@ -5,14 +5,14 @@ abqtest
 airtest
 amcss
 amcsshe
-amcssth        =B =X             job003561, job003703
+amcssth        =B =T =X          job003561, job003703
 amsss
 amssshe
 apss
 arenacv
 awlut
 awluthe
-awlutth        =X
+awlutth        =T =X
 btcv
 bttest         =N                interactive
 djbench        =N                benchmark
@@ -25,7 +25,7 @@ fotest
 gcbench        =N                benchmark
 locbwcss
 lockcov
-lockutw3       =W
+lockutw3       =T =W
 locusss
 locv
 messtest
@@ -40,7 +40,7 @@ segsmss
 steptest
 teletest       =N                interactive
 walkt0
-zcoll          =B =L
+zcoll          =B =L             job003658
 zmess
 =============  ================  ==========================================
 
@@ -50,5 +50,6 @@ Key to flags
     B -- known Bad
     L -- Long runtime
     N -- Not an automated test case
+    T -- multi-Threaded
     W -- Windows-only
     X -- Unix-only
