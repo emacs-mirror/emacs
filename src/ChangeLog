@@ -1,3 +1,9 @@
+2014-03-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (init_svg_functions): When loading SVG-related libraries,
+	free already loaded libraries if the initialization fails.
+	(rsvg_handle_set_size_callback): Remove declaration, unused.
+
 2014-03-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix core dump in char-equal (Bug#17011).

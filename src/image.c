@@ -8661,7 +8661,6 @@ DEF_IMGLIB_FN (void, rsvg_handle_get_dimensions, (RsvgHandle *, RsvgDimensionDat
 DEF_IMGLIB_FN (gboolean, rsvg_handle_write, (RsvgHandle *, const guchar *, gsize, GError **));
 DEF_IMGLIB_FN (gboolean, rsvg_handle_close, (RsvgHandle *, GError **));
 DEF_IMGLIB_FN (GdkPixbuf *, rsvg_handle_get_pixbuf, (RsvgHandle *));
-DEF_IMGLIB_FN (void *, rsvg_handle_set_size_callback, (RsvgHandle *, RsvgSizeFunc, gpointer, GDestroyNotify));
 
 DEF_IMGLIB_FN (int, gdk_pixbuf_get_width, (const GdkPixbuf *));
 DEF_IMGLIB_FN (int, gdk_pixbuf_get_height, (const GdkPixbuf *));
@@ -8683,13 +8682,18 @@ Lisp_Object Qgdk_pixbuf, Qglib, Qgobject;
 static bool
 init_svg_functions (void)
 {
-  HMODULE library, gdklib, glib, gobject;
+  HMODULE library, gdklib = NULL, glib = NULL, gobject = NULL;
 
   if (!(glib = w32_delayed_load (Qglib))
       || !(gobject = w32_delayed_load (Qgobject))
       || !(gdklib = w32_delayed_load (Qgdk_pixbuf))
       || !(library = w32_delayed_load (Qsvg)))
-    return 0;
+    {
+      if (gdklib)  FreeLibrary (gdklib);
+      if (gobject) FreeLibrary (gobject);
+      if (glib)    FreeLibrary (glib);
+      return 0;
+    }
 
   LOAD_IMGLIB_FN (library, rsvg_handle_new);
   LOAD_IMGLIB_FN (library, rsvg_handle_get_dimensions);
