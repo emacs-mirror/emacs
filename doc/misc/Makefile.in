@@ -70,7 +70,7 @@ INFO_COMMON = ada-mode auth autotype bovine calc ccmode cl \
 	mairix-el message mh-e newsticker nxml-mode octave-mode \
 	org pcl-cvs pgg rcirc remember reftex sasl \
 	sc semantic ses sieve smtpmail speedbar srecode todo-mode tramp \
-	url vip viper widget wisent woman
+	url vhdl-mode vip viper widget wisent woman
 
 ## Info files to install on current platform.
 INFO_INSTALL = $(INFO_COMMON) $(DOCMISC_INFO_W32)
@@ -791,6 +791,18 @@ url.pdf: $(url_deps)
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/url.texi
 url.html: $(url_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/url.texi
+
+vhdl_mode_deps = ${srcdir}/vhdl-mode.texi ${gfdl}
+vhdl-mode : $(buildinfodir)/vhdl-mode$(INFO_EXT)
+$(buildinfodir)/vhdl-mode$(INFO_EXT): $(vhdl_mode_deps)
+	$(mkinfodir)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/vhdl-mode.texi
+vhdl-mode.dvi: $(vhdl_mode_deps)
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/vhdl-mode.texi
+vhdl-mode.pdf: $(vhdl_mode_deps)
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/vhdl-mode.texi
+vhdl-mode.html: $(vhdl_mode_deps)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/vhdl-mode.texi
 
 vip_deps = ${srcdir}/vip.texi ${gfdl}
 vip : $(buildinfodir)/vip$(INFO_EXT)

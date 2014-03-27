@@ -1,5 +1,9 @@
 2014-03-27  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (INFO_COMMON): Add vhdl-mode.
+	(vhdl_mode_deps, vhdl-mode, $(buildinfodir)/vhdl-mode$(INFO_EXT))
+	(vhdl-mode.dvi, vhdl-mode.pdf, vhdl-mode.html): New rules/variables.
+
 	* vhdl-mode.texi: General clean-up.  Set copyright to FSF, add license.
 	Remove hand-written node pointers.  Remove info re old Emacs versions.
 	Markup fixes.
