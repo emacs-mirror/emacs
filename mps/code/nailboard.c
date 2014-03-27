@@ -20,7 +20,7 @@ SRCID(nailboard, "$Id$");
  */
 static Count nailboardLevels(Count nails)
 {
-  return SizeRoundUp(SizeLog2(nails) + 1, LEVEL_SHIFT) / LEVEL_SHIFT;
+  return SizeRoundUp(SizeFloorLog2(nails) + 1, LEVEL_SHIFT) / LEVEL_SHIFT;
 }
 
 /* nailboardLevelBits -- return the number of bits in the bit table
