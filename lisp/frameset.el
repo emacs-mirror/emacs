@@ -950,14 +950,9 @@ PARAMETERS is the frame's parameter alist; WINDOW-STATE is its window state.
 For the meaning of FILTERS and FORCE-ONSCREEN, see `frameset-restore'.
 Internal use only."
   (let* ((fullscreen (cdr (assq 'fullscreen parameters)))
-	 (lines (assq 'tool-bar-lines parameters))
 	 (filtered-cfg (frameset-filter-params parameters filters nil))
 	 (display (cdr (assq 'display filtered-cfg))) ;; post-filtering
 	 alt-cfg frame)
-
-    ;; This works around bug#14795 (or feature#14795, if not a bug :-)
-    (setq filtered-cfg (assq-delete-all 'tool-bar-lines filtered-cfg))
-    (push '(tool-bar-lines . 0) filtered-cfg)
 
     (when fullscreen
       ;; Currently Emacs has the limitation that it does not record the size
@@ -1009,8 +1004,7 @@ Internal use only."
 	       (not (eq (frame-parameter frame 'visibility) 'icon)))
       (frameset-move-onscreen frame force-onscreen))
 
-    ;; Let's give the finishing touches (visibility, tool-bar, maximization).
-    (when lines (push lines alt-cfg))
+    ;; Let's give the finishing touches (visibility, maximization).
     (when alt-cfg (modify-frame-parameters frame alt-cfg))
     ;; Now restore window state.
     (window-state-put window-state (frame-root-window frame) 'safe)

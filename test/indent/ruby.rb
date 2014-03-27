@@ -148,6 +148,11 @@ if something == :==
   )
 end
 
+# Bug#17097
+if x == :!=
+  something
+end
+
 # Example from http://www.ruby-doc.org/docs/ProgrammingRuby/html/language.html
 d = 4 + 5 +      # no '\' needed
     6 + 7

@@ -1,3 +1,20 @@
+2014-03-27  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight
+	special globals with font-lock-builtin-face.  (Bug#17057)
+
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function):
+	Don't propertize `?' or `!' as symbol constituent when after
+	colon.  (Bug#17097)
+
+2014-03-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset--restore-frame): Remove workaround for bug#14795
+	which is no longer needed and causes trouble in GTK builds (bug#17046).
+
+	* emacs-lisp/package-x.el (package--archive-contents-from-url):
+	Use url-insert-file-contents; package-handle-response no longer exists.
+
 2014-03-26  Daniel Colascione  <dancol@dancol.org>
 
 	* simple.el (process-menu-mode-map): New variable.

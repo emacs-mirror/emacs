@@ -1812,6 +1812,7 @@ It will be properly highlighted even when the call omits parens.")
       ("[!?]"
        (0 (unless (save-excursion
                     (or (nth 8 (syntax-ppss (match-beginning 0)))
+                        (eq (char-before) ?:)
                         (let (parse-sexp-lookup-properties)
                           (zerop (skip-syntax-backward "w_")))
                         (memq (preceding-char) '(?@ ?$))))
@@ -2108,13 +2109,28 @@ See `font-lock-syntax-table'.")
      1 font-lock-variable-name-face)
     ;; Keywords that evaluate to certain values.
     ("\\_<__\\(?:LINE\\|ENCODING\\|FILE\\)__\\_>"
-     (0 font-lock-variable-name-face))
+     (0 font-lock-builtin-face))
     ;; Symbols.
     ("\\(^\\|[^:]\\)\\(:\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\|@?\\(\\w\\|_\\)+\\([!?=]\\|\\b_*\\)\\|#{[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\)\\)"
      2 font-lock-constant-face)
-    ;; Variables.
-    ("\\$[^a-zA-Z \n]"
-     0 font-lock-variable-name-face)
+    ;; Special globals.
+    (,(concat "\\$\\(?:[:\"!@;,/\\._><\\$?~=*&`'+0-9]\\|-[0adFiIlpvw]\\|"
+              (regexp-opt '("LOAD_PATH" "LOADED_FEATURES" "PROGRAM_NAME"
+                            "ERROR_INFO" "ERROR_POSITION"
+                            "FS" "FIELD_SEPARATOR"
+                            "OFS" "OUTPUT_FIELD_SEPARATOR"
+                            "RS" "INPUT_RECORD_SEPARATOR"
+                            "ORS" "OUTPUT_RECORD_SEPARATOR"
+                            "NR" "INPUT_LINE_NUMBER"
+                            "LAST_READ_LINE" "DEFAULT_OUTPUT" "DEFAULT_INPUT"
+                            "PID" "PROCESS_ID" "CHILD_STATUS"
+                            "LAST_MATCH_INFO" "IGNORECASE"
+                            "ARGV" "MATCH" "PREMATCH" "POSTMATCH"
+                            "LAST_PAREN_MATCH" "stdin" "stdout" "stderr"
+                            "DEBUG" "FILENAME" "VERBOSE" "SAFE" "CLASSPATH"
+                            "JRUBY_VERSION" "JRUBY_REVISION" "ENV_JAVA"))
+              "\\_>\\)")
+     0 font-lock-builtin-face)
     ("\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+"
      0 font-lock-variable-name-face)
     ;; Constants.
