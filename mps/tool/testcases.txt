@@ -40,7 +40,7 @@ segsmss
 steptest
 teletest       =N                interactive
 walkt0
-zcoll          =B =L             job003658
+zcoll          =L                job003658
 zmess
 =============  ================  ==========================================
 
