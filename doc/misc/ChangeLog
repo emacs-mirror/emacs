@@ -1,3 +1,8 @@
+2014-03-27  Reto Zimmermann  <reto@gnu.org>
+	    Rod Whitby  <software.vhdl-mode@rwhitby.net>
+
+	* vhdl-mode.texi: New file, imported from upstream vhdl-mode.
+
 2014-03-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* texinfo.tex: Update from gnulib.
