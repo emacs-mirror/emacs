@@ -8,19 +8,30 @@
 @rem job003489). Finally, it prints a summary of passes and failures, and
 @rem if there were any failures, it exits with a non-zero status code.
 @rem
-@rem Usage::
+@rem Usage:
 @rem 
-@rem     testrun.sh PLATFORM VARIETY [CASE1 CASE2 ...]
+@rem     testrun.bat PLATFORM VARIETY ( SUITE | CASE1 CASE2 ... )
 
 @echo off
 
+@rem First two arguments are platform and variety.
 set PFM=%1
 shift
 set VARIETY=%1
 shift
 
+@rem Make a temporary output directory for the test logs.
+set LOGDIR=%TMP%\mps-%PFM%-%VARIETY%-log
+echo Logging test output to %LOGDIR%
+rmdir /q /s %LOGDIR%
+mkdir %LOGDIR%
+
+@rem Determine which tests to run.
+
+
 set ALL_TEST_CASES=^
     abqtest.exe ^
+    airtest.exe ^
     amcss.exe ^
     amcsshe.exe ^
     amsss.exe ^
@@ -45,6 +56,7 @@ set ALL_TEST_CASES=^
     mpmss.exe ^
     mpsicv.exe ^
     mv2test.exe ^
+    nailboardtest.exe ^
     poolncv.exe ^
     qs.exe ^
     sacss.exe ^
@@ -59,10 +71,6 @@ set TEST_COUNT=0
 set PASS_COUNT=0
 set FAIL_COUNT=0
 set SEPARATOR=----------------------------------------
-set LOGDIR=%TMP%\mps-%VARIETY%-log
-echo Logging test output to %LOGDIR%
-rmdir /q /s %LOGDIR%
-mkdir %LOGDIR%
 
 if "%1"=="" call :run_tests %ALL_TEST_CASES%
 
