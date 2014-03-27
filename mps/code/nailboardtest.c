@@ -22,8 +22,8 @@ static void test(mps_arena_t arena)
   Addr base, limit;
   Index i, j, k;
 
-  align = 1 << (rnd() % 10);
-  nails = 1 << (rnd() % 16);
+  align = (Align)1 << (rnd() % 10);
+  nails = (Count)1 << (rnd() % 16);
   base = AddrAlignUp(0, align);
   limit = AddrAdd(base, nails * align);
 
