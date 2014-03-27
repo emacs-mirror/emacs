@@ -4237,8 +4237,6 @@ extern void init_sigio (int);
 extern void sys_subshell (void);
 extern void sys_suspend (void);
 extern void discard_tty_input (void);
-extern void block_tty_out_signal (sigset_t *);
-extern void unblock_tty_out_signal (sigset_t const *);
 extern void init_sys_modes (struct tty_display_info *);
 extern void reset_sys_modes (struct tty_display_info *);
 extern void init_all_sys_modes (void);
