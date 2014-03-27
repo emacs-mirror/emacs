@@ -200,6 +200,9 @@ $(PFM)\$(VARIETY)\mpsicv.exe: $(PFM)\$(VARIETY)\mpsicv.obj \
 $(PFM)\$(VARIETY)\mv2test.exe: $(PFM)\$(VARIETY)\mv2test.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
+$(PFM)\$(VARIETY)\nailboardtest.exe: $(PFM)\$(VARIETY)\nailboardtest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
 $(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
