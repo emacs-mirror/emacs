@@ -1,0 +1,54 @@
+=============  ================  ==========================================
+Test case      Flags             Notes
+=============  ================  ==========================================
+abqtest
+airtest
+amcss
+amcsshe
+amcssth        =B =X             job003561, job003703
+amsss
+amssshe
+apss
+arenacv
+awlut
+awluthe
+awlutth        =X
+btcv
+bttest         =N                interactive
+djbench        =N                benchmark
+exposet0
+expt825
+fbmtest
+finalcv
+finaltest
+fotest
+gcbench        =N                benchmark
+locbwcss
+lockcov
+lockutw3       =W
+locusss
+locv
+messtest
+mpmss
+mpsicv
+mv2test
+nailboardtest
+poolncv
+qs
+sacss
+segsmss
+steptest
+teletest       =N                interactive
+walkt0
+zcoll          =B =L
+zmess
+=============  ================  ==========================================
+
+Key to flags
+............
+
+    B -- known Bad
+    L -- Long runtime
+    N -- Not an automated test case
+    W -- Windows-only
+    X -- Unix-only
