@@ -121,8 +121,8 @@ Blocks are automatically managed? [10]_        yes    yes    yes    yes    yes  
 Blocks are promoted between generations        yes    yes    no     no     no     ---    ---    ---    ---    ---
 Blocks are manually managed? [10]_             no     no     no     no     no     yes    yes    yes    yes    yes
 Blocks are scanned? [11]_                      yes    no     yes    yes    no     no     no     no     no     yes
-Blocks support base pointers only? [12]_       yes    yes    yes    yes    yes    ---    ---    ---    ---    yes
-Blocks support internal pointers? [12]_        no     no     no     no     no     ---    ---    ---    ---    no
+Blocks support base pointers only? [12]_       no     no     yes    yes    yes    ---    ---    ---    ---    yes
+Blocks support internal pointers? [12]_        yes    yes    no     no     no     ---    ---    ---    ---    no
 Blocks may be protected by barriers?           yes    no     yes    yes    yes    no     no     no     no     yes
 Blocks may move?                               yes    yes    no     no     no     no     no     no     no     no
 Blocks may be finalized?                       yes    yes    yes    yes    yes    no     no     no     no     no
