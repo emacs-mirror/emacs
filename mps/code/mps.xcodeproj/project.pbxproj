@@ -31,6 +31,18 @@
 			name = testall;
 			productName = testrun;
 		};
+		2291B6E318E4754D0004B79C /* testansi */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 2291B6E718E4754D0004B79C /* Build configuration list for PBXAggregateTarget "testansi" */;
+			buildPhases = (
+				2291B6E618E4754D0004B79C /* ShellScript */,
+			);
+			dependencies = (
+				2291B6E418E4754D0004B79C /* PBXTargetDependency */,
+			);
+			name = testansi;
+			productName = testrun;
+		};
 		22CDE8EF16E9E97D00366D0A /* testrun */ = {
 			isa = PBXAggregateTarget;
 			buildConfigurationList = 22CDE8F016E9E97E00366D0A /* Build configuration list for PBXAggregateTarget "testrun" */;
@@ -406,6 +418,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 2291A5C1175CAFCA001D4920;
 			remoteInfo = expt825;
+		};
+		2291B6E518E4754D0004B79C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3104AFF1156D37A0000A585A;
+			remoteInfo = all;
 		};
 		22B2BC3818B643AD00C33E63 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -3286,6 +3305,7 @@
 				22CDE8EF16E9E97D00366D0A /* testrun */,
 				225F0AFC18E4453A003F2183 /* testci */,
 				225F0B0418E44549003F2183 /* testall */,
+				2291B6E318E4754D0004B79C /* testansi */,
 				31EEABFA156AAF9D00714D05 /* mps */,
 				3114A632156E94DB001E0AA3 /* abqtest */,
 				22FACEE018880983000FDBC1 /* airtest */,
@@ -3352,6 +3372,20 @@
 			showEnvVarsInLog = 0;
 		};
 		225F0B0718E44549003F2183 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"";
+			showEnvVarsInLog = 0;
+		};
+		2291B6E618E4754D0004B79C /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -3938,6 +3972,11 @@
 			target = 2291A5C1175CAFCA001D4920 /* expt825 */;
 			targetProxy = 2291A5E7175CB20E001D4920 /* PBXContainerItemProxy */;
 		};
+		2291B6E418E4754D0004B79C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3104AFF1156D37A0000A585A /* all */;
+			targetProxy = 2291B6E518E4754D0004B79C /* PBXContainerItemProxy */;
+		};
 		22B2BC3918B643AD00C33E63 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 31FCAE0917692403008C034C /* scheme */;
@@ -4445,6 +4484,27 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
+		};
+		2291B6E818E4754D0004B79C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testall copy";
+			};
+			name = Debug;
+		};
+		2291B6E918E4754D0004B79C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testall copy";
+			};
+			name = Release;
+		};
+		2291B6EA18E4754D0004B79C /* RASH */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testall copy";
+			};
+			name = RASH;
 		};
 		22B2BC3318B6434F00C33E63 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -5648,6 +5708,16 @@
 				2291A5E0175CB05F001D4920 /* Debug */,
 				2291A5E1175CB05F001D4920 /* Release */,
 				318DA8E51892C0D00089718C /* RASH */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2291B6E718E4754D0004B79C /* Build configuration list for PBXAggregateTarget "testansi" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2291B6E818E4754D0004B79C /* Debug */,
+				2291B6E918E4754D0004B79C /* Release */,
+				2291B6EA18E4754D0004B79C /* RASH */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

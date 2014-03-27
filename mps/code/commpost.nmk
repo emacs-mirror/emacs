@@ -53,10 +53,10 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 !ENDIF
 !ENDIF
 
-# testrun testci testall
+# testrun testci testall testansi
 # Runs automated test cases.
 
-testrun testci testall: $(TEST_TARGETS)
+testrun testci testall testansi: $(TEST_TARGETS)
 !IFDEF VARIETY
 	..\tool\testrun.bat $(PFM) $(VARIETY) $@
 !ELSE
