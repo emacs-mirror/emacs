@@ -1,7 +1,7 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
-;; Copyright (C) 1985, 1994, 1997-1998, 2000-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985, 1994, 1997-1998, 2000-2014
+;;   Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org
@@ -251,6 +251,8 @@ usually do not have translators for other languages.\n\n")))
       (insert "Configured using:\n `configure "
 	      system-configuration-options "'\n\n")
       (fill-region (line-beginning-position -1) (point)))
+    (insert "Configured features:\n" system-configuration-features "\n\n")
+    (fill-region (line-beginning-position -1) (point))
     (insert "Important settings:\n")
     (mapc
      (lambda (var)

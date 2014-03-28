@@ -41,6 +41,11 @@ otherwise leave it unmarked.
 The function `tty-run-terminal-initialization' consults this variable
 when deciding what terminal-specific initialization code to run.
 
+---
+** New variable `system-configuration-features', listing some of the
+main features that Emacs was compiled with.  This is mainly intended
+for use in Emacs bug reports.
+
 
 * Editing Changes in Emacs 24.5
 

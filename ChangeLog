@@ -1,3 +1,8 @@
+2014-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (ACL_SUMMARY): Rename from acl_summary, for consistency.
+	(EMACS_CONFIG_FEATURES): New define.
+
 2014-03-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac: Suggest './configure MAKE=gmake' in diagnostic.

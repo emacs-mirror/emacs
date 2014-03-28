@@ -4925,9 +4925,9 @@ if test "${HAVE_GTK}" = "yes"; then
 fi
 
 if test $USE_ACL -ne 0; then
-  acl_summary="yes $LIB_ACL"
+  ACL_SUMMARY="yes $LIB_ACL"
 else
-  acl_summary=no
+  ACL_SUMMARY=no
 fi
 
 echo "
@@ -4952,6 +4952,23 @@ else
 echo "  Where do we find X Windows libraries?                   Standard dirs"
 fi
 
+optsep=
+emacs_config_features=
+for opt in XAW3D XPM JPEG TIFF GIF PNG RSVG IMAGEMAGICK SOUND GPM DBUS \
+  GCONF GSETTINGS NOTIFY ACL LIBSELINUX GNUTLS LIBXML2 FREETYPE M17N_FLT \
+  LIBOTF XFT ZLIB; do
+
+    case $opt in
+      NOTIFY|ACL) eval val=\${${opt}_SUMMARY} ;;
+      *) eval val=\${HAVE_$opt} ;;
+    esac
+    test x"$val" = xno && continue
+    AS_VAR_APPEND([emacs_config_features], ["$optsep$opt"])
+    optsep=' '
+done
+AC_DEFINE_UNQUOTED(EMACS_CONFIG_FEATURES, "${emacs_config_features}",
+  [Summary of some of the main features enabled by configure.])
+
 echo "  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D}"
 echo "  Does Emacs use -lXpm?                                   ${HAVE_XPM}"
 echo "  Does Emacs use -ljpeg?                                  ${HAVE_JPEG}"
@@ -4968,7 +4985,7 @@ echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use GSettings?                               ${HAVE_GSETTINGS}"
 echo "  Does Emacs use a file notification library?             ${NOTIFY_SUMMARY}"
-echo "  Does Emacs use access control lists?                    ${acl_summary}"
+echo "  Does Emacs use access control lists?                    ${ACL_SUMMARY}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
 echo "  Does Emacs use -lgnutls?                                ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"

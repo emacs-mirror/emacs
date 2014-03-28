@@ -2460,6 +2460,12 @@ Emacs is running.  */);
 	       doc: /* String containing the configuration options Emacs was built with.  */);
   Vsystem_configuration_options = build_string (EMACS_CONFIG_OPTIONS);
 
+  DEFVAR_LISP ("system-configuration-features", Vsystem_configuration_features,
+	       doc: /* String listing some of the main features this Emacs was compiled with.
+An element of the form \"FOO\" generally means that HAVE_FOO was
+defined during the build.  */);
+  Vsystem_configuration_features = build_string (EMACS_CONFIG_FEATURES);
+
   DEFVAR_BOOL ("noninteractive", noninteractive1,
 	       doc: /* Non-nil means Emacs is running without interactive terminal.  */);
 

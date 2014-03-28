@@ -1,12 +1,15 @@
+2014-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug):
+	Include system-configuration-features.
+
 2014-03-28  Michal Nazarewicz  <mina86@mina86.com>
 
 	* simple.el (cycle-spacing): Never delete spaces on first run by
 	default, but do so in a new 'fast mode and if there are already
 	N spaces (the previous behaviour).
-
 	Compare N with its value in previous invocation so that changing
 	prefix argument restarts `cycle-spacing' sequence.
-
 	The idea is that with this change, binding M-SPC to
 	`cycle-spacing' should not introduce any changes in behaviour of
 	the binding so long as users do not type M-SPC twice in a raw with
