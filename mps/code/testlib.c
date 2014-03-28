@@ -19,19 +19,6 @@ struct itimerspec; /* stop complaints from time.h */
 #endif
 #include <time.h>
 
-#ifdef MPS_BUILD_MV
-/* MSVC warning 4702 = unreachable code
- * 
- * job000605: believed needed to prevent VC7 warning 
- * for error() below, in which va_end is mandated by 
- * ISO C (C99:7.15.1) even though it is unreachable.
- */
-#pragma warning(disable: 4702)
-/* MSVC warning 4996 = stdio / C runtime 'unsafe' */
-/* Objects to: sscanf.  See job001934. */
-#pragma warning( disable : 4996 )
-#endif
-
 
 /* fail -- like assert, but (notionally) returns a value, so usable in an expression */
 
