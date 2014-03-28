@@ -801,44 +801,51 @@ If BACKWARD-ONLY is non-nil, only delete them before point."
 If N is negative, delete newlines as well, leaving -N spaces.
 See also `cycle-spacing'."
   (interactive "*p")
-  (cycle-spacing n nil t))
+  (cycle-spacing n nil 'single-shot))
 
 (defvar cycle-spacing--context nil
   "Store context used in consecutive calls to `cycle-spacing' command.
-The first time this function is run, it saves the original point
-position and original spacing around the point in this
-variable.")
+The first time this function is run, it saves N argument, the
+original point position and original spacing around the point in
+this variable.")
 
-(defun cycle-spacing (&optional n preserve-nl-back single-shot)
+(defun cycle-spacing (&optional n preserve-nl-back mode)
   "Manipulate whitespace around point in a smart way.
-In interactive use, this function behaves differently in successive
-consecutive calls.
+In interactive use, this function behaves differently in
+successive consecutive calls.
 
-The first call in a sequence acts like `just-one-space'.
-It deletes all spaces and tabs around point, leaving one space
-\(or N spaces).  N is the prefix argument.  If N is negative,
-it deletes newlines as well, leaving -N spaces.
-\(If PRESERVE-NL-BACK is non-nil, it does not delete newlines before point.)
+The first call in a sequence acts like `just-one-space'.  It
+deletes all spaces and tabs around point, leaving one space \(or
+N spaces).  N is the prefix argument.  If N is negative, it
+deletes newlines as well leaving -N spaces.  (If PRESERVE-NL-BACK
+is non-nil, it does not delete newlines before point.)
 
-The second call in a sequence (or the first call if the above does
-not result in any changes) deletes all spaces.
+The second call in a sequence deletes all spaces.
 
-The third call in a sequence restores the original whitespace (and point).
+The third call in a sequence restores the original
+whitespace (and point).
 
-If SINGLE-SHOT is non-nil, it only performs the first step in the sequence."
+If MODE is 'single-shot only the first step is performed.  If
+MODE is 'fast and the first step did not result in any
+change (i.e. there was exactly (abs N) spaces around point)
+function goes to the second step immediately.
+
+Running the function with different N arguments initiates a new
+sequence each time."
   (interactive "*p")
   (let ((orig-pos	 (point))
 	(skip-characters (if (and n (< n 0)) " \t\n\r" " \t"))
-	(n		 (abs (or n 1))))
+	(num		 (abs (or n 1))))
     (skip-chars-backward (if preserve-nl-back " \t" skip-characters))
     (constrain-to-field nil orig-pos)
     (cond
-     ;; Command run for the first time or single-shot is non-nil.
-     ((or single-shot
+     ;; Command run for the first time, single-shot mode or different argument
+     ((or (eq 'single-shot mode)
 	  (not (equal last-command this-command))
-	  (not cycle-spacing--context))
+	  (not cycle-spacing--context)
+	  (not (eq (car cycle-spacing--context) n)))
       (let* ((start (point))
-	     (n	    (- n (skip-chars-forward " " (+ n (point)))))
+	     (num   (- num (skip-chars-forward " " (+ num (point)))))
 	     (mid   (point))
 	     (end   (progn
 		      (skip-chars-forward skip-characters)
@@ -846,12 +853,12 @@ If SINGLE-SHOT is non-nil, it only performs the first step in the sequence."
 	(setq cycle-spacing--context  ;; Save for later.
 	      ;; Special handling for case where there was no space at all.
 	      (unless (= start end)
-		(cons orig-pos (buffer-substring start (point)))))
+                (cons n (cons orig-pos (buffer-substring start (point))))))
 	;; If this run causes no change in buffer content, delete all spaces,
 	;; otherwise delete all excess spaces.
-	(delete-region (if (and (not single-shot) (zerop n) (= mid end))
+	(delete-region (if (and (eq mode 'fast) (zerop num) (= mid end))
 			   start mid) end)
-        (insert (make-string n ?\s))))
+        (insert (make-string num ?\s))))
 
      ;; Command run for the second time.
      ((not (equal orig-pos (point)))
@@ -859,8 +866,8 @@ If SINGLE-SHOT is non-nil, it only performs the first step in the sequence."
 
      ;; Command run for the third time.
      (t
-      (insert (cdr cycle-spacing--context))
-      (goto-char (car cycle-spacing--context))
+      (insert (cddr cycle-spacing--context))
+      (goto-char (cadr cycle-spacing--context))
       (setq cycle-spacing--context nil)))))
 
 (defun beginning-of-buffer (&optional arg)
