@@ -2,7 +2,7 @@
  * 
  * $Id$
  * 
- * Copyright (c) 2012-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2012-2014 Ravenbrook Limited.  See end of file for license.
  *
  * This is a command-line tool that converts events from a text-format
  * MPS telemetry file into a more human-readable format.
@@ -38,12 +38,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#ifdef MPS_BUILD_MV
-/* MSVC warning 4996 = stdio / C runtime 'unsafe' */
-/* Objects to: strncpy, sscanf, fopen.  See job001934. */
-#pragma warning( disable : 4996 )
-#endif
 
 static const char *prog; /* program name */
 static const char *logFileName = NULL;
@@ -500,7 +494,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2012-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2012-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

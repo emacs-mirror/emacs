@@ -2,7 +2,7 @@
  * 
  * $Id$
  * 
- * Copyright (c) 2012-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2012-2014 Ravenbrook Limited.  See end of file for license.
  *
  * This is a command-line tool that imports events from a text-format
  * MPS telemetry file into a SQLite database file.
@@ -86,9 +86,6 @@
 #define DEFAULT_DATABASE_NAME "mpsevent.db"
 
 #ifdef MPS_BUILD_MV
-/* MSVC warning 4996 = stdio / C runtime 'unsafe' */
-/* Objects to: getenv, sprintf.  See job001934. */
-#pragma warning( disable : 4996 )
 #define strtoll _strtoi64
 #endif
 
@@ -965,7 +962,7 @@ int main(int argc, char *argv[])
 
 /* COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2012-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2012-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
