@@ -186,7 +186,7 @@ static void swap(void)
 
 static void makerndlist(unsigned l)
 {
-  unsigned i;
+  size_t i;
   mps_word_t r;
   mps_addr_t addr;
 
@@ -318,15 +318,14 @@ static void validate(void)
   for(i = 0; i < listl; ++i) {
     cdie(((QSCell)reg[1])->tag == QSInt, "validate int");
     if((mps_word_t)((QSCell)reg[1])->value != list[i]) {
-      fprintf(stdout,
-              "mps_res_t: Element %"PRIuLONGEST" of the two lists do not match.\n",
-              (ulongest_t)i);
+        (void)fprintf(stdout, "mps_res_t: Element %"PRIuLONGEST" of the "
+                      "two lists do not match.\n", (ulongest_t)i);
       return;
     }
     reg[1] = (mps_addr_t)((QSCell)reg[1])->tail;
   }
   cdie(reg[1] == (mps_word_t)0, "validate end");
-  fprintf(stdout, "Note: Lists compare equal.\n");
+  (void)fprintf(stdout, "Note: Lists compare equal.\n");
 }
 
 

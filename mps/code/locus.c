@@ -43,7 +43,7 @@ SegPref SegPrefDefault(void)
 
 void SegPrefInit(SegPref pref)
 {
-  mps_lib_memcpy(pref, &segPrefDefault, sizeof(SegPrefStruct));
+  (void)mps_lib_memcpy(pref, &segPrefDefault, sizeof(SegPrefStruct));
 }
 
 

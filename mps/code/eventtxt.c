@@ -44,30 +44,29 @@ static const char *logFileName = NULL;
 
 /* everror -- error signalling */
 
+ATTRIBUTE_FORMAT((printf, 1, 2))
 static void everror(const char *format, ...)
 {
   va_list args;
 
-  fflush(stdout); /* sync */
-  fprintf(stderr, "%s: ", prog);
+  (void)fflush(stdout); /* sync */
+  (void)fprintf(stderr, "%s: ", prog);
   va_start(args, format);
-  vfprintf(stderr, format, args);
-  fprintf(stderr, "\n");
+  (void)vfprintf(stderr, format, args);
+  (void)fprintf(stderr, "\n");
   va_end(args);
   exit(EXIT_FAILURE);
 }
 
 static void usage(void)
 {
-  fprintf(stderr,
-          "Usage: %s [-l <logfile>]\n",
-          prog);
+  (void)fprintf(stderr, "Usage: %s [-l <logfile>]\n", prog);
 }
 
 static void usageError(void)
 {
-        usage();
-        everror("Bad usage");
+  usage();
+  everror("Bad usage");
 }
 
 /* parseArgs -- parse command line arguments */
@@ -283,7 +282,7 @@ static void recordLabel(char *p)
         
   address = parseHex(&p);
   if (address > (Word)-1) {
-    printf("label address too large!");
+    (void)printf("label address too large!");
     return;
   }
                 
@@ -434,24 +433,27 @@ static void readLog(FILE *input)
       if ((major != EVENT_VERSION_MAJOR) ||
           (median != EVENT_VERSION_MEDIAN) ||
           (minor != EVENT_VERSION_MINOR)) {
-        fprintf(stderr, "Event log version does not match: %d.%d.%d vs %d.%d.%d\n",
-                (int)major, (int)median, (int)minor,
-                EVENT_VERSION_MAJOR,
-                EVENT_VERSION_MEDIAN,
-                EVENT_VERSION_MINOR);
+        (void)fprintf(stderr, "Event log version does not match: "
+                      "%d.%d.%d vs %d.%d.%d\n",
+                      (int)major, (int)median, (int)minor,
+                      EVENT_VERSION_MAJOR,
+                      EVENT_VERSION_MEDIAN,
+                      EVENT_VERSION_MINOR);
       }
 
       if (maxCode > EventCodeMAX) {
-        fprintf(stderr, "Event log may contain unknown events with codes from %d to %d\n",
-                EventCodeMAX+1, (int)maxCode);
+        (void)fprintf(stderr, "Event log may contain unknown events "
+                      "with codes from %d to %d\n",
+                      EventCodeMAX+1, (int)maxCode);
       }
 
       if (wordWidth > MPS_WORD_WIDTH) {
         int newHexWordWidth = (int)((wordWidth + 3) / 4);
         if (newHexWordWidth > hexWordWidth) {
-          fprintf(stderr,
-                  "Event log word width is greater than on current platform;"
-                  "previous values may be printed too narrowly.\n");
+          (void)fprintf(stderr,
+                        "Event log word width is greater than on current "
+                        "platform; previous values may be printed too "
+                        "narrowly.\n");
         }
         hexWordWidth = newHexWordWidth;
       }
