@@ -35,6 +35,26 @@ the terminal-initialization file to be loaded."
 		 (string :tag "Name of directory with term files"))
   :group 'terminals)
 
+(defcustom term-file-aliases
+  '(("apollo" . "vt100")
+    ("vt102" . "vt100")
+    ("vt125" . "vt100")
+    ("vt201" . "vt200")
+    ("vt220" . "vt200")
+    ("vt240" . "vt200")
+    ("vt300" . "vt200")
+    ("vt320" . "vt200")
+    ("vt400" . "vt200")
+    ("vt420" . "vt200")
+    )
+  "Alist of terminal type aliases.
+Entries are of the form (TYPE . ALIAS), where both elements are strings.
+This means to treat a terminal of type TYPE as if it were of type ALIAS."
+  :type '(alist :key-type (string :tag "Terminal")
+		:value-type (string :tag "Alias"))
+  :group 'terminals
+  :version "24.5")
+
 (declare-function xw-defined-colors "term/common-win" (&optional frame))
 
 (defvar help-xref-stack-item)
@@ -2109,22 +2129,6 @@ the above example."
   "Hook run after running the initialization function of a new text terminal.
 Specifically, `tty-run-terminal-initialization' runs this.
 This can be used to fine tune the `input-decode-map', for example.")
-
-(defvar term-file-aliases
-  '(("apollo" . "vt100")
-    ("vt102" . "vt100")
-    ("vt125" . "vt100")
-    ("vt201" . "vt200")
-    ("vt220" . "vt200")
-    ("vt240" . "vt200")
-    ("vt300" . "vt200")
-    ("vt320" . "vt200")
-    ("vt400" . "vt200")
-    ("vt420" . "vt200")
-    )
-  "Alist of terminal type aliases.
-Entries are of the form (TYPE . ALIAS), where both elements are strings.
-This means to treat a terminal of type TYPE as if it were of type ALIAS.")
 
 (defun tty-run-terminal-initialization (frame &optional type run-hook)
   "Run the special initialization code for the terminal type of FRAME.

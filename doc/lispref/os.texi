@@ -465,7 +465,7 @@ a normal hook that Emacs runs after initializing a new text terminal.
 You could use this hook to define initializations for terminals that do not
 have their own libraries.  @xref{Hooks}.
 
-@defvar term-file-prefix
+@defopt term-file-prefix
 @cindex @env{TERM} environment variable
 If the value of this variable is non-@code{nil}, Emacs loads a
 terminal-specific initialization file as follows:
@@ -480,14 +480,14 @@ init file if you do not wish to load the
 terminal-initialization file.
 
 On MS-DOS, Emacs sets the @env{TERM} environment variable to @samp{internal}.
-@end defvar
+@end defopt
 
-@defvar term-file-aliases
+@defopt term-file-aliases
 This variable is an an association list mapping terminal types to
 their aliases.  For example, an element of the form @code{("vt102"
 . "vt100")} means to treat a terminal of type @samp{vt102} like one of
 type @samp{vt100}.
-@end defvar
+@end defopt
 
 @defvar tty-setup-hook
 This variable is a normal hook that Emacs runs after initializing a
