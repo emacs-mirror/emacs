@@ -1,3 +1,7 @@
+2014-03-28  Tassilo Horn  <tsdh@gnu.org>
+
+	* themes/tsdh-light-theme.el (tsdh-light): Add gnus-group-* faces.
+
 2014-03-22  Glenn Morris  <rgm@gnu.org>
 
 	* CENSORSHIP, GNU, LINUX-GNU, THE-GNU-PROJECT, WHY-FREE: Replace
