@@ -56,18 +56,20 @@ static const char *prog; /* program name */
 
 /* fevwarn -- flush stdout, write message to stderr */
 
+ATTRIBUTE_FORMAT((printf, 2, 0))
 static void fevwarn(const char *prefix, const char *format, va_list args)
 {
-  fflush(stdout); /* sync */
-  fprintf(stderr, "%s: %s @", prog, prefix);
-  EVENT_CLOCK_PRINT(stderr, eventTime);
-  fprintf(stderr, " ");
-  vfprintf(stderr, format, args);
-  fprintf(stderr, "\n");
+  (void)fflush(stdout); /* sync */
+  (void)fprintf(stderr, "%s: %s @", prog, prefix);
+  (void)EVENT_CLOCK_PRINT(stderr, eventTime);
+  (void)fprintf(stderr, " ");
+  (void)vfprintf(stderr, format, args);
+  (void)fprintf(stderr, "\n");
 }
 
 /* evwarn -- flush stdout, warn to stderr */
 
+ATTRIBUTE_FORMAT((printf, 1, 2))
 static void evwarn(const char *format, ...)
 {
   va_list args;
@@ -79,6 +81,7 @@ static void evwarn(const char *format, ...)
 
 /* everror -- flush stdout, message to stderr, exit */
 
+ATTRIBUTE_FORMAT((printf, 1, 2))
 static void everror(const char *format, ...)
 {
   va_list args;
@@ -94,10 +97,9 @@ static void everror(const char *format, ...)
 
 static void usage(void)
 {
-  fprintf(stderr,
-          "Usage: %s [-f logfile] [-h]\n"
-          "See \"Telemetry\" in the reference manual for instructions.\n",
-          prog);
+  (void)fprintf(stderr, "Usage: %s [-f logfile] [-h]\n"
+                "See \"Telemetry\" in the reference manual for instructions.\n",
+                prog);
 }
 
 
@@ -264,7 +266,7 @@ static void readLog(FILE *stream)
       break;
     }
 
-    EVENT_CLOCK_PRINT(stdout, eventTime);
+    (void)EVENT_CLOCK_PRINT(stdout, eventTime);
     printf(" %4X", (unsigned)code);
 
     switch (code) {
@@ -280,7 +282,7 @@ static void readLog(FILE *stream)
     }
 
     putchar('\n');
-    fflush(stdout);
+    (void)fflush(stdout);
   } /* while(!feof(input)) */
 }
 

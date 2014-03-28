@@ -172,6 +172,53 @@
 #endif /* MPS_BUILD_MV */
 
 
+/* Suppress Pelles C warnings at warning level 2 */
+/* Some of the same settings are done in testlib.h. */
+
+#ifdef MPS_BUILD_PC
+
+/* "Unreachable code" (AVER, if condition is constantly true). */
+#pragma warn(disable: 2154)
+
+/* "Consider changing type to 'size_t' for loop variable" */
+#pragma warn(disable: 2804)
+
+#endif /* MPS_BUILD_PC */
+
+
+/* MPS_FILE -- expands to __FILE__ in nested macros */
+
+#ifdef MPS_BUILD_PC
+
+/* Pelles C loses definition of __FILE__ in deeply nested macro
+ * expansions. See <http://forum.pellesc.de/index.php?topic=5474.0>
+ */
+#define MPS_FILE "<__FILE__ unavailable in " MPS_PF_STRING ">"
+
+#else
+
+#define MPS_FILE __FILE__
+
+#endif
+
+
+/* Function attributes */
+/* These are also defined in testlib.h */
+
+#if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
+
+/* GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html#index-Wformat-2850>
+ * Clang: <http://clang.llvm.org/docs/AttributeReference.html#format-gnu-format>
+ */
+#define ATTRIBUTE_FORMAT(ARGLIST) __attribute__((__format__ ARGLIST))
+
+#else
+
+#define ATTRIBUTE_FORMAT(ARGLIST)
+
+#endif
+
+
 /* EPVMDefaultSubsequentSegSIZE is a default for the alignment of
  * subsequent segments (non-initial at each save level) in EPVM.  See
  * design.mps.poolepvm.arch.segment.size.
@@ -288,12 +335,10 @@
 
 /* Stack configuration */
 
-/* Currently StackProbe has a useful implementation only on
- * Intel platforms and only when using Microsoft build tools (builder.mv)
- */
-#if defined(MPS_ARCH_I3) && defined(MPS_BUILD_MV)
+/* Currently StackProbe has a useful implementation only on Windows. */
+#if defined(MPS_OS_W3) && defined(MPS_ARCH_I3)
 #define StackProbeDEPTH ((Size)500)
-#elif defined(MPS_PF_W3I6MV)
+#elif defined(MPS_OS_W3) && defined(MPS_ARCH_I6)
 #define StackProbeDEPTH ((Size)500)
 #else
 #define StackProbeDEPTH ((Size)0)

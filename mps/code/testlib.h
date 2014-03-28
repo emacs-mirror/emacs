@@ -34,6 +34,37 @@
 #endif /* MPS_BUILD_MV */
 
 
+/* Suppress Pelles C warnings at warning level 2 */
+/* Some of these are also done in config.h. */
+
+#ifdef MPS_BUILD_PC
+
+/* "Structured Exception Handling is not portable." (mps_tramp). */
+#pragma warn(disable: 2008)
+
+/* "Unreachable code" (AVER, if condition is constantly true). */
+#pragma warn(disable: 2154)
+
+#endif /* MPS_BUILD_PC */
+
+
+/* Function attributes */
+/* These are also defined in config.h */
+
+#if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
+
+/* GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html#index-Wformat-2850>
+ * Clang: <http://clang.llvm.org/docs/AttributeReference.html#format-gnu-format>
+ */
+#define ATTRIBUTE_FORMAT(ARGLIST) __attribute__((__format__ ARGLIST))
+
+#else
+
+#define ATTRIBUTE_FORMAT(ARGLIST)
+
+#endif
+
+
 /* ulongest_t -- longest unsigned integer type
  *
  * Define a longest unsigned integer type for testing, scanning, and
@@ -52,7 +83,7 @@
 #error "How many beans make five?"
 #endif
 
-#ifdef MPS_PF_W3I6MV
+#if defined(MPS_OS_W3) && defined(MPS_ARCH_I6)
 #define PRIuLONGEST "llu"
 #define SCNuLONGEST "llu"
 #define SCNXLONGEST "llX"
@@ -82,6 +113,20 @@ typedef long longest_t;
  */
 
 #define testlib_unused(v) ((void)(v))
+
+
+/* max -- return larger value
+ * 
+ * Note: evaluates its arguments twice.
+ */
+
+#undef max
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+
+
+/* alignUp -- align word to alignment */
+
+#define alignUp(w, a) (((w) + (a) - 1) & ~((size_t)(a) - 1))
 
 
 /* die -- succeed or die
@@ -132,7 +177,9 @@ void assert_die(const char *file, unsigned line, const char *condition);
 
 /* error, verror -- die with message */
 
+ATTRIBUTE_FORMAT((printf, 1, 2))
 extern void error(const char *format, ...);
+ATTRIBUTE_FORMAT((printf, 1, 0))
 extern void verror(const char *format, va_list args);
 
 

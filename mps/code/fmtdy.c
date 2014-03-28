@@ -466,8 +466,8 @@ extern mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
       break;
 
       case 1:                   /* stretchy non-traceable */
-      notreached();             /* Not used by DylanWorks yet */
       p += vt + 1;
+      notreached();             /* Not used by DylanWorks yet */
       break;
 
       case 2:                   /* non-stretchy traceable */
@@ -478,7 +478,6 @@ extern mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
       break;
 
       case 3:                   /* stretchy traceable */
-      notreached();             /* DW doesn't create them yet */
       vl = *(mps_word_t *)p;    /* vector length */
       assert((vl & 3) == 1);    /* check Dylan integer tag */
       vl >>= 2;                 /* untag it */
@@ -486,21 +485,22 @@ extern mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
       res = dylan_scan_contig(mps_ss, p, p + vl);
       if(res) return res;
       p += vt;                  /* skip to end of whole vector */
+      notreached();             /* DW doesn't create them yet */
       break;
 
       case 4:                   /* non-word */
-      es = (vh & 0xff) >> 3;
-      vb = (vh >> 16) & 0xff;
+      es = (unsigned)(vh & 0xff) >> 3;
+      vb = (unsigned)((vh >> 16) & 0xff);
       vt += vb;
       p += NONWORD_LENGTH(vt, es);
       break;
 
       case 5:                   /* stretchy non-word */
-      notreached();             /* DW doesn't create them yet */
-      es = (vh & 0xff) >> 3;
-      vb = (vh >> 16) & 0xff;
+      es = (unsigned)(vh & 0xff) >> 3;
+      vb = (unsigned)((vh >> 16) & 0xff);
       vt += vb;
       p += NONWORD_LENGTH(vt, es) + 1;
+      notreached();             /* DW doesn't create them yet */
       break;
 
       default:
@@ -674,8 +674,8 @@ static mps_addr_t dylan_skip(mps_addr_t object)
 
     if((vf & 6) == 4)           /* non-word */
     {
-      es = (vh & 0xff) >> 3;
-      vb = (vh >> 16) & 0xff;
+      es = (unsigned)(vh & 0xff) >> 3;
+      vb = (unsigned)((vh >> 16) & 0xff);
       vt += vb;
       p += NONWORD_LENGTH(vt, es);
     }

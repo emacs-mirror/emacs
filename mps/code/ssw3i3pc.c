@@ -1,23 +1,65 @@
-/* mpswin.h: RAVENBROOK MEMORY POOL SYSTEM WINDOWS.H INTERFACE
+/* ssw3i3pc.c: STACK SCANNING FOR WIN32 WITH PELLES C
  *
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
- * .readership: For MPS client application developers, MPS developers.
+ * This scans the stack and fixes the registers which may contain roots.
+ * See <design/thread-manager/>.
  *
- * .purpose: Shared file for the incantations needed to include windows.h.
+ * .assume.ms-compat: We rely on the fact that Pelles C's setjmp stores
+ * the callee-save registers in the jmp_buf and is compatible with Microsoft
+ * C.  The Pelles C 7.00 setjmp.h header has a comment "MS compatible".  See
+ * also "Is Pelles C's jmp_buf compatible with Microsoft C's?"
+ * <http://forum.pellesc.de/index.php?topic=5464>
+ *
+ * REFERENCES
+ *
+ * "Argument Passing and Naming Conventions"; MSDN; Microsoft Corporation;
+ * <http://msdn.microsoft.com/en-us/library/984x0h58%28v=vs.100%29.aspx>.
+ *
+ * "Calling conventions for different C++ compilers and operating systems";
+ * Agner Fog; Copenhagen University College of Engineering; 2012-02-29;
+ * <http://agner.org./optimize/calling_conventions.pdf>.
  */
 
-#ifndef mpswin_h
-#define mpswin_h
+#include "mpm.h"
+#include <setjmp.h>
 
-/* Speed up the build process by excluding parts of windows.h that we
- * don't use. See <http://support.microsoft.com/kb/166474> */
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#undef WIN32_LEAN_AND_MEAN
+SRCID(ssw3i3pc, "$Id$");
 
-#endif /* mpswin_h */
+
+/* This definition isn't in the Pelles C headers, so we reproduce it here.
+ * See .assume.ms-compat. */
+
+typedef struct __JUMP_BUFFER {
+    unsigned long Ebp;
+    unsigned long Ebx;
+    unsigned long Edi;
+    unsigned long Esi;
+    unsigned long Esp;
+    unsigned long Eip;
+    unsigned long Registration;
+    unsigned long TryLevel;
+    unsigned long Cookie;
+    unsigned long UnwindFunc;
+    unsigned long UnwindData[6];
+} _JUMP_BUFFER;
+
+
+Res StackScan(ScanState ss, Addr *stackBot)
+{
+  jmp_buf jb;
+
+  /* .assume.ms-compat */
+  (void)setjmp(jb);
+
+  /* Ensure that the callee-save registers will be found by
+     StackScanInner when it's passed the address of the Ebx field. */
+  AVER(offsetof(_JUMP_BUFFER, Edi) == offsetof(_JUMP_BUFFER, Ebx) + 4);
+  AVER(offsetof(_JUMP_BUFFER, Esi) == offsetof(_JUMP_BUFFER, Ebx) + 8);
+
+  return StackScanInner(ss, stackBot, (Addr *)&((_JUMP_BUFFER *)jb)->Ebx, 3);
+}
 
 
 /* C. COPYRIGHT AND LICENSE

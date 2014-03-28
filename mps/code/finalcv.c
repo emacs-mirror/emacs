@@ -186,7 +186,8 @@ static void *test(void *arg, size_t s)
       mps_message_finalization_ref(&objaddr, arena, message);
       obj = objaddr;
       objind = dylan_int_int(obj[vectorSLOT]);
-      printf("Finalizing: object %lu at %p\n", objind, objaddr);
+      printf("Finalizing: object %"PRIuLONGEST" at %p\n",
+             (ulongest_t)objind, objaddr);
       /* <design/poolmrg/#test.promise.ut.final.check> */
       cdie(root[objind] == NULL, "finalized live");
       cdie(state[objind] == finalizableSTATE, "finalized dead");

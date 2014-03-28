@@ -94,8 +94,6 @@ struct tlonglong {
 
 /* alignmentTest -- test default alignment is acceptable */
 
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-
 static void alignmentTest(mps_arena_t arena)
 {
   mps_pool_t pool;
@@ -404,7 +402,7 @@ static void *test(void *arg, size_t s)
 
   if (rnd() & 1) {
     printf("Using auto_header format.\n");
-    EnsureHeaderFormat(&format, arena);
+    die(EnsureHeaderFormat(&format, arena), "EnsureHeaderFormat");
     ap_headerSIZE = headerSIZE;  /* from fmthe.h */
   } else {
     printf("Using normal format (no implicit object header: client pointers point at start of storage).\n");

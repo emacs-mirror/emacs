@@ -130,7 +130,7 @@ static void step(void)
       DestroyTestBlock(a);
       break;
     default:
-      if (!deleted & (pushee > popee)) {
+      if (!deleted && (pushee > popee)) {
         TestBlock b;
         TestClosureStruct cl;
         deleted = (unsigned)abqRnd (pushee - popee) + popee;

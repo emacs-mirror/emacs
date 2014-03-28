@@ -571,7 +571,6 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
   Addr base, mid, limit;
   Arena arena;
   Res res;
-  va_list args;
 
   AVER(NULL != mergedSegReturn);
   AVERT(Seg, segLo);
@@ -591,7 +590,6 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
   /* Invoke class-specific methods to do the merge */
   res = class->merge(segLo, segHi, base, mid, limit,
                      withReservoirPermit);
-  va_end(args);
   if (ResOK != res)
     goto failMerge;
 

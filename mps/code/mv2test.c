@@ -38,11 +38,9 @@ static double expdev(void)
 }
 
 
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-
-static size_t min;
-static size_t mean;
-static size_t max;
+static size_t size_min;
+static size_t size_mean;
+static size_t size_max;
 static int verbose = 0;
 static mps_pool_t pool;
 
@@ -50,8 +48,8 @@ static size_t randomSize(unsigned long i)
 {
   /* Distribution centered on mean.  Verify that allocations
      below min and above max are handled correctly */
-  size_t s = (max - mean)/4;
-  size_t m = mean;
+  size_t s = (size_max - size_mean)/4;
+  size_t m = size_mean;
   double r;
   double x;
 
@@ -72,8 +70,6 @@ static size_t randomSize(unsigned long i)
 #define testArenaSIZE   ((size_t)64<<20)
 #define TEST_SET_SIZE 1234
 #define TEST_LOOPS 27
-
-#define alignUp(w, a) (((w) + (a) - 1) & ~((size_t)(a) - 1))
 
 static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 {
@@ -182,14 +178,14 @@ static void stress_with_arena_class(mps_arena_class_t aclass, Bool zoned)
         "mps_arena_create");
   } MPS_ARGS_END(args);
 
-  min = MPS_PF_ALIGN;
-  mean = 42;
-  max = 8192;
+  size_min = MPS_PF_ALIGN;
+  size_mean = 42;
+  size_max = 8192;
 
   MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_MIN_SIZE, min);
-    MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, mean);
-    MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, max);
+    MPS_ARGS_ADD(args, MPS_KEY_MIN_SIZE, size_min);
+    MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, size_mean);
+    MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, size_max);
     MPS_ARGS_ADD(args, MPS_KEY_MVT_RESERVE_DEPTH, TEST_SET_SIZE/2);
     MPS_ARGS_ADD(args, MPS_KEY_MVT_FRAG_LIMIT, 0.3);
     die(stress(mps_class_mvt(), arena, randomSize, args), "stress MVT");
