@@ -193,11 +193,12 @@ static void test(mps_arena_t arena,
 
   for(i = 0; i < TABLE_SLOTS; ++i) {
     mps_word_t *string;
-    /* Ensure that the last entry in the table is preserved, so that
-     * we don't get a false positive due to the local variable
-     * 'string' keeping this entry alive (see job003436).
+    /* Ensure that the first and last entries in the table are
+     * preserved, so that we don't get false positives due to the
+     * local variables 'weak_table' and 'string' keeping these entries
+     * alive (see job003436).
      */
-    if (rnd() % 2 == 0 || i + 1 == TABLE_SLOTS) {
+    if (rnd() % 2 == 0 || i == 0 || i + 1 == TABLE_SLOTS) {
       string = alloc_string("iamalive", leafap);
       preserve[i] = string;
     } else {
