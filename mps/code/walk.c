@@ -308,7 +308,8 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
   if (SegFirst(&seg, arena)) {
     do {
       if ((SegPool(seg)->class->attr & AttrGC) != 0) {
-        TraceAddWhite(trace, seg);
+        res = TraceAddWhite(trace, seg);
+        AVER(res == ResOK);
       }
     } while (SegNext(&seg, arena, seg));
   }

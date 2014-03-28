@@ -96,8 +96,8 @@ $(PFM)\cool\mps.lib: \
   $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
   $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
 	$(ECHO) $@
-	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$(PFM)\$(VARIETY)\version.o version.c
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $** $(PFM)\$(VARIETY)\version.o
+	$(CC) /c $(CFLAGS) /Fo$(PFM)\$(VARIETY)\version.obj version.c
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $** $(PFM)\$(VARIETY)\version.obj
 
 
 # OTHER GENUINE TARGETS
@@ -267,13 +267,13 @@ $(PFM)\$(VARIETY)\mpseventsql.obj: $(PFM)\$(VARIETY)\eventsql.obj
 	$(ECHO) $@
 	@if not exist $(PFM) mkdir $(PFM)
 	@if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
-	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$@ $<
+	$(CC) /c $(CFLAGS) /Fo$@ $<
 
 $(PFM)\$(VARIETY)\sqlite3.obj:
 	$(ECHO) $@
 	@if not exist $(PFM) mkdir $(PFM)
 	@if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
-        cl /c $(CFLAGSSQL) /Fd$(PFM)\$(VARIETY)\ /Fo$@ sqlite3.c
+        $(CC) /c $(CFLAGSSQL) /Fo$@ sqlite3.c
 
 {}.asm{$(PFM)\$(VARIETY)}.obj:
 	$(ECHO) $@
@@ -295,7 +295,7 @@ $(PFM)\$(VARIETY)\sqlite3.obj:
 
 {$(PFM)\$(VARIETY)}.obj{$(PFM)\$(VARIETY)}.exe:
 	$(ECHO) $@
-	$(LINKER) $(LINKFLAGS) /PDB:$*.pdb /OUT:$@ $(**)
+	$(LINKER) $(LINKFLAGS) /OUT:$@ $(**)
 
 
 # C. COPYRIGHT AND LICENSE
