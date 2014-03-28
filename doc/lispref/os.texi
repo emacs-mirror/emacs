@@ -430,10 +430,13 @@ This variable holds the name of the @file{.emacs.d} directory.  It is
 run on that type of terminal.  The library's name is constructed by
 concatenating the value of the variable @code{term-file-prefix} and the
 terminal type (specified by the environment variable @env{TERM}).
-Normally, @code{term-file-prefix} has the value
-@code{"term/"}; changing this is not recommended.  Emacs finds the file
-in the normal manner, by searching the @code{load-path} directories, and
-trying the @samp{.elc} and @samp{.el} suffixes.
+Normally, @code{term-file-prefix} has the value @code{"term/"};
+changing this is not recommended.  If there is an entry matching
+@env{TERM} in the @code{term-file-aliases} association list,
+Emacs uses the associated value in place of @env{TERM}.
+Emacs finds the file in the normal manner, by searching the
+@code{load-path} directories, and trying the @samp{.elc} and
+@samp{.el} suffixes.
 
 @cindex Termcap
   The usual role of a terminal-specific library is to enable special
@@ -477,6 +480,13 @@ init file if you do not wish to load the
 terminal-initialization file.
 
 On MS-DOS, Emacs sets the @env{TERM} environment variable to @samp{internal}.
+@end defvar
+
+@defvar term-file-aliases
+This variable is an an association list mapping terminal types to
+their aliases.  For example, an element of the form @code{("vt102"
+. "vt100")} means to treat a terminal of type @samp{vt102} like one of
+type @samp{vt100}.
 @end defvar
 
 @defvar tty-setup-hook

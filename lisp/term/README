@@ -5,9 +5,11 @@ See the end of the file for license conditions.
    This directory contains files of elisp that customize Emacs for certain
 terminal types.
 
-   When Emacs opens a new terminal, it checks the TERM environment variable to
-see what type of terminal the user is running on, searches for an elisp file
-named "term/${TERM}.el", and if one exists, loads it.  If Emacs finds no
+   When Emacs opens a new terminal, it checks the TERM environment variable
+to see what type of terminal the user is running on.  (If there is an entry
+for TERM in the `term-file-aliases' variable, Emacs uses the associated value
+in place of TERM in the following.)  Emacs searches for an elisp file named
+"term/${TERM}.el", and if one exists, loads it.  If Emacs finds no
 suitable file, then it strips the last hyphen and what follows it from TERM,
 and tries again.  If that still doesn't yield a file, then the previous hyphen
 is stripped, and so on until all hyphens are gone.  For example, if the

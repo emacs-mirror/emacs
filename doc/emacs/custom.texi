@@ -2445,9 +2445,13 @@ harmless, so those do not need a conditional.
 @node Terminal Init
 @subsection Terminal-specific Initialization
 
+@vindex term-file-aliases
   Each terminal type can have a Lisp library to be loaded into Emacs when
 it is run on that type of terminal.  For a terminal type named
-@var{termtype}, the library is called @file{term/@var{termtype}} and it is
+@var{termtype}, the library is called @file{term/@var{termtype}}.
+(If there is an entry of the form @code{(@var{termtype} . @var{alias})}
+in the @code{term-file-aliases} association list, Emacs uses
+@var{alias} in place of @var{termtype}.)  The library is
 found by searching the directories @code{load-path} as usual and trying the
 suffixes @samp{.elc} and @samp{.el}.  Normally it appears in the
 subdirectory @file{term} of the directory where most Emacs libraries are

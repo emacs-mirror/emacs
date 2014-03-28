@@ -36,6 +36,11 @@ otherwise leave it unmarked.
 ---
 ** The default value of `history-length' has increased to 100.
 
++++
+** The new variable `term-file-aliases' replaces some files from lisp/term.
+The function `tty-run-terminal-initialization' consults this variable
+when deciding what terminal-specific initialization code to run.
+
 
 * Editing Changes in Emacs 24.5
 
@@ -413,8 +418,9 @@ means to always load the .elc file.
 
 +++
 *** `electric-indent-mode' is now enabled by default.
-E.g., typing RET reindents the current line and indents the new line.
-`C-j' inserts a newline but does not indent.
+Typing RET reindents the current line and indents the new line.
+`C-j' inserts a newline but does not indent.  In some programming modes,
+additional characters are electric (eg `{').
 
 +++
 *** New buffer-local `electric-indent-local-mode'.

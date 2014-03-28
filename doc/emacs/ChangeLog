@@ -1,3 +1,7 @@
+2014-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Terminal Init): Mention term-file-aliases.
+
 2014-03-26  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments): Remove reference to obsolete file.

@@ -1,3 +1,11 @@
+2014-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* faces.el (term-file-aliases): New variable.
+	(tty-run-terminal-initialization): Respect term-file-aliases.
+	* term/apollo.el, term/vt102.el, term/vt125.el, term/vt201.el:
+	* term/vt220.el, term/vt240.el, term/vt300.el, term/vt320.el:
+	* term/vt400.el, term/vt420.el: Remove files, replaced by aliases.
+
 2014-03-27  Glenn Morris  <rgm@gnu.org>
 
 	* startup.el (inhibit-startup-hooks): Doc tweak.

@@ -2110,16 +2110,36 @@ the above example."
 Specifically, `tty-run-terminal-initialization' runs this.
 This can be used to fine tune the `input-decode-map', for example.")
 
+(defvar term-file-aliases
+  '(("apollo" . "vt100")
+    ("vt102" . "vt100")
+    ("vt125" . "vt100")
+    ("vt201" . "vt200")
+    ("vt220" . "vt200")
+    ("vt240" . "vt200")
+    ("vt300" . "vt200")
+    ("vt320" . "vt200")
+    ("vt400" . "vt200")
+    ("vt420" . "vt200")
+    )
+  "Alist of terminal type aliases.
+Entries are of the form (TYPE . ALIAS), where both elements are strings.
+This means to treat a terminal of type TYPE as if it were of type ALIAS.")
+
 (defun tty-run-terminal-initialization (frame &optional type run-hook)
   "Run the special initialization code for the terminal type of FRAME.
 The optional TYPE parameter may be used to override the autodetected
 terminal type to a different value.
+
+This consults `term-file-aliases' to map terminal types to their aliases.
 
 If optional argument RUN-HOOK is non-nil, then as a final step,
 this runs the hook `tty-setup-hook'.
 
 If you set `term-file-prefix' to nil, this function does nothing."
   (setq type (or type (tty-type frame)))
+  (let ((alias (assoc type term-file-aliases)))
+    (if alias (setq type (cdr alias))))
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
   (with-selected-frame frame

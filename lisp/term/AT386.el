@@ -22,8 +22,6 @@
 
 ;;; Commentary:
 
-;; Uses the Emacs 19 terminal initialization features --- won't work with 18.
-
 ;;; Code:
 
 (defun terminal-init-AT386 ()
