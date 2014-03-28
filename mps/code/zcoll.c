@@ -69,13 +69,6 @@
 #include <time.h>  /* clock */
 
 
-#ifdef MPS_BUILD_MV
-/* MSVC warning 4996 = stdio / C runtime 'unsafe' */
-/* Objects to: sscanf.  See job001934. */
-#pragma warning( disable : 4996 )
-#endif
-
-
 /* testChain -- generation parameters for the test */
 #define genCOUNT 2
 static mps_gen_param_s testChain[genCOUNT] = {
@@ -937,7 +930,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2008-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

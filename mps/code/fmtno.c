@@ -1,7 +1,7 @@
 /* fmtno.c: NULL OBJECT FORMAT IMPLEMENTATION
  *
  *  $Id$
- *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: MPS developers
  */
@@ -17,22 +17,6 @@
 #define notreached()    assert(0)
 #define unused(param)   ((void)param)
 
-#ifdef MPS_BUILD_MV
-
-/* MSVC 2.0 generates a warning for unused(). */
-#ifdef _MSC_VER
-#if _MSC_VER < 1000
-#pragma warning(disable: 4705)
-#endif
-#else /* _MSC_VER */
-#error "Expected _MSC_VER to be defined for builder.mv"
-#endif /* _MSC_VER */
-
-/* windows.h causes warnings about "unreferenced inline function */
-/* has been removed". */
-#pragma warning(disable: 4514)
-
-#endif /* MPS_BUILD_MV */
 
 #define ALIGN           sizeof(mps_word_t)
 
@@ -137,7 +121,7 @@ mps_res_t no_fmt(mps_fmt_t *mps_fmt_o, mps_arena_t arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
