@@ -27,7 +27,7 @@ $(ALL_TARGETS) $(OPTIONAL_TARGETS):
 
 clean:
 	$(ECHO) $(PFM): $@
-	-echo y | rmdir/s $(PFM)
+	if exist $(PFM) rmdir /q /s $(PFM)
 
 # target target
 # %%VARIETY: When adding a new variety, optionally, add a recursive make

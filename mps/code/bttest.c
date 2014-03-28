@@ -312,11 +312,6 @@ static void obeyCommand(const char *command)
 }
 
 
-#ifdef MPS_BUILD_MV
-/* disable "conversion from int to char" */
-#pragma warning(disable: 4244)
-#endif
-
 static void showBT(void) {
   Index i;
   char c;
@@ -353,11 +348,6 @@ static void showBT(void) {
   putchar('\n');
 }
 
-#ifdef MPS_BUILD_MV
-/* disable "conversion from int to char" */
-#pragma warning(default: 4244)
-#endif
-     
 
 #define testArenaSIZE (((size_t)64)<<20)
 
