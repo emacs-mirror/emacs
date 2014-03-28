@@ -54,10 +54,14 @@ Generally speaking, for non-trivial contributions to GNU Emacs we
 require that the copyright be assigned to the FSF.  For the reasons
 behind this, see: http://www.gnu.org/licenses/why-assign.html .
 
-Copyright assignment is a simple process.  If you live in the US, you
-can do it entirely electronically.  We can help you get started, and
-answer any questions you may have (or point you to the people with the
-answers), at the emacs-devel@gnu.org mailing list.
+Copyright assignment is a simple process.  If you live in the USA or
+Germany, you can do it entirely electronically.  We can help you get
+started, and answer any questions you may have (or point you to the
+people with the answers), at the emacs-devel@gnu.org mailing list.
+
+(Please note: general discussion about why some GNU projects ask
+for a copyright assignment is off-topic for emacs-devel.
+See gnu-misc-discuss instead.)
 
 A copyright disclaimer is also a possibility, but we prefer an assignment.
 Note that the disclaimer, like an assignment, involves you sending
