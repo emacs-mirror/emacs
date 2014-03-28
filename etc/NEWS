@@ -367,8 +367,9 @@ means to always load the .elc file.
 
 +++
 *** `electric-indent-mode' is now enabled by default.
-E.g., typing RET reindents the current line and indents the new line.
-`C-j' inserts a newline but does not indent.
+Typing RET reindents the current line and indents the new line.
+`C-j' inserts a newline but does not indent.  In some programming modes,
+additional characters are electric (eg `{').
 
 +++
 *** New buffer-local `electric-indent-local-mode'.
