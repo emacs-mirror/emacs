@@ -1,7 +1,12 @@
+2014-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-built-in-p): Treat a min-version of
+	0 like nil.
+
 2014-03-27  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight
-	special globals with font-lock-builtin-face.  (Bug#17057)
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords):
+	Highlight special globals with font-lock-builtin-face.  (Bug#17057)
 
 	* progmodes/ruby-mode.el (ruby-syntax-propertize-function):
 	Don't propertize `?' or `!' as symbol constituent when after

@@ -536,7 +536,7 @@ specifying the minimum acceptable version."
     (let ((bi (assq package package--builtin-versions)))
       (cond
        (bi (version-list-<= min-version (cdr bi)))
-       (min-version nil)
+       ((remove 0 min-version) nil)
        (t
         (require 'finder-inf nil t) ; For `package--builtins'.
         (assq package package--builtins))))))
