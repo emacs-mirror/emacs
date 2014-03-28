@@ -208,7 +208,7 @@ extern int main(int argc, char *argv[])
       break;
     }
   }
-  doQuit();
+  mps_arena_destroy(arena);
   return EXIT_SUCCESS;
 }
 
