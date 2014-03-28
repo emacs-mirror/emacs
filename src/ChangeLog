@@ -1,5 +1,10 @@
 2014-03-28  Glenn Morris  <rgm@gnu.org>
 
+	* emacs.c (emacs_version): Use PACKAGE_VERSION rather than VERSION.
+	(emacs_bugreport): New variable.
+	(usage_message): Use PACKAGE_BUGREPORT.
+	(syms_of_emacs) <report-emacs-bug-address>: New variable.
+
 	* emacs.c (syms_of_emacs) <system-configuration-features>: New var.
 
 2014-03-27  Paul Eggert  <eggert@cs.ucla.edu>

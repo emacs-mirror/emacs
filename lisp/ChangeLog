@@ -1,5 +1,9 @@
 2014-03-28  Glenn Morris  <rgm@gnu.org>
 
+	* cus-start.el (report-emacs-bug-address): Set custom properties.
+	* mail/emacsbug.el (report-emacs-bug-address):
+	Variable is now defined in emacs.c.
+
 	* mail/emacsbug.el (report-emacs-bug):
 	Include system-configuration-features.
 

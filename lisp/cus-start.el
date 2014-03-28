@@ -198,6 +198,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 
 	     ;; editfns.c
 	     (user-full-name mail string)
+	     ;; emacs.c
+	     (report-emacs-bug-address emacsbug string)
 	     ;; eval.c
 	     (max-specpdl-size limits integer)
 	     (max-lisp-eval-depth limits integer)

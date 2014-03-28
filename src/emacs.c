@@ -105,8 +105,9 @@ extern void moncontrol (int mode);
 #include <sys/personality.h>
 #endif
 
-static const char emacs_version[] = VERSION;
+static const char emacs_version[] = PACKAGE_VERSION;
 static const char emacs_copyright[] = COPYRIGHT;
+static const char emacs_bugreport[] = PACKAGE_BUGREPORT;
 
 /* Empty lisp strings.  To avoid having to build any others.  */
 Lisp_Object empty_unibyte_string, empty_multibyte_string;
@@ -324,7 +325,7 @@ abbreviation for a --option.\n\
 Various environment variables and window system resources also affect\n\
 the operation of Emacs.  See the main documentation.\n\
 \n\
-Report bugs to bug-gnu-emacs@gnu.org.  First, please see the Bugs\n\
+Report bugs to " PACKAGE_BUGREPORT ".  First, please see the Bugs\n\
 section of the Emacs manual or the file BUGS.\n"
   };
 
@@ -2542,6 +2543,10 @@ This is nil during initialization.  */);
   DEFVAR_LISP ("emacs-version", Vemacs_version,
 	       doc: /* Version numbers of this version of Emacs.  */);
   Vemacs_version = build_string (emacs_version);
+
+  DEFVAR_LISP ("report-emacs-bug-address", Vreport_emacs_bug_address,
+	       doc: /* Address of mailing list for GNU Emacs bugs.  */);
+  Vreport_emacs_bug_address = build_string (emacs_bugreport);
 
   DEFVAR_LISP ("dynamic-library-alist", Vdynamic_library_alist,
     doc: /* Alist of dynamic libraries vs external files implementing them.
