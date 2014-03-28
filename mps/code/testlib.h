@@ -23,48 +23,13 @@
 
 
 /* Suppress Visual C warnings at warning level 4, */
-/* see mail.richard.1997-09-25.13-26. */
+/* see mail.richard.1997-09-25.13-26 and job003715. */
 /* Essentially the same settings are done in config.h. */
 
 #ifdef MPS_BUILD_MV
 
-/* "unreferenced inline function has been removed" (windows.h) */
-#pragma warning(disable: 4514)
-
 /* "constant conditional" (MPS_END) */
 #pragma warning(disable: 4127)
-
-/* MSVC 2.0 generates a warning when using NOCHECK or UNUSED */
-#ifdef _MSC_VER
-#if _MSC_VER < 1000
-#pragma warning(disable: 4705)
-#endif
-#else /* _MSC_VER */
-#error "Expected _MSC_VER to be defined for builder.mv"
-#endif /* _MSC_VER */
-
-
-/* MSVC 10.00 on PowerPC generates erroneous warnings about */
-/* uninitialized local variables, if you take their address. */
-#ifdef MPS_ARCH_PP
-#pragma warning(disable: 4701)
-#endif
-
-
-/* Non-checking varieties give many spurious warnings because parameters
- * are suddenly unused, etc.  We aren't interested in these.
- */
-
-#if defined(AVER_AND_CHECK_NONE)
-
-/* "unreferenced formal parameter" */
-#pragma warning(disable: 4100)
-
-/* "unreferenced local function has been removed" */
-#pragma warning(disable: 4505)
-
-#endif
-
 
 #endif /* MPS_BUILD_MV */
 

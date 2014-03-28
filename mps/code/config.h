@@ -1,7 +1,7 @@
 /* config.h: MPS CONFIGURATION
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * PURPOSE
@@ -161,52 +161,13 @@
 #include "mpstd.h"
 
 /* Suppress Visual C warnings at warning level 4, */
-/* see mail.richard.1997-09-25.13-26. */
+/* see mail.richard.1997-09-25.13-26 and job003715. */
 /* Essentially the same settings are done in testlib.h. */
 
 #ifdef MPS_BUILD_MV
 
-/* "unreferenced inline function has been removed" (windows.h) */
-#pragma warning(disable: 4514)
-
 /* "constant conditional" (MPS_END) */
 #pragma warning(disable: 4127)
-
-/* "unreachable code" (ASSERT, if cond is constantly true). */
-#pragma warning(disable: 4702)
-
-/* "expression evaluates to a function which is missing an argument list" */
-#pragma warning(disable: 4550)
-
-/* "local variable is initialized but not referenced" */
-#pragma warning(disable: 4189)
-
-/* "not all control paths return a value" */
-#pragma warning(disable: 4715)
-
-/* MSVC 2.0 generates a warning when using NOCHECK or UNUSED */
-#ifdef _MSC_VER
-#if _MSC_VER < 1000
-#pragma warning(disable: 4705)
-#endif
-#else /* _MSC_VER */
-#error "Expected _MSC_VER to be defined for builder.mv"
-#endif /* _MSC_VER */
-
-
-/* Non-checking varieties give many spurious warnings because parameters
- * are suddenly unused, etc.  We aren't interested in these
- */
-
-#if defined(AVER_AND_CHECK_NONE)
-
-/* "unreferenced formal parameter" */
-#pragma warning(disable: 4100)
-
-/* "unreferenced local function has been removed" */
-#pragma warning(disable: 4505)
-
-#endif /* AVER_AND_CHECK_NONE */
 
 #endif /* MPS_BUILD_MV */
 
@@ -547,7 +508,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

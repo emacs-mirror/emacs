@@ -1,5 +1,5 @@
 /* eventcnv.c: Simple event log converter
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * This is a command-line tool that converts a binary format telemetry output
  * stream from the MPS into a more-portable textual format.
@@ -45,12 +45,6 @@
 #include <assert.h> /* for assert */
 #include <string.h> /* for strcmp */
 #include "mpstd.h"
-
-#ifdef MPS_BUILD_MV
-/* MSVC warning 4996 = stdio / C runtime 'unsafe' */
-/* Objects to: strncpy, sscanf, fopen.  See job001934. */
-#pragma warning( disable : 4996 )
-#endif
 
 #define DEFAULT_TELEMETRY_FILENAME "mpsio.log"
 #define TELEMETRY_FILENAME_ENVAR   "MPS_TELEMETRY_FILENAME"
@@ -332,7 +326,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
