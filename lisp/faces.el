@@ -2142,8 +2142,9 @@ this runs the hook `tty-setup-hook'.
 
 If you set `term-file-prefix' to nil, this function does nothing."
   (setq type (or type (tty-type frame)))
-  (let ((alias (assoc type term-file-aliases)))
-    (if alias (setq type (cdr alias))))
+  (let ((alias (tty-find-type
+		(lambda (typ) (assoc typ term-file-aliases)) type)))
+    (if alias (setq type (cdr (assoc alias term-file-aliases)))))
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
   (with-selected-frame frame
