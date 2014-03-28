@@ -1,3 +1,8 @@
+2014-03-28  Ken Brown  <kbrown@cornell.edu>
+
+	* conf_post.h (SYSTEM_PURESIZE_EXTRA) [CYGWIN]: Set to 10000.
+	(Bug#17112)
+
 2014-03-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xterm.c (x_draw_image_glyph_string): Adjust image background

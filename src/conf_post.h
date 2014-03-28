@@ -161,6 +161,10 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #endif
 #endif
 
+#ifdef CYGWIN
+#define SYSTEM_PURESIZE_EXTRA 10000
+#endif
+
 #if defined HAVE_NTGUI && !defined DebPrint
 # ifdef EMACSDEBUG
 extern void _DebPrint (const char *fmt, ...);
