@@ -79,7 +79,8 @@ AUTOGEN_VCS = \
 	dired.el \
 	ibuffer.el \
 	htmlfontify.el \
-	emacs-lisp/eieio.el
+	emacs-lisp/eieio.el \
+	textmodes/reftex.el
 
 # Value of max-lisp-eval-depth when compiling initially.
 # During bootstrapping the byte-compiler is run interpreted when compiling

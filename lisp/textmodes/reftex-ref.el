@@ -29,6 +29,7 @@
 (require 'reftex)
 (require 'reftex-parse)
 
+;;;###autoload
 (defun reftex-label-location (&optional bound)
   "Return the environment or macro which determines the label type at point.
 If optional BOUND is an integer, limit backward searches to that point."
@@ -62,6 +63,7 @@ If optional BOUND is an integer, limit backward searches to that point."
      (t ;; This should not happen, I think?
       "section"))))
 
+;;;###autoload
 (defun reftex-label-info-update (cell)
   ;; Update information about just one label in a different file.
   ;; CELL contains the old info list
@@ -92,6 +94,7 @@ If optional BOUND is an integer, limit backward searches to that point."
                 (append (reftex-label-info label file) (list note)))
             (list label typekey "" file "LOST LABEL.  RESCAN TO FIX.")))))))
 
+;;;###autoload
 (defun reftex-label-info (label &optional file bound derive env-or-mac)
   ;; Return info list on LABEL at point.
   (let* ((prefix (if (string-match "^[a-zA-Z0-9]+:" label)
@@ -118,6 +121,7 @@ If optional BOUND is an integer, limit backward searches to that point."
 
 ;;; Creating labels ---------------------------------------------------------
 
+;;;###autoload
 (defun reftex-label (&optional environment no-insert)
   "Insert a unique label.  Return the label.
 If ENVIRONMENT is given, don't bother to find out yourself.
@@ -398,6 +402,7 @@ also applies `reftex-translate-to-ascii-function' to the string."
  a / A      Put all marked entries into one/many \\ref commands.
  q / RET    Quit without referencing / Accept current label (also on mouse-2).")
 
+;;;###autoload
 (defun reftex-reference (&optional type no-insert cut)
   "Make a LaTeX reference.  Look only for labels of a certain TYPE.
 With prefix arg, force to rescan buffer for labels.  This should only be
@@ -705,6 +710,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
             (file (nth 3 data)))
         (reftex-access-scan-info arg file)))))
 
+;;;###autoload
 (defun reftex-query-label-type ()
   ;; Ask for label type
   (let ((key (reftex-select-with-char
@@ -713,6 +719,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
       (error "No such label type: %s" (char-to-string key)))
     (char-to-string key)))
 
+;;;###autoload
 (defun reftex-show-label-location (data forward no-revisit
                                         &optional stay error)
   ;; View the definition site of a label in another window.
@@ -837,6 +844,7 @@ Replace any occurrences of \"\\ref\" with REFSTYLE."
     (setq fmt (replace-match refstyle t t fmt 1)))
   (format fmt label))
 
+;;;###autoload
 (defun reftex-goto-label (&optional other-window)
   "Prompt for a label (with completion) and jump to the location of this label.
 Optional prefix argument OTHER-WINDOW goes to the label in another window."
@@ -867,3 +875,7 @@ Optional prefix argument OTHER-WINDOW goes to the label in another window."
 (provide 'reftex-ref)
 
 ;;; reftex-ref.el ends here
+
+;; Local Variables:
+;; generated-autoload-file: "reftex.el"
+;; End:

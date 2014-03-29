@@ -47,6 +47,7 @@
       (and (listp reftex-plug-into-AUCTeX)
            (nth which reftex-plug-into-AUCTeX))))
 
+;;;###autoload
 (defun reftex-arg-label (optional &optional prompt definition)
   "Use `reftex-label', `reftex-reference' or AUCTeX's code to insert label arg.
 What is being used depends upon `reftex-plug-into-AUCTeX'."
@@ -68,6 +69,7 @@ What is being used depends upon `reftex-plug-into-AUCTeX'."
         (LaTeX-add-labels label))
     (TeX-argument-insert label optional)))
 
+;;;###autoload
 (defun reftex-arg-cite (optional &optional prompt definition)
   "Use `reftex-citation' or AUCTeX's code to insert a cite-key macro argument.
 What is being used depends upon `reftex-plug-into-AUCTeX'."
@@ -85,6 +87,7 @@ What is being used depends upon `reftex-plug-into-AUCTeX'."
 			 optional)))
 
 
+;;;###autoload
 (defun reftex-arg-index-tag (optional &optional prompt &rest args)
   "Prompt for an index tag with completion.
 This is the name of an index, not the entry."
@@ -104,6 +107,7 @@ This is the name of an index, not the entry."
       (setq tag (read-string prompt)))
     (TeX-argument-insert tag optional)))
 
+;;;###autoload
 (defun reftex-arg-index (optional &optional prompt &rest args)
   "Prompt for an index entry completing with known entries.
 Completion is specific for just one index, if the macro or a tag
@@ -138,6 +142,7 @@ argument identify one of multiple indices."
        (t "idx")))))
 
 (defvar LaTeX-label-function)
+;;;###autoload
 (defun reftex-plug-into-AUCTeX ()
   ;; Replace AUCTeX functions with RefTeX functions.
   ;; Which functions are replaced is controlled by the variable
@@ -162,6 +167,7 @@ argument identify one of multiple indices."
        (fboundp 'TeX-arg-index)
        (fset 'TeX-arg-index 'reftex-arg-index)))
 
+;;;###autoload
 (defun reftex-toggle-plug-into-AUCTeX ()
   "Toggle Interface between AUCTeX and RefTeX on and off."
   (interactive)
@@ -173,6 +179,7 @@ argument identify one of multiple indices."
       (message "RefTeX has been plugged into AUCTeX.")
     (message "RefTeX no longer interacts with AUCTeX.")))
 
+;;;###autoload
 (defun reftex-add-label-environments (entry-list)
   "Add label environment descriptions to `reftex-label-alist-style'.
 The format of ENTRY-LIST is exactly like `reftex-label-alist'.  See there
@@ -197,8 +204,10 @@ the label information is recompiled on next use."
           (push entry list)))
       (when changed
         (put reftex-docstruct-symbol 'reftex-label-alist-style list)))))
+;;;###autoload
 (defalias 'reftex-add-to-label-alist 'reftex-add-label-environments)
 
+;;;###autoload
 (defun reftex-add-section-levels (entry-list)
   "Add entries to the value of `reftex-section-levels'.
 The added values are kept local to the current document.  The format
@@ -219,9 +228,14 @@ of ENTRY-LIST is a list of cons cells (\"MACRONAME\" . LEVEL).  See
       (when changed
         (put reftex-docstruct-symbol 'reftex-section-levels list)))))
 
+;;;###autoload
 (defun reftex-notice-new-section ()
   (reftex-notice-new 1 'force))
 
 (provide 'reftex-auc)
 
 ;;; reftex-auc.el ends here
+
+;; Local Variables:
+;; generated-autoload-file: "reftex.el"
+;; End:

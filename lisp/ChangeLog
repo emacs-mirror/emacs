@@ -1,3 +1,14 @@
+2014-03-29  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/reftex.el: Manage most autoloads automatically.
+	* textmodes/reftex-auc.el, textmodes/reftex-cite.el:
+	* textmodes/reftex-dcr.el, textmodes/reftex-global.el:
+	* textmodes/reftex-index.el, textmodes/reftex-parse.el:
+	* textmodes/reftex-ref.el, textmodes/reftex-sel.el:
+	* textmodes/reftex-toc.el: Set generated-autoload-file,
+	and add autoload cookies for reftex.el.
+	* Makefile.in (AUTOGEN_VCS): Add textmodes/reftex.el.
+
 2014-03-28  Glenn Morris  <rgm@gnu.org>
 
 	* cus-start.el (report-emacs-bug-address): Set custom properties.

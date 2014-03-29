@@ -30,6 +30,7 @@
 
 (require 'reftex)
 
+;;;###autoload
 (defun reftex-view-crossref (&optional arg auto-how fail-quietly)
   "View cross reference of macro at point.  Point must be on the KEY
 argument.  When at a `\\ref' macro, show corresponding `\\label'
@@ -220,6 +221,7 @@ to the functions `reftex-view-cr-cite' and `reftex-view-cr-ref'."
       (when (equal arg 2)
         (select-window pop-win)))))
 
+;;;###autoload
 (defun reftex-mouse-view-crossref (ev)
   "View cross reference of \\ref or \\cite macro where you click.
 If the macro at point is a \\ref, show the corresponding label definition.
@@ -318,6 +320,7 @@ With argument, actually select the window showing the cross reference."
   "Non-nil means use the idle timers in XEmacs for crossref display.
 Currently, idle timer restart is broken and we use the post-command-hook.")
 
+;;;###autoload
 (defun reftex-toggle-auto-view-crossref ()
   "Toggle the automatic display of crossref information in the echo area.
 When active, leaving point idle in the argument of a \\ref or \\cite macro
@@ -355,6 +358,7 @@ will display info in the echo area."
                             'reftex-view-crossref-when-idle
                             reftex-idle-time nil t))))
 
+;;;###autoload
 (defun reftex-view-crossref-from-bibtex (&optional arg)
   "View location in a LaTeX document which cites the BibTeX entry at point.
 Since BibTeX files can be used by many LaTeX documents, this function
@@ -482,3 +486,7 @@ Calling this function several times find successive citation locations."
 (provide 'reftex-dcr)
 
 ;;; reftex-dcr.el ends here
+
+;; Local Variables:
+;; generated-autoload-file: "reftex.el"
+;; End:
