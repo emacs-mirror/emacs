@@ -160,7 +160,7 @@ fi
 
 ### Find out which version of Emacs this is.
 version=`
-  sed -n 's/^AC_INIT(emacs,[	 ]*\([^	 )]*\).*/\1/p' <configure.ac
+  sed -n 's/^AC_INIT(GNU Emacs,[	 ]*\([^	 )]*\).*/\1/p' <configure.ac
 ` || version=
 if [ ! "${version}" ]; then
   echo "${progname}: can't find current Emacs version in \`./src/emacs.c'" >&2

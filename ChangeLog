@@ -2,6 +2,7 @@
 
 	* configure.ac (AC_INIT): Add "GNU" in package, add bug address.
 	(PACKAGE_BUGREPORT): Use it.
+	(make-dist): Update AC_INIT regexp.
 
 	* configure.ac (ACL_SUMMARY): Rename from acl_summary, for consistency.
 	(EMACS_CONFIG_FEATURES): New define.
