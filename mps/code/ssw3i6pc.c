@@ -1,4 +1,4 @@
-/* ssw3i6pc.c: STACK SCANNING FOR WIN32 WITH PELLES C
+/* ssw3i6pc.c: STACK SCANNING FOR WIN64 WITH PELLES C
  *
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
