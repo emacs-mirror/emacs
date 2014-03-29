@@ -1,9 +1,9 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2001, 2004-2014 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1996-1999, 2001, 2004-2014 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: comm, data, processes, hypermedia
 
 ;; This file is part of GNU Emacs.
