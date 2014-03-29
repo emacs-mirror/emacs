@@ -2432,9 +2432,26 @@ HAVE_GSETTINGS=no
 if test "${HAVE_X11}" = "yes" && test "${with_gsettings}" = "yes"; then
    PKG_CHECK_MODULES(GSETTINGS, gio-2.0 >= 2.26, HAVE_GSETTINGS=yes, HAVE_GSETTINGS=no)
    if test "$HAVE_GSETTINGS" = "yes"; then
-      AC_DEFINE(HAVE_GSETTINGS, 1, [Define to 1 if using GSettings.])
-      SETTINGS_CFLAGS="$GSETTINGS_CFLAGS"
-      SETTINGS_LIBS="$GSETTINGS_LIBS"
+      AC_MSG_CHECKING([whether GSettings is in gio])
+      GSETTINGS_COMPILES=no
+      AC_LINK_IFELSE(
+         [AC_LANG_PROGRAM(
+ 	     [[/* Check that gsettings really is present.  */
+             #include <glib-object.h>
+	     #include <gio/gio.h>
+ 	     ]],
+ 	     [[
+	       GSettings *settings;
+	       GVariant *val = g_settings_get_value (settings, "");
+ 	     ]])],
+ 	 [GSETTINGS_COMPILES=yes])
+      AC_MSG_RESULT([$GSETTINGS_COMPILES])
+
+      if test "$$GSETTINGS_COMPILES" = "yes"; then
+        AC_DEFINE(HAVE_GSETTINGS, 1, [Define to 1 if using GSettings.])
+ 	SETTINGS_CFLAGS="$GSETTINGS_CFLAGS"
+ 	SETTINGS_LIBS="$GSETTINGS_LIBS"
+      fi
    fi
 fi
 
