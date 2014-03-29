@@ -1,7 +1,6 @@
 ;;; ede/dired.el --- EDE extensions to dired.
 
-;; Copyright (C) 1998-2000, 2003, 2009-2014 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1998-2000, 2003, 2009-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.4
@@ -56,6 +55,7 @@
     map)
   "Keymap used for ede dired minor mode.")
 
+;;;###autoload
 (define-minor-mode ede-dired-minor-mode
   "A minor mode that should only be activated in DIRED buffers.
 If ARG is nil or a positive number, force on, if
@@ -83,5 +83,10 @@ negative, force off."
 	  (setq ede-object (ede-buffer-object (current-buffer)))))))
 
 (provide 'ede/dired)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-load-name: "ede/dired"
+;; End:
 
 ;;; ede/dired.el ends here

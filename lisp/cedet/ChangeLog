@@ -1,3 +1,11 @@
+2014-03-29  Glenn Morris  <rgm@gnu.org>
+
+	* ede/dired.el (ede-dired-minor-mode): Add autoload cookie.
+	(generated-autoload-file, generated-autoload-load-name):
+	Set file-local values.
+	* ede.el: Load ede/loaddefs at compile time too.
+	(ede-dired-minor-mode): Remove hand-written autoload.
+
 2014-03-04  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/util.el (semantic-complete-symbol):

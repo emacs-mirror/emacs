@@ -46,7 +46,8 @@
 (require 'ede/base)
 (require 'ede/auto)
 
-(load "ede/loaddefs" nil 'nomessage)
+(eval-and-compile
+  (load "ede/loaddefs" nil 'nomessage))
 
 (declare-function ede-commit-project "ede/custom")
 (declare-function ede-convert-path "ede/files")
@@ -450,8 +451,6 @@ If optional argument CURRENT is non-nil, return sub-menu code."
 
 ;;; Mode Declarations
 ;;
-(eval-and-compile
-  (autoload 'ede-dired-minor-mode "ede/dired" "EDE commands for dired" t))
 
 (defun ede-apply-target-options ()
   "Apply options to the current buffer for the active project/target."
