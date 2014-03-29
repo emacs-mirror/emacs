@@ -887,7 +887,7 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
     ;; See if any suffix rule matches this file name.
     (while suffixes
       (let (case-fold-search)
-	(if (string-match-p (car (car suffixes)) file)
+	(if (string-match (car (car suffixes)) file)
 	    (setq suffix (car suffixes) suffixes nil))
 	(setq suffixes (cdr suffixes))))
     ;; If so, compute desired new name.
