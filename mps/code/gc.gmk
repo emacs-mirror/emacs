@@ -26,7 +26,6 @@ CFLAGSCOMPILER := \
 	-Wshadow \
 	-Wstrict-aliasing=2 \
 	-Wstrict-prototypes \
-	-Wunreachable-code \
 	-Wwrite-strings
 CFLAGSCOMPILERSTRICT := -ansi
 
