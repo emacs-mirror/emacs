@@ -9,15 +9,15 @@ Windows starting with Windows 2000 and newer.  Windows 9X are not
 supported (but the Emacs binary produced by this build will run on
 Windows 9X as well).
 
+  Do not use this recipe with Cygwin.  For building on Cygwin, use the
+  normal installation instructions, ../INSTALL.
+
 * For the brave (a.k.a. "impatient"):
 
   For those who have a working MSYS/MinGW development environment and
   are comfortable with running Posix configure scripts, here are the
   concise instructions for configuring and building the native Windows
-  binary of Emacs with these tools.
-
-  Do not use this recipe with Cygwin.  For building on Cygwin, use the
-  normal installation instructions, ../INSTALL.
+  binary of Emacs with these tools:
 
   0. Start the MSYS Bash window.  Everything else below is done from
      that window's Bash prompt.
@@ -49,7 +49,7 @@ Windows 9X as well).
      You can pass other options to the configure script.  Here's a
      typical example (for an in-place debug build):
 
-       CPPFLAGS='-DGLYPH_DEBUG=1' CFLAGS='-O0 -g3' ./configure --prefix=/d/usr/emacs --enable-checking
+       CFLAGS='-O0 -g3' ./configure --prefix=/d/usr/emacs --enable-checking='yes,glyphs'
 
   3. After the configure script finishes, it should display the
      resulting configuration.  After that, type
@@ -82,7 +82,7 @@ Windows 9X as well).
   A correct installation makes all the rest almost trivial; a botched
   installation will likely make you miserable for quite some time.
 
-  There are two alternative to installing MinGW + MSYS: using the GUI
+  There are two alternatives to installing MinGW + MSYS: using the GUI
   installer, called mingw-get, provided by the MinGW project, or
   manual installation.  The next two sections describe each one of
   these.
@@ -169,7 +169,7 @@ Windows 9X as well).
   you are building from the repository:
 
    . Texinfo (needed to produce the Info manuals when building from
-     bzr, and for "make install")
+     bzr/git, and for "make install")
 
      Available from http://sourceforge.net/projects/ezwinports/files/.
 
@@ -373,11 +373,11 @@ Windows 9X as well).
   A few frequently used options are needed when you want to produce an
   unoptimized binary with runtime checks enabled:
 
-     CPPFLAGS='-DGLYPH_DEBUG=1' CFLAGS='-O0 -g3' ./configure --prefix=PREFIX --enable-checking
+     CFLAGS='-O0 -g3' ./configure --prefix=PREFIX --enable-checking='yes,glyphs'
 
   Once invoked, the configure script will run for some time, and, if
   successful, will eventually produce a summary of the configuration
-  like this:
+  similar to this:
 
      Configured for `i686-pc-mingw32'.
 
@@ -723,43 +723,6 @@ Windows 9X as well).
 
   You need the libiconv-X.Y.Z-N-mingw32-dev.tar.lzma tarball from that
   site.
-
-* Experimental SVG support
-
-  To compile with SVG, you will need pkg-config to be installed, as
-  the configure script invokes pkg-config to find out which compiler
-  switches to use for SVG.  See above for the URL where you can find
-  pkg-config for Windows.
-
-  SVG support is currently experimental, and not built by default.
-  Specify --with-rsvg and ensure you have all the dependencies in your
-  include path.  Unless you have built a minimalist librsvg yourself
-  (untested), librsvg depends on a significant chunk of GTK+ to build,
-  plus a few Gnome libraries, libxml2, libbz2 and zlib at runtime.  The
-  easiest way to obtain the dependencies required for building is to
-  download a pre-bundled GTK+ development environment for Windows.
-
-  To use librsvg at runtime, ensure that librsvg and its dependencies
-  are on your PATH.  If you didn't build librsvg yourself, you will
-  need to check with where you downloaded it from for the
-  dependencies, as there are different build options.  If it is a
-  short list, then it most likely only lists the immediate
-  dependencies of librsvg, but the dependencies themselves have
-  dependencies - so don't download individual libraries from GTK+,
-  download and install the whole thing.  If you think you've got all
-  the dependencies and SVG support is still not working, check your
-  PATH for other libraries that shadow the ones you downloaded.
-  Libraries of the same name from different sources may not be
-  compatible, this problem was encountered with libbzip2 from GnuWin32
-  with libcroco from gnome.org.
-
-  If you can see etc/images/splash.svg, then you have managed to get
-  SVG support working.  Congratulations for making it through DLL hell
-  to this point.  You'll probably find that some SVG images crash
-  Emacs.  Problems have been observed in some images that contain
-  text, they seem to be a problem in the Windows port of Pango, or
-  maybe a problem with the way Cairo or librsvg is using it that
-  doesn't show up on other platforms.
 
 
 This file is part of GNU Emacs.
