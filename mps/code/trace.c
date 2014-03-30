@@ -1,7 +1,7 @@
 /* trace.c: GENERIC TRACER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.
  * See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
@@ -1641,11 +1641,12 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
     } while (SegNext(&seg, arena, seg));
   }
 
-  STATISTIC_BEGIN {
+  STATISTIC_STAT ({
     /* @@ */
     /* Iterate over all chains, all GenDescs within a chain, */
     /* (and all PoolGens within a GenDesc).  */
-    Ring node, nextNode;
+    Ring node;
+    Ring nextNode;
     Index i;
     
     RING_FOR(node, &arena->chainRing, nextNode) {
@@ -1658,7 +1659,7 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
     
     /* Now do topgen GenDesc (and all PoolGens within it). */
     TraceStartPoolGen(NULL, &arena->topGen, TRUE, 0);
-  } STATISTIC_END;
+  });
 
   res = RootsIterate(ArenaGlobals(arena), rootGrey, (void *)trace);
   AVER(res == ResOK);
@@ -1900,7 +1901,7 @@ failStart:
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited
+ * Copyright (C) 2001-2014 Ravenbrook Limited
  * <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.

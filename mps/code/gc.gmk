@@ -3,7 +3,7 @@
 # gc.gmk: GNUMAKEFILE FRAGMENT FOR GNU CC
 #
 # $Id$
-# Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
 #
 # This file is included by platform makefiles that use the GNU CC
 # compiler.  It defines the compiler-specific variables that the
@@ -12,11 +12,23 @@
 CC = gcc
 CFLAGSDEBUG = -O -g3
 CFLAGSOPT = -O2 -g3
-CFLAGSCOMPILER :=  -Wall -Wextra -Werror -Wpointer-arith \
-	-Wstrict-prototypes -Wmissing-prototypes \
-	-Winline -Waggregate-return -Wnested-externs \
-	-Wcast-qual -Wshadow -Wwrite-strings # -Wstrict-aliasing=2
-CFLAGSCOMPILERSTRICT := -ansi -pedantic -Wshadow
+CFLAGSCOMPILER := \
+	-pedantic \
+	-Waggregate-return \
+	-Wall \
+	-Wcast-qual \
+	-Werror \
+	-Wextra \
+	-Winline \
+	-Wmissing-prototypes \
+	-Wnested-externs \
+	-Wpointer-arith \
+	-Wshadow \
+	-Wstrict-aliasing=2 \
+	-Wstrict-prototypes \
+	-Wunreachable-code \
+	-Wwrite-strings
+CFLAGSCOMPILERSTRICT := -ansi
 
 # A different set of compiler flags for less strict compilation, for
 # instance when we need to #include a third-party header file that
@@ -38,7 +50,7 @@ endef
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

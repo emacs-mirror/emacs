@@ -122,16 +122,9 @@ static size_t randomSizeAligned(size_t i)
 }
 
 
-static mps_pool_debug_option_s bothOptions8 = {
-  /* .fence_template = */   (const void *)"postpost",
-  /* .fence_size = */       8,
-  /* .free_template = */    (const void *)"DEAD",
-  /* .free_size = */        4
-};
-
-static mps_pool_debug_option_s bothOptions16 = {
+static mps_pool_debug_option_s bothOptions = {
   /* .fence_template = */   (const void *)"postpostpostpost",
-  /* .fence_size = */       16,
+  /* .fence_size = */       MPS_PF_ALIGN,
   /* .free_template = */    (const void *)"DEAD",
   /* .free_size = */        4
 };
@@ -181,9 +174,6 @@ static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
 int main(int argc, char *argv[])
 {
   mps_arena_t arena;
-  mps_pool_debug_option_s *bothOptions;
-  
-  bothOptions = MPS_PF_ALIGN == 8 ? &bothOptions8 : &bothOptions16;
 
   testlib_init(argc, argv);
 
@@ -200,7 +190,7 @@ int main(int argc, char *argv[])
     die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
         "mps_arena_create");
   } MPS_ARGS_END(args);
-  testInArena(arena, bothOptions);
+  testInArena(arena, &bothOptions);
   mps_arena_destroy(arena);
 
   MPS_ARGS_BEGIN(args) {
@@ -210,7 +200,7 @@ int main(int argc, char *argv[])
     die(mps_arena_create_k(&arena, mps_arena_class_cl(), args),
         "mps_arena_create");
   } MPS_ARGS_END(args);
-  testInArena(arena, bothOptions);
+  testInArena(arena, &bothOptions);
   mps_arena_destroy(arena);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
