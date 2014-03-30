@@ -2037,8 +2037,6 @@ static obj_t entry_do(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
       return result;
     }
   }
-  error("%s: unimplemented", operator->operator.name);
-  return obj_error;
 }
 
 
@@ -3994,7 +3992,6 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
         assert(0);
         fprintf(stderr, "Unexpected object on the heap\n");
         abort();
-        return MPS_RES_FAIL;
       }
     }
   } MPS_SCAN_END(ss);
@@ -4071,7 +4068,6 @@ static mps_addr_t obj_skip(mps_addr_t base)
     assert(0);
     fprintf(stderr, "Unexpected object on the heap\n");
     abort();
-    return NULL;
   }
   return base;
 }
