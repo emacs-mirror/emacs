@@ -1,3 +1,9 @@
+2014-03-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (x_set_frame_parameters): Calculate default values of
+	new frame sizes only after all other frame parameters have been
+	processed (Bug#17142).
+
 2014-03-28  Ken Brown  <kbrown@cornell.edu>
 
 	* conf_post.h (SYSTEM_PURESIZE_EXTRA) [CYGWIN]: Set to 10000.
