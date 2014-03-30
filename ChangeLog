@@ -1,3 +1,8 @@
+2014-03-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: Add check that GSettings is in libgio (Bug#17118).
+	Backport from trunk.
+
 2014-03-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
