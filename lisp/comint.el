@@ -1769,6 +1769,12 @@ If the Comint is Lucid Common Lisp,
 
 Similarly for Soar, Scheme, etc."
   (interactive)
+  ;; If we're currently completing, stop.  We're definitely done
+  ;; completing, and by sending the input, we might cause side effects
+  ;; that will confuse the code running in the completion
+  ;; post-command-hook.
+  (when completion-in-region-mode
+    (completion-in-region-mode -1))
   ;; Note that the input string does not include its terminal newline.
   (let ((proc (get-buffer-process (current-buffer))))
     (if (not proc) (user-error "Current buffer has no process")

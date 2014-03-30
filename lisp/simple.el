@@ -6580,6 +6580,8 @@ At top-level, as an editor command, this simply beeps."
     (deactivate-mark))
   (if (fboundp 'kmacro-keyboard-quit)
       (kmacro-keyboard-quit))
+  (when completion-in-region-mode
+    (completion-in-region-mode -1))
   (setq defining-kbd-macro nil)
   (let ((debug-on-quit nil))
     (signal 'quit nil)))
