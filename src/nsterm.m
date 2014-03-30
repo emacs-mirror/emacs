@@ -5766,6 +5766,13 @@ not_in_argv (NSString *arg)
         + FRAME_TOOLBAR_HEIGHT (emacsframe);
     }
 
+  if (wait_for_tool_bar)
+    {
+      if (FRAME_TOOLBAR_HEIGHT (emacsframe) == 0)
+        return;
+      wait_for_tool_bar = NO;
+    }
+
   neww = (int)wr.size.width - emacsframe->border_width;
   newh = (int)wr.size.height - extra;
 
@@ -6078,6 +6085,13 @@ if (cols > 0 && rows > 0)
                                    ns_window_num]];
   [win setToolbar: toolbar];
   [toolbar setVisible: NO];
+
+  /* Don't set frame garbaged until tool bar is up to date?
+     This avoids an extra clear and redraw (flicker) at frame creation.  */
+  if (FRAME_EXTERNAL_TOOL_BAR (f)) wait_for_tool_bar = YES;
+  else wait_for_tool_bar = NO;
+
+
 #ifdef NS_IMPL_COCOA
   {
     NSButton *toggleButton;

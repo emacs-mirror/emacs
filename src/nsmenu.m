@@ -1071,6 +1071,7 @@ update_frame_tool_bar (struct frame *f)
   NSWindow *window = [view window];
   EmacsToolbar *toolbar = [view toolbar];
 
+  if (view == nil || toolbar == nil) return;
   block_input ();
 
 #ifdef NS_IMPL_COCOA
@@ -1176,9 +1177,13 @@ update_frame_tool_bar (struct frame *f)
   FRAME_TOOLBAR_HEIGHT (f) =
     NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
     - FRAME_NS_TITLEBAR_HEIGHT (f);
-    if (FRAME_TOOLBAR_HEIGHT (f) < 0) // happens if frame is fullscreen.
-      FRAME_TOOLBAR_HEIGHT (f) = 0;
-    unblock_input ();
+  if (FRAME_TOOLBAR_HEIGHT (f) < 0) // happens if frame is fullscreen.
+    FRAME_TOOLBAR_HEIGHT (f) = 0;
+
+  if (view->wait_for_tool_bar && FRAME_TOOLBAR_HEIGHT (f) > 0)
+      [view setNeedsDisplay: YES];
+
+  unblock_input ();
 }
 
 

@@ -1,3 +1,14 @@
+2014-03-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (updateFrameSize:): If waiting for the tool bar and tool
+	bar is zero height, just return (Bug#16976).
+	(initFrameFromEmacs:): Initialize wait_for_tool_bar.
+
+	* nsterm.h (EmacsView): Add wait_for_tool_bar.
+
+	* nsmenu.m (update_frame_tool_bar): Return early if view or toolbar
+	is nil.  If waiting for toolbar to complete, force a redraw.
+
 2014-03-28  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.c (emacs_version): Use PACKAGE_VERSION rather than VERSION.
