@@ -1462,6 +1462,7 @@ Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit)
  * This is as TraceScanArea except words are only fixed if they are zero
  * when masked with a mask.  */
 
+ATTRIBUTE_NO_SANITIZE_ADDRESS
 Res TraceScanAreaMasked(ScanState ss, Addr *base, Addr *limit, Word mask)
 {
   Res res;
