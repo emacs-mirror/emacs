@@ -221,8 +221,12 @@
  * address sanitizer.
  * <http://clang.llvm.org/docs/AddressSanitizer.html#attribute-no-sanitize-address>
  */
-#if defined(MPS_BUILD_LL) && __has_feature(address_sanitizer)
+#if defined(MPS_BUILD_LL)
+#if __has_feature(address_sanitizer)
 #define ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((__no_sanitize_address__))
+#else
+#define ATTRIBUTE_NO_SANITIZE_ADDRESS
+#endif
 #else
 #define ATTRIBUTE_NO_SANITIZE_ADDRESS
 #endif
