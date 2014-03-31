@@ -3,6 +3,9 @@
 	* search.c (Freplace_match): Use make_specified_string.
 	* xterm.c, w32term.c (x_set_glyph_string_gc): Use emacs_abort
 	to catch bogus override face of glyph strings.
+	* fns.c (Fsubstring, Fsubstring_no_properties, secure_hash):
+	Move common substring range checking code to...
+	(validate_substring): ...this function.
 
 2014-03-31  Jan Djärv  <jan.h.d@swipnet.se>
 
