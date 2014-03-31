@@ -2,6 +2,10 @@
 
 	* simple.el (cycle-spacing--context, cycle-spacing): Doc tweaks.
 
+	* progmodes/vhdl-mode.el (vhdl-speedbar-select-mra)
+	(vhdl-compose-components-package, vhdl-compose-configuration):
+	Abbreviate default-directory (missing from some previous upstream sync).
+
 2014-03-31  Reto Zimmermann  <reto@gnu.org>
 
 	Sync with upstream vhdl mode v3.35.2.

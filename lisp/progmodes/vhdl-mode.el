@@ -15859,8 +15859,10 @@ is already shown in a buffer."
       (error "ERROR:  No architecture under cursor")
     (let* ((arch-key (downcase (vhdl-speedbar-line-text)))
 	   (ent-key (downcase (vhdl-speedbar-higher-text)))
-	   (ent-alist (vhdl-aget vhdl-entity-alist
-			    (or (vhdl-project-p) default-directory) t))
+	   (ent-alist (vhdl-aget
+		       vhdl-entity-alist
+		       (or (vhdl-project-p)
+			   (abbreviate-file-name default-directory)) t))
 	   (ent-entry (vhdl-aget ent-alist ent-key t)))
       (setcar (cddr (cddr ent-entry)) arch-key) ; (nth 4 ent-entry)
       (speedbar-refresh))))
@@ -16533,7 +16535,8 @@ current project/directory."
 	  (concat (vhdl-replace-string vhdl-package-file-name pack-name t)
 		  "." (file-name-extension (buffer-file-name))))
 	 (ent-alist (vhdl-aget vhdl-entity-alist
-			  (or project default-directory) t))
+			       (or project
+				   (abbreviate-file-name default-directory)) t))
 	 (lazy-lock-minimum-size 0)
 	 clause-pos component-pos)
     (message "Generating components package \"%s\"..." pack-name)
@@ -16691,9 +16694,11 @@ current project/directory."
   (interactive)
   (vhdl-require-hierarchy-info)
   (let ((ent-alist (vhdl-aget vhdl-entity-alist
-			 (or (vhdl-project-p) default-directory) t))
+			      (or (vhdl-project-p)
+				  (abbreviate-file-name default-directory)) t))
 	(conf-alist (vhdl-aget vhdl-config-alist
-			  (or (vhdl-project-p) default-directory) t))
+			       (or (vhdl-project-p)
+				   (abbreviate-file-name default-directory)) t))
 	(from-speedbar ent-name)
 	inst-alist conf-name conf-file-name pos)
     (vhdl-prepare-search-2
