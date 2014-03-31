@@ -12635,17 +12635,15 @@ expressions (e.g. for index ranges of types and signals)."
  (defalias 'he-list-beg 'vhdl-he-list-beg))
 
 ;; function for expanding abbrevs and dabbrevs
-(defun vhdl-expand-abbrev (arg))
-(fset 'vhdl-expand-abbrev (make-hippie-expand-function
-			   '(try-expand-dabbrev
-			     try-expand-dabbrev-all-buffers
-			     vhdl-try-expand-abbrev)))
+(defalias 'vhdl-expand-abbrev (make-hippie-expand-function
+			       '(try-expand-dabbrev
+				 try-expand-dabbrev-all-buffers
+				 vhdl-try-expand-abbrev)))
 
 ;; function for expanding parenthesis
-(defun vhdl-expand-paren (arg))
-(fset 'vhdl-expand-paren (make-hippie-expand-function
-			  '(try-expand-list
-			    try-expand-list-all-buffers)))
+(defalias 'vhdl-expand-paren (make-hippie-expand-function
+			      '(try-expand-list
+				try-expand-list-all-buffers)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Line handling functions
