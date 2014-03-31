@@ -3,6 +3,26 @@
 Release notes
 =============
 
+.. _release-notes-1.114:
+
+Release 1.114.0
+---------------
+
+
+Other changes
+.............
+
+#. Ambiguous :term:`interior pointers` now keep objects in
+   :ref:`pool-amc` and :ref:`pool-amcz` pools alive. This means that
+   if the compiler optimizes away a pointer to the base of an object,
+   leaving an interior pointer as the only reference keeping the
+   object alive, this does not cause the object to be incorrectly
+   collected. Or, if writing your own compiler, you can now perform
+   such an optimization. See job003359_.
+
+   .. _job003359: https://www.ravenbrook.com/project/mps/issue/job003359/
+
+
 .. _release-notes-1.113:
 
 Release 1.113.0
