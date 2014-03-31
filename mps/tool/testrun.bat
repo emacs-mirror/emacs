@@ -68,13 +68,14 @@ if "%FAIL_COUNT%"=="0" (
 
 :run_test
 set /a TEST_COUNT=%TEST_COUNT%+1
+set LOGTEST=%LOGDIR%\%TEST_COUNT%-%1
 echo Running %1
-%PFM%\%VARIETY%\%1 > %LOGDIR%\%1
+%PFM%\%VARIETY%\%1 > %LOGTEST%
 if "%errorlevel%"=="0" (
     set /a PASS_COUNT=%PASS_COUNT%+1
 ) else (
     echo %SEPARATOR%%SEPARATOR%
-    type %LOGDIR%\%1
+    type %LOGTEST%
     echo %SEPARATOR%%SEPARATOR%
     set /a FAIL_COUNT=%FAIL_COUNT%+1
 )

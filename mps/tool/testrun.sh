@@ -52,7 +52,7 @@ PASS_COUNT=0
 FAIL_COUNT=0
 for TESTCASE in $TEST_CASES; do
     TEST="$(basename -- "$TESTCASE")"
-    LOGTEST="$LOGDIR/$TEST"
+    LOGTEST="$LOGDIR/$TEST_COUNT-$TEST"
     echo "Running $TEST"
     TEST_COUNT=$(expr $TEST_COUNT + 1)
     if "$TEST_DIR/$TESTCASE" > "$LOGTEST" 2>&1; then
