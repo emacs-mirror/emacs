@@ -298,8 +298,8 @@ Otherwise work like `message'."
 
 
 ;;;###autoload
-(defvar eldoc-documentation-function nil
-  "If non-nil, function to call to return doc string.
+(defvar eldoc-documentation-function #'eldoc-documentation-function-default
+  "Function to call to return doc string.
 The function of no args should return a one-line string for displaying
 doc about a function etc. appropriate to the context around point.
 It should return nil if there's no doc appropriate for the context.
@@ -323,22 +323,20 @@ Emacs Lisp mode) that support ElDoc.")
              (when eldoc-last-message
                (eldoc-message nil)
                nil))
-	 (if eldoc-documentation-function
-	     (eldoc-message (funcall eldoc-documentation-function))
-	   (let* ((current-symbol (eldoc-current-symbol))
-		  (current-fnsym  (eldoc-fnsym-in-current-sexp))
-		  (doc (cond
-			((null current-fnsym)
-			 nil)
-			((eq current-symbol (car current-fnsym))
-			 (or (apply 'eldoc-get-fnsym-args-string
-				    current-fnsym)
-			     (eldoc-get-var-docstring current-symbol)))
-			(t
-			 (or (eldoc-get-var-docstring current-symbol)
-			     (apply 'eldoc-get-fnsym-args-string
-				    current-fnsym))))))
-	     (eldoc-message doc))))))
+	 (eldoc-message (funcall eldoc-documentation-function)))))
+
+(defun eldoc-documentation-function-default ()
+  "Default value for `eldoc-documentation-function' (which see)."
+  (let ((current-symbol (eldoc-current-symbol))
+	(current-fnsym  (eldoc-fnsym-in-current-sexp)))
+    (cond ((null current-fnsym)
+	   nil)
+	  ((eq current-symbol (car current-fnsym))
+	   (or (apply #'eldoc-get-fnsym-args-string current-fnsym)
+	       (eldoc-get-var-docstring current-symbol)))
+	  (t
+	   (or (eldoc-get-var-docstring current-symbol)
+	       (apply #'eldoc-get-fnsym-args-string current-fnsym))))))
 
 (defun eldoc-get-fnsym-args-string (sym &optional index)
   "Return a string containing the parameter list of the function SYM.

@@ -1,3 +1,10 @@
+2014-03-31  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/eldoc.el (eldoc-print-current-symbol-info): Refactor
+	out eldoc-documentation-function-default.
+	(eldoc-documentation-function-default): New function.
+	(eldoc-documentation-function): Change value.
+
 2014-03-31  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (cycle-spacing--context, cycle-spacing): Doc tweaks.
