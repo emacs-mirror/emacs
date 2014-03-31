@@ -1873,11 +1873,34 @@ next function in @code{completion-at-point-functions} instead of
 reporting a completion failure.
 @end table
 
+Supplying a function for @var{collection} is strongly recommended if
+generating the list of completions is an expensive operation.  Emacs
+may internally call functions in @code{completion-at-point-functions}
+many times, but care about the value of @var{collection} for only some
+of these calls.  By supplying a function for @var{collection}, Emacs
+can defer generating completions until necessary.  You can use
+@var{completion-table-dynamic} to create a wrapper function:
+
+@smallexample
+;; Avoid this pattern.
+(let ((beg ...) (end ...) (my-completions (my-make-completions)))
+  (list beg end my-completions))
+
+;; Use this instead.
+(let ((beg ...) (end ...))
+  (list beg
+        end
+        (completion-table-dynamic
+          (lambda (_)
+            (my-make-completions)))))
+@end smallexample
+
 A function in @code{completion-at-point-functions} may also return a
-function.  In that case, that returned function is called, with no
-argument, and it is entirely responsible for performing the
-completion.  We discourage this usage; it is intended to help convert
-old code to using @code{completion-at-point}.
+function instead of a list as described above.  In that case, that
+returned function is called, with no argument, and it is entirely
+responsible for performing the completion.  We discourage this usage;
+it is intended to help convert old code to using
+@code{completion-at-point}.
 
 The first function in @code{completion-at-point-functions} to return a
 non-@code{nil} value is used by @code{completion-at-point}.  The

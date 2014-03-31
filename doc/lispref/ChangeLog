@@ -1,3 +1,8 @@
+2014-03-31  Daniel Colascione  <dancol@dancol.org>
+
+	* minibuf.texi (Completion in Buffers): Discuss using lazy
+	completion tables for inline completion.
+
 2014-03-28  Glenn Morris  <rgm@gnu.org>
 
 	* os.texi (Terminal-Specific): Mention term-file-aliases.
