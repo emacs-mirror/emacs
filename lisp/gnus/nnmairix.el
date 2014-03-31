@@ -4,7 +4,7 @@
 
 ;; Author: David Engster <dengste@eml.cc>
 ;; Keywords: mail searching
-;; Version: 0.6
+;; Old-Version: 0.6
 
 ;; This file is part of GNU Emacs.
 
