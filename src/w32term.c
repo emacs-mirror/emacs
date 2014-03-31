@@ -1078,10 +1078,7 @@ x_set_glyph_string_gc (struct glyph_string *s)
       s->stippled_p = s->face->stipple != 0;
     }
   else
-    {
-      s->gc = s->face->gc;
-      s->stippled_p = s->face->stipple != 0;
-    }
+    emacs_abort ();
 
   /* GC must have been set.  */
   eassert (s->gc != 0);

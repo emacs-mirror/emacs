@@ -2679,18 +2679,8 @@ since only regular expressions have distinguished subexpressions.  */)
 	}
 
       if (really_changed)
-	{
-	  if (buf_multibyte)
-	    {
-	      ptrdiff_t nchars =
-		multibyte_chars_in_text (substed, substed_len);
-
-	      newtext = make_multibyte_string ((char *) substed, nchars,
-					       substed_len);
-	    }
-	  else
-	    newtext = make_unibyte_string ((char *) substed, substed_len);
-	}
+	newtext = make_specified_string ((const char *) substed, -1,
+					 substed_len, buf_multibyte);
       xfree (substed);
     }
 
