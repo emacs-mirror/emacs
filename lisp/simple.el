@@ -805,33 +805,32 @@ See also `cycle-spacing'."
 
 (defvar cycle-spacing--context nil
   "Store context used in consecutive calls to `cycle-spacing' command.
-The first time this function is run, it saves N argument, the
-original point position and original spacing around the point in
-this variable.")
+The first time `cycle-spacing' runs, it saves in this variable:
+its N argument, the original point position, and the original spacing
+around point.")
 
 (defun cycle-spacing (&optional n preserve-nl-back mode)
   "Manipulate whitespace around point in a smart way.
-In interactive use, this function behaves differently in
-successive consecutive calls.
+In interactive use, this function behaves differently in successive
+consecutive calls.
 
-The first call in a sequence acts like `just-one-space'.  It
-deletes all spaces and tabs around point, leaving one space \(or
-N spaces).  N is the prefix argument.  If N is negative, it
-deletes newlines as well leaving -N spaces.  (If PRESERVE-NL-BACK
-is non-nil, it does not delete newlines before point.)
+The first call in a sequence acts like `just-one-space'.
+It deletes all spaces and tabs around point, leaving one space
+\(or N spaces).  N is the prefix argument.  If N is negative,
+it deletes newlines as well, leaving -N spaces.
+\(If PRESERVE-NL-BACK is non-nil, it does not delete newlines before point.)
 
 The second call in a sequence deletes all spaces.
 
-The third call in a sequence restores the original
-whitespace (and point).
+The third call in a sequence restores the original whitespace (and point).
 
-If MODE is 'single-shot only the first step is performed.  If
-MODE is 'fast and the first step did not result in any
-change (i.e. there was exactly (abs N) spaces around point)
-function goes to the second step immediately.
+If MODE is `single-shot', it only performs the first step in the sequence.
+If MODE is `fast' and the first step would not result in any change
+\(i.e., there are exactly (abs N) spaces around point),
+the function goes straight to the second step.
 
-Running the function with different N arguments initiates a new
-sequence each time."
+Repeatedly calling the function with different values of N starts a
+new sequence each time."
   (interactive "*p")
   (let ((orig-pos	 (point))
 	(skip-characters (if (and n (< n 0)) " \t\n\r" " \t"))
