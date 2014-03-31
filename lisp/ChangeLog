@@ -1,3 +1,19 @@
+2014-03-31  Reto Zimmermann  <reto@gnu.org>
+
+	Sync with upstream vhdl mode v3.35.2.
+	* progmodes/vhdl-mode.el (vhdl-version, vhdl-time-stamp): Update.
+	(top-level): No longer require assoc.
+	(vhdl-asort, vhdl-anot-head-p, vhdl-aput, vhdl-adelete, vhdl-aget):
+	New functions.  Use throughout to replace aget etc.
+	(vhdl-aput-delete-if-nil): Rename from vhdl-aput.
+	(vhdl-update-file-contents): Update for vhdl-aput-delete-if-nil rename.
+	(vhdl-template-replace-header-keywords): Fix bug for "<title string>".
+	(vhdl-compile-init): Do not initialize regexps for Emacs 22+.
+	(vhdl-error-regexp-emacs-alist): Remove regexps from all compilers
+	except `vhdl-compiler'.
+	(vhdl-error-regexp-add-emacs): Remove all other compilers,
+	when appropriate.
+
 2014-03-31  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/vhdl-mode.el (vhdl-expand-abbrev, vhdl-expand-paren):

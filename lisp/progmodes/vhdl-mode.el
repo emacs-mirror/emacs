@@ -13,10 +13,10 @@
 ;; filed in the Emacs bug reporting system against this file, a copy
 ;; of the bug report be sent to the maintainer's email address.
 
-(defconst vhdl-version "3.35.1"
+(defconst vhdl-version "3.35.2"
   "VHDL Mode version number.")
 
-(defconst vhdl-time-stamp "2014-03-11"
+(defconst vhdl-time-stamp "2014-03-28"
   "VHDL Mode time stamp for last update.")
 
 ;; This file is part of GNU Emacs.
@@ -2126,7 +2126,6 @@ your style, only those that are different from the default.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; mandatory
-(require 'assoc)
 (require 'compile)			; XEmacs
 (require 'easymenu)
 (require 'hippie-exp)
@@ -2137,6 +2136,73 @@ your style, only those that are different from the default.")
   (require 'font-lock)
   (require 'ps-print)
     (require 'speedbar)))		; for speedbar-with-writable
+
+;; functions from obsolete assoc.el package (obsoleted in GNU Emacs 24.3)
+(defun vhdl-asort (alist-symbol key)
+  "Move a specified key-value pair to the head of an alist.
+The alist is referenced by ALIST-SYMBOL.  Key-value pair to move to
+head is one matching KEY.  Returns the sorted list and doesn't affect
+the order of any other key-value pair.  Side effect sets alist to new
+sorted list."
+  (set alist-symbol
+       (sort (copy-alist (symbol-value alist-symbol))
+             (lambda (a _b) (equal (car a) key)))))
+
+(defun vhdl-anot-head-p (alist key)
+  "Find out if a specified key-value pair is not at the head of an alist.
+The alist to check is specified by ALIST and the key-value pair is the
+one matching the supplied KEY.  Returns nil if ALIST is nil, or if
+key-value pair is at the head of the alist.  Returns t if key-value
+pair is not at the head of alist.  ALIST is not altered."
+  (not (equal (car (car alist)) key)))
+
+(defun vhdl-aput (alist-symbol key &optional value)
+  "Insert a key-value pair into an alist.
+The alist is referenced by ALIST-SYMBOL.  The key-value pair is made
+from KEY and optionally, VALUE.  Returns the altered alist.
+
+If the key-value pair referenced by KEY can be found in the alist, and
+VALUE is supplied non-nil, then the value of KEY will be set to VALUE.
+If VALUE is not supplied, or is nil, the key-value pair will not be
+modified, but will be moved to the head of the alist.  If the key-value
+pair cannot be found in the alist, it will be inserted into the head
+of the alist (with value nil if VALUE is nil or not supplied)."
+  (let ((elem (list (cons key value)))
+        alist)
+    (vhdl-asort alist-symbol key)
+    (setq alist (symbol-value alist-symbol))
+    (cond ((null alist) (set alist-symbol elem))
+	  ((vhdl-anot-head-p alist key) (set alist-symbol (nconc elem alist)))
+	  (value (setcar alist (car elem)) alist)
+	  (t alist))))
+
+(defun vhdl-adelete (alist-symbol key)
+  "Delete a key-value pair from the alist.
+Alist is referenced by ALIST-SYMBOL and the key-value pair to remove
+is pair matching KEY.  Returns the altered alist."
+  (vhdl-asort alist-symbol key)
+  (let ((alist (symbol-value alist-symbol)))
+    (cond ((null alist) nil)
+	  ((vhdl-anot-head-p alist key) alist)
+	  (t (set alist-symbol (cdr alist))))))
+
+(defun vhdl-aget (alist key &optional keynil-p)
+  "Return the value in ALIST that is associated with KEY.
+Optional KEYNIL-P describes what to do if the value associated with
+KEY is nil.  If KEYNIL-P is not supplied or is nil, and the value is
+nil, then KEY is returned.  If KEYNIL-P is non-nil, then nil would be
+returned.
+
+If no key-value pair matching KEY could be found in ALIST, or ALIST is
+nil then nil is returned.  ALIST is not altered."
+  (let ((copy (copy-alist alist)))
+    (cond ((null alist) nil)
+	  ((progn (vhdl-asort 'copy key)
+		  (vhdl-anot-head-p copy key)) nil)
+	  ((cdr (car copy)))
+	  (keynil-p nil)
+	  ((car (car copy)))
+	  (t nil))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2429,7 +2495,7 @@ specified."
 current buffer if no project is defined."
   (if (vhdl-project-p)
       (expand-file-name (vhdl-resolve-env-variable
-			 (nth 1 (aget vhdl-project-alist vhdl-project))))
+			 (nth 1 (vhdl-aget vhdl-project-alist vhdl-project))))
     default-directory))
 
 (defmacro vhdl-prepare-search-1 (&rest body)
@@ -2537,11 +2603,11 @@ conversion."
       (setq file-list (cdr file-list)))
     dir-list))
 
-(defun vhdl-aput (alist-symbol key &optional value)
+(defun vhdl-aput-delete-if-nil (alist-symbol key &optional value)
   "As `aput', but delete key-value pair if VALUE is nil."
   (if value
-      (aput alist-symbol key value)
-    (adelete alist-symbol key)))
+      (vhdl-aput alist-symbol key value)
+    (vhdl-adelete alist-symbol key)))
 
 (defun vhdl-delete (elt list)
   "Delete by side effect the first occurrence of ELT as a member of LIST."
@@ -8545,7 +8611,8 @@ Used for undoing after template abortion.")
   "Return the working library name of the current project or \"work\" if no
 project is defined."
   (vhdl-resolve-env-variable
-   (or (nth 6 (aget vhdl-project-alist vhdl-project)) vhdl-default-library)))
+   (or (nth 6 (vhdl-aget vhdl-project-alist vhdl-project))
+       vhdl-default-library)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  Enabling/disabling
@@ -10460,8 +10527,10 @@ specification, if not already there."
 (defun vhdl-template-replace-header-keywords (beg end &optional file-title
 						  is-model)
   "Replace keywords in header and footer."
-  (let ((project-title (or (nth 0 (aget vhdl-project-alist vhdl-project)) ""))
-	(project-desc (or (nth 9 (aget vhdl-project-alist vhdl-project)) ""))
+  (let ((project-title (or (nth 0 (vhdl-aget vhdl-project-alist vhdl-project))
+			   ""))
+	(project-desc (or (nth 9 (vhdl-aget vhdl-project-alist vhdl-project))
+			  ""))
 	pos)
     (vhdl-prepare-search-2
      (save-excursion
@@ -10519,9 +10588,9 @@ specification, if not already there."
 	   (replace-match file-title t t))
 	 (goto-char beg))
        (let (string)
-	 (while
-	     (re-search-forward "<\\(\\(\\w\\|\\s_\\)*\\) string>" end t)
-	   (setq string (read-string (concat (match-string 1) ": ")))
+	 (while (re-search-forward "<\\(\\(\\w\\|\\s_\\)*\\) string>" end t)
+	   (save-match-data
+	     (setq string (read-string (concat (match-string 1) ": "))))
 	   (replace-match string t t)))
        (goto-char beg)
        (when (and (not is-model) (search-forward "<cursor>" end t))
@@ -12891,8 +12960,8 @@ File statistics: \"%s\"\n\
 	      ";; project name\n"
 	      "(setq vhdl-project \"" vhdl-project "\")\n\n"
 	      ";; project setup\n"
-	      "(aput 'vhdl-project-alist vhdl-project\n'")
-      (pp (aget vhdl-project-alist vhdl-project) (current-buffer))
+	      "(vhdl-aput 'vhdl-project-alist vhdl-project\n'")
+      (pp (vhdl-aget vhdl-project-alist vhdl-project) (current-buffer))
       (insert ")\n")
       (save-buffer)
       (kill-buffer (current-buffer))
@@ -12912,8 +12981,8 @@ File statistics: \"%s\"\n\
     (condition-case ()
 	(let ((current-project vhdl-project))
 	  (load-file file-name)
-	  (when (/= (length (aget vhdl-project-alist vhdl-project t)) 10)
-	    (adelete 'vhdl-project-alist vhdl-project)
+	  (when (/= (length (vhdl-aget vhdl-project-alist vhdl-project t)) 10)
+	    (vhdl-adelete 'vhdl-project-alist vhdl-project)
 	    (error ""))
 	  (when not-make-current
 	    (setq vhdl-project current-project))
@@ -12929,7 +12998,7 @@ File statistics: \"%s\"\n\
   "Duplicate setup of current project."
   (interactive)
   (let ((new-name (read-from-minibuffer "New project name: "))
-	(project-entry (aget vhdl-project-alist vhdl-project t)))
+	(project-entry (vhdl-aget vhdl-project-alist vhdl-project t)))
     (setq vhdl-project-alist
 	  (append vhdl-project-alist
 		  (list (cons new-name project-entry))))
@@ -13670,18 +13739,18 @@ hierarchy otherwise.")
 	       dir-name t (wildcard-to-regexp file-pattern)))))
 	 (key (or project dir-name))
 	 (file-exclude-regexp
-	  (or (nth 3 (aget vhdl-project-alist project)) ""))
+	  (or (nth 3 (vhdl-aget vhdl-project-alist project)) ""))
 	 (limit-design-file-size (nth 0 vhdl-speedbar-scan-limit))
 	 (limit-hier-file-size (nth 0 (nth 1 vhdl-speedbar-scan-limit)))
 	 (limit-hier-inst-no (nth 1 (nth 1 vhdl-speedbar-scan-limit)))
 	 ent-alist conf-alist pack-alist ent-inst-list file-alist
 	 tmp-list tmp-entry no-files files-exist big-files)
     (when (or project update)
-      (setq ent-alist (aget vhdl-entity-alist key t)
-	    conf-alist (aget vhdl-config-alist key t)
-	    pack-alist (aget vhdl-package-alist key t)
-	    ent-inst-list (car (aget vhdl-ent-inst-alist key t))
-	    file-alist (aget vhdl-file-alist key t)))
+      (setq ent-alist (vhdl-aget vhdl-entity-alist key t)
+	    conf-alist (vhdl-aget vhdl-config-alist key t)
+	    pack-alist (vhdl-aget vhdl-package-alist key t)
+	    ent-inst-list (car (vhdl-aget vhdl-ent-inst-alist key t))
+	    file-alist (vhdl-aget vhdl-file-alist key t)))
     (when (and (not is-directory) (null file-list))
       (message "No such file: \"%s\"" name))
     (setq files-exist file-list)
@@ -13723,7 +13792,7 @@ hierarchy otherwise.")
 		(while (re-search-forward "^[ \t]*entity[ \t\n\r\f]+\\(\\w+\\)[ \t\n\r\f]+is\\>" nil t)
 		  (let* ((ent-name (match-string-no-properties 1))
 			 (ent-key (downcase ent-name))
-			 (ent-entry (aget ent-alist ent-key t))
+			 (ent-entry (vhdl-aget ent-alist ent-key t))
 			 (lib-alist (vhdl-scan-context-clause)))
 		    (if (nth 1 ent-entry)
 			(vhdl-warning-when-idle
@@ -13731,10 +13800,10 @@ hierarchy otherwise.")
 			 ent-name  (nth 1 ent-entry) (nth 2 ent-entry)
 			 file-name (vhdl-current-line))
 		      (push ent-key ent-list)
-		      (aput 'ent-alist ent-key
-			    (list ent-name file-name (vhdl-current-line)
-				  (nth 3 ent-entry) (nth 4 ent-entry)
-				  lib-alist)))))
+		      (vhdl-aput 'ent-alist ent-key
+				 (list ent-name file-name (vhdl-current-line)
+				       (nth 3 ent-entry) (nth 4 ent-entry)
+				       lib-alist)))))
 		;; scan for architectures
 		(goto-char (point-min))
 		(while (re-search-forward "^[ \t]*architecture[ \t\n\r\f]+\\(\\w+\\)[ \t\n\r\f]+of[ \t\n\r\f]+\\(\\w+\\)[ \t\n\r\f]+is\\>" nil t)
@@ -13742,9 +13811,9 @@ hierarchy otherwise.")
 			 (arch-key (downcase arch-name))
 			 (ent-name (match-string-no-properties 2))
 			 (ent-key (downcase ent-name))
-			 (ent-entry (aget ent-alist ent-key t))
+			 (ent-entry (vhdl-aget ent-alist ent-key t))
 			 (arch-alist (nth 3 ent-entry))
-			 (arch-entry (aget arch-alist arch-key t))
+			 (arch-entry (vhdl-aget arch-alist arch-key t))
 			 (lib-arch-alist (vhdl-scan-context-clause)))
 		    (if arch-entry
 			(vhdl-warning-when-idle
@@ -13753,20 +13822,20 @@ hierarchy otherwise.")
 			 (nth 2 arch-entry) file-name (vhdl-current-line))
 		      (setq arch-list (cons arch-key arch-list)
 			    arch-ent-list (cons ent-key arch-ent-list))
-		      (aput 'arch-alist arch-key
-			    (list arch-name file-name (vhdl-current-line) nil
-				  lib-arch-alist))
-		      (aput 'ent-alist ent-key
-			    (list (or (nth 0 ent-entry) ent-name)
-				  (nth 1 ent-entry) (nth 2 ent-entry)
-				  (vhdl-sort-alist arch-alist)
-				  arch-key (nth 5 ent-entry))))))
+		      (vhdl-aput 'arch-alist arch-key
+				 (list arch-name file-name (vhdl-current-line)
+				       nil lib-arch-alist))
+		      (vhdl-aput 'ent-alist ent-key
+				 (list (or (nth 0 ent-entry) ent-name)
+				       (nth 1 ent-entry) (nth 2 ent-entry)
+				       (vhdl-sort-alist arch-alist)
+				       arch-key (nth 5 ent-entry))))))
 		;; scan for configurations
 		(goto-char (point-min))
 		(while (re-search-forward "^[ \t]*configuration[ \t\n\r\f]+\\(\\w+\\)[ \t\n\r\f]+of[ \t\n\r\f]+\\(\\w+\\)[ \t\n\r\f]+is\\>" nil t)
 		  (let* ((conf-name (match-string-no-properties 1))
 			 (conf-key (downcase conf-name))
-			 (conf-entry (aget conf-alist conf-key t))
+			 (conf-entry (vhdl-aget conf-alist conf-key t))
 			 (ent-name (match-string-no-properties 2))
 			 (ent-key (downcase ent-name))
 			 (lib-alist (vhdl-scan-context-clause))
@@ -13807,16 +13876,16 @@ hierarchy otherwise.")
 					      inst-lib-key)
 					comp-conf-list))
 			    (setq inst-key-list (cdr inst-key-list)))))
-		      (aput 'conf-alist conf-key
-			    (list conf-name file-name conf-line ent-key
-				  arch-key comp-conf-list lib-alist)))))
+		      (vhdl-aput 'conf-alist conf-key
+				 (list conf-name file-name conf-line ent-key
+				       arch-key comp-conf-list lib-alist)))))
 		;; scan for packages
 		(goto-char (point-min))
 		(while (re-search-forward "^[ \t]*package[ \t\n\r\f]+\\(body[ \t\n\r\f]+\\)?\\(\\w+\\)[ \t\n\r\f]+is\\>" nil t)
 		  (let* ((pack-name (match-string-no-properties 2))
 			 (pack-key (downcase pack-name))
 			 (is-body (match-string-no-properties 1))
-			 (pack-entry (aget pack-alist pack-key t))
+			 (pack-entry (vhdl-aget pack-alist pack-key t))
 			 (pack-line (vhdl-current-line))
 			 (end-of-unit (vhdl-get-end-of-unit))
 			 comp-name func-name comp-alist func-alist lib-alist)
@@ -13847,7 +13916,7 @@ hierarchy otherwise.")
 		      (if is-body
 			  (push pack-key pack-body-list)
 			(push pack-key pack-list))
-		      (aput
+		      (vhdl-aput
 		       'pack-alist pack-key
 		       (if is-body
 			   (list (or (nth 0 pack-entry) pack-name)
@@ -13871,9 +13940,9 @@ hierarchy otherwise.")
 			 (ent-key (downcase ent-name))
 			 (arch-name (match-string-no-properties 1))
 			 (arch-key (downcase arch-name))
-			 (ent-entry (aget ent-alist ent-key t))
+			 (ent-entry (vhdl-aget ent-alist ent-key t))
 			 (arch-alist (nth 3 ent-entry))
-			 (arch-entry (aget arch-alist arch-key t))
+			 (arch-entry (vhdl-aget arch-alist arch-key t))
 			 (beg-of-unit (point))
 			 (end-of-unit (vhdl-get-end-of-unit))
 			 (inst-no 0)
@@ -13971,23 +14040,25 @@ hierarchy otherwise.")
 			    (setcar tmp-inst-alist inst-entry))
 			  (setq tmp-inst-alist (cdr tmp-inst-alist)))))
 		    ;; save in cache
-		    (aput 'arch-alist arch-key
-			  (list (nth 0 arch-entry) (nth 1 arch-entry)
-				(nth 2 arch-entry) inst-alist
-				(nth 4 arch-entry)))
-		    (aput 'ent-alist ent-key
-			  (list (nth 0 ent-entry) (nth 1 ent-entry)
-				(nth 2 ent-entry) (vhdl-sort-alist arch-alist)
-				(nth 4 ent-entry) (nth 5 ent-entry)))
+		    (vhdl-aput 'arch-alist arch-key
+			       (list (nth 0 arch-entry) (nth 1 arch-entry)
+				     (nth 2 arch-entry) inst-alist
+				     (nth 4 arch-entry)))
+		    (vhdl-aput 'ent-alist ent-key
+			       (list (nth 0 ent-entry) (nth 1 ent-entry)
+				     (nth 2 ent-entry)
+				     (vhdl-sort-alist arch-alist)
+				     (nth 4 ent-entry) (nth 5 ent-entry)))
 		    (when (and limit-hier-inst-no
 			       (> inst-no limit-hier-inst-no))
 		      (message "WARNING:  Scan limit (hierarchy: instances per architecture) reached in file:\n  \"%s\"" file-name)
 		      (setq big-files t))
 		    (goto-char end-of-unit))))
 	      ;; remember design units for this file
-	      (aput 'file-alist file-name
-		    (list ent-list arch-list arch-ent-list conf-list
-			  pack-list pack-body-list inst-list inst-ent-list))
+	      (vhdl-aput 'file-alist file-name
+			 (list ent-list arch-list arch-ent-list conf-list
+			       pack-list pack-body-list
+			       inst-list inst-ent-list))
 	      (setq ent-inst-list (append inst-ent-list ent-inst-list))))))
 	(setq file-list (cdr file-list))))
     (when (or (and (not project) files-exist)
@@ -14006,8 +14077,8 @@ hierarchy otherwise.")
       ;; check whether configuration has a corresponding entity/architecture
       (setq tmp-list conf-alist)
       (while tmp-list
-	(if (setq tmp-entry (aget ent-alist (nth 4 (car tmp-list)) t))
-	    (unless (aget (nth 3 tmp-entry) (nth 5 (car tmp-list)) t)
+	(if (setq tmp-entry (vhdl-aget ent-alist (nth 4 (car tmp-list)) t))
+	    (unless (vhdl-aget (nth 3 tmp-entry) (nth 5 (car tmp-list)) t)
 	      (setq tmp-entry (car tmp-list))
 	      (vhdl-warning-when-idle
 	       "Configuration of non-existing architecture: \"%s\" of \"%s(%s)\"\n  in \"%s\" (line %d)"
@@ -14036,17 +14107,17 @@ hierarchy otherwise.")
       (add-to-list 'vhdl-updated-project-list (or project dir-name)))
     ;; clear directory alists
     (unless project
-      (adelete 'vhdl-entity-alist key)
-      (adelete 'vhdl-config-alist key)
-      (adelete 'vhdl-package-alist key)
-      (adelete 'vhdl-ent-inst-alist key)
-      (adelete 'vhdl-file-alist key))
+      (vhdl-adelete 'vhdl-entity-alist key)
+      (vhdl-adelete 'vhdl-config-alist key)
+      (vhdl-adelete 'vhdl-package-alist key)
+      (vhdl-adelete 'vhdl-ent-inst-alist key)
+      (vhdl-adelete 'vhdl-file-alist key))
     ;; put directory contents into cache
-    (aput 'vhdl-entity-alist key ent-alist)
-    (aput 'vhdl-config-alist key conf-alist)
-    (aput 'vhdl-package-alist key pack-alist)
-    (aput 'vhdl-ent-inst-alist key (list ent-inst-list))
-    (aput 'vhdl-file-alist key file-alist)
+    (vhdl-aput 'vhdl-entity-alist key ent-alist)
+    (vhdl-aput 'vhdl-config-alist key conf-alist)
+    (vhdl-aput 'vhdl-package-alist key pack-alist)
+    (vhdl-aput 'vhdl-ent-inst-alist key (list ent-inst-list))
+    (vhdl-aput 'vhdl-file-alist key file-alist)
     ;; final messages
     (message "Scanning %s %s\"%s\"...done"
 	     (if is-directory "directory" "files") (or num-string "") name)
@@ -14062,18 +14133,18 @@ hierarchy otherwise.")
 (defun vhdl-scan-project-contents (project)
   "Scan the contents of all VHDL files found in the directories and files
 of PROJECT."
-  (let ((dir-list (or (nth 2 (aget vhdl-project-alist project)) '("")))
+  (let ((dir-list (or (nth 2 (vhdl-aget vhdl-project-alist project)) '("")))
 	(default-dir (vhdl-resolve-env-variable
-		      (nth 1 (aget vhdl-project-alist project))))
+		      (nth 1 (vhdl-aget vhdl-project-alist project))))
 	(file-exclude-regexp
-	  (or (nth 3 (aget vhdl-project-alist project)) ""))
+	 (or (nth 3 (vhdl-aget vhdl-project-alist project)) ""))
 	dir-list-tmp dir dir-name num-dir act-dir recursive)
     ;; clear project alists
-    (adelete 'vhdl-entity-alist project)
-    (adelete 'vhdl-config-alist project)
-    (adelete 'vhdl-package-alist project)
-    (adelete 'vhdl-ent-inst-alist project)
-    (adelete 'vhdl-file-alist project)
+    (vhdl-adelete 'vhdl-entity-alist project)
+    (vhdl-adelete 'vhdl-config-alist project)
+    (vhdl-adelete 'vhdl-package-alist project)
+    (vhdl-adelete 'vhdl-ent-inst-alist project)
+    (vhdl-adelete 'vhdl-file-alist project)
     ;; expand directory names by default-directory
     (message "Collecting source files...")
     (while dir-list
@@ -14120,7 +14191,7 @@ of PROJECT."
       (add-to-list 'dir-list-tmp (file-name-directory dir-name))
       (setq dir-list (cdr dir-list)
 	    act-dir (1+ act-dir)))
-    (aput 'vhdl-directory-alist project (list (nreverse dir-list-tmp)))
+    (vhdl-aput 'vhdl-directory-alist project (list (nreverse dir-list-tmp)))
     (message "Scanning project \"%s\"...done" project)))
 
 (defun vhdl-update-file-contents (file-name)
@@ -14133,13 +14204,16 @@ of PROJECT."
       (when (member dir-name (nth 1 (car directory-alist)))
 	(let* ((vhdl-project (nth 0 (car directory-alist)))
 	       (project (vhdl-project-p))
-	       (ent-alist (aget vhdl-entity-alist (or project dir-name) t))
-	       (conf-alist (aget vhdl-config-alist (or project dir-name) t))
-	       (pack-alist (aget vhdl-package-alist (or project dir-name) t))
-	       (ent-inst-list (car (aget vhdl-ent-inst-alist
+	       (ent-alist (vhdl-aget vhdl-entity-alist
+				     (or project dir-name) t))
+	       (conf-alist (vhdl-aget vhdl-config-alist
+				      (or project dir-name) t))
+	       (pack-alist (vhdl-aget vhdl-package-alist
+				      (or project dir-name) t))
+	       (ent-inst-list (car (vhdl-aget vhdl-ent-inst-alist
 					 (or project dir-name) t)))
-	       (file-alist (aget vhdl-file-alist (or project dir-name) t))
-	       (file-entry (aget file-alist file-name t))
+	       (file-alist (vhdl-aget vhdl-file-alist (or project dir-name) t))
+	       (file-entry (vhdl-aget file-alist file-name t))
 	       (ent-list (nth 0 file-entry))
 	       (arch-list (nth 1 file-entry))
 	       (arch-ent-list (nth 2 file-entry))
@@ -14153,57 +14227,57 @@ of PROJECT."
 	  ;; entities
 	  (while ent-list
 	    (setq key (car ent-list)
-		  entry (aget ent-alist key t))
+		  entry (vhdl-aget ent-alist key t))
 	    (when (equal file-name (nth 1 entry))
 	      (if (nth 3 entry)
-		  (aput 'ent-alist key
-			(list (nth 0 entry) nil nil (nth 3 entry) nil))
-		(adelete 'ent-alist key)))
+		  (vhdl-aput 'ent-alist key
+			     (list (nth 0 entry) nil nil (nth 3 entry) nil))
+		(vhdl-adelete 'ent-alist key)))
 	    (setq ent-list (cdr ent-list)))
 	  ;; architectures
 	  (while arch-list
 	    (setq key (car arch-list)
 		  ent-key (car arch-ent-list)
-		  entry (aget ent-alist ent-key t)
+		  entry (vhdl-aget ent-alist ent-key t)
 		  arch-alist (nth 3 entry))
-	    (when (equal file-name (nth 1 (aget arch-alist key t)))
-	      (adelete 'arch-alist key)
+	    (when (equal file-name (nth 1 (vhdl-aget arch-alist key t)))
+	      (vhdl-adelete 'arch-alist key)
 	      (if (or (nth 1 entry) arch-alist)
-		  (aput 'ent-alist ent-key
-			(list (nth 0 entry) (nth 1 entry) (nth 2 entry)
-			      arch-alist (nth 4 entry) (nth 5 entry)))
-		(adelete 'ent-alist ent-key)))
+		  (vhdl-aput 'ent-alist ent-key
+			     (list (nth 0 entry) (nth 1 entry) (nth 2 entry)
+				   arch-alist (nth 4 entry) (nth 5 entry)))
+		(vhdl-adelete 'ent-alist ent-key)))
 	    (setq arch-list (cdr arch-list)
 		  arch-ent-list (cdr arch-ent-list)))
 	  ;; configurations
 	  (while conf-list
 	    (setq key (car conf-list))
-	    (when (equal file-name (nth 1 (aget conf-alist key t)))
-	      (adelete 'conf-alist key))
+	    (when (equal file-name (nth 1 (vhdl-aget conf-alist key t)))
+	      (vhdl-adelete 'conf-alist key))
 	    (setq conf-list (cdr conf-list)))
 	  ;; package declarations
 	  (while pack-list
 	    (setq key (car pack-list)
-		  entry (aget pack-alist key t))
+		  entry (vhdl-aget pack-alist key t))
 	    (when (equal file-name (nth 1 entry))
 	      (if (nth 6 entry)
-		  (aput 'pack-alist key
-			(list (nth 0 entry) nil nil nil nil nil
-			      (nth 6 entry) (nth 7 entry) (nth 8 entry)
-			      (nth 9 entry)))
-		(adelete 'pack-alist key)))
+		  (vhdl-aput 'pack-alist key
+			     (list (nth 0 entry) nil nil nil nil nil
+				   (nth 6 entry) (nth 7 entry) (nth 8 entry)
+				   (nth 9 entry)))
+		(vhdl-adelete 'pack-alist key)))
 	    (setq pack-list (cdr pack-list)))
 	  ;; package bodies
 	  (while pack-body-list
 	    (setq key (car pack-body-list)
-		  entry (aget pack-alist key t))
+		  entry (vhdl-aget pack-alist key t))
 	    (when (equal file-name (nth 6 entry))
 	      (if (nth 1 entry)
-		  (aput 'pack-alist key
-			(list (nth 0 entry) (nth 1 entry) (nth 2 entry)
-			      (nth 3 entry) (nth 4 entry) (nth 5 entry)
-			      nil nil nil nil))
-		(adelete 'pack-alist key)))
+		  (vhdl-aput 'pack-alist key
+			     (list (nth 0 entry) (nth 1 entry) (nth 2 entry)
+				   (nth 3 entry) (nth 4 entry) (nth 5 entry)
+				   nil nil nil nil))
+		(vhdl-adelete 'pack-alist key)))
 	    (setq pack-body-list (cdr pack-body-list)))
 	  ;; instantiated entities
 	  (while inst-ent-list
@@ -14211,10 +14285,10 @@ of PROJECT."
 		  (vhdl-delete (car inst-ent-list) ent-inst-list))
 	    (setq inst-ent-list (cdr inst-ent-list)))
 	  ;; update caches
-	  (vhdl-aput 'vhdl-entity-alist cache-key ent-alist)
-	  (vhdl-aput 'vhdl-config-alist cache-key conf-alist)
-	  (vhdl-aput 'vhdl-package-alist cache-key pack-alist)
-	  (vhdl-aput 'vhdl-ent-inst-alist cache-key (list ent-inst-list))
+	  (vhdl-aput-delete-if-nil 'vhdl-entity-alist cache-key ent-alist)
+	  (vhdl-aput-delete-if-nil 'vhdl-config-alist cache-key conf-alist)
+	  (vhdl-aput-delete-if-nil 'vhdl-package-alist cache-key pack-alist)
+	  (vhdl-aput-delete-if-nil 'vhdl-ent-inst-alist cache-key (list ent-inst-list))
 	  ;; scan file
 	  (vhdl-scan-directory-contents file-name project t)
 	  (when (or (and vhdl-speedbar-show-projects project)
@@ -14247,8 +14321,8 @@ of PROJECT."
 				     &optional include-top ent-hier)
   "Get instantiation hierarchy beginning in architecture ARCH-KEY of
 entity ENT-KEY."
-  (let* ((ent-entry (aget ent-alist ent-key t))
-	 (arch-entry (if arch-key (aget (nth 3 ent-entry) arch-key t)
+  (let* ((ent-entry (vhdl-aget ent-alist ent-key t))
+	 (arch-entry (if arch-key (vhdl-aget (nth 3 ent-entry) arch-key t)
 		       (cdar (last (nth 3 ent-entry)))))
 	 (inst-alist (nth 3 arch-entry))
 	 inst-entry inst-ent-entry inst-arch-entry inst-conf-entry comp-entry
@@ -14274,27 +14348,27 @@ entity ENT-KEY."
 				   (downcase (or inst-comp-name ""))))))
 	(setq tmp-list (cdr tmp-list)))
       (setq inst-conf-key (or (nth 4 (car tmp-list)) inst-conf-key))
-      (setq inst-conf-entry (aget conf-alist inst-conf-key t))
+      (setq inst-conf-entry (vhdl-aget conf-alist inst-conf-key t))
       (when (and inst-conf-key (not inst-conf-entry))
 	(vhdl-warning-when-idle "Configuration not found: \"%s\"" inst-conf-key))
       ;; determine entity
       (setq inst-ent-key
 	    (or (nth 2 (car tmp-list))	; from configuration
 		(nth 3 inst-conf-entry) ; from subconfiguration
-		(nth 3 (aget conf-alist (nth 7 inst-entry) t))
+		(nth 3 (vhdl-aget conf-alist (nth 7 inst-entry) t))
 					; from configuration spec.
 		(nth 5 inst-entry)))	; from direct instantiation
-      (setq inst-ent-entry (aget ent-alist inst-ent-key t))
+      (setq inst-ent-entry (vhdl-aget ent-alist inst-ent-key t))
       ;; determine architecture
       (setq inst-arch-key
 	    (or (nth 3 (car tmp-list))		; from configuration
 		(nth 4 inst-conf-entry)		; from subconfiguration
 		(nth 6 inst-entry)		; from direct instantiation
-		(nth 4 (aget conf-alist (nth 7 inst-entry)))
+		(nth 4 (vhdl-aget conf-alist (nth 7 inst-entry)))
 						; from configuration spec.
 		(nth 4 inst-ent-entry)		; MRA
 		(caar (nth 3 inst-ent-entry))))	; first alphabetically
-      (setq inst-arch-entry (aget (nth 3 inst-ent-entry) inst-arch-key t))
+      (setq inst-arch-entry (vhdl-aget (nth 3 inst-ent-entry) inst-arch-key t))
       ;; set library
       (setq inst-lib-key
 	    (or (nth 5 (car tmp-list))		; from configuration
@@ -14333,7 +14407,8 @@ entity ENT-KEY."
 
 (defun vhdl-get-instantiations (ent-key indent)
   "Get all instantiations of entity ENT-KEY."
-  (let ((ent-alist (aget vhdl-entity-alist (vhdl-speedbar-line-key indent) t))
+  (let ((ent-alist (vhdl-aget vhdl-entity-alist
+			      (vhdl-speedbar-line-key indent) t))
 	arch-alist inst-alist ent-inst-list
 	ent-entry arch-entry inst-entry)
     (while ent-alist
@@ -14419,29 +14494,29 @@ entity ENT-KEY."
       (insert ")\n")
       (when (member 'hierarchy vhdl-speedbar-save-cache)
 	(insert "\n;; entity and architecture cache\n"
-		"(aput 'vhdl-entity-alist " key " '")
-	(print (aget vhdl-entity-alist cache-key t) (current-buffer))
+		"(vhdl-aput 'vhdl-entity-alist " key " '")
+	(print (vhdl-aget vhdl-entity-alist cache-key t) (current-buffer))
 	(insert ")\n\n;; configuration cache\n"
-		"(aput 'vhdl-config-alist " key " '")
-	(print (aget vhdl-config-alist cache-key t) (current-buffer))
+		"(vhdl-aput 'vhdl-config-alist " key " '")
+	(print (vhdl-aget vhdl-config-alist cache-key t) (current-buffer))
 	(insert ")\n\n;; package cache\n"
-		"(aput 'vhdl-package-alist " key " '")
-	(print (aget vhdl-package-alist cache-key t) (current-buffer))
+		"(vhdl-aput 'vhdl-package-alist " key " '")
+	(print (vhdl-aget vhdl-package-alist cache-key t) (current-buffer))
 	(insert ")\n\n;; instantiated entities cache\n"
-		"(aput 'vhdl-ent-inst-alist " key " '")
-	(print (aget vhdl-ent-inst-alist cache-key t) (current-buffer))
+		"(vhdl-aput 'vhdl-ent-inst-alist " key " '")
+	(print (vhdl-aget vhdl-ent-inst-alist cache-key t) (current-buffer))
 	(insert ")\n\n;; design units per file cache\n"
-		"(aput 'vhdl-file-alist " key " '")
-	(print (aget vhdl-file-alist cache-key t) (current-buffer))
+		"(vhdl-aput 'vhdl-file-alist " key " '")
+	(print (vhdl-aget vhdl-file-alist cache-key t) (current-buffer))
 	(when project
 	  (insert ")\n\n;; source directories in project cache\n"
-		  "(aput 'vhdl-directory-alist " key " '")
-	  (print (aget vhdl-directory-alist cache-key t) (current-buffer)))
+		  "(vhdl-aput 'vhdl-directory-alist " key " '")
+	  (print (vhdl-aget vhdl-directory-alist cache-key t) (current-buffer)))
 	(insert ")\n"))
       (when (member 'display vhdl-speedbar-save-cache)
 	(insert "\n;; shown design units cache\n"
-		"(aput 'vhdl-speedbar-shown-unit-alist " key " '")
-	(print (aget vhdl-speedbar-shown-unit-alist cache-key t)
+		"(vhdl-aput 'vhdl-speedbar-shown-unit-alist " key " '")
+	(print (vhdl-aget vhdl-speedbar-shown-unit-alist cache-key t)
 	       (current-buffer))
 	(insert ")\n"))
       (setq vhdl-updated-project-list
@@ -14709,10 +14784,10 @@ otherwise use cached data."
     (vhdl-scan-project-contents project))
   ;; insert design hierarchy
   (vhdl-speedbar-insert-hierarchy
-   (aget vhdl-entity-alist project t)
-   (aget vhdl-config-alist project t)
-   (aget vhdl-package-alist project t)
-   (car (aget vhdl-ent-inst-alist project t)) indent)
+   (vhdl-aget vhdl-entity-alist project t)
+   (vhdl-aget vhdl-config-alist project t)
+   (vhdl-aget vhdl-package-alist project t)
+   (car (vhdl-aget vhdl-ent-inst-alist project t)) indent)
   (insert (int-to-string indent) ":\n")
   (put-text-property (- (point) 3) (1- (point)) 'invisible t)
   (put-text-property (1- (point)) (point) 'invisible nil)
@@ -14727,13 +14802,13 @@ otherwise use cached data."
     (vhdl-scan-directory-contents directory))
   ;; insert design hierarchy
   (vhdl-speedbar-insert-hierarchy
-   (aget vhdl-entity-alist directory t)
-   (aget vhdl-config-alist directory t)
-   (aget vhdl-package-alist directory t)
-   (car (aget vhdl-ent-inst-alist directory t)) depth)
+   (vhdl-aget vhdl-entity-alist directory t)
+   (vhdl-aget vhdl-config-alist directory t)
+   (vhdl-aget vhdl-package-alist directory t)
+   (car (vhdl-aget vhdl-ent-inst-alist directory t)) depth)
   ;; expand design units
   (vhdl-speedbar-expand-units directory)
-  (aput 'vhdl-directory-alist directory (list (list directory))))
+  (vhdl-aput 'vhdl-directory-alist directory (list (list directory))))
 
 (defun vhdl-speedbar-insert-hierarchy (ent-alist conf-alist pack-alist
 						 ent-inst-list depth)
@@ -14821,10 +14896,10 @@ otherwise use cached data."
 (defun vhdl-speedbar-expand-units (key)
   "Expand design units in directory/project KEY according to
 `vhdl-speedbar-shown-unit-alist'."
-  (let ((unit-alist (aget vhdl-speedbar-shown-unit-alist key t))
+  (let ((unit-alist (vhdl-aget vhdl-speedbar-shown-unit-alist key t))
 	(vhdl-speedbar-update-current-unit nil)
 	vhdl-updated-project-list)
-    (adelete 'vhdl-speedbar-shown-unit-alist key)
+    (vhdl-adelete 'vhdl-speedbar-shown-unit-alist key)
     (vhdl-prepare-search-1
      (while unit-alist			; expand units
        (vhdl-speedbar-goto-this-unit key (caar unit-alist))
@@ -14874,7 +14949,7 @@ otherwise use cached data."
       (progn (setq vhdl-speedbar-shown-project-list nil)
 	     (vhdl-speedbar-refresh))
     (let ((key (vhdl-speedbar-line-key)))
-      (adelete 'vhdl-speedbar-shown-unit-alist key)
+      (vhdl-adelete 'vhdl-speedbar-shown-unit-alist key)
       (vhdl-speedbar-refresh (and vhdl-speedbar-show-projects key))
       (when (memq 'display vhdl-speedbar-save-cache)
 	(add-to-list 'vhdl-updated-project-list key)))))
@@ -14883,9 +14958,9 @@ otherwise use cached data."
   "Expand all design units in current directory/project."
   (interactive)
   (let* ((key (vhdl-speedbar-line-key))
-	 (ent-alist (aget vhdl-entity-alist key t))
-	 (conf-alist (aget vhdl-config-alist key t))
-	 (pack-alist (aget vhdl-package-alist key t))
+	 (ent-alist (vhdl-aget vhdl-entity-alist key t))
+	 (conf-alist (vhdl-aget vhdl-config-alist key t))
+	 (pack-alist (vhdl-aget vhdl-package-alist key t))
 	 arch-alist unit-alist subunit-alist)
     (add-to-list 'vhdl-speedbar-shown-project-list key)
     (while ent-alist
@@ -14902,7 +14977,7 @@ otherwise use cached data."
     (while pack-alist
       (push (list (caar pack-alist)) unit-alist)
       (setq pack-alist (cdr pack-alist)))
-    (aput 'vhdl-speedbar-shown-unit-alist key unit-alist)
+    (vhdl-aput 'vhdl-speedbar-shown-unit-alist key unit-alist)
     (vhdl-speedbar-refresh)
     (when (memq 'display vhdl-speedbar-save-cache)
       (add-to-list 'vhdl-updated-project-list key))))
@@ -14937,8 +15012,8 @@ otherwise use cached data."
   (cond
    ((string-match "+" text)		; expand entity
     (let* ((key (vhdl-speedbar-line-key indent))
-	   (ent-alist (aget vhdl-entity-alist key t))
-	   (ent-entry (aget ent-alist token t))
+	   (ent-alist (vhdl-aget vhdl-entity-alist key t))
+	   (ent-entry (vhdl-aget ent-alist token t))
 	   (arch-alist (nth 3 ent-entry))
 	   (inst-alist (vhdl-get-instantiations token indent))
 	   (subpack-alist (nth 5 ent-entry))
@@ -14948,9 +15023,9 @@ otherwise use cached data."
 	  (speedbar-change-expand-button-char ??)
 	(speedbar-change-expand-button-char ?-)
 	;; add entity to `vhdl-speedbar-shown-unit-alist'
-	(let* ((unit-alist (aget vhdl-speedbar-shown-unit-alist key t)))
-	  (aput 'unit-alist token nil)
-	  (aput 'vhdl-speedbar-shown-unit-alist key unit-alist))
+	(let* ((unit-alist (vhdl-aget vhdl-speedbar-shown-unit-alist key t)))
+	  (vhdl-aput 'unit-alist token nil)
+	  (vhdl-aput 'vhdl-speedbar-shown-unit-alist key unit-alist))
 	(speedbar-with-writable
 	 (save-excursion
 	   (end-of-line) (forward-char 1)
@@ -14989,11 +15064,11 @@ otherwise use cached data."
     (speedbar-change-expand-button-char ?+)
     ;; remove entity from `vhdl-speedbar-shown-unit-alist'
     (let* ((key (vhdl-speedbar-line-key indent))
-	   (unit-alist (aget vhdl-speedbar-shown-unit-alist key t)))
-      (adelete 'unit-alist token)
+	   (unit-alist (vhdl-aget vhdl-speedbar-shown-unit-alist key t)))
+      (vhdl-adelete 'unit-alist token)
       (if unit-alist
-	  (aput 'vhdl-speedbar-shown-unit-alist key unit-alist)
-	(adelete 'vhdl-speedbar-shown-unit-alist key))
+	  (vhdl-aput 'vhdl-speedbar-shown-unit-alist key unit-alist)
+	(vhdl-adelete 'vhdl-speedbar-shown-unit-alist key))
       (speedbar-delete-subblock indent)
       (when (memq 'display vhdl-speedbar-save-cache)
 	(add-to-list 'vhdl-updated-project-list key))))
@@ -15006,23 +15081,24 @@ otherwise use cached data."
   (cond
    ((string-match "+" text)		; expand architecture
     (let* ((key (vhdl-speedbar-line-key (1- indent)))
-	   (ent-alist (aget vhdl-entity-alist key t))
-	   (conf-alist (aget vhdl-config-alist key t))
+	   (ent-alist (vhdl-aget vhdl-entity-alist key t))
+	   (conf-alist (vhdl-aget vhdl-config-alist key t))
 	   (hier-alist (vhdl-get-hierarchy
 			ent-alist conf-alist (car token) (cdr token) nil nil
 			0 (1- indent)))
-	   (ent-entry (aget ent-alist (car token) t))
-	   (arch-entry (aget (nth 3 ent-entry) (cdr token) t))
+	   (ent-entry (vhdl-aget ent-alist (car token) t))
+	   (arch-entry (vhdl-aget (nth 3 ent-entry) (cdr token) t))
 	   (subpack-alist (nth 4 arch-entry))
 	   entry)
       (if (not (or hier-alist subpack-alist))
 	  (speedbar-change-expand-button-char ??)
 	(speedbar-change-expand-button-char ?-)
 	;; add architecture to `vhdl-speedbar-shown-unit-alist'
-	(let* ((unit-alist (aget vhdl-speedbar-shown-unit-alist key t))
-	       (arch-alist (nth 0 (aget unit-alist (car token) t))))
-	  (aput 'unit-alist (car token) (list (cons (cdr token) arch-alist)))
-	  (aput 'vhdl-speedbar-shown-unit-alist key unit-alist))
+	(let* ((unit-alist (vhdl-aget vhdl-speedbar-shown-unit-alist key t))
+	       (arch-alist (nth 0 (vhdl-aget unit-alist (car token) t))))
+	  (vhdl-aput 'unit-alist (car token)
+		     (list (cons (cdr token) arch-alist)))
+	  (vhdl-aput 'vhdl-speedbar-shown-unit-alist key unit-alist))
 	(speedbar-with-writable
 	  (save-excursion
 	    (end-of-line) (forward-char 1)
@@ -15049,10 +15125,10 @@ otherwise use cached data."
     (speedbar-change-expand-button-char ?+)
     ;; remove architecture from `vhdl-speedbar-shown-unit-alist'
     (let* ((key (vhdl-speedbar-line-key (1- indent)))
-	   (unit-alist (aget vhdl-speedbar-shown-unit-alist key t))
-	   (arch-alist (nth 0 (aget unit-alist (car token) t))))
-      (aput 'unit-alist (car token) (list (delete (cdr token) arch-alist)))
-      (aput 'vhdl-speedbar-shown-unit-alist key unit-alist)
+	   (unit-alist (vhdl-aget vhdl-speedbar-shown-unit-alist key t))
+	   (arch-alist (nth 0 (vhdl-aget unit-alist (car token) t))))
+      (vhdl-aput 'unit-alist (car token) (list (delete (cdr token) arch-alist)))
+      (vhdl-aput 'vhdl-speedbar-shown-unit-alist key unit-alist)
       (speedbar-delete-subblock indent)
       (when (memq 'display vhdl-speedbar-save-cache)
 	(add-to-list 'vhdl-updated-project-list key))))
@@ -15065,9 +15141,9 @@ otherwise use cached data."
   (cond
    ((string-match "+" text)		; expand configuration
     (let* ((key (vhdl-speedbar-line-key indent))
-	   (conf-alist (aget vhdl-config-alist key t))
-	   (conf-entry (aget conf-alist token))
-	   (ent-alist (aget vhdl-entity-alist key t))
+	   (conf-alist (vhdl-aget vhdl-config-alist key t))
+	   (conf-entry (vhdl-aget conf-alist token))
+	   (ent-alist (vhdl-aget vhdl-entity-alist key t))
 	   (hier-alist (vhdl-get-hierarchy
 			ent-alist conf-alist (nth 3 conf-entry)
 			(nth 4 conf-entry) token (nth 5 conf-entry)
@@ -15078,9 +15154,9 @@ otherwise use cached data."
 	  (speedbar-change-expand-button-char ??)
 	(speedbar-change-expand-button-char ?-)
 	;; add configuration to `vhdl-speedbar-shown-unit-alist'
-	(let* ((unit-alist (aget vhdl-speedbar-shown-unit-alist key t)))
-	  (aput 'unit-alist token nil)
-	  (aput 'vhdl-speedbar-shown-unit-alist key unit-alist))
+	(let* ((unit-alist (vhdl-aget vhdl-speedbar-shown-unit-alist key t)))
+	  (vhdl-aput 'unit-alist token nil)
+	  (vhdl-aput 'vhdl-speedbar-shown-unit-alist key unit-alist))
 	(speedbar-with-writable
 	 (save-excursion
 	   (end-of-line) (forward-char 1)
@@ -15106,11 +15182,11 @@ otherwise use cached data."
     (speedbar-change-expand-button-char ?+)
     ;; remove configuration from `vhdl-speedbar-shown-unit-alist'
     (let* ((key (vhdl-speedbar-line-key indent))
-	   (unit-alist (aget vhdl-speedbar-shown-unit-alist key t)))
-      (adelete 'unit-alist token)
+	   (unit-alist (vhdl-aget vhdl-speedbar-shown-unit-alist key t)))
+      (vhdl-adelete 'unit-alist token)
       (if unit-alist
-	  (aput 'vhdl-speedbar-shown-unit-alist key unit-alist)
-	(adelete 'vhdl-speedbar-shown-unit-alist key))
+	  (vhdl-aput 'vhdl-speedbar-shown-unit-alist key unit-alist)
+	(vhdl-adelete 'vhdl-speedbar-shown-unit-alist key))
       (speedbar-delete-subblock indent)
       (when (memq 'display vhdl-speedbar-save-cache)
 	(add-to-list 'vhdl-updated-project-list key))))
@@ -15123,8 +15199,8 @@ otherwise use cached data."
   (cond
    ((string-match "+" text)		; expand package
     (let* ((key (vhdl-speedbar-line-key indent))
-	   (pack-alist (aget vhdl-package-alist key t))
-	   (pack-entry (aget pack-alist token t))
+	   (pack-alist (vhdl-aget vhdl-package-alist key t))
+	   (pack-entry (vhdl-aget pack-alist token t))
 	   (comp-alist (nth 3 pack-entry))
 	   (func-alist (nth 4 pack-entry))
 	   (func-body-alist (nth 8 pack-entry))
@@ -15134,9 +15210,9 @@ otherwise use cached data."
 	  (speedbar-change-expand-button-char ??)
 	(speedbar-change-expand-button-char ?-)
 	;; add package to `vhdl-speedbar-shown-unit-alist'
-	(let* ((unit-alist (aget vhdl-speedbar-shown-unit-alist key t)))
-	  (aput 'unit-alist token nil)
-	  (aput 'vhdl-speedbar-shown-unit-alist key unit-alist))
+	(let* ((unit-alist (vhdl-aget vhdl-speedbar-shown-unit-alist key t)))
+	  (vhdl-aput 'unit-alist token nil)
+	  (vhdl-aput 'vhdl-speedbar-shown-unit-alist key unit-alist))
 	(speedbar-with-writable
 	  (save-excursion
 	    (end-of-line) (forward-char 1)
@@ -15157,7 +15233,8 @@ otherwise use cached data."
 	      (vhdl-speedbar-make-title-line "Subprograms:" (1+ indent)))
 	    (while func-alist
 	      (setq func-entry (car func-alist)
-		    func-body-entry (aget func-body-alist (car func-entry) t))
+		    func-body-entry (vhdl-aget func-body-alist
+					       (car func-entry) t))
 	      (when (nth 2 func-entry)
 		(vhdl-speedbar-make-subprogram-line
 		 (nth 1 func-entry)
@@ -15175,11 +15252,11 @@ otherwise use cached data."
     (speedbar-change-expand-button-char ?+)
     ;; remove package from `vhdl-speedbar-shown-unit-alist'
     (let* ((key (vhdl-speedbar-line-key indent))
-	   (unit-alist (aget vhdl-speedbar-shown-unit-alist key t)))
-      (adelete 'unit-alist token)
+	   (unit-alist (vhdl-aget vhdl-speedbar-shown-unit-alist key t)))
+      (vhdl-adelete 'unit-alist token)
       (if unit-alist
-	  (aput 'vhdl-speedbar-shown-unit-alist key unit-alist)
-	(adelete 'vhdl-speedbar-shown-unit-alist key))
+	  (vhdl-aput 'vhdl-speedbar-shown-unit-alist key unit-alist)
+	(vhdl-adelete 'vhdl-speedbar-shown-unit-alist key))
       (speedbar-delete-subblock indent)
       (when (memq 'display vhdl-speedbar-save-cache)
 	(add-to-list 'vhdl-updated-project-list key))))
@@ -15189,15 +15266,15 @@ otherwise use cached data."
 
 (defun vhdl-speedbar-insert-subpackages (subpack-alist indent dir-indent)
   "Insert required packages."
-  (let* ((pack-alist (aget vhdl-package-alist
-			   (vhdl-speedbar-line-key dir-indent) t))
+  (let* ((pack-alist (vhdl-aget vhdl-package-alist
+				(vhdl-speedbar-line-key dir-indent) t))
 	 pack-key lib-name pack-entry)
     (when subpack-alist
       (vhdl-speedbar-make-title-line "Packages Used:" indent))
     (while subpack-alist
       (setq pack-key (cdar subpack-alist)
 	    lib-name (caar subpack-alist))
-      (setq pack-entry (aget pack-alist pack-key t))
+      (setq pack-entry (vhdl-aget pack-alist pack-key t))
       (vhdl-speedbar-make-subpack-line
        (or (nth 0 pack-entry) pack-key) lib-name
        (cons (nth 1 pack-entry) (nth 2 pack-entry))
@@ -15255,18 +15332,21 @@ NO-POSITION non-nil means do not re-position cursor."
 	       (or always (not (equal file-name speedbar-last-selected-file))))
       (if vhdl-speedbar-show-projects
 	  (while project-list
-	    (setq file-alist (append file-alist (aget vhdl-file-alist
-						      (car project-list) t)))
+	    (setq file-alist (append file-alist
+				     (vhdl-aget vhdl-file-alist
+						(car project-list) t)))
 	    (setq project-list (cdr project-list)))
-	(setq file-alist (aget vhdl-file-alist
-			       (abbreviate-file-name default-directory) t)))
+	(setq file-alist
+	      (vhdl-aget vhdl-file-alist
+			 (abbreviate-file-name default-directory) t)))
       (select-frame speedbar-frame)
       (set-buffer speedbar-buffer)
       (speedbar-with-writable
        (vhdl-prepare-search-1
 	(save-excursion
 	  ;; unhighlight last units
-	  (let* ((file-entry (aget file-alist speedbar-last-selected-file t)))
+	  (let* ((file-entry (vhdl-aget file-alist
+					speedbar-last-selected-file t)))
 	    (vhdl-speedbar-update-units
 	     "\\[.\\] " (nth 0 file-entry)
 	     speedbar-last-selected-file 'vhdl-speedbar-entity-face)
@@ -15286,7 +15366,7 @@ NO-POSITION non-nil means do not re-position cursor."
 	     "> " (nth 6 file-entry)
 	     speedbar-last-selected-file 'vhdl-speedbar-instantiation-face))
 	  ;; highlight current units
-	  (let* ((file-entry (aget file-alist file-name t)))
+	  (let* ((file-entry (vhdl-aget file-alist file-name t)))
 	    (setq
 	     pos (vhdl-speedbar-update-units
 		  "\\[.\\] " (nth 0 file-entry)
@@ -15779,9 +15859,9 @@ is already shown in a buffer."
       (error "ERROR:  No architecture under cursor")
     (let* ((arch-key (downcase (vhdl-speedbar-line-text)))
 	   (ent-key (downcase (vhdl-speedbar-higher-text)))
-	   (ent-alist (aget vhdl-entity-alist
+	   (ent-alist (vhdl-aget vhdl-entity-alist
 			    (or (vhdl-project-p) default-directory) t))
-	   (ent-entry (aget ent-alist ent-key t)))
+	   (ent-entry (vhdl-aget ent-alist ent-key t)))
       (setcar (cddr (cddr ent-entry)) arch-key) ; (nth 4 ent-entry)
       (speedbar-refresh))))
 
@@ -16190,7 +16270,7 @@ component instantiation."
 	     (setq constant-entry
 		   (cons constant-name
 			 (if (match-string 1)
-			     (or (aget generic-alist (match-string 2) t)
+			     (or (vhdl-aget generic-alist (match-string 2) t)
 				 (error "ERROR:  Formal generic \"%s\" mismatch for instance \"%s\"" (match-string 2) inst-name))
 			   (cdar generic-alist))))
 	     (push constant-entry constant-alist)
@@ -16208,11 +16288,12 @@ component instantiation."
 	 (vhdl-forward-syntactic-ws)
 	 (while (vhdl-parse-string "\\(\\(\\w+\\)[ \t\n\r\f]*=>[ \t\n\r\f]*\\)?\\(\\w+\\),?" t)
 	   (setq signal-name (match-string-no-properties 3))
-	   (setq signal-entry (cons signal-name
-				    (if (match-string 1)
-					(or (aget port-alist (match-string 2) t)
-					    (error "ERROR:  Formal port \"%s\" mismatch for instance \"%s\"" (match-string 2) inst-name))
-				      (cdar port-alist))))
+	   (setq signal-entry
+		 (cons signal-name
+		       (if (match-string 1)
+			   (or (vhdl-aget port-alist (match-string 2) t)
+			       (error "ERROR:  Formal port \"%s\" mismatch for instance \"%s\"" (match-string 2) inst-name))
+			 (cdar port-alist))))
 	   (push signal-entry signal-alist)
 	   (setq signal-name (downcase signal-name))
 	   (if (equal (upcase (nth 2 signal-entry)) "IN")
@@ -16451,7 +16532,7 @@ current project/directory."
 	 (pack-file-name
 	  (concat (vhdl-replace-string vhdl-package-file-name pack-name t)
 		  "." (file-name-extension (buffer-file-name))))
-	 (ent-alist (aget vhdl-entity-alist
+	 (ent-alist (vhdl-aget vhdl-entity-alist
 			  (or project default-directory) t))
 	 (lazy-lock-minimum-size 0)
 	 clause-pos component-pos)
@@ -16555,7 +16636,7 @@ current project/directory."
 	  (when (equal (nth 5 inst-entry) (nth 4 (car tmp-alist)))
 	    (setq conf-key (nth 0 (car tmp-alist))))
 	  (setq tmp-alist (cdr tmp-alist)))
-	(setq conf-entry (aget conf-alist conf-key t))
+	(setq conf-entry (vhdl-aget conf-alist conf-key t))
 	;; insert binding indication ...
 	;; ... with subconfiguration (if exists)
 	(if (and vhdl-compose-configuration-use-subconfiguration conf-entry)
@@ -16565,7 +16646,7 @@ current project/directory."
 	      (insert (vhdl-work-library) "." (nth 0 conf-entry))
 	      (insert ";\n"))
 	  ;; ... with entity (if exists)
-	  (setq ent-entry (aget ent-alist (nth 5 inst-entry) t))
+	  (setq ent-entry (vhdl-aget ent-alist (nth 5 inst-entry) t))
 	  (when ent-entry
 	    (indent-to (+ margin vhdl-basic-offset))
 	    (vhdl-insert-keyword "USE ENTITY ")
@@ -16575,9 +16656,9 @@ current project/directory."
 	      (setq arch-name
 		    ;; choose architecture name a) from configuration,
 		    ;; b) from mra, or c) from first architecture
-		    (or (nth 0 (aget (nth 3 ent-entry)
-				     (or (nth 6 inst-entry)
-					 (nth 4 ent-entry)) t))
+		    (or (nth 0 (vhdl-aget (nth 3 ent-entry)
+					  (or (nth 6 inst-entry)
+					      (nth 4 ent-entry)) t))
 			(nth 1 (car (nth 3 ent-entry)))))
 	      (insert "(" arch-name ")"))
 	    (insert ";\n")
@@ -16587,7 +16668,7 @@ current project/directory."
 	      (indent-to (+ margin vhdl-basic-offset))
 	      (vhdl-compose-configuration-architecture
 	       (nth 0 ent-entry) arch-name ent-alist conf-alist
-	       (nth 3 (aget (nth 3 ent-entry) (downcase arch-name) t))))))
+	       (nth 3 (vhdl-aget (nth 3 ent-entry) (downcase arch-name) t))))))
 	;; insert component configuration end
 	(indent-to margin)
 	(vhdl-insert-keyword "END FOR;\n")
@@ -16609,9 +16690,9 @@ current project/directory."
   "Generate configuration declaration."
   (interactive)
   (vhdl-require-hierarchy-info)
-  (let ((ent-alist (aget vhdl-entity-alist
+  (let ((ent-alist (vhdl-aget vhdl-entity-alist
 			 (or (vhdl-project-p) default-directory) t))
-	(conf-alist (aget vhdl-config-alist
+	(conf-alist (vhdl-aget vhdl-config-alist
 			  (or (vhdl-project-p) default-directory) t))
 	(from-speedbar ent-name)
 	inst-alist conf-name conf-file-name pos)
@@ -16628,8 +16709,8 @@ current project/directory."
 		      vhdl-compose-configuration-name
 		      (concat ent-name " " arch-name)))
      (setq inst-alist
-	   (nth 3 (aget (nth 3 (aget ent-alist (downcase ent-name) t))
-			(downcase arch-name) t))))
+	   (nth 3 (vhdl-aget (nth 3 (vhdl-aget ent-alist (downcase ent-name) t))
+			     (downcase arch-name) t))))
      (message "Generating configuration \"%s\"..." conf-name)
      (if vhdl-compose-configuration-create-file
 	 ;; open configuration file
@@ -16695,8 +16776,8 @@ current project/directory."
 (defun vhdl-makefile-name ()
   "Return the Makefile name of the current project or the current compiler if
 no project is defined."
-  (let ((project-alist (aget vhdl-project-alist vhdl-project))
-	(compiler-alist (aget vhdl-compiler-alist vhdl-compiler)))
+  (let ((project-alist (vhdl-aget vhdl-project-alist vhdl-project))
+	(compiler-alist (vhdl-aget vhdl-compiler-alist vhdl-compiler)))
     (vhdl-replace-string
      (cons "\\(.*\\)\n\\(.*\\)"
 	   (or (nth 8 project-alist) (nth 8 compiler-alist)))
@@ -16704,8 +16785,8 @@ no project is defined."
 
 (defun vhdl-compile-directory ()
   "Return the directory where compilation/make should be run."
-  (let* ((project (aget vhdl-project-alist (vhdl-project-p t)))
-	 (compiler (aget vhdl-compiler-alist vhdl-compiler))
+  (let* ((project (vhdl-aget vhdl-project-alist (vhdl-project-p t)))
+	 (compiler (vhdl-aget vhdl-compiler-alist vhdl-compiler))
 	 (directory (vhdl-resolve-env-variable
 		     (if project
 			 (vhdl-replace-string
@@ -16739,9 +16820,10 @@ no project is defined."
 
 (defun vhdl-compile-init ()
   "Initialize for compilation."
-  (when (or (null compilation-error-regexp-alist)
-	    (not (assoc (car (nth 11 (car vhdl-compiler-alist)))
-			compilation-error-regexp-alist)))
+  (when (and (not vhdl-emacs-22)
+	     (or (null compilation-error-regexp-alist)
+		 (not (assoc (car (nth 11 (car vhdl-compiler-alist)))
+			     compilation-error-regexp-alist))))
     ;; `compilation-error-regexp-alist'
     (let ((commands-alist vhdl-compiler-alist)
 	  regexp-alist sublist)
@@ -16784,7 +16866,7 @@ do not print any file names."
 					 &optional file-options-only)
   "Get compiler options.  Returning nil means do not compile this file."
   (let* ((compiler-options (nth 1 compiler))
-	 (project-entry (aget (nth 4 project) vhdl-compiler))
+	 (project-entry (vhdl-aget (nth 4 project) vhdl-compiler))
 	 (project-options (nth 0 project-entry))
 	 (exception-list (and file-name (nth 2 project-entry)))
 	 (work-library (vhdl-work-library))
@@ -16821,7 +16903,7 @@ do not print any file names."
 (defun vhdl-get-make-options (project compiler)
   "Get make options."
   (let* ((compiler-options (nth 3 compiler))
-	 (project-entry (aget (nth 4 project) vhdl-compiler))
+	 (project-entry (vhdl-aget (nth 4 project) vhdl-compiler))
 	 (project-options (nth 1 project-entry))
 	 (makefile-name (vhdl-makefile-name)))
     ;; insert Makefile name in compiler-specific options
@@ -16842,8 +16924,8 @@ do not print any file names."
 `vhdl-compiler'."
   (interactive)
   (vhdl-compile-init)
-  (let* ((project (aget vhdl-project-alist vhdl-project))
-	 (compiler (or (aget vhdl-compiler-alist vhdl-compiler nil)
+  (let* ((project (vhdl-aget vhdl-project-alist vhdl-project))
+	 (compiler (or (vhdl-aget vhdl-compiler-alist vhdl-compiler nil)
 		       (error "ERROR:  No such compiler: \"%s\"" vhdl-compiler)))
 	 (command (nth 0 compiler))
 	 (default-directory (vhdl-compile-directory))
@@ -16884,8 +16966,8 @@ specified by a target."
 	(or target (read-from-minibuffer "Target: " vhdl-make-target
 					 vhdl-minibuffer-local-map)))
   (vhdl-compile-init)
-  (let* ((project (aget vhdl-project-alist vhdl-project))
-	 (compiler (or (aget vhdl-compiler-alist vhdl-compiler)
+  (let* ((project (vhdl-aget vhdl-project-alist vhdl-project))
+	 (compiler (or (vhdl-aget vhdl-compiler-alist vhdl-compiler)
 		       (error "ERROR:  No such compiler: \"%s\"" vhdl-compiler)))
 	 (command (nth 2 compiler))
 	 (options (vhdl-get-make-options project compiler))
@@ -16902,17 +16984,20 @@ specified by a target."
   (let ((compiler-alist vhdl-compiler-alist)
 	(error-regexp-alist '((vhdl-directory "^ *Compiling \"\\(.+\\)\"" 1))))
    (while compiler-alist
-     ;; add error message regexps
-     (setq error-regexp-alist
-	   (cons (append (list (make-symbol (concat "vhdl-" (subst-char-in-string ?  ?- (downcase (nth 0 (car compiler-alist)))))))
-			 (nth 11 (car compiler-alist)))
-		 error-regexp-alist))
-     ;; add filename regexps
-     (when (/= 0 (nth 1 (nth 12 (car compiler-alist))))
+     ;; only add regexps for currently selected compiler
+     (when (or (not vhdl-compile-use-local-error-regexp)
+	       (equal vhdl-compiler (nth 0 (car compiler-alist))))
+       ;; add error message regexps
        (setq error-regexp-alist
-	     (cons (append (list (make-symbol (concat "vhdl-" (subst-char-in-string ?  ?- (downcase (nth 0 (car compiler-alist)))) "-file")))
-			   (nth 12 (car compiler-alist)))
-		   error-regexp-alist)))
+	     (cons (append (list (make-symbol (concat "vhdl-" (subst-char-in-string ?  ?- (downcase (nth 0 (car compiler-alist)))))))
+			   (nth 11 (car compiler-alist)))
+		   error-regexp-alist))
+       ;; add filename regexps
+       (when (/= 0 (nth 1 (nth 12 (car compiler-alist))))
+	 (setq error-regexp-alist
+	       (cons (append (list (make-symbol (concat "vhdl-" (subst-char-in-string ?  ?- (downcase (nth 0 (car compiler-alist)))) "-file")))
+			     (nth 12 (car compiler-alist)))
+		     error-regexp-alist))))
      (setq compiler-alist (cdr compiler-alist)))
    error-regexp-alist)
   "List of regexps for VHDL compilers.  For Emacs 22+.")
@@ -16923,6 +17008,10 @@ specified by a target."
   (interactive)
   (when (and (boundp 'compilation-error-regexp-alist-alist)
 	     (not (assoc 'vhdl-modelsim compilation-error-regexp-alist-alist)))
+    ;; remove all other compilers
+    (when vhdl-compile-use-local-error-regexp
+      (setq compilation-error-regexp-alist nil))
+    ;; add VHDL compilers
     (mapcar
      (lambda (item)
        (push (car item) compilation-error-regexp-alist)
@@ -16938,7 +17027,7 @@ specified by a target."
 (defun vhdl-generate-makefile ()
   "Generate `Makefile'."
   (interactive)
-  (let* ((compiler (or (aget vhdl-compiler-alist vhdl-compiler)
+  (let* ((compiler (or (vhdl-aget vhdl-compiler-alist vhdl-compiler)
 		       (error "ERROR:  No such compiler: \"%s\"" vhdl-compiler)))
 	 (command (nth 4 compiler)))
     ;; generate makefile
@@ -16971,14 +17060,14 @@ specified by a target."
 	(vhdl-scan-directory-contents directory))))
   (let* ((directory (abbreviate-file-name (vhdl-default-directory)))
 	 (project (vhdl-project-p))
-	 (ent-alist (aget vhdl-entity-alist (or project directory) t))
-	 (conf-alist (aget vhdl-config-alist (or project directory) t))
-	 (pack-alist (aget vhdl-package-alist (or project directory) t))
-	 (regexp-list (or (nth 12 (aget vhdl-compiler-alist vhdl-compiler))
+	 (ent-alist (vhdl-aget vhdl-entity-alist (or project directory) t))
+	 (conf-alist (vhdl-aget vhdl-config-alist (or project directory) t))
+	 (pack-alist (vhdl-aget vhdl-package-alist (or project directory) t))
+	 (regexp-list (or (nth 12 (vhdl-aget vhdl-compiler-alist vhdl-compiler))
 			  '("\\1.vhd" "\\2_\\1.vhd" "\\1.vhd"
 			    "\\1.vhd" "\\1_body.vhd" identity)))
 	 (mapping-exist
-	  (if (nth 12 (aget vhdl-compiler-alist vhdl-compiler)) t nil))
+	  (if (nth 12 (vhdl-aget vhdl-compiler-alist vhdl-compiler)) t nil))
 	 (ent-regexp (cons "\\(.*\\) \\(.*\\) \\(.*\\)" (nth 0 regexp-list)))
 	 (arch-regexp (cons "\\(.*\\) \\(.*\\) \\(.*\\)" (nth 1 regexp-list)))
 	 (conf-regexp (cons "\\(.*\\) \\(.*\\) \\(.*\\)" (nth 2 regexp-list)))
@@ -17017,7 +17106,7 @@ specified by a target."
 						  compile-directory))
 	      arch-alist (nth 4 ent-entry)
 	      lib-alist (nth 6 ent-entry)
-	      rule (aget rule-alist ent-file-name)
+	      rule (vhdl-aget rule-alist ent-file-name)
 	      target-list (nth 0 rule)
 	      depend-list (nth 1 rule)
 	      second-list nil
@@ -17034,7 +17123,7 @@ specified by a target."
 	(setq depend-list (append depend-list pack-list))
 	(setq all-pack-list pack-list)
 	;; add rule
-	(aput 'rule-alist ent-file-name (list target-list depend-list))
+	(vhdl-aput 'rule-alist ent-file-name (list target-list depend-list))
 	;; rules for all corresponding architectures
 	(while arch-alist
 	  (setq arch-entry (car arch-alist)
@@ -17046,7 +17135,7 @@ specified by a target."
 						     compile-directory))
 		inst-alist (nth 4 arch-entry)
 		lib-alist (nth 5 arch-entry)
-		rule (aget rule-alist arch-file-name)
+		rule (vhdl-aget rule-alist arch-file-name)
 		target-list (nth 0 rule)
 		depend-list (nth 1 rule))
 	  (setq tmp-key (vhdl-replace-string
@@ -17076,7 +17165,7 @@ specified by a target."
 	  (setq depend-list (append depend-list pack-list))
 	  (setq all-pack-list (append all-pack-list pack-list))
 	  ;; add rule
-	  (aput 'rule-alist arch-file-name (list target-list depend-list))
+	  (vhdl-aput 'rule-alist arch-file-name (list target-list depend-list))
 	  (setq arch-alist (cdr arch-alist)))
 	(push (list ent-key second-list (append subcomp-list all-pack-list))
 	      prim-list))
@@ -17095,7 +17184,7 @@ specified by a target."
 	    arch-key (nth 5 conf-entry)
 	    inst-alist (nth 6 conf-entry)
 	    lib-alist (nth 7 conf-entry)
-	    rule (aget rule-alist conf-file-name)
+	    rule (vhdl-aget rule-alist conf-file-name)
 	    target-list (nth 0 rule)
 	    depend-list (nth 1 rule)
 	    subcomp-list (list ent-key))
@@ -17126,7 +17215,7 @@ specified by a target."
 		  subcomp-list (cons inst-conf-key subcomp-list))))
 	(setq inst-alist (cdr inst-alist)))
       ;; add rule
-      (aput 'rule-alist conf-file-name (list target-list depend-list))
+      (vhdl-aput 'rule-alist conf-file-name (list target-list depend-list))
       (push (list conf-key nil (append subcomp-list pack-list)) prim-list)
       (setq conf-alist (cdr conf-alist)))
     (setq conf-alist tmp-list)
@@ -17142,7 +17231,7 @@ specified by a target."
 			       (file-relative-name (nth 2 pack-entry)
 						   compile-directory))
 	      lib-alist (nth 6 pack-entry) lib-body-alist (nth 10 pack-entry)
-	      rule (aget rule-alist pack-file-name)
+	      rule (vhdl-aget rule-alist pack-file-name)
 	      target-list (nth 0 rule) depend-list (nth 1 rule))
 	(setq tmp-key (vhdl-replace-string
 		       pack-regexp
@@ -17156,7 +17245,7 @@ specified by a target."
 	(setq depend-list (append depend-list pack-list))
 	(setq all-pack-list pack-list)
 	;; add rule
-	(aput 'rule-alist pack-file-name (list target-list depend-list))
+	(vhdl-aput 'rule-alist pack-file-name (list target-list depend-list))
 	;; rules for this package's body
 	(when (nth 7 pack-entry)
 	  (setq pack-body-key (concat pack-key "-body")
@@ -17164,7 +17253,7 @@ specified by a target."
 					(nth 7 pack-entry)
 				      (file-relative-name (nth 7 pack-entry)
 							  compile-directory))
-		rule (aget rule-alist pack-body-file-name)
+		rule (vhdl-aget rule-alist pack-body-file-name)
 		target-list (nth 0 rule)
 		depend-list (nth 1 rule))
 	  (setq tmp-key (vhdl-replace-string
@@ -17182,8 +17271,8 @@ specified by a target."
 	  (setq depend-list (append depend-list pack-list))
 	  (setq all-pack-list (append all-pack-list pack-list))
 	  ;; add rule
-	  (aput 'rule-alist pack-body-file-name
-		(list target-list depend-list)))
+	  (vhdl-aput 'rule-alist pack-body-file-name
+		     (list target-list depend-list)))
 	(setq prim-list
 	      (cons (list pack-key (when pack-body-key (list pack-body-key))
 			  all-pack-list)
@@ -17191,8 +17280,8 @@ specified by a target."
       (setq pack-alist (cdr pack-alist)))
     (setq pack-alist tmp-list)
     ;; generate Makefile
-    (let* ((project (aget vhdl-project-alist project))
-	   (compiler (aget vhdl-compiler-alist vhdl-compiler))
+    (let* ((project (vhdl-aget vhdl-project-alist project))
+	   (compiler (vhdl-aget vhdl-compiler-alist vhdl-compiler))
 	   (compiler-id (nth 9 compiler))
 	   (library-directory
 	    (vhdl-resolve-env-variable
@@ -17303,9 +17392,9 @@ specified by a target."
 	(setq subcomp-list
 	      (sort (vhdl-uniquify (nth 2 (car prim-list))) 'string<))
 	(setq unit-key (caar prim-list)
-	      unit-name (or (nth 0 (aget ent-alist unit-key t))
-			    (nth 0 (aget conf-alist unit-key t))
-			    (nth 0 (aget pack-alist unit-key t))))
+	      unit-name (or (nth 0 (vhdl-aget ent-alist unit-key t))
+			    (nth 0 (vhdl-aget conf-alist unit-key t))
+			    (nth 0 (vhdl-aget pack-alist unit-key t))))
 	(insert "\n" unit-key)
 	(unless (equal unit-key unit-name)
 	  (insert " \\\n" unit-name))
