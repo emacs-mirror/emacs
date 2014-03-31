@@ -80,7 +80,7 @@ corresponding word in the level *k*\−1 table is set).
 _`.impl.scale`: Here ``scale`` is an arbitrary scale factor that must
 be a power of 2. It could in future be supplied as a parameter when
 creating a nailboard, but in the current implementation it is always
-:c:macro:`MPS_WORD_WIDTH`.
+``MPS_WORD_WIDTH``.
 
 _`.impl.table.last`: The last bit table is one word long or shorter.
 
@@ -113,7 +113,8 @@ it is reclaimed.
 _`.impl.isresrange.strategy`: The strategy for testing to see if any
 nails are set in a range is to handle the cases that are expected to
 be common first. In particular, we expect that there will only be few
-nails in a nailboard, so most calls to :c:func:`NailboardIsResRange` will return ``TRUE``.
+nails in a nailboard, so most calls to ``NailboardIsResRange()`` will
+return ``TRUE``.
 
 _`.impl.isresrange.alignment`: When testing a range against a level of
 a nailboard, the base and limit of the range will typically not align
