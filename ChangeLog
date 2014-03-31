@@ -1,3 +1,7 @@
+2014-03-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: Fix errors from previous checkin (GSettings check).
+
 2014-03-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac: Add check that GSettings is in libgio (Bug#17118).
