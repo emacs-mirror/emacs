@@ -1,3 +1,7 @@
+2014-03-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (free_frame_tool_bar): Set wait_for_tool_bar = NO (Bug#16976)
+
 2014-03-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (updateFrameSize:): If waiting for the tool bar and tool

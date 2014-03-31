@@ -1054,8 +1054,10 @@ free_frame_tool_bar (struct frame *f)
     Under NS we just hide the toolbar until it might be needed again.
    -------------------------------------------------------------------------- */
 {
+  EmacsView *view = FRAME_NS_VIEW (f);
   block_input ();
-  [[FRAME_NS_VIEW (f) toolbar] setVisible: NO];
+  view->wait_for_tool_bar = NO;
+  [[view toolbar] setVisible: NO];
   FRAME_TOOLBAR_HEIGHT (f) = 0;
   unblock_input ();
 }
