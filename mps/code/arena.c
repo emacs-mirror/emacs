@@ -233,13 +233,13 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
     goto failMFSInit;
 
   /* Initialise the freeLand. */
-  MPS_ARGS_BEGIN(landiArgs) {
-    MPS_ARGS_ADD(landiArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
-    MPS_ARGS_ADD(landiArgs, CBSFastFind, TRUE);
-    MPS_ARGS_ADD(landiArgs, CBSZoned, arena->zoned);
-    MPS_ARGS_DONE(landiArgs);
-    res = LandInit(ArenaFreeLand(arena), CBSLandClassGet(), arena, alignment, arena, landiArgs);
-  } MPS_ARGS_END(landiArgs);
+  MPS_ARGS_BEGIN(liArgs) {
+    MPS_ARGS_ADD(liArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
+    MPS_ARGS_ADD(liArgs, CBSFastFind, TRUE);
+    MPS_ARGS_ADD(liArgs, CBSZoned, arena->zoned);
+    MPS_ARGS_DONE(liArgs);
+    res = LandInit(ArenaFreeLand(arena), CBSLandClassGet(), arena, alignment, arena, liArgs);
+  } MPS_ARGS_END(liArgs);
   AVER(res == ResOK); /* no allocation, no failure expected */
   if (res != ResOK)
     goto failLandInit;
