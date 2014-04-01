@@ -20,6 +20,8 @@ SRCID(nailboard, "$Id$");
 
 /* nailboardLevels -- return the number of levels in a nailboard with
  * the given number of nails.
+ *
+ * See <design/nailboard/#impl.table.last>
  */
 
 static Count nailboardLevels(Count nails)
