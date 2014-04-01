@@ -13,7 +13,6 @@ CC = gcc
 CFLAGSDEBUG = -O -g3
 CFLAGSOPT = -O2 -g3
 CFLAGSCOMPILER := \
-	-pedantic \
 	-Waggregate-return \
 	-Wall \
 	-Wcast-qual \
@@ -27,7 +26,7 @@ CFLAGSCOMPILER := \
 	-Wstrict-aliasing=2 \
 	-Wstrict-prototypes \
 	-Wwrite-strings
-CFLAGSCOMPILERSTRICT := -ansi
+CFLAGSCOMPILERSTRICT := -ansi -pedantic
 
 # A different set of compiler flags for less strict compilation, for
 # instance when we need to #include a third-party header file that
