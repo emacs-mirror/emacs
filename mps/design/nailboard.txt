@@ -82,7 +82,12 @@ be a power of 2. It could in future be supplied as a parameter when
 creating a nailboard, but in the current implementation it is always
 ``MPS_WORD_WIDTH``.
 
-_`.impl.table.last`: The last bit table is one word long or shorter.
+_`.impl.table.last`: The last bit table is always shorter than one
+word. This is slightly wasteful in some cases (for example, a
+nailboard with 64 nails and ``scale`` 64 will have two levels, the
+second level having just one bit), but allows the code to support
+small nailboards without special cases in the code (consider the case
+of a nailboard with just one nail).
 
 _`.impl.size`: The size of the level *i* bit table is the ceiling of
 
