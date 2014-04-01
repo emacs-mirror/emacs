@@ -193,6 +193,10 @@ Blocks may use :term:`in-band headers`?        yes    yes    yes    yes    yes  
            just past the end of the header) is considered to be a
            reference to the block.
 
+           Pools that support internal pointers can be switched to
+           base pointers only, by setting the optional keyword
+           argument :c:macro:`MPS_KEY_INTERIOR` to ``FALSE`` when
+           calling :c:func:`mps_pool_create_k`.
 
 .. index::
    single: pool class; writing
