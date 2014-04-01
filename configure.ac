@@ -22,6 +22,7 @@ dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ(2.65)
+dnl Note this is parsed by (at least) make-dist and lisp/cedet/ede/emacs.el.
 AC_INIT(GNU Emacs, 24.4.50, bug-gnu-emacs@gnu.org)
 
 dnl We get MINGW64 with MSYS2
