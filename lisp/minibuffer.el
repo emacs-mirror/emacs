@@ -1092,9 +1092,10 @@ If no characters can be completed, display a list of possible completions.
 If you repeat this command after it displayed such a list,
 scroll the window of possible completions."
   (interactive)
-  (completion-in-region (minibuffer-prompt-end) (point-max)
-                        minibuffer-completion-table
-                        minibuffer-completion-predicate))
+  (when (<= (minibuffer-prompt-end) (point))
+    (completion-in-region (minibuffer-prompt-end) (point-max)
+                          minibuffer-completion-table
+                          minibuffer-completion-predicate)))
 
 (defun completion--in-region-1 (beg end)
   ;; If the previous command was not this,

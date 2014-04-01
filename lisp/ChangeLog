@@ -1,3 +1,8 @@
+2014-04-01  Daniel Colascione  <dancol@dancol.org>
+
+	* minibuffer.el (minibuffer-complete): Prevent assertion failure
+	when trying to complete the prompt.
+
 2014-03-31  Leo Liu  <sdl.web@gmail.com>
 
 	* emacs-lisp/eldoc.el (eldoc-print-current-symbol-info): Refactor
