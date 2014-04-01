@@ -203,19 +203,32 @@
 
 
 /* Function attributes */
-/* These are also defined in testlib.h */
+/* Some of these are also defined in testlib.h */
 
-#if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
-
-/* GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html#index-Wformat-2850>
+/* Attribute for functions that take a printf-like format argument, so
+ * that the compiler can check the format specifiers against the types
+ * of the arguments.
+ * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html#index-Wformat-2850>
  * Clang: <http://clang.llvm.org/docs/AttributeReference.html#format-gnu-format>
  */
+#if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
 #define ATTRIBUTE_FORMAT(ARGLIST) __attribute__((__format__ ARGLIST))
-
 #else
-
 #define ATTRIBUTE_FORMAT(ARGLIST)
+#endif
 
+/* Attribute for functions that should not be instrumented by Clang's
+ * address sanitizer.
+ * <http://clang.llvm.org/docs/AddressSanitizer.html#attribute-no-sanitize-address>
+ */
+#if defined(MPS_BUILD_LL)
+#if __has_feature(address_sanitizer)
+#define ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((__no_sanitize_address__))
+#else
+#define ATTRIBUTE_NO_SANITIZE_ADDRESS
+#endif
+#else
+#define ATTRIBUTE_NO_SANITIZE_ADDRESS
 #endif
 
 
