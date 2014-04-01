@@ -59,6 +59,7 @@ guide.impl.c.format_    Coding standard: conventions for the general format of C
 interface-c_            The design of the Memory Pool System interface to C
 io_                     The design of the MPS I/O subsystem
 keyword-arguments_      The design of the MPS mechanism for passing arguments by keyword.
+land_                   Lands (collections of address ranges)
 lib_                    The design of the Memory Pool System library interface
 lock_                   The design of the lock module
 locus_                  The design for the locus manager

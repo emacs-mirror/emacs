@@ -19,7 +19,7 @@ SRCID(arena, "$Id$");
 
 #define ArenaControlPool(arena) MV2Pool(&(arena)->controlPoolStruct)
 #define ArenaCBSBlockPool(arena)  (&(arena)->freeCBSBlockPoolStruct.poolStruct)
-#define ArenaFreeLand(arena)    ((Land)&(arena)->freeLandStruct)
+#define ArenaFreeLand(arena) (&(arena)->freeLandStruct.landStruct)
 
 
 /* Forward declarations */
