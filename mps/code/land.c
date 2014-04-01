@@ -7,6 +7,7 @@
  */
 
 #include "mpm.h"
+#include "range.h"
 
 SRCID(land, "$Id$");
 
