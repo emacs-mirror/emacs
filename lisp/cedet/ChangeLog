@@ -1,3 +1,7 @@
+2014-04-01  Glenn Morris  <rgm@gnu.org>
+
+	* ede/emacs.el (ede-emacs-version): Update AC_INIT regexp.  (Bug#17160)
+
 2014-03-04  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/util.el (semantic-complete-symbol):
