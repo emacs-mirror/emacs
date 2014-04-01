@@ -53,7 +53,8 @@ static void test_air(int interior)
       if (interior) {
         obj_t o;
         o = ref;
-        error("wrongly finalized vector %ld at %p", o->vector.vector[0]->integer.integer, o);
+        error("wrongly finalized vector %ld at %p",
+              o->vector.vector[0]->integer.integer, (void *)o);
       }
     }
   }
