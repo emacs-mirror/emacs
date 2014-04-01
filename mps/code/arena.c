@@ -1,7 +1,7 @@
 /* arena.c: ARENA ALLOCATION FEATURES
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: <design/arena/> is the main design document.  */
 
@@ -224,7 +224,6 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
     MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
     MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, arena->alignment);
     MPS_ARGS_ADD(piArgs, MFSExtendSelf, FALSE);
-    MPS_ARGS_DONE(piArgs);
     res = PoolInit(ArenaCBSBlockPool(arena), arena, PoolClassMFS(), piArgs);
   } MPS_ARGS_END(piArgs);
   AVER(res == ResOK); /* no allocation, no failure expected */
@@ -234,7 +233,6 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
   /* Initialise the freeCBS. */
   MPS_ARGS_BEGIN(cbsiArgs) {
     MPS_ARGS_ADD(cbsiArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
-    MPS_ARGS_DONE(cbsiArgs);
     res = CBSInit(ArenaFreeCBS(arena), arena, arena, alignment,
                   /* fastFind */ TRUE, arena->zoned, cbsiArgs);
   } MPS_ARGS_END(cbsiArgs);
@@ -1321,7 +1319,7 @@ Res ArenaAddrObject(Addr *pReturn, Arena arena, Addr addr)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
