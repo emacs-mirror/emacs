@@ -33,8 +33,8 @@
 
 /* Forward declarations */
 
-static SegClass AMSTSegClassGet(void);
-static PoolClass AMSTPoolClassGet(void);
+extern SegClass AMSTSegClassGet(void);
+extern PoolClass AMSTPoolClassGet(void);
 
 
 /* Start by defining the AMST pool (AMS Test pool) */
@@ -789,7 +789,7 @@ static void *test(void *arg, size_t s)
                             &ambigRoots[0], ambigRootsCOUNT),
       "root_create_table(ambig)");
 
-  fputs(indent, stdout);
+  (void)fputs(indent, stdout);
 
   /* create an ap, and leave it busy */
   die(mps_reserve(&busy_init, busy_ap, 64), "mps_reserve busy");
@@ -801,7 +801,7 @@ static void *test(void *arg, size_t s)
       printf("\nSize %"PRIuLONGEST" bytes, %"PRIuLONGEST" objects.\n",
              (ulongest_t)totalSize, (ulongest_t)objs);
       printf("%s", indent);
-      fflush(stdout);
+      (void)fflush(stdout);
       for(i = 0; i < exactRootsCOUNT; ++i)
         cdie(exactRoots[i] == objNULL || dylan_check(exactRoots[i]),
              "all roots check");
@@ -832,7 +832,7 @@ static void *test(void *arg, size_t s)
     ++objs;
     if (objs % 256 == 0) {
       printf(".");
-      fflush(stdout);
+      (void)fflush(stdout);
     }
   }
 

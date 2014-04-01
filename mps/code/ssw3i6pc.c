@@ -1,12 +1,16 @@
-/* ssw3i6mv.c: STACK SCANNING FOR WIN64 WITH MICROSOFT C
+/* ssw3i6pc.c: STACK SCANNING FOR WIN64 WITH PELLES C
  *
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * This scans the stack and fixes the registers which may contain roots.
- * See <design/thread-manager/>.  It's unlikely that the callee-save
- * registers contain mutator roots by the time this function is called, but
- * we can't be certain, so we must scan them anyway.
+ * See <design/thread-manager/>.
+ *
+ * .assume.ms-compat: We rely on the fact that Pelles C's setjmp stores
+ * the callee-save registers in the jmp_buf and is compatible with Microsoft
+ * C.  The Pelles C 7.00 setjmp.h header has a comment "MS compatible".  See
+ * also "Is Pelles C's jmp_buf compatible with Microsoft C's?"
+ * <http://forum.pellesc.de/index.php?topic=5464>
  *
  * REFERENCES
  *
@@ -27,14 +31,48 @@
 #include "mpm.h"
 #include <setjmp.h>
 
-SRCID(ssw3i6mv, "$Id$");
+SRCID(ssw3i6pc, "$Id$");
+
+
+/* This definition isn't in the Pelles C headers, so we reproduce it here.
+ * See .assume.ms-compat. */
+
+typedef /* _CRT_ALIGN(16) */ struct _SETJMP_FLOAT128 {
+    unsigned __int64 Part[2];
+} SETJMP_FLOAT128;
+
+typedef struct _JUMP_BUFFER {
+    unsigned __int64 Frame;
+    unsigned __int64 Rbx;
+    unsigned __int64 Rsp;
+    unsigned __int64 Rbp;
+    unsigned __int64 Rsi;
+    unsigned __int64 Rdi;
+    unsigned __int64 R12;
+    unsigned __int64 R13;
+    unsigned __int64 R14;
+    unsigned __int64 R15;
+    unsigned __int64 Rip;
+    unsigned __int64 Spare;
+    
+    SETJMP_FLOAT128 Xmm6;
+    SETJMP_FLOAT128 Xmm7;
+    SETJMP_FLOAT128 Xmm8;
+    SETJMP_FLOAT128 Xmm9;
+    SETJMP_FLOAT128 Xmm10;
+    SETJMP_FLOAT128 Xmm11;
+    SETJMP_FLOAT128 Xmm12;
+    SETJMP_FLOAT128 Xmm13;
+    SETJMP_FLOAT128 Xmm14;
+    SETJMP_FLOAT128 Xmm15;
+} _JUMP_BUFFER;
 
 
 Res StackScan(ScanState ss, Addr *stackBot)
 {
   jmp_buf jb;
 
-  /* We rely on the fact that Microsoft C's setjmp stores the callee-save
+  /* We rely on the fact that Pelles C's setjmp stores the callee-save
      registers in the jmp_buf. */
   (void)setjmp(jb);
 
@@ -61,6 +99,7 @@ Res StackScan(ScanState ss, Addr *stackBot)
 
   return StackScanInner(ss, stackBot, (Addr *)&((_JUMP_BUFFER *)jb)->Rbx, 9);
 }
+
 
 /* C. COPYRIGHT AND LICENSE
  *

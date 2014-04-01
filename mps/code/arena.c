@@ -155,7 +155,7 @@ Bool ArenaCheck(Arena arena)
 
   CHECKL(BoolCheck(arena->hasFreeCBS));
   if (arena->hasFreeCBS)
-    CBSCheck(ArenaFreeCBS(arena));
+    CHECKL(CBSCheck(ArenaFreeCBS(arena)));
 
   return TRUE;
 }

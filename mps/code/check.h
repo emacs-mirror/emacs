@@ -52,7 +52,7 @@
 #define ASSERT(cond, condstring) \
   BEGIN \
     if (cond) NOOP; else \
-      mps_lib_assert_fail(__FILE__ , __LINE__, (condstring)); \
+      mps_lib_assert_fail(MPS_FILE, __LINE__, (condstring)); \
   END
 
 #define ASSERT_TYPECHECK(type, val) \

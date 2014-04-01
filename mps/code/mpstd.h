@@ -31,9 +31,12 @@
  * Alignment of 4 would work, but the MS library uses 8 bytes for
  * doubles and __int64, so we choose that.  The actual granularity of
  * VC malloc is 16!
+ *
+ * PellesC /Ze (Microsoft compatibility mode) defines _MSC_VER but
+ * isn't compatible enough for MPS purposes.
  */
 
-#if defined(_MSC_VER) && defined(_WIN32) && defined(_M_IX86)
+#if defined(_MSC_VER) && defined(_WIN32) && defined(_M_IX86) && !defined(__POCC__)
 #if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_W3I3MV)
 #error "specified CONFIG_PF_... inconsistent with detected w3i3mv"
 #endif
@@ -58,7 +61,7 @@
  * <http://msdn.microsoft.com/en-us/library/ms235286> 
  */
 
-#elif defined(_MSC_VER) && defined(_WIN32) && defined(_WIN64) && defined(_M_X64)
+#elif defined(_MSC_VER) && defined(_WIN32) && defined(_WIN64) && defined(_M_X64) && !defined(__POCC__)
 #if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_W3I6MV)
 #error "specified CONFIG_PF_... inconsistent with detected w3i6mv"
 #endif
@@ -67,6 +70,47 @@
 #define MPS_OS_W3
 #define MPS_ARCH_I6
 #define MPS_BUILD_MV
+#define MPS_T_WORD      unsigned __int64
+#define MPS_T_ULONGEST  unsigned __int64
+#define MPS_WORD_WIDTH  64
+#define MPS_WORD_SHIFT  6
+#define MPS_PF_ALIGN    16
+
+
+/* PellesC version 7.00.25 with /Ze option (Microsoft compatibility mode)
+ * Help node "Predefined preprocessor symbols (POCC)"
+ */
+
+#elif defined(__POCC__) && defined(_WIN32) && defined(_M_IX86)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_W3I3PC)
+#error "specified CONFIG_PF_... inconsistent with detected w3i3pc"
+#endif
+#define MPS_PF_W3I3PC
+#define MPS_PF_STRING   "w3i3pc"
+#define MPS_OS_W3
+#define MPS_ARCH_I3
+#define MPS_BUILD_PC
+#define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    8
+
+
+/* PellesC version 7.00.25 with /Ze option (Microsoft compatibility mode)
+ * and /Tarm64-coff (Create a COFF object file for a X64 processor).
+ * Help node "Predefined preprocessor symbols (POCC)"
+ */
+
+#elif defined(__POCC__) && defined(_WIN32) && defined(_WIN64) && defined(_M_X64)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_W3I6PC)
+#error "specified CONFIG_PF_... inconsistent with detected w3i6pc"
+#endif
+#define MPS_PF_W3I6PC
+#define MPS_PF_STRING   "w3i6pc"
+#define MPS_OS_W3
+#define MPS_ARCH_I6
+#define MPS_BUILD_PC
 #define MPS_T_WORD      unsigned __int64
 #define MPS_T_ULONGEST  unsigned __int64
 #define MPS_WORD_WIDTH  64

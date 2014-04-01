@@ -173,7 +173,8 @@ static void *test(void *arg, size_t s)
 
     if (collections != c) {
       collections = c;
-      printf("\nCollection %lu, %lu objects.\n", c, objs);
+      printf("\nCollection %"PRIuLONGEST", %lu objects.\n",
+             (ulongest_t)c, objs);
       report(arena);
       for (r = 0; r < exactRootsCOUNT; ++r) {
         if (exactRoots[r] != objNULL)
@@ -236,7 +237,7 @@ static void *test(void *arg, size_t s)
     if (objs % 1024 == 0) {
       report(arena);
       putchar('.');
-      fflush(stdout);
+      (void)fflush(stdout);
     }
 
     ++objs;

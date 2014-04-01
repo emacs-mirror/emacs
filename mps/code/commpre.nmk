@@ -1,7 +1,7 @@
 # commpre.nmk: FIRST COMMON FRAGMENT FOR PLATFORMS USING NMAKE -*- makefile -*-1
 #
 # $Id$
-# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
 #
 # DESCRIPTION
 #
@@ -242,20 +242,15 @@ ECHO = echo
 
 # C FLAGS
 
-# /MD means compile for multi-threaded environment with separate C library DLL.
-# /MT means compile for multi-threaded environment.
-# /ML means compile for single-threaded environment.
-# A 'd' at the end means compile for debugging.
-
 CFLAGSTARGETPRE =
 CFLAGSTARGETPOST =
-CRTFLAGSHOT = /MT
-CRTFLAGSCOOL = /MTd
-LINKFLAGSHOT = libcmt.lib
-LINKFLAGSCOOL = libcmtd.lib
+CRTFLAGSHOT =
+CRTFLAGSCOOL =
+LINKFLAGSHOT =
+LINKFLAGSCOOL =
 
 CFLAGSSQLPRE = /nologo $(PFMDEFS)
-CFLAGSCOMMONPRE = /nologo /W4 /WX $(PFMDEFS) $(CFLAGSTARGETPRE)
+CFLAGSCOMMONPRE = /nologo $(PFMDEFS) $(CFLAGSTARGETPRE)
 CFLAGSSQLPOST =
 CFLAGSCOMMONPOST = $(CFLAGSTARGETPOST)
 
@@ -270,7 +265,7 @@ CFLAGSHOT = /O2    /DNDEBUG
 # building a DLL, mpsdy.dll, the linker step will fail (error LNK2001:
 # unresolved external symbol __chkesp).  See
 # http://support.microsoft.com/kb/q191669/
-CFLAGSCOOL = /Od
+CFLAGSCOOL =
 CFLAGSINTERNAL = /Zi
 CFLAGSEXTERNAL =
 
@@ -303,7 +298,7 @@ LFCOOL = $(LINKFLAGSCOOL)   $(LINKFLAGSINTERNAL)
 # %%VARIETY: When adding a new variety, define a macro containing the flags
 # for the new variety
 LIBMAN = lib                  # can't call this LIB - it screws the environment
-LIBFLAGSCOMMON = /nologo
+LIBFLAGSCOMMON =
 
 LIBFLAGSRASH =
 LIBFLAGSHOT =
@@ -322,7 +317,7 @@ LIBFLAGSCOOL =
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 #

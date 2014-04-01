@@ -2068,18 +2068,18 @@ static void AMCTraceEnd(Pool pool, Trace trace)
   ti = trace->ti;
   AVER(TraceIdCheck(ti));
 
-  STATISTIC_BEGIN {
-      Count pRetMin = 100;
-      PageRetStruct *pr = &amc->pageretstruct[ti];
-      if(pr->pRet >= pRetMin) {
-        EVENT21(AMCTraceEnd, ArenaEpoch(pool->arena), (EventFU)trace->why,
-                ArenaAlign(pool->arena), AMCLargeSegPAGES, pRetMin, pr->pCond,
-                pr->pRet, pr->pCS, pr->pRS, pr->sCM, pr->pCM, pr->sRM, pr->pRM,
-                pr->pRM1, pr->pRMrr, pr->pRMr1, pr->sCL, pr->pCL, pr->sRL,
-                pr->pRL, pr->pRLr);
-      }
-      *pr = pageretstruct_Zero;
-  } STATISTIC_END;
+  STATISTIC_STAT ({
+    Count pRetMin = 100;
+    PageRetStruct *pr = &amc->pageretstruct[ti];
+    if(pr->pRet >= pRetMin) {
+      EVENT21(AMCTraceEnd, ArenaEpoch(pool->arena), (EventFU)trace->why,
+              ArenaAlign(pool->arena), AMCLargeSegPAGES, pRetMin, pr->pCond,
+              pr->pRet, pr->pCS, pr->pRS, pr->sCM, pr->pCM, pr->sRM, pr->pRM,
+              pr->pRM1, pr->pRMrr, pr->pRMr1, pr->sCL, pr->pCL, pr->sRL,
+              pr->pRL, pr->pRLr);
+    }
+    *pr = pageretstruct_Zero;
+  });
 }
 
 
