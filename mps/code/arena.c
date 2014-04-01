@@ -19,7 +19,7 @@ SRCID(arena, "$Id$");
 
 #define ArenaControlPool(arena) MV2Pool(&(arena)->controlPoolStruct)
 #define ArenaCBSBlockPool(arena)  (&(arena)->freeCBSBlockPoolStruct.poolStruct)
-#define ArenaFreeCBS(arena)    (&(arena)->freeCBSStruct)
+#define ArenaFreeLand(arena)    ((Land)&(arena)->freeLandStruct)
 
 
 /* Forward declarations */
@@ -153,9 +153,9 @@ Bool ArenaCheck(Arena arena)
   
   CHECKL(LocusCheck(arena));
 
-  CHECKL(BoolCheck(arena->hasFreeCBS));
-  if (arena->hasFreeCBS)
-    CHECKL(CBSCheck(ArenaFreeCBS(arena)));
+  CHECKL(BoolCheck(arena->hasFreeLand));
+  if (arena->hasFreeLand)
+    CHECKL(LandCheck(ArenaFreeLand(arena)));
 
   return TRUE;
 }
@@ -198,7 +198,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
   arena->poolReady = FALSE;     /* <design/arena/#pool.ready> */
   arena->lastTract = NULL;
   arena->lastTractBase = NULL;
-  arena->hasFreeCBS = FALSE;
+  arena->hasFreeLand = FALSE;
   arena->freeZones = ZoneSetUNIV;
   arena->zoned = zoned;
 
@@ -214,11 +214,12 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
     goto failGlobalsInit;
 
   arena->sig = ArenaSig;
+  AVERT(Arena, arena);
   
   /* Initialise a pool to hold the arena's CBS blocks.  This pool can't be
      allowed to extend itself using ArenaAlloc because it is used during
      ArenaAlloc, so MFSExtendSelf is set to FALSE.  Failures to extend are
-     handled where the CBS is used. */
+     handled where the Land is used. */
 
   MPS_ARGS_BEGIN(piArgs) {
     MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
@@ -231,18 +232,19 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
   if (res != ResOK)
     goto failMFSInit;
 
-  /* Initialise the freeCBS. */
-  MPS_ARGS_BEGIN(cbsiArgs) {
-    MPS_ARGS_ADD(cbsiArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
-    MPS_ARGS_DONE(cbsiArgs);
-    res = CBSInit(ArenaFreeCBS(arena), arena, arena, alignment,
-                  /* fastFind */ TRUE, arena->zoned, cbsiArgs);
-  } MPS_ARGS_END(cbsiArgs);
+  /* Initialise the freeLand. */
+  MPS_ARGS_BEGIN(landiArgs) {
+    MPS_ARGS_ADD(landiArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
+    MPS_ARGS_ADD(landiArgs, CBSFastFind, TRUE);
+    MPS_ARGS_ADD(landiArgs, CBSZoned, arena->zoned);
+    MPS_ARGS_DONE(landiArgs);
+    res = LandInit(ArenaFreeLand(arena), CBSLandClassGet(), arena, alignment, arena, landiArgs);
+  } MPS_ARGS_END(landiArgs);
   AVER(res == ResOK); /* no allocation, no failure expected */
   if (res != ResOK)
-    goto failCBSInit;
-  /* Note that although freeCBS is initialised, it doesn't have any memory
-     for its blocks, so hasFreeCBS remains FALSE until later. */
+    goto failLandInit;
+  /* Note that although freeLand is initialised, it doesn't have any memory
+     for its blocks, so hasFreeLand remains FALSE until later. */
 
   /* initialize the reservoir, <design/reservoir/> */
   res = ReservoirInit(&arena->reservoirStruct, arena);
@@ -253,8 +255,8 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
   return ResOK;
 
 failReservoirInit:
-  CBSFinish(ArenaFreeCBS(arena));
-failCBSInit:
+  LandFinish(ArenaFreeLand(arena));
+failLandInit:
   PoolFinish(ArenaCBSBlockPool(arena));
 failMFSInit:
   GlobalsFinish(ArenaGlobals(arena));
@@ -304,15 +306,15 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
     goto failStripeSize;
   }
 
-  /* With the primary chunk initialised we can add page memory to the freeCBS
+  /* With the primary chunk initialised we can add page memory to the freeLand
      that describes the free address space in the primary chunk. */
-  arena->hasFreeCBS = TRUE;
-  res = ArenaFreeCBSInsert(arena,
+  arena->hasFreeLand = TRUE;
+  res = ArenaFreeLandInsert(arena,
                            PageIndexBase(arena->primary,
                                          arena->primary->allocBase),
                            arena->primary->limit);
   if (res != ResOK)
-    goto failPrimaryCBS;
+    goto failPrimaryLand;
   
   res = ControlInit(arena);
   if (res != ResOK)
@@ -329,7 +331,7 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 failGlobalsCompleteCreate:
   ControlFinish(arena);
 failControlInit:
-failPrimaryCBS:
+failPrimaryLand:
 failStripeSize:
   (*class->finish)(arena);
 failInit:
@@ -378,11 +380,11 @@ void ArenaDestroy(Arena arena)
   arena->poolReady = FALSE;
   ControlFinish(arena);
 
-  /* We must tear down the freeCBS before the chunks, because pages
+  /* We must tear down the freeLand before the chunks, because pages
      containing CBS blocks might be allocated in those chunks. */
-  AVER(arena->hasFreeCBS);
-  arena->hasFreeCBS = FALSE;
-  CBSFinish(ArenaFreeCBS(arena));
+  AVER(arena->hasFreeLand);
+  arena->hasFreeLand = FALSE;
+  LandFinish(ArenaFreeLand(arena));
 
   /* The CBS block pool can't free its own memory via ArenaFree because
      that would use the ZonedCBS. */
@@ -601,9 +603,10 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream)
 
 /* arenaAllocPage -- allocate one page from the arena
  *
- * This is a primitive allocator used to allocate pages for the arena CBS.
- * It is called rarely and can use a simple search.  It may not use the
- * CBS or any pool, because it is used as part of the bootstrap.
+ * This is a primitive allocator used to allocate pages for the arena
+ * Land. It is called rarely and can use a simple search. It may not
+ * use the Land or any pool, because it is used as part of the
+ * bootstrap.
  */
 
 static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
@@ -685,7 +688,7 @@ static Res arenaExtendCBSBlockPool(Range pageRangeReturn, Arena arena)
   return ResOK;
 }
 
-/* arenaExcludePage -- exclude CBS block pool's page from CBSs
+/* arenaExcludePage -- exclude CBS block pool's page from Land
  *
  * Exclude the page we specially allocated for the CBS block pool
  * so that it doesn't get reallocated.
@@ -696,20 +699,20 @@ static void arenaExcludePage(Arena arena, Range pageRange)
   RangeStruct oldRange;
   Res res;
 
-  res = CBSDelete(&oldRange, ArenaFreeCBS(arena), pageRange);
-  AVER(res == ResOK); /* we just gave memory to the CBSs */
+  res = LandDelete(&oldRange, ArenaFreeLand(arena), pageRange);
+  AVER(res == ResOK); /* we just gave memory to the Land */
 }
 
 
-/* arenaCBSInsert -- add a block to an arena CBS, extending pool if necessary
+/* arenaLandInsert -- add a block to an arena Land, extending pool if necessary
  *
- * The arena's CBSs can't get memory in the usual way because they are used
+ * The arena's Land can't get memory in the usual way because they are used
  * in the basic allocator, so we allocate pages specially.
  *
  * Only fails if it can't get a page for the block pool.
  */
 
-static Res arenaCBSInsert(Range rangeReturn, Arena arena, Range range)
+static Res arenaLandInsert(Range rangeReturn, Arena arena, Range range)
 {
   Res res;
   
@@ -717,17 +720,17 @@ static Res arenaCBSInsert(Range rangeReturn, Arena arena, Range range)
   AVERT(Arena, arena);
   AVERT(Range, range);
 
-  res = CBSInsert(rangeReturn, ArenaFreeCBS(arena), range);
+  res = LandInsert(rangeReturn, ArenaFreeLand(arena), range);
 
-  if (res == ResLIMIT) { /* freeCBS MFS pool ran out of blocks */
+  if (res == ResLIMIT) { /* freeLand MFS pool ran out of blocks */
     RangeStruct pageRange;
     res = arenaExtendCBSBlockPool(&pageRange, arena);
     if (res != ResOK)
       return res;
     /* .insert.exclude: Must insert before exclude so that we can
        bootstrap when the zoned CBS is empty. */
-    res = CBSInsert(rangeReturn, ArenaFreeCBS(arena), range);
-    AVER(res == ResOK); /* we just gave memory to the CBSs */
+    res = LandInsert(rangeReturn, ArenaFreeLand(arena), range);
+    AVER(res == ResOK); /* we just gave memory to the Land */
     arenaExcludePage(arena, &pageRange);
   }
   
@@ -735,16 +738,16 @@ static Res arenaCBSInsert(Range rangeReturn, Arena arena, Range range)
 }
 
 
-/* ArenaFreeCBSInsert -- add a block to arena CBS, maybe stealing memory
+/* ArenaFreeLandInsert -- add a block to arena Land, maybe stealing memory
  *
- * See arenaCBSInsert.  This function may only be applied to mapped pages
- * and may steal them to store CBS nodes if it's unable to allocate
+ * See arenaLandInsert.  This function may only be applied to mapped pages
+ * and may steal them to store Land nodes if it's unable to allocate
  * space for CBS nodes.
  *
  * IMPORTANT: May update rangeIO.
  */
 
-static void arenaCBSInsertSteal(Range rangeReturn, Arena arena, Range rangeIO)
+static void arenaLandInsertSteal(Range rangeReturn, Arena arena, Range rangeIO)
 {
   Res res;
   
@@ -752,7 +755,7 @@ static void arenaCBSInsertSteal(Range rangeReturn, Arena arena, Range rangeIO)
   AVERT(Arena, arena);
   AVERT(Range, rangeIO);
 
-  res = arenaCBSInsert(rangeReturn, arena, rangeIO);
+  res = arenaLandInsert(rangeReturn, arena, rangeIO);
   
   if (res != ResOK) {
     Addr pageBase;
@@ -773,22 +776,22 @@ static void arenaCBSInsertSteal(Range rangeReturn, Arena arena, Range rangeIO)
     MFSExtend(ArenaCBSBlockPool(arena), pageBase, ArenaAlign(arena));
 
     /* Try again. */
-    res = CBSInsert(rangeReturn, ArenaFreeCBS(arena), rangeIO);
-    AVER(res == ResOK); /* we just gave memory to the CBS */
+    res = LandInsert(rangeReturn, ArenaFreeLand(arena), rangeIO);
+    AVER(res == ResOK); /* we just gave memory to the Land */
   }
 
-  AVER(res == ResOK); /* not expecting other kinds of error from the CBS */
+  AVER(res == ResOK); /* not expecting other kinds of error from the Land */
 }
 
 
-/* ArenaFreeCBSInsert -- add block to free CBS, extending pool if necessary
+/* ArenaFreeLandInsert -- add block to free Land, extending pool if necessary
  *
  * The inserted block of address space may not abut any existing block.
  * This restriction ensures that we don't coalesce chunks and allocate
  * object across the boundary, preventing chunk deletion.
  */
 
-Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit)
+Res ArenaFreeLandInsert(Arena arena, Addr base, Addr limit)
 {
   RangeStruct range, oldRange;
   Res res;
@@ -796,7 +799,7 @@ Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit)
   AVERT(Arena, arena);
 
   RangeInit(&range, base, limit);
-  res = arenaCBSInsert(&oldRange, arena, &range);
+  res = arenaLandInsert(&oldRange, arena, &range);
   if (res != ResOK)
     return res;
 
@@ -809,7 +812,7 @@ Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit)
 }
 
 
-/* ArenaFreeCBSDelete -- remove a block from free CBS, extending pool if necessary
+/* ArenaFreeLandDelete -- remove a block from free Land, extending pool if necessary
  *
  * This is called from ChunkFinish in order to remove address space from
  * the arena.
@@ -820,13 +823,13 @@ Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit)
  * so we can't test that path.
  */
 
-void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit)
+void ArenaFreeLandDelete(Arena arena, Addr base, Addr limit)
 {
   RangeStruct range, oldRange;
   Res res;
 
   RangeInit(&range, base, limit);
-  res = CBSDelete(&oldRange, ArenaFreeCBS(arena), &range);
+  res = LandDelete(&oldRange, ArenaFreeLand(arena), &range);
   
   /* Shouldn't be any other kind of failure because we were only deleting
      a non-coalesced block.  See .chunk.no-coalesce and
@@ -835,7 +838,7 @@ void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit)
 }
 
 
-static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
+static Res arenaAllocFromLand(Tract *tractReturn, ZoneSet zones, Bool high,
                              Size size, Pool pool)
 {
   Arena arena;
@@ -858,7 +861,7 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
 
   /* Step 1. Find a range of address space. */
   
-  res = CBSFindInZones(&range, &oldRange, ArenaFreeCBS(arena),
+  res = LandFindInZones(&range, &oldRange, ArenaFreeLand(arena),
                        size, zones, high);
 
   if (res == ResLIMIT) { /* found block, but couldn't store info */
@@ -867,7 +870,7 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
     if (res != ResOK) /* disastrously short on memory */
       return res;
     arenaExcludePage(arena, &pageRange);
-    res = CBSFindInZones(&range, &oldRange, ArenaFreeCBS(arena),
+    res = LandFindInZones(&range, &oldRange, ArenaFreeLand(arena),
                          size, zones, high);
     AVER(res != ResLIMIT);
   }
@@ -901,7 +904,7 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
 
 failMark:
    {
-     Res insertRes = arenaCBSInsert(&oldRange, arena, &range);
+     Res insertRes = arenaLandInsert(&oldRange, arena, &range);
      AVER(insertRes == ResOK); /* We only just deleted it. */
      /* If the insert does fail, we lose some address space permanently. */
    }
@@ -942,10 +945,10 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
     }
   }
 
-  /* Plan A: allocate from the free CBS in the requested zones */
+  /* Plan A: allocate from the free Land in the requested zones */
   zones = ZoneSetDiff(pref->zones, pref->avoid);
   if (zones != ZoneSetEMPTY) {
-    res = arenaAllocFromCBS(&tract, zones, pref->high, size, pool);
+    res = arenaAllocFromLand(&tract, zones, pref->high, size, pool);
     if (res == ResOK)
       goto found;
   }
@@ -957,7 +960,7 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
      See also job003384. */
   moreZones = ZoneSetUnion(pref->zones, ZoneSetDiff(arena->freeZones, pref->avoid));
   if (moreZones != zones) {
-    res = arenaAllocFromCBS(&tract, moreZones, pref->high, size, pool);
+    res = arenaAllocFromLand(&tract, moreZones, pref->high, size, pool);
     if (res == ResOK)
       goto found;
   }
@@ -968,13 +971,13 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
     if (res != ResOK)
       return res;
     if (zones != ZoneSetEMPTY) {
-      res = arenaAllocFromCBS(&tract, zones, pref->high, size, pool);
+      res = arenaAllocFromLand(&tract, zones, pref->high, size, pool);
       if (res == ResOK)
         goto found;
     }
     if (moreZones != zones) {
       zones = ZoneSetUnion(zones, ZoneSetDiff(arena->freeZones, pref->avoid));
-      res = arenaAllocFromCBS(&tract, moreZones, pref->high, size, pool);
+      res = arenaAllocFromLand(&tract, moreZones, pref->high, size, pool);
       if (res == ResOK)
         goto found;
     }
@@ -986,7 +989,7 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
   /* TODO: log an event for this */
   evenMoreZones = ZoneSetDiff(ZoneSetUNIV, pref->avoid);
   if (evenMoreZones != moreZones) {
-    res = arenaAllocFromCBS(&tract, evenMoreZones, pref->high, size, pool);
+    res = arenaAllocFromLand(&tract, evenMoreZones, pref->high, size, pool);
     if (res == ResOK)
       goto found;
   }
@@ -995,7 +998,7 @@ static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, SegPref pref,
      common ambiguous bit patterns pin them down, causing the zone check
      to give even more false positives permanently, and possibly retaining
      garbage indefinitely. */
-  res = arenaAllocFromCBS(&tract, ZoneSetUNIV, pref->high, size, pool);
+  res = arenaAllocFromLand(&tract, ZoneSetUNIV, pref->high, size, pool);
   if (res == ResOK)
     goto found;
 
@@ -1113,7 +1116,7 @@ void ArenaFree(Addr base, Size size, Pool pool)
 
   RangeInit(&range, base, limit);
 
-  arenaCBSInsertSteal(&oldRange, arena, &range); /* may update range */
+  arenaLandInsertSteal(&oldRange, arena, &range); /* may update range */
 
   (*arena->class->free)(RangeBase(&range), RangeSize(&range), pool);
 

@@ -15,7 +15,6 @@
 #include "range.h"
 #include "splay.h"
 
-
 /* TODO: There ought to be different levels of CBS block with inheritance
    so that CBSs without fastFind don't allocate the maxSize and zones fields,
    and CBSs without zoned don't allocate the zones field. */
@@ -29,40 +28,21 @@ typedef struct CBSBlockStruct {
   ZoneSet zones; /* union zone set of all ranges in sub-tree */
 } CBSBlockStruct;
 
-
-typedef struct CBSStruct *CBS;
-typedef Bool (*CBSVisitor)(CBS cbs, Range range,
-                           void *closureP, Size closureS);
-
 extern Bool CBSCheck(CBS cbs);
+
+extern CBSLandClass CBSLandClassGet(void);
 
 extern const struct mps_key_s _mps_key_cbs_block_pool;
 #define CBSBlockPool (&_mps_key_cbs_block_pool)
 #define CBSBlockPool_FIELD pool
+extern const struct mps_key_s _mps_key_cbs_fast_find;
+#define CBSFastFind (&_mps_key_cbs_fast_find)
+#define CBSFastFind_FIELD b
+extern const struct mps_key_s _mps_key_cbs_zoned;
+#define CBSZoned (&_mps_key_cbs_zoned)
+#define CBSZoned_FIELD b
 
 /* TODO: Passing booleans to affect behaviour is ugly and error-prone. */
-extern Res CBSInit(CBS cbs, Arena arena, void *owner, Align alignment,
-                   Bool fastFind, Bool zoned, ArgList args);
-extern void CBSFinish(CBS cbs);
-
-extern Res CBSInsert(Range rangeReturn, CBS cbs, Range range);
-extern Res CBSDelete(Range rangeReturn, CBS cbs, Range range);
-extern void CBSIterate(CBS cbs, CBSVisitor visitor,
-                       void *closureP, Size closureS);
-
-extern Res CBSDescribe(CBS cbs, mps_lib_FILE *stream);
-
-typedef Bool (*CBSFindMethod)(Range rangeReturn, Range oldRangeReturn,
-                              CBS cbs, Size size, FindDelete findDelete);
-extern Bool CBSFindFirst(Range rangeReturn, Range oldRangeReturn,
-                         CBS cbs, Size size, FindDelete findDelete);
-extern Bool CBSFindLast(Range rangeReturn, Range oldRangeReturn,
-                        CBS cbs, Size size, FindDelete findDelete);
-extern Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
-                           CBS cbs, Size size, FindDelete findDelete);
-
-extern Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
-                          CBS cbs, Size size, ZoneSet zoneSet, Bool high);
 
 #endif /* cbs_h */
 
