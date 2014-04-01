@@ -1,3 +1,13 @@
+2014-04-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fns.c (validate_subarray): Rename from validate_substring,
+	since it works for vectors too.  New arg ARRAY.  Optimize for the
+	non-nil case.  Instead of returning bool, throw an error if out of
+	range, so that the caller needn't do that.  All uses changed.
+	Report original values if out of range.
+	(Fsubstring, Fsubstring_no_properties, secure_hash):
+	Also optimize the case where FROM is 0 or TO is the size.
+
 2014-03-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* search.c (Freplace_match): Use make_specified_string.

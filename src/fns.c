@@ -1127,36 +1127,45 @@ Elements of ALIST that are not conses are also shared.  */)
   return alist;
 }
 
-/* True if [FROM..TO) specifies a valid substring of SIZE-characters string.
-   If FROM is nil, 0 assumed.  If TO is nil, SIZE assumed.  Negative
-   values are counted from the end.  *FROM_CHAR and *TO_CHAR are updated
-   with corresponding C values of TO and FROM.  */
+/* Check that ARRAY can have a valid subarray [FROM..TO),
+   given that its size is SIZE.
+   If FROM is nil, use 0; if TO is nil, use SIZE.
+   Count negative values backwards from the end.
+   Set *IFROM and *ITO to the two indexes used.  */
 
-static bool
-validate_substring (Lisp_Object from, Lisp_Object to, ptrdiff_t size,
-		    EMACS_INT *from_char, EMACS_INT *to_char)
+static void
+validate_subarray (Lisp_Object array, Lisp_Object from, Lisp_Object to,
+		   ptrdiff_t size, EMACS_INT *ifrom, EMACS_INT *ito)
 {
-  if (NILP (from))
-    *from_char = 0;
-  else
-    {
-      CHECK_NUMBER (from);
-      *from_char = XINT (from);
-      if (*from_char < 0)
-	*from_char += size;
-    }
+  EMACS_INT f, t;
 
-  if (NILP (to))
-    *to_char = size;
-  else
+  if (INTEGERP (from))
     {
-      CHECK_NUMBER (to);
-      *to_char = XINT (to);
-      if (*to_char < 0)
-	*to_char += size;
+      f = XINT (from);
+      if (f < 0)
+	f += size;
     }
+  else if (NILP (from))
+    f = 0;
+  else
+    wrong_type_argument (Qintegerp, from);
 
-  return (0 <= *from_char && *from_char <= *to_char && *to_char <= size);
+  if (INTEGERP (to))
+    {
+      t = XINT (to);
+      if (t < 0)
+	t += size;
+    }
+  else if (NILP (to))
+    t = size;
+  else
+    wrong_type_argument (Qintegerp, to);
+
+  if (! (0 <= f && f <= t && t <= size))
+    args_out_of_range_3 (array, from, to);
+
+  *ifrom = f;
+  *ito = t;
 }
 
 DEFUN ("substring", Fsubstring, Ssubstring, 1, 3, 0,
@@ -1176,7 +1185,7 @@ With one argument, just copy STRING (with properties, if any).  */)
 {
   Lisp_Object res;
   ptrdiff_t size;
-  EMACS_INT from_char, to_char;
+  EMACS_INT ifrom, ito;
 
   if (STRINGP (string))
     size = SCHARS (string);
@@ -1184,24 +1193,23 @@ With one argument, just copy STRING (with properties, if any).  */)
     size = ASIZE (string);
   else
     wrong_type_argument (Qarrayp, string);
-  
-  if (!validate_substring (from, to, size, &from_char, &to_char))
-    args_out_of_range_3 (string, make_number (from_char),
-			 make_number (to_char));
+
+  validate_subarray (string, from, to, size, &ifrom, &ito);
 
   if (STRINGP (string))
     {
-      ptrdiff_t to_byte =
-	(NILP (to) ? SBYTES (string) : string_char_to_byte (string, to_char));
-      ptrdiff_t from_byte = string_char_to_byte (string, from_char);
+      ptrdiff_t from_byte
+	= !ifrom ? 0 : string_char_to_byte (string, ifrom);
+      ptrdiff_t to_byte
+	= ito == size ? SBYTES (string) : string_char_to_byte (string, ito);
       res = make_specified_string (SSDATA (string) + from_byte,
-				   to_char - from_char, to_byte - from_byte,
+				   ito - ifrom, to_byte - from_byte,
 				   STRING_MULTIBYTE (string));
-      copy_text_properties (make_number (from_char), make_number (to_char),
+      copy_text_properties (make_number (ifrom), make_number (ito),
 			    string, make_number (0), res, Qnil);
     }
   else
-    res = Fvector (to_char - from_char, aref_addr (string, from_char));
+    res = Fvector (ito - ifrom, aref_addr (string, ifrom));
 
   return res;
 }
@@ -1224,14 +1232,11 @@ With one argument, just copy STRING without its properties.  */)
   CHECK_STRING (string);
 
   size = SCHARS (string);
+  validate_subarray (string, from, to, size, &from_char, &to_char);
 
-  if (!validate_substring (from, to, size, &from_char, &to_char))
-    args_out_of_range_3 (string, make_number (from_char),
-			 make_number (to_char));
-
-  from_byte = NILP (from) ? 0 : string_char_to_byte (string, from_char);
+  from_byte = !from_char ? 0 : string_char_to_byte (string, from_char);
   to_byte =
-    NILP (to) ? SBYTES (string) : string_char_to_byte (string, to_char);
+    to_char == size ? SBYTES (string) : string_char_to_byte (string, to_char);
   return make_specified_string (SSDATA (string) + from_byte,
 				to_char - from_char, to_byte - from_byte,
 				STRING_MULTIBYTE (string));
@@ -4612,14 +4617,12 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start, Lisp_
 	object = code_convert_string (object, coding_system, Qnil, 1, 0, 1);
 
       size = SCHARS (object);
+      validate_subarray (object, start, end, size, &start_char, &end_char);
 
-      if (!validate_substring (start, end, size, &start_char, &end_char))
-	args_out_of_range_3 (object, make_number (start_char),
-			     make_number (end_char));
-
-      start_byte = NILP (start) ? 0 : string_char_to_byte (object, start_char);
-      end_byte =
-	NILP (end) ? SBYTES (object) : string_char_to_byte (object, end_char);
+      start_byte = !start_char ? 0 : string_char_to_byte (object, start_char);
+      end_byte = (end_char == size
+		  ? SBYTES (object)
+		  : string_char_to_byte (object, end_char));
     }
   else
     {
