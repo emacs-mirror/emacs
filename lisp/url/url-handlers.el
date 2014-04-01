@@ -112,7 +112,7 @@ the mode if ARG is omitted or nil."
       (push (cons url-handler-regexp 'url-file-handler)
 	    file-name-handler-alist)))
 
-(defcustom url-handler-regexp "\\`\\(https?\\|ftp\\|file\\|nfs\\)://"
+(defcustom url-handler-regexp "\\`\\(https?\\|ftp\\|file\\|nfs\\|ssh\\|scp\\|rsync\\|telnet\\)://"
   "Regular expression for URLs handled by `url-handler-mode'.
 When URL Handler mode is enabled, this regular expression is
 added to `file-name-handler-alist'.
@@ -123,6 +123,7 @@ regular expression avoids conflicts with local files that look
 like URLs \(Gnus is particularly bad at this\)."
   :group 'url
   :type 'regexp
+  :version "24.5"
   :set (lambda (symbol value)
 	 (let ((enable url-handler-mode))
 	   (url-handler-mode 0)
@@ -142,20 +143,29 @@ like URLs \(Gnus is particularly bad at this\)."
   "Function called from the `file-name-handler-alist' routines.
 OPERATION is what needs to be done (`file-exists-p', etc).  ARGS are
 the arguments that would have been passed to OPERATION."
-  (let ((fn (get operation 'url-file-handlers))
-	(val nil)
-	(hooked nil))
-    (if (and (not fn) (intern-soft (format "url-%s" operation))
-             (fboundp (intern-soft (format "url-%s" operation))))
-        (error "Missing URL handler mapping for %s" operation))
-    (if fn
-	(setq hooked t
-	      val (save-match-data (apply fn args)))
-      (setq hooked nil
-	    val (url-run-real-handler operation args)))
-    (url-debug 'handlers "%s %S%S => %S" (if hooked "Hooked" "Real")
-	       operation args val)
-    val))
+  ;; Check, whether there are arguments we want pass to Tramp.
+  (if (catch :do
+	(dolist (url (cons default-directory args))
+	  (and (member
+		(url-type (url-generic-parse-url (and (stringp url) url)))
+		url-tramp-protocols)
+	       (throw :do t))))
+      (apply 'url-tramp-file-handler operation args)
+    ;; Otherwise, let's do the job.
+    (let ((fn (get operation 'url-file-handlers))
+	  (val nil)
+	  (hooked nil))
+      (if (and (not fn) (intern-soft (format "url-%s" operation))
+	       (fboundp (intern-soft (format "url-%s" operation))))
+	  (error "Missing URL handler mapping for %s" operation))
+      (if fn
+	  (setq hooked t
+		val (save-match-data (apply fn args)))
+	(setq hooked nil
+	      val (url-run-real-handler operation args)))
+      (url-debug 'handlers "%s %S%S => %S" (if hooked "Hooked" "Real")
+		 operation args val)
+      val)))
 
 (defun url-file-handler-identity (&rest args)
   ;; Identity function
