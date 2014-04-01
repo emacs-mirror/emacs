@@ -602,10 +602,10 @@ static Res MVFFInit(Pool pool, ArgList args)
   if (res != ResOK)
     goto failInit;
 
-  MPS_ARGS_BEGIN(landiArgs) {
-    MPS_ARGS_ADD(landiArgs, CBSFastFind, TRUE);
-    res = LandInit(CBSOfMVFF(mvff), CBSLandClassGet(), arena, align, mvff, landiArgs);
-  } MPS_ARGS_END(landiArgs);
+  MPS_ARGS_BEGIN(liArgs) {
+    MPS_ARGS_ADD(liArgs, CBSFastFind, TRUE);
+    res = LandInit(CBSOfMVFF(mvff), CBSLandClassGet(), arena, align, mvff, liArgs);
+  } MPS_ARGS_END(liArgs);
   if (res != ResOK)
     goto failInit;
 

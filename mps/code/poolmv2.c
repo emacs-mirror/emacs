@@ -269,10 +269,10 @@ static Res MVTInit(Pool pool, ArgList args)
   if (abqDepth < 3)
     abqDepth = 3;
 
-  MPS_ARGS_BEGIN(landiArgs) {
-    MPS_ARGS_ADD(landiArgs, CBSFastFind, TRUE);
-    res = LandInit(MVTCBS(mvt), CBSLandClassGet(), arena, align, mvt, landiArgs);
-  } MPS_ARGS_END(landiArgs);
+  MPS_ARGS_BEGIN(liArgs) {
+    MPS_ARGS_ADD(liArgs, CBSFastFind, TRUE);
+    res = LandInit(MVTCBS(mvt), CBSLandClassGet(), arena, align, mvt, liArgs);
+  } MPS_ARGS_END(liArgs);
   if (res != ResOK)
     goto failCBS;
  
