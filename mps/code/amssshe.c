@@ -111,7 +111,7 @@ static void *test(void *arg, size_t s)
       lastStep = totalSize;
       printf("\nSize %"PRIuLONGEST" bytes, %lu objects.\n",
              (ulongest_t)totalSize, objs);
-      fflush(stdout);
+      (void)fflush(stdout);
       for(i = 0; i < exactRootsCOUNT; ++i)
         cdie(exactRoots[i] == objNULL || dylan_check(exactRoots[i]),
              "all roots check");
@@ -139,7 +139,7 @@ static void *test(void *arg, size_t s)
     ++objs;
     if (objs % 256 == 0) {
       printf(".");
-      fflush(stdout);
+      (void)fflush(stdout);
     }
   }
 

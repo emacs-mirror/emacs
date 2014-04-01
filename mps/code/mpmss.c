@@ -30,13 +30,13 @@ extern mps_class_t PoolClassMFS(void);
 
 /* stress -- create a pool of the requested type and allocate in it */
 
-static mps_res_t stress(mps_class_t class, size_t (*size)(int i),
+static mps_res_t stress(mps_class_t class, size_t (*size)(size_t i),
                         mps_arena_t arena, ...)
 {
   mps_res_t res;
   mps_pool_t pool;
   va_list arg;
-  int i, k;
+  size_t i, k;
   int *ps[testSetSIZE];
   size_t ss[testSetSIZE];
 
@@ -62,7 +62,7 @@ static mps_res_t stress(mps_class_t class, size_t (*size)(int i),
   for (k=0; k<testLOOPS; ++k) {
     /* shuffle all the objects */
     for (i=0; i<testSetSIZE; ++i) {
-      unsigned j = rnd()%(unsigned)(testSetSIZE-i);
+      size_t j = rnd()%(testSetSIZE-i);
       void *tp;
       size_t ts;
      
@@ -92,14 +92,9 @@ static mps_res_t stress(mps_class_t class, size_t (*size)(int i),
 }
 
 
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-
-#define alignUp(w, a) (((w) + (a) - 1) & ~((size_t)(a) - 1))
-
-
 /* randomSize -- produce sizes both latge and small */
 
-static size_t randomSize(int i)
+static size_t randomSize(size_t i)
 {
   /* Make the range large enough to span three pages in the segment table: */
   /* 160 segments/page, page size max 0x2000. */
@@ -111,7 +106,7 @@ static size_t randomSize(int i)
 
 /* randomSize8 -- produce sizes both latge and small, 8-byte aligned */
 
-static size_t randomSize8(int i)
+static size_t randomSize8(size_t i)
 {
   size_t maxSize = 2 * 160 * 0x2000;
   /* Reduce by a factor of 2 every 10 cycles.  Total allocation about 40 MB. */
@@ -123,23 +118,16 @@ static size_t randomSize8(int i)
 
 static size_t fixedSizeSize = 0;
 
-static size_t fixedSize(int i)
+static size_t fixedSize(size_t i)
 {
   testlib_unused(i);
   return fixedSizeSize;
 }
 
 
-static mps_pool_debug_option_s bothOptions8 = {
-  /* .fence_template = */   (const void *)"postpost",
-  /* .fence_size = */       8,
-  /* .free_template = */    (const void *)"DEAD",
-  /* .free_size = */        4
-};
-
-static mps_pool_debug_option_s bothOptions16 = {
+static mps_pool_debug_option_s bothOptions = {
   /* .fence_template = */   (const void *)"postpostpostpost",
-  /* .fence_size = */       16,
+  /* .fence_size = */       MPS_PF_ALIGN,
   /* .free_template = */    (const void *)"DEAD",
   /* .free_size = */        4
 };
@@ -153,7 +141,7 @@ static mps_pool_debug_option_s fenceOptions = {
 
 /* testInArena -- test all the pool classes in the given arena */
 
-static int testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
+static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
 {
   /* IWBN to test MVFFDebug, but the MPS doesn't support debugging */
   /* cross-segment allocation (possibly MVFF ought not to). */
@@ -176,23 +164,18 @@ static int testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
   die(stress(mps_class_mv(), randomSize, arena,
              (size_t)65536, (size_t)32, (size_t)65536),
       "stress MV");
-
-  return 0;
 }
 
 
 int main(int argc, char *argv[])
 {
   mps_arena_t arena;
-  mps_pool_debug_option_s *bothOptions;
-  
-  bothOptions = MPS_PF_ALIGN == 8 ? &bothOptions8 : &bothOptions16;
 
   testlib_init(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
-  testInArena(arena, bothOptions);
+  testInArena(arena, &bothOptions);
   mps_arena_destroy(arena);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), smallArenaSIZE),

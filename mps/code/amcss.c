@@ -196,7 +196,8 @@ static void test(mps_arena_t arena)
       collections = c;
       report(arena);
 
-      printf("%lu objects (mps_collections says: %lu)\n", objs, c);
+      printf("%lu objects (mps_collections says: %"PRIuLONGEST")\n", objs,
+             (ulongest_t)c);
 
       /* test mps_arena_has_addr */
       {
@@ -285,7 +286,7 @@ static void test(mps_arena_t arena)
     if (objs % 1024 == 0) {
       report(arena);
       putchar('.');
-      fflush(stdout);
+      (void)fflush(stdout);
     }
 
     ++objs;

@@ -1008,9 +1008,6 @@ extern void StackProbe(Size depth);
  * STATISTIC_WRITE is inserted in WriteF arguments to output the values
  * of statistic fields.
  *
- * STATISTIC_BEGIN and STATISTIC_END can be used around a block of
- * statements.
- *
  * .statistic.whitehot: The implementation of STATISTIC for
  * non-statistical varieties passes the parameter to DISCARD to ensure
  * the parameter is syntactically an expression.  The parameter is
@@ -1022,16 +1019,12 @@ extern void StackProbe(Size depth);
 #define STATISTIC(gather) BEGIN (gather); END
 #define STATISTIC_STAT(gather) BEGIN gather; END
 #define STATISTIC_WRITE(format, arg) (format), (arg),
-#define STATISTIC_BEGIN BEGIN
-#define STATISTIC_END END
 
 #elif defined(STATISTICS_NONE)
 
 #define STATISTIC(gather) DISCARD(((gather), 0))
 #define STATISTIC_STAT DISCARD_STAT
 #define STATISTIC_WRITE(format, arg)
-#define STATISTIC_BEGIN BEGIN if (0) {
-#define STATISTIC_END } END
 
 #else /* !defined(STATISTICS) && !defined(STATISTICS_NONE) */
 

@@ -109,7 +109,8 @@ static double my_clock(void)
 {
     FILETIME ctime, etime, ktime, utime;
     double dk, du;
-    GetProcessTimes(currentProcess, &ctime, &etime, &ktime, &utime);
+    cdie(GetProcessTimes(currentProcess, &ctime, &etime, &ktime, &utime) != 0,
+         "GetProcessTimes");
     dk = ktime.dwHighDateTime * 4096.0 * 1024.0 * 1024.0 +
         ktime.dwLowDateTime;
     dk /= 10.0;
@@ -391,7 +392,7 @@ static void *test(void *arg, size_t s)
         if (collections > old_collections) {
             old_collections = collections;
             putchar('.');
-            fflush(stdout);
+            (void)fflush(stdout);
         }
     }
 
@@ -419,8 +420,8 @@ static void *test(void *arg, size_t s)
     printf("Collection statistics:\n");
     printf("  %"PRIuLONGEST" collections\n", (ulongest_t)collections);
     printf("  %"PRIuLONGEST" bytes condemned.\n", (ulongest_t)condemned);
-    printf("  %lu bytes not condemned.\n",
-           (unsigned long)not_condemned);
+    printf("  %"PRIuLONGEST" bytes not condemned.\n",
+           (ulongest_t)not_condemned);
     printf("  %"PRIuLONGEST" bytes survived.\n", (ulongest_t)live);
     if (condemned) {
         printf("  Mortality %5.2f%%.\n",
@@ -429,10 +430,10 @@ static void *test(void *arg, size_t s)
                ((double)condemned/(condemned + not_condemned)) * 100.0);
     }
     if (collections) {
-        printf("  Condemned per collection %lu bytes.\n",
-               (unsigned long)condemned/collections);
-        printf("  Reclaimed per collection %lu bytes.\n",
-               (unsigned long)(condemned - live)/collections);
+        printf("  Condemned per collection %"PRIuLONGEST" bytes.\n",
+               (ulongest_t)condemned/collections);
+        printf("  Reclaimed per collection %"PRIuLONGEST" bytes.\n",
+               (ulongest_t)(condemned - live)/collections);
     }
 
     printf("Allocation statistics:\n");

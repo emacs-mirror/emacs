@@ -47,13 +47,13 @@ static mps_res_t make(mps_addr_t *p, mps_sac_t sac, size_t size)
 
 static mps_res_t stress(mps_class_t class,
                         size_t classes_count, mps_sac_classes_s *classes,
-                        size_t (*size)(int i), mps_arena_t arena, ...)
+                        size_t (*size)(size_t i), mps_arena_t arena, ...)
 {
   mps_res_t res;
   mps_pool_t pool;
   mps_sac_t sac;
   va_list arg;
-  int i, k;
+  size_t i, k;
   int *ps[testSetSIZE];
   size_t ss[testSetSIZE];
 
@@ -125,12 +125,9 @@ static mps_res_t stress(mps_class_t class,
 }
 
 
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-
-
 /* randomSize8 -- produce sizes both latge and small */
 
-static size_t randomSize8(int i)
+static size_t randomSize8(size_t i)
 {
   size_t maxSize = 2 * 160 * 0x2000;
   size_t size;
@@ -143,47 +140,34 @@ static size_t randomSize8(int i)
 
 /* testInArena -- test all the pool classes in the given arena */
 
-static mps_pool_debug_option_s debugOptions8 = {
-  /* .fence_template = */   (const void *)"postpost",
-  /* .fence_size = */       8,
-  /* .free_template = */    (const void *)"DEAD",
-  /* .free_size = */        4
-};
-
-static mps_pool_debug_option_s debugOptions16 = {
+static mps_pool_debug_option_s debugOptions = {
   /* .fence_template = */   (const void *)"postpostpostpost",
-  /* .fence_size = */       16,
+  /* .fence_size = */       MPS_PF_ALIGN,
   /* .free_template = */    (const void *)"DEAD",
   /* .free_size = */        4
 };
 
-static mps_sac_classes_s classes8[4] = { {8, 1, 1}, {16, 1, 2}, {136, 9, 5},
-                                        {topClassSIZE, 9, 4} };
+static mps_sac_classes_s classes[4] = {
+  {MPS_PF_ALIGN, 1, 1}, 
+  {MPS_PF_ALIGN * 2, 1, 2},
+  {128 + MPS_PF_ALIGN, 9, 5},
+  {topClassSIZE, 9, 4} 
+};
 
-static mps_sac_classes_s classes16[4] = { {16, 1, 1}, {32, 1, 2}, {144, 9, 5},
-                                        {topClassSIZE, 9, 4} };
-
-static int testInArena(mps_arena_t arena)
+static void testInArena(mps_arena_t arena)
 {
-  mps_pool_debug_option_s *debugOptions;
-  mps_sac_classes_s *classes;
-  
-  debugOptions = MPS_PF_ALIGN == 8 ? &debugOptions8 : &debugOptions16;
-  classes = MPS_PF_ALIGN == 8 ? classes8 : classes16;
-
   printf("MVFF\n\n");
   die(stress(mps_class_mvff(), classCOUNT, classes, randomSize8, arena,
              (size_t)65536, (size_t)32, (mps_align_t)MPS_PF_ALIGN, TRUE, TRUE, TRUE),
       "stress MVFF");
   printf("MV debug\n\n");
   die(stress(mps_class_mv_debug(), classCOUNT, classes, randomSize8, arena,
-             debugOptions, (size_t)65536, (size_t)32, (size_t)65536),
+             &debugOptions, (size_t)65536, (size_t)32, (size_t)65536),
       "stress MV debug");
   printf("MV\n\n");
   die(stress(mps_class_mv(), classCOUNT, classes, randomSize8, arena,
              (size_t)65536, (size_t)32, (size_t)65536),
       "stress MV");
-  return 0;
 }
 
 
