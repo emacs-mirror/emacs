@@ -58,7 +58,7 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
 
 #define Pool2MVFF(pool)   PARENT(MVFFStruct, poolStruct, pool)
 #define MVFF2Pool(mvff)       (&((mvff)->poolStruct))
-#define CBSOfMVFF(mvff)      (&((mvff)->cbsStruct))
+#define CBSOfMVFF(mvff)      ((Land)&((mvff)->cbsStruct))
 #define MVFFOfCBS(cbs)       PARENT(MVFFStruct, cbsStruct, cbs)
 #define FreelistOfMVFF(mvff)      (&((mvff)->flStruct))
 #define MVFFOfFreelist(fl)       PARENT(MVFFStruct, flStruct, fl)
@@ -95,7 +95,7 @@ static Res MVFFAddToFreeList(Addr *baseIO, Addr *limitIO, MVFF mvff) {
   AVERT(MVFF, mvff);
   RangeInit(&range, *baseIO, *limitIO);
 
-  res = CBSInsert(&newRange, CBSOfMVFF(mvff), &range);
+  res = LandInsert(&newRange, CBSOfMVFF(mvff), &range);
   if (ResIsAllocFailure(res)) {
     /* CBS ran out of memory for splay nodes: add range to emergency
      * free list instead. */
@@ -150,7 +150,7 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
       RangeStruct range, oldRange;
       RangeInit(&range, segBase, segLimit);
 
-      res = CBSDelete(&oldRange, CBSOfMVFF(mvff), &range);
+      res = LandDelete(&oldRange, CBSOfMVFF(mvff), &range);
       if (res == ResOK) {
         mvff->free -= RangeSize(&range);
       } else if (ResIsAllocFailure(res)) {
@@ -160,7 +160,7 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
          * deleting the whole of oldRange (which requires no
          * allocation) and re-inserting the fragments. */
         RangeStruct oldRange2;
-        res = CBSDelete(&oldRange2, CBSOfMVFF(mvff), &oldRange);
+        res = LandDelete(&oldRange2, CBSOfMVFF(mvff), &oldRange);
         AVER(res == ResOK);
         AVER(RangesEqual(&oldRange2, &oldRange));
         mvff->free -= RangeSize(&oldRange);
@@ -297,12 +297,12 @@ static Bool MVFFFindFirstFree(Addr *baseReturn, Addr *limitReturn,
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(MVFF2Pool(mvff))));
 
-  FreelistFlushToCBS(FreelistOfMVFF(mvff), CBSOfMVFF(mvff));
+  FreelistFlushToLand(FreelistOfMVFF(mvff), CBSOfMVFF(mvff));
 
   findDelete = mvff->slotHigh ? FindDeleteHIGH : FindDeleteLOW;
 
   foundBlock =
-    (mvff->firstFit ? CBSFindFirst : CBSFindLast)
+    (mvff->firstFit ? LandFindFirst : LandFindLast)
     (&range, &oldRange, CBSOfMVFF(mvff), size, findDelete);
 
   if (!foundBlock) {
@@ -411,9 +411,9 @@ static Bool MVFFFindLargest(Range range, Range oldRange, MVFF mvff,
   AVER(size > 0);
   AVERT(FindDelete, findDelete);
 
-  FreelistFlushToCBS(FreelistOfMVFF(mvff), CBSOfMVFF(mvff));
+  FreelistFlushToLand(FreelistOfMVFF(mvff), CBSOfMVFF(mvff));
 
-  if (CBSFindLargest(range, oldRange, CBSOfMVFF(mvff), size, findDelete))
+  if (LandFindLargest(range, oldRange, CBSOfMVFF(mvff), size, findDelete))
     return TRUE;
 
   if (FreelistFindLargest(range, oldRange, FreelistOfMVFF(mvff),
@@ -602,8 +602,10 @@ static Res MVFFInit(Pool pool, ArgList args)
   if (res != ResOK)
     goto failInit;
 
-  res = CBSInit(CBSOfMVFF(mvff), arena, (void *)mvff, align,
-                /* fastFind */ TRUE, /* zoned */ FALSE, args);
+  MPS_ARGS_BEGIN(landiArgs) {
+    MPS_ARGS_ADD(landiArgs, CBSFastFind, TRUE);
+    res = LandInit(CBSOfMVFF(mvff), CBSLandClassGet(), arena, align, mvff, landiArgs);
+  } MPS_ARGS_END(landiArgs);
   if (res != ResOK)
     goto failInit;
 
@@ -646,7 +648,7 @@ static void MVFFFinish(Pool pool)
   arena = PoolArena(pool);
   ControlFree(arena, mvff->segPref, sizeof(SegPrefStruct));
 
-  CBSFinish(CBSOfMVFF(mvff));
+  LandFinish(CBSOfMVFF(mvff));
   FreelistFinish(FreelistOfMVFF(mvff));
 
   mvff->sig = SigInvalid;
@@ -691,7 +693,7 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
   if (res != ResOK)
     return res;
 
-  res = CBSDescribe(CBSOfMVFF(mvff), stream);
+  res = LandDescribe(CBSOfMVFF(mvff), stream);
   if (res != ResOK)
     return res;
 
@@ -802,7 +804,7 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKL(mvff->total >= mvff->free);
   CHECKL(SizeIsAligned(mvff->free, PoolAlignment(MVFF2Pool(mvff))));
   CHECKL(SizeIsAligned(mvff->total, ArenaAlign(PoolArena(MVFF2Pool(mvff)))));
-  CHECKD(CBS, CBSOfMVFF(mvff));
+  CHECKD(Land, CBSOfMVFF(mvff));
   CHECKD(Freelist, FreelistOfMVFF(mvff));
   CHECKL(BoolCheck(mvff->slotHigh));
   CHECKL(BoolCheck(mvff->firstFit));
@@ -812,8 +814,8 @@ static Bool MVFFCheck(MVFF mvff)
 
 /* Return the CBS of an MVFF pool for the benefit of fotest.c. */
 
-extern CBS _mps_mvff_cbs(mps_pool_t);
-CBS _mps_mvff_cbs(mps_pool_t mps_pool) {
+extern Land _mps_mvff_cbs(mps_pool_t);
+Land _mps_mvff_cbs(mps_pool_t mps_pool) {
   Pool pool;
   MVFF mvff;
 

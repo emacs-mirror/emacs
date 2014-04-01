@@ -21,8 +21,6 @@
 
 /* Prototypes */
 
-typedef struct RangeStruct *Range;
-
 #define RangeBase(range) ((range)->base)
 #define RangeLimit(range) ((range)->limit)
 #define RangeSize(range) (AddrOffset(RangeBase(range), RangeLimit(range)))

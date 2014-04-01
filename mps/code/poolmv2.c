@@ -51,7 +51,7 @@ static Res MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
                                 MVT mvt, Size min);
 static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena);
 static ABQ MVTABQ(MVT mvt);
-static CBS MVTCBS(MVT mvt);
+static Land MVTCBS(MVT mvt);
 static Freelist MVTFreelist(MVT mvt);
 
 
@@ -168,9 +168,9 @@ static ABQ MVTABQ(MVT mvt)
 }
 
 
-static CBS MVTCBS(MVT mvt)
+static Land MVTCBS(MVT mvt)
 {
-  return &mvt->cbsStruct;
+  return (Land)(&mvt->cbsStruct);
 }
 
 
@@ -269,8 +269,10 @@ static Res MVTInit(Pool pool, ArgList args)
   if (abqDepth < 3)
     abqDepth = 3;
 
-  res = CBSInit(MVTCBS(mvt), arena, (void *)mvt, align,
-                /* fastFind */ FALSE, /* zoned */ FALSE, args);
+  MPS_ARGS_BEGIN(landiArgs) {
+    MPS_ARGS_ADD(landiArgs, CBSFastFind, TRUE);
+    res = LandInit(MVTCBS(mvt), CBSLandClassGet(), arena, align, mvt, landiArgs);
+  } MPS_ARGS_END(landiArgs);
   if (res != ResOK)
     goto failCBS;
  
@@ -348,7 +350,7 @@ static Res MVTInit(Pool pool, ArgList args)
 failFreelist:
   ABQFinish(arena, MVTABQ(mvt));
 failABQ:
-  CBSFinish(MVTCBS(mvt));
+  LandFinish(MVTCBS(mvt));
 failCBS:
   AVER(res != ResOK);
   return res;
@@ -422,7 +424,7 @@ static void MVTFinish(Pool pool)
   /* Finish the Freelist, ABQ and CBS structures */
   FreelistFinish(MVTFreelist(mvt));
   ABQFinish(arena, MVTABQ(mvt));
-  CBSFinish(MVTCBS(mvt));
+  LandFinish(MVTCBS(mvt));
 }
 
 
@@ -808,10 +810,10 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
 
   /* Attempt to flush the Freelist to the CBS to give maximum
    * opportunities for coalescence. */
-  FreelistFlushToCBS(MVTFreelist(mvt), MVTCBS(mvt));
+  FreelistFlushToLand(MVTFreelist(mvt), MVTCBS(mvt));
   
   RangeInit(&range, base, limit);
-  res = CBSInsert(&newRange, MVTCBS(mvt), &range);
+  res = LandInsert(&newRange, MVTCBS(mvt), &range);
   if (ResIsAllocFailure(res)) {
     /* CBS ran out of memory for splay nodes: add range to emergency
      * free list instead. */
@@ -845,7 +847,7 @@ static Res MVTDelete(MVT mvt, Addr base, Addr limit)
   AVER(base < limit);
 
   RangeInit(&range, base, limit);
-  res = CBSDelete(&rangeOld, MVTCBS(mvt), &range);
+  res = LandDelete(&rangeOld, MVTCBS(mvt), &range);
   if (ResIsAllocFailure(res)) {
     /* CBS ran out of memory for splay nodes, which must mean that
      * there were fragments on both sides: see
@@ -853,7 +855,7 @@ static Res MVTDelete(MVT mvt, Addr base, Addr limit)
      * deleting the whole of rangeOld (which requires no
      * allocation) and re-inserting the fragments. */
     RangeStruct rangeOld2;
-    res = CBSDelete(&rangeOld2, MVTCBS(mvt), &rangeOld);
+    res = LandDelete(&rangeOld2, MVTCBS(mvt), &rangeOld);
     AVER(res == ResOK);
     AVER(RangesEqual(&rangeOld2, &rangeOld));
     AVER(RangeBase(&rangeOld) != base);
@@ -1043,7 +1045,7 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream)
                NULL);
   if(res != ResOK) return res;
 
-  res = CBSDescribe(MVTCBS(mvt), stream);
+  res = LandDescribe(MVTCBS(mvt), stream);
   if(res != ResOK) return res;
 
   res = ABQDescribe(MVTABQ(mvt), (ABQDescribeElement)RangeDescribe, stream);
@@ -1285,11 +1287,11 @@ static Bool MVTRefillCallback(MVT mvt, Range range)
   return MVTReserve(mvt, range);
 }
 
-static Bool MVTCBSRefillCallback(CBS cbs, Range range,
+static Bool MVTCBSRefillCallback(Land land, Range range,
                                  void *closureP, Size closureS)
 {
   MVT mvt;
-  AVERT(CBS, cbs);
+  AVERT(Land, land);
   mvt = closureP;
   AVERT(MVT, mvt);
   UNUSED(closureS);
@@ -1324,7 +1326,7 @@ static void MVTRefillABQIfEmpty(MVT mvt, Size size)
   if (mvt->abqOverflow && ABQIsEmpty(MVTABQ(mvt))) {
     mvt->abqOverflow = FALSE;
     METER_ACC(mvt->refills, size);
-    CBSIterate(MVTCBS(mvt), &MVTCBSRefillCallback, mvt, 0);
+    LandIterate(MVTCBS(mvt), &MVTCBSRefillCallback, mvt, 0);
     FreelistIterate(MVTFreelist(mvt), &MVTFreelistRefillCallback, mvt, 0);
   }
 }
@@ -1387,11 +1389,11 @@ static Bool MVTContingencyCallback(MVTContigency cl, Range range)
   return TRUE;
 }
 
-static Bool MVTCBSContingencyCallback(CBS cbs, Range range,
+static Bool MVTCBSContingencyCallback(Land land, Range range,
                                       void *closureP, Size closureS)
 {
   MVTContigency cl = closureP;
-  UNUSED(cbs);
+  AVERT(Land, land);
   UNUSED(closureS);
   return MVTContingencyCallback(cl, range);
 }
@@ -1421,9 +1423,9 @@ static Bool MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
   cls.steps = 0;
   cls.hardSteps = 0;
 
-  FreelistFlushToCBS(MVTFreelist(mvt), MVTCBS(mvt));
+  FreelistFlushToLand(MVTFreelist(mvt), MVTCBS(mvt));
 
-  CBSIterate(MVTCBS(mvt), MVTCBSContingencyCallback, (void *)&cls, 0);
+  LandIterate(MVTCBS(mvt), MVTCBSContingencyCallback, (void *)&cls, 0);
   FreelistIterate(MVTFreelist(mvt), MVTFreelistContingencyCallback,
                   (void *)&cls, 0);
   if (!cls.found)
@@ -1472,8 +1474,8 @@ static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena)
 
 /* Return the CBS of an MVT pool for the benefit of fotest.c. */
 
-extern CBS _mps_mvt_cbs(mps_pool_t);
-CBS _mps_mvt_cbs(mps_pool_t mps_pool) {
+extern Land _mps_mvt_cbs(mps_pool_t);
+Land _mps_mvt_cbs(mps_pool_t mps_pool) {
   Pool pool;
   MVT mvt;
 

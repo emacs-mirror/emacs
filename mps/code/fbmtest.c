@@ -56,7 +56,7 @@ typedef struct FBMStateStruct {
   BT allocTable;
   Addr block;
   union {
-    CBS cbs;
+    Land land;
     Freelist fl;
   } the;
 } FBMStateStruct, *FBMState;
@@ -83,7 +83,7 @@ static Index (indexOfAddr)(FBMState state, Addr a)
 static void describe(FBMState state) {
   switch (state->type) {
   case FBMTypeCBS:
-    die(CBSDescribe(state->the.cbs, mps_lib_get_stdout()), "CBSDescribe");
+    die(LandDescribe(state->the.land, mps_lib_get_stdout()), "LandDescribe");
     break;
   case FBMTypeFreelist:
     die(FreelistDescribe(state->the.fl, mps_lib_get_stdout()), "FreelistDescribe");
@@ -125,10 +125,10 @@ static Bool checkCallback(Range range, void *closureP, Size closureS)
 }
 
 
-static Bool checkCBSCallback(CBS cbs, Range range,
+static Bool checkCBSCallback(Land land, Range range,
                              void *closureP, Size closureS)
 {
-  UNUSED(cbs);
+  UNUSED(land);
   return checkCallback(range, closureP, closureS);
 }
 
@@ -151,7 +151,7 @@ static void check(FBMState state)
 
   switch (state->type) {
   case FBMTypeCBS:
-    CBSIterate(state->the.cbs, checkCBSCallback, (void *)&closure, 0);
+    LandIterate(state->the.land, checkCBSCallback, (void *)&closure, 0);
     break;
   case FBMTypeFreelist:
     FreelistIterate(state->the.fl, checkFLCallback, (void *)&closure, 0);
@@ -305,7 +305,7 @@ static void allocate(FBMState state, Addr base, Addr limit)
   RangeInit(&range, base, limit);
   switch (state->type) {
   case FBMTypeCBS:
-    res = CBSDelete(&oldRange, state->the.cbs, &range);
+    res = LandDelete(&oldRange, state->the.land, &range);
     break;
   case FBMTypeFreelist:
     res = FreelistDelete(&oldRange, state->the.fl, &range);
@@ -381,7 +381,7 @@ static void deallocate(FBMState state, Addr base, Addr limit)
   RangeInit(&range, base, limit);
   switch (state->type) {
   case FBMTypeCBS:
-    res = CBSInsert(&freeRange, state->the.cbs, &range);
+    res = LandInsert(&freeRange, state->the.land, &range);
     break;
   case FBMTypeFreelist:
     res = FreelistInsert(&freeRange, state->the.fl, &range);
@@ -459,8 +459,8 @@ static void find(FBMState state, Size size, Bool high, FindDelete findDelete)
 
   switch (state->type) {
   case FBMTypeCBS:
-    found = (high ? CBSFindLast : CBSFindFirst)
-      (&foundRange, &oldRange, state->the.cbs, size * state->align, findDelete);
+    found = (high ? LandFindLast : LandFindFirst)
+      (&foundRange, &oldRange, state->the.land, size * state->align, findDelete);
     break;
   case FBMTypeFreelist:
     found = (high ? FreelistFindLast : FreelistFindFirst)
@@ -558,6 +558,7 @@ extern int main(int argc, char *argv[])
   BT allocTable;
   FreelistStruct flStruct;
   CBSStruct cbsStruct;
+  Land land = (Land)&cbsStruct;
   Align align;
 
   testlib_init(argc, argv);
@@ -585,16 +586,18 @@ extern int main(int argc, char *argv[])
            (char *)dummyBlock + ArraySize);
   }
 
-  die((mps_res_t)CBSInit(&cbsStruct, arena, arena, align,
-                         /* fastFind */ TRUE, /* zoned */ FALSE, mps_args_none),
-      "failed to initialise CBS");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, CBSFastFind, TRUE);
+    die((mps_res_t)LandInit(land, CBSLandClassGet(), arena, align, NULL, args),
+        "failed to initialise CBS");
+  } MPS_ARGS_END(args);
   state.type = FBMTypeCBS;
   state.align = align;
   state.block = dummyBlock;
   state.allocTable = allocTable;
-  state.the.cbs = &cbsStruct;
+  state.the.land = land;
   test(&state, nCBSOperations);
-  CBSFinish(&cbsStruct);
+  LandFinish(land);
 
   die((mps_res_t)FreelistInit(&flStruct, align),
       "failed to initialise Freelist");
