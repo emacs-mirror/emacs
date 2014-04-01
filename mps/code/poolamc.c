@@ -21,6 +21,10 @@ typedef struct AMCStruct *AMC;
 /* amcGen typedef */
 typedef struct amcGenStruct *amcGen;
 
+/* Function returning TRUE if block in nailboarded segment is pinned. */
+typedef Bool (*amcPinnedMethod)(AMC amc, Nailboard board, Addr base, Addr limit);
+
+
 /* forward declarations */
 
 static Bool amcSegHasNailboard(Seg seg);
@@ -456,6 +460,7 @@ typedef struct AMCStruct { /* <design/poolamc/#struct> */
   amcGen afterRampGen;     /* the generation after rampGen */
   unsigned rampCount;      /* <design/poolamc/#ramp.count> */
   int rampMode;            /* <design/poolamc/#ramp.mode> */
+  amcPinnedMethod pinned;  /* function determining if block is pinned */
 
   /* page retention in an in-progress trace */
   STATISTIC_DECL(PageRetStruct pageretstruct[TraceLIMIT]);
@@ -742,6 +747,26 @@ static Res amcSegCreateNailboard(Seg seg, Pool pool)
 }
 
 
+/* amcPinnedInterior -- block is pinned by any nail */
+
+static Bool amcPinnedInterior(AMC amc, Nailboard board, Addr base, Addr limit)
+{
+  Size headerSize = AMC2Pool(amc)->format->headerSize;
+  return !NailboardIsResRange(board, AddrSub(base, headerSize),
+                              AddrSub(limit, headerSize));
+}
+
+
+/* amcPinnedBase -- block is pinned only if base is nailed */
+
+static Bool amcPinnedBase(AMC amc, Nailboard board, Addr base, Addr limit)
+{
+  UNUSED(amc);
+  UNUSED(limit);
+  return NailboardGet(board, base);
+}
+
+
 /* amcVarargs -- decode obsolete varargs */
 
 static void AMCVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
@@ -770,6 +795,7 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   Index i;
   size_t genArraySize;
   size_t genCount;
+  Bool interior = AMC_INTERIOR_DEFAULT;
   ArgStruct arg;
   
   /* Suppress a warning about this structure not being used when there
@@ -793,6 +819,8 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
     amc->chain = arg.val.chain;
   else
     amc->chain = ArenaGlobals(arena)->defaultChain;
+  if (ArgPick(&arg, args, MPS_KEY_INTERIOR))
+    interior = arg.val.b;
   
   AVERT(Format, pool->format);
   AVERT(Chain, amc->chain);
@@ -819,6 +847,12 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
     pool->fix = AMCFix;
   } else {
     pool->fix = AMCHeaderFix;
+  }
+
+  if (interior) {
+    amc->pinned = amcPinnedInterior;
+  } else {
+    amc->pinned = amcPinnedBase;
   }
 
   amc->sig = AMCSig;
@@ -1278,29 +1312,18 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
 }
 
 
-/* amcNailboardIsResClientRange -- wrapper for NailboardIsResRange,
- * except that the addresses are client addresses for objects with the
- * given header size.
- */
-static Bool amcNailboardIsResClientRange(Nailboard board, Size headerSize,
-                                         Addr base, Addr limit)
-{
-  return NailboardIsResRange(board, AddrSub(base, headerSize),
-                             AddrSub(limit, headerSize));
-}
-
-
 /* amcScanNailedRange -- make one scanning pass over a range of
  * addresses in a nailed segment.
  */
 static Res amcScanNailedRange(Bool *totalReturn, Bool *moreReturn,
                               Size *bytesScanned, ScanState ss,
-                              Pool pool, Nailboard board,
+                              AMC amc, Nailboard board,
                               Addr base, Addr limit)
 {
   Format format;
   Size headerSize;
   Addr p, clientLimit;
+  Pool pool = AMC2Pool(amc);
   format = pool->format;
   headerSize = format->headerSize;
   p = AddrAdd(base, headerSize);
@@ -1308,7 +1331,7 @@ static Res amcScanNailedRange(Bool *totalReturn, Bool *moreReturn,
   while (p < clientLimit) {
     Addr q;
     q = (*format->skip)(p);
-    if (!amcNailboardIsResClientRange(board, headerSize, p, q)) {
+    if ((*amc->pinned)(amc, board, p, q)) {
       Res res;
       res = (*format->scan)(&ss->ss_s, p, q);
       if(res != ResOK) {
@@ -1338,7 +1361,7 @@ static Res amcScanNailedRange(Bool *totalReturn, Bool *moreReturn,
  * nailboard.
  */
 static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
-                             ScanState ss, Pool pool, Seg seg, AMC amc)
+                             ScanState ss, Seg seg, AMC amc)
 {
   Addr p, limit;
   Size bytesScanned = 0;
@@ -1359,7 +1382,7 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
       goto returnGood;
     }
     res = amcScanNailedRange(totalReturn, moreReturn, &bytesScanned, 
-                             ss, pool, board, p, limit);
+                             ss, amc, board, p, limit);
     if (res != ResOK)
       return res;
     p = limit;
@@ -1368,7 +1391,7 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
   limit = SegLimit(seg);
   /* @@@@ Shouldn't p be set to BufferLimit here?! */
   res = amcScanNailedRange(totalReturn, moreReturn, &bytesScanned,
-                           ss, pool, board, p, limit);
+                           ss, amc, board, p, limit);
   if (res != ResOK)
     return res;
 
@@ -1392,7 +1415,7 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
 
   do {
     Res res;
-    res = amcScanNailedOnce(&total, &moreScanning, ss, pool, seg, amc);
+    res = amcScanNailedOnce(&total, &moreScanning, ss, seg, amc);
     if(res != ResOK) {
       *totalReturn = FALSE;
       return res;
@@ -1653,7 +1676,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* If object is nailed already then we mustn't copy it: */
     if (SegNailed(seg) != TraceSetEMPTY
         && !(amcSegHasNailboard(seg)
-             && NailboardIsResRange(amcSegNailboard(seg), ref, clientQ)))
+             && !(*amc->pinned)(amc, amcSegNailboard(seg), ref, clientQ)))
     {
       /* Segment only needs greying if there are new traces for */
       /* which we are nailing. */
@@ -1800,8 +1823,7 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* If object is nailed already then we mustn't copy it: */
     if (SegNailed(seg) != TraceSetEMPTY
         && !(amcSegHasNailboard(seg)
-             && amcNailboardIsResClientRange(amcSegNailboard(seg),
-                                             headerSize, ref, clientQ)))
+             && !(*amc->pinned)(amc, amcSegNailboard(seg), ref, clientQ)))
     {
       /* Segment only needs greying if there are new traces for */
       /* which we are nailing. */
@@ -1917,8 +1939,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     q = AddrSub(clientQ, headerSize);
     length = AddrOffset(p, q);
     if(amcSegHasNailboard(seg)) {
-      preserve = !amcNailboardIsResClientRange(amcSegNailboard(seg), headerSize,
-                                               clientP, clientQ);
+      preserve = (*amc->pinned)(amc, amcSegNailboard(seg), clientP, clientQ);
     } else {
       /* There's no nailboard, so preserve everything that hasn't been
        * forwarded. In this case, preservedInPlace* become somewhat

@@ -183,7 +183,8 @@ extern obj_t scheme_make_table(size_t length, hash_t hashf, cmp_t cmpf);
 extern void scheme_fmt(mps_fmt_t *fmt);
 
 extern mps_arena_t scheme_arena;
-extern void test_main(void);
+extern mps_pool_t obj_pool;
+extern mps_ap_t obj_ap;
 
 #endif /* fmtscheme_h */
 
