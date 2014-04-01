@@ -1,7 +1,7 @@
 /* config.h: MPS CONFIGURATION
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * PURPOSE
@@ -161,54 +161,75 @@
 #include "mpstd.h"
 
 /* Suppress Visual C warnings at warning level 4, */
-/* see mail.richard.1997-09-25.13-26. */
+/* see mail.richard.1997-09-25.13-26 and job003715. */
 /* Essentially the same settings are done in testlib.h. */
 
 #ifdef MPS_BUILD_MV
 
-/* "unreferenced inline function has been removed" (windows.h) */
-#pragma warning(disable: 4514)
-
 /* "constant conditional" (MPS_END) */
 #pragma warning(disable: 4127)
 
-/* "unreachable code" (ASSERT, if cond is constantly true). */
-#pragma warning(disable: 4702)
-
-/* "expression evaluates to a function which is missing an argument list" */
-#pragma warning(disable: 4550)
-
-/* "local variable is initialized but not referenced" */
-#pragma warning(disable: 4189)
-
-/* "not all control paths return a value" */
-#pragma warning(disable: 4715)
-
-/* MSVC 2.0 generates a warning when using NOCHECK or UNUSED */
-#ifdef _MSC_VER
-#if _MSC_VER < 1000
-#pragma warning(disable: 4705)
-#endif
-#else /* _MSC_VER */
-#error "Expected _MSC_VER to be defined for builder.mv"
-#endif /* _MSC_VER */
-
-
-/* Non-checking varieties give many spurious warnings because parameters
- * are suddenly unused, etc.  We aren't interested in these
- */
-
-#if defined(AVER_AND_CHECK_NONE)
-
-/* "unreferenced formal parameter" */
-#pragma warning(disable: 4100)
-
-/* "unreferenced local function has been removed" */
-#pragma warning(disable: 4505)
-
-#endif /* AVER_AND_CHECK_NONE */
-
 #endif /* MPS_BUILD_MV */
+
+
+/* Suppress Pelles C warnings at warning level 2 */
+/* Some of the same settings are done in testlib.h. */
+
+#ifdef MPS_BUILD_PC
+
+/* "Unreachable code" (AVER, if condition is constantly true). */
+#pragma warn(disable: 2154)
+
+/* "Consider changing type to 'size_t' for loop variable" */
+#pragma warn(disable: 2804)
+
+#endif /* MPS_BUILD_PC */
+
+
+/* MPS_FILE -- expands to __FILE__ in nested macros */
+
+#ifdef MPS_BUILD_PC
+
+/* Pelles C loses definition of __FILE__ in deeply nested macro
+ * expansions. See <http://forum.pellesc.de/index.php?topic=5474.0>
+ */
+#define MPS_FILE "<__FILE__ unavailable in " MPS_PF_STRING ">"
+
+#else
+
+#define MPS_FILE __FILE__
+
+#endif
+
+
+/* Function attributes */
+/* Some of these are also defined in testlib.h */
+
+/* Attribute for functions that take a printf-like format argument, so
+ * that the compiler can check the format specifiers against the types
+ * of the arguments.
+ * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html#index-Wformat-2850>
+ * Clang: <http://clang.llvm.org/docs/AttributeReference.html#format-gnu-format>
+ */
+#if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
+#define ATTRIBUTE_FORMAT(ARGLIST) __attribute__((__format__ ARGLIST))
+#else
+#define ATTRIBUTE_FORMAT(ARGLIST)
+#endif
+
+/* Attribute for functions that should not be instrumented by Clang's
+ * address sanitizer.
+ * <http://clang.llvm.org/docs/AddressSanitizer.html#attribute-no-sanitize-address>
+ */
+#if defined(MPS_BUILD_LL)
+#if __has_feature(address_sanitizer)
+#define ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((__no_sanitize_address__))
+#else
+#define ATTRIBUTE_NO_SANITIZE_ADDRESS
+#endif
+#else
+#define ATTRIBUTE_NO_SANITIZE_ADDRESS
+#endif
 
 
 /* EPVMDefaultSubsequentSegSIZE is a default for the alignment of
@@ -327,12 +348,10 @@
 
 /* Stack configuration */
 
-/* Currently StackProbe has a useful implementation only on
- * Intel platforms and only when using Microsoft build tools (builder.mv)
- */
-#if defined(MPS_ARCH_I3) && defined(MPS_BUILD_MV)
+/* Currently StackProbe has a useful implementation only on Windows. */
+#if defined(MPS_OS_W3) && defined(MPS_ARCH_I3)
 #define StackProbeDEPTH ((Size)500)
-#elif defined(MPS_PF_W3I6MV)
+#elif defined(MPS_OS_W3) && defined(MPS_ARCH_I6)
 #define StackProbeDEPTH ((Size)500)
 #else
 #define StackProbeDEPTH ((Size)0)
@@ -547,7 +566,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

@@ -1,6 +1,6 @@
 /* scheme.c -- SCHEME INTERPRETER EXAMPLE FOR THE MEMORY POOL SYSTEM
  *
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * 
  * TO DO
  * - unbounded integers, other number types.
@@ -1728,8 +1728,6 @@ static obj_t entry_do(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
       return result;
     }
   }
-  error("%s: unimplemented", operator->operator.name);
-  return obj_error;
 }
 
 
@@ -3635,7 +3633,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -2,7 +2,7 @@
  * 
  * $Id$
  * 
- * Copyright (c) 2012-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2012-2014 Ravenbrook Limited.  See end of file for license.
  *
  * This is a command-line tool that imports events from a text-format
  * MPS telemetry file into a SQLite database file.
@@ -86,9 +86,6 @@
 #define DEFAULT_DATABASE_NAME "mpsevent.db"
 
 #ifdef MPS_BUILD_MV
-/* MSVC warning 4996 = stdio / C runtime 'unsafe' */
-/* Objects to: getenv, sprintf.  See job001934. */
-#pragma warning( disable : 4996 )
 #define strtoll _strtoi64
 #endif
 
@@ -113,6 +110,7 @@ unsigned int verbosity = 0;
 #define LOG_SELDOM    3
 #define LOG_RARELY    4
 
+ATTRIBUTE_FORMAT((printf, 2, 0))
 static void vlog(unsigned int level, const char *format, va_list args)
 {
   if (level <= verbosity) {
@@ -123,6 +121,7 @@ static void vlog(unsigned int level, const char *format, va_list args)
   }
 }
 
+ATTRIBUTE_FORMAT((printf, 2, 3))
 static void evlog(unsigned int level, const char *format, ...)
 {
   va_list args;
@@ -131,6 +130,7 @@ static void evlog(unsigned int level, const char *format, ...)
   va_end(args);
 }
 
+ATTRIBUTE_FORMAT((printf, 1, 2))
 static void error(const char *format, ...)
 {
   va_list args;
@@ -452,7 +452,7 @@ static void registerLogFile(sqlite3 *db,
       name = sqlite3_column_text(statement, 0);
       logSerial = sqlite3_column_int64(statement, 1);
       completed = sqlite3_column_int64(statement, 2);
-      evlog(force ? LOG_OFTEN : LOG_ALWAYS, "Log file matching '%s' already in event_log, named \"%s\" (serial %lu, completed %lu).",
+      evlog(force ? LOG_OFTEN : LOG_ALWAYS, "Log file matching '%s' already in event_log, named \"%s\" (serial %llu, completed %llu).",
             filename, name, logSerial, completed);
       if (force) {
         evlog(LOG_OFTEN, "Continuing anyway because -f specified.");
@@ -486,7 +486,7 @@ static void registerLogFile(sqlite3 *db,
   if (res != SQLITE_DONE)
     sqlite_error(res, db, "insert into event_log failed.");
   logSerial = sqlite3_last_insert_rowid(db);
-  evlog(LOG_SOMETIMES, "Log file %s added to event_log with serial %lu",
+  evlog(LOG_SOMETIMES, "Log file %s added to event_log with serial %llu",
         filename, logSerial);
   finalizeStatement(db, statement);
 }
@@ -508,7 +508,7 @@ static void logFileCompleted(sqlite3 *db,
   res = sqlite3_step(statement); 
   if (res != SQLITE_DONE)
     sqlite_error(res, db, "insert into event_log failed.");
-  evlog(LOG_SOMETIMES, "Marked in event_log: %lu events", completed);
+  evlog(LOG_SOMETIMES, "Marked in event_log: %llu events", completed);
   finalizeStatement(db, statement);
 }
 
@@ -864,7 +864,7 @@ static int64 readLog(FILE *input,
       /* this macro sets statement and last_index */
       EVENT_LIST(EVENT_TYPE_WRITE_SQL, X);
     default:
-      error("Event %llu has Unknown event code %d", eventCount, code);
+      error("Event %llu has Unknown event code %ld", eventCount, code);
     }
     /* bind the fields we store for every event */ \
     res = sqlite3_bind_int64(statement, last_index+1, logSerial);
@@ -951,7 +951,7 @@ int main(int argc, char *argv[])
   makeTables(db);
   fillGlueTables(db);
   count = writeEventsToSQL(db);
-  evlog(LOG_ALWAYS, "Imported %llu events from %s to %s, serial %lu.",
+  evlog(LOG_ALWAYS, "Imported %llu events from %s to %s, serial %llu.",
         count, logFileName, databaseName, logSerial);
 
   if (runTests) {
@@ -965,7 +965,7 @@ int main(int argc, char *argv[])
 
 /* COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2012-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2012-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
