@@ -480,6 +480,7 @@ void LocusInit(Arena arena)
   gen->proflow = 0.0;
   RingInit(&gen->locusRing);
   gen->sig = GenDescSig;
+  AVERT(GenDesc, gen);
 }
 
 

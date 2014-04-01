@@ -6,7 +6,6 @@
  * .sources: <design/freelist/>.
  */
 
-#include "cbs.h"
 #include "freelist.h"
 #include "mpm.h"
 
@@ -589,22 +588,22 @@ Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream)
 
 
 /* freelistFlushIterateMethod -- Iterate method for
- * FreelistFlushToCBS. Attempst to insert the range into the CBS.
+ * FreelistFlushToLand. Attempst to insert the range into the Land.
  */
 static Bool freelistFlushIterateMethod(Bool *deleteReturn, Range range,
                                        void *closureP, Size closureS)
 {
   Res res;
   RangeStruct newRange;
-  CBS cbs;
+  Land land;
 
   AVER(deleteReturn != NULL);
   AVERT(Range, range);
   AVER(closureP != NULL);
   UNUSED(closureS);
 
-  cbs = closureP;
-  res = CBSInsert(&newRange, cbs, range);
+  land = closureP;
+  res = LandInsert(&newRange, land, range);
   if (res == ResOK) {
     *deleteReturn = TRUE;
     return TRUE;
@@ -615,12 +614,12 @@ static Bool freelistFlushIterateMethod(Bool *deleteReturn, Range range,
 }
 
 
-void FreelistFlushToCBS(Freelist fl, CBS cbs)
+void FreelistFlushToLand(Freelist fl, Land land)
 {
   AVERT(Freelist, fl);
-  AVERT(CBS, cbs);
+  AVERT(Land, land);
 
-  FreelistIterate(fl, freelistFlushIterateMethod, cbs, 0);
+  FreelistIterate(fl, freelistFlushIterateMethod, land, 0);
 }
 
 

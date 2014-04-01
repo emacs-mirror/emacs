@@ -38,8 +38,8 @@
 
 /* Accessors for the CBS used to implement a pool. */
 
-extern CBS _mps_mvff_cbs(mps_pool_t);
-extern CBS _mps_mvt_cbs(mps_pool_t);
+extern Land _mps_mvff_cbs(mps_pool_t);
+extern Land _mps_mvt_cbs(mps_pool_t);
 
 
 /* "OOM" pool class -- dummy alloc/free pool class whose alloc()
@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
     die(mps_pool_create_k(&pool, arena, mps_class_mvff(), args), "create MVFF");
   } MPS_ARGS_END(args);
   {
-    CBS cbs = _mps_mvff_cbs(pool);
+    CBS cbs = (CBS)_mps_mvff_cbs(pool);
     die(stress(randomSizeAligned, alignment, pool, cbs), "stress MVFF");
   }
   mps_pool_destroy(pool);
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
     die(mps_pool_create_k(&pool, arena, mps_class_mvt(), args), "create MVFF");
   } MPS_ARGS_END(args);
   {
-    CBS cbs = _mps_mvt_cbs(pool);
+    CBS cbs = (CBS)_mps_mvt_cbs(pool);
     die(stress(randomSizeAligned, alignment, pool, cbs), "stress MVT");
   }
   mps_pool_destroy(pool);
