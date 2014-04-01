@@ -1,3 +1,8 @@
+2014-04-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: `url-handler-mode' passes operations to Tramp for some
+	protocols.
+
 2014-03-28  Tassilo Horn  <tsdh@gnu.org>
 
 	* themes/tsdh-light-theme.el (tsdh-light): Add gnus-group-* faces.

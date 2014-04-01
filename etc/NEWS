@@ -56,6 +56,10 @@ for use in Emacs bug reports.
 ** The Rmail commands d, C-d and u now handle repeat counts
 to delete or undelete multiple messages.
 
+** The URL package accepts now the protocols "ssh", "scp" and "rsync".
+When `url-handler-mode' is enabled, file operations for these
+protocols as well as for "telnet" and "ftp" are passed to Tramp.
+
 ** Obsolete packages
 
 ---
