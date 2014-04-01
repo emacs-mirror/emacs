@@ -173,7 +173,6 @@ static void stress_with_arena_class(mps_arena_class_t aclass, Bool zoned)
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, zoned);
-    MPS_ARGS_DONE(args);
     die(mps_arena_create_k(&arena, aclass, args),
         "mps_arena_create");
   } MPS_ARGS_END(args);
