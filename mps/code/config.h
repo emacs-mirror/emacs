@@ -262,6 +262,13 @@
 #define FMT_CLASS_DEFAULT (&FormatDefaultClass)
 
 
+/* Pool AMC Configuration -- see <code/poolamc.c> */
+
+#define AMC_INTERIOR_DEFAULT TRUE
+/* AMC treats segments of this many pages (or more) as "Large" */
+#define AMCLargeSegPAGES ((Count)8)
+
+
 /* Pool AMS Configuration -- see <code/poolams.c> */
 
 #define AMS_SUPPORT_AMBIGUOUS_DEFAULT FALSE
@@ -271,6 +278,10 @@
 /* Pool AWL Configuration -- see <code/poolawl.c> */
 
 #define AWL_GEN_DEFAULT       0
+#define AWL_HAVE_SEG_SA_LIMIT   TRUE
+#define AWL_SEG_SA_LIMIT        200     /* TODO: Improve guesswork with measurements */
+#define AWL_HAVE_TOTAL_SA_LIMIT FALSE
+#define AWL_TOTAL_SA_LIMIT      0
 
 
 /* Pool LO Configuration -- see <code/poollo.c> */
@@ -532,20 +543,6 @@
    a constant.  That will require design, and then some interface and
    documenation changes. */
 #define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
-
-
-/* Pool Class AMC configuration */
-
-/* AMC treats segments of this many pages (or more) as "Large" */
-#define AMCLargeSegPAGES ((Count)8)
-
-
-/* Pool Class AWL configuration -- see poolawl.c for usage */
-
-#define AWL_HAVE_SEG_SA_LIMIT   TRUE
-#define AWL_SEG_SA_LIMIT        200     /* TODO: Improve guesswork with measurements */
-#define AWL_HAVE_TOTAL_SA_LIMIT FALSE
-#define AWL_TOTAL_SA_LIMIT      0
 
 
 /* Default chain for GC pools

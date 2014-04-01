@@ -16,6 +16,7 @@
 
 ALL_TEST_CASES="
     abqtest
+    airtest
     amcss
     amcsshe
     amcssth

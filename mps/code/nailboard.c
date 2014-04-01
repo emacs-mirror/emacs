@@ -103,6 +103,7 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
 {
   void *p;
   Nailboard board;
+  Shift alignShift;
   Count nails, levels;
   Index i;
   Res res;
@@ -114,7 +115,8 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
   AVER(AddrIsAligned(base, alignment));
   AVER(AddrIsAligned(limit, alignment));
 
-  nails = AddrOffset(base, limit) / alignment;
+  alignShift = SizeLog2((Size)alignment);
+  nails = AddrOffset(base, limit) >> alignShift;
   levels = nailboardLevels(nails);
   res = ControlAlloc(&p, arena, nailboardSize(nails, levels), FALSE);
   if (res != ResOK)
@@ -123,7 +125,7 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
   board = p;
   RangeInit(&board->range, base, limit);
   board->levels = levels;
-  board->alignShift = SizeLog2(alignment);
+  board->alignShift = alignShift;
   board->newNails = FALSE;
 
   p = (char *)p + nailboardStructSize(levels);
@@ -146,16 +148,19 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
 
 void NailboardDestroy(Nailboard board, Arena arena)
 {
+  Count nails;
   Size size;
 
   AVERT(Nailboard, board);
   AVERT(Arena, arena);
 
-  size = nailboardSize(nailboardLevelBits(board, 0), board->levels);
+  nails = nailboardLevelBits(board, 0);
+  size = nailboardSize(nails, board->levels);
 
   board->sig = SigInvalid;
   ControlFree(arena, board, size);
 }
+
 
 /* NailboardClearNewNails -- clear the "new nails" flag */
 
@@ -203,8 +208,9 @@ static Addr nailboardAddr(Nailboard board, Index level, Index index)
 
 
 /* nailboardIndexRange -- update *ibaseReturn and *ilimitReturn to be
- * the indexes of the nail corresponding to base and limit
- * respectively, in the given level. See .impl.isresrange.alignment.
+ * the interval of indexes of nails in the given level, corresponding
+ * to the interval of addresses base and limit. See
+ * <design/nailboard/#.impl.isresrange.alignment>.
  */
 
 static void nailboardIndexRange(Index *ibaseReturn, Index *ilimitReturn,

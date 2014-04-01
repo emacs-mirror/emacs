@@ -53,8 +53,8 @@ int main(int argc, char **argv)
 {
   mps_arena_t arena;
 
-  randomize(argc, argv);
-  mps_lib_assert_fail_install(assert_die);
+  testlib_init(argc, argv);
+
   die(mps_arena_create(&arena, mps_arena_class_vm(), 1024 * 1024),
       "mps_arena_create");
 
