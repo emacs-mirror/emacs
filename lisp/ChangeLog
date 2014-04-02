@@ -2,6 +2,8 @@
 
 	* progmodes/perl-mode.el (perl-indent-new-calculate):
 	Handle forward-sexp failure (bug#16985).
+	(perl-syntax-propertize-function): Add "foreach" and "for" statement
+	modifiers introducing expressions (bug#17116).
 
 2014-04-02  Glenn Morris  <rgm@gnu.org>
 

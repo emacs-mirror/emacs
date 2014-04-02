@@ -276,7 +276,7 @@
       ;; perl-font-lock-special-syntactic-constructs.
       ((concat "\\(?:\\(?:^\\|[^$@&%[:word:]]\\)"
                (regexp-opt '("split" "if" "unless" "until" "while" "split"
-                             "grep" "map" "not" "or" "and"))
+                             "grep" "map" "not" "or" "and" "for" "foreach"))
                "\\|[?:.,;=!~({[]\\|\\(^\\)\\)[ \t\n]*\\(/\\)")
        (2 (ignore
            (if (and (match-end 1)       ; / at BOL.
