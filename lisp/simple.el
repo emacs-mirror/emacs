@@ -1628,36 +1628,36 @@ a special event, so ignore the prefix argument and don't clear it."
                      (prog1 prefix-arg
                        (setq current-prefix-arg prefix-arg)
                        (setq prefix-arg nil)))))
-    (and (symbolp cmd)
-         (get cmd 'disabled)
-         ;; FIXME: Weird calling convention!
-         (run-hooks 'disabled-command-function))
-    (let ((final cmd))
-      (while
-          (progn
-            (setq final (indirect-function final))
-            (if (autoloadp final)
-                (setq final (autoload-do-load final cmd)))))
-      (cond
-       ((arrayp final)
-        ;; If requested, place the macro in the command history.  For
-        ;; other sorts of commands, call-interactively takes care of this.
-        (when record-flag
-          (push `(execute-kbd-macro ,final ,prefixarg) command-history)
-          ;; Don't keep command history around forever.
-          (when (and (numberp history-length) (> history-length 0))
-            (let ((cell (nthcdr history-length command-history)))
-              (if (consp cell) (setcdr cell nil)))))
-        (execute-kbd-macro final prefixarg))
-       (t
-        ;; Pass `cmd' rather than `final', for the backtrace's sake.
-        (prog1 (call-interactively cmd record-flag keys)
-          (when (and (symbolp cmd)
-                     (get cmd 'byte-obsolete-info)
-                     (not (get cmd 'command-execute-obsolete-warned)))
-            (put cmd 'command-execute-obsolete-warned t)
-            (message "%s" (macroexp--obsolete-warning
-                           cmd (get cmd 'byte-obsolete-info) "command")))))))))
+    (if (and (symbolp cmd)
+             (get cmd 'disabled))
+        ;; FIXME: Weird calling convention!
+        (run-hooks 'disabled-command-function)
+      (let ((final cmd))
+        (while
+            (progn
+              (setq final (indirect-function final))
+              (if (autoloadp final)
+                  (setq final (autoload-do-load final cmd)))))
+        (cond
+         ((arrayp final)
+          ;; If requested, place the macro in the command history.  For
+          ;; other sorts of commands, call-interactively takes care of this.
+          (when record-flag
+            (push `(execute-kbd-macro ,final ,prefixarg) command-history)
+            ;; Don't keep command history around forever.
+            (when (and (numberp history-length) (> history-length 0))
+              (let ((cell (nthcdr history-length command-history)))
+                (if (consp cell) (setcdr cell nil)))))
+          (execute-kbd-macro final prefixarg))
+         (t
+          ;; Pass `cmd' rather than `final', for the backtrace's sake.
+          (prog1 (call-interactively cmd record-flag keys)
+            (when (and (symbolp cmd)
+                       (get cmd 'byte-obsolete-info)
+                       (not (get cmd 'command-execute-obsolete-warned)))
+              (put cmd 'command-execute-obsolete-warned t)
+              (message "%s" (macroexp--obsolete-warning
+                             cmd (get cmd 'byte-obsolete-info) "command"))))))))))
 
 (defvar minibuffer-history nil
   "Default minibuffer history list.

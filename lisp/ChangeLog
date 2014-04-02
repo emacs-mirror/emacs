@@ -1,3 +1,8 @@
+2014-04-01  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
+
+	* simple.el (command-execute): Do not execute the command when it
+	is disabled; fixes thinko in 2013-02-20 conversion from C.  (Bug#17151)
+
 2014-03-29  Juri Linkov  <juri@jurta.org>
 
 	* dired-aux.el (dired-compress-file): Don't use string-match-p
