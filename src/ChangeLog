@@ -1,3 +1,8 @@
+2014-04-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* xterm.c (x_new_font): Don't calculate non-toolkit scrollbar
+	width from font width (Bug#17163).
+
 2014-03-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (x_set_frame_parameters): Calculate default values of

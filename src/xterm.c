@@ -7778,20 +7778,16 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 
   compute_fringe_widths (f, 1);
 
+  /* Compute character columns occupied by scrollbar.
+
+     Don't do things differently for non-toolkit scrollbars
+     (Bug#17163).  */
   unit = FRAME_COLUMN_WIDTH (f);
-#ifdef USE_TOOLKIT_SCROLL_BARS
-  /* The width of a toolkit scrollbar does not change with the new
-     font but we have to calculate the number of columns it occupies
-     anew.  */
-  FRAME_CONFIG_SCROLL_BAR_COLS (f)
-    = (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + unit - 1) / unit;
-#else
-  /* The width of a non-toolkit scrollbar is at least 14 pixels and a
-     multiple of the frame's character width.  */
-  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + unit - 1) / unit;
-  FRAME_CONFIG_SCROLL_BAR_WIDTH (f)
-    = FRAME_CONFIG_SCROLL_BAR_COLS (f) * unit;
-#endif  
+  if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)
+    FRAME_CONFIG_SCROLL_BAR_COLS (f)
+      = (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + unit - 1) / unit;
+  else
+    FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + unit - 1) / unit;
 
   if (FRAME_X_WINDOW (f) != 0)
     {
@@ -7997,7 +7993,7 @@ xim_close_dpy (struct x_display_info *dpyinfo)
     {
 #ifdef HAVE_X11R6_XIM
       struct xim_inst_t *xim_inst = dpyinfo->xim_callback_data;
-      
+
       if (dpyinfo->display)
 	{
 	  Bool ret = XUnregisterIMInstantiateCallback
