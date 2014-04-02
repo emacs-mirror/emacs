@@ -1,3 +1,8 @@
+2014-04-02  João Távora  <joaotavora@gmail.com>
+
+	* automated/electric-tests.el (inhibit-if-strings-mismatched):
+	New test, change from `inhibit-only-of-next-is-mismatched'.
+
 2014-03-26  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	* automated/undo-tests.el (undo-test-marker-adjustment-nominal):

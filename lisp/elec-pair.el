@@ -364,18 +364,17 @@ If point is not enclosed by any lists, return ((t) . (t))."
                   (funcall ended-prematurely-fn)))))))
     (cons innermost outermost)))
 
-(defun electric-pair--looking-at-unterminated-string-p (char)
-  "Return non-nil if following string starts with CHAR and is unterminated."
-  ;; FIXME: ugly/naive
-  (save-excursion
-    (skip-chars-forward (format "^%c" char))
-    (while (not (zerop (% (save-excursion (skip-syntax-backward "\\")) 2)))
-      (unless (eobp)
-        (forward-char 1)
-        (skip-chars-forward (format "^%c" char))))
-    (and (not (eobp))
-         (condition-case nil
-             (progn (forward-sexp) nil)
+(defun electric-pair--in-unterminated-string-p (char)
+  "Return non-nil if inside unterminated string started by CHAR"
+  (let* ((ppss (syntax-ppss))
+         (relevant-ppss (if (nth 4 ppss) ; in comment
+                            (electric-pair--syntax-ppss)
+                          ppss))
+         (string-delim (nth 3 relevant-ppss)))
+    (and (or (eq t string-delim)
+             (eq char string-delim))
+         (condition-case nil (progn (scan-sexps (nth 8 relevant-ppss) 1)
+                                    nil)
            (scan-error t)))))
 
 (defun electric-pair--inside-string-p (char)
@@ -409,7 +408,9 @@ happened."
                           (t
                            (eq (cdr outermost) pair)))))
                  ((eq syntax ?\")
-                  (electric-pair--looking-at-unterminated-string-p char))))
+                  (save-excursion
+                    (goto-char (point-max))
+                    (electric-pair--in-unterminated-string-p char)))))
        (insert-char char)))))
 
 (defun electric-pair-skip-if-helps-balance (char)

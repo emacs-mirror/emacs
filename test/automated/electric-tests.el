@@ -295,9 +295,9 @@ Should %s \"%s\" and point at %d"
   :bindings `((electric-pair-text-syntax-table
                . ,prog-mode-syntax-table)))
 
-(define-electric-pair-test inhibit-only-if-next-is-mismatched
+(define-electric-pair-test inhibit-if-strings-mismatched
   "\"foo\"\"bar" "\""
-  :expected-string "\"\"\"foo\"\"bar"
+  :expected-string "\"\"foo\"\"bar"
   :expected-point 2
   :test-in-strings nil
   :bindings `((electric-pair-text-syntax-table

@@ -1,3 +1,11 @@
+2014-04-02  João Távora  <joaotavora@gmail.com>
+
+	* elec-pair.el (electric-pair-inhibit-if-helps-balance): Inhibit
+	quote pairing if point-max is inside an unterminated string.
+	(electric-pair--looking-at-unterminated-string-p):
+	Delete.
+	(electric-pair--in-unterminated-string-p): New function.
+
 2014-04-01  Daniel Colascione  <dancol@dancol.org>
 
 	* minibuffer.el (minibuffer-complete): Prevent assertion failure
