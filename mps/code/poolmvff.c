@@ -58,7 +58,7 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
 
 #define Pool2MVFF(pool)   PARENT(MVFFStruct, poolStruct, pool)
 #define MVFF2Pool(mvff)       (&((mvff)->poolStruct))
-#define CBSOfMVFF(mvff)      ((Land)&((mvff)->cbsStruct))
+#define CBSOfMVFF(mvff)      (&((mvff)->cbsStruct.landStruct))
 #define MVFFOfCBS(cbs)       PARENT(MVFFStruct, cbsStruct, cbs)
 #define FreelistOfMVFF(mvff)      (&((mvff)->flStruct))
 #define MVFFOfFreelist(fl)       PARENT(MVFFStruct, flStruct, fl)

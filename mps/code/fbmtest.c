@@ -558,7 +558,7 @@ extern int main(int argc, char *argv[])
   BT allocTable;
   FreelistStruct flStruct;
   CBSStruct cbsStruct;
-  Land land = (Land)&cbsStruct;
+  Land land = &cbsStruct.landStruct;
   Align align;
 
   testlib_init(argc, argv);
