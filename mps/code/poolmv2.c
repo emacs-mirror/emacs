@@ -52,7 +52,7 @@ static Res MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
 static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena);
 static ABQ MVTABQ(MVT mvt);
 static Land MVTCBS(MVT mvt);
-static Freelist MVTFreelist(MVT mvt);
+static Land MVTFreelist(MVT mvt);
 
 
 /* Types */
@@ -174,9 +174,9 @@ static Land MVTCBS(MVT mvt)
 }
 
 
-static Freelist MVTFreelist(MVT mvt)
+static Land MVTFreelist(MVT mvt)
 {
-  return &mvt->flStruct;
+  return &mvt->flStruct.landStruct;
 }
 
 
@@ -280,7 +280,8 @@ static Res MVTInit(Pool pool, ArgList args)
   if (res != ResOK)
     goto failABQ;
 
-  res = FreelistInit(MVTFreelist(mvt), align);
+  res = LandInit(MVTFreelist(mvt), FreelistLandClassGet(), arena, align, mvt,
+                 mps_args_none);
   if (res != ResOK)
     goto failFreelist;
 
@@ -422,7 +423,7 @@ static void MVTFinish(Pool pool)
   }
 
   /* Finish the Freelist, ABQ and CBS structures */
-  FreelistFinish(MVTFreelist(mvt));
+  LandFinish(MVTFreelist(mvt));
   ABQFinish(arena, MVTABQ(mvt));
   LandFinish(MVTCBS(mvt));
 }
@@ -810,14 +811,14 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
 
   /* Attempt to flush the Freelist to the CBS to give maximum
    * opportunities for coalescence. */
-  FreelistFlushToLand(MVTFreelist(mvt), MVTCBS(mvt));
+  LandFlush(MVTCBS(mvt), MVTFreelist(mvt));
   
   RangeInit(&range, base, limit);
   res = LandInsert(&newRange, MVTCBS(mvt), &range);
   if (ResIsAllocFailure(res)) {
     /* CBS ran out of memory for splay nodes: add range to emergency
      * free list instead. */
-    res = FreelistInsert(&newRange, MVTFreelist(mvt), &range);
+    res = LandInsert(&newRange, MVTFreelist(mvt), &range);
   }
   if (res != ResOK)
     return res;
@@ -866,7 +867,7 @@ static Res MVTDelete(MVT mvt, Addr base, Addr limit)
     AVER(res == ResOK);
   } else if (res == ResFAIL) {
     /* Not found in the CBS: try the Freelist. */
-    res = FreelistDelete(&rangeOld, MVTFreelist(mvt), &range);
+    res = LandDelete(&rangeOld, MVTFreelist(mvt), &range);
   }
   if (res != ResOK)
     return res;
@@ -1051,7 +1052,7 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream)
   res = ABQDescribe(MVTABQ(mvt), (ABQDescribeElement)RangeDescribe, stream);
   if(res != ResOK) return res;
 
-  res = FreelistDescribe(MVTFreelist(mvt), stream);
+  res = LandDescribe(MVTFreelist(mvt), stream);
   if(res != ResOK) return res;
 
   res = METER_WRITE(mvt->segAllocs, stream);
@@ -1272,42 +1273,22 @@ static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena)
 }
 
 
-/* MVTRefillCallback -- called from CBSIterate or FreelistIterate at
- * the behest of MVTRefillABQIfEmpty
- */
-static Bool MVTRefillCallback(MVT mvt, Range range)
+static Bool MVTRefillVisitor(Bool *deleteReturn, Land land, Range range,
+                             void *closureP, Size closureS)
 {
-  AVERT(ABQ, MVTABQ(mvt));
-  AVERT(Range, range);
+  MVT mvt;
+
+  AVER(deleteReturn != NULL);
+  AVERT(Land, land);
+  mvt = closureP;
+  AVERT(MVT, mvt);
+  UNUSED(closureS);
 
   if (RangeSize(range) < mvt->reuseSize)
     return TRUE;
 
   METER_ACC(mvt->refillPushes, ABQDepth(MVTABQ(mvt)));
   return MVTReserve(mvt, range);
-}
-
-static Bool MVTCBSRefillCallback(Land land, Range range,
-                                 void *closureP, Size closureS)
-{
-  MVT mvt;
-  AVERT(Land, land);
-  mvt = closureP;
-  AVERT(MVT, mvt);
-  UNUSED(closureS);
-  return MVTRefillCallback(mvt, range);
-}
-
-static Bool MVTFreelistRefillCallback(Bool *deleteReturn, Range range,
-                                      void *closureP, Size closureS)
-{
-  MVT mvt;
-  mvt = closureP;
-  AVERT(MVT, mvt);
-  UNUSED(closureS);
-  AVER(deleteReturn != NULL);
-  *deleteReturn = FALSE;
-  return MVTRefillCallback(mvt, range);
 }
 
 /* MVTRefillABQIfEmpty -- refill the ABQ from the CBS and the Freelist if
@@ -1326,8 +1307,8 @@ static void MVTRefillABQIfEmpty(MVT mvt, Size size)
   if (mvt->abqOverflow && ABQIsEmpty(MVTABQ(mvt))) {
     mvt->abqOverflow = FALSE;
     METER_ACC(mvt->refills, size);
-    LandIterate(MVTCBS(mvt), &MVTCBSRefillCallback, mvt, 0);
-    FreelistIterate(MVTFreelist(mvt), &MVTFreelistRefillCallback, mvt, 0);
+    LandIterate(MVTCBS(mvt), &MVTRefillVisitor, mvt, 0);
+    LandIterate(MVTFreelist(mvt), &MVTRefillVisitor, mvt, 0);
   }
 }
  
@@ -1348,19 +1329,26 @@ typedef struct MVTContigencyStruct
 } MVTContigencyStruct;
 
 
-/* MVTContingencyCallback -- called from CBSIterate or FreelistIterate
- * at the behest of MVTContingencySearch.
+/* MVTContingencyVisitor -- called from LandIterate at the behest of
+ * MVTContingencySearch.
  */
-static Bool MVTContingencyCallback(MVTContigency cl, Range range)
+
+static Bool MVTContingencyVisitor(Bool *deleteReturn, Land land, Range range,
+                                  void *closureP, Size closureS)
 {
   MVT mvt;
   Size size;
   Addr base, limit;
+  MVTContigency cl;
 
-  AVER(cl != NULL);
+  AVER(deleteReturn != NULL);
+  AVERT(Land, land);
+  AVERT(Range, range);
+  AVER(closureP != NULL);
+  cl = closureP;
   mvt = cl->mvt;
   AVERT(MVT, mvt);
-  AVERT(Range, range);
+  UNUSED(closureS);
 
   base = RangeBase(range);
   limit = RangeLimit(range);
@@ -1389,25 +1377,6 @@ static Bool MVTContingencyCallback(MVTContigency cl, Range range)
   return TRUE;
 }
 
-static Bool MVTCBSContingencyCallback(Land land, Range range,
-                                      void *closureP, Size closureS)
-{
-  MVTContigency cl = closureP;
-  AVERT(Land, land);
-  UNUSED(closureS);
-  return MVTContingencyCallback(cl, range);
-}
-
-static Bool MVTFreelistContingencyCallback(Bool *deleteReturn, Range range,
-                                           void *closureP, Size closureS)
-{
-  MVTContigency cl = closureP;
-  UNUSED(closureS);
-  AVER(deleteReturn != NULL);
-  *deleteReturn = FALSE;
-  return MVTContingencyCallback(cl, range);
-}
-
 /* MVTContingencySearch -- search the CBS and the Freelist for a block
  * of size min */
 
@@ -1423,11 +1392,10 @@ static Bool MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
   cls.steps = 0;
   cls.hardSteps = 0;
 
-  FreelistFlushToLand(MVTFreelist(mvt), MVTCBS(mvt));
+  LandFlush(MVTCBS(mvt), MVTFreelist(mvt));
 
-  LandIterate(MVTCBS(mvt), MVTCBSContingencyCallback, (void *)&cls, 0);
-  FreelistIterate(MVTFreelist(mvt), MVTFreelistContingencyCallback,
-                  (void *)&cls, 0);
+  LandIterate(MVTCBS(mvt), MVTContingencyVisitor, (void *)&cls, 0);
+  LandIterate(MVTFreelist(mvt), MVTContingencyVisitor, (void *)&cls, 0);
   if (!cls.found)
     return FALSE;
 

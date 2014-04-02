@@ -77,12 +77,15 @@ Types
 
 _`.type.land`: The type of a generic land instance.
 
-``typedef Bool (*LandVisitor)(Land land, Range range, void *closureP, Size closureS);``
+``typedef Bool (*LandVisitor)(Bool *deleteReturn, Land land, Range range, void *closureP, Size closureS);``
 
-_`.type.visitor`: Type ``LandVisitor`` is a callback function that
-may be passed to ``LandIterate()``. It is called for every isolated
-contiguous range in address order. The function must return a
-``Bool`` indicating whether to continue with the iteration.
+_`.type.visitor`: Type ``LandVisitor`` is a callback function that may
+be passed to ``LandIterate()``. It is called for every isolated
+contiguous range in address order. The function must return a ``Bool``
+indicating whether to continue with the iteration. It may additionally
+update ``*deleteReturn`` to ``TRUE`` if the range must be deleted from
+the land, or ``FALSE`` if the range must be kept. (The default is to
+keep the range, and not all land classes support deletion.)
 
 
 Generic functions
@@ -220,25 +223,28 @@ the ``oldRangeReturn`` argument.
 
 ``Res LandDescribe(Land land, mps_lib_FILE *stream)``
 
-_`.function.describe`: ``LandDescribe()`` is a function that prints
-a textual representation of the land to the given stream, indicating
-the contiguous ranges in order, as well as the structure of the
-underlying splay tree implementation. It is provided for debugging
-purposes only.
+_`.function.describe`: ``LandDescribe()`` prints a textual
+representation of the land to the given stream, indicating the
+contiguous ranges in order, as well as the structure of the underlying
+splay tree implementation. It is provided for debugging purposes only.
+
+``void LandFlush(Land dest, Land src)``
+
+_`.function.flush`: Delete ranges of addresses from ``src`` and insert
+them into ``dest``, so long as ``LandInsert()`` remains successful.
 
 
 Testing
 -------
 
-_`.test.fbmtest`: There is a stress test for implementations of this
-interface in impl.c.fbmtest. This allocates a large block of memory
-and then simulates the allocation and deallocation of ranges within
-this block using both a ``Land`` and a ``BT``. It makes both valid and
-invalid requests, and compares the ``Land`` response to the correct
-behaviour as determined by the ``BT``. It iterates the ranges in the
-``Land``, comparing them to the ``BT``. It invokes the
-``LandDescribe()`` generic function, but makes no automatic test of
-the resulting output.
+_`.test`: There is a stress test for implementations of this interface
+in impl.c.landtest. This allocates a large block of memory and then
+simulates the allocation and deallocation of ranges within this block
+using both a ``Land`` and a ``BT``. It makes both valid and invalid
+requests, and compares the ``Land`` response to the correct behaviour
+as determined by the ``BT``. It iterates the ranges in the ``Land``,
+comparing them to the ``BT``. It invokes the ``LandDescribe()``
+generic function, but makes no automatic test of the resulting output.
 
 
 Document History

@@ -59,9 +59,7 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
 #define Pool2MVFF(pool)   PARENT(MVFFStruct, poolStruct, pool)
 #define MVFF2Pool(mvff)       (&((mvff)->poolStruct))
 #define CBSOfMVFF(mvff)      (&((mvff)->cbsStruct.landStruct))
-#define MVFFOfCBS(cbs)       PARENT(MVFFStruct, cbsStruct, cbs)
-#define FreelistOfMVFF(mvff)      (&((mvff)->flStruct))
-#define MVFFOfFreelist(fl)       PARENT(MVFFStruct, flStruct, fl)
+#define FreelistOfMVFF(mvff)      (&((mvff)->flStruct.landStruct))
 
 static Bool MVFFCheck(MVFF mvff);
 
@@ -99,7 +97,7 @@ static Res MVFFAddToFreeList(Addr *baseIO, Addr *limitIO, MVFF mvff) {
   if (ResIsAllocFailure(res)) {
     /* CBS ran out of memory for splay nodes: add range to emergency
      * free list instead. */
-    res = FreelistInsert(&newRange, FreelistOfMVFF(mvff), &range);
+    res = LandInsert(&newRange, FreelistOfMVFF(mvff), &range);
   }
 
   if (res == ResOK) {
@@ -178,7 +176,7 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
         }
       } else if (res == ResFAIL) {
         /* Not found in the CBS: must be found in the Freelist. */
-        res = FreelistDelete(&oldRange, FreelistOfMVFF(mvff), &range);
+        res = LandDelete(&oldRange, FreelistOfMVFF(mvff), &range);
         AVER(res == ResOK);
         mvff->free -= RangeSize(&range);
       }
@@ -297,7 +295,7 @@ static Bool MVFFFindFirstFree(Addr *baseReturn, Addr *limitReturn,
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(MVFF2Pool(mvff))));
 
-  FreelistFlushToLand(FreelistOfMVFF(mvff), CBSOfMVFF(mvff));
+  LandFlush(CBSOfMVFF(mvff), FreelistOfMVFF(mvff));
 
   findDelete = mvff->slotHigh ? FindDeleteHIGH : FindDeleteLOW;
 
@@ -309,7 +307,7 @@ static Bool MVFFFindFirstFree(Addr *baseReturn, Addr *limitReturn,
     /* Failed to find a block in the CBS: try the emergency free list
      * as well. */
     foundBlock =
-      (mvff->firstFit ? FreelistFindFirst : FreelistFindLast)
+      (mvff->firstFit ? LandFindFirst : LandFindLast)
       (&range, &oldRange, FreelistOfMVFF(mvff), size, findDelete);
   }
 
@@ -411,13 +409,12 @@ static Bool MVFFFindLargest(Range range, Range oldRange, MVFF mvff,
   AVER(size > 0);
   AVERT(FindDelete, findDelete);
 
-  FreelistFlushToLand(FreelistOfMVFF(mvff), CBSOfMVFF(mvff));
+  LandFlush(CBSOfMVFF(mvff), FreelistOfMVFF(mvff));
 
   if (LandFindLargest(range, oldRange, CBSOfMVFF(mvff), size, findDelete))
     return TRUE;
 
-  if (FreelistFindLargest(range, oldRange, FreelistOfMVFF(mvff),
-                          size, findDelete))
+  if (LandFindLargest(range, oldRange, FreelistOfMVFF(mvff), size, findDelete))
     return TRUE;
 
   return FALSE;
@@ -598,16 +595,16 @@ static Res MVFFInit(Pool pool, ArgList args)
   mvff->total = 0;
   mvff->free = 0;
 
-  res = FreelistInit(FreelistOfMVFF(mvff), align);
+  res = LandInit(FreelistOfMVFF(mvff), FreelistLandClassGet(), arena, align, mvff, mps_args_none);
   if (res != ResOK)
-    goto failInit;
+    goto failFreelistInit;
 
   MPS_ARGS_BEGIN(liArgs) {
     MPS_ARGS_ADD(liArgs, CBSFastFind, TRUE);
     res = LandInit(CBSOfMVFF(mvff), CBSLandClassGet(), arena, align, mvff, liArgs);
   } MPS_ARGS_END(liArgs);
   if (res != ResOK)
-    goto failInit;
+    goto failCBSInit;
 
   mvff->sig = MVFFSig;
   AVERT(MVFF, mvff);
@@ -615,7 +612,9 @@ static Res MVFFInit(Pool pool, ArgList args)
                  slotHigh, arenaHigh, firstFit);
   return ResOK;
 
-failInit:
+failCBSInit:
+  LandFinish(FreelistOfMVFF(mvff));
+failFreelistInit:
   ControlFree(arena, p, sizeof(SegPrefStruct));
   return res;
 }
@@ -649,7 +648,7 @@ static void MVFFFinish(Pool pool)
   ControlFree(arena, mvff->segPref, sizeof(SegPrefStruct));
 
   LandFinish(CBSOfMVFF(mvff));
-  FreelistFinish(FreelistOfMVFF(mvff));
+  LandFinish(FreelistOfMVFF(mvff));
 
   mvff->sig = SigInvalid;
 }
@@ -697,7 +696,7 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
   if (res != ResOK)
     return res;
 
-  res = FreelistDescribe(FreelistOfMVFF(mvff), stream);
+  res = LandDescribe(FreelistOfMVFF(mvff), stream);
   if (res != ResOK)
     return res;
 
@@ -804,8 +803,8 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKL(mvff->total >= mvff->free);
   CHECKL(SizeIsAligned(mvff->free, PoolAlignment(MVFF2Pool(mvff))));
   CHECKL(SizeIsAligned(mvff->total, ArenaAlign(PoolArena(MVFF2Pool(mvff)))));
-  CHECKD(Land, CBSOfMVFF(mvff));
-  CHECKD(Freelist, FreelistOfMVFF(mvff));
+  CHECKD(CBS, &mvff->cbsStruct);
+  CHECKD(Freelist, &mvff->flStruct);
   CHECKL(BoolCheck(mvff->slotHigh));
   CHECKL(BoolCheck(mvff->firstFit));
   return TRUE;

@@ -1010,6 +1010,7 @@ extern Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Siz
 extern Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
 extern Res LandFindInZones(Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
 extern Res LandDescribe(Land land, mps_lib_FILE *stream);
+extern void LandFlush(Land dest, Land src);
 
 extern Bool LandClassCheck(LandClass class);
 extern LandClass LandClassGet(void);
