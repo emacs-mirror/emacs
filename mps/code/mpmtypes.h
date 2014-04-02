@@ -112,10 +112,12 @@ typedef struct StackContextStruct *StackContext;
 typedef struct RangeStruct *Range;      /* <design/range/> */
 typedef struct LandStruct *Land;        /* <design/land/> */
 typedef struct LandClassStruct *LandClass; /* <design/land/> */
+typedef unsigned FindDelete;            /* <design/land/> */
 typedef LandClass CBSLandClass;         /* <design/cbs/> */
 typedef struct CBSStruct *CBS;          /* <design/cbs/> */
-typedef LandClass FreelistClass;        /* <design/freelist/> */
-typedef unsigned FindDelete;            /* <design/land/> */
+typedef LandClass FreelistLandClass;    /* <design/freelist/> */
+typedef struct FreelistStruct *Freelist; /* <design/freelist/> */
+typedef union FreelistBlockUnion *FreelistBlock; /* <code/freelist.c> */
 
 
 /* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */
@@ -274,7 +276,7 @@ typedef Res (*LandInitMethod)(Land land, ArgList args);
 typedef void (*LandFinishMethod)(Land land);
 typedef Res (*LandInsertMethod)(Range rangeReturn, Land land, Range range);
 typedef Res (*LandDeleteMethod)(Range rangeReturn, Land land, Range range);
-typedef Bool (*LandVisitor)(Land land, Range range, void *closureP, Size closureS);
+typedef Bool (*LandVisitor)(Bool *deleteReturn, Land land, Range range, void *closureP, Size closureS);
 typedef void (*LandIterateMethod)(Land land, LandVisitor visitor, void *closureP, Size closureS);
 typedef Bool (*LandFindMethod)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
 typedef Res (*LandFindInZonesMethod)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);

@@ -26,7 +26,7 @@ SRCID(cbs, "$Id$");
 #define CBSBlockSize(block) AddrOffset((block)->base, (block)->limit)
 
 
-#define cbsOfLand(land) ((CBS)(land))
+#define cbsOfLand(land) PARENT(CBSStruct, landStruct, land)
 #define cbsSplay(cbs) (&((cbs)->splayTreeStruct))
 #define cbsOfSplay(_splay) PARENT(CBSStruct, splayTreeStruct, _splay)
 #define cbsBlockTree(block) (&((block)->treeStruct))
@@ -720,7 +720,7 @@ static Res cbsSplayNodeDescribe(Tree tree, mps_lib_FILE *stream)
 
 typedef struct CBSIterateClosure {
   Land land;
-  LandVisitor iterate;
+  LandVisitor visitor;
   void *closureP;
   Size closureS;
 } CBSIterateClosure;
@@ -732,12 +732,16 @@ static Bool cbsIterateVisit(Tree tree, void *closureP, Size closureS)
   CBSBlock cbsBlock;
   Land land = closure->land;
   CBS cbs = cbsOfLand(land);
+  Bool delete = FALSE;
+  Bool cont = TRUE;
 
   UNUSED(closureS);
 
   cbsBlock = cbsBlockOfTree(tree);
   RangeInit(&range, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock));
-  if (!closure->iterate(land, &range, closure->closureP, closure->closureS))
+  cont = (*closure->visitor)(&delete, land, &range, closure->closureP, closure->closureS);
+  AVER(!delete);
+  if (!cont)
     return FALSE;
   METER_ACC(cbs->treeSearch, cbs->treeSize);
   return TRUE;
@@ -762,7 +766,7 @@ static void cbsIterate(Land land, LandVisitor visitor,
   METER_ACC(cbs->treeSearch, cbs->treeSize);
 
   closure.land = land;
-  closure.iterate = visitor;
+  closure.visitor = visitor;
   closure.closureP = closureP;
   closure.closureS = closureS;
   (void)TreeTraverse(SplayTreeRoot(splay), splay->compare, splay->nodeKey,
