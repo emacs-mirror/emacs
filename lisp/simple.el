@@ -1629,7 +1629,8 @@ a special event, so ignore the prefix argument and don't clear it."
                        (setq current-prefix-arg prefix-arg)
                        (setq prefix-arg nil)))))
     (if (and (symbolp cmd)
-             (get cmd 'disabled))
+             (get cmd 'disabled)
+             disabled-command-function)
         ;; FIXME: Weird calling convention!
         (run-hooks 'disabled-command-function)
       (let ((final cmd))

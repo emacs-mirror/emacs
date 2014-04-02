@@ -1,3 +1,7 @@
+2014-04-02  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (command-execute): Respect nil disabled-command-function.
+
 2014-04-01  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
 
 	* simple.el (command-execute): Do not execute the command when it
