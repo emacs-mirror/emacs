@@ -1,3 +1,26 @@
+2014-04-02  Glenn Morris  <rgm@gnu.org>
+
+	* menu-bar.el (menu-bar-file-menu):
+	* vc/ediff.el (ediff-current-file):
+	Update for revert-buffer-function no longer being nil by default.
+
+	* simple.el (command-execute): Respect nil disabled-command-function.
+
+2014-04-02  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
+
+	* simple.el (command-execute): Do not execute the command when it
+	is disabled; fixes thinko in 2013-02-20 conversion from C.  (Bug#17151)
+
+2014-04-02  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-compress-file): Don't use string-match-p
+	because its match data is used afterwards.
+
+2014-04-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-built-in-p): Treat a min-version of
+	0 like nil.
+
 2014-04-02  João Távora  <joaotavora@gmail.com>
 
 	* elec-pair.el (electric-pair-inhibit-if-helps-balance): Inhibit
@@ -111,8 +134,8 @@
 
 2014-03-27  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight
-	special globals with font-lock-builtin-face.  (Bug#17057)
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords):
+	Highlight special globals with font-lock-builtin-face.  (Bug#17057)
 
 	* progmodes/ruby-mode.el (ruby-syntax-propertize-function):
 	Don't propertize `?' or `!' as symbol constituent when after

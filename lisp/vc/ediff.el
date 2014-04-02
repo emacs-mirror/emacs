@@ -367,8 +367,10 @@ deleted."
 This command can be used instead of `revert-buffer'.  If there is
 nothing to revert then this command fails."
   (interactive)
-  (unless (or revert-buffer-function
-              revert-buffer-insert-file-contents-function
+  ;; This duplicates code from menu-bar.el.
+  (unless (or (not (eq revert-buffer-function 'revert-buffer--default))
+              (not (eq revert-buffer-insert-file-contents-function
+		       'revert-buffer-insert-file-contents--default-function))
               (and buffer-file-number
                    (or (buffer-modified-p)
                        (not (verify-visited-file-modtime

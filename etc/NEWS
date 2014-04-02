@@ -1455,19 +1455,22 @@ used in place of the 9th element of `file-attributes'.
 argument, with the same interpretation as the returned value of
 `visited-file-modtime'.
 
-** Autorevert changes
+** Revert and Autorevert changes
+
+*** The default value of `revert-buffer-function' is no longer nil.
+Instead it defaults to a function that does what the nil value used to.
+The same applies for `revert-buffer-insert-file-contents-function'.
 
 ---
-*** If Emacs is compiled with file notification support, notifications
-are used instead of checking the time stamp of the files.  You can
-disable this by setting the user option `auto-revert-use-notify' to
-nil.  Alternatively, a regular expression of directories to be
-excluded from file notifications can be specified by
+*** If Emacs is compiled with file notification support, it uses notifications
+instead of checking file time stamps.  To disable this, set the user option
+`auto-revert-use-notify' to nil.  Alternatively, you can specify a regular
+expression matching directories to be excluded from file notifications via
 `auto-revert-notify-exclude-dir-regexp'.
 
 ---
 *** The new user option `auto-revert-remote-files' enables reversion
-of remote files when set to non-nil.
+of remote files, if set to non-nil.
 
 ** Face changes
 

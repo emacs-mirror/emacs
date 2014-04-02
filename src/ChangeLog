@@ -1,3 +1,22 @@
+2014-04-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* xterm.c (x_new_font): Don't calculate non-toolkit scrollbar
+	width from font width (Bug#17163).
+
+	* frame.c (x_set_frame_parameters): Calculate default values of
+	new frame sizes only after all other frame parameters have been
+	processed (Bug#17142).
+
+2014-04-02  Ken Brown  <kbrown@cornell.edu>
+
+	* conf_post.h (SYSTEM_PURESIZE_EXTRA) [CYGWIN]: Set to 10000.
+	(Bug#17112)
+
+2014-04-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.c (x_draw_image_glyph_string): Adjust image background
+	width accordingly when its x position is adjusted.  (Bug#17115)
+
 2014-04-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* font.c (font_list_entities): Do not add empty vector to font cache.

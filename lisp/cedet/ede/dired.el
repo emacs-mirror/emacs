@@ -3,7 +3,7 @@
 ;; Copyright (C) 1998-2000, 2003, 2009-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 0.4
+;; Old-Version: 0.4
 ;; Keywords: project, make
 
 ;; This file is part of GNU Emacs.

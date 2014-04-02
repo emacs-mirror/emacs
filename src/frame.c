@@ -2795,6 +2795,7 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
      set them both at once.  So we wait until we've looked at the
      entire list before we set them.  */
   int width, height;
+  bool width_change = 0, height_change = 0;
 
   /* Same here.  */
   Lisp_Object left, top;
@@ -2810,7 +2811,6 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 #ifdef HAVE_X_WINDOWS
   bool icon_left_no_change = 0, icon_top_no_change = 0;
 #endif
-  bool size_changed = 0;
   struct gcpro gcpro1, gcpro2;
 
   i = 0;
@@ -2843,18 +2843,6 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
      because their values appear in VALUES and strings are not valid.  */
   top = left = Qunbound;
   icon_left = icon_top = Qunbound;
-
-  /* Provide default values for HEIGHT and WIDTH.  */
-  width = (f->new_width
-	   ? (f->new_pixelwise
-	      ? f->new_width
-	      : (f->new_width * FRAME_COLUMN_WIDTH (f)))
-	   : FRAME_TEXT_WIDTH (f));
-  height = (f->new_height
-	    ? (f->new_pixelwise
-	       ? f->new_height
-	       : (f->new_height * FRAME_LINE_HEIGHT (f)))
-	    : FRAME_TEXT_HEIGHT (f));
 
   /* Process foreground_color and background_color before anything else.
      They are independent of other properties, but other properties (e.g.,
@@ -2897,12 +2885,12 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 
       if (EQ (prop, Qwidth) && RANGED_INTEGERP (0, val, INT_MAX))
         {
-          size_changed = 1;
+	  width_change = 1;
           width = XFASTINT (val) * FRAME_COLUMN_WIDTH (f) ;
         }
       else if (EQ (prop, Qheight) && RANGED_INTEGERP (0, val, INT_MAX))
         {
-          size_changed = 1;
+	  height_change = 1;
           height = XFASTINT (val) * FRAME_LINE_HEIGHT (f);
         }
       else if (EQ (prop, Qtop))
@@ -2989,11 +2977,30 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 
     XSETFRAME (frame, f);
 
-    if (size_changed
+    if ((width_change || height_change)
         && (width != FRAME_TEXT_WIDTH (f)
             || height != FRAME_TEXT_HEIGHT (f)
             || f->new_height || f->new_width))
-      Fset_frame_size (frame, make_number (width), make_number (height), Qt);
+      {
+	/* If necessary provide default values for HEIGHT and WIDTH.  Do
+	   that here since otherwise a size change implied by an
+	   intermittent font change may get lost as in Bug#17142.  */
+	if (!width_change)
+	  width = (f->new_width
+		   ? (f->new_pixelwise
+		      ? f->new_width
+		      : (f->new_width * FRAME_COLUMN_WIDTH (f)))
+		   : FRAME_TEXT_WIDTH (f));
+
+	if (!height_change)
+	  height = (f->new_height
+		    ? (f->new_pixelwise
+		       ? f->new_height
+		       : (f->new_height * FRAME_LINE_HEIGHT (f)))
+		    : FRAME_TEXT_HEIGHT (f));
+
+	Fset_frame_size (frame, make_number (width), make_number (height), Qt);
+      }
 
     if ((!NILP (left) || !NILP (top))
 	&& ! (left_no_change && top_no_change)

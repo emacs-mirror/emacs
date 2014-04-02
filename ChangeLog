@@ -1,3 +1,8 @@
+2014-04-02  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: Make the final "Does Emacs use Gsettings" message
+	consistent with src/config.h.
+
 2014-03-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac: Fix errors from previous checkin (GSettings check).
