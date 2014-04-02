@@ -1,3 +1,9 @@
+2014-04-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.c (font_list_entities): Do not add empty vector to font cache.
+	(font_matching_entity): Likewise.  If matching entity is found, insert
+	1-item vector with this entity instead of entity itself (Bug#17125).
+
 2014-04-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fns.c (validate_subarray): Rename from validate_substring,

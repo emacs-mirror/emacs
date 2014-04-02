@@ -2753,22 +2753,21 @@ font_list_entities (struct frame *f, Lisp_Object spec)
 	  val = XCDR (val);
 	else
 	  {
-	    Lisp_Object copy;
-
 	    val = driver_list->driver->list (f, scratch_font_spec);
-	    if (NILP (val))
-	      val = zero_vector;
-	    else
-	      val = Fvconcat (1, &val);
-	    copy = copy_font_spec (scratch_font_spec);
-	    ASET (copy, FONT_TYPE_INDEX, driver_list->driver->type);
-	    XSETCDR (cache, Fcons (Fcons (copy, val), XCDR (cache)));
+	    if (!NILP (val))
+	      {
+		Lisp_Object copy = copy_font_spec (scratch_font_spec);
+
+		val = Fvconcat (1, &val);
+		ASET (copy, FONT_TYPE_INDEX, driver_list->driver->type);
+		XSETCDR (cache, Fcons (Fcons (copy, val), XCDR (cache)));
+	      }
 	  }
-	if (ASIZE (val) > 0
+	if (VECTORP (val) && ASIZE (val) > 0
 	    && (need_filtering
 		|| ! NILP (Vface_ignored_fonts)))
 	  val = font_delete_unmatched (val, need_filtering ? spec : Qnil, size);
-	if (ASIZE (val) > 0)
+	if (VECTORP (val) && ASIZE (val) > 0)
 	  list = Fcons (val, list);
       }
 
@@ -2804,7 +2803,6 @@ font_matching_entity (struct frame *f, Lisp_Object *attrs, Lisp_Object spec)
 	&& (NILP (ftype) || EQ (driver_list->driver->type, ftype)))
       {
 	Lisp_Object cache = font_get_cache (f, driver_list->driver);
-	Lisp_Object copy;
 
 	ASET (work, FONT_TYPE_INDEX, driver_list->driver->type);
 	entity = assoc_no_quit (work, XCDR (cache));
@@ -2813,9 +2811,14 @@ font_matching_entity (struct frame *f, Lisp_Object *attrs, Lisp_Object spec)
 	else
 	  {
 	    entity = driver_list->driver->match (f, work);
-	    copy = copy_font_spec (work);
-	    ASET (copy, FONT_TYPE_INDEX, driver_list->driver->type);
-	    XSETCDR (cache, Fcons (Fcons (copy, entity), XCDR (cache)));
+	    if (!NILP (entity))
+	      {
+		Lisp_Object copy = copy_font_spec (work);
+		Lisp_Object match = Fvector (1, &entity);
+
+		ASET (copy, FONT_TYPE_INDEX, driver_list->driver->type);
+		XSETCDR (cache, Fcons (Fcons (copy, match), XCDR (cache)));
+	      }
 	  }
 	if (! NILP (entity))
 	  break;
