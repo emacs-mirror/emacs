@@ -309,7 +309,10 @@ void SegSetSummary(Seg seg, RefSet summary)
   AVERT(Seg, seg);
   AVER(summary == RefSetEMPTY || SegRankSet(seg) != RankSetEMPTY);
 
-#ifdef PROTECTION_NONE
+#ifdef DISABLE_REMEMBERED_SET
+  /* Without protection, we can't maintain the remembered set because
+     there are writes we don't know about. TODO: rethink this when
+     implementating control. */
   summary = RefSetUNIV;
 #endif
   if (summary != SegSummary(seg))
@@ -324,7 +327,7 @@ void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
   AVERT(Seg, seg); 
   AVER(RankSetCheck(rankSet));
 
-#ifdef PROTECTION_NONE
+#ifdef DISABLE_REMEMBERED_SET
   if (rankSet != RankSetEMPTY) {
     summary = RefSetUNIV;
   }
