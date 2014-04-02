@@ -172,22 +172,26 @@
  */
 
 #if defined(CONFIG_THREAD_SINGLE)
-#define THREAD_SINGLE
-#else
-#define THREAD_MULTI
+#define DISABLE_LOCKS
 #endif
 
-/* CONFIG_PROTECTION_NONE -- no support for memory protection
+
+/* CONFIG_POLL_NONE -- no support for polling
  *
- * This symbol causes the MPS to built for an environment where there
- * is no memory protection, and so segment summaries cannot be
- * maintained by seg.c.
+ * This symbol causes the MPS to built without support for polling.
+ * This means that the arena must be clamped or parked at all times,
+ * garbage collections can only be carried out explicitly via
+ * mps_arena_collect(), but it also means that protection is not
+ * needed, and so shield operations can be replaced with no-ops in
+ * mpm.h.
  */
 
-#if defined(CONFIG_PROTECTION_NONE)
-#define PROTECTION_NONE
-#else
-#define PROTECTION
+#if defined(CONFIG_POLL_NONE)
+#if !defined(CONFIG_THREAD_SINGLE)
+#error "CONFIG_POLL_NONE without CONFIG_THREAD_SINGLE"
+#endif
+#define DISABLE_REMEMBERED_SET
+#define DISABLE_SHIELD
 #endif
 
 

@@ -195,7 +195,7 @@ extern void LockClaimGlobal(void);
 extern void LockReleaseGlobal(void);
 
 
-#ifdef THREAD_SINGLE
+#ifdef DISABLE_LOCKS
 
 #define LockSize() MPS_PF_ALIGN
 #define LockInit(lock) UNUSED(lock)
@@ -210,7 +210,7 @@ extern void LockReleaseGlobal(void);
 #define LockClaimGlobal()
 #define LockReleaseGlobal()
 
-#endif  /* THREAD_SINGLE */
+#endif  /* DISABLE_LOCKS */
 
 
 #endif /* lock_h */

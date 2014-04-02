@@ -76,9 +76,6 @@
 #if !defined(MPS_OS_XC)
 #error "protxc.c is OS X specific"
 #endif
-#if !defined(PROTECTION)
-#error "protxc.c implements protection, but PROTECTION is not defined"
-#endif
 
 SRCID(protxc, "$Id$");
 

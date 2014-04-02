@@ -12,9 +12,6 @@
 #ifndef MPS_OS_W3
 #error "protw3.c is Win32-specific, but MPS_OS_W3 is not set"
 #endif
-#ifndef PROTECTION
-#error "protw3.c implements protection, but PROTECTION is not set"
-#endif
 
 #include "mpswin.h"
 
