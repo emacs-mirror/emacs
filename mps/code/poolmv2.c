@@ -170,7 +170,7 @@ static ABQ MVTABQ(MVT mvt)
 
 static Land MVTCBS(MVT mvt)
 {
-  return (Land)(&mvt->cbsStruct);
+  return &mvt->cbsStruct.landStruct;
 }
 
 
