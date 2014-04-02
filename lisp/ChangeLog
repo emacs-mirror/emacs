@@ -1,3 +1,8 @@
+2014-04-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-indent-new-calculate):
+	Handle forward-sexp failure (bug#16985).
+
 2014-04-02  Glenn Morris  <rgm@gnu.org>
 
 	* menu-bar.el (menu-bar-file-menu):
@@ -210,6 +215,7 @@
 	(electric-indent-mode): Don't mess with the global map any more.
 	Don't drop the post-self-insert-hook is some buffer is still using it
 	(bug#16770).
+
 	* bindings.el (global-map): Remove C-j binding.
 
 	* emacs-lisp/nadvice.el (advice--make-docstring): Try harder to find

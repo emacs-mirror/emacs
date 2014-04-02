@@ -854,11 +854,12 @@ changed by, or (parse-state) if line starts in a quoted string."
    (and (= (char-syntax (following-char)) ?\))
 	(save-excursion
 	  (forward-char 1)
-	  (forward-sexp -1)
-	  (perl-indent-new-calculate
-           ;; Recalculate the parsing-start, since we may have jumped
-           ;; dangerously close (typically in the case of nested functions).
-           'virtual nil (save-excursion (perl-beginning-of-function)))))
+          (when (condition-case nil (progn (forward-sexp -1) t)
+                  (scan-error nil))
+            (perl-indent-new-calculate
+             ;; Recalculate the parsing-start, since we may have jumped
+             ;; dangerously close (typically in the case of nested functions).
+             'virtual nil (save-excursion (perl-beginning-of-function))))))
    (and (and (= (following-char) ?{)
 	     (save-excursion (forward-char) (perl-hanging-paren-p)))
 	(+ (or default (perl-calculate-indent parse-start))
