@@ -23,6 +23,8 @@
 	(font_matching_entity): Likewise.  If matching entity is found, insert
 	1-item vector with this entity instead of entity itself (Bug#17125).
 
+	* xterm.c (x_term_init) [USE_LUCID]: Fix minor memory leak.
+
 2014-04-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fns.c (validate_subarray): Rename from validate_substring,

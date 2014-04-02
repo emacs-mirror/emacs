@@ -10162,6 +10162,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
 #ifdef USE_LUCID
   {
+    XFontStruct *xfont = NULL;
     XrmValue d, fr, to;
     Font font;
 
@@ -10175,8 +10176,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     x_catch_errors (dpy);
     if (!XtCallConverter (dpy, XtCvtStringToFont, &d, 1, &fr, &to, NULL))
       emacs_abort ();
-    if (x_had_errors_p (dpy) || !XQueryFont (dpy, font))
+    if (x_had_errors_p (dpy) || !((xfont = XQueryFont (dpy, font))))
       XrmPutLineResource (&xrdb, "Emacs.dialog.*.font: 9x15");
+    if (xfont)
+      XFreeFont (dpy, xfont);
     x_uncatch_errors ();
   }
 #endif
