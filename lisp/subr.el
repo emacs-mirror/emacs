@@ -4316,8 +4316,9 @@ lookup sequence then continues."
                 (remove-hook 'pre-command-hook clearfun)
 		(when on-exit (funcall on-exit))
 ;; Comment out the fset if you want to debug the GC bug.
-		(fset clearfun nil)
-                (set clearfun nil)))))
+;;;		(fset clearfun nil)
+;;;             (set clearfun nil)
+		))))
     (add-hook 'pre-command-hook clearfun)
     (internal-push-keymap map 'overriding-terminal-local-map)))
 

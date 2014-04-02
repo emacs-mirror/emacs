@@ -1,3 +1,7 @@
+2014-04-02  Richard Stallman  <rms@gnu.org>
+
+	* subr.el (set-transient-map): Comment out previous change.
+
 2014-04-02  Glenn Morris  <rgm@gnu.org>
 
 	* menu-bar.el (menu-bar-file-menu):
