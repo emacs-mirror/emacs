@@ -526,8 +526,8 @@ extern void (ArenaPoll)(Globals globals);
 #define ArenaLeave(arena)  AVER(arena->busyTraces == TraceSetEMPTY)
 #define ArenaPoll(globals)  UNUSED(globals)
 #else
-#define ArenaEnter(arena)  ArenaEnterLock(arena)
-#define ArenaLeave(arena)  ArenaLeaveLock(arena)
+#define ArenaEnter(arena)  ArenaEnterLock(arena, FALSE)
+#define ArenaLeave(arena)  ArenaLeaveLock(arena, FALSE)
 #endif
 
 extern void ArenaEnterRecursive(Arena arena);
