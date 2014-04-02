@@ -29,10 +29,10 @@ ALL_TEST_CASES="
     btcv
     exposet0
     expt825
-    fbmtest
     finalcv
     finaltest
     fotest
+    landtest
     locbwcss
     lockcov
     locusss

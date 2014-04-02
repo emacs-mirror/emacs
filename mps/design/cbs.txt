@@ -20,7 +20,10 @@ eager coalescence.
 
 _`.readership`: This document is intended for any MM developer.
 
-_`.source`: design.mps.poolmv2, design.mps.poolmvff.
+_`.source`: design.mps.poolmv2_, design.mps.poolmvff_.
+
+.. _design.mps.poolmv2: poolmv2
+.. _design.mps.poolmvff: poolmvff
 
 _`.overview`: The "coalescing block structure" is a set of addresses
 (or a subset of address space), with provision for efficient
@@ -33,7 +36,9 @@ Requirements
 ------------
 
 In addition to the generic land requirements (see
-design.mps.land.req), the CBS must satisfy:
+design.mps.land_), the CBS must satisfy:
+
+.. _design.mps.land: land
 
 _`.req.fast`: Common operations must have a low amortized cost.
 
@@ -45,8 +50,9 @@ storage of any subset of address space.
 Interface
 ---------
 
-_`.land`: The interface to CBS is the generic functions for the *land*
-abstract data type. See `design.mps.land <land/>`_.
+_`.land`: CBS is an implementation of the *land* abstract data type,
+so the interface consists of the generic functions for lands. See
+design.mps.land_.
 
 
 External types
@@ -54,8 +60,9 @@ External types
 
 ``typedef struct CBSStruct *CBS``
 
-_`.type.cbs`: A ``CBSStruct`` may be embedded in another structure, or
-you can create it using ``LandCreate()``.
+_`.type.cbs`: The type of coalescing block structures. A ``CBSStruct``
+may be embedded in another structure, or you can create it using
+``LandCreate()``.
 
 
 External functions
@@ -101,12 +108,30 @@ following optional keyword arguments:
   generic function.
 
 
+Limitations
+...........
+
+_`.limit.find`: CBS does not support the ``LandFindFirst()``,
+``LandFindLast()``, and ``LandFindLargest()`` generic functions unless
+the ``CBSFastFind`` keyword argument was set to ``TRUE``.
+
+_`.limit.zones`: CBS does not support the ``LandFindInZones()``
+generic function unless the ``CBSFastFind`` and ``CBSZoned`` keyword
+arguments were both set to ``TRUE``.
+
+_`.limit.iterate`: CBS does not support visitors setting
+``deleteReturn`` to ``TRUE`` when iterating over ranges with
+``LandIterate()``.
+
+_`.limit.flush`: CBS cannot be used as the source in a call to
+``LandFlush()``.
+
+
 Implementation
 --------------
 
 _`.impl`: This section is concerned with describing various aspects of
 the implementation. It does not form part of the interface definition.
-
 
 
 Splay tree
@@ -163,12 +188,12 @@ Testing
 
 _`.test`: The following testing will be performed on this module:
 
-_`.test.fbmtest`: A generic test for land implementations. See
-design.mps.land.fbmtest.
+_`.test.land`: A generic test for land implementations. See
+design.mps.land.test.
 
-_`.test.pool`: Several pools (currently MVT_ and MVFF_) are implemented
-on top of a CBS. These pool are subject to testing in development, QA,
-and are/will be heavily exercised by customers.
+_`.test.pool`: The arena and two pools (MVT_ and MVFF_) are
+implemented on top of a CBS. These are subject to testing in
+development, QA, and are heavily exercised by customers.
 
 .. _MVT: poolmvt
 .. _MVFF: poolmvff
@@ -177,9 +202,9 @@ and are/will be heavily exercised by customers.
 Notes for future development
 ----------------------------
 
-_`.future.not-splay`: The initial implementation of CBSs is based on
-splay trees. It could be revised to use any other data structure that
-meets the requirements (especially `.req.fast`_).
+_`.future.not-splay`: The implementation of CBSs is based on splay
+trees. It could be revised to use other data structures that meet the
+requirements (especially `.req.fast`_).
 
 _`.future.hybrid`: It would be possible to attenuate the problem of
 `.risk.overhead`_ (below) by using a single word bit set to represent

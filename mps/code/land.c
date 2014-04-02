@@ -12,6 +12,8 @@
 SRCID(land, "$Id$");
 
 
+/* LandCheck -- check land */
+
 Bool LandCheck(Land land)
 {
   CHECKS(Land, land);
@@ -19,6 +21,12 @@ Bool LandCheck(Land land)
   CHECKL(AlignCheck(land->alignment));
   return TRUE;
 }
+
+
+/* LandInit -- initialize land
+ *
+ * See <design/land/#function.init>
+ */
 
 Res LandInit(Land land, LandClass class, Arena arena, Align alignment, void *owner, ArgList args)
 {
@@ -46,6 +54,12 @@ Res LandInit(Land land, LandClass class, Arena arena, Align alignment, void *own
   land->sig = SigInvalid;
   return res;
 }
+
+
+/* LandCreate -- allocate and initialize land
+ *
+ * See <design/land/#function.create>
+ */
 
 Res LandCreate(Land *landReturn, Arena arena, LandClass class, Align alignment, void *owner, ArgList args)
 {
@@ -76,6 +90,12 @@ failAlloc:
   return res;
 }
 
+
+/* LandDestroy -- finish and deallocate land
+ *
+ * See <design/land/#function.destroy>
+ */
+
 void LandDestroy(Land land)
 {
   Arena arena;
@@ -89,11 +109,26 @@ void LandDestroy(Land land)
   ControlFree(arena, land, class->size);
 }
 
+
+/* LandFinish -- finish land
+ *
+ * See <design/land/#function.finish>
+ */
+
 void LandFinish(Land land)
 {
   AVERT(Land, land);
+
   (*land->class->finish)(land);
+
+  land->sig = SigInvalid;
 }
+
+
+/* LandInsert -- insert range of addresses into land
+ *
+ * See <design/land/#function.insert>
+ */
 
 Res LandInsert(Range rangeReturn, Land land, Range range)
 {
@@ -105,6 +140,12 @@ Res LandInsert(Range rangeReturn, Land land, Range range)
   return (*land->class->insert)(rangeReturn, land, range);
 }
 
+
+/* LandDelete -- delete range of addresses from land
+ *
+ * See <design/land/#function.delete>
+ */
+
 Res LandDelete(Range rangeReturn, Land land, Range range)
 {
   AVER(rangeReturn != NULL);
@@ -115,6 +156,12 @@ Res LandDelete(Range rangeReturn, Land land, Range range)
   return (*land->class->delete)(rangeReturn, land, range);
 }
 
+
+/* LandIterate -- iterate over isolated ranges of addresses in land
+ *
+ * See <design/land/#function.iterate>
+ */
+
 void LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS)
 {
   AVERT(Land, land);
@@ -122,6 +169,12 @@ void LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS)
 
   (*land->class->iterate)(land, visitor, closureP, closureS);
 }
+
+
+/* LandFindFirst -- find first range of given size
+ *
+ * See <design/land/#function.find.first>
+ */
 
 Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
@@ -135,6 +188,12 @@ Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size
                                    findDelete);
 }
 
+
+/* LandFindLast -- find last range of given size
+ *
+ * See <design/land/#function.find.last>
+ */
+
 Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
   AVER(rangeReturn != NULL);
@@ -146,6 +205,12 @@ Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size,
   return (*land->class->findLast)(rangeReturn, oldRangeReturn, land, size,
                                   findDelete);
 }
+
+
+/* LandFindLargest -- find largest range of at least given size
+ *
+ * See <design/land/#function.find.largest>
+ */
 
 Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
@@ -159,6 +224,12 @@ Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size si
                                      findDelete);
 }
 
+
+/* LandFindInSize -- find range of given size in set of zones
+ *
+ * See <design/land/#function.find.zones>
+ */
+
 Res LandFindInZones(Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high)
 {
   AVER(rangeReturn != NULL);
@@ -171,6 +242,12 @@ Res LandFindInZones(Range rangeReturn, Range oldRangeReturn, Land land, Size siz
   return (*land->class->findInZones)(rangeReturn, oldRangeReturn, land, size,
                                      zoneSet, high);
 }
+
+
+/* LandDescribe -- describe land for debugging
+ *
+ * See <design/land/#function.describe>
+ */
 
 Res LandDescribe(Land land, mps_lib_FILE *stream)
 {
@@ -197,6 +274,51 @@ Res LandDescribe(Land land, mps_lib_FILE *stream)
   return ResOK;
 }
 
+
+/* landFlushVisitor -- visitor for LandFlush.
+ *
+ * closureP argument is the destination Land. Attempt to insert the
+ * range into the destination.
+ */
+static Bool landFlushVisitor(Bool *deleteReturn, Land land, Range range,
+                             void *closureP, Size closureS)
+{
+  Res res;
+  RangeStruct newRange;
+  Land dest;
+
+  AVER(deleteReturn != NULL);
+  AVERT(Range, range);
+  AVER(closureP != NULL);
+  UNUSED(closureS);
+
+  dest = closureP;
+  res = LandInsert(&newRange, land, range);
+  if (res == ResOK) {
+    *deleteReturn = TRUE;
+    return TRUE;
+  } else {
+    *deleteReturn = FALSE;
+    return FALSE;
+  }
+}
+
+
+/* LandFlush -- move ranges from src to dest
+ *
+ * See <design/land/#function.flush>
+ */
+
+void LandFlush(Land dest, Land src)
+{
+  AVERT(Land, dest);
+  AVERT(Land, src);
+
+  LandIterate(src, landFlushVisitor, dest, 0);
+}
+
+
+/* LandClassCheck -- check land class */
 
 Bool LandClassCheck(LandClass class)
 {

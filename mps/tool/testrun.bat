@@ -32,10 +32,10 @@ set ALL_TEST_CASES=^
     btcv.exe ^
     exposet0.exe ^
     expt825.exe ^
-    fbmtest.exe ^
     finalcv.exe ^
     finaltest.exe ^
     fotest.exe ^
+    landtest.exe ^
     locbwcss.exe ^
     lockcov.exe ^
     lockutw3.exe ^

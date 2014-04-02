@@ -10,42 +10,10 @@
 #define freelist_h
 
 #include "mpmtypes.h"
-#include "range.h"
 
-#define FreelistSig ((Sig)0x519F6331) /* SIGnature FREEL */
+extern Bool FreelistCheck(Freelist freelist);
 
-typedef struct FreelistStruct *Freelist;
-typedef union FreelistBlockUnion *FreelistBlock;
-
-typedef Bool (*FreelistIterateMethod)(Bool *deleteReturn, Range range,
-                                      void *closureP, Size closureS);
-
-typedef struct FreelistStruct {
-  Sig sig;
-  Align alignment;
-  FreelistBlock list;
-  Count listSize;
-} FreelistStruct;
-
-extern Bool FreelistCheck(Freelist fl);
-extern Res FreelistInit(Freelist fl, Align alignment);
-extern void FreelistFinish(Freelist fl);
-
-extern Res FreelistInsert(Range rangeReturn, Freelist fl, Range range);
-extern Res FreelistDelete(Range rangeReturn, Freelist fl, Range range);
-extern Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream);
-
-extern void FreelistIterate(Freelist abq, FreelistIterateMethod iterate,
-                            void *closureP, Size closureS);
-
-extern Bool FreelistFindFirst(Range rangeReturn, Range oldRangeReturn,
-                              Freelist fl, Size size, FindDelete findDelete);
-extern Bool FreelistFindLast(Range rangeReturn, Range oldRangeReturn,
-                             Freelist fl, Size size, FindDelete findDelete);
-extern Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn,
-                                Freelist fl, Size size, FindDelete findDelete);
-
-extern void FreelistFlushToLand(Freelist fl, Land land);
+extern FreelistLandClass FreelistLandClassGet(void);
 
 #endif /* freelist.h */
 

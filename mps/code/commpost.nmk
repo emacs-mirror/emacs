@@ -158,9 +158,6 @@ $(PFM)\$(VARIETY)\exposet0.exe: $(PFM)\$(VARIETY)\exposet0.obj \
 $(PFM)\$(VARIETY)\expt825.exe: $(PFM)\$(VARIETY)\expt825.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\fbmtest.exe: $(PFM)\$(VARIETY)\fbmtest.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
-
 $(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
@@ -168,6 +165,9 @@ $(PFM)\$(VARIETY)\finaltest.exe: $(PFM)\$(VARIETY)\finaltest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\fotest.exe: $(PFM)\$(VARIETY)\fotest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\landtest.exe: $(PFM)\$(VARIETY)\landtest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\locbwcss.exe: $(PFM)\$(VARIETY)\locbwcss.obj \

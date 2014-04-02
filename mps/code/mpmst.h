@@ -665,8 +665,26 @@ typedef struct CBSStruct {
   Bool ownPool;                 /* did we create blockPool? */
   /* meters for sizes of search structures at each op */
   METER_DECL(treeSearch);
-  Sig sig; /* sig at end because embedded */
+  Sig sig;                      /* .class.end-sig */
 } CBSStruct;
+
+
+/* FreelistStruct -- address-ordered freelist
+ *
+ * Freelist is a subclass of Land that maintains a collection of
+ * disjoint ranges in an address-ordered freelist.
+ *
+ * See <code/freelist.c>.
+ */
+
+#define FreelistSig ((Sig)0x519F6331) /* SIGnature FREEL */
+
+typedef struct FreelistStruct {
+  LandStruct landStruct;        /* superclass fields come first */
+  FreelistBlock list;
+  Count listSize;
+  Sig sig;                      /* .class.end-sig */
+} FreelistStruct;
 
 
 /* ArenaStruct -- generic arena
