@@ -149,8 +149,11 @@
                   :help "Recover edits from a crashed session"))
     (bindings--define-key menu [revert-buffer]
       '(menu-item "Revert Buffer" revert-buffer
-                  :enable (or revert-buffer-function
-                              revert-buffer-insert-file-contents-function
+                  :enable (or (not (eq revert-buffer-function
+                                       'revert-buffer--default))
+                              (not (eq
+                                    revert-buffer-insert-file-contents-function
+                                    'revert-buffer-insert-file-contents--default-function))
                               (and buffer-file-number
                                    (or (buffer-modified-p)
                                        (not (verify-visited-file-modtime

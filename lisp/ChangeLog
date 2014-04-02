@@ -1,5 +1,9 @@
 2014-04-02  Glenn Morris  <rgm@gnu.org>
 
+	* menu-bar.el (menu-bar-file-menu):
+	* vc/ediff.el (ediff-current-file):
+	Update for revert-buffer-function no longer being nil by default.
+
 	* simple.el (command-execute): Respect nil disabled-command-function.
 
 2014-04-01  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
