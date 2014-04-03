@@ -14,6 +14,7 @@
 #include "mpscmvt.h"
 #include "abq.h"
 #include "cbs.h"
+#include "failover.h"
 #include "freelist.h"
 #include "meter.h"
 #include "range.h"

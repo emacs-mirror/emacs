@@ -626,7 +626,7 @@ static Res freelistFindInZones(Range rangeReturn, Range oldRangeReturn,
   /* AVERT(ZoneSet, zoneSet); */
   AVERT(Bool, high);
 
-  landFind = high ? cbsFindLast : cbsFindFirst;
+  landFind = high ? freelistFindLast : freelistFindFirst;
   search = high ? RangeInZoneSetLast : RangeInZoneSetFirst;
 
   if (zoneSet == ZoneSetEMPTY)
