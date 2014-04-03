@@ -20,9 +20,9 @@ eager coalescence.
 
 _`.readership`: This document is intended for any MM developer.
 
-_`.source`: design.mps.poolmv2_, design.mps.poolmvff_.
+_`.source`: design.mps.poolmvt_, design.mps.poolmvff_.
 
-.. _design.mps.poolmv2: poolmv2
+.. _design.mps.poolmvt: poolmvt
 .. _design.mps.poolmvff: poolmvff
 
 _`.overview`: The "coalescing block structure" is a set of addresses
@@ -124,23 +124,19 @@ _`.limit.iterate`: CBS does not support visitors setting
 ``LandIterate()``.
 
 _`.limit.flush`: CBS cannot be used as the source in a call to
-``LandFlush()``.
+``LandFlush()``. (Because of `.limit.iterate`_.)
 
 
 Implementation
 --------------
 
-_`.impl`: This section is concerned with describing various aspects of
-the implementation. It does not form part of the interface definition.
-
-
 Splay tree
 ..........
 
-_`.impl.splay`: The CBS is principally implemented using a splay tree
-(see design.mps.splay_). Each splay tree node is embedded in a
-``CBSBlock`` that represents a semi-open address range. The key passed
-for comparison is the base of another range.
+_`.impl.splay`: The CBS is implemented using a splay tree (see
+design.mps.splay_). Each splay tree node is embedded in a ``CBSBlock``
+that represents a semi-open address range. The key passed for
+comparison is the base of another range.
 
 .. _design.mps.splay: splay
 
@@ -157,6 +153,11 @@ of the largest block in the CBS from the root of the tree, using
 size. This takes time proportional to the logarithm of the size of the
 free list, so it's about the best you can do without maintaining a
 separate priority queue, just to do ``cbsFindLargest()``.
+
+_`.impl.splay.zones`: ``cbsFindInZones()`` uses the update/refresh
+facility of splay trees to store, in each ``CBSBlock()``, the union of
+the zones of the ranges in the tree rooted at the corresponding splay
+node. This allows rapid location of a block in a set of zones.
 
 
 Low memory behaviour
@@ -231,7 +232,7 @@ Document History
 ----------------
 
 - 1998-05-01 Gavin Matthews. This document was derived from the
-  outline in design.mps.poolmv2(2).
+  outline in design.mps.poolmvt_.
 
 - 1998-07-22 Gavin Matthews. Updated in response to approval comments
   in change.epcore.anchovy.160040. There is too much fragmentation in
@@ -255,7 +256,7 @@ Document History
   talking about the deleted "emergency" free list allocator.
   Documented ``fastFind`` argument to ``CBSInit()``.
 
-- 2014-04-01 GDR_ Moved generic material to design.mps.land.
+- 2014-04-01 GDR_ Moved generic material to design.mps.land_.
   Documented new keyword arguments.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/

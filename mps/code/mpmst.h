@@ -646,8 +646,8 @@ typedef struct LandStruct {
 
 /* CBSStruct -- coalescing block structure
  *
- * CBS is a subclass of Land that maintains a collection of disjoint
- * ranges in a splay tree.
+ * CBS is a Land implementation that maintains a collection of
+ * disjoint ranges in a splay tree.
  *
  * See <code/cbs.c>.
  */
@@ -669,6 +669,24 @@ typedef struct CBSStruct {
 } CBSStruct;
 
 
+/* FailoverStruct -- fail over from one land to another
+ *
+ * Failover is a Land implementation that combines two other Lands,
+ * using primary until it fails, and then using secondary.
+ *
+ * See <code/failover.c>.
+ */
+
+#define FailoverSig ((Sig)0x519FA170) /* SIGnature FAILOver */
+
+typedef struct FailoverStruct {
+  LandStruct landStruct;        /* superclass fields come first */
+  Land primary;                 /* use this land normally */
+  Land secondary;               /* but use this one if primary fails */
+  Sig sig;                      /* .class.end-sig */
+} FailoverStruct;
+
+
 /* FreelistStruct -- address-ordered freelist
  *
  * Freelist is a subclass of Land that maintains a collection of
@@ -678,6 +696,8 @@ typedef struct CBSStruct {
  */
 
 #define FreelistSig ((Sig)0x519F6331) /* SIGnature FREEL */
+
+typedef union FreelistBlockUnion *FreelistBlock;
 
 typedef struct FreelistStruct {
   LandStruct landStruct;        /* superclass fields come first */

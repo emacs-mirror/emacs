@@ -24,8 +24,8 @@ Requirements
 ------------
 
 _`.req.range`: A range object must be able to represent an arbitrary
-range of addresses that does not include the top grain of the address
-space.
+range of addresses that neither starts at ``NULL`` nor includes the
+top grain of the address space.
 
 _`.req.empty`: A range object must be able to represent the empty
 range.
@@ -49,6 +49,12 @@ Initialize a range object to represent the half-open address range
 between ``base`` (inclusive) and ``limit`` (exclusive). It must be the
 case that ``base <= limit``. If ``base == limit`` then the range is
 empty.
+
+``void RangeInitSize(Range range, Addr base, Size size)``
+
+Initialize a range object to represent the half-open address range
+between ``base`` (inclusive) and ``base + size`` (exclusive). If
+``size == 0`` then the range is empty.
 
 ``void RangeFinish(Range range)``
 

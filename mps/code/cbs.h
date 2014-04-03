@@ -28,9 +28,11 @@ typedef struct CBSBlockStruct {
   ZoneSet zones; /* union zone set of all ranges in sub-tree */
 } CBSBlockStruct;
 
+typedef struct CBSStruct *CBS;
+
 extern Bool CBSCheck(CBS cbs);
 
-extern CBSLandClass CBSLandClassGet(void);
+extern LandClass CBSLandClassGet(void);
 
 extern const struct mps_key_s _mps_key_cbs_block_pool;
 #define CBSBlockPool (&_mps_key_cbs_block_pool)
