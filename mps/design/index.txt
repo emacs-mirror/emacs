@@ -68,15 +68,15 @@ message_                MPS to client message protocol
 message-gc_             Messages sent when garbage collection begins or ends
 object-debug_           Debugging Features for Client Objects
 pool_                   The design of the pool and pool class mechanisms
-poolamc_                The design of the automatic mostly-copying memory pool class
-poolams_                The design of the automatic mark-and-sweep pool class
-poolawl_                Automatic weak linked
-poollo_                 Leaf object pool class
+poolamc_                Automatic Mostly-Copying pool class
+poolams_                Automatic Mark-and-Sweep pool class
+poolawl_                Automatic Weak Linked pool class
+poollo_                 Leaf Object pool class
 poolmfs_                Manual Fixed Small pool class
-poolmrg_                Guardian poolclass
+poolmrg_                Manual Rank Guardian pool class
 poolmv_                 Manual Variable pool class
 poolmvt_                Manual Variable Temporal pool class
-poolmvff_               Manually Variable First-Fit pool
+poolmvff_               Manual Variable First-Fit pool class
 prot_                   Generic design of the protection module
 protan_                 ANSI implementation of protection module
 protli_                 Linux implementation of protection module

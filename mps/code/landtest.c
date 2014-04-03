@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
- * The MPS contains two land implementations:
+ * The MPS contains three land implementations:
  *
  * 1. the CBS (Coalescing Block Structure) module maintains blocks in
  * a splay tree for fast access with a cost in storage;
@@ -11,6 +11,9 @@
  * 2. the Freelist module maintains blocks in an address-ordered
  * singly linked list for zero storage overhead with a cost in
  * performance.
+ *
+ * 3. the Failover module implements a mechanism for using CBS until
+ * it fails, then falling back to a Freelist.
  */
 
 #include "cbs.h"
@@ -20,6 +23,7 @@
 #include "mps.h"
 #include "mpsavm.h"
 #include "mpstd.h"
+#include "poolmfs.h"
 #include "testlib.h"
 
 #include <stdarg.h>
@@ -479,13 +483,16 @@ extern int main(int argc, char *argv[])
   void *p;
   Addr dummyBlock;
   BT allocTable;
+  MFSStruct blockPool;
   CBSStruct cbsStruct;
   FreelistStruct flStruct;
   FailoverStruct foStruct;
   Land cbs = &cbsStruct.landStruct;
   Land fl = &flStruct.landStruct;
   Land fo = &foStruct.landStruct;
+  Pool mfs = &blockPool.poolStruct;
   Align align;
+  int i;
 
   testlib_init(argc, argv);
   align = (1 << rnd() % 4) * MPS_PF_ALIGN;
@@ -512,6 +519,8 @@ extern int main(int argc, char *argv[])
            (char *)dummyBlock + ArraySize);
   }
 
+  /* 1. Test CBS */
+
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, CBSFastFind, TRUE);
     die((mps_res_t)LandInit(cbs, CBSLandClassGet(), arena, align, NULL, args),
@@ -524,6 +533,8 @@ extern int main(int argc, char *argv[])
   test(&state, nCBSOperations);
   LandFinish(cbs);
 
+  /* 2. Test Freelist */
+
   die((mps_res_t)LandInit(fl, FreelistLandClassGet(), arena, align, NULL,
                           mps_args_none),
       "failed to initialise Freelist");
@@ -531,27 +542,46 @@ extern int main(int argc, char *argv[])
   test(&state, nFLOperations);
   LandFinish(fl);
 
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, CBSFastFind, TRUE);
-    die((mps_res_t)LandInit(cbs, CBSLandClassGet(), arena, align,
-                            NULL, args),
-        "failed to initialise CBS");
-  } MPS_ARGS_END(args);
-  die((mps_res_t)LandInit(fl, FreelistLandClassGet(), arena, align, NULL,
-                          mps_args_none),
-      "failed to initialise Freelist");
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, FailoverPrimary, cbs);
-    MPS_ARGS_ADD(args, FailoverSecondary, fl);
-    die((mps_res_t)LandInit(fo, FailoverLandClassGet(), arena, align, NULL,
-                            args),
-        "failed to initialise Failover");
-  } MPS_ARGS_END(args);
-  state.land = fo;
-  test(&state, nFOOperations);
-  LandFinish(fo);
-  LandFinish(fl);
-  LandFinish(cbs);
+  /* 3. Test CBS-failing-over-to-Freelist (always failing over on
+   * first iteration, never failing over on second; see fotest.c for a
+   * test case that randomly switches fail-over on and off)
+   */
+
+  for (i = 0; i < 2; ++i) {
+      MPS_ARGS_BEGIN(piArgs) {
+        MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
+        MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, ArenaAlign(arena));
+        MPS_ARGS_ADD(piArgs, MFSExtendSelf, i);
+        MPS_ARGS_DONE(piArgs);
+        die(PoolInit(mfs, arena, PoolClassMFS(), piArgs), "PoolInit");
+      } MPS_ARGS_END(piArgs);
+
+      MPS_ARGS_BEGIN(args) {
+        MPS_ARGS_ADD(args, CBSFastFind, TRUE);
+        MPS_ARGS_ADD(args, CBSBlockPool, mfs);
+        die((mps_res_t)LandInit(cbs, CBSLandClassGet(), arena, align, NULL,
+                                args),
+            "failed to initialise CBS");
+      } MPS_ARGS_END(args);
+
+      die((mps_res_t)LandInit(fl, FreelistLandClassGet(), arena, align, NULL,
+                              mps_args_none),
+          "failed to initialise Freelist");
+      MPS_ARGS_BEGIN(args) {
+        MPS_ARGS_ADD(args, FailoverPrimary, cbs);
+        MPS_ARGS_ADD(args, FailoverSecondary, fl);
+        die((mps_res_t)LandInit(fo, FailoverLandClassGet(), arena, align, NULL,
+                                args),
+            "failed to initialise Failover");
+      } MPS_ARGS_END(args);
+
+      state.land = fo;
+      test(&state, nFOOperations);
+      LandFinish(fo);
+      LandFinish(fl);
+      LandFinish(cbs);
+      PoolFinish(mfs);
+  }
 
   mps_arena_destroy(arena);
 

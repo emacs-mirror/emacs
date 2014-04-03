@@ -38,28 +38,37 @@
 
 /* Accessors for the CBS used to implement a pool. */
 
-extern Land _mps_mvff_cbs(mps_pool_t);
-extern Land _mps_mvt_cbs(mps_pool_t);
+extern Land _mps_mvff_cbs(Pool);
+extern Land _mps_mvt_cbs(Pool);
 
 
 /* "OOM" pool class -- dummy alloc/free pool class whose alloc()
- * method always returns ResMEMORY */
+ * method always fails. */
 
-static Res OOMAlloc(Addr *pReturn, Pool pool, Size size,
-                       Bool withReservoirPermit)
+static Res oomAlloc(Addr *pReturn, Pool pool, Size size,
+                    Bool withReservoirPermit)
 {
   UNUSED(pReturn);
   UNUSED(pool);
   UNUSED(size);
   UNUSED(withReservoirPermit);
-  return ResMEMORY;
+  switch (rnd() % 4) {
+  case 0:
+    return ResRESOURCE;
+  case 1:
+    return ResMEMORY;
+  case 2:
+    return ResLIMIT;
+  default:
+    return ResCOMMIT_LIMIT;
+  }
 }
 
-extern PoolClass PoolClassOOM(void);
+extern PoolClass OOMPoolClassGet(void);
 DEFINE_POOL_CLASS(OOMPoolClass, this)
 {
   INHERIT_CLASS(this, AbstractAllocFreePoolClass);
-  this->alloc = OOMAlloc;
+  this->alloc = oomAlloc;
 }
 
 
@@ -81,16 +90,17 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 
 /* set_oom -- set blockPool of CBS to OOM or MFS according to argument. */
 
-static void set_oom(CBS cbs, int oom)
+static void set_oom(Land land, int oom)
 {
-  cbs->blockPool->class = oom ? EnsureOOMPoolClass() : PoolClassMFS();
+  CBS cbs = PARENT(CBSStruct, landStruct, land);
+  cbs->blockPool->class = oom ? OOMPoolClassGet() : PoolClassMFS();
 }
 
 
 /* stress -- create an allocation point and allocate in it */
 
 static mps_res_t stress(size_t (*size)(unsigned long, mps_align_t),
-                        mps_align_t alignment, mps_pool_t pool, CBS cbs)
+                        mps_align_t alignment, mps_pool_t pool, Land cbs)
 {
   mps_res_t res = MPS_RES_OK;
   mps_ap_t ap;
@@ -180,8 +190,8 @@ int main(int argc, char *argv[])
     die(mps_pool_create_k(&pool, arena, mps_class_mvff(), args), "create MVFF");
   } MPS_ARGS_END(args);
   {
-    CBS cbs = (CBS)_mps_mvff_cbs(pool);
-    die(stress(randomSizeAligned, alignment, pool, cbs), "stress MVFF");
+    die(stress(randomSizeAligned, alignment, pool, _mps_mvff_cbs(pool)),
+        "stress MVFF");
   }
   mps_pool_destroy(pool);
   mps_arena_destroy(arena);
@@ -199,8 +209,8 @@ int main(int argc, char *argv[])
     die(mps_pool_create_k(&pool, arena, mps_class_mvt(), args), "create MVFF");
   } MPS_ARGS_END(args);
   {
-    CBS cbs = (CBS)_mps_mvt_cbs(pool);
-    die(stress(randomSizeAligned, alignment, pool, cbs), "stress MVT");
+    die(stress(randomSizeAligned, alignment, pool, _mps_mvt_cbs(pool)),
+        "stress MVT");
   }
   mps_pool_destroy(pool);
   mps_arena_destroy(arena);

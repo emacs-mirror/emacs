@@ -26,6 +26,7 @@ SRCID(cbs, "$Id$");
 #define CBSBlockSize(block) AddrOffset((block)->base, (block)->limit)
 
 
+#define cbsLand(cbs) (&((cbs)->landStruct))
 #define cbsOfLand(land) PARENT(CBSStruct, landStruct, land)
 #define cbsSplay(cbs) (&((cbs)->splayTreeStruct))
 #define cbsOfSplay(_splay) PARENT(CBSStruct, splayTreeStruct, _splay)
@@ -66,7 +67,7 @@ Bool CBSCheck(CBS cbs)
 {
   /* See .enter-leave.simple. */
   CHECKS(CBS, cbs);
-  CHECKD(Land, &cbs->landStruct);
+  CHECKD(Land, cbsLand(cbs));
   CHECKD(SplayTree, cbsSplay(cbs));
   /* nothing to check about treeSize */
   CHECKD(Pool, cbs->blockPool);
@@ -211,7 +212,7 @@ static void cbsUpdateZonedNode(SplayTree splay, Tree tree)
   cbsUpdateNode(splay, tree);
 
   block = cbsBlockOfTree(tree);
-  arena = cbsOfSplay(splay)->landStruct.arena;
+  arena = LandArena(cbsLand(cbsOfSplay(splay)));
   zones = ZoneSetOfRange(arena, CBSBlockBase(block), CBSBlockLimit(block));
 
   if (TreeHasLeft(tree))
@@ -740,7 +741,7 @@ static Bool cbsIterateVisit(Tree tree, void *closureP, Size closureS)
   cbsBlock = cbsBlockOfTree(tree);
   RangeInit(&range, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock));
   cont = (*closure->visitor)(&delete, land, &range, closure->closureP, closure->closureS);
-  AVER(!delete);
+  AVER(!delete);                /* <design/cbs/#limit.iterate> */
   if (!cont)
     return FALSE;
   METER_ACC(cbs->treeSearch, cbs->treeSize);
@@ -1101,6 +1102,8 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream)
                "  blockPool: $P\n", (WriteFP)cbsBlockPool(cbs),
                "  fastFind: $U\n", (WriteFU)cbs->fastFind,
                "  inCBS: $U\n", (WriteFU)cbs->inCBS,
+               "  ownPool: $U\n", (WriteFU)cbs->ownPool,
+               "  zoned: $U\n", (WriteFU)cbs->zoned,
                "  treeSize: $U\n", (WriteFU)cbs->treeSize,
                NULL);
   if (res != ResOK) return res;
