@@ -4292,33 +4292,34 @@ lookup sequence then continues."
     ;; Don't use letrec, because equal (in add/remove-hook) would get trapped
     ;; in a cycle.
     (fset clearfun
-          (lambda ()
-            (with-demoted-errors "set-transient-map PCH: %S"
-              (unless (cond
-                       ((not (eq map (cadr overriding-terminal-local-map)))
-                        ;; There's presumably some other transient-map in
-                        ;; effect.  Wait for that one to terminate before we
-                        ;; remove ourselves.
-                        ;; For example, if isearch and C-u both use transient
-                        ;; maps, then the lifetime of the C-u should be nested
-                        ;; within isearch's, so the pre-command-hook of
-                        ;; isearch should be suspended during the C-u one so
-                        ;; we don't exit isearch just because we hit 1 after
-                        ;; C-u and that 1 exits isearch whereas it doesn't
-                        ;; exit C-u.
-                        t)
-                       ((null keep-pred) nil)
-                       ((eq t keep-pred)
-                        (eq this-command
-                            (lookup-key map (this-command-keys-vector))))
-                       (t (funcall keep-pred)))
-                (internal-pop-keymap map 'overriding-terminal-local-map)
-                (remove-hook 'pre-command-hook clearfun)
-		(when on-exit (funcall on-exit))
-;; Comment out the fset if you want to debug the GC bug.
+          (suspicious-object
+           (lambda ()
+             (with-demoted-errors "set-transient-map PCH: %S"
+               (unless (cond
+                         ((not (eq map (cadr overriding-terminal-local-map)))
+                          ;; There's presumably some other transient-map in
+                          ;; effect.  Wait for that one to terminate before we
+                          ;; remove ourselves.
+                          ;; For example, if isearch and C-u both use transient
+                          ;; maps, then the lifetime of the C-u should be nested
+                          ;; within isearch's, so the pre-command-hook of
+                          ;; isearch should be suspended during the C-u one so
+                          ;; we don't exit isearch just because we hit 1 after
+                          ;; C-u and that 1 exits isearch whereas it doesn't
+                          ;; exit C-u.
+                          t)
+                         ((null keep-pred) nil)
+                         ((eq t keep-pred)
+                          (eq this-command
+                              (lookup-key map (this-command-keys-vector))))
+                         (t (funcall keep-pred)))
+                 (internal-pop-keymap map 'overriding-terminal-local-map)
+                 (remove-hook 'pre-command-hook clearfun)
+                 (when on-exit (funcall on-exit))
+                 ;; Comment out the fset if you want to debug the GC bug.
 ;;;		(fset clearfun nil)
 ;;;             (set clearfun nil)
-		))))
+                 )))))
     (add-hook 'pre-command-hook clearfun)
     (internal-push-keymap map 'overriding-terminal-local-map)))
 

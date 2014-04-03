@@ -1,3 +1,9 @@
+2014-04-03  Daniel Colascione  <dancol@dancol.org>
+
+	* subr.el (set-transient-map): Remove rms's workaround entirely;
+	use new `suspicious-object' subr to mark our lambda for closer
+	scrutiny during gc.
+
 2014-04-02  Richard Stallman  <rms@gnu.org>
 
 	* subr.el (set-transient-map): Comment out previous change.

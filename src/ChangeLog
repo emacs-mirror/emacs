@@ -1,3 +1,10 @@
+2014-04-03  Daniel Colascione  <dancol@dancol.org>
+
+	* data.c (Ffset): Abort if we're trying to set a function call to
+	a dead lisp object.
+
+	* lisp.h (EARRAYSIZE): New macro.
+
 2014-04-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* xterm.c (x_new_font): Don't calculate non-toolkit scrollbar

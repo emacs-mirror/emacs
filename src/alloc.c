@@ -48,6 +48,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <verify.h>
 
+#ifdef HAVE_EXECINFO_H
+#include <execinfo.h>           /* For backtrace */
+#endif
+
 #if (defined ENABLE_CHECKING			\
      && defined HAVE_VALGRIND_VALGRIND_H	\
      && !defined USE_VALGRIND)
@@ -191,6 +195,36 @@ static ptrdiff_t pure_bytes_used_non_lisp;
    displayed.  */
 
 const char *pending_malloc_warning;
+
+#if 0 /* Normally, pointer sanity only on request... */
+#ifdef ENABLE_CHECKING
+#define SUSPICIOUS_OBJECT_CHECKING 1
+#endif
+#endif
+
+/* ... but unconditionally use SUSPICIOUS_OBJECT_CHECKING while the GC
+   bug is unresolved.  */
+#define SUSPICIOUS_OBJECT_CHECKING 1
+
+#ifdef SUSPICIOUS_OBJECT_CHECKING
+struct suspicious_free_record {
+  void* suspicious_object;
+#ifdef HAVE_EXECINFO_H
+  void* backtrace[128];
+#endif
+};
+static void* suspicious_objects[32];
+static int suspicious_object_index;
+struct suspicious_free_record suspicious_free_history[64];
+static int suspicious_free_history_index;
+/* Find the first currently-monitored suspicious pointer in range
+   [begin,end) or NULL if no such pointer exists.  */
+static void* find_suspicious_object_in_range (void* begin, void* end);
+static void detect_suspicious_free (void* ptr);
+#else
+#define find_suspicious_object_in_range(begin, end) NULL
+#define detect_suspicious_free(ptr) (void)
+#endif
 
 /* Maximum amount of C stack to save when a GC happens.  */
 
@@ -2922,6 +2956,7 @@ vector_nbytes (struct Lisp_Vector *v)
 static void
 cleanup_vector (struct Lisp_Vector *vector)
 {
+  detect_suspicious_free (vector);
   if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FONT)
       && ((vector->header.size & PSEUDOVECTOR_SIZE_MASK)
 	  == FONT_OBJECT_MAX))
@@ -3080,6 +3115,9 @@ allocate_vectorlike (ptrdiff_t len)
       if (!mmap_lisp_allowed_p ())
         mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
+
+      if (find_suspicious_object_in_range (p, (char*)p + nbytes))
+        emacs_abort ();
 
       consing_since_gc += nbytes;
       vector_cells_consed += len;
@@ -3780,6 +3818,7 @@ refill_memory_reserve (void)
     Vmemory_full = Qnil;
 #endif
 }
+
 
 /************************************************************************
 			   C Stack Marking
@@ -6787,6 +6826,71 @@ which_symbols (Lisp_Object obj, EMACS_INT find_max)
    return found;
 }
 
+#ifdef SUSPICIOUS_OBJECT_CHECKING
+
+static void*
+find_suspicious_object_in_range (void* begin, void* end)
+{
+  char* begin_a = begin;
+  char* end_a = end;
+  int i;
+
+  for (i = 0; i < EARRAYSIZE (suspicious_objects); ++i) {
+    char* suspicious_object = suspicious_objects[i];
+    if (begin_a <= suspicious_object && suspicious_object < end_a)
+      return suspicious_object;
+  }
+
+  return NULL;
+}
+
+static void
+detect_suspicious_free (void* ptr)
+{
+  int i;
+  struct suspicious_free_record* rec;
+
+  eassert (ptr != NULL);
+
+  for (i = 0; i < EARRAYSIZE (suspicious_objects); ++i)
+    if (suspicious_objects[i] == ptr)
+      {
+        rec = &suspicious_free_history[suspicious_free_history_index++];
+        if (suspicious_free_history_index ==
+            EARRAYSIZE (suspicious_free_history))
+          {
+            suspicious_free_history_index = 0;
+          }
+
+        memset (rec, 0, sizeof (rec));
+        rec->suspicious_object = ptr;
+#ifdef HAVE_EXECINFO_H
+        backtrace (&rec->backtrace[0], EARRAYSIZE (rec->backtrace));
+#endif
+        suspicious_objects[i] = NULL;
+      }
+}
+
+#endif /* SUSPICIOUS_OBJECT_CHECKING */
+
+DEFUN ("suspicious-object", Fsuspicious_object, Ssuspicious_object, 1, 1, 0,
+       doc: /* Return OBJ, maybe marking it for extra scrutiny.
+If Emacs is compiled with suspicous object checking, capture
+a stack trace when OBJ is freed in order to help track down
+garbage collection bugs.  Otherwise, do nothing and return OBJ.   */)
+   (Lisp_Object obj)
+{
+#ifdef SUSPICIOUS_OBJECT_CHECKING
+  /* Right now, we care only about vectors.  */
+  if (VECTORLIKEP (obj)) {
+    suspicious_objects[suspicious_object_index++] = XVECTOR (obj);
+    if (suspicious_object_index == EARRAYSIZE (suspicious_objects))
+      suspicious_object_index = 0;
+  }
+#endif
+  return obj;
+}
+
 #ifdef ENABLE_CHECKING
 
 bool suppress_checking;
@@ -6957,6 +7061,7 @@ The time is in seconds as a floating point value.  */);
   defsubr (&Sgarbage_collect);
   defsubr (&Smemory_limit);
   defsubr (&Smemory_use_counts);
+  defsubr (&Ssuspicious_object);
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
   defsubr (&Sgc_status);

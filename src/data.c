@@ -727,6 +727,11 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   if (AUTOLOADP (function))
     Fput (symbol, Qautoload, XCDR (function));
 
+  /* Convert to eassert or remove after GC bug is found.  In the
+     meantime, check unconditionally, at a slight perf hit.  */
+  if (valid_lisp_object_p (definition) < 1)
+    emacs_abort ();
+
   set_symbol_function (symbol, definition);
 
   return definition;
