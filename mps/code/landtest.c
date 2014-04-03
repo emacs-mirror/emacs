@@ -14,6 +14,7 @@
  */
 
 #include "cbs.h"
+#include "failover.h"
 #include "freelist.h"
 #include "mpm.h"
 #include "mps.h"
@@ -34,6 +35,7 @@ SRCID(landtest, "$Id$");
  * the former. */
 #define nCBSOperations ((Size)125000)
 #define nFLOperations ((Size)12500)
+#define nFOOperations ((Size)12500)
 
 static Count NAllocateTried, NAllocateSucceeded, NDeallocateTried,
   NDeallocateSucceeded;
@@ -479,7 +481,10 @@ extern int main(int argc, char *argv[])
   BT allocTable;
   CBSStruct cbsStruct;
   FreelistStruct flStruct;
-  Land land;
+  FailoverStruct foStruct;
+  Land cbs = &cbsStruct.landStruct;
+  Land fl = &flStruct.landStruct;
+  Land fo = &foStruct.landStruct;
   Align align;
 
   testlib_init(argc, argv);
@@ -507,26 +512,46 @@ extern int main(int argc, char *argv[])
            (char *)dummyBlock + ArraySize);
   }
 
-  land = &cbsStruct.landStruct;
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, CBSFastFind, TRUE);
-    die((mps_res_t)LandInit(land, CBSLandClassGet(), arena, align, NULL, args),
+    die((mps_res_t)LandInit(cbs, CBSLandClassGet(), arena, align, NULL, args),
         "failed to initialise CBS");
   } MPS_ARGS_END(args);
   state.align = align;
   state.block = dummyBlock;
   state.allocTable = allocTable;
-  state.land = land;
+  state.land = cbs;
   test(&state, nCBSOperations);
-  LandFinish(land);
+  LandFinish(cbs);
 
-  land = &flStruct.landStruct;
-  die((mps_res_t)LandInit(land, FreelistLandClassGet(), arena, align, NULL,
+  die((mps_res_t)LandInit(fl, FreelistLandClassGet(), arena, align, NULL,
                           mps_args_none),
       "failed to initialise Freelist");
-  state.land = land;
+  state.land = fl;
   test(&state, nFLOperations);
-  LandFinish(land);
+  LandFinish(fl);
+
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, CBSFastFind, TRUE);
+    die((mps_res_t)LandInit(cbs, CBSLandClassGet(), arena, align,
+                            NULL, args),
+        "failed to initialise CBS");
+  } MPS_ARGS_END(args);
+  die((mps_res_t)LandInit(fl, FreelistLandClassGet(), arena, align, NULL,
+                          mps_args_none),
+      "failed to initialise Freelist");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, FailoverPrimary, cbs);
+    MPS_ARGS_ADD(args, FailoverSecondary, fl);
+    die((mps_res_t)LandInit(fo, FailoverLandClassGet(), arena, align, NULL,
+                            args),
+        "failed to initialise Failover");
+  } MPS_ARGS_END(args);
+  state.land = fo;
+  test(&state, nFOOperations);
+  LandFinish(fo);
+  LandFinish(fl);
+  LandFinish(cbs);
 
   mps_arena_destroy(arena);
 

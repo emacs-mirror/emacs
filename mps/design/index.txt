@@ -44,13 +44,14 @@ arena_                  The design of the MPS arena
 arenavm_                Virtual memory arena
 bt_                     Bit tables
 buffer_                 Allocation buffers and allocation points
-cbs_                    Design for coalescing block structure
+cbs_                    Coalescing Block Structure allocator
 check_                  Design of checking in MPS
 class-interface_        Design of the pool class interface
 collection_             The collection framework
 config_                 The design of MPS configuration
 critical-path_          The critical path through the MPS
 diag_                   The design of MPS diagnostic feedback
+failover_               Fail-over allocator
 finalize_               Finalization
 fix_                    The Design of the Generic Fix Function
 freelist_               Free list allocator
@@ -71,11 +72,11 @@ poolamc_                The design of the automatic mostly-copying memory pool c
 poolams_                The design of the automatic mark-and-sweep pool class
 poolawl_                Automatic weak linked
 poollo_                 Leaf object pool class
-poolmfs_                The design of the manual fixed small memory pool class
+poolmfs_                Manual Fixed Small pool class
 poolmrg_                Guardian poolclass
-poolmv_                 The design of the manual variable memory pool class
-poolmvt_                The design of a new manual-variable memory pool class
-poolmvff_               Design of the manually-managed variable-size first-fit pool
+poolmv_                 Manual Variable pool class
+poolmvt_                Manual Variable Temporal pool class
+poolmvff_               Manually Variable First-Fit pool
 prot_                   Generic design of the protection module
 protan_                 ANSI implementation of protection module
 protli_                 Linux implementation of protection module
@@ -119,6 +120,7 @@ writef_                 The design of the MPS writef function
 .. _config: config
 .. _critical-path: critical-path
 .. _diag: diag
+.. _failover: failover
 .. _finalize: finalize
 .. _fix: fix
 .. _freelist: freelist
@@ -127,6 +129,7 @@ writef_                 The design of the MPS writef function
 .. _interface-c: interface-c
 .. _io: io
 .. _keyword-arguments: keyword-arguments
+.. _land: land
 .. _lib: lib
 .. _lock: lock
 .. _locus: locus

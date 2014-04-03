@@ -113,11 +113,6 @@ typedef struct RangeStruct *Range;      /* <design/range/> */
 typedef struct LandStruct *Land;        /* <design/land/> */
 typedef struct LandClassStruct *LandClass; /* <design/land/> */
 typedef unsigned FindDelete;            /* <design/land/> */
-typedef LandClass CBSLandClass;         /* <design/cbs/> */
-typedef struct CBSStruct *CBS;          /* <design/cbs/> */
-typedef LandClass FreelistLandClass;    /* <design/freelist/> */
-typedef struct FreelistStruct *Freelist; /* <design/freelist/> */
-typedef union FreelistBlockUnion *FreelistBlock; /* <code/freelist.c> */
 
 
 /* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */
@@ -439,7 +434,7 @@ enum {
 };
 
 
-/* FindDelete operations -- see <design/cbs/> and <design/freelist/> */
+/* FindDelete operations -- see <design/land/> */
 
 enum {
   FindDeleteNONE = 1, /* don't delete after finding */

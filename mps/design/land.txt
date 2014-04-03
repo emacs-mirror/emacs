@@ -6,7 +6,7 @@ Lands
 :Tag: design.mps.land
 :Author: Gareth Rees
 :Date: 2014-04-01
-:Status: incomplete design
+:Status: complete design
 :Revision: $Id$
 :Copyright: See section `Copyright and License`_.
 
@@ -19,7 +19,7 @@ represents a collection of contiguous address ranges.
 
 _`.readership`: This document is intended for any MPS developer.
 
-_`.source`: `design.mps.cbs <cbs/>`_, `design.mps.freelist <freelist/>`_.
+_`.source`: design.mps.cbs_, design.mps.freelist_.
 
 _`.overview`: Collections of address ranges are used in several places
 in the MPS: the arena stores a set of mapped address ranges; pools
@@ -132,6 +132,9 @@ that does not overlap with any range in the land) can only fail if the
 new range is isolated and the allocation of the necessary data
 structure to represent it failed.
 
+_`.function.insert.alias`: It is acceptable for ``rangeReturn`` and
+``range`` to share storage.
+
 ``Res LandDelete(Range rangeReturn, Land land, Range range)``
 
 _`.function.delete`: If any part of the range is not in the land,
@@ -153,14 +156,16 @@ This is so that the caller can try deleting the whole block (which is
 guaranteed to succeed) and managing the fragments using a fallback
 strategy.
 
+_`.function.delete.alias`: It is acceptable for ``rangeReturn`` and
+``range`` to share storage.
+
 ``void LandIterate(Land land, LandIterateMethod iterate, void *closureP, Size closureS)``
 
 _`.function.iterate`: ``LandIterate()`` is the function used to
 iterate all isolated contiguous ranges in a land. It receives a
-pointer, ``Size`` closure pair to pass on to the iterator method,
-and an iterator method to invoke on every range in address order. If
-the iterator method returns ``FALSE``, then the iteration is
-terminated.
+pointer, ``Size`` closure pair to pass on to the iterator method, and
+an iterator method to invoke on every range. If the iterator method
+returns ``FALSE``, then the iteration is terminated.
 
 ``Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)``
 
@@ -211,15 +216,19 @@ argument.
 
 _`.function.find.zones`: Locate a block at least as big as ``size``
 that lies entirely within the ``zoneSet``, return its range via the
-``rangeReturn`` argument, and return ``TRUE``. (The first such block,
+``rangeReturn`` argument, and return ``ResOK``. (The first such block,
 if ``high`` is ``FALSE``, or the last, if ``high`` is ``TRUE``.) If
-there is no such block, , return ``FALSE``.
+there is no such block, , return ``ResFAIL``.
 
 Delete the range as for ``LandFindFirst()`` and ``LastFindLast()``
 (with the effect of ``FindDeleteLOW`` if ``high`` is ``FALSE`` and the
 effect of ``FindDeleteHIGH`` if ``high`` is ``TRUE``), and return the
 original contiguous isolated range in which the range was found via
 the ``oldRangeReturn`` argument.
+
+_`.function.find.zones.fail`: It's possible that the range can't be
+deleted from the land because that would require allocation, in which
+case the result code will indicate the cause of the failure.
 
 ``Res LandDescribe(Land land, mps_lib_FILE *stream)``
 
@@ -232,6 +241,30 @@ splay tree implementation. It is provided for debugging purposes only.
 
 _`.function.flush`: Delete ranges of addresses from ``src`` and insert
 them into ``dest``, so long as ``LandInsert()`` remains successful.
+
+
+Implementations
+---------------
+
+There are three land implementations:
+
+#. CBS (Coalescing Block Structure) stores ranges in a splay tree. It
+   has fast (logarithmic in the number of ranges) insertion, deletion
+   and searching, but has substantial space overhead. See
+   design.mps.cbs_.
+
+#. Freelist stores ranges in an address-ordered free list, as in
+   traditional ``malloc()`` implementations. Insertion, deletion, and
+   searching are slow (proportional to the number of ranges) but it
+   does not need to allocate. See design.mps.freelist_.
+
+#. Failover combines two lands, using one (the *primary*) until it
+   fails, and then falls back to the other (the *secondary*). See
+   design.mps.failover_.
+
+.. _design.mps.cbs: cbs
+.. _design.mps.freelist: freelist
+.. _design.mps.failover: failover
 
 
 Testing
@@ -250,7 +283,7 @@ generic function, but makes no automatic test of the resulting output.
 Document History
 ----------------
 
-- 2014-04-01 GDR_ Created based on `design.mps.cbs <cbs/>`_.
+- 2014-04-01 GDR_ Created based on design.mps.cbs_.
 
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 

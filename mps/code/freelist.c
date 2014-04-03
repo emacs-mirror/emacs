@@ -8,6 +8,7 @@
 
 #include "freelist.h"
 #include "mpm.h"
+#include "range.h"
 
 SRCID(freelist, "$Id$");
 
@@ -22,19 +23,36 @@ typedef union FreelistBlockUnion {
     /* limit is (char *)this + freelistAlignment(fl) */
   } small;
   struct {
-    FreelistBlock next;
+    FreelistBlock next;    /* not tagged (low bit 0) */
     Addr limit;
   } large;
 } FreelistBlockUnion;
 
 
-/* See <design/freelist/#impl.grain.align> */
+/* freelistMinimumAlignment -- the minimum allowed alignment for the
+ * address ranges in a free list: see <design/freelist/#impl.grain.align>
+ */
+
 #define freelistMinimumAlignment ((Align)sizeof(FreelistBlock))
 
 
+/* FreelistTag -- return the tag of word */
+
 #define FreelistTag(word) ((word) & 1)
+
+
+/* FreelistTagSet -- return word updated with the tag set */
+
 #define FreelistTagSet(word) ((FreelistBlock)((Word)(word) | 1))
+
+
+/* FreelistTagReset -- return word updated with the tag reset */
+
 #define FreelistTagReset(word) ((FreelistBlock)((Word)(word) & ~(Word)1))
+
+
+/* FreelistTagCopy -- return 'to' updated to have the same tag as 'from' */
+
 #define FreelistTagCopy(to, from) ((FreelistBlock)((Word)(to) | FreelistTag((Word)(from))))
 
 
@@ -148,7 +166,7 @@ Bool FreelistCheck(Freelist fl)
   Land land;
   CHECKS(Freelist, fl);
   land = &fl->landStruct;
-  CHECKL(LandCheck(land));
+  CHECKD(Land, land);
   /* See <design/freelist/#impl.grain.align> */
   CHECKL(AlignIsAligned(LandAlignment(land), freelistMinimumAlignment));
   CHECKL((fl->list == NULL) == (fl->listSize == 0));
@@ -195,12 +213,14 @@ static void freelistFinish(Land land)
 
 
 /* freelistBlockSetPrevNext -- update list of blocks
+ *
  * If prev and next are both NULL, make the block list empty.
  * Otherwise, if prev is NULL, make next the first block in the list.
  * Otherwise, if next is NULL, make prev the last block in the list.
  * Otherwise, make next follow prev in the list.
  * Update the count of blocks by 'delta'.
  */
+
 static void freelistBlockSetPrevNext(Freelist fl, FreelistBlock prev,
                                      FreelistBlock next, int delta)
 {
@@ -289,12 +309,14 @@ static Res freelistInsert(Range rangeReturn, Land land, Range range)
 }
 
 
-/* freelistDeleteFromBlock -- delete 'range' from 'block' (it is known
- * to be a subset of that block); update 'rangeReturn' to the original
- * range of 'block' and update the block list accordingly: 'prev' is
- * the block on the list just before 'block', or NULL if 'block' is
- * the first block on the list.
+/* freelistDeleteFromBlock -- delete range from block
+ *
+ * range must be a subset of block. Update rangeReturn to be the
+ * original range of block and update the block list accordingly: prev
+ * is on the list just before block, or NULL if block is the first
+ * block on the list.
  */
+
 static void freelistDeleteFromBlock(Range rangeReturn, Freelist fl,
                                     Range range, FreelistBlock prev,
                                     FreelistBlock block)
@@ -416,14 +438,17 @@ static void freelistIterate(Land land, LandVisitor visitor,
 }
 
 
-/* freelistFindDeleteFromBlock -- Find a chunk of 'size' bytes in
- * 'block' (which is known to be at least that big) and possibly
- * delete that chunk according to the instruction in 'findDelete'.
- * Return the range of that chunk in 'rangeReturn'. Return the
- * original range of the block in 'oldRangeReturn'. Update the block
- * list accordingly, using 'prev' which is the previous block in the
- * list, or NULL if 'block' is the first block in the list.
+/* freelistFindDeleteFromBlock -- delete size bytes from block
+ *
+ * Find a chunk of size bytes in block (which is known to be at least
+ * that big) and possibly delete that chunk according to the
+ * instruction in findDelete. Return the range of that chunk in
+ * rangeReturn. Return the original range of the block in
+ * oldRangeReturn. Update the block list accordingly, using prev,
+ * which is previous in list or NULL if block is the first block in
+ * the list.
  */
+
 static void freelistFindDeleteFromBlock(Range rangeReturn, Range oldRangeReturn,
                                         Freelist fl, Size size,
                                         FindDelete findDelete,
@@ -580,11 +605,77 @@ static Bool freelistFindLargest(Range rangeReturn, Range oldRangeReturn,
 }
 
 
-/* freelistDescribeVisitor -- visitor method for freelistDescribe.
+static Res freelistFindInZones(Range rangeReturn, Range oldRangeReturn,
+                               Land land, Size size,
+                               ZoneSet zoneSet, Bool high)
+{
+  Freelist fl;
+  LandFindMethod landFind;
+  RangeInZoneSet search;
+  Bool found = FALSE;
+  FreelistBlock prev, cur, next;
+  FreelistBlock foundPrev = NULL, foundCur = NULL;
+  RangeStruct foundRange;
+
+  AVER(FALSE); /* TODO: this code is completely untested! */
+  AVER(rangeReturn != NULL);
+  AVER(oldRangeReturn != NULL);
+  AVERT(Land, land);
+  fl = freelistOfLand(land);
+  AVERT(Freelist, fl);
+  /* AVERT(ZoneSet, zoneSet); */
+  AVERT(Bool, high);
+
+  landFind = high ? cbsFindLast : cbsFindFirst;
+  search = high ? RangeInZoneSetLast : RangeInZoneSetFirst;
+
+  if (zoneSet == ZoneSetEMPTY)
+    return ResFAIL;
+  if (zoneSet == ZoneSetUNIV) {
+    FindDelete fd = high ? FindDeleteHIGH : FindDeleteLOW;
+    if ((*landFind)(rangeReturn, oldRangeReturn, land, size, fd))
+      return ResOK;
+    else
+      return ResFAIL;
+  }
+  if (ZoneSetIsSingle(zoneSet) && size > ArenaStripeSize(LandArena(land)))
+    return ResFAIL;
+
+  prev = NULL;
+  cur = fl->list;
+  while (cur) {
+    Addr base, limit;
+    if ((*search)(&base, &limit, FreelistBlockBase(cur),
+                  FreelistBlockLimit(fl, cur),
+                  LandArena(land), zoneSet, size))
+    {
+      found = TRUE;
+      foundPrev = prev;
+      foundCur = cur;
+      RangeInit(&foundRange, base, limit);
+      if (!high)
+        break;
+    }
+    next = FreelistBlockNext(cur);
+    prev = cur;
+    cur = next;
+  }
+
+  if (!found)
+    return ResFAIL;
+
+  freelistDeleteFromBlock(oldRangeReturn, fl, &foundRange, foundPrev, foundCur);
+  RangeCopy(rangeReturn, &foundRange);
+  return ResOK;
+}
+
+
+/* freelistDescribeVisitor -- visitor method for freelistDescribe
  *
  * Writes a decription of the range into the stream pointed to by
  * closureP.
  */
+
 static Bool freelistDescribeVisitor(Bool *deleteReturn, Land land, Range range,
                                     void *closureP, Size closureS)
 {
@@ -593,7 +684,7 @@ static Bool freelistDescribeVisitor(Bool *deleteReturn, Land land, Range range,
 
   if (deleteReturn == NULL) return FALSE;
   if (!TESTT(Land, land)) return FALSE;
-  if (!TESTT(Range, range)) return FALSE;
+  if (!RangeCheck(range)) return FALSE;
   if (stream == NULL) return FALSE;
   UNUSED(closureS);
 
@@ -629,9 +720,7 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream)
 }
 
 
-typedef LandClassStruct FreelistLandClassStruct;
-
-DEFINE_CLASS(FreelistLandClass, class)
+DEFINE_LAND_CLASS(FreelistLandClass, class)
 {
   INHERIT_CLASS(class, LandClass);
   class->name = "FREELIST";
@@ -644,7 +733,9 @@ DEFINE_CLASS(FreelistLandClass, class)
   class->findFirst = freelistFindFirst;
   class->findLast = freelistFindLast;
   class->findLargest = freelistFindLargest;
+  class->findInZones = freelistFindInZones;
   class->describe = freelistDescribe;
+  AVERT(LandClass, class);
 }
 
 

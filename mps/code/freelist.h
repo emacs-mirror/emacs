@@ -11,9 +11,11 @@
 
 #include "mpmtypes.h"
 
+typedef struct FreelistStruct *Freelist;
+
 extern Bool FreelistCheck(Freelist freelist);
 
-extern FreelistLandClass FreelistLandClassGet(void);
+extern LandClass FreelistLandClassGet(void);
 
 #endif /* freelist.h */
 

@@ -22,9 +22,13 @@ implementation.
 _`.readership`: This document is intended for any MM developer.
 
 _`.source`: The primary sources for this design are [ST85]_ and
-[Sleator96]_. Also as CBS is a client, design.mps.cbs. As
-PoolMVFF is an indirect client, design.mps.poolmvff(1). Also, as
-PoolMV2 is an (obsolescent?) indirect client, design.mps.poolmv2.
+[Sleator96]_. As CBS is a client, design.mps.cbs_. As PoolMVFF is an
+indirect client, design.mps.poolmvff_. Also, as PoolMVT is an indirect
+client, design.mps.poolmvt_.
+
+.. _design.mps.cbs: cbs
+.. _design.mps.poolmvt: poolmvt
+.. _design.mps.poolmvff: poolmvff
 
 _`.background`: The following background documents influence the design: 
 guide.impl.c.adt(0).
@@ -89,7 +93,7 @@ Requirements
 ------------
 
 _`.req`: These requirements are drawn from those implied by
-design.mps.poolmv2, design.mps.poolmvff(1), design.mps.cbs(2) and
+design.mps.poolmvt_, design.mps.poolmvff_, design.mps.cbs_, and
 general inferred MPS requirements.
 
 _`.req.order`: Must maintain a set of abstract keys which is totally
