@@ -5,6 +5,16 @@
 
 	* lisp.h (EARRAYSIZE): New macro.
 
+	* alloc.c: Include execinfo.h if available.
+	(SUSPICIOUS_OBJECT_CHECKING): New macro; define unconditionally.
+	(suspicious_free_record): New structure.
+	(suspicious_objects,suspicious_object_index)
+	(suspicious_free_history, suspicious_free_history_index): New
+	variables.
+	(find_suspicious_object_in_range,detect_suspicious_free)
+	(Fsuspicious_object): New functions.
+	(cleanup_vector): Call find_suspicious_object_in_range.
+
 2014-04-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* xterm.c (x_new_font): Don't calculate non-toolkit scrollbar
