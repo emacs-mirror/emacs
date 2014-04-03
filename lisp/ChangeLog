@@ -1,3 +1,17 @@
+2014-04-03  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (make-backup-file-name-function)
+	(make-backup-file-name, make-backup-file-name--default-function)
+	(make-backup-file-name-1, find-backup-file-name)
+	(revert-buffer-function, revert-buffer-insert-file-contents-function)
+	(buffer-stale--default-function, buffer-stale-function)
+	(before-revert-hook, after-revert-hook, revert-buffer-in-progress-p)
+	(revert-buffer, revert-buffer--default)
+	(revert-buffer-insert-file-contents--default-function):
+	Doc fixes related to defaults no longer being nil.
+	(make-backup-file-name-function): Bump :version.
+	Restore nil as a valid but deprecated custom type.
+
 2014-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/perl-mode.el (perl-syntax-propertize-function): Handle $'

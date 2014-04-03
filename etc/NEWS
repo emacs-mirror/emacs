@@ -1397,9 +1397,10 @@ argument, with the same interpretation as the returned value of
 
 ** Revert and Autorevert changes
 
-*** The default value of `revert-buffer-function' is no longer nil.
-Instead it defaults to a function that does what the nil value used to.
-The same applies for `revert-buffer-insert-file-contents-function'.
+*** The default values of `make-backup-file-name-function',
+`revert-buffer-function', `revert-buffer-insert-file-contents-function',
+and `buffer-stale-function' are no longer nil.  Instead they default
+to functions that do what the nil value used to.
 
 ---
 *** If Emacs is compiled with file notification support, it uses notifications
