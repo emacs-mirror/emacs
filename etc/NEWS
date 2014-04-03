@@ -159,6 +159,9 @@ You can change the default by customizing `blink-cursor-blinks'.
 ** In keymaps where SPC scrolls forward, S-SPC now scrolls backward.
 This affects View mode, etc.
 
+** The default value of `buffer-stale-function' is no longer nil.
+Instead it defaults to a function that does what the nil value used to.
+
 ** Help changes
 
 +++
@@ -1397,10 +1400,9 @@ argument, with the same interpretation as the returned value of
 
 ** Revert and Autorevert changes
 
-*** The default values of `make-backup-file-name-function',
-`revert-buffer-function', `revert-buffer-insert-file-contents-function',
-and `buffer-stale-function' are no longer nil.  Instead they default
-to functions that do what the nil value used to.
+*** The default values of `buffer-stale-function', `revert-buffer-function',
+and `revert-buffer-insert-file-contents-function' are no longer nil.
+Instead they default to functions that do what the nil value used to.
 
 ---
 *** If Emacs is compiled with file notification support, it uses notifications
