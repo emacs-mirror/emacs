@@ -1,3 +1,7 @@
+2014-04-03  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Further update AC_INIT regexp.
+
 2014-04-02  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac: Make the final "Does Emacs use Gsettings" message
