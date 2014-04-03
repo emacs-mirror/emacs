@@ -1,3 +1,8 @@
+2014-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-syntax-propertize-function): Handle $'
+	used as a variable (bug#17174).
+
 2014-04-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/perl-mode.el (perl-indent-new-calculate):

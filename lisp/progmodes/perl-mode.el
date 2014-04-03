@@ -250,7 +250,11 @@
       ;; Catch ${ so that ${var} doesn't screw up indentation.
       ;; This also catches $' to handle 'foo$', although it should really
       ;; check that it occurs inside a '..' string.
-      ("\\(\\$\\)[{']" (1 ". p"))
+      ("\\(\\$\\)[{']" (1 (unless (and (eq ?\' (char-after (match-end 1)))
+                                       (save-excursion
+                                         (not (nth 3 (syntax-ppss
+                                                      (match-beginning 0))))))
+                            (string-to-syntax ". p"))))
       ;; Handle funny names like $DB'stop.
       ("\\$ ?{?^?[_[:alpha:]][_[:alnum:]]*\\('\\)[_[:alpha:]]" (1 "_"))
       ;; format statements

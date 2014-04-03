@@ -4231,7 +4231,7 @@
 	* frame.c (delete_frame): Block/unblock input to overcome race
 	condition (Bug#15475).
 
-2013-09-29  Andreas Politz  <politza@hochschule-trier.de>  (tiny change)
+2013-09-29  Andreas Politz  <politza@hochschule-trier.de>
 
 	* frame.c (delete_frame): Record selected frame only after
 	calling Qdelete_frame_functions (Bug#15477).
