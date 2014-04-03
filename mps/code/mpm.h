@@ -807,7 +807,7 @@ extern AllocPattern AllocPatternRamp(void);
 extern AllocPattern AllocPatternRampCollectAll(void);
 
 
-/* FindDelete -- see <code/cbs.c> and <code/freelist.c> */
+/* FindDelete -- see <code/land.c> */
 
 extern Bool FindDeleteCheck(FindDelete findDelete);
 
@@ -1015,6 +1015,8 @@ extern void LandFlush(Land dest, Land src);
 extern Bool LandClassCheck(LandClass class);
 extern LandClass LandClassGet(void);
 #define LAND_SUPERCLASS(className) ((LandClass)SUPERCLASS(className))
+#define DEFINE_LAND_CLASS(className, var) \
+  DEFINE_ALIAS_CLASS(className, LandClass, var)
 
 
 /* Stack Probe */

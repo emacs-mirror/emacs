@@ -42,11 +42,11 @@
 				22B2BC3D18B643B300C33E63 /* PBXTargetDependency */,
 				2291A5E6175CB207001D4920 /* PBXTargetDependency */,
 				2291A5E8175CB20E001D4920 /* PBXTargetDependency */,
-				3114A65B156E95B4001E0AA3 /* PBXTargetDependency */,
 				3114A5CC156E932C001E0AA3 /* PBXTargetDependency */,
 				3114A5EA156E93C4001E0AA3 /* PBXTargetDependency */,
 				224CC79D175E187C002FF81B /* PBXTargetDependency */,
 				22B2BC3F18B643B700C33E63 /* PBXTargetDependency */,
+				3114A65B156E95B4001E0AA3 /* PBXTargetDependency */,
 				2231BB6D18CA986B002D6322 /* PBXTargetDependency */,
 				31D60034156D3D5A00337B26 /* PBXTargetDependency */,
 				2231BB6F18CA986D002D6322 /* PBXTargetDependency */,
@@ -1258,6 +1258,11 @@
 		2291A5F0175CB7A4001D4920 /* testlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = testlib.h; sourceTree = "<group>"; };
 		22B2BC2B18B6434000C33E63 /* scheme-advanced.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "scheme-advanced.c"; path = "../example/scheme/scheme-advanced.c"; sourceTree = "<group>"; };
 		22B2BC3618B6434F00C33E63 /* scheme-advanced */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "scheme-advanced"; sourceTree = BUILT_PRODUCTS_DIR; };
+		22C5C99A18EC6AEC004C63D4 /* failover.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = failover.c; sourceTree = "<group>"; };
+		22C5C99B18EC6AEC004C63D4 /* failover.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = failover.h; sourceTree = "<group>"; };
+		22C5C99C18EC6AEC004C63D4 /* land.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = land.c; sourceTree = "<group>"; };
+		22DD93E118ED815F00240DD2 /* failover.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = failover.txt; path = ../design/failover.txt; sourceTree = "<group>"; };
+		22DD93E218ED815F00240DD2 /* land.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = land.txt; path = ../design/land.txt; sourceTree = "<group>"; };
 		22FA177516E8D6FC0098B23F /* amcssth */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = amcssth; sourceTree = BUILT_PRODUCTS_DIR; };
 		22FA177616E8D7A80098B23F /* amcssth.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = amcssth.c; sourceTree = "<group>"; };
 		2D07B96C1636FC7200DB751B /* eventsql.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = eventsql.c; sourceTree = "<group>"; };
@@ -1927,6 +1932,7 @@
 				31160D9C1899540D0071EB17 /* config.txt */,
 				31160D9D1899540D0071EB17 /* critical-path.txt */,
 				31160D9E1899540D0071EB17 /* diag.txt */,
+				22DD93E118ED815F00240DD2 /* failover.txt */,
 				31160D9F1899540D0071EB17 /* finalize.txt */,
 				31160DA01899540D0071EB17 /* fix.txt */,
 				31160DA11899540D0071EB17 /* freelist.txt */,
@@ -1936,6 +1942,7 @@
 				31160DA51899540D0071EB17 /* interface-c.txt */,
 				31160DA61899540D0071EB17 /* io.txt */,
 				31160DA71899540D0071EB17 /* keyword-arguments.txt */,
+				22DD93E218ED815F00240DD2 /* land.txt */,
 				31160DA81899540D0071EB17 /* lib.txt */,
 				31160DA91899540D0071EB17 /* lock.txt */,
 				31160DAA1899540D0071EB17 /* locus.txt */,
@@ -2004,7 +2011,6 @@
 				3114A613156E944A001E0AA3 /* bttest.c */,
 				2291A5AA175CAA9B001D4920 /* exposet0.c */,
 				2291A5AB175CAA9B001D4920 /* expt825.c */,
-				2291A5E9175CB4EC001D4920 /* landtest.c */,
 				3114A5CD156E9369001E0AA3 /* finalcv.c */,
 				3114A5E5156E93B9001E0AA3 /* finaltest.c */,
 				3124CAC6156BE48D00753214 /* fmtdy.c */,
@@ -2012,6 +2018,7 @@
 				3124CAE4156BE6D500753214 /* fmthe.c */,
 				3124CACC156BE4C200753214 /* fmtno.c */,
 				224CC79E175E3202002FF81B /* fotest.c */,
+				2291A5E9175CB4EC001D4920 /* landtest.c */,
 				2231BB6818CA9834002D6322 /* locbwcss.c */,
 				31D60036156D3E0200337B26 /* lockcov.c */,
 				2231BB6918CA983C002D6322 /* locusss.c */,
@@ -2152,10 +2159,13 @@
 				311F2F5917398AE900C15B6A /* eventcom.h */,
 				311F2F5A17398AE900C15B6A /* eventdef.h */,
 				311F2F5C17398AE900C15B6A /* eventrep.h */,
+				22C5C99A18EC6AEC004C63D4 /* failover.c */,
+				22C5C99B18EC6AEC004C63D4 /* failover.h */,
 				31EEAC1A156AB2B200714D05 /* format.c */,
 				2291A5EE175CB768001D4920 /* freelist.c */,
 				2291A5EF175CB768001D4920 /* freelist.h */,
 				31EEAC07156AB27B00714D05 /* global.c */,
+				22C5C99C18EC6AEC004C63D4 /* land.c */,
 				31EEAC2B156AB2F200714D05 /* ld.c */,
 				311F2F5E17398B0E00C15B6A /* lock.h */,
 				31EEAC08156AB27B00714D05 /* locus.c */,
@@ -3120,11 +3130,11 @@
 				318DA8C31892B0F30089718C /* djbench */,
 				2291A5D3175CB05F001D4920 /* exposet0 */,
 				2291A5C1175CAFCA001D4920 /* expt825 */,
-				3114A64B156E9596001E0AA3 /* landtest */,
 				3114A5BC156E9315001E0AA3 /* finalcv */,
 				3114A5D5156E93A0001E0AA3 /* finaltest */,
 				224CC78C175E1821002FF81B /* fotest */,
 				6313D46718A400B200EB03EF /* gcbench */,
+				3114A64B156E9596001E0AA3 /* landtest */,
 				2231BB4C18CA97D8002D6322 /* locbwcss */,
 				31D60026156D3D3E00337B26 /* lockcov */,
 				2231BB5A18CA97DC002D6322 /* locusss */,

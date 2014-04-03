@@ -123,6 +123,7 @@ MPMCOMMON=\
     <dbgpool> \
     <dbgpooli> \
     <event> \
+    <failover> \
     <format> \
     <freelist> \
     <global> \

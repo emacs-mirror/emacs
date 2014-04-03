@@ -1,54 +1,35 @@
-/* range.h: ADDRESS RANGE INTERFACE
+/* failover.h: FAILOVER ALLOCATOR INTERFACE
  *
  * $Id$
- * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
  *
- * .purpose: Representation of address ranges.
- *
- * .design: <design/range/>
+ * .source: <design/failover/>.
  */
 
-#ifndef range_h
-#define range_h
+#ifndef failover_h
+#define failover_h
 
 #include "mpmtypes.h"
 
+typedef struct FailoverStruct *Failover;
 
-/* Prototypes */
+extern Bool FailoverCheck(Failover failover);
 
-#define RangeBase(range) ((range)->base)
-#define RangeLimit(range) ((range)->limit)
-#define RangeSize(range) (AddrOffset(RangeBase(range), RangeLimit(range)))
-#define RangeEmpty(range) (RangeBase(range) == RangeLimit(range))
+extern LandClass FailoverLandClassGet(void);
 
-extern void RangeInit(Range range, Addr base, Addr limit);
-extern void RangeInitSize(Range range, Addr base, Size size);
-extern void RangeFinish(Range range);
-extern Res RangeDescribe(Range range, mps_lib_FILE *stream);
-extern Bool RangeCheck(Range range);
-extern Bool RangeIsAligned(Range range, Align align);
-extern Bool RangesOverlap(Range range1, Range range2);
-extern Bool RangesNest(Range outer, Range inner);
-extern Bool RangesEqual(Range range1, Range range2);
-extern Addr (RangeBase)(Range range);
-extern Addr (RangeLimit)(Range range);
-extern Size (RangeSize)(Range range);
-extern void RangeCopy(Range to, Range from);
+extern const struct mps_key_s _mps_key_failover_primary;
+#define FailoverPrimary (&_mps_key_failover_primary)
+#define FailoverPrimary_FIELD p
+extern const struct mps_key_s _mps_key_failover_secondary;
+#define FailoverSecondary (&_mps_key_failover_secondary)
+#define FailoverSecondary_FIELD p
 
-
-/* Types */
-
-typedef struct RangeStruct {
-  Addr base;
-  Addr limit;
-} RangeStruct;
-
-#endif /* range_h */
+#endif /* failover.h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

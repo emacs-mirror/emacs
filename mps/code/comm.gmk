@@ -177,6 +177,7 @@ MPMCOMMON = \
     dbgpool.c \
     dbgpooli.c \
     event.c \
+    failover.c \
     format.c \
     freelist.c \
     global.c \

@@ -10,6 +10,7 @@ Design
     cbs
     config
     critical-path
+    failover
     freelist
     guide.hex.trans
     guide.impl.c.format

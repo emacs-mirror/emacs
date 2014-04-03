@@ -66,7 +66,7 @@ Bool CBSCheck(CBS cbs)
 {
   /* See .enter-leave.simple. */
   CHECKS(CBS, cbs);
-  CHECKL(LandCheck(&cbs->landStruct));
+  CHECKD(Land, &cbs->landStruct);
   CHECKD(SplayTree, cbsSplay(cbs));
   /* nothing to check about treeSize */
   CHECKD(Pool, cbs->blockPool);
@@ -226,7 +226,7 @@ static void cbsUpdateZonedNode(SplayTree splay, Tree tree)
 
 /* cbsInit -- Initialise a CBS structure
  *
- * See <design/cbs/#function.cbs.init>.
+ * See <design/land/#function.init>.
  */
 
 ARG_DEFINE_KEY(cbs_extend_by, Size);
@@ -307,7 +307,7 @@ static Res cbsInit(Land land, ArgList args)
 
 /* CBSFinish -- Finish a CBS structure
  *
- * See <design/cbs/#function.cbs.finish>.
+ * See <design/land/#function.finish>.
  */
 
 static void cbsFinish(Land land)
@@ -645,7 +645,7 @@ failSplayTreeSearch:
 
 /* cbsDelete -- Remove a range from a CBS
  *
- * See <design/cbs/#function.cbs.delete>.
+ * See <design/land/#function.delete>.
  *
  * .delete.alloc: Will only allocate a block if the range splits
  * an existing range.
@@ -715,7 +715,7 @@ static Res cbsSplayNodeDescribe(Tree tree, mps_lib_FILE *stream)
  * This is because CBSIterate uses TreeTraverse, which does not permit
  * modification, for speed and to avoid perturbing the splay tree balance.
  *
- * See <design/cbs/#function.cbs.iterate>.
+ * See <design/land/#function.iterate>.
  */
 
 typedef struct CBSIterateClosure {
@@ -774,20 +774,6 @@ static void cbsIterate(Land land, LandVisitor visitor,
 
   cbsLeave(cbs);
   return;
-}
-
-
-/* FindDeleteCheck -- check method for a FindDelete value */
-
-Bool FindDeleteCheck(FindDelete findDelete)
-{
-  CHECKL(findDelete == FindDeleteNONE
-         || findDelete == FindDeleteLOW
-         || findDelete == FindDeleteHIGH
-         || findDelete == FindDeleteENTIRE);
-  UNUSED(findDelete); /* <code/mpm.c#check.unused> */
-
-  return TRUE;
 }
 
 
@@ -1094,7 +1080,7 @@ static Res cbsFindInZones(Range rangeReturn, Range oldRangeReturn,
 
 /* cbsDescribe -- describe a CBS
  *
- * See <design/cbs/#function.cbs.describe>.
+ * See <design/land/#function.describe>.
  */
 
 static Res cbsDescribe(Land land, mps_lib_FILE *stream)
@@ -1129,10 +1115,7 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream)
   return res;
 }
 
-
-typedef LandClassStruct CBSLandClassStruct;
-
-DEFINE_CLASS(CBSLandClass, class)
+DEFINE_LAND_CLASS(CBSLandClass, class)
 {
   INHERIT_CLASS(class, LandClass);
   class->name = "CBS";
@@ -1147,8 +1130,8 @@ DEFINE_CLASS(CBSLandClass, class)
   class->findLargest = cbsFindLargest;
   class->findInZones = cbsFindInZones;
   class->describe = cbsDescribe;
+  AVERT(LandClass, class);
 }
-
 
 
 /* C. COPYRIGHT AND LICENSE
