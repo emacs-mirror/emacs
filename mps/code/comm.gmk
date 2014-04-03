@@ -342,17 +342,25 @@ clean: phony
 	$(ECHO) "$(PFM): $@"
 	rm -rf "$(PFM)"
 
-# "target" builds some varieties of the target named in the TARGET macro.
+# "target" builds some varieties of the target named in the TARGET
+# macro.
+#
 # %%VARIETY: When adding a new target, optionally add a recursive make call
 # for the new variety, if it should be built by default.  It probably
 # shouldn't without a product design decision and an update of the readme
 # and build manual!
+#
+# Note that we build VARIETY=cool before VARIETY=hot because
+# the former doesn't need to optimize and so detects errors more
+# quickly; and because the former uses file-at-a-time compilation and
+# so can pick up where it left off instead of having to start from the
+# beginning of mps.c
 
 ifdef TARGET
 ifndef VARIETY
 target: phony
-	$(MAKE) -f $(PFM).gmk VARIETY=hot variety
 	$(MAKE) -f $(PFM).gmk VARIETY=cool variety
+	$(MAKE) -f $(PFM).gmk VARIETY=hot variety
 endif
 endif
 
