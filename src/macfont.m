@@ -237,8 +237,7 @@ mac_font_get_glyph_for_cid (FontRef font, CharacterCollection collection,
     unichar characters[] = {0xfffd};
     NSString *string =
       [NSString stringWithCharacters:characters
-			      length:(sizeof (characters)
-				      / sizeof (characters[0]))];
+			      length:EARRAYSIZE (characters)];
     NSGlyphInfo *glyphInfo =
       [NSGlyphInfo glyphInfoWithCharacterIdentifier:cid
 					 collection:collection
@@ -826,7 +825,7 @@ macfont_store_descriptor_attributes (FontDescriptorRef desc,
 	    {{0, 100}, {1, 200}, {CGFLOAT_MAX, CGFLOAT_MAX}}}};
       int i;
 
-      for (i = 0; i < sizeof (numeric_traits) / sizeof (numeric_traits[0]); i++)
+      for (i = 0; i < EARRAYSIZE (numeric_traits); i++)
 	{
 	  num = CFDictionaryGetValue (dict, numeric_traits[i].trait);
 	  if (num && CFNumberGetValue (num, kCFNumberCGFloatType, &floatval))
@@ -1908,7 +1907,7 @@ macfont_create_attributes_with_spec (Lisp_Object spec)
   if (! traits)
     goto err;
 
-  for (i = 0; i < sizeof (numeric_traits) / sizeof (numeric_traits[0]); i++)
+  for (i = 0; i < EARRAYSIZE (numeric_traits); i++)
     {
       tmp = AREF (spec, numeric_traits[i].index);
       if (INTEGERP (tmp))
@@ -3584,7 +3583,7 @@ mac_ctfont_create_line_with_string_and_font (CFStringRef string,
     {
       attributes = CFDictionaryCreate (NULL, (const void **) keys,
 				       (const void **) values,
-				       sizeof (keys) / sizeof (keys[0]),
+                                       EARRAYSIZE (keys),
 				       &kCFTypeDictionaryKeyCallBacks,
 				       &kCFTypeDictionaryValueCallBacks);
       CFRelease (values[1]);
@@ -3795,8 +3794,8 @@ mac_ctfont_get_glyph_for_cid (CTFontRef font, CTCharacterCollection collection,
   CTLineRef ctline = NULL;
 
   string = CFStringCreateWithCharacters (NULL, characters,
-					 sizeof (characters)
-					 / sizeof (characters[0]));
+                                         EARRAYSIZE (characters));
+
   if (string)
     {
       CTGlyphInfoRef glyph_info =
@@ -3811,7 +3810,7 @@ mac_ctfont_get_glyph_for_cid (CTFontRef font, CTCharacterCollection collection,
 
 	  attributes = CFDictionaryCreate (NULL, (const void **) keys,
 					   (const void **) values,
-					   sizeof (keys) / sizeof (keys[0]),
+                                           EARRAYSIZE (keys),
 					   &kCFTypeDictionaryKeyCallBacks,
 					   &kCFTypeDictionaryValueCallBacks);
 	  CFRelease (glyph_info);

@@ -2909,7 +2909,7 @@ or if SELinux is disabled, or if Emacs lacks SELinux support.  */)
     }
 #endif
 
-  return Flist (sizeof (values) / sizeof (values[0]), values);
+  return Flist (EARRAYSIZE (values), values);
 }
 
 DEFUN ("set-file-selinux-context", Fset_file_selinux_context,

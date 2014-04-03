@@ -564,7 +564,7 @@ dos_set_window_size (int *rows, int *cols)
       };
       int i = 0;
 
-      while (i < sizeof (std_dimension) / sizeof (std_dimension[0]))
+      while (i < EARRAYSIZE (std_dimension))
 	{
 	 if (std_dimension[i].need_vga <= have_vga
 	     && std_dimension[i].rows >= *rows)
@@ -3465,7 +3465,7 @@ init_environment (int argc, char **argv, int skip_args)
   static const char * const tempdirs[] = {
     "$TMPDIR", "$TEMP", "$TMP", "c:/"
   };
-  const int imax = sizeof (tempdirs) / sizeof (tempdirs[0]);
+  const int imax = EARRAYSIZE (tempdirs);
 
   /* Make sure they have a usable $TMPDIR.  Many Emacs functions use
      temporary files and assume "/tmp" if $TMPDIR is unset, which

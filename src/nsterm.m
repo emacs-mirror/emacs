@@ -2012,8 +2012,7 @@ ns_convert_key (unsigned code)
     Internal call used by NSView-keyDown.
    -------------------------------------------------------------------------- */
 {
-  const unsigned last_keysym = (sizeof (convert_ns_to_X_keysym)
-                                / sizeof (convert_ns_to_X_keysym[0]));
+  const unsigned last_keysym = EARRAYSIZE (convert_ns_to_X_keysym);
   unsigned keysym;
   /* An array would be faster, but less easy to read. */
   for (keysym = 0; keysym < last_keysym; keysym += 2)

@@ -1,5 +1,66 @@
 2014-04-03  Daniel Colascione  <dancol@dancol.org>
 
+	In all places below, change expressions of the form sizeof(arr) /
+	sizeof(arr[0]) to EARRAYSIZE(arr).
+
+	* xterm.c (x_term_init): See above.
+
+	* xfns.c (best_xim_style): See above.
+
+	* xfaces.c (Fdump_colors): See above.
+
+	* w32fns.c (w32_default_color_map): See above.
+
+	* w32.c:
+	(init_environment): See above.
+	(N_ENV_VARS): See above.
+
+	* unexcw.c (read_exe_header): See above.
+
+	* term.c (term_get_fkeys_1): See above.
+
+	* sysdep.c (init_baud_rate): See above.
+
+	* nsterm.m (ns_convert_key): See above.
+
+	* nsfns.m (get_geometry_from_preferences): See above.
+
+	* msdos.c (dos_set_window_size): See above.
+	(init_environment): See above.
+
+	* macfont.m (mac_font_get_glyph_for_cid): See above.
+	(macfont_store_descriptor_attributes): See above.
+	(macfont_create_attributes_with_spec): See above.
+	(mac_ctfont_get_glyph_for_cid): See above.
+
+	* keyboard.c (command_loop_1): See above.
+	(read_menu_command): See above.
+	(make_lispy_event): See above.
+	(NUM_MOD_NAMES): See above.
+	(read_key_sequence_vs): See above.
+	(Fcurrent_input_mode): See above.
+	(syms_of_keyboard): See above.
+
+	* image.c (xpm_str_to_color_key): See above.
+
+	* fringe.c (MAX_STANDARD_FRINGE_BITMAPS): See above.
+
+	* frame.c (x_set_frame_parameters): See above.
+
+	* fileio.c (Ffile_selinux_context): See above.
+
+	* emacs.c (sort_args): See above.
+
+	* dosfns.c ():
+	(msdos_stdcolor_name): See above.
+
+	* dired.c (file_attributes): See above.
+
+	* chartab.c:
+	(uniprop_decoder_count,uniprop_encode_count): See above.
+
+2014-04-02  Daniel Colascione  <dancol@dancol.org>
+
 	* data.c (Ffset): Abort if we're trying to set a function call to
 	a dead lisp object.
 

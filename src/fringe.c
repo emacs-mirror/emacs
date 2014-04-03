@@ -474,7 +474,7 @@ static struct fringe_bitmap standard_bitmaps[] =
 
 #define NO_FRINGE_BITMAP 0
 #define UNDEF_FRINGE_BITMAP 1
-#define MAX_STANDARD_FRINGE_BITMAPS (sizeof (standard_bitmaps)/sizeof (standard_bitmaps[0]))
+#define MAX_STANDARD_FRINGE_BITMAPS EARRAYSIZE (standard_bitmaps)
 
 static struct fringe_bitmap **fringe_bitmaps;
 static Lisp_Object *fringe_faces;

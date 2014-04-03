@@ -1446,7 +1446,7 @@ command_loop_1 (void)
       Vthis_command_keys_shift_translated = Qnil;
 
       /* Read next key sequence; i gets its length.  */
-      i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0],
+      i = read_key_sequence (keybuf, EARRAYSIZE (keybuf),
 			     Qnil, 0, 1, 1, 0);
 
       /* A filter may have run while we were reading the input.  */
@@ -1694,7 +1694,7 @@ read_menu_command (void)
      menus.  */
   specbind (Qecho_keystrokes, make_number (0));
 
-  i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0],
+  i = read_key_sequence (keybuf, EARRAYSIZE (keybuf),
 			 Qnil, 0, 1, 1, 1);
 
   unbind_to (count, Qnil);
@@ -5484,8 +5484,7 @@ make_lispy_event (struct input_event *event)
 				      event->modifiers,
 				      Qfunction_key, Qnil,
 				      lispy_accent_keys, &accent_key_syms,
-				      (sizeof (lispy_accent_keys)
-				       / sizeof (lispy_accent_keys[0])));
+                                      EARRAYSIZE (lispy_accent_keys));
 
 #if 0
 #ifdef XK_kana_A
@@ -5494,8 +5493,7 @@ make_lispy_event (struct input_event *event)
 				    event->modifiers & ~shift_modifier,
 				    Qfunction_key, Qnil,
 				    lispy_kana_keys, &func_key_syms,
-				    (sizeof (lispy_kana_keys)
-				     / sizeof (lispy_kana_keys[0])));
+                                    EARRAYSIZE (lispy_kana_keys));
 #endif /* XK_kana_A */
 #endif /* 0 */
 
@@ -5506,8 +5504,7 @@ make_lispy_event (struct input_event *event)
 				    event->modifiers,
 				    Qfunction_key, Qnil,
 				    iso_lispy_function_keys, &func_key_syms,
-				    (sizeof (iso_lispy_function_keys)
-				     / sizeof (iso_lispy_function_keys[0])));
+                                    EARRAYSIZE (iso_lispy_function_keys));
 #endif
 
       /* Handle system-specific or unknown keysyms.  */
@@ -5533,20 +5530,17 @@ make_lispy_event (struct input_event *event)
 				  event->modifiers,
 				  Qfunction_key, Qnil,
 				  lispy_function_keys, &func_key_syms,
-				  (sizeof (lispy_function_keys)
-				   / sizeof (lispy_function_keys[0])));
+                                  EARRAYSIZE (lispy_function_keys));
 
 #ifdef HAVE_NTGUI
     case MULTIMEDIA_KEY_EVENT:
-      if (event->code < (sizeof (lispy_multimedia_keys)
-                         / sizeof (lispy_multimedia_keys[0]))
+      if (event->code < EARRAYSIZE (lispy_multimedia_keys)
           && event->code > 0 && lispy_multimedia_keys[event->code])
         {
           return modify_event_symbol (event->code, event->modifiers,
                                       Qfunction_key, Qnil,
                                       lispy_multimedia_keys, &func_key_syms,
-                                      (sizeof (lispy_multimedia_keys)
-                                       / sizeof (lispy_multimedia_keys[0])));
+                                      EARRAYSIZE (lispy_multimedia_keys));
         }
       return Qnil;
 #endif
@@ -6268,7 +6262,7 @@ static const char *const modifier_names[] =
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, "alt", "super", "hyper", "shift", "control", "meta"
 };
-#define NUM_MOD_NAMES (sizeof (modifier_names) / sizeof (modifier_names[0]))
+#define NUM_MOD_NAMES EARRAYSIZE (modifier_names)
 
 static Lisp_Object modifier_symbols;
 
@@ -9758,7 +9752,7 @@ read_key_sequence_vs (Lisp_Object prompt, Lisp_Object continue_echo,
 
   memset (keybuf, 0, sizeof keybuf);
   GCPRO1 (keybuf[0]);
-  gcpro1.nvars = (sizeof keybuf / sizeof (keybuf[0]));
+  gcpro1.nvars = EARRAYSIZE (keybuf);
 
   if (NILP (continue_echo))
     {
@@ -9772,7 +9766,7 @@ read_key_sequence_vs (Lisp_Object prompt, Lisp_Object continue_echo,
     cancel_hourglass ();
 #endif
 
-  i = read_key_sequence (keybuf, (sizeof keybuf / sizeof (keybuf[0])),
+  i = read_key_sequence (keybuf, EARRAYSIZE (keybuf),
 			 prompt, ! NILP (dont_downcase_last),
 			 ! NILP (can_return_switch_frame), 0, 0);
 
@@ -10675,7 +10669,7 @@ The elements of this list correspond to the arguments of
     }
   XSETFASTINT (val[3], quit_char);
 
-  return Flist (sizeof (val) / sizeof (val[0]), val);
+  return Flist (EARRAYSIZE (val), val);
 }
 
 DEFUN ("posn-at-x-y", Fposn_at_x_y, Sposn_at_x_y, 2, 4, 0,
@@ -11043,7 +11037,7 @@ syms_of_keyboard (void)
 
   {
     int i;
-    int len = sizeof (head_table) / sizeof (head_table[0]);
+    int len = EARRAYSIZE (head_table);
 
     for (i = 0; i < len; i++)
       {
@@ -11059,14 +11053,13 @@ syms_of_keyboard (void)
   staticpro (&button_down_location);
   mouse_syms = Fmake_vector (make_number (5), Qnil);
   staticpro (&mouse_syms);
-  wheel_syms = Fmake_vector (make_number (sizeof (lispy_wheel_names)
-					  / sizeof (lispy_wheel_names[0])),
+  wheel_syms = Fmake_vector (make_number (EARRAYSIZE (lispy_wheel_names)),
 			     Qnil);
   staticpro (&wheel_syms);
 
   {
     int i;
-    int len = sizeof (modifier_names) / sizeof (modifier_names[0]);
+    int len = EARRAYSIZE (modifier_names);
 
     modifier_symbols = Fmake_vector (make_number (len), Qnil);
     for (i = 0; i < len; i++)

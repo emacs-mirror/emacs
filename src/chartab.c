@@ -1221,9 +1221,7 @@ uniprop_decode_value_run_length (Lisp_Object table, Lisp_Object value)
 static uniprop_decoder_t uniprop_decoder [] =
   { uniprop_decode_value_run_length };
 
-static int uniprop_decoder_count
-  = (sizeof uniprop_decoder) / sizeof (uniprop_decoder[0]);
-
+static const int uniprop_decoder_count = EARRAYSIZE (uniprop_decoder);
 
 /* Return the decoder of char-table TABLE or nil if none.  */
 
@@ -1301,9 +1299,7 @@ static uniprop_encoder_t uniprop_encoder[] =
     uniprop_encode_value_run_length,
     uniprop_encode_value_numeric };
 
-static int uniprop_encoder_count
-  = (sizeof uniprop_encoder) / sizeof (uniprop_encoder[0]);
-
+static const int uniprop_encoder_count = EARRAYSIZE (uniprop_encoder);
 
 /* Return the encoder of char-table TABLE or nil if none.  */
 

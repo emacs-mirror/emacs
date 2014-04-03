@@ -1024,7 +1024,7 @@ get_geometry_from_preferences (struct ns_display_info *dpyinfo,
   };
 
   int i;
-  for (i = 0; i < sizeof (r)/sizeof (r[0]); ++i)
+  for (i = 0; i < EARRAYSIZE (r); ++i)
     {
       if (NILP (Fassq (r[i].tem, parms)))
         {

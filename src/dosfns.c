@@ -402,7 +402,7 @@ msdos_stdcolor_idx (const char *name)
 {
   int i;
 
-  for (i = 0; i < sizeof (vga_colors) / sizeof (vga_colors[0]); i++)
+  for (i = 0; i < EARRAYSIZE (vga_colors); i++)
     if (xstrcasecmp (name, vga_colors[i]) == 0)
       return i;
 
@@ -422,7 +422,7 @@ msdos_stdcolor_name (int idx)
     return build_string (unspecified_fg);
   else if (idx == FACE_TTY_DEFAULT_BG_COLOR)
     return build_string (unspecified_bg);
-  else if (idx >= 0 && idx < sizeof (vga_colors) / sizeof (vga_colors[0]))
+  else if (idx >= 0 && idx < EARRAYSIZE (vga_colors))
     return build_string (vga_colors[idx]);
   else
     return Qunspecified;	/* meaning the default */

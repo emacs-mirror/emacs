@@ -3955,9 +3955,7 @@ xpm_str_to_color_key (const char *s)
 {
   int i;
 
-  for (i = 0;
-       i < sizeof xpm_color_key_strings / sizeof xpm_color_key_strings[0];
-       i++)
+  for (i = 0; i < EARRAYSIZE (xpm_color_key_strings); i++)
     if (strcmp (xpm_color_key_strings[i], s) == 0)
       return i;
   return -1;
