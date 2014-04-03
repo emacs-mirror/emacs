@@ -39,8 +39,8 @@ clean:
 !IFDEF TARGET
 !IFNDEF VARIETY
 target:
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot variety
 	$(MAKE) /nologo /f $(PFM).nmk VARIETY=cool variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot variety
 !ENDIF
 !ENDIF
 
@@ -60,8 +60,8 @@ testrun: $(TEST_TARGETS)
 !IFDEF VARIETY
 	..\tool\testrun.bat $(PFM) $(VARIETY)
 !ELSE
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot testrun
 	$(MAKE) /nologo /f $(PFM).nmk VARIETY=cool testrun
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot testrun
 !ENDIF
 
 
