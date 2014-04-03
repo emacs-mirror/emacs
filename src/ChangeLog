@@ -1,3 +1,7 @@
+2014-04-03  Ken Brown  <kbrown@cornell.edu>
+
+	* Makefile.in (EMACS_MANIFEST): Update comment.  (Bug#17176)
+
 2014-04-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* xterm.c (x_new_font): Don't calculate non-toolkit scrollbar
