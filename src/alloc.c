@@ -6845,28 +6845,34 @@ find_suspicious_object_in_range (void* begin, void* end)
 }
 
 static void
+note_suspicious_free (void* ptr)
+{
+  struct suspicious_free_record* rec;
+
+  rec = &suspicious_free_history[suspicious_free_history_index++];
+  if (suspicious_free_history_index ==
+      EARRAYSIZE (suspicious_free_history))
+    {
+      suspicious_free_history_index = 0;
+    }
+
+  memset (rec, 0, sizeof (*rec));
+  rec->suspicious_object = ptr;
+#ifdef HAVE_EXECINFO_H
+  backtrace (&rec->backtrace[0], EARRAYSIZE (rec->backtrace));
+#endif
+}
+
+static void
 detect_suspicious_free (void* ptr)
 {
   int i;
-  struct suspicious_free_record* rec;
-
   eassert (ptr != NULL);
 
   for (i = 0; i < EARRAYSIZE (suspicious_objects); ++i)
     if (suspicious_objects[i] == ptr)
       {
-        rec = &suspicious_free_history[suspicious_free_history_index++];
-        if (suspicious_free_history_index ==
-            EARRAYSIZE (suspicious_free_history))
-          {
-            suspicious_free_history_index = 0;
-          }
-
-        memset (rec, 0, sizeof (*rec));
-        rec->suspicious_object = ptr;
-#ifdef HAVE_EXECINFO_H
-        backtrace (&rec->backtrace[0], EARRAYSIZE (rec->backtrace));
-#endif
+        note_suspicious_free (ptr);
         suspicious_objects[i] = NULL;
       }
 }

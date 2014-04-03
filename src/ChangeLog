@@ -1,5 +1,11 @@
 2014-04-03  Daniel Colascione  <dancol@dancol.org>
 
+	* alloc.c (detect_suspicious_free): Split actual stack capturing
+	out into new function for easier breakpoint setting.
+	(note_suspicious_free): New function.
+
+2014-04-03  Daniel Colascione  <dancol@dancol.org>
+
 	In all places below, change expressions of the form sizeof(arr) /
 	sizeof(arr[0]) to EARRAYSIZE(arr).
 
