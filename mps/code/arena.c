@@ -238,7 +238,8 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
     MPS_ARGS_ADD(liArgs, CBSFastFind, TRUE);
     MPS_ARGS_ADD(liArgs, CBSZoned, arena->zoned);
     MPS_ARGS_DONE(liArgs);
-    res = LandInit(ArenaFreeLand(arena), CBSLandClassGet(), arena, alignment, arena, liArgs);
+    res = LandInit(ArenaFreeLand(arena), CBSLandClassGet(), arena,
+                   alignment, arena, liArgs);
   } MPS_ARGS_END(liArgs);
   AVER(res == ResOK); /* no allocation, no failure expected */
   if (res != ResOK)
@@ -310,9 +311,9 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
      that describes the free address space in the primary chunk. */
   arena->hasFreeLand = TRUE;
   res = ArenaFreeLandInsert(arena,
-                           PageIndexBase(arena->primary,
-                                         arena->primary->allocBase),
-                           arena->primary->limit);
+                            PageIndexBase(arena->primary,
+                                          arena->primary->allocBase),
+                            arena->primary->limit);
   if (res != ResOK)
     goto failPrimaryLand;
   
@@ -704,10 +705,10 @@ static void arenaExcludePage(Arena arena, Range pageRange)
 }
 
 
-/* arenaLandInsert -- add a block to an arena Land, extending pool if necessary
+/* arenaLandInsert -- add range to arena's land, maybe extending block pool
  *
- * The arena's Land can't get memory in the usual way because they are used
- * in the basic allocator, so we allocate pages specially.
+ * The arena's land can't get memory in the usual way because it is
+ * used in the basic allocator, so we allocate pages specially.
  *
  * Only fails if it can't get a page for the block pool.
  */
@@ -722,7 +723,7 @@ static Res arenaLandInsert(Range rangeReturn, Arena arena, Range range)
 
   res = LandInsert(rangeReturn, ArenaFreeLand(arena), range);
 
-  if (res == ResLIMIT) { /* freeLand MFS pool ran out of blocks */
+  if (res == ResLIMIT) { /* CBS block pool ran out of blocks */
     RangeStruct pageRange;
     res = arenaExtendCBSBlockPool(&pageRange, arena);
     if (res != ResOK)
@@ -730,7 +731,7 @@ static Res arenaLandInsert(Range rangeReturn, Arena arena, Range range)
     /* .insert.exclude: Must insert before exclude so that we can
        bootstrap when the zoned CBS is empty. */
     res = LandInsert(rangeReturn, ArenaFreeLand(arena), range);
-    AVER(res == ResOK); /* we just gave memory to the Land */
+    AVER(res == ResOK); /* we just gave memory to the CBS block pool */
     arenaExcludePage(arena, &pageRange);
   }
   
@@ -738,11 +739,11 @@ static Res arenaLandInsert(Range rangeReturn, Arena arena, Range range)
 }
 
 
-/* ArenaFreeLandInsert -- add a block to arena Land, maybe stealing memory
+/* ArenaFreeLandInsert -- add range to arena's land, maybe stealing memory
  *
- * See arenaLandInsert.  This function may only be applied to mapped pages
- * and may steal them to store Land nodes if it's unable to allocate
- * space for CBS nodes.
+ * See arenaLandInsert. This function may only be applied to mapped
+ * pages and may steal them to store Land nodes if it's unable to
+ * allocate space for CBS blocks.
  *
  * IMPORTANT: May update rangeIO.
  */
@@ -777,14 +778,14 @@ static void arenaLandInsertSteal(Range rangeReturn, Arena arena, Range rangeIO)
 
     /* Try again. */
     res = LandInsert(rangeReturn, ArenaFreeLand(arena), rangeIO);
-    AVER(res == ResOK); /* we just gave memory to the Land */
+    AVER(res == ResOK); /* we just gave memory to the CBS block pool */
   }
 
   AVER(res == ResOK); /* not expecting other kinds of error from the Land */
 }
 
 
-/* ArenaFreeLandInsert -- add block to free Land, extending pool if necessary
+/* ArenaFreeLandInsert -- add range to arena's land, maybe extending block pool
  *
  * The inserted block of address space may not abut any existing block.
  * This restriction ensures that we don't coalesce chunks and allocate
@@ -812,7 +813,7 @@ Res ArenaFreeLandInsert(Arena arena, Addr base, Addr limit)
 }
 
 
-/* ArenaFreeLandDelete -- remove a block from free Land, extending pool if necessary
+/* ArenaFreeLandDelete -- remove range from arena's land, maybe extending block pool
  *
  * This is called from ChunkFinish in order to remove address space from
  * the arena.

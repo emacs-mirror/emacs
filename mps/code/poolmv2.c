@@ -385,9 +385,7 @@ static Bool MVTCheck(MVT mvt)
   CHECKD(Pool, &mvt->poolStruct);
   CHECKL(mvt->poolStruct.class == MVTPoolClassGet());
   CHECKD(CBS, &mvt->cbsStruct);
-  /* CHECKL(CBSCheck(MVTCBS(mvt))); */
   CHECKD(ABQ, &mvt->abqStruct);
-  /* CHECKL(ABQCheck(MVTABQ(mvt))); */
   CHECKD(Freelist, &mvt->flStruct);
   CHECKD(Failover, &mvt->foStruct);
   CHECKL(mvt->reuseSize >= 2 * mvt->fillSize);
@@ -402,8 +400,7 @@ static Bool MVTCheck(MVT mvt)
   if (mvt->splinter) {
     CHECKL(AddrOffset(mvt->splinterBase, mvt->splinterLimit) >=
            mvt->minSize);
-    /* CHECKD(Seg, mvt->splinterSeg); */
-    CHECKL(SegCheck(mvt->splinterSeg));
+    CHECKD(Seg, mvt->splinterSeg);
     CHECKL(mvt->splinterBase >= SegBase(mvt->splinterSeg));
     CHECKL(mvt->splinterLimit <= SegLimit(mvt->splinterSeg));
   }
@@ -1257,6 +1254,10 @@ static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena)
 }
 
 
+/* MVTRefillABQIfEmpty -- refill the ABQ from the free lists if it is
+ * empty.
+ */
+
 static Bool MVTRefillVisitor(Bool *deleteReturn, Land land, Range range,
                              void *closureP, Size closureS)
 {
@@ -1275,9 +1276,6 @@ static Bool MVTRefillVisitor(Bool *deleteReturn, Land land, Range range,
   return MVTReserve(mvt, range);
 }
 
-/* MVTRefillABQIfEmpty -- refill the ABQ from the free lists if it is
- * empty.
- */
 static void MVTRefillABQIfEmpty(MVT mvt, Size size)
 {
   AVERT(MVT, mvt);
@@ -1296,10 +1294,9 @@ static void MVTRefillABQIfEmpty(MVT mvt, Size size)
 }
  
 
-/* Closure for MVTContingencySearch */
-typedef struct MVTContigencyStruct *MVTContigency;
+/* MVTContingencySearch -- search free lists for a block of a given size */
 
-typedef struct MVTContigencyStruct
+typedef struct MVTContigencyClosureStruct
 {
   MVT mvt;
   Bool found;
@@ -1309,12 +1306,7 @@ typedef struct MVTContigencyStruct
   /* meters */
   Count steps;
   Count hardSteps;
-} MVTContigencyStruct;
-
-
-/* MVTContingencyVisitor -- called from LandIterate at the behest of
- * MVTContingencySearch.
- */
+} MVTContigencyClosureStruct,  *MVTContigencyClosure;
 
 static Bool MVTContingencyVisitor(Bool *deleteReturn, Land land, Range range,
                                   void *closureP, Size closureS)
@@ -1322,7 +1314,7 @@ static Bool MVTContingencyVisitor(Bool *deleteReturn, Land land, Range range,
   MVT mvt;
   Size size;
   Addr base, limit;
-  MVTContigency cl;
+  MVTContigencyClosure cl;
 
   AVER(deleteReturn != NULL);
   AVERT(Land, land);
@@ -1360,14 +1352,10 @@ static Bool MVTContingencyVisitor(Bool *deleteReturn, Land land, Range range,
   return TRUE;
 }
 
-/* MVTContingencySearch -- search the free lists for a block of size
- * min.
- */
-
 static Bool MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
                                  MVT mvt, Size min)
 {
-  MVTContigencyStruct cls;
+  MVTContigencyClosureStruct cls;
 
   cls.mvt = mvt;
   cls.found = FALSE;
@@ -1394,6 +1382,7 @@ static Bool MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
 /* MVTCheckFit -- verify that segment-aligned block of size min can
  * fit in a candidate address range.
  */
+
 static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena)
 {
   Seg seg;
@@ -1423,12 +1412,10 @@ static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena)
 
 /* Return the CBS of an MVT pool for the benefit of fotest.c. */
 
-extern Land _mps_mvt_cbs(mps_pool_t);
-Land _mps_mvt_cbs(mps_pool_t mps_pool) {
-  Pool pool;
+extern Land _mps_mvt_cbs(Pool);
+Land _mps_mvt_cbs(Pool pool) {
   MVT mvt;
 
-  pool = (Pool)mps_pool;
   AVERT(Pool, pool);
   mvt = Pool2MVT(pool);
   AVERT(MVT, mvt);

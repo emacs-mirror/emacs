@@ -748,12 +748,10 @@ static Bool MVFFCheck(MVFF mvff)
 
 /* Return the CBS of an MVFF pool for the benefit of fotest.c. */
 
-extern Land _mps_mvff_cbs(mps_pool_t);
-Land _mps_mvff_cbs(mps_pool_t mps_pool) {
-  Pool pool;
+extern Land _mps_mvff_cbs(Pool);
+Land _mps_mvff_cbs(Pool pool) {
   MVFF mvff;
 
-  pool = (Pool)mps_pool;
   AVERT(Pool, pool);
   mvff = Pool2MVFF(pool);
   AVERT(MVFF, mvff);
