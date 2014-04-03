@@ -515,7 +515,7 @@ DEFUN ("dump-colors", Fdump_colors, Sdump_colors, 0, 0, 0,
 
   fputc ('\n', stderr);
 
-  for (i = n = 0; i < EARRAYSIZE (color_count); ++i)
+  for (i = n = 0; i < ARRAYELTS (color_count); ++i)
     if (color_count[i])
       {
 	fprintf (stderr, "%3d: %5d", i, color_count[i]);

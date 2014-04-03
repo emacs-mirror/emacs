@@ -1339,7 +1339,7 @@ term_get_fkeys_1 (void)
   if (!KEYMAPP (KVAR (kboard, Vinput_decode_map)))
     kset_input_decode_map (kboard, Fmake_sparse_keymap (Qnil));
 
-  for (i = 0; i < EARRAYSIZE (keys); i++)
+  for (i = 0; i < ARRAYELTS (keys); i++)
     {
       char *sequence = tgetstr (keys[i].cap, address);
       if (sequence)

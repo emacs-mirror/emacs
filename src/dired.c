@@ -984,7 +984,7 @@ file_attributes (int fd, char const *name, Lisp_Object id_format)
   values[10] = INTEGER_TO_CONS (s.st_ino);
   values[11] = INTEGER_TO_CONS (s.st_dev);
 
-  return Flist (EARRAYSIZE (values), values);
+  return Flist (ARRAYELTS (values), values);
 }
 
 DEFUN ("file-attributes-lessp", Ffile_attributes_lessp, Sfile_attributes_lessp, 2, 2, 0,

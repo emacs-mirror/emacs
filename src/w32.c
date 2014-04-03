@@ -1707,7 +1707,7 @@ static unsigned num_of_processors;
 /* We maintain 1-sec samples for the last 16 minutes in a circular buffer.  */
 static struct load_sample samples[16*60];
 static int first_idx = -1, last_idx = -1;
-static int max_idx = EARRAYSIZE (samples);
+static int max_idx = ARRAYELTS (samples);
 
 static int
 buf_next (int from)
@@ -2511,7 +2511,7 @@ init_environment (char ** argv)
 
   int i;
 
-  const int imax = EARRAYSIZE (tempdirs);
+  const int imax = ARRAYELTS (tempdirs);
 
   /* Implementation note: This function explicitly works with ANSI
      file names, not with UTF-8 encoded file names.  This is because
@@ -2584,7 +2584,7 @@ init_environment (char ** argv)
       {"LANG", NULL},
     };
 
-#define N_ENV_VARS EARRAYSIZE (dflt_envvars)
+#define N_ENV_VARS ARRAYELTS (dflt_envvars)
 
     /* We need to copy dflt_envvars[] and work on the copy because we
        don't want the dumped Emacs to inherit the values of

@@ -81,7 +81,7 @@ read_exe_header (int fd, exe_header_t * exe_header_buffer)
 #endif
   assert (exe_header_buffer->file_header.f_nscns > 0);
   assert (exe_header_buffer->file_header.f_nscns <=
-          EARRAYSIZE (exe_header_buffer->section_header));
+          ARRAYELTS (exe_header_buffer->section_header));
   assert (exe_header_buffer->file_header.f_opthdr > 0);
 
   ret =

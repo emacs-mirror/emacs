@@ -2867,7 +2867,7 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 
 	      param_index = Fget (prop, Qx_frame_parameter);
 	      if (NATNUMP (param_index)
-		  && XFASTINT (param_index) < EARRAYSIZE (frame_parms)
+		  && XFASTINT (param_index) < ARRAYELTS (frame_parms)
                   && FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])
                 (*(FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])) (f, val, old_value);
 	    }
@@ -2915,7 +2915,7 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 
 	  param_index = Fget (prop, Qx_frame_parameter);
 	  if (NATNUMP (param_index)
-	      && XFASTINT (param_index) < EARRAYSIZE (frame_parms)
+	      && XFASTINT (param_index) < ARRAYELTS (frame_parms)
 	      && FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])
 	    (*(FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])) (f, val, old_value);
 	}
@@ -3226,7 +3226,7 @@ x_set_screen_gamma (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
     {
       Lisp_Object parm_index = Fget (Qbackground_color, Qx_frame_parameter);
       if (NATNUMP (parm_index)
-	  && XFASTINT (parm_index) < EARRAYSIZE (frame_parms)
+	  && XFASTINT (parm_index) < ARRAYELTS (frame_parms)
 	  && FRAME_RIF (f)->frame_parm_handlers[XFASTINT (parm_index)])
 	  (*FRAME_RIF (f)->frame_parm_handlers[XFASTINT (parm_index)])
 	    (f, bgcolor, Qnil);
@@ -4560,7 +4560,7 @@ syms_of_frame (void)
   {
     int i;
 
-    for (i = 0; i < EARRAYSIZE (frame_parms); i++)
+    for (i = 0; i < ARRAYELTS (frame_parms); i++)
       {
 	Lisp_Object v = intern_c_string (frame_parms[i].name);
 	if (frame_parms[i].variable)

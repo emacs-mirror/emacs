@@ -1817,7 +1817,7 @@ sort_args (int argc, char **argv)
 	    }
 
 	  /* Look for a match with a known old-fashioned option.  */
-	  for (i = 0; i < EARRAYSIZE (standard_args); i++)
+	  for (i = 0; i < ARRAYELTS (standard_args); i++)
 	    if (!strcmp (argv[from], standard_args[i].name))
 	      {
 		options[from] = standard_args[i].nargs;
@@ -1839,7 +1839,7 @@ sort_args (int argc, char **argv)
 
 	      match = -1;
 
-	      for (i = 0; i < EARRAYSIZE (standard_args); i++)
+	      for (i = 0; i < ARRAYELTS (standard_args); i++)
 		if (standard_args[i].longname
 		    && !strncmp (argv[from], standard_args[i].longname,
 				 thislen))

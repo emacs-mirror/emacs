@@ -6835,7 +6835,7 @@ find_suspicious_object_in_range (void* begin, void* end)
   char* end_a = end;
   int i;
 
-  for (i = 0; i < EARRAYSIZE (suspicious_objects); ++i) {
+  for (i = 0; i < ARRAYELTS (suspicious_objects); ++i) {
     char* suspicious_object = suspicious_objects[i];
     if (begin_a <= suspicious_object && suspicious_object < end_a)
       return suspicious_object;
@@ -6852,12 +6852,12 @@ detect_suspicious_free (void* ptr)
 
   eassert (ptr != NULL);
 
-  for (i = 0; i < EARRAYSIZE (suspicious_objects); ++i)
+  for (i = 0; i < ARRAYELTS (suspicious_objects); ++i)
     if (suspicious_objects[i] == ptr)
       {
         rec = &suspicious_free_history[suspicious_free_history_index++];
         if (suspicious_free_history_index ==
-            EARRAYSIZE (suspicious_free_history))
+            ARRAYELTS (suspicious_free_history))
           {
             suspicious_free_history_index = 0;
           }
@@ -6865,7 +6865,7 @@ detect_suspicious_free (void* ptr)
         memset (rec, 0, sizeof (*rec));
         rec->suspicious_object = ptr;
 #ifdef HAVE_EXECINFO_H
-        backtrace (&rec->backtrace[0], EARRAYSIZE (rec->backtrace));
+        backtrace (&rec->backtrace[0], ARRAYELTS (rec->backtrace));
 #endif
         suspicious_objects[i] = NULL;
       }
@@ -6884,7 +6884,7 @@ garbage collection bugs.  Otherwise, do nothing and return OBJ.   */)
   /* Right now, we care only about vectors.  */
   if (VECTORLIKEP (obj)) {
     suspicious_objects[suspicious_object_index++] = XVECTOR (obj);
-    if (suspicious_object_index == EARRAYSIZE (suspicious_objects))
+    if (suspicious_object_index == ARRAYELTS (suspicious_objects))
       suspicious_object_index = 0;
   }
 #endif

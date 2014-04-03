@@ -723,7 +723,7 @@ w32_default_color_map (void)
 
   cmap = Qnil;
 
-  for (i = 0; i < EARRAYSIZE (w32_color_map); pc++, i++)
+  for (i = 0; i < ARRAYELTS (w32_color_map); pc++, i++)
     cmap = Fcons (Fcons (build_string (pc->name),
 			 make_number (pc->colorref)),
 		  cmap);

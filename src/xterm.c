@@ -10103,7 +10103,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     };
 
     int i;
-    const int atom_count = EARRAYSIZE (atom_refs);
+    const int atom_count = ARRAYELTS (atom_refs);
     /* 1 for _XSETTINGS_SN  */
     const int total_atom_count = 1 + atom_count;
     Atom *atoms_return = xmalloc (total_atom_count * sizeof *atoms_return);

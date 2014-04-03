@@ -1944,7 +1944,7 @@ static XIMStyle
 best_xim_style (XIMStyles *xim)
 {
   int i, j;
-  int nr_supported = EARRAYSIZE (supported_xim_styles);
+  int nr_supported = ARRAYELTS (supported_xim_styles);
 
   for (i = 0; i < nr_supported; ++i)
     for (j = 0; j < xim->count_styles; ++j)

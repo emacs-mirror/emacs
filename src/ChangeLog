@@ -1,7 +1,7 @@
 2014-04-03  Daniel Colascione  <dancol@dancol.org>
 
 	In all places below, change expressions of the form sizeof(arr) /
-	sizeof(arr[0]) to EARRAYSIZE(arr).
+	sizeof(arr[0]) to ARRAYELTS(arr).
 
 	* xterm.c (x_term_init): See above.
 
@@ -64,7 +64,7 @@
 	* data.c (Ffset): Abort if we're trying to set a function call to
 	a dead lisp object.
 
-	* lisp.h (EARRAYSIZE): New macro.
+	* lisp.h (ARRAYELTS): New macro.
 
 	* alloc.c: Include execinfo.h if available.
 	(SUSPICIOUS_OBJECT_CHECKING): New macro; define unconditionally.

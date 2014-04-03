@@ -255,7 +255,7 @@ init_baud_rate (int fd)
 #endif /* not DOS_NT */
     }
 
-  baud_rate = (emacs_ospeed < EARRAYSIZE (baud_convert)
+  baud_rate = (emacs_ospeed < ARRAYELTS (baud_convert)
 	       ? baud_convert[emacs_ospeed] : 9600);
   if (baud_rate == 0)
     baud_rate = 1200;
