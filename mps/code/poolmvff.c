@@ -21,6 +21,7 @@
 #include "mpscmvff.h"
 #include "dbgpool.h"
 #include "cbs.h"
+#include "failover.h"
 #include "freelist.h"
 #include "mpm.h"
 
