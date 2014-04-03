@@ -6174,6 +6174,8 @@ mark_object (Lisp_Object arg)
 	  break;
 	CHECK_ALLOCATED_AND_LIVE (live_symbol_p);
 	ptr->gcmarkbit = 1;
+	/* Attempt to catch bogus objects.  */
+        eassert (valid_lisp_object_p (ptr->function) >= 1);
 	mark_object (ptr->function);
 	mark_object (ptr->plist);
 	switch (ptr->redirect)
@@ -6601,6 +6603,8 @@ sweep_symbols (void)
               if (!pure_p)
                 eassert (!STRING_MARKED_P (XSTRING (sym->s.name)));
               sym->s.gcmarkbit = 0;
+              /* Attempt to catch bogus objects.  */
+              eassert (valid_lisp_object_p (sym->s.function) >= 1);
             }
         }
 
