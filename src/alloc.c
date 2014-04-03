@@ -6862,7 +6862,7 @@ detect_suspicious_free (void* ptr)
             suspicious_free_history_index = 0;
           }
 
-        memset (rec, 0, sizeof (rec));
+        memset (rec, 0, sizeof (*rec));
         rec->suspicious_object = ptr;
 #ifdef HAVE_EXECINFO_H
         backtrace (&rec->backtrace[0], EARRAYSIZE (rec->backtrace));
