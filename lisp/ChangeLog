@@ -1,3 +1,7 @@
+2014-04-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/characters.el: Preload uni-mirrored.el.  (Bug#17169)
+
 2014-04-03  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (make-backup-file-name-function)
