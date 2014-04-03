@@ -159,7 +159,7 @@ You can change the default by customizing `blink-cursor-blinks'.
 ** In keymaps where SPC scrolls forward, S-SPC now scrolls backward.
 This affects View mode, etc.
 
-** The default value of `buffer-stale-function' is no longer nil.
+** The default value of `make-backup-file-name-function' is no longer nil.
 Instead it defaults to a function that does what the nil value used to.
 
 ** Help changes
