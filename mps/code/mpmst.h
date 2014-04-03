@@ -701,8 +701,8 @@ typedef union FreelistBlockUnion *FreelistBlock;
 
 typedef struct FreelistStruct {
   LandStruct landStruct;        /* superclass fields come first */
-  FreelistBlock list;
-  Count listSize;
+  FreelistBlock list;           /* first block in list or NULL if empty */
+  Count listSize;               /* number of blocks in list */
   Sig sig;                      /* .class.end-sig */
 } FreelistStruct;
 

@@ -87,10 +87,8 @@ static Res failoverInsert(Range rangeReturn, Land land, Range range)
   LandFlush(fo->primary, fo->secondary);
 
   res = LandInsert(rangeReturn, fo->primary, range);
-  if (ResIsAllocFailure(res)) {
-    /* primary ran out of memory: try secondary instead. */
+  if (res != ResOK && res != ResFAIL)
     res = LandInsert(rangeReturn, fo->secondary, range);
-  }
 
   return res;
 }
@@ -118,11 +116,11 @@ static Res failoverDelete(Range rangeReturn, Land land, Range range)
   if (res == ResFAIL) {
     /* Range not found in primary: try secondary. */
     return LandDelete(rangeReturn, fo->secondary, range);
-  } else if (ResIsAllocFailure(res)) {
-    /* Range was found in primary, but couldn't be deleted because the
-     * primary is out of memory. Delete the whole of oldRange, and
-     * re-insert the fragments (which might end up in the secondary).
-     * See <design/failover/#impl.assume.delete>.
+  } else if (res != ResOK) {
+    /* Range was found in primary, but couldn't be deleted, perhaps
+     * because the primary is out of memory. Delete the whole of
+     * oldRange, and re-insert the fragments (which might end up in
+     * the secondary). See <design/failover/#impl.assume.delete>.
      */
     res = LandDelete(&dummyRange, fo->primary, &oldRange);
     if (res != ResOK)

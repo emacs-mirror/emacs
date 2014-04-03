@@ -151,8 +151,8 @@ exceed the recorded size of the list.
 
 _`.improve.maxsize`: We could maintain the maximum size of any range
 on the list, and use that to make an early exit from
-``LandFindLargest()``. It's not clear that this would actually be an
-improvement.
+``freelistFindLargest()``. It's not clear that this would actually be
+an improvement.
 
 
 

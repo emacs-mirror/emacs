@@ -232,7 +232,7 @@ Document History
 ----------------
 
 - 1998-05-01 Gavin Matthews. This document was derived from the
-  outline in design.mps.poolmvt_.
+  outline in design.mps.poolmv2(2).
 
 - 1998-07-22 Gavin Matthews. Updated in response to approval comments
   in change.epcore.anchovy.160040. There is too much fragmentation in
