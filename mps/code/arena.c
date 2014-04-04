@@ -79,6 +79,7 @@ DEFINE_CLASS(AbstractArenaClass, class)
   class->describe = ArenaTrivDescribe;
   class->pagesMarkAllocated = NULL;
   class->sig = ArenaClassSig;
+  AVERT(ArenaClass, class);
 }
 
 

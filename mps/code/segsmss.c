@@ -294,6 +294,7 @@ DEFINE_SEG_CLASS(AMSTSegClass, class)
   class->finish = amstSegFinish;
   class->split = amstSegSplit;
   class->merge = amstSegMerge;
+  AVERT(SegClass, class);
 }
 
 
@@ -674,6 +675,7 @@ DEFINE_POOL_CLASS(AMSTPoolClass, this)
   this->init = AMSTInit;
   this->finish = AMSTFinish;
   this->bufferFill = AMSTBufferFill;
+  AVERT(PoolClass, this);
 }
 
 

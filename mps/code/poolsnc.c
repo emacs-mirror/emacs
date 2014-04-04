@@ -1,7 +1,7 @@
 /* poolsnc.c: STACK NO CHECKING POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * DESIGN
  *
@@ -185,6 +185,7 @@ DEFINE_BUFFER_CLASS(SNCBufClass, class)
   class->size = sizeof(SNCBufStruct);
   class->init = SNCBufInit;
   class->finish = SNCBufFinish;
+  AVERT(BufferClass, class);
 }
 
 
@@ -261,6 +262,7 @@ DEFINE_SEG_CLASS(SNCSegClass, class)
   class->name = "SNCSEG";
   class->size = sizeof(SNCSegStruct);
   class->init = sncSegInit;
+  AVERT(SegClass, class);
 }
 
 
@@ -682,6 +684,7 @@ DEFINE_POOL_CLASS(SNCPoolClass, this)
   this->framePopPending = SNCFramePopPending;
   this->walk = SNCWalk;
   this->bufferClass = SNCBufClassGet;
+  AVERT(PoolClass, this);
 }
 
 
@@ -707,7 +710,7 @@ static Bool SNCCheck(SNC snc)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

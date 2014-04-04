@@ -1,7 +1,7 @@
 /* buffer.c: ALLOCATION BUFFER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
  * Several macros which also form part of the implementation are in
@@ -1220,6 +1220,7 @@ DEFINE_CLASS(BufferClass, class)
   class->setRankSet = bufferNoSetRankSet;
   class->reassignSeg = bufferNoReassignSeg;
   class->sig = BufferClassSig;
+  AVERT(BufferClass, class);
 }
 
 
@@ -1472,6 +1473,7 @@ DEFINE_CLASS(SegBufClass, class)
   class->rankSet = segBufRankSet;
   class->setRankSet = segBufSetRankSet;
   class->reassignSeg = segBufReassignSeg;
+  AVERT(BufferClass, class);
 }
 
 
@@ -1532,12 +1534,13 @@ DEFINE_CLASS(RankBufClass, class)
   class->name = "RANKBUF";
   class->varargs = rankBufVarargs;
   class->init = rankBufInit;
+  AVERT(BufferClass, class);
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

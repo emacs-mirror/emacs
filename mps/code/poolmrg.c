@@ -1,7 +1,7 @@
 /* poolmrg.c: MANUAL RANK GUARDIAN POOL
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  * 
  * 
@@ -302,6 +302,7 @@ DEFINE_SEG_CLASS(MRGLinkSegClass, class)
   class->name = "MRGLSEG";
   class->size = sizeof(MRGLinkSegStruct);
   class->init = MRGLinkSegInit;
+  AVERT(SegClass, class);
 }
 
 
@@ -314,6 +315,7 @@ DEFINE_SEG_CLASS(MRGRefSegClass, class)
   class->name = "MRGRSEG";
   class->size = sizeof(MRGRefSegStruct);
   class->init = MRGRefSegInit;
+  AVERT(SegClass, class);
 }
 
 
@@ -862,6 +864,7 @@ DEFINE_POOL_CLASS(MRGPoolClass, this)
   this->blacken = PoolTrivBlacken;
   this->scan = MRGScan;
   this->describe = MRGDescribe;
+  AVERT(PoolClass, this);
 }
 
 
@@ -873,7 +876,7 @@ PoolClass PoolClassMRG(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
