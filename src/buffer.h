@@ -847,8 +847,8 @@ struct buffer
   struct region_cache *width_run_cache;
   struct region_cache *bidi_paragraph_cache;
 
-  /* Non-zero means don't use redisplay optimizations for
-     displaying this buffer.  */
+  /* Non-zero means disable redisplay optimizations when rebuilding the glyph
+     matrices (but not when redrawing).  */
   bool_bf prevent_redisplay_optimizations_p : 1;
 
   /* Non-zero whenever the narrowing is changed in this buffer.  */
