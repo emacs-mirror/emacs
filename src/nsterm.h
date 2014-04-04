@@ -162,6 +162,7 @@ typedef float EmacsCGFloat;
    int scrollbarsNeedingUpdate;
    EmacsToolbar *toolbar;
    NSRect ns_userRect;
+   BOOL wait_for_tool_bar;
    }
 
 /* AppKit-side interface */
