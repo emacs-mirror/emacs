@@ -514,6 +514,28 @@ Root interface
     The registered root description persists until it is destroyed by
     calling :c:func:`mps_root_destroy`.
 
+    .. _topic-root-type-pun:
+
+    .. warning::
+
+        The ``base`` argument has type ``mps_addr_t *`` (a typedef for
+        ``void **``) but the table of references most likely has some
+        other pointer type, ``my_object *`` say. It is tempting to
+        write::
+
+            mps_root_create_table(..., (mps_addr_t *)my_table, ...)
+
+        but this is :term:`type punning`, and its behaviour is not
+        defined in ANSI/ISO Standard C. (GCC and Clang have a warning
+        flag ``-Wstrict-aliasing`` which detects some errors of this
+        form.)
+
+        To ensure well-defined behaviour, the pointer must be
+        converted via ``void *`` (or via :c:type:`mps_addr_t`, which
+        is a typedef for ``void *``), like this::
+
+            mps_addr_t base = my_table;
+            mps_root_create_table(..., base, ...)
 
 .. c:function:: mps_res_t mps_root_create_table_masked(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count, mps_word_t mask)
 
@@ -558,13 +580,17 @@ Root interface
 
         mps_res_t res;
         mps_root_t root;
+        mps_addr_t base = symtab;
         res = mps_root_create_table_masked(&root, arena,
                                            mps_rank_exact(),
                                            (mps_rm_t)0,
-                                           symtab, symtab_size * 2,
+                                           base, symtab_size * 2,
                                            (mps_word_t)TAG_MASK);
         if (res != MPS_RES_OK) errror("can't create symtab root");
 
+    .. warning::
+
+        See the warning for :c:func:`mps_root_create_table` above.
 
 .. c:function:: void mps_root_destroy(mps_root_t root)
 
