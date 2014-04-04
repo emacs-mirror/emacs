@@ -1,7 +1,7 @@
 /* poolmv.c: MANUAL VARIABLE POOL
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -792,6 +792,7 @@ DEFINE_POOL_CLASS(MVPoolClass, this)
   this->alloc = MVAlloc;
   this->free = MVFree;
   this->describe = MVDescribe;
+  AVERT(PoolClass, this);
 }
 
 
@@ -811,6 +812,7 @@ DEFINE_POOL_CLASS(MVDebugPoolClass, this)
   this->size = sizeof(MVDebugStruct);
   this->varargs = MVDebugVarargs;
   this->debugMixin = MVDebugMixin;
+  AVERT(PoolClass, this);
 }
 
 
@@ -901,7 +903,7 @@ Bool MVCheck(MV mv)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

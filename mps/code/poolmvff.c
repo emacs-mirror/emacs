@@ -1,7 +1,7 @@
 /* poolmvff.c: First Fit Manual Variable Pool
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -720,6 +720,7 @@ DEFINE_POOL_CLASS(MVFFPoolClass, this)
   this->bufferFill = MVFFBufferFill;
   this->bufferEmpty = MVFFBufferEmpty;
   this->describe = MVFFDescribe;
+  AVERT(PoolClass, this);
 }
 
 
@@ -739,6 +740,7 @@ DEFINE_POOL_CLASS(MVFFDebugPoolClass, this)
   this->size = sizeof(MVFFDebugStruct);
   this->varargs = MVFFDebugVarargs;
   this->debugMixin = MVFFDebugMixin;
+  AVERT(PoolClass, this);
 }
 
 
@@ -828,7 +830,7 @@ CBS _mps_mvff_cbs(mps_pool_t mps_pool) {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

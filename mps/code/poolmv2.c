@@ -1,7 +1,7 @@
 /* poolmv2.c: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: A manual-variable pool designed to take advantage of
  * placement according to predicted deathtime.
@@ -145,6 +145,7 @@ DEFINE_POOL_CLASS(MVTPoolClass, this)
   this->bufferFill = MVTBufferFill;
   this->bufferEmpty = MVTBufferEmpty;
   this->describe = MVTDescribe;
+  AVERT(PoolClass, this);
 }
 
 /* Macros */
@@ -1488,7 +1489,7 @@ CBS _mps_mvt_cbs(mps_pool_t mps_pool) {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

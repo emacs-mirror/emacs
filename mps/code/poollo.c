@@ -1,7 +1,7 @@
 /* poollo.c: LEAF POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * DESIGN
  *
@@ -73,6 +73,7 @@ DEFINE_SEG_CLASS(LOSegClass, class)
   class->size = sizeof(LOSegStruct);
   class->init = loSegInit;
   class->finish = loSegFinish;
+  AVERT(SegClass, class);
 }
 
 
@@ -793,6 +794,7 @@ DEFINE_POOL_CLASS(LOPoolClass, this)
   this->fixEmergency = LOFix;
   this->reclaim = LOReclaim;
   this->walk = LOWalk;
+  AVERT(PoolClass, this);
 }
 
 
@@ -821,7 +823,7 @@ static Bool LOCheck(LO lo)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

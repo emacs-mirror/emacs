@@ -370,6 +370,7 @@ DEFINE_SEG_CLASS(amcSegClass, class)
   class->size = sizeof(amcSegStruct);
   class->init = AMCSegInit;
   class->describe = AMCSegDescribe;
+  AVERT(SegClass, class);
 }
 
 
@@ -691,6 +692,7 @@ DEFINE_BUFFER_CLASS(amcBufClass, class)
   class->size = sizeof(amcBufStruct);
   class->init = AMCBufInit;
   class->finish = AMCBufFinish;
+  AVERT(BufferClass, class);
 }
 
 
@@ -2509,6 +2511,7 @@ DEFINE_POOL_CLASS(AMCPoolClass, this)
   this->walk = AMCWalk;
   this->bufferClass = amcBufClassGet;
   this->describe = AMCDescribe;
+  AVERT(PoolClass, this);
 }
 
 
@@ -2522,6 +2525,7 @@ DEFINE_POOL_CLASS(AMCZPoolClass, this)
   this->init = AMCZInit;
   this->grey = PoolNoGrey;
   this->scan = PoolNoScan;
+  AVERT(PoolClass, this);
 }
 
 

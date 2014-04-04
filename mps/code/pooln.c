@@ -1,7 +1,7 @@
 /* pooln.c: NULL POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "pooln.h"
@@ -287,6 +287,7 @@ DEFINE_POOL_CLASS(NPoolClass, this)
   this->reclaim = NReclaim;
   this->traceEnd = NTraceEnd;
   this->describe = NDescribe;
+  AVERT(PoolClass, this);
 }
 
 
@@ -313,7 +314,7 @@ Bool PoolNCheck(PoolN poolN)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

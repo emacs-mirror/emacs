@@ -1,7 +1,7 @@
 /* poolmfs.c: MANUAL FIXED SMALL UNIT POOL
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * This is the implementation of the MFS pool class.
  *
@@ -347,6 +347,7 @@ DEFINE_POOL_CLASS(MFSPoolClass, this)
   this->alloc = MFSAlloc;
   this->free = MFSFree;
   this->describe = MFSDescribe;
+  AVERT(PoolClass, this);
 }
 
 
@@ -385,7 +386,7 @@ Bool MFSCheck(MFS mfs)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

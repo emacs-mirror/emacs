@@ -1159,6 +1159,7 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
   this->compact = VMCompact;
   this->describe = VMArenaDescribe;
   this->pagesMarkAllocated = VMPagesMarkAllocated;
+  AVERT(ArenaClass, this);
 }
 
 

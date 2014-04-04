@@ -1,7 +1,7 @@
 /* arenacl.c: ARENA CLASS USING CLIENT MEMORY
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .design: See <design/arena/#client>.
  *
@@ -434,6 +434,7 @@ DEFINE_ARENA_CLASS(ClientArenaClass, this)
   this->free = ClientFree;
   this->chunkInit = ClientChunkInit;
   this->chunkFinish = ClientChunkFinish;
+  AVERT(ArenaClass, this);
 }
 
 
@@ -447,7 +448,7 @@ mps_arena_class_t mps_arena_class_cl(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

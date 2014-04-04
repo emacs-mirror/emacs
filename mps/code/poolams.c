@@ -1,7 +1,7 @@
 /* poolams.c: AUTOMATIC MARK & SWEEP POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  *
@@ -609,6 +609,7 @@ DEFINE_CLASS(AMSSegClass, class)
   class->merge = AMSSegMerge;
   class->split = AMSSegSplit;
   class->describe = AMSSegDescribe;
+  AVERT(SegClass, class);
 }
 
 
@@ -1686,6 +1687,7 @@ DEFINE_CLASS(AMSPoolClass, this)
   this->reclaim = AMSReclaim;
   this->freewalk = AMSFreeWalk;
   this->describe = AMSDescribe;
+  AVERT(PoolClass, this);
 }
 
 
@@ -1713,6 +1715,7 @@ DEFINE_POOL_CLASS(AMSDebugPoolClass, this)
   this->size = sizeof(AMSDebugStruct);
   this->varargs = AMSDebugVarargs;
   this->debugMixin = AMSDebugMixin;
+  AVERT(PoolClass, this);
 }
 
 
@@ -1740,7 +1743,7 @@ Bool AMSCheck(AMS ams)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *
