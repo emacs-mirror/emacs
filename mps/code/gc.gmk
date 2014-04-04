@@ -25,6 +25,7 @@ CFLAGSCOMPILER := \
 	-Wshadow \
 	-Wstrict-aliasing=2 \
 	-Wstrict-prototypes \
+	-Wswitch-default \
 	-Wwrite-strings
 CFLAGSCOMPILERSTRICT := -ansi -pedantic
 
