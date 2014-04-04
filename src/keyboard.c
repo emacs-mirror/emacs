@@ -2377,7 +2377,7 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
    -2 means do neither.
    1 means do both.  */
 
-/* The arguments MAP is for menu prompting.  MAP is a keymap.
+/* The argument MAP is a keymap for menu prompting.
 
    PREV_EVENT is the previous input event, or nil if we are reading
    the first event of a key sequence (or not reading a key sequence).
