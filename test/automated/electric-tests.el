@@ -141,7 +141,7 @@ Should %s \"%s\" and point at %d"
           expected-string
           expected-point
           bindings
-          (modes '(quote (emacs-lisp-mode ruby-mode c++-mode)))
+          (modes '(quote (ruby-mode c++-mode)))
           (test-in-comments t)
           (test-in-strings t)
           (test-in-code t)
@@ -302,6 +302,48 @@ Should %s \"%s\" and point at %d"
   :test-in-strings nil
   :bindings `((electric-pair-text-syntax-table
                . ,prog-mode-syntax-table)))
+
+(define-electric-pair-test inhibit-in-mismatched-string-inside-ruby-comments
+  "foo\"\"
+#
+#    \"bar\"
+#    \"   \"
+#    \"
+#
+baz\"\""
+  "\""
+  :modes '(ruby-mode)
+  :test-in-strings nil
+  :test-in-comments nil
+  :expected-point 19
+  :expected-string
+  "foo\"\"
+#
+#    \"bar\"\"
+#    \"   \"
+#    \"
+#
+baz\"\""
+  :fixture-fn #'(lambda () (goto-char (point-min)) (search-forward "bar")))
+
+(define-electric-pair-test inhibit-in-mismatched-string-inside-c-comments
+  "foo\"\"/*
+    \"bar\"
+    \"   \"
+    \"
+*/baz\"\""
+  "\""
+  :modes '(c-mode)
+  :test-in-strings nil
+  :test-in-comments nil
+  :expected-point 18
+  :expected-string
+  "foo\"\"/*
+    \"bar\"\"
+    \"   \"
+    \"
+*/baz\"\""
+  :fixture-fn #'(lambda () (goto-char (point-min)) (search-forward "bar")))
 
 
 ;;; More quotes, but now don't bind `electric-pair-text-syntax-table'

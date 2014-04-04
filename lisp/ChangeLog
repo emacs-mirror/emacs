@@ -1,3 +1,15 @@
+2014-04-04  João Távora  <joaotavora@gmail.com>
+
+	* elec-pair.el:
+	(electric-pair--syntax-ppss): When inside comments parse from
+	comment beginning.
+	(electric-pair--balance-info): Fix typo in comment.
+	(electric-pair--in-unterminated-string-p): Delete.
+	(electric-pair--unbalanced-strings-p): New function.
+	(electric-pair-string-bound-function): New var.
+	(electric-pair-inhibit-if-helps-balance): Decide quote pairing
+	according to `electric-pair--in-unterminated-string-p'
+
 2014-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/reftex-parse.el (reftex--index-tags): Rename `index-tags'.

@@ -1,3 +1,10 @@
+2014-04-04  João Távora  <joaotavora@gmail.com>
+
+	* automated/electric-tests.el (define-electric-pair-test): Don't
+	overtest..
+	(inhibit-in-mismatched-string-inside-ruby-comments): New test.
+	(inhibit-in-mismatched-string-inside-c-comments): New test.
+
 2014-04-02  João Távora  <joaotavora@gmail.com>
 
 	* automated/electric-tests.el (inhibit-if-strings-mismatched):
