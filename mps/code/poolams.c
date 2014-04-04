@@ -1685,6 +1685,7 @@ DEFINE_CLASS(AMSPoolClass, this)
   this->fix = AMSFix;
   this->fixEmergency = AMSFix;
   this->reclaim = AMSReclaim;
+  this->walk = PoolNoWalk; /* TODO: job003738 */
   this->freewalk = AMSFreeWalk;
   this->describe = AMSDescribe;
   AVERT(PoolClass, this);

@@ -727,6 +727,8 @@ Bool SegCheck(Seg seg)
     CHECKL(seg->sm == AccessSetEMPTY);
     CHECKL(seg->pm == AccessSetEMPTY);
   } else {
+    /* Segments with ranks may only belong to scannable pools. */
+    CHECKL(PoolHasAttr(pool, AttrSCAN));
     /* <design/seg/#field.rankSet.single>: The Tracer only permits */
     /* one rank per segment [ref?] so this field is either empty or a */
     /* singleton. */
