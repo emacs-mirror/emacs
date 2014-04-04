@@ -50,6 +50,8 @@
   (interactive)
   (reftex-access-scan-info '(16)))
 
+(defvar reftex--index-tags)
+
 ;;;###autoload
 (defun reftex-do-parse (rescan &optional file)
   "Do a document rescan.
@@ -75,7 +77,7 @@ When allowed, do only a partial scan from FILE."
          (file (or file (buffer-file-name)))
          (true-file (file-truename file))
          (bibview-cache (assq 'bibview-cache old-list))
-         (index-tags (cdr (assq 'index-tags old-list)))
+         (reftex--index-tags (cdr (assq 'index-tags old-list)))
          from-file appendix docstruct tmp)
 
     ;; Make sure replacement is really an option here
@@ -95,7 +97,7 @@ When allowed, do only a partial scan from FILE."
                 (t (error "This should not happen (reftex-do-parse)"))))
 
     ;; Reset index-tags if we scan everything
-    (if (equal rescan 1) (setq index-tags nil))
+    (if (equal rescan 1) (setq reftex--index-tags nil))
 
     ;; Find active toc entry and initialize section-numbers
     (setq reftex-active-toc (reftex-last-assoc-before-elt
@@ -140,11 +142,12 @@ When allowed, do only a partial scan from FILE."
            (entry (or (assq 'is-multi docstruct)
                       (car (push (list 'is-multi is-multi) docstruct)))))
       (setcdr entry (cons is-multi nil)))
-    (and index-tags (setq index-tags (sort index-tags 'string<)))
+    (and reftex--index-tags
+         (setq reftex--index-tags (sort reftex--index-tags 'string<)))
     (let ((index-tag-cell (assq 'index-tags docstruct)))
       (if index-tag-cell
-          (setcdr index-tag-cell index-tags)
-        (push (cons 'index-tags index-tags) docstruct)))
+          (setcdr index-tag-cell reftex--index-tags)
+        (push (cons 'index-tags reftex--index-tags) docstruct)))
     (unless (assq 'xr docstruct)
       (let* ((allxr (reftex-all-assq 'xr-doc docstruct))
              (alist (mapcar
@@ -194,8 +197,6 @@ of master file."
     (nreverse file-list)))
 
 ;; Bound in the caller, reftex-do-parse.
-(defvar index-tags)
-
 (defun reftex-parse-from-file (file docstruct master-dir)
   "Scan the buffer for labels and save them in a list."
   (let ((regexp (reftex-everything-regexp))
@@ -305,7 +306,7 @@ of master file."
                  (when reftex-support-index
                    (setq index-entry (reftex-index-info file))
                    (when index-entry
-                     (add-to-list 'index-tags (nth 1 index-entry))
+                     (add-to-list 'reftex--index-tags (nth 1 index-entry))
                      (push index-entry docstruct))))
 
                 ((match-end 11)
@@ -772,7 +773,7 @@ if the information is exact (t) or approximate (nil)."
              ;; Index entry
              (and reftex-support-index
                   (setq entry (reftex-index-info-safe buffer-file-name))
-                  ;; FIXME: (add-to-list 'index-tags (nth 1 index-entry))
+                  ;; FIXME: (add-to-list 'reftex--index-tags (nth 1 index-entry))
                   (push entry (cdr tail))))))))))
 
     (error nil))
@@ -942,7 +943,7 @@ If WHICH is a list of environments, look only for those environments and
             specials
           (car specials))))))
 
-(defsubst reftex-move-to-next-arg (&optional ignore)
+(defsubst reftex-move-to-next-arg (&optional _ignore)
   "Assuming that we are at the end of a macro name or a macro argument,
 move forward to the opening parenthesis of the next argument.
 This function understands the splitting of macros over several lines

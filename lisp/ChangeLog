@@ -1,7 +1,13 @@
+2014-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/reftex-parse.el (reftex--index-tags): Rename `index-tags'.
+	Move declaration before first use.
+	(reftex-move-to-next-arg): Silence compiler warning.
+
 2014-04-04  Joost Kremers  <joostkremers@fastmail.fm>  (tiny change)
 
-	* textmodes/reftex-toc.el (reftex-toc, reftex-re-enlarge): Use
-	`window-total-width' instead of `window-width'.
+	* textmodes/reftex-toc.el (reftex-toc, reftex-re-enlarge):
+	Use `window-total-width' instead of `window-width'.
 
 2014-04-03  Daniel Colascione  <dancol@dancol.org>
 
@@ -38,8 +44,8 @@
 
 2014-04-02  João Távora  <joaotavora@gmail.com>
 
-	* elec-pair.el (electric-pair-inhibit-if-helps-balance): Inhibit
-	quote pairing if point-max is inside an unterminated string.
+	* elec-pair.el (electric-pair-inhibit-if-helps-balance):
+	Inhibit quote pairing if point-max is inside an unterminated string.
 	(electric-pair--looking-at-unterminated-string-p):
 	Delete.
 	(electric-pair--in-unterminated-string-p): New function.
@@ -51,8 +57,8 @@
 
 2014-03-31  Leo Liu  <sdl.web@gmail.com>
 
-	* emacs-lisp/eldoc.el (eldoc-print-current-symbol-info): Refactor
-	out eldoc-documentation-function-default.
+	* emacs-lisp/eldoc.el (eldoc-print-current-symbol-info):
+	Refactor out eldoc-documentation-function-default.
 	(eldoc-documentation-function-default): New function.
 	(eldoc-documentation-function): Change value.
 
@@ -87,8 +93,8 @@
 
 2014-03-30  Daniel Colascione  <dancol@dancol.org>
 
-	* comint.el (comint-send-input): Deactivate
-	completion-in-region-mode before we send comint input.
+	* comint.el (comint-send-input):
+	Deactivate completion-in-region-mode before we send comint input.
 	(Bug#17139).
 
 	* simple.el (keyboard-quit): Deactivate completion-in-region-mode
