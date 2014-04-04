@@ -1,7 +1,7 @@
 /* poolabs.c: ABSTRACT POOL CLASSES
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * PURPOSE
@@ -151,36 +151,42 @@ DEFINE_CLASS(AbstractPoolClass, class)
   class->debugMixin = PoolNoDebugMixin;
   class->labelled = FALSE;
   class->sig = PoolClassSig;
+  AVERT(PoolClass, class);
 }
 
 DEFINE_CLASS(AbstractAllocFreePoolClass, class)
 {
   INHERIT_CLASS(class, AbstractPoolClass);
   PoolClassMixInAllocFree(class);
+  AVERT(PoolClass, class);
 }
 
 DEFINE_CLASS(AbstractBufferPoolClass, class)
 {
   INHERIT_CLASS(class, AbstractPoolClass);
   PoolClassMixInBuffer(class);
+  AVERT(PoolClass, class);
 }
 
 DEFINE_CLASS(AbstractSegBufPoolClass, class)
 {
   INHERIT_CLASS(class, AbstractBufferPoolClass);
   class->bufferClass = SegBufClassGet;
+  AVERT(PoolClass, class);
 }
 
 DEFINE_CLASS(AbstractScanPoolClass, class)
 {
   INHERIT_CLASS(class, AbstractSegBufPoolClass);
   PoolClassMixInScan(class);
+  AVERT(PoolClass, class);
 }
 
 DEFINE_CLASS(AbstractCollectPoolClass, class)
 {
   INHERIT_CLASS(class, AbstractScanPoolClass);
   PoolClassMixInCollect(class);
+  AVERT(PoolClass, class);
 }
 
 
@@ -677,7 +683,7 @@ BufferClass PoolNoBufferClass(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

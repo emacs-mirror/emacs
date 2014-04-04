@@ -1,7 +1,7 @@
 /* seg.c: SEGMENTS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .design: The design for this module is <design/seg/>.
  *
@@ -1683,6 +1683,7 @@ DEFINE_CLASS(SegClass, class)
   class->split = segTrivSplit;
   class->describe = segTrivDescribe;
   class->sig = SegClassSig;
+  AVERT(SegClass, class);
 }
 
 
@@ -1707,6 +1708,7 @@ DEFINE_CLASS(GCSegClass, class)
   class->merge = gcSegMerge;
   class->split = gcSegSplit;
   class->describe = gcSegDescribe;
+  AVERT(SegClass, class);
 }
 
 
@@ -1726,7 +1728,7 @@ void SegClassMixInNoSplitMerge(SegClass class)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
