@@ -205,11 +205,11 @@ Instead, we recommend this approach::
     struct foo *fp;
     res = mps_alloc(&p, pool, sizeof(struct foo));
     if(res) /* handle error case */;
-    fp = (struct foo *)p;
+    fp = p;
 
-This is portable because conversion from ``void *`` to any other
-:term:`object pointer` type is defined by :ref:`ISO/IEC 9899:1990
-<ISO90>` §6.3.2.3.1.
+This has defined behaviour because conversion from ``void *`` to any
+other :term:`object pointer` type is defined by :ref:`ISO/IEC
+9899:1990 <ISO90>` §6.3.2.3.1.
 
 
 .. index::
