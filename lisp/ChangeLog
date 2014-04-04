@@ -1,3 +1,9 @@
+2014-04-04  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc-view.el (doc-view-bookmark-jump): Use
+	`bookmark-after-jump-hook' to jump to the right page after the
+	buffer is shown in a window.  (bug#16090)
+
 2014-04-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/characters.el (mirroring): Fix last change:
