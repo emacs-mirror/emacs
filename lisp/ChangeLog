@@ -1,3 +1,10 @@
+2014-04-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/characters.el (mirroring): Fix last change:
+	instead of loading uni-mirrored.el explicitly, do that implicitly
+	by creating the 'mirroring' uniprop table.  This avoids announcing
+	the loading of uni-mirrored.el.
+
 2014-04-04  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (buffer-stale--default-function)
