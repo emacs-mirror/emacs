@@ -61,7 +61,7 @@ static void test(void)
 
  for (j = 1; j < 100; j++) {
   comment("%i of 100", j);
-  p = allocdumb(ap, sizeof(mps_ld_s));
+  p = allocdumb(ap, sizeof(mycell));
   ld = (mps_ld_t) getdata(p);
  
   b = a;
