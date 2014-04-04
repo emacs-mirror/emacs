@@ -3,16 +3,28 @@
  * $Id: //info.ravenbrook.com/project/mps/branch/2014-01-15/nailboard/code/fotest.c#1 $
  * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
  *
- * This test case creates a bunch of vectors, registers them for
- * finalization, and then discards the base pointers to those objects,
- * keeping only ambiguous interior references to the vector entries in
- * the stack-allocated table s.
+ * .overview: This test case creates a bunch of vectors, registers
+ * them for finalization, and then discards the base pointers to those
+ * objects, keeping only ambiguous interior references to the vector
+ * entries in the stack-allocated table s.
  *
- * If any of these objects are finalized, then this means that the
- * ambiguous interior references has failed to keep the object alive.
+ * .options: The test has two options:
  *
- * The test is then repeated with MPS_KEY_INTERIOR=FALSE; in this case
- * we expect most of the vectors to be finalized.
+ * 'interior' is the value passed as MPS_KEY_INTERIOR when creating
+ * the AMC pool. If TRUE, interior pointers must keep objects alive,
+ * and so if any of these objects are finalized, the test fails. If
+ * FALSE, interior pointers do not keep objects alive, so it is likely
+ * that all the objects will be finalized.
+ *
+ * 'stack' is TRUE if the C stack is registered as a root. (If FALSE,
+ * we register the table of interior pointers as an ambiguous root.)
+ *
+ * .fail.lii6ll: The test case passes on most platforms with
+ * interior=FALSE and stack=TRUE (that is, all vectors get finalized),
+ * but fails on lii6ll in variety HOT. Rather than struggle to defeat
+ * the Clang optimizer, we choose not to test in this configuration.
+ * In any case, the MPS does not guarantee anything about timely
+ * finalization (see <manual/html/topic/finalization.html#cautions>).
  */
 
 #include "mps.h"
@@ -23,13 +35,19 @@
 #include "fmtscheme.h"
 
 #define OBJ_LEN (1u << 4)
-#define OBJ_COUNT 10
+#define OBJ_COUNT 1
 
-static void test_air(int interior)
+static void test_air(int interior, int stack)
 {
   size_t n_finalized = 0;
   size_t i, j;
-  obj_t *s[OBJ_COUNT];
+  obj_t *s[OBJ_COUNT] = {0};
+  mps_root_t root;
+  if (!stack) {
+    mps_addr_t *p = (void *)s;
+    die(mps_root_create_table(&root, scheme_arena, mps_rank_ambig(), 0, p,
+                              OBJ_COUNT), "mps_root_create_table");
+  }
   mps_message_type_enable(scheme_arena, mps_message_type_finalization());
   for (j = 0; j < OBJ_COUNT; ++j) {
     obj_t n = scheme_make_integer((long)j);
@@ -58,9 +76,12 @@ static void test_air(int interior)
       }
     }
   }
-  if (!interior && n_finalized + 1 < OBJ_COUNT) {
+  if (!interior && n_finalized < OBJ_COUNT) {
     error("only finalized %"PRIuLONGEST" out of %"PRIuLONGEST" vectors.",
           (ulongest_t)n_finalized, (ulongest_t)OBJ_COUNT);
+  }
+  if (!stack) {
+    mps_root_destroy(root);
   }
 }
 
@@ -69,7 +90,7 @@ static mps_gen_param_s obj_gen_params[] = {
   { 170, 0.45 }
 };
 
-static void test_main(int interior)
+static void test_main(int interior, int stack)
 {
   mps_res_t res;
   mps_chain_t obj_chain;
@@ -107,14 +128,17 @@ static void test_main(int interior)
   res = mps_thread_reg(&thread, scheme_arena);
   if (res != MPS_RES_OK) error("Couldn't register thread");
 
-  res = mps_root_create_reg(&reg_root, scheme_arena, mps_rank_ambig(), 0,
-                            thread, mps_stack_scan_ambig, marker, 0);
-  if (res != MPS_RES_OK) error("Couldn't create root");
+  if (stack) {
+    res = mps_root_create_reg(&reg_root, scheme_arena, mps_rank_ambig(), 0,
+                              thread, mps_stack_scan_ambig, marker, 0);
+    if (res != MPS_RES_OK) error("Couldn't create root");
+  }
   
-  test_air(interior);
+  test_air(interior, stack);
 
   mps_arena_park(scheme_arena);
-  mps_root_destroy(reg_root);
+  if (stack)
+    mps_root_destroy(reg_root);
   mps_thread_dereg(thread);
   mps_ap_destroy(obj_ap);
   mps_pool_destroy(obj_pool);
@@ -127,8 +151,10 @@ int main(int argc, char *argv[])
 {
   testlib_init(argc, argv);
 
-  test_main(TRUE);
-  test_main(FALSE);
+  test_main(TRUE, TRUE);
+  test_main(TRUE, FALSE);
+  /* not test_main(FALSE, TRUE) -- see .fail.lii6ll. */
+  test_main(FALSE, FALSE);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
