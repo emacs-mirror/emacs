@@ -1,3 +1,8 @@
+2014-04-04  Joost Kremers  <joostkremers@fastmail.fm>  (tiny change)
+
+	* textmodes/reftex-toc.el (reftex-toc, reftex-re-enlarge): Use
+	`window-total-width' instead of `window-width'.
+
 2014-04-03  Daniel Colascione  <dancol@dancol.org>
 
 	* subr.el (set-transient-map): Remove rms's workaround entirely;
