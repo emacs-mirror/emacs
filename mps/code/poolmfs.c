@@ -370,7 +370,7 @@ Bool MFSCheck(MFS mfs)
   CHECKS(MFS, mfs);
   CHECKD(Pool, &mfs->poolStruct);
   CHECKL(mfs->poolStruct.class == EnsureMFSPoolClass());
-  CHECKL(mfs->unroundedUnitSize >= UNIT_MIN);
+  CHECKL(mfs->unitSize >= UNIT_MIN);
   CHECKL(mfs->extendBy >= UNIT_MIN);
   CHECKL(BoolCheck(mfs->extendSelf));
   arena = PoolArena(&mfs->poolStruct);

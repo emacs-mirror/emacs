@@ -2484,23 +2484,23 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream)
 }
 
 
-/* AMCPoolClass -- the class definition */
+/* AMCZPoolClass -- the class definition */
 
-DEFINE_POOL_CLASS(AMCPoolClass, this)
+DEFINE_POOL_CLASS(AMCZPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractCollectPoolClass);
+  INHERIT_CLASS(this, AbstractSegBufPoolClass);
   PoolClassMixInFormat(this);
-  this->name = "AMC";
+  PoolClassMixInCollect(this);
+  this->name = "AMCZ";
   this->size = sizeof(AMCStruct);
   this->offset = offsetof(AMCStruct, poolStruct);
   this->attr |= AttrMOVINGGC;
   this->varargs = AMCVarargs;
-  this->init = AMCInit;
+  this->init = AMCZInit;
   this->finish = AMCFinish;
   this->bufferFill = AMCBufferFill;
   this->bufferEmpty = AMCBufferEmpty;
   this->whiten = AMCWhiten;
-  this->scan = AMCScan;
   this->fix = AMCFix;
   this->fixEmergency = AMCFixEmergency;
   this->reclaim = AMCReclaim;
@@ -2515,16 +2515,15 @@ DEFINE_POOL_CLASS(AMCPoolClass, this)
 }
 
 
-/* AMCZPoolClass -- the class definition */
+/* AMCPoolClass -- the class definition */
 
-DEFINE_POOL_CLASS(AMCZPoolClass, this)
+DEFINE_POOL_CLASS(AMCPoolClass, this)
 {
-  INHERIT_CLASS(this, AMCPoolClass);
-  this->name = "AMCZ";
-  this->attr &= ~(AttrSCAN | AttrINCR_RB);
-  this->init = AMCZInit;
-  this->grey = PoolNoGrey;
-  this->scan = PoolNoScan;
+  INHERIT_CLASS(this, AMCZPoolClass);
+  PoolClassMixInScan(this);
+  this->name = "AMC";
+  this->init = AMCInit;
+  this->scan = AMCScan;
   AVERT(PoolClass, this);
 }
 

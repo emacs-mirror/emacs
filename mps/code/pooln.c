@@ -270,8 +270,7 @@ DEFINE_POOL_CLASS(NPoolClass, this)
   this->name = "N";
   this->size = sizeof(PoolNStruct);
   this->offset = offsetof(PoolNStruct, poolStruct);
-  this->attr = AttrSCAN | AttrALLOC | AttrFREE | AttrBUF |
-                 AttrBUF_RESERVE | AttrGC;
+  this->attr |= (AttrALLOC | AttrBUF | AttrFREE | AttrGC | AttrSCAN);
   this->init = NInit;
   this->finish = NFinish;
   this->alloc = NAlloc;

@@ -183,6 +183,7 @@ extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream);
 #define PoolSegRing(pool)       (&(pool)->segRing)
 #define PoolArenaRing(pool) (&(pool)->arenaRing)
 #define PoolOfArenaRing(node) RING_ELT(Pool, arenaRing, node)
+#define PoolHasAttr(pool, Attr) (((pool)->class->attr & (Attr)) != 0)
 
 extern Bool PoolFormat(Format *formatReturn, Pool pool);
 
@@ -263,10 +264,11 @@ extern Res PoolTrivFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf);
 extern Res PoolNoFramePop(Pool pool, Buffer buf, AllocFrame frame);
 extern Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame);
 extern void PoolNoFramePopPending(Pool pool, Buffer buf, AllocFrame frame);
+extern void PoolTrivFramePopPending(Pool pool, Buffer buf, AllocFrame frame);
 extern Res PoolNoAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr);
 extern void PoolNoWalk(Pool pool, Seg seg, FormattedObjectsStepMethod step,
                        void *p, size_t s);
-extern void PoolNoFreeWalk(Pool pool, FreeBlockStepMethod f, void *p);
+extern void PoolTrivFreeWalk(Pool pool, FreeBlockStepMethod f, void *p);
 extern PoolDebugMixin PoolNoDebugMixin(Pool pool);
 extern BufferClass PoolNoBufferClass(void);
 
