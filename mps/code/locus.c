@@ -1,7 +1,7 @@
 /* locus.c: LOCUS MANAGER
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * DESIGN
  *
@@ -370,7 +370,7 @@ Res ChainCondemnAll(Chain chain, Trace trace)
     Ring segNode, nextSegNode;
 
     AVERT(Pool, pool);
-    AVER((pool->class->attr & AttrGC) != 0);
+    AVER(PoolHasAttr(pool, AttrGC));
     RING_FOR(segNode, PoolSegRing(pool), nextSegNode) {
       Seg seg = SegOfPoolRing(segNode);
 
@@ -508,7 +508,7 @@ Bool LocusCheck(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

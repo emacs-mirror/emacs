@@ -205,7 +205,7 @@ static Res BufferInit(Buffer buffer, BufferClass class,
   AVERT(BufferClass, class);
   AVERT(Pool, pool);
   /* The PoolClass should support buffer protocols */
-  AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
+  AVER(PoolHasAttr(pool, AttrBUF));
  
   arena = PoolArena(pool);
   /* Initialize the buffer.  See <code/mpmst.h> for a definition of */
@@ -383,7 +383,7 @@ void BufferFinish(Buffer buffer)
   pool = BufferPool(buffer);
 
   /* The PoolClass should support buffer protocols */
-  AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
+  AVER(PoolHasAttr(pool, AttrBUF));
   AVER(BufferIsReady(buffer));
 
   /* <design/alloc-frame/#lw-frame.sync.trip> */

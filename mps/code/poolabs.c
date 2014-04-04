@@ -65,12 +65,13 @@ void PoolClassMixInAllocFree(PoolClass class)
 void PoolClassMixInBuffer(PoolClass class)
 {
   /* Can't check class because it's not initialized yet */
-  class->attr |= (AttrBUF | AttrBUF_RESERVE);
+  class->attr |= AttrBUF;
   class->bufferFill = PoolTrivBufferFill;
   class->bufferEmpty = PoolTrivBufferEmpty;
   /* By default, buffered pools treat frame operations as NOOPs */
   class->framePush = PoolTrivFramePush;
   class->framePop = PoolTrivFramePop;
+  class->framePopPending = PoolTrivFramePopPending;
   class->bufferClass = BufferClassGet;
 }
 
@@ -84,8 +85,10 @@ void PoolClassMixInScan(PoolClass class)
   class->access = PoolSegAccess;
   class->blacken = PoolTrivBlacken;
   class->grey = PoolTrivGrey;
-  /* Scan is part of the scanning protocol - but there is */
-  /* no useful default method */
+  /* scan is part of the scanning protocol, but there is no useful
+   * default method.
+   */
+  class->scan = NULL;
 }
 
 
@@ -95,6 +98,10 @@ void PoolClassMixInFormat(PoolClass class)
 {
   /* Can't check class because it's not initialized yet */
   class->attr |= AttrFMT;
+  /* walk is part of the format protocol, but there is no useful
+   * default method.
+   */
+  class->walk = NULL;
 }
 
 
@@ -103,10 +110,14 @@ void PoolClassMixInFormat(PoolClass class)
 void PoolClassMixInCollect(PoolClass class)
 {
   /* Can't check class because it's not initialized yet */
-  class->attr |= (AttrGC | AttrINCR_RB);
+  class->attr |= AttrGC;
   class->whiten = PoolTrivWhiten;
-  /* Fix & reclaim are part of the collection protocol - but there */
-  /* are no useful default methods for them. */
+  /* fix, fixEmergency and reclaim are part of the collection
+   * protocol, but there are no useful default methods for them.
+   */
+  class->fix = NULL;
+  class->fixEmergency = NULL;
+  class->reclaim = NULL;
   class->rampBegin = PoolTrivRampBegin;
   class->rampEnd = PoolTrivRampEnd;
 }
@@ -145,48 +156,42 @@ DEFINE_CLASS(AbstractPoolClass, class)
   class->framePopPending = PoolNoFramePopPending;
   class->addrObject = PoolNoAddrObject;
   class->walk = PoolNoWalk;
-  class->freewalk = PoolNoFreeWalk;
+  class->freewalk = PoolTrivFreeWalk;
   class->bufferClass = PoolNoBufferClass;
   class->describe = PoolTrivDescribe;
   class->debugMixin = PoolNoDebugMixin;
   class->labelled = FALSE;
   class->sig = PoolClassSig;
-  AVERT(PoolClass, class);
 }
 
 DEFINE_CLASS(AbstractAllocFreePoolClass, class)
 {
   INHERIT_CLASS(class, AbstractPoolClass);
   PoolClassMixInAllocFree(class);
-  AVERT(PoolClass, class);
 }
 
 DEFINE_CLASS(AbstractBufferPoolClass, class)
 {
   INHERIT_CLASS(class, AbstractPoolClass);
   PoolClassMixInBuffer(class);
-  AVERT(PoolClass, class);
 }
 
 DEFINE_CLASS(AbstractSegBufPoolClass, class)
 {
   INHERIT_CLASS(class, AbstractBufferPoolClass);
   class->bufferClass = SegBufClassGet;
-  AVERT(PoolClass, class);
 }
 
 DEFINE_CLASS(AbstractScanPoolClass, class)
 {
   INHERIT_CLASS(class, AbstractSegBufPoolClass);
   PoolClassMixInScan(class);
-  AVERT(PoolClass, class);
 }
 
 DEFINE_CLASS(AbstractCollectPoolClass, class)
 {
   INHERIT_CLASS(class, AbstractScanPoolClass);
   PoolClassMixInCollect(class);
-  AVERT(PoolClass, class);
 }
 
 
@@ -602,7 +607,7 @@ Res PoolNoFramePop(Pool pool, Buffer buf, AllocFrame frame)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buf);
-  /* frame is of a abstract type & can't be checked */
+  /* frame is of an abstract type & can't be checked */
   UNUSED(frame);
   NOTREACHED;
   return ResUNIMPL;
@@ -613,7 +618,7 @@ void PoolNoFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buf);
-  /* frame is of a abstract type & can't be checked */
+  /* frame is of an abstract type & can't be checked */
   UNUSED(frame);
   NOTREACHED;
 }
@@ -632,9 +637,19 @@ Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buf);
-  /* frame is of a abstract type & can't be checked */
+  /* frame is of an abstract type & can't be checked */
   UNUSED(frame);
   return ResOK;
+}
+
+
+void PoolTrivFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
+{
+  AVERT(Pool, pool);
+  AVERT(Buffer, buf);
+  /* frame is of an abstract type & can't be checked */
+  UNUSED(frame);
+  NOOP;
 }
 
 
@@ -662,7 +677,7 @@ void PoolNoWalk(Pool pool, Seg seg,
 }
 
 
-void PoolNoFreeWalk(Pool pool, FreeBlockStepMethod f, void *p)
+void PoolTrivFreeWalk(Pool pool, FreeBlockStepMethod f, void *p)
 {
   AVERT(Pool, pool);
   AVER(FUNCHECK(f));

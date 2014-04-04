@@ -18,9 +18,6 @@
  * .purpose.dispatch: Dispatch functions that implement the generic
  * function dispatch mechanism for Pool Classes (PoolAlloc, PoolFix,
  * etc.).
- * .purpose.core: A selection of default, trivial, or useful methods
- * that Pool Classes can use as the implementations for some of their
- * methods (such as PoolTrivWhiten, PoolNoFix, etc.).
  *
  * SOURCES
  *
@@ -47,6 +44,7 @@ Bool PoolClassCheck(PoolClass class)
   /* greater than the size of the class-specific portion of the instance */
   CHECKL(class->offset <= (size_t)(class->size - sizeof(PoolStruct)));
   CHECKL(AttrCheck(class->attr));
+  CHECKL(!(class->attr & AttrMOVINGGC) || (class->attr & AttrGC));
   CHECKL(FUNCHECK(class->varargs));
   CHECKL(FUNCHECK(class->init));
   CHECKL(FUNCHECK(class->finish));
@@ -94,11 +92,9 @@ Bool PoolCheck(Pool pool)
   /* Cannot check pool->bufferSerial */
   CHECKL(RingCheck(&pool->segRing));
   CHECKL(AlignCheck(pool->alignment));
-  /* normally pool->format iff pool->class->attr&AttrFMT, but not */
-  /* during pool initialization */
-  if (pool->format != NULL) {
-    CHECKL((pool->class->attr & AttrFMT) != 0);
-  }
+  /* normally pool->format iff PoolHasAttr(pool, AttrFMT), but during
+   * pool initialization pool->format may not yet be set. */
+  CHECKL(pool->format == NULL || PoolHasAttr(pool, AttrFMT));
   CHECKL(pool->fillMutatorSize >= 0.0);
   CHECKL(pool->emptyMutatorSize >= 0.0);
   CHECKL(pool->fillInternalSize >= 0.0);
@@ -288,7 +284,7 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
 
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
-  AVER((pool->class->attr & AttrALLOC) != 0);
+  AVER(PoolHasAttr(pool, AttrALLOC));
   AVER(size > 0);
   AVER(BoolCheck(withReservoirPermit));
 
@@ -318,7 +314,7 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
 void PoolFree(Pool pool, Addr old, Size size)
 {
   AVERT(Pool, pool);
-  AVER((pool->class->attr & AttrFREE) != 0);
+  AVER(PoolHasAttr(pool, AttrFREE));
   AVER(old != NULL);
   /* The pool methods should check that old is in pool. */
   AVER(size > 0);
@@ -383,6 +379,7 @@ Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   AVER(totalReturn != NULL);
   AVERT(ScanState, ss);
   AVERT(Pool, pool);
+  AVER(PoolHasAttr(pool, AttrSCAN));
   AVERT(Seg, seg);
   AVER(ss->arena == pool->arena);
 

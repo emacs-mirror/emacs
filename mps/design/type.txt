@@ -426,39 +426,21 @@ attributes, which are:
 ===================  ===========================================================
 Attribute            Description
 ===================  ===========================================================
-``AttrFMT``          Contains formatted objects.
--------------------  -----------------------------------------------------------
-``AttrSCAN``         Contains references and must be scanned.
--------------------  -----------------------------------------------------------
-``AttrPM_NO_READ``   May not be read protected.
--------------------  -----------------------------------------------------------
-``AttrPM_NO_WRITE``  May not be write protected.
--------------------  -----------------------------------------------------------
 ``AttrALLOC``        Supports the ``PoolAlloc`` interface.
--------------------  -----------------------------------------------------------
+``AttrBUF``          Supports the buffer interface.
+``AttrFMT``          Contains formatted objects.
+                     Used to decide which pools to walk.
 ``AttrFREE``         Supports the ``PoolFree`` interface.
--------------------  -----------------------------------------------------------
-``AttrBUF``          Supports the allocation buffer interface.
--------------------  -----------------------------------------------------------
-``AttrBUF_RESERVE``  Supports the reserve/commit protocol on allocation buffers.
--------------------  -----------------------------------------------------------
-``AttrBUF_ALLOC``    Supports the alloc protocol on allocation buffers.
--------------------  -----------------------------------------------------------
 ``AttrGC``           Is garbage collecting, that is, parts may be reclaimed.
--------------------  -----------------------------------------------------------
-``AttrINCR_RB``      Is incremental, requiring a read barrier.
--------------------  -----------------------------------------------------------
-``AttrINCR_WB``      Is incremental, requiring a write barrier.
+                     Used to decide which segments are condemned.
+``AttrMOVINGGC``     Is moving, that is, objects may move in memory.
+                     Used to update the set of zones that might have moved
+                     and so implement location dependency.
+``AttrSCAN``         Contains references and must be scanned.
 ===================  ===========================================================
 
 There is an attribute field in the pool class (``PoolClassStruct``)
-which declares the attributes of that class. These attributes are only
-used for consistency checking at the moment.
-
-.. note::
-
-    It's no longer true that they are only used for consistency
-    checking -- drj 1998-05-07
+which declares the attributes of that class.
 
 
 ``typedef int RootVar``

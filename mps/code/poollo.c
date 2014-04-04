@@ -775,21 +775,18 @@ static void LOReclaim(Pool pool, Trace trace, Seg seg)
 
 DEFINE_POOL_CLASS(LOPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractCollectPoolClass);
+  INHERIT_CLASS(this, AbstractSegBufPoolClass);
   PoolClassMixInFormat(this);
+  PoolClassMixInCollect(this);
   this->name = "LO";
   this->size = sizeof(LOStruct);
   this->offset = offsetof(LOStruct, poolStruct);
-  this->attr &= ~(AttrSCAN | AttrINCR_RB);
   this->varargs = LOVarargs;
   this->init = LOInit;
   this->finish = LOFinish;
   this->bufferFill = LOBufferFill;
   this->bufferEmpty = LOBufferEmpty;
   this->whiten = LOWhiten;
-  this->grey = PoolNoGrey;
-  this->blacken = PoolNoBlacken;
-  this->scan = PoolNoScan;
   this->fix = LOFix;
   this->fixEmergency = LOFix;
   this->reclaim = LOReclaim;
