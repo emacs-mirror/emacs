@@ -516,7 +516,8 @@ static void *test(void *arg, size_t s)
 
     if (rnd() % patternFREQ == 0) {
       switch(rnd() % 4) {
-      case 0: case 1:
+      case 0: /* fall through */
+      case 1:
         die(mps_ap_alloc_pattern_begin(ap, ramp), "alloc_pattern_begin");
         ++rampCount;
         break;
@@ -528,7 +529,7 @@ static void *test(void *arg, size_t s)
           --rampCount;
         }
         break;
-      case 3:
+      default:
         die(mps_ap_alloc_pattern_reset(ap), "alloc_pattern_reset");
         rampCount = 0;
         break;

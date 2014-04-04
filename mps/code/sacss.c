@@ -94,26 +94,26 @@ static mps_res_t stress(mps_class_t class,
     /* upper half, as when allocating them again we want smaller objects */
     /* see randomSize() */
     switch (k % 2) {
-    case 0: {
+    case 0:
       for (i=testSetSIZE/2; i<testSetSIZE; ++i)
         MPS_SAC_FREE(sac, (mps_addr_t)ps[i], ss[i]);
-    } break;
-    case 1: {
+      break;
+    default:
       for (i=testSetSIZE/2; i<testSetSIZE; ++i)
         mps_sac_free(sac, (mps_addr_t)ps[i], ss[i]);
-    } break;
+      break;
     }
     /* allocate some new objects */
     for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
       ss[i] = (*size)(i);
       switch (k % 2) {
-      case 0: {
+      case 0:
         res = make((mps_addr_t *)&ps[i], sac, ss[i]);
-      } break;
-      case 1: {
+        break;
+      default:
         res = mps_sac_alloc((mps_addr_t *)&ps[i], sac, ss[i], FALSE);
-      } break;
-      }     
+        break;
+      }
       if (res != MPS_RES_OK) return res;
     }
   }

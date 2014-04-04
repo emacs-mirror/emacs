@@ -432,20 +432,23 @@ static void find(FBMState state, Size size, Bool high, FindDelete findDelete)
     remainderLimit = origLimit = addrOfIndex(state, expectedLimit);
 
     switch(findDelete) {
-    case FindDeleteNONE: {
+    case FindDeleteNONE:
       /* do nothing */
-    } break;
-    case FindDeleteENTIRE: {
+      break;
+    case FindDeleteENTIRE:
       remainderBase = remainderLimit;
-    } break;
-    case FindDeleteLOW: {
+      break;
+    case FindDeleteLOW:
       expectedLimit = expectedBase + size;
       remainderBase = addrOfIndex(state, expectedLimit);
-    } break;
-    case FindDeleteHIGH: {
+      break;
+    case FindDeleteHIGH:
       expectedBase = expectedLimit - size;
       remainderLimit = addrOfIndex(state, expectedBase);
-    } break;
+      break;
+    default:
+      cdie(0, "invalid findDelete");
+      break;
     }
 
     if (findDelete != FindDeleteNONE) {
@@ -528,9 +531,7 @@ static void test(FBMState state, unsigned n) {
       size = fbmRnd(ArraySize / 10) + 1;
       high = fbmRnd(2) ? TRUE : FALSE;
       switch(fbmRnd(6)) {
-      case 0:
-      case 1:
-      case 2: findDelete = FindDeleteNONE; break;
+      default: findDelete = FindDeleteNONE; break;
       case 3: findDelete = FindDeleteLOW; break;
       case 4: findDelete = FindDeleteHIGH; break;
       case 5: findDelete = FindDeleteENTIRE; break;
