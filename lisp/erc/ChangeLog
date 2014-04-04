@@ -1,3 +1,8 @@
+2014-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc.el (erc-invite-only-mode, erc-toggle-channel-mode): Simplify.
+	(erc-load-script): Tighten a regexp.
+
 2014-02-25  Julien Danjou  <julien@danjou.info>
 
 	* erc-networks.el (erc-determine-network): Check that NETWORK as a
