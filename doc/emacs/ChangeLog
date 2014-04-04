@@ -3,6 +3,8 @@
 	* files.texi (Backup Names):
 	* arevert-xtra.texi (Supporting additional buffers):
 	Update for default values of some -function vars no longer being nil.
+	(Supporting additional buffers):
+	Update for buffer-stale-function also applying to file-buffers.
 
 2014-03-16  Dmitry Gutov  <dgutov@yandex.ru>
 

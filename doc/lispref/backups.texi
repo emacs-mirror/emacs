@@ -764,7 +764,9 @@ may or may not run this hook.
 @c FIXME?  Move this section from arevert-xtra to here?
 @defvar buffer-stale-function
 The value of this variable specifies a function to call to check
-whether a non-file buffer needs reverting
+whether a buffer needs reverting.  The default value only handles
+buffers that are visiting files, by checking their modification time.
+Buffers that are not visiting files require a custom function
 @iftex
 (@pxref{Supporting additional buffers,,, emacs-xtra,  Specialized Emacs Features}).
 @end iftex

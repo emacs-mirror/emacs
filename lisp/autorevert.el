@@ -672,7 +672,7 @@ Should `auto-revert-mode' be active in some buffers, those buffers
 are checked.
 
 Non-file buffers that have a custom `revert-buffer-function' and
-a `buffer-stale-function' are reverted either when Auto-Revert
+`buffer-stale-function' are reverted either when Auto-Revert
 Mode is active in that buffer, or when the variable
 `global-auto-revert-non-file-buffers' is non-nil and Global
 Auto-Revert Mode is active.

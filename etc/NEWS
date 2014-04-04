@@ -1401,10 +1401,13 @@ argument, with the same interpretation as the returned value of
 
 ** Revert and Autorevert changes
 
-FIXME buffer-stale-function no longer just for non-file buffers?
++++
 *** The default values of `buffer-stale-function', `revert-buffer-function',
 and `revert-buffer-insert-file-contents-function' are no longer nil.
 Instead they default to functions that do what the nil value used to.
+
++++
+*** `buffer-stale-function' is now used for buffers visiting files too.
 
 ---
 *** If Emacs is compiled with file notification support, it uses notifications

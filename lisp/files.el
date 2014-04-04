@@ -5349,13 +5349,16 @@ This should not be relied upon.")
   "Default function to use for `buffer-stale-function'.
 This function ignores its argument.
 This returns non-nil if the current buffer is visiting a readable file
-whose modification time does not match that of the buffer."
+whose modification time does not match that of the buffer.
+
+This function only handles buffers that are visiting files.
+Non-file buffers need a custom function"
   (and buffer-file-name
        (file-readable-p buffer-file-name)
        (not (verify-visited-file-modtime (current-buffer)))))
 
 (defvar buffer-stale-function #'buffer-stale--default-function
-  "Function to check whether a non-file buffer needs reverting.
+  "Function to check whether a buffer needs reverting.
 This should be a function with one optional argument NOCONFIRM.
 Auto Revert Mode passes t for NOCONFIRM.  The function should return
 non-nil if the buffer should be reverted.  A return value of
@@ -5450,7 +5453,10 @@ start and end.
 
 Calls `revert-buffer-insert-file-contents-function' to reread the
 contents of the visited file, with two arguments: the first is the file
-name, the second is non-nil if reading an auto-save file."
+name, the second is non-nil if reading an auto-save file.
+
+This function only handles buffers that are visiting files.
+Non-file buffers need a custom function."
   (with-current-buffer (or (buffer-base-buffer (current-buffer))
                            (current-buffer))
     (let* ((auto-save-p (and (not ignore-auto)
