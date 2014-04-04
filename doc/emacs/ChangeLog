@@ -1,3 +1,9 @@
+2014-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Backup Names):
+	* arevert-xtra.texi (Supporting additional buffers):
+	Update for default values of some -function vars no longer being nil.
+
 2014-03-16  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* programs.texi (Matching): Update the missed spot.  (Bug#17008)

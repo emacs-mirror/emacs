@@ -90,8 +90,7 @@ save disk space.  (You would put this code in your init file.)
 @smallexample
 @group
 (add-hook 'rmail-mode-hook
-          (lambda ()
-            (set (make-local-variable 'make-backup-files) nil)))
+          (lambda () (setq-local make-backup-files nil)))
 @end group
 @end smallexample
 @end defopt
@@ -150,13 +149,12 @@ ignored.
 @end defopt
 
 @defopt make-backup-file-name-function
-This variable's value is a function to use for making backups instead
-of the default @code{make-backup-file-name}.  A value of @code{nil}
-gives the default @code{make-backup-file-name} behavior.
+This variable's value is a function to use for making backup file names.
+The function @code{make-backup-file-name} calls it.
 @xref{Backup Names,, Naming Backup Files}.
 
 This could be buffer-local to do something special for specific
-files.  If you define it, you may need to change
+files.  If you change it, you may need to change
 @code{backup-file-name-p} and @code{file-name-sans-versions} too.
 @end defopt
 
@@ -727,25 +725,24 @@ buffer-local bindings for these variables:
 @defvar revert-buffer-function
 @anchor{Definition of revert-buffer-function}
 The value of this variable is the function to use to revert this
-buffer.  If non-@code{nil}, it should be a function with two optional
+buffer.  It should be a function with two optional
 arguments to do the work of reverting.  The two optional arguments,
 @var{ignore-auto} and @var{noconfirm}, are the arguments that
-@code{revert-buffer} received.  If the value is @code{nil}, reverting
-works the usual way.
+@code{revert-buffer} received.
 
 Modes such as Dired mode, in which the text being edited does not
 consist of a file's contents but can be regenerated in some other
-fashion, can give this variable a buffer-local value that is a function to
-regenerate the contents.
+fashion, can give this variable a buffer-local value that is a special
+function to regenerate the contents.
 @end defvar
 
 @defvar revert-buffer-insert-file-contents-function
-The value of this variable, if non-@code{nil}, specifies the function to use to
+The value of this variable specifies the function to use to
 insert the updated contents when reverting this buffer.  The function
 receives two arguments: first the file name to use; second, @code{t} if
 the user has asked to read the auto-save file.
 
-The reason for a mode to set this variable instead of
+The reason for a mode to change this variable instead of
 @code{revert-buffer-function} is to avoid duplicating or replacing the
 rest of what @code{revert-buffer} does: asking for confirmation,
 clearing the undo list, deciding the proper major mode, and running the
@@ -753,21 +750,21 @@ hooks listed below.
 @end defvar
 
 @defvar before-revert-hook
-This normal hook is run by @code{revert-buffer} before
-inserting the modified contents---but only if
-@code{revert-buffer-function} is @code{nil}.
+This normal hook is run by the default @code{revert-buffer-function}
+before inserting the modified contents.  A custom @code{revert-buffer-function}
+may or may not run this hook.
 @end defvar
 
 @defvar after-revert-hook
-This normal hook is run by @code{revert-buffer} after inserting
-the modified contents---but only if @code{revert-buffer-function} is
-@code{nil}.
+This normal hook is run by the default @code{revert-buffer-function}
+after inserting the modified contents.  A custom @code{revert-buffer-function}
+may or may not run this hook.
 @end defvar
 
 @c FIXME?  Move this section from arevert-xtra to here?
 @defvar buffer-stale-function
-The value of this variable, if non-@code{nil}, specifies a function
-to call to check whether a non-file buffer needs reverting
+The value of this variable specifies a function to call to check
+whether a non-file buffer needs reverting
 @iftex
 (@pxref{Supporting additional buffers,,, emacs-xtra,  Specialized Emacs Features}).
 @end iftex

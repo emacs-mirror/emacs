@@ -1,3 +1,8 @@
+2014-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* backups.texi (Making Backups, Reverting):
+	Update for default values of some -function vars no longer being nil.
+
 2014-03-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.texi (Kinds of Files): Improve documentation of
