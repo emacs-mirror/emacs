@@ -3,6 +3,10 @@
 	* faces.el (face-spec-recalc): Call make-face-x-resource-internal
 	only when inhibit-x-resources is nil, and do that earlier in the
 	function.  Doc fix.  (Bug#16694)
+	(face-spec-choose): Accept additional optional argument, whose
+	value is returned if no matching attributes are found.
+	(face-spec-recalc): Use the new optional argument when calling
+	face-spec-choose.  (Bug#16378)
 
 2014-04-04  Tassilo Horn  <tsdh@gnu.org>
 

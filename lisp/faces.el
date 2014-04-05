@@ -1512,13 +1512,15 @@ If FRAME is nil, the current FRAME is used."
     match))
 
 
-(defun face-spec-choose (spec &optional frame)
-  "Choose the proper attributes for FRAME, out of SPEC.
-If SPEC is nil, return nil."
+(defun face-spec-choose (spec &optional frame no-match-retval)
+  "Return the proper attributes for FRAME, out of SPEC.
+
+If no match is found or SPEC is nil, return nil, unless NO-MATCH-RETVAL
+is given, in which case return its value instead."
   (unless frame
     (setq frame (selected-frame)))
   (let ((tail spec)
-	result defaults)
+	result defaults match-found)
     (while tail
       (let* ((entry (pop tail))
 	     (display (car entry))
@@ -1538,9 +1540,18 @@ If SPEC is nil, return nil."
 	    (setq defaults thisval)
 	  ;; Otherwise, if it matches, use it.
 	  (when (face-spec-set-match-display display frame)
-	    (setq result thisval)
-	    (setq tail nil)))))
-    (if defaults (append result defaults) result)))
+	    (setq result thisval
+	          tail nil
+		  match-found t)))))
+    ;; If defaults have been found, it's safe to just append those to the result
+    ;; list (which at this point will be either nil or contain actual specs) and
+    ;; return it to the caller. Since there will most definitely be something to
+    ;; return in this case, there's no need to know/check if a match was found.
+    (if defaults
+	(append result defaults)
+      (if match-found
+	  result
+	no-match-retval))))
 
 
 (defun face-spec-reset-face (face &optional frame)
@@ -1635,11 +1646,12 @@ After the reset, the specs are applied from the following sources in this order:
   ;; If FACE is customized or themed, set the custom spec from
   ;; `theme-face' records.
   (let ((theme-faces (get face 'theme-face))
+	(no-match-found 0)
 	spec theme-face-applied)
     (if theme-faces
 	(dolist (elt (reverse theme-faces))
-	  (setq spec (face-spec-choose (cadr elt) frame))
-	  (when spec
+	  (setq spec (face-spec-choose (cadr elt) frame no-match-found))
+	  (unless (eq spec no-match-found)
 	    (face-spec-set-2 face frame spec)
 	    (setq theme-face-applied t))))
     ;; If there was a spec applicable to FRAME, that overrides the
