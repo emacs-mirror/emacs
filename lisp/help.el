@@ -1,7 +1,6 @@
 ;;; help.el --- help commands for Emacs
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2014 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, internal
@@ -450,7 +449,7 @@ is specified by the variable `message-log-max'."
 (defun view-lossage ()
   "Display last 300 input keystrokes.
 
-To record all your input on a file, use `open-dribble-file'."
+To record all your input, use `open-dribble-file'."
   (interactive)
   (help-setup-xref (list #'view-lossage)
 		   (called-interactively-p 'interactive))

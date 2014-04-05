@@ -1,3 +1,7 @@
+2014-04-05  Glenn Morris  <rgm@gnu.org>
+
+	* help.el (view-lossage): Doc tweak.
+
 2014-04-05  Matthias Dahl  <ml_emacs-lists@binary-island.eu>
 
 	* faces.el (face-spec-recalc): Call make-face-x-resource-internal

@@ -1991,20 +1991,11 @@ This function opens a @dfn{dribble file} named @var{filename}.  When a
 dribble file is open, each input event from the keyboard or mouse (but
 not those from keyboard macros) is written in that file.  A
 non-character event is expressed using its printed representation
-surrounded by @samp{<@dots{}>}.
+surrounded by @samp{<@dots{}>}.  Be aware that sensitive information
+(such as passwords) may end up recorded in the dribble file.
 
 You close the dribble file by calling this function with an argument
 of @code{nil}.
-
-This function is normally used to record the input necessary to
-trigger an Emacs bug, for the sake of a bug report.
-
-@example
-@group
-(open-dribble-file "~/dribble")
-     @result{} nil
-@end group
-@end example
 @end deffn
 
   See also the @code{open-termscript} function (@pxref{Terminal Output}).

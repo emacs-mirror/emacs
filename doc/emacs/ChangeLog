@@ -1,3 +1,7 @@
+2014-04-05  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Checklist): Dribble files may contain passwords.
+
 2014-04-04  Glenn Morris  <rgm@gnu.org>
 
 	* files.texi (Backup Names):
