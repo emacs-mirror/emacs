@@ -1619,11 +1619,19 @@ function for its other effects."
 
 (defun face-spec-recalc (face frame)
   "Reset the face attributes of FACE on FRAME according to its specs.
-This applies the defface/custom spec first, then the custom theme specs,
-then the override spec."
+After the reset, the specs are applied from the following sources in this order:
+  X resources (if applicable)
+   |
+  (theme and user customization)
+    or, if nonexistent or does not match the current frame,
+  (defface default spec)
+   |
+  defface override spec"
   (while (get face 'face-alias)
     (setq face (get face 'face-alias)))
   (face-spec-reset-face face frame)
+  (unless inhibit-x-resources
+    (make-face-x-resource-internal face frame))
   ;; If FACE is customized or themed, set the custom spec from
   ;; `theme-face' records.
   (let ((theme-faces (get face 'theme-face))
@@ -1641,8 +1649,7 @@ then the override spec."
       (setq spec (face-spec-choose (face-default-spec face) frame))
       (face-spec-set-2 face frame spec))
     (setq spec (face-spec-choose (get face 'face-override-spec) frame))
-    (face-spec-set-2 face frame spec))
-  (make-face-x-resource-internal face frame))
+    (face-spec-set-2 face frame spec)))
 
 (defun face-spec-set-2 (face frame spec)
   "Set the face attributes of FACE on FRAME according to SPEC."

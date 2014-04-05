@@ -1,3 +1,9 @@
+2014-04-05  Matthias Dahl  <ml_emacs-lists@binary-island.eu>
+
+	* faces.el (face-spec-recalc): Call make-face-x-resource-internal
+	only when inhibit-x-resources is nil, and do that earlier in the
+	function.  Doc fix.  (Bug#16694)
+
 2014-04-04  Tassilo Horn  <tsdh@gnu.org>
 
 	* doc-view.el (doc-view-bookmark-jump): Use
