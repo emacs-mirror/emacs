@@ -5478,7 +5478,7 @@ make_lispy_event (struct input_event *event)
     case NON_ASCII_KEYSTROKE_EVENT:
       button_down_time = 0;
 
-      for (i = 0; i < sizeof (lispy_accent_codes) / sizeof (int); i++)
+      for (i = 0; i < ARRAYELTS (lispy_accent_codes); i++)
 	if (event->code == lispy_accent_codes[i])
 	  return modify_event_symbol (i,
 				      event->modifiers,
@@ -5511,7 +5511,7 @@ make_lispy_event (struct input_event *event)
       if (event->code & (1 << 28)
 	  || event->code - FUNCTION_KEY_OFFSET < 0
 	  || (event->code - FUNCTION_KEY_OFFSET
-	      >= sizeof lispy_function_keys / sizeof *lispy_function_keys)
+	      >= ARRAYELTS (lispy_function_keys))
 	  || !lispy_function_keys[event->code - FUNCTION_KEY_OFFSET])
 	{
 	  /* We need to use an alist rather than a vector as the cache
@@ -7282,7 +7282,7 @@ store_user_signal_events (void)
 }
 
 
-static void menu_bar_item (Lisp_Object, Lisp_Object, Lisp_Object, void*);
+static void menu_bar_item (Lisp_Object, Lisp_Object, Lisp_Object, void *);
 static Lisp_Object menu_bar_one_keymap_changed_items;
 
 /* These variables hold the vector under construction within
@@ -7292,7 +7292,7 @@ static Lisp_Object menu_bar_items_vector;
 static int menu_bar_items_index;
 
 
-static const char* separator_names[] = {
+static const char *separator_names[] = {
   "space",
   "no-line",
   "single-line",
@@ -7900,7 +7900,8 @@ static Lisp_Object QCrtl;
 /* Function prototypes.  */
 
 static void init_tool_bar_items (Lisp_Object);
-static void process_tool_bar_item (Lisp_Object, Lisp_Object, Lisp_Object, void*);
+static void process_tool_bar_item (Lisp_Object, Lisp_Object, Lisp_Object,
+				   void *);
 static bool parse_tool_bar_item (Lisp_Object, Lisp_Object);
 static void append_tool_bar_item (void);
 

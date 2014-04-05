@@ -294,7 +294,7 @@ setup_cpu_timer (Lisp_Object sampling_interval)
       sigev.sigev_signo = SIGPROF;
       sigev.sigev_notify = SIGEV_SIGNAL;
 
-      for (i = 0; i < sizeof system_clock / sizeof *system_clock; i++)
+      for (i = 0; i < ARRAYELTS (system_clock); i++)
 	if (timer_create (system_clock[i], &sigev, &profiler_timer) == 0)
 	  {
 	    profiler_timer_ok = 1;

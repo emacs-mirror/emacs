@@ -2386,7 +2386,7 @@ syms_of_charset (void)
   }
 
   charset_table = charset_table_init;
-  charset_table_size = sizeof charset_table_init / sizeof *charset_table_init;
+  charset_table_size = ARRAYELTS (charset_table_init);
   charset_table_used = 0;
 
   defsubr (&Scharsetp);

@@ -996,7 +996,7 @@ extern Lisp_Object x_get_focus_frame (struct frame *);
 
 #ifdef USE_GTK
 extern int xg_set_icon (struct frame *, Lisp_Object);
-extern int xg_set_icon_from_xpm_data (struct frame *, const char**);
+extern int xg_set_icon_from_xpm_data (struct frame *, const char **);
 #endif /* USE_GTK */
 
 extern void x_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);

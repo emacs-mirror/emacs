@@ -595,7 +595,7 @@ the same file name is found in the `doc-directory'.  */)
 	{
 	  #include "buildobj.h"
 	};
-      int i = sizeof buildobj / sizeof *buildobj;
+      int i = ARRAYELTS (buildobj);
       while (0 <= --i)
 	Vbuild_files = Fcons (build_string (buildobj[i]), Vbuild_files);
       Vbuild_files = Fpurecopy (Vbuild_files);

@@ -120,7 +120,7 @@ static int pagemask;
    into an int which is the number of a byte.
    This is a no-op on ordinary machines, but not on all.  */
 
-#define ADDR_CORRECT(x) ((char *)(x) - (char*)0)
+#define ADDR_CORRECT(x) ((char *) (x) - (char *) 0)
 
 #include "lisp.h"
 

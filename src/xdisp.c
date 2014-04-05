@@ -22639,7 +22639,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	return decode_mode_spec_buf;
     no_value:
         {
-	  char* p = decode_mode_spec_buf;
+	  char *p = decode_mode_spec_buf;
 	  int pad = width - 2;
 	  while (pad-- > 0)
 	    *p++ = ' ';

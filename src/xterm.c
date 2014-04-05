@@ -308,7 +308,7 @@ int event_record_index;
 void
 record_event (char *locus, int type)
 {
-  if (event_record_index == sizeof (event_record) / sizeof (struct record))
+  if (event_record_index == ARRAYELTS (event_record))
     event_record_index = 0;
 
   event_record[event_record_index].locus = locus;
@@ -5624,7 +5624,7 @@ static int temp_index;
 static short temp_buffer[100];
 
 #define STORE_KEYSYM_FOR_DEBUG(keysym)				\
-  if (temp_index == sizeof temp_buffer / sizeof (short))	\
+  if (temp_index == ARRAYELTS (temp_buffer))			\
     temp_index = 0;						\
   temp_buffer[temp_index++] = (keysym)
 

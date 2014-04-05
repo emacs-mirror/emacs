@@ -8443,11 +8443,11 @@ from_unicode (Lisp_Object str)
 }
 
 Lisp_Object
-from_unicode_buffer (const wchar_t* wstr)
+from_unicode_buffer (const wchar_t *wstr)
 {
     return from_unicode (
         make_unibyte_string (
-            (char*) wstr,
+            (char *) wstr,
             /* we get one of the two final 0 bytes for free. */
             1 + sizeof (wchar_t) * wcslen (wstr)));
 }

@@ -208,19 +208,19 @@ const char *pending_malloc_warning;
 
 #ifdef SUSPICIOUS_OBJECT_CHECKING
 struct suspicious_free_record {
-  void* suspicious_object;
+  void *suspicious_object;
 #ifdef HAVE_EXECINFO_H
-  void* backtrace[128];
+  void *backtrace[128];
 #endif
 };
-static void* suspicious_objects[32];
+static void *suspicious_objects[32];
 static int suspicious_object_index;
 struct suspicious_free_record suspicious_free_history[64];
 static int suspicious_free_history_index;
 /* Find the first currently-monitored suspicious pointer in range
    [begin,end) or NULL if no such pointer exists.  */
-static void* find_suspicious_object_in_range (void* begin, void* end);
-static void detect_suspicious_free (void* ptr);
+static void *find_suspicious_object_in_range (void *begin, void *end);
+static void detect_suspicious_free (void *ptr);
 #else
 #define find_suspicious_object_in_range(begin, end) NULL
 #define detect_suspicious_free(ptr) (void)
@@ -3116,7 +3116,7 @@ allocate_vectorlike (ptrdiff_t len)
         mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
 
-      if (find_suspicious_object_in_range (p, (char*)p + nbytes))
+      if (find_suspicious_object_in_range (p, (char *) p + nbytes))
         emacs_abort ();
 
       consing_since_gc += nbytes;
@@ -3765,7 +3765,7 @@ memory_full (size_t nbytes)
       memory_full_cons_threshold = sizeof (struct cons_block);
 
       /* The first time we get here, free the spare memory.  */
-      for (i = 0; i < sizeof (spare_memory) / sizeof (char *); i++)
+      for (i = 0; i < ARRAYELTS (spare_memory); i++)
 	if (spare_memory[i])
 	  {
 	    if (i == 0)
@@ -3818,7 +3818,6 @@ refill_memory_reserve (void)
     Vmemory_full = Qnil;
 #endif
 }
-
 
 /************************************************************************
 			   C Stack Marking
@@ -6829,23 +6828,24 @@ which_symbols (Lisp_Object obj, EMACS_INT find_max)
 #ifdef SUSPICIOUS_OBJECT_CHECKING
 
 static void*
-find_suspicious_object_in_range (void* begin, void* end)
+find_suspicious_object_in_range (void *begin, void *end)
 {
-  char* begin_a = begin;
-  char* end_a = end;
+  char *begin_a = begin;
+  char *end_a = end;
   int i;
 
-  for (i = 0; i < ARRAYELTS (suspicious_objects); ++i) {
-    char* suspicious_object = suspicious_objects[i];
-    if (begin_a <= suspicious_object && suspicious_object < end_a)
-      return suspicious_object;
-  }
+  for (i = 0; i < ARRAYELTS (suspicious_objects); ++i)
+    {
+      char *suspicious_object = suspicious_objects[i];
+      if (begin_a <= suspicious_object && suspicious_object < end_a)
+	return suspicious_object;
+    }
 
   return NULL;
 }
 
 static void
-detect_suspicious_free (void* ptr)
+detect_suspicious_free (void *ptr)
 {
   int i;
   struct suspicious_free_record* rec;
@@ -6882,11 +6882,12 @@ garbage collection bugs.  Otherwise, do nothing and return OBJ.   */)
 {
 #ifdef SUSPICIOUS_OBJECT_CHECKING
   /* Right now, we care only about vectors.  */
-  if (VECTORLIKEP (obj)) {
-    suspicious_objects[suspicious_object_index++] = XVECTOR (obj);
-    if (suspicious_object_index == ARRAYELTS (suspicious_objects))
-      suspicious_object_index = 0;
-  }
+  if (VECTORLIKEP (obj))
+    {
+      suspicious_objects[suspicious_object_index++] = XVECTOR (obj);
+      if (suspicious_object_index == ARRAYELTS (suspicious_objects))
+	suspicious_object_index = 0;
+    }
 #endif
   return obj;
 }

@@ -56,7 +56,7 @@ static Lisp_Object QCgnutls_bootprop_verify_error;
 static Lisp_Object QCgnutls_bootprop_callbacks_verify;
 
 static void gnutls_log_function (int, const char *);
-static void gnutls_log_function2 (int, const char*, const char*);
+static void gnutls_log_function2 (int, const char *, const char *);
 #ifdef HAVE_GNUTLS3
 static void gnutls_audit_log_function (gnutls_session_t, const char *);
 #endif
@@ -267,7 +267,7 @@ init_gnutls_functions (void)
 #ifdef HAVE_GNUTLS3
 /* Function to log a simple audit message.  */
 static void
-gnutls_audit_log_function (gnutls_session_t session, const char* string)
+gnutls_audit_log_function (gnutls_session_t session, const char *string)
 {
   if (global_gnutls_log_level >= 1)
     {
@@ -278,21 +278,21 @@ gnutls_audit_log_function (gnutls_session_t session, const char* string)
 
 /* Function to log a simple message.  */
 static void
-gnutls_log_function (int level, const char* string)
+gnutls_log_function (int level, const char *string)
 {
   message ("gnutls.c: [%d] %s", level, string);
 }
 
 /* Function to log a message and a string.  */
 static void
-gnutls_log_function2 (int level, const char* string, const char* extra)
+gnutls_log_function2 (int level, const char *string, const char *extra)
 {
   message ("gnutls.c: [%d] %s %s", level, string, extra);
 }
 
 /* Function to log a message and an integer.  */
 static void
-gnutls_log_function2i (int level, const char* string, int extra)
+gnutls_log_function2i (int level, const char *string, int extra)
 {
   message ("gnutls.c: [%d] %s %d", level, string, extra);
 }
@@ -794,7 +794,7 @@ one trustfile (usually a CA bundle).  */)
   Lisp_Object global_init;
   char const *priority_string_ptr = "NORMAL"; /* default priority string.  */
   unsigned int peer_verification;
-  char* c_hostname;
+  char *c_hostname;
 
   /* Placeholders for the property list elements.  */
   Lisp_Object priority_string;

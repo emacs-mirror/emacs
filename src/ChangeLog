@@ -1,3 +1,20 @@
+2014-04-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer 'ARRAYELTS (x)' to 'sizeof x / sizeof *x'.
+	* alloc.c (memory_full):
+	* charset.c (syms_of_charset):
+	* doc.c (Fsnarf_documentation):
+	* emacs.c (main):
+	* font.c (BUILD_STYLE_TABLE):
+	* keyboard.c (make_lispy_event):
+	* profiler.c (setup_cpu_timer):
+	* xgselect.c (xg_select):
+	* xterm.c (record_event, STORE_KEYSYM_FOR_DEBUG):
+	Use ARRAYELTS.
+	* font.c (FONT_PROPERTY_TABLE_SIZE): Remove.
+	Replace the only use with ARRAYELTS (font_property_table).
+	* xfaces.c (DIM): Remove.  All uses replaced by ARRAYELTS.
+
 2014-04-03  Daniel Colascione  <dancol@dancol.org>
 
 	* xterm.c (x_term_init):

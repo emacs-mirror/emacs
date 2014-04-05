@@ -1894,7 +1894,7 @@ struct accessible_keymaps_data {
 
 static void
 accessible_keymaps_1 (Lisp_Object key, Lisp_Object cmd, Lisp_Object args, void *data)
-/* Use void* data to be compatible with map_keymap_function_t.  */
+/* Use void * data to be compatible with map_keymap_function_t.  */
 {
   struct accessible_keymaps_data *d = data; /* Cast! */
   Lisp_Object maps = d->maps;

@@ -58,8 +58,8 @@ INLINE_HEADER_BEGIN
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-/* Find number of elements in array */
-#define ARRAYELTS(arr) (sizeof (arr) / sizeof ((arr)[0]))
+/* Number of elements in an array.  */
+#define ARRAYELTS(arr) (sizeof (arr) / sizeof (arr)[0])
 
 /* EMACS_INT - signed integer wide enough to hold an Emacs value
    EMACS_INT_MAX - maximum value of EMACS_INT; can be used in #if

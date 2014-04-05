@@ -662,10 +662,6 @@ static const struct
     { &QCotf, font_prop_validate_otf }
   };
 
-/* Size (number of elements) of the above table.  */
-#define FONT_PROPERTY_TABLE_SIZE \
-  ((sizeof font_property_table) / (sizeof *font_property_table))
-
 /* Return an index number of font property KEY or -1 if KEY is not an
    already known property.  */
 
@@ -674,7 +670,7 @@ get_font_prop_index (Lisp_Object key)
 {
   int i;
 
-  for (i = 0; i < FONT_PROPERTY_TABLE_SIZE; i++)
+  for (i = 0; i < ARRAYELTS (font_property_table); i++)
     if (EQ (key, *font_property_table[i].key))
       return i;
   return -1;
@@ -4935,8 +4931,7 @@ If the named font is not yet loaded, return nil.  */)
 #endif
 
 
-#define BUILD_STYLE_TABLE(TBL) \
-  build_style_table ((TBL), sizeof TBL / sizeof (struct table_entry))
+#define BUILD_STYLE_TABLE(TBL) build_style_table (TBL, ARRAYELTS (TBL))
 
 static Lisp_Object
 build_style_table (const struct table_entry *entry, int nelement)

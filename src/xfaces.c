@@ -273,10 +273,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define IGNORE_DEFFACE_P(ATTR) EQ ((ATTR), QCignore_defface)
 
-/* Value is the number of elements of VECTOR.  */
-
-#define DIM(VECTOR) (sizeof (VECTOR) / sizeof *(VECTOR))
-
 /* Size of hash table of realized faces in face caches (should be a
    prime number).  */
 
@@ -5093,14 +5089,14 @@ Value is ORDER.  */)
 {
   Lisp_Object list;
   int i;
-  int indices[DIM (font_sort_order)];
+  int indices[ARRAYELTS (font_sort_order)];
 
   CHECK_LIST (order);
   memset (indices, 0, sizeof indices);
   i = 0;
 
   for (list = order;
-       CONSP (list) && i < DIM (indices);
+       CONSP (list) && i < ARRAYELTS (indices);
        list = XCDR (list), ++i)
     {
       Lisp_Object attr = XCAR (list);
@@ -5122,9 +5118,9 @@ Value is ORDER.  */)
       indices[i] = xlfd;
     }
 
-  if (!NILP (list) || i != DIM (indices))
+  if (!NILP (list) || i != ARRAYELTS (indices))
     signal_error ("Invalid font sort order", order);
-  for (i = 0; i < DIM (font_sort_order); ++i)
+  for (i = 0; i < ARRAYELTS (font_sort_order); ++i)
     if (indices[i] == 0)
       signal_error ("Invalid font sort order", order);
 
@@ -6348,7 +6344,7 @@ DEFUN ("dump-face", Fdump_face, Sdump_face, 0, 1, 0, doc: /* */)
       int i;
 
       fprintf (stderr, "font selection order: ");
-      for (i = 0; i < DIM (font_sort_order); ++i)
+      for (i = 0; i < ARRAYELTS (font_sort_order); ++i)
 	fprintf (stderr, "%d ", font_sort_order[i]);
       fprintf (stderr, "\n");
 
