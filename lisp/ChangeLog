@@ -7,6 +7,12 @@
 	value is returned if no matching attributes are found.
 	(face-spec-recalc): Use the new optional argument when calling
 	face-spec-choose.  (Bug#16378)
+	(make-face-x-resource-internal): Do nothing when
+	inhibit-x-resources is non-nil.  Don't touch the default face if
+	reversed video is given--as was done in previous versions of
+	Emacs.
+	(face-set-after-frame-default): Don't call
+	make-face-x-resource-internal here.  (Bug#16434)
 
 2014-04-04  Tassilo Horn  <tsdh@gnu.org>
 

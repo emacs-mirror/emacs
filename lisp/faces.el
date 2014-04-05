@@ -334,11 +334,16 @@ specifies an invalid attribute."
 
 (defun make-face-x-resource-internal (face &optional frame)
   "Fill frame-local FACE on FRAME from X resources.
-FRAME nil or not specified means do it for all frames."
-  (if (null frame)
-      (dolist (frame (frame-list))
-	(set-face-attributes-from-resources face frame))
-    (set-face-attributes-from-resources face frame)))
+FRAME nil or not specified means do it for all frames.
+
+If `inhibit-x-resources' is non-nil, this function does nothing."
+  (unless inhibit-x-resources
+    (dolist (frame (if (null frame) (frame-list) (list frame)))
+      ;; `x-create-frame' already took care of correctly handling
+      ;; the reverse video case-- do _not_ touch the default face
+      (unless (and (eq face 'default)
+		   (frame-parameter frame 'reverse))
+        (set-face-attributes-from-resources face frame)))))
 
 
 
@@ -1641,8 +1646,7 @@ After the reset, the specs are applied from the following sources in this order:
   (while (get face 'face-alias)
     (setq face (get face 'face-alias)))
   (face-spec-reset-face face frame)
-  (unless inhibit-x-resources
-    (make-face-x-resource-internal face frame))
+  (make-face-x-resource-internal face frame)
   ;; If FACE is customized or themed, set the custom spec from
   ;; `theme-face' records.
   (let ((theme-faces (get face 'theme-face))
@@ -2045,10 +2049,6 @@ frame parameters in PARAMETERS."
 	  (progn
 	    ;; Initialize faces from face spec and custom theme.
 	    (face-spec-recalc face frame)
-	    ;; X resources for the default face are applied during
-	    ;; `x-create-frame'.
-	    (and (not (eq face 'default)) window-system-p
-		 (make-face-x-resource-internal face frame))
 	    ;; Apply attributes specified by face-new-frame-defaults
 	    (internal-merge-in-global-face face frame))
 	;; Don't let invalid specs prevent frame creation.
