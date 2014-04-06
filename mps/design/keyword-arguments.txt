@@ -103,10 +103,10 @@ but ``arg.h`` provides a macro for this::
 We define keys as static structures (rather than, say, an enum) because:
 
 - The set of keys can be extended indefinitely.
-- The set of keys can be extended by indepdently linked modules.
+- The set of keys can be extended by independently linked modules.
 - The structure contents allow strong checking of argument lists.
 
-In the MPS Interface, we declare keys like this::
+In the MPS C Interface, we declare keys like this::
 
     extern const struct mps_key_s _mps_key_extend_by;
     #define MPS_KEY_EXTEND_BY (&_mps_key_extend_by)
