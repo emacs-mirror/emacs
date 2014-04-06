@@ -30,7 +30,7 @@ Bool ProtocolClassCheck(ProtocolClass class)
 Bool ProtocolInstCheck(ProtocolInst inst)
 {
   CHECKS(ProtocolInst, inst);
-  CHECKL(ProtocolClassCheck(inst->class));
+  CHECKD(ProtocolClass, inst->class);
   return TRUE;
 }
 

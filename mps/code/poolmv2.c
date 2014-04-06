@@ -200,7 +200,7 @@ static void MVTVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[4].key = MPS_KEY_MVT_FRAG_LIMIT;
   args[4].val.d = (double)va_arg(varargs, Count) / 100.0;
   args[5].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 
@@ -364,9 +364,7 @@ static Bool MVTCheck(MVT mvt)
   CHECKD(Pool, &mvt->poolStruct);
   CHECKL(mvt->poolStruct.class == MVTPoolClassGet());
   CHECKD(CBS, &mvt->cbsStruct);
-  /* CHECKL(CBSCheck(MVTCBS(mvt))); */
   CHECKD(ABQ, &mvt->abqStruct);
-  /* CHECKL(ABQCheck(MVTABQ(mvt))); */
   CHECKD(Freelist, &mvt->flStruct);
   CHECKL(mvt->reuseSize >= 2 * mvt->fillSize);
   CHECKL(mvt->fillSize >= mvt->maxSize);
@@ -380,8 +378,7 @@ static Bool MVTCheck(MVT mvt)
   if (mvt->splinter) {
     CHECKL(AddrOffset(mvt->splinterBase, mvt->splinterLimit) >=
            mvt->minSize);
-    /* CHECKD(Seg, mvt->splinterSeg); */
-    CHECKL(SegCheck(mvt->splinterSeg));
+    CHECKD(Seg, mvt->splinterSeg);
     CHECKL(mvt->splinterBase >= SegBase(mvt->splinterSeg));
     CHECKL(mvt->splinterLimit <= SegLimit(mvt->splinterSeg));
   }
@@ -688,7 +685,7 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(BufferIsReset(buffer));
   AVER(minSize > 0);
   AVER(SizeIsAligned(minSize, pool->alignment));
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   /* Allocate oversize blocks exactly, directly from the arena.
      <design/poolmvt/#arch.ap.no-fit.oversize> */

@@ -64,9 +64,9 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
   TraceId ti;
   Trace trace;
 
-  AVER(TraceSetCheck(ts));
+  AVERT(TraceSet, ts);
   AVERT(Arena, arena);
-  AVER(RankCheck(rank));
+  AVERT(Rank, rank);
   /* white is arbitrary and can't be checked */
 
   /* NOTE: We can only currently support scanning for a set of traces with
@@ -504,9 +504,9 @@ static Res rootFlip(Root root, void *p)
 
   AVERT(Root, root);
   AVER(p != NULL);
-  AVER(TraceSetCheck(rf->ts));
+  AVERT(TraceSet, rf->ts);
   AVERT(Arena, rf->arena);
-  AVER(RankCheck(rf->rank));
+  AVERT(Rank, rf->rank);
 
   AVER(RootRank(root) <= RankEXACT); /* see .root.rank */
 
@@ -989,7 +989,7 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
   Ring node, nextNode;
 
   AVER(segReturn != NULL);
-  AVER(TraceIdCheck(ti));
+  AVERT(TraceId, ti);
 
   trace = ArenaTrace(arena, ti);
 
@@ -1377,10 +1377,10 @@ void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 {
   Res res;
 
-  AVER(TraceSetCheck(ts));
-  AVER(RankCheck(rank));
+  AVERT(TraceSet, ts);
+  AVERT(Rank, rank);
   AVERT(Arena, arena);
-  AVER(SegCheck(seg));
+  AVERT(Seg, seg);
   AVER(refIO != NULL);
 
   res = traceScanSingleRefRes(ts, rank, arena, seg, refIO);

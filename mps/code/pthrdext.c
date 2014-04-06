@@ -1,7 +1,7 @@
 /* pthreadext.c: POSIX THREAD EXTENSIONS
  *
  *  $Id$
- *  Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Provides extension to Pthreads.
  *
@@ -178,8 +178,8 @@ extern Bool PThreadextCheck(PThreadext pthreadext)
 
   CHECKS(PThreadext, pthreadext);
   /* can't check ID */
-  CHECKL(RingCheck(&pthreadext->threadRing));
-  CHECKL(RingCheck(&pthreadext->idRing));
+  CHECKD_NOSIG(Ring, &pthreadext->threadRing);
+  CHECKD_NOSIG(Ring, &pthreadext->idRing);
   if (pthreadext->suspendedMFC == NULL) {
     /* not suspended */
     CHECKL(RingIsSingle(&pthreadext->threadRing));
@@ -366,7 +366,7 @@ unlock:
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

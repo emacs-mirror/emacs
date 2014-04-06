@@ -82,7 +82,7 @@ DEFINE_SEG_CLASS(LOSegClass, class)
 static Bool LOSegCheck(LOSeg loseg)
 {
   CHECKS(LOSeg, loseg);
-  CHECKL(GCSegCheck(&loseg->gcSegStruct));
+  CHECKD(GCSeg, &loseg->gcSegStruct);
   CHECKU(LO, loseg->lo);
   CHECKL(loseg->mark != NULL);
   CHECKL(loseg->alloc != NULL);
@@ -113,7 +113,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVERT(Pool, pool);
   arena = PoolArena(pool);
   /* no useful checks for base and size */
-  AVER(BoolCheck(reservoirPermit));
+  AVERT(Bool, reservoirPermit);
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
@@ -287,7 +287,7 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
   AVER(loSegReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
@@ -461,7 +461,7 @@ static void LOVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[0].key = MPS_KEY_FORMAT;
   args[0].val.format = va_arg(varargs, Format);
   args[1].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 
@@ -559,7 +559,7 @@ static Res LOBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(BufferRankSet(buffer) == RankSetEMPTY);
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   /* Try to find a segment with enough space already. */
   RING_FOR(node, &pool->segRing, nextNode) {

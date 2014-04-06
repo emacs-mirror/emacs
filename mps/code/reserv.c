@@ -95,7 +95,7 @@ Bool ReservoirCheck(Reservoir reservoir)
   /* could call ReservoirIsConsistent, but it's costly. */
   tract = reservoir->reserve;
   if (tract != NULL) {
-    CHECKL(TractCheck(tract));
+    CHECKD_NOSIG(Tract, tract);
     CHECKL(TractPool(tract) == ReservoirPool(reservoir));
   }
   CHECKL(SizeIsAligned(reservoir->reservoirLimit, ArenaAlign(arena)));
@@ -282,7 +282,7 @@ Bool ReservoirDeposit(Reservoir reservoir, Addr *baseIO, Size *sizeIO)
 
   /* put as many pages as necessary into the reserve & free the rest */
   TRACT_FOR(tract, addr, arena, base, limit) {
-    AVER(TractCheck(tract));
+    AVERT(Tract, tract);
     if (reservoir->reservoirSize < reslimit) {
       /* Reassign the tract to the reservoir pool */
       TractFinish(tract);

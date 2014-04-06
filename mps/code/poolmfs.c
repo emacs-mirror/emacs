@@ -86,7 +86,7 @@ static void MFSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[1].key = MPS_KEY_MFS_UNIT_SIZE;
   args[1].val.size = va_arg(varargs, Size);
   args[2].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 ARG_DEFINE_KEY(mfs_unit_size, Size);
@@ -102,7 +102,7 @@ static Res MFSInit(Pool pool, ArgList args)
   ArgStruct arg;
 
   AVER(pool != NULL);
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
   
   ArgRequire(&arg, args, MPS_KEY_MFS_UNIT_SIZE);
   unitSize = arg.val.size;
@@ -116,7 +116,7 @@ static Res MFSInit(Pool pool, ArgList args)
     extendSelf = arg.val.b;
 
   AVER(extendBy >= unitSize);
-  AVER(BoolCheck(extendSelf));
+  AVERT(Bool, extendSelf);
  
   mfs = PoolPoolMFS(pool);
   arena = PoolArena(pool);
@@ -250,7 +250,7 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
 
   AVER(pReturn != NULL);
   AVER(size == mfs->unroundedUnitSize);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   f = mfs->freeList;
 
@@ -378,7 +378,7 @@ Bool MFSCheck(MFS mfs)
   CHECKL(SizeAlignUp(mfs->unroundedUnitSize, mfs->poolStruct.alignment) ==
          mfs->unitSize);
   if(mfs->tractList != NULL) {
-    CHECKL(TractCheck(mfs->tractList));
+    CHECKD_NOSIG(Tract, mfs->tractList);
   }
   return TRUE;
 }
