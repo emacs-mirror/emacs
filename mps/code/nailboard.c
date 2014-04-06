@@ -26,7 +26,7 @@ SRCID(nailboard, "$Id$");
 
 static Count nailboardLevels(Count nails)
 {
-  return SizeRoundUp(SizeFloorLog2(nails) + 1, LEVEL_SHIFT) / LEVEL_SHIFT;
+  return (SizeFloorLog2((Size)nails) + LEVEL_SHIFT) / LEVEL_SHIFT;
 }
 
 
@@ -128,12 +128,12 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
   board->alignShift = alignShift;
   board->newNails = FALSE;
 
-  p = (char *)p + nailboardStructSize(levels);
+  p = PointerAdd(p, nailboardStructSize(levels));
   for (i = 0; i < levels; ++i) {
     AVER(nails > 0);
     board->level[i] = p;
     BTResRange(board->level[i], 0, nails);
-    p = (char *)p + BTSize(nails);
+    p = PointerAdd(p, BTSize(nails));
     nails >>= LEVEL_SHIFT;
   }
   
