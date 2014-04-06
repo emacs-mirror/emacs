@@ -67,7 +67,7 @@ typedef struct AMSTStruct *AMST;
 static Bool AMSTCheck(AMST amst)
 {
   CHECKS(AMST, amst);
-  CHECKL(AMSCheck(AMST2AMS(amst)));
+  CHECKD_NOSIG(AMS, AMST2AMS(amst)); /* <design/check/#hidden-type> */
   return TRUE;
 }
 
@@ -104,7 +104,7 @@ typedef struct AMSTSegStruct {
 static Bool AMSTSegCheck(AMSTSeg amstseg)
 {
   CHECKS(AMSTSeg, amstseg);
-  CHECKL(AMSSegCheck(&amstseg->amsSegStruct));
+  CHECKD_NOSIG(AMSSeg, &amstseg->amsSegStruct); /* <design/check/#hidden-type> */
   /* don't bother to do other checks - this is a stress test */
   return TRUE;
 }
@@ -129,7 +129,7 @@ static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size,
   amst = Pool2AMST(pool);
   AVERT(AMST, amst);
   /* no useful checks for base and size */
-  AVER(BoolCheck(reservoirPermit));
+  AVERT(Bool, reservoirPermit);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(AMSTSegClass);
@@ -311,7 +311,7 @@ static Res AMSTSegSizePolicy(Size *sizeReturn,
   AVER(sizeReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVER(RankSetCheck(rankSet));
+  AVERT(RankSet, rankSet);
 
   arena = PoolArena(pool);
 

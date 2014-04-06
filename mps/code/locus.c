@@ -89,7 +89,7 @@ static Bool GenDescCheck(GenDesc gen)
   CHECKL(gen->mortality <= 1.0);
   CHECKL(gen->proflow >= 0.0);
   CHECKL(gen->proflow <= 1.0);
-  CHECKL(RingCheck(&gen->locusRing));
+  CHECKD_NOSIG(Ring, &gen->locusRing);
   return TRUE;
 }
 
@@ -192,7 +192,7 @@ Bool ChainCheck(Chain chain)
 
   CHECKS(Chain, chain);
   CHECKU(Arena, chain->arena);
-  CHECKL(RingCheck(&chain->chainRing));
+  CHECKD_NOSIG(Ring, &chain->chainRing);
   CHECKL(TraceSetCheck(chain->activeTraces));
   CHECKL(chain->genCount > 0);
   for (i = 0; i < chain->genCount; ++i) {
@@ -458,7 +458,7 @@ Bool PoolGenCheck(PoolGen gen)
   /* nothing to check about serial */
   CHECKU(Pool, gen->pool);
   CHECKU(Chain, gen->chain);
-  CHECKL(RingCheck(&gen->genRing));
+  CHECKD_NOSIG(Ring, &gen->genRing);
   CHECKL(gen->newSize <= gen->totalSize);
   return TRUE;
 }
@@ -501,7 +501,7 @@ void LocusFinish(Arena arena)
 Bool LocusCheck(Arena arena)
 {
   /* Can't check arena, because this is part of ArenaCheck. */
-  CHECKL(GenDescCheck(&arena->topGen));
+  CHECKD(GenDesc, &arena->topGen);
   return TRUE;
 }
 

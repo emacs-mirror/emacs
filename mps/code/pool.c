@@ -37,7 +37,7 @@ SRCID(pool, "$Id$");
 
 Bool PoolClassCheck(PoolClass class)
 {
-  CHECKL(ProtocolClassCheck(&class->protocol));
+  CHECKD(ProtocolClass, &class->protocol);
   CHECKL(class->name != NULL); /* Should be <=6 char C identifier */
   CHECKL(class->size >= sizeof(PoolStruct));
   /* Offset of generic Pool within class-specific instance cannot be */
@@ -87,10 +87,10 @@ Bool PoolCheck(Pool pool)
   CHECKL(pool->serial < ArenaGlobals(pool->arena)->poolSerial);
   CHECKD(PoolClass, pool->class);
   CHECKU(Arena, pool->arena);
-  CHECKL(RingCheck(&pool->arenaRing));
-  CHECKL(RingCheck(&pool->bufferRing));
+  CHECKD_NOSIG(Ring, &pool->arenaRing);
+  CHECKD_NOSIG(Ring, &pool->bufferRing);
   /* Cannot check pool->bufferSerial */
-  CHECKL(RingCheck(&pool->segRing));
+  CHECKD_NOSIG(Ring, &pool->segRing);
   CHECKL(AlignCheck(pool->alignment));
   /* normally pool->format iff PoolHasAttr(pool, AttrFMT), but during
    * pool initialization pool->format may not yet be set. */
@@ -286,7 +286,7 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
   AVERT(Pool, pool);
   AVER(PoolHasAttr(pool, AttrALLOC));
   AVER(size > 0);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   res = (*pool->class->alloc)(pReturn, pool, size, withReservoirPermit);
   if (res != ResOK)

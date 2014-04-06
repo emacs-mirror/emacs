@@ -48,7 +48,7 @@ Bool AMSSegCheck(AMSSeg amsseg)
 {
   Seg seg = AMSSeg2Seg(amsseg);
   CHECKS(AMSSeg, amsseg);
-  CHECKL(GCSegCheck(&amsseg->gcSegStruct));
+  CHECKD(GCSeg, &amsseg->gcSegStruct);
   CHECKU(AMS, amsseg->ams);
   CHECKL(AMS2Pool(amsseg->ams) == SegPool(seg));
   CHECKD_NOSIG(Ring, &amsseg->segRing);
@@ -60,7 +60,7 @@ Bool AMSSegCheck(AMSSeg amsseg)
   CHECKL(BoolCheck(amsseg->allocTableInUse));
   if (!amsseg->allocTableInUse)
     CHECKL(amsseg->firstFree <= amsseg->grains);
-  CHECKL(amsseg->allocTable != NULL);
+  CHECKD_NOSIG(BT, amsseg->allocTable);
 
   if (SegWhite(seg) != TraceSetEMPTY) {
     /* <design/poolams/#colour.single> */
@@ -71,8 +71,8 @@ Bool AMSSegCheck(AMSSeg amsseg)
   CHECKL(BoolCheck(amsseg->marksChanged));
   CHECKL(BoolCheck(amsseg->ambiguousFixes));
   CHECKL(BoolCheck(amsseg->colourTablesInUse));
-  CHECKL(amsseg->nongreyTable != NULL);
-  CHECKL(amsseg->nonwhiteTable != NULL);
+  CHECKD_NOSIG(BT, amsseg->nongreyTable);
+  CHECKD_NOSIG(BT, amsseg->nonwhiteTable);
 
   return TRUE;
 }
@@ -218,7 +218,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVERT(AMS, ams);
   arena = PoolArena(pool);
   /* no useful checks for base and size */
-  AVER(BoolCheck(reservoirPermit));
+  AVERT(Bool, reservoirPermit);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(AMSSegClass);
@@ -638,7 +638,7 @@ static Res AMSSegSizePolicy(Size *sizeReturn,
   AVER(sizeReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVER(RankSetCheck(rankSet));
+  AVERT(RankSet, rankSet);
 
   arena = PoolArena(pool);
 
@@ -667,7 +667,7 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
   AVERT(Pool, pool);
   AVER(size > 0);
   AVERT(RankSet, rankSet);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   ams = Pool2AMS(pool);
   AVERT(AMS,ams);
@@ -735,7 +735,7 @@ static void AMSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[2].key = MPS_KEY_AMS_SUPPORT_AMBIGUOUS;
   args[2].val.b = va_arg(varargs, Bool);
   args[3].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 static void AMSDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
@@ -764,7 +764,7 @@ static Res AMSInit(Pool pool, ArgList args)
   ArgStruct arg;
 
   AVERT(Pool, pool);
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
@@ -933,7 +933,7 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Buffer, buffer);
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   /* Check that we're not in the grey mutator phase (see */
   /* <design/poolams/#fill.colour>). */
@@ -997,7 +997,7 @@ static void AMSBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
   AVERT(Buffer,buffer);
   AVER(BufferIsReady(buffer));
   seg = BufferSeg(buffer);
-  AVER(SegCheck(seg));
+  AVERT(Seg, seg);
   AVER(init <= limit);
   AVER(AddrIsAligned(init, PoolAlignment(pool)));
   AVER(AddrIsAligned(limit, PoolAlignment(pool)));
@@ -1075,7 +1075,7 @@ static Res AMSCondemn(Pool pool, Trace trace, Seg seg)
   AVERT(AMS, ams);
 
   AVERT(Trace, trace);
-  AVER(SegCheck(seg));
+  AVERT(Seg, seg);
 
   amsseg = Seg2AMSSeg(seg);
   AVERT(AMSSeg, amsseg);
@@ -1261,7 +1261,7 @@ static Res amsScanObject(Seg seg, Index i, Addr p, Addr next, void *clos)
   AVER(clos != NULL);
   closure = (amsScanClosure)clos;
   AVERT(ScanState, closure->ss);
-  AVER(BoolCheck(closure->scanAllObjects));
+  AVERT(Bool, closure->scanAllObjects);
 
   format = AMS2Pool(amsseg->ams)->format;
   AVERT(Format, format);
@@ -1307,7 +1307,7 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   ams = Pool2AMS(pool);
   AVERT(AMS, ams);
   arena = PoolArena(pool);
-  AVER(SegCheck(seg));
+  AVERT(Seg, seg);
   amsseg = Seg2AMSSeg(seg);
   AVERT(AMSSeg, amsseg);
 
@@ -1725,7 +1725,7 @@ DEFINE_POOL_CLASS(AMSDebugPoolClass, this)
 Bool AMSCheck(AMS ams)
 {
   CHECKS(AMS, ams);
-  CHECKL(PoolCheck(AMS2Pool(ams)));
+  CHECKD(Pool, AMS2Pool(ams));
   CHECKL(IsSubclassPoly(AMS2Pool(ams)->class, AMSPoolClassGet()));
   CHECKL(PoolAlignment(AMS2Pool(ams)) == ((Size)1 << ams->grainShift));
   CHECKL(PoolAlignment(AMS2Pool(ams)) == AMS2Pool(ams)->format->alignment);
@@ -1733,7 +1733,7 @@ Bool AMSCheck(AMS ams)
   CHECKD(PoolGen, &ams->pgen);
   CHECKL(SizeIsAligned(ams->size, ArenaAlign(PoolArena(AMS2Pool(ams)))));
   CHECKL(FUNCHECK(ams->segSize));
-  CHECKL(RingCheck(&ams->segRing));
+  CHECKD_NOSIG(Ring, &ams->segRing);
   CHECKL(FUNCHECK(ams->allocRing));
   CHECKL(FUNCHECK(ams->segsDestroy));
   CHECKL(FUNCHECK(ams->segClass));

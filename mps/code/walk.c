@@ -171,7 +171,7 @@ static Bool rootsStepClosureCheck(rootsStepClosure rsc)
   CHECKL(FUNCHECK(rsc->f));
   /* p and s fields are arbitrary closures which cannot be checked */
   if (rsc->root != NULL) {
-    CHECKL(RootCheck(rsc->root));
+    CHECKD_NOSIG(Root, rsc->root); /* <design/check/#.hidden-type> */
   }
   return TRUE;
 }

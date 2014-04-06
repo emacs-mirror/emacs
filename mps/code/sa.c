@@ -48,13 +48,11 @@ Bool SparseArrayCheck(SparseArray sa)
   CHECKS(SparseArray, sa);
   CHECKL(sa->base != NULL);
   CHECKL(sa->elementSize >= 1);
-  /* TODO: CHECKD(VM, sa->vm); once VMStruct becomes visible */
-  CHECKL(VMCheck(sa->vm));
+  CHECKD_NOSIG(VM, sa->vm); /* <design/check/#hidden-type> */
   CHECKL(sa->elementSize <= VMAlign(sa->vm));
   CHECKL(sa->length > 0);
-  /* TODO: Make BTCheck extern and use everywhere. */
-  /* CHECKL(BTCheck(sa->mapped)); */
-  /* CHECKL(BTCheck(sa->pages)); */
+  CHECKD_NOSIG(BT, sa->mapped);
+  CHECKD_NOSIG(BT, sa->pages);
   CHECKL(sa->shift == SizeLog2(VMAlign(sa->vm)));
   return TRUE;
 }

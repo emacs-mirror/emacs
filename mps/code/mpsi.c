@@ -454,7 +454,7 @@ mps_res_t mps_fmt_create_k(mps_fmt_t *mps_fmt_o,
 
   AVER(mps_fmt_o != NULL);
   AVERT(Arena, arena);
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 
   res = FormatCreate(&format, arena, args);
 
@@ -652,7 +652,7 @@ mps_res_t mps_pool_create_k(mps_pool_t *mps_pool_o, mps_arena_t arena,
   AVER(mps_pool_o != NULL);
   AVERT(Arena, arena);
   AVERT(PoolClass, class);
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 
   res = PoolCreate(&pool, arena, class, args);
 

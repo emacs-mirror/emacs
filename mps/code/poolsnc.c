@@ -90,9 +90,9 @@ static Bool SNCBufCheck(SNCBuf sncbuf)
 
   CHECKS(SNCBuf, sncbuf);
   segbuf = &sncbuf->segBufStruct;
-  CHECKL(SegBufCheck(segbuf));
+  CHECKD(SegBuf, segbuf);
   if (sncbuf->topseg != NULL) {
-    CHECKL(SegCheck(sncbuf->topseg));
+    CHECKD(Seg, sncbuf->topseg);
   }
   return TRUE;
 }
@@ -217,7 +217,7 @@ typedef struct SNCSegStruct {
 static Bool SNCSegCheck(SNCSeg sncseg)
 {
   CHECKS(SNCSeg, sncseg);
-  CHECKL(GCSegCheck(&sncseg->gcSegStruct));
+  CHECKD(GCSeg, &sncseg->gcSegStruct);
   if (NULL != sncseg->next) {
     CHECKS(SNCSeg, sncseg->next);
   }
@@ -238,7 +238,7 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size,
   sncseg = SegSNCSeg(seg);
   AVERT(Pool, pool);
   /* no useful checks for base and size */
-  AVER(BoolCheck(reservoirPermit));
+  AVERT(Bool, reservoirPermit);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(SNCSegClass);
@@ -367,7 +367,7 @@ static void SNCVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[0].key = MPS_KEY_FORMAT;
   args[0].val.format = va_arg(varargs, Format);
   args[1].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 
@@ -433,7 +433,7 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
   AVER(BufferIsReset(buffer));
 
   snc = Pool2SNC(pool);
@@ -702,7 +702,7 @@ static Bool SNCCheck(SNC snc)
   CHECKD(Pool, &snc->poolStruct);
   CHECKL(snc->poolStruct.class == SNCPoolClassGet());
   if (snc->freeSegs != NULL) {
-    CHECKL(SegCheck(snc->freeSegs));
+    CHECKD(Seg, snc->freeSegs);
   }
   return TRUE;
 }

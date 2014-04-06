@@ -138,11 +138,11 @@ static Bool MVSpanCheck(MVSpan span)
 
   CHECKS(MVSpan, span);
 
-  CHECKL(RingCheck(&span->spans));
+  CHECKD_NOSIG(Ring, &span->spans);
   CHECKU(MV, span->mv);
   CHECKD_NOSIG(Tract, span->tract);
-  CHECKL(MVBlockCheck(&span->base));
-  CHECKL(MVBlockCheck(&span->limit));
+  CHECKD_NOSIG(MVBlock, &span->base);
+  CHECKD_NOSIG(MVBlock, &span->limit);
   /* The block chain starts with the base sentinel. */
   CHECKL(span->blocks == &span->base);
   /* Since there is a limit sentinel, the chain can't end just after the */
@@ -193,7 +193,7 @@ static void MVVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[2].key = MPS_KEY_MAX_SIZE;
   args[2].val.size = va_arg(varargs, Size);
   args[3].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 static void MVDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
@@ -570,7 +570,7 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
   span->mv = mv;
   /* Set the p field for each tract of the span  */
   TRACT_FOR(tract, addr, arena, base, limit) {
-    AVER(TractCheck(tract));
+    AVERT(Tract, tract);
     AVER(TractP(tract) == NULL);
     AVER(TractPool(tract) == pool);
     TractSetP(tract, (void *)span);
