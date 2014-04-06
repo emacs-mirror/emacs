@@ -448,7 +448,7 @@ Root mode                      Description
 ``RootModePROTECTABLE_INNER``  Root is protectable: the MPS may place
                                a barrier on any page completely covered
                                by part of the root.
-=============================  ==========================================
+=============================  =========================================
 
 _`.rootmode.const.unused`: ``RootModeCONSTANT`` has no effect. This
 mode was introduced in the hope of being able to maintain a
