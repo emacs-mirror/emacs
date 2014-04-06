@@ -1,7 +1,7 @@
 /* mpsi.c: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -46,11 +46,6 @@
 #include "mpm.h"
 #include "mps.h"
 #include "sac.h"
-#include "chain.h"
-
-/* TODO: Remove these includes when varargs support is removed. */
-#include "mpsacl.h"
-#include "mpsavm.h"
 
 #include <stdarg.h>
 
@@ -1935,7 +1930,7 @@ void mps_chain_destroy(mps_chain_t chain)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
