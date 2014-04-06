@@ -1,7 +1,7 @@
 /* mpmtypes.h: MEMORY POOL MANAGER TYPES
  *
  * $Id$
- * Copyright (c) 2001-2002, 2006 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2001 Global Graphics Software.
  *
  * .design: <design/type/>
@@ -41,7 +41,7 @@ typedef unsigned Shift;                 /* <design/type/#shift> */
 typedef unsigned Serial;                /* <design/type/#serial> */
 typedef Addr Ref;                       /* <design/type/#ref> */
 typedef void *Pointer;                  /* <design/type/#pointer> */
-typedef Word Clock;                     /* processor time */
+typedef Word Clock;                     /* <design/type/#clock> */
 typedef MPS_T_ULONGEST ULongest;        /* <design/type/#ulongest> */
 
 typedef mps_arg_s ArgStruct;
@@ -60,7 +60,6 @@ typedef unsigned TraceSet;              /* <design/trace/> */
 typedef unsigned TraceState;            /* <design/trace/> */
 typedef unsigned AccessSet;             /* <design/type/#access-set> */
 typedef unsigned Attr;                  /* <design/type/#attr> */
-typedef unsigned FormatVariety;        
 typedef int RootVar;                    /* <design/type/#rootvar> */
 
 typedef Word *BT;                       /* <design/bt/> */
@@ -300,16 +299,6 @@ typedef struct TraceMessageStruct *TraceMessage;  /* trace end */
                          AttrGC | AttrINCR_RB | AttrINCR_WB | AttrMOVINGGC)
 
 
-/* Format varieties */
-enum {
-  FormatVarietyA = 1,
-  FormatVarietyB,
-  FormatVarietyAutoHeader,
-  FormatVarietyFixed,
-  FormatVarietyLIMIT
-};
-
-
 /* Segment preferences */
 enum {
   SegPrefHigh = 1,
@@ -465,7 +454,7 @@ typedef double WriteFD;
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002, 2006 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
