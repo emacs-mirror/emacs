@@ -1,3 +1,11 @@
+2014-04-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-srvr.el (gnus-tmp-how, gnus-tmp-name, gnus-tmp-where)
+	(gnus-tmp-status, gnus-tmp-agent, gnus-tmp-cloud)
+	(gnus-tmp-news-server, gnus-tmp-news-method, gnus-tmp-user-defined):
+	Silence compiler warnings.
+	(gnus-server-insert-server-line): Don't use dyn-bind var as argument.
+
 2014-03-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mml.el: Require url when compiling.

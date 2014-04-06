@@ -78,6 +78,16 @@ If nil, a faster, but more primitive, buffer is used instead."
 
 ;;; Internal variables.
 
+(defvar gnus-tmp-how)
+(defvar gnus-tmp-name)
+(defvar gnus-tmp-where)
+(defvar gnus-tmp-status)
+(defvar gnus-tmp-agent)
+(defvar gnus-tmp-cloud)
+(defvar gnus-tmp-news-server)
+(defvar gnus-tmp-news-method)
+(defvar gnus-tmp-user-defined)
+
 (defvar gnus-inserted-opened-servers nil)
 
 (defvar gnus-server-line-format-alist
@@ -276,8 +286,9 @@ The following commands are available:
 	 '(gnus-server-font-lock-keywords t)))
   (gnus-run-mode-hooks 'gnus-server-mode-hook))
 
-(defun gnus-server-insert-server-line (gnus-tmp-name method)
-  (let* ((gnus-tmp-how (car method))
+(defun gnus-server-insert-server-line (name method)
+  (let* ((gnus-tmp-name name)
+         (gnus-tmp-how (car method))
 	 (gnus-tmp-where (nth 1 method))
 	 (elem (assoc method gnus-opened-servers))
 	 (gnus-tmp-status
