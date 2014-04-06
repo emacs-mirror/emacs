@@ -413,8 +413,8 @@ represented in the obvious way::
 
 ``typedef unsigned AccessSet``
 
-_`.access-set`: An ``AccessSet`` is a bitset of ``Access``
-modes, which are ``AccessREAD`` and ``AccessWRITE``. ``AccessNONE`` is
+_`.access-set`: An ``AccessSet`` is a bitset of ``Access`` modes,
+which are ``AccessREAD`` and ``AccessWRITE``. ``AccessSetEMPTY`` is
 the empty ``AccessSet``.
 
 
