@@ -1,3 +1,8 @@
+2014-04-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mpc.el (mpc--status-timer-run): Disable timer if not displayed.
+	(mpc--status-idle-timer-run): Use mpc--status-timer-run.
+
 2014-04-05  Glenn Morris  <rgm@gnu.org>
 
 	* help.el (view-lossage): Doc tweak.
@@ -13,15 +18,14 @@
 	face-spec-choose.  (Bug#16378)
 	(make-face-x-resource-internal): Do nothing when
 	inhibit-x-resources is non-nil.  Don't touch the default face if
-	reversed video is given--as was done in previous versions of
-	Emacs.
+	reversed video is given--as was done in previous versions of Emacs.
 	(face-set-after-frame-default): Don't call
 	make-face-x-resource-internal here.  (Bug#16434)
 
 2014-04-04  Tassilo Horn  <tsdh@gnu.org>
 
-	* doc-view.el (doc-view-bookmark-jump): Use
-	`bookmark-after-jump-hook' to jump to the right page after the
+	* doc-view.el (doc-view-bookmark-jump):
+	Use `bookmark-after-jump-hook' to jump to the right page after the
 	buffer is shown in a window.  (bug#16090)
 
 2014-04-04  Eli Zaretskii  <eliz@gnu.org>
