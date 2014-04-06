@@ -215,19 +215,24 @@ condition.  Two file items are considered to match if they are equal
       (dolist (file1 list1)
 	(unless (let ((list list2))
 		  (while (and list
-			      (not (let* ((file2 (car list))
-					  (fa1 (car (cddr file1)))
-					  (fa2 (car (cddr file2)))
-					  (size1 (nth 7 fa1))
-					  (size2 (nth 7 fa2))
-					  (mtime1 (float-time (nth 5 fa1)))
-					  (mtime2 (float-time (nth 5 fa2))))
-				     (and
-				      (equal (car file1) (car file2))
-				      (not (eval predicate))))))
+			      (let* ((file2 (car list))
+                                     (fa1 (car (cddr file1)))
+                                     (fa2 (car (cddr file2))))
+                                (or
+                                 (not (equal (car file1) (car file2)))
+                                 (eval predicate
+                                       `((fa1 . ,fa1)
+                                         (fa2 . ,fa2)
+                                         (size1 . ,(nth 7 fa1))
+                                         (size2 . ,(nth 7 fa2))
+                                         (mtime1
+                                          . ,(float-time (nth 5 fa1)))
+                                         (mtime2
+                                          . ,(float-time (nth 5 fa2)))
+                                         )))))
 		    (setq list (cdr list)))
 		  list)
-	  (setq res (cons file1 res))))
+	  (push file1 res)))
       (nreverse res))))
 
 (defun dired-files-attributes (dir)

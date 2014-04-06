@@ -1,7 +1,11 @@
+2014-04-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired-aux.el (dired-file-set-difference): Use lexical-scoping.
+
 2014-04-05  Leo Liu  <sdl.web@gmail.com>
 
-	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression): Add
-	define-compilation-mode.
+	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression):
+	Add define-compilation-mode.
 
 2014-04-04  João Távora  <joaotavora@gmail.com>
 
