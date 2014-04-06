@@ -1,3 +1,8 @@
+2014-04-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* leim/quail/ipa.el (ipa-x-sampa): Fix the character produced for
+	"<F>".  (Bug#17199)
+
 2014-04-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mpc.el (mpc--status-timer-run): Disable timer if not displayed.

@@ -475,7 +475,7 @@ displays them, incorrectly, as separate from the modified glyphs.")
  ("_d" "̪")	;; Dental				U+032A
  ("_e" "̴")	;; Velarized or pharyngeal		U+0334
 
- ("<F>" "↙")	;; Global fall; SOUTH EAST ARROW; may be a bit smaller than
+ ("<F>" "↘")	;; Global fall; SOUTH EAST ARROW; may be a bit smaller than
 		;; intended.
  ("_F" "̂")	;; Falling tone				U+0302
  ("_G" "ˠ")	;; Velarized				U+02E0
