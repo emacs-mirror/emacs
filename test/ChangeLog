@@ -1,5 +1,10 @@
 2014-04-06  João Távora  <joaotavora@gmail.com>
 
+	* automated/python-tests.el (python-triple-quote-pairing): New test.
+	(python-syntax-after-python-backspace): New test.
+
+2014-04-06  João Távora  <joaotavora@gmail.com>
+
 	* automated/electric-tests.el (electric-pair-define-test-form):
 	More readable test docstrings.
 	(whitespace-skipping-for-quotes-not-ouside)

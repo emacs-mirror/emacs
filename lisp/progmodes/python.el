@@ -3651,8 +3651,9 @@ returned as is."
              (let ((count 0))
                (while (eq (char-before (- (point) count)) last-command-event)
                  (cl-incf count))
-               (= count 3)))
-    (save-excursion (insert (make-string 3 last-command-event)))))
+               (= count 3))
+             (eq (char-after) last-command-event))
+    (save-excursion (insert (make-string 2 last-command-event)))))
 
 (defvar electric-indent-inhibit)
 
