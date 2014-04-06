@@ -11,6 +11,8 @@
 #include "testlib.h"
 #include "mpslib.h"
 #include "mpscamc.h"
+#include "mpscams.h"
+#include "mpscawl.h"
 #include "mpsavm.h"
 #include "mpstd.h"
 #ifdef MPS_OS_W3
@@ -126,11 +128,16 @@ static void stepper(mps_addr_t object, mps_fmt_t format,
     return;
 }
 
+static mps_addr_t test_awl_find_dependent(mps_addr_t addr)
+{
+    testlib_unused(addr);
+    return NULL;
+}
+
 /* test -- the body of the test */
 
-static void *test(void *arg, size_t s)
+static void *test(mps_arena_t arena, mps_class_t pool_class)
 {
-    mps_arena_t arena;
     mps_chain_t chain;
     mps_fmt_t format;
     mps_pool_t pool;
@@ -139,14 +146,15 @@ static void *test(void *arg, size_t s)
     unsigned long objs;
     struct stepper_data sdStruct, *sd;
 
-    arena = (mps_arena_t)arg;
-    (void)s; /* unused */
-
     die(dylan_fmt(&format, arena), "fmt_create");
     die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
-    die(mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
-        "pool_create(amc)");
+    MPS_ARGS_BEGIN(args) {
+        MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
+        MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
+        MPS_ARGS_ADD(args, MPS_KEY_AWL_FIND_DEPENDENT, test_awl_find_dependent);
+        die(mps_pool_create_k(&pool, arena, pool_class, args), "pool_create");
+    } MPS_ARGS_END(args);
 
     die(mps_ap_create(&ap, pool, mps_rank_exact()), "ap_create");
 
@@ -199,7 +207,6 @@ int main(int argc, char *argv[])
 {
     mps_arena_t arena;
     mps_thr_t thread;
-    void *r;
 
     testlib_init(argc, argv);
 
@@ -207,7 +214,11 @@ int main(int argc, char *argv[])
                          testArenaSIZE),
         "arena_create");
     die(mps_thread_reg(&thread, arena), "thread_reg");
-    mps_tramp(&r, test, arena, 0);
+
+    test(arena, mps_class_amc());
+    test(arena, mps_class_awl());
+    /* TODO: test(arena, mps_class_ams()); -- see job003738 */
+
     mps_thread_dereg(thread);
     mps_arena_destroy(arena);
 
