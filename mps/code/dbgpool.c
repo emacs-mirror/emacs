@@ -1,7 +1,7 @@
 /* dbgpool.c: POOL DEBUG MIXIN
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .source: design.mps.object-debug
@@ -573,7 +573,7 @@ static void TagWalk(Pool pool, ObjectsStepMethod step, void *p)
   AVERT(PoolDebugMixin, debug);
 
   node = SplayTreeFirst(&debug->index);
-  while (node != NULL) {
+  while (node != TreeEMPTY) {
     Tag tag = TagOfTree(node);
 
     step(tag->addr, tag->size, NULL, pool, &tag->userdata, p);
@@ -691,7 +691,7 @@ void PoolClassMixInDebug(PoolClass class)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
