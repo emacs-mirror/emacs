@@ -485,10 +485,12 @@ happened."
                            (funcall electric-pair-skip-self last-command-event)
                          electric-pair-skip-self))
                    (save-excursion
-                     (when (setq skip-whitespace-info
-                                 (if (functionp electric-pair-skip-whitespace)
-                                     (funcall electric-pair-skip-whitespace)
-                                   electric-pair-skip-whitespace))
+                     (when (and (not (and unconditional
+                                          (eq syntax ?\")))
+                                (setq skip-whitespace-info
+                                      (if (functionp electric-pair-skip-whitespace)
+                                          (funcall electric-pair-skip-whitespace)
+                                        electric-pair-skip-whitespace)))
                        (electric-pair--skip-whitespace))
                      (eq (char-after) last-command-event))))
          ;; This is too late: rather than insert&delete we'd want to only

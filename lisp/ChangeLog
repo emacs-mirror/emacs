@@ -1,3 +1,10 @@
+2014-04-06  João Távora  <joaotavora@gmail.com>
+
+	* elec-pair.el (electric-pair-post-self-insert-function): Don't
+	skip whitespace when `electric-pair-text-pairs' and
+	`electric-pair-pairs' were used. syntax to
+	electric-pair--skip-whitespace. (Bug#17183)
+
 2014-04-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* leim/quail/ipa.el (ipa-x-sampa): Fix the character produced for
