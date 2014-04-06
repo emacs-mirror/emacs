@@ -178,6 +178,7 @@ extern Bool PoolClassCheck(PoolClass class);
 extern Bool PoolCheck(Pool pool);
 extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream);
 
+/* Must be thread-safe. See <design/interface-c/#thread-safety>. */
 #define PoolArena(pool)         ((pool)->arena)
 #define PoolAlignment(pool)     ((pool)->alignment)
 #define PoolSegRing(pool)       (&(pool)->segRing)
