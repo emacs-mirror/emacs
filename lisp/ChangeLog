@@ -1,5 +1,15 @@
 2014-04-06  João Távora  <joaotavora@gmail.com>
 
+	Fix `electric-pair-delete-adjacent-pairs' in modes binding
+	backspace. (bug#16981)
+	* elec-pair.el (electric-pair-backward-delete-char): Delete.
+	(electric-pair-backward-delete-char-untabify): Delete.
+	(electric-pair-mode-map): Bind backspace to a menu item filtering
+	a new `electric-pair-delete-pair' command.
+	(electric-pair-delete-pair): New command.
+
+2014-04-06  João Távora  <joaotavora@gmail.com>
+
 	* progmodes/python.el (python-electric-pair-string-delimiter): Fix
 	triple-quoting electricity.  (Bug#17192)
 

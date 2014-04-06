@@ -166,36 +166,6 @@ return value is considered instead."
 quotes or comments.  If lookup fails here, `electric-pair-text-pairs' will
 be considered.")
 
-(defun electric-pair-backward-delete-char (n &optional killflag untabify)
-  "Delete characters backward, and maybe also two adjacent paired delimiters.
-
-Remaining behavior is given by `backward-delete-char' or, if UNTABIFY is
-non-nil, `backward-delete-char-untabify'."
-  (interactive "*p\nP")
-  (let* ((prev (char-before))
-         (next (char-after))
-         (syntax-info (and prev
-                           (electric-pair-syntax-info prev)))
-         (syntax (car syntax-info))
-         (pair (cadr syntax-info)))
-    (when (and next pair
-               (if (functionp electric-pair-delete-adjacent-pairs)
-                   (funcall electric-pair-delete-adjacent-pairs)
-                 electric-pair-delete-adjacent-pairs)
-               (memq syntax '(?\( ?\" ?\$))
-               (eq pair next))
-      (delete-char 1 killflag))
-    (if untabify
-        (backward-delete-char-untabify n killflag)
-        (backward-delete-char n killflag))))
-
-(defun electric-pair-backward-delete-char-untabify (n &optional killflag)
-  "Delete characters backward, and maybe also two adjacent paired delimiters.
-
-Remaining behavior is given by `backward-delete-char-untabify'."
-  (interactive "*p\nP")
-  (electric-pair-backward-delete-char n killflag t))
-
 (defun electric-pair-conservative-inhibit (char)
   (or
    ;; I find it more often preferable not to pair when the
@@ -530,14 +500,34 @@ happened."
        (memq (car (electric-pair-syntax-info last-command-event))
              '(?\( ?\) ?\" ?\$))))
 
+(defun electric-pair-delete-pair (arg &optional killp)
+  "When between adjacent paired delimiters, delete both of them.
+ARG and KILLP are passed directly to
+`backward-delete-char-untabify', which see."
+  (interactive "*p\nP")
+  (delete-char 1)
+  (backward-delete-char-untabify arg killp))
+
 (defvar electric-pair-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [remap backward-delete-char-untabify]
-      'electric-pair-backward-delete-char-untabify)
-    (define-key map [remap backward-delete-char]
-      'electric-pair-backward-delete-char)
-    (define-key map [remap delete-backward-char]
-      'electric-pair-backward-delete-char)
+    (define-key map "\177"
+      `(menu-item
+        "" electric-pair-delete-pair
+        :filter
+        ,(lambda (cmd)
+           (let* ((prev (char-before))
+                  (next (char-after))
+                  (syntax-info (and prev
+                                    (electric-pair-syntax-info prev)))
+                  (syntax (car syntax-info))
+                  (pair (cadr syntax-info)))
+             (and next pair
+                  (memq syntax '(?\( ?\" ?\$))
+                  (eq pair next)
+                  (if (functionp electric-pair-delete-adjacent-pairs)
+                      (funcall electric-pair-delete-adjacent-pairs)
+                    electric-pair-delete-adjacent-pairs)
+                  cmd)))))
     map)
   "Keymap used by `electric-pair-mode'.")
 
