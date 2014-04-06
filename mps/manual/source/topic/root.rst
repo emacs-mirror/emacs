@@ -271,7 +271,7 @@ allowing the MPS to detect whether they have changed.
 
     The :term:`root mode` for :term:`protectable roots`. This tells
     the MPS that it may place a :term:`barrier (1)` on any
-    :term:`page` which any part of the :term:`root` covers. No
+    :term:`page` containing any part of the :term:`root`. No
     :term:`format method` or :term:`scan method` (except for the one
     for this root) may write data in this root. They may read it.
 

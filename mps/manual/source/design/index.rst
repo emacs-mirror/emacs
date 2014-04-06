@@ -13,7 +13,9 @@ Design
     freelist
     guide.hex.trans
     guide.impl.c.format
+    interface-c
     keyword-arguments
     range
     ring
     sig
+    type
