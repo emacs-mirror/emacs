@@ -187,7 +187,7 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVERT(Pool, pool);
   arena = PoolArena(pool);
   /* no useful checks for base and size */
-  AVER(BoolCheck(reservoirPermit));
+  AVERT(Bool, reservoirPermit);
   ArgRequire(&arg, args, awlKeySegRankSet);
   rankSet = arg.val.u;
   AVERT(RankSet, rankSet);
@@ -451,10 +451,10 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
   Arena arena;
 
   AVER(awlsegReturn != NULL);
-  AVER(RankSetCheck(rankSet));
+  AVERT(RankSet, rankSet);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVER(BoolCheck(reservoirPermit));
+  AVERT(Bool, reservoirPermit);
 
   awl = Pool2AWL(pool);
   AVERT(AWL, awl);
@@ -520,7 +520,7 @@ static void AWLVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[1].key = MPS_KEY_AWL_FIND_DEPENDENT;
   args[1].val.addr_method = va_arg(varargs, mps_awl_find_dependent_t);
   args[2].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 
@@ -627,7 +627,7 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
-  AVER(BoolCheck(reservoirPermit));
+  AVERT(Bool, reservoirPermit);
 
   awl = Pool2AWL(pool);
   AVERT(AWL, awl);
@@ -835,7 +835,7 @@ static void AWLBlacken(Pool pool, TraceSet traceSet, Seg seg)
   AWLSeg awlseg;
 
   AVERT(Pool, pool);
-  AVER(TraceSetCheck(traceSet));
+  AVERT(TraceSet, traceSet);
   AVERT(Seg, seg);
 
   awl = Pool2AWL(pool);

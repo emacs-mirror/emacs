@@ -1,7 +1,7 @@
 /* boot.c: BOOTSTRAP ALLOCATOR
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .overview: A structure and protocols for allocating memory from a
  * given block.  Very simple, it basically just increments a pointer.
@@ -101,7 +101,7 @@ Res BootAlloc(void **pReturn, BootBlock boot, size_t size, size_t align)
   AVER(pReturn != NULL);
   AVERT(BootBlock, boot);
   AVER(size > 0);
-  AVER(AlignCheck((Align)align));
+  AVERT(Align, (Align)align);
 
   /* Align alloc pointer up and bounds check. */
   blockBase = PointerAlignUp(boot->alloc, align);
@@ -127,7 +127,7 @@ Res BootAlloc(void **pReturn, BootBlock boot, size_t size, size_t align)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

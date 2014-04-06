@@ -71,7 +71,7 @@ static Res NAlloc(Addr *pReturn, Pool pool, Size size,
 
   AVER(pReturn != NULL);
   AVER(size > 0);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   return ResLIMIT;  /* limit of nil blocks exceeded */
 }
@@ -110,7 +110,7 @@ static Res NBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Buffer, buffer);
   AVER(BufferIsReset(buffer));
   AVER(size > 0);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   NOTREACHED;   /* can't create buffers, so shouldn't fill them */
   return ResUNIMPL;

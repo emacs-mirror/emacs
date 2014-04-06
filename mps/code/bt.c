@@ -1,7 +1,7 @@
 /* bt.c: BIT TABLES
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * READERSHIP
  *
@@ -215,7 +215,7 @@ void BTDestroy(BT bt, Arena arena, Count length)
  * discussed in review.impl.c.bt.4.
  */
 
-static Bool BTCheck(BT bt)
+Bool BTCheck(BT bt)
 {
   AVER(bt != NULL);
   AVER(AddrIsAligned((Addr)bt, sizeof(Word)));
@@ -244,7 +244,7 @@ Size (BTSize)(Count n)
 
 Bool (BTGet)(BT t, Index i)
 {
-  AVER(BTCheck(t));
+  AVERT(BT, t);
   /* Can't check i */
 
   /* see macro in <code/mpm.h> */
@@ -259,7 +259,7 @@ Bool (BTGet)(BT t, Index i)
 
 void (BTSet)(BT t, Index i)
 {
-  AVER(BTCheck(t));
+  AVERT(BT, t);
   /* Can't check i */
 
   /* see macro in <code/mpm.h> */
@@ -274,7 +274,7 @@ void (BTSet)(BT t, Index i)
 
 void (BTRes)(BT t, Index i)
 {
-  AVER(BTCheck(t));
+  AVERT(BT, t);
   /* Can't check i */
 
   /* see macro in <code/mpm.h> */
@@ -289,7 +289,7 @@ void (BTRes)(BT t, Index i)
 
 void BTSetRange(BT t, Index base, Index limit)
 {
-  AVER(BTCheck(t));
+  AVERT(BT, t);
   AVER(base < limit);
 
 #define SINGLE_SET_RANGE(i) \
@@ -311,7 +311,7 @@ void BTSetRange(BT t, Index base, Index limit)
 
 Bool BTIsResRange(BT bt, Index base, Index limit)
 {
-  AVER(BTCheck(bt));
+  AVERT(BT, bt);
   AVER(base < limit);
   /* Can't check range of base or limit */
 
@@ -335,7 +335,7 @@ Bool BTIsResRange(BT bt, Index base, Index limit)
 
 Bool BTIsSetRange(BT bt, Index base, Index limit)
 {
-  AVER(BTCheck(bt));
+  AVERT(BT, bt);
   AVER(base < limit);
   /* Can't check range of base or limit */
 
@@ -363,7 +363,7 @@ Bool BTIsSetRange(BT bt, Index base, Index limit)
 
 void BTResRange(BT t, Index base, Index limit)
 {
-  AVER(BTCheck(t));
+  AVERT(BT, t);
   AVER(base < limit);
 
 #define SINGLE_RES_RANGE(i) \
@@ -876,8 +876,8 @@ Bool BTFindShortResRangeHigh(Index *baseReturn, Index *limitReturn,
 
 Bool BTRangesSame(BT comparand, BT comparator, Index base, Index limit)
 {
-  AVER(BTCheck(comparand));
-  AVER(BTCheck(comparator));
+  AVERT(BT, comparand);
+  AVERT(BT, comparator);
   AVER(base < limit);
 
 #define SINGLE_RANGES_SAME(i) \
@@ -912,8 +912,8 @@ Bool BTRangesSame(BT comparand, BT comparator, Index base, Index limit)
 
 void BTCopyInvertRange(BT fromBT, BT toBT, Index base, Index limit)
 {
-  AVER(BTCheck(fromBT));
-  AVER(BTCheck(toBT));
+  AVERT(BT, fromBT);
+  AVERT(BT, toBT);
   AVER(fromBT != toBT);
   AVER(base < limit);
 
@@ -947,8 +947,8 @@ void BTCopyInvertRange(BT fromBT, BT toBT, Index base, Index limit)
 
 void BTCopyRange(BT fromBT, BT toBT, Index base, Index limit)
 {
-  AVER(BTCheck(fromBT));
-  AVER(BTCheck(toBT));
+  AVERT(BT, fromBT);
+  AVERT(BT, toBT);
   AVER(fromBT != toBT);
   AVER(base < limit);
 
@@ -991,8 +991,8 @@ void BTCopyOffsetRange(BT fromBT, BT toBT,
 {
   Index fromBit, toBit;
 
-  AVER(BTCheck(fromBT));
-  AVER(BTCheck(toBT));
+  AVERT(BT, fromBT);
+  AVERT(BT, toBT);
   AVER(fromBT != toBT);
   AVER(fromBase < fromLimit);
   AVER(toBase < toLimit);
@@ -1016,7 +1016,7 @@ Count BTCountResRange(BT bt, Index base, Index limit)
   Count c = 0;
   Index bit;
 
-  AVER(BTCheck(bt));
+  AVERT(BT, bt);
   AVER(base < limit);
 
   for (bit = base; bit < limit; ++bit)
@@ -1027,7 +1027,7 @@ Count BTCountResRange(BT bt, Index base, Index limit)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

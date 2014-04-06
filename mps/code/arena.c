@@ -86,7 +86,7 @@ DEFINE_CLASS(AbstractArenaClass, class)
 
 Bool ArenaClassCheck(ArenaClass class)
 {
-  CHECKL(ProtocolClassCheck(&class->protocol));
+  CHECKD(ProtocolClass, &class->protocol);
   CHECKL(class->name != NULL); /* Should be <=6 char C identifier */
   CHECKL(class->size >= sizeof(ArenaStruct));
   /* Offset of generic Pool within class-specific instance cannot be */
@@ -147,7 +147,7 @@ Bool ArenaCheck(Arena arena)
   if (arena->primary != NULL) {
     CHECKD(Chunk, arena->primary);
   }
-  CHECKL(RingCheck(&arena->chunkRing));
+  CHECKD_NOSIG(Ring, &arena->chunkRing);
   /* nothing to check for chunkSerial */
   CHECKD(ChunkCacheEntry, &arena->chunkCache);
   
@@ -155,7 +155,9 @@ Bool ArenaCheck(Arena arena)
 
   CHECKL(BoolCheck(arena->hasFreeCBS));
   if (arena->hasFreeCBS)
-    CHECKL(CBSCheck(ArenaFreeCBS(arena)));
+    CHECKD(CBS, ArenaFreeCBS(arena));
+
+  CHECKL(BoolCheck(arena->zoned));
 
   return TRUE;
 }
@@ -179,7 +181,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
 
   AVER(arena != NULL);
   AVERT(ArenaClass, class);
-  AVER(AlignCheck(alignment));
+  AVERT(Align, alignment);
   
   if (ArgPick(&arg, args, MPS_KEY_ARENA_ZONED))
     zoned = arg.val.b;
@@ -284,7 +286,7 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   AVER(arenaReturn != NULL);
   AVERT(ArenaClass, class);
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 
   /* We must initialise the event subsystem very early, because event logging
      will start as soon as anything interesting happens and expect to write
@@ -556,7 +558,7 @@ Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
   AVERT(Arena, arena);
   AVER(baseReturn != NULL);
   AVER(size > 0);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
   AVER(arena->poolReady);
 
   res = PoolAlloc(&base, ArenaControlPool(arena), (Size)size,
@@ -1021,7 +1023,7 @@ Res ArenaAlloc(Addr *baseReturn, SegPref pref, Size size, Pool pool,
   AVERT(SegPref, pref);
   AVER(size > (Size)0);
   AVERT(Pool, pool);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   arena = PoolArena(pool);
   AVERT(Arena, arena);

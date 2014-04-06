@@ -210,7 +210,7 @@ void PoolTrivFinish(Pool pool)
 Res PoolTrivInit(Pool pool, ArgList args)
 {
   AVERT(Pool, pool);
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
   UNUSED(args);
   return ResOK;
 }
@@ -221,7 +221,7 @@ Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size,
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
   NOTREACHED;
   return ResUNIMPL;
 }
@@ -232,7 +232,7 @@ Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size,
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
   return ResLIMIT;
 }
 
@@ -262,7 +262,7 @@ Res PoolNoBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
   NOTREACHED;
   return ResUNIMPL;
 }
@@ -279,7 +279,7 @@ Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   res = PoolAlloc(&p, pool, size, withReservoirPermit);
   if(res != ResOK) return res;

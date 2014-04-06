@@ -130,9 +130,9 @@ static Bool MRGCheck(MRG mrg)
   CHECKS(MRG, mrg);
   CHECKD(Pool, &mrg->poolStruct);
   CHECKL(MRG2Pool(mrg)->class == PoolClassMRG());
-  CHECKL(RingCheck(&mrg->entryRing));
-  CHECKL(RingCheck(&mrg->freeRing));
-  CHECKL(RingCheck(&mrg->refRing));
+  CHECKD_NOSIG(Ring, &mrg->entryRing);
+  CHECKD_NOSIG(Ring, &mrg->freeRing);
+  CHECKD_NOSIG(Ring, &mrg->refRing);
   CHECKL(mrg->extendBy == ArenaAlign(PoolArena(MRG2Pool(mrg))));
   return TRUE;
 }
@@ -183,7 +183,7 @@ static Bool MRGLinkSegCheck(MRGLinkSeg linkseg)
   Seg seg;
 
   CHECKS(MRGLinkSeg, linkseg);
-  CHECKL(SegCheck(&linkseg->segStruct));
+  CHECKD(Seg, &linkseg->segStruct);
   seg = LinkSeg2Seg(linkseg);
   if (NULL != linkseg->refSeg) { /* see .link.nullref */
     CHECKL(SegPool(seg) == SegPool(RefSeg2Seg(linkseg->refSeg)));
@@ -198,10 +198,10 @@ static Bool MRGRefSegCheck(MRGRefSeg refseg)
   Seg seg;
 
   CHECKS(MRGRefSeg, refseg);
-  CHECKL(GCSegCheck(&refseg->gcSegStruct));
+  CHECKD(GCSeg, &refseg->gcSegStruct);
   seg = RefSeg2Seg(refseg);
   CHECKL(SegPool(seg) == SegPool(LinkSeg2Seg(refseg->linkSeg)));
-  CHECKL(RingCheck(&refseg->mrgRing));
+  CHECKD_NOSIG(Ring, &refseg->mrgRing);
   CHECKD(MRGLinkSeg, refseg->linkSeg);
   CHECKL(refseg->linkSeg->refSeg == refseg);
   return TRUE;
@@ -224,7 +224,7 @@ static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
   mrg = Pool2MRG(pool);
   AVERT(MRG, mrg);
   /* no useful checks for base and size */
-  AVER(BoolCheck(reservoirPermit));
+  AVERT(Bool, reservoirPermit);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(MRGLinkSegClass);
@@ -267,7 +267,7 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size,
   mrg = Pool2MRG(pool);
   AVERT(MRG, mrg);
   /* no useful checks for base and size */
-  AVER(BoolCheck(reservoirPermit));
+  AVERT(Bool, reservoirPermit);
   AVERT(MRGLinkSeg, linkseg);
 
   /* Initialize the superclass fields first via next-method call */
@@ -631,7 +631,7 @@ static Res MRGInit(Pool pool, ArgList args)
   MRG mrg;
  
   AVER(pool != NULL); /* Can't check more; see pool contract @@@@ */
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
   UNUSED(args);
  
   mrg = Pool2MRG(pool);

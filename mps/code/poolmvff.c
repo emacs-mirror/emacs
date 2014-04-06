@@ -228,7 +228,7 @@ static Res MVFFAddSeg(Seg *segReturn,
 
   AVERT(MVFF, mvff);
   AVER(size > 0);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   pool = MVFF2Pool(mvff);
   arena = PoolArena(pool);
@@ -339,7 +339,7 @@ static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size,
 
   AVER(aReturn != NULL);
   AVER(size > 0);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   size = SizeAlignUp(size, PoolAlignment(pool));
 
@@ -510,7 +510,7 @@ static void MVFFVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[5].key = MPS_KEY_MVFF_FIRST_FIT;
   args[5].val.b = va_arg(varargs, Bool);
   args[6].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 static void MVFFDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
@@ -571,9 +571,9 @@ static Res MVFFInit(Pool pool, ArgList args)
   AVER(avgSize > 0);            /* .arg.check */
   AVER(avgSize <= extendBy);    /* .arg.check */
   AVER(SizeIsAligned(align, MPS_PF_ALIGN));
-  AVER(BoolCheck(slotHigh));
-  AVER(BoolCheck(arenaHigh));
-  AVER(BoolCheck(firstFit));
+  AVERT(Bool, slotHigh);
+  AVERT(Bool, arenaHigh);
+  AVERT(Bool, firstFit);
 
   mvff = Pool2MVFF(pool);
 

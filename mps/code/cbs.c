@@ -1,7 +1,7 @@
 /* cbs.c: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .intro: This is a portable implementation of coalescing block
  * structures.
@@ -85,7 +85,7 @@ static Bool CBSBlockCheck(CBSBlock block)
   /* See .enter-leave.simple. */
   UNUSED(block); /* Required because there is no signature */
   CHECKL(block != NULL);
-  CHECKL(TreeCheck(cbsBlockTree(block)));
+  CHECKD_NOSIG(Tree, cbsBlockTree(block));
 
   /* If the block is in the middle of being deleted, */
   /* the pointers will be equal. */
@@ -245,9 +245,9 @@ Res CBSInit(CBS cbs, Arena arena, void *owner, Align alignment,
 
   AVERT(Arena, arena);
   AVER(cbs != NULL);
-  AVER(AlignCheck(alignment));
-  AVER(BoolCheck(fastFind));
-  AVER(BoolCheck(zoned));
+  AVERT(Align, alignment);
+  AVERT(Bool, fastFind);
+  AVERT(Bool, zoned);
 
   if (ArgPick(&arg, args, CBSBlockPool))
     blockPool = arg.val.pool;
@@ -915,8 +915,8 @@ Res CBSFindInZones(Range rangeReturn, Range oldRangeReturn,
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVERT(CBS, cbs);
-  /* AVER(ZoneSetCheck(zoneSet)); */
-  AVER(BoolCheck(high));
+  /* AVERT(ZoneSet, zoneSet); */
+  AVERT(Bool, high);
 
   cbsFind = high ? CBSFindLast : CBSFindFirst;
   splayFind = high ? SplayFindLast : SplayFindFirst;
@@ -1086,7 +1086,7 @@ Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -34,8 +34,6 @@ typedef tagStruct *Tag;
 
 /* tag init methods: copying the user-supplied data into the tag */
 
-#define TagInitMethodCheck(f) FUNCHECK(f)
-
 static void TagTrivInit(void* tag, va_list args)
 {
   UNUSED(tag); UNUSED(args);
@@ -75,7 +73,7 @@ Bool PoolDebugMixinCheck(PoolDebugMixin debug)
   /* Nothing to check about freeTemplate */
   /* Nothing to check about freeSize */
   if (debug->tagInit != NULL) {
-    CHECKL(TagInitMethodCheck(debug->tagInit));
+    CHECKL(FUNCHECK(debug->tagInit));
     /* Nothing to check about tagSize */
     CHECKD(Pool, debug->tagPool);
     CHECKL(COMPATTYPE(Addr, void*)); /* tagPool relies on this */

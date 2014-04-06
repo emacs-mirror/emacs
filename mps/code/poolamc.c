@@ -525,7 +525,7 @@ static Bool amcGenCheck(amcGen gen)
   CHECKU(AMC, amc);
   CHECKL(gen->type == AMCPTypeGen);
   CHECKD(Buffer, gen->forward);
-  CHECKL(RingCheck(&gen->amcRing));
+  CHECKD_NOSIG(Ring, &gen->amcRing);
   CHECKL((gen->pgen.totalSize == 0) == (gen->segs == 0));
   arena = amc->poolStruct.arena;
   CHECKL(gen->pgen.totalSize >= gen->segs * ArenaAlign(arena));
@@ -586,7 +586,7 @@ typedef struct amcBufStruct {
 static Bool amcBufCheck(amcBuf amcbuf)
 {
   CHECKS(amcBuf, amcbuf);
-  CHECKL(SegBufCheck(&amcbuf->segbufStruct));
+  CHECKD(SegBuf, &amcbuf->segbufStruct);
   if(amcbuf->gen != NULL)
     CHECKD(amcGen, amcbuf->gen);
   CHECKL(BoolCheck(amcbuf->forHashArrays));
@@ -963,7 +963,7 @@ static void AMCVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[1].key = MPS_KEY_CHAIN;
   args[1].val.chain = va_arg(varargs, Chain);
   args[2].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 
@@ -2242,7 +2242,7 @@ static void AMCTraceEnd(Pool pool, Trace trace)
   amc = Pool2AMC(pool);
   AVERT(AMC, amc);
   ti = trace->ti;
-  AVER(TraceIdCheck(ti));
+  AVERT(TraceId, ti);
 
   STATISTIC_STAT ({
     Count pRetMin = 100;
@@ -2604,7 +2604,7 @@ static Bool AMCCheck(AMC amc)
   CHECKD(Pool, &amc->poolStruct);
   CHECKL(IsSubclassPoly(amc->poolStruct.class, EnsureAMCPoolClass()));
   CHECKL(RankSetCheck(amc->rankSet));
-  CHECKL(RingCheck(&amc->genRing));
+  CHECKD_NOSIG(Ring, &amc->genRing);
   CHECKL(BoolCheck(amc->gensBooted));
   if(amc->gensBooted) {
     CHECKD(amcGen, amc->nursery);

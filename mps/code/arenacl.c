@@ -67,7 +67,7 @@ static Bool ClientChunkCheck(ClientChunk clChunk)
 
   CHECKS(ClientChunk, clChunk);
   chunk = ClientChunk2Chunk(clChunk);
-  CHECKL(ChunkCheck(chunk));
+  CHECKD(Chunk, chunk);
   CHECKL(clChunk->freePages <= chunk->pages);
   /* check they don't overlap (knowing the order) */
   CHECKL((Addr)(chunk + 1) < (Addr)chunk->allocTable);
@@ -201,7 +201,7 @@ static void ClientArenaVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[1].key = MPS_KEY_ARENA_CL_BASE;
   args[1].val.addr = va_arg(varargs, Addr);
   args[2].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 
@@ -228,7 +228,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   
   AVER(arenaReturn != NULL);
   AVER((ArenaClass)mps_arena_class_cl() == class);
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
   
   ArgRequire(&arg, args, MPS_KEY_ARENA_SIZE);
   size = arg.val.size;
