@@ -147,7 +147,8 @@ Bool GlobalsCheck(Globals arenaGlobals)
     arenaGlobals->rememberedSummaryIndex == 0);
   CHECKD_NOSIG(Ring, &arena->formatRing);
   CHECKD_NOSIG(Ring, &arena->messageRing);
-  CHECKD_NOSIG(BT, arena->enabledMessageTypes);
+  if (arena->enabledMessageTypes != NULL)
+    CHECKD_NOSIG(BT, arena->enabledMessageTypes);
   CHECKL(BoolCheck(arena->isFinalPool));
   if (arena->isFinalPool) {
     CHECKD(Pool, arena->finalPool);

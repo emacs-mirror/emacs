@@ -85,7 +85,8 @@ static Bool CBSBlockCheck(CBSBlock block)
   /* See .enter-leave.simple. */
   UNUSED(block); /* Required because there is no signature */
   CHECKL(block != NULL);
-  CHECKD_NOSIG(Tree, cbsBlockTree(block));
+  /* Can't use CHECKD_NOSIG because TreeEMPTY is NULL. */
+  CHECKL(TreeCheck(cbsBlockTree(block)));
 
   /* If the block is in the middle of being deleted, */
   /* the pointers will be equal. */
