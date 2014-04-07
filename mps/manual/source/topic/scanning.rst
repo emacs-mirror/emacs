@@ -56,7 +56,7 @@ region to be scanned. They must carry out the following steps:
       a pointer to a location containing the reference.
 
    #. If :c:func:`MPS_FIX2` returns a :term:`result code` other than
-      :c:func:`MPS_RES_OK`, return this result code from the scanning
+      :c:macro:`MPS_RES_OK`, return this result code from the scanning
       function as soon as practicable.
 
    #. If :c:func:`MPS_FIX2` returns :c:macro:`MPS_RES_OK`, it may have

@@ -1,7 +1,7 @@
 /* <code/eventdef.h> -- Event Logging Definitions
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .source: <design/telemetry/>
  *
@@ -31,14 +31,13 @@
  * the median version when changing an existing event,
  * and the major version when changing the format of the event file.
  *
- * TODO: These should go into a header that appears at the start of a
- * telemetry stream, but they aren't currently used.  Keep updating them
- * anyway.  RB 2012-09-07
+ * These are passed as parameters to the EventInit event at the start
+ * of a telemetry stream, allowing that stream to be identified.
  */
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
 #define EVENT_VERSION_MEDIAN ((unsigned)1)
-#define EVENT_VERSION_MINOR  ((unsigned)6)
+#define EVENT_VERSION_MINOR  ((unsigned)7)
 
 
 /* EVENT_LIST -- list of event types and general properties
@@ -192,7 +191,8 @@
   /* new events for performance analysis of large heaps. */ \
   EVENT(X, TraceCondemnZones  , 0x0083,  TRUE, Trace) \
   EVENT(X, ArenaGenZoneAdd    , 0x0084,  TRUE, Arena) \
-  EVENT(X, ArenaUseFreeZone   , 0x0085,  TRUE, Arena)
+  EVENT(X, ArenaUseFreeZone   , 0x0085,  TRUE, Arena) \
+  /* EVENT(X, ArenaBlacklistZone , 0x0086,  TRUE, Arena) */
 
 
 /* Remember to update EventNameMAX and EventCodeMAX above! 
@@ -745,7 +745,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

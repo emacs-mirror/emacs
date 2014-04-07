@@ -15,7 +15,6 @@ SRCID(range, "$Id$");
 
 Bool RangeCheck(Range range)
 {
-  CHECKL(range->base != NULL);
   CHECKL(range->base <= range->limit);
 
   return TRUE;
@@ -24,7 +23,6 @@ Bool RangeCheck(Range range)
 void RangeInit(Range range, Addr base, Addr limit)
 {
   AVER(range != NULL);
-  AVER(base != NULL);
   AVER(base <= limit);
 
   range->base = base;
@@ -41,8 +39,6 @@ void RangeInitSize(Range range, Addr base, Size size)
 void RangeFinish(Range range)
 {
   AVERT(Range, range);
-
-  range->base = range->limit = NULL;
 }
 
 Res RangeDescribe(Range range, mps_lib_FILE *stream)
@@ -96,17 +92,20 @@ Bool RangeIsAligned(Range range, Align alignment)
       && AddrIsAligned(RangeLimit(range), alignment);
 }
 
-Addr (RangeBase)(Range range) {
+Addr (RangeBase)(Range range)
+{
   AVERT(Range, range);
   return RangeBase(range);
 }
 
-Addr (RangeLimit)(Range range) {
+Addr (RangeLimit)(Range range)
+{
   AVERT(Range, range);
   return RangeLimit(range);
 }
 
-Size (RangeSize)(Range range) {
+Size (RangeSize)(Range range)
+{
   AVERT(Range, range);
   return RangeSize(range);
 }

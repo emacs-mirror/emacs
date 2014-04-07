@@ -1,0 +1,253 @@
+.. mode: -*- rst -*-
+
+Nailboards for ambiguously referenced segments
+==============================================
+
+:Tag: design.mps.nailboard
+:Author: Gareth Rees
+:Date: 2014-01-15
+:Status: complete design
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+:Index terms: pair: nailboard; design
+
+
+Introduction
+------------
+
+_`.intro`: This document describes the nailboard design for the Memory
+Pool System.
+
+_`.readership`: Any MPS developer.
+
+_`.overview`: A nailboard represents a set of addresses to which
+ambiguous references have been found. It is implemented as a
+specialized bit table that maps addresses within a range to *nails*.
+The mapping has granularity, so that all addresses within a word, say,
+will map to the same nail.
+
+_`.purpose`: Nailboards are used by the AMC pool class to record
+ambiguous references to grains within a segment. See
+design.mps.poolamc.nailboard.
+
+
+Requirements
+------------
+
+_`.req.granularity`: A nailboard must be able to set nails for
+addresses down to the grain size of the segment. (Because individual
+objects may be this small, and we must be able to preserve or reclaim
+individual objects.)
+
+_`.req.set`: A nailboard must be able to set a nail corresponding to
+any aligned address in the range covered. (Because ambiguous
+references may have arbitrary values.)
+
+_`.req.reset.not`: A nailboard is *not* required to be able to reset a
+nail. (Because resetting a nail would correspond to proving that there
+is *no* ambiguous reference to that address, but that can only be
+established when the trace is complete.)
+
+_`.req.range`: A nailboard must be able to determine if any nail is
+set in a continguous range. (Because we must preserve the whole object
+if there is any ambiguous reference to it.)
+
+_`.req.range.cost`: Determining if any nail is set in a continuous
+range must be cheap. That is, it must take time that is no more than
+logarithmic in the size of the range. (Because scanning overhead must
+be proportional to the number of objects, not to their size.)
+
+
+Implementation
+--------------
+
+_`.impl.table`: The nailboard consists of a header structure and one
+or more bit tables. Each bit table covers the whole range of
+addresses, but at a different level of detail.
+
+_`.impl.table.level0`: The level 0 bit table has one bit for each
+aligned address in the range.
+
+_`.impl.align`: The alignment of the nailboard need not be the same as
+the pool alignment. This is because nailboards are per-segment, and
+the pool may know the minimum size of an object in a particular
+segment.
+
+_`.impl.table.k`: The level *k* bit table has one bit for each ``scale``
+bits in the level *k*\−1 bit table (this bit is set if any bit in the
+corresponding word in the level *k*\−1 table is set).
+
+_`.impl.scale`: Here ``scale`` is an arbitrary scale factor that must
+be a power of 2. It could in future be supplied as a parameter when
+creating a nailboard, but in the current implementation it is always
+``MPS_WORD_WIDTH``.
+
+_`.impl.table.last`: The last bit table is always shorter than one
+word. This is slightly wasteful in some cases (for example, a
+nailboard with 64 nails and ``scale`` 64 will have two levels, the
+second level having just one bit), but allows the code to support
+small nailboards without special cases in the code (consider the case
+of a nailboard with just one nail).
+
+_`.impl.size`: The size of the level *i* bit table is the ceiling of
+
+   (``limit`` − ``base``) / (``align`` × ``scale``\ :superscript:`i`\ )
+
+where ``base`` and ``limit`` are the bounds of the address range being
+represented in the nailboard and ``align`` is the alignment.
+
+_`.impl.address`: The address *a* may be looked up in the level *i*
+bit table at the bit
+
+   (*a* − ``base``) / (``align`` × ``scale``\ :superscript:`i`\ )
+
+and since ``align`` and ``scale`` are powers of 2, that's
+
+   (*a* − ``base``) >> (log\ :subscript:`2`\ ``align`` + *i* log\ :subscript:`2`\ ``scale``)
+
+_`.impl.set`: Setting a nail for an address *a* in a nailboard is on
+the critical path: it is called for every fix of an ambiguous
+reference to an address in an AMC pool. When setting a nail, we set
+the corresponding bit in every level of the nailboard.
+
+_`.impl.isresrange`: Testing a range of addresses to see if any nails
+are set is also on the critical path: it is called for every object in
+any AMC segment with a nailboard when the segment is scanned and when
+it is reclaimed.
+
+_`.impl.isresrange.strategy`: The strategy for testing to see if any
+nails are set in a range is to handle the cases that are expected to
+be common first. In particular, we expect that there will only be few
+nails in a nailboard, so most calls to ``NailboardIsResRange()`` will
+return ``TRUE``.
+
+_`.impl.isresrange.alignment`: When testing a range against a level of
+a nailboard, the base and limit of the range will typically not align
+exactly to the bits of that level. Therefore we test against a
+slightly larger range, as shown in the diagram:
+
+.. figure:: nailboard-1.svg
+    :align: center
+    :alt: Diagram: Testing a range against a level of a nailboard.
+
+    Testing a range against a level of a nailboard.
+
+_`.impl.isresrange.empty`: If all bits in the range [``ibase``,
+``ilimit``) are reset, as shown above, then there are no nails in the
+range of addresses [``base``, ``limit``). This provides an early exit
+with result ``TRUE``.
+
+_`.impl.isresrange.level0`: If the "empty" early exit is not taken,
+and we are looking at the level 0 bit table, then the range is not
+empty. This provides an early exit with result ``FALSE``.
+
+_`.impl.isresrange.inner`: If any bit in the range [``ibase``\+1,
+``ilimit``\−1) is set, as shown below, then there is a nail in the
+range of addresses [``base``, ``limit``). This provides an early exit
+with result ``FALSE``.
+
+.. figure:: nailboard-2.svg
+    :align: center
+    :alt: Diagram: a nail is set in this range.
+
+    A nail is set in this range.
+
+_`.impl.isresrange.splinter`: If none of the three early exits is
+taken, then we are in a situation like the one shown below, with one
+or two *splinters*. In this situation we know that there is a nail,
+but it is not clear whether the nail is inside the splinter or not. We
+handle this situation by moving up to the previous level and looking
+at the range of addresses covered by the splinter.
+
+.. figure:: nailboard-3.svg
+    :align: center
+    :alt: Diagram: it is not clear if a nail is set in this range.
+
+    It is not clear if a nail is set in this range.
+
+_`.impl.isresrange.splinter.recurse`: When looking at a splinter, we
+might reach the same situation: namely, that the interior of the
+splinter is empty, but the edge of the splinter is set. We handle this
+by reducing the size of the splinter and moving up to the previous
+level.
+
+_`.impl.isresrange.splinter.one-sided`: This splinter-of-a-splinter is
+one-sided: that is, we don't need to look at the right splinter of a
+left splinter or vice versa, because we know that it is empty.
+
+
+Future
+------
+
+_`.future.tune`: The implementation makes heavy use of
+``BTIsResRange``, but this function is not well tuned for scanning
+small arrays (which we expect to be the common case for nailboards).
+Performance might be improved by special-casing the small levels.
+
+_`.future.limit`: In C and C++, a pointer to "one past the last
+element of an array object" (the limit of the object in our
+terminology) is a valid pointer and can be used in pointer arithmetic.
+See §6.5.6.8–9 of [C1999]. So in theory a programmer could have such
+as pointer as the only reference keeping an object alive, and still
+expect to be able to subtract from it to get back to the object. The
+current nailboard implementation does not support this use case.
+
+
+References
+----------
+
+.. [C1999]
+   International Standard ISO/IEC 9899:1999;
+   "Programming languages — C";
+   <http://www.open-std.org/jtc1/sc22/WG14/www/docs/n1256.pdf>
+
+
+Document History
+----------------
+
+- 2014-01-15 GDR_ Initial draft.
+
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2014 Ravenbrook Limited. All rights reserved.
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+#. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+#. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+#. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

@@ -7,7 +7,7 @@ function/1.c
 % function/3.c -- interactive test, can't run unattended
 % function/4.c -- interactive test, can't run unattended
 function/5.c
-% function/6.c -- job003494
+function/6.c
 function/7.c
 % function/8.c -- tries to exhaust memory by mps_arena_create
 function/9.c
@@ -48,12 +48,12 @@ function/42.c
 function/43.c
 function/44.c
 function/45.c
-% function/46.c -- report("result", "unknown"); @@@@
+function/46.c
 function/47.c
 function/48.c
 function/49.c
 function/50.c
-% function/51.c -- would pass if we allowed iter = 4 @@@@
+% function/51.c -- job003739
 function/52.c
 function/53.c
 function/55.c

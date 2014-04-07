@@ -20,6 +20,8 @@
 #include "mpslib.h"
 #include "mps.h"
 #include "mpscamc.h"
+#include "mpscams.h"
+#include "mpscawl.h"
 #include "mpsavm.h"
 #include "fmtdy.h"
 #include "fmtdytst.h"
@@ -32,14 +34,8 @@
 
 #define testArenaSIZE   ((size_t)16<<20)
 #define rootCOUNT 20
-#define maxtreeDEPTH 12
+#define maxtreeDEPTH 10
 #define collectionCOUNT 10
-#define genCOUNT 2
-
-/* testChain -- generation parameters for the test */
-
-static mps_gen_param_s testChain[genCOUNT] = {
-  { 150, 0.85 }, { 170, 0.45 } };
 
 
 /* global object counter */
@@ -123,119 +119,90 @@ static void register_indirect_tree(mps_word_t tree, mps_arena_t arena)
     }
 }
 
+static mps_addr_t test_awl_find_dependent(mps_addr_t addr)
+{
+  testlib_unused(addr);
+  return NULL;
+}
 
 static void *root[rootCOUNT];
 
-static void *test(void *arg, size_t s)
+static void test_trees(const char *name, mps_arena_t arena, mps_ap_t ap,
+                       mps_word_t (*make)(mps_word_t, mps_ap_t),
+                       void (*reg)(mps_word_t, mps_arena_t))
+{
+  size_t collections = 0;
+  size_t finals = 0;
+  size_t i;
+
+  object_count = 0;
+
+  printf("Making some %s finalized trees of objects.\n", name);
+  /* make some trees */
+  for(i = 0; i < rootCOUNT; ++i) {
+    root[i] = (void *)(*make)(maxtreeDEPTH, ap);
+    (*reg)((mps_word_t)root[i], arena);
+  }
+
+  printf("Losing all pointers to the trees.\n");
+  /* clean out the roots */
+  for(i = 0; i < rootCOUNT; ++i) {
+    root[i] = 0;
+  }
+
+  while (finals < object_count && collections < collectionCOUNT) {
+    mps_word_t final_this_time = 0;
+    printf("Collecting...");
+    (void)fflush(stdout);
+    die(mps_arena_collect(arena), "collect");
+    printf(" Done.\n");
+    ++ collections;
+    while (mps_message_poll(arena)) {
+      mps_message_t message;
+      mps_addr_t objaddr;
+      cdie(mps_message_get(&message, arena,
+                           mps_message_type_finalization()),
+           "get");
+      mps_message_finalization_ref(&objaddr, arena, message);
+      mps_message_discard(arena, message);
+      ++ final_this_time;
+    }
+    finals += final_this_time;
+    printf("%"PRIuLONGEST" objects finalized: total %"PRIuLONGEST
+           " of %"PRIuLONGEST"\n", final_this_time, finals, object_count);
+  }
+  cdie(finals == object_count, "Not all objects were finalized.");
+}
+
+static void *test(mps_arena_t arena, mps_class_t pool_class)
 {
   mps_ap_t ap;
   mps_fmt_t fmt;
-  mps_chain_t chain;
-  mps_word_t finals;
-  mps_pool_t amc;
+  mps_pool_t pool;
   mps_root_t mps_root;
-  mps_arena_t arena;
-  mps_message_t message;
-  size_t i;
-
-  arena = (mps_arena_t)arg;
-  (void)s;
 
   die(mps_fmt_create_A(&fmt, arena, dylan_fmt_A()), "fmt_create\n");
-  die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
-  die(mps_pool_create(&amc, arena, mps_class_amc(), fmt, chain),
-      "pool_create amc\n");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
+    MPS_ARGS_ADD(args, MPS_KEY_AWL_FIND_DEPENDENT, test_awl_find_dependent);
+    die(mps_pool_create_k(&pool, arena, pool_class, args),
+        "pool_create\n");
+  } MPS_ARGS_END(args);
   die(mps_root_create_table(&mps_root, arena, mps_rank_exact(), (mps_rm_t)0,
                             root, (size_t)rootCOUNT),
       "root_create\n");
-  die(mps_ap_create(&ap, amc, mps_rank_exact()), "ap_create\n");
+  die(mps_ap_create(&ap, pool, mps_rank_exact()), "ap_create\n");
 
   mps_message_type_enable(arena, mps_message_type_finalization());
 
   mps_arena_park(arena);
 
-  object_count = 0;
-
-  printf("Making some finalized trees of objects.\n");
-  /* make some trees */
-  for(i = 0; i < rootCOUNT; ++i) {
-          root[i] = (void *)make_numbered_tree(maxtreeDEPTH, ap);
-          register_numbered_tree((mps_word_t)root[i], arena);
-  }
-
-  printf("Losing all pointers to the trees.\n");
-  /* clean out the roots */
-  for(i = 0; i < rootCOUNT; ++i) {
-          root[i] = 0;
-  }
-
-  finals = 0;
-
-  while ((finals < object_count) &&
-         (mps_collections(arena) < collectionCOUNT)) {
-          mps_word_t final_this_time = 0;
-          printf("Collecting...");
-          (void)fflush(stdout);
-          die(mps_arena_collect(arena), "collect");
-          printf(" Done.\n");
-          while (mps_message_poll(arena)) {
-                  mps_addr_t objaddr;
-                  cdie(mps_message_get(&message, arena,
-                                       mps_message_type_finalization()),
-                       "get");
-                  mps_message_finalization_ref(&objaddr, arena, message);
-                  mps_message_discard(arena, message);
-                  ++ final_this_time;
-          }
-          finals += final_this_time;
-          printf("%"PRIuLONGEST" objects finalized: total %"PRIuLONGEST
-                 " of %"PRIuLONGEST"\n",
-                 final_this_time, finals, object_count);
-  }
-
-  object_count = 0;
-
-  printf("Making some indirectly finalized trees of objects.\n");
-  /* make some trees */
-  for(i = 0; i < rootCOUNT; ++i) {
-          root[i] = (void *)make_indirect_tree(maxtreeDEPTH, ap);
-          register_indirect_tree((mps_word_t)root[i], arena);
-  }
-
-  printf("Losing all pointers to the trees.\n");
-  /* clean out the roots */
-  for(i = 0; i < rootCOUNT; ++i) {
-          root[i] = 0;
-  }
-
-  finals = 0;
-
-  while ((finals < object_count) &&
-         (mps_collections(arena) < collectionCOUNT)) {
-          mps_word_t final_this_time = 0;
-          printf("Collecting...");
-          (void)fflush(stdout);
-          die(mps_arena_collect(arena), "collect");
-          printf(" Done.\n");
-          while (mps_message_poll(arena)) {
-                  mps_addr_t objaddr;
-                  cdie(mps_message_get(&message, arena,
-                                       mps_message_type_finalization()),
-                       "get");
-                  mps_message_finalization_ref(&objaddr, arena, message);
-                  mps_message_discard(arena, message);
-                  ++ final_this_time;
-          }
-          finals += final_this_time;
-          printf("%"PRIuLONGEST" objects finalized: total %"PRIuLONGEST
-                 " of %"PRIuLONGEST"\n",
-                 final_this_time, finals, object_count);
-  }
+  test_trees("numbered", arena, ap, make_numbered_tree, register_numbered_tree);
+  test_trees("indirect", arena, ap, make_indirect_tree, register_indirect_tree);
 
   mps_ap_destroy(ap);
   mps_root_destroy(mps_root);
-  mps_pool_destroy(amc);
-  mps_chain_destroy(chain);
+  mps_pool_destroy(pool);
   mps_fmt_destroy(fmt);
 
   return NULL;
@@ -246,14 +213,17 @@ int main(int argc, char *argv[])
 {
   mps_arena_t arena;
   mps_thr_t thread;
-  void *r;
 
   testlib_init(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create\n");
   die(mps_thread_reg(&thread, arena), "thread_reg\n");
-  mps_tramp(&r, test, arena, 0);
+
+  test(arena, mps_class_amc());
+  /* TODO: test(arena, mps_class_ams()); */
+  /* TODO: test(arena, mps_class_awl()); */
+
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 

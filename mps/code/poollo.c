@@ -1,7 +1,7 @@
 /* poollo.c: LEAF POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * DESIGN
  *
@@ -73,6 +73,7 @@ DEFINE_SEG_CLASS(LOSegClass, class)
   class->size = sizeof(LOSegStruct);
   class->init = loSegInit;
   class->finish = loSegFinish;
+  AVERT(SegClass, class);
 }
 
 
@@ -81,7 +82,7 @@ DEFINE_SEG_CLASS(LOSegClass, class)
 static Bool LOSegCheck(LOSeg loseg)
 {
   CHECKS(LOSeg, loseg);
-  CHECKL(GCSegCheck(&loseg->gcSegStruct));
+  CHECKD(GCSeg, &loseg->gcSegStruct);
   CHECKU(LO, loseg->lo);
   CHECKL(loseg->mark != NULL);
   CHECKL(loseg->alloc != NULL);
@@ -112,7 +113,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVERT(Pool, pool);
   arena = PoolArena(pool);
   /* no useful checks for base and size */
-  AVER(BoolCheck(reservoirPermit));
+  AVERT(Bool, reservoirPermit);
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
@@ -286,7 +287,7 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
   AVER(loSegReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
@@ -460,7 +461,7 @@ static void LOVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[0].key = MPS_KEY_FORMAT;
   args[0].val.format = va_arg(varargs, Format);
   args[1].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 
@@ -558,7 +559,7 @@ static Res LOBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(BufferRankSet(buffer) == RankSetEMPTY);
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   /* Try to find a segment with enough space already. */
   RING_FOR(node, &pool->segRing, nextNode) {
@@ -774,25 +775,23 @@ static void LOReclaim(Pool pool, Trace trace, Seg seg)
 
 DEFINE_POOL_CLASS(LOPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractCollectPoolClass);
+  INHERIT_CLASS(this, AbstractSegBufPoolClass);
   PoolClassMixInFormat(this);
+  PoolClassMixInCollect(this);
   this->name = "LO";
   this->size = sizeof(LOStruct);
   this->offset = offsetof(LOStruct, poolStruct);
-  this->attr &= ~(AttrSCAN | AttrINCR_RB);
   this->varargs = LOVarargs;
   this->init = LOInit;
   this->finish = LOFinish;
   this->bufferFill = LOBufferFill;
   this->bufferEmpty = LOBufferEmpty;
   this->whiten = LOWhiten;
-  this->grey = PoolNoGrey;
-  this->blacken = PoolNoBlacken;
-  this->scan = PoolNoScan;
   this->fix = LOFix;
   this->fixEmergency = LOFix;
   this->reclaim = LOReclaim;
   this->walk = LOWalk;
+  AVERT(PoolClass, this);
 }
 
 
@@ -821,7 +820,7 @@ static Bool LOCheck(LO lo)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

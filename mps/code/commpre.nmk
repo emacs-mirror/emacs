@@ -14,24 +14,25 @@
 # %%PART: When adding a new part, add a new parameter for the files included
 # in the part
 # Parameters:
-#   PFM      platform code, e.g. "w3i3mv"
-#   PFMDEFS  /D options to define platforms preprocessor symbols
-#            to the compiler.  Eg "/DOS_NT /DARCH_386 /DBUILD_MVC"
+#   PFM        platform code, e.g. "w3i3mv"
+#   PFMDEFS    /D options to define platforms preprocessor symbols
+#              to the compiler.  Eg "/DOS_NT /DARCH_386 /DBUILD_MVC"
 #   MPMCOMMON  list of sources which make up the "mpm" part for all
-#            platforms.  Each source is stripped of its .c extension
-#            and surrounded in angle brackets (<>)
-#   MPM      as above, plus sources for the "mpm" part for the current
-#            platform.
-#   PLINTH   as above for the "plinth" part
-#   AMC      as above for the "amc" part
-#   AMS      as above for the "ams" part
-#   LO       as above for the "lo" part
-#   POOLN    as above for the "pooln" part
-#   SNC      as above for the "snc" part
-#   DW       as above for the "dw" part
-#   FMTTEST  as above for the "fmttest" part
-#   TESTLIB  as above for the "testlib" part
-#   NOISY    if defined, causes command to be emitted
+#              platforms.  Each source is stripped of its .c extension
+#              and surrounded in angle brackets (<>)
+#   MPM        as above, plus sources for the "mpm" part for the current
+#              platform.
+#   PLINTH     as above for the "plinth" part
+#   AMC        as above for the "amc" part
+#   AMS        as above for the "ams" part
+#   LO         as above for the "lo" part
+#   POOLN      as above for the "pooln" part
+#   SNC        as above for the "snc" part
+#   DW         as above for the "dw" part
+#   FMTTEST    as above for the "fmttest" part
+#   FMTSCHEME  as above for the "fmtscheme" part
+#   TESTLIB    as above for the "testlib" part
+#   NOISY      if defined, causes command to be emitted
 #
 #
 # EDITING
@@ -54,6 +55,7 @@ LIB_TARGETS=mps.lib
 
 TEST_TARGETS=\
     abqtest.exe \
+    airtest.exe \
     amcss.exe \
     amcsshe.exe \
     amsss.exe \
@@ -79,6 +81,7 @@ TEST_TARGETS=\
     mpmss.exe \
     mpsicv.exe \
     mv2test.exe \
+    nailboardtest.exe \
     poolncv.exe \
     qs.exe \
     sacss.exe \
@@ -136,6 +139,7 @@ MPMCOMMON=\
     <mpm> \
     <mpsi> \
     <mpsiw3> \
+    <nailboard> \
     <pool> \
     <poolabs> \
     <poolmfs> \
@@ -173,6 +177,7 @@ POOLN = <pooln>
 SNC = <poolsnc>
 DW = <fmtdy> <fmtno>
 FMTTEST = <fmthe> <fmtdy> <fmtno> <fmtdytst>
+FMTSCHEME = <fmtscheme>
 TESTLIB = <testlib>
 
 
@@ -202,6 +207,24 @@ TESTLIB = <testlib>
 !ENDIF
 !IFNDEF AMS
 !ERROR commpre.nmk: AMS not defined
+!ENDIF
+!IFNDEF POOLN
+!ERROR commpre.nmk: POOLN not defined
+!ENDIF
+!IFNDEF SNC
+!ERROR commpre.nmk: SNC not defined
+!ENDIF
+!IFNDEF DW
+!ERROR commpre.nmk: DW not defined
+!ENDIF
+!IFNDEF FMTTEST
+!ERROR commpre.nmk: FMTTEST not defined
+!ENDIF
+!IFNDEF FMTSCHEME
+!ERROR commpre.nmk: FMTSCHEME not defined
+!ENDIF
+!IFNDEF TESTLIB
+!ERROR commpre.nmk: TESTLIB not defined
 !ENDIF
 !IFNDEF TESTLIB
 !ERROR commpre.nmk: TESTLIB not defined

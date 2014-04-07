@@ -39,6 +39,7 @@ Designs
 .. class:: index
 
 ======================  ================================================
+abq_                    Fixed-length queues
 alloc-frame_            Design of the MPS allocation frame protocol
 arena_                  The design of the MPS arena
 arenavm_                Virtual memory arena
@@ -66,6 +67,7 @@ lock_                   The design of the lock module
 locus_                  The design for the locus manager
 message_                MPS to client message protocol
 message-gc_             Messages sent when garbage collection begins or ends
+nailboard_              Nailboards for ambiguously referenced segments
 object-debug_           Debugging Features for Client Objects
 pool_                   The design of the pool and pool class mechanisms
 poolamc_                Automatic Mostly-Copying pool class
@@ -83,6 +85,7 @@ protli_                 Linux implementation of protection module
 protocol_               The design for protocol inheritance in MPS
 protsu_                 SunOS 4 implementation of protection module
 pthreadext_             Design of the Posix thread extensions for MPS
+range_                  Ranges of addresses
 reservoir_              The design of the low-memory reservoir
 ring_                   The design of the ring data structure
 root_                   The design of the root manager
@@ -108,6 +111,7 @@ vmso_                   VM Design for Solaris
 writef_                 The design of the MPS writef function 
 ======================  ================================================
 
+.. _abq: abq
 .. _alloc-frame: alloc-frame
 .. _arena: arena
 .. _arenavm: arenavm
@@ -135,6 +139,7 @@ writef_                 The design of the MPS writef function
 .. _locus: locus
 .. _message: message
 .. _message-gc: message-gc
+.. _nailboard: nailboard
 .. _object-debug: object-debug
 .. _pool: pool
 .. _poolamc: poolamc
@@ -152,6 +157,7 @@ writef_                 The design of the MPS writef function
 .. _protocol: protocol
 .. _protsu: protsu
 .. _pthreadext: pthreadext
+.. _range: range
 .. _reservoir: reservoir
 .. _ring: ring
 .. _root: root
@@ -206,6 +212,7 @@ Document History
 - 2013-05-25 	RB_ 	Replacing "cstyle" with reworked "guide.impl.c.format".
 - 2013-06-07	RB_	Converting to reST_.  Linking to [RB_2002-06-18]_.
 - 2014-01-29    RB_     The arena no longer manages generation zonesets.
+- 2014-01-17    GDR_    Add abq, nailboard, range.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb
 .. _NB: http://www.ravenbrook.com/consultants/nb

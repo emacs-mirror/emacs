@@ -113,11 +113,17 @@ AMC interface
       method`, a :term:`forward method`, an :term:`is-forwarded
       method` and a :term:`padding method`.
 
-    It accepts one optional keyword argument:
+    It accepts two optional keyword arguments:
 
     * :c:macro:`MPS_KEY_CHAIN` (type :c:type:`mps_chain_t`) specifies
       the :term:`generation chain` for the pool. If not specified, the
       pool will use the arena's default chain.
+
+    * :c:macro:`MPS_KEY_INTERIOR` (type :c:type:`mps_bool_t`, default
+      ``TRUE``) specifies whether :term:`ambiguous <ambiguous
+      reference>` :term:`interior pointers` to blocks in the pool keep
+      objects alive. If this is ``FALSE``, then only :term:`client
+      pointers` keep objects alive.
 
     For example::
 

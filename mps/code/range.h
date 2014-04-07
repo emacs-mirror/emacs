@@ -19,7 +19,8 @@
 #define RangeBase(range) ((range)->base)
 #define RangeLimit(range) ((range)->limit)
 #define RangeSize(range) (AddrOffset(RangeBase(range), RangeLimit(range)))
-#define RangeEmpty(range) (RangeBase(range) == RangeLimit(range))
+#define RangeContains(range, addr) ((range)->base <= (addr) && (addr) < (range)->limit)
+#define RangeIsEmpty(range) (RangeSize(range) == 0)
 
 extern void RangeInit(Range range, Addr base, Addr limit);
 extern void RangeInitSize(Range range, Addr base, Size size);

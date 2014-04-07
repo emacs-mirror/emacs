@@ -128,12 +128,12 @@ static Res failoverDelete(Range rangeReturn, Land land, Range range)
 
     AVER(RangesEqual(&oldRange, &dummyRange));
     RangeInit(&left, RangeBase(&oldRange), RangeBase(range));
-    if (!RangeEmpty(&left)) {
+    if (!RangeIsEmpty(&left)) {
       res = LandInsert(&dummyRange, land, &left);
       AVER(res == ResOK);
     }
     RangeInit(&right, RangeLimit(range), RangeLimit(&oldRange));
-    if (!RangeEmpty(&right)) {
+    if (!RangeIsEmpty(&right)) {
       res = LandInsert(&dummyRange, land, &right);
       AVER(res == ResOK);
     }

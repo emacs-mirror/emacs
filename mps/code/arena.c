@@ -1,7 +1,7 @@
 /* arena.c: ARENA ALLOCATION FEATURES
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: <design/arena/> is the main design document.  */
 
@@ -86,7 +86,7 @@ DEFINE_CLASS(AbstractArenaClass, class)
 
 Bool ArenaClassCheck(ArenaClass class)
 {
-  CHECKL(ProtocolClassCheck(&class->protocol));
+  CHECKD(ProtocolClass, &class->protocol);
   CHECKL(class->name != NULL); /* Should be <=6 char C identifier */
   CHECKL(class->size >= sizeof(ArenaStruct));
   /* Offset of generic Pool within class-specific instance cannot be */
@@ -147,7 +147,7 @@ Bool ArenaCheck(Arena arena)
   if (arena->primary != NULL) {
     CHECKD(Chunk, arena->primary);
   }
-  CHECKL(RingCheck(&arena->chunkRing));
+  CHECKD_NOSIG(Ring, &arena->chunkRing);
   /* nothing to check for chunkSerial */
   CHECKD(ChunkCacheEntry, &arena->chunkCache);
   
@@ -155,7 +155,9 @@ Bool ArenaCheck(Arena arena)
 
   CHECKL(BoolCheck(arena->hasFreeLand));
   if (arena->hasFreeLand)
-    CHECKL(LandCheck(ArenaFreeLand(arena)));
+    CHECKD(Land, ArenaFreeLand(arena));
+
+  CHECKL(BoolCheck(arena->zoned));
 
   return TRUE;
 }
@@ -179,7 +181,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
 
   AVER(arena != NULL);
   AVERT(ArenaClass, class);
-  AVER(AlignCheck(alignment));
+  AVERT(Align, alignment);
   
   if (ArgPick(&arg, args, MPS_KEY_ARENA_ZONED))
     zoned = arg.val.b;
@@ -225,7 +227,6 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
     MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
     MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, arena->alignment);
     MPS_ARGS_ADD(piArgs, MFSExtendSelf, FALSE);
-    MPS_ARGS_DONE(piArgs);
     res = PoolInit(ArenaCBSBlockPool(arena), arena, PoolClassMFS(), piArgs);
   } MPS_ARGS_END(piArgs);
   AVER(res == ResOK); /* no allocation, no failure expected */
@@ -237,7 +238,6 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
     MPS_ARGS_ADD(liArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
     MPS_ARGS_ADD(liArgs, CBSFastFind, TRUE);
     MPS_ARGS_ADD(liArgs, CBSZoned, arena->zoned);
-    MPS_ARGS_DONE(liArgs);
     res = LandInit(ArenaFreeLand(arena), CBSLandClassGet(), arena,
                    alignment, arena, liArgs);
   } MPS_ARGS_END(liArgs);
@@ -289,7 +289,7 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   AVER(arenaReturn != NULL);
   AVERT(ArenaClass, class);
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 
   /* We must initialise the event subsystem very early, because event logging
      will start as soon as anything interesting happens and expect to write
@@ -561,7 +561,7 @@ Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
   AVERT(Arena, arena);
   AVER(baseReturn != NULL);
   AVER(size > 0);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
   AVER(arena->poolReady);
 
   res = PoolAlloc(&base, ArenaControlPool(arena), (Size)size,
@@ -1027,7 +1027,7 @@ Res ArenaAlloc(Addr *baseReturn, SegPref pref, Size size, Pool pool,
   AVERT(SegPref, pref);
   AVER(size > (Size)0);
   AVERT(Pool, pool);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   arena = PoolArena(pool);
   AVERT(Arena, arena);
@@ -1325,7 +1325,7 @@ Res ArenaAddrObject(Addr *pReturn, Arena arena, Addr addr)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

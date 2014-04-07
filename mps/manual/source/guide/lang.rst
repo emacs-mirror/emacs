@@ -905,6 +905,10 @@ changes size::
     3. The order of operations at the end is important: the old root
        must be de-registered before its memory is freed.
 
+    4. When calling :c:func:`mps_root_create_table`, take care to
+       avoid undefined behaviour due to :term:`type punning`. See the
+       :ref:`warning <topic-root-type-pun>`.
+
 .. topics::
 
     :ref:`topic-root`.

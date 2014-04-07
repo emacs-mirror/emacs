@@ -1,7 +1,7 @@
 /* poolmrg.c: MANUAL RANK GUARDIAN POOL
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  * 
  * 
@@ -130,9 +130,9 @@ static Bool MRGCheck(MRG mrg)
   CHECKS(MRG, mrg);
   CHECKD(Pool, &mrg->poolStruct);
   CHECKL(MRG2Pool(mrg)->class == PoolClassMRG());
-  CHECKL(RingCheck(&mrg->entryRing));
-  CHECKL(RingCheck(&mrg->freeRing));
-  CHECKL(RingCheck(&mrg->refRing));
+  CHECKD_NOSIG(Ring, &mrg->entryRing);
+  CHECKD_NOSIG(Ring, &mrg->freeRing);
+  CHECKD_NOSIG(Ring, &mrg->refRing);
   CHECKL(mrg->extendBy == ArenaAlign(PoolArena(MRG2Pool(mrg))));
   return TRUE;
 }
@@ -183,7 +183,7 @@ static Bool MRGLinkSegCheck(MRGLinkSeg linkseg)
   Seg seg;
 
   CHECKS(MRGLinkSeg, linkseg);
-  CHECKL(SegCheck(&linkseg->segStruct));
+  CHECKD(Seg, &linkseg->segStruct);
   seg = LinkSeg2Seg(linkseg);
   if (NULL != linkseg->refSeg) { /* see .link.nullref */
     CHECKL(SegPool(seg) == SegPool(RefSeg2Seg(linkseg->refSeg)));
@@ -198,10 +198,10 @@ static Bool MRGRefSegCheck(MRGRefSeg refseg)
   Seg seg;
 
   CHECKS(MRGRefSeg, refseg);
-  CHECKL(GCSegCheck(&refseg->gcSegStruct));
+  CHECKD(GCSeg, &refseg->gcSegStruct);
   seg = RefSeg2Seg(refseg);
   CHECKL(SegPool(seg) == SegPool(LinkSeg2Seg(refseg->linkSeg)));
-  CHECKL(RingCheck(&refseg->mrgRing));
+  CHECKD_NOSIG(Ring, &refseg->mrgRing);
   CHECKD(MRGLinkSeg, refseg->linkSeg);
   CHECKL(refseg->linkSeg->refSeg == refseg);
   return TRUE;
@@ -224,7 +224,7 @@ static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
   mrg = Pool2MRG(pool);
   AVERT(MRG, mrg);
   /* no useful checks for base and size */
-  AVER(BoolCheck(reservoirPermit));
+  AVERT(Bool, reservoirPermit);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(MRGLinkSegClass);
@@ -267,7 +267,7 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size,
   mrg = Pool2MRG(pool);
   AVERT(MRG, mrg);
   /* no useful checks for base and size */
-  AVER(BoolCheck(reservoirPermit));
+  AVERT(Bool, reservoirPermit);
   AVERT(MRGLinkSeg, linkseg);
 
   /* Initialize the superclass fields first via next-method call */
@@ -302,6 +302,7 @@ DEFINE_SEG_CLASS(MRGLinkSegClass, class)
   class->name = "MRGLSEG";
   class->size = sizeof(MRGLinkSegStruct);
   class->init = MRGLinkSegInit;
+  AVERT(SegClass, class);
 }
 
 
@@ -314,6 +315,7 @@ DEFINE_SEG_CLASS(MRGRefSegClass, class)
   class->name = "MRGRSEG";
   class->size = sizeof(MRGRefSegStruct);
   class->init = MRGRefSegInit;
+  AVERT(SegClass, class);
 }
 
 
@@ -629,7 +631,7 @@ static Res MRGInit(Pool pool, ArgList args)
   MRG mrg;
  
   AVER(pool != NULL); /* Can't check more; see pool contract @@@@ */
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
   UNUSED(args);
  
   mrg = Pool2MRG(pool);
@@ -855,13 +857,14 @@ DEFINE_POOL_CLASS(MRGPoolClass, this)
   this->name = "MRG";
   this->size = sizeof(MRGStruct);
   this->offset = offsetof(MRGStruct, poolStruct);
-  this->attr |= (AttrSCAN | AttrFREE | AttrINCR_RB);
+  this->attr |= AttrSCAN;
   this->init = MRGInit;
   this->finish = MRGFinish;
   this->grey = PoolTrivGrey;
   this->blacken = PoolTrivBlacken;
   this->scan = MRGScan;
   this->describe = MRGDescribe;
+  AVERT(PoolClass, this);
 }
 
 
@@ -873,7 +876,7 @@ PoolClass PoolClassMRG(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

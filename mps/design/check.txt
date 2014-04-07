@@ -95,17 +95,30 @@ type structure pointer, possibly invoking ``<type>Check`` (depending
 on level; see `.level`_). It should be called with the child type
 and pointer.
 
-_`.full-type`: ``CHECKS()``, ``CHECKD()``, ``CHECKU()``, all operate
-only on fully fledged types. This means the type has to provide a
-function ``Bool TypeCheck(Type type)`` where ``Type`` is substituted
-for the name of the type (for example, ``PoolCheck()``), and the
-expression ``obj->sig`` must be a valid value of type ``Sig`` whenever
-``obj`` is a valid value of type ``Type``.
+_`.full-type`: Use ``CHECKS()``, ``CHECKD()`` or ``CHECKU()`` on all
+types that satisfy these three requirements:
 
-_`.type.no-sig`: This tag is to be referenced in implementations
-whenever the form ``CHECKL(ThingCheck(thing))`` is used instead of
-``CHECK{U,D}(Thing, thing)`` because ``Thing`` is not a fully fledged
-type (`.full-type`_).
+_`.full-type.pointer`: The type is a pointer type.
+
+_`.full-type.check`: The type provides a function ``Bool TypeCheck(Type
+type)`` where ``Type`` is substituted for the name of the type (for
+example, ``PoolCheck()``).
+
+_`.full-type.sig`: The expression ``obj->sig`` is a valid value of
+type ``Sig`` whenever ``obj`` is a valid value of type ``Type``.
+
+_`.partial-type`: Where the type satisfies `.full-type.pointer`_ and
+`.full-type.check`_ but not `.full-type.sig`_ because the type lacks a
+signature in order to save space (this applies to small structures
+that are embedded many times in other structures, for example
+``Ring``), use ``CHECKD_NOSIG()``.
+
+_`.hidden-type`: Where the type satisfies `.full-type.pointer`_ and
+`.full-type.check`_ but not `.full-type.sig`_ because the structure
+has a signature but the structure definition is not visible at point
+of checking (for example ``Root``), use ``CHECKD_NOSIG()`` and
+reference this tag. The structure could be considered for addition to
+``mpmst.h``.
 
 
 Document History

@@ -162,6 +162,7 @@ TESTLIB = testlib.c
 FMTDY = fmtdy.c fmtno.c
 FMTDYTST = fmtdy.c fmtno.c fmtdytst.c
 FMTHETST = fmthe.c fmtdy.c fmtno.c fmtdytst.c
+FMTSCM = fmtscheme.c
 PLINTH = mpsliban.c mpsioan.c
 EVENTPROC = eventcnv.c table.c
 MPMCOMMON = \
@@ -188,6 +189,7 @@ MPMCOMMON = \
     meter.c \
     mpm.c \
     mpsi.c \
+    nailboard.c \
     pool.c \
     poolabs.c \
     poolmfs.c \
@@ -246,8 +248,11 @@ TESTLIBDEP = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTDYOBJ = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTDYDEP = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTDYTSTOBJ = $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.o)
+FMTDYTSTDEP = $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTHETSTOBJ = $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTHETSTDEP = $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.d)
+FMTSCMOBJ = $(FMTSCM:%.c=$(PFM)/$(VARIETY)/%.o)
+FMTSCMDEP = $(FMTSCM:%.c=$(PFM)/$(VARIETY)/%.d)
 PLINTHOBJ = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.o)
 PLINTHDEP = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.d)
 EVENTPROCOBJ = $(EVENTPROC:%.c=$(PFM)/$(VARIETY)/%.o)
@@ -266,6 +271,7 @@ LIB_TARGETS=mps.a mpsplan.a
 
 TEST_TARGETS=\
     abqtest \
+    airtest \
     amcss \
     amcsshe \
     amcssth \
@@ -294,6 +300,7 @@ TEST_TARGETS=\
     mpmss \
     mpsicv \
     mv2test \
+    nailboardtest \
     poolncv \
     qs \
     sacss \
@@ -416,6 +423,9 @@ ifdef VARIETY
 $(PFM)/$(VARIETY)/abqtest: $(PFM)/$(VARIETY)/abqtest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
+$(PFM)/$(VARIETY)/airtest: $(PFM)/$(VARIETY)/airtest.o \
+	$(FMTSCMOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
 $(PFM)/$(VARIETY)/amcss: $(PFM)/$(VARIETY)/amcss.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
@@ -498,6 +508,9 @@ $(PFM)/$(VARIETY)/mpsicv: $(PFM)/$(VARIETY)/mpsicv.o \
 	$(FMTDYTSTOBJ) $(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mv2test: $(PFM)/$(VARIETY)/mv2test.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/nailboardtest: $(PFM)/$(VARIETY)/nailboardtest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
@@ -606,9 +619,20 @@ include $(PFM)/$(VARIETY)/mps.d
 else
 # %%PART: When adding a new part, add the dependency file macro for the new
 # part here.
-include $(MPMDEP) $(AMSDEP) $(AMCDEP) $(LODEP) \
-  $(AWLDEP) $(POOLNDEP) $(TESTLIBDEP) $(FMTDYDEP) $(FMTHETSTDEP) \
-  $(PLINTHDEP) $(EVENTPROCDEP)
+include \
+  $(MPMDEP) \
+  $(AMCDEP) \
+  $(AMSDEP) \
+  $(AWLDEP) \
+  $(EVENTPROCDEP) \
+  $(FMTDYDEP) \
+  $(FMTDYTSTDEP) \
+  $(FMTHETSTDEP) \
+  $(FMTSCMDEP) \
+  $(LODEP) \
+  $(PLINTHDEP) \
+  $(POOLNDEP) \
+  $(TESTLIBDEP)
 endif
 endif
 
