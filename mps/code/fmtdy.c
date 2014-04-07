@@ -1,7 +1,7 @@
 /* fmtdy.c: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
  *  $Id$
- *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *  Portions copyright (c) 2002 Global Graphics Software.
  *
  * .readership: MPS developers, Dylan developers
@@ -68,10 +68,6 @@
 
 /* MPS_END causes "constant conditional" warnings. */
 #pragma warning(disable: 4127)
-
-/* windows.h causes warnings about "unreferenced inline function */
-/* has been removed". */
-#pragma warning(disable: 4514)
 
 #endif /* _MSC_VER */
 
@@ -470,8 +466,8 @@ extern mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
       break;
 
       case 1:                   /* stretchy non-traceable */
-      notreached();             /* Not used by DylanWorks yet */
       p += vt + 1;
+      notreached();             /* Not used by DylanWorks yet */
       break;
 
       case 2:                   /* non-stretchy traceable */
@@ -482,7 +478,6 @@ extern mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
       break;
 
       case 3:                   /* stretchy traceable */
-      notreached();             /* DW doesn't create them yet */
       vl = *(mps_word_t *)p;    /* vector length */
       assert((vl & 3) == 1);    /* check Dylan integer tag */
       vl >>= 2;                 /* untag it */
@@ -490,21 +485,22 @@ extern mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
       res = dylan_scan_contig(mps_ss, p, p + vl);
       if(res) return res;
       p += vt;                  /* skip to end of whole vector */
+      notreached();             /* DW doesn't create them yet */
       break;
 
       case 4:                   /* non-word */
-      es = (vh & 0xff) >> 3;
-      vb = (vh >> 16) & 0xff;
+      es = (unsigned)(vh & 0xff) >> 3;
+      vb = (unsigned)((vh >> 16) & 0xff);
       vt += vb;
       p += NONWORD_LENGTH(vt, es);
       break;
 
       case 5:                   /* stretchy non-word */
-      notreached();             /* DW doesn't create them yet */
-      es = (vh & 0xff) >> 3;
-      vb = (vh >> 16) & 0xff;
+      es = (unsigned)(vh & 0xff) >> 3;
+      vb = (unsigned)((vh >> 16) & 0xff);
       vt += vb;
       p += NONWORD_LENGTH(vt, es) + 1;
+      notreached();             /* DW doesn't create them yet */
       break;
 
       default:
@@ -678,8 +674,8 @@ static mps_addr_t dylan_skip(mps_addr_t object)
 
     if((vf & 6) == 4)           /* non-word */
     {
-      es = (vh & 0xff) >> 3;
-      vb = (vh >> 16) & 0xff;
+      es = (unsigned)(vh & 0xff) >> 3;
+      vb = (unsigned)((vh >> 16) & 0xff);
       vt += vb;
       p += NONWORD_LENGTH(vt, es);
     }
@@ -844,7 +840,7 @@ mps_res_t dylan_fmt_weak(mps_fmt_t *mps_fmt_o, mps_arena_t arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

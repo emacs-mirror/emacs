@@ -5026,29 +5026,24 @@
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				OTHER_CFLAGS = (
-					"-pedantic",
-					"-Wall",
-					"-Wextra",
-					"-Wwrite-strings",
-					"-Wno-extended-offsetof",
-				);
 				SDKROOT = macosx;
 				SYMROOT = xc;
 				WARNING_CFLAGS = (
 					"-pedantic",
-					"-Wpointer-arith",
-					"-Wstrict-prototypes",
-					"-Wmissing-prototypes",
-					"-Winline",
 					"-Waggregate-return",
-					"-Wnested-externs",
-					"-Wcast-qual",
-					"-Wshadow",
 					"-Wall",
+					"-Wcast-qual",
 					"-Wextra",
-					"-Wwrite-strings",
+					"-Winline",
+					"-Wmissing-prototypes",
+					"-Wnested-externs",
 					"-Wno-extended-offsetof",
+					"-Wpointer-arith",
+					"-Wshadow",
+					"-Wstrict-aliasing=2",
+					"-Wstrict-prototypes",
+					"-Wunreachable-code",
+					"-Wwrite-strings",
 				);
 			};
 			name = RASH;
@@ -5470,29 +5465,24 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = (
-					"-pedantic",
-					"-Wall",
-					"-Wextra",
-					"-Wwrite-strings",
-					"-Wno-extended-offsetof",
-				);
 				SDKROOT = macosx;
 				SYMROOT = xc;
 				WARNING_CFLAGS = (
 					"-pedantic",
-					"-Wpointer-arith",
-					"-Wstrict-prototypes",
-					"-Wmissing-prototypes",
-					"-Winline",
 					"-Waggregate-return",
-					"-Wnested-externs",
-					"-Wcast-qual",
-					"-Wshadow",
 					"-Wall",
+					"-Wcast-qual",
 					"-Wextra",
-					"-Wwrite-strings",
+					"-Winline",
+					"-Wmissing-prototypes",
+					"-Wnested-externs",
 					"-Wno-extended-offsetof",
+					"-Wpointer-arith",
+					"-Wshadow",
+					"-Wstrict-aliasing=2",
+					"-Wstrict-prototypes",
+					"-Wunreachable-code",
+					"-Wwrite-strings",
 				);
 			};
 			name = Debug;
@@ -5528,29 +5518,24 @@
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				OTHER_CFLAGS = (
-					"-pedantic",
-					"-Wall",
-					"-Wextra",
-					"-Wwrite-strings",
-					"-Wno-extended-offsetof",
-				);
 				SDKROOT = macosx;
 				SYMROOT = xc;
 				WARNING_CFLAGS = (
 					"-pedantic",
-					"-Wpointer-arith",
-					"-Wstrict-prototypes",
-					"-Wmissing-prototypes",
-					"-Winline",
 					"-Waggregate-return",
-					"-Wnested-externs",
-					"-Wcast-qual",
-					"-Wshadow",
 					"-Wall",
+					"-Wcast-qual",
 					"-Wextra",
-					"-Wwrite-strings",
+					"-Winline",
+					"-Wmissing-prototypes",
+					"-Wnested-externs",
 					"-Wno-extended-offsetof",
+					"-Wpointer-arith",
+					"-Wshadow",
+					"-Wstrict-aliasing=2",
+					"-Wstrict-prototypes",
+					"-Wunreachable-code",
+					"-Wwrite-strings",
 				);
 			};
 			name = Release;

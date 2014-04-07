@@ -1,7 +1,7 @@
 /* mpswin.h: RAVENBROOK MEMORY POOL SYSTEM WINDOWS.H INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: For MPS client application developers, MPS developers.
  *
@@ -11,29 +11,18 @@
 #ifndef mpswin_h
 #define mpswin_h
 
-/* Suppress Visual C warnings from windows.h at warning level 4. */
-#ifdef MPS_BUILD_MV
-#pragma warning(disable: 4115 4201 4209 4214)
-#endif
-
+/* Speed up the build process by excluding parts of windows.h that we
+ * don't use. See <http://support.microsoft.com/kb/166474> */
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-
-#ifdef MPS_BUILD_MV
-#pragma warning(default: 4115 4201 4209 4214)
-/* windows.h might also cause warnings about "unreferenced inline
- * function has been removed".  In Visual C, these can be turned off:
- * #pragma warning(disable: 4514)
- * But they are generated at the end of the compilation, so you have
- * to turn them off permanently.
- */
-#endif
+#undef WIN32_LEAN_AND_MEAN
 
 #endif /* mpswin_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

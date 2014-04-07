@@ -87,7 +87,7 @@ extern Word EventKindControl;
     size = offsetof(Event##name##Struct, f1) + _string_len + sizeof('\0'); \
     EVENT_BEGIN(name, size) \
       _event->f0 = (p0); \
-      mps_lib_memcpy(_event->f1, (string), _string_len); \
+      (void)mps_lib_memcpy(_event->f1, (string), _string_len); \
       _event->f1[_string_len] = '\0'; \
     EVENT_END(name, size); \
   END

@@ -1,7 +1,7 @@
 /* reserv.c: ARENA RESERVOIR
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * IMPROVEMENTS
  *
@@ -74,6 +74,7 @@ DEFINE_POOL_CLASS(ReservoirPoolClass, this)
   this->offset = offsetof(ReservoirStruct, poolStruct);
   this->init = ResPoolInit;
   this->finish = ResPoolFinish;
+  AVERT(PoolClass, this);
 }
 
 
@@ -94,7 +95,7 @@ Bool ReservoirCheck(Reservoir reservoir)
   /* could call ReservoirIsConsistent, but it's costly. */
   tract = reservoir->reserve;
   if (tract != NULL) {
-    CHECKL(TractCheck(tract));
+    CHECKD_NOSIG(Tract, tract);
     CHECKL(TractPool(tract) == ReservoirPool(reservoir));
   }
   CHECKL(SizeIsAligned(reservoir->reservoirLimit, ArenaAlign(arena)));
@@ -281,7 +282,7 @@ Bool ReservoirDeposit(Reservoir reservoir, Addr *baseIO, Size *sizeIO)
 
   /* put as many pages as necessary into the reserve & free the rest */
   TRACT_FOR(tract, addr, arena, base, limit) {
-    AVER(TractCheck(tract));
+    AVERT(Tract, tract);
     if (reservoir->reservoirSize < reslimit) {
       /* Reassign the tract to the reservoir pool */
       TractFinish(tract);
@@ -416,7 +417,7 @@ void ReservoirFinish (Reservoir reservoir)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

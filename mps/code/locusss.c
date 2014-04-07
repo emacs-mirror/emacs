@@ -110,7 +110,7 @@ static void poolStatInit(PoolStat stat, mps_pool_t pool, size_t objSize)
 static mps_res_t allocMultiple(PoolStat stat)
 {
   mps_addr_t objects[contigAllocs];
-  int i;
+  size_t i;
 
   /* allocate a few objects, and record stats for them */
   for (i = 0; i < contigAllocs; i++) {
@@ -220,7 +220,6 @@ static void runArenaTest(size_t size,
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, FALSE);
-    MPS_ARGS_DONE(args);
     die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
         "mps_arena_create");
   } MPS_ARGS_END(args);

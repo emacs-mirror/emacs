@@ -25,7 +25,6 @@ Old design
     diag
     finalize
     fix
-    interface-c
     io
     lib
     lock
@@ -62,7 +61,6 @@ Old design
     thread-manager
     thread-safety
     trace
-    type
     version-library
     version
     vm

@@ -19,19 +19,6 @@ struct itimerspec; /* stop complaints from time.h */
 #endif
 #include <time.h>
 
-#ifdef MPS_BUILD_MV
-/* MSVC warning 4702 = unreachable code
- * 
- * job000605: believed needed to prevent VC7 warning 
- * for error() below, in which va_end is mandated by 
- * ISO C (C99:7.15.1) even though it is unreachable.
- */
-#pragma warning(disable: 4702)
-/* MSVC warning 4996 = stdio / C runtime 'unsafe' */
-/* Objects to: sscanf.  See job001934. */
-#pragma warning( disable : 4996 )
-#endif
-
 
 /* fail -- like assert, but (notionally) returns a value, so usable in an expression */
 
@@ -122,7 +109,7 @@ static unsigned long seed_verify_float = 1;
 static unsigned long rnd_verify_float(void)
 {
   double s;
-  s = seed_verify_float;
+  s = (double)seed_verify_float;
   s *= R_a_float;
   s = fmod(s, R_m_float);
   seed_verify_float = (unsigned long)s;
@@ -285,7 +272,7 @@ void randomize(int argc, char *argv[])
            argv[0], seed0);
     rnd_state_set(seed0);
   }
-  fflush(stdout); /* ensure seed is not lost in case of failure */
+  (void)fflush(stdout); /* ensure seed is not lost in case of failure */
 }
 
 unsigned long rnd_state(void)
@@ -339,12 +326,13 @@ _mps_RES_ENUM(RES_STRINGS_ROW, X)
 
 /* verror -- die with message */
 
+ATTRIBUTE_FORMAT((printf, 1, 0))
 void verror(const char *format, va_list args)
 {
-  fflush(stdout); /* synchronize */
-  vfprintf(stderr, format, args);
-  fprintf(stderr, "\n");
-  fflush(stderr); /* make sure the message is output */
+  (void)fflush(stdout); /* synchronize */
+  (void)vfprintf(stderr, format, args);
+  (void)fprintf(stderr, "\n");
+  (void)fflush(stderr); /* make sure the message is output */
   /* On Windows, the abort signal pops up a dialog box. This suspends
    * the test suite until a button is pressed, which is not acceptable
    * for offline testing, so if the MPS_TESTLIB_NOABORT environment
@@ -360,6 +348,7 @@ void verror(const char *format, va_list args)
 
 /* error -- die with message */
 
+ATTRIBUTE_FORMAT((printf, 1, 2))
 void error(const char *format, ...)
 {
  va_list args;
@@ -413,7 +402,7 @@ void assert_die(const char *file, unsigned line, const char *condition)
 
 void testlib_init(int argc, char *argv[])
 {
-  mps_lib_assert_fail_install(assert_die);
+  (void)mps_lib_assert_fail_install(assert_die);
   randomize(argc, argv);
 }
 

@@ -1,121 +1,64 @@
-/* fmtno.c: NULL OBJECT FORMAT IMPLEMENTATION
+/* ssw3i3pc.c: STACK SCANNING FOR WIN32 WITH PELLES C
  *
- *  $Id$
- *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * $Id$
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
- * .readership: MPS developers
+ * This scans the stack and fixes the registers which may contain roots.
+ * See <design/thread-manager/>.
+ *
+ * .assume.ms-compat: We rely on the fact that Pelles C's setjmp stores
+ * the callee-save registers in the jmp_buf and is compatible with Microsoft
+ * C.  The Pelles C 7.00 setjmp.h header has a comment "MS compatible".  See
+ * also "Is Pelles C's jmp_buf compatible with Microsoft C's?"
+ * <http://forum.pellesc.de/index.php?topic=5464>
+ *
+ * REFERENCES
+ *
+ * "Argument Passing and Naming Conventions"; MSDN; Microsoft Corporation;
+ * <http://msdn.microsoft.com/en-us/library/984x0h58%28v=vs.100%29.aspx>.
+ *
+ * "Calling conventions for different C++ compilers and operating systems";
+ * Agner Fog; Copenhagen University College of Engineering; 2012-02-29;
+ * <http://agner.org./optimize/calling_conventions.pdf>.
  */
 
+#include "mpm.h"
+#include <setjmp.h>
 
-#include "fmtno.h"
-#include "mps.h"
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
+SRCID(ssw3i3pc, "$Id$");
 
 
-#define notreached()    assert(0)
-#define unused(param)   ((void)param)
+/* This definition isn't in the Pelles C headers, so we reproduce it here.
+ * See .assume.ms-compat. */
+
+typedef struct __JUMP_BUFFER {
+    unsigned long Ebp;
+    unsigned long Ebx;
+    unsigned long Edi;
+    unsigned long Esi;
+    unsigned long Esp;
+    unsigned long Eip;
+    unsigned long Registration;
+    unsigned long TryLevel;
+    unsigned long Cookie;
+    unsigned long UnwindFunc;
+    unsigned long UnwindData[6];
+} _JUMP_BUFFER;
 
 
-#define ALIGN           sizeof(mps_word_t)
-
-/* Functions for the null format. */
-
-mps_res_t no_scan(mps_ss_t mps_ss,
-                  mps_addr_t base,
-                  mps_addr_t limit)
+Res StackScan(ScanState ss, Addr *stackBot)
 {
-    unused(mps_ss); unused(base); unused(limit);
-    notreached();
-    return 0;
-}
+  jmp_buf jb;
 
-mps_addr_t no_skip(mps_addr_t object)
-{
-    unused(object);
-    notreached();
-    return 0;
-}
+  /* .assume.ms-compat */
+  (void)setjmp(jb);
 
-void no_copy(mps_addr_t old,
-             mps_addr_t new)
-{
-    unused(old); unused(new);
-    notreached();
-}
+  /* Ensure that the callee-save registers will be found by
+     StackScanInner when it's passed the address of the Ebx field. */
+  AVER(offsetof(_JUMP_BUFFER, Edi) == offsetof(_JUMP_BUFFER, Ebx) + 4);
+  AVER(offsetof(_JUMP_BUFFER, Esi) == offsetof(_JUMP_BUFFER, Ebx) + 8);
 
-void no_fwd(mps_addr_t old,
-            mps_addr_t new)
-{
-    unused(old); unused(new);
-    notreached();
-}
-
-mps_addr_t no_isfwd(mps_addr_t object)
-{
-    unused(object);
-    notreached();
-    return 0;
-}
-
-void no_pad(mps_addr_t addr,
-            size_t size)
-{
-    unused(addr); unused(size);
-    notreached();
-}
-
-mps_addr_t no_class(mps_addr_t obj)
-{
-    unused(obj);
-    notreached();
-    return 0;
-}
-
-/* The null format structures */
-
-static struct mps_fmt_A_s no_fmt_A_s =
-{
-    ALIGN,
-    no_scan,
-    no_skip,
-    no_copy,
-    no_fwd,
-    no_isfwd,
-    no_pad
-};
-
-static struct mps_fmt_B_s no_fmt_B_s =
-{
-    ALIGN,
-    no_scan,
-    no_skip,
-    no_copy,
-    no_fwd,
-    no_isfwd,
-    no_pad,
-    no_class
-};
-
-/* Functions returning the null format structures. */
-
-mps_fmt_A_s *no_fmt_A(void)
-{
-    return &no_fmt_A_s;
-}
-
-mps_fmt_B_s *no_fmt_B(void)
-{
-    return &no_fmt_B_s;
-}
-
-/* Format variety-independent version that picks the right format
- * variety and creates it.  */
-
-mps_res_t no_fmt(mps_fmt_t *mps_fmt_o, mps_arena_t arena)
-{
-    return mps_fmt_create_B(mps_fmt_o, arena, no_fmt_B());
+  return StackScanInner(ss, stackBot, (Addr *)&((_JUMP_BUFFER *)jb)->Ebx, 3);
 }
 
 

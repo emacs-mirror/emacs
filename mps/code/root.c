@@ -1,7 +1,7 @@
 /* root.c: ROOT IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is the implementation of the root datatype.
  *
@@ -98,7 +98,7 @@ Bool RootCheck(Root root)
   CHECKS(Root, root);
   CHECKU(Arena, root->arena);
   CHECKL(root->serial < ArenaGlobals(root->arena)->rootSerial);
-  CHECKL(RingCheck(&root->arenaRing));
+  CHECKD_NOSIG(Ring, &root->arenaRing);
   CHECKL(RankCheck(root->rank));
   CHECKL(TraceSetCheck(root->grey));
   /* Don't need to check var here, because of the switch below */
@@ -121,7 +121,7 @@ Bool RootCheck(Root root)
 
     case RootREG:
     CHECKL(root->the.reg.scan != NULL);
-    CHECKL(ThreadCheck(root->the.reg.thread));
+    CHECKD_NOSIG(Thread, root->the.reg.thread); /* <design/check/#hidden-type> */
     break;
 
     case RootFMT:
@@ -261,7 +261,7 @@ Res RootCreateTable(Root *rootReturn, Arena arena,
 
   AVER(rootReturn != NULL);
   AVERT(Arena, arena);
-  AVER(RankCheck(rank));
+  AVERT(Rank, rank);
   AVER(base != 0);
   AVER(base < limit); 
 
@@ -281,7 +281,7 @@ Res RootCreateTableMasked(Root *rootReturn, Arena arena,
 
   AVER(rootReturn != NULL);
   AVERT(Arena, arena);
-  AVER(RankCheck(rank));
+  AVERT(Rank, rank);
   AVER(base != 0);
   AVER(base < limit);
   /* Can't check anything about mask. */
@@ -302,7 +302,7 @@ Res RootCreateReg(Root *rootReturn, Arena arena,
 
   AVER(rootReturn != NULL);
   AVERT(Arena, arena);
-  AVER(RankCheck(rank));
+  AVERT(Rank, rank);
   AVERT(Thread, thread);
   AVER(scan != NULL);
 
@@ -322,7 +322,7 @@ Res RootCreateFmt(Root *rootReturn, Arena arena,
 
   AVER(rootReturn != NULL);
   AVERT(Arena, arena);
-  AVER(RankCheck(rank));
+  AVERT(Rank, rank);
   AVER(FUNCHECK(scan));
   AVER(base != 0);
   AVER(base < limit);
@@ -342,7 +342,7 @@ Res RootCreateFun(Root *rootReturn, Arena arena, Rank rank,
 
   AVER(rootReturn != NULL);
   AVERT(Arena, arena);
-  AVER(RankCheck(rank));
+  AVERT(Rank, rank);
   AVER(FUNCHECK(scan));
 
   theUnion.fun.scan = scan;
@@ -671,7 +671,7 @@ Res RootsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

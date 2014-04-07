@@ -151,9 +151,9 @@ Platform     OS          Architecture    Compiler      Makefile
 Historically, the MPS worked on a much wider variety of platforms, and
 still could: IRIX, OSF/1 (Tru64), Solaris, SunOS, Classic Mac OS;
 MIPS, PowerPC, ALPHA, SPARC v8, SPARC v9; Metrowerks Codewarrior,
-SunPro C, Digital C, EGCS.  If you are interested in support on any of
-these platforms or any new platforms, please contact Ravenbrook at
-`mps-questions@ravenbrook.com <mailto:mps-questions@ravenbrook.com>`_.
+SunPro C, Digital C, EGCS, Pelles C. If you are interested in support
+on any of these platforms or any new platforms, please contact
+Ravenbrook at `mps-questions@ravenbrook.com <mailto:mps-questions@ravenbrook.com>`_.
 
 
 Running make
@@ -190,9 +190,10 @@ You will need to switch your build environment between 32-bit and
 64-bit using Microsoft's ``setenv`` command, for example, ``setenv
 /x86`` or ``setenv /x64``.
 
-To build just one target, run the command::
+To build just one target, run one of these commands::
 
-    nmake /f w3i3mv.nmk <target>
+    nmake /f w3i3mv.nmk <target>         (32-bit)
+    nmake /f w3i6mv.nmk <target>         (64-bit)
 
 On Mac OS X, you can build from the command line with::
 
@@ -264,6 +265,7 @@ this program, you need to install the SQLite3 development resources.
   it contains files named ``sqlite3.c`` and ``sqlite3.h``. Copy these
   two files into the ``code`` directory in the MPS Kit. Then in the
   "Visual Studio Command Prompt", visit the ``code`` directory and run
-  the command::
+  one of these commands::
 
-      nmake /f w3i3mv.nmk mpseventsql.exe
+      nmake /f w3i3mv.nmk mpseventsql.exe         (32-bit)
+      nmake /f w3i6mv.nmk mpseventsql.exe         (64-bit)
