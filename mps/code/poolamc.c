@@ -341,6 +341,7 @@ DEFINE_SEG_CLASS(amcSegClass, class)
   class->size = sizeof(amcSegStruct);
   class->init = AMCSegInit;
   class->describe = AMCSegDescribe;
+  AVERT(SegClass, class);
 }
 
 
@@ -484,7 +485,7 @@ static Bool amcGenCheck(amcGen gen)
   amc = amcGenAMC(gen);
   CHECKU(AMC, amc);
   CHECKD(Buffer, gen->forward);
-  CHECKL(RingCheck(&gen->amcRing));
+  CHECKD_NOSIG(Ring, &gen->amcRing);
   CHECKL((gen->pgen.totalSize == 0) == (gen->segs == 0));
   arena = amc->poolStruct.arena;
   CHECKL(gen->pgen.totalSize >= gen->segs * ArenaAlign(arena));
@@ -526,7 +527,7 @@ typedef struct amcBufStruct {
 static Bool amcBufCheck(amcBuf amcbuf)
 {
   CHECKS(amcBuf, amcbuf);
-  CHECKL(SegBufCheck(&amcbuf->segbufStruct));
+  CHECKD(SegBuf, &amcbuf->segbufStruct);
   if(amcbuf->gen != NULL)
     CHECKD(amcGen, amcbuf->gen);
   CHECKL(BoolCheck(amcbuf->forHashArrays));
@@ -632,6 +633,7 @@ DEFINE_BUFFER_CLASS(amcBufClass, class)
   class->size = sizeof(amcBufStruct);
   class->init = AMCBufInit;
   class->finish = AMCBufFinish;
+  AVERT(BufferClass, class);
 }
 
 
@@ -776,7 +778,7 @@ static void AMCVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[1].key = MPS_KEY_CHAIN;
   args[1].val.chain = va_arg(varargs, Chain);
   args[2].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 
@@ -2087,7 +2089,7 @@ static void AMCTraceEnd(Pool pool, Trace trace)
   amc = Pool2AMC(pool);
   AVERT(AMC, amc);
   ti = trace->ti;
-  AVER(TraceIdCheck(ti));
+  AVERT(TraceId, ti);
 
   STATISTIC_STAT ({
     Count pRetMin = 100;
@@ -2329,23 +2331,23 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream)
 }
 
 
-/* AMCPoolClass -- the class definition */
+/* AMCZPoolClass -- the class definition */
 
-DEFINE_POOL_CLASS(AMCPoolClass, this)
+DEFINE_POOL_CLASS(AMCZPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractCollectPoolClass);
+  INHERIT_CLASS(this, AbstractSegBufPoolClass);
   PoolClassMixInFormat(this);
-  this->name = "AMC";
+  PoolClassMixInCollect(this);
+  this->name = "AMCZ";
   this->size = sizeof(AMCStruct);
   this->offset = offsetof(AMCStruct, poolStruct);
   this->attr |= AttrMOVINGGC;
   this->varargs = AMCVarargs;
-  this->init = AMCInit;
+  this->init = AMCZInit;
   this->finish = AMCFinish;
   this->bufferFill = AMCBufferFill;
   this->bufferEmpty = AMCBufferEmpty;
   this->whiten = AMCWhiten;
-  this->scan = AMCScan;
   this->fix = AMCFix;
   this->fixEmergency = AMCFixEmergency;
   this->reclaim = AMCReclaim;
@@ -2356,19 +2358,20 @@ DEFINE_POOL_CLASS(AMCPoolClass, this)
   this->walk = AMCWalk;
   this->bufferClass = amcBufClassGet;
   this->describe = AMCDescribe;
+  AVERT(PoolClass, this);
 }
 
 
-/* AMCZPoolClass -- the class definition */
+/* AMCPoolClass -- the class definition */
 
-DEFINE_POOL_CLASS(AMCZPoolClass, this)
+DEFINE_POOL_CLASS(AMCPoolClass, this)
 {
-  INHERIT_CLASS(this, AMCPoolClass);
-  this->name = "AMCZ";
-  this->attr &= ~(AttrSCAN | AttrINCR_RB);
-  this->init = AMCZInit;
-  this->grey = PoolNoGrey;
-  this->scan = PoolNoScan;
+  INHERIT_CLASS(this, AMCZPoolClass);
+  PoolClassMixInScan(this);
+  this->name = "AMC";
+  this->init = AMCInit;
+  this->scan = AMCScan;
+  AVERT(PoolClass, this);
 }
 
 
@@ -2448,7 +2451,7 @@ static Bool AMCCheck(AMC amc)
   CHECKD(Pool, &amc->poolStruct);
   CHECKL(IsSubclassPoly(amc->poolStruct.class, EnsureAMCPoolClass()));
   CHECKL(RankSetCheck(amc->rankSet));
-  CHECKL(RingCheck(&amc->genRing));
+  CHECKD_NOSIG(Ring, &amc->genRing);
   CHECKL(BoolCheck(amc->gensBooted));
   if(amc->gensBooted) {
     CHECKD(amcGen, amc->nursery);

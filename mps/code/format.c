@@ -1,7 +1,7 @@
 /* format.c: OBJECT FORMATS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * DESIGN
@@ -21,7 +21,7 @@ Bool FormatCheck(Format format)
   CHECKS(Format, format);
   CHECKU(Arena, format->arena);
   CHECKL(format->serial < format->arena->formatSerial);
-  CHECKL(RingCheck(&format->arenaRing));
+  CHECKD_NOSIG(Ring, &format->arenaRing);
   CHECKL(AlignCheck(format->alignment));
   /* TODO: Define the concept of the maximum alignment it is possible to
      request from the MPS, document and provide an interface to it, and then
@@ -114,7 +114,7 @@ Res FormatCreate(Format *formatReturn, Arena arena, ArgList args)
 
   AVER(formatReturn != NULL);
   AVERT(Arena, arena);
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 
   if (ArgPick(&arg, args, MPS_KEY_FMT_ALIGN))
     fmtAlign = arg.val.align;
@@ -217,7 +217,7 @@ Res FormatDescribe(Format format, mps_lib_FILE *stream)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

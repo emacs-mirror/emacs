@@ -1,7 +1,7 @@
 /* message.c: MPS/CLIENT MESSAGES
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * DESIGN
  *
@@ -53,7 +53,7 @@ Bool MessageCheck(Message message)
   CHECKS(Message, message);
   CHECKU(Arena, message->arena);
   CHECKD(MessageClass, message->class);
-  CHECKL(RingCheck(&message->queueRing));
+  CHECKD_NOSIG(Ring, &message->queueRing);
   /* postedClock is uncheckable for clocked message types, */
   /* but must be 0 for unclocked message types: */
   CHECKL(MessageIsClocked(message) || (message->postedClock == 0));
@@ -186,7 +186,7 @@ void MessageEmpty(Arena arena)
 static Bool MessageTypeEnabled(Arena arena, MessageType type)
 {
   AVERT(Arena, arena);
-  AVER(MessageTypeCheck(type));
+  AVERT(MessageType, type);
 
   return BTGet(arena->enabledMessageTypes, type);
 }
@@ -194,7 +194,7 @@ static Bool MessageTypeEnabled(Arena arena, MessageType type)
 void MessageTypeEnable(Arena arena, MessageType type)
 {
   AVERT(Arena, arena);
-  AVER(MessageTypeCheck(type));
+  AVERT(MessageType, type);
 
   BTSet(arena->enabledMessageTypes, type);
 }
@@ -204,7 +204,7 @@ void MessageTypeDisable(Arena arena, MessageType type)
   Message message;
 
   AVERT(Arena, arena);
-  AVER(MessageTypeCheck(type));
+  AVERT(MessageType, type);
 
   /* Flush existing messages of this type */
   while(MessageGet(&message, arena, type)) {
@@ -252,7 +252,7 @@ Bool MessageGet(Message *messageReturn, Arena arena, MessageType type)
 
   AVER(messageReturn != NULL);
   AVERT(Arena, arena);
-  AVER(MessageTypeCheck(type));
+  AVERT(MessageType, type);
 
   RING_FOR(node, &arena->messageRing, next) {
     Message message = RING_ELT(Message, queueRing, node);
@@ -427,7 +427,7 @@ const char *MessageNoGCStartWhy(Message message)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

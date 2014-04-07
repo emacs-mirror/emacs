@@ -169,6 +169,6 @@ int main(void)
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
- report("result", "unknown");
+ pass();
  return 0;
 }
