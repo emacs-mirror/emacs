@@ -10,6 +10,12 @@
  * DESIGN
  *
  * .design: see <design/bt/>
+ *
+ * .aver.critical: The function BTIsResRange (and anything it calls)
+ * is on the critical path <design/critical-path/> because it is
+ * called by NailboardIsResRange, which is called for every object in
+ * a nailboarded segment when the segment is scanned or reclaimed; see
+ * <design/nailboard/#impl.isresrange>.
  */
 
 #include "bt.h"
@@ -90,7 +96,9 @@ SRCID(bt, "$Id$");
     } else { \
       Index actInnerBase = BTIndexAlignUp((base)); \
       if (actInnerBase > (limit)) { /* no inner range */ \
-        AVER((base) < (limit)); /* caught by small range case */ \
+        /* Must have base < limit otherwise caught by small range case */ \
+        /* And see .aver.critical. */ \
+        AVER_CRITICAL((base) < (limit)); \
         bits_action(BTWordIndex((base)), \
                     BTBitIndex((base)), \
                     BTBitIndex((limit))); \
@@ -311,8 +319,8 @@ void BTSetRange(BT t, Index base, Index limit)
 
 Bool BTIsResRange(BT bt, Index base, Index limit)
 {
-  AVERT(BT, bt);
-  AVER(base < limit);
+  AVERT_CRITICAL(BT, bt);   /* See .aver.critical */
+  AVER_CRITICAL(base < limit);
   /* Can't check range of base or limit */
 
 #define SINGLE_IS_RES_RANGE(i) \

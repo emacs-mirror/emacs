@@ -15,6 +15,7 @@ Design
     guide.impl.c.format
     interface-c
     keyword-arguments
+    nailboard
     range
     ring
     sig

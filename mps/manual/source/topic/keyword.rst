@@ -104,6 +104,7 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     :c:macro:`MPS_KEY_FMT_SKIP`              :c:type:`mps_fmt_skip_t`        ``fmt_skip``           :c:func:`mps_fmt_create_k`
     :c:macro:`MPS_KEY_FORMAT`                :c:type:`mps_fmt_t`             ``format``             :c:func:`mps_class_amc`, :c:func:`mps_class_amcz`, :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_lo` , :c:func:`mps_class_snc`
     :c:macro:`MPS_KEY_GEN`                   :c:type:`unsigned`              ``u``                  :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_lo`
+    :c:macro:`MPS_KEY_INTERIOR`              :c:type:`mps_bool_t`            ``b``                  :c:func:`mps_class_amc`, :c:func:`mps_class_amcz`
     :c:macro:`MPS_KEY_MAX_SIZE`              :c:type:`size_t`                ``size``               :c:func:`mps_class_mv`
     :c:macro:`MPS_KEY_MEAN_SIZE`             :c:type:`size_t`                ``size``               :c:func:`mps_class_mv`, :c:func:`mps_class_mvt`, :c:func:`mps_class_mvff`
     :c:macro:`MPS_KEY_MFS_UNIT_SIZE`         :c:type:`size_t`                ``size``               :c:func:`mps_class_mfs`
