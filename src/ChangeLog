@@ -1,3 +1,18 @@
+2014-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (struct Lisp_Symbol): New bitfield `pinned'.
+
+	* alloc.c: Keep track of symbols referenced from pure space (bug#17168).
+	(symbol_block_pinned): New var.
+	(Fmake_symbol): Initialize `pinned'.
+	(purecopy): New function, extracted from Fpurecopy.  Mark symbols as
+	pinned and signal an error for un-purifiable objects.
+	(pure_cons): Use it.
+	(Fpurecopy): Use it, except for objects that can't be purified.
+	(mark_pinned_symbols): New function.
+	(Fgarbage_collect): Use it.
+	(gc_sweep): Remove hack made unnecessary.
+
 2014-04-05  Glenn Morris  <rgm@gnu.org>
 
 	* keyboard.c (Fopen_dribble_file): Doc tweak.

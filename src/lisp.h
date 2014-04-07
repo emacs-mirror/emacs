@@ -1568,6 +1568,9 @@ struct Lisp_Symbol
      special (with `defvar' etc), and shouldn't be lexically bound.  */
   bool_bf declared_special : 1;
 
+  /* True if pointed to from purespace and hence can't be GC'd.  */
+  bool_bf pinned : 1;
+
   /* The symbol's name, as a Lisp string.  */
   Lisp_Object name;
 
