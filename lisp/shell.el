@@ -792,8 +792,11 @@ and `shell-pushd-dunique' control the behavior of the relevant command.
 Environment variables are expanded, see function `substitute-in-file-name'."
   (if shell-dirtrackp
       ;; We fail gracefully if we think the command will fail in the shell.
-      (with-demoted-errors "Couldn't cd: %s"
-	  (let ((start (progn (string-match
+;;;      (with-demoted-errors "Directory tracker failure: %s"
+      ;; This fails so often that it seems better to just ignore errors (?).
+      ;; Eg even: foo=/tmp; cd $foo is beyond us (bug#17159).
+      (ignore-errors
+        (let ((start (progn (string-match
 			       (concat "^" shell-command-separator-regexp)
 			       str) ; skip whitespace
 			      (match-end 0)))

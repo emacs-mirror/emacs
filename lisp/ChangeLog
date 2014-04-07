@@ -1,3 +1,8 @@
+2014-04-07  Glenn Morris  <rgm@gnu.org>
+
+	* shell.el (shell-directory-tracker):
+	Go back to just ignoring failures.  (Bug#17159)
+
 2014-04-06  João Távora  <joaotavora@gmail.com>
 
 	Fix `electric-pair-delete-adjacent-pairs' in modes binding
