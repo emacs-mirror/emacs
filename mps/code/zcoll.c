@@ -62,9 +62,7 @@
 #include "fmtdy.h"
 #include "fmtdytst.h"
 #include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpsw3.h"
-#endif
+
 #include <stdlib.h>
 #include <time.h>  /* clock */
 
