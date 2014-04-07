@@ -9,15 +9,14 @@
 
 2014-04-04  João Távora  <joaotavora@gmail.com>
 
-	* elec-pair.el:
-	(electric-pair--syntax-ppss): When inside comments parse from
-	comment beginning.
+	* elec-pair.el (electric-pair--syntax-ppss): When inside comments
+	parse from comment beginning.
 	(electric-pair--balance-info): Fix typo in comment.
 	(electric-pair--in-unterminated-string-p): Delete.
 	(electric-pair--unbalanced-strings-p): New function.
 	(electric-pair-string-bound-function): New var.
 	(electric-pair-inhibit-if-helps-balance): Decide quote pairing
-	according to `electric-pair--in-unterminated-string-p'
+	according to `electric-pair--in-unterminated-string-p'.
 
 2014-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -303,7 +302,7 @@
 	Reported by Victor Lau.
 	Fix parsing 'var' in AUTOs, msg1294.  Reported by Dominique Chen.
 	(verilog-auto-inout-module): Fix AUTOINOUTMODULE not inserting
-	interface-only modules, bug721.	 Reported by Dean Hoyt.
+	interface-only modules, bug721.  Reported by Dean Hoyt.
 
 2014-03-26  Glenn Morris  <rgm@gnu.org>
 
@@ -349,9 +348,9 @@
 	(subword-mode-map): Hollow out.
 	(capitalized-words-mode): Define as obsolete alias for
 	`subword-mode'.
-	(subword-mode,superword-mode): Tweak documentation to reflect new
+	(subword-mode, superword-mode): Tweak documentation to reflect new
 	implementation; call `subword-setup-buffer'.
-	(subword-forward,subword-capitalize): Add underscore to indicate
+	(subword-forward, subword-capitalize): Add underscore to indicate
 	unused variable.
 	(subword-find-word-boundary-function-table): New constant.
 	(subword-empty-char-table): New constant.
@@ -5300,7 +5299,7 @@
 
 	* rect.el (rectangle-mark-mode): Rename from rectangle-mark.
 	Make it into a proper minor mode.
-	(rectangle--region): (implicitly) rename to rectangle-mark-mode.
+	(rectangle--region): (Implicitly) rename to rectangle-mark-mode.
 	(rectangle-mark-mode-map): New keymap.
 	(rectangle--highlight-for-redisplay): Fix some corner cases (bug#15796).
 
@@ -5543,8 +5542,7 @@
 
 2013-10-28  Daiki Ueno  <ueno@gnu.org>
 
-	* epa-file.el
-	(epa-file-cache-passphrase-for-symmetric-encryption):
+	* epa-file.el (epa-file-cache-passphrase-for-symmetric-encryption):
 	Document that this option has no effect with GnuPG 2.0 (bug#15552).
 
 2013-10-27  Xue Fuqiao  <xfq.free@gmail.com>
@@ -12356,9 +12354,8 @@
 	* textmodes/reftex-vars.el (reftex-ref-style-alist):
 	Add cleveref macros.
 
-	* textmodes/reftex-parse.el
-	(reftex-locate-bibliography-files): Accept options for
-	bibliography commands.
+	* textmodes/reftex-parse.el (reftex-locate-bibliography-files):
+	Accept options for bibliography commands.
 	* textmodes/reftex-vars.el (reftex-bibliography-commands):
 	Add addbibresource.  Basic Biblatex support.
 
@@ -13828,8 +13825,7 @@
 2013-04-19  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	New faster Imenu implementation (bug#14058).
-	* progmodes/python.el:
-	(python-imenu-prev-index-position):
+	* progmodes/python.el (python-imenu-prev-index-position)
 	(python-imenu-format-item-label-function)
 	(python-imenu-format-parent-item-label-function)
 	(python-imenu-format-parent-item-jump-label-function):

@@ -43,7 +43,7 @@
 	* dired.c (file_attributes):
 	* chartab.c (uniprop_decoder_count, uniprop_encode_count):
 	Change expressions of the form sizeof(arr) / sizeof(arr[0])
-	to ARRAYELTS(arr).
+	to ARRAYELTS (arr).
 
 2014-04-02  Daniel Colascione  <dancol@dancol.org>
 
@@ -55,10 +55,10 @@
 	* alloc.c: Include execinfo.h if available.
 	(SUSPICIOUS_OBJECT_CHECKING): New macro; define unconditionally.
 	(suspicious_free_record): New structure.
-	(suspicious_objects,suspicious_object_index)
-	(suspicious_free_history, suspicious_free_history_index): New
-	variables.
-	(find_suspicious_object_in_range,detect_suspicious_free)
+	(suspicious_objects, suspicious_object_index)
+	(suspicious_free_history, suspicious_free_history_index):
+	New variables.
+	(find_suspicious_object_in_range, detect_suspicious_free)
 	(Fsuspicious_object): New functions.
 	(cleanup_vector): Call find_suspicious_object_in_range.
 
@@ -281,10 +281,10 @@
 	Split gc_sweep into discrete functions for legibility and better
 	stack traces.
 
-	* alloc.c (sweep_strings,sweep_vectors): Add NO_INLINE
+	* alloc.c (sweep_strings, sweep_vectors): Add NO_INLINE
 	(sweep_vectors): Fix typo in comment.
-	(sweep_conses,sweep_floats,sweep_intervals)
-	(sweep_symbols,sweep_misc,sweep_buffers): New functions.
+	(sweep_conses, sweep_floats, sweep_intervals)
+	(sweep_symbols, sweep_misc, sweep_buffers): New functions.
 	(gc_sweep): Call new functions, to which existing functionality is
 	moved.
 	* fns.c (sweep_weak_hash_tables): Add NO_INLINE.
@@ -346,7 +346,7 @@
 
 	* alloc.c (lisp_align_malloc, allocate_string_data)
 	(allocate_vectorlike): Allow mmap allocation of lisp objects.
-	(pointers_fit_in_lispobj_p,mmap_lisp_allowed_p): New functions.
+	(pointers_fit_in_lispobj_p, mmap_lisp_allowed_p): New functions.
 
 2014-03-21  Eli Zaretskii  <eliz@gnu.org>
 
