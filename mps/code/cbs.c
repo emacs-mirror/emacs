@@ -1,7 +1,7 @@
 /* cbs.c: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .intro: This is a portable implementation of coalescing block
  * structures.
@@ -85,6 +85,7 @@ static Bool CBSBlockCheck(CBSBlock block)
   /* See .enter-leave.simple. */
   UNUSED(block); /* Required because there is no signature */
   CHECKL(block != NULL);
+  /* Can't use CHECKD_NOSIG because TreeEMPTY is NULL. */
   CHECKL(TreeCheck(cbsBlockTree(block)));
 
   /* If the block is in the middle of being deleted, */
@@ -1023,7 +1024,7 @@ static Res cbsFindInZones(Range rangeReturn, Range oldRangeReturn,
   AVERT(Land, land);
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
-  /* AVER(ZoneSetCheck(zoneSet)); */
+  /* AVERT(ZoneSet, zoneSet); */
   AVER(BoolCheck(high));
 
   landFind = high ? cbsFindLast : cbsFindFirst;
@@ -1139,7 +1140,7 @@ DEFINE_LAND_CLASS(CBSLandClass, class)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

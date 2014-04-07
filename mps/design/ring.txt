@@ -146,7 +146,7 @@ that the newly added element will be last in the iteration sequence).
 
 ``void (RingInsert)(Ring ring, Ring new)``
 
-_`.insert`: ``RingInsert()`` adds a singleton rung to a ring (such that
+_`.insert`: ``RingInsert()`` adds a singleton ring to a ring (such that
 the newly added element will be first in the iteration sequence).
 
 ``void (RingRemove)(Ring old)``

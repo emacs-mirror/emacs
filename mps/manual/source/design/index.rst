@@ -14,8 +14,11 @@ Design
     freelist
     guide.hex.trans
     guide.impl.c.format
+    interface-c
     keyword-arguments
     land
+    nailboard
     range
     ring
     sig
+    type

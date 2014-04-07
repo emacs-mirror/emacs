@@ -10,7 +10,7 @@
 @rem
 @rem Usage::
 @rem 
-@rem     testrun.sh PLATFORM VARIETY [CASE1 CASE2 ...]
+@rem     testrun.bat PLATFORM VARIETY [CASE1 CASE2 ...]
 
 @echo off
 
@@ -21,6 +21,7 @@ shift
 
 set ALL_TEST_CASES=^
     abqtest.exe ^
+    airtest.exe ^
     amcss.exe ^
     amcsshe.exe ^
     amsss.exe ^
@@ -45,6 +46,7 @@ set ALL_TEST_CASES=^
     mpmss.exe ^
     mpsicv.exe ^
     mv2test.exe ^
+    nailboardtest.exe ^
     poolncv.exe ^
     qs.exe ^
     sacss.exe ^

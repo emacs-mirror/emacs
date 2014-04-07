@@ -119,7 +119,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKS(Globals, arenaGlobals);
   arena = GlobalsArena(arenaGlobals);
   CHECKL(arena->serial < arenaSerial); 
-  CHECKL(RingCheck(&arenaGlobals->globalRing));
+  CHECKD_NOSIG(Ring, &arenaGlobals->globalRing);
 
   CHECKL(MPSVersion() == arenaGlobals->mpsVersionString);
 
@@ -138,16 +138,17 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKL(arenaGlobals->emptyInternalSize >= 0.0);
 
   CHECKL(BoolCheck(arenaGlobals->bufferLogging));
-  CHECKL(RingCheck(&arenaGlobals->poolRing));
-  CHECKL(RingCheck(&arenaGlobals->rootRing));
-  CHECKL(RingCheck(&arenaGlobals->rememberedSummaryRing));
+  CHECKD_NOSIG(Ring, &arenaGlobals->poolRing);
+  CHECKD_NOSIG(Ring, &arenaGlobals->rootRing);
+  CHECKD_NOSIG(Ring, &arenaGlobals->rememberedSummaryRing);
   CHECKL(arenaGlobals->rememberedSummaryIndex < RememberedSummaryBLOCK);
   /* <code/global.c#remembered.summary> RingIsSingle imples index == 0 */
   CHECKL(!RingIsSingle(&arenaGlobals->rememberedSummaryRing) ||
     arenaGlobals->rememberedSummaryIndex == 0);
-  CHECKL(RingCheck(&arena->formatRing));
-  CHECKL(RingCheck(&arena->messageRing));
-  /* Don't check enabledMessageTypes */
+  CHECKD_NOSIG(Ring, &arena->formatRing);
+  CHECKD_NOSIG(Ring, &arena->messageRing);
+  if (arena->enabledMessageTypes != NULL)
+    CHECKD_NOSIG(BT, arena->enabledMessageTypes);
   CHECKL(BoolCheck(arena->isFinalPool));
   if (arena->isFinalPool) {
     CHECKD(Pool, arena->finalPool);
@@ -155,7 +156,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
     CHECKL(arena->finalPool == NULL);
   }
 
-  CHECKL(RingCheck(&arena->threadRing));
+  CHECKD_NOSIG(Ring, &arena->threadRing);
 
   CHECKL(BoolCheck(arena->insideShield));
   CHECKL(arena->shCacheLimit <= ShieldCacheSIZE);
@@ -189,8 +190,8 @@ Bool GlobalsCheck(Globals arenaGlobals)
   TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
 
   for(rank = 0; rank < RankLIMIT; ++rank)
-    CHECKL(RingCheck(&arena->greyRing[rank]));
-  CHECKL(RingCheck(&arena->chainRing));
+    CHECKD_NOSIG(Ring, &arena->greyRing[rank]);
+  CHECKD_NOSIG(Ring, &arena->chainRing);
 
   CHECKL(arena->tracedSize >= 0.0);
   CHECKL(arena->tracedTime >= 0.0);
@@ -212,6 +213,8 @@ Bool GlobalsCheck(Globals arenaGlobals)
 
   /* we also check the statics now. <design/arena/#static.check> */
   CHECKL(BoolCheck(arenaRingInit));
+  /* Can't CHECKD_NOSIG here because &arenaRing is never NULL and GCC
+   * will warn about a constant comparison. */
   CHECKL(RingCheck(&arenaRing));
 
   CHECKL(BoolCheck(arena->emergency));
@@ -632,7 +635,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
 
   arenaClaimRingLock();    /* <design/arena/#lock.ring> */
   mps_exception_info = context;
-  AVER(RingCheck(&arenaRing));
+  AVERT(Ring, &arenaRing);
 
   RING_FOR(node, &arenaRing, nextNode) {
     Globals arenaGlobals = RING_ELT(Globals, globalRing, node);
