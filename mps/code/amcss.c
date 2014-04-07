@@ -106,7 +106,7 @@ static void report(mps_arena_t arena)
 
 /* make -- create one new object */
 
-static mps_addr_t make(void)
+static mps_addr_t make(size_t rootsCount)
 {
   size_t length = rnd() % (2*avLEN);
   size_t size = (length+2) * sizeof(mps_word_t);
@@ -117,7 +117,7 @@ static mps_addr_t make(void)
     MPS_RESERVE_BLOCK(res, p, ap, size);
     if (res)
       die(res, "MPS_RESERVE_BLOCK");
-    res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
+    res = dylan_init(p, size, exactRoots, rootsCount);
     if (res)
       die(res, "dylan_init");
   } while(!mps_commit(ap, p, size));
@@ -139,7 +139,7 @@ static void test_stepper(mps_addr_t object, mps_fmt_t fmt, mps_pool_t pool,
 
 /* test -- the body of the test */
 
-static void test(mps_arena_t arena)
+static void test(mps_arena_t arena, mps_class_t pool_class, size_t roots_count)
 {
   mps_fmt_t format;
   mps_chain_t chain;
@@ -155,7 +155,7 @@ static void test(mps_arena_t arena)
   die(dylan_fmt(&format, arena), "fmt_create");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
-  die(mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
+  die(mps_pool_create(&pool, arena, pool_class, format, chain),
       "pool_create(amc)");
 
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
@@ -267,13 +267,13 @@ static void test(mps_arena_t arena)
       i = (r >> 1) % exactRootsCOUNT;
       if (exactRoots[i] != objNULL)
         cdie(dylan_check(exactRoots[i]), "dying root check");
-      exactRoots[i] = make();
+      exactRoots[i] = make(roots_count);
       if (exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
         dylan_write(exactRoots[(exactRootsCOUNT-1) - i],
                     exactRoots, exactRootsCOUNT);
     } else {
       i = (r >> 1) % ambigRootsCOUNT;
-      ambigRoots[(ambigRootsCOUNT-1) - i] = make();
+      ambigRoots[(ambigRootsCOUNT-1) - i] = make(roots_count);
       /* Create random interior pointers */
       ambigRoots[i] = (mps_addr_t)((char *)(ambigRoots[i/2]) + 1);
     }
@@ -317,7 +317,8 @@ int main(int argc, char *argv[])
    */
   /*die(mps_arena_commit_limit_set(arena, testArenaSIZE), "set limit");*/
   die(mps_thread_reg(&thread, arena), "thread_reg");
-  test(arena);
+  test(arena, mps_class_amc(), exactRootsCOUNT);
+  test(arena, mps_class_amcz(), 0);
   mps_thread_dereg(thread);
   report(arena);
   mps_arena_destroy(arena);
