@@ -15,9 +15,6 @@
 #include "mpscawl.h"
 #include "mpsavm.h"
 #include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpsw3.h"
-#endif
 #include "mps.h"
 
 #include <stdlib.h>
