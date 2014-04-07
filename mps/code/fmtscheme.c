@@ -415,8 +415,9 @@ static mps_addr_t obj_isfwd(mps_addr_t addr)
     return obj->fwd2.fwd;
   case TYPE_FWD:
     return obj->fwd.fwd;
+  default:
+    return NULL;
   }
-  return NULL;
 }
 
 static void obj_fwd(mps_addr_t old, mps_addr_t new)
