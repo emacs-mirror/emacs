@@ -1862,20 +1862,23 @@ See the command `doc-view-mode' for more information on this mode."
          `((page     . ,(doc-view-current-page))
            (handler  . doc-view-bookmark-jump))))
 
-
 ;;;###autoload
 (defun doc-view-bookmark-jump (bmk)
   ;; This implements the `handler' function interface for record type
   ;; returned by `doc-view-bookmark-make-record', which see.
-  (prog1 (bookmark-default-handler bmk)
-    (let ((page (bookmark-prop-get bmk 'page)))
-      (when (not (eq major-mode 'doc-view-mode))
-        (doc-view-toggle-display))
-      (with-selected-window
-       (or (get-buffer-window (current-buffer) 0)
-	   (selected-window))
-       (doc-view-goto-page page)))))
-
+  (let ((page (bookmark-prop-get bmk 'page))
+	(show-fn-sym (make-symbol "doc-view-bookmark-after-jump-hook")))
+    (fset show-fn-sym
+	  (lambda ()
+	    (remove-hook 'bookmark-after-jump-hook show-fn-sym)
+	    (when (not (eq major-mode 'doc-view-mode))
+	      (doc-view-toggle-display))
+	    (with-selected-window
+		(or (get-buffer-window (current-buffer) 0)
+		    (selected-window))
+	      (doc-view-goto-page page))))
+    (add-hook 'bookmark-after-jump-hook show-fn-sym)
+    (bookmark-default-handler bmk)))
 
 (provide 'doc-view)
 

@@ -446,7 +446,7 @@ is specified by the variable `message-log-max'."
 (defun view-lossage ()
   "Display last 300 input keystrokes.
 
-To record all your input on a file, use `open-dribble-file'."
+To record all your input, use `open-dribble-file'."
   (interactive)
   (help-setup-xref (list #'view-lossage)
 		   (called-interactively-p 'interactive))

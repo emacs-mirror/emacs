@@ -375,7 +375,8 @@ struct frame
      set this directly, use SET_FRAME_ICONIFIED instead.  */
   bool_bf iconified : 1;
 
-  /* True if this frame should be redrawn.  */
+  /* True if this frame should be fully redisplayed.  Disables all
+     optimizations while rebuilding matrices and redrawing.  */
   bool_bf garbaged : 1;
 
   /* False means, if this frame has just one window,

@@ -1835,11 +1835,6 @@ if test "${HAVE_W32}" = "yes"; then
   W32_OBJ="w32fns.o w32menu.o w32reg.o w32font.o w32term.o"
   W32_OBJ="$W32_OBJ w32xfns.o w32select.o w32uniscribe.o"
   EMACSRES="emacs.res"
-  case "$canonical" in
-    x86_64-*-*) EMACS_MANIFEST="emacs-x64.manifest" ;;
-    *) EMACS_MANIFEST="emacs-x86.manifest" ;;
-  esac
-  UPDATE_MANIFEST=update-game-score.exe.manifest
   if test "${opsys}" = "cygwin"; then
     W32_LIBS="$W32_LIBS -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32"
     W32_LIBS="$W32_LIBS -lusp10 -lcomctl32 -lwinspool"
@@ -1847,6 +1842,11 @@ if test "${HAVE_W32}" = "yes"; then
     # the rc file), not a linker script.
     W32_RES_LINK="-Wl,emacs.res"
   else
+    case "$canonical" in
+      x86_64-*-*) EMACS_MANIFEST="emacs-x64.manifest" ;;
+      *) EMACS_MANIFEST="emacs-x86.manifest" ;;
+    esac
+    UPDATE_MANIFEST=update-game-score.exe.manifest
     W32_OBJ="$W32_OBJ w32.o w32console.o w32heap.o w32inevt.o w32proc.o"
     W32_LIBS="$W32_LIBS -lwinmm -lgdi32 -lcomdlg32"
     W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lcomctl32 -lusp10"

@@ -114,8 +114,8 @@
                                      mode
                                      extra-desc))
            ()
-         ,(format "With \"%s\", try input %c at point %d. \
-Should %s \"%s\" and point at %d"
+         ,(format "With |%s|, try input %c at point %d. \
+Should %s |%s| and point at %d"
                   fixture
                   char
                   (1+ pos)
@@ -382,6 +382,31 @@ baz\"\""
   :test-in-strings nil
   :test-in-code nil
   :test-in-comments t)
+
+(define-electric-pair-test whitespace-skipping-for-quotes-not-ouside
+  "  \"  \"" "\"-----" :expected-string "\"\"  \"  \""
+  :expected-point 2
+  :bindings '((electric-pair-skip-whitespace . chomp))
+  :test-in-strings nil
+  :test-in-code t
+  :test-in-comments nil)
+
+(define-electric-pair-test whitespace-skipping-for-quotes-only-inside
+  "  \"  \"" "---\"--" :expected-string "  \"\""
+  :expected-point 5
+  :bindings '((electric-pair-skip-whitespace . chomp))
+  :test-in-strings nil
+  :test-in-code t
+  :test-in-comments nil)
+
+(define-electric-pair-test whitespace-skipping-quotes-not-without-proper-syntax
+  "  \"  \"" "---\"--" :expected-string "  \"\"\"  \""
+  :expected-point 5
+  :modes '(text-mode)
+  :bindings '((electric-pair-skip-whitespace . chomp))
+  :test-in-strings nil
+  :test-in-code t
+  :test-in-comments nil)
 
 
 ;;; Pairing arbitrary characters

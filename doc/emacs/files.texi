@@ -594,8 +594,8 @@ directory.  Emacs creates the directory, if necessary, to make the
 backup.
 
 @vindex make-backup-file-name-function
-  If you define the variable @code{make-backup-file-name-function} to
-a suitable Lisp function, that overrides the usual way Emacs
+  If you set the variable @code{make-backup-file-name-function} to
+a suitable Lisp function, you can override the usual way Emacs
 constructs backup file names.
 
 @node Backup Deletion

@@ -103,15 +103,15 @@ arguments to list only some of the files.  @file{*Find*} and
 This section is intended for Elisp programmers who would like to add
 support for auto-reverting new types of buffers.
 
-To support auto-reverting the buffer must first of all have a
+To support auto-reverting the buffer must first of all have a suitable
 @code{revert-buffer-function}.  @xref{Definition of
 revert-buffer-function,, Reverting, elisp, the Emacs Lisp Reference Manual}.
 
-In addition, it @emph{must} have a @code{buffer-stale-function}.
+In addition, it must have a suitable @code{buffer-stale-function}.
 
 @c FIXME only defvar in all of doc/emacs!
 @defvar buffer-stale-function
-The value of this variable is a function to check whether a non-file
+The value of this variable is a function to check whether a
 buffer needs reverting.  This should be a function with one optional
 argument @var{noconfirm}.  The function should return non-@code{nil}
 if the buffer should be reverted.  The buffer is current when this
@@ -132,7 +132,7 @@ If you just want to automatically auto-revert every
 @code{auto-revert-interval} seconds (like the Buffer Menu), use:
 
 @example
-(set (make-local-variable 'buffer-stale-function)
+(setq-local buffer-stale-function
      #'(lambda (&optional noconfirm) 'fast))
 @end example
 
@@ -149,7 +149,7 @@ also be useful if the function is consulted for purposes other than
 auto-reverting.
 @end defvar
 
-Once the buffer has a @code{revert-buffer-function} and a
+Once the buffer has a suitable @code{revert-buffer-function} and
 @code{buffer-stale-function}, several problems usually remain.
 
 The buffer will only auto-revert if it is marked unmodified.  Hence,

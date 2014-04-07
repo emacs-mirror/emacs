@@ -491,9 +491,13 @@ to call FUN for any change whatsoever.")
     (cancel-timer mpc--status-timer)
     (setq mpc--status-timer nil)))
 (defun mpc--status-timer-run ()
-  (with-demoted-errors "MPC: %s"
+  (with-demoted-errors "MPC: %S"
     (when (process-get (mpc-proc) 'ready)
-      (with-local-quit (mpc-status-refresh)))))
+      (let* ((buf (mpc-proc-buffer (mpc-proc) 'status))
+             (win (get-buffer-window buf t)))
+        (if (not win)
+            (mpc--status-timer-stop)
+          (with-local-quit (mpc-status-refresh)))))))
 
 (defvar mpc--status-idle-timer nil)
 (defun mpc--status-idle-timer-start ()
@@ -518,10 +522,8 @@ to call FUN for any change whatsoever.")
           ;; client starts playback, we may get a chance to notice it.
           (run-with-idle-timer 10 t 'mpc--status-idle-timer-run))))
 (defun mpc--status-idle-timer-run ()
-  (when (process-get (mpc-proc) 'ready)
-    (with-demoted-errors "MPC: %s"
-        (with-local-quit (mpc-status-refresh))))
-  (mpc--status-timer-start))
+  (mpc--status-timer-start)
+  (mpc--status-timer-run))
 
 (defun mpc--status-timers-refresh ()
   "Start/stop the timers according to whether a song is playing."

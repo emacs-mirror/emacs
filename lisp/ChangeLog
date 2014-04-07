@@ -1,3 +1,128 @@
+2014-04-07  João Távora  <joaotavora@gmail.com>
+
+	* elec-pair.el:
+	(electric-pair--syntax-ppss): When inside comments parse from
+	comment beginning.
+	(electric-pair--balance-info): Fix typo in comment.
+	(electric-pair--in-unterminated-string-p): Delete.
+	(electric-pair--unbalanced-strings-p): New function.
+	(electric-pair-string-bound-function): New var.
+	(electric-pair-inhibit-if-helps-balance): Decide quote pairing
+	according to `electric-pair--in-unterminated-string-p'
+
+2014-04-07  João Távora  <joaotavora@gmail.com>
+
+	* elec-pair.el (electric-pair-inhibit-if-helps-balance): Inhibit
+	quote pairing if point-max is inside an unterminated string.
+	(electric-pair--looking-at-unterminated-string-p):
+	Delete.
+	(electric-pair--in-unterminated-string-p): New function.
+
+2014-04-07  Glenn Morris  <rgm@gnu.org>
+
+	* shell.el (shell-directory-tracker):
+	Go back to just ignoring failures.  (Bug#17159)
+
+2014-04-06  João Távora  <joaotavora@gmail.com>
+
+	Fix `electric-pair-delete-adjacent-pairs' in modes binding
+	backspace. (bug#16981)
+	* elec-pair.el (electric-pair-backward-delete-char): Delete.
+	(electric-pair-backward-delete-char-untabify): Delete.
+	(electric-pair-mode-map): Bind backspace to a menu item filtering
+	a new `electric-pair-delete-pair' command.
+	(electric-pair-delete-pair): New command.
+
+2014-04-06  João Távora  <joaotavora@gmail.com>
+
+	* progmodes/python.el (python-electric-pair-string-delimiter): Fix
+	triple-quoting electricity.  (Bug#17192)
+
+2014-04-06  João Távora  <joaotavora@gmail.com>
+
+	* elec-pair.el (electric-pair-post-self-insert-function): Don't
+	skip whitespace when `electric-pair-text-pairs' and
+	`electric-pair-pairs' were used. syntax to
+	electric-pair--skip-whitespace.  (Bug#17183)
+
+2014-04-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* leim/quail/ipa.el (ipa-x-sampa): Fix the character produced for
+	"<F>".  (Bug#17199)
+
+2014-04-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mpc.el (mpc--status-timer-run): Disable timer if not displayed.
+	(mpc--status-idle-timer-run): Use mpc--status-timer-run.
+
+2014-04-05  Glenn Morris  <rgm@gnu.org>
+
+	* help.el (view-lossage): Doc tweak.
+
+2014-04-05  Matthias Dahl  <ml_emacs-lists@binary-island.eu>
+
+	* faces.el (face-spec-recalc): Call make-face-x-resource-internal
+	only when inhibit-x-resources is nil, and do that earlier in the
+	function.  Doc fix.  (Bug#16694)
+	(face-spec-choose): Accept additional optional argument, whose
+	value is returned if no matching attributes are found.
+	(face-spec-recalc): Use the new optional argument when calling
+	face-spec-choose.  (Bug#16378)
+	(make-face-x-resource-internal): Do nothing when
+	inhibit-x-resources is non-nil.  Don't touch the default face if
+	reversed video is given--as was done in previous versions of Emacs.
+	(face-set-after-frame-default): Don't call
+	make-face-x-resource-internal here.  (Bug#16434)
+
+2014-04-04  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc-view.el (doc-view-bookmark-jump):
+	Use `bookmark-after-jump-hook' to jump to the right page after the
+	buffer is shown in a window.  (bug#16090)
+
+2014-04-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/characters.el (mirroring): Fix last change:
+	instead of loading uni-mirrored.el explicitly, do that implicitly
+	by creating the 'mirroring' uniprop table.  This avoids announcing
+	the loading of uni-mirrored.el.
+
+2014-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (buffer-stale--default-function)
+	(buffer-stale-function, revert-buffer--default):
+	* autorevert.el (auto-revert-buffers): Doc tweaks.
+
+2014-04-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/characters.el: Preload uni-mirrored.el.  (Bug#17169)
+
+2014-04-03  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (make-backup-file-name-function)
+	(make-backup-file-name, make-backup-file-name--default-function)
+	(make-backup-file-name-1, find-backup-file-name)
+	(revert-buffer-function, revert-buffer-insert-file-contents-function)
+	(buffer-stale--default-function, buffer-stale-function)
+	(before-revert-hook, after-revert-hook, revert-buffer-in-progress-p)
+	(revert-buffer, revert-buffer--default)
+	(revert-buffer-insert-file-contents--default-function):
+	Doc fixes related to defaults no longer being nil.
+	(make-backup-file-name-function): Bump :version.
+	Restore nil as a valid but deprecated custom type.
+
+2014-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-syntax-propertize-function): Handle $'
+	used as a variable (bug#17174).
+
+2014-04-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-indent-new-calculate):
+	Handle forward-sexp failure (bug#16985).
+	(perl-syntax-propertize-function): Add "foreach" and "for" statement
+	modifiers introducing expressions (bug#17116).
+
 2014-04-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dired-aux.el (dired-file-set-difference): Use lexical-scoping.
@@ -488,6 +613,19 @@
 	(tty-color-approximate, tty-color-by-index, tty-color-values)
 	(tty-color-desc): Remove superfluous backslashes.
 
+2014-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-newline-and-maybe-indent): New command.
+	Bind it globally to C-j.
+	(electric-indent-mode): Don't mess with the global map any more.
+	Don't drop the post-self-insert-hook is some buffer is still using it
+	(bug#16770).
+
+	* bindings.el (global-map): Remove C-j binding.
+
+	* emacs-lisp/nadvice.el (advice--make-docstring): Try harder to find
+	the docstring of functions advised before dumping (bug#16993).
+
 2014-03-21  Glenn Morris  <rgm@gnu.org>
 
 	* cus-start.el (history-length): Bump :version.
@@ -515,18 +653,6 @@
 	* emacs-lisp/cl-extra.el (cl--map-overlays): Remove obsolete code.
 
 	* skeleton.el (skeleton-autowrap): Mark as obsolete.  Doc fix.
-
-2014-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* electric.el (electric-newline-and-maybe-indent): New command.
-	Bind it globally to C-j.
-	(electric-indent-mode): Don't mess with the global map any more.
-	Don't drop the post-self-insert-hook is some buffer is still using it
-	(bug#16770).
-	* bindings.el (global-map): Remove C-j binding.
-
-	* emacs-lisp/nadvice.el (advice--make-docstring): Try harder to find
-	the docstring of functions advised before dumping (bug#16993).
 
 2014-03-19  Stefan-W. Hahn  <stefan.hahn@s-hahn.de>  (tiny change)
 
@@ -2154,7 +2280,6 @@
 	* net/shr.el (shr-tag-img): Prefer the title over the alt text
 	(bug#16537).
 
->>>>>>> MERGE-SOURCE
 2014-01-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/eww.el (eww-download-callback):

@@ -1,3 +1,8 @@
+2014-04-03  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.ac (EMACS_MANIFEST, UPDATE_MANIFEST): Leave these
+	variables empty on Cygwin.  (Bug#17176)
+
 2014-04-03  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Further update AC_INIT regexp.

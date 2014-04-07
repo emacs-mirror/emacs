@@ -1,3 +1,15 @@
+2014-04-05  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Checklist): Dribble files may contain passwords.
+
+2014-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Backup Names):
+	* arevert-xtra.texi (Supporting additional buffers):
+	Update for default values of some -function vars no longer being nil.
+	(Supporting additional buffers):
+	Update for buffer-stale-function also applying to file-buffers.
+
 2014-03-28  Glenn Morris  <rgm@gnu.org>
 
 	* custom.texi (Terminal Init): Mention term-file-aliases.

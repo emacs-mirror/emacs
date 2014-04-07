@@ -759,7 +759,9 @@ customizations.
 One way to record the input to Emacs precisely is to write a dribble
 file.  To start the file, use the @kbd{M-x open-dribble-file
 @key{RET}} command.  From then on, Emacs copies all your input to the
-specified dribble file until the Emacs process is killed.
+specified dribble file until the Emacs process is killed.  Be aware
+that sensitive information (such as passwords) may end up recorded in
+the dribble file.
 
 @item
 @findex open-termscript

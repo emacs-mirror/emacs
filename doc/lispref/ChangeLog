@@ -1,3 +1,14 @@
+2014-04-05  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Recording Input): Dribble files may contain passwords.
+
+2014-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* backups.texi (Making Backups, Reverting):
+	Update for default values of some -function vars no longer being nil.
+	(Reverting): Update for buffer-stale-function
+	also applying to file-buffers.
+
 2014-03-31  Daniel Colascione  <dancol@dancol.org>
 
 	* minibuf.texi (Completion in Buffers): Discuss using lazy
