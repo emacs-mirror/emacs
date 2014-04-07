@@ -1,7 +1,7 @@
 /* poolmv2.c: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: A manual-variable pool designed to take advantage of
  * placement according to predicted deathtime.
@@ -145,6 +145,7 @@ DEFINE_POOL_CLASS(MVTPoolClass, this)
   this->bufferFill = MVTBufferFill;
   this->bufferEmpty = MVTBufferEmpty;
   this->describe = MVTDescribe;
+  AVERT(PoolClass, this);
 }
 
 /* Macros */
@@ -199,7 +200,7 @@ static void MVTVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[4].key = MPS_KEY_MVT_FRAG_LIMIT;
   args[4].val.d = (double)va_arg(varargs, Count) / 100.0;
   args[5].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 
@@ -278,7 +279,9 @@ static Res MVTInit(Pool pool, ArgList args)
   if (res != ResOK)
     goto failABQ;
 
-  FreelistInit(MVTFreelist(mvt), align);
+  res = FreelistInit(MVTFreelist(mvt), align);
+  if (res != ResOK)
+    goto failFreelist;
 
   pool->alignment = align;
   mvt->reuseSize = reuseSize;
@@ -343,6 +346,8 @@ static Res MVTInit(Pool pool, ArgList args)
                reserveDepth, fragLimit);
   return ResOK;
 
+failFreelist:
+  ABQFinish(arena, MVTABQ(mvt));
 failABQ:
   CBSFinish(MVTCBS(mvt));
 failCBS:
@@ -359,9 +364,7 @@ static Bool MVTCheck(MVT mvt)
   CHECKD(Pool, &mvt->poolStruct);
   CHECKL(mvt->poolStruct.class == MVTPoolClassGet());
   CHECKD(CBS, &mvt->cbsStruct);
-  /* CHECKL(CBSCheck(MVTCBS(mvt))); */
   CHECKD(ABQ, &mvt->abqStruct);
-  /* CHECKL(ABQCheck(MVTABQ(mvt))); */
   CHECKD(Freelist, &mvt->flStruct);
   CHECKL(mvt->reuseSize >= 2 * mvt->fillSize);
   CHECKL(mvt->fillSize >= mvt->maxSize);
@@ -375,8 +378,7 @@ static Bool MVTCheck(MVT mvt)
   if (mvt->splinter) {
     CHECKL(AddrOffset(mvt->splinterBase, mvt->splinterLimit) >=
            mvt->minSize);
-    /* CHECKD(Seg, mvt->splinterSeg); */
-    CHECKL(SegCheck(mvt->splinterSeg));
+    CHECKD(Seg, mvt->splinterSeg);
     CHECKL(mvt->splinterBase >= SegBase(mvt->splinterSeg));
     CHECKL(mvt->splinterLimit <= SegLimit(mvt->splinterSeg));
   }
@@ -683,7 +685,7 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(BufferIsReset(buffer));
   AVER(minSize > 0);
   AVER(SizeIsAligned(minSize, pool->alignment));
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   /* Allocate oversize blocks exactly, directly from the arena.
      <design/poolmvt/#arch.ap.no-fit.oversize> */
@@ -757,9 +759,11 @@ static Bool MVTDeleteOverlapping(Bool *deleteReturn, void *element,
 
 
 /* MVTReserve -- add a range to the available range queue, and if the
- * queue is full, return segments to the arena.
+ * queue is full, return segments to the arena. Return TRUE if it
+ * succeeded in adding the range to the queue, FALSE if the queue
+ * overflowed.
  */
-static Res MVTReserve(MVT mvt, Range range)
+static Bool MVTReserve(MVT mvt, Range range)
 {
   AVERT(MVT, mvt);
   AVERT(Range, range);
@@ -774,18 +778,18 @@ static Res MVTReserve(MVT mvt, Range range)
     SURELY(ABQPeek(MVTABQ(mvt), &oldRange));
     AVERT(Range, &oldRange);
     if (!MVTReturnSegs(mvt, &oldRange, arena))
-      goto failOverflow;
+      goto overflow;
     METER_ACC(mvt->returns, RangeSize(&oldRange));
     if (!ABQPush(MVTABQ(mvt), range))
-      goto failOverflow;
+      goto overflow;
   }
 
-  return ResOK;
+  return TRUE;
 
-failOverflow:
+overflow:
   mvt->abqOverflow = TRUE;
   METER_ACC(mvt->overflows, RangeSize(range));
-  return ResFAIL;
+  return FALSE;
 }
 
 
@@ -820,7 +824,7 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
      * are coalesced on the ABQ.
      */
     ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &newRange, 0);
-    MVTReserve(mvt, &newRange);
+    (void)MVTReserve(mvt, &newRange);
   }
 
   return ResOK;
@@ -875,11 +879,11 @@ static Res MVTDelete(MVT mvt, Addr base, Addr limit)
    */
   RangeInit(&rangeLeft, RangeBase(&rangeOld), base);
   if (RangeSize(&rangeLeft) >= mvt->reuseSize)
-    MVTReserve(mvt, &rangeLeft);
+    (void)MVTReserve(mvt, &rangeLeft);
 
   RangeInit(&rangeRight, limit, RangeLimit(&rangeOld));
   if (RangeSize(&rangeRight) >= mvt->reuseSize)
-    MVTReserve(mvt, &rangeRight);
+    (void)MVTReserve(mvt, &rangeRight);
 
   return ResOK;
 }
@@ -1269,8 +1273,6 @@ static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena)
  */
 static Bool MVTRefillCallback(MVT mvt, Range range)
 {
-  Res res;
-
   AVERT(ABQ, MVTABQ(mvt));
   AVERT(Range, range);
 
@@ -1278,11 +1280,7 @@ static Bool MVTRefillCallback(MVT mvt, Range range)
     return TRUE;
 
   METER_ACC(mvt->refillPushes, ABQDepth(MVTABQ(mvt)));
-  res = MVTReserve(mvt, range);
-  if (res != ResOK)
-    return FALSE;
-
-  return TRUE;
+  return MVTReserve(mvt, range);
 }
 
 static Bool MVTCBSRefillCallback(CBS cbs, Range range,
@@ -1488,7 +1486,7 @@ CBS _mps_mvt_cbs(mps_pool_t mps_pool) {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

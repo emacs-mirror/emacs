@@ -28,7 +28,7 @@ set LOGDIR=%TMP%\mps-%PFM%-%VARIETY%-log
 echo MPS test suite
 echo Logging test output to %LOGDIR%
 echo Test directory: %PFM%\%VARIETY%
-rmdir /q /s %LOGDIR%
+if exist %LOGDIR% rmdir /q /s %LOGDIR%
 mkdir %LOGDIR%
 
 @rem Determine which tests to run.

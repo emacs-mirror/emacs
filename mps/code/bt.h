@@ -1,7 +1,7 @@
 /* bt.h: Bit Table Interface
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .source: <design/bt/>
  */
@@ -39,6 +39,7 @@ extern void (BTRes)(BT bt, Index index);
   END
 
 
+extern Bool BTCheck(BT bt);
 extern Res BTCreate(BT *btReturn, Arena arena, Count length);
 extern void BTDestroy(BT bt, Arena arena, Count length);
 
@@ -76,7 +77,7 @@ extern Count BTCountResRange(BT bt, Index base, Index limit);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

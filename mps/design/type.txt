@@ -6,7 +6,7 @@ General MPS types
 :Tag: design.mps.type
 :Author: Richard Brooksby
 :Date: 1996-10-23
-:Status: incomplete document
+:Status: complete document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
 :Index terms:   pair: general types; design
@@ -31,6 +31,87 @@ say ``Byte`` in your code if it's what you mean.
 
 Concrete types
 --------------
+
+``typedef unsigned AccessSet``
+
+_`.access-set`: An ``AccessSet`` is a bitset of ``Access`` modes,
+which are ``AccessREAD`` and ``AccessWRITE``. ``AccessSetEMPTY`` is
+the empty ``AccessSet``.
+
+
+``typedef struct AddrStruct *Addr``
+
+_`.addr`: ``Addr`` is the type used for "managed addresses", that is,
+addresses of objects managed by the MPS.
+
+_`.addr.def`: ``Addr`` is defined as ``struct AddrStruct *``, but
+``AddrStruct`` is never defined. This means that ``Addr`` is always an
+incomplete type, which prevents accidental dereferencing, arithmetic,
+or assignment to other pointer types.
+
+_`.addr.use`: ``Addr`` should be used whenever the code needs to deal
+with addresses. It should not be used for the addresses of memory
+manager data structures themselves, so that the memory manager remains
+amenable to working in a separate address space. Be careful not to
+confuse ``Addr`` with ``void *``.
+
+_`.addr.ops`: Limited arithmetic is allowed on addresses using
+``AddrAdd()`` and ``AddrOffset()`` (impl.c.mpm). Addresses may also be
+compared using the relational operators ``==``, ``!=``, ``<``, ``<=``,
+``>``, and ``>=``.
+
+_`.addr.ops.mem`: We need efficient operators similar to ``memset()``,
+``memcpy()``, and ``memcmp()`` on ``Addr``; these are called ``AddrSet()``,
+``AddrCopy()``, and ``AddrComp()``. When ``Addr`` is compatible with
+``void *``, these are implemented through the functions
+``mps_lib_memset()``, ``mps_lib_memcpy()``, and ``mps_lib_memcmp()``
+functions in the plinth (impl.h.mpm).
+
+_`.addr.conv.c`: ``Addr`` is converted to ``mps_addr_t`` in the MPS C
+Interface. ``mps_addr_t`` is defined to be the same as ``void *``, so
+using the MPS C Interface confines the memory manager to the same
+address space as the client data.
+
+
+``typedef Word Align``
+
+_`.align`: ``Align`` is an unsigned integral type which is used to
+represent the alignment of managed addresses. All alignments are
+positive powers of two. ``Align`` is large enough to hold the maximum
+possible alignment.
+
+_`.align.use`: ``Align`` should be used whenever the code needs to
+deal with the alignment of a managed address.
+
+_`.align.conv.c`: ``Align`` is converted to ``mps_align_t`` in the MPS
+C Interface.
+
+
+``typedef unsigned Attr``
+
+_`.attr`: Pool attributes. A bitset of pool or pool class
+attributes, which are:
+
+===================  ===================================================
+Attribute            Description
+===================  ===================================================
+``AttrALLOC``        Supports the ``PoolAlloc`` interface.
+``AttrBUF``          Supports the buffer interface.
+``AttrFMT``          Contains formatted objects.
+                     Used to decide which pools to walk.
+``AttrFREE``         Supports the ``PoolFree`` interface.
+``AttrGC``           Is garbage collecting, that is, parts may be
+                     reclaimed. Used to decide which segments are
+                     condemned.
+``AttrMOVINGGC``     Is moving, that is, objects may move in memory.
+                     Used to update the set of zones that might have
+                     moved and so implement location dependency.
+``AttrSCAN``         Contains references and must be scanned.
+===================  ===================================================
+
+There is an attribute field in the pool class (``PoolClassStruct``)
+which declares the attributes of that class.
+
 
 ``typedef int Bool``
 
@@ -71,63 +152,135 @@ for ``BoolCheck`` on the PC Aaron. "With" ran in 97.7% of the time
 (averaged over 3 runs).
 
 
-``typedef int Res``
+``typedef unsigned BufferMode``
 
-_`.res`: ``Res`` is the type of result codes. A result code indicates
-the success or failure of an operation, along with the reason for
-failure. Like Unix error codes, the meaning of the code depends on the
-call that returned it. These codes are just broad categories with
-mnemonic names for various sorts of problems.
+_`.buffermode`: ``BufferMode`` is a bitset of buffer attributes. See
+design.mps.buffer_. It is a sum of the following:
 
-===================  =======================================================
-Result code          Description
-===================  =======================================================
-``ResOK``            The operation succeeded. Return parameters may only be 
-                     updated if OK is returned, otherwise they must be left 
-                     untouched.
--------------------  -------------------------------------------------------
-``ResFAIL``          Something went wrong which doesn't fall into any of the
-                     other categories. The exact meaning depends on the
-                     call. See documentation.
--------------------  -------------------------------------------------------
-``ResRESOURCE``      A needed resource could not be obtained. Which resource
-                     depends on the call. See also ``ResMEMORY``, which is a
-                     special case of this.
--------------------  -------------------------------------------------------
-``ResMEMORY``        Needed memory (committed memory, not address space) 
-                     could not be obtained.
--------------------  -------------------------------------------------------
-``ResLIMIT``         An internal limitation was reached.  For example, the
-                     maximum number of somethings was reached.  We should
-                     avoid returning this by not including static
-                     limitations in our code, as far as possible. (See
-                     rule.impl.constrain and
-                     rule.impl.limits.)
--------------------  -------------------------------------------------------
-``ResUNIMPL``        The operation, or some vital part of it, is
-                     unimplemented. This might be returned by functions
-                     which are no longer supported, or by operations which
-                     are included for future expansion, but not yet
-                     supported.
--------------------  -------------------------------------------------------
-``ResIO``            An I/O error occurred. Exactly what depends on the
-                     function.
--------------------  -------------------------------------------------------
-``ResCOMMIT_LIMIT``  The arena's commit limit would have been exceeded
-                     as a result of allocation.
--------------------  -------------------------------------------------------
-``ResPARAM``         An invalid parameter was passed.  Normally reserved for
-                     parameters passed from the client.
-===================  =======================================================
+.. _design.mps.buffer: buffer
 
-_`.res.use`: ``Res`` should be returned from any function which might
-fail. Any other results of the function should be passed back in
-"return" parameters (pointers to locations to fill in with the
-results).
+========================  ==============================================
+Mode                      Description
+========================  ==============================================
+``BufferModeATTACHED``    Buffer is attached to a region of memory.
+``BufferModeFLIPPED``     Buffer has been flipped.
+``BufferModeLOGGED``      Buffer emits the events ``BufferReserve`` and 
+                          ``BufferCommit``.
+``BufferModeTRANSITION``  Buffer is in the process of being detached.
+========================  ==============================================
 
-.. note:: This is documented elsewhere, I think -- richard
 
-_`.res.use.spec`: The most specific code should be returned.
+``typedef unsigned char Byte``
+
+_`.byte`: ``Byte`` is an unsigned integral type corresponding to the
+unit in which most sizes are measured, and also the units of
+``sizeof``.
+
+_`.byte.use`: ``Byte`` should be used in preference to ``char`` or
+``unsigned char`` wherever it is necessary to deal with bytes
+directly.
+
+_`.byte.source`: ``Byte`` is a just pedagogic version of ``unsigned
+char``, since ``char`` is the unit of ``sizeof``.
+
+
+``typedef Word Clock``
+
+_`.clock`: ``Clock`` is an unsigned integral type representing clock
+time since some epoch.
+
+_`.clock.use`: A ``Clock`` value is returned by the plinth function
+``mps_clock``. It is used to make collection scheduling decisions and
+to calibrate the time stamps on events in the telemetry stream.
+
+_`.clock.units`: The plinth function ``mps_clocks_per_sec`` defines
+the units of a ``Clock`` value.
+
+_`.clock.conv.c`: ``Clock`` is converted to ``mps_clock_t`` in the MPS
+C Interface.
+
+
+``typedef unsigned Compare``
+
+_`.compare`: ``Compare`` is the type of tri-state comparison
+values.
+
+==================  ====================================================
+Value               Description
+==================  ====================================================
+``CompareLESS``     A value compares less than another value.
+``CompareEQUAL``    Two values compare the same.
+``CompareGREATER``  A value compares greater than another value. 
+==================  ====================================================
+
+
+``typedef Word Count``
+
+_`.count`: ``Count`` is an unsigned integral type which is large
+enough to hold the size of any collection of objects in the MPS.
+
+_`.count.use`: ``Count`` should be used for a number of objects
+(control or managed) where the maximum number of objects cannot be
+statically determined. If the maximum number can be statically
+determined then the smallest unsigned integer with a large enough
+range may be used instead (although ``Count`` may be preferable for
+clarity).
+
+_`.count.use.other`: ``Count`` may also be used to count things that
+aren't represented by objects (for example, levels), but only where it
+can be determined that the maximum count is less than the number of
+objects.
+
+
+``typedef Size Epoch``
+
+_`.epoch`: An ``Epoch`` is a count of the number of flips that have
+occurred. It is used in the implementation of location dependencies.
+
+``Epoch`` is converted to ``mps_word_t`` in the MPS C Interface, as a
+field of ``mps_ld_s``.
+
+
+``typedef unsigned FindDelete``
+
+_`.finddelete`: ``FindDelete`` represents an instruction to one of the
+*find* methods of a ``Land`` as to what it should do if it finds a
+suitable block. See design.mps.land_. It takes one of the following
+values:
+
+.. _design.mps.land: land
+
+====================  ==================================================
+Value                 Description
+====================  ==================================================
+``FindDeleteNONE``    Don't delete after finding.
+``FindDeleteLOW``     Delete from low end of block.
+``FindDeleteHIGH``    Delete from high end of block.
+``FindDeleteENTIRE``  Delete entire block.
+====================  ==================================================
+
+
+``typedef unsigned FrameState``
+
+_`.framestate`: ``FrameState`` represents the current state in a
+buffer frame's lifecycle. See design.mps.alloc-frame_. It takes one of
+the following values:
+
+.. _design.mps.alloc-frame: alloc-frame
+
+==========================  ============================================
+State                       Description
+==========================  ============================================
+``BufferFrameVALID``        Indicates that ``PushFrame()`` can be a
+                            lightweight operation and need not be
+                            synchronized.
+``BufferFramePOP_PENDING``  Indicates that there has been a
+                            ``PopFrame()`` operation that the pool
+                            must respond to.
+``BufferFrameDISABLED``     Indicates that the pool has disabled
+                            support for lightweight operations for
+                            this buffer.
+==========================  ============================================
 
 
 ``typedef void (*Fun)(void)``
@@ -140,6 +293,328 @@ function in a polymorphic way without calling it. For example, if you
 need to write a function ``g`` which passes another function ``f``
 through to a third function ``h``, where ``h`` knows the real type of
 ``f`` but ``g`` doesn't.
+
+
+``typedef Word Index``
+
+_`.index`: ``Index`` is an unsigned integral type which is large
+enough to hold any array index.
+
+_`.index.use`: ``Index`` should be used where the maximum size of the
+array cannot be statically determined. If the maximum size can be
+determined then the smallest unsigned integer with a large enough
+range may be used instead.
+
+
+``typedef unsigned MessageType``
+
+_`.messagetype`: ``MessageType`` is the type of a message. See
+design.mps.message_. It takes one of the following values:
+
+.. _design.mps.message: message
+
+===========================  ===========================================
+Message type                 Description
+===========================  ===========================================
+``MessageTypeFINALIZATION``  A block is finalizable.
+``MessageTypeGC``            A garbage collection finished.
+``MessageTypeGCSTART``       A garbage collection started.
+===========================  ===========================================
+
+
+``typedef unsigned Rank``
+
+_`.rank`: ``Rank`` is an enumeration which represents the rank of a
+reference. The ranks are:
+
+=============  =====  ==================================================
+Rank           Index  Description
+=============  =====  ==================================================
+``RankAMBIG``  0      The reference is ambiguous. That is, it must be
+                      assumed to be a reference, but not updated in
+                      case it isn't.
+``RankEXACT``  1      The reference is exact, and refers to an object.
+``RankFINAL``  2      The reference is exact and final, so special 
+                      action is required if only final or weak
+                      references remain to the object.
+``RankWEAK``   3      The reference is exact and weak, so should
+                      be deleted if only weak references remain to the
+                      object.
+=============  =====  ==================================================
+
+``Rank`` is stored with segments and roots, and passed around.
+
+``Rank`` is converted to ``mps_rank_t`` in the MPS C Interface.
+
+The ordering of the ranks is important. It is the order in which the
+references must be scanned in order to respect the properties of
+references of the ranks. Therefore they are declared explicitly with
+their integer values.
+
+.. note:: Could ``Rank`` be a ``short``?
+
+.. note::
+
+    This documentation should be expanded and moved to its own
+    document, then referenced from the implementation more thoroughly.
+
+
+``typedef unsigned RankSet``
+
+_`.rankset`: ``RankSet`` is a set of ranks, represented as a bitset.
+
+
+``typedef Addr Ref``
+
+_`.ref`: ``Ref`` is a reference to a managed object (as opposed to any
+old managed address). ``Ref`` should be used where a reference is
+intended.
+
+.. note:: This isn't too clear -- richard
+
+
+``typedef Word RefSet``
+
+_`.refset`: ``RefSet`` is a conservative approximation to a set of
+references. See design.mps.refset_.
+
+.. _design.mps.refset: refset
+
+
+``typedef int Res``
+
+_`.res`: ``Res`` is the type of result codes. A result code indicates
+the success or failure of an operation, along with the reason for
+failure. Like Unix error codes, the meaning of the code depends on the
+call that returned it. These codes are just broad categories with
+mnemonic names for various sorts of problems.
+
+===================  ===================================================
+Result code          Description
+===================  ===================================================
+``ResOK``            The operation succeeded. Return parameters may only
+                     be updated if OK is returned, otherwise they must
+                     be left untouched.
+``ResCOMMIT_LIMIT``  The arena's commit limit would have been exceeded
+                     as a result of allocation.
+``ResFAIL``          Something went wrong which doesn't fall into any of
+                     the other categories. The exact meaning depends
+                     on the call. See documentation.
+``ResIO``            An I/O error occurred. Exactly what depends on the
+                     function.
+``ResLIMIT``         An internal limitation was reached.  For example,
+                     the maximum number of somethings was reached. We
+                     should avoid returning this by not including
+                     static limitations in our code, as far as
+                     possible. (See rule.impl.constrain and
+                     rule.impl.limits.)
+``ResMEMORY``        Needed memory (committed memory, not address space) 
+                     could not be obtained.
+``ResPARAM``         An invalid parameter was passed.  Normally reserved
+                     for parameters passed from the client.
+``ResRESOURCE``      A needed resource could not be obtained. Which
+                     resource depends on the call. See also
+                     ``ResMEMORY``, which is a special case of this.
+``ResUNIMPL``        The operation, or some vital part of it, is
+                     unimplemented. This might be returned by
+                     functions which are no longer supported, or by
+                     operations which are included for future
+                     expansion, but not yet supported.
+===================  ===================================================
+
+_`.res.use`: ``Res`` should be returned from any function which might
+fail. Any other results of the function should be passed back in
+"return" parameters (pointers to locations to fill in with the
+results).
+
+.. note:: This is documented elsewhere, I think -- richard
+
+_`.res.use.spec`: The most specific code should be returned.
+
+
+``typedef unsigned RootMode``
+
+_`.rootmode`: ``RootMode`` is an unsigned integral type which is used
+to represent an attribute of a root:
+
+=============================  =========================================
+Root mode                      Description
+=============================  =========================================
+``RootModeCONSTANT``           Client program will not change the root
+                               after it is registered.
+``RootModePROTECTABLE``        Root is protectable: the MPS may place
+                               a barrier on any page containing any
+                               part of the root.
+``RootModePROTECTABLE_INNER``  Root is protectable: the MPS may place
+                               a barrier on any page completely covered
+                               by part of the root.
+=============================  =========================================
+
+_`.rootmode.const.unused`: ``RootModeCONSTANT`` has no effect. This
+mode was introduced in the hope of being able to maintain a
+:term:`remembered set` for the root without needing a :term:`write
+barrier`, but it can't work as described, since you can't reliably
+create a valid registered constant root that contains any references.
+(If you add the references before registering the root, they may have
+become invalid; but you can't add them afterwards because the root is
+supposed to be constant.)
+
+_`.rootmode.conv.c`: ``RootMode`` is converted to ``mps_rm_t`` in the MPS C
+Interface.
+
+
+``typedef int RootVar``
+
+_`.rootvar`: The type ``RootVar`` is the type of the
+discriminator for the union within ``RootStruct``.
+
+
+``typedef int SegPrefKind``
+
+_`.segprefkind`: The type ``SegPrefKind`` expresses a preference about
+where the arena should place a segment. It takes one of the following
+values:
+
+==================  ====================================================
+Kind                Description
+==================  ====================================================
+``SegPrefHigh``     Place the segment high in the address space.
+``SegPrefLow``      Place the segment low in the address space.
+``SegPrefZoneSet``  Place the segment in specified zones.
+==================  ====================================================
+
+
+``typedef unsigned Serial``
+
+_`.serial`: A ``Serial`` is a number which is assigned to a structure
+when it is initialized. The serial number is taken from a field in the
+parent structure, which is incremented. Thus, every instance of a
+structure has a unique "name" which is a path of structures from the
+global root. For example::
+
+    space[3].pool[5].buffer[2]
+
+Why? Consistency checking, debugging, and logging. Not well thought
+out.
+
+
+``typedef unsigned Shift``
+
+_`.shift`: ``Shift`` is an unsigned integral type which can hold the
+amount by which a ``Word`` can be shifted. It is therefore large
+enough to hold the word width (in bits).
+
+_`.shift.use`: ``Shift`` should be used whenever a shift value (the
+right-hand operand of the ``<<`` or ``>>`` operators) is intended, to
+make the code clear. It should also be used for structure fields which
+have this use.
+
+
+``typedef unsigned long Sig``
+
+_`.sig`: ``Sig`` is the type of signatures, which are written into
+structures when they are created, and invalidated when they are
+destroyed. They provide a limited form of run-time type checking and
+dynamic scope checking. See design.mps.sig_.
+
+.. _design.mps.sig: sig
+
+
+``typedef Word Size``
+
+_`.size`: ``Size`` is an unsigned integral type large enough to
+hold the size of any object which the MPS might manage.
+
+_`.size.byte`: ``Size`` should hold a size calculated in bytes.
+
+.. warning::
+
+    This is violated by ``GenParams.capacity`` (which is measured in
+    kilobytes).
+
+_`.size.use`: ``Size`` should be used whenever the code needs to deal
+with the size of managed memory or client objects. It should not be
+used for the sizes of the memory manager's own data structures, so
+that the memory manager is amenable to working in a separate address
+space. Be careful not to confuse it with ``size_t``.
+
+_`.size.ops`: ``SizeIsAligned()``, ``SizeAlignUp()``,
+``SizeAlignDown()`` and ``SizeRoundUp()``.
+
+_`.size.conv.c`: ``Size`` is converted to ``size_t`` in the MPS C
+Interface. This constrains the memory manager to the same address
+space as the client data.
+
+
+``typedef unsigned TraceId``
+
+_`.traceid`: A ``TraceId`` is an unsigned integer which is less than
+``TRACE_MAX``. Each running trace has a different ``TraceId`` which is
+used to index into tables and bitfields used to remember the state of
+that trace.
+
+
+``typedef unsigned TraceSet``
+
+_`.traceset`: A ``TraceSet`` is a bitset of ``TraceId``,
+represented in the obvious way::
+
+    member(ti, ts) ⇔ ((1<<ti) & ts) != 0
+
+``TraceSet`` is used to represent colour in the Tracer. See
+design.mps.trace_.
+
+.. _design.mps.trace: trace
+
+``typedef unsigned TraceStartWhy``
+
+_`.tracestartwhy`: ``TraceStartWhy`` represents the reason that a
+trace was started. It takes one of the following values:
+
+=======================================  ===============================
+Reason                                   Description
+=======================================  ===============================
+``TraceStartWhyCHAIN_GEN0CAP``           Generation zero of a chain
+                                         reached capacity.
+``TraceStartWhyDYNAMICCRITERION``        Need to start full collection
+                                         now, or there won't be enough
+                                         memory to complete it.
+``TraceStartWhyOPPORTUNISM``             Client had idle time available.
+``TraceStartWhyCLIENTFULL_INCREMENTAL``  Client requested incremental
+                                         collection.
+``TraceStartWhyCLIENTFULL_BLOCK``        Client requested full
+                                         collection.
+``TraceStartWhyWALK``                    Walking references.
+``TraceStartWhyEXTENSION``               Request by MPS extension.
+=======================================  ===============================
+
+
+``typedef unsigned TraceState``
+
+_`.tracestate`: ``TraceState`` represents the current state in a
+trace's lifecycle. See design.mps.trace_. It takes one of the
+following values:
+
+==================  ====================================================
+State               Description
+==================  ====================================================
+``TraceINIT``       Nothing happened yet.
+``TraceUNFLIPPED``  Segments condemned (made white); initial grey set
+                    created; scanning rate calculated.
+``TraceFLIPPED``    Buffers flipped; roots scanned; location
+                    dependencies made stale; grey segments protected.
+``TraceRECLAIM``    There are no outstanding grey segments.
+``TraceFINISHED``   All segments reclaimed.
+==================  ====================================================
+
+
+``typedef MPS_T_ULONGEST ULongest``
+
+_`.ulongest`: ``ULongest`` is the longest unsigned integer on the
+platform. (We used to use ``unsigned long`` but this assumption is
+violated by 64-bit Windows.) This type should be used for calculations
+where any integer might be passed. Notably, it is used in ``WriteF()``
+to print any integer.
 
 
 ``typedef MPS_T_WORD Word``
@@ -162,348 +637,10 @@ _`.word.ops`: ``WordIsAligned()``, ``WordAlignUp()``,
 ``WordAlignDown()`` and ``WordRoundUp()``.
 
 
-``typedef unsigned char Byte``
+``typedef Word ZoneSet``
 
-_`.byte`: ``Byte`` is an unsigned integral type corresponding to the
-unit in which most sizes are measured, and also the units of
-``sizeof``.
-
-_`.byte.use`: ``Byte`` should be used in preference to ``char`` or
-``unsigned char`` wherever it is necessary to deal with bytes
-directly.
-
-_`.byte.source`: ``Byte`` is a just pedagogic version of ``unsigned
-char``, since ``char`` is the unit of ``sizeof``.
-
-
-``typedef Word Index``
-
-_`.index`: ``Index`` is an unsigned integral type which is large
-enough to hold any array index.
-
-_`.index.use`: ``Index`` should be used where the maximum size of the
-array cannot be statically determined. If the maximum size can be
-determined then the smallest unsigned integer with a large enough
-range may be used instead.
-
-
-``typedef Word Count``
-
-_`.count`: ``Count`` is an unsigned integral type which is large
-enough to hold the size of any collection of objects in the MPS.
-
-_`.count.use`: ``Count`` should be used for a number of objects
-(control or managed) where the maximum number of objects cannot be
-statically determined. If the maximum number can be statically
-determined then the smallest unsigned integer with a large enough
-range may be used instead (although ``Count`` may be preferable for
-clarity).
-
-.. note::
-
-    Should ``Count`` be used to count things that aren't represented
-    by objects (for example, a level)? I would say yes. gavinm
-    1998-07-21
-
-.. note::
-
-    Only where it can be determined that the maximum count is less
-    than the number of objects. pekka 1998-07-21
-
-
-``typedef Word Accumulation``
-
-_`.accumulation`: ``Accumulation`` is an arithmetic type which is
-large enough to hold accumulated totals of objects of bytes (for
-example, total number of objects allocated, total number of bytes
-allocated).
-
-_`.accumulation.type`: Currently it is ``double``, but the reason for
-the interface is so that we can more easily change it if we want to
-(if we decide we need more accuracy for example).
-
-_`.accumulation.use`: Currently the only way to use an
-``Accumulation`` is to reset it (by calling ``AccumulatorReset``) and
-accumulate amounts into it (by calling ``Accumulate``). There is no
-way to read it at the moment, but that's okay, because no one seems to
-want to.
-
-_`.accumulation.future`: Probably we should have methods which return
-the accumulation into an ``unsigned long``, and also a ``double``;
-these functions should return ``Bool`` to indicate whether the
-accumulation can fit in the requested type. Possibly we could have
-functions which returned scaled accumulations. For example,
-``AccumulatorScale(a, d)`` would divide the ``Accumulation a`` by
-``double d`` and return the ``double`` result if it fitted into a
-``double``.
-
-
-``typedef struct AddrStruct *Addr``
-
-_`.addr`: ``Addr`` is the type used for "managed addresses", that is,
-addresses of objects managed by the MPS.
-
-_`.addr.def`: ``Addr`` is defined as ``struct AddrStruct *``, but
-``AddrStruct`` is never defined. This means that ``Addr`` is always an
-incomplete type, which prevents accidental dereferencing, arithmetic,
-or assignment to other pointer types.
-
-_`.addr.use`: ``Addr`` should be used whenever the code needs to deal
-with addresses. It should not be used for the addresses of memory
-manager data structures themselves, so that the memory manager remains
-amenable to working in a separate address space. Be careful not to
-confuse ``Addr`` with ``void *``.
-
-_`.addr.ops`: Limited arithmetic is allowed on addresses using
-``AddrAdd()`` and ``AddrOffset()`` (impl.c.mpm). Addresses may also be
-compared using the relational operators ``==``, ``!=``, ``<``, ``<=``,
-``>``, and ``>=``.
-
-_`.addr.ops.mem`: We need efficient operators similar to ``memset()``,
-``memcpy()``, and ``memcmp()`` on ``Addr``; these are called ``AddrSet()``,
-``AddrCopy()``, and ``AddrComp()``. When ``Addr`` is compatible with
-``void *``, these are implemented through the functions
-``mps_lib_memset()``, ``mps_lib_memcpy()``, and ``mps_lib_memcmp()``
-functions in the plinth (impl.h.mpm).
-
-.. note::
-
-    No other implementation exists at present. pekka 1998-09-07
-
-_`.addr.conv.c`: ``Addr`` is converted to ``mps_addr_t`` in the MPS C
-Interface. ``mps_addr_t`` is defined to be the same as ``void *``, so
-using the MPS C Interface confines the memory manager to the same
-address space as the client data.
-
-
-``typedef Word Size``
-
-_`.size`: ``Size`` is an unsigned integral type large enough to
-hold the size of any object which the MPS might manage.
-
-_`.size.byte`: ``Size`` should hold a size calculated in bytes.
-
-.. warning:: This may not be true for all existing code.
-
-_`.size.use`: ``Size`` should be used whenever the code needs to deal
-with the size of managed memory or client objects. It should not be
-used for the sizes of the memory manager's own data structures, so
-that the memory manager is amenable to working in a separate address
-space. Be careful not to confuse it with ``size_t``.
-
-_`.size.ops`: ``SizeIsAligned()``, ``SizeAlignUp()``,
-``SizeAlignDown()`` and ``SizeRoundUp()``.
-
-_`.size.conv.c`: ``Size`` is converted to ``size_t`` in the MPS C
-Interface. This constrains the memory manager to the same address
-space as the client data.
-
-
-``typedef Word Align``
-
-_`.align`: ``Align`` is an unsigned integral type which is used to
-represent the alignment of managed addresses. All alignments are
-positive powers of two. ``Align`` is large enough to hold the maximum
-possible alignment.
-
-_`.align.use`: ``Align`` should be used whenever the code needs to
-deal with the alignment of a managed address.
-
-_`.align.conv.c`: ``Align`` is converted to ``mps_align_t`` in the MPS
-C Interface.
-
-
-``typedef unsigned Shift``
-
-_`.shift`: ``Shift`` is an unsigned integral type which can hold the
-amount by which a ``Word`` can be shifted. It is therefore large
-enough to hold the word width (in bits).
-
-_`.shift.use`: ``Shift`` should be used whenever a shift value (the
-right-hand operand of the ``<<`` or ``>>`` operators) is intended, to
-make the code clear. It should also be used for structure fields which
-have this use.
-
-_`.shift.conv.c`: ``Shift`` is converted to ``mps_shift_t`` in the MPS
-C Interface.
-
-
-``typedef Addr Ref``
-
-_`.ref`: ``Ref`` is a reference to a managed object (as opposed to any
-old managed address). ``Ref`` should be used where a reference is
-intended.
-
-.. note:: This isn't too clear -- richard
-
-
-``typedef Word RefSet``
-
-_`.refset`: ``RefSet`` is a conservative approximation to a set of
-references. See design.mps.refset.
-
-
-``typedef unsigned Rank``
-
-_`.rank`: ``Rank`` is an enumeration which represents the rank of a
-reference. The ranks are:
-
-=============  =====  =====================================================
-Rank           Index  Description
-=============  =====  =====================================================
-``RankAMBIG``  0      The reference is ambiguous. That is, it must be
-                      assumed to be a reference, but not updated in case it
-                      isn't.
--------------  -----  -----------------------------------------------------
-``RankEXACT``  1      The reference is exact, and refers to an object.
--------------  -----  -----------------------------------------------------
-``RankFINAL``  2      The reference is exact and final, so special action
-                      is required if only final or weak references remain
-                      to the object.
--------------  -----  -----------------------------------------------------
-``RankWEAK``   3      The reference is exact and weak, so should be deleted
-                      if only weak references remain to the object.
-=============  =====  =====================================================
-
-``Rank`` is stored with segments and roots, and passed around.
-
-``Rank`` is converted to ``mps_rank_t`` in the MPS C Interface.
-
-The ordering of the ranks is important. It is the order in which the
-references must be scanned in order to respect the properties of
-references of the ranks. Therefore they are declared explicitly with
-their integer values.
-
-.. note:: Could ``Rank`` be a ``short``?
-
-.. note::
-
-    This documentation should be expanded and moved to its own
-    document, then referenced from the implementation more thoroughly.
-
-
-``typedef Size Epoch``
-
-_`.epoch`: An ``Epoch`` is a count of the number of flips that have
-occurred. It is used in the implementation of location dependencies.
-
-``Epoch`` is converted to ``mps_word_t`` in the MPS C Interface, as a
-field of ``mps_ld_s``.
-
-
-``typedef unsigned TraceId``
-
-_`.traceid`: A ``TraceId`` is an unsigned integer which is less than
-``TRACE_MAX``. Each running trace has a different ``TraceId`` which is
-used to index into tables and bitfields used to remember the state of
-that trace.
-
-
-``typedef unsigned TraceSet``
-
-_`.traceset`: A ``TraceSet`` is a bitset of ``TraceId``,
-represented in the obvious way::
-
-    member(ti, ts) ⇔ ((1<<ti) & ts) != 0
-
-``TraceSet`` is used to represent colour in the Tracer.
-
-.. note:: Expand on this.
-
-
-``typedef unsigned AccessSet``
-
-_`.access-set`: An ``AccessSet`` is a bitset of ``Access``
-modes, which are ``AccessREAD`` and ``AccessWRITE``. ``AccessNONE`` is
-the empty ``AccessSet``.
-
-
-``typedef unsigned Attr``
-
-_`.attr`: Pool attributes. A bitset of pool or pool class
-attributes, which are:
-
-===================  ===========================================================
-Attribute            Description
-===================  ===========================================================
-``AttrFMT``          Contains formatted objects.
--------------------  -----------------------------------------------------------
-``AttrSCAN``         Contains references and must be scanned.
--------------------  -----------------------------------------------------------
-``AttrPM_NO_READ``   May not be read protected.
--------------------  -----------------------------------------------------------
-``AttrPM_NO_WRITE``  May not be write protected.
--------------------  -----------------------------------------------------------
-``AttrALLOC``        Supports the ``PoolAlloc`` interface.
--------------------  -----------------------------------------------------------
-``AttrFREE``         Supports the ``PoolFree`` interface.
--------------------  -----------------------------------------------------------
-``AttrBUF``          Supports the allocation buffer interface.
--------------------  -----------------------------------------------------------
-``AttrBUF_RESERVE``  Supports the reserve/commit protocol on allocation buffers.
--------------------  -----------------------------------------------------------
-``AttrBUF_ALLOC``    Supports the alloc protocol on allocation buffers.
--------------------  -----------------------------------------------------------
-``AttrGC``           Is garbage collecting, that is, parts may be reclaimed.
--------------------  -----------------------------------------------------------
-``AttrINCR_RB``      Is incremental, requiring a read barrier.
--------------------  -----------------------------------------------------------
-``AttrINCR_WB``      Is incremental, requiring a write barrier.
-===================  ===========================================================
-
-There is an attribute field in the pool class (``PoolClassStruct``)
-which declares the attributes of that class. These attributes are only
-used for consistency checking at the moment.
-
-.. note::
-
-    It's no longer true that they are only used for consistency
-    checking -- drj 1998-05-07
-
-
-``typedef int RootVar``
-
-_`.rootvar`: The type ``RootVar`` is the type of the
-discriminator for the union within ``RootStruct``.
-
-
-``typedef unsigned Serial``
-
-_`.serial`: A ``Serial`` is a number which is assigned to a structure
-when it is initialized. The serial number is taken from a field in the
-parent structure, which is incremented. Thus, every instance of a
-structure has a unique "name" which is a path of structures from the
-global root. For example::
-
-    space[3].pool[5].buffer[2]
-
-Why? Consistency checking, debugging, and logging. Not well thought
-out.
-
-
-``typedef unsigned Compare``
-
-_`.compare`: ``Compare`` is the type of tri-state comparison
-values.
-
-==================  ===========================================
-Value               Description
-==================  ===========================================
-``CompareLESS``     A value compares less than another value.
-------------------  -------------------------------------------
-``CompareEQUAL``    Two values compare the same.
-------------------  -------------------------------------------
-``CompareGREATER``  A value compares greater than another value. 
-==================  ===========================================
-
-
-``typedef MPS_T_ULONGEST ULongest``
-
-_`.ulongest`: ``ULongest`` is the longest unsigned integer on the
-platform. (We used to use ``unsigned long`` but this assumption is
-violated by 64-bit Windows.) This type should be used for calculations
-where any integer might be passed. Notably, it is used in ``WriteF()``
-to print any integer.
+_`.zoneset`: ``ZoneSet`` is a conservative approximation to a set of
+zone. See design.mps.refset_.
 
 
 Abstract types
@@ -513,7 +650,12 @@ _`.adts`: The following types are abstract data types, implemented as
 pointers to structures. For example, ``Ring`` is a pointer to a
 ``RingStruct``. They are described elsewhere.
 
-``AP``, ``Arena``, ``Buffer``, ``Format``, ``LD``, ``Lock``, ``PoolClass``, ``Pool``, ``Ring``, ``Root``, ``ScanState``, ``Seg``, ``Space``, ``Thread``, ``Trace``, ``VM``.
+``AllocFrame``, ``AllocPattern``, ``AP``, ``Arena``, ``BootBlock``,
+``Buffer``, ``Chain``, ``Chunk``, ``Format``, ``Globals``, ``Land``,
+``LD``, ``Lock``, ``MutatorFaultContext``, ``PoolClass``, ``Page``,
+``Pool``, ``PoolDebugMixin``, ``Range``, ``Reservoir``, ``Ring``,
+``Root``, ``ScanState``, ``Seg``, ``SegBuf``, ``SegPref``,
+``StackContext``, ``Thread``, ``Trace``, ``VM``.
 
 ``typedef void *Pointer``
 

@@ -204,9 +204,11 @@ TESTLIBDEP = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTDYOBJ = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTDYDEP = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTDYTSTOBJ = $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.o)
+FMTDYTSTDEP = $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTHETSTOBJ = $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTHETSTDEP = $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.d)
-FMTSCMTSTOBJ = $(FMTSCM:%.c=$(PFM)/$(VARIETY)/%.o)
+FMTSCMOBJ = $(FMTSCM:%.c=$(PFM)/$(VARIETY)/%.o)
+FMTSCMDEP = $(FMTSCM:%.c=$(PFM)/$(VARIETY)/%.d)
 PLINTHOBJ = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.o)
 PLINTHDEP = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.d)
 EVENTPROCOBJ = $(EVENTPROC:%.c=$(PFM)/$(VARIETY)/%.o)
@@ -377,7 +379,7 @@ $(PFM)/$(VARIETY)/abqtest: $(PFM)/$(VARIETY)/abqtest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/airtest: $(PFM)/$(VARIETY)/airtest.o \
-	$(FMTSCMTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+	$(FMTSCMOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/amcss: $(PFM)/$(VARIETY)/amcss.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
@@ -572,9 +574,20 @@ include $(PFM)/$(VARIETY)/mps.d
 else
 # %%PART: When adding a new part, add the dependency file macro for the new
 # part here.
-include $(MPMDEP) $(AMSDEP) $(AMCDEP) $(LODEP) \
-  $(AWLDEP) $(POOLNDEP) $(TESTLIBDEP) $(FMTDYDEP) $(FMTHETSTDEP) \
-  $(PLINTHDEP) $(EVENTPROCDEP)
+include \
+  $(MPMDEP) \
+  $(AMCDEP) \
+  $(AMSDEP) \
+  $(AWLDEP) \
+  $(EVENTPROCDEP) \
+  $(FMTDYDEP) \
+  $(FMTDYTSTDEP) \
+  $(FMTHETSTDEP) \
+  $(FMTSCMDEP) \
+  $(LODEP) \
+  $(PLINTHDEP) \
+  $(POOLNDEP) \
+  $(TESTLIBDEP)
 endif
 endif
 

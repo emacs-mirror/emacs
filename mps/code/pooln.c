@@ -1,7 +1,7 @@
 /* pooln.c: NULL POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "pooln.h"
@@ -71,7 +71,7 @@ static Res NAlloc(Addr *pReturn, Pool pool, Size size,
 
   AVER(pReturn != NULL);
   AVER(size > 0);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   return ResLIMIT;  /* limit of nil blocks exceeded */
 }
@@ -110,7 +110,7 @@ static Res NBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Buffer, buffer);
   AVER(BufferIsReset(buffer));
   AVER(size > 0);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   NOTREACHED;   /* can't create buffers, so shouldn't fill them */
   return ResUNIMPL;
@@ -270,8 +270,7 @@ DEFINE_POOL_CLASS(NPoolClass, this)
   this->name = "N";
   this->size = sizeof(PoolNStruct);
   this->offset = offsetof(PoolNStruct, poolStruct);
-  this->attr = AttrSCAN | AttrALLOC | AttrFREE | AttrBUF |
-                 AttrBUF_RESERVE | AttrGC;
+  this->attr |= (AttrALLOC | AttrBUF | AttrFREE | AttrGC | AttrSCAN);
   this->init = NInit;
   this->finish = NFinish;
   this->alloc = NAlloc;
@@ -287,6 +286,7 @@ DEFINE_POOL_CLASS(NPoolClass, this)
   this->reclaim = NReclaim;
   this->traceEnd = NTraceEnd;
   this->describe = NDescribe;
+  AVERT(PoolClass, this);
 }
 
 
@@ -313,7 +313,7 @@ Bool PoolNCheck(PoolN poolN)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

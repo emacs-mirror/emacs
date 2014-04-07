@@ -110,7 +110,7 @@ static void poolStatInit(PoolStat stat, mps_pool_t pool, size_t objSize)
 static void allocMultiple(PoolStat stat)
 {
   mps_addr_t objects[allocsPerIteration];
-  int i;
+  size_t i;
 
   /* allocate a few objects, and record stats for them */
   for (i = 0; i < allocsPerIteration; i++) {
@@ -131,8 +131,7 @@ static void allocMultiple(PoolStat stat)
 
 static void reportResults(PoolStat stat, const char *name)
 {
-  printf("\nResults for ");
-  fputs(name, stdout);
+  printf("\nResults for %s\n", name);
   printf("\n");
   printf("   Allocated  %"PRIuLONGEST" objects\n", (ulongest_t)stat->aCount);
   printf("   Freed      %"PRIuLONGEST" objects\n", (ulongest_t)stat->fCount);
@@ -198,7 +197,6 @@ int main(int argc, char *argv[])
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, FALSE);
-    MPS_ARGS_DONE(args);
     die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
         "mps_arena_create");
   } MPS_ARGS_END(args);

@@ -6,10 +6,6 @@
 
 #include <string.h>
 
-#include "mpsavm.h"
-#include "mpscamc.h"
-#include "mpslib.h"
-
 #include "fmtscheme.h"
 #include "testlib.h"
 
@@ -419,8 +415,9 @@ static mps_addr_t obj_isfwd(mps_addr_t addr)
     return obj->fwd2.fwd;
   case TYPE_FWD:
     return obj->fwd.fwd;
+  default:
+    return NULL;
   }
-  return NULL;
 }
 
 static void obj_fwd(mps_addr_t old, mps_addr_t new)
@@ -465,70 +462,6 @@ void scheme_fmt(mps_fmt_t *fmt)
     res = mps_fmt_create_k(fmt, scheme_arena, args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create obj format");
-}
-
-static mps_gen_param_s obj_gen_params[] = {
-  { 150, 0.85 },
-  { 170, 0.45 }
-};
-
-int main(int argc, char *argv[])
-{
-  mps_res_t res;
-  mps_chain_t obj_chain;
-  mps_fmt_t obj_fmt;
-  mps_thr_t thread;
-  mps_root_t reg_root;
-  void *marker = &marker;
-
-  randomize(argc, argv);
-  mps_lib_assert_fail_install(assert_die);
-
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 1 << 20);
-    MPS_ARGS_DONE(args);
-    res = mps_arena_create_k(&scheme_arena, mps_arena_class_vm(), args);
-  } MPS_ARGS_END(args);
-  if (res != MPS_RES_OK) error("Couldn't create arena");
-
-  res = mps_chain_create(&obj_chain, scheme_arena,
-                         sizeof(obj_gen_params) / sizeof(*obj_gen_params),
-                         obj_gen_params);
-  if (res != MPS_RES_OK) error("Couldn't create obj chain");
-
-  scheme_fmt(&obj_fmt);
-
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_CHAIN, obj_chain);
-    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, obj_fmt);
-    MPS_ARGS_DONE(args);
-    die(mps_pool_create_k(&obj_pool, scheme_arena, mps_class_amc(), args),
-        "mps_pool_create_k");
-  } MPS_ARGS_END(args);
-
-  res = mps_ap_create_k(&obj_ap, obj_pool, mps_args_none);
-  if (res != MPS_RES_OK) error("Couldn't create obj allocation point");
-
-  res = mps_thread_reg(&thread, scheme_arena);
-  if (res != MPS_RES_OK) error("Couldn't register thread");
-
-  res = mps_root_create_reg(&reg_root, scheme_arena, mps_rank_ambig(), 0,
-                            thread, mps_stack_scan_ambig, marker, 0);
-  if (res != MPS_RES_OK) error("Couldn't create root");
-  
-  test_main();
-
-  mps_arena_park(scheme_arena);
-  mps_root_destroy(reg_root);
-  mps_thread_dereg(thread);
-  mps_ap_destroy(obj_ap);
-  mps_pool_destroy(obj_pool);
-  mps_chain_destroy(obj_chain);
-  mps_fmt_destroy(obj_fmt);
-  mps_arena_destroy(scheme_arena);
-
-  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
-  return 0;
 }
 
 

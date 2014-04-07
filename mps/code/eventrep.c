@@ -31,7 +31,7 @@
 #include "mpstd.h"
 
 
-#ifdef MPS_PF_W3I6MV
+#if defined(MPS_OS_W3) && defined(MPS_ARCH_I6)
 #define PRIuLONGEST "llu"
 #define PRIXPTR     "016llX"
 typedef unsigned long long ulongest_t;
@@ -116,6 +116,7 @@ typedef struct apRepStruct *apRep;
 
 /* error -- error signalling */
 
+ATTRIBUTE_FORMAT((printf, 1, 2))
 static void error(const char *format, ...)
 {
   va_list args;

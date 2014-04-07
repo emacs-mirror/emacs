@@ -1,55 +1,26 @@
 # -*- makefile -*-
 #
-# gc.gmk: GNUMAKEFILE FRAGMENT FOR GNU CC
+# pc.nmk: NMAKE FRAGMENT FOR PELLES C
 #
 # $Id$
-# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
 #
-# This file is included by platform makefiles that use the GNU CC
-# compiler.  It defines the compiler-specific variables that the
-# common makefile fragment (<code/comm.gmk>) requires.
+# This file is included by platform nmake files that use the Pelles C
+# compiler. It defines the compiler-specific variables that the common
+# nmake file fragment (<code/commpost.nmk>) requires.
 
-CC = gcc
-CFLAGSDEBUG = -O -g3
-CFLAGSOPT = -O2 -g3
-CFLAGSCOMPILER := \
-	-Waggregate-return \
-	-Wall \
-	-Wcast-qual \
-	-Werror \
-	-Wextra \
-	-Winline \
-	-Wmissing-prototypes \
-	-Wnested-externs \
-	-Wpointer-arith \
-	-Wshadow \
-	-Wstrict-aliasing=2 \
-	-Wstrict-prototypes \
-	-Wswitch-default \
-	-Wwrite-strings
-CFLAGSCOMPILERSTRICT := -ansi -pedantic
+CC = pocc
+LIBMAN = polib
+LINKER = polink
 
-# A different set of compiler flags for less strict compilation, for
-# instance when we need to #include a third-party header file that
-# won't fly with -ansi -pedantic.  Use sparingly!
-CFLAGSCOMPILERLAX :=
-
-# gcc -MM generates a dependency line of the form:
-#   thing.o : thing.c ...
-# The sed line converts this into:
-#   <pfm>/<variety>/thing.o <pfm>/<variety>/thing.d : thing.c ...
-# If interrupted, this is liable to leave a zero-length file behind.
-
-define gendep
-	$(SHELL) -ec "$(CC) $(CFLAGS) -MM $< | \
-		sed '/:/s!$*.o!$(@D)/& $(@D)/$*.d!' > $@"
-	[ -s $@ ] || rm -f $@
-endef
+CFLAGSCOMMONPRE = $(CFLAGSCOMMONPRE) /Ze /W2
+CRTFLAGSHOT = /MT
+CRTFLAGSCOOL = /MT
 
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

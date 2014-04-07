@@ -86,7 +86,8 @@ static void register_numbered_tree(mps_word_t tree, mps_arena_t arena)
 {
     /* don't finalize ints */
     if ((tree & 1) == 0) {
-        mps_finalize(arena, (mps_addr_t *)&tree);
+        mps_addr_t addr = (void *)tree;
+        die(mps_finalize(arena, &addr), "mps_finalize");
         register_numbered_tree(DYLAN_VECTOR_SLOT(tree, 0), arena);
         register_numbered_tree(DYLAN_VECTOR_SLOT(tree, 1), arena);
     }
@@ -124,8 +125,8 @@ static void register_indirect_tree(mps_word_t tree, mps_arena_t arena)
 {
     /* don't finalize ints */
     if ((tree & 1) == 0) {
-        mps_word_t indirect = DYLAN_VECTOR_SLOT(tree,2);
-        mps_finalize(arena, (mps_addr_t *)&indirect);
+        mps_addr_t indirect = (void *)DYLAN_VECTOR_SLOT(tree,2);
+        die(mps_finalize(arena, &indirect), "mps_finalize");
         register_indirect_tree(DYLAN_VECTOR_SLOT(tree, 0), arena);
         register_indirect_tree(DYLAN_VECTOR_SLOT(tree, 1), arena);
     }
@@ -186,7 +187,7 @@ static void *test(void *arg, size_t s)
          (mps_collections(arena) < collectionCOUNT)) {
           mps_word_t final_this_time = 0;
           printf("Collecting...");
-          fflush(stdout);
+          (void)fflush(stdout);
           die(mps_arena_collect(arena), "collect");
           printf(" Done.\n");
           while (mps_message_poll(arena)) {
@@ -202,8 +203,10 @@ static void *test(void *arg, size_t s)
                   testlib_unused(obj);
           }
           finals += final_this_time;
-          printf("%lu objects finalized: total %lu of %lu\n",
-                 final_this_time, finals, object_count);
+          printf("%"PRIuLONGEST" objects finalized: total %"PRIuLONGEST
+                 " of %"PRIuLONGEST"\n",
+                 (ulongest_t)final_this_time, (ulongest_t)finals,
+                 (ulongest_t)object_count);
   }
 
   object_count = 0;
@@ -227,7 +230,7 @@ static void *test(void *arg, size_t s)
          (mps_collections(arena) < collectionCOUNT)) {
           mps_word_t final_this_time = 0;
           printf("Collecting...");
-          fflush(stdout);
+          (void)fflush(stdout);
           die(mps_arena_collect(arena), "collect");
           printf(" Done.\n");
           while (mps_message_poll(arena)) {
@@ -243,8 +246,10 @@ static void *test(void *arg, size_t s)
                   testlib_unused(obj);
           }
           finals += final_this_time;
-          printf("%lu objects finalized: total %lu of %lu\n",
-                 final_this_time, finals, object_count);
+          printf("%"PRIuLONGEST" objects finalized: total %"PRIuLONGEST
+                 " of %"PRIuLONGEST"\n",
+                 (ulongest_t)final_this_time, (ulongest_t)finals,
+                 (ulongest_t)object_count);
   }
 
   mps_ap_destroy(ap);
