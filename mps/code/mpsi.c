@@ -1,7 +1,7 @@
 /* mpsi.c: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -46,11 +46,6 @@
 #include "mpm.h"
 #include "mps.h"
 #include "sac.h"
-#include "chain.h"
-
-/* TODO: Remove these includes when varargs support is removed. */
-#include "mpsacl.h"
-#include "mpsavm.h"
 
 #include <stdarg.h>
 
@@ -459,7 +454,7 @@ mps_res_t mps_fmt_create_k(mps_fmt_t *mps_fmt_o,
 
   AVER(mps_fmt_o != NULL);
   AVERT(Arena, arena);
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 
   res = FormatCreate(&format, arena, args);
 
@@ -657,7 +652,7 @@ mps_res_t mps_pool_create_k(mps_pool_t *mps_pool_o, mps_arena_t arena,
   AVER(mps_pool_o != NULL);
   AVERT(Arena, arena);
   AVERT(PoolClass, class);
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 
   res = PoolCreate(&pool, arena, class, args);
 
@@ -1935,7 +1930,7 @@ void mps_chain_destroy(mps_chain_t chain)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

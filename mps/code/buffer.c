@@ -1,7 +1,7 @@
 /* buffer.c: ALLOCATION BUFFER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
  * Several macros which also form part of the implementation are in
@@ -45,7 +45,7 @@ Bool BufferCheck(Buffer buffer)
   CHECKU(Arena, buffer->arena);
   CHECKU(Pool, buffer->pool);
   CHECKL(buffer->arena == buffer->pool->arena);
-  CHECKL(RingCheck(&buffer->poolRing)); /* <design/check/#type.no-sig> */
+  CHECKD_NOSIG(Ring, &buffer->poolRing);
   CHECKL(BoolCheck(buffer->isMutator));
   CHECKL(buffer->fillSize >= 0.0);
   CHECKL(buffer->emptySize >= 0.0);
@@ -205,7 +205,7 @@ static Res BufferInit(Buffer buffer, BufferClass class,
   AVERT(BufferClass, class);
   AVERT(Pool, pool);
   /* The PoolClass should support buffer protocols */
-  AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
+  AVER(PoolHasAttr(pool, AttrBUF));
  
   arena = PoolArena(pool);
   /* Initialize the buffer.  See <code/mpmst.h> for a definition of */
@@ -383,7 +383,7 @@ void BufferFinish(Buffer buffer)
   pool = BufferPool(buffer);
 
   /* The PoolClass should support buffer protocols */
-  AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
+  AVER(PoolHasAttr(pool, AttrBUF));
   AVER(BufferIsReady(buffer));
 
   /* <design/alloc-frame/#lw-frame.sync.trip> */
@@ -605,7 +605,7 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
   AVER(size > 0);
   AVER(SizeIsAligned(size, BufferPool(buffer)->alignment));
   AVER(BufferIsReady(buffer));
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   /* Is there enough room in the unallocated portion of the buffer to */
   /* satisfy the request?  If so, just increase the alloc marker and */
@@ -1182,7 +1182,7 @@ static Res bufferTrivDescribe(Buffer buffer, mps_lib_FILE *stream)
 
 Bool BufferClassCheck(BufferClass class)
 {
-  CHECKL(ProtocolClassCheck(&class->protocol));
+  CHECKD(ProtocolClass, &class->protocol);
   CHECKL(class->name != NULL); /* Should be <=6 char C identifier */
   CHECKL(class->size >= sizeof(BufferStruct));
   CHECKL(FUNCHECK(class->varargs));
@@ -1220,6 +1220,7 @@ DEFINE_CLASS(BufferClass, class)
   class->setRankSet = bufferNoSetRankSet;
   class->reassignSeg = bufferNoReassignSeg;
   class->sig = BufferClassSig;
+  AVERT(BufferClass, class);
 }
 
 
@@ -1240,7 +1241,7 @@ Bool SegBufCheck(SegBuf segbuf)
 
   CHECKS(SegBuf, segbuf);
   buffer = &segbuf->bufferStruct;
-  CHECKL(BufferCheck(buffer));
+  CHECKD(Buffer, buffer);
   CHECKL(RankSetCheck(segbuf->rankSet));
 
   if (buffer->mode & BufferModeTRANSITION) {
@@ -1250,7 +1251,7 @@ Bool SegBufCheck(SegBuf segbuf)
   } else {
     /* The buffer is attached to a segment. */
     CHECKL(segbuf->seg != NULL);
-    CHECKL(SegCheck(segbuf->seg));
+    CHECKD(Seg, segbuf->seg);
     /* To avoid recursive checking, leave it to SegCheck to make */
     /* sure the buffer and segment fields tally. */
    
@@ -1472,6 +1473,7 @@ DEFINE_CLASS(SegBufClass, class)
   class->rankSet = segBufRankSet;
   class->setRankSet = segBufSetRankSet;
   class->reassignSeg = segBufReassignSeg;
+  AVERT(BufferClass, class);
 }
 
 
@@ -1485,7 +1487,7 @@ static void rankBufVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[0].key = MPS_KEY_RANK;
   args[0].val.rank = va_arg(varargs, Rank);
   args[1].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 /* rankBufInit -- RankBufClass init method */
@@ -1499,10 +1501,10 @@ static Res rankBufInit(Buffer buffer, Pool pool, ArgList args)
 
   AVERT(Buffer, buffer);
   AVERT(Pool, pool);
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
   if (ArgPick(&arg, args, MPS_KEY_RANK))
     rank = arg.val.rank;
-  AVER(RankCheck(rank));
+  AVERT(Rank, rank);
 
   /* Initialize the superclass fields first via next-method call */
   super = BUFFER_SUPERCLASS(RankBufClass);
@@ -1532,12 +1534,13 @@ DEFINE_CLASS(RankBufClass, class)
   class->name = "RANKBUF";
   class->varargs = rankBufVarargs;
   class->init = rankBufInit;
+  AVERT(BufferClass, class);
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

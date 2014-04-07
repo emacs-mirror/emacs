@@ -264,6 +264,9 @@ static void readLog(FILE *stream)
                event->EventInit.f5,
                MPS_WORD_WIDTH);
       break;
+    default:
+      /* No special treatment needed. */
+      break;
     }
 
     (void)EVENT_CLOCK_PRINT(stdout, eventTime);

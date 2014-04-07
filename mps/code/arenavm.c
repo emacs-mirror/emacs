@@ -99,8 +99,8 @@ static Bool VMChunkCheck(VMChunk vmchunk)
 
   CHECKS(VMChunk, vmchunk);
   chunk = VMChunk2Chunk(vmchunk);
-  CHECKL(ChunkCheck(chunk));
-  CHECKL(VMCheck(vmchunk->vm));
+  CHECKD(Chunk, chunk);
+  CHECKD_NOSIG(VM, vmchunk->vm); /* <design/check/#hidden-type> */
   CHECKL(VMAlign(vmchunk->vm) == ChunkPageSize(chunk));
   CHECKL(vmchunk->overheadMappedLimit <= (Addr)chunk->pageTable);
   CHECKD(SparseArray, &vmchunk->pages);
@@ -174,7 +174,7 @@ static Bool VMArenaCheck(VMArena vmArena)
     CHECKL(VMMapped(primary->vm) <= arena->committed);
   }
   
-  CHECKL(RingCheck(&vmArena->spareRing));
+  CHECKD_NOSIG(Ring, &vmArena->spareRing);
 
   /* FIXME: Can't check VMParams */
 
@@ -438,7 +438,7 @@ static void VMArenaVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[0].key = MPS_KEY_ARENA_SIZE;
   args[0].val.size = va_arg(varargs, Size);
   args[1].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 
@@ -493,7 +493,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   
   AVER(arenaReturn != NULL);
   AVER(class == VMArenaClassGet());
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 
   ArgRequire(&arg, args, MPS_KEY_ARENA_SIZE);
   userSize = arg.val.size;
@@ -1159,6 +1159,7 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
   this->compact = VMCompact;
   this->describe = VMArenaDescribe;
   this->pagesMarkAllocated = VMPagesMarkAllocated;
+  AVERT(ArenaClass, this);
 }
 
 

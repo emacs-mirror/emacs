@@ -48,6 +48,7 @@ Bool SplayTreeCheck(SplayTree splay)
   CHECKL(FUNCHECK(splay->compare));
   CHECKL(FUNCHECK(splay->nodeKey));
   CHECKL(FUNCHECK(splay->updateNode));
+  /* Can't use CHECKD_NOSIG because TreeEMPTY is NULL. */
   CHECKL(TreeCheck(splay->root));
   return TRUE;
 }
