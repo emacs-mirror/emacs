@@ -16,13 +16,9 @@
 #include "mpslib.h"
 #include "mps.h"
 #include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpsw3.h"
-#endif
+
 #include <string.h>
-#if defined(MPS_OS_LI) || defined(MPS_OS_FR) || defined(MPS_OS_XC)
 #include <pthread.h>
-#endif
 
 
 #define testArenaSIZE     ((size_t)64<<20)

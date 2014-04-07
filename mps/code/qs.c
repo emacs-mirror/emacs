@@ -29,9 +29,7 @@
 #include "mpscamc.h"
 #include "mpscmv.h"
 #include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpsw3.h"
-#endif
+
 #include <stdlib.h>
 
 
