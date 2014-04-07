@@ -3,6 +3,30 @@
 Release notes
 =============
 
+.. _release-notes-1.114:
+
+Release 1.114.0
+---------------
+
+New features
+............
+
+#. :term:`Ambiguous <ambiguous reference>` :term:`interior pointers`
+   now keep objects in :ref:`pool-amc` and :ref:`pool-amcz` pools
+   alive.
+
+   This means that if the compiler optimizes away a pointer to the
+   base of an object, leaving an interior pointer as the only
+   reference keeping the object alive, this does not cause the object
+   to be incorrectly collected. Or, if you are writing your own
+   compiler, you can now perform such an optimization safely.
+
+   If you require the old behaviour (in which ambiguous interior
+   pointers were ignored) then you can set the
+   :c:macro:`MPS_KEY_INTERIOR` keyword argument to ``FALSE`` when
+   calling :c:func:`mps_pool_create_k`.
+
+
 .. _release-notes-1.113:
 
 Release 1.113.0

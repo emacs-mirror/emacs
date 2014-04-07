@@ -114,6 +114,9 @@ $(PFM)\cool\mps.lib: \
 $(PFM)\$(VARIETY)\abqtest.exe: $(PFM)\$(VARIETY)\abqtest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
+$(PFM)\$(VARIETY)\airtest.exe: $(PFM)\$(VARIETY)\airtest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTSCHEMEOBJ) $(TESTLIBOBJ)
+
 $(PFM)\$(VARIETY)\amcss.exe: $(PFM)\$(VARIETY)\amcss.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
@@ -195,6 +198,9 @@ $(PFM)\$(VARIETY)\mpsicv.exe: $(PFM)\$(VARIETY)\mpsicv.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mv2test.exe: $(PFM)\$(VARIETY)\mv2test.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\nailboardtest.exe: $(PFM)\$(VARIETY)\nailboardtest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \

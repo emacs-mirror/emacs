@@ -16,6 +16,7 @@
 
 ALL_TEST_CASES="
     abqtest
+    airtest
     amcss
     amcsshe
     amcssth
@@ -41,6 +42,7 @@ ALL_TEST_CASES="
     mpmss
     mpsicv
     mv2test
+    nailboardtest
     poolncv
     qs
     sacss

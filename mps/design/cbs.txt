@@ -1,7 +1,7 @@
 .. mode: -*- rst -*-
 
-Coalescing block structure
-==========================
+Coalescing block structures
+===========================
 
 :Tag: design.mps.cbs
 :Author: Gavin Matthews
