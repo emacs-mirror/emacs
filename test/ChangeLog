@@ -1,3 +1,8 @@
+2014-04-07  João Távora  <joaotavora@gmail.com>
+
+	* automated/electric-tests.el (inhibit-if-strings-mismatched):
+	New test, change from `inhibit-only-of-next-is-mismatched'.
+
 2014-04-06  João Távora  <joaotavora@gmail.com>
 
 	* automated/python-tests.el (python-triple-quote-pairing): New test.
