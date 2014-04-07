@@ -1323,7 +1323,8 @@ void SplayNodeUpdate(SplayTree splay, Tree node)
 {
   AVERT(SplayTree, splay);
   AVERT(Tree, node);
-  AVER(SplayTreeIsEmpty(splay)); /* otherwise, call SplayNodeRefresh */
+  AVER(!TreeHasLeft(node)); /* otherwise, call SplayNodeRefresh */
+  AVER(!TreeHasRight(node)); /* otherwise, call SplayNodeRefresh */
   AVER(SplayHasUpdate(splay)); /* otherwise, why call? */
 
   splay->updateNode(splay, node);
