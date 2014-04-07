@@ -172,8 +172,8 @@ Low memory behaviour
 _`.impl.low-mem`: When the CBS tries to allocate a new ``CBSBlock``
 structure for a new isolated range as a result of either
 ``LandInsert()`` or ``LandDelete()``, and there is insufficient memory
-to allocation the block structure, then the range is not added
-to the CBS or deleted from it, and the call to ``LandInsert()`` or
+to allocate the block structure, then the range is not added to the
+CBS or deleted from it, and the call to ``LandInsert()`` or
 ``LandDelete()`` returns ``ResMEMORY``.
 
 
