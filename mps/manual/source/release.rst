@@ -3,6 +3,30 @@
 Release notes
 =============
 
+.. _release-notes-1.114:
+
+Release 1.114.0
+---------------
+
+New features
+............
+
+#. :term:`Ambiguous <ambiguous reference>` :term:`interior pointers`
+   now keep objects in :ref:`pool-amc` and :ref:`pool-amcz` pools
+   alive.
+
+   This means that if the compiler optimizes away a pointer to the
+   base of an object, leaving an interior pointer as the only
+   reference keeping the object alive, this does not cause the object
+   to be incorrectly collected. Or, if you are writing your own
+   compiler, you can now perform such an optimization safely.
+
+   If you require the old behaviour (in which ambiguous interior
+   pointers were ignored) then you can set the
+   :c:macro:`MPS_KEY_INTERIOR` keyword argument to ``FALSE`` when
+   calling :c:func:`mps_pool_create_k`.
+
+
 .. _release-notes-1.113:
 
 Release 1.113.0
@@ -144,3 +168,86 @@ Other changes
    exception while the MPS is holding the arena lock. See job003640_.
 
    .. _job003640: https://www.ravenbrook.com/project/mps/issue/job003640/
+
+
+.. _release-notes-1.111:
+
+Release 1.111.0
+---------------
+
+New features
+............
+
+#. Reporting features have been removed from the :ref:`mpseventcnv
+   <telemetry-mpseventcnv>` utility. Instead, the telemetry system
+   comes with two new utility programs to assist with reporting and
+   analysis: :ref:`mpseventtxt <telemetry-mpseventtxt>` converts an
+   event stream into human-readable form, and :ref:`mpseventsql
+   <telemetry-mpseventsql>` loads an event stream into a SQLite
+   database for further analysis. See :ref:`topic-telemetry`.
+
+#. The new pool class MFS provide manually managed allocation of
+   fixed-size objects. See :ref:`pool-mfs`.
+
+#. The new pool class MVT provide manually managed allocation of
+   variable-size objects using a *temporal fit* allocation policy
+   (that is, objects that are allocated togther are expected to be
+   freed together). See :ref:`pool-mvt`.
+
+
+Interface changes
+.................
+
+#. It is no longer necessary for client programs to use
+   :c:func:`mps_tramp` to ensure that exceptions due to barrier hits
+   are caught. This function is now deprecated.
+
+#. You can set the environment variable
+   :envvar:`MPS_TELEMETRY_CONTROL` to ``all`` to make the telemetry
+   system output all events. See :ref:`topic-telemetry`.
+
+#. New functions :c:func:`mps_telemetry_get`,
+   :c:func:`mps_telemetry_set` and :c:func:`mps_telemetry_reset`
+   provide a more convenient interface to telemetry control than
+   :c:func:`mps_telemetry_control`, which is now deprecated. See
+   :ref:`topic-telemetry`.
+
+#. The pool classes :ref:`pool-mv` and :ref:`pool-snc` are now
+   deprecated.
+
+#. Allocation frames are now deprecated. See :ref:`topic-frame`.
+
+#. Additionally, the functions :c:func:`mps_arena_expose`,
+   :c:func:`mps_arena_unsafe_expose_remember_protection`,
+   :c:func:`mps_arena_unsafe_restore_protection`,
+   :c:func:`mps_arena_roots_walk`, and :c:func:`mps_fix` are now
+   deprecated.
+
+
+Other changes
+.............
+
+#. :c:func:`mps_arena_step` no longer unclamps the arena as a side
+   effect. If the arena is clamped or parked before calling
+   :c:func:`mps_arena_step`, it is clamped afterwards. See job003320_.
+
+   .. _job003320: https://www.ravenbrook.com/project/mps/issue/job003320/
+
+#. The ambiguous stack scanner, :c:func:`mps_stack_scan_ambig`, no
+   longer asserts on Linux when there are multiple threads. See
+   job003412_.
+
+   .. _job003412: https://www.ravenbrook.com/project/mps/issue/job003412/
+
+#. It is no longer possible for the "ramp" allocation pattern,
+   :c:func:`mps_alloc_pattern_ramp()`, to get stuck. Now
+   :c:func:`mps_ap_alloc_pattern_end` reliably clears this pattern.
+   See job003454_.
+
+   .. _job003454: https://www.ravenbrook.com/project/mps/issue/job003454/
+
+#. The build system now correctly detects the FreeBSD operating system
+   running on the x86-64 architecture, for FreeBSD version 9.1 or
+   later. See job003473_.
+
+   .. _job003473: https://www.ravenbrook.com/project/mps/issue/job003473/

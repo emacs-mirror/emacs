@@ -6,7 +6,7 @@ Nailboards for ambiguously referenced segments
 :Tag: design.mps.nailboard
 :Author: Gareth Rees
 :Date: 2014-01-15
-:Status: incomplete design
+:Status: complete design
 :Revision: $Id$
 :Copyright: See section `Copyright and License`_.
 :Index terms: pair: nailboard; design
@@ -80,9 +80,14 @@ corresponding word in the level *k*\−1 table is set).
 _`.impl.scale`: Here ``scale`` is an arbitrary scale factor that must
 be a power of 2. It could in future be supplied as a parameter when
 creating a nailboard, but in the current implementation it is always
-:c:macro:`MPS_WORD_WIDTH`.
+``MPS_WORD_WIDTH``.
 
-_`.impl.table.last`: The last bit table is one word long or shorter.
+_`.impl.table.last`: The last bit table is always shorter than one
+word. This is slightly wasteful in some cases (for example, a
+nailboard with 64 nails and ``scale`` 64 will have two levels, the
+second level having just one bit), but allows the code to support
+small nailboards without special cases in the code (consider the case
+of a nailboard with just one nail).
 
 _`.impl.size`: The size of the level *i* bit table is the ceiling of
 
@@ -113,7 +118,8 @@ it is reclaimed.
 _`.impl.isresrange.strategy`: The strategy for testing to see if any
 nails are set in a range is to handle the cases that are expected to
 be common first. In particular, we expect that there will only be few
-nails in a nailboard, so most calls to :c:func:`NailboardIsResRange` will return ``TRUE``.
+nails in a nailboard, so most calls to ``NailboardIsResRange()`` will
+return ``TRUE``.
 
 _`.impl.isresrange.alignment`: When testing a range against a level of
 a nailboard, the base and limit of the range will typically not align
@@ -168,6 +174,32 @@ level.
 _`.impl.isresrange.splinter.one-sided`: This splinter-of-a-splinter is
 one-sided: that is, we don't need to look at the right splinter of a
 left splinter or vice versa, because we know that it is empty.
+
+
+Future
+------
+
+_`.future.tune`: The implementation makes heavy use of
+``BTIsResRange``, but this function is not well tuned for scanning
+small arrays (which we expect to be the common case for nailboards).
+Performance might be improved by special-casing the small levels.
+
+_`.future.limit`: In C and C++, a pointer to "one past the last
+element of an array object" (the limit of the object in our
+terminology) is a valid pointer and can be used in pointer arithmetic.
+See §6.5.6.8–9 of [C1999]. So in theory a programmer could have such
+as pointer as the only reference keeping an object alive, and still
+expect to be able to subtract from it to get back to the object. The
+current nailboard implementation does not support this use case.
+
+
+References
+----------
+
+.. [C1999]
+   International Standard ISO/IEC 9899:1999;
+   "Programming languages — C";
+   <http://www.open-std.org/jtc1/sc22/WG14/www/docs/n1256.pdf>
 
 
 Document History

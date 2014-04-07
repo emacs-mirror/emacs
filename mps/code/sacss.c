@@ -47,13 +47,13 @@ static mps_res_t make(mps_addr_t *p, mps_sac_t sac, size_t size)
 
 static mps_res_t stress(mps_class_t class,
                         size_t classes_count, mps_sac_classes_s *classes,
-                        size_t (*size)(int i), mps_arena_t arena, ...)
+                        size_t (*size)(size_t i), mps_arena_t arena, ...)
 {
   mps_res_t res;
   mps_pool_t pool;
   mps_sac_t sac;
   va_list arg;
-  int i, k;
+  size_t i, k;
   int *ps[testSetSIZE];
   size_t ss[testSetSIZE];
 
@@ -94,26 +94,26 @@ static mps_res_t stress(mps_class_t class,
     /* upper half, as when allocating them again we want smaller objects */
     /* see randomSize() */
     switch (k % 2) {
-    case 0: {
+    case 0:
       for (i=testSetSIZE/2; i<testSetSIZE; ++i)
         MPS_SAC_FREE(sac, (mps_addr_t)ps[i], ss[i]);
-    } break;
-    case 1: {
+      break;
+    default:
       for (i=testSetSIZE/2; i<testSetSIZE; ++i)
         mps_sac_free(sac, (mps_addr_t)ps[i], ss[i]);
-    } break;
+      break;
     }
     /* allocate some new objects */
     for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
       ss[i] = (*size)(i);
       switch (k % 2) {
-      case 0: {
+      case 0:
         res = make((mps_addr_t *)&ps[i], sac, ss[i]);
-      } break;
-      case 1: {
+        break;
+      default:
         res = mps_sac_alloc((mps_addr_t *)&ps[i], sac, ss[i], FALSE);
-      } break;
-      }     
+        break;
+      }
       if (res != MPS_RES_OK) return res;
     }
   }
@@ -125,12 +125,9 @@ static mps_res_t stress(mps_class_t class,
 }
 
 
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-
-
 /* randomSize8 -- produce sizes both latge and small */
 
-static size_t randomSize8(int i)
+static size_t randomSize8(size_t i)
 {
   size_t maxSize = 2 * 160 * 0x2000;
   size_t size;
@@ -143,47 +140,34 @@ static size_t randomSize8(int i)
 
 /* testInArena -- test all the pool classes in the given arena */
 
-static mps_pool_debug_option_s debugOptions8 = {
-  /* .fence_template = */   (const void *)"postpost",
-  /* .fence_size = */       8,
-  /* .free_template = */    (const void *)"DEAD",
-  /* .free_size = */        4
-};
-
-static mps_pool_debug_option_s debugOptions16 = {
+static mps_pool_debug_option_s debugOptions = {
   /* .fence_template = */   (const void *)"postpostpostpost",
-  /* .fence_size = */       16,
+  /* .fence_size = */       MPS_PF_ALIGN,
   /* .free_template = */    (const void *)"DEAD",
   /* .free_size = */        4
 };
 
-static mps_sac_classes_s classes8[4] = { {8, 1, 1}, {16, 1, 2}, {136, 9, 5},
-                                        {topClassSIZE, 9, 4} };
+static mps_sac_classes_s classes[4] = {
+  {MPS_PF_ALIGN, 1, 1}, 
+  {MPS_PF_ALIGN * 2, 1, 2},
+  {128 + MPS_PF_ALIGN, 9, 5},
+  {topClassSIZE, 9, 4} 
+};
 
-static mps_sac_classes_s classes16[4] = { {16, 1, 1}, {32, 1, 2}, {144, 9, 5},
-                                        {topClassSIZE, 9, 4} };
-
-static int testInArena(mps_arena_t arena)
+static void testInArena(mps_arena_t arena)
 {
-  mps_pool_debug_option_s *debugOptions;
-  mps_sac_classes_s *classes;
-  
-  debugOptions = MPS_PF_ALIGN == 8 ? &debugOptions8 : &debugOptions16;
-  classes = MPS_PF_ALIGN == 8 ? classes8 : classes16;
-
   printf("MVFF\n\n");
   die(stress(mps_class_mvff(), classCOUNT, classes, randomSize8, arena,
              (size_t)65536, (size_t)32, (mps_align_t)MPS_PF_ALIGN, TRUE, TRUE, TRUE),
       "stress MVFF");
   printf("MV debug\n\n");
   die(stress(mps_class_mv_debug(), classCOUNT, classes, randomSize8, arena,
-             debugOptions, (size_t)65536, (size_t)32, (size_t)65536),
+             &debugOptions, (size_t)65536, (size_t)32, (size_t)65536),
       "stress MV debug");
   printf("MV\n\n");
   die(stress(mps_class_mv(), classCOUNT, classes, randomSize8, arena,
              (size_t)65536, (size_t)32, (size_t)65536),
       "stress MV");
-  return 0;
 }
 
 
@@ -201,7 +185,6 @@ int main(int argc, char *argv[])
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, FALSE);
-    MPS_ARGS_DONE(args);
     die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
         "mps_arena_create");
   } MPS_ARGS_END(args);

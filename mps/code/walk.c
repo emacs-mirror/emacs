@@ -1,7 +1,7 @@
 /* walk.c: OBJECT WALKER
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpm.h"
@@ -77,7 +77,7 @@ static void ArenaFormattedObjectsWalk(Arena arena, FormattedObjectsStepMethod f,
     do {
       Pool pool;
       pool = SegPool(seg);
-      if (pool->class->attr & AttrFMT) {
+      if (PoolHasAttr(pool, AttrFMT)) {
         ShieldExpose(arena, seg);
         PoolWalk(pool, seg, f, p, s);
         ShieldCover(arena, seg);
@@ -171,7 +171,7 @@ static Bool rootsStepClosureCheck(rootsStepClosure rsc)
   CHECKL(FUNCHECK(rsc->f));
   /* p and s fields are arbitrary closures which cannot be checked */
   if (rsc->root != NULL) {
-    CHECKL(RootCheck(rsc->root));
+    CHECKD_NOSIG(Root, rsc->root); /* <design/check/#.hidden-type> */
   }
   return TRUE;
 }
@@ -243,7 +243,7 @@ static Res RootsWalkFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
   /* If the segment isn't GCable then the ref is not to the heap and */
   /* shouldn't be passed to the client. */
-  AVER((SegPool(seg)->class->attr & AttrGC) != 0);
+  AVER(PoolHasAttr(SegPool(seg), AttrGC));
 
   /* Call the client closure - .assume.rootaddr */
   rsc->f((mps_addr_t*)refIO, (mps_root_t)rsc->root, rsc->p, rsc->s);
@@ -307,8 +307,9 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
   /* NOTE: I'm not sure why this is. RB 2012-07-24 */
   if (SegFirst(&seg, arena)) {
     do {
-      if ((SegPool(seg)->class->attr & AttrGC) != 0) {
-        TraceAddWhite(trace, seg);
+      if (PoolHasAttr(SegPool(seg), AttrGC)) {
+        res = TraceAddWhite(trace, seg);
+        AVER(res == ResOK);
       }
     } while (SegNext(&seg, arena, seg));
   }
@@ -362,7 +363,7 @@ void mps_arena_roots_walk(mps_arena_t mps_arena, mps_roots_stepper_t f,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

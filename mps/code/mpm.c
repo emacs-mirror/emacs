@@ -1,7 +1,7 @@
 /* mpm.c: GENERAL MPM SUPPORT
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Miscellaneous support for the implementation of the MPM
  * and pool classes.
@@ -132,7 +132,7 @@ Bool AlignCheck(Align align)
 
 Bool (WordIsAligned)(Word word, Align align)
 {
-  AVER(AlignCheck(align));
+  AVERT(Align, align);
   return WordIsAligned(word, align);
 }
 
@@ -141,7 +141,7 @@ Bool (WordIsAligned)(Word word, Align align)
 
 Word (WordAlignUp)(Word word, Align align)
 {
-  AVER(AlignCheck(align));
+  AVERT(Align, align);
   return WordAlignUp(word, align);
 }
 
@@ -167,7 +167,7 @@ Word (WordRoundUp)(Word word, Size modulus)
 
 Word (WordAlignDown)(Word word, Align alignment)
 {
-  AVER(AlignCheck(alignment));
+  AVERT(Align, alignment);
   return WordAlignDown(word, alignment);
 }
 
@@ -212,7 +212,7 @@ Shift SizeLog2(Size size)
 
 Addr (AddrAlignDown)(Addr addr, Align alignment)
 {
-  AVER(AlignCheck(alignment));
+  AVERT(Align, alignment);
   return AddrAlignDown(addr, alignment);
 }
 
@@ -604,7 +604,7 @@ Bool StringEqual(const char *s1, const char *s2)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

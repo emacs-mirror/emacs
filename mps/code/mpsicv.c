@@ -94,8 +94,6 @@ struct tlonglong {
 
 /* alignmentTest -- test default alignment is acceptable */
 
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-
 static void alignmentTest(mps_arena_t arena)
 {
   mps_pool_t pool;
@@ -404,7 +402,7 @@ static void *test(void *arg, size_t s)
 
   if (rnd() & 1) {
     printf("Using auto_header format.\n");
-    EnsureHeaderFormat(&format, arena);
+    die(EnsureHeaderFormat(&format, arena), "EnsureHeaderFormat");
     ap_headerSIZE = headerSIZE;  /* from fmthe.h */
   } else {
     printf("Using normal format (no implicit object header: client pointers point at start of storage).\n");
@@ -518,7 +516,8 @@ static void *test(void *arg, size_t s)
 
     if (rnd() % patternFREQ == 0) {
       switch(rnd() % 4) {
-      case 0: case 1:
+      case 0: /* fall through */
+      case 1:
         die(mps_ap_alloc_pattern_begin(ap, ramp), "alloc_pattern_begin");
         ++rampCount;
         break;
@@ -530,7 +529,7 @@ static void *test(void *arg, size_t s)
           --rampCount;
         }
         break;
-      case 3:
+      default:
         die(mps_ap_alloc_pattern_reset(ap), "alloc_pattern_reset");
         rampCount = 0;
         break;

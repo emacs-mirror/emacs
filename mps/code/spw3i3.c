@@ -1,4 +1,4 @@
-/* spw3i3mv.c: STACK PROBE FOR 32-BIT WINDOWS
+/* spw3i3.c: STACK PROBE FOR 32-BIT WINDOWS
  *
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
@@ -12,6 +12,13 @@
 
 
 #include "mpm.h"
+
+#ifdef MPS_BUILD_PC
+
+/* "[ISO] Inline assembly code is not portable." */
+#pragma warn(disable: 2007)
+
+#endif /* MPS_BUILD_PC */
 
 
 void StackProbe(Size depth)

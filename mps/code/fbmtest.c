@@ -83,13 +83,13 @@ static Index (indexOfAddr)(FBMState state, Addr a)
 static void describe(FBMState state) {
   switch (state->type) {
   case FBMTypeCBS:
-    CBSDescribe(state->the.cbs, mps_lib_get_stdout());
+    die(CBSDescribe(state->the.cbs, mps_lib_get_stdout()), "CBSDescribe");
     break;
   case FBMTypeFreelist:
-    FreelistDescribe(state->the.fl, mps_lib_get_stdout());
+    die(FreelistDescribe(state->the.fl, mps_lib_get_stdout()), "FreelistDescribe");
     break;
   default:
-    fail();
+    cdie(0, "invalid state->type");
     break;
   }
 }
@@ -157,7 +157,7 @@ static void check(FBMState state)
     FreelistIterate(state->the.fl, checkFLCallback, (void *)&closure, 0);
     break;
   default:
-    fail();
+    cdie(0, "invalid state->type");
     return;
   }
 
@@ -311,7 +311,7 @@ static void allocate(FBMState state, Addr base, Addr limit)
     res = FreelistDelete(&oldRange, state->the.fl, &range);
     break;
   default:
-    fail();
+    cdie(0, "invalid state->type");
     return;
   }
 
@@ -387,7 +387,7 @@ static void deallocate(FBMState state, Addr base, Addr limit)
     res = FreelistInsert(&freeRange, state->the.fl, &range);
     break;
   default:
-    fail();
+    cdie(0, "invalid state->type");
     return;
   }
 
@@ -432,20 +432,23 @@ static void find(FBMState state, Size size, Bool high, FindDelete findDelete)
     remainderLimit = origLimit = addrOfIndex(state, expectedLimit);
 
     switch(findDelete) {
-    case FindDeleteNONE: {
+    case FindDeleteNONE:
       /* do nothing */
-    } break;
-    case FindDeleteENTIRE: {
+      break;
+    case FindDeleteENTIRE:
       remainderBase = remainderLimit;
-    } break;
-    case FindDeleteLOW: {
+      break;
+    case FindDeleteLOW:
       expectedLimit = expectedBase + size;
       remainderBase = addrOfIndex(state, expectedLimit);
-    } break;
-    case FindDeleteHIGH: {
+      break;
+    case FindDeleteHIGH:
       expectedBase = expectedLimit - size;
       remainderLimit = addrOfIndex(state, expectedBase);
-    } break;
+      break;
+    default:
+      cdie(0, "invalid findDelete");
+      break;
     }
 
     if (findDelete != FindDeleteNONE) {
@@ -467,7 +470,7 @@ static void find(FBMState state, Size size, Bool high, FindDelete findDelete)
       (&foundRange, &oldRange, state->the.fl, size * state->align, findDelete);
     break;
   default:
-    fail();
+    cdie(0, "invalid state->type");
     return;
   }
 
@@ -528,9 +531,7 @@ static void test(FBMState state, unsigned n) {
       size = fbmRnd(ArraySize / 10) + 1;
       high = fbmRnd(2) ? TRUE : FALSE;
       switch(fbmRnd(6)) {
-      case 0:
-      case 1:
-      case 2: findDelete = FindDeleteNONE; break;
+      default: findDelete = FindDeleteNONE; break;
       case 3: findDelete = FindDeleteLOW; break;
       case 4: findDelete = FindDeleteHIGH; break;
       case 5: findDelete = FindDeleteENTIRE; break;
@@ -538,7 +539,7 @@ static void test(FBMState state, unsigned n) {
       find(state, size, high, findDelete);
       break;
     default:
-      fail();
+      cdie(0, "invalid state->type");
       return;
     }
     if ((i + 1) % 1000 == 0)
@@ -605,10 +606,14 @@ extern int main(int argc, char *argv[])
 
   mps_arena_destroy(arena);
 
-  printf("\nNumber of allocations attempted: %ld\n", NAllocateTried);
-  printf("Number of allocations succeeded: %ld\n", NAllocateSucceeded);
-  printf("Number of deallocations attempted: %ld\n", NDeallocateTried);
-  printf("Number of deallocations succeeded: %ld\n", NDeallocateSucceeded);
+  printf("\nNumber of allocations attempted: %"PRIuLONGEST"\n",
+         (ulongest_t)NAllocateTried);
+  printf("Number of allocations succeeded: %"PRIuLONGEST"\n",
+         (ulongest_t)NAllocateSucceeded);
+  printf("Number of deallocations attempted: %"PRIuLONGEST"\n",
+         (ulongest_t)NDeallocateTried);
+  printf("Number of deallocations succeeded: %"PRIuLONGEST"\n",
+         (ulongest_t)NDeallocateSucceeded);
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
 }

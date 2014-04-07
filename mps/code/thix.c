@@ -1,7 +1,7 @@
 /* thix.c: Threads Manager for Posix threads
  *
  *  $Id$
- *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is a pthreads implementation of the threads manager.
  * This implements <code/th.h>.
@@ -61,7 +61,7 @@ Bool ThreadCheck(Thread thread)
   CHECKS(Thread, thread);
   CHECKU(Arena, thread->arena);
   CHECKL(thread->serial < thread->arena->threadSerial);
-  CHECKL(RingCheck(&thread->arenaRing));
+  CHECKD_NOSIG(Ring, &thread->arenaRing);
   CHECKD(PThreadext, &thread->thrextStruct);
   return TRUE;
 }
@@ -292,7 +292,7 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

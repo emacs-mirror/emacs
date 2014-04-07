@@ -1,7 +1,7 @@
 /* poolmv.c: MANUAL VARIABLE POOL
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -138,11 +138,11 @@ static Bool MVSpanCheck(MVSpan span)
 
   CHECKS(MVSpan, span);
 
-  CHECKL(RingCheck(&span->spans));
+  CHECKD_NOSIG(Ring, &span->spans);
   CHECKU(MV, span->mv);
   CHECKD_NOSIG(Tract, span->tract);
-  CHECKL(MVBlockCheck(&span->base));
-  CHECKL(MVBlockCheck(&span->limit));
+  CHECKD_NOSIG(MVBlock, &span->base);
+  CHECKD_NOSIG(MVBlock, &span->limit);
   /* The block chain starts with the base sentinel. */
   CHECKL(span->blocks == &span->base);
   /* Since there is a limit sentinel, the chain can't end just after the */
@@ -193,7 +193,7 @@ static void MVVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[2].key = MPS_KEY_MAX_SIZE;
   args[2].val.size = va_arg(varargs, Size);
   args[3].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 static void MVDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
@@ -570,7 +570,7 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
   span->mv = mv;
   /* Set the p field for each tract of the span  */
   TRACT_FOR(tract, addr, arena, base, limit) {
-    AVER(TractCheck(tract));
+    AVERT(Tract, tract);
     AVER(TractP(tract) == NULL);
     AVER(TractPool(tract) == pool);
     TractSetP(tract, (void *)span);
@@ -792,6 +792,7 @@ DEFINE_POOL_CLASS(MVPoolClass, this)
   this->alloc = MVAlloc;
   this->free = MVFree;
   this->describe = MVDescribe;
+  AVERT(PoolClass, this);
 }
 
 
@@ -811,6 +812,7 @@ DEFINE_POOL_CLASS(MVDebugPoolClass, this)
   this->size = sizeof(MVDebugStruct);
   this->varargs = MVDebugVarargs;
   this->debugMixin = MVDebugMixin;
+  AVERT(PoolClass, this);
 }
 
 
@@ -901,7 +903,7 @@ Bool MVCheck(MV mv)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

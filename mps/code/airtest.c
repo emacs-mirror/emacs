@@ -3,26 +3,51 @@
  * $Id: //info.ravenbrook.com/project/mps/branch/2014-01-15/nailboard/code/fotest.c#1 $
  * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
  *
- * This test case creates a bunch of vectors, registers them for
- * finalization, and then discards the base pointers to those objects,
- * keeping only ambiguous interior references to the vector entries in
- * the stack-allocated table s.
+ * .overview: This test case creates a bunch of vectors, registers
+ * them for finalization, and then discards the base pointers to those
+ * objects, keeping only ambiguous interior references to the vector
+ * entries in the stack-allocated table s.
  *
- * If any of these objects are finalized, then this means that the
- * ambiguous interior references has failed to keep the object alive.
+ * .options: The test has two options:
+ *
+ * 'interior' is the value passed as MPS_KEY_INTERIOR when creating
+ * the AMC pool. If TRUE, interior pointers must keep objects alive,
+ * and so if any of these objects are finalized, the test fails. If
+ * FALSE, interior pointers do not keep objects alive, so it is likely
+ * that all the objects will be finalized.
+ *
+ * 'stack' is TRUE if the C stack is registered as a root. (If FALSE,
+ * we register the table of interior pointers as an ambiguous root.)
+ *
+ * .fail.lii6ll: The test case passes on most platforms with
+ * interior=FALSE and stack=TRUE (that is, all vectors get finalized),
+ * but fails on lii6ll in variety HOT. Rather than struggle to defeat
+ * the Clang optimizer, we choose not to test in this configuration.
+ * In any case, the MPS does not guarantee anything about timely
+ * finalization (see <manual/html/topic/finalization.html#cautions>).
  */
 
 #include "mps.h"
-#include "fmtscheme.h"
+#include "mpsavm.h"
+#include "mpscamc.h"
+#include "mpslib.h"
 #include "testlib.h"
+#include "fmtscheme.h"
 
 #define OBJ_LEN (1u << 4)
-#define OBJ_COUNT 10
+#define OBJ_COUNT 1
 
-void test_main(void)
+static void test_air(int interior, int stack)
 {
+  size_t n_finalized = 0;
   size_t i, j;
-  obj_t *s[OBJ_COUNT];
+  obj_t *s[OBJ_COUNT] = {0};
+  mps_root_t root;
+  if (!stack) {
+    mps_addr_t *p = (void *)s;
+    die(mps_root_create_table(&root, scheme_arena, mps_rank_ambig(), 0, p,
+                              OBJ_COUNT), "mps_root_create_table");
+  }
   mps_message_type_enable(scheme_arena, mps_message_type_finalization());
   for (j = 0; j < OBJ_COUNT; ++j) {
     obj_t n = scheme_make_integer((long)j);
@@ -41,12 +66,98 @@ void test_main(void)
     mps_arena_release(scheme_arena);
     if (mps_message_get(&msg, scheme_arena, mps_message_type_finalization())) {
       mps_addr_t ref;
-      obj_t o;
       mps_message_finalization_ref(&ref, scheme_arena, msg);
-      o = ref;
-      error("wrongly finalized vector %ld at %p", o->vector.vector[0]->integer.integer, o);
+      ++ n_finalized;
+      if (interior) {
+        obj_t o;
+        o = ref;
+        error("wrongly finalized vector %ld at %p",
+              o->vector.vector[0]->integer.integer, (void *)o);
+      }
     }
   }
+  if (!interior && n_finalized < OBJ_COUNT) {
+    error("only finalized %"PRIuLONGEST" out of %"PRIuLONGEST" vectors.",
+          (ulongest_t)n_finalized, (ulongest_t)OBJ_COUNT);
+  }
+  if (!stack) {
+    mps_root_destroy(root);
+  }
+}
+
+static mps_gen_param_s obj_gen_params[] = {
+  { 150, 0.85 },
+  { 170, 0.45 }
+};
+
+static void test_main(int interior, int stack)
+{
+  mps_res_t res;
+  mps_chain_t obj_chain;
+  mps_fmt_t obj_fmt;
+  mps_thr_t thread;
+  mps_root_t reg_root;
+  void *marker = &marker;
+
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 1 << 20);
+    MPS_ARGS_DONE(args);
+    res = mps_arena_create_k(&scheme_arena, mps_arena_class_vm(), args);
+  } MPS_ARGS_END(args);
+  if (res != MPS_RES_OK) error("Couldn't create arena");
+
+  res = mps_chain_create(&obj_chain, scheme_arena,
+                         sizeof(obj_gen_params) / sizeof(*obj_gen_params),
+                         obj_gen_params);
+  if (res != MPS_RES_OK) error("Couldn't create obj chain");
+
+  scheme_fmt(&obj_fmt);
+
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_CHAIN, obj_chain);
+    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, obj_fmt);
+    MPS_ARGS_ADD(args, MPS_KEY_INTERIOR, interior);
+    MPS_ARGS_DONE(args);
+    die(mps_pool_create_k(&obj_pool, scheme_arena, mps_class_amc(), args),
+        "mps_pool_create_k");
+  } MPS_ARGS_END(args);
+
+  res = mps_ap_create_k(&obj_ap, obj_pool, mps_args_none);
+  if (res != MPS_RES_OK) error("Couldn't create obj allocation point");
+
+  res = mps_thread_reg(&thread, scheme_arena);
+  if (res != MPS_RES_OK) error("Couldn't register thread");
+
+  if (stack) {
+    res = mps_root_create_reg(&reg_root, scheme_arena, mps_rank_ambig(), 0,
+                              thread, mps_stack_scan_ambig, marker, 0);
+    if (res != MPS_RES_OK) error("Couldn't create root");
+  }
+  
+  test_air(interior, stack);
+
+  mps_arena_park(scheme_arena);
+  if (stack)
+    mps_root_destroy(reg_root);
+  mps_thread_dereg(thread);
+  mps_ap_destroy(obj_ap);
+  mps_pool_destroy(obj_pool);
+  mps_chain_destroy(obj_chain);
+  mps_fmt_destroy(obj_fmt);
+  mps_arena_destroy(scheme_arena);
+}
+
+int main(int argc, char *argv[])
+{
+  testlib_init(argc, argv);
+
+  test_main(TRUE, TRUE);
+  test_main(TRUE, FALSE);
+  /* not test_main(FALSE, TRUE) -- see .fail.lii6ll. */
+  test_main(FALSE, FALSE);
+
+  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
+  return 0;
 }
 
 
@@ -90,4 +201,3 @@ void test_main(void)
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-

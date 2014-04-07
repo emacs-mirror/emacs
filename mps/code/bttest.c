@@ -125,7 +125,7 @@ static void get(void)
 {
   if (argInRange(0)) {
     Bool b = (BTGet)(bt, args[0]);
-    printf(b ? "TRUE\n" : "FALSE\n");
+    puts(b ? "TRUE" : "FALSE");
   }
 }
 
@@ -148,7 +148,7 @@ static void isSetRange(void)
 {
   if (checkDefaultRange(0)) {
     Bool b = BTIsSetRange(bt, args[0], args[1]);
-    printf(b ? "TRUE\n" : "FALSE\n");
+    puts(b ? "TRUE" : "FALSE");
   }
 }
 
@@ -157,7 +157,7 @@ static void isResRange(void)
 {
   if (checkDefaultRange(0)) {
     Bool b = BTIsResRange(bt, args[0], args[1]);
-    printf(b ? "TRUE\n" : "FALSE\n");
+    puts(b ? "TRUE" : "FALSE");
   }
 }
 
@@ -312,11 +312,6 @@ static void obeyCommand(const char *command)
 }
 
 
-#ifdef MPS_BUILD_MV
-/* disable "conversion from int to char" */
-#pragma warning(disable: 4244)
-#endif
-
 static void showBT(void) {
   Index i;
   char c;
@@ -325,7 +320,7 @@ static void showBT(void) {
   i = 0;
   while((i < btSize) && (i < 50)) {
     if (i % 10 == 0)
-      c = (char)((i / 10) % 10) + '0';
+      c = (char)(((i / 10) % 10) + '0');
     else
       c = ' ';
     putchar(c);
@@ -334,7 +329,7 @@ static void showBT(void) {
   putchar('\n');
   i = 0;
   while((i < btSize) && (i < 50)) {
-    c = (char)(i % 10) +'0';
+    c = (char)((i % 10) +'0');
     putchar(c);
     ++ i;
   }
@@ -353,11 +348,6 @@ static void showBT(void) {
   putchar('\n');
 }
 
-#ifdef MPS_BUILD_MV
-/* disable "conversion from int to char" */
-#pragma warning(default: 4244)
-#endif
-     
 
 #define testArenaSIZE (((size_t)64)<<20)
 
@@ -374,7 +364,7 @@ extern int main(int argc, char *argv[])
   while(1) {
     char input[100];
     printf("bt test> ");
-    fflush(stdout);
+    (void)fflush(stdout);
     if (fgets(input, 100, stdin)) {
       obeyCommand(input);
       showBT();

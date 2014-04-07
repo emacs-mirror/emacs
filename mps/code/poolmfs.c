@@ -1,7 +1,7 @@
 /* poolmfs.c: MANUAL FIXED SMALL UNIT POOL
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * This is the implementation of the MFS pool class.
  *
@@ -86,7 +86,7 @@ static void MFSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[1].key = MPS_KEY_MFS_UNIT_SIZE;
   args[1].val.size = va_arg(varargs, Size);
   args[2].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 ARG_DEFINE_KEY(mfs_unit_size, Size);
@@ -102,7 +102,7 @@ static Res MFSInit(Pool pool, ArgList args)
   ArgStruct arg;
 
   AVER(pool != NULL);
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
   
   ArgRequire(&arg, args, MPS_KEY_MFS_UNIT_SIZE);
   unitSize = arg.val.size;
@@ -116,7 +116,7 @@ static Res MFSInit(Pool pool, ArgList args)
     extendSelf = arg.val.b;
 
   AVER(extendBy >= unitSize);
-  AVER(BoolCheck(extendSelf));
+  AVERT(Bool, extendSelf);
  
   mfs = PoolPoolMFS(pool);
   arena = PoolArena(pool);
@@ -250,7 +250,7 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
 
   AVER(pReturn != NULL);
   AVER(size == mfs->unroundedUnitSize);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   f = mfs->freeList;
 
@@ -347,6 +347,7 @@ DEFINE_POOL_CLASS(MFSPoolClass, this)
   this->alloc = MFSAlloc;
   this->free = MFSFree;
   this->describe = MFSDescribe;
+  AVERT(PoolClass, this);
 }
 
 
@@ -369,7 +370,7 @@ Bool MFSCheck(MFS mfs)
   CHECKS(MFS, mfs);
   CHECKD(Pool, &mfs->poolStruct);
   CHECKL(mfs->poolStruct.class == EnsureMFSPoolClass());
-  CHECKL(mfs->unroundedUnitSize >= UNIT_MIN);
+  CHECKL(mfs->unitSize >= UNIT_MIN);
   CHECKL(mfs->extendBy >= UNIT_MIN);
   CHECKL(BoolCheck(mfs->extendSelf));
   arena = PoolArena(&mfs->poolStruct);
@@ -377,7 +378,7 @@ Bool MFSCheck(MFS mfs)
   CHECKL(SizeAlignUp(mfs->unroundedUnitSize, mfs->poolStruct.alignment) ==
          mfs->unitSize);
   if(mfs->tractList != NULL) {
-    CHECKL(TractCheck(mfs->tractList));
+    CHECKD_NOSIG(Tract, mfs->tractList);
   }
   return TRUE;
 }
@@ -385,7 +386,7 @@ Bool MFSCheck(MFS mfs)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

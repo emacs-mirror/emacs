@@ -191,6 +191,9 @@ extern const struct mps_key_s _mps_key_align;
 extern const struct mps_key_s _mps_key_cbs_extend_by;
 #define MPS_KEY_CBS_EXTEND_BY   (&_mps_key_cbs_extend_by)
 #define MPS_KEY_CBS_EXTEND_BY_FIELD size
+extern const struct mps_key_s _mps_key_interior;
+#define MPS_KEY_INTERIOR        (&_mps_key_interior)
+#define MPS_KEY_INTERIOR_FIELD  b
 
 extern const struct mps_key_s _mps_key_vmw3_top_down;
 #define MPS_KEY_VMW3_TOP_DOWN   (&_mps_key_vmw3_top_down)

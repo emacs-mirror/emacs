@@ -1,18 +1,18 @@
-# w3i6mv.nmk: WINDOWS (x86-64) NMAKE FILE -*- makefile -*-
+# w3i3pc.nmk: WINDOWS (IA-32) NMAKE FILE -*- makefile -*-
 #
 # $Id$
-# Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
 
-PFM = w3i6mv
+PFM = w3i3pc
 
-PFMDEFS = /DCONFIG_PF_STRING="w3i6mv" /DCONFIG_PF_W3I6MV /DWIN32 /D_WINDOWS
-MASM = ml64
-
-# MPM sources: core plus platform-specific.
-MPM = $(MPMCOMMON) <proti6> <prmci6w3> <spw3i6> <ssw3i6mv> <thw3i6>
-
+PFMDEFS = /DCONFIG_PF_STRING="w3i3pc" /DCONFIG_PF_W3I3PC /DWIN32 /D_WINDOWS
 
 !INCLUDE commpre.nmk
+!INCLUDE pc.nmk
+
+# MPM sources: core plus platform-specific.
+MPM = $(MPMCOMMON) <proti3> <prmci3w3> <spw3i3> <ssw3i3pc> <thw3i3>
+
 
 
 # Source to object file mappings and CFLAGS amalgamation
@@ -31,81 +31,78 @@ CFLAGS=$(CFLAGSCOMMONPRE) $(CFHOT) $(CFLAGSCOMMONPOST)
 CFLAGSSQL=$(CFLAGSSQLPRE) $(CFHOT) $(CFLAGSSQLPOST)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFHOT)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSHOT)
-MPMOBJ0 = $(MPM:<=w3i6mv\hot\)
-PLINTHOBJ0 = $(PLINTH:<=w3i6mv\hot\)
-AMSOBJ0 = $(AMS:<=w3i6mv\hot\)
-AMCOBJ0 = $(AMC:<=w3i6mv\hot\)
-AWLOBJ0 = $(AWL:<=w3i6mv\hot\)
-LOOBJ0 = $(LO:<=w3i6mv\hot\)
-SNCOBJ0 = $(SNC:<=w3i6mv\hot\)
-MVFFOBJ0 = $(MVFF:<=w3i6mv\hot\)
-DWOBJ0 = $(DW:<=w3i6mv\hot\)
-FMTTESTOBJ0 = $(FMTTEST:<=w3i6mv\hot\)
-FMTSCHEMEOBJ0 = $(FMTSCHEME:<=w3i6mv\hot\)
-POOLNOBJ0 = $(POOLN:<=w3i6mv\hot\)
-TESTLIBOBJ0 = $(TESTLIB:<=w3i6mv\hot\)
+MPMOBJ0 = $(MPM:<=w3i3pc\hot\)
+PLINTHOBJ0 = $(PLINTH:<=w3i3pc\hot\)
+AMSOBJ0 = $(AMS:<=w3i3pc\hot\)
+AMCOBJ0 = $(AMC:<=w3i3pc\hot\)
+AWLOBJ0 = $(AWL:<=w3i3pc\hot\)
+LOOBJ0 = $(LO:<=w3i3pc\hot\)
+SNCOBJ0 = $(SNC:<=w3i3pc\hot\)
+MVFFOBJ0 = $(MVFF:<=w3i3pc\hot\)
+DWOBJ0 = $(DW:<=w3i3pc\hot\)
+FMTTESTOBJ0 = $(FMTTEST:<=w3i3pc\hot\)
+POOLNOBJ0 = $(POOLN:<=w3i3pc\hot\)
+TESTLIBOBJ0 = $(TESTLIB:<=w3i3pc\hot\)
 
 !ELSEIF "$(VARIETY)" == "cool"
 CFLAGS=$(CFLAGSCOMMONPRE) $(CFCOOL) $(CFLAGSCOMMONPOST)
 CFLAGSSQL=$(CFLAGSSQLPRE) $(CFCOOL) $(CFLAGSSQLPOST)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCOOL)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCOOL)
-MPMOBJ0 = $(MPM:<=w3i6mv\cool\)
-PLINTHOBJ0 = $(PLINTH:<=w3i6mv\cool\)
-AMSOBJ0 = $(AMS:<=w3i6mv\cool\)
-AMCOBJ0 = $(AMC:<=w3i6mv\cool\)
-AWLOBJ0 = $(AWL:<=w3i6mv\cool\)
-LOOBJ0 = $(LO:<=w3i6mv\cool\)
-SNCOBJ0 = $(SNC:<=w3i6mv\cool\)
-MVFFOBJ0 = $(MVFF:<=w3i6mv\cool\)
-DWOBJ0 = $(DW:<=w3i6mv\cool\)
-FMTTESTOBJ0 = $(FMTTEST:<=w3i6mv\cool\)
-FMTSCHEMEOBJ0 = $(FMTSCHEME:<=w3i6mv\cool\)
-POOLNOBJ0 = $(POOLN:<=w3i6mv\cool\)
-TESTLIBOBJ0 = $(TESTLIB:<=w3i6mv\cool\)
+MPMOBJ0 = $(MPM:<=w3i3pc\cool\)
+PLINTHOBJ0 = $(PLINTH:<=w3i3pc\cool\)
+AMSOBJ0 = $(AMS:<=w3i3pc\cool\)
+AMCOBJ0 = $(AMC:<=w3i3pc\cool\)
+AWLOBJ0 = $(AWL:<=w3i3pc\cool\)
+LOOBJ0 = $(LO:<=w3i3pc\cool\)
+SNCOBJ0 = $(SNC:<=w3i3pc\cool\)
+MVFFOBJ0 = $(MVFF:<=w3i3pc\cool\)
+DWOBJ0 = $(DW:<=w3i3pc\cool\)
+FMTTESTOBJ0 = $(FMTTEST:<=w3i3pc\cool\)
+POOLNOBJ0 = $(POOLN:<=w3i3pc\cool\)
+TESTLIBOBJ0 = $(TESTLIB:<=w3i3pc\cool\)
 
 !ELSEIF "$(VARIETY)" == "rash"
 CFLAGS=$(CFLAGSCOMMONPRE) $(CFRASH) $(CFLAGSCOMMONPOST)
 CFLAGSSQL=$(CFLAGSSQLPRE) $(CFRASH) $(CFLAGSSQLPOST)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFRASH)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSRASH)
-MPMOBJ0 = $(MPM:<=w3i6mv\rash\)
-PLINTHOBJ0 = $(PLINTH:<=w3i6mv\rash\)
-AMSOBJ0 = $(AMS:<=w3i6mv\rash\)
-AMCOBJ0 = $(AMC:<=w3i6mv\rash\)
-AWLOBJ0 = $(AWL:<=w3i6mv\rash\)
-LOOBJ0 = $(LO:<=w3i6mv\rash\)
-SNCOBJ0 = $(SNC:<=w3i6mv\rash\)
-MVFFOBJ0 = $(MVFF:<=w3i6mv\rash\)
-DWOBJ0 = $(DW:<=w3i6mv\rash\)
-FMTTESTOBJ0 = $(FMTTEST:<=w3i6mv\rash\)
-FMTSCHEMEOBJ0 = $(FMTSCHEME:<=w3i6mv\rash\)
-POOLNOBJ0 = $(POOLN:<=w3i6mv\rash\)
-TESTLIBOBJ0 = $(TESTLIB:<=w3i6mv\rash\)
+MPMOBJ0 = $(MPM:<=w3i3pc\rash\)
+PLINTHOBJ0 = $(PLINTH:<=w3i3pc\rash\)
+AMSOBJ0 = $(AMS:<=w3i3pc\rash\)
+AMCOBJ0 = $(AMC:<=w3i3pc\rash\)
+AWLOBJ0 = $(AWL:<=w3i3pc\rash\)
+LOOBJ0 = $(LO:<=w3i3pc\rash\)
+SNCOBJ0 = $(SNC:<=w3i3pc\rash\)
+MVFFOBJ0 = $(MVFF:<=w3i3pc\rash\)
+DWOBJ0 = $(DW:<=w3i3pc\rash\)
+FMTTESTOBJ0 = $(FMTTEST:<=w3i3pc\rash\)
+POOLNOBJ0 = $(POOLN:<=w3i3pc\rash\)
+TESTLIBOBJ0 = $(TESTLIB:<=w3i3pc\rash\)
 
 #!ELSEIF "$(VARIETY)" == "cv"
 #CFLAGS=$(CFLAGSCOMMON) $(CFCV)
 #LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCV)
 #LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCV)
-#MPMOBJ0 = $(MPM:<=w3i6mv\cv\)
+#MPMOBJ0 = $(MPM:<=w3i3pc\cv\)
 #MPMOBJ = $(MPMOBJ0:>=.obj)
-#PLINTHOBJ0 = $(PLINTH:<=w3i6mv\cv\)
+#PLINTHOBJ0 = $(PLINTH:<=w3i3pc\cv\)
 #PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
-#AMSOBJ0 = $(AMS:<=w3i6mv\cv\)
+#AMSOBJ0 = $(AMS:<=w3i3pc\cv\)
 #AMSOBJ = $(AMSOBJ0:>=.obj)
-#AMCOBJ0 = $(AMC:<=w3i6mv\cv\)
+#AMCOBJ0 = $(AMC:<=w3i3pc\cv\)
 #AMCOBJ = $(AMCOBJ0:>=.obj)
-#AWLOBJ0 = $(AWL:<=w3i6mv\cv\)
+#AWLOBJ0 = $(AWL:<=w3i3pc\cv\)
 #AWLOBJ = $(AWLOBJ0:>=.obj)
-#LOOBJ0 = $(LO:<=w3i6mv\cv\)
+#LOOBJ0 = $(LO:<=w3i3pc\cv\)
 #LOOBJ = $(LOOBJ0:>=.obj)
-#SNCOBJ0 = $(SNC:<=w3i6mv\cv\)
+#SNCOBJ0 = $(SNC:<=w3i3pc\cv\)
 #SNCOBJ = $(SNCOBJ0:>=.obj)
-#DWOBJ0 = $(DW:<=w3i6mv\cv\)
+#DWOBJ0 = $(DW:<=w3i3pc\cv\)
 #DWOBJ = $(DWOBJ0:>=.obj)
-#POOLNOBJ0 = $(POOLN:<=w3i6mv\cv\)
+#POOLNOBJ0 = $(POOLN:<=w3i3pc\cv\)
 #POOLNOBJ = $(POOLNOBJ0:>=.obj)
-#TESTLIBOBJ0 = $(TESTLIB:<=w3i6mv\cv\)
+#TESTLIBOBJ0 = $(TESTLIB:<=w3i3pc\cv\)
 #TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ENDIF
@@ -123,7 +120,6 @@ SNCOBJ = $(SNCOBJ0:>=.obj)
 MVFFOBJ = $(MVFFOBJ0:>=.obj)
 DWOBJ = $(DWOBJ0:>=.obj)
 FMTTESTOBJ = $(FMTTESTOBJ0:>=.obj)
-FMTSCHEMEOBJ = $(FMTSCHEMEOBJ0:>=.obj)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -133,7 +129,7 @@ TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

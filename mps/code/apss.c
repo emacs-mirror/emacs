@@ -43,14 +43,14 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 
 /* stress -- create a pool of the requested type and allocate in it */
 
-static mps_res_t stress(mps_class_t class, size_t (*size)(unsigned long i),
+static mps_res_t stress(mps_class_t class, size_t (*size)(size_t i),
                         mps_arena_t arena, ...)
 {
   mps_res_t res = MPS_RES_OK;
   mps_pool_t pool;
   mps_ap_t ap;
   va_list arg;
-  unsigned long i, k;
+  size_t i, k;
   int *ps[testSetSIZE];
   size_t ss[testSetSIZE];
 
@@ -78,7 +78,7 @@ static mps_res_t stress(mps_class_t class, size_t (*size)(unsigned long i),
   for (k=0; k<testLOOPS; ++k) {
     /* shuffle all the objects */
     for (i=0; i<testSetSIZE; ++i) {
-      unsigned long j = rnd()%(testSetSIZE-i);
+      size_t j = rnd()%(testSetSIZE-i);
       void *tp;
       size_t ts;
      
@@ -111,15 +111,10 @@ allocFail:
 }
 
 
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-
-#define alignUp(w, a)       (((w) + (a) - 1) & ~((size_t)(a) - 1))
-
-
 /* randomSizeAligned -- produce sizes both large and small,
  * aligned by platform alignment */
 
-static size_t randomSizeAligned(unsigned long i)
+static size_t randomSizeAligned(size_t i)
 {
   size_t maxSize = 2 * 160 * 0x2000;
   /* Reduce by a factor of 2 every 10 cycles.  Total allocation about 40 MB. */
@@ -127,16 +122,9 @@ static size_t randomSizeAligned(unsigned long i)
 }
 
 
-static mps_pool_debug_option_s bothOptions8 = {
-  /* .fence_template = */   (const void *)"postpost",
-  /* .fence_size = */       8,
-  /* .free_template = */    (const void *)"DEAD",
-  /* .free_size = */        4
-};
-
-static mps_pool_debug_option_s bothOptions16 = {
+static mps_pool_debug_option_s bothOptions = {
   /* .fence_template = */   (const void *)"postpostpostpost",
-  /* .fence_size = */       16,
+  /* .fence_size = */       MPS_PF_ALIGN,
   /* .free_template = */    (const void *)"DEAD",
   /* .free_size = */        4
 };
@@ -186,9 +174,6 @@ static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
 int main(int argc, char *argv[])
 {
   mps_arena_t arena;
-  mps_pool_debug_option_s *bothOptions;
-  
-  bothOptions = MPS_PF_ALIGN == 8 ? &bothOptions8 : &bothOptions16;
 
   testlib_init(argc, argv);
 
@@ -201,11 +186,10 @@ int main(int argc, char *argv[])
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 2 * testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, FALSE);
-    MPS_ARGS_DONE(args);
     die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
         "mps_arena_create");
   } MPS_ARGS_END(args);
-  testInArena(arena, bothOptions);
+  testInArena(arena, &bothOptions);
   mps_arena_destroy(arena);
 
   MPS_ARGS_BEGIN(args) {
@@ -215,7 +199,7 @@ int main(int argc, char *argv[])
     die(mps_arena_create_k(&arena, mps_arena_class_cl(), args),
         "mps_arena_create");
   } MPS_ARGS_END(args);
-  testInArena(arena, bothOptions);
+  testInArena(arena, &bothOptions);
   mps_arena_destroy(arena);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);

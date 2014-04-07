@@ -37,6 +37,8 @@ Res StackScan(ScanState ss, Addr *stackBot)
   AVER(sizeof(((_JUMP_BUFFER *)jb)->Esi) == sizeof(Addr));
   AVER(sizeof(((_JUMP_BUFFER *)jb)->Ebx) == sizeof(Addr));
 
+  /* Ensure that the callee-save registers will be found by
+     StackScanInner when it's passed the address of the Ebx field. */
   AVER(offsetof(_JUMP_BUFFER, Edi) == offsetof(_JUMP_BUFFER, Ebx) + 4);
   AVER(offsetof(_JUMP_BUFFER, Esi) == offsetof(_JUMP_BUFFER, Ebx) + 8);
 

@@ -14,6 +14,13 @@
 
 typedef struct NailboardStruct *Nailboard;
 
+/* NOTE: we could reduce the size of this structure using bitfields.
+ * levels can be at most MPS_WORD_WIDTH / LEVEL_SHIFT + 1, which is 11
+ * on 64-bit, so it would fit in 4 bits. (Or it could be recalculated
+ * from range each time it's needed.) alignShift is at most
+ * MPS_WORD_SHIFT so would fit in 3 bits. (Or it could be supplied in
+ * each function call by the owner.) newNails would fit in 1 bit.
+ */
 typedef struct NailboardStruct {
   Sig sig;
   RangeStruct range;   /* range of addresses covered by nailboard */

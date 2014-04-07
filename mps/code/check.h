@@ -1,7 +1,7 @@
 /* check.h: ASSERTION INTERFACE
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .aver: This header defines a family of AVER and NOTREACHED macros.
@@ -52,7 +52,7 @@
 #define ASSERT(cond, condstring) \
   BEGIN \
     if (cond) NOOP; else \
-      mps_lib_assert_fail(__FILE__ , __LINE__, (condstring)); \
+      mps_lib_assert_fail(MPS_FILE, __LINE__, (condstring)); \
   END
 
 #define ASSERT_TYPECHECK(type, val) \
@@ -85,9 +85,6 @@
  *
  * TODO: Should also allow the check level variable to come from an
  * environment variable.
- *
- * TODO: CheckLevelDEEP asserts on arena creation with bootstrapping
- * problems.  It clearly hasn't been tried for a while.  RB 2012-09-01
  */
 
 enum {
@@ -327,7 +324,7 @@ extern unsigned CheckLevel;
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -48,6 +48,7 @@ Bool SplayTreeCheck(SplayTree splay)
   CHECKL(FUNCHECK(splay->compare));
   CHECKL(FUNCHECK(splay->nodeKey));
   CHECKL(FUNCHECK(splay->updateNode));
+  /* Can't use CHECKD_NOSIG because TreeEMPTY is NULL. */
   CHECKL(TreeCheck(splay->root));
   return TRUE;
 }
@@ -800,7 +801,7 @@ Bool SplayTreeDelete(SplayTree splay, Tree node) {
     TreeClearRight(node);
     SplayTreeSetRoot(splay, TreeLeft(node));
     TreeClearLeft(node);
-    SplaySplay(splay, NULL, compareGreater);
+    (void)SplaySplay(splay, NULL, compareGreater);
     leftLast = SplayTreeRoot(splay);
     AVER(leftLast != TreeEMPTY);
     AVER(!TreeHasRight(leftLast));
@@ -856,7 +857,7 @@ static Tree SplayTreeSuccessor(SplayTree splay) {
   /* temporarily chop off the left half-tree, inclusive of root */
   SplayTreeSetRoot(splay, TreeRight(oldRoot));
   TreeSetRight(oldRoot, TreeEMPTY);
-  SplaySplay(splay, NULL, compareLess);
+  (void)SplaySplay(splay, NULL, compareLess);
   newRoot = SplayTreeRoot(splay);
   AVER(newRoot != TreeEMPTY);
   AVER(TreeLeft(newRoot) == TreeEMPTY);
@@ -968,7 +969,7 @@ Tree SplayTreeFirst(SplayTree splay) {
   if (SplayTreeIsEmpty(splay))
     return TreeEMPTY;
 
-  SplaySplay(splay, NULL, compareLess);
+  (void)SplaySplay(splay, NULL, compareLess);
   node = SplayTreeRoot(splay);
   AVER(node != TreeEMPTY);
   AVER(TreeLeft(node) == TreeEMPTY);

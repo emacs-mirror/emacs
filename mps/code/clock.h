@@ -1,6 +1,6 @@
 /* clock.h -- Fast clocks and timers
  *
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * $Id$
  */
 
@@ -15,10 +15,6 @@
  *
  * On platforms that support it, we want to stamp events with a very cheap
  * and fast high-resolution timer.
- *
- * TODO: This is a sufficiently complicated nest of ifdefs that it should
- * be quarantined in its own header with KEEP OUT signs attached.
- * RB 2012-09-11
  */
 
 /* Microsoft C provides an intrinsic for the Intel rdtsc instruction.
@@ -49,7 +45,7 @@ typedef union EventClockUnion {
    using Microsoft Visual Studio 6 because of support for CodeView debugging
    information. */
 
-#include <windows.h> /* KILL IT WITH FIRE! */
+#include "mpswin.h" /* KILL IT WITH FIRE! */
 
 #define EVENT_CLOCK(lvalue) \
   BEGIN \
@@ -169,7 +165,7 @@ typedef mps_clock_t EventClock;
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
