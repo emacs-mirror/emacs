@@ -370,20 +370,23 @@ static void find(TestState state, Size size, Bool high, FindDelete findDelete)
     remainderLimit = origLimit = addrOfIndex(state, expectedLimit);
 
     switch(findDelete) {
-    case FindDeleteNONE: {
+    case FindDeleteNONE:
       /* do nothing */
-    } break;
-    case FindDeleteENTIRE: {
+      break;
+    case FindDeleteENTIRE:
       remainderBase = remainderLimit;
-    } break;
-    case FindDeleteLOW: {
+      break;
+    case FindDeleteLOW:
       expectedLimit = expectedBase + size;
       remainderBase = addrOfIndex(state, expectedLimit);
-    } break;
-    case FindDeleteHIGH: {
+      break;
+    case FindDeleteHIGH:
       expectedBase = expectedLimit - size;
       remainderLimit = addrOfIndex(state, expectedBase);
-    } break;
+      break;
+    default:
+      cdie(0, "invalid findDelete");
+      break;
     }
 
     if (findDelete != FindDeleteNONE) {
@@ -455,9 +458,7 @@ static void test(TestState state, unsigned n) {
       size = fbmRnd(ArraySize / 10) + 1;
       high = fbmRnd(2) ? TRUE : FALSE;
       switch(fbmRnd(6)) {
-      case 0:
-      case 1:
-      case 2: findDelete = FindDeleteNONE; break;
+      default: findDelete = FindDeleteNONE; break;
       case 3: findDelete = FindDeleteLOW; break;
       case 4: findDelete = FindDeleteHIGH; break;
       case 5: findDelete = FindDeleteENTIRE; break;
@@ -522,8 +523,7 @@ extern int main(int argc, char *argv[])
   /* 1. Test CBS */
 
   MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, CBSFastFind, TRUE);
-    die((mps_res_t)LandInit(cbs, CBSLandClassGet(), arena, align, NULL, args),
+    die((mps_res_t)LandInit(cbs, CBSFastLandClassGet(), arena, align, NULL, args),
         "failed to initialise CBS");
   } MPS_ARGS_END(args);
   state.align = align;
@@ -549,7 +549,7 @@ extern int main(int argc, char *argv[])
 
   for (i = 0; i < 2; ++i) {
       MPS_ARGS_BEGIN(piArgs) {
-        MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
+        MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSFastBlockStruct));
         MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, ArenaAlign(arena));
         MPS_ARGS_ADD(piArgs, MFSExtendSelf, i);
         MPS_ARGS_DONE(piArgs);
@@ -557,9 +557,8 @@ extern int main(int argc, char *argv[])
       } MPS_ARGS_END(piArgs);
 
       MPS_ARGS_BEGIN(args) {
-        MPS_ARGS_ADD(args, CBSFastFind, TRUE);
         MPS_ARGS_ADD(args, CBSBlockPool, mfs);
-        die((mps_res_t)LandInit(cbs, CBSLandClassGet(), arena, align, NULL,
+        die((mps_res_t)LandInit(cbs, CBSFastLandClassGet(), arena, align, NULL,
                                 args),
             "failed to initialise CBS");
       } MPS_ARGS_END(args);
