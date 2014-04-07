@@ -75,6 +75,7 @@
 #include "range.c"
 #include "freelist.c"
 #include "sa.c"
+#include "nailboard.c"
 
 /* Additional pool classes */
 
