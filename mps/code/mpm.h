@@ -1020,6 +1020,8 @@ extern LandClass LandClassGet(void);
 #define LAND_SUPERCLASS(className) ((LandClass)SUPERCLASS(className))
 #define DEFINE_LAND_CLASS(className, var) \
   DEFINE_ALIAS_CLASS(className, LandClass, var)
+#define IsLandSubclass(land, className) \
+  IsSubclassPoly((land)->class, className ## Get())
 
 
 /* Stack Probe */

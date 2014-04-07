@@ -524,8 +524,7 @@ static Res MVFFInit(Pool pool, ArgList args)
     goto failFreelistInit;
 
   MPS_ARGS_BEGIN(liArgs) {
-    MPS_ARGS_ADD(liArgs, CBSFastFind, TRUE);
-    res = LandInit(CBSOfMVFF(mvff), CBSLandClassGet(), arena, align, mvff, liArgs);
+    res = LandInit(CBSOfMVFF(mvff), CBSFastLandClassGet(), arena, align, mvff, liArgs);
   } MPS_ARGS_END(liArgs);
   if (res != ResOK)
     goto failCBSInit;

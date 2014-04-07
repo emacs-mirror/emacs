@@ -1,7 +1,7 @@
 .. mode: -*- rst -*-
 
-Coalescing block structure
-==========================
+Coalescing block structures
+===========================
 
 :Tag: design.mps.cbs
 :Author: Gavin Matthews
@@ -74,6 +74,21 @@ _`.function.class`: The function ``CBSLandClassGet()`` returns the CBS
 class, a subclass of ``LandClass`` suitable for passing to
 ``LandCreate()`` or ``LandInit()``.
 
+``LandClass CBSFastLandClassGet(void)``
+
+_`.function.class`: Returns a subclass of ``CBSLandClass`` that
+maintains, for each subtree, the size of the largest block in that
+subtree. This enables the ``LandFindFirst()``, ``LandFindLast()``, and
+``LandFindLargest()`` generic functions.
+
+``LandClass CBSZonedLandClassGet(void)``
+
+_`.function.class`: Returns a subclass of ``CBSFastLandClass`` that
+maintains, for each subtree, the union of the zone sets of all ranges
+in that subtree. This enables the ``LandFindInZones()`` generic
+function.
+
+
 
 Keyword arguments
 .................
@@ -97,27 +112,17 @@ following optional keyword arguments:
   (This feature is used by the arena to bootstrap its own CBS of free
   memory.)
 
-* ``CBSFastFind`` (type ``Bool``; default ``FALSE``). If ``TRUE``,
-  causes the CBS to maintain, for each subtree, the size of the
-  largest block in that subtree. This enables the ``LandFindFirst()``,
-  ``LandFindLast()``, and ``LandFindLargest()`` generic functions.
-
-* ``CBSZoned`` (type ``Bool``; default ``FALSE``). If ``TRUE``, caused
-  the CBS to maintain, for each subtree, the union of the zone sets of
-  all ranges in that subtree. This enables the ``LandFindInZones()``
-  generic function.
-
 
 Limitations
 ...........
 
-_`.limit.find`: CBS does not support the ``LandFindFirst()``,
-``LandFindLast()``, and ``LandFindLargest()`` generic functions unless
-the ``CBSFastFind`` keyword argument was set to ``TRUE``.
+_`.limit.find`: ``CBSLandClass`` does not support the
+``LandFindFirst()``, ``LandFindLast()``, and ``LandFindLargest()``
+generic functions (the subclasses do support these operations).
 
-_`.limit.zones`: CBS does not support the ``LandFindInZones()``
-generic function unless the ``CBSFastFind`` and ``CBSZoned`` keyword
-arguments were both set to ``TRUE``.
+_`.limit.zones`: ``CBSLandClass`` and ``CBSFastLandClass`` do not
+support the ``LandFindInZones()`` generic function (the suclass
+``CBSZonedLandClass`` does support this operation).
 
 _`.limit.iterate`: CBS does not support visitors setting
 ``deleteReturn`` to ``TRUE`` when iterating over ranges with
@@ -134,18 +139,18 @@ Splay tree
 ..........
 
 _`.impl.splay`: The CBS is implemented using a splay tree (see
-design.mps.splay_). Each splay tree node is embedded in a ``CBSBlock``
-that represents a semi-open address range. The key passed for
-comparison is the base of another range.
+design.mps.splay_). Each splay tree node is embedded in a block
+structure that represents a semi-open address range. The key passed
+for comparison is the base of another range.
 
 .. _design.mps.splay: splay
 
-_`.impl.splay.fast-find`: ``cbsFindFirst()`` and ``cbsFindLast()`` use
-the update/refresh facility of splay trees to store, in each
-``CBSBlock``, an accurate summary of the maximum block size in the
-tree rooted at the corresponding splay node. This allows rapid
-location of the first or last suitable block, and very rapid failure
-if there is no suitable block.
+_`.impl.splay.fast-find`: In the ``CBSFastLandClass`` class,
+``cbsFindFirst()`` and ``cbsFindLast()`` use the update/refresh
+facility of splay trees to store, in each block, an accurate summary
+of the maximum block size in the tree rooted at the corresponding
+splay node. This allows rapid location of the first or last suitable
+block, and very rapid failure if there is no suitable block.
 
 _`.impl.find-largest`: ``cbsFindLargest()`` simply finds out the size
 of the largest block in the CBS from the root of the tree, using
@@ -154,10 +159,11 @@ size. This takes time proportional to the logarithm of the size of the
 free list, so it's about the best you can do without maintaining a
 separate priority queue, just to do ``cbsFindLargest()``.
 
-_`.impl.splay.zones`: ``cbsFindInZones()`` uses the update/refresh
-facility of splay trees to store, in each ``CBSBlock()``, the union of
-the zones of the ranges in the tree rooted at the corresponding splay
-node. This allows rapid location of a block in a set of zones.
+_`.impl.splay.zones`: In the ``CBSZonedLandClass`` class,
+``cbsFindInZones()`` uses the update/refresh facility of splay trees
+to store, in each block, the union of the zones of the ranges in the
+tree rooted at the corresponding splay node. This allows rapid
+location of a block in a set of zones.
 
 
 Low memory behaviour
@@ -166,7 +172,7 @@ Low memory behaviour
 _`.impl.low-mem`: When the CBS tries to allocate a new ``CBSBlock``
 structure for a new isolated range as a result of either
 ``LandInsert()`` or ``LandDelete()``, and there is insufficient memory
-to allocation the ``CBSBlock`` structure, then the range is not added
+to allocation the block structure, then the range is not added
 to the CBS or deleted from it, and the call to ``LandInsert()`` or
 ``LandDelete()`` returns ``ResMEMORY``.
 

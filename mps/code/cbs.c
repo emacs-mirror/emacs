@@ -32,6 +32,10 @@ SRCID(cbs, "$Id$");
 #define cbsOfSplay(_splay) PARENT(CBSStruct, splayTreeStruct, _splay)
 #define cbsBlockTree(block) (&((block)->treeStruct))
 #define cbsBlockOfTree(_tree) TREE_ELT(CBSBlock, treeStruct, _tree)
+#define cbsFastBlockOfTree(_tree) \
+  PARENT(CBSFastBlockStruct, cbsBlockStruct, cbsBlockOfTree(_tree))
+#define cbsZonedBlockOfTree(_tree) \
+  PARENT(CBSZonedBlockStruct, cbsFastBlockStruct, cbsFastBlockOfTree(_tree))
 #define cbsBlockKey(block) (&((block)->base))
 #define cbsBlockPool(cbs) RVALUE((cbs)->blockPool)
 
@@ -71,10 +75,8 @@ Bool CBSCheck(CBS cbs)
   CHECKD(SplayTree, cbsSplay(cbs));
   /* nothing to check about treeSize */
   CHECKD(Pool, cbs->blockPool);
-  CHECKL(BoolCheck(cbs->fastFind));
   CHECKL(BoolCheck(cbs->inCBS));
   CHECKL(BoolCheck(cbs->ownPool));
-  CHECKL(BoolCheck(cbs->zoned));
 
   return TRUE;
 }
@@ -139,7 +141,7 @@ static Bool cbsTestNode(SplayTree splay, Tree tree,
   AVERT(Tree, tree);
   AVER(closureP == NULL);
   AVER(size > 0);
-  AVER(cbsOfSplay(splay)->fastFind);
+  AVER(IsLandSubclass(cbsLand(cbsOfSplay(splay)), CBSFastLandClass));
 
   block = cbsBlockOfTree(tree);
 
@@ -149,7 +151,7 @@ static Bool cbsTestNode(SplayTree splay, Tree tree,
 static Bool cbsTestTree(SplayTree splay, Tree tree,
                         void *closureP, Size size)
 {
-  CBSBlock block;
+  CBSFastBlock block;
 
   AVERT(SplayTree, splay);
   AVERT(Tree, tree);
@@ -159,41 +161,39 @@ static Bool cbsTestTree(SplayTree splay, Tree tree,
 #endif
   UNUSED(closureP);
   UNUSED(size);
-  AVER(cbsOfSplay(splay)->fastFind);
+  AVER(IsLandSubclass(cbsLand(cbsOfSplay(splay)), CBSFastLandClass));
 
-  block = cbsBlockOfTree(tree);
+  block = cbsFastBlockOfTree(tree);
 
   return block->maxSize >= size;
 }
 
 
-/* cbsUpdateNode -- update size info after restructuring */
+/* cbsUpdateFastNode -- update size info after restructuring */
 
-static void cbsUpdateNode(SplayTree splay, Tree tree)
+static void cbsUpdateFastNode(SplayTree splay, Tree tree)
 {
   Size maxSize;
-  CBSBlock block;
 
   AVERT_CRITICAL(SplayTree, splay);
   AVERT_CRITICAL(Tree, tree);
-  AVER_CRITICAL(cbsOfSplay(splay)->fastFind);
+  AVER_CRITICAL(IsLandSubclass(cbsLand(cbsOfSplay(splay)), CBSFastLandClass));
 
-  block = cbsBlockOfTree(tree);
-  maxSize = CBSBlockSize(block);
+  maxSize = CBSBlockSize(cbsBlockOfTree(tree));
 
   if (TreeHasLeft(tree)) {
-    Size size = cbsBlockOfTree(TreeLeft(tree))->maxSize;
+    Size size = cbsFastBlockOfTree(TreeLeft(tree))->maxSize;
     if (size > maxSize)
       maxSize = size;
   }
 
   if (TreeHasRight(tree)) {
-    Size size = cbsBlockOfTree(TreeRight(tree))->maxSize;
+    Size size = cbsFastBlockOfTree(TreeRight(tree))->maxSize;
     if (size > maxSize)
       maxSize = size;
   }
 
-  block->maxSize = maxSize;
+  cbsFastBlockOfTree(tree)->maxSize = maxSize;
 }
 
 
@@ -202,27 +202,28 @@ static void cbsUpdateNode(SplayTree splay, Tree tree)
 static void cbsUpdateZonedNode(SplayTree splay, Tree tree)
 {
   ZoneSet zones;
+  CBSZonedBlock zonedBlock;
   CBSBlock block;
   Arena arena;
 
   AVERT_CRITICAL(SplayTree, splay);
   AVERT_CRITICAL(Tree, tree);
-  AVER_CRITICAL(cbsOfSplay(splay)->fastFind);
-  AVER_CRITICAL(cbsOfSplay(splay)->zoned);
+  AVER_CRITICAL(IsLandSubclass(cbsLand(cbsOfSplay(splay)), CBSZonedLandClass));
 
-  cbsUpdateNode(splay, tree);
+  cbsUpdateFastNode(splay, tree);
 
-  block = cbsBlockOfTree(tree);
+  zonedBlock = cbsZonedBlockOfTree(tree);
+  block = &zonedBlock->cbsFastBlockStruct.cbsBlockStruct;
   arena = LandArena(cbsLand(cbsOfSplay(splay)));
   zones = ZoneSetOfRange(arena, CBSBlockBase(block), CBSBlockLimit(block));
 
   if (TreeHasLeft(tree))
-    zones = ZoneSetUnion(zones, cbsBlockOfTree(TreeLeft(tree))->zones);
+    zones = ZoneSetUnion(zones, cbsZonedBlockOfTree(TreeLeft(tree))->zones);
 
   if (TreeHasRight(tree))
-    zones = ZoneSetUnion(zones, cbsBlockOfTree(TreeRight(tree))->zones);
+    zones = ZoneSetUnion(zones, cbsZonedBlockOfTree(TreeRight(tree))->zones);
 
-  block->zones = zones;
+  zonedBlock->zones = zones;
 }
 
 
@@ -233,21 +234,17 @@ static void cbsUpdateZonedNode(SplayTree splay, Tree tree)
 
 ARG_DEFINE_KEY(cbs_extend_by, Size);
 ARG_DEFINE_KEY(cbs_block_pool, Pool);
-ARG_DEFINE_KEY(cbs_fast_find, Bool);
-ARG_DEFINE_KEY(cbs_zoned, Bool);
 
-static Res cbsInit(Land land, ArgList args)
+static Res cbsInitComm(Land land, ArgList args, SplayUpdateNodeMethod update,
+                       Size blockStructSize)
 {
   CBS cbs;
   LandClass super;
   Size extendBy = CBS_EXTEND_BY_DEFAULT;
   Bool extendSelf = TRUE;
-  Bool fastFind = FALSE;
-  Bool zoned = FALSE;
   ArgStruct arg;
   Res res;
   Pool blockPool = NULL;
-  SplayUpdateNodeMethod update;
 
   AVERT(Land, land);
   super = LAND_SUPERCLASS(CBSLandClass);
@@ -261,18 +258,6 @@ static Res cbsInit(Land land, ArgList args)
     extendBy = arg.val.size;
   if (ArgPick(&arg, args, MFSExtendSelf))
     extendSelf = arg.val.b;
-  if (ArgPick(&arg, args, CBSFastFind))
-    fastFind = arg.val.b;
-  if (ArgPick(&arg, args, CBSZoned))
-    zoned = arg.val.b;
-
-  update = SplayTrivUpdate;
-  if (fastFind)
-    update = cbsUpdateNode;
-  if (zoned) {
-    AVER(fastFind);
-    update = cbsUpdateZonedNode;
-  }
 
   cbs = cbsOfLand(land);
   SplayTreeInit(cbsSplay(cbs), cbsCompare, cbsKey, update);
@@ -282,7 +267,7 @@ static Res cbsInit(Land land, ArgList args)
     cbs->ownPool = FALSE;
   } else {
     MPS_ARGS_BEGIN(pcArgs) {
-      MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
+      MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, blockStructSize);
       MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, extendBy);
       MPS_ARGS_ADD(pcArgs, MFSExtendSelf, extendSelf);
       res = PoolCreate(&cbs->blockPool, LandArena(land), PoolClassMFS(), pcArgs);
@@ -293,8 +278,7 @@ static Res cbsInit(Land land, ArgList args)
   }
   cbs->treeSize = 0;
 
-  cbs->fastFind = fastFind;
-  cbs->zoned = zoned;
+  cbs->blockStructSize = blockStructSize;
   cbs->inCBS = TRUE;
 
   METER_INIT(cbs->treeSearch, "size of tree", (void *)cbs);
@@ -304,6 +288,24 @@ static Res cbsInit(Land land, ArgList args)
   AVERT(CBS, cbs);
   cbsLeave(cbs);
   return ResOK;
+}
+
+static Res cbsInit(Land land, ArgList args)
+{
+  return cbsInitComm(land, args, SplayTrivUpdate,
+                     sizeof(CBSBlockStruct));
+}
+
+static Res cbsInitFast(Land land, ArgList args)
+{
+  return cbsInitComm(land, args, cbsUpdateFastNode,
+                     sizeof(CBSFastBlockStruct));
+}
+
+static Res cbsInitZoned(Land land, ArgList args)
+{
+  return cbsInitComm(land, args, cbsUpdateZonedNode,
+                     sizeof(CBSZonedBlockStruct));
 }
 
 
@@ -353,7 +355,7 @@ static void cbsBlockDelete(CBS cbs, CBSBlock block)
   /* make invalid */
   block->limit = block->base;
 
-  PoolFree(cbsBlockPool(cbs), (Addr)block, sizeof(CBSBlockStruct));
+  PoolFree(cbsBlockPool(cbs), (Addr)block, cbs->blockStructSize);
 }
 
 static void cbsBlockShrunk(CBS cbs, CBSBlock block, Size oldSize)
@@ -366,10 +368,7 @@ static void cbsBlockShrunk(CBS cbs, CBSBlock block, Size oldSize)
   newSize = CBSBlockSize(block);
   AVER(oldSize > newSize);
 
-  if (cbs->fastFind) {
-    SplayNodeRefresh(cbsSplay(cbs), cbsBlockTree(block));
-    AVER(CBSBlockSize(block) <= block->maxSize);
-  }
+  SplayNodeRefresh(cbsSplay(cbs), cbsBlockTree(block));
 }
 
 static void cbsBlockGrew(CBS cbs, CBSBlock block, Size oldSize)
@@ -382,10 +381,7 @@ static void cbsBlockGrew(CBS cbs, CBSBlock block, Size oldSize)
   newSize = CBSBlockSize(block);
   AVER(oldSize < newSize);
 
-  if (cbs->fastFind) {
-    SplayNodeRefresh(cbsSplay(cbs), cbsBlockTree(block));
-    AVER(CBSBlockSize(block) <= block->maxSize);
-  }
+  SplayNodeRefresh(cbsSplay(cbs), cbsBlockTree(block));
 }
 
 /* cbsBlockAlloc -- allocate a new block and set its base and limit,
@@ -401,7 +397,7 @@ static Res cbsBlockAlloc(CBSBlock *blockReturn, CBS cbs, Range range)
   AVERT(CBS, cbs);
   AVERT(Range, range);
 
-  res = PoolAlloc(&p, cbsBlockPool(cbs), sizeof(CBSBlockStruct),
+  res = PoolAlloc(&p, cbsBlockPool(cbs), cbs->blockStructSize,
                   /* withReservoirPermit */ FALSE);
   if (res != ResOK)
     goto failPoolAlloc;
@@ -410,7 +406,8 @@ static Res cbsBlockAlloc(CBSBlock *blockReturn, CBS cbs, Range range)
   TreeInit(cbsBlockTree(block));
   block->base = RangeBase(range);
   block->limit = RangeLimit(range);
-  block->maxSize = CBSBlockSize(block);
+
+  SplayNodeUpdate(cbsSplay(cbs), cbsBlockTree(block));
 
   AVERT(CBSBlock, block);
   *blockReturn = block;
@@ -682,11 +679,9 @@ static Res cbsBlockDescribe(CBSBlock block, mps_lib_FILE *stream)
     return ResFAIL;
 
   res = WriteF(stream,
-               "[$P,$P) {$U, $B}",
+               "[$P,$P)",
                (WriteFP)block->base,
                (WriteFP)block->limit,
-               (WriteFU)block->maxSize,
-               (WriteFB)block->zones,
                NULL);
   return res;
 }
@@ -701,6 +696,65 @@ static Res cbsSplayNodeDescribe(Tree tree, mps_lib_FILE *stream)
     return ResFAIL;
 
   res = cbsBlockDescribe(cbsBlockOfTree(tree), stream);
+  return res;
+}
+
+static Res cbsFastBlockDescribe(CBSFastBlock block, mps_lib_FILE *stream)
+{
+  Res res;
+
+  if (stream == NULL)
+    return ResFAIL;
+
+  res = WriteF(stream,
+               "[$P,$P) {$U}",
+               (WriteFP)block->cbsBlockStruct.base,
+               (WriteFP)block->cbsBlockStruct.limit,
+               (WriteFU)block->maxSize,
+               NULL);
+  return res;
+}
+
+static Res cbsFastSplayNodeDescribe(Tree tree, mps_lib_FILE *stream)
+{
+  Res res;
+
+  if (tree == TreeEMPTY)
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
+
+  res = cbsFastBlockDescribe(cbsFastBlockOfTree(tree), stream);
+  return res;
+}
+
+static Res cbsZonedBlockDescribe(CBSZonedBlock block, mps_lib_FILE *stream)
+{
+  Res res;
+
+  if (stream == NULL)
+    return ResFAIL;
+
+  res = WriteF(stream,
+               "[$P,$P) {$U, $B}",
+               (WriteFP)block->cbsFastBlockStruct.cbsBlockStruct.base,
+               (WriteFP)block->cbsFastBlockStruct.cbsBlockStruct.limit,
+               (WriteFU)block->cbsFastBlockStruct.maxSize,
+               (WriteFB)block->zones,
+               NULL);
+  return res;
+}
+
+static Res cbsZonedSplayNodeDescribe(Tree tree, mps_lib_FILE *stream)
+{
+  Res res;
+
+  if (tree == TreeEMPTY)
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
+
+  res = cbsZonedBlockDescribe(cbsZonedBlockOfTree(tree), stream);
   return res;
 }
 
@@ -850,13 +904,13 @@ static Bool cbsFindFirst(Range rangeReturn, Range oldRangeReturn,
   AVERT(Land, land);
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
+  AVER(IsLandSubclass(cbsLand(cbs), CBSFastLandClass));
   cbsEnter(cbs);
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVER(size > 0);
   AVER(SizeIsAligned(size, LandAlignment(land)));
-  AVER(cbs->fastFind);
   AVERT(FindDelete, findDelete);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
@@ -912,15 +966,16 @@ static Bool cbsTestNodeInZones(SplayTree splay, Tree tree,
 static Bool cbsTestTreeInZones(SplayTree splay, Tree tree,
                                void *closureP, Size closureSize)
 {
-  CBSBlock block = cbsBlockOfTree(tree);
+  CBSFastBlock fastBlock = cbsFastBlockOfTree(tree);
+  CBSZonedBlock zonedBlock = cbsZonedBlockOfTree(tree);
   cbsTestNodeInZonesClosure closure = closureP;
   
   UNUSED(splay);
   AVER(closureSize == sizeof(cbsTestNodeInZonesClosureStruct));
   UNUSED(closureSize);
   
-  return block->maxSize >= closure->size &&
-         ZoneSetInter(block->zones, closure->zoneSet) != ZoneSetEMPTY;
+  return fastBlock->maxSize >= closure->size
+    && ZoneSetInter(zonedBlock->zones, closure->zoneSet) != ZoneSetEMPTY;
 }
 
 
@@ -936,13 +991,13 @@ static Bool cbsFindLast(Range rangeReturn, Range oldRangeReturn,
   AVERT(Land, land);
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
+  AVER(IsLandSubclass(cbsLand(cbs), CBSFastLandClass));
   cbsEnter(cbs);
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVER(size > 0);
   AVER(SizeIsAligned(size, LandAlignment(land)));
-  AVER(cbs->fastFind);
   AVERT(FindDelete, findDelete);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
@@ -975,21 +1030,21 @@ static Bool cbsFindLargest(Range rangeReturn, Range oldRangeReturn,
   AVERT(Land, land);
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
+  AVER(IsLandSubclass(cbsLand(cbs), CBSFastLandClass));
   cbsEnter(cbs);
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
-  AVER(cbs->fastFind);
   AVERT(FindDelete, findDelete);
 
   if (!SplayTreeIsEmpty(cbsSplay(cbs))) {
     RangeStruct range;
-    CBSBlock block;
     Tree tree = TreeEMPTY;    /* suppress "may be used uninitialized" */
     Size maxSize;
 
-    maxSize = cbsBlockOfTree(SplayTreeRoot(cbsSplay(cbs)))->maxSize;
+    maxSize = cbsFastBlockOfTree(SplayTreeRoot(cbsSplay(cbs)))->maxSize;
     if (maxSize >= size) {
+      CBSBlock block;
       METER_ACC(cbs->treeSearch, cbs->treeSize);
       found = SplayFindFirst(&tree, cbsSplay(cbs), &cbsTestNode,
                              &cbsTestTree, NULL, maxSize);
@@ -1024,6 +1079,7 @@ static Res cbsFindInZones(Range rangeReturn, Range oldRangeReturn,
   AVERT(Land, land);
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
+  AVER(IsLandSubclass(cbsLand(cbs), CBSZonedLandClass));
   /* AVERT(ZoneSet, zoneSet); */
   AVER(BoolCheck(high));
 
@@ -1089,6 +1145,7 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream)
 {
   CBS cbs;
   Res res;
+  Res (*describe)(Tree, mps_lib_FILE *);
 
   if (!TESTT(Land, land))
     return ResFAIL;
@@ -1101,15 +1158,20 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream)
   res = WriteF(stream,
                "CBS $P {\n", (WriteFP)cbs,
                "  blockPool: $P\n", (WriteFP)cbsBlockPool(cbs),
-               "  fastFind: $U\n", (WriteFU)cbs->fastFind,
                "  inCBS: $U\n", (WriteFU)cbs->inCBS,
                "  ownPool: $U\n", (WriteFU)cbs->ownPool,
-               "  zoned: $U\n", (WriteFU)cbs->zoned,
                "  treeSize: $U\n", (WriteFU)cbs->treeSize,
                NULL);
   if (res != ResOK) return res;
 
-  res = SplayTreeDescribe(cbsSplay(cbs), stream, &cbsSplayNodeDescribe);
+  if (IsLandSubclass(land, CBSZonedLandClass))
+    describe = cbsZonedSplayNodeDescribe;
+  else if (IsLandSubclass(land, CBSFastLandClass))
+    describe = cbsFastSplayNodeDescribe;
+  else
+    describe = cbsSplayNodeDescribe;
+
+  res = SplayTreeDescribe(cbsSplay(cbs), stream, describe);
   if (res != ResOK) return res;
 
   res = METER_WRITE(cbs->treeSearch, stream);
@@ -1134,6 +1196,22 @@ DEFINE_LAND_CLASS(CBSLandClass, class)
   class->findLargest = cbsFindLargest;
   class->findInZones = cbsFindInZones;
   class->describe = cbsDescribe;
+  AVERT(LandClass, class);
+}
+
+DEFINE_LAND_CLASS(CBSFastLandClass, class)
+{
+  INHERIT_CLASS(class, CBSLandClass);
+  class->name = "FASTCBS";
+  class->init = cbsInitFast;
+  AVERT(LandClass, class);
+}
+
+DEFINE_LAND_CLASS(CBSZonedLandClass, class)
+{
+  INHERIT_CLASS(class, CBSFastLandClass);
+  class->name = "ZONEDCBS";
+  class->init = cbsInitZoned;
   AVERT(LandClass, class);
 }
 
