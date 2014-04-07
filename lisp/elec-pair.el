@@ -227,11 +227,19 @@ when to fallback to `parse-partial-sexp'."
   (let* ((pos (or pos (point)))
          (where (or where '(string comment)))
          (quick-ppss (syntax-ppss))
-         (quick-ppss-at-pos (syntax-ppss pos)))
-    (if (or (and (nth 3 quick-ppss) (memq 'string where))
-            (and (nth 4 quick-ppss) (memq 'comment where)))
+         (quick-ppss-at-pos (syntax-ppss pos))
+         (in-string (and (nth 3 quick-ppss-at-pos) (memq 'string where)))
+         (in-comment (and (nth 4 quick-ppss-at-pos) (memq 'comment where)))
+         (s-or-c-start (cond (in-string
+                              (1+ (nth 8 quick-ppss)))
+                             (in-comment
+                              (goto-char (nth 8 quick-ppss))
+                              (forward-comment (- (point-max)))
+                              (skip-syntax-forward " >!")
+                              (point)))))
+    (if s-or-c-start
         (with-syntax-table electric-pair-text-syntax-table
-          (parse-partial-sexp (1+ (nth 8 quick-ppss)) pos))
+          (parse-partial-sexp s-or-c-start pos))
       ;; HACK! cc-mode apparently has some `syntax-ppss' bugs
       (if (memq major-mode '(c-mode c++ mode))
           (parse-partial-sexp (point-min) pos)
@@ -321,7 +329,7 @@ If point is not enclosed by any lists, return ((t) . (t))."
           (scan-error
            (cond ((or
                    ;; some error happened and it is not of the "ended
-                   ;; prematurely" kind"...
+                   ;; prematurely" kind...
                    (not (string-match "ends prematurely" (nth 1 err)))
                    ;; ... or we were in a comment and just came out of
                    ;; it.
@@ -334,18 +342,29 @@ If point is not enclosed by any lists, return ((t) . (t))."
                   (funcall ended-prematurely-fn)))))))
     (cons innermost outermost)))
 
-(defun electric-pair--in-unterminated-string-p (char)
-  "Return non-nil if inside unterminated string started by CHAR"
-  (let* ((ppss (syntax-ppss))
-         (relevant-ppss (if (nth 4 ppss) ; in comment
-                            (electric-pair--syntax-ppss)
-                          ppss))
+(defvar electric-pair-string-bound-function 'point-max
+  "Next buffer position where strings are syntatically unexpected.
+Value is a function called with no arguments and returning a
+buffer position. Major modes should set this variable
+buffer-locally if they experience slowness with
+`electric-pair-mode' when pairing quotes.")
+
+(defun electric-pair--unbalanced-strings-p (char)
+  "Return non-nil if there are unbalanced strings started by CHAR."
+  (let* ((selector-ppss (syntax-ppss))
+         (relevant-ppss (save-excursion
+                          (if (nth 4 selector-ppss) ; comment
+                              (electric-pair--syntax-ppss
+                               (progn
+                                 (goto-char (nth 8 selector-ppss))
+                                 (forward-comment (point-max))
+                                 (skip-syntax-backward " >!")
+                                 (point)))
+                            (syntax-ppss
+                             (funcall electric-pair-string-bound-function)))))
          (string-delim (nth 3 relevant-ppss)))
-    (and (or (eq t string-delim)
-             (eq char string-delim))
-         (condition-case nil (progn (scan-sexps (nth 8 relevant-ppss) 1)
-                                    nil)
-           (scan-error t)))))
+    (or (eq t string-delim)
+        (eq char string-delim))))
 
 (defun electric-pair--inside-string-p (char)
   "Return non-nil if point is inside a string started by CHAR.
@@ -378,9 +397,7 @@ happened."
                           (t
                            (eq (cdr outermost) pair)))))
                  ((eq syntax ?\")
-                  (save-excursion
-                    (goto-char (point-max))
-                    (electric-pair--in-unterminated-string-p char)))))
+                  (electric-pair--unbalanced-strings-p char))))
        (insert-char char)))))
 
 (defun electric-pair-skip-if-helps-balance (char)
