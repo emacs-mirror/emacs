@@ -1,7 +1,7 @@
 /* prmci3w3.c: PROTECTION MUTATOR CONTEXT INTEL 386 (Win32)
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * PURPOSE
  *
@@ -46,9 +46,10 @@ MRef Prmci3AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
   case 5: return (MRef)&wincont->Ebp;
   case 6: return (MRef)&wincont->Esi;
   case 7: return (MRef)&wincont->Edi;
+  default:
+    NOTREACHED;
+    return NULL; /* suppress warning */
   }
-  NOTREACHED;
-  return NULL; /* suppress warning */
 }
 
 
@@ -80,7 +81,7 @@ void Prmci3StepOverIns(MutatorFaultContext context, Size inslen)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

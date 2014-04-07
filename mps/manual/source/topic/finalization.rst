@@ -157,7 +157,7 @@ Cautions
     prompt release of scarce resources. For example, Scheme provides
     the ``(with-input-from-file)`` procedure which specifies that the
     created port has :term:`dynamic extent` (and so can be closed as
-    soon as the procedure exits).
+    soon as the procedure exits, even if it is still reachable).
 
 #.  The MPS does not finalize objects in the context of
     :c:func:`mps_arena_destroy` or :c:func:`mps_pool_destroy`.
@@ -185,8 +185,8 @@ Cautions
         described under :c:func:`mps_pool_destroy`, but the objects do
         not get finalized.
 
-        The only reliable way to ensure that all finalizable object
-        gets finalized is to maintain a table of :term:`weak
+        The only reliable way to ensure that all finalizable objects
+        are finalized is to maintain a table of :term:`weak
         references (1)` to all such objects. The weak references don't
         prevent the objects from being finalized, but you can iterate
         over the list at an appropriate point and finalize any

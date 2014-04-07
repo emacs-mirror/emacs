@@ -1,7 +1,7 @@
 /* sac.c: SEGREGATED ALLOCATION CACHES
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpm.h"
@@ -249,7 +249,7 @@ Res SACFill(Addr *p_o, SAC sac, Size size, Bool hasReservoirPermit)
   AVER(p_o != NULL);
   AVERT(SAC, sac);
   AVER(size != 0);
-  AVER(BoolCheck(hasReservoirPermit));
+  AVERT(Bool, hasReservoirPermit);
   esac = ExternalSACOfSAC(sac);
 
   sacFind(&i, &blockSize, sac, size);
@@ -384,7 +384,7 @@ void SACFlush(SAC sac)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

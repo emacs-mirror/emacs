@@ -334,7 +334,6 @@ static void *go(void *p, size_t s)
   mps_fmt_t format;
   mps_chain_t chain;
   mps_addr_t base;
-  mps_addr_t *addr;
 
   testlib_unused(p);
   testlib_unused(s);
@@ -357,9 +356,7 @@ static void *go(void *p, size_t s)
       "RootCreateTable");
   
   base = &activationStack;
-  addr = base;
-  die(mps_root_create_table(&actroot, arena, mps_rank_ambig(), 0,
-                            addr, sizeof(QSCell)/sizeof(mps_addr_t)),
+  die(mps_root_create_table(&actroot, arena, mps_rank_ambig(), 0, base, 1),
       "RootCreateTable");
 
   /* makes a random list */

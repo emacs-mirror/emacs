@@ -6,7 +6,7 @@ C interface design
 :Tag: design.mps.interface.c
 :Author: Richard Brooksby
 :Date: 1996-07-29
-:Status: incomplete document
+:Status: complete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
 :Index terms: pair: C interface; design
@@ -29,7 +29,9 @@ Goals
 
 _`.goal.c`: The file impl.h.mps is the C external interface to the
 MPS. It is the default interface between client code written in C and
-the MPS. _`.goal.cpp`: impl.h.mps is not specifically designed to be
+the MPS.
+
+_`.goal.cpp`: impl.h.mps is not specifically designed to be
 an interface to C++, but should be usable from C++.
 
 
@@ -38,36 +40,32 @@ Requirements
 
 _`.req`: The interface must provide an interface from client code
 written in C to the functionality of the MPS required by the product
-(see req.product), Dylan (req.dylan), and the Core RIP (req.epcore).
+(see req.product), and Open Dylan (req.dylan).
 
-``mps.h`` may not include internal MPS header files (such as
-``pool.h``).
+_`.req.separation`: The external interface may not include internal
+MPS header files (such as ``pool.h``).
 
-It is essential that the interface cope well with change, in order to
-avoid restricting possible future MPS developments. This means that
-the interface must be "open ended" in its definitions. This accounts
-for some of the apparently tortuous methods of doing things
-(``mps_fmt_A_t``, for example). The requirement is that the MPS should
+_`.req.flexibility`: It is essential that the interface cope well with
+change, in order to avoid restricting possible future MPS
+developments. This means that the interface must be "open ended" in
+its definitions. This accounts for some of the apparently tortuous
+methods of doing things (such as the keyword argument mechanism; see
+design.mps.keyword-arguments_). The requirement is that the MPS should
 be able to add new functionality, or alter the implementation of
 existing functionality, without affecting existing client code. A
 stronger requirement is that the MPS should be able to change without
 *recompiling* client code. This is not always possible.
 
-.. note::
+.. _design.mps.keyword-arguments: keyword-arguments
 
-    `.naming.global` was presumably done in response to unwritten
-    requirements regarding the use of the name spaces in C, perhaps
-    these:
+_`.req.name.iso`: The interface shall not conflict in terms of
+naming with any interfaces specified by ISO C and all reasonable
+future versions.
 
-    - _`.req.name.iso`: The interface shall not conflict in terms of
-      naming with any interfaces specified by ISO C and all reasonable
-      future versions.
-
-    - _`.req.name.general`: The interface shall use a documented and
-      reasonably small portion of the namespace so that clients can
-      interoperate easily.
-
-    David Jones, 1998-10-01.
+_`.req.name.general`: The interface shall use a documented and
+reasonably small portion of the namespace so that clients can use the
+MPS C interface in combination with other interfaces without name
+conflicts.
 
 
 Architecture
@@ -82,13 +80,18 @@ layer" which does the job of converting types and checking parameters
 before calling through to the MPS proper, using internal MPS methods.
 
 
-General conventions
--------------------
+Naming conventions
+------------------
 
 _`.naming`: The external interface names should adhere to the
-documented interface conventions; these are found in
-doc.mps.ref-man.if-conv(0).naming. They are paraphrased/recreated
-here.
+documented interface conventions; these are found in the “`Interface
+conventions`_” chapter of the Reference Manual. They are
+paraphrased/recreated here.
+
+.. _Interface conventions: ../topic/interface.html
+
+_`.naming.file`: All files in the external interface have names
+starting with ``mps``.
 
 _`.naming.unixy`: The external interface does not follow the same
 naming conventions as the internal code. The interface is designed to
@@ -97,13 +100,13 @@ resemble a more conventional C, Unix, or Posix naming convention.
 _`.naming.case`: Identifiers are in lower case, except
 non-function-like macros, which are in upper case.
 
-_`.naming.global`: All publicised identifiers are 
-prefixed ``mps_`` or ``MPS_``.
+_`.naming.global`: All documented identifiers begin ``mps_`` or
+``MPS_``.
 
-_`.naming.all`: All identifiers defined by the MPS 
-should begin ``mps_`` or ``MPS_`` or ``_mps_``.
+_`.naming.all`: All identifiers defined by the MPS begin ``mps_`` or
+``MPS_`` or ``_mps_``.
 
-_`.naming.type`: Types are suffixed ``_t``.
+_`.naming.type`: Types are suffixed ``_t``, except for structure and union types.
 
 _`.naming.struct`: Structure types and tags are suffixed ``_s``.
 
@@ -117,14 +120,13 @@ structure and union members, macros, macro parameters, labels.
 _`.naming.scope.labels`: labels (for ``goto`` statements) should be
 rare, only in special block macros and probably not even then.
 
-.. note::
-
-    This principle is not adhered to in the source code, which uses
-    ``goto`` for handling error cases. Gareth Rees, 2013-05-27.
-
 _`.naming.scope.other`: The naming convention would also extend to
 enumeration types and parameters in functions prototypes but both of
 those are prohibited from having names in an interface file.
+
+
+Type conventions
+----------------
 
 _`.type.gen`: The interface defines memory addresses as ``void *`` and
 sizes as ``size_t`` for compatibility with standard C (in particular,
@@ -139,13 +141,13 @@ which are never defined. These types are cast to the corresponding
 internal types in ``mpsi.c``.
 
 _`.type.trans`: Some transparent structures are defined. The client is
-expected to read these, or poke about in them, under restrictions
-which should be documented. The most important is probably the
-allocation point (``mps_ap_s``) which is part of allocation buffers.
-The transparent structures must be binary compatible with
-corresponding internal structures. For example, the fields of
-``mps_ap_s`` must correspond with ``APStruct`` internally. This is
-checked by ``mpsi.c`` in ``mps_check()``.
+expected to read these, or poke about in them, under documented
+restrictions. The most important is the allocation point structure
+(``mps_ap_s``) which is part of allocation buffers. The transparent
+structures must be binary compatible with corresponding internal
+structures. For example, the fields of ``mps_ap_s`` must correspond
+with ``APStruct`` internally. This is checked by ``mpsi.c`` in
+``mps_check()``.
 
 _`.type.pseudo`: Some pseudo-opaque structures are defined. These only
 exist so that code can be inlined using macros. The client code
@@ -153,9 +155,9 @@ shouldn't mess with them. The most important case of this is the scan
 state (``mps_ss_s``) which is accessed by the in-line scanning macros,
 ``MPS_SCAN_*`` and ``MPS_FIX*``.
 
-_`.type.enum`: There should be no enumeration types in the interface.
-Note that enum specifiers (to declare integer constants) are fine as
-long as no type is declared. See guide.impl.c.misc.enum.type.
+_`.type.enum`: There are no enumeration types in the interface. Note
+that enum specifiers (to declare integer constants) are fine as long
+as no type is declared. See guide.impl.c.misc.enum.type.
 
 _`.type.fun`: Whenever function types or derived function types (such
 as pointer to function) are declared a prototype should be used and
@@ -184,39 +186,32 @@ See guide.impl.c.misc.prototype.parameters.
 Checking
 --------
 
-_`.check.space`: When the arena needs to be recovered from a parameter
-it is check using ``AVERT(Foo, foo)`` before any attempt to call
-``FooArena(foo)``. The macro ``AVERT()`` in impl.h.assert performs
-simple thread-safe checking of ``foo``, so it can be called outside of
-``ArenaEnter()`` and ``ArenaLeave()``.
+_`.check.avert`: Before any use of a function paramater ``FOO *foo``
+it is checked using ``AVERT(Foo, foo)``. The macro ``AVERT()`` in
+impl.h.check performs simple thread-safe checking of ``foo``, so it
+can be called outside of ``ArenaEnter()`` and ``ArenaLeave()``.
 
 _`.check.types`: We use definitions of types in both our external
 interface and our internal code, and we want to make sure that they
 are compatible. (The external interface changes less often and hides
-more information.) At first, we were just checking their sizes, which
-wasn't very good, but I've come up with some macros which check the
-assignment compatibility of the types too. This is a sufficiently
-useful trick that I thought I'd send it round. It may be useful in
-other places where types and structures need to be checked for
-compatibility at compile time.
-
-These macros don't generate warnings on the compilers I've tried.
+more information.) This checking uses the following macros.
 
 ``COMPATLVALUE(lvalue1, lvalue2)``
 
-This macro checks the assignment compatibility of two lvalues. It uses
-``sizeof()`` to ensure that the assignments have no effect. ::
+_`.check.types.compat.lvalue`: This macro checks the assignment
+compatibility of two lvalues. It uses ``sizeof()`` to ensure that the
+assignments have no effect. ::
 
     #define COMPATLVALUE(lv1, lv2) \
       ((void)sizeof((lv1) = (lv2)), (void)sizeof((lv2) = (lv1)), TRUE)
 
 ``COMPATTYPE(type1, type2)``
 
-This macro checks that two types are assignment-compatible and equal
-in size. The hack here is that it generates an lvalue for each type by
-casting zero to a pointer to the type. The use of ``sizeof()`` avoids
-the undefined behaviour that would otherwise result from dereferencing
-a null pointer. ::
+_`.check.types.compat.type`: This macro checks that two types are
+assignment-compatible and equal in size. The hack here is that it
+generates an lvalue for each type by casting zero to a pointer to the
+type. The use of ``sizeof()`` avoids the undefined behaviour that
+would otherwise result from dereferencing a null pointer. ::
 
     #define COMPATTYPE(t1, t2) \
       (sizeof(t1) == sizeof(t2) && \
@@ -224,8 +219,8 @@ a null pointer. ::
 
 ``COMPATFIELDAPPROX(structure1, field1, structure2, field2)``
 
-This macro checks that the offset and size of two fields in two
-structure types are the same. ::
+_`.check.types.compat.field.approx`: This macro checks that the offset
+and size of two fields in two structure types are the same. ::
 
     #define COMPATFIELDAPPROX(s1, f1, s2, f2) \
       (sizeof(((s1 *)0)->f1) == sizeof(((s2 *)0)->f2) && \
@@ -233,8 +228,8 @@ structure types are the same. ::
 
 ``COMPATFIELD(structure1, field1, structure2, field2)``
 
-This macro checks the offset, size, and assignment-compatibility of
-two fields in two structure types. ::
+_`.check.types.compat.field`: This macro checks the offset, size, and
+assignment-compatibility of two fields in two structure types. ::
 
     #define COMPATFIELD(s1, f1, s2, f2) \
       (COMPATFIELDAPPROX(s1, f1, s2, f2) && \
@@ -247,21 +242,34 @@ Binary compatibility issues
 As in, "Enumeration types are not allowed" (see
 mail.richard.1995-09-08.09-28).
 
-There are two main aspects to run-time compatibility: binary interface
-and protocol. The binary interface is all the information needed to
-correctly use the library, and includes external symbol linkage,
+_`.compat`: There are two main aspects to run-time compatibility:
+binary interface and protocol.
+
+_`.compat.binary`: The binary interface is all the information needed
+to correctly use the library, and includes external symbol linkage,
 calling conventions, type representation compatibility, structure
-layouts, etc. The protocol is how the library is actually used by the
-client code -- whether this is called before that -- and determines
-the semantic correctness of the client with respect to the library.
+layouts, etc.
 
-The binary interface is determined completely by the header file and
-the target. The header file specifies the external names and the
-types, and the target platform specifies calling conventions and type
-representation. There is therefore a many-to-one mapping between the
-header file version and the binary interface.
+_`.compat.binary.unneeded`: Binary compatibility is not required by
+the open source MPS: we expect (and indeed, recommend) that a client
+program is compiled against the MPS sources. Nonetheless we try to
+maintain binary compatibility in case the capability is required in
+future.
 
-The protocol is determined by the implementation of the library.
+_`.compat.binary.dependencies`: The binary interface is determined
+completely by the header file and the target. The header file
+specifies the external names and the types, and the target platform
+specifies calling conventions and type representation. There is
+therefore a many-to-one mapping between the header file version and
+the binary interface.
+
+_`.compat.protocol`: The protocol is how the library is actually used
+by the client code -- whether this is called before that -- and
+determines the semantic correctness of the client with respect to the
+library.
+
+_`.compat.protocol.dependencies`: The protocol is determined by the
+implementation of the library.
 
   
 Constraints
@@ -291,34 +299,59 @@ interface constrains ``Word`` to being the same size as C's generic
 pointer type, ``void *``.
 
 
+Implementation
+--------------
+
+_`.impl`: The external interface consists of the following header
+files:
+
+_`.impl.mps`: ``mps.h`` is the main external interface, containing of
+type and function declarations needed by all clients of the MPS.
+
+_`.impl.mpstd`: ``mpstd.h`` is the MPS target detection header. It
+decodes preprocessor symbols which are predefined by build
+environments in order to determine the target platform (see
+design.mps.config_), and then defines uniform symbols, such as
+``MPS_ARCH_I3``, for use externally and internally by the MPS.
+``mpstd.h`` is not included by any of the other external headers, as
+it relies on exact set of preprocessor constants defined by compilers.
+
+.. _design.mps.config: config
+
+_`.impl.mpsio`: ``mpsio.h`` is the interface to the MPS I/O subsystem,
+part of the plinth. See design.mps.io_.
+
+.. _design.mps.io: io
+
+_`.impl.mpslib`: ``mpslib.h`` is the interface to the MPS Library
+Interface, part of the plinth. See design.mps.lib_.
+
+.. _design.mps.lib: lib
+
+_`.impl.mpsa`: Interfaces to arena classes are in files with names
+starting ``mpsa``: for example, the interface to the Virtual Memory
+arena class is in ``mpsavm.h``.
+
+_`.impl.mpsc`: Interfaces to pool classes are in files with names
+starting ``mpsc``: for example, the interface to the MVFF pool class
+is in ``mpscmvff.h``.
+
+
 Notes
 -----
 
-The file ``mpstd.h`` is the MPS target detection header. It decodes
-preprocessor symbols which are predefined by build environments in
-order to determine the target platform, and then defines uniform
-symbols, such as ``MPS_ARCH_I3``, for use internally by the MPS.
+_`.fmt.extend`: ``mps_fmt_A_t`` is so called because new pool classes
+might require new format methods, but these methods cannot be added to
+the format structure without breaking binary compatibility. Therefore
+these new pool classes would use new format structures named
+``mps_fmt_B_t`` and so on.
 
-There is a design document for the mps interface,
-design.mps.interface, but it was written before we had the idea of
-having a C interface layer. It is quite relevant, though, and could be
-updated. We should use it during the review.
-
-All exported identifiers and file names should begin with ``mps_`` or
-``MPS_`` so that they don't clash with other systems.
-
-We should probably have a specialized set of rules and a special
-checklist for this interface.
-
-_`.fmt.extend`: This paragraph should be an explanation of why
-``mps_fmt_A_t`` is so called. The underlying reason is future
-extensibility.
-
-_`.thread-safety`: Most calls through this interface lock the space
+_`.thread-safety`: Most calls through this interface lock the arena
 and therefore make the MPM single-threaded. In order to do this they
-must recover the space from their parameters. Methods such as
-``ThreadSpace()`` must therefore be callable when the space is *not*
-locked. These methods are tagged with the tag of this note.
+must recover the arena from their parameters. Methods such as
+``FormatArena()`` and ``ThreadArena()`` must therefore be callable
+when the arena is *not* locked. These methods are tagged with the tag
+of this note.
 
 _`.lock-free`: Certain functions inside the MPM are thread-safe and do
 not need to be serialized by using locks. They are marked with the tag

@@ -1,7 +1,7 @@
 /* pool.c: PROTOCOL IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * DESIGN
  *
@@ -18,7 +18,7 @@ SRCID(protocol, "$Id$");
 Bool ProtocolClassCheck(ProtocolClass class)
 {
   CHECKS(ProtocolClass, class);
-  CHECKS(ProtocolClass, class->superclass);
+  CHECKU(ProtocolClass, class->superclass);
   CHECKL(FUNCHECK(class->coerceInst));
   CHECKL(FUNCHECK(class->coerceClass));
   return TRUE;
@@ -30,7 +30,7 @@ Bool ProtocolClassCheck(ProtocolClass class)
 Bool ProtocolInstCheck(ProtocolInst inst)
 {
   CHECKS(ProtocolInst, inst);
-  CHECKL(ProtocolClassCheck(inst->class));
+  CHECKD(ProtocolClass, inst->class);
   return TRUE;
 }
 
@@ -118,6 +118,7 @@ DEFINE_CLASS(ProtocolClass, theClass)
   theClass->superclass = theClass;
   theClass->coerceInst = ProtocolCoerceInst;
   theClass->coerceClass = ProtocolCoerceClass;
+  AVERT(ProtocolClass, theClass);
 }
 
 
@@ -126,7 +127,7 @@ DEFINE_CLASS(ProtocolClass, theClass)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

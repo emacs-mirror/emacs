@@ -1,7 +1,7 @@
 /* prmci6li.c: PROTECTION MUTATOR CONTEXT x64 (LINUX)
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This module implements the part of the protection module
  * that decodes the MutatorFaultContext. 
@@ -61,9 +61,10 @@ MRef Prmci6AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
     case 13: return &gregs[REG_R13];
     case 14: return &gregs[REG_R14];
     case 15: return &gregs[REG_R15];
+    default:
+      NOTREACHED;
+      return NULL;  /* Avoids compiler warning. */
   }
-  NOTREACHED;
-  return (MRef)NULL;  /* Avoids compiler warning. */
 }
 
 
@@ -111,7 +112,7 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

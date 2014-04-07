@@ -60,6 +60,8 @@ DEFINE_POOL_CLASS(OOMPoolClass, this)
 {
   INHERIT_CLASS(this, AbstractAllocFreePoolClass);
   this->alloc = OOMAlloc;
+  this->size = sizeof(PoolStruct);
+  AVERT(PoolClass, this);
 }
 
 

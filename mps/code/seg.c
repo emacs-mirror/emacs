@@ -1,7 +1,7 @@
 /* seg.c: SEGMENTS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .design: The design for this module is <design/seg/>.
  *
@@ -68,7 +68,7 @@ Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
   AVERT(SegPref, pref);
   AVER(size > (Size)0);
   AVERT(Pool, pool);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   arena = PoolArena(pool);
   AVERT(Arena, arena);
@@ -152,7 +152,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
   AVER(SizeIsAligned(size, align));
   class = seg->class;
   AVERT(SegClass, class);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   limit = AddrAdd(base, size);
   seg->limit = limit;
@@ -168,7 +168,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
   seg->sig = SegSig;  /* set sig now so tract checks will see it */
 
   TRACT_FOR(tract, addr, arena, base, limit) {
-    AVER(TractCheck(tract));  /* <design/check/#type.no-sig> */
+    AVERT(Tract, tract);
     AVER(TractP(tract) == NULL);
     AVER(!TractHasSeg(tract));
     AVER(TractPool(tract) == pool);
@@ -196,7 +196,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
 failInit:
   RingFinish(SegPoolRing(seg));
   TRACT_FOR(tract, addr, arena, base, limit) {
-    AVER(TractCheck(tract));  /* <design/check/#type.no-sig> */
+    AVERT(Tract, tract);
     TRACT_UNSET_SEG(tract);
   }
   seg->sig = SigInvalid;
@@ -233,7 +233,7 @@ static void SegFinish(Seg seg)
   limit = SegLimit(seg);
   
   TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, limit) {
-    AVER(TractCheck(tract));  /* <design/check/#type.no-sig> */
+    AVERT(Tract, tract);
     TractSetWhite(tract, TraceSetEMPTY);
     TRACT_UNSET_SEG(tract);
   }
@@ -263,7 +263,7 @@ static void SegFinish(Seg seg)
 void SegSetGrey(Seg seg, TraceSet grey)
 {
   AVERT(Seg, seg);
-  AVER(TraceSetCheck(grey));
+  AVERT(TraceSet, grey);
   AVER(grey == TraceSetEMPTY || SegRankSet(seg) != RankSetEMPTY);
 
   /* Don't dispatch to the class method if there's no actual change in
@@ -281,7 +281,7 @@ void SegSetGrey(Seg seg, TraceSet grey)
 void SegSetWhite(Seg seg, TraceSet white)
 {
   AVERT(Seg, seg);
-  AVER(TraceSetCheck(white));
+  AVERT(TraceSet, white);
   seg->class->setWhite(seg, white);
 }
 
@@ -296,7 +296,7 @@ void SegSetWhite(Seg seg, TraceSet white)
 void SegSetRankSet(Seg seg, RankSet rankSet)
 {
   AVERT(Seg, seg);
-  AVER(RankSetCheck(rankSet));
+  AVERT(RankSet, rankSet);
   AVER(rankSet != RankSetEMPTY || SegSummary(seg) == RefSetEMPTY);
   seg->class->setRankSet(seg, rankSet);
 }
@@ -322,7 +322,7 @@ void SegSetSummary(Seg seg, RefSet summary)
 void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
 {
   AVERT(Seg, seg); 
-  AVER(RankSetCheck(rankSet));
+  AVERT(RankSet, rankSet);
 
 #ifdef PROTECTION_NONE
   if (rankSet != RankSetEMPTY) {
@@ -582,7 +582,7 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
   mid = SegLimit(segLo);
   limit = SegLimit(segHi);
   AVER(SegBase(segHi) == SegLimit(segLo));
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
   arena = PoolArena(SegPool(segLo));
 
   ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
@@ -634,7 +634,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
   AVER(AddrIsAligned(at, arena->alignment));
   AVER(at > base);
   AVER(at < limit);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
 
@@ -690,7 +690,7 @@ Bool SegCheck(Seg seg)
   /* can't assume nailed is subset of white - mightn't be during whiten */
   /* CHECKL(TraceSetSub(seg->nailed, seg->white)); */
   CHECKL(TraceSetCheck(seg->grey));
-  CHECKL(TractCheck(seg->firstTract));  /* <design/check/#type.no-sig> */
+  CHECKD_NOSIG(Tract, seg->firstTract);
   pool = SegPool(seg);
   CHECKU(Pool, pool);
   arena = PoolArena(pool);
@@ -704,7 +704,7 @@ Bool SegCheck(Seg seg)
   TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, seg->limit) {
     Seg trseg = NULL; /* suppress compiler warning */
 
-    CHECKL(TractCheck(tract));  /* <design/check/#type.no-sig> */
+    CHECKD_NOSIG(Tract, tract);
     CHECKL(TRACT_SEG(&trseg, tract) && (trseg == seg));
     CHECKL(TractWhite(tract) == seg->white);
     CHECKL(TractPool(tract) == pool);
@@ -716,7 +716,7 @@ Bool SegCheck(Seg seg)
   /* the segment is initialized.) */
   /*  CHECKL(RingNext(&seg->poolRing) != &seg->poolRing); */
 
-  CHECKL(RingCheck(&seg->poolRing));
+  CHECKD_NOSIG(Ring, &seg->poolRing);
    
   /* "pm", "sm", and "depth" not checked.  See .check.shield. */
   CHECKL(RankSetCheck(seg->rankSet));
@@ -727,6 +727,8 @@ Bool SegCheck(Seg seg)
     CHECKL(seg->sm == AccessSetEMPTY);
     CHECKL(seg->pm == AccessSetEMPTY);
   } else {
+    /* Segments with ranks may only belong to scannable pools. */
+    CHECKL(PoolHasAttr(pool, AttrSCAN));
     /* <design/seg/#field.rankSet.single>: The Tracer only permits */
     /* one rank per segment [ref?] so this field is either empty or a */
     /* singleton. */
@@ -760,8 +762,8 @@ static Res segTrivInit(Seg seg, Pool pool, Addr base, Size size,
   AVER(SegBase(seg) == base);
   AVER(SegSize(seg) == size);
   AVER(SegPool(seg) == pool);
-  AVER(BoolCheck(reservoirPermit));
-  AVER(ArgListCheck(args));
+  AVERT(Bool, reservoirPermit);
+  AVERT(ArgList, args);
   UNUSED(args);
   return ResOK;
 }
@@ -781,7 +783,7 @@ static void segTrivFinish(Seg seg)
 static void segNoSetGrey(Seg seg, TraceSet grey)
 {
   AVERT(Seg, seg);
-  AVER(TraceSetCheck(grey));
+  AVERT(TraceSet, grey);
   AVER(seg->rankSet != RankSetEMPTY);
   NOTREACHED;
 }
@@ -792,7 +794,7 @@ static void segNoSetGrey(Seg seg, TraceSet grey)
 static void segNoSetWhite(Seg seg, TraceSet white)
 {
   AVERT(Seg, seg);
-  AVER(TraceSetCheck(white));
+  AVERT(TraceSet, white);
   NOTREACHED;
 }
 
@@ -802,7 +804,7 @@ static void segNoSetWhite(Seg seg, TraceSet white)
 static void segNoSetRankSet(Seg seg, RankSet rankSet)
 {
   AVERT(Seg, seg);
-  AVER(RankSetCheck(rankSet));
+  AVERT(RankSet, rankSet);
   NOTREACHED;
 }
 
@@ -822,7 +824,7 @@ static void segNoSetSummary(Seg seg, RefSet summary)
 static void segNoSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 {
   AVERT(Seg, seg);
-  AVER(RankSetCheck(rankSet));
+  AVERT(RankSet, rankSet);
   UNUSED(summary);
   NOTREACHED;
 }
@@ -862,7 +864,7 @@ static Res segNoMerge(Seg seg, Seg segHi,
   AVER(SegLimit(seg) == mid);
   AVER(SegBase(segHi) == mid);
   AVER(SegLimit(segHi) == limit);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
   NOTREACHED;
   return ResFAIL;
 }
@@ -898,7 +900,7 @@ static Res segTrivMerge(Seg seg, Seg segHi,
   AVER(SegLimit(seg) == mid);
   AVER(SegBase(segHi) == mid);
   AVER(SegLimit(segHi) == limit);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   /* .similar.  */
   AVER(seg->rankSet == segHi->rankSet);
@@ -916,7 +918,7 @@ static Res segTrivMerge(Seg seg, Seg segHi,
 
   seg->limit = limit;
   TRACT_FOR(tract, addr, arena, mid, limit) {
-    AVER(TractCheck(tract));  /* <design/check/#type.no-sig> */
+    AVERT(Tract, tract);
     AVER(TractHasSeg(tract));
     AVER(segHi == TractP(tract));
     AVER(TractPool(tract) == pool);
@@ -946,7 +948,7 @@ static Res segNoSplit(Seg seg, Seg segHi,
   AVER(mid < limit);
   AVER(SegBase(seg) == base);
   AVER(SegLimit(seg) == limit);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
   NOTREACHED;
   return ResFAIL;
 
@@ -977,7 +979,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   AVER(mid < limit);
   AVER(SegBase(seg) == base);
   AVER(SegLimit(seg) == limit);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   /* Segment may not be exposed, or in the shield cache */
   /* See <design/seg/#split-merge.shield> & <code/shield.c#def.depth> */
@@ -999,7 +1001,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   RingInit(SegPoolRing(segHi));
 
   TRACT_FOR(tract, addr, arena, mid, limit) {
-    AVER(TractCheck(tract));  /* <design/check/#type.no-sig> */
+    AVERT(Tract, tract);
     AVER(TractHasSeg(tract));
     AVER(seg == TractP(tract));
     AVER(TractPool(tract) == pool);
@@ -1090,7 +1092,7 @@ Bool GCSegCheck(GCSeg gcseg)
   Seg seg;
   CHECKS(GCSeg, gcseg);
   seg = &gcseg->segStruct;
-  CHECKL(SegCheck(seg));
+  CHECKD(Seg, seg);
 
   if (gcseg->buffer != NULL) {
     CHECKU(Buffer, gcseg->buffer);
@@ -1100,7 +1102,7 @@ Bool GCSegCheck(GCSeg gcseg)
   }
 
   /* The segment should be on a grey ring if and only if it is grey. */
-  CHECKL(RingCheck(&gcseg->greyRing));
+  CHECKD_NOSIG(Ring, &gcseg->greyRing);
   CHECKL((seg->grey == TraceSetEMPTY) ==
          RingIsSingle(&gcseg->greyRing));
 
@@ -1132,7 +1134,7 @@ static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVER(SizeIsAligned(size, align));
   gcseg = SegGCSeg(seg);
   AVER(&gcseg->segStruct == seg);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(GCSegClass);
@@ -1309,7 +1311,7 @@ static void gcSegSetWhite(Seg seg, TraceSet white)
   TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, limit) {
     Seg trseg = NULL; /* suppress compiler warning */
 
-    AVER_CRITICAL(TractCheck(tract));  /* <design/check/#type.no-sig> */
+    AVERT_CRITICAL(Tract, tract);
     AVER_CRITICAL(TRACT_SEG(&trseg, tract) && (trseg == seg));
     TractSetWhite(tract, white);
   }
@@ -1497,7 +1499,7 @@ static Res gcSegMerge(Seg seg, Seg segHi,
   AVER(SegLimit(seg) == mid);
   AVER(SegBase(segHi) == mid);
   AVER(SegLimit(segHi) == limit);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
 
   buf = gcsegHi->buffer;      /* any buffer on segHi must be reassigned */
   AVER(buf == NULL || gcseg->buffer == NULL); /* See .buffer */
@@ -1563,7 +1565,7 @@ static Res gcSegSplit(Seg seg, Seg segHi,
   AVER(mid < limit);
   AVER(SegBase(seg) == base);
   AVER(SegLimit(seg) == limit);
-  AVER(BoolCheck(withReservoirPermit));
+  AVERT(Bool, withReservoirPermit);
  
   grey = SegGrey(seg);
   buf = gcseg->buffer; /* Look for buffer to reassign to segHi */
@@ -1646,7 +1648,7 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream)
 
 Bool SegClassCheck(SegClass class)
 {
-  CHECKL(ProtocolClassCheck(&class->protocol));
+  CHECKD(ProtocolClass, &class->protocol);
   CHECKL(class->name != NULL); /* Should be <= 6 char C identifier */
   CHECKL(class->size >= sizeof(SegStruct));
   CHECKL(FUNCHECK(class->init));
@@ -1683,6 +1685,7 @@ DEFINE_CLASS(SegClass, class)
   class->split = segTrivSplit;
   class->describe = segTrivDescribe;
   class->sig = SegClassSig;
+  AVERT(SegClass, class);
 }
 
 
@@ -1707,6 +1710,7 @@ DEFINE_CLASS(GCSegClass, class)
   class->merge = gcSegMerge;
   class->split = gcSegSplit;
   class->describe = gcSegDescribe;
+  AVERT(SegClass, class);
 }
 
 
@@ -1726,7 +1730,7 @@ void SegClassMixInNoSplitMerge(SegClass class)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
