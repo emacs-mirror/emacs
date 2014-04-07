@@ -15,36 +15,36 @@
 #include "range.h"
 #include "splay.h"
 
-/* TODO: There ought to be different levels of CBS block with inheritance
-   so that CBSs without fastFind don't allocate the maxSize and zones fields,
-   and CBSs without zoned don't allocate the zones field. */
-
 typedef struct CBSBlockStruct *CBSBlock;
 typedef struct CBSBlockStruct {
   TreeStruct treeStruct;
   Addr base;
   Addr limit;
-  Size maxSize; /* accurate maximum block size of sub-tree */
-  ZoneSet zones; /* union zone set of all ranges in sub-tree */
 } CBSBlockStruct;
+
+typedef struct CBSFastBlockStruct *CBSFastBlock;
+typedef struct CBSFastBlockStruct {
+  struct CBSBlockStruct cbsBlockStruct;
+  Size maxSize; /* accurate maximum block size of sub-tree */
+} CBSFastBlockStruct;
+
+typedef struct CBSZonedBlockStruct *CBSZonedBlock;
+typedef struct CBSZonedBlockStruct {
+  struct CBSFastBlockStruct cbsFastBlockStruct;
+  ZoneSet zones; /* union zone set of all ranges in sub-tree */
+} CBSZonedBlockStruct;
 
 typedef struct CBSStruct *CBS;
 
 extern Bool CBSCheck(CBS cbs);
 
 extern LandClass CBSLandClassGet(void);
+extern LandClass CBSFastLandClassGet(void);
+extern LandClass CBSZonedLandClassGet(void);
 
 extern const struct mps_key_s _mps_key_cbs_block_pool;
 #define CBSBlockPool (&_mps_key_cbs_block_pool)
 #define CBSBlockPool_FIELD pool
-extern const struct mps_key_s _mps_key_cbs_fast_find;
-#define CBSFastFind (&_mps_key_cbs_fast_find)
-#define CBSFastFind_FIELD b
-extern const struct mps_key_s _mps_key_cbs_zoned;
-#define CBSZoned (&_mps_key_cbs_zoned)
-#define CBSZoned_FIELD b
-
-/* TODO: Passing booleans to affect behaviour is ugly and error-prone. */
 
 #endif /* cbs_h */
 

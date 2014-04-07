@@ -21,4 +21,5 @@ Design
     range
     ring
     sig
+    splay
     type

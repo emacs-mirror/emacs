@@ -659,8 +659,7 @@ typedef struct CBSStruct {
   SplayTreeStruct splayTreeStruct;
   STATISTIC_DECL(Count treeSize);
   Pool blockPool;               /* pool that manages blocks */
-  Bool fastFind;                /* maintain and use size property? */
-  Bool zoned;                   /* maintain and use zone property? */
+  Size blockStructSize;         /* size of block structure */
   Bool inCBS;                   /* prevent reentrance */
   Bool ownPool;                 /* did we create blockPool? */
   /* meters for sizes of search structures at each op */

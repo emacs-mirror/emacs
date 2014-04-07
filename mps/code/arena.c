@@ -224,7 +224,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
      handled where the Land is used. */
 
   MPS_ARGS_BEGIN(piArgs) {
-    MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
+    MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSZonedBlockStruct));
     MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, arena->alignment);
     MPS_ARGS_ADD(piArgs, MFSExtendSelf, FALSE);
     res = PoolInit(ArenaCBSBlockPool(arena), arena, PoolClassMFS(), piArgs);
@@ -236,9 +236,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
   /* Initialise the freeLand. */
   MPS_ARGS_BEGIN(liArgs) {
     MPS_ARGS_ADD(liArgs, CBSBlockPool, ArenaCBSBlockPool(arena));
-    MPS_ARGS_ADD(liArgs, CBSFastFind, TRUE);
-    MPS_ARGS_ADD(liArgs, CBSZoned, arena->zoned);
-    res = LandInit(ArenaFreeLand(arena), CBSLandClassGet(), arena,
+    res = LandInit(ArenaFreeLand(arena), CBSZonedLandClassGet(), arena,
                    alignment, arena, liArgs);
   } MPS_ARGS_END(liArgs);
   AVER(res == ResOK); /* no allocation, no failure expected */
@@ -388,7 +386,7 @@ void ArenaDestroy(Arena arena)
   LandFinish(ArenaFreeLand(arena));
 
   /* The CBS block pool can't free its own memory via ArenaFree because
-     that would use the ZonedCBS. */
+     that would use the CBSZoned. */
   MFSFinishTracts(ArenaCBSBlockPool(arena),
                   arenaMFSPageFreeVisitor, NULL, 0);
   PoolFinish(ArenaCBSBlockPool(arena));
