@@ -1,4 +1,4 @@
-2014-04-03  Ken Brown  <kbrown@cornell.edu>
+2014-04-07  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.ac (EMACS_MANIFEST, UPDATE_MANIFEST): Leave these
 	variables empty on Cygwin.  (Bug#17176)

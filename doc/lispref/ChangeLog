@@ -1,8 +1,6 @@
-2014-04-05  Glenn Morris  <rgm@gnu.org>
+2014-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* os.texi (Recording Input): Dribble files may contain passwords.
-
-2014-04-04  Glenn Morris  <rgm@gnu.org>
 
 	* backups.texi (Making Backups, Reverting):
 	Update for default values of some -function vars no longer being nil.

@@ -13,22 +13,11 @@
 	(Fgarbage_collect): Use it.
 	(gc_sweep): Remove hack made unnecessary.
 
-2014-04-05  Glenn Morris  <rgm@gnu.org>
+2014-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* keyboard.c (Fopen_dribble_file): Doc tweak.
 
-2014-04-04  Jan Djärv  <jan.h.d@swipnet.se>
-
-	Backport from trunk.
-	* nsterm.m (updateFrameSize:): If waiting for the tool bar and tool
-	bar is zero height, just return (Bug#16976).
-	(initFrameFromEmacs:): Initialize wait_for_tool_bar.
-	* nsterm.h (EmacsView): Add wait_for_tool_bar.
-	* nsmenu.m (update_frame_tool_bar): Return early if view or toolbar
-	is nil.  If waiting for toolbar to complete, force a redraw.
-	(free_frame_tool_bar): Set wait_for_tool_bar = NO (Bug#16976).
-
-2014-04-03  Ken Brown  <kbrown@cornell.edu>
+2014-04-07  Ken Brown  <kbrown@cornell.edu>
 
 	* Makefile.in (EMACS_MANIFEST): Update comment.  (Bug#17176)
 
