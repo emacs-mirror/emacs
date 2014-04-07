@@ -213,7 +213,9 @@ Bool GlobalsCheck(Globals arenaGlobals)
 
   /* we also check the statics now. <design/arena/#static.check> */
   CHECKL(BoolCheck(arenaRingInit));
-  CHECKD_NOSIG(Ring, &arenaRing);
+  /* Can't CHECKD_NOSIG here because &arenaRing is never NULL and GCC
+   * will warn about a constant comparison. */
+  CHECKL(RingCheck(&arenaRing));
 
   CHECKL(BoolCheck(arena->emergency));
   
