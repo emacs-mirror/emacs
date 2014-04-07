@@ -47,10 +47,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #include <verify.h>
-
-#ifdef HAVE_EXECINFO_H
-#include <execinfo.h>           /* For backtrace */
-#endif
+#include <execinfo.h>           /* For backtrace.  */
 
 #if (defined ENABLE_CHECKING			\
      && defined HAVE_VALGRIND_VALGRIND_H	\
@@ -207,23 +204,22 @@ const char *pending_malloc_warning;
 #define SUSPICIOUS_OBJECT_CHECKING 1
 
 #ifdef SUSPICIOUS_OBJECT_CHECKING
-struct suspicious_free_record {
+struct suspicious_free_record
+{
   void *suspicious_object;
-#ifdef HAVE_EXECINFO_H
   void *backtrace[128];
-#endif
 };
 static void *suspicious_objects[32];
 static int suspicious_object_index;
-struct suspicious_free_record suspicious_free_history[64];
+struct suspicious_free_record suspicious_free_history[64] EXTERNALLY_VISIBLE;
 static int suspicious_free_history_index;
 /* Find the first currently-monitored suspicious pointer in range
    [begin,end) or NULL if no such pointer exists.  */
 static void *find_suspicious_object_in_range (void *begin, void *end);
 static void detect_suspicious_free (void *ptr);
 #else
-#define find_suspicious_object_in_range(begin, end) NULL
-#define detect_suspicious_free(ptr) (void)
+# define find_suspicious_object_in_range(begin, end) NULL
+# define detect_suspicious_free(ptr) (void)
 #endif
 
 /* Maximum amount of C stack to save when a GC happens.  */
@@ -6827,7 +6823,7 @@ which_symbols (Lisp_Object obj, EMACS_INT find_max)
 
 #ifdef SUSPICIOUS_OBJECT_CHECKING
 
-static void*
+static void *
 find_suspicious_object_in_range (void *begin, void *end)
 {
   char *begin_a = begin;
@@ -6848,14 +6844,14 @@ static void
 detect_suspicious_free (void *ptr)
 {
   int i;
-  struct suspicious_free_record* rec;
 
   eassert (ptr != NULL);
 
   for (i = 0; i < ARRAYELTS (suspicious_objects); ++i)
     if (suspicious_objects[i] == ptr)
       {
-        rec = &suspicious_free_history[suspicious_free_history_index++];
+	struct suspicious_free_record *rec
+	  = &suspicious_free_history[suspicious_free_history_index++];
         if (suspicious_free_history_index ==
             ARRAYELTS (suspicious_free_history))
           {
@@ -6864,9 +6860,7 @@ detect_suspicious_free (void *ptr)
 
         memset (rec, 0, sizeof (*rec));
         rec->suspicious_object = ptr;
-#ifdef HAVE_EXECINFO_H
-        backtrace (&rec->backtrace[0], ARRAYELTS (rec->backtrace));
-#endif
+        backtrace (rec->backtrace, ARRAYELTS (rec->backtrace));
         suspicious_objects[i] = NULL;
       }
 }

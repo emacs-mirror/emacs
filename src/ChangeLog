@@ -1,3 +1,10 @@
+2014-04-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c: Simplify by removing use of HAVE_EXECINFO_H.
+	We have a substitute execinfo.h on hosts that lack it.
+	(suspicious_free_history): Make it EXTERNALLY_VISIBLE so it
+	isn't optimized away.
+
 2014-04-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Prefer 'ARRAYELTS (x)' to 'sizeof x / sizeof *x'.
