@@ -64,9 +64,9 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
   TraceId ti;
   Trace trace;
 
-  AVER(TraceSetCheck(ts));
+  AVERT(TraceSet, ts);
   AVERT(Arena, arena);
-  AVER(RankCheck(rank));
+  AVERT(Rank, rank);
   /* white is arbitrary and can't be checked */
 
   /* NOTE: We can only currently support scanning for a set of traces with
@@ -363,7 +363,7 @@ Res TraceAddWhite(Trace trace, Seg seg)
   if(TraceSetIsMember(SegWhite(seg), trace)) {
     trace->white = ZoneSetUnion(trace->white, ZoneSetOfSeg(trace->arena, seg));
     /* if the pool is a moving GC, then condemned objects may move */
-    if(pool->class->attr & AttrMOVINGGC) {
+    if(PoolHasAttr(pool, AttrMOVINGGC)) {
       trace->mayMove = ZoneSetUnion(trace->mayMove,
                                     ZoneSetOfSeg(trace->arena, seg));
     }
@@ -410,8 +410,9 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
       /* the requested zone set.  Otherwise, we would bloat the */
       /* foundation to no gain.  Note that this doesn't exclude */
       /* any segments from which the condemned set was derived, */
-      if((SegPool(seg)->class->attr & AttrGC) != 0
-          && ZoneSetSuper(condemnedSet, ZoneSetOfSeg(arena, seg))) {
+      if(PoolHasAttr(SegPool(seg), AttrGC)
+         && ZoneSetSuper(condemnedSet, ZoneSetOfSeg(arena, seg)))
+      {
         res = TraceAddWhite(trace, seg);
         if(res != ResOK)
           return res;
@@ -503,9 +504,9 @@ static Res rootFlip(Root root, void *p)
 
   AVERT(Root, root);
   AVER(p != NULL);
-  AVER(TraceSetCheck(rf->ts));
+  AVERT(TraceSet, rf->ts);
   AVERT(Arena, rf->arena);
-  AVER(RankCheck(rf->rank));
+  AVERT(Rank, rf->rank);
 
   AVER(RootRank(root) <= RankEXACT); /* see .root.rank */
 
@@ -827,7 +828,7 @@ static void traceReclaim(Trace trace)
       AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace));
 
       if(TraceSetIsMember(SegWhite(seg), trace)) {
-        AVER_CRITICAL((pool->class->attr & AttrGC) != 0);
+        AVER_CRITICAL(PoolHasAttr(pool, AttrGC));
         STATISTIC(++trace->reclaimCount);
         PoolReclaim(pool, trace, seg);
 
@@ -988,7 +989,7 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
   Ring node, nextNode;
 
   AVER(segReturn != NULL);
-  AVER(TraceIdCheck(ti));
+  AVERT(TraceId, ti);
 
   trace = ArenaTrace(arena, ti);
 
@@ -1376,10 +1377,10 @@ void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 {
   Res res;
 
-  AVER(TraceSetCheck(ts));
-  AVER(RankCheck(rank));
+  AVERT(TraceSet, ts);
+  AVERT(Rank, rank);
   AVERT(Arena, arena);
-  AVER(SegCheck(seg));
+  AVERT(Seg, seg);
   AVER(refIO != NULL);
 
   res = traceScanSingleRefRes(ts, rank, arena, seg, refIO);
@@ -1617,9 +1618,6 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
       /* This is indicated by the rankSet begin non-empty.  Such */
       /* segments may only belong to scannable pools. */
       if(SegRankSet(seg) != RankSetEMPTY) {
-        /* Segments with ranks may only belong to scannable pools. */
-        AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
-
         /* Turn the segment grey if there might be a reference in it */
         /* to the white set.  This is done by seeing if the summary */
         /* of references in the segment intersects with the */
@@ -1634,8 +1632,9 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
           }
         }
 
-        if((SegPool(seg)->class->attr & AttrGC)
-            && !TraceSetIsMember(SegWhite(seg), trace)) {
+        if(PoolHasAttr(SegPool(seg), AttrGC)
+           && !TraceSetIsMember(SegWhite(seg), trace))
+        {
           trace->notCondemned += size;
         }
       }
@@ -1730,7 +1729,6 @@ void TraceQuantum(Trace trace)
 
         if(traceFindGrey(&seg, &rank, arena, trace->ti)) {
           Res res;
-          AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
           res = traceScanSeg(TraceSetSingle(trace), rank, arena, seg);
           /* Allocation failures should be handled by emergency mode, and we
              don't expect any other error in a normal GC trace. */

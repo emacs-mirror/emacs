@@ -1,7 +1,7 @@
 /* arenacl.c: ARENA CLASS USING CLIENT MEMORY
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .design: See <design/arena/#client>.
  *
@@ -67,7 +67,7 @@ static Bool ClientChunkCheck(ClientChunk clChunk)
 
   CHECKS(ClientChunk, clChunk);
   chunk = ClientChunk2Chunk(clChunk);
-  CHECKL(ChunkCheck(chunk));
+  CHECKD(Chunk, chunk);
   CHECKL(clChunk->freePages <= chunk->pages);
   /* check they don't overlap (knowing the order) */
   CHECKL((Addr)(chunk + 1) < (Addr)chunk->allocTable);
@@ -201,7 +201,7 @@ static void ClientArenaVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[1].key = MPS_KEY_ARENA_CL_BASE;
   args[1].val.addr = va_arg(varargs, Addr);
   args[2].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
 }
 
 
@@ -228,7 +228,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   
   AVER(arenaReturn != NULL);
   AVER((ArenaClass)mps_arena_class_cl() == class);
-  AVER(ArgListCheck(args));
+  AVERT(ArgList, args);
   
   ArgRequire(&arg, args, MPS_KEY_ARENA_SIZE);
   size = arg.val.size;
@@ -434,6 +434,7 @@ DEFINE_ARENA_CLASS(ClientArenaClass, this)
   this->free = ClientFree;
   this->chunkInit = ClientChunkInit;
   this->chunkFinish = ClientChunkFinish;
+  AVERT(ArenaClass, this);
 }
 
 
@@ -447,7 +448,7 @@ mps_arena_class_t mps_arena_class_cl(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
