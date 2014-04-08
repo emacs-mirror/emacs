@@ -12,6 +12,8 @@
 #include "bt.h"
 #include "nailboard.h"
 
+#include <stdio.h> /* printf */
+
 
 static void test(mps_arena_t arena)
 {

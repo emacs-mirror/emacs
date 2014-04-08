@@ -12,8 +12,7 @@
 #include "mpslib.h"
 #include "mps.h"
 
-#include <stdlib.h>
-#include <stdarg.h>
+#include <stdio.h> /* printf */
 
 
 /* some constants */
