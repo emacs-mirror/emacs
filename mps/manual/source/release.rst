@@ -27,6 +27,16 @@ New features
    calling :c:func:`mps_pool_create_k`.
 
 
+Other changes
+.............
+
+#. The alignment of :ref:`pool-awl` pools is now configurable via the
+   object format, as documented, and is no longer always
+   :c:macro:`MPS_PF_ALIGN`. See job003745_.
+
+   .. _job003745: https://www.ravenbrook.com/project/mps/issue/job003745/
+
+
 .. _release-notes-1.113:
 
 Release 1.113.0
