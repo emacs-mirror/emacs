@@ -6895,14 +6895,14 @@ note_suspicious_free (void* ptr)
 
   rec = &suspicious_free_history[suspicious_free_history_index++];
   if (suspicious_free_history_index ==
-      EARRAYSIZE (suspicious_free_history))
+      ARRAYELTS (suspicious_free_history))
     {
       suspicious_free_history_index = 0;
     }
 
   memset (rec, 0, sizeof (*rec));
   rec->suspicious_object = ptr;
-  backtrace (&rec->backtrace[0], EARRAYSIZE (rec->backtrace));
+  backtrace (&rec->backtrace[0], ARRAYELTS (rec->backtrace));
 }
 
 static void
