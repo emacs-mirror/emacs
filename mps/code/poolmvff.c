@@ -531,7 +531,7 @@ static Res MVFFInit(Pool pool, ArgList args)
 {
   Size extendBy = MVFF_EXTEND_BY_DEFAULT;
   Size avgSize = MVFF_AVG_SIZE_DEFAULT;
-  Size align = MVFF_ALIGN_DEFAULT;
+  Align align = MVFF_ALIGN_DEFAULT;
   Bool slotHigh = MVFF_SLOT_HIGH_DEFAULT;
   Bool arenaHigh = MVFF_ARENA_HIGH_DEFAULT;
   Bool firstFit = MVFF_FIRST_FIT_DEFAULT;
@@ -570,10 +570,16 @@ static Res MVFFInit(Pool pool, ArgList args)
   AVER(extendBy > 0);           /* .arg.check */
   AVER(avgSize > 0);            /* .arg.check */
   AVER(avgSize <= extendBy);    /* .arg.check */
-  AVER(SizeIsAligned(align, MPS_PF_ALIGN));
+  AVERT(Align, align);
   AVERT(Bool, slotHigh);
   AVERT(Bool, arenaHigh);
   AVERT(Bool, firstFit);
+
+  /* This restriction on the alignment is necessary because of the use
+   * of a Freelist to store the free address ranges in low-memory
+   * situations. <design/freelist/#impl.grain.align>.
+   */
+  align = AlignAlignUp(align, FreelistMinimumAlignment);
 
   mvff = Pool2MVFF(pool);
 
