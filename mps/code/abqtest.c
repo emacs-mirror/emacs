@@ -10,7 +10,8 @@
 #include "mpstd.h"
 #include "testlib.h"
 
-#include <stdlib.h>
+#include <stdlib.h> /* free, malloc */
+#include <stdio.h> /* printf */
 
 
 SRCID(abqtest, "$Id$");

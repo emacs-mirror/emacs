@@ -73,8 +73,12 @@ mps_res_t dylan_make_wrappers(void)
  * If the raw memory is large enough, initialises it to a dylan-vector,
  * whose slots are initialised to either dylan-ints, or valid refs, at 
  * random.
- * Caller must supply an array of (at least 1) valid refs to copy, via
- * the "refs" and "nr_refs" arguments.
+ *
+ * Caller must supply an array of valid refs to copy, via the "refs"
+ * and "nr_refs" arguments. If "nr_refs" is 0, all slots are
+ * initialized to dylan-ints: this may be useful for making leaf
+ * objects.
+ *
  * (Makes a pad if the raw memory is too small to hold a dylan-vector)
  */
 
@@ -100,7 +104,7 @@ mps_res_t dylan_init(mps_addr_t addr, size_t size,
     for(i = 0; i < t; ++i) {
       mps_word_t r = rnd();
 
-      if(r & 1)
+      if(nr_refs == 0 || (r & 1))
         p[2+i] = ((r & ~(mps_word_t)3) | 1); /* random int */
       else
         p[2+i] = (mps_word_t)refs[(r >> 1) % nr_refs]; /* random ptr */

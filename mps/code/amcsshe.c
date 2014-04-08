@@ -12,12 +12,9 @@
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpsw3.h"
-#endif
 #include "mps.h"
-#include <stdlib.h>
-#include <string.h>
+
+#include <stdio.h> /* fflush, printf, putchar */
 
 
 /* These values have been tuned in the hope of getting one dynamic collection. */
@@ -51,7 +48,7 @@ static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 static mps_addr_t bogusRoots[bogusRootsCOUNT];
 
-static mps_addr_t make(void)
+static mps_addr_t make(size_t roots_count)
 {
   size_t length = rnd() % (2*avLEN);
   size_t size = (length+2) * sizeof(mps_word_t);
@@ -63,7 +60,7 @@ static mps_addr_t make(void)
     if (res)
       die(res, "MPS_RESERVE_BLOCK");
     userP = (mps_addr_t)((char*)p + headerSIZE);
-    res = dylan_init(userP, size, exactRoots, exactRootsCOUNT);
+    res = dylan_init(userP, size, exactRoots, roots_count);
     if (res)
       die(res, "dylan_init");
     ((int*)p)[0] = realHeader;
@@ -112,9 +109,8 @@ static void report(mps_arena_t arena)
 
 /* test -- the body of the test */
 
-static void *test(void *arg, size_t s)
+static void *test(mps_arena_t arena, mps_class_t pool_class, size_t roots_count)
 {
-  mps_arena_t arena;
   mps_fmt_t format;
   mps_chain_t chain;
   mps_root_t exactRoot, ambigRoot, bogusRoot;
@@ -125,13 +121,10 @@ static void *test(void *arg, size_t s)
   mps_ap_t busy_ap;
   mps_addr_t busy_init;
 
-  arena = (mps_arena_t)arg;
-  (void)s; /* unused */
-
   die(EnsureHeaderFormat(&format, arena), "fmt_create");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
-  die(mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
+  die(mps_pool_create(&pool, arena, pool_class, format, chain),
       "pool_create(amc)");
 
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
@@ -220,13 +213,13 @@ static void *test(void *arg, size_t s)
       i = (r >> 1) % exactRootsCOUNT;
       if (exactRoots[i] != objNULL)
         die(HeaderFormatCheck(exactRoots[i]), "wrapper check");
-      exactRoots[i] = make();
+      exactRoots[i] = make(roots_count);
       if (exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
         dylan_write(exactRoots[(exactRootsCOUNT-1) - i],
                     exactRoots, exactRootsCOUNT);
     } else {
       i = (r >> 1) % ambigRootsCOUNT;
-      ambigRoots[(ambigRootsCOUNT-1) - i] = make();
+      ambigRoots[(ambigRootsCOUNT-1) - i] = make(roots_count);
       /* Create random interior pointers */
       ambigRoots[i] = (mps_addr_t)((char *)(ambigRoots[i/2]) + 1);
     }
@@ -261,7 +254,6 @@ int main(int argc, char *argv[])
 {
   mps_arena_t arena;
   mps_thr_t thread;
-  void *r;
 
   testlib_init(argc, argv);
 
@@ -274,7 +266,8 @@ int main(int argc, char *argv[])
    */
   /*die(mps_arena_commit_limit_set(arena, testArenaSIZE), "set limit");*/
   die(mps_thread_reg(&thread, arena), "thread_reg");
-  mps_tramp(&r, test, arena, 0);
+  test(arena, mps_class_amc(), exactRootsCOUNT);
+  test(arena, mps_class_amcz(), 0);
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 

@@ -13,13 +13,13 @@
 
 #include "mps.c"
 
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
 #include "getopt.h"
 #include "testlib.h"
+#include "testthr.h"
 
+#include <stdio.h> /* fprintf, stderr */
+#include <stdlib.h> /* alloca, exit, EXIT_SUCCESS, EXIT_FAILURE */
+#include <time.h> /* CLOCKS_PER_SEC, clock */
 
 #define DJMUST(expr) \
   do { \
@@ -135,24 +135,14 @@ typedef void *(*dj_t)(void *);
 
 static void weave(dj_t dj)
 {
-  pthread_t *threads = alloca(sizeof(threads[0]) * nthreads);
+  testthr_t *threads = alloca(sizeof(threads[0]) * nthreads);
   unsigned t;
   
-  for (t = 0; t < nthreads; ++t) {
-    int err = pthread_create(&threads[t], NULL, dj, NULL);
-    if (err != 0) {
-      fprintf(stderr, "Unable to create thread: %d\n", err);
-      exit(EXIT_FAILURE);
-    }
-  }
+  for (t = 0; t < nthreads; ++t)
+    testthr_create(&threads[t], dj, NULL);
   
-  for (t = 0; t < nthreads; ++t) {
-    int err = pthread_join(threads[t], NULL);
-    if (err != 0) {
-      fprintf(stderr, "Unable to join thread: %d\n", err);
-      exit(EXIT_FAILURE);
-    }
-  }
+  for (t = 0; t < nthreads; ++t)
+    testthr_join(&threads[t], NULL);
 }
 
 
@@ -321,7 +311,8 @@ int main(int argc, char *argv[]) {
   argv += optind;
   
   printf("seed: %lu\n", seed);
-  
+  (void)fflush(stdout);
+
   while (argc > 0) {
     for (i = 0; i < sizeof(pools) / sizeof(pools[0]); ++i)
       if (strcmp(argv[0], pools[i].name) == 0)

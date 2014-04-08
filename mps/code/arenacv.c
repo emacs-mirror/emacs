@@ -14,14 +14,15 @@
  * being allocated; this requires using two adjacent zones.
  */
 
-#include <stdlib.h>
-
 #include "mpm.h"
 #include "poolmv.h"
 #include "testlib.h"
 #include "mpslib.h"
 #include "mpsavm.h"
 #include "mpsacl.h"
+
+#include <stdio.h> /* printf */
+#include <stdlib.h> /* malloc */
 
 
 #define tractsSIZE 500

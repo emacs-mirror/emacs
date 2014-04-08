@@ -12,13 +12,12 @@
 #include "fmtdy.h"
 #include "fmtdytst.h"
 #include "testlib.h"
+#include "testthr.h"
 #include "mpslib.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
-#include <stdlib.h>
-#include <string.h>
-#include <pthread.h>
-#include <time.h>
+
+#include <stdio.h> /* fflush, printf, putchar */
 
 
 /* These values have been tuned in the hope of getting one dynamic collection. */
@@ -43,7 +42,6 @@ static mps_gen_param_s testChain[genCOUNT] = {
 #define objNULL           ((mps_addr_t)MPS_WORD_CONST(0xDECEA5ED))
 
 
-static mps_pool_t pool;
 static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 
@@ -86,7 +84,7 @@ unsigned long objs = 0;
 
 /* make -- create one new object */
 
-static mps_addr_t make(mps_ap_t ap)
+static mps_addr_t make(mps_ap_t ap, size_t roots_count)
 {
   size_t length = rnd() % (2*avLEN);
   size_t size = (length+2) * sizeof(mps_word_t);
@@ -97,7 +95,7 @@ static mps_addr_t make(mps_ap_t ap)
     MPS_RESERVE_BLOCK(res, p, ap, size);
     if (res)
       die(res, "MPS_RESERVE_BLOCK");
-    res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
+    res = dylan_init(p, size, exactRoots, roots_count);
     if (res)
       die(res, "dylan_init");
   } while(!mps_commit(ap, p, size));
@@ -108,16 +106,16 @@ static mps_addr_t make(mps_ap_t ap)
 
 /* test_stepper -- stepping function for walk */
 
-static void test_stepper(mps_addr_t object, mps_fmt_t fmt, mps_pool_t pol,
+static void test_stepper(mps_addr_t object, mps_fmt_t fmt, mps_pool_t pool,
                          void *p, size_t s)
 {
-  testlib_unused(object); testlib_unused(fmt); testlib_unused(pol);
+  testlib_unused(object); testlib_unused(fmt); testlib_unused(pool);
   testlib_unused(s);
   (*(unsigned long *)p)++;
 }
 
 
-/* init -- initialize pool and roots */
+/* init -- initialize roots and chain */
 
 static void init(void)
 {
@@ -125,9 +123,6 @@ static void init(void)
 
   die(dylan_fmt(&format, arena), "fmt_create");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
-
-  die(mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
-      "pool_create(amc)");
 
   for(i = 0; i < exactRootsCOUNT; ++i)
     exactRoots[i] = objNULL;
@@ -146,13 +141,12 @@ static void init(void)
 }
 
 
-/* finish -- finish pool and roots */
+/* finish -- finish roots and chain */
 
 static void finish(void)
 {
   mps_root_destroy(exactRoot);
   mps_root_destroy(ambigRoot);
-  mps_pool_destroy(pool);
   mps_chain_destroy(chain);
   mps_fmt_destroy(format);
 }
@@ -160,7 +154,7 @@ static void finish(void)
 
 /* churn -- create an object and install into roots */
 
-static void churn(mps_ap_t ap)
+static void churn(mps_ap_t ap, size_t roots_count)
 {
   size_t i;
   size_t r;
@@ -171,22 +165,52 @@ static void churn(mps_ap_t ap)
     i = (r >> 1) % exactRootsCOUNT;
     if (exactRoots[i] != objNULL)
       cdie(dylan_check(exactRoots[i]), "dying root check");
-    exactRoots[i] = make(ap);
+    exactRoots[i] = make(ap, roots_count);
     if (exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
       dylan_write(exactRoots[(exactRootsCOUNT-1) - i],
                   exactRoots, exactRootsCOUNT);
   } else {
     i = (r >> 1) % ambigRootsCOUNT;
-    ambigRoots[(ambigRootsCOUNT-1) - i] = make(ap);
+    ambigRoots[(ambigRootsCOUNT-1) - i] = make(ap, roots_count);
     /* Create random interior pointers */
     ambigRoots[i] = (mps_addr_t)((char *)(ambigRoots[i/2]) + 1);
   }
 }
 
 
+typedef struct closure_s {
+  mps_pool_t pool;
+  size_t roots_count;
+} closure_s, *closure_t;
+
+static void *kid_thread(void *arg)
+{
+  void *marker = &marker;
+  mps_thr_t thread;
+  mps_root_t reg_root;
+  mps_ap_t ap;
+  closure_t cl = arg;
+
+  die(mps_thread_reg(&thread, (mps_arena_t)arena), "thread_reg");
+  die(mps_root_create_reg(&reg_root, arena, mps_rank_ambig(), 0, thread,
+                          mps_stack_scan_ambig, marker, 0), "root_create");
+
+  die(mps_ap_create(&ap, cl->pool, mps_rank_exact()), "BufferCreate(fooey)");
+  while(mps_collections(arena) < collectionsCOUNT) {
+    churn(ap, cl->roots_count);
+  }
+  mps_ap_destroy(ap);
+
+  mps_root_destroy(reg_root);
+  mps_thread_dereg(thread);
+
+  return NULL;
+}
+
+
 /* test -- the body of the test */
 
-static void *test(void *arg, size_t s)
+static void *test(mps_class_t pool_class, size_t roots_count)
 {
   size_t i;
   mps_word_t collections, rampSwitch;
@@ -194,9 +218,18 @@ static void *test(void *arg, size_t s)
   int ramping;
   mps_ap_t ap, busy_ap;
   mps_addr_t busy_init;
+  mps_pool_t pool;
+  testthr_t kids[10];
+  closure_s cl;
 
-  arena = (mps_arena_t)arg;
-  (void)s; /* unused */
+  die(mps_pool_create(&pool, arena, pool_class, format, chain),
+      "pool_create(amc)");
+
+  cl.pool = pool;
+  cl.roots_count = roots_count;
+
+  for (i = 0; i < sizeof(kids)/sizeof(kids[0]); ++i)
+    testthr_create(&kids[i], kid_thread, &cl);
 
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
   die(mps_ap_create(&busy_ap, pool, mps_rank_exact()), "BufferCreate 2");
@@ -258,7 +291,7 @@ static void *test(void *arg, size_t s)
       }
     }
 
-    churn(ap);
+    churn(ap, roots_count);
 
     r = (size_t)rnd();
 
@@ -276,51 +309,19 @@ static void *test(void *arg, size_t s)
   mps_ap_destroy(busy_ap);
   mps_ap_destroy(ap);
 
+  for (i = 0; i < sizeof(kids)/sizeof(kids[0]); ++i)
+    testthr_join(&kids[i], NULL);
+
+  mps_pool_destroy(pool);
+
   return NULL;
 }
-
-
-static void *fooey2(void *arg, size_t s)
-{
-  mps_ap_t ap;
-
-  (void)arg; (void)s; /* unused */
-  die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate(fooey)");
-  while(mps_collections(arena) < collectionsCOUNT) {
-    churn(ap);
-  }
-  mps_ap_destroy(ap);
-  return NULL;
-}
-
-
-static void *fooey(void* childIsFinishedReturn)
-{
-  void *r;
-  mps_thr_t thread;
-  void *marker = &marker;
-  mps_root_t reg_root;
-
-  die(mps_thread_reg(&thread, (mps_arena_t)arena), "thread_reg");
-  die(mps_root_create_reg(&reg_root, arena, mps_rank_ambig(), 0, thread,
-                          mps_stack_scan_ambig, marker, 0), "root_create");
-  mps_tramp(&r, fooey2, NULL, 0);
-  mps_root_destroy(reg_root);
-  mps_thread_dereg(thread);
-  *(int *)childIsFinishedReturn = 1;
-  return r;
-}
-
 
 int main(int argc, char *argv[])
 {
   mps_thr_t thread;
   mps_root_t reg_root;
   void *marker = &marker;
-  pthread_t kids[10];
-  unsigned i;
-  void *r;
-  int childIsFinished = 0;
 
   testlib_init(argc, argv);
 
@@ -331,20 +332,12 @@ int main(int argc, char *argv[])
   die(mps_thread_reg(&thread, arena), "thread_reg");
   die(mps_root_create_reg(&reg_root, arena, mps_rank_ambig(), 0, thread,
                              mps_stack_scan_ambig, marker, 0), "root_create");
-  for (i = 0; i < sizeof(kids)/sizeof(kids[0]); ++i) {
-    int err = pthread_create(&kids[i], NULL, fooey, (void *)&childIsFinished);
-    if (err != 0)
-      error("pthread_create returned %d", err);
-  }
-  mps_tramp(&r, test, arena, 0);
+
+  test(mps_class_amc(), exactRootsCOUNT);
+  test(mps_class_amcz(), 0);
+
   mps_root_destroy(reg_root);
   mps_thread_dereg(thread);
-
-  for (i = 0; i < sizeof(kids)/sizeof(kids[0]); ++i) {
-    int err = pthread_join(kids[i], NULL);
-    if (err != 0)
-      error("pthread_join returned %d", err);
-  }
   
   finish();
   report(arena);

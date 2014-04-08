@@ -7,7 +7,9 @@
 #include "mpm.h"
 #include "testlib.h"
 #include "mpslib.h"
-#include <stdlib.h>             /* for malloc & free */
+
+#include <stdio.h> /* printf */
+#include <stdlib.h> /* free, malloc */
 
 
 int main(int argc, char *argv[])

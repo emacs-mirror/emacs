@@ -11,11 +11,15 @@
 #ifndef mpswin_h
 #define mpswin_h
 
+#ifndef WIN32_LEAN_AND_MEAN
 /* Speed up the build process by excluding parts of windows.h that we
  * don't use. See <http://support.microsoft.com/kb/166474> */
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #undef WIN32_LEAN_AND_MEAN
+#else
+#include <windows.h>
+#endif
 
 #endif /* mpswin_h */
 

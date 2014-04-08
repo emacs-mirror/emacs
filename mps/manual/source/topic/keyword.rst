@@ -36,9 +36,8 @@ help with forming keyword argument lists::
     } MPS_ARGS_END(args);
 
 The argument array must not be ``NULL``, and must end with
-:c:macro:`MPS_KEY_ARGS_END`.  If you don't want to pass any arguments, you can
-either call the equivalent function that does not take keyword arguments
-(named without the ``_k``) or pass :c:macro:`mps_args_none`.
+:c:macro:`MPS_KEY_ARGS_END`. If you don't want to pass any arguments,
+you can pass :c:macro:`mps_args_none`.
 
 When a function that takes keyword arguments returns, the keyword
 argument array has been *modified* to remove any arguments that have
