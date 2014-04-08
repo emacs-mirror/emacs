@@ -58,23 +58,27 @@ TEST_TARGETS=\
     airtest.exe \
     amcss.exe \
     amcsshe.exe \
+    amcssth.exe \
     amsss.exe \
     amssshe.exe \
     apss.exe \
     arenacv.exe \
     awlut.exe \
     awluthe.exe \
+    awlutth.exe \
     btcv.exe \
     bttest.exe \
+    djbench.exe \
     exposet0.exe \
     expt825.exe \
     fbmtest.exe \
     finalcv.exe \
     finaltest.exe \
     fotest.exe \
+    gcbench.exe \
     locbwcss.exe \
     lockcov.exe \
-    lockutw3.exe \
+    lockut.exe \
     locusss.exe \
     locv.exe \
     messtest.exe \
@@ -176,7 +180,7 @@ SNC = <poolsnc>
 DW = <fmtdy> <fmtno>
 FMTTEST = <fmthe> <fmtdy> <fmtno> <fmtdytst>
 FMTSCHEME = <fmtscheme>
-TESTLIB = <testlib>
+TESTLIB = <testlib> <testthrw3> <getoptl>
 
 
 # CHECK PARAMETERS
@@ -220,9 +224,6 @@ TESTLIB = <testlib>
 !ENDIF
 !IFNDEF FMTSCHEME
 !ERROR commpre.nmk: FMTSCHEME not defined
-!ENDIF
-!IFNDEF TESTLIB
-!ERROR commpre.nmk: TESTLIB not defined
 !ENDIF
 !IFNDEF TESTLIB
 !ERROR commpre.nmk: TESTLIB not defined

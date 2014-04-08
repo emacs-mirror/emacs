@@ -22,14 +22,13 @@
 #include "mpscamc.h"
 #include "mpscams.h"
 #include "mpscawl.h"
+#include "mpsclo.h"
 #include "mpsavm.h"
 #include "fmtdy.h"
 #include "fmtdytst.h"
 #include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpsw3.h"
-#endif
-#include <stdlib.h>
+
+#include <stdio.h> /* fflush, printf, stdout */
 
 
 #define testArenaSIZE   ((size_t)16<<20)
@@ -160,9 +159,8 @@ static void test_trees(const char *name, mps_arena_t arena, mps_ap_t ap,
     while (mps_message_poll(arena)) {
       mps_message_t message;
       mps_addr_t objaddr;
-      cdie(mps_message_get(&message, arena,
-                           mps_message_type_finalization()),
-           "get");
+      cdie(mps_message_get(&message, arena, mps_message_type_finalization()),
+           "message_get");
       mps_message_finalization_ref(&objaddr, arena, message);
       mps_message_discard(arena, message);
       ++ final_this_time;
@@ -183,6 +181,8 @@ static void *test(mps_arena_t arena, mps_class_t pool_class)
 
   die(mps_fmt_create_A(&fmt, arena, dylan_fmt_A()), "fmt_create\n");
   MPS_ARGS_BEGIN(args) {
+    /* Allocate into generation 0 so that they get finalized quickly. */
+    MPS_ARGS_ADD(args, MPS_KEY_GEN, 0);
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
     MPS_ARGS_ADD(args, MPS_KEY_AWL_FIND_DEPENDENT, test_awl_find_dependent);
     die(mps_pool_create_k(&pool, arena, pool_class, args),
@@ -221,8 +221,10 @@ int main(int argc, char *argv[])
   die(mps_thread_reg(&thread, arena), "thread_reg\n");
 
   test(arena, mps_class_amc());
-  /* TODO: test(arena, mps_class_ams()); */
-  /* TODO: test(arena, mps_class_awl()); */
+  test(arena, mps_class_amcz());
+  test(arena, mps_class_ams());
+  test(arena, mps_class_awl());
+  /* TODO: test(arena, mps_class_lo()); */
 
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);

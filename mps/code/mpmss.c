@@ -7,19 +7,14 @@
 
 #include "mpscmv.h"
 #include "mpscmvff.h"
+#include "mpscmfs.h"
 #include "mpslib.h"
 #include "mpsavm.h"
 #include "testlib.h"
 #include "mpslib.h"
 #include "mps.h"
-#include <stdlib.h>
-#include <stdarg.h>
 
-
-/* TODO: Decide whether we should support the MPS pool class externally,
-   create mpscmfs.h, and replace this extern with proper use of its
-   interface. */
-extern mps_class_t PoolClassMFS(void);
+#include <stdio.h> /* printf */
 
 
 #define testArenaSIZE   ((((size_t)64)<<20) - 4)
@@ -156,8 +151,7 @@ static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
 
   printf("MFS\n");
   fixedSizeSize = 13;
-  die(stress(PoolClassMFS(),
-             fixedSize, arena, (size_t)100000, fixedSizeSize),
+  die(stress(mps_class_mfs(), fixedSize, arena, (size_t)100000, fixedSizeSize),
       "stress MFS");
 
   printf("MV\n");

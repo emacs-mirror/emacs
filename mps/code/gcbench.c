@@ -7,17 +7,15 @@
  */
 
 #include "mps.c"
-
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <pthread.h>
 #include "getopt.h"
 #include "testlib.h"
-
+#include "testthr.h"
 #include "fmtdy.h"
 #include "fmtdytst.h"
+
+#include <stdio.h> /* fprintf, printf, putchars, sscanf, stderr, stdout */
+#include <stdlib.h> /* alloca, exit, EXIT_FAILURE, EXIT_SUCCESS, strtoul */
+#include <time.h> /* clock, CLOCKS_PER_SEC */
 
 #define RESMUST(expr) \
   do { \
@@ -56,7 +54,7 @@ typedef struct gcthread_s *gcthread_t;
 typedef void *(*gcthread_fn_t)(gcthread_t thread);
 
 struct gcthread_s {
-    pthread_t pthread;
+    testthr_t thread;
     mps_thr_t mps_thread;
     mps_root_t reg_root;
     mps_ap_t ap;
@@ -189,23 +187,12 @@ static void weave(gcthread_fn_t fn)
   
   for (t = 0; t < nthreads; ++t) {
     gcthread_t thread = &threads[t];
-    int err;
     thread->fn = fn;
-    err = pthread_create(&thread->pthread, NULL, start, thread);
-    if (err != 0) {
-      fprintf(stderr, "Unable to create thread: %d\n", err);
-      exit(EXIT_FAILURE);
-    }
+    testthr_create(&thread->thread, start, thread);
   }
   
-  for (t = 0; t < nthreads; ++t) {
-    gcthread_t thread = &threads[t];
-    int err = pthread_join(thread->pthread, NULL);
-    if (err != 0) {
-      fprintf(stderr, "Unable to join thread: %d\n", err);
-      exit(EXIT_FAILURE);
-    }
-  }
+  for (t = 0; t < nthreads; ++t)
+    testthr_join(&threads[t].thread, NULL);
 }
 
 static void weave1(gcthread_fn_t fn)
@@ -432,7 +419,8 @@ int main(int argc, char *argv[]) {
   argv += optind;
 
   printf("seed: %lu\n", seed);
-  
+  (void)fflush(stdout);
+
   while (argc > 0) {
     for (i = 0; i < sizeof(pools) / sizeof(pools[0]); ++i)
       if (strcmp(argv[0], pools[i].name) == 0)

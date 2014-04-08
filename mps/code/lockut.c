@@ -1,68 +1,91 @@
-/* nailboardtest.c: NAILBOARD TEST
+/* lockut.c: LOCK UTILIZATION TEST
  *
- * $Id: //info.ravenbrook.com/project/mps/branch/2014-01-15/nailboard/code/fotest.c#1 $
- * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
- *
+ * $Id$
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpm.h"
-#include "mps.h"
-#include "mpsavm.h"
 #include "testlib.h"
-#include "bt.h"
-#include "nailboard.h"
+#include "testthr.h"
 
 #include <stdio.h> /* printf */
+#include <stdlib.h> /* malloc */
 
 
-static void test(mps_arena_t arena)
+#define nTHREADS 4
+
+static Lock lock;
+unsigned long shared, tmp;
+
+
+static void incR(unsigned long i)
 {
-  BT bt;
-  Nailboard board;
-  Align align;
-  Count nails;
-  Addr base, limit;
-  Index i, j, k;
-
-  align = (Align)1 << (rnd() % 10);
-  nails = (Count)1 << (rnd() % 16);
-  nails += rnd() % nails;
-  base = AddrAlignUp(0, align);
-  limit = AddrAdd(base, nails * align);
-
-  die(BTCreate(&bt, arena, nails), "BTCreate");
-  die(NailboardCreate(&board, arena, align, base, limit), "NailboardCreate");
-
-  for (i = 0; i <= nails / 8; ++i) {
-    Bool old;
-    j = rnd() % nails;
-    old = BTGet(bt, j);
-    BTSet(bt, j);
-    cdie(NailboardSet(board, AddrAdd(base, j * align)) == old, "NailboardSet");
-    for (k = 0; k < nails / 8; ++k) {
-      Index b, l;
-      b = rnd() % nails;
-      l = b + rnd() % (nails - b) + 1;
-      cdie(BTIsResRange(bt, b, l)
-           == NailboardIsResRange(board, AddrAdd(base, b * align),
-                                  AddrAdd(base, l * align)),
-           "NailboardIsResRange");
+  LockClaimRecursive(lock);
+  if (i < 100) {
+    while(i--) {
+      tmp = shared;
+      shared = tmp + 1;
     }
+  } else {
+    incR(i >> 1);
+    incR( (i+1) >> 1);
+  }
+  LockReleaseRecursive(lock);
+}
+
+
+static void inc(unsigned long i)
+{
+  incR( (i+1) >>1);
+  i >>= 1;
+  while (i) {
+    LockClaim(lock);
+    if (i > 10000) {
+      incR(5000);
+      i -= 5000;
+    }
+    tmp = shared;
+    shared = tmp+1;
+    i--;
+    LockReleaseMPM(lock);
   }
 }
 
-int main(int argc, char **argv)
+
+#define COUNT 100000l
+static void *thread0(void *p)
 {
-  mps_arena_t arena;
+  testlib_unused(p);
+  inc(COUNT);
+  return NULL;
+}
+
+
+int main(int argc, char *argv[])
+{
+  testthr_t t[10];
+  unsigned i;
 
   testlib_init(argc, argv);
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), 1024 * 1024),
-      "mps_arena_create");
+  lock = malloc(LockSize());
+  Insist(lock != NULL);
 
-  test(arena);
+  LockInit(lock);
+  UNUSED(argc);
 
-  mps_arena_destroy(arena);
+  shared = 0;
+
+  for(i = 0; i < nTHREADS; i++)
+    testthr_create(&t[i], thread0, NULL);
+
+  for(i = 0; i < nTHREADS; i++)
+    testthr_join(&t[i], NULL);
+
+  Insist(shared == nTHREADS*COUNT);
+
+  LockFinish(lock);
+
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
 }
@@ -70,7 +93,7 @@ int main(int argc, char **argv)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
@@ -108,4 +131,3 @@ int main(int argc, char **argv)
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-

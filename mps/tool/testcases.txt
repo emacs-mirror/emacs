@@ -5,14 +5,14 @@ abqtest
 airtest
 amcss
 amcsshe
-amcssth        =B =T =X          job003561, job003703
+amcssth        =B =T             job003561, job003703
 amsss          =B                job001549
 amssshe        =B                job001549
 apss
 arenacv
 awlut
 awluthe
-awlutth        =T =X
+awlutth        =T
 btcv
 bttest         =N                interactive
 djbench        =N                benchmark
@@ -25,7 +25,7 @@ fotest
 gcbench        =N                benchmark
 locbwcss
 lockcov
-lockutw3       =T =W
+lockut         =T
 locusss
 locv
 messtest

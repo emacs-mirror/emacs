@@ -19,12 +19,9 @@
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpsw3.h"
-#endif
 #include "mps.h"
-#include <stdlib.h>
-#include <string.h>
+
+#include <stdio.h> /* fflush, printf, puts, stdout */
 
 
 /* These values have been tuned in the hope of getting one dynamic collection. */
@@ -115,15 +112,7 @@ static void test_stepper(mps_addr_t object, mps_fmt_t fmt, mps_pool_t pool,
   testlib_unused(fmt);
   testlib_unused(pool);
   testlib_unused(s);
-#ifdef MPS_OS_W3
-  __try {
-    dylan_mutate(object);
-  } __except(EXCEPTION_EXECUTE_HANDLER) {
-    error("Unexpected exception.\n");
-  }
-#else
   dylan_mutate(object);
-#endif
       
   (*(unsigned long *)p)++;
 }

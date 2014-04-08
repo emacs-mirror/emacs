@@ -14,7 +14,7 @@ Memory Management Glossary: K
 
     keyword argument
 
-        A argument to a function call that's identified by an
+        An argument to a function call that's identified by an
         associated keyword rather than by its position in the argument
         list.
 
@@ -35,5 +35,3 @@ Memory Management Glossary: K
 
         The standard abbreviation is "kB", but "KB" is often used by
         people unfamiliar with the metric system.
-
-

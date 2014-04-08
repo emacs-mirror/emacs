@@ -32,7 +32,7 @@ static Nailboard amcSegNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
 static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
-extern PoolClass AMCPoolClassGet(void);
+extern PoolClass AMCZPoolClassGet(void);
 extern BufferClass amcBufClassGet(void);
 extern SegClass amcSegClassGet(void);
 
@@ -2164,7 +2164,7 @@ static void amcWalkAll(Pool pool, FormattedObjectsStepMethod f,
   Arena arena;
   Ring ring, next, node;
 
-  AVER(IsSubclassPoly(pool->class, AMCPoolClassGet()));
+  AVER(IsSubclassPoly(pool->class, AMCZPoolClassGet()));
 
   arena = PoolArena(pool);
   ring = PoolSegRing(pool);
@@ -2449,7 +2449,7 @@ static Bool AMCCheck(AMC amc)
 {
   CHECKS(AMC, amc);
   CHECKD(Pool, &amc->poolStruct);
-  CHECKL(IsSubclassPoly(amc->poolStruct.class, EnsureAMCPoolClass()));
+  CHECKL(IsSubclassPoly(amc->poolStruct.class, AMCZPoolClassGet()));
   CHECKL(RankSetCheck(amc->rankSet));
   CHECKD_NOSIG(Ring, &amc->genRing);
   CHECKL(BoolCheck(amc->gensBooted));

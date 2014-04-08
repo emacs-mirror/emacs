@@ -12,14 +12,7 @@
 
 #include "mps.h"
 #include "misc.h" /* for STR */
-
-/* Include system header hackery. */
 #include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpswin.h"
-#endif
-
-#include <stdio.h>
 
 
 /* Suppress Visual C warnings at warning level 4, */
@@ -61,6 +54,19 @@
 #else
 
 #define ATTRIBUTE_FORMAT(ARGLIST)
+
+#endif
+
+
+/* alloca -- memory allocator
+ *
+ * Windows calls this function _alloca() instead of alloca().
+ * <http://msdn.microsoft.com/en-us/library/wb1s57t5.aspx>
+ */
+
+#if defined(MPS_OS_W3)
+
+#define alloca _alloca
 
 #endif
 

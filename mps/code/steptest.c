@@ -14,12 +14,9 @@
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpsw3.h"
-#endif
 #include "mps.h"
-#include <stdlib.h>
-#include <string.h>
+
+#include <stdio.h> /* fflush, printf, putchar, stdout */
 
 #define testArenaSIZE     ((size_t)((size_t)64 << 20))
 #define avLEN             3
@@ -97,6 +94,8 @@ long commit_failures;    /* # of times mps_commit fails */
  */
 
 #ifdef MPS_OS_W3
+
+#include "mpswin.h"
 
 static HANDLE currentProcess;
 
