@@ -36,6 +36,7 @@ ALL_TEST_CASES="
     fotest
     locbwcss
     lockcov
+    lockut
     locusss
     locv
     messtest

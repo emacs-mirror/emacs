@@ -1,108 +1,46 @@
-/* lockutw3.c: LOCK UTILIZATION TEST
+/* testthrw3.c: MULTI-THREADED TEST IMPLEMENTATION (WINDOWS)
  *
- * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * $Id: //info.ravenbrook.com/project/mps/master/code/testlib.h#30 $
+ * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
  */
 
-#include <stdlib.h> /* malloc */
-
-#include "mpm.h"
 #include "testlib.h"
-#include "mpslib.h"
+#include "testthr.h"
 
-#include "mpswin.h"
-
-
-#ifndef MPS_OS_W3
-#error "Relies on Win32 threads"
-#endif
-
-
-#define nTHREADS 4
-
-static Lock lock;
-unsigned long shared, tmp;
-
-
-void incR(unsigned long i)
+static DWORD WINAPI testthr_start(LPVOID arg)
 {
-  LockClaimRecursive(lock);
-  if (i < 100) {
-    while(i--) {
-      tmp = shared;
-      shared = tmp + 1;
-    }
-  } else {
-    incR(i >> 1);
-    incR( (i+1) >> 1);
-  }
-  LockReleaseRecursive(lock);
-}
-
-
-void inc(unsigned long i)
-{
-  incR( (i+1) >>1);
-  i >>= 1;
-  while (i) {
-    LockClaim(lock);
-    if (i > 10000) {
-      incR(5000);
-      i -= 5000;
-    }
-    tmp = shared;
-    shared = tmp+1;
-    i--;
-    LockReleaseMPM(lock);
-  }
-}
-
-
-#define COUNT 100000l
-DWORD WINAPI thread0(void *p)
-{
-  (void)p;
-  inc(COUNT);
+  testthr_t *thread = arg;
+  thread->result = (*thread->start)(thread->arg);
   return 0;
 }
 
-
-int main(int argc, char *argv[])
+void testthr_create(testthr_t *thread_o, testthr_routine_t start, void *arg)
 {
-  DWORD id;
-  HANDLE t[10];
-  unsigned i;
+  HANDLE res;
+  thread_o->start = start;
+  thread_o->arg = arg;
+  res = CreateThread(NULL, 0, testthr_start, thread_o, 0, NULL);
+  if (res == NULL)
+    error("CreateThread failed with error %lu",
+          (unsigned long)GetLastError());
+  else
+    thread_o->handle = res;
+}
 
-  testlib_init(argc, argv);
-
-  lock = malloc(LockSize());
-  Insist(lock != NULL);
-
-  LockInit(lock);
-  UNUSED(argc);
-
-  shared = 0;
-
-  for(i = 0; i < nTHREADS; i++)
-    t[i] = CreateThread(NULL, 0, thread0, NULL, 0, &id);
-
-  for(i = 0; i < nTHREADS; i++) {
-    cdie(WaitForSingleObject(t[i], INFINITE) == WAIT_OBJECT_0,
-         "WaitForSingleObject");
-  }
-
-  Insist(shared == nTHREADS*COUNT);
-
-  LockFinish(lock);
-
-  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
-  return 0;
+void testthr_join(testthr_t *thread, void **result_o)
+{
+  DWORD res = WaitForSingleObject(thread->handle, INFINITE);
+  if (res != WAIT_OBJECT_0)
+    error("WaitForSingleObject failed with result %lu (error %lu)",
+          (unsigned long)res, (unsigned long)GetLastError());
+  if (result_o)
+    *result_o = thread->result;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
