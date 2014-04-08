@@ -1,3 +1,9 @@
+2014-04-08  Daniel Colascione  <dancol@dancol.org>
+
+	* alloc.c (detect_suspicious_free): Split actual stack capturing
+	out into new function for easier breakpoint setting.
+	(note_suspicious_free): New function.
+
 2014-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (struct Lisp_Symbol): New bitfield `pinned'.

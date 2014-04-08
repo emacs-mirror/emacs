@@ -6885,7 +6885,24 @@ find_suspicious_object_in_range (void *begin, void *end)
 }
 
 static void
-detect_suspicious_free (void *ptr)
+note_suspicious_free (void* ptr)
+{
+  struct suspicious_free_record* rec;
+
+  rec = &suspicious_free_history[suspicious_free_history_index++];
+  if (suspicious_free_history_index ==
+      EARRAYSIZE (suspicious_free_history))
+    {
+      suspicious_free_history_index = 0;
+    }
+
+  memset (rec, 0, sizeof (*rec));
+  rec->suspicious_object = ptr;
+  backtrace (&rec->backtrace[0], EARRAYSIZE (rec->backtrace));
+}
+
+static void
+detect_suspicious_free (void* ptr)
 {
   int i;
 
@@ -6894,17 +6911,7 @@ detect_suspicious_free (void *ptr)
   for (i = 0; i < ARRAYELTS (suspicious_objects); ++i)
     if (suspicious_objects[i] == ptr)
       {
-	struct suspicious_free_record *rec
-	  = &suspicious_free_history[suspicious_free_history_index++];
-        if (suspicious_free_history_index ==
-            ARRAYELTS (suspicious_free_history))
-          {
-            suspicious_free_history_index = 0;
-          }
-
-        memset (rec, 0, sizeof (*rec));
-        rec->suspicious_object = ptr;
-        backtrace (rec->backtrace, ARRAYELTS (rec->backtrace));
+        note_suspicious_free (ptr);
         suspicious_objects[i] = NULL;
       }
 }
