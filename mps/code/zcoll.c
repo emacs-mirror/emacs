@@ -63,8 +63,7 @@
 #include "fmtdytst.h"
 #include "mpstd.h"
 
-#include <stdlib.h>
-#include <time.h>  /* clock */
+#include <stdio.h> /* fflush, printf, putchar, puts, stdout */
 
 
 /* testChain -- generation parameters for the test */

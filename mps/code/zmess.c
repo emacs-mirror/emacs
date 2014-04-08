@@ -108,7 +108,7 @@
 #include "fmtdytst.h"
 #include "mpstd.h"
 
-#include <stdlib.h>
+#include <stdio.h> /* printf */
 
 
 #define testArenaSIZE   ((size_t)16<<20)

@@ -10,6 +10,8 @@
 #include "testlib.h"
 #include "mpslib.h"
 
+#include <stdio.h> /* printf */
+
 
 static void testit(ArenaClass class, ArgList args)
 {

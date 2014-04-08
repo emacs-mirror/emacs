@@ -15,10 +15,9 @@
 #include "mpslib.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
-#include <stdlib.h>
-#include <string.h>
-#include <pthread.h>
-#include <time.h>
+
+#include <pthread.h> /* pthread_create, pthread_join */
+#include <stdio.h> /* fflush, printf, putchar */
 
 
 /* These values have been tuned in the hope of getting one dynamic collection. */

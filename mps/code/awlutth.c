@@ -17,8 +17,9 @@
 #include "mps.h"
 #include "mpstd.h"
 
-#include <string.h>
-#include <pthread.h>
+#include <pthread.h> /* pthread_create, pthread_join */
+#include <stdio.h> /* printf, puts */
+#include <string.h> /* strlen */
 
 
 #define testArenaSIZE     ((size_t)64<<20)

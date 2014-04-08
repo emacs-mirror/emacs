@@ -12,14 +12,7 @@
 
 #include "mps.h"
 #include "misc.h" /* for STR */
-
-/* Include system header hackery. */
 #include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpswin.h"
-#endif
-
-#include <stdio.h>
 
 
 /* Suppress Visual C warnings at warning level 4, */

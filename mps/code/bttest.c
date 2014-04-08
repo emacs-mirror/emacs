@@ -10,11 +10,10 @@
 #include "mpsavm.h"
 #include "testlib.h"
 #include "mpslib.h"
-
-#include <stdlib.h>
-#include <stdarg.h>
 #include "mpstd.h"
-#include <time.h>
+
+#include <stdio.h> /* fflush, fgets, printf, putchar, puts */
+#include <stdlib.h> /* exit, strtol */
 
 SRCID(bttest, "$Id$");
 

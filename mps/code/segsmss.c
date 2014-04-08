@@ -23,10 +23,7 @@
 #include "mpstd.h"
 #include "mps.h"
 
-#include <stdlib.h>
-#include <stdarg.h>
-#include <math.h>
-#include <string.h>
+#include <stdio.h> /* fflush, printf, puts, stdout */
 
 
 /* Forward declarations */
@@ -789,7 +786,7 @@ static void *test(void *arg, size_t s)
                             &ambigRoots[0], ambigRootsCOUNT),
       "root_create_table(ambig)");
 
-  (void)fputs(indent, stdout);
+  puts(indent);
 
   /* create an ap, and leave it busy */
   die(mps_reserve(&busy_init, busy_ap, 64), "mps_reserve busy");
