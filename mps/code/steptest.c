@@ -95,6 +95,8 @@ long commit_failures;    /* # of times mps_commit fails */
 
 #ifdef MPS_OS_W3
 
+#include "mpswin.h"
+
 static HANDLE currentProcess;
 
 static void prepare_clock(void)
