@@ -1,3 +1,8 @@
+2014-04-08  Daniel Colascione  <dancol@dancol.org>
+
+	* minibuf.texi (Programmed Completion): Improve phrasing, remove
+	incorrect bullet count.
+
 2014-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* os.texi (Recording Input): Dribble files may contain passwords.

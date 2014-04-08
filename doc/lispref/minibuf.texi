@@ -1734,7 +1734,7 @@ possible match, and ignore the match if the predicate returns
 
 @item
 A flag specifying the type of completion operation to perform.  This
-is one of the following four values:
+flag may be one of the following values.
 
 @table @code
 @item nil
