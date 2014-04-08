@@ -18,8 +18,7 @@
 #include "mpstd.h"
 #include "mps.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include <stdio.h> /* printf */
 
 #define testArenaSIZE     ((size_t)((size_t)64 << 20))
 #define avLEN             3

@@ -13,6 +13,8 @@
 #include "mpsclo.h"
 #include "mpsavm.h"
 
+#include <stdio.h> /* printf */
+
 
 #define testArenaSIZE   ((size_t)16<<20)
 

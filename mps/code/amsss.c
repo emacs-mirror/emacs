@@ -17,10 +17,7 @@
 #include "mpstd.h"
 #include "mps.h"
 
-#include <stdlib.h>
-#include <stdarg.h>
-#include <math.h>
-#include <string.h>
+#include <stdio.h> /* fflush, printf */
 
 
 #define exactRootsCOUNT 50

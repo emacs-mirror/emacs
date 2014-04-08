@@ -16,7 +16,7 @@
 #include "testlib.h"
 #include "mpslib.h"
 
-#include <stdarg.h>
+#include <stdio.h> /* printf */
 #include <stdlib.h> /* malloc */
 
 

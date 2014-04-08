@@ -35,7 +35,7 @@
 #include "fmtdytst.h"
 #include "mpstd.h"
 
-#include <stdlib.h>
+#include <stdio.h> /* printf, fflush, stdout */
 
 
 #define testArenaSIZE   ((size_t)16<<20)

@@ -14,8 +14,7 @@
 #include "mpstd.h"
 #include "mps.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include <stdio.h> /* fflush, printf, putchar */
 
 
 /* These values have been tuned in the hope of getting one dynamic collection. */
