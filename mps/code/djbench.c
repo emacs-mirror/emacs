@@ -17,6 +17,9 @@
 #include "testlib.h"
 #include "testthr.h"
 
+#include <stdio.h> /* fprintf, stderr */
+#include <stdlib.h> /* alloca, exit, EXIT_SUCCESS, EXIT_FAILURE */
+#include <time.h> /* CLOCKS_PER_SEC, clock */
 
 #define DJMUST(expr) \
   do { \
@@ -308,7 +311,8 @@ int main(int argc, char *argv[]) {
   argv += optind;
   
   printf("seed: %lu\n", seed);
-  
+  (void)fflush(stdout);
+
   while (argc > 0) {
     for (i = 0; i < sizeof(pools) / sizeof(pools[0]); ++i)
       if (strcmp(argv[0], pools[i].name) == 0)

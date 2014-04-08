@@ -112,15 +112,7 @@ static void test_stepper(mps_addr_t object, mps_fmt_t fmt, mps_pool_t pool,
   testlib_unused(fmt);
   testlib_unused(pool);
   testlib_unused(s);
-#ifdef MPS_OS_W3
-  __try {
-    dylan_mutate(object);
-  } __except(EXCEPTION_EXECUTE_HANDLER) {
-    error("Unexpected exception.\n");
-  }
-#else
   dylan_mutate(object);
-#endif
       
   (*(unsigned long *)p)++;
 }
