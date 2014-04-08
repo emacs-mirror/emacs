@@ -1,3 +1,27 @@
+2014-04-08  Leo Liu  <sdl.web@gmail.com>
+
+	Use lexical-binding and require cl-lib.
+	* net/rcirc.el (rcirc, rcirc-handler-ctcp-KEEPALIVE)
+	(rcirc-handler-generic, rcirc-fill-paragraph)
+	(rcirc-format-response-string, rcirc-target-buffer)
+	(rcirc-last-line, rcirc-record-activity, rcirc-split-activity)
+	(rcirc-activity-string, rcirc-make-trees, rcirc-cmd-ctcp)
+	(rcirc-ctcp-sender-PING, rcirc-browse-url)
+	(rcirc-markup-timestamp, rcirc-markup-attributes)
+	(rcirc-markup-my-nick, rcirc-markup-urls)
+	(rcirc-markup-bright-nicks, rcirc-markup-fill)
+	(rcirc-check-auth-status, rcirc-handler-WALLOPS)
+	(rcirc-handler-JOIN, rcirc-handler-PART-or-KICK)
+	(rcirc-handler-PART, rcirc-handler-KICK, rcirc-handler-QUIT)
+	(rcirc-handler-NICK, rcirc-handler-PING, rcirc-handler-PONG)
+	(rcirc-handler-TOPIC, rcirc-handler-301, rcirc-handler-317)
+	(rcirc-handler-332, rcirc-handler-333, rcirc-handler-477)
+	(rcirc-handler-MODE, rcirc-handler-353, rcirc-handler-366)
+	(rcirc-authenticate, rcirc-handler-INVITE, rcirc-handler-ERROR)
+	(rcirc-handler-ctcp-VERSION, rcirc-handler-ctcp-TIME)
+	(rcirc-handler-CTCP-response): Fix unused arguments warnings and
+	use cl-lib.
+
 2014-04-07  João Távora  <joaotavora@gmail.com>
 
 	* elec-pair.el (electric-pair--syntax-ppss):
