@@ -253,13 +253,19 @@ static Res MVTInit(Pool pool, ArgList args)
     fragLimit = (Count)(arg.val.d * 100);
   }
 
-  AVER(SizeIsAligned(align, MPS_PF_ALIGN));
+  AVERT(Align, align);
   AVER(0 < minSize);
   AVER(minSize <= meanSize);
   AVER(meanSize <= maxSize);
   AVER(reserveDepth > 0);
   AVER(fragLimit <= 100);
   /* TODO: More sanity checks possible? */
+
+  /* This restriction on the alignment is necessary because of the use
+   * of a Freelist to store the free address ranges in low-memory
+   * situations. See <design/freelist/#impl.grain.align>.
+   */
+  align = AlignAlignUp(align, FreelistMinimumAlignment);
 
   /* see <design/poolmvt/#arch.parameters> */
   fillSize = SizeAlignUp(maxSize, ArenaAlign(arena));

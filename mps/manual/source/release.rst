@@ -27,6 +27,22 @@ New features
    calling :c:func:`mps_pool_create_k`.
 
 
+Interface changes
+.................
+
+#. It is now possible to configure the alignment of objects allocated
+   in a :ref:`pool-mv` pool, by passing the :c:macro:`MPS_KEY_ALIGN`
+   keyword argument to :c:func:`mps_pool_create_k`.
+
+#. It is now possible to specify any alignment for :ref:`pool-mvff`
+   and :ref:`pool-mvt` pools. Alignments smaller than
+   ``sizeof(void *)`` are rounded up automatically. This means that on
+   the platforms ``w3i3mv`` and ``w3i6mv``, where
+   :c:macro:`MPS_PF_ALIGN` is larger than ``sizeof(void *)``, it is
+   now possible to specify the latter as the alignment for these
+   pools.
+
+
 Other changes
 .............
 

@@ -99,6 +99,7 @@ extern Addr (AddrAlignDown)(Addr addr, Align align);
 #define IndexAlignDown(s, a)    ((Index)WordAlignDown((Word)(s), a))
 
 #define AlignIsAligned(a1, a2)  WordIsAligned((Word)(a1), a2)
+#define AlignAlignUp(s, a)      ((Align)WordAlignUp((Word)(s), a))
 
 
 extern Addr (AddrSet)(Addr target, Byte value, Size size);
