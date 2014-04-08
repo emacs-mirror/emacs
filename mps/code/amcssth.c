@@ -12,11 +12,11 @@
 #include "fmtdy.h"
 #include "fmtdytst.h"
 #include "testlib.h"
+#include "testthr.h"
 #include "mpslib.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
 
-#include <pthread.h> /* pthread_create, pthread_join */
 #include <stdio.h> /* fflush, printf, putchar */
 
 
@@ -219,7 +219,7 @@ static void *test(mps_class_t pool_class, size_t roots_count)
   mps_ap_t ap, busy_ap;
   mps_addr_t busy_init;
   mps_pool_t pool;
-  pthread_t kids[10];
+  testthr_t kids[10];
   closure_s cl;
 
   die(mps_pool_create(&pool, arena, pool_class, format, chain),
@@ -228,11 +228,8 @@ static void *test(mps_class_t pool_class, size_t roots_count)
   cl.pool = pool;
   cl.roots_count = roots_count;
 
-  for (i = 0; i < sizeof(kids)/sizeof(kids[0]); ++i) {
-    int err = pthread_create(&kids[i], NULL, kid_thread, &cl);
-    if (err != 0)
-      error("pthread_create returned %d", err);
-  }
+  for (i = 0; i < sizeof(kids)/sizeof(kids[0]); ++i)
+    testthr_create(&kids[i], kid_thread, &cl);
 
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
   die(mps_ap_create(&busy_ap, pool, mps_rank_exact()), "BufferCreate 2");
@@ -312,11 +309,8 @@ static void *test(mps_class_t pool_class, size_t roots_count)
   mps_ap_destroy(busy_ap);
   mps_ap_destroy(ap);
 
-  for (i = 0; i < sizeof(kids)/sizeof(kids[0]); ++i) {
-    int err = pthread_join(kids[i], NULL);
-    if (err != 0)
-      error("pthread_join returned %d", err);
-  }
+  for (i = 0; i < sizeof(kids)/sizeof(kids[0]); ++i)
+    testthr_join(&kids[i], NULL);
 
   mps_pool_destroy(pool);
 

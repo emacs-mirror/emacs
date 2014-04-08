@@ -13,11 +13,11 @@
 #include "mpsavm.h"
 #include "fmtdy.h"
 #include "testlib.h"
+#include "testthr.h"
 #include "mpslib.h"
 #include "mps.h"
 #include "mpstd.h"
 
-#include <pthread.h> /* pthread_create, pthread_join */
 #include <stdio.h> /* printf, puts */
 #include <string.h> /* strlen */
 
@@ -311,7 +311,7 @@ static void *setup_thr(void *v)
 int main(int argc, char *argv[])
 {
   mps_arena_t arena;
-  pthread_t pthread1;
+  testthr_t thread1;
 
   testlib_init(argc, argv);
 
@@ -321,9 +321,9 @@ int main(int argc, char *argv[])
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create\n");
-  pthread_create(&pthread1, NULL, setup_thr, (void *)arena);
+  testthr_create(&thread1, setup_thr, arena);
   setup_thr(arena);
-  pthread_join(pthread1, NULL);
+  testthr_join(&thread1, NULL);
   mps_arena_destroy(arena);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);

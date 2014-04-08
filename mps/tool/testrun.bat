@@ -39,7 +39,7 @@ set ALL_TEST_CASES=^
     fotest.exe ^
     locbwcss.exe ^
     lockcov.exe ^
-    lockutw3.exe ^
+    lockut.exe ^
     locusss.exe ^
     locv.exe ^
     messtest.exe ^
