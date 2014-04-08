@@ -180,7 +180,7 @@ SNC = <poolsnc>
 DW = <fmtdy> <fmtno>
 FMTTEST = <fmthe> <fmtdy> <fmtno> <fmtdytst>
 FMTSCHEME = <fmtscheme>
-TESTLIB = <testlib> <testthrw3>
+TESTLIB = <testlib> <testthrw3> <getoptl>
 
 
 # CHECK PARAMETERS
@@ -224,9 +224,6 @@ TESTLIB = <testlib> <testthrw3>
 !ENDIF
 !IFNDEF FMTSCHEME
 !ERROR commpre.nmk: FMTSCHEME not defined
-!ENDIF
-!IFNDEF TESTLIB
-!ERROR commpre.nmk: TESTLIB not defined
 !ENDIF
 !IFNDEF TESTLIB
 !ERROR commpre.nmk: TESTLIB not defined

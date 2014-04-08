@@ -58,6 +58,19 @@
 #endif
 
 
+/* alloca -- memory allocator
+ *
+ * Windows calls this function _alloca() instead of alloca().
+ * <http://msdn.microsoft.com/en-us/library/wb1s57t5.aspx>
+ */
+
+#if defined(MPS_OS_W3)
+
+#define alloca _alloca
+
+#endif
+
+
 /* ulongest_t -- longest unsigned integer type
  *
  * Define a longest unsigned integer type for testing, scanning, and

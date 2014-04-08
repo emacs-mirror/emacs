@@ -13,6 +13,10 @@
 #include "fmtdy.h"
 #include "fmtdytst.h"
 
+#include <stdio.h> /* fprintf, printf, putchars, sscanf, stderr, stdout */
+#include <stdlib.h> /* alloca, exit, EXIT_FAILURE, EXIT_SUCCESS, strtoul */
+#include <time.h> /* clock, CLOCKS_PER_SEC */
+
 #define RESMUST(expr) \
   do { \
     mps_res_t res = (expr); \
@@ -415,7 +419,8 @@ int main(int argc, char *argv[]) {
   argv += optind;
 
   printf("seed: %lu\n", seed);
-  
+  (void)fflush(stdout);
+
   while (argc > 0) {
     for (i = 0; i < sizeof(pools) / sizeof(pools[0]); ++i)
       if (strcmp(argv[0], pools[i].name) == 0)
