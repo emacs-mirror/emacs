@@ -13,12 +13,9 @@
 
 #include "mps.c"
 
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
 #include "getopt.h"
 #include "testlib.h"
+#include "testthr.h"
 
 
 #define DJMUST(expr) \
@@ -135,24 +132,14 @@ typedef void *(*dj_t)(void *);
 
 static void weave(dj_t dj)
 {
-  pthread_t *threads = alloca(sizeof(threads[0]) * nthreads);
+  testthr_t *threads = alloca(sizeof(threads[0]) * nthreads);
   unsigned t;
   
-  for (t = 0; t < nthreads; ++t) {
-    int err = pthread_create(&threads[t], NULL, dj, NULL);
-    if (err != 0) {
-      fprintf(stderr, "Unable to create thread: %d\n", err);
-      exit(EXIT_FAILURE);
-    }
-  }
+  for (t = 0; t < nthreads; ++t)
+    testthr_create(&threads[t], dj, NULL);
   
-  for (t = 0; t < nthreads; ++t) {
-    int err = pthread_join(threads[t], NULL);
-    if (err != 0) {
-      fprintf(stderr, "Unable to join thread: %d\n", err);
-      exit(EXIT_FAILURE);
-    }
-  }
+  for (t = 0; t < nthreads; ++t)
+    testthr_join(&threads[t], NULL);
 }
 
 
