@@ -1,7 +1,7 @@
 /* freelist.c: FREE LIST ALLOCATOR IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2013-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: <design/freelist/>.
  */
@@ -23,10 +23,6 @@ typedef union FreelistBlockUnion {
     Addr limit;
   } large;
 } FreelistBlockUnion;
-
-
-/* See <design/freelist/#impl.grain.align> */
-#define freelistMinimumAlignment ((Align)sizeof(FreelistBlock))
 
 
 #define FreelistTag(word) ((word) & 1)
@@ -144,7 +140,7 @@ Bool FreelistCheck(Freelist fl)
 {
   CHECKS(Freelist, fl);
   /* See <design/freelist/#impl.grain.align> */
-  CHECKL(AlignIsAligned(fl->alignment, freelistMinimumAlignment));
+  CHECKL(AlignIsAligned(fl->alignment, FreelistMinimumAlignment));
   CHECKL((fl->list == NULL) == (fl->listSize == 0));
   return TRUE;
 }
@@ -152,9 +148,9 @@ Bool FreelistCheck(Freelist fl)
 
 Res FreelistInit(Freelist fl, Align alignment)
 {
+  AVER(fl != NULL);
   /* See <design/freelist/#impl.grain> */
-  if (!AlignIsAligned(alignment, freelistMinimumAlignment))
-    return ResPARAM;
+  AVER(AlignIsAligned(alignment, FreelistMinimumAlignment));
 
   fl->alignment = alignment;
   fl->list = NULL;
@@ -626,7 +622,7 @@ void FreelistFlushToCBS(Freelist fl, CBS cbs)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
