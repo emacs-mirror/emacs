@@ -18,7 +18,7 @@
 #include "testlib.h"
 #include "mpslib.h"
 
-#include <stdlib.h>
+#include <stdio.h> /* printf */
 
 SRCID(btcv, "$Id$");
 

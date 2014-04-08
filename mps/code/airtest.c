@@ -42,7 +42,7 @@ static void test_air(int interior, int stack)
   size_t n_finalized = 0;
   size_t i, j;
   obj_t *s[OBJ_COUNT] = {0};
-  mps_root_t root;
+  mps_root_t root = NULL;
   if (!stack) {
     mps_addr_t *p = (void *)s;
     die(mps_root_create_table(&root, scheme_arena, mps_rank_ambig(), 0, p,
@@ -96,7 +96,7 @@ static void test_main(int interior, int stack)
   mps_chain_t obj_chain;
   mps_fmt_t obj_fmt;
   mps_thr_t thread;
-  mps_root_t reg_root;
+  mps_root_t reg_root = NULL;
   void *marker = &marker;
 
   MPS_ARGS_BEGIN(args) {

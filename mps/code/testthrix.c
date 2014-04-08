@@ -1,76 +1,32 @@
-/* nailboardtest.c: NAILBOARD TEST
+/* testthrix.c: MULTI-THREADED TEST IMPLEMENTATION (POSIX THREADS)
  *
- * $Id: //info.ravenbrook.com/project/mps/branch/2014-01-15/nailboard/code/fotest.c#1 $
+ * $Id: //info.ravenbrook.com/project/mps/master/code/testlib.h#30 $
  * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
- *
  */
 
-#include "mpm.h"
-#include "mps.h"
-#include "mpsavm.h"
 #include "testlib.h"
-#include "bt.h"
-#include "nailboard.h"
+#include "testthr.h"
 
-#include <stdio.h> /* printf */
+#include <string.h> /* strerror */
 
-
-static void test(mps_arena_t arena)
+void testthr_create(testthr_t *thread_o, testthr_routine_t start, void *arg)
 {
-  BT bt;
-  Nailboard board;
-  Align align;
-  Count nails;
-  Addr base, limit;
-  Index i, j, k;
-
-  align = (Align)1 << (rnd() % 10);
-  nails = (Count)1 << (rnd() % 16);
-  nails += rnd() % nails;
-  base = AddrAlignUp(0, align);
-  limit = AddrAdd(base, nails * align);
-
-  die(BTCreate(&bt, arena, nails), "BTCreate");
-  die(NailboardCreate(&board, arena, align, base, limit), "NailboardCreate");
-
-  for (i = 0; i <= nails / 8; ++i) {
-    Bool old;
-    j = rnd() % nails;
-    old = BTGet(bt, j);
-    BTSet(bt, j);
-    cdie(NailboardSet(board, AddrAdd(base, j * align)) == old, "NailboardSet");
-    for (k = 0; k < nails / 8; ++k) {
-      Index b, l;
-      b = rnd() % nails;
-      l = b + rnd() % (nails - b) + 1;
-      cdie(BTIsResRange(bt, b, l)
-           == NailboardIsResRange(board, AddrAdd(base, b * align),
-                                  AddrAdd(base, l * align)),
-           "NailboardIsResRange");
-    }
-  }
+  int res = pthread_create(thread_o, NULL, start, arg);
+  if (res != 0)
+    error("pthread_create failed with result %d (%s)", res, strerror(res));
 }
 
-int main(int argc, char **argv)
+void testthr_join(testthr_t *thread, void **result_o)
 {
-  mps_arena_t arena;
-
-  testlib_init(argc, argv);
-
-  die(mps_arena_create(&arena, mps_arena_class_vm(), 1024 * 1024),
-      "mps_arena_create");
-
-  test(arena);
-
-  mps_arena_destroy(arena);
-  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
-  return 0;
+  int res = pthread_join(*thread, result_o);
+  if (res != 0)
+    error("pthread_join failed with result %d (%s)", res, strerror(res));
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
@@ -108,4 +64,3 @@ int main(int argc, char **argv)
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-

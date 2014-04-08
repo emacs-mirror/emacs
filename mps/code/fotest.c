@@ -28,7 +28,7 @@
 #include "mpmtypes.h"
 #include "poolmfs.h"
 
-#include <stdarg.h>
+#include <stdio.h> /* printf */
 
 
 #define testArenaSIZE   ((((size_t)3)<<24) - 4)

@@ -24,9 +24,7 @@
 #include "mpstd.h"
 #include "testlib.h"
 
-#include <stdarg.h>
-#include <stdlib.h>
-#include <time.h>
+#include <stdio.h> /* printf */
 
 SRCID(fbmtest, "$Id$");
 
