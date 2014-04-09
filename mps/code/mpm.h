@@ -87,6 +87,7 @@ extern Addr (AddrAlignDown)(Addr addr, Align align);
 
 #define AddrIsAligned(p, a)     WordIsAligned((Word)(p), a)
 #define AddrAlignUp(p, a)       ((Addr)WordAlignUp((Word)(p), a))
+#define AddrRoundUp(p, r)       ((Addr)WordRoundUp((Word)(p), r))
 
 #define SizeIsAligned(s, a)     WordIsAligned((Word)(s), a)
 #define SizeAlignUp(s, a)       ((Size)WordAlignUp((Word)(s), a))
@@ -99,7 +100,6 @@ extern Addr (AddrAlignDown)(Addr addr, Align align);
 #define IndexAlignDown(s, a)    ((Index)WordAlignDown((Word)(s), a))
 
 #define AlignIsAligned(a1, a2)  WordIsAligned((Word)(a1), a2)
-#define AlignAlignUp(s, a)      ((Align)WordAlignUp((Word)(s), a))
 
 
 extern Addr (AddrSet)(Addr target, Byte value, Size size);
