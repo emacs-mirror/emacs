@@ -21,7 +21,6 @@
 #include "mpm.h"
 #include "mps.h"
 #include "mpsavm.h"
-#include "mpstd.h"
 #include "testlib.h"
 
 #include <stdio.h> /* printf */
@@ -560,7 +559,7 @@ extern int main(int argc, char *argv[])
   Align align;
 
   testlib_init(argc, argv);
-  align = (1 << rnd() % 4) * MPS_PF_ALIGN;
+  align = sizeof(void *) << (rnd() % 4);
 
   NAllocateTried = NAllocateSucceeded = NDeallocateTried =
     NDeallocateSucceeded = 0;
