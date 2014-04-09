@@ -113,10 +113,10 @@ Res SACCreate(SAC *sacReturn, Pool pool, Count classesCount,
   /* to be large enough, but that gets complicated, if you have to */
   /* merge classes because of the adjustment. */
   for (i = 0; i < classesCount; ++i) {
-    AVER(classes[i]._block_size > 0);
-    AVER(SizeIsAligned(classes[i]._block_size, PoolAlignment(pool)));
-    AVER(prevSize < classes[i]._block_size);
-    prevSize = classes[i]._block_size;
+    AVER(classes[i].mps_block_size > 0);
+    AVER(SizeIsAligned(classes[i].mps_block_size, PoolAlignment(pool)));
+    AVER(prevSize < classes[i].mps_block_size);
+    prevSize = classes[i].mps_block_size;
     /* no restrictions on count */
     /* no restrictions on frequency */
   }
@@ -124,7 +124,7 @@ Res SACCreate(SAC *sacReturn, Pool pool, Count classesCount,
   /* Calculate frequency scale */
   for (i = 0; i < classesCount; ++i) {
     unsigned oldFreq = totalFreq;
-    totalFreq += classes[i]._frequency;
+    totalFreq += classes[i].mps_frequency;
     AVER(oldFreq <= totalFreq); /* check for overflow */
     UNUSED(oldFreq); /* <code/mpm.c#check.unused> */
   }
@@ -132,10 +132,10 @@ Res SACCreate(SAC *sacReturn, Pool pool, Count classesCount,
   /* Find middle one */
   totalFreq /= 2;
   for (i = 0; i < classesCount; ++i) {
-    if (totalFreq < classes[i]._frequency) break;
-    totalFreq -= classes[i]._frequency;
+    if (totalFreq < classes[i].mps_frequency) break;
+    totalFreq -= classes[i].mps_frequency;
   }
-  if (totalFreq <= classes[i]._frequency / 2)
+  if (totalFreq <= classes[i].mps_frequency / 2)
     middleIndex = i;
   else
     middleIndex = i + 1; /* there must exist another class at i+1 */
@@ -151,9 +151,9 @@ Res SACCreate(SAC *sacReturn, Pool pool, Count classesCount,
   /* It's important this matches SACFind. */
   esac = ExternalSACOfSAC(sac);
   for (j = middleIndex + 1, i = 0; j < classesCount; ++j, i += 2) {
-    esac->_freelists[i]._size = classes[j]._block_size;
+    esac->_freelists[i]._size = classes[j].mps_block_size;
     esac->_freelists[i]._count = 0;
-    esac->_freelists[i]._count_max = classes[j]._cached_count;
+    esac->_freelists[i]._count_max = classes[j].mps_cached_count;
     esac->_freelists[i]._blocks = NULL;
   }
   esac->_freelists[i]._size = SizeMAX;
@@ -161,19 +161,19 @@ Res SACCreate(SAC *sacReturn, Pool pool, Count classesCount,
   esac->_freelists[i]._count_max = 0;
   esac->_freelists[i]._blocks = NULL;
   for (j = middleIndex, i = 1; j > 0; --j, i += 2) {
-    esac->_freelists[i]._size = classes[j-1]._block_size;
+    esac->_freelists[i]._size = classes[j-1].mps_block_size;
     esac->_freelists[i]._count = 0;
-    esac->_freelists[i]._count_max = classes[j]._cached_count;
+    esac->_freelists[i]._count_max = classes[j].mps_cached_count;
     esac->_freelists[i]._blocks = NULL;
   }
   esac->_freelists[i]._size = 0;
   esac->_freelists[i]._count = 0;
-  esac->_freelists[i]._count_max = classes[j]._cached_count;
+  esac->_freelists[i]._count_max = classes[j].mps_cached_count;
   esac->_freelists[i]._blocks = NULL;
 
   /* finish init */
   esac->_trapped = FALSE;
-  esac->_middle = classes[middleIndex]._block_size;
+  esac->_middle = classes[middleIndex].mps_block_size;
   sac->pool = pool;
   sac->classesCount = classesCount;
   sac->middleIndex = middleIndex;
