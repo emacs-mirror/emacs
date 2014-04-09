@@ -2065,6 +2065,10 @@ See `font-lock-syntax-table'.")
           "include"
           "module_function"
           "prepend"
+          "private_class_method"
+          "private_constant"
+          "public_class_method"
+          "public_constant"
           "refine"
           "using")
         'symbols))

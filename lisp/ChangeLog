@@ -1,3 +1,8 @@
+2014-04-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight more
+	Module methods.  (Bug#17216)
+
 2014-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help.el (describe-bindings): Fix buffer handling (bug#17210).
