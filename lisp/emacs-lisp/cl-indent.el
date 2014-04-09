@@ -320,7 +320,7 @@ instead."
               (when (and (derived-mode-p 'emacs-lisp-mode)
                          (not (lisp-indent-find-method
                                (intern-soft function) t))
-                         (string-match "^cl-" function)
+                         (string-match "\\`cl-" function)
                          (setf tem (intern-soft
                                     (substring function (match-end 0))))
                          (lisp-indent-find-method tem t))
