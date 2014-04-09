@@ -156,8 +156,8 @@ Blocks may use :term:`in-band headers`?        yes    yes    yes    yes    yes  
            :c:macro:`MPS_PF_ALIGN`.
 
     .. [7] :ref:`pool-mvt` and :ref:`pool-mvff` pools have
-           configurable alignment, but smaller values than
-           ``sizeof(void *)`` are rounded up.
+           configurable alignment, but it may not be smaller than
+           ``sizeof(void *)``.
 
     .. [8] In pools with this property, each object may specify an
            :term:`dependent object` which the client program
