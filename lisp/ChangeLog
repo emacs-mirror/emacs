@@ -1,3 +1,13 @@
+2014-04-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight more
+	Module methods.  (Bug#17216)
+
+2014-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help.el (describe-bindings): Fix buffer handling (bug#17210).
+	(describe-bindings-internal): Mark obsolete.
+
 2014-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (with-silent-modifications): Don't bind deactivate-mark,

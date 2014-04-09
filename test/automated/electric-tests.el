@@ -509,7 +509,7 @@ baz\"\""
     (with-temp-buffer
       (insert "()")
       (goto-char 2)
-      (electric-pair-backward-delete-char 1)
+      (electric-pair-delete-pair 1)
       (should (equal "" (buffer-string))))))
 
 

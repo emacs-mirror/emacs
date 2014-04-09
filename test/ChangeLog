@@ -1,3 +1,11 @@
+2014-04-09  Glenn Morris  <rgm@gnu.org>
+
+	* automated/python-tests.el (python-triple-quote-pairing):
+	Enable/disable electric-pair-mode as needed.
+
+	* automated/electric-tests.el (electric-pair-backspace-1):
+	Replace deleted function.
+
 2014-04-07  João Távora  <joaotavora@gmail.com>
 
 	* automated/python-tests.el (python-triple-quote-pairing): New test.
