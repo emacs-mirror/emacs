@@ -408,12 +408,11 @@ static void freeCheckFree(PoolDebugMixin debug,
  *   start fp              client object              slop    end fp
  *
  * slop is the extra allocation from rounding up the client request to
- * the pool's alignment.  The fenceposting code does this, so there's a
- * better chance of the end fencepost being flush with the next object
- * (can't be guaranteed, since the underlying pool could have allocated
- * an even larger block).  The alignment slop is filled from the
- * fencepost template as well (as much as fits, .fence.size guarantees
- * the template is larger).
+ * the pool's alignment. The fenceposting code adds this slop so that
+ * there's a better chance of the end fencepost being flush with the
+ * next object (though it can't be guaranteed, since the underlying
+ * pool could have allocated an even larger block). The alignment slop
+ * is filled from the fencepost template as well.
  *
  * Keep in sync with fenceCheck.
  */
