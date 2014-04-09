@@ -252,12 +252,12 @@ static void patternCopy(const void *pattern, Size size, Addr base, Addr limit)
       p = end;
     } else if (p < rounded && rounded <= end && rounded <= limit) {
       /* Copy up to rounded */
-      (void)AddrCopy(p, AddrAdd(pattern, offset), AddrOffset(p, rounded));
+      (void)AddrCopy(p, (const char *)pattern + offset, AddrOffset(p, rounded));
       p = rounded;
     } else {
       /* Copy up to limit */
       AVER(limit <= end && (p == rounded || limit <= rounded));
-      (void)AddrCopy(p, AddrAdd(pattern, offset), AddrOffset(p, limit));
+      (void)AddrCopy(p, (const char *)pattern + offset, AddrOffset(p, limit));
       p = limit;
     }
   }
@@ -296,13 +296,13 @@ static Bool patternCheck(const void *pattern, Size size, Addr base, Addr limit)
       p = end;
     } else if (p < rounded && rounded <= end && rounded <= limit) {
       /* Copy up to rounded */
-      if (AddrComp(p, AddrAdd(pattern, offset), AddrOffset(p, rounded)) != 0)
+      if (AddrComp(p, (const char *)pattern + offset, AddrOffset(p, rounded)) != 0)
         return FALSE;
       p = rounded;
     } else {
       /* Copy up to limit */
       AVER(limit <= end && (p == rounded || limit <= rounded));
-      if (AddrComp(p, AddrAdd(pattern, offset), AddrOffset(p, limit)) != 0)
+      if (AddrComp(p, (const char *)pattern + offset, AddrOffset(p, limit)) != 0)
         return FALSE;
       p = limit;
     }
