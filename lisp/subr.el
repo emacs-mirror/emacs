@@ -3174,12 +3174,7 @@ not really affect the buffer's content."
     `(let* ((,modified (buffer-modified-p))
             (buffer-undo-list t)
             (inhibit-read-only t)
-            (inhibit-modification-hooks t)
-            deactivate-mark
-            ;; Avoid setting and removing file locks and checking
-            ;; buffer's uptodate-ness w.r.t the underlying file.
-            buffer-file-name
-            buffer-file-truename)
+            (inhibit-modification-hooks t))
        (unwind-protect
            (progn
              ,@body)

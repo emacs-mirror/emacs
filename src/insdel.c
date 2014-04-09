@@ -1804,6 +1804,9 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
   else
     base_buffer = current_buffer;
 
+  if (inhibit_modification_hooks)
+    return;
+
   if (!NILP (BVAR (base_buffer, file_truename))
       /* Make binding buffer-file-name to nil effective.  */
       && !NILP (BVAR (base_buffer, filename))
@@ -1813,7 +1816,6 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
   /* If `select-active-regions' is non-nil, save the region text.  */
   /* FIXME: Move this to Elisp (via before-change-functions).  */
   if (!NILP (BVAR (current_buffer, mark_active))
-      && !inhibit_modification_hooks
       && XMARKER (BVAR (current_buffer, mark))->buffer
       && NILP (Vsaved_region_selection)
       && (EQ (Vselect_active_regions, Qonly)
@@ -1924,9 +1926,6 @@ signal_before_change (ptrdiff_t start_int, ptrdiff_t end_int,
   ptrdiff_t count = SPECPDL_INDEX ();
   struct rvoe_arg rvoe_arg;
 
-  if (inhibit_modification_hooks)
-    return;
-
   start = make_number (start_int);
   end = make_number (end_int);
   preserve_marker = Qnil;
@@ -1937,7 +1936,7 @@ signal_before_change (ptrdiff_t start_int, ptrdiff_t end_int,
   specbind (Qinhibit_modification_hooks, Qt);
 
   /* If buffer is unmodified, run a special hook for that case.  The
-   check for Vfirst_change_hook is just a minor optimization. */
+   check for Vfirst_change_hook is just a minor optimization.  */
   if (SAVE_MODIFF >= MODIFF
       && !NILP (Vfirst_change_hook))
     {

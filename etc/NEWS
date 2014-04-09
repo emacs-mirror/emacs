@@ -71,6 +71,9 @@ protocols as well as for "telnet" and "ftp" are passed to Tramp.
 
 * Incompatible Lisp Changes in Emacs 24.5
 
+** inhibit-modification-hooks now also inhibits lock-file checks as well as
+active region handling.
+
 
 * Lisp Changes in Emacs 24.5
 
