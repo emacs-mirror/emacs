@@ -34,13 +34,10 @@ Interface changes
    in a :ref:`pool-mv` pool, by passing the :c:macro:`MPS_KEY_ALIGN`
    keyword argument to :c:func:`mps_pool_create_k`.
 
-#. It is now possible to specify any alignment for :ref:`pool-mvff`
-   and :ref:`pool-mvt` pools. Alignments smaller than
-   ``sizeof(void *)`` are rounded up automatically. This means that on
-   the platforms ``w3i3mv`` and ``w3i6mv``, where
-   :c:macro:`MPS_PF_ALIGN` is larger than ``sizeof(void *)``, it is
-   now possible to specify the latter as the alignment for these
-   pools.
+#. The alignment requirements for :ref:`pool-mvff` and :ref:`pool-mvt`
+   pools have been relaxed on the platforms ``w3i3mv`` and ``w3i6mv``.
+   On all platforms it is now possible to specify alignments down to
+   ``sizeof(void *)`` as the alignment for pools of these classes.
 
 
 Other changes

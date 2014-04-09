@@ -79,8 +79,8 @@ MVFF properties
 
 * Allocations may be variable in size.
 
-* The :term:`alignment` of blocks is configurable, but smaller
-  alignments than ``sizeof(void *)`` are rounded up.
+* The :term:`alignment` of blocks is configurable, but may not be
+  smaller than ``sizeof(void *)``.
 
 * Blocks do not have :term:`dependent objects`.
 
@@ -130,8 +130,7 @@ MVFF interface
       the pool. If an unaligned size is passed to :c:func:`mps_alloc`
       or :c:func:`mps_free`, it will be rounded up to the pool's
       alignment. The minimum alignment supported by pools of this
-      class is ``sizeof(void *)``; you can pass a smaller alignment
-      but it will be rounded up.
+      class is ``sizeof(void *)``.
 
     * :c:macro:`MPS_KEY_MVFF_ARENA_HIGH` (type :c:type:`mps_bool_t`,
       default false) determines whether new segments are acquired at high
