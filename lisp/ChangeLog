@@ -1,3 +1,11 @@
+2014-04-09  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/lisp.el (backward-up-list): Add `escape-strings',
+	`no-syntax-crossing' arguments.  Forward to `up-list'.
+	(up-list): Add `escape-strings', `no-syntax-crossing' arguments.
+	Implement logic for escaping from strings.  Use narrowing to deal
+	with corner cases.
+
 2014-04-09  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-connection-info): New variable.

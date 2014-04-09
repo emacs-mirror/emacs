@@ -1,3 +1,7 @@
+2014-04-09  Daniel Colascione  <dancol@dancol.org>
+
+	* automated/syntax-tests.el: New file.
+
 2014-04-09  Glenn Morris  <rgm@gnu.org>
 
 	* automated/python-tests.el (python-triple-quote-pairing):

@@ -1,3 +1,11 @@
+2014-04-09  Daniel Colascione  <dancol@dancol.org>
+
+	* errors.texi (Standard Errors): Document required error
+	parameters for `scan-error'.
+
+	* positions.texi (List Motion): Explain new `up-list' arguments.
+	Mention `backward-up-list'.
+
 2014-04-08  Daniel Colascione  <dancol@dancol.org>
 
 	* minibuf.texi (Programmed Completion): Improve phrasing, remove
