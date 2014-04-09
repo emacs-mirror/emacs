@@ -1,3 +1,8 @@
+2014-04-09  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.ac (EMACS_MANIFEST): Revert last change (but leave
+	UPDATE_MANIFEST empty).
+
 2014-04-03  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.ac (EMACS_MANIFEST, UPDATE_MANIFEST): Leave these
