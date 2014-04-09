@@ -571,15 +571,14 @@ static Res MVFFInit(Pool pool, ArgList args)
   AVER(avgSize > 0);            /* .arg.check */
   AVER(avgSize <= extendBy);    /* .arg.check */
   AVERT(Align, align);
-  AVERT(Bool, slotHigh);
-  AVERT(Bool, arenaHigh);
-  AVERT(Bool, firstFit);
-
   /* This restriction on the alignment is necessary because of the use
    * of a Freelist to store the free address ranges in low-memory
    * situations. <design/freelist/#impl.grain.align>.
    */
-  align = AlignAlignUp(align, FreelistMinimumAlignment);
+  AVER(AlignIsAligned(align, FreelistMinimumAlignment));
+  AVERT(Bool, slotHigh);
+  AVERT(Bool, arenaHigh);
+  AVERT(Bool, firstFit);
 
   mvff = Pool2MVFF(pool);
 
