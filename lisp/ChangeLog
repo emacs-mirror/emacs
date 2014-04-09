@@ -1,3 +1,13 @@
+2014-04-09  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/cl-indent.el: Add comment claiming
+	facility is also good for elisp.
+	(lisp-indent-find-method): New function.
+	(common-lisp-indent-function): Recognize cl-loop.
+	(common-lisp-indent-function-1): Recognize cl constructs; use
+	`lisp-indent-find-method' instead of `get' directly.
+	(if): Use else-body style for elisp.
+
 2014-04-09  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight more
