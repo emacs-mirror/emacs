@@ -622,6 +622,7 @@ static void MVFree(Pool pool, Addr old, Size size)
   AVERT(MV, mv);
 
   AVER(old != (Addr)0);
+  AVER(AddrIsAligned(old, pool->alignment));
   AVER(size > 0);
 
   size = SizeAlignUp(size, pool->alignment);
