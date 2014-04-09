@@ -39,6 +39,11 @@ Interface changes
    On all platforms it is now possible to specify alignments down to
    ``sizeof(void *)`` as the alignment for pools of these classes.
 
+#. The sizes of the templates in a :c:type:`mps_pool_debug_option_s`
+   structure no longer have to be related to the alignment of the
+   pools that they are used with. This makes it easier to reuse these
+   structures.
+
 
 Other changes
 .............
@@ -48,6 +53,12 @@ Other changes
    :c:macro:`MPS_PF_ALIGN`. See job003745_.
 
    .. _job003745: https://www.ravenbrook.com/project/mps/issue/job003745/
+
+#. The debugging version of the :ref:`pool-mvff` pool class,
+   :c:func:`mps_class_mvff_debug`, no longer triggers an assertion
+   failure if you allocate a large object. See job003751_.
+
+   .. _job003751: https://www.ravenbrook.com/project/mps/issue/job003751/
 
 
 .. _release-notes-1.113:
