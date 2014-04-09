@@ -154,8 +154,16 @@ static void testInArena(mps_arena_class_t arena_class, mps_arg_s *arena_args,
         "stress MVFF");
   } MPS_ARGS_END(args);
 
-  /* IWBN to test MVFFDebug, but the MPS doesn't support debugging */
-  /* cross-segment allocation (possibly MVFF ought not to). */
+  MPS_ARGS_BEGIN(args) {
+    mps_align_t align = sizeof(void *) << (rnd() % 4);
+    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
+    MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, TRUE);
+    MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, TRUE);
+    MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, TRUE);
+    MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, options);
+    die(stress(arena, randomSize8, "MVFF debug", mps_class_mvff_debug(), args),
+        "stress MVFF debug");
+  } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
     mps_align_t align = 1 << (rnd() % 6);

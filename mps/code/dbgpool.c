@@ -320,21 +320,22 @@ static Bool patternCheck(const void *pattern, Size size, Addr base, Addr limit)
 static void freeSplat(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
 {
   Arena arena;
-  Seg seg = NULL;       /* suppress "may be used uninitialized" */
-  Bool inSeg;
+  Seg seg;
 
   AVER(base < limit);
 
   /* If the block is in a segment, make sure any shield is up. */
   arena = PoolArena(pool);
-  inSeg = SegOfAddr(&seg, arena, base);
-  if (inSeg) {
-    AVER(limit <= SegLimit(seg));
-    ShieldExpose(arena, seg);
+  if (SegOfAddr(&seg, arena, base)) {
+    do {
+      ShieldExpose(arena, seg);
+    } while (SegLimit(seg) < limit && SegNext(&seg, arena, seg));
   }
   patternCopy(debug->freeTemplate, debug->freeSize, base, limit);
-  if (inSeg) {
-    ShieldCover(arena, seg);
+  if (SegOfAddr(&seg, arena, base)) {
+    do {
+      ShieldCover(arena, seg);
+    } while (SegLimit(seg) < limit && SegNext(&seg, arena, seg));
   }
 }
 
@@ -345,21 +346,22 @@ static Bool freeCheck(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
 {
   Bool res;
   Arena arena;
-  Seg seg = NULL;       /* suppress "may be used uninitialized" */
-  Bool inSeg;
+  Seg seg;
 
   AVER(base < limit);
 
   /* If the block is in a segment, make sure any shield is up. */
   arena = PoolArena(pool);
-  inSeg = SegOfAddr(&seg, arena, base);
-  if (inSeg) {
-    AVER(limit <= SegLimit(seg));
-    ShieldExpose(arena, seg);
+  if (SegOfAddr(&seg, arena, base)) {
+    do {
+      ShieldExpose(arena, seg);
+    } while (SegLimit(seg) < limit && SegNext(&seg, arena, seg));
   }
   res = patternCheck(debug->freeTemplate, debug->freeSize, base, limit);
-  if (inSeg) {
-    ShieldCover(arena, seg);
+  if (SegOfAddr(&seg, arena, base)) {
+    do {
+      ShieldCover(arena, seg);
+    } while (SegLimit(seg) < limit && SegNext(&seg, arena, seg));
   }
   return res;
 }
