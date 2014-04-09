@@ -1,5 +1,7 @@
 2014-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* keyboard.c (syms_of_keyboard): Make deactivate-mark buffer-local.
+
 	* insdel.c (prepare_to_modify_buffer_1): Cancel lock-file checks and
 	region handling (and don't call signal_before_change) if
 	inhibit_modification_hooks is set.

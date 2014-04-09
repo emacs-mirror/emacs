@@ -74,6 +74,8 @@ protocols as well as for "telnet" and "ftp" are passed to Tramp.
 ** inhibit-modification-hooks now also inhibits lock-file checks as well as
 active region handling.
 
+** deactivate-mark is now buffer-local.
+
 
 * Lisp Changes in Emacs 24.5
 
