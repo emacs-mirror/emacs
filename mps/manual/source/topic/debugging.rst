@@ -66,8 +66,8 @@ allows it to specify patterns:
 For example::
 
     mps_pool_debug_option_s debug_options = {
-       (const void *)"postpost", 8,
-       (const void *)"freefree", 8,
+       (const void *)"fencepost", 9,
+       (const void *)"free", 4,
     };
     mps_pool_t pool;
     mps_res_t res;
@@ -103,10 +103,6 @@ For example::
 
     ``free_size`` is the :term:`size` of ``free_template`` in bytes, or
     zero if the debugging pool should not splat free space.
-
-    Both ``fence_size`` and ``free_size`` must be a multiple of the
-    :term:`alignment` of the :term:`pool`, and also a multiple of the
-    alignment of the pool's :term:`object format` if it has one.
 
     The debugging pool will copy the ``fence_size`` bytes pointed to by
     ``fence_template`` in a repeating pattern onto each fencepost during
