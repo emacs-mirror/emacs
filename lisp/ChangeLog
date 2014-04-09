@@ -1,3 +1,13 @@
+2014-04-09  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-connection-info): New variable.
+	(rcirc-connect): Use it to store connection info.
+	(rcirc-buffer-process): Avoid get-buffer-process which returns nil
+	for killed process.
+	(rcirc-cmd-reconnect): New command.  (Bug#17045)
+	(rcirc-mode, set-rcirc-encode-coding-system)
+	(set-rcirc-decode-coding-system, rcirc-connect): Use setq-local.
+
 2014-04-09  Daniel Colascione  <dancol@dancol.org>
 
 	* emacs-lisp/cl-indent.el: Add comment claiming

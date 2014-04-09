@@ -521,6 +521,7 @@ If ARG is non-nil, instead prompt for connection parameters."
 (defvar rcirc-user-authenticated nil)
 (defvar rcirc-user-disconnect nil)
 (defvar rcirc-connecting nil)
+(defvar rcirc-connection-info nil)
 (defvar rcirc-process nil)
 
 ;;;###autoload
@@ -549,22 +550,23 @@ If ARG is non-nil, instead prompt for connection parameters."
       (set-process-sentinel process 'rcirc-sentinel)
       (set-process-filter process 'rcirc-filter)
 
-      (set (make-local-variable 'rcirc-process) process)
-      (set (make-local-variable 'rcirc-server) server)
-      (set (make-local-variable 'rcirc-server-name) server) ; Update when we get 001 response.
-      (set (make-local-variable 'rcirc-buffer-alist) nil)
-      (set (make-local-variable 'rcirc-nick-table)
-           (make-hash-table :test 'equal))
-      (set (make-local-variable 'rcirc-nick) nick)
-      (set (make-local-variable 'rcirc-process-output) nil)
-      (set (make-local-variable 'rcirc-startup-channels) startup-channels)
-      (set (make-local-variable 'rcirc-last-server-message-time)
-           (current-time))
+      (setq-local rcirc-connection-info
+		  (list server port nick user-name full-name startup-channels
+			password encryption))
+      (setq-local rcirc-process process)
+      (setq-local rcirc-server server)
+      (setq-local rcirc-server-name server) ; Update when we get 001 response.
+      (setq-local rcirc-buffer-alist nil)
+      (setq-local rcirc-nick-table (make-hash-table :test 'equal))
+      (setq-local rcirc-nick nick)
+      (setq-local rcirc-process-output nil)
+      (setq-local rcirc-startup-channels startup-channels)
+      (setq-local rcirc-last-server-message-time (current-time))
 
-      (set (make-local-variable 'rcirc-timeout-timer) nil)
-      (set (make-local-variable 'rcirc-user-disconnect) nil)
-      (set (make-local-variable 'rcirc-user-authenticated) nil)
-      (set (make-local-variable 'rcirc-connecting) t)
+      (setq-local rcirc-timeout-timer nil)
+      (setq-local rcirc-user-disconnect nil)
+      (setq-local rcirc-user-authenticated nil)
+      (setq-local rcirc-connecting t)
 
       (add-hook 'auto-save-hook 'rcirc-log-write)
 
@@ -782,11 +784,11 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
 (defun rcirc-buffer-process (&optional buffer)
   "Return the process associated with channel BUFFER.
 With no argument or nil as argument, use the current buffer."
-  (or (get-buffer-process (if buffer
-			      (with-current-buffer buffer
-				rcirc-server-buffer)
-			    rcirc-server-buffer))
-      rcirc-process))
+  (let ((buffer (or buffer (if (buffer-live-p rcirc-server-buffer)
+			       rcirc-server-buffer
+			     (error "Server buffer deleted")))))
+    (or (with-current-buffer buffer rcirc-process)
+	rcirc-process)))
 
 (defun rcirc-server-name (process)
   "Return PROCESS server name, given by the 001 response."
@@ -928,12 +930,12 @@ IRC command completion is performed only if '/' is the first input char."
 (defun set-rcirc-decode-coding-system (coding-system)
   "Set the decode coding system used in this channel."
   (interactive "zCoding system for incoming messages: ")
-  (set (make-local-variable 'rcirc-decode-coding-system) coding-system))
+  (setq-local rcirc-decode-coding-system coding-system))
 
 (defun set-rcirc-encode-coding-system (coding-system)
   "Set the encode coding system used in this channel."
   (interactive "zCoding system for outgoing messages: ")
-  (set (make-local-variable 'rcirc-encode-coding-system) coding-system))
+  (setq-local rcirc-encode-coding-system coding-system))
 
 (defvar rcirc-mode-map
   (let ((map (make-sparse-keymap)))
@@ -990,25 +992,25 @@ This number is independent of the number of lines in the buffer.")
   (setq major-mode 'rcirc-mode)
   (setq mode-line-process nil)
 
-  (set (make-local-variable 'rcirc-input-ring)
-       ;; If rcirc-input-ring is already a ring with desired size do
-       ;; not re-initialize.
-       (if (and (ring-p rcirc-input-ring)
-		(= (ring-size rcirc-input-ring)
-		   rcirc-input-ring-size))
-	   rcirc-input-ring
-	 (make-ring rcirc-input-ring-size)))
-  (set (make-local-variable 'rcirc-server-buffer) (process-buffer process))
-  (set (make-local-variable 'rcirc-target) target)
-  (set (make-local-variable 'rcirc-topic) nil)
-  (set (make-local-variable 'rcirc-last-post-time) (current-time))
-  (set (make-local-variable 'fill-paragraph-function) 'rcirc-fill-paragraph)
-  (set (make-local-variable 'rcirc-recent-quit-alist) nil)
-  (set (make-local-variable 'rcirc-current-line) 0)
+  (setq-local rcirc-input-ring
+	      ;; If rcirc-input-ring is already a ring with desired
+	      ;; size do not re-initialize.
+	      (if (and (ring-p rcirc-input-ring)
+		       (= (ring-size rcirc-input-ring)
+			  rcirc-input-ring-size))
+		  rcirc-input-ring
+		(make-ring rcirc-input-ring-size)))
+  (setq-local rcirc-server-buffer (process-buffer process))
+  (setq-local rcirc-target target)
+  (setq-local rcirc-topic nil)
+  (setq-local rcirc-last-post-time (current-time))
+  (setq-local fill-paragraph-function 'rcirc-fill-paragraph)
+  (setq-local rcirc-recent-quit-alist nil)
+  (setq-local rcirc-current-line 0)
 
   (use-hard-newlines t)
-  (set (make-local-variable 'rcirc-short-buffer-name) nil)
-  (set (make-local-variable 'rcirc-urls) nil)
+  (setq-local rcirc-short-buffer-name nil)
+  (setq-local rcirc-urls nil)
 
   ;; setup for omitting responses
   (setq buffer-invisibility-spec '())
@@ -1023,18 +1025,18 @@ This number is independent of the number of lines in the buffer.")
 	  (serv (if (consp (car i)) (cdar i) "")))
       (when (and (string-match chan (or target ""))
 		 (string-match serv (rcirc-server-name process)))
-	(set (make-local-variable 'rcirc-decode-coding-system)
-             (if (consp (cdr i)) (cadr i) (cdr i)))
-        (set (make-local-variable 'rcirc-encode-coding-system)
-             (if (consp (cdr i)) (cddr i) (cdr i))))))
+	(setq-local rcirc-decode-coding-system
+		    (if (consp (cdr i)) (cadr i) (cdr i)))
+        (setq-local rcirc-encode-coding-system
+		    (if (consp (cdr i)) (cddr i) (cdr i))))))
 
   ;; setup the prompt and markers
-  (set (make-local-variable 'rcirc-prompt-start-marker) (point-max-marker))
-  (set (make-local-variable 'rcirc-prompt-end-marker) (point-max-marker))
+  (setq-local rcirc-prompt-start-marker (point-max-marker))
+  (setq-local rcirc-prompt-end-marker (point-max-marker))
   (rcirc-update-prompt)
   (goto-char rcirc-prompt-end-marker)
 
-  (set (make-local-variable 'overlay-arrow-position) (make-marker))
+  (setq-local overlay-arrow-position (make-marker))
 
   ;; if the user changes the major mode or kills the buffer, there is
   ;; cleanup work to do
@@ -2209,6 +2211,19 @@ CHANNELS is a comma- or space-separated string of channel names."
 				     (if (not (zerop (length reason)))
 					 reason
 				       rcirc-id-string))))
+
+(defun-rcirc-command reconnect (_)
+  "Reconnect to current server."
+  (interactive "i")
+  (with-rcirc-server-buffer
+    (cond
+     (rcirc-connecting (message "Already connecting"))
+     ((process-live-p process) (message "Server process is alive"))
+     (t (let ((conn-info rcirc-connection-info))
+	  (setf (nth 5 conn-info)
+		(cl-remove-if-not #'rcirc-channel-p
+				  (mapcar #'car rcirc-buffer-alist)))
+	  (apply #'rcirc-connect conn-info))))))
 
 (defun-rcirc-command nick (nick)
   "Change nick to NICK."
