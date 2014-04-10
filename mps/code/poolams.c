@@ -1598,12 +1598,13 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
   /* preservedInPlaceCount is updated on fix */
   trace->preservedInPlaceSize += (grains - amsseg->free) << ams->grainShift;
 
+  /* Ensure consistency of segment even if are just about to free it */
+  amsseg->colourTablesInUse = FALSE;
+  SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
+
   if (amsseg->free == grains && SegBuffer(seg) == NULL) {
     /* No survivors */
     SegFree(seg);
-  } else {
-    amsseg->colourTablesInUse = FALSE;
-    SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
   }
 }
 
