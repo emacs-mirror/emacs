@@ -13,6 +13,14 @@
 # Usage::
 # 
 #     testrun.sh DIR ( SUITE | CASE1 CASE2 [...] )
+#
+# You can use this feature to run the same test many times, to get
+# lots of random coverage. For example::
+#
+#     yes amcss | head -100 | xargs tool/testrun.sh code/xc/Debug
+#
+# This runs the AMC stress test 100 times from the code/xc/Debug
+# directory, reporting all failures.
 
 # Make a temporary output directory for the test logs.
 LOGDIR=$(mktemp -d /tmp/mps.log.XXXXXX)
