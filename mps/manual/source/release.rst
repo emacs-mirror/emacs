@@ -30,6 +30,14 @@ New features
 Other changes
 .............
 
+#. The :ref:`pool-ams` pool class no longer triggers the assertion
+   ``!AMS_IS_INVALID_COLOUR(seg, i)`` under rare circumstances
+   (namely, detaching an :term:`allocation point` from a :term:`grey`
+   segment when :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` is
+   ``FALSE``). See job001549_.
+
+   .. _job001549: https://www.ravenbrook.com/project/mps/issue/job001549/
+
 #. The alignment of :ref:`pool-awl` pools is now configurable via the
    object format, as documented, and is no longer always
    :c:macro:`MPS_PF_ALIGN`. See job003745_.
