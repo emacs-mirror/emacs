@@ -187,8 +187,7 @@ static Res freelistInit(Land land, ArgList args)
     return res;
 
   /* See <design/freelist/#impl.grain> */
-  if (!AlignIsAligned(LandAlignment(land), freelistMinimumAlignment))
-    return ResPARAM;
+  AVER(AlignIsAligned(LandAlignment(land), freelistMinimumAlignment));
 
   fl = freelistOfLand(land);
   fl->list = NULL;
