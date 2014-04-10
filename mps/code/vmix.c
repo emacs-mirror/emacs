@@ -1,7 +1,7 @@
 /* vmix.c: VIRTUAL MEMORY MAPPING FOR UNIX (ISH)
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is the implementation of the virtual memory mapping
  * interface (vm.h) for Unix-like operating systems.  It was created
@@ -186,6 +186,8 @@ void VMDestroy(VM vm)
   AVERT(VM, vm);
   AVER(vm->mapped == (Size)0);
 
+  EVENT1(VMDestroy, vm);
+
   /* This appears to be pretty pointless, since the descriptor */
   /* page is about to vanish completely.  However, munmap might fail */
   /* for some reason, and this would ensure that it was still */
@@ -197,8 +199,6 @@ void VMDestroy(VM vm)
   r = munmap((void *)vm,
              (size_t)SizeAlignUp(sizeof(VMStruct), vm->align));
   AVER(r == 0);
-
-  EVENT1(VMDestroy, vm);
 }
 
 
@@ -304,7 +304,7 @@ void VMUnmap(VM vm, Addr base, Addr limit)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

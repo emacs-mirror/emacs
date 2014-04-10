@@ -197,6 +197,12 @@ static Res eventRead(Bool *eofOut, EventUnion *event, FILE *stream)
     return ResIO;
   }
 
+  if (event->any.size < sizeof(event->any))
+    return ResFAIL; /* invalid size: too small */
+
+  if (event->any.size > sizeof(*event))
+    return ResFAIL; /* invalid size: too large */
+
   /* Read the rest of the event. */
   rest = event->any.size - sizeof(event->any);
   if (rest > 0) {
