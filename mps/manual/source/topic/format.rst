@@ -468,21 +468,26 @@ Object format introspection
 
     Each :term:`pool class` determines for which objects the stepper
     function is called. Typically, all validly formatted objects are
-    visited. During a :term:`trace` this will in general be only the
-    :term:`black` objects, though the :ref:`pool-lo` pool, for
-    example, will walk all objects since they are validly formatted
-    whether they are black or :term:`white`. :term:`Padding objects`
-    may be visited at the pool class's discretion: the :term:`client
-    program` should handle this case.
-
-    .. seealso::
-
-        :ref:`topic-arena`.
+    visited. :term:`Padding objects` may be visited at the pool
+    class's discretion: the stepper function must handle this
+    case.
 
     .. note::
 
         This function is intended for heap analysis, tuning, and
         debugging, not for frequent use in production.
+
+    .. warning::
+
+        If a garbage collection is currently in progress (that is, if
+        the arena is in the :term:`clamped <clamped state>` or
+        :term:`unclamped state`), then only objects that are known to
+        be currently valid are visited.
+
+        For the most reliable results, ensure the arena is in the
+        :term:`parked state` by calling :c:func:`mps_arena_park`
+        before calling this function (and release it by calling
+        :c:func:`mps_arena_release` afterwards, if desired).
 
 
 .. c:type:: void (*mps_formatted_objects_stepper_t)(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool, void *p, size_t s)
@@ -514,10 +519,6 @@ Object format introspection
     c. memory not managed by the MPS;
 
     It must not access other memory managed by the MPS.
-
-    .. seealso::
-
-        :ref:`topic-arena`.
 
 
 Obsolete interface
