@@ -74,6 +74,11 @@ Bool AMSSegCheck(AMSSeg amsseg)
   CHECKD_NOSIG(BT, amsseg->nongreyTable);
   CHECKD_NOSIG(BT, amsseg->nonwhiteTable);
 
+  /* If tables are shared, they mustn't both be in use. */
+  CHECKL(!(amsseg->ams->shareAllocTable
+           && amsseg->allocTableInUse
+           && amsseg->colourTablesInUse));
+
   return TRUE;
 }
 
@@ -166,6 +171,10 @@ static Res amsCreateTables(AMS ams, BT *allocReturn,
     if (res != ResOK)
       goto failWhite;
   }
+
+  /* Invalidate the colour tables in checking varieties. */
+  AVER((BTResRange(nongreyTable, 0, length), TRUE));
+  AVER((BTSetRange(nonwhiteTable, 0, length), TRUE));
 
   *allocReturn = allocTable;
   *nongreyReturn = nongreyTable;
@@ -1023,7 +1032,8 @@ static void AMSBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
     AVER(limitIndex <= amsseg->firstFree);
     if (limitIndex == amsseg->firstFree) /* is it at the end? */ {
       amsseg->firstFree = initIndex;
-    } else { /* start using allocTable */
+    } else if (!ams->shareAllocTable || !amsseg->colourTablesInUse) {
+      /* start using allocTable */
       amsseg->allocTableInUse = TRUE;
       BTSetRange(amsseg->allocTable, 0, amsseg->firstFree);
       if (amsseg->firstFree < amsseg->grains)
@@ -1415,16 +1425,20 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   /* doing that here (this can be called from RootScan, during flip). */
 
   clientRef = *refIO;
+  AVER_CRITICAL(SegBase(seg) <= clientRef);
+  AVER_CRITICAL(clientRef < SegLimit(seg)); /* see .ref-limit */
   base = AddrSub((Addr)clientRef, format->headerSize);
   /* can get an ambiguous reference too close to the base of the
    * segment, so when we subtract the header we are not in the
    * segment any longer.  This isn't a real reference,
    * so we can just skip it.  */
   if (base < SegBase(seg)) {
-      return ResOK;
+    AVER_CRITICAL(ss->rank == RankAMBIG);
+    return ResOK;
   }
 
   i = AMS_ADDR_INDEX(seg, base);
+  AVER_CRITICAL(i < amsseg->grains);
   AVER_CRITICAL(!AMS_IS_INVALID_COLOUR(seg, i));
 
   ss->wasMarked = TRUE;
