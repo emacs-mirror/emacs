@@ -143,11 +143,13 @@ extern Bool ResIsAllocFailure(Res res);
  * SizeFloorLog2 returns the floor of the logarithm in base 2 of size.
  * size can be any positive non-zero value.  */
 
-extern Bool SizeIsP2(Size size);
+extern Bool (SizeIsP2)(Size size);
+#define SizeIsP2(size) WordIsP2((Word)size)
 extern Shift SizeLog2(Size size);
 extern Shift SizeFloorLog2(Size size);
 
-extern Bool WordIsP2(Word word);
+extern Bool (WordIsP2)(Word word);
+#define WordIsP2(word) ((word) > 0 && ((word) & ((word) - 1)) == 0)
 
 /* Formatted Output -- see <design/writef/>, <code/mpm.c> */
 

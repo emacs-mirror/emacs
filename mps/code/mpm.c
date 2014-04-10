@@ -174,16 +174,16 @@ Word (WordAlignDown)(Word word, Align alignment)
 
 /* SizeIsP2 -- test whether a size is a power of two */
 
-Bool SizeIsP2(Size size)
+Bool (SizeIsP2)(Size size)
 {
-  return WordIsP2((Word)size);
+  return SizeIsP2(size);
 }
 
 /* WordIsP2 -- tests whether a word is a power of two */
 
-Bool WordIsP2(Word word)
+Bool (WordIsP2)(Word word)
 {
-  return word > 0 && (word & (word - 1)) == 0;  
+  return WordIsP2(word);
 }
 
 

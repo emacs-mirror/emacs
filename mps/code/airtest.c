@@ -35,7 +35,7 @@
 #include "fmtscheme.h"
 
 #define OBJ_LEN (1u << 4)
-#define OBJ_COUNT 1
+#define OBJ_COUNT 10
 
 static void test_air(int interior, int stack)
 {

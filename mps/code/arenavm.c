@@ -593,6 +593,8 @@ static void VMArenaFinish(Arena arena)
   AVERT(VMArena, vmArena);
   arenaVM = vmArena->vm;
 
+  EVENT1(ArenaDestroy, vmArena);
+
   /* destroy all chunks, including the primary */
   arena->primary = NULL;
   RING_FOR(node, &arena->chunkRing, next) {
@@ -612,7 +614,6 @@ static void VMArenaFinish(Arena arena)
 
   VMUnmap(arenaVM, VMBase(arenaVM), VMLimit(arenaVM));
   VMDestroy(arenaVM);
-  EVENT1(ArenaDestroy, vmArena);
 }
 
 
