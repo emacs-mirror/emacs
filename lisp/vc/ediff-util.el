@@ -3023,8 +3023,6 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	(if (featurep 'xemacs)
 	    (ediff-move-overlay current-diff-overlay begin end-hilit)
 	  (ediff-move-overlay current-diff-overlay begin end-hilit buff))
-	(ediff-overlay-put current-diff-overlay 'priority
-			   (ediff-highest-priority begin end-hilit buff))
 	(ediff-overlay-put current-diff-overlay 'ediff-diff-num n)
 
 	;; unhighlight the background overlay for diff n so it won't

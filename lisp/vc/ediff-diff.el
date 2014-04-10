@@ -587,7 +587,6 @@ one optional arguments, diff-number to refine.")
 	    (setq pt-saved (ediff-with-current-buffer buff (point)))))
       (setq overlay (ediff-make-bullet-proof-overlay begin end buff))
 
-      (ediff-overlay-put overlay 'priority ediff-shadow-overlay-priority)
       (ediff-overlay-put overlay 'ediff-diff-num current-diff)
       (if (and (ediff-has-face-support-p)
 	       ediff-use-faces ediff-highlight-all-diffs)
@@ -822,20 +821,9 @@ one optional arguments, diff-number to refine.")
 		  'default
 		(ediff-get-symbol-from-alist
 		 buf-type ediff-fine-diff-face-alist)
-		))
-	(priority (if default
-		      0
-		    (1+ (or (ediff-overlay-get
-			     (symbol-value
-			      (ediff-get-symbol-from-alist
-			       buf-type
-			       ediff-current-diff-overlay-alist))
-			     'priority)
-			    0)))))
-    (mapcar (lambda (overl)
-	      (ediff-set-overlay-face overl face)
-	      (ediff-overlay-put overl 'priority priority))
-	    fine-diff-vector)))
+		)))
+    (dolist (overl fine-diff-vector)
+      (ediff-set-overlay-face overl face))))
 
 ;; Set overlays over the regions that denote delimiters
 (defun ediff-set-fine-overlays-for-combined-merge (diff-list reg-num)

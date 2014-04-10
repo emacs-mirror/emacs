@@ -1,3 +1,13 @@
+2014-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Ediff's overlay priorities cause more trouble than they solve.
+	* vc/ediff-init.el (ediff-shadow-overlay-priority): Remove variable.
+	(ediff-highest-priority): Remove function (bug#17234).
+	* vc/ediff-util.el (ediff-highlight-diff-in-one-buffer):
+	* vc/ediff-diff.el (ediff-set-diff-overlays-in-one-buffer)
+	(ediff-set-fine-diff-properties-in-one-buffer): Don't mess with
+	overlay priorities.
+
 2014-04-10  Feng Li  <fengli@gmail.com>  (tiny change)
 
 	* progmodes/pascal.el (pascal-font-lock-keywords): Fix incorrect format
