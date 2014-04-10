@@ -72,12 +72,6 @@ static void report(mps_arena_t arena)
     printf("not_condemned %"PRIuLONGEST"\n", (ulongest_t)not_condemned);
 
     mps_message_discard(arena, message);
-
-    if (condemned > (gen1SIZE + gen2SIZE + (size_t)128) * 1024)
-      /* When condemned size is larger than could happen in a gen 2
-       * collection (discounting ramps, natch), guess that was a dynamic
-       * collection, and reset the commit limit, so it doesn't run out. */
-      die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE), "set limit");
   }
 }
 
