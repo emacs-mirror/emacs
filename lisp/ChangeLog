@@ -1,3 +1,8 @@
+2014-04-10  Feng Li  <fengli@gmail.com>  (tiny change)
+
+	* progmodes/pascal.el (pascal-font-lock-keywords): Fix incorrect format
+	entry; use symbol boundaries to avoid mis-matches.
+
 2014-04-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-file-name-handler)
