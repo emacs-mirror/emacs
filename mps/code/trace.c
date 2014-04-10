@@ -797,10 +797,11 @@ void TraceDestroy(Trace trace)
                   (TraceStatReclaim, trace,
                    trace->reclaimCount, trace->reclaimSize));
 
+  EVENT1(TraceDestroy, trace);
+
   trace->sig = SigInvalid;
   trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
   trace->arena->flippedTraces = TraceSetDel(trace->arena->flippedTraces, trace);
-  EVENT1(TraceDestroy, trace);
 }
 
 

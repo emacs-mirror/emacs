@@ -56,6 +56,7 @@ static mps_bool_t zoned = TRUE;   /* arena allocates using zones */
     \
     for (k = 0; k < nblocks; ++k) { \
       blocks[k].p = NULL; \
+      blocks[k].s = 0; \
     } \
     \
     for (j = 0; j < npass; ++j) { \
