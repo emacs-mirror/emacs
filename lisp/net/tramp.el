@@ -2106,7 +2106,16 @@ ARGS are the arguments OPERATION has been called with."
 Falls back to normal file name handler if no Tramp file name handler exists."
   (if tramp-mode
       (save-match-data
-	(let* ((filename
+	(let* ((default-directory
+		 ;; Some packages set the default directory to a
+		 ;; remote path, before tramp.el has been loaded.
+		 ;; This results in recursive loading.  Therefore, we
+		 ;; set `default-directory' to a local path.  `args'
+		 ;; could also be remote when loading tramp.el, but
+		 ;; that would be such perverse we don't care about.
+		 (if load-in-progress
+		     temporary-file-directory default-directory))
+	       (filename
 		(tramp-replace-environment-variables
 		 (apply 'tramp-file-name-for-operation operation args)))
 	       (completion (tramp-completion-mode-p))
@@ -2218,8 +2227,11 @@ preventing reentrant calls of Tramp.")
   "Invoke Tramp file name completion handler.
 Falls back to normal file name handler if no Tramp file name handler exists."
   ;; We bind `directory-sep-char' here for XEmacs on Windows, which
-  ;; would otherwise use backslash.
+  ;; would otherwise use backslash.  For `default-directory', see
+  ;; comment in `tramp-file-name-handler'.
   (let ((directory-sep-char ?/)
+	(default-directory
+	  (if load-in-progress temporary-file-directory default-directory))
 	(fn (assoc operation tramp-completion-file-name-handler-alist)))
     (if (and
 	 ;; When `tramp-mode' is not enabled, we don't do anything.
