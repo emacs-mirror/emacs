@@ -343,7 +343,7 @@ If point is not enclosed by any lists, return ((t) . (t))."
     (cons innermost outermost)))
 
 (defvar electric-pair-string-bound-function 'point-max
-  "Next buffer position where strings are syntatically unexpected.
+  "Next buffer position where strings are syntactically unexpected.
 Value is a function called with no arguments and returning a
 buffer position. Major modes should set this variable
 buffer-locally if they experience slowness with

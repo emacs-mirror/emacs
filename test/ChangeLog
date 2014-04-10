@@ -1,3 +1,9 @@
+2014-04-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* automated/electric-tests.el: Fix spelling error in test name.
+	(whitespace-skipping-for-quotes-not-outside):
+	Rename from whitespace-skipping-for-quotes-not-ouside.
+
 2014-04-09  Glenn Morris  <rgm@gnu.org>
 
 	* automated/python-tests.el (python-triple-quote-pairing):
