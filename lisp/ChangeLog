@@ -1,5 +1,8 @@
 2014-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emulation/cua-base.el (<toplevel>, cua--pre-command-handler-1):
+	Remove left-over code.
+
 	* newcomment.el (comment-indent-new-line): Sink code where it's used.
 	Reuse the previous comment's indentation unconditionally if it's on its
 	own line.

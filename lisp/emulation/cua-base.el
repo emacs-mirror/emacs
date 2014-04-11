@@ -1156,19 +1156,6 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	(cancel-timer cua--prefix-override-timer))
     (setq cua--prefix-override-timer nil))
 
-  (cond
-   ;; Only symbol commands can have necessary properties
-   ((not (symbolp this-command))
-    nil)
-
-   ((not (eq (get this-command 'CUA) 'move))
-    nil)
-
-   ;; Set mark if user explicitly said to do so
-   (cua--rectangle ;FIXME: ??
-    (unless mark-active
-      (push-mark-command nil nil))))
-
   ;; Detect extension of rectangles by mouse or other movement
   (setq cua--buffer-and-point-before-command
 	(if cua--rectangle (cons (current-buffer) (point)))))
@@ -1366,36 +1353,6 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   (define-key cua--region-keymap [remap keyboard-quit]		'cua-cancel)
   )
 
-
-;; Setup standard movement commands to be recognized by CUA.
-
-(dolist (cmd
- '(forward-char backward-char
-   right-char left-char
-   right-word left-word
-   next-line previous-line
-   forward-word backward-word
-   end-of-line beginning-of-line
-   end-of-visual-line beginning-of-visual-line
-   move-end-of-line move-beginning-of-line
-   end-of-buffer beginning-of-buffer
-   scroll-up scroll-down
-   scroll-up-command scroll-down-command
-   up-list down-list backward-up-list
-   end-of-defun beginning-of-defun
-   forward-sexp backward-sexp
-   forward-list backward-list
-   forward-sentence backward-sentence
-   forward-paragraph backward-paragraph
-   ;; CC mode motion commands
-   c-forward-conditional c-backward-conditional
-   c-down-conditional c-up-conditional
-   c-down-conditional-with-else c-up-conditional-with-else
-   c-beginning-of-statement c-end-of-statement))
-  (put cmd 'CUA 'move))
-
-;; Only called if pc-selection-mode is t, which means pc-select is loaded.
-(declare-function pc-selection-mode "pc-select" (&optional arg))
 
 ;; State prior to enabling cua-mode
 ;; Value is a list with the following elements:
