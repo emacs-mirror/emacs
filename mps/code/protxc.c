@@ -282,6 +282,7 @@ static void protCatchOne(void)
  * handler won't cause a deadlock.
  */
 
+ATTRIBUTE_NORETURN
 static void *protCatchThread(void *p) {
   UNUSED(p);
   for (;;)
