@@ -70,7 +70,7 @@
 /^#undef PACKAGE_TARNAME/s/^.*$/#define PACKAGE_TARNAME ""/
 /^#undef PACKAGE_VERSION/s/^.*$/#define PACKAGE_VERSION ""/
 /^#undef PENDING_OUTPUT_COUNT/s/^.*$/#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_ptr - (FILE)->_base)/
-/^#undef VERSION/s/^.*$/#define VERSION "24.3.50"/
+/^#undef VERSION/s/^.*$/#define VERSION "24.3.90"/
 /^#undef SYSTEM_TYPE/s/^.*$/#define SYSTEM_TYPE "ms-dos"/
 /^#undef HAVE_DECL_GETENV/s/^.*$/#define HAVE_DECL_GETENV 1/
 /^#undef SYS_SIGLIST_DECLARED/s/^.*$/#define SYS_SIGLIST_DECLARED 1/
