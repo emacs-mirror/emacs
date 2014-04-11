@@ -41,6 +41,9 @@ EMACSOPT = -batch --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)"
 # Extra flags to pass to the byte compiler.
 BYTE_COMPILE_EXTRA_FLAGS =
 
+# Prevent any settings in the user environment causing problems.
+unexport EMACSDATA EMACSDOC EMACSPATH
+
 # The actual Emacs command run in the targets below.
 # Prevent any setting of EMACSLOADPATH in user environment causing problems.
 emacs = EMACSLOADPATH= LC_ALL=C EMACS_TEST_DIRECTORY=$(srcdir) "$(EMACS)" $(EMACSOPT)

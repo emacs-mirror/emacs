@@ -107,6 +107,9 @@ COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/bytecomp.elc \
 	$(lisp)/emacs-lisp/autoload.elc
 
+# Prevent any settings in the user environment causing problems.
+unexport EMACSDATA EMACSDOC EMACSPATH
+
 # The actual Emacs command run in the targets below.
 # Prevent any setting of EMACSLOADPATH in user environment causing problems.
 emacs = EMACSLOADPATH= '$(EMACS)' $(EMACSOPT)

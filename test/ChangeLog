@@ -1,3 +1,7 @@
+2014-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (EMACSDATA, EMACSDOC, EMACSPATH): Unexport.
+
 2014-04-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* automated/electric-tests.el: Fix spelling error in test name.

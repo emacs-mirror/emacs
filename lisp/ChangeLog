@@ -1,3 +1,7 @@
+2014-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (EMACSDATA, EMACSDOC, EMACSPATH): Unexport.  (Bug#16429)
+
 2014-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Ediff's overlay priorities cause more trouble than they solve.

@@ -28,6 +28,9 @@ srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 top_builddir = @top_builddir@
 
+# Prevent any settings in the user environment causing problems.
+unexport EMACSDATA EMACSDOC EMACSPATH
+
 EMACS = ${top_builddir}/src/emacs
 emacs = EMACSLOADPATH= "${EMACS}" -batch --no-site-file --no-site-lisp
 

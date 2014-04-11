@@ -1,3 +1,7 @@
+2014-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* grammars/Makefile.in (EMACSDATA, EMACSDOC, EMACSPATH): Unexport.
+
 2014-03-22  Glenn Morris  <rgm@gnu.org>
 
 	* quick-install-emacs (AVOID): Remove testfile and test-distrib.
