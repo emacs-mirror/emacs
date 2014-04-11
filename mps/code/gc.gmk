@@ -16,6 +16,7 @@ CFLAGSCOMPILER := \
 	-Waggregate-return \
 	-Wall \
 	-Wcast-qual \
+	-Wconversion \
 	-Werror \
 	-Wextra \
 	-Winline \
