@@ -1,3 +1,8 @@
+2014-04-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (sys_umask) <WRITE_USER>: Remove redundant constant, and
+	use S_IWRITE instead.
+
 2014-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* keyboard.c (Fopen_dribble_file): Make file private.  (Bug#17187)
