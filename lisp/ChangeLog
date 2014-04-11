@@ -1,3 +1,9 @@
+2014-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-indent-new-line): Sink code where it's used.
+	Reuse the previous comment's indentation unconditionally if it's on its
+	own line.
+
 2014-04-09  Daniel Colascione  <dancol@dancol.org>
 
 	* emacs-lisp/lisp.el (backward-up-list): Add `escape-strings',
