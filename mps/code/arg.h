@@ -1,7 +1,7 @@
 /* arg.h: Keyword argument lists
  *
  * $Id$
- * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2013-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .source: See <design/keyword-arguments.rst>.
  */
@@ -28,6 +28,7 @@ typedef struct mps_key_s {
 } KeyStruct;
 
 #define ARG_DEFINE_KEY(id, type) \
+  extern const KeyStruct _mps_key_##id; \
   const KeyStruct _mps_key_##id = {KeySig, #id, ArgCheck##type}
 
 #define argsNone mps_args_none
@@ -62,7 +63,7 @@ extern Bool ArgCheckPool(Arg arg);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

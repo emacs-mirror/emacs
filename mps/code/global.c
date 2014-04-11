@@ -617,6 +617,7 @@ void ArenaLeaveRecursive(Arena arena)
  * version.  The format is platform-specific.  We won't necessarily
  * publish this.  */
 
+extern MutatorFaultContext mps_exception_info;
 MutatorFaultContext mps_exception_info = NULL;
 
 

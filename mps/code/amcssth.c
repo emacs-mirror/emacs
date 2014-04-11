@@ -83,11 +83,11 @@ static void report(mps_arena_t arena)
 }
 
 
-mps_arena_t arena;
-mps_fmt_t format;
-mps_chain_t chain;
-mps_root_t exactRoot, ambigRoot;
-unsigned long objs = 0;
+static mps_arena_t arena;
+static mps_fmt_t format;
+static mps_chain_t chain;
+static mps_root_t exactRoot, ambigRoot;
+static unsigned long objs = 0;
 
 
 /* make -- create one new object */

@@ -980,14 +980,14 @@ Bool BufferIsTrappedByMutator(Buffer buffer)
  *
  * Just represent the two patterns by two different pointers to dummies.  */
 
-AllocPatternStruct AllocPatternRampStruct = {'\0'};
+static AllocPatternStruct AllocPatternRampStruct = {'\0'};
 
 AllocPattern AllocPatternRamp(void)
 {
   return &AllocPatternRampStruct;
 }
 
-AllocPatternStruct AllocPatternRampCollectAllStruct = {'\0'};
+static AllocPatternStruct AllocPatternRampCollectAllStruct = {'\0'};
 
 AllocPattern AllocPatternRampCollectAll(void)
 {

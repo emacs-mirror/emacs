@@ -56,7 +56,8 @@ ENUM_DECLARE(EventKind)
 
 enum EventDefinitionsEnum {
   EVENT_LIST(EVENT_ENUM, X)
-  EventEnumWarningSuppressor    /* suppress comma-at-end-of-enum warning */
+  /* suppress comma-at-end-of-enum warning */
+  EventEnumWarningSuppressor = USHRT_MAX
 };
 
 
