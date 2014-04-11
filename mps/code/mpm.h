@@ -711,10 +711,10 @@ extern Addr (SegLimit)(Seg seg);
 
 #define SegSummary(seg)         (((GCSeg)(seg))->summary)
 
-#define SegSetPM(seg, mode)     ((void)((seg)->pm = (mode)))
-#define SegSetSM(seg, mode)     ((void)((seg)->sm = (mode)))
-#define SegSetDepth(seg, d)     ((void)((seg)->depth = (d)))
-#define SegSetNailed(seg, ts)   ((void)((seg)->nailed = (ts)))
+#define SegSetPM(seg, mode)     ((void)((seg)->pm = BS_BITFIELD(Access, (mode))))
+#define SegSetSM(seg, mode)     ((void)((seg)->sm = BS_BITFIELD(Access, (mode))))
+#define SegSetDepth(seg, d)     ((void)((seg)->depth = BITFIELD(unsigned, (d), ShieldDepthWIDTH)))
+#define SegSetNailed(seg, ts)   ((void)((seg)->nailed = BS_BITFIELD(Trace, (ts))))
 
 
 /* Buffer Interface -- see <code/buffer.c> */
