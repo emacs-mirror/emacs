@@ -12,14 +12,8 @@
 
 /* special objects */
 
-obj_t obj_empty;         /* (), the empty list */
-obj_t obj_eof;           /* end of file */
-obj_t obj_error;         /* error indicator */
-obj_t obj_true;          /* #t, boolean true */
-obj_t obj_false;         /* #f, boolean false */
-obj_t obj_undefined;     /* undefined result indicator */
-obj_t obj_tail;          /* tail recursion indicator */
-obj_t obj_deleted;       /* deleted key in hashtable */
+static obj_t obj_true;          /* #t, boolean true */
+static obj_t obj_false;         /* #f, boolean false */
 
 
 /* MPS globals */

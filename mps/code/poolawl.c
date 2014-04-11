@@ -305,10 +305,14 @@ DEFINE_SEG_CLASS(AWLSegClass, class)
  * it's possible to tweak them in a debugger.
  */
 
+extern Count AWLSegSALimit;
 Count AWLSegSALimit = AWL_SEG_SA_LIMIT;
+extern Bool AWLHaveSegSALimit;
 Bool AWLHaveSegSALimit = AWL_HAVE_SEG_SA_LIMIT;
 
+extern Count AWLTotalSALimit;
 Count AWLTotalSALimit = AWL_TOTAL_SA_LIMIT;
+extern Bool AWLHaveTotalSALimit;
 Bool AWLHaveTotalSALimit = AWL_HAVE_TOTAL_SA_LIMIT;
 
 

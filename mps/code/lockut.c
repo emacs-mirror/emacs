@@ -15,7 +15,7 @@
 #define nTHREADS 4
 
 static Lock lock;
-unsigned long shared, tmp;
+static unsigned long shared, tmp;
 
 
 static void incR(unsigned long i)
