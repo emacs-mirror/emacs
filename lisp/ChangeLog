@@ -1,3 +1,8 @@
+2014-04-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-file-truename): Quote the file
+	name twice due to backticks.  (Bug#17238)
+
 2014-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* term/w32-win.el (x-win-suspend-error):
