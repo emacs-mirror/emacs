@@ -1,3 +1,7 @@
+2014-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Do not distribute generated admin/grammars/Makefile.
+
 2014-04-09  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.ac (EMACS_MANIFEST): Revert last change (but leave
