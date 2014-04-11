@@ -45,7 +45,7 @@ static Count nailboardNails(Nailboard board)
 static Count nailboardLevelBits(Count nails, Index level)
 {
   Shift shift = (Shift)(level * LEVEL_SHIFT);
-  return (nails + (1 << shift) - 1) >> shift;
+  return (nails + ((Count)1 << shift) - 1) >> shift;
 }
 
 Bool NailboardCheck(Nailboard board)

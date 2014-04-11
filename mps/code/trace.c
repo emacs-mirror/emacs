@@ -1570,7 +1570,7 @@ static void TraceStartPoolGen(Chain chain, GenDesc desc, Bool top, Index i)
   Ring n, nn;
   RING_FOR(n, &desc->locusRing, nn) {
     PoolGen gen = RING_ELT(PoolGen, genRing, n);
-    EVENT11(TraceStartPoolGen, chain, top, i, desc,
+    EVENT11(TraceStartPoolGen, chain, BOOL(top), i, desc,
             desc->capacity, desc->mortality, desc->zones,
             gen->pool, gen->nr, gen->totalSize,
             gen->newSizeAtCreate);

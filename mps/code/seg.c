@@ -593,7 +593,7 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
   if (ResOK != res)
     goto failMerge;
 
-  EVENT3(SegMerge, segLo, segHi, withReservoirPermit);
+  EVENT3(SegMerge, segLo, segHi, BOOL(withReservoirPermit));
   /* Deallocate segHi object */
   ControlFree(arena, segHi, class->size);
   AVERT(Seg, segLo);
@@ -1200,7 +1200,7 @@ static void gcSegSetGreyInternal(Seg seg, TraceSet oldGrey, TraceSet grey)
   /* Internal method. Parameters are checked by caller */
   gcseg = SegGCSeg(seg);
   arena = PoolArena(SegPool(seg));
-  seg->grey = grey;
+  seg->grey = BS_BITFIELD(Trace, grey);
 
   /* If the segment is now grey and wasn't before, add it to the */
   /* appropriate grey list so that TraceFindGrey can locate it */
@@ -1313,11 +1313,11 @@ static void gcSegSetWhite(Seg seg, TraceSet white)
 
     AVERT_CRITICAL(Tract, tract);
     AVER_CRITICAL(TRACT_SEG(&trseg, tract) && (trseg == seg));
-    TractSetWhite(tract, white);
+    TractSetWhite(tract, BS_BITFIELD(Trace, white));
   }
   AVER(addr == limit);
 
-  seg->white = white;
+  seg->white = BS_BITFIELD(Trace, white);
 }
 
 
@@ -1350,7 +1350,7 @@ static void gcSegSetRankSet(Seg seg, RankSet rankSet)
 
   arena = PoolArena(SegPool(seg));
   oldRankSet = seg->rankSet;
-  seg->rankSet = rankSet;
+  seg->rankSet = BS_BITFIELD(Rank, rankSet);
 
   if (oldRankSet == RankSetEMPTY) {
     if (rankSet != RankSetEMPTY) {
@@ -1427,7 +1427,7 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
   wasShielded = (seg->rankSet != RankSetEMPTY && gcseg->summary != RefSetUNIV);
   willbeShielded = (rankSet != RankSetEMPTY && summary != RefSetUNIV);
 
-  seg->rankSet = rankSet;
+  seg->rankSet = BS_BITFIELD(Rank, rankSet);
   gcseg->summary = summary;
 
   if (willbeShielded && !wasShielded) {
