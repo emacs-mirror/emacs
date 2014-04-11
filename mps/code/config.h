@@ -366,6 +366,8 @@
    pool to be very heavily used. */
 #define CONTROL_EXTEND_BY 4096
 
+#define VM_ARENA_SIZE_DEFAULT ((Size)1 << 20)
+
 
 /* Stack configuration */
 
