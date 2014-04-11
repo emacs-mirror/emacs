@@ -18,3 +18,5 @@ code/*/*/*.d
 *.pyc
 test/test/log
 test/test/obj
+....gcda
+....gcno
