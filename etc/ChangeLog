@@ -1,3 +1,10 @@
+2014-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/cs-dired-ref.tex, refcards/cs-refcard.tex:
+	* refcards/cs-survival.tex, refcards/sk-dired-ref.tex:
+	* refcards/sk-refcard.tex, refcards/sk-survival.tex:
+	Input "utf8off", which seems to be needed.
+
 2014-03-14  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* tutorials/TUTORIAL.de: Adapt to recent changes in TUTORIAL.
