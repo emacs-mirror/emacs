@@ -383,7 +383,7 @@ baz\"\""
   :test-in-code nil
   :test-in-comments t)
 
-(define-electric-pair-test whitespace-skipping-for-quotes-not-ouside
+(define-electric-pair-test whitespace-skipping-for-quotes-not-outside
   "  \"  \"" "\"-----" :expected-string "\"\"  \"  \""
   :expected-point 2
   :bindings '((electric-pair-skip-whitespace . chomp))

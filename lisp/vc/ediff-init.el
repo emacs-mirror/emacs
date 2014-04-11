@@ -707,9 +707,6 @@ shown in brighter colors."
 ;; List of difference overlays disturbed by working with the current diff.
 (defvar ediff-disturbed-overlays nil "")
 
-;; Priority of non-selected overlays.
-(defvar ediff-shadow-overlay-priority  100 "")
-
 (defcustom ediff-version-control-package 'vc
   "Version control package used.
 Currently, Ediff supports vc.el, rcs.el, pcl-cvs.el, and generic-sc.el.  The
@@ -1328,34 +1325,6 @@ this variable represents.")
   "Overlay for the current difference region in buffer C.")
 (ediff-defvar-local ediff-current-diff-overlay-Ancestor nil
   "Overlay for the current difference region in the ancestor buffer.")
-
-;; Compute priority of a current ediff overlay.
-(defun ediff-highest-priority (start end buffer)
-  (let ((pos (max 1 (1- start)))
-	ovr-list)
-    (if (featurep 'xemacs)
-	(1+ ediff-shadow-overlay-priority)
-      (ediff-with-current-buffer buffer
-	(while (< pos (min (point-max) (1+ end)))
-	  (setq ovr-list (append (overlays-at pos) ovr-list))
-	  (setq pos (next-overlay-change pos)))
-	(+ 1 ediff-shadow-overlay-priority
-	   (apply 'max
-		  (cons
-		   1
-		   (mapcar
-		    (lambda (ovr)
-		      (if (and ovr
-			       ;; exclude ediff overlays from priority
-			       ;; calculation, or else priority will keep
-			       ;; increasing
-			       (null (ediff-overlay-get ovr 'ediff))
-			       (null (ediff-overlay-get ovr 'ediff-diff-num)))
-			  ;; use the overlay priority or 0
-			  (or (ediff-overlay-get ovr 'priority) 0)
-			0))
-		    ovr-list))))))))
-
 
 (defvar ediff-toggle-read-only-function 'toggle-read-only
   "Function to be used to toggle read-only status of the buffer.

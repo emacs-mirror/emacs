@@ -50,6 +50,11 @@
 % Slovak hyphenation rules applied
 \shyph
 
+% Without this, pdfTeX 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
+% aborts with: "! UTF-8 INPUT IS CORRUPTED !
+% May be you are using another input encoding"
+\input utf8off
+
 % This file can be printed with 1, 2, or 3 columns per page.
 % Specify how many you want here.
 \newcount\columnsperpage

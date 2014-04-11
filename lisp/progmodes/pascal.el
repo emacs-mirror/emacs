@@ -166,21 +166,19 @@
      (3 font-lock-function-name-face))
     ;; ("type" "const" "real" "integer" "char" "boolean" "var"
     ;;  "record" "array" "file")
-    (,(concat "\\<\\(array\\|boolean\\|c\\(har\\|onst\\)\\|file\\|"
-              "integer\\|re\\(al\\|cord\\)\\|type\\|var\\)\\>")
-     font-lock-type-face)
-    ("\\<\\(label\\|external\\|forward\\)\\>" . font-lock-constant-face)
-    ("\\<\\([0-9]+\\)[ \t]*:" 1 font-lock-function-name-face)
+    (,(concat "\\_<\\(array\\|boolean\\|c\\(har\\|onst\\)\\|file\\|"
+              "integer\\|re\\(al\\|cord\\)\\|type\\|var\\)\\_>")
+     . font-lock-type-face)
+    ("\\_<\\(label\\|external\\|forward\\)\\_>" . font-lock-constant-face)
+    ("\\_<\\([0-9]+\\)[ \t]*:" 1 font-lock-function-name-face)
     ;; ("of" "to" "for" "if" "then" "else" "case" "while"
     ;;  "do" "until" "and" "or" "not" "in" "with" "repeat" "begin" "end")
-    ,(concat "\\<\\("
+    ,(concat "\\_<\\("
              "and\\|begin\\|case\\|do\\|e\\(lse\\|nd\\)\\|for\\|i[fn]\\|"
              "not\\|o[fr]\\|repeat\\|t\\(hen\\|o\\)\\|until\\|w\\(hile\\|ith\\)"
-             "\\)\\>")
-    ("\\<\\(goto\\)\\>[ \t]*\\([0-9]+\\)?"
-     1 font-lock-keyword-face)
-    ("\\<\\(goto\\)\\>[ \t]*\\([0-9]+\\)?"
-     2 font-lock-keyword-face t))
+             "\\)\\_>")
+    ("\\_<\\(goto\\)\\_>[ \t]*\\([0-9]+\\)?"
+     (1 font-lock-keyword-face) (2 font-lock-keyword-face t)))
   "Additional expressions to highlight in Pascal mode.")
 
 (defconst pascal--syntax-propertize

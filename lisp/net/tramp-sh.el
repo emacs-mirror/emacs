@@ -4836,9 +4836,10 @@ Return ATTR."
 	(host (tramp-file-name-real-host vec))
 	(localname (tramp-shell-quote-argument
 		    (tramp-file-name-localname vec))))
-    (if (not (zerop (length user)))
-        (format "%s@%s:%s" user host localname)
-      (format "%s:%s" host localname))))
+    (shell-quote-argument
+     (if (not (zerop (length user)))
+	 (format "%s@%s:%s" user host localname)
+       (format "%s:%s" host localname)))))
 
 (defun tramp-method-out-of-band-p (vec size)
   "Return t if this is an out-of-band method, nil otherwise."

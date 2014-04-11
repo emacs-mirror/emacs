@@ -1,3 +1,11 @@
+2014-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* keyboard.c (Fopen_dribble_file): Make file private.  (Bug#17187)
+
+2014-04-11  Ken Brown  <kbrown@cornell.edu>
+
+	* Makefile.in (EMACS_MANIFEST): Revert last change.
+
 2014-04-10  Daniel Colascione  <dancol@dancol.org>
 
 	* puresize.h (BASE_PURESIZE): Increase.

@@ -1,3 +1,13 @@
+2014-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Do not distribute generated admin/grammars/Makefile.
+	Do distribute lib-src/update-game-score.exe.manifest.
+
+2014-04-11  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.ac (EMACS_MANIFEST): Revert last change (but leave
+	UPDATE_MANIFEST empty).
+
 2014-04-07  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.ac (EMACS_MANIFEST, UPDATE_MANIFEST): Leave these

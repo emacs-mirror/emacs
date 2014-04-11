@@ -1,3 +1,9 @@
+2014-04-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* automated/electric-tests.el: Fix spelling error in test name.
+	(whitespace-skipping-for-quotes-not-outside):
+	Rename from whitespace-skipping-for-quotes-not-ouside.
+
 2014-04-09  Daniel Colascione  <dancol@dancol.org>
 
 	* automated/syntax-tests.el: New file.

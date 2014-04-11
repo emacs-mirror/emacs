@@ -29,6 +29,7 @@ by the GNU General Public License. }
 // Free-pascal style comment.
 var x:Char = 12 /* 45;   // This /* does not start a comment.
 var x:Char = (/ 4);      // This (/ does not start a comment.
+var a_to_b : integer;    // 'to' should not be highlighted
 
 program CRTDemo;
 

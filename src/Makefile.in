@@ -259,7 +259,7 @@ W32_LIBS=@W32_LIBS@
 
 ## emacs.res if HAVE_W32
 EMACSRES = @EMACSRES@
-## emacs-*.manifest if WINDOWSNT
+## emacs-*.manifest if HAVE_W32
 EMACS_MANIFEST = @EMACS_MANIFEST@
 ## If HAVE_W32, compiler arguments for including
 ## the resource file in the binary.

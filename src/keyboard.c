@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include "sysstdio.h"
+#include <sys/stat.h>
 
 #include "lisp.h"
 #include "termchar.h"
@@ -10082,8 +10083,18 @@ This may include sensitive information such as passwords.  */)
     }
   if (!NILP (file))
     {
+      int fd;
       file = Fexpand_file_name (file, Qnil);
-      dribble = emacs_fopen (SSDATA (file), "w");
+      /* This isn't robust, since eg file could be created after we
+         check whether it exists but before emacs_open.
+         Feel free to improve it, but this is not critical.  (Bug#17187)  */
+      if (! NILP (Ffile_exists_p (file)))
+        {
+          if (chmod (SSDATA (file), 0600) < 0)
+            report_file_error ("Doing chmod", file);
+        }
+      fd = emacs_open (SSDATA (file), O_WRONLY | O_CREAT | O_TRUNC, 0600);
+      dribble = fd < 0 ? 0 : fdopen (fd, "w");
       if (dribble == 0)
 	report_file_error ("Opening dribble", file);
     }
