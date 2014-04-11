@@ -1,3 +1,8 @@
+2014-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* term/w32-win.el (x-win-suspend-error):
+	* term/x-win.el (x-win-suspend-error): Sync docs.
+
 2014-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Ediff's overlay priorities cause more trouble than they solve.

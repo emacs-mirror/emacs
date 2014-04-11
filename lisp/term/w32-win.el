@@ -206,7 +206,8 @@ European languages which are distributed with Windows as
 See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 (defun x-win-suspend-error ()
-  "Report an error when a suspend is attempted."
+  "Report an error when a suspend is attempted.
+This returns an error if any Emacs frames are X frames, or always under W32."
   (error "Suspending an Emacs running under W32 makes no sense"))
 
 (defvar dynamic-library-alist)
