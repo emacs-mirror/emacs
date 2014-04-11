@@ -99,11 +99,7 @@ static void test_main(int interior, int stack)
   mps_root_t reg_root = NULL;
   void *marker = &marker;
 
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 1 << 20);
-    MPS_ARGS_DONE(args);
-    res = mps_arena_create_k(&scheme_arena, mps_arena_class_vm(), args);
-  } MPS_ARGS_END(args);
+  res = mps_arena_create_k(&scheme_arena, mps_arena_class_vm(), mps_args_none);
   if (res != MPS_RES_OK) error("Couldn't create arena");
 
   res = mps_chain_create(&obj_chain, scheme_arena,

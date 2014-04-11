@@ -4,12 +4,14 @@
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
+#include "mps.h"
+#include "mpsavm.h"
+#include "mpscmfs.h"
 #include "mpm.h"
 #include "testlib.h"
 #include "testthr.h"
 
 #include <stdio.h> /* printf */
-#include <stdlib.h> /* malloc */
 
 
 #define nTHREADS 4
@@ -63,12 +65,23 @@ static void *thread0(void *p)
 
 int main(int argc, char *argv[])
 {
+  mps_arena_t arena;
+  mps_pool_t pool;
+  mps_addr_t p;
   testthr_t t[10];
   unsigned i;
 
   testlib_init(argc, argv);
 
-  lock = malloc(LockSize());
+  die(mps_arena_create_k(&arena, mps_arena_class_vm(), mps_args_none),
+      "arena_create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_MFS_UNIT_SIZE, LockSize());
+    die(mps_pool_create_k(&pool, arena, mps_class_mfs(), args), "pool_create");
+  } MPS_ARGS_END(args);
+
+  die(mps_alloc(&p, pool, LockSize()), "alloc");
+  lock = p;
   Insist(lock != NULL);
 
   LockInit(lock);
@@ -85,6 +98,10 @@ int main(int argc, char *argv[])
   Insist(shared == nTHREADS*COUNT);
 
   LockFinish(lock);
+
+  mps_free(pool, lock, LockSize());
+  mps_pool_destroy(pool);
+  mps_arena_destroy(arena);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
