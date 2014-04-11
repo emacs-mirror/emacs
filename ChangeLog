@@ -1,6 +1,7 @@
 2014-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Do not distribute generated admin/grammars/Makefile.
+	Do distribute lib-src/update-game-score.exe.manifest.
 
 2014-04-09  Ken Brown  <kbrown@cornell.edu>
 
