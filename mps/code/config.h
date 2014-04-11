@@ -231,6 +231,16 @@
 #define ATTRIBUTE_NO_SANITIZE_ADDRESS
 #endif
 
+/* Attribute for functions that do not return.
+ * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html>
+ * Clang: <http://clang.llvm.org/docs/AttributeReference.html#id1>
+ */
+#if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
+#define ATTRIBUTE_NORETURN __attribute__((__noreturn__))
+#else
+#define ATTRIBUTE_NORETURN
+#endif
+
 
 /* EPVMDefaultSubsequentSegSIZE is a default for the alignment of
  * subsequent segments (non-initial at each save level) in EPVM.  See
