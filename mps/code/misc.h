@@ -50,6 +50,7 @@ typedef const struct SrcIdStruct {
 #define SRCID(id, scmid) \
   static SrcIdStruct id ## FileSrcIdStruct = \
   {__FILE__, (scmid), __DATE__, __TIME__}; \
+  extern SrcId id ## SrcId; \
   SrcId id ## SrcId = &id ## FileSrcIdStruct
 
 

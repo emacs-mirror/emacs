@@ -171,7 +171,7 @@ static double parseDouble(char **pInOut)
 
 #define MAX_STRING_LENGTH 1024
 
-char strBuf[MAX_STRING_LENGTH];
+static char strBuf[MAX_STRING_LENGTH];
 
 static char *parseString(char **pInOut)
 {

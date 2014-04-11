@@ -44,13 +44,13 @@ char EventBuffer[EventKindLIMIT][EventBufferSIZE];
 char *EventLast[EventKindLIMIT];
 
 /* Pointers to the last even written out of each buffer. */
-char *EventWritten[EventKindLIMIT];
+static char *EventWritten[EventKindLIMIT];
 
 EventControlSet EventKindControl;       /* Bit set used to control output. */
 
 
 /* A single event structure output once per buffer flush. */
-EventEventClockSyncStruct eventClockSyncStruct;
+static EventEventClockSyncStruct eventClockSyncStruct;
 
 
 /* eventClockSync -- Populate and write the clock sync event. */
