@@ -791,6 +791,21 @@ with L, LRE, or LRO Unicode bidi character type.")
     (modify-category-entry (+ c 26) ?l)
     (setq c (1+ c)))
 
+  ;; Coptic
+  (let ((pair-ranges '((#x2C80 . #x2CE2)
+		       (#x2CEB . #x2CF2))))
+    (dolist (elt pair-ranges)
+      (let ((from (car elt)) (to (cdr elt)))
+	(while (< from to)
+	  (set-case-syntax-pair from (1+ from) tbl)
+	  ;; There's no Coptic category.  However, Coptic letters that
+	  ;; are part of the Greek block above get the Greek category,
+	  ;; and those in this block are derived from Greek letters,
+	  ;; so let's be consistent about their category.
+	  (modify-category-entry from ?g)
+	  (modify-category-entry (1+ from) ?g)
+	  (setq from (+ from 2))))))
+
   ;; Fullwidth Latin
   (setq c #xff21)
   (while (<= c #xff3a)

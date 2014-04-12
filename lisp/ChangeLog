@@ -1,3 +1,8 @@
+2014-04-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/characters.el <standard-case-table>: Add entries
+	for letters from the Coptic block u+2C80-u+2CFF.  (Bug#17243)
+
 2014-04-12  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (completion-table-with-cache): Define if not
