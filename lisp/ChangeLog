@@ -2,6 +2,7 @@
 
 	* international/characters.el <standard-case-table>: Add entries
 	for letters from the Coptic block u+2C80-u+2CFF.  (Bug#17243)
+	Set category of Coptic characters be 'g' (Greek).
 
 2014-04-12  Leo Liu  <sdl.web@gmail.com>
 

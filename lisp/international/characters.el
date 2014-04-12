@@ -798,13 +798,12 @@ with L, LRE, or LRO Unicode bidi character type.")
       (let ((from (car elt)) (to (cdr elt)))
 	(while (< from to)
 	  (set-case-syntax-pair from (1+ from) tbl)
-	  ;; There's no Coptic category.  However, Coptic letters that
-	  ;; are part of the Greek block above get the Greek category,
-	  ;; and those in this block are derived from Greek letters,
-	  ;; so let's be consistent about their category.
-	  (modify-category-entry from ?g)
-	  (modify-category-entry (1+ from) ?g)
 	  (setq from (+ from 2))))))
+  ;; There's no Coptic category.  However, Coptic letters that are
+  ;; part of the Greek block above get the Greek category, and those
+  ;; in this block are derived from Greek letters, so let's be
+  ;; consistent about their category.
+  (modify-category-entry '(#x2C80 . #x2CFF) ?g)
 
   ;; Fullwidth Latin
   (setq c #xff21)
