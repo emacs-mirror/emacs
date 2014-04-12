@@ -5353,11 +5353,6 @@ utime (const char *name, struct utimbuf *times)
   return 0;
 }
 
-/* Emacs expects us to support the traditional octal form of the mode
-   bits, which is not what msvcrt.dll wants.  */
-
-#define WRITE_USER 00200
-
 int
 sys_umask (int mode)
 {
@@ -5369,14 +5364,14 @@ sys_umask (int mode)
      at all.  */
   /* FIXME: if the GROUP and OTHER bits are reset, we should use ACLs
      to prevent access by other users on NTFS.  */
-  if ((mode & WRITE_USER) != 0)
+  if ((mode & S_IWRITE) != 0)
     arg |= S_IWRITE;
 
   retval = _umask (arg);
   /* Merge into the return value the bits they've set the last time,
      which msvcrt.dll ignores and never returns.  Emacs insists on its
      notion of mask being identical to what we return.  */
-  retval |= (current_mask & ~WRITE_USER);
+  retval |= (current_mask & ~S_IWRITE);
   current_mask = mode;
 
   return retval;

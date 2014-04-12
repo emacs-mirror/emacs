@@ -9511,6 +9511,7 @@ move_it_by_lines (struct it *it, ptrdiff_t dvpos)
       ptrdiff_t start_charpos, i;
       int nchars_per_row
 	= (it->last_visible_x - it->first_visible_x) / FRAME_COLUMN_WIDTH (it->f);
+      bool hit_pos_limit = false;
       ptrdiff_t pos_limit;
 
       /* Start at the beginning of the screen line containing IT's
@@ -9527,8 +9528,11 @@ move_it_by_lines (struct it *it, ptrdiff_t dvpos)
 	pos_limit = BEGV;
       else
 	pos_limit = max (start_charpos + dvpos * nchars_per_row, BEGV);
+
       for (i = -dvpos; i > 0 && IT_CHARPOS (*it) > pos_limit; --i)
 	back_to_previous_visible_line_start (it);
+      if (i > 0 && IT_CHARPOS (*it) <= pos_limit)
+	hit_pos_limit = true;
       reseat (it, it->current.pos, 1);
 
       /* Move further back if we end up in a string or an image.  */
@@ -9571,6 +9575,25 @@ move_it_by_lines (struct it *it, ptrdiff_t dvpos)
 	    RESTORE_IT (it, &it2, it2data);
 	  else
 	    bidi_unshelve_cache (it2data, 1);
+	}
+      else if (hit_pos_limit && pos_limit > BEGV
+	       && dvpos < 0 && it2.vpos < -dvpos)
+	{
+	  /* If we hit the limit, but still didn't make it far enough
+	     back, that means there's a display string with a newline
+	     covering a large chunk of text, and that caused
+	     back_to_previous_visible_line_start try to go too far.
+	     Punish those who commit such atrocities by going back
+	     until we've reached DVPOS, after lifting the limit, which
+	     could make it slow for very long lines.  "If it hurts,
+	     don't do that!"  */
+	  dvpos += it2.vpos;
+	  RESTORE_IT (it, it, it2data);
+	  for (i = -dvpos; i > 0; --i)
+	    {
+	      back_to_previous_visible_line_start (it);
+	      it->vpos--;
+	    }
 	}
       else
 	RESTORE_IT (it, it, it2data);

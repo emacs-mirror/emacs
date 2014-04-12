@@ -40,7 +40,19 @@
   (unless (fboundp 'user-error)
     (defalias 'user-error 'error))
   (unless (fboundp 'delete-consecutive-dups)
-    (defalias 'delete-consecutive-dups 'delete-dups)))
+    (defalias 'delete-consecutive-dups 'delete-dups))
+  (unless (fboundp 'completion-table-with-cache)
+    (defun completion-table-with-cache (fun &optional ignore-case)
+      ;; See eg bug#11906.
+      (let* (last-arg last-result
+                      (new-fun
+                       (lambda (arg)
+                         (if (and last-arg (string-prefix-p last-arg arg ignore-case))
+                             last-result
+                           (prog1
+                               (setq last-result (funcall fun arg))
+                             (setq last-arg arg))))))
+        (completion-table-dynamic new-fun)))))
 (eval-when-compile
   (unless (fboundp 'setq-local)
     (defmacro setq-local (var val)
@@ -1048,8 +1060,8 @@ directory and makes this the current buffer's default directory."
              (unless found (goto-char orig))
              found))))
     (pcase (and buffer-file-name (file-name-extension buffer-file-name))
-      ("cc" (funcall search
-                     "\\_<DEFUN\\(?:_DLD\\)?\\s-*(\\s-*\\(\\(?:\\sw\\|\\s_\\)+\\)" 1))
+      (`"cc" (funcall search
+                      "\\_<DEFUN\\(?:_DLD\\)?\\s-*(\\s-*\\(\\(?:\\sw\\|\\s_\\)+\\)" 1))
       (t (funcall search octave-function-header-regexp 3)))))
 
 (defun octave-function-file-p ()
@@ -1118,19 +1130,19 @@ q: Don't fix\n" func file))
                       (read-char-choice
                        "Which name to use? (a/b/q) " '(?a ?b ?q))))))
           (pcase c
-            (?a (let ((newname (expand-file-name
-                                (concat func (file-name-extension
-                                              buffer-file-name t)))))
-                  (when (or (not (file-exists-p newname))
-                            (yes-or-no-p
-                             (format "Target file %s exists; proceed? " newname)))
-                    (when (file-exists-p buffer-file-name)
-                      (rename-file buffer-file-name newname t))
-                    (set-visited-file-name newname))))
-            (?b (save-excursion
-                  (goto-char name-start)
-                  (delete-region name-start name-end)
-                  (insert file)))))))))
+            (`?a (let ((newname (expand-file-name
+                                 (concat func (file-name-extension
+                                               buffer-file-name t)))))
+                   (when (or (not (file-exists-p newname))
+                             (yes-or-no-p
+                              (format "Target file %s exists; proceed? " newname)))
+                     (when (file-exists-p buffer-file-name)
+                       (rename-file buffer-file-name newname t))
+                     (set-visited-file-name newname))))
+            (`?b (save-excursion
+                   (goto-char name-start)
+                   (delete-region name-start name-end)
+                   (insert file)))))))))
 
 (defun octave-update-function-file-comment (beg end)
   "Query replace function names in function file comment."
@@ -1789,19 +1801,19 @@ If the environment variable OCTAVE_SRCDIR is set, it is searched first."
 (defun octave-find-definition-default-filename (name)
   "Default value for `octave-find-definition-filename-function'."
   (pcase (file-name-extension name)
-    ("oct"
+    (`"oct"
      (octave-find-definition-default-filename
       (concat "libinterp/dldfcn/"
               (file-name-sans-extension (file-name-nondirectory name))
               ".cc")))
-    ("cc"
+    (`"cc"
      (let ((file (or (locate-file name (octave-source-directories))
                      (locate-file (file-name-nondirectory name)
                                   (octave-source-directories)))))
        (or (and file (file-exists-p file))
            (error "File `%s' not found" name))
        file))
-    ("mex"
+    (`"mex"
      (if (yes-or-no-p (format "File `%s' may be binary; open? "
                               (file-name-nondirectory name)))
          name

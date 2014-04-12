@@ -1,3 +1,16 @@
+2014-04-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_by_lines): If a large portion of buffer text is
+	covered by a display string that ends in a newline, and that cases
+	going back by DVPOS lines to hit the search limit, lift the limit
+	and go back until DVPOS is reached.  (Bug#17244)
+
+	* indent.c (Fvertical_motion): Handle correctly the case when the
+	display string is preceded by an empty line.
+
+	* w32.c (sys_umask) <WRITE_USER>: Remove redundant constant, and
+	use S_IWRITE instead.
+
 2014-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* keyboard.c (Fopen_dribble_file): Make file private.  (Bug#17187)

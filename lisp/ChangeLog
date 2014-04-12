@@ -1,3 +1,27 @@
+2014-04-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/characters.el <standard-case-table>: Add entries
+	for letters from the Coptic block u+2C80-u+2CFF.  (Bug#17243)
+	Set category of Coptic characters be 'g' (Greek).
+
+2014-04-12  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (completion-table-with-cache):
+	Define if not available.
+	(octave-goto-function-definition, octave-sync-function-file-names)
+	(octave-find-definition-default-filename):
+	Backquote upattern for compatibility.
+
+2014-04-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-file-truename): Quote the file
+	name twice due to backticks.  (Bug#17238)
+
+2014-04-12  Glenn Morris  <rgm@gnu.org>
+
+	* term/w32-win.el (x-win-suspend-error):
+	* term/x-win.el (x-win-suspend-error): Sync docs.
+
 2014-04-12  Matthias Dahl  <matthias.dahl@binary-island.eu>
 
 	* faces.el (make-face): Remove deprecated optional argument. The
