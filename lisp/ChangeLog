@@ -123,7 +123,7 @@
 
 	* help.el (view-lossage): Doc tweak.
 
-2014-04-05  Matthias Dahl  <ml_emacs-lists@binary-island.eu>
+2014-04-05  Matthias Dahl  <matthias.dahl@binary-island.eu>
 
 	* faces.el (face-spec-recalc): Call make-face-x-resource-internal
 	only when inhibit-x-resources is nil, and do that earlier in the
