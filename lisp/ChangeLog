@@ -1,3 +1,10 @@
+2014-04-12  Matthias Dahl  <matthias.dahl@binary-island.eu>
+
+	* faces.el (make-face): Deprecate optional argument as it is no
+	longer needed/used since the conditional X resources handling
+	has been pushed down to make-face-x-resource-internal itself.
+	(make-empty-face): Don't pass optional argument to make-face.
+
 2014-04-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/characters.el <standard-case-table>: Add entries

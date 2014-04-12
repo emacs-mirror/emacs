@@ -133,9 +133,11 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
   "Define a new face with name FACE, a symbol.
 Do not call this directly from Lisp code; use `defface' instead.
 
-If NO-INIT-FROM-RESOURCES is non-nil, don't initialize face
-attributes from X resources.  If FACE is already known as a face,
-leave it unmodified.  Return FACE."
+If FACE is already known as a face, leave it unmodified.  Return FACE.
+
+NO-INIT-FROM-RESOURCES has been deprecated and is no longer used
+and will go away.  Handling of conditional X resources application
+has been pushed down to make-x-resource-internal itself."
   (interactive (list (read-from-minibuffer
 		      "Make face: " nil nil t 'face-name-history)))
   (unless (facep face)
@@ -146,16 +148,20 @@ leave it unmodified.  Return FACE."
     (when (fboundp 'facemenu-add-new-face)
       (facemenu-add-new-face face))
     ;; Define frame-local faces for all frames from X resources.
-    (unless no-init-from-resources
-      (make-face-x-resource-internal face)))
+    (make-face-x-resource-internal face))
   face)
+
+;; Handling of whether to apply X resources or not, has been pushed down
+;; to make-face-x-resource-internal itself, thus the optional arg is no
+;; longer evaluated at all and going away.
+(set-advertised-calling-convention 'make-face '(face) "24.4")
 
 (defun make-empty-face (face)
   "Define a new, empty face with name FACE.
 Do not call this directly from Lisp code; use `defface' instead."
   (interactive (list (read-from-minibuffer
 		      "Make empty face: " nil nil t 'face-name-history)))
-  (make-face face 'no-init-from-resources))
+  (make-face face))
 
 (defun copy-face (old-face new-face &optional frame new-frame)
   "Define a face named NEW-FACE, which is a copy of OLD-FACE.
