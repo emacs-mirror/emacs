@@ -32,6 +32,7 @@
 #include "mps.h"
 #include "mpsavm.h"
 #include "mpscmvff.h"
+#include "check.h"
 #include "config.h"
 #include "eventdef.h"
 #include "eventcom.h"
@@ -294,14 +295,14 @@ static size_t labelFind(LabelList list, ulongest_t clock)
   size_t low = 0, high = list->n;
   while (low < high) {
     size_t mid = (low + high) / 2;
-    assert(0 <= mid && mid < list->n);
+    assert(NONNEGATIVE(mid) && mid < list->n);
     if (list->labels[mid].clock > clock) {
       high = mid;
     } else {
       low = mid + 1;
     }
   }
-  assert(0 <= low && low <= list->n);
+  assert(NONNEGATIVE(low) && low <= list->n);
   assert(low == list->n || list->labels[low].clock > clock);
   return low;
 }
@@ -393,8 +394,8 @@ static void printAddr(ulongest_t clock, ulongest_t addr, const char *ident)
     LabelList list = tmp;
     size_t pos = labelFind(list, clock);
     if (pos > 0) {
-      putchar('[');
       ulongest_t id = list->labels[pos - 1].id;
+      putchar('[');
       if (TableLookup(&tmp, internTable, id))
         printStr((char *)tmp);
       else
