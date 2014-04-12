@@ -422,7 +422,7 @@ void EventDump(mps_lib_FILE *stream)
 
   for (kind = 0; kind < EventKindLIMIT; ++kind) {
     for (event = (Event)EventLast[kind];
-         event < (Event)(EventBuffer[kind] + EventBufferSIZE);
+         (char *)event < EventBuffer[kind] + EventBufferSIZE;
          event = (Event)((char *)event + event->any.size)) {
       /* Try to keep going even if there's an error, because this is used as a
          backtrace and we'll take what we can get. */
