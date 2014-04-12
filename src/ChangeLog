@@ -1,3 +1,7 @@
+2014-04-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c (Fopen_dribble_file): Avoid some races.  (Bug#17187)
+
 2014-04-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_by_lines): If a large portion of buffer text is
