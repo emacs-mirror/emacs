@@ -1,3 +1,12 @@
+2014-04-12  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (completion-table-with-cache): Define if not
+	available.
+	(octave-goto-function-definition)
+	(octave-sync-function-file-names)
+	(octave-find-definition-default-filename): Backquote upattern for
+	compatibility.
+
 2014-04-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-file-truename): Quote the file
