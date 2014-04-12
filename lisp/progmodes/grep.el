@@ -1,4 +1,4 @@
-;;; grep.el --- run `grep' and display the results
+;;; grep.el --- run `grep' and display the results  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1985-1987, 1993-1999, 2001-2014 Free Software
 ;; Foundation, Inc.
@@ -805,16 +805,20 @@ substitution string.  Note dynamic scoping of variables.")
 
 (defun grep-expand-template (template &optional regexp files dir excl)
   "Patch grep COMMAND string replacing <C>, <D>, <F>, <R>, and <X>."
-  (let ((command template)
-	(cf case-fold-search)
-	(case-fold-search nil))
+  (let* ((command template)
+         (env `((cf . ,case-fold-search)
+                (excl . ,excl)
+                (dir . ,dir)
+                (files . ,files)
+                (regexp . ,regexp)))
+         (case-fold-search nil))
     (dolist (kw grep-expand-keywords command)
       (if (string-match (car kw) command)
 	  (setq command
 		(replace-match
 		 (or (if (symbolp (cdr kw))
-			 (symbol-value (cdr kw))
-		       (save-match-data (eval (cdr kw))))
+			 (eval (cdr kw) env)
+		       (save-match-data (eval (cdr kw) env)))
 		     "")
 		 t t command))))))
 
@@ -1055,7 +1059,7 @@ to specify a command to run."
 	      (setq default-directory dir)))))))
 
 ;;;###autoload
-(defun zrgrep (regexp &optional files dir confirm grep-find-template)
+(defun zrgrep (regexp &optional files dir confirm template)
   "Recursively grep for REGEXP in gzipped FILES in tree rooted at DIR.
 Like `rgrep' but uses `zgrep' for `grep-program', sets the default
 file name to `*.gz', and sets `grep-highlight-matches' to `always'."
@@ -1090,10 +1094,8 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
 	     (list regexp files dir confirm grep-find-template)))))))
   ;; Set `grep-highlight-matches' to `always'
   ;; since `zgrep' puts filters in the grep output.
-  (let ((grep-highlight-matches 'always))
-    ;; `rgrep' uses the dynamically bound value `grep-find-template'
-    ;; from the argument `grep-find-template' whose value is computed
-    ;; in the `interactive' spec.
+  (let ((grep-find-template template)
+        (grep-highlight-matches 'always))
     (rgrep regexp files dir confirm)))
 
 ;;;###autoload

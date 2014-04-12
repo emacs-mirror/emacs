@@ -1,5 +1,9 @@
 2014-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/grep.el: Use lexical-binding.
+	(grep-expand-template): Pass explicit lexical env to `eval'.
+	(zrgrep): Let-bind grep-find-template explicitly.
+
 	* emacs-lisp/cl-lib.el (current-case-table): Remove setter.
 	* leim/quail/sisheng.el (sisheng-list): Use with-case-table.
 
@@ -29,8 +33,8 @@
 
 2014-04-12  Matthias Dahl  <matthias.dahl@binary-island.eu>
 
-	* faces.el (make-face): Remove deprecated optional argument. The
-	conditional application of X resources is handled directly by
+	* faces.el (make-face): Remove deprecated optional argument.
+	The conditional application of X resources is handled directly by
 	make-face-x-resource-internal since Emacs 24.4.
 	(make-empty-face): Don't pass optional argument to make-face.
 
