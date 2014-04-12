@@ -1,3 +1,10 @@
+2014-04-12  Matthias Dahl  <matthias.dahl@binary-island.eu>
+
+	* faces.el (make-face): Remove deprecated optional argument. The
+	conditional application of X resources is handled directly by
+	make-face-x-resource-internal since Emacs 24.4.
+	(make-empty-face): Don't pass optional argument to make-face.
+
 2014-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (EMACSDATA, EMACSDOC, EMACSPATH): Unexport.  (Bug#16429)
