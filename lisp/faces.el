@@ -172,7 +172,7 @@ If FACE is already known as a face, leave it unmodified.  Return FACE."
 Do not call this directly from Lisp code; use `defface' instead."
   (interactive (list (read-from-minibuffer
 		      "Make empty face: " nil nil t 'face-name-history)))
-  (make-face face)
+  (make-face face))
 
 (defun copy-face (old-face new-face &optional frame new-frame)
   "Define a face named NEW-FACE, which is a copy of OLD-FACE.
