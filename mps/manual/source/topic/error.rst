@@ -232,7 +232,7 @@ assertion that is listed here but for which you discovered a different
 cause), please :ref:`let us know <contact>` so that we can improve
 this documentation.
 
-``arenavm.c: BTIsResRange(vmChunk->pageTableMapped, 0, chunk->pageTablePages)``
+``sa.c: BTIsResRange(sa->mapped, 0, sa->length)``
 
     The client program called :c:func:`mps_arena_destroy` without
     having destroyed all pools in that arena first. (The assertion is
@@ -281,14 +281,6 @@ this documentation.
     The client program called :c:func:`mps_alloc` on a pool that does
     not support this form of allocation. Use an :term:`allocation
     point` instead.
-
-
-``poolams.c: !AMS_IS_INVALID_COLOUR(seg, i)``
-
-    The client program failed to :term:`fix` a reference to an object
-    in an :ref:`pool-ams` pool, violating the :term:`tri-colour
-    invariant` that the MPS depends on for the correctness of its
-    :term:`incremental garbage collection`.
 
 
 ``poolams.c: AMS_ALLOCED(seg, i)``
