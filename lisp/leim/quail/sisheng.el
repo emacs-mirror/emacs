@@ -249,42 +249,40 @@ Example:  nve5    -> nüe
 
 ;; Call quail-make-sisheng-rules for all syllables in sisheng-syllable-table.
 ;;
-(let ((case-table-save (current-case-table))
-      sisheng-list)
-  (set-case-table (standard-case-table))
-  (dolist (syllable sisheng-syllable-table)
-    (setq sisheng-list
-	  (append (quail-make-sisheng-rules syllable)
-		  sisheng-list)))
+(let (sisheng-list)
+  (with-case-table (standard-case-table) ;FIXME: Why?
+    (dolist (syllable sisheng-syllable-table)
+      (setq sisheng-list
+            (append (quail-make-sisheng-rules syllable)
+                    sisheng-list)))
 
-  (dolist (syllable sisheng-syllable-table)
-    (setq sisheng-list
-	  (append (quail-make-sisheng-rules (upcase-initials syllable))
-		  sisheng-list)))
+    (dolist (syllable sisheng-syllable-table)
+      (setq sisheng-list
+            (append (quail-make-sisheng-rules (upcase-initials syllable))
+                    sisheng-list)))
 
-  (dolist (syllable sisheng-syllable-table)
-    (setq sisheng-list
-	  (append (quail-make-sisheng-rules (upcase syllable))
-		  sisheng-list)))
+    (dolist (syllable sisheng-syllable-table)
+      (setq sisheng-list
+            (append (quail-make-sisheng-rules (upcase syllable))
+                    sisheng-list)))
 
-  (eval `(quail-define-rules
-	  ,@sisheng-list
+    (eval `(quail-define-rules
+            ,@sisheng-list
 
-	  ("lv5" ["lü"])
-	  ("lve5" ["lüe"])
-	  ("nv5" ["nü"])
-	  ("nve5" ["nüe"])
+            ("lv5" ["lü"])
+            ("lve5" ["lüe"])
+            ("nv5" ["nü"])
+            ("nve5" ["nüe"])
 
-	  ("Lv5" ["Lü"])
-	  ("Lve5" ["Lüe"])
-	  ("Nv5" ["Nü"])
-	  ("Nve5" ["Nüe"])
+            ("Lv5" ["Lü"])
+            ("Lve5" ["Lüe"])
+            ("Nv5" ["Nü"])
+            ("Nve5" ["Nüe"])
 
-	  ("LV5" ["LÜ"])
-	  ("LVE5" ["LÜE"])
-	  ("NV5" ["NÜ"])
-	  ("NVE5" ["NÜE"])))
-  (set-case-table case-table-save))
+            ("LV5" ["LÜ"])
+            ("LVE5" ["LÜE"])
+            ("NV5" ["NÜ"])
+            ("NVE5" ["NÜE"])))))
 
 ;; Local Variables:
 ;; coding: utf-8

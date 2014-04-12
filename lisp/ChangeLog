@@ -1,3 +1,8 @@
+2014-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-lib.el (current-case-table): Remove setter.
+	* leim/quail/sisheng.el (sisheng-list): Use with-case-table.
+
 2014-04-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/characters.el <standard-case-table>: Add entries

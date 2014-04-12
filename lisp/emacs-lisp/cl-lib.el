@@ -625,7 +625,6 @@ If ALIST is non-nil, the new pairs are prepended to it."
   `(insert (prog1 ,store (erase-buffer))))
 (gv-define-simple-setter buffer-substring cl--set-buffer-substring)
 (gv-define-simple-setter current-buffer set-buffer)
-(gv-define-simple-setter current-case-table set-case-table)
 (gv-define-simple-setter current-column move-to-column t)
 (gv-define-simple-setter current-global-map use-global-map t)
 (gv-define-setter current-input-mode (store)
