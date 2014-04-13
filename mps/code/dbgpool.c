@@ -123,8 +123,11 @@ Bool PoolDebugOptionsCheck(PoolDebugOptions opt)
 
 ARG_DEFINE_KEY(pool_debug_options, PoolDebugOptions);
 
+static char debugFencepostTemplate[4] = {'P', 'O', 'S', 'T'};
+static char debugFreeTemplate[4] = {'D', 'E', 'A', 'D'};
+
 static PoolDebugOptionsStruct debugPoolOptionsDefault = {
-  (void *)"POST", 4, (void *)"DEAD", 4,
+  debugFencepostTemplate, 4, debugFreeTemplate, 4,
 };
 
 static Res DebugPoolInit(Pool pool, ArgList args)
