@@ -1,3 +1,8 @@
+2014-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bytecode.c (exec_byte_code): Rework the volatiles.  Most importantly,
+	make sure stack.byte_string_start is not de-adjusted by pushhandler.
+
 2014-04-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* keyboard.c (Fopen_dribble_file): Avoid some races.  (Bug#17187)
