@@ -1,3 +1,9 @@
+2014-04-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.el (blink-cursor-blinks, blink-cursor-blinks-done): Doc fixes.
+	(blink-cursor-mode): Mention customization variables and the
+	effect of 'blink-cursor-blinks'.
+
 2014-04-12  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	* simple.el (undo): Prevent insertion of identity mapping into

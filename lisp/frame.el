@@ -1722,14 +1722,14 @@ left untouched.  FRAME nil or omitted means use the selected frame."
   :group 'cursor)
 
 (defcustom blink-cursor-blinks 10
-  "How many times to blink before using a solid cursor on NS and X.
+  "How many times to blink before using a solid cursor on NS, X, and MS-Windows.
 Use 0 or negative value to blink forever."
   :version "24.4"
   :type 'integer
   :group 'cursor)
 
 (defvar blink-cursor-blinks-done 1
-  "Number of blinks done since we started blinking on NS and X")
+  "Number of blinks done since we started blinking on NS, X, and MS-Windows.")
 
 (defvar blink-cursor-idle-timer nil
   "Timer started after `blink-cursor-delay' seconds of Emacs idle time.
@@ -1806,6 +1806,12 @@ This is done when a frame gets focus.  Blink timers may be stopped by
 With a prefix argument ARG, enable Blink Cursor mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
 the mode if ARG is omitted or nil.
+
+If the value of `blink-cursor-blinks' is positive (10 by default),
+the cursor stops blinking after that number of blinks, if Emacs
+gets no input during that time.
+
+See also `blink-cursor-interval' and `blink-cursor-delay'.
 
 This command is effective only on graphical frames.  On text-only
 terminals, cursor blinking is controlled by the terminal."

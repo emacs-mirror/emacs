@@ -1482,18 +1482,27 @@ pixels tall), or @code{nil} (no cursor at all).
 @vindex blink-cursor-mode
 @vindex blink-cursor-blinks
 @vindex blink-cursor-alist
-  By default, the cursor stops blinking after 10 blinks.  This can be
-changed by customizing the variable @code{blink-cursor-blinks}.  To
-disable cursor blinking altogether, change the variable
-@code{blink-cursor-mode} to @code{nil} (@pxref{Easy Customization}),
-or add the line @code{(blink-cursor-mode 0)} to your init file.
-Alternatively, you can change how the cursor looks when it ``blinks
-off'' by customizing the list variable @code{blink-cursor-alist}.
-Each element in the list should have the form @code{(@var{on-type}
-. @var{off-type})}; this means that if the cursor is displayed as
-@var{on-type} when it blinks on (where @var{on-type} is one of the
-cursor types described above), then it is displayed as @var{off-type}
-when it blinks off.
+  By default, the cursor stops blinking after 10 blinks, if Emacs does
+not get any input during that time; any input event restarts the
+count.  You can customize the variable @code{blink-cursor-blinks} to
+control that: its value says how many times to blink without input
+before stopping.  Setting that variable to a zero or negative value
+will make the cursor blink forever.  To disable cursor blinking
+altogether, change the variable @code{blink-cursor-mode} to @code{nil}
+(@pxref{Easy Customization}), or add the line
+
+@lisp
+  (blink-cursor-mode 0)
+@end lisp
+
+@noindent
+to your init file.  Alternatively, you can change how the cursor
+looks when it ``blinks off'' by customizing the list variable
+@code{blink-cursor-alist}.  Each element in the list should have the
+form @code{(@var{on-type} . @var{off-type})}; this means that if the
+cursor is displayed as @var{on-type} when it blinks on (where
+@var{on-type} is one of the cursor types described above), then it is
+displayed as @var{off-type} when it blinks off.
 
 @vindex x-stretch-cursor
 @cindex wide block cursor
