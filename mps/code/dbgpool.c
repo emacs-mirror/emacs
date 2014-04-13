@@ -123,10 +123,14 @@ Bool PoolDebugOptionsCheck(PoolDebugOptions opt)
 
 ARG_DEFINE_KEY(pool_debug_options, PoolDebugOptions);
 
+static PoolDebugOptionsStruct debugPoolOptionsDefault = {
+  (void *)"POST", 4, (void *)"DEAD", 4,
+};
+
 static Res DebugPoolInit(Pool pool, ArgList args)
 {
   Res res;
-  PoolDebugOptions options;
+  PoolDebugOptions options = &debugPoolOptionsDefault;
   PoolDebugMixin debug;
   TagInitMethod tagInit;
   Size tagSize;
@@ -134,10 +138,8 @@ static Res DebugPoolInit(Pool pool, ArgList args)
 
   AVERT(Pool, pool);
 
-  /* TODO: Split this structure into separate keyword arguments,
-     now that we can support them. */
-  ArgRequire(&arg, args, MPS_KEY_POOL_DEBUG_OPTIONS);
-  options = (PoolDebugOptions)arg.val.pool_debug_options;
+  if (ArgPick(&arg, args, MPS_KEY_POOL_DEBUG_OPTIONS))
+    options = (PoolDebugOptions)arg.val.pool_debug_options;
   
   AVERT(PoolDebugOptions, options);
 
@@ -230,7 +232,7 @@ static void DebugPoolFinish(Pool pool)
  * Keep in sync with patternCheck.
  */
 
-static void patternCopy(const void *pattern, Size size, Addr base, Addr limit)
+static void patternCopy(Addr pattern, Size size, Addr base, Addr limit)
 {
   Addr p;
 
@@ -239,7 +241,8 @@ static void patternCopy(const void *pattern, Size size, Addr base, Addr limit)
   AVER(base != NULL);
   AVER(base <= limit);
 
-  for (p = base; p < limit; ) {
+  p = base;
+  while (p < limit) {
     Addr end = AddrAdd(p, size);
     Addr rounded = AddrRoundUp(p, size);
     Size offset = (Word)p % size;
@@ -252,12 +255,12 @@ static void patternCopy(const void *pattern, Size size, Addr base, Addr limit)
       p = end;
     } else if (p < rounded && rounded <= end && rounded <= limit) {
       /* Copy up to rounded */
-      (void)AddrCopy(p, (const char *)pattern + offset, AddrOffset(p, rounded));
+      (void)AddrCopy(p, (char *)pattern + offset, AddrOffset(p, rounded));
       p = rounded;
     } else {
       /* Copy up to limit */
       AVER(limit <= end && (p == rounded || limit <= rounded));
-      (void)AddrCopy(p, (const char *)pattern + offset, AddrOffset(p, limit));
+      (void)AddrCopy(p, (char *)pattern + offset, AddrOffset(p, limit));
       p = limit;
     }
   }
@@ -273,7 +276,7 @@ static void patternCopy(const void *pattern, Size size, Addr base, Addr limit)
  * Keep in sync with patternCopy.
  */
 
-static Bool patternCheck(const void *pattern, Size size, Addr base, Addr limit)
+static Bool patternCheck(Addr pattern, Size size, Addr base, Addr limit)
 {
   Addr p;
 
@@ -282,7 +285,8 @@ static Bool patternCheck(const void *pattern, Size size, Addr base, Addr limit)
   AVER(base != NULL);
   AVER(base <= limit);
 
-  for (p = base; p < limit; ) {
+  p = base;
+  while (p < limit) {
     Addr end = AddrAdd(p, size);
     Addr rounded = AddrRoundUp(p, size);
     Size offset = (Word)p % size;
@@ -296,13 +300,13 @@ static Bool patternCheck(const void *pattern, Size size, Addr base, Addr limit)
       p = end;
     } else if (p < rounded && rounded <= end && rounded <= limit) {
       /* Copy up to rounded */
-      if (AddrComp(p, (const char *)pattern + offset, AddrOffset(p, rounded)) != 0)
+      if (AddrComp(p, (char *)pattern + offset, AddrOffset(p, rounded)) != 0)
         return FALSE;
       p = rounded;
     } else {
       /* Copy up to limit */
       AVER(limit <= end && (p == rounded || limit <= rounded));
-      if (AddrComp(p, (const char *)pattern + offset, AddrOffset(p, limit)) != 0)
+      if (AddrComp(p, (char *)pattern + offset, AddrOffset(p, limit)) != 0)
         return FALSE;
       p = limit;
     }

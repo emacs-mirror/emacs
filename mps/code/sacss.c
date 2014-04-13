@@ -157,9 +157,9 @@ static size_t fixedSize(size_t i)
 
 
 static mps_pool_debug_option_s debugOptions = {
-  /* .fence_template = */   (const void *)"post",
+  /* .fence_template = */   (void *)"post",
   /* .fence_size = */       4,
-  /* .free_template = */    (const void *)"DEAD",
+  /* .free_template = */    (void *)"DEAD",
   /* .free_size = */        4
 };
 
