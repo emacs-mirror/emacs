@@ -938,11 +938,21 @@ rm -f conf$$ conf$$.file
 
 LN_S_FILEONLY='cp -p'
 
+dnl On MinGW, ensure we will call the MSYS /bin/ln.exe, not some
+dnl random program in the current directory.
 if (echo >conf$$.file) 2>/dev/null; then
   if ln -s conf$$.file conf$$ 2>/dev/null; then
-    LN_S_FILEONLY='ln -s'
+    if test "$opsys" = "mingw32"; then
+      LN_S_FILEONLY='/bin/ln -s'
+    else
+      LN_S_FILEONLY='ln -s'
+    fi
   elif ln conf$$.file conf$$ 2>/dev/null; then
-    LN_S_FILEONLY=ln
+    if test "$opsys" = "mingw32"; then
+      LN_S_FILEONLY=/bin/ln
+    else
+      LN_S_FILEONLY=ln
+    fi
   fi
 fi
 
