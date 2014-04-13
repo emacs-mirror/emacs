@@ -1,3 +1,8 @@
+2014-04-13  João Távora  <joaotavora@gmail.com>
+
+	* elec-pair.el (electric-pair--syntax-ppss): Simplify and fix
+	possible bug.
+
 2014-04-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* frame.el (blink-cursor-blinks, blink-cursor-blinks-done): Doc fixes.
