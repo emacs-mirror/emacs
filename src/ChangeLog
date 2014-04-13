@@ -1,3 +1,15 @@
+2014-04-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to IRIX 6.5 (Bug#9684).
+	* alloc.c (TAGGABLE_NULL): New constant,
+	for porting to hosts with nontrivial DATA_SEG_BITS settings.
+	(next_vector, set_next_vector): Use it.
+	* conf_post.h (INET6) [IRIX6_5]: Define.
+	(HAVE_GETADDRINFO) [IRIX6_5]: Undef.
+	* data.c (BITS_PER_ULL): Don't assume ULLONG_MAX is defined.
+	* lisp.h (lisp_h_XPNTR): Don't OR in bits that aren't masked out,
+	for consistency with how TAGGABLE_NULL is computed.
+
 2014-04-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* keyboard.c (Fopen_dribble_file): Encode the dribble file-name

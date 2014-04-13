@@ -2647,18 +2647,24 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
  ***********************************************************************/
 
 /* Sometimes a vector's contents are merely a pointer internally used
-   in vector allocation code.  Usually you don't want to touch this.  */
+   in vector allocation code.  On the rare platforms where a null
+   pointer cannot be tagged, represent it with a Lisp 0.
+   Usually you don't want to touch this.  */
+
+enum { TAGGABLE_NULL = (DATA_SEG_BITS & ~VALMASK) == 0 };
 
 static struct Lisp_Vector *
 next_vector (struct Lisp_Vector *v)
 {
+  if (! TAGGABLE_NULL && EQ (v->contents[0], make_number (0)))
+    return 0;
   return XUNTAG (v->contents[0], 0);
 }
 
 static void
 set_next_vector (struct Lisp_Vector *v, struct Lisp_Vector *p)
 {
-  v->contents[0] = make_lisp_ptr (p, 0);
+  v->contents[0] = TAGGABLE_NULL || p ? make_lisp_ptr (p, 0) : make_number (0);
 }
 
 /* This value is balanced well enough to avoid too much internal overhead

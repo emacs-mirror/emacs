@@ -99,7 +99,8 @@ typedef bool bool_bf;
 #ifdef emacs
 char *_getpty();
 #endif
-
+#define INET6 /* Needed for struct sockaddr_in6.  */
+#undef HAVE_GETADDRINFO /* IRIX has getaddrinfo but not struct addrinfo.  */
 #endif /* IRIX6_5 */
 
 #ifdef MSDOS

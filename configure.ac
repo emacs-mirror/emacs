@@ -779,30 +779,12 @@ if test "${enableval}" != "no"; then
    fi
 fi)
 
-# gl_GCC_VERSION_IFELSE([major], [minor], [run-if-found], [run-if-not-found])
-# ------------------------------------------------
-# If $CPP is gcc-MAJOR.MINOR or newer, then run RUN-IF-FOUND.
-# Otherwise, run RUN-IF-NOT-FOUND.
-AC_DEFUN([gl_GCC_VERSION_IFELSE],
-  [AC_PREPROC_IFELSE(
-    [AC_LANG_PROGRAM(
-      [[
-#if ($1) < __GNUC__ || (($1) == __GNUC__ && ($2) <= __GNUC_MINOR__)
-/* ok */
-#else
-# error "your version of gcc is older than $1.$2"
-#endif
-      ]]),
-    ], [$3], [$4])
-  ]
-)
-
 # clang is unduly picky about some things.
 AC_CACHE_CHECK([whether the compiler is clang], [emacs_cv_clang],
   [AC_COMPILE_IFELSE(
      [AC_LANG_PROGRAM([[
 	  #ifndef __clang__
-	    #error "not clang"
+	    error "not clang";
 	  #endif
         ]])],
      [emacs_cv_clang=yes],
@@ -1114,7 +1096,7 @@ AC_CACHE_CHECK([whether addresses are sanitized],
 	  #endif
 	  #if defined __SANITIZE_ADDRESS__ || __has_feature (address_sanitizer)
 	  #else
-	   #error "Addresses are not sanitized."
+	   error "Addresses are not sanitized.";
 	  #endif
 	]])],
      [emacs_cv_sanitize_address=yes],
@@ -1712,7 +1694,7 @@ fail;
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
  ; /* OK */
 #else
-#error "OSX 10.4 or newer required"
+ error "OSX 10.4 or newer required";
 #endif
 #endif
 		    ])],
@@ -1730,7 +1712,7 @@ fail;
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
  ; /* OK */
 #else
-#error "OSX 10.5 not found"
+ error "OSX 10.5 not found";
 #endif
 #endif
 		    ])],
@@ -2529,9 +2511,6 @@ if test "${with_gnutls}" = "yes" ; then
   # Windows loads GnuTLS dynamically
   if test "${opsys}" = "mingw32"; then
     LIBGNUTLS_LIBS=
-  else
-    CFLAGS="$CFLAGS $LIBGNUTLS_CFLAGS"
-    LIBS="$LIBGNUTLS_LIBS $LIBS"
   fi
 fi
 

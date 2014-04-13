@@ -344,7 +344,7 @@ enum enum_USE_LSB_TAG { USE_LSB_TAG = false };
    (eassert (CONSP (a)), (struct Lisp_Cons *) XUNTAG (a, Lisp_Cons))
 #define lisp_h_XHASH(a) XUINT (a)
 #define lisp_h_XPNTR(a) \
-   ((void *) (intptr_t) ((XLI (a) & VALMASK) | DATA_SEG_BITS))
+   ((void *) (intptr_t) ((XLI (a) & VALMASK) | (DATA_SEG_BITS & ~VALMASK)))
 #define lisp_h_XSYMBOL(a) \
    (eassert (SYMBOLP (a)), (struct Lisp_Symbol *) XUNTAG (a, Lisp_Symbol))
 #ifndef GC_CHECK_CONS_LIST

@@ -2982,7 +2982,7 @@ bool_vector_spare_mask (EMACS_INT nr_bits)
 /* Info about unsigned long long, falling back on unsigned long
    if unsigned long long is not available.  */
 
-#if HAVE_UNSIGNED_LONG_LONG_INT
+#if HAVE_UNSIGNED_LONG_LONG_INT && defined ULLONG_MAX
 enum { BITS_PER_ULL = CHAR_BIT * sizeof (unsigned long long) };
 # define ULL_MAX ULLONG_MAX
 #else
