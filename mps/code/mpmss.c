@@ -121,14 +121,14 @@ static size_t fixedSize(size_t i)
 
 
 static mps_pool_debug_option_s bothOptions = {
-  /* .fence_template = */   (const void *)"post",
+  /* .fence_template = */   (void *)"post",
   /* .fence_size = */       4,
-  /* .free_template = */    (const void *)"DEAD",
+  /* .free_template = */    (void *)"DEAD",
   /* .free_size = */        4
 };
 
 static mps_pool_debug_option_s fenceOptions = {
-  /* .fence_template = */   (const void *)"123456789abcdef",
+  /* .fence_template = */   (void *)"123456789abcdef",
   /* .fence_size = */       15,
   /* .free_template = */    NULL,
   /* .free_size = */        0

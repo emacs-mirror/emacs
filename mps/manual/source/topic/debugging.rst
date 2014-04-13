@@ -50,7 +50,7 @@ debugging:
   for the pattern at any time by calling
   :c:func:`mps_pool_check_free_space`.
 
-The :term:`client program` specifies templates for both of these
+The :term:`client program` may specify templates for both of these
 features via the :c:type:`mps_pool_debug_option_s` structure. This
 allows it to specify patterns:
 
@@ -66,8 +66,8 @@ allows it to specify patterns:
 For example::
 
     mps_pool_debug_option_s debug_options = {
-       (const void *)"fencepost", 9,
-       (const void *)"free", 4,
+       "fencepost", 9,
+       "free", 4,
     };
     mps_pool_t pool;
     mps_res_t res;
@@ -87,9 +87,9 @@ For example::
     class`. ::
 
         typedef struct mps_pool_debug_option_s {
-            const void *fence_template;
+            void *fence_template;
             size_t fence_size;
-            const void *free_template;
+            void *free_template;
             size_t free_size;
         } mps_pool_debug_option_s;
 
