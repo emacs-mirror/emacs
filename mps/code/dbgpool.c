@@ -312,10 +312,7 @@ static Bool patternCheck(const void *pattern, Size size, Addr base, Addr limit)
 }
 
 
-/* freeSplat -- splat free block with splat pattern
- *
- * If base is in a segment, the whole block has to be in it.
- */
+/* freeSplat -- splat free block with splat pattern */
 
 static void freeSplat(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
 {
