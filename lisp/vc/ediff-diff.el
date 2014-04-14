@@ -822,8 +822,9 @@ one optional arguments, diff-number to refine.")
 		(ediff-get-symbol-from-alist
 		 buf-type ediff-fine-diff-face-alist)
 		)))
-    (dolist (overl fine-diff-vector)
-      (ediff-set-overlay-face overl face))))
+    (mapc (lambda (overl)
+	    (ediff-set-overlay-face overl face))
+	  fine-diff-vector)))
 
 ;; Set overlays over the regions that denote delimiters
 (defun ediff-set-fine-overlays-for-combined-merge (diff-list reg-num)
