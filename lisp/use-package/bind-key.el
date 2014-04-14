@@ -186,7 +186,7 @@ function symbol (unquoted)."
     `(progn
        ,@(when prefix-map
            `((defvar ,prefix-map)
-             ,@(when doc `((put ',prefix-map'variable-documentation ,doc)))
+             ,@(when doc `((put ',prefix-map 'variable-documentation ,doc)))
              (define-prefix-command ',prefix-map)
              (bind-key ,prefix ',prefix-map ,@(when map (list map)))))
        ,@(mapcar (lambda (form) `(bind-key ,(if prefix
