@@ -2059,17 +2059,16 @@ Calculate the face definitions using the face specs, custom theme
 settings, X resources, and `face-new-frame-defaults'.
 Finally, apply any relevant face attributes found amongst the
 frame parameters in PARAMETERS."
-  (let ((window-system-p (memq (window-system frame) '(x w32))))
-    ;; The `reverse' is so that `default' goes first.
-    (dolist (face (nreverse (face-list)))
-      (condition-case ()
-	  (progn
-	    ;; Initialize faces from face spec and custom theme.
-	    (face-spec-recalc face frame)
-	    ;; Apply attributes specified by face-new-frame-defaults
-	    (internal-merge-in-global-face face frame))
-	;; Don't let invalid specs prevent frame creation.
-	(error nil))))
+  ;; The `reverse' is so that `default' goes first.
+  (dolist (face (nreverse (face-list)))
+    (condition-case ()
+	(progn
+	  ;; Initialize faces from face spec and custom theme.
+	  (face-spec-recalc face frame)
+	  ;; Apply attributes specified by face-new-frame-defaults
+	  (internal-merge-in-global-face face frame))
+      ;; Don't let invalid specs prevent frame creation.
+      (error nil)))
 
   ;; Apply attributes specified by frame parameters.
   (let ((face-params '((foreground-color default :foreground)
