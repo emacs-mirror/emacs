@@ -167,7 +167,8 @@ static void test_trees(const char *name, mps_arena_t arena, mps_ap_t ap,
     }
     finals += final_this_time;
     printf("%"PRIuLONGEST" objects finalized: total %"PRIuLONGEST
-           " of %"PRIuLONGEST"\n", final_this_time, finals, object_count);
+           " of %"PRIuLONGEST"\n", (ulongest_t)final_this_time,
+           (ulongest_t)finals, (ulongest_t)object_count);
   }
   cdie(finals == object_count, "Not all objects were finalized.");
 }
