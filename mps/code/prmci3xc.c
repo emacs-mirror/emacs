@@ -34,8 +34,13 @@ SRCID(prmci3li, "$Id$");
 
 MRef Prmci3AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 {
+  THREAD_STATE_S *threadState;
+
+  AVER(mfc != NULL);
   AVER(NONNEGATIVE(regnum));
   AVER(regnum <= 7);
+  AVER(mfc->threadState != NULL);
+  threadState = mfc->threadState;
 
   /* .source.i486 */
   /* .assume.regref */
@@ -47,14 +52,14 @@ MRef Prmci3AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
      suppress the warning by casting through `void *` and this might make
      it safe, but does it really?  RB 2012-09-10 */
   switch (regnum) {
-    case 0: return (void *)&mfc->threadState->__eax;
-    case 1: return (void *)&mfc->threadState->__ecx;
-    case 2: return (void *)&mfc->threadState->__edx;
-    case 3: return (void *)&mfc->threadState->__ebx;
-    case 4: return (void *)&mfc->threadState->__esp;
-    case 5: return (void *)&mfc->threadState->__ebp;
-    case 6: return (void *)&mfc->threadState->__esi;
-    case 7: return (void *)&mfc->threadState->__edi;
+    case 0: return (void *)&threadState->__eax;
+    case 1: return (void *)&threadState->__ecx;
+    case 2: return (void *)&threadState->__edx;
+    case 3: return (void *)&threadState->__ebx;
+    case 4: return (void *)&threadState->__esp;
+    case 5: return (void *)&threadState->__ebp;
+    case 6: return (void *)&threadState->__esi;
+    case 7: return (void *)&threadState->__edi;
     default:
       NOTREACHED;
       return NULL;  /* Avoids compiler warning. */
