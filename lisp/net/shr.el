@@ -610,7 +610,7 @@ size, and full-buffer size."
 	 (concat (nth 3 base) url))
 	(t
 	 ;; Totally relative.
-	 (concat (car base) (cadr base) url))))
+	 (concat (car base) (expand-file-name url (cadr base))))))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))

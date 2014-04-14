@@ -1,3 +1,8 @@
+2014-04-14  João Távora  <joaotavora@gmail.com>
+
+	* net/shr.el (shr-expand-url): Use `expand-file-name' for relative
+	links.  (Bug#17217).
+
 2014-04-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* vc/ediff-diff.el (ediff-set-fine-diff-properties-in-one-buffer):
