@@ -132,7 +132,7 @@ spelled-out keystrokes, e.g., \"C-c C-z\". See documentation of
         (keyvar (make-symbol "key"))
         (bindingvar (make-symbol "binding"))
         (entryvar (make-symbol "entry")))
-    `(let* ((,namevar ,(eval key-name))
+    `(let* ((,namevar ,key-name)
             (,keyvar (if (vectorp ,namevar) ,namevar
                        (read-kbd-macro ,namevar)))
             (,bindingvar (lookup-key (or ,keymap global-map)
