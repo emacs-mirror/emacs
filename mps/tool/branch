@@ -162,7 +162,7 @@ def main(argv):
         args.description = fmt("Branching {parent} to {child}.")
         print(fmt("description={description}"))
     args.desc_html = re.sub(r'\b(job\d{6})\b',
-                            fmt(r'<a href="/project/{project}/issue/\1/>\1</a>'),
+                            fmt(r'<a href="/project/{project}/issue/\1/">\1</a>'),
                             args.description)
 
     # Create the branch specification
