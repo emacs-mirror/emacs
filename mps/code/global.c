@@ -498,7 +498,15 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   AVER(RingIsSingle(&arenaGlobals->rootRing));
   for(rank = 0; rank < RankLIMIT; ++rank)
     AVER(RingIsSingle(&arena->greyRing[rank]));
-  /* poolRing is not yet single (control pool etc. still exist) */
+
+  /* At this point the following pools still exist:
+   * 0. arena->freeCBSBlockPoolStruct
+   * 1. arena->reservoirStruct
+   * 2. arena->controlPoolStruct
+   * 3. arena->controlPoolStruct.blockPoolStruct
+   * 4. arena->controlPoolStruct.spanPoolStruct
+   */
+  AVER(RingLength(&arenaGlobals->poolRing) == 5);
 }
 
 
