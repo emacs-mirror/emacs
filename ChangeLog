@@ -1,3 +1,23 @@
+2014-04-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean up configure-time library handling a bit.
+	This patch was inspired by emacs-24 bzr 116961, which fixed
+	a bug due to sloppy library handling in 'configure'.
+	* configure.ac (LIB_MATH, LIB_PTHREAD, LIBXMU):
+	Use AC_SEARCH_LIBS instead of AC_CHECK_LIB as per Autoconf manual.
+	(LIB_MATH, LIB_PTHREAD, HAVE_X11, IMAGEMAGICK_LIBS, GTK_LIBS)
+	(DBUS_LIBS, LIBXMU, XFT_LIBS, LIBXSM, LIBXML2_LIBS, LIBS_MAIL)
+	(with_kerberos):
+	Don't let the library choice infect $LIBS.
+	(dnet_ntoa, cma_open): Remove obsolete tests.
+	(emacs_pthread_function): Probe for pthread_kill, not pthread_self,
+	as that's a bit more selective on GNU/Linux.
+	(LIBXEXT): Remove.
+	(touchlock): Test for existence when $LIBS_MAIL is in use.
+	(AC_CHECK_FUNCS): Use only $LIB_MATH in addition to $LIBS
+	when testing for typical functions like accept4, lrand48.
+	(random, rint): Remove obsolete HP-UX 9 A.09.05 test.
+
 2014-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Do not distribute generated admin/grammars/Makefile.

@@ -87,10 +87,6 @@ typedef bool bool_bf;
 #ifdef HPUX
 #undef srandom
 #undef random
-/* We try to avoid checking for random and rint on hpux in
-   configure.ac, but some other configure test might check for them as
-   a dependency, so to be safe we also undefine them here.
- */
 #undef HAVE_RANDOM
 #undef HAVE_RINT
 #endif  /* HPUX */

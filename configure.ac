@@ -1294,8 +1294,17 @@ AC_DEFUN([AC_TYPE_SIZE_T])
 # Likewise for obsolescent test for uid_t, gid_t; Emacs assumes them.
 AC_DEFUN([AC_TYPE_UID_T])
 
+# sqrt and other floating-point functions such as fmod and frexp
+# are found in -lm on many systems.
+OLD_LIBS=$LIBS
+AC_SEARCH_LIBS([sqrt], [m])
+if test "X$LIBS" = "X$OLD_LIBS"; then
+  LIB_MATH=
+else
+  LIB_MATH=$ac_cv_search_sqrt
+fi
+LIBS=$OLD_LIBS
 
-LIB_MATH=-lm
 dnl Current possibilities handled by sed (aix4-2 -> aix,
 dnl gnu-linux -> gnu/linux, etc.):
 dnl gnu, gnu/linux, gnu/kfreebsd, aix, cygwin, darwin, hpux, irix.
@@ -2044,52 +2053,31 @@ fi
 
 LIBS="$LIBS_SYSTEM $LIBS"
 
-dnl If found, this adds -ldnet to LIBS, which Autoconf uses for checks.
-AC_CHECK_LIB(dnet, dnet_ntoa)
-dnl This causes -lresolv to get used in subsequent tests,
-dnl which causes failures on some systems such as HPUX 9.
-dnl AC_CHECK_LIB(resolv, gethostbyname)
-
 dnl FIXME replace main with a function we actually want from this library.
 AC_CHECK_LIB(Xbsd, main, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd")
 
-dnl Check if pthreads is available.
+dnl Check for the POSIX thread library.
 LIB_PTHREAD=
 AC_CHECK_HEADERS_ONCE(pthread.h)
 if test "$ac_cv_header_pthread_h"; then
   dnl gmalloc.c uses pthread_atfork, which is not available on older-style
   dnl hosts such as MirBSD 10, so test for pthread_atfork instead of merely
-  dnl testing for pthread_self if Emacs uses gmalloc.c.
+  dnl testing for pthread_kill if Emacs uses gmalloc.c.
   if test "$GMALLOC_OBJ" = gmalloc.o; then
     emacs_pthread_function=pthread_atfork
   else
-    emacs_pthread_function=pthread_self
+    emacs_pthread_function=pthread_kill
   fi
-  AC_CHECK_LIB(pthread, $emacs_pthread_function, HAVE_PTHREAD=yes)
-fi
-if test "$HAVE_PTHREAD" = yes; then
-  case "${canonical}" in
-    *-hpux*) ;;
-    *) LIB_PTHREAD="-lpthread"
-       LIBS="$LIB_PTHREAD $LIBS" ;;
-  esac
-  AC_DEFINE(HAVE_PTHREAD, 1, [Define to 1 if you have pthread (-lpthread).])
+  OLD_LIBS=$LIBS
+  AC_SEARCH_LIBS([$emacs_pthread_function], [pthread],
+    [AC_DEFINE([HAVE_PTHREAD], [1],
+       [Define to 1 if you have pthread (-lpthread).])])
+  if test "X$LIBS" != "X$OLD_LIBS"; then
+    eval LIB_PTHREAD=\$ac_cv_search_$emacs_pthread_function
+  fi
+  LIBS=$OLD_LIBS
 fi
 AC_SUBST([LIB_PTHREAD])
-
-AC_CHECK_LIB(pthreads, cma_open)
-
-## Note: when using cpp in s/aix4.2.h, this definition depended on
-## HAVE_LIBPTHREADS.  That was not defined earlier in configure when
-## the system file was sourced.  Hence the value of LIBS_SYSTEM
-## added to LIBS in configure would never contain the pthreads part,
-## but the value used in Makefiles might.  FIXME?
-##
-## -lpthreads seems to be necessary for Xlib in X11R6, and should
-## be harmless on older versions of X where it happens to exist.
-test "$opsys" = "aix4-2" && \
-  test $ac_cv_lib_pthreads_cma_open = yes && \
-  LIBS_SYSTEM="$LIBS_SYSTEM -lpthreads"
 
 dnl Check for need for bigtoc support on IBM AIX
 
@@ -2107,12 +2095,12 @@ aix*)
   ;;
 esac
 
-# Change CFLAGS and CPPFLAGS temporarily so that C_SWITCH_X_SITE gets
-# used for the tests that follow.  We set them back to REAL_CFLAGS and
-# REAL_CPPFLAGS later on.
+# Change CFLAGS, CPPFLAGS, and LIBS temporarily so that C_SWITCH_X_SITE
+# is for the tests that follow.  We set them back later on.
 
 REAL_CFLAGS="$CFLAGS"
 REAL_CPPFLAGS="$CPPFLAGS"
+REAL_LIBS="$LIBS"
 
 if test "${HAVE_X11}" = "yes"; then
   DEFS="$C_SWITCH_X_SITE $DEFS"
@@ -2137,12 +2125,8 @@ if test "${HAVE_X11}" = "yes"; then
      [xgnu_linux_first_failure=no],
      [xgnu_linux_first_failure=yes])
     if test "${xgnu_linux_first_failure}" = "yes"; then
-      OLD_LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE"
-      OLD_C_SWITCH_X_SITE="$C_SWITCH_X_SITE"
       OLD_CPPFLAGS="$CPPFLAGS"
       OLD_LIBS="$LIBS"
-      LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -b i486-linuxaout"
-      C_SWITCH_X_SITE="$C_SWITCH_X_SITE -b i486-linuxaout"
       CPPFLAGS="$CPPFLAGS -b i486-linuxaout"
       LIBS="$LIBS -b i486-linuxaout"
       AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
@@ -2151,15 +2135,15 @@ if test "${HAVE_X11}" = "yes"; then
        [xgnu_linux_second_failure=yes])
       if test "${xgnu_linux_second_failure}" = "yes"; then
 	# If we get the same failure with -b, there is no use adding -b.
-	# So take it out.  This plays safe.
-	LD_SWITCH_X_SITE="$OLD_LD_SWITCH_X_SITE"
-	C_SWITCH_X_SITE="$OLD_C_SWITCH_X_SITE"
-	CPPFLAGS="$OLD_CPPFLAGS"
-	LIBS="$OLD_LIBS"
+	# So leave it out.  This plays safe.
         AC_MSG_RESULT(no)
       else
+	LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -b i486-linuxaout"
+	C_SWITCH_X_SITE="$C_SWITCH_X_SITE -b i486-linuxaout"
         AC_MSG_RESULT(yes)
       fi
+      CPPFLAGS=$OLD_CPPFLAGS
+      LIBS=$OLD_LIBS
     else
       AC_MSG_RESULT(no)
     fi
@@ -2226,7 +2210,6 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${opsys}" = 
       if test "${opsys}" = "mingw32"; then
        	RSVG_LIBS=
       fi
-      LIBS="$RSVG_LIBS $LIBS"
     fi
   fi
 fi
@@ -2245,9 +2228,13 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${HAVE_W32}"
 
     if test $HAVE_IMAGEMAGICK = yes; then
       AC_DEFINE(HAVE_IMAGEMAGICK, 1, [Define to 1 if using imagemagick.])
+      OLD_CFLAGS=$CFLAGS
+      OLD_LIBS=$LIBS
       CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
       LIBS="$IMAGEMAGICK_LIBS $LIBS"
       AC_CHECK_FUNCS(MagickExportImagePixels MagickMergeImageLayers)
+      CFLAGS=$OLD_CFLAGS
+      LIBS=$OLD_LIBS
     fi
   fi
 fi
@@ -2302,10 +2289,12 @@ if test "${opsys}" != "mingw32"; then
   fi
 fi
 
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
 if test x"$pkg_check_gtk" = xyes; then
 
   AC_SUBST(GTK_LIBS)
-  C_SWITCH_X_SITE="$C_SWITCH_X_SITE $GTK_CFLAGS"
   CFLAGS="$CFLAGS $GTK_CFLAGS"
   LIBS="$GTK_LIBS $LIBS"
   dnl Try to compile a simple GTK program.
@@ -2337,6 +2326,7 @@ if test x"$pkg_check_gtk" = xyes; then
       AC_MSG_ERROR([Gtk+ wanted, but it does not compile, see config.log.  Maybe some x11-devel files missing?]);
     fi
   else
+    C_SWITCH_X_SITE="$C_SWITCH_X_SITE $GTK_CFLAGS"
     HAVE_GTK=yes
     AC_DEFINE(USE_GTK, 1, [Define to 1 if using GTK.])
     GTK_OBJ="gtkutil.o $GTK_OBJ"
@@ -2405,6 +2395,9 @@ if test "${HAVE_GTK}" = "yes"; then
  term_header=gtkutil.h
 fi
 
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
 dnl D-Bus has been tested under GNU/Linux only.  Must be adapted for
 dnl other platforms.
 HAVE_DBUS=no
@@ -2412,17 +2405,19 @@ DBUS_OBJ=
 if test "${with_dbus}" = "yes"; then
    PKG_CHECK_MODULES(DBUS, dbus-1 >= 1.0, HAVE_DBUS=yes, HAVE_DBUS=no)
    if test "$HAVE_DBUS" = yes; then
-     LIBS="$LIBS $DBUS_LIBS"
      AC_DEFINE(HAVE_DBUS, 1, [Define to 1 if using D-Bus.])
      dnl dbus_watch_get_unix_fd has been introduced in D-Bus 1.1.1.
      dnl dbus_type_is_valid and dbus_validate_* have been introduced in
      dnl D-Bus 1.5.12.
+     OLD_LIBS=$LIBS
+     LIBS="$LIBS $DBUS_LIBS"
      AC_CHECK_FUNCS(dbus_watch_get_unix_fd \
 		    dbus_type_is_valid \
 		    dbus_validate_bus_name \
                     dbus_validate_path \
 		    dbus_validate_interface \
 		    dbus_validate_member)
+     LIBS=$OLD_LIBS
      DBUS_OBJ=dbusbind.o
    fi
 fi
@@ -2645,6 +2640,7 @@ fi
 X_TOOLKIT_TYPE=$USE_X_TOOLKIT
 
 LIBXTR6=
+LIBXMU=
 if test "${USE_X_TOOLKIT}" != "none"; then
   AC_MSG_CHECKING(X11 toolkit version)
   AC_CACHE_VAL(emacs_cv_x11_toolkit_version_6,
@@ -2671,36 +2667,19 @@ dnl If using toolkit, check whether libXmu.a exists.
 dnl tranle@intellicorp.com says libXmu.a can need XtMalloc in libXt.a to link.
   OLDLIBS="$LIBS"
   if test x$HAVE_X11XTR6 = xyes; then
-    LIBS="-lXt -lSM -lICE $LIBS"
+    OTHERLIBS='-lXt -lSM -lICE'
   else
-    LIBS="-lXt $LIBS"
+    OTHERLIBS='-lXt'
   fi
-  AC_CHECK_LIB(Xmu, XmuConvertStandardSelection)
-  test $ac_cv_lib_Xmu_XmuConvertStandardSelection = no && LIBS="$OLDLIBS"
-  dnl ac_cv_lib_Xmu_XmuConvertStandardSelection is also referenced below.
+  AC_SEARCH_LIBS([XmuConvertStandardSelection], [Xmu], [], [], [$OTHERLIBS])
+  if test "X$LIBS" != "X$OLDLIBS"; then
+    LIBXMU=$ac_cv_search_XmuConvertStandardSelection
+  fi
+  LIBS=$OLDLIBS
+  dnl ac_cv_search_XmuConvertStandardSelection is also referenced below.
 fi
 AC_SUBST(LIBXTR6)
-
-dnl FIXME the logic here seems weird, but this is what cpp was doing.
-dnl Why not just test for libxmu in the normal way?
-LIBXMU=-lXmu
-case $opsys in
-  ## These systems don't supply Xmu.
-  hpux* | aix4-2 )
-    test "X$ac_cv_lib_Xmu_XmuConvertStandardSelection" != "Xyes" && LIBXMU=
-    ;;
-  mingw32 )
-    LIBXMU=
-    ;;
-esac
 AC_SUBST(LIBXMU)
-
-# On Irix 6.5, at least, we need XShapeQueryExtension from -lXext for Xaw3D.
-if test "${HAVE_X11}" = "yes"; then
-  if test "${USE_X_TOOLKIT}" != "none"; then
-    AC_CHECK_LIB(Xext, XShapeQueryExtension)
-  fi
-fi
 
 LIBXP=
 if test "${USE_X_TOOLKIT}" = "MOTIF"; then
@@ -2876,11 +2855,10 @@ if test "${HAVE_X11}" = "yes"; then
 	  AC_DEFINE(HAVE_XFT, 1, [Define to 1 if you have the Xft library.])
 	    AC_SUBST(XFT_LIBS)
 	  C_SWITCH_X_SITE="$C_SWITCH_X_SITE $XFT_CFLAGS"
-	else
-	  CPPFLAGS="$OLD_CPPFLAGS"
-	  CFLAGS="$OLD_CFLAGS"
-	  LIBS="$OLD_LIBS"
 	fi                        # "${HAVE_XFT}" = "yes"
+	CPPFLAGS=$OLD_CPPFLAGS
+	CFLAGS=$OLD_CFLAGS
+	LIBS=$OLD_LIBS
       fi                          # "$HAVE_XFT" != no
     fi                            # "x${with_xft}" != "xno"
 
@@ -3283,10 +3261,6 @@ if test "${HAVE_X11}" = "yes"; then
   if test "${HAVE_X_SM}" = "yes"; then
     AC_DEFINE(HAVE_X_SM, 1, [Define to 1 if you have the SM library (-lSM).])
     LIBXSM="-lSM -lICE"
-    case "$LIBS" in
-      *-lSM*) ;;
-      *)      LIBS="$LIBXSM $LIBS" ;;
-    esac
   fi
 fi
 AC_SUBST(LIBXSM)
@@ -3362,8 +3336,8 @@ if test "${with_xml2}" != "no"; then
   fi
   if test "${HAVE_LIBXML2}" = "yes"; then
     if test "${opsys}" != "mingw32"; then
-      LIBS="$LIBXML2_LIBS $LIBS"
-      AC_CHECK_LIB(xml2, htmlReadMemory, HAVE_LIBXML2=yes, HAVE_LIBXML2=no)
+      AC_CHECK_LIB(xml2, htmlReadMemory, HAVE_LIBXML2=yes, HAVE_LIBXML2=no
+        [$LIBXML2_LIBS])
     else
       LIBXML2_LIBS=""
     fi
@@ -3392,19 +3366,17 @@ if test $emacs_cv_netdb_declares_h_errno = yes; then
   AC_DEFINE(HAVE_H_ERRNO, 1, [Define to 1 if netdb.h declares h_errno.])
 fi
 
-# sqrt and other floating-point functions such as fmod and frexp
-# are found in -lm on most systems, but mingw32 doesn't use -lm.
-if test "${opsys}" != "mingw32"; then
-  AC_CHECK_LIB(m, sqrt)
-fi
-
 # Check for mail-locking functions in a "mail" library.  Probably this should
 # have the same check as for liblockfile below.
 AC_CHECK_LIB(mail, maillock, have_mail=yes, have_mail=no)
 if test $have_mail = yes; then
   LIBS_MAIL=-lmail
-  LIBS="$LIBS_MAIL $LIBS"
   AC_DEFINE(HAVE_LIBMAIL, 1, [Define to 1 if you have the `mail' library (-lmail).])
+
+  OLD_LIBS=$LIBS
+  LIBS="$LIBS_MAIL $LIBS"
+  AC_CHECK_FUNCS(touchlock)
+  LIBS=$OLD_LIBS
 else
   LIBS_MAIL=
 fi
@@ -3412,7 +3384,6 @@ dnl Debian, at least:
 AC_CHECK_LIB(lockfile, maillock, have_lockfile=yes, have_lockfile=no)
 if test $have_lockfile = yes; then
    LIBS_MAIL=-llockfile
-   LIBS="$LIBS_MAIL $LIBS"
    AC_DEFINE(HAVE_LIBLOCKFILE, 1, [Define to 1 if you have the `lockfile' library (-llockfile).])
 else
 # If we have the shared liblockfile, assume we must use it for mail
@@ -3477,18 +3448,19 @@ case "$mail_lock" in
 esac
 AC_SUBST(BLESSMAIL_TARGET)
 
-
+OLD_LIBS=$LIBS
+LIBS="$LIB_MATH $LIBS"
 AC_CHECK_FUNCS(accept4 gethostname \
 getrusage get_current_dir_name \
-lrand48 \
+lrand48 random rint \
 select getpagesize setlocale \
 getrlimit setrlimit shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
 gai_strerror getline getdelim sync \
 getpwent endpwent getgrent endgrent \
-touchlock \
 cfmakeraw cfsetspeed copysign __executable_start log2)
+LIBS=$OLD_LIBS
 
 dnl No need to check for aligned_alloc and posix_memalign if using
 dnl gmalloc.o, as it supplies them.  Don't use these functions on
@@ -3496,17 +3468,6 @@ dnl Darwin as they are incompatible with unexmacosx.c.
 if test -z "$GMALLOC_OBJ" && test "$opsys" != darwin; then
   AC_CHECK_FUNCS([aligned_alloc posix_memalign], [break])
 fi
-
-## Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
-## has a broken `rint' in some library versions including math library
-## version number A.09.05.
-## You can fix the math library by installing patch number PHSS_4630.
-## But we can fix it more reliably for Emacs by just not using rint.
-## We also skip HAVE_RANDOM - see comments in src/conf_post.h.
-case $opsys in
-   hpux*) : ;;
-   *) AC_CHECK_FUNCS(random rint) ;;
-esac
 
 dnl Cannot use AC_CHECK_FUNCS
 AC_CACHE_CHECK([for __builtin_unwind_init],
@@ -3724,6 +3685,7 @@ DESLIB=
 KRB4LIB=
 
 if test "${with_kerberos}" != no; then
+  OLD_LIBS=$LIBS
   AC_CHECK_LIB(com_err, com_err, have_com_err=yes, have_com_err=no)
   if test $have_com_err = yes; then
     COM_ERRLIB=-lcom_err
@@ -3780,6 +3742,7 @@ if test "${with_kerberos}" != no; then
 				       [AC_CHECK_HEADERS(kerberos/krb.h)])])
   fi
   AC_CHECK_HEADERS(com_err.h)
+  LIBS=$OLD_LIBS
 fi
 
 AC_SUBST(COM_ERRLIB)
@@ -3994,7 +3957,7 @@ AH_TEMPLATE(NO_EDITRES, [Define if XEditRes should not be used.])
 case $opsys in
   aix4-2)
     dnl Unfortunately without libXmu we cannot support EditRes.
-    if test x$ac_cv_lib_Xmu_XmuConvertStandardSelection != xyes; then
+    if test "x$ac_cv_search_XmuConvertStandardSelection" = xno; then
       AC_DEFINE(NO_EDITRES, 1)
     fi
     ;;
@@ -4574,6 +4537,7 @@ esac
 # Set up the CFLAGS for real compilation, so we can substitute it.
 CFLAGS="$REAL_CFLAGS"
 CPPFLAGS="$REAL_CPPFLAGS"
+LIBS="$REAL_LIBS"
 
 ## Hack to detect a buggy GCC version.
 if test "x$GCC" = xyes \
