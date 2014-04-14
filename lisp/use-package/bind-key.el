@@ -186,14 +186,12 @@ function symbol (unquoted)."
     `(progn
        ,@(when prefix-map
            `((defvar ,prefix-map)
-             ,@(when doc `((put ',prefix-map'variable-documentation ,doc)))
+             ,@(when doc `((put ',prefix-map 'variable-documentation ,doc)))
              (define-prefix-command ',prefix-map)
-             (bind-key ,prefix ',prefix-map ,@(when map (list map)))))
-       ,@(mapcar (lambda (form) `(bind-key ,(if prefix
-                                                (concat prefix " " (car form))
-                                              (car form))
-                                           ',(cdr form)
-                                           ,@(when map (list map))))
+             (bind-key ,prefix ',prefix-map ,map)))
+       ,@(mapcar (lambda (form)
+                   `(bind-key ,(car form) ',(cdr form)
+                              ,(or prefix-map map)))
                  key-bindings))))
 
 (defun get-binding-description (elem)
