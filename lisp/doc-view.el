@@ -1621,24 +1621,25 @@ If BACKWARD is non-nil, jump to the previous match."
   "Figure out the current document type (`doc-view-doc-type')."
   (let ((name-types
 	 (when buffer-file-name
-	   (cdr (assoc (file-name-extension buffer-file-name)
-		       '(
-			 ;; DVI
-			 ("dvi" dvi)
-			 ;; PDF
-			 ("pdf" pdf) ("epdf" pdf)
-			 ;; PostScript
-			 ("ps" ps) ("eps" ps)
-			 ;; DjVu
-			 ("djvu" djvu)
-			 ;; OpenDocument formats
-			 ("odt" odf) ("ods" odf) ("odp" odf) ("odg" odf)
-			 ("odc" odf) ("odi" odf) ("odm" odf) ("ott" odf)
-			 ("ots" odf) ("otp" odf) ("otg" odf)
-			 ;; Microsoft Office formats (also handled
-			 ;; by the odf conversion chain)
-			 ("doc" odf) ("docx" odf) ("xls" odf) ("xlsx" odf)
-			 ("ppt" odf) ("pptx" odf))))))
+	   (cdr (assoc-ignore-case
+                 (file-name-extension buffer-file-name)
+                 '(
+                   ;; DVI
+                   ("dvi" dvi)
+                   ;; PDF
+                   ("pdf" pdf) ("epdf" pdf)
+                   ;; PostScript
+                   ("ps" ps) ("eps" ps)
+                   ;; DjVu
+                   ("djvu" djvu)
+                   ;; OpenDocument formats.
+                   ("odt" odf) ("ods" odf) ("odp" odf) ("odg" odf)
+                   ("odc" odf) ("odi" odf) ("odm" odf) ("ott" odf)
+                   ("ots" odf) ("otp" odf) ("otg" odf)
+                   ;; Microsoft Office formats (also handled by the odf
+                   ;; conversion chain).
+                   ("doc" odf) ("docx" odf) ("xls" odf) ("xlsx" odf)
+                   ("ppt" odf) ("pps" odf) ("pptx" odf))))))
 	(content-types
 	 (save-excursion
 	   (goto-char (point-min))
