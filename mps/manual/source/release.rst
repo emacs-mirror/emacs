@@ -47,6 +47,11 @@ Other changes
 
    .. _job001549: https://www.ravenbrook.com/project/mps/issue/job001549/
 
+#. :c:func:`mps_arena_roots_walk` no longer triggers an assertion
+   failure when run twice in succession. See job003496_.
+
+   .. _job003496: https://www.ravenbrook.com/project/mps/issue/job003496/
+
 #. The alignment of :ref:`pool-awl` pools is now configurable via the
    object format, as documented, and is no longer always
    :c:macro:`MPS_PF_ALIGN`. See job003745_.
