@@ -188,12 +188,12 @@ function symbol (unquoted)."
            `((defvar ,prefix-map)
              ,@(when doc `((put ',prefix-map 'variable-documentation ,doc)))
              (define-prefix-command ',prefix-map)
-             (bind-key ,prefix ',prefix-map ,@(when map (list map)))))
+             (bind-key ,prefix ',prefix-map ,map)))
        ,@(mapcar (lambda (form) `(bind-key ,(if prefix
                                                 (concat prefix " " (car form))
                                               (car form))
                                            ',(cdr form)
-                                           ,@(when map (list map))))
+                                           ,map))
                  key-bindings))))
 
 (defun get-binding-description (elem)
