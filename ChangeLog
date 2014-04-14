@@ -1,5 +1,7 @@
 2014-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* autogen.sh: Use autoreconf's -f option (Bug#17258).
+
 	Clean up configure-time library handling a bit.
 	This patch was inspired by emacs-24 bzr 116961, which fixed
 	a bug due to sloppy library handling in 'configure'.

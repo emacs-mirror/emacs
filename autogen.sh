@@ -202,7 +202,8 @@ echo "Your system has the required tools, running autoreconf..."
 
 
 ## Let autoreconf figure out what, if anything, needs doing.
-autoreconf -i -I m4 || exit $?
+## Use autoreconf's -f option in case autoreconf itself has changed.
+autoreconf -f -i -I m4 || exit $?
 
 ## Create a timestamp, so that './autogen.sh; make' doesn't
 ## cause 'make' to needlessly run 'autoheader'.
