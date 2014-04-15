@@ -44,13 +44,13 @@ char EventBuffer[EventKindLIMIT][EventBufferSIZE];
 char *EventLast[EventKindLIMIT];
 
 /* Pointers to the last even written out of each buffer. */
-char *EventWritten[EventKindLIMIT];
+static char *EventWritten[EventKindLIMIT];
 
 EventControlSet EventKindControl;       /* Bit set used to control output. */
 
 
 /* A single event structure output once per buffer flush. */
-EventEventClockSyncStruct eventClockSyncStruct;
+static EventEventClockSyncStruct eventClockSyncStruct;
 
 
 /* eventClockSync -- Populate and write the clock sync event. */
@@ -422,7 +422,7 @@ void EventDump(mps_lib_FILE *stream)
 
   for (kind = 0; kind < EventKindLIMIT; ++kind) {
     for (event = (Event)EventLast[kind];
-         event < (Event)(EventBuffer[kind] + EventBufferSIZE);
+         (char *)event < EventBuffer[kind] + EventBufferSIZE;
          event = (Event)((char *)event + event->any.size)) {
       /* Try to keep going even if there's an error, because this is used as a
          backtrace and we'll take what we can get. */

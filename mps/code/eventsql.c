@@ -102,7 +102,7 @@ typedef sqlite3_int64 int64;
  * and for reporting errors.
  */
 
-unsigned int verbosity = 0;
+static unsigned int verbosity = 0;
 
 #define LOG_ALWAYS    0
 #define LOG_OFTEN     1
@@ -533,7 +533,7 @@ static void logFileCompleted(sqlite3 *db,
 
 /* An array of table-creation statement strings. */
 
-const char *createStatements[] = {
+static const char *createStatements[] = {
   "CREATE TABLE IF NOT EXISTS event_kind (name    TEXT,"
   "                                       description TEXT,"
   "                                       enum    INTEGER PRIMARY KEY)",
@@ -571,7 +571,7 @@ static void makeTables(sqlite3 *db)
   }
 }
 
-const char *glueTables[] = {
+static const char *glueTables[] = {
   "event_kind",
   "event_type",
   "event_param",

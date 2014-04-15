@@ -13,15 +13,12 @@
 #include "mpscamc.h"
 #include "mpscams.h"
 #include "mpscawl.h"
+#include "mpsclo.h"
 #include "mpsavm.h"
 #include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpsw3.h"
-#endif
 #include "mps.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include <stdio.h> /* printf */
 
 #define testArenaSIZE     ((size_t)((size_t)64 << 20))
 #define avLEN             3
@@ -216,8 +213,10 @@ int main(int argc, char *argv[])
     die(mps_thread_reg(&thread, arena), "thread_reg");
 
     test(arena, mps_class_amc());
-    test(arena, mps_class_awl());
+    test(arena, mps_class_amcz());
     /* TODO: test(arena, mps_class_ams()); -- see job003738 */
+    test(arena, mps_class_awl());
+    test(arena, mps_class_lo());
 
     mps_thread_dereg(thread);
     mps_arena_destroy(arena);

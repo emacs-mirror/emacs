@@ -10,8 +10,7 @@
 #include "testlib.h"
 #include "mpslib.h"
 
-#include <stdlib.h>
-#include <stdarg.h>
+#include <stdio.h> /* printf */
 
 SRCID(messtest, "$Id$");
 

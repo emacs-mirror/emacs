@@ -1174,8 +1174,7 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream)
   res = SplayTreeDescribe(cbsSplay(cbs), stream, describe);
   if (res != ResOK) return res;
 
-  res = METER_WRITE(cbs->treeSearch, stream);
-  if (res != ResOK) return res;
+  METER_WRITE(cbs->treeSearch, stream);
 
   res = WriteF(stream, "}\n", NULL);
   return res;

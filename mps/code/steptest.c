@@ -14,12 +14,9 @@
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpsw3.h"
-#endif
 #include "mps.h"
-#include <stdlib.h>
-#include <string.h>
+
+#include <stdio.h> /* fflush, printf, putchar, stdout */
 
 #define testArenaSIZE     ((size_t)((size_t)64 << 20))
 #define avLEN             3
@@ -74,19 +71,19 @@ static mps_addr_t ambigRoots[ambigRootsCOUNT];
 
 /* Things we want to measure.  Times are all in microseconds. */
 
-double alloc_time;       /* Time spent allocating */
-double max_alloc_time;   /* Max time taken to allocate one object */
-double step_time;        /* Time spent in mps_arena_step returning 1 */
-double max_step_time;    /* Max time of mps_arena_step returning 1 */
-double no_step_time;     /* Time spent in mps_arena_step returning 0 */
-double max_no_step_time; /* Max time of mps_arena_step returning 0 */
+static double alloc_time;       /* Time spent allocating */
+static double max_alloc_time;   /* Max time taken to allocate one object */
+static double step_time;        /* Time spent in mps_arena_step returning 1 */
+static double max_step_time;    /* Max time of mps_arena_step returning 1 */
+static double no_step_time;     /* Time spent in mps_arena_step returning 0 */
+static double max_no_step_time; /* Max time of mps_arena_step returning 0 */
 
-double total_clock_time; /* Time spent reading the clock */
-long clock_reads;        /* Number of times clock is read */
-long steps;              /* # of mps_arena_step calls returning 1 */
-long no_steps;           /* # of mps_arena_step calls returning 0 */
-size_t alloc_bytes;      /* # of bytes allocated */
-long commit_failures;    /* # of times mps_commit fails */
+static double total_clock_time; /* Time spent reading the clock */
+static long clock_reads;        /* Number of times clock is read */
+static long steps;              /* # of mps_arena_step calls returning 1 */
+static long no_steps;           /* # of mps_arena_step calls returning 0 */
+static size_t alloc_bytes;      /* # of bytes allocated */
+static long commit_failures;    /* # of times mps_commit fails */
 
 
 /* Operating-system dependent timing.  Defines two functions, void
@@ -97,6 +94,8 @@ long commit_failures;    /* # of times mps_commit fails */
  */
 
 #ifdef MPS_OS_W3
+
+#include "mpswin.h"
 
 static HANDLE currentProcess;
 
@@ -152,7 +151,7 @@ static double my_clock(void)
  * on thrush.ravenbrook.com on 2002-06-28, clock_time goes from 5.43
  * us near process start to 7.45 us later). */
 
-double clock_time;      /* current estimate of time to read the clock */
+static double clock_time;      /* current estimate of time to read the clock */
 
 /* take at least this many microseconds to set the clock */
 #define CLOCK_TIME_SET 10000

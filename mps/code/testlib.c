@@ -11,13 +11,11 @@
 #include "clock.h" /* for EVENT_CLOCK */
 #include "mps.h"
 #include "misc.h" /* for NOOP */
-#include <math.h>
-#include <stdlib.h>
-#include <limits.h>
-#ifdef MPS_OS_IA
-struct itimerspec; /* stop complaints from time.h */
-#endif
-#include <time.h>
+
+#include <math.h> /* fmod */
+#include <stdio.h> /* fflush, printf, stderr, sscanf, vfprintf */
+#include <stdlib.h> /* abort, exit, getenv */
+#include <time.h> /* time */
 
 
 /* fail -- like assert, but (notionally) returns a value, so usable in an expression */

@@ -35,14 +35,14 @@
 #include "fmtscheme.h"
 
 #define OBJ_LEN (1u << 4)
-#define OBJ_COUNT 1
+#define OBJ_COUNT 10
 
 static void test_air(int interior, int stack)
 {
   size_t n_finalized = 0;
   size_t i, j;
   obj_t *s[OBJ_COUNT] = {0};
-  mps_root_t root;
+  mps_root_t root = NULL;
   if (!stack) {
     mps_addr_t *p = (void *)s;
     die(mps_root_create_table(&root, scheme_arena, mps_rank_ambig(), 0, p,
@@ -90,20 +90,15 @@ static mps_gen_param_s obj_gen_params[] = {
   { 170, 0.45 }
 };
 
-static void test_main(int interior, int stack)
+static void test_main(void *marker, int interior, int stack)
 {
   mps_res_t res;
   mps_chain_t obj_chain;
   mps_fmt_t obj_fmt;
   mps_thr_t thread;
-  mps_root_t reg_root;
-  void *marker = &marker;
+  mps_root_t reg_root = NULL;
 
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 1 << 20);
-    MPS_ARGS_DONE(args);
-    res = mps_arena_create_k(&scheme_arena, mps_arena_class_vm(), args);
-  } MPS_ARGS_END(args);
+  res = mps_arena_create_k(&scheme_arena, mps_arena_class_vm(), mps_args_none);
   if (res != MPS_RES_OK) error("Couldn't create arena");
 
   res = mps_chain_create(&obj_chain, scheme_arena,
@@ -149,12 +144,14 @@ static void test_main(int interior, int stack)
 
 int main(int argc, char *argv[])
 {
+  void *marker = &marker;
+
   testlib_init(argc, argv);
 
-  test_main(TRUE, TRUE);
-  test_main(TRUE, FALSE);
-  /* not test_main(FALSE, TRUE) -- see .fail.lii6ll. */
-  test_main(FALSE, FALSE);
+  test_main(marker, TRUE, TRUE);
+  test_main(marker, TRUE, FALSE);
+  /* not test_main(marker, FALSE, TRUE) -- see .fail.lii6ll. */
+  test_main(marker, FALSE, FALSE);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;

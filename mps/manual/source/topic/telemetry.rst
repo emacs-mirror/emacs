@@ -110,7 +110,7 @@ The MPS writes the telemetry to the log in an encoded form for speed.
 It can be decoded using the :ref:`mpseventcnv <telemetry-mpseventcnv>`
 and :ref:`mpseventtxt <telemetry-mpseventtxt>` programs::
 
-    (gdb) shell mpseventcnv | mpseventtxt | sort > mpsio.txt
+    (gdb) shell mpseventcnv | sort | mpseventtxt > mpsio.txt
 
 The ``sort`` is useful because the events are not necessarily written
 to the telemetry file in time order, but each event starts with a

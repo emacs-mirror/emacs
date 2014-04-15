@@ -34,8 +34,13 @@ SRCID(prmci3li, "$Id$");
 
 MRef Prmci3AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 {
+  THREAD_STATE_S *threadState;
+
+  AVER(mfc != NULL);
   AVER(NONNEGATIVE(regnum));
   AVER(regnum <= 7);
+  AVER(mfc->threadState != NULL);
+  threadState = mfc->threadState;
 
   /* .source.i486 */
   /* .assume.regref */
@@ -44,17 +49,17 @@ MRef Prmci3AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
      config.h. */
   /* TODO: The current arrangement of the fix operation (taking a Ref *)
      forces us to pun these registers (actually `int` on LII3GC).  We can
-     suppress the warning my casting through `char *` and this might make
+     suppress the warning by casting through `void *` and this might make
      it safe, but does it really?  RB 2012-09-10 */
   switch (regnum) {
-    case 0: return (MRef)((char *)&mfc->threadState->__eax);
-    case 1: return (MRef)((char *)&mfc->threadState->__ecx);
-    case 2: return (MRef)((char *)&mfc->threadState->__edx);
-    case 3: return (MRef)((char *)&mfc->threadState->__ebx);
-    case 4: return (MRef)((char *)&mfc->threadState->__esp);
-    case 5: return (MRef)((char *)&mfc->threadState->__ebp);
-    case 6: return (MRef)((char *)&mfc->threadState->__esi);
-    case 7: return (MRef)((char *)&mfc->threadState->__edi);
+    case 0: return (void *)&threadState->__eax;
+    case 1: return (void *)&threadState->__ecx;
+    case 2: return (void *)&threadState->__edx;
+    case 3: return (void *)&threadState->__ebx;
+    case 4: return (void *)&threadState->__esp;
+    case 5: return (void *)&threadState->__ebp;
+    case 6: return (void *)&threadState->__esi;
+    case 7: return (void *)&threadState->__edi;
     default:
       NOTREACHED;
       return NULL;  /* Avoids compiler warning. */

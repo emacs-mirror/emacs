@@ -14,6 +14,7 @@ END_HEADER
 #include "testlib.h"
 #include "mpscawl.h"
 #include "mpscamc.h"
+#include "mpscams.h"
 #include "mpsclo.h"
 #include "mpsavm.h"
 #include "rankfmt.h"
@@ -94,15 +95,15 @@ static void finalpoll(mycell **ref, int faction)
 
 static void test(void)
 {
- mps_pool_t poolamc, poolawl, poollo;
+ mps_pool_t poolamc, poolamcz, poolams, poolawl, poollo;
  mps_thr_t thread;
  mps_root_t root0, root1;
 
  mps_fmt_t format;
  mps_chain_t chain;
- mps_ap_t apamc, apawl, aplo;
+ mps_ap_t apamc, apamcz, apams, apawl, aplo;
 
- mycell *a, *b, *c, *d, *z;
+ mycell *a, *b, *c, *d, *e, *z;
 
  long int i,j;
 
@@ -126,20 +127,39 @@ static void test(void)
  die(mmqa_pool_create_chain(&poolamc, arena, mps_class_amc(), format, chain),
      "create pool");
 
- cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format, getassociated),
-      "create pool");
+ die(mmqa_pool_create_chain(&poolamcz, arena, mps_class_amcz(), format, chain),
+     "create pool");
 
- cdie(mps_pool_create(&poollo, arena, mps_class_lo(), format),
-      "create pool");
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
+   MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
+   MPS_ARGS_ADD(args, MPS_KEY_GEN, 0);
+   cdie(mps_pool_create_k(&poolams, arena, mps_class_ams(), args),
+        "create pool");
+ } MPS_ARGS_END(args);
 
- cdie(mps_ap_create(&apawl, poolawl, mps_rank_weak()),
-      "create ap");
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
+   MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
+   MPS_ARGS_ADD(args, MPS_KEY_GEN, 0);
+   MPS_ARGS_ADD(args, MPS_KEY_AWL_FIND_DEPENDENT, getassociated);
+   cdie(mps_pool_create_k(&poolawl, arena, mps_class_awl(), args),
+        "create pool");
+ } MPS_ARGS_END(args);
 
- cdie(mps_ap_create(&apamc, poolamc, mps_rank_exact()),
-      "create ap");
- 
- cdie(mps_ap_create(&aplo, poollo, mps_rank_exact()),
-      "create ap");
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
+   MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
+   MPS_ARGS_ADD(args, MPS_KEY_GEN, 0);
+   cdie(mps_pool_create_k(&poollo, arena, mps_class_lo(), args),
+        "create pool");
+ } MPS_ARGS_END(args);
+
+ cdie(mps_ap_create(&apawl, poolawl, mps_rank_weak()), "create ap");
+ cdie(mps_ap_create(&apamc, poolamc, mps_rank_exact()), "create ap");
+ cdie(mps_ap_create(&apamcz, poolamcz, mps_rank_exact()), "create ap");
+ cdie(mps_ap_create(&apams, poolams, mps_rank_exact()), "create ap");
+ cdie(mps_ap_create(&aplo, poollo, mps_rank_exact()), "create ap");
 
  mps_message_type_enable(arena, mps_message_type_finalization());
 
@@ -150,13 +170,17 @@ static void test(void)
 
  for (j=0; j<1000; j++) {
   a = allocone(apamc, 2, mps_rank_exact());
-  c = allocone(apawl, 2, mps_rank_weak());
-  d = allocone(aplo, 2, mps_rank_exact()); /* rank irrelevant here! */
+  b = allocone(apamcz, 2, mps_rank_exact()); /* rank irrelevant here! */
+  c = allocone(apams, 2, mps_rank_exact());
+  d = allocone(apawl, 2, mps_rank_weak());
+  e = allocone(aplo, 2, mps_rank_exact()); /* rank irrelevant here! */
   mps_finalize(arena, (mps_addr_t*)&a);
+  mps_finalize(arena, (mps_addr_t*)&b);
   mps_finalize(arena, (mps_addr_t*)&c);
   mps_finalize(arena, (mps_addr_t*)&d);
-  mps_finalize(arena, (mps_addr_t*)&d);
-  final_count += 4;
+  mps_finalize(arena, (mps_addr_t*)&e);
+  mps_finalize(arena, (mps_addr_t*)&e);
+  final_count += 6;
  }
 
  /* throw them all away and collect everything */
@@ -176,10 +200,12 @@ static void test(void)
 
  while (final_count != 0 && i < 10) {
   finalpoll(&z, FINAL_DISCARD);
-  if (mps_message_poll(arena) == 0) {
+  if (final_count != 0 && mps_message_poll(arena) == 0) {
    i++;
-   a = allocdumb(apawl, 1024, mps_rank_weak());
    a = allocdumb(apamc, 1024, mps_rank_exact());
+   a = allocdumb(apamcz, 1024, mps_rank_exact());
+   a = allocdumb(apams, 1024, mps_rank_exact());
+   a = allocdumb(apawl, 1024, mps_rank_weak());
    a = allocdumb(aplo,  1024, mps_rank_exact());
    mps_arena_collect(arena);
    comment(" %i", final_count);
@@ -193,12 +219,16 @@ static void test(void)
 
  /* now to test leaving messages open for a long time! */
 
- mps_ap_destroy(apawl);
  mps_ap_destroy(apamc);
+ mps_ap_destroy(apamcz);
+ mps_ap_destroy(apams);
+ mps_ap_destroy(apawl);
  mps_ap_destroy(aplo);
  comment("Destroyed aps.");
 
  mps_pool_destroy(poolamc);
+ mps_pool_destroy(poolamcz);
+ mps_pool_destroy(poolams);
  mps_pool_destroy(poolawl);
  mps_pool_destroy(poollo);
  comment("Destroyed pools.");

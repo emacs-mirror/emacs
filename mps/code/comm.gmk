@@ -158,7 +158,7 @@ SNC = poolsnc.c
 POOLN = pooln.c
 MV2 = poolmv2.c
 MVFF = poolmvff.c
-TESTLIB = testlib.c
+TESTLIB = testlib.c testthrix.c
 FMTDY = fmtdy.c fmtno.c
 FMTDYTST = fmtdy.c fmtno.c fmtdytst.c
 FMTHETST = fmthe.c fmtdy.c fmtno.c fmtdytst.c
@@ -294,6 +294,7 @@ TEST_TARGETS=\
     landtest \
     locbwcss \
     lockcov \
+    lockut \
     locusss \
     locv \
     messtest \
@@ -490,6 +491,9 @@ $(PFM)/$(VARIETY)/locbwcss: $(PFM)/$(VARIETY)/locbwcss.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/lockut: $(PFM)/$(VARIETY)/lockut.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/locusss: $(PFM)/$(VARIETY)/locusss.o \

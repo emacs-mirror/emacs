@@ -15,13 +15,8 @@
 #include "fmtdytst.h"
 #include "mps.h"
 #include "mpstd.h"
-#ifdef MPS_OS_W3
-#  include "mpsw3.h"
-#endif
-#include <stdlib.h>
-#include <stdarg.h>
-#include <math.h>
-#include <string.h>
+
+#include <stdio.h> /* printf */
 
 
 #define exactRootsCOUNT  49

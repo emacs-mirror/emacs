@@ -12,13 +12,10 @@
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpsw3.h"
-#endif
 #include "mps.h"
 #include "mpslib.h"
-#include <stdlib.h>
-#include <string.h>
+
+#include <stdio.h> /* fflush, printf, putchar */
 
 
 /* These values have been tuned in the hope of getting one dynamic collection. */
@@ -81,19 +78,6 @@ static void report(mps_arena_t arena)
       printf("    not_condemned %"PRIuLONGEST"\n", (ulongest_t)not_condemned);
       printf("    clock: %"PRIuLONGEST"\n", (ulongest_t)mps_message_clock(arena, message));
       printf("}\n");
-
-      if(condemned > (gen1SIZE + gen2SIZE + (size_t)128) * 1024) {
-        /* When condemned size is larger than could happen in a gen 2
-         * collection (discounting ramps, natch), guess that was a dynamic
-         * collection, and reset the commit limit, so it doesn't run out.
-         *
-         * GDR 2013-03-12: Fiddling with the commit limit was causing
-         * the test to fail sometimes (see job003440), so I've commented
-         * out this feature.
-         */
-        /* die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE), "set limit"); */
-      }
-
     } else {
       cdie(0, "unknown message type");
       break;
@@ -101,14 +85,12 @@ static void report(mps_arena_t arena)
 
     mps_message_discard(arena, message);
   }
-
-  return;
 }
 
 
 /* make -- create one new object */
 
-static mps_addr_t make(void)
+static mps_addr_t make(size_t rootsCount)
 {
   size_t length = rnd() % (2*avLEN);
   size_t size = (length+2) * sizeof(mps_word_t);
@@ -119,7 +101,7 @@ static mps_addr_t make(void)
     MPS_RESERVE_BLOCK(res, p, ap, size);
     if (res)
       die(res, "MPS_RESERVE_BLOCK");
-    res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
+    res = dylan_init(p, size, exactRoots, rootsCount);
     if (res)
       die(res, "dylan_init");
   } while(!mps_commit(ap, p, size));
@@ -141,7 +123,7 @@ static void test_stepper(mps_addr_t object, mps_fmt_t fmt, mps_pool_t pool,
 
 /* test -- the body of the test */
 
-static void test(mps_arena_t arena)
+static void test(mps_arena_t arena, mps_class_t pool_class, size_t roots_count)
 {
   mps_fmt_t format;
   mps_chain_t chain;
@@ -157,7 +139,7 @@ static void test(mps_arena_t arena)
   die(dylan_fmt(&format, arena), "fmt_create");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
-  die(mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
+  die(mps_pool_create(&pool, arena, pool_class, format, chain),
       "pool_create(amc)");
 
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
@@ -269,13 +251,13 @@ static void test(mps_arena_t arena)
       i = (r >> 1) % exactRootsCOUNT;
       if (exactRoots[i] != objNULL)
         cdie(dylan_check(exactRoots[i]), "dying root check");
-      exactRoots[i] = make();
+      exactRoots[i] = make(roots_count);
       if (exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
         dylan_write(exactRoots[(exactRootsCOUNT-1) - i],
                     exactRoots, exactRootsCOUNT);
     } else {
       i = (r >> 1) % ambigRootsCOUNT;
-      ambigRoots[(ambigRootsCOUNT-1) - i] = make();
+      ambigRoots[(ambigRootsCOUNT-1) - i] = make(roots_count);
       /* Create random interior pointers */
       ambigRoots[i] = (mps_addr_t)((char *)(ambigRoots[i/2]) + 1);
     }
@@ -313,13 +295,10 @@ int main(int argc, char *argv[])
       "arena_create");
   mps_message_type_enable(arena, mps_message_type_gc());
   mps_message_type_enable(arena, mps_message_type_gc_start());
-  /* GDR 2013-03-12: Fiddling with the commit limit was causing
-   * the test to fail sometimes (see job003440), so I've commented
-   * out this feature.
-   */
-  /*die(mps_arena_commit_limit_set(arena, testArenaSIZE), "set limit");*/
+  die(mps_arena_commit_limit_set(arena, 2*testArenaSIZE), "set limit");
   die(mps_thread_reg(&thread, arena), "thread_reg");
-  test(arena);
+  test(arena, mps_class_amc(), exactRootsCOUNT);
+  test(arena, mps_class_amcz(), 0);
   mps_thread_dereg(thread);
   report(arena);
   mps_arena_destroy(arena);

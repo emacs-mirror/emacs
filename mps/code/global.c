@@ -397,25 +397,7 @@ void GlobalsFinish(Globals arenaGlobals)
   Arena arena;
   Rank rank;
   
-  /* Check that the tear-down is complete: that the client has
-   * destroyed all data structures associated with the arena. We do
-   * this *before* calling AVERT(Globals, arenaGlobals) because the
-   * AVERT will crash if there are any remaining data structures, and
-   * it is politer to assert than to crash. (The crash would happen
-   * because by this point in the code the control pool has been
-   * destroyed and so the address space containing all these rings has
-   * potentially been unmapped, and so RingCheck dereferences a
-   * pointer into that unmapped memory.) See job000652. */
   arena = GlobalsArena(arenaGlobals);
-  AVER(RingIsSingle(&arena->formatRing));
-  AVER(RingIsSingle(&arena->chainRing));
-  AVER(RingIsSingle(&arena->messageRing));
-  AVER(RingIsSingle(&arena->threadRing));
-  for(rank = 0; rank < RankLIMIT; ++rank)
-    AVER(RingIsSingle(&arena->greyRing[rank]));
-  AVER(RingIsSingle(&arenaGlobals->poolRing));
-  AVER(RingIsSingle(&arenaGlobals->rootRing));
-
   AVERT(Globals, arenaGlobals);
 
   STATISTIC_STAT(EVENT2(ArenaWriteFaults, arena,
@@ -445,6 +427,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   TraceId ti;
   Trace trace;
   Chain defaultChain;
+  Rank rank;
 
   AVERT(Globals, arenaGlobals);
 
@@ -499,6 +482,31 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
     arena->finalPool = NULL;
     PoolDestroy(pool);
   }
+
+  /* Check that the tear-down is complete: that the client has
+   * destroyed all data structures associated with the arena. We do
+   * this here rather than in GlobalsFinish because by the time that
+   * is called, the control pool has been destroyed and so the address
+   * space containing all these rings has potentially been unmapped,
+   * and so RingCheck dereferences a pointer into that unmapped memory
+   * and we get a crash instead of an assertion. See job000652.
+   */
+  AVER(RingIsSingle(&arena->formatRing));
+  AVER(RingIsSingle(&arena->chainRing));
+  AVER(RingIsSingle(&arena->messageRing));
+  AVER(RingIsSingle(&arena->threadRing));
+  AVER(RingIsSingle(&arenaGlobals->rootRing));
+  for(rank = 0; rank < RankLIMIT; ++rank)
+    AVER(RingIsSingle(&arena->greyRing[rank]));
+
+  /* At this point the following pools still exist:
+   * 0. arena->freeCBSBlockPoolStruct
+   * 1. arena->reservoirStruct
+   * 2. arena->controlPoolStruct
+   * 3. arena->controlPoolStruct.blockPoolStruct
+   * 4. arena->controlPoolStruct.spanPoolStruct
+   */
+  AVER(RingLength(&arenaGlobals->poolRing) == 5);
 }
 
 
@@ -617,6 +625,7 @@ void ArenaLeaveRecursive(Arena arena)
  * version.  The format is platform-specific.  We won't necessarily
  * publish this.  */
 
+extern MutatorFaultContext mps_exception_info;
 MutatorFaultContext mps_exception_info = NULL;
 
 
@@ -1131,7 +1140,7 @@ void ArenaSetEmergency(Arena arena, Bool emergency)
   AVERT(Arena, arena);
   AVERT(Bool, emergency);
 
-  EVENT2(ArenaSetEmergency, arena, emergency);
+  EVENT2(ArenaSetEmergency, arena, BOOL(emergency));
 
   arena->emergency = emergency;
 }

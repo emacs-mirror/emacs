@@ -29,15 +29,20 @@
  * $Id$
  */
 
+#include "mps.h"
+#include "mpsavm.h"
+#include "mpscmvff.h"
+#include "check.h"
 #include "config.h"
 #include "eventdef.h"
 #include "eventcom.h"
 #include "table.h"
 #include "testlib.h" /* for ulongest_t and associated print formats */
 
+#include <assert.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stdlib.h> /* exit, EXIT_FAILURE, EXIT_SUCCESS */
+#include <string.h> /* strcpy, strlen */
 
 static const char *prog; /* program name */
 static const char *logFileName = NULL;
@@ -106,15 +111,19 @@ static void parseArgs(int argc, char *argv[])
 
 static void *tableAlloc(void *closure, size_t size)
 {
-  UNUSED(closure);
-  return malloc(size);
+  mps_pool_t pool = closure;
+  mps_addr_t p;
+  mps_res_t res;
+  res = mps_alloc(&p, pool, size);
+  if (res != MPS_RES_OK)
+    everror("allocation failed: %d", res);
+  return p;
 }
 
 static void tableFree(void *closure, void *p, size_t size)
 {
-  UNUSED(closure);
-  UNUSED(size);
-  free(p);
+  mps_pool_t pool = closure;
+  mps_free(pool, p, size);
 }
 
 /* Printing routines */
@@ -171,7 +180,7 @@ static double parseDouble(char **pInOut)
 
 #define MAX_STRING_LENGTH 1024
 
-char strBuf[MAX_STRING_LENGTH];
+static char strBuf[MAX_STRING_LENGTH];
 
 static char *parseString(char **pInOut)
 {
@@ -215,21 +224,21 @@ static Table internTable;      /* dictionary of intern ids to strings */
 
 static Table labelTable;       /* dictionary of addrs to intern ids */
 
-static void createTables(void)
+static void createTables(mps_pool_t pool)
 {
   Res res;
   /* MPS intern IDs are serials from zero up, so we can use -1
    * and -2 as specials. */
   res = TableCreate(&internTable,
                     (size_t)1<<4,
-                    tableAlloc, tableFree, NULL,
+                    tableAlloc, tableFree, pool,
                     (Word)-1, (Word)-2); 
   if (res != ResOK)
     everror("Couldn't make intern table.");
 
   /* We assume that 0 and 1 are invalid as Addrs. */
   res = TableCreate(&labelTable, (size_t)1<<7,
-                    tableAlloc, tableFree, NULL,
+                    tableAlloc, tableFree, pool,
                     0, 1);
   if (res != ResOK)
     everror("Couldn't make label table.");
@@ -238,19 +247,19 @@ static void createTables(void)
 /* recordIntern -- record an interned string in the table.  a copy of
 * the string from the parsed buffer into a newly-allocated block. */
 
-static void recordIntern(char *p)
+static void recordIntern(mps_pool_t pool, char *p)
 {
   ulongest_t stringId;
   char *string;
-  char *copy;
+  mps_addr_t copy;
   size_t len;
   Res res;
         
   stringId = parseHex(&p);
   string = parseString(&p);
   len = strlen(string);
-  copy = malloc(len+1);
-  if (copy == NULL)
+  res = mps_alloc(&copy, pool, len + 1);
+  if (res != MPS_RES_OK)
     everror("Couldn't allocate space for a string.");
   (void)strcpy(copy, string);
   res = TableDefine(internTable, (Word)stringId, (void *)copy);
@@ -258,12 +267,55 @@ static void recordIntern(char *p)
     everror("Couldn't create an intern mapping.");
 }
 
-/* recordLabel records a label (an association between an address and
- * a string ID).  Note that the event log may have been generated on a
- * platform with addresses larger than Word on the current platform.
- * If that happens then we are scuppered because our Table code uses
- * Word as the key type: there's nothing we can do except detect this
- * bad case (see also the EventInit handling and warning code).
+/* Over time there may be multiple labels associated with an address,
+ * so we keep a list, recording for each label the clock when the
+ * association was made. This means that printAddr can select the
+ * label that was in force at the time of the event.
+ */
+
+typedef struct LabelStruct *Label;
+typedef struct LabelStruct {
+  ulongest_t clock;             /* clock of this label */
+  ulongest_t id;                /* string id of this label */
+} LabelStruct;
+
+typedef struct LabelListStruct *LabelList;
+typedef struct LabelListStruct {
+  size_t n;                     /* number of labels in array */
+  Label labels;                 /* labels, sorted in order by clock */
+} LabelListStruct;
+
+/* labelFind returns the index of the first entry in list with a clock
+ * value that's greater than 'clock', or list->n if there is no such
+ * label. The list is assumed to be sorted.
+ */
+
+static size_t labelFind(LabelList list, ulongest_t clock)
+{
+  size_t low = 0, high = list->n;
+  while (low < high) {
+    size_t mid = (low + high) / 2;
+    assert(NONNEGATIVE(mid) && mid < list->n);
+    if (list->labels[mid].clock > clock) {
+      high = mid;
+    } else {
+      low = mid + 1;
+    }
+  }
+  assert(NONNEGATIVE(low) && low <= list->n);
+  assert(low == list->n || list->labels[low].clock > clock);
+  return low;
+}
+
+/* recordLabel records a label: an association (made at the time given
+ * by 'clock') between an address and a string ID. These are encoded
+ * as two hexadecimal numbers in the string pointed to by 'p'.
+ *
+ * Note that the event log may have been generated on a platform with
+ * addresses larger than Word on the current platform. If that happens
+ * then we are scuppered because our Table code uses Word as the key
+ * type: there's nothing we can do except detect this bad case (see
+ * also the EventInit handling and warning code).
  *
  * We can and do handle the case where string IDs (which are Words on
  * the MPS platform) are larger than void* on the current platform.
@@ -274,25 +326,50 @@ static void recordIntern(char *p)
  * probably a bad idea and maybe doomed to failure.
  */
 
-static void recordLabel(char *p)
+static void recordLabel(mps_pool_t pool, ulongest_t clock, char *p)
 {
   ulongest_t address;
-  ulongest_t *stringIdP;
+  LabelList list;
+  Label newlabels;
+  mps_addr_t tmp;
+  size_t pos;
   Res res;
-        
+
   address = parseHex(&p);
   if (address > (Word)-1) {
     (void)printf("label address too large!");
     return;
   }
-                
-  stringIdP = malloc(sizeof(ulongest_t));
-  if (stringIdP == NULL)
-    everror("Can't allocate space for a string's ID");
-  *stringIdP = parseHex(&p);
-  res = TableDefine(labelTable, (Word)address, (void *)stringIdP);
+
+  if (TableLookup(&tmp, labelTable, address)) {
+    list = tmp;
+  } else {
+    /* First label for this address */
+    res = mps_alloc(&tmp, pool, sizeof(LabelListStruct));
+    if (res != MPS_RES_OK)
+      everror("Can't allocate space for a label list");
+    list = tmp;
+    list->n = 0;
+    res = TableDefine(labelTable, (Word)address, list);
+    if (res != ResOK)
+      everror("Couldn't create a label mapping.");
+  }
+
+  res = mps_alloc(&tmp, pool, sizeof(LabelStruct) * (list->n + 1));
   if (res != ResOK)
-    everror("Couldn't create an intern mapping.");
+    everror("Couldn't allocate space for list of labels.");
+  newlabels = tmp;
+
+  pos = labelFind(list, clock);
+  memcpy(newlabels, list->labels, sizeof(LabelStruct) * pos);
+  newlabels[pos].clock = clock;
+  newlabels[pos].id = parseHex(&p);
+  memcpy(newlabels + pos + 1, list->labels + pos,
+         sizeof(LabelStruct) * (list->n - pos));
+  if (list->n > 0)
+    mps_free(pool, list->labels, sizeof(LabelStruct) * list->n);
+  list->labels = newlabels;
+  ++ list->n;
 }
 
 /* output code */
@@ -308,20 +385,23 @@ static int hexWordWidth = (MPS_WORD_WIDTH+3)/4;
 /* printAddr -- output a ulongest_t in hex, with the interned string
  * if the value is in the label table */
 
-static void printAddr(ulongest_t addr, const char *ident)
+static void printAddr(ulongest_t clock, ulongest_t addr, const char *ident)
 {
-  ulongest_t label;
-  void *alias;
+  void *tmp;
         
   printf("%s:%0*" PRIXLONGEST, ident, hexWordWidth, addr);
-  if (TableLookup(&alias, labelTable, addr)) {
-    label = *(ulongest_t*)alias;
-    putchar('[');
-    if (TableLookup(&alias, internTable, label))
-      printStr((char *)alias);
-    else
-      printf("unknown label %" PRIuLONGEST, label);
-    putchar(']');
+  if (TableLookup(&tmp, labelTable, addr)) {
+    LabelList list = tmp;
+    size_t pos = labelFind(list, clock);
+    if (pos > 0) {
+      ulongest_t id = list->labels[pos - 1].id;
+      putchar('[');
+      if (TableLookup(&tmp, internTable, id))
+        printStr((char *)tmp);
+      else
+        printf("unknown label %" PRIXLONGEST, id);
+      putchar(']');
+    }
   }
   putchar(' ');
 }
@@ -332,7 +412,7 @@ static void printAddr(ulongest_t addr, const char *ident)
 
 #define processParamA(ident)          \
         val_hex = parseHex(&p);       \
-        printAddr(val_hex, #ident);
+        printAddr(clock, val_hex, #ident);
 
 #define processParamP processParamA
 #define processParamW processParamA
@@ -375,7 +455,7 @@ static const char *eventName[EventCodeMAX+EventCodeMAX];
 
 /* readLog -- read and parse log.  Returns the number of events written.  */
 
-static void readLog(FILE *input)
+static void readLog(mps_pool_t pool, FILE *input)
 {
   int i;
 
@@ -415,9 +495,9 @@ static void readLog(FILE *input)
 
     /* for a few particular codes, we do local processing. */
     if (code == EventInternCode) {
-      recordIntern(q);
+      recordIntern(pool, q);
     } else if (code == EventLabelCode) {
-      recordLabel(q);
+      recordLabel(pool, clock, q);
     } else if (code == EventEventInitCode) {
       ulongest_t major, median, minor, maxCode, maxNameLen, wordWidth, clocksPerSec;
       major = parseHex(&q);  /* EVENT_VERSION_MAJOR */
@@ -476,6 +556,9 @@ static void readLog(FILE *input)
 
 int main(int argc, char *argv[])
 {
+  mps_arena_t arena;
+  mps_pool_t pool;
+  mps_res_t res;
   FILE *input;
 
   parseArgs(argc, argv);
@@ -488,8 +571,20 @@ int main(int argc, char *argv[])
       everror("unable to open %s", logFileName);
   }
 
-  createTables();
-  readLog(input);
+  res = mps_arena_create_k(&arena, mps_arena_class_vm(), mps_args_none);
+  if (res != MPS_RES_OK)
+    everror("failed to create arena: %d", res);
+
+  res = mps_pool_create_k(&pool, arena, mps_class_mvff(), mps_args_none);
+  if (res != MPS_RES_OK)
+    everror("failed to create pool: %d", res);
+
+  createTables(pool);
+  readLog(pool, input);
+
+  mps_pool_destroy(pool);
+  mps_arena_destroy(arena);
+
   (void)fclose(input);
   return 0;
 }

@@ -17,10 +17,13 @@ CFLAGSCOMPILER := \
 	-Waggregate-return \
 	-Wall \
 	-Wcast-qual \
+	-Wconversion \
+	-Wduplicate-enum \
 	-Werror \
 	-Wextra \
 	-Winline \
 	-Wmissing-prototypes \
+	-Wmissing-variable-declarations \
 	-Wnested-externs \
 	-Wno-extended-offsetof \
 	-Wpointer-arith \
