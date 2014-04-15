@@ -7,6 +7,16 @@
 	Treat rfds, wfds, efds consistently, and test G_IO_PRI too.
 	Clear input masks when pselect returns zero.
 
+2014-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Foverlays_at): Add argument `sorted'.
+
+2014-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* insdel.c (invalidate_buffer_caches): When deleting or replacing
+	text, invalidate the bidi_paragraph_cache upto and including the
+	preceding newline.
+
 2014-04-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to IRIX 6.5 (Bug#9684).
