@@ -7,15 +7,16 @@
 #include "abq.h"
 #include "mps.h"
 #include "mpsavm.h"
+#include "mpscmfs.h"
 #include "mpstd.h"
 #include "testlib.h"
 
-#include <stdlib.h>
+#include <stdio.h> /* printf */
 
 
 SRCID(abqtest, "$Id$");
 
-
+static mps_pool_t pool;
 static ABQStruct abq; /* the ABQ which we will use */
 static Size abqSize; /* the size of the current ABQ */
 
@@ -50,9 +51,12 @@ static TestBlock testBlocks = NULL;
 
 static TestBlock CreateTestBlock(unsigned no)
 {
-  TestBlock b = malloc(sizeof(TestBlockStruct));
-  cdie(b != NULL, "malloc");
+  TestBlock b;
+  mps_addr_t p;
 
+  die(mps_alloc(&p, pool, sizeof(TestBlockStruct)), "alloc");
+
+  b = p;
   b->next = testBlocks;
   b->id = no;
   b->base = 0;
@@ -78,7 +82,7 @@ static void DestroyTestBlock(TestBlock b)
       }
   }
 
-  free(b);
+  mps_free(pool, b, sizeof(TestBlockStruct));
 }
 
 typedef struct TestClosureStruct *TestClosure;
@@ -146,9 +150,6 @@ static void step(void)
   }
 }
 
-
-#define testArenaSIZE   (((size_t)4)<<20)
-
 extern int main(int argc, char *argv[])
 {
   mps_arena_t arena;
@@ -158,8 +159,13 @@ extern int main(int argc, char *argv[])
 
   abqSize = 0;
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
+  die(mps_arena_create_k(&arena, mps_arena_class_vm(), mps_args_none),
       "mps_arena_create");
+
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_MFS_UNIT_SIZE, sizeof(TestBlockStruct));
+    die(mps_pool_create_k(&pool, arena, mps_class_mfs(), args), "pool_create");
+  } MPS_ARGS_END(args);
 
   die(ABQInit((Arena)arena, &abq, NULL, ABQ_SIZE, sizeof(TestBlock)),
       "ABQInit");

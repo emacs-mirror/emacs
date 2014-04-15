@@ -28,7 +28,7 @@
 #include "mpmtypes.h"
 #include "poolmfs.h"
 
-#include <stdarg.h>
+#include <stdio.h> /* printf */
 
 
 #define testArenaSIZE   ((((size_t)3)<<24) - 4)
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
-  alignment = (1 << (rnd() % 4)) * MPS_PF_ALIGN;
+  alignment = sizeof(void *) << (rnd() % 4);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, (64 + rnd() % 64) * 1024);
     MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, (1 + rnd() % 8) * 8);
@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
-  alignment = (1 << (rnd() % 4)) * MPS_PF_ALIGN;
+  alignment = sizeof(void *) << (rnd() % 4);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, alignment);
     MPS_ARGS_ADD(args, MPS_KEY_MIN_SIZE, (1 + rnd() % 4) * 4);

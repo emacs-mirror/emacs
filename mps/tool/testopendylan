@@ -104,7 +104,7 @@ if [ -f "$REPO/Makefile" ]; then
 else (
     cd -- "$REPO" &&
     ./autogen.sh &&
-    ./configure --with-mps="$MPS" --prefix="$PREFIX"
+    ./configure --with-gc=mps --with-gc-path="$MPS" --prefix="$PREFIX"
 ) fi
 (
     cd -- "$REPO" &&
@@ -127,6 +127,9 @@ else (
 # B. DOCUMENT HISTORY
 #
 # 2014-03-20 GDR Created based on [WELCOME].
+#
+# 2014-04-14 GDR Updated configure args based on revised build
+# instructions [WELCOME].
 #
 #
 # C. COPYRIGHT AND LICENCE

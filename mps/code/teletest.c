@@ -12,7 +12,8 @@
 #include "testlib.h"
 #include "mpslib.h"
 
-#include <stdlib.h>
+#include <stdio.h> /* fflush, fgets, printf, stdin, stdout */
+#include <stdlib.h> /* exit, EXIT_SUCCESS, strtoul */
 
 SRCID(teletest, "$Id$");
 
@@ -34,8 +35,8 @@ static void callControl(mps_word_t reset, mps_word_t flip)
   old = mps_telemetry_control(reset, flip);
   new = mps_telemetry_control((mps_word_t)0, (mps_word_t)0);
 
-  (void)printf(WORD_FORMAT " -> " WORD_FORMAT "\n",
-               (ulongest_t)old, (ulongest_t)new);
+  printf(WORD_FORMAT " -> " WORD_FORMAT "\n",
+         (ulongest_t)old, (ulongest_t)new);
 }
 
 

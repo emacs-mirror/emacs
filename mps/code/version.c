@@ -47,6 +47,7 @@ SRCID(version, "$Id$");
  * (assuming we've made any substantial changes to the library this year).
  */
 
+extern char MPSCopyrightNotice[];
 char MPSCopyrightNotice[] =
   "Portions copyright (c) 2010-2014 Ravenbrook Limited and Global Graphics Software.";
 
@@ -59,6 +60,7 @@ char MPSCopyrightNotice[] =
  * see also guide.mps.version.
  */
 
+extern char MPSVersionString[];
 char MPSVersionString[] =
   "@(#)Ravenbrook MPS, "
   "product." MPS_PROD_STRING ", " MPS_RELEASE ", platform." MPS_PF_STRING

@@ -29,10 +29,9 @@
 #include "mpscamc.h"
 #include "mpscmv.h"
 #include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpsw3.h"
-#endif
-#include <stdlib.h>
+
+#include <stdio.h> /* printf */
+#include <stdlib.h> /* qsort */
 
 
 #define testArenaSIZE ((size_t)1000*1024)
@@ -51,7 +50,7 @@ static mps_addr_t isMoved(mps_addr_t object);
 static void copy(mps_addr_t object, mps_addr_t to);
 static void pad(mps_addr_t base, size_t size);
 
-struct mps_fmt_A_s fmt_A_s =
+static struct mps_fmt_A_s fmt_A_s =
   {
     (mps_align_t)4,
     scan, skip, copy,
@@ -318,14 +317,14 @@ static void validate(void)
   for(i = 0; i < listl; ++i) {
     cdie(((QSCell)reg[1])->tag == QSInt, "validate int");
     if((mps_word_t)((QSCell)reg[1])->value != list[i]) {
-        (void)fprintf(stdout, "mps_res_t: Element %"PRIuLONGEST" of the "
-                      "two lists do not match.\n", (ulongest_t)i);
+        printf("mps_res_t: Element %"PRIuLONGEST" of the "
+               "two lists do not match.\n", (ulongest_t)i);
       return;
     }
     reg[1] = (mps_addr_t)((QSCell)reg[1])->tail;
   }
   cdie(reg[1] == (mps_word_t)0, "validate end");
-  (void)fprintf(stdout, "Note: Lists compare equal.\n");
+  printf("Note: Lists compare equal.\n");
 }
 
 

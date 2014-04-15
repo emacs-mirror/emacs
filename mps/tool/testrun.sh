@@ -36,6 +36,7 @@ ALL_TEST_CASES="
     landtest
     locbwcss
     lockcov
+    lockut
     locusss
     locv
     messtest

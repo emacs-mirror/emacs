@@ -19,12 +19,9 @@
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpsw3.h"
-#endif
 #include "mps.h"
-#include <stdlib.h>
-#include <string.h>
+
+#include <stdio.h> /* fflush, printf, puts, stdout */
 
 
 /* These values have been tuned in the hope of getting one dynamic collection. */
@@ -75,12 +72,6 @@ static void report(mps_arena_t arena)
     printf("not_condemned %"PRIuLONGEST"\n", (ulongest_t)not_condemned);
 
     mps_message_discard(arena, message);
-
-    if (condemned > (gen1SIZE + gen2SIZE + (size_t)128) * 1024)
-      /* When condemned size is larger than could happen in a gen 2
-       * collection (discounting ramps, natch), guess that was a dynamic
-       * collection, and reset the commit limit, so it doesn't run out. */
-      die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE), "set limit");
   }
 }
 
@@ -115,15 +106,7 @@ static void test_stepper(mps_addr_t object, mps_fmt_t fmt, mps_pool_t pool,
   testlib_unused(fmt);
   testlib_unused(pool);
   testlib_unused(s);
-#ifdef MPS_OS_W3
-  __try {
-    dylan_mutate(object);
-  } __except(EXCEPTION_EXECUTE_HANDLER) {
-    error("Unexpected exception.\n");
-  }
-#else
   dylan_mutate(object);
-#endif
       
   (*(unsigned long *)p)++;
 }
