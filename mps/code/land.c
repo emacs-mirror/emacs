@@ -34,6 +34,8 @@ Bool LandCheck(Land land)
   CHECKD(LandClass, land->class);
   CHECKU(Arena, land->arena);
   CHECKL(AlignCheck(land->alignment));
+  CHECKL(SizeIsAligned(land->size, land->alignment));
+  /* too expensive to check land->size against contents */
   return TRUE;
 }
 
@@ -51,6 +53,7 @@ Res LandInit(Land land, LandClass class, Arena arena, Align alignment, void *own
   AVERT(LandClass, class);
   AVERT(Align, alignment);
 
+  land->size = 0;
   land->alignment = alignment;
   land->arena = arena;
   land->class = class;
@@ -147,12 +150,21 @@ void LandFinish(Land land)
 
 Res LandInsert(Range rangeReturn, Land land, Range range)
 {
+  Res res;
+  Size size;
+
   AVER(rangeReturn != NULL);
   AVERT(Land, land);
   AVERT(Range, range);
   AVER(RangeIsAligned(range, land->alignment));
 
-  return (*land->class->insert)(rangeReturn, land, range);
+  /* rangeReturn is allowed to alias with range, so take size first.
+   * See <design/land/#.function.insert.alias> */
+  size = RangeSize(range);
+  res = (*land->class->insert)(rangeReturn, land, range);
+  if (res == ResOK)
+    land->size += size;
+  return res;
 }
 
 
@@ -163,12 +175,22 @@ Res LandInsert(Range rangeReturn, Land land, Range range)
 
 Res LandDelete(Range rangeReturn, Land land, Range range)
 {
+  Res res;
+  Size size;
+
   AVER(rangeReturn != NULL);
   AVERT(Land, land);
   AVERT(Range, range);
   AVER(RangeIsAligned(range, land->alignment));
 
-  return (*land->class->delete)(rangeReturn, land, range);
+  /* rangeReturn is allowed to alias with range, so take size first.
+   * See <design/land/#.function.delete.alias> */
+  size = RangeSize(range);
+  AVER(land->size >= size);
+  res = (*land->class->delete)(rangeReturn, land, range);
+  if (res == ResOK)
+    land->size -= size;
+  return res;
 }
 
 
@@ -193,14 +215,22 @@ void LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS)
 
 Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
+  Bool res;
+
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVERT(Land, land);
   AVER(SizeIsAligned(size, land->alignment));
   AVER(FindDeleteCheck(findDelete));
 
-  return (*land->class->findFirst)(rangeReturn, oldRangeReturn, land, size,
-                                   findDelete);
+  res = (*land->class->findFirst)(rangeReturn, oldRangeReturn, land, size,
+                                  findDelete);
+  if (res && findDelete != FindDeleteNONE) {
+    AVER(RangeIsAligned(rangeReturn, land->alignment));
+    AVER(land->size >= RangeSize(rangeReturn));
+    land->size -= RangeSize(rangeReturn);
+  }
+  return res;
 }
 
 
@@ -211,14 +241,22 @@ Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size
 
 Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
+  Bool res;
+
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVERT(Land, land);
   AVER(SizeIsAligned(size, land->alignment));
   AVER(FindDeleteCheck(findDelete));
 
-  return (*land->class->findLast)(rangeReturn, oldRangeReturn, land, size,
-                                  findDelete);
+  res = (*land->class->findLast)(rangeReturn, oldRangeReturn, land, size,
+                                 findDelete);
+  if (res && findDelete != FindDeleteNONE) {
+    AVER(RangeIsAligned(rangeReturn, land->alignment));
+    AVER(land->size >= RangeSize(rangeReturn));
+    land->size -= RangeSize(rangeReturn);
+  }
+  return res;
 }
 
 
@@ -229,14 +267,22 @@ Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size,
 
 Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
+  Bool res;
+
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVERT(Land, land);
   AVER(SizeIsAligned(size, land->alignment));
   AVER(FindDeleteCheck(findDelete));
 
-  return (*land->class->findLargest)(rangeReturn, oldRangeReturn, land, size,
-                                     findDelete);
+  res = (*land->class->findLargest)(rangeReturn, oldRangeReturn, land, size,
+                                    findDelete);
+  if (res && findDelete != FindDeleteNONE) {
+    AVER(RangeIsAligned(rangeReturn, land->alignment));
+    AVER(land->size >= RangeSize(rangeReturn));
+    land->size -= RangeSize(rangeReturn);
+  }
+  return res;
 }
 
 
@@ -247,6 +293,8 @@ Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size si
 
 Res LandFindInZones(Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high)
 {
+  Res res;
+
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVERT(Land, land);
@@ -254,8 +302,14 @@ Res LandFindInZones(Range rangeReturn, Range oldRangeReturn, Land land, Size siz
   /* AVER(ZoneSet, zoneSet); */
   AVERT(Bool, high);
 
-  return (*land->class->findInZones)(rangeReturn, oldRangeReturn, land, size,
-                                     zoneSet, high);
+  res = (*land->class->findInZones)(rangeReturn, oldRangeReturn, land, size,
+                                    zoneSet, high);
+  if (res == ResOK) {
+    AVER(RangeIsAligned(rangeReturn, land->alignment));
+    AVER(land->size >= RangeSize(rangeReturn));
+    land->size -= RangeSize(rangeReturn);
+  }
+  return res;
 }
 
 
@@ -277,6 +331,7 @@ Res LandDescribe(Land land, mps_lib_FILE *stream)
                " (\"$S\")\n", land->class->name,
                "  arena $P\n", (WriteFP)land->arena,
                "  align $U\n", (WriteFU)land->alignment,
+               "  align $U\n", (WriteFU)land->size,
                NULL);
   if (res != ResOK)
     return res;

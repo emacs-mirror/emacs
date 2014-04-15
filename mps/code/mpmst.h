@@ -641,6 +641,7 @@ typedef struct LandStruct {
   LandClass class;              /* land class structure */
   Arena arena;                  /* owning arena */
   Align alignment;              /* alignment of addresses */
+  Size size;                    /* total size of ranges in land */
 } LandStruct;
 
 

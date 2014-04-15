@@ -48,7 +48,6 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
   Size minSegSize;              /* minimum size of segment */
   Size avgSize;                 /* client estimate of allocation size */
   Size total;                   /* total bytes in pool */
-  Size free;                    /* total free bytes in pool */
   CBSStruct cbsStruct;          /* free list */
   FreelistStruct flStruct;      /* emergency free list */
   FailoverStruct foStruct;      /* fail-over mechanism */
@@ -88,19 +87,10 @@ typedef MVFFDebugStruct *MVFFDebug;
  * segments (see MVFFFreeSegs).
  */
 static Res MVFFInsert(Range rangeIO, MVFF mvff) {
-  Res res;
-  Size size;
-
-  AVER(rangeIO != NULL);
+  AVERT(Range, rangeIO);
   AVERT(MVFF, mvff);
 
-  size = RangeSize(rangeIO);
-  res = LandInsert(rangeIO, FailoverOfMVFF(mvff), rangeIO);
-
-  if (res == ResOK)
-    mvff->free += size;
-
-  return res;
+  return LandInsert(rangeIO, FailoverOfMVFF(mvff), rangeIO);
 }
 
 
@@ -151,7 +141,6 @@ static void MVFFFreeSegs(MVFF mvff, Range range)
        * that needs to be read in order to update the Freelist. */
       SegFree(seg);
 
-      mvff->free -= RangeSize(&delRange);
       mvff->total -= RangeSize(&delRange);
     }
 
@@ -261,10 +250,6 @@ static Bool MVFFFindFree(Range rangeReturn, MVFF mvff, Size size)
   foundBlock =
     (mvff->firstFit ? LandFindFirst : LandFindLast)
     (rangeReturn, &oldRange, FailoverOfMVFF(mvff), size, findDelete);
-
-  if (foundBlock) {
-    mvff->free -= size;
-  }
 
   return foundBlock;
 }
@@ -378,7 +363,6 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(found);
 
   AVER(RangeSize(&range) >= size);
-  mvff->free -= RangeSize(&range);
 
   *baseReturn = RangeBase(&range);
   *limitReturn = RangeLimit(&range);
@@ -517,7 +501,6 @@ static Res MVFFInit(Pool pool, ArgList args)
   SegPrefExpress(mvff->segPref, arenaHigh ? SegPrefHigh : SegPrefLow, NULL);
 
   mvff->total = 0;
-  mvff->free = 0;
 
   res = LandInit(FreelistOfMVFF(mvff), FreelistLandClassGet(), arena, align, mvff, mps_args_none);
   if (res != ResOK)
@@ -620,7 +603,6 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
                "  extendBy  $W\n",  (WriteFW)mvff->extendBy,
                "  avgSize   $W\n",  (WriteFW)mvff->avgSize,
                "  total     $U\n",  (WriteFU)mvff->total,
-               "  free      $U\n",  (WriteFU)mvff->free,
                NULL);
   if (res != ResOK)
     return res;
@@ -698,13 +680,15 @@ size_t mps_mvff_free_size(mps_pool_t mps_pool)
 {
   Pool pool;
   MVFF mvff;
+  Land land;
 
   pool = (Pool)mps_pool;
   AVERT(Pool, pool);
   mvff = Pool2MVFF(pool);
   AVERT(MVFF, mvff);
+  land = FailoverOfMVFF(mvff);
 
-  return (size_t)mvff->free;
+  return (size_t)LandSize(land);
 }
 
 /* Total owned bytes. See <design/poolmvff/#design.arena-enter> */
@@ -735,8 +719,7 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKL(mvff->minSegSize >= ArenaAlign(PoolArena(MVFF2Pool(mvff))));
   CHECKL(mvff->avgSize > 0);                    /* see .arg.check */
   CHECKL(mvff->avgSize <= mvff->extendBy);      /* see .arg.check */
-  CHECKL(mvff->total >= mvff->free);
-  CHECKL(SizeIsAligned(mvff->free, PoolAlignment(MVFF2Pool(mvff))));
+  CHECKL(mvff->total >= LandSize(FailoverOfMVFF(mvff)));
   CHECKL(SizeIsAligned(mvff->total, ArenaAlign(PoolArena(MVFF2Pool(mvff)))));
   CHECKD(CBS, &mvff->cbsStruct);
   CHECKD(Freelist, &mvff->flStruct);

@@ -1002,6 +1002,7 @@ extern Size VMMapped(VM vm);
 extern Bool LandCheck(Land land);
 #define LandArena(land) ((land)->arena)
 #define LandAlignment(land) ((land)->alignment)
+#define LandSize(land) ((land)->size)
 
 extern Res LandInit(Land land, LandClass class, Arena arena, Align alignment, void *owner, ArgList args);
 extern Res LandCreate(Land *landReturn, Arena arena, LandClass class, Align alignment, void *owner, ArgList args);
