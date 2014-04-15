@@ -287,7 +287,7 @@ typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream);
 #define AccessSetEMPTY  ((AccessSet)0) /* <design/type/#access-set> */
 #define AccessREAD      ((AccessSet)(1<<0))
 #define AccessWRITE     ((AccessSet)(1<<1))
-#define AccessSetWIDTH  (2)
+#define AccessLIMIT     (2)
 #define RefSetEMPTY     BS_EMPTY(RefSet)
 #define RefSetUNIV      BS_UNIV(RefSet)
 #define ZoneSetEMPTY    BS_EMPTY(ZoneSet)

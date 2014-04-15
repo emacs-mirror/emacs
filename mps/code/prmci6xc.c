@@ -31,33 +31,38 @@ SRCID(prmci6li, "$Id$");
 
 MRef Prmci6AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 {
+  THREAD_STATE_S *threadState;
+
+  AVER(mfc != NULL);
   AVER(NONNEGATIVE(regnum));
   AVER(regnum <= 15);
+  AVER(mfc->threadState != NULL);
+  threadState = mfc->threadState;
 
   /* .assume.regref */
   /* The register numbers (REG_RAX etc.) are defined in <ucontext.h>
      but only if _XOPEN_SOURCE is defined: see .feature.xc in
      config.h. */
   /* MRef (a Word *) is not compatible with pointers to the register
-     types (actually a __uint64_t).  To avoid aliasing optimization
-     problems, The registers are cast through (char *) */
+     types (actually a __uint64_t). To avoid aliasing optimization
+     problems, the registers are cast through (void *). */
   switch (regnum) {
-    case  0: return (MRef)((char *)&mfc->threadState->__rax);
-    case  1: return (MRef)((char *)&mfc->threadState->__rcx);
-    case  2: return (MRef)((char *)&mfc->threadState->__rdx);
-    case  3: return (MRef)((char *)&mfc->threadState->__rbx);
-    case  4: return (MRef)((char *)&mfc->threadState->__rsp);
-    case  5: return (MRef)((char *)&mfc->threadState->__rbp);
-    case  6: return (MRef)((char *)&mfc->threadState->__rsi);
-    case  7: return (MRef)((char *)&mfc->threadState->__rdi);
-    case  8: return (MRef)((char *)&mfc->threadState->__r8);
-    case  9: return (MRef)((char *)&mfc->threadState->__r9);
-    case 10: return (MRef)((char *)&mfc->threadState->__r10);
-    case 11: return (MRef)((char *)&mfc->threadState->__r11);
-    case 12: return (MRef)((char *)&mfc->threadState->__r12);
-    case 13: return (MRef)((char *)&mfc->threadState->__r13);
-    case 14: return (MRef)((char *)&mfc->threadState->__r14);
-    case 15: return (MRef)((char *)&mfc->threadState->__r15);
+    case  0: return (void *)&threadState->__rax;
+    case  1: return (void *)&threadState->__rcx;
+    case  2: return (void *)&threadState->__rdx;
+    case  3: return (void *)&threadState->__rbx;
+    case  4: return (void *)&threadState->__rsp;
+    case  5: return (void *)&threadState->__rbp;
+    case  6: return (void *)&threadState->__rsi;
+    case  7: return (void *)&threadState->__rdi;
+    case  8: return (void *)&threadState->__r8;
+    case  9: return (void *)&threadState->__r9;
+    case 10: return (void *)&threadState->__r10;
+    case 11: return (void *)&threadState->__r11;
+    case 12: return (void *)&threadState->__r12;
+    case 13: return (void *)&threadState->__r13;
+    case 14: return (void *)&threadState->__r14;
+    case 15: return (void *)&threadState->__r15;
     default:
       NOTREACHED;
       return NULL;  /* Avoids compiler warning. */

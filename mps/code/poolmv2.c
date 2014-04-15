@@ -81,7 +81,6 @@ typedef struct MVTStruct
   Bool abqOverflow;             /* ABQ dropped some candidates */
   /* <design/poolmvt/#arch.ap.no-fit>.* */
   Bool splinter;                /* Saved splinter */
-  Seg splinterSeg;              /* Saved splinter seg */
   Addr splinterBase;            /* Saved splinter base */
   Addr splinterLimit;           /* Saved splinter size */
 
@@ -136,7 +135,7 @@ typedef struct MVTStruct
 
 DEFINE_POOL_CLASS(MVTPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractSegBufPoolClass);
+  INHERIT_CLASS(this, AbstractBufferPoolClass);
   this->name = "MVT";
   this->size = sizeof(MVTStruct);
   this->offset = offsetof(MVTStruct, poolStruct);
@@ -311,7 +310,6 @@ static Res MVTInit(Pool pool, ArgList args)
   mvt->maxSize = maxSize;
   mvt->fragLimit = fragLimit;
   mvt->splinter = FALSE;
-  mvt->splinterSeg = NULL;
   mvt->splinterBase = (Addr)0;
   mvt->splinterLimit = (Addr)0;
  
@@ -400,9 +398,7 @@ static Bool MVTCheck(MVT mvt)
   if (mvt->splinter) {
     CHECKL(AddrOffset(mvt->splinterBase, mvt->splinterLimit) >=
            mvt->minSize);
-    CHECKD(Seg, mvt->splinterSeg);
-    CHECKL(mvt->splinterBase >= SegBase(mvt->splinterSeg));
-    CHECKL(mvt->splinterLimit <= SegLimit(mvt->splinterSeg));
+    CHECKL(mvt->splinterBase < mvt->splinterLimit);
   }
   CHECKL(mvt->size == mvt->allocated + mvt->available +
          mvt->unavailable);
@@ -937,7 +933,6 @@ static void MVTBufferEmpty(Pool pool, Buffer buffer,
   }
 
   mvt->splinter = TRUE;
-  mvt->splinterSeg = BufferSeg(buffer);
   mvt->splinterBase = base;
   mvt->splinterLimit = limit;
 }
@@ -984,8 +979,6 @@ static void MVTFree(Pool pool, Addr base, Size size)
     AVER(mvt->size == mvt->allocated + mvt->available +
          mvt->unavailable);
     METER_ACC(mvt->exceptionReturns, SegSize(seg));
-    if (SegBuffer(seg) != NULL)
-      BufferDetach(SegBuffer(seg), MVT2Pool(mvt));
     MVTSegFree(mvt, seg);
     return;
   }
@@ -1017,7 +1010,6 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream)
                "  availLimit: $U \n", (WriteFU)mvt->availLimit,
                "  abqOverflow: $S \n", mvt->abqOverflow?"TRUE":"FALSE",
                "  splinter: $S \n", mvt->splinter?"TRUE":"FALSE",
-               "  splinterSeg: $P \n", (WriteFP)mvt->splinterSeg,
                "  splinterBase: $A \n", (WriteFA)mvt->splinterBase,
                "  splinterLimit: $A \n", (WriteFU)mvt->splinterLimit,
                "  size: $U \n", (WriteFU)mvt->size,
@@ -1036,68 +1028,37 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream)
   res = ABQDescribe(MVTABQ(mvt), (ABQDescribeElement)RangeDescribe, stream);
   if(res != ResOK) return res;
 
-  res = METER_WRITE(mvt->segAllocs, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->segFrees, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->bufferFills, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->bufferEmpties, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->poolFrees, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->poolSize, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->poolAllocated, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->poolAvailable, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->poolUnavailable, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->poolUtilization, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->finds, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->overflows, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->underflows, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->refills, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->refillPushes, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->returns, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->perfectFits, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->firstFits, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->secondFits, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->failures, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->emergencyContingencies, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->fragLimitContingencies, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->contingencySearches, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->contingencyHardSearches, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->splinters, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->splintersUsed, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->splintersDropped, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->sawdust, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->exceptions, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->exceptionSplinters, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->exceptionReturns, stream);
-  if (res != ResOK) return res;
+  METER_WRITE(mvt->segAllocs, stream);
+  METER_WRITE(mvt->segFrees, stream);
+  METER_WRITE(mvt->bufferFills, stream);
+  METER_WRITE(mvt->bufferEmpties, stream);
+  METER_WRITE(mvt->poolFrees, stream);
+  METER_WRITE(mvt->poolSize, stream);
+  METER_WRITE(mvt->poolAllocated, stream);
+  METER_WRITE(mvt->poolAvailable, stream);
+  METER_WRITE(mvt->poolUnavailable, stream);
+  METER_WRITE(mvt->poolUtilization, stream);
+  METER_WRITE(mvt->finds, stream);
+  METER_WRITE(mvt->overflows, stream);
+  METER_WRITE(mvt->underflows, stream);
+  METER_WRITE(mvt->refills, stream);
+  METER_WRITE(mvt->refillPushes, stream);
+  METER_WRITE(mvt->returns, stream);
+  METER_WRITE(mvt->perfectFits, stream);
+  METER_WRITE(mvt->firstFits, stream);
+  METER_WRITE(mvt->secondFits, stream);
+  METER_WRITE(mvt->failures, stream);
+  METER_WRITE(mvt->emergencyContingencies, stream);
+  METER_WRITE(mvt->fragLimitContingencies, stream);
+  METER_WRITE(mvt->contingencySearches, stream);
+  METER_WRITE(mvt->contingencyHardSearches, stream);
+  METER_WRITE(mvt->splinters, stream);
+  METER_WRITE(mvt->splintersUsed, stream);
+  METER_WRITE(mvt->splintersDropped, stream);
+  METER_WRITE(mvt->sawdust, stream);
+  METER_WRITE(mvt->exceptions, stream);
+  METER_WRITE(mvt->exceptionSplinters, stream);
+  METER_WRITE(mvt->exceptionReturns, stream);
  
   res = WriteF(stream, "}\n", NULL);
   return res;
@@ -1175,7 +1136,7 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
 {
   /* Can't use plain old SegClass here because we need to call
    * SegBuffer() in MVTFree(). */
-  Res res = SegAlloc(segReturn, GCSegClassGet(),
+  Res res = SegAlloc(segReturn, SegClassGet(),
                      SegPrefDefault(), size, MVT2Pool(mvt), withReservoirPermit,
                      argsNone);
 
@@ -1199,7 +1160,6 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
  */
 static void MVTSegFree(MVT mvt, Seg seg)
 {
-  Buffer buffer;
   Size size;
   
   size = SegSize(seg);
@@ -1209,16 +1169,6 @@ static void MVTSegFree(MVT mvt, Seg seg)
   mvt->size -= size;
   mvt->availLimit = mvt->size * mvt->fragLimit / 100;
   AVER(mvt->size == mvt->allocated + mvt->available + mvt->unavailable);
-
-  /* If the client program allocates the exactly the entire buffer then
-     frees the allocated memory then we'll try to free the segment with
-     the buffer still attached.  It's safe, but we must detach the buffer
-     first.  See job003520 and job003672. */
-  buffer = SegBuffer(seg);
-  if (buffer != NULL) {
-    AVER(BufferAP(buffer)->init == SegLimit(seg));
-    BufferDetach(buffer, MVT2Pool(mvt));
-  }
   
   SegFree(seg);
   METER_ACC(mvt->segFrees, size);

@@ -187,8 +187,8 @@ Performance might be improved by special-casing the small levels.
 _`.future.limit`: In C and C++, a pointer to "one past the last
 element of an array object" (the limit of the object in our
 terminology) is a valid pointer and can be used in pointer arithmetic.
-See §6.5.6.8–9 of [C1999]. So in theory a programmer could have such
-as pointer as the only reference keeping an object alive, and still
+See §6.5.6.8–9 of [C1999]_. So in theory a programmer could have such
+a pointer as the only reference keeping an object alive, and still
 expect to be able to subtract from it to get back to the object. The
 current nailboard implementation does not support this use case.
 

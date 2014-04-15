@@ -24,12 +24,14 @@ set ALL_TEST_CASES=^
     airtest.exe ^
     amcss.exe ^
     amcsshe.exe ^
+    amcssth.exe ^
     amsss.exe ^
     amssshe.exe ^
     apss.exe ^
     arenacv.exe ^
     awlut.exe ^
     awluthe.exe ^
+    awlutth.exe ^
     btcv.exe ^
     exposet0.exe ^
     expt825.exe ^
@@ -39,7 +41,7 @@ set ALL_TEST_CASES=^
     landtest.exe ^
     locbwcss.exe ^
     lockcov.exe ^
-    lockutw3.exe ^
+    lockut.exe ^
     locusss.exe ^
     locv.exe ^
     messtest.exe ^

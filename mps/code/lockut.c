@@ -1,45 +1,116 @@
-/* mpsw3.h: RAVENBROOK MEMORY POOL SYSTEM C INTERFACE, WINDOWS PART
+/* lockut.c: LOCK UTILIZATION TEST
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
- *
- * .readership: customers, MPS developers.
- * .sources: <design/interface-c/>.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
-#ifndef mpsw3_h
-#define mpsw3_h
+#include "mps.h"
+#include "mpsavm.h"
+#include "mpscmfs.h"
+#include "mpm.h"
+#include "testlib.h"
+#include "testthr.h"
 
-#include "mps.h"               /* needed for mps_tramp_t */
-#include "mpswin.h"            /* needed for SEH filter */
-
-
-extern LONG mps_SEH_filter(LPEXCEPTION_POINTERS, void **, size_t *);
-extern void mps_SEH_handler(void *, size_t);
-
-
-#define mps_tramp(r_o, f, p, s) \
-  MPS_BEGIN \
-    void **_r_o = (r_o); \
-    mps_tramp_t _f = (f); \
-    void *_p = (p); \
-    size_t _s = (s); \
-    void *_hp = NULL; size_t _hs = 0; \
-    __try { \
-      *_r_o = (*_f)(_p, _s); \
-    } __except(mps_SEH_filter(GetExceptionInformation(), \
-               &_hp, &_hs)) { \
-      mps_SEH_handler(_hp, _hs); \
-    } \
-  MPS_END
+#include <stdio.h> /* printf */
 
 
-#endif /* mpsw3_h */
+#define nTHREADS 4
+
+static Lock lock;
+static unsigned long shared, tmp;
+
+
+static void incR(unsigned long i)
+{
+  LockClaimRecursive(lock);
+  if (i < 100) {
+    while(i--) {
+      tmp = shared;
+      shared = tmp + 1;
+    }
+  } else {
+    incR(i >> 1);
+    incR( (i+1) >> 1);
+  }
+  LockReleaseRecursive(lock);
+}
+
+
+static void inc(unsigned long i)
+{
+  incR( (i+1) >>1);
+  i >>= 1;
+  while (i) {
+    LockClaim(lock);
+    if (i > 10000) {
+      incR(5000);
+      i -= 5000;
+    }
+    tmp = shared;
+    shared = tmp+1;
+    i--;
+    LockReleaseMPM(lock);
+  }
+}
+
+
+#define COUNT 100000l
+static void *thread0(void *p)
+{
+  testlib_unused(p);
+  inc(COUNT);
+  return NULL;
+}
+
+
+int main(int argc, char *argv[])
+{
+  mps_arena_t arena;
+  mps_pool_t pool;
+  mps_addr_t p;
+  testthr_t t[10];
+  unsigned i;
+
+  testlib_init(argc, argv);
+
+  die(mps_arena_create_k(&arena, mps_arena_class_vm(), mps_args_none),
+      "arena_create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_MFS_UNIT_SIZE, LockSize());
+    die(mps_pool_create_k(&pool, arena, mps_class_mfs(), args), "pool_create");
+  } MPS_ARGS_END(args);
+
+  die(mps_alloc(&p, pool, LockSize()), "alloc");
+  lock = p;
+  Insist(lock != NULL);
+
+  LockInit(lock);
+  UNUSED(argc);
+
+  shared = 0;
+
+  for(i = 0; i < nTHREADS; i++)
+    testthr_create(&t[i], thread0, NULL);
+
+  for(i = 0; i < nTHREADS; i++)
+    testthr_join(&t[i], NULL);
+
+  Insist(shared == nTHREADS*COUNT);
+
+  LockFinish(lock);
+
+  mps_free(pool, lock, LockSize());
+  mps_pool_destroy(pool);
+  mps_arena_destroy(arena);
+
+  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
+  return 0;
+}
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
