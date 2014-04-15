@@ -268,6 +268,7 @@ typedef struct TraceMessageStruct *TraceMessage;  /* trace end */
 
 typedef Res (*LandInitMethod)(Land land, ArgList args);
 typedef void (*LandFinishMethod)(Land land);
+typedef Size (*LandSizeMethod)(Land land);
 typedef Res (*LandInsertMethod)(Range rangeReturn, Land land, Range range);
 typedef Res (*LandDeleteMethod)(Range rangeReturn, Land land, Range range);
 typedef Bool (*LandVisitor)(Bool *deleteReturn, Land land, Range range, void *closureP, Size closureS);

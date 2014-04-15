@@ -168,8 +168,11 @@ Bool FreelistCheck(Freelist fl)
   land = &fl->landStruct;
   CHECKD(Land, land);
   /* See <design/freelist/#impl.grain.align> */
-  CHECKL(AlignIsAligned(LandAlignment(land), freelistMinimumAlignment));
+  CHECKL(AlignIsAligned(freelistAlignment(fl), freelistMinimumAlignment));
   CHECKL((fl->list == NULL) == (fl->listSize == 0));
+  CHECKL((fl->list == NULL) == (fl->size == 0));
+  CHECKL(SizeIsAligned(fl->size, freelistAlignment(fl)));
+
   return TRUE;
 }
 
@@ -192,6 +195,7 @@ static Res freelistInit(Land land, ArgList args)
   fl = freelistOfLand(land);
   fl->list = NULL;
   fl->listSize = 0;
+  fl->size = 0;
 
   fl->sig = FreelistSig;
   AVERT(Freelist, fl);
@@ -208,6 +212,17 @@ static void freelistFinish(Land land)
   AVERT(Freelist, fl);
   fl->sig = SigInvalid;
   fl->list = NULL;
+}
+
+
+static Size freelistSize(Land land)
+{
+  Freelist fl;
+
+  AVERT(Land, land);
+  fl = freelistOfLand(land);
+  AVERT(Freelist, fl);
+  return fl->size;
 }
 
 
@@ -303,6 +318,7 @@ static Res freelistInsert(Range rangeReturn, Land land, Range range)
     freelistBlockSetPrevNext(fl, prev, new, +1);
   }
 
+  fl->size += RangeSize(range);
   RangeInit(rangeReturn, base, limit);
   return ResOK;
 }
@@ -360,6 +376,8 @@ static void freelistDeleteFromBlock(Range rangeReturn, Freelist fl,
     freelistBlockSetPrevNext(fl, block, new, +1);
   }
 
+  AVER(fl->size >= RangeSize(range));
+  fl->size -= RangeSize(range);
   RangeInit(rangeReturn, blockBase, blockLimit);
 }
 
@@ -426,7 +444,10 @@ static void freelistIterate(Land land, LandVisitor visitor,
     cont = (*visitor)(&delete, land, &range, closureP, closureS);
     next = FreelistBlockNext(cur);
     if (delete) {
+      Size size = FreelistBlockSize(fl, cur);
       freelistBlockSetPrevNext(fl, prev, next, -1);
+      AVER(fl->size >= size);
+      fl->size -= size;
     } else {
       prev = cur;
     }
@@ -726,6 +747,7 @@ DEFINE_LAND_CLASS(FreelistLandClass, class)
   class->size = sizeof(FreelistStruct);
   class->init = freelistInit;
   class->finish = freelistFinish;
+  class->sizeMethod = freelistSize;
   class->insert = freelistInsert;
   class->delete = freelistDelete;
   class->iterate = freelistIterate;
