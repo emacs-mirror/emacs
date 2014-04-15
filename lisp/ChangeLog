@@ -1,3 +1,13 @@
+2014-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ps-def.el (ps-generate-postscript-with-faces1): Use the new `sorted'
+	arg of overlays-at.  Use `invisible-p'.
+
+	* obsolete/lucid.el (extent-at):
+	* htmlfontify.el (hfy-overlay-props-at): Use the new `sorted' arg of
+	overlays-at.
+	(hfy-fontify-buffer): Remove unused var `orig-ovls'.
+
 2014-04-14  João Távora  <joaotavora@gmail.com>
 
 	* net/shr.el (shr-expand-url): Use `expand-file-name' for relative

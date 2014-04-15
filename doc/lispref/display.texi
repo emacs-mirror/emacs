@@ -1475,8 +1475,10 @@ the buffer's undo list.
 
   Since more than one overlay can specify a property value for the
 same character, Emacs lets you specify a priority value of each
-overlay.  You should not make assumptions about which overlay will
-prevail when there is a conflict and they have the same priority.
+overlay.  In case two overlays have the same priority value, and one
+is nested in the other, then the inner one will have priority over the
+outer one.  If neither is nested in the other then you should not make
+assumptions about which overlay will prevail.
 
   These functions read and set the properties of an overlay:
 
@@ -1507,9 +1509,9 @@ of them:
 @table @code
 @item priority
 @kindex priority @r{(overlay property)}
-This property's value (which should be a non-negative integer)
-determines the priority of the overlay.  No priority, or @code{nil},
-means zero.
+This property's value determines the priority of the overlay.  No priority, or
+@code{nil}, means zero.  A non-nil and non-integer value has
+undefined behavior.
 
 The priority matters when two or more overlays cover the same
 character and both specify the same property; the one whose
@@ -1706,11 +1708,12 @@ Properties}.
 @node Finding Overlays
 @subsection Searching for Overlays
 
-@defun overlays-at pos
-This function returns a list of all the overlays that cover the
-character at position @var{pos} in the current buffer.  The list is in
-no particular order.  An overlay contains position @var{pos} if it
-begins at or before @var{pos}, and ends after @var{pos}.
+@defun overlays-at pos &optional sorted
+This function returns a list of all the overlays that cover the character at
+position @var{pos} in the current buffer.  If @var{sorted} is non-nil, the list
+is in decreasing order of priority, otherwise it is in no particular order.
+An overlay contains position @var{pos} if it begins at or before @var{pos}, and
+ends after @var{pos}.
 
 To illustrate usage, here is a Lisp function that returns a list of the
 overlays that specify property @var{prop} for the character at point:

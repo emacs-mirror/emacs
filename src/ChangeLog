@@ -1,3 +1,7 @@
+2014-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Foverlays_at): Add argument `sorted'.
+
 2014-04-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* insdel.c (invalidate_buffer_caches): When deleting or replacing

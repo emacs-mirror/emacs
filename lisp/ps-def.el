@@ -339,53 +339,11 @@
 	(setq position (min property-change overlay-change)
 	      before-string nil
 	      after-string nil)
-	;; The code below is not quite correct,
-	;; because a non-nil overlay invisible property
-	;; which is inactive according to the current value
-	;; of buffer-invisibility-spec nonetheless overrides
-	;; a face text property.
 	(setq face
-	      (cond ((let ((prop (get-text-property from 'invisible)))
-		       ;; Decide whether this invisible property
-		       ;; really makes the text invisible.
-		       (if (eq save-buffer-invisibility-spec t)
-			   (not (null prop))
-			 (or (memq prop save-buffer-invisibility-spec)
-			     (assq prop save-buffer-invisibility-spec))))
+	      (cond ((invisible-p from)
 		     'emacs--invisible--face)
-		    ((get-text-property from 'face))
+		    ((get-char-property from 'face))
 		    (t 'default)))
-	(let ((overlays (overlays-at from))
-	      (face-priority -1))	; text-property
-	  (while (and overlays
-		      (not (eq face 'emacs--invisible--face)))
-	    (let* ((overlay (car overlays))
-		   (overlay-invisible
-		    (overlay-get overlay 'invisible))
-		   (overlay-priority
-		    (or (overlay-get overlay 'priority) 0)))
-	      (and (> overlay-priority face-priority)
-		   (setq before-string
-			 (or (overlay-get overlay 'before-string)
-			     before-string)
-			 after-string
-			 (or (and (<= (overlay-end overlay) position)
-				  (overlay-get overlay 'after-string))
-			     after-string)
-			 face-priority overlay-priority
-			 face
-			 (cond
-			  ((if (eq save-buffer-invisibility-spec t)
-			       (not (null overlay-invisible))
-			     (or (memq overlay-invisible
-				       save-buffer-invisibility-spec)
-				 (assq overlay-invisible
-				       save-buffer-invisibility-spec)))
-			   'emacs--invisible--face)
-			  ((overlay-get overlay 'face))
-			  (t face)
-			  ))))
-	    (setq overlays (cdr overlays))))
 	;; Plot up to this record.
 	(and before-string
 	     (ps-plot-string before-string))

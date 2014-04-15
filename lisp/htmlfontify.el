@@ -1328,9 +1328,7 @@ return a `defface' style list of face properties instead of a face symbol."
 (defun hfy-overlay-props-at (p)
   "Grab overlay properties at point P.
 The plists are returned in descending priority order."
-  (sort (mapcar #'overlay-properties (overlays-at p))
-        (lambda (A B) (> (or (cadr (memq 'priority A)) 0) ;FIXME: plist-get?
-                    (or (cadr (memq 'priority B)) 0)))))
+ (mapcar #'overlay-properties (overlays-at p 'sorted)))
 
 ;; construct an assoc of (face-name . (css-name . "{ css-style }")) elements:
 (defun hfy-compile-stylesheet ()
@@ -1642,7 +1640,6 @@ FILE, if set, is the file name."
           (css-map                     nil)
           (invis-ranges                nil)
           (rovl                        nil)
-          (orig-ovls      (overlays-in (point-min) (point-max)))
           (rmin           (when mark-active (region-beginning)))
           (rmax           (when mark-active (region-end      ))) )
     (when (and mark-active
@@ -1664,12 +1661,6 @@ FILE, if set, is the file name."
     (set-buffer     html-buffer)
     ;; rip out props that could interfere with our htmlization of the buffer:
     (remove-text-properties (point-min) (point-max) hfy-ignored-properties)
-    ;; Apply overlay invisible spec
-    (setq orig-ovls
-          (sort orig-ovls
-                (lambda (A B)
-                  (> (or (cadr (memq 'priority (overlay-properties A))) 0)
-                     (or (cadr (memq 'priority (overlay-properties B))) 0)))))
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;; at this point, html-buffer retains the fontification of the parent:
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
