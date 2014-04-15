@@ -16,6 +16,7 @@ TAGS
 *.dSYM
 code/*/*/*.d
 *.pyc
+test/obj
 test/test/log
 test/test/obj
 ....gcda
