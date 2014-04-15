@@ -33,7 +33,7 @@ install-make-build: make-install-dirs build-via-make
 	$(INSTALL_DATA) code/$(MPS_TARGET_NAME)/cool/libmps.so $(prefix)/lib/libmps-debug.so
 	$(INSTALL_DATA) code/$(MPS_TARGET_NAME)/hot/mps.a $(prefix)/lib/libmps.a
 	$(INSTALL_DATA) code/$(MPS_TARGET_NAME)/hot/libmps.so $(prefix)/lib/libmps.so
-	$(INSTALL_PROGRAM) $(addprefix code/$(MPS_TARGET_NAME)/hot/Release/,$(EXTRA_TARGETS)) $(prefix)/bin
+	$(INSTALL_PROGRAM) $(addprefix code/$(MPS_TARGET_NAME)/hot/,$(EXTRA_TARGETS)) $(prefix)/bin
 
 build-via-xcode:
 	$(XCODEBUILD) -config Release
