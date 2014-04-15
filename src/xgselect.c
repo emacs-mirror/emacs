@@ -33,15 +33,16 @@ int
 xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
 	   struct timespec const *timeout, sigset_t const *sigmask)
 {
-  fd_set all_rfds, all_wfds, all_efds;
+  fd_set all_rfds, all_wfds;
   struct timespec tmo;
   struct timespec const *tmop = timeout;
 
   GMainContext *context;
+  int have_wfds = wfds != NULL;
   GPollFD gfds_buf[128];
   GPollFD *gfds = gfds_buf;
   int gfds_size = sizeof gfds_buf / sizeof *gfds_buf;
-  int n_gfds, retval = 0, all_lim = fds_lim;
+  int n_gfds, retval = 0, our_fds = 0, max_fds = fds_lim - 1;
   int i, nfds, tmo_in_millisec;
   bool need_to_dispatch;
   USE_SAFE_ALLOCA;
@@ -58,8 +59,6 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
   else FD_ZERO (&all_rfds);
   if (wfds) all_wfds = *wfds;
   else FD_ZERO (&all_wfds);
-  if (efds) all_efds = *efds;
-  else FD_ZERO (&all_efds);
 
   n_gfds = g_main_context_query (context, G_PRIORITY_LOW, &tmo_in_millisec,
 				 gfds, gfds_size);
@@ -72,22 +71,19 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
     }
 
   for (i = 0; i < n_gfds; ++i)
-    if (gfds[i].events & (G_IO_IN | G_IO_OUT | G_IO_PRI))
-      {
-	int fd = gfds[i].fd;
-	for (; all_lim <= fd; all_lim++)
-	  {
-	    FD_CLR (all_lim, &all_rfds);
-	    FD_CLR (all_lim, &all_wfds);
-	    FD_CLR (all_lim, &all_efds);
-	  }
-	if (gfds[i].events & G_IO_IN)
-	  FD_SET (fd, &all_rfds);
-	if (gfds[i].events & G_IO_OUT)
-	  FD_SET (fd, &all_wfds);
-	if (gfds[i].events & G_IO_PRI)
-	  FD_SET (fd, &all_efds);
-      }
+    {
+      if (gfds[i].events & G_IO_IN)
+        {
+          FD_SET (gfds[i].fd, &all_rfds);
+          if (gfds[i].fd > max_fds) max_fds = gfds[i].fd;
+        }
+      if (gfds[i].events & G_IO_OUT)
+        {
+          FD_SET (gfds[i].fd, &all_wfds);
+          if (gfds[i].fd > max_fds) max_fds = gfds[i].fd;
+          have_wfds = 1;
+        }
+    }
 
   SAFE_FREE ();
 
@@ -99,35 +95,34 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
 	tmop = &tmo;
     }
 
-  nfds = pselect (all_lim, &all_rfds, &all_wfds, &all_efds, tmop, sigmask);
+  fds_lim = max_fds + 1;
+  nfds = pselect (fds_lim, &all_rfds, have_wfds ? &all_wfds : NULL,
+		  efds, tmop, sigmask);
 
   if (nfds < 0)
     retval = nfds;
-  else
+  else if (nfds > 0)
     {
       for (i = 0; i < fds_lim; ++i)
         {
-	  if (rfds && FD_ISSET (i, rfds))
-	    {
-	      if (FD_ISSET (i, &all_rfds))
-		retval++;
-	      else
-		FD_CLR (i, rfds);
-	    }
-	  if (wfds && FD_ISSET (i, wfds))
-	    {
-	      if (FD_ISSET (i, &all_wfds))
-		retval++;
-	      else
-		FD_CLR (i, wfds);
-	    }
-	  if (efds && FD_ISSET (i, efds))
-	    {
-	      if (FD_ISSET (i, &all_efds))
-		retval++;
-	      else
-		FD_CLR (i, efds);
-	    }
+          if (FD_ISSET (i, &all_rfds))
+            {
+              if (rfds && FD_ISSET (i, rfds)) ++retval;
+              else ++our_fds;
+            }
+          else if (rfds)
+            FD_CLR (i, rfds);
+
+          if (have_wfds && FD_ISSET (i, &all_wfds))
+            {
+              if (wfds && FD_ISSET (i, wfds)) ++retval;
+              else ++our_fds;
+            }
+          else if (wfds)
+            FD_CLR (i, wfds);
+
+          if (efds && FD_ISSET (i, efds))
+            ++retval;
         }
     }
 
@@ -147,7 +142,7 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
     }
 
   /* To not have to recalculate timeout, return like this.  */
-  if (retval == 0 && (0 < nfds || tmop == &tmo))
+  if ((our_fds > 0 || (nfds == 0 && tmop == &tmo)) && (retval == 0))
     {
       retval = -1;
       errno = EINTR;

@@ -1,12 +1,3 @@
-2014-04-15  Paul Eggert  <eggert@penguin.cs.ucla.edu>
-
-	Fix some xgselect-vs-pselect bugs (Bug#17172).
-	This may not fix Bug#17172, but it fixes some bugs discovering
-	while auditing xgselect.c for that bug.
-	when one of glib's file descriptors is greater than FDS_LIM.
-	Treat rfds, wfds, efds consistently, and test G_IO_PRI too.
-	Clear input masks when pselect returns zero.
-
 2014-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.c (Foverlays_at): Add argument `sorted'.
