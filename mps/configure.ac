@@ -124,4 +124,5 @@ AC_CONFIG_FILES(Makefile example/scheme/Makefile)
 
 AC_OUTPUT
 
-echo 1>&2 "CONFIGURE/MAKE IS NOT THE BEST WAY TO BUILD THE MPS -- see <manual/build.txt>"
+echo 1>&2 "CONFIGURE/MAKE MAY NOT BE THE BEST WAY TO BUILD THE MPS
+-- see <manual/build.txt> for alternative approaches"
