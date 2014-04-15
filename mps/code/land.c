@@ -26,10 +26,37 @@ Bool FindDeleteCheck(FindDelete findDelete)
 }
 
 
+/* landEnter, landLeave -- Avoid re-entrance
+ *
+ * .enter-leave: The visitor function passed to LandIterate is not
+ * allowed to call methods of that land. These functions enforce this.
+ *
+ * .enter-leave.simple: Some simple queries are fine to call from
+ * visitor functions. These are marked with the tag of this comment.
+ */
+
+static void landEnter(Land land)
+{
+  /* Don't need to check as always called from interface function. */
+  AVER(!land->inLand);
+  land->inLand = TRUE;
+  return;
+}
+
+static void landLeave(Land land)
+{
+  /* Don't need to check as always called from interface function. */
+  AVER(land->inLand);
+  land->inLand = FALSE;
+  return;
+}
+
+
 /* LandCheck -- check land */
 
 Bool LandCheck(Land land)
 {
+  /* .enter-leave.simple */
   CHECKS(Land, land);
   CHECKD(LandClass, land->class);
   CHECKU(Arena, land->arena);
@@ -51,6 +78,7 @@ Res LandInit(Land land, LandClass class, Arena arena, Align alignment, void *own
   AVERT(LandClass, class);
   AVERT(Align, alignment);
 
+  land->inLand = TRUE;
   land->alignment = alignment;
   land->arena = arena;
   land->class = class;
@@ -63,6 +91,7 @@ Res LandInit(Land land, LandClass class, Arena arena, Align alignment, void *own
     goto failInit;
 
   EVENT2(LandInit, land, owner);
+  landLeave(land);
   return ResOK;
 
  failInit:
@@ -133,10 +162,25 @@ void LandDestroy(Land land)
 void LandFinish(Land land)
 {
   AVERT(Land, land);
+  landEnter(land);
 
   (*land->class->finish)(land);
 
   land->sig = SigInvalid;
+}
+
+
+/* LandSize -- return the total size of ranges in land
+ *
+ * See <design/land/#function.size>
+ */
+
+Size LandSize(Land land)
+{
+  /* .enter-leave.simple */
+  AVERT(Land, land);
+
+  return (*land->class->sizeMethod)(land);
 }
 
 
@@ -147,12 +191,18 @@ void LandFinish(Land land)
 
 Res LandInsert(Range rangeReturn, Land land, Range range)
 {
+  Res res;
+
   AVER(rangeReturn != NULL);
   AVERT(Land, land);
   AVERT(Range, range);
   AVER(RangeIsAligned(range, land->alignment));
+  landEnter(land);
 
-  return (*land->class->insert)(rangeReturn, land, range);
+  res = (*land->class->insert)(rangeReturn, land, range);
+
+  landLeave(land);
+  return res;
 }
 
 
@@ -163,12 +213,18 @@ Res LandInsert(Range rangeReturn, Land land, Range range)
 
 Res LandDelete(Range rangeReturn, Land land, Range range)
 {
+  Res res;
+
   AVER(rangeReturn != NULL);
   AVERT(Land, land);
   AVERT(Range, range);
   AVER(RangeIsAligned(range, land->alignment));
+  landEnter(land);
 
-  return (*land->class->delete)(rangeReturn, land, range);
+  res = (*land->class->delete)(rangeReturn, land, range);
+
+  landLeave(land);
+  return res;
 }
 
 
@@ -181,8 +237,11 @@ void LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS)
 {
   AVERT(Land, land);
   AVER(FUNCHECK(visitor));
+  landEnter(land);
 
   (*land->class->iterate)(land, visitor, closureP, closureS);
+
+  landLeave(land);
 }
 
 
@@ -193,14 +252,20 @@ void LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS)
 
 Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
+  Bool res;
+
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVERT(Land, land);
   AVER(SizeIsAligned(size, land->alignment));
   AVER(FindDeleteCheck(findDelete));
+  landEnter(land);
 
-  return (*land->class->findFirst)(rangeReturn, oldRangeReturn, land, size,
-                                   findDelete);
+  res = (*land->class->findFirst)(rangeReturn, oldRangeReturn, land, size,
+                                  findDelete);
+
+  landLeave(land);
+  return res;
 }
 
 
@@ -211,14 +276,20 @@ Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size
 
 Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
+  Bool res;
+
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVERT(Land, land);
   AVER(SizeIsAligned(size, land->alignment));
   AVER(FindDeleteCheck(findDelete));
+  landEnter(land);
 
-  return (*land->class->findLast)(rangeReturn, oldRangeReturn, land, size,
-                                  findDelete);
+  res = (*land->class->findLast)(rangeReturn, oldRangeReturn, land, size,
+                                 findDelete);
+
+  landLeave(land);
+  return res;
 }
 
 
@@ -229,14 +300,20 @@ Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size,
 
 Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
+  Bool res;
+
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVERT(Land, land);
   AVER(SizeIsAligned(size, land->alignment));
   AVER(FindDeleteCheck(findDelete));
+  landEnter(land);
 
-  return (*land->class->findLargest)(rangeReturn, oldRangeReturn, land, size,
-                                     findDelete);
+  res = (*land->class->findLargest)(rangeReturn, oldRangeReturn, land, size,
+                                    findDelete);
+
+  landLeave(land);
+  return res;
 }
 
 
@@ -247,15 +324,21 @@ Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size si
 
 Res LandFindInZones(Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high)
 {
+  Res res;
+
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVERT(Land, land);
   AVER(SizeIsAligned(size, land->alignment));
   /* AVER(ZoneSet, zoneSet); */
   AVERT(Bool, high);
+  landEnter(land);
 
-  return (*land->class->findInZones)(rangeReturn, oldRangeReturn, land, size,
-                                     zoneSet, high);
+  res = (*land->class->findInZones)(rangeReturn, oldRangeReturn, land, size,
+                                    zoneSet, high);
+
+  landLeave(land);
+  return res;
 }
 
 
@@ -277,6 +360,7 @@ Res LandDescribe(Land land, mps_lib_FILE *stream)
                " (\"$S\")\n", land->class->name,
                "  arena $P\n", (WriteFP)land->arena,
                "  align $U\n", (WriteFU)land->alignment,
+               "  inLand: $U\n", (WriteFU)land->inLand,
                NULL);
   if (res != ResOK)
     return res;
@@ -369,6 +453,40 @@ static void landTrivFinish(Land land)
   NOOP;
 }
 
+static Size landNoSize(Land land)
+{
+  UNUSED(land);
+  NOTREACHED;
+  return 0;
+}
+
+/* LandSlowSize -- generic size method but slow */
+
+static Bool landSizeVisitor(Bool *deleteReturn, Land land, Range range,
+                            void *closureP, Size closureS)
+{
+  Size *size;
+
+  AVER(deleteReturn != NULL);
+  AVERT(Land, land);
+  AVERT(Range, range);
+  AVER(closureP != NULL);
+  UNUSED(closureS);
+
+  size = closureP;
+  *size += RangeSize(range);
+  *deleteReturn = FALSE;
+
+  return TRUE;
+}
+
+Size LandSlowSize(Land land)
+{
+  Size size = 0;
+  LandIterate(land, landSizeVisitor, &size, 0);
+  return size;
+}
+
 static Res landNoInsert(Range rangeReturn, Land land, Range range)
 {
   AVER(rangeReturn != NULL);
@@ -431,6 +549,7 @@ DEFINE_CLASS(LandClass, class)
   class->name = "LAND";
   class->size = sizeof(LandStruct);
   class->init = landTrivInit;
+  class->sizeMethod = landNoSize;
   class->finish = landTrivFinish;
   class->insert = landNoInsert;
   class->delete = landNoDelete;
