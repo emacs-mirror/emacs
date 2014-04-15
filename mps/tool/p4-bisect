@@ -26,6 +26,11 @@ import sys
 
 BISECT_FILE = '.p4-bisect'
 
+def error(msg):
+    sys.stderr.write(msg)
+    sys.stderr.write('\n')
+    exit(1)
+
 class State(object):
     def __init__(self, **d):
         self.filespec = d['filespec']
@@ -35,8 +40,11 @@ class State(object):
 
     @classmethod
     def load(cls):
-        with open(BISECT_FILE, 'r') as f:
-            return cls(**json.load(f))
+        try:
+            with open(BISECT_FILE, 'r') as f:
+                return cls(**json.load(f))
+        except FileNotFoundError:
+            error("p4-bisect not in progress here.")
 
     def save(self):
         with open(BISECT_FILE, 'w') as f:
@@ -57,16 +65,18 @@ class State(object):
         if n > 0:
             self.current = self.changes[n // 2]
             print("Syncing to changelevel {current}.".format(**vars(self)))
-            p4.do('update', '{filespec}@{current}'.format(**vars(self)))
+            p4.do('sync', *['{}@{}'.format(f, self.current)
+                            for f in self.filespec])
         self.save()
 
 def help(parser, args):
     parser.print_help()
 
 def start(args):
-    changes = sorted(int(c['change']) for c in p4.run('changes', args.filespec))
+    args.filespec = args.filespec or ['...']
+    changes = sorted(int(c['change']) for c in p4.run('changes', *args.filespec))
     if not changes:
-        parser.error("No changes for {filespec}".format(**vars(args)))
+        error("No changes for {}".format(' '.join(args.filespec)))
     if args.first is None:
         args.first = changes[0]
     if args.last is None:
@@ -95,7 +105,7 @@ def skip(args):
 
 def reset(args):
     state = State.load()
-    p4.do('update', state.filespec)
+    p4.do('sync', *state.filespec)
     unlink(BISECT_FILE)
 
 def run(args):
@@ -119,11 +129,11 @@ def main(argv):
     a = subparsers.add_parser
 
     help_parser = a('help', help='show this help message')
-    help_parser.set_defaults(func=partial(help, help_parser))
+    help_parser.set_defaults(func=partial(help, parser))
 
     start_parser = a('start', help='start a p4-bisect session')
     aa = start_parser.add_argument
-    start_parser.add_argument('-f', '--filespec', default='...',
+    start_parser.add_argument('-f', '--filespec', action='append',
                               help='filespec to search')
     start_parser.add_argument('first', nargs='?', type=int,
                               help='earliest changelevel to examine')
@@ -136,6 +146,9 @@ def main(argv):
 
     bad_parser = a('bad', help='declare current revision bad')
     bad_parser.set_defaults(func=bad)
+
+    skip_parser = a('skip', help='skip current revision')
+    skip_parser.set_defaults(func=skip)
 
     reset_parser = a('reset', help='finish p4-bisect session')
     reset_parser.set_defaults(func=reset)
