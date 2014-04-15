@@ -1,12 +1,11 @@
-2014-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+2014-04-15  Paul Eggert  <eggert@penguin.cs.ucla.edu>
 
-	* buffer.c (Foverlays_at): Add argument `sorted'.
-
-2014-04-14  Eli Zaretskii  <eliz@gnu.org>
-
-	* insdel.c (invalidate_buffer_caches): When deleting or replacing
-	text, invalidate the bidi_paragraph_cache upto and including the
-	preceding newline.
+	Fix some xgselect-vs-pselect bugs (Bug#17172).
+	This may not fix Bug#17172, but it fixes some bugs discovering
+	while auditing xgselect.c for that bug.
+	when one of glib's file descriptors is greater than FDS_LIM.
+	Treat rfds, wfds, efds consistently, and test G_IO_PRI too.
+	Clear input masks when pselect returns zero.
 
 2014-04-13  Paul Eggert  <eggert@cs.ucla.edu>
 
