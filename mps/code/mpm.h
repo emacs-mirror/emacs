@@ -1002,8 +1002,7 @@ extern Size VMMapped(VM vm);
 extern Bool LandCheck(Land land);
 #define LandArena(land) ((land)->arena)
 #define LandAlignment(land) ((land)->alignment)
-#define LandSize(land) ((land)->size)
-
+extern Size LandSize(Land land);
 extern Res LandInit(Land land, LandClass class, Arena arena, Align alignment, void *owner, ArgList args);
 extern Res LandCreate(Land *landReturn, Arena arena, LandClass class, Align alignment, void *owner, ArgList args);
 extern void LandDestroy(Land land);
@@ -1018,6 +1017,7 @@ extern Res LandFindInZones(Range rangeReturn, Range oldRangeReturn, Land land, S
 extern Res LandDescribe(Land land, mps_lib_FILE *stream);
 extern void LandFlush(Land dest, Land src);
 
+extern Size LandSlowSize(Land land);
 extern Bool LandClassCheck(LandClass class);
 extern LandClass LandClassGet(void);
 #define LAND_SUPERCLASS(className) ((LandClass)SUPERCLASS(className))

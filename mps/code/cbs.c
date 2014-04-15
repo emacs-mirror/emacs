@@ -40,43 +40,20 @@ SRCID(cbs, "$Id$");
 #define cbsBlockPool(cbs) RVALUE((cbs)->blockPool)
 
 
-/* cbsEnter, cbsLeave -- Avoid re-entrance
- *
- * .enter-leave: The callbacks are restricted in what they may call.
- * These functions enforce this.
- *
- * .enter-leave.simple: Simple queries may be called from callbacks.
- */
-
-static void cbsEnter(CBS cbs)
-{
-  /* Don't need to check as always called from interface function. */
-  AVER(!cbs->inCBS);
-  cbs->inCBS = TRUE;
-  return;
-}
-
-static void cbsLeave(CBS cbs)
-{
-  /* Don't need to check as always called from interface function. */
-  AVER(cbs->inCBS);
-  cbs->inCBS = FALSE;
-  return;
-}
-
-
 /* CBSCheck -- Check CBS */
 
 Bool CBSCheck(CBS cbs)
 {
   /* See .enter-leave.simple. */
+  Land land;
   CHECKS(CBS, cbs);
-  CHECKD(Land, cbsLand(cbs));
+  land = cbsLand(cbs);
+  CHECKD(Land, land);
   CHECKD(SplayTree, cbsSplay(cbs));
-  /* nothing to check about treeSize */
   CHECKD(Pool, cbs->blockPool);
-  CHECKL(BoolCheck(cbs->inCBS));
   CHECKL(BoolCheck(cbs->ownPool));
+  CHECKL(SizeIsAligned(cbs->size, LandAlignment(land)));
+  CHECKL((cbs->size == 0) == (cbs->treeSize == 0));
 
   return TRUE;
 }
@@ -84,7 +61,6 @@ Bool CBSCheck(CBS cbs)
 
 static Bool CBSBlockCheck(CBSBlock block)
 {
-  /* See .enter-leave.simple. */
   UNUSED(block); /* Required because there is no signature */
   CHECKL(block != NULL);
   /* Can't use CHECKD_NOSIG because TreeEMPTY is NULL. */
@@ -277,16 +253,15 @@ static Res cbsInitComm(Land land, ArgList args, SplayUpdateNodeMethod update,
     cbs->ownPool = TRUE;
   }
   cbs->treeSize = 0;
+  cbs->size = 0;
 
   cbs->blockStructSize = blockStructSize;
-  cbs->inCBS = TRUE;
 
   METER_INIT(cbs->treeSearch, "size of tree", (void *)cbs);
 
   cbs->sig = CBSSig;
 
   AVERT(CBS, cbs);
-  cbsLeave(cbs);
   return ResOK;
 }
 
@@ -309,7 +284,7 @@ static Res cbsInitZoned(Land land, ArgList args)
 }
 
 
-/* CBSFinish -- Finish a CBS structure
+/* cbsFinish -- Finish a CBS structure
  *
  * See <design/land/#function.finish>.
  */
@@ -321,7 +296,6 @@ static void cbsFinish(Land land)
   AVERT(Land, land);
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
-  cbsEnter(cbs);
 
   METER_EMIT(&cbs->treeSearch);
 
@@ -330,6 +304,23 @@ static void cbsFinish(Land land)
   SplayTreeFinish(cbsSplay(cbs));
   if (cbs->ownPool)
     PoolDestroy(cbsBlockPool(cbs));
+}
+
+
+/* cbsSize -- total size of ranges in CBS
+ *
+ * See <design/land/#function.size>.
+ */
+
+static Size cbsSize(Land land)
+{
+  CBS cbs;
+
+  AVERT(Land, land);
+  cbs = cbsOfLand(land);
+  AVERT(CBS, cbs);
+
+  return cbs->size;
 }
 
 
@@ -343,14 +334,18 @@ static void cbsFinish(Land land)
 static void cbsBlockDelete(CBS cbs, CBSBlock block)
 {
   Bool b;
+  Size size;
 
   AVERT(CBS, cbs);
   AVERT(CBSBlock, block);
+  size = CBSBlockSize(block);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
   b = SplayTreeDelete(cbsSplay(cbs), cbsBlockTree(block));
   AVER(b); /* expect block to be in the tree */
   STATISTIC(--cbs->treeSize);
+  AVER(cbs->size >= size);
+  cbs->size -= size;
 
   /* make invalid */
   block->limit = block->base;
@@ -367,8 +362,10 @@ static void cbsBlockShrunk(CBS cbs, CBSBlock block, Size oldSize)
 
   newSize = CBSBlockSize(block);
   AVER(oldSize > newSize);
+  AVER(cbs->size >= oldSize - newSize);
 
   SplayNodeRefresh(cbsSplay(cbs), cbsBlockTree(block));
+  cbs->size -= oldSize - newSize;
 }
 
 static void cbsBlockGrew(CBS cbs, CBSBlock block, Size oldSize)
@@ -382,6 +379,7 @@ static void cbsBlockGrew(CBS cbs, CBSBlock block, Size oldSize)
   AVER(oldSize < newSize);
 
   SplayNodeRefresh(cbsSplay(cbs), cbsBlockTree(block));
+  cbs->size += newSize - oldSize;
 }
 
 /* cbsBlockAlloc -- allocate a new block and set its base and limit,
@@ -431,12 +429,19 @@ static void cbsBlockInsert(CBS cbs, CBSBlock block)
   b = SplayTreeInsert(cbsSplay(cbs), cbsBlockTree(block));
   AVER(b);
   STATISTIC(++cbs->treeSize);
+  cbs->size += CBSBlockSize(block);
 }
 
 
-/* cbsInsertIntoTree -- Insert a range into the tree */
+/* cbsInsert -- Insert a range into the CBS
+ *
+ * See <design/cbs/#functions.cbs.insert>.
+ *
+ * .insert.alloc: Will only allocate a block if the range does not
+ * abut an existing range.
+ */
 
-static Res cbsInsertIntoTree(Range rangeReturn, Land land, Range range)
+static Res cbsInsert(Range rangeReturn, Land land, Range range)
 {
   CBS cbs;
   Bool b;
@@ -533,38 +538,15 @@ fail:
 }
 
 
-/* cbsInsert -- Insert a range into the CBS
+/* cbsDelete -- Remove a range from a CBS
  *
- * See <design/cbs/#functions.cbs.insert>.
+ * See <design/land/#function.delete>.
  *
- * .insert.alloc: Will only allocate a block if the range does not
- * abut an existing range.
+ * .delete.alloc: Will only allocate a block if the range splits
+ * an existing range.
  */
 
-static Res cbsInsert(Range rangeReturn, Land land, Range range)
-{
-  CBS cbs;
-  Res res;
-
-  AVERT(Land, land);
-  cbs = cbsOfLand(land);
-  AVERT(CBS, cbs);
-  cbsEnter(cbs);
-
-  AVER(rangeReturn != NULL);
-  AVERT(Range, range);
-  AVER(RangeIsAligned(range, LandAlignment(land)));
-
-  res = cbsInsertIntoTree(rangeReturn, land, range);
-
-  cbsLeave(cbs);
-  return res;
-}
-
-
-/* cbsDeleteFromTree -- delete blocks from the tree */
-
-static Res cbsDeleteFromTree(Range rangeReturn, Land land, Range range)
+static Res cbsDelete(Range rangeReturn, Land land, Range range)
 {
   CBS cbs;
   Res res;
@@ -638,35 +620,6 @@ failAlloc:
 failLimitCheck:
 failSplayTreeSearch:
   AVER(res != ResOK);
-  return res;
-}
-
-
-/* cbsDelete -- Remove a range from a CBS
- *
- * See <design/land/#function.delete>.
- *
- * .delete.alloc: Will only allocate a block if the range splits
- * an existing range.
- */
-
-static Res cbsDelete(Range rangeReturn, Land land, Range range)
-{
-  CBS cbs;
-  Res res;  
-
-  AVERT(Land, land);
-  cbs = cbsOfLand(land);
-  AVERT(CBS, cbs);
-  cbsEnter(cbs);
-
-  AVER(rangeReturn != NULL);
-  AVERT(Range, range);
-  AVER(RangeIsAligned(range, LandAlignment(land)));
-
-  res = cbsDeleteFromTree(rangeReturn, land, range);
-
-  cbsLeave(cbs);
   return res;
 }
 
@@ -813,7 +766,6 @@ static void cbsIterate(Land land, LandVisitor visitor,
   AVERT(Land, land);
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
-  cbsEnter(cbs);
   AVER(FUNCHECK(visitor));
 
   splay = cbsSplay(cbs);
@@ -827,9 +779,6 @@ static void cbsIterate(Land land, LandVisitor visitor,
   closure.closureS = closureS;
   (void)TreeTraverse(SplayTreeRoot(splay), splay->compare, splay->nodeKey,
                      cbsIterateVisit, &closure, 0);
-
-  cbsLeave(cbs);
-  return;
 }
 
 
@@ -882,10 +831,10 @@ static void cbsFindDeleteRange(Range rangeReturn, Range oldRangeReturn,
 
   if (callDelete) {
     Res res;
-    res = cbsDeleteFromTree(oldRangeReturn, land, rangeReturn);
+    res = cbsDelete(oldRangeReturn, land, rangeReturn);
     /* Can't have run out of memory, because all our callers pass in
        blocks that were just found in the tree, and we only
-       deleted from one end of the block, so cbsDeleteFromTree did not
+       deleted from one end of the block, so cbsDelete did not
        need to allocate a new block. */
     AVER(res == ResOK);
   }
@@ -905,7 +854,6 @@ static Bool cbsFindFirst(Range rangeReturn, Range oldRangeReturn,
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
   AVER(IsLandSubclass(cbsLand(cbs), CBSFastLandClass));
-  cbsEnter(cbs);
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -927,7 +875,6 @@ static Bool cbsFindFirst(Range rangeReturn, Range oldRangeReturn,
                        size, findDelete);
   }
 
-  cbsLeave(cbs);
   return found;
 }
 
@@ -992,7 +939,6 @@ static Bool cbsFindLast(Range rangeReturn, Range oldRangeReturn,
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
   AVER(IsLandSubclass(cbsLand(cbs), CBSFastLandClass));
-  cbsEnter(cbs);
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -1014,7 +960,6 @@ static Bool cbsFindLast(Range rangeReturn, Range oldRangeReturn,
                        size, findDelete);
   }
 
-  cbsLeave(cbs);
   return found;
 }
 
@@ -1031,7 +976,6 @@ static Bool cbsFindLargest(Range rangeReturn, Range oldRangeReturn,
   cbs = cbsOfLand(land);
   AVERT(CBS, cbs);
   AVER(IsLandSubclass(cbsLand(cbs), CBSFastLandClass));
-  cbsEnter(cbs);
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -1058,7 +1002,6 @@ static Bool cbsFindLargest(Range rangeReturn, Range oldRangeReturn,
     }
   }
 
-  cbsLeave(cbs);
   return found;
 }
 
@@ -1101,8 +1044,6 @@ static Res cbsFindInZones(Range rangeReturn, Range oldRangeReturn,
   /* It would be nice if there were a neat way to eliminate all runs of
      zones in zoneSet too small for size.*/
 
-  cbsEnter(cbs);
-
   closure.arena = LandArena(land);
   closure.zoneSet = zoneSet;
   closure.size = size;
@@ -1123,7 +1064,7 @@ static Res cbsFindInZones(Range rangeReturn, Range oldRangeReturn,
       RangeInit(&rangeStruct, closure.base, AddrAdd(closure.base, size));
     else
       RangeInit(&rangeStruct, AddrSub(closure.limit, size), closure.limit);
-    res = cbsDeleteFromTree(&oldRangeStruct, land, &rangeStruct);
+    res = cbsDelete(&oldRangeStruct, land, &rangeStruct);
     if (res == ResOK) {  /* enough memory to split block */
       RangeCopy(rangeReturn, &rangeStruct);
       RangeCopy(oldRangeReturn, &oldRangeStruct);
@@ -1131,7 +1072,6 @@ static Res cbsFindInZones(Range rangeReturn, Range oldRangeReturn,
   } else
     res = ResFAIL;
 
-  cbsLeave(cbs);
   return res;
 }
 
@@ -1158,7 +1098,6 @@ static Res cbsDescribe(Land land, mps_lib_FILE *stream)
   res = WriteF(stream,
                "CBS $P {\n", (WriteFP)cbs,
                "  blockPool: $P\n", (WriteFP)cbsBlockPool(cbs),
-               "  inCBS: $U\n", (WriteFU)cbs->inCBS,
                "  ownPool: $U\n", (WriteFU)cbs->ownPool,
                "  treeSize: $U\n", (WriteFU)cbs->treeSize,
                NULL);
@@ -1187,6 +1126,7 @@ DEFINE_LAND_CLASS(CBSLandClass, class)
   class->size = sizeof(CBSStruct);
   class->init = cbsInit;
   class->finish = cbsFinish;
+  class->sizeMethod = cbsSize;
   class->insert = cbsInsert;
   class->delete = cbsDelete;
   class->iterate = cbsIterate;

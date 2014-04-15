@@ -70,6 +70,18 @@ static void failoverFinish(Land land)
 }
 
 
+static Size failoverSize(Land land)
+{
+  Failover fo;
+
+  AVERT(Land, land);
+  fo = failoverOfLand(land);
+  AVERT(Failover, fo);
+
+  return LandSize(fo->primary) + LandSize(fo->secondary);
+}
+
+
 static Res failoverInsert(Range rangeReturn, Land land, Range range)
 {
   Failover fo;
@@ -129,12 +141,18 @@ static Res failoverDelete(Range rangeReturn, Land land, Range range)
     AVER(RangesEqual(&oldRange, &dummyRange));
     RangeInit(&left, RangeBase(&oldRange), RangeBase(range));
     if (!RangeIsEmpty(&left)) {
-      res = LandInsert(&dummyRange, land, &left);
+      /* Don't call LandInsert(..., land, ...) here: that would be
+       * re-entrant and fail the landEnter check. */
+      res = LandInsert(&dummyRange, fo->primary, &left);
+      if (res != ResOK && res != ResFAIL)
+        res = LandInsert(&dummyRange, fo->secondary, &left);
       AVER(res == ResOK);
     }
     RangeInit(&right, RangeLimit(range), RangeLimit(&oldRange));
     if (!RangeIsEmpty(&right)) {
-      res = LandInsert(&dummyRange, land, &right);
+      res = LandInsert(&dummyRange, fo->primary, &right);
+      if (res != ResOK && res != ResFAIL)
+        res = LandInsert(&dummyRange, fo->secondary, &right);
       AVER(res == ResOK);
     }
   }
@@ -266,6 +284,7 @@ DEFINE_LAND_CLASS(FailoverLandClass, class)
   class->size = sizeof(FailoverStruct);
   class->init = failoverInit;
   class->finish = failoverFinish;
+  class->sizeMethod = failoverSize;
   class->insert = failoverInsert;
   class->delete = failoverDelete;
   class->iterate = failoverIterate;

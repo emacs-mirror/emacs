@@ -141,6 +141,7 @@ static void MVFFFreeSegs(MVFF mvff, Range range)
        * that needs to be read in order to update the Freelist. */
       SegFree(seg);
 
+      AVER(mvff->total >= RangeSize(&delRange));
       mvff->total -= RangeSize(&delRange);
     }
 
@@ -502,7 +503,8 @@ static Res MVFFInit(Pool pool, ArgList args)
 
   mvff->total = 0;
 
-  res = LandInit(FreelistOfMVFF(mvff), FreelistLandClassGet(), arena, align, mvff, mps_args_none);
+  res = LandInit(FreelistOfMVFF(mvff), FreelistLandClassGet(), arena, align,
+                 mvff, mps_args_none);
   if (res != ResOK)
     goto failFreelistInit;
 
@@ -514,7 +516,8 @@ static Res MVFFInit(Pool pool, ArgList args)
   MPS_ARGS_BEGIN(foArgs) {
     MPS_ARGS_ADD(foArgs, FailoverPrimary, CBSOfMVFF(mvff));
     MPS_ARGS_ADD(foArgs, FailoverSecondary, FreelistOfMVFF(mvff));
-    res = LandInit(FailoverOfMVFF(mvff), FailoverLandClassGet(), arena, align, mvff, foArgs);
+    res = LandInit(FailoverOfMVFF(mvff), FailoverLandClassGet(), arena, align,
+                   mvff, foArgs);
   } MPS_ARGS_END(foArgs);
   if (res != ResOK)
     goto failFailoverInit;
@@ -541,7 +544,6 @@ static void MVFFFinish(Pool pool)
 {
   MVFF mvff;
   Arena arena;
-  Seg seg;
   Ring ring, node, nextNode;
 
   AVERT(Pool, pool);
@@ -550,14 +552,17 @@ static void MVFFFinish(Pool pool)
 
   ring = PoolSegRing(pool);
   RING_FOR(node, ring, nextNode) {
+    Size size;
+    Seg seg;
     seg = SegOfPoolRing(node);
     AVER(SegPool(seg) == pool);
+    size = AddrOffset(SegBase(seg), SegLimit(seg));
+    AVER(size <= mvff->total);
+    mvff->total -= size;
     SegFree(seg);
   }
 
-  /* Could maintain mvff->total here and check it falls to zero, */
-  /* but that would just make the function slow.  If only we had */
-  /* a way to do operations only if AVERs are turned on. */
+  AVER(mvff->total == 0);
 
   arena = PoolArena(pool);
   ControlFree(arena, mvff->segPref, sizeof(SegPrefStruct));
@@ -719,11 +724,11 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKL(mvff->minSegSize >= ArenaAlign(PoolArena(MVFF2Pool(mvff))));
   CHECKL(mvff->avgSize > 0);                    /* see .arg.check */
   CHECKL(mvff->avgSize <= mvff->extendBy);      /* see .arg.check */
-  CHECKL(mvff->total >= LandSize(FailoverOfMVFF(mvff)));
   CHECKL(SizeIsAligned(mvff->total, ArenaAlign(PoolArena(MVFF2Pool(mvff)))));
   CHECKD(CBS, &mvff->cbsStruct);
   CHECKD(Freelist, &mvff->flStruct);
   CHECKD(Failover, &mvff->foStruct);
+  CHECKL(mvff->total >= LandSize(FailoverOfMVFF(mvff)));
   CHECKL(BoolCheck(mvff->slotHigh));
   CHECKL(BoolCheck(mvff->firstFit));
   return TRUE;
