@@ -39,8 +39,8 @@ clean:
 !IFDEF TARGET
 !IFNDEF VARIETY
 target:
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot variety
 	$(MAKE) /nologo /f $(PFM).nmk VARIETY=cool variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot variety
 !ENDIF
 !ENDIF
 
@@ -60,8 +60,8 @@ testrun: $(TEST_TARGETS)
 !IFDEF VARIETY
 	..\tool\testrun.bat $(PFM) $(VARIETY)
 !ELSE
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot testrun
 	$(MAKE) /nologo /f $(PFM).nmk VARIETY=cool testrun
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot testrun
 !ENDIF
 
 
@@ -168,9 +168,6 @@ $(PFM)\$(VARIETY)\exposet0.exe: $(PFM)\$(VARIETY)\exposet0.obj \
 $(PFM)\$(VARIETY)\expt825.exe: $(PFM)\$(VARIETY)\expt825.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\fbmtest.exe: $(PFM)\$(VARIETY)\fbmtest.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
-
 $(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
@@ -182,6 +179,9 @@ $(PFM)\$(VARIETY)\fotest.exe: $(PFM)\$(VARIETY)\fotest.obj \
 
 $(PFM)\$(VARIETY)\gcbench.exe: $(PFM)\$(VARIETY)\gcbench.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\landtest.exe: $(PFM)\$(VARIETY)\landtest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\locbwcss.exe: $(PFM)\$(VARIETY)\locbwcss.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)

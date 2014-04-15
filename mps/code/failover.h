@@ -1,28 +1,35 @@
-/* freelist.h: FREE LIST ALLOCATOR INTERFACE
+/* failover.h: FAILOVER ALLOCATOR INTERFACE
  *
  * $Id$
- * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
  *
- * .source: <design/freelist/>.
+ * .source: <design/failover/>.
  */
 
-#ifndef freelist_h
-#define freelist_h
+#ifndef failover_h
+#define failover_h
 
 #include "mpmtypes.h"
 
-typedef struct FreelistStruct *Freelist;
+typedef struct FailoverStruct *Failover;
 
-extern Bool FreelistCheck(Freelist freelist);
+extern Bool FailoverCheck(Failover failover);
 
-extern LandClass FreelistLandClassGet(void);
+extern LandClass FailoverLandClassGet(void);
 
-#endif /* freelist.h */
+extern const struct mps_key_s _mps_key_failover_primary;
+#define FailoverPrimary (&_mps_key_failover_primary)
+#define FailoverPrimary_FIELD p
+extern const struct mps_key_s _mps_key_failover_secondary;
+#define FailoverSecondary (&_mps_key_failover_secondary)
+#define FailoverSecondary_FIELD p
+
+#endif /* failover.h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

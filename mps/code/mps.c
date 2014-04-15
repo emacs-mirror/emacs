@@ -76,6 +76,8 @@
 #include "freelist.c"
 #include "sa.c"
 #include "nailboard.c"
+#include "land.c"
+#include "failover.c"
 
 /* Additional pool classes */
 

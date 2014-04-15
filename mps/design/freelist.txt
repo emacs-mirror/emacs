@@ -41,58 +41,26 @@ When memory becomes available again to allocate control structures,
 the free lists can be "flushed" back into the more efficient data
 structures.
 
-_`.bg`: The free list allocator was formerly part of the Coalescing
-Block Structure module (see design.mps.cbs) but it was split into its
-own module because this makes it:
-
-#. simpler (no need to interact with CBS) and thus more maintainable;
-#. possible to test directly (no need to create a CBS and then force
-   its control pool to run out of memory); and
-#. usable as a fallback allocator in other pools (not just in pools
-   that use CBS).
-
-
-Definitions
------------
-
-_`.def.range`: A (contiguous) *range* of addresses is a semi-open
-interval on address space.
-
-_`.def.isolated`: A contiguous range is *isolated* with respect to
-some property it has, if adjacent elements do not have that property.
-
 
 Requirements
 ------------
 
-_`.req.set`: Must maintain a set of free address ranges.
+In addition to the generic land requirements (see design.mps.land_),
+free lists must satisfy:
 
-_`.req.add`: Must be able to add free address ranges to the set.
-
-_`.req.remove`: Must be able to remove address ranges from the set (in
-particular, when memory is allocated).
-
-_`.req.iterate`: Must support the iteration of all isolated contiguous
-ranges.
-
-_`.req.protocol`: Must detect protocol violations.
-
-_`.req.align`: Must support an alignment (the alignment of all
-addresses specifying ranges) of down to ``sizeof(void *)`` without
-losing memory.
+.. _design.mps.land: land
 
 _`.req.zero-overhead`: Must have zero space overhead for the storage
 of any set of free blocks, so that it can be used to manage memory
 when no memory can be allocated for control structures.
 
-_`.req.source`: This set of requirements is derived from those of the
-CBS module (see design.mps.cbs.req), except that there is no
-equivalent of design.mps.cbs.req.fast, and design.mps.cbs.req.small
-has been replaced with `.req.zero-overhead`_.
-
 
 Interface
 ---------
+
+_`.land`: Free lists are an implementation of the *land* abstract data
+type, so the interface consists of the generic functions for lands.
+See design.mps.land_.
 
 
 Types
@@ -100,115 +68,26 @@ Types
 
 ``typedef struct FreelistStruct *Freelist``
 
-_`.type.freelist`: The type of free lists. The structure
-``FreelistStruct`` is declared in the header so that it can be inlined
-in other structures, but you should not depend on its details.
-
-``typedef Bool (*FreelistIterateMethod)(Bool *deleteReturn, Freelist fl, Range range, void *closureP, Size closureS)``
-
-_`.type.iterate.method`: A callback function that may be passed to
-``FreelistIterate()``. It is called for every isolated contiguous
-range in address order, and with the closure arguments that were
-originally passed to ``FreelistIterate()``. It must update
-``*deleteReturn`` to ``TRUE`` if the range must be deleted from the
-free lists, or ``FALSE`` if the range must be kept. The function must
-return ``TRUE`` if the iteration must continue, and ``FALSE`` if the
-iteration must stop (after possibly deleting the current range).
+_`.type.freelist`: The type of free lists. A ``FreelistStruct`` may be
+embedded in another structure, or you can create it using
+``LandCreate()``.
 
 
-Functions
-.........
+External functions
+..................
 
-``Res FreelistInit(Freelist fl, Align alignment)``
+``LandClass FreelistLandClassGet(void)``
 
-_`.function.init`: Initialize the ``Freelist`` structure pointed to by
-``fl``. The argument ``alignment`` is the alignment of address ranges
-to be maintained. An initialised free list contains no address ranges.
+_`.function.class`: The function ``FreelistLandClassGet()`` returns
+the free list class, a subclass of ``LandClass`` suitable for passing
+to ``LandCreate()`` or ``LandInit()``.
 
-``void FreelistFinish(Freelist fl)``
 
-_`.function.finish`: Finish the free list pointed to by ``fl``.
+Keyword arguments
+.................
 
-``Res FreelistInsert(Range rangeReturn, Freelist fl, Range range)``
-
-_`.function.insert`: If any part of ``range`` is already in the free
-list ``fl``, then leave the free list unchanged and return
-``ResFAIL``. Otherwise, insert ``range`` into the free list ``fl``;
-update ``rangeReturn`` to describe the contiguous isolated range
-containing the inserted range (this may differ from ``range`` if there
-was coalescence on either side) and return ``ResOK``.
-
-``Res FreelistDelete(Range rangeReturn, Freelist fl, Range range)``
-
-_`.function.delete`: If any part of the range is not in the free list,
-then leave the free list unchanged and return ``ResFAIL``. Otherwise,
-remove ``range`` from the free list and update ``rangeReturn`` to
-describe the contiguous isolated range that formerly contained the
-deleted range (this may differ from ``range`` if there were fragments
-left on either side), and return ``ResOK``.
-
-``void FreelistIterate(Freelist fl, FreelistIterateMethod iterate, void *closureP, Size closureS)``
-
-_`.function.iterate`: Iterate all isolated contiguous ranges in the
-free list ``fl`` in address order, calling ``iterate`` for each one.
-See ``FreelistIterateMethod`` for details.
-
-``Bool FreelistFindFirst(Range rangeReturn, Range oldRangeReturn, Freelist fl, Size size, FindDelete findDelete)``
-
-_`.function.find.first`: Locate the first isolated contiguous range in
-address order, within the free list ``fl``, of at least ``size``
-bytes, update ``rangeReturn`` to that range, and return ``TRUE``. If
-there is no such continuous range, return ``FALSE``.
-
-In addition, optionally delete the found range from the free list,
-depending on the ``findDelete`` argument. This saves a separate call
-to ``FreelistDelete()``, and uses the knowledge of exactly where we
-found the range. The value of ``findDelete`` must come from this
-enumeration::
-
-    enum {
-        FindDeleteNONE,    /* don't delete after finding */
-        FindDeleteLOW,     /* delete size bytes from low end of block */
-        FindDeleteHIGH,    /* delete size bytes from high end of block */
-        FindDeleteENTIRE   /* delete entire range */
-    };
-
-The original contiguous isolated range in which the range was found is
-returned via the ``oldRangeReturn`` argument. (If ``findDelete`` is
-``FindDeleteNONE`` or ``FindDeleteENTIRE``, then this will be
-identical to the range returned via the ``rangeReturn`` argument.)
-
-``Bool FreelistFindLast(Range rangeReturn, Range oldRangeReturn, Freelist fl, Size size, FindDelete findDelete)``
-
-_`.function.find.last`: Like ``FreelistFindFirst()``, except that it
-finds the last block in address order.
-
-``Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn, Freelist fl, Size, size, FindDelete findDelete)``
-
-_`.function.find.largest`: Locate the largest block within the free
-list ``fl``, and if that block is at least as big as ``size``, return
-its range via the ``rangeReturn`` argument, and return ``TRUE``. If
-there are no blocks in the free list at least as large as ``size``,
-return ``FALSE``. Pass 0 for ``size`` if you want the largest block
-unconditionally.
-
-Like ``FreelistFindFirst()``, optionally delete the range from the
-free list. (Always the whole range: specifying ``FindDeleteLOW`` or
-``FindDeleteHIGH`` has the same effect as ``FindDeleteENTIRE``).
-
-``void FreelistFlushToCBS(Freelist fl, CBS cbs)``
-
-Remove free address ranges from the free list ``fl`` and add them to
-the Coalescing Block Structure ``cbs``. Continue until a call to
-``CBSInsert()`` fails, or until the free list is empty, whichever
-happens first.
-
-``Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream)``
-
-_`.function.describe`: Print a textual representation of the free
-list ``fl`` to the given stream, indicating the contiguous ranges in
-order. It is provided for debugging purposes only.
-
+When initializing a free list, ``LandCreate()`` and ``LandInit()``
+take no keyword arguments. Pass ``mps_args_none``.
 
 
 Implementation
@@ -247,6 +126,23 @@ do this, such as using another tag to indicate the last block in the
 list, but these would be more complicated.)
 
 
+Testing
+-------
+
+_`.test`: The following testing will be performed on this module:
+
+_`.test.land`: A generic test for land implementations. See
+design.mps.land.test.
+
+_`.test.pool`: Two pools (MVT_ and MVFF_) use free lists as a fallback
+when low on memory. These are subject to testing in development, QA,
+and are heavily exercised by customers.
+
+.. _MVT: poolmvt
+.. _MVFF: poolmvff
+
+
+
 Opportunities for improvement
 -----------------------------
 
@@ -256,7 +152,7 @@ exceed the recorded size of the list.
 
 _`.improve.maxsize`: We could maintain the maximum size of any range
 on the list, and use that to make an early exit from
-``FreelistFindLargest()``. It's not clear that this would actually be
+``freelistFindLargest()``. It's not clear that this would actually be
 an improvement.
 
 
@@ -265,6 +161,8 @@ Document History
 ----------------
 
 - 2013-05-18 GDR_ Initial draft based on CBS "emergency block" design.
+
+- 2014-04-01 GDR_ Moved generic material to design.mps.land_.
 
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 

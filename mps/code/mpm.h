@@ -495,8 +495,8 @@ extern void ArenaFinish(Arena arena);
 extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream);
 extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream);
 extern Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context);
-extern Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit);
-extern void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit);
+extern Res ArenaFreeLandInsert(Arena arena, Addr base, Addr limit);
+extern void ArenaFreeLandDelete(Arena arena, Addr base, Addr limit);
 
 
 extern Bool GlobalsCheck(Globals arena);
@@ -812,7 +812,7 @@ extern AllocPattern AllocPatternRamp(void);
 extern AllocPattern AllocPatternRampCollectAll(void);
 
 
-/* FindDelete -- see <code/cbs.c> and <code/freelist.c> */
+/* FindDelete -- see <code/land.c> */
 
 extern Bool FindDeleteCheck(FindDelete findDelete);
 
@@ -995,6 +995,35 @@ extern Res VMMap(VM vm, Addr base, Addr limit);
 extern void VMUnmap(VM vm, Addr base, Addr limit);
 extern Size VMReserved(VM vm);
 extern Size VMMapped(VM vm);
+
+
+/* Land Interface -- see <design/land/> */
+
+extern Bool LandCheck(Land land);
+#define LandArena(land) ((land)->arena)
+#define LandAlignment(land) ((land)->alignment)
+
+extern Res LandInit(Land land, LandClass class, Arena arena, Align alignment, void *owner, ArgList args);
+extern Res LandCreate(Land *landReturn, Arena arena, LandClass class, Align alignment, void *owner, ArgList args);
+extern void LandDestroy(Land land);
+extern void LandFinish(Land land);
+extern Res LandInsert(Range rangeReturn, Land land, Range range);
+extern Res LandDelete(Range rangeReturn, Land land, Range range);
+extern void LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS);
+extern Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
+extern Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
+extern Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
+extern Res LandFindInZones(Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
+extern Res LandDescribe(Land land, mps_lib_FILE *stream);
+extern void LandFlush(Land dest, Land src);
+
+extern Bool LandClassCheck(LandClass class);
+extern LandClass LandClassGet(void);
+#define LAND_SUPERCLASS(className) ((LandClass)SUPERCLASS(className))
+#define DEFINE_LAND_CLASS(className, var) \
+  DEFINE_ALIAS_CLASS(className, LandClass, var)
+#define IsLandSubclass(land, className) \
+  IsSubclassPoly((land)->class, className ## Get())
 
 
 /* Stack Probe */
