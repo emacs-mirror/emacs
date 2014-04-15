@@ -615,6 +615,7 @@ typedef struct LandClassStruct {
   ProtocolClassStruct protocol;
   const char *name;             /* class name string */
   size_t size;                  /* size of outer structure */
+  LandSizeMethod sizeMethod;    /* total size of ranges in land */
   LandInitMethod init;          /* initialize the land */
   LandFinishMethod finish;      /* finish the land */
   LandInsertMethod insert;      /* insert a range into the land */
@@ -641,6 +642,7 @@ typedef struct LandStruct {
   LandClass class;              /* land class structure */
   Arena arena;                  /* owning arena */
   Align alignment;              /* alignment of addresses */
+  Bool inLand;                  /* prevent reentrance */
 } LandStruct;
 
 
@@ -660,8 +662,8 @@ typedef struct CBSStruct {
   STATISTIC_DECL(Count treeSize);
   Pool blockPool;               /* pool that manages blocks */
   Size blockStructSize;         /* size of block structure */
-  Bool inCBS;                   /* prevent reentrance */
   Bool ownPool;                 /* did we create blockPool? */
+  Size size;                    /* total size of ranges in CBS */
   /* meters for sizes of search structures at each op */
   METER_DECL(treeSearch);
   Sig sig;                      /* .class.end-sig */
@@ -702,6 +704,7 @@ typedef struct FreelistStruct {
   LandStruct landStruct;        /* superclass fields come first */
   FreelistBlock list;           /* first block in list or NULL if empty */
   Count listSize;               /* number of blocks in list */
+  Size size;                    /* total size of ranges in list */
   Sig sig;                      /* .class.end-sig */
 } FreelistStruct;
 
