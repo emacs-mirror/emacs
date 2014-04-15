@@ -1,7 +1,7 @@
 # Makefile.in -- source for autoconf Makefile
 #
 # $Id$
-# Copyright (C) 2012-2013 Ravenbrook Limited.  See end of file for license.
+# Copyright (C) 2012-2014 Ravenbrook Limited.  See end of file for license.
 #
 # YOU DON'T NEED AUTOCONF TO BUILD THE MPS
 # This is just here for people who want or expect a configure script.
@@ -30,7 +30,9 @@ clean-make-build:
 install-make-build: make-install-dirs build-via-make
 	$(INSTALL_DATA) code/mps*.h $(prefix)/include/
 	$(INSTALL_DATA) code/$(MPS_TARGET_NAME)/cool/mps.a $(prefix)/lib/libmps-debug.a
+	$(INSTALL_DATA) code/$(MPS_TARGET_NAME)/cool/libmps.so $(prefix)/lib/libmps-debug.so
 	$(INSTALL_DATA) code/$(MPS_TARGET_NAME)/hot/mps.a $(prefix)/lib/libmps.a
+	$(INSTALL_DATA) code/$(MPS_TARGET_NAME)/hot/libmps.so $(prefix)/lib/libmps.so
 	$(INSTALL_PROGRAM) $(addprefix code/$(MPS_TARGET_NAME)/hot/Release/,$(EXTRA_TARGETS)) $(prefix)/bin
 
 build-via-xcode:
@@ -44,7 +46,9 @@ clean-xcode-build:
 install-xcode-build: make-install-dirs build-via-xcode
 	$(INSTALL_DATA) code/mps*.h $(prefix)/include/
 	$(INSTALL_DATA) code/xc/Debug/libmps.a $(prefix)/lib/libmps-debug.a
+	$(INSTALL_DATA) code/xc/Debug/libmps.dylib $(prefix)/lib/libmps-debug.dylib
 	$(INSTALL_DATA) code/xc/Release/libmps.a $(prefix)/lib/libmps.a
+	$(INSTALL_DATA) code/xc/Release/libmps.dylib $(prefix)/lib/libmps.dylib
 	$(INSTALL_PROGRAM) $(addprefix code/xc/Release/,$(EXTRA_TARGETS)) $(prefix)/bin
 
 Makefile: Makefile.in config.status
