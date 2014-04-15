@@ -34,12 +34,12 @@ install-make-build: make-install-dirs build-via-make
 	$(INSTALL_PROGRAM) $(addprefix code/$(MPS_TARGET_NAME)/hot/Release/,$(EXTRA_TARGETS)) $(prefix)/bin
 
 build-via-xcode:
-	$(XCODEBUILD) -config Release
 	$(XCODEBUILD) -config Debug
+	$(XCODEBUILD) -config Release
 
 clean-xcode-build:
-	$(XCODEBUILD) -config Release clean
 	$(XCODEBUILD) -config Debug   clean
+	$(XCODEBUILD) -config Release clean
 
 install-xcode-build: make-install-dirs build-via-xcode
 	$(INSTALL_DATA) code/mps*.h $(prefix)/include/
@@ -72,7 +72,7 @@ test-make-build: @BUILD_TARGET@
 	$(MAKE) $(TARGET_OPTS) VARIETY=hot  testrun
 
 test-xcode-build:
-	$(XCODEBUILD) -config Release -target testrun
 	$(XCODEBUILD) -config Debug   -target testrun
+	$(XCODEBUILD) -config Release -target testrun
 
 test: @TEST_TARGET@
