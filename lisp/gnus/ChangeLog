@@ -1,3 +1,10 @@
+2014-04-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gmm-utils.el (gmm-format-time-string): New function.
+
+	* message.el (message-insert-formatted-citation-line): Use the original
+	author's time zone to express a date string.
+
 2014-04-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-srvr.el (gnus-tmp-how, gnus-tmp-name, gnus-tmp-where)
