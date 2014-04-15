@@ -117,6 +117,11 @@ finish the land structure, and then frees its memory.
 _`.function.finish`: ``LandFinish()`` finishes the land structure and
 discards any other resources associated with the land.
 
+``void LandSize(Land land)``
+
+_`.function.size`: ``LandSize()`` returns the total size of the ranges
+stored in the land.
+
 ``Res LandInsert(Range rangeReturn, Land land, Range range)``
 
 _`.function.insert`: If any part of ``range`` is already in the
