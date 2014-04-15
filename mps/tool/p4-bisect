@@ -31,6 +31,13 @@ def error(msg):
     sys.stderr.write('\n')
     exit(1)
 
+def sync(*filespecs):
+    try:
+        p4.do('sync', *filespecs)
+    except p4.Error as e:
+        if 'file(s) up-to-date' not in e.args[0]:
+            raise
+
 class State(object):
     def __init__(self, **d):
         self.filespec = d['filespec']
@@ -65,8 +72,7 @@ class State(object):
         if n > 0:
             self.current = self.changes[n // 2]
             print("Syncing to changelevel {current}.".format(**vars(self)))
-            p4.do('sync', *['{}@{}'.format(f, self.current)
-                            for f in self.filespec])
+            sync(*['{}@{}'.format(f, self.current) for f in self.filespec])
         self.save()
 
 def help(parser, args):
@@ -105,7 +111,7 @@ def skip(args):
 
 def reset(args):
     state = State.load()
-    p4.do('sync', *state.filespec)
+    sync(*state.filespec)
     unlink(BISECT_FILE)
 
 def run(args):
