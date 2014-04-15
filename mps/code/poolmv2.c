@@ -78,7 +78,6 @@ typedef struct MVTStruct
   Bool abqOverflow;             /* ABQ dropped some candidates */
   /* <design/poolmvt/#arch.ap.no-fit>.* */
   Bool splinter;                /* Saved splinter */
-  Seg splinterSeg;              /* Saved splinter seg */
   Addr splinterBase;            /* Saved splinter base */
   Addr splinterLimit;           /* Saved splinter size */
 
@@ -133,7 +132,7 @@ typedef struct MVTStruct
 
 DEFINE_POOL_CLASS(MVTPoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractSegBufPoolClass);
+  INHERIT_CLASS(this, AbstractBufferPoolClass);
   this->name = "MVT";
   this->size = sizeof(MVTStruct);
   this->offset = offsetof(MVTStruct, poolStruct);
@@ -292,7 +291,6 @@ static Res MVTInit(Pool pool, ArgList args)
   mvt->maxSize = maxSize;
   mvt->fragLimit = fragLimit;
   mvt->splinter = FALSE;
-  mvt->splinterSeg = NULL;
   mvt->splinterBase = (Addr)0;
   mvt->splinterLimit = (Addr)0;
  
@@ -378,9 +376,7 @@ static Bool MVTCheck(MVT mvt)
   if (mvt->splinter) {
     CHECKL(AddrOffset(mvt->splinterBase, mvt->splinterLimit) >=
            mvt->minSize);
-    CHECKD(Seg, mvt->splinterSeg);
-    CHECKL(mvt->splinterBase >= SegBase(mvt->splinterSeg));
-    CHECKL(mvt->splinterLimit <= SegLimit(mvt->splinterSeg));
+    CHECKL(mvt->splinterBase < mvt->splinterLimit);
   }
   CHECKL(mvt->size == mvt->allocated + mvt->available +
          mvt->unavailable);
@@ -951,7 +947,6 @@ static void MVTBufferEmpty(Pool pool, Buffer buffer,
   }
 
   mvt->splinter = TRUE;
-  mvt->splinterSeg = BufferSeg(buffer);
   mvt->splinterBase = base;
   mvt->splinterLimit = limit;
 }
@@ -998,8 +993,6 @@ static void MVTFree(Pool pool, Addr base, Size size)
     AVER(mvt->size == mvt->allocated + mvt->available +
          mvt->unavailable);
     METER_ACC(mvt->exceptionReturns, SegSize(seg));
-    if (SegBuffer(seg) != NULL)
-      BufferDetach(SegBuffer(seg), MVT2Pool(mvt));
     MVTSegFree(mvt, seg);
     return;
   }
@@ -1031,7 +1024,6 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream)
                "  availLimit: $U \n", (WriteFU)mvt->availLimit,
                "  abqOverflow: $S \n", mvt->abqOverflow?"TRUE":"FALSE",
                "  splinter: $S \n", mvt->splinter?"TRUE":"FALSE",
-               "  splinterSeg: $P \n", (WriteFP)mvt->splinterSeg,
                "  splinterBase: $A \n", (WriteFA)mvt->splinterBase,
                "  splinterLimit: $A \n", (WriteFU)mvt->splinterLimit,
                "  size: $U \n", (WriteFU)mvt->size,
@@ -1158,7 +1150,7 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
 {
   /* Can't use plain old SegClass here because we need to call
    * SegBuffer() in MVTFree(). */
-  Res res = SegAlloc(segReturn, GCSegClassGet(),
+  Res res = SegAlloc(segReturn, SegClassGet(),
                      SegPrefDefault(), size, MVT2Pool(mvt), withReservoirPermit,
                      argsNone);
 
@@ -1182,7 +1174,6 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
  */
 static void MVTSegFree(MVT mvt, Seg seg)
 {
-  Buffer buffer;
   Size size;
   
   size = SegSize(seg);
@@ -1192,16 +1183,6 @@ static void MVTSegFree(MVT mvt, Seg seg)
   mvt->size -= size;
   mvt->availLimit = mvt->size * mvt->fragLimit / 100;
   AVER(mvt->size == mvt->allocated + mvt->available + mvt->unavailable);
-
-  /* If the client program allocates the exactly the entire buffer then
-     frees the allocated memory then we'll try to free the segment with
-     the buffer still attached.  It's safe, but we must detach the buffer
-     first.  See job003520 and job003672. */
-  buffer = SegBuffer(seg);
-  if (buffer != NULL) {
-    AVER(BufferAP(buffer)->init == SegLimit(seg));
-    BufferDetach(buffer, MVT2Pool(mvt));
-  }
   
   SegFree(seg);
   METER_ACC(mvt->segFrees, size);
