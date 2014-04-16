@@ -525,12 +525,12 @@ extern void (ArenaLeave)(Arena arena);
 extern void (ArenaPoll)(Globals globals);
 
 #if defined(SHIELD)
+#define ArenaEnter(arena)  ArenaEnterLock(arena, FALSE)
+#define ArenaLeave(arena)  ArenaLeaveLock(arena, FALSE)
+#elif defined(SHIELD_NONE)
 #define ArenaEnter(arena)  UNUSED(arena)
 #define ArenaLeave(arena)  AVER(arena->busyTraces == TraceSetEMPTY)
 #define ArenaPoll(globals)  UNUSED(globals)
-#elif defined(SHIELD_NONE)
-#define ArenaEnter(arena)  ArenaEnterLock(arena, FALSE)
-#define ArenaLeave(arena)  ArenaLeaveLock(arena, FALSE)
 #else
 #error "No shield configuration."
 #endif  /* SHIELD */

@@ -173,7 +173,7 @@
  * can be defined as no-ops by lock.h.
  */
 
-#if defined(CONFIG_THREAD_SINGLE)
+#if !defined(CONFIG_THREAD_SINGLE)
 #define LOCK
 #else
 #define LOCK_NONE
@@ -190,13 +190,13 @@
  * mpm.h.
  */
 
-#if defined(CONFIG_POLL_NONE)
-#if !defined(CONFIG_THREAD_SINGLE)
-#error "CONFIG_POLL_NONE without CONFIG_THREAD_SINGLE"
-#endif
+#if !defined(CONFIG_POLL_NONE)
 #define REMEMBERED_SET
 #define SHIELD
 #else
+#if !defined(CONFIG_THREAD_SINGLE)
+#error "CONFIG_POLL_NONE without CONFIG_THREAD_SINGLE"
+#endif
 #define REMEMBERED_SET_NONE
 #define SHIELD_NONE
 #endif
