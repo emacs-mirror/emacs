@@ -95,7 +95,8 @@ typedef bool bool_bf;
 #ifdef emacs
 char *_getpty();
 #endif
-
+#define INET6 /* Needed for struct sockaddr_in6.  */
+#undef HAVE_GETADDRINFO /* IRIX has getaddrinfo but not struct addrinfo.  */
 #endif /* IRIX6_5 */
 
 #ifdef MSDOS
@@ -116,6 +117,11 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #else
 # define lstat stat
 #endif
+
+/* We must intercept 'opendir' calls to stash away the directory name,
+   so we could reuse it in realinkat, see msdos.c.  */
+#define opendir sys_opendir
+
 /* The "portable" definition of _GL_INLINE on config.h does not work
    with DJGPP GCC 3.4.4: it causes unresolved externals in sysdep.c,
    although lib/execinfo.h is included and the inline functions there
@@ -126,6 +132,9 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 /* End of gnulib-related stuff.  */
 
 #define emacs_raise(sig) msdos_fatal_signal (sig)
+
+/* DATA_START is needed by vm-limit.c and unexcoff.c. */
+#define DATA_START (&etext + 1)
 
 /* Define one of these for easier conditionals.  */
 #ifdef HAVE_X_WINDOWS
@@ -143,7 +152,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    directory tree).  Given the unknown policy of different DPMI
    hosts regarding loading of untouched pages, I'm not going to risk
    enlarging Emacs footprint by another 100+ KBytes.  */
-#define SYSTEM_PURESIZE_EXTRA (-170000+65000)
+#define SYSTEM_PURESIZE_EXTRA (-170000+90000)
 #endif
 #endif  /* MSDOS */
 

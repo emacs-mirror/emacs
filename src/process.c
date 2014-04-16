@@ -134,6 +134,29 @@ extern int sys_select (int, fd_set *, fd_set *, fd_set *,
 		       struct timespec *, void *);
 #endif
 
+/* Work around GCC 4.7.0 bug with strict overflow checking; see
+   <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52904>.
+   These lines can be removed once the GCC bug is fixed.  */
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
+# pragma GCC diagnostic ignored "-Wstrict-overflow"
+#endif
+
+Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname, Qtpgid;
+Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime, Qcstime;
+Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
+Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtime, Qctime;
+Lisp_Object QCname, QCtype;
+
+/* True if keyboard input is on hold, zero otherwise.  */
+
+static bool kbd_is_on_hold;
+
+/* Nonzero means don't run process sentinels.  This is used
+   when exiting.  */
+bool inhibit_sentinels;
+
+#ifdef subprocesses
+
 #ifndef SOCK_CLOEXEC
 # define SOCK_CLOEXEC 0
 #endif
@@ -164,29 +187,6 @@ process_socket (int domain, int type, int protocol)
 # undef socket
 # define socket(domain, type, protocol) process_socket (domain, type, protocol)
 #endif
-
-/* Work around GCC 4.7.0 bug with strict overflow checking; see
-   <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52904>.
-   These lines can be removed once the GCC bug is fixed.  */
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
-# pragma GCC diagnostic ignored "-Wstrict-overflow"
-#endif
-
-Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname, Qtpgid;
-Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime, Qcstime;
-Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
-Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtime, Qctime;
-Lisp_Object QCname, QCtype;
-
-/* True if keyboard input is on hold, zero otherwise.  */
-
-static bool kbd_is_on_hold;
-
-/* Nonzero means don't run process sentinels.  This is used
-   when exiting.  */
-bool inhibit_sentinels;
-
-#ifdef subprocesses
 
 Lisp_Object Qprocessp;
 static Lisp_Object Qrun, Qstop, Qsignal;
@@ -7059,6 +7059,7 @@ integer or floating point values.
   return system_process_attributes (pid);
 }
 
+#ifdef subprocesses
 /* Arrange to catch SIGCHLD if this hasn't already been arranged.
    Invoke this after init_process_emacs, and after glib and/or GNUstep
    futz with the SIGCHLD handler, but before Emacs forks any children.
@@ -7084,6 +7085,7 @@ catch_child_signal (void)
 	 : old_action.sa_handler);
   unblock_child_signal (&oldset);
 }
+#endif	/* subprocesses */
 
 
 /* This is not called "init_process" because that is the name of a
@@ -7290,10 +7292,12 @@ syms_of_process (void)
   DEFSYM (Qcutime, "cutime");
   DEFSYM (Qcstime, "cstime");
   DEFSYM (Qctime, "ctime");
+#ifdef subprocesses
   DEFSYM (Qinternal_default_process_sentinel,
 	  "internal-default-process-sentinel");
   DEFSYM (Qinternal_default_process_filter,
 	  "internal-default-process-filter");
+#endif
   DEFSYM (Qpri, "pri");
   DEFSYM (Qnice, "nice");
   DEFSYM (Qthcount, "thcount");

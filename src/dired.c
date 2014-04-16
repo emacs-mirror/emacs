@@ -47,6 +47,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "regex.h"
 #include "blockinput.h"
 
+#ifdef MSDOS
+#include "msdos.h"	/* for fstatat */
+#endif
+
 static Lisp_Object Qdirectory_files;
 static Lisp_Object Qdirectory_files_and_attributes;
 static Lisp_Object Qfile_name_completion;

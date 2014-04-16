@@ -264,8 +264,14 @@ cd lib
 Rem Rename files like djtar on plain DOS filesystem would.
 If Exist build-aux\snippet\c++defs.h update build-aux/snippet/c++defs.h build-aux/snippet/cxxdefs.h
 If Exist alloca.in.h update alloca.in.h alloca.in-h
+If Exist byteswap.in.h update byteswap.in.h byteswap.in-h
+If Exist dirent.in.h update dirent.in.h dirent.in-h
+If Exist errno.in.h update errno.in.h errno.in-h
 If Exist execinfo.in.h update execinfo.in.h execinfo.in-h
+If Exist fcntl.in.h update fcntl.in.h fcntl.in-h
 If Exist getopt.in.h update getopt.in.h getopt.in-h
+If Exist inttypes.in.h update inttypes.in.h inttypes.in-h
+If Exist stdarg.in.h update stdarg.in.h stdarg.in-h
 If Exist stdalign.in.h update stdalign.in.h stdalign.in-h
 If Exist stdbool.in.h update stdbool.in.h stdbool.in-h
 If Exist signal.in.h update signal.in.h signal.in-h
@@ -274,8 +280,11 @@ If Exist stddef.in.h update stddef.in.h  stddef.in-h
 If Exist stdint.in.h update stdint.in.h  stdint.in-h
 If Exist stdio.in.h update stdio.in.h stdio.in-h
 If Exist stdlib.in.h update stdlib.in.h stdlib.in-h
+If Exist string.in.h update string.in.h string.in-h
+If Exist sys_select.in.h update sys_select.in.h sys_select.in-h
 If Exist sys_stat.in.h update sys_stat.in.h sys_stat.in-h
 If Exist sys_types.in.h update sys_types.in.h sys_types.in-h
+If Exist sys_time.in.h update sys_time.in.h sys_time.in-h
 If Exist time.in.h update time.in.h time.in-h
 If Exist unistd.in.h update unistd.in.h unistd.in-h
 If Exist Makefile.in sed -f ../msdos/sedlibcf.inp < Makefile.in > makefile.tmp
@@ -294,13 +303,18 @@ If Exist gnus\.dir-locals.el update gnus/.dir-locals.el gnus/_dir-locals.el
 sed -f ../msdos/sedlisp.inp < Makefile.in > Makefile
 cd ..
 rem   ----------------------------------------------------------------------
-If not Exist leim\quail\latin-pre.el goto maindir
 Echo Configuring the leim directory...
 cd leim
 sed -f ../msdos/sedleim.inp < Makefile.in > Makefile
 cd ..
 rem   ----------------------------------------------------------------------
-:maindir
+If Not Exist admin\unidata goto noadmin
+Echo Configuring the admin/unidata directory...
+cd admin\unidata
+sed -f ../../msdos/sedadmin.inp < Makefile.in > Makefile
+cd ..\..
+:noadmin
+rem   ----------------------------------------------------------------------
 Echo Configuring the main directory...
 If Exist .dir-locals.el update .dir-locals.el _dir-locals.el
 If Exist src\.dbxinit update src/.dbxinit src/_dbxinit

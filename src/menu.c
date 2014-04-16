@@ -415,7 +415,8 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 	item_string = concat2 (prefix, item_string);
   }
 
-  if (FRAME_TERMCAP_P (XFRAME (Vmenu_updating_frame))
+  if ((FRAME_TERMCAP_P (XFRAME (Vmenu_updating_frame))
+       || FRAME_MSDOS_P (XFRAME (Vmenu_updating_frame)))
       && !NILP (map))
     /* Indicate visually that this is a submenu.  */
     item_string = concat2 (item_string, build_string (" >"));
@@ -1442,6 +1443,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 			    keymaps, title, &error_name);
   else
 #endif
+#ifndef MSDOS
   if (FRAME_TERMCAP_P (f))
     {
       ptrdiff_t count1 = SPECPDL_INDEX ();
@@ -1453,6 +1455,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 				 kbd_menu_navigation, &error_name);
       unbind_to (count1, Qnil);
     }
+#endif
 
 #ifdef HAVE_NS
   unbind_to (specpdl_count, Qnil);

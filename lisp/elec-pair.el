@@ -226,10 +226,9 @@ WHERE is a list defaulting to '(string comment) and indicates
 when to fallback to `parse-partial-sexp'."
   (let* ((pos (or pos (point)))
          (where (or where '(string comment)))
-         (quick-ppss (syntax-ppss))
-         (quick-ppss-at-pos (syntax-ppss pos))
-         (in-string (and (nth 3 quick-ppss-at-pos) (memq 'string where)))
-         (in-comment (and (nth 4 quick-ppss-at-pos) (memq 'comment where)))
+         (quick-ppss (syntax-ppss pos))
+         (in-string (and (nth 3 quick-ppss) (memq 'string where)))
+         (in-comment (and (nth 4 quick-ppss) (memq 'comment where)))
          (s-or-c-start (cond (in-string
                               (1+ (nth 8 quick-ppss)))
                              (in-comment
@@ -243,7 +242,7 @@ when to fallback to `parse-partial-sexp'."
       ;; HACK! cc-mode apparently has some `syntax-ppss' bugs
       (if (memq major-mode '(c-mode c++ mode))
           (parse-partial-sexp (point-min) pos)
-        quick-ppss-at-pos))))
+        quick-ppss))))
 
 ;; Balancing means controlling pairing and skipping of parentheses
 ;; so that, if possible, the buffer ends up at least as balanced as

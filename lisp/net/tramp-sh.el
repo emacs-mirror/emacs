@@ -950,15 +950,15 @@ target of the symlink differ."
 	  (tramp-message v 4 "Finding true name for `%s'" filename)
 	  (cond
 	   ;; Use GNU readlink --canonicalize-missing where available.
-	   ;; We must quote the file name twice due to the backticks.
 	   ((tramp-get-remote-readlink v)
-	    (setq result
-		  (tramp-send-command-and-read
-		   v
-		   (format "echo \"\\\"`%s --canonicalize-missing %s`\\\"\""
-			   (tramp-get-remote-readlink v)
-			   (tramp-shell-quote-argument
-			    (tramp-shell-quote-argument localname))))))
+	    (tramp-send-command-and-check
+	     v
+	     (format "%s --canonicalize-missing %s"
+		     (tramp-get-remote-readlink v)
+		     (tramp-shell-quote-argument localname)))
+	    (with-current-buffer (tramp-get-connection-buffer v)
+	      (goto-char (point-min))
+	      (setq result (buffer-substring (point-min) (point-at-eol)))))
 
 	   ;; Use Perl implementation.
 	   ((and (tramp-get-remote-perl v)

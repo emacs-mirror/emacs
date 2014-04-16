@@ -2143,7 +2143,12 @@ as an argument limits undo to changes within the current region."
       ;; above when checking.
       (while (eq (car list) nil)
 	(setq list (cdr list)))
-      (puthash list (if undo-in-region t pending-undo-list)
+      (puthash list
+               ;; Prevent identity mapping.  This can happen if
+               ;; consecutive nils are erroneously in undo list.
+               (if (or undo-in-region (eq list pending-undo-list))
+                   t
+                 pending-undo-list)
 	       undo-equiv-table))
     ;; Don't specify a position in the undo record for the undo command.
     ;; Instead, undoing this should move point to where the change is.

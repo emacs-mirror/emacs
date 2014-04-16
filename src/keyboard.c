@@ -10084,16 +10084,13 @@ This may include sensitive information such as passwords.  */)
   if (!NILP (file))
     {
       int fd;
+      Lisp_Object encfile;
+
       file = Fexpand_file_name (file, Qnil);
-      /* This isn't robust, since eg file could be created after we
-         check whether it exists but before emacs_open.
-         Feel free to improve it, but this is not critical.  (Bug#17187)  */
-      if (! NILP (Ffile_exists_p (file)))
-        {
-          if (chmod (SSDATA (file), 0600) < 0)
-            report_file_error ("Doing chmod", file);
-        }
-      fd = emacs_open (SSDATA (file), O_WRONLY | O_CREAT | O_TRUNC, 0600);
+      encfile = ENCODE_FILE (file);
+      fd = emacs_open (SSDATA (encfile), O_WRONLY | O_CREAT | O_EXCL, 0600);
+      if (fd < 0 && errno == EEXIST && unlink (SSDATA (encfile)) == 0)
+	fd = emacs_open (SSDATA (encfile), O_WRONLY | O_CREAT | O_EXCL, 0600);
       dribble = fd < 0 ? 0 : fdopen (fd, "w");
       if (dribble == 0)
 	report_file_error ("Opening dribble", file);

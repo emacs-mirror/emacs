@@ -19,56 +19,21 @@
 SHELL=/xyzzy/command\
 MAKESHELL=/xyzzy/command
 
-/^version=/d
-/^prefix=/d
-/^datadir=/s|@datadir@|../..|
 /^srcdir=/s|srcdir=@srcdir@|srcdir := $(subst \\,/,$(shell cd))|
 
-/^INSTALLDIR=/c\
-INSTALLDIR=.
+# Need a relative directory name for the md command, otherwise it
+# chokes, perhaps due to multiple dots in emacs-XX.YY.NN name.
+/^leimdir *=/a\
+rel_leimdir = ..\\lisp\\leim
 
-/touch stamp-subdir/s|touch|djecho "stamp-subdir" >|
 s|\([ 	]\)echo|\1djecho|g
 /^	@true *$/d
 
 /RUN_EMACS *=/,/^$/c\
-export EMACSLOADPATH=${buildlisppath}\
-RUN_EMACS = ${EMACS} -batch --no-site-file
+export EMACSLOADPATH=\
+RUN_EMACS = ${EMACS} -batch --no-site-file --no-site-lisp
 
-/^MKDIR_P *=/s,@MKDIR_P@,command.com /c md,
+/^MKDIR_P *=/s,@MKDIR_P@,-command.com /c md,
 
-/^	cd ../c\
-	${MAKE} -C ../src ${MFLAGS} emacs
-
-/if \[ -f $@ \]\; then true/d
-/fi$/s/; fi$//
-
-/^leim-list.el:/,/^$/ {
-	/^	if/d
-	/^	else/,/^	fi/d
-	s|	 *|	|
-	/^	--eval/,/; \\$/s|\; \\||
-}
-
-/^setwins=/,/^$/d
-/^\.PHONY: compile-targets/d
-/^compile-targets:/d
-/^compile-main:/,/^$/c\
-compile-main: ${TIT_MISC}\
-	$(MAKE) $(MFLAGS) $(foreach f,$(wildcard ja-dic/*.el),$(basename $f).elc)\
-	$(MAKE) $(MFLAGS) $(foreach f,$(wildcard quail/*.el),$(basename $f).elc)\
-
-
-/^install:/,/^$/c\
-install: all\
-
-/^bootstrap-clean:/,/^$/c\
-bootstrap-clean: clean\
-	rm -f ja-dic/*.elc quail/*.elc\
-
-
-/^	if test -f/d
-/^distclean:/,/^$/ {
-	s|\(rm -f Makefile\)|\1 stamp-subdir|
-}
-
+/MKDIR_P.* \${leimdir}\/.*$/s|\${leimdir}/|$(rel_leimdir)\\|
+/MKDIR_P.* \$(leimdir)\/.*$/s|\$(leimdir)/|$(rel_leimdir)\\|

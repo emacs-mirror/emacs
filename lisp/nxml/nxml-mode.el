@@ -872,7 +872,7 @@ Called with `font-lock-beg' and `font-lock-end' dynamically bound."
 
 (defun nxml-fontify-matcher (bound)
   "Called as font-lock keyword matcher."
-
+  (syntax-propertize bound)
   (unless nxml-degraded
     (nxml-debug-change "nxml-fontify-matcher" (point) bound)
 

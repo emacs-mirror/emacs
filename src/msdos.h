@@ -41,9 +41,25 @@ void mouse_on (void);
 void mouse_off (void);
 void mouse_moveto (int, int);
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #if __DJGPP__ == 2 && __DJGPP_MINOR__ < 4
 int readlink (const char *, char *, size_t);
 #endif
+ssize_t readlinkat (int, const char *, char *, size_t);
+int fstatat (int, char const *, struct stat *, int);
+int unsetenv (const char *);
+
+/* Constants.  */
+#define EINPROGRESS 112
+/* Gnulib sets O_CLOEXEC to O_NOINHERIT, which gets in the way when we
+   need to redirect standard handles for subprocesses using temporary
+   files created by mkostemp, see callproc.c.  */
+#ifdef O_CLOEXEC
+# undef O_CLOEXEC
+#endif
+#define O_CLOEXEC 0
 
 
 #ifndef HAVE_X_WINDOWS
@@ -83,7 +99,6 @@ extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 #define XMenuSetAEQ (void)
 #define XMenuSetFreeze (void)
 #define XMenuRecompute (void)
-#define FONT_WIDTH(foo) 1
 #define XM_FAILURE -1
 #define XM_SUCCESS 1
 #define XM_NO_SELECT 2

@@ -4,18 +4,19 @@ Copyright (C) 1992, 1994, 1996-1997, 2000-2014 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
-The DJGPP port of GNU Emacs builds and runs on plain DOS and also on
-all versions of MS-Windows from version 3.X on, including Windows XP,
-Vista, and Windows 7 (however, see below for issues with Windows Vista
-and 7).
+The DJGPP port of GNU Emacs builds and runs on all versions of
+MS-Windows from version 3.X on, including Windows XP, Vista, and
+Windows 7 (however, see below for issues with Windows Vista and 7).
+Building on plain MS-DOS is supported only if long file names are
+supported (e.g., with a specialized driver such as doslfn).
 
 To build and install the DJGPP port, you need to have the DJGPP ports
-of GCC (the GNU C compiler), GNU Make, rm, mv, and sed.  See the
+of GCC (the GNU C compiler), GNU Make, rm, mv, cp, and sed.  See the
 remarks in CONFIG.BAT for more information about locations and
-versions.  The Emacs FAQ (see info/efaq) includes pointers to Internet
-sites where you can find the necessary utilities; search for "MS-DOS".
-The configuration step (see below) will test for these utilities and
-will refuse to continue if any of them isn't found.
+versions.  The Emacs FAQ (see info/efaq.info) includes pointers to
+Internet sites where you can find the necessary utilities; search for
+"MS-DOS".  The configuration step (see below) will test for these
+utilities and will refuse to continue if any of them isn't found.
 
 Bootstrapping Emacs or recompiling Lisp files in the `lisp'
 subdirectory using the various targets in the lisp/Makefile file
@@ -27,36 +28,20 @@ are distributed in byte-compiled form as well.  As for bootstrapping
 itself, you will only need that if you check-out development sources
 from the Emacs source repository.
 
-If you are building the DJGPP version of Emacs on a DOS-like system
-which supports long file names (e.g. Windows 9X or Windows XP), you
-need to make sure that long file names are handled consistently both
-when you unpack the distribution and compile it.  With DJGPP v2.0 or
-later, long file names support is by default, so you need to unpack
-Emacs distribution in a way that doesn't truncate the original long
-filenames to the DOS 8.3 namespace; the easiest way to do this is to
-use djtar program which comes with DJGPP, since it will behave
-consistently with the rest of DJGPP tools.  Alternatively, you can
-build Emacs with LFN=n, if some of your tools don't support long file
-names: just ensure that LFN is set to `n' during both unpacking and
-compiling.
+Building the DJGPP version of Emacs is currently supported only on
+systems which support long file names (e.g. Windows 9X or Windows XP).
+You need to unpack Emacs distribution in a way that doesn't truncate
+the original long filenames to the DOS 8.3 namespace; the easiest way
+to do this is to use djtar program which comes with DJGPP, since it
+will behave consistently with the rest of DJGPP tools.  Do _not_
+disable the DJGPP long-file-name support (a.k.a. "LFN") while building
+Emacs.
 
 (By the time you read this, you have already unpacked the Emacs
 distribution, but if the explanations above imply that you should have
 done it differently, it's safer to delete the directory tree created
 by the unpacking program and unpack Emacs again, than to risk running
 into strange problems during the build process.)
-
-It is important to understand that the runtime support of long file
-names by the Emacs binary is NOT affected by the LFN setting during
-compilation; Emacs compiled with DJGPP v2.0 or later will always
-support long file names on Windows no matter what was the setting
-of LFN at compile time.  However, if you compiled with LFN disabled
-and want to enable LFN support after Emacs was already built, you need
-to make sure that the support files in the lisp, etc and info
-directories are called by their original long names as found in the
-distribution.  You can do this either by renaming the files manually,
-or by extracting them from the original distribution archive with
-djtar after you set LFN=y in the environment.
 
 To unpack Emacs with djtar, type this command:
 
@@ -67,13 +52,6 @@ your system.)
 
 When unpacking Emacs is done, a directory called `emacs-XX.YY' will be
 created, where XX.YY is the Emacs version.
-
-On plain DOS, unpacking can complain about several directories and
-files in the `nextstep' subdirectory of the `emacs-XX.YY' top-level
-directory.  This is because the names of these files overflow the
-67-character limit on the file-name length imposed by DOS filesystems.
-When prompted by `djtar' for a different name for these files, just
-press [Enter] to skip them: they are not needed for the DJGPP build.
 
 If you want to print international characters, install the intlfonts
 distribution.  For this, create a directory called `fonts' under the

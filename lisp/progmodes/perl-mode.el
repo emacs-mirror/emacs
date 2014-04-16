@@ -903,7 +903,9 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
 	;;          following_quotep minimum_paren-depth_this_scan)
 	;; Parsing stops if depth in parentheses becomes equal to third arg.
 	(setq containing-sexp (nth 1 state)))
-      (cond ((nth 3 state) 'noindent)	; In a quoted string?
+      (cond
+       ;; Don't auto-indent in a quoted string or a here-document.
+       ((or (nth 3 state) (eq 2 (nth 7 state))) 'noindent)
 	    ((null containing-sexp)	; Line is at top level.
 	     (skip-chars-forward " \t\f")
 	     (if (memq (following-char)

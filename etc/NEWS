@@ -1291,6 +1291,8 @@ treated as regexps rather than literal strings.
 
 * Lisp Changes in Emacs 24.4
 
+** overlays-at can optionally sort its result by priority.
+
 +++
 ** The second argument of `eval' can now specify a lexical environment.
 

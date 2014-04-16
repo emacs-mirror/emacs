@@ -65,6 +65,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <crt0.h>   /* for _crt0_startup_flags and its bits */
 #include <sys/exceptn.h>
 static int save_djgpp_startup_flags;
+#include <libc/atexit.h>
+static struct __atexit *save_atexit_ptr;
 #define filehdr external_filehdr
 #define scnhdr external_scnhdr
 #define syment external_syment
@@ -82,7 +84,7 @@ struct aouthdr
   unsigned long	 	text_start;/* base of text used for this file */
   unsigned long	 	data_start;/* base of data used for this file */
 };
-#endif /* not MSDOS */
+#endif /* MSDOS */
 #else  /* not HAVE_COFF_H */
 #include <a.out.h>
 #endif /* not HAVE_COFF_H */
@@ -368,6 +370,12 @@ copy_text_and_data (int new, int a_out)
      and which might change the way that dumped Emacs works.  */
   save_djgpp_startup_flags = _crt0_startup_flags;
   _crt0_startup_flags &= ~(_CRT0_FLAG_NO_LFN | _CRT0_FLAG_NEARPTR);
+
+  /* Zero out the 'atexit' chain in the dumped executable, to avoid
+     calling the atexit functions twice.  (emacs.c:main installs an
+     atexit function.)  */
+  save_atexit_ptr = __atexit_ptr;
+  __atexit_ptr = NULL;
 #endif
 
   lseek (new, (long) text_scnptr, 0);
@@ -386,6 +394,9 @@ copy_text_and_data (int new, int a_out)
 
   /* Restore the startup flags.  */
   _crt0_startup_flags = save_djgpp_startup_flags;
+
+  /* Restore the atexit chain.  */
+  __atexit_ptr = save_atexit_ptr;
 #endif
 
 

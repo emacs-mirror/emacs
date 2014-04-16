@@ -1,3 +1,8 @@
+2014-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Cursor Display): Explain better how to customize
+	'blink-cursor-blinks'.
+
 2014-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* trouble.texi (Checklist): Dribble files may contain passwords.

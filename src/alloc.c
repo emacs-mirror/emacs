@@ -2685,7 +2685,9 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
  ***********************************************************************/
 
 /* Sometimes a vector's contents are merely a pointer internally used
-   in vector allocation code.  Usually you don't want to touch this.  */
+   in vector allocation code.  On the rare platforms where a null
+   pointer cannot be tagged, represent it with a Lisp 0.
+   Usually you don't want to touch this.  */
 
 static struct Lisp_Vector *
 next_vector (struct Lisp_Vector *v)

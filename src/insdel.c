@@ -1858,9 +1858,35 @@ invalidate_buffer_caches (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
                              buf->width_run_cache,
                              start - BUF_BEG (buf), BUF_Z (buf) - end);
   if (buf->bidi_paragraph_cache)
-    invalidate_region_cache (buf,
-                             buf->bidi_paragraph_cache,
-                             start - BUF_BEG (buf), BUF_Z (buf) - end);
+    {
+      if (start != end
+	  && start > BUF_BEG (buf))
+	{
+	  /* If we are deleting or replacing characters, we could
+	     create a paragraph start, because all of the characters
+	     from START to the beginning of START's line are
+	     whitespace.  Therefore, we must extend the region to be
+	     invalidated up to the newline before START.  */
+	  ptrdiff_t line_beg = start;
+	  ptrdiff_t start_byte = buf_charpos_to_bytepos (buf, start);
+
+	  if (BUF_FETCH_BYTE (buf, start_byte - 1) != '\n')
+	    {
+	      struct buffer *old = current_buffer;
+
+	      set_buffer_internal (buf);
+
+	      line_beg = find_newline_no_quit (start, start_byte, -1,
+					       &start_byte);
+	      set_buffer_internal (old);
+	    }
+	  if (line_beg > BUF_BEG (buf))
+	    start = line_beg - 1;
+	}
+      invalidate_region_cache (buf,
+			       buf->bidi_paragraph_cache,
+			       start - BUF_BEG (buf), BUF_Z (buf) - end);
+    }
 }
 
 /* These macros work with an argument named `preserve_ptr'

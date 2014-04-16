@@ -1,3 +1,29 @@
+2014-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Update for Emacs 24.4.
+
+2014-04-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to IRIX 6.5 (Bug#9684).
+	This port requires IRIX cc, as I did not have time to get
+	undump working with the old GCC on the system I had access to,
+	but that's better than nothing.
+	* configure.ac (gl_GCC_VERSION_IFELSE): Remove unused macro
+	that wouldn't have worked anyway, with IRIX cc.
+	(emacs_cv_clang, emacs_cv_sanitize_address)
+	(ns_osx_have_104, ns_osx_have_105):
+	Don't assume '#error' makes the compiler fail,
+	as this doesn't work with IRIX cc.
+	(CFLAGS, LIBS): Don't let the GnuTLS results infect later 'configure'
+	checks.  This runs afoul of an IRIX configuration where GnuTLS is
+	in an optional library that also contains getdelim, and causes
+	a later 'configure' to incorrectly think getdelim is supported.
+
+2014-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.ac (LN_S_FILEONLY, LN_S): Use "/bin/ln" on MinGW, to
+	ensure the MSYS ln.exe is invoked.
+
 2014-04-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove DATA_SEG_BITS.
