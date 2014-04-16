@@ -172,9 +172,14 @@ static Res amsCreateTables(AMS ams, BT *allocReturn,
       goto failWhite;
   }
 
-  /* Invalidate the colour tables in checking varieties. */
-  AVER((BTResRange(nongreyTable, 0, length), TRUE));
-  AVER((BTSetRange(nonwhiteTable, 0, length), TRUE));
+#if defined(AVER_AND_CHECK)
+  /* Invalidate the colour tables in checking varieties. The algorithm
+   * is designed not to depend on the initial values of these tables,
+   * so by invalidating them we get some checking of this.
+   */
+  BTResRange(nongreyTable, 0, length);
+  BTSetRange(nonwhiteTable, 0, length);
+#endif
 
   *allocReturn = allocTable;
   *nongreyReturn = nongreyTable;
