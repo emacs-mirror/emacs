@@ -100,7 +100,7 @@ an address-ordered singly linked free list. (As in traditional
 _`.impl.block`: If the free address range is large enough to contain
 an inline block descriptor consisting of two pointers, then the two
 pointers stored are to the next free range in address order (or
-``NULL`` if there are no more ranges), and to the limit of current
+``NULL`` if there are no more ranges), and to the limit of the current
 free address range, in that order.
 
 _`.impl.grain`: Otherwise, the free address range must be large enough

@@ -121,7 +121,7 @@ _`.limit.find`: ``CBSLandClass`` does not support the
 generic functions (the subclasses do support these operations).
 
 _`.limit.zones`: ``CBSLandClass`` and ``CBSFastLandClass`` do not
-support the ``LandFindInZones()`` generic function (the suclass
+support the ``LandFindInZones()`` generic function (the subclass
 ``CBSZonedLandClass`` does support this operation).
 
 _`.limit.iterate`: CBS does not support visitors setting
@@ -231,7 +231,6 @@ contiguous ranges. [Four words per range.] If the CBS contains every
 other grain in an area, then the overhead will be large compared to
 the size of that area. [Four words per two grains.] The CBS structure
 is thus suitable only for managing large enough ranges.
-
 
 
 Document History
