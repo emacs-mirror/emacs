@@ -131,7 +131,6 @@
 	* subr.el (with-silent-modifications): Don't bind deactivate-mark,
 	buffer-file-name, and buffer-file-truename any more.
 
->>>>>>> MERGE-SOURCE
 2014-04-08  Leo Liu  <sdl.web@gmail.com>
 
 	Use lexical-binding and require cl-lib.
