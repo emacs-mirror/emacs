@@ -195,8 +195,9 @@ extern void LockClaimGlobal(void);
 extern void LockReleaseGlobal(void);
 
 
-#ifdef DISABLE_LOCKS
-
+#if defined(LOCK)
+/* Nothing to do: functions declared in all lock configurations. */
+#elif defined(LOCK_NONE)
 #define LockSize() MPS_PF_ALIGN
 #define LockInit(lock) UNUSED(lock)
 #define LockFinish(lock) UNUSED(lock)
@@ -209,8 +210,9 @@ extern void LockReleaseGlobal(void);
 #define LockReleaseGlobalRecursive()
 #define LockClaimGlobal()
 #define LockReleaseGlobal()
-
-#endif  /* DISABLE_LOCKS */
+#else
+#error "No lock configuration."
+#endif  /* LOCK */
 
 
 #endif /* lock_h */

@@ -524,14 +524,16 @@ extern void (ArenaEnter)(Arena arena);
 extern void (ArenaLeave)(Arena arena);
 extern void (ArenaPoll)(Globals globals);
 
-#ifdef DISABLE_SHIELD
+#if defined(SHIELD)
 #define ArenaEnter(arena)  UNUSED(arena)
 #define ArenaLeave(arena)  AVER(arena->busyTraces == TraceSetEMPTY)
 #define ArenaPoll(globals)  UNUSED(globals)
-#else
+#elif defined(SHIELD_NONE)
 #define ArenaEnter(arena)  ArenaEnterLock(arena, FALSE)
 #define ArenaLeave(arena)  ArenaLeaveLock(arena, FALSE)
-#endif
+#else
+#error "No shield configuration."
+#endif  /* SHIELD */
 
 extern void ArenaEnterRecursive(Arena arena);
 extern void ArenaLeaveRecursive(Arena arena);
@@ -892,7 +894,9 @@ extern void (ShieldSuspend)(Arena arena);
 extern void (ShieldResume)(Arena arena);
 extern void (ShieldFlush)(Arena arena);
 
-#ifdef DISABLE_SHIELD
+#if defined(SHIELD)
+/* Nothing to do: functions declared in all shield configurations. */
+#elif defined(SHIELD_NONE)
 #define ShieldRaise(arena, seg, mode) \
   BEGIN UNUSED(arena); UNUSED(seg); UNUSED(mode); END
 #define ShieldLower(arena, seg, mode) \
@@ -906,7 +910,9 @@ extern void (ShieldFlush)(Arena arena);
 #define ShieldSuspend(arena) BEGIN UNUSED(arena); END
 #define ShieldResume(arena) BEGIN UNUSED(arena); END
 #define ShieldFlush(arena) BEGIN UNUSED(arena); END
-#endif  /* DISABLE_SHIELD */
+#else
+#error "No shield configuration."
+#endif  /* SHIELD */
 
 
 /* Protection Interface

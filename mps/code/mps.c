@@ -91,7 +91,7 @@
 
 /* ANSI Plinth */
 
-#if !defined(PLINTH_NONE)       /* see CONFIG_PLINTH_NONE in config.h  */
+#if defined(PLINTH)     /* see CONFIG_PLINTH_NONE in config.h  */
 #include "mpsliban.c"
 #include "mpsioan.c"
 #endif
