@@ -100,12 +100,13 @@ an address-ordered singly linked free list. (As in traditional
 _`.impl.block`: If the free address range is large enough to contain
 an inline block descriptor consisting of two pointers, then the two
 pointers stored are to the next free range in address order (or
-``NULL`` if there are no more ranges), and to the limit of the current
-free address range, in that order.
+``freelistEND`` if there are no more ranges), and to the limit of the
+current free address range, in that order.
 
 _`.impl.grain`: Otherwise, the free address range must be large enough
 to contain a single pointer. The pointer stored is to the next free
-range in address order, or ``NULL`` if there are no more ranges.
+range in address order, or ``freelistEND`` if there are no more
+ranges.
 
 _`.impl.tag`: Grains and blocks are distinguished by a one-bit tag in
 the low bit of the first word (the one containing the pointer to the
@@ -118,8 +119,8 @@ _`.impl.merge`: When a free address range is added to the free list,
 it is merged with adjacent ranges so as to maintain
 `.impl.invariant`_.
 
-_`.impl.rule.break`: The use of ``NULL`` to mark the end of the list
-violates the rule that exceptional values should not be used to
+_`.impl.rule.break`: The use of ``freelistEND`` to mark the end of the
+list violates the rule that exceptional values should not be used to
 distinguish exeptional situations. This infraction allows the
 implementation to meet `.req.zero-overhead`_. (There are other ways to
 do this, such as using another tag to indicate the last block in the
