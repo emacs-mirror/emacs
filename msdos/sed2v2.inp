@@ -132,6 +132,7 @@ s/^#undef HAVE_STRTOULL *$/#define HAVE_STRTOULL 1/
 #else\
 #undef HAVE_SNPRINTF\
 #endif
+s/^#undef PENDING_OUTPUT_N_BYTES *$/#define PENDING_OUTPUT_N_BYTES fp->_ptr - fp->_base/
 
 # Comment out any remaining undef directives, because some of them
 # might be defined in sys/config.h we include at the top of config.h.

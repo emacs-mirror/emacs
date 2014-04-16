@@ -1,3 +1,62 @@
+2014-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* unexcoff.c [MSDOS]: Include libc/atexit.h.
+	(copy_text_and_data): Zero out the atexit chain pointer before
+	dumping Emacs.
+
+	* termhooks.h (encode_terminal_code): Update prototype.
+
+	* term.c (encode_terminal_code) [DOS_NT]: Make it externally
+	visible for all DOS_NT ports, not just WINDOWSNT.
+	(syms_of_term) [!MSDOS]: Don't define 'tty-menu-*' symbols on MSDOS.
+
+	* sysdep.c (emacs_sigaction_init, init_signals): Don't use SIGCHLD
+	unless it is defined.
+	(emacs_pipe) [MSDOS]: Redirect to 'pipe'.
+
+	* process.c (close_on_exec, accept4, process_socket): Move into
+	the "ifdef subprocesses" part.
+	(catch_child_signal): Condition by "ifdef subprocesses".
+	(syms_of_process) <Qinternal_default_process_sentinel>
+	<Qinternal_default_process_filter>: Condition by "ifdef subprocesses".
+
+	* msdos.h: Add prototypes for new functions.
+	(EINPROGRESS): Define.
+	(O_CLOEXEC): Define to zero.
+
+	* msdos.c (check_window_system): Remove unnecessary an
+	incompatible duplicate function.
+	(sys_opendir, readlinkat, faccessat, fstatat, unsetenv): New
+	functions in support of new functionality.
+
+	* menu.c (single_menu_item): Add visual indication  of submenu
+	also for menus on MSDOS frames.
+	(Fx_popup_menu) [!MSDOS]: Do not call tty_menu_show on MSDOS.
+
+	* lisp.h (CHECK_PROCESS) [!subprocesses]: Do not define
+	when async subprocesses aren't supported.
+
+	* font.h (FONT_WIDTH) [MSDOS]: MSDOS-specific definition.
+
+	* emacs.c (close_output_streams): Zero out errno before calling
+	close_stream.
+
+	* dired.c [MSDOS]: Include msdos.h.
+
+	* conf_post.h (opendir) [MSDOS]: Redirect to sys_opendir.
+	(DATA_START) [MSDOS]: Define.
+	(SYSTEM_PURESIZE_EXTRA) [MSDOS]: Enlarge by 25K.
+
+	* callproc.c (block_child_signal, unblock_child_signal) [MSDOS]:
+	Ifdef away for MSDOS.
+	(record_kill_process) [MSDOS]: Ifdef away the entire body for MSDOS.
+	(call_process_cleanup) [MSDOS]: Ifdef away portions not relevant
+	for MSDOS.
+	(call_process) [MSDOS]: Fix call sequence of dostounix_filename.
+	Use temporary file template that is compatible with mkostemp.
+	Move vfork-related portions under #ifndef MSDOS.
+	(syms_of_callproc): Unify templates of MSDOS and WINDOWSNT.
+
 2014-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.c (Foverlays_at): Add argument `sorted'.

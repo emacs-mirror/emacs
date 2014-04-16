@@ -1,3 +1,8 @@
+2014-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/pc-win.el (x-list-fonts, x-get-selection-value): Provide
+	doc strings, as required by snarf-documentation.
+
 2014-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ps-def.el (ps-generate-postscript-with-faces1): Use the new `sorted'

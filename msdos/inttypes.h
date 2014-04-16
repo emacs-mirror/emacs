@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define strtoumax strtoull
 #define strtoimax strtoll
 #define PRIuMAX   "llu"
+#define PRIdMAX   "lld"
 #endif	/* __DJGPP__ < 2.04 */
 
 #endif

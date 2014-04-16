@@ -2533,11 +2533,13 @@ CHECK_WINDOW (Lisp_Object x)
 {
   CHECK_TYPE (WINDOWP (x), Qwindowp, x);
 }
+#ifdef subprocesses
 INLINE void
 CHECK_PROCESS (Lisp_Object x)
 {
   CHECK_TYPE (PROCESSP (x), Qprocessp, x);
 }
+#endif
 INLINE void
 CHECK_NATNUM (Lisp_Object x)
 {
@@ -4142,7 +4144,6 @@ extern bool running_asynch_code;
 
 /* Defined in process.c.  */
 extern Lisp_Object QCtype, Qlocal;
-extern Lisp_Object Qprocessp;
 extern void kill_buffer_processes (Lisp_Object);
 extern bool wait_reading_process_output (intmax_t, int, int, bool,
 					 Lisp_Object,

@@ -105,6 +105,8 @@ enum
 
 static Lisp_Object call_process (ptrdiff_t, Lisp_Object *, int, ptrdiff_t);
 
+
+#ifndef MSDOS
 /* Block SIGCHLD.  */
 
 void
@@ -123,6 +125,8 @@ unblock_child_signal (void)
 {
   pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
 }
+
+#endif	/* !MSDOS */
 
 /* Return the current buffer's working directory, or the home
    directory if it's unreachable, as a string suitable for a system call.
@@ -162,6 +166,7 @@ encode_current_directory (void)
 void
 record_kill_process (struct Lisp_Process *p, Lisp_Object tempfile)
 {
+#ifndef MSDOS
   block_child_signal ();
 
   if (p->alive)
@@ -172,6 +177,7 @@ record_kill_process (struct Lisp_Process *p, Lisp_Object tempfile)
     }
 
   unblock_child_signal ();
+#endif	/* !MSDOS */
 }
 
 /* Clean up files, file descriptors and processes created by Fcall_process.  */
@@ -211,6 +217,7 @@ call_process_cleanup (Lisp_Object buffer)
 {
   Fset_buffer (buffer);
 
+#ifndef MSDOS
   if (synch_process_pid)
     {
       kill (-synch_process_pid, SIGINT);
@@ -222,6 +229,7 @@ call_process_cleanup (Lisp_Object buffer)
       immediate_quit = 0;
       message1 ("Waiting for process to die...done");
     }
+#endif	/* !MSDOS */
 }
 
 #ifdef DOS_NT
@@ -518,10 +526,10 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
       char const *outf = tmpdir ? tmpdir : "";
       tempfile = alloca (strlen (outf) + 20);
       strcpy (tempfile, outf);
-      dostounix_filename (tempfile, 0);
+      dostounix_filename (tempfile);
       if (*tempfile == '\0' || tempfile[strlen (tempfile) - 1] != '/')
 	strcat (tempfile, "/");
-      strcat (tempfile, "detmp.XXX");
+      strcat (tempfile, "emXXXXXX");
       mktemp (tempfile);
       if (!*tempfile)
 	report_file_error ("Opening process output file", Qnil);
@@ -710,8 +718,6 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   unblock_child_signal ();
   unblock_input ();
 
-#endif /* not MSDOS */
-
   if (pid < 0)
     report_file_errno ("Doing vfork", Qnil, child_errno);
 
@@ -725,6 +731,8 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
       }
   emacs_close (filefd);
   clear_unwind_protect (count - 1);
+
+#endif /* not MSDOS */
 
   if (INTEGERP (buffer))
     return unbind_to (count, Qnil);
@@ -1672,10 +1680,8 @@ syms_of_callproc (void)
 {
 #ifndef DOS_NT
   Vtemp_file_name_pattern = build_string ("emacsXXXXXX");
-#elif defined (WINDOWSNT)
+#else  /* DOS_NT */
   Vtemp_file_name_pattern = build_string ("emXXXXXX");
-#else
-  Vtemp_file_name_pattern = build_string ("detmp.XXX");
 #endif
   staticpro (&Vtemp_file_name_pattern);
 

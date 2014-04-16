@@ -48,12 +48,16 @@ s/\.h\.in/.h-in/
 /^LD_SWITCH_SYSTEM_TEMACS *=/s/@LD_SWITCH_SYSTEM_TEMACS@//
 /^LD_SWITCH_X_SITE_AUX *=/s/@LD_SWITCH_X_SITE_AUX@//
 /^LD_SWITCH_X_SITE_AUX_RPATH *=/s/@LD_SWITCH_X_SITE_AUX_RPATH@//
+/^LD_SWITCH_X_SITE_RPATH *=/s/@LD_SWITCH_X_SITE_RPATH@//
 /^LD_SWITCH_SYSTEM *=/s/@LD_SWITCH_SYSTEM@//
 /^LIBS_SYSTEM *=/s/@LIBS_SYSTEM@//
 /^LIB_GCC *=/s/@LIB_GCC@//
 /^LIB_STANDARD *=/s/@LIB_STANDARD@//
 /^LIB_MATH *=/s/@LIB_MATH@/-lm/
 /^LIB_PTHREAD *=/s/@LIB_PTHREAD@//
+/^LIB_ACL *=/s/@LIB_ACL@//
+/^LIB_EACCESS *=/s/@LIB_EACCESS@//
+/^LIB_FDATASYNC *=/s/@LIB_FDATASYNC@//
 s/ *@LIBTIFF@//
 s/ *@LIBJPEG@//
 s/ *@LIBPNG@//
@@ -71,8 +75,10 @@ s/ *@LIBXPM@//
 /^DBUS_CFLAGS *=/s/@DBUS_CFLAGS@//
 /^DBUS_LIBS *=/s/@DBUS_LIBS@//
 /^DBUS_OBJ *=/s/@DBUS_OBJ@//
+/^NOTIFY_OBJ *=/s/@NOTIFY_OBJ@//
 /^SETTINGS_CFLAGS *=/s/@SETTINGS_CFLAGS@//
 /^SETTINGS_LIBS *=/s/@SETTINGS_LIBS@//
+/^GFILENOTIFY_LIBS *=/s/@GFILENOTIFY_LIBS@//
 /^GTK_OBJ *=/s/@GTK_OBJ@//
 /^LIBS_TERMCAP *=/s/@LIBS_TERMCAP@//
 /^TERMCAP_OBJ *=/s/@TERMCAP_OBJ@/termcap.o tparam.o/
@@ -83,6 +89,7 @@ s/ *@LIBXPM@//
 /^OLDXMENU_TARGET *=/s/@OLDXMENU_TARGET@//
 /^OLDXMENU_DEPS *=/s/@OLDXMENU_DEPS@//
 /^XOBJ *=/s/@XOBJ@//
+/^XGSELOBJ *=/s/@XGSELOBJ@//
 /^TOOLKIT_LIBW *=/s/@TOOLKIT_LIBW@//
 /^LIBSOUND *=/s/@LIBSOUND@//
 /^LIBS_GNUSTEP *=/s/@LIBS_GNUSTEP@//
@@ -114,12 +121,19 @@ s/ *@LIBXPM@//
 /^XMENU_OBJ *=/s/@XMENU_OBJ@/xmenu.o/
 /^FONT_OBJ *=/s/@FONT_OBJ@//
 /^LIBGPM *=/s/@LIBGPM@//
+/^LIBZ *=/s/@LIBZ@//
 /^EXEEXT *=/s/@EXEEXT@/.exe/
+/^MKDIR_P *=/s/@MKDIR_P@/gmkdir -p/
 /^OLDXMENU *=/s/@OLDXMENU@/nothing/
 /^LIBXMENU *=/s/@LIBXMENU@//
 /^LIBX_OTHER *=/s/@LIBX_OTHER@//
+/^XRANDR_LIBS *=/s/@XRANDR_LIBS@//
+/^XRANDR_CFLAGS *=/s/@XRANDR_CFLAGS@//
+/^XINERAMA_LIBS *=/s/@XINERAMA_LIBS@//
+/^XINERAMA_CFLAGS *=/s/@XINERAMA_CFLAGS@//
 /^GMALLOC_OBJ *=/s/@GMALLOC_OBJ@/gmalloc.o/
 /^VMLIMIT_OBJ *=/s/@VMLIMIT_OBJ@/vm-limit.o/
+/^FIRSTFILE_OBJ *=/s/@FIRSTFILE_OBJ@//
 /^RALLOC_OBJ *=/s/@RALLOC_OBJ@/ralloc.o/
 /^PRE_ALLOC_OBJ *=/s/@PRE_ALLOC_OBJ@/lastfile.o/
 /^POST_ALLOC_OBJ *=/s/@POST_ALLOC_OBJ@/$(vmlimitobj)/
@@ -130,9 +144,15 @@ s/ *@LIBXPM@//
 /^W32_OBJ *=/s/@W32_OBJ@//
 /^W32_LIBS *=/s/@W32_LIBS@//
 /^version *=/s/@[^@\n]*@//
+/^EMACSRES *=/s/@EMACSRES@//
+/^EMACS_MANIFEST *=/s/@EMACS_MANIFEST@//
+/^W32_RES_LINK *=/s/@W32_RES_LINK@//
+/^CM_OBJ *=/s/@CM_OBJ@/cm.o/
 /^@SET_MAKE@$/s/@SET_MAKE@//
+/^TEMACS_POST_LINK *=/s/@TEMACS_POST_LINK@/stubedit temacs.exe minstack=1024k/
+/^ADDSECTION *=/s/@ADDSECTION@//
 /^	[ 	]*\$(libsrc)\/make-docfile.*>.*\/DOC/s!make-docfile!make-docfile -o $(etc)/DOC!
-/^	[ 	]*\$(libsrc)\/make-docfile.*>.*gl-tmp/s!make-docfile!make-docfile -o gl-tmp!
+/^	[ 	]*\$(libsrc)\/make-docfile.*>.*gl.tmp/s!make-docfile!make-docfile -o gl.tmp!
 /^.\$(libsrc)\/make-doc/s!>.*$!!
 /^	[ 	]*\$(libsrc)\/make-docfile /s!`[^`]*`!$(lisp); cd ../src!
 /^[ 	]*$/d
@@ -142,6 +162,7 @@ s/ *@LIBXPM@//
 /^	 *test "X\$(PAXCTL)" = X/d
 /^	 *test "\$(CANNOT_DUMP)" = "yes"/d
 /^	if test "\$(CANNOT_DUMP)" =/,/^	else /d
+/^	 *\$(SETFATTR) -n/d
 /^	-\{0,1\} *ln /s/bootstrap-emacs\$(EXEEXT).*$/bootstrap-emacs$(EXEEXT)/
 /^	fi/d
 /^	 *LC_ALL=C \$(RUN_TEMACS)/i\
@@ -156,15 +177,17 @@ s/ @true *$/ @rem/
 s/^	[^ 	]*move-if-change /	update /
 /^	echo[ 	][ 	]*timestamp/s/echo /djecho /
 /^	.*djecho timestamp/a\
-	@rm -f gl-tmp
-/^	cd \$(leimdir) && \$(MAKE)/i\
+	@rm -f gl.tmp
+/^	cd ..\/leim && \$(MAKE)/i\
 	$(RUN_TEMACS) -batch -l loadup dump\
 	stubify emacs\
 	stubedit emacs.exe minstack=2048k\
 	rm -f b-emacs$(EXEEXT)\
 	cp emacs$(EXEEXT) b-emacs$(EXEEXT)
-/^	cd \$(leimdir) && \$(MAKE)/c\
-	$(MAKE) $(MFLAGS) -C $(leimdir) leim-list.el EMACS=$(bootstrap_exe)
+/^	cd ..\/leim && \$(MAKE)/c\
+	$(MAKE) $(MFLAGS) -C ../leim leim-list.el EMACS=$(bootstrap_exe)
+/^	cd ..\/admin\/unidata && \$(MAKE)/c\
+	$(MAKE) $(MFLAGS) -C ../admin/unidata all EMACS="../$(bootstrap_exe)"
 /^	cd \$(lib) && \$(MAKE)/c\
 	$(MAKE) $(MFLAGS) -C $(lib) libgnu.a
 /^RUN_TEMACS *=/s|`/bin/pwd`|.|
@@ -199,6 +222,10 @@ s/echo.*buildobj.lst/dj&/
 /^	@\{0,1\}cd ..\/lisp;.*[^\]$/s|$|\; cd ../src|
 /^	 *THEFILE=/s|$|\; cd ../src|
 /^	echo.* buildobj.h/s|echo |djecho |
+/^buildobj\.h:/,/^	mv /{
+  /^	 *for /,/^	 *done /c\
+	djecho "$(ALLOBJS)" | sed -e 's/^ */"/' -e 's/ *$$/"/' -e 's/  */", "/g' >>$@.tmp
+}
 # Make the GCC command line fit one screen line
 /^[ 	][ 	]*\$(GNUSTEP_CFLAGS)/d
 /^[ 	][ 	]*\$(GCONF_CFLAGS)/d

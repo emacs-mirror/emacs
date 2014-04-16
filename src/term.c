@@ -500,7 +500,7 @@ static ptrdiff_t encode_terminal_dst_size;
    Set CODING->produced to the byte-length of the resulting byte
    sequence, and return a pointer to that byte sequence.  */
 
-#ifndef WINDOWSNT
+#ifndef DOS_NT
 static
 #endif
 unsigned char *
@@ -4557,6 +4557,7 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
   encode_terminal_src = NULL;
   encode_terminal_dst = NULL;
 
+#ifndef MSDOS
   DEFSYM (Qtty_menu_next_item, "tty-menu-next-item");
   DEFSYM (Qtty_menu_prev_item, "tty-menu-prev-item");
   DEFSYM (Qtty_menu_next_menu, "tty-menu-next-menu");
@@ -4566,4 +4567,5 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
   DEFSYM (Qtty_menu_exit, "tty-menu-exit");
   DEFSYM (Qtty_menu_mouse_movement, "tty-menu-mouse-movement");
   DEFSYM (Qtty_menu_navigation_map, "tty-menu-navigation-map");
+#endif
 }

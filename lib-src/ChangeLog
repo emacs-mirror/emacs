@@ -1,3 +1,8 @@
+2014-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* update-game-score.c (write_scores): Condition fchmod call on
+	DOS_NT, not WINDOWSNT.
+
 2014-03-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (main): #ifdef out previous change on Windows.

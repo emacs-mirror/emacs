@@ -443,7 +443,7 @@ write_scores (const char *filename, const struct score_entry *scores,
   fd = mkostemp (tempfile, 0);
   if (fd < 0)
     return -1;
-#ifndef WINDOWSNT
+#ifndef DOS_NT
   if (fchmod (fd, 0644) != 0)
     return -1;
 #endif
@@ -459,7 +459,7 @@ write_scores (const char *filename, const struct score_entry *scores,
     return -1;
   if (rename (tempfile, filename) != 0)
     return -1;
-#ifdef WINDOWSNT
+#ifdef DOS_NT
   if (chmod (filename, 0644) < 0)
     return -1;
 #endif

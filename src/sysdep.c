@@ -1506,7 +1506,9 @@ emacs_sigaction_init (struct sigaction *action, signal_handler_t handler)
   /* When handling a signal, block nonfatal system signals that are caught
      by Emacs.  This makes race conditions less likely.  */
   sigaddset (&action->sa_mask, SIGALRM);
+#ifdef SIGCHLD
   sigaddset (&action->sa_mask, SIGCHLD);
+#endif
 #ifdef SIGDANGER
   sigaddset (&action->sa_mask, SIGDANGER);
 #endif
@@ -1711,7 +1713,9 @@ init_signals (bool dumping)
 # ifdef SIGBUS
       sys_siglist[SIGBUS] = "Bus error";
 # endif
+# ifdef SIGCHLD
       sys_siglist[SIGCHLD] = "Child status changed";
+# endif
 # ifdef SIGCONT
       sys_siglist[SIGCONT] = "Continued";
 # endif
@@ -2182,6 +2186,9 @@ emacs_fopen (char const *file, char const *mode)
 int
 emacs_pipe (int fd[2])
 {
+#ifdef MSDOS
+  return pipe (fd);
+#else  /* !MSDOS */
   int result = pipe2 (fd, O_CLOEXEC);
   if (! O_CLOEXEC && result == 0)
     {
@@ -2189,6 +2196,7 @@ emacs_pipe (int fd[2])
       fcntl (fd[1], F_SETFD, FD_CLOEXEC);
     }
   return result;
+#endif	/* !MSDOS */
 }
 
 /* Approximate posix_close and POSIX_CLOSE_RESTART well enough for Emacs.
