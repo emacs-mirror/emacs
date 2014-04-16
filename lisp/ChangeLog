@@ -1,3 +1,9 @@
+2014-04-16  Karl Fogel  <kfogel@red-bean.com>
+
+	* savehist.el (savehist-save): Remove workaround for a read-passwd
+	bug that was fixed before 24.3.  Thanks to Juanma Barranquero for
+	noticing that the shim was still present.
+
 2014-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el (doc-view-set-doc-type): Ignore file name case; add .pps.
@@ -125,6 +131,7 @@
 	* subr.el (with-silent-modifications): Don't bind deactivate-mark,
 	buffer-file-name, and buffer-file-truename any more.
 
+>>>>>>> MERGE-SOURCE
 2014-04-08  Leo Liu  <sdl.web@gmail.com>
 
 	Use lexical-binding and require cl-lib.
