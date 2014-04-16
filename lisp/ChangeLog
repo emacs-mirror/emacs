@@ -1,7 +1,12 @@
+2014-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-calculate-indent): Don't auto-indent in
+	here-documents (bug#17262).
+
 2014-04-16  Eli Zaretskii  <eliz@gnu.org>
 
-	* term/pc-win.el (x-list-fonts, x-get-selection-value): Provide
-	doc strings, as required by snarf-documentation.
+	* term/pc-win.el (x-list-fonts, x-get-selection-value):
+	Provide doc strings, as required by snarf-documentation.
 
 2014-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
