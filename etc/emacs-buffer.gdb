@@ -79,7 +79,7 @@ set $yfile_buffers_only = 0
 
 define ygetptr
   set $ptr = $arg0
-  set $ptr = ((CHECK_LISP_OBJECT_TYPE ? $ptr.i : $ptr) & VALMASK) | DATA_SEG_BITS
+  set $ptr = (CHECK_LISP_OBJECT_TYPE ? $ptr.i : $ptr) & VALMASK
 end
 
 define ybuffer-list

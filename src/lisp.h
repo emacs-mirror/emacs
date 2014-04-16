@@ -61,6 +61,23 @@ INLINE_HEADER_BEGIN
 /* Number of elements in an array.  */
 #define ARRAYELTS(arr) (sizeof (arr) / sizeof (arr)[0])
 
+/* Number of bits in a Lisp_Object tag.  */
+DEFINE_GDB_SYMBOL_BEGIN (int, GCTYPEBITS)
+#define GCTYPEBITS 3
+DEFINE_GDB_SYMBOL_END (GCTYPEBITS)
+
+/* The number of bits needed in an EMACS_INT over and above the number
+   of bits in a pointer.  This is 0 on systems where:
+   1.  We can specify multiple-of-8 alignment on static variables.
+   2.  We know malloc returns a multiple of 8.  */
+#if (defined alignas \
+     && (defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ \
+	 || defined DARWIN_OS || defined __sun))
+# define NONPOINTER_BITS 0
+#else
+# define NONPOINTER_BITS GCTYPEBITS
+#endif
+
 /* EMACS_INT - signed integer wide enough to hold an Emacs value
    EMACS_INT_MAX - maximum value of EMACS_INT; can be used in #if
    pI - printf length modifier for EMACS_INT
@@ -68,16 +85,18 @@ INLINE_HEADER_BEGIN
 #ifndef EMACS_INT_MAX
 # if INTPTR_MAX <= 0
 #  error "INTPTR_MAX misconfigured"
-# elif INTPTR_MAX <= INT_MAX && !defined WIDE_EMACS_INT
+# elif INTPTR_MAX <= INT_MAX >> NONPOINTER_BITS && !defined WIDE_EMACS_INT
 typedef int EMACS_INT;
 typedef unsigned int EMACS_UINT;
 #  define EMACS_INT_MAX INT_MAX
 #  define pI ""
-# elif INTPTR_MAX <= LONG_MAX && !defined WIDE_EMACS_INT
+# elif INTPTR_MAX <= LONG_MAX >> NONPOINTER_BITS && !defined WIDE_EMACS_INT
 typedef long int EMACS_INT;
 typedef unsigned long EMACS_UINT;
 #  define EMACS_INT_MAX LONG_MAX
 #  define pI "l"
+/* Check versus LLONG_MAX, not LLONG_MAX >> NONPOINTER_BITS.
+   In theory this is not safe, but in practice it seems to be OK.  */
 # elif INTPTR_MAX <= LLONG_MAX
 typedef long long int EMACS_INT;
 typedef unsigned long long int EMACS_UINT;
@@ -218,12 +237,6 @@ extern bool suppress_checking EXTERNALLY_VISIBLE;
 
 enum Lisp_Bits
   {
-    /* Number of bits in a Lisp_Object tag.  This can be used in #if,
-       and for GDB's sake also as a regular symbol.  */
-    GCTYPEBITS =
-#define GCTYPEBITS 3
-	GCTYPEBITS,
-
     /* 2**GCTYPEBITS.  This must be a macro that expands to a literal
        integer constant, for MSVC.  */
 #define GCALIGNMENT 8
@@ -247,31 +260,19 @@ enum Lisp_Bits
    This can be used in #if, e.g., '#if VAL_MAX < UINTPTR_MAX' below.  */
 #define VAL_MAX (EMACS_INT_MAX >> (GCTYPEBITS - 1))
 
-/* Unless otherwise specified, use USE_LSB_TAG on systems where:  */
-#ifndef USE_LSB_TAG
-/* 1.  We know malloc returns a multiple of 8.  */
-# if (defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ \
-      || defined DARWIN_OS || defined __sun)
-/* 2.  We can specify multiple-of-8 alignment on static variables.  */
-#  ifdef alignas
-/* 3.  Pointers-as-ints exceed VAL_MAX.
+/* Whether the least-significant bits of an EMACS_INT contain the tag.
    On hosts where pointers-as-ints do not exceed VAL_MAX, USE_LSB_TAG is:
     a. unnecessary, because the top bits of an EMACS_INT are unused, and
     b. slower, because it typically requires extra masking.
-   So, default USE_LSB_TAG to true only on hosts where it might be useful.  */
-#   if VAL_MAX < UINTPTR_MAX
-#    define USE_LSB_TAG true
-#   endif
-#  endif
-# endif
-#endif
-#ifdef USE_LSB_TAG
-# undef USE_LSB_TAG
-enum enum_USE_LSB_TAG { USE_LSB_TAG = true };
-# define USE_LSB_TAG true
-#else
-enum enum_USE_LSB_TAG { USE_LSB_TAG = false };
-# define USE_LSB_TAG false
+   So, USE_LSB_TAG is true only on hosts where it might be useful.  */
+DEFINE_GDB_SYMBOL_BEGIN (bool, USE_LSB_TAG)
+#define USE_LSB_TAG (EMACS_INT_MAX >> GCTYPEBITS < INTPTR_MAX)
+DEFINE_GDB_SYMBOL_END (USE_LSB_TAG)
+
+#if !USE_LSB_TAG && !defined WIDE_EMACS_INT
+# error "USE_LSB_TAG not supported on this platform; please report this." \
+	"Try 'configure --with-wide-int' to work around the problem."
+error !;
 #endif
 
 #ifndef alignas
@@ -346,8 +347,7 @@ enum enum_USE_LSB_TAG { USE_LSB_TAG = false };
 #define lisp_h_XCONS(a) \
    (eassert (CONSP (a)), (struct Lisp_Cons *) XUNTAG (a, Lisp_Cons))
 #define lisp_h_XHASH(a) XUINT (a)
-#define lisp_h_XPNTR(a) \
-   ((void *) (intptr_t) ((XLI (a) & VALMASK) | DATA_SEG_BITS))
+#define lisp_h_XPNTR(a) ((void *) (intptr_t) (XLI (a) & VALMASK))
 #define lisp_h_XSYMBOL(a) \
    (eassert (SYMBOLP (a)), (struct Lisp_Symbol *) XUNTAG (a, Lisp_Symbol))
 #ifndef GC_CHECK_CONS_LIST
@@ -608,18 +608,8 @@ enum pvec_type
   PVEC_FONT /* Should be last because it's used for range checking.  */
 };
 
-/* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
-   which were stored in a Lisp_Object.  */
-#ifndef DATA_SEG_BITS
-# define DATA_SEG_BITS 0
-#endif
-enum { gdb_DATA_SEG_BITS = DATA_SEG_BITS };
-#undef DATA_SEG_BITS
-
 enum More_Lisp_Bits
   {
-    DATA_SEG_BITS = gdb_DATA_SEG_BITS,
-
     /* For convenience, we also store the number of elements in these bits.
        Note that this size is not necessarily the memory-footprint size, but
        only the number of Lisp_Object fields (that need to be traced by GC).

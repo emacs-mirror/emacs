@@ -49,7 +49,7 @@ define xgetptr
   else
     set $bugfix = $arg0
   end
-  set $ptr = ($bugfix & VALMASK) | DATA_SEG_BITS
+  set $ptr = $bugfix & VALMASK
 end
 
 define xgetint
@@ -1093,8 +1093,8 @@ document xprintsym
 end
 
 define xcoding
-  set $tmp = (struct Lisp_Hash_Table *) ((Vcoding_system_hash_table & VALMASK) | DATA_SEG_BITS)
-  set $tmp = (struct Lisp_Vector *) (($tmp->key_and_value & VALMASK) | DATA_SEG_BITS)
+  set $tmp = (struct Lisp_Hash_Table *) (Vcoding_system_hash_table & VALMASK)
+  set $tmp = (struct Lisp_Vector *) ($tmp->key_and_value & VALMASK)
   set $name = $tmp->contents[$arg0 * 2]
   print $name
   pr
@@ -1106,8 +1106,8 @@ document xcoding
 end
 
 define xcharset
-  set $tmp = (struct Lisp_Hash_Table *) ((Vcharset_hash_table & VALMASK) | DATA_SEG_BITS)
-  set $tmp = (struct Lisp_Vector *) (($tmp->key_and_value & VALMASK) | DATA_SEG_BITS)
+  set $tmp = (struct Lisp_Hash_Table *) (Vcharset_hash_table & VALMASK)
+  set $tmp = (struct Lisp_Vector *) ($tmp->key_and_value & VALMASK)
   p $tmp->contents[charset_table[$arg0].hash_index * 2]
   pr
 end

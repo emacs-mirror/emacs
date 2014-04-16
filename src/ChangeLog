@@ -1,3 +1,23 @@
+2014-04-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove DATA_SEG_BITS.
+	The DATA_SEG_BITS hack was needed for older 32 bit platforms.
+	As a result of this change, Emacs won't work on IRIX 6.5 with IRIX
+	cc, but that platform is so old that SGI itself stopped supporting
+	it in December 2013.  If you still need Emacs on IRIX, please
+	either compile with GCC and port the undumping code, or run
+	'./configure --with-wide-int'.
+	* alloc.c (gdb_make_enums_visible): Update to match lisp.h.
+	* lisp.h (GCTYPEBITS): Move definition up, and switch to the
+	DEFINE_GDB_SYMBOL_START way to define it.
+	(NONPOINTER_BITS): New macro.
+	(EMACS_INT): Use it.
+	[!USE_LSB_TAG && !WIDE_EMACS_INT]: Fail, and suggest reporting
+	the problem and/or configuring --with-wide-int.
+	(USE_LSB_TAG): Simplify, based on above changes.
+	(gdb_DATA_SEG_BITS): Remove.  All uses removed.
+	* vm-limit.c (exceeds_lisp_ptr): Remove.  All uses removed.
+
 2014-04-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_by_lines): If a large portion of buffer text is

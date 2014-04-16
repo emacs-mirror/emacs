@@ -4252,28 +4252,6 @@ case $opsys in
 esac
 
 
-dnl Used in lisp.h, emacs.c, vm-limit.c
-dnl NEWS.18 describes this as "a number which contains
-dnl the high bits to be inclusive or'ed with pointers that are unpacked."
-AH_TEMPLATE(DATA_SEG_BITS, [Extra bits to be or'd in with any pointers
-stored in a Lisp_Object.])
-dnl if Emacs uses fewer than 32 bits for the value field of a LISP_OBJECT.
-
-case $opsys in
-  aix*)
-    dnl This works with 32-bit executables; Emacs doesn't support 64-bit.
-    AC_DEFINE(DATA_SEG_BITS, [0x20000000])
-    ;;
-  hpux*)
-    dnl The data segment on this machine always starts at address 0x40000000.
-    AC_DEFINE(DATA_SEG_BITS, [0x40000000])
-    ;;
-  irix6-5)
-    AC_DEFINE(DATA_SEG_BITS, [0x10000000])
-    ;;
-esac
-
-
 AH_TEMPLATE(TAB3, [Undocumented.])
 
 case $opsys in

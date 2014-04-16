@@ -1,3 +1,8 @@
+2014-04-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove DATA_SEG_BITS.
+	* configure.ac (DATA_SEG_BITS): Remove.  All uses removed.
+
 2014-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* autogen.sh: Use autoreconf's -f option (Bug#17258).
