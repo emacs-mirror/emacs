@@ -1037,7 +1037,19 @@ static void AMSBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
     AVER(limitIndex <= amsseg->firstFree);
     if (limitIndex == amsseg->firstFree) /* is it at the end? */ {
       amsseg->firstFree = initIndex;
-    } else if (!ams->shareAllocTable || !amsseg->colourTablesInUse) {
+    } else if (ams->shareAllocTable && amsseg->colourTablesInUse) {
+      /* The nonwhiteTable is shared with allocTable and in use, so we
+       * mustn't start using allocTable. In this case we know: 1. the
+       * segment has been condemned (because colour tables are turned
+       * on in AMSCondemn); 2. the segment has not yet been reclaimed
+       * (because colour tables are turned off in AMSReclaim); 3. the
+       * unused portion of the buffer is black (see AMSCondemn). So we
+       * need to whiten the unused portion of the buffer. The
+       * allocTable will be turned back on (if necessary) in
+       * AMSReclaim, when we know that the nonwhite grains are exactly
+       * the allocated grains.
+       */
+    } else {
       /* start using allocTable */
       amsseg->allocTableInUse = TRUE;
       BTSetRange(amsseg->allocTable, 0, amsseg->firstFree);
