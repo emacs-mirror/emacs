@@ -27,6 +27,13 @@ otherwise leave it unmarked.
 +++
 ** Building Emacs now requires GNU make.
 
+** By default, Emacs no longer works on IRIX.  We expect that Emacs
+users are not affected by this, as SGI stopped supporting IRIX in
+December 2013.  If you are affected, please send a bug report.  You
+should be able to work around the problem either by porting the Emacs
+undumping code to GCC under IRIX, or by configuring --with-wide-int,
+or by sticking with Emacs 24.4.
+
 
 * Startup Changes in Emacs 24.5
 
