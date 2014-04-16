@@ -4726,7 +4726,7 @@ w32_read_socket (struct terminal *terminal,
 			   here since Windows sends a WM_MOVE message
 			   BEFORE telling us the Window is minimized
 			   when the Window is iconified, with 3000,3000
-			   as the co-ords. */
+			   as the co-ords.  */
 			x_real_positions (f, &f->left_pos, &f->top_pos);
 
 			inev.kind = DEICONIFY_EVENT;

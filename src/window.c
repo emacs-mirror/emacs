@@ -55,6 +55,7 @@ static Lisp_Object Qwindow_pixel_to_total;
 static Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
 static Lisp_Object Qsafe, Qabove, Qbelow, Qwindow_size, Qclone_of;
 static Lisp_Object Qfloor, Qceiling;
+static Lisp_Object Qwindow_point_insertion_type;
 
 static int displayed_window_lines (struct window *);
 static int count_windows (struct window *);
@@ -124,7 +125,7 @@ static int window_initialized;
 /* Hook to run when window config changes.  */
 static Lisp_Object Qwindow_configuration_change_hook;
 
-/* Used by the function window_scroll_pixel_based */
+/* Used by the function window_scroll_pixel_based.  */
 static int window_scroll_pixel_based_preserve_x;
 static int window_scroll_pixel_based_preserve_y;
 
@@ -6618,7 +6619,8 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
 	  else
 	    p->pointm = Fcopy_marker (w->pointm, Qnil);
 	  XMARKER (p->pointm)->insertion_type
-	    = !NILP (Vwindow_point_insertion_type);
+	    = !NILP (buffer_local_value_1 /* Don't signal error if void.  */
+		     (Qwindow_point_insertion_type, w->contents));
 
 	  p->start = Fcopy_marker (w->start, Qnil);
 	  p->start_at_line_beg = w->start_at_line_beg ? Qt : Qnil;
@@ -7235,6 +7237,7 @@ on their symbols to be controlled by this variable.  */);
   DEFVAR_LISP ("window-point-insertion-type", Vwindow_point_insertion_type,
 	       doc: /* Type of marker to use for `window-point'.  */);
   Vwindow_point_insertion_type = Qnil;
+  DEFSYM (Qwindow_point_insertion_type, "window_point_insertion_type");
 
   DEFVAR_LISP ("window-configuration-change-hook",
 	       Vwindow_configuration_change_hook,

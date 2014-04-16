@@ -1,3 +1,10 @@
+2014-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (save_window_save): Lookup window_point_insertion_type in
+	the right buffer (bug#15457).
+	(Qwindow_point_insertion_type): New var.
+	(syms_of_window): Initialize it.
+
 2014-04-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* unexcoff.c [MSDOS]: Include libc/atexit.h.
@@ -26,8 +33,8 @@
 
 	* msdos.c (check_window_system): Remove unnecessary an
 	incompatible duplicate function.
-	(sys_opendir, readlinkat, faccessat, fstatat, unsetenv): New
-	functions in support of new functionality.
+	(sys_opendir, readlinkat, faccessat, fstatat, unsetenv):
+	New functions in support of new functionality.
 
 	* menu.c (single_menu_item): Add visual indication  of submenu
 	also for menus on MSDOS frames.
@@ -211,7 +218,7 @@
 	(adjust_after_replace):
 	(replace_range): Pass value for new record_markers arg to
 	delete_record.
-	* undo.c (record_marker_adjustment): Renamed to
+	* undo.c (record_marker_adjustment): Rename to
 	record_marker_adjustments and made static.
 	(record_delete): Check record_markers arg and call
 	record_marker_adjustments.
