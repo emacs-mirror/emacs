@@ -309,12 +309,17 @@ void SegSetSummary(Seg seg, RefSet summary)
   AVERT(Seg, seg);
   AVER(summary == RefSetEMPTY || SegRankSet(seg) != RankSetEMPTY);
 
-#ifdef DISABLE_REMEMBERED_SET
+#if defined(REMEMBERED_SET)
+/* Nothing to do. */
+#elif defined(REMEMBERED_SET_NONE)
   /* Without protection, we can't maintain the remembered set because
      there are writes we don't know about. TODO: rethink this when
      implementating control. */
   summary = RefSetUNIV;
-#endif
+#else
+#error "No remembered set configuration."
+#endif  /* REMEMBERED_SET */
+
   if (summary != SegSummary(seg))
     seg->class->setSummary(seg, summary);
 }

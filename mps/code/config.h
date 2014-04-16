@@ -147,7 +147,9 @@
  *     cc -O2 -c -DCONFIG_PLINTH_NONE mps.c
  */
 
-#if defined(CONFIG_PLINTH_NONE)
+#if !defined(CONFIG_PLINTH_NONE)
+#define PLINTH
+#else
 #define PLINTH_NONE
 #endif
 
@@ -172,7 +174,9 @@
  */
 
 #if defined(CONFIG_THREAD_SINGLE)
-#define DISABLE_LOCKS
+#define LOCK
+#else
+#define LOCK_NONE
 #endif
 
 
@@ -190,8 +194,11 @@
 #if !defined(CONFIG_THREAD_SINGLE)
 #error "CONFIG_POLL_NONE without CONFIG_THREAD_SINGLE"
 #endif
-#define DISABLE_REMEMBERED_SET
-#define DISABLE_SHIELD
+#define REMEMBERED_SET
+#define SHIELD
+#else
+#define REMEMBERED_SET_NONE
+#define SHIELD_NONE
 #endif
 
 
