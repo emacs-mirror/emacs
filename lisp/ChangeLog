@@ -1,5 +1,10 @@
 2014-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* nxml/nxml-mode.el (nxml-fontify-matcher): Make sure propertization
+	was done (bug#17264).
+	* nxml/xmltok.el (xmltok-scan-after-comment-open): Extend unclosed
+	comment to EOB.
+
 	* progmodes/perl-mode.el (perl-calculate-indent): Don't auto-indent in
 	here-documents (bug#17262).
 

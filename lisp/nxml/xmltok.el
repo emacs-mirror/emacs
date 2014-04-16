@@ -750,7 +750,8 @@ Return the type of the token."
                  ;; Need do this after the goto-char because
                  ;; marked error should just apply to <!--
                  (xmltok-add-error "First following `--' not followed by `>'")
-                 'not-well-formed)))))
+                 (goto-char (point-max))
+                 'comment)))))
 
 (defun xmltok-scan-attributes ()
   (let ((recovering nil)
