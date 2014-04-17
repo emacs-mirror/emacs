@@ -1,3 +1,9 @@
+2014-04-17  Daniel Colascione  <dancol@dancol.org>
+
+	* frames.texi (Terminal Parameters): Document new
+	tty-mode-set-strings and tty-mode-reset-strings terminal
+	parameters.
+
 2014-04-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (infoclean): Be consistent about reporting failures.

@@ -1334,6 +1334,18 @@ terminal.  @xref{DEL Does Not Delete,,, emacs, The Emacs Manual}.
 @item terminal-initted
 After the terminal is initialized, this is set to the
 terminal-specific initialization function.
+@item tty-mode-set-strings
+When present, a list of strings containing escape sequences that Emacs
+will output while configuring a tty for rendering.  Emacs emits these
+strings only when configuring a terminal: if you want to enable a mode
+on a terminal that is already active (for example, while in
+@code{tty-setup-hook}), explicitly output the necessary escape
+sequence using @code{send-string-to-terminal} in addition to adding
+the sequence to @code{tty-mode-set-strings}.
+@item tty-mode-reset-strings
+When present, a list of strings that undo the effects of the strings
+in @code{tty-mode-set-strings}.  Emacs emits these strings when
+exiting, deleting a terminal, or suspending itself.
 @end table
 
 @node Frame Titles

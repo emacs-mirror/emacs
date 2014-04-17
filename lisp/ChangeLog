@@ -1,3 +1,35 @@
+2014-04-17  Daniel Colascione  <dancol@dancol.org>
+
+	Add support for bracketed paste mode; add infrastructure for
+	managing terminal mode enabling and disabling automatically.
+
+	* xt-mouse.el:
+	(xterm-mouse-mode): Simplify.
+	(xterm-mouse-tracking-enable-sequence)
+	(xterm-mouse-tracking-disable-sequence): New constants.
+	(turn-on-xterm-mouse-tracking-on-terminal)
+	(turn-off-xterm-mouse-tracking-on-terminal): Use
+	tty-mode-set-strings and tty-mode-reset-strings terminal
+	parameters instead of random hooks.
+	(turn-on-xterm-mouse-tracking)
+	(turn-off-xterm-mouse-tracking): Delete.
+
+	* term/xterm.el (xterm-extra-capabilities): Fix bitrotted comment.
+	(xterm-paste-ending-sequence): New constant.
+	(xterm-paste): New command used for bracketed paste support.
+
+	(xterm-modify-other-keys-terminal-list): Delete obsolete variable.
+	(terminal-init-xterm-bracketed-paste-mode): New function.
+	(terminal-init-xterm): Call it.
+	(terminal-init-xterm-modify-other-keys): Use tty-mode-set-strings
+	and tty-mode-reset-strings instead of random hooks.
+	(xterm-turn-on-modify-other-keys)
+	(xterm-turn-off-modify-other-keys)
+	(xterm-remove-modify-other-keys): Delete obsolete functions.
+
+	* term/screen.el: Rewrite to just use the xterm code.  Add
+	copyright notice.  Mention tmux.
+
 2014-04-17  Ian D  <dunni@gnu.org>  (tiny change)
 
 	* image-mode.el (image-mode-window-put): Also update the property of

@@ -263,36 +263,27 @@ single clicks are supported.  When turned on, the normal xterm
 mouse functionality for such clicks is still available by holding
 down the SHIFT key while pressing the mouse button."
   :global t :group 'mouse
-  (let ((do-hook (if xterm-mouse-mode 'add-hook 'remove-hook)))
-    (funcall do-hook 'terminal-init-xterm-hook
-             'turn-on-xterm-mouse-tracking-on-terminal)
-    (funcall do-hook 'delete-terminal-functions
-             'turn-off-xterm-mouse-tracking-on-terminal)
-    (funcall do-hook 'suspend-tty-functions
-             'turn-off-xterm-mouse-tracking-on-terminal)
-    (funcall do-hook 'resume-tty-functions
-             'turn-on-xterm-mouse-tracking-on-terminal)
-    (funcall do-hook 'suspend-hook 'turn-off-xterm-mouse-tracking)
-    (funcall do-hook 'suspend-resume-hook 'turn-on-xterm-mouse-tracking)
-    (funcall do-hook 'kill-emacs-hook 'turn-off-xterm-mouse-tracking))
+  (funcall (if xterm-mouse-mode 'add-hook 'remove-hook)
+           'terminal-init-xterm-hook
+           'turn-on-xterm-mouse-tracking-on-terminal)
   (if xterm-mouse-mode
       ;; Turn it on
       (progn
 	(setq mouse-position-function #'xterm-mouse-position-function)
-	(turn-on-xterm-mouse-tracking))
+        (mapc #'turn-on-xterm-mouse-tracking-on-terminal (terminal-list)))
     ;; Turn it off
-    (turn-off-xterm-mouse-tracking 'force)
+    (mapc #'turn-off-xterm-mouse-tracking-on-terminal (terminal-list))
     (setq mouse-position-function nil)))
 
-(defun turn-on-xterm-mouse-tracking ()
-  "Enable Emacs mouse tracking in xterm."
-  (dolist (terminal (terminal-list))
-    (turn-on-xterm-mouse-tracking-on-terminal terminal)))
+(defconst xterm-mouse-tracking-enable-sequence
+  "\e[?1000h\e[?1006h"
+  "Control sequence to enable xterm mouse tracking.
+Enables basic tracking, then extended tracking on
+terminals that support it.")
 
-(defun turn-off-xterm-mouse-tracking (&optional _force)
-  "Disable Emacs mouse tracking in xterm."
-  (dolist (terminal (terminal-list))
-    (turn-off-xterm-mouse-tracking-on-terminal terminal)))
+(defconst xterm-mouse-tracking-disable-sequence
+  "\e[?1006l\e[?1000l"
+  "Reset the modes set by `xterm-mouse-tracking-enable-sequence'.")
 
 (defun turn-on-xterm-mouse-tracking-on-terminal (&optional terminal)
   "Enable xterm mouse tracking on TERMINAL."
@@ -302,30 +293,36 @@ down the SHIFT key while pressing the mouse button."
 	     (not (string= (terminal-name terminal) "initial_terminal")))
     (unless (terminal-parameter terminal 'xterm-mouse-mode)
       ;; Simulate selecting a terminal by selecting one of its frames
+      ;; so that we can set the terminal-local `input-decode-map'.
       (with-selected-frame (car (frames-on-display-list terminal))
         (define-key input-decode-map "\e[M" 'xterm-mouse-translate)
         (define-key input-decode-map "\e[<" 'xterm-mouse-translate-extended))
-      (set-terminal-parameter terminal 'xterm-mouse-mode t))
-    (send-string-to-terminal "\e[?1000h" terminal)
-    ;; Request extended mouse support, if available (xterm >= 277).
-    (send-string-to-terminal "\e[?1006h" terminal)))
+      (send-string-to-terminal xterm-mouse-tracking-enable-sequence terminal)
+      (push xterm-mouse-tracking-enable-sequence
+            (terminal-parameter nil 'tty-mode-set-strings))
+      (push xterm-mouse-tracking-disable-sequence
+            (terminal-parameter nil 'tty-mode-reset-strings))
+      (set-terminal-parameter terminal 'xterm-mouse-mode t))))
 
 (defun turn-off-xterm-mouse-tracking-on-terminal (terminal)
   "Disable xterm mouse tracking on TERMINAL."
   ;; Only send the disable command to those terminals to which we've already
   ;; sent the enable command.
   (when (and (terminal-parameter terminal 'xterm-mouse-mode)
-             (eq t (terminal-live-p terminal))
-	     ;; Avoid the initial terminal which is not a termcap device.
-	     ;; FIXME: is there more elegant way to detect the initial terminal?
-	     (not (string= (terminal-name terminal) "initial_terminal")))
+             (eq t (terminal-live-p terminal)))
     ;; We could remove the key-binding and unset the `xterm-mouse-mode'
     ;; terminal parameter, but it seems less harmful to send this escape
     ;; command too many times (or to catch an unintended key sequence), than
     ;; to send it too few times (or to fail to let xterm-mouse events
     ;; pass by untranslated).
-    (send-string-to-terminal "\e[?1000l" terminal)
-    (send-string-to-terminal "\e[?1006l" terminal)))
+    (send-string-to-terminal xterm-mouse-tracking-disable-sequence terminal)
+    (setf (terminal-parameter nil 'tty-mode-set-strings)
+          (remq xterm-mouse-tracking-enable-sequence
+                (terminal-parameter nil 'tty-mode-set-strings)))
+    (setf (terminal-parameter nil 'tty-mode-reset-strings)
+          (remq xterm-mouse-tracking-disable-sequence
+                (terminal-parameter nil 'tty-mode-reset-strings)))
+    (set-terminal-parameter terminal 'xterm-mouse-mode nil)))
 
 (provide 'xt-mouse)
 

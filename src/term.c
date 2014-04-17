@@ -131,6 +131,9 @@ enum no_color_bit
 
 static int max_frame_cols;
 
+static Lisp_Object Qtty_mode_set_strings;
+static Lisp_Object Qtty_mode_reset_strings;
+
 
 
 #ifdef HAVE_GPM
@@ -162,6 +165,29 @@ tty_ring_bell (struct frame *f)
 /* Set up termcap modes for Emacs. */
 
 static void
+tty_send_additional_strings (struct terminal* terminal, Lisp_Object sym)
+{
+  Lisp_Object lisp_terminal;
+  Lisp_Object extra_codes;
+  struct tty_display_info *tty = terminal->display_info.tty;
+
+  XSETTERMINAL (lisp_terminal, terminal);
+  for (extra_codes = Fterminal_parameter (lisp_terminal, sym);
+       CONSP (extra_codes);
+       extra_codes = XCDR (extra_codes))
+    {
+      Lisp_Object string = XCAR (extra_codes);
+      if (STRINGP (string))
+        {
+          fwrite (SDATA (string), 1, SBYTES (string), tty->output);
+          fflush (tty->output);
+          if (tty->termscript)
+            fwrite (SDATA (string), 1, SBYTES (string), tty->termscript);
+        }
+    }
+}
+
+static void
 tty_set_terminal_modes (struct terminal *terminal)
 {
   struct tty_display_info *tty = terminal->display_info.tty;
@@ -184,6 +210,7 @@ tty_set_terminal_modes (struct terminal *terminal)
       OUTPUT_IF (tty, tty->TS_keypad_mode);
       losecursor (tty);
       fflush (tty->output);
+      tty_send_additional_strings (terminal, Qtty_mode_set_strings);
     }
 }
 
@@ -196,6 +223,7 @@ tty_reset_terminal_modes (struct terminal *terminal)
 
   if (tty->output)
     {
+      tty_send_additional_strings (terminal, Qtty_mode_reset_strings);
       tty_turn_off_highlight (tty);
       tty_turn_off_insert (tty);
       OUTPUT_IF (tty, tty->TS_end_keypad_mode);
@@ -4561,6 +4589,9 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
 
   encode_terminal_src = NULL;
   encode_terminal_dst = NULL;
+
+  DEFSYM (Qtty_mode_set_strings, "tty-mode-set-strings");
+  DEFSYM (Qtty_mode_reset_strings, "tty-mode-reset-strings");
 
 #ifndef MSDOS
   DEFSYM (Qtty_menu_next_item, "tty-menu-next-item");

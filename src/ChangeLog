@@ -1,3 +1,12 @@
+2014-04-17  Daniel Colascione  <dancol@dancol.org>
+
+	* term.c (Qtty_mode_set_strings, Qtty_mode_reset_strings): New
+	symbols.
+	(tty_send_additional_strings): New function.
+	(tty_set_terminal_modes, tty_reset_terminal_modes): Use it.
+	(syms_of_term): Intern tty-mode-set-strings and
+	tty-mode-reset-strings.
+
 2014-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (save_window_save): Lookup window_point_insertion_type in

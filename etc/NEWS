@@ -56,6 +56,13 @@ for use in Emacs bug reports.
 
 * Editing Changes in Emacs 24.5
 
+Emacs now supports "bracketed paste mode" when running on a terminal
+that supports it.  This facility allows Emacs to understand pasted
+chunks of text as strings to be inserted instead of interpreting each
+character in the pasted text as actual user input, resulting in a
+paste experience similar to that under a window system and significant
+performance improvements when pasting large amounts of text.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.5
 

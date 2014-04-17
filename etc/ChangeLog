@@ -1,3 +1,7 @@
+2014-04-17  Daniel Colascione  <dancol@dancol.org>
+
+	* NEWS: Mention bracketed paste support.
+
 2014-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* refcards/cs-dired-ref.tex, refcards/cs-refcard.tex:
