@@ -397,6 +397,7 @@ extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
 
 extern void TraceQuantum(Trace trace);
 extern Res TraceStartCollectAll(Trace *traceReturn, Arena arena, int why);
+extern Res TraceDescribe(Trace trace, mps_lib_FILE *stream);
 
 /* traceanc.c -- Trace Ancillary */
 
