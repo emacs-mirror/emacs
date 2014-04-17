@@ -699,33 +699,6 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
                NULL);
   if(res != ResOK) return res;              
 
-  res = WriteF(stream, "Spans {\n", NULL);
-  if(res != ResOK) return res;
-
-  spans = &mv->spans;
-  RING_FOR(node, spans, nextNode) {
-    span = RING_ELT(MVSpan, spans, node);
-    AVERT(MVSpan, span);
-
-    res = WriteF(stream,
-                 "span $P ",   (WriteFP)span,
-                 "tract $P ",  (WriteFP)span->tract,
-                 "space $W ",  (WriteFW)span->space,
-                 "blocks $U ", (WriteFU)span->blockCount,
-                 "largest ",
-                 NULL);
-    if(res != ResOK) return res;
-
-    if (span->largestKnown) /* .design.largest */
-      res = WriteF(stream, "$W\n", (WriteFW)span->largest, NULL);
-    else
-      res = WriteF(stream, "unknown\n", NULL);
-    if(res != ResOK) return res;
-  }
-
-  res = WriteF(stream, "}\nSpan allocation maps {\n", NULL);
-  if(res != ResOK) return res;
-
   step = pool->alignment;
   length = 0x40 * step;
 
@@ -735,6 +708,21 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
     MVBlock block;
     span = RING_ELT(MVSpan, spans, node);
     res = WriteF(stream, "MVSpan $P {\n", (WriteFP)span, NULL);
+    if(res != ResOK) return res;
+
+    res = WriteF(stream,
+                 "span    $P\n", (WriteFP)span,
+                 "tract   $P\n", (WriteFP)span->tract,
+                 "space   $W\n", (WriteFW)span->space,
+                 "blocks  $U\n", (WriteFU)span->blockCount,
+                 "largest ",
+                 NULL);
+    if(res != ResOK) return res;
+
+    if (span->largestKnown) /* .design.largest */
+      res = WriteF(stream, "$W\n", (WriteFW)span->largest, NULL);
+    else
+      res = WriteF(stream, "unknown\n", NULL);
     if(res != ResOK) return res;
 
     block = span->blocks;
@@ -774,8 +762,6 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
     if(res != ResOK) return res;
   }
 
-  res = WriteF(stream, "}\n", NULL);
-  if(res != ResOK) return res;
   return ResOK;
 }
 
