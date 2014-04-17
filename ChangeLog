@@ -1,5 +1,11 @@
 2014-04-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* GNUmakefile: Speed up 'make bootstrap' in fresh checkout.
+	(ORDINARY_GOALS): New macro, which excludes 'bootstrap'.
+	(bootstrap, .PHONY): New rules.
+	* INSTALL.REPO: Document current procedure better.
+	Move copyright notice to just before license notice.
+
 	* Makefile.in (FRC, force-info): Remove.
 	All uses removed.  This hack is no longer needed here
 	now that we can assume GNU Make's .PHONY feature works.
