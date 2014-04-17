@@ -1,3 +1,9 @@
+2014-04-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (FRC): Remove.
+	All uses removed.  This hack is no longer needed here
+	now that we can assume GNU Make's .PHONY feature works.
+
 2014-04-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Update for Emacs 24.4.

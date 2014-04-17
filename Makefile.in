@@ -290,7 +290,7 @@ COPYDESTS = "$(DESTDIR)${etcdir}" "$(DESTDIR)${lispdir}"
 
 all: ${SUBDIR} info
 
-.PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32 FRC
+.PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32
 
 removenullpaths=sed -e 's/^:*//' -e 's/:*$$//g' -e 's/::*/:/g'
 
@@ -298,7 +298,7 @@ removenullpaths=sed -e 's/^:*//' -e 's/:*$$//g' -e 's/::*/:/g'
 # See comments in configure.ac for why it is done this way, as opposed
 # to just letting configure generate epaths.h from epaths.in in a
 # similar way to how Makefile is made from Makefile.in.
-epaths-force: FRC
+epaths-force:
 	@(standardlisppath=`echo "${standardlisppath}" | ${removenullpaths}` ; \
 	  locallisppath=`echo "${locallisppath}" | ${removenullpaths}` ; \
 	  buildlisppath=`echo "${buildlisppath}" | ${removenullpaths}` ; \
@@ -335,7 +335,7 @@ msys_sed_sh_escape=sed -e 's/[];$$*.^[]/\\\\&/g'
 # MS-Windows format (e.g. 'c:/foo/bar'), because temacs is a MinGW
 # program that doesn't support MSYS-style paths (e.g. '/c/foo/bar' or
 # '/foo/bar').
-epaths-force-w32: FRC
+epaths-force-w32:
 	@(w32srcdir=`${srcdir}/build-aux/msys-to-w32 "${srcdir}"`; \
 	  w32prefix=`${srcdir}/build-aux/msys-to-w32 "${prefix}" N`; \
 	  w32prefixpattern=`echo "$${w32prefix}" | ${msys_sed_sh_escape}` ; \
@@ -359,7 +359,7 @@ src: lib-src
 lisp: src
 
 # These targets should be "${SUBDIR} without `src'".
-lib lib-src lisp nt: Makefile FRC
+lib lib-src lisp nt: Makefile
 	cd $@ && $(MAKE) all $(MFLAGS)                         \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}'
@@ -378,7 +378,7 @@ lib lib-src lisp nt: Makefile FRC
 # This passes an unexpanded $srcdir to src's Makefile, which then
 # expands it using its own value of srcdir (which points to the
 # source directory of src/).
-src: Makefile FRC
+src: Makefile
 	dirstate='.bzr/checkout/dirstate';				\
 	vcswitness='$$(srcdir)/../'$$dirstate;				\
 	[ -r "$(srcdir)/$$dirstate" ] || vcswitness='';			\
@@ -390,7 +390,7 @@ src: Makefile FRC
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS="$$boot"	\
 	  VCSWITNESS="$$vcswitness"
 
-blessmail: Makefile src FRC
+blessmail: Makefile src
 	cd lib-src && $(MAKE) maybe-blessmail $(MFLAGS) \
 	  MAKE='${MAKE}' archlibdir='$(archlibdir)'
 
@@ -791,8 +791,6 @@ uninstall-nt:
 	    bindir="${bindir}" libexecdir="${libexecdir}" \
 	    archlibdir="${archlibdir}"
 
-FRC:
-
 # ==================== Cleaning up and miscellanea ====================
 
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean extraclean
@@ -802,7 +800,7 @@ FRC:
 ###      normally don't want to recompile.  For example, the `mostlyclean'
 ###      target for GCC does not delete `libgcc.a', because recompiling it
 ###      is rarely necessary and takes a lot of time.
-mostlyclean: FRC
+mostlyclean:
 	cd src      && $(MAKE) $(MFLAGS) mostlyclean
 	cd oldXMenu && $(MAKE) $(MFLAGS) mostlyclean
 	cd lwlib    && $(MAKE) $(MFLAGS) mostlyclean
@@ -822,7 +820,7 @@ mostlyclean: FRC
 ###      with them.
 ###
 ###      Delete `.dvi' files here if they are not part of the distribution.
-clean: FRC
+clean:
 	-rm -f etc/emacs.tmpdesktop
 	cd src      && $(MAKE) $(MFLAGS) clean
 	cd oldXMenu && $(MAKE) $(MFLAGS) clean
@@ -849,7 +847,7 @@ top_bootclean=\
 top_distclean=\
 	${top_bootclean}; \
 	rm -f config.status config.log~ Makefile stamp-h1 ${SUBDIR_MAKEFILES}
-distclean: FRC
+distclean:
 	cd src      && $(MAKE) $(MFLAGS) distclean
 	cd oldXMenu && $(MAKE) $(MFLAGS) distclean
 	cd lwlib    && $(MAKE) $(MFLAGS) distclean
@@ -871,7 +869,7 @@ distclean: FRC
 ### `bootstrap-clean'
 ###      Delete everything that can be reconstructed by `make' and that
 ###      needs to be deleted in order to force a bootstrap from a clean state.
-bootstrap-clean: FRC
+bootstrap-clean:
 	cd src      && $(MAKE) $(MFLAGS) bootstrap-clean
 	cd oldXMenu && $(MAKE) $(MFLAGS) maintainer-clean
 	cd lwlib    && $(MAKE) $(MFLAGS) maintainer-clean
@@ -906,7 +904,7 @@ bootstrap-clean: FRC
 top_maintainer_clean=\
 	${top_distclean}; \
 	rm -fr autom4te.cache
-maintainer-clean: bootstrap-clean FRC
+maintainer-clean: bootstrap-clean
 	cd src  && $(MAKE) $(MFLAGS) maintainer-clean
 	cd leim && $(MAKE) $(MFLAGS) maintainer-clean
 	cd lisp && $(MAKE) $(MFLAGS) maintainer-clean
@@ -1088,7 +1086,7 @@ check-info: info
 #  * Run autogen.sh.
 #  * Rebuild Makefile, to update the build procedure itself.
 #  * Do the actual build.
-bootstrap: bootstrap-clean FRC
+bootstrap: bootstrap-clean
 	cd $(srcdir) && ./autogen.sh
 	$(MAKE) $(MFLAGS) MAKEFILE_NAME=force-Makefile force-Makefile
 	$(MAKE) $(MFLAGS) info all
