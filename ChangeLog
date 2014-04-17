@@ -1,8 +1,9 @@
 2014-04-17  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* Makefile.in (FRC): Remove.
+	* Makefile.in (FRC, force-info): Remove.
 	All uses removed.  This hack is no longer needed here
 	now that we can assume GNU Make's .PHONY feature works.
+	(bootstrap): No need to make 'info', since 'all' now implies 'info'.
 
 2014-04-16  Eli Zaretskii  <eliz@gnu.org>
 

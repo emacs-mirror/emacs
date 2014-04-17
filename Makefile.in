@@ -951,7 +951,7 @@ $(DOCS):
 	t=$@; IFS=-; set $$t; IFS=; cd doc/$$1 && $(MAKE) $(MFLAGS) $$2
 
 .PHONY: $(DOCS) docs pdf ps
-.PHONY: info dvi dist check html info-real info-dir force-info check-info
+.PHONY: info dvi dist check html info-real info-dir check-info
 
 ## TODO add etc/refcards.
 docs: $(DOCS)
@@ -1032,7 +1032,6 @@ uninstall-pdf: $(UNINSTALL_PDF)
 uninstall-ps: $(UNINSTALL_PS)
 
 
-force-info:
 # Note that man/Makefile knows how to put the info files in $(srcdir),
 # so we can do ok running make in the build dir.
 # This used to have a clause that exited with an error if MAKEINFO = no.
@@ -1044,7 +1043,7 @@ force-info:
 # would require changing every rule in doc/ that builds an info file,
 # and it's not worth it.  This case is only relevant if you download a
 # release, then change the .texi files.
-info: force-info
+info:
 	@if test "$(HAVE_MAKEINFO)" = "no"; then \
 	  echo "Configured --without-makeinfo, not building manuals" ; \
 	else \
@@ -1089,7 +1088,7 @@ check-info: info
 bootstrap: bootstrap-clean
 	cd $(srcdir) && ./autogen.sh
 	$(MAKE) $(MFLAGS) MAKEFILE_NAME=force-Makefile force-Makefile
-	$(MAKE) $(MFLAGS) info all
+	$(MAKE) $(MFLAGS) all
 
 .PHONY: check-declare
 
