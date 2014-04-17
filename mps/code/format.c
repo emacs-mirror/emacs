@@ -199,14 +199,14 @@ Res FormatDescribe(Format format, mps_lib_FILE *stream)
  
   res = WriteF(stream,
                "Format $P ($U) {\n", (WriteFP)format, (WriteFU)format->serial,
-               "  arena $P ($U)\n",
+               "arena     $P ($U)\n",
                (WriteFP)format->arena, (WriteFU)format->arena->serial,
-               "  alignment $W\n", (WriteFW)format->alignment,
-               "  scan $F\n", (WriteFF)format->scan,
-               "  skip $F\n", (WriteFF)format->skip,
-               "  move $F\n", (WriteFF)format->move,
-               "  isMoved $F\n", (WriteFF)format->isMoved,
-               "  pad $F\n", (WriteFF)format->pad,
+               "alignment $W\n", (WriteFW)format->alignment,
+               "scan      $F\n", (WriteFF)format->scan,
+               "skip      $F\n", (WriteFF)format->skip,
+               "move      $F\n", (WriteFF)format->move,
+               "isMoved   $F\n", (WriteFF)format->isMoved,
+               "pad       $F\n", (WriteFF)format->pad,
                "} Format $P ($U)\n", (WriteFP)format, (WriteFU)format->serial,
                NULL);
   if (res != ResOK) return res;

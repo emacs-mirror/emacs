@@ -688,18 +688,18 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
   if(stream == NULL) return ResFAIL;
 
   res = WriteF(stream,
-               "  blockPool $P ($U)\n",
+               "blockPool $P ($U)\n",
                (WriteFP)mvBlockPool(mv), (WriteFU)mvBlockPool(mv)->serial,
-               "  spanPool  $P ($U)\n",
+               "spanPool  $P ($U)\n",
                (WriteFP)mvSpanPool(mv), (WriteFU)mvSpanPool(mv)->serial,
-               "  extendBy  $W\n",  (WriteFW)mv->extendBy,
-               "  avgSize   $W\n",  (WriteFW)mv->avgSize,
-               "  maxSize   $W\n",  (WriteFW)mv->maxSize,
-               "  space     $P\n",  (WriteFP)mv->space,
+               "extendBy  $W\n",  (WriteFW)mv->extendBy,
+               "avgSize   $W\n",  (WriteFW)mv->avgSize,
+               "maxSize   $W\n",  (WriteFW)mv->maxSize,
+               "space     $P\n",  (WriteFP)mv->space,
                NULL);
   if(res != ResOK) return res;              
 
-  res = WriteF(stream, "  Spans\n", NULL);
+  res = WriteF(stream, "Spans {\n", NULL);
   if(res != ResOK) return res;
 
   spans = &mv->spans;
@@ -708,11 +708,11 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
     AVERT(MVSpan, span);
 
     res = WriteF(stream,
-                 "    span $P",   (WriteFP)span,
-                 "  tract $P",    (WriteFP)span->tract,
-                 "  space $W",    (WriteFW)span->space,
-                 "  blocks $U",   (WriteFU)span->blockCount,
-                 "  largest ",
+                 "span $P ",   (WriteFP)span,
+                 "tract $P ",  (WriteFP)span->tract,
+                 "space $W ",  (WriteFW)span->space,
+                 "blocks $U ", (WriteFU)span->blockCount,
+                 "largest ",
                  NULL);
     if(res != ResOK) return res;
 
@@ -720,11 +720,10 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
       res = WriteF(stream, "$W\n", (WriteFW)span->largest, NULL);
     else
       res = WriteF(stream, "unknown\n", NULL);
-   
     if(res != ResOK) return res;
   }
 
-  res = WriteF(stream, "  Span allocation maps\n", NULL);
+  res = WriteF(stream, "}\nSpan allocation maps {\n", NULL);
   if(res != ResOK) return res;
 
   step = pool->alignment;
@@ -735,13 +734,13 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
     Addr i, j;
     MVBlock block;
     span = RING_ELT(MVSpan, spans, node);
-    res = WriteF(stream, "    MVSpan $P\n", (WriteFP)span, NULL);
+    res = WriteF(stream, "MVSpan $P {\n", (WriteFP)span, NULL);
     if(res != ResOK) return res;
 
     block = span->blocks;
 
     for(i = span->base.base; i < span->limit.limit; i = AddrAdd(i, length)) {
-      res = WriteF(stream, "    $A ", i, NULL);
+      res = WriteF(stream, "$A ", i, NULL);
       if(res != ResOK) return res;
 
       for(j = i;
@@ -770,8 +769,13 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
       res = WriteF(stream, "\n", NULL);
       if(res != ResOK) return res;
     }
+
+    res = WriteF(stream, "} MVSpan $P\n", (WriteFP)span, NULL);
+    if(res != ResOK) return res;
   }
 
+  res = WriteF(stream, "}\n", NULL);
+  if(res != ResOK) return res;
   return ResOK;
 }
 

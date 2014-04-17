@@ -205,12 +205,12 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
   */
 
   res = WriteF(stream,
-               "  spareSize:     $U\n", (WriteFU)vmArena->spareSize,
+               "spareSize $U\n", (WriteFU)vmArena->spareSize,
+               "extendBy $U\n", (WriteFU)vmArena->extendBy,
+               "extendMin $U\n", (WriteFU)vmArena->extendMin,
                NULL);
   if(res != ResOK)
     return res;
-
-  /* (incomplete: some fields are not Described) */
 
   return ResOK;
 }

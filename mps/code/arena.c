@@ -47,8 +47,7 @@ static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
    * subclass describe method should avoid invoking 
    * ARENA_SUPERCLASS()->describe.  RHSK 2007-04-27.
    */
-  return WriteF(stream,
-    "  No class-specific description available.\n", NULL);
+  return WriteF(stream, "No class-specific description available.\n", NULL);
 }
 
 
@@ -437,14 +436,14 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
   if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream, "Arena $P {\n", (WriteFP)arena,
-               "  class $P (\"$S\")\n",
+               "class $P (\"$S\")\n",
                (WriteFP)arena->class, arena->class->name,
                NULL);
   if (res != ResOK) return res;
 
   if (arena->poolReady) {
     res = WriteF(stream,
-                 "  controlPool $P\n", (WriteFP)&arena->controlPoolStruct,
+                 "controlPool $P\n", (WriteFP)&arena->controlPoolStruct,
                  NULL);
     if (res != ResOK) return res;
   }
@@ -452,26 +451,26 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
   /* Note: this Describe clause calls a function */
   reserved = ArenaReserved(arena);
   res = WriteF(stream,
-               "  reserved         $W  <-- "
+               "reserved         $W  <-- "
                "total size of address-space reserved\n",
                (WriteFW)reserved,
                NULL);
   if (res != ResOK) return res;
 
   res = WriteF(stream,
-               "  committed        $W  <-- "
+               "committed        $W  <-- "
                "total bytes currently stored (in RAM or swap)\n",
                (WriteFW)arena->committed,
-               "  commitLimit      $W\n", (WriteFW)arena->commitLimit,
-               "  spareCommitted   $W\n", (WriteFW)arena->spareCommitted,
-               "  spareCommitLimit $W\n", (WriteFW)arena->spareCommitLimit,
-               "  zoneShift $U\n", (WriteFU)arena->zoneShift,
-               "  alignment $W\n", (WriteFW)arena->alignment,
+               "commitLimit      $W\n", (WriteFW)arena->commitLimit,
+               "spareCommitted   $W\n", (WriteFW)arena->spareCommitted,
+               "spareCommitLimit $W\n", (WriteFW)arena->spareCommitLimit,
+               "zoneShift $U\n", (WriteFU)arena->zoneShift,
+               "alignment $W\n", (WriteFW)arena->alignment,
                NULL);
   if (res != ResOK) return res;
 
   res = WriteF(stream,
-               "  droppedMessages $U$S\n", (WriteFU)arena->droppedMessages,
+               "droppedMessages $U$S\n", (WriteFU)arena->droppedMessages,
                (arena->droppedMessages == 0 ? "" : "  -- MESSAGES DROPPED!"),
                NULL);
   if (res != ResOK) return res;
@@ -479,13 +478,8 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
   res = (*arena->class->describe)(arena, stream);
   if (res != ResOK) return res;
 
-  /* Do not call GlobalsDescribe: it makes too much output, thanks.
-   * RHSK 2007-04-27
-   */
-#if 0
   res = GlobalsDescribe(ArenaGlobals(arena), stream);
   if (res != ResOK) return res;
-#endif
 
   res = WriteF(stream,
                "} Arena $P ($U)\n", (WriteFP)arena,
