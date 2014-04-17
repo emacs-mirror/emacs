@@ -1,3 +1,9 @@
+2014-04-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* notes/bzr: Update instructions for merging from gnulib.
+	Remove obsolete note about tramp.el and tramp-sh.el.
+	Change "emacs-23" to "emacs-24".
+
 2014-03-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix oversight preventing lib/sys/types.h from being generated.

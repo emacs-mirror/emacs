@@ -3,9 +3,9 @@ NOTES ON COMMITTING TO EMACS'S BAZAAR REPO    -*- outline -*-
 * Install changes only on one branch, let them get merged elsewhere if needed.
 In particular, install bug-fixes only on the release branch (if there
 is one) and let them get synced to the trunk; do not install them by
-hand on the trunk as well.  E.g. if there is an active "emacs-23" branch
-and you have a bug-fix appropriate for the next Emacs-23.x release,
-install it only on the emacs-23 branch, not on the trunk as well.
+hand on the trunk as well.  E.g. if there is an active "emacs-24" branch
+and you have a bug-fix appropriate for the next emacs-24.x release,
+install it only on the emacs-24 branch, not on the trunk as well.
 
 Installing things manually into more than one branch makes merges more
 difficult.
@@ -18,7 +18,7 @@ In that case, it's helpful if you can apply the change to both trunk
 and branch yourself (when committing the branch change, indicate
 in the commit log that it should not be merged to the trunk; see below).
 
-* Backporting a bug-fix from the trunk to a branch (e.g. "emacs-23").
+* Backporting a bug-fix from the trunk to a branch (e.g. "emacs-24").
 Indicate in the commit log that there is no need to merge the commit
 to the trunk.  Anything that matches `bzrmerge-skip-regexp' will do;
 eg start the commit message with "Backport:".  This is helpful for the
@@ -49,7 +49,7 @@ http://lists.gnu.org/archive/html/emacs-devel/2010-04/msg00086.html
 * Installing changes from gnulib
 Some of the files in Emacs are copied from gnulib.  To synchronize
 these files from the version of gnulib that you have checked out into
-a sibling directory of your branch, type "make sync-from-gnulib"; this
+a sibling directory of your branch, type "admin/merge-gnulib"; this
 will check out the latest version of gnulib if there is no sibling
 directory already.  It is a good idea to run "bzr status" afterwards,
 so that if a gnulib module added a file, you can record the new file
@@ -57,17 +57,12 @@ using "bzr add".  After synchronizing from gnulib, do a "make" in the
 usual way.
 
 To change the set of gnulib modules, change the GNULIB_MODULES
-variable in the top-level Makefile.in, and then run:
+variable in admin/merge-gnulib before running it.
 
-  ./config.status
-  make sync-from-gnulib
-  bzr status
-
-The last command will mention files that may need to be added using
-"bzr add".  If you remove a gnulib module, or if a gnulib module
+If you remove a gnulib module, or if a gnulib module
 removes a file, then remove the corresponding files by hand.
 
-* How to merge changes from emacs-23 to trunk
+* How to merge changes from emacs-24 to trunk
 
 The following description uses bound branches, presumably it works in
 a similar way with unbound ones.
@@ -90,7 +85,7 @@ copy in ~/.bazaar if you upgrade bzr.
 Maybe the default Emacs behavior without this plugin is better,
 though, it's not clear yet.
 
-1) Get clean, up-to-date copies of the emacs-23 and trunk branches.
+1) Get clean, up-to-date copies of the emacs-24 and trunk branches.
 Check for any uncommitted changes with bzr status.
 
 2) M-x cd /path/to/trunk
@@ -102,7 +97,7 @@ changelog_merge_files = ChangeLog
 
 3) load admin/bzrmerge.el
 
-4) M-x bzrmerge RET /path/to/emacs-23 RET
+4) M-x bzrmerge RET /path/to/emacs-24 RET
 
 It will prompt about revisions that should be skipped, based on the
 regexp in bzrmerge-missing.  If there are more revisions that you know
@@ -119,7 +114,7 @@ Do not commit (or exit Emacs) until you have run bzrmerge to completion.
 
 Before committing, check bzr status and bzr diff output.
 If you have run bzrmerge enough times, the "pending merge tip" in bzr
-status should be the last revision from the emacs-23 branch, and
+status should be the last revision from the emacs-24 branch, and
 bzr status -v should show all the revisions you expect to merge.
 
 (Note that it will also show "skipped" revisions.  This is expected,
@@ -141,18 +136,13 @@ authors, don't break the logical ordering in doing this.
 
 Notes:
 
-1) A lot that was in tramp.el in emacs-23 has moved to tramp-sh.el in
-the trunk.  If you end up with a conflict in tramp.el, the changes may
-need to go to tramp-sh.el instead.  Remember to update the file name in
-the ChangeLog.
-
-2) If a file is modified in emacs-23, and deleted in the trunk, you
+1) If a file is modified in emacs-24, and deleted in the trunk, you
 get a "contents conflict".  Assuming the changes don't need to be in
 the trunk at all, use `bzr resolve path/to/file --take-this' to keep the
 trunk version.  Prior to bzr 2.2.3, this may fail.  You can just
 delete the .OTHER etc files by hand and use bzr resolve path/to/file.
 
-3) Conflicts in autoload md5sums in comments.  Strictly speaking, the
+2) Conflicts in autoload md5sums in comments.  Strictly speaking, the
 right thing to do is merge everything else, resolve the conflict by
 choosing either the trunk or branch version, then run `make -C lisp
 autoloads' to update the md5sums to the correct trunk value before
