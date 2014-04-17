@@ -470,10 +470,8 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream,
       break;
 
     while(*format != '\0') {
-      if (*format == '}') {
-        AVER(depth > 0);
+      if (*format == '}' && depth > 0)
         -- depth;
-      }
       if (line_start) {
         for (i = 0; i < depth; ++i) {
           r = mps_lib_fputs("  ", stream);
@@ -516,7 +514,7 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream,
           case 'F': {                   /* function */
             WriteFF f = va_arg(args, WriteFF);
             Byte *b = (Byte *)&f;
-            /* ISO C forbits casting function pointers to integer, so
+            /* ISO C forbids casting function pointers to integer, so
                decode bytes (see design.writef.f). 
                TODO: Be smarter about endianness. */
             for(i=0; i < sizeof(WriteFF); i++) {
