@@ -165,7 +165,7 @@ tty_ring_bell (struct frame *f)
 /* Set up termcap modes for Emacs. */
 
 static void
-tty_send_additional_strings (struct terminal* terminal, Lisp_Object sym)
+tty_send_additional_strings (struct terminal *terminal, Lisp_Object sym)
 {
   Lisp_Object lisp_terminal;
   Lisp_Object extra_codes;
@@ -180,7 +180,6 @@ tty_send_additional_strings (struct terminal* terminal, Lisp_Object sym)
       if (STRINGP (string))
         {
           fwrite (SDATA (string), 1, SBYTES (string), tty->output);
-          fflush (tty->output);
           if (tty->termscript)
             fwrite (SDATA (string), 1, SBYTES (string), tty->termscript);
         }
@@ -209,8 +208,8 @@ tty_set_terminal_modes (struct terminal *terminal)
       OUTPUT_IF (tty, visible_cursor ? tty->TS_cursor_visible : tty->TS_cursor_normal);
       OUTPUT_IF (tty, tty->TS_keypad_mode);
       losecursor (tty);
-      fflush (tty->output);
       tty_send_additional_strings (terminal, Qtty_mode_set_strings);
+      fflush (tty->output);
     }
 }
 

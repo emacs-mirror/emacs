@@ -1,3 +1,10 @@
+2014-04-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* term.c (tty_send_additional_strings): No need to fflush here,
+	as callers fflush.
+	(tty_set_terminal_modes): fflush after sending additional strings,
+	not before.
+
 2014-04-17  Daniel Colascione  <dancol@dancol.org>
 
 	* term.c (Qtty_mode_set_strings, Qtty_mode_reset_strings): New
