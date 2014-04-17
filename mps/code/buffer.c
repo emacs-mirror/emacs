@@ -149,16 +149,9 @@ Bool BufferCheck(Buffer buffer)
 Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
 {
   Res res;
-  char abzMode[5];
 
   if (!TESTT(Buffer, buffer)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
-
-  abzMode[0] = (char)( (buffer->mode & BufferModeTRANSITION)  ? 't' : '_' );
-  abzMode[1] = (char)( (buffer->mode & BufferModeLOGGED)      ? 'l' : '_' );
-  abzMode[2] = (char)( (buffer->mode & BufferModeFLIPPED)     ? 'f' : '_' );
-  abzMode[3] = (char)( (buffer->mode & BufferModeATTACHED)    ? 'a' : '_' );
-  abzMode[4] = '\0';
 
   res = WriteF(stream,
                "Buffer $P ($U) {\n",
@@ -168,8 +161,11 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
                "Arena $P\n",       (WriteFP)buffer->arena,
                "Pool $P\n",        (WriteFP)buffer->pool,
                buffer->isMutator ? "Mutator" : "Internal", " Buffer\n",
-               "mode $S (TRANSITION, LOGGED, FLIPPED, ATTACHED)\n",
-               (WriteFS)abzMode,
+               "mode $C$C$C$C (TRANSITION, LOGGED, FLIPPED, ATTACHED)\n",
+               (WriteFC)((buffer->mode & BufferModeTRANSITION) ? 't' : '_'),
+               (WriteFC)((buffer->mode & BufferModeLOGGED)     ? 'l' : '_'),
+               (WriteFC)((buffer->mode & BufferModeFLIPPED)    ? 'f' : '_'),
+               (WriteFC)((buffer->mode & BufferModeATTACHED)   ? 'a' : '_'),
                "fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
                "emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
                "alignment $W\n",   (WriteFW)buffer->alignment,
