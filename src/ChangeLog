@@ -1,3 +1,8 @@
+2014-04-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_make_frame_visible): Prevent endless loop when frame
+	never becomes visible, i.e. using XMonad  (Bug#17237).
+
 2014-04-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (Fline_pixel_height): Don't assume that the current
