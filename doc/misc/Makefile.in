@@ -882,9 +882,12 @@ distclean: clean
 
 ## buildinfodir is relative to srcdir.
 infoclean:
-	cd $(buildinfodir); for file in $(INFO_TARGETS); do \
+	for file in $(INFO_TARGETS); do \
 	  file=`echo $${file} | sed 's/\.info$$//'`${INFO_EXT}; \
-	  rm -f $${file} $${file}-[1-9] $${file}-[1-9][0-9]; \
+	  rm -f \
+	    $(buildinfodir)/$${file} \
+	    $(buildinfodir)/$${file}-[1-9] \
+	    $(buildinfodir)/$${file}-[1-9][0-9]; \
 	done
 
 maintainer-clean: distclean infoclean

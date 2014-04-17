@@ -171,7 +171,10 @@ distclean: clean
 	rm -f Makefile
 
 infoclean:
-	-cd $(buildinfodir) && rm -f elisp$(INFO_EXT) elisp$(INFO_EXT)-[1-9] elisp$(INFO_EXT)-[1-9][0-9]
+	rm -f \
+	  $(buildinfodir)/elisp$(INFO_EXT) \
+	  $(buildinfodir)/elisp$(INFO_EXT)-[1-9] \
+	  $(buildinfodir)/elisp$(INFO_EXT)-[1-9][0-9]
 
 maintainer-clean: distclean infoclean
 

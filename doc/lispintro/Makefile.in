@@ -116,7 +116,9 @@ distclean: clean
 	rm -f Makefile
 
 infoclean:
-	-cd $(buildinfodir) && rm -f eintr$(INFO_EXT) eintr$(INFO_EXT)-[1-9]
+	rm -f \
+	  $(buildinfodir)/eintr$(INFO_EXT) \
+	  $(buildinfodir)/eintr$(INFO_EXT)-[1-9]
 
 maintainer-clean: distclean infoclean
 

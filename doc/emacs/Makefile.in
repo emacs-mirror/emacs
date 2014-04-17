@@ -199,7 +199,10 @@ distclean: clean
 
 ## In the standalone tarfile, the clean rule runs this.
 infoclean:
-	-cd $(buildinfodir) && rm -f emacs$(INFO_EXT) emacs$(INFO_EXT)-[1-9] emacs$(INFO_EXT)-[1-9][0-9]
+	rm -f \
+	  $(buildinfodir)/emacs$(INFO_EXT) \
+	  $(buildinfodir)/emacs$(INFO_EXT)-[1-9] \
+	  $(buildinfodir)/emacs$(INFO_EXT)-[1-9][0-9]
 
 maintainer-clean: distclean infoclean
 

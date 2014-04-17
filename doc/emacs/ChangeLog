@@ -1,3 +1,9 @@
+2014-04-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (infoclean): Be consistent about reporting failures.
+	Do not fail merely because the info directory does not exist,
+	but do fail if it exists and can't be cleaned.
+
 2014-04-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Cursor Display): Explain better how to customize
