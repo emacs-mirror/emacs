@@ -1,3 +1,8 @@
+2014-04-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* insdel.c (invalidate_buffer_caches): Invalidate the bidi
+	paragraph-start cache before the newline cache.  (Bug#17269)
+
 2014-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (save_window_save): Lookup window_point_insertion_type in

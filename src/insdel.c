@@ -1857,14 +1857,9 @@ invalidate_buffer_caches (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
      need to consider the caches of their base buffer.  */
   if (buf->base_buffer)
     buf = buf->base_buffer;
-  if (buf->newline_cache)
-    invalidate_region_cache (buf,
-                             buf->newline_cache,
-                             start - BUF_BEG (buf), BUF_Z (buf) - end);
-  if (buf->width_run_cache)
-    invalidate_region_cache (buf,
-                             buf->width_run_cache,
-                             start - BUF_BEG (buf), BUF_Z (buf) - end);
+  /* The bidi_paragraph_cache must be invalidated first, because doing
+     so might need to use the newline_cache (via find_newline_no_quit,
+     see below).  */
   if (buf->bidi_paragraph_cache)
     {
       if (start != end
@@ -1888,13 +1883,20 @@ invalidate_buffer_caches (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
 					       &start_byte);
 	      set_buffer_internal (old);
 	    }
-	  if (line_beg > BUF_BEG (buf))
-	    start = line_beg - 1;
+	  start = line_beg - (line_beg > BUF_BEG (buf));
 	}
       invalidate_region_cache (buf,
 			       buf->bidi_paragraph_cache,
 			       start - BUF_BEG (buf), BUF_Z (buf) - end);
     }
+  if (buf->newline_cache)
+    invalidate_region_cache (buf,
+                             buf->newline_cache,
+                             start - BUF_BEG (buf), BUF_Z (buf) - end);
+  if (buf->width_run_cache)
+    invalidate_region_cache (buf,
+                             buf->width_run_cache,
+                             start - BUF_BEG (buf), BUF_Z (buf) - end);
 }
 
 /* These macros work with an argument named `preserve_ptr'
