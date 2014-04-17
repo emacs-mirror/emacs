@@ -1,3 +1,10 @@
+2014-04-17  Ian D  <dunni@gnu.org>  (tiny change)
+
+	* image-mode.el (image-mode-window-put): Also update the property of
+	the "default window".
+	* doc-view.el (doc-view-new-window-function): If no window
+	exists,	move to the last known page.
+
 2014-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/perl-mode.el (perl-calculate-indent): Don't auto-indent in

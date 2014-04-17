@@ -336,7 +336,7 @@ of the page moves to the previous page."
       ;; Don't do it if there's a conversion is running, since in that case, it
       ;; will be done later.
       (with-selected-window (car winprops)
-        (doc-view-goto-page 1)))))
+        (doc-view-goto-page (image-mode-window-get 'page t))))))
 
 (defvar-local doc-view--current-files nil
   "Only used internally.")

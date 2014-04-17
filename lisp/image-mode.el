@@ -90,6 +90,9 @@ otherwise it defaults to t, used for times when the buffer is not displayed."
 
 (defun image-mode-window-put (prop val &optional winprops)
   (unless (consp winprops) (setq winprops (image-mode-winprops winprops)))
+  (setcdr (assq t image-mode-winprops-alist)
+          (cons (cons prop val)
+                (delq (assq prop (cdr winprops)) (cdr winprops))))
   (setcdr winprops (cons (cons prop val)
                          (delq (assq prop (cdr winprops)) (cdr winprops)))))
 
