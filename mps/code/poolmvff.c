@@ -681,12 +681,12 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                "MVFF $P {\n", (WriteFP)mvff,
-               "  pool $P ($U)\n",
+               "pool $P ($U)\n",
                (WriteFP)pool, (WriteFU)pool->serial,
-               "  extendBy  $W\n",  (WriteFW)mvff->extendBy,
-               "  avgSize   $W\n",  (WriteFW)mvff->avgSize,
-               "  total     $U\n",  (WriteFU)mvff->total,
-               "  free      $U\n",  (WriteFU)mvff->free,
+               "extendBy  $W\n",  (WriteFW)mvff->extendBy,
+               "avgSize   $W\n",  (WriteFW)mvff->avgSize,
+               "total     $U\n",  (WriteFU)mvff->total,
+               "free      $U\n",  (WriteFU)mvff->free,
                NULL);
   if (res != ResOK)
     return res;
@@ -699,7 +699,7 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
   if (res != ResOK)
     return res;
 
-  res = WriteF(stream, "}\n", NULL);
+  res = WriteF(stream, "} MVFF $P\n", (WriteFP)mvff, NULL);
 
   return res;
 }

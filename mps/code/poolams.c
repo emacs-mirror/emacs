@@ -551,24 +551,24 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream)
   buffer = SegBuffer(seg);
 
   res = WriteF(stream,
-               "  AMS $P\n", (WriteFP)amsseg->ams,
-               "  grains $W\n", (WriteFW)amsseg->grains,
+               "AMS $P\n", (WriteFP)amsseg->ams,
+               "grains $W\n", (WriteFW)amsseg->grains,
                NULL);
   if (res != ResOK) return res;
   if (amsseg->allocTableInUse)
     res = WriteF(stream,
-                 "  alloctable $P\n", (WriteFP)amsseg->allocTable,
+                 "alloctable $P\n", (WriteFP)amsseg->allocTable,
                  NULL);
   else
     res = WriteF(stream,
-                 "  firstFree $W\n", (WriteFW)amsseg->firstFree,
+                 "firstFree $W\n", (WriteFW)amsseg->firstFree,
                  NULL);
   if (res != ResOK) return res;
   res = WriteF(stream,
-               "  tables: nongrey $P, nonwhite $P\n",
+               "tables: nongrey $P, nonwhite $P\n",
                (WriteFP)amsseg->nongreyTable,
                (WriteFP)amsseg->nonwhiteTable,
-               "  map: \n",
+               "map: {\n",
                NULL);
   if (res != ResOK) return res;
 
@@ -576,7 +576,7 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream)
     char c = 0;
 
     if (i % 64 == 0) {
-      res = WriteF(stream, "\n  ", NULL);
+      res = WriteF(stream, "\n", NULL);
       if (res != ResOK) return res;
     }
 
@@ -606,7 +606,7 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream)
     WRITE_BUFFER_LIMIT(stream, seg, i+1, buffer, BufferLimit, "]");
   }
 
-  res = WriteF(stream, "\n", NULL);
+  res = WriteF(stream, "}\n", NULL);
   return res;
 }
 
@@ -1661,21 +1661,21 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                "AMS $P {\n", (WriteFP)ams,
-               "  pool $P ($U)\n",
+               "pool $P ($U)\n",
                (WriteFP)pool, (WriteFU)pool->serial,
-               "  size $W\n",
+               "size $W\n",
                (WriteFW)ams->size,
-               "  grain shift $U\n", (WriteFU)ams->grainShift,
-               "  chain $P\n",
+               "grain shift $U\n", (WriteFU)ams->grainShift,
+               "chain $P\n",
                (WriteFP)ams->chain,
                NULL);
   if (res != ResOK) return res;
 
   res = WriteF(stream,
-               "  segments\n"
+               "segments\n"
                "    * = black, + = grey, - = white, . = alloc, ! = bad\n"
-               "    buffers: [ = base, < = scan limit, | = init,\n"
-               "             > = alloc, ] = limit\n",
+               "    buffers: [ = base, < = scan limit, | = init,"
+               " > = alloc, ] = limit\n",
                NULL);
   if (res != ResOK) return res;
 

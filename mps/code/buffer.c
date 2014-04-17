@@ -163,23 +163,22 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
   res = WriteF(stream,
                "Buffer $P ($U) {\n",
                (WriteFP)buffer, (WriteFU)buffer->serial,
-               "  class $P (\"$S\")\n",
+               "class $P (\"$S\")\n",
                (WriteFP)buffer->class, buffer->class->name,
-               "  Arena $P\n",       (WriteFP)buffer->arena,
-               "  Pool $P\n",        (WriteFP)buffer->pool,
-               buffer->isMutator ?
-                 "  Mutator Buffer\n" : "  Internal Buffer\n",
-               "  mode $S (TRANSITION, LOGGED, FLIPPED, ATTACHED)\n",
-                       (WriteFS)abzMode,
-               "  fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
-               "  emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
-               "  alignment $W\n",   (WriteFW)buffer->alignment,
-               "  base $A\n",        buffer->base,
-               "  initAtFlip $A\n",  buffer->initAtFlip,
-               "  init $A\n",        buffer->ap_s.init,
-               "  alloc $A\n",       buffer->ap_s.alloc,
-               "  limit $A\n",       buffer->ap_s.limit,
-               "  poolLimit $A\n",   buffer->poolLimit,
+               "Arena $P\n",       (WriteFP)buffer->arena,
+               "Pool $P\n",        (WriteFP)buffer->pool,
+               buffer->isMutator ? "Mutator" : "Internal", " Buffer\n",
+               "mode $S (TRANSITION, LOGGED, FLIPPED, ATTACHED)\n",
+               (WriteFS)abzMode,
+               "fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
+               "emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
+               "alignment $W\n",   (WriteFW)buffer->alignment,
+               "base $A\n",        buffer->base,
+               "initAtFlip $A\n",  buffer->initAtFlip,
+               "init $A\n",        buffer->ap_s.init,
+               "alloc $A\n",       buffer->ap_s.alloc,
+               "limit $A\n",       buffer->ap_s.limit,
+               "poolLimit $A\n",   buffer->poolLimit,
                NULL);
   if (res != ResOK) return res;
 
@@ -1444,8 +1443,8 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream)
   if (res != ResOK) return res;
 
   res = WriteF(stream,
-               "  Seg $P\n",         (WriteFP)segbuf->seg,
-               "  rankSet $U\n",     (WriteFU)segbuf->rankSet,
+               "Seg $P\n",         (WriteFP)segbuf->seg,
+               "rankSet $U\n",     (WriteFU)segbuf->rankSet,
                NULL);
 
   return res;
