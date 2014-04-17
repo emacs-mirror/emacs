@@ -1262,12 +1262,23 @@ Value is the height in pixels of the line at point.  */)
   struct it it;
   struct text_pos pt;
   struct window *w = XWINDOW (selected_window);
+  struct buffer *old_buffer = NULL;
+  Lisp_Object result;
 
+  if (XBUFFER (w->contents) != current_buffer)
+    {
+      old_buffer = current_buffer;
+      set_buffer_internal_1 (XBUFFER (w->contents));
+    }
   SET_TEXT_POS (pt, PT, PT_BYTE);
   start_display (&it, w, pt);
   it.vpos = it.current_y = 0;
   last_height = 0;
-  return make_number (line_bottom_y (&it));
+  result = make_number (line_bottom_y (&it));
+  if (old_buffer)
+    set_buffer_internal_1 (old_buffer);
+
+  return result;
 }
 
 /* Return the default pixel height of text lines in window W.  The

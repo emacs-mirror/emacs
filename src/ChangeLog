@@ -1,5 +1,9 @@
 2014-04-17  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (Fline_pixel_height): Don't assume that the current
+	buffer and the selected window's buffer are one and the same.
+	(Bug#17281)
+
 	* insdel.c (invalidate_buffer_caches): Invalidate the bidi
 	paragraph-start cache before the newline cache.  (Bug#17269)
 
