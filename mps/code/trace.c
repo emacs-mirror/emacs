@@ -1899,6 +1899,52 @@ failStart:
 }
 
 
+/* TraceDescribe -- describe a trace */
+
+Res TraceDescribe(Trace trace, mps_lib_FILE *stream)
+{
+  Res res;
+  const char *state;
+
+  if (!TESTT(Trace, trace)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+
+  switch (trace->state) {
+  case TraceINIT:      state = "INIT";      break;
+  case TraceUNFLIPPED: state = "UNFLIPPED"; break;
+  case TraceFLIPPED:   state = "FLIPPED";   break;
+  case TraceRECLAIM:   state = "RECLAIM";   break;
+  case TraceFINISHED:  state = "FINISHED";  break;
+  default:             state = "unknown";   break;
+  }
+
+  res = WriteF(stream, "Trace $P ($U) {\n", (WriteFP)trace, (WriteFU)trace->ti,
+               "arena $P ($U)\n", (WriteFP)trace->arena,
+               (WriteFU)trace->arena->serial,
+               "why \"$S\"\n", (WriteFS)TraceStartWhyToString(trace->why),
+               "state $S\n", (WriteFS)state,
+               "band $U\n", (WriteFU)trace->band,
+               "white   $B\n", (WriteFB)trace->white,
+               "mayMove $B\n", (WriteFB)trace->mayMove,
+               "chain $P\n", (WriteFP)trace->chain,
+               "condemned $U\n", (WriteFU)trace->condemned,
+               "notCondemned $U\n", (WriteFU)trace->notCondemned,
+               "foundation $U\n", (WriteFU)trace->foundation,
+               "rate $U\n", (WriteFU)trace->rate,
+               "rootScanSize $U\n", (WriteFU)trace->rootScanSize,
+               "rootCopiedSize $U\n", (WriteFU)trace->rootCopiedSize,
+               "segScanSize $U\n", (WriteFU)trace->segScanSize,
+               "segCopiedSize $U\n", (WriteFU)trace->segCopiedSize,
+               "forwardedSize $U\n", (WriteFU)trace->forwardedSize,
+               "preservedInPlaceSize $U\n", (WriteFU)trace->preservedInPlaceSize,
+               NULL);
+  if (res != ResOK) return res;
+
+  res = WriteF(stream, "} Trace $P\n", (WriteFP)trace, NULL);
+  return res;
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2001-2014 Ravenbrook Limited

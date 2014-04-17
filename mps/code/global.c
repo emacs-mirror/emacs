@@ -1040,6 +1040,8 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
   Arena arena;
   Ring node, nextNode;
   Index i;
+  TraceId ti;
+  Trace trace;
 
   if (!TESTT(Globals, arenaGlobals)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
@@ -1070,7 +1072,6 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
                arena->insideShield ? "inside shield\n" : "outside shield\n",
                "busyTraces    $B\n", (WriteFB)arena->busyTraces,
                "flippedTraces $B\n", (WriteFB)arena->flippedTraces,
-               /* @@@@ no TraceDescribe function */
                "epoch $U\n", (WriteFU)arena->epoch,
                "history {\n",
                NULL);
@@ -1118,6 +1119,13 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
     res = ThreadDescribe(thread, stream);
     if (res != ResOK) return res;
   }
+
+  TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
+    if (TraceSetIsMember(arena->busyTraces, trace)) {
+      res = TraceDescribe(trace, stream);
+      if (res != ResOK) return res;
+    }
+  TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
 
   /* @@@@ What about grey rings? */
 
