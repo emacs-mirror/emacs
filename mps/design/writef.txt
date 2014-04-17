@@ -34,9 +34,9 @@ depends on ``fputc()`` and ``fputs()``, via the Library Interface
 freestanding environment. This is achieved by implementing our own
 internal output routines in mpm.c.
 
-Our output requirements are few, so the code is short. The only output
-function which should be used in the rest of the MPM is ``WriteF()``,
-which is similar to ``fprintf()``:
+_`.writef`: Our output requirements are few, so the code is short. The
+only output function which should be used in the rest of the MPM is
+``WriteF()``.
 
 ``Res WriteF(mps_lib_FILE *stream, ...)``
 
@@ -44,27 +44,41 @@ which is similar to ``fprintf()``:
 insert into the output, followed by another format string, more items,
 and so on, and finally a ``NULL`` format string. For example::
 
-    WriteF(stream,
-           "Hello: $A\n", address,
-           "Spong: $U ($S)\n", number, string,
-           NULL);
+    res = WriteF(stream,
+                 "Hello: $A\n", address,
+                 "Spong: $U ($S)\n", number, string,
+                 NULL);
+    if (res != ResOK) return res;
 
-This makes ``Describe()`` methods much easier to write. For example, ``BufferDescribe()`` might contain the following code::
+This makes ``Describe()`` methods much easier to write. For example, ``BufferDescribe()`` contains the following code::
 
-    WriteF(stream,
-           "Buffer $P ($U) {\n", (WriteFP)buffer, (WriteFU)buffer->serial,
-           "  base $A  init $A  alloc $A  limit $A\n",
-           (WriteFA)buffer->base, (WriteFA)buffer->ap.init, 
-           (WriteFA)buffer->ap.alloc, (WriteFA)buffer->ap.limit,
-           "  Pool $P\n",        (WriteFP)buffer->pool,
-           "  Seg $P\n",         (WriteFP)buffer->seg,
-           "  rank $U\n",        (WriteFU)buffer->rank,
-           "  alignment $W\n",   (WriteFW)buffer->alignment,
-           "  grey $B\n",        (WriteFB)buffer->grey,
-           "  shieldMode $B\n",  (WriteFB)buffer->shieldMode,
-           "  p $P  i $U\n",     (WriteFP)buffer->p, (WriteFU)buffer->i,
-           "} Buffer $P ($U)\n", (WriteFP)buffer, (WriteFU)buffer->serial,
-           NULL);
+    res = WriteF(stream,
+                 "Buffer $P ($U) {\n",
+                 (WriteFP)buffer, (WriteFU)buffer->serial,
+                 "class $P (\"$S\")\n",
+                 (WriteFP)buffer->class, buffer->class->name,
+                 "Arena $P\n",       (WriteFP)buffer->arena,
+                 "Pool $P\n",        (WriteFP)buffer->pool,
+                 buffer->isMutator ? "Mutator" : "Internal", " Buffer\n",
+                 "mode $S (TRANSITION, LOGGED, FLIPPED, ATTACHED)\n",
+                 (WriteFS)abzMode,
+                 "fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
+                 "emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
+                 "alignment $W\n",   (WriteFW)buffer->alignment,
+                 "base $A\n",        buffer->base,
+                 "initAtFlip $A\n",  buffer->initAtFlip,
+                 "init $A\n",        buffer->ap_s.init,
+                 "alloc $A\n",       buffer->ap_s.alloc,
+                 "limit $A\n",       buffer->ap_s.limit,
+                 "poolLimit $A\n",   buffer->poolLimit,
+                 NULL);
+    if (res != ResOK) return res;
+
+_`.indent`: ``WriteF()`` maintains the indentation of nested
+structures automatically. In a format string, ``{`` increases the
+indentation level by one, and ``}`` decreases it by one. Before
+emitting the first character on a line (but after updating the depth),
+``WriteF()`` emits the indentation whitespace for the current depth.
 
 _`.types`: For each format ``$X`` that ``WriteF()`` supports, there is a
 type defined in impl.h.mpmtypes ``WriteFX()`` which is the promoted
@@ -97,8 +111,8 @@ promotion of a ``char`` (see `.types`_).
 
 _`.snazzy`: We should resist the temptation to make ``WriteF()`` an
 incredible snazzy output engine. We only need it for ``Describe()``
-methods and assertion messages. At the moment it's a very simple bit
-of code -- let's keep it that way.
+methods. At the moment it's a very simple bit of code -- let's keep it
+that way.
 
 _`.f`: The ``F`` code is used for function pointers. ISO C forbids casting
 function pointers to other types, so the bytes of their representation are
@@ -114,6 +128,8 @@ Document History
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 
 - 2013-05-22 GDR_ Converted to reStructuredText.
+
+- 2014-04-17 GDR_ Add design for maintaining indentation.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
