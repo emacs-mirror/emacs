@@ -532,11 +532,11 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
  
   res = WriteF(stream,
                "Pool $P ($U) {\n", (WriteFP)pool, (WriteFU)pool->serial,
-               "  class $P (\"$S\")\n",
+               "class $P (\"$S\")\n",
                (WriteFP)pool->class, pool->class->name,
-               "  arena $P ($U)\n",
+               "arena $P ($U)\n",
                (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
-               "  alignment $W\n", (WriteFW)pool->alignment,
+               "alignment $W\n", (WriteFW)pool->alignment,
                NULL);
   if (res != ResOK) return res;
   if (NULL != pool->format) {
@@ -544,14 +544,14 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
     if (res != ResOK) return res;
   }
   res = WriteF(stream,
-               "  fillMutatorSize $UKb\n",
-                 (WriteFU)(pool->fillMutatorSize / 1024),
-               "  emptyMutatorSize $UKb\n",
-                 (WriteFU)(pool->emptyMutatorSize / 1024),
-               "  fillInternalSize $UKb\n",
-                 (WriteFU)(pool->fillInternalSize / 1024),
-               "  emptyInternalSize $UKb\n",
-                 (WriteFU)(pool->emptyInternalSize / 1024),
+               "fillMutatorSize $UKb\n",
+               (WriteFU)(pool->fillMutatorSize / 1024),
+               "emptyMutatorSize $UKb\n",
+               (WriteFU)(pool->emptyMutatorSize / 1024),
+               "fillInternalSize $UKb\n",
+               (WriteFU)(pool->fillInternalSize / 1024),
+               "emptyInternalSize $UKb\n",
+               (WriteFU)(pool->emptyInternalSize / 1024),
                NULL);
   if (res != ResOK) return res;
 

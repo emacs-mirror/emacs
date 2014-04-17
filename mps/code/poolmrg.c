@@ -806,17 +806,19 @@ static Res MRGDescribe(Pool pool, mps_lib_FILE *stream)
   if (stream == NULL) return ResFAIL;
 
   arena = PoolArena(pool);
-  res = WriteF(stream, "  extendBy $W\n", mrg->extendBy, NULL);
+  res = WriteF(stream, "extendBy $W\n", mrg->extendBy, NULL);
   if (res != ResOK) return res;
-  res = WriteF(stream, "  Entry queue:\n", NULL);
+  res = WriteF(stream, "Entry queue {\n", NULL);
   if (res != ResOK) return res;
   RING_FOR(node, &mrg->entryRing, nextNode) {
     refPart = MRGRefPartOfLink(linkOfRing(node), arena);
-    res = WriteF(stream, "    at $A Ref $A\n",
+    res = WriteF(stream, "at $A Ref $A\n",
                  (WriteFA)refPart, (WriteFA)MRGRefPartRef(arena, refPart),
                  NULL);
     if (res != ResOK) return res;
   }
+  res = WriteF(stream, "}\n", NULL);
+  if (res != ResOK) return res;
 
   return ResOK;
 }

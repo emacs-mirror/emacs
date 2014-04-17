@@ -1046,51 +1046,54 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
 
   arena = GlobalsArena(arenaGlobals);
   res = WriteF(stream,
-               "  mpsVersion $S\n", arenaGlobals->mpsVersionString,
-               "  lock $P\n", (WriteFP)arenaGlobals->lock,
-               "  pollThreshold $U kB\n",
+               "Globals $P {\n", (WriteFP)arenaGlobals,
+               "mpsVersion $S\n", arenaGlobals->mpsVersionString,
+               "lock $P\n", (WriteFP)arenaGlobals->lock,
+               "pollThreshold $U kB\n",
                (WriteFU)(arenaGlobals->pollThreshold / 1024),
                arenaGlobals->insidePoll ? "inside poll\n" : "outside poll\n",
                arenaGlobals->clamped ? "clamped\n" : "released\n",
-               "  fillMutatorSize $U kB\n",
-                 (WriteFU)(arenaGlobals->fillMutatorSize / 1024),
-               "  emptyMutatorSize $U kB\n",
-                 (WriteFU)(arenaGlobals->emptyMutatorSize / 1024),
-               "  allocMutatorSize $U kB\n",
-                 (WriteFU)(arenaGlobals->allocMutatorSize / 1024),
-               "  fillInternalSize $U kB\n",
-                 (WriteFU)(arenaGlobals->fillInternalSize / 1024),
-               "  emptyInternalSize $U kB\n",
-                 (WriteFU)(arenaGlobals->emptyInternalSize / 1024),
-               "  poolSerial $U\n", (WriteFU)arenaGlobals->poolSerial,
-               "  rootSerial $U\n", (WriteFU)arenaGlobals->rootSerial,
-               "  formatSerial $U\n", (WriteFU)arena->formatSerial,
-               "  threadSerial $U\n", (WriteFU)arena->threadSerial,
+               "fillMutatorSize $U kB\n",
+               (WriteFU)(arenaGlobals->fillMutatorSize / 1024),
+               "emptyMutatorSize $U kB\n",
+               (WriteFU)(arenaGlobals->emptyMutatorSize / 1024),
+               "allocMutatorSize $U kB\n",
+               (WriteFU)(arenaGlobals->allocMutatorSize / 1024),
+               "fillInternalSize $U kB\n",
+               (WriteFU)(arenaGlobals->fillInternalSize / 1024),
+               "emptyInternalSize $U kB\n",
+               (WriteFU)(arenaGlobals->emptyInternalSize / 1024),
+               "poolSerial $U\n", (WriteFU)arenaGlobals->poolSerial,
+               "rootSerial $U\n", (WriteFU)arenaGlobals->rootSerial,
+               "formatSerial $U\n", (WriteFU)arena->formatSerial,
+               "threadSerial $U\n", (WriteFU)arena->threadSerial,
                arena->insideShield ? "inside shield\n" : "outside shield\n",
-               "  busyTraces    $B\n", (WriteFB)arena->busyTraces,
-               "  flippedTraces $B\n", (WriteFB)arena->flippedTraces,
+               "busyTraces    $B\n", (WriteFB)arena->busyTraces,
+               "flippedTraces $B\n", (WriteFB)arena->flippedTraces,
                /* @@@@ no TraceDescribe function */
-               "  epoch $U\n", (WriteFU)arena->epoch,
+               "epoch $U\n", (WriteFU)arena->epoch,
+               "history {\n",
                NULL);
   if (res != ResOK) return res;
 
   for(i=0; i < LDHistoryLENGTH; ++ i) {
     res = WriteF(stream,
-                 "    history[$U] = $B\n", i, arena->history[i],
+                 "[$U] = $B\n", i, arena->history[i],
                  NULL);
     if (res != ResOK) return res;
   }
 
   res = WriteF(stream,
-               "    [note: indices are raw, not rotated]\n"
-               "    prehistory = $B\n", (WriteFB)arena->prehistory,
+               "[note: indices are raw, not rotated]\n"
+               "prehistory = $B\n", (WriteFB)arena->prehistory,
+               "}\n",
                NULL);
   if (res != ResOK) return res;
 
   res = WriteF(stream,
-               "  suspended $S\n", arena->suspended ? "YES" : "NO",
-               "  shDepth $U\n", arena->shDepth,
-               "  shCacheI $U\n", arena->shCacheI,
+               "suspended $S\n", arena->suspended ? "YES" : "NO",
+               "shDepth $U\n", arena->shDepth,
+               "shCacheI $U\n", arena->shCacheI,
                /* @@@@ should SegDescribe the cached segs? */
                NULL);
   if (res != ResOK) return res;
@@ -1117,6 +1120,8 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
   }
 
   /* @@@@ What about grey rings? */
+
+  res = WriteF(stream, "} Globals $P\n", (WriteFP)arenaGlobals, NULL);
   return res;
 }
 

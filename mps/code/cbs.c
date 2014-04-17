@@ -1066,11 +1066,11 @@ Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                "CBS $P {\n", (WriteFP)cbs,
-               "  alignment: $U\n", (WriteFU)cbs->alignment,
-               "  blockPool: $P\n", (WriteFP)cbsBlockPool(cbs),
-               "  fastFind: $U\n", (WriteFU)cbs->fastFind,
-               "  inCBS: $U\n", (WriteFU)cbs->inCBS,
-               "  treeSize: $U\n", (WriteFU)cbs->treeSize,
+               "alignment: $U\n", (WriteFU)cbs->alignment,
+               "blockPool: $P\n", (WriteFP)cbsBlockPool(cbs),
+               "fastFind:  $U\n", (WriteFU)cbs->fastFind,
+               "inCBS:     $U\n", (WriteFU)cbs->inCBS,
+               "treeSize:  $U\n", (WriteFU)cbs->treeSize,
                NULL);
   if (res != ResOK) return res;
 
@@ -1079,7 +1079,7 @@ Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
 
   METER_WRITE(cbs->treeSearch, stream);
 
-  res = WriteF(stream, "}\n", NULL);
+  res = WriteF(stream, "} CBS $P\n",  (WriteFP)cbs, NULL);
   return res;
 }
 

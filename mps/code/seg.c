@@ -368,9 +368,9 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream)
   res = WriteF(stream,
                "Segment $P [$A,$A) {\n", (WriteFP)seg,
                (WriteFA)SegBase(seg), (WriteFA)SegLimit(seg),
-               "  class $P (\"$S\")\n",
+               "class $P (\"$S\")\n",
                (WriteFP)seg->class, seg->class->name,
-               "  pool $P ($U)\n",
+               "pool $P ($U)\n",
                (WriteFP)pool, (WriteFU)pool->serial,
                NULL);
   if (res != ResOK) return res;
@@ -378,8 +378,7 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream)
   res = seg->class->describe(seg, stream);
   if (res != ResOK) return res;
 
-  res = WriteF(stream, "\n",
-               "} Segment $P\n", (WriteFP)seg, NULL);
+  res = WriteF(stream, "} Segment $P\n", (WriteFP)seg, NULL);
   return res;
 }
 
@@ -1031,8 +1030,8 @@ static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream)
   if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,
-               "  shield depth $U\n", (WriteFU)seg->depth,
-               "  protection mode:",
+               "shield depth $U\n", (WriteFU)seg->depth,
+               "protection mode:",
                NULL);
   if (res != ResOK) return res;
   if (SegPM(seg) & AccessREAD) {
@@ -1043,7 +1042,7 @@ static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream)
      res = WriteF(stream, " write", NULL);
      if (res != ResOK) return res;
   }
-  res = WriteF(stream, "\n  shield mode:", NULL);
+  res = WriteF(stream, "\nshield mode:", NULL);
   if (res != ResOK) return res;
   if (SegSM(seg) & AccessREAD) {
      res = WriteF(stream, " read", NULL);
@@ -1053,7 +1052,7 @@ static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream)
      res = WriteF(stream, " write", NULL);
      if (res != ResOK) return res;
   }
-  res = WriteF(stream, "\n  ranks:", NULL);
+  res = WriteF(stream, "\nranks:", NULL);
   if (res != ResOK) return res;
   /* This bit ought to be in a RankSetDescribe in ref.c. */
   if (RankSetIsMember(seg->rankSet, RankAMBIG)) {
@@ -1072,10 +1071,10 @@ static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream)
      res = WriteF(stream, " weak", NULL);
      if (res != ResOK) return res;
   }
-  res = WriteF(stream, "\n",
-               "  white  $B\n", (WriteFB)seg->white,
-               "  grey   $B\n", (WriteFB)seg->grey,
-               "  nailed $B\n", (WriteFB)seg->nailed,
+  res = WriteF(stream, "\n"
+               "white  $B\n", (WriteFB)seg->white,
+               "grey   $B\n", (WriteFB)seg->grey,
+               "nailed $B\n", (WriteFB)seg->nailed,
                NULL);
   return res;
 }
@@ -1627,17 +1626,13 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream)
   res = super->describe(seg, stream);
   if (res != ResOK) return res;
 
-  res = WriteF(stream,
-               "  summary $W\n", (WriteFW)gcseg->summary,
-               NULL);
+  res = WriteF(stream, "summary $W\n", (WriteFW)gcseg->summary, NULL);
   if (res != ResOK) return res;
 
-  if (gcseg->buffer == NULL) {
-    res = WriteF(stream, "  buffer: NULL\n", NULL);
-  }
-  else {
+  if (gcseg->buffer == NULL)
+    res = WriteF(stream, "buffer: NULL\n", NULL);
+  else
     res = BufferDescribe(gcseg->buffer, stream);
-  }
   if (res != ResOK) return res;
 
   return ResOK;

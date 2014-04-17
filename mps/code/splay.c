@@ -1335,7 +1335,7 @@ Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream,
 
   res = WriteF(stream,
                "Splay $P {\n", (WriteFP)splay,
-               "  compare $F\n", (WriteFF)splay->compare,
+               "compare $F\n", (WriteFF)splay->compare,
                NULL);
   if (res != ResOK) return res;
 
@@ -1344,7 +1344,7 @@ Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream,
     if (res != ResOK) return res;
   }
 
-  res = WriteF(stream, "\n}\n", NULL);
+  res = WriteF(stream, "\n} Splay $P\n", (WriteFP)splay, NULL);
   return res;
 }
 
