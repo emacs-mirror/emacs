@@ -587,6 +587,7 @@ and replace a sub-expression, e.g.
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()
+	    (unload-feature 'tramp-loaddefs 'force)
 	    (unload-feature 'tramp-compat 'force)))
 
 (provide 'tramp-compat)
