@@ -1,3 +1,9 @@
+2014-04-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (insert_left_trunc_glyphs): Ensure the left truncation
+	glyph is written to TEXT_AREA of the temporary glyph_row.
+	(Bug#17288)
+
 2014-04-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacs.c (close_output_streams): Don't clear and restore errno.
