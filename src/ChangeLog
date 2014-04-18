@@ -25,6 +25,7 @@
 
 2014-04-16  Eli Zaretskii  <eliz@gnu.org>
 
+	Fix the MSDOS build.
 	* unexcoff.c [MSDOS]: Include libc/atexit.h.
 	(copy_text_and_data): Zero out the atexit chain pointer before
 	dumping Emacs.
