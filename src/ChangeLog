@@ -1,3 +1,7 @@
+2014-04-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs.c (close_output_streams): Don't clear and restore errno.
+
 2014-04-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_make_frame_visible): Prevent endless loop when frame
