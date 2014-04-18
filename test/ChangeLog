@@ -1,3 +1,18 @@
+2014-04-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-copy-size-limit): Set to nil.
+	(tramp--test-make-temp-name): Optional argument LOCAL.
+	(tramp--instrument-test-case): Show messages.  Catch also `quit'.
+	(tramp-test10-write-region): No special test for out-of-band copy
+	needed anymore.
+	(tramp-test11-copy-file, tramp-test12-rename-file)
+	(tramp-test21-file-links): Extend tests.
+	(tramp-test20-file-modes): More robust check for user "root".
+	(tramp--test-check-files): New defun.
+	(tramp-test30-special-characters, tramp-test33-recursive-load)
+	(tramp-test34-unload): New tests.
+	(tramp-test31-utf8, tramp-test32-asynchronous-requests):  Rename.
+
 2014-04-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* automated/electric-tests.el: Fix spelling error in test name.
