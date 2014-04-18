@@ -1,3 +1,22 @@
+2014-04-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs.c (close_output_streams): Don't clear and restore errno.
+
+2014-04-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_make_frame_visible): Prevent endless loop when frame
+	never becomes visible, i.e. using XMonad  (Bug#17237).
+
+2014-04-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (insert_left_trunc_glyphs): Ensure the left truncation
+	glyph is written to TEXT_AREA of the temporary glyph_row.  (Bug#17288)
+	(Fline_pixel_height): Don't assume that the current buffer and the
+	selected window's buffer are one and the same.  (Bug#17281)
+
+	* insdel.c (invalidate_buffer_caches): Invalidate the bidi
+	paragraph-start cache before the newline cache.  (Bug#17269)
+
 2014-04-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* term.c (tty_send_additional_strings): No need to fflush here,
@@ -23,6 +42,7 @@
 
 2014-04-16  Eli Zaretskii  <eliz@gnu.org>
 
+	Fix the MSDOS build.
 	* unexcoff.c [MSDOS]: Include libc/atexit.h.
 	(copy_text_and_data): Zero out the atexit chain pointer before
 	dumping Emacs.

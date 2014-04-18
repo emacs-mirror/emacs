@@ -8900,6 +8900,7 @@ void
 x_make_frame_visible (struct frame *f)
 {
   int original_top, original_left;
+  int tries = 0;
 
   block_input ();
 
@@ -9007,7 +9008,13 @@ x_make_frame_visible (struct frame *f)
 	/* Force processing of queued events.  */
 	x_sync (f);
 
-	/* This hack is still in use at least for Cygwin.  See
+        /* If on another desktop, the deiconify/map may be ignored and the
+           frame never becomes visible.  XMonad does this.
+           Prevent an endless loop.  */
+        if (FRAME_ICONIFIED_P (f) &&  ++tries > 100)
+          break;
+
+       /* This hack is still in use at least for Cygwin.  See
 	   http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00351.html.
 
 	   Machines that do polling rather than SIGIO have been

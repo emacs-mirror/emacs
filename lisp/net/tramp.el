@@ -1943,8 +1943,7 @@ coding system might not be determined.  This function repairs it."
 	(add-to-list
 	 'result (cons (regexp-quote tmpname) (cdr elt)) 'append)))))
 
-;;;###autoload
-(progn (defun tramp-run-real-handler (operation args)
+(defun tramp-run-real-handler (operation args)
   "Invoke normal file name handler for OPERATION.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
@@ -1958,7 +1957,7 @@ pass to the OPERATION."
 	    ,(and (eq inhibit-file-name-operation operation)
 		  inhibit-file-name-handlers)))
 	 (inhibit-file-name-operation operation))
-    (apply operation args))))
+    (apply operation args)))
 
 ;;;###autoload
 (progn (defun tramp-completion-run-real-handler (operation args)
@@ -2100,22 +2099,12 @@ ARGS are the arguments OPERATION has been called with."
      (tramp-compat-condition-case-unless-debug ,var ,bodyform ,@handlers)))
 
 ;; Main function.
-;;;###autoload
 (defun tramp-file-name-handler (operation &rest args)
   "Invoke Tramp file name handler.
 Falls back to normal file name handler if no Tramp file name handler exists."
   (if tramp-mode
       (save-match-data
-	(let* ((default-directory
-		 ;; Some packages set the default directory to a
-		 ;; remote path, before tramp.el has been loaded.
-		 ;; This results in recursive loading.  Therefore, we
-		 ;; set `default-directory' to a local path.  `args'
-		 ;; could also be remote when loading tramp.el, but
-		 ;; that would be such perverse we don't care about.
-		 (if load-in-progress
-		     temporary-file-directory default-directory))
-	       (filename
+	(let* ((filename
 		(tramp-replace-environment-variables
 		 (apply 'tramp-file-name-for-operation operation args)))
 	       (completion (tramp-completion-mode-p))
@@ -2227,11 +2216,8 @@ preventing reentrant calls of Tramp.")
   "Invoke Tramp file name completion handler.
 Falls back to normal file name handler if no Tramp file name handler exists."
   ;; We bind `directory-sep-char' here for XEmacs on Windows, which
-  ;; would otherwise use backslash.  For `default-directory', see
-  ;; comment in `tramp-file-name-handler'.
+  ;; would otherwise use backslash.
   (let ((directory-sep-char ?/)
-	(default-directory
-	  (if load-in-progress temporary-file-directory default-directory))
 	(fn (assoc operation tramp-completion-file-name-handler-alist)))
     (if (and
 	 ;; When `tramp-mode' is not enabled, we don't do anything.
@@ -2255,15 +2241,43 @@ Falls back to normal file name handler if no Tramp file name handler exists."
       (tramp-completion-run-real-handler operation args)))))
 
 ;;;###autoload
-(progn (defun tramp-register-file-name-handlers ()
+(progn (defun tramp-autoload-file-name-handler (operation &rest args)
+  "Load Tramp file name handler, and perform OPERATION."
+  ;; Avoid recursive loading of tramp.el.
+  (let ((default-directory temporary-file-directory))
+    (load "tramp" nil t))
+  (apply operation args)))
+
+;; `tramp-autoload-file-name-handler' must be registered before
+;; evaluation of site-start and init files, because there might exist
+;; remote files already, f.e. files kept via recentf-mode.  We cannot
+;; autoload `tramp-file-name-handler', because it would result in
+;; recursive loading of tramp.el when `default-directory' is set to
+;; remote.
+;;;###autoload
+(progn (defun tramp-register-autoload-file-name-handlers ()
+  "Add Tramp file name handlers to `file-name-handler-alist' during autoload."
+  (add-to-list 'file-name-handler-alist
+	       (cons tramp-file-name-regexp
+		     'tramp-autoload-file-name-handler))
+  (put 'tramp-autoload-file-name-handler 'safe-magic t)
+  (add-to-list 'file-name-handler-alist
+	       (cons tramp-completion-file-name-regexp
+		     'tramp-completion-file-name-handler))
+  (put 'tramp-completion-file-name-handler 'safe-magic t)))
+
+;;;###autoload
+(tramp-register-autoload-file-name-handlers)
+
+(defun tramp-register-file-name-handlers ()
   "Add Tramp file name handlers to `file-name-handler-alist'."
   ;; Remove autoloaded handlers from file name handler alist.  Useful,
   ;; if `tramp-syntax' has been changed.
-  (let ((a1 (rassq 'tramp-file-name-handler file-name-handler-alist)))
-    (setq file-name-handler-alist (delq a1 file-name-handler-alist)))
-  (let ((a1 (rassq
-	     'tramp-completion-file-name-handler file-name-handler-alist)))
-    (setq file-name-handler-alist (delq a1 file-name-handler-alist)))
+  (dolist (fnh '(tramp-file-name-handler
+		 tramp-completion-file-name-handler
+		 tramp-autoload-file-name-handler))
+    (let ((a1 (rassq fnh file-name-handler-alist)))
+      (setq file-name-handler-alist (delq a1 file-name-handler-alist))))
   ;; Add the handlers.
   (add-to-list 'file-name-handler-alist
 	       (cons tramp-file-name-regexp 'tramp-file-name-handler))
@@ -2278,13 +2292,9 @@ Falls back to normal file name handler if no Tramp file name handler exists."
     (let ((entry (rassoc fnh file-name-handler-alist)))
       (when entry
 	(setq file-name-handler-alist
-	      (cons entry (delete entry file-name-handler-alist))))))))
+	      (cons entry (delete entry file-name-handler-alist)))))))
 
-;; `tramp-file-name-handler' must be registered before evaluation of
-;; site-start and init files, because there might exist remote files
-;; already, f.e. files kept via recentf-mode.
-;;;###autoload
-(tramp-register-file-name-handlers)
+(eval-after-load 'tramp (tramp-register-file-name-handlers))
 
 (defun tramp-exists-file-name-handler (operation &rest args)
   "Check, whether OPERATION runs a file name handler."

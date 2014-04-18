@@ -690,11 +690,6 @@ void (*__malloc_initialize_hook) (void) EXTERNALLY_VISIBLE = malloc_initialize_h
 static void
 close_output_streams (void)
 {
-  int err = errno;
-
-  /* close_stream checks errno, so make sure it doesn't inherit some
-     random value.  */
-  errno = 0;
   if (close_stream (stdout) != 0)
     {
       emacs_perror ("Write error to standard output");
@@ -703,8 +698,6 @@ close_output_streams (void)
 
    if (close_stream (stderr) != 0)
      _exit (EXIT_FAILURE);
-
-   errno = err;
 }
 
 /* ARGSUSED */
