@@ -1,3 +1,9 @@
+2014-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* intervals.c (rotate_right, rotate_left): Fix up length computation.
+	Also change identifiers to match the comments, and add more assertions
+	(bug#16234).
+
 2014-04-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (insert_left_trunc_glyphs): Ensure the left truncation
