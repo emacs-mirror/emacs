@@ -1418,6 +1418,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (defun tramp--test-check-files (&rest files)
   "Runs a simple but comprehensive test over every file in FILES."
+  (tramp--instrument-test-case 10
   (let ((tmp-name1 (tramp--test-make-temp-name))
 	(tmp-name2 (tramp--test-make-temp-name 'local)))
     (unwind-protect
@@ -1448,7 +1449,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 			  tmp-name2 nil directory-files-no-dot-files-regexp)
 			 (sort (copy-sequence files) 'string-lessp))))
       (ignore-errors (delete-directory tmp-name1 'recursive))
-      (ignore-errors (delete-directory tmp-name2 'recursive)))))
+      (ignore-errors (delete-directory tmp-name2 'recursive))))))
 
 ;; This test is inspired by Bug#17238.
 (ert-deftest tramp-test30-special-characters ()
