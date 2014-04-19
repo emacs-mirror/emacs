@@ -3806,6 +3806,13 @@ AC_FUNC_FORK
 
 AC_CHECK_FUNCS(snprintf)
 
+dnl Check for glib.  This differs from other library checks in that
+dnl Emacs need not link to glib unless some other library is already
+dnl linking to glib.  Although glib provides no facilities that Emacs
+dnl needs for its own purposes, when glib is present Emacs needs to
+dnl use primitives like g_main_context_query to avoid clashing with
+dnl glib at a low level.
+dnl
 dnl Check this late, since it depends on $GTK_CFLAGS etc.
 XGSELOBJ=
 OLDCFLAGS="$CFLAGS"
