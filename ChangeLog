@@ -1,3 +1,9 @@
+2014-04-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Link to glib-using libraries when checking for glib (Bug#17289).
+	* configure.ac (XGSELOBJ): Include GTK_LIBS, RSVG_LIBS, etc.
+	when testing whether Glib is linked in.  Similarly for CFLAGS.
+
 2014-04-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* GNUmakefile: Speed up 'make bootstrap' in fresh checkout.

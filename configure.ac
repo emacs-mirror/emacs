@@ -3806,11 +3806,12 @@ AC_FUNC_FORK
 
 AC_CHECK_FUNCS(snprintf)
 
-dnl Check this late.  It depends on what other libraries (lrsvg, Gtk+ etc)
-dnl Emacs uses.
+dnl Check this late, since it depends on $GTK_CFLAGS etc.
 XGSELOBJ=
 OLDCFLAGS="$CFLAGS"
 OLDLIBS="$LIBS"
+CFLAGS="$CFLAGS $GTK_CFLAGS $RSVG_CFLAGS $DBUS_CFLAGS $SETTINGS_CFLAGS"
+LIBS="$LIBS $GTK_LIBS $RSVG_LIBS $DBUS_LIBS $SETTINGS_LIBS"
 CFLAGS="$CFLAGS $GFILENOTIFY_CFLAGS"
 LIBS="$LIBS $GFILENOTIFY_LIBS"
 AC_MSG_CHECKING([whether GLib is linked in])
