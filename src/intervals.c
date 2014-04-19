@@ -332,39 +332,43 @@ root_interval (INTERVAL interval)
 */
 
 static INTERVAL
-rotate_right (INTERVAL interval)
+rotate_right (INTERVAL A)
 {
-  INTERVAL i;
-  INTERVAL B = interval->left;
-  ptrdiff_t old_total = interval->total_length;
+  INTERVAL B = A->left;
+  INTERVAL c = B->right;
+  ptrdiff_t old_total = A->total_length;
+
+  eassert (old_total > 0);
+  eassert (old_total
+	   > TOTAL_LENGTH (B) + TOTAL_LENGTH (A->right));
+  eassert (TOTAL_LENGTH (B)
+	   > TOTAL_LENGTH (B->left) + TOTAL_LENGTH (c));
 
   /* Deal with any Parent of A;  make it point to B.  */
-  if (! ROOT_INTERVAL_P (interval))
+  if (! ROOT_INTERVAL_P (A))
     {
-      if (AM_LEFT_CHILD (interval))
-	set_interval_left (INTERVAL_PARENT (interval), B);
+      if (AM_LEFT_CHILD (A))
+	set_interval_left (INTERVAL_PARENT (A), B);
       else
-	set_interval_right (INTERVAL_PARENT (interval), B);
+	set_interval_right (INTERVAL_PARENT (A), B);
     }
-  copy_interval_parent (B, interval);
+  copy_interval_parent (B, A);
 
-  /* Make B the parent of A */
-  i = B->right;
-  set_interval_right (B, interval);
-  set_interval_parent (interval, B);
+  /* Make B the parent of A.  */
+  set_interval_right (B, A);
+  set_interval_parent (A, B);
 
-  /* Make A point to c */
-  set_interval_left (interval, i);
-  if (i)
-    set_interval_parent (i, interval);
+  /* Make A point to c.  */
+  set_interval_left (A, c);
+  if (c)
+    set_interval_parent (c, A);
 
   /* A's total length is decreased by the length of B and its left child.  */
-  interval->total_length -= B->total_length - LEFT_TOTAL_LENGTH (interval);
-  eassert (TOTAL_LENGTH (interval) >= 0);
+  A->total_length -= B->total_length - TOTAL_LENGTH (c);
+  eassert (TOTAL_LENGTH (A) > 0);
 
   /* B must have the same total length of A.  */
   B->total_length = old_total;
-  eassert (TOTAL_LENGTH (B) >= 0);
 
   return B;
 }
@@ -379,39 +383,43 @@ rotate_right (INTERVAL interval)
 */
 
 static INTERVAL
-rotate_left (INTERVAL interval)
+rotate_left (INTERVAL A)
 {
-  INTERVAL i;
-  INTERVAL B = interval->right;
-  ptrdiff_t old_total = interval->total_length;
+  INTERVAL B = A->right;
+  INTERVAL c = B->left;
+  ptrdiff_t old_total = A->total_length;
+
+  eassert (old_total > 0);
+  eassert (old_total
+	   > TOTAL_LENGTH (B) + TOTAL_LENGTH (A->left));
+  eassert (TOTAL_LENGTH (B)
+	   > TOTAL_LENGTH (B->right) + TOTAL_LENGTH (c));
 
   /* Deal with any parent of A;  make it point to B.  */
-  if (! ROOT_INTERVAL_P (interval))
+  if (! ROOT_INTERVAL_P (A))
     {
-      if (AM_LEFT_CHILD (interval))
-	set_interval_left (INTERVAL_PARENT (interval), B);
+      if (AM_LEFT_CHILD (A))
+	set_interval_left (INTERVAL_PARENT (A), B);
       else
-	set_interval_right (INTERVAL_PARENT (interval), B);
+	set_interval_right (INTERVAL_PARENT (A), B);
     }
-  copy_interval_parent (B, interval);
+  copy_interval_parent (B, A);
 
-  /* Make B the parent of A */
-  i = B->left;
-  set_interval_left (B, interval);
-  set_interval_parent (interval, B);
+  /* Make B the parent of A.  */
+  set_interval_left (B, A);
+  set_interval_parent (A, B);
 
-  /* Make A point to c */
-  set_interval_right (interval, i);
-  if (i)
-    set_interval_parent (i, interval);
+  /* Make A point to c.  */
+  set_interval_right (A, c);
+  if (c)
+    set_interval_parent (c, A);
 
   /* A's total length is decreased by the length of B and its right child.  */
-  interval->total_length -= B->total_length - RIGHT_TOTAL_LENGTH (interval);
-  eassert (TOTAL_LENGTH (interval) >= 0);
+  A->total_length -= B->total_length - TOTAL_LENGTH (c);
+  eassert (TOTAL_LENGTH (A) > 0);
 
   /* B must have the same total length of A.  */
   B->total_length = old_total;
-  eassert (TOTAL_LENGTH (B) >= 0);
 
   return B;
 }
