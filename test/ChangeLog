@@ -1,3 +1,8 @@
+2014-04-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp--test-check-files): Extend test.
+	(tramp-test31-utf8): Let-bind also `file-name-coding-system'.
+
 2014-04-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp-copy-size-limit): Set to nil.

@@ -1418,23 +1418,37 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (defun tramp--test-check-files (&rest files)
   "Runs a simple but comprehensive test over every file in FILES."
-  (let ((tmp-name (tramp--test-make-temp-name)))
+  (let ((tmp-name1 (tramp--test-make-temp-name))
+	(tmp-name2 (tramp--test-make-temp-name 'local)))
     (unwind-protect
 	(progn
-	  (make-directory tmp-name)
+	  (make-directory tmp-name1)
+	  (make-directory tmp-name2)
 	  (dolist (elt files)
-	    (let ((file (expand-file-name elt tmp-name)))
-	      (write-region elt nil file)
-	      (should (file-exists-p file))
+	    (let ((file1 (expand-file-name elt tmp-name1))
+		  (file2 (expand-file-name elt tmp-name2)))
+	      (write-region elt nil file1)
+	      (should (file-exists-p file1))
 	      ;; Check file contents.
 	      (with-temp-buffer
-		(insert-file-contents file)
-		(should (string-equal (buffer-string) elt)))))
+		(insert-file-contents file1)
+		(should (string-equal (buffer-string) elt)))
+	      ;; Copy file both directions.
+	      (copy-file file1 tmp-name2)
+	      (should (file-exists-p file2))
+	      (delete-file file1)
+	      (should-not (file-exists-p file1))
+	      (copy-file file2 tmp-name1)
+	      (should (file-exists-p file1))))
 	  ;; Check file names.
 	  (should (equal (directory-files
-			  tmp-name nil directory-files-no-dot-files-regexp)
-			 (sort files 'string-lessp))))
-      (ignore-errors (delete-directory tmp-name 'recursive)))))
+			  tmp-name1 nil directory-files-no-dot-files-regexp)
+			 (sort (copy-sequence files) 'string-lessp)))
+	  (should (equal (directory-files
+			  tmp-name2 nil directory-files-no-dot-files-regexp)
+			 (sort (copy-sequence files) 'string-lessp))))
+      (ignore-errors (delete-directory tmp-name1 'recursive))
+      (ignore-errors (delete-directory tmp-name2 'recursive)))))
 
 ;; This test is inspired by Bug#17238.
 (ert-deftest tramp-test30-special-characters ()
@@ -1463,11 +1477,12 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   (skip-unless (tramp--test-enabled))
 
   (let ((coding-system-for-read 'utf-8)
-	(coding-system-for-write 'utf-8))
-      (tramp--test-check-files
-       "أصبح بوسعك الآن تنزيل نسخة كاملة من موسوعة ويكيبيديا العربية لتصفحها بلا اتصال بالإنترنت"
-       "银河系漫游指南系列"
-       "Автостопом по гала́ктике")))
+	(coding-system-for-write 'utf-8)
+	(file-name-coding-system 'utf-8))
+    (tramp--test-check-files
+     "أصبح بوسعك الآن تنزيل نسخة كاملة من موسوعة ويكيبيديا العربية لتصفحها بلا اتصال بالإنترنت"
+     "银河系漫游指南系列"
+     "Автостопом по гала́ктике")))
 
 ;; This test is inspired by Bug#16928.
 (ert-deftest tramp-test32-asynchronous-requests ()
