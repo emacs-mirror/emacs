@@ -1832,9 +1832,10 @@ Does not preserve point."
 
 (defun sh-smie--sh-keyword-p (tok)
   "Non-nil if TOK (at which we're looking) really is a keyword."
-  (if (equal tok "in")
-      (sh-smie--sh-keyword-in-p)
-    (sh-smie--keyword-p)))
+  (cond
+   ((looking-at "[[:alnum:]_]+=") nil)
+   ((equal tok "in") (sh-smie--sh-keyword-in-p))
+   (t (sh-smie--keyword-p))))
 
 (defun sh-smie-sh-forward-token ()
   (if (and (looking-at "[ \t]*\\(?:#\\|\\(\\s|\\)\\|$\\)")

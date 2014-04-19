@@ -1,3 +1,8 @@
+2014-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-smie--sh-keyword-p): Handle variable
+	assignments such as "case=hello" (bug#17297).
+
 2014-04-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-run-real-handler, tramp-file-name-handler):
