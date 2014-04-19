@@ -14,10 +14,11 @@ void func()
   char local5[5] = {'1','2','3','4','5'};
   char *local6 = "12345";
   char local7 = local.anArray[0];
+  char local8 = true ? 10 : 11 ;
 
   // Check that all of the above was parsed
   local//-1-
-    ; //#1# ("local1" "local2" "local3" "local4" "local5" "local6" "local7")
+    ; //#1# ("local1" "local2" "local3" "local4" "local5" "local6" "local7" "local8" )
 
   local1.//-2-
     ; //#2# ("anArray" "member")
