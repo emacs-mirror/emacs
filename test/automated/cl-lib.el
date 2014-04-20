@@ -201,4 +201,23 @@
                     :b :a :a 42)
            '(42 :a))))
 
+(ert-deftest cl-lib-struct-accessors ()
+  (cl-defstruct mystruct (abc :readonly t) def)
+  (let ((x (make-mystruct :abc 1 :def 2)))
+    (should (eql (cl-struct-slot-value 'mystruct 'abc x) 1))
+    (should (eql (cl-struct-slot-value 'mystruct 'def x) 2))
+    (cl-struct-set-slot-value 'mystruct 'def x -1)
+    (should (eql (cl-struct-slot-value 'mystruct 'def x) -1))
+    (should (eql (cl-struct-slot-offset 'mystruct 'abc) 1))
+    (should-error (cl-struct-slot-offset 'mystruct 'marypoppins))
+    (should (equal (cl-struct-slot-info 'mystruct)
+                   '((cl-tag-slot) (abc :readonly t) (def))))))
+
+(ert-deftest cl-the ()
+  (should (eql (the integer 42) 42))
+  (should-error (the integer "abc"))
+  (let ((sideffect 0))
+    (should (= (the integer (incf sideffect)) 1))
+    (should (= sideffect 1))))
+
 ;;; cl-lib.el ends here

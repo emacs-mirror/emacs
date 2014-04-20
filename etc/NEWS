@@ -97,6 +97,9 @@ active region handling.
 ** You can specify a function's interactive-only property via `declare'.
 However you specify it, the property affects `describe-function' output.
 
+** You can access the slots of structures using `cl-struct-slot-value'
+   and `cl-struct-set-slot-value'.
+
 
 * Changes in Emacs 24.5 on Non-Free Operating Systems
 

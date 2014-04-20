@@ -4247,6 +4247,46 @@ of the included type and the first new slot.
 Except as noted, the @code{cl-defstruct} facility of this package is
 entirely compatible with that of Common Lisp.
 
+The @code{cl-defstruct} package also provides a few structure
+introspection functions.
+
+@defun cl-struct-sequence-type struct-type
+This function returns the underlying data structure for
+@code{struct-type}, which is a symbol.  It returns @code{vector} or
+@code{list}, or @code{nil} if @code{struct-type} is not actually a
+structure.
+
+@defun cl-struct-slot-info struct-type
+This function returns a list of slot descriptors for structure
+@code{struct-type}.  Each entry in the list is @code{(name . opts)},
+where @code{name} is the name of the slot and @code{opts} is the list
+of slot options given to @code{defstruct}.  Dummy entries represent
+the slots used for the struct name and that are skipped to implement
+@code{:initial-offset}.
+
+@defun cl-struct-slot-offset struct-type slot-name
+Return the offset of slot @code{slot-name} in @code{struct-type}.  The
+returned zero-based slot index is relative to the start of the
+structure data type and is adjusted for any structure name and
+:initial-offset slots.  Signal error if struct @code{struct-type} does
+not contain @code{slot-name}.
+
+@defun cl-struct-slot-value struct-type slot-name inst
+Return the value of slot @code{slot-name} in @code{inst} of
+@code{struct-type}.  @code{struct} and @code{slot-name} are symbols.
+@code{inst} is a structure instance.  This routine is also a
+@code{setf} place.  @code{cl-struct-slot-value} uses
+@code{cl-struct-slot-offset} internally and can signal the same
+errors.
+
+@defun cl-struct-set-slot-value struct-type slot-name inst value
+Set the value of slot @code{slot-name} in @code{inst} of
+@code{struct-type}.  @code{struct} and @code{slot-name} are symbols.
+@code{inst} is a structure instance.  @code{value} is the value to
+which to set the given slot.  Return @code{value}.
+@code{cl-struct-slot-value} uses @code{cl-struct-set-slot-offset}
+internally and can signal the same errors.
+
 @node Assertions
 @chapter Assertions and Errors
 
