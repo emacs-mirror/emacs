@@ -90,6 +90,8 @@ active region handling.
 
 ** deactivate-mark is now buffer-local.
 
+** cl-the now asserts that its argument is of the given type.
+
 
 * Lisp Changes in Emacs 24.5
 
