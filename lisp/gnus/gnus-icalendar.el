@@ -38,6 +38,7 @@
 (require 'gmm-utils)
 (require 'mm-decode)
 (require 'gnus-sum)
+(require 'gnus-art)
 
 (eval-when-compile (require 'cl))
 

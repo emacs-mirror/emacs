@@ -1,3 +1,7 @@
+2014-04-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-icalendar.el: Require gnus-art.
+
 2014-04-20  Jan Tatarik  <jan.tatarik@gmail.com>
 
 	* gnus-icalendar.el (gnus-icalendar-event->org-entry)
