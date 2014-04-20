@@ -1,3 +1,11 @@
+2014-04-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el
+	(tramp-test19-directory-files-and-attributes)
+	(tramp-test22-file-times): Check for `file-attributes' equality
+	only if there is a usable timestamp.
+	(tramp--test-check-files): Do not use `copy-sequence'.
+
 2014-04-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp--test-check-files): Extend test.
