@@ -1,5 +1,13 @@
 2014-04-20  Daniel Colascione  <dancol@dancol.org>
 
+	* vc/vc.el (vc-root-dir): New public autoloaded function for
+	generically finding the current VC root.
+	* vc/vc-hooks.el (vc-not-supported): New error.
+	(vc-call-backend): Signal `vc-not-supported' instead of generic
+	error.
+
+2014-04-20  Daniel Colascione  <dancol@dancol.org>
+
 	* emacs-lisp/cl-macs.el (cl-the): Make `cl-the' assert its type
 	argument.
 	(cl--const-expr-val): cl--const-expr-val should macroexpand its

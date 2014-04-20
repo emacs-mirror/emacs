@@ -1879,6 +1879,19 @@ saving the buffer."
 	 (called-interactively-p 'interactive))))))
 
 ;;;###autoload
+(defun vc-root-dir ()
+  "Return the root directory for the current VC tree.
+Return nil if the root directory cannot be identified."
+  (let ((backend (vc-deduce-backend)))
+    (if backend
+        (condition-case err
+            (vc-call-backend backend 'root default-directory)
+          (vc-not-supported
+           (unless (eq (cadr err) 'root)
+             (signal (car err) (cdr err)))
+           nil)))))
+
+;;;###autoload
 (defun vc-revision-other-window (rev)
   "Visit revision REV of the current file in another window.
 If the current file is named `F', the revision is named `F.~REV~'.
