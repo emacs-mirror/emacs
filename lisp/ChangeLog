@@ -1,3 +1,8 @@
+2014-04-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-get-ls-command): Use "-b" argument if
+	possible.
+
 2014-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-smie--sh-keyword-p): Handle variable

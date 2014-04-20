@@ -4966,6 +4966,12 @@ Return ATTR."
 		      vec (format
 			   "%s --color=never -al /dev/null" result))
 		 (setq result (concat result " --color=never")))
+	       ;; This should support file names with special
+	       ;; characters.  If this option is not supported, such
+	       ;; file names might fail.
+	       (when (tramp-send-command-and-check
+		      vec (format "%s -b /dev/null" result))
+		 (setq result (concat result " -b")))
 	       (throw 'ls-found result))
 	     (setq dl (cdr dl))))))
      (tramp-error vec 'file-error "Couldn't find a proper `ls' command"))))
