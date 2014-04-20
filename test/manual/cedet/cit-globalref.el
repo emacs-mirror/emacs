@@ -141,8 +141,8 @@
   (message "Jump to myUtilFunNoNS success.")
 
   ;; The only file it needed to find
-  (when (not (equal cit-globalref-file-log '("src/Util.cc")))
-    (message "Too many files searched, should have only found src/Util.cc")
+  (when (not (equal cit-globalref-file-log nil)) ;; '("src/Util.cc")))
+    (message "Too many files searched, should have found files in buffers.")
     (error "Found %S" cit-globalref-file-log))
 
   ;; Debug reporting.
