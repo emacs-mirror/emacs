@@ -603,7 +603,9 @@ See also related options `desktop-restore-reuses-frames',
 
 +++
 ** New Dired minor mode `dired-hide-details-mode' toggles whether details,
-such as file ownership or permissions, are visible.
+such as file ownership or permissions, are visible in Dired buffers.
+See the new options `dired-hide-details-hide-symlink-targets' and
+`dired-hide-details-hide-information-lines' for customizing what to hide.
 
 ---
 ** You can enable ElDoc inside the `eval-expression' minibuffer with:
