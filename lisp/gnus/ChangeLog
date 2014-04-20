@@ -1,3 +1,13 @@
+2014-04-20  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar-event->org-entry)
+	(gnus-icalendar--update-org-event): put event timestamp in
+	the org entry body instead of the drawer.
+	(gnus-icalendar-event--get-attendee-names): list of participants should
+	contain even attendees without common name attribute.
+	(gnus-icalendar--update-org-event): don't generate duplicates of empty
+	property tags in org drawers.
+
 2014-04-15  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gmm-utils.el (gmm-format-time-string): New function.

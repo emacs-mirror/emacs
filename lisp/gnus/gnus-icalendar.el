@@ -170,7 +170,9 @@
                           (caddr event))))
 
     (gmm-labels ((attendee-role (prop) (plist-get (cadr prop) 'ROLE))
-                 (attendee-name (prop) (plist-get (cadr prop) 'CN))
+                 (attendee-name (prop)
+                                (or (plist-get (cadr prop) 'CN)
+                                    (replace-regexp-in-string "^.*MAILTO:" "" (caddr prop))))
                  (attendees-by-type (type)
                    (gnus-remove-if-not
                     (lambda (p) (string= (attendee-role p) type))
@@ -452,7 +454,6 @@ Return nil for non-recurring EVENT."
                       "Not replied yet"))
              (props `(("ICAL_EVENT" . "t")
                       ("ID" . ,uid)
-                      ("DT" . ,(gnus-icalendar-event:org-timestamp event))
                       ("ORGANIZER" . ,(gnus-icalendar-event:organizer event))
                       ("LOCATION" . ,(gnus-icalendar-event:location event))
                       ("PARTICIPATION_TYPE" . ,(symbol-name (gnus-icalendar-event:participation-type event)))
@@ -470,7 +471,9 @@ Return nil for non-recurring EVENT."
       (when description
         (save-restriction
           (narrow-to-region (point) (point))
-          (insert description)
+          (insert (gnus-icalendar-event:org-timestamp event)
+                  "\n\n"
+                  description)
           (indent-region (point-min) (point-max) 2)
           (fill-region (point-min) (point-max))))
 
@@ -551,20 +554,31 @@ is searched."
                 (when description
                   (save-restriction
                     (narrow-to-region (point) (point))
-                    (insert "\n" (replace-regexp-in-string "[\n]+$" "\n" description) "\n")
+                    (insert "\n"
+                            (gnus-icalendar-event:org-timestamp event)
+                            "\n\n"
+                            (replace-regexp-in-string "[\n]+$" "\n" description)
+                            "\n")
                     (indent-region (point-min) (point-max) (1+ entry-outline-level))
                     (fill-region (point-min) (point-max))))
 
                 ;; update entry properties
-                (org-entry-put event-pos "DT" (gnus-icalendar-event:org-timestamp event))
-                (org-entry-put event-pos "ORGANIZER" organizer)
-                (org-entry-put event-pos "LOCATION" location)
-                (org-entry-put event-pos "PARTICIPATION_TYPE" (symbol-name participation-type))
-                (org-entry-put event-pos "REQ_PARTICIPANTS" (gnus-icalendar--format-participant-list req-participants))
-                (org-entry-put event-pos "OPT_PARTICIPANTS" (gnus-icalendar--format-participant-list opt-participants))
-                (org-entry-put event-pos "RRULE" recur)
-                (when reply-status (org-entry-put event-pos "REPLY"
-                                                  (capitalize (symbol-name reply-status))))
+                (gmm-labels
+                    ((update-org-entry (position property value)
+                                       (if (or (null value)
+                                               (string= value ""))
+                                           (org-entry-delete position property)
+                                         (org-entry-put position property value))))
+
+                  (update-org-entry event-pos "ORGANIZER" organizer)
+                  (update-org-entry event-pos "LOCATION" location)
+                  (update-org-entry event-pos "PARTICIPATION_TYPE" (symbol-name participation-type))
+                  (update-org-entry event-pos "REQ_PARTICIPANTS" (gnus-icalendar--format-participant-list req-participants))
+                  (update-org-entry event-pos "OPT_PARTICIPANTS" (gnus-icalendar--format-participant-list opt-participants))
+                  (update-org-entry event-pos "RRULE" recur)
+                  (update-org-entry event-pos "REPLY"
+                                    (if reply-status (capitalize (symbol-name reply-status))
+                                      "Not replied yet")))
                 (save-buffer)))))))))
 
 
