@@ -1,0 +1,1 @@
+/* Fake emacs.c for faking out EDE tests */
