@@ -1,3 +1,7 @@
+2014-04-20  Daniel Colascione  <dancol@dancol.org>
+
+	* cl.texi (Declarations): Document changes to `cl-the' and defstruct functions.
+
 2014-04-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (infoclean): Be consistent about reporting failures.

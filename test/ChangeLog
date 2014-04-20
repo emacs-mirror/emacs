@@ -1,3 +1,7 @@
+2014-04-20  Daniel Colascione  <dancol@dancol.org>
+
+	* automated/cl-lib.el (cl-lib-struct-accessors,cl-the): New tests.
+
 2014-04-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp--test-check-files): Extend test.

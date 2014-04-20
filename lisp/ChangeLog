@@ -1,3 +1,16 @@
+2014-04-20  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/cl-macs.el (cl-the): Make `cl-the' assert its type
+	argument.
+	(cl--const-expr-val): cl--const-expr-val should macroexpand its
+	argument in case we're inside a symbol-macrolet.
+	(cl--do-arglist, cl--compiler-macro-typep)
+	(cl--compiler-macro-member, cl--compiler-macro-assoc): Pass macro
+	environment to `cl--const-expr-val'.
+	(cl-struct-sequence-type,cl-struct-slot-info)
+	(cl-struct-slot-offset, cl-struct-slot-value)
+	(cl-struct-set-slot-value): New functions.
+
 2014-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-smie--sh-keyword-p): Handle variable

@@ -134,8 +134,15 @@
 	((symbolp x) (and (memq x '(nil t)) t))
 	(t t)))
 
-(defun cl--const-expr-val (x)
-  (and (macroexp-const-p x) (if (consp x) (nth 1 x) x)))
+(defun cl--const-expr-val (x &optional environment default)
+  "Return the value of X known at compile-time.
+If X is not known at compile time, return DEFAULT.  Before
+testing whether X is known at compile time, macroexpand it in
+ENVIRONMENT."
+  (let ((x (macroexpand-all x environment)))
+    (if (macroexp-const-p x)
+        (if (consp x) (nth 1 x) x)
+      default)))
 
 (defun cl--expr-contains (x y)
   "Count number of times X refers to Y.  Return nil for 0 times."
@@ -519,7 +526,8 @@ its argument list allows full Common Lisp conventions."
 				 look
 			       `(or ,look
                                     ,(if (eq (cl--const-expr-p def) t)
-					 `'(nil ,(cl--const-expr-val def))
+					 `'(nil ,(cl--const-expr-val
+                                                  def macroexpand-all-environment))
 				       `(list nil ,def))))))))
 	      (push karg keys)))))
       (setq keys (nreverse keys))
@@ -2057,10 +2065,21 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
   (declare (debug t))
   (cons 'progn body))
 ;;;###autoload
-(defmacro cl-the (_type form)
-  "At present this ignores TYPE and is simply equivalent to FORM."
+(defmacro cl-the (type form)
+  "Return FORM.  If type-checking is enabled, assert that it is of TYPE."
   (declare (indent 1) (debug (cl-type-spec form)))
-  form)
+  (if (not (or (not (cl--compiling-file))
+               (< cl--optimize-speed 3)
+               (= cl--optimize-safety 3)))
+      form
+    (let* ((temp (if (cl--simple-expr-p form 3)
+                     form (make-symbol "--cl-var--")))
+           (body `(progn (unless ,(cl--make-type-test temp type)
+                           (signal 'wrong-type-argument
+                                   (list ',type ,temp ',form)))
+                         ,temp)))
+      (if (eq temp form) body
+        `(let ((,temp ,form)) ,body)))))
 
 (defvar cl--proclaim-history t)    ; for future compilers
 (defvar cl--declare-stack t)       ; for future compilers
@@ -2577,6 +2596,83 @@ non-nil value, that slot cannot be set via `setf'.
           forms)
     `(progn ,@(nreverse (cons `',name forms)))))
 
+(defun cl-struct-sequence-type (struct-type)
+  "Return the sequence used to build STRUCT-TYPE.
+STRUCT-TYPE is a symbol naming a struct type.  Return 'vector or
+'list, or nil if STRUCT-TYPE is not a struct type. "
+  (car (get struct-type 'cl-struct-type)))
+(put 'cl-struct-sequence-type 'side-effect-free t)
+
+(defun cl-struct-slot-info (struct-type)
+  "Return a list of slot names of struct STRUCT-TYPE.
+Each entry is a list (SLOT-NAME . OPTS), where SLOT-NAME is a
+slot name symbol and OPTS is a list of slot options given to
+`cl-defstruct'.  Dummy slots that represent the struct name and
+slots skipped by :initial-offset may appear in the list."
+  (get struct-type 'cl-struct-slots))
+(put 'cl-struct-slot-info 'side-effect-free t)
+
+(defun cl-struct-slot-offset (struct-type slot-name)
+  "Return the offset of slot SLOT-NAME in STRUCT-TYPE.
+The returned zero-based slot index is relative to the start of
+the structure data type and is adjusted for any structure name
+and :initial-offset slots.  Signal error if struct STRUCT-TYPE
+does not contain SLOT-NAME."
+  (or (cl-position slot-name
+                   (cl-struct-slot-info struct-type)
+                   :key #'car :test #'eq)
+      (error "struct %s has no slot %s" struct-type slot-name)))
+(put 'cl-struct-slot-offset 'side-effect-free t)
+
+(defun cl-struct-slot-value (struct-type slot-name inst)
+  "Return the value of slot SLOT-NAME in INST of STRUCT-TYPE.
+STRUCT and SLOT-NAME are symbols.  INST is a structure instance."
+  (unless (cl-typep inst struct-type)
+    (signal 'wrong-type-argument (list struct-type inst)))
+  (elt inst (cl-struct-slot-offset struct-type slot-name)))
+(put 'cl-struct-slot-value 'side-effect-free t)
+
+(defun cl-struct-set-slot-value (struct-type slot-name inst value)
+  "Set the value of slot SLOT-NAME in INST of STRUCT-TYPE.
+STRUCT and SLOT-NAME are symbols.  INST is a structure instance.
+VALUE is the value to which to set the given slot.  Return
+VALUE."
+  (unless (cl-typep inst struct-type)
+    (signal 'wrong-type-argument (list struct-type inst)))
+  (setf (elt inst (cl-struct-slot-offset struct-type slot-name)) value))
+
+(defsetf cl-struct-slot-value cl-struct-set-slot-value)
+
+(cl-define-compiler-macro cl-struct-slot-value
+    (&whole orig struct-type slot-name inst)
+  (or (let* ((macenv macroexpand-all-environment)
+             (struct-type (cl--const-expr-val struct-type macenv))
+             (slot-name (cl--const-expr-val slot-name macenv)))
+        (and struct-type (symbolp struct-type)
+             slot-name (symbolp slot-name)
+             (assq slot-name (cl-struct-slot-info struct-type))
+             (let ((idx (cl-struct-slot-offset struct-type slot-name)))
+               (cl-ecase (cl-struct-sequence-type struct-type)
+                 (vector `(aref (cl-the ,struct-type ,inst) ,idx))
+                 (list `(nth ,idx (cl-the ,struct-type ,inst)))))))
+      orig))
+
+(cl-define-compiler-macro cl-struct-set-slot-value
+    (&whole orig struct-type slot-name inst value)
+  (or (let* ((macenv macroexpand-all-environment)
+             (struct-type (cl--const-expr-val struct-type macenv))
+             (slot-name (cl--const-expr-val slot-name macenv)))
+        (and struct-type (symbolp struct-type)
+             slot-name (symbolp slot-name)
+             (assq slot-name (cl-struct-slot-info struct-type))
+             (let ((idx (cl-struct-slot-offset struct-type slot-name)))
+               (cl-ecase (cl-struct-sequence-type struct-type)
+                 (vector `(setf (aref (cl-the ,struct-type ,inst) ,idx)
+                                ,value))
+                 (list `(setf (nth ,idx (cl-the ,struct-type ,inst))
+                              ,value))))))
+      orig))
+
 ;;; Types and assertions.
 
 ;;;###autoload
@@ -2653,7 +2749,8 @@ TYPE is a Common Lisp-style type specifier."
 (defun cl--compiler-macro-typep (form val type)
   (if (macroexp-const-p type)
       (macroexp-let2 macroexp-copyable-p temp val
-        (cl--make-type-test temp (cl--const-expr-val type)))
+        (cl--make-type-test temp (cl--const-expr-val
+                                  type macroexpand-all-environment)))
     form))
 
 ;;;###autoload
@@ -2829,7 +2926,8 @@ The function's arguments should be treated as immutable.
 
 (defun cl--compiler-macro-member (form a list &rest keys)
   (let ((test (and (= (length keys) 2) (eq (car keys) :test)
-		   (cl--const-expr-val (nth 1 keys)))))
+		   (cl--const-expr-val (nth 1 keys)
+                                       macroexpand-all-environment))))
     (cond ((eq test 'eq) `(memq ,a ,list))
 	  ((eq test 'equal) `(member ,a ,list))
 	  ((or (null keys) (eq test 'eql)) `(memql ,a ,list))
@@ -2837,11 +2935,12 @@ The function's arguments should be treated as immutable.
 
 (defun cl--compiler-macro-assoc (form a list &rest keys)
   (let ((test (and (= (length keys) 2) (eq (car keys) :test)
-		   (cl--const-expr-val (nth 1 keys)))))
+		   (cl--const-expr-val (nth 1 keys)
+                                       macroexpand-all-environment))))
     (cond ((eq test 'eq) `(assq ,a ,list))
 	  ((eq test 'equal) `(assoc ,a ,list))
 	  ((and (macroexp-const-p a) (or (null keys) (eq test 'eql)))
-	   (if (floatp (cl--const-expr-val a))
+	   (if (floatp (cl--const-expr-val a macroexpand-all-environment))
 	       `(assoc ,a ,list) `(assq ,a ,list)))
 	  (t form))))
 

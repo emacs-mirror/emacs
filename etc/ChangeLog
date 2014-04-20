@@ -1,3 +1,7 @@
+2014-04-20  Daniel Colascione  <dancol@dancol.org>
+
+	* NEWS: Mention new struct functions and changes to `cl-the'.
+
 2014-04-17  Daniel Colascione  <dancol@dancol.org>
 
 	* NEWS: Mention bracketed paste support.

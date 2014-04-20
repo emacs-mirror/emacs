@@ -2627,10 +2627,10 @@ In this package, @code{cl-locally} is no different from @code{progn}.
 @end defmac
 
 @defmac cl-the type form
-Type information provided by @code{cl-the} is ignored in this package;
-in other words, @code{(cl-the @var{type} @var{form})} is equivalent to
-@var{form}.  Future byte-compiler optimizations may make use of this
-information.
+@code{cl-the} returns the value of @code{form}, first checking (if
+optimization settings permit) that it is of type @code{type}.  Future
+byte-compiler optimizations may also make use of this information to
+improve runtime efficiency.
 
 For example, @code{mapcar} can map over both lists and arrays.  It is
 hard for the compiler to expand @code{mapcar} into an in-line loop
@@ -4246,6 +4246,51 @@ of the included type and the first new slot.
 
 Except as noted, the @code{cl-defstruct} facility of this package is
 entirely compatible with that of Common Lisp.
+
+The @code{cl-defstruct} package also provides a few structure
+introspection functions.
+
+@defun cl-struct-sequence-type struct-type
+This function returns the underlying data structure for
+@code{struct-type}, which is a symbol.  It returns @code{vector} or
+@code{list}, or @code{nil} if @code{struct-type} is not actually a
+structure.
+@end defun
+
+@defun cl-struct-slot-info struct-type
+This function returns a list of slot descriptors for structure
+@code{struct-type}.  Each entry in the list is @code{(name . opts)},
+where @code{name} is the name of the slot and @code{opts} is the list
+of slot options given to @code{defstruct}.  Dummy entries represent
+the slots used for the struct name and that are skipped to implement
+@code{:initial-offset}.
+@end defun
+
+@defun cl-struct-slot-offset struct-type slot-name
+Return the offset of slot @code{slot-name} in @code{struct-type}.  The
+returned zero-based slot index is relative to the start of the
+structure data type and is adjusted for any structure name and
+:initial-offset slots.  Signal error if struct @code{struct-type} does
+not contain @code{slot-name}.
+@end defun
+
+@defun cl-struct-slot-value struct-type slot-name inst
+Return the value of slot @code{slot-name} in @code{inst} of
+@code{struct-type}.  @code{struct} and @code{slot-name} are symbols.
+@code{inst} is a structure instance.  This routine is also a
+@code{setf} place.  @code{cl-struct-slot-value} uses
+@code{cl-struct-slot-offset} internally and can signal the same
+errors.
+@end defun
+
+@defun cl-struct-set-slot-value struct-type slot-name inst value
+Set the value of slot @code{slot-name} in @code{inst} of
+@code{struct-type}.  @code{struct} and @code{slot-name} are symbols.
+@code{inst} is a structure instance.  @code{value} is the value to
+which to set the given slot.  Return @code{value}.
+@code{cl-struct-slot-value} uses @code{cl-struct-set-slot-offset}
+internally and can signal the same errors.
+@end defun
 
 @node Assertions
 @chapter Assertions and Errors
