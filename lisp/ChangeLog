@@ -1,5 +1,11 @@
 2014-04-21  Daniel Colascione  <dancol@dancol.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-recurse-toplevel): New
+	function.
+	(byte-compile-recurse-toplevel,
+	(byte-compile-initial-macro-environment,
+	(byte-compile-toplevel-file-form): Use it.
+
 	* emacs-lisp/cl-macs.el:
 	(cl--loop-let): Properly destructure `while' clauses.
 

@@ -97,7 +97,10 @@ each clause."
 (defun macroexp--compiler-macro (handler form)
   (condition-case err
       (apply handler form (cdr form))
-    (error (message "Compiler-macro error for %S: %S" (car form) err)
+    (error
+     (message "--------------------------------------------------")
+     (backtrace)
+     (message "Compiler-macro error for %S: %S" (car form) err)
            form)))
 
 (defun macroexp--funcall-if-compiled (_form)

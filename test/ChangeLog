@@ -1,5 +1,12 @@
 2014-04-21  Daniel Colascione  <dancol@dancol.org>
 
+	* automated/bytecomp-tests.el (test-byte-comp-compile-and-load):
+	New function.
+	(test-byte-comp-macro-expansion)
+	(test-byte-comp-macro-expansion-eval-and-compile)
+	(test-byte-comp-macro-expansion-eval-when-compile)
+	(test-byte-comp-macro-expand-lexical-override): New tests.
+
 	* automated/cl-lib.el (cl-loop-destructuring-with): New test.
 	(cl-the): Fix cl-the test.
 
