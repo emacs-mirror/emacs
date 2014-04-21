@@ -1,3 +1,8 @@
+2014-04-21  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/cl-macs.el:
+	(cl--loop-let): Properly destructure `while' clauses.
+
 2014-04-20  Daniel Colascione  <dancol@dancol.org>
 
 	* vc/vc.el (vc-root-dir): New public autoloaded function for

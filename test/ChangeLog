@@ -1,3 +1,7 @@
+2014-04-21  Daniel Colascione  <dancol@dancol.org>
+
+	* automated/cl-lib.el (cl-loop-destructuring-with): New test.
+
 2014-04-20  Daniel Colascione  <dancol@dancol.org>
 
 	* automated/cl-lib.el (cl-lib-struct-accessors,cl-the): New tests.

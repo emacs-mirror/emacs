@@ -220,4 +220,7 @@
     (should (= (the integer (incf sideffect)) 1))
     (should (= sideffect 1))))
 
+(ert-deftest cl-loop-destructuring-with ()
+  (should (equal (cl-loop with (a b c) = '(1 2 3) return (+ a b c)) 6)))
+
 ;;; cl-lib.el ends here
