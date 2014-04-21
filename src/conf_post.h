@@ -123,7 +123,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #endif
 
 /* We must intercept 'opendir' calls to stash away the directory name,
-   so we could reuse it in realinkat, see msdos.c.  */
+   so we could reuse it in readlinkat; see msdos.c.  */
 #define opendir sys_opendir
 
 /* The "portable" definition of _GL_INLINE on config.h does not work

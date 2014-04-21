@@ -1557,7 +1557,7 @@
 	* ede.texi (Top): Rename from top, all uses changed.
 	* eshell.texi: Add missing argument to @sp.
 	* forms.texi (Top): Reorder menu to match structure.
-	* htmlfontify.texi (Customisation): Add missing @item in
+	* htmlfontify.texi (Customization): Add missing @item in
 	@enumerate.
 	* org.texi (Advanced features): Add missing argument for @item.
 	(Property searches): Use @backslashchar{} in macro argument.
