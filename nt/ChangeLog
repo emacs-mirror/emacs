@@ -1,3 +1,8 @@
+2014-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (lseek): Define only if not already a macro.
+	Suggested by Fabrice Popineau <fabrice.popineau@gmail.com>.
+
 2014-04-09  Ken Brown  <kbrown@cornell.edu>
 
 	* emacs.rc: Revert last change.

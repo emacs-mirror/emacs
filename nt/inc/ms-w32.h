@@ -276,7 +276,10 @@ typedef int pid_t;
 #endif
 #define isatty    _isatty
 #define _longjmp  longjmp
+/* MinGW64 defines lseek to invoke lseek64.  */
+#ifndef lseek
 #define lseek     _lseek
+#endif
 #define popen     _popen
 #define pclose    _pclose
 #define strdup    _strdup
