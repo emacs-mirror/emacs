@@ -1725,6 +1725,15 @@ be non-negative integers."
 				 'completion-ignore-case))
 			      1 0)))
 
+	      (tramp-message v 1 "Tramp test: %s" (tramp-get-ls-command v))
+	      (tramp-send-command
+	       v
+	       (format "\\cd %s 2>&1 && %s %s -a 2>/dev/null"
+                      (tramp-shell-quote-argument localname)
+                      (tramp-get-ls-command v)
+                      (if (zerop (length filename))
+                          "."
+                        (concat (tramp-shell-quote-argument filename) "* -d"))))
               (format (concat
                        "(\\cd %s 2>&1 && (%s %s -a 2>/dev/null"
                        ;; `ls' with wildcard might fail with `Argument
@@ -1734,7 +1743,7 @@ be non-negative integers."
                        ;; wildcard.  This will return "too many" entries
                        ;; but that isn't harmful.
                        " || %s -a 2>/dev/null)"
-                       " | while read f; do"
+                       " | while IFS= read f; do"
                        " if %s -d \"$f\" 2>/dev/null;"
                        " then \\echo \"$f/\"; else \\echo \"$f\"; fi; done"
                        " && \\echo ok) || \\echo fail")
@@ -1756,6 +1765,7 @@ be non-negative integers."
 
            ;; Now grab the output.
            (with-current-buffer (tramp-get-buffer v)
+	     (tramp-message v 1 "Tramp test: %s" (buffer-string))
              (goto-char (point-max))
 
              ;; Check result code, found in last line of output.
@@ -4966,12 +4976,6 @@ Return ATTR."
 		      vec (format
 			   "%s --color=never -al /dev/null" result))
 		 (setq result (concat result " --color=never")))
-	       ;; This should support file names with special
-	       ;; characters.  If this option is not supported, such
-	       ;; file names might fail.
-	       (when (tramp-send-command-and-check
-		      vec (format "%s -b /dev/null" result))
-		 (setq result (concat result " -b")))
 	       (throw 'ls-found result))
 	     (setq dl (cdr dl))))))
      (tramp-error vec 'file-error "Couldn't find a proper `ls' command"))))

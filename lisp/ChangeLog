@@ -1,3 +1,10 @@
+2014-04-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-file-name-all-completions): Set
+	"IFS=" when using read builtin, in order to preserve spaces in
+	the file name.  Add test messages for hunting a bug on hydra.
+	(tramp-get-ls-command): Undo using "-b" argument.  It doesn't help.
+
 2014-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/prog-mode.el (prettify-symbols--compose-symbol):
