@@ -611,8 +611,12 @@ convenient to switch between buffers.
 the buffers distinct names.  The default method
 (@code{uniquify-buffer-name-style} set to
 @code{post-forward-angle-brackets}) for making buffer names unique
-adds @samp{<dir1>}, @samp{<dir2>}, etc. to the end of the buffer
-names.
+adds @samp{<dir1>}, @samp{<dir2>}, etc.@: to the end of the buffer
+names, where @file{dir1} and @file{dir2} are the minimal parts of the
+leading directories needed to make the buffer name unique.  For
+example, if you have files @file{/foo/bar/mumble/name} and
+@file{/baz/quux/mumble/name} visited, their buffers will be named
+@samp{name<bar/mumble>} and @samp{name<quux/mumble>} correspondingly.
 
 @vindex uniquify-buffer-name-style
   There are several styles to make buffer names unique.  To select

@@ -1,3 +1,13 @@
+2014-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffers.texi (Uniquify): Clarify the default uniquification.
+
+	* indent.texi (Tab Stops): Improve wording.
+
+	* cmdargs.texi (General Variables): Improve docs of
+	EMACSLOADPATH.  Index all the environment variables.
+	(Misc Variables): Index all the environment variables.
+
 2014-04-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Cursor Display): Explain better how to customize

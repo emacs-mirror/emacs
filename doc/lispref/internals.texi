@@ -111,6 +111,8 @@ drawback that the documentation strings take up space in Emacs all the
 time.)
 @end itemize
 
+@cindex change @code{load-path} at configure time
+@cindex @option{--enable-locallisppath} option to @command{configure}
   It is not advisable to put anything in @file{site-load.el} or
 @file{site-init.el} that would alter any of the features that users
 expect in an ordinary unmodified Emacs.  If you feel you must override
