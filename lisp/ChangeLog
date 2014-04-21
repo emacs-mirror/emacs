@@ -1,9 +1,12 @@
+2014-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* image-mode.el (image-mode-window-put): Don't assume there's a `t'
+	entry in image-mode-winprops-alist.
+
 2014-04-21  Daniel Colascione  <dancol@dancol.org>
 
-	* emacs-lisp/bytecomp.el (byte-compile-recurse-toplevel): New
-	function.
-	(byte-compile-recurse-toplevel,
-	(byte-compile-initial-macro-environment,
+	* emacs-lisp/bytecomp.el (byte-compile-recurse-toplevel): New function.
+	(byte-compile-recurse-toplevel, byte-compile-initial-macro-environment)
 	(byte-compile-toplevel-file-form): Use it.
 
 	* emacs-lisp/cl-macs.el:
@@ -14,8 +17,7 @@
 	* vc/vc.el (vc-root-dir): New public autoloaded function for
 	generically finding the current VC root.
 	* vc/vc-hooks.el (vc-not-supported): New error.
-	(vc-call-backend): Signal `vc-not-supported' instead of generic
-	error.
+	(vc-call-backend): Signal `vc-not-supported' instead of generic error.
 
 2014-04-20  Daniel Colascione  <dancol@dancol.org>
 
