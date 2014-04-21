@@ -1120,6 +1120,12 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
     if (res != ResOK) return res;
   }
 
+  RING_FOR(node, &arena->chainRing, nextNode) {
+    Chain chain = RING_ELT(Chain, chainRing, node);
+    res = ChainDescribe(chain, stream);
+    if (res != ResOK) return res;
+  }
+
   TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
     if (TraceSetIsMember(arena->busyTraces, trace)) {
       res = TraceDescribe(trace, stream);

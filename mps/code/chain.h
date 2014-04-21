@@ -74,6 +74,8 @@ typedef struct mps_chain_s {
 } ChainStruct;
 
 
+extern Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream);
+
 extern Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
                        GenParamStruct *params);
 extern void ChainDestroy(Chain chain);
@@ -88,12 +90,14 @@ extern size_t ChainGens(Chain chain);
 extern Res ChainAlloc(Seg *segReturn, Chain chain, Serial genNr,
                       SegClass class, Size size, Pool pool,
                       Bool withReservoirPermit, ArgList args);
+extern Res ChainDescribe(Chain chain, mps_lib_FILE *stream);
 
 extern Bool PoolGenCheck(PoolGen gen);
 extern Res PoolGenInit(PoolGen gen, Chain chain, Serial nr, Pool pool);
 extern void PoolGenFinish(PoolGen gen);
 extern void PoolGenFlip(PoolGen gen);
 #define PoolGenNr(gen) ((gen)->nr)
+extern Res PoolGenDescribe(PoolGen gen, mps_lib_FILE *stream);
 
 
 #endif /* chain_h */
