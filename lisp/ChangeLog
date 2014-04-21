@@ -1,5 +1,8 @@
 2014-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* dframe.el (dframe-get-focus): Remove `hook' argument (bug#17311).
+	* speedbar.el (speedbar-get-focus): Run the "hook" afterwards instead.
+
 	* emacs-lisp/cl-macs.el (cl--loop-let): Avoid `nil' as var name.
 
 2014-04-21  Michael Albinus  <michael.albinus@gmx.de>
