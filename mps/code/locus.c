@@ -126,6 +126,36 @@ static Size GenDescTotalSize(GenDesc gen)
 }
 
 
+/* GenDescDescribe -- describe a generation in a chain */
+
+Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream)
+{
+  Res res;
+  Ring node, nextNode;
+
+  if (!TESTT(GenDesc, gen)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+
+  res = WriteF(stream,
+               "GenDesc $P {\n", (WriteFP)gen,
+               "zones $B\n", (WriteFB)gen->zones,
+               "capacity $U\n", (WriteFU)gen->capacity,
+               "mortality $D\n", (WriteFD)gen->mortality,
+               "proflow $D\n", (WriteFD)gen->proflow,
+               NULL);
+  if (res != ResOK) return res;
+
+  RING_FOR(node, &gen->locusRing, nextNode) {
+    PoolGen pgen = RING_ELT(PoolGen, genRing, node);
+    res = PoolGenDescribe(pgen, stream);
+    if (res != ResOK) return res;
+  }
+
+  res = WriteF(stream, "} GenDesc $P\n", (WriteFP)gen, NULL);
+  return res;
+}
+
+
 /* ChainCreate -- create a generation chain */
 
 Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
@@ -411,6 +441,35 @@ void ChainEndGC(Chain chain, Trace trace)
 }
 
 
+/* ChainDescribe -- describe a chain */
+
+Res ChainDescribe(Chain chain, mps_lib_FILE *stream)
+{
+  Res res;
+  size_t i;
+
+  if (!TESTT(Chain, chain)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+
+  res = WriteF(stream,
+               "Chain $P {\n", (WriteFP)chain,
+               "arena $P\n", (WriteFP)chain->arena,
+               "activeTraces $B\n", (WriteFB)chain->activeTraces,
+               NULL);
+  if (res != ResOK) return res;
+
+  for (i = 0; i < chain->genCount; ++i) {
+    res = GenDescDescribe(&chain->gens[i], stream);
+    if (res != ResOK) return res;
+  }
+
+  res = WriteF(stream,
+               "} Chain $P\n", (WriteFP)chain,
+               NULL);
+  return res;
+}
+
+
 /* PoolGenInit -- initialize a PoolGen */
 
 Res PoolGenInit(PoolGen gen, Chain chain, Serial nr, Pool pool)
@@ -461,6 +520,30 @@ Bool PoolGenCheck(PoolGen gen)
   CHECKD_NOSIG(Ring, &gen->genRing);
   CHECKL(gen->newSize <= gen->totalSize);
   return TRUE;
+}
+
+
+/* PoolGenDescribe -- describe a PoolGen */
+
+Res PoolGenDescribe(PoolGen pgen, mps_lib_FILE *stream)
+{
+  Res res;
+
+  if (!TESTT(PoolGen, pgen)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+  
+  res = WriteF(stream,
+               "PoolGen $P ($U) {\n", (WriteFP)pgen, (WriteFU)pgen->nr,
+               "pool $P ($U) \"$S\"\n",
+               (WriteFP)pgen->pool, (WriteFU)pgen->pool->serial,
+               (WriteFS)pgen->pool->class->name,
+               "chain $P\n", (WriteFP)pgen->chain,
+               "totalSize $U\n", (WriteFU)pgen->totalSize,
+               "newSize $U\n", (WriteFU)pgen->newSize,
+               "newSizeAtCreate $U\n", (WriteFU)pgen->newSizeAtCreate,
+               "} PoolGen $P\n", (WriteFP)pgen,
+               NULL);
+  return res;
 }
 
 
