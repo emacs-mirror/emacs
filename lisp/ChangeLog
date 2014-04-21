@@ -1,4 +1,12 @@
-2014-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+2014-04-21  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/cl-macs.el (cl--const-expr-val): We didn't need the
+	last two parameters after all.
+	(cl--expr-contains,cl--compiler-macro-typep,cl--compiler-macro-member)
+	(cl--compiler-macro-assoc,cl-struct-slot-value)
+	(cl-struct-set-slot-value): Stop using them.
+
+(2014-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* image-mode.el (image-mode-window-put): Don't assume there's a `t'
 	entry in image-mode-winprops-alist.

@@ -134,15 +134,14 @@
 	((symbolp x) (and (memq x '(nil t)) t))
 	(t t)))
 
-(defun cl--const-expr-val (x &optional environment default)
+(defun cl--const-expr-val (x)
   "Return the value of X known at compile-time.
-If X is not known at compile time, return DEFAULT.  Before
-testing whether X is known at compile time, macroexpand it in
-ENVIRONMENT."
-  (let ((x (macroexpand-all x environment)))
+If X is not known at compile time, return nil.  Before testing
+whether X is known at compile time, macroexpand it completely in
+`macroexpand-all-environment'."
+  (let ((x (macroexpand-all x macroexpand-all-environment)))
     (if (macroexp-const-p x)
-        (if (consp x) (nth 1 x) x)
-      default)))
+        (if (consp x) (nth 1 x) x))))
 
 (defun cl--expr-contains (x y)
   "Count number of times X refers to Y.  Return nil for 0 times."
@@ -526,8 +525,7 @@ its argument list allows full Common Lisp conventions."
 				 look
 			       `(or ,look
                                     ,(if (eq (cl--const-expr-p def) t)
-					 `'(nil ,(cl--const-expr-val
-                                                  def macroexpand-all-environment))
+					 `'(nil ,(cl--const-expr-val def))
 				       `(list nil ,def))))))))
 	      (push karg keys)))))
       (setq keys (nreverse keys))
@@ -2689,8 +2687,7 @@ TYPE is a Common Lisp-style type specifier."
 (defun cl--compiler-macro-typep (form val type)
   (if (macroexp-const-p type)
       (macroexp-let2 macroexp-copyable-p temp val
-        (cl--make-type-test temp (cl--const-expr-val
-                                  type macroexpand-all-environment)))
+        (cl--make-type-test temp (cl--const-expr-val type)))
     form))
 
 ;;;###autoload
@@ -2866,8 +2863,7 @@ The function's arguments should be treated as immutable.
 
 (defun cl--compiler-macro-member (form a list &rest keys)
   (let ((test (and (= (length keys) 2) (eq (car keys) :test)
-		   (cl--const-expr-val (nth 1 keys)
-                                       macroexpand-all-environment))))
+		   (cl--const-expr-val (nth 1 keys)))))
     (cond ((eq test 'eq) `(memq ,a ,list))
 	  ((eq test 'equal) `(member ,a ,list))
 	  ((or (null keys) (eq test 'eql)) `(memql ,a ,list))
@@ -2875,12 +2871,11 @@ The function's arguments should be treated as immutable.
 
 (defun cl--compiler-macro-assoc (form a list &rest keys)
   (let ((test (and (= (length keys) 2) (eq (car keys) :test)
-		   (cl--const-expr-val (nth 1 keys)
-                                       macroexpand-all-environment))))
+		   (cl--const-expr-val (nth 1 keys)))))
     (cond ((eq test 'eq) `(assq ,a ,list))
 	  ((eq test 'equal) `(assoc ,a ,list))
 	  ((and (macroexp-const-p a) (or (null keys) (eq test 'eql)))
-	   (if (floatp (cl--const-expr-val a macroexpand-all-environment))
+	   (if (floatp (cl--const-expr-val a))
 	       `(assoc ,a ,list) `(assq ,a ,list)))
 	  (t form))))
 
@@ -2960,9 +2955,8 @@ VALUE."
 
 (cl-define-compiler-macro cl-struct-slot-value
     (&whole orig struct-type slot-name inst)
-  (or (let* ((macenv macroexpand-all-environment)
-             (struct-type (cl--const-expr-val struct-type macenv))
-             (slot-name (cl--const-expr-val slot-name macenv)))
+  (or (let* ((struct-type (cl--const-expr-val struct-type))
+             (slot-name (cl--const-expr-val slot-name)))
         (and struct-type (symbolp struct-type)
              slot-name (symbolp slot-name)
              (assq slot-name (cl-struct-slot-info struct-type))
@@ -2974,9 +2968,8 @@ VALUE."
 
 (cl-define-compiler-macro cl-struct-set-slot-value
     (&whole orig struct-type slot-name inst value)
-  (or (let* ((macenv macroexpand-all-environment)
-             (struct-type (cl--const-expr-val struct-type macenv))
-             (slot-name (cl--const-expr-val slot-name macenv)))
+  (or (let* ((struct-type (cl--const-expr-val struct-type))
+             (slot-name (cl--const-expr-val slot-name)))
         (and struct-type (symbolp struct-type)
              slot-name (symbolp slot-name)
              (assq slot-name (cl-struct-slot-info struct-type))
