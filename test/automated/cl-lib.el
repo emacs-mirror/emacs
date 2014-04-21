@@ -214,11 +214,11 @@
                    '((cl-tag-slot) (abc :readonly t) (def))))))
 
 (ert-deftest cl-the ()
-  (should (eql (the integer 42) 42))
-  (should-error (the integer "abc"))
-  (let ((sideffect 0))
-    (should (= (the integer (incf sideffect)) 1))
-    (should (= sideffect 1))))
+  (should (eql (cl-the integer 42) 42))
+  (should-error (cl-the integer "abc"))
+  (let ((side-effect 0))
+    (should (= (cl-the integer (cl-incf side-effect)) 1))
+    (should (= side-effect 1))))
 
 (ert-deftest cl-loop-destructuring-with ()
   (should (equal (cl-loop with (a b c) = '(1 2 3) return (+ a b c)) 6)))

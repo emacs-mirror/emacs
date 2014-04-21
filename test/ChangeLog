@@ -1,6 +1,7 @@
 2014-04-21  Daniel Colascione  <dancol@dancol.org>
 
 	* automated/cl-lib.el (cl-loop-destructuring-with): New test.
+	(cl-the): Fix cl-the test.
 
 2014-04-20  Daniel Colascione  <dancol@dancol.org>
 
