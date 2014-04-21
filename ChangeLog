@@ -1,3 +1,8 @@
+2014-04-21  Daniel Colascione  <dancol@dancol.org>
+
+	* .bzrignore: Add a.out to bzr ignore list (a test generates this
+	file).
+
 2014-04-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Link to glib-using libraries when checking for glib (Bug#17289).
