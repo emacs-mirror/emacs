@@ -195,6 +195,9 @@
   (should (eql (cl-mismatch "Aa" "aA") 0))
   (should (eql (cl-mismatch '(a b c) '(a b d)) 2)))
 
+(ert-deftest cl-lib-test-loop ()
+  (should (eql (cl-loop with (a b c) = '(1 2 3) return (+ a b c)) 6)))
+
 (ert-deftest cl-lib-keyword-names-versus-values ()
   (should (equal
            (funcall (cl-function (lambda (&key a b) (list a b)))
