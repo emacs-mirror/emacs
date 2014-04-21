@@ -28,6 +28,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdbool.h>
 #include <timespec.h>
 #include "frame.h"
+#include "blockinput.h"
+
+/* `xg_select' is a `pselect' replacement.  Why do we need a separate function?
+   1. Timeouts.  Glib and Gtk rely on timer events.  If we did pselect
+      with a greater timeout then the one scheduled by Glib, we would
+      not allow Glib to process its timer events.  We want Glib to
+      work smoothly, so we need to reduce our timeout to match Glib.
+   2. Descriptors.  Glib may listen to more file descriptors than we do.
+      So we add Glib descriptors to our pselect pool, but we don't change
+      the value returned by the function.  The return value  matches only
+      the descriptors passed as arguments, making it compatible with
+      plain pselect.  */
 
 int
 xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
@@ -46,12 +58,6 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
   int i, nfds, tmo_in_millisec;
   bool need_to_dispatch;
   USE_SAFE_ALLOCA;
-
-  /* Do not try to optimize with an initial check with g_main_context_pending
-     and a call to pselect if it returns false.  If Gdk has a timeout for 0.01
-     second, and Emacs has a timeout for 1 second, g_main_context_pending will
-     return false, but the timeout will be 1 second, thus missing the gdk
-     timeout with a lot.  */
 
   context = g_main_context_default ();
 
@@ -136,8 +142,13 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
   if (need_to_dispatch)
     {
       int pselect_errno = errno;
+      /* Prevent g_main_dispatch recursion, that would occur without
+         block_input wrapper, because event handlers call
+         unblock_input.  Event loop recursion was causing Bug#15801.  */
+      block_input ();
       while (g_main_context_pending (context))
-	g_main_context_dispatch (context);
+        g_main_context_dispatch (context);
+      unblock_input ();
       errno = pselect_errno;
     }
 

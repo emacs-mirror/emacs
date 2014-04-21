@@ -1,3 +1,9 @@
+2014-04-21  Jarek Czekalski  <jarekczek@poczta.onet.pl>
+
+	Fix freezing with scroll bars of GTK3 Toolkit (bug#15801).
+	* keyboard.c (unblock_input): Add comment.
+	* xgselect.c (xg_select): Prevent Glib main loop recursion.
+
 2014-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* intervals.c (rotate_right, rotate_left): Fix up length computation.
