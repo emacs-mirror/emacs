@@ -67,7 +67,7 @@ Regexp match data 0 points to the chars."
   (let* ((start (match-beginning 0))
 	 (end (match-end 0))
 	 (syntaxes (if (eq (char-syntax (char-after start)) ?w)
-		       '(?w) '(?. ?\\)))
+		       '(?w ?_) '(?. ?\\)))
 	 match)
     (if (or (memq (char-syntax (or (char-before start) ?\s)) syntaxes)
 	    (memq (char-syntax (or (char-after end) ?\s)) syntaxes)
