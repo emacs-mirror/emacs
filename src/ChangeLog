@@ -1,3 +1,7 @@
+2014-04-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* search.c (Fnewline_cache_check): Remove unused locals.
+
 2014-04-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* search.c (find_newline1): New subroutine.

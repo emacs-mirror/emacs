@@ -3210,10 +3210,9 @@ the buffer.  If the buffer doesn't have a cache, the value is nil.  */)
   (Lisp_Object buffer)
 {
   struct buffer *buf;
-  struct region_cache *nlcache;
   ptrdiff_t shortage, nl_count_cache, nl_count_buf;
   Lisp_Object cache_newlines, buf_newlines, val;
-  ptrdiff_t from, from_byte, found, i;
+  ptrdiff_t from, found, i;
 
   if (NILP (buffer))
     buf = current_buffer;
