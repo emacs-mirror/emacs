@@ -1,3 +1,9 @@
+2014-04-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* dired.el (dired-insert-set-properties): Do not consider
+	subdirectory headings and empty lines to be information that
+	`dired-hide-details-mode' should hide.  (Bug#17228)
+
 2014-04-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-file-name-all-completions):
