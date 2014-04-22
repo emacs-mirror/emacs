@@ -30,6 +30,17 @@
 
 ;;; Code:
 
+(defalias 'function-put
+  ;; We don't want people to just use `put' because we can't conveniently
+  ;; hook into `put' to remap old properties to new ones.  But for now, there's
+  ;; no such remapping, so we just call `put'.
+  #'(lambda (f prop value) (put f prop value))
+  "Set function F's property PROP to VALUE.
+The namespace for PROP is shared with symbols.
+So far, F can only be a symbol, not a lambda expression.")
+(function-put 'defmacro 'doc-string-elt 3)
+(function-put 'defmacro 'lisp-indent-function 2)
+
 ;; `macro-declaration-function' are both obsolete (as marked at the end of this
 ;; file) but used in many .elc files.
 
@@ -140,17 +151,6 @@ and should return the code to use to set this property.
 
 This is used by `declare'.")
 
-(defun function-put (f prop value)
-  "Set function F's property PROP to VALUE.
-The namespace for PROP is shared with symbols.
-So far, F can only be a symbol, not a lambda expression."
-  ;; We don't want people to just use `put' because we can't conveniently
-  ;; hook into `put' to remap old properties to new ones.  But for now, there's
-  ;; no such remapping, so we just call `put'.
-  (put f prop value))
-
-(function-put 'defmacro 'doc-string-elt 3)
-(function-put 'defmacro 'lisp-indent-function 2)
 (defalias 'defmacro
   (cons
    'macro
@@ -250,7 +250,8 @@ The return value is undefined.
                                  (cons arglist body))))))
       (if declarations
           (cons 'prog1 (cons def declarations))
-        def))))
+          def))))
+
 
 ;; Redefined in byte-optimize.el.
 ;; This is not documented--it's not clear that we should promote it.

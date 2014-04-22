@@ -35,6 +35,11 @@
 	* net/tramp-sh.el (tramp-get-ls-command): Use "-b" argument if
 	possible.
 
+2014-04-22  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/byte-run.el (function-put): Unbreak build: don't
+	use defun to define `function-put'.
+
 2014-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp-mode.el (lisp--match-hidden-arg): New function.
