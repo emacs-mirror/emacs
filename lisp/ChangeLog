@@ -1,5 +1,9 @@
 2014-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/lisp-mode.el (lisp--match-hidden-arg): New function.
+	(lisp-el-font-lock-keywords-2, lisp-cl-font-lock-keywords-2): Use it.
+	(lisp-mode-variables): Set font-lock-extra-managed-props.
+
 	* emacs-lisp/byte-run.el (function-put): New function.
 	(defun-declarations-alist): Use it.  Add `pure' and `side-effect-free'.
 	* emacs-lisp/cl-macs.el (cl-defstruct, cl-struct-sequence-type)

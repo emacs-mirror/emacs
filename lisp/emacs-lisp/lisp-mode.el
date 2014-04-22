@@ -157,6 +157,23 @@ It has `lisp-mode-abbrev-table' as its parent."
 
 ;;;; Font-lock support.
 
+(defun lisp--match-hidden-arg (limit)
+  (let ((res nil))
+    (while
+        (let ((ppss (parse-partial-sexp (line-beginning-position)
+                                        (line-end-position)
+                                        -1)))
+          (if (or (>= (car ppss) 0)
+                  (looking-at "[]) \t]*\\(;\\|$\\)"))
+              (progn
+                (forward-line 1)
+                (< (point) limit))
+            (looking-at ".*")           ;Set the match-data.
+	    (forward-line 1)
+            (setq res (point))
+            nil)))
+    res))
+
 (pcase-let
     ((`(,vdefs ,tdefs
         ,el-defs-re ,cl-defs-re
@@ -348,6 +365,9 @@ It has `lisp-mode-abbrev-table' as its parent."
        ;; and that they get the wrong color.
        ;; ;; CL `with-' and `do-' constructs
        ;;("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
+       (lisp--match-hidden-arg
+        (0 '(face font-lock-warning-face
+             help-echo "Hidden behind deeper element; move to another line?")))
        ))
     "Gaudy level highlighting for Emacs Lisp mode.")
 
@@ -378,6 +398,9 @@ It has `lisp-mode-abbrev-table' as its parent."
        ;; and that they get the wrong color.
        ;; ;; CL `with-' and `do-' constructs
        ;;("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
+       (lisp--match-hidden-arg
+        (0 '(face font-lock-warning-face
+             help-echo "Hidden behind deeper element; move to another line?")))
        ))
     "Gaudy level highlighting for Lisp modes."))
 
@@ -466,10 +489,10 @@ font-lock keywords will not be case sensitive."
                lisp-cl-font-lock-keywords-2))
 	  nil ,keywords-case-insensitive nil nil
 	  (font-lock-mark-block-function . mark-defun)
+          (font-lock-extra-managed-props help-echo)
 	  (font-lock-syntactic-face-function
 	   . lisp-font-lock-syntactic-face-function)))
   (setq-local prettify-symbols-alist lisp--prettify-symbols-alist)
-  ;; electric
   (when elisp
     (setq-local electric-pair-text-pairs
                 (cons '(?\` . ?\') electric-pair-text-pairs)))
