@@ -1,3 +1,31 @@
+2014-04-22  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Installation): Be more clear on why installing Org
+	through ELPA should be done without loading any Org file.
+
+	* org.texi (Emphasis and monospace): Document the use of
+	=verbatim= and ~code~ to be consistent with
+	`org-element-text-markup-successor'.
+
+	* org.texi (In-buffer settings, Radio tables): Tiny fixes.
+
+	* org.texi (Initial visibility):
+	* org.texi (Literal examples): Fix typos.
+
+2014-04-22  Michael Brand  <michael.ch.brand@gmail.com>
+
+	* org.texi (Column attributes): Add a sentence to point out
+	the dependency on the format specifier.
+
+2014-04-22  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.texi (The Export Dispatcher): Reformulation.
+
+	* org.texi (@LaTeX{} specific attributes): Update manual.
+
+	* org.texi (Top, Exporting): Org has its own documentation and
+	should therefore be removed from "Other build-in back-ends".
+
 2014-03-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* texinfo.tex: Update from gnulib.

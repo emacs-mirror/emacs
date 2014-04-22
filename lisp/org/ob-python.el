@@ -137,7 +137,7 @@ specifying a variable of the same value."
 	org-babel-python-hline-to
       (format
        (if (and (stringp var) (string-match "[\n\r]" var)) "\"\"%S\"\"" "%S")
-       var))))
+       (if (stringp var) (substring-no-properties var) var)))))
 
 (defun org-babel-python-table-or-string (results)
   "Convert RESULTS into an appropriate elisp value.

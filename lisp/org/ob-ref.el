@@ -85,7 +85,9 @@ the variable."
       (cons (intern var)
 	    (let ((out (save-excursion
 			 (when org-babel-current-src-block-location
-			   (goto-char org-babel-current-src-block-location))
+			   (goto-char (if (markerp org-babel-current-src-block-location)
+					  (marker-position org-babel-current-src-block-location)
+					org-babel-current-src-block-location)))
 			 (org-babel-read ref))))
 	      (if (equal out ref)
 		  (if (string-match "^\".*\"$" ref)

@@ -460,6 +460,7 @@ agenda view showing the flagged items."
 			      ((stringp x) x)
 			      ((eq (car x) :startgroup) "{")
 			      ((eq (car x) :endgroup) "}")
+			      ((eq (car x) :grouptags) nil)
 			      ((eq (car x) :newline) nil)
 			      ((listp x) (car x))))
 		      def-tags))

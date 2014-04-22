@@ -169,8 +169,12 @@ this template."
 			    (backward-char)
 			    (save-match-data (org-element-context))))
 		 (type (org-element-type element))
-		 (beg-el (org-element-property :begin element))
-		 (end-el (org-element-property :end element)))
+		 (begin (copy-marker (org-element-property :begin element)))
+		 (end (copy-marker
+		       (save-excursion
+			 (goto-char (org-element-property :end element))
+			 (skip-chars-backward " \r\t\n")
+			 (point)))))
 	    (case type
 	      (inline-src-block
 	       (let* ((info (org-babel-parse-inline-src-block-match))
@@ -181,24 +185,21 @@ this template."
 			   (org-babel-expand-noweb-references
 			    info (org-babel-exp-get-export-buffer))
 			 (nth 1 info)))
-		 (goto-char beg-el)
+		 (goto-char begin)
 		 (let ((replacement (org-babel-exp-do-export info 'inline)))
 		   (if (equal replacement "")
 		       ;; Replacement code is empty: remove inline src
 		       ;; block, including extra white space that
 		       ;; might have been created when inserting
 		       ;; results.
-		       (delete-region beg-el
-				      (progn (goto-char end-el)
+		       (delete-region begin
+				      (progn (goto-char end)
 					     (skip-chars-forward " \t")
 					     (point)))
 		     ;; Otherwise: remove inline src block but
 		     ;; preserve following white spaces.  Then insert
 		     ;; value.
-		     (delete-region beg-el
-				    (progn (goto-char end-el)
-					   (skip-chars-backward " \t")
-					   (point)))
+		     (delete-region begin end)
 		     (insert replacement)))))
 	      ((babel-call inline-babel-call)
 	       (let* ((lob-info (org-babel-lob-get-info))
@@ -229,8 +230,8 @@ this template."
 		 ;; results.
 		 (if (equal rep "")
 		     (delete-region
-		      beg-el
-		      (progn (goto-char end-el)
+		      begin
+		      (progn (goto-char end)
 			     (if (not (eq type 'babel-call))
 				 (progn (skip-chars-forward " \t") (point))
 			       (skip-chars-forward " \r\t\n")
@@ -238,25 +239,17 @@ this template."
 		   ;; Otherwise, preserve following white
 		   ;; spaces/newlines and then, insert replacement
 		   ;; string.
-		   (goto-char beg-el)
-		   (delete-region beg-el
-				  (progn (goto-char end-el)
-					 (skip-chars-backward " \r\t\n")
-					 (point)))
+		   (goto-char begin)
+		   (delete-region begin end)
 		   (insert rep))))
 	      (src-block
-	       (let* ((match-start (match-beginning 0))
-		      ;; Make sure we don't remove any blank lines
-		      ;; after the block when replacing it.
-		      (block-end (save-excursion
-				   (goto-char end-el)
-				   (skip-chars-backward " \r\t\n")
-				   (line-end-position)))
+	       (let* ((match-start (copy-marker (match-beginning 0)))
 		      (ind (org-get-indentation))
 		      (headers
 		       (cons
 			(org-element-property :language element)
-			(let ((params (org-element-property :parameters element)))
+			(let ((params (org-element-property :parameters
+							    element)))
 			  (and params (org-split-string params "[ \t]+"))))))
 		 ;; Take care of matched block: compute replacement
 		 ;; string.  In particular, a nil REPLACEMENT means
@@ -264,21 +257,31 @@ this template."
 		 ;; string should remove the block.
 		 (let ((replacement (progn (goto-char match-start)
 					   (org-babel-exp-src-block headers))))
-		   (cond ((not replacement) (goto-char block-end))
+		   (cond ((not replacement) (goto-char end))
 			 ((equal replacement "")
-			  (delete-region beg-el end-el))
+			  (goto-char end)
+			  (skip-chars-forward " \r\t\n")
+			  (beginning-of-line)
+			  (delete-region begin (point)))
 			 (t
 			  (goto-char match-start)
-			  (delete-region (point) block-end)
+			  (delete-region (point)
+					 (save-excursion (goto-char end)
+							 (line-end-position)))
 			  (insert replacement)
-			  (if (org-element-property :preserve-indent element)
+			  (if (or org-src-preserve-indentation
+				  (org-element-property :preserve-indent
+							element))
 			      ;; Indent only the code block markers.
 			      (save-excursion (skip-chars-backward " \r\t\n")
 					      (indent-line-to ind)
 					      (goto-char match-start)
 					      (indent-line-to ind))
 			    ;; Indent everything.
-			    (indent-rigidly match-start (point) ind))))))))))))))
+			    (indent-rigidly match-start (point) ind)))))
+		 (set-marker match-start nil))))
+	    (set-marker begin nil)
+	    (set-marker end nil)))))))
 
 (defun org-babel-in-example-or-verbatim ()
   "Return true if point is in example or verbatim code.
@@ -308,7 +311,7 @@ The function respects the value of the :exports header argument."
 	     (org-babel-exp-code info)))))
 
 (defcustom org-babel-exp-code-template
-  "#+BEGIN_SRC %lang%flags\n%body\n#+END_SRC"
+  "#+BEGIN_SRC %lang%switches%flags\n%body\n#+END_SRC"
   "Template used to export the body of code blocks.
 This template may be customized to include additional information
 such as the code block name, or the values of particular header
@@ -318,6 +321,7 @@ and the following %keys may be used.
  lang ------ the language of the code block
  name ------ the name of the code block
  body ------ the body of the code block
+ switches -- the switches associated to the code block
  flags ----- the flags passed to the code block
 
 In addition to the keys mentioned above, every header argument
@@ -340,11 +344,14 @@ replaced with its value."
    org-babel-exp-code-template
    `(("lang"  . ,(nth 0 info))
      ("body"  . ,(org-escape-code-in-string (nth 1 info)))
+     ("switches" . ,(let ((f (nth 3 info)))
+		      (and (org-string-nw-p f) (concat " " f))))
+     ("flags" . ,(let ((f (assq :flags (nth 2 info))))
+		   (and f (concat " " (cdr f)))))
      ,@(mapcar (lambda (pair)
 		 (cons (substring (symbol-name (car pair)) 1)
 		       (format "%S" (cdr pair))))
 	       (nth 2 info))
-     ("flags" . ,(let ((f (nth 3 info))) (when f (concat " " f))))
      ("name"  . ,(or (nth 4 info) "")))))
 
 (defun org-babel-exp-results (info type &optional silent hash)
