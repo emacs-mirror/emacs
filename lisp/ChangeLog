@@ -1,3 +1,10 @@
+2014-04-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-file-name-all-completions):
+	Remove test messages.
+	(tramp-do-copy-or-rename-file-out-of-band): Do not quote `source'
+	and `target' twice.
+
 2014-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dframe.el (dframe-get-focus): Remove `hook' argument (bug#17311).

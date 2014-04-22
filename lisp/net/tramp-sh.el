@@ -1725,15 +1725,6 @@ be non-negative integers."
 				 'completion-ignore-case))
 			      1 0)))
 
-	      (tramp-message v 1 "Tramp test: %s" (tramp-get-ls-command v))
-	      (tramp-send-command
-	       v
-	       (format "\\cd %s 2>&1 && %s %s -a 2>/dev/null"
-                      (tramp-shell-quote-argument localname)
-                      (tramp-get-ls-command v)
-                      (if (zerop (length filename))
-                          "."
-                        (concat (tramp-shell-quote-argument filename) "* -d"))))
               (format (concat
                        "(\\cd %s 2>&1 && (%s %s -a 2>/dev/null"
                        ;; `ls' with wildcard might fail with `Argument
@@ -1765,7 +1756,6 @@ be non-negative integers."
 
            ;; Now grab the output.
            (with-current-buffer (tramp-get-buffer v)
-	     (tramp-message v 1 "Tramp test: %s" (buffer-string))
              (goto-char (point-max))
 
              ;; Check result code, found in last line of output.
@@ -2371,8 +2361,7 @@ The method used must be an out-of-band method."
 				  (append
 				   copy-args
 				   (list
-				    (shell-quote-argument source)
-				    (shell-quote-argument target)
+				    source target
 				    "&&" "echo" "tramp_exit_status" "0"
 				    "||" "echo" "tramp_exit_status" "1"))))))
 		  (tramp-message
