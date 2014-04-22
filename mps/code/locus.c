@@ -292,12 +292,13 @@ double ChainDeferral(Chain chain)
 
   AVERT(Chain, chain);
 
-  if (chain->activeTraces == TraceSetEMPTY)
+  if (chain->activeTraces == TraceSetEMPTY) {
     for (i = 0; i < chain->genCount; ++i) {
       double genTime = chain->gens[i].capacity * 1024.0
         - (double)GenDescNewSize(&chain->gens[i]);
       if (genTime < time)
         time = genTime;
+    }
   }
 
   return time;
