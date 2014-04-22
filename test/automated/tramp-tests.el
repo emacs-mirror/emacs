@@ -1464,9 +1464,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   "Check special characters in file names."
   (skip-unless (tramp--test-enabled))
 
-  ;; Newlines and slashes in file names are not supported.  So we don't test.
+  ;; Newlines, slashes and backslashes in file names are not supported.
+  ;; So we don't test.
   (tramp--test-check-files
-   " foo bar\tbaz "
+   " foo\tbar baz\t"
    "$foo$bar$$baz$"
    "-foo-bar-baz-"
    "%foo%bar%baz%"
@@ -1474,7 +1475,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
    "?foo?bar?baz?"
    "*foo*bar*baz*"
    "'foo\"bar'baz\""
-   "\\foo\\bar\\baz\\"
    "#foo#bar#baz#"
    "!foo|bar!baz|"
    ":foo;bar:baz;"
