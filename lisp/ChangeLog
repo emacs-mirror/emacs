@@ -1,3 +1,8 @@
+2014-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/xterm.el (xterm--version-handler): Don't use modern xterm
+	features on gnome-terminal (bug#16988).
+
 2014-04-22  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	* dired.el (dired-insert-set-properties): Do not consider
