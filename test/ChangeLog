@@ -1,7 +1,7 @@
 2014-04-22  Michael Albinus  <michael.albinus@gmx.de>
 
-	* automated/tramp-tests.el (tramp-test30-special-characters):
-	Remove test for backslash.
+	* automated/tramp-tests.el (tramp--test-check-files): Remove traces.
+	(tramp-test30-special-characters): Remove test for backslash.
 
 2014-04-20  Michael Albinus  <michael.albinus@gmx.de>
 
