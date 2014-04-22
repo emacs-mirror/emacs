@@ -95,9 +95,14 @@ active region handling.
 
 * Lisp Changes in Emacs 24.5
 
+** New function `function-put' to use instead of `put' for function properties.
+
 +++
-** You can specify a function's interactive-only property via `declare'.
-However you specify it, the property affects `describe-function' output.
+** New properties that can be specified with `declare':
+*** (interactive-only INSTEAD), tells to use INSTEAD for non-interactive use.
+*** (pure VAL), if VAL is non-nil, indicates the function is pure.
+*** (side-effect-free VAL), if VAL is non-nil, indicates the function does not
+have side effects.
 
 ** You can access the slots of structures using `cl-struct-slot-value'.
 

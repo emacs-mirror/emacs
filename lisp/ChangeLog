@@ -1,7 +1,15 @@
+2014-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-run.el (function-put): New function.
+	(defun-declarations-alist): Use it.  Add `pure' and `side-effect-free'.
+	* emacs-lisp/cl-macs.el (cl-defstruct, cl-struct-sequence-type)
+	(cl-struct-slot-info, cl-struct-slot-offset, cl-struct-slot-value):
+	Use them.
+
 2014-04-22  Daniel Colascione  <dancol@dancol.org>
 
-	* emacs-lisp/macroexp.el (internal-macroexpand-for-load): Add
-	`full-p' parameter; when nil, call `macroexpand' instead of
+	* emacs-lisp/macroexp.el (internal-macroexpand-for-load):
+	Add `full-p' parameter; when nil, call `macroexpand' instead of
 	`macroexpand-all'.
 
 	* emacs-lisp/byte-run.el (eval-when-compile, eval-and-compile):
@@ -102,8 +110,8 @@
 	(xterm-mouse-tracking-enable-sequence)
 	(xterm-mouse-tracking-disable-sequence): New constants.
 	(turn-on-xterm-mouse-tracking-on-terminal)
-	(turn-off-xterm-mouse-tracking-on-terminal): Use
-	tty-mode-set-strings and tty-mode-reset-strings terminal
+	(turn-off-xterm-mouse-tracking-on-terminal):
+	Use tty-mode-set-strings and tty-mode-reset-strings terminal
 	parameters instead of random hooks.
 	(turn-on-xterm-mouse-tracking)
 	(turn-off-xterm-mouse-tracking): Delete.
@@ -121,8 +129,8 @@
 	(xterm-turn-off-modify-other-keys)
 	(xterm-remove-modify-other-keys): Delete obsolete functions.
 
-	* term/screen.el: Rewrite to just use the xterm code.  Add
-	copyright notice.  Mention tmux.
+	* term/screen.el: Rewrite to just use the xterm code.
+	Add copyright notice.  Mention tmux.
 
 2014-04-17  Ian D  <dunni@gnu.org>  (tiny change)
 

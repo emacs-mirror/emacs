@@ -84,22 +84,36 @@ The return value of this function is not used."
                    (list 'quote f) (list 'quote new-name) (list 'quote when))))
    (list 'interactive-only
          #'(lambda (f _args instead)
-             (list 'put (list 'quote f) ''interactive-only
-                   (list 'quote instead))))
+             (list 'function-put (list 'quote f)
+                   ''interactive-only (list 'quote instead))))
+   ;; FIXME: Merge `pure' and `side-effect-free'.
+   (list 'pure
+         #'(lambda (f _args val)
+             (list 'function-put (list 'quote f)
+                   ''pure (list 'quote val)))
+         "If non-nil, the compiler can replace calls with their return value.
+This may shift errors from run-time to compile-time.")
+   (list 'side-effect-free
+         #'(lambda (f _args val)
+             (list 'function-put (list 'quote f)
+                   ''side-effect-free (list 'quote val)))
+         "If non-nil, calls can be ignored if their value is unused.
+If `error-free', drop calls even if `byte-compile-delete-errors' is nil.")
    (list 'compiler-macro
          #'(lambda (f args compiler-function)
              `(eval-and-compile
-                (put ',f 'compiler-macro
-                     ,(if (eq (car-safe compiler-function) 'lambda)
-                          `(lambda ,(append (cadr compiler-function) args)
-                             ,@(cddr compiler-function))
-                        `#',compiler-function)))))
+                (function-put ',f 'compiler-macro
+                              ,(if (eq (car-safe compiler-function) 'lambda)
+                                   `(lambda ,(append (cadr compiler-function) args)
+                                      ,@(cddr compiler-function))
+                                 `#',compiler-function)))))
    (list 'doc-string
          #'(lambda (f _args pos)
-             (list 'put (list 'quote f) ''doc-string-elt (list 'quote pos))))
+             (list 'function-put (list 'quote f)
+                   ''doc-string-elt (list 'quote pos))))
    (list 'indent
          #'(lambda (f _args val)
-             (list 'put (list 'quote f)
+             (list 'function-put (list 'quote f)
                    ''lisp-indent-function (list 'quote val)))))
   "List associating function properties to their macro expansion.
 Each element of the list takes the form (PROP FUN) where FUN is
@@ -126,8 +140,17 @@ and should return the code to use to set this property.
 
 This is used by `declare'.")
 
-(put 'defmacro 'doc-string-elt 3)
-(put 'defmacro 'lisp-indent-function 2)
+(defun function-put (f prop value)
+  "Set function F's property PROP to VALUE.
+The namespace for PROP is shared with symbols.
+So far, F can only be a symbol, not a lambda expression."
+  ;; We don't want people to just use `put' because we can't conveniently
+  ;; hook into `put' to remap old properties to new ones.  But for now, there's
+  ;; no such remapping, so we just call `put'.
+  (put f prop value))
+
+(function-put 'defmacro 'doc-string-elt 3)
+(function-put 'defmacro 'lisp-indent-function 2)
 (defalias 'defmacro
   (cons
    'macro

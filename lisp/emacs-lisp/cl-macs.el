@@ -2589,7 +2589,7 @@ non-nil value, that slot cannot be set via `setf'.
              (put ',name 'cl-struct-include ',include)
              (put ',name 'cl-struct-print ,print-auto)
              ,@(mapcar (lambda (x)
-                         `(put ',(car x) 'side-effect-free ',(cdr x)))
+                         `(function-put ',(car x) 'side-effect-free ',(cdr x)))
                        side-eff))
           forms)
     `(progn ,@(nreverse (cons `',name forms)))))
@@ -2598,9 +2598,8 @@ non-nil value, that slot cannot be set via `setf'.
   "Return the sequence used to build STRUCT-TYPE.
 STRUCT-TYPE is a symbol naming a struct type.  Return 'vector or
 'list, or nil if STRUCT-TYPE is not a struct type. "
+  (declare (side-effect-free t) (pure t))
   (car (get struct-type 'cl-struct-type)))
-(put 'cl-struct-sequence-type 'side-effect-free t)
-(put 'cl-struct-sequence-type 'pure t)
 
 (defun cl-struct-slot-info (struct-type)
   "Return a list of slot names of struct STRUCT-TYPE.
@@ -2608,9 +2607,8 @@ Each entry is a list (SLOT-NAME . OPTS), where SLOT-NAME is a
 slot name symbol and OPTS is a list of slot options given to
 `cl-defstruct'.  Dummy slots that represent the struct name and
 slots skipped by :initial-offset may appear in the list."
+  (declare (side-effect-free t) (pure t))
   (get struct-type 'cl-struct-slots))
-(put 'cl-struct-slot-info 'side-effect-free t)
-(put 'cl-struct-slot-info 'pure t)
 
 (defun cl-struct-slot-offset (struct-type slot-name)
   "Return the offset of slot SLOT-NAME in STRUCT-TYPE.
@@ -2618,12 +2616,11 @@ The returned zero-based slot index is relative to the start of
 the structure data type and is adjusted for any structure name
 and :initial-offset slots.  Signal error if struct STRUCT-TYPE
 does not contain SLOT-NAME."
+  (declare (side-effect-free t) (pure t))
   (or (cl-position slot-name
                    (cl-struct-slot-info struct-type)
                    :key #'car :test #'eq)
       (error "struct %s has no slot %s" struct-type slot-name)))
-(put 'cl-struct-slot-offset 'side-effect-free t)
-(put 'cl-struct-slot-offset 'pure t)
 
 (defvar byte-compile-function-environment)
 (defvar byte-compile-macro-environment)
@@ -2913,13 +2910,13 @@ The function's arguments should be treated as immutable.
                cl-notevery cl-revappend cl-nreconc gethash))
 
 ;;; Things that are side-effect-free.
-(mapc (lambda (x) (put x 'side-effect-free t))
+(mapc (lambda (x) (function-put x 'side-effect-free t))
       '(cl-oddp cl-evenp cl-signum last butlast cl-ldiff cl-pairlis cl-gcd
         cl-lcm cl-isqrt cl-floor cl-ceiling cl-truncate cl-round cl-mod cl-rem
         cl-subseq cl-list-length cl-get cl-getf))
 
 ;;; Things that are side-effect-and-error-free.
-(mapc (lambda (x) (put x 'side-effect-free 'error-free))
+(mapc (lambda (x) (function-put x 'side-effect-free 'error-free))
       '(eql cl-list* cl-subst cl-acons cl-equalp
         cl-random-state-p copy-tree cl-sublis))
 
@@ -2942,6 +2939,7 @@ The type name can then be used in `cl-typecase', `cl-check-type', etc."
   ;; and a gv-expander "for free".
   "Return the value of slot SLOT-NAME in INST of STRUCT-TYPE.
 STRUCT and SLOT-NAME are symbols.  INST is a structure instance."
+  (declare (side-effect-free t))
   (unless (cl-typep inst struct-type)
     (signal 'wrong-type-argument (list struct-type inst)))
   ;; We could use `elt', but since the byte compiler will resolve the
@@ -2950,7 +2948,6 @@ STRUCT and SLOT-NAME are symbols.  INST is a structure instance."
   (if (eq (cl-struct-sequence-type struct-type) 'vector)
       (aref inst (cl-struct-slot-offset struct-type slot-name))
     (nth (cl-struct-slot-offset struct-type slot-name) inst)))
-(put 'cl-struct-slot-value 'side-effect-free t)
 
 (run-hooks 'cl-macs-load-hook)
 
