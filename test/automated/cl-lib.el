@@ -201,8 +201,8 @@
                     :b :a :a 42)
            '(42 :a))))
 
+(cl-defstruct mystruct (abc :readonly t) def)
 (ert-deftest cl-lib-struct-accessors ()
-  (cl-defstruct mystruct (abc :readonly t) def)
   (let ((x (make-mystruct :abc 1 :def 2)))
     (should (eql (cl-struct-slot-value 'mystruct 'abc x) 1))
     (should (eql (cl-struct-slot-value 'mystruct 'def x) 2))
