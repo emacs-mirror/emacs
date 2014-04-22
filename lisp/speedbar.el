@@ -1064,9 +1064,9 @@ If the selected frame is not speedbar, then speedbar frame is
 selected.  If the speedbar frame is active, then select the attached frame."
   (interactive)
   (speedbar-reset-scanners)
-  (dframe-get-focus 'speedbar-frame 'speedbar-frame-mode
-		    (lambda () (let ((speedbar-update-flag t))
-				 (speedbar-timer-fn)))))
+  (dframe-get-focus 'speedbar-frame 'speedbar-frame-mode)
+  (let ((speedbar-update-flag t))
+    (speedbar-timer-fn)))
 
 (defsubst speedbar-frame-width ()
   "Return the width of the speedbar frame in characters.

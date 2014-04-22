@@ -153,11 +153,11 @@ C-u -999 C-x @key{TAB}
 are used as stopping points by @key{TAB} when inserting whitespace in
 Text mode and related modes (@pxref{Indentation}), and by commands
 like @kbd{M-i} (@pxref{Indentation Commands}).  The variable
-@code{tab-stop-list} controls these positions.  The default value
-is @code{nil}, which means a tab stop every 8 columns.  The value
-can also be a list of column numbers (in increasing order) at which to
-place tab stops.  Emacs extends the list forever by repeating the
-difference between the last and next-to-last elements.
+@code{tab-stop-list} controls these positions.  The default value is
+@code{nil}, which means a tab stop every 8 columns.  The value can
+also be a list of zero-based column numbers (in increasing order) at
+which to place tab stops.  Emacs extends the list forever by repeating
+the difference between the last and next-to-last elements.
 
 @findex edit-tab-stops
 @kindex C-c C-c @r{(Edit Tab Stops)}

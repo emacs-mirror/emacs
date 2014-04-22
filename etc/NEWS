@@ -691,7 +691,9 @@ See also related options `desktop-restore-reuses-frames',
 
 +++
 ** New Dired minor mode `dired-hide-details-mode' toggles whether details,
-such as file ownership or permissions, are visible.
+such as file ownership or permissions, are visible in Dired buffers.
+See the new options `dired-hide-details-hide-symlink-targets' and
+`dired-hide-details-hide-information-lines' for customizing what to hide.
 
 ---
 ** You can enable ElDoc inside the `eval-expression' minibuffer with:
@@ -1303,6 +1305,15 @@ in the presence of files with negative time stamps.
 +++
 ** The cars of the elements in `interpreter-mode-alist' are now
 treated as regexps rather than literal strings.
+
+---
+** Overlay priority does not have to be nil or a non-negative integer.
+Overlay priority can be other kinds of Lisp objects.  We didn't yet
+decide whether other types of values are stable enough, and therefore
+don't feel it's right to document them.  For now, don't assume in your
+code that the values of overlay priority can only be either nil or an
+integer, always test them with an appropriate predicate to be one or
+the other.
 
 
 * Lisp Changes in Emacs 24.4

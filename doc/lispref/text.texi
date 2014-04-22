@@ -4117,6 +4117,18 @@ a rectangle (a list), currently useless things happen.  This may be
 changed in the future.
 @end deffn
 
+@defun register-read-with-preview prompt
+@cindex register preview
+This function reads and returns a register name, prompting with
+@var{prompt} and possibly showing a preview of the existing registers
+and their contents.  The preview is shown in a temporary window, after
+the delay specified by the user option @code{register-preview-delay},
+if its value and @code{register-alist} are both non-@code{nil}.  The
+preview is also shown if the user requests help (e.g., by typing the
+help character).  We recommend that all interactive commands which
+read register names use this function.
+@end defun
+
 @node Transposition
 @section Transposition of Text
 

@@ -1734,7 +1734,7 @@ be non-negative integers."
                        ;; wildcard.  This will return "too many" entries
                        ;; but that isn't harmful.
                        " || %s -a 2>/dev/null)"
-                       " | while read f; do"
+                       " | while IFS= read f; do"
                        " if %s -d \"$f\" 2>/dev/null;"
                        " then \\echo \"$f/\"; else \\echo \"$f\"; fi; done"
                        " && \\echo ok) || \\echo fail")
@@ -2361,8 +2361,7 @@ The method used must be an out-of-band method."
 				  (append
 				   copy-args
 				   (list
-				    (shell-quote-argument source)
-				    (shell-quote-argument target)
+				    source target
 				    "&&" "echo" "tramp_exit_status" "0"
 				    "||" "echo" "tramp_exit_status" "1"))))))
 		  (tramp-message

@@ -1012,14 +1012,22 @@ This tests also `file-readable-p' and `file-regular-p'."
 	  (write-region "boz" nil (expand-file-name "boz" tmp-name2))
 	  (setq attr (directory-files-and-attributes tmp-name2))
 	  (should (consp attr))
+	  ;; Dumb remote shells without perl(1) or stat(1) are not
+	  ;; able to return the date correctly.  They say "don't know".
 	  (dolist (elt attr)
-	    (should
-	     (equal (file-attributes (expand-file-name (car elt) tmp-name2))
-		    (cdr elt))))
+	    (unless
+		(equal
+		 (nth 5
+		      (file-attributes (expand-file-name (car elt) tmp-name2)))
+		 '(0 0))
+	      (should
+	       (equal (file-attributes (expand-file-name (car elt) tmp-name2))
+		      (cdr elt)))))
 	  (setq attr (directory-files-and-attributes tmp-name2 'full))
 	  (dolist (elt attr)
-	    (should
-	     (equal (file-attributes (car elt)) (cdr elt))))
+	    (unless (equal (nth 5 (file-attributes (car elt))) '(0 0))
+	      (should
+	       (equal (file-attributes (car elt)) (cdr elt)))))
 	  (setq attr (directory-files-and-attributes tmp-name2 nil "^b"))
 	  (should (equal (mapcar 'car attr) '("bar" "boz"))))
       (ignore-errors (delete-directory tmp-name1 'recursive)))))
@@ -1142,16 +1150,16 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  ;; We skip the test, if the remote handler is not able to
 	  ;; set the correct time.
 	  (skip-unless (set-file-times tmp-name1 '(0 1)))
-	  ;; Dumb busyboxes are not able to return the date correctly.
-	  ;; They say "don't know.
-	  (skip-unless (not (equal (nth 5 (file-attributes tmp-name1)) '(0 0))))
-	  (should (equal (nth 5 (file-attributes tmp-name1)) '(0 1)))
-	  (write-region "bla" nil tmp-name2)
-	  (should (file-exists-p tmp-name2))
-	  (should (file-newer-than-file-p tmp-name2 tmp-name1))
-	  ;; `tmp-name3' does not exist.
-	  (should (file-newer-than-file-p tmp-name2 tmp-name3))
-	  (should-not (file-newer-than-file-p tmp-name3 tmp-name1)))
+	  ;; Dumb remote shells without perl(1) or stat(1) are not
+	  ;; able to return the date correctly.  They say "don't know".
+	  (unless (equal (nth 5 (file-attributes tmp-name1)) '(0 0))
+	    (should (equal (nth 5 (file-attributes tmp-name1)) '(0 1)))
+	    (write-region "bla" nil tmp-name2)
+	    (should (file-exists-p tmp-name2))
+	    (should (file-newer-than-file-p tmp-name2 tmp-name1))
+	    ;; `tmp-name3' does not exist.
+	    (should (file-newer-than-file-p tmp-name2 tmp-name3))
+	    (should-not (file-newer-than-file-p tmp-name3 tmp-name1))))
       (ignore-errors
 	(delete-file tmp-name1)
 	(delete-file tmp-name2)))))
@@ -1446,7 +1454,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 			 (sort (copy-sequence files) 'string-lessp)))
 	  (should (equal (directory-files
 			  tmp-name2 nil directory-files-no-dot-files-regexp)
-			 (sort (copy-sequence files) 'string-lessp))))
+			 (sort files 'string-lessp))))
       (ignore-errors (delete-directory tmp-name1 'recursive))
       (ignore-errors (delete-directory tmp-name2 'recursive)))))
 
@@ -1455,9 +1463,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   "Check special characters in file names."
   (skip-unless (tramp--test-enabled))
 
-  ;; Newlines and slashes in file names are not supported.  So we don't test.
+  ;; Newlines, slashes and backslashes in file names are not supported.
+  ;; So we don't test.
   (tramp--test-check-files
-   " foo bar\tbaz "
+   " foo\tbar baz\t"
    "$foo$bar$$baz$"
    "-foo-bar-baz-"
    "%foo%bar%baz%"
@@ -1465,7 +1474,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
    "?foo?bar?baz?"
    "*foo*bar*baz*"
    "'foo\"bar'baz\""
-   "\\foo\\bar\\baz\\"
    "#foo#bar#baz#"
    "!foo|bar!baz|"
    ":foo;bar:baz;"

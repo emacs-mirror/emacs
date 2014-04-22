@@ -439,7 +439,7 @@ special meanings in Emacs.  Most of these variables are also used by
 some other programs.  Emacs does not require any of these environment
 variables to be set, but it uses their values if they are set.
 
-@table @env
+@vtable @env
 @item CDPATH
 Used by the @code{cd} command to search for the directory you specify,
 when you specify a relative directory name.
@@ -464,7 +464,9 @@ Emacs Lisp files.  If set, it modifies the usual initial value of the
 @code{load-path} variable (@pxref{Lisp Libraries}).  An empty element
 stands for the default value of @code{load-path}; e.g., using
 @samp{EMACSLOADPATH="/tmp:"} adds @file{/tmp} to the front of
-the default @code{load-path}.
+the default @code{load-path}.  To specify an empty element in the
+middle of the list, use 2 colons in a row, as in
+@samp{EMACSLOADPATH="/tmp::/foo"}.
 @item EMACSPATH
 A colon-separated list of directories to search for executable files.
 If set, Emacs uses this in addition to @env{PATH} (see below) when
@@ -598,14 +600,14 @@ defaults to @samp{root}.
 @item VERSION_CONTROL
 Used to initialize the @code{version-control} variable (@pxref{Backup
 Names}).
-@end table
+@end vtable
 
 @node Misc Variables
 @appendixsubsec Miscellaneous Variables
 
 These variables are used only on particular configurations:
 
-@table @env
+@vtable @env
 @item COMSPEC
 On MS-DOS and MS-Windows, the name of the command interpreter to use
 when invoking batch files and commands internal to the shell.  On MS-DOS
@@ -657,7 +659,7 @@ rather than hard-coding an absolute path.  This allows multiple
 versions of Emacs to share the same environment variable settings, and
 it allows you to move the Emacs installation directory, without
 changing any environment or registry settings.
-@end table
+@end vtable
 
 @node MS-Windows Registry
 @appendixsubsec The MS-Windows System Registry

@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; Should allow calling functions from org-mode tables using the
-;; function `sbe' as so...
+;; function `org-sbe' as so...
 
 ;; #+begin_src emacs-lisp :results silent
 ;;   (defun fibbd (n) (if (< n 2) 1 (+ (fibbd (- n 1)) (fibbd (- n 2)))))
@@ -47,7 +47,7 @@
 ;; |        7 |        |
 ;; |        8 |        |
 ;; |        9 |        |
-;; #+TBLFM: $2='(sbe 'fibbd (n $1))
+;; #+TBLFM: $2='(org-sbe 'fibbd (n $1))
 
 ;;; Code:
 (require 'ob-core)
@@ -60,14 +60,14 @@ character and replace it with ellipses."
       (concat (substring string 0 (match-beginning 0))
 	      (if (match-string 1 string) "...")) string))
 
-(defmacro sbe (source-block &rest variables) ;FIXME: Namespace prefix!
+(defmacro org-sbe (source-block &rest variables)
   "Return the results of calling SOURCE-BLOCK with VARIABLES.
 Each element of VARIABLES should be a two
 element list, whose first element is the name of the variable and
 second element is a string of its value.  The following call to
-`sbe' would be equivalent to the following source code block.
+`org-sbe' would be equivalent to the following source code block.
 
- (sbe 'source-block (n $2) (m 3))
+ (org-sbe 'source-block (n $2) (m 3))
 
 #+begin_src emacs-lisp :var results=source-block(n=val_at_col_2, m=3) :results silent
 results
@@ -84,7 +84,7 @@ the header argument which can then be passed before all variables
 as shown in the example below.
 
 | 1 | 2 | :file nothing.png | nothing.png |
-#+TBLFM: @1$4='(sbe test-sbe $3 (x $1) (y $2))"
+#+TBLFM: @1$4='(org-sbe test-sbe $3 (x $1) (y $2))"
   (declare (debug (form form)))
   (let* ((header-args (if (stringp (car variables)) (car variables) ""))
 	 (variables (if (stringp (car variables)) (cdr variables) variables)))

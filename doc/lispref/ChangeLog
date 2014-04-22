@@ -1,3 +1,9 @@
+2014-04-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Registers): Document register-read-with-preview.
+
+	* internals.texi (Building Emacs): Improve indexing.
+
 2014-04-17  Daniel Colascione  <dancol@dancol.org>
 
 	* frames.texi (Terminal Parameters): Document new

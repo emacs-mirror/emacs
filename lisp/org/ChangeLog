@@ -1,3 +1,529 @@
+2014-04-22  Aaron Ecay  <aaronecay@gmail.com>
+
+	* org-src.el (org-edit-src-exit): Place an undo boundary before
+	writing changes back to parent buffer.
+
+2014-04-22  Achim Gratz  <Stromeko@Stromeko.DE>
+
+	* ob-gnuplot.el (org-babel-gnuplot-process-vars):
+	`org-babel-gnuplot-table-to-data´ expects a table, so we need to
+	construct one when Babel hands us a vector.
+
+	* ob-ref.el (org-babel-ref-parse): If
+	`org-babel-current-src-block-location' is a marker, it can be from
+	another buffer, use marker-position instead in this case.
+
+2014-04-22  Arun Persaud  <apersaud@lbl.gov>  (tiny change)
+
+	* org-src.el (org-edit-src-exit): Don't add indentation on empty
+	lines.
+
+2014-04-22  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-insert-heading): Fix behavior when point is at the
+	beginning of a heading or a list item.  Enhance docstring.
+
+	* ox-html.el (org-html-infojs-install-script): Don't install
+	infojs scripts when #+INFOJS_OPT: is empty.
+
+	* org.el (org-mode): Fix the use of `org-*-element' functions for
+	C-M-a and C-M-e but fix C-M-e.
+
+	* org-agenda.el (org-agenda-search-view): Fix tag.
+
+	* org.el (org-check-before-invisible-edit): Don't just cycle, show
+	the subtree, as cycling may leave the current heading folded.
+	(org-contextualize-validate-key): Fix wrong test.
+
+	* org-bibtex.el (org-bibtex-headline): Don't throw an error when
+	trying to add a keyword field to a BibTeX entry that is not known
+	by BibTeX or defined by the user.
+	(org-bibtex, org-bibtex-no-export-tags): Fix docstrings.
+
+	* ox-latex.el (org-latex-src-block): Fix wrong propagation of
+	labels and captions when using the listings environment.
+
+	* org.el (org-sort-entries): Fix the number of blank lines to
+	keep for the last entry to sort.
+
+	* org-clock.el (org-clock-put-overlay): Fix display when
+	`org-indent-mode' is on.
+
+	* org.el (org-sort-entries): Allow to sort by clocking time.
+
+	* org-agenda.el (org-agenda-finalize): Apply all filters
+	correctly.
+
+	* org.el (org-update-dblock): Use `save-excursion' instead of
+	`save-window-excursion' so that blocks can edit other windows and
+	change the window layout.
+
+	* org-agenda.el (org-agenda-mode): Disable `indent-tabs-mode'.
+	(org-agenda-dim-blocked-tasks): Make overlays intangible.
+	(org-agenda-show-new-time): Fix bug when deleting a timestamp
+	right after changing it.
+	(org-agenda-check-for-timestamp-as-reason-to-ignore-todo-item)
+	(org-agenda-get-sexps, org-agenda-filter-by-regexp)
+	(org-agenda-filter-top-headline-apply): Fix indentation.
+
+	* org.el (org-cycle): Try `org-try-cdlatex-tab' before trying
+	to edit/move as in a table.
+
+	* org-agenda.el (org-agenda-show-new-time): Don't use
+	`move-beginning-of-line' as it is slower and not needed.
+
+	* org-compat.el (org-move-to-column): Temporarily set
+	`buffer-invisibility-spec' more accurately.
+
+	* ox-latex.el (org-latex-text-markup-alist): Use \ul{...} for
+	underlining instead of \uline{...} as requiring the hyperref
+	package makes \uline{...} unusable on headline.
+
+	* org.el (org-latex-default-packages-alist): Add the "soul"
+	package.
+
+	* org.el (org-refresh-properties): Don't add the property to
+	the whole subtree, only to the part between the beginning of
+	the headline and the end of the "content", before any other
+	headline.  This fix a bug about properties displayed as
+	inherited in the agenda, where Org properties are checked
+	against text properties.
+
+	* ox-latex.el (org-latex--text-markup): Replace newlines by
+	whitespaces in \verb constructs.
+
+	* org-agenda.el (org-agenda-filter-hide-line): Hide from the
+	beginning of the line to the beginning of the next line.
+	(org-agenda-show-new-time): Use `move-beginning-of-line' and
+	`move-end-of-line'.
+	(org-agenda-drag-line-forward): Adapt to the new definition of
+	hidden filtered lines.
+
+	* org-compat.el (org-move-to-column): Always ignore invisible
+	text in agenda buffer, and when there is both a bracket link
+	and '(org-link) as a member of `buffer-invisibility-spec'.
+	Add a docstring.
+
+	* org.el (org-align-tags-here): Add docstring and remove useless
+	arguments when calling `org-move-to-column'.
+
+	* org-table.el (org-table-copy-down)
+	(org-table-find-dataline, org-table-move-row)
+	(org-table-insert-hline, org-table-kill-row):
+	* org-agenda.el (org-agenda-next-item)
+	(org-agenda-previous-item, org-agenda-todo)
+	(org-agenda-priority, org-agenda-show-new-time)
+	(org-agenda-clock-in, org-agenda-clock-out): Remove useless
+	arguments when calling `org-move-to-column'.
+
+	* org.el (org-refile): Fix calling with a numeric prefix argument
+	of 3 to refile and keep.
+
+	* org-clock.el (org-clock-get-table-data): When :link is `t' in
+	the clocktable parameters, bracket links in the clocktable should
+	only contain their description, other C-c C-o will try to open the
+	bracket link at point instead of the headline.
+
+	* org-agenda.el (org-agenda-todo): Always restore the window state
+	after `org-agenda-change-all-lines' has been called.
+	(org-agenda-open-link): Don't throw an error when trying to open a
+	link when the point is on a place that is not associated with a
+	buffer.
+
+	* ox-latex.el (org-latex-link): Escape `%' characters.
+
+	* org.el (org-entry-get-with-inheritance): Remove wrong quote.
+	(org-entry-get): Only try to combine file properties with local
+	properties when the property drawer contains such local property,
+	not when the property drawer exists.
+
+	* ox-latex.el (org-latex-link):
+	* ox-html.el (org-html-link):
+	* ox-beamer.el (org-beamer-link): Fix links to radio targets.
+
+	* ox-ascii.el (org-ascii-link): For links to a radio target, use
+	the link, not the target.
+
+	* org.el (org-do-emphasis-faces): Explicitly prevent nested
+	emphasis.
+	(org-insert-heading): Don't remove whitespaces following an empty
+	headline.
+
+	* org-timer.el (org-timer-stop): Set `org-timer-current-timer' to
+	nil.
+
+	* org.el (org-store-link): Ensure desc is not nil before matching
+	a regexp against it.  Fall back on an empty string when no
+	description is available.
+
+	* org-agenda.el (org-agenda-list-stuck-projects): Bugfix: set
+	`org-agenda-buffer-name'.
+
+	* org-capture.el (org-capture-finalize): Ensure to widen the
+	buffer when the target buffer is not initially narrowed.
+
+	* org-compat.el (org-move-to-column): Fix bug about ignoring
+	bracket links visibility status in tables with S-RET.
+
+	* org-src.el (org-edit-src-find-region-and-lang): Check if we are
+	in a table.el table last.
+
+	* org.el (org-delete-property): Don't suggest to delete the
+	CATEGORY property when the category is not explicitely set in the
+	property drawer.  Also enforce matching when completing.
+	(org-insert-heading): Fix regression: with two universal prefixes,
+	insert heading at the end of the subtree.
+	(org-insert-todo-heading): Bugfix: only enforce the first TODO
+	state when arg is '(4).
+
+	* org-agenda.el (org-agenda-skip-subtree-if): Fix docstring.
+
+	* org.el (org-contextualize-validate-key): Fix bug: perform the
+	check even when (buffer-file-name) returns `nil'.
+
+	* org-colview.el (org-columns-display-here): Let-bind `fm'.
+
+	* org.el (org-emphasis-alist): Use `org-verbatim' for =text=
+	and `org-code' for ~text~.
+	(org-open-link-marker): Fix typo in docstring.
+
+	* org-colview.el (org-columns-display-here): Fix the column
+	view for numbers with a format specifier (e.g. {+; %5.1f}).
+
+	* org-src.el (org-edit-src-code): Throw a warning instead of
+	an error when loading the mode fails, otherwise the user is
+	left with unusable buffers.
+
+	* org-table.el (org-table-copy-down)
+	(org-table-find-dataline, org-table-move-row)
+	(org-table-insert-hline, org-table-kill-row): Use
+	`org-move-to-column' with the IGNORE-INVISIBLE arg set to `t', so
+	that abbreviated rows don't interfer with setting the cursor back
+	at the correct position.
+
+	* org.el (org-agenda-prepare-buffers): Use `save-excursion'
+	instead of `save-window-excursion'.
+	(org-file-contents): Return an empty string instead of the
+	message.
+	(org-open-at-point): Fix bug when opening a plain link followed by
+	a bracket link.
+	(org-ctrl-c-ctrl-c): Fix behavior when hitting C-c C-c on LaTeX
+	formulas in tables.
+	(org-refile--get-location): New internal function using a wider
+	set of possible refile locations.
+	(org-refile-get-location): Use it.
+	(org-refile): Fix bug when refiling the last subtree of the
+	buffer: don't leave out the last character.
+	(org-sort-entries): Restore the point location when there is
+	nothing to sort.
+
+	* org-table.el (org-table-field-info): Throw a user error when not
+	at a table.
+
+	* org-agenda.el (org-agenda-drag-line-forward): Call
+	`org-agenda-mark-clocking-task' when done.
+	(org-agenda-mark-clocking-task): Small refactoring.
+
+	* org-compat.el (org-set-transient-map): Alias pointing at
+	`set-transient-map' if defined, at `set-temporary-overlay-map'
+	otherwise.
+
+	* org-agenda.el (org-agenda-next-item)
+	(org-agenda-previous-item, org-agenda-toggle-archive-tag)
+	(org-agenda-todo, org-agenda-priority, org-agenda-clock-in)
+	(org-agenda-clock-out): Put the cursor back on the correct
+	column, when possible.
+	(org-agenda-todo): When `org-clock-out-when-done' is `t', also
+	remove the current clock overlay.
+
+	* org.el (org-format-latex-options): Fix docstring.
+
+	* ox.el (org-export--get-subtree-options): When using the headline
+	as a title for a subtree export, only take the true heading, no
+	TODO keyword, no priority cookie, no tag.
+
+	* org.el (customize-package-emacs-version-alist): Fix Org version
+	for Emacs 24.4.
+
+	* org.el (org-demote): Ignore invisible text when aligning tags.
+	(org-set-tags): When JUST-ALIGN is 'ignore-column, ignore
+	invisible text when restoring the cursor to the correct column.
+
+	* ob-python.el (org-babel-python-var-to-python): Bugfix: Strip
+	properties before formatting the results.
+
+	* org-agenda.el (org-agenda-regexp-filter-preset): Fix typo in
+	docstring.
+	(org-agenda-reapply-filters): New function.
+	(org-agenda-drag-line-forward): Rewrite to fix a bug when used
+	in filtered agendas.
+	(org-agenda-drag-line-backward): Rewrite using
+	`org-agenda-drag-line-forward'.
+
+	* ob-table.el (org-sbe): Rename from `sbe'.
+
+	* org.el (org-store-link): When a link has been stored, always
+	returns it.
+
+	* ob-python.el (org-babel-python-var-to-python): Fix code typo.
+
+	* org-entities.el (org-entities-help): Prevent the display of
+	pretty entities, as this help buffer is meant to list literal
+	strings, not utf-8 representations.
+
+2014-04-22  Benjamin Drieu  <bdrieu@april.org>
+
+	* org.el (org-store-link): Fix selection of the function to store
+	the link.
+
+2014-04-22  Ilya Shlyakhter  <ilya_shl@alum.mit.edu>
+
+	* org.el (org-entry-get-with-inheritance): Temporarily let-bind
+	`org-file-properties', `org-global-properties' and
+	`org-global-properties-fixed' to nil before calling
+	`org-entry-get' on entries up the hierarchy from the queried
+	entry.
+
+2014-04-22  Justin Gordon  <justin.gordon@gmail.com>
+
+	* ox-md (org-md-separate-elements): Fix blank line insertion
+	between elements.
+
+	* ox-md.el (org-md-inner-template): New function.
+
+2014-04-22  Leonard Randall  <leonard.a.randall@gmail.com>  (tiny change)
+
+	* org-bibtex.el (org-bibtex-headline): Fix insertion of keywords
+	of unknown BibTeX entries.
+
+2014-04-22  Markus Hauck  <markus1189@gmail.com>  (tiny change)
+
+	* org-agenda.el (org-agenda-get-scheduled): If
+	`org-agenda-skip-scheduled-if-deadline-is-shown' is set to
+	'repeated-after-deadline, still show tasks without any deadline
+
+2014-04-22  Michael Brand  <michael.ch.brand@gmail.com>
+
+	* org-table.el (org-table-fix-formulas): Handle multiple #+TBLFM
+	lines with `forward-line'.
+
+2014-04-22  Michael Weylandt  <michael.weylandt@gmail.com>  (tiny change)
+
+	* ox-latex.el (org-latex-export-to-latex): Downcase the language
+	name when using minted highlighting for src block exports.
+
+2014-04-22  Nick Dokos  <ndokos@gmail.com>
+
+	* org-mobile.el (org-mobile-create-index-file): delete :grouptags
+	entries from tags list when creating the org-mobile index file.
+
+2014-04-22  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* ox.el (org-export-copy-to-kill-ring): Comply to docstrings
+	standards.
+
+	* org.el (org-sparse-tree): Fix code typo.  Small refactoring.
+
+	* ox-latex.el (org-latex-link):
+	* ox-html.el (org-html-link):  Do not expand absolute file names
+	and do not try to fix hierarchy part, as it is already taken care of
+	at the parser level.
+
+	* ox-md.el (org-md-link): Ditto.  Also fix absolute file names.
+
+	* ox-odt.el (org-odt-link):
+	* ox-man.el (org-man-link):
+	* ox-texinfo.el (org-texinfo-link):
+	* org-element.el (org-element-link-parser): Fix ill-defined "file"
+	type links.  Expand absolute file names in the process.
+
+	* org.el (org-make-link-regexps): Use `regexp-opt' instead of
+	`mapconcat' and `regexp-quote'.
+
+	* ox-html.el (org-html-link):
+	* ox-latex.el (org-latex-link):
+	* ox-man.el (org-man-link):
+	* ox-odt.el (org-odt-link):
+	* ox-html.el (org-html-link):
+	* ox-latex.el (org-latex-link):
+	* ox-man.el (org-man-link):
+	* ox-odt.el (org-odt-link):
+	* ox-texinfo.el (org-texinfo-link): Append "//" after some link
+	types.
+
+	* ox-md.el (org-md-link):
+	* org.el (org-make-link-regexps): Allow optional double slashes
+	after type.  Small refactoring.
+
+	* org-element.el (org-element-headline-parser): Tiny refactoring.
+
+	* org-element.el (org-element-headline-parser): Correctly parse
+	blank lines after a headline.
+
+	* org-element.el (org-element-table-cell-parser)
+	(org-element-table-cell-successor): Recognize cell even when last
+	vertical bar is missing.
+
+	* ox-md.el (org-md-example-block): handle switches and references
+	in source blocks.
+
+	* org.el (org-latex-packages-alist)
+	(org-latex-default-packages-alist): Update docstrings.
+
+	* ox-ascii.el (org-ascii--unique-links): Ignore white spaces when
+	uniquifying links in section.
+
+	* ox-odt.el (org-odt-template): Ignore blank titles.
+
+	* ox-publish.el (org-publish-find-title): Fix (invalid-read-syntax
+	"#").
+
+	* ox-ascii.el (org-ascii-link):
+	* ox-beamer.el (org-beamer-link):
+	* ox-html.el (org-html-link):
+	* ox-latex.el (org-latex-link):
+	* ox-md.el (org-md-link):
+	* ox-odt.el (org-odt-link): Update radio target export according
+	to recent changes.
+
+	* org-element.el (org-element-all-successors)
+	(org-element-object-restrictions): Prioritize `link' over other
+	successors in order to find radio links starting with another
+	syntax object (e.g., an entity).  Also allow text markup within
+	radio targets.
+	(org-element-link-parser): Add contents to radio targets.
+
+	* org.el (org-make-target-link-regexp): Fix regexp so it can match
+	targets starting with an Org object (e.g., an entity).
+	(org-ctrl-c-ctrl-c): Fix function when applied on an object contained
+	within a radio target.
+
+	* org.el (org-mode): Change "\" and "~" characters syntax from
+	`punctuation' to `symbol' so they are on par with other characters
+	used in Org syntax (e.g., "/", "*"...).
+
+	* ox-beamer.el (org-beamer-publish-to-pdf):
+	* ox-latex.el (org-latex-publish-to-pdf): Ensure ".tex" file is
+	generated in the same directory as the ".org" file.
+
+	* ox-latex.el (org-latex-headline): Hard-code "\underline" in
+	sections because "\uline" ("ulem" package) returns an error and
+	"\ul" ("soul" package) doesn't support chinese characters.
+
+	* ox-ascii.el (org-ascii-link): Correctly handle case mismatch
+	between radio targets and radio links.
+
+	* org-element.el (org-element-link-parser): "radio" links have
+	their path downcased to avoid introducing case mismatch with their
+	relative radio target.  With this change it is also necessary to
+	add contents to them, since `:path' property no longer matches
+	real value of the link.
+	(org-element-radio-target-parser): Downcase value as explained
+	above.  Store the initial value in a new `:raw-value' property.
+
+	* org-element.el (org-element-context): Fix parsing of bold
+	objects at the beginning of a headline.
+
+	* org-element.el (org-element-context): Fix timestamps parsing.
+
+	* ox-beamer.el (org-beamer-item): Insert the export snippet right
+	after the first \item, not all of them.
+
+	* org-element.el (org-element--list-struct): Fix regexp.
+
+	* org-element.el (org-element-inlinetask-parser): Fix parsing when
+	regular and degenerate inlinetasks are mixed in the section.
+
+	* ox-md.el (org-md-link): Generate md links to other Org files
+	instead of html links.  Do not confuse caption and alt-text.
+	Provide "img" as default alt-text.
+
+	* org-element.el (org-element-normalize-contents): Do not ignore
+	empty lines when an object follows.
+	(org-element-interpret-data): Do not remove properties by
+	side-effect when interpreting a string, as it also removes them
+	from the parse tree, making the string unusable without its
+	:parent property.
+
+	* ob-exp.el (org-babel-exp-process-buffer): Also check
+	`org-src-preserve-indentation' to know when to preserve indentation.
+	(org-babel-exp-code-template): Include switches in template.
+	(org-babel-exp-code): Provide %switches placeholder.
+
+	* ox-latex.el (org-latex-plain-list): Do not automatically
+	enclose value for :options attribute within square brackets.
+	Instead, append them verbatim next to the block name, as special
+	blocks do.
+
+	* ob-exp.el (org-babel-exp-code): Fix export of src blocks with
+	flags.
+	(org-babel-exp-process-buffer): Make processing more robust when
+	results are inserted before source block or when source block is
+	followed by multiple blank lines.
+
+	* ox.el (org-export-insert-default-template): Only insert
+	keywords and options relatives to the selected back-end.  Ignore
+	those relatives to its parent in the case of a derived back-end.
+
+	* ox-beamer.el: Remove unnecessary package definitions in default
+	class.
+
+	* ox-latex.el (org-latex-headline, org-latex-item): Fix items
+	starting with a square bracket.
+
+	* org.el (org-mode-restart): Fix turning off `org-indent-mode'
+	when necessary.
+	(org-get-previous-line-level): Do not call `org-current-level'
+	twice unless necessary.  Also, avoid using `line-number-at-pos'
+	when the information needed is to know if point is in the first
+	line of the visible part of the buffer.
+
+	* ob-core.el (org-babel-get-inline-src-block-matches): Do not
+	compute line number if all is needed is to know if we're on the
+	first one.
+
+	* ox-md.el (org-md-item): Do not return an error when exporting
+	an empty item.
+
+	* ox-beamer.el (org-beamer-select-environment): Function doesn't
+	work if fast tag selection is disabled, so make sure it is always
+	on, independently on user's configuration.
+
+2014-04-22  Nikolai Weibull  <now@disu.se>  (tiny change)
+
+	* org.el (org-mode): Add guard around set-face-foreground.
+
+2014-04-22  Rasmus  <w530@pank.eu>
+
+	* ox-html.el (org-html-html5-elements): Drop reference to hgroup.
+
+2014-04-22  Rick Frankel  <rick@rickster.com>
+
+	* ox-html.el (org-html-link): Unescape org-escaped links an
+	re-escape for html (browser).
+
+2014-04-22  Sacha Chua  <sacha@sachachua.com>
+
+	* org.el (org-refresh-properties): Don't throw an error when
+	reaching the end of the buffer.
+
+2014-04-22  Stefan-W. Hahn  <stefan.hahn@s-hahn.de>  (tiny change)
+
+	* org-bibtex.el (org-bibtex-read): Check string length before
+	using aref.
+
+2014-04-22  Yasushi SHOJI  <yashi@atmark-techno.com>
+
+	* ox-ascii.el (org-ascii--current-text-width): Convert `length'
+	to `string-width'.
+	(org-ascii--build-title, org-ascii--build-toc)
+	(org-ascii--list-listings, org-ascii--list-tables)
+	(org-ascii-template--document-title)
+	(org-ascii-inner-template, org-ascii-format-inlinetask-default)
+	(org-ascii-format-inlinetask-default, org-ascii-item
+	(org-ascii--table-cell-width, org-ascii-table-cell)
+	(org-ascii--current-text-width): Likewise.
+
 2014-02-25  Glenn Morris  <rgm@gnu.org>
 
 	* org-version.el (org-odt-data-dir):

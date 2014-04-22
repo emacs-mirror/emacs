@@ -1,3 +1,25 @@
+2014-04-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to GCC 4.9.0 with --enable-gcc-warnings.
+	* image.c (struct my_jpeg_error_mgr) [lint]: Remove member fp.
+	All uses removed.
+	(jpeg_load_body) [lint]: Add a 'volatile' to pacify a buggy GCC in
+	a way that also works with GCC 4.9.0.
+
+	* search.c (Fnewline_cache_check): Remove unused locals.
+
+2014-04-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.c (find_newline1): New subroutine.
+	(Fnewline_cache_check): New function.
+	(syms_of_search): Defsubr it.
+
+2014-04-22  Jarek Czekalski  <jarekczek@poczta.onet.pl>
+
+	Fix freezing with scroll bars of GTK3 Toolkit (bug#15801).
+	* keyboard.c (unblock_input): Add comment.
+	* xgselect.c (xg_select): Prevent Glib main loop recursion.
+
 2014-04-22  Daniel Colascione  <dancol@dancol.org>
 
 	* lread.c (readevalloop_eager_expand_eval): New function

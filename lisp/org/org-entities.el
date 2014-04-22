@@ -598,7 +598,9 @@ Kind can be any of `latex', `html', `ascii', `latin1', or `utf8'."
 	  (princ (format "   %-8s \\%-16s %-22s %-13s\n"
 			 utf8 name latex html))))))
   (with-current-buffer "*Org Entity Help*"
-    (org-mode))
+    (org-mode)
+    (when org-pretty-entities
+      (org-toggle-pretty-entities)))
   (select-window (get-buffer-window "*Org Entity Help*")))
 
 
