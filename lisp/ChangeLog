@@ -1,3 +1,10 @@
+2014-04-22  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/cl-macs.el
+	(cl-struct-sequence-type,cl-struct-slot-info): Declare pure.
+	(cl-struct-slot-value): Conditionally use aref or nth so that the
+	compiler produces optimal code.
+
 2014-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el (cl-struct-slot-offset): Mark as pure.

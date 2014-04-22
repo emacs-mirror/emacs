@@ -2600,6 +2600,7 @@ STRUCT-TYPE is a symbol naming a struct type.  Return 'vector or
 'list, or nil if STRUCT-TYPE is not a struct type. "
   (car (get struct-type 'cl-struct-type)))
 (put 'cl-struct-sequence-type 'side-effect-free t)
+(put 'cl-struct-sequence-type 'pure t)
 
 (defun cl-struct-slot-info (struct-type)
   "Return a list of slot names of struct STRUCT-TYPE.
@@ -2609,6 +2610,7 @@ slot name symbol and OPTS is a list of slot options given to
 slots skipped by :initial-offset may appear in the list."
   (get struct-type 'cl-struct-slots))
 (put 'cl-struct-slot-info 'side-effect-free t)
+(put 'cl-struct-slot-info 'pure t)
 
 (defun cl-struct-slot-offset (struct-type slot-name)
   "Return the offset of slot SLOT-NAME in STRUCT-TYPE.
@@ -2942,7 +2944,12 @@ The type name can then be used in `cl-typecase', `cl-check-type', etc."
 STRUCT and SLOT-NAME are symbols.  INST is a structure instance."
   (unless (cl-typep inst struct-type)
     (signal 'wrong-type-argument (list struct-type inst)))
-  (elt inst (cl-struct-slot-offset struct-type slot-name)))
+  ;; We could use `elt', but since the byte compiler will resolve the
+  ;; branch below at compile time, it's more efficient to use the
+  ;; type-specific accessor.
+  (if (eq (cl-struct-sequence-type struct-type) 'vector)
+      (aref inst (cl-struct-slot-offset struct-type slot-name))
+    (nth (cl-struct-slot-offset struct-type slot-name) inst)))
 (put 'cl-struct-slot-value 'side-effect-free t)
 
 (run-hooks 'cl-macs-load-hook)

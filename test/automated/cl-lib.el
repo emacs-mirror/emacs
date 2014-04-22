@@ -206,7 +206,7 @@
   (let ((x (make-mystruct :abc 1 :def 2)))
     (should (eql (cl-struct-slot-value 'mystruct 'abc x) 1))
     (should (eql (cl-struct-slot-value 'mystruct 'def x) 2))
-    (cl-struct-set-slot-value 'mystruct 'def x -1)
+    (setf (cl-struct-slot-value 'mystruct 'def x) -1)
     (should (eql (cl-struct-slot-value 'mystruct 'def x) -1))
     (should (eql (cl-struct-slot-offset 'mystruct 'abc) 1))
     (should-error (cl-struct-slot-offset 'mystruct 'marypoppins))

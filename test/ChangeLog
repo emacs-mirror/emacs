@@ -1,3 +1,8 @@
+2014-04-22  Daniel Colascione  <dancol@dancol.org>
+
+	* automated/cl-lib.el (cl-lib-struct-accessors): Fix test to
+	account for removal of `cl-struct-set-slot-value'.
+
 2014-04-21  Daniel Colascione  <dancol@dancol.org>
 
 	* automated/bytecomp-tests.el (test-byte-comp-compile-and-load):
