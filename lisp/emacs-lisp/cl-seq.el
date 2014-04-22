@@ -166,7 +166,7 @@ SEQ1 is destructively modified, then returned.
 		   (cl-n (min (- (or cl-end1 cl-len) cl-start1)
 			      (- (or cl-end2 cl-len) cl-start2))))
 	      (while (>= (setq cl-n (1- cl-n)) 0)
-		(cl--set-elt cl-seq1 (+ cl-start1 cl-n)
+		(setf (elt cl-seq1 (+ cl-start1 cl-n))
 			    (elt cl-seq2 (+ cl-start2 cl-n))))))
       (if (listp cl-seq1)
 	  (let ((cl-p1 (nthcdr cl-start1 cl-seq1))
@@ -392,7 +392,7 @@ to avoid corrupting the original SEQ.
 	    cl-seq
 	  (setq cl-seq (copy-sequence cl-seq))
 	  (or cl-from-end
-	      (progn (cl--set-elt cl-seq cl-i cl-new)
+	      (progn (setf (elt cl-seq cl-i) cl-new)
 		     (setq cl-i (1+ cl-i) cl-count (1- cl-count))))
 	  (apply 'cl-nsubstitute cl-new cl-old cl-seq :count cl-count
 		 :start cl-i cl-keys))))))
@@ -439,7 +439,7 @@ This is a destructive function; it reuses the storage of SEQ whenever possible.
 		(setq cl-end (1- cl-end))
 		(if (cl--check-test cl-old (elt cl-seq cl-end))
 		    (progn
-		      (cl--set-elt cl-seq cl-end cl-new)
+		      (setf (elt cl-seq cl-end) cl-new)
 		      (setq cl-count (1- cl-count)))))
 	    (while (and (< cl-start cl-end) (> cl-count 0))
 	      (if (cl--check-test cl-old (aref cl-seq cl-start))

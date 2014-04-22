@@ -2621,6 +2621,7 @@ does not contain SLOT-NAME."
                    :key #'car :test #'eq)
       (error "struct %s has no slot %s" struct-type slot-name)))
 (put 'cl-struct-slot-offset 'side-effect-free t)
+(put 'cl-struct-slot-offset 'pure t)
 
 (defvar byte-compile-function-environment)
 (defvar byte-compile-macro-environment)
@@ -2907,7 +2908,7 @@ The function's arguments should be treated as immutable.
 
 ;;; Things that are inline.
 (cl-proclaim '(inline cl-acons cl-map cl-concatenate cl-notany
-               cl-notevery cl--set-elt cl-revappend cl-nreconc gethash))
+               cl-notevery cl-revappend cl-nreconc gethash))
 
 ;;; Things that are side-effect-free.
 (mapc (lambda (x) (put x 'side-effect-free t))
@@ -2932,54 +2933,17 @@ The type name can then be used in `cl-typecase', `cl-check-type', etc."
           (cl-function (lambda (&cl-defs '('*) ,@arglist) ,@body)))))
 
 ;;; Additional functions that we can now define because we've defined
-;;; `cl-define-compiler-macro' and `cl-typep'.
+;;; `cl-defsubst' and `cl-typep'.
 
-(defun cl-struct-slot-value (struct-type slot-name inst)
+(cl-defsubst cl-struct-slot-value (struct-type slot-name inst)
+  ;; The use of `cl-defsubst' here gives us both a compiler-macro
+  ;; and a gv-expander "for free".
   "Return the value of slot SLOT-NAME in INST of STRUCT-TYPE.
 STRUCT and SLOT-NAME are symbols.  INST is a structure instance."
   (unless (cl-typep inst struct-type)
     (signal 'wrong-type-argument (list struct-type inst)))
   (elt inst (cl-struct-slot-offset struct-type slot-name)))
 (put 'cl-struct-slot-value 'side-effect-free t)
-
-(defun cl-struct-set-slot-value (struct-type slot-name inst value)
-  "Set the value of slot SLOT-NAME in INST of STRUCT-TYPE.
-STRUCT and SLOT-NAME are symbols.  INST is a structure instance.
-VALUE is the value to which to set the given slot.  Return
-VALUE."
-  (unless (cl-typep inst struct-type)
-    (signal 'wrong-type-argument (list struct-type inst)))
-  (setf (elt inst (cl-struct-slot-offset struct-type slot-name)) value))
-
-(gv-define-simple-setter cl-struct-slot-value cl-struct-set-slot-value)
-
-(cl-define-compiler-macro cl-struct-slot-value
-    (&whole orig struct-type slot-name inst)
-  (or (let* ((struct-type (cl--const-expr-val struct-type))
-             (slot-name (cl--const-expr-val slot-name)))
-        (and struct-type (symbolp struct-type)
-             slot-name (symbolp slot-name)
-             (assq slot-name (cl-struct-slot-info struct-type))
-             (let ((idx (cl-struct-slot-offset struct-type slot-name)))
-               (cl-ecase (cl-struct-sequence-type struct-type)
-                 (vector `(aref (cl-the ,struct-type ,inst) ,idx))
-                 (list `(nth ,idx (cl-the ,struct-type ,inst)))))))
-      orig))
-
-(cl-define-compiler-macro cl-struct-set-slot-value
-    (&whole orig struct-type slot-name inst value)
-  (or (let* ((struct-type (cl--const-expr-val struct-type))
-             (slot-name (cl--const-expr-val slot-name)))
-        (and struct-type (symbolp struct-type)
-             slot-name (symbolp slot-name)
-             (assq slot-name (cl-struct-slot-info struct-type))
-             (let ((idx (cl-struct-slot-offset struct-type slot-name)))
-               (cl-ecase (cl-struct-sequence-type struct-type)
-                 (vector `(setf (aref (cl-the ,struct-type ,inst) ,idx)
-                                ,value))
-                 (list `(setf (nth ,idx (cl-the ,struct-type ,inst))
-                              ,value))))))
-      orig))
 
 (run-hooks 'cl-macs-load-hook)
 

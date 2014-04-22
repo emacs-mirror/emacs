@@ -4278,18 +4278,7 @@ not contain @code{slot-name}.
 Return the value of slot @code{slot-name} in @code{inst} of
 @code{struct-type}.  @code{struct} and @code{slot-name} are symbols.
 @code{inst} is a structure instance.  This routine is also a
-@code{setf} place.  @code{cl-struct-slot-value} uses
-@code{cl-struct-slot-offset} internally and can signal the same
-errors.
-@end defun
-
-@defun cl-struct-set-slot-value struct-type slot-name inst value
-Set the value of slot @code{slot-name} in @code{inst} of
-@code{struct-type}.  @code{struct} and @code{slot-name} are symbols.
-@code{inst} is a structure instance.  @code{value} is the value to
-which to set the given slot.  Return @code{value}.
-@code{cl-struct-slot-value} uses @code{cl-struct-set-slot-offset}
-internally and can signal the same errors.
+@code{setf} place.  Can signal the same errors as @code{cl-struct-slot-offset}.
 @end defun
 
 @node Assertions

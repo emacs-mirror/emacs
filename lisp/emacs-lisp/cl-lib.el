@@ -152,9 +152,6 @@ an element already on the list.
 	`(setq ,place (cl-adjoin ,x ,place ,@keys)))
     `(cl-callf2 cl-adjoin ,x ,place ,@keys)))
 
-(defun cl--set-elt (seq n val)
-  (if (listp seq) (setcar (nthcdr n seq) val) (aset seq n val)))
-
 (defun cl--set-buffer-substring (start end val)
   (save-excursion (delete-region start end)
 		  (goto-char start)

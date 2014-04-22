@@ -1,3 +1,7 @@
+2014-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cl.texi (Structures): Remove cl-struct-set-slot-value.
+
 2014-04-20  Daniel Colascione  <dancol@dancol.org>
 
 	* cl.texi (Declarations): Document changes to `cl-the' and defstruct functions.

@@ -1,3 +1,15 @@
+2014-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-struct-slot-offset): Mark as pure.
+	(inline): Don't inline cl--set-elt.
+	(cl-struct-slot-value): Remove explicit gv-setter and compiler-macro.
+	Define as inlinable instead.
+	(cl-struct-set-slot-value): Remove.
+
+	* emacs-lisp/cl-lib.el (cl--set-elt): Remove.
+	* emacs-lisp/cl-seq.el (cl-replace, cl-substitute, cl-nsubstitute):
+	Use setf instead.
+
 2014-04-21  Daniel Colascione  <dancol@dancol.org>
 
 	* emacs-lisp/cl-macs.el (cl--const-expr-val): We didn't need the
