@@ -421,7 +421,7 @@ Filled in `cconv-analyse-form' but initialized and consulted here.")
 
 (defvar byte-compiler-error-flag)
 
-(defun byte-compile-recurse-toplevel (form &optional non-toplevel-case)
+(defun byte-compile-recurse-toplevel (form non-toplevel-case)
   "Implement `eval-when-compile' and `eval-and-compile'.
 Return the compile-time value of FORM."
   ;; Macroexpand (not macroexpand-all!) form at toplevel in case it
@@ -439,28 +439,28 @@ Return the compile-time value of FORM."
     (funcall non-toplevel-case form)))
 
 (defconst byte-compile-initial-macro-environment
-  '(
+  `(
     ;; (byte-compiler-options . (lambda (&rest forms)
     ;;     		       (apply 'byte-compiler-options-handler forms)))
     (declare-function . byte-compile-macroexpand-declare-function)
-    (eval-when-compile . (lambda (&rest body)
-                           (let ((result nil))
-                             (byte-compile-recurse-toplevel
-                              (cons 'progn body)
-                              (lambda (form)
-                                (setf result
-                                      (byte-compile-eval
-                                       (byte-compile-top-level
-                                        (byte-compile-preprocess form))))))
-                             (list 'quote result))))
-    (eval-and-compile . (lambda (&rest body)
-                          (byte-compile-recurse-toplevel
-                           (cons 'progn body)
-                           (lambda (form)
-                             (let ((compiled (byte-compile-top-level
-                                              (byte-compile-preprocess form))))
-                               (eval compiled)
-                               compiled))))))
+    (eval-when-compile . ,(lambda (&rest body)
+                                  (let ((result nil))
+                                    (byte-compile-recurse-toplevel
+                                     (cons 'progn body)
+                                     (lambda (form)
+                                       (setf result
+                                             (byte-compile-eval
+                                              (byte-compile-top-level
+                                               (byte-compile-preprocess form))))))
+                                    (list 'quote result))))
+    (eval-and-compile . ,(lambda (&rest body)
+                                 (byte-compile-recurse-toplevel
+                                  (cons 'progn body)
+                                  (lambda (form)
+                                    (let ((compiled (byte-compile-top-level
+                                                     (byte-compile-preprocess form))))
+                                      (eval compiled lexical-binding)
+                                      compiled))))))
   "The default macro-environment passed to macroexpand by the compiler.
 Placing a macro here will cause a macro to have different semantics when
 expanded by the compiler as when expanded by the interpreter.")
