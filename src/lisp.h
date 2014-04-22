@@ -4027,6 +4027,7 @@ extern void syms_of_minibuf (void);
 /* Defined in callint.c.  */
 
 extern Lisp_Object Qminus, Qplus;
+extern Lisp_Object Qprogn;
 extern Lisp_Object Qwhen;
 extern Lisp_Object Qmouse_leave_buffer_hook;
 extern void syms_of_callint (void);

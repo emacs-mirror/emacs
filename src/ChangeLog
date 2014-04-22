@@ -1,3 +1,11 @@
+2014-04-22  Daniel Colascione  <dancol@dancol.org>
+
+	* lread.c (readevalloop_eager_expand_eval): New function
+	that can recurse into toplevel forms.
+	(readevalloop): Call it.
+	* lisp.h: Declare Qprogn.
+	* callint.c (Qprogn): No longer static.
+
 2014-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* intervals.c (rotate_right, rotate_left): Fix up length computation.

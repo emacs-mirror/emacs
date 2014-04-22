@@ -1,5 +1,12 @@
 2014-04-22  Daniel Colascione  <dancol@dancol.org>
 
+	* emacs-lisp/macroexp.el (internal-macroexpand-for-load): Add
+	`full-p' parameter; when nil, call `macroexpand' instead of
+	`macroexpand-all'.
+
+	* emacs-lisp/byte-run.el (eval-when-compile, eval-and-compile):
+	Improve docstrings.
+
 	* emacs-lisp/bytecomp.el (byte-compile-initial-macro-environment):
 	Use lambda function values, not quoted lambdas.
 	(byte-compile-recurse-toplevel): Remove extraneous &optional.

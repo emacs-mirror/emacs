@@ -1,7 +1,19 @@
 2014-04-22  Daniel Colascione  <dancol@dancol.org>
 
+	* automated/bytecomp-tests.el (test-byte-comp-compile-and-load):
+	Add compile flag.
+	(test-byte-comp-macro-expansion)
+	(test-byte-comp-macro-expansion-eval-and-compile)
+	(test-byte-comp-macro-expansion-eval-when-compile)
+	(test-byte-comp-macro-expand-lexical-override): Use it.
+	(test-eager-load-macro-expansion)
+	(test-eager-load-macro-expansion-eval-and-compile)
+	(test-eager-load-macro-expansion-eval-when-compile)
+	(test-eager-load-macro-expand-lexical-override): New tests.
+
 	* automated/cl-lib.el (cl-lib-struct-accessors): Fix test to
-	account for removal of `cl-struct-set-slot-value'.
+	account for removal of `cl-struct-set-slot-value'. Also, move
+	the defstruct to top level.
 
 2014-04-21  Daniel Colascione  <dancol@dancol.org>
 

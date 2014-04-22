@@ -38,8 +38,8 @@ static Lisp_Object Qread_number;
 
 Lisp_Object Qmouse_leave_buffer_hook;
 
-static Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion, Qprogn, Qif;
-Lisp_Object Qwhen;
+static Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion, Qif;
+Lisp_Object Qwhen, Qprogn;
 static Lisp_Object preserved_fns;
 
 /* Marker used within call-interactively to refer to point.  */
