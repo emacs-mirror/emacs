@@ -1,5 +1,11 @@
 2014-04-22  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Port to GCC 4.9.0 with --enable-gcc-warnings.
+	* image.c (struct my_jpeg_error_mgr) [lint]: Remove member fp.
+	All uses removed.
+	(jpeg_load_body) [lint]: Add a 'volatile' to pacify a buggy GCC in
+	a way that also works with GCC 4.9.0.
+
 	* search.c (Fnewline_cache_check): Remove unused locals.
 
 2014-04-22  Eli Zaretskii  <eliz@gnu.org>
