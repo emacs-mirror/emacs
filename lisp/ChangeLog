@@ -1,3 +1,8 @@
+2014-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-syntax-propertize-function): Slash after
+	&, |, +, - and * can't be a division (bug#17317).
+
 2014-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/xterm.el (xterm--version-handler): Don't use modern xterm

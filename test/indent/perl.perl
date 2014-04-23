@@ -1,6 +1,8 @@
 #!/usr/bin/perl
 # -*- eval: (bug-reference-mode 1) -*-
 
+if ($c && /====/){xyz;}
+
 print <<"EOF1" . s/he"llo/th'ere/;
 foo
 EOF2
