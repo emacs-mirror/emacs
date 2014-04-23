@@ -1,3 +1,7 @@
+2014-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl--loop-let): Fix last merge.
+
 2014-04-22  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	* dired.el (dired-insert-set-properties): Do not consider

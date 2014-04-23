@@ -1548,7 +1548,8 @@ If BODY is `setq', then use SPECS for assignments rather than for bindings."
               (if (and (cl--unused-var-p temp) (null expr))
                   nil ;; Don't bother declaring/setting `temp' since it won't
 		      ;; be used when `expr' is nil, anyway.
-		(when (or (null temp) (cl--unused-var-p temp))
+		(when (or (null temp)
+                          (and (eq body 'setq) (cl--unused-var-p temp)))
                   ;; Prefer a fresh uninterned symbol over "_to", to avoid
                   ;; warnings that we set an unused variable.
                   (setq temp (make-symbol "--cl-var--"))
