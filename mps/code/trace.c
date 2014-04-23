@@ -390,6 +390,7 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
   Seg seg;
   Arena arena;
   Res res;
+  Bool haveWhiteSegs = FALSE;
 
   AVERT(Trace, trace);
   AVER(condemnedSet != ZoneSetEMPTY);
@@ -414,8 +415,11 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
          && ZoneSetSuper(condemnedSet, ZoneSetOfSeg(arena, seg)))
       {
         res = TraceAddWhite(trace, seg);
-        if(res != ResOK)
+        if(res != ResOK) {
+          AVER(!haveWhiteSegs); /* Would leave white sets inconsistent. */
           return res;
+        }
+        haveWhiteSegs = TRUE;
       }
     } while (SegNext(&seg, arena, seg));
   }
