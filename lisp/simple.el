@@ -4495,7 +4495,12 @@ Some commands act specially on the region when Transient Mark
 mode is enabled.  Usually, such commands should use
 `use-region-p' instead of this function, because `use-region-p'
 also checks the value of `use-empty-active-region'."
-  (and transient-mark-mode mark-active))
+  (and transient-mark-mode mark-active
+       ;; FIXME: Somehow we sometimes end up with mark-active non-nil but
+       ;; without the mark being set (e.g. bug#17324).  We really should fix
+       ;; that problem, but in the mean time, let's make sure we don't say the
+       ;; region is active when there's no mark.
+       (mark)))
 
 
 (defvar redisplay-unhighlight-region-function
