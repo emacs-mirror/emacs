@@ -1503,21 +1503,31 @@ static Res traceCondemnAll(Trace trace)
 {
   Res res;
   Arena arena;
-  Ring chainNode, nextChainNode;
+  Ring poolNode, nextPoolNode, chainNode, nextChainNode;
   Bool haveWhiteSegs = FALSE;
 
   arena = trace->arena;
   AVERT(Arena, arena);
-  /* Condemn all the chains. */
-  RING_FOR(chainNode, &arena->chainRing, nextChainNode) {
-    Chain chain = RING_ELT(Chain, chainRing, chainNode);
 
-    AVERT(Chain, chain);
-    res = ChainCondemnAll(chain, trace);
-    if(res != ResOK)
-      goto failBegin;
-    haveWhiteSegs = TRUE;
+  /* Condemn all segments in pools with the GC attribute. */
+  RING_FOR(poolNode, &ArenaGlobals(arena)->poolRing, nextPoolNode) {
+    Pool pool = RING_ELT(Pool, arenaRing, poolNode);
+    AVERT(Pool, pool);
+
+    if (PoolHasAttr(pool, AttrGC)) {
+      Ring segNode, nextSegNode;
+      RING_FOR(segNode, PoolSegRing(pool), nextSegNode) {
+        Seg seg = SegOfPoolRing(segNode);
+        AVERT(Seg, seg);
+
+        res = TraceAddWhite(trace, seg);
+        if (res != ResOK)
+          goto failBegin;
+        haveWhiteSegs = TRUE;
+      }
+    }
   }
+
   /* Notify all the chains. */
   RING_FOR(chainNode, &arena->chainRing, nextChainNode) {
     Chain chain = RING_ELT(Chain, chainRing, chainNode);

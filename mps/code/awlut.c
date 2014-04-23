@@ -275,9 +275,6 @@ static void *setup(void *v, size_t s)
   die(mps_fmt_create_A(&dylanweakfmt, arena, dylan_fmt_A_weak()),
       "Format Create (weak)\n");
   MPS_ARGS_BEGIN(args) {
-    /* Ask the leafpool to allocate in the nursery, as we're using it to test
-       weaknesss and want things to die in it promptly. */
-    MPS_ARGS_ADD(args, MPS_KEY_GEN, 0);
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, dylanfmt);
     die(mps_pool_create_k(&leafpool, arena, mps_class_lo(), args),
         "Leaf Pool Create\n");
