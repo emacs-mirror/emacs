@@ -3209,7 +3209,7 @@ the first based on the cache, the second based on actually scanning
 the buffer.  If the buffer doesn't have a cache, the value is nil.  */)
   (Lisp_Object buffer)
 {
-  struct buffer *buf;
+  struct buffer *buf, *old = NULL;
   ptrdiff_t shortage, nl_count_cache, nl_count_buf;
   Lisp_Object cache_newlines, buf_newlines, val;
   ptrdiff_t from, found, i;
@@ -3220,6 +3220,7 @@ the buffer.  If the buffer doesn't have a cache, the value is nil.  */)
     {
       CHECK_BUFFER (buffer);
       buf = XBUFFER (buffer);
+      old = current_buffer;
     }
   if (buf->base_buffer)
     buf = buf->base_buffer;
@@ -3229,46 +3230,63 @@ the buffer.  If the buffer doesn't have a cache, the value is nil.  */)
       || buf->newline_cache == NULL)
     return Qnil;
 
+  /* find_newline can only work on the current buffer.  */
+  if (old != NULL)
+    set_buffer_internal_1 (buf);
+
   /* How many newlines are there according to the cache?  */
-  find_newline (BUF_BEG (buf), BUF_BEG_BYTE (buf),
-		BUF_Z (buf), BUF_Z_BYTE (buf),
+  find_newline (BEGV, BEGV_BYTE, ZV, ZV_BYTE,
 		TYPE_MAXIMUM (ptrdiff_t), &shortage, NULL, true);
   nl_count_cache = TYPE_MAXIMUM (ptrdiff_t) - shortage;
 
   /* Create vector and populate it.  */
   cache_newlines = make_uninit_vector (nl_count_cache);
-  for (from = BUF_BEG( buf), found = from, i = 0;
-       from < BUF_Z (buf);
-       from = found, i++)
-    {
-      ptrdiff_t from_byte = CHAR_TO_BYTE (from);
 
-      found = find_newline (from, from_byte, 0, -1, 1, &shortage, NULL, true);
-      if (shortage == 0)
-	ASET (cache_newlines, i, make_number (found - 1));
+  if (nl_count_cache)
+    {
+      for (from = BEGV, found = from, i = 0; from < ZV; from = found, i++)
+	{
+	  ptrdiff_t from_byte = CHAR_TO_BYTE (from);
+
+	  found = find_newline (from, from_byte, 0, -1, 1, &shortage,
+				NULL, true);
+	  if (shortage != 0 || i >= nl_count_cache)
+	    break;
+	  ASET (cache_newlines, i, make_number (found - 1));
+	}
+      /* Fill the rest of slots with an invalid position.  */
+      for ( ; i < nl_count_cache; i++)
+	ASET (cache_newlines, i, make_number (-1));
     }
 
   /* Now do the same, but without using the cache.  */
-  find_newline1 (BUF_BEG (buf), BUF_BEG_BYTE (buf),
-		 BUF_Z (buf), BUF_Z_BYTE (buf),
+  find_newline1 (BEGV, BEGV_BYTE, ZV, ZV_BYTE,
 		 TYPE_MAXIMUM (ptrdiff_t), &shortage, NULL, true);
   nl_count_buf = TYPE_MAXIMUM (ptrdiff_t) - shortage;
   buf_newlines = make_uninit_vector (nl_count_buf);
-  for (from = BUF_BEG( buf), found = from, i = 0;
-       from < BUF_Z (buf);
-       from = found, i++)
+  if (nl_count_buf)
     {
-      ptrdiff_t from_byte = CHAR_TO_BYTE (from);
+      for (from = BEGV, found = from, i = 0; from < ZV; from = found, i++)
+	{
+	  ptrdiff_t from_byte = CHAR_TO_BYTE (from);
 
-      found = find_newline1 (from, from_byte, 0, -1, 1, &shortage, NULL, true);
-      if (shortage == 0)
-	ASET (buf_newlines, i, make_number (found - 1));
+	  found = find_newline1 (from, from_byte, 0, -1, 1, &shortage,
+				 NULL, true);
+	  if (shortage != 0 || i >= nl_count_buf)
+	    break;
+	  ASET (buf_newlines, i, make_number (found - 1));
+	}
+      for ( ; i < nl_count_buf; i++)
+	ASET (buf_newlines, i, make_number (-1));
     }
 
   /* Construct the value and return it.  */
   val = make_uninit_vector (2);
   ASET (val, 0, cache_newlines);
   ASET (val, 1, buf_newlines);
+
+  if (old != NULL)
+    set_buffer_internal_1 (old);
   return val;
 }
 
