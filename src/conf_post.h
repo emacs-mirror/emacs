@@ -226,14 +226,14 @@ extern void _DebPrint (const char *fmt, ...);
 
 /* Work around GCC bug 59600: when a function is inlined, the inlined
    code may have its addresses sanitized even if the function has the
-   no_sanitize_address attribute.  This bug is present in GCC 4.8.2
-   and clang 3.3, the latest releases as of December 2013, and the
-   only platforms known to support address sanitization.  When the bug
-   is fixed the #if can be updated accordingly.  */
-#if ADDRESS_SANITIZER
-# define ADDRESS_SANITIZER_WORKAROUND NO_INLINE
+   no_sanitize_address attribute.  This bug is fixed in GCC 4.9.0 and
+   clang 3.4.  */
+#if (! ADDRESS_SANITIZER \
+     || ((4 < __GNUC__ + (9 <= __GNUC_MINOR__)) \
+	 || 3 < __clang_major__ + (4 <= __clang_minor__)))
+# define ADDRESS_SANITIZER_WORKAROUND /* No workaround needed.  */
 #else
-# define ADDRESS_SANITIZER_WORKAROUND
+# define ADDRESS_SANITIZER_WORKAROUND NO_INLINE
 #endif
 
 /* Attribute of functions whose code should not have addresses

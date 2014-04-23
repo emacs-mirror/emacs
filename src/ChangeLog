@@ -1,3 +1,10 @@
+2014-04-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* conf_post.h (ADDRESS_SANITIZER_WORKAROUND): Port to GCC 4.9.0
+	and to clang 3.4, which have fixed the bug.  This should let us
+	run a bit faster on these platforms when address sanitization is
+	in effect.
+
 2014-04-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to GCC 4.9.0 with --enable-gcc-warnings.
