@@ -1,5 +1,14 @@
 2014-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (completion-list-mode-map): Use choose-completion for the
+	mouse binding as well (bug#17302).
+	(completion-list-mode, completion-setup-function): Adjust docstring and
+	echo area message accordingly.
+	* progmodes/idlwave.el (idlwave-choose-completion): Adjust to new
+	calling convention of choose-completion.
+	* comint.el (comint-dynamic-list-completions):
+	* term.el (term-dynamic-list-completions): Accept choose-completion.
+
 	* progmodes/perl-mode.el (perl-syntax-propertize-function): Slash after
 	&, |, +, - and * can't be a division (bug#17317).
 

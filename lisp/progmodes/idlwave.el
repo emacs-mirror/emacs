@@ -7170,7 +7170,7 @@ If these don't exist, a letter in the string is automatically selected."
 
 (defun idlwave-choose-completion (&rest args)
   "Choose the completion that point is in or next to."
-  (interactive)
+  (interactive (list last-nonmenu-event))
   (apply 'idlwave-choose 'choose-completion args))
 
 (defun idlwave-mouse-choose-completion (&rest args)
