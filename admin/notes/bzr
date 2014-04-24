@@ -388,3 +388,11 @@ and skipping the branch.  See:
  http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg00436.html
 
 which includes a provisional patch to git-remote-bzr to do that.
+
+** remote name
+
+Although Git itself is agnostic about what names you choose for
+the remote repo, it seems git-bzr is more likely to get confused.
+After the clone as described above, the remote name is "origin";
+changing it is Not Recommended.  [Insert 9-hour high-entropy then
+mysterious bug w/ JSON parsing errors anecdote here. --ttn]
