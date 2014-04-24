@@ -1,4 +1,4 @@
-;; info.el --- info package for Emacs
+;; info.el --- Info package for Emacs  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1985-1986, 1992-2014 Free Software Foundation, Inc.
 
@@ -32,17 +32,19 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (defgroup info nil
   "Info subsystem."
   :group 'help
   :group 'docs)
 
 
-(defvar Info-history nil
+(defvar-local Info-history nil
   "Stack of Info nodes user has visited.
 Each element of the stack is a list (FILENAME NODENAME BUFFERPOS).")
 
-(defvar Info-history-forward nil
+(defvar-local Info-history-forward nil
   "Stack of Info nodes user has visited with `Info-history-back' command.
 Each element of the stack is a list (FILENAME NODENAME BUFFERPOS).")
 
@@ -375,33 +377,33 @@ with wrapping around the current Info node."
 (make-obsolete-variable 'Info-edit-mode-hook
 			"editing Info nodes by hand is not recommended." "24.4")
 
-(defvar Info-current-file nil
+(defvar-local Info-current-file nil
   "Info file that Info is now looking at, or nil.
 This is the name that was specified in Info, not the actual file name.
 It doesn't contain directory names or file name extensions added by Info.")
 
-(defvar Info-current-subfile nil
+(defvar-local Info-current-subfile nil
   "Info subfile that is actually in the *info* buffer now.
 It is nil if current Info file is not split into subfiles.")
 
-(defvar Info-current-node nil
+(defvar-local Info-current-node nil
   "Name of node that Info is now looking at, or nil.")
 
-(defvar Info-tag-table-marker nil
+(defvar-local Info-tag-table-marker nil
   "Marker pointing at beginning of current Info file's tag table.
 Marker points nowhere if file has no tag table.")
 
-(defvar Info-tag-table-buffer nil
+(defvar-local Info-tag-table-buffer nil
   "Buffer used for indirect tag tables.")
 
-(defvar Info-current-file-completions nil
+(defvar-local Info-current-file-completions nil
   "Cached completion list for current Info file.")
 
 (defvar Info-file-completions nil
   "Cached completion alist of visited Info files.
 Each element of the alist is (FILE . COMPLETIONS)")
 
-(defvar Info-file-supports-index-cookies nil
+(defvar-local Info-file-supports-index-cookies nil
   "Non-nil if current Info file supports index cookies.")
 
 (defvar Info-file-supports-index-cookies-list nil
@@ -409,7 +411,7 @@ Each element of the alist is (FILE . COMPLETIONS)")
 Each element of the list is a list (FILENAME SUPPORTS-INDEX-COOKIES)
 where SUPPORTS-INDEX-COOKIES can be either t or nil.")
 
-(defvar Info-index-alternatives nil
+(defvar-local Info-index-alternatives nil
   "List of possible matches for last `Info-index' command.")
 
 (defvar Info-point-loc nil
@@ -455,7 +457,7 @@ existing node names.  OPERATION is one of the following operation
 symbols `find-node' that define what HANDLER function to call instead
 of calling the default corresponding function to override it.")
 
-(defvar Info-current-node-virtual nil
+(defvar-local Info-current-node-virtual nil
   "Non-nil if the current Info node is virtual.")
 
 (defun Info-virtual-file-p (filename)
@@ -954,10 +956,10 @@ otherwise, that defaults to `Top'."
   (unless nodename (setq nodename "Top"))
   (info-initialize)
   (Info-mode)
-  (set (make-local-variable 'Info-current-file)
-       (or buffer-file-name
-	   ;; If called on a non-file buffer, make a fake file name.
-	   (concat default-directory (buffer-name))))
+  (setq Info-current-file
+        (or buffer-file-name
+            ;; If called on a non-file buffer, make a fake file name.
+            (concat default-directory (buffer-name))))
   (Info-find-node-2 nil nodename))
 
 (defun Info-revert-find-node (filename nodename)
@@ -1091,7 +1093,7 @@ is non-nil)."
 	    (set-marker Info-tag-table-marker nil)
 	    (setq buffer-read-only t)
 	    (set-buffer-modified-p nil)
-	    (set (make-local-variable 'Info-current-node-virtual) t)))
+	    (setq Info-current-node-virtual t)))
 	 ((not (and
 		;; Reread a file when moving from a virtual node.
 		(not Info-current-node-virtual)
@@ -1101,7 +1103,7 @@ is non-nil)."
 	  (let ((inhibit-read-only t))
 	    (when Info-current-node-virtual
 	      ;; When moving from a virtual node.
-	      (set (make-local-variable 'Info-current-node-virtual) nil)
+	      (setq Info-current-node-virtual nil)
 	      (if (null filename)
 		  (setq filename Info-current-file)))
 	    (setq Info-current-file nil
@@ -1112,7 +1114,7 @@ is non-nil)."
 	    (info-insert-file-contents filename nil)
 	    (setq default-directory (file-name-directory filename))
 	    (set-buffer-modified-p nil)
-	    (set (make-local-variable 'Info-file-supports-index-cookies)
+	    (setq Info-file-supports-index-cookies
 		 (Info-file-supports-index-cookies filename))
 
 	    ;; See whether file has a tag table.  Record the location if yes.
@@ -1251,17 +1253,17 @@ is non-nil)."
 
 ;; Cache the contents of the (virtual) dir file, once we have merged
 ;; it for the first time, so we can save time subsequently.
-(defvar Info-dir-contents nil)
+(defvar-local Info-dir-contents nil)
 
 ;; Cache for the directory we decided to use for the default-directory
 ;; of the merged dir text.
-(defvar Info-dir-contents-directory nil)
+(defvar-local Info-dir-contents-directory nil)
 
 ;; Record the file attributes of all the files from which we
 ;; constructed Info-dir-contents.
-(defvar Info-dir-file-attributes nil)
+(defvar-local Info-dir-file-attributes nil)
 
-(defvar Info-dir-file-name nil)
+(defvar-local Info-dir-file-name nil)
 
 ;; Construct the Info directory node by merging the files named `dir'
 ;; from various directories.  Set the *info* buffer's
@@ -1334,13 +1336,12 @@ is non-nil)."
 			  ;; knows...
 			  (let ((inhibit-null-byte-detection t))
 			    (insert-file-contents file)
-			    (set (make-local-variable 'Info-dir-file-name)
-				 file)
+			    (setq Info-dir-file-name file)
 			    (push (current-buffer) buffers)
 			    (push (cons file attrs) dir-file-attrs))
 			(error (kill-buffer (current-buffer))))))))
 	  (unless (cdr dirs)
-	    (set (make-local-variable 'Info-dir-contents-directory)
+	    (setq Info-dir-contents-directory
 		 (file-name-as-directory (car dirs))))
 	  (setq dirs (cdr dirs))))
 
@@ -1425,8 +1426,8 @@ is non-nil)."
       (if problems
 	  (message "Composing main Info directory...problems encountered, see `*Messages*'")
 	(message "Composing main Info directory...done"))
-      (set (make-local-variable 'Info-dir-contents) (buffer-string))
-      (set (make-local-variable 'Info-dir-file-attributes) dir-file-attrs)))
+      (setq Info-dir-contents (buffer-string))
+      (setq Info-dir-file-attributes dir-file-attrs)))
   (setq default-directory Info-dir-contents-directory))
 
 (defvar Info-streamline-headings
@@ -1892,7 +1893,7 @@ the Top node in FILENAME."
 			(cons (list (match-string-no-properties 1))
 			      compl))))))))
     (setq compl (cons '("*") (nreverse compl)))
-    (set (make-local-variable 'Info-current-file-completions) compl)
+    (setq Info-current-file-completions compl)
     compl))
 
 
@@ -2207,7 +2208,7 @@ End of submatch 0, 1, and 3 are the same, so you can safely concat."
 	  "[" (or allowedchars "^,\t\n") " ]" ;The last char can't be a space.
 	  "\\|\\)\\)"))			      ;Allow empty node names.
 
-;;; For compatibility; other files have used this name.
+;; For compatibility; other files have used this name.
 (defun Info-following-node-name ()
   (and (looking-at (Info-following-node-name-re))
        (match-string-no-properties 1)))
@@ -2645,7 +2646,7 @@ Because of ambiguities, this should be concatenated with something like
 (defvar Info-complete-menu-buffer)
 (defvar Info-complete-next-re nil)
 (defvar Info-complete-nodes nil)
-(defvar Info-complete-cache nil)
+(defvar-local Info-complete-cache nil)
 
 (defconst Info-node-spec-re
   (concat (Info-following-node-name-re "^.,:") "[,:.]")
@@ -2714,7 +2715,7 @@ Because of ambiguities, this should be concatenated with something like
               (unless (equal Info-current-node orignode)
                 (Info-goto-node orignode))
               ;; Update the cache.
-              (set (make-local-variable 'Info-complete-cache)
+              (setq Info-complete-cache
 		   (list Info-current-file Info-current-node
 			 Info-complete-next-re string completions
 			 Info-complete-nodes)))
@@ -3562,9 +3563,9 @@ Return a list of matches where each element is in the format
 	(goto-char (point-min))
 	(re-search-forward "\\* Menu: *\n" nil t)
 	(while (re-search-forward "\\*.*: *(\\([^)]+\\))" nil t)
-	  ;; add-to-list makes sure we don't have duplicates in `manuals',
+	  ;; Make sure we don't have duplicates in `manuals',
 	  ;; so that the following dolist loop runs faster.
-	  (add-to-list 'manuals (match-string 1)))
+	  (cl-pushnew (match-string 1) manuals :test #'equal))
 	(dolist (manual (nreverse manuals))
 	  (message "Searching %s" manual)
 	  (condition-case err
@@ -4278,39 +4279,26 @@ Advanced commands:
   (add-hook 'activate-menubar-hook 'Info-menu-update nil t)
   (setq case-fold-search t)
   (setq buffer-read-only t)
-  (make-local-variable 'Info-current-file)
-  (make-local-variable 'Info-current-subfile)
-  (make-local-variable 'Info-current-node)
-  (set (make-local-variable 'Info-tag-table-marker) (make-marker))
-  (set (make-local-variable 'Info-tag-table-buffer) nil)
-  (make-local-variable 'Info-history)
-  (make-local-variable 'Info-history-forward)
-  (make-local-variable 'Info-index-alternatives)
+  (setq Info-tag-table-marker (make-marker))
   (if Info-use-header-line    ; do not override global header lines
       (setq header-line-format
  	    '(:eval (get-text-property (point-min) 'header-line))))
-  (set (make-local-variable 'tool-bar-map) info-tool-bar-map)
+  (setq-local tool-bar-map info-tool-bar-map)
   ;; This is for the sake of the invisible text we use handling titles.
-  (set (make-local-variable 'line-move-ignore-invisible) t)
-  (set (make-local-variable 'desktop-save-buffer)
-       'Info-desktop-buffer-misc-data)
-  (set (make-local-variable 'widen-automatically) nil)
+  (setq-local line-move-ignore-invisible t)
+  (setq-local desktop-save-buffer 'Info-desktop-buffer-misc-data)
+  (setq-local widen-automatically nil)
   (add-hook 'kill-buffer-hook 'Info-kill-buffer nil t)
   (add-hook 'clone-buffer-hook 'Info-clone-buffer nil t)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (add-hook 'isearch-mode-hook 'Info-isearch-start nil t)
-  (set (make-local-variable 'isearch-search-fun-function)
-       'Info-isearch-search)
-  (set (make-local-variable 'isearch-wrap-function)
-       'Info-isearch-wrap)
-  (set (make-local-variable 'isearch-push-state-function)
-       'Info-isearch-push-state)
-  (set (make-local-variable 'isearch-filter-predicate) #'Info-isearch-filter)
-  (set (make-local-variable 'revert-buffer-function)
-       'Info-revert-buffer-function)
+  (setq-local isearch-search-fun-function #'Info-isearch-search)
+  (setq-local isearch-wrap-function #'Info-isearch-wrap)
+  (setq-local isearch-push-state-function #'Info-isearch-push-state)
+  (setq-local isearch-filter-predicate #'Info-isearch-filter)
+  (setq-local revert-buffer-function #'Info-revert-buffer-function)
   (Info-set-mode-line)
-  (set (make-local-variable 'bookmark-make-record-function)
-       'Info-bookmark-make-record))
+  (setq-local bookmark-make-record-function #'Info-bookmark-make-record))
 
 ;; When an Info buffer is killed, make sure the associated tags buffer
 ;; is killed too.
@@ -4339,7 +4327,7 @@ Advanced commands:
                              map)
   "Local keymap used within `e' command of Info.")
 
-(make-obsolete-variable 'Info-edit-map
+(make-obsolete-variable 'Info-edit-mode-map
 			"editing Info nodes by hand is not recommended."
 			"24.4")
 
@@ -4349,8 +4337,7 @@ Advanced commands:
 (define-derived-mode Info-edit-mode text-mode "Info Edit"
   "Major mode for editing the contents of an Info node.
 Like text mode with the addition of `Info-cease-edit'
-which returns to Info mode for browsing.
-\\{Info-edit-map}"
+which returns to Info mode for browsing."
   (setq buffer-read-only nil)
   (force-mode-line-update)
   (buffer-enable-undo (current-buffer)))
@@ -4363,7 +4350,7 @@ which returns to Info mode for browsing.
   (interactive)
   (Info-edit-mode)
   (message "%s" (substitute-command-keys
-		 "Editing: Type \\<Info-edit-map>\\[Info-cease-edit] to return to info")))
+		 "Editing: Type \\<Info-edit-mode-map>\\[Info-cease-edit] to return to info")))
 
 (put 'Info-edit 'disabled "Editing Info nodes by hand is not recommended.
 This feature will be removed in future.")

@@ -1,3 +1,10 @@
+2014-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* info.el: Use lexical-binding and cl-lib.
+	Use defvar-local and setq-local instead	of make-local-variable.
+	(Info-apropos-matches): Avoid add-to-list.
+	(Info-edit-mode-map): Fix obsolescence call to Info-edit-map.
+
 2014-04-24  Daniel Colascione  <dancol@dancol.org>
 
 	* progmodes/sh-script.el (sh-builtins): Add coproc to list of bash builtins.
