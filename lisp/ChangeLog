@@ -1,3 +1,14 @@
+2014-04-24  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/xscheme.el (xscheme-expressions-ring)
+	(xscheme-expressions-ring-yank-pointer, xscheme-running-p)
+	(xscheme-control-g-disabled-p, xscheme-process-filter-state)
+	(xscheme-allow-output-p, xscheme-prompt)
+	(xscheme-string-accumulator, xscheme-mode-string): Use defvar-local.
+
+	* progmodes/scheme.el (would-be-symbol, next-sexp-as-string):
+	Comment out unused functions.
+
 2014-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* info.el: Use lexical-binding and cl-lib.

@@ -1,4 +1,4 @@
-;;; scheme.el --- Scheme (and DSSSL) editing mode
+;;; scheme.el --- Scheme (and DSSSL) editing mode    -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1986-1988, 1997-1998, 2001-2014 Free Software
 ;; Foundation, Inc.
@@ -495,20 +495,20 @@ indentation."
 
 ;;; Let is different in Scheme
 
-(defun would-be-symbol (string)
-  (not (string-equal (substring string 0 1) "(")))
+;; (defun scheme-would-be-symbol (string)
+;;   (not (string-equal (substring string 0 1) "(")))
 
-(defun next-sexp-as-string ()
-  ;; Assumes that it is protected by a save-excursion
-  (forward-sexp 1)
-  (let ((the-end (point)))
-    (backward-sexp 1)
-    (buffer-substring (point) the-end)))
+;; (defun scheme-next-sexp-as-string ()
+;;   ;; Assumes that it is protected by a save-excursion
+;;   (forward-sexp 1)
+;;   (let ((the-end (point)))
+;;     (backward-sexp 1)
+;;     (buffer-substring (point) the-end)))
 
 ;; This is correct but too slow.
 ;; The one below works almost always.
 ;;(defun scheme-let-indent (state indent-point)
-;;  (if (would-be-symbol (next-sexp-as-string))
+;;  (if (scheme-would-be-symbol (scheme-next-sexp-as-string))
 ;;      (scheme-indent-specform 2 state indent-point)
 ;;      (scheme-indent-specform 1 state indent-point)))
 
