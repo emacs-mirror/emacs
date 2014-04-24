@@ -1,3 +1,7 @@
+2014-04-24  Daniel Colascione  <dancol@dancol.org>
+
+	* progmodes/sh-script.el (sh-builtins): Add coproc to list of bash builtins.
+
 2014-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el (cl--loop-let): Fix last merge.

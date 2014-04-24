@@ -677,7 +677,7 @@ removed when closing the here document."
           "jobs" "kill" "let" "local" "popd" "printf" "pushd" "shopt"
           "source" "suspend" "typeset" "unalias"
           ;; bash4
-          "mapfile" "readarray")
+          "mapfile" "readarray" "coproc")
 
     ;; The next entry is only used for defining the others
     (bourne sh-append shell
