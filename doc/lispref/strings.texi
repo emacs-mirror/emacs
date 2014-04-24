@@ -423,8 +423,10 @@ the symbol names are used.  Case is always significant, regardless of
 
 This function is equivalent to @code{equal} for comparing two strings
 (@pxref{Equality Predicates}).  In particular, the text properties of
-the two strings are ignored.  But if either argument is not a string
-or symbol, an error is signaled.
+the two strings are ignored; use @code{equal-including-properties} if
+you need to distinguish between strings that differ only in their text
+properties.  However, unlike @code{equal}, if either argument is not a
+string or symbol, @code{string=} signals an error.
 
 @example
 (string= "abc" "abc")
