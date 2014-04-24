@@ -284,7 +284,9 @@ See `run-hooks'."
                    "\\|-module"
 		   "\\)\\)\\>"
 		   ;; Any whitespace and declared object.
-		   "[ \t]*(?"
+		   ;; The "(*" is for curried definitions, e.g.,
+		   ;;  (define ((sum a) b) (+ a b))
+		   "[ \t]*(*"
 		   "\\(\\sw+\\)?")
 	   '(1 font-lock-keyword-face)
 	   '(6 (cond ((match-beginning 3) font-lock-function-name-face)

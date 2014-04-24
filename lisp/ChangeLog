@@ -1,3 +1,10 @@
+2014-04-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Improve Scheme font-locking for (define ((foo ...) ...) ...).
+
+	* progmodes/scheme.el (scheme-font-lock-keywords-1): To find
+	the declared object, ignore zero or more parens, not zero or one.
+
 2014-04-24  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/xscheme.el (xscheme-expressions-ring)
