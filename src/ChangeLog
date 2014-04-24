@@ -1,3 +1,13 @@
+2014-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fset_window_configuration): Deactivate the mark before
+	unsetting the mark.
+	(set_window_buffer): Ignore window_initialized.
+	(window_initialized): Remove.
+	* keyboard.c (Qdeactivate_mark): Not static any more.
+	* buffer.c (buffer_local_value): Rename from buffer_local_value_1.
+	Update all callers.
+
 2014-04-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* conf_post.h (ADDRESS_SANITIZER_WORKAROUND): Port to GCC 4.9.0

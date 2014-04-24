@@ -119,9 +119,6 @@ static Lisp_Object Qtemp_buffer_show_hook;
 /* Incremented for each window created.  */
 static int sequence_number;
 
-/* Nonzero after init_window_once has finished.  */
-static int window_initialized;
-
 /* Hook to run when window config changes.  */
 static Lisp_Object Qwindow_configuration_change_hook;
 
@@ -3439,14 +3436,10 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer,
   wset_redisplay (w);
   w->update_mode_line = true;
 
-  /* We must select BUFFER for running the window-scroll-functions.  */
-  /* We can't check ! NILP (Vwindow_scroll_functions) here
-     because that might itself be a local variable.  */
-  if (window_initialized)
-    {
-      record_unwind_current_buffer ();
-      Fset_buffer (buffer);
-    }
+  /* We must select BUFFER to run the window-scroll-functions and to look up
+     the buffer-local value of Vwindow_point_insertion_type.  */
+  record_unwind_current_buffer ();
+  Fset_buffer (buffer);
 
   XMARKER (w->pointm)->insertion_type = !NILP (Vwindow_point_insertion_type);
 
@@ -6267,6 +6260,15 @@ the return value is nil.  Otherwise the value is t.  */)
 	      set_marker_restricted (w->start, p->start, w->contents);
 	      set_marker_restricted (w->pointm, p->pointm,
 				     w->contents);
+	      if (MARKERP (p->mark) && !XMARKER (p->mark)->buffer
+		  && !NILP (BVAR (XBUFFER (w->contents), mark_active)))
+		{
+		  struct buffer *old = current_buffer;
+		  extern Lisp_Object Qdeactivate_mark;
+		  set_buffer_internal (XBUFFER (w->contents));
+		  call0 (Qdeactivate_mark);
+		  set_buffer_internal (old);
+		}
 	      Fset_marker (BVAR (XBUFFER (w->contents), mark),
 			   p->mark, w->contents);
 
@@ -6619,7 +6621,7 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
 	  else
 	    p->pointm = Fcopy_marker (w->pointm, Qnil);
 	  XMARKER (p->pointm)->insertion_type
-	    = !NILP (buffer_local_value_1 /* Don't signal error if void.  */
+	    = !NILP (buffer_local_value /* Don't signal error if void.  */
 		     (Qwindow_point_insertion_type, w->contents));
 
 	  p->start = Fcopy_marker (w->start, Qnil);
@@ -7138,8 +7140,6 @@ init_window_once (void)
   Vterminal_frame = selected_frame;
   minibuf_window = f->minibuffer_window;
   selected_window = f->selected_window;
-
-  window_initialized = 1;
 }
 
 void

@@ -1158,10 +1158,10 @@ DEFUN ("buffer-local-value", Fbuffer_local_value,
        Sbuffer_local_value, 2, 2, 0,
        doc: /* Return the value of VARIABLE in BUFFER.
 If VARIABLE does not have a buffer-local binding in BUFFER, the value
-is the default binding of the variable. */)
+is the default binding of the variable.  */)
   (register Lisp_Object variable, register Lisp_Object buffer)
 {
-  register Lisp_Object result = buffer_local_value_1 (variable, buffer);
+  register Lisp_Object result = buffer_local_value (variable, buffer);
 
   if (EQ (result, Qunbound))
     xsignal1 (Qvoid_variable, variable);
@@ -1174,7 +1174,7 @@ is the default binding of the variable. */)
    locally unbound.  */
 
 Lisp_Object
-buffer_local_value_1 (Lisp_Object variable, Lisp_Object buffer)
+buffer_local_value (Lisp_Object variable, Lisp_Object buffer)
 {
   register struct buffer *buf;
   register Lisp_Object result;

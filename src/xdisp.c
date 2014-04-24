@@ -23422,7 +23422,7 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 	    return OK_PIXELS (WINDOW_SCROLL_BAR_AREA_WIDTH (it->w));
 	}
 
-      prop = buffer_local_value_1 (prop, it->w->contents);
+      prop = buffer_local_value (prop, it->w->contents);
       if (EQ (prop, Qunbound))
 	prop = Qnil;
     }
@@ -23474,7 +23474,7 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 	      return OK_PIXELS (pixels);
 	    }
 
-	  car = buffer_local_value_1 (car, it->w->contents);
+	  car = buffer_local_value (car, it->w->contents);
 	  if (EQ (car, Qunbound))
 	    car = Qnil;
 	}
@@ -28543,8 +28543,8 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	  else if (area == ON_MODE_LINE)
 	    {
 	      Lisp_Object default_help
-		= buffer_local_value_1 (Qmode_line_default_help_echo,
-					w->contents);
+		= buffer_local_value (Qmode_line_default_help_echo,
+				      w->contents);
 
 	      if (STRINGP (default_help))
 		{

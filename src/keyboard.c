@@ -228,14 +228,14 @@ static Lisp_Object Qbackward_char;
 Lisp_Object Qundefined;
 static Lisp_Object Qtimer_event_handler;
 
-/* read_key_sequence stores here the command definition of the
+/* `read_key_sequence' stores here the command definition of the
    key sequence that it reads.  */
 static Lisp_Object read_key_sequence_cmd;
 static Lisp_Object read_key_sequence_remapped;
 
 static Lisp_Object Qinput_method_function;
 
-static Lisp_Object Qdeactivate_mark;
+Lisp_Object Qdeactivate_mark;
 
 Lisp_Object Qrecompute_lucid_menubar, Qactivate_menubar_hook;
 
