@@ -21,11 +21,17 @@
 
 ;; The tests require a recent ert.el from Emacs 24.4.
 
-;; Some of the tests require access to a remote host files.  Set
-;; $REMOTE_TEMPORARY_FILE_DIRECTORY to a suitable value in order
-;; to overwrite the default value.  If you want to skip tests
-;; accessing a remote host, set this environment variable to
-;; "/dev/null" or whatever is appropriate on your system.
+;; Some of the tests require access to a remote host files.  Since
+;; this could be problematic, a mock-up connection method "mock" is
+;; used.  Emulating a remote connection, it simply calls "sh -i".
+;; Tramp's file name handler still run, so this test is sufficient
+;; except for connection establishing.
+
+;; If you want to test a real Tramp connection, set
+;; $REMOTE_TEMPORARY_FILE_DIRECTORY to a suitable value in order to
+;; overwrite the default value.  If you want to skip tests accessing a
+;; remote host, set this environment variable to "/dev/null" or
+;; whatever is appropriate on your system.
 
 ;; When running the tests in batch mode, it must NOT require an
 ;; interactive password prompt unless the environment variable
@@ -51,7 +57,15 @@
   (cond
    ((getenv "REMOTE_TEMPORARY_FILE_DIRECTORY"))
    ((eq system-type 'windows-nt) null-device)
-   (t (format "/ssh::%s" temporary-file-directory)))
+   (t (add-to-list
+       'tramp-methods
+       '("mock"
+	 (tramp-login-program        "sh")
+	 (tramp-login-args           (("-i")))
+	 (tramp-remote-shell         "/bin/sh")
+	 (tramp-remote-shell-args    ("-c"))
+	 (tramp-connection-timeout   10)))
+      (format "/mock::%s" temporary-file-directory)))
   "Temporary directory for Tramp tests.")
 
 (setq password-cache-expiry nil
@@ -127,6 +141,7 @@ eval properly in `should', `should-not' or `should-error'."
 (ert-deftest tramp-test00-availability ()
   "Test availability of Tramp functions."
   :expected-result (if (tramp--test-enabled) :passed :failed)
+  (message "Remote directory: `%s'" tramp-test-temporary-file-directory)
   (should (ignore-errors
 	    (and
 	     (file-remote-p tramp-test-temporary-file-directory)
@@ -1589,7 +1604,7 @@ process sentinels.  They shall not disturb each other."
   (dolist (code
 	   (list
 	    (format
-	     "(expand-file-name %S))"
+	     "(expand-file-name %S)"
 	     tramp-test-temporary-file-directory)
 	    (format
 	     "(let ((default-directory %S)) (expand-file-name %S))"
