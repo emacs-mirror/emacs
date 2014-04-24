@@ -1,3 +1,8 @@
+2014-04-24  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table):
+	Fix syntax for @.  (Bug#17325)
+
 2014-04-24  Daniel Colascione  <dancol@dancol.org>
 
 	* emacs-lisp/cl.el (gv): Require gv early to break eager

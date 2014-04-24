@@ -74,7 +74,7 @@ It has `lisp-mode-abbrev-table' as its parent."
     (modify-syntax-entry ?` "'   " table)
     (modify-syntax-entry ?' "'   " table)
     (modify-syntax-entry ?, "'   " table)
-    (modify-syntax-entry ?@ "'   " table)
+    (modify-syntax-entry ?@ "_ p" table)
     ;; Used to be singlequote; changed for flonums.
     (modify-syntax-entry ?. "_   " table)
     (modify-syntax-entry ?# "'   " table)
