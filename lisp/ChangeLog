@@ -1,3 +1,8 @@
+2014-04-24  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/cl.el (gv): Require gv early to break eager
+	macro-expansion cycles.
+
 2014-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (region-active-p): Check there's a mark (bug#17324).

@@ -29,6 +29,7 @@
 
 (require 'cl-lib)
 (require 'macroexp)
+(require 'gv)
 
 ;; (defun cl--rename ()
 ;;   (let ((vdefs ())
