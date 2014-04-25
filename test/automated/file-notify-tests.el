@@ -22,7 +22,7 @@
 ;; Some of the tests require access to a remote host files.  Since
 ;; this could be problematic, a mock-up connection method "mock" is
 ;; used.  Emulating a remote connection, it simply calls "sh -i".
-;; Tramp's file name handler still run, so this test is sufficient
+;; Tramp's file name handlers still run, so this test is sufficient
 ;; except for connection establishing.
 
 ;; If you want to test a real Tramp connection, set
@@ -30,10 +30,6 @@
 ;; overwrite the default value.  If you want to skip tests accessing a
 ;; remote host, set this environment variable to "/dev/null" or
 ;; whatever is appropriate on your system.
-
-;; When running the tests in batch mode, it must NOT require an
-;; interactive password prompt unless the environment variable
-;; $REMOTE_ALLOW_PASSWORD is set.
 
 ;; A whole test run can be performed calling the command `file-notify-test-all'.
 
@@ -64,12 +60,9 @@
 (defvar file-notify--test-results nil)
 (defvar file-notify--test-event nil)
 
-(setq tramp-verbose 0
+(setq password-cache-expiry nil
+      tramp-verbose 0
       tramp-message-show-message nil)
-
-;; Disable interactive passwords in batch mode.
-(when (and noninteractive (not (getenv "REMOTE_ALLOW_PASSWORD")))
-  (defalias 'tramp-read-passwd 'ignore))
 
 ;; This shall happen on hydra only.
 (when (getenv "NIX_STORE")
