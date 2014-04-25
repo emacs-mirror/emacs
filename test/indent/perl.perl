@@ -3,7 +3,11 @@
 
 if ($c && /====/){xyz;}
 
-print <<"EOF1" . s/he"llo/th'ere/;
+print "a" . <<EOF . s/he"llo/th'ere/;
+It's a surprise!
+EOF
+
+print <<\EOF1 . s/he"llo/th'ere/;
 foo
 EOF2
 bar
