@@ -415,10 +415,8 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
          && ZoneSetSuper(condemnedSet, ZoneSetOfSeg(arena, seg)))
       {
         res = TraceAddWhite(trace, seg);
-        if(res != ResOK) {
-          AVER(!haveWhiteSegs); /* Would leave white sets inconsistent. */
-          return res;
-        }
+        if(res != ResOK)
+          goto failBegin;
         haveWhiteSegs = TRUE;
       }
     } while (SegNext(&seg, arena, seg));
@@ -430,6 +428,10 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
   AVER(ZoneSetSuper(condemnedSet, trace->white));
 
   return ResOK;
+
+failBegin:
+  AVER(!haveWhiteSegs); /* See .whiten.fail. */
+  return res;
 }
 
 
@@ -1541,7 +1543,14 @@ static Res traceCondemnAll(Trace trace)
   return ResOK;
 
 failBegin:
-  AVER(!haveWhiteSegs); /* Would leave white sets inconsistent. */
+  /* .whiten.fail: If we successfully whitened one or more segments,
+   * but failed to whiten them all, then the white sets would now be
+   * inconsistent. This can't happen in practice (at time of writing)
+   * because all PoolWhiten methods always succeed. If we ever have a
+   * pool class that fails to whiten a segment, then this assertion
+   * will be triggered. In that case, we'll have to recover here by
+   * blackening the segments again. */
+  AVER(!haveWhiteSegs);
   return res;
 }
 
