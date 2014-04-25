@@ -1,3 +1,37 @@
+2014-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* tooltip.el (tooltip-show-help-non-mode, tooltip-show-help): Use
+	equal-including-properties to compare help-echo strings.  (Bug#17331)
+
+2014-04-25  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table):
+	Fix syntax for @.  (Bug#17325)
+
+2014-04-25  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/cl.el (gv): Require gv early to break eager
+	macro-expansion cycles.
+
+2014-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (region-active-p): Check there's a mark (bug#17324).
+
+	* simple.el (completion-list-mode-map): Use choose-completion for the
+	mouse binding as well (bug#17302).
+	(completion-list-mode, completion-setup-function): Adjust docstring and
+	echo area message accordingly.
+	* progmodes/idlwave.el (idlwave-choose-completion): Adjust to new
+	calling convention of choose-completion.
+	* comint.el (comint-dynamic-list-completions):
+	* term.el (term-dynamic-list-completions): Accept choose-completion.
+
+	* progmodes/perl-mode.el (perl-syntax-propertize-function): Slash after
+	&, |, +, - and * can't be a division (bug#17317).
+
+	* term/xterm.el (xterm--version-handler): Don't use modern xterm
+	features on gnome-terminal (bug#16988).
+
 2014-04-25  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	Improve Scheme font-locking for (define ((foo ...) ...) ...).

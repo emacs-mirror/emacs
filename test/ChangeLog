@@ -1,3 +1,17 @@
+2014-04-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (top):
+	* automated/file-notify-tests.el (top): Do not disable interactive
+	passwords in batch mode.
+	(password-cache-expiry): Set to nil.
+
+	* automated/file-notify-tests.el
+	(file-notify-test-remote-temporary-file-directory):
+	* automated/tramp-tests.el (tramp-test-temporary-file-directory):
+	Use a mock-up method as default.
+	(tramp-test00-availability): Print the used directory name.
+	(tramp-test33-recursive-load): Fix typo.
+
 2014-04-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp--test-check-files): Remove traces.

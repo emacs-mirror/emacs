@@ -343,10 +343,10 @@ It is also called if Tooltip mode is on, for text-only displays."
      ((stringp help)
       (setq help (replace-regexp-in-string "\n" ", " help))
       (unless (or tooltip-previous-message
-		  (string-equal help (current-message))
+		  (equal-including-properties help (current-message))
 		  (and (stringp tooltip-help-message)
-		       (string-equal tooltip-help-message
-				     (current-message))))
+		       (equal-including-properties tooltip-help-message
+						   (current-message))))
         (setq tooltip-previous-message (current-message)))
       (setq tooltip-help-message help)
       (let ((message-truncate-lines t)
@@ -369,7 +369,7 @@ MSG is either a help string to display, or nil to cancel the display."
 	       ;; Cancel display.  This also cancels a delayed tip, if
 	       ;; there is one.
 	       (tooltip-hide))
-	      ((equal previous-help msg)
+	      ((equal-including-properties previous-help msg)
 	       ;; Same help as before (but possibly the mouse has moved).
 	       ;; Keep what we have.
 	       )

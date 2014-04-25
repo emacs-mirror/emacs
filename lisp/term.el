@@ -4137,8 +4137,9 @@ Typing SPC flushes the help buffer."
 	    (and (consp first)
 		 (eq (window-buffer (posn-window (event-start first)))
 		     (get-buffer "*Completions*"))
-		 (eq (key-binding key) 'mouse-choose-completion)))
-	  ;; If the user does mouse-choose-completion with the mouse,
+		 (memq (key-binding key)
+                       '(mouse-choose-completion choose-completion))))
+	  ;; If the user does choose-completion with the mouse,
 	  ;; execute the command, then delete the completion window.
 	  (progn
 	    (choose-completion first)

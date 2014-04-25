@@ -1,3 +1,9 @@
+2014-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* strings.texi (Text Comparison): Mention
+	equal-including-properties for when text properties of the strings
+	matter for comparison.
+
 2014-04-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* text.texi (Registers): Document register-read-with-preview.

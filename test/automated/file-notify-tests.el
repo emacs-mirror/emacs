@@ -19,15 +19,17 @@
 
 ;;; Commentary:
 
-;; Some of the tests require access to a remote host files.  Set
-;; $REMOTE_TEMPORARY_FILE_DIRECTORY to a suitable value in order
-;; to overwrite the default value.  If you want to skip tests
-;; accessing a remote host, set this environment variable to
-;; "/dev/null" or whatever is appropriate on your system.
+;; Some of the tests require access to a remote host files.  Since
+;; this could be problematic, a mock-up connection method "mock" is
+;; used.  Emulating a remote connection, it simply calls "sh -i".
+;; Tramp's file name handlers still run, so this test is sufficient
+;; except for connection establishing.
 
-;; When running the tests in batch mode, it must NOT require an
-;; interactive password prompt unless the environment variable
-;; $REMOTE_ALLOW_PASSWORD is set.
+;; If you want to test a real Tramp connection, set
+;; $REMOTE_TEMPORARY_FILE_DIRECTORY to a suitable value in order to
+;; overwrite the default value.  If you want to skip tests accessing a
+;; remote host, set this environment variable to "/dev/null" or
+;; whatever is appropriate on your system.
 
 ;; A whole test run can be performed calling the command `file-notify-test-all'.
 
@@ -35,13 +37,22 @@
 
 (require 'ert)
 (require 'filenotify)
+(require 'tramp)
 
 ;; There is no default value on w32 systems, which could work out of the box.
 (defconst file-notify-test-remote-temporary-file-directory
   (cond
    ((getenv "REMOTE_TEMPORARY_FILE_DIRECTORY"))
    ((eq system-type 'windows-nt) null-device)
-   (t (format "/ssh::%s" temporary-file-directory)))
+   (t (add-to-list
+       'tramp-methods
+       '("mock"
+	 (tramp-login-program        "sh")
+	 (tramp-login-args           (("-i")))
+	 (tramp-remote-shell         "/bin/sh")
+	 (tramp-remote-shell-args    ("-c"))
+	 (tramp-connection-timeout   10)))
+      (format "/mock::%s" temporary-file-directory)))
   "Temporary directory for Tramp tests.")
 
 (defvar file-notify--test-tmpfile nil)
@@ -49,13 +60,9 @@
 (defvar file-notify--test-results nil)
 (defvar file-notify--test-event nil)
 
-(require 'tramp)
-(setq tramp-verbose 0
+(setq password-cache-expiry nil
+      tramp-verbose 0
       tramp-message-show-message nil)
-
-;; Disable interactive passwords in batch mode.
-(when (and noninteractive (not (getenv "REMOTE_ALLOW_PASSWORD")))
-  (defalias 'tramp-read-passwd 'ignore))
 
 ;; This shall happen on hydra only.
 (when (getenv "NIX_STORE")

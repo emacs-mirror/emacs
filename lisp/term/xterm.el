@@ -530,6 +530,12 @@ The relevant features are:
     ;; Since xterm-280, the terminal type (NUMBER1) is now 41 instead of 0.
     (when (string-match "\\([0-9]+\\);\\([0-9]+\\);0" str)
       (let ((version (string-to-number (match-string 2 str))))
+        (when (and (> version 2000) (equal (match-string 1 str) "1"))
+          ;; Hack attack!  bug#16988: gnome-terminal reports "1;NNNN;0"
+          ;; with a large NNNN but is based on a rather old xterm code.
+          ;; Gnome terminal 3.6.1 reports 1;3406;0
+          ;; Gnome terminal 2.32.1 reports 1;2802;0
+          (setq version 200))
         ;; If version is 242 or higher, assume the xterm supports
         ;; reporting the background color (TODO: maybe earlier
         ;; versions do too...)
