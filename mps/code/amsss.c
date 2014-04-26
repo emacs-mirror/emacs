@@ -108,7 +108,7 @@ static mps_pool_debug_option_s freecheckOptions =
   { NULL, 0, (const void *)"Dead", 4 };
 
 static void test_pool(mps_class_t pool_class, mps_arg_s args[],
-                      size_t haveAmbiguous)
+                      mps_bool_t haveAmbiguous)
 {
   mps_pool_t pool;
   mps_root_t exactRoot, ambigRoot = NULL;
@@ -223,11 +223,11 @@ int main(int argc, char *argv[])
            ambig ? "" : "!");
     MPS_ARGS_BEGIN(args) {
       MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
-      if (chain)
+      if (ownChain)
         MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
       MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, ambig);
       MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &freecheckOptions);
-      test_pool(debug ? mps_class_ams_debug() : mps_class_ams(), args, TRUE);
+      test_pool(debug ? mps_class_ams_debug() : mps_class_ams(), args, ambig);
     } MPS_ARGS_END(args);
   }
 
