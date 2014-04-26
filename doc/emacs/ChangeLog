@@ -1,3 +1,8 @@
+2014-04-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* sending.texi (Mail Signature): Document signature variables used
+	by Message mode.  (Bug#17308)
+
 2014-04-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* buffers.texi (Uniquify): Clarify the default uniquification.

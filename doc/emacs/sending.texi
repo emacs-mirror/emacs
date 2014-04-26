@@ -592,30 +592,36 @@ are inserted.
 @section Mail Signature
 
 @cindex mail signature
-@vindex mail-signature-file
-@vindex mail-signature
+@vindex message-signature-file
+@vindex message-signature
   You can add a standard piece of text---your @dfn{mail
 signature}---to the end of every message.  This signature may contain
 information such as your telephone number or your physical location.
-The variable @code{mail-signature} determines how Emacs handles the
+The variable @code{message-signature} determines how Emacs handles the
 mail signature.
 
-  The default value of @code{mail-signature} is @code{t}; this means
-to look for your mail signature in the file @file{~/.signature}.  If
-this file exists, its contents are automatically inserted into the end
-of the mail buffer.  You can change the signature file via the
-variable @code{mail-signature-file}.
+  The default value of @code{message-signature} is @code{t}; this
+means to look for your mail signature in the file @file{~/.signature}.
+If this file exists, its contents are automatically inserted into the
+end of the mail buffer.  You can change the signature file via the
+variable @code{message-signature-file}.
 
-  If you change @code{mail-signature} to a string, that specifies the
-text of the signature directly.
+  If you change @code{message-signature} to a string, that specifies
+the text of the signature directly.
 
 @kindex C-c C-w @r{(Message mode)}
 @findex message-insert-signature
-  If you change @code{mail-signature} to @code{nil}, Emacs will not
+  If you change @code{message-signature} to @code{nil}, Emacs will not
 insert your mail signature automatically.  You can insert your mail
 signature by typing @kbd{C-c C-w} (@code{message-insert-signature}) in
 the mail buffer.  Emacs will look for your signature in the signature
 file.
+
+@vindex mail-signature-file
+@vindex mail-signature
+  If you use Mail mode rather than Message mode for composing your
+mail, the corresponding variables that determine how your signature is
+sent are @code{mail-signature} and @code{mail-signature-file} instead.
 
   By convention, a mail signature should be marked by a line whose
 contents are @samp{-- }.  If your signature lacks this prefix, it is
