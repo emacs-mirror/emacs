@@ -59,7 +59,12 @@ The relevant features are:
                         (while (not (search-backward
                                      xterm-paste-ending-sequence
                                      (- (point) end-marker-length) t))
-                          (let ((event (read-event)))
+                          (let ((event (read-event
+                                        nil nil
+                                        ;; Use finite timeout to avoid
+                                        ;; glomming the event onto
+                                        ;; this-command-keys.
+                                        most-positive-fixnum)))
                             (when (eql event ?\r)
                               (setf event ?\n))
                             (insert event)))
