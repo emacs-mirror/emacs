@@ -1,3 +1,9 @@
+2014-04-27  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-search, auth-source-search-backends):
+	Treat :max 0 as an indicator that a boolean return is wanted, as
+	documented. Reported by Joe Bloggs.
+
 2014-04-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-icalendar.el: Require gnus-art.

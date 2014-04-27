@@ -654,9 +654,11 @@ Use `auth-source-delete' in ELisp code instead of calling
 'secrets are the only ones supported right now.
 
 :max N means to try to return at most N items (defaults to 1).
-When 0 the function will return just t or nil to indicate if any
-matches were found.  More than N items may be returned, depending
-on the search and the backend.
+More than N items may be returned, depending on the search and
+the backend.
+
+When :max is 0 the function will return just t or nil to indicate
+if any matches were found.
 
 :host (X Y Z) means to match only hosts X, Y, or Z according to
 the match rules above.  Defaults to t.
@@ -757,18 +759,22 @@ must call it to obtain the actual value."
       (when auth-source-do-cache
         (auth-source-remember spec found)))
 
-    found))
+    (if (zerop max)
+        (not (null found))
+      found)))
 
 (defun auth-source-search-backends (backends spec max create delete require)
-  (let (matches)
+  (let ((max (if (zerop max) 1 max)) ; stop with 1 match if we're asked for zero
+        matches)
     (dolist (backend backends)
-      (when (> max (length matches))   ; when we need more matches...
+      (when (> max (length matches)) ; if we need more matches...
         (let* ((bmatches (apply
                           (slot-value backend 'search-function)
                           :backend backend
                           :type (slot-value backend :type)
                           ;; note we're overriding whatever the spec
-                          ;; has for :require, :create, and :delete
+                          ;; has for :max, :require, :create, and :delete
+                          :max max
                           :require require
                           :create create
                           :delete delete
@@ -783,6 +789,7 @@ must call it to obtain the actual value."
             (setq matches (append matches bmatches))))))
     matches))
 
+;; (auth-source-search :max 0)
 ;; (auth-source-search :max 1)
 ;; (funcall (plist-get (nth 0 (auth-source-search :max 1)) :secret))
 ;; (auth-source-search :host "nonesuch" :type 'netrc :K 1)
@@ -1653,6 +1660,7 @@ authentication tokens:
 
 ;; (let ((auth-sources '("macos-keychain-internet:/Users/tzz/Library/Keychains/login.keychain"))) (auth-source-search :max 1))
 ;; (let ((auth-sources '("macos-keychain-generic:Login"))) (auth-source-search :max 1 :host "git.gnus.org"))
+;; (let ((auth-sources '("macos-keychain-generic:Login"))) (auth-source-search :max 1))
 
 (defun* auth-source-macos-keychain-search (&rest
                                     spec
