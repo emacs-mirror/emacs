@@ -1,3 +1,11 @@
+2014-04-27  Matthias Dahl  <matthias.dahl@binary-island.eu>
+
+	* faces.el (face-spec-recalc): Apply X resources only after the
+	the defface spec has been applied. Thus, X resources are no longer
+	overriden by the defface spec which also fixes issues on win32 where
+	the toolbar coloring was wrong because it is set through X resources
+	and was (wrongfully) overriden.  (Bug#16694)
+
 2014-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/rst.el (electric-pair-pairs): Declare.
