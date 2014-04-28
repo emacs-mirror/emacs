@@ -2332,21 +2332,21 @@ make_formatted_string (char *buf, const char *format, ...)
 #define FLOAT_BLOCK_SIZE					\
   (((BLOCK_BYTES - sizeof (struct float_block *)		\
      /* The compiler might add padding at the end.  */		\
-     - (sizeof (struct Lisp_Float) - sizeof (int))) * CHAR_BIT) \
+     - (sizeof (struct Lisp_Float) - sizeof (bits_word))) * CHAR_BIT) \
    / (sizeof (struct Lisp_Float) * CHAR_BIT + 1))
 
 #define GETMARKBIT(block,n)				\
-  (((block)->gcmarkbits[(n) / (sizeof (unsigned) * CHAR_BIT)]	\
-    >> ((n) % (sizeof (unsigned) * CHAR_BIT)))		\
+  (((block)->gcmarkbits[(n) / BITS_PER_BITS_WORD]	\
+    >> ((n) % BITS_PER_BITS_WORD))			\
    & 1)
 
 #define SETMARKBIT(block,n)				\
-  ((block)->gcmarkbits[(n) / (sizeof (unsigned) * CHAR_BIT)]	\
-   |= 1u << ((n) % (sizeof (unsigned) * CHAR_BIT)))
+  ((block)->gcmarkbits[(n) / BITS_PER_BITS_WORD]	\
+   |= (bits_word) 1 << ((n) % BITS_PER_BITS_WORD))
 
 #define UNSETMARKBIT(block,n)				\
-  ((block)->gcmarkbits[(n) / (sizeof (unsigned) * CHAR_BIT)]	\
-   &= ~(1u << ((n) % (sizeof (unsigned) * CHAR_BIT))))
+  ((block)->gcmarkbits[(n) / BITS_PER_BITS_WORD]	\
+   &= ~((bits_word) 1 << ((n) % BITS_PER_BITS_WORD)))
 
 #define FLOAT_BLOCK(fptr) \
   ((struct float_block *) (((uintptr_t) (fptr)) & ~(BLOCK_ALIGN - 1)))
@@ -2358,7 +2358,7 @@ struct float_block
 {
   /* Place `floats' at the beginning, to ease up FLOAT_INDEX's job.  */
   struct Lisp_Float floats[FLOAT_BLOCK_SIZE];
-  unsigned gcmarkbits[1 + FLOAT_BLOCK_SIZE / (sizeof (unsigned) * CHAR_BIT)];
+  bits_word gcmarkbits[1 + FLOAT_BLOCK_SIZE / BITS_PER_BITS_WORD];
   struct float_block *next;
 };
 
@@ -2439,7 +2439,7 @@ make_float (double float_value)
 #define CONS_BLOCK_SIZE						\
   (((BLOCK_BYTES - sizeof (struct cons_block *)			\
      /* The compiler might add padding at the end.  */		\
-     - (sizeof (struct Lisp_Cons) - sizeof (int))) * CHAR_BIT)	\
+     - (sizeof (struct Lisp_Cons) - sizeof (bits_word))) * CHAR_BIT)	\
    / (sizeof (struct Lisp_Cons) * CHAR_BIT + 1))
 
 #define CONS_BLOCK(fptr) \
@@ -2452,7 +2452,7 @@ struct cons_block
 {
   /* Place `conses' at the beginning, to ease up CONS_INDEX's job.  */
   struct Lisp_Cons conses[CONS_BLOCK_SIZE];
-  unsigned gcmarkbits[1 + CONS_BLOCK_SIZE / (sizeof (unsigned) * CHAR_BIT)];
+  bits_word gcmarkbits[1 + CONS_BLOCK_SIZE / BITS_PER_BITS_WORD];
   struct cons_block *next;
 };
 
@@ -6436,27 +6436,27 @@ NO_INLINE /* For better stack traces */
 static void
 sweep_conses (void)
 {
-  register struct cons_block *cblk;
+  struct cons_block *cblk;
   struct cons_block **cprev = &cons_block;
-  register int lim = cons_block_index;
+  int lim = cons_block_index;
   EMACS_INT num_free = 0, num_used = 0;
 
   cons_free_list = 0;
 
   for (cblk = cons_block; cblk; cblk = *cprev)
     {
-      register int i = 0;
+      int i = 0;
       int this_free = 0;
-      int ilim = (lim + BITS_PER_INT - 1) / BITS_PER_INT;
+      int ilim = (lim + BITS_PER_BITS_WORD - 1) / BITS_PER_BITS_WORD;
 
       /* Scan the mark bits an int at a time.  */
       for (i = 0; i < ilim; i++)
         {
-          if (cblk->gcmarkbits[i] == -1)
+          if (cblk->gcmarkbits[i] == BITS_WORD_MAX)
             {
               /* Fast path - all cons cells for this int are marked.  */
               cblk->gcmarkbits[i] = 0;
-              num_used += BITS_PER_INT;
+              num_used += BITS_PER_BITS_WORD;
             }
           else
             {
@@ -6464,10 +6464,10 @@ sweep_conses (void)
                  Find which ones, and free them.  */
               int start, pos, stop;
 
-              start = i * BITS_PER_INT;
+              start = i * BITS_PER_BITS_WORD;
               stop = lim - start;
-              if (stop > BITS_PER_INT)
-                stop = BITS_PER_INT;
+              if (stop > BITS_PER_BITS_WORD)
+                stop = BITS_PER_BITS_WORD;
               stop += start;
 
               for (pos = start; pos < stop; pos++)

@@ -115,7 +115,7 @@ enum {  BOOL_VECTOR_BITS_PER_CHAR =
 };
 
 /* An unsigned integer type representing a fixed-length bit sequence,
-   suitable for words in a Lisp bool vector.  Normally it is size_t
+   suitable for bool vector words, GC mark bits, etc.  Normally it is size_t
    for speed, but it is unsigned char on weird platforms.  */
 #if BOOL_VECTOR_BITS_PER_CHAR == CHAR_BIT
 typedef size_t bits_word;
@@ -133,7 +133,6 @@ enum
   {
     BITS_PER_CHAR      = CHAR_BIT,
     BITS_PER_SHORT     = CHAR_BIT * sizeof (short),
-    BITS_PER_INT       = CHAR_BIT * sizeof (int),
     BITS_PER_LONG      = CHAR_BIT * sizeof (long int),
     BITS_PER_EMACS_INT = CHAR_BIT * sizeof (EMACS_INT)
   };

@@ -1,5 +1,11 @@
 2014-04-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use bits_word for gcmarkbits.
+	* alloc.c (struct cons_block, struct float_block): On 64-bit hosts,
+	bits_word is typically a tad more efficient for mark bits than
+	unsigned is, so use bits_word.  All uses changed.
+	* lisp.h (BITS_PER_INT): Remove; no longer used.
+
 	Avoid undefined behavior in signed left shift.
 	This ports to GCC 4.9.0 with -fsanitize=undefined.
 	* alloc.c (bool_vector_fill, SETMARKBIT, UNSETMARKBIT):
