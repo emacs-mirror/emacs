@@ -154,7 +154,7 @@ def main(argv):
     m = re.match(CHILD_RE, args.child)
     if not m:
         raise Error(fmt("Invalid child: {child}"))
-    if args.customer != m.group(3):
+    if not args.task and args.customer != m.group(3):
         raise Error(fmt("Customer mismatch between {parent} and {child}."))
     args.date, args.task, _, args.version = m.groups()
 
