@@ -1,3 +1,8 @@
+2014-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/rst.el (electric-pair-pairs): Declare.
+	(rst-mode): Set it (bug#17131).
+
 2014-04-27  Juri Linkov  <juri@jurta.org>
 
 	* desktop.el (desktop-value-to-string): Let-bind `print-length'

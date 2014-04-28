@@ -10,6 +10,11 @@
 
 	* internals.texi (Building Emacs): Improve indexing.
 
+2014-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* display.texi (Overlay Properties): Reword the doc of `priority'.
+	(Finding Overlays): Document new arg of `overlays-at'.
+
 2014-04-05  Glenn Morris  <rgm@gnu.org>
 
 	* os.texi (Recording Input): Dribble files may contain passwords.
