@@ -2131,7 +2131,7 @@ bool_vector_fill (Lisp_Object a, Lisp_Object init)
       unsigned char *data = bool_vector_uchar_data (a);
       int pattern = NILP (init) ? 0 : (1 << BOOL_VECTOR_BITS_PER_CHAR) - 1;
       ptrdiff_t nbytes = bool_vector_bytes (nbits);
-      int last_mask = ~ (~0 << ((nbits - 1) % BOOL_VECTOR_BITS_PER_CHAR + 1));
+      int last_mask = ~ (~0u << ((nbits - 1) % BOOL_VECTOR_BITS_PER_CHAR + 1));
       memset (data, pattern, nbytes - 1);
       data[nbytes - 1] = pattern & last_mask;
     }
@@ -2336,17 +2336,17 @@ make_formatted_string (char *buf, const char *format, ...)
    / (sizeof (struct Lisp_Float) * CHAR_BIT + 1))
 
 #define GETMARKBIT(block,n)				\
-  (((block)->gcmarkbits[(n) / (sizeof (int) * CHAR_BIT)]	\
-    >> ((n) % (sizeof (int) * CHAR_BIT)))		\
+  (((block)->gcmarkbits[(n) / (sizeof (unsigned) * CHAR_BIT)]	\
+    >> ((n) % (sizeof (unsigned) * CHAR_BIT)))		\
    & 1)
 
 #define SETMARKBIT(block,n)				\
-  (block)->gcmarkbits[(n) / (sizeof (int) * CHAR_BIT)]	\
-  |= 1 << ((n) % (sizeof (int) * CHAR_BIT))
+  ((block)->gcmarkbits[(n) / (sizeof (unsigned) * CHAR_BIT)]	\
+   |= 1u << ((n) % (sizeof (unsigned) * CHAR_BIT)))
 
 #define UNSETMARKBIT(block,n)				\
-  (block)->gcmarkbits[(n) / (sizeof (int) * CHAR_BIT)]	\
-  &= ~(1 << ((n) % (sizeof (int) * CHAR_BIT)))
+  ((block)->gcmarkbits[(n) / (sizeof (unsigned) * CHAR_BIT)]	\
+   &= ~(1u << ((n) % (sizeof (unsigned) * CHAR_BIT))))
 
 #define FLOAT_BLOCK(fptr) \
   ((struct float_block *) (((uintptr_t) (fptr)) & ~(BLOCK_ALIGN - 1)))
@@ -2358,7 +2358,7 @@ struct float_block
 {
   /* Place `floats' at the beginning, to ease up FLOAT_INDEX's job.  */
   struct Lisp_Float floats[FLOAT_BLOCK_SIZE];
-  int gcmarkbits[1 + FLOAT_BLOCK_SIZE / (sizeof (int) * CHAR_BIT)];
+  unsigned gcmarkbits[1 + FLOAT_BLOCK_SIZE / (sizeof (unsigned) * CHAR_BIT)];
   struct float_block *next;
 };
 
@@ -2452,7 +2452,7 @@ struct cons_block
 {
   /* Place `conses' at the beginning, to ease up CONS_INDEX's job.  */
   struct Lisp_Cons conses[CONS_BLOCK_SIZE];
-  int gcmarkbits[1 + CONS_BLOCK_SIZE / (sizeof (int) * CHAR_BIT)];
+  unsigned gcmarkbits[1 + CONS_BLOCK_SIZE / (sizeof (unsigned) * CHAR_BIT)];
   struct cons_block *next;
 };
 

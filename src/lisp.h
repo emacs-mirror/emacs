@@ -354,7 +354,8 @@ error !;
 # define lisp_h_check_cons_list() ((void) 0)
 #endif
 #if USE_LSB_TAG
-# define lisp_h_make_number(n) XIL ((EMACS_INT) (n) << INTTYPEBITS)
+# define lisp_h_make_number(n) \
+    XIL ((EMACS_INT) ((EMACS_UINT) (n) << INTTYPEBITS))
 # define lisp_h_XFASTINT(a) XINT (a)
 # define lisp_h_XINT(a) (XLI (a) >> INTTYPEBITS)
 # define lisp_h_XTYPE(a) ((enum Lisp_Type) (XLI (a) & ~VALMASK))
@@ -665,7 +666,14 @@ LISP_MACRO_DEFUN (XUNTAG, void *, (Lisp_Object a, int type), (a, type))
 INLINE Lisp_Object
 make_number (EMACS_INT n)
 {
-  return XIL (USE_LSB_TAG ? n << INTTYPEBITS : n & INTMASK);
+  if (USE_LSB_TAG)
+    {
+      EMACS_UINT u = n;
+      n = u << INTTYPEBITS;
+    }
+  else
+    n &= INTMASK;
+  return XIL (n);
 }
 
 /* Extract A's value as a signed integer.  */
@@ -673,7 +681,12 @@ INLINE EMACS_INT
 XINT (Lisp_Object a)
 {
   EMACS_INT i = XLI (a);
-  return (USE_LSB_TAG ? i : i << INTTYPEBITS) >> INTTYPEBITS;
+  if (! USE_LSB_TAG)
+    {
+      EMACS_UINT u = i;
+      i = u << INTTYPEBITS;
+    }
+  return i >> INTTYPEBITS;
 }
 
 /* Like XINT (A), but may be faster.  A must be nonnegative.

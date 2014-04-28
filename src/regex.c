@@ -713,7 +713,8 @@ typedef enum
 static int
 extract_number (re_char *source)
 {
-  return (SIGN_EXTEND_CHAR (source[1]) << 8) + source[0];
+  unsigned leading_byte = SIGN_EXTEND_CHAR (source[1]);
+  return (leading_byte << 8) + source[0];
 }
 
 /* Same as EXTRACT_NUMBER, except increment SOURCE to after the number.

@@ -2895,7 +2895,7 @@ In this case, the sign bit is duplicated.  */)
   if (XINT (count) >= BITS_PER_EMACS_INT)
     XSETINT (val, 0);
   else if (XINT (count) > 0)
-    XSETINT (val, XINT (value) << XFASTINT (count));
+    XSETINT (val, XUINT (value) << XFASTINT (count));
   else if (XINT (count) <= -BITS_PER_EMACS_INT)
     XSETINT (val, XINT (value) < 0 ? -1 : 0);
   else

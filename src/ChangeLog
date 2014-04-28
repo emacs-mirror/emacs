@@ -1,3 +1,15 @@
+2014-04-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid undefined behavior in signed left shift.
+	This ports to GCC 4.9.0 with -fsanitize=undefined.
+	* alloc.c (bool_vector_fill, SETMARKBIT, UNSETMARKBIT):
+	* data.c (Fash):
+	* regex.c (extract_number):
+	* lisp.h (make_number, XINT):
+	Do not shift a 1 bit left into a sign bit.
+	* alloc.c (struct cons_block, struct float_block): Use unsigned,
+	not int, for gcmarkbits.  All uses changed.
+
 2014-04-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* search.c (Fnewline_cache_check): Don't try to count newlines
