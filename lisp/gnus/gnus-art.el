@@ -5866,7 +5866,7 @@ overlook them if there is a huge body.  This option offers you a copy
 of all non-inlinable MIME parts as buttons shown in front of an article.
 If nil, don't show those extra buttons."
   :version "24.5"
-  :group 'gnus-article
+  :group 'gnus-article-mime
   :type 'boolean)
 
 (defun gnus-mime-display-part (handle)
