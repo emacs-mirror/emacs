@@ -6476,6 +6476,7 @@ The function should return non-nil if the two tokens do not match.")
                             (not blink-matching-paren-dont-ignore-comments))))
                   (condition-case ()
                       (progn
+			(syntax-propertize (point))
                         (forward-sexp -1)
                         ;; backward-sexp skips backward over prefix chars,
                         ;; so move back to the matching paren.

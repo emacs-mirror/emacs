@@ -1,3 +1,26 @@
+2014-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ps-mode.el: Use SMIE.  Move string and comment recognition
+	to syntax-propertize.
+	(ps-mode-auto-indent): Mark as obsolete.
+	(ps-mode-font-lock-keywords-1): Remove string-or-comment handling.
+	(ps-mode-font-lock-keywords-3): Use symbol regexp operators instead of
+	word regexp operators.
+	(ps-mode-map): Move initialization into declaration.  Remove binding
+	for TAB, RET, >, ], and }.
+	(ps-mode-syntax-table): Move initialization into declaration.
+	Don't give word syntax to non-word chars.
+	(ps-run-mode-map): Move initialization into declaration.
+	(ps-mode-menu-main): Remove auto-indent entry.
+	(ps-mode-smie-rules): New function.
+	(ps-mode): Setup smie, syntax-propertize, and electric-indent-mode.
+	(ps-mode-looking-at-nested, ps-mode-match-string-or-comment): Remove.
+	(ps-mode--string-syntax-table): New const.
+	(ps-mode--syntax-propertize-special, ps-mode-syntax-propertize):
+	New functions.
+	(ps-mode-newline, ps-mode-tabkey, ps-mode-r-brace, ps-mode-r-angle)
+	(ps-mode-r-gt, ps-mode-r-balance): Remove functions.
+
 2014-04-27  Daniel Colascione  <dancol@dancol.org>
 
 	* term/xterm.el (xterm-paste): Use large finite timeout when

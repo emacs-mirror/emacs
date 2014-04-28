@@ -41,6 +41,7 @@
 
 (require 'comint)
 (require 'easymenu)
+(require 'smie)
 
 ;; Define core `PostScript' group.
 (defgroup PostScript nil
@@ -60,10 +61,7 @@
 
 ;; User variables.
 
-(defcustom ps-mode-auto-indent t
-  "Should we use autoindent?"
-  :group 'PostScript-edit
-  :type 'boolean)
+(make-obsolete-variable 'ps-mode-auto-indent 'electric-indent-mode "24.5")
 
 (defcustom ps-mode-tab 4
   "Number of spaces to use when indenting."
@@ -204,7 +202,7 @@ If nil, use `temporary-file-directory'."
 	       "bind" "null"
 	       "gsave" "grestore" "grestoreall"
 	       "showpage")))
-    (concat "\\<" (regexp-opt ops t) "\\>"))
+    (concat "\\_<" (regexp-opt ops t) "\\_>"))
   "Regexp of PostScript operators that will be fontified.")
 
 ;; Level 1 font-lock:
@@ -214,13 +212,9 @@ If nil, use `temporary-file-directory'."
 ;;  - 8bit characters (warning face)
 ;; Multiline strings are not supported. Strings with nested brackets are.
 (defconst ps-mode-font-lock-keywords-1
-  '(("\\`%!PS.*" . font-lock-constant-face)
+  '(("\\`%!PS.*" (0 font-lock-constant-face t))
     ("^%%BoundingBox:[ \t]+-?[0-9]+[ \t]+-?[0-9]+[ \t]+-?[0-9]+[ \t]+-?[0-9]+[ \t]*$"
-     . font-lock-constant-face)
-    (ps-mode-match-string-or-comment
-     (1 font-lock-comment-face nil t)
-     (2 font-lock-string-face nil t))
-    ("([^()\n%]*\\|[^()\n]*)" . font-lock-warning-face)
+     (0 font-lock-constant-face t))
     ("[\200-\377]+" (0 font-lock-warning-face prepend nil)))
   "Subdued level highlighting for PostScript mode.")
 
@@ -255,19 +249,17 @@ If nil, use `temporary-file-directory'."
 ;; Names are fontified before PostScript operators, allowing the use of
 ;; a more simple (efficient) regexp than the one used in level 2.
 (defconst ps-mode-font-lock-keywords-3
-  (append
-   ps-mode-font-lock-keywords-1
-   (list
-    '("//\\w+" . font-lock-type-face)
-    `(,(concat
-	"^\\(/\\w+\\)\\>"
-	"\\([[ \t]*\\(%.*\\)?\r?$"	; Nothing but `[' or comment after the name.
-	"\\|[ \t]*\\({\\|<<\\)"		; `{' or `<<' following the name.
-	"\\|[ \t]+[0-9]+[ \t]+dict\\>"	; `[0-9]+ dict' following the name.
-	"\\|.*\\<def\\>\\)")		; `def' somewhere on the same line.
-      . (1 font-lock-function-name-face))
-    '("/\\w+" . font-lock-variable-name-face)
-    (cons ps-mode-operators 'font-lock-keyword-face)))
+  `(,@ps-mode-font-lock-keywords-1
+    ("//\\(?:\\sw\\|\\s_\\)+" . font-lock-type-face)
+    (,(concat
+       "^\\(/\\(?:\\sw\\|\\s_\\)+\\)\\_>"
+       "\\([[ \t]*\\(%.*\\)?\r?$"  ; Nothing but `[' or comment after the name.
+       "\\|[ \t]*\\({\\|<<\\)"     ; `{' or `<<' following the name.
+       "\\|[ \t]+[0-9]+[ \t]+dict\\_>"	; `[0-9]+ dict' following the name.
+       "\\|.*\\_<def\\_>\\)")		; `def' somewhere on the same line.
+     . (1 font-lock-function-name-face))
+    ("/\\(?:\\sw\\|\\s_\\)+" . font-lock-variable-name-face)
+    (,ps-mode-operators . font-lock-keyword-face))
   "High level highlighting for PostScript mode.")
 
 (defconst ps-mode-font-lock-keywords ps-mode-font-lock-keywords-1
@@ -289,13 +281,68 @@ If nil, use `temporary-file-directory'."
 
 ;; Variables.
 
-(defvar ps-mode-map nil
+(defvar ps-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-v" 'ps-run-boundingbox)
+    (define-key map "\C-c\C-u" 'ps-mode-uncomment-region)
+    (define-key map "\C-c\C-t" 'ps-mode-epsf-rich)
+    (define-key map "\C-c\C-s" 'ps-run-start)
+    (define-key map "\C-c\C-r" 'ps-run-region)
+    (define-key map "\C-c\C-q" 'ps-run-quit)
+    (define-key map "\C-c\C-p" 'ps-mode-print-buffer)
+    (define-key map "\C-c\C-o" 'ps-mode-comment-out-region)
+    (define-key map "\C-c\C-k" 'ps-run-kill)
+    (define-key map "\C-c\C-j" 'ps-mode-other-newline)
+    (define-key map "\C-c\C-l" 'ps-run-clear)
+    (define-key map "\C-c\C-b" 'ps-run-buffer)
+    ;; FIXME: Add `indent' to backward-delete-char-untabify-method instead?
+    (define-key map "\177" 'ps-mode-backward-delete-char)
+    map)
   "Local keymap to use in PostScript mode.")
 
-(defvar ps-mode-syntax-table nil
+(defvar ps-mode-syntax-table
+  (let ((st (make-syntax-table)))
+
+    (modify-syntax-entry ?\% "< " st)
+    (modify-syntax-entry ?\n "> " st)
+    (modify-syntax-entry ?\r "> " st)
+    (modify-syntax-entry ?\f "> " st)
+    (modify-syntax-entry ?\< "(>" st)
+    (modify-syntax-entry ?\> ")<" st)
+
+    (modify-syntax-entry ?\! "_ " st)
+    (modify-syntax-entry ?\" "_ " st)
+    (modify-syntax-entry ?\# "_ " st)
+    (modify-syntax-entry ?\$ "_ " st)
+    (modify-syntax-entry ?\& "_ " st)
+    (modify-syntax-entry ?\' "_ " st)
+    (modify-syntax-entry ?\* "_ " st)
+    (modify-syntax-entry ?\+ "_ " st)
+    (modify-syntax-entry ?\, "_ " st)
+    (modify-syntax-entry ?\- "_ " st)
+    (modify-syntax-entry ?\. "_ " st)
+    (modify-syntax-entry ?\: "_ " st)
+    (modify-syntax-entry ?\; "_ " st)
+    (modify-syntax-entry ?\= "_ " st)
+    (modify-syntax-entry ?\? "_ " st)
+    (modify-syntax-entry ?\@ "_ " st)
+    (modify-syntax-entry ?\\ "\\" st)
+    (modify-syntax-entry ?^  "_ " st)   ; NOT: ?\^
+    (modify-syntax-entry ?\_ "_ " st)
+    (modify-syntax-entry ?\` "_ " st)
+    (modify-syntax-entry ?\| "_ " st)
+    (modify-syntax-entry ?\~ "_ " st)
+    st)
   "Syntax table used while in PostScript mode.")
 
-(defvar ps-run-mode-map nil
+(defvar ps-run-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map comint-mode-map)
+    (define-key map "\C-c\C-q" 'ps-run-quit)
+    (define-key map "\C-c\C-k" 'ps-run-kill)
+    (define-key map "\C-c\C-e" 'ps-run-goto-error)
+    (define-key map [mouse-2] 'ps-run-mouse-goto-error)
+    map)
   "Local keymap to use in PostScript run mode.")
 
 (defvar ps-mode-tmp-file nil
@@ -365,9 +412,6 @@ If nil, use `temporary-file-directory'."
     ["8-bit to Octal Buffer" ps-mode-octal-buffer t]
     ["8-bit to Octal Region" ps-mode-octal-region (mark t)]
     "---"
-    ["Auto Indent" (setq ps-mode-auto-indent (not ps-mode-auto-indent))
-     :style toggle :selected ps-mode-auto-indent]
-    "---"
     ["Start PostScript"
      ps-run-start
      t]
@@ -404,85 +448,20 @@ If nil, use `temporary-file-directory'."
      ps-mode-submit-bug-report
      t]))
 
-
-;; Mode maps for PostScript edit mode and PostScript interaction mode.
-
-(unless ps-mode-map
-  (setq ps-mode-map (make-sparse-keymap))
-  (define-key ps-mode-map "\C-c\C-v" 'ps-run-boundingbox)
-  (define-key ps-mode-map "\C-c\C-u" 'ps-mode-uncomment-region)
-  (define-key ps-mode-map "\C-c\C-t" 'ps-mode-epsf-rich)
-  (define-key ps-mode-map "\C-c\C-s" 'ps-run-start)
-  (define-key ps-mode-map "\C-c\C-r" 'ps-run-region)
-  (define-key ps-mode-map "\C-c\C-q" 'ps-run-quit)
-  (define-key ps-mode-map "\C-c\C-p" 'ps-mode-print-buffer)
-  (define-key ps-mode-map "\C-c\C-o" 'ps-mode-comment-out-region)
-  (define-key ps-mode-map "\C-c\C-k" 'ps-run-kill)
-  (define-key ps-mode-map "\C-c\C-j" 'ps-mode-other-newline)
-  (define-key ps-mode-map "\C-c\C-l" 'ps-run-clear)
-  (define-key ps-mode-map "\C-c\C-b" 'ps-run-buffer)
-  (define-key ps-mode-map ">" 'ps-mode-r-gt)
-  (define-key ps-mode-map "]" 'ps-mode-r-angle)
-  (define-key ps-mode-map "}" 'ps-mode-r-brace)
-  (define-key ps-mode-map "\177" 'ps-mode-backward-delete-char)
-  (define-key ps-mode-map "\t" 'ps-mode-tabkey)
-  (define-key ps-mode-map "\r" 'ps-mode-newline)
-  (easy-menu-define ps-mode-main ps-mode-map "PostScript" ps-mode-menu-main))
-
-(unless ps-run-mode-map
-  (setq ps-run-mode-map (make-sparse-keymap))
-  (set-keymap-parent ps-run-mode-map comint-mode-map)
-  (define-key ps-run-mode-map "\C-c\C-q" 'ps-run-quit)
-  (define-key ps-run-mode-map "\C-c\C-k" 'ps-run-kill)
-  (define-key ps-run-mode-map "\C-c\C-e" 'ps-run-goto-error)
-  (define-key ps-run-mode-map [mouse-2] 'ps-run-mouse-goto-error))
-
-
-;; Syntax table.
-
-(unless ps-mode-syntax-table
-  (setq ps-mode-syntax-table (make-syntax-table))
-
-  (modify-syntax-entry ?\% "< " ps-mode-syntax-table)
-  (modify-syntax-entry ?\n "> " ps-mode-syntax-table)
-  (modify-syntax-entry ?\r "> " ps-mode-syntax-table)
-  (modify-syntax-entry ?\f "> " ps-mode-syntax-table)
-  (modify-syntax-entry ?\< "(>" ps-mode-syntax-table)
-  (modify-syntax-entry ?\> ")<" ps-mode-syntax-table)
-
-  (modify-syntax-entry ?\! "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\" "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\# "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\$ "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\& "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\' "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\* "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\+ "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\, "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\- "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\. "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\: "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\; "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\= "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\? "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\@ "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\\ "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?^  "w " ps-mode-syntax-table) ; NOT: ?\^
-  (modify-syntax-entry ?\_ "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\` "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\| "w " ps-mode-syntax-table)
-  (modify-syntax-entry ?\~ "w " ps-mode-syntax-table)
-
-  (let ((i 128))
-    (while (< i 256)
-      (modify-syntax-entry i "w " ps-mode-syntax-table)
-      (setq i (1+ i)))))
+(easy-menu-define ps-mode-main ps-mode-map "PostScript" ps-mode-menu-main)
 
 
 
 (declare-function doc-view-minor-mode "doc-view")
 
 ;; PostScript mode.
+
+(defun ps-mode-smie-rules (kind token)
+  (pcase (cons kind token)
+    (`(:after . "<") (when (smie-rule-next-p "<") 0))
+    (`(:elem . basic) ps-mode-tab)
+    (`(:close-all . ">") t)
+    (`(:list-intro . ,_) t)))
 
 ;;;###autoload
 (define-derived-mode ps-mode prog-mode "PostScript"
@@ -493,7 +472,6 @@ Entry to this mode calls `ps-mode-hook'.
 The following variables hold user options, and can
 be set through the `customize' command:
 
-  `ps-mode-auto-indent'
   `ps-mode-tab'
   `ps-mode-paper-size'
   `ps-mode-print-function'
@@ -523,12 +501,16 @@ with a file position. Clicking mouse-2 on this number will bring
 point to the corresponding spot in the PostScript window, if input
 to the interpreter was sent from that window.
 Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number has the same effect."
+  (setq-local syntax-propertize-function #'ps-mode-syntax-propertize)
   (set (make-local-variable 'font-lock-defaults)
        '((ps-mode-font-lock-keywords
  	  ps-mode-font-lock-keywords-1
  	  ps-mode-font-lock-keywords-2
  	  ps-mode-font-lock-keywords-3)
-	 t))
+	 nil))
+  (smie-setup nil #'ps-mode-smie-rules)
+  (setq-local electric-indent-chars
+              (append '(?> ?\] ?\}) electric-indent-chars))
   (set (make-local-variable 'comment-start) "%")
   ;; NOTE: `\' has a special meaning in strings only
   (set (make-local-variable 'comment-start-skip) "%+[ \t]*")
@@ -555,8 +537,7 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
       (reporter-submit-bug-report
        ps-mode-maintainer-address
        (format "ps-mode.el %s [%s]" ps-mode-version system-type)
-       '(ps-mode-auto-indent
-	 ps-mode-tab
+       '(ps-mode-tab
 	 ps-mode-paper-size
 	 ps-mode-print-function
 	 ps-run-prompt
@@ -570,53 +551,54 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
 
 ;; Helper functions for font-lock.
 
-;; When this function is called, point is at an opening bracket.
-;; This function should test if point is at the start of a string
-;; with nested brackets.
-;; If true:  move point to end of string
-;;           set string to match data nr 2
-;;           return new point
-;; If false: return nil
-(defun ps-mode-looking-at-nested (limit)
-  (let ((first (point))
-	(level 1)
-	pos)
-    ;; Move past opening bracket.
-    (forward-char 1)
-    (setq pos (point))
-    (while (and (> level 0) (< pos limit))
-      ;; Search next bracket, stepping over escaped brackets.
-      (if (not (looking-at "\\([^()\\\n]\\|\\\\.\\)*\\([()]\\)"))
-          (setq level -1)
-	(setq level (+ level (if (string= "(" (match-string 2)) 1 -1)))
-	(goto-char (setq pos (match-end 0)))))
-    (if (not (= level 0))
-        nil
-      ;; Found string with nested brackets, now set match data nr 2.
-      (set-match-data (list first pos nil nil first pos))
-      pos)))
+(defconst ps-mode--string-syntax-table
+  (let ((st (make-syntax-table ps-mode-syntax-table)))
+    (modify-syntax-entry ?% "." st)
+    (modify-syntax-entry ?< "." st)
+    (modify-syntax-entry ?> "." st)
+    (modify-syntax-entry ?\{ "." st)
+    (modify-syntax-entry ?\} "." st)
+    (modify-syntax-entry ?\[ "." st)
+    (modify-syntax-entry ?\] "." st)
+    st))
 
-;; This function should search for a string or comment
-;; If comment, return as match data nr 1
-;; If string, return as match data nr 2
-(defun ps-mode-match-string-or-comment (limit)
-  ;; Find the first potential match.
-  (if (not (re-search-forward "[%(]" limit t))
-      ;; Nothing found: return failure.
-      nil
-    (let ((end (match-end 0)))
-      (goto-char (match-beginning 0))
-      (cond ((looking-at "\\(%.*\\)\\|\\((\\([^()\\\n]\\|\\\\.\\)*)\\)")
-	     ;; It's a comment or string without nested, unescaped brackets.
-	     (goto-char (match-end 0))
-	     (point))
-	    ((ps-mode-looking-at-nested limit)
-	     ;; It's a string with nested brackets.
-	     (point))
-	    (t
-	     ;; Try next match.
-	     (goto-char end)
-	     (ps-mode-match-string-or-comment limit))))))
+(defun ps-mode--syntax-propertize-special (end)
+  (let ((ppss (syntax-ppss))
+        char)
+    (cond
+     ((not (nth 3 ppss)))          ;Not in (...), <~..base85..~>, or <..hex..>.
+     ((eq ?\( (setq char (char-after (nth 8 ppss))))
+      (save-restriction
+        (narrow-to-region (point-min) end)
+        (goto-char (nth 8 ppss))
+        (condition-case nil
+            (with-syntax-table ps-mode--string-syntax-table
+              (let ((parse-sexp-lookup-properties nil))
+                (forward-sexp 1))
+              (put-text-property (1- (point)) (point)
+                                 'syntax-table (string-to-syntax "|")))
+          (scan-error (goto-char end)))))
+     ((eq char ?<)
+      (when (re-search-forward (if (eq ?~ (char-after (1+ (nth 8 ppss))))
+                                   "~>" ">")
+                               end 'move)
+        (put-text-property (1- (point)) (point)
+                           'syntax-table (string-to-syntax "|")))))))
+
+(defun ps-mode-syntax-propertize (start end)
+  (goto-char start)
+  (ps-mode--syntax-propertize-special end)
+  (funcall
+   (syntax-propertize-rules
+    ("\\(<\\)\\(?:~\\|[ \n\t]*[[:xdigit:]]\\)\\|\\(?1:(\\)"
+     (1 (unless (or (eq (char-after (match-beginning 0))
+                        (char-before (match-beginning 0))) ;Avoid "<<".
+                    (nth 8 (save-excursion (syntax-ppss (match-beginning 1)))))
+          (put-text-property (match-beginning 1) (match-end 1)
+                             'syntax-table (string-to-syntax "|"))
+          (ps-mode--syntax-propertize-special end)
+          nil))))
+   (point) end))
 
 
 ;; Key-handlers.
@@ -654,34 +636,12 @@ defines the beginning of a group. These tokens are:  {  [  <<"
 	      (setq target (+ target ps-mode-tab)))
 	  target)))))
 
-(defun ps-mode-newline ()
-  "Insert newline with proper indentation."
-  (interactive)
-  (delete-horizontal-space)
-  (insert "\n")
-  (if ps-mode-auto-indent
-      (indent-to (ps-mode-target-column))))
-
-(defun ps-mode-tabkey ()
-  "Indent/reindent current line, or insert tab."
-  (interactive)
-  (let ((column (current-column))
-	target)
-    (if (or (not ps-mode-auto-indent)
-	    (< ps-mode-tab 1)
-	    (not (re-search-backward "^[ \t]*\\=" nil t)))
-	(insert "\t")
-      (setq target (ps-mode-target-column))
-      (while (<= target column)
-	(setq target (+ target ps-mode-tab)))
-      (indent-line-to target))))
-
 (defun ps-mode-backward-delete-char ()
   "Delete backward indentation, or delete backward character."
   (interactive)
   (let ((column (current-column))
 	target)
-    (if (or (not ps-mode-auto-indent)
+    (if (or (not electric-indent-mode)
 	    (< ps-mode-tab 1)
 	    (not (re-search-backward "^[ \t]+\\=" nil t)))
 	(call-interactively 'delete-backward-char)
@@ -693,32 +653,6 @@ defines the beginning of a group. These tokens are:  {  [  <<"
       (if (< target 0)
 	  (setq target 0))
       (indent-line-to target))))
-
-(defun ps-mode-r-brace ()
-  "Insert `}' and perform balance."
-  (interactive)
-  (insert "}")
-  (ps-mode-r-balance "}"))
-
-(defun ps-mode-r-angle ()
-  "Insert `]' and perform balance."
-  (interactive)
-  (insert "]")
-  (ps-mode-r-balance "]"))
-
-(defun ps-mode-r-gt ()
-  "Insert `>' and perform balance."
-  (interactive)
-  (insert ">")
-  (ps-mode-r-balance ">>"))
-
-(defun ps-mode-r-balance (right)
-  "Adjust indenting if point after RIGHT."
-  (if ps-mode-auto-indent
-      (save-excursion
-	(when (re-search-backward (concat "^[ \t]*" (regexp-quote right) "\\=") nil t)
-	  (indent-line-to (ps-mode-target-column)))))
-  (blink-matching-open))
 
 (defun ps-mode-other-newline ()
   "Perform newline in `*ps-run*' buffer."
