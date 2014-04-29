@@ -71,6 +71,8 @@
 	* basic.texi (Inserting Text, Erasing, Arguments): Fix usage of
 	@kbd and @key.
 
+	* anti.texi (Antinews): Fix usage of @kbd and @key.
+
 2014-04-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* sending.texi (Mail Signature): Document signature variables used

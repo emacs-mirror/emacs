@@ -35,7 +35,7 @@ Therefore, this manual mainly documents how to edit with the keyboard.
 @samp{3}, @samp{=}, and the space character (denoted as @key{SPC}),
 are entered by typing the corresponding key.  @dfn{Control
 characters}, such as @key{RET}, @key{TAB}, @key{DEL}, @key{ESC},
-@key{F1}, @key{Home}, and @key{left}, are also entered this way, as
+@key{F1}, @key{Home}, and @key{LEFT}, are also entered this way, as
 are certain characters found on non-English keyboards
 (@pxref{International}).
 
@@ -53,7 +53,7 @@ holding down the @key{Ctrl} key while pressing @kbd{a}; we will refer
 to this as @kbd{C-a} for short.  Similarly @kbd{@key{META}-a}, or @kbd{M-a}
 for short, is entered by holding down the @key{Alt} key and pressing
 @kbd{a}.  Modifier keys can also be applied to non-alphanumerical
-characters, e.g., @kbd{C-@key{F1}} or @kbd{M-@key{left}}.
+characters, e.g., @kbd{C-@key{F1}} or @kbd{M-@key{LEFT}}.
 
 @cindex @key{ESC} replacing @key{META} key
   You can also type Meta characters using two-character sequences

@@ -139,8 +139,8 @@ how many copies of the character to insert (@pxref{Arguments}).
 point (@pxref{Point}).  The keyboard commands @kbd{C-f}, @kbd{C-b},
 @kbd{C-n}, and @kbd{C-p} move point to the right, left, down, and up,
 respectively.  You can also move point using the @dfn{arrow keys}
-present on most keyboards: @kbd{@key{right}}, @kbd{@key{left}},
-@kbd{@key{down}}, and @kbd{@key{up}}; however, many Emacs users find
+present on most keyboards: @key{RIGHT}, @key{LEFT},
+@key{DOWN}, and @key{UP}; however, many Emacs users find
 that it is slower to use the arrow keys than the control keys, because
 you need to move your hand to the area of the keyboard where those
 keys are located.
@@ -156,7 +156,7 @@ keyboard commands that move point in more sophisticated ways.
 @findex forward-char
 Move forward one character (@code{forward-char}).
 
-@item @key{right}
+@item @key{RIGHT}
 @kindex RIGHT
 @findex right-char
 @vindex visual-order-cursor-movement
@@ -176,7 +176,7 @@ away, depending on the surrounding bidirectional context.
 @findex backward-char
 Move backward one character (@code{backward-char}).
 
-@item @key{left}
+@item @key{LEFT}
 @kindex LEFT
 @findex left-char
 This command (@code{left-char}) behaves like @kbd{C-b}, except it
@@ -187,7 +187,7 @@ left of the current screen position, moving to the previous or next
 screen line as appropriate.
 
 @item C-n
-@itemx @key{down}
+@itemx @key{DOWN}
 @kindex C-n
 @kindex DOWN
 @findex next-line
@@ -196,7 +196,7 @@ to keep the horizontal position unchanged, so if you start in the
 middle of one line, you move to the middle of the next.
 
 @item C-p
-@itemx @key{up}
+@itemx @key{UP}
 @kindex C-p
 @kindex UP
 @findex previous-line
@@ -222,8 +222,8 @@ Move to the end of the line (@code{move-end-of-line}).
 @findex forward-word
 Move forward one word (@code{forward-word}).
 
-@item C-@key{right}
-@itemx M-@key{right}
+@item C-@key{RIGHT}
+@itemx M-@key{RIGHT}
 @kindex C-RIGHT
 @kindex M-RIGHT
 @findex right-word
@@ -236,8 +236,8 @@ right-to-left.  @xref{Bidirectional Editing}.
 @findex backward-word
 Move backward one word (@code{backward-word}).
 
-@item C-@key{left}
-@itemx M-@key{left}
+@item C-@key{LEFT}
+@itemx M-@key{LEFT}
 @kindex C-LEFT
 @kindex M-LEFT
 @findex left-word

@@ -357,12 +357,12 @@ While in the completion list buffer, this chooses the completion at
 point (@code{choose-completion}).
 
 @findex next-completion
-@item @key{right}
+@item @key{RIGHT}
 While in the completion list buffer, this moves point to the following
 completion alternative (@code{next-completion}).
 
 @findex previous-completion
-@item @key{left}
+@item @key{LEFT}
 While in the completion list buffer, this moves point to the previous
 completion alternative (@code{previous-completion}).
 @end table
@@ -587,11 +587,11 @@ argument into the minibuffer:
 
 @table @kbd
 @item M-p
-@itemx @key{up}
+@itemx @key{UP}
 Move to the previous item in the minibuffer history, an earlier
 argument (@code{previous-history-element}).
 @item M-n
-@itemx @key{down}
+@itemx @key{DOWN}
 Move to the next item in the minibuffer history
 (@code{next-history-element}).
 @item M-r @var{regexp} @key{RET}
@@ -608,11 +608,11 @@ Move to a later item in the minibuffer history that matches
 @kindex DOWN @r{(minibuffer history)}
 @findex next-history-element
 @findex previous-history-element
-  While in the minibuffer, @kbd{M-p} or @key{up}
+  While in the minibuffer, @kbd{M-p} or @key{UP}
 (@code{previous-history-element}) moves through the minibuffer history
 list, one item at a time.  Each @kbd{M-p} fetches an earlier item from
 the history list into the minibuffer, replacing its existing contents.
-Typing @kbd{M-n} or @key{down} (@code{next-history-element}) moves
+Typing @kbd{M-n} or @key{DOWN} (@code{next-history-element}) moves
 through the minibuffer history list in the opposite direction,
 fetching later entries into the minibuffer.
 

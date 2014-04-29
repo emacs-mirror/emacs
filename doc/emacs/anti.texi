@@ -17,8 +17,8 @@ Support for displaying and editing ``bidirectional'' text has been
 removed.  Text is now always displayed on the screen in a single
 consistent direction---left to right---regardless of the underlying
 script.  Similarly, @kbd{C-f} and @kbd{C-b} always move the text
-cursor to the right and left respectively.  Also, @key{right} and
-@key{left} are now equivalent to @kbd{C-f} and @kbd{C-b}, as you might
+cursor to the right and left respectively.  Also, @key{RIGHT} and
+@key{LEFT} are now equivalent to @kbd{C-f} and @kbd{C-b}, as you might
 expect, rather than moving forward or backward based on the underlying
 ``paragraph direction''.
 
@@ -36,7 +36,7 @@ and/or README file for details.
 
 @item
 The option @code{delete-active-region} has been deleted.  When the
-region is active, typing @key{DEL} or @key{delete} no longer deletes
+region is active, typing @key{DEL} or @key{Delete} no longer deletes
 the text in the region; it deletes a single character instead.
 
 @item

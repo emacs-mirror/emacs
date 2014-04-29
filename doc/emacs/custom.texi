@@ -1795,10 +1795,10 @@ the corresponding Lisp symbol.  Here are the conventional Lisp names for
 common function keys:
 
 @table @asis
-@item @code{left}, @code{up}, @code{right}, @code{down}
+@item @code{LEFT}, @code{UP}, @code{RIGHT}, @code{DOWN}
 Cursor arrow keys.
 
-@item @code{begin}, @code{end}, @code{home}, @code{next}, @code{prior}
+@item @code{Begin}, @code{End}, @code{Home}, @code{next}, @code{prior}
 Other cursor repositioning keys.
 
 @item @code{select}, @code{print}, @code{execute}, @code{backtab}
@@ -1836,8 +1836,8 @@ translates these keys to the corresponding keys in the main keyboard.
 For example, when @samp{Num Lock} is on, the key labeled @samp{8} on
 the numeric keypad produces @code{kp-8}, which is translated to
 @kbd{8}; when @samp{Num Lock} is off, the same key produces
-@code{kp-up}, which is translated to @key{up}.  If you rebind a key
-such as @kbd{8} or @key{up}, it affects the equivalent keypad key too.
+@code{kp-up}, which is translated to @key{UP}.  If you rebind a key
+such as @kbd{8} or @key{UP}, it affects the equivalent keypad key too.
 However, if you rebind a @samp{kp-} key directly, that won't affect
 its non-keypad equivalent.  Note that the modified keys are not
 translated: for instance, if you hold down the @key{META} key while

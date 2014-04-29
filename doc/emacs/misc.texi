@@ -932,13 +932,13 @@ resubmit them or copy them to the end.  Or you can use a
 @findex comint-previous-input
 @kindex M-p @r{(Shell mode)}
 @item M-p
-@itemx C-@key{up}
+@itemx C-@key{UP}
 Fetch the next earlier old shell command.
 
 @kindex M-n @r{(Shell mode)}
 @findex comint-next-input
 @item M-n
-@itemx C-@key{down}
+@itemx C-@key{DOWN}
 Fetch the next later old shell command.
 
 @kindex M-r @r{(Shell mode)}
@@ -975,7 +975,7 @@ buffer.  Successive use of @kbd{M-p} fetches successively earlier
 shell commands, each replacing any text that was already present as
 potential shell input.  @kbd{M-n} does likewise except that it finds
 successively more recent shell commands from the buffer.
-@kbd{C-@key{up}} works like @kbd{M-p}, and @kbd{C-@key{down}} like
+@kbd{C-@key{UP}} works like @kbd{M-p}, and @kbd{C-@key{DOWN}} like
 @kbd{M-n}.
 
   The history search command @kbd{M-r} begins an incremental regular

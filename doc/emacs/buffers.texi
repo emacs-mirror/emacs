@@ -74,9 +74,9 @@ Similar, but select @var{buffer} in another window
 @item C-x 5 b @var{buffer} @key{RET}
 Similar, but select @var{buffer} in a separate frame
 (@code{switch-to-buffer-other-frame}).
-@item C-x @key{left}
+@item C-x @key{LEFT}
 Select the previous buffer in the buffer list (@code{previous-buffer}).
-@item C-x @key{right}
+@item C-x @key{RIGHT}
 Select the next buffer in the buffer list (@code{next-buffer}).
 @item C-u M-g M-g
 @itemx C-u M-g g
@@ -110,15 +110,15 @@ it, Emacs asks for the file name to use, and the buffer's major mode
 is re-established taking that file name into account (@pxref{Choosing
 Modes}).
 
-@kindex C-x @key{left}
-@kindex C-x @key{right}
+@kindex C-x @key{LEFT}
+@kindex C-x @key{RIGHT}
 @findex next-buffer
 @findex previous-buffer
   For conveniently switching between a few buffers, use the commands
-@kbd{C-x @key{left}} and @kbd{C-x @key{right}}.  @kbd{C-x @key{left}}
+@kbd{C-x @key{LEFT}} and @kbd{C-x @key{RIGHT}}.  @kbd{C-x @key{LEFT}}
 (@code{previous-buffer}) selects the previous buffer (following the
 order of most recent selection in the current frame), while @kbd{C-x
-@key{right}} (@code{next-buffer}) moves through buffers in the reverse
+@key{RIGHT}} (@code{next-buffer}) moves through buffers in the reverse
 direction.
 
 @kindex C-x 4 b

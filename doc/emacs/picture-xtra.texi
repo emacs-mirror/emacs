@@ -151,16 +151,16 @@ character.  This is useful for drawing lines in the buffer.
 
 @table @kbd
 @item C-c <
-@itemx C-c @key{left}
+@itemx C-c @key{LEFT}
 Move left after insertion (@code{picture-movement-left}).
 @item C-c >
-@itemx C-c @key{right}
+@itemx C-c @key{RIGHT}
 Move right after insertion (@code{picture-movement-right}).
 @item C-c ^
-@itemx C-c @key{up}
+@itemx C-c @key{UP}
 Move up after insertion (@code{picture-movement-up}).
 @item C-c .
-@itemx C-c @key{down}
+@itemx C-c @key{DOWN}
 Move down after insertion (@code{picture-movement-down}).
 @item C-c `
 @itemx C-c @key{Home}
