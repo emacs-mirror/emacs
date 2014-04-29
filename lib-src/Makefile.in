@@ -247,8 +247,8 @@ $(DESTDIR)${archlibdir}: all
 	  chown ${gameuser} "$(DESTDIR)${gamedir}"; \
 	  chmod u=rwx,g=rwx,o=rx "$(DESTDIR)${gamedir}"; \
 	fi
-	if [ "`cd \"$(DESTDIR)${archlibdir}\" && /bin/pwd`" \
-             != "`cd ${srcdir} && /bin/pwd`" ]; then \
+	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && /bin/pwd`; \
+	if [ "$$exp_archlibdir" != "`cd ${srcdir} && /bin/pwd`" ]; then \
 	  for file in ${SCRIPTS}; do \
 	    $(INSTALL_SCRIPT) ${srcdir}/$$file "$(DESTDIR)${archlibdir}/$$file"; \
 	  done ; \
