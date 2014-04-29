@@ -1,3 +1,7 @@
+2014-04-29  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-quit): Handle killed summaries.  (Bug#17283)
+
 2014-04-27  Matthias Dahl  <matthias.dahl@binary-island.eu>
 
 	* faces.el (face-spec-recalc): Apply X resources only after the
