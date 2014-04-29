@@ -5953,12 +5953,12 @@ struct save_window_data
     int frame_menu_bar_height, frame_tool_bar_height;
   };
 
-/* This is saved as a Lisp_Vector  */
+/* This is saved as a Lisp_Vector.  */
 struct saved_window
 {
   struct vectorlike_header header;
 
-  Lisp_Object window, buffer, start, pointm, mark;
+  Lisp_Object window, buffer, start, pointm;
   Lisp_Object pixel_left, pixel_top, pixel_height, pixel_width;
   Lisp_Object left_col, top_line, total_cols, total_lines;
   Lisp_Object normal_cols, normal_lines;
@@ -6260,17 +6260,6 @@ the return value is nil.  Otherwise the value is t.  */)
 	      set_marker_restricted (w->start, p->start, w->contents);
 	      set_marker_restricted (w->pointm, p->pointm,
 				     w->contents);
-	      if (MARKERP (p->mark) && !XMARKER (p->mark)->buffer
-		  && !NILP (BVAR (XBUFFER (w->contents), mark_active)))
-		{
-		  struct buffer *old = current_buffer;
-		  extern Lisp_Object Qdeactivate_mark;
-		  set_buffer_internal (XBUFFER (w->contents));
-		  call0 (Qdeactivate_mark);
-		  set_buffer_internal (old);
-		}
-	      Fset_marker (BVAR (XBUFFER (w->contents), mark),
-			   p->mark, w->contents);
 
 	      /* As documented in Fcurrent_window_configuration, don't
 		 restore the location of point in the buffer which was
@@ -6626,27 +6615,16 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
 
 	  p->start = Fcopy_marker (w->start, Qnil);
 	  p->start_at_line_beg = w->start_at_line_beg ? Qt : Qnil;
-
-	  tem = BVAR (XBUFFER (w->contents), mark);
-	  p->mark = Fcopy_marker (tem, Qnil);
 	}
       else
 	{
 	  p->pointm = Qnil;
 	  p->start = Qnil;
-	  p->mark = Qnil;
 	  p->start_at_line_beg = Qnil;
 	}
 
-      if (NILP (w->parent))
-	p->parent = Qnil;
-      else
-	p->parent = XWINDOW (w->parent)->temslot;
-
-      if (NILP (w->prev))
-	p->prev = Qnil;
-      else
-	p->prev = XWINDOW (w->prev)->temslot;
+      p->parent = NILP (w->parent) ? Qnil : XWINDOW (w->parent)->temslot;
+      p->prev = NILP (w->prev) ? Qnil : XWINDOW (w->prev)->temslot;
 
       if (WINDOWP (w->contents))
 	i = save_window_save (w->contents, vector, i);
@@ -6660,8 +6638,8 @@ DEFUN ("current-window-configuration", Fcurrent_window_configuration,
        doc: /* Return an object representing the current window configuration of FRAME.
 If FRAME is nil or omitted, use the selected frame.
 This describes the number of windows, their sizes and current buffers,
-and for each displayed buffer, where display starts, and the positions of
-point and mark.  An exception is made for point in the current buffer:
+and for each displayed buffer, where display starts, and the position of
+point.  An exception is made for point in the current buffer:
 its value is -not- saved.
 This also records the currently selected frame, and FRAME's focus
 redirection (see `redirect-frame-focus').  The variable
@@ -7105,8 +7083,7 @@ compare_window_configurations (Lisp_Object configuration1,
 		  || !EQ (sw1->min_hscroll, sw2->min_hscroll)
 		  || !EQ (sw1->start_at_line_beg, sw2->start_at_line_beg)
 		  || NILP (Fequal (sw1->start, sw2->start))
-		  || NILP (Fequal (sw1->pointm, sw2->pointm))
-		  || NILP (Fequal (sw1->mark, sw2->mark))))
+		  || NILP (Fequal (sw1->pointm, sw2->pointm))))
 	  || !EQ (sw1->left_margin_cols, sw2->left_margin_cols)
 	  || !EQ (sw1->right_margin_cols, sw2->right_margin_cols)
 	  || !EQ (sw1->left_fringe_width, sw2->left_fringe_width)
@@ -7123,7 +7100,7 @@ compare_window_configurations (Lisp_Object configuration1,
 DEFUN ("compare-window-configurations", Fcompare_window_configurations,
        Scompare_window_configurations, 2, 2, 0,
        doc: /* Compare two window configurations as regards the structure of windows.
-This function ignores details such as the values of point and mark
+This function ignores details such as the values of point
 and scrolling positions.  */)
   (Lisp_Object x, Lisp_Object y)
 {

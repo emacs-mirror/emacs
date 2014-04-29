@@ -3655,7 +3655,7 @@ This function returns the top pixel edge of window @var{window}.
 
 A @dfn{window configuration} records the entire layout of one
 frame---all windows, their sizes, which buffers they contain, how those
-buffers are scrolled, and their values of point and the mark; also their
+buffers are scrolled, and their value of point; also their
 fringes, margins, and scroll bar settings.  It also includes the value
 of @code{minibuffer-scroll-window}.  As a special exception, the window
 configuration does not record the value of point in the selected window
@@ -3731,13 +3731,13 @@ This function returns @code{t} if @var{object} is a window configuration.
 
 @defun compare-window-configurations config1 config2
 This function compares two window configurations as regards the
-structure of windows, but ignores the values of point and mark and the
+structure of windows, but ignores the values of point and the
 saved scrolling positions---it can return @code{t} even if those
 aspects differ.
 
 The function @code{equal} can also compare two window configurations; it
 regards configurations as unequal if they differ in any respect, even a
-saved point or mark.
+saved point.
 @end defun
 
 @defun window-configuration-frame config

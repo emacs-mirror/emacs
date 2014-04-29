@@ -85,6 +85,8 @@ protocols as well as for "telnet" and "ftp" are passed to Tramp.
 
 * Incompatible Lisp Changes in Emacs 24.5
 
+** window-configurations do not record the buffers's marks any more.
+
 ** inhibit-modification-hooks now also inhibits lock-file checks as well as
 active region handling.
 
