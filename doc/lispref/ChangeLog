@@ -1,8 +1,11 @@
+2014-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* processes.texi (Filter Functions, Sentinels): Advertise add-function.
+
 2014-04-24  Eli Zaretskii  <eliz@gnu.org>
 
-	* strings.texi (Text Comparison): Mention
-	equal-including-properties for when text properties of the strings
-	matter for comparison.
+	* strings.texi (Text Comparison): Mention equal-including-properties
+	for when text properties of the strings matter for comparison.
 
 2014-04-21  Eli Zaretskii  <eliz@gnu.org>
 
