@@ -1671,11 +1671,11 @@ use these keys; they should simply work.  On a text terminal, you
 should use the command @code{M-x set-keyboard-coding-system} or customize the
 variable @code{keyboard-coding-system} to specify which coding system
 your keyboard uses (@pxref{Terminal Coding}).  Enabling this feature
-will probably require you to use @kbd{ESC} to type Meta characters;
+will probably require you to use @key{ESC} to type Meta characters;
 however, on a console terminal or in @code{xterm}, you can arrange for
-Meta to be converted to @kbd{ESC} and still be able type 8-bit
-characters present directly on the keyboard or using @kbd{Compose} or
-@kbd{AltGr} keys.  @xref{User Input}.
+Meta to be converted to @key{ESC} and still be able type 8-bit
+characters present directly on the keyboard or using @key{Compose} or
+@key{AltGr} keys.  @xref{User Input}.
 
 @kindex C-x 8
 @cindex @code{iso-transl} library
@@ -1689,8 +1689,8 @@ well as other buffers), for searching, and in any other context where
 a key sequence is allowed.
 
 @kbd{C-x 8} works by loading the @code{iso-transl} library.  Once that
-library is loaded, the @key{ALT} modifier key, if the keyboard has
-one, serves the same purpose as @kbd{C-x 8}: use @key{ALT} together
+library is loaded, the @key{Alt} modifier key, if the keyboard has
+one, serves the same purpose as @kbd{C-x 8}: use @key{Alt} together
 with an accent character to modify the following letter.  In addition,
 if the keyboard has keys for the Latin-1 ``dead accent characters'',
 they too are defined to compose with the following character, once
@@ -1815,7 +1815,7 @@ inserting special formatting characters in front of the paragraph.
 The special character @code{RIGHT-TO-LEFT MARK}, or @sc{rlm}, forces
 the right-to-left direction on the following paragraph, while
 @code{LEFT-TO-RIGHT MARK}, or @sc{lrm} forces the left-to-right
-direction.  (You can use @kbd{C-x 8 RET} to insert these characters.)
+direction.  (You can use @kbd{C-x 8 @key{RET}} to insert these characters.)
 In a GUI session, the @sc{lrm} and @sc{rlm} characters display as very
 thin blank characters; on text terminals they display as blanks.
 

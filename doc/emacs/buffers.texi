@@ -74,9 +74,9 @@ Similar, but select @var{buffer} in another window
 @item C-x 5 b @var{buffer} @key{RET}
 Similar, but select @var{buffer} in a separate frame
 (@code{switch-to-buffer-other-frame}).
-@item C-x @key{LEFT}
+@item C-x @key{left}
 Select the previous buffer in the buffer list (@code{previous-buffer}).
-@item C-x @key{RIGHT}
+@item C-x @key{right}
 Select the next buffer in the buffer list (@code{next-buffer}).
 @item C-u M-g M-g
 @itemx C-u M-g g
@@ -110,15 +110,15 @@ it, Emacs asks for the file name to use, and the buffer's major mode
 is re-established taking that file name into account (@pxref{Choosing
 Modes}).
 
-@kindex C-x @key{LEFT}
-@kindex C-x @key{RIGHT}
+@kindex C-x @key{left}
+@kindex C-x @key{right}
 @findex next-buffer
 @findex previous-buffer
   For conveniently switching between a few buffers, use the commands
-@kbd{C-x @key{LEFT}} and @kbd{C-x @key{RIGHT}}.  @kbd{C-x @key{LEFT}}
+@kbd{C-x @key{left}} and @kbd{C-x @key{right}}.  @kbd{C-x @key{left}}
 (@code{previous-buffer}) selects the previous buffer (following the
 order of most recent selection in the current frame), while @kbd{C-x
-@key{RIGHT}} (@code{next-buffer}) moves through buffers in the reverse
+@key{right}} (@code{next-buffer}) moves through buffers in the reverse
 direction.
 
 @kindex C-x 4 b
@@ -661,17 +661,18 @@ element among the possible completions in a minibuffer.  When enabled, typing
 in the minibuffer continuously displays a list of possible completions that
 match the string you have typed.
 
-  At any time, you can type @key{C-j} to select the first completion in
+  At any time, you can type @kbd{C-j} to select the first completion in
 the list.  So the way to select a particular completion is to make it the
 first in the list.  There are two ways to do this.  You can type more
 of the completion name and thus narrow down the list, excluding unwanted
 completions above the desired one.  Alternatively, you can use @kbd{C-.}
 and @kbd{C-,} to rotate the list until the desired buffer is first.
 
-  @key{M-TAB} will select the first completion in the list, like @key{C-j} but
-without exiting the minibuffer, so you can edit it further.  This is typically
-used when entering a file name, where @key{M-TAB} can be used a few times to
-descend in the hierarchy of directories.
+  @kbd{M-@key{TAB}} will select the first completion in the list, like
+@kbd{C-j} but without exiting the minibuffer, so you can edit it
+further.  This is typically used when entering a file name, where
+@kbd{M-@key{TAB}} can be used a few times to descend in the hierarchy
+of directories.
 
   To enable Icomplete mode, type @kbd{M-x icomplete-mode}, or customize
 the variable @code{icomplete-mode} to @code{t} (@pxref{Easy

@@ -932,13 +932,13 @@ resubmit them or copy them to the end.  Or you can use a
 @findex comint-previous-input
 @kindex M-p @r{(Shell mode)}
 @item M-p
-@itemx C-@key{UP}
+@itemx C-@key{up}
 Fetch the next earlier old shell command.
 
 @kindex M-n @r{(Shell mode)}
 @findex comint-next-input
 @item M-n
-@itemx C-@key{DOWN}
+@itemx C-@key{down}
 Fetch the next later old shell command.
 
 @kindex M-r @r{(Shell mode)}
@@ -975,7 +975,7 @@ buffer.  Successive use of @kbd{M-p} fetches successively earlier
 shell commands, each replacing any text that was already present as
 potential shell input.  @kbd{M-n} does likewise except that it finds
 successively more recent shell commands from the buffer.
-@kbd{C-@key{UP}} works like @kbd{M-p}, and @kbd{C-@key{DOWN}} like
+@kbd{C-@key{up}} works like @kbd{M-p}, and @kbd{C-@key{down}} like
 @kbd{M-n}.
 
   The history search command @kbd{M-r} begins an incremental regular
@@ -999,8 +999,8 @@ can reexecute several successive commands by typing @kbd{C-c C-x
 @key{RET}} over and over.
 
   The command @kbd{C-c .}@: (@code{comint-input-previous-argument})
-copies an individual argument from a previous command, like @kbd{ESC
-.} in Bash.  The simplest use copies the last argument from the
+copies an individual argument from a previous command, like
+@kbd{@key{ESC} .} in Bash.  The simplest use copies the last argument from the
 previous shell command.  With a prefix argument @var{n}, it copies the
 @var{n}th argument instead.  Repeating @kbd{C-c .} copies from an
 earlier shell command instead, always using the same value of @var{n}
@@ -1918,11 +1918,11 @@ used.
 init file (@pxref{Init File}), followed by @code{(pr-update-menus)}.
 This function replaces the usual printing commands in the menu bar
 with a @samp{Printing} submenu that contains various printing options.
-You can also type @kbd{M-x pr-interface RET}; this creates a
+You can also type @kbd{M-x pr-interface @key{RET}}; this creates a
 @file{*Printing Interface*} buffer, similar to a customization buffer,
 where you can set the printing options.  After selecting what and how
 to print, you start the print job using the @samp{Print} button (click
-@kbd{mouse-2} on it, or move point over it and type @kbd{RET}).  For
+@kbd{Mouse-2} on it, or move point over it and type @key{RET}).  For
 further information on the various options, use the @samp{Interface
 Help} button.
 

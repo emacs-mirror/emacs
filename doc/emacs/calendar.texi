@@ -288,7 +288,7 @@ Display the number of days in the current region
 @kindex M-= @r{(Calendar mode)}
 @findex calendar-count-days-region
   To determine the number of days in a range, set the mark on one
-date using @kbd{C-SPC}, move point to another date, and type @kbd{M-=}
+date using @kbd{C-@key{SPC}}, move point to another date, and type @kbd{M-=}
 (@code{calendar-count-days-region}).  The numbers of days shown is
 @emph{inclusive}; that is, it includes the days specified by mark and
 point.
@@ -301,10 +301,10 @@ point.
 Display day-in-year (@code{calendar-print-day-of-year}).
 @item C-c C-l
 Regenerate the calendar window (@code{calendar-redraw}).
-@item SPC
+@item @key{SPC}
 Scroll the next window up (@code{scroll-other-window}).
-@item DEL
-@itemx S-SPC
+@item @key{DEL}
+@itemx S-@key{SPC}
 Scroll the next window down (@code{scroll-other-window-down}).
 @item q
 Exit from calendar (@code{calendar-exit}).
@@ -327,8 +327,8 @@ date.
 non-Calendar-mode editing commands.)
 
 @kindex SPC @r{(Calendar mode)}
-  In Calendar mode, you can use @kbd{SPC} (@code{scroll-other-window})
-and @kbd{DEL} (@code{scroll-other-window-down}) to scroll the other
+  In Calendar mode, you can use @key{SPC} (@code{scroll-other-window})
+and @key{DEL} (@code{scroll-other-window-down}) to scroll the other
 window (if there is one) up or down, respectively.  This is handy when
 you display a list of holidays or diary entries in another window.
 

@@ -479,7 +479,7 @@ the variable @code{w32-alt-is-meta} to a @code{nil} value.
 @findex w32-register-hot-key
 @findex w32-unregister-hot-key
   MS-Windows reserves certain key combinations, such as
-@kbd{Alt-@key{TAB}}, for its own use.  These key combinations are
+@kbd{@key{Alt}-@key{TAB}}, for its own use.  These key combinations are
 intercepted by the system before Emacs can see them.  You can use the
 @code{w32-register-hot-key} function to allow a key sequence to be
 seen by Emacs instead of being grabbed by Windows.  This function
@@ -491,7 +491,7 @@ other Windows applications.)
 
   The argument to @code{w32-register-hot-key} must be a single key,
 with or without modifiers, in vector form that would be acceptable to
-@code{define-key}.  The meta modifier is interpreted as the @key{ALT}
+@code{define-key}.  The meta modifier is interpreted as the @key{Alt}
 key if @code{w32-alt-is-meta} is @code{t} (the default), and the hyper
 modifier is always interpreted as the Windows key (usually labeled
 with @key{start} and the Windows logo).  If the function succeeds in
@@ -499,10 +499,10 @@ registering the key sequence, it returns the hotkey ID, a number;
 otherwise it returns @code{nil}.
 
 @kindex M-TAB@r{, (MS-Windows)}
-@cindex @kbd{M-@key{TAB}} vs @kbd{Alt-@key{TAB}} (MS-Windows)
-@cindex @kbd{Alt-@key{TAB}} vs @kbd{M-@key{TAB}} (MS-Windows)
+@cindex @kbd{M-@key{TAB}} vs @kbd{@key{Alt}-@key{TAB}} (MS-Windows)
+@cindex @kbd{@key{Alt}-@key{TAB}} vs @kbd{M-@key{TAB}} (MS-Windows)
   For example, @code{(w32-register-hot-key [M-tab])} lets you use
-@kbd{M-TAB} normally in Emacs; for instance, to complete the word or
+@kbd{M-@key{TAB}} normally in Emacs; for instance, to complete the word or
 symbol at point at top level, or to complete the current search string
 against previously sought strings during incremental search.
 
@@ -558,14 +558,14 @@ produces the symbol @code{scroll}.
 @cindex Windows system menu
 @cindex @code{Alt} key invokes menu (Windows)
   Emacs compiled as a native Windows application normally turns off
-the Windows feature that tapping the @key{ALT} key invokes the Windows
-menu.  The reason is that the @key{ALT} serves as @key{META} in Emacs.
+the Windows feature that tapping the @key{Alt} key invokes the Windows
+menu.  The reason is that the @key{Alt} serves as @key{META} in Emacs.
 When using Emacs, users often press the @key{META} key temporarily and
 then change their minds; if this has the effect of bringing up the
 Windows menu, it alters the meaning of subsequent commands.  Many
 users find this frustrating.
 
-  You can re-enable Windows's default handling of tapping the @key{ALT}
+  You can re-enable Windows's default handling of tapping the @key{Alt}
 key by setting @code{w32-pass-alt-to-system} to a non-@code{nil}
 value.
 
@@ -595,7 +595,7 @@ the combination of the right @key{Alt} and left @key{Ctrl} keys
 pressed together, is recognized as the @key{AltGr} key.  The default
 is @code{t}, which means these keys produce @code{AltGr}; setting it
 to @code{nil} causes @key{AltGr} or the equivalent key combination to
-be interpreted as the combination of @key{CTRL} and @key{META}
+be interpreted as the combination of @key{Ctrl} and @key{META}
 modifiers.
 @end ifnottex
 
@@ -674,7 +674,7 @@ subprocesses).
 
 If you have to reboot Windows 9X in this situation, do not use the
 @code{Shutdown} command on the @code{Start} menu; that usually hangs the
-system.  Instead, type @kbd{CTL-ALT-@key{DEL}} and then choose
+system.  Instead, type @kbd{@key{Ctrl}-@key{Alt}-@key{DEL}} and then choose
 @code{Shutdown}.  That usually works, although it may take a few minutes
 to do its job.
 

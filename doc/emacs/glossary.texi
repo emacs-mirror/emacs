@@ -26,10 +26,10 @@ When the mark is active, we call the region an active region.
 
 @item Alt
 Alt is the name of a modifier bit that a keyboard input character may
-have.  To make a character Alt, type it while holding down the @key{ALT}
-key.  Such characters are given names that start with @kbd{Alt-}
+have.  To make a character Alt, type it while holding down the @key{Alt}
+key.  Such characters are given names that start with @kbd{@key{Alt}-}
 (usually written @kbd{A-} for short).  (Note that many terminals have a
-key labeled @key{ALT} that is really a @key{META} key.)  @xref{User
+key labeled @key{Alt} that is really a @key{META} key.)  @xref{User
 Input, Alt}.
 
 @item Argument
@@ -269,8 +269,8 @@ lines.  @xref{Continuation Lines}.  A related Emacs feature is
 
 @item Control Character
 A control character is a character that you type by holding down the
-@key{CTRL} key.  Some control characters also have their own keys, so
-that you can type them without using @key{CTRL}.  For example,
+@key{Ctrl} key.  Some control characters also have their own keys, so
+that you can type them without using @key{Ctrl}.  For example,
 @key{RET}, @key{TAB}, @key{ESC} and @key{DEL} are all control
 characters.  @xref{User Input}.
 
@@ -284,8 +284,8 @@ around to empower users and encourage them to cooperate.
 The particular form of copyleft used by the GNU project is called the
 GNU General Public License.  @xref{Copying}.
 
-@item @key{CTRL}
-The @key{CTRL} or ``control'' key is what you hold down
+@item @key{Ctrl}
+The @key{Ctrl} or ``control'' key is what you hold down
 in order to enter a control character (q.v.).  @xref{Glossary---C-}.
 
 @item Current Buffer
@@ -356,8 +356,8 @@ A defun is a major definition at the top level in a program.  The name
 
 @item @key{DEL}
 @key{DEL} is a character that runs the command to delete one character
-of text before the cursor.  It is typically either the @key{DELETE}
-key or the @key{BACKSPACE} key, whichever one is easy to type.
+of text before the cursor.  It is typically either the @key{Delete}
+key or the @key{Backspace} key, whichever one is easy to type.
 @xref{Erasing,DEL}.
 
 @item Deletion
@@ -687,7 +687,7 @@ changing any of its code.  @xref{Hooks}.
 @item Hyper
 Hyper is the name of a modifier bit that a keyboard input character may
 have.  To make a character Hyper, type it while holding down the
-@key{HYPER} key.  Such characters are given names that start with
+@key{Hyper} key.  Such characters are given names that start with
 @kbd{Hyper-} (usually written @kbd{H-} for short).  @xref{User Input}.
 
 @item Iff
@@ -842,7 +842,7 @@ A local value of a variable (q.v.@:) applies to only one buffer.
 @xref{Locals}.
 
 @item @kbd{M-}
-@kbd{M-} in the name of a character is an abbreviation for @key{META},
+@kbd{M-} in the name of a character is an abbreviation for @key{Meta},
 one of the modifier keys that can accompany any character.
 @xref{User Input,M-}.
 
@@ -900,16 +900,16 @@ a keyboard interface to navigate it.  @xref{Menu Bars}.
 
 @item Meta
 Meta is the name of a modifier bit which you can use in a command
-character.  To enter a meta character, you hold down the @key{META}
+character.  To enter a meta character, you hold down the @key{Meta}
 key while typing the character.  We refer to such characters with
 names that start with @kbd{Meta-} (usually written @kbd{M-} for
-short).  For example, @kbd{M-<} is typed by holding down @key{META}
+short).  For example, @kbd{M-<} is typed by holding down @key{Meta}
 and at the same time typing @kbd{<} (which itself is done, on most
 terminals, by holding down @key{SHIFT} and typing @kbd{,}).
 @xref{User Input,Meta}.
 
-On some terminals, the @key{META} key is actually labeled @key{ALT}
-or @key{EDIT}.
+On some terminals, the @key{Meta} key is actually labeled @key{Alt}
+or @key{Edit}.
 
 @item Meta Character
 A Meta character is one whose character code includes the Meta bit.

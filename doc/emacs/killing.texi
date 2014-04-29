@@ -78,7 +78,7 @@ erase just one character or only whitespace.
 
 @table @kbd
 @item @key{DEL}
-@itemx @key{Backspace}
+@itemx @key{BACKSPACE}
 Delete the previous character, or the text in the region if it is
 active (@code{delete-backward-char}).
 
@@ -841,7 +841,7 @@ shifting the original text to the right.
 
 @findex rectangle-mark-mode
 @cindex rectangular region
-  The command @kbd{C-x SPC} (@code{rectangle-mark-mode}) makes a
+  The command @kbd{C-x @key{SPC}} (@code{rectangle-mark-mode}) makes a
 @dfn{rectangular region}.  It is a new feature introduced in GNU Emacs
 24.4, and most commands now are still unaware of it, but kill and yank
 (@pxref{Killing}) do work on the rectangle.
@@ -879,9 +879,9 @@ behavior, set the variable @code{cua-delete-selection} to @code{nil}.
 
 @cindex rectangle highlighting
   CUA mode provides enhanced rectangle support with visible
-rectangle highlighting.  Use @kbd{C-RET} to start a rectangle,
+rectangle highlighting.  Use @kbd{C-@key{RET}} to start a rectangle,
 extend it using the movement commands, and cut or copy it using
-@kbd{C-x} or @kbd{C-c}.  @kbd{RET} moves the cursor to the next
+@kbd{C-x} or @kbd{C-c}.  @key{RET} moves the cursor to the next
 (clockwise) corner of the rectangle, so you can easily expand it in
 any direction.  Normal text you type is inserted to the left or right
 of each line in the rectangle (on the same side as the cursor).
@@ -896,7 +896,7 @@ and yank commands, e.g., @kbd{C-1 C-c} copies the region into register
 
 @cindex global mark
   CUA mode also has a global mark feature which allows easy moving and
-copying of text between buffers.  Use @kbd{C-S-SPC} to toggle the
+copying of text between buffers.  Use @kbd{C-S-@key{SPC}} to toggle the
 global mark on and off.  When the global mark is on, all text that you
 kill or copy is automatically inserted at the global mark, and text
 you type is inserted at the global mark rather than at the current

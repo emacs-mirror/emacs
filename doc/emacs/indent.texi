@@ -127,9 +127,9 @@ in the region, moving the affected lines as a ``rigid'' unit.
 
 If called with no argument, the command activates a transient mode for
 adjusting the indentation of the affected lines interactively.  While
-this transient mode is active, typing @key{LEFT} or @key{RIGHT}
+this transient mode is active, typing @key{left} or @key{right}
 indents leftward and rightward, respectively, by one space.  You can
-also type @kbd{S-@key{LEFT}} or @kbd{S-@key{RIGHT}} to indent leftward
+also type @kbd{S-@key{left}} or @kbd{S-@key{right}} to indent leftward
 or rightward to the next tab stop (@pxref{Tab Stops}).  Typing any
 other key disables the transient mode, and resumes normal editing.
 

@@ -67,7 +67,7 @@ instead of shoving it to the right.  @xref{Minor Modes}.
 @findex quoted-insert
   Only graphic characters can be inserted by typing the associated
 key; other keys act as editing commands and do not insert themselves.
-For instance, @kbd{DEL} runs the command @code{delete-backward-char}
+For instance, @key{DEL} runs the command @code{delete-backward-char}
 by default (some modes bind it to a different command); it does not
 insert a literal @samp{DEL} character (@acronym{ASCII} character code
 127).
@@ -366,7 +366,7 @@ moves down into it.
 
 @table @kbd
 @item @key{DEL}
-@itemx @key{Backspace}
+@itemx @key{BACKSPACE}
 Delete the character before point, or the region if it is active
 (@code{delete-backward-char}).
 
@@ -394,20 +394,20 @@ the preceding newline, joining this line to the previous one.
   If, however, the region is active, @kbd{@key{DEL}} instead deletes
 the text in the region.  @xref{Mark}, for a description of the region.
 
-  On most keyboards, @key{DEL} is labeled @key{Backspace}, but we
+  On most keyboards, @key{DEL} is labeled @key{BACKSPACE}, but we
 refer to it as @key{DEL} in this manual.  (Do not confuse @key{DEL}
 with the @key{Delete} key; we will discuss @key{Delete} momentarily.)
 On some text terminals, Emacs may not recognize the @key{DEL} key
 properly.  @xref{DEL Does Not Delete}, if you encounter this problem.
 
-  The @key{delete} (@code{delete-forward-char}) command deletes in the
+  The @key{Delete} (@code{delete-forward-char}) command deletes in the
 ``opposite direction'': it deletes the character after point, i.e., the
 character under the cursor.  If point was at the end of a line, this
 joins the following line onto this one.  Like @kbd{@key{DEL}}, it
 deletes the text in the region if the region is active (@pxref{Mark}).
 
   @kbd{C-d} (@code{delete-char}) deletes the character after point,
-similar to @key{delete}, but regardless of whether the region is
+similar to @key{Delete}, but regardless of whether the region is
 active.
 
   @xref{Deletion}, for more detailed information about the above
@@ -723,7 +723,7 @@ M-5 C-n
 moves down five lines.  The keys @kbd{M-1}, @kbd{M-2}, and so on, as
 well as @kbd{M--}, are bound to commands (@code{digit-argument} and
 @code{negative-argument}) that set up an argument for the next
-command.  @kbd{Meta--} without digits normally means @minus{}1.
+command.  @kbd{M--} without digits normally means @minus{}1.
 
 If you enter more than one digit, you need not hold down the
 @key{META} key for the second and subsequent digits.  Thus, to move

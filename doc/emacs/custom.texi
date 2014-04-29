@@ -1766,11 +1766,11 @@ historical.
 characters case-sensitive when you customize Emacs.  For instance, you
 could make @kbd{M-a} and @kbd{M-A} run different commands.
 
-  Although only the @key{Control} and @key{Meta} modifier keys are
+  Although only the @key{Control} and @key{META} modifier keys are
 commonly used, Emacs supports three other modifier keys.  These are
 called @key{Super}, @key{Hyper} and @key{Alt}.  Few terminals provide
 ways to use these modifiers; the key labeled @key{Alt} on most
-keyboards usually issues the @key{Meta} modifier, not @key{Alt}.  The
+keyboards usually issues the @key{META} modifier, not @key{Alt}.  The
 standard key bindings in Emacs do not include any characters with
 these modifiers.  However, you can customize Emacs to assign meanings
 to them.  The modifier bits are labeled as @samp{s-}, @samp{H-} and
@@ -1836,8 +1836,8 @@ translates these keys to the corresponding keys in the main keyboard.
 For example, when @samp{Num Lock} is on, the key labeled @samp{8} on
 the numeric keypad produces @code{kp-8}, which is translated to
 @kbd{8}; when @samp{Num Lock} is off, the same key produces
-@code{kp-up}, which is translated to @key{UP}.  If you rebind a key
-such as @kbd{8} or @key{UP}, it affects the equivalent keypad key too.
+@code{kp-up}, which is translated to @key{up}.  If you rebind a key
+such as @kbd{8} or @key{up}, it affects the equivalent keypad key too.
 However, if you rebind a @samp{kp-} key directly, that won't affect
 its non-keypad equivalent.  Note that the modified keys are not
 translated: for instance, if you hold down the @key{META} key while
@@ -1860,7 +1860,7 @@ started out as names for certain @acronym{ASCII} control characters,
 used so often that they have special keys of their own.  For instance,
 @key{TAB} was another name for @kbd{C-i}.  Later, users found it
 convenient to distinguish in Emacs between these keys and the ``same''
-control characters typed with the @key{CTRL} key.  Therefore, on most
+control characters typed with the @key{Ctrl} key.  Therefore, on most
 modern terminals, they are no longer the same: @key{TAB} is different
 from @kbd{C-i}.
 
@@ -2187,8 +2187,8 @@ sequences are mandatory.
 
 @samp{\C-} can be used as a prefix for a control character, as in
 @samp{\C-s} for @acronym{ASCII} control-S, and @samp{\M-} can be used as a prefix for
-a Meta character, as in @samp{\M-a} for @kbd{Meta-A} or @samp{\M-\C-a} for
-@kbd{Control-Meta-A}.
+a Meta character, as in @samp{\M-a} for @kbd{@key{META}-A} or
+@samp{\M-\C-a} for @kbd{@key{Ctrl}-@key{META}-A}.
 
 @xref{Init Non-ASCII}, for information about including
 non-@acronym{ASCII} in your init file.
