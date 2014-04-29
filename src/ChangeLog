@@ -1,8 +1,12 @@
+2014-04-29  Glenn Morris  <rgm@gnu.org>
+
+	* process.c (handle_child_signal):
+	Handle systems without WCONTINUED.  (Bug#15110, 17339)
+
 2014-04-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* search.c (Fnewline_cache_check): Don't try to count newlines
-	outside the buffer's restriction, as find_newline doesn't support
-	that.
+	outside the buffer's restriction, as find_newline doesn't support that.
 
 2014-04-22  Paul Eggert  <eggert@cs.ucla.edu>
 
