@@ -1,3 +1,7 @@
+2014-04-29  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: Treat MirBSD as OpenBSD.  (Bug#17339)
+
 2014-04-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Update for Emacs 24.4.
