@@ -98,12 +98,14 @@ extern Res PoolGenInit(PoolGen pgen, GenDesc gen, Pool pool);
 extern void PoolGenFinish(PoolGen pgen);
 extern Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class,
                         Size size, Bool withReservoirPermit, ArgList args);
-extern void PoolGenBufferFill(PoolGen pgen, Size size, Bool deferred);
+extern void PoolGenFree(PoolGen pgen, Seg seg);
+extern void PoolGenFill(PoolGen pgen, Size size, Bool deferred);
+extern void PoolGenEmpty(PoolGen pgen, Size unused, Bool deferred);
 extern void PoolGenAge(PoolGen pgen, Size aged, Bool deferred);
 extern void PoolGenReclaim(PoolGen pgen, Size reclaimed, Bool deferred);
-extern void PoolGenBufferEmpty(PoolGen pgen, Size unused, Bool deferred);
 extern void PoolGenUndefer(PoolGen pgen, Size oldSize, Size newSize);
-extern void PoolGenFree(PoolGen pgen, Seg seg);
+extern void PoolGenSegSplit(PoolGen pgen);
+extern void PoolGenSegMerge(PoolGen pgen);
 
 #endif /* chain_h */
 

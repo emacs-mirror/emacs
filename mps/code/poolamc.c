@@ -1062,7 +1062,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
     }
   }
 
-  PoolGenBufferFill(pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
+  PoolGenFill(pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
   *baseReturn = base;
   *limitReturn = limit;
   return ResOK;
@@ -1107,7 +1107,7 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
     ShieldCover(arena, seg);
   }
 
-  PoolGenBufferEmpty(&amcSegGen(seg)->pgen, 0, Seg2amcSeg(seg)->deferred);
+  PoolGenEmpty(&amcSegGen(seg)->pgen, 0, Seg2amcSeg(seg)->deferred);
 }
 
 

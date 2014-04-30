@@ -434,7 +434,7 @@ static Bool AMSSegRegionIsFree(Seg seg, Addr base, Addr limit)
  * Used as a means of overriding the behaviour of AMSBufferFill.
  * The code is similar to AMSBufferEmpty.
  */
-static void AMSUnallocateRange(Seg seg, Addr base, Addr limit)
+static void AMSUnallocateRange(AMS ams, Seg seg, Addr base, Addr limit)
 {
   AMSSeg amsseg;
   Index baseIndex, limitIndex;
@@ -465,6 +465,7 @@ static void AMSUnallocateRange(Seg seg, Addr base, Addr limit)
   amsseg->freeGrains += limitIndex - baseIndex;
   AVER(amsseg->newGrains >= limitIndex - baseIndex);
   amsseg->newGrains -= limitIndex - baseIndex;
+  PoolGenEmpty(&ams->pgen, AddrOffset(base, limit), FALSE);
 }
 
 
@@ -473,7 +474,7 @@ static void AMSUnallocateRange(Seg seg, Addr base, Addr limit)
  * Used as a means of overriding the behaviour of AMSBufferFill.
  * The code is similar to AMSUnallocateRange.
  */
-static void AMSAllocateRange(Seg seg, Addr base, Addr limit)
+static void AMSAllocateRange(AMS ams, Seg seg, Addr base, Addr limit)
 {
   AMSSeg amsseg;
   Index baseIndex, limitIndex;
@@ -504,6 +505,7 @@ static void AMSAllocateRange(Seg seg, Addr base, Addr limit)
   AVER(amsseg->freeGrains >= limitIndex - baseIndex);
   amsseg->freeGrains -= limitIndex - baseIndex;
   amsseg->newGrains += limitIndex - baseIndex;
+  PoolGenFill(&ams->pgen, AddrOffset(base, limit), FALSE);
 }
 
 
@@ -528,6 +530,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   PoolClass super;
   Addr base, limit;
   Arena arena;
+  AMS ams;
   AMST amst;
   Bool b;
   Seg seg;
@@ -539,6 +542,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(limitReturn != NULL);
   /* other parameters are checked by next method */
   arena = PoolArena(pool);
+  ams = Pool2AMS(pool);
   amst = Pool2AMST(pool);
 
   /* call next method */
@@ -560,14 +564,14 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
         Seg mergedSeg;
         Res mres;
 
-        AMSUnallocateRange(seg, base, limit);
+        AMSUnallocateRange(ams, seg, base, limit);
         mres = SegMerge(&mergedSeg, segLo, seg, withReservoirPermit);
         if (ResOK == mres) { /* successful merge */
-          AMSAllocateRange(mergedSeg, base, limit);
+          AMSAllocateRange(ams, mergedSeg, base, limit);
           /* leave range as-is */
         } else {            /* failed to merge */
           AVER(amst->failSegs); /* deliberate fails only */
-          AMSAllocateRange(seg, base, limit);
+          AMSAllocateRange(ams, seg, base, limit);
         }
       }
 
@@ -578,13 +582,13 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
         Addr mid = AddrAdd(base, half);
         Seg segLo, segHi;
         Res sres;
-        AMSUnallocateRange(seg, mid, limit);
+        AMSUnallocateRange(ams, seg, mid, limit);
         sres = SegSplit(&segLo, &segHi, seg, mid, withReservoirPermit);
         if (ResOK == sres) { /* successful split */
           limit = mid;  /* range is lower segment */
         } else {            /* failed to split */
           AVER(amst->failSegs); /* deliberate fails only */
-          AMSAllocateRange(seg, mid, limit);
+          AMSAllocateRange(ams, seg, mid, limit);
         }
 
       }
