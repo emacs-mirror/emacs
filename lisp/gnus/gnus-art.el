@@ -5679,7 +5679,11 @@ all parts."
 	(delete-region (previous-single-property-change end 'gnus-data) end))
       (gnus-insert-mime-button
        handle id (list (mm-handle-displayed-p handle)))
-      (delete-char -1)
+      (let ((pt (point)))
+	(if (search-backward "\n\n" nil t)
+	    (goto-char pt)
+	  ;; We're in the article header.
+	  (delete-char -1)))
       (goto-char point))
     retval))
 
