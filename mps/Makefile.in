@@ -73,7 +73,7 @@ test-make-build:
 	$(MAKE) clean
 	$(MAKE) $(TARGET_OPTS) VARIETY=hot CFLAGS="-DCONFIG_PF_ANSI -DCONFIG_THREAD_SINGLE" testansi
 	$(MAKE) clean
-	$(MAKE) $(TARGET_OPTS) VARIETY=hot CFLAGS="-DCONFIG_PF_ANSI -DCONFIG_THREAD_SINGLE -DCONFIG_POLL_NONE" # TODO: actually run some tests in this configuration
+	$(MAKE) $(TARGET_OPTS) VARIETY=hot CFLAGS="-DCONFIG_PF_ANSI -DCONFIG_THREAD_SINGLE -DCONFIG_POLL_NONE" testpoll
 
 test-xcode-build:
 	$(XCODEBUILD) -config Release -target testci

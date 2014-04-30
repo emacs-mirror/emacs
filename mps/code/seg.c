@@ -310,7 +310,7 @@ void SegSetSummary(Seg seg, RefSet summary)
   AVER(summary == RefSetEMPTY || SegRankSet(seg) != RankSetEMPTY);
 
 #if defined(REMEMBERED_SET)
-/* Nothing to do. */
+  /* Nothing to do. */
 #elif defined(REMEMBERED_SET_NONE)
   /* Without protection, we can't maintain the remembered set because
      there are writes we don't know about. TODO: rethink this when
@@ -332,11 +332,15 @@ void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
   AVERT(Seg, seg); 
   AVERT(RankSet, rankSet);
 
-#ifdef DISABLE_REMEMBERED_SET
+#if defined(REMEMBERED_SET)
+  /* Nothing to do. */
+#elif defined(REMEMBERED_SET_NONE)
   if (rankSet != RankSetEMPTY) {
     summary = RefSetUNIV;
   }
-#endif
+#else
+#error "No remembered set configuration."
+#endif  /* REMEMBERED_SET */
   seg->class->setRankSummary(seg, rankSet, summary);
 }
 

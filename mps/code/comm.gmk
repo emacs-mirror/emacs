@@ -288,8 +288,9 @@ all: $(ALL_TARGETS)
 # testci = continuous integration tests, must be known good
 # testall = all test cases, for ensuring quality of a release
 # testansi = tests that run on the generic ("ANSI") platform
+# testpoll = tests that run on the generic platform with CONFIG_POLL_NONE
 
-TEST_SUITES=testrun testci testall testansi
+TEST_SUITES=testrun testci testall testansi testpoll
 
 $(addprefix $(PFM)/$(VARIETY)/,$(TEST_SUITES)): $(TEST_TARGETS)
 	../tool/testrun.sh "$(PFM)/$(VARIETY)" "$(notdir $@)"
