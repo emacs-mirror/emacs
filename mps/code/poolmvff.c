@@ -610,7 +610,7 @@ static Res MVFFInit(Pool pool, ArgList args)
   mvff->sig = MVFFSig;
   AVERT(MVFF, mvff);
   EVENT8(PoolInitMVFF, pool, arena, extendBy, avgSize, align,
-                 slotHigh, arenaHigh, firstFit);
+         BOOLOF(slotHigh), BOOLOF(arenaHigh), BOOLOF(firstFit));
   return ResOK;
 
 failInit:

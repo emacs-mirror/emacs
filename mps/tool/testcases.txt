@@ -5,9 +5,9 @@ abqtest
 airtest
 amcss          =P
 amcsshe        =P
-amcssth        =B =P =T          job003561, job003703
-amsss          =B                job001549
-amssshe        =B                job001549
+amcssth        =P =T
+amsss          =P
+amssshe        =P
 apss
 arenacv
 awlut
@@ -20,7 +20,7 @@ exposet0       =P
 expt825
 fbmtest
 finalcv        =P
-finaltest
+finaltest      =P
 fotest
 gcbench        =N                benchmark
 locbwcss

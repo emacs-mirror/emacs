@@ -1,6 +1,6 @@
 /* <code/eventcom.h> -- Event Logging Common Definitions
  *
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * $Id$
  *
  * .sources: mps.design.telemetry
@@ -56,7 +56,8 @@ ENUM_DECLARE(EventKind)
 
 enum EventDefinitionsEnum {
   EVENT_LIST(EVENT_ENUM, X)
-  EventEnumWarningSuppressor    /* suppress comma-at-end-of-enum warning */
+  /* suppress comma-at-end-of-enum warning */
+  EventEnumWarningSuppressor = USHRT_MAX
 };
 
 
@@ -89,7 +90,11 @@ typedef Word EventFW;                   /* word */
 typedef unsigned EventFU;               /* unsigned integer */
 typedef char EventFS[EventStringLengthMAX + sizeof('\0')]; /* string */
 typedef double EventFD;                 /* double */
-typedef int EventFB;                    /* boolean */
+/* EventFB must be unsigned (even though Bool is a typedef for int)
+ * because it used as the type of a bitfield with width 1, and we need
+ * the legals values of the field to be 0 and 1 (not 0 and -1 which
+ * would be the case for int : 1). */
+typedef unsigned EventFB;               /* Boolean */
 
 /* Event packing bitfield specifiers */
 #define EventFP_BITFIELD
@@ -133,7 +138,7 @@ typedef union EventUnion {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

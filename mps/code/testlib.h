@@ -28,12 +28,9 @@
 
 
 /* Suppress Pelles C warnings at warning level 2 */
-/* Some of these are also done in config.h. */
+/* This is also done in config.h. */
 
 #ifdef MPS_BUILD_PC
-
-/* "Structured Exception Handling is not portable." (mps_tramp). */
-#pragma warn(disable: 2008)
 
 /* "Unreachable code" (AVER, if condition is constantly true). */
 #pragma warn(disable: 2154)

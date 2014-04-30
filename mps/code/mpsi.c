@@ -1380,7 +1380,7 @@ void (mps_tramp)(void **r_o,
   AVER(FUNCHECK(f));
   /* Can't check p and s as they are interpreted by the client */
 
-  ProtTramp(r_o, f, p, s);
+  *r_o = (*f)(p, s);
 }
 
 

@@ -1077,8 +1077,7 @@ Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
   res = SplayTreeDescribe(cbsSplay(cbs), stream, &cbsSplayNodeDescribe);
   if (res != ResOK) return res;
 
-  res = METER_WRITE(cbs->treeSearch, stream);
-  if (res != ResOK) return res;
+  METER_WRITE(cbs->treeSearch, stream);
 
   res = WriteF(stream, "}\n", NULL);
   return res;

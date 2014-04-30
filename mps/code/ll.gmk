@@ -10,17 +10,20 @@
 # common makefile fragment (<code/comm.gmk>) requires.
 
 CC = clang
-CFLAGSDEBUG = -O -g3
+CFLAGSDEBUG = -O0 -g3
 CFLAGSOPT = -O2 -g3
 CFLAGSCOMPILER := \
 	-pedantic \
 	-Waggregate-return \
 	-Wall \
 	-Wcast-qual \
+	-Wconversion \
+	-Wduplicate-enum \
 	-Werror \
 	-Wextra \
 	-Winline \
 	-Wmissing-prototypes \
+	-Wmissing-variable-declarations \
 	-Wnested-externs \
 	-Wno-extended-offsetof \
 	-Wpointer-arith \

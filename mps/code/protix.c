@@ -1,7 +1,7 @@
 /* protix.c: PROTECTION FOR UNIX
  *
  *  $Id$
- *  Copyright (c) 2001,2007 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  *  Somewhat generic across different Unix systems.  Shared between
  *  Darwin (OS X), FreeBSD, and Linux.
@@ -111,28 +111,9 @@ void ProtSync(Arena arena)
 }
 
 
-/* ProtTramp -- protection trampoline
- *
- * The protection trampoline is trivial under Unix, as there is
- * nothing that needs to be done in the dynamic context of the mutator in
- * order to catch faults.  (Contrast this with Win32 Structured Exception
- * Handling.)
- */
-
-void ProtTramp(void **resultReturn, void *(*f)(void *, size_t),
-               void *p, size_t s)
-{
-  AVER(resultReturn != NULL);
-  AVER(FUNCHECK(f));
-  /* Can't check p and s as they are interpreted by the client */
-
-  *resultReturn = (*f)(p, s);
-}
-
-
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2007 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

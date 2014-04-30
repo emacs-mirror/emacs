@@ -27,6 +27,45 @@ New features
    calling :c:func:`mps_pool_create_k`.
 
 
+Interface changes
+.................
+
+#. There is now a default value (currently 1 \ :term:`megabyte`) for
+   the :c:macro:`MPS_KEY_ARENA_SIZE` keyword argument to
+   :c:func:`mps_arena_create_k` when creating a virtual memory arena.
+   See :c:func:`mps_arena_class_vm`.
+
+
+Other changes
+.............
+
+#. The :ref:`pool-ams` pool class no longer triggers the assertion
+   ``!AMS_IS_INVALID_COLOUR(seg, i)`` under rare circumstances
+   (namely, detaching an :term:`allocation point` from a :term:`grey`
+   segment when :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` is
+   ``FALSE``). See job001549_.
+
+   .. _job001549: https://www.ravenbrook.com/project/mps/issue/job001549/
+
+#. :c:func:`mps_arena_roots_walk` no longer triggers an assertion
+   failure when run twice in succession. See job003496_.
+
+   .. _job003496: https://www.ravenbrook.com/project/mps/issue/job003496/
+
+#. The alignment of :ref:`pool-awl` pools is now configurable via the
+   object format, as documented, and is no longer always
+   :c:macro:`MPS_PF_ALIGN`. See job003745_.
+
+   .. _job003745: https://www.ravenbrook.com/project/mps/issue/job003745/
+
+#. :program:`mpseventtxt` now successfully processes a telemetry log
+   containing multiple labels associated with the same address. See
+   job003756_.
+
+   .. _job003756: https://www.ravenbrook.com/project/mps/issue/job003756/
+
+
+
 .. _release-notes-1.113:
 
 Release 1.113.0
