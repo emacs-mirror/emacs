@@ -50,7 +50,7 @@ static mps_addr_t isMoved(mps_addr_t object);
 static void copy(mps_addr_t object, mps_addr_t to);
 static void pad(mps_addr_t base, size_t size);
 
-struct mps_fmt_A_s fmt_A_s =
+static struct mps_fmt_A_s fmt_A_s =
   {
     (mps_align_t)4,
     scan, skip, copy,

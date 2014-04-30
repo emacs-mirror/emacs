@@ -4,20 +4,36 @@
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
+#include "mps.h"
+#include "mpsavm.h"
+#include "mpscmfs.h"
 #include "mpm.h"
 #include "testlib.h"
 #include "mpslib.h"
 
 #include <stdio.h> /* printf */
-#include <stdlib.h> /* free, malloc */
 
 
 int main(int argc, char *argv[])
 {
-  Lock a = malloc(LockSize());
-  Lock b = malloc(LockSize());
+  mps_arena_t arena;
+  mps_pool_t pool;
+  mps_addr_t p;
+  Lock a, b;
 
   testlib_init(argc, argv);
+
+  die(mps_arena_create_k(&arena, mps_arena_class_vm(), mps_args_none),
+      "arena_create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_MFS_UNIT_SIZE, LockSize());
+    die(mps_pool_create_k(&pool, arena, mps_class_mfs(), args), "pool_create");
+  } MPS_ARGS_END(args);
+
+  die(mps_alloc(&p, pool, LockSize()), "alloc a");
+  a = p;
+  die(mps_alloc(&p, pool, LockSize()), "alloc b");
+  b = p;
 
   Insist(a != NULL);
   Insist(b != NULL);
@@ -46,8 +62,11 @@ int main(int argc, char *argv[])
   LockReleaseMPM(a);
   LockFinish(a);
   LockReleaseGlobalRecursive();
-  free(a);
-  free(b);
+
+  mps_free(pool, a, LockSize());
+  mps_free(pool, b, LockSize());
+  mps_pool_destroy(pool);
+  mps_arena_destroy(arena);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;

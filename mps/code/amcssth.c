@@ -4,10 +4,19 @@
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
- * .posix: This is Posix only.
+ * .mode: This test case has two modes:
+ *
+ * .mode.walk: In this mode, the main thread parks the arena half way
+ * through the test case and runs mps_arena_formatted_objects_walk().
+ * This checks that walking works while the other threads continue to
+ * allocate in the background.
+ *
+ * .mode.commit: In this mode, the arena's commit limit is set. This
+ * checks that the MPS can make progress inside a tight limit in the
+ * presence of allocation on multiple threads. But this is
+ * incompatible with .mode.walk: if the arena is parked, then the
+ * arena has no chance to make progress.
  */
-
-#define _POSIX_C_SOURCE 199309L
 
 #include "fmtdy.h"
 #include "fmtdytst.h"
@@ -18,6 +27,11 @@
 #include "mpsavm.h"
 
 #include <stdio.h> /* fflush, printf, putchar */
+
+enum {
+  ModeWALK = 0,                 /* .mode.walk */
+  ModeCOMMIT = 1                /* .mode.commit */
+};
 
 
 /* These values have been tuned in the hope of getting one dynamic collection. */
@@ -65,21 +79,15 @@ static void report(mps_arena_t arena)
     printf("not_condemned %"PRIuLONGEST"\n", (ulongest_t)not_condemned);
 
     mps_message_discard(arena, message);
-
-    if (condemned > (gen1SIZE + gen2SIZE + (size_t)128) * 1024)
-      /* When condemned size is larger than could happen in a gen 2
-       * collection (discounting ramps, natch), guess that was a dynamic
-       * collection, and reset the commit limit, so it doesn't run out. */
-      die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE), "set limit");
   }
 }
 
 
-mps_arena_t arena;
-mps_fmt_t format;
-mps_chain_t chain;
-mps_root_t exactRoot, ambigRoot;
-unsigned long objs = 0;
+static mps_arena_t arena;
+static mps_fmt_t format;
+static mps_chain_t chain;
+static mps_root_t exactRoot, ambigRoot;
+static unsigned long objs = 0;
 
 
 /* make -- create one new object */
@@ -210,7 +218,7 @@ static void *kid_thread(void *arg)
 
 /* test -- the body of the test */
 
-static void *test(mps_class_t pool_class, size_t roots_count)
+static void *test_pool(mps_class_t pool_class, size_t roots_count, int mode)
 {
   size_t i;
   mps_word_t collections, rampSwitch;
@@ -221,6 +229,7 @@ static void *test(mps_class_t pool_class, size_t roots_count)
   mps_pool_t pool;
   testthr_t kids[10];
   closure_s cl;
+  int walked = FALSE, ramped = FALSE;
 
   die(mps_pool_create(&pool, arena, pool_class, format, chain),
       "pool_create(amc)");
@@ -250,21 +259,23 @@ static void *test(mps_class_t pool_class, size_t roots_count)
 
     if (collections != c) {
       collections = c;
-      printf("\nCollection %lu started, %lu objects.\n", c, objs);
+      printf("\nCollection %lu started, %lu objects, committed=%lu.\n",
+             c, objs, (unsigned long)mps_arena_committed(arena));
       report(arena);
 
       for (i = 0; i < exactRootsCOUNT; ++i)
         cdie(exactRoots[i] == objNULL || dylan_check(exactRoots[i]),
              "all roots check");
 
-      if (collections == collectionsCOUNT / 2) {
+      if (mode == ModeWALK && collections >= collectionsCOUNT / 2 && !walked) {
         unsigned long object_count = 0;
         mps_arena_park(arena);
         mps_arena_formatted_objects_walk(arena, test_stepper, &object_count, 0);
         mps_arena_release(arena);
         printf("stepped on %lu objects.\n", object_count);
+        walked = TRUE;
       }
-      if (collections == rampSwitch) {
+      if (collections >= rampSwitch && !ramped) {
         int begin_ramp = !ramping
           || /* Every other time, switch back immediately. */ (collections & 1);
 
@@ -289,6 +300,7 @@ static void *test(mps_class_t pool_class, size_t roots_count)
           ramping = 1;
         }
       }
+      ramped = TRUE;
     }
 
     churn(ap, roots_count);
@@ -317,31 +329,37 @@ static void *test(mps_class_t pool_class, size_t roots_count)
   return NULL;
 }
 
-int main(int argc, char *argv[])
+static void test_arena(int mode)
 {
   mps_thr_t thread;
   mps_root_t reg_root;
   void *marker = &marker;
 
-  testlib_init(argc, argv);
-
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create");
+  if (mode == ModeCOMMIT)
+    die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE), "set limit");
   mps_message_type_enable(arena, mps_message_type_gc());
   init();
   die(mps_thread_reg(&thread, arena), "thread_reg");
   die(mps_root_create_reg(&reg_root, arena, mps_rank_ambig(), 0, thread,
-                             mps_stack_scan_ambig, marker, 0), "root_create");
+                          mps_stack_scan_ambig, marker, 0), "root_create");
 
-  test(mps_class_amc(), exactRootsCOUNT);
-  test(mps_class_amcz(), 0);
+  test_pool(mps_class_amc(), exactRootsCOUNT, mode);
+  test_pool(mps_class_amcz(), 0, mode);
 
   mps_root_destroy(reg_root);
   mps_thread_dereg(thread);
-  
   finish();
   report(arena);
   mps_arena_destroy(arena);
+}
+
+int main(int argc, char *argv[])
+{
+  testlib_init(argc, argv);
+  test_arena(ModeWALK);
+  test_arena(ModeCOMMIT);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;

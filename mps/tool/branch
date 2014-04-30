@@ -46,10 +46,10 @@ CHILD_RE = r'(?:{}|{})$'.format(TASK_BRANCH_RE, VERSION_BRANCH_RE)
 
 TASK_BRANCH_ENTRY = '''
   <tr valign="top">
-    <td><code><a href="{child}/">{child}</a></code></td>
+    <td><code><a href="{date}/{task}/">{date}/{task}</a></code></td>
     <td><a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@changes+{depot}/project/{project}/{child}/...">Changes</a></td>
-    <td>{description}</td>
-    <td>In development (<a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@diff2+{depot}/project/{project}/{child}/...@{base}+{depot}/project/{project}/{child}/...">diffs</a>).</td>
+    <td>{desc_html}</td>
+    <td>Active (<a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@diff2+{depot}/project/{project}/{child}/...@{base}+{depot}/project/{project}/{child}/...">diffs</a>).</td>
   </tr>
 
 '''
@@ -60,7 +60,7 @@ VERSION_BRANCH_ENTRY = '''
     <td> None. </td>
     <td> <a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@files+{depot}/project/{project}/{parent}/...@{changelevel}">{parent}/...@{changelevel}</a> </td>
     <td>
-      {description}
+      {desc_html}
     </td>
     <td>
       <a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@describe+{base}">base</a><br />
@@ -154,13 +154,16 @@ def main(argv):
     m = re.match(CHILD_RE, args.child)
     if not m:
         raise Error(fmt("Invalid child: {child}"))
-    if args.customer != m.group(3):
+    if not args.task and args.customer != m.group(3):
         raise Error(fmt("Customer mismatch between {parent} and {child}."))
     args.date, args.task, _, args.version = m.groups()
 
     if not args.description:
         args.description = fmt("Branching {parent} to {child}.")
         print(fmt("description={description}"))
+    args.desc_html = re.sub(r'\b(job\d{6})\b',
+                            fmt(r'<a href="/project/{project}/issue/\1/">\1</a>'),
+                            args.description)
 
     # Create the branch specification
     args.branch = fmt('{project}/{child}')

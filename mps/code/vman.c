@@ -1,7 +1,7 @@
 /* vman.c: ANSI VM: MALLOC-BASED PSEUDO MEMORY MAPPING
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpm.h"
@@ -118,13 +118,13 @@ void VMDestroy(VM vm)
   AVER(vm->mapped == (Size)0);
   AVER(vm->reserved == AddrOffset(vm->base, vm->limit));
 
+  EVENT1(VMDestroy, vm);
+
   memset((void *)vm->base, VMJunkBYTE, AddrOffset(vm->base, vm->limit));
   free(vm->block);
  
   vm->sig = SigInvalid;
-  free(vm);
- 
-  EVENT1(VMDestroy, vm);
+  free(vm); 
 }
 
 
@@ -216,7 +216,7 @@ void VMUnmap(VM vm, Addr base, Addr limit)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

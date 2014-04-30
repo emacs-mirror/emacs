@@ -305,10 +305,14 @@ DEFINE_SEG_CLASS(AWLSegClass, class)
  * it's possible to tweak them in a debugger.
  */
 
+extern Count AWLSegSALimit;
 Count AWLSegSALimit = AWL_SEG_SA_LIMIT;
+extern Bool AWLHaveSegSALimit;
 Bool AWLHaveSegSALimit = AWL_HAVE_SEG_SA_LIMIT;
 
+extern Count AWLTotalSALimit;
 Count AWLTotalSALimit = AWL_TOTAL_SA_LIMIT;
+extern Bool AWLHaveTotalSALimit;
 Bool AWLHaveTotalSALimit = AWL_HAVE_TOTAL_SA_LIMIT;
 
 
@@ -558,6 +562,7 @@ static Res AWLInit(Pool pool, ArgList args)
 
   AVERT(Format, format);
   pool->format = format;
+  pool->alignment = format->alignment;
 
   AVER(FUNCHECK(findDependent));
   awl->findDependent = findDependent;
@@ -570,7 +575,7 @@ static Res AWLInit(Pool pool, ArgList args)
   if (res != ResOK)
     goto failGenInit;
 
-  awl->alignShift = SizeLog2(pool->alignment);
+  awl->alignShift = SizeLog2(PoolAlignment(pool));
   awl->size = (Size)0;
 
   awl->succAccesses = 0;
@@ -937,7 +942,7 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
 
     i = awlIndexOfAddr(base, awl, p);
     if (!BTGet(awlseg->alloc, i)) {
-      p = AddrAdd(p, pool->alignment);
+      p = AddrAdd(p, PoolAlignment(pool));
       continue;
     }
     hp = AddrAdd(p, format->headerSize);
@@ -954,7 +959,8 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
     }
     objectLimit = AddrSub(objectLimit, format->headerSize);
     AVER(p < objectLimit);
-    p = AddrAlignUp(objectLimit, pool->alignment);
+    AVER(AddrIsAligned(objectLimit, PoolAlignment(pool)));
+    p = objectLimit;
   }
   AVER(p == limit);
 
@@ -1051,7 +1057,7 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   switch(ss->rank) {
   case RankAMBIG:
     /* not a real pointer if not aligned or not allocated */
-    if (!AddrIsAligned(base, pool->alignment) || !BTGet(awlseg->alloc, i))
+    if (!AddrIsAligned(base, sizeof(void *)) || !BTGet(awlseg->alloc, i))
       return ResOK;
     /* falls through */
   case RankEXACT:
@@ -1125,7 +1131,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
     }
     q = format->skip(AddrAdd(p, format->headerSize));
     q = AddrSub(q, format->headerSize);
-    q = AddrAlignUp(q, pool->alignment);
+    AVER(AddrIsAligned(q, PoolAlignment(pool)));
     j = awlIndexOfAddr(base, awl, q);
     AVER(j <= awlseg->grains);
     if(BTGet(awlseg->mark, i)) {
@@ -1243,13 +1249,13 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
     i = awlIndexOfAddr(base, awl, object);
     if (!BTGet(awlseg->alloc, i)) {
       /* This grain is free */
-      object = AddrAdd(object, pool->alignment);
+      object = AddrAdd(object, PoolAlignment(pool));
       continue;
     }
     object = AddrAdd(object, format->headerSize);
     next = format->skip(object);
     next = AddrSub(next, format->headerSize);
-    next = AddrAlignUp(next, pool->alignment);
+    AVER(AddrIsAligned(next, PoolAlignment(pool)));
     if (BTGet(awlseg->mark, i) && BTGet(awlseg->scanned, i))
       (*f)(object, pool->format, pool, p, s);
     object = next;
