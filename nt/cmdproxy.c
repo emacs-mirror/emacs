@@ -292,11 +292,15 @@ make_absolute (const char *prog)
 
   while (*path)
     {
+      size_t len;
+
       /* Get next directory from path.  */
       p = path;
       while (*p && *p != ';') p++;
-      strncpy (dir, path, p - path);
-      dir[p - path] = '\0';
+      /* A broken PATH could have too long directory names in it.  */
+      len = min (p - path, sizeof (dir) - 1);
+      strncpy (dir, path, len);
+      dir[len] = '\0';
 
       /* Search the directory for the program.  */
       if (search_dir (dir, prog, MAX_PATH, absname) > 0)

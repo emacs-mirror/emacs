@@ -802,8 +802,8 @@ When a file or directory is expanded, the @samp{[+]} changes to
 hiding its contents.
 
   You navigate through the speedbar using the keyboard, too.  Typing
-@kbd{RET} while point is on a line in the speedbar is equivalent to
-clicking the item on the current line, and @kbd{SPC} expands or
+@key{RET} while point is on a line in the speedbar is equivalent to
+clicking the item on the current line, and @key{SPC} expands or
 contracts the item.  @kbd{U} displays the parent directory of the
 current directory.  To copy, delete, or rename the file on the current
 line, type @kbd{C}, @kbd{D}, and @kbd{R} respectively.  To create a

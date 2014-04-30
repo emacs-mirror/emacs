@@ -201,19 +201,18 @@ seconds."
 
 (defun battery-update ()
   "Update battery status information in the mode line."
-  (let ((data (and battery-status-function (funcall battery-status-function))))
+  (let* ((data (and battery-status-function (funcall battery-status-function)))
+         (percentage (car (read-from-string (cdr (assq ?p data))))))
     (setq battery-mode-line-string
 	  (propertize (if (and battery-mode-line-format
-			       (<= (car (read-from-string (cdr (assq ?p data))))
-				   battery-mode-line-limit))
-			  (battery-format
-			   battery-mode-line-format
-			   data)
+			       (numberp percentage)
+                               (<= percentage battery-mode-line-limit))
+			  (battery-format battery-mode-line-format data)
 			"")
 		      'face
-		      (and (<= (car (read-from-string (cdr (assq ?p data))))
-				   battery-load-critical)
-			   'error)
+                      (and (numberp percentage)
+                           (<= percentage battery-load-critical)
+                           'error)
 		      'help-echo "Battery status information")))
   (force-mode-line-update))
 

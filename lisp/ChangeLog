@@ -1,3 +1,35 @@
+2014-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.el (dired-initial-position-hook, dired-initial-position):
+	Doc string fixes.
+
+2014-04-30  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-quit): Handle killed summaries.  (Bug#17283)
+
+2014-04-30  Matthias Dahl  <matthias.dahl@binary-island.eu>
+
+	* faces.el (face-spec-recalc): Apply X resources only after the
+	defface spec has been applied. Thus, X resources are no longer
+	overriden by the defface spec which also fixes issues on win32 where
+	the toolbar coloring was wrong because it is set through X resources
+	and was (wrongfully) overriden.  (Bug#16694)
+
+2014-04-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/rst.el (electric-pair-pairs): Declare.
+	(rst-mode): Set it (bug#17131).
+
+2014-04-30  Juri Linkov  <juri@jurta.org>
+
+	* desktop.el (desktop-value-to-string): Let-bind `print-length'
+	and `print-level' to nil.  (Bug#17351)
+
+2014-04-30  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
+
+	* battery.el (battery-update): Handle the case where battery
+	status is "N/A" (bug#17319).
+
 2014-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/ps-mode.el: Use SMIE.  Move string and comment recognition

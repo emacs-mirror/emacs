@@ -1,3 +1,7 @@
+2014-04-30  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: Treat MirBSD as OpenBSD.  (Bug#17339)
+
 2014-04-21  Daniel Colascione  <dancol@dancol.org>
 
 	* .bzrignore: Add a.out to bzr ignore list (a test generates this

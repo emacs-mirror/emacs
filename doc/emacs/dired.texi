@@ -1312,19 +1312,19 @@ takes a long time if the directory contains many image files, and it
 asks for confirmation if the number of image files exceeds
 @code{image-dired-show-all-from-dir-max-files}.
 
-  With point in the thumbnail buffer, you can type @kbd{RET}
+  With point in the thumbnail buffer, you can type @key{RET}
 (@code{image-dired-display-thumbnail-original-image}) to display a
 sized version of it in another window.  This sizes the image to fit
 the window.  Use the arrow keys to move around in the buffer.  For
-easy browsing, use @kbd{SPC}
+easy browsing, use @key{SPC}
 (@code{image-dired-display-next-thumbnail-original}) to advance and
-display the next image.  Typing @kbd{DEL}
+display the next image.  Typing @key{DEL}
 (@code{image-dired-display-previous-thumbnail-original}) backs up to
 the previous thumbnail and displays that instead.
 
 @vindex image-dired-external-viewer
   To view and the image in its original size, either provide a prefix
-argument (@kbd{C-u}) before pressing @kbd{RET}, or type
+argument (@kbd{C-u}) before pressing @key{RET}, or type
 @kbd{C-@key{RET}} (@code{image-dired-thumbnail-display-external}) to
 display the image in an external viewer.  You must first configure
 @code{image-dired-external-viewer}.

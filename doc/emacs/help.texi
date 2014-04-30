@@ -378,7 +378,7 @@ alphabetical order, change the variable
 
   Help buffers provide the same commands as View mode (@pxref{View
 Mode}); for instance, @key{SPC} scrolls forward, and @key{DEL} or
-@kbd{S-SPC} scrolls backward.  A few special commands are also
+@kbd{S-@key{SPC}} scrolls backward.  A few special commands are also
 provided:
 
 @table @kbd
@@ -553,13 +553,13 @@ Emacs Lisp Reference Manual}).
 
 @findex describe-prefix-bindings
   You can get a list of subcommands for a particular prefix key by
-typing @kbd{C-h}, @kbd{?}, or @kbd{F1}
+typing @kbd{C-h}, @kbd{?}, or @key{F1}
 (@code{describe-prefix-bindings}) after the prefix key.  (There are a
 few prefix keys for which not all of these keys work---those that
 provide their own bindings for one of them.  One of these prefix keys
-is @key{ESC} in combination with @kbd{C-h}, because @kbd{ESC C-h} is
-actually @kbd{C-M-h}, which marks a defun.  However, @kbd{ESC F1} and
-@kbd{ESC ?} work fine.)
+is @key{ESC} in combination with @kbd{C-h}, because @kbd{@key{ESC} C-h} is
+actually @kbd{C-M-h}, which marks a defun.  However, @kbd{@key{ESC} @key{F1}}
+and @kbd{@key{ESC} ?} work fine.)
 
 @node Help Files
 @section Help Files

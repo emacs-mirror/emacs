@@ -123,7 +123,7 @@ beeping or by flashing the screen.
 you what the command has done, or to provide you with some specific
 information.  These @dfn{informative} messages, unlike error messages,
 are not accompanied with a beep or flash.  For example, @kbd{C-x =}
-(hold down @key{CTRL} and type @kbd{x}, then let go of @key{CTRL} and
+(hold down @key{Ctrl} and type @kbd{x}, then let go of @key{Ctrl} and
 type @kbd{=}) displays a message describing the character at point,
 its position in the buffer, and its current column in the window.
 Commands that take a long time often display messages ending in
@@ -304,7 +304,7 @@ the usual way (@pxref{Key Help}).
 item by pressing @key{F10} (to run the command @code{menu-bar-open}).
 You can then navigate the menus with the arrow keys.  To activate a
 selected menu item, press @key{RET}; to cancel menu navigation, press
-@kbd{C-g} or @kbd{ESC ESC ESC}.
+@kbd{C-g} or @kbd{@key{ESC} @key{ESC} @key{ESC}}.
 
 @findex tmm-menubar
 @vindex tty-menu-open-use-tmm

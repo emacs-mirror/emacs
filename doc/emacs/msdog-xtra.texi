@@ -53,13 +53,13 @@ about Emacs's special handling of text files under MS-DOS (and Windows).
   The key that is called @key{DEL} in Emacs (because that's how it is
 designated on most workstations) is known as @key{BS} (backspace) on a
 PC@.  That is why the PC-specific terminal initialization remaps the
-@key{BS} key to act as @key{DEL}; the @key{DELETE} key is remapped to act
+@key{BS} key to act as @key{DEL}; the @key{Delete} key is remapped to act
 as @kbd{C-d} for the same reasons.
 
 @kindex C-g @r{(MS-DOS)}
-@kindex C-BREAK @r{(MS-DOS)}
+@kindex C-Break @r{(MS-DOS)}
 @cindex quitting on MS-DOS
-  Emacs built for MS-DOS recognizes @kbd{C-@key{BREAK}} as a quit
+  Emacs built for MS-DOS recognizes @kbd{C-@key{Break}} as a quit
 character, just like @kbd{C-g}.  This is because Emacs cannot detect
 that you have typed @kbd{C-g} until it is ready for more input.  As a
 consequence, you cannot use @kbd{C-g} to stop a running command
@@ -69,7 +69,7 @@ consequence, you cannot use @kbd{C-g} to stop a running command
 @ifnottex
 (@pxref{Quitting}).
 @end ifnottex
-By contrast, @kbd{C-@key{BREAK}} @emph{is} detected as soon as you
+By contrast, @kbd{C-@key{Break}} @emph{is} detected as soon as you
 type it (as @kbd{C-g} is on other systems), so it can be used to stop
 a running command and for emergency escape
 @iftex
@@ -84,17 +84,17 @@ a running command and for emergency escape
 @cindex Super (under MS-DOS)
 @vindex dos-super-key
 @vindex dos-hyper-key
-  The PC keyboard maps use the left @key{ALT} key as the @key{META} key.
+  The PC keyboard maps use the left @key{Alt} key as the @key{META} key.
 You have two choices for emulating the @key{SUPER} and @key{HYPER} keys:
-choose either the right @key{CTRL} key or the right @key{ALT} key by
+choose either the right @key{Ctrl} key or the right @key{Alt} key by
 setting the variables @code{dos-hyper-key} and @code{dos-super-key} to 1
 or 2 respectively.  If neither @code{dos-super-key} nor
-@code{dos-hyper-key} is 1, then by default the right @key{ALT} key is
+@code{dos-hyper-key} is 1, then by default the right @key{Alt} key is
 also mapped to the @key{META} key.  However, if the MS-DOS international
 keyboard support program @file{KEYB.COM} is installed, Emacs will
-@emph{not} map the right @key{ALT} to @key{META}, since it is used for
+@emph{not} map the right @key{Alt} to @key{META}, since it is used for
 accessing characters like @kbd{~} and @kbd{@@} on non-US keyboard
-layouts; in this case, you may only use the left @key{ALT} as @key{META}
+layouts; in this case, you may only use the left @key{Alt} as @key{META}
 key.
 
 @kindex C-j @r{(MS-DOS)}
@@ -398,11 +398,11 @@ though they are connected to a Windows machine that uses a different
 encoding for the same locale.  For example, in the Latin-1 locale, DOS
 uses codepage 850 whereas Windows uses codepage 1252.  @xref{MS-DOS and
 MULE}.  When you print to such printers from Windows, you can use the
-@kbd{C-x RET c} (@code{universal-coding-system-argument}) command before
-@kbd{M-x lpr-buffer}; Emacs will then convert the text to the DOS
-codepage that you specify.  For example, @kbd{C-x RET c cp850-dos RET
-M-x lpr-region RET} will print the region while converting it to the
-codepage 850 encoding.
+@kbd{C-x @key{RET} c} (@code{universal-coding-system-argument}) command
+before @kbd{M-x lpr-buffer}; Emacs will then convert the text to the DOS
+codepage that you specify.  For example,
+@kbd{C-x @key{RET} c cp850-dos @key{RET} M-x lpr-region @key{RET}}
+will print the region while converting it to the codepage 850 encoding.
 
 @vindex dos-printer
 @vindex dos-ps-printer
@@ -597,7 +597,7 @@ work in MS-DOS by sending the output to one of the printer ports.
 program terminates and does not try to read keyboard input.  If the
 program does not terminate on its own, you will be unable to terminate
 it, because MS-DOS provides no general way to terminate a process.
-Pressing @kbd{C-c} or @kbd{C-@key{BREAK}} might sometimes help in these
+Pressing @kbd{C-c} or @kbd{C-@key{Break}} might sometimes help in these
 cases.
 
   Accessing files on other machines is not supported on MS-DOS@.  Other

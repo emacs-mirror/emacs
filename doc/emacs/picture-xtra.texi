@@ -163,14 +163,14 @@ Move up after insertion (@code{picture-movement-up}).
 @itemx C-c @key{DOWN}
 Move down after insertion (@code{picture-movement-down}).
 @item C-c `
-@itemx C-c @key{HOME}
+@itemx C-c @key{Home}
 Move up and left (``northwest'') after insertion (@code{picture-movement-nw}).
 @item C-c '
 @itemx C-c @key{prior}
 Move up and right (``northeast'') after insertion
 (@code{picture-movement-ne}).
 @item C-c /
-@itemx C-c @key{END}
+@itemx C-c @key{End}
 Move down and left (``southwest'') after insertion
 @*(@code{picture-movement-sw}).
 @item C-c \

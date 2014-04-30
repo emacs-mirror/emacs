@@ -1569,10 +1569,11 @@ old meaning of the name @var{new} to be lost.  If @var{old} and
 @var{new} are on different file systems, the file @var{old} is copied
 and deleted.  If the argument @var{new} is just a directory name, the
 real new name is in that directory, with the same non-directory
-component as @var{old}.  For example, @kbd{M-x rename-file RET ~/foo
-RET /tmp RET} renames @file{~/foo} to @file{/tmp/foo}.  The same rule
-applies to all the remaining commands in this section.  All of them
-ask for confirmation when the new file name already exists, too.
+component as @var{old}.  For example, @kbd{M-x rename-file @key{RET}
+~/foo @key{RET} /tmp @key{RET}} renames @file{~/foo} to
+@file{/tmp/foo}.  The same rule applies to all the remaining commands
+in this section.  All of them ask for confirmation when the new file
+name already exists, too.
 
 @ifnottex
   If a file is under version control (@pxref{Version Control}), you
@@ -1887,11 +1888,11 @@ then specifying @file{/tmp/foo*bar} will visit only
 @findex file-cache-minibuffer-complete
   You can use the @dfn{file name cache} to make it easy to locate a
 file by name, without having to remember exactly where it is located.
-When typing a file name in the minibuffer, @kbd{C-@key{tab}}
+When typing a file name in the minibuffer, @kbd{C-@key{TAB}}
 (@code{file-cache-minibuffer-complete}) completes it using the file
-name cache.  If you repeat @kbd{C-@key{tab}}, that cycles through the
+name cache.  If you repeat @kbd{C-@key{TAB}}, that cycles through the
 possible completions of what you had originally typed.  (However, note
-that the @kbd{C-@key{tab}} character cannot be typed on most text
+that the @kbd{C-@key{TAB}} character cannot be typed on most text
 terminals.)
 
   The file name cache does not fill up automatically.  Instead, you
@@ -1971,7 +1972,7 @@ previous image file in the same directory, respectively.
 @vindex image-animate-loop
 @cindex image animation
 @cindex animated images
-  If the image can be animated, the command @kbd{RET}
+  If the image can be animated, the command @key{RET}
 (@code{image-toggle-animation}) starts or stops the animation.
 Animation plays once, unless the option @code{image-animate-loop} is
 non-@code{nil}.  With @kbd{f} (@code{image-next-frame}) and @kbd{b}
@@ -2024,7 +2025,7 @@ adds a @samp{Filesets} menu to the menu bar.
 @findex filesets-remove-buffer
   The simplest way to define a fileset is by adding files to it one at
 a time.  To add a file to fileset @var{name}, visit the file and type
-@kbd{M-x filesets-add-buffer @kbd{RET} @var{name} @kbd{RET}}.  If
+@kbd{M-x filesets-add-buffer @key{RET} @var{name} @key{RET}}.  If
 there is no fileset @var{name}, this creates a new one, which
 initially contains only the current file.  The command @kbd{M-x
 filesets-remove-buffer} removes the current file from a fileset.

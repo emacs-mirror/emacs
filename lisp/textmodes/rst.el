@@ -784,10 +784,8 @@ This inherits from Text mode.")
     (modify-syntax-entry ?\u2019 "." st)
     (modify-syntax-entry ?\u201c "." st)
     (modify-syntax-entry ?\u201d "." st)
-
     st)
   "Syntax table used while in `rst-mode'.")
-
 
 (defcustom rst-mode-hook nil
   "Hook run when `rst-mode' is turned on.
@@ -798,6 +796,8 @@ The hook for `text-mode' is run before this one."
 
 ;; Pull in variable definitions silencing byte-compiler.
 (require 'newcomment)
+
+(defvar electric-pair-pairs)
 
 ;; Use rst-mode for *.rst and *.rest files.  Many ReStructured-Text files
 ;; use *.txt, but this is too generic to be set as a default.
@@ -859,6 +859,9 @@ highlighting.
        'rst-comment-region)
   (set (make-local-variable 'uncomment-region-function)
        'rst-uncomment-region)
+
+  (set (make-local-variable 'electric-pair-pairs)
+       '((?\" . ?\") (?\* . ?\*) (?\` . ?\`)))
 
   ;; Imenu and which function.
   ;; FIXME: Check documentation of `which-function' for alternative ways to

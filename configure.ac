@@ -505,7 +505,7 @@ case "${canonical}" in
   ;;
 
   ## OpenBSD ports
-  *-*-openbsd* )
+  *-*-openbsd* | *-*-mirbsd* )
     opsys=openbsd
   ;;
 

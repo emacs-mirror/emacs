@@ -1,3 +1,81 @@
+2014-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* trouble.texi (Quitting, DEL Does Not Delete, Emergency Escape)
+	(Bug Criteria): Fix usage of @kbd and @key.  (Bug#17362)
+
+	* text.texi (Words, Pages, Foldout, HTML Mode): Fix usage of @kbd
+	and @key.
+
+	* search.texi (Special Isearch, Regexp Search): Fix usage of @kbd
+	and @key.
+
+	* screen.texi (Echo Area, Menu Bar): Fix usage of @kbd and @key.
+
+	* rmail.texi (Rmail Scrolling): Fix usage of @kbd and @key.
+
+	* programs.texi (Hungry Delete, Other C Commands): Fix usage of
+	@kbd and @key.
+
+	* picture-xtra.texi (Insert in Picture): Fix usage of @kbd and
+	@key.
+
+	* mule.texi (Unibyte Mode, Bidirectional Editing): Fix usage of
+	@kbd and @key.
+
+	* msdog.texi (Windows Keyboard, Windows Processes): Fix usage of
+	@kbd and @key.
+
+	* msdog-xtra.texi (MS-DOS Keyboard, MS-DOS Printing)
+	(MS-DOS Processes): Fix usage of @kbd and @key.
+
+	* misc.texi (Shell Ring, Printing Package): Fix usage of @kbd and
+	@key.
+
+	* mini.texi (Completion Commands, Minibuffer History): Fix usage
+	of @kbd and @key.
+
+	* kmacro.texi (Keyboard Macro Step-Edit): Fix usage of @kbd and
+	@key.
+
+	* killing.texi (Deletion, Rectangles, CUA Bindings): Fix usage of
+	@kbd and @key.
+
+	* indent.texi (Indentation Commands): Fix usage of @kbd and @key.
+
+	* help.texi (Help Mode, Misc Help): Fix usage of @kbd and @key.
+
+	* glossary.texi (Glossary): Fix usage of @kbd and @key.
+
+	* frames.texi (Speedbar): Fix usage of @kbd and @key.
+
+	* files.texi (Misc File Ops, File Name Cache, File Conveniences)
+	(Filesets): Fix usage of @kbd and @key.
+
+	* display.texi (View Mode): Fix usage of @kbd and @key.
+
+	* dired.texi (Image-Dired): Fix usage of @kbd and @key.
+
+	* custom.texi (Modifier Keys, Function Keys, Named ASCII Chars)
+	(Init Syntax): Fix usage of @kbd and @key.
+
+	* commands.texi (User Input): Fix usage of @kbd and @key.
+
+	* calendar.texi (Counting Days, General Calendar): Fix usage of
+	@kbd and @key.
+
+	* building.texi (Threads Buffer): Fix usage of @kbd and @key.
+
+	* buffers.texi (Select Buffer, Icomplete): Fix usage of @kbd and
+	@key.
+
+	* basic.texi (Inserting Text, Erasing, Arguments): Fix usage of
+	@kbd and @key.
+
+	* anti.texi (Antinews): Fix usage of @kbd and @key.
+
+	* sending.texi (Mail Signature): Document signature variables used
+	by Message mode.  (Bug#17308)
+
 2014-04-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* buffers.texi (Uniquify): Clarify the default uniquification.

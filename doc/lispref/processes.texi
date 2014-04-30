@@ -1364,6 +1364,10 @@ which inserts the process output into the process buffer.
 This function returns the filter function of @var{process}.
 @end defun
 
+In case the process's output needs to be passed to several filters, you can
+use @code{add-function} to combine an existing filter with a new one.
+@xref{Advising Functions}.
+
   Here is an example of the use of a filter function:
 
 @smallexample
@@ -1616,6 +1620,10 @@ sentinel, the eventual call to the sentinel will use the new one.
 @defun process-sentinel process
 This function returns the sentinel of @var{process}.
 @end defun
+
+In case a process status changes need to be passed to several sentinels, you
+can use @code{add-function} to combine an existing sentinel with a new one.
+@xref{Advising Functions}.
 
 @defun waiting-for-user-input-p
 While a sentinel or filter function is running, this function returns

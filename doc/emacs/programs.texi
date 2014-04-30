@@ -1675,12 +1675,12 @@ preprocessor commands.
 Delete the entire block of whitespace preceding point (@code{c-hungry-delete-backwards}).
 
 @item C-c C-d
-@itemx C-c C-@key{DELETE}
-@itemx C-c @key{DELETE}
+@itemx C-c C-@key{Delete}
+@itemx C-c @key{Delete}
 @findex c-hungry-delete-forward
 @kindex C-c C-d (C Mode)
-@kindex C-c C-@key{DELETE} (C Mode)
-@kindex C-c @key{DELETE} (C Mode)
+@kindex C-c C-@key{Delete} (C Mode)
+@kindex C-c @key{Delete} (C Mode)
 Delete the entire block of whitespace after point (@code{c-hungry-delete-forward}).
 @end table
 
@@ -1688,7 +1688,7 @@ Delete the entire block of whitespace after point (@code{c-hungry-delete-forward
 delete mode}.  When this feature is enabled (indicated by @samp{/h} in
 the mode line after the mode name), a single @key{DEL} deletes all
 preceding whitespace, not just one space, and a single @kbd{C-c C-d}
-(but @emph{not} plain @key{DELETE}) deletes all following whitespace.
+(but @emph{not} plain @key{Delete}) deletes all following whitespace.
 
 @table @kbd
 @item M-x c-toggle-hungry-state
@@ -1717,7 +1717,7 @@ inserts a @samp{\} at the line break, and within comments it's like
 
 @code{c-context-line-break} isn't bound to a key by default, but it
 needs a binding to be useful.  The following code will bind it to
-@kbd{RET}.  We use @code{c-initialization-hook} here to make sure
+@key{RET}.  We use @code{c-initialization-hook} here to make sure
 the keymap is loaded before we try to change it.
 
 @example

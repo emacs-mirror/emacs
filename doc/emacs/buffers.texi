@@ -661,17 +661,18 @@ element among the possible completions in a minibuffer.  When enabled, typing
 in the minibuffer continuously displays a list of possible completions that
 match the string you have typed.
 
-  At any time, you can type @key{C-j} to select the first completion in
+  At any time, you can type @kbd{C-j} to select the first completion in
 the list.  So the way to select a particular completion is to make it the
 first in the list.  There are two ways to do this.  You can type more
 of the completion name and thus narrow down the list, excluding unwanted
 completions above the desired one.  Alternatively, you can use @kbd{C-.}
 and @kbd{C-,} to rotate the list until the desired buffer is first.
 
-  @key{M-TAB} will select the first completion in the list, like @key{C-j} but
-without exiting the minibuffer, so you can edit it further.  This is typically
-used when entering a file name, where @key{M-TAB} can be used a few times to
-descend in the hierarchy of directories.
+  @kbd{M-@key{TAB}} will select the first completion in the list, like
+@kbd{C-j} but without exiting the minibuffer, so you can edit it
+further.  This is typically used when entering a file name, where
+@kbd{M-@key{TAB}} can be used a few times to descend in the hierarchy
+of directories.
 
   To enable Icomplete mode, type @kbd{M-x icomplete-mode}, or customize
 the variable @code{icomplete-mode} to @code{t} (@pxref{Easy

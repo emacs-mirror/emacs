@@ -1,3 +1,23 @@
+2014-04-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* term.c (tty_menu_activate): Don't assume row and col are initialized.
+	GCC 4.9.0 warned about this, and I couldn't easily prove to my own
+	satisfaction that they would always be initialized.
+
+2014-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (tty_menu_display): Move the cursor to the active menu item.
+	(tty_menu_activate): Return the cursor to the active menu item
+	after displaying the menu and after displaying help-echo.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2014-04/msg00402.html
+	for the details of why this is needed by screen readers and
+	Braille displays.
+
+2014-04-30  Glenn Morris  <rgm@gnu.org>
+
+	* process.c (handle_child_signal):
+	Handle systems without WCONTINUED.  (Bug#15110, 17339)
+
 2014-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (struct saved_window): Remove mark.

@@ -844,12 +844,13 @@ QUOTE may be `may' (value may be quoted),
   "Convert VALUE to a string that when read evaluates to the same value.
 Not all types of values are supported."
   (let* ((print-escape-newlines t)
+	 (print-length nil)
+	 (print-level nil)
 	 (float-output-format nil)
 	 (quote.sexp (desktop--v2s value))
 	 (quote (car quote.sexp))
-	 (txt
-          (let ((print-quoted t))
-            (prin1-to-string (cdr quote.sexp)))))
+	 (print-quoted t)
+	 (txt (prin1-to-string (cdr quote.sexp))))
     (if (eq quote 'must)
 	(concat "'" txt)
       txt)))

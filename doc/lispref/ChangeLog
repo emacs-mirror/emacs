@@ -1,3 +1,7 @@
+2014-04-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* processes.texi (Filter Functions, Sentinels): Advertise add-function.
+
 2014-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* windows.texi (Window Configurations, Window Configurations):

@@ -1,7 +1,6 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs
 
-;; Copyright (C) 1985-1988, 1993-1998, 2000-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-1988, 1993-1998, 2000-2014 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail
@@ -1573,7 +1572,7 @@ Hook `rmail-quit-hook' is run after expunging."
   (when (boundp 'rmail-quit-hook)
     (run-hooks 'rmail-quit-hook))
   ;; Don't switch to the summary buffer even if it was recently visible.
-  (when rmail-summary-buffer
+  (when (rmail-summary-exists)
     (with-current-buffer rmail-summary-buffer
       (set-buffer-modified-p nil))
     (replace-buffer-in-windows rmail-summary-buffer)

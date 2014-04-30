@@ -116,7 +116,7 @@ cognate to @kbd{C-@@}, which is an alias for @kbd{C-@key{SPC}}.
 @findex backward-word
   The commands @kbd{M-f} (@code{forward-word}) and @kbd{M-b}
 (@code{backward-word}) move forward and backward over words.  These
-@key{Meta}-based key sequences are analogous to the key sequences
+@key{META}-based key sequences are analogous to the key sequences
 @kbd{C-f} and @kbd{C-b}, which move over single characters.  The
 analogy extends to numeric arguments, which serve as repeat counts.
 @kbd{M-f} with a negative argument moves backward, and @kbd{M-b} with
@@ -330,7 +330,7 @@ in Fundamental mode, @code{paragraph-start} is @w{@code{"\f\\|[
 @cindex formfeed character
   Within some text files, text is divided into @dfn{pages} delimited
 by the @dfn{formfeed character} (@acronym{ASCII} code 12, also denoted
-as @key{control-L}), which is displayed in Emacs as the escape
+as @samp{control-L}), which is displayed in Emacs as the escape
 sequence @samp{^L} (@pxref{Text Display}).  Traditionally, when such
 text files are printed to hardcopy, each formfeed character forces a
 page break.  Most Emacs commands treat it just like any other
@@ -1250,7 +1250,7 @@ quad click: exit all folds and hide text.
 @c FIXME not marked as a user variable
 @vindex foldout-mouse-modifiers
   You can specify different modifier keys (instead of
-@kbd{Control-Meta-}) by setting @code{foldout-mouse-modifiers}; but if
+@kbd{@key{Ctrl}-@key{META}-}) by setting @code{foldout-mouse-modifiers}; but if
 you have already loaded the @file{foldout.el} library, you must reload
 it in order for this to take effect.
 
@@ -1910,7 +1910,7 @@ characters themselves (@code{sgml-name-8bit-mode}).
 Run a shell command (which you must specify) to validate the current
 buffer as SGML (@code{sgml-validate}).
 
-@item C-c TAB
+@item C-c @key{TAB}
 @kindex C-c TAB @r{(SGML mode)}
 @findex sgml-tags-invisible
 Toggle the visibility of existing tags in the buffer.  This can be

@@ -2924,6 +2924,13 @@ tty_menu_display (tty_menu *menu, int x, int y, int pn, int *faces,
 	  menu_help_paneno = pn - 1;
 	  menu_help_itemno = j;
 	}
+      /* Take note of the coordinates of the active menu item, to
+	 display the cursor there.  */
+      if (mousehere)
+	{
+	  row = y + i;
+	  col = x;
+	}
       display_tty_menu_item (menu->text[j], max_width, face, x, y + i,
 			     menu->submenu[j] != NULL);
     }
@@ -3204,6 +3211,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   bool first_time;
   Lisp_Object selectface;
   int first_item = 0;
+  int col, row;
 
   /* Don't allow non-positive x0 and y0, lest the menu will wrap
      around the display.  */
@@ -3391,7 +3399,14 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 			    faces, x, y, first_item, 1);
 	  tty_hide_cursor (tty);
 	  fflush (tty->output);
+	  /* The call to display help-echo below will move the cursor,
+	     so remember its current position as computed by
+	     tty_menu_display.  */
+	  col = cursorX (tty);
+	  row = cursorY (tty);
 	}
+      else
+	row = -1;
 
       /* Display the help-echo message for the currently-selected menu
 	 item.  */
@@ -3400,6 +3415,11 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 	{
 	  help_callback (menu_help_message,
 			 menu_help_paneno, menu_help_itemno);
+	  /* Move the cursor to the beginning of the current menu
+	     item, so that screen readers and other accessibility aids
+	     know where the active region is.  */
+	  if (0 <= row)
+	    cursor_to (sf, row, col);
 	  tty_hide_cursor (tty);
 	  fflush (tty->output);
 	  prev_menu_help_message = menu_help_message;
