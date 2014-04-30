@@ -40,7 +40,6 @@ extern PoolClass AMSTPoolClassGet(void);
 
 typedef struct AMSTStruct {
   AMSStruct amsStruct;      /* generic AMS structure */
-  Chain chain;              /* chain to use */
   Bool failSegs;            /* fail seg splits & merges when true */
   Count splits;             /* count of successful segment splits */
   Count merges;             /* count of successful segment merges */
@@ -333,17 +332,23 @@ static Res AMSTInit(Pool pool, ArgList args)
   Format format;
   Chain chain;
   Res res;
-  static GenParamStruct genParam = { 1024, 0.2 };
+  unsigned gen = AMS_GEN_DEFAULT;
   ArgStruct arg;
 
   AVERT(Pool, pool);
+  AVERT(ArgList, args);
   
+  if (ArgPick(&arg, args, MPS_KEY_CHAIN))
+    chain = arg.val.chain;
+  else {
+    chain = ArenaGlobals(PoolArena(pool))->defaultChain;
+    gen = 1; /* avoid the nursery of the default chain by default */
+  }
+  if (ArgPick(&arg, args, MPS_KEY_GEN))
+    gen = arg.val.u;
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
   
-  res = ChainCreate(&chain, pool->arena, 1, &genParam);
-  if (res != ResOK)
-    return res;
   res = AMSInitInternal(Pool2AMS(pool), format, chain, 0, FALSE);
   if (res != ResOK)
     return res;
@@ -351,7 +356,6 @@ static Res AMSTInit(Pool pool, ArgList args)
   ams = Pool2AMS(pool);
   ams->segSize = AMSTSegSizePolicy;
   ams->segClass = AMSTSegClassGet;
-  amst->chain = chain;
   amst->failSegs = TRUE;
   amst->splits = 0;
   amst->merges = 0;
@@ -386,7 +390,6 @@ static void AMSTFinish(Pool pool)
 
   AMSFinish(pool);
   amst->sig = SigInvalid;
-  ChainDestroy(amst->chain);
 }
 
 
