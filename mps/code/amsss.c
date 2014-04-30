@@ -108,7 +108,7 @@ static mps_pool_debug_option_s freecheckOptions =
   { NULL, 0, (const void *)"Dead", 4 };
 
 static void test_pool(mps_class_t pool_class, mps_arg_s args[],
-                      size_t haveAmbiguous)
+                      mps_bool_t haveAmbiguous)
 {
   mps_pool_t pool;
   mps_root_t exactRoot, ambigRoot = NULL;
@@ -196,6 +196,7 @@ static void test_pool(mps_class_t pool_class, mps_arg_s args[],
 
 int main(int argc, char *argv[])
 {
+  int i;
   mps_thr_t thread;
   mps_fmt_t format;
   mps_chain_t chain;
@@ -212,53 +213,23 @@ int main(int argc, char *argv[])
   die(mps_fmt_create_A(&format, arena, dylan_fmt_A()), "fmt_create");
   die(mps_chain_create(&chain, arena, 1, testChain), "chain_create");
 
-  printf("\n\n*** AMS with !CHAIN and SUPPORT_AMBIGUOUS\n");
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
-    MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, TRUE);
-    test_pool(mps_class_ams(), args, TRUE);
-  } MPS_ARGS_END(args);
-
-  printf("\n\n*** AMS with !CHAIN and !SUPPORT_AMBIGUOUS\n");
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
-    MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, FALSE);
-    test_pool(mps_class_ams(), args, FALSE);
-  } MPS_ARGS_END(args);
-
-  printf("\n\n*** AMS with CHAIN and SUPPORT_AMBIGUOUS\n");
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
-    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
-    MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, TRUE);
-    test_pool(mps_class_ams(), args, TRUE);
-  } MPS_ARGS_END(args);
-
-  printf("\n\n*** AMS with CHAIN and !SUPPORT_AMBIGUOUS\n");
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
-    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
-    MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, FALSE);
-    test_pool(mps_class_ams(), args, FALSE);
-  } MPS_ARGS_END(args);
-
-  printf("\n\n*** AMS Debug with CHAIN and !SUPPORT_AMBIGUOUS\n");
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
-    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
-    MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, FALSE);
-    MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &freecheckOptions);
-    test_pool(mps_class_ams_debug(), args, FALSE);
-  } MPS_ARGS_END(args);
-
-  printf("\n\n*** AMS Debug with CHAIN and SUPPORT_AMBIGUOUS\n");
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
-    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
-    MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, TRUE);
-    MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &freecheckOptions);
-    test_pool(mps_class_ams_debug(), args, TRUE);
-  } MPS_ARGS_END(args);
+  for (i = 0; i < 8; i++) {
+    int debug = i % 2;
+    int ownChain = (i / 2) % 2;
+    int ambig = (i / 4) % 2;
+    printf("\n\n*** AMS%s with %sCHAIN and %sSUPPORT_AMBIGUOUS\n",
+           debug ? " Debug" : "",
+           ownChain ? "" : "!",
+           ambig ? "" : "!");
+    MPS_ARGS_BEGIN(args) {
+      MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
+      if (ownChain)
+        MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
+      MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, ambig);
+      MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &freecheckOptions);
+      test_pool(debug ? mps_class_ams_debug() : mps_class_ams(), args, ambig);
+    } MPS_ARGS_END(args);
+  }
 
   mps_chain_destroy(chain);
   mps_fmt_destroy(format);
