@@ -399,6 +399,7 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
   amssegHi->sig = SigInvalid;
 
   AVERT(AMSSeg, amsseg);
+  PoolGenSegMerge(&ams->pgen);
   return ResOK;
 
 failSuper:
@@ -504,6 +505,7 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
   amssegHi->sig = AMSSegSig;
   AVERT(AMSSeg, amsseg);
   AVERT(AMSSeg, amssegHi);
+  PoolGenSegSplit(&ams->pgen);
   return ResOK;
 
 failSuper:
@@ -997,7 +999,7 @@ found:
   DebugPoolFreeCheck(pool, baseAddr, limitAddr);
   allocatedSize = AddrOffset(baseAddr, limitAddr);
 
-  PoolGenBufferFill(&ams->pgen, allocatedSize, FALSE);
+  PoolGenFill(&ams->pgen, allocatedSize, FALSE);
   *baseReturn = baseAddr;
   *limitReturn = limitAddr;
   return ResOK;
@@ -1079,7 +1081,7 @@ static void AMSBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
   AVER(amsseg->newGrains >= limitIndex - initIndex);
   amsseg->newGrains -= limitIndex - initIndex;
   size = AddrOffset(init, limit);
-  PoolGenBufferEmpty(&ams->pgen, size, FALSE);
+  PoolGenEmpty(&ams->pgen, size, FALSE);
 }
 
 
