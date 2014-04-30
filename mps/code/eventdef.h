@@ -720,7 +720,12 @@
   PARAM(X,  3, W, zone)         /* zone set of generation */ \
   PARAM(X,  4, P, pool)         /* pool */ \
   PARAM(X,  5, W, totalSize)    /* total size of pool gen */ \
-  PARAM(X,  6, W, newSizeAtCreate) /* new size of pool gen at trace create */
+  PARAM(X,  6, W, freeSize)     /* free size of pool gen */ \
+  PARAM(X,  7, W, oldSize)      /* old size of pool gen */ \
+  PARAM(X,  8, W, newSize)      /* new size of pool gen */ \
+  PARAM(X,  9, W, oldDeferredSize) /* old size (deferred) of pool gen */ \
+  PARAM(X, 10, W, newDeferredSize) /* new size (deferred) of pool gen */ \
+  PARAM(X, 11, W, newSizeAtCreate) /* new size of pool gen at trace create */
 
 #define EVENT_TraceCondemnZones_PARAMS(PARAM, X) \
   PARAM(X,  0, P, trace)        /* the trace */ \
