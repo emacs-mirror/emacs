@@ -44,9 +44,8 @@ typedef struct PoolGenStruct *PoolGen;
 
 typedef struct PoolGenStruct {
   Sig sig;
-  Serial nr;          /* generation number */
   Pool pool;          /* pool this belongs to */
-  Chain chain;        /* chain this belongs to */
+  GenDesc gen;        /* generation this belongs to */
   /* link in ring of all PoolGen's in this GenDesc (locus) */
   RingStruct genRing;
   Size totalSize;     /* total size of segs in gen in this pool */
@@ -84,16 +83,13 @@ extern Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace);
 extern void ChainStartGC(Chain chain, Trace trace);
 extern void ChainEndGC(Chain chain, Trace trace);
 extern size_t ChainGens(Chain chain);
-extern Res ChainAlloc(Seg *segReturn, Chain chain, Serial genNr,
-                      SegClass class, Size size, Pool pool,
-                      Bool withReservoirPermit, ArgList args);
+extern GenDesc ChainGen(Chain chain, Index gen);
 
-extern Bool PoolGenCheck(PoolGen gen);
-extern Res PoolGenInit(PoolGen gen, Chain chain, Serial nr, Pool pool);
-extern void PoolGenFinish(PoolGen gen);
-extern void PoolGenFlip(PoolGen gen);
-#define PoolGenNr(gen) ((gen)->nr)
-
+extern Bool PoolGenCheck(PoolGen pgen);
+extern Res PoolGenInit(PoolGen pgen, GenDesc gen, Pool pool);
+extern void PoolGenFinish(PoolGen pgen);
+extern Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class,
+                        Size size, Bool withReservoirPermit, ArgList args);
 
 #endif /* chain_h */
 
