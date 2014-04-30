@@ -1,3 +1,8 @@
+2014-04-30  Reuben Thomas  <rrt@sc3d.org>
+
+	* dired.el (dired-mode): make terminology for eXpunge command
+	consistent.  (Bug#17276)
+
 2014-04-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.el (dired-initial-position-hook, dired-initial-position):

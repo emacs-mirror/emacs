@@ -1900,7 +1900,7 @@ Type \\[dired-mark] to Mark a file or subdirectory for later commands.
   to see why something went wrong.
 Type \\[dired-unmark] to Unmark a file or all files of an inserted subdirectory.
 Type \\[dired-unmark-backward] to back up one line and unmark or unflag.
-Type \\[dired-do-flagged-delete] to delete (eXecute) the files flagged `D'.
+Type \\[dired-do-flagged-delete] to delete (eXpunge) the files flagged `D'.
 Type \\[dired-find-file] to Find the current line's file
   (or dired it in another buffer, if it is a directory).
 Type \\[dired-find-file-other-window] to find file or Dired directory in Other window.
