@@ -1131,7 +1131,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
       continue;
     }
     p = awlAddrOfIndex(base, awl, i);
-    if (SegBuffer(seg) != NULL) {
+    if(SegBuffer(seg) != NULL) {
       Buffer buffer = SegBuffer(seg);
 
       if(p == BufferScanLimit(buffer)
