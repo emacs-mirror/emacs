@@ -15,6 +15,8 @@
 @echo off
 
 @rem Find test case database in same directory as this script.
+@rem The incantation %%~dpF% expands %%F to a drive letter and path only.
+@rem See "help for" for more details.
 for %%F in ("%0") do set TEST_CASE_DB=%%~dpF%testcases.txt
 
 set PFM=%1
@@ -37,6 +39,7 @@ if "%TESTSUITE%"=="testrun"  set EXCLUDE=LNX
 if "%TESTSUITE%"=="testci"   set EXCLUDE=BNX
 if "%TESTSUITE%"=="testall"  set EXCLUDE=NX
 if "%TESTSUITE%"=="testansi" set EXCLUDE=LNTX
+if "%TESTSUITE%"=="testpoll" set EXCLUDE=LNPTX
 
 @rem Ensure that test cases don't pop up dialog box on abort()
 set MPS_TESTLIB_NOABORT=true

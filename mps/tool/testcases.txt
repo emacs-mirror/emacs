@@ -3,9 +3,9 @@ Test case      Flags             Notes
 =============  ================  ==========================================
 abqtest
 airtest
-amcss
-amcsshe
-amcssth        =B =T             job003561, job003703
+amcss          =P
+amcsshe        =P
+amcssth        =B =P =T          job003561, job003703
 amsss          =B                job001549
 amssshe        =B                job001549
 apss
@@ -16,10 +16,10 @@ awlutth        =T
 btcv
 bttest         =N                interactive
 djbench        =N                benchmark
-exposet0
+exposet0       =P
 expt825
 fbmtest
-finalcv
+finalcv        =P
 finaltest
 fotest
 gcbench        =N                benchmark
@@ -50,6 +50,7 @@ Key to flags
     B -- known Bad
     L -- Long runtime
     N -- Not an automated test case
+    P -- relies on Polling
     T -- multi-Threaded
     W -- Windows-only
     X -- Unix-only
