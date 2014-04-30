@@ -585,7 +585,6 @@
 
 #define MPS_PROD_STRING         "mps"
 #define MPS_PROD_MPS
-#define PROD_CHECKLEVEL_INITIAL CheckLevelSHALLOW
 
 /* TODO: This should be proportional to the memory usage of the MPS, not
    a constant.  That will require design, and then some interface and
