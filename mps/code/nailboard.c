@@ -30,26 +30,36 @@ static Count nailboardLevels(Count nails)
 }
 
 
+/* nailboardNails -- return the total number of nails in the board */
+
+static Count nailboardNails(Nailboard board)
+{
+  return RangeSize(&board->range) >> board->alignShift;
+}
+
+
 /* nailboardLevelBits -- return the number of bits in the bit table
  * for the given level.
  */
 
-static Count nailboardLevelBits(Nailboard board, Index level)
+static Count nailboardLevelBits(Count nails, Index level)
 {
-  /* Use <= rather than < because of .check.levels. */
-  AVER(level <= board->levels);
-  return RangeSize(&board->range) >> (board->alignShift + level * LEVEL_SHIFT);
+  Shift shift = (Shift)(level * LEVEL_SHIFT);
+  return (nails + ((Count)1 << shift) - 1) >> shift;
 }
 
 Bool NailboardCheck(Nailboard board)
 {
   Index i;
+  Count nails;
   CHECKS(Nailboard, board);
   CHECKL(RangeCheck(&board->range));
   CHECKL(0 < board->levels);
-  CHECKL(board->levels == nailboardLevels(nailboardLevelBits(board, 0)));
-  CHECKL(nailboardLevelBits(board, board->levels - 1) != 0);
-  CHECKL(nailboardLevelBits(board, board->levels) == 0); /* .check.levels */
+  nails = nailboardNails(board);
+  CHECKL(board->levels == nailboardLevels(nails));
+  CHECKL(nails == nailboardLevelBits(nails, 0));
+  CHECKL(nailboardLevelBits(nails, board->levels - 1) != 0);
+  CHECKL(nailboardLevelBits(nails, board->levels) == 1);
   CHECKL(BoolCheck(board->newNails));
   for (i = 0; i < board->levels; ++i) {
     CHECKL(board->level[i] != NULL);
@@ -80,8 +90,7 @@ static Size nailboardSize(Count nails, Count levels)
   Size size;
   size = nailboardStructSize(levels);
   for (i = 0; i < levels; ++i) {
-    size += BTSize(nails);
-    nails >>= LEVEL_SHIFT;
+    size += BTSize(nailboardLevelBits(nails, i));
   }
   return size;
 }
@@ -130,11 +139,11 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
 
   p = PointerAdd(p, nailboardStructSize(levels));
   for (i = 0; i < levels; ++i) {
-    AVER(nails > 0);
+    Count levelBits = nailboardLevelBits(nails, i);
+    AVER(levelBits > 0);
     board->level[i] = p;
-    BTResRange(board->level[i], 0, nails);
-    p = PointerAdd(p, BTSize(nails));
-    nails >>= LEVEL_SHIFT;
+    BTResRange(board->level[i], 0, levelBits);
+    p = PointerAdd(p, BTSize(levelBits));
   }
   
   board->sig = NailboardSig;
@@ -154,7 +163,7 @@ void NailboardDestroy(Nailboard board, Arena arena)
   AVERT(Nailboard, board);
   AVERT(Arena, arena);
 
-  nails = nailboardLevelBits(board, 0);
+  nails = nailboardNails(board);
   size = nailboardSize(nails, board->levels);
 
   board->sig = SigInvalid;
@@ -191,8 +200,10 @@ Bool (NailboardNewNails)(Nailboard board)
 
 static Index nailboardIndex(Nailboard board, Index level, Addr addr)
 {
-  return AddrOffset(RangeBase(&board->range), addr)
+  Index i = AddrOffset(RangeBase(&board->range), addr)
     >> (board->alignShift + level * LEVEL_SHIFT);
+  AVER_CRITICAL(i < nailboardLevelBits(nailboardNails(board), level));
+  return i;
 }
 
 
@@ -414,7 +425,7 @@ Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream)
     return res;
 
   for(i = 0; i < board->levels; ++i) {
-    Count levelNails = nailboardLevelBits(board, i);
+    Count levelNails = nailboardLevelBits(nailboardNails(board), i);
     Count resetNails = BTCountResRange(board->level[i], 0, levelNails);
     res = WriteF(stream, "  Level $U ($U bits, $U set): ",
                  i, levelNails, levelNails - resetNails, NULL);

@@ -1,7 +1,7 @@
 /* ring.c: RING IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001,2003 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .intro: This is a portable implementation of Rings.
  *
@@ -50,6 +50,16 @@ Bool RingIsSingle(Ring ring)
 {
   AVERT(Ring, ring);
   return (ring->next == ring);
+}
+
+Size RingLength(Ring ring)
+{
+  Size size = 0;
+  Ring node, next;
+  AVERT(Ring, ring);
+  RING_FOR(node, ring, next)
+    ++ size;
+  return size;
 }
 
 
@@ -131,7 +141,7 @@ Ring (RingPrev)(Ring ring)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

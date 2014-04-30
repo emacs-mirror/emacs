@@ -20,8 +20,21 @@
 
 # 2. CONFIGURATION
 
-# MPS sources we are testing against
-MPS=$(cd -- "$(dirname "$0")/.." && pwd)
+# Check command-line argument
+GC=$1
+case "$GC" in
+    mps)
+        # MPS sources we are testing against
+        CONFIGURE=--with-gc-path=$(cd -- "$(dirname "$0")/.." && pwd)
+        ;;
+    boehm)
+        CONFIGURE=
+        ;;
+    *)
+        echo "Backend '$GC' not supported: choose mps or boehm."
+        exit 1
+esac
+
 
 # OpenDylan version for bootstrapping
 VERSION=2013.2
@@ -30,7 +43,7 @@ VERSION=2013.2
 REMOTE=https://github.com/dylan-lang/opendylan.git
 
 # Directory to put everything in
-TESTDIR="$PWD/.test"
+TESTDIR="$PWD/.test/$GC"
 mkdir -p -- "$TESTDIR"
 cd -- "$TESTDIR"
 
@@ -104,7 +117,7 @@ if [ -f "$REPO/Makefile" ]; then
 else (
     cd -- "$REPO" &&
     ./autogen.sh &&
-    ./configure --with-mps="$MPS" --prefix="$PREFIX"
+    ./configure --with-gc="$GC" --prefix="$PREFIX" $CONFIGURE
 ) fi
 (
     cd -- "$REPO" &&
@@ -127,6 +140,9 @@ else (
 # B. DOCUMENT HISTORY
 #
 # 2014-03-20 GDR Created based on [WELCOME].
+#
+# 2014-04-14 GDR Updated configure args based on revised build
+# instructions [WELCOME].
 #
 #
 # C. COPYRIGHT AND LICENCE

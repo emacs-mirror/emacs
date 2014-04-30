@@ -48,18 +48,20 @@ static Bool SACCheck(SAC sac)
   CHECKL(esac->_middle > 0);
   /* check classes above middle */
   prevSize = esac->_middle;
-  for (j = sac->middleIndex + 1, i = 0;
-       j <= sac->classesCount; ++j, i += 2) {
+  for (j = sac->middleIndex + 1, i = 0; j < sac->classesCount; ++j, i += 2) {
     CHECKL(prevSize < esac->_freelists[i]._size);
     b = sacFreeListBlockCheck(&(esac->_freelists[i]));
     if (!b) return b;
     prevSize = esac->_freelists[i]._size;
   }
   /* check overlarge class */
-  CHECKL(esac->_freelists[i-2]._size == SizeMAX);
-  CHECKL(esac->_freelists[i-2]._count == 0);
-  CHECKL(esac->_freelists[i-2]._count_max == 0);
-  CHECKL(esac->_freelists[i-2]._blocks == NULL);
+  CHECKL(prevSize < esac->_freelists[i]._size);
+  b = sacFreeListBlockCheck(&(esac->_freelists[i]));
+  if (!b) return b;
+  CHECKL(esac->_freelists[i]._size == SizeMAX);
+  CHECKL(esac->_freelists[i]._count == 0);
+  CHECKL(esac->_freelists[i]._count_max == 0);
+  CHECKL(esac->_freelists[i]._blocks == NULL);
   /* check classes below middle */
   prevSize = esac->_middle;
   for (j = sac->middleIndex, i = 1; j > 0; --j, i += 2) {
@@ -69,6 +71,7 @@ static Bool SACCheck(SAC sac)
     prevSize = esac->_freelists[i]._size;
   }
   /* check smallest class */
+  CHECKL(prevSize > esac->_freelists[i]._size);
   CHECKL(esac->_freelists[i]._size == 0);
   b = sacFreeListBlockCheck(&(esac->_freelists[i]));
   return b;

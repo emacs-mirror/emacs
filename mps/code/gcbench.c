@@ -318,8 +318,8 @@ int main(int argc, char *argv[]) {
         double mort = 0.0;
         cap = (size_t)strtoul(optarg, &p, 10);
         switch(toupper(*p)) {
-        case 'G': cap *= 1024;  /* fall through */
-        case 'M': cap *= 1024;  /* fall through */
+        case 'G': cap <<= 20; p++; break;
+        case 'M': cap <<= 10; p++; break;
         case 'K': p++; break;
         default: cap = 0; break;
         }
@@ -340,9 +340,9 @@ int main(int argc, char *argv[]) {
         char *p;
         arenasize = (unsigned)strtoul(optarg, &p, 10);
         switch(toupper(*p)) {
-        case 'G': arenasize *= 1024;
-        case 'M': arenasize *= 1024;
-        case 'K': arenasize *= 1024; break;
+        case 'G': arenasize <<= 30; break;
+        case 'M': arenasize <<= 20; break;
+        case 'K': arenasize <<= 10; break;
         case '\0': break;
         default:
           fprintf(stderr, "Bad arena size %s\n", optarg);

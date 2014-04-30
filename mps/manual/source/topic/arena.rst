@@ -233,18 +233,18 @@ Virtual memory arenas
     more efficient.
 
     When creating a virtual memory arena, :c:func:`mps_arena_create_k`
-    requires one :term:`keyword argument`:
+    accepts one :term:`keyword argument` on all platforms:
 
-    * :c:macro:`MPS_KEY_ARENA_SIZE` (type :c:type:`size_t`). is the
-      initial amount of virtual address space, in :term:`bytes (1)`,
-      that the arena will reserve (this space is initially reserved so
-      that the arena can subsequently use it without interference from
-      other parts of the program, but most of it is not committed, so
-      it doesn't require any RAM or backing store). The arena may
-      allocate more virtual address space beyond this initial
-      reservation as and when it deems it necessary. The MPS is most
-      efficient if you reserve an address space that is several times
-      larger than your peak memory usage.
+    * :c:macro:`MPS_KEY_ARENA_SIZE` (type :c:type:`size_t`, default
+      2\ :superscript:`20`) is the initial amount of virtual address
+      space, in :term:`bytes (1)`, that the arena will reserve (this
+      space is initially reserved so that the arena can subsequently
+      use it without interference from other parts of the program, but
+      most of it is not committed, so it doesn't require any RAM or
+      backing store). The arena may allocate more virtual address
+      space beyond this initial reservation as and when it deems it
+      necessary. The MPS is most efficient if you reserve an address
+      space that is several times larger than your peak memory usage.
 
       .. note::
 
@@ -252,8 +252,8 @@ Virtual memory arenas
           more times it has to extend its address space, the less
           efficient garbage collection will become.
 
-    An optional :term:`keyword argument` may be passed, but is
-    only used on the Windows operating system:
+    A second optional :term:`keyword argument` may be passed, but it
+    only has any effect on the Windows operating system:
 
     * :c:macro:`MPS_KEY_VMW3_TOP_DOWN` (type :c:type:`mps_bool_t`). If
       true, the arena will allocate address space starting at the
@@ -273,8 +273,9 @@ Virtual memory arenas
 
     If the MPS fails to allocate memory for the internal arena
     structures, :c:func:`mps_arena_create_k` returns
-    :c:macro:`MPS_RES_MEMORY`. Either ``size`` was far too small or
-    the operating system refused to provide enough memory.
+    :c:macro:`MPS_RES_MEMORY`. Either :c:macro:`MPS_KEY_ARENA_SIZE`
+    was far too small or the operating system refused to provide
+    enough memory.
 
     For example::
 

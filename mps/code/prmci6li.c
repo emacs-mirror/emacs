@@ -33,12 +33,19 @@ SRCID(prmci6li, "$Id$");
 
 MRef Prmci6AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 {
-  Word *gregs;
+  MRef gregs;
 
+  AVER(mfc != NULL);
   AVER(NONNEGATIVE(regnum));
   AVER(regnum <= 15);
+  AVER(mfc->ucontext != NULL);
 
-  gregs = (Word *)&mfc->ucontext->uc_mcontext.gregs;
+  /* TODO: The current arrangement of the fix operation (taking a Ref *)
+     forces us to pun these registers (actually `int` on LII6GC).  We can
+     suppress the warning by casting through `void *` and this might make
+     it safe, but does it really?  RB 2012-09-10 */
+  AVER(sizeof(void *) == sizeof(*mfc->ucontext->uc_mcontext.gregs));
+  gregs = (void *)mfc->ucontext->uc_mcontext.gregs;
 
   /* .assume.regref */
   /* The register numbers (REG_RAX etc.) are defined in <ucontext.h>

@@ -280,6 +280,16 @@
 #define ATTRIBUTE_NO_SANITIZE_ADDRESS
 #endif
 
+/* Attribute for functions that do not return.
+ * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html>
+ * Clang: <http://clang.llvm.org/docs/AttributeReference.html#id1>
+ */
+#if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
+#define ATTRIBUTE_NORETURN __attribute__((__noreturn__))
+#else
+#define ATTRIBUTE_NORETURN
+#endif
+
 
 /* EPVMDefaultSubsequentSegSIZE is a default for the alignment of
  * subsequent segments (non-initial at each save level) in EPVM.  See
@@ -404,6 +414,8 @@
    Deliberately smaller than the default, because we don't expect the control
    pool to be very heavily used. */
 #define CONTROL_EXTEND_BY 4096
+
+#define VM_ARENA_SIZE_DEFAULT ((Size)1 << 20)
 
 
 /* Stack configuration */

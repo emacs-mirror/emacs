@@ -1,7 +1,7 @@
 /* misc.h: MISCELLANEOUS DEFINITIONS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2001 Global Graphics Software.
  *
  * Small general things which are useful for C but aren't part of the
@@ -50,6 +50,7 @@ typedef const struct SrcIdStruct {
 #define SRCID(id, scmid) \
   static SrcIdStruct id ## FileSrcIdStruct = \
   {__FILE__, (scmid), __DATE__, __TIME__}; \
+  extern SrcId id ## SrcId; \
   SrcId id ## SrcId = &id ## FileSrcIdStruct
 
 
@@ -170,6 +171,16 @@ typedef const struct SrcIdStruct {
   ((type *)(void *)((char *)(p) - offsetof(type, field)))
 
 
+/* BITFIELD -- coerce a value into a bitfield
+ *
+ * This coerces value to the given width and type in a way that avoids
+ * warnings from gcc -Wconversion about possible loss of data.
+ */
+
+#define BITFIELD(type, value, width) ((type)value & (((type)1 << (width)) - 1))
+#define BOOLOF(v) BITFIELD(unsigned, (v), 1)
+
+
 /* Bit Sets -- sets of integers in [0,N-1].
  *
  * Can be used on any unsigned integral type, ty.  These definitions
@@ -191,6 +202,7 @@ typedef const struct SrcIdStruct {
 #define BS_SUB(s1, s2)          BS_SUPER((s2), (s1))
 #define BS_IS_SINGLE(s)         (  ((s) != 0)  &&  (((s) & ((s)-1)) == 0)  )
 #define BS_SYM_DIFF(s1, s2)     ((s1) ^ (s2))
+#define BS_BITFIELD(ty, s)      BITFIELD(ty ## Set, (s), ty ## LIMIT)
 
 
 #endif /* misc_h */
@@ -198,7 +210,7 @@ typedef const struct SrcIdStruct {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
