@@ -1,3 +1,8 @@
+2014-04-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mm-display-part): Don't move point while toggling
+	a part; redisplay a button (enbugged in 2014-02-05).
+
 2014-04-27  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-source-search, auth-source-search-backends):
