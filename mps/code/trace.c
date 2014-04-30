@@ -390,6 +390,7 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
   Seg seg;
   Arena arena;
   Res res;
+  Bool haveWhiteSegs = FALSE;
 
   AVERT(Trace, trace);
   AVER(condemnedSet != ZoneSetEMPTY);
@@ -415,7 +416,8 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
       {
         res = TraceAddWhite(trace, seg);
         if(res != ResOK)
-          return res;
+          goto failBegin;
+        haveWhiteSegs = TRUE;
       }
     } while (SegNext(&seg, arena, seg));
   }
@@ -426,6 +428,10 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
   AVER(ZoneSetSuper(condemnedSet, trace->white));
 
   return ResOK;
+
+failBegin:
+  AVER(!haveWhiteSegs); /* See .whiten.fail. */
+  return res;
 }
 
 
@@ -1537,7 +1543,14 @@ static Res traceCondemnAll(Trace trace)
   return ResOK;
 
 failBegin:
-  AVER(!haveWhiteSegs); /* Would leave white sets inconsistent. */
+  /* .whiten.fail: If we successfully whitened one or more segments,
+   * but failed to whiten them all, then the white sets would now be
+   * inconsistent. This can't happen in practice (at time of writing)
+   * because all PoolWhiten methods always succeed. If we ever have a
+   * pool class that fails to whiten a segment, then this assertion
+   * will be triggered. In that case, we'll have to recover here by
+   * blackening the segments again. */
+  AVER(!haveWhiteSegs);
   return res;
 }
 
@@ -1575,15 +1588,13 @@ static Res rootGrey(Root root, void *p)
 }
 
 
-static void TraceStartPoolGen(Chain chain, GenDesc desc, Bool top, Index i)
+static void TraceStartPoolGen(GenDesc gen)
 {
   Ring n, nn;
-  RING_FOR(n, &desc->locusRing, nn) {
-    PoolGen gen = RING_ELT(PoolGen, genRing, n);
-    EVENT11(TraceStartPoolGen, chain, BOOL(top), i, desc,
-            desc->capacity, desc->mortality, desc->zones,
-            gen->pool, gen->nr, gen->totalSize,
-            gen->newSizeAtCreate);
+  RING_FOR(n, &gen->locusRing, nn) {
+    PoolGen pgen = RING_ELT(PoolGen, genRing, n);
+    EVENT7(TraceStartPoolGen, gen, gen->capacity, gen->mortality, gen->zones,
+           pgen->pool, pgen->totalSize, pgen->newSizeAtCreate);
   }
 }
 
@@ -1663,13 +1674,13 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
     RING_FOR(node, &arena->chainRing, nextNode) {
       Chain chain = RING_ELT(Chain, chainRing, node);
       for(i = 0; i < chain->genCount; ++i) {
-        GenDesc desc = &chain->gens[i];
-        TraceStartPoolGen(chain, desc, FALSE, i);
+        GenDesc gen = &chain->gens[i];
+        TraceStartPoolGen(gen);
       }
     }
-    
+
     /* Now do topgen GenDesc (and all PoolGens within it). */
-    TraceStartPoolGen(NULL, &arena->topGen, TRUE, 0);
+    TraceStartPoolGen(&arena->topGen);
   });
 
   res = RootsIterate(ArenaGlobals(arena), rootGrey, (void *)trace);

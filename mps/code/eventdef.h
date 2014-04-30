@@ -36,8 +36,8 @@
  */
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
-#define EVENT_VERSION_MEDIAN ((unsigned)1)
-#define EVENT_VERSION_MINOR  ((unsigned)7)
+#define EVENT_VERSION_MEDIAN ((unsigned)2)
+#define EVENT_VERSION_MINOR  ((unsigned)0)
 
 
 /* EVENT_LIST -- list of event types and general properties
@@ -714,17 +714,13 @@
   PARAM(X, 20, W, pRLr)
 
 #define EVENT_TraceStartPoolGen_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, chain)        /* chain (or NULL for topGen) */ \
-  PARAM(X,  1, B, top)          /* 1 for topGen, 0 otherwise */ \
-  PARAM(X,  2, W, index)        /* index of generation in the chain */ \
-  PARAM(X,  3, P, gendesc)      /* generation description */ \
-  PARAM(X,  4, W, capacity)     /* capacity of generation */ \
-  PARAM(X,  5, D, mortality)    /* mortality of generation */ \
-  PARAM(X,  6, W, zone)         /* zone set of generation */ \
-  PARAM(X,  7, P, pool)         /* pool */ \
-  PARAM(X,  8, W, serial)       /* pool gen serial number */ \
-  PARAM(X,  9, W, totalSize)    /* total size of pool gen */ \
-  PARAM(X, 10, W, newSizeAtCreate) /* new size of pool gen at trace create */
+  PARAM(X,  0, P, gendesc)      /* generation description */ \
+  PARAM(X,  1, W, capacity)     /* capacity of generation */ \
+  PARAM(X,  2, D, mortality)    /* mortality of generation */ \
+  PARAM(X,  3, W, zone)         /* zone set of generation */ \
+  PARAM(X,  4, P, pool)         /* pool */ \
+  PARAM(X,  5, W, totalSize)    /* total size of pool gen */ \
+  PARAM(X,  6, W, newSizeAtCreate) /* new size of pool gen at trace create */
 
 #define EVENT_TraceCondemnZones_PARAMS(PARAM, X) \
   PARAM(X,  0, P, trace)        /* the trace */ \
@@ -733,7 +729,7 @@
 
 #define EVENT_ArenaGenZoneAdd_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena)        /* the arena */ \
-  PARAM(X,  1, W, gen)          /* the generation number */ \
+  PARAM(X,  1, P, gendesc)      /* the generation description */ \
   PARAM(X,  2, W, zoneSet)      /* the new zoneSet */
 
 #define EVENT_ArenaUseFreeZone_PARAMS(PARAM, X) \
