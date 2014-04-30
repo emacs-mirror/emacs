@@ -1644,11 +1644,11 @@ function for its other effects."
 The following sources are applied in this order:
 
   face reset to default values if it's the default face, otherwise set
-  to unspecifed (through `face-spec-reset-face`)
+  to unspecified (through `face-spec-reset-face')
    |
   (theme and user customization)
-    or: if none of the above exist, do not match the current frame or
-        did inherit from the defface spec instead of overwriting it
+    or: if none of the above exist, and none match the current frame or
+        inherited from the defface spec instead of overwriting it
         entirely, the following is applied instead:
   (defface default spec)
   (X resources (if applicable))
