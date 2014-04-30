@@ -654,7 +654,7 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
 
     /* Only try to allocate in the segment if it is not already */
     /* buffered, and has the same ranks as the buffer. */
-    if (!SegHasBuffer(seg)
+    if (SegBuffer(seg) == NULL
         && SegRankSet(seg) == BufferRankSet(buffer)
         && AWLGrainsSize(awl, awlseg->freeGrains) >= size
         && AWLSegAlloc(&base, &limit, awlseg, awl, size))
@@ -749,6 +749,7 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
 {
   AWL awl;
   AWLSeg awlseg;
+  Buffer buffer;
   Count uncondemned;
 
   /* All parameters checked by generic PoolWhiten. */
@@ -757,17 +758,17 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
   AVERT(AWL, awl);
   awlseg = Seg2AWLSeg(seg);
   AVERT(AWLSeg, awlseg);
+  buffer = SegBuffer(seg);
 
   /* Can only whiten for a single trace, */
   /* see <design/poolawl/#fun.condemn> */
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
-  if (!SegHasBuffer(seg)) {
+  if(buffer == NULL) {
     awlRangeWhiten(awlseg, 0, awlseg->grains);
     uncondemned = (Count)0;
   } else {
     /* Whiten everything except the buffer. */
-    Buffer buffer = SegBuffer(seg);
     Addr base = SegBase(seg);
     Index scanLimitIndex = awlIndexOfAddr(base, awl, BufferScanLimit(buffer));
     Index limitIndex = awlIndexOfAddr(base, awl, BufferLimit(buffer));
@@ -825,7 +826,7 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
     AVERT(AWLSeg, awlseg);
 
     SegSetGrey(seg, TraceSetAdd(SegGrey(seg), trace));
-    if (SegHasBuffer(seg)) {
+    if (SegBuffer(seg) != NULL) {
       Addr base = SegBase(seg);
       Buffer buffer = SegBuffer(seg);
 
@@ -1130,7 +1131,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
       continue;
     }
     p = awlAddrOfIndex(base, awl, i);
-    if (SegHasBuffer(seg)) {
+    if (SegBuffer(seg) != NULL) {
       Buffer buffer = SegBuffer(seg);
 
       if(p == BufferScanLimit(buffer)
@@ -1248,7 +1249,7 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
     Addr next;
     Index i;
 
-    if (SegHasBuffer(seg)) {
+    if (SegBuffer(seg) != NULL) {
       Buffer buffer = SegBuffer(seg);
       if (object == BufferScanLimit(buffer)
           && BufferScanLimit(buffer) != BufferLimit(buffer)) {

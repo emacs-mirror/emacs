@@ -169,6 +169,7 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size,
 static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
 {
   amcSeg amcseg;
+  Buffer buffer;
 
   AVER(pbSketch);
   AVER(cbSketch >= 5);
@@ -196,8 +197,10 @@ static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
     pbSketch[2] = 'W';  /* White */
   }
 
-  if (SegHasBuffer(seg)) {
-    Buffer buffer = SegBuffer(seg);
+  buffer = SegBuffer(seg);
+  if(buffer == NULL) {
+    pbSketch[3] = '_';
+  } else {
     Bool mut = BufferIsMutator(buffer);
     Bool flipped = ((buffer->mode & BufferModeFLIPPED) != 0);
     Bool trapped = BufferIsTrapped(buffer);
@@ -220,8 +223,6 @@ static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
     } else {
       /* I don't know what's going on! */
     }
-  } else {
-    pbSketch[3] = '_';
   }
   
   pbSketch[4] = '\0';
@@ -287,7 +288,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
   if(res != ResOK)
     return res;
 
-  if (SegHasBuffer(seg))
+  if(SegBuffer(seg) != NULL)
     init = BufferGetInit(SegBuffer(seg));
   else
     init = limit;
@@ -669,7 +670,6 @@ static Res amcGenCreate(amcGen *genReturn, AMC amc, GenDesc gen)
   if(res != ResOK)
     goto failGenInit;
   RingInit(&amcgen->amcRing);
-  amcgen->segs = 0;
   amcgen->forward = buffer;
   amcgen->sig = amcGenSig;
 
@@ -1200,6 +1200,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
   Size condemned = 0;
   amcGen gen;
   AMC amc;
+  Buffer buffer;
   amcSeg amcseg;
   Res res;
 
@@ -1208,8 +1209,8 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
   AVERT(Seg, seg);
   amcseg = Seg2amcSeg(seg);
 
-  if (SegHasBuffer(seg)) {
-    Buffer buffer = SegBuffer(seg);
+  buffer = SegBuffer(seg);
+  if(buffer != NULL) {
     AVERT(Buffer, buffer);
 
     if(!BufferIsMutator(buffer)) {      /* forwarding buffer */
@@ -1380,7 +1381,7 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
   NailboardClearNewNails(board);
 
   p = SegBase(seg);
-  while (SegHasBuffer(seg)) {
+  while(SegBuffer(seg) != NULL) {
     limit = BufferScanLimit(SegBuffer(seg));
     if(p >= limit) {
       AVER(p == limit);
@@ -1485,7 +1486,7 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
   base = AddrAdd(SegBase(seg), format->headerSize);
   /* <design/poolamc/#seg-scan.loop> */
-  while (SegHasBuffer(seg)) {
+  while(SegBuffer(seg) != NULL) {
     limit = AddrAdd(BufferScanLimit(SegBuffer(seg)),
                     format->headerSize);
     if(base >= limit) {
@@ -1929,7 +1930,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   headerSize = format->headerSize;
   ShieldExpose(arena, seg);
   p = SegBase(seg);
-  if (SegHasBuffer(seg)) {
+  if(SegBuffer(seg) != NULL) {
     limit = BufferScanLimit(SegBuffer(seg));
   } else {
     limit = SegLimit(seg);
@@ -1982,13 +1983,13 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 
   /* Free the seg if we can; fixes .nailboard.limitations.middle. */
   if(preservedInPlaceCount == 0
-     && !SegHasBuffer(seg)
+     && (SegBuffer(seg) == NULL)
      && (SegNailed(seg) == TraceSetEMPTY)) {
 
     amcGen gen = amcSegGen(seg);
 
     /* We may not free a buffered seg. */
-    AVER(!SegHasBuffer(seg));
+    AVER(SegBuffer(seg) == NULL);
 
     PoolGenReclaim(&gen->pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
     PoolGenFree(&gen->pgen, seg);
@@ -2065,7 +2066,7 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 
   /* We may not free a buffered seg.  (But all buffered + condemned */
   /* segs should have been nailed anyway). */
-  AVER(!SegHasBuffer(seg));
+  AVER(SegBuffer(seg) == NULL);
 
   trace->reclaimSize += SegSize(seg);
 
@@ -2134,7 +2135,7 @@ static void AMCWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
 
     /* If the segment is buffered, only walk as far as the end */
     /* of the initialized objects.  cf. AMCScan */
-    if(SegHasBuffer(seg))
+    if(SegBuffer(seg) != NULL)
       limit = BufferScanLimit(SegBuffer(seg));
     else
       limit = SegLimit(seg);
@@ -2232,7 +2233,7 @@ static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
 
   arena = PoolArena(pool);
   base = SegBase(seg);
-  if (SegHasBuffer(seg)) {
+  if (SegBuffer(seg) != NULL) {
     /* We use BufferGetInit here (and not BufferScanLimit) because we
      * want to be able to find objects that have been allocated and
      * committed since the last flip. These objects lie between the

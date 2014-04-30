@@ -334,7 +334,6 @@ static Res AMSTInit(Pool pool, ArgList args)
   Res res;
   unsigned gen = AMS_GEN_DEFAULT;
   ArgStruct arg;
-  unsigned gen = AMS_GEN_DEFAULT;
 
   AVERT(Pool, pool);
   AVERT(ArgList, args);
@@ -556,7 +555,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   if (SegLimit(seg) == limit && SegBase(seg) == base) {
     if (amstseg->prev != NULL) {
       Seg segLo = AMSTSeg2Seg(amstseg->prev);
-      if (!SegHasBuffer(segLo) && SegGrey(segLo) == SegGrey(seg)) {
+      if (SegBuffer(segLo) == NULL && SegGrey(segLo) == SegGrey(seg)) {
         /* .merge */
         Seg mergedSeg;
         Res mres;
