@@ -252,7 +252,7 @@ static Bool loSegFindFree(Addr *bReturn, Addr *lReturn,
   AVER(agrains <= loseg->freeGrains);
   AVER(size <= SegSize(seg));
 
-  if (SegBuffer(seg) != NULL)
+  if(SegBuffer(seg) != NULL)
     /* Don't bother trying to allocate from a buffered segment */
     return FALSE;
 
