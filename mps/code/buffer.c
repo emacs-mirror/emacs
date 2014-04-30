@@ -1075,7 +1075,7 @@ static Res bufferTrivInit(Buffer buffer, Pool pool, ArgList args)
   AVERT(Buffer, buffer);
   AVERT(Pool, pool);
   UNUSED(args);
-  EVENT3(BufferInit, buffer, pool, BOOL(buffer->isMutator));
+  EVENT3(BufferInit, buffer, pool, BOOLOF(buffer->isMutator));
   return ResOK;
 }
 
@@ -1288,7 +1288,7 @@ static Res segBufInit(Buffer buffer, Pool pool, ArgList args)
   segbuf->rankSet = RankSetEMPTY;
   
   AVERT(SegBuf, segbuf);
-  EVENT3(BufferInitSeg, buffer, pool, BOOL(buffer->isMutator));
+  EVENT3(BufferInitSeg, buffer, pool, BOOLOF(buffer->isMutator));
   return ResOK;
 }
 
@@ -1333,7 +1333,7 @@ static void segBufAttach(Buffer buffer, Addr base, Addr limit,
   found = SegOfAddr(&seg, arena, base);
   AVER(found);
   AVER(segbuf->seg == NULL);
-  AVER(SegBuffer(seg) == NULL);
+  AVER(!SegHasBuffer(seg));
   AVER(SegBase(seg) <= base);
   AVER(limit <= SegLimit(seg));
 
@@ -1515,7 +1515,7 @@ static Res rankBufInit(Buffer buffer, Pool pool, ArgList args)
   BufferSetRankSet(buffer, RankSetSingle(rank));
 
   /* There's nothing to check that the superclass doesn't, so no AVERT. */
-  EVENT4(BufferInitRank, buffer, pool, BOOL(buffer->isMutator), rank);
+  EVENT4(BufferInitRank, buffer, pool, BOOLOF(buffer->isMutator), rank);
   return ResOK;
 }
 

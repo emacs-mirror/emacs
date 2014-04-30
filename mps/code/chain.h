@@ -44,13 +44,20 @@ typedef struct PoolGenStruct *PoolGen;
 
 typedef struct PoolGenStruct {
   Sig sig;
-  Serial nr;          /* generation number */
   Pool pool;          /* pool this belongs to */
-  Chain chain;        /* chain this belongs to */
+  GenDesc gen;        /* generation this belongs to */
   /* link in ring of all PoolGen's in this GenDesc (locus) */
   RingStruct genRing;
-  Size totalSize;     /* total size of segs in gen in this pool */
-  Size newSize;       /* size allocated since last GC */
+
+  /* Accounting of memory in this generation for this pool */
+  Size segs;          /* number of segments */
+  Size totalSize;     /* total (sum of segment sizes) */
+  Size freeSize;      /* unused (free or lost to fragmentation) */
+  Size oldSize;       /* allocated prior to last collection */
+  Size newSize;       /* allocated since last collection */
+  Size oldDeferredSize; /* allocated prior to last collection (deferred) */
+  Size newDeferredSize; /* allocated since last collection (deferred) */
+
   /* newSize when TraceCreate was called. This is used in the
    * TraceStartPoolGen event emitted at the start of a trace; at that
    * time, newSize has already been diminished by Whiten so we can't
@@ -84,16 +91,19 @@ extern Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace);
 extern void ChainStartGC(Chain chain, Trace trace);
 extern void ChainEndGC(Chain chain, Trace trace);
 extern size_t ChainGens(Chain chain);
-extern Res ChainAlloc(Seg *segReturn, Chain chain, Serial genNr,
-                      SegClass class, Size size, Pool pool,
-                      Bool withReservoirPermit, ArgList args);
+extern GenDesc ChainGen(Chain chain, Index gen);
 
-extern Bool PoolGenCheck(PoolGen gen);
-extern Res PoolGenInit(PoolGen gen, Chain chain, Serial nr, Pool pool);
-extern void PoolGenFinish(PoolGen gen);
-extern void PoolGenFlip(PoolGen gen);
-#define PoolGenNr(gen) ((gen)->nr)
-
+extern Bool PoolGenCheck(PoolGen pgen);
+extern Res PoolGenInit(PoolGen pgen, GenDesc gen, Pool pool);
+extern void PoolGenFinish(PoolGen pgen);
+extern Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class,
+                        Size size, Bool withReservoirPermit, ArgList args);
+extern void PoolGenBufferFill(PoolGen pgen, Size size, Bool deferred);
+extern void PoolGenAge(PoolGen pgen, Size aged, Bool deferred);
+extern void PoolGenReclaim(PoolGen pgen, Size reclaimed, Bool deferred);
+extern void PoolGenBufferEmpty(PoolGen pgen, Size unused, Bool deferred);
+extern void PoolGenUndefer(PoolGen pgen, Size oldSize, Size newSize);
+extern void PoolGenFree(PoolGen pgen, Seg seg);
 
 #endif /* chain_h */
 
