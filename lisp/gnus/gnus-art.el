@@ -5671,8 +5671,6 @@ all parts."
 		 nil id
 		 (gnus-article-mime-total-parts)
 		 (mm-handle-media-type handle))))))
-      (if (window-live-p window)
-	  (select-window window))
       (goto-char point)
       ;; Toggle the button appearance between `[button]...' and `[button]'.
       (let ((end (next-single-property-change point 'gnus-data)))
@@ -5684,7 +5682,9 @@ all parts."
 	    (goto-char pt)
 	  ;; We're in the article header.
 	  (delete-char -1)))
-      (goto-char point))
+      (goto-char point)
+      (if (window-live-p window)
+	  (select-window window)))
     retval))
 
 (defun gnus-article-goto-part (n)
