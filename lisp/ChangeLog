@@ -1,3 +1,8 @@
+2014-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.el (dired-initial-position-hook, dired-initial-position):
+	Doc string fixes.
+
 2014-04-29  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-quit): Handle killed summaries.  (Bug#17283)
