@@ -33,6 +33,8 @@ Res StackScan(ScanState ss, Addr *stackBot)
    */
   AVER(stackTop < (void *)stackBot);
 
+  (void)setjmp(jb);
+
   return StackScanInner(ss, stackBot, stackTop, sizeof jb / sizeof(Addr*));
 }
 
