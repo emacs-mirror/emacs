@@ -1,3 +1,9 @@
+2014-04-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* term.c (tty_menu_activate): Don't assume row and col are initialized.
+	GCC 4.9.0 warned about this, and I couldn't easily prove to my own
+	satisfaction that they would always be initialized.
+
 2014-04-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* term.c (tty_menu_display): Move the cursor to the active menu
