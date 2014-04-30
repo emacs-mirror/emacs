@@ -183,11 +183,10 @@
 /* CONFIG_POLL_NONE -- no support for polling
  *
  * This symbol causes the MPS to built without support for polling.
- * This means that the arena must be clamped or parked at all times,
- * garbage collections can only be carried out explicitly via
- * mps_arena_collect(), but it also means that protection is not
- * needed, and so shield operations can be replaced with no-ops in
- * mpm.h.
+ * This means that garbage collections will only happen if requested
+ * explicitly via mps_arena_collect() or mps_arena_step(), but it also
+ * means that protection is not needed, and so shield operations can
+ * be replaced with no-ops in mpm.h.
  */
 
 #if !defined(CONFIG_POLL_NONE)
