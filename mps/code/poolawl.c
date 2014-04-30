@@ -1100,6 +1100,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   Addr base;
   AWL awl;
   AWLSeg awlseg;
+  Buffer buffer;
   Index i;
   Count oldFree;
   Format format;
@@ -1119,6 +1120,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   format = pool->format;
 
   base = SegBase(seg);
+  buffer = SegBuffer(seg);
 
   i = 0;
   oldFree = awlseg->freeGrains;
@@ -1131,15 +1133,12 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
       continue;
     }
     p = awlAddrOfIndex(base, awl, i);
-    if(SegBuffer(seg) != NULL) {
-      Buffer buffer = SegBuffer(seg);
-
-      if(p == BufferScanLimit(buffer)
-         && BufferScanLimit(buffer) != BufferLimit(buffer))
-      {
-        i = awlIndexOfAddr(base, awl, BufferLimit(buffer));
-        continue;
-      }
+    if (buffer != NULL
+        && p == BufferScanLimit(buffer)
+        && BufferScanLimit(buffer) != BufferLimit(buffer))
+    {
+      i = awlIndexOfAddr(base, awl, BufferLimit(buffer));
+      continue;
     }
     q = format->skip(AddrAdd(p, format->headerSize));
     q = AddrSub(q, format->headerSize);
@@ -1172,7 +1171,10 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   trace->preservedInPlaceCount += preservedInPlaceCount;
   trace->preservedInPlaceSize += preservedInPlaceSize;
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
-  /* @@@@ never frees a segment, see job001687. */
+
+  if (awlseg->freeGrains == awlseg->grains && buffer == NULL)
+    /* No survivors */
+    PoolGenFree(&awl->pgen, seg);
 }
 
 
