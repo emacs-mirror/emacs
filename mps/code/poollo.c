@@ -610,7 +610,7 @@ found:
     loseg->newGrains += limitIndex - baseIndex;
   }
 
-  PoolGenBufferFill(&lo->pgen, AddrOffset(base, limit), FALSE);
+  PoolGenFill(&lo->pgen, AddrOffset(base, limit), FALSE);
 
   *baseReturn = base;
   *limitReturn = limit;
@@ -665,7 +665,7 @@ static void LOBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
     AVER(loseg->newGrains >= limitIndex - initIndex);
     loseg->newGrains -= limitIndex - initIndex;
     loseg->freeGrains += limitIndex - initIndex;
-    PoolGenBufferEmpty(&lo->pgen, AddrOffset(init, limit), FALSE);
+    PoolGenEmpty(&lo->pgen, AddrOffset(init, limit), FALSE);
   }
 }
 

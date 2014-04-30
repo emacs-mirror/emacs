@@ -685,7 +685,7 @@ found:
     AVER(awlseg->freeGrains >= j - i);
     awlseg->freeGrains -= j - i;
     awlseg->newGrains += j - i;
-    PoolGenBufferFill(&awl->pgen, AddrOffset(base, limit), FALSE);
+    PoolGenFill(&awl->pgen, AddrOffset(base, limit), FALSE);
   }
   *baseReturn = base;
   *limitReturn = limit;
@@ -724,7 +724,7 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
     AVER(awlseg->newGrains >= j - i);
     awlseg->newGrains -= j - i;
     awlseg->freeGrains += j - i;
-    PoolGenBufferEmpty(&awl->pgen, AddrOffset(init, limit), FALSE);
+    PoolGenEmpty(&awl->pgen, AddrOffset(init, limit), FALSE);
   }
 }
 

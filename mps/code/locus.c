@@ -465,12 +465,12 @@ Bool PoolGenCheck(PoolGen pgen)
 }
 
 
-/* PoolGenBufferFill -- accounting for buffer fill
+/* PoolGenFill -- accounting for allocation
  *
- * The buffer was free, is now new (or newDeferred).
+ * The memory was free, is now new (or newDeferred).
  */
 
-void PoolGenBufferFill(PoolGen pgen, Size size, Bool ramping)
+void PoolGenFill(PoolGen pgen, Size size, Bool ramping)
 {
   AVERT(PoolGen, pgen);
   AVERT(Bool, ramping);
@@ -481,6 +481,27 @@ void PoolGenBufferFill(PoolGen pgen, Size size, Bool ramping)
     pgen->newDeferredSize += size;
   else
     pgen->newSize += size;
+}
+
+
+/* PoolGenEmpty -- accounting for emptying a buffer
+ *
+ * The unused part of the buffer was new (or newDeferred) and is now free.
+ */
+
+void PoolGenEmpty(PoolGen pgen, Size unused, Bool ramping)
+{
+  AVERT(PoolGen, pgen);
+  AVERT(Bool, ramping);
+
+  if (ramping) {
+    AVER(pgen->newDeferredSize >= unused);
+    pgen->newDeferredSize -= unused;
+  } else {
+    AVER(pgen->newSize >= unused);
+    pgen->newSize -= unused;
+  }
+  pgen->freeSize += unused;
 }
 
 
@@ -526,27 +547,6 @@ void PoolGenReclaim(PoolGen pgen, Size reclaimed, Bool ramping)
 }
 
 
-/* PoolGenBufferEmpty -- accounting for emptying a buffer
- *
- * The unused part of the buffer was new (or newDeferred) and is now free.
- */
-
-void PoolGenBufferEmpty(PoolGen pgen, Size unused, Bool ramping)
-{
-  AVERT(PoolGen, pgen);
-  AVERT(Bool, ramping);
-
-  if (ramping) {
-    AVER(pgen->newDeferredSize >= unused);
-    pgen->newDeferredSize -= unused;
-  } else {
-    AVER(pgen->newSize >= unused);
-    pgen->newSize -= unused;
-  }
-  pgen->freeSize += unused;
-}
-
-
 /* PoolGenUndefer -- accounting for end of ramp mode
  *
  * The memory was oldDeferred or newDeferred, is now old or new.
@@ -561,6 +561,25 @@ void PoolGenUndefer(PoolGen pgen, Size oldSize, Size newSize)
   AVER(pgen->newDeferredSize >= newSize);
   pgen->newDeferredSize -= newSize;
   pgen->newSize += newSize;
+}
+
+
+/* PoolGenSegSplit -- accounting for splitting a segment */
+
+void PoolGenSegSplit(PoolGen pgen)
+{
+  AVERT(PoolGen, pgen);
+  ++ pgen->segs;
+}
+
+
+/* PoolGenSegMerge -- accounting for merging a segment */
+
+void PoolGenSegMerge(PoolGen pgen)
+{
+  AVERT(PoolGen, pgen);
+  AVER(pgen->segs > 0);
+  -- pgen->segs;
 }
 
 
