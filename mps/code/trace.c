@@ -1593,8 +1593,10 @@ static void TraceStartPoolGen(GenDesc gen)
   Ring n, nn;
   RING_FOR(n, &gen->locusRing, nn) {
     PoolGen pgen = RING_ELT(PoolGen, genRing, n);
-    EVENT7(TraceStartPoolGen, gen, gen->capacity, gen->mortality, gen->zones,
-           pgen->pool, pgen->totalSize, pgen->newSizeAtCreate);
+    EVENT12(TraceStartPoolGen, gen, gen->capacity, gen->mortality, gen->zones,
+            pgen->pool, pgen->totalSize, pgen->freeSize, pgen->oldSize,
+            pgen->newSize, pgen->oldDeferredSize, pgen->newDeferredSize,
+            pgen->newSizeAtCreate);
   }
 }
 
