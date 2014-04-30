@@ -520,7 +520,7 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
    
   /* If the segment is buffered, only walk as far as the end */
   /* of the initialized objects.  */
-  if (SegHasBuffer(seg)) {
+  if (SegBuffer(seg) != NULL) {
     limit = BufferScanLimit(SegBuffer(seg));
   } else {
     limit = SegLimit(seg);
@@ -648,7 +648,7 @@ static void SNCWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
 
     /* If the segment is buffered, only walk as far as the end */
     /* of the initialized objects.  Cf. SNCScan. */
-    if (SegHasBuffer(seg))
+    if (SegBuffer(seg) != NULL)
       limit = BufferScanLimit(SegBuffer(seg));
     else
       limit = SegLimit(seg);

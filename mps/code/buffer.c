@@ -1333,7 +1333,7 @@ static void segBufAttach(Buffer buffer, Addr base, Addr limit,
   found = SegOfAddr(&seg, arena, base);
   AVER(found);
   AVER(segbuf->seg == NULL);
-  AVER(!SegHasBuffer(seg));
+  AVER(SegBuffer(seg) == NULL);
   AVER(SegBase(seg) <= base);
   AVER(limit <= SegLimit(seg));
 
