@@ -178,7 +178,7 @@ typedef const struct SrcIdStruct {
  */
 
 #define BITFIELD(type, value, width) ((type)value & (((type)1 << (width)) - 1))
-#define BOOL(v) BITFIELD(unsigned, (v), 1)
+#define BOOLOF(v) BITFIELD(unsigned, (v), 1)
 
 
 /* Bit Sets -- sets of integers in [0,N-1].
