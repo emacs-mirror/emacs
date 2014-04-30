@@ -252,7 +252,7 @@ static Bool loSegFindFree(Addr *bReturn, Addr *lReturn,
   AVER(agrains <= loseg->freeGrains);
   AVER(size <= SegSize(seg));
 
-  if (SegHasBuffer(seg))
+  if (SegBuffer(seg) != NULL)
     /* Don't bother trying to allocate from a buffered segment */
     return FALSE;
 
@@ -338,11 +338,11 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
    */
   p = base;
   while(p < limit) {
+    Buffer buffer = SegBuffer(seg);
     Addr q;
     Index i;
 
-    if (SegHasBuffer(seg)) {
-      Buffer buffer = SegBuffer(seg);
+    if(buffer != NULL) {
       marked = TRUE;
       if (p == BufferScanLimit(buffer)
           && BufferScanLimit(buffer) != BufferLimit(buffer)) {
@@ -429,7 +429,7 @@ static void LOWalk(Pool pool, Seg seg,
     Addr next;
     Index j;
 
-    if (SegHasBuffer(seg)) {
+    if(SegBuffer(seg) != NULL) {
       Buffer buffer = SegBuffer(seg);
       if(object == BufferScanLimit(buffer) &&
          BufferScanLimit(buffer) != BufferLimit(buffer)) {
@@ -676,6 +676,7 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
 {
   LO lo;
   LOSeg loseg;
+  Buffer buffer;
   Count grains, uncondemned;
 
   AVERT(Pool, pool);
@@ -691,8 +692,8 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
   grains = loSegGrains(loseg);
 
   /* Whiten allocated objects; leave free areas black. */
-  if (SegHasBuffer(seg)) {
-    Buffer buffer = SegBuffer(seg);
+  buffer = SegBuffer(seg);
+  if (buffer != NULL) {
     Addr base = SegBase(seg);
     Index scanLimitIndex = loIndexOfAddr(base, lo, BufferScanLimit(buffer));
     Index limitIndex = loIndexOfAddr(base, lo, BufferLimit(buffer));

@@ -708,7 +708,6 @@ extern Addr (SegLimit)(Seg seg);
 #define SegOfPoolRing(node)     (RING_ELT(Seg, poolRing, (node)))
 #define SegOfGreyRing(node)     (&(RING_ELT(GCSeg, greyRing, (node)) \
                                    ->segStruct))
-#define SegHasBuffer(seg)       (SegBuffer(seg) != NULL)
 #define SegSummary(seg)         (((GCSeg)(seg))->summary)
 
 #define SegSetPM(seg, mode)     ((void)((seg)->pm = BS_BITFIELD(Access, (mode))))

@@ -288,7 +288,7 @@ static void AMSSegFinish(Seg seg)
   ams = amsseg->ams;
   AVERT(AMS, ams);
   arena = PoolArena(AMS2Pool(ams));
-  AVER(!SegHasBuffer(seg));
+  AVER(SegBuffer(seg) == NULL);
 
   /* keep the destructions in step with AMSSegInit failure cases */
   amsDestroyTables(ams, amsseg->allocTable, amsseg->nongreyTable,
@@ -972,7 +972,7 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
       seg = AMSSeg2Seg(amsseg);
 
       if (SegRankSet(seg) == rankSet
-          && !SegHasBuffer(seg)
+          && SegBuffer(seg) == NULL
           /* Can't use a white or grey segment, see d.m.p.fill.colour. */
           && SegWhite(seg) == TraceSetEMPTY
           && SegGrey(seg) == TraceSetEMPTY)
@@ -1105,6 +1105,7 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
 {
   AMS ams;
   AMSSeg amsseg;
+  Buffer buffer;                /* the seg's buffer, if it has one */
   Count uncondemned;
 
   AVERT(Pool, pool);
@@ -1144,8 +1145,8 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
     amsseg->allocTableInUse = TRUE;
   }
 
-  if (SegHasBuffer(seg)) { /* <design/poolams/#condemn.buffer> */
-    Buffer buffer = SegBuffer(seg);
+  buffer = SegBuffer(seg);
+  if (buffer != NULL) { /* <design/poolams/#condemn.buffer> */
     Index scanLimitIndex, limitIndex;
     scanLimitIndex = AMS_ADDR_INDEX(seg, BufferScanLimit(buffer));
     limitIndex = AMS_ADDR_INDEX(seg, BufferLimit(buffer));
@@ -1631,7 +1632,7 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
   amsseg->colourTablesInUse = FALSE;
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 
-  if (amsseg->freeGrains == grains && !SegHasBuffer(seg))
+  if (amsseg->freeGrains == grains && SegBuffer(seg) == NULL)
     /* No survivors */
     PoolGenFree(&ams->pgen, seg);
 }
