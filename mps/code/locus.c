@@ -6,7 +6,8 @@
  * DESIGN
  *
  * See <design/arenavm/> and <design/locus/> for basic locus stuff.
- * See <design/trace/> for chains.
+ * See <design/trace/> for chains. See <design/strategy/> for the
+ * collection strategy.
  */
 
 #include "chain.h"
@@ -87,8 +88,6 @@ static Bool GenDescCheck(GenDesc gen)
   /* nothing to check for capacity */
   CHECKL(gen->mortality >= 0.0);
   CHECKL(gen->mortality <= 1.0);
-  CHECKL(gen->proflow >= 0.0);
-  CHECKL(gen->proflow <= 1.0);
   CHECKD_NOSIG(Ring, &gen->locusRing);
   return TRUE;
 }
@@ -156,9 +155,9 @@ Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
     gens[i].zones = ZoneSetEMPTY;
     gens[i].capacity = params[i].capacity;
     gens[i].mortality = params[i].mortality;
-    gens[i].proflow = 1.0; /* @@@@ temporary */
     RingInit(&gens[i].locusRing);
     gens[i].sig = GenDescSig;
+    AVERT(GenDesc, &gens[i]);
   }
 
   res = ControlAlloc(&p, arena, sizeof(ChainStruct), FALSE);
@@ -291,10 +290,12 @@ Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
     EVENT3(ArenaGenZoneAdd, arena, gen, moreZones);
   }
 
-  ++ pgen->segs;
   size = SegSize(seg);
   pgen->totalSize += size;
-  pgen->freeSize += size;
+  STATISTIC_STAT ({
+    ++ pgen->segs;
+    pgen->freeSize += size;
+  });
   *segReturn = seg;
   return ResOK;
 }
@@ -420,13 +421,13 @@ Res PoolGenInit(PoolGen pgen, GenDesc gen, Pool pool)
   pgen->pool = pool;
   pgen->gen = gen;
   RingInit(&pgen->genRing);
-  pgen->segs = 0;
+  STATISTIC(pgen->segs = 0);
   pgen->totalSize = 0;
-  pgen->freeSize = 0;
+  STATISTIC(pgen->freeSize = 0);
   pgen->newSize = 0;
-  pgen->oldSize = 0;
+  STATISTIC(pgen->oldSize = 0);
   pgen->newDeferredSize = 0;
-  pgen->oldDeferredSize = 0;
+  STATISTIC(pgen->oldDeferredSize = 0);
   pgen->sig = PoolGenSig;
   AVERT(PoolGen, pgen);
 
@@ -440,8 +441,15 @@ Res PoolGenInit(PoolGen pgen, GenDesc gen, Pool pool)
 void PoolGenFinish(PoolGen pgen)
 {
   AVERT(PoolGen, pgen);
-  AVER(pgen->segs == 0);
   AVER(pgen->totalSize == 0);
+  AVER(pgen->newSize == 0);
+  AVER(pgen->newDeferredSize == 0);
+  STATISTIC_STAT ({
+    AVER(pgen->segs == 0);
+    AVER(pgen->freeSize == 0);
+    AVER(pgen->oldSize == 0);
+    AVER(pgen->oldDeferredSize == 0);
+  });
 
   pgen->sig = SigInvalid;
   RingRemove(&pgen->genRing);
@@ -457,10 +465,12 @@ Bool PoolGenCheck(PoolGen pgen)
   CHECKU(Pool, pgen->pool);
   CHECKU(GenDesc, pgen->gen);
   CHECKD_NOSIG(Ring, &pgen->genRing);
-  CHECKL((pgen->totalSize == 0) == (pgen->segs == 0));
-  CHECKL(pgen->totalSize >= pgen->segs * ArenaAlign(PoolArena(pgen->pool)));
-  CHECKL(pgen->totalSize == pgen->freeSize + pgen->oldSize + pgen->newSize
-         + pgen->oldDeferredSize + pgen->newDeferredSize);
+  STATISTIC_STAT ({
+    CHECKL((pgen->totalSize == 0) == (pgen->segs == 0));
+    CHECKL(pgen->totalSize >= pgen->segs * ArenaAlign(PoolArena(pgen->pool)));
+    CHECKL(pgen->totalSize == pgen->freeSize + pgen->newSize + pgen->oldSize
+           + pgen->newDeferredSize + pgen->oldDeferredSize);
+  });
   return TRUE;
 }
 
@@ -470,14 +480,16 @@ Bool PoolGenCheck(PoolGen pgen)
  * The memory was free, is now new (or newDeferred).
  */
 
-void PoolGenFill(PoolGen pgen, Size size, Bool ramping)
+void PoolGenFill(PoolGen pgen, Size size, Bool deferred)
 {
   AVERT(PoolGen, pgen);
-  AVERT(Bool, ramping);
+  AVERT(Bool, deferred);
 
-  AVER(pgen->freeSize >= size);
-  pgen->freeSize -= size;
-  if (ramping)
+  STATISTIC_STAT ({
+    AVER(pgen->freeSize >= size);
+    pgen->freeSize -= size;
+  });
+  if (deferred)
     pgen->newDeferredSize += size;
   else
     pgen->newSize += size;
@@ -489,19 +501,19 @@ void PoolGenFill(PoolGen pgen, Size size, Bool ramping)
  * The unused part of the buffer was new (or newDeferred) and is now free.
  */
 
-void PoolGenEmpty(PoolGen pgen, Size unused, Bool ramping)
+void PoolGenEmpty(PoolGen pgen, Size unused, Bool deferred)
 {
   AVERT(PoolGen, pgen);
-  AVERT(Bool, ramping);
+  AVERT(Bool, deferred);
 
-  if (ramping) {
+  if (deferred) {
     AVER(pgen->newDeferredSize >= unused);
     pgen->newDeferredSize -= unused;
   } else {
     AVER(pgen->newSize >= unused);
     pgen->newSize -= unused;
   }
-  pgen->freeSize += unused;
+  STATISTIC(pgen->freeSize += unused);
 }
 
 
@@ -510,18 +522,18 @@ void PoolGenEmpty(PoolGen pgen, Size unused, Bool ramping)
  * The memory was new (or newDeferred), is now old (or oldDeferred)
  */
 
-void PoolGenAge(PoolGen pgen, Size size, Bool ramping)
+void PoolGenAge(PoolGen pgen, Size size, Bool deferred)
 {
   AVERT(PoolGen, pgen);
   
-  if (ramping) {
+  if (deferred) {
     AVER(pgen->newDeferredSize >= size);
     pgen->newDeferredSize -= size;
-    pgen->oldDeferredSize += size;
+    STATISTIC(pgen->oldDeferredSize += size);
   } else {
     AVER(pgen->newSize >= size);
     pgen->newSize -= size;
-    pgen->oldSize += size;
+    STATISTIC(pgen->oldSize += size);
   }
 }
 
@@ -531,19 +543,21 @@ void PoolGenAge(PoolGen pgen, Size size, Bool ramping)
  * The reclaimed memory was old, and is now free.
  */
 
-void PoolGenReclaim(PoolGen pgen, Size reclaimed, Bool ramping)
+void PoolGenReclaim(PoolGen pgen, Size reclaimed, Bool deferred)
 {
   AVERT(PoolGen, pgen);
-  AVERT(Bool, ramping);
+  AVERT(Bool, deferred);
 
-  if (ramping) {
-    AVER(pgen->oldDeferredSize >= reclaimed);
-    pgen->oldDeferredSize -= reclaimed;
-  } else {
-    AVER(pgen->oldSize >= reclaimed);
-    pgen->oldSize -= reclaimed;
-  }
-  pgen->freeSize += reclaimed;
+  STATISTIC_STAT ({
+    if (deferred) {
+      AVER(pgen->oldDeferredSize >= reclaimed);
+      pgen->oldDeferredSize -= reclaimed;
+    } else {
+      AVER(pgen->oldSize >= reclaimed);
+      pgen->oldSize -= reclaimed;
+    }
+    pgen->freeSize += reclaimed;
+  });
 }
 
 
@@ -555,9 +569,11 @@ void PoolGenReclaim(PoolGen pgen, Size reclaimed, Bool ramping)
 void PoolGenUndefer(PoolGen pgen, Size oldSize, Size newSize)
 {
   AVERT(PoolGen, pgen);
-  AVER(pgen->oldDeferredSize >= oldSize);
-  pgen->oldDeferredSize -= oldSize;
-  pgen->oldSize += oldSize;
+  STATISTIC_STAT ({
+    AVER(pgen->oldDeferredSize >= oldSize);
+    pgen->oldDeferredSize -= oldSize;
+    pgen->oldSize += oldSize;
+  });
   AVER(pgen->newDeferredSize >= newSize);
   pgen->newDeferredSize -= newSize;
   pgen->newSize += newSize;
@@ -569,7 +585,7 @@ void PoolGenUndefer(PoolGen pgen, Size oldSize, Size newSize)
 void PoolGenSegSplit(PoolGen pgen)
 {
   AVERT(PoolGen, pgen);
-  ++ pgen->segs;
+  STATISTIC(++ pgen->segs);
 }
 
 
@@ -578,8 +594,10 @@ void PoolGenSegSplit(PoolGen pgen)
 void PoolGenSegMerge(PoolGen pgen)
 {
   AVERT(PoolGen, pgen);
-  AVER(pgen->segs > 0);
-  -- pgen->segs;
+  STATISTIC_STAT ({
+    AVER(pgen->segs > 0);
+    -- pgen->segs;
+  });
 }
 
 
@@ -595,13 +613,15 @@ void PoolGenFree(PoolGen pgen, Seg seg)
   AVERT(PoolGen, pgen);
   AVERT(Seg, seg);
 
-  AVER(pgen->segs > 0);
-  -- pgen->segs;
   size = SegSize(seg);
   AVER(pgen->totalSize >= size);
   pgen->totalSize -= size;
-  AVER(pgen->freeSize >= size);
-  pgen->freeSize -= size;
+  STATISTIC_STAT ({
+    AVER(pgen->segs > 0);
+    -- pgen->segs;
+    AVER(pgen->freeSize >= size);
+    pgen->freeSize -= size;
+  });
   SegFree(seg);
 }
 
@@ -619,7 +639,6 @@ void LocusInit(Arena arena)
   gen->zones = ZoneSetEMPTY;
   gen->capacity = 0; /* unused */
   gen->mortality = 0.51;
-  gen->proflow = 0.0;
   RingInit(&gen->locusRing);
   gen->sig = GenDescSig;
 }
