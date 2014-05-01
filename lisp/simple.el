@@ -2365,91 +2365,112 @@ are ignored.  If BEG and END are nil, all undo elements are used."
 	    (undo-make-selective-list (min beg end) (max beg end))
 	  buffer-undo-list)))
 
+;; The positions given in elements of the undo list are the positions
+;; as of the time that element was recorded to undo history.  In
+;; general, subsequent buffer edits render those positions invalid in
+;; the current buffer, unless adjusted according to the intervening
+;; undo elements.
+;;
+;; Undo in region is a use case that requires adjustments to undo
+;; elements.  It must adjust positions of elements in the region based
+;; on newer elements not in the region so as they may be correctly
+;; applied in the current buffer.  undo-make-selective-list
+;; accomplishes this with its undo-deltas list of adjustments.  An
+;; example undo history from oldest to newest:
+;;
+;; buf pos:
+;; 123456789 buffer-undo-list undo-deltas
+;; --------- ---------------- -----------
+;; aaa       (1 . 4)          (1 . -3)
+;; aaba      (3 . 4)          N/A (in region)
+;; ccaaba    (1 . 3)          (1 . -2)
+;; ccaabaddd (7 . 10)         (7 . -3)
+;; ccaabdd   ("ad" . 6)       (6 . 2)
+;; ccaabaddd (6 . 8)          (6 . -2)
+;;  |   |<-- region: "caab", from 2 to 6
+;;
+;; When the user starts a run of undos in region,
+;; undo-make-selective-list is called to create the full list of in
+;; region elements.  Each element is adjusted forward chronologically
+;; through undo-deltas to determine if it is in the region.
+;;
+;; In the above example, the insertion of "b" is (3 . 4) in the
+;; buffer-undo-list.  The undo-delta (1 . -2) causes (3 . 4) to become
+;; (5 . 6).  The next three undo-deltas cause no adjustment, so (5
+;; . 6) is assessed as in the region and placed in the selective list.
+;; Notably, the end of region itself adjusts from "2 to 6" to "2 to 5"
+;; due to the selected element.  The "b" insertion is the only element
+;; fully in the region, so in this example undo-make-selective-list
+;; returns (nil (5 . 6)).
+;;
+;; The adjustment of the (7 . 10) insertion of "ddd" shows an edge
+;; case.  It is adjusted through the undo-deltas: ((6 . 2) (6 . -2)).
+;; Normally an undo-delta of (6 . 2) would cause positions after 6 to
+;; adjust by 2.  However, they shouldn't adjust to less than 6, so (7
+;; . 10) adjusts to (6 . 8) due to the first undo delta.
+;;
+;; More interesting is how to adjust the "ddd" insertion due to the
+;; next undo-delta: (6 . -2), corresponding to reinsertion of "ad".
+;; If the reinsertion was a manual retyping of "ad", then the total
+;; adjustment should be (7 . 10) -> (6 . 8) -> (8 . 10).  However, if
+;; the reinsertion was due to undo, one might expect the first "d"
+;; character would again be a part of the "ddd" text, meaning its
+;; total adjustment would be (7 . 10) -> (6 . 8) -> (7 . 10).
+;;
+;; undo-make-selective-list assumes in this situation that "ad" was a
+;; new edit, even if it was inserted because of an undo.
+;; Consequently, if the user undos in region "8 to 10" of the
+;; "ccaabaddd" buffer, they could be surprised that it becomes
+;; "ccaabad", as though the first "d" became detached from the
+;; original "ddd" insertion.  This quirk is a FIXME.
+
 (defun undo-make-selective-list (start end)
   "Return a list of undo elements for the region START to END.
-The elements come from `buffer-undo-list', but we keep only
-the elements inside this region, and discard those outside this region.
-If we find an element that crosses an edge of this region,
-we stop and ignore all further elements."
-  (let ((undo-list-copy (undo-copy-list buffer-undo-list))
-	(undo-list (list nil))
-	some-rejected
-	undo-elt temp-undo-list delta)
-    (while undo-list-copy
-      (setq undo-elt (car undo-list-copy))
-      (let ((keep-this
-	     (cond ((and (consp undo-elt) (eq (car undo-elt) t))
-		    ;; This is a "was unmodified" element.
-		    ;; Keep it if we have kept everything thus far.
-		    (not some-rejected))
-                   ;; Skip over marker adjustments, instead relying on
-                   ;; finding them after (TEXT . POS) elements
-                   ((markerp (car-safe undo-elt))
-                    nil)
-		   (t
-		    (undo-elt-in-region undo-elt start end)))))
-	(if keep-this
-	    (progn
-	      (setq end (+ end (cdr (undo-delta undo-elt))))
-	      ;; Don't put two nils together in the list
-	      (when (not (and (eq (car undo-list) nil)
-                              (eq undo-elt nil)))
-                (setq undo-list (cons undo-elt undo-list))
-                ;; If (TEXT . POS), "keep" its subsequent (MARKER
-                ;; . ADJUSTMENT) whose markers haven't moved.
-                (when (and (stringp (car-safe undo-elt))
-                           (integerp (cdr-safe undo-elt)))
-                  (let ((list-i (cdr undo-list-copy)))
+The elements come from `buffer-undo-list', but we keep only the
+elements inside this region, and discard those outside this
+region.  The elements' positions are adjusted so as the returned
+list can be applied to the current buffer."
+  (let ((ulist buffer-undo-list)
+        ;; A list of position adjusted undo elements in the region.
+        (selective-list (list nil))
+        ;; A list of undo-deltas for out of region undo elements.
+        undo-deltas
+        undo-elt)
+    (while ulist
+      (setq undo-elt (car ulist))
+      (cond
+       ((null undo-elt)
+        ;; Don't put two nils together in the list
+        (when (car selective-list)
+          (push nil selective-list)))
+       ((and (consp undo-elt) (eq (car undo-elt) t))
+        ;; This is a "was unmodified" element.  Keep it
+        ;; if we have kept everything thus far.
+        (when (not undo-deltas)
+          (push undo-elt selective-list)))
+       ;; Skip over marker adjustments, instead relying
+       ;; on finding them after (TEXT . POS) elements
+       ((markerp (car-safe undo-elt))
+        nil)
+       (t
+        (let ((adjusted-undo-elt (undo-adjust-elt undo-elt
+                                                  undo-deltas)))
+          (if (undo-elt-in-region adjusted-undo-elt start end)
+              (progn
+                (setq end (+ end (cdr (undo-delta adjusted-undo-elt))))
+                (push adjusted-undo-elt selective-list)
+                ;; Keep (MARKER . ADJUSTMENT) if their (TEXT . POS) was
+                ;; kept.  primitive-undo may discard them later.
+                (when (and (stringp (car-safe adjusted-undo-elt))
+                           (integerp (cdr-safe adjusted-undo-elt)))
+                  (let ((list-i (cdr ulist)))
                     (while (markerp (car-safe (car list-i)))
-                      (let* ((adj-elt (pop list-i))
-                             (m (car adj-elt)))
-                        (and (eq (marker-buffer m) (current-buffer))
-                             (= (cdr undo-elt) m)
-                             (push adj-elt undo-list))))))))
-	  (if (undo-elt-crosses-region undo-elt start end)
-	      (setq undo-list-copy nil)
-	    (setq some-rejected t)
-	    (setq temp-undo-list (cdr undo-list-copy))
-	    (setq delta (undo-delta undo-elt))
-
-	    (when (/= (cdr delta) 0)
-	      (let ((position (car delta))
-		    (offset (cdr delta)))
-
-		;; Loop down the earlier events adjusting their buffer
-		;; positions to reflect the fact that a change to the buffer
-		;; isn't being undone. We only need to process those element
-		;; types which undo-elt-in-region will return as being in
-		;; the region since only those types can ever get into the
-		;; output
-
-		(while temp-undo-list
-		  (setq undo-elt (car temp-undo-list))
-		  (cond ((integerp undo-elt)
-			 (if (>= undo-elt position)
-			     (setcar temp-undo-list (- undo-elt offset))))
-			((atom undo-elt) nil)
-			((stringp (car undo-elt))
-			 ;; (TEXT . POSITION)
-			 (let ((text-pos (abs (cdr undo-elt)))
-			       (point-at-end (< (cdr undo-elt) 0 )))
-			   (if (>= text-pos position)
-			       (setcdr undo-elt (* (if point-at-end -1 1)
-						   (- text-pos offset))))))
-			((integerp (car undo-elt))
-			 ;; (BEGIN . END)
-			 (when (>= (car undo-elt) position)
-			   (setcar undo-elt (- (car undo-elt) offset))
-			   (setcdr undo-elt (- (cdr undo-elt) offset))))
-			((null (car undo-elt))
-			 ;; (nil PROPERTY VALUE BEG . END)
-			 (let ((tail (nthcdr 3 undo-elt)))
-			   (when (>= (car tail) position)
-			     (setcar tail (- (car tail) offset))
-			     (setcdr tail (- (cdr tail) offset))))))
-		  (setq temp-undo-list (cdr temp-undo-list))))))))
-      (setq undo-list-copy (cdr undo-list-copy)))
-    (nreverse undo-list)))
+                      (push (pop list-i) selective-list)))))
+            (let ((delta (undo-delta undo-elt)))
+              (when (/= 0 (cdr delta))
+                (push delta undo-deltas)))))))
+      (pop ulist))
+    (nreverse selective-list)))
 
 (defun undo-elt-in-region (undo-elt start end)
   "Determine whether UNDO-ELT falls inside the region START ... END.
@@ -2497,6 +2518,73 @@ is not *inside* the region START...END."
 	 ;; (BEGIN . END)
 	 (and (< (car undo-elt) end)
 	      (> (cdr undo-elt) start)))))
+(make-obsolete 'undo-elt-crosses-region nil "24.5")
+
+(defun undo-adjust-elt (elt deltas)
+  "Return adjustment of undo element ELT by the undo DELTAS
+list."
+  (pcase elt
+    ;; POSITION
+    ((pred integerp)
+     (undo-adjust-pos elt deltas))
+    ;; (BEG . END)
+    (`(,(and beg (pred integerp)) . ,(and end (pred integerp)))
+     (undo-adjust-beg-end beg end deltas))
+    ;; (TEXT . POSITION)
+    (`(,(and text (pred stringp)) . ,(and pos (pred integerp)))
+     (cons text (* (if (< pos 0) -1 1)
+                   (undo-adjust-pos (abs pos) deltas))))
+    ;; (nil PROPERTY VALUE BEG . END)
+    (`(nil . ,(or `(,prop ,val ,beg . ,end) pcase--dontcare))
+     `(nil ,prop ,val . ,(undo-adjust-beg-end beg end deltas)))
+    ;; (apply DELTA START END FUN . ARGS)
+    ;; FIXME
+    ;; All others return same elt
+    (_ elt)))
+
+;; (BEG . END) can adjust to the same positions, commonly when an
+;; insertion was undone and they are out of region, for example:
+;;
+;; buf pos:
+;; 123456789 buffer-undo-list undo-deltas
+;; --------- ---------------- -----------
+;; [...]
+;; abbaa     (2 . 4)          (2 . -2)
+;; aaa       ("bb" . 2)       (2 . 2)
+;; [...]
+;;
+;; "bb" insertion (2 . 4) adjusts to (2 . 2) because of the subsequent
+;; undo.  Further adjustments to such an element should be the same as
+;; for (TEXT . POSITION) elements.  The options are:
+;;
+;;   1: POSITION adjusts using <= (use-< nil), resulting in behavior
+;;      analogous to marker insertion-type t.
+;;
+;;   2: POSITION adjusts using <, resulting in behavior analogous to
+;;      marker insertion-type nil.
+;;
+;; There was no strong reason to prefer one or the other, except that
+;; the first is more consistent with prior undo in region behavior.
+(defun undo-adjust-beg-end (beg end deltas)
+  "Return cons of adjustments to BEG and END by the undo DELTAS
+list."
+  (let ((adj-beg (undo-adjust-pos beg deltas)))
+    ;; Note: option 2 above would be like (cons (min ...) adj-end)
+    (cons adj-beg
+          (max adj-beg (undo-adjust-pos end deltas t)))))
+
+(defun undo-adjust-pos (pos deltas &optional use-<)
+  "Return adjustment of POS by the undo DELTAS list, comparing
+with < or <= based on USE-<."
+  (dolist (d deltas pos)
+    (when (if use-<
+              (< (car d) pos)
+            (<= (car d) pos))
+      (setq pos
+            ;; Don't allow pos to become less than the undo-delta
+            ;; position.  This edge case is described in the overview
+            ;; comments.
+            (max (car d) (- pos (cdr d)))))))
 
 ;; Return the first affected buffer position and the delta for an undo element
 ;; delta is defined as the change in subsequent buffer positions if we *did*

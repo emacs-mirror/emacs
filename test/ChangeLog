@@ -1,3 +1,12 @@
+2014-05-01  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	* simple.el (undo-make-selective-list): New algorithm fixes
+	incorrectness of position adjustments when undoing in region.
+	(Bug#17235)
+	(undo-elt-crosses-region): Make obsolete.
+	(undo-adjust-elt, undo-adjust-beg-end, undo-adjust-pos): New
+	functions to adjust positions using undo-deltas.
+
 2014-04-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (top):
