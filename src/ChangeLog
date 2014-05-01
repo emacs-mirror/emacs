@@ -1,3 +1,19 @@
+2014-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* intervals.c: Tighten assertions.
+	(create_root_interval): Make sure the interval is not empty.
+	(intervals_equal): Use booleans.
+	(rotate_right, rotate_left): Check LENGTHs rather than TOTAL_LENGTH.
+	(balance_an_interval): Sanity check LENGTHs and TOTAL_LENGTHs.
+	(balance_possible_root_interval): Simplify and use booleans.
+	(split_interval_right, split_interval_left): Check LENGTH, and remove
+	now redundant assertion.
+	(adjust_intervals_for_insertion): Remove now redundant assertions.
+	(delete_node, interval_deletion_adjustment)
+	(adjust_intervals_for_deletion, merge_interval_right)
+	(merge_interval_left): Check LENGTH rather than TOTAL_LENGTH.
+	(reproduce_interval): Make sure the interval is not empty.
+
 2014-04-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* term.c (tty_menu_activate): Don't assume row and col are initialized.
