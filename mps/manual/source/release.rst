@@ -35,6 +35,11 @@ Interface changes
    :c:func:`mps_arena_create_k` when creating a virtual memory arena.
    See :c:func:`mps_arena_class_vm`.
 
+#. The keyword argument :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` now
+   defaults to ``TRUE`` in order to better support the general case:
+   the value ``FALSE`` is appropriate only when you know that all
+   references are exact. See :ref:`pool-ams`.
+
 
 Other changes
 .............
