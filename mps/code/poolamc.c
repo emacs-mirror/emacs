@@ -94,8 +94,8 @@ typedef struct amcSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   amcGen gen;               /* generation this segment belongs to */
   Nailboard board;          /* nailboard for this segment or NULL if none */
-  Bool old;                 /* .seg.old */
-  Bool deferred;             /* .seg.deferred */
+  unsigned old : 1;         /* .seg.old */
+  unsigned deferred : 1;    /* .seg.deferred */
   Sig sig;                  /* <code/misc.h#sig> */
 } amcSegStruct;
 
