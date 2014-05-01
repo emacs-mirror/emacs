@@ -107,6 +107,7 @@ Bool ReservoirCheck(Reservoir reservoir)
 
 /* reservoirIsConsistent -- returns FALSE if the reservoir is corrupt */
 
+ATTRIBUTE_UNUSED
 static Bool reservoirIsConsistent(Reservoir reservoir)
 {
   Size alignment, size = 0;
