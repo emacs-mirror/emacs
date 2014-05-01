@@ -31,7 +31,6 @@ typedef struct GenDescStruct {
   ZoneSet zones; /* zoneset for this generation */
   Size capacity; /* capacity in kB */
   double mortality;
-  double proflow; /* predicted proportion of survivors promoted */
   RingStruct locusRing; /* Ring of all PoolGen's in this GenDesc (locus) */
 } GenDescStruct;
 
@@ -49,21 +48,14 @@ typedef struct PoolGenStruct {
   /* link in ring of all PoolGen's in this GenDesc (locus) */
   RingStruct genRing;
 
-  /* Accounting of memory in this generation for this pool */
-  Size segs;          /* number of segments */
-  Size totalSize;     /* total (sum of segment sizes) */
-  Size freeSize;      /* unused (free or lost to fragmentation) */
-  Size oldSize;       /* allocated prior to last collection */
-  Size newSize;       /* allocated since last collection */
-  Size oldDeferredSize; /* allocated prior to last collection (deferred) */
-  Size newDeferredSize; /* allocated since last collection (deferred) */
-
-  /* newSize when TraceCreate was called. This is used in the
-   * TraceStartPoolGen event emitted at the start of a trace; at that
-   * time, newSize has already been diminished by Whiten so we can't
-   * use that value. TODO: This will not work well with multiple
-   * traces. */
-  Size newSizeAtCreate;
+  /* Accounting of memory in this generation for this pool */  
+  STATISTIC_DECL(Size segs);     /* number of segments */
+  Size totalSize;                /* total (sum of segment sizes) */
+  STATISTIC_DECL(Size freeSize); /* unused (free or lost to fragmentation) */
+  Size newSize;                  /* allocated since last collection */
+  STATISTIC_DECL(Size oldSize);  /* allocated prior to last collection */
+  Size newDeferredSize;          /* new (but deferred) */
+  STATISTIC_DECL(Size oldDeferredSize); /* old (but deferred) */
 } PoolGenStruct;
 
 

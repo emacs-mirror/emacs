@@ -187,7 +187,7 @@
   EVENT(X, VMCompact          , 0x0079,  TRUE, Arena) \
   EVENT(X, amcScanNailed      , 0x0080,  TRUE, Seg) \
   EVENT(X, AMCTraceEnd        , 0x0081,  TRUE, Trace) \
-  EVENT(X, TraceStartPoolGen  , 0x0082,  TRUE, Trace) \
+  EVENT(X, TraceCreatePoolGen , 0x0082,  TRUE, Trace) \
   /* new events for performance analysis of large heaps. */ \
   EVENT(X, TraceCondemnZones  , 0x0083,  TRUE, Trace) \
   EVENT(X, ArenaGenZoneAdd    , 0x0084,  TRUE, Arena) \
@@ -713,7 +713,7 @@
   PARAM(X, 19, W, pRL) \
   PARAM(X, 20, W, pRLr)
 
-#define EVENT_TraceStartPoolGen_PARAMS(PARAM, X) \
+#define EVENT_TraceCreatePoolGen_PARAMS(PARAM, X) \
   PARAM(X,  0, P, gendesc)      /* generation description */ \
   PARAM(X,  1, W, capacity)     /* capacity of generation */ \
   PARAM(X,  2, D, mortality)    /* mortality of generation */ \
@@ -721,11 +721,10 @@
   PARAM(X,  4, P, pool)         /* pool */ \
   PARAM(X,  5, W, totalSize)    /* total size of pool gen */ \
   PARAM(X,  6, W, freeSize)     /* free size of pool gen */ \
-  PARAM(X,  7, W, oldSize)      /* old size of pool gen */ \
-  PARAM(X,  8, W, newSize)      /* new size of pool gen */ \
-  PARAM(X,  9, W, oldDeferredSize) /* old size (deferred) of pool gen */ \
-  PARAM(X, 10, W, newDeferredSize) /* new size (deferred) of pool gen */ \
-  PARAM(X, 11, W, newSizeAtCreate) /* new size of pool gen at trace create */
+  PARAM(X,  7, W, newSize)      /* new size of pool gen */ \
+  PARAM(X,  8, W, oldSize)      /* old size of pool gen */ \
+  PARAM(X,  9, W, newDeferredSize) /* new size (deferred) of pool gen */ \
+  PARAM(X, 10, W, oldDeferredSize) /* old size (deferred) of pool gen */
 
 #define EVENT_TraceCondemnZones_PARAMS(PARAM, X) \
   PARAM(X,  0, P, trace)        /* the trace */ \
