@@ -65,6 +65,7 @@ SRCID(mpsi, "$Id$");
  * .check.enum.cast: enum comparisons have to be cast to avoid a warning
  * from the SunPro C compiler.  See builder.sc.warn.enum.  */
 
+ATTRIBUTE_UNUSED
 static Bool mpsi_check(void)
 {
   CHECKL(COMPATTYPE(mps_res_t, Res));
