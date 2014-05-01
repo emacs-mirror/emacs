@@ -3101,8 +3101,15 @@ elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
   fi
 
   if test "${HAVE_PNG}" = "yes"; then
-    AC_DEFINE(HAVE_PNG, 1, [Define to 1 if you have the png library (-lpng).])
-    LIBPNG="-lpng -lz -lm"
+    AC_DEFINE(HAVE_PNG, 1, [Define to 1 if you have the png library.])
+
+    dnl Some systems, eg NetBSD 6, only provide eg "libpng16", not "libpng".
+    lpng=`libpng-config --libs 2> /dev/null`
+    case $lpng in
+      -l*) : ;;
+      *) lpng="-lpng" ;;
+    esac
+    LIBPNG="$lpng -lz -lm"
 
     AC_CHECK_DECL(png_longjmp,
       [],
@@ -4976,7 +4983,7 @@ echo "  Does Emacs use -lXpm?                                   ${HAVE_XPM}"
 echo "  Does Emacs use -ljpeg?                                  ${HAVE_JPEG}"
 echo "  Does Emacs use -ltiff?                                  ${HAVE_TIFF}"
 echo "  Does Emacs use a gif library?                           ${HAVE_GIF} $LIBGIF"
-echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
+echo "  Does Emacs use a png library?                           ${HAVE_PNG} $LIBPNG"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGICK}"
 

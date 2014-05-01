@@ -1,3 +1,8 @@
+2014-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (LIBPNG): Consult libpng-config for the precise
+	form of "-lpng" to use.  (Bug#17339)
+
 2014-04-29  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac: Treat MirBSD as OpenBSD.  (Bug#17339)
