@@ -163,8 +163,9 @@ It has `lisp-mode-abbrev-table' as its parent."
         (let ((ppss (parse-partial-sexp (line-beginning-position)
                                         (line-end-position)
                                         -1)))
+          (skip-syntax-forward " )")
           (if (or (>= (car ppss) 0)
-                  (looking-at "[]) \t]*\\(;\\|$\\)"))
+                  (looking-at ";\\|$"))
               (progn
                 (forward-line 1)
                 (< (point) limit))

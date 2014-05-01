@@ -1,3 +1,8 @@
+2014-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (lisp--match-hidden-arg): Only highlight past
+	the last consecutive closing paren (bug#17345).
+
 2014-04-30  Reuben Thomas  <rrt@sc3d.org>
 
 	* dired.el (dired-mode): make terminology for eXpunge command
