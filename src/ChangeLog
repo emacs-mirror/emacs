@@ -1,3 +1,8 @@
+2014-05-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (tty_menu_activate): A better initialization for cursor
+	coordinates.
+
 2014-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* intervals.c: Tighten assertions.
