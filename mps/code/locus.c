@@ -80,6 +80,7 @@ void SegPrefExpress(SegPref pref, SegPrefKind kind, void *p)
 
 /* GenDescCheck -- check a GenDesc */
 
+ATTRIBUTE_UNUSED
 static Bool GenDescCheck(GenDesc gen)
 {
   CHECKS(GenDesc, gen);

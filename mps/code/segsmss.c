@@ -59,6 +59,7 @@ typedef struct AMSTStruct *AMST;
 
 /* AMSTCheck -- the check method for an AMST */
 
+ATTRIBUTE_UNUSED
 static Bool AMSTCheck(AMST amst)
 {
   CHECKS(AMST, amst);
@@ -96,6 +97,7 @@ typedef struct AMSTSegStruct {
 
 /* AMSTSegCheck -- check the AMST segment */
 
+ATTRIBUTE_UNUSED
 static Bool AMSTSegCheck(AMSTSeg amstseg)
 {
   CHECKS(AMSTSeg, amstseg);

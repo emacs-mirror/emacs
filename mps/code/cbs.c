@@ -80,6 +80,7 @@ Bool CBSCheck(CBS cbs)
 }
 
 
+ATTRIBUTE_UNUSED
 static Bool CBSBlockCheck(CBSBlock block)
 {
   /* See .enter-leave.simple. */

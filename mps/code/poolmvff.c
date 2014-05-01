@@ -791,6 +791,7 @@ size_t mps_mvff_size(mps_pool_t mps_pool)
 
 /* MVFFCheck -- check the consistency of an MVFF structure */
 
+ATTRIBUTE_UNUSED
 static Bool MVFFCheck(MVFF mvff)
 {
   CHECKS(MVFF, mvff);
