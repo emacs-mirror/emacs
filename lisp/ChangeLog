@@ -1,3 +1,7 @@
+2014-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mpc.el (mpc-volume-mouse-set): Don't burp at the boundaries.
+
 2014-04-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.el (dired-initial-position-hook, dired-initial-position):
