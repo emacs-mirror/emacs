@@ -293,6 +293,16 @@ this documentation.
     condition?
 
 
+``trace.c: RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg))``
+
+    The client program's :term:`scan method` failed to update a
+    reference to an object that moved. See
+    :ref:`topic-scanning-protocol`, which says, "If :c:func:`MPS_FIX2`
+    returns :c:macro:`MPS_RES_OK`, it may have updated the reference.
+    If necessary, make sure that the updated reference is stored back
+    to the region being scanned."
+
+
 .. index::
    single: error handling; varieties
    single: variety
