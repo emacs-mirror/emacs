@@ -1,3 +1,8 @@
+2014-05-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mm-display-part):
+	Highlight header attachment buttons.
+
 2014-04-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-mm-display-part): Don't move point while toggling

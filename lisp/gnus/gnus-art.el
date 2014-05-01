@@ -5673,15 +5673,27 @@ all parts."
 		 (mm-handle-media-type handle))))))
       (goto-char point)
       ;; Toggle the button appearance between `[button]...' and `[button]'.
-      (let ((end (next-single-property-change point 'gnus-data)))
-	(delete-region (previous-single-property-change end 'gnus-data) end))
-      (gnus-insert-mime-button
-       handle id (list (mm-handle-displayed-p handle)))
-      (let ((pt (point)))
+      (let ((end (next-single-property-change point 'gnus-data))
+	    start)
+	(delete-region
+	 (setq start (previous-single-property-change end 'gnus-data))
+	 end)
+	(gnus-insert-mime-button
+	 handle id (list (mm-handle-displayed-p handle)))
+	(setq end (point))
 	(if (search-backward "\n\n" nil t)
-	    (goto-char pt)
+	    (goto-char end)
 	  ;; We're in the article header.
-	  (delete-char -1)))
+	  (delete-char -1)
+	  (dolist (ovl (gnus-overlays-in start (1- end)))
+	    (gnus-overlay-put ovl 'gnus-button-attachment-extra t)
+	    (gnus-overlay-put ovl 'face nil))
+	  (save-restriction
+	    (message-narrow-to-field)
+	    (let ((gnus-treatment-function-alist
+		   '((gnus-treat-highlight-headers
+		      gnus-article-highlight-headers))))
+	      (gnus-treat-article 'head)))))
       (goto-char point)
       (if (window-live-p window)
 	  (select-window window)))
