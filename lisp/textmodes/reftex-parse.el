@@ -351,7 +351,7 @@ of master file."
     docstruct))
 
 (defun reftex-using-biblatex-p ()
-  "Return non-nil iff we are using biblatex rather than bibtex."
+  "Return non-nil if we are using biblatex rather than bibtex."
   (if (boundp 'TeX-active-styles)
       ;; the sophisticated AUCTeX way
       (member "biblatex" TeX-active-styles)

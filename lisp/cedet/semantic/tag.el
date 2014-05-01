@@ -172,7 +172,7 @@ That function is for internal use only."
       (semantic--tag-set-overlay tag (vector start end)))))
 
 (defun semantic-tag-in-buffer-p (tag)
-  "Return the buffer TAG resides in IFF tag is already in a buffer.
+  "Return the buffer TAG resides in, if tag is already in a buffer.
 If a tag is not in a buffer, return nil."
   (let ((o (semantic-tag-overlay tag)))
      ;; TAG is currently linked to a buffer, return it.

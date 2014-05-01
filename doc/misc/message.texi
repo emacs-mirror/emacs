@@ -742,9 +742,8 @@ by the @code{message-cross-post-note-function} variable.
 @item C-c C-f t
 @kindex C-c C-f t
 @findex message-reduce-to-to-cc
-Replace contents of @samp{To} header with contents of @samp{Cc} or
-@samp{Bcc} header.  (Iff @samp{Cc} header is not present, @samp{Bcc}
-header will be used instead.)
+Replace contents of @samp{To} header with contents of @samp{Cc}
+header (or the @samp{Bcc} header, if there is no @samp{Cc} header).
 
 @item C-c C-f w
 @kindex C-c C-f w

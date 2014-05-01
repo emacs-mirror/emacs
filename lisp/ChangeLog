@@ -1,3 +1,17 @@
+2014-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* allout-widgets.el (allout-widgets-tally)
+	(allout-decorate-item-guides):
+	* menu-bar.el (menu-bar-positive-p):
+	* minibuffer.el (completion-pcm-complete-word-inserts-delimiters):
+	* progmodes/gdb-mi.el (gdbmi-same-start, gdbmi-is-number):
+	* progmodes/js.el (js--inside-param-list-p)
+	(js--inside-dojo-class-list-p, js--forward-destructuring-spec):
+	* progmodes/prolog.el (region-exists-p):
+	* progmodes/verilog-mode.el (verilog-scan-cache-ok-p):
+	* textmodes/reftex-parse.el (reftex-using-biblatex-p):
+	Doc fixes (replace `iff').
+
 2014-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mpc.el (mpc-volume-mouse-set): Don't burp at the boundaries.

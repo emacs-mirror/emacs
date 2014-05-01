@@ -1,3 +1,11 @@
+2014-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* ede.el (ede-project-directories, ede-check-project-directory):
+	* semantic/ia-sb.el (semantic-ia-sb-show-doc):
+	* semantic/tag.el (semantic-tag-in-buffer-p):
+	* semantic/bovine/c.el (semantic-tag-abstract-p):
+	Doc fixes (replace `iff').
+
 2014-04-01  Glenn Morris  <rgm@gnu.org>
 
 	* ede/emacs.el (ede-emacs-version): Update AC_INIT regexp.  (Bug#17160)

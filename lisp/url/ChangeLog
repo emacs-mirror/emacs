@@ -1,3 +1,7 @@
+2014-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* url-parse.el (url-generic-parse-url): Doc fix (replace `iff').
+
 2014-03-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* url-handlers.el (url-http-parse-response): Add autoload.

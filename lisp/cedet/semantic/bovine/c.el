@@ -1594,7 +1594,7 @@ Optional PARENT and COLOR as specified with
   "Return non-nil if TAG is considered abstract.
 PARENT is tag's parent.
 In C, a method is abstract if it is `virtual', which is already
-handled.  A class is abstract iff its destructor is virtual."
+handled.  A class is abstract only if its destructor is virtual."
   (cond
    ((eq (semantic-tag-class tag) 'type)
     (require 'semantic/find)

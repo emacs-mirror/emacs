@@ -1,3 +1,7 @@
+2014-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-registry.el (gnus-registry-install-p): Doc fix.
+
 2014-03-07  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-request-accept-article): Make respooling to nnimap

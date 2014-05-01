@@ -1,3 +1,8 @@
+2014-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* autotype.texi (Skeleton Language):
+	* message.texi (Header Commands): Replace `iff'.
+
 2014-04-22  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (Installation): Be more clear on why installing Org

@@ -384,7 +384,7 @@ Return non-nil if the profiler was running.  */)
 DEFUN ("profiler-cpu-running-p",
        Fprofiler_cpu_running_p, Sprofiler_cpu_running_p,
        0, 0, 0,
-       doc: /* Return non-nil iff cpu profiler is running.  */)
+       doc: /* Return non-nil if cpu profiler is running.  */)
   (void)
 {
   return profiler_cpu_running ? Qt : Qnil;

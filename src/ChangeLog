@@ -1,3 +1,8 @@
+2014-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* floatfns.c (Fisnan):
+	* profiler.c (Fprofiler_cpu_running_p): Doc fix (replace `iff').
+
 2014-05-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* term.c (tty_menu_activate): A better initialization for cursor

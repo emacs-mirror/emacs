@@ -2772,7 +2772,7 @@ expression (not containing character ranges like `a-z')."
 
 (defcustom completion-pcm-complete-word-inserts-delimiters nil
   "Treat the SPC or - inserted by `minibuffer-complete-word' as delimiters.
-Those chars are treated as delimiters iff this variable is non-nil.
+Those chars are treated as delimiters if this variable is non-nil.
 I.e. if non-nil, M-x SPC will just insert a \"-\" in the minibuffer, whereas
 if nil, it will list all possible commands in *Completions* because none of
 the commands start with a \"-\" or a SPC."
