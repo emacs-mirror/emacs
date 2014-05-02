@@ -12,6 +12,8 @@ autoconf  - at least the version specified near the start of
   configure.ac (in the AC_PREREQ command).
 automake  - at least the version specified near the start of
   configure.ac (in the AM_INIT_AUTOMAKE command).
+pkg-config - at least version specified in the PKG_PROG_PKG_CONFIG
+  command in configure.ac
 makeinfo  - not strictly necessary, but highly recommended, so that
   you can build the manuals.
 

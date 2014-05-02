@@ -2223,6 +2223,17 @@ If you do, please send it to bug-gnu-emacs@gnu.org so we can list it here.
 
 * Build-time problems
 
+** Autogen.sh / Autoreconf
+
+*** Running `autogen.sh' or `autoreconf' fails with an error of the form
+"possibly undefined macro: PKG_CONFIG".  This indicates that the version
+of aclocal that you are using cannot find the pkg.m4 file that
+pkg-config provides.  If you installed your own version of automake in
+a non-standard location /prefix, then add a line to the
+/prefix/share/aclocal/dirlist file (create the file if necessary)
+that gives the location of the directory that contains pkg.m4
+(e.g. /usr/share/aclocal).
+
 ** Configuration
 
 *** `configure' warns ``accepted by the compiler, rejected by the preprocessor''.

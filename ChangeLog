@@ -1,5 +1,10 @@
 2014-05-02  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac: Use pkg-config's pkg.m4, rather than reinventing it.
+	Add explicit AC_SUBST's where needed.
+	* autogen.sh (progs): Add pkg-config.
+	(pkg_config_min): New variable.
+
 	* configure.ac (AC_CONFIG_MACRO_DIR): Use it.
 
 	* autogen.sh (get_version): Handle no leading whitespace.

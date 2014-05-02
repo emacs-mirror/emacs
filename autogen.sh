@@ -32,7 +32,7 @@
 
 ## Tools we need:
 ## Note that we respect the values of AUTOCONF etc, like autoreconf does.
-progs="autoconf automake"
+progs="autoconf automake pkg-config"
 
 ## Minimum versions we need:
 autoconf_min=`sed -n 's/^ *AC_PREREQ(\([0-9\.]*\)).*/\1/p' configure.ac`
@@ -41,6 +41,7 @@ autoconf_min=`sed -n 's/^ *AC_PREREQ(\([0-9\.]*\)).*/\1/p' configure.ac`
 ## AM_INIT_AUTOMAKE call.
 automake_min=`sed -n 's/^ *AM_INIT_AUTOMAKE(\([0-9\.]*\)).*/\1/p' configure.ac`
 
+pkg_config_min=`sed -n 's/^ *PKG_PROG_PKG_CONFIG(\([0-9\.]*\)).*/\1/p' configure.ac`
 
 ## $1 = program, eg "autoconf".
 ## Echo the version string, eg "2.59".
