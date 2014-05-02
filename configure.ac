@@ -304,15 +304,6 @@ OPTION_DEFAULT_ON([compress-install],
   [don't compress some files (.el, .info, etc.) when installing.  Equivalent to:
 make GZIP_PROG= install])
 
-AC_ARG_WITH([pkg-config-prog],dnl
-[AS_HELP_STRING([--with-pkg-config-prog=FILENAME],
-                  [file name of pkg-config for finding GTK and librsvg])])
-if test "X${with_pkg_config_prog}" != X; then
-   if test "${with_pkg_config_prog}" != yes; then
-      PKG_CONFIG="${with_pkg_config_prog}"
-   fi
-fi
-
 AC_ARG_WITH(gameuser,dnl
 [AS_HELP_STRING([--with-gameuser=USER],[user for shared game score files])])
 test "X${with_gameuser}" != X && test "${with_gameuser}" != yes \

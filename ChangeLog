@@ -1,5 +1,8 @@
 2014-05-02  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (--with-pkg-config-prog): Remove.
+	Use the PKG_CONFIG environment variable instead if you need it.
+
 	* configure.ac: Use pkg-config's pkg.m4, rather than reinventing it.
 	Add explicit AC_SUBST's where needed.
 	* autogen.sh (progs): Add pkg-config.

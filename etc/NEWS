@@ -34,6 +34,10 @@ should be able to work around the problem either by porting the Emacs
 undumping code to GCC under IRIX, or by configuring --with-wide-int,
 or by sticking with Emacs 24.4.
 
+---
+** The configure option `--with-pkg-config-prog' has been removed.
+Use the PKG_CONFIG environment variable instead if you need to.
+
 
 * Startup Changes in Emacs 24.5
 
