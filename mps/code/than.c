@@ -134,7 +134,7 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream)
  
   res = WriteF(stream,
                "Thread $P ($U) {\n", (WriteFP)thread, (WriteFU)thread->serial,
-               "arena $P ($U)\n", 
+               "  arena $P ($U)\n", 
                (WriteFP)thread->arena, (WriteFU)thread->arena->serial,
                "} Thread $P ($U)\n", (WriteFP)thread, (WriteFU)thread->serial,
                NULL);

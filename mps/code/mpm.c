@@ -454,8 +454,6 @@ Res WriteF_v(mps_lib_FILE *stream, va_list args)
 Res WriteF_firstformat_v(mps_lib_FILE *stream, 
                          const char *firstformat, va_list args)
 {
-  static size_t depth = 0;
-  static Bool line_start = TRUE;
   const char *format;
   int r;
   size_t i;
@@ -470,28 +468,9 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream,
       break;
 
     while(*format != '\0') {
-      if (*format == '}' && depth > 0)
-        -- depth;
-      if (line_start) {
-        for (i = 0; i < depth; ++i) {
-          r = mps_lib_fputs("  ", stream);
-          if (r == mps_lib_EOF) return ResIO;
-        }
-        line_start = FALSE;
-      }
       if (*format != '$') {
         r = mps_lib_fputc(*format, stream); /* Could be more efficient */
         if (r == mps_lib_EOF) return ResIO;
-        switch (*format) {
-        case '{':
-          ++ depth;
-          break;
-        case '\n':
-          line_start = TRUE;
-          break;
-        default:
-          break;
-        }
       } else {
         ++format;
         AVER(*format != '\0');

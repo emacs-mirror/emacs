@@ -331,24 +331,24 @@ Res EventDescribe(Event event, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                "Event $P {\n", (WriteFP)event,
-               "code $U\n", (WriteFU)event->any.code,
-               "clock ", NULL);
+               "  code $U\n", (WriteFU)event->any.code,
+               "  clock ", NULL);
   if (res != ResOK) return res;
   res = EVENT_CLOCK_WRITE(stream, event->any.clock);
   if (res != ResOK) return res;
-  res = WriteF(stream, "\nsize $U\n", (WriteFU)event->any.size, NULL);
+  res = WriteF(stream, "\n  size $U\n", (WriteFU)event->any.size, NULL);
   if (res != ResOK) return res;
 
   switch (event->any.code) {
 
 #define EVENT_DESC_PARAM(name, index, sort, ident) \
-                 "\n$S", (WriteFS)#ident, \
+                 "\n  $S", (WriteFS)#ident, \
                  EVENT_WRITE_PARAM_##sort(name, index, sort, ident)
 
 #define EVENT_DESC(X, name, _code, always, kind) \
   case _code: \
     res = WriteF(stream, \
-                 "event \"$S\"", (WriteFS)#name, \
+                 "  event \"$S\"", (WriteFS)#name, \
                  EVENT_##name##_PARAMS(EVENT_DESC_PARAM, name) \
                  NULL); \
     if (res != ResOK) return res; \
@@ -357,7 +357,7 @@ Res EventDescribe(Event event, mps_lib_FILE *stream)
   EVENT_LIST(EVENT_DESC, X)
 
   default:
-    res = WriteF(stream, "event type unknown", NULL);
+    res = WriteF(stream, "  event type unknown", NULL);
     if (res != ResOK) return res;
     /* TODO: Hexdump unknown event contents. */
     break;

@@ -589,25 +589,25 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                "Root $P ($U) {\n", (WriteFP)root, (WriteFU)root->serial,
-               "arena $P ($U)\n", (WriteFP)root->arena,
+               "  arena $P ($U)\n", (WriteFP)root->arena,
                (WriteFU)root->arena->serial,
-               "rank $U\n", (WriteFU)root->rank,
-               "grey $B\n", (WriteFB)root->grey,
-               "summary $B\n", (WriteFB)root->summary,
+               "  rank $U\n", (WriteFU)root->rank,
+               "  grey $B\n", (WriteFB)root->grey,
+               "  summary $B\n", (WriteFB)root->summary,
                NULL);
   if (res != ResOK) return res;
 
   switch(root->var) {
     case RootTABLE:
     res = WriteF(stream,
-                 "table base $A limit $A\n",
+                 "  table base $A limit $A\n",
                  root->the.table.base, root->the.table.limit,
                  NULL);
     if (res != ResOK) return res;
     break;
 
     case RootTABLE_MASKED:
-    res = WriteF(stream, "table base $A limit $A mask $B\n",
+    res = WriteF(stream, "  table base $A limit $A mask $B\n",
                  root->the.tableMasked.base, root->the.tableMasked.limit,
                  root->the.tableMasked.mask,
                  NULL);
@@ -616,8 +616,8 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
 
     case RootFUN:
     res = WriteF(stream,
-                 "scan function $F\n", (WriteFF)root->the.fun.scan,
-                 "environment p $P s $W\n",
+                 "  scan function $F\n", (WriteFF)root->the.fun.scan,
+                 "  environment p $P s $W\n",
                  root->the.fun.p, (WriteFW)root->the.fun.s,
                  NULL);
     if (res != ResOK) return res;
@@ -625,16 +625,16 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
 
     case RootREG:
     res = WriteF(stream,
-                 "thread $P\n", (WriteFP)root->the.reg.thread,
-                 "environment p $P", root->the.reg.p,
+                 "  thread $P\n", (WriteFP)root->the.reg.thread,
+                 "  environment p $P", root->the.reg.p,
                  NULL);
     if (res != ResOK) return res;
     break;
 
     case RootFMT:
     res = WriteF(stream,
-                 "scan function $F\n", (WriteFF)root->the.fmt.scan,
-                 "format base $A limit $A\n",
+                 "  scan function $F\n", (WriteFF)root->the.fmt.scan,
+                 "  format base $A limit $A\n",
                  root->the.fmt.base, root->the.fmt.limit,
                  NULL);
     if (res != ResOK) return res;
