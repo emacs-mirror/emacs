@@ -50,7 +50,7 @@ automake_min=`sed -n 's/^ *AM_INIT_AUTOMAKE(\([0-9\.]*\)).*/\1/p' configure.ac`
 get_version ()
 {
     ## Remove eg "./autogen.sh: line 50: autoconf: command not found".
-    $1 --version 2>&1 | sed -e '/not found/d' -n -e '1 s/.* \([1-9][0-9\.]*\).*/\1/p'
+    $1 --version 2>&1 | sed -e '/not found/d' -e 's/.* //' -n -e '1 s/\([0-9][0-9\.]*\).*/\1/p'
 }
 
 ## $1 = version string, eg "2.59"
@@ -76,7 +76,7 @@ minor_version ()
 check_version ()
 {
     ## Respect eg $AUTOMAKE if it is set, like autoreconf does.
-    uprog=`echo $1 | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
+    uprog=`echo $1 | sed -e 's/-/_/g' -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
 
     eval uprog=\$${uprog}
 
@@ -114,7 +114,9 @@ missing=
 
 for prog in $progs; do
 
-    eval min=\$${prog}_min
+    sprog=`echo "$prog" | sed 's/-/_/g'`
+
+    eval min=\$${sprog}_min
 
     echo "Checking for $prog (need at least version $min)..."
 
@@ -133,7 +135,7 @@ for prog in $progs; do
 
     if [ $retval -ne 0 ]; then
         missing="$missing $prog"
-        eval ${prog}_why=\""$stat"\"
+        eval ${sprog}_why=\""$stat"\"
     fi
 
 done
@@ -147,7 +149,9 @@ Building Emacs from Bzr requires the following specialized programs:
 EOF
 
     for prog in $progs; do
-        eval min=\$${prog}_min
+        sprog=`echo "$prog" | sed 's/-/_/g'`
+
+        eval min=\$${sprog}_min
 
         echo "$prog (minimum version $min)"
     done
@@ -159,7 +163,9 @@ Your system seems to be missing the following tool(s):
 EOF
 
     for prog in $missing; do
-        eval why=\$${prog}_why
+        sprog=`echo "$prog" | sed 's/-/_/g'`
+
+        eval why=\$${sprog}_why
 
         echo "$prog ($why)"
     done

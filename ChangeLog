@@ -1,3 +1,8 @@
+2014-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* autogen.sh (get_version): Handle no leading whitespace.
+	(check_version, main): Handle program names with hyphens.
+
 2014-04-30  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac: Treat MirBSD as OpenBSD.  (Bug#17339)
