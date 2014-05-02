@@ -1,3 +1,10 @@
+2014-05-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* trouble.texi (Lossage, DEL Does Not Delete, Stuck Recursive)
+	(Screen Garbled, Text Garbled, After a Crash, Emergency Escape)
+	(Bug Criteria, Understanding Bug Reporting, Checklist, Service):
+	Improve indexing.
+
 2014-04-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* trouble.texi (Quitting, DEL Does Not Delete, Emergency Escape)
