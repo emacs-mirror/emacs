@@ -897,6 +897,12 @@ else
   AC_SUBST([GNULIB_WARN_CFLAGS])
 fi
 
+edit_cflags="
+  s,///*,/,g
+  s/^/ /
+  s/ -I/ $isystem/g
+  s/^ //
+"
 
 
 dnl Some other nice autoconf tests.
@@ -1340,12 +1346,6 @@ AC_DEFUN([PKG_CHECK_MODULES], [
         if "$PKG_CONFIG" --exists "$2" 2>&AS_MESSAGE_LOG_FD &&
 	   $1_CFLAGS=`"$PKG_CONFIG" --cflags "$2" 2>&AS_MESSAGE_LOG_FD` &&
 	   $1_LIBS=`"$PKG_CONFIG" --libs "$2" 2>&AS_MESSAGE_LOG_FD`; then
-	    edit_cflags="
-	      s,///*,/,g
-	      s/^/ /
-	      s/ -I/ $isystem/g
-	      s/^ //
-	    "
 	    $1_CFLAGS=`AS_ECHO(["$$1_CFLAGS"]) | sed -e "$edit_cflags"`
 	    $1_LIBS=`AS_ECHO(["$$1_LIBS"]) | sed -e 's,///*,/,g'`
             AC_MSG_RESULT([yes CFLAGS='$$1_CFLAGS' LIBS='$$1_LIBS'])
@@ -3070,62 +3070,55 @@ AC_SUBST(LIBJPEG)
 ### mingw32 doesn't use -lpng, since it loads the library dynamically.
 HAVE_PNG=no
 LIBPNG=
+PNG_CFLAGS=
 if test "${opsys}" = "mingw32"; then
   if test "${with_png}" != "no"; then
-    AC_CHECK_HEADER(png.h, HAVE_PNG=yes, HAVE_PNG=no)
-  fi
-  if test "${HAVE_PNG}" = "yes"; then
-    AC_DEFINE(HAVE_PNG, 1, [Define to 1 if you have the png library (-lpng).])
-
-    AC_CHECK_DECL(png_longjmp,
-      [],
-      [AC_DEFINE(PNG_DEPSTRUCT, [],
-	 [Define to empty to suppress deprecation warnings when building
-	  with --enable-gcc-warnings and with libpng versions before 1.5,
-	  which lack png_longjmp.])],
-      [[#ifdef HAVE_LIBPNG_PNG_H
-	# include <libpng/png.h>
-	#else
-	# include <png.h>
-	#endif
-      ]])
+    AC_CHECK_HEADER([png.h], [HAVE_PNG=yes])
   fi
 elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
   if test "${with_png}" != "no"; then
-    # Debian unstable as of July 2003 has multiple libpngs, and puts png.h
-    # in /usr/include/libpng.
-    AC_CHECK_HEADERS(png.h libpng/png.h, break)
-    if test "$ac_cv_header_png_h" = yes || test "$ac_cv_header_libpng_png_h" = yes ; then
-      AC_CHECK_LIB(png, png_get_channels, HAVE_PNG=yes, , -lz -lm)
+
+    dnl NetBSD 6 provides libpng16, not libpng.
+    if png_cflags=`(libpng-config --cflags) 2>&AS_MESSAGE_LOG_FD` &&
+       png_libs=`(libpng-config --libs) 2>&AS_MESSAGE_LOG_FD`
+    then
+      HAVE_PNG=yes
+      PNG_CFLAGS=`AS_ECHO(["$png_cflags"]) | sed -e "$edit_cflags"`
+      LIBPNG=$png_libs
+    else
+      # libpng-config does not work; configure it by hand.
+      # Debian unstable as of July 2003 has multiple libpngs, and puts png.h
+      # in /usr/include/libpng.
+      AC_CHECK_HEADERS([png.h libpng/png.h],
+	[AC_CHECK_LIB([png], [png_get_channels],
+	   [HAVE_PNG=yes
+	    LIBPNG='-lpng -lz -lm'
+	    if test "$ac_cv_header_libpng_png_h" = yes; then
+	      PNG_CFLAGS=-I/usr/include/libpng
+	    fi],
+	   [],
+	   [-lz -lm])
+	 break])
     fi
   fi
+fi
+if test $HAVE_PNG = yes; then
+  AC_DEFINE([HAVE_PNG], [1], [Define to 1 if you have the png library.])
 
-  if test "${HAVE_PNG}" = "yes"; then
-    AC_DEFINE(HAVE_PNG, 1, [Define to 1 if you have the png library.])
-
-    dnl Some systems, eg NetBSD 6, only provide eg "libpng16", not "libpng".
-    lpng=`libpng-config --libs 2> /dev/null`
-    case $lpng in
-      -l*) : ;;
-      *) lpng="-lpng" ;;
-    esac
-    LIBPNG="$lpng -lz -lm"
-
-    AC_CHECK_DECL(png_longjmp,
-      [],
-      [AC_DEFINE(PNG_DEPSTRUCT, [],
-	 [Define to empty to suppress deprecation warnings when building
-	  with --enable-gcc-warnings and with libpng versions before 1.5,
-	  which lack png_longjmp.])],
-      [[#ifdef HAVE_LIBPNG_PNG_H
-	# include <libpng/png.h>
-	#else
-	# include <png.h>
-	#endif
-      ]])
-  fi
+  SAVE_CFLAGS=$CFLAGS
+  CFLAGS="$CFLAGS $PNG_CFLAGS"
+  AC_CHECK_DECL([png_longjmp],
+    [],
+    [AC_DEFINE([PNG_DEPSTRUCT], [],
+       [Define to empty to suppress deprecation warnings when building
+	with --enable-gcc-warnings and with libpng versions before 1.5,
+	which lack png_longjmp.])],
+    [[#include <png.h>
+    ]])
+  CFLAGS=$SAVE_CFLAGS
 fi
 AC_SUBST(LIBPNG)
+AC_SUBST(PNG_CFLAGS)
 
 HAVE_ZLIB=no
 LIBZ=

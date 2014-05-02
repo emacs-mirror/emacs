@@ -1,3 +1,14 @@
+2014-05-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Consult libpng-config more consistently (Bug#17339).
+	* configure.ac (edit_cflags): Move this up and to the top level,
+	so that PNG_CFLAGS can use it too.
+	(PNG_CFLAGS): New var.
+	(png_longjmp): Use PNG_CFLAGS when checking.
+	(LIBPNG): Be consistent about -lpng16 etc; e.g., don't use -lpng16
+	in some places and -lpng in others.  Test libpng-config's exit
+	status.  If it succeeds, use its output rather than appending -lz -lm.
+
 2014-05-01  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (LIBPNG): Consult libpng-config for the precise
