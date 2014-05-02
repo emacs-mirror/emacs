@@ -2,7 +2,7 @@
 
 	* gnus-art.el (gnus-mime-inline-part): Redisplay a button so as to show
 	the displaying state of a part.
-	(gnus-mime-inline-part): Don't insert a newline in the beginning of
+	(gnus-mm-display-part): Don't insert a newline in the beginning of
 	a part like gnus-mime-inline-part doesn't; work for XEmacs.
 
 	* mm-decode.el (mm-display-part): Don't insert a newline in the top.
