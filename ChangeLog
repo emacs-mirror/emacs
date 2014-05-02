@@ -1,5 +1,7 @@
 2014-05-02  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (AC_CONFIG_MACRO_DIR): Use it.
+
 	* autogen.sh (get_version): Handle no leading whitespace.
 	(check_version, main): Handle program names with hyphens.
 
