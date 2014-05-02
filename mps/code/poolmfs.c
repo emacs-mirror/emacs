@@ -323,11 +323,11 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream)
   AVER(stream != NULL);
 
   res = WriteF(stream,
-               "unrounded unit size $W\n", (WriteFW)mfs->unroundedUnitSize,
-               "unit size $W\n",           (WriteFW)mfs->unitSize,
-               "extent size $W\n",         (WriteFW)mfs->extendBy,
-               "free list begins at $P\n", (WriteFP)mfs->freeList,
-               "tract list begin at $P\n", (WriteFP)mfs->tractList,
+               "  unrounded unit size $W\n", (WriteFW)mfs->unroundedUnitSize,
+               "  unit size $W\n",           (WriteFW)mfs->unitSize,
+               "  extent size $W\n",         (WriteFW)mfs->extendBy,
+               "  free list begins at $P\n", (WriteFP)mfs->freeList,
+               "  tract list begin at $P\n", (WriteFP)mfs->tractList,
                NULL);
   if(res != ResOK) return res;
 
