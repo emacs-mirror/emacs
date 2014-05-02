@@ -1,3 +1,56 @@
+2014-05-02  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Reimplement item editing to have the same
+	basic user interface as item insertion, and make small UI and
+	larger internal improvements to the latter.
+	(todo-insert-item): Add reference to the Todo mode user manual to
+	the documentation string.
+	(todo-insert-item--basic): Rename from todo-basic-insert-item and
+	adjust all callers.  Change signature to combine diary and
+	nonmarking arguments.  Incorporate functionality of deleted item
+	copying command and add error checking.  Remove detailed
+	descriptions of the arguments from the documentation string, since
+	this is treated in the Todo mode user manual.
+	(todo-copy-item, todo-edit-multiline-item)
+	(todo-edit-done-item-comment, todo-edit-item-header)
+	(todo-edit-item-time, todo-edit-item-date-from-calendar)
+	(todo-edit-item-date-to-today, todo-edit-item-date-day-name)
+	(todo-edit-item-date-year, todo-edit-item-date-month)
+	(todo-edit-item-date-day, todo-edit-item-diary-nonmarking):
+	Remove.
+	(todo-edit-item): Reimplement as wrapper command for
+	todo-edit-item--next-key and make it distinguish done and not done
+	todo items.
+	(todo-edit-item--text): New function, replacing old command
+	todo-edit-item and incorporating deleted commands
+	todo-edit-multiline-item and todo-edit-done-item-comment.
+	(todo-edit-item--header): Rename from todo-basic-edit-item-header.
+	Use only numeric value of prefix argument.  Remove detailed
+	descriptions of the arguments from the documentation string, since
+	this is treated in the Todo mode user manual.
+	(todo-edit-item--diary-inclusion): New function, replacing old
+	command todo-edit-item-diary-inclusion and incorporating and fixing
+	functionality of deleted command todo-edit-item-diary-nonmarking,
+	making sure to remove todo-nondiary-marker when adding
+	diary-nonmarking-symbol.
+	(todo-edit-category-diary-inclusion): Make sure to delete
+	diary-nonmarking-symbol when adding todo-nondiary-marker.
+	(todo-edit-category-diary-nonmarking): Fix indentation.
+	(todo-insert-item--parameters): Group diary and nonmarking
+	parameters together.
+	(todo-insert-item--apply-args): Adjust to signature of
+	todo-insert-item--basic and incorporate copy parameter.
+	Make small code improvements.
+	(todo-insert-item--next-param): Improve prompt and adjust it to
+	new parameter grouping.  Remove obsolete code.
+	(todo-edit-item--param-key-alist)
+	(todo-edit-item--date-param-key-alist)
+	(todo-edit-done-item--param-key-alist): New defconsts.
+	(todo-edit-item--prompt): New variable.
+	(todo-edit-item--next-key): New function.
+	(todo-key-bindings-t): Bind "e" to todo-edit-item.  Remove
+	bindings of deleted commands.
+
 2014-05-02  Leo Liu  <sdl.web@gmail.com>
 
 	* emacs-lisp/cl-macs.el (cl-deftype): Fix indentation.
