@@ -2,6 +2,7 @@
 
 @setfilename ../../info/vhdl-mode
 @settitle VHDL Mode, an Emacs mode for editing VHDL code
+@documentencoding UTF-8
 
 @c Adapted from the VHDL Mode texinfo manual version 2 by Rodney J. Whitby.
 @c Adapted from the CC Mode texinfo manual by Barry A. Warsaw.
@@ -57,8 +58,8 @@ modify this GNU manual.''
 @end ifnottex
 
 @menu
-* Introduction::                
-* Getting Connected::           
+* Introduction::
+* Getting Connected::
 * New Indentation Engine::
 * Customizing Indentation::
 * Syntactic Symbols::
@@ -66,9 +67,9 @@ modify this GNU manual.''
 * Getting the latest VHDL Mode release::
 * Sample .emacs File::
 * Limitations and Known Bugs::
-* Mailing Lists and Submitting Bug Reports::  
+* Mailing Lists and Submitting Bug Reports::
 * GNU Free Documentation License:: The license for this documentation.
-* Concept Index::               
+* Concept Index::
 * Command Index::               Command Index
 * Key Index::                   Key Index
 * Variable Index::              Variable Index

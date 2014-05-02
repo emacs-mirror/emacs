@@ -1,3 +1,8 @@
+2014-05-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* vhdl-mode.texi: Add "@documentencoding UTF-8",
+	since this is a toplevel .texi file.
+
 2014-04-22  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (Installation): Be more clear on why installing Org
