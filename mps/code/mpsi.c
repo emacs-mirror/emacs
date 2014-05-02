@@ -1929,6 +1929,24 @@ void mps_chain_destroy(mps_chain_t chain)
 }
 
 
+/* _mps_args_set_key -- set the key for a keyword argument 
+ *
+ * This sets the key for the i'th keyword argument in the array args,
+ * with bounds checking on i. It is used by the MPS_ARGS_BEGIN,
+ * MPS_ARGS_ADD, and MPS_ARGS_DONE macros in mps.h.
+ *
+ * We implement this in a function here, rather than in a macro in
+ * mps.h, so that we can use AVER to do the bounds checking.
+ */
+
+void _mps_args_set_key(mps_arg_s args[MPS_ARGS_MAX], unsigned i,
+                       mps_key_t key)
+{
+  AVER(i < MPS_ARGS_MAX);
+  args[i].key = key;
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.

@@ -452,7 +452,6 @@ void scheme_fmt(mps_fmt_t *fmt)
     MPS_ARGS_ADD(args, MPS_KEY_FMT_FWD, obj_fwd);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_ISFWD, obj_isfwd);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_PAD, obj_pad);
-    MPS_ARGS_DONE(args);
     res = mps_fmt_create_k(fmt, scheme_arena, args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create obj format");
