@@ -1,5 +1,7 @@
 2014-05-02  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (PKG_CONFIG_PATH): Declare with AC_ARG_VAR.
+
 	* configure.ac (--with-pkg-config-prog): Remove.
 	Use the PKG_CONFIG environment variable instead if you need it.
 

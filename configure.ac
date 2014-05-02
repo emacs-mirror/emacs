@@ -1332,6 +1332,9 @@ AC_DEFINE_UNQUOTED(SYSTEM_TYPE, "$SYSTEM_TYPE",
 
 m4_pattern_forbid([^PKG_])
 
+AC_ARG_VAR(PKG_CONFIG_PATH, [Colon-separated list of directories
+searched by pkg-config])
+
 pre_PKG_CONFIG_CFLAGS=$CFLAGS
 pre_PKG_CONFIG_LIBS=$LIBS
 
