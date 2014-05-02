@@ -821,7 +821,6 @@ external if displayed external."
 	  'inline)
 	 ((and (mm-inlinable-p ehandle)
 	       (mm-inlined-p ehandle))
-	  (forward-line 1)
 	  (mm-display-inline handle)
 	  'inline)
 	 ((or method
@@ -1868,7 +1867,7 @@ If RECURSIVE, search recursively."
        handle
        `(lambda ()
 	  (let ((inhibit-read-only t))
-	    (delete-region ,(point-min-marker)
+	    (delete-region ,(copy-marker (point-min) t)
 			   ,(point-max-marker))))))))
 
 (defvar shr-map)

@@ -1,3 +1,18 @@
+2014-05-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-inline-part): Redisplay a button so as to show
+	the displaying state of a part.
+	(gnus-mime-inline-part): Don't insert a newline in the beginning of
+	a part like gnus-mime-inline-part doesn't; work for XEmacs.
+
+	* mm-decode.el (mm-display-part): Don't insert a newline in the top.
+	(mm-shr): Make undisplayer unbreakable.
+
+	* mm-view.el (mm-inline-image-emacs, mm-inline-image-xemacs): Don't
+	insert excessive newline.
+	(mm-inline-text-html-render-with-w3m, mm-inline-text)
+	(mm-insert-inline): Make undisplayer unbreakable.
+
 2014-05-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-mm-display-part):
@@ -6,7 +21,7 @@
 2014-04-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-mm-display-part): Don't move point while toggling
-	a part; redisplay a button (enbugged in 2014-02-05).
+	a part; redisplay a button (enbugged in 2014-03-23).
 
 2014-04-27  Teodor Zlatanov  <tzz@lifelogs.com>
 

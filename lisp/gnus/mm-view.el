@@ -96,19 +96,19 @@
 				 (- (nth 3 edges) (nth 1 edges)))))))
          image))
      b)
-    (insert "\n\n")
+    (insert "\n")
     (mm-handle-set-undisplayer
      handle
      `(lambda ()
 	(let ((b ,b)
 	      (inhibit-read-only t))
 	  (remove-images b b)
-	  (delete-region b (+ b 2)))))))
+	  (delete-region b (1+ b)))))))
 
 (defun mm-inline-image-xemacs (handle)
   (when (featurep 'xemacs)
-    (insert "\n\n")
-    (forward-char -2)
+    (insert "\n")
+    (forward-char -1)
     (let ((annot (make-annotation (mm-get-image handle) nil 'text))
 	(inhibit-read-only t))
       (mm-handle-set-undisplayer
@@ -117,7 +117,7 @@
 	  (let ((b ,(point-marker))
 	      (inhibit-read-only t))
 	    (delete-annotation ,annot)
-	    (delete-region (- b 2) b))))
+	    (delete-region (1- b) b))))
       (set-extent-property annot 'mm t)
       (set-extent-property annot 'duplicable t))))
 
@@ -217,7 +217,7 @@
 	 handle
 	 `(lambda ()
 	    (let ((inhibit-read-only t))
-	      (delete-region ,(point-min-marker)
+	      (delete-region ,(copy-marker (point-min) t)
 			     ,(point-max-marker)))))))))
 
 (defvar mm-w3m-standalone-supports-m17n-p (if (featurep 'mule) 'undecided)
@@ -391,7 +391,7 @@
        handle
        `(lambda ()
           (let ((inhibit-read-only t))
-	    (delete-region ,(point-min-marker)
+	    (delete-region ,(copy-marker (point-min) t)
 			   ,(point-max-marker))))))))
 
 (defun mm-insert-inline (handle text)
@@ -404,7 +404,7 @@
      handle
      `(lambda ()
 	(let ((inhibit-read-only t))
-	  (delete-region ,(copy-marker b)
+	  (delete-region ,(copy-marker b t)
 			 ,(copy-marker (point))))))))
 
 (defun mm-inline-audio (handle)

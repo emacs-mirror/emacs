@@ -5300,12 +5300,25 @@ are decompressed."
 Compressed files like .gz and .bz2 are decompressed."
   (interactive (list nil current-prefix-arg))
   (gnus-article-check-buffer)
-  (unless handle
-    (setq handle (get-text-property (point) 'gnus-data)))
-  (when handle
-    (let ((b (point))
-	  (inhibit-read-only t)
-	  contents charset coding-system)
+  (let* ((inhibit-read-only t)
+	 (b (point))
+	 (btn ;; position where the MIME button exists
+	  (if handle
+	      (if (eq handle (get-text-property b 'gnus-data))
+		  b
+		(article-goto-body)
+		(or (text-property-any (point) (point-max) 'gnus-data handle)
+		    (text-property-any (point-min) (point) 'gnus-data handle)))
+	    (setq handle (get-text-property b 'gnus-data))
+	    b))
+	 contents charset coding-system)
+    (when handle
+      (when (= b (prog1
+		     btn
+		   (setq btn (previous-single-property-change
+			      (next-single-property-change btn 'gnus-data)
+			      'gnus-data))))
+	(setq b btn))
       (if (and (not arg) (mm-handle-undisplayer handle))
 	  (mm-remove-part handle)
 	(mm-with-unibyte-buffer
@@ -5332,8 +5345,35 @@ Compressed files like .gz and .bz2 are decompressed."
 	 ((mm-handle-undisplayer handle)
 	  (mm-remove-part handle)))
 	(forward-line 1)
-        (mm-display-inline handle)
-	(goto-char b)))))
+	(mm-display-inline handle))
+      ;; Toggle the button appearance between `[button]...' and `[button]'.
+      (goto-char btn)
+      (gnus-insert-mime-button handle (get-text-property btn 'gnus-part)
+			       (list (mm-handle-displayed-p handle)))
+      (if (featurep 'emacs)
+	  (delete-region
+	   (point)
+	   (text-property-any (point) (point-max) 'gnus-data nil))
+	(let* ((end (text-property-any (point) (point-max) 'gnus-data nil))
+	       (annots (annotations-at end)))
+	  (delete-region (point)
+			 ;; FIXME: why isn't this simply `end'?
+			 (if annots (1+ end) end))
+	  (dolist (annot annots)
+	    (set-extent-endpoints annot (point) (point)))))
+      (unless (search-backward "\n\n" nil t)
+	;; We're in the article header.
+	(delete-char -1)
+	(dolist (ovl (gnus-overlays-in btn (point)))
+	  (gnus-overlay-put ovl 'gnus-button-attachment-extra t)
+	  (gnus-overlay-put ovl 'face nil))
+	(save-restriction
+	  (message-narrow-to-field)
+	  (let ((gnus-treatment-function-alist
+		 '((gnus-treat-highlight-headers
+		    gnus-article-highlight-headers))))
+	    (gnus-treat-article 'head))))
+      (goto-char b))))
 
 (defun gnus-mime-set-charset-parameters (handle charset)
   "Set CHARSET to parameters in HANDLE.
@@ -5650,6 +5690,9 @@ all parts."
 	    (when win
 	      (select-window win)
 	      (goto-char point)))
+	  (setq point (previous-single-property-change
+		       (next-single-property-change point 'gnus-data)
+		       'gnus-data))
 	  (forward-line)
 	  (if (mm-handle-displayed-p handle)
 	      ;; This will remove the part.
@@ -5673,27 +5716,29 @@ all parts."
 		 (mm-handle-media-type handle))))))
       (goto-char point)
       ;; Toggle the button appearance between `[button]...' and `[button]'.
-      (let ((end (next-single-property-change point 'gnus-data))
-	    start)
-	(delete-region
-	 (setq start (previous-single-property-change end 'gnus-data))
-	 end)
-	(gnus-insert-mime-button
-	 handle id (list (mm-handle-displayed-p handle)))
-	(setq end (point))
-	(if (search-backward "\n\n" nil t)
-	    (goto-char end)
-	  ;; We're in the article header.
-	  (delete-char -1)
-	  (dolist (ovl (gnus-overlays-in start (1- end)))
-	    (gnus-overlay-put ovl 'gnus-button-attachment-extra t)
-	    (gnus-overlay-put ovl 'face nil))
-	  (save-restriction
-	    (message-narrow-to-field)
-	    (let ((gnus-treatment-function-alist
-		   '((gnus-treat-highlight-headers
-		      gnus-article-highlight-headers))))
-	      (gnus-treat-article 'head)))))
+      (gnus-insert-mime-button handle id (list (mm-handle-displayed-p handle)))
+      (if (featurep 'emacs)
+	  (delete-region
+	   (point) (text-property-any (point) (point-max) 'gnus-data nil))
+	(let* ((end (text-property-any (point) (point-max) 'gnus-data nil))
+	       (annots (annotations-at end)))
+	  (delete-region (point)
+			 ;; FIXME: why isn't this simply `end'?
+			 (if annots (1+ end) end))
+	  (dolist (annot annots)
+	    (set-extent-endpoints annot (point) (point)))))
+      (unless (search-backward "\n\n" nil t)
+	;; We're in the article header.
+	(delete-char -1)
+	(dolist (ovl (gnus-overlays-in point (point)))
+	  (gnus-overlay-put ovl 'gnus-button-attachment-extra t)
+	  (gnus-overlay-put ovl 'face nil))
+	(save-restriction
+	  (message-narrow-to-field)
+	  (let ((gnus-treatment-function-alist
+		 '((gnus-treat-highlight-headers
+		    gnus-article-highlight-headers))))
+	    (gnus-treat-article 'head))))
       (goto-char point)
       (if (window-live-p window)
 	  (select-window window)))
