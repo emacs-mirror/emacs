@@ -112,7 +112,6 @@ static void test_main(void *marker, int interior, int stack)
     MPS_ARGS_ADD(args, MPS_KEY_CHAIN, obj_chain);
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, obj_fmt);
     MPS_ARGS_ADD(args, MPS_KEY_INTERIOR, interior);
-    MPS_ARGS_DONE(args);
     die(mps_pool_create_k(&obj_pool, scheme_arena, mps_class_amc(), args),
         "mps_pool_create_k");
   } MPS_ARGS_END(args);
