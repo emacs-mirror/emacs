@@ -1,5 +1,10 @@
 2014-05-02  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todo-mode.el (todo-edit-file): Use display-warning.
+	(todo-menu): Uncomment and update.
+
+2014-05-02  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todo-mode.el: Reimplement item editing to have the same
 	basic user interface as item insertion, and make small UI and
 	larger internal improvements to the latter.

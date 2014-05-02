@@ -1216,9 +1216,19 @@ this command should be used with caution."
   (widen)
   (todo-edit-mode)
   (remove-overlays)
-  (message "%s" (substitute-command-keys
-		 (concat "Type \\[todo-edit-quit] to check file format "
-			 "validity and return to Todo mode.\n"))))
+  (display-warning 'todo (format "\
+
+Type %s to return to Todo mode.
+
+This also runs a file format check and signals an error if
+the format has become invalid.  However, this check cannot
+tell if the number of items or categories changed, which
+could result in the file containing inconsistent information.
+You can repair this inconsistency by invoking the command
+`todo-repair-categories-sexp', but this will revert any
+renumbering of the categories you have made, so you will
+have to renumber them again (see `(todo-mode) Reordering
+Categories')." (substitute-command-keys "\\[todo-edit-quit]"))))
 
 (defun todo-add-category (&optional file cat)
   "Add a new category to a todo file.
@@ -6309,64 +6319,74 @@ Filtered Items mode following todo (not done) items."
     map)
   "Todo Filtered Items mode keymap.")
 
-;; FIXME: Is it worth having a menu and if so, which commands?
-;; (easy-menu-define
-;;   todo-menu todo-mode-map "Todo Menu"
-;;   '("Todo"
-;;     ("Navigation"
-;;      ["Next Item"            todo-forward-item t]
-;;      ["Previous Item"        todo-backward-item t]
-;;      "---"
-;;      ["Next Category"        todo-forward-category t]
-;;      ["Previous Category"    todo-backward-category t]
-;;      ["Jump to Category"     todo-jump-to-category t]
-;;      "---"
-;;      ["Search Todo File"    todo-search t]
-;;      ["Clear Highlighting on Search Matches" todo-category-done t])
-;;     ("Display"
-;;      ["List Current Categories" todo-show-categories-table t]
-;;      ;; ["List Categories Alphabetically" todo-display-categories-alphabetically t]
-;;      ["Turn Item Highlighting on/off" todo-toggle-item-highlighting t]
-;;      ["Turn Item Numbering on/off" todo-toggle-prefix-numbers t]
-;;      ["Turn Item Time Stamp on/off" todo-toggle-item-header t]
-;;      ["View/Hide Done Items" todo-toggle-view-done-items t]
-;;      "---"
-;;      ["View Diary Items" todo-filter-diary-items t]
-;;      ["View Top Priority Items" todo-filter-top-priorities t]
-;;      ["View Multifile Top Priority Items" todo-filter-top-priorities-multifile t]
-;;      "---"
-;;      ["Print Category"     todo-print-buffer t])
-;;     ("Editing"
-;;      ["Insert New Item"      todo-insert-item t]
-;;      ["Insert Item Here"     todo-insert-item-here t]
-;;      ("More Insertion Commands")
-;;      ["Edit Item"            todo-edit-item t]
-;;      ["Edit Multiline Item"  todo-edit-multiline-item t]
-;;      ["Edit Item Header"     todo-edit-item-header t]
-;;      ["Edit Item Date"       todo-edit-item-date t]
-;;      ["Edit Item Time"       todo-edit-item-time t]
-;;      "---"
-;;      ["Lower Item Priority"  todo-lower-item-priority t]
-;;      ["Raise Item Priority"  todo-raise-item-priority t]
-;;      ["Set Item Priority" todo-set-item-priority t]
-;;      ["Move (Recategorize) Item" todo-move-item t]
-;;      ["Delete Item"          todo-delete-item t]
-;;      ["Undo Done Item" todo-item-undone t]
-;;      ["Mark/Unmark Item for Diary" todo-toggle-item-diary-inclusion t]
-;;      ["Mark/Unmark Items for Diary" todo-edit-item-diary-inclusion t]
-;;      ["Mark & Hide Done Item" todo-item-done t]
-;;      ["Archive Done Items" todo-archive-category-done-items t]
-;;      "---"
-;;      ["Add New Todo File" todo-add-file t]
-;;      ["Add New Category" todo-add-category t]
-;;      ["Delete Current Category" todo-delete-category t]
-;;      ["Rename Current Category" todo-rename-category t]
-;;      "---"
-;;      ["Save Todo File"      todo-save t]
-;;      )
-;;     "---"
-;;     ["Quit"                 todo-quit t]
-;;     ))
+(easy-menu-define
+  todo-menu todo-mode-map "Todo Menu"
+  '("Todo"
+    ("Navigation"
+     ["Next Item"            todo-next-item t]
+     ["Previous Item"        todo-previous-item t]
+     "---"
+     ["Next Category"        todo-forward-category t]
+     ["Previous Category"    todo-backward-category t]
+     ["Jump to Another Category"     todo-jump-to-category t]
+     "---"
+     ["Visit Another Todo File"     todo-show t]
+     ["Visit Archive" todo-find-archive t]
+     ["Visit Filtered Items File" todo-find-filtered-items-file t]
+     )
+    ("Editing"
+     ["Insert New Item"      todo-insert-item t]
+     ["Edit Item"            todo-edit-item t]
+     ["Lower Item Priority"  todo-lower-item-priority t]
+     ["Raise Item Priority"  todo-raise-item-priority t]
+     ["Set Item Priority" todo-set-item-priority t]
+     ["Mark/Unmark Item" todo-toggle-mark-item t]
+     ["Move (Recategorize) Item" todo-move-item t]
+     ["Delete Item"          todo-delete-item t]
+     ["Mark and Bury Done Item" todo-item-done t]
+     ["Undo Done Item" todo-item-undone t]
+     ["Archive Done Item" todo-archive-done-item t]
+     "---"
+     ["Add New Category" todo-add-category t]
+     ["Rename Current Category" todo-rename-category t]
+     ["Delete Current Category" todo-delete-category t]
+     ["Move Current Category" todo-move-category t]
+     ["Merge Current Category" todo-merge-category t]
+     "---"
+     ["Add New Todo File" todo-add-file t]
+     ["Rename Todo File" todo-rename-file t]
+     ["Delete Todo File" todo-delete-file t]
+     ["Edit Todo File" todo-edit-file t]
+     )
+    ("Searching and Item Filtering"
+     ["Search Todo File" todo-search t]
+     ["Clear Match Highlighting" todo-clear-matches t]
+     "---"
+     ["Set Top Priorities in File" todo-set-top-priorities-in-file t]
+     ["Set Top Priorities in Category" todo-set-top-priorities-in-category t]
+     ["Filter Top Priorities" todo-filter-top-priorities t]
+     ["Filter Multifile Top Priorities" todo-filter-top-priorities-multifile t]
+     ["Filter Diary Items" todo-filter-diary-items t]
+     ["Filter Multifile Diary Items" todo-filter-diary-items-multifile t]
+     ["Filter Regexp" todo-filter-regexp-items t]
+     ["Filter Multifile Regexp" todo-filter-regexp-items-multifile t]
+     )
+    ("Display and Printing"
+     ["Show/Hide Done Items" todo-toggle-view-done-items t]
+     ["Show/Hide Done Items Only" todo-toggle-view-done-only t]
+     ["Show/Hide Item Highlighting" todo-toggle-item-highlighting t]
+     ["Show/Hide Item Numbering" todo-toggle-prefix-numbers t]
+     ["Show/Hide Item Header" todo-toggle-item-header t]
+     "---"
+     ["Display Table of Categories" todo-show-categories-table t]
+     "---"
+     ["Print Category" todo-print-buffer t]
+     ["Print Category to File" todo-print-buffer-to-file t]
+     )
+    "---"
+    ["Save Todo File" todo-save t]
+    ["Quit Todo Mode" todo-quit t]
+    ))
 
 ;; -----------------------------------------------------------------------------
 ;;; Hook functions and mode definitions
