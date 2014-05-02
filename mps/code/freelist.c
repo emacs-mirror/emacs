@@ -558,7 +558,7 @@ static Bool freelistDescribeIterateMethod(Bool *deleteReturn, Range range,
   UNUSED(closureS);
 
   res = WriteF(stream,
-               "[$P,", (WriteFP)RangeBase(range),
+               "  [$P,", (WriteFP)RangeBase(range),
                "$P)", (WriteFP)RangeLimit(range),
                " {$U}\n", (WriteFU)RangeSize(range),
                NULL);
@@ -577,8 +577,8 @@ Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                "Freelist $P {\n", (WriteFP)fl,
-               "alignment $U\n", (WriteFU)fl->alignment,
-               "listSize  $U\n", (WriteFU)fl->listSize,
+               "  alignment = $U\n", (WriteFU)fl->alignment,
+               "  listSize = $U\n", (WriteFU)fl->listSize,
                NULL);
 
   FreelistIterate(fl, freelistDescribeIterateMethod, stream, 0);
