@@ -2585,7 +2585,7 @@ non-nil value, that slot cannot be set via `setf'.
 (defmacro cl-deftype (name arglist &rest body)
   "Define NAME as a new data type.
 The type name can then be used in `cl-typecase', `cl-check-type', etc."
-  (declare (debug cl-defmacro) (doc-string 3))
+  (declare (debug cl-defmacro) (doc-string 3) (indent 2))
   `(cl-eval-when (compile load eval)
      (put ',name 'cl-deftype-handler
           (cl-function (lambda (&cl-defs '('*) ,@arglist) ,@body)))))

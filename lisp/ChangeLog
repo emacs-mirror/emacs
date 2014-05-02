@@ -1,3 +1,7 @@
+2014-05-02  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/cl-macs.el (cl-deftype): Fix indentation.
+
 2014-05-01  Glenn Morris  <rgm@gnu.org>
 
 	* allout-widgets.el (allout-widgets-tally)
