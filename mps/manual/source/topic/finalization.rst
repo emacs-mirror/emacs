@@ -91,8 +91,8 @@ calling :c:func:`mps_message_discard`.
     occupied by the finalized block (that happens at the next
     collection, if the block is found to be dead at that point), and
     so the block must remain validly formatted (:term:`scannable <scan
-    method>`, :term:`skippable <skip method>`, and so on). You might
-    choose to replace it with a :term:`padding object`.
+    method>`, :term:`skippable <skip method>`, and so on). It might
+    make sense to replace it with a :term:`padding object`.
 
 See :ref:`topic-message` for details of the message mechanism.
 
@@ -132,12 +132,12 @@ Cautions
     finalization. The MPS does not finalize a block until it
     determines that the block is finalizable, which may require a full
     garbage collection in the worst case, and such a collection may
-    not :ref:`scheduled <topic-collection-schedule>` for some time. Or
-    the block may never become finalizable because it is incorrectly
-    determined to be reachable due to an :term:`ambiguous reference`
-    pointing to it. Or the block may never become finalizable because
-    it remains reachable through a reference, even if that reference
-    might never be used.
+    not be :ref:`scheduled <topic-collection-schedule>` for some time.
+    Or the block may never become finalizable because it is
+    incorrectly determined to be reachable due to an :term:`ambiguous
+    reference` pointing to it. Or the block may never become
+    finalizable because it remains reachable through a reference, even
+    if that reference might never be used.
 
 #.  Even when blocks are finalized in a reasonably timely fashion, the
     client needs to process the finalization messages in time to avoid
