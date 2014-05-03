@@ -210,6 +210,7 @@ fi
 # find the pkg.m4 that is installed in the standard location.
 echo "Checking for pkg.m4..."
 AUTORECONF_ENV=
+env_space=
 ac_dir=`aclocal --print-ac-dir` && test -r "$ac_dir/pkg.m4" || {
   oIFS=$IFS
   IFS=:
@@ -225,7 +226,8 @@ ac_dir=`aclocal --print-ac-dir` && test -r "$ac_dir/pkg.m4" || {
 	  ?*) ACLOCAL_PATH=$ACLOCAL_PATH:$ac_dir;;
 	esac
 	export ACLOCAL_PATH
-	AUTORECONF_ENV="ACLOCAL_PATH='$ACLOCAL_PATH' "
+	AUTORECONF_ENV="ACLOCAL_PATH='$ACLOCAL_PATH'"
+	env_space=' '
 	break
       fi
     fi
@@ -244,7 +246,7 @@ EOF
 echo ok
 
 echo 'Your system has the required tools.'
-echo "Running \"${AUTORECONF_ENV}autoreconf -fi -I m4\" ..."
+echo "Running \"$AUTORECONF_ENV${env_space}autoreconf -fi -I m4\" ..."
 
 
 ## Let autoreconf figure out what, if anything, needs doing.
@@ -255,7 +257,7 @@ autoreconf -fi -I m4 || exit $?
 ## cause 'make' to needlessly run 'autoheader'.
 echo timestamp > src/stamp-h.in || exit
 
-echo "You can now run \`./configure'."
+echo "You can now run \`./configure$env_space$AUTORECONF_ENV'."
 
 exit 0
 

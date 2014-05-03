@@ -1,5 +1,14 @@
 2014-05-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Get --enable-gcc-warnings to work after touching configure.ac.
+	Preserve ACLOCAL_PATH in later builds, so that by default it has
+	the same value as it did in the first build after initial checkout.
+	* Makefile.in (ACLOCAL_PATH): New macro.
+	($(srcdir)/aclocal.m4): Use it.
+	* configure.ac (ACLOCAL_PATH): AC_SUBST it.
+	* autogen.sh (env_space): New var.
+	Tell user what variables, if any, to pass to 'configure'.
+
 	Get --enable-gcc-warnings working again.
 	The recent changes to configure.ac removed the transliteration of
 	-I to -isystem in CFLAGS, which is needed for --enable-gcc-warnings.

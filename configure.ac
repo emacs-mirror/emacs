@@ -295,6 +295,9 @@ otherwise for the first of `gfile' or `inotify' that is usable.])
 dnl http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg01844.html
 OPTION_DEFAULT_ON([makeinfo],[don't require makeinfo for building manuals])
 
+## This might be a 'configure' arg, e.g., autogen.sh might set it.
+AC_SUBST([ACLOCAL_PATH])
+
 ## Makefile.in needs the cache file name.
 AC_SUBST(cache_file)
 
