@@ -1,3 +1,7 @@
+2014-05-03  Glenn Morris  <rgm@gnu.org>
+
+	* autogen.sh: If all else fails, try using pkg-config to find pkg.m4.
+
 2014-05-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Get --enable-gcc-warnings to work after touching configure.ac.

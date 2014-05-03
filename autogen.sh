@@ -234,6 +234,28 @@ ac_dir=`aclocal --print-ac-dir` && test -r "$ac_dir/pkg.m4" || {
   done
   IFS=$oIFS
 
+  ## OK, maybe pkg-config is in a weird place (eg on hydra).
+  if test -z "$AUTORECONF_ENV"; then
+    oIFS=$IFS
+    IFS=:
+    for dir in $PATH; do
+      if test -x "$dir/pkg-config"; then
+        ac_dir=`echo "$dir" | sed 's|bin$|share/aclocal|'`
+        if test -r "$ac_dir/pkg.m4"; then
+          case $ACLOCAL_PATH in
+            '') ACLOCAL_PATH=$ac_dir;;
+            ?*) ACLOCAL_PATH=$ACLOCAL_PATH:$ac_dir;;
+          esac
+          export ACLOCAL_PATH
+          AUTORECONF_ENV="ACLOCAL_PATH='$ACLOCAL_PATH'"
+          env_space=' '
+          break
+        fi
+      fi
+    done
+    IFS=$oIFS
+  fi
+
   if test -z "$AUTORECONF_ENV"; then
     cat <<EOF
 The version of aclocal that you are using cannot find the pkg.m4 file that
