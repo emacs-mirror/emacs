@@ -29,6 +29,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/wait.h>
 #endif  /* !HAVE_SYS_WAIT_H */
 
+#ifndef WCONTINUED
+#define WCONTINUED 8
+#endif
+
 #ifndef WCOREDUMP		/* not POSIX */
 #define WCOREDUMP(status) ((status) & 0x80)
 #endif

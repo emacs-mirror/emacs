@@ -1,3 +1,10 @@
+2014-05-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Handle systems without WCONTINUED consistently.  (Bug#15110, 17339)
+	* process.c (handle_child_signal): Remove WCONTINUED ifdef,
+	because WCONTINUED is always defined now.
+	* syswait.h (WCONTINUED): Move here from ../lib-src/emacsclient.c.
+
 2014-05-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* buffer.c (overlay_strings): Fix the wording of the commentary.
