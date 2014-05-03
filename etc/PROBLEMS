@@ -1234,7 +1234,7 @@ https://bugzilla.xfce.org/show_bug.cgi?id=7588 .
 
 When you start Emacs you may see something like this:
 
-(emacs:2286): LIBDBUSMENU-GTK-CRITICAL **: watch_submenu: assertion 
+(emacs:2286): LIBDBUSMENU-GTK-CRITICAL **: watch_submenu: assertion
 `GTK_IS_MENU_SHELL(menu)' failed
 
 This happens if the Emacs binary has been renamed.  The cause is the Ubuntu
@@ -2223,16 +2223,16 @@ If you do, please send it to bug-gnu-emacs@gnu.org so we can list it here.
 
 * Build-time problems
 
-** Autogen.sh / Autoreconf
+** Autoreconf
 
-*** Running `autogen.sh' or `autoreconf' fails with an error of the form
-"possibly undefined macro: PKG_CONFIG".  This indicates that the version
-of aclocal that you are using cannot find the pkg.m4 file that
-pkg-config provides.  If you installed your own version of automake in
-a non-standard location /prefix, then add a line to the
-/prefix/share/aclocal/dirlist file (create the file if necessary)
-that gives the location of the directory that contains pkg.m4
-(e.g. /usr/share/aclocal).
+*** autoreconf fails with "possibly undefined macro: PKG_CONFIG".
+This can happen if you installed your own automake in a non-standard
+location /prefix.  The simplest workaround is to run ./autogen.sh
+instead.  If you prefer to run autoreconf directly, then if pkg.m4 is
+in the directory /usr/share/aclocal you can append /usr/share/local to
+your ACLOCAL_PATH environment variable, or you can add a line
+"/usr/share/aclocal" to the file /prefix/share/aclocal/dirlist (create
+the file if necessary).
 
 ** Configuration
 

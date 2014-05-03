@@ -1,3 +1,11 @@
+2014-05-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make it easier on maintainers who use their own Automake.
+	* autogen.sh (ACLOCAL_PATH, AUTORECONF_ENV): New vars.
+	Set them to avoid problems when maintainers prepend their own
+	Automake installations to their PATH.  Report an error if pkg.m4
+	can't be found.
+
 2014-05-02  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (PKG_CONFIG_PATH): Declare with AC_ARG_VAR.

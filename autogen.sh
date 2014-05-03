@@ -195,7 +195,7 @@ this script.
 If you know that the required versions are in your PATH, but this
 script has made an error, then you can simply run
 
-autoreconf -i -I m4
+autoreconf -fi -I m4
 
 instead of this script.
 
@@ -205,12 +205,51 @@ EOF
     exit 1
 fi
 
-echo "Your system has the required tools, running autoreconf..."
+# If automake is installed in a nonstandard location, find the standard
+# location if possible and append it to ACLOCAL_PATH.  That way, it will
+# find the pkg.m4 that is installed in the standard location.
+echo "Checking for pkg.m4..."
+AUTORECONF_ENV=
+ac_dir=`aclocal --print-ac-dir` && test -r "$ac_dir/pkg.m4" || {
+  oIFS=$IFS
+  IFS=:
+  before_first_aclocal=true
+  for dir in $PATH; do
+    if test -x "$dir/aclocal"; then
+      if $before_first_aclocal; then
+	before_first_aclocal=false
+      elif ac_dir=`"$dir/aclocal" --print-ac-dir` && test -r "$ac_dir/pkg.m4"
+      then
+	case $ACLOCAL_PATH in
+	  '') ACLOCAL_PATH=$ac_dir;;
+	  ?*) ACLOCAL_PATH=$ACLOCAL_PATH:$ac_dir;;
+	esac
+	export ACLOCAL_PATH
+	AUTORECONF_ENV="ACLOCAL_PATH='$ACLOCAL_PATH' "
+	break
+      fi
+    fi
+  done
+  IFS=$oIFS
+
+  if test -z "$AUTORECONF_ENV"; then
+    cat <<EOF
+The version of aclocal that you are using cannot find the pkg.m4 file that
+pkg-config provides.  If it is installed in some unusual directory /FOO/BAR,
+set ACLOCAL_PATH='/FOO/BAR' in the environment and run this script again.
+EOF
+    exit 1
+  fi
+}
+echo ok
+
+echo 'Your system has the required tools.'
+echo "Running \"${AUTORECONF_ENV}autoreconf -fi -I m4\" ..."
 
 
 ## Let autoreconf figure out what, if anything, needs doing.
 ## Use autoreconf's -f option in case autoreconf itself has changed.
-autoreconf -f -i -I m4 || exit $?
+autoreconf -fi -I m4 || exit $?
 
 ## Create a timestamp, so that './autogen.sh; make' doesn't
 ## cause 'make' to needlessly run 'autoheader'.
