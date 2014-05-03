@@ -1,11 +1,9 @@
 2014-05-01  Barry O'Reilly  <gundaetiapo@gmail.com>
 
-	* simple.el (undo-make-selective-list): New algorithm fixes
-	incorrectness of position adjustments when undoing in region.
-	(Bug#17235)
-	(undo-elt-crosses-region): Make obsolete.
-	(undo-adjust-elt, undo-adjust-beg-end, undo-adjust-pos): New
-	functions to adjust positions using undo-deltas.
+	* automated/undo-tests.el (undo-test-region-deletion): New test to
+	demonstrate bug#17235.
+	(undo-test-region-example): New test to verify example given in
+	comments for undo-make-selective-list.
 
 2014-04-25  Michael Albinus  <michael.albinus@gmx.de>
 
