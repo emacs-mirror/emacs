@@ -902,6 +902,13 @@ else
   AC_SUBST([GNULIB_WARN_CFLAGS])
 fi
 
+edit_cflags="
+  s,///*,/,g
+  s/^/ /
+  s/ -I/ $isystem/g
+  s/^ //
+"
+
 
 
 dnl Some other nice autoconf tests.
@@ -1340,6 +1347,19 @@ pre_PKG_CONFIG_LIBS=$LIBS
 
 PKG_PROG_PKG_CONFIG(0.9.0)
 
+dnl EMACS_CHECK_MODULES(GSTUFF, gtk+-2.0 >= 1.3 glib = 1.3.4)
+dnl acts like PKG_CHECK_MODULES(GSTUFF, gtk+-2.0 >= 1.3 glib = 1.3.4,
+dnl HAVE_GSTUFF=yes, HAVE_GSTUFF=no) -- see pkg-config man page --
+dnl except that it postprocesses CFLAGS as needed for --enable-gcc-warnings.
+dnl EMACS_CHECK_MODULES accepts optional 3rd and 4th arguments that
+dnl can take the place of the default HAVE_GSTUFF=yes and HAVE_GSTUFF=no
+dnl actions.
+AC_DEFUN([EMACS_CHECK_MODULES],
+  [PKG_CHECK_MODULES([$1], [$2],
+     [$1_CFLAGS=`AS_ECHO(["$$1_CFLAGS"]) | sed -e "$edit_cflags"`
+      m4_default([$3], [HAVE_$1=yes])],
+     [m4_default([$4], [HAVE_$1=no])])])
+
 HAVE_SOUND=no
 if test "${with_sound}" != "no"; then
   # Sound support for GNU/Linux, the free BSDs, and MinGW.
@@ -1366,7 +1386,7 @@ if test "${with_sound}" != "no"; then
   if test "${with_sound}" = "alsa" || test "${with_sound}" = "yes"; then
     ALSA_REQUIRED=1.0.0
     ALSA_MODULES="alsa >= $ALSA_REQUIRED"
-    PKG_CHECK_MODULES(ALSA, $ALSA_MODULES, HAVE_ALSA=yes, HAVE_ALSA=no)
+    EMACS_CHECK_MODULES([ALSA], [$ALSA_MODULES])
     if test $HAVE_ALSA = yes; then
       SAVE_CFLAGS="$CFLAGS"
       SAVE_LIBS="$LIBS"
@@ -2134,7 +2154,7 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${opsys}" = 
     RSVG_REQUIRED=2.11.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
 
-    PKG_CHECK_MODULES(RSVG, $RSVG_MODULE, HAVE_RSVG=yes, :)
+    EMACS_CHECK_MODULES([RSVG], [$RSVG_MODULE])
     AC_SUBST(RSVG_CFLAGS)
     AC_SUBST(RSVG_LIBS)
 
@@ -2157,7 +2177,7 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${HAVE_W32}"
     ## 6.0.7 does not work.  See bug#7955.
     ## 6.8.2 makes Emacs crash; see Bug#13867.
     IMAGEMAGICK_MODULE="Wand >= 6.2.8 Wand != 6.8.2"
-    PKG_CHECK_MODULES(IMAGEMAGICK, $IMAGEMAGICK_MODULE, HAVE_IMAGEMAGICK=yes, :)
+    EMACS_CHECK_MODULES([IMAGEMAGICK], [$IMAGEMAGICK_MODULE])
     AC_SUBST(IMAGEMAGICK_CFLAGS)
     AC_SUBST(IMAGEMAGICK_LIBS)
 
@@ -2187,7 +2207,8 @@ if test "${opsys}" != "mingw32"; then
     GTK_MODULES="gtk+-3.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
     dnl Checks for libraries.
-    PKG_CHECK_MODULES(GTK, $GTK_MODULES, pkg_check_gtk=yes, pkg_check_gtk=no)
+    EMACS_CHECK_MODULES([GTK], [$GTK_MODULES],
+      [pkg_check_gtk=yes], [pkg_check_gtk=no])
     if test "$pkg_check_gtk" = "no" && test "$with_gtk3" = "yes"; then
        AC_MSG_ERROR($GTK_PKG_ERRORS)
     fi
@@ -2214,7 +2235,8 @@ if test "${opsys}" != "mingw32"; then
     GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
     dnl Checks for libraries.
-    PKG_CHECK_MODULES(GTK, $GTK_MODULES, pkg_check_gtk=yes, pkg_check_gtk=no)
+    EMACS_CHECK_MODULES([GTK], [$GTK_MODULES],
+      [pkg_check_gtk=yes], [pkg_check_gtk=no])
     if test "$pkg_check_gtk" = "no" &&
        { test "$with_gtk" = yes || test "$with_gtk2" = "yes"; }
     then
@@ -2338,7 +2360,7 @@ dnl other platforms.
 HAVE_DBUS=no
 DBUS_OBJ=
 if test "${with_dbus}" = "yes"; then
-   PKG_CHECK_MODULES(DBUS, dbus-1 >= 1.0, HAVE_DBUS=yes, HAVE_DBUS=no)
+   EMACS_CHECK_MODULES([DBUS], [dbus-1 >= 1.0])
    if test "$HAVE_DBUS" = yes; then
      AC_DEFINE(HAVE_DBUS, 1, [Define to 1 if using D-Bus.])
      dnl dbus_watch_get_unix_fd has been introduced in D-Bus 1.1.1.
@@ -2363,7 +2385,7 @@ AC_SUBST(DBUS_OBJ)
 dnl GSettings has been tested under GNU/Linux only.
 HAVE_GSETTINGS=no
 if test "${HAVE_X11}" = "yes" && test "${with_gsettings}" = "yes"; then
-   PKG_CHECK_MODULES(GSETTINGS, gio-2.0 >= 2.26, HAVE_GSETTINGS=yes, HAVE_GSETTINGS=no)
+   EMACS_CHECK_MODULES([GSETTINGS], [gio-2.0 >= 2.26])
    if test "$HAVE_GSETTINGS" = "yes"; then
       old_CFLAGS=$CFLAGS
       CFLAGS="$CFLAGS $GSETTINGS_CFLAGS"
@@ -2397,7 +2419,7 @@ dnl GConf has been tested under GNU/Linux only.
 dnl The version is really arbitrary, it is about the same age as Gtk+ 2.6.
 HAVE_GCONF=no
 if test "${HAVE_X11}" = "yes" && test "${with_gconf}" = "yes"; then
-   PKG_CHECK_MODULES(GCONF, gconf-2.0 >= 2.13, HAVE_GCONF=yes, HAVE_GCONF=no)
+   EMACS_CHECK_MODULES([GCONF], [gconf-2.0 >= 2.13])
    if test "$HAVE_GCONF" = yes; then
       AC_DEFINE(HAVE_GCONF, 1, [Define to 1 if using GConf.])
       dnl Newer GConf doesn't link with g_objects, so this is not defined.
@@ -2407,7 +2429,7 @@ if test "${HAVE_X11}" = "yes" && test "${with_gconf}" = "yes"; then
 fi
 
 if test "$HAVE_GSETTINGS" = "yes" || test "$HAVE_GCONF" = "yes"; then
-    PKG_CHECK_MODULES(GOBJECT, gobject-2.0 >= 2.0, HAVE_GOBJECT=yes, HAVE_GOBJECT=no)
+    EMACS_CHECK_MODULES([GOBJECT], [gobject-2.0 >= 2.0])
     if test "$HAVE_GOBJECT" = "yes"; then
        SETTINGS_CFLAGS="$SETTINGS_CFLAGS $GOBJECT_CFLAGS"
        SETTINGS_LIBS="$SETTINGS_LIBS $GOBJECT_LIBS"
@@ -2438,12 +2460,14 @@ AC_SUBST(LIBSELINUX_LIBS)
 HAVE_GNUTLS=no
 HAVE_GNUTLS3=no
 if test "${with_gnutls}" = "yes" ; then
-  PKG_CHECK_MODULES([LIBGNUTLS], [gnutls >= 3.0.0], HAVE_GNUTLS3=yes, HAVE_GNUTLS3=no)
+  EMACS_CHECK_MODULES([LIBGNUTLS], [gnutls >= 3.0.0],
+    [HAVE_GNUTLS3=yes], [HAVE_GNUTLS3=no])
   if test "${HAVE_GNUTLS3}" = "yes"; then
     AC_DEFINE(HAVE_GNUTLS3, 1, [Define if using GnuTLS v3.])
     HAVE_GNUTLS="yes"
   else
-    PKG_CHECK_MODULES([LIBGNUTLS], [gnutls >= 2.6.6], HAVE_GNUTLS=yes, HAVE_GNUTLS=no)
+    EMACS_CHECK_MODULES([LIBGNUTLS], [gnutls >= 2.6.6],
+      [HAVE_GNUTLS=yes], [HAVE_GNUTLS=no])
   fi
   if test "${HAVE_GNUTLS}" = "yes"; then
     AC_DEFINE(HAVE_GNUTLS, 1, [Define if using GnuTLS.])
@@ -2485,7 +2509,7 @@ dnl only sense when glib has been compiled with inotify support.  How
 dnl to check?
 case $with_file_notification,$NOTIFY_OBJ in
   gfile, | yes,)
-    PKG_CHECK_MODULES(GFILENOTIFY, gio-2.0 >= 2.24, HAVE_GFILENOTIFY=yes, HAVE_GFILENOTIFY=no)
+    EMACS_CHECK_MODULES([GFILENOTIFY], [gio-2.0 >= 2.24])
     if test "$HAVE_GFILENOTIFY" = "yes"; then
        AC_DEFINE(HAVE_GFILENOTIFY, 1, [Define to 1 if using GFile.])
        NOTIFY_OBJ=gfilenotify.o
@@ -2759,7 +2783,8 @@ fi
 
 ### Start of font-backend (under X11) section.
 if test "${HAVE_X11}" = "yes"; then
-   PKG_CHECK_MODULES(FONTCONFIG, fontconfig >= 2.2.0, HAVE_FC=yes, HAVE_FC=no)
+   EMACS_CHECK_MODULES([FONTCONFIG], [fontconfig >= 2.2.0],
+     [HAVE_FC=yes], [HAVE_FC=no])
 
    ## Use -lXft if available, unless `--with-xft=no'.
    HAVE_XFT=maybe
@@ -2768,7 +2793,7 @@ if test "${HAVE_X11}" = "yes"; then
     fi
     if test "x${with_xft}" != "xno"; then
 
-      PKG_CHECK_MODULES(XFT, xft >= 0.13.0, , HAVE_XFT=no)
+      EMACS_CHECK_MODULES([XFT], [xft >= 0.13.0], [], [HAVE_XFT=no])
       ## Because xftfont.c uses XRenderQueryExtension, we also
       ## need to link to -lXrender.
       HAVE_XRENDER=no
@@ -2807,8 +2832,7 @@ if test "${HAVE_X11}" = "yes"; then
        dnl ftfont.o: undefined reference to symbol 'FT_New_Face'
        dnl if -lfreetype is not specified.
        dnl The following is needed to set FREETYPE_LIBS.
-       PKG_CHECK_MODULES(FREETYPE, freetype2, HAVE_FREETYPE=yes,
-			 HAVE_FREETYPE=no)
+       EMACS_CHECK_MODULES([FREETYPE], [freetype2])
 
        test "$HAVE_FREETYPE" = "no" && AC_MSG_ERROR(libxft requires libfreetype)
     fi
@@ -2818,8 +2842,7 @@ if test "${HAVE_X11}" = "yes"; then
       AC_DEFINE(HAVE_FREETYPE, 1,
 		[Define to 1 if using the freetype and fontconfig libraries.])
       if test "${with_libotf}" != "no"; then
-	PKG_CHECK_MODULES(LIBOTF, libotf, HAVE_LIBOTF=yes,
-			  HAVE_LIBOTF=no)
+	EMACS_CHECK_MODULES([LIBOTF], [libotf])
 	if test "$HAVE_LIBOTF" = "yes"; then
 	  AC_DEFINE(HAVE_LIBOTF, 1, [Define to 1 if using libotf.])
 	  AC_CHECK_LIB(otf, OTF_get_variation_glyphs,
@@ -2838,7 +2861,7 @@ if test "${HAVE_X11}" = "yes"; then
     HAVE_M17N_FLT=no
     if test "${HAVE_LIBOTF}" = yes; then
       if test "${with_m17n_flt}" != "no"; then
-	PKG_CHECK_MODULES(M17N_FLT, m17n-flt, HAVE_M17N_FLT=yes, HAVE_M17N_FLT=no)
+	EMACS_CHECK_MODULES([M17N_FLT], [m17n-flt])
 	if test "$HAVE_M17N_FLT" = "yes"; then
 	  AC_DEFINE(HAVE_M17N_FLT, 1, [Define to 1 if using libm17n-flt.])
 	fi
@@ -3204,7 +3227,7 @@ HAVE_XRANDR=no
 if test "${HAVE_X11}" = "yes"; then
   XRANDR_REQUIRED=1.2.2
   XRANDR_MODULES="xrandr >= $XRANDR_REQUIRED"
-  PKG_CHECK_MODULES(XRANDR, $XRANDR_MODULES, HAVE_XRANDR=yes, HAVE_XRANDR=no)
+  EMACS_CHECK_MODULES([XRANDR], [$XRANDR_MODULES])
   if test $HAVE_XRANDR = no; then
     # Test old way in case pkg-config doesn't have it (older machines).
     AC_CHECK_HEADER(X11/extensions/Xrandr.h,
@@ -3233,8 +3256,7 @@ HAVE_XINERAMA=no
 if test "${HAVE_X11}" = "yes"; then
   XINERAMA_REQUIRED=1.0.2
   XINERAMA_MODULES="xinerama >= $XINERAMA_REQUIRED"
-  PKG_CHECK_MODULES(XINERAMA, $XINERAMA_MODULES, HAVE_XINERAMA=yes,
-                    HAVE_XINERAMA=no)
+  EMACS_CHECK_MODULES([XINERAMA], [$XINERAMA_MODULES])
   if test $HAVE_XINERAMA = no; then
     # Test old way in case pkg-config doesn't have it (older machines).
     AC_CHECK_HEADER(X11/extensions/Xinerama.h,
@@ -3256,7 +3278,7 @@ AC_SUBST(XINERAMA_LIBS)
 HAVE_LIBXML2=no
 if test "${with_xml2}" != "no"; then
   ### I'm not sure what the version number should be, so I just guessed.
-  PKG_CHECK_MODULES(LIBXML2, libxml-2.0 > 2.6.17, HAVE_LIBXML2=yes, HAVE_LIBXML2=no)
+  EMACS_CHECK_MODULES([LIBXML2], [libxml-2.0 > 2.6.17])
   # Built-in libxml2 on OS X 10.8 lacks libxml-2.0.pc.
   if test "${HAVE_LIBXML2}" != "yes" -a "$opsys" = "darwin"; then
     SAVE_CPPFLAGS="$CPPFLAGS"

@@ -1,5 +1,14 @@
 2014-05-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Get --enable-gcc-warnings working again.
+	The recent changes to configure.ac removed the transliteration of
+	-I to -isystem in CFLAGS, which is needed for --enable-gcc-warnings.
+	Bring this back while keeping the spirit of the recent changes.
+	* configure.ac (edit_cflags): Restore this shell var, and put it
+	at the top level, where it'll be useful when emacs-24 is next merged.
+	(EMACS_CHECK_MODULES): New macro.  All uses of PKG_CHECK_MODULES
+	changed to use it.
+
 	Make it easier on maintainers who use their own Automake.
 	* autogen.sh (ACLOCAL_PATH, AUTORECONF_ENV): New vars.
 	Set them to avoid problems when maintainers prepend their own
