@@ -85,6 +85,15 @@ calling :c:func:`mps_message_discard`.
     will cause it to be finalized again should all strong references
     disappear again.
 
+.. note::
+
+    Calling :c:func:`mps_message_discard` does not reclaim the space
+    occupied by the finalized block (that happens at the next
+    collection, if the block is found to be dead at that point), and
+    so the block must remain validly formatted (:term:`scannable <scan
+    method>`, :term:`skippable <skip method>`, and so on). You might
+    choose to replace it with a :term:`padding object`.
+
 See :ref:`topic-message` for details of the message mechanism.
 
 
