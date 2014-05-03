@@ -3333,17 +3333,18 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
     }
 }
 
-/* Return the concatenation of the strings associated with overlays that
-   begin or end at POS, ignoring overlays that are specific to a window
-   other than W.  The strings are concatenated in the appropriate order:
-   shorter overlays nest inside longer ones, and higher priority inside
-   lower.  Normally all of the after-strings come first, but zero-sized
-   overlays have their after-strings ride along with the before-strings
-   because it would look strange to print them inside-out.
+/* Concatenate the strings associated with overlays that begin or end
+   at POS, ignoring overlays that are specific to windows other than W.
+   The strings are concatenated in the appropriate order: shorter
+   overlays nest inside longer ones, and higher priority inside lower.
+   Normally all of the after-strings come first, but zero-sized
+   overlays have their after-strings ride along with the
+   before-strings because it would look strange to print them
+   inside-out.
 
-   Returns the string length, and stores the contents indirectly through
-   PSTR, if that variable is non-null.  The string may be overwritten by
-   subsequent calls.  */
+   Returns the concatenated string's length, and return the pointer to
+   that string via PSTR, if that variable is non-NULL.  The storage of
+   the concatenated strings may be overwritten by subsequent calls.  */
 
 ptrdiff_t
 overlay_strings (ptrdiff_t pos, struct window *w, unsigned char **pstr)

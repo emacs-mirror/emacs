@@ -1,3 +1,7 @@
+2014-05-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.c (overlay_strings): Fix the wording of the commentary.
+
 2014-05-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Consult libpng-config more consistently (Bug#17339).
