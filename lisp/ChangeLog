@@ -1,3 +1,13 @@
+2014-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/ediff-diff.el (ediff-set-fine-diff-properties-in-one-buffer):
+	Use nil rather than `default' for the "default" appearance (bug#17388).
+	* vc/ediff-util.el (ediff-inferior-compare-regions)
+	(ediff-toggle-autorefine, ediff-unselect-difference): Don't use
+	a misleading `default' value when it's really a boolean.
+	* vc/ediff-init.el (ediff-set-overlay-face): Don't set help-echo if the
+	overlay is not visible.
+
 2014-05-02  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el (todo-edit-file): Use display-warning.

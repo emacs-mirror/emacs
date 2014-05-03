@@ -807,7 +807,7 @@ TYPE-OF-EMACS is either 'xemacs or 'emacs."
 
 (defun ediff-set-overlay-face (extent face)
   (ediff-overlay-put extent 'face face)
-  (ediff-overlay-put extent 'help-echo 'ediff-region-help-echo))
+  (ediff-overlay-put extent 'help-echo (if face 'ediff-region-help-echo)))
 
 (defun ediff-region-help-echo (extent-or-window &optional overlay _point)
   (unless overlay
