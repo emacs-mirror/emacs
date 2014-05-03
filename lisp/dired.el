@@ -1142,10 +1142,22 @@ BEG..END is the line where the file info is located."
 
 (defvar ls-lisp-use-insert-directory-program)
 
+(defun dired-check-switches (switches short &optional long)
+  "Return non-nil if the string SWITCHES matches LONG or SHORT format."
+  (let (case-fold-search)
+    (and (stringp switches)
+	 (string-match-p (concat "\\(\\`\\| \\)-[[:alnum:]]*" short
+				 (if long (concat "\\|--" long "\\>") ""))
+			 switches))))
+
 (defun dired-switches-escape-p (switches)
   "Return non-nil if the string SWITCHES contains -b or --escape."
   ;; Do not match things like "--block-size" that happen to contain "b".
-  (string-match-p "\\(\\`\\| \\)-[[:alnum:]]*b\\|--escape\\>" switches))
+  (dired-check-switches switches "b" "escape"))
+
+(defun dired-switches-recursive-p (switches)
+  "Return non-nil if the string SWITCHES contains -R or --recursive."
+  (dired-check-switches switches "R" "recursive"))
 
 (defun dired-insert-directory (dir switches &optional file-list wildcard hdr)
   "Insert a directory listing of DIR, Dired style.
@@ -1402,7 +1414,7 @@ Each element of ALIST looks like (FILE . MARKERCHAR)."
 (defun dired-insert-old-subdirs (old-subdir-alist)
   "Try to insert all subdirs that were displayed before.
 Do so according to the former subdir alist OLD-SUBDIR-ALIST."
-  (or (string-match-p "R" dired-actual-switches)
+  (or (dired-switches-recursive-p dired-actual-switches)
       (let (elt dir)
 	(while old-subdir-alist
 	  (setq elt (car old-subdir-alist)
@@ -2349,9 +2361,8 @@ Return the position of the beginning of the filename, or nil if none found."
   ;; This is the UNIX version.
   (if (get-text-property (point) 'dired-filename)
       (goto-char (next-single-property-change (point) 'dired-filename))
-    (let (opoint file-type executable symlink hidden case-fold-search used-F eol)
-      ;; case-fold-search is nil now, so we can test for capital F:
-      (setq used-F (string-match-p "F" dired-actual-switches)
+    (let (opoint file-type executable symlink hidden used-F eol)
+      (setq used-F (dired-check-switches dired-actual-switches "F" "classify")
 	    opoint (point)
 	    eol (line-end-position)
 	    hidden (and selective-display
@@ -2613,7 +2624,7 @@ instead of `dired-actual-switches'."
 	   (R-ftp-base-dir-regex
 	    ;; Used to expand subdirectory names correctly in recursive
 	    ;; ange-ftp listings.
-	    (and (string-match-p "R" switches)
+	    (and (dired-switches-recursive-p switches)
 		 (string-match "\\`/.*:\\(/.*\\)" default-directory)
 		 (concat "\\`" (match-string 1 default-directory)))))
       (goto-char (point-min))
@@ -3692,12 +3703,12 @@ Saves `dired-subdir-alist' when R is set and restores saved value
 minus any directories explicitly deleted when R is cleared.
 To be called first in body of `dired-sort-other', etc."
   (cond
-   ((and (string-match-p "R" switches)
-	 (not (string-match-p "R" dired-actual-switches)))
+   ((and (dired-switches-recursive-p switches)
+	 (not (dired-switches-recursive-p dired-actual-switches)))
     ;; Adding -R to ls switches -- save `dired-subdir-alist':
     (setq dired-subdir-alist-pre-R dired-subdir-alist))
-   ((and (string-match-p "R" dired-actual-switches)
-	 (not (string-match-p "R" switches)))
+   ((and (dired-switches-recursive-p dired-actual-switches)
+	 (not (dired-switches-recursive-p switches)))
     ;; Deleting -R from ls switches -- revert to pre-R subdirs
     ;; that are still present:
     (setq dired-subdir-alist
