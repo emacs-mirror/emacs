@@ -1,3 +1,9 @@
+2014-05-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (LIBPNG): Add -lz -lm on platforms where they're needed
+	but libpng-config --libs omits them.  Problem reported by Glenn
+	Morris.
+
 2014-05-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Require ImageMagick >= 6.3.5, due to PixelSetMagickColor (Bug#17339).

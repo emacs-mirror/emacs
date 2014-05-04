@@ -3080,10 +3080,25 @@ elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
     if png_cflags=`(libpng-config --cflags) 2>&AS_MESSAGE_LOG_FD` &&
        png_libs=`(libpng-config --libs) 2>&AS_MESSAGE_LOG_FD`
     then
-      HAVE_PNG=yes
-      PNG_CFLAGS=`AS_ECHO(["$png_cflags"]) | sed -e "$edit_cflags"`
-      LIBPNG=$png_libs
-    else
+      # On some platforms, LIBPNG must also contain -lz -lm.
+      SAVE_CFLAGS=$CFLAGS
+      SAVE_LIBS=$LIBS
+      CFLAGS="$CFLAGS $png_cflags"
+      for png_libextras in '' ' -lz -lm'; do
+	LIBS="$png_libs$png_libextras $SAVE_LIBS"
+	AC_LINK_IFELSE(
+	  [AC_LANG_PROGRAM([[#include <png.h>
+			   ]],
+			   [[return png_get_channels (0, 0);]])],
+	  [HAVE_PNG=yes
+	   PNG_CFLAGS=`AS_ECHO(["$png_cflags"]) | sed -e "$edit_cflags"`
+	   LIBPNG=$png_libs$png_libextras])
+	test $HAVE_PNG = yes && break
+      done
+      CFLAGS=$SAVE_CFLAGS
+      LIBS=$SAVE_LIBS
+    fi
+    if test $HAVE_PNG != yes; then
       # libpng-config does not work; configure it by hand.
       # Debian unstable as of July 2003 has multiple libpngs, and puts png.h
       # in /usr/include/libpng.
