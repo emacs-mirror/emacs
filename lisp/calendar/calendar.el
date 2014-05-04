@@ -689,6 +689,12 @@ details, see the documentation for the variable `diary-list-entries-hook'."
   :type 'string
   :group 'diary)
 
+(defcustom diary-chinese-entry-symbol "C"
+  "Symbol indicating a diary entry according to the Chinese calendar."
+  :type 'string
+  :group 'diary
+  :version "24.5")
+
 (define-obsolete-variable-alias 'hebrew-diary-entry-symbol
   'diary-hebrew-entry-symbol "23.1")
 
@@ -1709,6 +1715,10 @@ line."
     (define-key map "iBd" 'diary-bahai-insert-entry)
     (define-key map "iBm" 'diary-bahai-insert-monthly-entry)
     (define-key map "iBy" 'diary-bahai-insert-yearly-entry)
+    (define-key map "iCd" 'diary-chinese-insert-entry)
+    (define-key map "iCm" 'diary-chinese-insert-monthly-entry)
+    (define-key map "iCy" 'diary-chinese-insert-yearly-entry)
+    (define-key map "iCa" 'diary-chinese-insert-anniversary-entry)
     (define-key map "?"   'calendar-goto-info-node)
     (define-key map "Hm" 'cal-html-cursor-month)
     (define-key map "Hy" 'cal-html-cursor-year)

@@ -56,6 +56,11 @@
      ["One time" diary-bahai-insert-entry]
      ["Monthly" diary-bahai-insert-monthly-entry]
      ["Yearly" diary-bahai-insert-yearly-entry])
+    ("Insert Chinese"
+     ["One time" diary-chinese-insert-entry]
+     ["Monthly" diary-chinese-insert-monthly-entry]
+     ["Yearly" diary-chinese-insert-yearly-entry]
+     ["Anniversary" diary-chinese-insert-anniversary-entry])
     ("Insert Islamic"
      ["One time" diary-islamic-insert-entry]
      ["Monthly" diary-islamic-insert-monthly-entry]

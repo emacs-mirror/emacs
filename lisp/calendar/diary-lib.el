@@ -2396,6 +2396,11 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
                                cal-bahai
                                calendar-bahai-month-name-array
                                diary-bahai-entry-symbol)
+   (diary-font-lock-keywords-1 diary-chinese-mark-entries
+                               diary-chinese-list-entries
+                               cal-china
+                               calendar-chinese-month-name-array
+                               diary-chinese-entry-symbol)
    (list
     (cons
      (format "^%s.*$" (regexp-quote diary-include-string))
@@ -2412,7 +2417,8 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
              (regexp-opt (mapcar 'regexp-quote
                                  (list diary-hebrew-entry-symbol
                                        diary-islamic-entry-symbol
-                                       diary-bahai-entry-symbol))
+                                       diary-bahai-entry-symbol
+                                       diary-chinese-entry-symbol))
                          t))
      '(1 font-lock-constant-face))
     '(diary-font-lock-sexps . font-lock-keyword-face)

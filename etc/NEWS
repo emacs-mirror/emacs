@@ -74,6 +74,18 @@ performance improvements when pasting large amounts of text.
 ** The Rmail commands d, C-d and u now handle repeat counts
 to delete or undelete multiple messages.
 
+** Calendar and diary
+
++++
+*** New commands to insert diary entries with Chinese dates:
+`diary-chinese-insert-anniversary-entry' `diary-chinese-insert-entry'
+`diary-chinese-insert-monthly-entry'
+`diary-chinese-insert-yearly-entry'
+
++++
+*** Calendar can list and mark diary entires with Chinese dates:
+`diary-chinese-list-entries' and `diary-chinese-mark-entries'.
+
 ** The URL package accepts now the protocols "ssh", "scp" and "rsync".
 When `url-handler-mode' is enabled, file operations for these
 protocols as well as for "telnet" and "ftp" are passed to Tramp.

@@ -1,3 +1,29 @@
+2014-05-04  Leo Liu  <sdl.web@gmail.com>
+
+	Support Chinese diary entries in calendar and diary.  (Bug#17393)
+	* calendar/cal-china.el (calendar-chinese-month-name-array): New var.
+	(calendar-chinese-from-absolute-for-diary)
+	(calendar-chinese-to-absolute-for-diary)
+	(calendar-chinese-mark-date-pattern, diary-chinese-mark-entries)
+	(diary-chinese-list-entries): New functions to list and mark
+	Chinese diary entries in the calendar window.
+	(diary-chinese-anniversary)
+	(diary-chinese-insert-anniversary-entry)
+	(diary-chinese-insert-entry, diary-chinese-insert-monthly-entry)
+	(diary-chinese-insert-yearly-entry): New commands to insert
+	Chinese diary entries.
+
+	* calendar/diary-lib.el (diary-font-lock-keywords): Support
+	font-locking Chinese dates.
+
+	* calendar/cal-menu.el (cal-menu-diary-menu): Add entries for
+	inserting Chinese diary entries.
+
+	* calendar/calendar.el (diary-chinese-entry-symbol): New
+	customizable variable.
+	(calendar-mode-map): Add bindings for inserting Chinese diary
+	entries.
+
 2014-05-03  Juri Linkov  <juri@jurta.org>
 
 	* dired.el (dired-check-switches, dired-switches-recursive-p):

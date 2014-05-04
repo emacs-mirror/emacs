@@ -517,7 +517,7 @@ the fourth pattern.
 @subsection Diary Entries Using non-Gregorian Calendars
 
   As well as entries based on the standard Gregorian calendar, your
-diary can have entries based on Bahá'í, Hebrew, or Islamic dates.
+diary can have entries based on Bahá'í, Chinese, Hebrew, or Islamic dates.
 Recognition of such entries can be time-consuming, however, and since
 most people don't use them, you must explicitly enable their use.  If
 you want the diary to recognize Hebrew-date diary entries, for example,
@@ -531,22 +531,27 @@ you must do this:
 @findex diary-islamic-mark-entries
 @findex diary-bahai-list-entries
 @findex diary-bahai-mark-entries
+@findex diary-chinese-list-entries
+@findex diary-chinese-mark-entries
 @smallexample
 (add-hook 'diary-nongregorian-listing-hook 'diary-hebrew-list-entries)
 (add-hook 'diary-nongregorian-marking-hook 'diary-hebrew-mark-entries)
 @end smallexample
 
 @noindent
-Similarly, for Islamic and Bahá'í entries, add
-@code{diary-islamic-list-entries} and @code{diary-islamic-mark-entries}, or
-@code{diary-bahai-list-entries} and @code{diary-bahai-mark-entries}.
+Similarly, for Islamic, Bahá'í and Chinese entries, add
+@code{diary-islamic-list-entries} and @code{diary-islamic-mark-entries},
+@code{diary-bahai-list-entries} and @code{diary-bahai-mark-entries},
+or @code{diary-chinese-list-entries} and @code{diary-chinese-mark-entries}.
 
 @vindex diary-bahai-entry-symbol
+@vindex diary-chinese-entry-symbol
 @vindex diary-hebrew-entry-symbol
 @vindex diary-islamic-entry-symbol
   These diary entries have the same formats as Gregorian-date diary
 entries; except that @code{diary-bahai-entry-symbol} (default @samp{B})
-must precede a Bahá'í date, @code{diary-hebrew-entry-symbol} (default
+must precede a Bahá'í date, @code{diary-chinese-entry-symbol} (default
+@samp{C}) a Chinese date, @code{diary-hebrew-entry-symbol} (default
 @samp{H}) a Hebrew date, and @code{diary-islamic-entry-symbol} (default
 @samp{I}) an Islamic date.  Moreover, non-Gregorian month names may not
 be abbreviated (because the first three letters are often not unique).
@@ -573,7 +578,7 @@ nonmarking if preceded by @code{diary-nonmarking-symbol} (default
 
   Here is a table of commands used in the calendar to create diary
 entries that match the selected date and other dates that are similar in
-the Bahá'í, Hebrew, or Islamic calendars:
+the Bahá'í, Chinese, Hebrew, or Islamic calendars:
 
 @table @kbd
 @item i h d
@@ -594,6 +599,14 @@ the Bahá'í, Hebrew, or Islamic calendars:
 @code{diary-bahai-insert-monthly-entry}
 @item i B y
 @code{diary-bahai-insert-yearly-entry}
+@item i C d
+@code{diary-chinese-insert-entry}
+@item i C m
+@code{diary-chinese-insert-monthly-entry}
+@item i C y
+@code{diary-chinese-insert-yearly-entry}
+@item i C a
+@code{diary-chinese-insert-anniversary-entry}
 @end table
 
 @findex diary-hebrew-insert-entry
@@ -605,6 +618,11 @@ the Bahá'í, Hebrew, or Islamic calendars:
 @findex diary-bahai-insert-entry
 @findex diary-bahai-insert-monthly-entry
 @findex diary-bahai-insert-yearly-entry
+@findex diary-chinese-insert-entry
+@findex diary-chinese-insert-monthly-entry
+@findex diary-chinese-insert-yearly-entry
+@findex diary-chinese-insert-anniversary-entry
+
   These commands work much like the corresponding commands for ordinary
 diary entries: they apply to the date that point is on in the calendar
 window, and what they do is insert just the date portion of a diary
