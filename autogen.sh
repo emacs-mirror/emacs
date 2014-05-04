@@ -279,7 +279,7 @@ autoreconf -fi -I m4 || exit $?
 ## cause 'make' to needlessly run 'autoheader'.
 echo timestamp > src/stamp-h.in || exit
 
-echo "You can now run \`./configure$env_space$AUTORECONF_ENV'."
+echo "You can now run \"./configure$env_space$AUTORECONF_ENV\"."
 
 exit 0
 

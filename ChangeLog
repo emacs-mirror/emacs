@@ -1,5 +1,7 @@
 2014-05-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* autogen.sh: Use ‘"’ to quote a message that often contains ‘'’.
+
 	Require ImageMagick >= 6.3.5, due to PixelSetMagickColor (Bug#17339).
 	* configure.ac (IMAGEMAGICK_MODULE): Bump prereq from 6.2.8 to 6.3.5.
 	A more-complicated fix would be to remove uses of PixelSetMagickColor,
