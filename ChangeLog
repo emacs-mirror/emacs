@@ -1,5 +1,12 @@
 2014-05-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Revert recent libpng changes (Bug#17339).
+	They fix only bugs that aren't being reported, so it may be better
+	to do them on the trunk.
+	* configure.ac (PNG_CFLAGS): Remove.  All uses removed.
+	(LIBPNG): Don't be consistent about -lpng16 versus -lpng.
+	Ignore libpng-config's exit status.  Always append -lz -lm.
+
 	* configure.ac (LIBPNG): Add -lz -lm on platforms where they're needed
 	but libpng-config --libs omits them.  Problem reported by Glenn
 	Morris.

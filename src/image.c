@@ -22,7 +22,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 
 #ifdef HAVE_PNG
+#if defined HAVE_LIBPNG_PNG_H
+# include <libpng/png.h>
+#else
 # include <png.h>
+#endif
 #endif
 
 #include <setjmp.h>

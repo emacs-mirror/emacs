@@ -1,3 +1,9 @@
+2014-05-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert recent libpng changes (Bug#17339).
+	* Makefile.in (PNG_CFLAGS): Remove; all uses removed.
+	* image.c [HAVE_LIBPNG_PNG_H]: Include <libpng/png.h>, not <png.h>.
+
 2014-05-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Handle systems without WCONTINUED consistently.  (Bug#15110, 17339)
