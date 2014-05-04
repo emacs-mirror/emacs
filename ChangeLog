@@ -1,5 +1,13 @@
 2014-05-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Consult libpng-config more consistently (Bug#17339).
+	This is mainly for simplicity, but it should also avoid
+	some future problems like the ones we recently had with NetBSD.
+	* configure.ac (LIBPNG): Configure after LIBZ.  Use libpng-config
+	for cflags, too.  Append -lz if we're not already doing that with
+	LIBZ.  Do not bother appending -lm, since we always append that.
+	Coalesce some duplicate code.
+
 	* autogen.sh: Use ‘"’ to quote a message that often contains ‘'’.
 
 	Require ImageMagick >= 6.3.5, due to PixelSetMagickColor (Bug#17339).

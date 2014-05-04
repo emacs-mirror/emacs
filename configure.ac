@@ -3014,67 +3014,6 @@ elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
 fi
 AC_SUBST(LIBJPEG)
 
-### Use -lpng if available, unless `--with-png=no'.
-### mingw32 doesn't use -lpng, since it loads the library dynamically.
-HAVE_PNG=no
-LIBPNG=
-if test "${opsys}" = "mingw32"; then
-  if test "${with_png}" != "no"; then
-    AC_CHECK_HEADER(png.h, HAVE_PNG=yes, HAVE_PNG=no)
-  fi
-  if test "${HAVE_PNG}" = "yes"; then
-    AC_DEFINE(HAVE_PNG, 1, [Define to 1 if you have the png library (-lpng).])
-
-    AC_CHECK_DECL(png_longjmp,
-      [],
-      [AC_DEFINE(PNG_DEPSTRUCT, [],
-	 [Define to empty to suppress deprecation warnings when building
-	  with --enable-gcc-warnings and with libpng versions before 1.5,
-	  which lack png_longjmp.])],
-      [[#ifdef HAVE_LIBPNG_PNG_H
-	# include <libpng/png.h>
-	#else
-	# include <png.h>
-	#endif
-      ]])
-  fi
-elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
-  if test "${with_png}" != "no"; then
-    # Debian unstable as of July 2003 has multiple libpngs, and puts png.h
-    # in /usr/include/libpng.
-    AC_CHECK_HEADERS(png.h libpng/png.h, break)
-    if test "$ac_cv_header_png_h" = yes || test "$ac_cv_header_libpng_png_h" = yes ; then
-      AC_CHECK_LIB(png, png_get_channels, HAVE_PNG=yes, , -lz -lm)
-    fi
-  fi
-
-  if test "${HAVE_PNG}" = "yes"; then
-    AC_DEFINE(HAVE_PNG, 1, [Define to 1 if you have the png library.])
-
-    dnl Some systems, eg NetBSD 6, only provide eg "libpng16", not "libpng".
-    lpng=`libpng-config --libs 2> /dev/null`
-    case $lpng in
-      -l*) : ;;
-      *) lpng="-lpng" ;;
-    esac
-    LIBPNG="$lpng -lz -lm"
-
-    AC_CHECK_DECL(png_longjmp,
-      [],
-      [AC_DEFINE(PNG_DEPSTRUCT, [],
-	 [Define to empty to suppress deprecation warnings when building
-	  with --enable-gcc-warnings and with libpng versions before 1.5,
-	  which lack png_longjmp.])],
-      [[#ifdef HAVE_LIBPNG_PNG_H
-	# include <libpng/png.h>
-	#else
-	# include <png.h>
-	#endif
-      ]])
-  fi
-fi
-AC_SUBST(LIBPNG)
-
 HAVE_ZLIB=no
 LIBZ=
 if test "${with_zlib}" != "no"; then
@@ -3094,6 +3033,58 @@ if test "${HAVE_ZLIB}" = "yes"; then
 fi
 AC_SUBST(LIBZ)
 
+### Use -lpng if available, unless `--with-png=no'.
+HAVE_PNG=no
+LIBPNG=
+PNG_CFLAGS=
+if test "${with_png}" != no; then
+  # mingw32 loads the library dynamically.
+  if test "$opsys" = mingw32; then
+    AC_CHECK_HEADER([png.h], [HAVE_PNG=yes])
+  elif png_cflags=`(libpng-config --cflags) 2>&AS_MESSAGE_LOG_FD` &&
+       png_libs=`(libpng-config --libs) 2>&AS_MESSAGE_LOG_FD`
+  then
+    HAVE_PNG=yes
+    PNG_CFLAGS=`AS_ECHO(["$png_cflags"]) | sed -e "$edit_cflags"`
+    LIBPNG=$png_libs
+  else
+    # libpng-config does not work; configure by hand.
+    # Debian unstable as of July 2003 has multiple libpngs, and puts png.h
+    # in /usr/include/libpng.
+    AC_CHECK_HEADERS([png.h libpng/png.h],
+      [AC_CHECK_LIB([png], [png_get_channels],
+	 [HAVE_PNG=yes
+	  LIBPNG='-lpng'
+	  if test "$ac_cv_header_png_h" != yes; then
+	    PNG_CFLAGS=-I/usr/include/libpng
+	  fi
+	  break],
+	  [], [-lz -lm])])
+  fi
+  # $LIBPNG requires explicit -lz in some cases.
+  # We don't know what those cases are, exactly, so play it safe and
+  # append -lz to any nonempty $LIBPNG, unless we're already using LIBZ.
+  if test -n "$LIBPNG" && test -z "$LIBZ"; then
+    LIBPNG="$LIBPNG -lz"
+  fi
+fi
+if test $HAVE_PNG = yes; then
+  AC_DEFINE([HAVE_PNG], [1], [Define to 1 if you have the png library.])
+
+  SAVE_CFLAGS=$CFLAGS
+  CFLAGS="$CFLAGS $PNG_CFLAGS"
+  AC_CHECK_DECL([png_longjmp],
+    [],
+    [AC_DEFINE([PNG_DEPSTRUCT], [],
+       [Define to empty to suppress deprecation warnings when building
+	with --enable-gcc-warnings and with libpng versions before 1.5,
+	which lack png_longjmp.])],
+    [[#include <png.h>
+    ]])
+  CFLAGS=$SAVE_CFLAGS
+fi
+AC_SUBST(LIBPNG)
+AC_SUBST(PNG_CFLAGS)
 
 ### Use -ltiff if available, unless `--with-tiff=no'.
 ### mingw32 doesn't use -ltiff, since it loads the library dynamically.
