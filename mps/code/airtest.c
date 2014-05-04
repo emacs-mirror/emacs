@@ -50,14 +50,14 @@ static void test_air(int interior, int stack)
   }
   mps_message_type_enable(scheme_arena, mps_message_type_finalization());
   for (j = 0; j < OBJ_COUNT; ++j) {
-    obj_t n = scheme_make_integer((long)j);
-    obj_t obj = scheme_make_vector(OBJ_LEN, n);
+    obj_t n = scheme_make_integer(obj_ap, (long)j);
+    obj_t obj = scheme_make_vector(obj_ap, OBJ_LEN, n);
     mps_addr_t ref = obj;
     mps_finalize(scheme_arena, &ref);
     s[j] = obj->vector.vector;
   }
   for (i = 1; i < OBJ_LEN; ++i) {
-    obj_t n = scheme_make_integer((long)i);
+    obj_t n = scheme_make_integer(obj_ap, (long)i);
     mps_message_t msg;
     for (j = 0; j + 1 < OBJ_COUNT; ++j) {
       *++s[j] = n;
