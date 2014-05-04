@@ -1125,9 +1125,9 @@ only the last one's marks are returned."
 (add-hook 'gnus-registry-unload-hook 'gnus-registry-unload-hook)
 
 (defun gnus-registry-install-p ()
-  "If the registry is not already enabled, and `gnus-registry-install' is t,
-the registry is enabled.  If `gnus-registry-install' is `ask',
-the user is asked first.  Returns non-nil iff the registry is enabled."
+  "Return non-nil if the registry is enabled (and maybe enable it first).
+If the registry is not already enabled, then if `gnus-registry-install'
+is `ask', ask the user; or if `gnus-registry-install' is non-nil, enable it."
   (interactive)
   (unless gnus-registry-enabled
     (when (if (eq gnus-registry-install 'ask)

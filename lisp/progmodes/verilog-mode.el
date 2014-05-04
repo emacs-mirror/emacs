@@ -3160,7 +3160,7 @@ and `verilog-scan'.")
   (setq verilog-scan-cache-tick nil))
 
 (defun verilog-scan-cache-ok-p ()
-  "Return t iff the scan cache is up to date."
+  "Return t if the scan cache is up to date."
   (or (and verilog-scan-cache-preserving
 	   (eq verilog-scan-cache-preserving (current-buffer))
 	   verilog-scan-cache-tick)

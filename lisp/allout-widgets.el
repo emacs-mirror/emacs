@@ -266,7 +266,7 @@ decreases as obsolete widgets are garbage collected."
 (defvar allout-widgets-tally nil
   "Hash-table of existing allout widgets, for debugging.
 
-Table is maintained iff `allout-widgets-maintain-tally' is non-nil.
+Table is maintained only if `allout-widgets-maintain-tally' is non-nil.
 
 The table contents will be out of sync if any widgets are created
 or deleted while this variable is nil.")
@@ -1852,7 +1852,7 @@ In their absence, the current guide column flags are used.
 
 Optional PARENT-WIDGET is the widget for the item's parent item.
 
-Optional HAS-SUCCESSOR is true iff the item is followed by a sibling.
+Optional HAS-SUCCESSOR is true if the item is followed by a sibling.
 
 We also hide the header-prefix string.
 

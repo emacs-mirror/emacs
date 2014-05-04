@@ -1,3 +1,54 @@
+2014-05-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert recent libpng changes (Bug#17339).
+	* Makefile.in (PNG_CFLAGS): Remove; all uses removed.
+	* image.c [HAVE_LIBPNG_PNG_H]: Include <libpng/png.h>, not <png.h>.
+
+2014-05-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Handle systems without WCONTINUED consistently.  (Bug#15110, 17339)
+	* process.c (handle_child_signal): Remove WCONTINUED ifdef,
+	because WCONTINUED is always defined now.
+	* syswait.h (WCONTINUED): Move here from ../lib-src/emacsclient.c.
+
+2014-05-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.c (overlay_strings): Fix the wording of the commentary.
+
+2014-05-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Consult libpng-config more consistently (Bug#17339).
+	* Makefile.in (PNG_CFLAGS): New var.
+	(ALL_CFLAGS): Use it.
+	* image.c [HAVE_PNG]: Don't worry about <libpng/png.h>, as
+	CFLAGS now handles this.
+
+2014-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* floatfns.c (Fisnan):
+	* profiler.c (Fprofiler_cpu_running_p): Doc fix (replace `iff').
+
+2014-05-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (tty_menu_activate): A better initialization for cursor
+	coordinates.
+
+2014-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* intervals.c: Tighten assertions.
+	(create_root_interval): Make sure the interval is not empty.
+	(intervals_equal): Use booleans.
+	(rotate_right, rotate_left): Check LENGTHs rather than TOTAL_LENGTH.
+	(balance_an_interval): Sanity check LENGTHs and TOTAL_LENGTHs.
+	(balance_possible_root_interval): Simplify and use booleans.
+	(split_interval_right, split_interval_left): Check LENGTH, and remove
+	now redundant assertion.
+	(adjust_intervals_for_insertion): Remove now redundant assertions.
+	(delete_node, interval_deletion_adjustment)
+	(adjust_intervals_for_deletion, merge_interval_right)
+	(merge_interval_left): Check LENGTH rather than TOTAL_LENGTH.
+	(reproduce_interval): Make sure the interval is not empty.
+
 2014-04-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* term.c (tty_menu_activate): Don't assume row and col are initialized.

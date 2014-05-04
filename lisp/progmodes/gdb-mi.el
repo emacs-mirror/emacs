@@ -1979,7 +1979,7 @@ OFFSET is the position in STR at which the comparison takes place."
       (string-equal match (substring str offset (+ offset match-length))))))
 
 (defun gdbmi-same-start (str offset match)
-  "Return non-nil iff STR and MATCH are equal up to the end of either strings.
+  "Return non-nil if STR and MATCH are equal up to the end of either strings.
 OFFSET is the position in STR at which the comparison takes place."
   (let* ((str-length (- (length str) offset))
 	 (match-length (length match))
@@ -1989,7 +1989,7 @@ OFFSET is the position in STR at which the comparison takes place."
 		    (substring match 0 compare-length)))))
 
 (defun gdbmi-is-number (character)
-  "Return non-nil iff CHARACTER is a numerical character between 0 and 9."
+  "Return non-nil if CHARACTER is a numerical character between 0 and 9."
   (and (>= character ?0)
        (<= character ?9)))
 

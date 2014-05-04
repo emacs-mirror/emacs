@@ -922,7 +922,7 @@ by \"Save Options\" in Custom buffers.")
       (selected-frame)))
 
 (defun menu-bar-positive-p (val)
-  "Return non-nil iff VAL is a positive number."
+  "Return non-nil if VAL is a positive number."
   (and (numberp val)
        (> val 0)))
 

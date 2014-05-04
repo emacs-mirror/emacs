@@ -125,7 +125,7 @@ TARGET   is the fragment identifier component (used to refer to a
 ATTRIBUTES is nil; this slot originally stored the attribute and
          value alists for IMAP URIs, but this feature was removed
          since it conflicts with RFC 3986.
-FULLNESS is non-nil iff the hierarchical sequence component of
+FULLNESS is non-nil if the hierarchical sequence component of
          the URL starts with two slashes, \"//\".
 
 The parser follows RFC 3986, except that it also tries to handle

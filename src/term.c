@@ -3267,7 +3267,10 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 
   /* Turn off the cursor.  Otherwise it shows through the menu
      panes, which is ugly.  */
+  col = cursorX (tty);
+  row = cursorY (tty);
   tty_hide_cursor (tty);
+
   if (buffers_num_deleted)
     menu->text[0][7] = ' ';
   onepane = menu->count == 1 && menu->submenu[0];
@@ -3405,8 +3408,6 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 	  col = cursorX (tty);
 	  row = cursorY (tty);
 	}
-      else
-	row = -1;
 
       /* Display the help-echo message for the currently-selected menu
 	 item.  */
@@ -3418,8 +3419,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 	  /* Move the cursor to the beginning of the current menu
 	     item, so that screen readers and other accessibility aids
 	     know where the active region is.  */
-	  if (0 <= row)
-	    cursor_to (sf, row, col);
+	  cursor_to (sf, row, col);
 	  tty_hide_cursor (tty);
 	  fflush (tty->output);
 	  prev_menu_help_message = menu_help_message;

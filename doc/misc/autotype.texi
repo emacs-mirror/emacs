@@ -241,10 +241,10 @@ put at these places.  Point is left at first @code{_} where nothing is wrapped.
 Indent line according to major mode.  When following element is @code{_}, and
 there is a interregion that will be wrapped here, indent that interregion.
 @item @code{&}
-Logical and.  Iff preceding element moved point, i.e., usually inserted
+Logical and.  If preceding element moved point, i.e., usually inserted
 something, do following element.
 @item @code{|}
-Logical xor.  Iff preceding element didn't move point, i.e., usually inserted
+Logical xor.  If preceding element didn't move point, i.e., usually inserted
 nothing, do following element.
 @item @code{-@var{number}}
 Delete preceding number characters.  Depends on value of

@@ -1,7 +1,6 @@
 /* Primitive operations on floating point for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1988, 1993-1994, 1999, 2001-2014 Free Software Foundation,
-Inc.
+Copyright (C) 1988, 1993-1994, 1999, 2001-2014 Free Software Foundation, Inc.
 
 Author: Wolfgang Rupprecht
 (according to ack.texi)
@@ -142,7 +141,7 @@ DEFUN ("tan", Ftan, Stan, 1, 1, 0,
 }
 
 DEFUN ("isnan", Fisnan, Sisnan, 1, 1, 0,
-       doc: /* Return non nil iff argument X is a NaN.  */)
+       doc: /* Return non nil if argument X is a NaN.  */)
   (Lisp_Object x)
 {
   CHECK_FLOAT (x);

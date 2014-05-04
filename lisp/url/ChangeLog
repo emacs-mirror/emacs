@@ -1,3 +1,7 @@
+2014-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* url-parse.el (url-generic-parse-url): Doc fix (replace `iff').
+
 2014-04-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* url-tramp.el: New file.

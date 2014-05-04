@@ -3228,7 +3228,7 @@ PREFIX is the prefix of the search regexp."
 
 (unless (fboundp 'region-exists-p)
   (defun region-exists-p ()
-    "Non-nil iff the mark is set.  Lobotomized version for Emacsen that do not provide their own."
+    "Non-nil if the mark is set.  Lobotomized version for Emacsen that do not provide their own."
     (mark)))
 
 

@@ -1,3 +1,7 @@
+2014-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-registry.el (gnus-registry-install-p): Doc fix.
+
 2014-05-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-mime-inline-part): Redisplay a button so as to show

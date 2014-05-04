@@ -2175,11 +2175,9 @@ fi
 HAVE_IMAGEMAGICK=no
 if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${HAVE_W32}" = "yes"; then
   if test "${with_imagemagick}" != "no"; then
-    ## 6.2.8 is the earliest version known to work, but earlier versions
-    ## might work - let us know if you find one.
-    ## 6.0.7 does not work.  See bug#7955.
+    ## 6.3.5 is the earliest version known to work; see Bug#17339.
     ## 6.8.2 makes Emacs crash; see Bug#13867.
-    IMAGEMAGICK_MODULE="Wand >= 6.2.8 Wand != 6.8.2"
+    IMAGEMAGICK_MODULE="Wand >= 6.3.5 Wand != 6.8.2"
     EMACS_CHECK_MODULES([IMAGEMAGICK], [$IMAGEMAGICK_MODULE])
     AC_SUBST(IMAGEMAGICK_CFLAGS)
     AC_SUBST(IMAGEMAGICK_LIBS)
@@ -3051,8 +3049,15 @@ elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
   fi
 
   if test "${HAVE_PNG}" = "yes"; then
-    AC_DEFINE(HAVE_PNG, 1, [Define to 1 if you have the png library (-lpng).])
-    LIBPNG="-lpng -lz -lm"
+    AC_DEFINE(HAVE_PNG, 1, [Define to 1 if you have the png library.])
+
+    dnl Some systems, eg NetBSD 6, only provide eg "libpng16", not "libpng".
+    lpng=`libpng-config --libs 2> /dev/null`
+    case $lpng in
+      -l*) : ;;
+      *) lpng="-lpng" ;;
+    esac
+    LIBPNG="$lpng -lz -lm"
 
     AC_CHECK_DECL(png_longjmp,
       [],
@@ -4908,7 +4913,7 @@ echo "  Does Emacs use -lXpm?                                   ${HAVE_XPM}"
 echo "  Does Emacs use -ljpeg?                                  ${HAVE_JPEG}"
 echo "  Does Emacs use -ltiff?                                  ${HAVE_TIFF}"
 echo "  Does Emacs use a gif library?                           ${HAVE_GIF} $LIBGIF"
-echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
+echo "  Does Emacs use a png library?                           ${HAVE_PNG} $LIBPNG"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGICK}"
 

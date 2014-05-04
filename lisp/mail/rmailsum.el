@@ -473,8 +473,8 @@ message."
 		(widen)
 		(goto-char (point-min))
 		(while (>= total msgnum)
-		  ;; Go back to the Rmail buffer so
-		  ;; so FUNCTION and rmail-get-summary can see its local vars.
+		  ;; Go back to the Rmail buffer so FUNCTION and
+		  ;; rmail-get-summary can see its local vars.
 		  (with-current-buffer main-buffer
 		    ;; First test whether to include this message.
 		    (if (or (null function)

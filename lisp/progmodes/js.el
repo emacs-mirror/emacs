@@ -1302,7 +1302,7 @@ LIMIT defaults to point."
     (up-list -1)))
 
 (defun js--inside-param-list-p ()
-  "Return non-nil iff point is in a function parameter list."
+  "Return non-nil if point is in a function parameter list."
   (ignore-errors
     (save-excursion
       (js--up-nearby-list)
@@ -1313,7 +1313,7 @@ LIMIT defaults to point."
                              (looking-at "function"))))))))
 
 (defun js--inside-dojo-class-list-p ()
-  "Return non-nil iff point is in a Dojo multiple-inheritance class block."
+  "Return non-nil if point is in a Dojo multiple-inheritance class block."
   (ignore-errors
     (save-excursion
       (js--up-nearby-list)
@@ -1352,7 +1352,7 @@ REGEXPS, but only if FRAMEWORK is in `js-enabled-frameworks'."
 (defun js--forward-destructuring-spec (&optional func)
   "Move forward over a JavaScript destructuring spec.
 If FUNC is supplied, call it with no arguments before every
-variable name in the spec.  Return true iff this was actually a
+variable name in the spec.  Return true if this was actually a
 spec.  FUNC must preserve the match data."
   (pcase (char-after)
     (?\[

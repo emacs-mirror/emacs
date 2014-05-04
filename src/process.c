@@ -6226,11 +6226,7 @@ handle_child_signal (int sig)
       int status;
 
       if (p->alive
-#ifndef WCONTINUED
-          && child_status_changed (p->pid, &status, WUNTRACED))
-#else
-          && child_status_changed (p->pid, &status, WUNTRACED | WCONTINUED))
-#endif
+	  && child_status_changed (p->pid, &status, WUNTRACED | WCONTINUED))
 	{
 	  /* Change the status of the process that was found.  */
 	  p->tick = ++process_tick;

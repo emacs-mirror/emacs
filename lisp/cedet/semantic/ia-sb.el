@@ -1,7 +1,6 @@
 ;;; semantic/ia-sb.el --- Speedbar analysis display interactor
 
-;;; Copyright (C) 2002-2004, 2006, 2008-2014 Free Software Foundation,
-;;; Inc.
+;;; Copyright (C) 2002-2004, 2006, 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -139,7 +138,7 @@ DIRECTORY is the current directory, which is ignored, and ZERO is 0."
       )))
 
 (defmethod semantic-ia-sb-show-doc ((context semantic-analyze-context))
-  "Show documentation about CONTEXT iff CONTEXT points at a complete symbol."
+  "Show documentation about CONTEXT if CONTEXT points at a complete symbol."
   (let ((sym (car (reverse (oref context prefix))))
 	(doc nil))
     (when (semantic-tag-p sym)

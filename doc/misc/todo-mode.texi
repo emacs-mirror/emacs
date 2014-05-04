@@ -188,13 +188,15 @@ diary, date and time stamps, whether it is done or still to do.
 @node Todo Items as Diary Entries, , Levels of Organization, Overview
 @section Todo Items as Diary Entries
 
-Each todo item is also a potential diary item: if you include a todo
-file in the Emacs diary file (@pxref{Fancy Diary Display,,, emacs}), the
-Fancy Diary display will show those todo items that are not marked with
-@code{todo-nondiary-marker}.  This effectively augments the Emacs diary
-with categorized diary entries.  For the various options available for
-making a todo item a diary entry, see @ref{Inserting New Items} and
-@ref{Editing Item Headers and Text}.
+You can have todo items show up in the Emacs Fancy Diary display by
+including the todo file in your diary file (@pxref{Fancy Diary
+Display,,, emacs}).  This effectively augments the Emacs diary with
+categorized diary entries.  All items in an included todo file will
+appear in the Fancy Diary display except for those that are marked
+with @code{todo-nondiary-marker}.  You can add or omit this marking
+upon creating a new todo item, or you can do so by editing an existing
+item, see @ref{Inserting New Items} and @ref{Editing Item Headers and
+Text} for details.
 
 To ensure the proper display of todo items in the Fancy Diary display,
 they must have the format of diary entries, i.e., they have to begin
@@ -245,20 +247,16 @@ default todo file.
 
 If you want to enter Todo mode and go directly to a specific category
 instead the first or current category in the current or default todo
-file, use the command @code{todo-jump-to-category}; @ref{Navigation}, for
-details.  You can also enter Todo mode by invoking a todo item insertion
-command; @ref{Inserting New Items}, for details.
+file, use the command @code{todo-jump-to-category}; @ref{Navigation},
+for details.  You can also enter Todo mode by invoking the command
+@code{todo-insert-item}; @ref{Inserting New Items}, for details.
 
 The most convenient way to use these commands to enter Todo mode is to
-define global key bindings for them in your init file.  Good choices are
-for @code{todo-show} and @code{todo-jump-to-category} are @kbd{C-c t}
-and @kbd{C-c j}, since these commands are bound to @kbd{t} and @kbd{j},
-respectively, in Todo mode.  For invoking item insertion from outside of
-Todo mode, it is useful to bind @code{todo-insertion-map}, which is the
-key map containing the bindings of all Todo item insertion commands, to
-@kbd{C-c i}, since it is bound to @kbd{i} in Todo mode; to complete the
-invocation, supply the rest of the key sequence (@pxref{Inserting New
-Items}).
+define global key bindings for them in your init file.  Good choices
+are @kbd{C-c t} for @code{todo-show}, @kbd{C-c j} for
+@code{todo-jump-to-category} and @kbd{C-c i} for
+@code{todo-insert-item}, since these commands are bound to @kbd{t},
+@kbd{j} and @kbd{i}, respectively, in Todo mode.
 
 You can also visit a Todo file via @code{find-file} or Dired, like any
 other file, and since Emacs recognizes it, the buffer will automatically
@@ -297,12 +295,12 @@ for the shift key for capitalization and the raw prefix argument
 number key.
 
 The predefined key bindings in Todo are more or less mnemonic.  As a
-rule, key sequences beginning with @kbd{C} are bound to commands
-applying to categories, sequences beginning with @kbd{F} apply to
-(non-archive) file-level commands, and those beginning with @kbd{A}
-apply to archives (a special type of Todo file; @ref{Todo Archive
-Mode}).  Todo commands applying to items, which constitute the majority,
-are bound to lower case key sequences.
+rule, key sequences beginning with @kbd{C} (capital `C', not the
+control key) are bound to commands applying to categories, sequences
+beginning with @kbd{F} apply to (non-archive) file-level commands, and
+those beginning with @kbd{A} apply to archives (a special type of Todo
+file; @ref{Todo Archive Mode}).  Todo commands applying to items,
+which constitute the majority, are bound to lower case key sequences.
 
 @node Navigation, Editing, Key Binding Conventions, Top
 @chapter Navigation
@@ -315,8 +313,8 @@ commands are likely to be used frequently and repetitively, it is
 convenient for their key bindings to be single lower case keys, even for
 navigation commands applying to categories and files.
 
-Two of the navigation commands were already mentioned in the section on
-Todo mode entry points:
+Two of the navigation commands were already mentioned in @ref{Todo
+Mode Entry Points}:
 
 @table @kbd
 
@@ -397,11 +395,17 @@ sections below.
 
 Editing in Todo mode means making structural or textual changes at one
 of the levels of organization (file, category, or item).  Structural
-editing includes adding, relocating and removing, textual editing includes
-renaming files or categories and changing an item's content or date, or
-adding certain kinds of marks or tags to items.  To save changes you
-make to the current todo file, type @kbd{s} (@code{todo-save}).  Changes
-are also saved on quitting Todo mode with @kbd{q}.
+editing includes adding, relocating and removing units of information
+at a level; textual editing includes renaming files or categories and
+changing an item's content or date/time stamp, or adding certain kinds
+of marks or tags to items.  Todo mode provides commands, detailed in
+the following sections, which enable you to quickly and safely make
+changes to your todo lists, without having to worry about preserving
+the file format.
+
+To save changes you make to the current todo file,
+type @kbd{s} (@code{todo-save}).  Changes are also saved on quitting
+Todo mode with @kbd{q}.
 
 @menu
 * File Editing::
@@ -417,12 +421,12 @@ There are four file-level editing commands:
 @table @kbd
 
 @item F a
-Add a new todo file (@code{todo-add-file}).  This command prompts for a
-name and creates the file in @code{todo-directory}, adding the
+Add a new todo file (@code{todo-add-file}).  This command prompts for
+a name and creates the file in @code{todo-directory}, adding the
 @samp{.todo} extension (so you should not include the extension in the
-name you enter).  The command also prompts for the file's first category and, if
-option @code{todo-add-item-if-new-category} is enabled (the default),
-for that category's first item.
+name you enter).  The command also prompts for the file's first
+category and, if option @code{todo-add-item-if-new-category} is
+enabled (the default), for that category's first item.
 
 @item F r
 Rename the current todo file (@code{todo-rename-file}).  If called with
@@ -430,15 +434,15 @@ a prefix argument, prompt for a todo file and rename it.  If the todo
 file has an archive (@pxref{Todo Archive Mode}) or there are
 corresponding filtered items files (@pxref{Todo Filtered Items Mode}),
 this command renames these accordingly.  If there are live buffers
-visiting any of these files, the command also rename them accordingly.
+visiting any of these files, the command also renames them accordingly.
 
 @item F k
 Delete the current todo file (@code{todo-delete-file}).@footnote{The key
 binding of this command is mnemonic for ``kill'' to parallel the binding
 @kbd{k} for item deletion, since @kbd{d} is bound to another item
 editing command (@pxref{Done Items}).}  If the todo file has an archive
-(@pxref{Todo Archive Mode}), prompt whether to delete that as well.
-This command also kill the buffers visiting the deleted files.
+(@pxref{Todo Archive Mode}), prompt for whether to delete that as well.
+This command also kills the buffers visiting the deleted files.
 
 @item F e
 This command (@code{todo-edit-file}) changes the buffer's major mode to
@@ -458,20 +462,21 @@ text that occurs in different categories throughout the file.  The other
 use case is to recover from a mistake, such as accidentally deleting an
 item, since this cannot be undone in Todo mode.
 
-Using @kbd{C-x C-q} to quit Todo Edit mode provides a measure of safety,
-since it runs a file format check, signaling an error if the format has
-become invalid.  However, this check cannot tell if the number of items
-changed, which could result in the file containing inconsistent
-information (see the cautionary note in @ref{Reordering Categories}, for
-more details).  For this reason @kbd{F e} should be used with caution.
+Using @kbd{C-x C-q} to quit Todo Edit mode provides a measure of
+safety, since it runs a file format check, signaling an error if the
+format has become invalid.  However, this check cannot tell if the
+number of items or categories changed, which could result in the file
+containing inconsistent information (see the cautionary note in
+@ref{Reordering Categories}, for more details).  Invoking @kbd{F e}
+displays a warning to this effect.
 @end table
 
 @node Category Editing, Item Editing, File Editing, Editing
 @section Category Editing
 
-The following commands are available for editing at the category level
-(for additional category-editing commands, which are extensions of item
-commands, @pxref{Editing Item Headers and Text}):
+The following commands are available for editing specifically at the
+category level (for two other category-editing commands, which are
+extensions of item commands, @pxref{Editing Item Headers and Text}):
 
 @table @kbd
 
@@ -519,8 +524,10 @@ category in that file.
 @node Item Editing, , Category Editing, Editing
 @section Item Editing
 
-Todo mode provides a wide variety of commands for adding and textually
-changing items, as well as for deleting and relocating items.
+Todo mode provides commands for adding new items as well as textually
+changing, deleting and relocating existing items.  The commands and
+associated options for adding and editing items, in particular, offer
+you a lot of flexibility to fine-tune these operations to your needs.
 
 @menu
 * Inserting New Items::
@@ -531,282 +538,388 @@ changing items, as well as for deleting and relocating items.
 @node  Inserting New Items, Editing Item Headers and Text, , Item Editing
 @subsection Inserting New Items
 
-There are many commands for adding new todo items.  The command names
-contain the word ``insert'' instead of ``add'' and their key bindings are
-sequences beginning with @kbd{i}.  The motivation for this terminology is
-that speaking of adding an item to a category suggests appending it to
-the top or bottom, whereas you can insert an item into the category
-anywhere, giving each new item any priority in the list.
+To add a new todo item to a category, type @kbd{i}, which is bound to
+the command @code{todo-insert-item}.
 
 @table @kbd
 
-@item i i
-This is the basic command for inserting new items into a category
-(@code{todo-insert-item}).  Called without a prefix argument, it prompts
-for the text of the item and its priority (a number between 1 and one
-more than the number of items already in the category), both of which
-you enter in the minibuffer, and inserts the item into the current
-category of the current todo file at the position in the list
-corresponding to the priority you chose.  Called with one prefix
+@item i
+This command is the entry point for inserting new items into a
+category (@code{todo-insert-item}).  It prompts for additional keys
+until reaching a complete key sequence, which specifies the insertion
+parameters you wish to apply (see below).  It then prompts for the
+text of the item, which you enter in the minibuffer.@footnote{There
+are two insertion parameters that override prompting for and manually
+entering the new item's text, see below.}  Called with one prefix
 argument, it also prompts for a category, and called with two prefix
-arguments, it prompts for both a file and a category from that file, and
-inserts the item accordingly.  Category name completion works as with
-the navigation command @kbd{j}.
+arguments, it prompts for both a file and a category from that file,
+and inserts the item accordingly; category name completion works as
+with the navigation command @kbd{j}.  Finally, it inserts the item
+into the current or selected category of the current or selected todo
+file at the position in the list corresponding to the priority you
+choose, which also depends on the insertion parameters.
 @end table
 
-Each invocation of @kbd{i i} adds a header string to the item, which
+@noindent
+The name of this command reflects the fact that you can insert a new
+item into the category at any position, giving each new item any
+priority in the list, whereas speaking of adding an item to a category
+suggests appending it to the top or bottom.
+
+In addition to its file and category, each newly inserted todo item
+has a priority in the category and begins with a header string, which
 includes at least the current date in the same format used by
 @code{diary-insert-entry} (@pxref{Date Formats,,, emacs}).  You can
-control what other information is included in the header by customizing
-the following options:
+specify the priority and the content of the header string in two ways.
+First, you can set the following item insertion options, which apply
+on every invocation of @code{todo-insert-item}.
 
 @itemize @bullet
 
 @item
-@code{todo-always-add-time-string} is for including or omitting the
-current time.  The time string is omitted by default.
+@code{todo-default-priority} is for automatically assigning a new item
+the highest or lowest priority in the category, if you do not
+explicitly assign it a priority on invoking @code{todo-insert-item}.
+By default, such new items are given highest priority, i.e., inserted
+at the top of the list.
 
 @item
-@code{todo-include-in-diary} is for specifying whether the item appears
-in the Fancy Diary display by adding or omitting
-@code{todo-nondiary-marker}.  By default, new todo items are marked for
-exclusion from the diary.
+@code{todo-always-add-time-string} is for including or omitting the
+current time in the new item's header.  By default, this time string
+is omitted.
+
+@item
+@code{todo-include-in-diary} is for specifying whether the item
+appears in the Fancy Diary display (when the todo file is included in
+the Emacs diary file) by adding or omitting
+@code{todo-nondiary-marker}.  By default, new todo items are so
+marked, thus excluded from the diary.
 
 @item
 @code{todo-diary-nonmarking} is for adding or omitting
 @code{diary-nonmarking-symbol} to items displayed in the diary, to
-control whether they are marked in the calendar (@pxref{Format of Diary
-File,,, emacs}).  By default, todo items that are diary entries are
-marked in the calendar.
+control whether they are marked in the calendar (@pxref{Format of
+Diary File,,, emacs}).  By default, todo items that are diary entries
+lack this symbol, thus are marked in the calendar.
 @end itemize
 
-Instead of always adding the same header information to a new item, you
-can use more specific insertion commands that let you decide what to
-include in the item header each time you insert a new item.  And instead
-of always being prompted to choose the new item's priority, you can
-invoke a command to insert it at the position (hence with the priority)
-of the item at point.  Finally, instead of always typing the text of the
-new item in the minibuffer, you can invoke a command that makes the
-selected region in an Emacs buffer automatically become the new item's
-text.  The following paragraphs discuss how to invoke these commands by
-typing certain key sequences.
+Beside setting these options, for more flexibility you can also pass
+certain parameters on each invocation of @code{todo-insert-item}.
+These parameters concern not only the new item's priority and header,
+but also its textual content.  You pass these parameters by typing a
+sequence of one or more keys after the initial @kbd{i}.
 
-There are eight parameters of item insertion in Todo mode, six
-concerning the item header, and one each concerning its priority and its
-text.  Each unique combination of these parameters produces a different
-insertion command.  The command @kbd{i i} realizes one of these
-combinations.  For the commands that realize the remaining combinations
-it is convenient to associate each parameter with a mnemonically chosen
-key.  Then by typing certain sequences of these keys, you complete the
-insertion command invocation that realizes the specified combination.
-As with @kbd{i i}, the effect of many of these commands also depends on
-the values of the item insertion options mentioned above (see the
-examples below).
-
-Here is a list of the parameters and their associated keys, in the order
-in which you must type them when building a key sequence (this order
-roughly reflects the order in which the corresponding parts of the item
-occur in a category listing):
+Here is a list of the item insertion parameters together with their
+mnemonically associated keys@footnote{The non-mnemonic choice of
+@kbd{i} for the parameter @samp{default} is motivated by the
+convenience of repeating the @kbd{i} used to invoke
+@code{todo-insert-item}.} and descriptions of their effect in
+@code{todo-insert-item}:
 
 @enumerate
 
 @item
-@kbd{y} for diary (non)inclusion;
+@samp{default} (@kbd{i}): Prompt for the new item's priority
+(a number between 1 and one more than the number of items already in
+the category) and add a header string conforming to the values of the
+above options.
+
+@samp{copy} (@kbd{p}): Make an exact copy of the item at point,
+including its header string, and prompt for its priority.  (This is
+useful for quickly making a new todo item whose text or header you
+want to differ only partly from that of an existing item: after
+inserting the copy, you can quickly edit it as needed by using
+operations described in the next section.)
+
 @item
-@kbd{k} for adding or omitting `diary-nonmarking-symbol';
+@samp{diary} (@kbd{y}): Override the option
+@code{todo-include-in-diary}; that is, add @code{todo-nondiary-marker}
+if the option is non-nil, omit this marker if the option is nil.
+
+@samp{nonmarking} (@kbd{k}): Override the option
+@code{todo-diary-nonmarking}; that is, add
+@code{diary-nonmarking-symbol} if the option is non-nil, omit this
+symbol if the option is nil.  Since this symbol only applies to diary
+items, the new item is automatically marked as such, i.e., lacks
+@code{todo-nondiary-marker}.
+
 @item
-@kbd{c} for adding the date header by clicking a date in the Emacs
-calendar, or@*
-@kbd{d} for interactively entering the date header as a string of year,
-month and day number components in the minibuffer, or@*
-@kbd{n} for interactively entering the date header as a weekday name in
-the minibuffer;
+@samp{calendar} (@kbd{c}): Pop up the Emacs calendar and click a date
+in it to use that date in the new todo item's header.
+
+@samp{date} (@kbd{d}): Prompt for entering in the minibuffer
+the year, month (with completion) and day number components of the
+header.
+
+@samp{dayname} (@kbd{n}): Prompt for entering in the minibuffer
+a weekday name as the date header instead of a year-month-day string.
+
 @item
-@kbd{t} for adding a time string to the header in the minibuffer
-(including the empty string, which amounts to omitting the time);
+@samp{time} (@kbd{t}): Prompt for entering a time string in
+the minibuffer instead of automatically inserting the current time;
+however, typing @key{RET} at the prompt enters the current time if
+@code{todo-always-add-time-string} is non-nil, otherwise it enters the
+empty string (i.e., no time string).
+
 @item
-@kbd{h} for inserting the new item in the position of the item at point
-(``here''), or@*
-@kbd{r} to use the text of the selected region as the item's text.
+@samp{here} (@kbd{h}): Insert the new item in the position of
+the item at point, pushing that and all lower items in the category
+down, i.e., lowering their priority, by one.
+
+@samp{region} (@kbd{r}): Use the text of the selected region as the
+text of the new item, and insert this in accordance with the item
+insertion options and other parameters passed.  If the option
+`todo-use-only-highlighted-region' is non-nil, then use the region
+only when it is highlighted; otherwise, use the region regardless of
+highlighting.
 @end enumerate
 
-Each insertion command key sequence begins (disregarding prefix
-arguments) with @kbd{i}, followed by one or more of these eight keys, in
-the order listed.  But as you can see in the above table, since some of
-the insertion parameters are mutually exclusive, they occupy only five
-positions, so the complete (unprefixed) sequences are maximally six keys
-long.  Shorter sequences are also possible, since a parameter may be
-omitted.  But since the order in any key sequence is fixed, if the last
-key in the sequence could be followed by another insertion key, i.e., if
-the last key is not @kbd{h} or @kbd{r}, it has to be doubled to complete
-the sequence, otherwise it would be interpreted as a prefix sequence
-(this is why the binding for the basic item insertion command is @kbd{i
-i} and not @kbd{i}).
+Note that the parameters are divided into five numbered groups; within
+a group, the parameters are mutually exclusive.  Hence, to build a
+complete insertion operation, you select at most one parameter from at
+least one of these groups, by typing the corresponding key.  If you
+want to apply more than one parameter, you must type the corresponding
+keys in the order of the numbered groups, subject to the following
+constraints.
 
-Here are some examples of item insertion command key sequences:
+The keys of groups 2-4 are continuation keys, that is, each can be
+followed by a key from a following group.  If you want to finish the
+sequence with a continuation key, you must double the final key.  For
+example, @kbd{i y} is not a complete key sequence; rather, you must
+type @kbd{i y y}.
 
-@itemize @bullet
+By contrast, the keys of groups 1 and 5 are final keys; for example,
+@kbd{i i} and @kbd{i h} are complete sequences.  The reason for making
+two separate groups of the final keys is that the parameters
+@samp{default} and @samp{copy} cannot be combined with any other
+parameters, while @samp{here} and @samp{region} can be combined with
+any of the parameters from groups 2-4.
 
-@item
-@kbd{i h} inserts a new item at the position of the item at point (pushing
-the latter down) with a header containing the current date and,
-depending on the values of the mentioned options, possibly the current
-time and diary-related markings.
-@item
-@kbd{i y h} does the same as the preceding command, except that
-@code{todo-nondiary-marker} is added if @code{todo-include-in-diary} is
-non-nil and omitted if that option is nil; that is, the diary key @kbd{y}
-overrides the setting of this option.
-@item
-@kbd{i y t h} does the same as the preceding command, except that it
-prompts for a time string instead of automatically inserting the
-current time; however, typing @key{RET} at the prompt returns the
-current time if @code{todo-always-add-time-string} is non-nil, otherwise
-the empty string (i.e., no time string).
-@item
-@kbd{i y t t} does the same as the preceding command, except that it
-prompts for the item's priority and inserts it accordingly.
-@end itemize
+To aid you in building item insertion key sequences, when you type an
+insertion key, this displays a prompt in the echo area showing pairs
+of the remaining possible keys and their associated parameters,
+grouped and ordered in accordance with the above list.  The initial
+prompt, after typing @kbd{i} to invoke @code{todo-insert-item}, looks
+like this:
 
-Note that the commands whose key sequences include @kbd{y}, @kbd{k} or @kbd{t}
-reverse the effect of the options @code{todo-include-in-diary},
-@code{todo-diary-nonmarking} and @code{todo-always-add-time-string},
-respectively, thus temporarily overriding their values.
+@example
+Press a key (so far `i'):  @{ i=>default p=>copy @} @{ y=>diary k=>nonmarking @} @{ c=>calendar d=>date n=>dayname @} t=>time @{ h=>here r=>region @}
+@end example
 
-The names of the item insertion commands correspond to their key
-bindings, e.g., @kbd{i h} is bound to @code{todo-insert-item-here}, @kbd{i y h} to
-@code{todo-insert-item-diary-here}, etc.  But since there are so many
-combinations, instead of trying to memorize either the names or the key
-sequences, you can, as usual, just type an initial part of a key
-sequence (minimally @kbd{i}), followed by @kbd{C-h} to see the valid
-completions.
+@noindent If you now type @kbd{y}, the prompt changes to this:
 
-An alternative to using the key @kbd{c} for choosing the item's date
-from the calendar is also available: if point is on a date in the
-calendar, typing @kbd{i t} (@code{todo-insert-item-from-calendar}) will
-prompt for a new item and its priority and insert it in the current
-category.  Like @kbd{i i} and the other item insertion commands, this
-also accepts one or two prefix arguments for choosing the category via
-minibuffer completion.  Note, however, that the key sequence @kbd{i t}
-is not defined in Todo mode but in the Calendar mode keymap.  It is a
-convenient shortcut if you happen to be using the calendar when you
-decide to make a new todo item.  (Contrast this with a command like
-@kbd{i c c}, which pops open the calendar after you have entered the
-item's text, and then you can choose a date from the calendar.)
+@example
+Press a key (so far `i y'):  y=>diary:GO! @{ c=>calendar d=>date n=>dayname @} t=>time @{ h=>here r=>region @}
+@end example
 
-There is one more item insertion command, which does not derive from the
-item insertion parameters:
+@noindent Notice that the pair @samp{k=>nonmarking} is now absent, since it
+belongs to the same group as the selected pair @samp{y=>diary}, hence
+is no longer available for this sequence.  Since @kbd{y} is a
+continuation key, it is still available, but now the string ":GO!" is
+appended to the pair to remind you that pressing this key again will
+complete the sequence.
 
-@table @kbd
 
-@item i p
-This command (@code{todo-copy-item}) makes a complete copy of the item
-at point, including its header, prompts for its priority in the current
-category and inserts it accordingly.
-@end table
 
-@noindent
-This command is useful for quickly adding a todo item whose text or
-header you want to differ only partly from that of an existing item:
-after inserting the copy, you can quickly edit it as needed by using
-commands described in the next section.
+@c Here are some examples of item insertion command key sequences:
+
+@c @itemize @bullet
+
+@c @item
+@c @kbd{i h} inserts a new item at the position of the item at point (pushing
+@c the latter down) with a header containing the current date and,
+@c depending on the values of the mentioned options, possibly the current
+@c time and diary-related markings.
+@c @item
+@c @kbd{i y h} does the same as the preceding command, except that
+@c @code{todo-nondiary-marker} is added if @code{todo-include-in-diary} is
+@c non-nil and omitted if that option is nil; that is, the diary key @kbd{y}
+@c overrides the setting of this option.
+@c @item
+@c @kbd{i y t h} does the same as the preceding command, except that it
+@c prompts for a time string instead of automatically inserting the
+@c current time; however, typing @key{RET} at the prompt returns the
+@c current time if @code{todo-always-add-time-string} is non-nil, otherwise
+@c the empty string (i.e., no time string).
+@c @item
+@c @kbd{i y t t} does the same as the preceding command, except that it
+@c prompts for the item's priority and inserts it accordingly.
+@c @end itemize
+
+
+An alternative to the key sequence @kbd{i c c} for choosing the item's
+date from the calendar is also available: when point is already on a
+date in the calendar, typing @kbd{i t}
+(@code{todo-insert-item-from-calendar}) prompts for a new item and its
+priority and inserts it in the current category.  This command, like
+@code{todo-insert-item}, also accepts one or two prefix arguments for
+choosing the category via minibuffer completion.  Note, however, that
+the key sequence @kbd{i t} is not defined in Todo mode but in the
+Calendar mode keymap.  It is a convenient shortcut if you happen to be
+using the calendar when you decide to make a new todo item.  (Contrast
+this with passing the @samp{calendar} parameter, which pops open the
+calendar after you have entered the item's text, and then you can
+choose a date from the calendar.)
+
 
 @node  Editing Item Headers and Text, Relocating and Removing Items, Inserting New Items, Item Editing
 @subsection Editing Item Headers and Text
 
-There are a number of commands for editing an existing item's text or
-header; these commands are bound to key sequences with @kbd{e}.
-
-There are two commands for editing an item's text (and manually editing
-its header), one appropriate for short items and simple edits and one
-better suited for more complex changes or for editing lengthy items:
+To make changes to an existing item's content or header, type @kbd{e},
+which is bound to the command @code{todo-edit-item}.
 
 @table @kbd
 
-@item e e
-Edit the text of the current item in the minibuffer
-(@code{todo-edit-item}).  If called with a prefix argument (@kbd{C-u e
-e}), the item's header is also included in the minibuffer and so can be
-edited manually.
+@item e
+This command is the entry point for textually editing existing items
+in a category (@code{todo-edit-item}).  It prompts for additional keys
+until reaching a complete key sequence, which specifies the editing
+parameters you wish to apply (see below), and then executes the
+editing operation accordingly.
+@end table
 
-@item e m
-Edit the text of the current item in a special buffer in Todo Edit mode
-(@code{todo-edit-multiline-item}).  When you have finished editing, type
-@kbd{C-x C-q} to return to Todo mode; this runs a format check to ensure
-the item is well-formed.@footnote{Unlike the command @kbd{F e}
+Here is a list of the item editing parameters together with their
+mnemonically associated keys and descriptions of their effect in
+@code{todo-edit-item}.  The list is divided into three groups, for
+reasons explained below.
+
+@enumerate 1
+
+@item
+@samp{edit} (@kbd{e}): Edit the text of the current item in the
+minibuffer; the item's header is omitted.
+
+@samp{header} (@kbd{h}): Edit the text and header of the current item
+in the minibuffer.
+
+@samp{multiline} (@kbd{m}): Edit the text of the current item in a
+special buffer in Todo Edit mode.  After editing, type @kbd{C-x C-q}
+to return to Todo mode.@footnote{This runs a format check to ensure
+the item is well-formed.  However, unlike the command @kbd{F e}
 (@pxref{File Editing}), @kbd{e m} does not expose you to the risk of
 putting the file in an inconsistent state, since it puts only the
 current item in Todo Edit mode.}
-@end table
 
-A number of commands are available for interactively editing all or part
-of the item header, permitting quick edits and helping avoid formatting
-errors.
+@samp{diary} (@kbd{y}): Change the current item's diary inclusion
+status by adding @code{todo-nondiary-marker} if the item lacks this,
+or by removing it if present.
 
-The following three commands are for editing any or all of the year,
-month and day components of a date header:
+@samp{nonmarking} (@kbd{k}): Change the current item's calendar
+marking status by adding @code{diary-nonmarking-symbol} if the item
+lacks this, or by removing it if present. Since this symbol only
+applies to diary items, the item is automatically marked as such,
+i.e., if @code{todo-nondiary-marker} is present, it is removed.
 
-@table @kbd
+@samp{date} (@kbd{d}): Prompt for a final key from the second group
+of item editing parameters to edit the current item's date string.
 
-@item e d t
-Successively prompt for changes to the date's year, month and
-day number, and if the option @code{todo-always-add-time-string} is
-non-nil, also for editing the time string (see also @kbd{e t} below).
-
-@item e d a
-Change the date to today's date.
-
-@item e d c
-This command pops up the Emacs calendar, and after you type @key{RET} on
-a date in the calendar makes that date the item's date.
-@end table
+@samp{time} (@kbd{t}): Edit the current item's time string, if
+present; otherwise, add one.  Typing @key{RET} at the prompt enters
+the current time if @code{todo-always-add-time-string} is non-nil,
+otherwise it enters the empty string (i.e., no time string).
+@end enumerate
 
 @noindent
-You can also use these commands on items whose date header consists of a
-weekday name, which then changes to a header with year, month and day
-components.
+Editing the text of a lengthy item in the minibuffer can be
+inconvenient; therefore, if you type `e e' or `e h' on an item whose
+text contains more than one logical line, the effect is the same as if
+you had typed `e m', that is, you switch a special buffer in Todo Edit
+mode.
 
-Each of the following three commands, in contrast to the preceding
-three, changes only a single date component and has no effect on a date
-header consisting of a weekday name:
+When you pass any of the parameters of the preceding group, except for
+the @samp{date} parameter, this completes the item editing invocation
+begun by typing @kbd{e}.  Pressing @kbd{d} to pass the @samp{date}
+parameter, however, prompts you with the following parameters and
+their associated keys, and pressing any of these completes the
+invocation.
 
-@table @kbd
-@item e d y
-@itemx e d m
-@itemx e d d
-Prompt for changing just the year, month or day number, respectively; if
-invoked with a positive or negative numeric prefix argument, directly
-increment or decrement the date component accordingly and automatically
-adjust the other date component if necessary.  For example, if the date
-string is ``January 1, 2013'', typing @kbd{- 3 e d d} results in
-``December 29, 2012''.
-@end table
+@enumerate 2
 
-@table @kbd
-@item e d n
-Prompt for a weekday name and make it the item's date header.  Note that
-this replaces an existing date string, it does not add the day name to
-the date string.
+@item
+@samp{full} (@kbd{f}): Successively prompt for editing the year, month
+(with completion) and day number parts of the current item's date
+string, and, if the option @code{todo-always-add-time-string} is
+non-nil, also for editing its time string.
 
-@item e t
-Edit just the item's time string.  A time string can be added both to a
-date string and to a weekday name.  If you type @key{RET} at the
-prompt, this omits a time string from the header, or deletes an existing
-time string.
+@samp{calendar} (@kbd{c}): This pops up the Emacs calendar, and after
+you type @key{RET} on a date in the calendar makes that date the
+item's date.
 
-@item e y y
-Change the item's diary inclusion status by adding or removing
-@code{todo-nondiary-marker}.
+@samp{today} (@kbd{a}): Make the item's date today's date.
 
-@item e y k
-Change the item's diary marking status by adding or removing
-@code{diary-nonmarking-symbol} (this command has an effect only if the
-item is not marked for exclusion from the diary).
-@end table
+@samp{dayname} (@kbd{n}): Prompt for a weekday name (with completion)
+and make it the item's date header.  Note that this replaces an
+existing date string, it does not add the day name to the date string.
+
+@samp{year} (@kbd{y}): Edit just the year component of the current
+item's date string.
+
+@samp{month} (@kbd{m}): Edit just the month component of the current
+item's date string (with completion).
+
+@samp{daynum} (@kbd{d}): Edit just the day number component of the
+current item's date string.
+@end enumerate
 
 @noindent
-Parallel to the latter two item-level commands are the
-following category-level commands:
+With the latter three parameters you can add a positive or negative
+numeric prefix argument to the invocation: this increments or
+decrements the selected date component by the given number and
+automatically adjusts the other date components if necessary.  For
+example, if the item's date string is ``January 1, 2013'', then typing
+@kbd{- 3 e d d} results in ``December 29, 2012''.
+
+The first two groups of parameters apply only to todo items that are
+not marked as done (@pxref{Done Items}); the two parameters of the
+third group, in contrast, apply only to done todo items.  You cannot
+edit the text of such items, but you can edit or delete the comment
+you may have added on marking the item as done (@pxref{Done Items,
+@code{todo-item-done}},), or retroactively add a comment, by passing
+either of these parameters.
+
+@enumerate 3
+
+@item
+@samp{add/edit comment} (@kbd{c}): Edit the current done item's
+comment, if it has one; otherwise, prompt for and add a comment.
+
+@samp{delete comment} (@kbd{d}): Delete the current done item's
+comment, if it has one.
+@end enumerate
+
+The command @code{todo-edit-item} is sensitive to the distinction
+between not done and done todo items.  If you type @kbd{e} when point
+is on a done item, this displays the following prompt in the echo
+area:
+
+@example
+Press a key (so far `e'): c=>add/edit comment d=>delete comment
+@end example
+
+@noindent
+Only by typing @kbd{c} or @kbd{d} in response to this prompt can you
+complete the invocation.  In contrast, if you type @kbd{e} when point
+is on a non-done todo item, this displays the following prompt in the
+echo area, and you can continue or complete the invocation only by
+typing one of the listed keys:
+
+@example
+Press a key (so far `e'): e=>edit h=>header m=>multiline y=>diary k=>nonmarking d=>date t=>time
+@end example
+
+As noted above, passing the @samp{date} parameter does not complete
+the invocation of @code{todo-edit-item}; rather, it displays the
+following prompt, and typing any of these keys does complete the
+invocation:
+
+@example
+Press a key (so far `e d'): f=>full c=>calendar a=>today n=>dayname y=>year m=>month d=>daynum
+@end example
+
+In addition to the item-level invocations `e y', to change the current
+item's diary inclusion status, and `e k', to change the current item's
+calendar marking status, Todo mode also has two related category-level
+commands:
 
 @table @kbd
 
@@ -817,6 +930,21 @@ respectively, to all todo items in the current category; if invoked with
 a prefix argument, these markings are removed from all items in the
 category.
 @end table
+
+@noindent
+Like `e k', `C e k' automatically removes @code{todo-nondiary-marker}
+from all items it is present on, since only diary items can bear
+@code{diary-nonmarking-symbol}.
+
+Since categories often contain a mix of items marked for diary
+inclusion and exclusion, and of the former, a mix of those to be
+marked and those not to be marked in the calendar, it is more useful
+for these category-level commands, unlike the item-level commands, not
+to be toggles, but to have the same effect on all items in the
+category, and take a prefix argument to reverse the effect.  (If you
+really want to toggle the diary-inclusion and calendar-marking status
+of all items in the category, you can do this by marking all the items
+and then invoking `e y' or `e k', @pxref{Marked Items}).
 
 @node  Relocating and Removing Items,  , Editing Item Headers and Text, Item Editing
 @subsection Relocating and Removing Items
@@ -849,10 +977,11 @@ Lower the current item's priority by one, exchanging its position in the list
 with that of the item directly below it (@code{todo-lower-item-priority}).
 
 @item #
-Prompt for a number and relocate the item to the corresponding position
-in the list (@code{todo-set-item-priority}).  For example, entering
-@kbd{3} at the prompt makes the item the third in the category, i.e.,
-gives it third highest priority.  You can also pass the desired priority
+Prompt for a number and relocate the item to the corresponding
+position in the list (@code{todo-set-item-priority}).  For example,
+entering @kbd{3} at the prompt makes the item the third in the
+category, i.e., gives it third highest priority; all lower priority
+items are pushed down by one.  You can also pass the desired priority
 as a numeric prefix argument, e.g., @kbd{3 #} gives the item third
 highest priority without prompting.  (Prefix arguments have no effect
 with @kbd{r} or @kbd{l}.)
@@ -877,7 +1006,8 @@ enter is new, then you are asked whether to add the category to the
 file, and if you affirm, the item is moved to the new category.
 @end table
 
-You delete an item, thereby permanently removing it:
+You can delete an item, thereby permanently (and, as far as Todo mode
+is concerned, irrevocably) removing it from the todo file:
 
 @table @kbd
 
@@ -918,6 +1048,7 @@ Archive Mode}).
 
 @table @kbd
 
+@anchor{todo-item-done}
 @item d
 This command (@code{todo-item-done}) removes the todo item at point from
 the todo list, appends to the original header a header consisting of
@@ -954,23 +1085,30 @@ this is visible, hide it again and display only the todo items section
 (@code{todo-toggle-view-done-only}).
 @end table
 
-Three editing commands for done items are available:
+Since done items are meant to be a record of your finished todo items,
+you cannot apply to them the same kinds of editing operations
+available to unfinished todo items.  However, as explained in
+@ref{Editing Item Headers and Text} and repeated below for
+convenience, you can edit or delete a done item's comment, or
+retroactively add a comment.  You can also relocate a done item, and
+you can revert its done status, making it an unfinished item again.
 
 @table @kbd
 
 @item e c
-If you type this command (@code{todo-edit-done-item-comment}) when point is
-on a done item that has a comment, you can edit the text of the
-comment.  If you invoke it with a prefix argument (@kbd{C-u e c}), the
-comment is deleted on confirmation.  If the done item does not have a
-comment, this command allows you to add one.
+Edit the current done item's comment, if it has one; otherwise, prompt
+for and add a comment.
+
+@item e d
+Delete the current done item's comment, if it has one.
 
 @item m
 Move the done item at point to the top of the done items section of
-another category (@code{todo-move-item}).  This is useful in case, after
-having relocated an item to its category's done items section, you
-create a category that is better suited to the content of the done item
-than its current category, so you can recategorize the done item.
+another category (@code{todo-move-item}).  This is useful in case,
+after having finished a todo item and relocated it to its category's
+done items section, you create a category that is better suited to the
+content of the done item than its current category; in other words,
+you can retroactively recategorize the done item.
 
 @item u
 If you decide the done item at point is not done after all, this command
@@ -1156,18 +1294,34 @@ You can also use the last two commands to mark or unmark all done items in
 the category, but only when only the done items section is being
 displayed, i.e., after invoking @kbd{C V} or @kbd{V}.
 
-The following commands operate on marked items: @kbd{k} (deleting), @kbd{m}
-(moving to another category), @kbd{d} (moving to the done items section;
-note that @kbd{C-u d} adds the same comment to all marked items), @kbd{A d}
-(archiving), @kbd{u} (both in Todo mode for undoing a done item and in
-Todo Archive mode for unarchiving an item), as well as the commands for
-editing the item header (those beginning with the prefix @kbd{e d} as well
-as @kbd{e t}, @kbd{e y y} and @kbd{e y k}).  The item insertion, textual editing and
-priority changing commands do not operate on marked items.
+The following commands operate on marked items:
 
-If you use @kbd{m}, @kbd{d}, @kbd{A d} or @kbd{u} on multiple noncontiguous marked
-items, the relocated items retain their relative order but are now
-listed consecutively en bloc.
+@itemize @bullet
+
+@item
+@kbd{k} (deleting)
+@item
+@kbd{m} (moving to another category)
+@item
+@kbd{d} (moving to the done items section; note that @kbd{C-u d} adds
+the same comment to all marked items)
+@item
+@kbd{A d} (archiving)
+@item
+@kbd{u} (both in Todo mode for undoing a done item and in Todo Archive
+mode for unarchiving an item)
+@item
+the commands for editing the item header (those beginning with the
+prefix @kbd{e d} as well as @kbd{e t}, @kbd{e y} and @kbd{e k})
+@end itemize
+
+@noindent
+The item insertion, textual editing and priority changing commands do
+not operate on marked items.
+
+If you use @kbd{m}, @kbd{d}, @kbd{A d} or @kbd{u} on multiple
+noncontiguous marked items, the relocated items retain their relative
+order but are now listed consecutively en bloc.
 
 You can mark both todo and done items, but note that only @kbd{m} can apply
 to both; other commands only affect either marked todo or marked done
@@ -1177,9 +1331,9 @@ has no effect and informs you of your erroneous attempt.
 @node Todo Categories Mode, Searching for Items, Marked Items, Top
 @chapter Todo Categories Mode
 
-It can be helpful to have a compact overview of the categories in a todo
-file and the types of items it contains; Todo provides a tabular view
-of this information.
+It can be helpful to have a compact overview of the categories in a
+todo file and the types of items it contains; the Todo package
+provides a tabular view of this information.
 
 @table @kbd
 
@@ -1251,7 +1405,7 @@ the archive category instead of the empty todo category.  You can
 recognize such categories by their items counts in the table---all
 columns but the archived one have counts of zero---and in addition,
 their lines in the table are also distinguished from the others by a
-different face.
+different face (@pxref{Faces}).
 
 You can navigate around the table:
 
@@ -1313,14 +1467,15 @@ or archive file after reordering, in subsequent sessions as well.
 It is important to be aware that renumbering the categories does not
 change the textual order of the categories in the file.  This is
 significant if you should invoke @kbd{F e} to edit the entire file
-manually and in so doing alter the number of items in a category: this
-will make the item count shown in the table of categories of this file
-inconsistent with the actual number.  You can repair this inconsistency
-by invoking the command @code{todo-repair-categories-sexp} (which lacks
-a key binding, since it is meant to be a rarely needed rescue
-operation).  But this will revert any renumbering of the categories you
-have made, so you will have to renumber them again.  This is the reason
-why you should exercise caution when using @kbd{F e}.
+manually and in so doing alter the number of categories or the number
+of items in a category: this will make the information shown in the
+table of categories of this file inconsistent with its actual state.
+You can repair this inconsistency by invoking the command
+@code{todo-repair-categories-sexp} (which lacks a key binding, since
+it is meant to be a rarely needed rescue operation).  But this will
+revert any renumbering of the categories you have made, so you will
+have to renumber them again.  This is one reason why you should
+exercise caution when using @kbd{F e}.
 @end quotation
 
 @node Searching for Items, Todo Filtered Items Mode, Todo Categories Mode, Top
@@ -1525,7 +1680,8 @@ use the values of @code{todo-top-priorities-overrides} or
 
 Aside from explicitly invoking an item filtering command to display a
 saved list of items filtered by a given method from given todo files,
-there are two other ways to visit a saved file of filtered items:
+there are two other ways to visit a saved file of filtered items.  You
+can invoke a command similar to `find-file':
 
 @table @kbd
 @item F f
@@ -1533,15 +1689,13 @@ Visit a saved file of filtered items, which you choose via minibuffer
 completion (@code{todo-find-filtered-items-file}).
 @end table
 
-@itemize @bullet
-@item
-As with tables of categories, by customizing @code{todo-show-first} you
-can have the first invocation of @code{todo-show} for a given todo file
-display the corresponding saved file of filtered items.  If there is
-no saved filtered items list for the file, @code{todo-show} simply
-defaults to visiting the file and displaying its first category, as
-usual.
-@end itemize
+@noindent
+Alternatively, as with tables of categories, by customizing
+@code{todo-show-first} you can have the first invocation of
+@code{todo-show} for a given todo file display the corresponding saved
+file of filtered items.  If there is no saved filtered items list for
+the file, @code{todo-show} simply defaults to visiting the file and
+displaying its first category, as usual.
 
 The command @kbd{F k} (@pxref{File Editing}) is also available in Todo
 Filtered Items mode.  It deletes the current filtered items file.
@@ -1560,20 +1714,23 @@ You can change the appearance of Todo mode buffers in a variety of ways.
 @node Faces, Item Prefix, , Todo Display Features
 @section Faces
 
-Each of the Todo modes uses faces to distinguish various aspects of the
-display, both structural and informational.  For example, the faces for
-the date and time strings of todo item headers by default inherit the
-attributes of the corresponding faces used by the Emacs diary; but when
-the date and time of a Todo diary item (i.e., an item lacking
-@code{todo-nondiary-marker}) is earlier than the current date and time,
-they are displayed in a different face.  In this way, you can readily
-recognize diary items that have ``expired'' and act accordingly (e.g.,
-by tagging them as done or by updating the deadlines).
+Each of the Todo modes uses faces to distinguish various aspects of
+the display, both structural and informational.  For example, the
+faces for the date and time strings of todo item headers
+(@code{todo-date} and @code{todo-time}, respectively) by default
+inherit the attributes of the corresponding faces used by the Emacs
+diary; but when the date and time of a Todo diary item (i.e., an item
+lacking @code{todo-nondiary-marker}) is earlier than the current date
+and time, they are displayed in a different face
+(@code{todo-diary-expired}).  In this way, you can readily recognize
+diary items that have ``expired'' and act accordingly (e.g., by
+tagging them as done or by updating the deadlines).
 
-Another example of an informational face is the face used to distinguish
-top priority items.  A third case is the face used in Todo Categories
-mode to mark rows of the table containing categories with only archived
-items.
+Another example of an informational face is the face used to
+distinguish top priority items (@code{todo-top-priority}).  A third
+case is the face used in Todo Categories mode to mark rows of the
+table containing categories with only archived items
+(@code{todo-archived-only}).
 
 The @code{todo-faces} customization group contains a complete list of
 Todo mode faces and brief descriptions of their use.
@@ -1607,15 +1764,16 @@ temporarily hide the item numbering:
 @itemx N
 Toggle between displaying item numbering and displaying the
 @code{todo-prefix} string in the current Todo file (todo, archive, or
-saved virtual category of filtered items.  This command also works in
+saved virtual category of filtered items).  (This command also works in
 buffers of filtered items that have not yet been written to a file.)
 @end table
 
 In the todo items section of each Todo mode category, the item prefix
-(whether a priority number or a fixed string) of the top priority items
-(determined as specified in @pxref{Filtering Items}) is displayed in a
-different face from the prefix of the other items, so you see at a
-glance how many items in the category are top priorities.
+(whether a priority number or a fixed string) of the top priority
+items (determined as specified in @pxref{Filtering Items}) is
+displayed in a face (@code{todo-top-priority}) different from the face
+of the prefix of non-top-priority items, so you see at a glance how
+many items in the category are top priorities.
 
 @node Other Display Commands and Options, , Item Prefix, Todo Display Features
 @section Other Display Commands and Options
@@ -1635,11 +1793,12 @@ category-file) tag is not hidden.
 
 @item F H
 @itemx H
-Highlight the current item if unhighlighted, or remove its highlighting.
-When item highlighting is enabled, it follows navigation by @kbd{n} or
-@kbd{p}.  If you want to have current item highlighting by default,
-enable the option @code{todo-highlight-item}.  @kbd{F H} or @kbd{H} will
-still toggle it.
+Highlight the current item (with the face @code{hl-line}) if
+unhighlighted, or remove its highlighting.  When item highlighting is
+enabled, it follows navigation by @kbd{n} or @kbd{p}.  If you want to
+have current item highlighting by default, enable the option
+@code{todo-highlight-item}.  @kbd{F H} or @kbd{H} will still toggle
+it.
 @end table
 
 There are two options which affect the display of items whose content is
@@ -1675,7 +1834,7 @@ By default, the todo and done items sections of a todo category are
 visually separated by a line as wide as the window the buffer is
 displayed in.  You can change the appearance and width of the separator
 by customizing @code{todo-done-separator-string}; you can also change the
-face of the separator string.
+face of the separator string (@code{todo-done-sep}).
 
 There are also several options for changing the appearance in Todo
 Categories mode and Todo Filtered Items mode, beyond those mentioned
@@ -1750,7 +1909,7 @@ do so later by invoking the command @code{todo-convert-legacy-files}
 (there is no key binding for it, since it shouldn't be necessary to use
 it often).  (A delicate part of the conversion concerns the customizable
 format of item date/time headers in the old-style; see the documentation
-string of @code{todo-todo-mode-date-time-regexp} for details.)
+string of @code{todo-legacy-date-time-regexp} for details.)
 
 @node GNU Free Documentation License, , Legacy Todo Mode Files, Top
 @appendix GNU Free Documentation License

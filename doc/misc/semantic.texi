@@ -611,7 +611,7 @@ Emacs Lisp.  It is an LALR parser suitable for complex languages.
 @c LocalWords: deffn deffnx defun defvar destructor's dfn diff dir
 @c LocalWords: doc docstring EDE EIEIO elisp emacsman emph enum
 @c LocalWords: eq Exp EXPANDFULL expression fn foo func funcall
-@c LocalWords: ia ids iff ifinfo imenu imenus init int isearch itemx java kbd
+@c LocalWords: ia ids ifinfo imenu imenus init int isearch itemx java kbd
 @c LocalWords: keymap keywordtable lang languagemode lexer lexing Ludlam
 @c LocalWords: menubar metaparent metaparents min minibuffer Misc mode's
 @c LocalWords: multitable NAvigaTOR noindent nomedian nonterm noselect

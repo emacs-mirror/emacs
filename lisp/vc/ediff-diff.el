@@ -818,10 +818,9 @@ one optional arguments, diff-number to refine.")
 						     n &optional default)
   (let ((fine-diff-vector  (ediff-get-fine-diff-vector n buf-type))
 	(face (if default
-		  'default
+		  nil
 		(ediff-get-symbol-from-alist
-		 buf-type ediff-fine-diff-face-alist)
-		)))
+		 buf-type ediff-fine-diff-face-alist))))
     (mapc (lambda (overl)
 	    (ediff-set-overlay-face overl face))
 	  fine-diff-vector)))

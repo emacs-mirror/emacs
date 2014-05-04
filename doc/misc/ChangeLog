@@ -1,3 +1,15 @@
+2014-05-04  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todo-mode.texi: Update, improve exposition, add cross
+	references, fix typos.
+	(Inserting New Items, Editing Item Headers and Text): Rewrite to
+	document new user interface.
+
+2014-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* autotype.texi (Skeleton Language):
+	* message.texi (Header Commands): Replace `iff'.
+
 2014-05-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* vhdl-mode.texi: Add "@documentencoding UTF-8",

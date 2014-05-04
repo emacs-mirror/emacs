@@ -135,6 +135,7 @@ facility.
 
 @node Lossage
 @section Dealing with Emacs Trouble
+@cindex troubleshooting Emacs
 
   This section describes how to recognize and deal with situations in
 which Emacs does not work as you expect, such as keyboard code mixups,
@@ -158,6 +159,7 @@ Emacs.
 @subsection If @key{DEL} Fails to Delete
 @cindex @key{DEL} vs @key{BACKSPACE}
 @cindex @key{BACKSPACE} vs @key{DEL}
+@cindex @key{DEL} does not delete
 
   Every keyboard has a large key, usually labeled @key{BACKSPACE},
 which is ordinarily used to erase the last character that you typed.
@@ -212,6 +214,8 @@ Customization}.
 
 @node Stuck Recursive
 @subsection Recursive Editing Levels
+@cindex stuck in recursive editing
+@cindex recursive editing, cannot exit
 
   Recursive editing levels are important and useful features of Emacs, but
 they can seem like malfunctions if you do not understand them.
@@ -225,6 +229,9 @@ top-level}.  @xref{Recursive Edit}.
 
 @node Screen Garbled
 @subsection Garbage on the Screen
+@cindex garbled display
+@cindex display, incorrect
+@cindex screen display, wrong
 
   If the text on a text terminal looks wrong, the first thing to do is
 see whether it is wrong in the buffer.  Type @kbd{C-l} to redisplay
@@ -242,6 +249,8 @@ bug in Emacs that appears for certain terminal types.
 
 @node Text Garbled
 @subsection Garbage in the Text
+@cindex garbled text
+@cindex buffer text garbled
 
   If @kbd{C-l} shows that the text is wrong, first type @kbd{C-h l} to
 see what commands you typed to produce the observed results.  Then try
@@ -348,6 +357,7 @@ enable them by running the shell command @samp{ulimit -c unlimited}
 
 @node After a Crash
 @subsection Recovery After a Crash
+@cindex recovering crashed session
 
   If Emacs or the computer crashes, you can recover the files you were
 editing at the time of the crash from their auto-save files.  To do
@@ -394,6 +404,7 @@ not make a backup of its old contents.
 
 @node Emergency Escape
 @subsection Emergency Escape
+@cindex emergency escape
 
   On text terminals, the @dfn{emergency escape} feature suspends Emacs
 immediately if you type @kbd{C-g} a second time before Emacs can
@@ -528,6 +539,8 @@ not feel obliged to read this list before reporting a bug.
 
 @node Bug Criteria
 @subsection When Is There a Bug
+@cindex bug criteria
+@cindex what constitutes an Emacs bug
 
   If Emacs accesses an invalid memory location (``segmentation
 fault''), or exits with an operating system error message that
@@ -580,6 +593,8 @@ with the manual, one of them must be wrong; that is a bug.
 
 @node Understanding Bug Reporting
 @subsection Understanding Bug Reporting
+@cindex bug reporting
+@cindex report an Emacs bug, how to
 
 @findex emacs-version
   When you decide that there is a bug, it is important to report it
@@ -636,8 +651,8 @@ separate bug report for each.
 
 @node Checklist
 @subsection Checklist for Bug Reports
-
-@cindex reporting bugs
+@cindex checklist before reporting a bug
+@cindex bug reporting, checklist
 
   Before reporting a bug, first try to see if the problem has already
 been reported (@pxref{Known Problems}).
@@ -1192,6 +1207,9 @@ file in the Emacs distribution.
 
 @node Service
 @section How To Get Help with GNU Emacs
+@cindex help in using Emacs
+@cindex help-gnu-emacs mailing list
+@cindex gnu.emacs.help newsgroup
 
 If you need help installing, using or changing GNU Emacs, there are two
 ways to find it:

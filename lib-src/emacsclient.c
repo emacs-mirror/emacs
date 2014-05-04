@@ -65,10 +65,6 @@ char *w32_getenv (char *);
 # define CLOSE_SOCKET close
 # define INITIALIZE()
 
-# ifndef WCONTINUED
-#  define WCONTINUED 8
-# endif
-
 #define egetenv(VAR) getenv(VAR)
 
 #endif /* !WINDOWSNT */

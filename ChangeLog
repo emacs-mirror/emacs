@@ -1,3 +1,15 @@
+2014-05-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Require ImageMagick >= 6.3.5, due to PixelSetMagickColor (Bug#17339).
+	* configure.ac (IMAGEMAGICK_MODULE): Bump prereq from 6.2.8 to 6.3.5.
+	A more-complicated fix would be to remove uses of PixelSetMagickColor,
+	introduced in ImageMagick 6.3.5 (Sept. 2007).
+
+2014-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (LIBPNG): Consult libpng-config for the precise
+	form of "-lpng" to use.  (Bug#17339)
+
 2014-05-03  Glenn Morris  <rgm@gnu.org>
 
 	* autogen.sh: If all else fails, try using pkg-config to find pkg.m4.

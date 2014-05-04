@@ -110,13 +110,14 @@ create_root_interval (Lisp_Object parent)
       set_string_intervals (parent, new);
       new->position = 0;
     }
-
+  eassert (LENGTH (new) > 0);
+  
   set_interval_object (new, parent);
 
   return new;
 }
 
-/* Make the interval TARGET have exactly the properties of SOURCE */
+/* Make the interval TARGET have exactly the properties of SOURCE.  */
 
 void
 copy_properties (register INTERVAL source, register INTERVAL target)
@@ -176,10 +177,10 @@ intervals_equal (INTERVAL i0, INTERVAL i1)
   Lisp_Object i1_cdr, i1_val;
 
   if (DEFAULT_INTERVAL_P (i0) && DEFAULT_INTERVAL_P (i1))
-    return 1;
+    return true;
 
   if (DEFAULT_INTERVAL_P (i0) || DEFAULT_INTERVAL_P (i1))
-    return 0;
+    return false;
 
   i0_cdr = i0->plist;
   i1_cdr = i1->plist;
@@ -188,31 +189,31 @@ intervals_equal (INTERVAL i0, INTERVAL i1)
       i0_sym = XCAR (i0_cdr);
       i0_cdr = XCDR (i0_cdr);
       if (!CONSP (i0_cdr))
-	return 0;
+	return false;
       i1_val = i1->plist;
       while (CONSP (i1_val) && !EQ (XCAR (i1_val), i0_sym))
 	{
 	  i1_val = XCDR (i1_val);
 	  if (!CONSP (i1_val))
-	    return 0;
+	    return false;
 	  i1_val = XCDR (i1_val);
 	}
 
       /* i0 has something i1 doesn't.  */
       if (EQ (i1_val, Qnil))
-	return 0;
+	return false;
 
       /* i0 and i1 both have sym, but it has different values in each.  */
       if (!CONSP (i1_val)
 	  || (i1_val = XCDR (i1_val), !CONSP (i1_val))
 	  || !EQ (XCAR (i1_val), XCAR (i0_cdr)))
-	return 0;
+	return false;
 
       i0_cdr = XCDR (i0_cdr);
 
       i1_cdr = XCDR (i1_cdr);
       if (!CONSP (i1_cdr))
-	return 0;
+	return false;
       i1_cdr = XCDR (i1_cdr);
     }
 
@@ -339,10 +340,8 @@ rotate_right (INTERVAL A)
   ptrdiff_t old_total = A->total_length;
 
   eassert (old_total > 0);
-  eassert (old_total
-	   > TOTAL_LENGTH (B) + TOTAL_LENGTH (A->right));
-  eassert (TOTAL_LENGTH (B)
-	   > TOTAL_LENGTH (B->left) + TOTAL_LENGTH (c));
+  eassert (LENGTH (A) > 0);
+  eassert (LENGTH (B) > 0);
 
   /* Deal with any Parent of A;  make it point to B.  */
   if (! ROOT_INTERVAL_P (A))
@@ -366,9 +365,11 @@ rotate_right (INTERVAL A)
   /* A's total length is decreased by the length of B and its left child.  */
   A->total_length -= B->total_length - TOTAL_LENGTH (c);
   eassert (TOTAL_LENGTH (A) > 0);
+  eassert (LENGTH (A) > 0);
 
   /* B must have the same total length of A.  */
   B->total_length = old_total;
+  eassert (LENGTH (B) > 0);
 
   return B;
 }
@@ -390,10 +391,8 @@ rotate_left (INTERVAL A)
   ptrdiff_t old_total = A->total_length;
 
   eassert (old_total > 0);
-  eassert (old_total
-	   > TOTAL_LENGTH (B) + TOTAL_LENGTH (A->left));
-  eassert (TOTAL_LENGTH (B)
-	   > TOTAL_LENGTH (B->right) + TOTAL_LENGTH (c));
+  eassert (LENGTH (A) > 0);
+  eassert (LENGTH (B) > 0);
 
   /* Deal with any parent of A;  make it point to B.  */
   if (! ROOT_INTERVAL_P (A))
@@ -417,9 +416,11 @@ rotate_left (INTERVAL A)
   /* A's total length is decreased by the length of B and its right child.  */
   A->total_length -= B->total_length - TOTAL_LENGTH (c);
   eassert (TOTAL_LENGTH (A) > 0);
+  eassert (LENGTH (A) > 0);
 
   /* B must have the same total length of A.  */
   B->total_length = old_total;
+  eassert (LENGTH (B) > 0);
 
   return B;
 }
@@ -431,6 +432,9 @@ static INTERVAL
 balance_an_interval (INTERVAL i)
 {
   register ptrdiff_t old_diff, new_diff;
+
+  eassert (LENGTH (i) > 0);
+  eassert (TOTAL_LENGTH (i) >= LENGTH (i));
 
   while (1)
     {
@@ -468,16 +472,16 @@ static INTERVAL
 balance_possible_root_interval (INTERVAL interval)
 {
   Lisp_Object parent;
-  bool have_parent = 0;
-
-  if (!INTERVAL_HAS_OBJECT (interval) && !INTERVAL_HAS_PARENT (interval))
-    return interval;
+  bool have_parent = false;
 
   if (INTERVAL_HAS_OBJECT (interval))
     {
-      have_parent = 1;
+      have_parent = true;
       GET_INTERVAL_OBJECT (parent, interval);
     }
+  else if (!INTERVAL_HAS_PARENT (interval))
+    return interval;
+
   interval = balance_an_interval (interval);
 
   if (have_parent)
@@ -553,7 +557,7 @@ split_interval_right (INTERVAL interval, ptrdiff_t offset)
     {
       set_interval_right (interval, new);
       new->total_length = new_length;
-      eassert (TOTAL_LENGTH (new) >= 0);
+      eassert (LENGTH (new) > 0);
     }
   else
     {
@@ -562,7 +566,6 @@ split_interval_right (INTERVAL interval, ptrdiff_t offset)
       set_interval_parent (interval->right, new);
       set_interval_right (interval, new);
       new->total_length = new_length + new->right->total_length;
-      eassert (TOTAL_LENGTH (new) >= 0);
       balance_an_interval (new);
     }
 
@@ -598,7 +601,7 @@ split_interval_left (INTERVAL interval, ptrdiff_t offset)
     {
       set_interval_left (interval, new);
       new->total_length = new_length;
-      eassert (TOTAL_LENGTH (new) >= 0);
+      eassert (LENGTH (new) > 0);
     }
   else
     {
@@ -607,7 +610,6 @@ split_interval_left (INTERVAL interval, ptrdiff_t offset)
       set_interval_parent (new->left, new);
       set_interval_left (interval, new);
       new->total_length = new_length + new->left->total_length;
-      eassert (TOTAL_LENGTH (new) >= 0);
       balance_an_interval (new);
     }
 
@@ -791,12 +793,12 @@ update_interval (register INTERVAL i, ptrdiff_t pos)
     {
       if (pos < i->position)
 	{
-	  /* Move left. */
+	  /* Move left.  */
 	  if (pos >= i->position - TOTAL_LENGTH (i->left))
 	    {
 	      i->left->position = i->position - TOTAL_LENGTH (i->left)
 		+ LEFT_TOTAL_LENGTH (i->left);
-	      i = i->left;		/* Move to the left child */
+	      i = i->left;		/* Move to the left child.  */
 	    }
 	  else if (NULL_PARENT (i))
 	    error ("Point before start of properties");
@@ -806,12 +808,12 @@ update_interval (register INTERVAL i, ptrdiff_t pos)
 	}
       else if (pos >= INTERVAL_LAST_POS (i))
 	{
-	  /* Move right. */
+	  /* Move right.  */
 	  if (pos < INTERVAL_LAST_POS (i) + TOTAL_LENGTH (i->right))
 	    {
 	      i->right->position = INTERVAL_LAST_POS (i)
 	        + LEFT_TOTAL_LENGTH (i->right);
-	      i = i->right;		/* Move to the right child */
+	      i = i->right;		/* Move to the right child.  */
 	    }
 	  else if (NULL_PARENT (i))
 	    error ("Point %"pD"d after end of properties", pos);
@@ -958,7 +960,6 @@ adjust_intervals_for_insertion (INTERVAL tree,
       for (temp = prev ? prev : i; temp; temp = INTERVAL_PARENT_OR_NULL (temp))
 	{
 	  temp->total_length += length;
-	  eassert (TOTAL_LENGTH (temp) >= 0);
 	  temp = balance_possible_root_interval (temp);
 	}
 
@@ -1014,7 +1015,6 @@ adjust_intervals_for_insertion (INTERVAL tree,
       for (temp = i; temp; temp = INTERVAL_PARENT_OR_NULL (temp))
 	{
 	  temp->total_length += length;
-	  eassert (TOTAL_LENGTH (temp) >= 0);
 	  temp = balance_possible_root_interval (temp);
 	}
     }
@@ -1216,9 +1216,10 @@ delete_node (register INTERVAL i)
       this = this->left;
       this->total_length += migrate_amt;
     }
-  eassert (TOTAL_LENGTH (this) >= 0);
   set_interval_left (this, migrate);
   set_interval_parent (migrate, this);
+  eassert (LENGTH (this) > 0);
+  eassert (LENGTH (i->right) > 0);
 
   return i->right;
 }
@@ -1298,7 +1299,7 @@ interval_deletion_adjustment (register INTERVAL tree, register ptrdiff_t from,
 							 relative_position,
 							 amount);
       tree->total_length -= subtract;
-      eassert (TOTAL_LENGTH (tree) >= 0);
+      eassert (LENGTH (tree) > 0);
       return subtract;
     }
   /* Right branch.  */
@@ -1313,7 +1314,7 @@ interval_deletion_adjustment (register INTERVAL tree, register ptrdiff_t from,
 					       relative_position,
 					       amount);
       tree->total_length -= subtract;
-      eassert (TOTAL_LENGTH (tree) >= 0);
+      eassert (LENGTH (tree) > 0);
       return subtract;
     }
   /* Here -- this node.  */
@@ -1328,7 +1329,7 @@ interval_deletion_adjustment (register INTERVAL tree, register ptrdiff_t from,
 	amount = my_amount;
 
       tree->total_length -= amount;
-      eassert (TOTAL_LENGTH (tree) >= 0);
+      eassert (LENGTH (tree) >= 0);
       if (LENGTH (tree) == 0)
 	delete_interval (tree);
 
@@ -1370,7 +1371,7 @@ adjust_intervals_for_deletion (struct buffer *buffer,
   if (ONLY_INTERVAL_P (tree))
     {
       tree->total_length -= length;
-      eassert (TOTAL_LENGTH (tree) >= 0);
+      eassert (LENGTH (tree) > 0);
       return;
     }
 
@@ -1430,12 +1431,12 @@ merge_interval_right (register INTERVAL i)
       while (! NULL_LEFT_CHILD (successor))
 	{
 	  successor->total_length += absorb;
-	  eassert (TOTAL_LENGTH (successor) >= 0);
+	  eassert (LENGTH (successor) > 0);
 	  successor = successor->left;
 	}
 
       successor->total_length += absorb;
-      eassert (TOTAL_LENGTH (successor) >= 0);
+      eassert (LENGTH (successor) > 0);
       delete_interval (i);
       return successor;
     }
@@ -1457,7 +1458,7 @@ merge_interval_right (register INTERVAL i)
 
       successor = INTERVAL_PARENT (successor);
       successor->total_length -= absorb;
-      eassert (TOTAL_LENGTH (successor) >= 0);
+      eassert (LENGTH (successor) > 0);
     }
 
   /* This must be the rightmost or last interval and cannot
@@ -1486,12 +1487,12 @@ merge_interval_left (register INTERVAL i)
       while (! NULL_RIGHT_CHILD (predecessor))
 	{
 	  predecessor->total_length += absorb;
-	  eassert (TOTAL_LENGTH (predecessor) >= 0);
+	  eassert (LENGTH (predecessor) > 0);
 	  predecessor = predecessor->right;
 	}
 
       predecessor->total_length += absorb;
-      eassert (TOTAL_LENGTH (predecessor) >= 0);
+      eassert (LENGTH (predecessor) > 0);
       delete_interval (i);
       return predecessor;
     }
@@ -1513,7 +1514,7 @@ merge_interval_left (register INTERVAL i)
 
       predecessor = INTERVAL_PARENT (predecessor);
       predecessor->total_length -= absorb;
-      eassert (TOTAL_LENGTH (predecessor) >= 0);
+      eassert (LENGTH (predecessor) > 0);
     }
 
   /* This must be the leftmost or first interval and cannot
@@ -1528,6 +1529,8 @@ reproduce_interval (INTERVAL source)
 {
   register INTERVAL target = make_interval ();
 
+  eassert (LENGTH (source) > 0);
+
   target->total_length = source->total_length;
   target->position = source->position;
 
@@ -1538,6 +1541,7 @@ reproduce_interval (INTERVAL source)
   if (! NULL_RIGHT_CHILD (source))
     set_interval_right (target, reproduce_tree (source->right, target));
 
+  eassert (LENGTH (target) > 0);
   return target;
 }
 
@@ -1766,7 +1770,7 @@ lookup_char_property (Lisp_Object plist, Lisp_Object prop, bool textprop)
 
   if (! NILP (fallback))
     return fallback;
-  /* Check for alternative properties */
+  /* Check for alternative properties.  */
   tail = Fassq (prop, Vchar_property_alias_alist);
   if (! NILP (tail))
     {
@@ -2434,7 +2438,7 @@ set_intervals_multibyte_1 (INTERVAL i, bool multi_flag,
 				 end, end_byte);
     }
 
-  /* Rounding to char boundaries can theoretically ake this interval
+  /* Rounding to char boundaries can theoretically make this interval
      spurious.  If so, delete one child, and copy its property list
      to this interval.  */
   if (LEFT_TOTAL_LENGTH (i) + RIGHT_TOTAL_LENGTH (i) >= TOTAL_LENGTH (i))

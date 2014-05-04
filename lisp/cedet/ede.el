@@ -100,7 +100,7 @@ target willing to take the file.  'never means never perform the check."
 If the value is t, EDE may search in any directory.
 
 If the value is a function, EDE calls that function with one
-argument, the directory name; the function should return t iff
+argument, the directory name; the function should return t if
 EDE should look for project files in the directory.
 
 Otherwise, the value should be a list of fully-expanded directory
@@ -704,7 +704,7 @@ Otherwise, create a new project for DIR."
   "Check if DIR should be in `ede-project-directories'.
 If it is not, try asking the user if it should be added; if so,
 add it and save `ede-project-directories' via Customize.
-Return nil iff DIR should not be in `ede-project-directories'."
+Return nil if DIR should not be in `ede-project-directories'."
   (setq dir (directory-file-name (expand-file-name dir))) ; strip trailing /
   (or (eq ede-project-directories t)
       (and (functionp ede-project-directories)
