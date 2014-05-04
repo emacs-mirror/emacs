@@ -2374,6 +2374,7 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
 (defvar calendar-hebrew-month-name-array-leap-year)
 (defvar calendar-islamic-month-name-array)
 (defvar calendar-bahai-month-name-array)
+(defvar calendar-chinese-month-name-array)
 
 ;;;###cal-autoload
 (defun diary-font-lock-keywords ()

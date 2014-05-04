@@ -83,7 +83,7 @@ to delete or undelete multiple messages.
 `diary-chinese-insert-yearly-entry'
 
 +++
-*** Calendar can list and mark diary entires with Chinese dates:
+*** Calendar can list and mark diary entries with Chinese dates:
 `diary-chinese-list-entries' and `diary-chinese-mark-entries'.
 
 ** The URL package accepts now the protocols "ssh", "scp" and "rsync".
