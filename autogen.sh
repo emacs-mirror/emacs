@@ -212,27 +212,44 @@ echo "Checking for pkg.m4..."
 AUTORECONF_ENV=
 env_space=
 ac_dir=`aclocal --print-ac-dir` && test -r "$ac_dir/pkg.m4" || {
-  oIFS=$IFS
-  IFS=:
-  before_first_aclocal=true
-  for dir in $PATH; do
-    if test -x "$dir/aclocal"; then
-      if $before_first_aclocal; then
-	before_first_aclocal=false
-      elif ac_dir=`"$dir/aclocal" --print-ac-dir` && test -r "$ac_dir/pkg.m4"
-      then
-	case $ACLOCAL_PATH in
-	  '') ACLOCAL_PATH=$ac_dir;;
-	  ?*) ACLOCAL_PATH=$ACLOCAL_PATH:$ac_dir;;
-	esac
-	export ACLOCAL_PATH
-	AUTORECONF_ENV="ACLOCAL_PATH='$ACLOCAL_PATH'"
-	env_space=' '
-	break
+
+  # Maybe ACLOCAL_PATH is already set-up.
+  if test -n "$ACLOCAL_PATH"; then
+    oIFS=$IFS
+    IFS=:
+    for dir in $ACLOCAL_PATH; do
+      if test -r "$dir/pkg.m4"; then
+  	AUTORECONF_ENV="ACLOCAL_PATH='$ACLOCAL_PATH'"
+        env_space=' '
+  	break
       fi
-    fi
-  done
-  IFS=$oIFS
+    done
+    IFS=$oIFS
+  fi
+
+  if test -z "$AUTORECONF_ENV"; then
+    oIFS=$IFS
+    IFS=:
+    before_first_aclocal=true
+    for dir in $PATH; do
+      if test -x "$dir/aclocal"; then
+        if $before_first_aclocal; then
+          before_first_aclocal=false
+        elif ac_dir=`"$dir/aclocal" --print-ac-dir` && test -r "$ac_dir/pkg.m4"
+        then
+          case $ACLOCAL_PATH in
+            '') ACLOCAL_PATH=$ac_dir;;
+            ?*) ACLOCAL_PATH=$ACLOCAL_PATH:$ac_dir;;
+          esac
+          export ACLOCAL_PATH
+          AUTORECONF_ENV="ACLOCAL_PATH='$ACLOCAL_PATH'"
+          env_space=' '
+          break
+        fi
+      fi
+    done
+    IFS=$oIFS
+  fi
 
   ## OK, maybe pkg-config is in a weird place (eg on hydra).
   if test -z "$AUTORECONF_ENV"; then

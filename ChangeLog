@@ -1,3 +1,7 @@
+2014-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* autogen.sh: Check any pre-existing ACLOCAL_PATH.
+
 2014-05-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Consult libpng-config more consistently (Bug#17339).
