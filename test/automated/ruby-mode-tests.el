@@ -452,6 +452,10 @@ VALUES-PLIST is a list with alternating index and value elements."
   (ruby-assert-face "%w{foo #@bar}" 8 font-lock-string-face)
   (ruby-assert-face "%s{foo #@bar}" 8 font-lock-string-face))
 
+(ert-deftest ruby-interpolation-after-dollar-sign ()
+  (ruby-assert-face "\"$#{balance}\"" 2 'font-lock-string-face)
+  (ruby-assert-face "\"$#{balance}\"" 3 'font-lock-variable-name-face))
+
 (ert-deftest ruby-no-unknown-percent-literals ()
   ;; No folding of case.
   (ruby-assert-face "%S{foo}" 4 nil)

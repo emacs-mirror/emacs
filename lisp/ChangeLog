@@ -1,3 +1,10 @@
+2014-05-05  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function):
+	Backtrack one char if the global/char-literal var matcher hits
+	inside a string.  The next char could be the beginning of an
+	expression expansion.
+
 2014-05-05  Glenn Morris  <rgm@gnu.org>
 
 	* help-fns.el (describe-function-1): Test for an autoload before a

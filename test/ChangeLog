@@ -1,3 +1,8 @@
+2014-05-05  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el
+	(ruby-interpolation-after-dollar-sign): New test.
+
 2014-05-05  Glenn Morris  <rgm@gnu.org>
 
 	* automated/help-fns.el: New file.

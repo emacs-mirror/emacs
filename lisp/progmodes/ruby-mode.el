@@ -1804,9 +1804,10 @@ It will be properly highlighted even when the call omits parens.")
       ;; $' $" $` .... are variables.
       ;; ?' ?" ?` are character literals (one-char strings in 1.9+).
       ("\\([?$]\\)[#\"'`]"
-       (1 (unless (save-excursion
-                    ;; Not within a string.
-                    (nth 3 (syntax-ppss (match-beginning 0))))
+       (1 (if (save-excursion
+                (nth 3 (syntax-ppss (match-beginning 0))))
+              ;; Within a string, skip.
+              (goto-char (match-end 1))
             (string-to-syntax "\\"))))
       ;; Part of symbol when at the end of a method name.
       ("[!?]"
