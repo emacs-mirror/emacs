@@ -161,10 +161,10 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 	   (cond ((>= code 64)
 		  (format "mouse-%d" (- code 60)))
 		 ((memq code '(8 9 10))
-		  (setq xterm-mouse-last code)
+		  (setq xterm-mouse-last (- code 8))
 		  (format "M-down-mouse-%d" (- code 7)))
 		 ((= code 11)
-		  (format "M-mouse-%d" (- xterm-mouse-last 7)))
+		  (format "M-mouse-%d" (+ 1 (or xterm-mouse-last 0))))
 		 ((= code 3)
 		  ;; For buttons > 5 xterm only reports a
 		  ;; button-release event.  Avoid error by mapping
@@ -174,8 +174,8 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 		  (setq xterm-mouse-last code)
 		  (format "down-mouse-%d" (+ 1 code))))))
 	;; x and y coordinates
-	(- (read-event) 33)
-	(- (read-event) 33)))
+	(max 0 (- (read-event) 33))
+	(max 0 (- (read-event) 33))))
 
 ;; XTerm's 1006-mode terminal mouse click reporting has the form
 ;; <BUTTON> ; <X> ; <Y> <M or m>, where the button and ordinates are

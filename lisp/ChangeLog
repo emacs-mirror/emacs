@@ -1,3 +1,10 @@
+2014-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xt-mouse.el (xterm-mouse--read-event-sequence-1000): (bug#17378)
+	Always store button numbers in the same way in xterm-mouse-last;
+	Don't burp is xterm-mouse-last is not set as expected.
+	Never return negative indices.
+
 2014-05-05  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-syntax-propertize-function):
