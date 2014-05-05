@@ -1,3 +1,8 @@
+2014-05-05  Daniel Colascione  <dancol@dancol.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Port `gnu' pattern to rx.
+
 2014-05-04  Leo Liu  <sdl.web@gmail.com>
 
 	* calendar/diary-lib.el (calendar-chinese-month-name-array):
