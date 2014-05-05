@@ -1,3 +1,7 @@
+2014-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* automated/help-fns.el: New file.
+
 2014-04-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (top):

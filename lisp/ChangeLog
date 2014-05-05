@@ -1,3 +1,8 @@
+2014-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* help-fns.el (describe-function-1): Test for an autoload before a
+	macro, since `macrop' works on autoloads.  (Bug#17410)
+
 2014-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* electric.el (electric-indent-functions-without-reindent): Add yaml.

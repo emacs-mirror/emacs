@@ -1,7 +1,6 @@
 ;;; help-fns.el --- Complex help functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2014 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, internal
@@ -479,6 +478,11 @@ FILE is the file where FUNCTION was probably defined."
 		 ;; aliases before functions.
 		 (aliased
 		  (format "an alias for `%s'" real-def))
+		 ((autoloadp def)
+		  (format "%s autoloaded %s"
+			  (if (commandp def) "an interactive" "an")
+			  (if (eq (nth 4 def) 'keymap) "keymap"
+			    (if (nth 4 def) "Lisp macro" "Lisp function"))))
 		 ((or (eq (car-safe def) 'macro)
 		      ;; For advised macros, def is a lambda
 		      ;; expression or a byte-code-function-p, so we
@@ -491,11 +495,6 @@ FILE is the file where FUNCTION was probably defined."
 		  (concat beg "Lisp function"))
 		 ((eq (car-safe def) 'closure)
 		  (concat beg "Lisp closure"))
-		 ((autoloadp def)
-		  (format "%s autoloaded %s"
-			  (if (commandp def) "an interactive" "an")
-			  (if (eq (nth 4 def) 'keymap) "keymap"
-			    (if (nth 4 def) "Lisp macro" "Lisp function"))))
 		 ((keymapp def)
 		  (let ((is-full nil)
 			(elts (cdr-safe def)))
