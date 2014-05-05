@@ -1,5 +1,7 @@
 2014-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* electric.el (electric-indent-functions-without-reindent): Add yaml.
+
 	* minibuffer.el (completion-table-with-quoting) <completion--unquote>:
 	Make sure the new point we return is within the new string (bug#17239).
 
