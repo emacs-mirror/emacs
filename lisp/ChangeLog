@@ -1,3 +1,8 @@
+2014-05-05  Daniel Colascione  <dancol@dancol.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Port `gnu' pattern to rx.
+
 2014-05-05  Jarek Czekalski  <jarekczek@poczta.onet.pl>
 
 	Remove unneeded prompt when closing a buffer with active

@@ -134,7 +134,7 @@ and a string describing how the process finished.")
 ;; emacs -batch -l compile-tests.el -f ert-run-tests-batch-and-exit
 
 (defvar compilation-error-regexp-alist-alist
-  '((absoft
+  `((absoft
      "^\\(?:[Ee]rror on \\|[Ww]arning on\\( \\)\\)?[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+\
 of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 
@@ -255,16 +255,46 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      ;; can be composed of any non-newline char, but it also rules out some
      ;; valid but unlikely cases, such as a trailing space or a space
      ;; followed by a -, or a colon followed by a space.
-
+     ;; 
      ;; The "in \\|from " exception was added to handle messages from Ruby.
-     "^\\(?:[[:alpha:]][-[:alnum:].]+: ?\\|[ \t]+\\(?:in \\|from \\)\\)?\
-\\([0-9]*[^0-9\n]\\(?:[^\n :]\\| [^-/\n]\\|:[^ \n]\\)*?\\): ?\
-\\([0-9]+\\)\\(?:-\\(?4:[0-9]+\\)\\(?:\\.\\(?5:[0-9]+\\)\\)?\
-\\|[.:]\\(?3:[0-9]+\\)\\(?:-\\(?:\\(?4:[0-9]+\\)\\.\\)?\\(?5:[0-9]+\\)\\)?\\)?:\
-\\(?: *\\(\\(?:Future\\|Runtime\\)?[Ww]arning\\|W:\\)\\|\
- *\\([Ii]nfo\\(?:\\>\\|rmationa?l?\\)\\|I:\\|\\[ skipping .+ \\]\\|\
-\\(?:instantiated\\|required\\) from\\|[Nn]ote\\)\\|\
- *[Ee]rror\\|[0-9]?\\(?:[^0-9\n]\\|$\\)\\|[0-9][0-9][0-9]\\)"
+     ,(rx
+       bol
+       (? (| (regexp "[[:alpha:]][-[:alnum:].]+: ?")
+             (regexp "[ \t]+\\(?:in \\|from\\)")))
+       (group-n 1 (: (regexp "[0-9]*[^0-9\n]")
+                     (*? (| (regexp "[^\n :]")
+                            (regexp " [^-/\n]")
+                            (regexp ":[^ \n]")))))
+       (regexp ": ?")
+       (group-n 2 (regexp "[0-9]+"))
+       (? (| (: "-"
+                (group-n 4 (regexp "[0-9]+"))
+                (? "." (group-n 5 (regexp "[0-9]+"))))
+             (: (in ".:")
+                (group-n 3 (regexp "[0-9]+"))
+                (? "-"
+                   (? (group-n 4 (regexp "[0-9]+")) ".")
+                   (group-n 5 (regexp "[0-9]+"))))))
+       ":"
+       (| (: (* " ")
+             (group-n 6 (| "FutureWarning"
+                           "RuntimeWarning"
+                           "Warning"
+                           "warning"
+                           "W:")))
+          (: (* " ")
+             (group-n 7 (| (regexp "[Ii]nfo\\(?:\\>\\|rmationa?l?\\)")
+                           "I:"
+                           (: "[ skipping " (+ ".") " ]")
+                           "instantiated from"
+                           "required from"
+                           (regexp "[Nn]ote"))))
+          (: (* " ")
+             (regexp "[Ee]rror"))
+          (: (regexp "[0-9]?")
+             (| (regexp "[^0-9\n]")
+                eol))
+          (regexp "[0-9][0-9][0-9]")))
      1 (2 . 4) (3 . 5) (6 . 7))
 
     (lcc
