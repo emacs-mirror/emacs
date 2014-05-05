@@ -1,3 +1,8 @@
+2014-05-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Update to the effect that pkg-config is now required
+	for building from the repository.
+
 2014-04-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* cmdproxy.c (make_absolute): Don't copy more characters from PATH
