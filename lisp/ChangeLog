@@ -1,3 +1,10 @@
+2014-05-05  Jarek Czekalski  <jarekczek@poczta.onet.pl>
+
+	Remove unneeded prompt when closing a buffer with active
+	emacsclient ("Buffer ... still has clients"), #16548.
+	* server.el (server-start): Remove the only call to:
+	(server-kill-buffer-query-function): Remove.
+
 2014-05-04  Leo Liu  <sdl.web@gmail.com>
 
 	* calendar/diary-lib.el (calendar-chinese-month-name-array):

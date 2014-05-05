@@ -642,8 +642,6 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 	(cl-letf (((default-file-modes) ?\700))
 	  (add-hook 'suspend-tty-functions 'server-handle-suspend-tty)
 	  (add-hook 'delete-frame-functions 'server-handle-delete-frame)
-	  (add-hook 'kill-buffer-query-functions
-                    'server-kill-buffer-query-function)
 	  (add-hook 'kill-emacs-query-functions
                     'server-kill-emacs-query-function)
 	  (add-hook 'kill-emacs-hook 'server-force-stop) ;Cleanup upon exit.
@@ -1471,22 +1469,6 @@ specifically for the clients and did not exist before their request for it."
 		 (y-or-n-p (concat "Save file " buffer-file-name "? ")))
 	(save-buffer)))
     (server-buffer-done (current-buffer))))
-
-;; Ask before killing a server buffer.
-;; It was suggested to release its client instead,
-;; but I think that is dangerous--the client would proceed
-;; using whatever is on disk in that file. -- rms.
-(defun server-kill-buffer-query-function ()
-  "Ask before killing a server buffer."
-  (or (not server-buffer-clients)
-      (let ((res t))
-	(dolist (proc server-buffer-clients)
-          (when (and (memq proc server-clients)
-                     (eq (process-status proc) 'open))
-            (setq res nil)))
-         res)
-      (yes-or-no-p (format "Buffer `%s' still has clients; kill it? "
-			   (buffer-name (current-buffer))))))
 
 (defun server-kill-emacs-query-function ()
   "Ask before exiting Emacs if it has live clients."
