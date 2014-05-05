@@ -1,5 +1,8 @@
 2014-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (completion--try-word-completion): Revert fix for
+	Bug#15980 (bug#17375).
+
 	* xt-mouse.el (xterm-mouse--read-event-sequence-1000): (bug#17378)
 	Always store button numbers in the same way in xterm-mouse-last;
 	Don't burp is xterm-mouse-last is not set as expected.

@@ -1389,19 +1389,18 @@ appear to be a match."
         ;; instead, but it was too blunt, leading to situations where SPC
         ;; was the only insertable char at point but minibuffer-complete-word
         ;; refused inserting it.
-        (let* ((exts (mapcar (lambda (str) (propertize str 'completion-try-word t))
-			     '(" " "-")))
-	       (before (substring string 0 point))
-	       (after (substring string point))
-	       (comps
-		(delete nil
-			(mapcar (lambda (ext)
-				  (completion-try-completion
-				   (concat before ext after)
-				   table predicate (1+ point) md))
-				exts))))
-	  (when (and (null (cdr comps)) (consp (car comps)))
-	    (setq comp (car comps)))))
+        (let ((exts (mapcar (lambda (str) (propertize str 'completion-try-word t))
+                            '(" " "-")))
+              (before (substring string 0 point))
+              (after (substring string point))
+	      tem)
+          ;; If both " " and "-" lead to completions, prefer " " so SPC behaves
+          ;; a bit more like a self-inserting key (bug#17375).
+	  (while (and exts (not (consp tem)))
+            (setq tem (completion-try-completion
+		       (concat before (pop exts) after)
+		       table predicate (1+ point) md)))
+	  (if (consp tem) (setq comp tem))))
 
       ;; Completing a single word is actually more difficult than completing
       ;; as much as possible, because we first have to find the "current
