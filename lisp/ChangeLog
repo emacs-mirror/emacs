@@ -1,3 +1,8 @@
+2014-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-table-with-quoting) <completion--unquote>:
+	Make sure the new point we return is within the new string (bug#17239).
+
 2014-05-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmailsum.el (rmail-new-summary-1): Fix a typo in a comment.
