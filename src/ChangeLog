@@ -1,3 +1,8 @@
+2014-05-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsselect.m (Fx_selection_exists_p): Just return Qnil if window system
+	not initialized (Bug#17398).
+
 2014-05-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Revert recent libpng changes (Bug#17339).

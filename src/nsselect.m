@@ -429,7 +429,9 @@ On Nextstep, TERMINAL is unused.  */)
   id pb;
   NSArray *types;
 
-  check_window_system (NULL);
+  if (!window_system_available (NULL))
+    return Qnil;
+
   CHECK_SYMBOL (selection);
   if (EQ (selection, Qnil)) selection = QPRIMARY;
   if (EQ (selection, Qt)) selection = QSECONDARY;
