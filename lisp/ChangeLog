@@ -1,3 +1,8 @@
+2014-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-compute-transaction): Topological sort.
+	Add optional `seen' argument to detect and break infinite loops.
+
 2014-05-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-lisp/find-gc.el (find-gc-unsafe, find-unsafe-funcs)
@@ -6,11 +11,11 @@
 
 2014-05-06  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-sh.el (tramp-remote-process-environment): Remove
-	HISTFILE and HISTSIZE; it's too late to set them here.  Add
-	:version entry.
-	(tramp-open-shell): Do not let-bind `tramp-end-of-output'.  Add
-	"HISTSIZE=/dev/null" to the shell's env arguments.  Do not send
+	* net/tramp-sh.el (tramp-remote-process-environment):
+	Remove HISTFILE and HISTSIZE; it's too late to set them here.
+	Add :version entry.
+	(tramp-open-shell): Do not let-bind `tramp-end-of-output'.
+	Add "HISTSIZE=/dev/null" to the shell's env arguments.  Do not send
 	extra "PSx=..." commands.
 	(tramp-maybe-open-connection): Setenv HISTFILE to /dev/null.
 	(Bug#17295)
@@ -126,8 +131,8 @@
 	(todo-edit-done-item--param-key-alist): New defconsts.
 	(todo-edit-item--prompt): New variable.
 	(todo-edit-item--next-key): New function.
-	(todo-key-bindings-t): Bind "e" to todo-edit-item.  Remove
-	bindings of deleted commands.
+	(todo-key-bindings-t): Bind "e" to todo-edit-item.
+	Remove bindings of deleted commands.
 
 2014-05-02  Leo Liu  <sdl.web@gmail.com>
 
