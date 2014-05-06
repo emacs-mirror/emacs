@@ -21,10 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "sysstdio.h"
 #include <unistd.h>
 
-#ifdef HAVE_PNG
-# include <png.h>
-#endif
-
 #include <setjmp.h>
 #include <c-ctype.h>
 
@@ -1227,6 +1223,18 @@ image_background_transparent (struct image *img, struct frame *f, XImagePtr_or_D
     }
 
   return img->background_transparent;
+}
+
+/* Store F's background color into *BGCOLOR.  */
+static void
+x_query_frame_background_color (struct frame *f, XColor *bgcolor)
+{
+#ifndef HAVE_NS
+  bgcolor->pixel = FRAME_BACKGROUND_PIXEL (f);
+  x_query_color (f, bgcolor);
+#else
+  ns_query_color (FRAME_BACKGROUND_COLOR (f), bgcolor, 1);
+#endif
 }
 
 
@@ -5502,7 +5510,9 @@ png_image_p (Lisp_Object object)
 #endif /* HAVE_PNG || HAVE_NS */
 
 
-#ifdef HAVE_PNG
+#if defined HAVE_PNG && !defined HAVE_NS
+
+#include <png.h>
 
 #ifdef WINDOWSNT
 /* PNG library details.  */
@@ -5880,43 +5890,23 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
       /* png_color_16 *image_bg; */
       Lisp_Object specified_bg
 	= image_spec_value (img->spec, QCbackground, NULL);
-      int shift = (bit_depth == 16) ? 0 : 8;
+      XColor color;
 
-      if (STRINGP (specified_bg))
+      /* If the user specified a color, try to use it; if not, use the
+	 current frame background, ignoring any default background
+	 color set by the image.  */
+      if (STRINGP (specified_bg)
+	  ? x_defined_color (f, SSDATA (specified_bg), &color, false)
+	  : (x_query_frame_background_color (f, &color), true))
 	/* The user specified `:background', use that.  */
 	{
-	  XColor color;
-	  if (x_defined_color (f, SSDATA (specified_bg), &color, 0))
-	    {
-	      png_color_16 user_bg;
+	  int shift = bit_depth == 16 ? 0 : 8;
+	  png_color_16 bg = { 0 };
+	  bg.red = color.red >> shift;
+	  bg.green = color.green >> shift;
+	  bg.blue = color.blue >> shift;
 
-	      memset (&user_bg, 0, sizeof user_bg);
-	      user_bg.red = color.red >> shift;
-	      user_bg.green = color.green >> shift;
-	      user_bg.blue = color.blue >> shift;
-
-	      fn_png_set_background (png_ptr, &user_bg,
-				     PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
-	    }
-	}
-      else
-	{
-	  /* We use the current frame background, ignoring any default
-	     background color set by the image.  */
-#if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI)
-	  XColor color;
-	  png_color_16 frame_background;
-
-	  color.pixel = FRAME_BACKGROUND_PIXEL (f);
-	  x_query_color (f, &color);
-
-	  memset (&frame_background, 0, sizeof frame_background);
-	  frame_background.red = color.red >> shift;
-	  frame_background.green = color.green >> shift;
-	  frame_background.blue = color.blue >> shift;
-#endif /* HAVE_X_WINDOWS */
-
-	  fn_png_set_background (png_ptr, &frame_background,
+	  fn_png_set_background (png_ptr, &bg,
 				 PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
 	}
     }
@@ -6058,9 +6048,8 @@ png_load (struct frame *f, struct image *img)
   return png_load_body (f, img, &c);
 }
 
-#else /* HAVE_PNG */
+#elif defined HAVE_NS
 
-#ifdef HAVE_NS
 static bool
 png_load (struct frame *f, struct image *img)
 {
@@ -6068,10 +6057,8 @@ png_load (struct frame *f, struct image *img)
                         image_spec_value (img->spec, QCfile, NULL),
                         image_spec_value (img->spec, QCdata, NULL));
 }
-#endif  /* HAVE_NS */
 
-
-#endif /* !HAVE_PNG */
+#endif /* HAVE_NS */
 
 
 
@@ -8225,14 +8212,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
     specified_bg = image_spec_value (img->spec, QCbackground, NULL);
     if (!STRINGP (specified_bg)
 	|| !x_defined_color (f, SSDATA (specified_bg), &bgcolor, 0))
-      {
-#ifndef HAVE_NS
-	bgcolor.pixel = FRAME_BACKGROUND_PIXEL (f);
-	x_query_color (f, &bgcolor);
-#else
-	ns_query_color (FRAME_BACKGROUND_COLOR (f), &bgcolor, 1);
-#endif
-      }
+      x_query_frame_background_color (f, &bgcolor);
 
     bg_wand = NewPixelWand ();
     PixelSetRed   (bg_wand, (double) bgcolor.red   / 65535);
@@ -8868,14 +8848,7 @@ svg_load_image (struct frame *f,         /* Pointer to emacs frame structure.  *
   specified_bg = image_spec_value (img->spec, QCbackground, NULL);
   if (!STRINGP (specified_bg)
       || !x_defined_color (f, SSDATA (specified_bg), &background, 0))
-    {
-#ifndef HAVE_NS
-      background.pixel = FRAME_BACKGROUND_PIXEL (f);
-      x_query_color (f, &background);
-#else
-      ns_query_color (FRAME_BACKGROUND_COLOR (f), &background, 1);
-#endif
-    }
+    x_query_frame_background_color (f, &background);
 
   /* SVG pixmaps specify transparency in the last byte, so right
      shift 8 bits to get rid of it, since emacs doesn't support
