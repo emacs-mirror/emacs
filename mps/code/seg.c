@@ -701,6 +701,7 @@ Bool SegCheck(Seg seg)
   CHECKL(seg->limit > TractBase(seg->firstTract));
 
   /* Each tract of the segment must agree about white traces */
+#ifdef CHECKLEVEL > CheckLevelMINIMAL
   TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, seg->limit) {
     Seg trseg = NULL; /* suppress compiler warning */
 
@@ -709,6 +710,7 @@ Bool SegCheck(Seg seg)
     CHECKL(TractWhite(tract) == seg->white);
     CHECKL(TractPool(tract) == pool);
   }
+#endif
   CHECKL(addr == seg->limit);
 
   /* The segment must belong to some pool, so it should be on a */
