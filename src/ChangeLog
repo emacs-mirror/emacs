@@ -1,3 +1,8 @@
+2014-05-06  Samuel Bronson  <naesten@gmail.com>
+
+	* keyboard.c (Frecursive_edit): Ensure inc&dec of command_loop_level
+	are matched (bug#17413).
+
 2014-05-06  Jarek Czekalski  <jarekczek@poczta.onet.pl>
 
 	Stop tooltips pulling Emacs window to front (Bug#17408).
