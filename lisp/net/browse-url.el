@@ -1340,6 +1340,9 @@ used instead of `browse-url-new-window-flag'."
 	  (kill-buffer nil)))
     (if (and pid (zerop (signal-process pid 0))) ; Mosaic running
 	(save-excursion
+	  ;; This is a predictable temp-file name, which is bad,
+	  ;; but it is what Mosaic uses/used.
+	  ;; So it's not Emacs's problem.  http://bugs.debian.org/747100
 	  (find-file (format "/tmp/Mosaic.%d" pid))
 	  (erase-buffer)
 	  (insert (if (browse-url-maybe-new-window new-window)
