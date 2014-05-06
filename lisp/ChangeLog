@@ -9,6 +9,12 @@
 	(tramp-maybe-open-connection): Setenv HISTFILE to /dev/null.
 	(Bug#17295)
 
+	(tramp-uudecode): Replace the hard-coded temporary file name by a
+	format specifier.
+	(tramp-remote-coding-commands): Enhance docstring.
+	(tramp-find-inline-encoding): Replace "%t" by a temporary file
+	name.  (Bug#17415)
+
 2014-05-06  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/find-gc.el (find-gc-source-directory): Give it a value.
