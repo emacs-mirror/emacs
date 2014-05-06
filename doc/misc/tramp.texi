@@ -3351,6 +3351,13 @@ if [ "$@{HISTSIZE-unset@}" != "unset" ] ; then
 fi
 @end example
 
+Furthermore, if you use an @option{ssh}-based method, you could add
+the following line to your @file{~/.ssh/environment} file:
+
+@example
+HISTFILE=/dev/null
+@end example
+
 
 @item There are longish file names to type.  How to shorten this?
 

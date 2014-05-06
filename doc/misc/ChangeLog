@@ -1,3 +1,8 @@
+2014-05-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Mention HISTFILE
+	setting in ~/.ssh/environment.
+
 2014-05-02  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todo-mode.texi: Update, improve exposition, add cross
