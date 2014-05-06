@@ -1,3 +1,14 @@
+2014-05-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-remote-process-environment): Remove
+	HISTFILE and HISTSIZE; it's too late to set them here.  Add
+	:version entry.
+	(tramp-open-shell): Do not let-bind `tramp-end-of-output'.  Add
+	"HISTSIZE=/dev/null" to the shell's env arguments.  Do not send
+	extra "PSx=..." commands.
+	(tramp-maybe-open-connection): Setenv HISTFILE to /dev/null.
+	(Bug#17295)
+
 2014-05-06  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/find-gc.el (find-gc-source-directory): Give it a value.
