@@ -1,3 +1,10 @@
+2014-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/find-gc.el (find-gc-source-directory): Give it a value.
+	(find-gc-source-files): Update some names.
+	(trace-call-tree): Simplify and update.
+	Avoid predictable temp-file names.  (http://bugs.debian.org/747100)
+
 2014-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--try-word-completion): Revert fix for
