@@ -1,3 +1,9 @@
+2014-05-06  Jarek Czekalski  <jarekczek@poczta.onet.pl>
+
+	Stop tooltips pulling Emacs window to front (Bug#17408).
+	* w32fns.c (Fx_show_tip): Add SWP_NOOWNERZORDER flag to
+	SetWindowPos invocations.
+
 2014-05-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsselect.m (Fx_selection_exists_p): Just return Qnil if window system
