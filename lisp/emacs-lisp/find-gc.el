@@ -74,8 +74,7 @@ Also store it in `find-gc-unsafe-list'."
   (setq find-gc-unsafe-list
 	(sort find-gc-unsafe-list
 	      (function (lambda (x y)
-			  (string-lessp (car x) (car y))))))
-)
+			  (string-lessp (car x) (car y)))))))
 
 ;;; This does a depth-first search to find all functions that can
 ;;; ultimately call the function "target".  The result is an a-list
@@ -85,8 +84,7 @@ Also store it in `find-gc-unsafe-list'."
 
 (defun find-unsafe-funcs (target)
   (setq find-gc-unsafe-list (list (list target)))
-  (trace-unsafe target)
-)
+  (trace-unsafe target))
 
 (defun trace-unsafe (func)
   (let ((used (assq func find-gc-subrs-callers)))
@@ -97,8 +95,7 @@ Also store it in `find-gc-unsafe-list'."
 	  (memq (car used) find-gc-noreturn-list)
 	  (progn
 	    (push (cons (car used) func) find-gc-unsafe-list)
-	    (trace-unsafe (car used))))))
-)
+	    (trace-unsafe (car used)))))))
 
 
 
@@ -145,8 +142,7 @@ Also store it in `find-gc-unsafe-list'."
       (while (setq p2 (cdr p2))
 	(if (setq found (assq (car p2) find-gc-subrs-callers))
 	    (setcdr found (cons (car (car ptr)) (cdr found)))))
-      (setq ptr (cdr ptr))))
-)
+      (setq ptr (cdr ptr)))))
 
 (provide 'find-gc)
 

@@ -1,3 +1,9 @@
+2014-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/find-gc.el (find-gc-unsafe, find-unsafe-funcs)
+	(trace-unsafe, trace-use-tree): Make parentheses style be
+	according to Emacs style.
+
 2014-05-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-remote-process-environment): Remove
