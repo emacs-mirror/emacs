@@ -226,7 +226,7 @@ Macros
         implemented as a macro defined in the header, so a library
         function should not be declared explicitly if its header is
         included. Any macro definition of a function can be suppressed
-        locally be enclosing the name of the function in parentheses,
+        locally by enclosing the name of the function in parentheses,
         because the name is then not followed by the left parenthesis
         that indicates expansion of a macro function name. [...] Any
         invocation of a library function that is implemented as a

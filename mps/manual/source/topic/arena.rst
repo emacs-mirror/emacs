@@ -396,8 +396,8 @@ Arena properties
     (over-)estimate the size of the heap.
 
     If you want to know how much memory the MPS is using then you're
-    probably interested in the value ``mps_arena_committed() -
-    mps_arena_spare_committed()``.
+    probably interested in the value :c:func:`mps_arena_committed()` −
+    :c:func:`mps_arena_spare_committed`.
 
     The amount of committed memory can be limited with the function
     :c:func:`mps_arena_commit_limit`.
@@ -457,7 +457,7 @@ Arena properties
 
     Non-virtual-memory arena classes (for example, a :term:`client
     arena`) do not have spare committed memory. For these arenas, this
-    function functions sets a value but has no other effect.
+    function sets a value but has no other effect.
 
     Initially the spare commit limit is a configuration-dependent
     value. The value of the limit can be retrieved by the function
