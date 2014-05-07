@@ -1,3 +1,7 @@
+2014-05-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* minibuf.c (read_minibuf): Avoid C99ism in previous patch (Bug#17430).
+
 2014-05-07  Jarek Czekalski  <jarekczek@poczta.onet.pl>
 
 	Fix initialization of minibuffer history variable (Bug#17430).

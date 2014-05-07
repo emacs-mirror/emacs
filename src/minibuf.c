@@ -384,6 +384,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   EMACS_INT pos = 0;
   /* String to add to the history.  */
   Lisp_Object histstring;
+  Lisp_Object histval;
 
   Lisp_Object empty_minibuf;
   Lisp_Object dummy, frame;
@@ -536,11 +537,12 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
     Vminibuffer_completing_file_name = Qlambda;
 
   /* If variable is unbound, make it nil.  */
-  Lisp_Object histval = find_symbol_value (Vminibuffer_history_variable);
-  if (EQ (histval, Qunbound)) {
-    Fset (Vminibuffer_history_variable, Qnil);
-    histval = Qnil;
-  }
+  histval = find_symbol_value (Vminibuffer_history_variable);
+  if (EQ (histval, Qunbound))
+    {
+      Fset (Vminibuffer_history_variable, Qnil);
+      histval = Qnil;
+    }
 
   if (inherit_input_method)
     {
