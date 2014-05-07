@@ -211,7 +211,17 @@ fi
 echo "Checking for pkg.m4..."
 AUTORECONF_ENV=
 env_space=
-ac_dir=`aclocal --print-ac-dir` && test -r "$ac_dir/pkg.m4" || {
+ac_dir=`aclocal --print-ac-dir` || {
+    cat <<EOF
+There was a problem running 'aclocal --print-ac-dir'.
+The aclocal program is part of automake.
+Please check your automake installation.
+EOF
+
+    exit 1
+}
+
+test -n "$ac_dir" && test -r "$ac_dir/pkg.m4" || {
 
   # Maybe ACLOCAL_PATH is already set-up.
   if test -n "$ACLOCAL_PATH"; then

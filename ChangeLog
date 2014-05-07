@@ -1,3 +1,7 @@
+2014-05-07  Glenn Morris  <rgm@gnu.org>
+
+	* autogen.sh: Check for failing aclocal.
+
 2014-05-05  Glenn Morris  <rgm@gnu.org>
 
 	* autogen.sh: Check any pre-existing ACLOCAL_PATH.
