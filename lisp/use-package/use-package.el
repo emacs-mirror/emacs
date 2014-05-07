@@ -300,7 +300,16 @@ For full documentation. please see commentary.
          (name-symbol (if (stringp name) (intern name) name)))
 
     ;; force this immediately -- one off cost
-    (unless (use-package-plist-get args :disabled)
+    (unless
+        (or (use-package-plist-get args :disabled)
+            (if (locate-library
+                 name-string nil
+                 (mapcar
+                  (lambda (path) (expand-file-name path user-emacs-directory))
+                  (cond ((stringp pkg-load-path) (list pkg-load-path))
+                        ((functionp pkg-load-path) (funcall pkg-load-path))
+                        (t pkg-load-path)))) nil
+              (message "Unable to locate %s" name-string)))
 
       (let* ((ensure (use-package-plist-get args :ensure))
              (package-name
