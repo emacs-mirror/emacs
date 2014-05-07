@@ -1,3 +1,9 @@
+2014-05-07  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el (todo-insert-item--apply-args): When all
+	four slots of the parameter list are filled, make sure to pass it
+	to the argument list of todo-insert-item--basic.
+
 2014-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/package.el (package-compute-transaction): Topological sort.

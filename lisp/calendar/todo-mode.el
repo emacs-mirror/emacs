@@ -5360,7 +5360,8 @@ occupied by `nil'."
 		      (list (car (todo-insert-item--argsleft
 				  (todo-insert-item--this-key)
 				  todo-insert-item--argsleft)))))
-	 (arglist (unless (= 4 (length args))
+	 (arglist (if (= 4 (length args))
+		      args
 		    (let ((v (make-vector 4 nil)) elt)
 		      (while args
 			(setq elt (pop args))
