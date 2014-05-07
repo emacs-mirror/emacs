@@ -1,3 +1,9 @@
+2014-05-07  Jarek Czekalski  <jarekczek@poczta.onet.pl>
+
+	Fix initialization of minibuffer history variable (Bug#17430).
+	* minibuf.c (read_minibuf): Initialize histval to Qnil if unbound.
+	Move the initialization up to prevent any "value void" message.
+
 2014-05-06  Samuel Bronson  <naesten@gmail.com>
 
 	* keyboard.c (Frecursive_edit): Ensure inc&dec of command_loop_level

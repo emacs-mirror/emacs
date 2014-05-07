@@ -535,6 +535,13 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   if (!NILP (Vminibuffer_completing_file_name))
     Vminibuffer_completing_file_name = Qlambda;
 
+  /* If variable is unbound, make it nil.  */
+  Lisp_Object histval = find_symbol_value (Vminibuffer_history_variable);
+  if (EQ (histval, Qunbound)) {
+    Fset (Vminibuffer_history_variable, Qnil);
+    histval = Qnil;
+  }
+
   if (inherit_input_method)
     {
       /* `current-input-method' is buffer local.  So, remember it in
@@ -703,13 +710,6 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
     {
       /* If the caller wanted to save the value read on a history list,
 	 then do so if the value is not already the front of the list.  */
-      Lisp_Object histval;
-
-      /* If variable is unbound, make it nil.  */
-
-      histval = find_symbol_value (Vminibuffer_history_variable);
-      if (EQ (histval, Qunbound))
-	Fset (Vminibuffer_history_variable, Qnil);
 
       /* The value of the history variable must be a cons or nil.  Other
 	 values are unacceptable.  We silently ignore these values.  */
