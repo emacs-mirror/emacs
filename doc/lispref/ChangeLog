@@ -1,3 +1,8 @@
+2014-05-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* internals.texi (C Dialect): New section.
+	(C Integer Types): Mention bool_bf.
+
 2014-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* processes.texi (Filter Functions, Sentinels): Advertise add-function.
