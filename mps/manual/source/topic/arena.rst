@@ -506,7 +506,7 @@ An arena is always in one of three states.
    In the *unclamped state*, garbage collection may take place,
    objects may move in memory, references may be updated,
    :term:`location dependencies` may become stale, virtual memory may
-   be requested from or return to the operating system, and other
+   be requested from or returned to the operating system, and other
    kinds of background activity may occur. This is the normal state.
 
 #. .. index::
@@ -531,19 +531,19 @@ An arena is always in one of three states.
 
 Here's a summary:
 
-======================================== ================================== ============================= ===========================
-State                                    unclamped                          clamped                       parked
-======================================== ================================== ============================= ===========================
-Collections may be running?              yes                                yes                           no
-New collections may start?               yes                                no                            no
-Objects may move?                        yes                                no                            no
-Location dependencies may become stale?  yes                                no                            no
-Memory may be returned to the OS?        yes                                no                            no
-Functions that leave arena in this state :c:func:`mps_arena_create`,        :c:func:`mps_arena_clamp`,    :c:func:`mps_arena_park`,
-                                         :c:func:`mps_arena_release`,       :c:func:`mps_arena_step`      :c:func:`mps_arena_collect`
-                                         :c:func:`mps_arena_start_collect`, 
-                                         :c:func:`mps_arena_step`           
-======================================== ================================== ============================= ===========================
+============================================ ================================== ============================= ===========================
+State                                        unclamped                          clamped                       parked
+============================================ ================================== ============================= ===========================
+Collections may be running?                  yes                                yes                           no
+New collections may start?                   yes                                no                            no
+Objects may move?                            yes                                no                            no
+Location dependencies may become stale?      yes                                no                            no
+Memory may be returned to the OS?            yes                                no                            no
+Functions that leave the arena in this state :c:func:`mps_arena_create`,        :c:func:`mps_arena_clamp`,    :c:func:`mps_arena_park`,
+                                             :c:func:`mps_arena_release`,       :c:func:`mps_arena_step`      :c:func:`mps_arena_collect`
+                                             :c:func:`mps_arena_start_collect`, 
+                                             :c:func:`mps_arena_step`           
+============================================ ================================== ============================= ===========================
 
 The clamped and parked states are important when introspecting and
 debugging. If you are examining the contents of the heap, you don't
@@ -556,7 +556,7 @@ before inspecting memory, and::
 
     (gdb) print mps_arena_release(arena)
 
-afterward.
+afterwards.
 
 The results of introspection functions like
 :c:func:`mps_arena_has_addr` only remain valid while the arena remains
@@ -692,24 +692,7 @@ provides a function, :c:func:`mps_arena_step`, for making use of idle
 time to make memory management progress.
 
 Here's an example illustrating the use of this function in a program's
-event loop. When the program is idle (there are no client actions to
-perform), it requests that the MPS spend up to 10 milliseconds on
-incremental work, by calling ``mps_arena_step(arena, 0.010,
-0.0)``. When this returns false to indicate that there is no more work
-to do, the program blocks on the client for two seconds: if this times
-out, it predicts that the user will remain idle for at least a further
-second, so it calls ``mps_arena_step(arena, 0.010, 100.0)`` to tell
-that it's a good time to start a collection taking up to 10 ms × 100
-= 1 second, but not to pause for more than 10 ms.
-
-The program remains responsive: the MPS doesn't take control for more
-than a few milliseconds at a time (at most 10). But at the same time,
-major collection work can get done at times when the program would
-otherwise be idle. Of course the numbers here are only for
-illustration and should be chosen based on the requirements of the
-application.
-
-::
+event loop. ::
 
     for (;;) { /* event loop */
         for (;;) {
@@ -728,6 +711,23 @@ application.
             mps_arena_step(arena, 0.010, 100.0);
         }
     }
+
+When the program is idle (there are no client actions to perform), it
+requests that the MPS spend up to 10 milliseconds on incremental work,
+by calling ``mps_arena_step(arena, 0.010, 0.0)``. When this returns
+false to indicate that there is no more work to do, the program blocks
+on the client for two seconds: if this times out, it predicts that the
+user will remain idle for at least a further second, so it calls
+``mps_arena_step(arena, 0.010, 100.0)`` to tell that it's a good time
+to start a collection taking up to 10 ms × 100 = 1 second, but not to
+pause for more than 10 ms.
+
+The program remains responsive: the MPS doesn't take control for more
+than a few milliseconds at a time (at most 10). But at the same time,
+major collection work can get done at times when the program would
+otherwise be idle. Of course the numbers here are only for
+illustration; they should be chosen based on the requirements of the
+application.
 
 
 .. c:function:: mps_bool_t mps_arena_step(mps_arena_t arena, double interval, double multiplier)
