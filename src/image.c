@@ -21,6 +21,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "sysstdio.h"
 #include <unistd.h>
 
+/* Include this before including <setjmp.h> to work around bugs with
+   older libpng; see Bug#17429.  */
+#if defined HAVE_PNG && !defined HAVE_NS
+# include <png.h>
+#endif
+
 #include <setjmp.h>
 #include <c-ctype.h>
 
@@ -5511,8 +5517,6 @@ png_image_p (Lisp_Object object)
 
 
 #if defined HAVE_PNG && !defined HAVE_NS
-
-#include <png.h>
 
 #ifdef WINDOWSNT
 /* PNG library details.  */
