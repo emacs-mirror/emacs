@@ -36,7 +36,7 @@
   ;; You can disable logging with BZR_LOG=/dev/null, but then
   ;; some commands (eg `bzr status') want to access ~/.bazaar,
   ;; and will abort if they cannot.  I could not figure out how to
-  ;; stop bzr doing that, so just set HOME to a tempir for the duration.
+  ;; stop bzr doing that, so just set HOME to a tempdir for the duration.
   (let* ((homedir (make-temp-file "vc-bzr-test" t))
          (bzrdir (expand-file-name "bzr" homedir))
          (ignored-dir (progn
