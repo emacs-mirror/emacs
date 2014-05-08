@@ -147,6 +147,12 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
   :group 'mime-security
   :type 'integer)
 
+(defcustom mml2015-display-key-image t
+  "If t, try to display key images."
+  :version "24.4"
+  :group 'mime-security
+  :type 'boolean)
+
 ;; Extract plaintext from cleartext signature.  IMO, this kind of task
 ;; should be done by GnuPG rather than Elisp, but older PGP backends
 ;; (such as Mailcrypt, and PGG) discard the output from GnuPG.
@@ -898,7 +904,8 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 
 (defun mml2015-epg-signature-to-string (signature)
   (concat (epg-signature-to-string signature)
-	  (mml2015-epg-key-image-to-string (epg-signature-key-id signature))))
+          (when mml2015-display-key-image
+            (mml2015-epg-key-image-to-string (epg-signature-key-id signature)))))
 
 (defun mml2015-epg-verify-result-to-string (verify-result)
   (mapconcat #'mml2015-epg-signature-to-string verify-result "\n"))
