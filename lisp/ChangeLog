@@ -1,3 +1,9 @@
+2014-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* net/browse-url.el (browse-url-mosaic):
+	Be careful when writing /tmp/Mosaic.PID.  (Bug#17428)
+	This is CVE-2014-3423.
+
 2014-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xt-mouse.el: Drop spurious/oddly shaped events (bug#17378).
