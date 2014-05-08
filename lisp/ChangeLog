@@ -1,3 +1,11 @@
+2014-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xt-mouse.el: Drop spurious/oddly shaped events (bug#17378).
+	(xterm-mouse--read-event-sequence-1000): Return nil if something
+	looks fishy.
+	(xterm-mouse-event): Propagate it.
+	(xterm-mouse-translate-1): Handle it.
+
 2014-05-07  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el (todo-insert-item--apply-args): When all
