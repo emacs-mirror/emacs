@@ -1,3 +1,29 @@
+2014-05-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* minibuf.c (read_minibuf): Avoid C99ism in previous patch (Bug#17430).
+
+2014-05-08  Jarek Czekalski  <jarekczek@poczta.onet.pl>
+
+	Fix initialization of minibuffer history variable (Bug#17430).
+	* minibuf.c (read_minibuf): Initialize histval to Qnil if unbound.
+	Move the initialization up to prevent any "value void" message.
+
+2014-05-08  Samuel Bronson  <naesten@gmail.com>
+
+	* keyboard.c (Frecursive_edit): Ensure inc&dec of command_loop_level
+	are matched (bug#17413).
+
+2014-05-08  Jarek Czekalski  <jarekczek@poczta.onet.pl>
+
+	Stop tooltips pulling Emacs window to front (Bug#17408).
+	* w32fns.c (Fx_show_tip): Add SWP_NOOWNERZORDER flag to
+	SetWindowPos invocations.
+
+2014-05-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsselect.m (Fx_selection_exists_p): Just return Qnil if window system
+	not initialized (Bug#17398).
+
 2014-05-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* image.c: Include <png.h> before <setjmp.h> (Bug#17429).

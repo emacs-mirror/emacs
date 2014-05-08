@@ -868,7 +868,7 @@ MIN-VERSION should be a version list."
    ;; Also check built-in packages.
    (package-built-in-p package min-version)))
 
-(defun package-compute-transaction (packages requirements)
+(defun package-compute-transaction (packages requirements &optional seen)
   "Return a list of packages to be installed, including PACKAGES.
 PACKAGES should be a list of `package-desc'.
 
@@ -880,7 +880,9 @@ version of that package.
 This function recursively computes the requirements of the
 packages in REQUIREMENTS, and returns a list of all the packages
 that must be installed.  Packages that are already installed are
-not included in this list."
+not included in this list.
+
+SEEN is used internally to detect infinite recursion."
   ;; FIXME: We really should use backtracking to explore the whole
   ;; search space (e.g. if foo require bar-1.3, and bar-1.4 requires toto-1.1
   ;; whereas bar-1.3 requires toto-1.0 and the user has put a hold on toto-1.0:
@@ -893,15 +895,22 @@ not included in this list."
       (dolist (pkg packages)
         (if (eq next-pkg (package-desc-name pkg))
             (setq already pkg)))
-      (cond
-       (already
+      (when already
         (if (version-list-<= next-version (package-desc-version already))
-            ;; Move to front, so it gets installed early enough (bug#14082).
-            (setq packages (cons already (delq already packages)))
+            ;; `next-pkg' is already in `packages', but its position there
+            ;; means it might be installed too late: remove it from there, so
+            ;; we re-add it (along with its dependencies) at an earlier place
+            ;; below (bug#16994).
+            (if (memq already seen)     ;Avoid inf-loop on dependency cycles.
+                (message "Dependency cycle going through %S"
+                         (package-desc-full-name already))
+              (setq packages (delq already packages))
+              (setq already nil))
           (error "Need package `%s-%s', but only %s is being installed"
                  next-pkg (package-version-join next-version)
                  (package-version-join (package-desc-version already)))))
-
+      (cond
+       (already nil)
        ((package-installed-p next-pkg next-version) nil)
 
        (t
@@ -933,12 +942,13 @@ but version %s required"
                (t (setq found pkg-desc)))))
 	  (unless found
             (if problem
-                (error problem)
+                (error "%s" problem)
               (error "Package `%s-%s' is unavailable"
                      next-pkg (package-version-join next-version))))
 	  (setq packages
 		(package-compute-transaction (cons found packages)
-					     (package-desc-reqs found))))))))
+					     (package-desc-reqs found)
+                                             (cons found seen))))))))
   packages)
 
 (defun package-read-from-string (str)

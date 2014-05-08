@@ -33,7 +33,9 @@
   (skip-unless (executable-find vc-bzr-program))
   (let* ((tempdir (make-temp-file "vc-bzr-test" t))
          (ignored-dir (expand-file-name "ignored-dir" tempdir))
-         (default-directory (file-name-as-directory tempdir)))
+         (default-directory (file-name-as-directory tempdir))
+         (process-environment (cons (format "BZR_LOG=%s" null-device)
+                                    process-environment)))
     (unwind-protect
         (progn
           (make-directory ignored-dir)
@@ -64,7 +66,9 @@
   (let* ((tempdir (make-temp-file "vc-bzr-test" t))
          (subdir (expand-file-name "subdir" tempdir))
          (file (expand-file-name "file" tempdir))
-         (default-directory (file-name-as-directory tempdir)))
+         (default-directory (file-name-as-directory tempdir))
+         (process-environment (cons (format "BZR_LOG=%s" null-device)
+                                    process-environment)))
     (unwind-protect
         (progn
           (call-process vc-bzr-program nil nil nil "init")
@@ -100,7 +104,9 @@
   (let* ((tempdir (make-temp-file "vc-bzr-test" t))
          (file (expand-file-name "foo.el" tempdir))
          (default-directory (file-name-as-directory tempdir))
-         (generated-autoload-file (expand-file-name "loaddefs.el" tempdir)))
+         (generated-autoload-file (expand-file-name "loaddefs.el" tempdir))
+         (process-environment (cons (format "BZR_LOG=%s" null-device)
+                                    process-environment)))
     (unwind-protect
         (progn
           (call-process vc-bzr-program nil nil nil "init")

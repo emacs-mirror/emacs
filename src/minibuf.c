@@ -384,6 +384,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   EMACS_INT pos = 0;
   /* String to add to the history.  */
   Lisp_Object histstring;
+  Lisp_Object histval;
 
   Lisp_Object empty_minibuf;
   Lisp_Object dummy, frame;
@@ -534,6 +535,14 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
      "t" in this minibuffer, but "nil" in next minibuffer.  */
   if (!NILP (Vminibuffer_completing_file_name))
     Vminibuffer_completing_file_name = Qlambda;
+
+  /* If variable is unbound, make it nil.  */
+  histval = find_symbol_value (Vminibuffer_history_variable);
+  if (EQ (histval, Qunbound))
+    {
+      Fset (Vminibuffer_history_variable, Qnil);
+      histval = Qnil;
+    }
 
   if (inherit_input_method)
     {
@@ -703,13 +712,6 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
     {
       /* If the caller wanted to save the value read on a history list,
 	 then do so if the value is not already the front of the list.  */
-      Lisp_Object histval;
-
-      /* If variable is unbound, make it nil.  */
-
-      histval = find_symbol_value (Vminibuffer_history_variable);
-      if (EQ (histval, Qunbound))
-	Fset (Vminibuffer_history_variable, Qnil);
 
       /* The value of the history variable must be a cons or nil.  Other
 	 values are unacceptable.  We silently ignore these values.  */

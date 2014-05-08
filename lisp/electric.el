@@ -221,7 +221,8 @@ Python does not lend itself to fully automatic indentation.")
 (defvar electric-indent-functions-without-reindent
   '(indent-relative indent-to-left-margin indent-relative-maybe
     py-indent-line coffee-indent-line org-indent-line yaml-indent-line
-    haskell-indentation-indent-line haskell-indent-cycle haskell-simple-indent)
+    haskell-indentation-indent-line haskell-indent-cycle haskell-simple-indent
+    yaml-indent-line)
   "List of indent functions that can't reindent.
 If `line-indent-function' is one of those, then `electric-indent-mode' will
 not try to reindent lines.  It is normally better to make the major

@@ -63,8 +63,8 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 
 (defun xterm-mouse-translate-1 (&optional extension)
   (save-excursion
-    (save-window-excursion
-      (deactivate-mark)
+    (save-window-excursion              ;FIXME: Why?
+      (deactivate-mark)                 ;FIXME: Why?
       (let* ((xterm-mouse-last nil)
 	     (down (xterm-mouse-event extension))
 	     (down-command (nth 0 down))
@@ -73,10 +73,10 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 	     (down-binding (key-binding (if (symbolp down-where)
 					    (vector down-where down-command)
 					  (vector down-command))))
-	     (is-click (string-match "^mouse" (symbol-name (car down)))))
+	     (is-down (string-match "down" (symbol-name (car down)))))
 
 	;; Retrieve the expected preface for the up-event.
-	(unless is-click
+	(unless is-down
 	  (unless (cond ((null extension)
 			 (and (eq (read-event) ?\e)
 			      (eq (read-event) ?\[)
@@ -88,14 +88,17 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 	    (error "Unexpected escape sequence from XTerm")))
 
 	;; Process the up-event.
-	(let* ((click (if is-click down (xterm-mouse-event extension)))
+	(let* ((click (if is-down (xterm-mouse-event extension) down))
 	       (click-data  (nth 1 click))
 	       (click-where (nth 1 click-data)))
-	  (if (memq down-binding '(nil ignore))
-	      (if (and (symbolp click-where)
-		       (consp click-where))
-		  (vector (list click-where click-data) click)
-		(vector click))
+          (cond
+           ((null down) nil)
+           ((memq down-binding '(nil ignore))
+            (if (and (symbolp click-where)
+                     (consp click-where))
+                (vector (list click-where click-data) click)
+              (vector click)))
+           (t
 	    (setq unread-command-events
 		  (append (if (eq down-where click-where)
 			      (list click)
@@ -114,7 +117,7 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 	    (if (and (symbolp down-where)
 		     (consp down-where))
 		(vector (list down-where down-data) down)
-	      (vector down))))))))
+	      (vector down)))))))))
 
 ;; These two variables have been converted to terminal parameters.
 ;;
@@ -153,7 +156,8 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 ;; Normal terminal mouse click reporting: expect three bytes, of the
 ;; form <BUTTON+32> <X+32> <Y+32>.  Return a list (EVENT-TYPE X Y).
 (defun xterm-mouse--read-event-sequence-1000 ()
-  (list (let ((code (- (read-event) 32)))
+  (let* ((code (- (read-event) 32))
+         (type
 	  (intern
 	   ;; For buttons > 3, the release-event looks differently
 	   ;; (see xc/programs/xterm/button.c, function EditorButton),
@@ -161,21 +165,21 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 	   (cond ((>= code 64)
 		  (format "mouse-%d" (- code 60)))
 		 ((memq code '(8 9 10))
-		  (setq xterm-mouse-last code)
+		  (setq xterm-mouse-last (- code 8))
 		  (format "M-down-mouse-%d" (- code 7)))
-		 ((= code 11)
-		  (format "M-mouse-%d" (- xterm-mouse-last 7)))
-		 ((= code 3)
-		  ;; For buttons > 5 xterm only reports a
-		  ;; button-release event.  Avoid error by mapping
-		  ;; them all to mouse-1.
-		  (format "mouse-%d" (+ 1 (or xterm-mouse-last 0))))
-		 (t
+		 ((and (= code 11) xterm-mouse-last)
+		  (format "M-mouse-%d" (1+ xterm-mouse-last)))
+		 ((and (= code 3) xterm-mouse-last)
+		  ;; For buttons > 5 xterm only reports a button-release event.
+		  ;; Drop them since they're not usable and can be spurious.
+		  (format "mouse-%d" (1+ xterm-mouse-last)))
+		 ((memq code '(0 1 2))
 		  (setq xterm-mouse-last code)
 		  (format "down-mouse-%d" (+ 1 code))))))
-	;; x and y coordinates
-	(- (read-event) 33)
-	(- (read-event) 33)))
+         (x (- (read-event) 33))
+         (y (- (read-event) 33)))
+    (and type (wholenump x) (wholenump y)
+         (list type x y))))
 
 ;; XTerm's 1006-mode terminal mouse click reporting has the form
 ;; <BUTTON> ; <X> ; <Y> <M or m>, where the button and ordinates are
@@ -222,32 +226,33 @@ which is the \"1006\" extension implemented in Xterm >= 277."
 		      ((eq extension 1006)
 		       (xterm-mouse--read-event-sequence-1006))
 		      (t
-		       (error "Unsupported XTerm mouse protocol"))))
-	 (type (nth 0 click))
-	 (x    (nth 1 click))
-	 (y    (nth 2 click))
-	 ;; Emulate timestamp information.  This is accurate enough
-	 ;; for default value of mouse-1-click-follows-link (450msec).
-	 (timestamp (xterm-mouse-truncate-wrap
-                     (* 1000
-                        (- (float-time)
-                           (or xt-mouse-epoch
-                               (setq xt-mouse-epoch (float-time)))))))
-	 (w (window-at x y))
-         (ltrb (window-edges w))
-         (left (nth 0 ltrb))
-         (top (nth 1 ltrb)))
-    (set-terminal-parameter nil 'xterm-mouse-x x)
-    (set-terminal-parameter nil 'xterm-mouse-y y)
-    (setq
-     last-input-event
-     (list type
-	   (let ((event (if w
-			    (posn-at-x-y (- x left) (- y top) w t)
-			  (append (list nil 'menu-bar)
-				  (nthcdr 2 (posn-at-x-y x y))))))
-	     (setcar (nthcdr 3 event) timestamp)
-	     event)))))
+		       (error "Unsupported XTerm mouse protocol")))))
+    (when click
+      (let* ((type (nth 0 click))
+             (x    (nth 1 click))
+             (y    (nth 2 click))
+             ;; Emulate timestamp information.  This is accurate enough
+             ;; for default value of mouse-1-click-follows-link (450msec).
+             (timestamp (xterm-mouse-truncate-wrap
+                         (* 1000
+                            (- (float-time)
+                               (or xt-mouse-epoch
+                                   (setq xt-mouse-epoch (float-time)))))))
+             (w (window-at x y))
+             (ltrb (window-edges w))
+             (left (nth 0 ltrb))
+             (top (nth 1 ltrb)))
+        (set-terminal-parameter nil 'xterm-mouse-x x)
+        (set-terminal-parameter nil 'xterm-mouse-y y)
+        (setq
+         last-input-event
+         (list type
+               (let ((event (if w
+                                (posn-at-x-y (- x left) (- y top) w t)
+                              (append (list nil 'menu-bar)
+                                      (nthcdr 2 (posn-at-x-y x y))))))
+                 (setcar (nthcdr 3 event) timestamp)
+                 event)))))))
 
 ;;;###autoload
 (define-minor-mode xterm-mouse-mode

@@ -6035,12 +6035,13 @@ Text larger than the specified size is clipped.  */)
 	  /* Put tooltip in topmost group and in position.  */
 	  SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOPMOST,
 			root_x, root_y, 0, 0,
-			SWP_NOSIZE | SWP_NOACTIVATE);
+			SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
 
 	  /* Ensure tooltip is on top of other topmost windows (eg menus).  */
 	  SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOP,
 			0, 0, 0, 0,
-			SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+			SWP_NOMOVE | SWP_NOSIZE
+			| SWP_NOACTIVATE | SWP_NOOWNERZORDER);
 
 	  unblock_input ();
 	  goto start_timer;
@@ -6238,12 +6239,13 @@ Text larger than the specified size is clipped.  */)
     SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOPMOST,
 		  root_x, root_y,
 		  rect.right - rect.left + FRAME_COLUMN_WIDTH (f),
-		  rect.bottom - rect.top, SWP_NOACTIVATE);
+		  rect.bottom - rect.top, SWP_NOACTIVATE | SWP_NOOWNERZORDER);
 
     /* Ensure tooltip is on top of other topmost windows (eg menus).  */
     SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOP,
 		  0, 0, 0, 0,
-		  SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+		  SWP_NOMOVE | SWP_NOSIZE
+		  | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
 
     /* Let redisplay know that we have made the frame visible already.  */
     SET_FRAME_VISIBLE (f, 1);

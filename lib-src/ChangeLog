@@ -705,7 +705,7 @@
 	Use _Noreturn rather than NO_RETURN.
 	No need for separate decl merely because of _Noreturn.
 
-2012-06-24  Samuel Bronson  <naesten@gmail.com>  (tiny change)
+2012-06-24  Samuel Bronson  <naesten@gmail.com>
 
 	* emacsclient.c (set_local_socket): Fix compiler warning (Bug#7838).
 

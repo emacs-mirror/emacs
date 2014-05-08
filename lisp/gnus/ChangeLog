@@ -1,3 +1,8 @@
+2014-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-fun.el (gnus-grab-cam-face):
+	Do not use predictable temp-file name.  (http://bugs.debian.org/747100)
+
 2014-05-04  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-registry.el (gnus-registry-install-p): Doc fix.

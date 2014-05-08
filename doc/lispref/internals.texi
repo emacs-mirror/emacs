@@ -15,6 +15,7 @@ internal aspects of GNU Emacs that may be of interest to C programmers.
 * Pure Storage::        Kludge to make preloaded Lisp functions shareable.
 * Garbage Collection::  Reclaiming space for Lisp objects no longer used.
 * Memory Usage::        Info about total size of Lisp objects made so far.
+* C Dialect::           What C variant Emacs is written in.
 * Writing Emacs Primitives::   Writing C code for Emacs.
 * Object Internals::    Data formats of buffers, windows, processes.
 * C Integer Types::     How C integer types are used inside Emacs.
@@ -574,6 +575,20 @@ in this Emacs session.
 The total number of strings that have been allocated so far in this
 Emacs session.
 @end defvar
+
+@node C Dialect
+@section C Dialect
+@cindex C programming language
+
+The C part of Emacs is portable to C89: C99-specific features such as
+@samp{<stdbool.h>} and @samp{inline} are not used without a check,
+typically at configuration time, and the Emacs build procedure
+provides a substitute implementation if necessary.  Some C99 features,
+such as declarations after statements, are too difficult to provide
+substitutes for, so they are avoided entirely.
+
+At some point in the not-too-distant future the base C dialect will
+change from C89 to C99, and eventually it will no doubt change to C11.
 
 @node Writing Emacs Primitives
 @section Writing Emacs Primitives
@@ -1616,12 +1631,6 @@ Prefer @code{intmax_t} for representing values that might be any
 signed integer value.
 
 @item
-In bitfields, prefer @code{unsigned int} or @code{signed int} to
-@code{int}, as @code{int} is less portable: it might be signed, and
-might not be.  Single-bit bit fields are invariably @code{unsigned
-int} so that their values are 0 and 1.
-
-@item
 Prefer @code{bool}, @code{false} and @code{true} for booleans.
 Using @code{bool} can make programs easier to read and a bit faster than
 using @code{int}.  Although it is also OK to use @code{int}, @code{0}
@@ -1629,7 +1638,15 @@ and @code{1}, this older style is gradually being phased out.  When
 using @code{bool}, respect the limitations of the replacement
 implementation of @code{bool}, as documented in the source file
 @file{lib/stdbool.in.h}, so that Emacs remains portable to pre-C99
-platforms.
+platforms.  In particular, boolean bitfields should be of type
+@code{bool_bf}, not @code{bool}, so that they work correctly even when
+compiling Objective C with standard GCC.
+
+@item
+In bitfields, prefer @code{unsigned int} or @code{signed int} to
+@code{int}, as @code{int} is less portable: it might be signed, and
+might not be.  Single-bit bit fields should be @code{unsigned int} or
+@code{bool_bf} so that their values are 0 or 1.
 @end itemize
 
 @c FIXME Mention src/globals.h somewhere in this file?

@@ -825,14 +825,18 @@ This function is called by the editor initialization to begin editing.  */)
   if (input_blocked_p ())
     return Qnil;
 
-  command_loop_level++;
-  update_mode_lines = 17;
-
-  if (command_loop_level
+  if (command_loop_level >= 0
       && current_buffer != XBUFFER (XWINDOW (selected_window)->contents))
     buffer = Fcurrent_buffer ();
   else
     buffer = Qnil;
+
+  /* Don't do anything interesting between the increment and the
+     record_unwind_protect!  Otherwise, we could get distracted and
+     never decrement the counter again.  */
+  command_loop_level++;
+  update_mode_lines = 17;
+  record_unwind_protect (recursive_edit_unwind, buffer);
 
   /* If we leave recursive_edit_1 below with a `throw' for instance,
      like it is done in the splash screen display, we have to
@@ -840,7 +844,6 @@ This function is called by the editor initialization to begin editing.  */)
      would have done if it were left normally.  */
   if (command_loop_level > 0)
     temporarily_switch_to_single_kboard (SELECTED_FRAME ());
-  record_unwind_protect (recursive_edit_unwind, buffer);
 
   recursive_edit_1 ();
   return unbind_to (count, Qnil);

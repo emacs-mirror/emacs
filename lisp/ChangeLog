@@ -1,3 +1,81 @@
+2014-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xt-mouse.el: Drop spurious/oddly shaped events (bug#17378).
+	(xterm-mouse--read-event-sequence-1000): Return nil if something
+	looks fishy.
+	(xterm-mouse-event): Propagate it.
+	(xterm-mouse-translate-1): Handle it.
+
+2014-05-08  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el (todo-insert-item--apply-args): When all
+	four slots of the parameter list are filled, make sure to pass it
+	to the argument list of todo-insert-item--basic.
+
+2014-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-compute-transaction): Topological sort.
+	Add optional `seen' argument to detect and break infinite loops.
+
+2014-05-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/find-gc.el (find-gc-unsafe, find-unsafe-funcs)
+	(trace-unsafe, trace-use-tree): Make parentheses style be
+	according to Emacs style.
+
+2014-05-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-remote-process-environment):
+	Remove HISTFILE and HISTSIZE; it's too late to set them here.
+	Add :version entry.
+	(tramp-open-shell): Do not let-bind `tramp-end-of-output'.
+	Add "HISTSIZE=/dev/null" to the shell's env arguments.  Do not send
+	extra "PSx=..." commands.
+	(tramp-maybe-open-connection): Setenv HISTFILE to /dev/null.
+	(Bug#17295)
+
+	(tramp-uudecode): Replace the hard-coded temporary file name by a
+	format specifier.
+	(tramp-remote-coding-commands): Enhance docstring.
+	(tramp-find-inline-encoding): Replace "%t" by a temporary file
+	name.  (Bug#17415)
+
+2014-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/find-gc.el (find-gc-source-directory): Give it a value.
+	(find-gc-source-files): Update some names.
+	(trace-call-tree): Simplify and update.
+	Avoid predictable temp-file names.  (http://bugs.debian.org/747100)
+
+2014-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--try-word-completion): Revert fix for
+	Bug#15980 (bug#17375).
+
+	* xt-mouse.el (xterm-mouse--read-event-sequence-1000): (bug#17378)
+	Always store button numbers in the same way in xterm-mouse-last;
+	Don't burp is xterm-mouse-last is not set as expected.
+	Never return negative indices.
+
+2014-05-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function):
+	Backtrack one char if the global/char-literal var matcher hits
+	inside a string.  The next char could be the beginning of an
+	expression expansion.
+
+2014-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* help-fns.el (describe-function-1): Test for an autoload before a
+	macro, since `macrop' works on autoloads.  (Bug#17410)
+
+2014-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-indent-functions-without-reindent): Add yaml.
+
+	* minibuffer.el (completion-table-with-quoting) <completion--unquote>:
+	Make sure the new point we return is within the new string (bug#17239).
+
 2014-05-05  Daniel Colascione  <dancol@dancol.org>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
@@ -84,8 +162,8 @@
 	(todo-edit-done-item--param-key-alist): New defconsts.
 	(todo-edit-item--prompt): New variable.
 	(todo-edit-item--next-key): New function.
-	(todo-key-bindings-t): Bind "e" to todo-edit-item.  Remove
-	bindings of deleted commands.
+	(todo-key-bindings-t): Bind "e" to todo-edit-item.
+	Remove bindings of deleted commands.
 
 2014-05-04  Leo Liu  <sdl.web@gmail.com>
 
