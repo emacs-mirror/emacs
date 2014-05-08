@@ -31,17 +31,26 @@
 (ert-deftest vc-bzr-test-bug9726 ()
   "Test for http://debbugs.gnu.org/9726 ."
   (skip-unless (executable-find vc-bzr-program))
-  (let* ((tempdir (make-temp-file "vc-bzr-test" t))
-         (ignored-dir (expand-file-name "ignored-dir" tempdir))
-         (default-directory (file-name-as-directory tempdir))
-         (process-environment (cons (format "BZR_LOG=%s" null-device)
+  ;; Bzr wants to access HOME, e.g. to write ~/.bzr.log.
+  ;; This is a problem on hydra, where HOME is non-existent.
+  ;; You can disable logging with BZR_LOG=/dev/null, but then
+  ;; some commands (eg `bzr status') want to access ~/.bazaar,
+  ;; and will abort if they cannot.  I could not figure out how to
+  ;; stop bzr doing that, so just set HOME to a tempir for the duration.
+  (let* ((homedir (make-temp-file "vc-bzr-test" t))
+         (bzrdir (expand-file-name "bzr" homedir))
+         (ignored-dir (progn
+                        (make-directory bzrdir)
+                        (expand-file-name "ignored-dir" bzrdir)))
+         (default-directory (file-name-as-directory bzrdir))
+         (process-environment (cons (format "HOME=%s" homedir)
                                     process-environment)))
     (unwind-protect
         (progn
           (make-directory ignored-dir)
           (with-temp-buffer
             (insert (file-name-nondirectory ignored-dir))
-            (write-region nil nil (expand-file-name ".bzrignore" tempdir)
+            (write-region nil nil (expand-file-name ".bzrignore" bzrdir)
                           nil 'silent))
           (call-process vc-bzr-program nil nil nil "init")
           (call-process vc-bzr-program nil nil nil "add")
@@ -57,17 +66,20 @@
           (with-current-buffer "*vc-dir*"
             (goto-char (point-min))
             (should (search-forward "unregistered" nil t))))
-      (delete-directory tempdir t))))
+      (delete-directory homedir t))))
 
 ;; Not specific to bzr.
 (ert-deftest vc-bzr-test-bug9781 ()
   "Test for http://debbugs.gnu.org/9781 ."
   (skip-unless (executable-find vc-bzr-program))
-  (let* ((tempdir (make-temp-file "vc-bzr-test" t))
-         (subdir (expand-file-name "subdir" tempdir))
-         (file (expand-file-name "file" tempdir))
-         (default-directory (file-name-as-directory tempdir))
-         (process-environment (cons (format "BZR_LOG=%s" null-device)
+  (let* ((homedir (make-temp-file "vc-bzr-test" t))
+         (bzrdir (expand-file-name "bzr" homedir))
+         (subdir (progn
+                   (make-directory bzrdir)
+                   (expand-file-name "subdir" bzrdir)))
+         (file (expand-file-name "file" bzrdir))
+         (default-directory (file-name-as-directory bzrdir))
+         (process-environment (cons (format "HOME=%s" homedir)
                                     process-environment)))
     (unwind-protect
         (progn
@@ -84,7 +96,7 @@
           (with-temp-buffer
             (insert "different text")
             (write-region nil nil file nil 'silent))
-          (vc-dir tempdir)
+          (vc-dir bzrdir)
           (while (vc-dir-busy)
             (sit-for 0.1))
           (vc-dir-mark-all-files t)
@@ -95,17 +107,20 @@
                   (vc-next-action nil))
               (fset 'y-or-n-p f)))
           (should (get-buffer "*vc-log*")))
-      (delete-directory tempdir t))))
+      (delete-directory homedir t))))
 
 ;; http://lists.gnu.org/archive/html/help-gnu-emacs/2012-04/msg00145.html
 (ert-deftest vc-bzr-test-faulty-bzr-autoloads ()
   "Test we can generate autoloads in a bzr directory when bzr is faulty."
   (skip-unless (executable-find vc-bzr-program))
-  (let* ((tempdir (make-temp-file "vc-bzr-test" t))
-         (file (expand-file-name "foo.el" tempdir))
-         (default-directory (file-name-as-directory tempdir))
-         (generated-autoload-file (expand-file-name "loaddefs.el" tempdir))
-         (process-environment (cons (format "BZR_LOG=%s" null-device)
+  (let* ((homedir (make-temp-file "vc-bzr-test" t))
+         (bzrdir (expand-file-name "bzr" homedir))
+         (file (progn
+                 (make-directory bzrdir)
+                 (expand-file-name "foo.el" bzrdir)))
+         (default-directory (file-name-as-directory bzrdir))
+         (generated-autoload-file (expand-file-name "loaddefs.el" bzrdir))
+         (process-environment (cons (format "HOME=%s" homedir)
                                     process-environment)))
     (unwind-protect
         (progn
@@ -123,6 +138,6 @@
           (delete-file ".bzr/checkout/dirstate")
           (should (progn (update-directory-autoloads default-directory)
                          t)))
-      (delete-directory tempdir t))))
+      (delete-directory homedir t))))
 
 ;;; vc-bzr.el ends here

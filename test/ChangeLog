@@ -1,7 +1,8 @@
 2014-05-08  Glenn Morris  <rgm@gnu.org>
 
 	* automated/vc-bzr.el (vc-bzr-test-bug9726, vc-bzr-test-bug9781)
-	(vc-bzr-test-faulty-bzr-autoloads): Disable bzr logging.
+	(vc-bzr-test-faulty-bzr-autoloads):
+	Give bzr a temporary home-directory, in case the real one is missing.
 
 2014-05-08  Dmitry Gutov  <dgutov@yandex.ru>
 
