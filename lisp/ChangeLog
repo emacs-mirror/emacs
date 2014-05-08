@@ -45,6 +45,7 @@
 	(tramp-remote-coding-commands): Enhance docstring.
 	(tramp-find-inline-encoding): Replace "%t" by a temporary file
 	name.  (Bug#17415)
+	This is CVE-2014-3424.
 
 2014-05-06  Glenn Morris  <rgm@gnu.org>
 
@@ -52,6 +53,7 @@
 	(find-gc-source-files): Update some names.
 	(trace-call-tree): Simplify and update.
 	Avoid predictable temp-file names.  (http://bugs.debian.org/747100)
+	This is CVE-2014-3422.
 
 2014-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 

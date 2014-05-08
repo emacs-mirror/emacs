@@ -2,6 +2,7 @@
 
 	* gnus-fun.el (gnus-grab-cam-face):
 	Do not use predictable temp-file name.  (http://bugs.debian.org/747100)
+	This is CVE-2014-3421.
 
 2014-05-01  Glenn Morris  <rgm@gnu.org>
 
