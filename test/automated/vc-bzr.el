@@ -33,17 +33,18 @@
   (skip-unless (executable-find vc-bzr-program))
   ;; Bzr wants to access HOME, e.g. to write ~/.bzr.log.
   ;; This is a problem on hydra, where HOME is non-existent.
-  ;; You can disable logging with BZR_LOG=/dev/null, but then
-  ;; some commands (eg `bzr status') want to access ~/.bazaar,
-  ;; and will abort if they cannot.  I could not figure out how to
-  ;; stop bzr doing that, so just set HOME to a tempdir for the duration.
+  ;; You can disable logging with BZR_LOG=/dev/null, but then some
+  ;; commands (eg `bzr status') want to access ~/.bazaar, and will
+  ;; abort if they cannot.  I could not figure out how to stop bzr
+  ;; doing that, so just give it a temporary homedir for the duration.
+  ;; http://bugs.launchpad.net/bzr/+bug/137407 ?
   (let* ((homedir (make-temp-file "vc-bzr-test" t))
          (bzrdir (expand-file-name "bzr" homedir))
          (ignored-dir (progn
                         (make-directory bzrdir)
                         (expand-file-name "ignored-dir" bzrdir)))
          (default-directory (file-name-as-directory bzrdir))
-         (process-environment (cons (format "HOME=%s" homedir)
+         (process-environment (cons (format "BZR_HOME=%s" homedir)
                                     process-environment)))
     (unwind-protect
         (progn
@@ -79,7 +80,7 @@
                    (expand-file-name "subdir" bzrdir)))
          (file (expand-file-name "file" bzrdir))
          (default-directory (file-name-as-directory bzrdir))
-         (process-environment (cons (format "HOME=%s" homedir)
+         (process-environment (cons (format "BZR_HOME=%s" homedir)
                                     process-environment)))
     (unwind-protect
         (progn
@@ -120,7 +121,7 @@
                  (expand-file-name "foo.el" bzrdir)))
          (default-directory (file-name-as-directory bzrdir))
          (generated-autoload-file (expand-file-name "loaddefs.el" bzrdir))
-         (process-environment (cons (format "HOME=%s" homedir)
+         (process-environment (cons (format "BZR_HOME=%s" homedir)
                                     process-environment)))
     (unwind-protect
         (progn
