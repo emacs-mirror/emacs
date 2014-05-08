@@ -238,6 +238,16 @@ Windows 9X as well).
   install the packages manually, we recommend to use the Windows port
   of the 'bsdtar' program, already mentioned above.
 
+  MSYS packages should be installed in a separate tree from MinGW.
+  For example, use D:\MSYS or D:\usr\MSYS as the top-level directory
+  from which you unpack all of the MSYS packages.
+
+  After installing Automake and Autoconf, make sure any of the *.m4
+  files you might have in your MinGW installation (e.g., pkg.m4 that
+  comes with pkg-config) also exist in the MSYS installation tree, in
+  the share/aclocal directory.  Those *.m4 files which exist in the
+  MinGW tree, but not in the MSYS tree should be copied there.
+
   If/when you are confident in your MinGW/MSYS installation, and want
   to speed up the builds, we recommend installing a pre-release
   version of Make from here:
@@ -264,10 +274,6 @@ Windows 9X as well).
   by the program failing to run and presenting a pop-up dialog that
   states the missing or incompatible DLL; be sure to find and install
   these missing DLLs.
-
-  MSYS packages should be installed in a separate tree from MinGW.
-  For example, use D:\MSYS or D:\usr\MSYS as the top-level directory
-  from which you unpack all of the MSYS packages.
 
   Do NOT add the MSYS bin directory to your Windows Path!  Only the
   MinGW bin directory should be on Path.  When you install MSYS, it
@@ -304,6 +310,10 @@ Windows 9X as well).
      Checking for autoconf (need at least version 2.65)...
      ok
      Checking for automake (need at least version 1.11)...
+     ok
+     Checking for pkg-config (need at least version 0.9.0)...
+     ok
+     Checking for pkg.m4...
      ok
      Your system has the required tools, running autoreconf...
      You can now run `./configure'.
