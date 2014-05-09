@@ -6543,8 +6543,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 
 
 (defun pr-i-directory ()
-  (or (and (file-directory-p pr-i-directory)
-	   (file-readable-p pr-i-directory))
+  (or (file-accessible-directory-p pr-i-directory)
       (error "Please specify be a readable directory")))
 
 
@@ -6552,8 +6551,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   (and pr-buffer-verbose
        (message "You can use M-TAB or ESC TAB for file completion"))
   (let ((dir (widget-value widget)))
-    (and (file-directory-p dir)
-	 (file-readable-p dir)
+    (and (file-accessible-directory-p dir)
 	 (setq pr-i-directory dir))))
 
 

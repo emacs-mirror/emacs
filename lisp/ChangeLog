@@ -1,3 +1,13 @@
+2014-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (file-expand-wildcards):
+	* man.el (Man-support-local-filenames):
+	* printing.el (pr-i-directory, pr-interface-directory):
+	* progmodes/grep.el (lgrep, rgrep):
+	* textmodes/ispell.el (ispell-call-process)
+	(ispell-call-process-region, ispell-start-process)
+	(ispell-init-process): Use file-accessible-directory-p.
+
 2014-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xt-mouse.el: Drop spurious/oddly shaped events (bug#17378).

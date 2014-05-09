@@ -1,3 +1,7 @@
+2014-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* mh-e.el (mh-variants): Use file-accessible-directory-p.
+
 2014-03-16  Bill Wohler  <wohler@newt.com>
 
 	* mh-folder.el (mh-regenerate-headers): Fix scan: bad message list

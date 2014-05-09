@@ -1,7 +1,6 @@
 ;;; grep.el --- run `grep' and display the results  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2014 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -905,7 +904,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 		(confirm (equal current-prefix-arg '(4))))
 	   (list regexp files dir confirm))))))
   (when (and (stringp regexp) (> (length regexp) 0))
-    (unless (and dir (file-directory-p dir) (file-readable-p dir))
+    (unless (and dir (file-acessible-directory-p dir))
       (setq dir default-directory))
     (let ((command regexp))
       (if (null files)
@@ -986,7 +985,7 @@ to specify a command to run."
 		(confirm (equal current-prefix-arg '(4))))
 	   (list regexp files dir confirm))))))
   (when (and (stringp regexp) (> (length regexp) 0))
-    (unless (and dir (file-directory-p dir) (file-readable-p dir))
+    (unless (and dir (file-accessible-directory-p dir))
       (setq dir default-directory))
     (if (null files)
 	(if (not (string= regexp (if (consp grep-find-command)

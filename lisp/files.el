@@ -5987,10 +5987,9 @@ default directory.  However, if FULL is non-nil, they are absolute."
 			     (file-expand-wildcards (directory-file-name dirpart)))
 		   (list dirpart)))
 	   contents)
-      (while dirs
-	(when (or (null (car dirs))	; Possible if DIRPART is not wild.
-		  (and (file-directory-p (directory-file-name (car dirs)))
-		       (file-readable-p (car dirs))))
+      (dolist (dir dirs)
+	(when (or (null dir)	; Possible if DIRPART is not wild.
+		  (file-accessible-directory-p dir))
 	  (let ((this-dir-contents
 		 ;; Filter out "." and ".."
 		 (delq nil
@@ -5998,16 +5997,15 @@ default directory.  However, if FULL is non-nil, they are absolute."
 				   (unless (string-match "\\`\\.\\.?\\'"
 							 (file-name-nondirectory name))
 				     name))
-			       (directory-files (or (car dirs) ".") full
+			       (directory-files (or dir ".") full
 						(wildcard-to-regexp nondir))))))
 	    (setq contents
 		  (nconc
-		   (if (and (car dirs) (not full))
-		       (mapcar (function (lambda (name) (concat (car dirs) name)))
+		   (if (and dir (not full))
+		       (mapcar #'(lambda (name) (concat dir name))
 			       this-dir-contents)
 		     this-dir-contents)
-		   contents))))
-	(setq dirs (cdr dirs)))
+		   contents)))))
       contents)))
 
 ;; Let Tramp know that `file-expand-wildcards' does not need an advice.

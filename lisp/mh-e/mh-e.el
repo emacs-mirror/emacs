@@ -1,7 +1,7 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system
 
-;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2014 Free
-;; Software Foundation, Inc.
+;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2014
+;;   Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -739,7 +739,7 @@ is described by the variable `mh-variants'."
             (setq dir (file-chase-links (directory-file-name dir)))
             (add-to-list 'list-unique dir))
       (loop for dir in (nreverse list-unique) do
-            (when (and dir (file-directory-p dir) (file-readable-p dir))
+            (when (and dir (file-accessible-directory-p dir))
               (let ((variant (mh-variant-info dir)))
                 (if variant
                     (add-to-list 'mh-variants variant)))))
