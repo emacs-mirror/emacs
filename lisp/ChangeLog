@@ -1,3 +1,8 @@
+2014-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/compile.el (recompile):
+	Handle C-u M-x recompile from a non-compilation buffer.  (Bug#17444)
+
 2014-05-08  Juri Linkov  <juri@jurta.org>
 
 	* dired.el (dired-check-switches, dired-switches-recursive-p):
