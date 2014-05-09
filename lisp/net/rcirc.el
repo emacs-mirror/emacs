@@ -658,6 +658,15 @@ is non-nil."
   "Hook functions called when the process sentinel is called.
 Functions are called with PROCESS and SENTINEL arguments.")
 
+(defcustom rcirc-reconnect-delay 0
+  "*The minimum interval in seconds between reconnect attempts.
+When 0, do not auto-reconnect."
+  :type 'integer
+  :group 'rcirc)
+
+(defvar rcirc-last-connect-time nil
+  "The last time the buffer was connected.")
+
 (defun rcirc-sentinel (process sentinel)
   "Called when PROCESS receives SENTINEL."
   (let ((sentinel (replace-regexp-in-string "\n" "" sentinel)))
@@ -671,6 +680,14 @@ Functions are called with PROCESS and SENTINEL arguments.")
 			       sentinel
 			       (process-status process)) (not rcirc-target))
 	  (rcirc-disconnect-buffer)))
+      (when (and (string= sentinel "deleted")
+                 (< 0 rcirc-reconnect-delay))
+        (let ((now (current-time)))
+          (when (or (null rcirc-last-connect-time)
+                    (< rcirc-reconnect-delay
+                       (float-time (time-subtract now rcirc-last-connect-time))))
+            (setq sds-rcirc-sentinel-last now)
+            (rcirc-cmd-reconnect nil))))
       (run-hook-with-args 'rcirc-sentinel-functions process sentinel))))
 
 (defun rcirc-disconnect-buffer (&optional buffer)
@@ -1007,6 +1024,7 @@ This number is independent of the number of lines in the buffer.")
   (setq-local fill-paragraph-function 'rcirc-fill-paragraph)
   (setq-local rcirc-recent-quit-alist nil)
   (setq-local rcirc-current-line 0)
+  (setq-local rcirc-last-connect-time (current-time))
 
   (use-hard-newlines t)
   (setq-local rcirc-short-buffer-name nil)

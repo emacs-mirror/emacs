@@ -1,3 +1,10 @@
+2014-05-08  Sam Steingold  <sds@gnu.org>
+
+	* net/rcirc.el (rcirc-reconnect-delay): New user option.
+	(rcirc-sentinel): Auto-reconnect to the server if
+	`rcirc-reconnect-delay' is non-0 (but not more often than its
+	value in case the host is off-line).
+
 2014-05-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* progmodes/grep.el (lgrep): Fix a typo in last commit.
