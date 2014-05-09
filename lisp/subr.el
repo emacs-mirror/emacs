@@ -2683,6 +2683,14 @@ computing the hash.  If BINARY is non-nil, return a string in binary
 form."
   (secure-hash 'sha1 object start end binary))
 
+(defalias 'function-put #'put
+  ;; This is only really used in Emacs>24.4, but we add it to 24.4 already, so
+  ;; as to ease the pain when people use future autoload files that contain
+  ;; function-put.
+  "Set function F's property PROP to VALUE.
+The namespace for PROP is shared with symbols.
+So far, F can only be a symbol, not a lambda expression.")
+
 (defun function-get (f prop &optional autoload)
   "Return the value of property PROP of function F.
 If AUTOLOAD is non-nil and F is autoloaded, try to autoload it
