@@ -1,3 +1,12 @@
+2014-05-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mm-display-part): Don't put article out of sight
+	while prompting a user for a file name, etc.
+	(gnus-mime-display-single): Display part with a common appearance no
+	matter whether MIME button is omitted or not; don't add duplicate entry
+	to gnus-article-mime-handle-alist.
+	(gnus-mime-buttonize-attachments-in-header): Use copied buttons.
+
 2014-05-08  Adam Sjøgren  <asjo@koldfront.dk>
 
 	* mml2015.el (mml2015-display-key-image): New variable.

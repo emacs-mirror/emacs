@@ -5693,27 +5693,36 @@ all parts."
 	  (setq point (previous-single-property-change
 		       (next-single-property-change point 'gnus-data)
 		       'gnus-data))
-	  (forward-line)
 	  (if (mm-handle-displayed-p handle)
 	      ;; This will remove the part.
 	      (setq retval (mm-display-part handle))
-	    (save-window-excursion
-	      (save-restriction
-		;; FIXME: nothing is displayed in the article buffer
-		;; while prompting a user for a file name.
-		(narrow-to-region (point)
-				  (if (eobp) (point) (1+ (point))))
-		(gnus-bind-safe-url-regexp
-		 (setq retval (mm-display-part handle)))
-		;; We narrow to the part itself and
-		;; then call the treatment functions.
-		(goto-char (point-min))
-		(forward-line 1)
-		(narrow-to-region (point) (point-max))
-		(gnus-treat-article
-		 nil id
-		 (gnus-article-mime-total-parts)
-		 (mm-handle-media-type handle))))))
+	    (let ((part (or (and (mm-inlinable-p handle)
+				 (mm-inlined-p handle)
+				 t)
+			    (with-temp-buffer
+			      (gnus-bind-safe-url-regexp
+			       (setq retval (mm-display-part handle)))
+			      (unless (zerop (buffer-size))
+				(buffer-string))))))
+	      (forward-line)
+	      (cond ((stringp part)
+		     (save-restriction
+		       (narrow-to-region (point)
+					 (progn
+					   (insert part)
+					   (unless (bolp) (insert "\n"))
+					   (point)))
+		       (gnus-treat-article nil id
+					   (gnus-article-mime-total-parts)
+					   (mm-handle-media-type handle))
+		       (mm-handle-set-undisplayer
+			handle
+			`(lambda ()
+			   (let ((inhibit-read-only t))
+			     (delete-region ,(copy-marker (point-min) t)
+					    ,(point-max-marker)))))))
+		    (part
+		     (mm-display-inline handle))))))
       (goto-char point)
       ;; Toggle the button appearance between `[button]...' and `[button]'.
       (gnus-insert-mime-button handle id (list (mm-handle-displayed-p handle)))
@@ -5985,7 +5994,6 @@ If nil, don't show those extra buttons."
   (let ((type (mm-handle-media-type handle))
 	(ignored gnus-ignored-mime-types)
 	(not-attachment t)
-	(move nil)
 	display text)
     (catch 'ignored
       (progn
@@ -6011,9 +6019,11 @@ If nil, don't show those extra buttons."
 	    (setq display t)
 	  (when (equal (mm-handle-media-supertype handle) "text")
 	    (setq text t)))
-	(let ((id (1+ (length gnus-article-mime-handle-alist)))
+	(let ((id (car (rassq handle gnus-article-mime-handle-alist)))
 	      beg)
-	  (push (cons id handle) gnus-article-mime-handle-alist)
+	  (unless id
+	    (setq id (1+ (length gnus-article-mime-handle-alist)))
+	    (push (cons id handle) gnus-article-mime-handle-alist))
 	  (when (and display
 		     (equal (mm-handle-media-supertype handle) "message"))
 	    (insert-char
@@ -6025,16 +6035,13 @@ If nil, don't show those extra buttons."
 		    (not (gnus-unbuttonized-mime-type-p type))
 		    (eq id gnus-mime-buttonized-part-id))
 	    (gnus-insert-mime-button
-	     handle id (list (or display (and not-attachment text))))
-	    (gnus-article-insert-newline)
-	    ;; Remember modify the number of forward lines.
-	    (setq move t))
+	     handle id (list (or display (and not-attachment text)))))
+	  (gnus-article-insert-newline)
+	  (when (or display (and text not-attachment))
+	    (forward-line -1))
 	  (setq beg (point))
 	  (cond
 	   (display
-	    (when move
-	      (forward-line -1)
-	      (setq beg (point)))
 	    (let ((mail-parse-charset gnus-newsgroup-charset)
 		  (mail-parse-ignored-charsets
 		   (save-excursion (condition-case ()
@@ -6044,9 +6051,6 @@ If nil, don't show those extra buttons."
 	      (gnus-bind-safe-url-regexp (mm-display-part handle t)))
 	    (goto-char (point-max)))
 	   ((and text not-attachment)
-	    (when move
-	      (forward-line -1)
-	      (setq beg (point)))
 	    (gnus-article-insert-newline)
 	    (mm-display-inline handle)
 	    (goto-char (point-max))))
@@ -6334,7 +6338,7 @@ in the body.  Use `gnus-header-face-alist' to highlight buttons."
 			(setcar handle (caar handle))))
 		    flat)
 	      flat))))
-      (let ((case-fold-search t) buttons st)
+      (let ((case-fold-search t) buttons st handle)
 	(save-excursion
 	  (save-restriction
 	    (widen)
@@ -6371,7 +6375,9 @@ in the body.  Use `gnus-header-face-alist' to highlight buttons."
 		(dolist (button (nreverse buttons))
 		  (setq st (point))
 		  (insert " ")
-		  (gnus-insert-mime-button (cdr button) (car button))
+		  (mm-handle-set-undisplayer
+		   (setq handle (copy-sequence (cdr button))) nil)
+		  (gnus-insert-mime-button handle (car button))
 		  (skip-chars-backward "\t\n ")
 		  (delete-region (point) (point-max))
 		  (when (> (current-column) (window-width))
