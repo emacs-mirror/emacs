@@ -149,7 +149,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 
 (defcustom mml2015-display-key-image t
   "If t, try to display key images."
-  :version "24.4"
+  :version "24.5"
   :group 'mime-security
   :type 'boolean)
 
