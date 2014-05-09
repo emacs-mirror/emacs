@@ -1,5 +1,8 @@
 2014-05-09  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (cd-absolute): Test if directory is accessible
+	rather than executable.  (Bug#17330)
+
 	* progmodes/compile.el (recompile):
 	Handle C-u M-x recompile from a non-compilation buffer.  (Bug#17444)
 
