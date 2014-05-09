@@ -1984,7 +1984,7 @@ prompt for a todo file and then for a category in it."
   (setq todo-date-from-calendar
 	(calendar-date-string (calendar-cursor-to-date t) t t))
   (calendar-exit)
-  (todo-insert-item--basic arg nil nil todo-date-from-calendar))
+  (todo-insert-item--basic arg nil todo-date-from-calendar))
 
 (define-key calendar-mode-map "it" 'todo-insert-item-from-calendar)
 
