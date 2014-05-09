@@ -904,7 +904,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 		(confirm (equal current-prefix-arg '(4))))
 	   (list regexp files dir confirm))))))
   (when (and (stringp regexp) (> (length regexp) 0))
-    (unless (and dir (file-acessible-directory-p dir))
+    (unless (and dir (file-accessible-directory-p dir))
       (setq dir default-directory))
     (let ((command regexp))
       (if (null files)
