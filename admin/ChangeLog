@@ -1,3 +1,9 @@
+2014-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (set-version-in-file): Don't set identical version.
+	(set-version): Provide default version number.
+	(set-version, set-copyright): Give start/end messages.
+
 2014-04-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* notes/bzr: Update instructions for merging from gnulib.
