@@ -16,6 +16,9 @@ d = %(hello (nested) world)
 # Don't propertize percent literals inside strings.
 "(%s, %s)" % [123, 456]
 
+"abc/#{def}ghi"
+"abc\#{def}ghi"
+
 # Or inside comments.
 x = # "tot %q/to"; =
   y = 2 / 3

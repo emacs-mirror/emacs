@@ -1,3 +1,13 @@
+2014-05-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el: Support adding a given function multiple times.
+	(advice--member-p): If name is given, only compare the name.
+	(advice--remove-function): Don't stop at the first match.
+	(advice--normalize-place): New function.
+	(add-function, remove-function): Use it.
+	(advice--add-function): Pass the name, if any, to
+	advice--remove-function.
+
 2014-05-09  Philipp Rumpf  <prumpf@gmail.com>  (tiny change)
 
 	* electric.el (electric-indent-post-self-insert-function): Don't use
