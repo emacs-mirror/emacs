@@ -286,7 +286,7 @@
 
 2014-04-22  Justin Gordon  <justin.gordon@gmail.com>
 
-	* ox-md (org-md-separate-elements): Fix blank line insertion
+	* ox-md.el (org-md-separate-elements): Fix blank line insertion
 	between elements.
 
 	* ox-md.el (org-md-inner-template): New function.
