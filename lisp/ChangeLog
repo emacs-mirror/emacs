@@ -1,3 +1,8 @@
+2014-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* net/browse-url.el (browse-url-mosaic):
+	Create /tmp/Mosaic.PID as a private file.
+
 2014-05-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/nadvice.el: Support adding a given function multiple times.

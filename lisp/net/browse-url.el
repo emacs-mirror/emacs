@@ -1343,10 +1343,16 @@ used instead of `browse-url-new-window-flag'."
                         "newwin\n"
                       "goto\n")
                     url "\n")
-            (if (file-exists-p (setq pidfile (format "/tmp/Mosaic.%d" pid)))
-                (delete-file pidfile))
-            ;; http://debbugs.gnu.org/17428.  Use O_EXCL.
-            (write-region nil nil pidfile nil 'silent nil 'excl))
+            (let ((umask (default-file-modes)))
+              (unwind-protect
+                  (progn
+                    (set-default-file-modes ?\700)
+                    (if (file-exists-p
+                         (setq pidfile (format "/tmp/Mosaic.%d" pid)))
+                        (delete-file pidfile))
+                    ;; http://debbugs.gnu.org/17428.  Use O_EXCL.
+                    (write-region nil nil pidfile nil 'silent nil 'excl))
+                (set-default-file-modes umask))))
 	  ;; Send signal SIGUSR to Mosaic
 	  (message "Signaling Mosaic...")
 	  (signal-process pid 'SIGUSR1)
