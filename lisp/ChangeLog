@@ -1,5 +1,8 @@
 2014-05-10  Glenn Morris  <rgm@gnu.org>
 
+	* printing.el (pr-version):
+	* ps-print.el (ps-print-version): Also mention bug-gnu-emacs.
+
 	* net/browse-url.el (browse-url-mosaic):
 	Create /tmp/Mosaic.PID as a private file.
 
