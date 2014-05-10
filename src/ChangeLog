@@ -1,3 +1,8 @@
+2014-05-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (init_gsettings): Use g_settings_schema_source_lookup
+	instead of deprecated g_settings_list_schemas if possible (Bug#17434).
+
 2014-05-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* minibuf.c (read_minibuf): Avoid C99ism in previous patch (Bug#17430).

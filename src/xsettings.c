@@ -795,17 +795,29 @@ init_gsettings (void)
 {
 #ifdef HAVE_GSETTINGS
   GVariant *val;
-  const gchar *const *schemas;
   int schema_found = 0;
 
 #if ! GLIB_CHECK_VERSION (2, 36, 0)
   g_type_init ();
 #endif
 
-  schemas = g_settings_list_schemas ();
-  if (schemas == NULL) return;
-  while (! schema_found && *schemas != NULL)
-    schema_found = strcmp (*schemas++, GSETTINGS_SCHEMA) == 0;
+#if GLIB_CHECK_VERSION (2, 32, 0)
+  {
+    GSettingsSchema *sc = g_settings_schema_source_lookup
+      (g_settings_schema_source_get_default (),
+       GSETTINGS_SCHEMA,
+       TRUE);
+    schema_found = sc != NULL;
+    if (sc) g_settings_schema_unref (sc);
+  }
+#else
+  {
+    const gchar *const *schemas = g_settings_list_schemas ();
+    if (schemas == NULL) return;
+    while (! schema_found && *schemas != NULL)
+      schema_found = strcmp (*schemas++, GSETTINGS_SCHEMA) == 0;
+  }
+#endif
   if (!schema_found) return;
 
   gsettings_client = g_settings_new (GSETTINGS_SCHEMA);
