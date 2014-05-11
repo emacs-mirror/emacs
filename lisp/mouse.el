@@ -514,14 +514,18 @@ must be one of the symbols `header', `mode', or `vertical'."
   (interactive "e")
   (mouse-drag-line start-event 'vertical))
 
-(defun mouse-set-point (event)
+(defun mouse-set-point (event &optional promote-to-region)
   "Move point to the position clicked on with the mouse.
-This should be bound to a mouse click event type."
-  (interactive "e")
+This should be bound to a mouse click event type.
+If PROMOTE-TO-REGION is non-nil and event is a multiple-click,
+select the corresponding element around point."
+  (interactive "e\np")
   (mouse-minibuffer-check event)
-  ;; Use event-end in case called from mouse-drag-region.
-  ;; If EVENT is a click, event-end and event-start give same value.
-  (posn-set-point (event-end event)))
+  (if (and promote-to-region (> (event-click-count event) 1))
+      (mouse-set-region event)
+    ;; Use event-end in case called from mouse-drag-region.
+    ;; If EVENT is a click, event-end and event-start give same value.
+    (posn-set-point (event-end event))))
 
 (defvar mouse-last-region-beg nil)
 (defvar mouse-last-region-end nil)
@@ -534,6 +538,8 @@ This should be bound to a mouse click event type."
        (eq mouse-last-region-end (region-end))
        (eq mouse-last-region-tick (buffer-modified-tick))))
 
+(defvar mouse--drag-start-event nil)
+
 (defun mouse-set-region (click)
   "Set the region to the text dragged over, and copy to kill ring.
 This should be bound to a mouse drag event.
@@ -543,7 +549,22 @@ command alters the kill ring or not."
   (mouse-minibuffer-check click)
   (select-window (posn-window (event-start click)))
   (let ((beg (posn-point (event-start click)))
-	(end (posn-point (event-end click))))
+	(end (posn-point (event-end click)))
+        (click-count (event-click-count click)))
+    (let ((drag-start (terminal-parameter nil 'mouse-drag-start)))
+      ;; Drag events don't come with a click count, sadly, so we hack
+      ;; our way around this problem by remembering the start-event in
+      ;; `mouse-drag-start' and fetching the click-count from there.
+      (when drag-start
+        (when (and (<= click-count 1)
+                   (equal beg (posn-point (event-start drag-start))))
+          (setq click-count (event-click-count drag-start)))
+        (setf (terminal-parameter nil 'mouse-drag-start) nil)))
+    (when (and (integerp beg) (integerp end))
+      (let ((range (mouse-start-end beg end (1- click-count))))
+        (if (< end beg)
+            (setq end (nth 0 range) beg (nth 1 range))
+          (setq beg (nth 0 range) end (nth 1 range)))))
     (and mouse-drag-copy-region (integerp beg) (integerp end)
 	 ;; Don't set this-command to `kill-region', so a following
 	 ;; C-w won't double the text in the kill ring.  Ignore
@@ -637,13 +658,11 @@ Upon exit, point is at the far edge of the newly visible text."
 Highlight the drag area as you move the mouse.
 This must be bound to a button-down mouse event.
 In Transient Mark mode, the highlighting remains as long as the mark
-remains active.  Otherwise, it remains until the next input event.
-
-If the click is in the echo area, display the `*Messages*' buffer."
+remains active.  Otherwise, it remains until the next input event."
   (interactive "e")
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
-  (mouse-drag-track start-event t))
+  (mouse-drag-track start-event))
 
 
 (defun mouse-posn-property (pos property)
@@ -747,12 +766,9 @@ at the same position."
 		    "mouse-1" (substring msg 7)))))))
   msg)
 
-(defun mouse-drag-track (start-event  &optional
-				      do-mouse-drag-region-post-process)
+(defun mouse-drag-track (start-event)
     "Track mouse drags by highlighting area between point and cursor.
-The region will be defined with mark and point.
-DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
-`mouse-drag-region'."
+The region will be defined with mark and point."
   (mouse-minibuffer-check start-event)
   (setq mouse-selection-click-count-buffer (current-buffer))
   (deactivate-mark)
@@ -765,8 +781,6 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 	 (start-posn (event-start start-event))
 	 (start-point (posn-point start-posn))
 	 (start-window (posn-window start-posn))
-	 (start-window-start (window-start start-window))
-	 (start-hscroll (window-hscroll start-window))
 	 (bounds (window-edges start-window))
 	 (make-cursor-line-fully-visible nil)
 	 (top (nth 1 bounds))
@@ -777,9 +791,7 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 	 (click-count (1- (event-click-count start-event)))
 	 ;; Suppress automatic hscrolling, because that is a nuisance
 	 ;; when setting point near the right fringe (but see below).
-	 (auto-hscroll-mode-saved auto-hscroll-mode)
-	 (auto-hscroll-mode nil)
-	 moved-off-start event end end-point)
+	 (auto-hscroll-mode-saved auto-hscroll-mode))
 
     (setq mouse-selection-click-count click-count)
     ;; In case the down click is in the middle of some intangible text,
@@ -798,23 +810,21 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
       (push-mark (nth 0 range) t t)
       (goto-char (nth 1 range)))
 
-    ;; Track the mouse until we get a non-movement event.
-    (track-mouse
-      (while (progn
-	       (setq event (read-event))
-	       (or (mouse-movement-p event)
-		   (memq (car-safe event) '(switch-frame select-window))))
-	(unless (memq (car-safe event) '(switch-frame select-window))
-	  ;; Automatic hscrolling did not occur during the call to
-	  ;; `read-event'; but if the user subsequently drags the
-	  ;; mouse, go ahead and hscroll.
-	  (let ((auto-hscroll-mode auto-hscroll-mode-saved))
-	    (redisplay))
-	  (setq end (event-end event)
-		end-point (posn-point end))
-	  ;; Note whether the mouse has left the starting position.
+    (setf (terminal-parameter nil 'mouse-drag-start) start-event)
+    (setq track-mouse t)
+    (setq auto-hscroll-mode nil)
+
+    (set-transient-map
+     (let ((map (make-sparse-keymap)))
+       (define-key map [switch-frame] #'ignore)
+       (define-key map [select-window] #'ignore)
+       (define-key map [mouse-movement]
+         (lambda (event) (interactive "e")
+           (let* ((end (event-end event))
+                  (end-point (posn-point end)))
 	  (unless (eq end-point start-point)
-	    (setq moved-off-start t))
+               ;; As soon as the user moves, we can re-enable auto-hscroll.
+               (setq auto-hscroll-mode auto-hscroll-mode-saved))
 	  (if (and (eq (posn-window end) start-window)
 		   (integer-or-marker-p end-point))
 	      (mouse--drag-set-mark-and-point start-point
@@ -828,55 +838,12 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 	       ((>= mouse-row bottom)
 		(mouse-scroll-subr start-window (1+ (- mouse-row bottom))
 				   nil start-point))))))))
-
-    ;; Handle the terminating event if possible.
-    (when (consp event)
-      ;; Ensure that point is on the end of the last event.
-      (when (and (setq end-point (posn-point (event-end event)))
-		 (eq (posn-window end) start-window)
-		 (integer-or-marker-p end-point)
-		 (/= start-point end-point))
-	(mouse--drag-set-mark-and-point start-point
-					end-point click-count))
-
-      ;; Find its binding.
-      (let* ((fun (key-binding (vector (car event))))
-	     ;; FIXME This doesn't make sense, because
-	     ;; event-click-count always returns something >= 1.
-	     (do-multi-click (and (> (event-click-count event) 0)
-				  (functionp fun)
-				  (not (memq fun '(mouse-set-point
-						   mouse-set-region))))))
-	(if (and (/= (mark) (point))
-		 (not do-multi-click))
-
-	    ;; If point has moved, finish the drag.
-	    (let* (last-command this-command)
-	      (and mouse-drag-copy-region
-		   do-mouse-drag-region-post-process
-		   (let (deactivate-mark)
-		     (copy-region-as-kill (mark) (point)))))
-
-	  ;; Otherwise, run binding of terminating up-event.
+       map)
+     t (lambda ()
+         (setq track-mouse nil)
+         (setq auto-hscroll-mode auto-hscroll-mode-saved)
           (deactivate-mark)
-	  (if do-multi-click
-	      (goto-char start-point)
-	    (unless moved-off-start
-	      (pop-mark)))
-
-	  (when (and (functionp fun)
-		     (= start-hscroll (window-hscroll start-window))
-		     ;; Don't run the up-event handler if the window
-		     ;; start changed in a redisplay after the
-		     ;; mouse-set-point for the down-mouse event at
-		     ;; the beginning of this function.  When the
-		     ;; window start has changed, the up-mouse event
-		     ;; contains a different position due to the new
-		     ;; window contents, and point is set again.
-		     (or end-point
-			 (= (window-start start-window)
-			    start-window-start)))
-	    (push event unread-command-events)))))))
+         (pop-mark)))))
 
 (defun mouse--drag-set-mark-and-point (start click click-count)
   (let* ((range (mouse-start-end start click click-count))
@@ -1904,13 +1871,9 @@ choose a font."
 
 ;;; Bindings for mouse commands.
 
-(define-key global-map [down-mouse-1] 'mouse-drag-region)
+(global-set-key [down-mouse-1]	'mouse-drag-region)
 (global-set-key [mouse-1]	'mouse-set-point)
 (global-set-key [drag-mouse-1]	'mouse-set-region)
-
-;; These are tested for in mouse-drag-region.
-(global-set-key [double-mouse-1] 'mouse-set-point)
-(global-set-key [triple-mouse-1] 'mouse-set-point)
 
 (defun mouse--strip-first-event (_prompt)
   (substring (this-single-command-raw-keys) 1))

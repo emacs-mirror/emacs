@@ -1,5 +1,21 @@
 2014-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mouse.el: Use the normal toplevel loop while dragging.
+	(mouse-set-point): Handle multi-clicks.
+	(mouse-set-region): Handle multi-clicks for drags.
+	(mouse-drag-region): Update call accordingly.
+	(mouse-drag-track): Remove `do-mouse-drag-region-post-process' hack.
+	Use the normal event loop instead of a local while/read-event loop.
+	(global-map): Remove redundant bindings for double/triple-mouse-1.
+	* xt-mouse.el (xterm-mouse-translate-1): Only process one event at a time.
+	Generate synthetic down events when the protocol only sends up events.
+	(xterm-mouse-last): Remove.
+	(xterm-mouse--read-event-sequence-1000): Use xterm-mouse-last-down
+	terminal parameter instead.
+	(xterm-mouse--set-click-count): New function.
+	(xterm-mouse-event): Detect/generate double/triple clicks.
+	* reveal.el (reveal-close-old-overlays): Don't close while dragging.
+
 	* info.el (Info-quoted): New face.
 	(Info-mode-font-lock-keywords): New var.
 	(Info-mode): Use it.
