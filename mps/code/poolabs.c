@@ -315,7 +315,7 @@ Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   AVERT(Pool, pool);
   AVER(stream != NULL);
-  return WriteF(depth, stream,
+  return WriteF(stream, depth,
                 "No class-specific description available.\n",
                 NULL);
 }

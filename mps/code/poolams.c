@@ -525,7 +525,7 @@ failCreateTablesLo:
   BEGIN \
     if ((buffer) != NULL \
        && (i) == AMS_ADDR_INDEX(seg, accessor(buffer))) { \
-      Res _res = WriteF(0, stream, char, NULL); \
+      Res _res = WriteF(stream, 0, char, NULL); \
       if (_res != ResOK) return _res; \
     } \
   END
@@ -550,21 +550,21 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
   buffer = SegBuffer(seg);
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "AMS $P\n", (WriteFP)amsseg->ams,
                "grains $W\n", (WriteFW)amsseg->grains,
                NULL);
   if (res != ResOK) return res;
   if (amsseg->allocTableInUse)
-    res = WriteF(depth, stream,
+    res = WriteF(stream, depth,
                  "alloctable $P\n", (WriteFP)amsseg->allocTable,
                  NULL);
   else
-    res = WriteF(depth, stream,
+    res = WriteF(stream, depth,
                  "firstFree $W\n", (WriteFW)amsseg->firstFree,
                  NULL);
   if (res != ResOK) return res;
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "tables: nongrey $P, nonwhite $P\n",
                (WriteFP)amsseg->nongreyTable,
                (WriteFP)amsseg->nonwhiteTable,
@@ -576,9 +576,9 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
     char c = 0;
 
     if (i % 64 == 0) {
-      res = WriteF(0, stream, "\n", NULL);
+      res = WriteF(stream, 0, "\n", NULL);
       if (res != ResOK) return res;
-      res = WriteF(depth, stream, "  ", NULL);
+      res = WriteF(stream, depth, "  ", NULL);
       if (res != ResOK) return res;
     }
 
@@ -600,7 +600,7 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
         c = '.';
     } else
       c = ' ';
-    res = WriteF(0, stream, "$C", c, NULL);
+    res = WriteF(stream, 0, "$C", c, NULL);
     if (res != ResOK)
       return res;
 
@@ -1658,7 +1658,7 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (!TESTT(AMS, ams)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "AMS $P {\n", (WriteFP)ams,
                "  pool $P ($U)\n",
                (WriteFP)pool, (WriteFU)pool->serial,
@@ -1670,7 +1670,7 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
                NULL);
   if (res != ResOK) return res;
 
-  res = WriteF(depth + 2, stream,
+  res = WriteF(stream, depth + 2,
                "segments: * black  + grey  - white  . alloc  ! bad\n"
                "buffers: [ base  < scan limit  | init  > alloc  ] limit\n",
                NULL);
@@ -1682,7 +1682,7 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     if (res != ResOK) return res;
   }
 
-  res = WriteF(depth, stream, "} AMS $P\n",(WriteFP)ams, NULL);
+  res = WriteF(stream, depth, "} AMS $P\n",(WriteFP)ams, NULL);
   if (res != ResOK)
     return res;
 

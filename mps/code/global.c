@@ -1047,7 +1047,7 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
   if (stream == NULL) return ResFAIL;
 
   arena = GlobalsArena(arenaGlobals);
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "mpsVersion $S\n", arenaGlobals->mpsVersionString,
                "lock $P\n", (WriteFP)arenaGlobals->lock,
                "pollThreshold $U kB\n",
@@ -1079,13 +1079,13 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
   if (res != ResOK) return res;
 
   for(i=0; i < LDHistoryLENGTH; ++ i) {
-    res = WriteF(depth + 2, stream,
+    res = WriteF(stream, depth + 2,
                  "[$U] = $B\n", i, arena->history[i],
                  NULL);
     if (res != ResOK) return res;
   }
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "} history\n",
                "suspended $S\n", arena->suspended ? "YES" : "NO",
                "shDepth $U\n", arena->shDepth,

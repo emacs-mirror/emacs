@@ -38,7 +38,7 @@ _`.writef`: Our output requirements are few, so the code is short. The
 only output function which should be used in the rest of the MPM is
 ``WriteF()``.
 
-``Res WriteF(Count depth, mps_lib_FILE *stream, ...)``
+``Res WriteF(mps_lib_FILE *stream, Count depth, ...)``
 
 If ``depth`` is greater than zero, then the first format character,
 and each format character after a newline, is preceded by ``depth``
@@ -48,7 +48,7 @@ spaces.
 insert into the output, followed by another format string, more items,
 and so on, and finally a ``NULL`` format string. For example::
 
-    res = WriteF(depth, stream,
+    res = WriteF(stream, depth,
                  "Hello: $A\n", address,
                  "Spong: $U ($S)\n", number, string,
                  NULL);
@@ -56,7 +56,7 @@ and so on, and finally a ``NULL`` format string. For example::
 
 This makes ``Describe()`` methods much easier to write. For example, ``BufferDescribe()`` contains the following code::
 
-    res = WriteF(depth, stream,
+    res = WriteF(stream, depth,
                  "Buffer $P ($U) {\n",
                  (WriteFP)buffer, (WriteFU)buffer->serial,
                  "  class $P (\"$S\")\n",
@@ -80,12 +80,6 @@ This makes ``Describe()`` methods much easier to write. For example, ``BufferDes
                  "  poolLimit $A\n",   buffer->poolLimit,
                  NULL);
     if (res != ResOK) return res;
-
-_`.indent`: ``WriteF()`` maintains the indentation of nested
-structures automatically. In a format string, ``{`` increases the
-indentation level by one, and ``}`` decreases it by one. Before
-emitting the first character on a line (but after updating the depth),
-``WriteF()`` emits the indentation whitespace for the current depth.
 
 _`.types`: For each format ``$X`` that ``WriteF()`` supports, there is a
 type defined in impl.h.mpmtypes ``WriteFX()`` which is the promoted

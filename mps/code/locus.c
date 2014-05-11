@@ -136,7 +136,7 @@ Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth)
   if (!TESTT(GenDesc, gen)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "GenDesc $P {\n", (WriteFP)gen,
                "  zones $B\n", (WriteFB)gen->zones,
                "  capacity $U\n", (WriteFU)gen->capacity,
@@ -151,7 +151,7 @@ Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth)
     if (res != ResOK) return res;
   }
 
-  res = WriteF(depth, stream, "} GenDesc $P\n", (WriteFP)gen, NULL);
+  res = WriteF(stream, depth, "} GenDesc $P\n", (WriteFP)gen, NULL);
   return res;
 }
 
@@ -451,7 +451,7 @@ Res ChainDescribe(Chain chain, mps_lib_FILE *stream, Count depth)
   if (!TESTT(Chain, chain)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "Chain $P {\n", (WriteFP)chain,
                "  arena $P\n", (WriteFP)chain->arena,
                "  activeTraces $B\n", (WriteFB)chain->activeTraces,
@@ -463,7 +463,7 @@ Res ChainDescribe(Chain chain, mps_lib_FILE *stream, Count depth)
     if (res != ResOK) return res;
   }
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "} Chain $P\n", (WriteFP)chain,
                NULL);
   return res;
@@ -532,7 +532,7 @@ Res PoolGenDescribe(PoolGen pgen, mps_lib_FILE *stream, Count depth)
   if (!TESTT(PoolGen, pgen)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
   
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "PoolGen $P ($U) {\n", (WriteFP)pgen, (WriteFU)pgen->nr,
                "pool $P ($U) \"$S\"\n",
                (WriteFP)pgen->pool, (WriteFU)pgen->pool->serial,

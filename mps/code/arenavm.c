@@ -204,7 +204,7 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
    *
   */
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "  spareSize:     $U\n", (WriteFU)vmArena->spareSize,
                NULL);
   if(res != ResOK)

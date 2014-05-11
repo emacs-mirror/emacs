@@ -365,7 +365,7 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
   pool = SegPool(seg);
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "Segment $P [$A,$A) {\n", (WriteFP)seg,
                (WriteFA)SegBase(seg), (WriteFA)SegLimit(seg),
                "  class $P (\"$S\")\n",
@@ -378,10 +378,10 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   res = seg->class->describe(seg, stream, depth + 2);
   if (res != ResOK) return res;
 
-  res = WriteF(0, stream, "\n", NULL);
+  res = WriteF(stream, 0, "\n", NULL);
   if (res != ResOK) return res;
 
-  res = WriteF(depth, stream, "} Segment $P\n", (WriteFP)seg, NULL);
+  res = WriteF(stream, depth, "} Segment $P\n", (WriteFP)seg, NULL);
   return res;
 }
 
@@ -1032,7 +1032,7 @@ static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   if (!TESTT(Seg, seg)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "shield depth $U\n", (WriteFU)seg->depth,
                "protection mode: ",
                (SegPM(seg) & AccessREAD) ? "" : "!", "READ", " ",
@@ -1600,13 +1600,13 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   res = super->describe(seg, stream, depth);
   if (res != ResOK) return res;
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "summary $W\n", (WriteFW)gcseg->summary,
                NULL);
   if (res != ResOK) return res;
 
   if (gcseg->buffer == NULL) {
-    res = WriteF(depth, stream, "buffer: NULL\n", NULL);
+    res = WriteF(stream, depth, "buffer: NULL\n", NULL);
   } else {
     res = BufferDescribe(gcseg->buffer, stream, depth);
   }

@@ -679,7 +679,7 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (!TESTT(MVFF, mvff)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "MVFF $P {\n", (WriteFP)mvff,
                "  pool $P ($U)\n",
                (WriteFP)pool, (WriteFU)pool->serial,
@@ -699,7 +699,7 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  res = WriteF(depth, stream, "} MVFF $P\n", (WriteFP)mvff, NULL);
+  res = WriteF(stream, depth, "} MVFF $P\n", (WriteFP)mvff, NULL);
 
   return res;
 }

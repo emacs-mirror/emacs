@@ -164,7 +164,7 @@ Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *strea
   if (!TESTT(ABQ, abq)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "ABQ $P {\n", (WriteFP)abq,
                "  elements: $U \n", (WriteFU)abq->elements,
                "  in: $U \n", (WriteFU)abq->in,
@@ -186,7 +186,7 @@ Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *strea
   METER_WRITE(abq->peek, stream, depth + 2);
   METER_WRITE(abq->delete, stream, depth + 2);
 
-  res = WriteF(depth, stream, "} ABQ $P\n", (WriteFP)abq, NULL);
+  res = WriteF(stream, depth, "} ABQ $P\n", (WriteFP)abq, NULL);
   if(res != ResOK)
     return res;
  

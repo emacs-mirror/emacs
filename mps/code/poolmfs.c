@@ -322,7 +322,7 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 
   AVER(stream != NULL);
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "unrounded unit size $W\n", (WriteFW)mfs->unroundedUnitSize,
                "unit size $W\n",           (WriteFW)mfs->unitSize,
                "extent size $W\n",         (WriteFW)mfs->extendBy,

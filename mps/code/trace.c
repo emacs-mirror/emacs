@@ -1918,7 +1918,7 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
   default:             state = "unknown";   break;
   }
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "Trace $P ($U) {\n", (WriteFP)trace, (WriteFU)trace->ti,
                "arena $P ($U)\n", (WriteFP)trace->arena,
                (WriteFU)trace->arena->serial,
@@ -1941,7 +1941,7 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
                NULL);
   if (res != ResOK) return res;
 
-  res = WriteF(depth, stream, "} Trace $P\n", (WriteFP)trace, NULL);
+  res = WriteF(stream, depth, "} Trace $P\n", (WriteFP)trace, NULL);
   return res;
 }
 
