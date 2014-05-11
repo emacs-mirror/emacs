@@ -516,13 +516,13 @@ Res PoolGenDescribe(PoolGen pgen, mps_lib_FILE *stream, Count depth)
   
   res = WriteF(stream, depth,
                "PoolGen $P ($U) {\n", (WriteFP)pgen, (WriteFU)pgen->nr,
-               "pool $P ($U) \"$S\"\n",
+               "  pool $P ($U) \"$S\"\n",
                (WriteFP)pgen->pool, (WriteFU)pgen->pool->serial,
                (WriteFS)pgen->pool->class->name,
-               "chain $P\n", (WriteFP)pgen->chain,
-               "totalSize $U\n", (WriteFU)pgen->totalSize,
-               "newSize $U\n", (WriteFU)pgen->newSize,
-               "newSizeAtCreate $U\n", (WriteFU)pgen->newSizeAtCreate,
+               "  chain $P\n", (WriteFP)pgen->chain,
+               "  totalSize $U\n", (WriteFU)pgen->totalSize,
+               "  newSize $U\n", (WriteFU)pgen->newSize,
+               "  newSizeAtCreate $U\n", (WriteFU)pgen->newSizeAtCreate,
                "} PoolGen $P\n", (WriteFP)pgen,
                NULL);
   return res;
