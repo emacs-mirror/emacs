@@ -1013,7 +1013,7 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (!TESTT(MVT, mvt)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "MVT $P {\n", (WriteFP)mvt,
                "  minSize: $U\n", (WriteFU)mvt->minSize,
                "  meanSize: $U\n", (WriteFU)mvt->meanSize,
@@ -1075,7 +1075,7 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   METER_WRITE(mvt->exceptionSplinters, stream, depth + 2);
   METER_WRITE(mvt->exceptionReturns, stream, depth + 2);
  
-  res = WriteF(depth, stream, "} MVT $P\n", (WriteFP)mvt, NULL);
+  res = WriteF(stream, depth, "} MVT $P\n", (WriteFP)mvt, NULL);
   return res;
 }
 

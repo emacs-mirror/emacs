@@ -530,7 +530,7 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (!TESTT(Pool, pool)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
  
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "Pool $P ($U) {\n", (WriteFP)pool, (WriteFU)pool->serial,
                "  class $P (\"$S\")\n",
                (WriteFP)pool->class, pool->class->name,
@@ -543,7 +543,7 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     res = FormatDescribe(pool->format, stream, depth + 2);
     if (res != ResOK) return res;
   }
-  res = WriteF(depth + 2, stream,
+  res = WriteF(stream, depth + 2,
                "fillMutatorSize $UKb\n",
                (WriteFU)(pool->fillMutatorSize / 1024),
                "emptyMutatorSize $UKb\n",
@@ -564,7 +564,7 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     if (res != ResOK) return res;
   }
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "} Pool $P ($U)\n", (WriteFP)pool, (WriteFU)pool->serial,
                NULL);
   if (res != ResOK) return res;

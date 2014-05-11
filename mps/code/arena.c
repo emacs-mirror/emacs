@@ -47,7 +47,7 @@ static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
    * subclass describe method should avoid invoking 
    * ARENA_SUPERCLASS()->describe.  RHSK 2007-04-27.
    */
-  return WriteF(depth, stream,
+  return WriteF(stream, depth,
                 "  No class-specific description available.\n", NULL);
 }
 
@@ -436,14 +436,14 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
   if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(depth, stream, "Arena $P {\n", (WriteFP)arena,
+  res = WriteF(stream, depth, "Arena $P {\n", (WriteFP)arena,
                "  class $P (\"$S\")\n",
                (WriteFP)arena->class, arena->class->name,
                NULL);
   if (res != ResOK) return res;
 
   if (arena->poolReady) {
-    res = WriteF(depth + 2, stream,
+    res = WriteF(stream, depth + 2,
                  "controlPool $P\n", (WriteFP)&arena->controlPoolStruct,
                  NULL);
     if (res != ResOK) return res;
@@ -451,14 +451,14 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 
   /* Note: this Describe clause calls a function */
   reserved = ArenaReserved(arena);
-  res = WriteF(depth + 2, stream,
+  res = WriteF(stream, depth + 2,
                "reserved         $W  <-- "
                "total size of address-space reserved\n",
                (WriteFW)reserved,
                NULL);
   if (res != ResOK) return res;
 
-  res = WriteF(depth + 2, stream,
+  res = WriteF(stream, depth + 2,
                "committed        $W  <-- "
                "total bytes currently stored (in RAM or swap)\n",
                (WriteFW)arena->committed,
@@ -470,7 +470,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
                NULL);
   if (res != ResOK) return res;
 
-  res = WriteF(depth + 2, stream,
+  res = WriteF(stream, depth + 2,
                "droppedMessages $U$S\n", (WriteFU)arena->droppedMessages,
                (arena->droppedMessages == 0 ? "" : "  -- MESSAGES DROPPED!"),
                NULL);
@@ -479,14 +479,14 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
   res = (*arena->class->describe)(arena, stream, depth);
   if (res != ResOK) return res;
 
-  res = WriteF(depth + 2, stream, "Globals {\n", NULL);
+  res = WriteF(stream, depth + 2, "Globals {\n", NULL);
   if (res != ResOK) return res;  
   res = GlobalsDescribe(ArenaGlobals(arena), stream, depth + 4);
   if (res != ResOK) return res;
-  res = WriteF(depth + 2, stream, "} Globals\n", NULL);
+  res = WriteF(stream, depth + 2, "} Globals\n", NULL);
   if (res != ResOK) return res;  
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "} Arena $P ($U)\n", (WriteFP)arena,
                (WriteFU)arena->serial,
                NULL);
@@ -515,7 +515,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth)
     size = ArenaAlign(arena);
 
     if (TractBase(tract) > oldLimit) {
-      res = WriteF(depth, stream,
+      res = WriteF(stream, depth,
                    "[$P, $P) $W $U   ---\n",
                    (WriteFP)oldLimit, (WriteFP)base,
                    (WriteFW)AddrOffset(oldLimit, base),
@@ -524,7 +524,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth)
       if (res != ResOK) return res;
     }
 
-    res = WriteF(depth, stream,
+    res = WriteF(stream, depth,
                  "[$P, $P) $W $U   $P ($S)\n",
                  (WriteFP)base, (WriteFP)limit,
                  (WriteFW)size, (WriteFW)size,

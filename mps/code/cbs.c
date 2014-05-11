@@ -660,7 +660,7 @@ static Res cbsBlockDescribe(CBSBlock block, mps_lib_FILE *stream)
   if (stream == NULL)
     return ResFAIL;
 
-  res = WriteF(0, stream,
+  res = WriteF(stream, 0,
                "[$P,$P) {$U, $B}",
                (WriteFP)block->base,
                (WriteFP)block->limit,
@@ -1064,7 +1064,7 @@ Res CBSDescribe(CBS cbs, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResFAIL;
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "CBS $P {\n", (WriteFP)cbs,
                "  alignment: $U\n", (WriteFU)cbs->alignment,
                "  blockPool: $P\n", (WriteFP)cbsBlockPool(cbs),
@@ -1080,7 +1080,7 @@ Res CBSDescribe(CBS cbs, mps_lib_FILE *stream, Count depth)
                           &cbsSplayNodeDescribe);
   if (res != ResOK) return res;
 
-  res = WriteF(depth, stream, "} CBS $P\n", (WriteFP)cbs, NULL);
+  res = WriteF(stream, depth, "} CBS $P\n", (WriteFP)cbs, NULL);
   return res;
 }
 

@@ -197,7 +197,7 @@ Res FormatDescribe(Format format, mps_lib_FILE *stream, Count depth)
 {
   Res res;
  
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "Format $P ($U) {\n", (WriteFP)format, (WriteFU)format->serial,
                "  arena $P ($U)\n",
                (WriteFP)format->arena, (WriteFU)format->arena->serial,
