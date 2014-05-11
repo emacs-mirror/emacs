@@ -1,3 +1,8 @@
+2014-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (preceding-sexp): Exclude leading "," which
+	are a hindrance for C-x C-e.
+
 2014-05-11  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-sentinel): Fix last change.
