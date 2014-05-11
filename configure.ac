@@ -1354,15 +1354,29 @@ PKG_PROG_PKG_CONFIG(0.9.0)
 dnl EMACS_CHECK_MODULES(GSTUFF, gtk+-2.0 >= 1.3 glib = 1.3.4)
 dnl acts like PKG_CHECK_MODULES(GSTUFF, gtk+-2.0 >= 1.3 glib = 1.3.4,
 dnl HAVE_GSTUFF=yes, HAVE_GSTUFF=no) -- see pkg-config man page --
-dnl except that it postprocesses CFLAGS as needed for --enable-gcc-warnings.
+dnl except that it works around older pkg-config bugs and
+dnl it postprocesses CFLAGS as needed for --enable-gcc-warnings.
 dnl EMACS_CHECK_MODULES accepts optional 3rd and 4th arguments that
 dnl can take the place of the default HAVE_GSTUFF=yes and HAVE_GSTUFF=no
 dnl actions.
 AC_DEFUN([EMACS_CHECK_MODULES],
-  [PKG_CHECK_MODULES([$1], [$2],
-     [$1_CFLAGS=`AS_ECHO(["$$1_CFLAGS"]) | sed -e "$edit_cflags"`
-      m4_default([$3], [HAVE_$1=yes])],
-     [m4_default([$4], [HAVE_$1=no])])])
+  [dnl pkg-config before 0.26 doesn't check exit status properly; see:
+   dnl https://bugs.freedesktop.org/show_bug.cgi?id=29801
+   dnl Work around the bug by checking the status ourselves.
+   emacs_check_module_ok=false
+   AS_IF([test -n "$PKG_CONFIG" &&
+	  { $PKG_CONFIG --atleast-pkgconfig-version 0.26 ||
+	    { $PKG_CONFIG --cflags "$1" "$2" && $PKG_CONFIG --libs "$1" "$2"; }
+	  } >/dev/null 2>&AS_MESSAGE_LOG_FD],
+     [PKG_CHECK_MODULES([$1], [$2],
+	[$1_CFLAGS=`AS_ECHO(["$$1_CFLAGS"]) | sed -e "$edit_cflags"`
+	 emacs_check_module_ok=:],
+	[:])])
+   if $emacs_check_module_ok; then
+     m4_default([$3], [HAVE_$1=yes])
+   else
+     m4_default([$4], [HAVE_$1=no])
+   fi])
 
 HAVE_SOUND=no
 if test "${with_sound}" != "no"; then

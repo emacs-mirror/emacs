@@ -1,3 +1,10 @@
+2014-05-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Work around bug in pkg-config before 0.26 (Bug#17438).
+	* configure.ac (EMACS_CHECK_MODULES): Check for failed exit status
+	of pkg-config, on older pkg-config versions that don't do it
+	properly.
+
 2014-05-07  Glenn Morris  <rgm@gnu.org>
 
 	* autogen.sh: Check for failing aclocal.
