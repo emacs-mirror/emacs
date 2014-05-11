@@ -21,7 +21,7 @@
 
 /* These values have been tuned in the hope of getting one dynamic collection. */
 #define testArenaSIZE     ((size_t)1000*1024)
-#define gen1SIZE          ((size_t)150)
+#define gen1SIZE          ((size_t)40)
 #define gen2SIZE          ((size_t)170)
 #define avLEN             3
 #define exactRootsCOUNT   180
