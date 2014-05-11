@@ -4209,9 +4209,16 @@ With a zero prefix arg, put the name inside a function call to `info'."
     st)
   "Syntax table used in `Info-mode'.")
 
+(defface Info-quoted
+  '((t :family "courier"))
+  "Face used for quoted elements.")
+
+(defvar Info-mode-font-lock-keywords
+  '(("‘\\([^’]*\\)’" (1 'Info-quoted))))
+
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
-(define-derived-mode Info-mode nil "Info"
+(define-derived-mode Info-mode nil "Info" ;FIXME: Derive from special-mode?
   "Info mode provides commands for browsing through the Info documentation tree.
 Documentation in Info is divided into \"nodes\", each of which discusses
 one topic and contains references to other nodes which discuss related
@@ -4297,6 +4304,7 @@ Advanced commands:
   (setq-local isearch-push-state-function #'Info-isearch-push-state)
   (setq-local isearch-filter-predicate #'Info-isearch-filter)
   (setq-local revert-buffer-function #'Info-revert-buffer-function)
+  (setq-local font-lock-defaults '(Info-mode-font-lock-keywords t t))
   (Info-set-mode-line)
   (setq-local bookmark-make-record-function #'Info-bookmark-make-record))
 

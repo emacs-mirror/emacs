@@ -1,5 +1,9 @@
 2014-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* info.el (Info-quoted): New face.
+	(Info-mode-font-lock-keywords): New var.
+	(Info-mode): Use it.
+
 	* emacs-lisp/lisp-mode.el (preceding-sexp): Exclude leading "," which
 	are a hindrance for C-x C-e.
 
@@ -232,14 +236,14 @@
 	(diary-chinese-insert-yearly-entry): New commands to insert
 	Chinese diary entries.
 
-	* calendar/diary-lib.el (diary-font-lock-keywords): Support
-	font-locking Chinese dates.
+	* calendar/diary-lib.el (diary-font-lock-keywords):
+	Support font-locking Chinese dates.
 
 	* calendar/cal-menu.el (cal-menu-diary-menu): Add entries for
 	inserting Chinese diary entries.
 
-	* calendar/calendar.el (diary-chinese-entry-symbol): New
-	customizable variable.
+	* calendar/calendar.el (diary-chinese-entry-symbol):
+	New customizable variable.
 	(calendar-mode-map): Add bindings for inserting Chinese diary
 	entries.
 
@@ -258,8 +262,8 @@
 	incorrectness of position adjustments when undoing in region.
 	(Bug#17235)
 	(undo-elt-crosses-region): Make obsolete.
-	(undo-adjust-elt, undo-adjust-beg-end, undo-adjust-pos): New
-	functions to adjust positions using undo-deltas.
+	(undo-adjust-elt, undo-adjust-beg-end, undo-adjust-pos):
+	New functions to adjust positions using undo-deltas.
 
 2014-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
