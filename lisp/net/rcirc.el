@@ -686,7 +686,7 @@ When 0, do not auto-reconnect."
           (when (or (null rcirc-last-connect-time)
                     (< rcirc-reconnect-delay
                        (float-time (time-subtract now rcirc-last-connect-time))))
-            (setq sds-rcirc-sentinel-last now)
+            (setq rcirc-last-connect-time now)
             (rcirc-cmd-reconnect nil))))
       (run-hook-with-args 'rcirc-sentinel-functions process sentinel))))
 

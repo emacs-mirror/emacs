@@ -1,3 +1,7 @@
+2014-05-11  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-sentinel): Fix last change.
+
 2014-05-08  Sam Steingold  <sds@gnu.org>
 
 	* net/rcirc.el (rcirc-reconnect-delay): New user option.
