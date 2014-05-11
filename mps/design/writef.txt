@@ -38,13 +38,17 @@ _`.writef`: Our output requirements are few, so the code is short. The
 only output function which should be used in the rest of the MPM is
 ``WriteF()``.
 
-``Res WriteF(mps_lib_FILE *stream, ...)``
+``Res WriteF(Count depth, mps_lib_FILE *stream, ...)``
+
+If ``depth`` is greater than zero, then the first format character,
+and each format character after a newline, is preceded by ``depth``
+spaces.
 
 ``WriteF()`` expects a format string followed by zero or more items to
 insert into the output, followed by another format string, more items,
 and so on, and finally a ``NULL`` format string. For example::
 
-    res = WriteF(stream,
+    res = WriteF(depth, stream,
                  "Hello: $A\n", address,
                  "Spong: $U ($S)\n", number, string,
                  NULL);
@@ -52,25 +56,28 @@ and so on, and finally a ``NULL`` format string. For example::
 
 This makes ``Describe()`` methods much easier to write. For example, ``BufferDescribe()`` contains the following code::
 
-    res = WriteF(stream,
+    res = WriteF(depth, stream,
                  "Buffer $P ($U) {\n",
                  (WriteFP)buffer, (WriteFU)buffer->serial,
-                 "class $P (\"$S\")\n",
+                 "  class $P (\"$S\")\n",
                  (WriteFP)buffer->class, buffer->class->name,
-                 "Arena $P\n",       (WriteFP)buffer->arena,
-                 "Pool $P\n",        (WriteFP)buffer->pool,
-                 buffer->isMutator ? "Mutator" : "Internal", " Buffer\n",
-                 "mode $S (TRANSITION, LOGGED, FLIPPED, ATTACHED)\n",
-                 (WriteFS)abzMode,
-                 "fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
-                 "emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
-                 "alignment $W\n",   (WriteFW)buffer->alignment,
-                 "base $A\n",        buffer->base,
-                 "initAtFlip $A\n",  buffer->initAtFlip,
-                 "init $A\n",        buffer->ap_s.init,
-                 "alloc $A\n",       buffer->ap_s.alloc,
-                 "limit $A\n",       buffer->ap_s.limit,
-                 "poolLimit $A\n",   buffer->poolLimit,
+                 "  Arena $P\n",       (WriteFP)buffer->arena,
+                 "  Pool $P\n",        (WriteFP)buffer->pool,
+                 "  ", buffer->isMutator ? "Mutator" : "Internal", " Buffer\n",
+                 "  mode $C$C$C$C (TRANSITION, LOGGED, FLIPPED, ATTACHED)\n",
+                 (WriteFC)((buffer->mode & BufferModeTRANSITION) ? 't' : '_'),
+                 (WriteFC)((buffer->mode & BufferModeLOGGED)     ? 'l' : '_'),
+                 (WriteFC)((buffer->mode & BufferModeFLIPPED)    ? 'f' : '_'),
+                 (WriteFC)((buffer->mode & BufferModeATTACHED)   ? 'a' : '_'),
+                 "  fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
+                 "  emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
+                 "  alignment $W\n",   (WriteFW)buffer->alignment,
+                 "  base $A\n",        buffer->base,
+                 "  initAtFlip $A\n",  buffer->initAtFlip,
+                 "  init $A\n",        buffer->ap_s.init,
+                 "  alloc $A\n",       buffer->ap_s.alloc,
+                 "  limit $A\n",       buffer->ap_s.limit,
+                 "  poolLimit $A\n",   buffer->poolLimit,
                  NULL);
     if (res != ResOK) return res;
 
@@ -93,7 +100,7 @@ used in future in some generalisation of varargs in the MPS.
 _`.formats`: The formats supported are as follows.
 
 ======= =========== ================== ======================================
-Code    Bame        Type               Example rendering
+Code    Name        Type               Example rendering
 ======= =========== ================== ======================================
 ``$A``  address     ``Addr``           ``000000019EF60010``
 ``$P``  pointer     ``void *``         ``000000019EF60100``
@@ -111,8 +118,8 @@ promotion of a ``char`` (see `.types`_).
 
 _`.snazzy`: We should resist the temptation to make ``WriteF()`` an
 incredible snazzy output engine. We only need it for ``Describe()``
-methods. At the moment it's a very simple bit of code -- let's keep it
-that way.
+methods. At the moment it's a simple bit of code -- let's keep it that
+way.
 
 _`.f`: The ``F`` code is used for function pointers. ISO C forbids casting
 function pointers to other types, so the bytes of their representation are
@@ -129,7 +136,7 @@ Document History
 
 - 2013-05-22 GDR_ Converted to reStructuredText.
 
-- 2014-04-17 GDR_ Add design for maintaining indentation.
+- 2014-04-17 GDR_ ``WriteF()`` now takes a ``depth`` parameter.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/

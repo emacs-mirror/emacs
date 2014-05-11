@@ -183,7 +183,7 @@ _`.type.splay.node.describe.method`: A function of type
 ``SplayNodeDescribeMethod`` is required to write (via ``WriteF()``) a
 client-oriented representation of the splay node. The output should be
 non-empty, short, and without return characters. This is provided for
-debugging purposes only.
+debugging only.
 
 ``typedef Bool (*SplayTestNodeMethod)(SplayTree splay, Tree tree, void *closureP, unsigned long closureS)``
 
@@ -323,12 +323,13 @@ tree was previously beneficially balanced for a small working set of
 accesses, then this local optimization will be lost. (see
 `.future.parent`_).
 
-``Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream, SplayNodeDescribeMethod nodeDescribe)``
+``Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream, Count depth, SplayNodeDescribeMethod nodeDescribe)``
 
 _`.function.splay.tree.describe`: This function prints (using
-``WriteF``) to the stream a textual representation of the given splay
-tree, using ``nodeDescribe`` to print client-oriented representations
-of the nodes (see `.req.debug`_).
+``WriteF()``) to the stream a textual representation of the given
+splay tree, using ``nodeDescribe()`` to print client-oriented
+representations of the nodes (see `.req.debug`_). Provided for
+debugging only.
 
 ``Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay, SplayTestNodeMethod testNode, SplayTestTreeMethod testTree, void *closureP, unsigned long closureS)``
 
@@ -368,19 +369,19 @@ _`.prop`: To support `.req.property.find`_, this splay tree
 implementation provides additional features to permit clients to cache
 maximum (or minimum) values of client properties for all the nodes in
 a subtree. The splay tree implementation uses the cached values as
-part of ``SplayFindFirst`` and ``SplayFindLast`` via the ``testNode``
-and ``testTree`` methods. The client is free to choose how to
-represent the client property, and how to compute and store the cached
-value.
+part of ``SplayFindFirst()`` and ``SplayFindLast()`` via the
+``testNode`` and ``testTree`` methods. The client is free to choose
+how to represent the client property, and how to compute and store the
+cached value.
 
 _`.prop.update`: The cached values depend upon the topology of the
 tree, which may vary as a result of operations on the tree. The client
 is given the opportunity to compute new cache values whenever
 necessary, via the ``updateNode`` method (see
 `.function.splay.tree.init`_). This happens whenever the tree is
-restructured. The client may use the ``SplayNodeRefresh`` method to
+restructured. The client may use the ``SplayNodeRefresh()`` method to
 indicate that the client attributes at a node have changed (see
-`.req.property.change`_). A call to ``SplayNodeRefresh`` splays the
+`.req.property.change`_). A call to ``SplayNodeRefresh()`` splays the
 tree at the specified node, which may provoke calls to the
 ``updateNode`` method as a result of the tree restructuring. The
 ``updateNode`` method will also be called whenever a new splay node is

@@ -311,11 +311,13 @@ void PoolTrivBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 }
 
 
-Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream)
+Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   AVERT(Pool, pool);
   AVER(stream != NULL);
-  return WriteF(stream, "  No class-specific description available.\n", NULL);
+  return WriteF(depth, stream,
+                "No class-specific description available.\n",
+                NULL);
 }
 
 

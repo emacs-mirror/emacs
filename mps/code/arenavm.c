@@ -184,7 +184,7 @@ static Bool VMArenaCheck(VMArena vmArena)
 
 /* VMArenaDescribe -- describe the VMArena
  */
-static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
+static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   VMArena vmArena;
@@ -204,7 +204,7 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
    *
   */
 
-  res = WriteF(stream,
+  res = WriteF(depth, stream,
                "  spareSize:     $U\n", (WriteFU)vmArena->spareSize,
                NULL);
   if(res != ResOK)

@@ -64,12 +64,12 @@ void MeterAccumulate(Meter meter, Size amount)
 
 /* MeterWrite -- describe method for meters */
 
-Res MeterWrite(Meter meter, mps_lib_FILE *stream)
+Res MeterWrite(Meter meter, mps_lib_FILE *stream, Count depth)
 {
   Res res = ResOK;
 
-  res = WriteF(stream,
-               "meter $S {", meter->name,
+  res = WriteF(depth, stream,
+               "meter \"$S\" {", meter->name,
                "count: $U", meter->count,
                NULL);
   if (res != ResOK)
@@ -77,7 +77,7 @@ Res MeterWrite(Meter meter, mps_lib_FILE *stream)
   if (meter->count > 0) {
     double mean = meter->total / (double)meter->count;
    
-    res = WriteF(stream,
+    res = WriteF(0, stream,
                  ", total: $D", meter->total,
                  ", max: $U", meter->max,
                  ", min: $U", meter->min,
@@ -87,7 +87,7 @@ Res MeterWrite(Meter meter, mps_lib_FILE *stream)
     if (res != ResOK)
       return res;
   }
-  res = WriteF(stream, "}\n", NULL);
+  res = WriteF(0, stream, "}\n", NULL);
 
   return res;
 }
@@ -98,7 +98,7 @@ Res MeterWrite(Meter meter, mps_lib_FILE *stream)
 void MeterEmit(Meter meter)
 {
   EVENT6(MeterValues, meter, meter->total, meter->meanSquared,
-               meter->count, meter->max, meter->min);
+         meter->count, meter->max, meter->min);
 }
 
 

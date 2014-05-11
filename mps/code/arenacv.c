@@ -332,7 +332,6 @@ static void testAllocAndIterate(Arena arena, Pool pool,
     }
     SegPrefExpress(&pref, SegPrefZoneSet, &zone);
   }
-
 }
 
 
@@ -362,6 +361,10 @@ static void testPageTable(ArenaClass class, Size size, Addr addr, Bool zoned)
   /* test segment allocation and iteration */
   testAllocAndIterate(arena, pool, pageSize, tractsPerPage,
                       &allocatorSegStruct);
+
+  die(ArenaDescribe(arena, mps_lib_get_stdout(), 0), "ArenaDescribe");
+  die(ArenaDescribeTracts(arena, mps_lib_get_stdout(), 0),
+      "ArenaDescribeTracts");
 
   PoolDestroy(pool);
   ArenaDestroy(arena);

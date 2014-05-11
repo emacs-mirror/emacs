@@ -128,7 +128,7 @@ static Size GenDescTotalSize(GenDesc gen)
 
 /* GenDescDescribe -- describe a generation in a chain */
 
-Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream)
+Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   Ring node, nextNode;
@@ -136,22 +136,22 @@ Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream)
   if (!TESTT(GenDesc, gen)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(depth, stream,
                "GenDesc $P {\n", (WriteFP)gen,
-               "zones $B\n", (WriteFB)gen->zones,
-               "capacity $U\n", (WriteFU)gen->capacity,
-               "mortality $D\n", (WriteFD)gen->mortality,
-               "proflow $D\n", (WriteFD)gen->proflow,
+               "  zones $B\n", (WriteFB)gen->zones,
+               "  capacity $U\n", (WriteFU)gen->capacity,
+               "  mortality $D\n", (WriteFD)gen->mortality,
+               "  proflow $D\n", (WriteFD)gen->proflow,
                NULL);
   if (res != ResOK) return res;
 
   RING_FOR(node, &gen->locusRing, nextNode) {
     PoolGen pgen = RING_ELT(PoolGen, genRing, node);
-    res = PoolGenDescribe(pgen, stream);
+    res = PoolGenDescribe(pgen, stream, depth + 2);
     if (res != ResOK) return res;
   }
 
-  res = WriteF(stream, "} GenDesc $P\n", (WriteFP)gen, NULL);
+  res = WriteF(depth, stream, "} GenDesc $P\n", (WriteFP)gen, NULL);
   return res;
 }
 
@@ -443,7 +443,7 @@ void ChainEndGC(Chain chain, Trace trace)
 
 /* ChainDescribe -- describe a chain */
 
-Res ChainDescribe(Chain chain, mps_lib_FILE *stream)
+Res ChainDescribe(Chain chain, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   size_t i;
@@ -451,19 +451,19 @@ Res ChainDescribe(Chain chain, mps_lib_FILE *stream)
   if (!TESTT(Chain, chain)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(depth, stream,
                "Chain $P {\n", (WriteFP)chain,
-               "arena $P\n", (WriteFP)chain->arena,
-               "activeTraces $B\n", (WriteFB)chain->activeTraces,
+               "  arena $P\n", (WriteFP)chain->arena,
+               "  activeTraces $B\n", (WriteFB)chain->activeTraces,
                NULL);
   if (res != ResOK) return res;
 
   for (i = 0; i < chain->genCount; ++i) {
-    res = GenDescDescribe(&chain->gens[i], stream);
+    res = GenDescDescribe(&chain->gens[i], stream, depth + 2);
     if (res != ResOK) return res;
   }
 
-  res = WriteF(stream,
+  res = WriteF(depth, stream,
                "} Chain $P\n", (WriteFP)chain,
                NULL);
   return res;
@@ -525,14 +525,14 @@ Bool PoolGenCheck(PoolGen gen)
 
 /* PoolGenDescribe -- describe a PoolGen */
 
-Res PoolGenDescribe(PoolGen pgen, mps_lib_FILE *stream)
+Res PoolGenDescribe(PoolGen pgen, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
   if (!TESTT(PoolGen, pgen)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
   
-  res = WriteF(stream,
+  res = WriteF(depth, stream,
                "PoolGen $P ($U) {\n", (WriteFP)pgen, (WriteFU)pgen->nr,
                "pool $P ($U) \"$S\"\n",
                (WriteFP)pgen->pool, (WriteFU)pgen->pool->serial,

@@ -551,14 +551,14 @@ static Bool freelistDescribeIterateMethod(Bool *deleteReturn, Range range,
 {
   Res res;
   mps_lib_FILE *stream = closureP;
+  Count depth = closureS;
 
   AVER(deleteReturn != NULL);
   AVERT(Range, range);
   AVER(stream != NULL);
-  UNUSED(closureS);
 
-  res = WriteF(stream,
-               "  [$P,", (WriteFP)RangeBase(range),
+  res = WriteF(depth, stream,
+               "[$P,", (WriteFP)RangeBase(range),
                "$P)", (WriteFP)RangeLimit(range),
                " {$U}\n", (WriteFU)RangeSize(range),
                NULL);
@@ -568,22 +568,22 @@ static Bool freelistDescribeIterateMethod(Bool *deleteReturn, Range range,
 }
 
 
-Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream)
+Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
   if (!TESTT(Freelist, fl)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(depth, stream,
                "Freelist $P {\n", (WriteFP)fl,
                "  alignment = $U\n", (WriteFU)fl->alignment,
                "  listSize = $U\n", (WriteFU)fl->listSize,
                NULL);
 
-  FreelistIterate(fl, freelistDescribeIterateMethod, stream, 0);
+  FreelistIterate(fl, freelistDescribeIterateMethod, stream, depth + 2);
 
-  res = WriteF(stream, "}\n", NULL);
+  res = WriteF(depth, stream, "} Freelist $P\n", (WriteFP)fl, NULL);
   return res;
 }
 

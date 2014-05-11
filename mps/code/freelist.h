@@ -34,7 +34,7 @@ extern void FreelistFinish(Freelist fl);
 
 extern Res FreelistInsert(Range rangeReturn, Freelist fl, Range range);
 extern Res FreelistDelete(Range rangeReturn, Freelist fl, Range range);
-extern Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream);
+extern Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream, Count depth);
 
 extern void FreelistIterate(Freelist abq, FreelistIterateMethod iterate,
                             void *closureP, Size closureS);

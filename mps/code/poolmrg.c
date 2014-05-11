@@ -792,7 +792,7 @@ Res MRGDeregister(Pool pool, Ref obj)
  * This could be improved by implementing MRGSegDescribe
  * and having MRGDescribe iterate over all the pool's segments.
  */
-static Res MRGDescribe(Pool pool, mps_lib_FILE *stream)
+static Res MRGDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   MRG mrg;
   Arena arena;
@@ -806,13 +806,13 @@ static Res MRGDescribe(Pool pool, mps_lib_FILE *stream)
   if (stream == NULL) return ResFAIL;
 
   arena = PoolArena(pool);
-  res = WriteF(stream, "  extendBy $W\n", mrg->extendBy, NULL);
+  res = WriteF(depth, stream, "  extendBy $W\n", mrg->extendBy, NULL);
   if (res != ResOK) return res;
-  res = WriteF(stream, "  Entry queue:\n", NULL);
+  res = WriteF(depth, stream, "  Entry queue:\n", NULL);
   if (res != ResOK) return res;
   RING_FOR(node, &mrg->entryRing, nextNode) {
     refPart = MRGRefPartOfLink(linkOfRing(node), arena);
-    res = WriteF(stream, "    at $A Ref $A\n",
+    res = WriteF(depth, stream, "    at $A Ref $A\n",
                  (WriteFA)refPart, (WriteFA)MRGRefPartRef(arena, refPart),
                  NULL);
     if (res != ResOK) return res;

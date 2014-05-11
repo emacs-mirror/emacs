@@ -203,11 +203,11 @@ the Coalescing Block Structure ``cbs``. Continue until a call to
 ``CBSInsert()`` fails, or until the free list is empty, whichever
 happens first.
 
-``Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream)``
+``Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream, Count depth)``
 
 _`.function.describe`: Print a textual representation of the free
 list ``fl`` to the given stream, indicating the contiguous ranges in
-order. It is provided for debugging purposes only.
+order. It is provided for debugging only.
 
 
 

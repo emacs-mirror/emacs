@@ -167,13 +167,12 @@ and an iterator method to invoke on every range in address order. If
 the iterator method returns ``FALSE``, then the iteration is
 terminated.
 
-``Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)``
+``Res CBSDescribe(CBS cbs, mps_lib_FILE *stream, Count depth)``
 
-_`.function.cbs.describe`: ``CBSDescribe()`` is a function that prints
-a textual representation of the CBS to the given stream, indicating
-the contiguous ranges in order, as well as the structure of the
-underlying splay tree implementation. It is provided for debugging
-purposes only.
+_`.function.cbs.describe`: ``CBSDescribe()`` prints a textual
+representation of the CBS to the given stream, indicating the
+contiguous ranges in order, as well as the structure of the underlying
+splay tree implementation. It is provided for debugging only.
 
 ``Bool CBSFindFirst(Range rangeReturn, Range oldRangeReturn, CBS cbs, Size size, FindDelete findDelete)``
 
@@ -291,8 +290,8 @@ simulates the allocation and deallocation of ranges within this block
 using both a ``CBS`` and a ``BT``. It makes both valid and invalid
 requests, and compares the ``CBS`` response to the correct behaviour
 as determined by the ``BT``. It also iterates the ranges in the
-``CBS``, comparing them to the ``BT``. It also invokes the
-``CBSDescribe()`` method, but makes no automatic test of the resulting
+``CBS``, comparing them to the ``BT``. It also invokes
+``CBSDescribe()``, but makes no automatic test of the resulting
 output. It does not currently test the callbacks.
 
 _`.test.pool`: Several pools (currently MVT_ and MVFF_) are implemented

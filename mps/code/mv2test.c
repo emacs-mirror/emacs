@@ -4,21 +4,18 @@
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  */
 
-#include <stdio.h>
+#include <math.h>
 #include <stdarg.h>
-#include "mpstd.h"
+#include <stdio.h>
 #include <time.h>
 
-#include "mpscmvt.h"
+#include "mpm.h"
 #include "mps.h"
-
-typedef mps_word_t mps_count_t;  /* machine word (target dep.) */
-
-#include "mpslib.h"
 #include "mpsavm.h"
+#include "mpscmvt.h"
+#include "mpslib.h"
+#include "mpstd.h"
 #include "testlib.h"
-
-#include <math.h>
 
 /* expdev() -- exponentially distributed random deviates
  *
@@ -115,6 +112,9 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
       if(i && i%4==0) putchar('\n');
       printf("%"PRIwWORD PRIXLONGEST" %6"PRIXLONGEST" ",
              (ulongest_t)ps[i], (ulongest_t)ss[i]);
+    }
+    if (i == 100) {
+      PoolDescribe(pool, mps_lib_get_stdout(), 0);
     }
   }
   if (verbose) {

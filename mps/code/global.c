@@ -1034,7 +1034,7 @@ Ref ArenaRead(Arena arena, Ref *p)
 
 /* GlobalsDescribe -- describe the arena globals */
 
-Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
+Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   Arena arena;
@@ -1047,85 +1047,83 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
   if (stream == NULL) return ResFAIL;
 
   arena = GlobalsArena(arenaGlobals);
-  res = WriteF(stream,
-               "  mpsVersion $S\n", arenaGlobals->mpsVersionString,
-               "  lock $P\n", (WriteFP)arenaGlobals->lock,
-               "  pollThreshold $U kB\n",
+  res = WriteF(depth, stream,
+               "mpsVersion $S\n", arenaGlobals->mpsVersionString,
+               "lock $P\n", (WriteFP)arenaGlobals->lock,
+               "pollThreshold $U kB\n",
                (WriteFU)(arenaGlobals->pollThreshold / 1024),
                arenaGlobals->insidePoll ? "inside poll\n" : "outside poll\n",
                arenaGlobals->clamped ? "clamped\n" : "released\n",
-               "  fillMutatorSize $U kB\n",
-                 (WriteFU)(arenaGlobals->fillMutatorSize / 1024),
-               "  emptyMutatorSize $U kB\n",
-                 (WriteFU)(arenaGlobals->emptyMutatorSize / 1024),
-               "  allocMutatorSize $U kB\n",
-                 (WriteFU)(arenaGlobals->allocMutatorSize / 1024),
-               "  fillInternalSize $U kB\n",
-                 (WriteFU)(arenaGlobals->fillInternalSize / 1024),
-               "  emptyInternalSize $U kB\n",
-                 (WriteFU)(arenaGlobals->emptyInternalSize / 1024),
-               "  poolSerial $U\n", (WriteFU)arenaGlobals->poolSerial,
-               "  rootSerial $U\n", (WriteFU)arenaGlobals->rootSerial,
-               "  formatSerial $U\n", (WriteFU)arena->formatSerial,
-               "  threadSerial $U\n", (WriteFU)arena->threadSerial,
+               "fillMutatorSize $U kB\n",
+               (WriteFU)(arenaGlobals->fillMutatorSize / 1024),
+               "emptyMutatorSize $U kB\n",
+               (WriteFU)(arenaGlobals->emptyMutatorSize / 1024),
+               "allocMutatorSize $U kB\n",
+               (WriteFU)(arenaGlobals->allocMutatorSize / 1024),
+               "fillInternalSize $U kB\n",
+               (WriteFU)(arenaGlobals->fillInternalSize / 1024),
+               "emptyInternalSize $U kB\n",
+               (WriteFU)(arenaGlobals->emptyInternalSize / 1024),
+               "poolSerial $U\n", (WriteFU)arenaGlobals->poolSerial,
+               "rootSerial $U\n", (WriteFU)arenaGlobals->rootSerial,
+               "formatSerial $U\n", (WriteFU)arena->formatSerial,
+               "threadSerial $U\n", (WriteFU)arena->threadSerial,
                arena->insideShield ? "inside shield\n" : "outside shield\n",
-               "  busyTraces    $B\n", (WriteFB)arena->busyTraces,
-               "  flippedTraces $B\n", (WriteFB)arena->flippedTraces,
-               "  epoch $U\n", (WriteFU)arena->epoch,
+               "busyTraces    $B\n", (WriteFB)arena->busyTraces,
+               "flippedTraces $B\n", (WriteFB)arena->flippedTraces,
+               "epoch $U\n", (WriteFU)arena->epoch,
+               "prehistory = $B\n", (WriteFB)arena->prehistory,
+               "history {\n",
+               "  [note: indices are raw, not rotated]\n",
                NULL);
   if (res != ResOK) return res;
 
   for(i=0; i < LDHistoryLENGTH; ++ i) {
-    res = WriteF(stream,
-                 "    history[$U] = $B\n", i, arena->history[i],
+    res = WriteF(depth + 2, stream,
+                 "[$U] = $B\n", i, arena->history[i],
                  NULL);
     if (res != ResOK) return res;
   }
 
-  res = WriteF(stream,
-               "    [note: indices are raw, not rotated]\n"
-               "    prehistory = $B\n", (WriteFB)arena->prehistory,
-               NULL);
-  if (res != ResOK) return res;
-
-  res = WriteF(stream,
-               "  suspended $S\n", arena->suspended ? "YES" : "NO",
-               "  shDepth $U\n", arena->shDepth,
-               "  shCacheI $U\n", arena->shCacheI,
+  res = WriteF(depth, stream,
+               "} history\n",
+               "suspended $S\n", arena->suspended ? "YES" : "NO",
+               "shDepth $U\n", arena->shDepth,
+               "shCacheI $U\n", arena->shCacheI,
                /* @@@@ should SegDescribe the cached segs? */
                NULL);
   if (res != ResOK) return res;
 
-  res = RootsDescribe(arenaGlobals, stream);
+  res = RootsDescribe(arenaGlobals, stream, depth);
   if (res != ResOK) return res;
 
   RING_FOR(node, &arenaGlobals->poolRing, nextNode) {
     Pool pool = RING_ELT(Pool, arenaRing, node);
-    res = PoolDescribe(pool, stream);
+    res = PoolDescribe(pool, stream, depth);
     if (res != ResOK) return res;
   }
 
   RING_FOR(node, &arena->formatRing, nextNode) {
     Format format = RING_ELT(Format, arenaRing, node);
-    res = FormatDescribe(format, stream);
+    res = FormatDescribe(format, stream, depth);
     if (res != ResOK) return res;
   }
 
   RING_FOR(node, &arena->threadRing, nextNode) {
     Thread thread = ThreadRingThread(node);
-    res = ThreadDescribe(thread, stream);
+    res = ThreadDescribe(thread, stream, depth);
     if (res != ResOK) return res;
   }
 
   RING_FOR(node, &arena->chainRing, nextNode) {
     Chain chain = RING_ELT(Chain, chainRing, node);
-    res = ChainDescribe(chain, stream);
+    res = ChainDescribe(chain, stream, depth);
     if (res != ResOK) return res;
   }
 
   TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
     if (TraceSetIsMember(arena->busyTraces, trace)) {
-      res = TraceDescribe(trace, stream);
+      res = TraceDescribe(trace, stream, depth);
       if (res != ResOK) return res;
     }
   TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);

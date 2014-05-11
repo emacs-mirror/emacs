@@ -225,7 +225,7 @@ static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
  *
  * See <design/poolamc/#seg-describe>.
  */
-static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
+static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   Pool pool;
@@ -246,7 +246,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
 
   /* Describe the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(amcSegClass);
-  res = super->describe(seg, stream);
+  res = super->describe(seg, stream, depth);
   if(res != ResOK)
     return res;
 
@@ -258,7 +258,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
   p = AddrAdd(base, pool->format->headerSize);
   limit = SegLimit(seg);
 
-  res = WriteF(stream,
+  res = WriteF(depth, stream,
                "AMC seg $P [$A,$A){\n",
                (WriteFP)seg, (WriteFA)base, (WriteFA)limit,
                NULL);
@@ -266,16 +266,17 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
     return res;
 
   if(amcSegHasNailboard(seg)) {
-    res = WriteF(stream, "  Boarded\n", NULL);
+    res = WriteF(depth + 2, stream, "Boarded\n", NULL);
   } else if(SegNailed(seg) == TraceSetEMPTY) {
-    res = WriteF(stream, "  Mobile\n", NULL);
+    res = WriteF(depth + 2, stream, "Mobile\n", NULL);
   } else {
-    res = WriteF(stream, "  Stuck\n", NULL);
+    res = WriteF(depth + 2, stream, "Stuck\n", NULL);
   }
   if(res != ResOK)
     return res;
 
-  res = WriteF(stream, "  Map:  *===:object  @+++:nails  bbbb:buffer\n", NULL);
+  res = WriteF(depth + 2, stream,
+               "Map:  *===:object  @+++:nails  bbbb:buffer\n", NULL);
   if(res != ResOK)
     return res;
 
@@ -288,7 +289,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
     Addr j;
     char c;
 
-    res = WriteF(stream, "    $A  ", i, NULL);
+    res = WriteF(depth + 2, stream, "$A  ", i, NULL);
     if(res != ResOK)
       return res;
 
@@ -308,22 +309,22 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
           c = (nailed ? '+' : '=');
         }
       }
-      res = WriteF(stream, "$C", c, NULL);
+      res = WriteF(0, stream, "$C", c, NULL);
       if(res != ResOK)
         return res;
     }
 
-    res = WriteF(stream, "\n", NULL);
+    res = WriteF(0, stream, "\n", NULL);
     if(res != ResOK)
       return res;
   }
 
   AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
-  res = WriteF(stream, "  Sketch: $S\n", (WriteFS)abzSketch, NULL);
+  res = WriteF(depth + 2, stream, "Sketch: $S\n", (WriteFS)abzSketch, NULL);
   if(res != ResOK)
     return res;
 
-  res = WriteF(stream, "} AMC Seg $P\n", (WriteFP)seg, NULL);
+  res = WriteF(depth, stream, "} AMC Seg $P\n", (WriteFP)seg, NULL);
   if(res != ResOK)
     return res;
 
@@ -707,22 +708,22 @@ static void amcGenDestroy(amcGen gen)
 
 /* amcGenDescribe -- describe an AMC generation */
 
-static Res amcGenDescribe(amcGen gen, mps_lib_FILE *stream)
+static Res amcGenDescribe(amcGen gen, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
   if(!TESTT(amcGen, gen))
     return ResFAIL;
 
-  res = WriteF(stream,
-               "  amcGen $P ($U) {\n",
+  res = WriteF(depth, stream,
+               "amcGen $P ($U) {\n",
                (WriteFP)gen, (WriteFU)amcGenNr(gen),
-               "   buffer $P\n", gen->forward,
-               "   segs $U, totalSize $U, newSize $U\n",
+               "  buffer $P\n", gen->forward,
+               "  segs $U, totalSize $U, newSize $U\n",
                (WriteFU)gen->segs,
                (WriteFU)gen->pgen.totalSize,
                (WriteFU)gen->pgen.newSize,
-               "  } amcGen\n", NULL);
+               "} amcGen $P\n", (WriteFP)gen, NULL);
   return res;
 }
 
@@ -2262,7 +2263,7 @@ static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
  *
  * See <design/poolamc/#describe>.
  */
-static Res AMCDescribe(Pool pool, mps_lib_FILE *stream)
+static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   AMC amc;
@@ -2277,7 +2278,7 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream)
   if(stream == NULL)
     return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(depth, stream,
                (amc->rankSet == RankSetEMPTY) ? "AMCZ" : "AMC",
                " $P {\n", (WriteFP)amc, "  pool $P ($U)\n",
                (WriteFP)AMC2Pool(amc), (WriteFU)AMC2Pool(amc)->serial,
@@ -2286,29 +2287,25 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream)
     return res;
 
   switch(amc->rampMode) {
-
 #define RAMP_DESCRIBE(e, s)     \
     case e:                     \
       rampmode = s;             \
       break;
-
     RAMP_RELATION(RAMP_DESCRIBE)
 #undef RAMP_DESCRIBE
-
     default:
       rampmode = "unknown ramp mode";
       break;
-
   }
-  res = WriteF(stream,
-               "  ", rampmode, " ($U)\n", (WriteFU)amc->rampCount,
+  res = WriteF(depth + 2, stream,
+               rampmode, " ($U)\n", (WriteFU)amc->rampCount,
                NULL);
   if(res != ResOK)
     return res;
 
   RING_FOR(node, &amc->genRing, nextNode) {
     amcGen gen = RING_ELT(amcGen, amcRing, node);
-    res = amcGenDescribe(gen, stream);
+    res = amcGenDescribe(gen, stream, depth + 2);
     if(res != ResOK)
       return res;
   }
@@ -2317,13 +2314,13 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream)
     /* SegDescribes */
     RING_FOR(node, &AMC2Pool(amc)->segRing, nextNode) {
       Seg seg = RING_ELT(Seg, poolRing, node);
-      res = AMCSegDescribe(seg, stream);
+      res = AMCSegDescribe(seg, stream, depth + 2);
       if(res != ResOK)
         return res;
     }
   }
 
-  res = WriteF(stream, "} AMC $P\n", (WriteFP)amc, NULL);
+  res = WriteF(depth, stream, "} AMC $P\n", (WriteFP)amc, NULL);
   if(res != ResOK)
     return res;
 

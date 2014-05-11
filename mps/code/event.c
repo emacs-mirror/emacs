@@ -319,7 +319,7 @@ void EventLabelAddr(Addr addr, EventStringId id)
   " $U", (WriteFU)event->name.f##index,
 
 
-Res EventDescribe(Event event, mps_lib_FILE *stream)
+Res EventDescribe(Event event, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
@@ -329,14 +329,14 @@ Res EventDescribe(Event event, mps_lib_FILE *stream)
   if (stream == NULL)
     return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(depth, stream,
                "Event $P {\n", (WriteFP)event,
                "  code $U\n", (WriteFU)event->any.code,
                "  clock ", NULL);
   if (res != ResOK) return res;
-  res = EVENT_CLOCK_WRITE(stream, event->any.clock);
+  res = EVENT_CLOCK_WRITE(depth, stream, event->any.clock);
   if (res != ResOK) return res;
-  res = WriteF(stream, "\n  size $U\n", (WriteFU)event->any.size, NULL);
+  res = WriteF(depth, stream, "\n  size $U\n", (WriteFU)event->any.size, NULL);
   if (res != ResOK) return res;
 
   switch (event->any.code) {
@@ -347,7 +347,7 @@ Res EventDescribe(Event event, mps_lib_FILE *stream)
 
 #define EVENT_DESC(X, name, _code, always, kind) \
   case _code: \
-    res = WriteF(stream, \
+    res = WriteF(depth, stream, \
                  "  event \"$S\"", (WriteFS)#name, \
                  EVENT_##name##_PARAMS(EVENT_DESC_PARAM, name) \
                  NULL); \
@@ -357,13 +357,13 @@ Res EventDescribe(Event event, mps_lib_FILE *stream)
   EVENT_LIST(EVENT_DESC, X)
 
   default:
-    res = WriteF(stream, "  event type unknown", NULL);
+    res = WriteF(depth, stream, "  event type unknown", NULL);
     if (res != ResOK) return res;
     /* TODO: Hexdump unknown event contents. */
     break;
   }
   
-  res = WriteF(stream,
+  res = WriteF(depth, stream,
                "\n} Event $P\n", (WriteFP)event,
                NULL);
   return res;
@@ -377,7 +377,7 @@ Res EventWrite(Event event, mps_lib_FILE *stream)
   if (event == NULL) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = EVENT_CLOCK_WRITE(stream, event->any.clock);
+  res = EVENT_CLOCK_WRITE(0, stream, event->any.clock);
   if (res != ResOK)
     return res;
 
@@ -388,7 +388,7 @@ Res EventWrite(Event event, mps_lib_FILE *stream)
 
 #define EVENT_WRITE(X, name, code, always, kind) \
   case code: \
-    res = WriteF(stream, " $S", #name, \
+    res = WriteF(0, stream, " $S", #name, \
                  EVENT_##name##_PARAMS(EVENT_WRITE_PARAM, name) \
                  NULL); \
     if (res != ResOK) return res; \
@@ -396,7 +396,7 @@ Res EventWrite(Event event, mps_lib_FILE *stream)
   EVENT_LIST(EVENT_WRITE, X)
 
   default:
-    res = WriteF(stream, " <unknown code $U>", event->any.code, NULL);
+    res = WriteF(0, stream, " <unknown code $U>", event->any.code, NULL);
     if (res != ResOK) return res;
     /* TODO: Hexdump unknown event contents. */
     break;
@@ -416,7 +416,7 @@ void EventDump(mps_lib_FILE *stream)
   /* This can happen if there's a backtrace very early in the life of
      the MPS, and will cause an access violation if we continue. */
   if (!eventInited) {
-    (void)WriteF(stream, "No events\n", NULL);
+    (void)WriteF(0, stream, "No events\n", NULL);
     return;
   }
 
@@ -427,7 +427,7 @@ void EventDump(mps_lib_FILE *stream)
       /* Try to keep going even if there's an error, because this is used as a
          backtrace and we'll take what we can get. */
       (void)EventWrite(event, stream);
-      (void)WriteF(stream, "\n", NULL);
+      (void)WriteF(0, stream, "\n", NULL);
     }
   }
 }
@@ -490,7 +490,7 @@ void EventLabelAddr(Addr addr, Word id)
 }
 
 
-Res EventDescribe(Event event, mps_lib_FILE *stream)
+Res EventDescribe(Event event, mps_lib_FILE *stream, Count depth)
 {
   UNUSED(event);
   UNUSED(stream);
@@ -498,7 +498,7 @@ Res EventDescribe(Event event, mps_lib_FILE *stream)
 }
 
 
-Res EventWrite(Event event, mps_lib_FILE *stream)
+Res EventWrite(Event event, mps_lib_FILE *stream, Count depth)
 {
   UNUSED(event);
   UNUSED(stream);

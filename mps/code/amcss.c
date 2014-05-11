@@ -8,6 +8,7 @@
 #include "fmtdy.h"
 #include "fmtdytst.h"
 #include "testlib.h"
+#include "mpm.h"
 #include "mpslib.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
@@ -273,6 +274,8 @@ static void test(mps_arena_t arena, mps_class_t pool_class, size_t roots_count)
 
     ++objs;
   }
+
+  die(ArenaDescribe(arena, mps_lib_get_stdout(), 0), "PoolDescribe");
 
   (void)mps_commit(busy_ap, busy_init, 64);
   mps_ap_destroy(busy_ap);
