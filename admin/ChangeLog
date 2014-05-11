@@ -1,3 +1,7 @@
+2014-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* find-gc.el: Move here from ../lisp/emacs-lisp.
+
 2014-05-10  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (set-version-in-file): Don't set identical version.

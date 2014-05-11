@@ -1,3 +1,7 @@
+2014-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/find-gc.el: Move to ../admin.
+
 2014-05-10  Glenn Morris  <rgm@gnu.org>
 
 	* printing.el (pr-version):
