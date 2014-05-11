@@ -275,6 +275,7 @@ static void test(mps_arena_t arena, mps_class_t pool_class, size_t roots_count)
   }
 
   (void)mps_commit(busy_ap, busy_init, 64);
+  mps_arena_park(arena);
   mps_ap_destroy(busy_ap);
   mps_ap_destroy(ap);
   mps_root_destroy(exactRoot);
@@ -282,6 +283,7 @@ static void test(mps_arena_t arena, mps_class_t pool_class, size_t roots_count)
   mps_pool_destroy(pool);
   mps_chain_destroy(chain);
   mps_fmt_destroy(format);
+  mps_arena_release(arena);
 }
 
 int main(int argc, char *argv[])
