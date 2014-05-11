@@ -923,8 +923,6 @@ extern void (ShieldFlush)(Arena arena);
 extern void ProtSetup(void);
 
 extern void ProtSet(Addr base, Addr limit, AccessSet mode);
-extern void ProtTramp(void **resultReturn, void *(*f)(void *, size_t),
-                      void *p, size_t s);
 extern void ProtSync(Arena arena);
 extern Bool ProtCanStepInstruction(MutatorFaultContext context);
 extern Res ProtStepInstruction(MutatorFaultContext context);

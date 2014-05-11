@@ -28,7 +28,7 @@
 #define totalSizeSTEP   200 * (size_t)1024
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
 #define objNULL         ((mps_addr_t)MPS_WORD_CONST(0xDECEA5ED))
-#define testArenaSIZE   ((size_t)16<<20)
+#define testArenaSIZE   ((size_t)1<<20)
 #define initTestFREQ    3000
 #define splatTestFREQ   6000
 static mps_gen_param_s testChain[1] = { { 160, 0.90 } };
@@ -108,7 +108,8 @@ static mps_addr_t make(void)
 static mps_pool_debug_option_s freecheckOptions =
   { NULL, 0, (const void *)"Dead", 4 };
 
-static void *test(void *arg, size_t haveAmbigous)
+static void test_pool(mps_class_t pool_class, mps_arg_s args[],
+                      mps_bool_t haveAmbiguous)
 {
   mps_pool_t pool;
   mps_root_t exactRoot, ambigRoot = NULL;
@@ -117,14 +118,13 @@ static void *test(void *arg, size_t haveAmbigous)
   mps_ap_t busy_ap;
   mps_addr_t busy_init;
 
-  pool = (mps_pool_t)arg;
-
+  die(mps_pool_create_k(&pool, arena, pool_class, args), "pool_create");
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
   die(mps_ap_create(&busy_ap, pool, mps_rank_exact()), "BufferCreate 2");
 
   for(i = 0; i < exactRootsCOUNT; ++i)
     exactRoots[i] = objNULL;
-  if (haveAmbigous)
+  if (haveAmbiguous)
     for(i = 0; i < ambigRootsCOUNT; ++i)
       ambigRoots[i] = rnd_addr();
 
@@ -133,7 +133,7 @@ static void *test(void *arg, size_t haveAmbigous)
                                    &exactRoots[0], exactRootsCOUNT,
                                    (mps_word_t)1),
       "root_create_table(exact)");
-  if (haveAmbigous)
+  if (haveAmbiguous)
     die(mps_root_create_table(&ambigRoot, arena,
                               mps_rank_ambig(), (mps_rm_t)0,
                               &ambigRoots[0], ambigRootsCOUNT),
@@ -157,7 +157,7 @@ static void *test(void *arg, size_t haveAmbigous)
     }
 
     r = (size_t)rnd();
-    if (!haveAmbigous || (r & 1)) {
+    if (!haveAmbiguous || (r & 1)) {
       i = (r >> 1) % exactRootsCOUNT;
       if (exactRoots[i] != objNULL)
         cdie(dylan_check(exactRoots[i]), "dying root check");
@@ -190,80 +190,49 @@ static void *test(void *arg, size_t haveAmbigous)
   mps_ap_destroy(busy_ap);
   mps_ap_destroy(ap);
   mps_root_destroy(exactRoot);
-  if (haveAmbigous)
+  if (haveAmbiguous)
     mps_root_destroy(ambigRoot);
 
-  return NULL;
+  mps_pool_destroy(pool);
 }
 
 
 int main(int argc, char *argv[])
 {
+  int i;
   mps_thr_t thread;
   mps_fmt_t format;
   mps_chain_t chain;
-  mps_pool_t pool;
-  void *r;
 
   testlib_init(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create");
+  die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE), "commit_limit_set");
+
   mps_message_type_enable(arena, mps_message_type_gc_start());
   mps_message_type_enable(arena, mps_message_type_gc());
   die(mps_thread_reg(&thread, arena), "thread_reg");
   die(mps_fmt_create_A(&format, arena, dylan_fmt_A()), "fmt_create");
   die(mps_chain_create(&chain, arena, 1, testChain), "chain_create");
 
-  /* TODO: Add tests using the arena default chain. */
-
-  printf("\n\n****************************** Testing AMS Debug\n");
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
-    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
-    MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, FALSE);
-    MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &freecheckOptions);
-    die(mps_pool_create_k(&pool, arena, mps_class_ams_debug(), args),
-        "pool_create(ams_debug,share)");
-  } MPS_ARGS_END(args);
-  mps_tramp(&r, test, pool, 0);
-  mps_pool_destroy(pool);
-
-  printf("\n\n****************************** Testing AMS Debug\n");
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
-    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
-    MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, TRUE);
-    MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &freecheckOptions);
-    die(mps_pool_create_k(&pool, arena, mps_class_ams_debug(), args),
-        "pool_create(ams_debug,ambig)");
-  } MPS_ARGS_END(args);
-  mps_tramp(&r, test, pool, 1);
-  mps_pool_destroy(pool);
-
-  printf("\n\n****************************** Testing AMS\n");
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
-    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
-    MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, TRUE);
-    MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &freecheckOptions);
-    die(mps_pool_create_k(&pool, arena, mps_class_ams(), args),
-        "pool_create(ams,ambig)");
-  } MPS_ARGS_END(args);
-  mps_tramp(&r, test, pool, 1);
-  mps_pool_destroy(pool);
-
-  printf("\n\n****************************** Testing AMS\n");
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
-    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
-    MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, FALSE);
-    MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &freecheckOptions);
-    die(mps_pool_create_k(&pool, arena, mps_class_ams(), args),
-        "pool_create(ams,share)");
-  } MPS_ARGS_END(args);
-  mps_tramp(&r, test, pool, 0);
-  mps_pool_destroy(pool);
+  for (i = 0; i < 8; i++) {
+    int debug = i % 2;
+    int ownChain = (i / 2) % 2;
+    int ambig = (i / 4) % 2;
+    printf("\n\n*** AMS%s with %sCHAIN and %sSUPPORT_AMBIGUOUS\n",
+           debug ? " Debug" : "",
+           ownChain ? "" : "!",
+           ambig ? "" : "!");
+    MPS_ARGS_BEGIN(args) {
+      MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
+      if (ownChain)
+        MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
+      MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, ambig);
+      MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &freecheckOptions);
+      test_pool(debug ? mps_class_ams_debug() : mps_class_ams(), args, ambig);
+    } MPS_ARGS_END(args);
+  }
 
   mps_chain_destroy(chain);
   mps_fmt_destroy(format);
