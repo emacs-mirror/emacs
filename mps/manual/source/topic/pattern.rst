@@ -110,9 +110,21 @@ cutoff and decline in the live size.
 
 This pattern is useful if you are building a structure that involves
 temporarily allocating much more memory than will fit into your
-:term:`nursery generation`. The ramp allocation pattern causes the
-collection of the nursery generation to be deferred until the ramp
+:term:`nursery generation`. By applying the ramp allocation pattern,
+the collection of that generation can be deferred until the ramp
 allocation is over.
+
+In detail: if the ramp allocation pattern is applied to an
+:term:`allocation point`, then allocation on that AP is ignored by the
+MPS when it is deciding whether to schedule a collection of the chain
+containing the generation into which the AP is allocating. See :ref:`topic-collection-schedule`.
+
+.. note::
+
+    This does not prevent the generation from being collected
+    altogether: there may be other APs allocating into the generation,
+    or the MPS may have to collect the generation in order to avoid
+    running out of memory.
 
 .. note::
 

@@ -47,7 +47,7 @@ All relative paths are relative to
    1.111.0), where *VERSION* is the number of the version you’re
    releasing, and *N* is the first unused release number (starting at
    zero). Look in the index of releases (``release/index.html``) for
-   existing release numbers for your version::
+   existing release numbers for your version. ::
 
         VERSION=A.BBB
         RELEASE=$VERSION.N
@@ -111,7 +111,7 @@ Run the script ``tool/release``, passing the options:
 * ``-P mps`` — project name
 * ``-b BRANCH`` — branch to make the release from: for example ``version/1.113``
 * ``-C CHANGELEVEL`` — changelevel at which to make the release
-* ``-d "DESCRIPTION"`` — changelevel at which to make the release
+* ``-d "DESCRIPTION"`` — description of the release
 * ``-y`` — yes, really make the release
 
 If omitted, the project and branch are deduced from the current
@@ -230,8 +230,6 @@ A. References
 .. [RHSK_2008-10-16] Richard Kistruck; "revert ; rm ; sync -f";
    Ravenbrook Limited; 2008-10-16;
    http://info.ravenbrook.com/mail/2008/10/16/13-08-20/0.txt
-
-.. [Sphinx] "Sphinx: Python document generator"; http://sphinx-doc.org/
 
 
 B. Document History

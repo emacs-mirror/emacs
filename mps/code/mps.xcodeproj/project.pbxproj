@@ -2644,7 +2644,7 @@
 				22FACEE118880983000FDBC1 /* PBXTargetDependency */,
 			);
 			name = airtest;
-			productName = mv2test;
+			productName = airtest;
 			productReference = 22FACEED18880983000FDBC1 /* airtest */;
 			productType = "com.apple.product-type.tool";
 		};
@@ -4322,42 +4322,42 @@
 		2231BB5618CA97D8002D6322 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = locbwcss;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		2231BB5718CA97D8002D6322 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = locbwcss;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		2231BB5818CA97D8002D6322 /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = locbwcss;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
 		};
 		2231BB6418CA97DC002D6322 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = locusss;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		2231BB6518CA97DC002D6322 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = locusss;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		2231BB6618CA97DC002D6322 /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = locusss;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
 		};
@@ -4421,7 +4421,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = "scheme-advanced";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -4429,7 +4429,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = "scheme-advanced";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -4437,41 +4437,35 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = "scheme-advanced";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
 		};
 		22C2ACA118BE3FEC006B3677 /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = mv2test;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
 		};
 		22C2ACAC18BE400A006B3677 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
-				PRODUCT_NAME = nailboardtest;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		22C2ACAD18BE400A006B3677 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
-				PRODUCT_NAME = nailboardtest;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		22C2ACAE18BE400A006B3677 /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
-				PRODUCT_NAME = nailboardtest;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
 		};
@@ -4492,21 +4486,21 @@
 		22F846BA18F437B900982BA7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = lockut;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		22F846BB18F437B900982BA7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = lockut;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		22F846BC18F437B900982BA7 /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = lockut;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
 		};
@@ -4527,29 +4521,16 @@
 		22FACEEA18880983000FDBC1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
-				PRODUCT_NAME = airtest;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		22FACEEB18880983000FDBC1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
-				PRODUCT_NAME = airtest;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
-		};
-		22FACEEC18880983000FDBC1 /* WE */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
-				PRODUCT_NAME = airtest;
-			};
-			name = WE;
 		};
 		2D07B9751636FC9900DB751B /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -4626,7 +4607,6 @@
 		3104AFF3156D37A0000A585A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4634,7 +4614,6 @@
 		3104AFF4156D37A0000A585A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4923,7 +4902,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = djbench;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -4931,7 +4910,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = djbench;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -4991,7 +4970,6 @@
 		318DA8D51892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -5000,7 +4978,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5285,7 +5262,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = djbench;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
 		};
@@ -5484,7 +5461,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5494,7 +5470,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5534,7 +5509,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = gcbench;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -5542,7 +5517,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = gcbench;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -5550,7 +5525,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = gcbench;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
 		};
@@ -5672,7 +5647,6 @@
 			buildConfigurations = (
 				22FACEEA18880983000FDBC1 /* Debug */,
 				22FACEEB18880983000FDBC1 /* Release */,
-				22FACEEC18880983000FDBC1 /* WE */,
 				22C2ACA118BE3FEC006B3677 /* RASH */,
 			);
 			defaultConfigurationIsVisible = 0;

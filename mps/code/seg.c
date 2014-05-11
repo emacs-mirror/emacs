@@ -595,7 +595,7 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
   if (ResOK != res)
     goto failMerge;
 
-  EVENT3(SegMerge, segLo, segHi, BOOL(withReservoirPermit));
+  EVENT3(SegMerge, segLo, segHi, BOOLOF(withReservoirPermit));
   /* Deallocate segHi object */
   ControlFree(arena, segHi, class->size);
   AVERT(Seg, segLo);
@@ -680,10 +680,8 @@ failControl:
 
 Bool SegCheck(Seg seg)
 {
-  Tract tract;
   Arena arena;
   Pool pool;
-  Addr addr;
   Size align;
  
   CHECKS(Seg, seg);
@@ -702,16 +700,25 @@ Bool SegCheck(Seg seg)
   CHECKL(AddrIsAligned(seg->limit, align));
   CHECKL(seg->limit > TractBase(seg->firstTract));
 
-  /* Each tract of the segment must agree about white traces */
-  TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, seg->limit) {
-    Seg trseg = NULL; /* suppress compiler warning */
+  /* Each tract of the segment must agree about white traces. Note
+   * that even if the CHECKs are compiled away there is still a
+   * significant cost in looping over the tracts, hence the guard. See
+   * job003778. */
+#if defined(AVER_AND_CHECK_ALL)
+  {
+    Tract tract;
+    Addr addr;
+    TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, seg->limit) {
+      Seg trseg = NULL; /* suppress compiler warning */
 
-    CHECKD_NOSIG(Tract, tract);
-    CHECKL(TRACT_SEG(&trseg, tract) && (trseg == seg));
-    CHECKL(TractWhite(tract) == seg->white);
-    CHECKL(TractPool(tract) == pool);
+      CHECKD_NOSIG(Tract, tract);
+      CHECKL(TRACT_SEG(&trseg, tract) && (trseg == seg));
+      CHECKL(TractWhite(tract) == seg->white);
+      CHECKL(TractPool(tract) == pool);
+    }
+    CHECKL(addr == seg->limit);
   }
-  CHECKL(addr == seg->limit);
+#endif  /* AVER_AND_CHECK_ALL */
 
   /* The segment must belong to some pool, so it should be on a */
   /* pool's segment ring.  (Actually, this isn't true just after */

@@ -57,9 +57,9 @@ Create a generation chain by preparing an array of
 kilobytes) and *predicted mortality* (between 0 and 1) of each
 generation, and passing them to :c:func:`mps_chain_create`.
 
-When the size of the generation exceeds the capacity, the MPS will be
-prepared to start collecting the generation. See
-:ref:`topic-collection-schedule` below.
+When the *new size* of a generation exceeds its capacity, the MPS will
+be prepared to start collecting the chain to which the generation
+belongs. See :ref:`topic-collection-schedule` below.
 
 For example::
 
@@ -163,20 +163,19 @@ size* of each generation (other than the topmost) is the same as its
 total size, but in pools like :ref:`pool-ams` where survivors do not
 get promoted, the two sizes can be different.
 
-The first generation in a pool's chain is the :term:`nursery space`.
-When the nursery's *new size* exceeds its capacity, the MPS considers
-collecting the pool. (How long it takes to get around to it depends on
-which other collections on other pools are in progress.)
+When a generation's *new size* exceeds its capacity, the MPS considers
+collecting the chain to which the generation belongs. (How long it
+takes to get around to it depends on which other collections are in
+progress.)
 
 .. note::
 
-    You can affect the decision as to when to collect the nursery
-    space by using the :ref:`ramp allocation pattern
-    <topic-pattern-ramp>`.
+    You can affect the decision as to when to collect the chain by
+    using the :ref:`ramp allocation pattern <topic-pattern-ramp>`.
 
-If the MPS decides to collect a pool at all, all generations are
-collected below the first generation whose *new size* is less than its
-capacity.
+If the MPS decides to collect a chain, all generations are collected
+up to, and including, the highest generation whose *new size* exceeds
+its capacity.
 
 In pools such as :ref:`pool-amc`, blocks in generation *g* that
 survive collection get promoted to generation *g*\+1. If the last

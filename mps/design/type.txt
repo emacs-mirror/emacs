@@ -151,6 +151,14 @@ compared ``w3i3mv\hi\amcss.exe`` running with and without the macro
 for ``BoolCheck`` on the PC Aaron. "With" ran in 97.7% of the time
 (averaged over 3 runs).
 
+_`.bool.bitfield`: When a Boolean needs to be stored in a bitfield,
+the type of the bitfield must be ``unsigned:1``, not ``Bool:1``.
+(That's because the two values of the type ``Bool:1`` are ``0`` and
+``-1``, which means that assigning ``TRUE`` would require a sign
+conversion.) To avoid warnings about loss of data from GCC with the
+``-Wconversion`` option, ``misc.h`` provides the ``BOOLOF`` macro for
+coercing a value to an unsigned single-bit field.
+
 
 ``typedef unsigned BufferMode``
 
@@ -235,7 +243,8 @@ objects.
 ``typedef Size Epoch``
 
 _`.epoch`: An ``Epoch`` is a count of the number of flips that have
-occurred. It is used in the implementation of location dependencies.
+occurred, in which objects may have moved. It is used in the
+implementation of location dependencies.
 
 ``Epoch`` is converted to ``mps_word_t`` in the MPS C Interface, as a
 field of ``mps_ld_s``.
@@ -351,7 +360,7 @@ references must be scanned in order to respect the properties of
 references of the ranks. Therefore they are declared explicitly with
 their integer values.
 
-.. note:: Could ``Rank`` be a ``short``?
+.. note:: Could ``Rank`` be an ``unsigned short`` or ``unsigned char``?
 
 .. note::
 
@@ -459,29 +468,34 @@ create a valid registered constant root that contains any references.
 become invalid; but you can't add them afterwards because the root is
 supposed to be constant.)
 
-_`.rootmode.conv.c`: ``RootMode`` is converted to ``mps_rm_t`` in the MPS C
-Interface.
+_`.rootmode.conv.c`: ``RootMode`` is converted to ``mps_rm_t`` in the
+MPS C Interface.
 
 
 ``typedef int RootVar``
 
-_`.rootvar`: The type ``RootVar`` is the type of the
-discriminator for the union within ``RootStruct``.
+_`.rootvar`: The type ``RootVar`` is the type of the discriminator for
+the union within ``RootStruct``.
 
 
 ``typedef int SegPrefKind``
 
-_`.segprefkind`: The type ``SegPrefKind`` expresses a preference about
-where the arena should place a segment. It takes one of the following
+_`.segprefkind`: The type ``SegPrefKind`` expresses a preference for
+addresses within an address space. It takes one of the following
 values:
 
 ==================  ====================================================
 Kind                Description
 ==================  ====================================================
-``SegPrefHigh``     Place the segment high in the address space.
-``SegPrefLow``      Place the segment low in the address space.
-``SegPrefZoneSet``  Place the segment in specified zones.
+``SegPrefHigh``     Prefer high addresses.
+``SegPrefLow``      Prefer low addresses.
+``SegPrefZoneSet``  Prefer addresses in specified zones.
 ==================  ====================================================
+
+.. note::
+
+    The name is misleading as this is used to refer to address
+    preferences in general, not just addresses of segments.
 
 
 ``typedef unsigned Serial``
@@ -490,9 +504,8 @@ _`.serial`: A ``Serial`` is a number which is assigned to a structure
 when it is initialized. The serial number is taken from a field in the
 parent structure, which is incremented. Thus, every instance of a
 structure has a unique "name" which is a path of structures from the
-global root. For example::
-
-    space[3].pool[5].buffer[2]
+global root. For example, "the third arena's fifth pool's second
+buffer".
 
 Why? Consistency checking, debugging, and logging. Not well thought
 out.
@@ -508,6 +521,8 @@ _`.shift.use`: ``Shift`` should be used whenever a shift value (the
 right-hand operand of the ``<<`` or ``>>`` operators) is intended, to
 make the code clear. It should also be used for structure fields which
 have this use.
+
+.. note:: Could ``Shift`` be an ``unsigned short`` or ``unsigned char``?
 
 
 ``typedef unsigned long Sig``
@@ -640,7 +655,7 @@ _`.word.ops`: ``WordIsAligned()``, ``WordAlignUp()``,
 ``typedef Word ZoneSet``
 
 _`.zoneset`: ``ZoneSet`` is a conservative approximation to a set of
-zone. See design.mps.refset_.
+zones. See design.mps.refset_.
 
 
 Abstract types

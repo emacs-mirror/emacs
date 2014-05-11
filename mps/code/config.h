@@ -241,6 +241,15 @@
 #define ATTRIBUTE_NORETURN
 #endif
 
+/* Attribute for functions that may be unused in some build configurations.
+ * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html>
+ */
+#if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
+#define ATTRIBUTE_UNUSED __attribute__((__unused__))
+#else
+#define ATTRIBUTE_UNUSED
+#endif
+
 
 /* EPVMDefaultSubsequentSegSIZE is a default for the alignment of
  * subsequent segments (non-initial at each save level) in EPVM.  See
@@ -281,7 +290,7 @@
 
 /* Pool AMS Configuration -- see <code/poolams.c> */
 
-#define AMS_SUPPORT_AMBIGUOUS_DEFAULT FALSE
+#define AMS_SUPPORT_AMBIGUOUS_DEFAULT TRUE
 #define AMS_GEN_DEFAULT       0
 
 

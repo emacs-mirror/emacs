@@ -172,7 +172,7 @@ static Res amsCreateTables(AMS ams, BT *allocReturn,
       goto failWhite;
   }
 
-#if defined(AVER_AND_CHECK)
+#if defined(AVER_AND_CHECK_ALL)
   /* Invalidate the colour tables in checking varieties. The algorithm
    * is designed not to depend on the initial values of these tables,
    * so by invalidating them we get some checking of this.
