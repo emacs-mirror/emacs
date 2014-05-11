@@ -355,7 +355,7 @@ void SegSetBuffer(Seg seg, Buffer buffer)
 
 /* SegDescribe -- describe a segment */
 
-Res SegDescribe(Seg seg, mps_lib_FILE *stream)
+Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   Pool pool;
@@ -365,7 +365,7 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream)
 
   pool = SegPool(seg);
 
-  res = WriteF(stream,
+  res = WriteF(depth, stream,
                "Segment $P [$A,$A) {\n", (WriteFP)seg,
                (WriteFA)SegBase(seg), (WriteFA)SegLimit(seg),
                "  class $P (\"$S\")\n",
@@ -375,11 +375,13 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream)
                NULL);
   if (res != ResOK) return res;
 
-  res = seg->class->describe(seg, stream);
+  res = seg->class->describe(seg, stream, depth + 2);
   if (res != ResOK) return res;
 
-  res = WriteF(stream, "\n",
-               "} Segment $P\n", (WriteFP)seg, NULL);
+  res = WriteF(0, stream, "\n", NULL);
+  if (res != ResOK) return res;
+
+  res = WriteF(depth, stream, "} Segment $P\n", (WriteFP)seg, NULL);
   return res;
 }
 
@@ -1023,59 +1025,30 @@ static Res segTrivSplit(Seg seg, Seg segHi,
 
 /* segTrivDescribe -- Basic Seg description method */
 
-static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream)
+static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
   if (!TESTT(Seg, seg)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(stream,
-               "  shield depth $U\n", (WriteFU)seg->depth,
-               "  protection mode:",
-               NULL);
-  if (res != ResOK) return res;
-  if (SegPM(seg) & AccessREAD) {
-     res = WriteF(stream, " read", NULL);
-     if (res != ResOK) return res;
-  }
-  if (SegPM(seg) & AccessWRITE) {
-     res = WriteF(stream, " write", NULL);
-     if (res != ResOK) return res;
-  }
-  res = WriteF(stream, "\n  shield mode:", NULL);
-  if (res != ResOK) return res;
-  if (SegSM(seg) & AccessREAD) {
-     res = WriteF(stream, " read", NULL);
-     if (res != ResOK) return res;
-  }
-  if (SegSM(seg) & AccessWRITE) {
-     res = WriteF(stream, " write", NULL);
-     if (res != ResOK) return res;
-  }
-  res = WriteF(stream, "\n  ranks:", NULL);
-  if (res != ResOK) return res;
-  /* This bit ought to be in a RankSetDescribe in ref.c. */
-  if (RankSetIsMember(seg->rankSet, RankAMBIG)) {
-     res = WriteF(stream, " ambiguous", NULL);
-     if (res != ResOK) return res;
-  }
-  if (RankSetIsMember(seg->rankSet, RankEXACT)) {
-     res = WriteF(stream, " exact", NULL);
-     if (res != ResOK) return res;
-  }
-  if (RankSetIsMember(seg->rankSet, RankFINAL)) {
-     res = WriteF(stream, " final", NULL);
-     if (res != ResOK) return res;
-  }
-  if (RankSetIsMember(seg->rankSet, RankWEAK)) {
-     res = WriteF(stream, " weak", NULL);
-     if (res != ResOK) return res;
-  }
-  res = WriteF(stream, "\n",
-               "  white  $B\n", (WriteFB)seg->white,
-               "  grey   $B\n", (WriteFB)seg->grey,
-               "  nailed $B\n", (WriteFB)seg->nailed,
+  res = WriteF(depth, stream,
+               "shield depth $U\n", (WriteFU)seg->depth,
+               "protection mode: ",
+               (SegPM(seg) & AccessREAD) ? "" : "!", "READ", " ",
+               (SegPM(seg) & AccessWRITE) ? "" : "!", "WRITE", "\n",
+               "shield mode: ",
+               (SegSM(seg) & AccessREAD) ? "" : "!", "READ", " ",
+               (SegSM(seg) & AccessWRITE) ? "" : "!", "WRITE", "\n",
+               "ranks:",
+               RankSetIsMember(seg->rankSet, RankAMBIG) ? " ambiguous" : "",
+               RankSetIsMember(seg->rankSet, RankEXACT) ? " exact" : "",
+               RankSetIsMember(seg->rankSet, RankFINAL) ? " final" : "",
+               RankSetIsMember(seg->rankSet, RankWEAK) ? " weak" : "",
+               "\n",
+               "white  $B\n", (WriteFB)seg->white,
+               "grey   $B\n", (WriteFB)seg->grey,
+               "nailed $B\n", (WriteFB)seg->nailed,
                NULL);
   return res;
 }
@@ -1611,7 +1584,7 @@ failSuper:
 
 /* gcSegDescribe -- GCSeg  description method */
 
-static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream)
+static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   SegClass super;
@@ -1624,19 +1597,18 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream)
 
   /* Describe the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(GCSegClass);
-  res = super->describe(seg, stream);
+  res = super->describe(seg, stream, depth);
   if (res != ResOK) return res;
 
-  res = WriteF(stream,
-               "  summary $W\n", (WriteFW)gcseg->summary,
+  res = WriteF(depth, stream,
+               "summary $W\n", (WriteFW)gcseg->summary,
                NULL);
   if (res != ResOK) return res;
 
   if (gcseg->buffer == NULL) {
-    res = WriteF(stream, "  buffer: NULL\n", NULL);
-  }
-  else {
-    res = BufferDescribe(gcseg->buffer, stream);
+    res = WriteF(depth, stream, "buffer: NULL\n", NULL);
+  } else {
+    res = BufferDescribe(gcseg->buffer, stream, depth);
   }
   if (res != ResOK) return res;
 

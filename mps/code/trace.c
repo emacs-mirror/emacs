@@ -1901,7 +1901,7 @@ failStart:
 
 /* TraceDescribe -- describe a trace */
 
-Res TraceDescribe(Trace trace, mps_lib_FILE *stream)
+Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   const char *state;
@@ -1918,7 +1918,8 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream)
   default:             state = "unknown";   break;
   }
 
-  res = WriteF(stream, "Trace $P ($U) {\n", (WriteFP)trace, (WriteFU)trace->ti,
+  res = WriteF(depth, stream,
+               "Trace $P ($U) {\n", (WriteFP)trace, (WriteFU)trace->ti,
                "arena $P ($U)\n", (WriteFP)trace->arena,
                (WriteFU)trace->arena->serial,
                "why \"$S\"\n", (WriteFS)TraceStartWhyToString(trace->why),
@@ -1940,7 +1941,7 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream)
                NULL);
   if (res != ResOK) return res;
 
-  res = WriteF(stream, "} Trace $P\n", (WriteFP)trace, NULL);
+  res = WriteF(depth, stream, "} Trace $P\n", (WriteFP)trace, NULL);
   return res;
 }
 

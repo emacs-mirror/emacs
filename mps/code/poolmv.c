@@ -672,7 +672,7 @@ static PoolDebugMixin MVDebugMixin(Pool pool)
 }
 
 
-static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
+static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 {
   Res res;
   MV mv;
@@ -687,15 +687,15 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
   if(!TESTT(MV, mv)) return ResFAIL;
   if(stream == NULL) return ResFAIL;
 
-  res = WriteF(stream,
-               "  blockPool $P ($U)\n",
+  res = WriteF(depth, stream,
+               "blockPool $P ($U)\n",
                (WriteFP)mvBlockPool(mv), (WriteFU)mvBlockPool(mv)->serial,
-               "  spanPool  $P ($U)\n",
+               "spanPool  $P ($U)\n",
                (WriteFP)mvSpanPool(mv), (WriteFU)mvSpanPool(mv)->serial,
-               "  extendBy  $W\n",  (WriteFW)mv->extendBy,
-               "  avgSize   $W\n",  (WriteFW)mv->avgSize,
-               "  maxSize   $W\n",  (WriteFW)mv->maxSize,
-               "  space     $P\n",  (WriteFP)mv->space,
+               "extendBy  $W\n",  (WriteFW)mv->extendBy,
+               "avgSize   $W\n",  (WriteFW)mv->avgSize,
+               "maxSize   $W\n",  (WriteFW)mv->maxSize,
+               "space     $P\n",  (WriteFP)mv->space,
                NULL);
   if(res != ResOK) return res;              
 
@@ -707,29 +707,28 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
     Addr i, j;
     MVBlock block;
     span = RING_ELT(MVSpan, spans, node);
-    res = WriteF(stream, "MVSpan $P {\n", (WriteFP)span, NULL);
+    res = WriteF(depth, stream, "MVSpan $P {\n", (WriteFP)span, NULL);
     if(res != ResOK) return res;
 
-    res = WriteF(stream,
-                 "  span    $P\n", (WriteFP)span,
-                 "  tract   $P\n", (WriteFP)span->tract,
-                 "  space   $W\n", (WriteFW)span->space,
-                 "  blocks  $U\n", (WriteFU)span->blockCount,
-                 "  largest ",
+    res = WriteF(depth + 2, stream,
+                 "span    $P\n", (WriteFP)span,
+                 "tract   $P\n", (WriteFP)span->tract,
+                 "space   $W\n", (WriteFW)span->space,
+                 "blocks  $U\n", (WriteFU)span->blockCount,
+                 "largest ",
                  NULL);
     if(res != ResOK) return res;
 
     if (span->largestKnown) /* .design.largest */
-      res = WriteF(stream, "$W\n", (WriteFW)span->largest, NULL);
+      res = WriteF(0, stream, "$W\n", (WriteFW)span->largest, NULL);
     else
-      res = WriteF(stream, "unknown\n", NULL);
-   
+      res = WriteF(0, stream, "unknown\n", NULL);
     if(res != ResOK) return res;
 
     block = span->blocks;
 
     for(i = span->base.base; i < span->limit.limit; i = AddrAdd(i, length)) {
-      res = WriteF(stream, "    $A ", i, NULL);
+      res = WriteF(depth + 2, stream, "$A ", i, NULL);
       if(res != ResOK) return res;
 
       for(j = i;
@@ -752,12 +751,14 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
           c = ']';
         else /* j > block->base && j < block->limit */
           c = '=';
-        res = WriteF(stream, "$C", c, NULL);
+        res = WriteF(0, stream, "$C", c, NULL);
         if(res != ResOK) return res;
       }
-      res = WriteF(stream, "\n", NULL);
+      res = WriteF(0, stream, "\n", NULL);
       if(res != ResOK) return res;
     }
+    res = WriteF(depth, stream, "} MVSpan $P\n", (WriteFP)span, NULL);
+    if(res != ResOK) return res;
   }
 
   return ResOK;

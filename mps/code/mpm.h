@@ -153,9 +153,9 @@ extern Bool (WordIsP2)(Word word);
 
 /* Formatted Output -- see <design/writef/>, <code/mpm.c> */
 
-extern Res WriteF(mps_lib_FILE *stream, ...);
-extern Res WriteF_v(mps_lib_FILE *stream, va_list args);
-extern Res WriteF_firstformat_v(mps_lib_FILE *stream,
+extern Res WriteF(Count depth, mps_lib_FILE *stream, ...);
+extern Res WriteF_v(Count depth, mps_lib_FILE *stream, va_list args);
+extern Res WriteF_firstformat_v(Count depth, mps_lib_FILE *stream,
                                 const char *firstformat, va_list args);
 
 
@@ -178,7 +178,7 @@ extern Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args);
 extern void PoolFinish(Pool pool);
 extern Bool PoolClassCheck(PoolClass class);
 extern Bool PoolCheck(Pool pool);
-extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream);
+extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
 
 /* Must be thread-safe. See <design/interface-c/#thread-safety>. */
 #define PoolArena(pool)         ((pool)->arena)
@@ -239,7 +239,7 @@ extern void PoolNoBufferEmpty(Pool pool, Buffer buffer,
                               Addr init, Addr limit);
 extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer,
                                 Addr init, Addr limit);
-extern Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream);
+extern Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
 extern Res PoolNoTraceBegin(Pool pool, Trace trace);
 extern Res PoolTrivTraceBegin(Pool pool, Trace trace);
 extern Res PoolNoAccess(Pool pool, Seg seg, Addr addr,
@@ -397,7 +397,7 @@ extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
 
 extern void TraceQuantum(Trace trace);
 extern Res TraceStartCollectAll(Trace *traceReturn, Arena arena, int why);
-extern Res TraceDescribe(Trace trace, mps_lib_FILE *stream);
+extern Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth);
 
 /* traceanc.c -- Trace Ancillary */
 
@@ -493,8 +493,8 @@ extern void ArenaDestroy(Arena arena);
 extern Res ArenaInit(Arena arena, ArenaClass class, Align alignment,
                      ArgList args);
 extern void ArenaFinish(Arena arena);
-extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream);
-extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream);
+extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth);
+extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream, Count depth);
 extern Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context);
 extern Res ArenaFreeCBSInsert(Arena arena, Addr base, Addr limit);
 extern void ArenaFreeCBSDelete(Arena arena, Addr base, Addr limit);
@@ -505,7 +505,7 @@ extern Res GlobalsInit(Globals arena);
 extern void GlobalsFinish(Globals arena);
 extern Res GlobalsCompleteCreate(Globals arenaGlobals);
 extern void GlobalsPrepareToDestroy(Globals arenaGlobals);
-extern Res GlobalsDescribe(Globals arena, mps_lib_FILE *stream);
+extern Res GlobalsDescribe(Globals arena, mps_lib_FILE *stream, Count depth);
 extern Ring GlobalsRememberedSummaryRing(Globals);
 
 #define ArenaGlobals(arena) (&(arena)->globals)
@@ -557,7 +557,7 @@ extern void ControlFinish(Arena arena);
 extern Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
                         Bool withReservoirPermit);
 extern void ControlFree(Arena arena, void *base, size_t size);
-extern Res ControlDescribe(Arena arena, mps_lib_FILE *stream);
+extern Res ControlDescribe(Arena arena, mps_lib_FILE *stream, Count depth);
 
 
 /* Peek/Poke
@@ -666,7 +666,7 @@ extern Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
                     Bool withReservoirPermit);
 extern Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
                     Bool withReservoirPermit);
-extern Res SegDescribe(Seg seg, mps_lib_FILE *stream);
+extern Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth);
 extern void SegSetSummary(Seg seg, RefSet summary);
 extern Buffer SegBuffer(Seg seg);
 extern void SegSetBuffer(Seg seg, Buffer buffer);
@@ -725,7 +725,7 @@ extern Res BufferCreate(Buffer *bufferReturn, BufferClass class,
 extern void BufferDestroy(Buffer buffer);
 extern Bool BufferCheck(Buffer buffer);
 extern Bool SegBufCheck(SegBuf segbuf);
-extern Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream);
+extern Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth);
 extern Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
                          Bool withReservoirPermit);
 /* macro equivalent for BufferReserve, keep in sync with <code/buffer.c> */
@@ -824,7 +824,7 @@ extern Bool FormatCheck(Format format);
 extern Res FormatCreate(Format *formatReturn, Arena arena, ArgList args);
 extern void FormatDestroy(Format format);
 extern Arena FormatArena(Format format);
-extern Res FormatDescribe(Format format, mps_lib_FILE *stream);
+extern Res FormatDescribe(Format format, mps_lib_FILE *stream, Count depth);
 
 
 /* Reference Interface -- see <code/ref.c> */
@@ -969,8 +969,8 @@ extern Res RootCreateFun(Root *rootReturn, Arena arena,
 extern void RootDestroy(Root root);
 extern Bool RootModeCheck(RootMode mode);
 extern Bool RootCheck(Root root);
-extern Res RootDescribe(Root root, mps_lib_FILE *stream);
-extern Res RootsDescribe(Globals arenaGlobals, mps_lib_FILE *stream);
+extern Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth);
+extern Res RootsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth);
 extern Rank RootRank(Root root);
 extern AccessSet RootPM(Root root);
 extern RefSet RootSummary(Root root);

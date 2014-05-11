@@ -50,7 +50,7 @@ extern Res CBSDelete(Range rangeReturn, CBS cbs, Range range);
 extern void CBSIterate(CBS cbs, CBSVisitor visitor,
                        void *closureP, Size closureS);
 
-extern Res CBSDescribe(CBS cbs, mps_lib_FILE *stream);
+extern Res CBSDescribe(CBS cbs, mps_lib_FILE *stream, Count depth);
 
 typedef Bool (*CBSFindMethod)(Range rangeReturn, Range oldRangeReturn,
                               CBS cbs, Size size, FindDelete findDelete);

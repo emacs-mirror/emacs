@@ -660,7 +660,7 @@ static Res cbsBlockDescribe(CBSBlock block, mps_lib_FILE *stream)
   if (stream == NULL)
     return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(0, stream,
                "[$P,$P) {$U, $B}",
                (WriteFP)block->base,
                (WriteFP)block->limit,
@@ -1055,7 +1055,7 @@ Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
  * See <design/cbs/#function.cbs.describe>.
  */
 
-Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
+Res CBSDescribe(CBS cbs, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
@@ -1064,7 +1064,7 @@ Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
   if (stream == NULL)
     return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(depth, stream,
                "CBS $P {\n", (WriteFP)cbs,
                "  alignment: $U\n", (WriteFU)cbs->alignment,
                "  blockPool: $P\n", (WriteFP)cbsBlockPool(cbs),
@@ -1074,12 +1074,13 @@ Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
                NULL);
   if (res != ResOK) return res;
 
-  res = SplayTreeDescribe(cbsSplay(cbs), stream, &cbsSplayNodeDescribe);
+  METER_WRITE(cbs->treeSearch, stream, depth + 2);
+
+  res = SplayTreeDescribe(cbsSplay(cbs), stream, depth + 2,
+                          &cbsSplayNodeDescribe);
   if (res != ResOK) return res;
 
-  METER_WRITE(cbs->treeSearch, stream);
-
-  res = WriteF(stream, "}\n", NULL);
+  res = WriteF(depth, stream, "} CBS $P\n", (WriteFP)cbs, NULL);
   return res;
 }
 

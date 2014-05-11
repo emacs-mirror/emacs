@@ -39,19 +39,19 @@ void RangeFinish(Range range)
   range->sig = SigInvalid;
 }
 
-Res RangeDescribe(Range range, mps_lib_FILE *stream)
+Res RangeDescribe(Range range, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
   AVERT(Range, range);
   AVER(stream != NULL);
 
-  res = WriteF(stream,
+  res = WriteF(depth, stream,
                "Range $P\n{\n", (WriteFP)range,
                "  base: $P\n", (WriteFP)RangeBase(range),
                "  limit: $P\n", (WriteFP)RangeLimit(range),
                "  size: $U\n", (WriteFU)RangeSize(range),
-               "}\n", NULL);
+               "} Range $P\n", (WriteFP)range, NULL);
   if (res != ResOK) {
     return res;
   }
