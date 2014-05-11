@@ -1943,28 +1943,26 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
 
   res = WriteF(stream, depth,
                "Trace $P ($U) {\n", (WriteFP)trace, (WriteFU)trace->ti,
-               "arena $P ($U)\n", (WriteFP)trace->arena,
+               "  arena $P ($U)\n", (WriteFP)trace->arena,
                (WriteFU)trace->arena->serial,
-               "why \"$S\"\n", (WriteFS)TraceStartWhyToString(trace->why),
-               "state $S\n", (WriteFS)state,
-               "band $U\n", (WriteFU)trace->band,
-               "white   $B\n", (WriteFB)trace->white,
-               "mayMove $B\n", (WriteFB)trace->mayMove,
-               "chain $P\n", (WriteFP)trace->chain,
-               "condemned $U\n", (WriteFU)trace->condemned,
-               "notCondemned $U\n", (WriteFU)trace->notCondemned,
-               "foundation $U\n", (WriteFU)trace->foundation,
-               "rate $U\n", (WriteFU)trace->rate,
-               "rootScanSize $U\n", (WriteFU)trace->rootScanSize,
-               "rootCopiedSize $U\n", (WriteFU)trace->rootCopiedSize,
-               "segScanSize $U\n", (WriteFU)trace->segScanSize,
-               "segCopiedSize $U\n", (WriteFU)trace->segCopiedSize,
-               "forwardedSize $U\n", (WriteFU)trace->forwardedSize,
-               "preservedInPlaceSize $U\n", (WriteFU)trace->preservedInPlaceSize,
+               "  why \"$S\"\n", (WriteFS)TraceStartWhyToString(trace->why),
+               "  state $S\n", (WriteFS)state,
+               "  band $U\n", (WriteFU)trace->band,
+               "  white   $B\n", (WriteFB)trace->white,
+               "  mayMove $B\n", (WriteFB)trace->mayMove,
+               "  chain $P\n", (WriteFP)trace->chain,
+               "  condemned $U\n", (WriteFU)trace->condemned,
+               "  notCondemned $U\n", (WriteFU)trace->notCondemned,
+               "  foundation $U\n", (WriteFU)trace->foundation,
+               "  rate $U\n", (WriteFU)trace->rate,
+               "  rootScanSize $U\n", (WriteFU)trace->rootScanSize,
+               "  rootCopiedSize $U\n", (WriteFU)trace->rootCopiedSize,
+               "  segScanSize $U\n", (WriteFU)trace->segScanSize,
+               "  segCopiedSize $U\n", (WriteFU)trace->segCopiedSize,
+               "  forwardedSize $U\n", (WriteFU)trace->forwardedSize,
+               "  preservedInPlaceSize $U\n", (WriteFU)trace->preservedInPlaceSize,
+               "} Trace $P\n", (WriteFP)trace,
                NULL);
-  if (res != ResOK) return res;
-
-  res = WriteF(stream, depth, "} Trace $P\n", (WriteFP)trace, NULL);
   return res;
 }
 

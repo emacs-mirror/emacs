@@ -164,6 +164,9 @@ static void test(mps_arena_t arena, mps_class_t pool_class, size_t roots_count)
   /* create an ap, and leave it busy */
   die(mps_reserve(&busy_init, busy_ap, 64), "mps_reserve busy");
 
+  die(mps_arena_start_collect(arena), "mps_arena_start_collect");
+  die(ArenaDescribe(arena, mps_lib_get_stdout(), 0), "ArenaDescribe");
+
   collections = 0;
   rampSwitch = rampSIZE;
   die(mps_ap_alloc_pattern_begin(ap, ramp), "pattern begin (ap)");
@@ -275,9 +278,8 @@ static void test(mps_arena_t arena, mps_class_t pool_class, size_t roots_count)
     ++objs;
   }
 
-  die(ArenaDescribe(arena, mps_lib_get_stdout(), 0), "PoolDescribe");
-
   (void)mps_commit(busy_ap, busy_init, 64);
+  mps_arena_park(arena);
   mps_ap_destroy(busy_ap);
   mps_ap_destroy(ap);
   mps_root_destroy(exactRoot);
