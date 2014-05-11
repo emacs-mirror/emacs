@@ -810,15 +810,22 @@ static Res MRGDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if (stream == NULL) return ResFAIL;
 
   arena = PoolArena(pool);
-  res = WriteF(stream, depth, "  extendBy $W\n", mrg->extendBy, NULL);
+  res = WriteF(stream, depth, "extendBy $W\n", mrg->extendBy, NULL);
   if (res != ResOK) return res;
-  res = WriteF(stream, depth, "  Entry queue:\n", NULL);
+  res = WriteF(stream, depth, "Entry queue:\n", NULL);
   if (res != ResOK) return res;
   RING_FOR(node, &mrg->entryRing, nextNode) {
+    Bool outsideShield = !arena->insideShield;
     refPart = MRGRefPartOfLink(linkOfRing(node), arena);
-    res = WriteF(stream, depth, "    at $A Ref $A\n",
+    if (outsideShield) {
+      ShieldEnter(arena);
+    }
+    res = WriteF(stream, depth, "at $A Ref $A\n",
                  (WriteFA)refPart, (WriteFA)MRGRefPartRef(arena, refPart),
                  NULL);
+    if (outsideShield) {
+      ShieldLeave(arena);
+    }
     if (res != ResOK) return res;
   }
 
