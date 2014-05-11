@@ -264,11 +264,6 @@
 #define BUFFER_RANK_DEFAULT (mps_rank_exact())
 
 
-/* CBS Configuration -- see <code/cbs.c> */
-
-#define CBS_EXTEND_BY_DEFAULT ((Size)4096)
-
-
 /* Format defaults: see <code/format.c> */
 
 #define FMT_ALIGN_DEFAULT ((Align)MPS_PF_ALIGN)
