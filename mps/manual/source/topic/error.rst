@@ -232,13 +232,6 @@ assertion that is listed here but for which you discovered a different
 cause), please :ref:`let us know <contact>` so that we can improve
 this documentation.
 
-``sa.c: BTIsResRange(sa->mapped, 0, sa->length)``
-
-    The client program called :c:func:`mps_arena_destroy` without
-    having destroyed all pools in that arena first. (The assertion is
-    from the virtual memory manager which is checking that all pages
-    have been unmapped.)
-
 
 ``dbgpool.c: fencepost check on free``
 
@@ -291,6 +284,25 @@ this documentation.
     have kept the block alive failed to be scanned. Perhaps a
     :term:`formatted object` was updated in some way that has a race
     condition?
+
+
+``ring.c: ring->next == ring``
+
+    The client program destroyed an object without having destroyed
+    all the objects that it owns first. For example, it destroyed an
+    arena without first destroying all pools in that arena, or it
+    destroyed a pool without first destroying all allocation points
+    created on that pool.
+
+
+``trace.c: RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg))``
+
+    The client program's :term:`scan method` failed to update a
+    reference to an object that moved. See
+    :ref:`topic-scanning-protocol`, which says, "If :c:func:`MPS_FIX2`
+    returns :c:macro:`MPS_RES_OK`, it may have updated the reference.
+    If necessary, make sure that the updated reference is stored back
+    to the region being scanned."
 
 
 .. index::

@@ -72,6 +72,7 @@ typedef struct MVBlockStruct {
 
 /* MVBlockCheck -- check the consistency of a block structure */
 
+ATTRIBUTE_UNUSED
 static Bool MVBlockCheck(MVBlock block)
 {
   AVER(block != NULL);
@@ -130,6 +131,7 @@ typedef struct MVSpanStruct {
 
 /* MVSpanCheck -- check the consistency of a span structure */
 
+ATTRIBUTE_UNUSED
 static Bool MVSpanCheck(MVSpan span)
 {
   Addr addr, base, limit;

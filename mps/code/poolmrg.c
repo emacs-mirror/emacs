@@ -125,6 +125,7 @@ typedef struct MRGStruct {
 
 /* MRGCheck -- check an MRG pool */
 
+ATTRIBUTE_UNUSED
 static Bool MRGCheck(MRG mrg)
 {
   CHECKS(MRG, mrg);
@@ -178,6 +179,8 @@ extern SegClass MRGRefSegClassGet(void);
  * field will be NULL. This will be initialized when the reference
  * segment is initialized.  See <design/poolmrg/#mrgseg.link.refseg>.
  */
+
+ATTRIBUTE_UNUSED
 static Bool MRGLinkSegCheck(MRGLinkSeg linkseg)
 {
   Seg seg;
@@ -193,6 +196,7 @@ static Bool MRGLinkSegCheck(MRGLinkSeg linkseg)
   return TRUE;
 }
 
+ATTRIBUTE_UNUSED
 static Bool MRGRefSegCheck(MRGRefSeg refseg)
 {
   Seg seg;

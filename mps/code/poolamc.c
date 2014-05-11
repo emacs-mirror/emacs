@@ -96,6 +96,7 @@ typedef struct amcSegStruct {
 #define amcSeg2Seg(amcseg)          ((Seg)(amcseg))
 
 
+ATTRIBUTE_UNUSED
 static Bool amcSegCheck(amcSeg amcseg)
 {
   CHECKS(amcSeg, amcseg);
@@ -476,6 +477,7 @@ typedef struct AMCStruct { /* <design/poolamc/#struct> */
 
 /* amcGenCheck -- check consistency of a generation structure */
 
+ATTRIBUTE_UNUSED
 static Bool amcGenCheck(amcGen gen)
 {
   Arena arena;
@@ -525,6 +527,7 @@ typedef struct amcBufStruct {
 
 /* amcBufCheck -- check consistency of an amcBuf */
 
+ATTRIBUTE_UNUSED
 static Bool amcBufCheck(amcBuf amcbuf)
 {
   CHECKS(amcBuf, amcbuf);
@@ -2442,6 +2445,8 @@ void mps_amc_apply(mps_pool_t mps_pool,
  *
  * See <design/poolamc/#check>.
  */
+
+ATTRIBUTE_UNUSED
 static Bool AMCCheck(AMC amc)
 {
   CHECKS(AMC, amc);
