@@ -5,14 +5,15 @@
  * Portions copyright (C) 2002 Global Graphics Software.
  */
 
+#include "mpm.h"
+#include "mps.h"
+#include "mpsavm.h"
+#include "mpscmfs.h"
 #include "mpscmv.h"
 #include "mpscmvff.h"
-#include "mpscmfs.h"
 #include "mpslib.h"
-#include "mpsavm.h"
+#include "mpslib.h"
 #include "testlib.h"
-#include "mpslib.h"
-#include "mps.h"
 
 #include <stdio.h> /* printf */
 
@@ -81,6 +82,7 @@ static mps_res_t stress(mps_class_t class, size_t (*size)(size_t i),
     }
   }
    
+  die(PoolDescribe(pool, mps_lib_get_stdout(), 0), "PoolDescribe");
   mps_pool_destroy(pool);
 
   return MPS_RES_OK;
