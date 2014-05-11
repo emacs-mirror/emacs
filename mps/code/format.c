@@ -193,11 +193,11 @@ Arena FormatArena(Format format)
 
 /* FormatDescribe -- describe a format */
 
-Res FormatDescribe(Format format, mps_lib_FILE *stream)
+Res FormatDescribe(Format format, mps_lib_FILE *stream, Count depth)
 {
   Res res;
  
-  res = WriteF(stream,
+  res = WriteF(depth, stream,
                "Format $P ($U) {\n", (WriteFP)format, (WriteFU)format->serial,
                "  arena $P ($U)\n",
                (WriteFP)format->arena, (WriteFU)format->arena->serial,

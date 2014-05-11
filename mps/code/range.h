@@ -31,7 +31,7 @@ typedef struct RangeStruct *Range;
 
 extern void RangeInit(Range range, Addr base, Addr limit);
 extern void RangeFinish(Range range);
-extern Res RangeDescribe(Range range, mps_lib_FILE *stream);
+extern Res RangeDescribe(Range range, mps_lib_FILE *stream, Count depth);
 extern Bool RangeCheck(Range range);
 extern Bool RangeIsAligned(Range range, Align align);
 extern Bool RangesOverlap(Range range1, Range range2);

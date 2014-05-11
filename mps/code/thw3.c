@@ -212,11 +212,11 @@ Arena ThreadArena(Thread thread)
   return thread->arena;
 }
 
-Res ThreadDescribe(Thread thread, mps_lib_FILE *stream)
+Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth)
 {
   Res res;
  
-  res = WriteF(stream,
+  res = WriteF(depth, stream,
                "Thread $P ($U) {\n", (WriteFP)thread, (WriteFU)thread->serial,
                "  arena $P ($U)\n", 
                (WriteFP)thread->arena, (WriteFU)thread->arena->serial,

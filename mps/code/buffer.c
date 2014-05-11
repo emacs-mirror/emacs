@@ -146,14 +146,14 @@ Bool BufferCheck(Buffer buffer)
  *
  * See <code/mpmst.h> for structure definitions.  */
 
-Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
+Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 {
   Res res;
 
   if (!TESTT(Buffer, buffer)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(stream,
+  res = WriteF(depth, stream,
                "Buffer $P ($U) {\n",
                (WriteFP)buffer, (WriteFU)buffer->serial,
                "  class $P (\"$S\")\n",
@@ -178,10 +178,10 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
                NULL);
   if (res != ResOK) return res;
 
-  res = buffer->class->describe(buffer, stream);
+  res = buffer->class->describe(buffer, stream, depth + 2);
   if (res != ResOK) return res;
 
-  res = WriteF(stream, "} Buffer $P ($U)\n",
+  res = WriteF(depth, stream, "} Buffer $P ($U)\n",
                (WriteFP)buffer, (WriteFU)buffer->serial,
                NULL);
   return res;
@@ -1164,10 +1164,11 @@ static void bufferNoReassignSeg(Buffer buffer, Seg seg)
 
 /* bufferTrivDescribe -- basic Buffer describe method */
 
-static Res bufferTrivDescribe(Buffer buffer, mps_lib_FILE *stream)
+static Res bufferTrivDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 {
   if (!TESTT(Buffer, buffer)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
+  UNUSED(depth);
   /* dispatching function does it all */
   return ResOK;
 }
@@ -1422,7 +1423,7 @@ static void segBufReassignSeg (Buffer buffer, Seg seg)
 
 /* segBufDescribe --  describe method for SegBuf */
 
-static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream)
+static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
 {
   SegBuf segbuf;
   BufferClass super;
@@ -1435,12 +1436,12 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream)
 
   /* Describe the superclass fields first via next-method call */
   super = BUFFER_SUPERCLASS(SegBufClass);
-  res = super->describe(buffer, stream);
+  res = super->describe(buffer, stream, depth);
   if (res != ResOK) return res;
 
-  res = WriteF(stream,
-               "  Seg $P\n",         (WriteFP)segbuf->seg,
-               "  rankSet $U\n",     (WriteFU)segbuf->rankSet,
+  res = WriteF(depth, stream,
+               "Seg $P\n",         (WriteFP)segbuf->seg,
+               "rankSet $U\n",     (WriteFU)segbuf->rankSet,
                NULL);
 
   return res;

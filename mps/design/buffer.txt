@@ -243,10 +243,10 @@ setter method which sets the rank set of a buffer. It is called from
 ``BufferSetRankSet()``. Clients should not need to define their own
 methods for this.
 
-``typedef Res (*BufferDescribeMethod)(Buffer buffer, mps_lib_FILE *stream)``
+``typedef Res (*BufferDescribeMethod)(Buffer buffer, mps_lib_FILE *stream, Count depth)``
 
 _`.class.method.describe`: ``describe()`` is a class-specific method
-called to describe a buffer, via BufferDescribe. Client-defined
+called to describe a buffer, via ``BufferDescribe()``. Client-defined
 methods must call their superclass method (via a next-method call)
 before describing any class-specific state.
 

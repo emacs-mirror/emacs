@@ -23,7 +23,7 @@
 /* Prototypes  */
 
 typedef struct ABQStruct *ABQ;
-typedef Res (*ABQDescribeElement)(void *element, mps_lib_FILE *stream);
+typedef Res (*ABQDescribeElement)(void *element, mps_lib_FILE *stream, Count depth);
 typedef Bool (*ABQIterateMethod)(Bool *deleteReturn, void *element, void *closureP, Size closureS);
 
 extern Res ABQInit(Arena arena, ABQ abq, void *owner, Count elements, Size elementSize);
@@ -32,7 +32,7 @@ extern void ABQFinish(Arena arena, ABQ abq);
 extern Bool ABQPush(ABQ abq, void *element);
 extern Bool ABQPop(ABQ abq, void *elementReturn);
 extern Bool ABQPeek(ABQ abq, void *elementReturn);
-extern Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *stream);
+extern Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *stream, Count depth);
 extern Bool ABQIsEmpty(ABQ abq);
 extern Bool ABQIsFull(ABQ abq);
 extern Count ABQDepth(ABQ abq);
