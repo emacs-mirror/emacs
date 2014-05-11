@@ -1,3 +1,7 @@
+2014-05-11  Santiago Payà i Miralta  <santiagopim@gmail.com>  (tiny change)
+
+	* vc/vc-hg.el (vc-hg-unregister): New function.  (Bug#17454)
+
 2014-05-11  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/find-gc.el: Move to ../admin.
