@@ -413,7 +413,7 @@ Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResFAIL;
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "Nailboard $P\n{\n", (WriteFP)board,
                "  base: $P\n", (WriteFP)RangeBase(&board->range),
                "  limit: $P\n", (WriteFP)RangeLimit(&board->range),
@@ -427,21 +427,21 @@ Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream, Count depth)
   for(i = 0; i < board->levels; ++i) {
     Count levelNails = nailboardLevelBits(nailboardNails(board), i);
     Count resetNails = BTCountResRange(board->level[i], 0, levelNails);
-    res = WriteF(depth + 2, stream, "Level $U ($U bits, $U set): ",
+    res = WriteF(stream, depth + 2, "Level $U ($U bits, $U set): ",
                  i, levelNails, levelNails - resetNails, NULL);
     if (res != ResOK)
       return res;
     for (j = 0; j < levelNails; ++j) {
       char c = BTGet(board->level[i], j) ? '*' : '.';
-      res = WriteF(0, stream, "$C", c, NULL);
+      res = WriteF(stream, 0, "$C", c, NULL);
       if (res != ResOK)
         return res;
     }
-    res = WriteF(0, stream, "\n", NULL);
+    res = WriteF(stream, 0, "\n", NULL);
     if (res != ResOK)
       return res;
   }
-  res = WriteF(depth, stream, "} Nailboard $P\n", (WriteFP)board, NULL);
+  res = WriteF(stream, depth, "} Nailboard $P\n", (WriteFP)board, NULL);
   if (res != ResOK)
     return res;
 

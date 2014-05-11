@@ -587,7 +587,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
   if (!TESTT(Root, root)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "Root $P ($U) {\n", (WriteFP)root, (WriteFU)root->serial,
                "  arena $P ($U)\n", (WriteFP)root->arena,
                (WriteFU)root->arena->serial,
@@ -599,7 +599,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
 
   switch(root->var) {
     case RootTABLE:
-    res = WriteF(depth + 2, stream,
+    res = WriteF(stream, depth + 2,
                  "table base $A limit $A\n",
                  root->the.table.base, root->the.table.limit,
                  NULL);
@@ -607,7 +607,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
     break;
 
     case RootTABLE_MASKED:
-    res = WriteF(depth + 2, stream,
+    res = WriteF(stream, depth + 2,
                  "table base $A limit $A mask $B\n",
                  root->the.tableMasked.base, root->the.tableMasked.limit,
                  root->the.tableMasked.mask,
@@ -616,7 +616,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
     break;
 
     case RootFUN:
-    res = WriteF(depth + 2, stream,
+    res = WriteF(stream, depth + 2,
                  "scan function $F\n", (WriteFF)root->the.fun.scan,
                  "environment p $P s $W\n",
                  root->the.fun.p, (WriteFW)root->the.fun.s,
@@ -625,7 +625,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
     break;
 
     case RootREG:
-    res = WriteF(depth + 2, stream,
+    res = WriteF(stream, depth + 2,
                  "thread $P\n", (WriteFP)root->the.reg.thread,
                  "environment p $P", root->the.reg.p,
                  NULL);
@@ -633,7 +633,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
     break;
 
     case RootFMT:
-    res = WriteF(depth + 2, stream,
+    res = WriteF(stream, depth + 2,
                  "scan function $F\n", (WriteFF)root->the.fmt.scan,
                  "format base $A limit $A\n",
                  root->the.fmt.base, root->the.fmt.limit,
@@ -645,7 +645,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream, Count depth)
     NOTREACHED;
   }
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "} Root $P ($U)\n", (WriteFP)root, (WriteFU)root->serial,
                NULL);
   if (res != ResOK) return res;

@@ -430,28 +430,28 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
  * .writef.check: See .check.writef.
  */
 
-Res WriteF(Count depth, mps_lib_FILE *stream, ...)
+Res WriteF(mps_lib_FILE *stream, Count depth, ...)
 {
   Res res;
   va_list args;
  
-  va_start(args, stream);
-  res = WriteF_v(depth, stream, args);
+  va_start(args, depth);
+  res = WriteF_v(stream, depth, args);
   va_end(args);
   return res;
 }
 
-Res WriteF_v(Count depth, mps_lib_FILE *stream, va_list args)
+Res WriteF_v(mps_lib_FILE *stream, Count depth, va_list args)
 {
   const char *firstformat;
   Res res;
 
   firstformat = va_arg(args, const char *);
-  res = WriteF_firstformat_v(depth, stream, firstformat, args);
+  res = WriteF_firstformat_v(stream, depth, firstformat, args);
   return res;
 }
 
-Res WriteF_firstformat_v(Count depth, mps_lib_FILE *stream, 
+Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth, 
                          const char *firstformat, va_list args)
 {
   const char *format;

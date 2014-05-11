@@ -153,7 +153,7 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
   if (!TESTT(Buffer, buffer)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "Buffer $P ($U) {\n",
                (WriteFP)buffer, (WriteFU)buffer->serial,
                "  class $P (\"$S\")\n",
@@ -181,7 +181,7 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
   res = buffer->class->describe(buffer, stream, depth + 2);
   if (res != ResOK) return res;
 
-  res = WriteF(depth, stream, "} Buffer $P ($U)\n",
+  res = WriteF(stream, depth, "} Buffer $P ($U)\n",
                (WriteFP)buffer, (WriteFU)buffer->serial,
                NULL);
   return res;
@@ -1439,7 +1439,7 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream, Count depth)
   res = super->describe(buffer, stream, depth);
   if (res != ResOK) return res;
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "Seg $P\n",         (WriteFP)segbuf->seg,
                "rankSet $U\n",     (WriteFU)segbuf->rankSet,
                NULL);

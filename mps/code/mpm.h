@@ -153,9 +153,9 @@ extern Bool (WordIsP2)(Word word);
 
 /* Formatted Output -- see <design/writef/>, <code/mpm.c> */
 
-extern Res WriteF(Count depth, mps_lib_FILE *stream, ...);
-extern Res WriteF_v(Count depth, mps_lib_FILE *stream, va_list args);
-extern Res WriteF_firstformat_v(Count depth, mps_lib_FILE *stream,
+extern Res WriteF(mps_lib_FILE *stream, Count depth, ...);
+extern Res WriteF_v(mps_lib_FILE *stream, Count depth, va_list args);
+extern Res WriteF_firstformat_v(mps_lib_FILE *stream, Count depth,
                                 const char *firstformat, va_list args);
 
 

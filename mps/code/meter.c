@@ -68,7 +68,7 @@ Res MeterWrite(Meter meter, mps_lib_FILE *stream, Count depth)
 {
   Res res = ResOK;
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "meter \"$S\" {", meter->name,
                "count: $U", meter->count,
                NULL);
@@ -77,7 +77,7 @@ Res MeterWrite(Meter meter, mps_lib_FILE *stream, Count depth)
   if (meter->count > 0) {
     double mean = meter->total / (double)meter->count;
    
-    res = WriteF(0, stream,
+    res = WriteF(stream, 0,
                  ", total: $D", meter->total,
                  ", max: $U", meter->max,
                  ", min: $U", meter->min,
@@ -87,7 +87,7 @@ Res MeterWrite(Meter meter, mps_lib_FILE *stream, Count depth)
     if (res != ResOK)
       return res;
   }
-  res = WriteF(0, stream, "}\n", NULL);
+  res = WriteF(stream, 0, "}\n", NULL);
 
   return res;
 }

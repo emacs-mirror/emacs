@@ -687,7 +687,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   if(!TESTT(MV, mv)) return ResFAIL;
   if(stream == NULL) return ResFAIL;
 
-  res = WriteF(depth, stream,
+  res = WriteF(stream, depth,
                "blockPool $P ($U)\n",
                (WriteFP)mvBlockPool(mv), (WriteFU)mvBlockPool(mv)->serial,
                "spanPool  $P ($U)\n",
@@ -707,10 +707,10 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     Addr i, j;
     MVBlock block;
     span = RING_ELT(MVSpan, spans, node);
-    res = WriteF(depth, stream, "MVSpan $P {\n", (WriteFP)span, NULL);
+    res = WriteF(stream, depth, "MVSpan $P {\n", (WriteFP)span, NULL);
     if(res != ResOK) return res;
 
-    res = WriteF(depth + 2, stream,
+    res = WriteF(stream, depth + 2,
                  "span    $P\n", (WriteFP)span,
                  "tract   $P\n", (WriteFP)span->tract,
                  "space   $W\n", (WriteFW)span->space,
@@ -720,15 +720,15 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     if(res != ResOK) return res;
 
     if (span->largestKnown) /* .design.largest */
-      res = WriteF(0, stream, "$W\n", (WriteFW)span->largest, NULL);
+      res = WriteF(stream, 0, "$W\n", (WriteFW)span->largest, NULL);
     else
-      res = WriteF(0, stream, "unknown\n", NULL);
+      res = WriteF(stream, 0, "unknown\n", NULL);
     if(res != ResOK) return res;
 
     block = span->blocks;
 
     for(i = span->base.base; i < span->limit.limit; i = AddrAdd(i, length)) {
-      res = WriteF(depth + 2, stream, "$A ", i, NULL);
+      res = WriteF(stream, depth + 2, "$A ", i, NULL);
       if(res != ResOK) return res;
 
       for(j = i;
@@ -751,13 +751,13 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
           c = ']';
         else /* j > block->base && j < block->limit */
           c = '=';
-        res = WriteF(0, stream, "$C", c, NULL);
+        res = WriteF(stream, 0, "$C", c, NULL);
         if(res != ResOK) return res;
       }
-      res = WriteF(0, stream, "\n", NULL);
+      res = WriteF(stream, 0, "\n", NULL);
       if(res != ResOK) return res;
     }
-    res = WriteF(depth, stream, "} MVSpan $P\n", (WriteFP)span, NULL);
+    res = WriteF(stream, depth, "} MVSpan $P\n", (WriteFP)span, NULL);
     if(res != ResOK) return res;
   }
 
