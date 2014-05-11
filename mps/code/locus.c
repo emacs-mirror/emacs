@@ -212,6 +212,7 @@ void ChainDestroy(Chain chain)
   size_t i;
 
   AVERT(Chain, chain);
+  AVER(chain->activeTraces == TraceSetEMPTY);
 
   arena = chain->arena; genCount = chain->genCount;
   RingRemove(&chain->chainRing);
