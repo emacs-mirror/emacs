@@ -413,16 +413,19 @@ Res NailboardDescribe(Nailboard board, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResFAIL;
 
-  res = WriteF(stream, depth,
-               "Nailboard $P\n{\n", (WriteFP)board,
-               "  base: $P\n", (WriteFP)RangeBase(&board->range),
-               "  limit: $P\n", (WriteFP)RangeLimit(&board->range),
-               "  levels: $U\n", (WriteFU)board->levels,
-               "  newNails: $S\n", board->newNails ? "TRUE" : "FALSE",
-               "  alignShift: $U\n", (WriteFU)board->alignShift,
-               NULL);
+  res = WriteF(stream, depth, "Nailboard $P {\n", (WriteFP)board, NULL);
   if (res != ResOK)
     return res;
+
+  res = RangeDescribe(&board->range, stream, depth + 2);
+  if (res != ResOK)
+    return res;
+
+  res = WriteF(stream, depth + 2,
+               "levels: $U\n", (WriteFU)board->levels,
+               "newNails: $S\n", board->newNails ? "TRUE" : "FALSE",
+               "alignShift: $U\n", (WriteFU)board->alignShift,
+               NULL);
 
   for(i = 0; i < board->levels; ++i) {
     Count levelNails = nailboardLevelBits(nailboardNails(board), i);

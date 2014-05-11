@@ -47,7 +47,7 @@ Res RangeDescribe(Range range, mps_lib_FILE *stream, Count depth)
   AVER(stream != NULL);
 
   res = WriteF(stream, depth,
-               "Range $P\n{\n", (WriteFP)range,
+               "Range $P {\n", (WriteFP)range,
                "  base: $P\n", (WriteFP)RangeBase(range),
                "  limit: $P\n", (WriteFP)RangeLimit(range),
                "  size: $U\n", (WriteFU)RangeSize(range),
