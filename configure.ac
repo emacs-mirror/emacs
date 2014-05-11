@@ -1349,7 +1349,7 @@ searched by pkg-config])
 pre_PKG_CONFIG_CFLAGS=$CFLAGS
 pre_PKG_CONFIG_LIBS=$LIBS
 
-PKG_PROG_PKG_CONFIG(0.26)
+PKG_PROG_PKG_CONFIG(0.9.0)
 
 dnl EMACS_CHECK_MODULES(GSTUFF, gtk+-2.0 >= 1.3 glib = 1.3.4)
 dnl acts like PKG_CHECK_MODULES(GSTUFF, gtk+-2.0 >= 1.3 glib = 1.3.4,
