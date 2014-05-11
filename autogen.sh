@@ -42,11 +42,6 @@ autoconf_min=`sed -n 's/^ *AC_PREREQ(\([0-9\.]*\)).*/\1/p' configure.ac`
 automake_min=`sed -n 's/^ *AM_INIT_AUTOMAKE(\([0-9\.]*\)).*/\1/p' configure.ac`
 
 pkg_config_min=`sed -n 's/^ *PKG_PROG_PKG_CONFIG(\([0-9\.]*\)).*/\1/p' configure.ac`
-# Building from the repository needs pkg-config 0.26 or later; see Bug#17438.
-case $pkg_config_min in
-  0.[0-9] | 0.[0-9].* | 0.1[0-9] | 0.1[0-9].* | 0.2[0-5] | 0.2[0-5].* )
-    pkg_config_min=0.26
-esac
 
 ## $1 = program, eg "autoconf".
 ## Echo the version string, eg "2.59".
