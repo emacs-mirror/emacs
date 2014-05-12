@@ -431,6 +431,10 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
 
   AVERT(Globals, arenaGlobals);
 
+  /* Park the arena before destroying the default chain, to ensure
+   * that there are no traces using that chain. */
+  ArenaPark(arenaGlobals);
+
   arena = GlobalsArena(arenaGlobals);
   arenaDenounce(arena);
 
