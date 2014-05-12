@@ -431,7 +431,6 @@ file.
 
 @kindex C-h L
 @findex describe-language-environment
-@anchor{Describe Language Environment}
   To display information about the effects of a certain language
 environment @var{lang-env}, use the command @kbd{C-h L @var{lang-env}
 @key{RET}} (@code{describe-language-environment}).  This tells you

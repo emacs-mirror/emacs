@@ -1,6 +1,6 @@
 2014-05-12  Eli Zaretskii  <eliz@gnu.org>
 
-	* mule.texi (Language Environments): Fix @anchor placement.
+	* mule.texi (Language Environments): Remove unused @anchor.
 	(Bug#17479)
 
 2014-05-02  Eli Zaretskii  <eliz@gnu.org>
