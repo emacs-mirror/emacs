@@ -79,6 +79,7 @@ static void test(void)
   DMC;
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(ap1);
  mps_ap_destroy(ap2);
  mps_pool_destroy(poolamc1);

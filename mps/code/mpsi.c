@@ -65,6 +65,7 @@ SRCID(mpsi, "$Id$");
  * .check.enum.cast: enum comparisons have to be cast to avoid a warning
  * from the SunPro C compiler.  See builder.sc.warn.enum.  */
 
+ATTRIBUTE_UNUSED
 static Bool mpsi_check(void)
 {
   CHECKL(COMPATTYPE(mps_res_t, Res));
@@ -1925,6 +1926,24 @@ void mps_chain_destroy(mps_chain_t chain)
   ArenaEnter(arena);
   ChainDestroy(chain);
   ArenaLeave(arena);
+}
+
+
+/* _mps_args_set_key -- set the key for a keyword argument 
+ *
+ * This sets the key for the i'th keyword argument in the array args,
+ * with bounds checking on i. It is used by the MPS_ARGS_BEGIN,
+ * MPS_ARGS_ADD, and MPS_ARGS_DONE macros in mps.h.
+ *
+ * We implement this in a function here, rather than in a macro in
+ * mps.h, so that we can use AVER to do the bounds checking.
+ */
+
+void _mps_args_set_key(mps_arg_s args[MPS_ARGS_MAX], unsigned i,
+                       mps_key_t key)
+{
+  AVER(i < MPS_ARGS_MAX);
+  args[i].key = key;
 }
 
 

@@ -181,6 +181,7 @@ static void test(void)
   mps_ap_destroy(ap[i]);
  }
 
+ mps_arena_park(arena);
  mps_pool_destroy(pool);
  comment("Destroyed pool.");
  mps_chain_destroy(chain);

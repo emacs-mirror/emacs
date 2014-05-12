@@ -367,6 +367,7 @@ static void *go(void *p, size_t s)
   qsort(list, listl, sizeof(mps_word_t), &compare);
   validate();
 
+  mps_arena_park(arena);
   mps_root_destroy(regroot);
   mps_root_destroy(actroot);
   mps_ap_destroy(ap);
@@ -374,6 +375,7 @@ static void *go(void *p, size_t s)
   mps_pool_destroy(mpool);
   mps_chain_destroy(chain);
   mps_fmt_destroy(format);
+  mps_arena_release(arena);
 
   return NULL;
 }

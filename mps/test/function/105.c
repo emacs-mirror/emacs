@@ -67,6 +67,7 @@ static void test(void)
  b = allocone(apamc, 1, mps_rank_exact());
  a = allocone(apweak, 1, mps_rank_weak());
 
+ mps_arena_park(arena);
  mps_ap_destroy(apawl);
  mps_ap_destroy(apamc);
  mps_ap_destroy(apweak);

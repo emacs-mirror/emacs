@@ -267,6 +267,7 @@ static void test(void)
 
  report("count2", "%d", final_count);
 
+ mps_arena_park(arena);
  mps_ap_destroy(apawl);
  mps_ap_destroy(apamc);
  mps_ap_destroy(aplo);
