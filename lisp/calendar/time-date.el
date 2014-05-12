@@ -404,7 +404,7 @@ This function does not work for SECONDS greater than `most-positive-fixnum'."
         (t (let ((sts seconds-to-string) here)
              (while (and (car (setq here (pop sts)))
                          (<= (car here) delay)))
-             (concat (format "%.2f" (/ delay (third here))) (second here))))))
+             (concat (format "%.2f" (/ delay (car (cddr here)))) (cadr here))))))
 
 (provide 'time-date)
 
