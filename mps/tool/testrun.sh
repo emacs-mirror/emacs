@@ -67,13 +67,17 @@ echo "Test directory: $TEST_DIR"
 shift
 TEST_CASES=${*:-${ALL_TEST_CASES}}
 
-SEPARATOR="----------------------------------------"
+SEPARATOR=----------------------------------------
 TEST_COUNT=0
 PASS_COUNT=0
 FAIL_COUNT=0
 for TESTCASE in $TEST_CASES; do
-    TEST="$(basename -- "$TESTCASE")"
-    LOGTEST="$LOGDIR/$TEST"
+    TEST=$(basename -- "$TESTCASE")
+    LOGTEST=$LOGDIR/$TEST
+    TELEMETRY=$LOGDIR/$TEST-io
+    MPS_TELEMETRY_FILENAME=$TELEMETRY.log
+    export MPS_TELEMETRY_FILENAME
+
     echo "Running $TEST"
     TEST_COUNT=$(expr $TEST_COUNT + 1)
     if "$TEST_DIR/$TESTCASE" > "$LOGTEST" 2>&1; then
@@ -85,6 +89,18 @@ for TESTCASE in $TEST_CASES; do
         echo
         echo ${SEPARATOR}${SEPARATOR}
         FAIL_COUNT=$(expr $FAIL_COUNT + 1)
+    fi
+
+    if [ -f "$MPS_TELEMETRY_FILENAME" ]; then
+        "$TEST_DIR/mpseventcnv" -f "$MPS_TELEMETRY_FILENAME" > "$TELEMETRY.cnv"
+        gzip "$MPS_TELEMETRY_FILENAME"
+        "$TEST_DIR/mpseventtxt" < "$TELEMETRY.cnv" > "$TELEMETRY.txt"
+        if [ -x "$TEST_DIR/mpseventsql" ]; then
+            MPS_TELEMETRY_DATABASE=$TELEMETRY.db
+            export MPS_TELEMETRY_DATABASE
+            "$TEST_DIR/mpseventsql" < "$TELEMETRY.cnv" >> "$LOGTEST" 2>&1
+        fi
+        rm -f "$TELEMETRY.cnv" "$TELEMETRY.txt" "$TELEMETRY.db"
     fi
 done
 if [ $FAIL_COUNT = 0 ]; then
