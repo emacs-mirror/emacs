@@ -659,8 +659,9 @@ is non-nil."
 Functions are called with PROCESS and SENTINEL arguments.")
 
 (defcustom rcirc-reconnect-delay 0
-  "*The minimum interval in seconds between reconnect attempts.
+  "The minimum interval in seconds between reconnect attempts.
 When 0, do not auto-reconnect."
+  :version "24.5"
   :type 'integer
   :group 'rcirc)
 
