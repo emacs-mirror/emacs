@@ -20,6 +20,8 @@ OS=$(uname -s)
 PROJECT=mps
 TOOL=$(dirname "$0")
 CODE=$TOOL/../code
+MPS_TELEMETRY_CONTROL=all
+export MPS_TELEMETRY_CONTROL
 
 case "$ARCH-$OS" in
     *-Darwin)
