@@ -47,7 +47,7 @@ function/41.c
 function/42.c
 function/43.c
 function/44.c
-function/45.c
+% function/45.c -- setref: to non-data object @@@@
 function/46.c
 function/47.c
 function/48.c
@@ -60,7 +60,7 @@ function/55.c
 function/56.c
 function/57.c
 % 58-59 -- no such test
-% function/60.c -- slow
+function/60.c
 function/61.c
 function/62.c
 function/63.c
@@ -87,7 +87,7 @@ function/83.c
 % 84-95 -- no such test
 function/96.c
 function/97.c
-function/98.c
+% function/98.c -- tries to exhaust memory by mps_arena_create
 function/99.c
 function/100.c
 function/101.c

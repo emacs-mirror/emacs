@@ -96,6 +96,7 @@ static void test(void)
 
  die(allocrone(&a, ap2, 128, mps_rank_exact()), "alloc failed");
 
+ mps_arena_park(arena);
  mps_ap_destroy(ap2);
  mps_pool_destroy(pool);
  mps_chain_destroy(chain);

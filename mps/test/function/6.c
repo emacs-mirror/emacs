@@ -79,6 +79,8 @@ static void test(void)
   }
  }
 
+ mps_arena_park(arena);
+ mps_arena_park(arena);
  mps_ap_destroy(ap);
  mps_pool_destroy(pool);
  mps_chain_destroy(chain);
