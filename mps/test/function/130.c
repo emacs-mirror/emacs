@@ -19,8 +19,6 @@ static mps_gen_param_s testChain[genCOUNT] = {
   { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
 
 
-void *stackpointer;
-
 mps_pool_t poolmv;
 mps_arena_t arena;
 
@@ -28,28 +26,18 @@ mps_arena_t arena;
 static void test(void)
 {
  mps_pool_t pool;
- mps_thr_t thread;
-
  mps_root_t root;
-
  mps_fmt_t format;
  mps_chain_t chain;
  mps_ap_t ap, ap2;
-
- mycell *a, *b;
-
+ mycell *a[2];
  mps_res_t res;
  int i;
 
  /* create an arena that can't grow beyond 30 M */
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*30)),
       "create arena");
- mps_arena_commit_limit_set(arena, (size_t) (1024*1024*40));
-
- cdie(mps_thread_reg(&thread, arena), "register thread");
- cdie(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
-                          mps_stack_scan_ambig, stackpointer, 0),
-      "create root");
+ die(mps_arena_commit_limit_set(arena, 1u << 20), "commit_limit_set");
 
  cdie(mps_fmt_create_A(&format, arena, &fmtA),
       "create format");
@@ -64,12 +52,14 @@ static void test(void)
  /* allocate until full */
 
  i = 0;
- b = NULL;
+ a[0] = a[1] = NULL;
+ cdie(mps_root_create_table(&root, arena, mps_rank_ambig(), 0, (void *)&a, 2),
+      "create root");
 
- while (allocrone(&a, ap, 128, mps_rank_exact()) == MPS_RES_OK) {
+ while (allocrone(&a[0], ap, 128, mps_rank_exact()) == MPS_RES_OK) {
   i++;
-  setref(a, 0, b);
-  b = a;
+  setref(a[0], 0, a[1]);
+  a[1] = a[0];
  }
 
  comment("%d objs allocated.", i);
@@ -81,7 +71,7 @@ static void test(void)
  mps_ap_destroy(ap);
 
  for (i = 0; i < 10; i++) {
-  res = allocrone(&a, ap2, 128, mps_rank_exact());
+  res = allocrone(&a[0], ap2, 128, mps_rank_exact());
   report("predie", "%s", err_text(res));
  }
 
@@ -90,18 +80,17 @@ static void test(void)
  mps_root_destroy(root);
 
  for (i = 0; i < 10; i++) {
-  res = allocrone(&a, ap2, 128, mps_rank_exact());
+  res = allocrone(&a[0], ap2, 128, mps_rank_exact());
   report("postdie", "%s", err_text(res));
  }
 
- die(allocrone(&a, ap2, 128, mps_rank_exact()), "alloc failed");
+ die(allocrone(&a[0], ap2, 128, mps_rank_exact()), "alloc failed");
 
  mps_arena_park(arena);
  mps_ap_destroy(ap2);
  mps_pool_destroy(pool);
  mps_chain_destroy(chain);
  mps_fmt_destroy(format);
- mps_thread_dereg(thread);
  mps_arena_destroy(arena);
  comment("Destroyed arena.");
 }
@@ -109,9 +98,6 @@ static void test(void)
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
  easy_tramp(test);
  pass();
  return 0;

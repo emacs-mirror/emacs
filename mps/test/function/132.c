@@ -23,8 +23,8 @@ OUTPUT_SPEC
  spill5 <= 0
  grow5 = 0
  avail5 > 1500000
- allocfail2 > 10000
- failres2 = MEMORY
+ allocfail2 > 5000
+ failres2 = COMMIT_LIMIT
  shrink6 > 1000000
  spill6 <= 0
  completed = yes

@@ -69,8 +69,8 @@ static void test(void)
 
  b = allocone(apamc, 1, mps_rank_exact());
 
- for (j=1; j<100; j++) {
-  comment("%i of 100.", j);
+ for (j=1; j<=10; j++) {
+  comment("%i of 10.", j);
   a = allocone(apamc, 5, mps_rank_exact());
   b = a;
   c = a;
