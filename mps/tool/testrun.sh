@@ -24,12 +24,8 @@
 
 # Make a temporary output directory for the test logs.
 LOGDIR=$(mktemp -d /tmp/mps.log.XXXXXX)
-TEST_DIR=$1
 echo "MPS test suite"
 echo "Logging test output to $LOGDIR"
-echo "Test directory: $TEST_DIR"
-shift
-TEST_CASES=${*:-${ALL_TEST_CASES}}
 
 # First argument is the directory containing the test cases.
 TEST_DIR=$1
