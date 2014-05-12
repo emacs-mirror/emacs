@@ -32,6 +32,7 @@
 #   FMTTEST    as above for the "fmttest" part
 #   FMTSCHEME  as above for the "fmtscheme" part
 #   TESTLIB    as above for the "testlib" part
+#   TESTTHR    as above for the "testthr" part
 #   NOISY      if defined, causes command to be emitted
 #
 #
@@ -180,7 +181,8 @@ SNC = <poolsnc>
 DW = <fmtdy> <fmtno>
 FMTTEST = <fmthe> <fmtdy> <fmtno> <fmtdytst>
 FMTSCHEME = <fmtscheme>
-TESTLIB = <testlib> <testthrw3> <getoptl>
+TESTLIB = <testlib> <getoptl>
+TESTTHR = <testthrw3>
 
 
 # CHECK PARAMETERS
@@ -227,6 +229,9 @@ TESTLIB = <testlib> <testthrw3> <getoptl>
 !ENDIF
 !IFNDEF TESTLIB
 !ERROR commpre.nmk: TESTLIB not defined
+!ENDIF
+!IFNDEF TESTTHR
+!ERROR commpre.nmk: TESTTHR not defined
 !ENDIF
 
 
