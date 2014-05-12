@@ -1366,7 +1366,7 @@ AC_DEFUN([EMACS_CHECK_MODULES],
    emacs_check_module_ok=false
    AS_IF([test -n "$PKG_CONFIG" &&
 	  { $PKG_CONFIG --atleast-pkgconfig-version 0.26 ||
-	    { $PKG_CONFIG --cflags "$1" "$2" && $PKG_CONFIG --libs "$1" "$2"; }
+	    { $PKG_CONFIG --cflags "$2" && $PKG_CONFIG --libs "$2"; }
 	  } >/dev/null 2>&AS_MESSAGE_LOG_FD],
      [PKG_CHECK_MODULES([$1], [$2],
 	[$1_CFLAGS=`AS_ECHO(["$$1_CFLAGS"]) | sed -e "$edit_cflags"`
