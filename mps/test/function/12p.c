@@ -196,6 +196,7 @@ cells = allocone(ap[0], NCELLS);
   mps_ap_destroy(ap[i]);
  }
 
+ mps_arena_park(arena);
  mps_pool_destroy(pool);
  comment("Destroyed pool.");
 

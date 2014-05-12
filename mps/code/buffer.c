@@ -994,6 +994,7 @@ AllocPattern AllocPatternRampCollectAll(void)
   return &AllocPatternRampCollectAllStruct;
 }
 
+ATTRIBUTE_UNUSED
 static Bool AllocPatternCheck(AllocPattern pattern)
 {
   CHECKL(pattern == &AllocPatternRampCollectAllStruct
