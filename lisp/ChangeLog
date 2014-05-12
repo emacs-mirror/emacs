@@ -1,3 +1,8 @@
+2014-05-12  Sam Steingold  <sds@gnu.org>
+
+	* calendar/time-date.el (seconds-to-string): New function to
+	pretty print time delay in seconds.
+
 2014-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mpc.el (mpc-format): Trim Date to the year.
