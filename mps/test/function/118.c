@@ -127,6 +127,7 @@ static void test(void)
   /* now simulate rest of commit */
   (void)(busy_ap->limit != 0 || mps_ap_trip(busy_ap, busy_init, objSIZE));
 
+  mps_arena_park(arena);
   mps_ap_destroy(busy_ap);
   mps_ap_destroy(ap);
   mps_pool_destroy(pool);

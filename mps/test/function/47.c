@@ -87,6 +87,7 @@ static void test(void) {
 
 
 
+ mps_arena_park(arena);
  mps_ap_destroy(apawl);
  comment("Destroyed ap.");
 

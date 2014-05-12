@@ -101,6 +101,7 @@ static void test(void)
   report("postdie", "%s", err_text(res));
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(ap2);
  mps_pool_destroy(pool);
  mps_chain_destroy(chain);

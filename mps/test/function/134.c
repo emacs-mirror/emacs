@@ -24,7 +24,7 @@ END_HEADER
 #define BACKITER (32)
 #define RAMPSIZE (128)
 
-#define ITERATIONS (1000000ul)
+#define ITERATIONS (100000ul)
 
 #define RAMP_INTERFACE
 /*
@@ -137,6 +137,7 @@ static void test(void) {
   }
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(apamc);
  comment("Destroyed ap.");
 

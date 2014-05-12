@@ -168,6 +168,7 @@ static void test(void) {
  report("spill6", "%d", commit6-mps_arena_commit_limit(arena));
  report("shrink6", "%d", avail5-avail6);
  
+ mps_arena_park(arena);
  mps_root_destroy(root);
  comment("Destroyed root.");
 

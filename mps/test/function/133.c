@@ -120,6 +120,7 @@ static void test(void) {
 /* destroy everything remaining
 */
 
+ mps_arena_park(arena);
  mps_ap_destroy(apamc);
  comment("Destroyed ap.");
 
