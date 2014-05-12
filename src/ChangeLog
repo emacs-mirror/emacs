@@ -1,3 +1,7 @@
+2014-05-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (draw_glyphs): Set clipping to highlight boundaries.
+
 2014-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* fileio.c (Ffile_executable_p): Doc tweak.
