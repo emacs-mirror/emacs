@@ -1,5 +1,8 @@
 2014-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mpc.el (mpc-format): Trim Date to the year.
+	(mpc-songs-hashcons): Shorten the Date field.
+
 	* emacs-lisp/nadvice.el (advice--interactive-form): Don't get fooled
 	into autoloading just because of a silly indirection.
 
