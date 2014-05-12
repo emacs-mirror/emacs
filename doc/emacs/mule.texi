@@ -431,6 +431,7 @@ file.
 
 @kindex C-h L
 @findex describe-language-environment
+@anchor{Describe Language Environment}
   To display information about the effects of a certain language
 environment @var{lang-env}, use the command @kbd{C-h L @var{lang-env}
 @key{RET}} (@code{describe-language-environment}).  This tells you
@@ -439,7 +440,6 @@ character sets, coding systems, and input methods that go with it.  It
 also shows some sample text to illustrate scripts used in this
 language environment.  If you give an empty input for @var{lang-env},
 this command describes the chosen language environment.
-@anchor{Describe Language Environment}
 
 @vindex set-language-environment-hook
   You can customize any language environment with the normal hook
