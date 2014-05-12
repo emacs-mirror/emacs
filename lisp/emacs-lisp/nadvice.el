@@ -134,7 +134,7 @@ Each element has the form (WHERE BYTECODE STACK) where:
 (defun advice--interactive-form (function)
   ;; Like `interactive-form' but tries to avoid autoloading functions.
   (when (commandp function)
-    (if (not (and (symbolp function) (autoloadp (symbol-function function))))
+    (if (not (and (symbolp function) (autoloadp (indirect-function function))))
         (interactive-form function)
       `(interactive (advice-eval-interactive-spec
                      (cadr (interactive-form ',function)))))))
@@ -183,9 +183,9 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
 (defun advice--member-p (function name definition)
   (let ((found nil))
     (while (and (not found) (advice--p definition))
-      (if (or (equal function (advice--car definition))
-              (when name
-                (equal name (cdr (assq 'name (advice--props definition))))))
+      (if (if name
+              (equal name (cdr (assq 'name (advice--props definition))))
+            (equal function (advice--car definition)))
           (setq found definition)
         (setq definition (advice--cdr definition))))
     found))
@@ -209,8 +209,8 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
                  (lambda (first rest props)
                    (cond ((not first) rest)
                          ((or (equal function first)
-                           (equal function (cdr (assq 'name props))))
-                          (list rest))))))
+                              (equal function (cdr (assq 'name props))))
+                          (list (advice--remove-function rest function)))))))
 
 (defvar advice--buffer-local-function-sample nil
   "keeps an example of the special \"run the default value\" functions.
@@ -231,6 +231,12 @@ different, but `function-equal' will hopefully ignore those differences.")
     (setq advice--buffer-local-function-sample
           ;; This function acts like the t special value in buffer-local hooks.
           (lambda (&rest args) (apply (default-value var) args)))))
+
+(defun advice--normalize-place (place)
+  (cond ((eq 'local (car-safe place)) `(advice--buffer-local ,@(cdr place)))
+        ((eq 'var (car-safe place))   (nth 1 place))
+        ((symbolp place)              `(default-value ',place))
+        (t place)))
 
 ;;;###autoload
 (defmacro add-function (where place function &optional props)
@@ -267,8 +273,9 @@ a special meaning:
   the advice  should be innermost (i.e. at the end of the list),
   whereas a depth of -100 means that the advice should be outermost.
 
-If PLACE is a simple variable, only its global value will be affected.
-Use (local 'VAR) if you want to apply FUNCTION to VAR buffer-locally.
+If PLACE is a symbol, its `default-value' will be affected.
+Use (local 'SYMBOL) if you want to apply FUNCTION to SYMBOL buffer-locally.
+Use (var VAR) if you want to apply FUNCTION to the (lexical) VAR.
 
 If one of FUNCTION or OLDFUN is interactive, then the resulting function
 is also interactive.  There are 3 cases:
@@ -278,20 +285,18 @@ is also interactive.  There are 3 cases:
   `advice-eval-interactive-spec') and return the list of arguments to use.
 - Else, use the interactive spec of FUNCTION and ignore the one of OLDFUN."
   (declare (debug t)) ;;(indent 2)
-  (cond ((eq 'local (car-safe place))
-         (setq place `(advice--buffer-local ,@(cdr place))))
-        ((symbolp place)
-         (setq place `(default-value ',place))))
-  `(advice--add-function ,where (gv-ref ,place) ,function ,props))
+  `(advice--add-function ,where (gv-ref ,(advice--normalize-place place))
+                         ,function ,props))
 
 ;;;###autoload
 (defun advice--add-function (where ref function props)
-  (let ((a (advice--member-p function (cdr (assq 'name props))
-                             (gv-deref ref))))
+  (let* ((name (cdr (assq 'name props)))
+         (a (advice--member-p function name (gv-deref ref))))
     (when a
       ;; The advice is already present.  Remove the old one, first.
       (setf (gv-deref ref)
-            (advice--remove-function (gv-deref ref) (advice--car a))))
+            (advice--remove-function (gv-deref ref)
+                                     (or name (advice--car a)))))
     (setf (gv-deref ref)
           (advice--make where function (gv-deref ref) props))))
 
@@ -302,11 +307,7 @@ If FUNCTION was not added to PLACE, do nothing.
 Instead of FUNCTION being the actual function, it can also be the `name'
 of the piece of advice."
   (declare (debug t))
-  (cond ((eq 'local (car-safe place))
-         (setq place `(advice--buffer-local ,@(cdr place))))
-        ((symbolp place)
-         (setq place `(default-value ',place))))
-  (gv-letplace (getter setter) place
+  (gv-letplace (getter setter) (advice--normalize-place place)
     (macroexp-let2 nil new `(advice--remove-function ,getter ,function)
       `(unless (eq ,new ,getter) ,(funcall setter new)))))
 

@@ -12,7 +12,7 @@
   "printing.el, v 6.9.3 <2007/12/09 vinicius>
 
 Please send all bug fixes and enhancements to
-	Vinicius Jose Latorre <viniciusjl@ig.com.br>
+	bug-gnu-emacs@gnu.org and Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ")
 
 ;; This file is part of GNU Emacs.

@@ -1460,7 +1460,7 @@ If optional second arg COMINT is t the buffer will be in Comint mode with
 `compilation-shell-minor-mode'.
 
 Interactively, prompts for the command if the variable
-`compilation-read-command' is non-nil; otherwise uses`compile-command'.
+`compilation-read-command' is non-nil; otherwise uses `compile-command'.
 With prefix arg, always prompts.
 Additionally, with universal prefix arg, compilation buffer will be in
 comint mode, i.e. interactive.
@@ -1499,12 +1499,13 @@ If the optional argument `edit-command' is non-nil, the command can be edited."
   (interactive "P")
   (save-some-buffers (not compilation-ask-about-save)
                      compilation-save-buffers-predicate)
-  (let ((default-directory (or compilation-directory default-directory)))
+  (let ((default-directory (or compilation-directory default-directory))
+	(command (eval compile-command)))
     (when edit-command
-      (setcar compilation-arguments
-              (compilation-read-command (car compilation-arguments))))
-    (apply 'compilation-start (or compilation-arguments
-				  `(,(eval compile-command))))))
+      (setq command (compilation-read-command (or (car compilation-arguments)
+						  command)))
+      (if compilation-arguments (setcar compilation-arguments command)))
+    (apply 'compilation-start (or compilation-arguments (list command)))))
 
 (defcustom compilation-scroll-output nil
   "Non-nil to scroll the *compilation* buffer window as output appears.

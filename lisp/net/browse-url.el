@@ -1333,31 +1333,32 @@ used instead of `browse-url-new-window-flag'."
   (let ((pidfile (expand-file-name browse-url-mosaic-pidfile))
 	pid)
     (if (file-readable-p pidfile)
-	(save-excursion
-	  (find-file pidfile)
-	  (goto-char (point-min))
-	  (setq pid (read (current-buffer)))
-	  (kill-buffer nil)))
-    (if (and pid (zerop (signal-process pid 0))) ; Mosaic running
-	(save-excursion
-	  ;; This is a predictable temp-file name, which is bad,
-	  ;; but it is what Mosaic uses/used.
-	  ;; So it's not Emacs's problem.  http://bugs.debian.org/747100
-	  (find-file (format "/tmp/Mosaic.%d" pid))
-	  (erase-buffer)
-	  (insert (if (browse-url-maybe-new-window new-window)
-		      "newwin\n"
-		    "goto\n")
-		  url "\n")
-	  (save-buffer)
-	  (kill-buffer nil)
+        (with-temp-buffer
+          (insert-file-contents pidfile)
+	  (setq pid (read (current-buffer)))))
+    (if (and (integerp pid) (zerop (signal-process pid 0))) ; Mosaic running
+        (progn
+          (with-temp-buffer
+            (insert (if (browse-url-maybe-new-window new-window)
+                        "newwin\n"
+                      "goto\n")
+                    url "\n")
+            (let ((umask (default-file-modes)))
+              (unwind-protect
+                  (progn
+                    (set-default-file-modes ?\700)
+                    (if (file-exists-p
+                         (setq pidfile (format "/tmp/Mosaic.%d" pid)))
+                        (delete-file pidfile))
+                    ;; http://debbugs.gnu.org/17428.  Use O_EXCL.
+                    (write-region nil nil pidfile nil 'silent nil 'excl))
+                (set-default-file-modes umask))))
 	  ;; Send signal SIGUSR to Mosaic
 	  (message "Signaling Mosaic...")
 	  (signal-process pid 'SIGUSR1)
 	  ;; Or you could try:
 	  ;; (call-process "kill" nil 0 nil "-USR1" (int-to-string pid))
-	  (message "Signaling Mosaic...done")
-	  )
+	  (message "Signaling Mosaic...done"))
       ;; Mosaic not running - start it
       (message "Starting %s..." browse-url-mosaic-program)
       (apply 'start-process "xmosaic" nil browse-url-mosaic-program

@@ -65,17 +65,25 @@ Optional argument DATE is the release date, default today."
   "Subroutine of `set-version' and `set-copyright'."
   (find-file (expand-file-name file root))
   (goto-char (point-min))
+  (setq version (format "%s" version))
   (unless (re-search-forward rx nil :noerror)
     (user-error "Version not found in %s" file))
-  (replace-match (format "%s" version) nil nil nil 1))
+  (if (not (equal version (match-string 1)))
+      (replace-match version nil nil nil 1)
+    (kill-buffer)
+    (message "No need to update `%s'" file)))
 
-;; TODO report the progress
 (defun set-version (root version)
   "Set Emacs version to VERSION in relevant files under ROOT.
 Root must be the root of an Emacs source tree."
-  (interactive "DEmacs root directory: \nsVersion number: ")
+  (interactive (list
+		(read-directory-name "Emacs root directory: " source-directory)
+		(read-string "Version number: "
+			     (replace-regexp-in-string "\\.[0-9]+\\'" ""
+						       emacs-version))))
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
+  (message "Setting version numbers...")
   ;; There's also a "version 3" (standing for GPLv3) at the end of
   ;; `README', but since `set-version-in-file' only replaces the first
   ;; occurrence, it won't be replaced.
@@ -158,11 +166,10 @@ Root must be the root of an Emacs source tree."
 {\\([0-9]\\{2,\\}\\)}.+%.+version of Emacs")
       (set-version-in-file root "etc/refcards/emacsver.tex" version
 			   "\\\\def\\\\versionemacs\
-{\\([0-9]\\{2,\\}\\)}.+%.+version of Emacs"))))
-
+{\\([0-9]\\{2,\\}\\)}.+%.+version of Emacs")))
+  (message "Setting version numbers...done"))
 
 ;; Note this makes some assumptions about form of short copyright.
-;; TODO report the progress
 (defun set-copyright (root copyright)
   "Set Emacs short copyright to COPYRIGHT in relevant files under ROOT.
 Root must be the root of an Emacs source tree."
@@ -174,6 +181,7 @@ Root must be the root of an Emacs source tree."
                          (format-time-string "%Y")))))
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
+  (message "Setting copyrights...")
   (set-version-in-file root "configure.ac" copyright
 		       (rx (and bol "copyright" (0+ (not (in ?\")))
         			?\" (submatch (1+ (not (in ?\")))) ?\")))
@@ -195,7 +203,8 @@ Root must be the root of an Emacs source tree."
 {\\([0-9]\\{4\\}\\)}.+%.+copyright year")
     (set-version-in-file root "etc/refcards/emacsver.tex" copyright
 			 "\\\\def\\\\year\
-{\\([0-9]\\{4\\}\\)}.+%.+copyright year")))
+{\\([0-9]\\{4\\}\\)}.+%.+copyright year"))
+  (message "Setting copyrights...done"))
 
 ;;; Various bits of magic for generating the web manuals
 

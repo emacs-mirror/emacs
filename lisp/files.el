@@ -685,7 +685,7 @@ nil (meaning `default-directory') as the associated list element."
       (if (file-exists-p dir)
 	  (error "%s is not a directory" dir)
 	(error "%s: no such directory" dir))
-    (unless (file-executable-p dir)
+    (unless (file-accessible-directory-p dir)
       (error "Cannot cd to %s:  Permission denied" dir))
     (setq default-directory dir)
     (setq list-buffers-directory dir)))

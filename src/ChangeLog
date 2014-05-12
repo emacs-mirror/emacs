@@ -1,3 +1,12 @@
+2014-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (Ffile_executable_p): Doc tweak.
+
+2014-05-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (init_gsettings): Use g_settings_schema_source_lookup
+	instead of deprecated g_settings_list_schemas if possible (Bug#17434).
+
 2014-05-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* minibuf.c (read_minibuf): Avoid C99ism in previous patch (Bug#17430).

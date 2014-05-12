@@ -1,3 +1,54 @@
+2014-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el (advice--interactive-form): Don't get fooled
+	into autoloading just because of a silly indirection.
+
+2014-05-12  Santiago Payà i Miralta  <santiagopim@gmail.com>  (tiny change)
+
+	* vc/vc-hg.el (vc-hg-unregister): New function.  (Bug#17454)
+
+2014-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/find-gc.el: Move to ../admin.
+
+	* printing.el (pr-version):
+	* ps-print.el (ps-print-version): Also mention bug-gnu-emacs.
+
+	* net/browse-url.el (browse-url-mosaic):
+	Create /tmp/Mosaic.PID as a private file.
+
+2014-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el: Support adding a given function multiple times.
+	(advice--member-p): If name is given, only compare the name.
+	(advice--remove-function): Don't stop at the first match.
+	(advice--normalize-place): New function.
+	(add-function, remove-function): Use it.
+	(advice--add-function): Pass the name, if any, to
+	advice--remove-function.
+
+2014-05-12  Philipp Rumpf  <prumpf@gmail.com>  (tiny change)
+
+	* electric.el (electric-indent-post-self-insert-function): Don't use
+	`pos' after modifying the buffer (bug#17449).
+
+2014-05-12  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el (todo-insert-item-from-calendar):
+	Correct argument list to conform to todo-insert-item--basic.
+
+2014-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (cd-absolute): Test if directory is accessible
+	rather than executable.  (Bug#17330)
+
+	* progmodes/compile.el (recompile):
+	Handle C-u M-x recompile from a non-compilation buffer.  (Bug#17444)
+
+	* net/browse-url.el (browse-url-mosaic):
+	Be careful when writing /tmp/Mosaic.PID.  (Bug#17428)
+	This is CVE-2014-3423.
+
 2014-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse.el: Use the normal toplevel loop while dragging.
@@ -89,6 +140,7 @@
 	(tramp-remote-coding-commands): Enhance docstring.
 	(tramp-find-inline-encoding): Replace "%t" by a temporary file
 	name.  (Bug#17415)
+	This is CVE-2014-3424.
 
 2014-05-08  Glenn Morris  <rgm@gnu.org>
 
@@ -96,6 +148,7 @@
 	(find-gc-source-files): Update some names.
 	(trace-call-tree): Simplify and update.
 	Avoid predictable temp-file names.  (http://bugs.debian.org/747100)
+	This is CVE-2014-3422.
 
 2014-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 

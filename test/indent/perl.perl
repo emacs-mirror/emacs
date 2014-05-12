@@ -1,6 +1,17 @@
 #!/usr/bin/perl
 # -*- eval: (bug-reference-mode 1) -*-
 
+use v5.14;
+
+my $str= <<END;
+Hello
+END
+
+my $a = $';
+
+my $b=3;
+
+print $str;
 if ($c && /====/){xyz;}
 
 print "a" . <<EOF . s/he"llo/th'ere/;

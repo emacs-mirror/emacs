@@ -1,3 +1,8 @@
+2014-05-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* url-handlers.el (url-file-handler-load-in-progress): New defvar.
+	(url-file-handler): Use it, in order to avoid recursive load.
+
 2014-05-04  Glenn Morris  <rgm@gnu.org>
 
 	* url-parse.el (url-generic-parse-url): Doc fix (replace `iff').

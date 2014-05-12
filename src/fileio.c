@@ -2546,7 +2546,9 @@ Use `file-symlink-p' to test for such links.  */)
 
 DEFUN ("file-executable-p", Ffile_executable_p, Sfile_executable_p, 1, 1, 0,
        doc: /* Return t if FILENAME can be executed by you.
-For a directory, this means you can access files in that directory.  */)
+For a directory, this means you can access files in that directory.
+\(It is generally better to use `file-accessible-directory-p' for that
+purpose, though.)  */)
   (Lisp_Object filename)
 {
   Lisp_Object absname;

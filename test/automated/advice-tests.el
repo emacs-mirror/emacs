@@ -179,6 +179,29 @@ function being an around advice."
     (interactive "P") nil)
   (should (equal (interactive-form 'sm-test9) '(interactive "P"))))
 
+(ert-deftest advice-test-multiples ()
+  (let ((sm-test10 (lambda (a) (+ a 10)))
+        (sm-advice (lambda (x) (if (consp x) (list (* 5 (car x))) (* 4 x)))))
+    (should (equal (funcall sm-test10 5) 15))
+    (add-function :filter-args (var sm-test10) sm-advice)
+    (should (equal (funcall sm-test10 5) 35))
+    (add-function :filter-return (var sm-test10) sm-advice)
+    (should (equal (funcall sm-test10 5) 60))
+    ;; Make sure we can add multiple times the same function, under the
+    ;; condition that they have different `name' properties.
+    (add-function :filter-args (var sm-test10) sm-advice '((name . "args")))
+    (should (equal (funcall sm-test10 5) 140))
+    (remove-function (var sm-test10) "args")
+    (should (equal (funcall sm-test10 5) 60))
+    (add-function :filter-args (var sm-test10) sm-advice '((name . "args")))
+    (add-function :filter-return (var sm-test10) sm-advice '((name . "ret")))
+    (should (equal (funcall sm-test10 5) 560))
+    ;; Make sure that if we specify to remove a function that was added
+    ;; multiple times, they are all removed, rather than removing only some
+    ;; arbitrary subset of them.
+    (remove-function (var sm-test10) sm-advice)
+    (should (equal (funcall sm-test10 5) 15))))
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:
