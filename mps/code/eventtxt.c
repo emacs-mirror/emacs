@@ -29,13 +29,13 @@
  * $Id$
  */
 
+#include "check.h"
+#include "config.h"
+#include "eventcom.h"
+#include "eventdef.h"
 #include "mps.h"
 #include "mpsavm.h"
 #include "mpscmvff.h"
-#include "check.h"
-#include "config.h"
-#include "eventdef.h"
-#include "eventcom.h"
 #include "table.h"
 #include "testlib.h" /* for ulongest_t and associated print formats */
 
