@@ -1,50 +1,28 @@
 # -*- makefile -*-
 #
-# gc.gmk: GNUMAKEFILE FRAGMENT FOR GNU CC
+# ananll.gmk: BUILD FOR ANSI/ANSI/Clang PLATFORM
 #
 # $Id$
-# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
-#
-# This file is included by platform makefiles that use the GNU CC
-# compiler.  It defines the compiler-specific variables that the
-# common makefile fragment (<code/comm.gmk>) requires.
+# Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
 
-CC = gcc
-CFLAGSDEBUG = -O -g3
-CFLAGSOPT = -O2 -g3
-CFLAGSCOMPILER := \
-	-Waggregate-return \
-	-Wall \
-	-Wcast-qual \
-	-Werror \
-	-Wextra \
-	-Winline \
-	-Wmissing-prototypes \
-	-Wnested-externs \
-	-Wpointer-arith \
-	-Wshadow \
-	-Wstrict-aliasing=2 \
-	-Wstrict-prototypes \
-	-Wswitch-default \
-	-Wwrite-strings
-CFLAGSCOMPILERSTRICT := -ansi -pedantic
+PFM = ananll
 
-# A different set of compiler flags for less strict compilation, for
-# instance when we need to #include a third-party header file that
-# won't fly with -ansi -pedantic.  Use sparingly!
-CFLAGSCOMPILERLAX :=
+MPMPF = \
+    lockan.c \
+    prmcan.c \
+    protan.c \
+    span.c \
+    ssan.c \
+    than.c \
+    vman.c
 
-# gcc -MM generates a dependency line of the form:
-#   thing.o : thing.c ...
-# The sed line converts this into:
-#   <pfm>/<variety>/thing.o <pfm>/<variety>/thing.d : thing.c ...
-# If interrupted, this is liable to leave a zero-length file behind.
+LIBS = -lm
 
-define gendep
-	$(SHELL) -ec "$(CC) $(CFLAGSSTRICT) -MM $< | \
-		sed '/:/s!$*.o!$(@D)/& $(@D)/$*.d!' > $@"
-	[ -s $@ ] || rm -f $@
-endef
+include ll.gmk
+
+CFLAGSCOMPILER += -DCONFIG_PF_ANSI -DCONFIG_THREAD_SINGLE
+
+include comm.gmk
 
 
 # C. COPYRIGHT AND LICENSE
