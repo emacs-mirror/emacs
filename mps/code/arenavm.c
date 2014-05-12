@@ -93,6 +93,7 @@ static void VMCompact(Arena arena, Trace trace);
 
 /* VMChunkCheck -- check the consistency of a VM chunk */
 
+ATTRIBUTE_UNUSED
 static Bool VMChunkCheck(VMChunk vmchunk)
 {
   Chunk chunk;
@@ -152,6 +153,7 @@ static Bool VMChunkCheck(VMChunk vmchunk)
 
 /* VMArenaCheck -- check the consistency of an arena structure */
 
+ATTRIBUTE_UNUSED
 static Bool VMArenaCheck(VMArena vmArena)
 {
   Arena arena;

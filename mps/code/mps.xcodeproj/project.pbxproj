@@ -7,54 +7,6 @@
 	objects = {
 
 /* Begin PBXAggregateTarget section */
-		225F0AFC18E4453A003F2183 /* testci */ = {
-			isa = PBXAggregateTarget;
-			buildConfigurationList = 225F0B0018E4453A003F2183 /* Build configuration list for PBXAggregateTarget "testci" */;
-			buildPhases = (
-				225F0AFF18E4453A003F2183 /* ShellScript */,
-			);
-			dependencies = (
-				225F0AFD18E4453A003F2183 /* PBXTargetDependency */,
-			);
-			name = testci;
-			productName = testci;
-		};
-		225F0B0418E44549003F2183 /* testall */ = {
-			isa = PBXAggregateTarget;
-			buildConfigurationList = 225F0B0818E44549003F2183 /* Build configuration list for PBXAggregateTarget "testall" */;
-			buildPhases = (
-				225F0B0718E44549003F2183 /* ShellScript */,
-			);
-			dependencies = (
-				225F0B0518E44549003F2183 /* PBXTargetDependency */,
-			);
-			name = testall;
-			productName = testall;
-		};
-		2291B6E318E4754D0004B79C /* testansi */ = {
-			isa = PBXAggregateTarget;
-			buildConfigurationList = 2291B6E718E4754D0004B79C /* Build configuration list for PBXAggregateTarget "testansi" */;
-			buildPhases = (
-				2291B6E618E4754D0004B79C /* ShellScript */,
-			);
-			dependencies = (
-				2291B6E418E4754D0004B79C /* PBXTargetDependency */,
-			);
-			name = testansi;
-			productName = testansi;
-		};
-		22965BB219115D4600138A8F /* testpoll */ = {
-			isa = PBXAggregateTarget;
-			buildConfigurationList = 22965BB619115D4600138A8F /* Build configuration list for PBXAggregateTarget "testpoll" */;
-			buildPhases = (
-				22965BB519115D4600138A8F /* ShellScript */,
-			);
-			dependencies = (
-				22965BB319115D4600138A8F /* PBXTargetDependency */,
-			);
-			name = testpoll;
-			productName = testpoll;
-		};
 		22CDE8EF16E9E97D00366D0A /* testrun */ = {
 			isa = PBXAggregateTarget;
 			buildConfigurationList = 22CDE8F016E9E97E00366D0A /* Build configuration list for PBXAggregateTarget "testrun" */;
@@ -377,20 +329,6 @@
 			remoteGlobalIDString = 224CC78C175E1821002FF81B;
 			remoteInfo = mvfftest;
 		};
-		225F0AFE18E4453A003F2183 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 3104AFF1156D37A0000A585A;
-			remoteInfo = all;
-		};
-		225F0B0618E44549003F2183 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 3104AFF1156D37A0000A585A;
-			remoteInfo = all;
-		};
 		2275798816C5422900B662B0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
@@ -446,20 +384,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 2291A5C1175CAFCA001D4920;
 			remoteInfo = expt825;
-		};
-		2291B6E518E4754D0004B79C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 3104AFF1156D37A0000A585A;
-			remoteInfo = all;
-		};
-		22965BB419115D4600138A8F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 3104AFF1156D37A0000A585A;
-			remoteInfo = all;
 		};
 		22B2BC3818B643AD00C33E63 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -2720,7 +2644,7 @@
 				22FACEE118880983000FDBC1 /* PBXTargetDependency */,
 			);
 			name = airtest;
-			productName = mv2test;
+			productName = airtest;
 			productReference = 22FACEED18880983000FDBC1 /* airtest */;
 			productType = "com.apple.product-type.tool";
 		};
@@ -3388,10 +3312,6 @@
 			targets = (
 				3104AFF1156D37A0000A585A /* all */,
 				22CDE8EF16E9E97D00366D0A /* testrun */,
-				225F0AFC18E4453A003F2183 /* testci */,
-				225F0B0418E44549003F2183 /* testall */,
-				2291B6E318E4754D0004B79C /* testansi */,
-				22965BB219115D4600138A8F /* testpoll */,
 				31EEABFA156AAF9D00714D05 /* mps */,
 				3114A632156E94DB001E0AA3 /* abqtest */,
 				22FACEE018880983000FDBC1 /* airtest */,
@@ -3444,62 +3364,6 @@
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		225F0AFF18E4453A003F2183 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"";
-			showEnvVarsInLog = 0;
-		};
-		225F0B0718E44549003F2183 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"";
-			showEnvVarsInLog = 0;
-		};
-		2291B6E618E4754D0004B79C /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"";
-			showEnvVarsInLog = 0;
-		};
-		22965BB519115D4600138A8F /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"";
-			showEnvVarsInLog = 0;
-		};
 		22CDE8F416E9E9D400366D0A /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -3511,7 +3375,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"";
+			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -4042,16 +3906,6 @@
 			target = 224CC78C175E1821002FF81B /* fotest */;
 			targetProxy = 224CC79C175E187C002FF81B /* PBXContainerItemProxy */;
 		};
-		225F0AFD18E4453A003F2183 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 3104AFF1156D37A0000A585A /* all */;
-			targetProxy = 225F0AFE18E4453A003F2183 /* PBXContainerItemProxy */;
-		};
-		225F0B0518E44549003F2183 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 3104AFF1156D37A0000A585A /* all */;
-			targetProxy = 225F0B0618E44549003F2183 /* PBXContainerItemProxy */;
-		};
 		2275798916C5422900B662B0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 2D604B9B16514B1A003AAF46 /* mpseventtxt */;
@@ -4091,16 +3945,6 @@
 			isa = PBXTargetDependency;
 			target = 2291A5C1175CAFCA001D4920 /* expt825 */;
 			targetProxy = 2291A5E7175CB20E001D4920 /* PBXContainerItemProxy */;
-		};
-		2291B6E418E4754D0004B79C /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 3104AFF1156D37A0000A585A /* all */;
-			targetProxy = 2291B6E518E4754D0004B79C /* PBXContainerItemProxy */;
-		};
-		22965BB319115D4600138A8F /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 3104AFF1156D37A0000A585A /* all */;
-			targetProxy = 22965BB419115D4600138A8F /* PBXContainerItemProxy */;
 		};
 		22B2BC3918B643AD00C33E63 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -4478,42 +4322,42 @@
 		2231BB5618CA97D8002D6322 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = locbwcss;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		2231BB5718CA97D8002D6322 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = locbwcss;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		2231BB5818CA97D8002D6322 /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = locbwcss;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
 		};
 		2231BB6418CA97DC002D6322 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = locusss;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		2231BB6518CA97DC002D6322 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = locusss;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		2231BB6618CA97DC002D6322 /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = locusss;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
 		};
@@ -4530,48 +4374,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
-		};
-		225F0B0118E4453A003F2183 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		225F0B0218E4453A003F2183 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
-		225F0B0318E4453A003F2183 /* RASH */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = RASH;
-		};
-		225F0B0918E44549003F2183 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		225F0B0A18E44549003F2183 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
-		225F0B0B18E44549003F2183 /* RASH */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = RASH;
 		};
 		2291A5BA175CAB2F001D4920 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -4615,53 +4417,11 @@
 			};
 			name = Release;
 		};
-		2291B6E818E4754D0004B79C /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		2291B6E918E4754D0004B79C /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
-		2291B6EA18E4754D0004B79C /* RASH */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = RASH;
-		};
-		22965BB719115D4600138A8F /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		22965BB819115D4600138A8F /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
-		22965BB919115D4600138A8F /* RASH */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = RASH;
-		};
 		22B2BC3318B6434F00C33E63 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = "scheme-advanced";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -4669,7 +4429,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = "scheme-advanced";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -4677,35 +4437,35 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = "scheme-advanced";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
 		};
 		22C2ACA118BE3FEC006B3677 /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = mv2test;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
 		};
 		22C2ACAC18BE400A006B3677 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = nailboardtest;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		22C2ACAD18BE400A006B3677 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = nailboardtest;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		22C2ACAE18BE400A006B3677 /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = nailboardtest;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
 		};
@@ -4726,21 +4486,21 @@
 		22F846BA18F437B900982BA7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = lockut;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		22F846BB18F437B900982BA7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = lockut;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		22F846BC18F437B900982BA7 /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = lockut;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
 		};
@@ -4761,23 +4521,16 @@
 		22FACEEA18880983000FDBC1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = airtest;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		22FACEEB18880983000FDBC1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = airtest;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
-		};
-		22FACEEC18880983000FDBC1 /* WE */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = airtest;
-			};
-			name = WE;
 		};
 		2D07B9751636FC9900DB751B /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -4854,7 +4607,6 @@
 		3104AFF3156D37A0000A585A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -4862,7 +4614,6 @@
 		3104AFF4156D37A0000A585A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5108,10 +4859,6 @@
 		3124CAC0156BE3EC00753214 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					CONFIG_VAR_COOL,
-					CONFIG_ANSI,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5155,7 +4902,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = djbench;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -5163,7 +4910,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = djbench;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -5223,7 +4970,6 @@
 		318DA8D51892C0D00089718C /* RASH */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
@@ -5232,7 +4978,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5517,7 +5262,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = djbench;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
 		};
@@ -5716,7 +5461,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5726,7 +5470,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5766,7 +5509,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = gcbench;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -5774,7 +5517,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = gcbench;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -5782,7 +5525,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
-				PRODUCT_NAME = gcbench;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = RASH;
 		};
@@ -5819,26 +5562,6 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		225F0B0018E4453A003F2183 /* Build configuration list for PBXAggregateTarget "testci" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				225F0B0118E4453A003F2183 /* Debug */,
-				225F0B0218E4453A003F2183 /* Release */,
-				225F0B0318E4453A003F2183 /* RASH */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		225F0B0818E44549003F2183 /* Build configuration list for PBXAggregateTarget "testall" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				225F0B0918E44549003F2183 /* Debug */,
-				225F0B0A18E44549003F2183 /* Release */,
-				225F0B0B18E44549003F2183 /* RASH */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		2291A5B9175CAB2F001D4920 /* Build configuration list for PBXNativeTarget "awlutth" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -5865,26 +5588,6 @@
 				2291A5E0175CB05F001D4920 /* Debug */,
 				2291A5E1175CB05F001D4920 /* Release */,
 				318DA8E51892C0D00089718C /* RASH */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		2291B6E718E4754D0004B79C /* Build configuration list for PBXAggregateTarget "testansi" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				2291B6E818E4754D0004B79C /* Debug */,
-				2291B6E918E4754D0004B79C /* Release */,
-				2291B6EA18E4754D0004B79C /* RASH */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		22965BB619115D4600138A8F /* Build configuration list for PBXAggregateTarget "testpoll" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				22965BB719115D4600138A8F /* Debug */,
-				22965BB819115D4600138A8F /* Release */,
-				22965BB919115D4600138A8F /* RASH */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -5944,7 +5647,6 @@
 			buildConfigurations = (
 				22FACEEA18880983000FDBC1 /* Debug */,
 				22FACEEB18880983000FDBC1 /* Release */,
-				22FACEEC18880983000FDBC1 /* WE */,
 				22C2ACA118BE3FEC006B3677 /* RASH */,
 			);
 			defaultConfigurationIsVisible = 0;

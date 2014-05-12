@@ -26,6 +26,7 @@ typedef struct FormattedObjectsStepClosureStruct {
 } FormattedObjectsStepClosureStruct;
 
 
+ATTRIBUTE_UNUSED
 static Bool FormattedObjectsStepClosureCheck(FormattedObjectsStepClosure c)
 {
   CHECKS(FormattedObjectsStepClosure, c);
@@ -164,6 +165,7 @@ typedef struct rootsStepClosureStruct {
 
 /* rootsStepClosureCheck -- check a rootsStepClosure */
 
+ATTRIBUTE_UNUSED
 static Bool rootsStepClosureCheck(rootsStepClosure rsc)
 {
   CHECKS(rootsStepClosure, rsc);
