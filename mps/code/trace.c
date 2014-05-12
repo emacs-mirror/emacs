@@ -1738,7 +1738,10 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
 void TraceQuantum(Trace trace)
 {
   Size pollEnd;
-  Arena arena = trace->arena;
+  Arena arena;
+
+  AVERT(Trace, trace);
+  arena = trace->arena;
 
   pollEnd = traceWorkClock(trace) + trace->rate;
   do {
