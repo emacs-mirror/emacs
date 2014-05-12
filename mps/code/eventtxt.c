@@ -40,9 +40,10 @@
 #include "testlib.h" /* for ulongest_t and associated print formats */
 
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h> /* exit, EXIT_FAILURE, EXIT_SUCCESS */
-#include <string.h> /* strcpy, strlen */
+#include <string.h> /* strcpy, strerror, strlen */
 
 static const char *prog; /* program name */
 static const char *logFileName = NULL;
@@ -570,6 +571,11 @@ int main(int argc, char *argv[])
     if (input == NULL)
       everror("unable to open %s", logFileName);
   }
+
+  /* Ensure no telemetry output. */
+  res = setenv("MPS_TELEMETRY_CONTROL", "0", 1);
+  if (res != 0)
+    everror("failed to set MPS_TELEMETRY_CONTROL: %s", strerror(errno));
 
   res = mps_arena_create_k(&arena, mps_arena_class_vm(), mps_args_none);
   if (res != MPS_RES_OK)
