@@ -37,7 +37,7 @@ poolncv
 qs
 sacss
 segsmss
-steptest
+steptest       =P
 teletest       =N                interactive
 walkt0
 zcoll          =L
@@ -50,7 +50,7 @@ Key to flags
     B -- known Bad
     L -- Long runtime
     N -- Not an automated test case
-    P -- relies on Polling
+    P -- relies on Polling or incremental collection
     T -- multi-Threaded
     W -- Windows-only
     X -- Unix-only
