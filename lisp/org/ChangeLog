@@ -1,3 +1,9 @@
+2014-05-12  Eric Schulte  <eric.schulte@gmx.com>
+
+	* ob-screen.el (org-babel-screen-session-write-temp-file)
+	(org-babel-screen-test):
+	Use unpredictable names for temporary files.  (Bug#17416)
+
 2014-04-22  Aaron Ecay  <aaronecay@gmail.com>
 
 	* org-src.el (org-edit-src-exit): Place an undo boundary before
