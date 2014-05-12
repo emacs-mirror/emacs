@@ -134,7 +134,7 @@ Each element has the form (WHERE BYTECODE STACK) where:
 (defun advice--interactive-form (function)
   ;; Like `interactive-form' but tries to avoid autoloading functions.
   (when (commandp function)
-    (if (not (and (symbolp function) (autoloadp (symbol-function function))))
+    (if (not (and (symbolp function) (autoloadp (indirect-function function))))
         (interactive-form function)
       `(interactive (advice-eval-interactive-spec
                      (cadr (interactive-form ',function)))))))
