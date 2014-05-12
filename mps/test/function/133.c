@@ -5,7 +5,7 @@ TEST_HEADER
  language = c
  link = testlib.o rankfmt.o
 OUTPUT_SPEC
- allocfail3 > 8000
+ allocfail3 > 3000
  failres3 = COMMIT_LIMIT
  spill8 <= 0
  spill9 <= 0
