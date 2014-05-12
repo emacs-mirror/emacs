@@ -309,9 +309,12 @@ void SegSetSummary(Seg seg, RefSet summary)
   AVERT(Seg, seg);
   AVER(summary == RefSetEMPTY || SegRankSet(seg) != RankSetEMPTY);
 
-#ifdef PROTECTION_NONE
+#if defined(REMEMBERED_SET_NONE)
+  /* Without protection, we can't maintain the remembered set because
+     there are writes we don't know about. */
   summary = RefSetUNIV;
 #endif
+
   if (summary != SegSummary(seg))
     seg->class->setSummary(seg, summary);
 }
@@ -324,11 +327,12 @@ void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
   AVERT(Seg, seg); 
   AVERT(RankSet, rankSet);
 
-#ifdef PROTECTION_NONE
+#if defined(REMEMBERED_SET_NONE)
   if (rankSet != RankSetEMPTY) {
     summary = RefSetUNIV;
   }
 #endif
+
   seg->class->setRankSummary(seg, rankSet, summary);
 }
 

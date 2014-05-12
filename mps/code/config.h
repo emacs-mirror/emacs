@@ -147,8 +147,57 @@
  *     cc -O2 -c -DCONFIG_PLINTH_NONE mps.c
  */
 
-#if defined(CONFIG_PLINTH_NONE)
+#if !defined(CONFIG_PLINTH_NONE)
+#define PLINTH
+#else
 #define PLINTH_NONE
+#endif
+
+
+/* CONFIG_PF_ANSI -- use the ANSI platform 
+ *
+ * This symbol tells mps.c to exclude the sources for the
+ * auto-detected platform, and use the generic ("ANSI") platform
+ * instead.
+ */
+
+#if defined(CONFIG_PF_ANSI)
+#define PLATFORM_ANSI
+#endif
+
+
+/* CONFIG_THREAD_SINGLE -- support single-threaded execution only
+ *
+ * This symbol causes the MPS to be built for single-threaded
+ * execution only, where locks are not needed and so lock operations
+ * can be defined as no-ops by lock.h.
+ */
+
+#if !defined(CONFIG_THREAD_SINGLE)
+#define LOCK
+#else
+#define LOCK_NONE
+#endif
+
+
+/* CONFIG_POLL_NONE -- no support for polling
+ *
+ * This symbol causes the MPS to built without support for polling.
+ * This means that garbage collections will only happen if requested
+ * explicitly via mps_arena_collect() or mps_arena_step(), but it also
+ * means that protection is not needed, and so shield operations can
+ * be replaced with no-ops in mpm.h.
+ */
+
+#if !defined(CONFIG_POLL_NONE)
+#define REMEMBERED_SET
+#define SHIELD
+#else
+#if !defined(CONFIG_THREAD_SINGLE)
+#error "CONFIG_POLL_NONE without CONFIG_THREAD_SINGLE"
+#endif
+#define REMEMBERED_SET_NONE
+#define SHIELD_NONE
 #endif
 
 
@@ -551,9 +600,6 @@
 
 #define MPS_PROD_STRING         "mps"
 #define MPS_PROD_MPS
-#define THREAD_MULTI
-#define PROTECTION
-#define PROD_CHECKLEVEL_INITIAL CheckLevelSHALLOW
 
 /* TODO: This should be proportional to the memory usage of the MPS, not
    a constant.  That will require design, and then some interface and

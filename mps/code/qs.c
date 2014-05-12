@@ -529,6 +529,7 @@ int main(int argc, char *argv[])
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
+
   mps_tramp(&r, &go, NULL, 0);
   mps_arena_destroy(arena);
 

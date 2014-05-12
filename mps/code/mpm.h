@@ -519,23 +519,26 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
 #define ArenaPoolRing(arena) (&ArenaGlobals(arena)->poolRing)
 
+extern void ArenaEnterLock(Arena arena, Bool recursive);
+extern void ArenaLeaveLock(Arena arena, Bool recursive);
+
 extern void (ArenaEnter)(Arena arena);
 extern void (ArenaLeave)(Arena arena);
+extern void (ArenaPoll)(Globals globals);
 
-#if defined(THREAD_SINGLE) && defined(PROTECTION_NONE)
+#if defined(SHIELD)
+#define ArenaEnter(arena)  ArenaEnterLock(arena, FALSE)
+#define ArenaLeave(arena)  ArenaLeaveLock(arena, FALSE)
+#elif defined(SHIELD_NONE)
 #define ArenaEnter(arena)  UNUSED(arena)
-#define ArenaLeave(arena)  UNUSED(arena)
-#endif
+#define ArenaLeave(arena)  AVER(arena->busyTraces == TraceSetEMPTY)
+#define ArenaPoll(globals)  UNUSED(globals)
+#else
+#error "No shield configuration."
+#endif  /* SHIELD */
 
 extern void ArenaEnterRecursive(Arena arena);
 extern void ArenaLeaveRecursive(Arena arena);
-
-extern void (ArenaPoll)(Globals globals);
-#ifdef MPS_PROD_EPCORE
-#define ArenaPoll(globals)  UNUSED(globals)
-#endif
-/* .nogc.why: ScriptWorks doesn't use MM-provided incremental GC, so */
-/* doesn't need to poll when allocating. */
 
 extern Bool (ArenaStep)(Globals globals, double interval, double multiplier);
 extern void ArenaClamp(Globals globals);
@@ -893,7 +896,9 @@ extern void (ShieldSuspend)(Arena arena);
 extern void (ShieldResume)(Arena arena);
 extern void (ShieldFlush)(Arena arena);
 
-#if defined(THREAD_SINGLE) && defined(PROTECTION_NONE)
+#if defined(SHIELD)
+/* Nothing to do: functions declared in all shield configurations. */
+#elif defined(SHIELD_NONE)
 #define ShieldRaise(arena, seg, mode) \
   BEGIN UNUSED(arena); UNUSED(seg); UNUSED(mode); END
 #define ShieldLower(arena, seg, mode) \
@@ -907,7 +912,9 @@ extern void (ShieldFlush)(Arena arena);
 #define ShieldSuspend(arena) BEGIN UNUSED(arena); END
 #define ShieldResume(arena) BEGIN UNUSED(arena); END
 #define ShieldFlush(arena) BEGIN UNUSED(arena); END
-#endif
+#else
+#error "No shield configuration."
+#endif  /* SHIELD */
 
 
 /* Protection Interface
