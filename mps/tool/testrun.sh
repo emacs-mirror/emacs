@@ -12,60 +12,48 @@
 #
 # Usage::
 # 
-#     testrun.sh DIR [CASE1 CASE2 ...]
-
-ALL_TEST_CASES="
-    abqtest
-    airtest
-    amcss
-    amcsshe
-    amcssth
-    amsss
-    amssshe
-    apss
-    arenacv
-    awlut
-    awluthe
-    awlutth
-    btcv
-    exposet0
-    expt825
-    fbmtest
-    finalcv
-    finaltest
-    fotest
-    locbwcss
-    lockcov
-    lockut
-    locusss
-    locv
-    messtest
-    mpmss
-    mpsicv
-    mv2test
-    nailboardtest
-    poolncv
-    qs
-    sacss
-    segsmss
-    steptest
-    walkt0
-    zmess
-"
-# bttest -- interactive, so cannot be run unattended
-# djbench -- benchmark, not test case
-# gcbench -- benchmark, not test case
-# teletest -- interactive, so cannot be run unattended
-# zcoll -- takes too long to be useful as a regularly run smoke test
+#     testrun.sh DIR ( SUITE | CASE1 CASE2 [...] )
+#
+# You can use this feature to run the same test many times, to get
+# lots of random coverage. For example::
+#
+#     yes amcss | head -100 | xargs tool/testrun.sh code/xc/Debug
+#
+# This runs the AMC stress test 100 times from the code/xc/Debug
+# directory, reporting all failures.
 
 # Make a temporary output directory for the test logs.
 LOGDIR=$(mktemp -d /tmp/mps.log.XXXXXX)
-TEST_DIR=$1
 echo "MPS test suite"
 echo "Logging test output to $LOGDIR"
-echo "Test directory: $TEST_DIR"
+
+# First argument is the directory containing the test cases.
+TEST_DIR=$1
 shift
-TEST_CASES=${*:-${ALL_TEST_CASES}}
+echo "Test directory: $TEST_DIR"
+
+# Determine which tests to run.
+TEST_CASE_DB=$(dirname -- "$0")/testcases.txt
+if [ $# -eq 1 ]; then
+    TEST_SUITE=$1
+    echo "Test suite: $TEST_SUITE"
+    case $TEST_SUITE in
+        testrun)  EXCLUDE="LNW"  ;;
+        testci)   EXCLUDE="BNW"  ;;
+        testall)  EXCLUDE="NW"   ;;
+        testansi) EXCLUDE="LNTW" ;;
+        testpoll) EXCLUDE="LNPTW" ;;
+        *)
+            echo "Test suite $TEST_SUITE not recognized."
+            exit 1 ;;
+    esac
+    TEST_CASES=$(<"$TEST_CASE_DB" grep -e '^[a-z]' | 
+        grep -v -e "=[$EXCLUDE]" |
+        cut -d' ' -f1)
+else
+    echo "$# test cases from the command line"
+    TEST_CASES=$*
+fi
 
 SEPARATOR=----------------------------------------
 TEST_COUNT=0
@@ -73,8 +61,8 @@ PASS_COUNT=0
 FAIL_COUNT=0
 for TESTCASE in $TEST_CASES; do
     TEST=$(basename -- "$TESTCASE")
-    LOGTEST=$LOGDIR/$TEST
-    TELEMETRY=$LOGDIR/$TEST-io
+    LOGTEST=$LOGDIR/$TEST_COUNT-$TEST
+    TELEMETRY=$LOGDIR/$TEST_COUNT-$TEST-io
     MPS_TELEMETRY_FILENAME=$TELEMETRY.log
     export MPS_TELEMETRY_FILENAME
 
