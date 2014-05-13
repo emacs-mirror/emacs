@@ -1142,28 +1142,28 @@ tracking down the causes, appear in the chapter :ref:`guide-debug`.
 Tidying up
 ----------
 
-When your program is done with the MPS, it's good practice to
-:term:`park <parked state>` the arena (by calling
-:c:func:`mps_arena_park`) and then tear down all the MPS data
-structures. This causes the MPS to check the consistency of its data
-structures and report any problems it detects. It also causes the MPS
-to flush its :term:`telemetry stream`.
+When your program is done with the MPS, you should :term:`park <parked
+state>` the arena (by calling :c:func:`mps_arena_park`) to ensure that
+no incremental garbage collection is in progress, and then tear down
+all the MPS data structures. This causes the MPS to check the
+consistency of its data structures and report any problems it detects.
+It also causes the MPS to flush its :term:`telemetry stream`.
 
 MPS data structures must be destroyed or deregistered in the reverse
 order to that in which they were registered or created. So you must
-destroy all :term:`allocation points` created in a
-:term:`pool` before destroying the pool; destroy all :term:`roots` and pools, and deregister all :term:`threads`, that
-were created in an :term:`arena` before destroying the arena, and so
-on.
+destroy all :term:`allocation points` created in a :term:`pool` before
+destroying the pool; destroy all :term:`roots` and pools, and
+deregister all :term:`threads`, that were created in an :term:`arena`
+before destroying the arena, and so on.
 
 For example::
 
     mps_arena_park(arena);      /* ensure no collection is running */
     mps_ap_destroy(obj_ap);     /* destroy ap before pool */
     mps_pool_destroy(obj_pool); /* destroy pool before fmt */
-    mps_fmt_destroy(obj_fmt);   /* destroy fmt before arena */
-    mps_root_destroy(reg_root); /* destroy root before arena */
+    mps_root_destroy(reg_root); /* destroy root before thread */
     mps_thread_dereg(thread);   /* deregister thread before arena */
+    mps_fmt_destroy(obj_fmt);   /* destroy fmt before arena */
     mps_arena_destroy(arena);   /* last of all */
 
 
