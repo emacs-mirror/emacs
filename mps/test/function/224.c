@@ -6,6 +6,8 @@ TEST_HEADER
  link = testlib.o
  harness = 2.5
  parameters = EXTENDBY=65536 AVGSIZE=32 PROMISE=64 ITERATE=2000
+OUTPUT_SPEC
+ errtext = alloc: COMMIT_LIMIT
 END_HEADER
 
 This one is supposed to fail, telling us that MV is badly fragmented.
@@ -16,7 +18,7 @@ This one is supposed to fail, telling us that MV is badly fragmented.
 #include "mpsavm.h"
 
 
-#define VMNZSIZE ((size_t) 30*1024*1024)
+#define VMSIZE ((size_t) 30*1024*1024)
 
 
 static void test(void)
@@ -26,8 +28,8 @@ static void test(void)
  mps_addr_t q;
  int p;
 
- die(mps_arena_create(&arena, mps_arena_class_vmnz(), VMNZSIZE), "create");
- die(mps_arena_commit_limit_set(arena, VMNZSIZE), "commit limit");
+ die(mps_arena_create(&arena, mps_arena_class_vm(), VMSIZE), "create");
+ die(mps_arena_commit_limit_set(arena, VMSIZE), "commit limit");
 
  die(mps_pool_create(&pool, arena, mps_class_mv(),
                      EXTENDBY, AVGSIZE, EXTENDBY),

@@ -40,18 +40,18 @@ typedef struct LockStruct {
 } LockStruct;
 
 
-size_t LockSize(void)
+size_t (LockSize)(void)
 {
   return sizeof(LockStruct);
 }
 
-Bool LockCheck(Lock lock)
+Bool (LockCheck)(Lock lock)
 {
   CHECKS(Lock, lock);
   return TRUE;
 }
 
-void LockInit(Lock lock)
+void (LockInit)(Lock lock)
 {
   AVER(lock != NULL);
   lock->claims = 0;
@@ -60,7 +60,7 @@ void LockInit(Lock lock)
   AVERT(Lock, lock);
 }
 
-void LockFinish(Lock lock)
+void (LockFinish)(Lock lock)
 {
   AVERT(Lock, lock);
   /* Lock should not be finished while held */
@@ -69,7 +69,7 @@ void LockFinish(Lock lock)
   lock->sig = SigInvalid;
 }
 
-void LockClaim(Lock lock)
+void (LockClaim)(Lock lock)
 {
   AVERT(Lock, lock);
   EnterCriticalSection(&lock->cs);
@@ -79,7 +79,7 @@ void LockClaim(Lock lock)
   lock->claims = 1;
 }
 
-void LockReleaseMPM(Lock lock)
+void (LockReleaseMPM)(Lock lock)
 {
   AVERT(Lock, lock);
   AVER(lock->claims == 1);  /* The lock should only be held once */
@@ -87,7 +87,7 @@ void LockReleaseMPM(Lock lock)
   LeaveCriticalSection(&lock->cs);
 }
 
-void LockClaimRecursive(Lock lock)
+void (LockClaimRecursive)(Lock lock)
 {
   AVERT(Lock, lock);
   EnterCriticalSection(&lock->cs);
@@ -95,7 +95,7 @@ void LockClaimRecursive(Lock lock)
   AVER(lock->claims > 0);
 }
 
-void LockReleaseRecursive(Lock lock)
+void (LockReleaseRecursive)(Lock lock)
 {
   AVERT(Lock, lock);
   AVER(lock->claims > 0);
@@ -129,27 +129,27 @@ static void lockEnsureGlobalLock(void)
   }
 }
 
-void LockClaimGlobalRecursive(void)
+void (LockClaimGlobalRecursive)(void)
 {
   lockEnsureGlobalLock();
   AVER(globalLockInit);
   LockClaimRecursive(globalRecLock);
 }
 
-void LockReleaseGlobalRecursive(void)
+void (LockReleaseGlobalRecursive)(void)
 {
   AVER(globalLockInit);
   LockReleaseRecursive(globalRecLock);
 }
 
-void LockClaimGlobal(void)
+void (LockClaimGlobal)(void)
 {
   lockEnsureGlobalLock();
   AVER(globalLockInit);
   LockClaim(globalLock);
 }
 
-void LockReleaseGlobal(void)
+void (LockReleaseGlobal)(void)
 {
   AVER(globalLockInit);
   LockReleaseMPM(globalLock);

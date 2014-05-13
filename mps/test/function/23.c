@@ -103,6 +103,8 @@ static void test(void)
   r = mps_alloc(&p, poolMV, 1024*1024);
   report("refuse4", "%s", err_text(r));
  }
+
+ mps_arena_park(arena);
  mps_pool_destroy(poolMV);
 
  mps_ap_destroy(ap);

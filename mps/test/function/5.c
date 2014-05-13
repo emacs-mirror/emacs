@@ -78,6 +78,7 @@ static void test(void)
  q->data.size = OBJ_SIZE;
  (void) mps_commit(apA, p, OBJ_SIZE);
 
+ mps_arena_park(arena);
  mps_ap_destroy(apA);
  comment("Destroyed apA.");
  mps_ap_destroy(apB);
