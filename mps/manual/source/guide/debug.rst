@@ -86,10 +86,11 @@ General debugging advice
 
         handle SIGSEGV pass nostop noprint
 
-   On OS X barrier hits do not use signals and so do not enter the debugger.
+   On these operating systems, you can add this commands to your
+   ``.gdbinit`` if you always want them to be run.
 
-   (On these operating systems, you can add these commands to your
-   ``.gdbinit`` if you always want them to be run.)
+   On OS X barrier hits do not use signals and so do not enter the
+   debugger.
 
 
 .. index::

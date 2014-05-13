@@ -68,6 +68,22 @@
 #endif
 
 
+/* setenv -- set environment variable
+ *
+ * Windows lacks setenv(), but _putenv_s() has similar functionality.
+ * <http://msdn.microsoft.com/en-us/library/eyw7eyfw.aspx>
+ *
+ * This macro version may evaluate the name argument twice.
+ */
+
+#if defined(MPS_OS_W3)
+
+#define setenv(name, value, overwrite) \
+    (((overwrite) || !getenv(name)) ? _putenv_s(name, value) : 0)
+
+#endif
+
+
 /* ulongest_t -- longest unsigned integer type
  *
  * Define a longest unsigned integer type for testing, scanning, and

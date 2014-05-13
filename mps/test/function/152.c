@@ -100,6 +100,7 @@ static void test(void)
  report("com", "%ld", com1);
  report("inc2", "%ld", (com1-com)/BIGSIZE);
 
+ mps_arena_park(arena);
  mps_ap_destroy(ap);
  mps_ap_destroy(sap);
  comment("Destroyed ap.");

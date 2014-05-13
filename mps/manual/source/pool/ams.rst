@@ -55,10 +55,11 @@ AMS properties
   never promoted out of the generation in which they are allocated.
 
 * Blocks may contain :term:`exact references` to blocks in the same or
-  other pools, or :term:`ambiguous references` (if the
+  other pools, or :term:`ambiguous references` (unless the
   :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` keyword argument is set to
-  true when creating the pool). Blocks may not contain :term:`weak
-  references (1)`, and may not use :term:`remote references`.
+  ``FALSE`` when creating the pool). Blocks may not contain
+  :term:`weak references (1)`, and may not use :term:`remote
+  references`.
 
 * Allocations may be variable in size.
 
@@ -126,14 +127,13 @@ AMS interface
       blocks remain in this generation and are not promoted.
 
     * :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` (type
-      :c:type:`mps_bool_t`, default false) specifies whether references
-      may be ambiguous.
+      :c:type:`mps_bool_t`, default ``TRUE``) specifies whether
+      references to blocks in the pool may be ambiguous.
 
     For example::
 
         MPS_ARGS_BEGIN(args) {
             MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
-            MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, 1);
             res = mps_pool_create_k(&pool, arena, mps_class_ams(), args);
         } MPS_ARGS_END(args);
 
