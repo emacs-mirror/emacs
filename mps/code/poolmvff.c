@@ -650,22 +650,21 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
                "  firstFit  $U\n",  (WriteFU)mvff->firstFit,
                "  slotHigh  $U\n",  (WriteFU)mvff->slotHigh,
                NULL);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
 
   /* TODO: SegPrefDescribe(MVFFSegPref(mvff), stream); */
 
+  res = PoolDescribe(MVFFBlockPool(mvff), stream);
+  if (res != ResOK) return res;
+
   res = LandDescribe(MVFFTotalCBS(mvff), stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
 
   res = LandDescribe(MVFFFreeCBS(mvff), stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
 
   res = LandDescribe(MVFFFreelist(mvff), stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
 
   res = WriteF(stream, "}\n", NULL);
   return res;
