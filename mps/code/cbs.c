@@ -811,6 +811,8 @@ static void cbsFindDeleteRange(Range rangeReturn, Range oldRangeReturn,
        deleted from one end of the block, so cbsDeleteFromTree did not
        need to allocate a new block. */
     AVER(res == ResOK);
+  } else {
+    RangeCopy(oldRangeReturn, rangeReturn);
   }
 }
 
