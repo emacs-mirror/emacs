@@ -425,7 +425,9 @@
 /* Stack configuration */
 
 /* Currently StackProbe has a useful implementation only on Windows. */
-#if defined(MPS_OS_W3) && defined(MPS_ARCH_I3)
+#if defined(PLATFORM_ANSI)
+#define StackProbeDEPTH ((Size)0)
+#elif defined(MPS_OS_W3) && defined(MPS_ARCH_I3)
 #define StackProbeDEPTH ((Size)500)
 #elif defined(MPS_OS_W3) && defined(MPS_ARCH_I6)
 #define StackProbeDEPTH ((Size)500)

@@ -1,18 +1,28 @@
 # w3i6mv.nmk: WINDOWS (x86-64) NMAKE FILE -*- makefile -*-
 #
 # $Id$
-# Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
 
 PFM = w3i6mv
 
 PFMDEFS = /DCONFIG_PF_STRING="w3i6mv" /DCONFIG_PF_W3I6MV /DWIN32 /D_WINDOWS
 MASM = ml64
 
-# MPM sources: core plus platform-specific.
-MPM = $(MPMCOMMON) <proti6> <prmci6w3> <spw3i6> <ssw3i6mv> <thw3i6>
-
-
 !INCLUDE commpre.nmk
+!INCLUDE mv.nmk
+
+# MPM sources: core plus platform-specific.
+MPM = $(MPMCOMMON) \
+    <lockw3> \
+    <mpsiw3> \
+    <prmci6w3> \
+    <proti6> \
+    <protw3> \
+    <spw3i6> \
+    <ssw3i6mv> \
+    <thw3> \
+    <thw3i6> \
+    <vmw3>
 
 
 # Source to object file mappings and CFLAGS amalgamation
@@ -139,7 +149,7 @@ TESTTHROBJ = $(TESTTHROBJ0:>=.obj)
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 
