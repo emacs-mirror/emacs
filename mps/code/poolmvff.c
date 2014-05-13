@@ -10,11 +10,16 @@
  *
  * .design: <design/poolmvff>
  *
- *
  * TRANSGRESSIONS
  *
  * .trans.stat: mps_mvff_stat is a temporary hack for measurement purposes,
  * see .stat below.
+ *
+ * NOTE
+ *
+ * There's potential for up to 4% speed improvement by calling Land
+ * methods statically instead of indirectly via the Land abstraction
+ * (thus, cbsInsert instead of LandInsert, and so on).
  */
 
 #include "cbs.h"
