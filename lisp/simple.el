@@ -2437,6 +2437,9 @@ list can be applied to the current buffer."
         undo-deltas
         undo-elt)
     (while ulist
+      (when undo-no-redo
+        (while (gethash ulist undo-equiv-table)
+          (setq ulist (gethash ulist undo-equiv-table))))
       (setq undo-elt (car ulist))
       (cond
        ((null undo-elt)
