@@ -762,32 +762,6 @@ AC_ARG_ENABLE([gcc-warnings],
   [gl_gcc_warnings=no]
 )
 
-AC_ARG_ENABLE(link-time-optimization,
-[AS_HELP_STRING([--enable-link-time-optimization],
-                [build emacs with link-time optimization.
-                 This is supported only for GCC since 4.5.0.])],
-if test "${enableval}" != "no"; then
-   AC_MSG_CHECKING([whether link-time optimization is supported])
-   ac_lto_supported=no
-   if test x$GCC = xyes; then
-      CPUS=`getconf _NPROCESSORS_ONLN 2>/dev/null`
-      if test x$CPUS != x; then
-      	 LTO="-flto=$CPUS"
-      else
-	 LTO="-flto"
-      fi
-      old_CFLAGS=$CFLAGS
-      CFLAGS="$CFLAGS $LTO"
-      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
-      	[ac_lto_supported=yes], [ac_lto_supported=no])
-      CFLAGS="$old_CFLAGS"
-   fi
-   AC_MSG_RESULT([$ac_lto_supported])
-   if test "$ac_lto_supported" = "yes"; then
-      CFLAGS="$CFLAGS $LTO"
-   fi
-fi)
-
 # clang is unduly picky about some things.
 AC_CACHE_CHECK([whether the compiler is clang], [emacs_cv_clang],
   [AC_COMPILE_IFELSE(
@@ -913,7 +887,51 @@ edit_cflags="
   s/^ //
 "
 
-
+AC_ARG_ENABLE(link-time-optimization,
+[AS_HELP_STRING([--enable-link-time-optimization],
+                [build emacs with link-time optimization.
+		 This is supported for gcc since 4.5.0 and clang.
+		 Note that clang support is experimental - see INSTALL])],
+if test "${enableval}" != "no"; then
+   ac_lto_supported=no
+   if test $emacs_cv_clang = yes; then
+      AC_MSG_CHECKING([whether link-time optimization is supported by clang])
+      GOLD_PLUGIN=`$CC -print-file-name=LLVMgold.so 2>/dev/null`
+      if test -x "$GOLD_PLUGIN"; then
+	 LTO="-flto"
+      fi
+   elif test x$GCC = xyes; then
+      AC_MSG_CHECKING([whether link-time optimization is supported by gcc])
+      CPUS=`getconf _NPROCESSORS_ONLN 2>/dev/null`
+      if test x$CPUS != x; then
+	 LTO="-flto=$CPUS"
+      else
+	 LTO="-flto"
+      fi
+   else
+      AC_MSG_ERROR([Link-time optimization is not supported with your compiler.])
+   fi
+   if test -z "$LTO"; then
+      ac_lto_supported=no
+   else
+      old_CFLAGS=$CFLAGS
+      CFLAGS="$CFLAGS $LTO"
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
+         [ac_lto_supported=yes], [ac_lto_supported=no])
+         CFLAGS="$old_CFLAGS"
+   fi
+   AC_MSG_RESULT([$ac_lto_supported])
+   if test "$ac_lto_supported" = "yes"; then
+      CFLAGS="$CFLAGS $LTO"
+      if test x$emacs_cv_clang = xyes; then
+	 AC_MSG_WARN([Please read INSTALL before using link-time optimization with clang])
+	 # WARNING: 'ar --plugin ...' doesn't work without
+	 # command, so plugin name is appended to ARFLAGS.
+	 ARFLAGS="cru --plugin $GOLD_PLUGIN"
+	 RANLIB="$RANLIB --plugin $GOLD_PLUGIN"
+      fi
+   fi
+fi)
 
 dnl Some other nice autoconf tests.
 dnl These are commented out, since gl_EARLY and/or Autoconf already does them.

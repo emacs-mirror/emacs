@@ -836,6 +836,20 @@ you want to use fcitx with Emacs, you have two choices.  Toggle fcitx
 by another key (e.g. C-\) by modifying ~/.fcitx/config, or be
 accustomed to use C-@ for `set-mark-command'.
 
+*** Link-time optimization with clang doesn't work on Fedora 20.
+
+As of May 2014, Fedora 20 has broken LLVMgold.so plugin support in clang
+(tested with clang-3.4-6.fc20) - `clang --print-file-name=LLVMgold.so'
+prints `LLVMgold.so' instead of full path to plugin shared library, and
+`clang -flto' is unable to find the plugin with the following error:
+
+/bin/ld: error: /usr/bin/../lib/LLVMgold.so: could not load plugin library:
+/usr/bin/../lib/LLVMgold.so: cannot open shared object file: No such file
+or directory
+
+The only way to avoid this is to build your own clang from source code
+repositories, as described at http://clang.llvm.org/get_started.html.
+
 *** M-SPC seems to be ignored as input.
 
 See if your X server is set up to use this as a command

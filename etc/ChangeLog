@@ -1,3 +1,8 @@
+2014-05-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* PROBLEMS: Mention potential problems with
+	--enable-link-time-optimization and clang on Fedora 20.
+
 2014-05-04  Leo Liu  <sdl.web@gmail.com>
 
 	* NEWS: Mention support for Chinese dates in calendar and diary.
