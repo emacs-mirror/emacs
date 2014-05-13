@@ -133,10 +133,10 @@ MVFF interface
       ``sizeof(void *)``.
 
     * :c:macro:`MPS_KEY_SPARE` (type :c:type:`double`, default 0.75)
-      is the maximum proportion of freed memory that the pool will
-      keep spare for future allocations. If the proportion of memory
-      that's free exceeds this, then the pool will return some of it
-      to the arena for use by other pools.
+      is the maximum proportion of memory that the pool will keep
+      spare for future allocations. If the proportion of memory that's
+      free exceeds this, then the pool will return some of it to the
+      arena for use by other pools.
 
     * :c:macro:`MPS_KEY_MVFF_ARENA_HIGH` (type :c:type:`mps_bool_t`,
       default false) determines whether new segments are acquired at high
