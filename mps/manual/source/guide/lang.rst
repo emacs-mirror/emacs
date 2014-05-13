@@ -748,7 +748,7 @@ And third, the global symbol table::
     static size_t symtab_size;
 
 You tell the MPS how to scan these by writing root scanning functions
-of type :c:type:`mps_reg_scan_t`. These functions are similar to the
+of type :c:type:`mps_root_scan_t`. These functions are similar to the
 :ref:`scan method <guide-lang-scan>` in an :term:`object format`,
 described above.
 
@@ -823,7 +823,7 @@ after the rehash has completed, de-registering the old root by calling
 :c:func:`mps_root_destroy`.
 
 It would be possible to write a root scanning function of type
-:c:type:`mps_reg_scan_t`, as described above, to fix the references in
+:c:type:`mps_root_scan_t`, as described above, to fix the references in
 the global symbol table, but the case of a table of references is
 sufficiently common that the MPS provides a convenient (and optimized)
 function, :c:func:`mps_root_create_table`, for registering it::
