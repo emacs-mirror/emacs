@@ -54,6 +54,10 @@ Interface changes
    the value ``FALSE`` is appropriate only when you know that all
    references are exact. See :ref:`pool-ams`.
 
+#. The :ref:`pool-mvff` pool class takes a new keyword argument
+   :c:macro:`MPS_KEY_SPARE`. This specifies the maximum proportion of
+   memory that the pool will keep spare for future allocations.
+
 
 Other changes
 .............
@@ -90,6 +94,9 @@ Other changes
 
    .. _job003771: https://www.ravenbrook.com/project/mps/issue/job003771/
 
+#. The :ref:`pool-mvt` and :ref:`pool-mvff` pool classes are now
+   around 25% faster (in our benchmarks) than they were in release
+   1.113.0.
 
 
 .. _release-notes-1.113:
