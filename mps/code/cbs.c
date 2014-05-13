@@ -36,8 +36,15 @@ SRCID(cbs, "$Id$");
   PARENT(CBSFastBlockStruct, cbsBlockStruct, cbsBlockOfTree(_tree))
 #define cbsZonedBlockOfTree(_tree) \
   PARENT(CBSZonedBlockStruct, cbsFastBlockStruct, cbsFastBlockOfTree(_tree))
-#define cbsBlockKey(block) (&((block)->base))
 #define cbsBlockPool(cbs) RVALUE((cbs)->blockPool)
+
+/* We pass the block base directly as a TreeKey (void *) assuming that
+   Addr can be encoded, and possibly breaking <design/type/#addr.use>.
+   On an exotic platform where this isn't true, pass the address of base.
+   i.e. add an & */
+#define cbsBlockKey(block)  ((TreeKey)(block)->base)
+#define keyOfBaseVar(baseVar) ((TreeKey)(baseVar))
+#define baseOfKey(key)        ((Addr)(key))
 
 
 /* CBSCheck -- Check CBS */
@@ -84,10 +91,11 @@ static Compare cbsCompare(Tree tree, TreeKey key)
   Addr base1, base2, limit2;
   CBSBlock cbsBlock;
 
-  AVER(tree != NULL);
-  AVER(tree != TreeEMPTY);
+  AVERT_CRITICAL(Tree, tree);
+  AVER_CRITICAL(tree != TreeEMPTY);
+  AVER_CRITICAL(key != NULL);
 
-  base1 = *(Addr *)key;
+  base1 = baseOfKey(key);
   cbsBlock = cbsBlockOfTree(tree);
   base2 = cbsBlock->base;
   limit2 = cbsBlock->limit;
@@ -462,7 +470,7 @@ static Res cbsInsert(Range rangeReturn, Land land, Range range)
   limit = RangeLimit(range);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
-  b = SplayTreeNeighbours(&leftSplay, &rightSplay, cbsSplay(cbs), &base);
+  b = SplayTreeNeighbours(&leftSplay, &rightSplay, cbsSplay(cbs), keyOfBaseVar(base));
   if (!b) {
     res = ResFAIL;
     goto fail;
@@ -565,7 +573,7 @@ static Res cbsDelete(Range rangeReturn, Land land, Range range)
   limit = RangeLimit(range);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
-  if (!SplayTreeFind(&tree, cbsSplay(cbs), (void *)&base)) {
+  if (!SplayTreeFind(&tree, cbsSplay(cbs), keyOfBaseVar(base))) {
     res = ResFAIL;
     goto failSplayTreeSearch;
   }
@@ -837,6 +845,8 @@ static void cbsFindDeleteRange(Range rangeReturn, Range oldRangeReturn,
        deleted from one end of the block, so cbsDelete did not
        need to allocate a new block. */
     AVER(res == ResOK);
+  } else {
+    RangeCopy(oldRangeReturn, rangeReturn);
   }
 }
 
@@ -979,6 +989,7 @@ static Bool cbsFindLargest(Range rangeReturn, Range oldRangeReturn,
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
+  AVER(size > 0);
   AVERT(FindDelete, findDelete);
 
   if (!SplayTreeIsEmpty(cbsSplay(cbs))) {
@@ -998,7 +1009,7 @@ static Bool cbsFindLargest(Range rangeReturn, Range oldRangeReturn,
       RangeInit(&range, CBSBlockBase(block), CBSBlockLimit(block));
       AVER(RangeSize(&range) >= maxSize);
       cbsFindDeleteRange(rangeReturn, oldRangeReturn, land, &range,
-                         maxSize, findDelete);
+                         size, findDelete);
     }
   }
 
