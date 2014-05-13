@@ -114,6 +114,7 @@ static void test(void)
   DMC;
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(apweak);
  mps_ap_destroy(apexact);
  mps_ap_destroy(apamc);

@@ -57,17 +57,7 @@ typedef struct MFSHeaderStruct {
 } HeaderStruct, *Header;
 
 
-
 #define UNIT_MIN        sizeof(HeaderStruct)
-
-MFSInfo MFSGetInfo(void)
-{
-  static const struct MFSInfoStruct info =
-  {
-    /* unitSizeMin */   UNIT_MIN
-  };
-  return &info;
-}
 
 
 Pool (MFSPool)(MFS mfs)
@@ -136,7 +126,7 @@ static Res MFSInit(Pool pool, ArgList args)
   mfs->sig = MFSSig;
 
   AVERT(MFS, mfs);
-  EVENT5(PoolInitMFS, pool, arena, extendBy, BOOL(extendSelf), unitSize);
+  EVENT5(PoolInitMFS, pool, arena, extendBy, BOOLOF(extendSelf), unitSize);
   return ResOK;
 }
 

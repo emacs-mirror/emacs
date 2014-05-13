@@ -103,6 +103,7 @@ static void test(void)
   DMC;
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(apamc);
  mps_ap_destroy(aplo);
  comment("Destroyed aps.");

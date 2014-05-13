@@ -1,7 +1,7 @@
 /* freelist.c: FREE LIST ALLOCATOR IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2013-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: <design/freelist/>.
  */
@@ -93,6 +93,7 @@ static Addr FreelistBlockLimit(Freelist fl, FreelistBlock block)
 
 /* FreelistBlockCheck -- check a block. */
 
+ATTRIBUTE_UNUSED
 static Bool FreelistBlockCheck(FreelistBlock block)
 {
   CHECKL(block != NULL);
@@ -776,7 +777,7 @@ DEFINE_LAND_CLASS(FreelistLandClass, class)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
