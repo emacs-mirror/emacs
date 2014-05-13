@@ -47,6 +47,7 @@ DWOBJ0 = $(DW:<=w3i6pc\hot\)
 FMTTESTOBJ0 = $(FMTTEST:<=w3i6pc\hot\)
 POOLNOBJ0 = $(POOLN:<=w3i6pc\hot\)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i6pc\hot\)
+TESTTHROBJ0 = $(TESTTHR:<=w3i6pc\hot\)
 
 !ELSEIF "$(VARIETY)" == "cool"
 CFLAGS=$(CFLAGSCOMMONPRE) $(CFCOOL) $(CFLAGSCOMMONPOST)
@@ -65,6 +66,7 @@ DWOBJ0 = $(DW:<=w3i6pc\cool\)
 FMTTESTOBJ0 = $(FMTTEST:<=w3i6pc\cool\)
 POOLNOBJ0 = $(POOLN:<=w3i6pc\cool\)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i6pc\cool\)
+TESTTHROBJ0 = $(TESTTHR:<=w3i6pc\cool\)
 
 !ELSEIF "$(VARIETY)" == "rash"
 CFLAGS=$(CFLAGSCOMMONPRE) $(CFRASH) $(CFLAGSCOMMONPOST)
@@ -83,6 +85,7 @@ DWOBJ0 = $(DW:<=w3i6pc\rash\)
 FMTTESTOBJ0 = $(FMTTEST:<=w3i6pc\rash\)
 POOLNOBJ0 = $(POOLN:<=w3i6pc\rash\)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i6pc\rash\)
+TESTTHROBJ0 = $(TESTTHR:<=w3i6pc\rash\)
 
 #!ELSEIF "$(VARIETY)" == "cv"
 #CFLAGS=$(CFLAGSCOMMON) $(CFCV)
@@ -108,6 +111,8 @@ TESTLIBOBJ0 = $(TESTLIB:<=w3i6pc\rash\)
 #POOLNOBJ = $(POOLNOBJ0:>=.obj)
 #TESTLIBOBJ0 = $(TESTLIB:<=w3i6pc\cv\)
 #TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
+#TESTTHROBJ0 = $(TESTTHR:<=w3i6pc\cv\)
+#TESTTHROBJ = $(TESTTHROBJ0:>=.obj)
 
 !ENDIF
 
@@ -126,6 +131,7 @@ DWOBJ = $(DWOBJ0:>=.obj)
 FMTTESTOBJ = $(FMTTESTOBJ0:>=.obj)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
+TESTTHROBJ = $(TESTTHROBJ0:>=.obj)
 
 
 !INCLUDE commpost.nmk
