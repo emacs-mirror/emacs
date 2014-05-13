@@ -1016,6 +1016,7 @@ Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVER(cbs->fastFind);
+  AVER(size > 0);
   AVERT(FindDelete, findDelete);
 
   if (!SplayTreeIsEmpty(cbsSplay(cbs))) {
