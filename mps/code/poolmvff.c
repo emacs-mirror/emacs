@@ -558,7 +558,7 @@ static Res MVFFInit(Pool pool, ArgList args)
   mvff->sig = MVFFSig;
   AVERT(MVFF, mvff);
   EVENT8(PoolInitMVFF, pool, arena, extendBy, avgSize, align,
-         BOOL(slotHigh), BOOL(arenaHigh), BOOL(firstFit));
+         BOOLOF(slotHigh), BOOLOF(arenaHigh), BOOLOF(firstFit));
   return ResOK;
 
 failFailoverInit:
@@ -758,6 +758,7 @@ size_t mps_mvff_size(mps_pool_t mps_pool)
 
 /* MVFFCheck -- check the consistency of an MVFF structure */
 
+ATTRIBUTE_UNUSED
 static Bool MVFFCheck(MVFF mvff)
 {
   CHECKS(MVFF, mvff);

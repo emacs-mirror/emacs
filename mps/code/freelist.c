@@ -1,7 +1,7 @@
 /* freelist.c: FREE LIST ALLOCATOR IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2013-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: <design/freelist/>.
  */
@@ -27,6 +27,18 @@ typedef union FreelistBlockUnion {
     Addr limit;
   } large;
 } FreelistBlockUnion;
+
+
+/* freelistEND -- the end of a list
+ *
+ * The end of a list should not be represented with NULL, as this is
+ * ambiguous. However, freelistEND in fact a null pointer for
+ * performance. To check whether you have it right, try temporarily
+ * defining freelistEND as ((FreelistBlock)2) or similar (it must be
+ * an even number because of the use of a tag).
+ */
+
+#define freelistEND ((FreelistBlock)0)
 
 
 /* freelistMinimumAlignment -- the minimum allowed alignment for the
@@ -81,11 +93,12 @@ static Addr FreelistBlockLimit(Freelist fl, FreelistBlock block)
 
 /* FreelistBlockCheck -- check a block. */
 
+ATTRIBUTE_UNUSED
 static Bool FreelistBlockCheck(FreelistBlock block)
 {
   CHECKL(block != NULL);
   /* block list is address-ordered */
-  CHECKL(FreelistTagReset(block->small.next) == NULL
+  CHECKL(FreelistTagReset(block->small.next) == freelistEND
          || block < FreelistTagReset(block->small.next));
   CHECKL(FreelistBlockIsSmall(block) || (Addr)block < block->large.limit);
 
@@ -93,8 +106,8 @@ static Bool FreelistBlockCheck(FreelistBlock block)
 }
 
 
-/* FreelistBlockNext -- return the next block in the list, or NULL if
- * there are no more blocks.
+/* FreelistBlockNext -- return the next block in the list, or
+ * freelistEND if there are no more blocks.
  */
 static FreelistBlock FreelistBlockNext(FreelistBlock block)
 {
@@ -154,7 +167,7 @@ static FreelistBlock FreelistBlockInit(Freelist fl, Addr base, Addr limit)
   AVER(AddrIsAligned(limit, freelistAlignment(fl)));
 
   block = (FreelistBlock)base;
-  block->small.next = FreelistTagSet(NULL);
+  block->small.next = FreelistTagSet(freelistEND);
   FreelistBlockSetLimit(fl, block, limit);
   AVERT(FreelistBlock, block);
   return block;
@@ -169,8 +182,8 @@ Bool FreelistCheck(Freelist fl)
   CHECKD(Land, land);
   /* See <design/freelist/#impl.grain.align> */
   CHECKL(AlignIsAligned(freelistAlignment(fl), freelistMinimumAlignment));
-  CHECKL((fl->list == NULL) == (fl->listSize == 0));
-  CHECKL((fl->list == NULL) == (fl->size == 0));
+  CHECKL((fl->list == freelistEND) == (fl->listSize == 0));
+  CHECKL((fl->list == freelistEND) == (fl->size == 0));
   CHECKL(SizeIsAligned(fl->size, freelistAlignment(fl)));
 
   return TRUE;
@@ -193,7 +206,7 @@ static Res freelistInit(Land land, ArgList args)
   AVER(AlignIsAligned(LandAlignment(land), freelistMinimumAlignment));
 
   fl = freelistOfLand(land);
-  fl->list = NULL;
+  fl->list = freelistEND;
   fl->listSize = 0;
   fl->size = 0;
 
@@ -211,7 +224,7 @@ static void freelistFinish(Land land)
   fl = freelistOfLand(land);
   AVERT(Freelist, fl);
   fl->sig = SigInvalid;
-  fl->list = NULL;
+  fl->list = freelistEND;
 }
 
 
@@ -228,9 +241,9 @@ static Size freelistSize(Land land)
 
 /* freelistBlockSetPrevNext -- update list of blocks
  *
- * If prev and next are both NULL, make the block list empty.
- * Otherwise, if prev is NULL, make next the first block in the list.
- * Otherwise, if next is NULL, make prev the last block in the list.
+ * If prev and next are both freelistEND, make the block list empty.
+ * Otherwise, if prev is freelistEND, make next the first block in the list.
+ * Otherwise, if next is freelistEND, make prev the last block in the list.
  * Otherwise, make next follow prev in the list.
  * Update the count of blocks by 'delta'.
  */
@@ -240,11 +253,13 @@ static void freelistBlockSetPrevNext(Freelist fl, FreelistBlock prev,
 {
   AVERT(Freelist, fl);
 
-  if (prev) {
-    AVER(next == NULL || FreelistBlockLimit(fl, prev) < FreelistBlockBase(next));
-    FreelistBlockSetNext(prev, next);
-  } else {
+  if (prev == freelistEND) {
     fl->list = next;
+  } else {
+    /* Isolated range invariant (design.mps.freelist.impl.invariant). */
+    AVER(next == freelistEND
+         || FreelistBlockLimit(fl, prev) < FreelistBlockBase(next));
+    FreelistBlockSetNext(prev, next);
   }
   if (delta < 0) {
     AVER(fl->listSize >= (Count)-delta);
@@ -272,15 +287,15 @@ static Res freelistInsert(Range rangeReturn, Land land, Range range)
   base = RangeBase(range);
   limit = RangeLimit(range);
 
-  prev = NULL;
+  prev = freelistEND;
   cur = fl->list;
-  while (cur) {
+  while (cur != freelistEND) {
     if (base < FreelistBlockLimit(fl, cur) && FreelistBlockBase(cur) < limit)
       return ResFAIL; /* range overlaps with cur */
     if (limit <= FreelistBlockBase(cur))
       break;
     next = FreelistBlockNext(cur);
-    if (next)
+    if (next != freelistEND)
       /* Isolated range invariant (design.mps.freelist.impl.invariant). */
       AVER(FreelistBlockLimit(fl, cur) < FreelistBlockBase(next));
     prev = cur;
@@ -291,8 +306,8 @@ static Res freelistInsert(Range rangeReturn, Land land, Range range)
    * coalesces then it does so with prev on the left, and cur on the
    * right.
    */
-  coalesceLeft = (prev && base == FreelistBlockLimit(fl, prev));
-  coalesceRight = (cur && limit == FreelistBlockBase(cur));
+  coalesceLeft = (prev != freelistEND && base == FreelistBlockLimit(fl, prev));
+  coalesceRight = (cur != freelistEND && limit == FreelistBlockBase(cur));
 
   if (coalesceLeft && coalesceRight) {
     base = FreelistBlockBase(prev);
@@ -328,8 +343,8 @@ static Res freelistInsert(Range rangeReturn, Land land, Range range)
  *
  * range must be a subset of block. Update rangeReturn to be the
  * original range of block and update the block list accordingly: prev
- * is on the list just before block, or NULL if block is the first
- * block on the list.
+ * is on the list just before block, or freelistEND if block is the
+ * first block on the list.
  */
 
 static void freelistDeleteFromBlock(Range rangeReturn, Freelist fl,
@@ -343,7 +358,7 @@ static void freelistDeleteFromBlock(Range rangeReturn, Freelist fl,
   AVERT(Freelist, fl);
   AVERT(Range, range);
   AVER(RangeIsAligned(range, freelistAlignment(fl)));
-  AVER(prev == NULL || FreelistBlockNext(prev) == block);
+  AVER(prev == freelistEND || FreelistBlockNext(prev) == block);
   AVERT(FreelistBlock, block);
   AVER(FreelistBlockBase(block) <= RangeBase(range));
   AVER(RangeLimit(range) <= FreelistBlockLimit(fl, block));
@@ -397,9 +412,9 @@ static Res freelistDelete(Range rangeReturn, Land land, Range range)
   base = RangeBase(range);
   limit = RangeLimit(range);
 
-  prev = NULL;
+  prev = freelistEND;
   cur = fl->list;
-  while (cur) {
+  while (cur != freelistEND) {
     Addr blockBase, blockLimit;
     blockBase = FreelistBlockBase(cur);
     blockLimit = FreelistBlockLimit(fl, cur);
@@ -434,9 +449,9 @@ static void freelistIterate(Land land, LandVisitor visitor,
   AVERT(Freelist, fl);
   AVER(FUNCHECK(visitor));
 
-  prev = NULL;
+  prev = freelistEND;
   cur = fl->list;
-  while (cur) {
+  while (cur != freelistEND) {
     Bool delete = FALSE;
     RangeStruct range;
     Bool cont;
@@ -465,8 +480,8 @@ static void freelistIterate(Land land, LandVisitor visitor,
  * instruction in findDelete. Return the range of that chunk in
  * rangeReturn. Return the original range of the block in
  * oldRangeReturn. Update the block list accordingly, using prev,
- * which is previous in list or NULL if block is the first block in
- * the list.
+ * which is previous in list or freelistEND if block is the first
+ * block in the list.
  */
 
 static void freelistFindDeleteFromBlock(Range rangeReturn, Range oldRangeReturn,
@@ -482,7 +497,7 @@ static void freelistFindDeleteFromBlock(Range rangeReturn, Range oldRangeReturn,
   AVERT(Freelist, fl);
   AVER(SizeIsAligned(size, freelistAlignment(fl)));
   AVERT(FindDelete, findDelete);
-  AVER(prev == NULL || FreelistBlockNext(prev) == block);
+  AVER(prev == freelistEND || FreelistBlockNext(prev) == block);
   AVERT(FreelistBlock, block);
   AVER(FreelistBlockSize(fl, block) >= size);
   
@@ -534,9 +549,9 @@ static Bool freelistFindFirst(Range rangeReturn, Range oldRangeReturn,
   AVER(SizeIsAligned(size, freelistAlignment(fl)));
   AVERT(FindDelete, findDelete);
 
-  prev = NULL;
+  prev = freelistEND;
   cur = fl->list;
-  while (cur) {
+  while (cur != freelistEND) {
     if (FreelistBlockSize(fl, cur) >= size) {
       freelistFindDeleteFromBlock(rangeReturn, oldRangeReturn, fl, size,
                                   findDelete, prev, cur);
@@ -557,7 +572,7 @@ static Bool freelistFindLast(Range rangeReturn, Range oldRangeReturn,
   Freelist fl;
   Bool found = FALSE;
   FreelistBlock prev, cur, next;
-  FreelistBlock foundPrev = NULL, foundCur = NULL;
+  FreelistBlock foundPrev = freelistEND, foundCur = freelistEND;
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -567,9 +582,9 @@ static Bool freelistFindLast(Range rangeReturn, Range oldRangeReturn,
   AVER(SizeIsAligned(size, freelistAlignment(fl)));
   AVERT(FindDelete, findDelete);
 
-  prev = NULL;
+  prev = freelistEND;
   cur = fl->list;
-  while (cur) {
+  while (cur != freelistEND) {
     if (FreelistBlockSize(fl, cur) >= size) {
       found = TRUE;
       foundPrev = prev;
@@ -594,7 +609,7 @@ static Bool freelistFindLargest(Range rangeReturn, Range oldRangeReturn,
   Freelist fl;
   Bool found = FALSE;
   FreelistBlock prev, cur, next;
-  FreelistBlock bestPrev = NULL, bestCur = NULL;
+  FreelistBlock bestPrev = freelistEND, bestCur = freelistEND;
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -603,9 +618,9 @@ static Bool freelistFindLargest(Range rangeReturn, Range oldRangeReturn,
   AVERT(Freelist, fl);
   AVERT(FindDelete, findDelete);
 
-  prev = NULL;
+  prev = freelistEND;
   cur = fl->list;
-  while (cur) {
+  while (cur != freelistEND) {
     if (FreelistBlockSize(fl, cur) >= size) {
       found = TRUE;
       size = FreelistBlockSize(fl, cur);
@@ -634,7 +649,7 @@ static Res freelistFindInZones(Range rangeReturn, Range oldRangeReturn,
   RangeInZoneSet search;
   Bool found = FALSE;
   FreelistBlock prev, cur, next;
-  FreelistBlock foundPrev = NULL, foundCur = NULL;
+  FreelistBlock foundPrev = freelistEND, foundCur = freelistEND;
   RangeStruct foundRange;
 
   AVER(FALSE); /* TODO: this code is completely untested! */
@@ -661,9 +676,9 @@ static Res freelistFindInZones(Range rangeReturn, Range oldRangeReturn,
   if (ZoneSetIsSingle(zoneSet) && size > ArenaStripeSize(LandArena(land)))
     return ResFAIL;
 
-  prev = NULL;
+  prev = freelistEND;
   cur = fl->list;
-  while (cur) {
+  while (cur != freelistEND) {
     Addr base, limit;
     if ((*search)(&base, &limit, FreelistBlockBase(cur),
                   FreelistBlockLimit(fl, cur),
@@ -762,7 +777,7 @@ DEFINE_LAND_CLASS(FreelistLandClass, class)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

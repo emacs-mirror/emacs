@@ -147,8 +147,57 @@
  *     cc -O2 -c -DCONFIG_PLINTH_NONE mps.c
  */
 
-#if defined(CONFIG_PLINTH_NONE)
+#if !defined(CONFIG_PLINTH_NONE)
+#define PLINTH
+#else
 #define PLINTH_NONE
+#endif
+
+
+/* CONFIG_PF_ANSI -- use the ANSI platform 
+ *
+ * This symbol tells mps.c to exclude the sources for the
+ * auto-detected platform, and use the generic ("ANSI") platform
+ * instead.
+ */
+
+#if defined(CONFIG_PF_ANSI)
+#define PLATFORM_ANSI
+#endif
+
+
+/* CONFIG_THREAD_SINGLE -- support single-threaded execution only
+ *
+ * This symbol causes the MPS to be built for single-threaded
+ * execution only, where locks are not needed and so lock operations
+ * can be defined as no-ops by lock.h.
+ */
+
+#if !defined(CONFIG_THREAD_SINGLE)
+#define LOCK
+#else
+#define LOCK_NONE
+#endif
+
+
+/* CONFIG_POLL_NONE -- no support for polling
+ *
+ * This symbol causes the MPS to built without support for polling.
+ * This means that garbage collections will only happen if requested
+ * explicitly via mps_arena_collect() or mps_arena_step(), but it also
+ * means that protection is not needed, and so shield operations can
+ * be replaced with no-ops in mpm.h.
+ */
+
+#if !defined(CONFIG_POLL_NONE)
+#define REMEMBERED_SET
+#define SHIELD
+#else
+#if !defined(CONFIG_THREAD_SINGLE)
+#error "CONFIG_POLL_NONE without CONFIG_THREAD_SINGLE"
+#endif
+#define REMEMBERED_SET_NONE
+#define SHIELD_NONE
 #endif
 
 
@@ -241,6 +290,15 @@
 #define ATTRIBUTE_NORETURN
 #endif
 
+/* Attribute for functions that may be unused in some build configurations.
+ * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html>
+ */
+#if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
+#define ATTRIBUTE_UNUSED __attribute__((__unused__))
+#else
+#define ATTRIBUTE_UNUSED
+#endif
+
 
 /* EPVMDefaultSubsequentSegSIZE is a default for the alignment of
  * subsequent segments (non-initial at each save level) in EPVM.  See
@@ -253,11 +311,6 @@
 /* Buffer Configuration -- see <code/buffer.c> */
 
 #define BUFFER_RANK_DEFAULT (mps_rank_exact())
-
-
-/* CBS Configuration -- see <code/cbs.c> */
-
-#define CBS_EXTEND_BY_DEFAULT ((Size)4096)
 
 
 /* Format defaults: see <code/format.c> */
@@ -281,7 +334,7 @@
 
 /* Pool AMS Configuration -- see <code/poolams.c> */
 
-#define AMS_SUPPORT_AMBIGUOUS_DEFAULT FALSE
+#define AMS_SUPPORT_AMBIGUOUS_DEFAULT TRUE
 #define AMS_GEN_DEFAULT       0
 
 
@@ -373,7 +426,9 @@
 /* Stack configuration */
 
 /* Currently StackProbe has a useful implementation only on Windows. */
-#if defined(MPS_OS_W3) && defined(MPS_ARCH_I3)
+#if defined(PLATFORM_ANSI)
+#define StackProbeDEPTH ((Size)0)
+#elif defined(MPS_OS_W3) && defined(MPS_ARCH_I3)
 #define StackProbeDEPTH ((Size)500)
 #elif defined(MPS_OS_W3) && defined(MPS_ARCH_I6)
 #define StackProbeDEPTH ((Size)500)
@@ -402,6 +457,7 @@
  *
  * Source      Symbols                   Header        Feature
  * =========== ========================= ============= ====================
+ * eventtxt.c  setenv                    <stdlib.h>    _GNU_SOURCE
  * lockli.c    pthread_mutexattr_settype <pthread.h>   _XOPEN_SOURCE >= 500
  * prmci3li.c  REG_EAX etc.              <ucontext.h>  _GNU_SOURCE
  * prmci6li.c  REG_RAX etc.              <ucontext.h>  _GNU_SOURCE
@@ -420,9 +476,14 @@
 
 #if defined(MPS_OS_LI)
 
+#if defined(_XOPEN_SOURCE) && _XOPEN_SOURCE < 500
+#undef _XOPEN_SOURCE
+#endif
+#if !defined(_XOPEN_SOURCE)
 #define _XOPEN_SOURCE 500
+#endif
 
-#ifndef _GNU_SOURCE
+#if !defined(_GNU_SOURCE)
 #define _GNU_SOURCE
 #endif
 
@@ -548,9 +609,6 @@
 
 #define MPS_PROD_STRING         "mps"
 #define MPS_PROD_MPS
-#define THREAD_MULTI
-#define PROTECTION
-#define PROD_CHECKLEVEL_INITIAL CheckLevelSHALLOW
 
 /* TODO: This should be proportional to the memory usage of the MPS, not
    a constant.  That will require design, and then some interface and

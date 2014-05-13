@@ -61,13 +61,19 @@ int mps_lib_fputs(const char *s, mps_lib_FILE *stream)
 }
 
 
-static void mps_lib_assert_fail_default(const char *file,
-                                        unsigned line,
+static void mps_lib_assert_fail_default(const char *file, unsigned line,
                                         const char *condition)
 {
-  (void)fflush(stdout); /* synchronize */
-  (void)fprintf(stderr, "%s:%u: MPS ASSERTION FAILED: %s\n", file, line, condition);
-  (void)fflush(stderr); /* make sure the message is output */
+  /* Synchronize with stdout. */
+  (void)fflush(stdout);
+  (void)fprintf(stderr,
+                "The MPS detected a problem!\n"
+                "%s:%u: MPS ASSERTION FAILED: %s\n"
+                "See the \"Assertions\" section in the reference manual:\n"
+                "http://ravenbrook.com/project/mps/master/manual/html/topic/error.html#assertions\n",
+                file, line, condition);
+  /* Ensure the message is output even if stderr is buffered. */
+  (void)fflush(stderr);
   ASSERT_ABORT(); /* see config.h */
 }
 

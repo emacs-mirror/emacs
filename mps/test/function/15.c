@@ -54,6 +54,7 @@ static void test(void)
   allocdumb(ap, 1024*256);
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(ap);
 
  mps_pool_destroy(pool);
