@@ -135,13 +135,11 @@ MPMCOMMON=\
     <freelist> \
     <global> \
     <ld> \
-    <lockw3> \
     <locus> \
     <message> \
     <meter> \
     <mpm> \
     <mpsi> \
-    <mpsiw3> \
     <nailboard> \
     <pool> \
     <poolabs> \
@@ -150,7 +148,6 @@ MPMCOMMON=\
     <poolmv2> \
     <poolmv> \
     <protocol> \
-    <protw3> \
     <range> \
     <ref> \
     <reserv> \
@@ -163,12 +160,10 @@ MPMCOMMON=\
     <splay> \
     <ss> \
     <table> \
-    <thw3> \
     <trace> \
     <traceanc> \
     <tract> \
     <tree> \
-    <vmw3> \
     <walk>
 PLINTH = <mpsliban> <mpsioan>
 AMC = <poolamc>
