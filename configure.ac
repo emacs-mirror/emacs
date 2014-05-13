@@ -3304,6 +3304,26 @@ fi
 AC_SUBST(XINERAMA_CFLAGS)
 AC_SUBST(XINERAMA_LIBS)
 
+### Use Xfixes (-lXfixes) if available
+HAVE_XFIXES=no
+if test "${HAVE_X11}" = "yes"; then
+  XFIXES_REQUIRED=4.0.0
+  XFIXES_MODULES="xfixes >= $XFIXES_REQUIRED"
+  EMACS_CHECK_MODULES([XFIXES], [$XFIXES_MODULES])
+  if test $HAVE_XFIXES = no; then
+    # Test old way in case pkg-config doesn't have it (older machines).
+    AC_CHECK_HEADER(X11/extensions/Xfixes.h,
+      [AC_CHECK_LIB(Xfixes, XFixesHideCursor, HAVE_XFIXES=yes)])
+    if test $HAVE_XFIXES = yes; then
+      XFIXES_LIBS=-lXfixes
+    fi
+  fi
+  if test $HAVE_XFIXES = yes; then
+    AC_DEFINE(HAVE_XFIXES, 1, [Define to 1 if you have the Xfixes extension.])
+  fi
+fi
+AC_SUBST(XFIXES_CFLAGS)
+AC_SUBST(XFIXES_LIBS)
 
 ### Use libxml (-lxml2) if available
 ### mingw32 doesn't use -lxml2, since it loads the library dynamically.

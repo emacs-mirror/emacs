@@ -1,6 +1,8 @@
 2014-05-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	* configure.ac (--enable-link-time-optimization): Add clang support.
+	* configure.ac (HAVE_XFIXES): Define if available.
+	(XFIXES_CFLAGS, XFIXES_LIBS): New AC_SUBSTs.
+	(--enable-link-time-optimization): Add clang support.
 	* INSTALL: Mention it.
 
 2014-05-12  Katsumi Yamaoka  <yamaoka@jpl.org>

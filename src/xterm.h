@@ -174,8 +174,12 @@ struct x_display_info
   /* The cursor to use for vertical scroll bars.  */
   Cursor vertical_scroll_bar_cursor;
 
-  /* The invisible cursor used for pointer blanking.  */
+  /* The invisible cursor used for pointer blanking.
+     Unused if this display supports Xfixes extension.  */
   Cursor invisible_cursor;
+
+  /* Function used to toggle pointer visibility on this display.  */
+  void (*toggle_visible_pointer) (struct frame *, bool);
 
 #ifdef USE_GTK
   /* The GDK cursor for scroll bars and popup menus.  */

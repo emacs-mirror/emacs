@@ -577,35 +577,6 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     }
 }
 
-static Cursor
-make_invisible_cursor (struct frame *f)
-{
-  Display *dpy = FRAME_X_DISPLAY (f);
-  static char const no_data[] = { 0 };
-  Pixmap pix;
-  XColor col;
-  Cursor c = 0;
-
-  x_catch_errors (dpy);
-  pix = XCreateBitmapFromData (dpy, FRAME_DISPLAY_INFO (f)->root_window,
-                               no_data, 1, 1);
-  if (! x_had_errors_p (dpy) && pix != None)
-    {
-      Cursor pixc;
-      col.pixel = 0;
-      col.red = col.green = col.blue = 0;
-      col.flags = DoRed | DoGreen | DoBlue;
-      pixc = XCreatePixmapCursor (dpy, pix, pix, &col, &col, 0, 0);
-      if (! x_had_errors_p (dpy) && pixc != None)
-        c = pixc;
-      XFreePixmap (dpy, pix);
-    }
-
-  x_uncatch_errors ();
-
-  return c;
-}
-
 static void
 x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
@@ -722,9 +693,6 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   if (FRAME_X_WINDOW (f) != 0)
     XDefineCursor (dpy, FRAME_X_WINDOW (f),
                    f->output_data.x->current_cursor = cursor);
-
-  if (FRAME_DISPLAY_INFO (f)->invisible_cursor == 0)
-    FRAME_DISPLAY_INFO (f)->invisible_cursor = make_invisible_cursor (f);
 
   if (cursor != x->text_cursor
       && x->text_cursor != 0)

@@ -1,3 +1,16 @@
+2014-05-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	If available, use Xfixes extension to do pointer blanking.
+	* Makefile.in (XFIXES_CFLAGS, XFIXES_LIBS): New var.
+	* xfns.c (x_set_mouse_color): Do not call make_invisible_cursor here.
+	(make_invisible_cursor): Move to...
+	* xterm.c (make_invisible_cursor): ...here.
+	(x_probe_xfixes_extension, xfixes_toggle_visible_pointer)
+	(x_toggle_visible_pointer, x_setup_pointer_blanking): New functions.
+	(x_term_init): Call to x_setup_pointer_blanking.
+	(XTtoggle_invisible_pointer): Use blanking specific to this display.
+	* xterm.h (struct x_display_info): New member toggle_visible_pointer.
+
 2014-05-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xdisp.c (draw_glyphs): Set clipping to highlight boundaries.
