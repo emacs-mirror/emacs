@@ -1,0 +1,56 @@
+=============  ================  ==========================================
+Test case      Flags             Notes
+=============  ================  ==========================================
+abqtest
+airtest
+amcss          =P
+amcsshe        =P
+amcssth        =P =T
+amsss          =P
+amssshe        =P
+apss
+arenacv
+awlut
+awluthe
+awlutth        =T
+btcv
+bttest         =N                interactive
+djbench        =N                benchmark
+exposet0       =P
+expt825
+finalcv        =P
+finaltest      =P
+fotest
+gcbench        =N                benchmark
+landtest
+locbwcss
+lockcov
+lockut         =T
+locusss
+locv
+messtest
+mpmss
+mpsicv
+mv2test
+nailboardtest
+poolncv
+qs
+sacss
+segsmss
+steptest       =P
+teletest       =N                interactive
+walkt0
+zcoll          =L
+zmess
+=============  ================  ==========================================
+
+Key to flags
+............
+
+    B -- known Bad
+    L -- Long runtime
+    N -- Not an automated test case
+    P -- relies on Polling or incremental collection
+    T -- multi-Threaded
+    W -- Windows-only
+    X -- Unix-only

@@ -377,6 +377,7 @@ failCBS:
 
 /* MVTCheck -- validate an MVT Pool */
 
+ATTRIBUTE_UNUSED
 static Bool MVTCheck(MVT mvt)
 {
   CHECKS(MVT, mvt);

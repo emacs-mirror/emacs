@@ -131,6 +131,7 @@ typedef struct AWLSegStruct {
 extern SegClass AWLSegClassGet(void);
 
 
+ATTRIBUTE_UNUSED
 static Bool AWLSegCheck(AWLSeg awlseg)
 {
   CHECKS(AWLSeg, awlseg);
@@ -1299,6 +1300,7 @@ mps_class_t mps_class_awl(void)
 
 /* AWLCheck -- check an AWL pool */
 
+ATTRIBUTE_UNUSED
 static Bool AWLCheck(AWL awl)
 {
   CHECKS(AWL, awl);

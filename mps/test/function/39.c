@@ -84,6 +84,7 @@ static void test(void)
   b = allocdumb(apamc, 0x400*64, 0);
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(aplo);
  mps_ap_destroy(apamc);
  comment("Destroyed aps.");

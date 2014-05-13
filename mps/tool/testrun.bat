@@ -8,54 +8,38 @@
 @rem job003489). Finally, it prints a summary of passes and failures, and
 @rem if there were any failures, it exits with a non-zero status code.
 @rem
-@rem Usage::
+@rem Usage:
 @rem 
-@rem     testrun.bat PLATFORM VARIETY [CASE1 CASE2 ...]
+@rem     testrun.bat PLATFORM VARIETY ( SUITE | CASE1 CASE2 ... )
 
 @echo off
+
+@rem Find test case database in same directory as this script.
+@rem The incantation %%~dpF% expands %%F to a drive letter and path only.
+@rem See "help for" for more details.
+for %%F in ("%0") do set TEST_CASE_DB=%%~dpF%testcases.txt
 
 set PFM=%1
 shift
 set VARIETY=%1
 shift
+set TESTSUITE=%1
 
-set ALL_TEST_CASES=^
-    abqtest.exe ^
-    airtest.exe ^
-    amcss.exe ^
-    amcsshe.exe ^
-    amcssth.exe ^
-    amsss.exe ^
-    amssshe.exe ^
-    apss.exe ^
-    arenacv.exe ^
-    awlut.exe ^
-    awluthe.exe ^
-    awlutth.exe ^
-    btcv.exe ^
-    exposet0.exe ^
-    expt825.exe ^
-    finalcv.exe ^
-    finaltest.exe ^
-    fotest.exe ^
-    landtest.exe ^
-    locbwcss.exe ^
-    lockcov.exe ^
-    lockut.exe ^
-    locusss.exe ^
-    locv.exe ^
-    messtest.exe ^
-    mpmss.exe ^
-    mpsicv.exe ^
-    mv2test.exe ^
-    nailboardtest.exe ^
-    poolncv.exe ^
-    qs.exe ^
-    sacss.exe ^
-    segsmss.exe ^
-    steptest.exe ^
-    walkt0.exe ^
-    zmess.exe
+@rem Make a temporary output directory for the test logs.
+set LOGDIR=%TMP%\mps-%PFM%-%VARIETY%-log
+echo MPS test suite
+echo Logging test output to %LOGDIR%
+echo Test directory: %PFM%\%VARIETY%
+if exist %LOGDIR% rmdir /q /s %LOGDIR%
+mkdir %LOGDIR%
+
+@rem Determine which tests to run.
+set EXCLUDE=
+if "%TESTSUITE%"=="testrun"  set EXCLUDE=LNX
+if "%TESTSUITE%"=="testci"   set EXCLUDE=BNX
+if "%TESTSUITE%"=="testall"  set EXCLUDE=NX
+if "%TESTSUITE%"=="testansi" set EXCLUDE=LNTX
+if "%TESTSUITE%"=="testpoll" set EXCLUDE=LNPTX
 
 @rem Ensure that test cases don't pop up dialog box on abort()
 set MPS_TESTLIB_NOABORT=true
@@ -63,36 +47,42 @@ set TEST_COUNT=0
 set PASS_COUNT=0
 set FAIL_COUNT=0
 set SEPARATOR=----------------------------------------
-set LOGDIR=%TMP%\mps-%PFM%-%VARIETY%-log
-echo Logging test output to %LOGDIR%
-if exist %LOGDIR% rmdir /q /s %LOGDIR%
-mkdir %LOGDIR%
 
-if "%1"=="" call :run_tests %ALL_TEST_CASES%
+if "%EXCLUDE%"=="" goto :args
+for /f "tokens=1" %%T IN ('type %TEST_CASE_DB% ^|^
+     findstr /b /r [abcdefghijklmnopqrstuvwxyz] ^|^
+     findstr /v /r =[%EXCLUDE%]') do call :run_test %%T
+goto :done
 
+:args
+if "%1"=="" goto :done
+call :run_test %1
+shift
+goto :args
+
+:done
 if "%FAIL_COUNT%"=="0" (
     echo Tests: %TEST_COUNT%. All tests pass.
-    exit 0
+    exit /b 0
 ) else (
     echo Tests: %TEST_COUNT%. Passes: %PASS_COUNT%. Failures: %FAIL_COUNT%.
-    exit 1
+    exit /b 1
 )
 
-:run_tests
-if "%1"=="" exit /b
+:run_test
 set /a TEST_COUNT=%TEST_COUNT%+1
+set LOGTEST=%LOGDIR%\%TEST_COUNT%-%1
 echo Running %1
-%PFM%\%VARIETY%\%1 > %LOGDIR%\%1
+%PFM%\%VARIETY%\%1 > %LOGTEST%
 if "%errorlevel%"=="0" (
     set /a PASS_COUNT=%PASS_COUNT%+1
 ) else (
     echo %SEPARATOR%%SEPARATOR%
-    type %LOGDIR%\%1
+    type %LOGTEST%
     echo %SEPARATOR%%SEPARATOR%
     set /a FAIL_COUNT=%FAIL_COUNT%+1
 )
-shift
-goto run_tests
+exit /b
 
 
 @rem C. COPYRIGHT AND LICENSE

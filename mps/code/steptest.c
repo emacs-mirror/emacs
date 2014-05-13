@@ -478,6 +478,8 @@ static void *test(void *arg, size_t s)
     printf("   %"PRIuLONGEST" clock reads; ", (ulongest_t)clock_reads);
     print_time("", total_clock_time / clock_reads, " per read;");
     print_time(" recently measured as ", clock_time, ").\n");
+
+    mps_arena_park(arena);
     mps_ap_destroy(ap);
     mps_root_destroy(exactRoot);
     mps_root_destroy(ambigRoot);
