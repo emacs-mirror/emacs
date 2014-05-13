@@ -235,7 +235,7 @@ static Lisp_Object read_key_sequence_remapped;
 
 static Lisp_Object Qinput_method_function;
 
-Lisp_Object Qdeactivate_mark;
+static Lisp_Object Qdeactivate_mark;
 
 Lisp_Object Qrecompute_lucid_menubar, Qactivate_menubar_hook;
 
