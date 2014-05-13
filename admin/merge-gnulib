@@ -96,4 +96,5 @@ rm -- "$src"lib/gl_openssl.h "$src"m4/fcntl-o.m4 "$src"m4/gl-openssl.m4 \
       "$src"m4/gnulib-cache.m4"$src" m4/warn-on-use.m4 &&
 cp -- "$gnulib_srcdir"/build-aux/texinfo.tex "$src"doc/misc &&
 cp -- "$gnulib_srcdir"/build-aux/move-if-change "$src"build-aux &&
-autoreconf -i -I m4 -- ${src:+"$src"}
+{ test -z "$src" || cd "$src"; } &&
+./autogen.sh

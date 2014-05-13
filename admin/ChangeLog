@@ -1,3 +1,7 @@
+2014-05-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* merge-gnulib: Defer to autogen.sh for ACLOCAL_PATH computation.
+
 2014-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* find-gc.el: Move here from ../lisp/emacs-lisp.
