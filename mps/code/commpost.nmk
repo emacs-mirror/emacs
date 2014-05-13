@@ -53,15 +53,15 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 !ENDIF
 !ENDIF
 
-# testrun
+# testrun testci testall testansi testpoll
 # Runs automated test cases.
 
-testrun: $(TEST_TARGETS)
+testrun testci testall testansi testpoll: $(TEST_TARGETS)
 !IFDEF VARIETY
-	..\tool\testrun.bat $(PFM) $(VARIETY)
+	..\tool\testrun.bat $(PFM) $(VARIETY) $@
 !ELSE
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=cool testrun
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot testrun
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=cool $@
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot $@
 !ENDIF
 
 
@@ -124,7 +124,7 @@ $(PFM)\$(VARIETY)\amcsshe.exe: $(PFM)\$(VARIETY)\amcsshe.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amcssth.exe: $(PFM)\$(VARIETY)\amcssth.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ)
 
 $(PFM)\$(VARIETY)\amsss.exe: $(PFM)\$(VARIETY)\amsss.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
@@ -148,7 +148,7 @@ $(PFM)\$(VARIETY)\awluthe.exe:  $(PFM)\$(VARIETY)\awluthe.obj \
 
 $(PFM)\$(VARIETY)\awlutth.exe:  $(PFM)\$(VARIETY)\awlutth.obj \
 	$(FMTTESTOBJ) \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ) $(TESTTHROBJ)
 
 $(PFM)\$(VARIETY)\btcv.exe: $(PFM)\$(VARIETY)\btcv.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
@@ -160,7 +160,7 @@ $(PFM)\$(VARIETY)\cvmicv.exe: $(PFM)\$(VARIETY)\cvmicv.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\djbench.exe: $(PFM)\$(VARIETY)\djbench.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ) $(TESTTHROBJ)
 
 $(PFM)\$(VARIETY)\exposet0.exe: $(PFM)\$(VARIETY)\exposet0.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)	
@@ -178,7 +178,7 @@ $(PFM)\$(VARIETY)\fotest.exe: $(PFM)\$(VARIETY)\fotest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\gcbench.exe: $(PFM)\$(VARIETY)\gcbench.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ)
 
 $(PFM)\$(VARIETY)\landtest.exe: $(PFM)\$(VARIETY)\landtest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
@@ -190,7 +190,7 @@ $(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\lockut.exe: $(PFM)\$(VARIETY)\lockut.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ) $(TESTTHROBJ)
 
 $(PFM)\$(VARIETY)\locusss.exe: $(PFM)\$(VARIETY)\locusss.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)

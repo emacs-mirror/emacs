@@ -66,6 +66,7 @@ Bool CBSCheck(CBS cbs)
 }
 
 
+ATTRIBUTE_UNUSED
 static Bool CBSBlockCheck(CBSBlock block)
 {
   UNUSED(block); /* Required because there is no signature */
@@ -216,7 +217,6 @@ static void cbsUpdateZonedNode(SplayTree splay, Tree tree)
  * See <design/land/#function.init>.
  */
 
-ARG_DEFINE_KEY(cbs_extend_by, Size);
 ARG_DEFINE_KEY(cbs_block_pool, Pool);
 
 static Res cbsInitComm(Land land, ArgList args, SplayUpdateNodeMethod update,
@@ -224,8 +224,6 @@ static Res cbsInitComm(Land land, ArgList args, SplayUpdateNodeMethod update,
 {
   CBS cbs;
   LandClass super;
-  Size extendBy = CBS_EXTEND_BY_DEFAULT;
-  Bool extendSelf = TRUE;
   ArgStruct arg;
   Res res;
   Pool blockPool = NULL;
@@ -238,10 +236,6 @@ static Res cbsInitComm(Land land, ArgList args, SplayUpdateNodeMethod update,
 
   if (ArgPick(&arg, args, CBSBlockPool))
     blockPool = arg.val.pool;
-  if (ArgPick(&arg, args, MPS_KEY_CBS_EXTEND_BY))
-    extendBy = arg.val.size;
-  if (ArgPick(&arg, args, MFSExtendSelf))
-    extendSelf = arg.val.b;
 
   cbs = cbsOfLand(land);
   SplayTreeInit(cbsSplay(cbs), cbsCompare, cbsKey, update);
@@ -252,8 +246,6 @@ static Res cbsInitComm(Land land, ArgList args, SplayUpdateNodeMethod update,
   } else {
     MPS_ARGS_BEGIN(pcArgs) {
       MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, blockStructSize);
-      MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, extendBy);
-      MPS_ARGS_ADD(pcArgs, MFSExtendSelf, extendSelf);
       res = PoolCreate(&cbs->blockPool, LandArena(land), PoolClassMFS(), pcArgs);
     } MPS_ARGS_END(pcArgs);
     if (res != ResOK)

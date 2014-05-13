@@ -95,6 +95,7 @@ static void test(void)
   setref(a, 0, b);
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(apawl);
  mps_ap_destroy(apamc);
  comment("Destroyed aps.");

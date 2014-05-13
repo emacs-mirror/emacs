@@ -32,6 +32,7 @@ static Bool sacFreeListBlockCheck(SACFreeListBlock fb)
   return TRUE;
 }
 
+ATTRIBUTE_UNUSED
 static Bool SACCheck(SAC sac)
 {
   Index i, j;

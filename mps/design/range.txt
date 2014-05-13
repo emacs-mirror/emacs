@@ -51,7 +51,7 @@ between ``base`` (inclusive) and ``limit`` (exclusive). It must be the
 case that ``base <= limit``. If ``base == limit`` then the range is
 empty.
 
-``void RangeInitCopy(Range dest, Range src)``
+``void RangeCopy(Range dest, Range src)``
 
 Initialize ``dest`` to be a copy of ``src``.
 

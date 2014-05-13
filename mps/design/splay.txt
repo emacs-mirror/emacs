@@ -103,7 +103,7 @@ general inferred MPS requirements.
 _`.req.order`: Must maintain a set of abstract keys which is totally
 ordered for a comparator.
 
-_`.req.splay`: Common operations must have low amortized cost.
+_`.req.fast`: Common operations must have low amortized cost.
 
 _`.req.add`: Must be able to add new nodes. This is a common
 operation.

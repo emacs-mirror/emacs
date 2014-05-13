@@ -61,6 +61,7 @@ typedef struct ClientChunkStruct {
 
 /* ClientChunkCheck -- check the consistency of a client chunk */
 
+ATTRIBUTE_UNUSED
 static Bool ClientChunkCheck(ClientChunk clChunk)
 {
   Chunk chunk;
@@ -77,6 +78,7 @@ static Bool ClientChunkCheck(ClientChunk clChunk)
 
 /* ClientArenaCheck -- check the consistency of a client arena */
 
+ATTRIBUTE_UNUSED
 static Bool ClientArenaCheck(ClientArena clientArena)
 {
   CHECKS(ClientArena, clientArena);

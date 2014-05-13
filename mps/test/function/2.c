@@ -82,6 +82,7 @@ static void test(void)
   b = b->ref[0];
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(ap);
  comment("Destroyed ap.");
 
