@@ -1038,20 +1038,27 @@ Please send all bug fixes and enhancements to
 ;; To avoid compilation gripes
 
 
-(or (fboundp 'subst-char-in-string)	; hacked from subr.el
-    (defun subst-char-in-string (fromchar tochar string &optional inplace)
-      "Replace FROMCHAR with TOCHAR in STRING each time it occurs.
+;; Emacs has this since at least 21.1.
+(when (featurep 'xemacs)
+  (or (fboundp 'subst-char-in-string)	; hacked from subr.el
+      (defun subst-char-in-string (fromchar tochar string &optional inplace)
+	"Replace FROMCHAR with TOCHAR in STRING each time it occurs.
 Unless optional argument INPLACE is non-nil, return a new string."
-      (let ((i (length string))
-	    (newstr (if inplace string (copy-sequence string))))
-	(while (> (setq i (1- i)) 0)
-	  (if (eq (aref newstr i) fromchar)
-	      (aset newstr i tochar)))
-	newstr)))
+	(let ((i (length string))
+	      (newstr (if inplace string (copy-sequence string))))
+	  (while (> (setq i (1- i)) 0)
+	    (if (eq (aref newstr i) fromchar)
+		(aset newstr i tochar)))
+	  newstr))))
 
 
-(or (fboundp 'make-temp-file)		; hacked from subr.el
-    (defun make-temp-file (prefix &optional dir-flag suffix)
+;; Emacs has this since at least 21.1, but the SUFFIX argument
+;; (which this file uses) only since 22.1.  So the fboundp test
+;; wasn't even correct/adequate.  Whatever, no-one is using
+;; this file on older Emacs version, so it's irrelevant.
+(when (featurep 'xemacs)
+  (or (fboundp 'make-temp-file)		; hacked from subr.el
+      (defun make-temp-file (prefix &optional dir-flag suffix)
       "Create a temporary file.
 The returned file name (created by appending some random characters at the end
 of PREFIX, and expanding against `temporary-file-directory' if necessary),
@@ -1086,7 +1093,7 @@ If SUFFIX is non-nil, add that at the end of the file name."
 		nil)
 	      file)
 	  ;; Reset the umask.
-	  (set-default-file-modes umask)))))
+	  (set-default-file-modes umask))))))
 
 
 (eval-when-compile
@@ -3192,9 +3199,10 @@ See `pr-ps-printer-alist'.")
 
 
 (defalias 'pr-get-symbol
-  (if (fboundp 'easy-menu-intern)	; hacked from easymenu.el
-      'easy-menu-intern
-    (lambda (s) (if (stringp s) (intern s) s))))
+  (if (featurep 'emacs) 'easy-menu-intern ; since 22.1
+    (if (fboundp 'easy-menu-intern)	; hacked from easymenu.el
+	'easy-menu-intern
+      (lambda (s) (if (stringp s) (intern s) s)))))
 
 
 (defconst pr-menu-spec
