@@ -1,3 +1,12 @@
+2014-05-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-inline-part, gnus-mm-display-part):
+	Work for the last MIME part in an article.
+	(gnus-mime-display-single): Suppress excessive newlines between parts.
+
+	* mm-uu.el (mm-uu-dissect): Assume that separators may be accompanied
+	by leading or trailing newline.
+
 2014-05-09  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-mm-display-part): Don't put article out of sight

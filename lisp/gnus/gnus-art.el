@@ -5316,7 +5316,8 @@ Compressed files like .gz and .bz2 are decompressed."
       (when (= b (prog1
 		     btn
 		   (setq btn (previous-single-property-change
-			      (next-single-property-change btn 'gnus-data)
+			      (or (next-single-property-change btn 'gnus-data)
+				  (point-max))
 			      'gnus-data))))
 	(setq b btn))
       (if (and (not arg) (mm-handle-undisplayer handle))
@@ -5353,12 +5354,14 @@ Compressed files like .gz and .bz2 are decompressed."
       (if (featurep 'emacs)
 	  (delete-region
 	   (point)
-	   (text-property-any (point) (point-max) 'gnus-data nil))
+	   (or (text-property-any (point) (point-max) 'gnus-data nil)
+	       (point-max)))
 	(let* ((end (text-property-any (point) (point-max) 'gnus-data nil))
 	       (annots (annotations-at end)))
 	  (delete-region (point)
-			 ;; FIXME: why isn't this simply `end'?
-			 (if annots (1+ end) end))
+			 (if end
+			     (if annots (1+ end) end)
+			   (point-max)))
 	  (dolist (annot annots)
 	    (set-extent-endpoints annot (point) (point)))))
       (unless (search-backward "\n\n" nil t)
@@ -5691,7 +5694,8 @@ all parts."
 	      (select-window win)
 	      (goto-char point)))
 	  (setq point (previous-single-property-change
-		       (next-single-property-change point 'gnus-data)
+		       (or (next-single-property-change point 'gnus-data)
+			   (point-max))
 		       'gnus-data))
 	  (if (mm-handle-displayed-p handle)
 	      ;; This will remove the part.
@@ -5728,12 +5732,15 @@ all parts."
       (gnus-insert-mime-button handle id (list (mm-handle-displayed-p handle)))
       (if (featurep 'emacs)
 	  (delete-region
-	   (point) (text-property-any (point) (point-max) 'gnus-data nil))
+	   (point)
+	   (or (text-property-any (point) (point-max) 'gnus-data nil)
+	       (point-max)))
 	(let* ((end (text-property-any (point) (point-max) 'gnus-data nil))
 	       (annots (annotations-at end)))
 	  (delete-region (point)
-			 ;; FIXME: why isn't this simply `end'?
-			 (if annots (1+ end) end))
+			 (if end
+			     (if annots (1+ end) end)
+			   (point-max)))
 	  (dolist (annot annots)
 	    (set-extent-endpoints annot (point) (point)))))
       (unless (search-backward "\n\n" nil t)
@@ -6036,9 +6043,6 @@ If nil, don't show those extra buttons."
 		    (eq id gnus-mime-buttonized-part-id))
 	    (gnus-insert-mime-button
 	     handle id (list (or display (and not-attachment text)))))
-	  (gnus-article-insert-newline)
-	  (when (or display (and text not-attachment))
-	    (forward-line -1))
 	  (setq beg (point))
 	  (cond
 	   (display
@@ -6048,12 +6052,18 @@ If nil, don't show those extra buttons."
 				       (set-buffer gnus-summary-buffer)
 				     (error))
 				   gnus-newsgroup-ignored-charsets)))
-	      (gnus-bind-safe-url-regexp (mm-display-part handle t)))
-	    (goto-char (point-max)))
+	      (gnus-bind-safe-url-regexp (mm-display-part handle t))))
 	   ((and text not-attachment)
-	    (gnus-article-insert-newline)
-	    (mm-display-inline handle)
-	    (goto-char (point-max))))
+	    (mm-display-inline handle)))
+	  (goto-char (point-max))
+	  (if (string-match "\\`image/" type)
+	      (gnus-article-insert-newline)
+	    (if (prog1
+		    (= (skip-chars-backward "\n") -1)
+		  (forward-char 1))
+		(gnus-article-insert-newline)
+	      (put-text-property (point) (point-max) 'gnus-undeletable t))
+	    (goto-char (point-max)))
 	  ;; Do highlighting.
 	  (save-excursion
 	    (save-restriction

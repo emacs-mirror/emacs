@@ -673,22 +673,34 @@ value of `mm-uu-text-plain-type'."
 		     (goto-char text-start)
 		     (re-search-forward "." start-point t)))
 	      (push
-	       (mm-make-handle (mm-uu-copy-to-buffer text-start start-point)
-			       mm-uu-text-plain-type)
+	       (mm-make-handle
+		(mm-uu-copy-to-buffer
+		 text-start
+		 ;; A start-separator is likely accompanied by
+		 ;; a leading newline.
+		 (if (and (eq (char-before start-point) ?\n)
+			  (eq (char-before (1- start-point)) ?\n))
+		     (1- start-point)
+		   start-point))
+		mm-uu-text-plain-type)
 	       result))
 	  (push
 	   (funcall (mm-uu-function-extract entry))
 	   result)
 	  (goto-char (setq text-start end-point))))
       (when result
-	(if (and (> (point-max) (1+ text-start))
-		 (save-excursion
-		   (goto-char text-start)
-		   (re-search-forward "." nil t)))
-	    (push
-	     (mm-make-handle (mm-uu-copy-to-buffer text-start (point-max))
-			     mm-uu-text-plain-type)
-	     result))
+	(goto-char text-start)
+	(when (re-search-forward "." nil t)
+	  (push (mm-make-handle
+		 (mm-uu-copy-to-buffer
+		  ;; An end-separator is likely accompanied by
+		  ;; a trailing newline.
+		  (if (eq (char-after text-start) ?\n)
+		      (1+ text-start)
+		    text-start)
+		  (point-max))
+		 mm-uu-text-plain-type)
+		result))
 	(setq result (cons "multipart/mixed" (nreverse result))))
       result)))
 
