@@ -261,10 +261,18 @@ Do not start with `~/' or `~USERNAME/'."
   :type 'string
   :group 'emerge)
 
+(make-obsolete-variable 'emerge-temp-file-prefix
+			"customize `temporary-file-directory' instead."
+			"24.4" 'set)
+
 (defcustom emerge-temp-file-mode 384	; u=rw only
   "Mode for Emerge temporary files."
   :type 'integer
   :group 'emerge)
+
+(make-obsolete-variable 'emerge-temp-file-mode
+			"it has no effect, temporary files are always private."
+			"24.4" 'set)
 
 (defcustom emerge-combine-versions-template
   "#ifdef NEW\n%b#else /* not NEW */\n%a#endif /* not NEW */\n"
@@ -2881,6 +2889,7 @@ keymap.  Leaves merge in fast mode."
   (let (f (old-modes (default-file-modes)))
     (unwind-protect
 	(progn
+	  ;; This has no effect, since make-temp-file sets umask = 700.
 	  (set-default-file-modes emerge-temp-file-mode)
 	  (setq f (make-temp-file (concat emerge-temp-file-prefix prefix))))
       (set-default-file-modes old-modes))
