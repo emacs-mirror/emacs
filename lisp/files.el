@@ -941,14 +941,10 @@ directory if it does not exist."
 	     (if (file-directory-p user-emacs-directory)
 		 (or (file-accessible-directory-p user-emacs-directory)
 		     (setq errtype "access"))
-	       (let ((umask (default-file-modes)))
-		 (unwind-protect
-		     (progn
-		       (set-default-file-modes ?\700)
-		       (condition-case nil
-			   (make-directory user-emacs-directory)
-			 (error (setq errtype "create"))))
-		   (set-default-file-modes umask))))
+	       (with-file-modes ?\700
+		 (condition-case nil
+		     (make-directory user-emacs-directory)
+		   (error (setq errtype "create")))))
 	     (when (and errtype
 			user-emacs-directory-warning
 			(not (get 'user-emacs-directory-warning 'this-session)))
@@ -1273,36 +1269,31 @@ You can then use `write-region' to write new data into the file.
 If DIR-FLAG is non-nil, create a new empty directory instead of a file.
 
 If SUFFIX is non-nil, add that at the end of the file name."
-  (let ((umask (default-file-modes))
-	file)
-    (unwind-protect
-	(progn
-	  ;; Create temp files with strict access rights.  It's easy to
-	  ;; loosen them later, whereas it's impossible to close the
-	  ;; time-window of loose permissions otherwise.
-	  (set-default-file-modes ?\700)
-	  (while (condition-case ()
-		     (progn
-		       (setq file
-			     (make-temp-name
-                              (if (zerop (length prefix))
-                                  (file-name-as-directory
-                                   temporary-file-directory)
-                                (expand-file-name prefix
-                                                  temporary-file-directory))))
-		       (if suffix
-			   (setq file (concat file suffix)))
-		       (if dir-flag
-			   (make-directory file)
-			 (write-region "" nil file nil 'silent nil 'excl))
-		       nil)
-		   (file-already-exists t))
-	    ;; the file was somehow created by someone else between
-	    ;; `make-temp-name' and `write-region', let's try again.
-	    nil)
-	  file)
-      ;; Reset the umask.
-      (set-default-file-modes umask))))
+  ;; Create temp files with strict access rights.  It's easy to
+  ;; loosen them later, whereas it's impossible to close the
+  ;; time-window of loose permissions otherwise.
+  (with-file-modes ?\700
+    (let (file)
+      (while (condition-case ()
+		 (progn
+		   (setq file
+			 (make-temp-name
+			  (if (zerop (length prefix))
+			      (file-name-as-directory
+			       temporary-file-directory)
+			    (expand-file-name prefix
+					      temporary-file-directory))))
+		   (if suffix
+		       (setq file (concat file suffix)))
+		   (if dir-flag
+		       (make-directory file)
+		     (write-region "" nil file nil 'silent nil 'excl))
+		   nil)
+	       (file-already-exists t))
+	;; the file was somehow created by someone else between
+	;; `make-temp-name' and `write-region', let's try again.
+	nil)
+      file)))
 
 (defun recode-file-name (file coding new-coding &optional ok-if-already-exists)
   "Change the encoding of FILE's name from CODING to NEW-CODING.
@@ -4071,31 +4062,26 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	    (file-error nil))))))
 
 (defun backup-buffer-copy (from-name to-name modes extended-attributes)
-  (let ((umask (default-file-modes)))
-    (unwind-protect
-	(progn
-	  ;; Create temp files with strict access rights.  It's easy to
-	  ;; loosen them later, whereas it's impossible to close the
-	  ;; time-window of loose permissions otherwise.
-	  (set-default-file-modes ?\700)
-	  (when (condition-case nil
-		    ;; Try to overwrite old backup first.
-		    (copy-file from-name to-name t t t)
-		  (error t))
-	    (while (condition-case nil
-		       (progn
-			 (when (file-exists-p to-name)
-			   (delete-file to-name))
-			 (copy-file from-name to-name nil t t)
-			 nil)
-		     (file-already-exists t))
-	      ;; The file was somehow created by someone else between
-	      ;; `delete-file' and `copy-file', so let's try again.
-	      ;; rms says "I think there is also a possible race
-	      ;; condition for making backup files" (emacs-devel 20070821).
-	      nil)))
-      ;; Reset the umask.
-      (set-default-file-modes umask)))
+  ;; Create temp files with strict access rights.  It's easy to
+  ;; loosen them later, whereas it's impossible to close the
+  ;; time-window of loose permissions otherwise.
+  (with-file-modes ?\700
+    (when (condition-case nil
+	      ;; Try to overwrite old backup first.
+	      (copy-file from-name to-name t t t)
+	    (error t))
+      (while (condition-case nil
+		 (progn
+		   (when (file-exists-p to-name)
+		     (delete-file to-name))
+		   (copy-file from-name to-name nil t t)
+		   nil)
+	       (file-already-exists t))
+	;; The file was somehow created by someone else between
+	;; `delete-file' and `copy-file', so let's try again.
+	;; rms says "I think there is also a possible race
+	;; condition for making backup files" (emacs-devel 20070821).
+	nil)))
   ;; If set-file-extended-attributes fails, fall back on set-file-modes.
   (unless (and extended-attributes
 	       (with-demoted-errors
@@ -6863,15 +6849,11 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 		      trash-info-dir filename))
 
 	   ;; Ensure that the trash directory exists; otherwise, create it.
-	   (let ((saved-default-file-modes (default-file-modes)))
-	     (unwind-protect
-		 (progn
-		   (set-default-file-modes #o700)
-		   (unless (file-exists-p trash-files-dir)
-		     (make-directory trash-files-dir t))
-		   (unless (file-exists-p trash-info-dir)
-		     (make-directory trash-info-dir t)))
-	       (set-default-file-modes saved-default-file-modes)))
+	   (with-file-modes #o700
+	     (unless (file-exists-p trash-files-dir)
+	       (make-directory trash-files-dir t))
+	     (unless (file-exists-p trash-info-dir)
+	       (make-directory trash-info-dir t)))
 
 	   ;; Try to move to trash with .trashinfo undo information
 	   (save-excursion

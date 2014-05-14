@@ -654,16 +654,10 @@ at the top edge of the page moves to the previous page."
 
 (defun doc-view-make-safe-dir (dir)
   (condition-case nil
-      (let ((umask (default-file-modes)))
-	(unwind-protect
-	    (progn
-	      ;; Create temp files with strict access rights.  It's easy to
-	      ;; loosen them later, whereas it's impossible to close the
-	      ;; time-window of loose permissions otherwise.
-	      (set-default-file-modes #o0700)
-	      (make-directory dir))
-	  ;; Reset the umask.
-	  (set-default-file-modes umask)))
+      ;; Create temp files with strict access rights.  It's easy to
+      ;; loosen them later, whereas it's impossible to close the
+      ;; time-window of loose permissions otherwise.
+      (with-file-modes #o0700 (make-directory dir))
     (file-already-exists
      (when (file-symlink-p dir)
        (error "Danger: %s points to a symbolic link" dir))

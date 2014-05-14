@@ -1,5 +1,23 @@
 2014-05-14  Glenn Morris  <rgm@gnu.org>
 
+	* subr.el (with-file-modes): New macro.
+	* printing.el (pr-save-file-modes): Make obsolete.
+	* eshell/esh-util.el (eshell-with-file-modes): Make obsolete.
+	* emacs-lisp/lisp-mode.el (lisp-el-font-lock-keywords-2):
+	Add with-file-modes.
+	* doc-view.el (doc-view-make-safe-dir):
+	* epg.el (epg--start):
+	* files.el (locate-user-emacs-file, make-temp-file)
+	(backup-buffer-copy, move-file-to-trash):
+	* printing.el (pr-despool-print, pr-call-process, pr-text2ps):
+	* eshell/esh-util.el (eshell-with-private-file-modes)
+	(eshell-make-private-directory):
+	* net/browse-url.el (browse-url-mosaic):
+	* obsolete/mailpost.el (post-mail-send-it):
+	* obsolete/pgg-pgp.el (pgg-pgp-verify-region):
+	* obsolete/pgg-pgp5.el (pgg-pgp5-verify-region):
+	Use with-file-modes.
+
 	* vc/emerge.el (emerge-make-temp-file): Simplify.
 
 2014-05-14  Stephen Berman <stephen.berman@gmx.net>

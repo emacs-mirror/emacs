@@ -202,15 +202,11 @@ passphrase cache or user."
 (defun pgg-pgp-verify-region (start end &optional signature)
   "Verify region between START and END as the detached signature SIGNATURE."
   (let* ((orig-file (pgg-make-temp-file "pgg"))
-	 (args "+verbose=1 +batchmode +language=us")
-	 (orig-mode (default-file-modes)))
-    (unwind-protect
-	(progn
-	  (set-default-file-modes 448)
-	  (let ((coding-system-for-write 'binary)
-		jka-compr-compression-info-list jam-zcat-filename-list)
-	    (write-region start end orig-file)))
-      (set-default-file-modes orig-mode))
+	 (args "+verbose=1 +batchmode +language=us"))
+    (with-file-modes 448
+      (let ((coding-system-for-write 'binary)
+            jka-compr-compression-info-list jam-zcat-filename-list)
+        (write-region start end orig-file)))
     (if (stringp signature)
 	(progn
 	  (copy-file signature (setq signature (concat orig-file ".asc")))

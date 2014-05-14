@@ -3292,6 +3292,19 @@ The value returned is the value of the last form in BODY."
 		  ,@body)
 	 (with-current-buffer ,old-buffer
 	   (set-case-table ,old-case-table))))))
+
+(defmacro with-file-modes (modes &rest body)
+  "Execute BODY with default file permissions temporarily set to MODES.
+MODES is as for `set-default-file-modes'."
+  (declare (indent 1) (debug t))
+  (let ((umask (make-symbol "umask")))
+    `(let ((,umask (default-file-modes)))
+       (unwind-protect
+           (progn
+             (set-default-file-modes ,modes)
+             ,@body)
+         (set-default-file-modes ,umask)))))
+
 
 ;;; Matching and match data.
 

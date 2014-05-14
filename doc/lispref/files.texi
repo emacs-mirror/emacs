@@ -1688,6 +1688,16 @@ version of an existing file; saving a file preserves its existing
 permissions.
 @end defun
 
+@defmac with-file-modes mode body@dots{}
+This macro evaluates the @var{body} forms with the default
+permissions for new files temporarily set to @var{modes} (whose value
+is as for @code{set-file-modes} above).  When finished, it restores
+the original default file permissions, and returns the value of the
+last form in @var{body}.
+
+This is useful for creating private files, for example.
+@end defmac
+
 @defun default-file-modes
 This function returns the default file permissions, as an integer.
 @end defun

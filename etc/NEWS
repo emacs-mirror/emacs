@@ -122,6 +122,10 @@ active region handling.
 *** (side-effect-free VAL), if VAL is non-nil, indicates the function does not
 have side effects.
 
++++
+** New macro `with-file-modes', for evaluating expressions with default file
+permissions set to temporary values (e.g., for creating private files).
+
 ** You can access the slots of structures using `cl-struct-slot-value'.
 
 

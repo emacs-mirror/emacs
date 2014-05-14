@@ -628,14 +628,9 @@ Creates FILE and its parent directories if they do not exist."
       (make-directory dir t)))
   ;; Based on doc-view-make-safe-dir.
   (condition-case nil
-      (let ((umask (default-file-modes)))
-        (unwind-protect
-            (progn
-              (set-default-file-modes #o0600)
-              (with-temp-buffer
-                (write-region (point-min) (point-max)
-                              file nil 'silent nil 'excl)))
-          (set-default-file-modes umask)))
+      (with-file-modes #o0600
+        (with-temp-buffer
+          (write-region (point-min) (point-max) file nil 'silent nil 'excl)))
     (file-already-exists
      (if (file-symlink-p file)
          (error "Danger: `%s' is a symbolic link" file))
