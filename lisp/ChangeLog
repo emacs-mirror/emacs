@@ -1,3 +1,9 @@
+2014-05-14  Stephen Berman <stephen.berman@gmx.net>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-pcm--merge-try): Merge trailing / with
+	suffix (bug#15419).
+
 2014-05-14  Glenn Morris  <rgm@gnu.org>
 
 	* vc/emerge.el (emerge-temp-file-prefix):
