@@ -807,15 +807,15 @@ first, if that exists."
   (interactive (browse-url-interactive-arg "URL: "))
   (unless (called-interactively-p 'interactive)
     (setq args (or args (list browse-url-new-window-flag))))
+  (when (and url-handler-mode (not (file-name-absolute-p url)))
+    (setq url (expand-file-name url)))
   (let ((process-environment (copy-sequence process-environment))
 	(function (or (and (string-match "\\`mailto:" url)
 			   browse-url-mailto-function)
 		      browse-url-browser-function))
 	;; Ensure that `default-directory' exists and is readable (b#6077).
-	(default-directory (if (and (file-directory-p default-directory)
-				    (file-readable-p default-directory))
-			       default-directory
-			     (expand-file-name "~/"))))
+	(default-directory (or (unhandled-file-name-directory default-directory)
+			       (expand-file-name "~/"))))
     ;; When connected to various displays, be careful to use the display of
     ;; the currently selected frame, rather than the original start display,
     ;; which may not even exist any more.

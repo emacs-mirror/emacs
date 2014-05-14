@@ -1,3 +1,21 @@
+2014-05-14  Stephen Berman <stephen.berman@gmx.net>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-pcm--merge-try): Merge trailing / with
+	suffix (bug#15419).
+
+2014-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* vc/emerge.el (emerge-temp-file-prefix):
+	Make pointless option obsolete.
+	(emerge-temp-file-mode): Make non-functional option obsolete.
+
+2014-05-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/browse-url.el (browse-url):
+	Use `unhandled-file-name-directory' when setting `default-directory',
+	in order to circumvent stalled remote connections.  (Bug#17425)
+
 2014-05-14  Glenn Morris  <rgm@gnu.org>
 
 	* printing.el (subst-char-in-string, make-temp-file, pr-get-symbol):

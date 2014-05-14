@@ -3216,11 +3216,20 @@ the same set of elements."
                          ;; Not `prefix'.
                          mergedpat))
            ;; New pos from the start.
-           (newpos (length (completion-pcm--pattern->string pointpat)))
+	   (newpos (length (completion-pcm--pattern->string pointpat)))
            ;; Do it afterwards because it changes `pointpat' by side effect.
            (merged (completion-pcm--pattern->string (nreverse mergedpat))))
 
-      (setq suffix (completion--merge-suffix merged newpos suffix))
+      (setq suffix (completion--merge-suffix
+                    ;; The second arg should ideally be "the position right
+                    ;; after the last char of `merged' that comes from the text
+                    ;; to be completed".  But completion-pcm--merge-completions
+                    ;; currently doesn't give us that info.  So instead we just
+                    ;; use the "last but one" position, which tends to work
+                    ;; well in practice since `suffix' always starts
+                    ;; with a boundary and we hence mostly/only care about
+                    ;; merging this boundary (bug#15419).
+                    merged (max 0 (1- (length merged))) suffix))
       (cons (concat prefix merged suffix) (+ newpos (length prefix)))))))
 
 (defun completion-pcm-try-completion (string table pred point)

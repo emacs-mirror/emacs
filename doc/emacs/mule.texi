@@ -439,7 +439,6 @@ character sets, coding systems, and input methods that go with it.  It
 also shows some sample text to illustrate scripts used in this
 language environment.  If you give an empty input for @var{lang-env},
 this command describes the chosen language environment.
-@anchor{Describe Language Environment}
 
 @vindex set-language-environment-hook
   You can customize any language environment with the normal hook
