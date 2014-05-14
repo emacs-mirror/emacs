@@ -4153,38 +4153,28 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
 
   NSTRACE (ns_create_terminal);
 
-  terminal = create_terminal ();
+  terminal = create_terminal (output_ns, &ns_redisplay_interface);
 
-  terminal->type = output_ns;
   terminal->display_info.ns = dpyinfo;
   dpyinfo->terminal = terminal;
 
-  terminal->rif = &ns_redisplay_interface;
-
   terminal->clear_frame_hook = ns_clear_frame;
-  terminal->ins_del_lines_hook = 0; /* XXX vestigial? */
-  terminal->delete_glyphs_hook = 0; /* XXX vestigial? */
   terminal->ring_bell_hook = ns_ring_bell;
-  terminal->reset_terminal_modes_hook = NULL;
-  terminal->set_terminal_modes_hook = NULL;
   terminal->update_begin_hook = ns_update_begin;
   terminal->update_end_hook = ns_update_end;
-  terminal->set_terminal_window_hook = NULL; /* XXX vestigial? */
   terminal->read_socket_hook = ns_read_socket;
   terminal->frame_up_to_date_hook = ns_frame_up_to_date;
   terminal->mouse_position_hook = ns_mouse_position;
   terminal->frame_rehighlight_hook = ns_frame_rehighlight;
   terminal->frame_raise_lower_hook = ns_frame_raise_lower;
-
   terminal->fullscreen_hook = ns_fullscreen_hook;
-
   terminal->set_vertical_scroll_bar_hook = ns_set_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = ns_condemn_scroll_bars;
   terminal->redeem_scroll_bar_hook = ns_redeem_scroll_bar;
   terminal->judge_scroll_bars_hook = ns_judge_scroll_bars;
-
   terminal->delete_frame_hook = x_destroy_window;
   terminal->delete_terminal_hook = ns_delete_terminal;
+  /* Other hooks are NULL by default.  */
 
   return terminal;
 }

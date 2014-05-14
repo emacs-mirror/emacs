@@ -637,7 +637,8 @@ extern struct terminal *terminal_list;
 #endif
 
 extern struct terminal *get_terminal (Lisp_Object terminal, bool);
-extern struct terminal *create_terminal (void);
+extern struct terminal *create_terminal (enum output_method,
+					 struct redisplay_interface *);
 extern void delete_terminal (struct terminal *);
 
 /* The initial terminal device, created by initial_term_init.  */

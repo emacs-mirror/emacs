@@ -1,3 +1,15 @@
+2014-05-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Minor cleanup for terminal setup.
+	* termhooks.h (create_terminal): Adjust prototype.
+	* terminal.c (create_terminal): Pass output method and RIF as args.
+	(init_initial_terminal):
+	* nsterm.m (ns_create_terminal):
+	* term.c (init_tty):
+	* w32term.c (w32_create_terminal):
+	* xterm.c (x_create_terminal): Adjust users.
+	Avoid redundant NULL initializers and add comments.
+
 2014-05-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* keyboard.c (Qdeactivate_mark): Now static.

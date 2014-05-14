@@ -10526,9 +10526,8 @@ x_create_terminal (struct x_display_info *dpyinfo)
 {
   struct terminal *terminal;
 
-  terminal = create_terminal ();
+  terminal = create_terminal (output_x_window, &x_redisplay_interface);
 
-  terminal->type = output_x_window;
   terminal->display_info.x = dpyinfo;
   dpyinfo->terminal = terminal;
 
@@ -10539,11 +10538,8 @@ x_create_terminal (struct x_display_info *dpyinfo)
   terminal->delete_glyphs_hook = x_delete_glyphs;
   terminal->ring_bell_hook = XTring_bell;
   terminal->toggle_invisible_pointer_hook = XTtoggle_invisible_pointer;
-  terminal->reset_terminal_modes_hook = NULL;
-  terminal->set_terminal_modes_hook = NULL;
   terminal->update_begin_hook = x_update_begin;
   terminal->update_end_hook = x_update_end;
-  terminal->set_terminal_window_hook = NULL;
   terminal->read_socket_hook = XTread_socket;
   terminal->frame_up_to_date_hook = XTframe_up_to_date;
   terminal->mouse_position_hook = XTmouse_position;
@@ -10554,11 +10550,9 @@ x_create_terminal (struct x_display_info *dpyinfo)
   terminal->condemn_scroll_bars_hook = XTcondemn_scroll_bars;
   terminal->redeem_scroll_bar_hook = XTredeem_scroll_bar;
   terminal->judge_scroll_bars_hook = XTjudge_scroll_bars;
-
   terminal->delete_frame_hook = x_destroy_window;
   terminal->delete_terminal_hook = x_delete_terminal;
-
-  terminal->rif = &x_redisplay_interface;
+  /* Other hooks are NULL by default.  */
 
   return terminal;
 }
