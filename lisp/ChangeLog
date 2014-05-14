@@ -1,3 +1,9 @@
+2014-05-14  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/python.el (python-shell-get-or-create-process):
+	Do not bind `current-prefix-arg' so that C-c C-z does not talk
+	back unless requested.
+
 2014-05-14  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (with-file-modes): New macro.
