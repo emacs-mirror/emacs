@@ -1,3 +1,7 @@
+2014-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* vc/emerge.el (emerge-make-temp-file): Simplify.
+
 2014-05-14  Stephen Berman <stephen.berman@gmx.net>
             Stefan Monnier  <monnier@iro.umontreal.ca>
 
