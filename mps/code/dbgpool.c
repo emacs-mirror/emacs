@@ -123,10 +123,17 @@ Bool PoolDebugOptionsCheck(PoolDebugOptions opt)
 
 ARG_DEFINE_KEY(pool_debug_options, PoolDebugOptions);
 
+static char debugFencepostTemplate[4] = {'P', 'O', 'S', 'T'};
+static char debugFreeTemplate[4] = {'D', 'E', 'A', 'D'};
+
+static PoolDebugOptionsStruct debugPoolOptionsDefault = {
+  debugFencepostTemplate, 4, debugFreeTemplate, 4,
+};
+
 static Res DebugPoolInit(Pool pool, ArgList args)
 {
   Res res;
-  PoolDebugOptions options;
+  PoolDebugOptions options = &debugPoolOptionsDefault;
   PoolDebugMixin debug;
   TagInitMethod tagInit;
   Size tagSize;
@@ -134,10 +141,8 @@ static Res DebugPoolInit(Pool pool, ArgList args)
 
   AVERT(Pool, pool);
 
-  /* TODO: Split this structure into separate keyword arguments,
-     now that we can support them. */
-  ArgRequire(&arg, args, MPS_KEY_POOL_DEBUG_OPTIONS);
-  options = (PoolDebugOptions)arg.val.pool_debug_options;
+  if (ArgPick(&arg, args, MPS_KEY_POOL_DEBUG_OPTIONS))
+    options = (PoolDebugOptions)arg.val.pool_debug_options;
   
   AVERT(PoolDebugOptions, options);
 
@@ -158,10 +163,6 @@ static Res DebugPoolInit(Pool pool, ArgList args)
   /* into Addr memory, to avoid breaking <design/type/#addr.use>. */
   debug->fenceSize = options->fenceSize;
   if (debug->fenceSize != 0) {
-    if (debug->fenceSize % PoolAlignment(pool) != 0) {
-      res = ResPARAM;
-      goto alignFail;
-    }
     /* Fenceposting turns on tagging */
     if (tagInit == NULL) {
       tagSize = 0;
@@ -176,10 +177,6 @@ static Res DebugPoolInit(Pool pool, ArgList args)
   /* into Addr memory, to avoid breaking <design/type#addr.use>. */
   debug->freeSize = options->freeSize;
   if (debug->freeSize != 0) {
-    if (PoolAlignment(pool) % debug->freeSize != 0) {
-      res = ResPARAM;
-      goto alignFail;
-    }
     debug->freeTemplate = options->freeTemplate;
   }
 
@@ -205,7 +202,6 @@ static Res DebugPoolInit(Pool pool, ArgList args)
   return ResOK;
 
 tagFail:
-alignFail:
   SuperclassOfPool(pool)->finish(pool);
   AVER(res != ResOK);
   return res;
@@ -231,38 +227,119 @@ static void DebugPoolFinish(Pool pool)
 }
 
 
-/* freeSplat -- splat free block with splat pattern
+/* patternCopy -- copy pattern to fill a range
  *
- * If base is in a segment, the whole block has to be in it.
+ * Fill the range of addresses from base (inclusive) to limit
+ * (exclusive) with copies of pattern (which is size bytes long).
+ *
+ * Keep in sync with patternCheck.
  */
+
+static void patternCopy(Addr pattern, Size size, Addr base, Addr limit)
+{
+  Addr p;
+
+  AVER(pattern != NULL);
+  AVER(0 < size);
+  AVER(base != NULL);
+  AVER(base <= limit);
+
+  p = base;
+  while (p < limit) {
+    Addr end = AddrAdd(p, size);
+    Addr rounded = AddrRoundUp(p, size);
+    Size offset = (Word)p % size;
+    if (end < p || rounded < p) {
+      /* Address range overflow */
+      break;
+    } else if (p == rounded && end <= limit) {
+      /* Room for a whole copy */
+      (void)AddrCopy(p, pattern, size);
+      p = end;
+    } else if (p < rounded && rounded <= end && rounded <= limit) {
+      /* Copy up to rounded */
+      (void)AddrCopy(p, (char *)pattern + offset, AddrOffset(p, rounded));
+      p = rounded;
+    } else {
+      /* Copy up to limit */
+      AVER(limit <= end && (p == rounded || limit <= rounded));
+      (void)AddrCopy(p, (char *)pattern + offset, AddrOffset(p, limit));
+      p = limit;
+    }
+  }
+}
+
+/* patternCheck -- check pattern against a range
+ *
+ * Compare the range of addresses from base (inclusive) to limit
+ * (exclusive) with copies of pattern (which is size bytes long). The
+ * copies of pattern must be arranged so that fresh copies start at
+ * aligned addresses wherever possible.
+ *
+ * Keep in sync with patternCopy.
+ */
+
+static Bool patternCheck(Addr pattern, Size size, Addr base, Addr limit)
+{
+  Addr p;
+
+  AVER(pattern != NULL);
+  AVER(0 < size);
+  AVER(base != NULL);
+  AVER(base <= limit);
+
+  p = base;
+  while (p < limit) {
+    Addr end = AddrAdd(p, size);
+    Addr rounded = AddrRoundUp(p, size);
+    Size offset = (Word)p % size;
+    if (end < p || rounded < p) {
+      /* Address range overflow */
+      break;
+    } else if (p == rounded && end <= limit) {
+      /* Room for a whole copy */
+      if (AddrComp(p, pattern, size) != 0)
+        return FALSE;
+      p = end;
+    } else if (p < rounded && rounded <= end && rounded <= limit) {
+      /* Copy up to rounded */
+      if (AddrComp(p, (char *)pattern + offset, AddrOffset(p, rounded)) != 0)
+        return FALSE;
+      p = rounded;
+    } else {
+      /* Copy up to limit */
+      AVER(limit <= end && (p == rounded || limit <= rounded));
+      if (AddrComp(p, (char *)pattern + offset, AddrOffset(p, limit)) != 0)
+        return FALSE;
+      p = limit;
+    }
+  }
+
+  return TRUE;
+}
+
+
+/* freeSplat -- splat free block with splat pattern */
 
 static void freeSplat(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
 {
-  Addr p, next;
-  Size freeSize = debug->freeSize;
   Arena arena;
-  Seg seg = NULL;       /* suppress "may be used uninitialized" */
-  Bool inSeg;
+  Seg seg;
 
   AVER(base < limit);
 
   /* If the block is in a segment, make sure any shield is up. */
   arena = PoolArena(pool);
-  inSeg = SegOfAddr(&seg, arena, base);
-  if (inSeg) {
-    AVER(limit <= SegLimit(seg));
-    ShieldExpose(arena, seg);
+  if (SegOfAddr(&seg, arena, base)) {
+    do {
+      ShieldExpose(arena, seg);
+    } while (SegLimit(seg) < limit && SegNext(&seg, arena, seg));
   }
-  /* Write as many copies of the template as fit in the block. */
-  for (p = base, next = AddrAdd(p, freeSize);
-       next <= limit && p < next /* watch out for overflow in next */;
-       p = next, next = AddrAdd(next, freeSize))
-    (void)AddrCopy(p, debug->freeTemplate, freeSize);
-  /* Fill the tail of the block with a partial copy of the template. */
-  if (next > limit || next < p)
-    (void)AddrCopy(p, debug->freeTemplate, AddrOffset(p, limit));
-  if (inSeg) {
-    ShieldCover(arena, seg);
+  patternCopy(debug->freeTemplate, debug->freeSize, base, limit);
+  if (SegOfAddr(&seg, arena, base)) {
+    do {
+      ShieldCover(arena, seg);
+    } while (SegLimit(seg) < limit && SegNext(&seg, arena, seg));
   }
 }
 
@@ -271,40 +348,24 @@ static void freeSplat(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
 
 static Bool freeCheck(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
 {
-  Addr p, next;
-  Size freeSize = debug->freeSize;
-  Res res;
+  Bool res;
   Arena arena;
-  Seg seg = NULL;       /* suppress "may be used uninitialized" */
-  Bool inSeg;
+  Seg seg;
 
   AVER(base < limit);
 
   /* If the block is in a segment, make sure any shield is up. */
   arena = PoolArena(pool);
-  inSeg = SegOfAddr(&seg, arena, base);
-  if (inSeg) {
-    AVER(limit <= SegLimit(seg));
-    ShieldExpose(arena, seg);
+  if (SegOfAddr(&seg, arena, base)) {
+    do {
+      ShieldExpose(arena, seg);
+    } while (SegLimit(seg) < limit && SegNext(&seg, arena, seg));
   }
-  /* Compare this to the AddrCopys in freeSplat. */
-  /* Check the complete copies of the template in the block. */
-  for (p = base, next = AddrAdd(p, freeSize);
-       next <= limit && p < next /* watch out for overflow in next */;
-       p = next, next = AddrAdd(next, freeSize))
-    if (AddrComp(p, debug->freeTemplate, freeSize) != 0) {
-      res = FALSE; goto done;
-    }
-  /* Check the partial copy of the template at the tail of the block. */
-  if (next > limit || next < p)
-    if (AddrComp(p, debug->freeTemplate, AddrOffset(p, limit)) != 0) {
-      res = FALSE; goto done;
-    }
-  res = TRUE;
-
-done:
-  if (inSeg) {
-    ShieldCover(arena, seg);
+  res = patternCheck(debug->freeTemplate, debug->freeSize, base, limit);
+  if (SegOfAddr(&seg, arena, base)) {
+    do {
+      ShieldCover(arena, seg);
+    } while (SegLimit(seg) < limit && SegNext(&seg, arena, seg));
   }
   return res;
 }
@@ -351,63 +412,75 @@ static void freeCheckFree(PoolDebugMixin debug,
  *   start fp              client object              slop    end fp
  *
  * slop is the extra allocation from rounding up the client request to
- * the pool's alignment.  The fenceposting code does this, so there's a
- * better chance of the end fencepost being flush with the next object
- * (can't be guaranteed, since the underlying pool could have allocated
- * an even larger block).  The alignment slop is filled from the
- * fencepost template as well (as much as fits, .fence.size guarantees
- * the template is larger).
+ * the pool's alignment. The fenceposting code adds this slop so that
+ * there's a better chance of the end fencepost being flush with the
+ * next object (though it can't be guaranteed, since the underlying
+ * pool could have allocated an even larger block). The alignment slop
+ * is filled from the fencepost template as well.
+ *
+ * Keep in sync with fenceCheck.
  */
 
 static Res fenceAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
                       Size size, Bool withReservoir)
 {
   Res res;
-  Addr new, clientNew;
-  Size alignedSize;
+  Addr obj, startFence, clientNew, clientLimit, limit;
+  Size alignedFenceSize, alignedSize;
 
   AVER(aReturn != NULL);
+  AVERT(PoolDebugMixin, debug);
+  AVERT(Pool, pool);
 
+  alignedFenceSize = SizeAlignUp(debug->fenceSize, PoolAlignment(pool));
   alignedSize = SizeAlignUp(size, PoolAlignment(pool));
-  res = freeCheckAlloc(&new, debug, pool, alignedSize + 2*debug->fenceSize,
+  res = freeCheckAlloc(&obj, debug, pool,
+                       alignedSize + 2 * alignedFenceSize,
                        withReservoir);
   if (res != ResOK)
     return res;
-  clientNew = AddrAdd(new, debug->fenceSize);
+
+  startFence = obj;
+  clientNew = AddrAdd(startFence, alignedFenceSize);
+  clientLimit = AddrAdd(clientNew, size);
+  limit = AddrAdd(clientNew, alignedSize + alignedFenceSize);
+
   /* @@@@ shields? */
-  /* start fencepost */
-  (void)AddrCopy(new, debug->fenceTemplate, debug->fenceSize);
-  /* alignment slop */
-  (void)AddrCopy(AddrAdd(clientNew, size),
-                 debug->fenceTemplate, alignedSize - size);
-  /* end fencepost */
-  (void)AddrCopy(AddrAdd(clientNew, alignedSize),
-                 debug->fenceTemplate, debug->fenceSize);
+  patternCopy(debug->fenceTemplate, debug->fenceSize, startFence, clientNew);
+  patternCopy(debug->fenceTemplate, debug->fenceSize, clientLimit, limit);
 
   *aReturn = clientNew;
-  return res;
+  return ResOK;
 }
 
 
-/* fenceCheck -- check fences of an object */
+/* fenceCheck -- check fences of an object
+ *
+ * Keep in sync with fenceAlloc.
+ */
 
 static Bool fenceCheck(PoolDebugMixin debug, Pool pool, Addr obj, Size size)
 {
-  Size alignedSize;
+  Addr startFence, clientNew, clientLimit, limit;
+  Size alignedFenceSize, alignedSize;
 
   AVERT_CRITICAL(PoolDebugMixin, debug);
   AVERT_CRITICAL(Pool, pool);
   /* Can't check obj */
 
+  alignedFenceSize = SizeAlignUp(debug->fenceSize, PoolAlignment(pool));
   alignedSize = SizeAlignUp(size, PoolAlignment(pool));
+
+  startFence = AddrSub(obj, alignedFenceSize);
+  clientNew = obj;
+  clientLimit = AddrAdd(clientNew, size);
+  limit = AddrAdd(clientNew, alignedSize + alignedFenceSize);
+
   /* @@@@ shields? */
-  /* Compare this to the AddrCopys in fenceAlloc */
-  return (AddrComp(AddrSub(obj, debug->fenceSize), debug->fenceTemplate,
-                   debug->fenceSize) == 0
-          && AddrComp(AddrAdd(obj, size), debug->fenceTemplate,
-                      alignedSize - size) == 0
-          && AddrComp(AddrAdd(obj, alignedSize), debug->fenceTemplate,
-                      debug->fenceSize) == 0);
+  return patternCheck(debug->fenceTemplate, debug->fenceSize,
+                      startFence, clientNew)
+    && patternCheck(debug->fenceTemplate, debug->fenceSize,
+                    clientLimit, limit);
 }
 
 
@@ -416,13 +489,14 @@ static Bool fenceCheck(PoolDebugMixin debug, Pool pool, Addr obj, Size size)
 static void fenceFree(PoolDebugMixin debug,
                       Pool pool, Addr old, Size size)
 {
-  Size alignedSize;
+  Size alignedFenceSize, alignedSize;
 
   ASSERT(fenceCheck(debug, pool, old, size), "fencepost check on free");
 
+  alignedFenceSize = SizeAlignUp(debug->fenceSize, PoolAlignment(pool));
   alignedSize = SizeAlignUp(size, PoolAlignment(pool));
-  freeCheckFree(debug, pool, AddrSub(old, debug->fenceSize),
-                alignedSize + 2*debug->fenceSize);
+  freeCheckFree(debug, pool, AddrSub(old, alignedFenceSize),
+                alignedSize + 2 * alignedFenceSize);
 }
 
 
