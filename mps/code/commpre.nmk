@@ -72,11 +72,11 @@ TEST_TARGETS=\
     djbench.exe \
     exposet0.exe \
     expt825.exe \
-    fbmtest.exe \
     finalcv.exe \
     finaltest.exe \
     fotest.exe \
     gcbench.exe \
+    landtest.exe \
     locbwcss.exe \
     lockcov.exe \
     lockut.exe \
@@ -131,9 +131,11 @@ MPMCOMMON=\
     <dbgpool> \
     <dbgpooli> \
     <event> \
+    <failover> \
     <format> \
     <freelist> \
     <global> \
+    <land> \
     <ld> \
     <locus> \
     <message> \

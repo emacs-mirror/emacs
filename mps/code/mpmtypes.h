@@ -108,7 +108,10 @@ typedef struct AllocPatternStruct *AllocPattern;
 typedef struct AllocFrameStruct *AllocFrame; /* <design/alloc-frame/> */
 typedef struct ReservoirStruct *Reservoir;   /* <design/reservoir/> */
 typedef struct StackContextStruct *StackContext;
-typedef unsigned FindDelete;    /* <design/cbs/> */
+typedef struct RangeStruct *Range;      /* <design/range/> */
+typedef struct LandStruct *Land;        /* <design/land/> */
+typedef struct LandClassStruct *LandClass; /* <design/land/> */
+typedef unsigned FindDelete;            /* <design/land/> */
 
 
 /* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */
@@ -261,6 +264,20 @@ typedef struct TraceStartMessageStruct *TraceStartMessage;
 typedef struct TraceMessageStruct *TraceMessage;  /* trace end */
 
 
+/* Land*Method -- see <design/land/> */
+
+typedef Res (*LandInitMethod)(Land land, ArgList args);
+typedef void (*LandFinishMethod)(Land land);
+typedef Size (*LandSizeMethod)(Land land);
+typedef Res (*LandInsertMethod)(Range rangeReturn, Land land, Range range);
+typedef Res (*LandDeleteMethod)(Range rangeReturn, Land land, Range range);
+typedef Bool (*LandVisitor)(Bool *deleteReturn, Land land, Range range, void *closureP, Size closureS);
+typedef void (*LandIterateMethod)(Land land, LandVisitor visitor, void *closureP, Size closureS);
+typedef Bool (*LandFindMethod)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
+typedef Res (*LandFindInZonesMethod)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
+typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream);
+
+
 /* CONSTANTS */
 
 
@@ -407,7 +424,7 @@ enum {
 };
 
 
-/* FindDelete operations -- see <design/cbs/> and <design/freelist/> */
+/* FindDelete operations -- see <design/land/> */
 
 enum {
   FindDeleteNONE = 1, /* don't delete after finding */
