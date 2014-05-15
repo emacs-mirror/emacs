@@ -231,6 +231,7 @@ int main(int argc, char *argv[])
     } MPS_ARGS_END(args);
   }
 
+  mps_arena_park(arena);
   mps_chain_destroy(chain);
   mps_fmt_destroy(format);
   mps_thread_dereg(thread);

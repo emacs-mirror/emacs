@@ -243,6 +243,7 @@ static void arena_setup(gcthread_fn_t fn,
     RESMUST(mps_pool_create_k(&pool, arena, pool_class, args));
   } MPS_ARGS_END(args);
   watch(fn, name);
+  mps_arena_park(arena);
   mps_pool_destroy(pool);
   mps_fmt_destroy(format);
   if (ngen > 0)

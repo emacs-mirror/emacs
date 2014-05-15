@@ -1,0 +1,184 @@
+# ananmv.nmk: ANSI/ANSI/MICROSOFT VISUAL C/C++ NMAKE FILE -*- makefile -*-
+#
+# $Id$
+# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+
+PFM = ananmv
+
+PFMDEFS = /DCONFIG_PF_ANSI /DCONFIG_THREAD_SINGLE
+
+!INCLUDE commpre.nmk
+!INCLUDE mv.nmk
+
+# MPM sources: core plus platform-specific.
+MPM = $(MPMCOMMON) \
+    <lockan> \
+    <prmcan> \
+    <protan> \
+    <span> \
+    <ssan> \
+    <than> \
+    <vman>
+
+
+# Source to object file mappings and CFLAGS amalgamation
+#
+# %%VARIETY %%PART: When adding a new variety or part, add new macros which
+# expand to the files included in the part for each variety
+#
+# %%VARIETY: When adding a new variety, add a CFLAGS macro which expands to
+# the flags that that variety should use when compiling C.  And a LINKFLAGS
+# macro which expands to the flags that the variety should use when building
+# executables.  And a LIBFLAGS macro which expands to the flags that the
+# variety should use when building libraries
+
+!IF "$(VARIETY)" == "hot"
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFHOT) $(CFLAGSCOMMONPOST)
+CFLAGSSQL=$(CFLAGSSQLPRE) $(CFHOT) $(CFLAGSSQLPOST)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFHOT)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSHOT)
+MPMOBJ0 = $(MPM:<=ananmv\hot\)
+PLINTHOBJ0 = $(PLINTH:<=ananmv\hot\)
+AMSOBJ0 = $(AMS:<=ananmv\hot\)
+AMCOBJ0 = $(AMC:<=ananmv\hot\)
+AWLOBJ0 = $(AWL:<=ananmv\hot\)
+LOOBJ0 = $(LO:<=ananmv\hot\)
+SNCOBJ0 = $(SNC:<=ananmv\hot\)
+MVFFOBJ0 = $(MVFF:<=ananmv\hot\)
+DWOBJ0 = $(DW:<=ananmv\hot\)
+FMTTESTOBJ0 = $(FMTTEST:<=ananmv\hot\)
+FMTSCHEMEOBJ0 = $(FMTSCHEME:<=ananmv\hot\)
+POOLNOBJ0 = $(POOLN:<=ananmv\hot\)
+TESTLIBOBJ0 = $(TESTLIB:<=ananmv\hot\)
+TESTTHROBJ0 = $(TESTTHR:<=ananmv\hot\)
+
+!ELSEIF "$(VARIETY)" == "cool"
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFCOOL) $(CFLAGSCOMMONPOST)
+CFLAGSSQL=$(CFLAGSSQLPRE) $(CFCOOL) $(CFLAGSSQLPOST)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCOOL)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCOOL)
+MPMOBJ0 = $(MPM:<=ananmv\cool\)
+PLINTHOBJ0 = $(PLINTH:<=ananmv\cool\)
+AMSOBJ0 = $(AMS:<=ananmv\cool\)
+AMCOBJ0 = $(AMC:<=ananmv\cool\)
+AWLOBJ0 = $(AWL:<=ananmv\cool\)
+LOOBJ0 = $(LO:<=ananmv\cool\)
+SNCOBJ0 = $(SNC:<=ananmv\cool\)
+MVFFOBJ0 = $(MVFF:<=ananmv\cool\)
+DWOBJ0 = $(DW:<=ananmv\cool\)
+FMTTESTOBJ0 = $(FMTTEST:<=ananmv\cool\)
+FMTSCHEMEOBJ0 = $(FMTSCHEME:<=ananmv\cool\)
+POOLNOBJ0 = $(POOLN:<=ananmv\cool\)
+TESTLIBOBJ0 = $(TESTLIB:<=ananmv\cool\)
+TESTTHROBJ0 = $(TESTTHR:<=ananmv\cool\)
+
+!ELSEIF "$(VARIETY)" == "rash"
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFRASH) $(CFLAGSCOMMONPOST)
+CFLAGSSQL=$(CFLAGSSQLPRE) $(CFRASH) $(CFLAGSSQLPOST)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFRASH)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSRASH)
+MPMOBJ0 = $(MPM:<=ananmv\rash\)
+PLINTHOBJ0 = $(PLINTH:<=ananmv\rash\)
+AMSOBJ0 = $(AMS:<=ananmv\rash\)
+AMCOBJ0 = $(AMC:<=ananmv\rash\)
+AWLOBJ0 = $(AWL:<=ananmv\rash\)
+LOOBJ0 = $(LO:<=ananmv\rash\)
+SNCOBJ0 = $(SNC:<=ananmv\rash\)
+MVFFOBJ0 = $(MVFF:<=ananmv\rash\)
+DWOBJ0 = $(DW:<=ananmv\rash\)
+FMTTESTOBJ0 = $(FMTTEST:<=ananmv\rash\)
+FMTSCHEMEOBJ0 = $(FMTSCHEME:<=ananmv\rash\)
+POOLNOBJ0 = $(POOLN:<=ananmv\rash\)
+TESTLIBOBJ0 = $(TESTLIB:<=ananmv\rash\)
+TESTTHROBJ0 = $(TESTTHR:<=ananmv\rash\)
+
+#!ELSEIF "$(VARIETY)" == "cv"
+#CFLAGS=$(CFLAGSCOMMON) $(CFCV)
+#LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCV)
+#LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCV)
+#MPMOBJ0 = $(MPM:<=ananmv\cv\)
+#MPMOBJ = $(MPMOBJ0:>=.obj)
+#PLINTHOBJ0 = $(PLINTH:<=ananmv\cv\)
+#PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
+#AMSOBJ0 = $(AMS:<=ananmv\cv\)
+#AMSOBJ = $(AMSOBJ0:>=.obj)
+#AMCOBJ0 = $(AMC:<=ananmv\cv\)
+#AMCOBJ = $(AMCOBJ0:>=.obj)
+#AWLOBJ0 = $(AWL:<=ananmv\cv\)
+#AWLOBJ = $(AWLOBJ0:>=.obj)
+#LOOBJ0 = $(LO:<=ananmv\cv\)
+#LOOBJ = $(LOOBJ0:>=.obj)
+#SNCOBJ0 = $(SNC:<=ananmv\cv\)
+#SNCOBJ = $(SNCOBJ0:>=.obj)
+#DWOBJ0 = $(DW:<=ananmv\cv\)
+#DWOBJ = $(DWOBJ0:>=.obj)
+#POOLNOBJ0 = $(POOLN:<=ananmv\cv\)
+#POOLNOBJ = $(POOLNOBJ0:>=.obj)
+#TESTLIBOBJ0 = $(TESTLIB:<=ananmv\cv\)
+#TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
+#TESTTHROBJ0 = $(TESTTHR:<=ananmv\cv\)
+#TESTTHROBJ = $(TESTTHROBJ0:>=.obj)
+
+!ENDIF
+
+# %%PART: When adding a new part, add new macros which expand to the object
+# files included in the part
+
+MPMOBJ = $(MPMOBJ0:>=.obj)
+PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
+AMSOBJ = $(AMSOBJ0:>=.obj)
+AMCOBJ = $(AMCOBJ0:>=.obj)
+AWLOBJ = $(AWLOBJ0:>=.obj)
+LOOBJ = $(LOOBJ0:>=.obj)
+SNCOBJ = $(SNCOBJ0:>=.obj)
+MVFFOBJ = $(MVFFOBJ0:>=.obj)
+DWOBJ = $(DWOBJ0:>=.obj)
+FMTTESTOBJ = $(FMTTESTOBJ0:>=.obj)
+FMTSCHEMEOBJ = $(FMTSCHEMEOBJ0:>=.obj)
+POOLNOBJ = $(POOLNOBJ0:>=.obj)
+TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
+TESTTHROBJ = $(TESTTHROBJ0:>=.obj)
+
+
+!INCLUDE commpost.nmk
+
+
+# C. COPYRIGHT AND LICENSE
+#
+# Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# All rights reserved.  This is an open source license.  Contact
+# Ravenbrook for commercial licensing options.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+# 
+# 3. Redistributions in any form must be accompanied by information on how
+# to obtain complete source code for this software and any accompanying
+# software that uses this software.  The source code must either be
+# included in the distribution or be available for no more than the cost
+# of distribution plus a nominal fee, and must be freely redistributable
+# under reasonable conditions.  For an executable file, complete source
+# code means the source code for all modules it contains. It does not
+# include source code for modules or files that typically accompany the
+# major components of the operating system on which the executable file
+# runs.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+# IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+# USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+# THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

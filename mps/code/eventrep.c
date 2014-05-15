@@ -143,37 +143,6 @@ static void error(const char *format, ...)
   MPS_BEGIN if (!(cond)) error("line %d " #cond, __LINE__); MPS_END
 
 
-#ifdef MPS_PROD_EPCORE
-
-
-/* ensurePSFormat -- return the PS format, creating it, if necessary */
-
-static mps_fmt_t psFormat = NULL;
-
-static void ensurePSFormat(mps_fmt_t *fmtOut, mps_arena_t arena)
-{
-  mps_res_t eres;
-
-  if (psFormat == NULL) {
-    eres = mps_fmt_create_A(&psFormat, arena, ps_fmt_A());
-    verifyMPS(eres);
-  }
-  *fmtOut = psFormat;
-}
-
-
-/* finishPSFormat -- finish the PS format, if necessary */
-
-static void finishPSFormat(void)
-{
-  if (psFormat != NULL)
-    mps_fmt_destroy(psFormat);
-}
-
-
-#endif
-
-
 /* objectTableCreate -- create an objectTable */
 
 static objectTable objectTableCreate(poolSupport support)
@@ -418,10 +387,6 @@ void EventReplay(Event event, Word etime)
   case EventArenaDestroy: { /* arena */
     found = TableLookup(&entry, arenaTable, (Word)event->p.p0);
     verify(found);
-#ifdef MPS_PROD_EPCORE
-    /* @@@@ assuming there's only one arena at a time */
-    finishPSFormat();
-#endif
     mps_arena_destroy((mps_arena_t)entry);
     ires = TableRemove(arenaTable, (Word)event->pw.p0);
     verify(ires == ResOK);
@@ -456,30 +421,6 @@ void EventReplay(Event event, Word etime)
     /* all internal only */
     ++discardedEvents;
   } break;
-#ifdef MPS_PROD_EPCORE
-  case EventPoolInitEPVM: {
-    /* pool, arena, format, maxSaveLevel, saveLevel */
-    mps_arena_t arena;
-    mps_fmt_t format;
-
-    found = TableLookup(&entry, arenaTable, (Word)event->pppuu.p1);
-    verify(found);
-    arena = (mps_arena_t)entry;
-    ensurePSFormat(&format, arena); /* We know what the format is. */
-    poolRecreate(event->pppuu.p0, event->pppuu.p1,
-                 mps_class_epvm(), supportNothing, 2, format,
-                 (mps_epvm_save_level_t)event->pppuu.u3,
-                 (mps_epvm_save_level_t)event->pppuu.u4);
-  } break;
-  case EventPoolInitEPDL: {
-    /* pool, arena, isEPDL, extendBy, avgSize, align */
-    poolRecreate(event->ppuwww.p0, event->ppuwww.p1,
-                 event->ppuwww.u2 ? mps_class_epdl() : mps_class_epdr(),
-                 event->ppuwww.u2 ? supportTruncate : supportFree, 0,
-                 (size_t)event->ppuwww.w3, (size_t)event->ppuwww.w4,
-                 (size_t)event->ppuwww.w5);
-  } break;
-#endif
   case EventPoolFinish: { /* pool */
     found = TableLookup(&entry, poolTable, (Word)event->p.p0);
     if (found) {
@@ -542,22 +483,6 @@ void EventReplay(Event event, Word etime)
       ++discardedEvents;
     }
   } break;
-#ifdef MPS_PROD_EPCORE
-  case EventBufferInitEPVM: { /* buffer, pool, isObj */
-    found = TableLookup(&entry, poolTable, (Word)event->ppu.p1);
-    if (found) {
-      poolRep rep = (poolRep)entry;
-
-      if(rep->bufferClassLevel == 2) { /* see .bufclass */
-        apRecreate(event->ppu.p0, event->ppu.p1, (mps_bool_t)event->ppu.u2);
-      } else {
-        ++discardedEvents;
-      }
-    } else {
-      ++discardedEvents;
-    }
-  } break;
-#endif
   case EventBufferFinish: { /* buffer */
     found = TableLookup(&entry, apTable, (Word)event->p.p0);
     if (found) {
@@ -620,26 +545,6 @@ void EventReplay(Event event, Word etime)
       ++discardedEvents;
     }
   } break;
-#ifdef MPS_PROD_EPCORE
-  case EventPoolPush: { /* pool */
-    found = TableLookup(&entry, poolTable, (Word)event->p.p0);
-    if (found) {
-      poolRep rep = (poolRep)entry;
-
-      /* It must be EPVM. */
-      mps_epvm_save(rep->pool);
-    }
-  } break;
-  case EventPoolPop: { /* pool, level */
-    found = TableLookup(&entry, poolTable, (Word)event->pu.p0);
-    if (found) {
-      poolRep rep = (poolRep)entry;
-
-      /* It must be EPVM. */
-      mps_epvm_restore(rep->pool, (mps_epvm_save_level_t)event->pu.u1);
-    }
-  } break;
-#endif
   case EventCommitLimitSet: { /* arena, limit, succeeded */
     found = TableLookup(&entry, arenaTable, (Word)event->pwu.p0);
     verify(found);

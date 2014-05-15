@@ -560,7 +560,7 @@ void ArenaRelease(Globals globals)
   AVERT(Globals, globals);
   arenaForgetProtection(globals);
   globals->clamped = FALSE;
-  (void)TracePoll(globals);
+  ArenaPoll(globals);
 }
 
 

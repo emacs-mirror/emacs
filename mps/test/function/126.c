@@ -81,6 +81,7 @@ static void test(void)
  comment("reserved %ld, committed %ld",
          mps_arena_reserved(arena), mps_arena_committed(arena));
 
+ mps_arena_park(arena);
  mps_ap_destroy(ap);
  mps_pool_destroy(pool);
  mps_chain_destroy(chain);

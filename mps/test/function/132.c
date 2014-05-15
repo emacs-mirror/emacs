@@ -23,8 +23,8 @@ OUTPUT_SPEC
  spill5 <= 0
  grow5 = 0
  avail5 > 1500000
- allocfail2 > 10000
- failres2 = MEMORY
+ allocfail2 > 5000
+ failres2 = COMMIT_LIMIT
  shrink6 > 1000000
  spill6 <= 0
  completed = yes
@@ -166,6 +166,7 @@ static void test(void)
  report("spill6", "%d", commit6-mps_arena_commit_limit(arena));
  report("shrink6", "%d", avail5-avail6);
  
+ mps_arena_park(arena);
  mps_root_destroy(root);
  mps_ap_destroy(apamc);
  mps_pool_destroy(poolamc);

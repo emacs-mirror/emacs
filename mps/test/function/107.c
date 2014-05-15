@@ -103,6 +103,7 @@ static void test(void)
   z = alloclo(ap, 0x4000);
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(ap);
  mps_pool_destroy(pool);
  mps_chain_destroy(chain);

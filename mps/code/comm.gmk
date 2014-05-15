@@ -15,8 +15,8 @@
 # Assumes the following variables and definitions:
 # EXTRA_TARGETS     a list of extra targets to build
 # CFLAGSCOMPILER    a list of flags for all compilations
-# CFLAGSSTRICT      a list of flags for almost all compilations
-# CFLAGSLAX         a list of flags for compilations which can't be as
+# CFLAGSCOMPILERSTRICT a list of flags for almost all compilations
+# CFLAGSCOMPILERLAX a list of flags for compilations which can't be as
 #                   strict (e.g. because they have to include a third-
 #                   party header file that isn't -ansi -pedantic).
 # CFLAGSDEBUG       a list of flags for compilations with maximum debug
@@ -108,7 +108,7 @@ endif
 # These flags are included in all compilations.
 # Avoid using PFMDEFS in platform makefiles, as they prevent the MPS being
 # built with a simple command like "cc -c mps.c".
-CFLAGSCOMMON = $(PFMDEFS) $(CFLAGSCOMPILER) $(CFLAGSCOMPILERSTRICT)
+CFLAGSCOMMONSTRICT = $(PFMDEFS) $(CFLAGSCOMPILER) $(CFLAGSCOMPILERSTRICT)
 CFLAGSCOMMONLAX = $(PFMDEFS) $(CFLAGSCOMPILER) $(CFLAGSCOMPILERLAX)
 
 # %%VARIETY: When adding a new variety, define a macro containing the set
@@ -119,20 +119,17 @@ CFRASH = -DCONFIG_VAR_RASH -DNDEBUG $(CFLAGSOPT)
 CFHOT  = -DCONFIG_VAR_HOT  -DNDEBUG $(CFLAGSOPT)
 CFCOOL = -DCONFIG_VAR_COOL          $(CFLAGSDEBUG)
 
-# Bind CFLAGS to the appropriate set of flags for the variety.
-# %%VARIETY: When adding a new variety, add a test for the variety and set
-# CFLAGS here.
+# Bind CFLAGSVARIETY to the appropriate set of flags for the variety.
+# %%VARIETY: When adding a new variety, add a test for the variety and
+# set CFLAGSVARIETY here.
 ifeq ($(VARIETY),rash)
-CFLAGS=$(CFLAGSCOMMON) $(CFRASH)
-CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFRASH)
+CFLAGSVARIETY=$(CFRASH)
 else
 ifeq ($(VARIETY),hot)
-CFLAGS=$(CFLAGSCOMMON) $(CFHOT)
-CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFHOT)
+CFLAGSVARIETY=$(CFHOT)
 else
 ifeq ($(VARIETY),cool)
-CFLAGS=$(CFLAGSCOMMON) $(CFCOOL)
-CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFCOOL)
+CFLAGSVARIETY=$(CFCOOL)
 else
 ifneq ($(VARIETY),)
 $(error Variety "$(VARIETY)" not recognized: must be rash/hot/cool)
@@ -141,7 +138,8 @@ endif
 endif
 endif
 
-
+CFLAGSSTRICT=$(CFLAGSCOMMONSTRICT) $(CFLAGSVARIETY) $(CFLAGS)
+CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFLAGSVARIETY) $(CFLAGS)
 ARFLAGS=rc$(ARFLAGSPFM)
 
 
@@ -158,7 +156,8 @@ SNC = poolsnc.c
 POOLN = pooln.c
 MV2 = poolmv2.c
 MVFF = poolmvff.c
-TESTLIB = testlib.c testthrix.c
+TESTLIB = testlib.c
+TESTTHR = testthrix.c
 FMTDY = fmtdy.c fmtno.c
 FMTDYTST = fmtdy.c fmtno.c fmtdytst.c
 FMTHETST = fmthe.c fmtdy.c fmtno.c fmtdytst.c
@@ -203,6 +202,8 @@ MVFFDEP = $(MVFF:%.c=$(PFM)/$(VARIETY)/%.d)
 
 TESTLIBOBJ = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.o)
 TESTLIBDEP = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.d)
+TESTTHROBJ = $(TESTTHR:%.c=$(PFM)/$(VARIETY)/%.o)
+TESTTHRDEP = $(TESTTHR:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTDYOBJ = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTDYDEP = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTDYTSTOBJ = $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.o)
@@ -276,7 +277,7 @@ TEST_TARGETS=\
 UNBUILDABLE_TARGETS=\
     replay # depends on the EPVM pool
 
-ALL_TARGETS=$(LIB_TARGETS) $(TEST_TARGETS) $(EXTRA_TARGETS) testrun
+ALL_TARGETS=$(LIB_TARGETS) $(TEST_TARGETS) $(EXTRA_TARGETS)
 
 
 # == Pseudo-targets ==
@@ -284,16 +285,24 @@ ALL_TARGETS=$(LIB_TARGETS) $(TEST_TARGETS) $(EXTRA_TARGETS) testrun
 all: $(ALL_TARGETS)
 
 
-# Run the automated tests.
+# == Automated test suites ==
+#
+# testrun = "smoke test", fast enough to run before every commit
+# testci = continuous integration tests, must be known good
+# testall = all test cases, for ensuring quality of a release
+# testansi = tests that run on the generic ("ANSI") platform
+# testpoll = tests that run on the generic platform with CONFIG_POLL_NONE
 
-$(PFM)/$(VARIETY)/testrun: $(TEST_TARGETS)
-	../tool/testrun.sh "$(PFM)/$(VARIETY)"
+TEST_SUITES=testrun testci testall testansi testpoll
+
+$(addprefix $(PFM)/$(VARIETY)/,$(TEST_SUITES)): $(TEST_TARGETS)
+	../tool/testrun.sh "$(PFM)/$(VARIETY)" "$(notdir $@)"
 
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in selected varieties (or none, for the latter rule).
 
-$(ALL_TARGETS): phony
+$(ALL_TARGETS) $(TEST_SUITES): phony
 ifdef VARIETY
 	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
 else
@@ -384,7 +393,7 @@ $(PFM)/$(VARIETY)/amcsshe: $(PFM)/$(VARIETY)/amcsshe.o \
 	$(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/amcssth: $(PFM)/$(VARIETY)/amcssth.o \
-	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/amsss: $(PFM)/$(VARIETY)/amsss.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
@@ -405,7 +414,7 @@ $(PFM)/$(VARIETY)/awluthe: $(PFM)/$(VARIETY)/awluthe.o \
         $(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/awlutth: $(PFM)/$(VARIETY)/awlutth.o \
-	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/btcv: $(PFM)/$(VARIETY)/btcv.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
@@ -414,7 +423,7 @@ $(PFM)/$(VARIETY)/bttest: $(PFM)/$(VARIETY)/bttest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/djbench: $(PFM)/$(VARIETY)/djbench.o \
-	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+	$(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/exposet0: $(PFM)/$(VARIETY)/exposet0.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
@@ -435,7 +444,7 @@ $(PFM)/$(VARIETY)/fotest: $(PFM)/$(VARIETY)/fotest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/gcbench: $(PFM)/$(VARIETY)/gcbench.o \
-	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/locbwcss: $(PFM)/$(VARIETY)/locbwcss.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
@@ -444,7 +453,7 @@ $(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/lockut: $(PFM)/$(VARIETY)/lockut.o \
-	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+	$(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/locusss: $(PFM)/$(VARIETY)/locusss.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
@@ -519,11 +528,11 @@ endif
 
 # Object files
 
-define run-cc
+define run-cc-strict
 $(ECHO) "$(PFM): $@"
 mkdir -p $(PFM)
 mkdir -p $(PFM)/$(VARIETY)
-$(CC) $(CFLAGS) -c -o $@ $<
+$(CC) $(CFLAGSSTRICT) -c -o $@ $<
 endef
 
 define run-cc-lax
@@ -535,16 +544,16 @@ endef
 
 # .rule.c-to-o:
 $(PFM)/$(VARIETY)/%.o: %.c
-	$(run-cc)
+	$(run-cc-strict)
 
 $(PFM)/$(VARIETY)/eventsql.o: eventsql.c
 	$(run-cc-lax)                              
 
 $(PFM)/$(VARIETY)/%.o: %.s
-	$(run-cc)
+	$(run-cc-strict)
 
 $(PFM)/$(VARIETY)/%.o: %.S
-	$(run-cc)
+	$(run-cc-strict)
 
 # Dependencies
 #
@@ -604,7 +613,7 @@ endif
 $(PFM)/$(VARIETY)/%.a:
 	$(ECHO) "$(PFM): $@"
 	rm -f $@
-	$(CC) $(CFLAGS) -c -o $(PFM)/$(VARIETY)/version.o version.c
+	$(CC) $(CFLAGSSTRICT) -c -o $(PFM)/$(VARIETY)/version.o version.c
 	$(AR) $(ARFLAGS) $@ $^ $(PFM)/$(VARIETY)/version.o
 	$(RANLIB) $@
 
@@ -612,11 +621,11 @@ $(PFM)/$(VARIETY)/%.a:
 
 $(PFM)/$(VARIETY)/%:
 	$(ECHO) "$(PFM): $@"
-	$(CC) $(CFLAGS) $(LINKFLAGS) -o $@ $^ $(LIBS)
+	$(CC) $(CFLAGSSTRICT) $(LINKFLAGS) -o $@ $^ $(LIBS)
 
 $(PFM)/$(VARIETY)/mpseventsql:
 	$(ECHO) "$(PFM): $@"
-	$(CC) $(CFLAGS) $(LINKFLAGS) -o $@ $^ $(LIBS) -lsqlite3
+	$(CC) $(CFLAGSLAX) $(LINKFLAGS) -o $@ $^ $(LIBS) -lsqlite3
 
 # Special targets for development
 
