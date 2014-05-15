@@ -26,6 +26,20 @@ New features
    :c:macro:`MPS_KEY_INTERIOR` keyword argument to ``FALSE`` when
    calling :c:func:`mps_pool_create_k`.
 
+#. The logic for deciding which generations should be collected has
+   changed. Now, a chain may be scheduled for collection if the new
+   size of *any* of its generations exceeds its capacity, and when a
+   chain is collected, all generations are collected up to, and
+   including, the highest generation whose new size exceeds its
+   capacity. This ensures that all generations are collected reliably
+   on chains where there is no allocation into the nursery generation.
+   See :ref:`topic-collection-schedule`.
+
+   (Previously, only the nursery generation in each chain
+   was considered, and a chain was collected up to, but not including,
+   the lowest generation whose new size was within its capacity.)
+
+
 
 Interface changes
 .................
@@ -34,6 +48,11 @@ Interface changes
    the :c:macro:`MPS_KEY_ARENA_SIZE` keyword argument to
    :c:func:`mps_arena_create_k` when creating a virtual memory arena.
    See :c:func:`mps_arena_class_vm`.
+
+#. The keyword argument :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` now
+   defaults to ``TRUE`` in order to better support the general case:
+   the value ``FALSE`` is appropriate only when you know that all
+   references are exact. See :ref:`pool-ams`.
 
 
 Other changes
@@ -63,6 +82,13 @@ Other changes
    job003756_.
 
    .. _job003756: https://www.ravenbrook.com/project/mps/issue/job003756/
+
+#. :ref:`pool-ams` pools get reliably collected, even in the case
+   where an AMS pool is the only pool on its generation chain and is
+   allocating into some generation other than the nursery. See
+   job003771_.
+
+   .. _job003771: https://www.ravenbrook.com/project/mps/issue/job003771/
 
 
 

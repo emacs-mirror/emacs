@@ -98,6 +98,7 @@ static void test(void)
 
  comment("Finished");
 
+ mps_arena_park(arena);
  mps_ap_destroy(apA);
  mps_ap_destroy(apB);
 

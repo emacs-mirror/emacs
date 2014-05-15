@@ -1,0 +1,137 @@
+#!/bin/sh
+#
+#                              Ravenbrook
+#                     <http://www.ravenbrook.com/>
+#
+#            TESTEMSCRIPTEN -- TEST THE MPS WITH EMSCRIPTEN
+#
+#             Gareth Rees, Ravenbrook Limited, 2014-04-17
+#
+#
+# 1. INTRODUCTION
+#
+# This shell script pulls Emscripten from GitHub and uses it to build
+# the MPS.
+#
+# Supported platforms: ?.
+#
+#
+# 1.1. PREREQUISITES
+#
+# clang, curl, git, nodejs
+#
+# "python" needs to be Python 2 (otherwise configure fails), so you
+# may need to run:
+#
+#     port select --set python python27
+# 
+# You need to have a program "python2" on your path (which runs Python
+# 2.7.3), so on OS X with MacPorts you need to run:
+#
+#     ln -s /opt/local/bin/python2.7 /opt/local/bin/python2
+
+
+# 2. CONFIGURATION
+
+# Emscripten git repository
+EMSCRIPTEN_REMOTE=https://github.com/kripken/emscripten.git
+
+# Fastcomp git repository
+FASTCOMP_REMOTE=https://github.com/kripken/emscripten-fastcomp.git
+
+# Fastcomp clang git repository
+CLANG_REMOTE=https://github.com/kripken/emscripten-fastcomp-clang
+
+# Directory to put everything in
+TESTDIR="$PWD/.test"
+mkdir -p -- "$TESTDIR"
+cd -- "$TESTDIR"
+
+
+# 3. UTILITIES
+
+# 3.1. checkout REPO REMOTE -- clone a git repository and pull
+
+checkout () {
+    REPO=$1
+    REMOTE=$2
+    if [ -d "$REPO" ]; then
+        echo "$REPO exists: skipping clone."
+    else
+        echo "cloning $REMOTE into $REPO."
+        git clone --recursive -- "$REMOTE" "$REPO"
+    fi
+    ( 
+        cd -- "$REPO"
+        git pull
+    )
+}
+
+
+# 4. PROCEDURE
+
+checkout emscripten "$EMSCRIPTEN_REMOTE"
+
+
+# See [FASTCOMP].
+
+checkout emscripten-fastcomp "$FASTCOMP_REMOTE"
+(
+    cd emscripten-fastcomp
+    (
+        cd tools
+        checkout clang "$CLANG_REMOTE";
+    )
+    mkdir -p build
+    (
+        cd build
+        ../configure --enable-optimized --disable-assertions --enable-targets=host,js
+        make;
+    )
+)
+
+
+# A. REFERENCES
+#
+# [EMPSCRIPTEN] "Emscripten SDK"
+# <https://github.com/kripken/emscripten/wiki/Emscripten-SDK>
+#
+# [FASTCOMP] "LLVM Backend, aka fastcomp"
+# <https://github.com/kripken/emscripten/wiki/LLVM-Backend>
+#
+#
+# B. DOCUMENT HISTORY
+#
+# 2014-04-17 GDR Created based on [EMSCRIPTEN] and [FASTCOMP].
+#
+#
+# C. COPYRIGHT AND LICENCE
+#
+# Copyright (c) 2014 Ravenbrook Ltd.  All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the
+#    distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#
+# $Id$

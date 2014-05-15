@@ -213,6 +213,7 @@ static void test(void)
   comment("ok");
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(apamc);
  mps_ap_destroy(aplo);
  mps_ap_destroy(apawl);

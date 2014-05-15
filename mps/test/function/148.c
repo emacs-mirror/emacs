@@ -124,6 +124,7 @@ static void test(void)
  report("inc4", "%ld", (com2-com1)/BIGSIZE);
 
 
+ mps_arena_park(arena);
  mps_ap_destroy(ap);
  mps_ap_destroy(sap);
  mps_pool_destroy(pool);

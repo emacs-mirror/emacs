@@ -58,6 +58,7 @@ typedef struct AMSTStruct *AMST;
 
 /* AMSTCheck -- the check method for an AMST */
 
+ATTRIBUTE_UNUSED
 static Bool AMSTCheck(AMST amst)
 {
   CHECKS(AMST, amst);
@@ -95,6 +96,7 @@ typedef struct AMSTSegStruct {
 
 /* AMSTSegCheck -- check the AMST segment */
 
+ATTRIBUTE_UNUSED
 static Bool AMSTSegCheck(AMSTSeg amstseg)
 {
   CHECKS(AMSTSeg, amstseg);
@@ -847,6 +849,8 @@ static void *test(void *arg, size_t s)
   }
 
   (void)mps_commit(busy_ap, busy_init, 64);
+
+  mps_arena_park(arena);
   mps_ap_destroy(busy_ap);
   mps_ap_destroy(ap);
   mps_root_destroy(exactRoot);
