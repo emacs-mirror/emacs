@@ -39,6 +39,9 @@ New features
    was considered, and a chain was collected up to, but not including,
    the lowest generation whose new size was within its capacity.)
 
+#. New pool introspection functions :c:func:`mps_pool_total_size` and
+   :c:func:`mps_pool_free_size`.
+
 
 Interface changes
 .................

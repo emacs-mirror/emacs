@@ -639,6 +639,34 @@ static PoolDebugMixin MVFFDebugMixin(Pool pool)
 }
 
 
+/* MVFFTotalSize -- total memory allocated from the arena */
+
+static Size MVFFTotalSize(Pool pool)
+{
+  MVFF mvff;
+
+  AVERT(Pool, pool);
+  mvff = Pool2MVFF(pool);
+  AVERT(MVFF, mvff);
+
+  return LandSize(MVFFTotalCBS(mvff));
+}
+
+
+/* MVFFFreeSize -- free memory (unused by client program) */
+
+static Size MVFFFreeSize(Pool pool)
+{
+  MVFF mvff;
+
+  AVERT(Pool, pool);
+  mvff = Pool2MVFF(pool);
+  AVERT(MVFF, mvff);
+
+  return LandSize(MVFFFailover(mvff));
+}
+
+
 /* MVFFDescribe -- describe an MVFF pool */
 
 static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
@@ -695,6 +723,8 @@ DEFINE_POOL_CLASS(MVFFPoolClass, this)
   this->free = MVFFFree;
   this->bufferFill = MVFFBufferFill;
   this->bufferEmpty = MVFFBufferEmpty;
+  this->totalSize = MVFFTotalSize;
+  this->freeSize = MVFFFreeSize;
   this->describe = MVFFDescribe;
   AVERT(PoolClass, this);
 }
@@ -731,37 +761,6 @@ mps_class_t mps_class_mvff(void)
 mps_class_t mps_class_mvff_debug(void)
 {
   return (mps_class_t)(MVFFDebugPoolClassGet());
-}
-
-
-/* Total free bytes. See <design/poolmvff/#design.arena-enter> */
-
-size_t mps_mvff_free_size(mps_pool_t mps_pool)
-{
-  Pool pool;
-  MVFF mvff;
-
-  pool = (Pool)mps_pool;
-  AVERT(Pool, pool);
-  mvff = Pool2MVFF(pool);
-  AVERT(MVFF, mvff);
-
-  return (size_t)LandSize(MVFFFailover(mvff));
-}
-
-/* Total owned bytes. See <design/poolmvff/#design.arena-enter> */
-
-size_t mps_mvff_size(mps_pool_t mps_pool)
-{
-  Pool pool;
-  MVFF mvff;
-
-  pool = (Pool)mps_pool;
-  AVERT(Pool, pool);
-  mvff = Pool2MVFF(pool);
-  AVERT(MVFF, mvff);
-
-  return (size_t)LandSize(MVFFTotalCBS(mvff));
 }
 
 
