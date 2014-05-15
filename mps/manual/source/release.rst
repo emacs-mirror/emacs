@@ -40,9 +40,22 @@ New features
    the lowest generation whose new size was within its capacity.)
 
 
-
 Interface changes
 .................
+
+#. It is now possible to configure the alignment of objects allocated
+   in a :ref:`pool-mv` pool, by passing the :c:macro:`MPS_KEY_ALIGN`
+   keyword argument to :c:func:`mps_pool_create_k`.
+
+#. The alignment requirements for :ref:`pool-mvff` and :ref:`pool-mvt`
+   pools have been relaxed on the platforms ``w3i3mv`` and ``w3i6mv``.
+   On all platforms it is now possible to specify alignments down to
+   ``sizeof(void *)`` as the alignment for pools of these classes.
+
+#. The sizes of the templates in a :c:type:`mps_pool_debug_option_s`
+   structure no longer have to be related to the alignment of the
+   pools that they are used with. This makes it easier to reuse these
+   structures.
 
 #. There is now a default value (currently 1 \ :term:`megabyte`) for
    the :c:macro:`MPS_KEY_ARENA_SIZE` keyword argument to
@@ -80,6 +93,12 @@ Other changes
    :c:macro:`MPS_PF_ALIGN`. See job003745_.
 
    .. _job003745: https://www.ravenbrook.com/project/mps/issue/job003745/
+
+#. The debugging version of the :ref:`pool-mvff` pool class,
+   :c:func:`mps_class_mvff_debug`, no longer triggers an assertion
+   failure if you allocate a large object. See job003751_.
+
+   .. _job003751: https://www.ravenbrook.com/project/mps/issue/job003751/
 
 #. :program:`mpseventtxt` now successfully processes a telemetry log
    containing multiple labels associated with the same address. See

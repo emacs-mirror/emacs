@@ -326,9 +326,9 @@ typedef struct _mps_sac_s {
 
 /* .sacc: Keep in sync with <code/sac.h>. */
 typedef struct mps_sac_class_s {
-  size_t _block_size;
-  size_t _cached_count;
-  unsigned _frequency;
+  size_t mps_block_size;
+  size_t mps_cached_count;
+  unsigned mps_frequency;
 } mps_sac_class_s;
 
 #define mps_sac_classes_s mps_sac_class_s
@@ -754,9 +754,9 @@ extern void mps_arena_roots_walk(mps_arena_t,
 
 
 typedef struct mps_pool_debug_option_s {
-  const void *fence_template;
+  void *fence_template;
   size_t fence_size;
-  const void *free_template;
+  void *free_template;
   size_t free_size;
 } mps_pool_debug_option_s;
 
