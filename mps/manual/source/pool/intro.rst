@@ -114,7 +114,7 @@ May contain exact references? [4]_             yes    ---    yes    yes    ---  
 May contain ambiguous references? [4]_         no     ---    no     no     ---    ---    ---    ---    ---    no
 May contain weak references? [4]_              no     ---    no     yes    ---    ---    ---    ---    ---    no
 Allocations fixed or variable in size?         var    var    var    var    var    fixed  var    var    var    var
-Alignment? [5]_                                conf   conf   conf   conf   conf   [6]_   [6]_   [7]_   [7]_   conf
+Alignment? [5]_                                conf   conf   conf   conf   conf   [6]_   conf   [7]_   [7]_   conf
 Dependent objects? [8]_                        no     ---    no     yes    ---    ---    ---    ---    ---    no
 May use remote references? [9]_                no     ---    no     no     ---    ---    ---    ---    ---    no
 Blocks are automatically managed? [10]_        yes    yes    yes    yes    yes    no     no     no     no     no
@@ -151,13 +151,13 @@ Blocks may use :term:`in-band headers`?        yes    yes    yes    yes    yes  
     .. [5] "Alignment" is "conf" if the client program may specify
            :term:`alignment` for each pool.
 
-    .. [6] The alignment of blocks allocated from :ref:`pool-mv` pools
-           is platform-dependent.
+    .. [6] The alignment of blocks allocated from :ref:`pool-mfs`
+           pools is the platform's :term:`natural alignment`,
+           :c:macro:`MPS_PF_ALIGN`.
 
     .. [7] :ref:`pool-mvt` and :ref:`pool-mvff` pools have
-           configurable alignment, but it may not be smaller than the
-           :term:`natural alignment` for the :term:`platform` (see
-           :c:macro:`MPS_PF_ALIGN`).
+           configurable alignment, but it may not be smaller than
+           ``sizeof(void *)``.
 
     .. [8] In pools with this property, each object may specify an
            :term:`dependent object` which the client program

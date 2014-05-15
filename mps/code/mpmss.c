@@ -25,19 +25,19 @@
 
 /* stress -- create a pool of the requested type and allocate in it */
 
-static mps_res_t stress(mps_class_t class, size_t (*size)(size_t i),
-                        mps_arena_t arena, ...)
+static mps_res_t stress(mps_arena_t arena, size_t (*size)(size_t i),
+                        const char *name, mps_class_t pool_class,
+                        mps_arg_s *args)
 {
   mps_res_t res;
   mps_pool_t pool;
-  va_list arg;
   size_t i, k;
   int *ps[testSetSIZE];
   size_t ss[testSetSIZE];
 
-  va_start(arg, arena);
-  res = mps_pool_create_v(&pool, arena, class, arg);
-  va_end(arg);
+  printf("%s\n", name);
+
+  res = mps_pool_create_k(&pool, arena, pool_class, args);
   if (res != MPS_RES_OK)
     return res;
 
@@ -87,7 +87,7 @@ static mps_res_t stress(mps_class_t class, size_t (*size)(size_t i),
 }
 
 
-/* randomSize -- produce sizes both latge and small */
+/* randomSize -- produce sizes both large and small */
 
 static size_t randomSize(size_t i)
 {
@@ -99,7 +99,7 @@ static size_t randomSize(size_t i)
 }
 
 
-/* randomSize8 -- produce sizes both latge and small, 8-byte aligned */
+/* randomSize8 -- produce sizes both large and small, 8-byte aligned */
 
 static size_t randomSize8(size_t i)
 {
@@ -121,61 +121,90 @@ static size_t fixedSize(size_t i)
 
 
 static mps_pool_debug_option_s bothOptions = {
-  /* .fence_template = */   (const void *)"postpostpostpost",
-  /* .fence_size = */       MPS_PF_ALIGN,
-  /* .free_template = */    (const void *)"DEAD",
+  /* .fence_template = */   (void *)"post",
+  /* .fence_size = */       4,
+  /* .free_template = */    (void *)"DEAD",
   /* .free_size = */        4
 };
 
 static mps_pool_debug_option_s fenceOptions = {
-  /* .fence_template = */   (const void *)"\0XXX ''\"\"'' XXX\0",
-  /* .fence_size = */       16,
+  /* .fence_template = */   (void *)"123456789abcdef",
+  /* .fence_size = */       15,
   /* .free_template = */    NULL,
   /* .free_size = */        0
 };
 
 /* testInArena -- test all the pool classes in the given arena */
 
-static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
+static void testInArena(mps_arena_class_t arena_class, mps_arg_s *arena_args,
+                        mps_pool_debug_option_s *options)
 {
-  /* IWBN to test MVFFDebug, but the MPS doesn't support debugging */
-  /* cross-segment allocation (possibly MVFF ought not to). */
-  printf("MVFF\n");
-  die(stress(mps_class_mvff(), randomSize8, arena,
-             (size_t)65536, (size_t)32, (mps_align_t)MPS_PF_ALIGN, TRUE, TRUE, TRUE),
-      "stress MVFF");
-  printf("MV debug\n");
-  die(stress(mps_class_mv_debug(), randomSize, arena,
-             options, (size_t)65536, (size_t)32, (size_t)65536),
-      "stress MV debug");
+  mps_arena_t arena;
 
-  printf("MFS\n");
-  fixedSizeSize = 13;
-  die(stress(mps_class_mfs(), fixedSize, arena, (size_t)100000, fixedSizeSize),
+  die(mps_arena_create_k(&arena, arena_class, arena_args),
+      "mps_arena_create");
+
+  MPS_ARGS_BEGIN(args) {
+    mps_align_t align = sizeof(void *) << (rnd() % 4);
+    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
+    MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, TRUE);
+    MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, TRUE);
+    MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, TRUE);
+    die(stress(arena, randomSize8, "MVFF", mps_class_mvff(), args),
+        "stress MVFF");
+  } MPS_ARGS_END(args);
+
+  MPS_ARGS_BEGIN(args) {
+    mps_align_t align = sizeof(void *) << (rnd() % 4);
+    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
+    MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, TRUE);
+    MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, TRUE);
+    MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, TRUE);
+    MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, options);
+    die(stress(arena, randomSize8, "MVFF debug", mps_class_mvff_debug(), args),
+        "stress MVFF debug");
+  } MPS_ARGS_END(args);
+
+  MPS_ARGS_BEGIN(args) {
+    mps_align_t align = 1 << (rnd() % 6);
+    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
+    die(stress(arena, randomSize, "MV", mps_class_mv(), args),
+        "stress MV");
+  } MPS_ARGS_END(args);
+
+  MPS_ARGS_BEGIN(args) {
+    mps_align_t align = 1 << (rnd() % 6);
+    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
+    MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, options);
+    die(stress(arena, randomSize, "MV debug", mps_class_mv_debug(), args),
+        "stress MV debug");
+  } MPS_ARGS_END(args);
+
+  MPS_ARGS_BEGIN(args) {
+    fixedSizeSize = 1 + rnd() % 64;
+    MPS_ARGS_ADD(args, MPS_KEY_MFS_UNIT_SIZE, fixedSizeSize);
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, 100000);
+    die(stress(arena, fixedSize, "MFS", mps_class_mfs(), args),
       "stress MFS");
+  } MPS_ARGS_END(args);
 
-  printf("MV\n");
-  die(stress(mps_class_mv(), randomSize, arena,
-             (size_t)65536, (size_t)32, (size_t)65536),
-      "stress MV");
+  mps_arena_destroy(arena);
 }
 
 
 int main(int argc, char *argv[])
 {
-  mps_arena_t arena;
-
   testlib_init(argc, argv);
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
-      "mps_arena_create");
-  testInArena(arena, &bothOptions);
-  mps_arena_destroy(arena);
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
+    testInArena(mps_arena_class_vm(), args, &bothOptions);
+  } MPS_ARGS_END(args);
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), smallArenaSIZE),
-      "mps_arena_create");
-  testInArena(arena, &fenceOptions);
-  mps_arena_destroy(arena);
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, smallArenaSIZE);
+    testInArena(mps_arena_class_vm(), args, &fenceOptions);
+  } MPS_ARGS_END(args);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
