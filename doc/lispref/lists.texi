@@ -1124,58 +1124,6 @@ each time you run it!  Here is what happens:
 @end smallexample
 @end defun
 
-@defun nreverse list
-@cindex reversing a list
-  This function reverses the order of the elements of @var{list}.
-Unlike @code{reverse}, @code{nreverse} alters its argument by reversing
-the @sc{cdr}s in the cons cells forming the list.  The cons cell that
-used to be the last one in @var{list} becomes the first cons cell of the
-value.
-
-  For example:
-
-@example
-@group
-(setq x '(a b c))
-     @result{} (a b c)
-@end group
-@group
-x
-     @result{} (a b c)
-(nreverse x)
-     @result{} (c b a)
-@end group
-@group
-;; @r{The cons cell that was first is now last.}
-x
-     @result{} (a)
-@end group
-@end example
-
-  To avoid confusion, we usually store the result of @code{nreverse}
-back in the same variable which held the original list:
-
-@example
-(setq x (nreverse x))
-@end example
-
-  Here is the @code{nreverse} of our favorite example, @code{(a b c)},
-presented graphically:
-
-@smallexample
-@group
-@r{Original list head:}                       @r{Reversed list:}
- -------------        -------------        ------------
-| car  | cdr  |      | car  | cdr  |      | car | cdr  |
-|   a  |  nil |<--   |   b  |   o  |<--   |   c |   o  |
-|      |      |   |  |      |   |  |   |  |     |   |  |
- -------------    |   --------- | -    |   -------- | -
-                  |             |      |            |
-                   -------------        ------------
-@end group
-@end smallexample
-@end defun
-
 @defun sort list predicate
 @cindex stable sort
 @cindex sorting lists

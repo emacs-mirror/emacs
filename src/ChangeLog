@@ -1,6 +1,7 @@
 2014-05-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* fns.c (Freverse): Allow vectors, bool vectors and strings.
+	(Fnreverse): Allow vectors and bool vectors.
 
 2014-05-14  Dmitry Antipov  <dmantipov@yandex.ru>
 

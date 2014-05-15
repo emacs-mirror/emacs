@@ -1,7 +1,7 @@
 2014-05-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* lists.texi (Building Cons Cells and Lists): Remove
-	description of `reverse' and generalize it...
+	description of `reverse' and `'nreverse' to generalize them...
 	* sequences.texi (Sequences): ...for sequences here.
 
 2014-05-14  Glenn Morris  <rgm@gnu.org>

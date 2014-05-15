@@ -260,6 +260,75 @@ x
 @end example
 @end defun
 
+@defun nreverse seq
+@cindex reversing a list
+@cindex reversing a vector
+  This function reverses the order of the elements of @var{seq}.
+If @var{seq} is a list, @code{nreverse} alters its by reversing the @sc{cdr}s
+in the cons cells.  The cons cell that used to be the last one in @var{seq}
+becomes the first cons cell of the value.  If @var{seq} is a vector or
+bool vector, its items are placed in the same vector in a reversed order.
+
+  For example:
+
+@example
+@group
+(setq x '(a b c))
+     @result{} (a b c)
+@end group
+@group
+x
+     @result{} (a b c)
+(nreverse x)
+     @result{} (c b a)
+@end group
+@group
+;; @r{The cons cell that was first is now last.}
+x
+     @result{} (a)
+@end group
+@end example
+
+  To avoid confusion, we usually store the result of @code{nreverse}
+back in the same variable which held the original list:
+
+@example
+(setq x (nreverse x))
+@end example
+
+  Here is the @code{nreverse} of our favorite example, @code{(a b c)},
+presented graphically:
+
+@smallexample
+@group
+@r{Original list head:}                       @r{Reversed list:}
+ -------------        -------------        ------------
+| car  | cdr  |      | car  | cdr  |      | car | cdr  |
+|   a  |  nil |<--   |   b  |   o  |<--   |   c |   o  |
+|      |      |   |  |      |   |  |   |  |     |   |  |
+ -------------    |   --------- | -    |   -------- | -
+                  |             |      |            |
+                   -------------        ------------
+@end group
+@end smallexample
+
+  For the vector, it is even simpler because you don't need setq:
+
+@example
+(setq x [1 2 3 4])
+     @result{} [1 2 3 4]
+(nreverse x)
+     @result{} [4 3 2 1]
+x
+     @result{} [4 3 2 1]
+@end example
+
+Note that unlike @code{reverse}, this function doesn't work with strings.
+Although you can alter string data by using @code{aset}, it is strongly
+encouraged to treat strings as immutable.
+
+@end defun
+
 @node Arrays
 @section Arrays
 @cindex array

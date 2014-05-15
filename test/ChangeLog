@@ -1,6 +1,8 @@
 2014-05-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* automated/fns-tests.el: New file.
+	* automated/fns-tests.el (fns-tests-nreverse)
+	(fns-tests-nreverse-bool-vector): New tests.
 
 2014-05-08  Glenn Morris  <rgm@gnu.org>
 
