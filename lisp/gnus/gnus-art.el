@@ -5346,6 +5346,9 @@ Compressed files like .gz and .bz2 are decompressed."
 	 ((mm-handle-undisplayer handle)
 	  (mm-remove-part handle)))
 	(goto-char start)
+	(unless (bolp)
+	  ;; This is a header button.
+	  (forward-line 1))
 	(mm-display-inline handle))
       ;; Toggle the button appearance between `[button]...' and `[button]'.
       (goto-char btn)
@@ -5364,22 +5367,25 @@ Compressed files like .gz and .bz2 are decompressed."
 			     (point-max)))
 	    (dolist (annot annots)
 	      (set-extent-endpoints annot (point) (point)))))
-	(unless (or displayed-p (eolp))
-	  ;; Add extra newline.
-	  (insert (propertize (buffer-substring (1- (point)) (point))
-			      'gnus-undeletable t))))
-      (unless (search-backward "\n\n" nil t)
-	;; We're in the article header.
-	(delete-char -1)
-	(dolist (ovl (gnus-overlays-in btn (point)))
-	  (gnus-overlay-put ovl 'gnus-button-attachment-extra t)
-	  (gnus-overlay-put ovl 'face nil))
-	(save-restriction
-	  (message-narrow-to-field)
-	  (let ((gnus-treatment-function-alist
-		 '((gnus-treat-highlight-headers
-		    gnus-article-highlight-headers))))
-	    (gnus-treat-article 'head))))
+	(setq start (point))
+	(if (search-backward "\n\n" nil t)
+	    (progn
+	      (goto-char start)
+	      (unless (or displayed-p (eolp))
+		;; Add extra newline.
+		(insert (propertize (buffer-substring (1- start) start)
+				    'gnus-undeletable t))))
+	  ;; We're in the article header.
+	  (delete-char -1)
+	  (dolist (ovl (gnus-overlays-in btn (point)))
+	    (gnus-overlay-put ovl 'gnus-button-attachment-extra t)
+	    (gnus-overlay-put ovl 'face nil))
+	  (save-restriction
+	    (message-narrow-to-field)
+	    (let ((gnus-treatment-function-alist
+		   '((gnus-treat-highlight-headers
+		      gnus-article-highlight-headers))))
+	      (gnus-treat-article 'head)))))
       (goto-char b))))
 
 (defun gnus-mime-set-charset-parameters (handle charset)
@@ -5712,6 +5718,9 @@ all parts."
 			      (unless (zerop (buffer-size))
 				(buffer-string))))))
 	      (goto-char start)
+	      (unless (bolp)
+		;; This is a header button.
+		(forward-line 1))
 	      (cond ((stringp part)
 		     (save-restriction
 		       (narrow-to-region (point)
@@ -5746,22 +5755,25 @@ all parts."
 			     (point-max)))
 	    (dolist (annot annots)
 	      (set-extent-endpoints annot (point) (point)))))
-	(unless (or displayed-p (eolp))
-	  ;; Add extra newline.
-	  (insert (propertize (buffer-substring (1- (point)) (point))
-			      'gnus-undeletable t))))
-      (unless (search-backward "\n\n" nil t)
-	;; We're in the article header.
-	(delete-char -1)
-	(dolist (ovl (gnus-overlays-in point (point)))
-	  (gnus-overlay-put ovl 'gnus-button-attachment-extra t)
-	  (gnus-overlay-put ovl 'face nil))
-	(save-restriction
-	  (message-narrow-to-field)
-	  (let ((gnus-treatment-function-alist
-		 '((gnus-treat-highlight-headers
-		    gnus-article-highlight-headers))))
-	    (gnus-treat-article 'head))))
+	(setq start (point))
+	(if (search-backward "\n\n" nil t)
+	    (progn
+	      (goto-char start)
+	      (unless (or displayed-p (eolp))
+		;; Add extra newline.
+		(insert (propertize (buffer-substring (1- start) start)
+				    'gnus-undeletable t))))
+	  ;; We're in the article header.
+	  (delete-char -1)
+	  (dolist (ovl (gnus-overlays-in point (point)))
+	    (gnus-overlay-put ovl 'gnus-button-attachment-extra t)
+	    (gnus-overlay-put ovl 'face nil))
+	  (save-restriction
+	    (message-narrow-to-field)
+	    (let ((gnus-treatment-function-alist
+		   '((gnus-treat-highlight-headers
+		      gnus-article-highlight-headers))))
+	      (gnus-treat-article 'head)))))
       (goto-char point)
       (if (window-live-p window)
 	  (select-window window)))
