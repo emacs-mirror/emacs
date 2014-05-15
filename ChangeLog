@@ -1,6 +1,6 @@
 2014-05-15  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* configure.ac (LIBONG): Do not test for libpng if NS_IMPL_COCOA.
+	* configure.ac (LIBPNG): Do not test for libpng if NS_IMPL_COCOA.
 
 2014-05-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
