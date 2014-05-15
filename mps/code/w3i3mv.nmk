@@ -11,8 +11,17 @@ PFMDEFS = /DCONFIG_PF_STRING="w3i3mv" /DCONFIG_PF_W3I3MV /DWIN32 /D_WINDOWS
 !INCLUDE mv.nmk
 
 # MPM sources: core plus platform-specific.
-MPM = $(MPMCOMMON) <proti3> <prmci3w3> <spw3i3> <ssw3i3mv> <thw3i3>
-
+MPM = $(MPMCOMMON) \
+    <lockw3> \
+    <mpsiw3> \
+    <prmci3w3> \
+    <proti3> \
+    <protw3> \
+    <spw3i3> \
+    <ssw3i3mv> \
+    <thw3> \
+    <thw3i3> \
+    <vmw3>
 
 
 # Source to object file mappings and CFLAGS amalgamation
@@ -44,6 +53,7 @@ FMTTESTOBJ0 = $(FMTTEST:<=w3i3mv\hot\)
 FMTSCHEMEOBJ0 = $(FMTSCHEME:<=w3i3mv\hot\)
 POOLNOBJ0 = $(POOLN:<=w3i3mv\hot\)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\hot\)
+TESTTHROBJ0 = $(TESTTHR:<=w3i3mv\hot\)
 
 !ELSEIF "$(VARIETY)" == "cool"
 CFLAGS=$(CFLAGSCOMMONPRE) $(CFCOOL) $(CFLAGSCOMMONPOST)
@@ -63,6 +73,7 @@ FMTTESTOBJ0 = $(FMTTEST:<=w3i3mv\cool\)
 FMTSCHEMEOBJ0 = $(FMTSCHEME:<=w3i3mv\cool\)
 POOLNOBJ0 = $(POOLN:<=w3i3mv\cool\)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\cool\)
+TESTTHROBJ0 = $(TESTTHR:<=w3i3mv\cool\)
 
 !ELSEIF "$(VARIETY)" == "rash"
 CFLAGS=$(CFLAGSCOMMONPRE) $(CFRASH) $(CFLAGSCOMMONPOST)
@@ -82,6 +93,7 @@ FMTTESTOBJ0 = $(FMTTEST:<=w3i3mv\rash\)
 FMTSCHEMEOBJ0 = $(FMTSCHEME:<=w3i3mv\rash\)
 POOLNOBJ0 = $(POOLN:<=w3i3mv\rash\)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\rash\)
+TESTTHROBJ0 = $(TESTTHR:<=w3i3mv\rash\)
 
 #!ELSEIF "$(VARIETY)" == "cv"
 #CFLAGS=$(CFLAGSCOMMON) $(CFCV)
@@ -107,6 +119,8 @@ TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\rash\)
 #POOLNOBJ = $(POOLNOBJ0:>=.obj)
 #TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\cv\)
 #TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
+#TESTTHROBJ0 = $(TESTTHR:<=w3i3mv\cv\)
+#TESTTHROBJ = $(TESTTHROBJ0:>=.obj)
 
 !ENDIF
 
@@ -126,6 +140,7 @@ FMTTESTOBJ = $(FMTTESTOBJ0:>=.obj)
 FMTSCHEMEOBJ = $(FMTSCHEMEOBJ0:>=.obj)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
+TESTTHROBJ = $(TESTTHROBJ0:>=.obj)
 
 
 !INCLUDE commpost.nmk

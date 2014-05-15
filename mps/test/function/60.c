@@ -68,11 +68,11 @@ static void test(void)
   mps_ap_create(&ap2, poolawl2, mps_rank_exact()),
   "create ap");
 
- for (j=1; j<100; j++)
+ for (j=1; j<=10; j++)
  {
-  comment("%i of 100.", j);
+  comment("%i of 10.", j);
 
-  for (i=1; i<10000; i++)
+  for (i=1; i<=1000; i++)
   {
   UC;
    a = allocone(ap1, 100, 1);
@@ -85,6 +85,7 @@ static void test(void)
  DMC;
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(ap1);
  mps_ap_destroy(ap2);
  comment("Destroyed aps.");

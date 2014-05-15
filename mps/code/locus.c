@@ -81,6 +81,7 @@ void SegPrefExpress(SegPref pref, SegPrefKind kind, void *p)
 
 /* GenDescCheck -- check a GenDesc */
 
+ATTRIBUTE_UNUSED
 static Bool GenDescCheck(GenDesc gen)
 {
   CHECKS(GenDesc, gen);
@@ -210,6 +211,7 @@ void ChainDestroy(Chain chain)
   size_t i;
 
   AVERT(Chain, chain);
+  AVER(chain->activeTraces == TraceSetEMPTY);
 
   arena = chain->arena;
   genCount = chain->genCount;

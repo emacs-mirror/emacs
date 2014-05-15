@@ -250,6 +250,7 @@ static void *test(void *arg, size_t s)
                  (ulongest_t)object_count);
   }
 
+  mps_arena_park(arena);
   mps_ap_destroy(ap);
   mps_root_destroy(mps_root);
   mps_pool_destroy(amc);

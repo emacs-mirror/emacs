@@ -83,6 +83,7 @@ static void test(void)
     comment("%d of 1000.", i);
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(apawl);
  mps_ap_destroy(apamc);
  comment("Destroyed aps.");
