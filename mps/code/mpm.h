@@ -222,6 +222,9 @@ extern Res PoolAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr);
 extern void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
                      void *v, size_t s);
 extern void PoolFreeWalk(Pool pool, FreeBlockStepMethod f, void *p);
+extern Size PoolTotalSize(Pool pool);
+extern Size PoolFreeSize(Pool pool);
+
 extern Res PoolTrivInit(Pool pool, ArgList arg);
 extern void PoolTrivFinish(Pool pool);
 extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size,
@@ -275,6 +278,7 @@ extern void PoolNoWalk(Pool pool, Seg seg, FormattedObjectsStepMethod step,
 extern void PoolTrivFreeWalk(Pool pool, FreeBlockStepMethod f, void *p);
 extern PoolDebugMixin PoolNoDebugMixin(Pool pool);
 extern BufferClass PoolNoBufferClass(void);
+extern Size PoolNoSize(Pool pool);
 
 #define ClassOfPool(pool) ((pool)->class)
 #define SuperclassOfPool(pool) \

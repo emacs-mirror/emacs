@@ -72,6 +72,8 @@ Bool PoolClassCheck(PoolClass class)
   CHECKL(FUNCHECK(class->bufferClass));
   CHECKL(FUNCHECK(class->describe));
   CHECKL(FUNCHECK(class->debugMixin));
+  CHECKL(FUNCHECK(class->totalSize));
+  CHECKL(FUNCHECK(class->freeSize));
   CHECKS(PoolClass, class);
   return TRUE;
 }
@@ -518,6 +520,26 @@ void PoolFreeWalk(Pool pool, FreeBlockStepMethod f, void *p)
   /* p is arbitrary, hence can't be checked. */
 
   (*pool->class->freewalk)(pool, f, p);
+}
+
+
+/* PoolTotalSize -- return total memory allocated from arena */
+
+Size PoolTotalSize(Pool pool)
+{
+  AVERT(Pool, pool);
+
+  return (*pool->class->totalSize)(pool);
+}
+
+
+/* PoolFreeSize -- return free memory (unused by client program) */
+
+Size PoolFreeSize(Pool pool)
+{
+  AVERT(Pool, pool);
+
+  return (*pool->class->freeSize)(pool);
 }
 
 

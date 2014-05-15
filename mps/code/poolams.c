@@ -1658,6 +1658,34 @@ static void AMSFreeWalk(Pool pool, FreeBlockStepMethod f, void *p)
 }
 
 
+/* AMSTotalSize -- total memory allocated from the arena */
+
+static Size AMSTotalSize(Pool pool)
+{
+  AMS ams;
+
+  AVERT(Pool, pool);
+  ams = Pool2AMS(pool);
+  AVERT(AMS, ams);
+
+  return ams->pgen.totalSize;
+}
+
+
+/* AMSFreeSize -- free memory (unused by client program) */
+
+static Size AMSFreeSize(Pool pool)
+{
+  AMS ams;
+
+  AVERT(Pool, pool);
+  ams = Pool2AMS(pool);
+  AVERT(AMS, ams);
+
+  return ams->pgen.freeSize;
+}
+
+
 /* AMSDescribe -- the pool class description method
  *
  * Iterates over the segments, describing all of them.
@@ -1729,6 +1757,8 @@ DEFINE_CLASS(AMSPoolClass, this)
   this->reclaim = AMSReclaim;
   this->walk = PoolNoWalk; /* TODO: job003738 */
   this->freewalk = AMSFreeWalk;
+  this->totalSize = AMSTotalSize;
+  this->freeSize = AMSFreeSize;
   this->describe = AMSDescribe;
   AVERT(PoolClass, this);
 }

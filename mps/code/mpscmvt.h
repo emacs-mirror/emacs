@@ -34,10 +34,12 @@ extern const struct mps_key_s _mps_key_mvt_frag_limit;
  */
 extern mps_class_t mps_class_mvt(void);
 
-/* The mvt pool class supports two extensions to the pool protocol:
-   size and free_size. */
-extern size_t mps_mvt_free_size(mps_pool_t mps_pool);
-extern size_t mps_mvt_size(mps_pool_t mps_pool);
+/* The mvt pool class formerly supported two extensions to the pool
+   protocol: size and free_size. These are deprecated in favour of the
+   generic pool function. */
+
+#define mps_mvt_free_size(pool) (mps_pool_free_size(pool))
+#define mps_mvt_size(pool) (mps_pool_total_size(pool))
 
 #endif /* mpscmvt_h */
 

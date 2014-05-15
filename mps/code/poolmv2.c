@@ -40,6 +40,8 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
 static void MVTBufferEmpty(Pool pool, Buffer buffer, Addr base, Addr limit);
 static void MVTFree(Pool pool, Addr base, Size size);
 static Res MVTDescribe(Pool pool, mps_lib_FILE *stream);
+static Size MVTTotalSize(Pool pool);
+static Size MVTFreeSize(Pool pool);
 static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
                        Bool withReservoirPermit);
 
@@ -146,6 +148,8 @@ DEFINE_POOL_CLASS(MVTPoolClass, this)
   this->free = MVTFree;
   this->bufferFill = MVTBufferFill;
   this->bufferEmpty = MVTBufferEmpty;
+  this->totalSize = MVTTotalSize;
+  this->freeSize = MVTFreeSize;
   this->describe = MVTDescribe;
   AVERT(PoolClass, this);
 }
@@ -993,6 +997,34 @@ static void MVTFree(Pool pool, Addr base, Size size)
 }
 
 
+/* MVTTotalSize -- total memory allocated from the arena */
+
+static Size MVTTotalSize(Pool pool)
+{
+  MVT mvt;
+
+  AVERT(Pool, pool);
+  mvt = Pool2MVT(pool);
+  AVERT(MVT, mvt);
+
+  return mvt->size;
+}
+
+
+/* MVTFreeSize -- free memory (unused by client program) */
+
+static Size MVTFreeSize(Pool pool)
+{
+  MVT mvt;
+
+  AVERT(Pool, pool);
+  mvt = Pool2MVT(pool);
+  AVERT(MVT, mvt);
+
+  return mvt->available + mvt->unavailable;
+}
+
+
 /* MVTDescribe -- describe an MVT pool */
 
 static Res MVTDescribe(Pool pool, mps_lib_FILE *stream)
@@ -1090,44 +1122,6 @@ PoolClass PoolClassMVT(void)
 mps_class_t mps_class_mvt(void)
 {
   return (mps_class_t)(PoolClassMVT());
-}
-
-
-/* MPS Interface extensions --- should these be pool generics? */
-
-
-/* mps_mvt_size -- number of bytes committed to the pool */
-
-size_t mps_mvt_size(mps_pool_t mps_pool)
-{
-  Pool pool;
-  MVT mvt;
-
-  pool = (Pool)mps_pool;
-
-  AVERT(Pool, pool);
-  mvt = Pool2MVT(pool);
-  AVERT(MVT, mvt);
-
-  return (size_t)mvt->size;
-}
-
-
-/* mps_mvt_free_size -- number of bytes comitted to the pool that are
- * available for allocation
- */
-size_t mps_mvt_free_size(mps_pool_t mps_pool)
-{
-  Pool pool;
-  MVT mvt;
-
-  pool = (Pool)mps_pool;
-
-  AVERT(Pool, pool);
-  mvt = Pool2MVT(pool);
-  AVERT(MVT, mvt);
-
-  return (size_t)mvt->available;
 }
 
 

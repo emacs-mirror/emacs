@@ -797,6 +797,34 @@ static void LOReclaim(Pool pool, Trace trace, Seg seg)
 }
 
 
+/* LOTotalSize -- total memory allocated from the arena */
+
+static Size LOTotalSize(Pool pool)
+{
+  LO lo;
+
+  AVERT(Pool, pool);
+  lo = PoolPoolLO(pool);
+  AVERT(LO, lo);
+
+  return lo->pgen.totalSize;
+}
+
+
+/* LOFreeSize -- free memory (unused by client program) */
+
+static Size LOFreeSize(Pool pool)
+{
+  LO lo;
+
+  AVERT(Pool, pool);
+  lo = PoolPoolLO(pool);
+  AVERT(LO, lo);
+
+  return lo->pgen.freeSize;
+}
+
+
 /* LOPoolClass -- the class definition */
 
 DEFINE_POOL_CLASS(LOPoolClass, this)
@@ -817,6 +845,8 @@ DEFINE_POOL_CLASS(LOPoolClass, this)
   this->fixEmergency = LOFix;
   this->reclaim = LOReclaim;
   this->walk = LOWalk;
+  this->totalSize = LOTotalSize;
+  this->freeSize = LOFreeSize;
   AVERT(PoolClass, this);
 }
 

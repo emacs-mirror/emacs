@@ -81,6 +81,8 @@ typedef struct mps_class_s {
   PoolBufferClassMethod bufferClass; /* default BufferClass of pool */
   PoolDescribeMethod describe;  /* describe the contents of the pool */
   PoolDebugMixinMethod debugMixin; /* find the debug mixin, if any */
+  PoolSizeMethod totalSize;     /* total memory allocated from arena */
+  PoolSizeMethod freeSize;      /* free memory (unused by client program) */
   Bool labelled;                /* whether it has been EventLabelled */
   Sig sig;                      /* .class.end-sig */
 } PoolClassStruct;
@@ -136,6 +138,8 @@ typedef struct MFSStruct {      /* MFS outer structure */
   Bool extendSelf;              /* whether to allocate tracts */
   Size unitSize;                /* rounded for management purposes */
   struct MFSHeaderStruct *freeList; /* head of the free list */
+  Size total;                   /* total size allocated from arena */
+  Size free;                    /* free space in pool */
   Tract tractList;              /* the first tract */
   Sig sig;                      /* <design/sig/> */
 } MFSStruct;
@@ -158,7 +162,7 @@ typedef struct MVStruct {       /* MV pool outer structure */
   Size extendBy;                /* segment size to extend pool by */
   Size avgSize;                 /* client estimate of allocation size */
   Size maxSize;                 /* client estimate of maximum size */
-  Size space;                   /* total free space in pool */
+  Size free;                    /* free space in pool */
   Size lost;                    /* <design/poolmv/#lost> */
   RingStruct spans;             /* span chain */
   Sig sig;                      /* <design/sig/> */
