@@ -44,9 +44,6 @@ BufferClass. This is appropriate since these buffers don't attach to
 segments, and hence don't constrain buffered regions to lie within
 segment boundaries.
 
-_`.over.segments`: The pool uses the simplest segment class
-(SegClass). There's no need for anything more complex.
-
 
 Methods
 -------
@@ -89,13 +86,9 @@ _`.method.init.epdr`: To simulate the EPDR pool, specify ``extendBy``,
 _`.method.init.other`: The performance characteristics of other
 combinations are unknown.
 
-_`.method.finish`: The ``PoolFinish()`` method,
-
 _`.method.alloc`: ``PoolAlloc()`` and ``PoolFree()`` methods are
 supported, implementing the policy set by the pool params (see
 `.method.init`_).
-
-_`.method.describe`: The usual describe method.
 
 _`.method.buffer`: The buffer methods implement a worst-fit fill
 strategy.
@@ -119,23 +112,29 @@ the pool class, to be used in pool creation.
 Implementation
 --------------
 
+_`.impl.alloc_list`: The pool stores the address ranges that it has
+acquired from the arena in a CBS (see design.mps.cbs_).
+
 _`.impl.free-list`: The pool stores its free list in a CBS (see
-//gdr-peewit/info.ravenbrook.com/project/mps/branch/2013-05-17/emergency/design/poolmvff.txt
-`design.mps.cbs <cbs/>`_), failing over in emergencies to a Freelist
-(see design.mps.freelist) when the CBS cannot allocate new control
+design.mps.cbs_), failing over in emergencies to a Freelist (see
+design.mps.freelist_) when the CBS cannot allocate new control
 structures. This is the reason for the alignment restriction above.
+
+.. _design.mps.cbs: cbs
+.. _design.mps.freelist: freelist
 
 
 Details
 -------
 
-_`.design.seg-size`: When adding a segment, we use extendBy as the
-segment size unless the object won't fit, in which case we use the
-object size (in both cases we align up).
+_`.design.acquire-size`: When acquiring memory from the arena, we use
+``extendBy`` as the unit of allocation unless the object won't fit, in
+which case we use the object size (in both cases we align up to the
+arena alignment).
 
-_`.design.seg-fail`: If allocating a segment fails, we try again with
-a segment size just large enough for the object we're allocating. This
-is in response to request.mps.170186_.
+_`.design.acquire-fail`: If allocating ``extendBy``, we try again with
+an aligned size just large enough for the object we're allocating.
+This is in response to request.mps.170186_.
 
 .. _request.mps.170186: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/mps/170186
 
@@ -159,6 +158,9 @@ Document History
 
 - 2013-06-04 GDR_ The CBS module no longer maintains its own emergency
   list, so MVFF handles the fail-over from its CBS to a Freelist.
+
+- 2014-04-15 GDR_ The address ranges acquired from the arena are now
+  stored in a CBS; segments are no longer used for this purpose.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
