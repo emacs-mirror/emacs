@@ -276,6 +276,7 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
   /* Detach the first free unit from the free list and return its address. */
 
   mfs->freeList = f->next;
+  AVER(mfs->free >= mfs->unitSize);
   mfs->free -= mfs->unitSize;
 
   *pReturn = (Addr)f;
