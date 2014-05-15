@@ -5311,14 +5311,14 @@ Compressed files like .gz and .bz2 are decompressed."
 		    (text-property-any (point-min) (point) 'gnus-data handle)))
 	    (setq handle (get-text-property b 'gnus-data))
 	    b))
-	 contents charset coding-system)
+	 start contents charset coding-system)
     (when handle
       (when (= b (prog1
 		     btn
-		   (setq btn (previous-single-property-change
-			      (or (next-single-property-change btn 'gnus-data)
-				  (point-max))
-			      'gnus-data))))
+		   (setq start (next-single-property-change btn 'gnus-data
+							    nil (point-max))
+			 btn (previous-single-property-change start
+							      'gnus-data))))
 	(setq b btn))
       (if (and (not arg) (mm-handle-undisplayer handle))
 	  (mm-remove-part handle)
@@ -5345,25 +5345,29 @@ Compressed files like .gz and .bz2 are decompressed."
 		    (mm-read-coding-system "Charset: "))))
 	 ((mm-handle-undisplayer handle)
 	  (mm-remove-part handle)))
-	(forward-line 1)
+	(goto-char start)
 	(mm-display-inline handle))
       ;; Toggle the button appearance between `[button]...' and `[button]'.
       (goto-char btn)
-      (gnus-insert-mime-button handle (get-text-property btn 'gnus-part)
-			       (list (mm-handle-displayed-p handle)))
-      (if (featurep 'emacs)
-	  (delete-region
-	   (point)
-	   (or (text-property-any (point) (point-max) 'gnus-data nil)
-	       (point-max)))
-	(let* ((end (text-property-any (point) (point-max) 'gnus-data nil))
-	       (annots (annotations-at end)))
-	  (delete-region (point)
-			 (if end
-			     (if annots (1+ end) end)
-			   (point-max)))
-	  (dolist (annot annots)
-	    (set-extent-endpoints annot (point) (point)))))
+      (let ((displayed-p (mm-handle-displayed-p handle)))
+	(gnus-insert-mime-button handle (get-text-property btn 'gnus-part)
+				 (list displayed-p))
+	(if (featurep 'emacs)
+	    (delete-region
+	     (point)
+	     (next-single-property-change (point) 'gnus-data nil (point-max)))
+	  (let* ((end (next-single-property-change (point) 'gnus-data))
+		 (annots (annotations-at (or end (point-max)))))
+	    (delete-region (point)
+			   (if end
+			       (if annots (1+ end) end)
+			     (point-max)))
+	    (dolist (annot annots)
+	      (set-extent-endpoints annot (point) (point)))))
+	(unless (or displayed-p (eolp))
+	  ;; Add extra newline.
+	  (insert (propertize (buffer-substring (1- (point)) (point))
+			      'gnus-undeletable t))))
       (unless (search-backward "\n\n" nil t)
 	;; We're in the article header.
 	(delete-char -1)
@@ -5686,17 +5690,16 @@ all parts."
 	     (with-current-buffer gnus-summary-buffer
 	       gnus-newsgroup-ignored-charsets)
 	   nil))
-	retval)
+	start retval)
     (unwind-protect
 	(progn
 	  (let ((win (gnus-get-buffer-window (current-buffer) t)))
 	    (when win
 	      (select-window win)
 	      (goto-char point)))
-	  (setq point (previous-single-property-change
-		       (or (next-single-property-change point 'gnus-data)
-			   (point-max))
-		       'gnus-data))
+	  (setq start (next-single-property-change point 'gnus-data
+						   nil (point-max))
+		point (previous-single-property-change start 'gnus-data))
 	  (if (mm-handle-displayed-p handle)
 	      ;; This will remove the part.
 	      (setq retval (mm-display-part handle))
@@ -5708,7 +5711,7 @@ all parts."
 			       (setq retval (mm-display-part handle)))
 			      (unless (zerop (buffer-size))
 				(buffer-string))))))
-	      (forward-line)
+	      (goto-char start)
 	      (cond ((stringp part)
 		     (save-restriction
 		       (narrow-to-region (point)
@@ -5729,20 +5732,24 @@ all parts."
 		     (mm-display-inline handle))))))
       (goto-char point)
       ;; Toggle the button appearance between `[button]...' and `[button]'.
-      (gnus-insert-mime-button handle id (list (mm-handle-displayed-p handle)))
-      (if (featurep 'emacs)
-	  (delete-region
-	   (point)
-	   (or (text-property-any (point) (point-max) 'gnus-data nil)
-	       (point-max)))
-	(let* ((end (text-property-any (point) (point-max) 'gnus-data nil))
-	       (annots (annotations-at end)))
-	  (delete-region (point)
-			 (if end
-			     (if annots (1+ end) end)
-			   (point-max)))
-	  (dolist (annot annots)
-	    (set-extent-endpoints annot (point) (point)))))
+      (let ((displayed-p (mm-handle-displayed-p handle)))
+	(gnus-insert-mime-button handle id (list displayed-p))
+	(if (featurep 'emacs)
+	    (delete-region
+	     (point)
+	     (next-single-property-change (point) 'gnus-data nil (point-max)))
+	  (let* ((end (next-single-property-change (point) 'gnus-data))
+		 (annots (annotations-at (or end (point-max)))))
+	    (delete-region (point)
+			   (if end
+			       (if annots (1+ end) end)
+			     (point-max)))
+	    (dolist (annot annots)
+	      (set-extent-endpoints annot (point) (point)))))
+	(unless (or displayed-p (eolp))
+	  ;; Add extra newline.
+	  (insert (propertize (buffer-substring (1- (point)) (point))
+			      'gnus-undeletable t))))
       (unless (search-backward "\n\n" nil t)
 	;; We're in the article header.
 	(delete-char -1)

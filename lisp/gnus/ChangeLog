@@ -1,3 +1,8 @@
+2014-05-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-inline-part, gnus-mm-display-part): Don't
+	delete next part button; keep spacing between buttons.
+
 2014-05-14  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-mime-inline-part, gnus-mm-display-part):
