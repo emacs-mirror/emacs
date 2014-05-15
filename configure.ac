@@ -3070,7 +3070,9 @@ AC_SUBST(LIBZ)
 HAVE_PNG=no
 LIBPNG=
 PNG_CFLAGS=
-if test "${with_png}" != no; then
+if test "${NS_IMPL_COCOA}" = yes; then
+  : # Nothing to do
+elif test "${with_png}" != no; then
   # mingw32 loads the library dynamically.
   if test "$opsys" = mingw32; then
     AC_CHECK_HEADER([png.h], [HAVE_PNG=yes])
