@@ -217,6 +217,49 @@ y @result{} [foo (69 2)]
 @end example
 @end defun
 
+@defun reverse seq
+@cindex string reverse
+@cindex list reverse
+@cindex vector reverse
+@cindex sequence reverse
+This function creates a new sequence whose elements are the elements
+of @var{seq}, but in reverse order.  The original argument @var{seq}
+is @emph{not} altered.   Note that char-table cannot be reversed.
+
+@example
+@group
+(setq x '(1 2 3 4))
+     @result{} (1 2 3 4)
+@end group
+@group
+(reverse x)
+     @result{} (4 3 2 1)
+x
+     @result{} (1 2 3 4)
+@end group
+@group
+(setq x [1 2 3 4])
+     @result{} [1 2 3 4]
+@end group
+@group
+(reverse x)
+     @result{} [4 3 2 1]
+x
+     @result{} [1 2 3 4]
+@end group
+@group
+(setq x "xyzzy")
+     @result{} "xyzzy"
+@end group
+@group
+(reverse x)
+     @result{} "yzzyx"
+x
+     @result{} "xyzzy"
+@end group
+@end example
+@end defun
+
 @node Arrays
 @section Arrays
 @cindex array

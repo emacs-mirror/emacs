@@ -1719,18 +1719,70 @@ Return the reversed list.  Expects a properly nil-terminated list.  */)
 }
 
 DEFUN ("reverse", Freverse, Sreverse, 1, 1, 0,
-       doc: /* Reverse LIST, copying.  Return the reversed list.
+       doc: /* Return the reversed copy of list, vector, or string SEQ.
 See also the function `nreverse', which is used more often.  */)
-  (Lisp_Object list)
+  (Lisp_Object seq)
 {
   Lisp_Object new;
 
-  for (new = Qnil; CONSP (list); list = XCDR (list))
+  if (NILP (seq))
+    return Qnil;
+  else if (CONSP (seq))
     {
-      QUIT;
-      new = Fcons (XCAR (list), new);
+      for (new = Qnil; CONSP (seq); seq = XCDR (seq))
+	{
+	  QUIT;
+	  new = Fcons (XCAR (seq), new);
+	}
+      CHECK_LIST_END (seq, seq);
     }
-  CHECK_LIST_END (list, list);
+  else if (VECTORP (seq))
+    {
+      ptrdiff_t i, size = ASIZE (seq);
+      
+      new = make_uninit_vector (size);
+      for (i = 0; i < size; i++)
+	ASET (new, i, AREF (seq, size - i - 1));
+    }
+  else if (BOOL_VECTOR_P (seq))
+    {
+      ptrdiff_t i;
+      EMACS_INT nbits = bool_vector_size (seq);
+
+      new = make_uninit_bool_vector (nbits);
+      for (i = 0; i < nbits; i++)
+	bool_vector_set (new, i, bool_vector_bitref (seq, nbits - i - 1));
+    }
+  else if (STRINGP (seq))
+    {
+      ptrdiff_t size = SCHARS (seq), bytes = SBYTES (seq);
+      
+      if (size == bytes)
+	{
+	  ptrdiff_t i;
+
+	  new = make_uninit_string (size);
+	  for (i = 0; i < size; i++)
+	    SSET (new, i, SREF (seq, size - i - 1));
+	}
+      else
+	{
+	  unsigned char *p, *q;
+
+	  new = make_uninit_multibyte_string (size, bytes);
+	  p = SDATA (seq), q = SDATA (new) + bytes;
+	  while (q > SDATA (new))
+	    {
+	      int ch, len;
+	      
+	      ch = STRING_CHAR_AND_LENGTH (p, len);
+	      p += len, q -= len;
+	      CHAR_STRING (ch, q);
+	    }
+	}
+    }
+  else
+    wrong_type_argument (Qsequencep, seq);
   return new;
 }
 

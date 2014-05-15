@@ -601,25 +601,6 @@ not a list, the sequence's elements do not become elements of the
 resulting list.  Instead, the sequence becomes the final @sc{cdr}, like
 any other non-list final argument.
 
-@defun reverse list
-This function creates a new list whose elements are the elements of
-@var{list}, but in reverse order.  The original argument @var{list} is
-@emph{not} altered.
-
-@example
-@group
-(setq x '(1 2 3 4))
-     @result{} (1 2 3 4)
-@end group
-@group
-(reverse x)
-     @result{} (4 3 2 1)
-x
-     @result{} (1 2 3 4)
-@end group
-@end example
-@end defun
-
 @defun copy-tree tree &optional vecp
 This function returns a copy of the tree @code{tree}.  If @var{tree} is a
 cons cell, this makes a new cons cell with the same @sc{car} and
