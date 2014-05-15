@@ -37,12 +37,12 @@ install-make-build: make-install-dirs build-via-make
 	$(INSTALL_PROGRAM) $(addprefix code/$(MPS_TARGET_NAME)/hot/,$(EXTRA_TARGETS)) $(prefix)/bin
 
 build-via-xcode:
-	$(XCODEBUILD) -config Release
 	$(XCODEBUILD) -config Debug
+	$(XCODEBUILD) -config Release
 
 clean-xcode-build:
-	$(XCODEBUILD) -config Release clean
 	$(XCODEBUILD) -config Debug   clean
+	$(XCODEBUILD) -config Release clean
 
 install-xcode-build: make-install-dirs build-via-xcode
 	$(INSTALL_DATA) code/mps*.h $(prefix)/include/
@@ -76,7 +76,7 @@ test-make-build:
 	$(MAKE) -C code -f anan$(MPS_BUILD_NAME).gmk VARIETY=cool CFLAGS="-DCONFIG_POLL_NONE" clean testpoll
 
 test-xcode-build:
-	$(XCODEBUILD) -config Release -target testci
 	$(XCODEBUILD) -config Debug   -target testci
+	$(XCODEBUILD) -config Release -target testci
 
 test: @TEST_TARGET@

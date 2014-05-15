@@ -604,7 +604,52 @@ typedef struct GlobalsStruct {
 } GlobalsStruct;
 
 
+/* LandClassStruct -- land class structure
+ *
+ * See <design/land/>.
+ */
+
+#define LandClassSig    ((Sig)0x5197A4DC) /* SIGnature LAND Class */
+
+typedef struct LandClassStruct {
+  ProtocolClassStruct protocol;
+  const char *name;             /* class name string */
+  size_t size;                  /* size of outer structure */
+  LandSizeMethod sizeMethod;    /* total size of ranges in land */
+  LandInitMethod init;          /* initialize the land */
+  LandFinishMethod finish;      /* finish the land */
+  LandInsertMethod insert;      /* insert a range into the land */
+  LandDeleteMethod delete;      /* delete a range from the land */
+  LandIterateMethod iterate;    /* iterate over ranges in the land */
+  LandFindMethod findFirst;     /* find first range of given size */
+  LandFindMethod findLast;      /* find last range of given size */
+  LandFindMethod findLargest;   /* find largest range */
+  LandFindInZonesMethod findInZones; /* find first range of given size in zone set */
+  LandDescribeMethod describe;  /* describe the land */
+  Sig sig;                      /* .class.end-sig */
+} LandClassStruct;
+
+
+/* LandStruct -- generic land structure
+ *
+ * See <design/land/>, <code/land.c>
+ */
+
+#define LandSig ((Sig)0x5197A4D9) /* SIGnature LAND */
+
+typedef struct LandStruct {
+  Sig sig;                      /* <design/sig/> */
+  LandClass class;              /* land class structure */
+  Arena arena;                  /* owning arena */
+  Align alignment;              /* alignment of addresses */
+  Bool inLand;                  /* prevent reentrance */
+} LandStruct;
+
+
 /* CBSStruct -- coalescing block structure
+ *
+ * CBS is a Land implementation that maintains a collection of
+ * disjoint ranges in a splay tree.
  *
  * See <code/cbs.c>.
  */
@@ -612,19 +657,56 @@ typedef struct GlobalsStruct {
 #define CBSSig ((Sig)0x519CB599) /* SIGnature CBS */
 
 typedef struct CBSStruct {
+  LandStruct landStruct;        /* superclass fields come first */
   SplayTreeStruct splayTreeStruct;
   STATISTIC_DECL(Count treeSize);
-  Arena arena;
-  Pool blockPool;
-  Align alignment;
-  Bool fastFind;                /* maintain and use size property? */
-  Bool zoned;                   /* maintain and use zone property? */
-  Bool inCBS;                   /* prevent reentrance */
+  Pool blockPool;               /* pool that manages blocks */
+  Size blockStructSize;         /* size of block structure */
   Bool ownPool;                 /* did we create blockPool? */
+  Size size;                    /* total size of ranges in CBS */
   /* meters for sizes of search structures at each op */
   METER_DECL(treeSearch);
-  Sig sig; /* sig at end because embeded */
+  Sig sig;                      /* .class.end-sig */
 } CBSStruct;
+
+
+/* FailoverStruct -- fail over from one land to another
+ *
+ * Failover is a Land implementation that combines two other Lands,
+ * using primary until it fails, and then using secondary.
+ *
+ * See <code/failover.c>.
+ */
+
+#define FailoverSig ((Sig)0x519FA170) /* SIGnature FAILOver */
+
+typedef struct FailoverStruct {
+  LandStruct landStruct;        /* superclass fields come first */
+  Land primary;                 /* use this land normally */
+  Land secondary;               /* but use this one if primary fails */
+  Sig sig;                      /* .class.end-sig */
+} FailoverStruct;
+
+
+/* FreelistStruct -- address-ordered freelist
+ *
+ * Freelist is a subclass of Land that maintains a collection of
+ * disjoint ranges in an address-ordered freelist.
+ *
+ * See <code/freelist.c>.
+ */
+
+#define FreelistSig ((Sig)0x519F6331) /* SIGnature FREEL */
+
+typedef union FreelistBlockUnion *FreelistBlock;
+
+typedef struct FreelistStruct {
+  LandStruct landStruct;        /* superclass fields come first */
+  FreelistBlock list;           /* first block in list or NULL if empty */
+  Count listSize;               /* number of blocks in list */
+  Size size;                    /* total size of ranges in list */
+  Sig sig;                      /* .class.end-sig */
+} FreelistStruct;
 
 
 /* ArenaStruct -- generic arena
@@ -661,9 +743,9 @@ typedef struct mps_arena_s {
   Serial chunkSerial;           /* next chunk number */
   ChunkCacheEntryStruct chunkCache; /* just one entry */
   
-  Bool hasFreeCBS;              /* Is freeCBS available? */
+  Bool hasFreeLand;              /* Is freeLand available? */
   MFSStruct freeCBSBlockPoolStruct;
-  CBSStruct freeCBSStruct;
+  CBSStruct freeLandStruct;
   ZoneSet freeZones;            /* zones not yet allocated */
   Bool zoned;                   /* use zoned allocation? */
 

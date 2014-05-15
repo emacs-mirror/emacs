@@ -164,12 +164,54 @@ FMTHETST = fmthe.c fmtdy.c fmtno.c fmtdytst.c
 FMTSCM = fmtscheme.c
 PLINTH = mpsliban.c mpsioan.c
 EVENTPROC = eventcnv.c table.c
-MPMCOMMON = abq.c arena.c arenacl.c arenavm.c arg.c boot.c bt.c         \
-    buffer.c cbs.c dbgpool.c dbgpooli.c event.c format.c freelist.c     \
-    global.c ld.c locus.c message.c meter.c mpm.c mpsi.c nailboard.c    \
-    pool.c poolabs.c poolmfs.c poolmrg.c poolmv.c protocol.c range.c    \
-    ref.c reserv.c ring.c root.c sa.c sac.c seg.c shield.c splay.c ss.c      \
-    table.c trace.c traceanc.c tract.c tree.c walk.c
+MPMCOMMON = \
+    abq.c \
+    arena.c \
+    arenacl.c \
+    arenavm.c \
+    arg.c \
+    boot.c \
+    bt.c \
+    buffer.c \
+    cbs.c \
+    dbgpool.c \
+    dbgpooli.c \
+    event.c \
+    failover.c \
+    format.c \
+    freelist.c \
+    global.c \
+    land.c \
+    ld.c \
+    locus.c \
+    message.c \
+    meter.c \
+    mpm.c \
+    mpsi.c \
+    nailboard.c \
+    pool.c \
+    poolabs.c \
+    poolmfs.c \
+    poolmrg.c \
+    poolmv.c \
+    protocol.c \
+    range.c \
+    ref.c \
+    reserv.c \
+    ring.c \
+    root.c \
+    sa.c \
+    sac.c \
+    seg.c \
+    shield.c \
+    splay.c \
+    ss.c \
+    table.c \
+    trace.c \
+    traceanc.c \
+    tract.c \
+    tree.c \
+    walk.c
 MPM = $(MPMCOMMON) $(MPMPF)
 
 
@@ -246,11 +288,11 @@ TEST_TARGETS=\
     djbench \
     exposet0 \
     expt825 \
-    fbmtest \
     finalcv \
     finaltest \
     fotest \
     gcbench \
+    landtest \
     locbwcss \
     lockcov \
     lockut \
@@ -317,17 +359,25 @@ clean: phony
 	$(ECHO) "$(PFM): $@"
 	rm -rf "$(PFM)"
 
-# "target" builds some varieties of the target named in the TARGET macro.
+# "target" builds some varieties of the target named in the TARGET
+# macro.
+#
 # %%VARIETY: When adding a new target, optionally add a recursive make call
 # for the new variety, if it should be built by default.  It probably
 # shouldn't without a product design decision and an update of the readme
 # and build manual!
+#
+# Note that we build VARIETY=cool before VARIETY=hot because
+# the former doesn't need to optimize and so detects errors more
+# quickly; and because the former uses file-at-a-time compilation and
+# so can pick up where it left off instead of having to start from the
+# beginning of mps.c
 
 ifdef TARGET
 ifndef VARIETY
 target: phony
-	$(MAKE) -f $(PFM).gmk VARIETY=hot variety
 	$(MAKE) -f $(PFM).gmk VARIETY=cool variety
+	$(MAKE) -f $(PFM).gmk VARIETY=hot variety
 endif
 endif
 
@@ -431,9 +481,6 @@ $(PFM)/$(VARIETY)/exposet0: $(PFM)/$(VARIETY)/exposet0.o \
 $(PFM)/$(VARIETY)/expt825: $(PFM)/$(VARIETY)/expt825.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/fbmtest: $(PFM)/$(VARIETY)/fbmtest.o \
-	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
-
 $(PFM)/$(VARIETY)/finalcv: $(PFM)/$(VARIETY)/finalcv.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
@@ -445,6 +492,9 @@ $(PFM)/$(VARIETY)/fotest: $(PFM)/$(VARIETY)/fotest.o \
 
 $(PFM)/$(VARIETY)/gcbench: $(PFM)/$(VARIETY)/gcbench.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/landtest: $(PFM)/$(VARIETY)/landtest.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/locbwcss: $(PFM)/$(VARIETY)/locbwcss.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
