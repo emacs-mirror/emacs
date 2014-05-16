@@ -1,3 +1,10 @@
+2014-05-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-init-bus, dbus-call-method)
+	(dbus-call-method-asynchronously, dbus-send-signal)
+	(dbus-method-return-internal, dbus-method-error-internal)
+	Check, whether Emacs has been compiled with D-Bus support.  (Bug#17508)
+
 2014-05-14  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
 
 	* emacs-lisp/eieio-opt.el (eieio-help-class): Correctly deal with
