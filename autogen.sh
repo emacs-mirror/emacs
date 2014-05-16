@@ -32,7 +32,7 @@
 
 ## Tools we need:
 ## Note that we respect the values of AUTOCONF etc, like autoreconf does.
-progs="autoconf automake pkg-config"
+progs="autoconf automake"
 
 ## Minimum versions we need:
 autoconf_min=`sed -n 's/^ *AC_PREREQ(\([0-9\.]*\)).*/\1/p' configure.ac`
@@ -41,7 +41,6 @@ autoconf_min=`sed -n 's/^ *AC_PREREQ(\([0-9\.]*\)).*/\1/p' configure.ac`
 ## AM_INIT_AUTOMAKE call.
 automake_min=`sed -n 's/^ *AM_INIT_AUTOMAKE(\([0-9\.]*\)).*/\1/p' configure.ac`
 
-pkg_config_min=`sed -n 's/^ *PKG_PROG_PKG_CONFIG(\([0-9\.]*\)).*/\1/p' configure.ac`
 
 ## $1 = program, eg "autoconf".
 ## Echo the version string, eg "2.59".
@@ -205,97 +204,8 @@ EOF
     exit 1
 fi
 
-# If automake is installed in a nonstandard location, find the standard
-# location if possible and append it to ACLOCAL_PATH.  That way, it will
-# find the pkg.m4 that is installed in the standard location.
-echo "Checking for pkg.m4..."
-AUTORECONF_ENV=
-env_space=
-ac_dir=`aclocal --print-ac-dir` || {
-    cat <<EOF
-There was a problem running 'aclocal --print-ac-dir'.
-The aclocal program is part of automake.
-Please check your automake installation.
-EOF
-
-    exit 1
-}
-
-test -n "$ac_dir" && test -r "$ac_dir/pkg.m4" || {
-
-  # Maybe ACLOCAL_PATH is already set-up.
-  if test -n "$ACLOCAL_PATH"; then
-    oIFS=$IFS
-    IFS=:
-    for dir in $ACLOCAL_PATH; do
-      if test -r "$dir/pkg.m4"; then
-  	AUTORECONF_ENV="ACLOCAL_PATH='$ACLOCAL_PATH'"
-        env_space=' '
-  	break
-      fi
-    done
-    IFS=$oIFS
-  fi
-
-  if test -z "$AUTORECONF_ENV"; then
-    oIFS=$IFS
-    IFS=:
-    before_first_aclocal=true
-    for dir in $PATH; do
-      if test -x "$dir/aclocal"; then
-        if $before_first_aclocal; then
-          before_first_aclocal=false
-        elif ac_dir=`"$dir/aclocal" --print-ac-dir` && test -r "$ac_dir/pkg.m4"
-        then
-          case $ACLOCAL_PATH in
-            '') ACLOCAL_PATH=$ac_dir;;
-            ?*) ACLOCAL_PATH=$ACLOCAL_PATH:$ac_dir;;
-          esac
-          export ACLOCAL_PATH
-          AUTORECONF_ENV="ACLOCAL_PATH='$ACLOCAL_PATH'"
-          env_space=' '
-          break
-        fi
-      fi
-    done
-    IFS=$oIFS
-  fi
-
-  ## OK, maybe pkg-config is in a weird place (eg on hydra).
-  if test -z "$AUTORECONF_ENV"; then
-    oIFS=$IFS
-    IFS=:
-    for dir in $PATH; do
-      if test -x "$dir/pkg-config"; then
-        ac_dir=`echo "$dir" | sed 's|bin$|share/aclocal|'`
-        if test -r "$ac_dir/pkg.m4"; then
-          case $ACLOCAL_PATH in
-            '') ACLOCAL_PATH=$ac_dir;;
-            ?*) ACLOCAL_PATH=$ACLOCAL_PATH:$ac_dir;;
-          esac
-          export ACLOCAL_PATH
-          AUTORECONF_ENV="ACLOCAL_PATH='$ACLOCAL_PATH'"
-          env_space=' '
-          break
-        fi
-      fi
-    done
-    IFS=$oIFS
-  fi
-
-  if test -z "$AUTORECONF_ENV"; then
-    cat <<EOF
-The version of aclocal that you are using cannot find the pkg.m4 file that
-pkg-config provides.  If it is installed in some unusual directory /FOO/BAR,
-set ACLOCAL_PATH='/FOO/BAR' in the environment and run this script again.
-EOF
-    exit 1
-  fi
-}
-echo ok
-
 echo 'Your system has the required tools.'
-echo "Running \"$AUTORECONF_ENV${env_space}autoreconf -fi -I m4\" ..."
+echo "Running 'autoreconf -fi -I m4' ..."
 
 
 ## Let autoreconf figure out what, if anything, needs doing.
@@ -306,7 +216,7 @@ autoreconf -fi -I m4 || exit $?
 ## cause 'make' to needlessly run 'autoheader'.
 echo timestamp > src/stamp-h.in || exit
 
-echo "You can now run \"./configure$env_space$AUTORECONF_ENV\"."
+echo "You can now run './configure'."
 
 exit 0
 

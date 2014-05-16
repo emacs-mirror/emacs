@@ -36,7 +36,7 @@ or by sticking with Emacs 24.4.
 
 ---
 ** The configure option `--with-pkg-config-prog' has been removed.
-Use the PKG_CONFIG environment variable instead if you need to.
+Use './configure PKG_CONFIG=/full/name/of/pkg-config' if you need to.
 
 
 * Startup Changes in Emacs 24.5

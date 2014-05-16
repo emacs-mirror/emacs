@@ -1,3 +1,9 @@
+2014-05-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't require pkg-config when building from repository.
+	* merge-pkg-config: New script.
+	* notes/copyright: Update for m4/*.m4, in particular m4/pkg.m4.
+
 2014-05-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* merge-gnulib: Defer to autogen.sh for ACLOCAL_PATH computation.

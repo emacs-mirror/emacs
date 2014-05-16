@@ -1,3 +1,19 @@
+2014-05-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't require pkg-config when building from repository.
+	* INSTALL: Prefer './configure FOO=BAR' to 'FOO=BAR ./configure'.
+	* INSTALL.REPO: pkg-config is no longer required to build from
+	the repository.
+	* autogen.sh: Don't check for pkg-config.
+	(progs): Remove pkg-config.
+	(pkg_config_min, AUTORECONF_ENV, env_space, ACLOCAL_PATH):
+	Remove.  All uses removed.
+	* m4/pkg.m4: New file, built by admin/merge-pkg-config.
+	* configure.ac: Remove unnecessary m4_pattern_forbid of ^PKG_ and
+	an AC_ARG_VAR of PKG_CONFIG_PATH.  pkg.m4 does that for us.
+	(EMACS_CHECK_MODULES): Remove workaround for old pkg-config bug,
+	as we use pkg.m4 from a newer pkg-config.
+
 2014-05-15  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac (LIBPNG): Do not test for libpng if NS_IMPL_COCOA.

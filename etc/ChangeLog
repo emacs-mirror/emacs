@@ -1,3 +1,10 @@
+2014-05-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't require pkg-config when building from repository.
+	* NEWS: Prefer './configure FOO=BAR' to 'FOO=BAR ./configure'.
+	* PROBLEMS (Build-time-problems): Remove pkg-config problem
+	that is no longer an issue.
+
 2014-05-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* PROBLEMS: Mention potential problems with

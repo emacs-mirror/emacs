@@ -1,0 +1,63 @@
+#! /bin/sh
+# Merge pkg-config macros into Emacs sources.
+# Typical usage:
+#
+#	admin/merge-pkg-config
+
+# Copyright 2014 Free Software Foundation, Inc.
+
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+# written by Paul Eggert
+
+{
+  # Maybe ACLOCAL_PATH is already set-up.
+  oIFS=$IFS
+  IFS=:
+  for dir in $ACLOCAL_PATH ''; do
+    test -n "$dir" && test -r "$dir/pkg.m4" && break
+  done
+  IFS=$oIFS
+
+  test -n "$dir"
+} || {
+  # Use the pkg.m4 installed where aclocal knows about it.
+  # Maybe we are running our own aclocal, which doesn't know where
+  # the standard pkg.m4 is installed, so try running all the
+  # aclocal programs in our PATH.
+  oIFS=$IFS
+  IFS=:
+  for dir in $PATH ''; do
+    if test -n "$dir" && test -x "$dir/aclocal"; then
+      dir=$("$dir/aclocal" --print-ac-dir) && test -r "$dir/pkg.m4" && break
+    fi
+  done
+  IFS=$oIFS
+
+  test -n "$dir"
+} || {
+  echo >&2 "$0: cannot find pkg.m4"
+  exit 1
+}
+
+test -d m4 || {
+  echo >&2 "$0: please run this command in the main source directory"
+  exit 1
+}
+
+echo >&2 "$0: copying $dir/pkg.m4 to m4/pkg.m4"
+
+cp $dir/pkg.m4 m4

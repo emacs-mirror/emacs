@@ -137,7 +137,10 @@ GNUstep/Emacs.base/Resources/Info-gnustep.plist
 aclocal.m4
 configure
 m4/*.m4
- - copyright FSF, with unlimited permission to copy, distribute and modify
+ - These files are copyright FSF, with unlimited permission to copy,
+   distribute and modify, so long as the copyright notice is preserved.
+   Exception: m4/pkg.m4 is copyright Scott James Remnant; it is
+   distributed under the same terms as for the rest of Emacs.
 
 lib/Makefile.in
  - copyright FSF, with MIT-like license

@@ -115,11 +115,6 @@ Windows 9X as well).
   MSYS Texinfo, after installing it as part of msys-base, invoke the
   command "mingw-get remove msys-texinfo".)
 
-  In addition, building Emacs from the development repository requires
-  pkg-config to be installed.  As the MinGW project does not offer it,
-  you will have to install it from elsewhere; see below (search for
-  "pkg-config").
-
   At this point, you should be ready to configure and build Emacs in
   its basic configuration.  Skip to the "Generating the configure
   script" section for the build instructions.  If you want to build it
@@ -179,9 +174,7 @@ Windows 9X as well).
      Available from http://sourceforge.net/projects/ezwinports/files/.
 
    . pkg-config (invoked by the configure script to look for optional
-     packages; _required_ for building from the development
-     repository, as some components of pkg-config are needed to run
-     the autoconf and aclocal scripts)
+     packages)
 
      Available from http://www.gtk.org/download/win32.php
 
@@ -243,10 +236,10 @@ Windows 9X as well).
   from which you unpack all of the MSYS packages.
 
   After installing Automake and Autoconf, make sure any of the *.m4
-  files you might have in your MinGW installation (e.g., pkg.m4 that
-  comes with pkg-config) also exist in the MSYS installation tree, in
-  the share/aclocal directory.  Those *.m4 files which exist in the
-  MinGW tree, but not in the MSYS tree should be copied there.
+  files you might have in your MinGW installation also exist in the
+  MSYS installation tree, in the share/aclocal directory.  Those *.m4
+  files which exist in the MinGW tree, but not in the MSYS tree should
+  be copied there.
 
   If/when you are confident in your MinGW/MSYS installation, and want
   to speed up the builds, we recommend installing a pre-release
@@ -310,10 +303,6 @@ Windows 9X as well).
      Checking for autoconf (need at least version 2.65)...
      ok
      Checking for automake (need at least version 1.11)...
-     ok
-     Checking for pkg-config (need at least version 0.9.0)...
-     ok
-     Checking for pkg.m4...
      ok
      Your system has the required tools, running autoreconf...
      You can now run `./configure'.

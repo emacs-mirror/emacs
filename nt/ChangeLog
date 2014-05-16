@@ -1,3 +1,8 @@
+2014-05-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't require pkg-config when building from repository.
+	* INSTALL: Remove no-longer-needed notes about pkg-config.
+
 2014-05-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* INSTALL: Update to the effect that pkg-config is now required

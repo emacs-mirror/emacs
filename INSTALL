@@ -262,9 +262,9 @@ with the mouse.  You can get fancy 3D-style scroll bars, even without
 Gtk or Motif, if you have the Xaw3d library installed (see
 "Image support libraries" above for Xaw3d availability).
 
-You can tell configure where to search for GTK by specifying
-`--with-pkg-config-prog=PATH' where PATH is the pathname to
-pkg-config.  Note that GTK version 2.6 or newer is required for Emacs.
+You can tell configure where to search for GTK by giving it the
+argument PKG_CONFIG='/full/name/of/pkg-config'.  GTK version 2.6 or
+newer is required for Emacs.
 
 Emacs will autolaunch a D-Bus session bus, when the environment
 variable DISPLAY is set, but no session bus is running.  This might be
@@ -408,10 +408,11 @@ compiler.  By default, gcc is used if available.
 Here's an example of a `configure' invocation, assuming a Bourne-like
 shell such as Bash, which uses these variables:
 
- CPPFLAGS='-I/foo/myinclude' LDFLAGS='-L/bar/mylib' \
-  CFLAGS='-O3' LIBS='-lfoo -lbar' ./configure
+  ./configure \
+    CPPFLAGS='-I/foo/myinclude' LDFLAGS='-L/bar/mylib' \
+    CFLAGS='-O3' LIBS='-lfoo -lbar'
 
-(this is all one long line).  This tells `configure' to instruct the
+(this is all one shell command).  This tells `configure' to instruct the
 preprocessor to look in the `/foo/myinclude' directory for header
 files (in addition to the standard directories), instruct the linker
 to look in `/bar/mylib' for libraries, pass the -O3 optimization
@@ -421,12 +422,11 @@ libraries in addition to the standard ones.
 For some libraries, like Gtk+, fontconfig and ALSA, `configure' uses
 pkg-config to find where those libraries are installed.
 If you want pkg-config to look in special directories, you have to set
-the environment variable PKG_CONFIG_PATH to point to the directories
-where the .pc-files for those libraries are.
-For example:
+PKG_CONFIG_PATH to point to the directories where the .pc-files for
+those libraries are.  For example:
 
- PKG_CONFIG_PATH='/usr/local/alsa/lib/pkgconfig:/opt/gtk+-2.8/lib/pkgconfig' \
-   ./configure
+  ./configure \
+    PKG_CONFIG_PATH='/usr/local/alsa/lib/pkgconfig:/opt/gtk+-2.8/lib/pkgconfig'
 
 The work of `configure' can be done by editing various files in the
 distribution, but using `configure' is easier.  See the section called
