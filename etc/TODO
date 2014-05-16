@@ -309,6 +309,12 @@ familiar with GNUstep and Objective C.
 
 * Other features we would like:
 
+** A more modern printing interface.  One that pops up a dialog that lets
+you choose printer, page style, etc.
+Integration with the Gtk print dialog is apparently difficult.  See eg:
+http://lists.gnu.org/archive/html/emacs-devel/2009-03/msg00501.html
+http://lists.gnu.org/archive/html/emacs-devel/2009-04/msg00034.html
+
 ** Allow frames(terminals) created by emacsclient to inherit their environment
 from the emacsclient process.
 ** Remove the default toggling behavior of minor modes when called from elisp
