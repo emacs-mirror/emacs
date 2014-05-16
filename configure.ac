@@ -1375,13 +1375,8 @@ dnl actions.
 AC_DEFUN([EMACS_CHECK_MODULES],
   [PKG_CHECK_MODULES([$1], [$2],
      [$1_CFLAGS=`AS_ECHO(["$$1_CFLAGS"]) | sed -e "$edit_cflags"`
-      emacs_check_module_ok=:],
-     [:])
-   if $emacs_check_module_ok; then
-     m4_default([$3], [HAVE_$1=yes])
-   else
-     m4_default([$4], [HAVE_$1=no])
-   fi])
+      m4_default([$3], [HAVE_$1=yes])],
+     [m4_default([$4], [HAVE_$1=no])])])
 
 HAVE_SOUND=no
 if test "${with_sound}" != "no"; then
