@@ -66,7 +66,10 @@ General debugging advice
    result, by having a mode for testing in which you run frequent
    collections (by calling :c:func:`mps_arena_collect` followed by
    :c:func:`mps_arena_release`), perhaps as frequently as every
-   allocation.
+   allocation. (This will of course make the system run very slowly,
+   but it ensures that if there are roots or references that are not
+   being scanned then the failure will occur close in time to the cause,
+   making it easier to diagnose.)
 
 #. .. index::
       single: debugger
