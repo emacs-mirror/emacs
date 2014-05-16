@@ -83,10 +83,9 @@ Other changes
 
    .. _job003756: https://www.ravenbrook.com/project/mps/issue/job003756/
 
-#. :ref:`pool-ams` pools get reliably collected, even in the case
-   where an AMS pool is the only pool on its generation chain and is
-   allocating into some generation other than the nursery. See
-   job003771_.
+#. An :ref:`pool-ams` pool gets collected even if it is the only pool
+   on its generation chain and is allocating into a generation other
+   than the nursery. See job003771_.
 
    .. _job003771: https://www.ravenbrook.com/project/mps/issue/job003771/
 
@@ -96,6 +95,44 @@ Other changes
 
 Release 1.113.0
 ---------------
+
+New features
+............
+
+#. In previous releases there was an implicit connection between
+   blocks allocated by :ref:`pool-awl` and :ref:`pool-lo` pools, and
+   blocks allocated by other automatically managed pool classes.
+
+   In particular, blocks allocated by AWL and LO pools were garbage
+   collected together with blocks allocated by :ref:`pool-ams` pools,
+   and blocks allocated by :ref:`pool-amc` pools in generation 1 of
+   their chains.
+
+   This is no longer the case: to arrange for blocks to be collected
+   together you need to ensure that they are allocated in the *same*
+   generation chain, using the :c:macro:`MPS_KEY_CHAIN` and
+   :c:macro:`MPS_KEY_GEN` keyword arguments to
+   :c:func:`mps_pool_create_k`.
+
+   So if you have code like this::
+
+       res = mps_pool_create(&my_amc, arena, mps_class_amc(), my_chain);
+       res = mps_pool_create(&my_awl, arena, mps_class_awl());
+
+   and you want to retain the connection between these pools, then you
+   must ensure that they use the same generation chain::
+
+       MPS_ARGS_BEGIN(args) {
+         MPS_ARGS_ADD(args, MPS_KEY_CHAIN, my_chain);
+         res = mps_pool_create_k(&my_amc, arena, mps_class_amc(), args);
+       } MPS_ARGS_END(args);
+
+       MPS_ARGS_BEGIN(args) {
+         MPS_ARGS_ADD(args, MPS_KEY_CHAIN, my_chain);
+         MPS_ARGS_ADD(args, MPS_KEY_GEN, 1);
+         res = mps_pool_create_k(&my_awl, arena, mps_class_awl(), args);
+       } MPS_ARGS_END(args);
+
 
 Interface changes
 .................
@@ -169,17 +206,23 @@ Interface changes
 
 #. Functions that take a variable number of arguments
    (:c:func:`mps_arena_create`, :c:func:`mps_pool_create`,
-   :c:func:`mps_ap_create`, :c:func:`mps_fmt_create_A`) and their
-   ``va_list`` alternatives (:c:func:`mps_arena_create_v` etc.) are
-   now deprecated in favour of functions that use a :term:`keyword
-   argument` interface (:c:func:`mps_arena_create_k`,
-   :c:func:`mps_pool_create_k`, :c:func:`mps_ap_create_k`,
-   :c:func:`mps_fmt_create_k`). The new interface provides better
-   reporting of errors, provides default values for arguments, and
-   provides forward compatibility. See :ref:`topic-keyword`.
+   :c:func:`mps_ap_create`) and their ``va_list`` alternatives
+   (:c:func:`mps_arena_create_v` etc.) are now deprecated in favour of
+   functions that use a :term:`keyword argument` interface
+   (:c:func:`mps_arena_create_k`, :c:func:`mps_pool_create_k`,
+   :c:func:`mps_ap_create_k`).
 
-   The old interface continues to be supported, but new features will
-   become available through the keyword interface only.
+   Similarly, the object format variant structures
+   (:c:type:`mps_fmt_A_s` etc.) and the functions that take them as
+   arguments (:c:func:`mps_fmt_create_A` etc.) are now deprecated in
+   favour of :c:func:`mps_fmt_create_k`.
+
+   The new interfaces provide better reporting of errors, default
+   values for arguments, and forward compatibility. See
+   :ref:`topic-keyword`.
+
+   The old interfaces continue to be supported for now, but new
+   features will become available through the keyword interface only.
 
 #. :ref:`pool-mfs` pools no longer refuse to manage blocks that are
    smaller than the platform alignment. They now round up smaller
@@ -213,8 +256,9 @@ Other changes
 
    .. _job003435: https://www.ravenbrook.com/project/mps/issue/job003435/
 
-#. :ref:`pool-mvt` no longer triggers an assertion failure when it
-   runs out of space on its reserved block queue. See job003486_.
+#. An :ref:`pool-mvt` pool no longer triggers an assertion failure
+   when it runs out of space on its reserved block queue. See
+   job003486_.
 
    .. _job003486: https://www.ravenbrook.com/project/mps/issue/job003486/
 
@@ -251,13 +295,13 @@ New features
    <telemetry-mpseventsql>` loads an event stream into a SQLite
    database for further analysis. See :ref:`topic-telemetry`.
 
-#. The new pool class MFS provide manually managed allocation of
-   fixed-size objects. See :ref:`pool-mfs`.
+#. The new pool class :ref:`pool-mfs` provides manually managed
+   allocation of fixed-size objects.
 
-#. The new pool class MVT provide manually managed allocation of
-   variable-size objects using a *temporal fit* allocation policy
-   (that is, objects that are allocated togther are expected to be
-   freed together). See :ref:`pool-mvt`.
+#. The new pool class :ref:`pool-mvt` provides manually managed
+   allocation of variable-size objects using a *temporal fit*
+   allocation policy (that is, objects that are allocated togther are
+   expected to be freed together).
 
 
 Interface changes
