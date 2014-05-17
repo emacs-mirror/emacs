@@ -292,8 +292,6 @@ enum byte_code_op
     Bscan_buffer = 0153, /* No longer generated as of v18.  */
     Bset_mark = 0163, /* this loser is no longer generated as of v18 */
 #endif
-
-    B__dummy__ = 0  /* Pacify C89.  */
 };
 
 /* Whether to maintain a `top' and `bottom' field in the stack frame.  */

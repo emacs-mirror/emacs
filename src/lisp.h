@@ -2654,16 +2654,11 @@ CHECK_NUMBER_CDR (Lisp_Object x)
        minargs, maxargs, lname, intspec, 0};				\
    Lisp_Object fnname
 #else  /* not _MSC_VER */
-# if __STDC_VERSION__ < 199901
-#  define DEFUN_FUNCTION_INIT(fnname, maxargs) (Lisp_Object (*) (void)) fnname
-# else
-#  define DEFUN_FUNCTION_INIT(fnname, maxargs) .a ## maxargs = fnname
-# endif
 #define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
    Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
    static struct Lisp_Subr alignas (GCALIGNMENT) sname =		\
      { { PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },				\
-       { DEFUN_FUNCTION_INIT (fnname, maxargs) },			\
+       { .a ## maxargs = fnname },					\
        minargs, maxargs, lname, intspec, 0};				\
    Lisp_Object fnname
 #endif

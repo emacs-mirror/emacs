@@ -1,3 +1,13 @@
+2014-05-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C99 or later (Bug#17487).
+	* bytecode.c (B__dummy__): Remove.
+	* conf_post.h (bool_bf) [!NS_IMPL_GNUSTEP]: Use bool.
+	(FLEXIBLE_ARRAY_MEMBER): Now always empty.
+	* dbusbind.c (XD_DEBUG_MESSAGE) [!DBUS_DEBUG]:
+	* regex.c (DEBUG_PRINT): Assume varargs macros.
+	* lisp.h (DEFUN_FUNCTION_INIT): Remove.  All uses now assume C99.
+
 2014-05-17  Fabrice Popineau  <fabrice.popineau@gmail.com>
 
 	* buffer.c (init_buffer) [USE_MMAP_FOR_BUFFERS]: Always map new

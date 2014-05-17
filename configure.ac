@@ -670,12 +670,18 @@ fi
 
 #### Choose a compiler.
 
+dnl Don't bother to test for C89.
+AC_DEFUN([_AC_PROG_CC_C89], [$2])
+
 dnl Sets GCC=yes if using gcc.
 AC_PROG_CC([gcc cc cl clang "$XCRUN gcc" "$XCRUN clang"])
 if test -n "$XCRUN"; then
   AC_CHECK_PROGS(AR, [ar "$XCRUN ar"])
   test -n "$AR" && export AR
 fi
+
+dnl Emacs needs C99 or later.
+gl_PROG_CC_C99
 
 AM_PROG_CC_C_O
 
@@ -1303,7 +1309,7 @@ else
   CPPFLAGS="$C_SWITCH_SYSTEM $C_SWITCH_MACHINE $CPPFLAGS"
 fi
 
-# Suppress obsolescent Autoconf test for size_t; Emacs assumes C89 or better.
+# Suppress obsolescent Autoconf test for size_t; Emacs assumes C99 or better.
 AC_DEFUN([AC_TYPE_SIZE_T])
 # Likewise for obsolescent test for uid_t, gid_t; Emacs assumes them.
 AC_DEFUN([AC_TYPE_UID_T])

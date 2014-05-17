@@ -1,3 +1,9 @@
+2014-05-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C99 or later (Bug#17487).
+	* merge-gnulib (GNULIB_MODULES): Remove stdarg, stdbool.
+	(GNULIB_TOOL_FLAGS): Avoid stdarg, stdbool.
+
 2014-05-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't require pkg-config when building from repository.

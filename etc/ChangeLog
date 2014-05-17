@@ -1,3 +1,7 @@
+2014-05-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* NEWS: Assume C99 or later (Bug#17487).
+
 2014-05-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't require pkg-config when building from repository.

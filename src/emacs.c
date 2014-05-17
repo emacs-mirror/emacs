@@ -214,7 +214,7 @@ int initial_argc;
 static void sort_args (int argc, char **argv);
 static void syms_of_emacs (void);
 
-/* C89 needs each string be at most 509 characters, so the usage
+/* C99 needs each string to be at most 4095 characters, and the usage
    strings below are split to not overflow this limit.  */
 static char const *const usage_message[] =
   { "\

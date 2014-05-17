@@ -580,15 +580,14 @@ Emacs session.
 @section C Dialect
 @cindex C programming language
 
-The C part of Emacs is portable to C89: C99-specific features such as
-@samp{<stdbool.h>} and @samp{inline} are not used without a check,
+The C part of Emacs is portable to C99 or later: C11-specific features such
+as @samp{<stdalign.h>} and @samp{_Noreturn} are not used without a check,
 typically at configuration time, and the Emacs build procedure
-provides a substitute implementation if necessary.  Some C99 features,
-such as declarations after statements, are too difficult to provide
-substitutes for, so they are avoided entirely.
+provides a substitute implementation if necessary.  Some C11 features,
+such as anonymous structures and unions, are too difficult to emulate,
+so they are avoided entirely.
 
-At some point in the not-too-distant future the base C dialect will
-change from C89 to C99, and eventually it will no doubt change to C11.
+At some point in the future the base C dialect will no doubt change to C11.
 
 @node Writing Emacs Primitives
 @section Writing Emacs Primitives

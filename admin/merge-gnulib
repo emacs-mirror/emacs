@@ -35,7 +35,7 @@ GNULIB_MODULES='
   intprops largefile lstat
   manywarnings memrchr mkostemp mktime
   pipe2 pselect pthread_sigmask putenv qacl readlink readlinkat
-  sig2str socklen stat-time stdalign stdarg stdbool stdio
+  sig2str socklen stat-time stdalign stdio
   strftime strtoimax strtoumax symlink sys_stat
   sys_time time timer-time timespec-add timespec-sub
   unsetenv update-copyright utimens
@@ -49,6 +49,7 @@ GNULIB_TOOL_FLAGS='
   --avoid=open --avoid=openat-die --avoid=opendir
   --avoid=raise
   --avoid=save-cwd --avoid=select --avoid=sigprocmask
+  --avoid=stdarg --avoid=stdbool
   --avoid=threadlib
   --conditional-dependencies --import --no-changelog --no-vc-files
   --makefile-name=gnulib.mk

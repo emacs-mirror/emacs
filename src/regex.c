@@ -1190,12 +1190,7 @@ print_double_string (re_char *where, re_char *string1, ssize_t size1,
 # define assert(e)
 
 # define DEBUG_STATEMENT(e)
-# if __STDC_VERSION__ < 199901L
-#  define DEBUG_COMPILES_ARGUMENTS
-#  define DEBUG_PRINT /* 'DEBUG_PRINT (x, y)' discards X and Y.  */ (void)
-# else
-#  define DEBUG_PRINT(...)
-# endif
+# define DEBUG_PRINT(...)
 # define DEBUG_PRINT_COMPILED_PATTERN(p, s, e)
 # define DEBUG_PRINT_DOUBLE_STRING(w, s1, sz1, s2, sz2)
 
