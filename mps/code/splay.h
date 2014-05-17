@@ -55,6 +55,8 @@ extern Bool SplayTreeNeighbours(Tree *leftReturn,
 
 extern Tree SplayTreeFirst(SplayTree splay);
 extern Tree SplayTreeNext(SplayTree splay, TreeKey oldKey);
+extern Bool SplayTreeTraverse(SplayTree splay, TreeVisitor visitor,
+                              void *closureP, Size closureS);
 
 typedef Bool (*SplayFindMethod)(Tree *nodeReturn, SplayTree splay,
                                 SplayTestNodeMethod testNode,

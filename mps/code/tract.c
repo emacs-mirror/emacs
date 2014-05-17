@@ -17,9 +17,6 @@
 SRCID(tract, "$Id$");
 
 
-static void ChunkDecache(Arena arena, Chunk chunk);
-
-
 /* TractArena -- get the arena of a tract */
 
 #define TractArena(tract) PoolArena(TractPool(tract))
@@ -113,17 +110,17 @@ Bool ChunkCheck(Chunk chunk)
   CHECKS(Chunk, chunk);
   CHECKU(Arena, chunk->arena);
   CHECKL(chunk->serial < chunk->arena->chunkSerial);
-  CHECKD_NOSIG(Ring, &chunk->chunkRing);
+  /* Can't use CHECKD_NOSIG because TreeEMPTY is NULL. */
+  CHECKL(TreeCheck(&chunk->chunkTree));
   CHECKL(ChunkPagesToSize(chunk, 1) == ChunkPageSize(chunk));
   CHECKL(ShiftCheck(ChunkPageShift(chunk)));
 
   CHECKL(chunk->base != (Addr)0);
   CHECKL(chunk->base < chunk->limit);
-  /* check chunk is in itself */
-  CHECKL(chunk->base <= (Addr)chunk);
+  /* .chunk.at.base: check chunk structure is at its own base */
+  CHECKL(chunk->base == (Addr)chunk);
   CHECKL((Addr)(chunk+1) <= chunk->limit);
-  CHECKL(ChunkSizeToPages(chunk, AddrOffset(chunk->base, chunk->limit))
-         == chunk->pages);
+  CHECKL(ChunkSizeToPages(chunk, ChunkSize(chunk)) == chunk->pages);
   /* check that the tables fit in the chunk */
   CHECKL(chunk->allocBase <= chunk->pages);
   CHECKL(chunk->allocBase >= chunk->pageTablePages);
@@ -176,14 +173,12 @@ Res ChunkInit(Chunk chunk, Arena arena,
 
   chunk->serial = (arena->chunkSerial)++;
   chunk->arena = arena;
-  RingInit(&chunk->chunkRing);
-  RingAppend(&arena->chunkRing, &chunk->chunkRing);
 
   chunk->pageSize = pageSize;
   chunk->pageShift = pageShift = SizeLog2(pageSize);
   chunk->base = base;
   chunk->limit = limit;
-  size = AddrOffset(base, limit);
+  size = ChunkSize(chunk);
 
   chunk->pages = pages = size >> pageShift;
   res = BootAlloc(&p, boot, (size_t)BTSize(pages), MPS_PF_ALIGN);
@@ -218,6 +213,9 @@ Res ChunkInit(Chunk chunk, Arena arena,
         goto failCBSInsert;
   }
 
+  TreeInit(&chunk->chunkTree);
+  SplayTreeInsert(ArenaChunkTree(arena), &chunk->chunkTree);
+
   chunk->sig = ChunkSig;
   AVERT(Chunk, chunk);
 
@@ -242,11 +240,17 @@ failAllocTable:
 
 void ChunkFinish(Chunk chunk)
 {
+  Bool res;
+
   AVERT(Chunk, chunk);
   AVER(BTIsResRange(chunk->allocTable, 0, chunk->pages));
-  ChunkDecache(chunk->arena, chunk);
+
+  res = SplayTreeDelete(ArenaChunkTree(ChunkArena(chunk)), &chunk->chunkTree);
+  AVER(res);
+
   chunk->sig = SigInvalid;
-  RingRemove(&chunk->chunkRing);
+
+  TreeFinish(&chunk->chunkTree);
 
   if (ChunkArena(chunk)->hasFreeCBS)
     ArenaFreeCBSDelete(ChunkArena(chunk),
@@ -262,92 +266,39 @@ void ChunkFinish(Chunk chunk)
 }
 
 
-/* Chunk Cache
- *
- * Functions for manipulating the chunk cache in the arena.
- */
+/* ChunkCompare -- Compare key to [base,limit) */
 
-
-/* ChunkCacheEntryCheck -- check a chunk cache entry
- *
- * The cache is EITHER empty:
- *   - chunk is null; AND
- *   - base & limit are both null
- * OR full:
- *   - chunk is non-null, points to a ChunkStruct; AND
- *   - base & limit are not both null;
- *
- * .chunk.empty.fields: Fields of an empty cache are nonetheless read, 
- * and must be correct.
- */
-
-Bool ChunkCacheEntryCheck(ChunkCacheEntry entry)
+Compare ChunkCompare(Tree tree, TreeKey key)
 {
-  CHECKS(ChunkCacheEntry, entry);
-  if (entry->chunk == NULL) {
-    CHECKL(entry->base == NULL);   /* .chunk.empty.fields */
-    CHECKL(entry->limit == NULL);  /* .chunk.empty.fields */
-  } else {
-    CHECKL(!(entry->base == NULL && entry->limit == NULL));
-    CHECKD(Chunk, entry->chunk);
-    CHECKL(entry->base == entry->chunk->base);
-    CHECKL(entry->limit == entry->chunk->limit);
-  }
-  return TRUE;
-}
+  Addr base1, base2, limit2;
+  Chunk chunk;
 
+  AVERT_CRITICAL(Tree, tree);
+  AVER_CRITICAL(tree != TreeEMPTY);
 
-/* ChunkCacheEntryInit -- initialize a chunk cache entry */
-
-void ChunkCacheEntryInit(ChunkCacheEntry entry)
-{
-  entry->chunk = NULL;
-  entry->base = NULL;   /* .chunk.empty.fields */
-  entry->limit = NULL;  /* .chunk.empty.fields */
-  entry->sig = ChunkCacheEntrySig;
-  AVERT(ChunkCacheEntry, entry);
-  return;
-}
-
-
-/* ChunkEncache -- cache a chunk */
-
-static void ChunkEncache(Arena arena, Chunk chunk)
-{
-  /* [Critical path](../design/critical-path.txt); called by ChunkOfAddr */
-  AVERT_CRITICAL(Arena, arena);
+  chunk = ChunkOfTree(tree);
   AVERT_CRITICAL(Chunk, chunk);
-  AVER_CRITICAL(arena == chunk->arena);
-  AVERT_CRITICAL(ChunkCacheEntry, &arena->chunkCache);
 
-  /* check chunk already in cache first */
-  if (arena->chunkCache.chunk == chunk) {
-    return;
-  }
+  base1 = AddrOfTreeKey(key);
+  base2 = chunk->base;
+  limit2 = chunk->limit;
 
-  arena->chunkCache.chunk = chunk;
-  arena->chunkCache.base = chunk->base;
-  arena->chunkCache.limit = chunk->limit;
-
-  AVERT_CRITICAL(ChunkCacheEntry, &arena->chunkCache);
-  return;
+  if (base1 < base2)
+    return CompareLESS;
+  else if (base1 >= limit2)
+    return CompareGREATER;
+  else
+    return CompareEQUAL;
 }
 
 
-/* ChunkDecache -- make sure a chunk is not in the cache */
+/* ChunkKey -- Return the key corresponding to a chunk */
 
-static void ChunkDecache(Arena arena, Chunk chunk)
+TreeKey ChunkKey(Tree tree)
 {
-  AVERT(Arena, arena);
-  AVERT(Chunk, chunk);
-  AVER(arena == chunk->arena);
-  AVERT(ChunkCacheEntry, &arena->chunkCache);
-  if (arena->chunkCache.chunk == chunk) {
-    arena->chunkCache.chunk = NULL;
-    arena->chunkCache.base = NULL;   /* .chunk.empty.fields */
-    arena->chunkCache.limit = NULL;  /* .chunk.empty.fields */
-  }
-  AVERT(ChunkCacheEntry, &arena->chunkCache);
+  /* See .chunk.at.base. */
+  Chunk chunk = ChunkOfTree(tree);
+  return TreeKeyOfAddrVar(chunk);
 }
 
 
@@ -355,58 +306,42 @@ static void ChunkDecache(Arena arena, Chunk chunk)
 
 Bool ChunkOfAddr(Chunk *chunkReturn, Arena arena, Addr addr)
 {
-  Ring node, next;
+  Tree tree;
 
   AVER_CRITICAL(chunkReturn != NULL);
   AVERT_CRITICAL(Arena, arena);
   /* addr is arbitrary */
 
-  /* check cache first; see also .chunk.empty.fields */
-  AVERT_CRITICAL(ChunkCacheEntry, &arena->chunkCache);
-  if (arena->chunkCache.base <= addr && addr < arena->chunkCache.limit) {
-    *chunkReturn = arena->chunkCache.chunk;
-    AVER_CRITICAL(*chunkReturn != NULL);
+  if (SplayTreeFind(&tree, ArenaChunkTree(arena), TreeKeyOfAddrVar(addr))) {
+    Chunk chunk = ChunkOfTree(tree);
+    AVER_CRITICAL(chunk->base <= addr && addr < chunk->limit);
+    *chunkReturn = chunk;
     return TRUE;
-  }
-  RING_FOR(node, &arena->chunkRing, next) {
-    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
-    if (chunk->base <= addr && addr < chunk->limit) {
-      /* Gotcha! */
-      ChunkEncache(arena, chunk);
-      *chunkReturn = chunk;
-      return TRUE;
-    }
   }
   return FALSE;
 }
 
 
-/* ChunkOfNextAddr
+/* chunkAboveAddr
  *
- * Finds the next higher chunk in memory which does _not_ contain addr.
- * Returns FALSE if there is none.
- *
- * [The name is misleading; it should be "NextChunkAboveAddr" -- the 
- * word "Next" applies to chunks, not to addrs.  RHSK 2010-03-20.]
+ * Finds the next higher chunk in memory which does _not_ contain
+ * addr. If there is such a chunk, update *chunkReturn and return
+ * TRUE, otherwise return FALSE.
  */
 
-static Bool ChunkOfNextAddr(Chunk *chunkReturn, Arena arena, Addr addr)
+static Bool chunkAboveAddr(Chunk *chunkReturn, Arena arena, Addr addr)
 {
-  Addr leastBase;
-  Chunk leastChunk;
-  Ring node, next;
+  Tree tree;
 
-  leastBase = (Addr)(Word)-1;
-  leastChunk = NULL;
-  RING_FOR(node, &arena->chunkRing, next) {
-    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
-    if (addr < chunk->base && chunk->base < leastBase) {
-      leastBase = chunk->base;
-      leastChunk = chunk;
-    }
-  }
-  if (leastChunk != NULL) {
-    *chunkReturn = leastChunk;
+  AVER_CRITICAL(chunkReturn != NULL);
+  AVERT_CRITICAL(Arena, arena);
+  /* addr is arbitrary */
+
+  tree = SplayTreeNext(ArenaChunkTree(arena), TreeKeyOfAddrVar(addr));
+  if (tree != TreeEMPTY) {
+    Chunk chunk = ChunkOfTree(tree);
+    AVER_CRITICAL(addr < chunk->base);
+    *chunkReturn = chunk;
     return TRUE;
   }
   return FALSE;
@@ -437,6 +372,24 @@ Index IndexOfAddr(Chunk chunk, Addr addr)
   /* addr is arbitrary */
 
   return INDEX_OF_ADDR(chunk, addr);
+}
+
+
+/* ChunkNodeDescribe -- describe a single node in the tree of chunks,
+ * for SplayTreeDescribe
+ */
+
+Res ChunkNodeDescribe(Tree node, mps_lib_FILE *stream)
+{
+  Chunk chunk;
+
+  if (!TreeCheck(node)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+  chunk = ChunkOfTree(node);
+  if (!TESTT(Chunk, chunk)) return ResFAIL;
+
+  return WriteF(stream, "[$P,$P)", (WriteFP)chunk->base,
+                (WriteFP)chunk->limit, NULL);
 }
 
 
@@ -562,7 +515,7 @@ static Bool tractSearch(Tract *tractReturn, Arena arena, Addr addr)
       return TRUE;
     }
   }
-  while (ChunkOfNextAddr(&chunk, arena, addr)) {
+  while (chunkAboveAddr(&chunk, arena, addr)) {
     /* If the ring was kept in address order, this could be improved. */
     addr = chunk->base;
     /* Start from allocBase to skip the tables. */

@@ -40,6 +40,17 @@ typedef Compare (*TreeCompare)(Tree tree, TreeKey key);
 typedef TreeKey (*TreeKeyMethod)(Tree tree);
 
 
+/* When storing Addrs in a tree, it is fastest to cast the Addr
+ * directly to a TreeKey. This assumes that Addr and TreeKey are
+ * compatible, possibly breaking <design/type/#addr.use>. On an exotic
+ * platform where the types are not convertible, take the address of
+ * the variable in TreeKeyOfAddrVar, and dereference the address in
+ * AddrOfTreeKey.
+ */
+#define TreeKeyOfAddrVar(var) ((TreeKey)(var))
+#define AddrOfTreeKey(key) ((Addr)(key))
+
+
 /* TreeEMPTY -- the empty tree
  *
  * TreeEMPTY is the tree with no nodes, and hence unable to satisfy its
