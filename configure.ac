@@ -965,7 +965,7 @@ if test "$opsys" = "mingw32"; then
   LN_S="/bin/ln"
 fi
 
-AC_PATH_PROG(INSTALL_INFO, install-info, :,
+AC_PATH_PROGS(INSTALL_INFO, [ginstall-info install-info], :,
   $PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/sbin)
 dnl Don't use GZIP, which is used by gzip for additional parameters.
 AC_PATH_PROG(GZIP_PROG, gzip)

@@ -1,3 +1,8 @@
+2014-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (INSTALL_INFO): Try the identical-but-quieter-on-Debian
+	"ginstall-info" before "install-info".
+
 2014-05-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Revert recent libpng changes (Bug#17339).
