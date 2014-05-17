@@ -1,3 +1,7 @@
+2014-05-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move-ignore-invisible): Doc fix.  (Bug#17511)
+
 2014-05-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-init-bus, dbus-call-method)

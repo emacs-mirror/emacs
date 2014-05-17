@@ -930,12 +930,14 @@ current value of @code{buffer-invisibility-spec}.
 
 @vindex line-move-ignore-invisible
   Ordinarily, functions that operate on text or move point do not care
-whether the text is invisible.  The user-level line motion commands
-ignore invisible newlines if @code{line-move-ignore-invisible} is
-non-@code{nil} (the default), but only because they are explicitly
-programmed to do so.
+whether the text is invisible, they process invisible characters and
+visible characters alike.  The user-level line motion commands,
+such as @code{next-line}, @code{previous-line}, ignore invisible
+newlines if @code{line-move-ignore-invisible} is non-@code{nil} (the
+default), i.e., behave like these invisible newlines didn't exist in
+the buffer, but only because they are explicitly programmed to do so.
 
-  However, if a command ends with point inside or at the boundary of
+  If a command ends with point inside or at the boundary of
 invisible text, the main editing loop relocates point to one of the
 two ends of the invisible text.  Emacs chooses the direction of
 relocation so that it is the same as the overall movement direction of
@@ -951,6 +953,10 @@ stickiness), Emacs moves point back to the beginning of that range.  If the
 command moved point forward into an invisible range, Emacs moves point forward
 to the first visible character that follows the invisible text and then forward
 one more character.
+
+  These @dfn{adjustments} of point that ended up in the middle of
+invisible text can be disabled by setting @code{disable-point-adjustment}
+to a non-@code{nil} value.  @xref{Adjusting Point}.
 
   Incremental search can make invisible overlays visible temporarily
 and/or permanently when a match includes invisible text.  To enable
