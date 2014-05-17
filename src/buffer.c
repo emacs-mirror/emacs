@@ -5336,16 +5336,17 @@ init_buffer (void)
   ptrdiff_t len;
 
 #ifdef USE_MMAP_FOR_BUFFERS
- {
-   /* When using the ralloc implementation based on mmap(2), buffer
-      text pointers will have been set to null in the dumped Emacs.
-      Map new memory.  */
-   struct buffer *b;
+  {
+    struct buffer *b;
 
-   FOR_EACH_BUFFER (b)
-     if (b->text->beg == NULL)
-       enlarge_buffer_text (b, 0);
- }
+    /* We cannot dump buffers with meaningful addresses that can be
+       used by the dumped Emacs.  We map new memory for them here.  */
+    FOR_EACH_BUFFER (b)
+      {
+	b->text->beg = NULL;
+	enlarge_buffer_text (b, 0);
+      }
+  }
 #endif /* USE_MMAP_FOR_BUFFERS */
 
   Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));

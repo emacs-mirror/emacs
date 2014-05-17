@@ -1,3 +1,8 @@
+2014-05-17  Fabrice Popineau  <fabrice.popineau@gmail.com>
+
+	* buffer.c (init_buffer) [USE_MMAP_FOR_BUFFERS]: Always map new
+	memory for every buffer that was dumped.
+
 2014-05-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* fns.c (Freverse): Allow vectors, bool vectors and strings.
