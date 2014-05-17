@@ -147,9 +147,9 @@ Bool ArenaCheck(Arena arena)
   if (arena->primary != NULL) {
     CHECKD(Chunk, arena->primary);
   }
-  CHECKD_NOSIG(Ring, &arena->chunkRing);
+  /* Can't use CHECKD_NOSIG because TreeEMPTY is NULL. */
+  CHECKL(SplayTreeCheck(ArenaChunkTree(arena)));
   /* nothing to check for chunkSerial */
-  CHECKD(ChunkCacheEntry, &arena->chunkCache);
   
   CHECKL(LocusCheck(arena));
 
@@ -205,9 +205,8 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
   arena->zoned = zoned;
 
   arena->primary = NULL;
-  RingInit(&arena->chunkRing);
+  SplayTreeInit(ArenaChunkTree(arena), ChunkCompare, ChunkKey, SplayTrivUpdate);
   arena->chunkSerial = (Serial)0;
-  ChunkCacheEntryInit(&arena->chunkCache);
   
   LocusInit(arena);
   
@@ -349,7 +348,8 @@ void ArenaFinish(Arena arena)
   arena->sig = SigInvalid;
   GlobalsFinish(ArenaGlobals(arena));
   LocusFinish(arena);
-  RingFinish(&arena->chunkRing);
+  AVER(SplayTreeIsEmpty(ArenaChunkTree(arena)));
+  SplayTreeFinish(ArenaChunkTree(arena));
 }
 
 
@@ -606,52 +606,74 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream)
  * CBS or any pool, because it is used as part of the bootstrap.
  */
 
-static Res arenaAllocPageInChunk(Addr *baseReturn, Chunk chunk, Pool pool)
-{
-  Res res;
-  Index basePageIndex, limitPageIndex;
+typedef struct ArenaAllocPageClosureStruct {
   Arena arena;
+  Pool pool;
+  Chunk avoid;
+  Addr base;
+} ArenaAllocPageClosureStruct, *ArenaAllocPageClosure;
 
-  AVER(baseReturn != NULL);
+static Bool arenaAllocPageInChunk(Tree tree, void *closureP, Size closureS)
+{
+  ArenaAllocPageClosure cl;
+  Chunk chunk;
+  Index basePageIndex, limitPageIndex;
+  Res res;
+
+  AVERT(Tree, tree);
+  chunk = ChunkOfTree(tree);
   AVERT(Chunk, chunk);
-  AVERT(Pool, pool);
-  arena = ChunkArena(chunk);
+  AVER(closureP != NULL);
+  cl = closureP;
+  AVER(cl->arena == ChunkArena(chunk));
+  UNUSED(closureS);
+
+  if (chunk == cl->avoid)
+    return TRUE;
   
   if (!BTFindShortResRange(&basePageIndex, &limitPageIndex,
                            chunk->allocTable,
                            chunk->allocBase, chunk->pages, 1))
-    return ResRESOURCE;
+    return TRUE;
   
-  res = (*arena->class->pagesMarkAllocated)(arena, chunk,
-                                            basePageIndex, 1,
-                                            pool);
+  res = (*cl->arena->class->pagesMarkAllocated)(cl->arena, chunk,
+                                                basePageIndex, 1, cl->pool);
   if (res != ResOK)
-    return res;
+    return TRUE;
   
-  *baseReturn = PageIndexBase(chunk, basePageIndex);
-  return ResOK;
+  cl->base = PageIndexBase(chunk, basePageIndex);
+  return FALSE;
 }
 
 static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
 {
-  Res res;
+  ArenaAllocPageClosureStruct closure;
   
+  AVER(baseReturn != NULL);
+  AVERT(Arena, arena);
+  AVERT(Pool, pool);
+
+  closure.arena = arena;
+  closure.pool = pool;
+  closure.base = NULL;
+
   /* Favour the primary chunk, because pages allocated this way aren't
      currently freed, and we don't want to prevent chunks being destroyed. */
   /* TODO: Consider how the ArenaCBSBlockPool might free pages. */
-  res = arenaAllocPageInChunk(baseReturn, arena->primary, pool);
-  if (res != ResOK) {
-    Ring node, next;
-    RING_FOR(node, &arena->chunkRing, next) {
-      Chunk chunk = RING_ELT(Chunk, chunkRing, node);
-      if (chunk != arena->primary) {
-        res = arenaAllocPageInChunk(baseReturn, chunk, pool);
-        if (res == ResOK)
-          break;
-      }
-    }
-  }
-  return res;
+  if (arenaAllocPageInChunk(&arena->primary->chunkTree, &closure, 0) == FALSE)
+    goto found;
+
+  closure.avoid = arena->primary;
+  if (SplayTreeTraverse(ArenaChunkTree(arena), arenaAllocPageInChunk, &closure, 0)
+      == FALSE)
+    goto found;
+
+  return ResRESOURCE;
+
+found:
+  AVER(closure.base != NULL);
+  *baseReturn = closure.base;
+  return ResOK;
 }
 
 

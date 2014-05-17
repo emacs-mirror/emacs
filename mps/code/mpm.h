@@ -518,6 +518,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaAlign(arena)       ((arena)->alignment)
 #define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
 #define ArenaPoolRing(arena) (&ArenaGlobals(arena)->poolRing)
+#define ArenaChunkTree(arena) (&(arena)->chunkTree)
 
 extern void ArenaEnterLock(Arena arena, Bool recursive);
 extern void ArenaLeaveLock(Arena arena, Bool recursive);

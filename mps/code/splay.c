@@ -679,7 +679,7 @@ static Compare SplaySplay(SplayTree splay, TreeKey key, TreeCompare compare)
   SplayStateStruct stateStruct;
 
 #ifdef SPLAY_DEBUG
-  Count count = TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey);
+  Count count = TreeDebugCount(SplayTreeRoot(splay), splay->compare, splay->nodeKey);
 #endif
 
   /* Short-circuit common cases.  Splay trees often bring recently
@@ -699,7 +699,7 @@ static Compare SplaySplay(SplayTree splay, TreeKey key, TreeCompare compare)
   SplayTreeSetRoot(splay, stateStruct.middle);
 
 #ifdef SPLAY_DEBUG
-  AVER(count == TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey));
+  AVER(count == TreeDebugCount(SplayTreeRoot(splay), splay->compare, splay->nodeKey));
 #endif
 
   return cmp;
@@ -894,7 +894,7 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
   Bool found;
   Compare cmp;
 #ifdef SPLAY_DEBUG
-  Count count = TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey);
+  Count count = TreeDebugCount(SplayTreeRoot(splay), splay->compare, splay->nodeKey);
 #endif
 
 
@@ -936,7 +936,7 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
   SplayTreeSetRoot(splay, stateStruct.middle);
 
 #ifdef SPLAY_DEBUG
-  AVER(count == TreeDebugCount(SplayTreeRoot(tree), tree->compare, tree->nodeKey));
+  AVER(count == TreeDebugCount(SplayTreeRoot(splay), splay->compare, splay->nodeKey));
 #endif
 
   return found;
@@ -945,10 +945,8 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
 
 /* SplayTreeFirst, SplayTreeNext -- iterators
  *
- * SplayTreeFirst receives a key that must precede all
- * nodes in the tree.  It returns TreeEMPTY if the tree is empty.
- * Otherwise, it splays the tree to the first node, and returns the
- * new root.
+ * SplayTreeFirst returns TreeEMPTY if the tree is empty. Otherwise,
+ * it splays the tree to the first node, and returns the new root.
  *
  * SplayTreeNext takes a tree and splays it to the successor of a key
  * and returns the new root.  Returns TreeEMPTY is there are no successors.
@@ -957,8 +955,9 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
  * unmodified.
  *
  * IMPORTANT: Iterating over the tree using these functions will leave
- * the tree totally unbalanced, throwing away optimisations of the tree
- * shape caused by previous splays.  Consider using TreeTraverse instead.
+ * the tree totally unbalanced, throwing away optimisations of the
+ * tree shape caused by previous splays. Consider using
+ * SplayTreeTraverse instead.
  */
 
 Tree SplayTreeFirst(SplayTree splay) {
@@ -989,13 +988,23 @@ Tree SplayTreeNext(SplayTree splay, TreeKey oldKey) {
   default:
     NOTREACHED;
     /* defensive fall-through */
-  case CompareGREATER:
+  case CompareLESS:
     return SplayTreeRoot(splay);
 
-  case CompareLESS:
+  case CompareGREATER:
   case CompareEQUAL:
     return SplayTreeSuccessor(splay);
   }
+}
+
+
+/* SplayTreeTraverse -- iterate over splay tree without splaying it */
+
+Bool SplayTreeTraverse(SplayTree splay, TreeVisitor visitor,
+                       void *closureP, Size closureS)
+{
+  return TreeTraverse(splay->root, splay->compare, splay->nodeKey,
+                      visitor, closureP, closureS);
 }
 
 
@@ -1009,10 +1018,9 @@ static Res SplayNodeDescribe(Tree node, mps_lib_FILE *stream,
                              SplayNodeDescribeMethod nodeDescribe) {
   Res res;
 
-#if defined(AVER_AND_CHECK)
   if (!TreeCheck(node)) return ResFAIL;
-  /* stream and nodeDescribe checked by SplayTreeDescribe */
-#endif
+  if (stream == NULL) return ResFAIL;
+  if (!FUNCHECK(nodeDescribe)) return ResFAIL;
 
   res = WriteF(stream, "( ", NULL);
   if (res != ResOK) return res;
@@ -1327,15 +1335,15 @@ Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream,
                       SplayNodeDescribeMethod nodeDescribe) {
   Res res;
 
-#if defined(AVER_AND_CHECK)
-  if (!SplayTreeCheck(splay)) return ResFAIL;
+  if (!TESTT(SplayTree, splay)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
   if (!FUNCHECK(nodeDescribe)) return ResFAIL;
-#endif
 
   res = WriteF(stream,
                "Splay $P {\n", (WriteFP)splay,
                "  compare $F\n", (WriteFF)splay->compare,
+               "  nodeKey $F\n", (WriteFF)splay->nodeKey,
+               "  updateNode $F\n", (WriteFF)splay->updateNode,
                NULL);
   if (res != ResOK) return res;
 

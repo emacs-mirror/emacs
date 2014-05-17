@@ -290,15 +290,14 @@ failChunkCreate:
 static void ClientArenaFinish(Arena arena)
 {
   ClientArena clientArena;
-  Ring node, next;
 
   clientArena = Arena2ClientArena(arena);
   AVERT(ClientArena, clientArena);
 
-  /* destroy all chunks */
-  RING_FOR(node, &arena->chunkRing, next) {
-    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
-    clientChunkDestroy(chunk);
+  /* destroy all chunks, including the primary */
+  arena->primary = NULL;
+  while (!SplayTreeIsEmpty(ArenaChunkTree(arena))) {
+    clientChunkDestroy(ChunkOfTree(SplayTreeRoot(ArenaChunkTree(arena))));
   }
 
   clientArena->sig = SigInvalid;
@@ -329,20 +328,30 @@ static Res ClientArenaExtend(Arena arena, Addr base, Size size)
 
 /* ClientArenaReserved -- return the amount of reserved address space */
 
+static Bool clientArenaReservedVisitor(Tree tree, void *closureP, Size closureS)
+{
+  Size *size;
+  Chunk chunk;
+
+  AVERT(Tree, tree);
+  chunk = ChunkOfTree(tree);
+  AVERT(Chunk, chunk);
+  AVER(closureP != 0);
+  size = closureP;
+  UNUSED(closureS);
+
+  *size += ChunkSize(chunk);
+  return TRUE;
+}
+
 static Size ClientArenaReserved(Arena arena)
 {
-  Size size;
-  Ring node, nextNode;
+  Size size = 0;
 
   AVERT(Arena, arena);
 
-  size = 0;
-  /* .req.extend.slow */
-  RING_FOR(node, &arena->chunkRing, nextNode) {
-    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
-    AVERT(Chunk, chunk);
-    size += AddrOffset(chunk->base, chunk->limit);
-  }
+  TreeTraverse(SplayTreeRoot(ArenaChunkTree(arena)), ChunkCompare, ChunkKey,
+               clientArenaReservedVisitor, &size, 0);
 
   return size;
 }
