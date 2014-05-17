@@ -4979,7 +4979,6 @@ When the `track-eol' feature is doing its job, the value is
 
 (defcustom line-move-ignore-invisible t
   "Non-nil means commands that move by lines ignore invisible newlines.
-
 When this option is non-nil, \\[next-line], \\[previous-line], \\[move-end-of-line], and \\[move-beginning-of-line] behave
 as if newlines that are invisible didn't exist, and count
 only visible newlines.  Thus, moving across across 2 newlines
