@@ -9,8 +9,9 @@
 #define tract_h
 
 #include "mpmtypes.h"
-#include "ring.h"
 #include "bt.h"
+#include "ring.h"
+#include "tree.h"
 
 
 /* Page states
@@ -137,7 +138,7 @@ typedef struct ChunkStruct {
   Sig sig;              /* <design/sig/> */
   Serial serial;        /* serial within the arena */
   Arena arena;          /* parent arena */
-  RingStruct chunkRing; /* ring of all chunks in arena */
+  TreeStruct chunkTree; /* node in tree of all chunks in arena */
   Size pageSize;        /* size of pages */
   Shift pageShift;      /* log2 of page size, for shifts */
   Addr base;            /* base address of chunk */
@@ -151,21 +152,24 @@ typedef struct ChunkStruct {
 
 
 #define ChunkArena(chunk) RVALUE((chunk)->arena)
+#define ChunkSize(chunk) AddrOffset((chunk)->base, (chunk)->limit)
 #define ChunkPageSize(chunk) RVALUE((chunk)->pageSize)
 #define ChunkPageShift(chunk) RVALUE((chunk)->pageShift)
 #define ChunkPagesToSize(chunk, pages) ((Size)(pages) << (chunk)->pageShift)
 #define ChunkSizeToPages(chunk, size) ((Count)((size) >> (chunk)->pageShift))
 #define ChunkPage(chunk, pi) (&(chunk)->pageTable[pi])
+#define ChunkOfTree(tree) PARENT(ChunkStruct, chunkTree, tree)
 
 extern Bool ChunkCheck(Chunk chunk);
-extern Res ChunkInit(Chunk chunk, Arena arena,
-                     Addr base, Addr limit, Align pageSize, BootBlock boot);
+extern Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit,
+                     Align pageSize, BootBlock boot);
 extern void ChunkFinish(Chunk chunk);
-
+extern Compare ChunkCompare(Tree tree, TreeKey key);
+extern TreeKey ChunkKey(Tree tree);
 extern Bool ChunkCacheEntryCheck(ChunkCacheEntry entry);
 extern void ChunkCacheEntryInit(ChunkCacheEntry entry);
-
 extern Bool ChunkOfAddr(Chunk *chunkReturn, Arena arena, Addr addr);
+extern Res ChunkNodeDescribe(Tree node, mps_lib_FILE *stream);
 
 /* CHUNK_OF_ADDR -- return the chunk containing an address
  *
@@ -173,9 +177,7 @@ extern Bool ChunkOfAddr(Chunk *chunkReturn, Arena arena, Addr addr);
  */
 
 #define CHUNK_OF_ADDR(chunkReturn, arena, addr) \
-  (((arena)->chunkCache.base <= (addr) && (addr) < (arena)->chunkCache.limit) \
-   ? (*(chunkReturn) = (arena)->chunkCache.chunk, TRUE) \
-   : ChunkOfAddr(chunkReturn, arena, addr))
+  ChunkOfAddr(chunkReturn, arena, addr)
 
 
 /* AddrPageBase -- the base of the page this address is on */
