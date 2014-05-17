@@ -965,6 +965,10 @@ if test "$opsys" = "mingw32"; then
   LN_S="/bin/ln"
 fi
 
+dnl On some Debian versions, "install-info" prints irritating messages
+dnl "This is not dpkg install-info anymore, but GNU install-info"
+dnl if called via an absolute file name.
+dnl Use the entirely-identical-but-quieter ginstall-info instead if present.
 AC_PATH_PROGS(INSTALL_INFO, [ginstall-info install-info], :,
   $PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/sbin)
 dnl Don't use GZIP, which is used by gzip for additional parameters.
