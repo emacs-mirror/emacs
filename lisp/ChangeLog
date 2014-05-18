@@ -1,3 +1,8 @@
+2014-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/timer.el (timer-event-handler): Don't run if canceled
+	(bug#17392).
+
 2014-05-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-find-inline-encoding): Do not match "%%t"

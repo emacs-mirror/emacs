@@ -1822,9 +1822,7 @@ terminals, cursor blinking is controlled by the terminal."
   :initialize 'custom-initialize-delay
   :group 'cursor
   :global t
-  (if blink-cursor-idle-timer (cancel-timer blink-cursor-idle-timer))
-  (setq blink-cursor-idle-timer nil)
-  (blink-cursor-end)
+  (blink-cursor-suspend)
   (remove-hook 'focus-in-hook #'blink-cursor-check)
   (remove-hook 'focus-out-hook #'blink-cursor-suspend)
   (when blink-cursor-mode
