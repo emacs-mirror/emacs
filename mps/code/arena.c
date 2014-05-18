@@ -609,7 +609,6 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream)
 typedef struct ArenaAllocPageClosureStruct {
   Arena arena;
   Pool pool;
-  Chunk avoid;
   Addr base;
 } ArenaAllocPageClosureStruct, *ArenaAllocPageClosure;
 
@@ -628,7 +627,8 @@ static Bool arenaAllocPageInChunk(Tree tree, void *closureP, Size closureS)
   AVER(cl->arena == ChunkArena(chunk));
   UNUSED(closureS);
 
-  if (chunk == cl->avoid)
+  /* Already searched in arenaAllocPage. */
+  if (chunk == cl->arena->primary)
     return TRUE;
   
   if (!BTFindShortResRange(&basePageIndex, &limitPageIndex,
@@ -663,7 +663,6 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
   if (arenaAllocPageInChunk(&arena->primary->chunkTree, &closure, 0) == FALSE)
     goto found;
 
-  closure.avoid = arena->primary;
   if (SplayTreeTraverse(ArenaChunkTree(arena), arenaAllocPageInChunk, &closure, 0)
       == FALSE)
     goto found;
