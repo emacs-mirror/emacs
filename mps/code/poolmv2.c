@@ -1240,7 +1240,7 @@ static void MVTRefillABQIfEmpty(MVT mvt, Size size)
   if (mvt->abqOverflow && ABQIsEmpty(MVTABQ(mvt))) {
     mvt->abqOverflow = FALSE;
     METER_ACC(mvt->refills, size);
-    LandIterate(MVTFailover(mvt), &MVTRefillVisitor, mvt, 0);
+    (void)LandIterate(MVTFailover(mvt), &MVTRefillVisitor, mvt, 0);
   }
 }
  
@@ -1250,7 +1250,6 @@ static void MVTRefillABQIfEmpty(MVT mvt, Size size)
 typedef struct MVTContigencyClosureStruct
 {
   MVT mvt;
-  Bool found;
   RangeStruct range;
   Arena arena;
   Size min;
@@ -1287,7 +1286,6 @@ static Bool MVTContingencyVisitor(Bool *deleteReturn, Land land, Range range,
   /* verify that min will fit when seg-aligned */
   if (size >= 2 * cl->min) {
     RangeInit(&cl->range, base, limit);
-    cl->found = TRUE;
     return FALSE;
   }
  
@@ -1295,7 +1293,6 @@ static Bool MVTContingencyVisitor(Bool *deleteReturn, Land land, Range range,
   cl->hardSteps++;
   if (MVTCheckFit(base, limit, cl->min, cl->arena)) {
     RangeInit(&cl->range, base, limit);
-    cl->found = TRUE;
     return FALSE;
   }
  
@@ -1309,14 +1306,12 @@ static Bool MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
   MVTContigencyClosureStruct cls;
 
   cls.mvt = mvt;
-  cls.found = FALSE;
   cls.arena = PoolArena(MVT2Pool(mvt));
   cls.min = min;
   cls.steps = 0;
   cls.hardSteps = 0;
 
-  LandIterate(MVTFailover(mvt), MVTContingencyVisitor, (void *)&cls, 0);
-  if (!cls.found)
+  if (LandIterate(MVTFailover(mvt), MVTContingencyVisitor, (void *)&cls, 0))
     return FALSE;
 
   AVER(RangeSize(&cls.range) >= min);
