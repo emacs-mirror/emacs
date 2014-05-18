@@ -23,7 +23,9 @@
 
 (defvar ede-detect-utest-project-list
   '(
+    ( "src/proj/sub/TEST" . ede-detect-utest-subproj-p )
     ( "src/proj/Project.ede" . ede-proj-project-p )
+    ( "src/automake/sub/Makefile.am" . ede-detect-utest-subautomake-p)
     ( "src/automake/Makefile.am" . project-am-makefile-p )
     ( "src/android/AndroidManifest.xml" . ede-android-project-p )
     ( "src/android/src/test.java" . ede-android-project-p )
@@ -32,10 +34,32 @@
     ;( "src/ant/build.xml" . ede-ant-project-p )
     ( "src/linux/Makefile" . ede-linux-project-p )
     ( "src/linux/scripts/ver_linux" . ede-linux-project-p )
+    ;; these ROOT projects are created by hand in a .emacs file.
+    ;; These need to be defined in here to get this test to work.
+    ( "src/cpproot/src/main.cpp" . ede-cpp-root-project-p )
+    ( "src/cpproot/README" . ede-cpp-root-project-p )
+    ( "src/javaroot/com/test/Foo.Java" . ede-java-root-project-p )
+    ( "src/javaroot/README" . ede-java-root-project-p )
      )
   "List of sources to load in ndetectable projects.
 Each entry is a cons cell:
   ( SRCFILE . PROJECT-TYPE )")
+
+(defun ede-detect-utest-basedir ()
+  "Get the basedir of the detection unit tests."
+  (save-current-buffer
+    (set-buffer (semantic-find-file-noselect
+		 (expand-file-name "cedet/ede/detect.el"
+				   cedet-utest-root)))
+    (expand-file-name "src" default-directory)))
+
+(ede-cpp-root-project "UTESTCPP"
+		      :file (expand-file-name "cpproot/README"
+					      (ede-detect-utest-basedir)))
+
+(ede-java-root-project "UTESTJAVA"
+		       :file (expand-file-name "javaroot/README"
+					       (ede-detect-utest-basedir)))
 
 ;;;###autoload
 (defun ede-detect-utest ()
@@ -47,12 +71,16 @@ Each entry is a cons cell:
 	  (project-linux-build-directory-default 'same)
 	  (project-linux-architecture-default "glnx")
 	  (ede-project-directories t) ; safe to load Project.ede
+	  (basedir nil)
+	  (baselen nil)
 	  )
       (cedet-utest-log-setup "EDE DETECT")
 
       (set-buffer (semantic-find-file-noselect
 		   (expand-file-name "cedet/ede/detect.el"
 				     cedet-utest-root)))
+      (setq basedir default-directory
+	    baselen (length basedir))
 
       (dolist (fl ede-detect-utest-project-list)
 
@@ -68,17 +96,52 @@ Each entry is a cons cell:
 	    (set-buffer b)
 
 	    ;; Run the EDE detection code.  Firing up the mode isn't really needed.
-	    (ede-initialize-state-current-buffer)
+	    (condition-case err
+		(ede-initialize-state-current-buffer)
+	      (error
+	       (semantic-ia-utest-log "!! In %s: load threw error %S\n"
+				      (substring default-directory baselen)
+				      err)
+	       (push fl errlog)
+	       ))
 
-	    ;; Test the result.
-	    (unless (funcall (cdr fl) ede-object-root-project)
+	    (let* ((proj ede-object-root-project))
 
-	      (message "Found %S, wanted %S"
-		       ede-object-root-project
-		       (cdr fl))
+	      (if (not proj)
+		  (progn
 
-	      (push fl errlog))
-	    )
+		    ;; Use the detector to to provide better debugging info.
+		    (let ((projdetect (ede-detect-directory-for-project default-directory)))
+
+		      (if (not projdetect)
+			  (progn
+			    ;; Detected nothing
+			    (semantic-ia-utest-log  "!! In %s: Detected nothing, wanted %S\n"
+						    (substring default-directory baselen)
+						    (cdr fl))
+			    (push fl errlog))
+
+			;; Else, some other error.
+			(semantic-ia-utest-log "!! In %s: Detected %S, failed to load project type %s\n"
+						 (substring default-directory baselen)
+						 (eieio-object-name (cdr projdetect))
+						 (cdr fl))
+			(push fl errlog))))
+
+		;; Test the result.
+		(if (funcall (cdr fl) proj)
+
+		    (semantic-ia-utest-log "** In %s: Found %s ... Done\n"
+					   (substring default-directory baselen)
+					   (cdr fl))
+
+		  (semantic-ia-utest-log  "!! In %s: Found %S, wanted %S\n"
+					  (substring default-directory baselen)
+					  (eieio-object-name proj)
+					  (cdr fl))
+
+		  (push fl errlog))
+		)))
 
 	  ;; If it wasn't already in memory, whack it.
 	  (when (and b (not fb))
@@ -96,6 +159,19 @@ Each entry is a cons cell:
 
   )
 
+(defun ede-detect-utest-subproj-p (project)
+  "Special predicate for testing the ede-proj-project type."
+  (and (ede-proj-project-p project)
+       (string= (file-name-nondirectory (directory-file-name (oref project directory))) "proj")
+       (not (eq project (ede-current-project)))
+       ))
+
+(defun ede-detect-utest-subautomake-p (project)
+  "Special predicate for testing the ede-proj-project type."
+  (and (project-am-makefile project)
+       (string= (file-name-nondirectory (directory-file-name (oref project directory))) "automake")
+       (not (eq project (ede-current-project)))
+       ))
 
 (provide 'cedet/ede/detect-utest)
 
