@@ -1,3 +1,8 @@
+2014-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (INSTALL_INFO):
+	Revert to just checking for "install-info".
+
 2014-05-17  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (INSTALL_INFO): Try the identical-but-quieter-on-Debian

@@ -969,7 +969,12 @@ dnl On some Debian versions, "install-info" prints irritating messages
 dnl "This is not dpkg install-info anymore, but GNU install-info"
 dnl if called via an absolute file name.
 dnl Use the entirely-identical-but-quieter ginstall-info instead if present.
-AC_PATH_PROGS(INSTALL_INFO, [ginstall-info install-info], :,
+dnl Sadly some people may have an old ginstall-info installed on
+dnl non-Debian systems, so we can't use this.
+dnl AC_PATH_PROGS(INSTALL_INFO, [ginstall-info install-info], :,
+dnl   $PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/sbin)
+
+AC_PATH_PROG(INSTALL_INFO, install-info, :,
   $PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/sbin)
 dnl Don't use GZIP, which is used by gzip for additional parameters.
 AC_PATH_PROG(GZIP_PROG, gzip)
