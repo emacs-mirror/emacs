@@ -438,7 +438,7 @@ static Res freelistDelete(Range rangeReturn, Land land, Range range)
 }
 
 
-static void freelistIterate(Land land, LandVisitor visitor,
+static Bool freelistIterate(Land land, LandVisitor visitor,
                             void *closureP, Size closureS)
 {
   Freelist fl;
@@ -468,8 +468,9 @@ static void freelistIterate(Land land, LandVisitor visitor,
     }
     cur = next;
     if (!cont)
-      break;
+      return FALSE;
   }
+  return TRUE;
 }
 
 

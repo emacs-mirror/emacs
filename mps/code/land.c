@@ -233,15 +233,17 @@ Res LandDelete(Range rangeReturn, Land land, Range range)
  * See <design/land/#function.iterate>
  */
 
-void LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS)
+Bool LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS)
 {
+  Bool res;
   AVERT(Land, land);
   AVER(FUNCHECK(visitor));
   landEnter(land);
 
-  (*land->class->iterate)(land, visitor, closureP, closureS);
+  res = (*land->class->iterate)(land, visitor, closureP, closureS);
 
   landLeave(land);
+  return res;
 }
 
 
@@ -503,13 +505,13 @@ static Res landNoDelete(Range rangeReturn, Land land, Range range)
   return ResUNIMPL;
 }
 
-static void landNoIterate(Land land, LandVisitor visitor, void *closureP, Size closureS)
+static Bool landNoIterate(Land land, LandVisitor visitor, void *closureP, Size closureS)
 {
   AVERT(Land, land);
   AVER(visitor != NULL);
   UNUSED(closureP);
   UNUSED(closureS);
-  NOOP;
+  return FALSE;
 }
 
 static Bool landNoFind(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
