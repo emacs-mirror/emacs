@@ -3064,7 +3064,7 @@ elif test "${with_png}" != no; then
   # mingw32 loads the library dynamically.
   if test "$opsys" = mingw32; then
     AC_CHECK_HEADER([png.h], [HAVE_PNG=yes])
-  else
+  elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
     AC_MSG_CHECKING([for png])
     png_cflags=`(libpng-config --cflags) 2>&AS_MESSAGE_LOG_FD` &&
     png_libs=`(libpng-config --libs) 2>&AS_MESSAGE_LOG_FD` || {
