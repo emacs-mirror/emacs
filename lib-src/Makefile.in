@@ -311,18 +311,18 @@ regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h $(config_h)
 
 
 etags_deps = ${srcdir}/etags.c regex.o $(NTLIB) $(config_h)
-etags_args = -DEMACS_NAME="\"GNU Emacs\"" -DVERSION="\"${version}\"" \
-	${srcdir}/etags.c regex.o $(LOADLIBES) $(NTLIB) -o $@
+etags_cflags = -DEMACS_NAME="\"GNU Emacs\"" -DVERSION="\"${version}\"" -o $@
+etags_libs = regex.o $(LOADLIBES) $(NTLIB)
 
 etags${EXEEXT}: ${etags_deps}
-	$(CC) ${ALL_CFLAGS} ${etags_args}
+	$(CC) ${ALL_CFLAGS} $(etags_cflags) $(srcdir)/etags.c $(etags_libs)
 
+## ctags.c is distinct from etags.c so that parallel makes do not write two
+## etags.o files on top of each other.
 ## FIXME?
-## Can't we use a symlink ctags -> etags, and make etags check for argv[0]?
-## Or a wrapper script that calls etags --ctags?
-ctags${EXEEXT}: ${etags_deps}
-	$(CC) ${ALL_CFLAGS} -DCTAGS ${etags_args}
-
+## Can't we use a wrapper that calls 'etags --ctags'?
+ctags${EXEEXT}: ctags.c ${etags_deps}
+	$(CC) ${ALL_CFLAGS} $(etags_cflags) $(srcdir)/ctags.c $(etags_libs)
 
 ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ${srcdir}/../lib/min-max.h $(NTLIB) \
                    $(config_h)

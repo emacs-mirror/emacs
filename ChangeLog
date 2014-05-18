@@ -1,5 +1,8 @@
 2014-05-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Port ctags+etags build to Sun C 5.12.
+	* .bzrignore: Remove lib-src/ctags.c.
+
 	Port recent libpng changes to hosts with missing png.h.
 	* configure.ac (HAVE_PNG): Port to platforms where libpng-config
 	succeeds but png.h is absent, by testing libpng-config's output

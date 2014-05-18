@@ -1,3 +1,14 @@
+2014-05-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port ctags+etags build to Sun C 5.12.
+	* Makefile.in (etags_args): Remove, replacing with ...
+	(etags_cflags, etags_libs): New macros.  All uses changed.
+	(ctags${EXEEXT}): Don't compile etags.c, as compiling etags.c in
+	parallel (once for ctags, once for etags) breaks parallel makes
+	with compilers that use the source file name to name temporaries,
+	such as Sun C 5.12.  Instead, compile ctags.c.
+	* ctags.c: New file.
+
 2014-05-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Handle systems without WCONTINUED consistently.  (Bug#15110, 17339)

@@ -134,7 +134,6 @@ lib/unistd.in-h
 lib/cxxdefs.h
 lib-src/blessmail
 lib-src/ctags
-lib-src/ctags.c
 lib-src/ebrowse
 lib-src/emacsclient
 lib-src/etags
