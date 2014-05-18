@@ -115,7 +115,7 @@ static void check(TestState state)
   closure.limit = addrOfIndex(state, ArraySize);
   closure.oldLimit = state->block;
 
-  LandIterate(state->land, checkVisitor, (void *)&closure, 0);
+  (void)LandIterate(state->land, checkVisitor, (void *)&closure, 0);
 
   if (closure.oldLimit == state->block)
     Insist(BTIsSetRange(state->allocTable, 0,
