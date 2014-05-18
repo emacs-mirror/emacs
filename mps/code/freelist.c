@@ -749,7 +749,7 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream)
                "  listSize = $U\n", (WriteFU)fl->listSize,
                NULL);
 
-  LandIterate(land, freelistDescribeVisitor, stream, 0);
+  (void)LandIterate(land, freelistDescribeVisitor, stream, 0);
 
   res = WriteF(stream, "}\n", NULL);
   return res;

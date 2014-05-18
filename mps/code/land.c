@@ -416,7 +416,7 @@ void LandFlush(Land dest, Land src)
   AVERT(Land, dest);
   AVERT(Land, src);
 
-  LandIterate(src, landFlushVisitor, dest, 0);
+  (void)LandIterate(src, landFlushVisitor, dest, 0);
 }
 
 
@@ -485,7 +485,7 @@ static Bool landSizeVisitor(Bool *deleteReturn, Land land, Range range,
 Size LandSlowSize(Land land)
 {
   Size size = 0;
-  LandIterate(land, landSizeVisitor, &size, 0);
+  (void)LandIterate(land, landSizeVisitor, &size, 0);
   return size;
 }
 
