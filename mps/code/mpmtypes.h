@@ -272,7 +272,7 @@ typedef Size (*LandSizeMethod)(Land land);
 typedef Res (*LandInsertMethod)(Range rangeReturn, Land land, Range range);
 typedef Res (*LandDeleteMethod)(Range rangeReturn, Land land, Range range);
 typedef Bool (*LandVisitor)(Bool *deleteReturn, Land land, Range range, void *closureP, Size closureS);
-typedef void (*LandIterateMethod)(Land land, LandVisitor visitor, void *closureP, Size closureS);
+typedef Bool (*LandIterateMethod)(Land land, LandVisitor visitor, void *closureP, Size closureS);
 typedef Bool (*LandFindMethod)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
 typedef Res (*LandFindInZonesMethod)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
 typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream);
