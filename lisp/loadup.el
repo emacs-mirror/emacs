@@ -198,12 +198,10 @@
 (load "font-lock")
 (load "jit-lock")
 
-(if (fboundp 'track-mouse)
-    (progn
-      (load "mouse")
-      (and (boundp 'x-toolkit-scroll-bars)
-	   (load "scroll-bar"))
-      (load "select")))
+(load "mouse")
+(if (boundp 'x-toolkit-scroll-bars)
+    (load "scroll-bar"))
+(load "select")
 (load "emacs-lisp/timer")
 (load "isearch")
 (load "rfn-eshadow")

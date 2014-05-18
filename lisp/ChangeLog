@@ -1,3 +1,8 @@
+2014-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* loadup.el:
+	* play/gametree.el: `track-mouse' is always defined since 2012-11-24.
+
 2014-05-14  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/python.el (python-shell-get-or-create-process):
