@@ -748,7 +748,7 @@ static Bool cbsIterateVisit(Tree tree, void *closureP, Size closureS)
   return TRUE;
 }
 
-static void cbsIterate(Land land, LandVisitor visitor,
+static Bool cbsIterate(Land land, LandVisitor visitor,
                        void *closureP, Size closureS)
 {
   CBS cbs;
@@ -769,8 +769,8 @@ static void cbsIterate(Land land, LandVisitor visitor,
   closure.visitor = visitor;
   closure.closureP = closureP;
   closure.closureS = closureS;
-  (void)TreeTraverse(SplayTreeRoot(splay), splay->compare, splay->nodeKey,
-                     cbsIterateVisit, &closure, 0);
+  return TreeTraverse(SplayTreeRoot(splay), splay->compare, splay->nodeKey,
+                      cbsIterateVisit, &closure, 0);
 }
 
 
