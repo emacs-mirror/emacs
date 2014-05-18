@@ -297,7 +297,7 @@ This function is called, by name, directly by the C code."
       ;; - A runs and a does a sit-for.
       ;; - during sit-for we run timer D which cancels timer B.
       ;; - timer A finally finishes, so we move on to timers B and C.
-      (unless cell
+      (when cell
         ;; Re-schedule if requested.
         (if (timer--repeat-delay timer)
             (if (timer--idle-delay timer)
