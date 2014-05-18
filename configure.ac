@@ -3064,31 +3064,40 @@ elif test "${with_png}" != no; then
   # mingw32 loads the library dynamically.
   if test "$opsys" = mingw32; then
     AC_CHECK_HEADER([png.h], [HAVE_PNG=yes])
-  elif png_cflags=`(libpng-config --cflags) 2>&AS_MESSAGE_LOG_FD` &&
-       png_libs=`(libpng-config --libs) 2>&AS_MESSAGE_LOG_FD`
-  then
-    HAVE_PNG=yes
-    PNG_CFLAGS=`AS_ECHO(["$png_cflags"]) | sed -e "$edit_cflags"`
-    LIBPNG=$png_libs
   else
-    # libpng-config does not work; configure by hand.
-    # Debian unstable as of July 2003 has multiple libpngs, and puts png.h
-    # in /usr/include/libpng.
-    AC_CHECK_HEADERS([png.h libpng/png.h],
-      [AC_CHECK_LIB([png], [png_get_channels],
-	 [HAVE_PNG=yes
-	  LIBPNG='-lpng'
-	  if test "$ac_cv_header_png_h" != yes; then
-	    PNG_CFLAGS=-I/usr/include/libpng
-	  fi
-	  break],
-	  [], [-lz -lm])])
-  fi
-  # $LIBPNG requires explicit -lz in some cases.
-  # We don't know what those cases are, exactly, so play it safe and
-  # append -lz to any nonempty $LIBPNG, unless we're already using LIBZ.
-  if test -n "$LIBPNG" && test -z "$LIBZ"; then
-    LIBPNG="$LIBPNG -lz"
+    AC_MSG_CHECKING([for png])
+    png_cflags=`(libpng-config --cflags) 2>&AS_MESSAGE_LOG_FD` &&
+    png_libs=`(libpng-config --libs) 2>&AS_MESSAGE_LOG_FD` || {
+      # libpng-config does not work; configure by hand.
+      # Debian unstable as of July 2003 has multiple libpngs, and puts png.h
+      # in /usr/include/libpng.
+      if test -r /usr/include/libpng/png.h &&
+	 test ! -r /usr/include/png.h; then
+	png_cflags=-I/usr/include/libpng
+      else
+	png_cflags=
+      fi
+      png_libs='-lpng'
+    }
+    SAVE_CFLAGS=$CFLAGS
+    SAVE_LIBS=$LIBS
+    CFLAGS="$CFLAGS $png_cflags"
+    LIBS="$png_libs -lz -lm $LIBS"
+    AC_LINK_IFELSE(
+      [AC_LANG_PROGRAM([[#include <png.h>]],
+	 [[return !png_get_channels (0, 0);]])],
+      [HAVE_PNG=yes
+       PNG_CFLAGS=`AS_ECHO(["$png_cflags"]) | sed -e "$edit_cflags"`
+       LIBPNG=$png_libs
+       # $LIBPNG requires explicit -lz in some cases.
+       # We don't know what those cases are, exactly, so play it safe and
+       # append -lz to any nonempty $LIBPNG, unless we're already using LIBZ.
+       if test -n "$LIBPNG" && test -z "$LIBZ"; then
+	 LIBPNG="$LIBPNG -lz"
+       fi])
+    CFLAGS=$SAVE_CFLAGS
+    LIBS=$SAVE_LIBS
+    AC_MSG_RESULT([$HAVE_PNG])
   fi
 fi
 if test $HAVE_PNG = yes; then

@@ -1,3 +1,11 @@
+2014-05-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port recent libpng changes to hosts with missing png.h.
+	* configure.ac (HAVE_PNG): Port to platforms where libpng-config
+	succeeds but png.h is absent, by testing libpng-config's output
+	rather than trusting it.  I ran into this problem when building
+	Emacs trunk on a Solaris 10 host.
+
 2014-05-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume C99 or later (Bug#17487).
