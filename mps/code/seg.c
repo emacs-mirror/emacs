@@ -526,43 +526,6 @@ Bool SegNext(Seg *segReturn, Arena arena, Seg seg)
 }
 
 
-/* SegFindAboveAddr -- return the "next" seg in the arena
- *
- * Finds the seg with the lowest base address which is
- * greater than a specified address.  The address must be (or once
- * have been) the base address of a seg.
- */
-
-Bool SegFindAboveAddr(Seg *segReturn, Arena arena, Addr addr)
-{
-  Tract tract;
-  Addr base = addr;
-  AVER_CRITICAL(segReturn != NULL); /* .seg.critical */
-  AVERT_CRITICAL(Arena, arena);
-
-  while (TractNext(&tract, arena, base)) {
-    Seg seg;
-    if (TRACT_SEG(&seg, tract)) {
-      if (tract == seg->firstTract) {
-        *segReturn = seg;
-        return TRUE;
-      } else {
-        /* found the next tract in a large segment */
-        /* base & addr must be the base of this segment */
-        AVER_CRITICAL(TractBase(seg->firstTract) == addr);
-        AVER_CRITICAL(addr == base);
-        /* set base to the last tract in the segment */
-        base = AddrSub(seg->limit, ArenaAlign(arena));
-        AVER_CRITICAL(base > addr);
-      }
-    } else {
-      base = TractBase(tract);
-    }
-  }
-  return FALSE;
-}
-
-
 /* SegMerge -- Merge two adjacent segments
  *
  * See <design/seg/#merge>
