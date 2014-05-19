@@ -69,6 +69,7 @@ static void test(void)
 
  /* (total allocated is 1000 M) */
 
+ mps_arena_park(arena);
  mps_root_destroy(root0);
  mps_root_destroy(root1);
  comment("Destroyed roots.");

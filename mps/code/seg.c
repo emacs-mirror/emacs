@@ -309,9 +309,12 @@ void SegSetSummary(Seg seg, RefSet summary)
   AVERT(Seg, seg);
   AVER(summary == RefSetEMPTY || SegRankSet(seg) != RankSetEMPTY);
 
-#ifdef PROTECTION_NONE
+#if defined(REMEMBERED_SET_NONE)
+  /* Without protection, we can't maintain the remembered set because
+     there are writes we don't know about. */
   summary = RefSetUNIV;
 #endif
+
   if (summary != SegSummary(seg))
     seg->class->setSummary(seg, summary);
 }
@@ -324,11 +327,12 @@ void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
   AVERT(Seg, seg); 
   AVERT(RankSet, rankSet);
 
-#ifdef PROTECTION_NONE
+#if defined(REMEMBERED_SET_NONE)
   if (rankSet != RankSetEMPTY) {
     summary = RefSetUNIV;
   }
 #endif
+
   seg->class->setRankSummary(seg, rankSet, summary);
 }
 
@@ -678,10 +682,8 @@ failControl:
 
 Bool SegCheck(Seg seg)
 {
-  Tract tract;
   Arena arena;
   Pool pool;
-  Addr addr;
   Size align;
  
   CHECKS(Seg, seg);
@@ -700,16 +702,25 @@ Bool SegCheck(Seg seg)
   CHECKL(AddrIsAligned(seg->limit, align));
   CHECKL(seg->limit > TractBase(seg->firstTract));
 
-  /* Each tract of the segment must agree about white traces */
-  TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, seg->limit) {
-    Seg trseg = NULL; /* suppress compiler warning */
+  /* Each tract of the segment must agree about white traces. Note
+   * that even if the CHECKs are compiled away there is still a
+   * significant cost in looping over the tracts, hence the guard. See
+   * job003778. */
+#if defined(AVER_AND_CHECK_ALL)
+  {
+    Tract tract;
+    Addr addr;
+    TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, seg->limit) {
+      Seg trseg = NULL; /* suppress compiler warning */
 
-    CHECKD_NOSIG(Tract, tract);
-    CHECKL(TRACT_SEG(&trseg, tract) && (trseg == seg));
-    CHECKL(TractWhite(tract) == seg->white);
-    CHECKL(TractPool(tract) == pool);
+      CHECKD_NOSIG(Tract, tract);
+      CHECKL(TRACT_SEG(&trseg, tract) && (trseg == seg));
+      CHECKL(TractWhite(tract) == seg->white);
+      CHECKL(TractPool(tract) == pool);
+    }
+    CHECKL(addr == seg->limit);
   }
-  CHECKL(addr == seg->limit);
+#endif  /* AVER_AND_CHECK_ALL */
 
   /* The segment must belong to some pool, so it should be on a */
   /* pool's segment ring.  (Actually, this isn't true just after */

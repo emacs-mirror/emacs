@@ -59,6 +59,7 @@ static void test(void)
   comment("%i of %i", i, ITERATIONS);
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(sap);
  comment("Destroyed ap.");
 

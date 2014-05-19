@@ -7,7 +7,6 @@
 #ifndef clock_h
 #define clock_h
 
-#include <limits.h>
 #include "mpmtypes.h" /* for Word */
 
 

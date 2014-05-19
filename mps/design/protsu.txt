@@ -110,11 +110,6 @@ access that is compatible with the access of the underlying object).
 _`.fun.sync`: ``ProtSync()``. This does nothing in this implementation
 as ProtSet sets the protection without any delay.
 
-_`.fun.tramp`: ``ProtTramp()``. The protection trampoline is trivial
-under SunOS, as there is nothing that needs to be done in the dynamic
-context of the mutator in order to catch faults. (Contrast this with
-Win32 Structured Exception Handling.)
-
 
 Document History
 ----------------

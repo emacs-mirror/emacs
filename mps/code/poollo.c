@@ -78,6 +78,7 @@ DEFINE_SEG_CLASS(LOSegClass, class)
 
 /* LOSegCheck -- check an LO segment */
 
+ATTRIBUTE_UNUSED
 static Bool LOSegCheck(LOSeg loseg)
 {
   CHECKS(LOSeg, loseg);
@@ -183,6 +184,7 @@ static void loSegFinish(Seg seg)
 }
 
 
+ATTRIBUTE_UNUSED
 static Count loSegBits(LOSeg loseg)
 {
   LO lo;
@@ -806,6 +808,7 @@ mps_class_t mps_class_lo(void)
 
 /* LOCheck -- check an LO pool */
 
+ATTRIBUTE_UNUSED
 static Bool LOCheck(LO lo)
 {
   CHECKS(LO, lo);

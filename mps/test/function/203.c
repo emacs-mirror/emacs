@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = new MV2 allocation test
+ summary = new MVT allocation test
  language = c
  link = testlib.o
 END_HEADER
@@ -9,14 +9,10 @@ END_HEADER
 
 #include <time.h>
 #include "testlib.h"
-#include "mpscmv2.h"
+#include "mpscmvt.h"
 #include "mpsavm.h"
 
-#define MAXNUMBER 1000000
-
-/* this shouldn't be necessary, but it's not provided anywhere */
-
-typedef MPS_T_WORD mps_count_t;
+#define MAXNUMBER 100000
 
 void *stackpointer;
 mps_arena_t arena;
@@ -42,7 +38,7 @@ static void setobj(mps_addr_t a, size_t size, unsigned char val)
  }
 }
 
-static mps_res_t mv2_alloc(mps_addr_t *ref, mps_ap_t ap, size_t size) {
+static mps_res_t mvt_alloc(mps_addr_t *ref, mps_ap_t ap, size_t size) {
  mps_res_t res;
 
  size = ((size+7)/8)*8;
@@ -73,7 +69,7 @@ static int chkobj(mps_addr_t a, size_t size, unsigned char val)
 
 static void dt(int kind,
    size_t minSize, size_t avgSize, size_t maxSize,
-   mps_count_t depth, mps_count_t fragLimit,
+   mps_word_t depth, mps_word_t fragLimit,
    size_t mins, size_t maxs, int number, int iter)
 {
  mps_pool_t pool;
@@ -89,9 +85,9 @@ static void dt(int kind,
  asserts(time0 != -1, "processor time not available");
 
  die(
-  mps_pool_create(&pool, arena, mps_class_mv2(),
+  mps_pool_create(&pool, arena, mps_class_mvt(),
                   minSize, avgSize, maxSize, depth, fragLimit),
-  "create MV2 pool");
+  "create MVT pool");
 
  die(mps_ap_create(&ap, pool, mps_rank_ambig()), "create ap");
 
@@ -104,7 +100,7 @@ static void dt(int kind,
   }
   else
   {
-   die(mv2_alloc(&queue[hd].addr, ap, size), "alloc");
+   die(mvt_alloc(&queue[hd].addr, ap, size), "alloc");
    setobj(queue[hd].addr, size, (unsigned char) (hd%256));
    queue[hd].size = size;
   }
@@ -136,12 +132,13 @@ static void dt(int kind,
    }
    else
    {
-    die(mv2_alloc(&queue[hd].addr, ap, size),"alloc");
+    die(mvt_alloc(&queue[hd].addr, ap, size),"alloc");
     setobj(queue[hd].addr, size, (unsigned char) (hd%256));
     queue[hd].size = size;
    }
  }
 
+ mps_ap_destroy(ap);
  mps_pool_destroy(pool);
 
  time1=clock();
@@ -157,7 +154,7 @@ static void test(void)
 {
  mps_thr_t thread;
  size_t mins;
- mps_count_t dep, frag;
+ mps_word_t dep, frag;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*100)), "create arena");
  cdie(mps_thread_reg(&thread, arena), "register thread");
@@ -170,34 +167,34 @@ static void test(void)
 
  comment("Frag: %i", frag);
 
- dt(SEQ, 8, 8, 9, dep, frag, 8, 9, 5, 1000);
- dt(RANGAP, 64, 64, 64, dep, frag, 8, 128, 100, 100000);
+ dt(SEQ, 8, 8, 9, dep, frag, 8, 9, 5, 100);
+ dt(RANGAP, 64, 64, 64, dep, frag, 8, 128, 100, 10000);
 
- dt(DUMMY, 8, 32, 64, dep, frag, 8, 64, 1000, 1000000);
- dt(SEQ, 8, 32, 64, dep, frag, 8, 64, 1000, 1000000);
- dt(RAN, 8, 32, 64, dep, frag, 8, 64, 1000, 1000000);
- dt(SEQGAP, 8, 32, 64, dep, frag, 8, 64, 1000, 1000000);
- dt(RANGAP, 8, 32, 64, dep, frag, 8, 64, 1000, 1000000);
+ dt(DUMMY, 8, 32, 64, dep, frag, 8, 64, 1000, 100000);
+ dt(SEQ, 8, 32, 64, dep, frag, 8, 64, 1000, 100000);
+ dt(RAN, 8, 32, 64, dep, frag, 8, 64, 1000, 100000);
+ dt(SEQGAP, 8, 32, 64, dep, frag, 8, 64, 1000, 100000);
+ dt(RANGAP, 8, 32, 64, dep, frag, 8, 64, 1000, 100000);
 
- dt(DUMMY, 100, 116, 132, dep, frag, 100, 132, 1000, 1000000);
- dt(SEQ, 100, 116, 132, dep, frag, 100, 132, 1000, 1000000);
- dt(RAN, 100, 116, 132, dep, frag, 100, 132, 1000, 1000000);
- dt(SEQGAP, 100, 116, 132, dep, frag, 100, 132, 1000, 1000000);
- dt(RANGAP, 100, 116, 132, dep, frag, 100, 132, 1000, 1000000);
+ dt(DUMMY, 100, 116, 132, dep, frag, 100, 132, 1000, 100000);
+ dt(SEQ, 100, 116, 132, dep, frag, 100, 132, 1000, 100000);
+ dt(RAN, 100, 116, 132, dep, frag, 100, 132, 1000, 100000);
+ dt(SEQGAP, 100, 116, 132, dep, frag, 100, 132, 1000, 100000);
+ dt(RANGAP, 100, 116, 132, dep, frag, 100, 132, 1000, 100000);
 
- dt(DUMMY, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, 10000);
- dt(SEQ, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, 10000);
- dt(RAN, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, 10000);
- dt(SEQGAP, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, 10000);
- dt(RANGAP, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, 10000);
+ dt(DUMMY, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, 1000);
+ dt(SEQ, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, 1000);
+ dt(RAN, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, 1000);
+ dt(SEQGAP, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, 1000);
+ dt(RANGAP, mins, 60*1024, 120*1024, dep, frag, mins, 128*1024, 100, 1000);
 
 /* try again using exceptional obj for anything over 16K */
 
- dt(DUMMY, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, 10000);
- dt(SEQ, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, 10000);
- dt(RAN, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, 10000);
- dt(SEQGAP, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, 10000);
- dt(RANGAP, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, 10000);
+ dt(DUMMY, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, 1000);
+ dt(SEQ, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, 1000);
+ dt(RAN, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, 1000);
+ dt(SEQGAP, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, 1000);
+ dt(RANGAP, mins, 8*1024, 16*1024, dep, frag, mins, 128*1024, 100, 1000);
 
  }
 

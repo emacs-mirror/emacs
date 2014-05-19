@@ -80,6 +80,7 @@ static void test(void)
 
  fail();
  
+ mps_arena_park(arena);
  mps_ap_destroy(ap);
  comment("Destroyed ap.");
 

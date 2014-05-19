@@ -156,6 +156,7 @@ static void test(void)
  report("count2", "%ld", rootcount);
  report("countspec", "%ld", speccount);
 
+ mps_arena_park(arena);
  mps_ap_destroy(apamc);
  mps_ap_destroy(aplo);
  mps_ap_destroy(apawl);
