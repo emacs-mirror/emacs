@@ -24,7 +24,6 @@ typedef struct LOStruct *LO;
 typedef struct LOStruct {
   PoolStruct poolStruct;        /* generic pool structure */
   Shift alignShift;             /* log_2 of pool alignment */
-  Chain chain;                  /* chain used by this pool */
   PoolGenStruct pgen;           /* generation representing the pool */
   Sig sig;
 } LOStruct;
@@ -293,9 +292,9 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
 
-  res = ChainAlloc(&seg, lo->chain, lo->pgen.nr, EnsureLOSegClass(),
-                   SizeAlignUp(size, ArenaAlign(PoolArena(pool))),
-                   pool, withReservoirPermit, argsNone);
+  res = PoolGenAlloc(&seg, &lo->pgen, EnsureLOSegClass(),
+                     SizeAlignUp(size, ArenaAlign(PoolArena(pool))),
+                     withReservoirPermit, argsNone);
   if (res != ResOK)
     return res;
 
@@ -475,9 +474,11 @@ static Res LOInit(Pool pool, ArgList args)
   Arena arena;
   Res res;
   ArgStruct arg;
+  Chain chain;
   unsigned gen = LO_GEN_DEFAULT;
 
   AVERT(Pool, pool);
+  AVERT(ArgList, args);
 
   arena = PoolArena(pool);
   
@@ -486,22 +487,22 @@ static Res LOInit(Pool pool, ArgList args)
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   pool->format = arg.val.format;
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
-    lo->chain = arg.val.chain;
+    chain = arg.val.chain;
   else {
-    lo->chain = ArenaGlobals(arena)->defaultChain;
+    chain = ArenaGlobals(arena)->defaultChain;
     gen = 1; /* avoid the nursery of the default chain by default */
   }
   if (ArgPick(&arg, args, MPS_KEY_GEN))
     gen = arg.val.u;
   
   AVERT(Format, pool->format);
-  AVERT(Chain, lo->chain);
-  AVER(gen <= ChainGens(lo->chain));
+  AVERT(Chain, chain);
+  AVER(gen <= ChainGens(chain));
 
   pool->alignment = pool->format->alignment;
   lo->alignShift = SizeLog2((Size)PoolAlignment(pool));
 
-  res = PoolGenInit(&lo->pgen, lo->chain, gen, pool);
+  res = PoolGenInit(&lo->pgen, ChainGen(chain, gen), pool);
   if (res != ResOK)
     goto failGenInit;
 
@@ -815,7 +816,6 @@ static Bool LOCheck(LO lo)
   CHECKL(lo->poolStruct.class == EnsureLOPoolClass());
   CHECKL(ShiftCheck(lo->alignShift));
   CHECKL((Align)1 << lo->alignShift == PoolAlignment(&lo->poolStruct));
-  CHECKD(Chain, lo->chain);
   CHECKD(PoolGen, &lo->pgen);
   return TRUE;
 }
