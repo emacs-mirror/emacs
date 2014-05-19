@@ -225,7 +225,7 @@ _`.function.find.zones`: Locate a block at least as big as ``size``
 that lies entirely within the ``zoneSet``, return its range via the
 ``rangeReturn`` argument, and return ``ResOK``. (The first such block,
 if ``high`` is ``FALSE``, or the last, if ``high`` is ``TRUE``.) If
-there is no such block, , return ``ResFAIL``.
+there is no such block, return ``ResFAIL``.
 
 Delete the range as for ``LandFindFirst()`` and ``LastFindLast()``
 (with the effect of ``FindDeleteLOW`` if ``high`` is ``FALSE`` and the
