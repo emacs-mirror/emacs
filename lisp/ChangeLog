@@ -1,3 +1,7 @@
+2014-05-19  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/cl-lib.el (cl-endp): Conform to CL's semantics.
+
 2014-05-18  Glenn Morris  <rgm@gnu.org>
 
 	* loadup.el:
