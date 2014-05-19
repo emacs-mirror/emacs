@@ -2174,6 +2174,25 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   return bool_vector_fill (val, init);
 }
 
+DEFUN ("bool-vector", Fbool_vector, Sbool_vector, 0, MANY, 0,
+       doc: /* Return a new bool-vector with specified arguments as elements.
+Any number of arguments, even zero arguments, are allowed.
+Each argument should be either t or nil.
+usage: (bool-vector &rest OBJECTS)  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
+{
+  ptrdiff_t i;
+  Lisp_Object vector;
+
+  for (i = 0; i < nargs; i++)
+    CHECK_BOOLEAN (args[i]);
+
+  vector = make_uninit_bool_vector (nargs);
+  for (i = 0; i < nargs; i++)
+    bool_vector_set (vector, i, !NILP (args[i]));
+
+  return vector;
+}
 
 /* Make a string from NBYTES bytes at CONTENTS, and compute the number
    of characters from the contents.  This string may be unibyte or
@@ -7102,6 +7121,7 @@ The time is in seconds as a floating point value.  */);
   defsubr (&Scons);
   defsubr (&Slist);
   defsubr (&Svector);
+  defsubr (&Sbool_vector);
   defsubr (&Smake_byte_code);
   defsubr (&Smake_list);
   defsubr (&Smake_vector);

@@ -387,8 +387,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
       break;
 
     case DBUS_TYPE_BOOLEAN:
-      if (!EQ (object, Qt) && !EQ (object, Qnil))
-	wrong_type_argument (intern ("booleanp"), object);
+      CHECK_BOOLEAN (object);
       sprintf (signature, "%c", dtype);
       break;
 

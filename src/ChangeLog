@@ -1,3 +1,12 @@
+2014-05-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lisp.h (CHECK_BOOLEAN): New function.
+	* alloc.c (Fbool_vector): New function.
+	(syms_of_alloc): Defsubr it.
+	* data.c (Qbooleanp): New symbol.
+	(syms_of_data): DEFSYM it.
+	* dbusbind.c (xd_signature): Use CHECK_BOOLEAN.
+
 2014-05-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume C99 or later (Bug#17487).

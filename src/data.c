@@ -54,7 +54,7 @@ Lisp_Object Qend_of_file, Qarith_error, Qmark_inactive;
 Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
 Lisp_Object Qtext_read_only;
 
-Lisp_Object Qintegerp, Qwholenump, Qsymbolp, Qlistp, Qconsp;
+Lisp_Object Qintegerp, Qwholenump, Qsymbolp, Qlistp, Qconsp, Qbooleanp;
 static Lisp_Object Qnatnump;
 Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
@@ -3442,6 +3442,7 @@ syms_of_data (void)
 
   DEFSYM (Qlistp, "listp");
   DEFSYM (Qconsp, "consp");
+  DEFSYM (Qbooleanp, "booleanp");
   DEFSYM (Qsymbolp, "symbolp");
   DEFSYM (Qkeywordp, "keywordp");
   DEFSYM (Qintegerp, "integerp");

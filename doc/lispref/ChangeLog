@@ -1,3 +1,7 @@
+2014-05-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* sequences.texi (Bool-vectors): Mention bool-vector.
+
 2014-05-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume C99 or later (Bug#17487).

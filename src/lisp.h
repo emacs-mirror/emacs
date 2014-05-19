@@ -796,7 +796,7 @@ extern int char_table_translate (Lisp_Object, int);
 /* Defined in data.c.  */
 extern Lisp_Object Qarrayp, Qbufferp, Qbuffer_or_string_p, Qchar_table_p;
 extern Lisp_Object Qconsp, Qfloatp, Qintegerp, Qlambda, Qlistp, Qmarkerp, Qnil;
-extern Lisp_Object Qnumberp, Qstringp, Qsymbolp, Qt, Qvectorp;
+extern Lisp_Object Qnumberp, Qstringp, Qsymbolp, Qt, Qvectorp, Qbooleanp;
 extern Lisp_Object Qbool_vector_p;
 extern Lisp_Object Qvector_or_char_table_p, Qwholenump;
 extern Lisp_Object Qwindow;
@@ -2508,6 +2508,11 @@ INLINE void
 CHECK_CONS (Lisp_Object x)
 {
   CHECK_TYPE (CONSP (x), Qconsp, x);
+}
+INLINE void
+CHECK_BOOLEAN (Lisp_Object x)
+{
+  CHECK_TYPE (EQ (x, Qt) || EQ (x, Qnil), Qbooleanp, x);
 }
 INLINE void
 CHECK_VECTOR (Lisp_Object x)
