@@ -1,7 +1,7 @@
 /* noaslr.c: Disable ASLR on OS X Mavericks
  * 
  * $Id: //info.ravenbrook.com/project/mps/master/code/eventcnv.c#26 $
- * Copyright (c) 2001-2014 Ravenbrook Limited. See end of file for license.
+ * Copyright (c) 2014 Ravenbrook Limited. See end of file for license.
  *
  * This is a command-line tool that runs another program with address
  * space layout randomization (ASLR) disabled.
@@ -27,37 +27,42 @@
 
 int main(int argc, char **argv)
 {
-    extern char **environ;
-    pid_t pid;
-    posix_spawnattr_t attr;
-    int res, status = 1;
-    char *default_argv[] = {"/bin/sh", NULL};
+  extern char **environ;
+  pid_t pid;
+  posix_spawnattr_t attr;
+  int res, status = 1;
+  char *default_argv[] = {"/bin/sh", NULL};
 
-    if (argc >= 2)
-        ++ argv;
-    else
-        argv = default_argv;
+  if (argc >= 2)
+    ++ argv;
+  else
+    argv = default_argv;
 
-    res = posix_spawnattr_init(&attr);
-    if (res != 0)
-        return res;
+  res = posix_spawnattr_init(&attr);
+  if (res != 0)
+    return res;
 
-    res = posix_spawnattr_setflags(&attr, _POSIX_SPAWN_DISABLE_ASLR);
-    if (res != 0)
-        return res;
+  res = posix_spawnattr_setflags(&attr, _POSIX_SPAWN_DISABLE_ASLR);
+  if (res != 0)
+    return res;
 
-    res = posix_spawn(&pid, argv[0], NULL, &attr, argv, environ);
-    if (res != 0)
-        return res;
+  res = posix_spawn(&pid, argv[0], NULL, &attr, argv, environ);
+  if (res != 0)
+    return res;
 
-    (void)waitpid(pid, &status, 0);
-    return status;
+  if (waitpid(pid, &status, 0) == -1)
+    return 1;
+
+  if (!WIFEXITED(status))
+    return 1;
+
+  return WEXITSTATUS(status);
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
