@@ -529,7 +529,7 @@ for use at QPOS."
       (let* ((qpos pred)
 	     (ustring (funcall unquote string))
 	     (uprefix (funcall unquote (substring string 0 qpos)))
-	     ;; FIXME: we really should pass `qpos' to `unuote' and have that
+	     ;; FIXME: we really should pass `qpos' to `unquote' and have that
 	     ;; function give us the corresponding `uqpos'.  But for now we
 	     ;; presume (more or less) that `concat' and `unquote' commute.
 	     (uqpos (if (string-prefix-p uprefix ustring)
