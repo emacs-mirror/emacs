@@ -7,6 +7,54 @@
 	objects = {
 
 /* Begin PBXAggregateTarget section */
+		2215A9A9192A47BB00E9E2CE /* testci */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 2215A9AD192A47BB00E9E2CE /* Build configuration list for PBXAggregateTarget "testci" */;
+			buildPhases = (
+				2215A9AC192A47BB00E9E2CE /* ShellScript */,
+			);
+			dependencies = (
+				2215A9AA192A47BB00E9E2CE /* PBXTargetDependency */,
+			);
+			name = testci;
+			productName = testrun;
+		};
+		2215A9B1192A47C500E9E2CE /* testansi */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 2215A9B5192A47C500E9E2CE /* Build configuration list for PBXAggregateTarget "testansi" */;
+			buildPhases = (
+				2215A9B4192A47C500E9E2CE /* ShellScript */,
+			);
+			dependencies = (
+				2215A9B2192A47C500E9E2CE /* PBXTargetDependency */,
+			);
+			name = testansi;
+			productName = testrun;
+		};
+		2215A9B9192A47CE00E9E2CE /* testall */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 2215A9BD192A47CE00E9E2CE /* Build configuration list for PBXAggregateTarget "testall" */;
+			buildPhases = (
+				2215A9BC192A47CE00E9E2CE /* ShellScript */,
+			);
+			dependencies = (
+				2215A9BA192A47CE00E9E2CE /* PBXTargetDependency */,
+			);
+			name = testall;
+			productName = testrun;
+		};
+		2215A9C1192A47D500E9E2CE /* testpoll */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 2215A9C5192A47D500E9E2CE /* Build configuration list for PBXAggregateTarget "testpoll" */;
+			buildPhases = (
+				2215A9C4192A47D500E9E2CE /* ShellScript */,
+			);
+			dependencies = (
+				2215A9C2192A47D500E9E2CE /* PBXTargetDependency */,
+			);
+			name = testpoll;
+			productName = testrun;
+		};
 		22CDE8EF16E9E97D00366D0A /* testrun */ = {
 			isa = PBXAggregateTarget;
 			buildConfigurationList = 22CDE8F016E9E97E00366D0A /* Build configuration list for PBXAggregateTarget "testrun" */;
@@ -79,6 +127,7 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		2215A9C9192A495F00E9E2CE /* pooln.c in Sources */ = {isa = PBXBuildFile; fileRef = 22FACEDE18880933000FDBC1 /* pooln.c */; };
 		2231BB5118CA97D8002D6322 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
 		2231BB5318CA97D8002D6322 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
 		2231BB5F18CA97DC002D6322 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
@@ -287,6 +336,34 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		2215A9AB192A47BB00E9E2CE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3104AFF1156D37A0000A585A;
+			remoteInfo = all;
+		};
+		2215A9B3192A47C500E9E2CE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3104AFF1156D37A0000A585A;
+			remoteInfo = all;
+		};
+		2215A9BB192A47CE00E9E2CE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3104AFF1156D37A0000A585A;
+			remoteInfo = all;
+		};
+		2215A9C3192A47D500E9E2CE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3104AFF1156D37A0000A585A;
+			remoteInfo = all;
+		};
 		2231BB4E18CA97D8002D6322 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
@@ -3311,6 +3388,10 @@
 			projectRoot = "";
 			targets = (
 				3104AFF1156D37A0000A585A /* all */,
+				2215A9B9192A47CE00E9E2CE /* testall */,
+				2215A9B1192A47C500E9E2CE /* testansi */,
+				2215A9A9192A47BB00E9E2CE /* testci */,
+				2215A9C1192A47D500E9E2CE /* testpoll */,
 				22CDE8EF16E9E97D00366D0A /* testrun */,
 				31EEABFA156AAF9D00714D05 /* mps */,
 				3114A632156E94DB001E0AA3 /* abqtest */,
@@ -3364,6 +3445,62 @@
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		2215A9AC192A47BB00E9E2CE /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"\n";
+			showEnvVarsInLog = 0;
+		};
+		2215A9B4192A47C500E9E2CE /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"\n";
+			showEnvVarsInLog = 0;
+		};
+		2215A9BC192A47CE00E9E2CE /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"\n";
+			showEnvVarsInLog = 0;
+		};
+		2215A9C4192A47D500E9E2CE /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"\n";
+			showEnvVarsInLog = 0;
+		};
 		22CDE8F416E9E9D400366D0A /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -3375,7 +3512,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\"\n";
+			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -3791,8 +3928,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				31D60048156D3ECF00337B26 /* testlib.c in Sources */,
+				2215A9C9192A495F00E9E2CE /* pooln.c in Sources */,
 				31D6004B156D3EE600337B26 /* poolncv.c in Sources */,
+				31D60048156D3ECF00337B26 /* testlib.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3876,6 +4014,26 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		2215A9AA192A47BB00E9E2CE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3104AFF1156D37A0000A585A /* all */;
+			targetProxy = 2215A9AB192A47BB00E9E2CE /* PBXContainerItemProxy */;
+		};
+		2215A9B2192A47C500E9E2CE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3104AFF1156D37A0000A585A /* all */;
+			targetProxy = 2215A9B3192A47C500E9E2CE /* PBXContainerItemProxy */;
+		};
+		2215A9BA192A47CE00E9E2CE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3104AFF1156D37A0000A585A /* all */;
+			targetProxy = 2215A9BB192A47CE00E9E2CE /* PBXContainerItemProxy */;
+		};
+		2215A9C2192A47D500E9E2CE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3104AFF1156D37A0000A585A /* all */;
+			targetProxy = 2215A9C3192A47D500E9E2CE /* PBXContainerItemProxy */;
+		};
 		2231BB4D18CA97D8002D6322 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 31EEABFA156AAF9D00714D05 /* mps */;
@@ -4319,6 +4477,90 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		2215A9AE192A47BB00E9E2CE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testrun copy";
+			};
+			name = Debug;
+		};
+		2215A9AF192A47BB00E9E2CE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testrun copy";
+			};
+			name = Release;
+		};
+		2215A9B0192A47BB00E9E2CE /* RASH */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testrun copy";
+			};
+			name = RASH;
+		};
+		2215A9B6192A47C500E9E2CE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testci copy";
+			};
+			name = Debug;
+		};
+		2215A9B7192A47C500E9E2CE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testci copy";
+			};
+			name = Release;
+		};
+		2215A9B8192A47C500E9E2CE /* RASH */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testci copy";
+			};
+			name = RASH;
+		};
+		2215A9BE192A47CE00E9E2CE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testansi copy";
+			};
+			name = Debug;
+		};
+		2215A9BF192A47CE00E9E2CE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testansi copy";
+			};
+			name = Release;
+		};
+		2215A9C0192A47CE00E9E2CE /* RASH */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testansi copy";
+			};
+			name = RASH;
+		};
+		2215A9C6192A47D500E9E2CE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testall copy";
+			};
+			name = Debug;
+		};
+		2215A9C7192A47D500E9E2CE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testall copy";
+			};
+			name = Release;
+		};
+		2215A9C8192A47D500E9E2CE /* RASH */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "testall copy";
+			};
+			name = RASH;
+		};
 		2231BB5618CA97D8002D6322 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -5532,6 +5774,46 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2215A9AD192A47BB00E9E2CE /* Build configuration list for PBXAggregateTarget "testci" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2215A9AE192A47BB00E9E2CE /* Debug */,
+				2215A9AF192A47BB00E9E2CE /* Release */,
+				2215A9B0192A47BB00E9E2CE /* RASH */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2215A9B5192A47C500E9E2CE /* Build configuration list for PBXAggregateTarget "testansi" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2215A9B6192A47C500E9E2CE /* Debug */,
+				2215A9B7192A47C500E9E2CE /* Release */,
+				2215A9B8192A47C500E9E2CE /* RASH */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2215A9BD192A47CE00E9E2CE /* Build configuration list for PBXAggregateTarget "testall" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2215A9BE192A47CE00E9E2CE /* Debug */,
+				2215A9BF192A47CE00E9E2CE /* Release */,
+				2215A9C0192A47CE00E9E2CE /* RASH */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2215A9C5192A47D500E9E2CE /* Build configuration list for PBXAggregateTarget "testpoll" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2215A9C6192A47D500E9E2CE /* Debug */,
+				2215A9C7192A47D500E9E2CE /* Release */,
+				2215A9C8192A47D500E9E2CE /* RASH */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		2231BB5518CA97D8002D6322 /* Build configuration list for PBXNativeTarget "locbwcss" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
