@@ -248,7 +248,7 @@ extern Bool TractFirst(Tract *tractReturn, Arena arena);
 extern Bool TractNext(Tract *tractReturn, Arena arena, Addr addr);
 
 
-/* TRACT_TRACT_FOR -- iterate over a range of tracts
+/* TRACT_TRACT_FOR -- iterate over a range of tracts in a chunk
  *
  * See <design/arena-tract-iter/#if.macro>.
  * Parameters arena & limit are evaluated multiple times.
@@ -265,7 +265,7 @@ extern Bool TractNext(Tract *tractReturn, Arena arena, Addr addr);
         (tract = NULL) /* terminate loop */))
 
 
-/* TRACT_FOR -- iterate over a range of tracts
+/* TRACT_FOR -- iterate over a range of tracts in a chunk
  *
  * See <design/arena/#tract.for>.
  * Parameters arena & limit are evaluated multiple times.

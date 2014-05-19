@@ -70,8 +70,6 @@ Count TreeDebugCount(Tree tree, TreeCompare compare, TreeKeyMethod key)
 }
 
 
-#if 0 /* This code is not currently in use in the MPS */
-
 /* TreeFind -- search for a node matching the key
  *
  * If a matching node is found, sets *treeReturn to that node and returns
@@ -134,7 +132,7 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
   Compare cmp;
   
   AVER(treeReturn != NULL);
-  AVER(Tree, root);
+  AVERT(Tree, root);
   AVER(TreeCheckLeaf(node));
   AVER(FUNCHECK(compare));
   /* key is arbitrary */
@@ -165,6 +163,8 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
   return TRUE;
 }
 
+
+#if 0 /* This code is currently not in use in the MPS */
 
 /* TreeTraverseMorris -- traverse tree inorder in constant space
  *
@@ -432,9 +432,6 @@ Tree TreeReverseRightSpine(Tree tree)
 }
 
 
-#if 0 /* This code is currently not in use in the MPS */
-
-
 /* TreeToVine -- unbalance a tree into a single right spine */
 
 Count TreeToVine(Tree *link)
@@ -486,9 +483,6 @@ void TreeBalance(Tree *treeIO)
     } while (n > 1);
   }
 }
-
-
-#endif /* not currently in use in the MPS */
 
 
 /* C. COPYRIGHT AND LICENSE

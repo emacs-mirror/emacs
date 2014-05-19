@@ -495,47 +495,49 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
 }
 
 
-/* ArenaDescribeTracts -- describe all the tracts in the arena */
+/* ArenaDescribeTractsInChunk -- describe all the tracts in a chunk */
 
-Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
+static Bool arenaDescribeTractsInChunk(Tree tree, void *closureP, Size closureS)
 {
-  Res res;
+  mps_lib_FILE *stream = closureP;
+  Chunk chunk;
   Tract tract;
-  Bool b;
-  Addr oldLimit, base, limit;
-  Size size;
+  Addr addr;
+  Res res;
 
-  if (!TESTT(Arena, arena)) return ResFAIL;
+  chunk = ChunkOfTree(tree);
+  if (!TESTT(Chunk, chunk)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
+  UNUSED(closureS);
 
-  b = TractFirst(&tract, arena);
-  oldLimit = TractBase(tract);
-  while (b) {
-    base = TractBase(tract);
-    limit = TractLimit(tract);
-    size = ArenaAlign(arena);
-
-    if (TractBase(tract) > oldLimit) {
-      res = WriteF(stream,
-                   "[$P, $P) $W $U   ---\n",
-                   (WriteFP)oldLimit, (WriteFP)base,
-                   (WriteFW)AddrOffset(oldLimit, base),
-                   (WriteFU)AddrOffset(oldLimit, base),
-                   NULL);
-      if (res != ResOK) return res;
-    }
-
+  TRACT_TRACT_FOR(tract, addr, ChunkArena(chunk),
+                  PageTract(ChunkPage(chunk, chunk->allocBase)),
+                  chunk->limit)
+  {
     res = WriteF(stream,
-                 "[$P, $P) $W $U   $P ($S)\n",
-                 (WriteFP)base, (WriteFP)limit,
-                 (WriteFW)size, (WriteFW)size,
+                 "[$P, $P) $U   $P ($S)\n",
+                 (WriteFP)TractBase(tract), (WriteFP)TractLimit(tract),
+                 (WriteFW)ArenaAlign(ChunkArena(chunk)),
                  (WriteFP)TractPool(tract),
                  (WriteFS)(TractPool(tract)->class->name),
                  NULL);
     if (res != ResOK) return res;
-    b = TractNext(&tract, arena, TractBase(tract));
-    oldLimit = limit;
+    return ResOK;
   }
+  return ResOK;
+}
+
+
+/* ArenaDescribeTracts -- describe all the tracts in the arena */
+
+Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
+{
+  if (!TESTT(Arena, arena)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+
+  (void)SplayTreeTraverse(ArenaChunkTree(arena), arenaDescribeTractsInChunk, 
+                          stream, 0);
+
   return ResOK;
 }
 
