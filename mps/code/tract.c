@@ -160,6 +160,8 @@ Res ChunkInit(Chunk chunk, Arena arena,
   Size pageTableSize;
   void *p;
   Res res;
+  Bool inserted;
+  Tree updatedTree = NULL;
 
   /* chunk is supposed to be uninitialized, so don't check it. */
   AVERT(Arena, arena);
@@ -214,7 +216,12 @@ Res ChunkInit(Chunk chunk, Arena arena,
   }
 
   TreeInit(&chunk->chunkTree);
-  SplayTreeInsert(ArenaChunkTree(arena), &chunk->chunkTree);
+  inserted = TreeInsert(&updatedTree, SplayTreeRoot(ArenaChunkTree(arena)),
+                        &chunk->chunkTree, TreeKeyOfAddrVar(chunk),
+                        ChunkCompare);
+  AVER(inserted && updatedTree);
+  TreeBalance(&updatedTree);
+  ArenaChunkTree(arena)->root = updatedTree;
 
   chunk->sig = ChunkSig;
   AVERT(Chunk, chunk);
@@ -241,17 +248,20 @@ failAllocTable:
 void ChunkFinish(Chunk chunk)
 {
   Bool res;
+  Arena arena;
 
   AVERT(Chunk, chunk);
   AVER(BTIsResRange(chunk->allocTable, 0, chunk->pages));
+  arena = ChunkArena(chunk);
 
-  if (ChunkArena(chunk)->hasFreeCBS)
-    ArenaFreeCBSDelete(ChunkArena(chunk),
+  if (arena->hasFreeCBS)
+    ArenaFreeCBSDelete(arena,
                        PageIndexBase(chunk, chunk->allocBase),
                        chunk->limit);
 
-  res = SplayTreeDelete(ArenaChunkTree(ChunkArena(chunk)), &chunk->chunkTree);
+  res = SplayTreeDelete(ArenaChunkTree(arena), &chunk->chunkTree);
   AVER(res);
+  TreeBalance(&ArenaChunkTree(arena)->root);
 
   chunk->sig = SigInvalid;
 
@@ -312,7 +322,10 @@ Bool ChunkOfAddr(Chunk *chunkReturn, Arena arena, Addr addr)
   AVERT_CRITICAL(Arena, arena);
   /* addr is arbitrary */
 
-  if (SplayTreeFind(&tree, ArenaChunkTree(arena), TreeKeyOfAddrVar(addr))) {
+  if (TreeFind(&tree, SplayTreeRoot(ArenaChunkTree(arena)),
+               TreeKeyOfAddrVar(addr), ChunkCompare)
+      == CompareEQUAL)
+  {
     Chunk chunk = ChunkOfTree(tree);
     AVER_CRITICAL(chunk->base <= addr && addr < chunk->limit);
     *chunkReturn = chunk;
