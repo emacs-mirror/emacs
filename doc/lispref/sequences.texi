@@ -811,7 +811,7 @@ value into an element of the bool-vector, the effect is to store
 and the length cannot be changed once the bool-vector is created.
 Bool-vectors are constants when evaluated.
 
-  There are three special functions for working with bool-vectors; aside
+  Several functions work specifically with bool-vectors; aside
 from that, you manipulate them with same functions used for other kinds
 of arrays.
 
@@ -822,28 +822,7 @@ each one initialized to @var{initial}.
 
 @defun bool-vector &rest objects
 This function creates and returns a bool-vector whose elements are the
-arguments, @var{objects}, each of them should be either @code{t} or @code{nil}.
-Note that the printed form represents up to 8 boolean values as a single
-character:
-
-@example
-@group
-(bool-vector t nil t nil)
-     @result{} #&4"^E"
-(bool-vector)
-     @result{} #&0""
-@end group
-@end example
-
-If you want to print a bool-vector in a way similar to other vectors,
-you can use @code{vconcat} function:
-
-@example
-@group
-(vconcat (bool-vector nil t nil t))
-     @result{} [nil t nil t]
-@end group
-@end example
+arguments, @var{objects}.
 @end defun
 
 @defun bool-vector-p object
@@ -898,6 +877,27 @@ or @code{nil}, and @var{i} is an index into @code{a}.
 @defun bool-vector-count-population a
 Return the number of elements that are @code{t} in bool vector @var{a}.
 @end defun
+
+  The printed form represents up to 8 boolean values as a single
+character:
+
+@example
+@group
+(bool-vector t nil t nil)
+     @result{} #&4"^E"
+(bool-vector)
+     @result{} #&0""
+@end group
+@end example
+
+You can use @code{vconcat} to print a bool-vector like other vectors:
+
+@example
+@group
+(vconcat (bool-vector nil t nil t))
+     @result{} [nil t nil t]
+@end group
+@end example
 
   Here is another example of creating, examining, and updating a
 bool-vector:

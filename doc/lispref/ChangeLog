@@ -1,3 +1,9 @@
+2014-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Allow any non-nil value to count as true in bool-vector.
+	* sequences.texi (Bool-Vectors): Coalesce discussion of how to
+	print them.  bool-vector's args need not be t or nil.
+
 2014-05-19  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* sequences.texi (Bool-vectors): Mention bool-vector.

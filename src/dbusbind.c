@@ -387,7 +387,8 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
       break;
 
     case DBUS_TYPE_BOOLEAN:
-      CHECK_BOOLEAN (object);
+      /* Every Emacs Lisp object serves as a boolean, so there's nothing
+	 to check.  */
       sprintf (signature, "%c", dtype);
       break;
 

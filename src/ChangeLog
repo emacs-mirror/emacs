@@ -1,3 +1,14 @@
+2014-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Allow any non-nil value to count as true in bool-vector.
+	Likewise for xd_signature in dbusbind.c.
+	This is more consistent with the usual practice in Emacs, which is
+	that any non-nil value counts as true.
+	* alloc.c (Fbool_vector): Don't require args to be t or nil.
+	* dbusbind.c (xd_signature): Likewise, for booleans.
+	* data.c, lisp.h (Qbooleanp):
+	* lisp.h (CHECK_BOOLEAN): Remove.  All uses removed.
+
 2014-05-19  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* lisp.h (CHECK_BOOLEAN): New function.

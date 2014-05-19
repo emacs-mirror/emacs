@@ -2177,15 +2177,11 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
 DEFUN ("bool-vector", Fbool_vector, Sbool_vector, 0, MANY, 0,
        doc: /* Return a new bool-vector with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.
-Each argument should be either t or nil.
 usage: (bool-vector &rest OBJECTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t i;
   Lisp_Object vector;
-
-  for (i = 0; i < nargs; i++)
-    CHECK_BOOLEAN (args[i]);
 
   vector = make_uninit_bool_vector (nargs);
   for (i = 0; i < nargs; i++)
