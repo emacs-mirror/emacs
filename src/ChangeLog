@@ -7,6 +7,9 @@
 	(syms_of_data): DEFSYM it.
 	* dbusbind.c (xd_signature): Use CHECK_BOOLEAN.
 
+	* font.c (font_matching_entity): Extract font-entity object
+	from the vector of matching entities (Bug#17486).
+
 2014-05-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume C99 or later (Bug#17487).

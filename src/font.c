@@ -2803,7 +2803,7 @@ font_matching_entity (struct frame *f, Lisp_Object *attrs, Lisp_Object spec)
 	ASET (work, FONT_TYPE_INDEX, driver_list->driver->type);
 	entity = assoc_no_quit (work, XCDR (cache));
 	if (CONSP (entity))
-	  entity = XCDR (entity);
+	  entity = AREF (XCDR (entity), 0);
 	else
 	  {
 	    entity = driver_list->driver->match (f, work);
