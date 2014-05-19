@@ -164,6 +164,21 @@ void SplayDebugUpdate(SplayTree splay, Tree tree)
 }
 
 
+/* SplayDebugCount -- count and check order of tree
+ *
+ * This function may be called from a debugger or temporarily inserted
+ * during development to check a tree's integrity.  It may not be called
+ * from the production MPS because it uses indefinite stack depth.
+ * See <code/tree.c#.note.stack>.
+ */
+
+Count SplayDebugCount(SplayTree splay)
+{
+  AVERT(SplayTree, splay);
+  return TreeDebugCount(SplayTreeRoot(splay), splay->compare, splay->nodeKey);
+}
+
+
 /* SplayZig -- move to left child, prepending to right tree
  *
  * Link the top node of the middle tree into the left child of the
