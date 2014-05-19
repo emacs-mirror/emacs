@@ -163,12 +163,11 @@ FMTDYTST = fmtdy.c fmtno.c fmtdytst.c
 FMTHETST = fmthe.c fmtdy.c fmtno.c fmtdytst.c
 FMTSCM = fmtscheme.c
 PLINTH = mpsliban.c mpsioan.c
-EVENTPROC = eventcnv.c table.c
 MPMCOMMON = abq.c arena.c arenacl.c arenavm.c arg.c boot.c bt.c         \
     buffer.c cbs.c dbgpool.c dbgpooli.c event.c format.c freelist.c     \
     global.c ld.c locus.c message.c meter.c mpm.c mpsi.c nailboard.c    \
     pool.c poolabs.c poolmfs.c poolmrg.c poolmv.c protocol.c range.c    \
-    ref.c reserv.c ring.c root.c sa.c sac.c seg.c shield.c splay.c ss.c      \
+    ref.c reserv.c ring.c root.c sa.c sac.c seg.c shield.c splay.c ss.c \
     table.c trace.c traceanc.c tract.c tree.c walk.c
 MPM = $(MPMCOMMON) $(MPMPF)
 
@@ -182,40 +181,22 @@ MPM = $(MPMCOMMON) $(MPMPF)
 ifdef VARIETY
 MPMOBJ = $(MPM:%.c=$(PFM)/$(VARIETY)/%.o) \
          $(MPMS:%.s=$(PFM)/$(VARIETY)/%.o)
-MPMDEP = $(MPM:%.c=$(PFM)/$(VARIETY)/%.d)
 AMCOBJ = $(AMC:%.c=$(PFM)/$(VARIETY)/%.o)
-AMCDEP = $(AMC:%.c=$(PFM)/$(VARIETY)/%.d)
 AMSOBJ = $(AMS:%.c=$(PFM)/$(VARIETY)/%.o)
-AMSDEP = $(AMS:%.c=$(PFM)/$(VARIETY)/%.d)
 AWLOBJ = $(AWL:%.c=$(PFM)/$(VARIETY)/%.o)
-AWLDEP = $(AWL:%.c=$(PFM)/$(VARIETY)/%.d)
 LOOBJ = $(LO:%.c=$(PFM)/$(VARIETY)/%.o)
-LODEP = $(LO:%.c=$(PFM)/$(VARIETY)/%.d)
 SNCOBJ = $(SNC:%.c=$(PFM)/$(VARIETY)/%.o)
-SNCDEP = $(SNC:%.c=$(PFM)/$(VARIETY)/%.d)
 POOLNOBJ = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.o)
-POOLNDEP = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.d)
 MV2OBJ = $(MV2:%.c=$(PFM)/$(VARIETY)/%.o)
-MV2DEP = $(MV2:%.c=$(PFM)/$(VARIETY)/%.d)
 MVFFOBJ = $(MVFF:%.c=$(PFM)/$(VARIETY)/%.o)
-MVFFDEP = $(MVFF:%.c=$(PFM)/$(VARIETY)/%.d)
 
 TESTLIBOBJ = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.o)
-TESTLIBDEP = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.d)
 TESTTHROBJ = $(TESTTHR:%.c=$(PFM)/$(VARIETY)/%.o)
-TESTTHRDEP = $(TESTTHR:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTDYOBJ = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.o)
-FMTDYDEP = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTDYTSTOBJ = $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.o)
-FMTDYTSTDEP = $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTHETSTOBJ = $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.o)
-FMTHETSTDEP = $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTSCMOBJ = $(FMTSCM:%.c=$(PFM)/$(VARIETY)/%.o)
-FMTSCMDEP = $(FMTSCM:%.c=$(PFM)/$(VARIETY)/%.d)
 PLINTHOBJ = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.o)
-PLINTHDEP = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.d)
-EVENTPROCOBJ = $(EVENTPROC:%.c=$(PFM)/$(VARIETY)/%.o)
-EVENTPROCDEP = $(EVENTPROC:%.c=$(PFM)/$(VARIETY)/%.d)
 endif
 
 
@@ -423,7 +404,7 @@ $(PFM)/$(VARIETY)/bttest: $(PFM)/$(VARIETY)/bttest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/djbench: $(PFM)/$(VARIETY)/djbench.o \
-	$(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
+	$(TESTLIBOBJ) $(TESTTHROBJ)
 
 $(PFM)/$(VARIETY)/exposet0: $(PFM)/$(VARIETY)/exposet0.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
@@ -444,7 +425,7 @@ $(PFM)/$(VARIETY)/fotest: $(PFM)/$(VARIETY)/fotest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/gcbench: $(PFM)/$(VARIETY)/gcbench.o \
-	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ)
 
 $(PFM)/$(VARIETY)/locbwcss: $(PFM)/$(VARIETY)/locbwcss.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
@@ -580,22 +561,27 @@ else
 ifeq ($(VARIETY),hot)
 include $(PFM)/$(VARIETY)/mps.d
 else
-# %%PART: When adding a new part, add the dependency file macro for the new
-# part here.
+# %%PART: When adding a new part, add the dependencies file for the
+# new part here.
 include \
-  $(MPMDEP) \
-  $(AMCDEP) \
-  $(AMSDEP) \
-  $(AWLDEP) \
-  $(EVENTPROCDEP) \
-  $(FMTDYDEP) \
-  $(FMTDYTSTDEP) \
-  $(FMTHETSTDEP) \
-  $(FMTSCMDEP) \
-  $(LODEP) \
-  $(PLINTHDEP) \
-  $(POOLNDEP) \
-  $(TESTLIBDEP)
+    $(AMC:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(AMS:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(AWL:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(FMTSCM:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(LO:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(MPM:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(MV2:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(MVFF:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(POOLN:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(SNC:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(TESTTHR:%.c=$(PFM)/$(VARIETY)/%.d) \
+    $(EXTRA_TARGETS:mps%=$(PFM)/$(VARIETY)/%.d) \
+    $(TEST_TARGETS:%=$(PFM)/$(VARIETY)/%.d)
 endif
 endif
 
