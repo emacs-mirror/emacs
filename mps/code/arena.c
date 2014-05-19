@@ -305,13 +305,13 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   /* With the primary chunk initialised we can add page memory to the freeCBS
      that describes the free address space in the primary chunk. */
-  arena->hasFreeCBS = TRUE;
   res = ArenaFreeCBSInsert(arena,
                            PageIndexBase(arena->primary,
                                          arena->primary->allocBase),
                            arena->primary->limit);
   if (res != ResOK)
     goto failPrimaryCBS;
+  arena->hasFreeCBS = TRUE;
   
   res = ControlInit(arena);
   if (res != ResOK)
@@ -344,6 +344,7 @@ failInit:
 
 void ArenaFinish(Arena arena)
 {
+  PoolFinish(ArenaCBSBlockPool(arena));
   ReservoirFinish(ArenaReservoir(arena));
   arena->sig = SigInvalid;
   GlobalsFinish(ArenaGlobals(arena));
@@ -388,7 +389,6 @@ void ArenaDestroy(Arena arena)
      that would use the ZonedCBS. */
   MFSFinishTracts(ArenaCBSBlockPool(arena),
                   arenaMFSPageFreeVisitor, NULL, 0);
-  PoolFinish(ArenaCBSBlockPool(arena));
 
   /* Call class-specific finishing.  This will call ArenaFinish. */
   (*arena->class->finish)(arena);
@@ -610,6 +610,7 @@ typedef struct ArenaAllocPageClosureStruct {
   Arena arena;
   Pool pool;
   Addr base;
+  Chunk avoid;
 } ArenaAllocPageClosureStruct, *ArenaAllocPageClosure;
 
 static Bool arenaAllocPageInChunk(Tree tree, void *closureP, Size closureS)
@@ -628,7 +629,7 @@ static Bool arenaAllocPageInChunk(Tree tree, void *closureP, Size closureS)
   UNUSED(closureS);
 
   /* Already searched in arenaAllocPage. */
-  if (chunk == cl->arena->primary)
+  if (chunk == cl->avoid)
     return TRUE;
   
   if (!BTFindShortResRange(&basePageIndex, &limitPageIndex,
@@ -656,6 +657,7 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
   closure.arena = arena;
   closure.pool = pool;
   closure.base = NULL;
+  closure.avoid = NULL;
 
   /* Favour the primary chunk, because pages allocated this way aren't
      currently freed, and we don't want to prevent chunks being destroyed. */
@@ -663,6 +665,7 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
   if (arenaAllocPageInChunk(&arena->primary->chunkTree, &closure, 0) == FALSE)
     goto found;
 
+  closure.avoid = arena->primary;
   if (SplayTreeTraverse(ArenaChunkTree(arena), arenaAllocPageInChunk, &closure, 0)
       == FALSE)
     goto found;
