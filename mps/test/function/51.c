@@ -219,6 +219,7 @@ static void test(void)
 
  /* now to test leaving messages open for a long time! */
 
+ mps_arena_park(arena);
  mps_ap_destroy(apamc);
  mps_ap_destroy(apamcz);
  mps_ap_destroy(apams);

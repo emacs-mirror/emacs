@@ -85,9 +85,6 @@
 #define LockSig         ((Sig)0x51970CC9) /* SIGnature LOCK */
 
 
-#if defined(THREAD_MULTI)
-
-
 /* LockSize -- Return the size of a LockStruct
  *
  * Supports allocation of locks.
@@ -198,9 +195,9 @@ extern void LockClaimGlobal(void);
 extern void LockReleaseGlobal(void);
 
 
-#elif defined(THREAD_SINGLE)
-
-
+#if defined(LOCK)
+/* Nothing to do: functions declared in all lock configurations. */
+#elif defined(LOCK_NONE)
 #define LockSize() MPS_PF_ALIGN
 #define LockInit(lock) UNUSED(lock)
 #define LockFinish(lock) UNUSED(lock)
@@ -213,13 +210,9 @@ extern void LockReleaseGlobal(void);
 #define LockReleaseGlobalRecursive()
 #define LockClaimGlobal()
 #define LockReleaseGlobal()
-
-
 #else
-
-#error "No threading defined."
-
-#endif
+#error "No lock configuration."
+#endif  /* LOCK */
 
 
 #endif /* lock_h */

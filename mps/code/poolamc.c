@@ -96,6 +96,7 @@ typedef struct amcSegStruct {
 #define amcSeg2Seg(amcseg)          ((Seg)(amcseg))
 
 
+ATTRIBUTE_UNUSED
 static Bool amcSegCheck(amcSeg amcseg)
 {
   CHECKS(amcSeg, amcseg);
@@ -474,6 +475,7 @@ typedef struct AMCStruct { /* <design/poolamc/#struct> */
 
 /* amcGenCheck -- check consistency of a generation structure */
 
+ATTRIBUTE_UNUSED
 static Bool amcGenCheck(amcGen gen)
 {
   Arena arena;
@@ -523,6 +525,7 @@ typedef struct amcBufStruct {
 
 /* amcBufCheck -- check consistency of an amcBuf */
 
+ATTRIBUTE_UNUSED
 static Bool amcBufCheck(amcBuf amcbuf)
 {
   CHECKS(amcBuf, amcbuf);
@@ -1717,10 +1720,13 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       /* Since we're moving an object from one segment to another, */
       /* union the greyness and the summaries together. */
       grey = SegGrey(seg);
-      if(SegRankSet(seg) != RankSetEMPTY) /* not for AMCZ */
+      if(SegRankSet(seg) != RankSetEMPTY) { /* not for AMCZ */
         grey = TraceSetUnion(grey, ss->traces);
+        SegSetSummary(toSeg, RefSetUnion(SegSummary(toSeg), SegSummary(seg)));
+      } else {
+        AVER(SegRankSet(toSeg) == RankSetEMPTY);
+      }
       SegSetGrey(toSeg, TraceSetUnion(SegGrey(toSeg), grey));
-      SegSetSummary(toSeg, RefSetUnion(SegSummary(toSeg), SegSummary(seg)));
 
       /* <design/trace/#fix.copy> */
       (void)AddrCopy(newRef, ref, length);  /* .exposed.seg */
@@ -1865,10 +1871,13 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       /* Since we're moving an object from one segment to another, */
       /* union the greyness and the summaries together. */
       grey = SegGrey(seg);
-      if(SegRankSet(seg) != RankSetEMPTY) /* not for AMCZ */
+      if(SegRankSet(seg) != RankSetEMPTY) { /* not for AMCZ */
         grey = TraceSetUnion(grey, ss->traces);
+        SegSetSummary(toSeg, RefSetUnion(SegSummary(toSeg), SegSummary(seg)));
+      } else {
+        AVER(SegRankSet(toSeg) == RankSetEMPTY);
+      }
       SegSetGrey(toSeg, TraceSetUnion(SegGrey(toSeg), grey));
-      SegSetSummary(toSeg, RefSetUnion(SegSummary(toSeg), SegSummary(seg)));
 
       /* <design/trace/#fix.copy> */
       (void)AddrCopy(newBase, AddrSub(ref, headerSize), length);  /* .exposed.seg */
@@ -2443,6 +2452,8 @@ void mps_amc_apply(mps_pool_t mps_pool,
  *
  * See <design/poolamc/#check>.
  */
+
+ATTRIBUTE_UNUSED
 static Bool AMCCheck(AMC amc)
 {
   CHECKS(AMC, amc);

@@ -46,10 +46,10 @@ CHILD_RE = r'(?:{}|{})$'.format(TASK_BRANCH_RE, VERSION_BRANCH_RE)
 
 TASK_BRANCH_ENTRY = '''
   <tr valign="top">
-    <td><code><a href="{child}/">{date}/{task}</a></code></td>
+    <td><code><a href="{date}/{task}/">{date}/{task}</a></code></td>
     <td><a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@changes+{depot}/project/{project}/{child}/...">Changes</a></td>
     <td>{desc_html}</td>
-    <td>Active (<a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@diff2+{depot}/project/{project}/{child}/...@{base}+{depot}/project/{project}/{child}/...">diffs</a>).</td>
+    <td><a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@diff2+{depot}/project/{project}/{child}/...@{base}+{depot}/project/{project}/{child}/...">Diffs</a></td>
   </tr>
 
 '''

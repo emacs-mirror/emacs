@@ -94,6 +94,7 @@ static void test(void)
   time0 = time1;
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(ap);
  comment("Destroyed ap.");
 

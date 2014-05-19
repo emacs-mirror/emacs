@@ -66,7 +66,10 @@ General debugging advice
    result, by having a mode for testing in which you run frequent
    collections (by calling :c:func:`mps_arena_collect` followed by
    :c:func:`mps_arena_release`), perhaps as frequently as every
-   allocation.
+   allocation. (This will of course make the system run very slowly,
+   but it ensures that if there are roots or references that are not
+   being scanned then the failure will occur close in time to the cause,
+   making it easier to diagnose.)
 
 #. .. index::
       single: debugger
@@ -86,10 +89,11 @@ General debugging advice
 
         handle SIGSEGV pass nostop noprint
 
-   On OS X barrier hits do not use signals and so do not enter the debugger.
+   On these operating systems, you can add this commands to your
+   ``.gdbinit`` if you always want them to be run.
 
-   (On these operating systems, you can add these commands to your
-   ``.gdbinit`` if you always want them to be run.)
+   On OS X barrier hits do not use signals and so do not enter the
+   debugger.
 
 
 .. index::

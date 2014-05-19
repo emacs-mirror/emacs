@@ -140,6 +140,7 @@ static void test(void)
   RC;
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(apamc);
  comment("Destroyed aps.");
 

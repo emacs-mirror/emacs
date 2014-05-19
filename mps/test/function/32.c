@@ -83,6 +83,7 @@ static void test(void)
   b = allocdumb(apamc, 0x400*64, 0);
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(apawl);
  mps_ap_destroy(apamc);
  mps_pool_destroy(poolamc);

@@ -55,10 +55,11 @@ AMS properties
   never promoted out of the generation in which they are allocated.
 
 * Blocks may contain :term:`exact references` to blocks in the same or
-  other pools, or :term:`ambiguous references` (if the
+  other pools, or :term:`ambiguous references` (unless the
   :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` keyword argument is set to
-  true when creating the pool). Blocks may not contain :term:`weak
-  references (1)`, and may not use :term:`remote references`.
+  ``FALSE`` when creating the pool). Blocks may not contain
+  :term:`weak references (1)`, and may not use :term:`remote
+  references`.
 
 * Allocations may be variable in size.
 
@@ -126,14 +127,13 @@ AMS interface
       blocks remain in this generation and are not promoted.
 
     * :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` (type
-      :c:type:`mps_bool_t`, default false) specifies whether references
-      may be ambiguous.
+      :c:type:`mps_bool_t`, default ``TRUE``) specifies whether
+      references to blocks in the pool may be ambiguous.
 
     For example::
 
         MPS_ARGS_BEGIN(args) {
             MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
-            MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, 1);
             res = mps_pool_create_k(&pool, arena, mps_class_ams(), args);
         } MPS_ARGS_END(args);
 
@@ -183,16 +183,16 @@ AMS interface
     takes three keyword arguments: :c:macro:`MPS_KEY_FORMAT` and
     :c:macro:`MPS_KEY_CHAIN` are as described above, and
     :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS` specifies the debugging
-    options. See :c:type:`mps_debug_option_s`.
+    options. See :c:type:`mps_pool_debug_option_s`.
 
     .. deprecated:: starting with version 1.112.
 
-        When using :c:func:`mps_pool_create`, pass the format,
-        chain, and debugging options like this::
+        When using :c:func:`mps_pool_create`, pass the arguments like
+        this::
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
                                       mps_class_t mps_class_ams_debug(),
-                                      mps_debug_option_s debug_option,
+                                      mps_pool_debug_option_s debug_option,
                                       mps_fmt_t fmt,
                                       mps_chain_t chain,
                                       mps_bool_t support_ambiguous)

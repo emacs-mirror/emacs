@@ -57,17 +57,7 @@ typedef struct MFSHeaderStruct {
 } HeaderStruct, *Header;
 
 
-
 #define UNIT_MIN        sizeof(HeaderStruct)
-
-MFSInfo MFSGetInfo(void)
-{
-  static const struct MFSInfoStruct info =
-  {
-    /* unitSizeMin */   UNIT_MIN
-  };
-  return &info;
-}
 
 
 Pool (MFSPool)(MFS mfs)

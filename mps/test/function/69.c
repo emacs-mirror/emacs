@@ -94,6 +94,7 @@ static void test(void) {
 
  mps_message_discard(arena, message);
 
+ mps_arena_park(arena);
  mps_root_destroy(root);
  mps_ap_destroy(ap);
  mps_pool_destroy(pool);

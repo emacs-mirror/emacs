@@ -82,6 +82,7 @@ static void test(void)
  comment("%d: %x", j, (int) a);
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(ap);
  comment("Destroyed ap.");
 

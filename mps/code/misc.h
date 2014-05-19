@@ -13,8 +13,6 @@
 #ifndef misc_h
 #define misc_h
 
-#include <stddef.h>
-
 
 typedef int Bool;                       /* <design/type/#bool> */
 enum BoolEnum {
