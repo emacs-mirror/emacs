@@ -210,7 +210,7 @@ Res ChunkInit(Chunk chunk, Arena arena,
                              PageIndexBase(chunk, chunk->allocBase),
                              chunk->limit);
     if (res != ResOK)
-        goto failCBSInsert;
+      goto failCBSInsert;
   }
 
   TreeInit(&chunk->chunkTree);
@@ -245,17 +245,17 @@ void ChunkFinish(Chunk chunk)
   AVERT(Chunk, chunk);
   AVER(BTIsResRange(chunk->allocTable, 0, chunk->pages));
 
+  if (ChunkArena(chunk)->hasFreeCBS)
+    ArenaFreeCBSDelete(ChunkArena(chunk),
+                       PageIndexBase(chunk, chunk->allocBase),
+                       chunk->limit);
+
   res = SplayTreeDelete(ArenaChunkTree(ChunkArena(chunk)), &chunk->chunkTree);
   AVER(res);
 
   chunk->sig = SigInvalid;
 
   TreeFinish(&chunk->chunkTree);
-
-  if (ChunkArena(chunk)->hasFreeCBS)
-    ArenaFreeCBSDelete(ChunkArena(chunk),
-                       PageIndexBase(chunk, chunk->allocBase),
-                       chunk->limit);
 
   if (chunk->arena->primary == chunk)
     chunk->arena->primary = NULL;
