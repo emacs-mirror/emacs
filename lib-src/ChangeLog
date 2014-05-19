@@ -1,3 +1,25 @@
+2014-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove dependencies on getline and getdelim.
+	Also, remove update-game-scores's limits on game scores and
+	simplify its file-locking code.
+	* update-game-score.c (struct score_entry): Unify the username and
+	data members to a single user_data member, since they don't need to be
+	changed independently and getdelim and getline aren't helpful.
+	Make the score member char *, not intmax_t, so that scores are not
+	limited to intmax_t.  All uses changed.
+	(lose_syserr): A zero errno stands for invalid data in score file.
+	(normalize_integer): New function.
+	(main): Use it.  Check for invalid scores.  Omit redundant stat check.
+	(read_score): First arg is now a string, not a FILE *.  All uses
+	changed.  Do not use getdelim or getline; that's way simpler.
+	(read_scores): Read the whole file, and let read_score handle each
+	line.
+	(score_compare): Compare strings representing integers, not integers.
+	(write_scores) [DOS_NT]: Eliminate unnecessary chmod.
+	(lock_file): Simplify locking code, eliminating goto.
+	Check for unlink failure.
+
 2014-05-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port ctags+etags build to Sun C 5.12.

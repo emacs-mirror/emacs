@@ -3466,7 +3466,7 @@ select getpagesize setlocale \
 getrlimit setrlimit shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
-gai_strerror getline getdelim sync \
+gai_strerror sync \
 getpwent endpwent getgrent endgrent \
 cfmakeraw cfsetspeed copysign __executable_start log2)
 LIBS=$OLD_LIBS
