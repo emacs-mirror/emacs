@@ -169,7 +169,7 @@ MPMCOMMON = abq.c arena.c arenacl.c arenavm.c arg.c boot.c bt.c         \
     pool.c poolabs.c poolmfs.c poolmrg.c poolmv.c protocol.c range.c    \
     ref.c reserv.c ring.c root.c sa.c sac.c seg.c shield.c splay.c ss.c \
     table.c trace.c traceanc.c tract.c tree.c walk.c
-MPM = $(MPMCOMMON) $(MPMPF)
+MPM = $(MPMCOMMON) $(MPMPF) $(AMC) $(AMS) $(AWL) $(LO) $(MV2) $(MVFF) $(PLINTH)
 
 
 # These map the source file lists onto object files and dependency files
@@ -181,22 +181,16 @@ MPM = $(MPMCOMMON) $(MPMPF)
 ifdef VARIETY
 MPMOBJ = $(MPM:%.c=$(PFM)/$(VARIETY)/%.o) \
          $(MPMS:%.s=$(PFM)/$(VARIETY)/%.o)
-AMCOBJ = $(AMC:%.c=$(PFM)/$(VARIETY)/%.o)
-AMSOBJ = $(AMS:%.c=$(PFM)/$(VARIETY)/%.o)
-AWLOBJ = $(AWL:%.c=$(PFM)/$(VARIETY)/%.o)
-LOOBJ = $(LO:%.c=$(PFM)/$(VARIETY)/%.o)
-SNCOBJ = $(SNC:%.c=$(PFM)/$(VARIETY)/%.o)
-POOLNOBJ = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.o)
-MV2OBJ = $(MV2:%.c=$(PFM)/$(VARIETY)/%.o)
-MVFFOBJ = $(MVFF:%.c=$(PFM)/$(VARIETY)/%.o)
-
-TESTLIBOBJ = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.o)
-TESTTHROBJ = $(TESTTHR:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTDYOBJ = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTDYTSTOBJ = $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTHETSTOBJ = $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTSCMOBJ = $(FMTSCM:%.c=$(PFM)/$(VARIETY)/%.o)
+MV2OBJ = $(MV2:%.c=$(PFM)/$(VARIETY)/%.o)
+MVFFOBJ = $(MVFF:%.c=$(PFM)/$(VARIETY)/%.o)
 PLINTHOBJ = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.o)
+POOLNOBJ = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.o)
+TESTLIBOBJ = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.o)
+TESTTHROBJ = $(TESTTHR:%.c=$(PFM)/$(VARIETY)/%.o)
 endif
 
 
@@ -344,10 +338,7 @@ endif
 
 $(PFM)/rash/mps.a: $(PFM)/rash/mps.o
 $(PFM)/hot/mps.a: $(PFM)/hot/mps.o
-
-$(PFM)/cool/mps.a: \
-  $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
-  $(MV2OBJ) $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
+$(PFM)/cool/mps.a: $(MPMOBJ)
 
 
 # OTHER GENUINE TARGETS
@@ -458,7 +449,7 @@ $(PFM)/$(VARIETY)/nailboardtest: $(PFM)/$(VARIETY)/nailboardtest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
-	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+	$(POOLNOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/qs: $(PFM)/$(VARIETY)/qs.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
@@ -561,34 +552,28 @@ else
 ifeq ($(VARIETY),hot)
 include $(PFM)/$(VARIETY)/mps.d
 else
+include $(MPM:%.c=$(PFM)/$(VARIETY)/%.d)
+endif # VARIETY != hot
+endif # VARIETY != rash
+
 # %%PART: When adding a new part, add the dependencies file for the
 # new part here.
 include \
-    $(AMC:%.c=$(PFM)/$(VARIETY)/%.d) \
-    $(AMS:%.c=$(PFM)/$(VARIETY)/%.d) \
-    $(AWL:%.c=$(PFM)/$(VARIETY)/%.d) \
     $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.d) \
     $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.d) \
     $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.d) \
     $(FMTSCM:%.c=$(PFM)/$(VARIETY)/%.d) \
-    $(LO:%.c=$(PFM)/$(VARIETY)/%.d) \
-    $(MPM:%.c=$(PFM)/$(VARIETY)/%.d) \
-    $(MV2:%.c=$(PFM)/$(VARIETY)/%.d) \
-    $(MVFF:%.c=$(PFM)/$(VARIETY)/%.d) \
     $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.d) \
     $(POOLN:%.c=$(PFM)/$(VARIETY)/%.d) \
-    $(SNC:%.c=$(PFM)/$(VARIETY)/%.d) \
     $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.d) \
     $(TESTTHR:%.c=$(PFM)/$(VARIETY)/%.d) \
     $(EXTRA_TARGETS:mps%=$(PFM)/$(VARIETY)/%.d) \
     $(TEST_TARGETS:%=$(PFM)/$(VARIETY)/%.d)
-endif
-endif
 
-endif
-endif
+endif # !defined TARGET
+endif # !defined VARIETY
 
-endif
+endif # !defined gendep
 
 # Library
 
