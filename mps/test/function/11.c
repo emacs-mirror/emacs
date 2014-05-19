@@ -77,6 +77,7 @@ static void test(void)
    comment("%d: %x", j, (int) a);
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(ap);
  mps_pool_destroy(pool);
  mps_chain_destroy(chain);

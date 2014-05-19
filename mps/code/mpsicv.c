@@ -21,7 +21,7 @@
 
 #define exactRootsCOUNT  49
 #define ambigRootsCOUNT  49
-#define OBJECTS          200000
+#define OBJECTS          100000
 #define patternFREQ      100
 
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
@@ -552,6 +552,8 @@ static void *test(void *arg, size_t s)
 
   mps_free(mv, alloced_obj, 32);
   alloc_v_test(mv);
+
+  mps_arena_park(arena);
   mps_pool_destroy(mv);
   mps_ap_destroy(ap);
   mps_root_destroy(fmtRoot);
@@ -589,7 +591,6 @@ int main(int argc, char *argv[])
                           marker, (size_t)0),
       "root_create_reg");
 
-  (mps_tramp)(&r, test, arena, 0);  /* non-inlined trampoline */
   mps_tramp(&r, test, arena, 0);
   mps_root_destroy(reg_root);
   mps_thread_dereg(thread);

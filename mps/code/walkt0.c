@@ -191,11 +191,14 @@ static void *test(mps_arena_t arena, mps_class_t pool_class)
     /* Note: stepper finds more than we expect, due to pad objects */
     /* printf("stepper found %ld objs\n", sd->count); */
 
+
+    mps_arena_park(arena);
     mps_ap_destroy(ap);
     mps_root_destroy(exactRoot);
     mps_pool_destroy(pool);
     mps_chain_destroy(chain);
     mps_fmt_destroy(format);
+    mps_arena_release(arena);
 
     return NULL;
 }

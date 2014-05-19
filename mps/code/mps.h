@@ -1,7 +1,7 @@
 /* mps.h: RAVENBROOK MEMORY POOL SYSTEM C INTERFACE
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * THIS HEADER IS NOT DOCUMENTATION.
@@ -188,9 +188,6 @@ extern const struct mps_key_s _mps_key_max_size;
 extern const struct mps_key_s _mps_key_align;
 #define MPS_KEY_ALIGN           (&_mps_key_align)
 #define MPS_KEY_ALIGN_FIELD     align
-extern const struct mps_key_s _mps_key_cbs_extend_by;
-#define MPS_KEY_CBS_EXTEND_BY   (&_mps_key_cbs_extend_by)
-#define MPS_KEY_CBS_EXTEND_BY_FIELD size
 extern const struct mps_key_s _mps_key_interior;
 #define MPS_KEY_INTERIOR        (&_mps_key_interior)
 #define MPS_KEY_INTERIOR_FIELD  b
@@ -227,20 +224,22 @@ extern const struct mps_key_s _mps_key_fmt_class;
 /* Maximum length of a keyword argument list. */
 #define MPS_ARGS_MAX          32
 
+extern void _mps_args_set_key(mps_arg_s args[MPS_ARGS_MAX], unsigned i,
+                              mps_key_t key);
+
 #define MPS_ARGS_BEGIN(_var) \
   MPS_BEGIN \
     mps_arg_s _var[MPS_ARGS_MAX]; \
     unsigned _var##_i = 0; \
-    _var[_var##_i].key = MPS_KEY_ARGS_END; \
+    _mps_args_set_key(_var, _var##_i, MPS_KEY_ARGS_END); \
     MPS_BEGIN
 
 #define MPS_ARGS_ADD_FIELD(_var, _key, _field, _val)  \
   MPS_BEGIN \
-    /* TODO: AVER(_var##_i + 1 < MPS_ARGS_MAX); */ \
-    _var[_var##_i].key = (_key); \
+    _mps_args_set_key(_var, _var##_i, _key); \
     _var[_var##_i].val._field = (_val); \
     ++_var##_i; \
-    _var[_var##_i].key = MPS_KEY_ARGS_END; \
+    _mps_args_set_key(_var, _var##_i, MPS_KEY_ARGS_END); \
   MPS_END
 
 #define MPS_ARGS_ADD(_var, _key, _val) \
@@ -248,9 +247,8 @@ extern const struct mps_key_s _mps_key_fmt_class;
 
 #define MPS_ARGS_DONE(_var) \
   MPS_BEGIN \
-    /* TODO: AVER(_var##_i < MPS_ARGS_MAX); */ \
-    _var[_var##_i].key = MPS_KEY_ARGS_END; \
-    /* TODO: _var##_i = MPS_ARGS_MAX; */ \
+    _mps_args_set_key(_var, _var##_i, MPS_KEY_ARGS_END); \
+    _var##_i = MPS_ARGS_MAX; \
   MPS_END
 
 #define MPS_ARGS_END(_var) \
@@ -812,7 +810,7 @@ extern mps_res_t _mps_fix2(mps_ss_t, mps_addr_t *);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -263,6 +263,7 @@ static void test(void)
   finalpoll(&z, FINAL_DISCARD);
  }
 
+ mps_arena_park(arena);
  mps_root_destroy(root0);
  mps_root_destroy(root1);
  comment("Destroyed roots.");
@@ -281,6 +282,7 @@ static void test(void)
 
  report("count2", "%d", final_count);
 
+ mps_arena_park(arena);
  mps_pool_destroy(poolamc);
  mps_pool_destroy(poolawl);
  mps_pool_destroy(poollo);

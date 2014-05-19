@@ -149,12 +149,6 @@ DEFINE_POOL_CLASS(MVTPoolClass, this)
 
 /* Macros */
 
-
-/* .trans.something: the C language sucks */
-#define unless(cond) if (!(cond))
-#define when(cond) if (cond)
-
-
 #define Pool2MVT(pool) PARENT(MVTStruct, poolStruct, pool)
 #define MVT2Pool(mvt) (&(mvt)->poolStruct)
 
@@ -356,6 +350,7 @@ failCBS:
 
 /* MVTCheck -- validate an MVT Pool */
 
+ATTRIBUTE_UNUSED
 static Bool MVTCheck(MVT mvt)
 {
   CHECKS(MVT, mvt);

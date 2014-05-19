@@ -42,6 +42,7 @@ static void test(void)
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*30)),
   "create arena");
+ die(mps_arena_commit_limit_set(arena, 1ul << 20), "commit_limit_set");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
@@ -96,6 +97,7 @@ static void test(void)
   report("postdie", "%s", err_text(res));
  }
 
+ mps_arena_park(arena);
  mps_ap_destroy(ap2);
  comment("Destroyed ap.");
 

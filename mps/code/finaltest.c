@@ -284,6 +284,7 @@ int main(int argc, char *argv[])
   test_mode(ModePOLL, arena, chain);
   test_mode(ModePARK, arena, NULL);
 
+  mps_arena_park(arena);
   mps_chain_destroy(chain);
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);

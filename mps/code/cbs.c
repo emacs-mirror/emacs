@@ -80,6 +80,7 @@ Bool CBSCheck(CBS cbs)
 }
 
 
+ATTRIBUTE_UNUSED
 static Bool CBSBlockCheck(CBSBlock block)
 {
   /* See .enter-leave.simple. */
@@ -231,14 +232,11 @@ static void cbsUpdateZonedNode(SplayTree splay, Tree tree)
  * See <design/cbs/#function.cbs.init>.
  */
 
-ARG_DEFINE_KEY(cbs_extend_by, Size);
 ARG_DEFINE_KEY(cbs_block_pool, Pool);
 
 Res CBSInit(CBS cbs, Arena arena, void *owner, Align alignment,
             Bool fastFind, Bool zoned, ArgList args)
 {
-  Size extendBy = CBS_EXTEND_BY_DEFAULT;
-  Bool extendSelf = TRUE;
   ArgStruct arg;
   Res res;
   Pool blockPool = NULL;
@@ -252,10 +250,6 @@ Res CBSInit(CBS cbs, Arena arena, void *owner, Align alignment,
 
   if (ArgPick(&arg, args, CBSBlockPool))
     blockPool = arg.val.pool;
-  if (ArgPick(&arg, args, MPS_KEY_CBS_EXTEND_BY))
-    extendBy = arg.val.size;
-  if (ArgPick(&arg, args, MFSExtendSelf))
-    extendSelf = arg.val.b;
 
   update = SplayTrivUpdate;
   if (fastFind)
@@ -273,8 +267,6 @@ Res CBSInit(CBS cbs, Arena arena, void *owner, Align alignment,
   } else {
     MPS_ARGS_BEGIN(pcArgs) {
       MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
-      MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, extendBy);
-      MPS_ARGS_ADD(pcArgs, MFSExtendSelf, extendSelf);
       res = PoolCreate(&cbs->blockPool, arena, PoolClassMFS(), pcArgs);
     } MPS_ARGS_END(pcArgs);
     if (res != ResOK)
@@ -819,6 +811,8 @@ static void cbsFindDeleteRange(Range rangeReturn, Range oldRangeReturn,
        deleted from one end of the block, so cbsDeleteFromTree did not
        need to allocate a new block. */
     AVER(res == ResOK);
+  } else {
+    RangeCopy(oldRangeReturn, rangeReturn);
   }
 }
 
@@ -1022,6 +1016,7 @@ Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVER(cbs->fastFind);
+  AVER(size > 0);
   AVERT(FindDelete, findDelete);
 
   if (!SplayTreeIsEmpty(cbsSplay(cbs))) {
@@ -1041,7 +1036,7 @@ Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
       RangeInit(&range, CBSBlockBase(block), CBSBlockLimit(block));
       AVER(RangeSize(&range) >= maxSize);
       cbsFindDeleteRange(rangeReturn, oldRangeReturn, cbs, &range,
-                         maxSize, findDelete);
+                         size, findDelete);
     }
   }
 
