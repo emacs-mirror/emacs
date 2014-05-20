@@ -92,12 +92,9 @@ $(PFM)\hot\mps.lib: $(PFM)\hot\mps.obj
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
-$(PFM)\cool\mps.lib: \
-  $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
-  $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
+$(PFM)\cool\mps.lib: $(MPMOBJ)
 	$(ECHO) $@
-	$(CC) /c $(CFLAGS) /Fo$(PFM)\$(VARIETY)\version.obj version.c
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $** $(PFM)\$(VARIETY)\version.obj
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
 
 # OTHER GENUINE TARGETS
@@ -213,8 +210,8 @@ $(PFM)\$(VARIETY)\mv2test.exe: $(PFM)\$(VARIETY)\mv2test.obj \
 $(PFM)\$(VARIETY)\nailboardtest.exe: $(PFM)\$(VARIETY)\nailboardtest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+$(PFM)\$(VARIETY)\poolncv.exe: $(PFM)\$(VARIETY)\poolncv.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ) $(POOLNOBJ)
 
 $(PFM)\$(VARIETY)\qs.exe: $(PFM)\$(VARIETY)\qs.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
