@@ -5,6 +5,9 @@
 	Add more modifiers: meta, control, shift, hyper, super, alt.
 	(Bug#17439)
 
+	* avoid.el (mouse-avoidance-banish-position): Fix defcustom :options
+	to allow changing its value with `set-variable'.
+
 2014-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/scheme.el (scheme-mode-syntax-table): Remove hack for

@@ -126,9 +126,9 @@ TOP-OR-BOTTOM: banish the mouse to top or bottom of frame or window.
 TOP-OR-BOTTOM-POS: Distance from top or bottom edge of frame or window."
   :group   'avoid
   :version "24.3"
-  :type    '(alist :key-type symbol :value-type symbol)
-  :options '(frame-or-window side (side-pos integer)
-             top-or-bottom (top-or-bottom-pos integer)))
+  :type    '(alist :key-type symbol :value-type (choice symbol integer))
+  :options '((frame-or-window symbol) (side symbol) (side-pos integer)
+             (top-or-bottom symbol) (top-or-bottom-pos integer)))
 
 ;; Internal variables
 (defvar mouse-avoidance-state nil)
