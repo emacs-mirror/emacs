@@ -1,3 +1,10 @@
+2014-05-20  Juri Linkov  <juri@jurta.org>
+
+	* avoid.el (mouse-avoidance-set-mouse-position): Don't raise frame.
+	(mouse-avoidance-ignore-p): Remove `switch-frame', add `focus-out'.
+	Add more modifiers: meta, control, shift, hyper, super, alt.
+	(Bug#17439)
+
 2014-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/scheme.el (scheme-mode-syntax-table): Remove hack for
