@@ -44,8 +44,8 @@ New features
 Interface changes
 .................
 
-#. There is now a default value (currently 1 \ :term:`megabyte`) for
-   the :c:macro:`MPS_KEY_ARENA_SIZE` keyword argument to
+#. There is now a default value (currently 256 \ :term:`megabytes`)
+   for the :c:macro:`MPS_KEY_ARENA_SIZE` keyword argument to
    :c:func:`mps_arena_create_k` when creating a virtual memory arena.
    See :c:func:`mps_arena_class_vm`.
 
