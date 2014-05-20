@@ -886,10 +886,9 @@ and CVS."
 	  (minor-num (string-to-number (vc-rcs-minor-part rev))))
       (concat branch "." (number-to-string (1+ minor-num))))))
 
-;; Note that most GNU/Linux distributions seem to supply rcs2log in a
-;; standard bin directory.  Eg both Red Hat and Debian include it in
-;; their cvs packages.  It's not obvious why Emacs still needs to
-;; provide it as well...
+;; You might think that this should be distributed with RCS, but
+;; apparently not.  CVS sometimes provides a version of it.
+;; http://lists.gnu.org/archive/html/emacs-devel/2014-05/msg00288.html
 (defvar vc-rcs-rcs2log-program
   (let (exe)
     (cond ((file-executable-p
