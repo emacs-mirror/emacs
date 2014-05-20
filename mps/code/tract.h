@@ -171,14 +171,6 @@ extern void ChunkCacheEntryInit(ChunkCacheEntry entry);
 extern Bool ChunkOfAddr(Chunk *chunkReturn, Arena arena, Addr addr);
 extern Res ChunkNodeDescribe(Tree node, mps_lib_FILE *stream);
 
-/* CHUNK_OF_ADDR -- return the chunk containing an address
- *
- * arena and addr are evaluated multiple times.
- */
-
-#define CHUNK_OF_ADDR(chunkReturn, arena, addr) \
-  ChunkOfAddr(chunkReturn, arena, addr)
-
 
 /* AddrPageBase -- the base of the page this address is on */
 
@@ -190,25 +182,6 @@ extern Res ChunkNodeDescribe(Tree node, mps_lib_FILE *stream);
 
 extern Tract TractOfBaseAddr(Arena arena, Addr addr);
 extern Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr);
-
-/* TRACT_OF_ADDR -- return the tract containing an address */
-
-#define TRACT_OF_ADDR(tractReturn, arena, addr) \
-  BEGIN \
-    Arena _arena = (arena); \
-    Addr _addr = (addr); \
-    Chunk _chunk; \
-    Index _i; \
-    \
-    if (CHUNK_OF_ADDR(&_chunk, _arena, _addr)) { \
-      _i = INDEX_OF_ADDR(_chunk, _addr); \
-      if (BTGet(_chunk->allocTable, _i)) \
-        *(tractReturn) = PageTract(&_chunk->pageTable[_i]); \
-      else \
-        *(tractReturn) = NULL; \
-    } else \
-        *(tractReturn) = NULL; \
-  END
 
 
 /* INDEX_OF_ADDR -- return the index of the page containing an address

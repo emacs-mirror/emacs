@@ -290,14 +290,15 @@ failChunkCreate:
 static void ClientArenaFinish(Arena arena)
 {
   ClientArena clientArena;
+  Tree *treeref, tree, next;
 
   clientArena = Arena2ClientArena(arena);
   AVERT(ClientArena, clientArena);
 
   /* destroy all chunks, including the primary */
   arena->primary = NULL;
-  while (!SplayTreeIsEmpty(ArenaChunkTree(arena))) {
-    clientChunkDestroy(ChunkOfTree(SplayTreeRoot(ArenaChunkTree(arena))));
+  TREE_DESTROY(treeref, tree, next, arena->chunkTree) {
+    clientChunkDestroy(ChunkOfTree(tree));
   }
 
   clientArena->sig = SigInvalid;
@@ -350,8 +351,8 @@ static Size ClientArenaReserved(Arena arena)
 
   AVERT(Arena, arena);
 
-  TreeTraverse(SplayTreeRoot(ArenaChunkTree(arena)), ChunkCompare, ChunkKey,
-               clientArenaReservedVisitor, &size, 0);
+  (void)TreeTraverse(ArenaChunkTree(arena), ChunkCompare, ChunkKey,
+                     clientArenaReservedVisitor, &size, 0);
 
   return size;
 }

@@ -117,6 +117,49 @@ Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
 }
 
 
+/* TreeFindNext -- search for node containing key, or next node
+ *
+ * If there is a node that is greater than key, set treeReturn to that
+ * node and return TRUE.
+ *
+ * Otherwise, key is greater than all nodes in the tree, so leave
+ * treeReturn unchanged and return FALSE.
+ */
+
+Bool TreeFindNext(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
+{
+  Tree node, best = NULL;
+  Bool result = FALSE;
+
+  AVERT(Tree, root);
+  AVER(treeReturn != NULL);
+  AVER(FUNCHECK(compare));
+  /* key is arbitrary */
+
+  node = root;
+  while (node != TreeEMPTY) {
+    Compare cmp = compare(node, key);
+    switch (cmp) {
+    case CompareLESS:
+      best = node;
+      result = TRUE;
+      node = node->left;
+      break;
+    case CompareEQUAL:
+    case CompareGREATER:
+      node = node->right;
+      break;
+    default:
+      NOTREACHED;
+      return FALSE;
+    }
+  }
+  
+  *treeReturn = best;
+  return result;
+}
+
+
 /* TreeInsert -- insert a node into a tree
  *
  * If the key doesn't exist in the tree, inserts a node as a leaf of the
