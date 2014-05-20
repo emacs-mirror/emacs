@@ -48,6 +48,7 @@ static double pact = 0.2;         /* probability per pass of acting */
 static unsigned rinter = 75;      /* pass interval for recursion */
 static unsigned rmax = 10;        /* maximum recursion depth */
 static mps_bool_t zoned = TRUE;   /* arena allocates using zones */
+static size_t arenasize = 256ul * 1024 * 1024; /* arena size */
 
 #define DJRUN(fname, alloc, free) \
   static unsigned fname##_inner(mps_ap_t ap, unsigned depth, unsigned r) { \
@@ -177,7 +178,7 @@ static void wrap(dj_t dj, mps_class_t dummy, const char *name)
 static void arena_wrap(dj_t dj, mps_class_t pool_class, const char *name)
 {
   MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 256ul * 1024 * 1024); /* FIXME: Why is there no default? */
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, arenasize);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, zoned);
     DJMUST(mps_arena_create_k(&arena, mps_arena_class_vm(), args));
   } MPS_ARGS_END(args);
@@ -201,6 +202,7 @@ static struct option longopts[] = {
   {"rinter",  required_argument,  NULL,   'r'},
   {"rmax",    required_argument,  NULL,   'd'},
   {"seed",    required_argument,  NULL,   'x'},
+  {"arena-size", required_argument, NULL, 'm'},
   {"arena-unzoned", no_argument,  NULL,   'z'},
   {NULL,      0,                  NULL,   0}
 };
@@ -235,7 +237,7 @@ int main(int argc, char *argv[]) {
 
   seed = rnd_seed();
   
-  while ((ch = getopt_long(argc, argv, "ht:i:p:b:s:a:r:d:x:z", longopts, NULL)) != -1)
+  while ((ch = getopt_long(argc, argv, "ht:i:p:b:s:a:r:d:m:x:z", longopts, NULL)) != -1)
     switch (ch) {
     case 't':
       nthreads = (unsigned)strtoul(optarg, NULL, 10);
@@ -266,6 +268,20 @@ int main(int argc, char *argv[]) {
       break;
     case 'z':
       zoned = FALSE;
+      break;
+    case 'm': {
+        char *p;
+        arenasize = (unsigned)strtoul(optarg, &p, 10);
+        switch(toupper(*p)) {
+        case 'G': arenasize <<= 30; break;
+        case 'M': arenasize <<= 20; break;
+        case 'K': arenasize <<= 10; break;
+        case '\0': break;
+        default:
+          fprintf(stderr, "Bad arena size %s\n", optarg);
+          return EXIT_FAILURE;
+        }
+      }
       break;
     default:
       fprintf(stderr,
