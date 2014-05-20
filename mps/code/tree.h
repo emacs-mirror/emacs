@@ -136,7 +136,7 @@ extern void TreeBalance(Tree *treeIO);
 
 /* TREE_DESTROY -- iterate over a tree while destroying it. 
  *
- * root is a lvalue storing the root of the tree.
+ * root is an lvalue storing the root of the tree.
  * treeref is a variable of type Tree*.
  * tree and next are variables of type Tree.
  * In the body of the loop, tree is the current node.
@@ -145,7 +145,7 @@ extern void TreeBalance(Tree *treeIO);
   for ((treeref = &(root), TreeToVine(treeref), next = TreeEMPTY); \
        (tree = *treeref) != TreeEMPTY \
          ? (next = tree->right, TRUE) \
-         : (TreeBalance(treeref), FALSE); \
+         : FALSE; \
        *treeref = next)
 
 

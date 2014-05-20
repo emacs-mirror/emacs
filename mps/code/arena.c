@@ -494,7 +494,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
 }
 
 
-/* ArenaDescribeTractsInChunk -- describe all the tracts in a chunk */
+/* ArenaDescribeTractsInChunk -- describe the tracts in a chunk */
 
 static Bool arenaDescribeTractsInChunk(Tree tree, void *closureP, Size closureS)
 {
@@ -509,20 +509,30 @@ static Bool arenaDescribeTractsInChunk(Tree tree, void *closureP, Size closureS)
   if (stream == NULL) return ResFAIL;
   UNUSED(closureS);
 
+  res = WriteF(stream, "Chunk [$P, $P) ($U) {\n",
+               (WriteFP)chunk->base, (WriteFP)chunk->limit,
+               (WriteFU)chunk->serial,
+               NULL);
+  if (res != ResOK) return res;
+  
   TRACT_TRACT_FOR(tract, addr, ChunkArena(chunk),
                   PageTract(ChunkPage(chunk, chunk->allocBase)),
                   chunk->limit)
   {
     res = WriteF(stream,
-                 "[$P, $P) $U   $P ($S)\n",
+                 "  [$P, $P) $P $U ($S)\n",
                  (WriteFP)TractBase(tract), (WriteFP)TractLimit(tract),
-                 (WriteFW)ArenaAlign(ChunkArena(chunk)),
                  (WriteFP)TractPool(tract),
+                 (WriteFU)(TractPool(tract)->serial),
                  (WriteFS)(TractPool(tract)->class->name),
                  NULL);
     if (res != ResOK) return res;
   }
-  return ResOK;
+
+  res = WriteF(stream, "} Chunk [$P, $P)\n",
+               (WriteFP)chunk->base, (WriteFP)chunk->limit,
+               NULL);
+  return res;
 }
 
 
@@ -599,17 +609,7 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream)
 }
 
 
-/* ArenaChunkInsert -- insert chunk into arena's chunk tree
- *
- * Note that there's no corresponding ArenaChunkDelete. That's because
- * we don't have a function that deletes an item from a balanced tree
- * efficiently. Instead, deletions from the chunk tree are carried out
- * by calling TreeToVine, iterating over the vine (where deletion is
- * straightforward) and then calling TreeBalance. This is efficient
- * when deleting all the chunks at a time in ArenaFinish, and
- * acceptable in VMCompact when multiple chunks may be deleted from
- * the tree.
- */
+/* ArenaChunkInsert -- insert chunk into arena's chunk tree */
 
 void ArenaChunkInsert(Arena arena, Tree tree) {
   Bool inserted;
@@ -689,13 +689,12 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
   /* Favour the primary chunk, because pages allocated this way aren't
      currently freed, and we don't want to prevent chunks being destroyed. */
   /* TODO: Consider how the ArenaCBSBlockPool might free pages. */
-  if (arenaAllocPageInChunk(&arena->primary->chunkTree, &closure, 0) == FALSE)
+  if (!arenaAllocPageInChunk(&arena->primary->chunkTree, &closure, 0))
     goto found;
 
   closure.avoid = arena->primary;
-  if (TreeTraverse(ArenaChunkTree(arena), ChunkCompare, ChunkKey,
-                   arenaAllocPageInChunk, &closure, 0)
-      == FALSE)
+  if (!TreeTraverse(ArenaChunkTree(arena), ChunkCompare, ChunkKey,
+                    arenaAllocPageInChunk, &closure, 0))
     goto found;
 
   return ResRESOURCE;
