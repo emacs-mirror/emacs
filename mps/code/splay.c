@@ -694,7 +694,7 @@ static Compare SplaySplay(SplayTree splay, TreeKey key, TreeCompare compare)
   SplayStateStruct stateStruct;
 
 #ifdef SPLAY_DEBUG
-  Count count = TreeDebugCount(SplayTreeRoot(splay), splay->compare, splay->nodeKey);
+  Count count = SplayDebugCount(splay);
 #endif
 
   /* Short-circuit common cases.  Splay trees often bring recently
@@ -714,7 +714,7 @@ static Compare SplaySplay(SplayTree splay, TreeKey key, TreeCompare compare)
   SplayTreeSetRoot(splay, stateStruct.middle);
 
 #ifdef SPLAY_DEBUG
-  AVER(count == TreeDebugCount(SplayTreeRoot(splay), splay->compare, splay->nodeKey));
+  AVER(count == SplayDebugCount(splay));
 #endif
 
   return cmp;
@@ -909,7 +909,7 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
   Bool found;
   Compare cmp;
 #ifdef SPLAY_DEBUG
-  Count count = TreeDebugCount(SplayTreeRoot(splay), splay->compare, splay->nodeKey);
+  Count count = SplayDebugCount(splay);
 #endif
 
 
@@ -951,7 +951,7 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
   SplayTreeSetRoot(splay, stateStruct.middle);
 
 #ifdef SPLAY_DEBUG
-  AVER(count == TreeDebugCount(SplayTreeRoot(splay), splay->compare, splay->nodeKey));
+  AVER(count == SplayDebugCount(splay));
 #endif
 
   return found;
@@ -970,9 +970,8 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
  * unmodified.
  *
  * IMPORTANT: Iterating over the tree using these functions will leave
- * the tree totally unbalanced, throwing away optimisations of the
- * tree shape caused by previous splays. Consider using
- * SplayTreeTraverse instead.
+ * the tree totally unbalanced, throwing away optimisations of the tree
+ * shape caused by previous splays. Consider using TreeTraverse instead.
  */
 
 Tree SplayTreeFirst(SplayTree splay) {
@@ -1010,16 +1009,6 @@ Tree SplayTreeNext(SplayTree splay, TreeKey oldKey) {
   case CompareEQUAL:
     return SplayTreeSuccessor(splay);
   }
-}
-
-
-/* SplayTreeTraverse -- iterate over splay tree without splaying it */
-
-Bool SplayTreeTraverse(SplayTree splay, TreeVisitor visitor,
-                       void *closureP, Size closureS)
-{
-  return TreeTraverse(splay->root, splay->compare, splay->nodeKey,
-                      visitor, closureP, closureS);
 }
 
 

@@ -55,8 +55,6 @@ extern Bool SplayTreeNeighbours(Tree *leftReturn,
 
 extern Tree SplayTreeFirst(SplayTree splay);
 extern Tree SplayTreeNext(SplayTree splay, TreeKey oldKey);
-extern Bool SplayTreeTraverse(SplayTree splay, TreeVisitor visitor,
-                              void *closureP, Size closureS);
 
 typedef Bool (*SplayFindMethod)(Tree *nodeReturn, SplayTree splay,
                                 SplayTestNodeMethod testNode,
@@ -78,6 +76,7 @@ extern Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream,
 
 extern void SplayDebugUpdate(SplayTree splay, Tree tree);
 extern Count SplayDebugCount(SplayTree splay);
+
 
 #endif /* splay_h */
 
