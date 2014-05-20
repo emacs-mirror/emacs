@@ -1,3 +1,7 @@
+2014-05-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_signature): Revert last 2 patches.
+
 2014-05-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Allow any non-nil value to count as true in bool-vector.
