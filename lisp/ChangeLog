@@ -1,5 +1,13 @@
 2014-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/scheme.el (scheme-mode-syntax-table): Remove hack for
+	#; comments.
+	(scheme-syntax-propertize, scheme-syntax-propertize-sexp-comment):
+	New functions.
+	(scheme-mode-variables): Set syntax-propertize-function instead of
+	font-lock-syntactic-face-function.
+	(scheme-font-lock-syntactic-face-function): Delete.
+
 	* emacs-lisp/lisp.el (end-of-defun): Ensure we move (bug#17274).
 
 2014-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
