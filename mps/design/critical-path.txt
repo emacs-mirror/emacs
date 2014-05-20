@@ -230,20 +230,21 @@ If a pointer gets past the first-stage fix filters, it is passed to
 yet more pointers using information about segments before it has to
 consult the pool class.
 
-The first test applied is the "tract test". The MPS looks up the tract
-containing the address in the tract table, which is a simple linear
-table indexed by the address shifted -- a kind of flat page table.
+The first test is to determine if the address points to a *chunk* (a
+contiguous regions of address space managed by the arena). Addresses
+that do not point to any chunk (for example, ambiguous references that
+are not in fact pointers) are rejected immediately.
 
-Note that if the arena has been extended, the tract table becomes less
-simple, and this test may involved looking in more than one table.
-This will cause a considerable slow-down in garbage collection
-scanning. This is the reason that it's important to give a good
+When there are many chunks (that is, when the arena has been extended
+many times), this test can consume the majority of the garbage
+collection time. This is the reason that it's important to give a good
 estimate of the amount of address space you will ever occupy with
 objects when you initialize the arena.
 
-The pointer might not even be in the arena (and so not in any tract).
-The first stage fix doesn't guarantee it. So we eliminate any pointers
-not in the arena at this stage.
+The second test applied is the "tract test". The MPS looks up the
+tract containing the address in the tract table, which is a simple
+linear table indexed by the address shifted -- a kind of flat page
+table.
 
 If the pointer is in an allocated tract, then the table also contains
 a cache of the "white set" -- the set of garbage collection traces for

@@ -589,6 +589,7 @@ static void VMArenaFinish(Arena arena)
 {
   VMArena vmArena;
   VM arenaVM;
+  Tree *treeref, tree, next;
 
   vmArena = Arena2VMArena(arena);
   AVERT(VMArena, vmArena);
@@ -598,10 +599,10 @@ static void VMArenaFinish(Arena arena)
 
   /* destroy all chunks, including the primary */
   arena->primary = NULL;
-  while (!SplayTreeIsEmpty(ArenaChunkTree(arena))) {
-    vmChunkDestroy(ChunkOfTree(SplayTreeRoot(ArenaChunkTree(arena))));
+  TREE_DESTROY(treeref, tree, next, arena->chunkTree) {
+    vmChunkDestroy(ChunkOfTree(tree));
   }
-  
+
   /* Destroying the chunks should have purged and removed all spare pages. */
   RingFinish(&vmArena->spareRing);
 
@@ -645,8 +646,8 @@ static Size VMArenaReserved(Arena arena)
 
   AVERT(Arena, arena);
 
-  TreeTraverse(SplayTreeRoot(ArenaChunkTree(arena)), ChunkCompare, ChunkKey,
-               vmArenaReservedVisitor, &size, 0);
+  (void)TreeTraverse(ArenaChunkTree(arena), ChunkCompare, ChunkKey,
+                     vmArenaReservedVisitor, &size, 0);
 
   return size;
 }
@@ -1067,8 +1068,9 @@ static void VMFree(Addr base, Size size, Pool pool)
   BTResRange(chunk->allocTable, piBase, piLimit);
 
   /* Consider returning memory to the OS. */
-  /* TODO: Chunks are only destroyed when ArenaCompact is called, and that is
-     only called from TraceReclaim.  Should consider destroying chunks here. */
+  /* TODO: Chunks are only destroyed when ArenaCompact is called, and
+     that is only called from traceReclaim. Should consider destroying
+     chunks here. See job003815. */
   if (arena->spareCommitted > arena->spareCommitLimit) {
     /* Purge half of the spare memory, not just the extra sliver, so
        that we return a reasonable amount of memory in one go, and avoid
@@ -1085,7 +1087,7 @@ static void VMCompact(Arena arena, Trace trace)
 {
   VMArena vmArena;
   Size vmem1;
-  Tree tree;
+  Tree *tree;
 
   vmArena = Arena2VMArena(arena);
   AVERT(VMArena, vmArena);
@@ -1093,21 +1095,31 @@ static void VMCompact(Arena arena, Trace trace)
 
   vmem1 = VMArenaReserved(arena);
 
-  tree = SplayTreeFirst(ArenaChunkTree(arena));
-  while (tree != TreeEMPTY) {
-    Chunk chunk = ChunkOfTree(tree);
-    TreeKey key = ChunkKey(tree);
+  /* Destroy all the chunks that are completely free. Be very careful
+   * about the order of operations on the tree because vmChunkDestroy
+   * unmaps the memory that the tree node resides in, so the next tree
+   * node has to be looked up first. TODO: add hysteresis here. See
+   * job003815. */
+  tree = &arena->chunkTree;
+  TreeToVine(tree);
+  while (*tree != TreeEMPTY) {
+    Chunk chunk = ChunkOfTree(*tree);
     AVERT(Chunk, chunk);
     if(chunk != arena->primary
        && BTIsResRange(chunk->allocTable, 0, chunk->pages))
     {
       Addr base = chunk->base;
       Size size = ChunkSize(chunk);
+      Tree next = TreeRight(*tree);
       vmChunkDestroy(chunk);
       vmArena->contracted(arena, base, size);
+      *tree = next;
+    } else {
+      tree = &(*tree)->right;
     }
-    tree = SplayTreeNext(ArenaChunkTree(arena), key);
   }
+  TreeBalance(&arena->chunkTree);
+
   {
     Size vmem0 = trace->preTraceArenaReserved;
     Size vmem2 = VMArenaReserved(arena);

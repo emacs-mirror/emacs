@@ -113,6 +113,8 @@ extern Count TreeDebugCount(Tree tree, TreeCompare compare, TreeKeyMethod key);
 
 extern Compare TreeFind(Tree *treeReturn, Tree root,
                         TreeKey key, TreeCompare compare);
+extern Bool TreeFindNext(Tree *treeReturn, Tree root,
+                         TreeKey key, TreeCompare compare);
 
 extern Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
                        TreeKey key, TreeCompare compare);
@@ -131,6 +133,20 @@ extern Tree TreeReverseLeftSpine(Tree tree);
 extern Tree TreeReverseRightSpine(Tree tree);
 extern Count TreeToVine(Tree *treeIO);
 extern void TreeBalance(Tree *treeIO);
+
+/* TREE_DESTROY -- iterate over a tree while destroying it. 
+ *
+ * root is a lvalue storing the root of the tree.
+ * treeref is a variable of type Tree*.
+ * tree and next are variables of type Tree.
+ * In the body of the loop, tree is the current node.
+ */
+#define TREE_DESTROY(treeref, tree, next, root)   \
+  for ((treeref = &(root), TreeToVine(treeref));  \
+       (tree = *treeref) != TreeEMPTY             \
+         ? (next = tree->right, TRUE)             \
+         : (TreeBalance(treeref), FALSE);         \
+       *treeref = next)
 
 
 #endif /* tree_h */

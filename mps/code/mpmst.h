@@ -645,7 +645,7 @@ typedef struct mps_arena_s {
   Addr lastTractBase;           /* base address of lastTract */
 
   Chunk primary;                /* the primary chunk */
-  SplayTreeStruct chunkTree;    /* all the chunks */
+  Tree chunkTree;               /* all the chunks */
   Serial chunkSerial;           /* next chunk number */
 
   Bool hasFreeCBS;              /* Is freeCBS available? */

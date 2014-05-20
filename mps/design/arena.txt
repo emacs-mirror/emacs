@@ -273,7 +273,9 @@ memory represented by the tract.
 _`.tract.field.white`: The white bit-field indicates for which traces
 the tract is white (`.req.fun.trans.white`_). This information is also
 stored in the segment, but is duplicated here for efficiency during a
-call to ``TraceFix`` (see design.mps.trace.fix).
+call to ``TraceFix`` (see `design.mps.trace.fix`_).
+
+.. _design.mps.trace.fix: trace#fix
 
 _`.tract.limit`: The limit of the tract's memory may be determined by
 adding the arena alignment to the base address.
@@ -283,19 +285,14 @@ design.mps.arena.tract-iter(0).
 
 ``Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr)``
 
-_`.tract.if.tractofaddr`: The function ``TractOfAddr()`` finds the tract
-corresponding to an address in memory. (See `.req.fun.trans`_.)
-
+_`.tract.if.tractofaddr`: The function ``TractOfAddr()`` finds the
+tract corresponding to an address in memory. (See `.req.fun.trans`_.)
 If ``addr`` is an address which has been allocated to some pool, then
 ``TractOfAddr()`` returns ``TRUE``, and sets ``*tractReturn`` to the
 tract corresponding to that address. Otherwise, it returns ``FALSE``.
 This function is similar to ``TractOfBaseAddr()`` (see
 design.mps.arena.tract-iter.if.contig-base) but serves a more general
 purpose and is less efficient.
-
-_`.tract.if.TRACT_OF_ADDR`: ``TRACT_OF_ADDR()`` is a macro version of
-``TractOfAddr()``. It's provided for efficiency during a call to
-``TraceFix()`` (see design.mps.trace.fix.tractofaddr).
 
 
 Control pool
