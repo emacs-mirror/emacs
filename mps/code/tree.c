@@ -119,11 +119,11 @@ Compare TreeFind(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)
 
 /* TreeFindNext -- search for node containing key, or next node
  *
- * If there is a node that is greater than key, set treeReturn to that
+ * If there is a node that is greater than key, set *treeReturn to that
  * node and return TRUE.
  *
  * Otherwise, key is greater than all nodes in the tree, so leave
- * treeReturn unchanged and return FALSE.
+ * *treeReturn unchanged and return FALSE.
  */
 
 Bool TreeFindNext(Tree *treeReturn, Tree root, TreeKey key, TreeCompare compare)

@@ -295,7 +295,8 @@ static void ClientArenaFinish(Arena arena)
   clientArena = Arena2ClientArena(arena);
   AVERT(ClientArena, clientArena);
 
-  /* destroy all chunks, including the primary */
+  /* Destroy all chunks, including the primary. See
+   * <design/arena/#chunk.delete> */
   arena->primary = NULL;
   TREE_DESTROY(treeref, tree, next, arena->chunkTree) {
     clientChunkDestroy(ChunkOfTree(tree));

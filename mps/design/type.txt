@@ -564,9 +564,11 @@ space as the client data.
 ``typedef unsigned TraceId``
 
 _`.traceid`: A ``TraceId`` is an unsigned integer which is less than
-``TRACE_MAX``. Each running trace has a different ``TraceId`` which is
-used to index into tables and bitfields used to remember the state of
-that trace.
+``TraceLIMIT``. Each running trace has a different ``TraceId`` which
+is used to index into the tables and bitfields that record the state
+of that trace. See `design.mps.trace.instance.limit`_.
+
+.. _design.mps.trace.instance.limit: trace#instance.limit
 
 
 ``typedef unsigned TraceSet``

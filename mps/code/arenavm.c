@@ -597,12 +597,13 @@ static void VMArenaFinish(Arena arena)
 
   EVENT1(ArenaDestroy, vmArena);
 
-  /* destroy all chunks, including the primary */
+  /* Destroy all chunks, including the primary. See
+   * <design/arena/#chunk.delete> */
   arena->primary = NULL;
   TREE_DESTROY(treeref, tree, next, arena->chunkTree) {
     vmChunkDestroy(ChunkOfTree(tree));
   }
-
+  
   /* Destroying the chunks should have purged and removed all spare pages. */
   RingFinish(&vmArena->spareRing);
 
@@ -1095,11 +1096,9 @@ static void VMCompact(Arena arena, Trace trace)
 
   vmem1 = VMArenaReserved(arena);
 
-  /* Destroy all the chunks that are completely free. Be very careful
-   * about the order of operations on the tree because vmChunkDestroy
-   * unmaps the memory that the tree node resides in, so the next tree
-   * node has to be looked up first. TODO: add hysteresis here. See
-   * job003815. */
+  /* Destroy chunks that are completely free, but not the primary
+   * chunk. See <design/arena/#chunk.delete>
+   * TODO: add hysteresis here. See job003815. */
   tree = &arena->chunkTree;
   TreeToVine(tree);
   while (*tree != TreeEMPTY) {
