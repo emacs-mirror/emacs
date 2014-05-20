@@ -84,7 +84,6 @@ typedef Addr (*FindDependentMethod)(Addr object);
 typedef struct AWLStruct {
   PoolStruct poolStruct;
   Shift alignShift;
-  Chain chain;              /* dummy chain */
   PoolGenStruct pgen;       /* generation representing the pool */
   Size size;                /* allocated size in bytes */
   Count succAccesses;       /* number of successive single accesses */
@@ -473,8 +472,8 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
     return ResMEMORY;
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u, rankSet);
-    res = ChainAlloc(&seg, awl->chain, awl->pgen.nr, AWLSegClassGet(),
-                     size, pool, reservoirPermit, args);
+    res = PoolGenAlloc(&seg, &awl->pgen, AWLSegClassGet(), size,
+                       reservoirPermit, args);
   } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
@@ -570,9 +569,8 @@ static Res AWLInit(Pool pool, ArgList args)
 
   AVERT(Chain, chain);
   AVER(gen <= ChainGens(chain));
-  awl->chain = chain;
 
-  res = PoolGenInit(&awl->pgen, chain, gen, pool);
+  res = PoolGenInit(&awl->pgen, ChainGen(chain, gen), pool);
   if (res != ResOK)
     goto failGenInit;
 
@@ -1307,7 +1305,6 @@ static Bool AWLCheck(AWL awl)
   CHECKD(Pool, &awl->poolStruct);
   CHECKL(awl->poolStruct.class == AWLPoolClassGet());
   CHECKL((Align)1 << awl->alignShift == awl->poolStruct.alignment);
-  CHECKD(Chain, awl->chain);
   /* Nothing to check about succAccesses. */
   CHECKL(FUNCHECK(awl->findDependent));
   /* Don't bother to check stats. */

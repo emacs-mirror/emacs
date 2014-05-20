@@ -691,14 +691,14 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
   if (res != ResOK)
     goto failSize;
 
-  res = ChainAlloc(&seg, ams->chain, ams->pgen.nr, (*ams->segClass)(),
-                   prefSize, pool, withReservoirPermit, argsNone);
+  res = PoolGenAlloc(&seg, &ams->pgen, (*ams->segClass)(), prefSize,
+                     withReservoirPermit, argsNone);
   if (res != ResOK) { /* try to allocate one that's just large enough */
     Size minSize = SizeAlignUp(size, ArenaAlign(arena));
     if (minSize == prefSize)
       goto failSeg;
-    res = ChainAlloc(&seg, ams->chain, ams->pgen.nr, (*ams->segClass)(),
-                     prefSize, pool, withReservoirPermit, argsNone);
+    res = PoolGenAlloc(&seg, &ams->pgen, (*ams->segClass)(), prefSize,
+                       withReservoirPermit, argsNone);
     if (res != ResOK)
       goto failSeg;
   }
@@ -822,8 +822,7 @@ Res AMSInitInternal(AMS ams, Format format, Chain chain, unsigned gen,
   pool->alignment = pool->format->alignment;
   ams->grainShift = SizeLog2(PoolAlignment(pool));
 
-  ams->chain = chain;
-  res = PoolGenInit(&ams->pgen, ams->chain, gen, pool);
+  res = PoolGenInit(&ams->pgen, ChainGen(chain, gen), pool);
   if (res != ResOK)
     return res;
 
@@ -1666,8 +1665,6 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
                "  size $W\n",
                (WriteFW)ams->size,
                "  grain shift $U\n", (WriteFU)ams->grainShift,
-               "  chain $P\n",
-               (WriteFP)ams->chain,
                NULL);
   if (res != ResOK) return res;
 
@@ -1761,7 +1758,6 @@ Bool AMSCheck(AMS ams)
   CHECKL(IsSubclassPoly(AMS2Pool(ams)->class, AMSPoolClassGet()));
   CHECKL(PoolAlignment(AMS2Pool(ams)) == ((Size)1 << ams->grainShift));
   CHECKL(PoolAlignment(AMS2Pool(ams)) == AMS2Pool(ams)->format->alignment);
-  CHECKD(Chain, ams->chain);
   CHECKD(PoolGen, &ams->pgen);
   CHECKL(SizeIsAligned(ams->size, ArenaAlign(PoolArena(AMS2Pool(ams)))));
   CHECKL(FUNCHECK(ams->segSize));
