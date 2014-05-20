@@ -160,8 +160,6 @@ Res ChunkInit(Chunk chunk, Arena arena,
   Size pageTableSize;
   void *p;
   Res res;
-  Bool inserted;
-  Tree updatedTree = NULL;
 
   /* chunk is supposed to be uninitialized, so don't check it. */
   AVERT(Arena, arena);
@@ -216,15 +214,11 @@ Res ChunkInit(Chunk chunk, Arena arena,
   }
 
   TreeInit(&chunk->chunkTree);
-  inserted = TreeInsert(&updatedTree, SplayTreeRoot(ArenaChunkTree(arena)),
-                        &chunk->chunkTree, TreeKeyOfAddrVar(chunk),
-                        ChunkCompare);
-  AVER(inserted && updatedTree);
-  TreeBalance(&updatedTree);
-  ArenaChunkTree(arena)->root = updatedTree;
 
   chunk->sig = ChunkSig;
   AVERT(Chunk, chunk);
+
+  ArenaChunkInsert(arena, &chunk->chunkTree);
 
   /* As part of the bootstrap, the first created chunk becomes the primary
      chunk.  This step allows AreaFreeCBSInsert to allocate pages. */
@@ -247,10 +241,10 @@ failAllocTable:
 
 void ChunkFinish(Chunk chunk)
 {
-  Bool res;
   Arena arena;
 
   AVERT(Chunk, chunk);
+
   AVER(BTIsResRange(chunk->allocTable, 0, chunk->pages));
   arena = ChunkArena(chunk);
 
@@ -258,10 +252,6 @@ void ChunkFinish(Chunk chunk)
     ArenaFreeCBSDelete(arena,
                        PageIndexBase(chunk, chunk->allocBase),
                        chunk->limit);
-
-  res = SplayTreeDelete(ArenaChunkTree(arena), &chunk->chunkTree);
-  AVER(res);
-  TreeBalance(&ArenaChunkTree(arena)->root);
 
   chunk->sig = SigInvalid;
 
@@ -322,8 +312,8 @@ Bool ChunkOfAddr(Chunk *chunkReturn, Arena arena, Addr addr)
   AVERT_CRITICAL(Arena, arena);
   /* addr is arbitrary */
 
-  if (TreeFind(&tree, SplayTreeRoot(ArenaChunkTree(arena)),
-               TreeKeyOfAddrVar(addr), ChunkCompare)
+  if (TreeFind(&tree, ArenaChunkTree(arena), TreeKeyOfAddrVar(addr),
+               ChunkCompare)
       == CompareEQUAL)
   {
     Chunk chunk = ChunkOfTree(tree);
@@ -345,32 +335,21 @@ Bool ChunkOfAddr(Chunk *chunkReturn, Arena arena, Addr addr)
 static Bool chunkAboveAddr(Chunk *chunkReturn, Arena arena, Addr addr)
 {
   Tree tree;
+  Chunk chunk;
 
   AVER_CRITICAL(chunkReturn != NULL);
   AVERT_CRITICAL(Arena, arena);
   /* addr is arbitrary */
 
-  tree = SplayTreeNext(ArenaChunkTree(arena), TreeKeyOfAddrVar(addr));
-  if (tree != TreeEMPTY) {
-    Chunk chunk = ChunkOfTree(tree);
+  if (TreeFindNext(&tree, ArenaChunkTree(arena), TreeKeyOfAddrVar(addr),
+                   ChunkCompare))
+  {
+    chunk = ChunkOfTree(tree);
     AVER_CRITICAL(addr < chunk->base);
     *chunkReturn = chunk;
     return TRUE;
   }
   return FALSE;
-}
-
-
-/* ArenaIsReservedAddr -- is address managed by this arena? */
-
-Bool ArenaIsReservedAddr(Arena arena, Addr addr)
-{
-  Chunk dummy;
-
-  AVERT(Arena, arena);
-  /* addr is arbitrary */
-
-  return ChunkOfAddr(&dummy, arena, addr);
 }
 
 

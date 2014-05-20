@@ -148,7 +148,7 @@ Bool ArenaCheck(Arena arena)
     CHECKD(Chunk, arena->primary);
   }
   /* Can't use CHECKD_NOSIG because TreeEMPTY is NULL. */
-  CHECKL(SplayTreeCheck(ArenaChunkTree(arena)));
+  CHECKL(TreeCheck(ArenaChunkTree(arena)));
   /* nothing to check for chunkSerial */
   
   CHECKL(LocusCheck(arena));
@@ -205,7 +205,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Align alignment, ArgList args)
   arena->zoned = zoned;
 
   arena->primary = NULL;
-  SplayTreeInit(ArenaChunkTree(arena), ChunkCompare, ChunkKey, SplayTrivUpdate);
+  arena->chunkTree = TreeEMPTY;
   arena->chunkSerial = (Serial)0;
   
   LocusInit(arena);
@@ -349,8 +349,7 @@ void ArenaFinish(Arena arena)
   arena->sig = SigInvalid;
   GlobalsFinish(ArenaGlobals(arena));
   LocusFinish(arena);
-  AVER(SplayTreeIsEmpty(ArenaChunkTree(arena)));
-  SplayTreeFinish(ArenaChunkTree(arena));
+  AVER(ArenaChunkTree(arena) == TreeEMPTY);
 }
 
 
@@ -535,8 +534,8 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
   if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  (void)SplayTreeTraverse(ArenaChunkTree(arena), arenaDescribeTractsInChunk, 
-                          stream, 0);
+  (void)TreeTraverse(ArenaChunkTree(arena), ChunkCompare, ChunkKey,
+                     arenaDescribeTractsInChunk, stream, 0);
 
   return ResOK;
 }
@@ -598,6 +597,33 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream)
   res = PoolDescribe(ArenaControlPool(arena), stream);
 
   return res;
+}
+
+
+/* ArenaChunkInsert -- insert chunk into arena's chunk tree
+ *
+ * Note that there's no corresponding ArenaChunkDelete. That's because
+ * we don't have a function that deletes an item from a balanced tree
+ * efficiently. Instead, deletions from the chunk tree are carried out
+ * by calling TreeToVine, iterating over the vine (where deletion is
+ * straightforward) and then calling TreeBalance. This is efficient
+ * when deleting all the chunks at a time in ArenaFinish, and
+ * acceptable in VMCompact when multiple chunks may be deleted from
+ * the tree.
+ */
+
+void ArenaChunkInsert(Arena arena, Tree tree) {
+  Bool inserted;
+  Tree updatedTree = NULL;
+
+  AVERT(Arena, arena);
+  AVERT(Tree, tree);
+
+  inserted = TreeInsert(&updatedTree, ArenaChunkTree(arena),
+                        tree, ChunkKey(tree), ChunkCompare);
+  AVER(inserted && updatedTree);
+  TreeBalance(&updatedTree);
+  arena->chunkTree = updatedTree;
 }
 
 
@@ -668,7 +694,8 @@ static Res arenaAllocPage(Addr *baseReturn, Arena arena, Pool pool)
     goto found;
 
   closure.avoid = arena->primary;
-  if (SplayTreeTraverse(ArenaChunkTree(arena), arenaAllocPageInChunk, &closure, 0)
+  if (TreeTraverse(ArenaChunkTree(arena), ChunkCompare, ChunkKey,
+                   arenaAllocPageInChunk, &closure, 0)
       == FALSE)
     goto found;
 
@@ -907,7 +934,7 @@ static Res arenaAllocFromCBS(Tract *tractReturn, ZoneSet zones, Bool high,
   
   /* Step 2. Make memory available in the address space range. */
 
-  b = CHUNK_OF_ADDR(&chunk, arena, RangeBase(&range));
+  b = ChunkOfAddr(&chunk, arena, RangeBase(&range));
   AVER(b);
   AVER(RangeIsAligned(&range, ChunkPageSize(chunk)));
   baseIndex = INDEX_OF_ADDR(chunk, RangeBase(&range));

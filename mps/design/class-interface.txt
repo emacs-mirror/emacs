@@ -171,13 +171,12 @@ reference in them.
     jumping through hoops required. David Jones, 1998-01-30.
 
 The ``fix`` field is used to perform fixing. This method is called via
-the generic function ``TraceFix()``. It indicates that the specified
-reference has been found and the class should consider the object
-live. There is provision for adjusting the value of the reference (to
-allow for classes that move objects). Classes are not required to
-provide this method, and not doing so indicates that the class is not
-automatic style (ie it does not use global tracing to determine
-liveness).
+the function ``TraceFix()``. It indicates that the specified reference
+has been found and the class should consider the object live. There is
+provision for adjusting the value of the reference (to allow for
+classes that move objects). Classes are not required to provide this
+method, and not doing so indicates that the class is not automatic
+style (ie it does not use global tracing to determine liveness).
 
 The ``reclaim`` field is used to reclaim memory. This method is called
 via the generic function ``PoolReclaim()``. It indicates that the trace
