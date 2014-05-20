@@ -1,3 +1,7 @@
+2014-05-20  Leo Liu  <sdl.web@gmail.com>
+
+	* cl.texi (List Functions, Efficiency Concerns): Update cl-endp.
+
 2014-05-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* texinfo.tex: Update from gnulib.

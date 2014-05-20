@@ -3679,10 +3679,8 @@ This function is a synonym for @code{(cdr @var{x})}.
 @end defun
 
 @defun cl-endp x
-Common Lisp defines this function to act like @code{null}, but
-signaling an error if @code{x} is neither a @code{nil} nor a
-cons cell.  This package simply defines @code{cl-endp} as a synonym
-for @code{null}.
+This function acts like @code{null}, but signals an error if @code{x}
+is neither a @code{nil} nor a cons cell.
 @end defun
 
 @defun cl-list-length x
@@ -4449,12 +4447,11 @@ supposed to arise in complying programs; implementations are strongly
 encouraged but not required to signal an error in these situations.
 This package sometimes omits such error checking in the interest of
 compactness and efficiency.  For example, @code{cl-do} variable
-specifiers are supposed to be lists of one, two, or three forms;
-extra forms are ignored by this package rather than signaling a
-syntax error.  The @code{cl-endp} function is simply a synonym for
-@code{null} in this package.  Functions taking keyword arguments
-will accept an odd number of arguments, treating the trailing
-keyword as if it were followed by the value @code{nil}.
+specifiers are supposed to be lists of one, two, or three forms; extra
+forms are ignored by this package rather than signaling a syntax
+error.  Functions taking keyword arguments will accept an odd number
+of arguments, treating the trailing keyword as if it were followed by
+the value @code{nil}.
 
 Argument lists (as processed by @code{cl-defun} and friends)
 @emph{are} checked rigorously except for the minor point just
