@@ -373,16 +373,18 @@ is called as a function to find the defun's end."
       (push-mark))
   (if (or (null arg) (= arg 0)) (setq arg 1))
   (let ((pos (point))
-        (beg (progn (end-of-line 1) (beginning-of-defun-raw 1) (point))))
+        (beg (progn (end-of-line 1) (beginning-of-defun-raw 1) (point)))
+	(skip (lambda ()
+		;; When comparing point against pos, we want to consider that if
+		;; point was right after the end of the function, it's still
+		;; considered as "in that function".
+		;; E.g. `eval-defun' from right after the last close-paren.
+		(unless (bolp)
+		  (skip-chars-forward " \t")
+		  (if (looking-at "\\s<\\|\n")
+		      (forward-line 1))))))
     (funcall end-of-defun-function)
-    ;; When comparing point against pos, we want to consider that if
-    ;; point was right after the end of the function, it's still
-    ;; considered as "in that function".
-    ;; E.g. `eval-defun' from right after the last close-paren.
-    (unless (bolp)
-      (skip-chars-forward " \t")
-      (if (looking-at "\\s<\\|\n")
-          (forward-line 1)))
+    (funcall skip)
     (cond
      ((> arg 0)
       ;; Moving forward.
@@ -405,11 +407,19 @@ is called as a function to find the defun's end."
         (goto-char beg))
       (unless (zerop arg)
         (beginning-of-defun-raw (- arg))
+	(setq beg (point))
         (funcall end-of-defun-function))))
-    (unless (bolp)
-      (skip-chars-forward " \t")
-      (if (looking-at "\\s<\\|\n")
-          (forward-line 1)))))
+    (funcall skip)
+    (while (and (< arg 0) (>= (point) pos))
+      ;; We intended to move backward, but this ended up not doing so:
+      ;; Try harder!
+      (goto-char beg)
+      (beginning-of-defun-raw (- arg))
+      (if (>= (point) beg)
+	  (setq arg 0)
+	(setq beg (point))
+        (funcall end-of-defun-function)
+	(funcall skip)))))
 
 (defun mark-defun (&optional allow-extend)
   "Put mark at end of this defun, point at beginning.
