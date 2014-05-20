@@ -521,7 +521,6 @@ static Bool arenaDescribeTractsInChunk(Tree tree, void *closureP, Size closureS)
                  (WriteFS)(TractPool(tract)->class->name),
                  NULL);
     if (res != ResOK) return res;
-    return ResOK;
   }
   return ResOK;
 }

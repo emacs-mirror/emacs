@@ -141,11 +141,11 @@ extern void TreeBalance(Tree *treeIO);
  * tree and next are variables of type Tree.
  * In the body of the loop, tree is the current node.
  */
-#define TREE_DESTROY(treeref, tree, next, root)   \
-  for ((treeref = &(root), TreeToVine(treeref));  \
-       (tree = *treeref) != TreeEMPTY             \
-         ? (next = tree->right, TRUE)             \
-         : (TreeBalance(treeref), FALSE);         \
+#define TREE_DESTROY(treeref, tree, next, root) \
+  for ((treeref = &(root), TreeToVine(treeref), next = TreeEMPTY); \
+       (tree = *treeref) != TreeEMPTY \
+         ? (next = tree->right, TRUE) \
+         : (TreeBalance(treeref), FALSE); \
        *treeref = next)
 
 

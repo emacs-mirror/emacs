@@ -626,7 +626,7 @@ Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr)
 Bool PoolOfRange(Pool *poolReturn, Arena arena, Addr base, Addr limit)
 {
   Bool havePool = FALSE;
-  Pool pool;
+  Pool pool = NULL;
   Tract tract;
   Addr addr, alignedBase, alignedLimit;
 
