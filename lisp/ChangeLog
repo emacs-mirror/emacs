@@ -1,3 +1,7 @@
+2014-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* nxml/nxml-mode.el (xml-mode): Only define this alias once.
+
 2014-05-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* frame.el (set-frame-font): Doc fix.
