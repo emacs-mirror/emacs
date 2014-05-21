@@ -145,44 +145,52 @@ By contrast, here are four runs on FreeBSD 8.3::
     data: 0x8049728 text: 0x8048470 stack: 0xbfbfebfc heap: 0x28201088
     data: 0x8049728 text: 0x8048470 stack: 0xbfbfebfc heap: 0x28201088
 
-On many Linux systems, ASLR can be configured for all processes on the
-system by writing one of the following values to
-``/proc/sys/kernel/randomize_va_space``:
+Here's the situation on each of the operating systems supported by the MPS:
 
-    0 - Turn the process address space randomization off.
+* **FreeBSD** (as of version 10.0) does not support ASLR, so there's
+  nothing to do.
 
-    1 - Make the addresses of mmap base, stack and VDSO page randomized.
+* On **Windows** (Vista or later), ASLR is a property of the
+  executable, and it can be turned off at link time using the
+  |DYNAMICBASE|_.
 
-    2 - Additionally enable heap randomization.
+  .. |DYNAMICBASE| replace:: ``/DYNAMICBASE:NO`` linker option
+  .. _DYNAMICBASE: http://msdn.microsoft.com/en-us/library/bb384887.aspx
 
-For example, to turn randomization off::
+* On **Linux** (kernel version 2.6.12 or later), ASLR can be turned
+  off for a single process by running |setarch|_ with the ``-R``
+  option::
 
-    $ echo 0 | sudo tee /proc/sys/kernel/randomize_va_space
+      -R, --addr-no-randomize
+             Disables randomization of the virtual address space
 
-See the `Linux kernel documentation`_ for details.
+  .. |setarch| replace:: ``setarch``
+  .. _setarch: http://man7.org/linux/man-pages/man8/setarch.8.html
 
-.. _Linux kernel documentation: https://www.kernel.org/doc/Documentation/sysctl/kernel.txt
+  For example::
 
-On OS X 10.9, ASLR can be disabled for a single process by starting
-the process using :c:func:`posix_spawn`, passing the undocumented
-attribute ``0x100``, like this:
+      $ setarch $(uname -m) -R ./myprogram
 
-.. code-block:: c
+* On **OS X** (10.7 or later), ASLR can be disabled for a single
+  process by starting the process using :c:func:`posix_spawn`, passing
+  the undocumented attribute ``0x100``, like this:
 
-    #include <spawn.h>
+  .. code-block:: c
 
-    pid_t pid;
-    posix_spawnattr_t attr;
+      #include <spawn.h>
 
-    posix_spawnattr_init(&attr);
-    posix_spawnattr_setflags(&attr, 0x100);
-    posix_spawn(&pid, argv[0], NULL, &attr, argv, environ);
+      pid_t pid;
+      posix_spawnattr_t attr;
 
-The MPS provides the source code for a command-line tool implementing
-this (``tool/noaslr.c``). We've confirmed that this works on OS X
-10.9.3, but since the technique is undocumented, it may well break in
-future releases. (If you know of a documented way to achieve this,
-please :ref:`contact us <contact>`.)
+      posix_spawnattr_init(&attr);
+      posix_spawnattr_setflags(&attr, 0x100);
+      posix_spawn(&pid, argv[0], NULL, &attr, argv, environ);
+
+  The MPS provides the source code for a command-line tool
+  implementing this (``tool/noaslr.c``). We've confirmed that this
+  works on OS X 10.9.3, but since the technique is undocumented, it
+  may well break in future releases. (If you know of a documented way
+  to achieve this, please :ref:`contact us <contact>`.)
 
 
 .. index::
