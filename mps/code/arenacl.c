@@ -290,7 +290,7 @@ failChunkCreate:
 static void ClientArenaFinish(Arena arena)
 {
   ClientArena clientArena;
-  Tree *treeref, tree, next;
+  Tree *treeref, *nextref, tree, next;
 
   clientArena = Arena2ClientArena(arena);
   AVERT(ClientArena, clientArena);
@@ -298,7 +298,7 @@ static void ClientArenaFinish(Arena arena)
   /* Destroy all chunks, including the primary. See
    * <design/arena/#chunk.delete> */
   arena->primary = NULL;
-  TREE_DESTROY(treeref, tree, next, arena->chunkTree) {
+  TREE_TRAVERSE_AND_DELETE(treeref, nextref, tree, next, arena->chunkTree) {
     clientChunkDestroy(ChunkOfTree(tree));
   }
 
