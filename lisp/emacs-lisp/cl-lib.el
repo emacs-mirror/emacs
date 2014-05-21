@@ -364,7 +364,7 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 Signal an error if X is not a list."
   (if (listp x)
       (null x)
-    (signal 'wrong-type-argument (list 'list x 'x))))
+    (signal 'wrong-type-argument (list 'listp x 'x))))
 
 (cl--defalias 'cl-third 'cl-caddr "Return the third element of the list X.")
 (cl--defalias 'cl-fourth 'cl-cadddr "Return the fourth element of the list X.")
