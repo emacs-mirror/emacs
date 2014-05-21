@@ -1254,10 +1254,7 @@ similar to an entry in `package-alist'.  Save the cached copy to
       ;; may fetch a URL redirect page).
       (when (listp (read (current-buffer)))
 	(make-directory dir t)
-	(setq buffer-file-name (expand-file-name file dir))
-	(let ((version-control 'never)
-              (require-final-newline nil))
-	  (save-buffer))))
+        (write-region nil nil (expand-file-name file dir) nil 'silent)))
     (when good-signatures
       ;; Write out good signatures into archive-contents.signed file.
       (write-region (mapconcat #'epg-signature-to-string good-signatures "\n")
@@ -1503,11 +1500,13 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
                      (package--with-work-buffer
                          (package-archive-base desc)
                          (format "%s-readme.txt" name)
-                       (setq buffer-file-name
-                             (expand-file-name readme package-user-dir))
-                       (let ((version-control 'never)
-                             (require-final-newline t))
-                         (save-buffer))
+                       (save-excursion
+                         (goto-char (point-max))
+                         (unless (bolp)
+                           (insert ?\n)))
+                       (write-region nil nil
+                                     (expand-file-name readme package-user-dir)
+                                     nil 'silent)
                        (setq readme-string (buffer-string))
                        t))
 		 (error nil))

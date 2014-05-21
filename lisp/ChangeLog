@@ -1,3 +1,11 @@
+2014-05-21  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/package.el (package--download-one-archive): Use
+	`write-region' instead of `save-buffer' to avoid running various
+	hooks.  (Bug#17155)
+	(describe-package-1): Same.  Insert newline at the end of the
+	buffer if appropriate.
+
 2014-05-20  Juri Linkov  <juri@jurta.org>
 
 	* avoid.el (mouse-avoidance-set-mouse-position): Don't raise frame.
