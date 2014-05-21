@@ -1,3 +1,9 @@
+2014-05-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.el (set-frame-font): Doc fix.
+
+	* menu-bar.el (menu-set-font): Doc fix.  (Bug#17532)
+
 2014-05-21  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* emacs-lisp/package.el (package--download-one-archive): Use

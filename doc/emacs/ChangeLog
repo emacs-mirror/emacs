@@ -1,3 +1,9 @@
+2014-05-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Fonts): Clarify which frames are affected by
+	setting font from the menu and in default-frame-alist.
+	(Bug#17532)
+
 2014-05-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* mule.texi (Language Environments): Remove unused @anchor.
