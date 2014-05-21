@@ -8368,6 +8368,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
 #endif /* HAVE_MAGICKEXPORTIMAGEPIXELS */
     {
       size_t image_height;
+      double color_scale = 65535.0 / QuantumRange;
 
       /* Try to create a x pixmap to hold the imagemagick pixmap.  */
       if (!image_create_x_image_and_pixmap (f, img, width, height, 0,
@@ -8408,9 +8409,9 @@ imagemagick_load_image (struct frame *f, struct image *img,
               PixelGetMagickColor (pixels[x], &pixel);
               XPutPixel (ximg, x, y,
                          lookup_rgb_color (f,
-                                           pixel.red,
-                                           pixel.green,
-                                           pixel.blue));
+					   color_scale * pixel.red,
+					   color_scale * pixel.green,
+					   color_scale * pixel.blue));
             }
         }
       DestroyPixelIterator (iterator);
