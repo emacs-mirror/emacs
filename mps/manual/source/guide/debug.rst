@@ -45,21 +45,17 @@ General debugging advice
 #. If your program triggers an assertion failure in the MPS, consult
    :ref:`topic-error-cause` for suggestions as to the possible cause.
 
-#. .. index::
-      single: ASLR
-      single: address space layout randomization
-
-   Prepare a reproducible test case if possible. The MPS may be
+#. Prepare a reproducible test case if possible. The MPS may be
    :term:`asynchronous <asynchronous garbage collector>`, but it is
    deterministic, so in single-threaded applications you should be
-   able to get consistent results. (But you need to beware of `address
-   space layout randomization`_: if you perform computation based on
-   the addresses of objects, for example, hashing objects by their
-   address, then ASLR will cause your hash tables to be laid out
-   differently on each run, which may affect the order of memory
-   management operations.)
+   able to get consistent results.
 
-   .. _address space layout randomization: http://en.wikipedia.org/wiki/Address_space_layout_randomization
+   However, you need to beware of :term:`address space layout
+   randomization`: if you perform computation based on the addresses
+   of objects, for example, hashing objects by their address, then
+   ASLR will cause your hash tables to be laid out differently on each
+   run, which may affect the order of memory management operations.
+   See :ref:`guide-debug-aslr` below.
 
    A fact that assists with reproducibility is that the more
    frequently the collector runs, the sooner and more reliably errors
@@ -92,11 +88,101 @@ General debugging advice
 
         handle SIGSEGV pass nostop noprint
 
-   On these operating systems, you can add this commands to your
-   ``.gdbinit`` if you always want them to be run.
+   On these operating systems, you can add this command to your
+   ``.gdbinit`` if you always want it to be run.
 
-   On OS X barrier hits do not use signals and so do not enter the
+   On OS X, barrier hits do not use signals and so do not enter the
    debugger.
+
+
+.. index::
+      single: ASLR
+      single: address space layout randomization
+
+.. _guide-debug-aslr:
+
+Address space layout randomization
+----------------------------------
+
+:term:`Address space layout randomization` (ASLR) makes it hard to
+prepare a repeatable test case for a program that performs computation
+based on the addresses of objects, for example, hashing objects by
+their address. If this is affecting you, you'll find it useful to
+disable ASLR when testing.
+
+Here's a small program that you can use to check if ASLR is enabled on
+your system. It outputs addresses from four key memory areas in a
+program (data segment, text segment, stack and heap):
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+
+    int data;
+
+    int main() {
+        void *heap = malloc(4);
+        int stack = 0;
+        printf("data: %p text: %p stack: %p heap: %p\n",
+               &data, (void *)main, &stack, heap);
+        return 0;
+    }
+
+When ASLR is turned on, running this program outputs different
+addresses on each run. For example, here are four runs on OS X
+10.9.3::
+
+    data: 0x10a532020 text: 0x10a531ed0 stack: 0x7fff556ceb1c heap: 0x7f9f80c03980
+    data: 0x10d781020 text: 0x10d780ed0 stack: 0x7fff5247fb1c heap: 0x7fe498c03980
+    data: 0x10164b020 text: 0x10164aed0 stack: 0x7fff5e5b5b1c heap: 0x7fb783c03980
+    data: 0x10c7f8020 text: 0x10c7f7ed0 stack: 0x7fff53408b1c heap: 0x7f9740403980
+
+By contrast, here are four runs on FreeBSD 8.3::
+
+    data: 0x8049728 text: 0x8048470 stack: 0xbfbfebfc heap: 0x28201088
+    data: 0x8049728 text: 0x8048470 stack: 0xbfbfebfc heap: 0x28201088
+    data: 0x8049728 text: 0x8048470 stack: 0xbfbfebfc heap: 0x28201088
+    data: 0x8049728 text: 0x8048470 stack: 0xbfbfebfc heap: 0x28201088
+
+On many Linux systems, ASLR can be configured for all processes on the
+system by writing one of the following values to
+``/proc/sys/kernel/randomize_va_space``:
+
+    0 - Turn the process address space randomization off.
+
+    1 - Make the addresses of mmap base, stack and VDSO page randomized.
+
+    2 - Additionally enable heap randomization.
+
+For example, to turn randomization off::
+
+    $ echo 0 | sudo tee /proc/sys/kernel/randomize_va_space
+
+See the `Linux kernel documentation`_ for details.
+
+.. _Linux kernel documentation: https://www.kernel.org/doc/Documentation/sysctl/kernel.txt
+
+On OS X 10.9, ASLR can be disabled for a single process by starting
+the process using :c:func:`posix_spawn`, passing the undocumented
+attribute ``0x100``, like this:
+
+.. code-block:: c
+
+    #include <spawn.h>
+
+    pid_t pid;
+    posix_spawnattr_t attr;
+
+    posix_spawnattr_init(&attr);
+    posix_spawnattr_setflags(&attr, 0x100);
+    posix_spawn(&pid, argv[0], NULL, &attr, argv, environ);
+
+The MPS provides the source code for a command-line tool implementing
+this (``tool/noaslr.c``). We've confirmed that this works on OS X
+10.9.3, but since the technique is undocumented, it may well break in
+future releases. (If you know of a documented way to achieve this,
+please :ref:`contact us <contact>`.)
 
 
 .. index::
