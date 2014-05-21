@@ -42,6 +42,9 @@ General debugging advice
    in production), and can generate profiling output in the form of
    the :term:`telemetry stream`.
 
+#. If your program triggers an assertion failure in the MPS, consult
+   :ref:`topic-error-cause` for suggestions as to the possible cause.
+
 #. .. index::
       single: ASLR
       single: address space layout randomization
