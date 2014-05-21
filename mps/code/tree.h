@@ -134,18 +134,26 @@ extern Tree TreeReverseRightSpine(Tree tree);
 extern Count TreeToVine(Tree *treeIO);
 extern void TreeBalance(Tree *treeIO);
 
-/* TREE_DESTROY -- iterate over a tree while destroying it. 
+/* TREE_TRAVERSE_AND_DELETE -- traverse a tree while deleting nodes 
  *
- * root is an lvalue storing the root of the tree.
- * treeref is a variable of type Tree*.
+ * root is an lvalue storing a pointer to the root of the tree. It is
+ * evaluated twice.
+ * treeref and nextref are variable of type Tree*.
  * tree and next are variables of type Tree.
- * In the body of the loop, tree is the current node.
+ *
+ * In the body of the loop, tree and next are the current and next
+ * node respectively, and treeref and nextref are the locations where
+ * pointers to these nodes are stored. Nodes are deleted from the tree
+ * by default, or you can assign treeref = nextref in the body of the
+ * loop to keep the current node.
+ *
+ * See <design/arena/#chunk.delete.tricky>.
  */
-#define TREE_DESTROY(treeref, tree, next, root) \
-  for ((treeref = &(root), TreeToVine(treeref), next = TreeEMPTY); \
-       (tree = *treeref) != TreeEMPTY \
-         ? (next = tree->right, TRUE) \
-         : FALSE; \
+#define TREE_TRAVERSE_AND_DELETE(treeref, nextref, tree, next, root)    \
+  for ((treeref = &(root), TreeToVine(treeref), next = TreeEMPTY);      \
+       (tree = *treeref) != TreeEMPTY                                   \
+         ? (nextref = &tree->right, next = *nextref, TRUE)              \
+         : (TreeBalance(&(root)), FALSE);                               \
        *treeref = next)
 
 

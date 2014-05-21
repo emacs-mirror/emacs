@@ -246,21 +246,20 @@ _`.chunk.insert`: New chunks are inserted into the tree by calling
 _`.chunk.delete`: There is no corresponding function
 ``ArenaChunkDelete()``. Instead, deletions from the chunk tree are
 carried out by calling ``TreeToVine()``, iterating over the vine
-(where deletion is straightforward, with care) and then calling
-``TreeBalance()`` if any chunks might remain. The macro
-``TREE_DESTROY()`` assists with the common case.
+(where deletion is possible, if care is taken) and then calling
+``TreeBalance()`` on the remaining tree. The macro
+``TREE_TRAVERSE_AND_DELETE()`` assists with this.
 
 _`.chunk.delete.justify`: This is because we don't have a function
 that deletes an item from a balanced tree efficiently, and because all
-functions that delete chunks do so in a loop that may delete multiple
-chunks. The procedure is efficient when deleting all the chunks in
-``ArenaFinish()``, and has acceptable performance in ``VMCompact()``
-where multiple chunks may be deleted from the tree.
+functions that delete chunks do so in a loop over the chunks (so the
+best we can do is O(*n*) time in any case).
 
 _`.chunk.delete.tricky`: Deleting chunks from the chunk tree is tricky
 in the virtual memory arena because ``vmChunkDestroy()`` unmaps the
 memory containing the chunk, which includes the tree node. So the next
-chunk must be looked up before deleting the current chunk.
+chunk must be looked up before deleting the current chunk. The macro
+``TREE_TRAVERSE_AND_DELETE()`` helps get this right.
 
 
 Tracts
