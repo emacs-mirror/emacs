@@ -1,3 +1,9 @@
+2014-05-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): Avoid infinite recursion:
+	when closest_pos is identical to to_charpos, don't recurse, since
+	we already tried that, and failed.  (Bug#17539)
+
 2014-05-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (unwind_create_frame) [GLYPH_DEBUG]: If we are

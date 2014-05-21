@@ -8812,8 +8812,11 @@ move_it_in_display_line_to (struct it *it,
 		  if (closest_pos < ZV)
 		    {
 		      RESTORE_IT (it, &ppos_it, ppos_data);
-		      move_it_in_display_line_to (it, closest_pos, -1,
-						  MOVE_TO_POS);
+		      /* Don't recurse if closest_pos is equal to
+			 to_charpos, since we have just tried that.  */
+		      if (closest_pos != to_charpos)
+			move_it_in_display_line_to (it, closest_pos, -1,
+						    MOVE_TO_POS);
 		      result = MOVE_POS_MATCH_OR_ZV;
 		    }
 		  else
@@ -8874,8 +8877,9 @@ move_it_in_display_line_to (struct it *it,
 		      && !at_eob_p && closest_pos < ZV)
 		    {
 		      RESTORE_IT (it, &ppos_it, ppos_data);
-		      move_it_in_display_line_to (it, closest_pos, -1,
-						  MOVE_TO_POS);
+		      if (closest_pos != to_charpos)
+			move_it_in_display_line_to (it, closest_pos, -1,
+						    MOVE_TO_POS);
 		    }
 		  result = MOVE_POS_MATCH_OR_ZV;
 		  break;
@@ -8893,7 +8897,9 @@ move_it_in_display_line_to (struct it *it,
 	      if (closest_pos < ZV)
 		{
 		  RESTORE_IT (it, &ppos_it, ppos_data);
-		  move_it_in_display_line_to (it, closest_pos, -1, MOVE_TO_POS);
+		  if (closest_pos != to_charpos)
+		    move_it_in_display_line_to (it, closest_pos, -1,
+						MOVE_TO_POS);
 		}
 	      result = MOVE_POS_MATCH_OR_ZV;
 	      break;
