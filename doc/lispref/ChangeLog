@@ -1,3 +1,7 @@
+2014-05-21  Leo Liu  <sdl.web@gmail.com>
+
+	* sequences.texi (Sequence Functions): Update nreverse.
+
 2014-05-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Allow any non-nil value to count as true in bool-vector.

@@ -1697,16 +1697,15 @@ changing the value of a sequence `foo'.  */)
 }
 
 DEFUN ("nreverse", Fnreverse, Snreverse, 1, 1, 0,
-       doc: /* Reverse order of items in a list or vector SEQ.
-If SEQ is a list, it should be nil-terminated, and reversed
-by modifying cdr pointers.  Return the reversed SEQ.
-
-Note that unlike `reverse', this function doesn't work with strings.
-It is strongly encouraged to treat them as immutable.  */)
+       doc: /* Reverse order of items in a list, vector or string SEQ.
+If SEQ is a list, it should be nil-terminated.
+This function may destructively modify SEQ to produce the value.  */)
   (Lisp_Object seq)
 {
   if (NILP (seq))
     return seq;
+  else if (STRINGP (seq))
+    return Freverse (seq);
   else if (CONSP (seq))
     {
       Lisp_Object prev, tail, next;
