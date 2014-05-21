@@ -13,7 +13,7 @@
  * `MPS_` or `_mps_` and may use any identifiers with these prefixes in
  * future.
  *
- * .naming.internal: Any idenfitier beginning with underscore is for
+ * .naming.internal: Any identifier beginning with an underscore is for
  * internal use within the interface and may change or be withdrawn without
  * warning.
  *
