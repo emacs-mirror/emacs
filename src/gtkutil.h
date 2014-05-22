@@ -74,7 +74,7 @@ typedef struct xg_menu_item_cb_data_
 
 } xg_menu_item_cb_data;
 
-extern struct _widget_value *malloc_widget_value (void);
+extern struct _widget_value *malloc_widget_value (void) ATTRIBUTE_MALLOC;
 extern void free_widget_value (struct _widget_value *);
 
 extern bool xg_uses_old_file_dialog (void) ATTRIBUTE_CONST;

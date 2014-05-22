@@ -1,3 +1,15 @@
+2014-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Supply malloc and alloc_size attributes for extern allocators.
+	This documents the C API, and helps GCC generate a bit better code.
+	* conf_post.h (ATTRIBUTE_MALLOC, ATTRIBUTE_ALLOC_SIZE)
+	(ATTRIBUTE_MALLOC_SIZE): New macros.
+	* gmalloc.c (malloc, realloc, calloc):
+	* gtkutil.h (malloc_widget_value):
+	* lisp.h (ralloc, r_re_alloc, xmalloc, xzalloc, xrealloc, xnmalloc)
+	(xnrealloc, xstrdup, xlispstrdup, record_xmalloc):
+	Use them.
+
 2014-05-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't assume that ImageMagick uses a 16-bit quantum (Bug#17519).

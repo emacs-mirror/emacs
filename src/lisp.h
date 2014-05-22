@@ -3755,9 +3755,9 @@ INLINE void (check_cons_list) (void) { lisp_h_check_cons_list (); }
 
 #ifdef REL_ALLOC
 /* Defined in ralloc.c.  */
-extern void *r_alloc (void **, size_t);
+extern void *r_alloc (void **, size_t) ATTRIBUTE_ALLOC_SIZE ((2));
 extern void r_alloc_free (void **);
-extern void *r_re_alloc (void **, size_t);
+extern void *r_re_alloc (void **, size_t) ATTRIBUTE_ALLOC_SIZE ((2));
 extern void r_alloc_reset_variable (void **, void **);
 extern void r_alloc_inhibit_buffer_relocation (int);
 #endif
@@ -4391,16 +4391,17 @@ extern bool initialized;
 /* True means ^G can quit instantly.  */
 extern bool immediate_quit;
 
-extern void *xmalloc (size_t);
-extern void *xzalloc (size_t);
-extern void *xrealloc (void *, size_t);
+extern void *xmalloc (size_t) ATTRIBUTE_MALLOC_SIZE ((1));
+extern void *xzalloc (size_t) ATTRIBUTE_MALLOC_SIZE ((1));
+extern void *xrealloc (void *, size_t) ATTRIBUTE_ALLOC_SIZE ((2));
 extern void xfree (void *);
-extern void *xnmalloc (ptrdiff_t, ptrdiff_t);
-extern void *xnrealloc (void *, ptrdiff_t, ptrdiff_t);
+extern void *xnmalloc (ptrdiff_t, ptrdiff_t) ATTRIBUTE_MALLOC_SIZE ((1,2));
+extern void *xnrealloc (void *, ptrdiff_t, ptrdiff_t)
+  ATTRIBUTE_ALLOC_SIZE ((2,3));
 extern void *xpalloc (void *, ptrdiff_t *, ptrdiff_t, ptrdiff_t, ptrdiff_t);
 
-extern char *xstrdup (const char *);
-extern char *xlispstrdup (Lisp_Object);
+extern char *xstrdup (const char *) ATTRIBUTE_MALLOC;
+extern char *xlispstrdup (Lisp_Object) ATTRIBUTE_MALLOC;
 extern void dupstring (char **, char const *);
 extern void xputenv (const char *);
 
@@ -4432,7 +4433,7 @@ extern void init_system_name (void);
 
 enum MAX_ALLOCA { MAX_ALLOCA = 16 * 1024 };
 
-extern void *record_xmalloc (size_t);
+extern void *record_xmalloc (size_t) ATTRIBUTE_ALLOC_SIZE ((1));
 
 #define USE_SAFE_ALLOCA			\
   ptrdiff_t sa_count = SPECPDL_INDEX (); bool sa_must_free = false

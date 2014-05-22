@@ -51,12 +51,12 @@ extern "C"
 
 
 /* Allocate SIZE bytes of memory.  */
-extern void *malloc (size_t size);
+extern void *malloc (size_t size) ATTRIBUTE_MALLOC_SIZE ((1));
 /* Re-allocate the previously allocated block
    in ptr, making the new block SIZE bytes long.  */
-extern void *realloc (void *ptr, size_t size);
+extern void *realloc (void *ptr, size_t size) ATTRIBUTE_ALLOC_SIZE ((2));
 /* Allocate NMEMB elements of SIZE bytes each, all initialized to 0.  */
-extern void *calloc (size_t nmemb, size_t size);
+extern void *calloc (size_t nmemb, size_t size) ATTRIBUTE_MALLOC_SIZE ((1,2));
 /* Free a block allocated by `malloc', `realloc' or `calloc'.  */
 extern void free (void *ptr);
 
