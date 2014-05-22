@@ -4339,7 +4339,6 @@ static int start(int argc, char *argv[])
       }
     }
     puts("Bye.");
-    exit_code = EXIT_SUCCESS;
   }
 
   /* See comment at the end of `main` about cleaning up. */
