@@ -1,3 +1,7 @@
+2014-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* shell.el (shell-mode) <shell-dirstack-query>: Bypass bash aliases.
+
 2014-05-21  Daniel Colascione  <dancol@dancol.org>
 
 	* files.el (interpreter-mode-alist): Add mksh.
