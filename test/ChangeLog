@@ -1,3 +1,8 @@
+2014-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* automated/fns-tests.el (fns-tests-nreverse):
+	Update for changed string behavior.
+
 2014-05-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* automated/fns-tests.el: New file.

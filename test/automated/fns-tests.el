@@ -39,7 +39,7 @@
   (should-error (nreverse))
   (should-error (nreverse 1))
   (should-error (nreverse (make-char-table 'foo)))
-  (should-error (nreverse "xyzzy"))
+  (should (equal (nreverse "xyzzy") "yzzyx"))
   (let ((A []))
     (nreverse A)
     (should (equal A [])))
