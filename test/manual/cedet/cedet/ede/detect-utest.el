@@ -99,7 +99,7 @@ Each entry is a cons cell:
 	    (condition-case err
 		(ede-initialize-state-current-buffer)
 	      (error
-	       (semantic-ia-utest-log "!! In %s: load threw error %S\n"
+	       (semantic-ia-utest-log "\n!! In %s: load threw error %S\n"
 				      (substring default-directory baselen)
 				      err)
 	       (push fl errlog)
@@ -116,13 +116,13 @@ Each entry is a cons cell:
 		      (if (not projdetect)
 			  (progn
 			    ;; Detected nothing
-			    (semantic-ia-utest-log  "!! In %s: Detected nothing, wanted %S\n"
+			    (semantic-ia-utest-log  "\n!! In %s: Detected nothing, wanted %S\n"
 						    (substring default-directory baselen)
 						    (cdr fl))
 			    (push fl errlog))
 
 			;; Else, some other error.
-			(semantic-ia-utest-log "!! In %s: Detected %S, failed to load project type %s\n"
+			(semantic-ia-utest-log "\n!! In %s: Detected %S, failed to load project type %s\n"
 						 (substring default-directory baselen)
 						 (eieio-object-name (cdr projdetect))
 						 (cdr fl))
@@ -131,11 +131,11 @@ Each entry is a cons cell:
 		;; Test the result.
 		(if (funcall (cdr fl) proj)
 
-		    (semantic-ia-utest-log "** In %s: Found %s ... Done\n"
+		    (semantic-ia-utest-log "** In %s: Found %s ... Done"
 					   (substring default-directory baselen)
 					   (cdr fl))
 
-		  (semantic-ia-utest-log  "!! In %s: Found %S, wanted %S\n"
+		  (semantic-ia-utest-log  "\n!! In %s: Found %S, wanted %S\n"
 					  (substring default-directory baselen)
 					  (eieio-object-name proj)
 					  (cdr fl))
