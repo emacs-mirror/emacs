@@ -1,3 +1,7 @@
+2014-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* window.el (window--dump-frame): Avoid error in --without-x builds.
+
 2014-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* nxml/nxml-mode.el (xml-mode): Only define this alias once.
