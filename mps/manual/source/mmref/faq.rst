@@ -22,7 +22,7 @@ garbage collection>` for :term:`C` exist as add-on libraries.
 
 .. link::
 
-    `Boehm–Weiser collector <http://www.hpl.hp.com/personal/Hans_Boehm/gc/>`_.
+    `Boehm–Weiser collector <http://hboehm.info/gc/>`_.
 
 
 Why do I need to test the return value from ``malloc``?  Surely it always succeeds?
@@ -130,7 +130,7 @@ semi-conservative garbage collectors for C++.
 
 .. link::
 
-    `Boehm–Weiser collector <http://www.hpl.hp.com/personal/Hans_Boehm/gc/>`_.
+    `Boehm–Weiser collector <http://hboehm.info/gc/>`_.
 
 
 Why is ``delete`` so slow?
@@ -168,7 +168,7 @@ collector will work with C++.
 
 .. link::
 
-    `Boehm–Weiser collector <http://www.hpl.hp.com/personal/Hans_Boehm/gc/>`_.
+    `Boehm–Weiser collector <http://hboehm.info/gc/>`_.
 
 
 Can't I get all the benefits of garbage collection using C++ constructors and destructors?
@@ -408,7 +408,7 @@ Boehm–Weiser collector.
 
 .. link::
 
-    `Boehm–Weiser collector <http://www.hpl.hp.com/personal/Hans_Boehm/gc/>`_,
+    `Boehm–Weiser collector <http://hboehm.info/gc/>`_,
     `GC-LIST FAQ <http://iecc.com/gclist/GC-faq.html>`_.
 
 
@@ -423,7 +423,7 @@ provides garbage collection.
 
 .. link::
 
-    `Boehm–Weiser collector <http://www.hpl.hp.com/personal/Hans_Boehm/gc/>`_.
+    `Boehm–Weiser collector <http://hboehm.info/gc/>`_.
 
 
 Why does my program use so much memory?
