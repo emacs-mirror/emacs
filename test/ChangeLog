@@ -1,5 +1,8 @@
 2014-05-22  Glenn Morris  <rgm@gnu.org>
 
+	* automated/bytecomp-tests.el (test-byte-comp-compile-and-load):
+	Avoid leaving empty .elc tempfiles behind.
+
 	* automated/fns-tests.el (fns-tests-nreverse):
 	Update for changed string behavior.
 
