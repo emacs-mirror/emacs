@@ -25,9 +25,16 @@ sys.path.insert(0, os.path.abspath('.'))
 # -- Project configuration -----------------------------------------------------
 
 # The same set of sources builds the Memory Pool System documentation
-# and the Memory Management Reference.
+# and the Memory Management Reference, depending on whether the MMREF
+# environment variable is set.
 
-if True:
+if os.environ.get('MMREF'):
+    project = u'Memory Management Reference'
+    master_doc = 'index'
+    html_theme = 'mmref'
+    version = '4'
+    release = '4.0'
+else:
     project = u'Memory Pool System'
     master_doc = 'index'
     html_theme = 'mps'
@@ -41,12 +48,6 @@ if True:
             if m:
                 release, version = m.groups()
                 break
-else:
-    project = u'Memory Management Reference'
-    master_doc = 'index'
-    html_theme = 'mmref'
-    version = '4'
-    release = '4.0'
 
 
 # -- General configuration -----------------------------------------------------
