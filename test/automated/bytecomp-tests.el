@@ -312,13 +312,14 @@ Subtests signal errors if something goes wrong."
          (progn
            (setf elfile (make-temp-file "test-bytecomp" nil ".el"))
            (when compile
-             (setf elcfile (concat elfile "c")))
+             (setf elcfile (make-temp-file "test-bytecomp" nil ".elc")))
            (with-temp-buffer
              (dolist (form forms)
                (print form (current-buffer)))
              (write-region (point-min) (point-max) elfile))
            (if compile
-               (let ((byte-compile-dest-file elcfile))
+               (let ((byte-compile-dest-file-function
+                      (lambda (e) elcfile)))
                  (byte-compile-file elfile t))
              (load elfile)))
       (when elfile (delete-file elfile))
