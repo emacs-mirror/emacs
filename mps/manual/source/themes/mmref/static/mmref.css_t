@@ -2,12 +2,8 @@
 
 @import url('scrolls.css');
 
-h1, h2, h3, h4, h5, h6, dl.glossary dt {
+h2, h3, h4, h5, h6, dl.glossary dt {
     font-family: {{ theme_headfont }};
-}
-
-dl.glossary dt {
-    font-size: 120%;
 }
 
 div.header {
@@ -16,14 +12,28 @@ div.header {
     border-top: none;
 }
 
+h1.heading {
+    height: auto;
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+h1.heading:hover {
+    background: #73626E;
+}
+
 h1.heading a {
-    background-image: url(logo.png);
-    background-size: auto 100%;
-    background-position: center;
-    background-repeat: no-repeat;
+    background-image: none;
     display: block;
     width: 100%;
-    height: 80px;
+    height: auto;
+    font-size: 150%;
+}
+
+h1.heading span {
+    display: block;
+    color: {{ theme_textcolor }};
 }
 
 a, a:visited, a.reference.internal {
@@ -75,4 +85,14 @@ img.align-center {
     display: block;
     margin-left: auto;
     margin-right: auto;
+}
+
+dl.glossary dt {
+    font-size: 120%;
+    margin-top: 1em;
+}
+
+p.glossary-alphabet {
+    font-weight: bold;
+    text-align: center;
 }
