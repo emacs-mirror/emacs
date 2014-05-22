@@ -86,7 +86,7 @@ Memory management in various languages
 
         .. link::
 
-            `Boehm-Weiser collector <http://www.hpl.hp.com/personal/Hans_Boehm/gc/>`_,
+            `Boehm-Weiser collector <http://hboehm.info/gc/>`_,
             `C standardization <http://www.open-std.org/jtc1/sc22/wg14/>`_, 
             `comp.lang.c Frequently Asked Questions <http://c-faq.com/>`_.
 

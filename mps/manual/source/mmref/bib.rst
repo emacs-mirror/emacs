@@ -679,7 +679,7 @@ Bibliography
 
 * .. _BW88:
 
-  Hans-J. Boehm, Mark Weiser. 1988. "`Garbage collection in an uncooperative environment <http://www.hpl.hp.com/personal/Hans_Boehm/spe_gc_paper/preprint.pdf>`_". Software -- Practice and Experience. 18(9):807--820.
+  Hans-J. Boehm, Mark Weiser. 1988. "`Garbage collection in an uncooperative environment <http://hboehm.info/spe_gc_paper/preprint.pdf>`_". Software -- Practice and Experience. 18(9):807--820.
 
   .. abstract: bw88.html
 
@@ -697,7 +697,7 @@ Bibliography
 
 * .. _BDS91:
 
-  Hans-J. Boehm, Alan J. Demers, Scott Shenker. 1991. "`Mostly Parallel Garbage Collection <http://www.hpl.hp.com/personal/Hans_Boehm/gc/papers/pldi91.ps.Z>`_". Xerox PARC. ACM PLDI 91, SIGPLAN Notices 26, 6 (June 1991), pp. 157--164.
+  Hans-J. Boehm, Alan J. Demers, Scott Shenker. 1991. "`Mostly Parallel Garbage Collection <http://hboehm.info/gc/papers/pldi91.ps.Z>`_". Xerox PARC. ACM PLDI 91, SIGPLAN Notices 26, 6 (June 1991), pp. 157--164.
 
   .. abstract: bds91.html
 
@@ -716,7 +716,7 @@ Bibliography
 
 * .. _BOEHM93:
 
-  Hans-J. Boehm. 1993. "`Space Efficient Conservative Garbage Collection <http://www.hpl.hp.com/personal/Hans_Boehm/gc/papers/pldi93.ps.Z>`_". ACM, SIGPLAN. Proceedings of the ACM SIGPLAN '91 Conference on Programming Language Design and Implementation, SIGPLAN Notices 28, 6, pp 197--206.
+  Hans-J. Boehm. 1993. "`Space Efficient Conservative Garbage Collection <http://hboehm.info/gc/papers/pldi93.ps.Z>`_". ACM, SIGPLAN. Proceedings of the ACM SIGPLAN '91 Conference on Programming Language Design and Implementation, SIGPLAN Notices 28, 6, pp 197--206.
 
   .. abstract: boehm93.html
 
