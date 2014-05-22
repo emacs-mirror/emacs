@@ -27,7 +27,7 @@ Reference.
 The Adaptive Memory Management Group no longer exists, and Harlequin
 has become a part of `Global Graphics
 <http://www.globalgraphics.com/>`_. However, most of the group's work
-has been aquired by `Ravenbrook Limited`, whose directors are Richard
+has been aquired by `Ravenbrook Limited`_, whose directors are Richard
 Brooksby, the group's chief architect and manager, and Nick Barnes, a
 senior group member.
 
