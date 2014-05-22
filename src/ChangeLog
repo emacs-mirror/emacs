@@ -1,3 +1,10 @@
+2014-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix port to 32-bit AIX (Bug#17540).
+	* unexaix.c (copy_text_and_data): Don't add text_scnptr to ptr
+	twice.  _text already includes this offset.
+	(unrelocate_symbols): Don't cast 64-bit integer to pointer.
+
 2014-05-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_in_display_line_to): Avoid infinite recursion:

@@ -550,7 +550,7 @@ case "${canonical}" in
   rs6000-ibm-aix[56]* )
     opsys=aix4-2
   ;;
-  powerpc-ibm-aix[56]*  )
+  powerpc-ibm-aix[5-9]* | powerpc-ibm-aix[1-9][0-9]* )
     opsys=aix4-2
   ;;
 
