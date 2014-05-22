@@ -159,6 +159,11 @@ of just logging the error."
 	)
       )
     (setq end (current-time))
+    ;; Run consistency checks.
+    (cedet-utest-add-log-item-start "Sanity Checks.")
+    (ede-global-list-sanity-check)
+    (cedet-utest-add-log-item-done nil nil)
+    ;; We passed!
     (cedet-utest-log-shutdown-msg "ALL TESTS" start end)
     nil))
 
