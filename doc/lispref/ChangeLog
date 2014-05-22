@@ -1,3 +1,8 @@
+2014-05-22  Leo Liu  <sdl.web@gmail.com>
+
+	* sequences.texi (Sequence Functions): Don't mention when and how
+	SEQ to nreverse is mutated.
+
 2014-05-21  Leo Liu  <sdl.web@gmail.com>
 
 	* sequences.texi (Sequence Functions): Update nreverse.

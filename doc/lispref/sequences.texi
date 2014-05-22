@@ -265,12 +265,7 @@ x
 @cindex reversing a list
 @cindex reversing a vector
   This function reverses the order of the elements of @var{seq}.
-If @var{seq} is a list, @code{nreverse} alters it by reversing the @sc{cdr}s
-in the cons cells.  The cons cell that used to be the last one in @var{seq}
-becomes the first cons cell of the value.  If @var{seq} is a vector or
-bool vector, its items are placed in the same vector in a reversed
-order.  If @var{seq} is a string, it works like @code{reverse} i.e., no
-destructive modifcation in preference to treat strings as immutable.
+Unlike @code{reverse} the original @var{seq} may be modified.
 
   For example:
 
