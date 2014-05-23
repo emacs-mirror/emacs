@@ -103,6 +103,26 @@ Memory Management Glossary: A
 
         .. seealso:: :term:`virtual address space`, :term:`physical address space`.
 
+    address space layout randomization
+
+        .. aka:: *ASLR*.
+
+        The random placement in :term:`address space` of the
+        :term:`stack`, data segment, :term:`heap`, and so on, of a
+        process.
+
+        The purpose of ASLR is to make it harder for an attacker to
+        exploit buffer overflow bugs, by making it harder to determine
+        the addresses of data structures.
+
+        .. mps:specific::
+
+            ASLR also makes it hard to prepare a repeatable test case
+            for a program that performs computation based on the
+            addresses of objects, for example, hashing objects by
+            their address. See :ref:`guide-debug-aslr` for techniques
+            to deal with this.
+
     address translation cache
 
         .. see:: :term:`translation lookaside buffer`.
@@ -388,6 +408,10 @@ Memory Management Glossary: A
             A value of type :c:type:`mps_arena_class_t` describing a
             class of :term:`arenas`. Arena classes include
             :term:`client arenas` and :term:`virtual memory arenas`.
+
+    ASLR
+
+        .. see:: :term:`address space layout randomization`.
 
     assertion
 

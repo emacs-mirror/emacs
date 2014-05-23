@@ -139,6 +139,9 @@ dl.glossary dt, dl.type dt, dl.function dt, dl.macro dt {
     margin-top: 2em;
     margin-bottom: 1em;
     font-size: 120%;
+}
+
+dl.type dt, dl.function dt, dl.macro dt {
     /* Use a hanging indent so that long wrapped prototypes are easier to read. */
     padding-left: 4em;
     text-indent: -4em;
