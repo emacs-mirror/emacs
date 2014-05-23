@@ -104,6 +104,14 @@ div.admonition-ref-glossary, div.admonition-ref-bibliography, div.admonition-ref
     vertical-align: top;
 }
 
+div.admonition-ref-glossary, div.admonition-ref-mmref-intro {
+    height:400px;
+}
+
+div.admonition-ref-bibliography, div.admonition-ref-mmref-faq {
+    height:230px;
+}
+
 div.admonition-ref-glossary, div.admonition-ref-bibliography {
     margin-right: 1%;
 }
