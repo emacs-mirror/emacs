@@ -1,3 +1,35 @@
+2014-05-23  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Miscellaneous bug fixes.
+	(todo-delete-file): When deleting an archive but not its todo
+	file, make sure to update the todo file's category sexp.
+	(todo-move-category): Keep the moved category's name unless the
+	file moved to already has a category with that name.  If the
+	numerically last category of the source file was moved, make the
+	first category current to avoid selecting a nonexisting category.
+	(todo-merge-category): Fix implementation to make merging to a
+	category in another file work as documented.  Eliminate now
+	insufficient and unnecessary renaming of archive category, correct
+	document string accordingly, and clarify it.  If the numerically
+	last category of the source file was merged, make the first
+	category current to avoid selecting a nonexisting category.
+	(todo-archive-done-item): When there are marked items and point
+	happens to be on an unmarked item, ignore the latter.  Don't leave
+	point below last item after archiving marked items.
+	(todo-unarchive-items): Fix logic to ensure unarchiving an item
+	from an archive with only one category deletes the archive only
+	when the category is empty after unarchiving.  Make sure the todo
+	file's category sexp is updated.
+	(todo-read-file-name): Allow an existing file name even when it is
+	not required (todo-move-category needs this to work as documented).
+	(todo-add-file): Call todo-validate-name to reject the name of an
+	existing todo file (needed due to fix in todo-read-file-name).
+	(todo-reset-nondiary-marker): Also reset in filtered items files.
+	(todo-reset-done-string, todo-reset-comment-string): Also reset in
+	regexp filtered items files.
+	(todo-reset-highlight-item): Also reset in filtered items files.
+	Fix incorrect variable reference in document string.
+
 2014-05-22  Glenn Morris  <rgm@gnu.org>
 
 	* window.el (window--dump-frame): Avoid error in --without-x builds.

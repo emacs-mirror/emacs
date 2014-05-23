@@ -1090,6 +1090,9 @@ Noninteractively, return the name of the new file."
   (let* ((prompt (concat "Enter name of new todo file "
 			 "(TAB or SPC to see current names): "))
 	 (file (todo-read-file-name prompt)))
+    ;; Don't accept the name of an existing todo file.
+    (setq file (todo-absolute-file-name
+		(todo-validate-name (todo-short-file-name file) 'file)))
     (with-current-buffer (get-buffer-create file)
       (erase-buffer)
       (write-region (point-min) (point-max) file nil 'nomessage nil t)
@@ -1179,10 +1182,28 @@ visiting the deleted files."
       (when (file-exists-p file1) (delete-file file1))
       (setq todo-visited (delete file1 todo-visited))
       (kill-buffer buf1)
-      (when delete2
-	(when (file-exists-p file2) (delete-file file2))
-	(setq todo-visited (delete file2 todo-visited))
-	(and buf2 (kill-buffer buf2)))
+      (if delete2
+	  (progn
+	    (when (file-exists-p file2) (delete-file file2))
+	    (setq todo-visited (delete file2 todo-visited))
+	    (and buf2 (kill-buffer buf2)))
+	;; If we deleted an archive but not its todo file, update the
+	;; latter's category sexp.
+	(when (equal (file-name-extension file2) "todo")
+	  (with-current-buffer (or buf2 (find-file-noselect file2))
+	    (save-excursion
+	      (save-restriction
+		(widen)
+		(goto-char (point-min))
+		(let ((sexp (read (buffer-substring-no-properties
+				   (line-beginning-position)
+				   (line-end-position))))
+		      (buffer-read-only nil))
+		  (mapc (lambda (x) (aset (cdr x) 3 0)) sexp)
+		  (delete-region (line-beginning-position) (line-end-position))
+		  (prin1 sexp (current-buffer)))))
+	    (todo-set-categories)
+	    (unless buf2 (kill-buffer)))))
       (setq todo-files (funcall todo-files-function)
 	    todo-archives (funcall todo-files-function t))
       (when (or (string=  file1-sn todo-default-todo-file)
@@ -1197,7 +1218,8 @@ visiting the deleted files."
 			 (concat "and its "
 				 (cond (todo "archive") (archive "todo"))
 				 " file "))
-		       "deleted") file1-sn))))
+		       "deleted")
+	       file1-sn))))
 
 (defvar todo-edit-buffer "*Todo Edit*"
   "Name of current buffer in Todo Edit mode.")
@@ -1385,8 +1407,7 @@ the archive of the file moved to, creating it if it does not exist."
 				    "Do you want to proceed? ")))
     (let* ((ofile todo-current-todo-file)
 	   (cat (todo-current-category))
-	   (nfile (todo-read-file-name
-		   "Todo file to move this category to: " nil))
+	   (nfile (todo-read-file-name "Todo file to move this category to: "))
 	   (archive (concat (file-name-sans-extension ofile) ".toda"))
 	   (buffers (append (list ofile)
 			    (unless (zerop (todo-get-count 'archived cat))
@@ -1394,7 +1415,7 @@ the archive of the file moved to, creating it if it does not exist."
 	   new)
       (while (equal nfile (file-truename ofile))
 	(setq nfile (todo-read-file-name
-		     "Choose a file distinct from this file: " nil)))
+		     "Choose a file distinct from this file: ")))
       (unless (member nfile todo-files)
 	(with-current-buffer (get-buffer-create nfile)
 	  (erase-buffer)
@@ -1453,7 +1474,7 @@ the archive of the file moved to, creating it if it does not exist."
 			   "\\(" (regexp-quote cat) "\\)$") nil t)
 		  (replace-match new nil nil nil 1)))
 	      (setq todo-categories
-		    (append todo-categories (list (cons new counts))))
+		    (append todo-categories (list (cons (or new cat) counts))))
 	      (todo-update-categories-sexp)
 	      ;; If archive was just created, save it to avoid "File
 	      ;; <xyz> no longer exists!" message on invoking
@@ -1481,6 +1502,8 @@ the archive of the file moved to, creating it if it does not exist."
 	      (setq todo-categories (delete (assoc cat todo-categories)
 					     todo-categories))
 	      (todo-update-categories-sexp)
+	      (when (> todo-category-number (length todo-categories))
+		(setq todo-category-number 1))
 	      (todo-category-select)))))
       (set-window-buffer (selected-window)
 			 (set-buffer (find-file-noselect nfile)))
@@ -1495,25 +1518,25 @@ choose (with TAB completion) a category in it to merge into;
 otherwise, choose and merge into a category in either the
 current todo file or a file in `todo-category-completions-files'.
 
-After merging, the current category's todo and done items are
+After merging, the source category's todo and done items are
 appended to the chosen goal category's todo and done items,
 respectively.  The goal category becomes the current category,
-and the previous current category is deleted.
+and the source category is deleted.
 
-If both the first and goal categories also have archived items,
-the former are merged to the latter.  If only the first category
-has archived items, the archived category is renamed to the goal
-category."
+If both the source and goal categories also have archived items,
+they are also merged.  If only the source category has archived
+items, the goal category is added as a new category to the
+archive file and the source category is deleted."
   (interactive "P")
   (let* ((tfile todo-current-todo-file)
 	 (cat (todo-current-category))
 	 (cat+file (todo-read-category "Merge into category: " 'todo file))
 	 (goal (car cat+file))
 	 (gfile  (cdr cat+file))
-	 (archive (concat (file-name-sans-extension (if file gfile tfile))
-			  ".toda"))
-	 archived-count here)
-    ;; Merge in todo file.
+	 (tarchive (concat (file-name-sans-extension tfile) ".toda"))
+	 (garchive (concat (file-name-sans-extension gfile) ".toda"))
+	 (archived-count (todo-get-count 'archived))
+	 here)
     (with-current-buffer (get-buffer (find-file-noselect tfile))
       (widen)
       (let* ((buffer-read-only nil)
@@ -1536,94 +1559,101 @@ category."
 			   (point-marker))
 		       (point-max-marker))))
 	     (todo (buffer-substring-no-properties tbeg tend))
-	     (done (buffer-substring-no-properties dbeg cend)))
-	(goto-char (point-min))
-	;; Merge any todo items.
-	(unless (zerop (length todo))
-	  (re-search-forward
-	   (concat "^" (regexp-quote (concat todo-category-beg goal)) "$")
-	   nil t)
-	  (re-search-forward
-	   (concat "^" (regexp-quote todo-category-done)) nil t)
-	  (forward-line -1)
-	  (setq here (point-marker))
-	  (insert todo)
-	  (todo-update-count 'todo (todo-get-count 'todo cat) goal))
-	;; Merge any done items.
-	(unless (zerop (length done))
-	  (goto-char (if (re-search-forward
-			  (concat "^" (regexp-quote todo-category-beg)) nil t)
-			 (match-beginning 0)
-		       (point-max)))
-	  (when (zerop (length todo)) (setq here (point-marker)))
-	  (insert done)
-	  (todo-update-count 'done (todo-get-count 'done cat) goal))
-	(remove-overlays cbeg cend)
-	(delete-region cbeg cend)
-	(setq todo-categories (delete (assoc cat todo-categories)
-				       todo-categories))
-	(todo-update-categories-sexp)
-	(mapc (lambda (m) (set-marker m nil)) (list cbeg tbeg dbeg tend cend))))
-    (when (file-exists-p archive)
-      ;; Merge in archive file.
-      (with-current-buffer (get-buffer (find-file-noselect archive))
-	(widen)
-	(goto-char (point-min))
-	(let ((buffer-read-only nil)
-	      (cbeg (save-excursion
-		      (when (re-search-forward
-			     (concat "^" (regexp-quote
-					  (concat todo-category-beg cat)) "$")
-			     nil t)
-			(goto-char (match-beginning 0))
-			(point-marker))))
-	      (gbeg (save-excursion
-		      (when (re-search-forward
-			     (concat "^" (regexp-quote
-					  (concat todo-category-beg goal)) "$")
-			     nil t)
-			(goto-char (match-beginning 0))
-			(point-marker))))
-	      cend carch)
-	  (when cbeg
-	    (setq archived-count (todo-get-count 'done cat))
-	    (setq cend (save-excursion
-			 (if (re-search-forward
+	     (done (buffer-substring-no-properties dbeg cend))
+	     (todo-count (todo-get-count 'todo cat))
+	     (done-count (todo-get-count 'done cat)))
+	;; Merge into goal todo category.
+	(with-current-buffer (get-buffer (find-file-noselect gfile))
+	  (widen)
+	  (goto-char (point-min))
+	  (let ((buffer-read-only nil))
+	    ;; Merge any todo items.
+	    (unless (zerop (length todo))
+	      (re-search-forward
+	       (concat "^" (regexp-quote (concat todo-category-beg goal)) "$")
+	       nil t)
+	      (re-search-forward
+	       (concat "^" (regexp-quote todo-category-done)) nil t)
+	      (forward-line -1)
+	      (setq here (point-marker))
+	      (insert todo)
+	      (todo-update-count 'todo todo-count goal))
+	    ;; Merge any done items.
+	    (unless (zerop (length done))
+	      (goto-char (if (re-search-forward
 			      (concat "^" (regexp-quote todo-category-beg))
 			      nil t)
 			     (match-beginning 0)
-			   (point-max))))
-	    (setq carch (save-excursion (goto-char cbeg) (forward-line)
-			  (buffer-substring-no-properties (point) cend)))
-	    ;; If both categories of the merge have archived items, merge the
-	    ;; source items to the goal items, else "merge" by renaming the
-	    ;; source category to goal.
-	    (if gbeg
-		(progn
-		  (goto-char (if (re-search-forward
-				  (concat "^" (regexp-quote todo-category-beg))
-				  nil t)
-				 (match-beginning 0)
-			       (point-max)))
-		  (insert carch)
-		  (remove-overlays cbeg cend)
-		  (delete-region cbeg cend))
-	      (goto-char cbeg)
-	      (search-forward cat)
-	      (replace-match goal))
-	    (setq todo-categories (todo-make-categories-list t))
-	    (todo-update-categories-sexp)))))
-    (with-current-buffer (get-file-buffer tfile)
-      (when archived-count
-	(unless (zerop archived-count)
-	  (todo-update-count 'archived archived-count goal)
-	  (todo-update-categories-sexp)))
-      (todo-category-number goal)
-      ;; If there are only merged done items, show them.
-      (let ((todo-show-with-done (zerop (todo-get-count 'todo goal))))
+			   (point-max)))
+	      (when (zerop (length todo)) (setq here (point-marker)))
+	      (insert done)
+	      (todo-update-count 'done done-count goal)))
+	  (todo-update-categories-sexp))
+	;; Update and clean up source todo file.
+	(remove-overlays cbeg cend)
+	(delete-region cbeg cend)
+	(setq todo-categories (delete (assoc cat todo-categories)
+				      todo-categories))
+	(todo-update-categories-sexp)
+	(when (> todo-category-number (length todo-categories))
+		(setq todo-category-number 1))
 	(todo-category-select)
-	;; Put point on the first merged item.
-	(goto-char here)))
+	(mapc (lambda (m) (set-marker m nil))
+	      (list cbeg tbeg dbeg tend cend))))
+    (when (> archived-count 0)
+      (with-current-buffer (get-buffer (find-file-noselect tarchive))
+	(widen)
+	(goto-char (point-min))
+	(let* ((buffer-read-only nil)
+	       (cbeg (progn
+		       (when (re-search-forward
+			      (concat "^" (regexp-quote
+					   (concat todo-category-beg cat)) "$")
+			      nil t)
+			 (goto-char (match-beginning 0))
+			 (point-marker))))
+	       (cend (if (re-search-forward
+			  (concat "^" (regexp-quote todo-category-beg)) nil t)
+			 (match-beginning 0)
+		       (point-max)))
+	       (carch (progn
+			(goto-char cbeg)
+			(forward-line)
+			(buffer-substring-no-properties (point) cend))))
+	  ;; Merge into goal archive category, if it exists, else create it.
+	  (with-current-buffer (get-buffer (find-file-noselect garchive))
+	    (let ((gbeg (when (re-search-forward
+			       (concat "^" (regexp-quote
+					    (concat todo-category-beg goal))
+				       "$")
+			       nil t)
+			  (goto-char (match-beginning 0))
+			  (point-marker))))
+	      (goto-char (if (and gbeg
+				  (re-search-forward
+				   (concat "^" (regexp-quote todo-category-beg))
+				   nil t))
+			     (match-beginning 0)
+			   (point-max)))
+	      (unless gbeg (todo-add-category nil goal))
+	      (insert carch)
+	      (todo-update-categories-sexp)))
+	  ;; Update and clean up source archive file.
+	  (remove-overlays cbeg cend)
+	  (delete-region cbeg cend)
+	  (setq todo-categories (todo-make-categories-list t))
+	  (todo-update-categories-sexp))))
+    ;; Update goal todo file for merged archived items and display it.
+    (set-window-buffer (selected-window) (set-buffer (get-file-buffer gfile)))
+    (unless (zerop archived-count)
+      (todo-update-count 'archived archived-count goal)
+      (todo-update-categories-sexp))
+    (todo-category-number goal)
+    ;; If there are only merged done items, show them.
+    (let ((todo-show-with-done (zerop (todo-get-count 'todo goal))))
+      (todo-category-select)
+      ;; Put point on the first merged item.
+      (goto-char here))
     (set-marker here nil)))
 
 ;; -----------------------------------------------------------------------------
@@ -2997,7 +3027,7 @@ this category does not exist in the archive, it is created."
 	       (afile (concat (file-name-sans-extension
 			       todo-current-todo-file) ".toda"))
 	       (archive (find-file-noselect afile t))
-	       (item (and (todo-done-item-p)
+	       (item (and (not marked) (todo-done-item-p)
 			  (concat (todo-item-string) "\n")))
 	       (count 0)
 	       (opoint (unless (todo-done-item-p) (point)))
@@ -3092,7 +3122,8 @@ this category does not exist in the archive, it is created."
 			  (todo-update-count 'done -1)
 			  (todo-update-count 'archived 1)
 			  ;; Don't leave point below last item.
-			  (and item (bolp) (eolp) (< (point-min) (point-max))
+			  (and (or marked item) (bolp) (eolp)
+			       (< (point-min) (point-max))
 			       (todo-backward-item))
 			  (when item
 			    (throw 'done (setq item nil))))
@@ -3182,15 +3213,16 @@ the only category in the archive, the archive file is deleted."
 		  (throw 'done (setq item nil))))
 	    (todo-forward-item))))
       (todo-update-count 'done (if marked (- marked-count) -1) cat)
-      ;; If that was the last category in the archive, delete the whole file.
-      (if (= (length todo-categories) 1)
-	  (progn
-	    (delete-file todo-current-todo-file)
-	    ;; Kill the archive buffer silently.
-	    (set-buffer-modified-p nil)
-	    (kill-buffer))
-	;; Otherwise, if the archive category is now empty, delete it.
-	(when (eq (point-min) (point-max))
+      ;; If we unarchived the last item in category, then if that was
+      ;; the only category, delete the whole file, otherwise, just
+      ;; delete the category.
+      (when (= 0 (todo-get-count 'done))
+	(if (= 1 (length todo-categories))
+	    (progn
+	      (delete-file todo-current-todo-file)
+	      ;; Kill the archive buffer silently.
+	      (set-buffer-modified-p nil)
+	      (kill-buffer))
 	  (widen)
 	  (let ((beg (re-search-backward
 		      (concat "^" (regexp-quote todo-category-beg) cat "$")
@@ -3203,8 +3235,8 @@ the only category in the archive, the archive file is deleted."
 	    (remove-overlays beg end)
 	    (delete-region beg end)
 	    (setq todo-categories (delete (assoc cat todo-categories)
-					   todo-categories))
-	    (todo-update-categories-sexp))))
+					  todo-categories)))))
+      (todo-update-categories-sexp)
       ;; Visit category in todo file and show restored done items.
       (let ((tfile (buffer-file-name tbuf))
 	    (todo-show-with-done t))
@@ -5616,7 +5648,7 @@ otherwise, a new file name is allowed."
 				  ""))))
     (unless (file-exists-p todo-directory)
       (make-directory todo-directory))
-    (unless mustmatch
+    (unless (or mustmatch (member file files))
       (setq file (todo-validate-name file 'file)))
     (setq file (file-truename (concat todo-directory file
 				      (if archive ".toda" ".todo"))))))
@@ -5915,8 +5947,9 @@ the empty string (i.e., no time string)."
 
 (defun todo-reset-nondiary-marker (symbol value)
   "The :set function for user option `todo-nondiary-marker'."
-  (let ((oldvalue (symbol-value symbol))
-	(files (append todo-files todo-archives)))
+  (let* ((oldvalue (symbol-value symbol))
+	 (files (append todo-files todo-archives
+			(directory-files todo-directory t "\.tod[rty]$" t))))
     (custom-set-default symbol value)
     ;; Need to reset these to get font-locking right.
     (setq todo-nondiary-start (nth 0 todo-nondiary-marker)
@@ -5963,7 +5996,8 @@ the empty string (i.e., no time string)."
 (defun todo-reset-done-string (symbol value)
   "The :set function for user option `todo-done-string'."
   (let ((oldvalue (symbol-value symbol))
-	(files (append todo-files todo-archives)))
+	(files (append todo-files todo-archives
+		       (directory-files todo-directory t "\.todr$" t))))
     (custom-set-default symbol value)
     ;; Need to reset this to get font-locking right.
     (setq todo-done-string-start
@@ -5986,7 +6020,8 @@ the empty string (i.e., no time string)."
 (defun todo-reset-comment-string (symbol value)
   "The :set function for user option `todo-comment-string'."
   (let ((oldvalue (symbol-value symbol))
-  	(files (append todo-files todo-archives)))
+  	(files (append todo-files todo-archives
+		       (directory-files todo-directory t "\.todr$" t))))
     (custom-set-default symbol value)
     (when (not (equal value oldvalue))
       (dolist (f files)
@@ -6005,9 +6040,10 @@ the empty string (i.e., no time string)."
 	      (todo-category-select))))))))
 
 (defun todo-reset-highlight-item (symbol value)
-  "The :set function for `todo-toggle-item-highlighting'."
+  "The :set function for user option `todo-highlight-item'."
   (let ((oldvalue (symbol-value symbol))
-	(files (append todo-files todo-archives)))
+	(files (append todo-files todo-archives
+		       (directory-files todo-directory t "\.tod[rty]$" t))))
     (custom-set-default symbol value)
     (when (not (equal value oldvalue))
       (dolist (f files)
