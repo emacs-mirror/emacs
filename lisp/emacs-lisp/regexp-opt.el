@@ -205,9 +205,7 @@ Merges keywords to avoid backtracking in Emacs's regexp matcher."
 		      (regexp-opt-group suffixes t t)
 		      close-group))
 
-	  (let* ((sgnirts (mapcar (lambda (s)
-				    (concat (nreverse (string-to-list s))))
-				  strings))
+	  (let* ((sgnirts (mapcar #'reverse strings))
 		 (xiffus (try-completion "" sgnirts)))
 	    (if (> (length xiffus) 0)
 		;; common suffix: take it and recurse on the prefixes.
@@ -218,8 +216,7 @@ Merges keywords to avoid backtracking in Emacs's regexp matcher."
 			      'string-lessp)))
 		  (concat open-group
 			  (regexp-opt-group prefixes t t)
-			  (regexp-quote
-			   (concat (nreverse (string-to-list xiffus))))
+			  (regexp-quote (nreverse xiffus))
 			  close-group))
 
 	      ;; Otherwise, divide the list into those that start with a

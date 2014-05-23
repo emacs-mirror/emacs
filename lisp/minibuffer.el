@@ -873,6 +873,7 @@ completing buffer and file names, respectively."
   ;; part of the string (e.g. substitute-in-file-name).
   (let ((requote
          (when (completion-metadata-get metadata 'completion--unquote-requote)
+           (cl-assert (functionp table))
            (let ((new (funcall table string point 'completion--unquote)))
              (setq string (pop new))
              (setq table (pop new))
@@ -3057,16 +3058,9 @@ filter out additional entries (because TABLE might not obey PRED)."
       (nconc (completion-pcm--hilit-commonality pattern all)
              (length prefix)))))
 
-(defun completion--sreverse (str)
-  "Like `reverse' but for a string STR rather than a list."
-  (apply #'string (nreverse (mapcar 'identity str))))
-
 (defun completion--common-suffix (strs)
   "Return the common suffix of the strings STRS."
-  (completion--sreverse
-   (try-completion
-    ""
-    (mapcar #'completion--sreverse strs))))
+  (nreverse (try-completion "" (mapcar #'reverse strs))))
 
 (defun completion-pcm--merge-completions (strs pattern)
   "Extract the commonality in STRS, with the help of PATTERN.

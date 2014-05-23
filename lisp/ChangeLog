@@ -1,3 +1,9 @@
+2014-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--sreverse): Remove.
+	(completion--common-suffix): Use `reverse' instead.
+	* emacs-lisp/regexp-opt.el (regexp-opt-group): Use `reverse' on strings.
+
 2014-05-22  Glenn Morris  <rgm@gnu.org>
 
 	* shell.el (shell-mode) <shell-dirstack-query>: Bypass bash aliases.
