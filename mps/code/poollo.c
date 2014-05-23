@@ -189,7 +189,7 @@ static void loSegFinish(Seg seg)
 
 
 ATTRIBUTE_UNUSED
-static Count loSegBits(LOSeg loseg)
+static Count loSegGrains(LOSeg loseg)
 {
   LO lo;
   Size size;
