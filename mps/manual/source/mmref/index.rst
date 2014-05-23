@@ -1,3 +1,5 @@
+.. _mmref-intro:
+
 Introduction to memory management
 #################################
 
