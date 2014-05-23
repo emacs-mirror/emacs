@@ -60,8 +60,8 @@ region to be scanned. They must carry out the following steps:
       function as soon as practicable.
 
    #. If :c:func:`MPS_FIX2` returns :c:macro:`MPS_RES_OK`, it may have
-      updated the reference. If necessary, make sure that the updated
-      reference is stored back to the region being scanned.
+      updated the reference. Make sure that the updated reference is
+      stored back into the region being scanned.
 
 #. Call the macro :c:func:`MPS_SCAN_END` on the scan state.
 
@@ -463,15 +463,18 @@ Fixing interface
 
     :term:`Fix` a :term:`reference`.
 
-    ``ss`` is the :term:`scan state` that was passed to the scan method.
+    ``ss`` is the :term:`scan state` that was passed to the
+    :term:`scan method`.
 
     ``ref_io`` points to the reference.
 
-    Returns :c:macro:`MPS_RES_OK` if successful: in this case the
-    reference may have been updated, and the scan method must continue
-    to scan the :term:`block`. If it returns any other result, the
-    :term:`scan method` must return that result as soon as possible,
-    without fixing any further references.
+    Returns :c:macro:`MPS_RES_OK` if successful. In this case the
+    reference may have been updated, and so the scan method must store
+    the updated reference back to the region being scanned. The scan
+    method must continue to scan the :term:`block`.
+
+    If it returns any other result, the scan method must return that
+    result as soon as possible, without fixing any further references.
 
     This macro must only be used within a :term:`scan method`, between
     :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.

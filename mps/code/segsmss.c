@@ -350,7 +350,7 @@ static Res AMSTInit(Pool pool, ArgList args)
     gen = arg.val.u;
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
-
+  
   res = AMSInitInternal(Pool2AMS(pool), format, chain, gen, FALSE);
   if (res != ResOK)
     return res;

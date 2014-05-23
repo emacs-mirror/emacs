@@ -673,6 +673,7 @@ static Res amcGenCreate(amcGen *genReturn, AMC amc, GenDesc gen)
   if(res != ResOK)
     goto failGenInit;
   RingInit(&amcgen->amcRing);
+  amcgen->segs = 0;
   amcgen->forward = buffer;
   amcgen->sig = amcGenSig;
 
@@ -721,8 +722,12 @@ static Res amcGenDescribe(amcGen amcgen, mps_lib_FILE *stream)
     return ResFAIL;
 
   res = WriteF(stream,
-               "  amcGen $P {\n", (WriteFP)amcgen,
-               "   buffer $P\n", (WriteFP)amcgen->forward,
+               "  amcGen $P {\n", (WriteFP)gen,
+               "   buffer $P\n", gen->forward,
+               "   segs $U, totalSize $U, newSize $U\n",
+               (WriteFU)gen->pgen.segs,
+               (WriteFU)gen->pgen.totalSize,
+               (WriteFU)gen->pgen.newSize,
                "  } amcGen\n", NULL);
   return res;
 }
