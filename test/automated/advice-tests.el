@@ -184,6 +184,7 @@ function being an around advice."
         (sm-advice (lambda (x) (if (consp x) (list (* 5 (car x))) (* 4 x)))))
     (should (equal (funcall sm-test10 5) 15))
     (add-function :filter-args (var sm-test10) sm-advice)
+    (should (advice-function-member-p sm-advice sm-test10))
     (should (equal (funcall sm-test10 5) 35))
     (add-function :filter-return (var sm-test10) sm-advice)
     (should (equal (funcall sm-test10 5) 60))

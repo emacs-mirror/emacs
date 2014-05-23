@@ -1,3 +1,10 @@
+2014-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el (advice--member-p): Change second arg.
+	(advice-function-member-p): Tell it to check both names and functions
+	(bug#17531).
+	(advice--add-function): Adjust call accordingly.
+
 2014-05-23  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el: Miscellaneous bug fixes.
