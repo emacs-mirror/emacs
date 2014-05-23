@@ -41,7 +41,15 @@
     ( "src/javaroot/com/test/Foo.Java" . ede-java-root-project-p )
     ( "src/javaroot/README" . ede-java-root-project-p )
      )
-  "List of sources to load in ndetectable projects.
+  "List of sources to load in detectable projects.
+Each entry is a cons cell:
+  ( SRCFILE . PROJECT-TYPE )")
+
+(defvar ede-detect-utest-project-dirmatch-list
+  '(
+    ("src/dirmatch/MyDirmatch/MyDirmatch.cpp" . ede-detect-test-dirmatch-project-p)
+    )
+  "List of sources to load in projects detected via DIRMATCH feature.
 Each entry is a cons cell:
   ( SRCFILE . PROJECT-TYPE )")
 
@@ -66,23 +74,61 @@ Each entry is a cons cell:
   "Test out the detection scheme for EDE."
   (interactive)
   (save-excursion
+    ;; Make sure the dirtest project is set-up, but without
+    ;; loading in the project type.
+    (ede-detect-utest-init-dirmatch)
 
-    (let ((errlog nil)
-	  (project-linux-build-directory-default 'same)
+    (cedet-utest-log-setup "EDE DETECT")
+
+    (let ((errlog nil))
+
+      ;; Test all the primary project types.
+      (ede-detect-utest-loop ede-detect-utest-project-list)
+
+      ;; Make sure we didn't accidentally pull in the project using
+      ;; the dirtest project type.
+
+      (if (featurep 'cedet/ede/detect-dirtest)
+	  (progn
+	    (semantic-ia-utest-log  "!! Project type using DIRTEST loaded unexpectedly.")
+	    (push "dirtest noload expected" errlog))
+	(semantic-ia-utest-log "** Successfully did not load DIRTEST project."))
+
+      ;; Now make sure that DIRTEST is testing properly.
+      (ede-detect-utest-loop ede-detect-utest-project-dirmatch-list)
+
+      ;; Make sure we did load dirtest - though that should be obvious if prev
+      ;; line worked.
+      (if (not (featurep 'cedet/ede/detect-dirtest))
+	  (progn
+	    (semantic-ia-utest-log  "!! Project type using DIRTEST didn't load.")
+	    (push "dirtest load expected" errlog))
+	(semantic-ia-utest-log "** Successfully loaded DIRTEST project."))
+
+      ;; Close out the test suite.
+      (cedet-utest-log-shutdown
+       "EDE DETECT"
+       (when errlog
+	 (format "%s Failures found." (length errlog))))
+      )))
+
+
+(defun ede-detect-utest-loop (test-entries)
+  "Test the primary EDE project types."
+  (save-excursion
+    (let ((project-linux-build-directory-default 'same)
 	  (project-linux-architecture-default "glnx")
 	  (ede-project-directories t) ; safe to load Project.ede
 	  (basedir nil)
 	  (baselen nil)
 	  )
-      (cedet-utest-log-setup "EDE DETECT")
-
       (set-buffer (semantic-find-file-noselect
 		   (expand-file-name "cedet/ede/detect.el"
 				     cedet-utest-root)))
       (setq basedir default-directory
 	    baselen (length basedir))
 
-      (dolist (fl ede-detect-utest-project-list)
+      (dolist (fl test-entries)
 
 	;; Make sure we have the files we think we have.
 	(when (not (file-exists-p (car fl)))
@@ -97,7 +143,11 @@ Each entry is a cons cell:
 
 	    ;; Run the EDE detection code.  Firing up the mode isn't really needed.
 	    (condition-case err
-		(ede-initialize-state-current-buffer)
+		(progn
+		  (ede-initialize-state-current-buffer)
+		  (when (not (eq b (current-buffer)))
+		    (error "Buffer changed during init!"))
+		  )
 	      (error
 	       (semantic-ia-utest-log "\n!! In %s: load threw error %S\n"
 				      (substring default-directory baselen)
@@ -148,11 +198,6 @@ Each entry is a cons cell:
 	    (kill-buffer b))
 	  ))
 
-	(cedet-utest-log-shutdown
-       "EDE DETECT"
-       (when errlog
-	 (format "%s Failures found." (length errlog))))
-
       (when errlog
 	(error "Failures found looking for project in %s" (car (car errlog))))
       ))
@@ -172,6 +217,44 @@ Each entry is a cons cell:
        (string= (file-name-nondirectory (directory-file-name (oref project directory))) "automake")
        (not (eq project (ede-current-project)))
        ))
+
+;;; TEST PROJECT
+;;
+;; This project exists to test dirmatch.
+
+(defvar ede-detect-utest-dirmatch-fname
+  (expand-file-name (concat (make-temp-name "utest-dirmatch-") ".txt")
+		    temporary-file-directory)
+  "A config file to use with DIRTEST.")
+
+(defun ede-detect-utest-init-dirmatch ()
+  "Init the config file for for dirtesting."
+  (let ((mypath (expand-file-name "dirmatch" (ede-detect-utest-basedir))))
+    ;;(message "Dirmatch Location: %s" mypath)
+    (save-excursion
+      (set-buffer (semantic-find-file-noselect ede-detect-utest-dirmatch-fname))
+      (erase-buffer)
+      (insert "path=" mypath "\n")
+      (save-buffer 0)
+      )))
+
+(ede-add-project-autoload
+ (ede-project-autoload "dirmatchtest"
+		       :name "DIRMATCH TEST"
+		       :file 'cedet/ede/detect-dirtest
+		       :proj-root-dirmatch
+		       (ede-project-autoload-dirmatch
+			"dirmatch test"
+			:fromconfig ede-detect-utest-dirmatch-fname
+			:configregex "^path=\\([^\n]+\\)$"
+			:configregexidx 1)
+		       :proj-file nil
+		       :load-type 'ede-dirmatch-load
+		       :class-sym 'ede-test-dirmatch-project
+		       :safe-p t)
+ )
+
+;; (message "AUTOLOADS: %S" ede-project-class-files)
 
 (provide 'cedet/ede/detect-utest)
 
