@@ -53,8 +53,9 @@ Memory management in various languages
         library functions for :term:`memory (2)` management in C,
         :term:`malloc` and :term:`free (2)`, have become almost
         synonymous with :term:`manual memory management`), although
-        with the Boehm–Demers–Weiser :term:`collector (1)`, it is now
-        possible to use :term:`garbage collection`.
+        with the Memory Pool System, or the Boehm–Demers–Weiser
+        collector, it is now possible to use :term:`garbage
+        collection`.
 
         The language is notorious for fostering memory management
         bugs, including:
@@ -86,6 +87,7 @@ Memory management in various languages
 
         .. link::
 
+            `Memory Pool System <http://www.ravenbrook.com/project/mps/>`_,
             `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_,
             `C standardization <http://www.open-std.org/jtc1/sc22/wg14/>`_, 
             `comp.lang.c Frequently Asked Questions <http://c-faq.com/>`_.
@@ -148,11 +150,11 @@ Memory management in various languages
 	The :term:`garbage collector` in the .NET Framework is
 	configurable to run in soft real time, or in batch mode.
 
-        The Mono runtime comes with two collectors: the Boehm–Weiser
-        :term:`conservative collector <conservative garbage
-        collection>`, and a :term:`generational <generational garbage
-        collection>` :term:`copying collector <copying garbage
-        collection>`.
+        The Mono runtime comes with two collectors: the
+        Boehm–Demers–Weiser :term:`conservative collector
+        <conservative garbage collection>`, and a :term:`generational
+        <generational garbage collection>` :term:`copying collector
+        <copying garbage collection>`.
 
         .. link::
 
@@ -173,9 +175,9 @@ Memory management in various languages
         abstraction level of C++ makes the bookkeeping required for
         :term:`manual memory management` even harder. Although the
         standard library provides only manual memory management, with
-        the Boehm–Demers–Weiser :term:`collector (1)`, it is now possible to
-        use :term:`garbage collection`. :term:`Smart pointers` are
-        another popular solution.
+        the Memory Pool System, or the Boehm–Demers–Weiser collector,
+        it is now possible to use :term:`garbage collection`.
+        :term:`Smart pointers` are another popular solution.
 
         The language is notorious for fostering memory management
         bugs, including:
@@ -222,6 +224,8 @@ Memory management in various languages
 
         .. link::
 
+            `Memory Pool System <http://www.ravenbrook.com/project/mps/>`_,
+            `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_,
             `comp.lang.c++ FAQ <http://www.parashift.com/c++-faq/>`_,
             `C++ standardization <http://www.open-std.org/jtc1/sc22/wg21/>`_.
 
