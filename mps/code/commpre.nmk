@@ -164,6 +164,7 @@ MPMCOMMON=\
     <traceanc> \
     <tract> \
     <tree> \
+    <version> \
     <walk>
 PLINTH = <mpsliban> <mpsioan>
 AMC = <poolamc>
@@ -173,11 +174,12 @@ LO = <poollo>
 MVFF = <poolmvff>
 POOLN = <pooln>
 SNC = <poolsnc>
-DW = <fmtdy> <fmtno>
+FMTDY = <fmtdy> <fmtno>
 FMTTEST = <fmthe> <fmtdy> <fmtno> <fmtdytst>
 FMTSCHEME = <fmtscheme>
 TESTLIB = <testlib> <getoptl>
 TESTTHR = <testthrw3>
+MPM = $(MPMCOMMON) $(MPMPF) $(AMC) $(AMS) $(AWL) $(LO) $(MV2) $(MVFF) $(PLINTH)
 
 
 # CHECK PARAMETERS
@@ -192,8 +194,14 @@ TESTTHR = <testthrw3>
 !IFNDEF PFMDEFS
 !ERROR commpre.nmk: PFMDEFS not defined
 !ENDIF
+!IFNDEF MPM
+!ERROR commpre.nmk: MPM not defined
+!ENDIF
 !IFNDEF MPMCOMMON
 !ERROR commpre.nmk: MPMCOMMON not defined
+!ENDIF
+!IFNDEF MPMPF
+!ERROR commpre.nmk: MPMPF not defined
 !ENDIF
 !IFNDEF PLINTH
 !ERROR commpre.nmk: PLINTH not defined
@@ -213,8 +221,8 @@ TESTTHR = <testthrw3>
 !IFNDEF SNC
 !ERROR commpre.nmk: SNC not defined
 !ENDIF
-!IFNDEF DW
-!ERROR commpre.nmk: DW not defined
+!IFNDEF FMTDY
+!ERROR commpre.nmk: FMTDY not defined
 !ENDIF
 !IFNDEF FMTTEST
 !ERROR commpre.nmk: FMTTEST not defined

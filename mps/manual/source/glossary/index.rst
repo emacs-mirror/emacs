@@ -7,6 +7,7 @@ Memory Management Glossary
 
 .. toctree::
    :maxdepth: 1
+   :hidden:
 
    a
    b

@@ -22,11 +22,11 @@ garbage collection>` for :term:`C` exist as add-on libraries.
 
 .. link::
 
-    `Boehm–Weiser collector <http://www.hpl.hp.com/personal/Hans_Boehm/gc/>`_.
+    `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_.
 
 
-Why do I need to test the return value from ``malloc``?  Surely it always succeeds?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Why do I need to test the return value from malloc?  Surely it always succeeds?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For small programs, and during light testing, it is true that
 :term:`malloc` usually succeeds. Unfortunately, there are all sorts of
@@ -73,8 +73,8 @@ when out of memory, wrap :term:`malloc` in something like this::
 Undefined behavior is worth eliminating even in small programs.
 
 
-What's the point of having a garbage collector? Why not use ``malloc`` and ``free``?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+What's the point of having a garbage collector? Why not use malloc and free?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :term:`Manual memory management`, such as :term:`malloc` and
 :term:`free (2)`, forces the programmer to keep track of which memory
@@ -90,12 +90,12 @@ problem, rather than the tedious details of the implementation.
 .. seealso:: :term:`garbage collection`
 
 
-What's wrong with ANSI ``malloc`` in the C library?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+What's wrong with ANSI malloc in the C library?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:term:`Malloc` provides a very basic :term:`manual memory management`
-service. However, it does not provide the following things, which may
-be desirable in your memory manager:
+The :term:`malloc` function provides a very basic :term:`manual memory
+management` service. However, it does not provide the following
+things, which may be desirable in your memory manager:
 
 * high performance for specified block sizes;
 * :term:`tagged references`;
@@ -130,11 +130,11 @@ semi-conservative garbage collectors for C++.
 
 .. link::
 
-    `Boehm–Weiser collector <http://www.hpl.hp.com/personal/Hans_Boehm/gc/>`_.
+    `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_.
 
 
-Why is ``delete`` so slow?
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Why is delete so slow?
+^^^^^^^^^^^^^^^^^^^^^^
 
 Often ``delete`` must perform a more complex task than simply freeing
 the memory associated with an object; this is known as
@@ -163,12 +163,12 @@ In :term:`C++`, it may be that class libraries expect you to call
 
 Failing this, if there is a genuine :term:`memory leak` in a class
 library for which you don't have the source, then the only thing you
-can try is to add a :term:`garbage collector`. The Boehm–Weiser
+can try is to add a :term:`garbage collector`. The Boehm–Demers–Weiser
 collector will work with C++.
 
 .. link::
 
-    `Boehm–Weiser collector <http://www.hpl.hp.com/personal/Hans_Boehm/gc/>`_.
+    `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_.
 
 
 Can't I get all the benefits of garbage collection using C++ constructors and destructors?
@@ -400,7 +400,7 @@ Where can I find out more about garbage collection?
 Many modern languages have :term:`garbage collection` built in, and
 the language documentation should give details. For some other
 languages, garbage collection can be added, for example via the
-Boehm–Weiser collector.
+Boehm–Demers–Weiser collector.
 
 .. seealso:: :term:`garbage collection`
 
@@ -408,14 +408,14 @@ Boehm–Weiser collector.
 
 .. link::
 
-    `Boehm–Weiser collector <http://www.hpl.hp.com/personal/Hans_Boehm/gc/>`_,
+    `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_,
     `GC-LIST FAQ <http://iecc.com/gclist/GC-faq.html>`_.
 
 
 Where can I get a garbage collector?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The Boehm–Weiser collector is suitable for C or C++. The best way to
+The Boehm–Demers–Weiser collector is suitable for C or C++. The best way to
 get a garbage collector, however, is to program in a language that
 provides garbage collection.
 
@@ -423,7 +423,7 @@ provides garbage collection.
 
 .. link::
 
-    `Boehm–Weiser collector <http://www.hpl.hp.com/personal/Hans_Boehm/gc/>`_.
+    `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_.
 
 
 Why does my program use so much memory?
