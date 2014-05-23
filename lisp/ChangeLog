@@ -1,3 +1,25 @@
+2014-05-23  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Remove dependence on auto-mode-alist,
+	to avoid errors when trying to create or visit a file foo.todo
+	located outside to todo-directory, and to allow having such files
+	without them being tied to Todo mode (bug#17482).
+	(todo-show, todo-move-category, todo-merge-category, todo-find-archive)
+	(todo-archive-done-item, todo-find-filtered-items-file)
+	(todo-filter-items, todo-find-item, todo-diary-goto-entry)
+	(todo-category-completions, todo-read-category): When visiting a
+	Todo file, make sure we're in the right mode and the buffer local
+	variables are set.
+	(todo-make-categories-list, todo-reset-nondiary-marker)
+	(todo-reset-done-string, todo-reset-comment-string): After
+	processing all Todo files, kill the buffers of those files that
+	weren't being visited before the processing.
+	(todo-display-as-todo-file, todo-add-to-buffer-list)
+	(todo-visit-files-commands): Comment out.
+	(todo-modes-set-3, todo-mode): Comment out additions to find-file-hook.
+	(auto-mode-alist): Remove add-to-list calls making Todo file
+	extensions unrestrictedly tied to Todo modes.
+
 2014-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/nadvice.el (advice--member-p): Change second arg.

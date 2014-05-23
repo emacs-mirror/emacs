@@ -1,3 +1,11 @@
+2014-05-23  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todo-mode.texi: Update in light of changes due to bug#17482.
+	Replace numerous mistaken uses of literal quotes with proper
+	Texinfo markup.
+	(Todo Mode Entry Points): Comment out reference to using find-file
+	or Dired to visit Todo files, since this has been disabled (bug#17482).
+
 2014-05-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Frequently Asked Questions): Mention HISTFILE

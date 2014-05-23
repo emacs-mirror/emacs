@@ -566,13 +566,13 @@ less than or equal the category's top priority setting."
 ;;; Entering and exiting
 ;; -----------------------------------------------------------------------------
 
-(defcustom todo-visit-files-commands (list 'find-file 'dired-find-file)
-  "List of file finding commands for `todo-display-as-todo-file'.
-Invoking these commands to visit a todo file or todo archive file
-calls `todo-show' or `todo-find-archive', so that the file is
-displayed correctly."
-  :type '(repeat function)
-  :group 'todo)
+;; (defcustom todo-visit-files-commands (list 'find-file 'dired-find-file)
+;;   "List of file finding commands for `todo-display-as-todo-file'.
+;; Invoking these commands to visit a todo file or todo archive file
+;; calls `todo-show' or `todo-find-archive', so that the file is
+;; displayed correctly."
+;;   :type '(repeat function)
+;;   :group 'todo)
 
 (defun todo-short-file-name (file)
   "Return the short form of todo file FILE's name.
@@ -740,9 +740,12 @@ corresponding todo file, displaying the corresponding category."
 					     "Choose a regexp items file: "
 					     rxf) 'regexp))))))
 		     (if (file-exists-p fi-file)
-			 (set-window-buffer
-			  (selected-window)
-			  (set-buffer (find-file-noselect fi-file 'nowarn)))
+			 (progn
+			   (set-window-buffer
+			    (selected-window)
+			    (set-buffer (find-file-noselect fi-file 'nowarn)))
+			   (unless (derived-mode-p 'todo-filtered-items-mode)
+			     (todo-filtered-items-mode)))
 		       (message "There is no %s file for %s"
 				(cond ((eq todo-show-first 'top)
 				       "top priorities")
@@ -757,6 +760,9 @@ corresponding todo file, displaying the corresponding category."
 	  (unless (todo-check-file file) (throw 'end nil))
 	  (set-window-buffer (selected-window)
 			     (set-buffer (find-file-noselect file 'nowarn)))
+	  (if (equal (file-name-extension (buffer-file-name)) "toda")
+	      (unless (derived-mode-p 'todo-archive-mode) (todo-archive-mode))
+	    (unless (derived-mode-p 'todo-mode) (todo-mode)))
 	  ;; When quitting an archive file, show the corresponding
 	  ;; category in the corresponding todo file, if it exists.
 	  (when (assoc cat todo-categories)
@@ -1449,6 +1455,10 @@ the archive of the file moved to, creating it if it does not exist."
 		 (if (member buf (funcall todo-files-function t))
 		     (concat (file-name-sans-extension nfile) ".toda")
 		   nfile))
+	      (if (equal (file-name-extension (buffer-file-name)) "toda")
+		  (unless (derived-mode-p 'todo-archive-mode)
+		    (todo-archive-mode))
+		(unless (derived-mode-p 'todo-mode) (todo-mode)))
 	      (let* ((nfile-short (todo-short-file-name nfile))
 		     (prompt (concat
 			      (format "Todo file \"%s\" already has "
@@ -1564,6 +1574,7 @@ archive file and the source category is deleted."
 	     (done-count (todo-get-count 'done cat)))
 	;; Merge into goal todo category.
 	(with-current-buffer (get-buffer (find-file-noselect gfile))
+	  (unless (derived-mode-p 'todo-mode) (todo-mode))
 	  (widen)
 	  (goto-char (point-min))
 	  (let ((buffer-read-only nil))
@@ -2995,6 +3006,7 @@ displayed."
       (when place
 	(set-window-buffer (selected-window)
 			   (set-buffer (find-file-noselect archive)))
+	(unless (derived-mode-p 'todo-archive-mode) (todo-archive-mode))
 	(if (member place '(other-archive other-cat))
 	    (setq todo-category-number 1)
 	  (todo-category-number cat))
@@ -3070,6 +3082,7 @@ this category does not exist in the archive, it is created."
 	  (if (not (or marked all item))
 	      (throw 'end (message "Only done items can be archived"))
 	    (with-current-buffer archive
+	      (unless (derived-mode-p 'todo-archive-mode) (todo-archive-mode))
 	      (let (buffer-read-only)
 		(widen)
 		(goto-char (point-min))
@@ -3091,12 +3104,12 @@ this category does not exist in the archive, it is created."
 		(todo-update-categories-sexp)
 		;; If archive is new, save to file now (with
 		;; write-region to avoid prompt for file to save to)
-		;; to update todo-archives, and to let auto-mode-alist
-		;; take effect below on visiting the archive.
+		;; to update todo-archives, and set the mode for
+		;; visiting the archive below.
 		(unless (nth 7 (file-attributes afile))
 		  (write-region nil nil afile t t)
 		  (setq todo-archives (funcall todo-files-function t))
-		  (kill-buffer))))
+		  (todo-archive-mode))))
 	    (with-current-buffer tbuf
 	      (cond
 	       (all
@@ -3957,7 +3970,9 @@ regexp items."
     (setq file (completing-read "Choose a filtered items file: "
 				falist nil t nil nil (car falist)))
     (setq file (cdr (assoc-string file falist)))
-    (find-file file)))
+    (find-file file)
+    (unless (derived-mode-p 'todo-filtered-items-mode)
+      (todo-filtered-items-mode))))
 
 (defun todo-go-to-source-item ()
   "Display the file and category of the filtered item at point."
@@ -4088,6 +4103,8 @@ multifile commands for further details."
 			    (completing-read "Choose a regexp items file: "
 					     rxf) 'regexp))))
 	   (find-file fname)
+	   (unless (derived-mode-p 'todo-filtered-items-mode)
+	     (todo-filtered-items-mode))
 	   (todo-prefix-overlays)
 	   (todo-check-filtered-items-file))
 	  (t
@@ -4341,6 +4358,9 @@ its priority has changed, and `same' otherwise."
 		   todo-global-current-todo-file)))
     (find-file-noselect file)
     (with-current-buffer (find-buffer-visiting file)
+      (if archive
+	  (unless (derived-mode-p 'todo-archive-mode) (todo-archive-mode))
+	(unless (derived-mode-p 'todo-mode) (todo-mode)))
       (save-restriction
 	(widen)
 	(goto-char (point-min))
@@ -4917,23 +4937,28 @@ the file."
 		 ;; Make sure to include newly created archives, e.g. due to
 		 ;; todo-move-category.
 		 (when (member archive (funcall todo-files-function t))
-		   (let ((archive-count 0))
-		     (with-current-buffer (find-file-noselect archive)
-		       (widen)
-		       (goto-char (point-min))
-		       (when (re-search-forward
-			      (concat "^" (regexp-quote todo-category-beg)
-				      cat "$")
-			      (point-max) t)
-			 (forward-line)
-			 (while (not (or (looking-at
-					  (concat
-					   (regexp-quote todo-category-beg)
-					   "\\(.*\\)\n"))
-					 (eobp)))
-			   (when (looking-at todo-done-string-start)
-			     (setq archive-count (1+ archive-count)))
-			   (forward-line))))
+		   (let ((archive-count 0)
+			 (visiting (find-buffer-visiting archive)))
+		     (with-current-buffer (or visiting
+					      (find-file-noselect archive))
+		       (save-excursion
+			 (save-restriction
+			   (widen)
+			   (goto-char (point-min))
+			   (when (re-search-forward
+				  (concat "^" (regexp-quote todo-category-beg)
+					  cat "$")
+				  (point-max) t)
+			     (forward-line)
+			     (while (not (or (looking-at
+					      (concat
+					       (regexp-quote todo-category-beg)
+					       "\\(.*\\)\n"))
+					     (eobp)))
+			       (when (looking-at todo-done-string-start)
+				 (setq archive-count (1+ archive-count)))
+			       (forward-line)))))
+		       (unless visiting (kill-buffer)))
 		     (todo-update-count 'archived archive-count cat))))
 		((looking-at todo-done-string-start)
 		 (todo-update-count 'done 1 cat))
@@ -5157,6 +5182,11 @@ Overrides `diary-goto-entry'."
     (if (not (and (file-exists-p file)
 		  (find-file-other-window file)))
 	(message "Unable to locate this diary entry")
+      ;; If it's a Todo file, make sure it's in Todo mode.
+      (when (and (equal (file-name-directory (file-truename file))
+			(file-truename todo-directory))
+		 (not (derived-mode-p 'todo-mode)))
+	(todo-mode))
       (when (eq major-mode 'todo-mode) (widen))
       (goto-char (point-min))
       (when (re-search-forward (format "%s.*\\(%s\\)" date content) nil t)
@@ -5596,6 +5626,9 @@ have been removed."
 	(add-to-list 'files curfile))
       (dolist (f files listall)
 	(with-current-buffer (find-file-noselect f 'nowarn)
+	  (if archive
+	      (unless (derived-mode-p 'todo-archive-mode) (todo-archive-mode))
+	    (unless (derived-mode-p 'todo-mode) (todo-mode)))
 	  ;; Ensure category is properly displayed in case user
 	  ;; switches to file via a non-Todo mode command.  And if
 	  ;; done items in category are visible, keep them visible.
@@ -5681,6 +5714,7 @@ categories from `todo-category-completions-files'."
 	   (categories (cond (file0
 			      (with-current-buffer
 				  (find-file-noselect file0 'nowarn)
+				(unless (derived-mode-p 'todo-mode) (todo-mode))
 				(let ((todo-current-todo-file file0))
 				  todo-categories)))
 			     ((and add (not file))
@@ -5960,23 +5994,28 @@ the empty string (i.e., no time string)."
 		  (regexp-quote diary-nonmarking-symbol) "\\)?"))
     (when (not (equal value oldvalue))
       (dolist (f files)
-	(with-current-buffer (find-file-noselect f)
-	  (let (buffer-read-only)
-	    (widen)
-	    (goto-char (point-min))
-	    (while (not (eobp))
-	      (if (re-search-forward
-		   (concat "^\\(" todo-done-string-start "[^][]+] \\)?"
-			   "\\(?1:" (regexp-quote (car oldvalue))
-			   "\\)" todo-date-pattern "\\( "
-			   diary-time-regexp "\\)?\\(?2:"
-			   (regexp-quote (cadr oldvalue)) "\\)")
-		   nil t)
-		  (progn
-		    (replace-match (nth 0 value) t t nil 1)
-		    (replace-match (nth 1 value) t t nil 2))
-		(forward-line)))
-	    (todo-category-select)))))))
+	(let ((buf (find-buffer-visiting f)))
+	  (with-current-buffer (find-file-noselect f)
+	    (let (buffer-read-only)
+	      (widen)
+	      (goto-char (point-min))
+	      (while (not (eobp))
+		(if (re-search-forward
+		     (concat "^\\(" todo-done-string-start "[^][]+] \\)?"
+			     "\\(?1:" (regexp-quote (car oldvalue))
+			     "\\)" todo-date-pattern "\\( "
+			     diary-time-regexp "\\)?\\(?2:"
+			     (regexp-quote (cadr oldvalue)) "\\)")
+		     nil t)
+		    (progn
+		      (replace-match (nth 0 value) t t nil 1)
+		      (replace-match (nth 1 value) t t nil 2))
+		  (forward-line)))
+	      (if buf
+		  (when (derived-mode-p 'todo-mode 'todo-archive-mode)
+		    (todo-category-select))
+		(save-buffer)
+		(kill-buffer)))))))))
 
 (defun todo-reset-done-separator-string (symbol value)
   "The :set function for `todo-done-separator-string'."
@@ -6004,18 +6043,23 @@ the empty string (i.e., no time string)."
 	  (concat "^\\[" (regexp-quote todo-done-string)))
     (when (not (equal value oldvalue))
       (dolist (f files)
-	(with-current-buffer (find-file-noselect f)
-	  (let (buffer-read-only)
-	    (widen)
-	    (goto-char (point-min))
-	    (while (not (eobp))
-	      (if (re-search-forward
-		   (concat "^" (regexp-quote todo-nondiary-start)
-			   "\\(" (regexp-quote oldvalue) "\\)")
-		   nil t)
-		  (replace-match value t t nil 1)
-		(forward-line)))
-	    (todo-category-select)))))))
+	(let ((buf (find-buffer-visiting f)))
+	  (with-current-buffer (find-file-noselect f)
+	    (let (buffer-read-only)
+	      (widen)
+	      (goto-char (point-min))
+	      (while (not (eobp))
+		(if (re-search-forward
+		     (concat "^" (regexp-quote todo-nondiary-start)
+			     "\\(" (regexp-quote oldvalue) "\\)")
+		     nil t)
+		    (replace-match value t t nil 1)
+		  (forward-line)))
+	      (if buf
+		  (when (derived-mode-p 'todo-mode 'todo-archive-mode)
+		    (todo-category-select))
+		(save-buffer)
+		(kill-buffer)))))))))
 
 (defun todo-reset-comment-string (symbol value)
   "The :set function for user option `todo-comment-string'."
@@ -6025,19 +6069,23 @@ the empty string (i.e., no time string)."
     (custom-set-default symbol value)
     (when (not (equal value oldvalue))
       (dolist (f files)
-  	(with-current-buffer (find-file-noselect f)
-  	  (let (buffer-read-only)
-  	    (save-excursion
+	(let ((buf (find-buffer-visiting f)))
+	  (with-current-buffer (find-file-noselect f)
+	    (let (buffer-read-only)
 	      (widen)
 	      (goto-char (point-min))
 	      (while (not (eobp))
 		(if (re-search-forward
-		     (concat
-			     "\\[\\(" (regexp-quote oldvalue) "\\): [^]]*\\]")
+		     (concat "\\[\\(" (regexp-quote oldvalue)
+			     "\\): [^]]*\\]")
 		     nil t)
 		    (replace-match value t t nil 1)
 		  (forward-line)))
-	      (todo-category-select))))))))
+	      (if buf
+		  (when (derived-mode-p 'todo-mode 'todo-archive-mode)
+		    (todo-category-select))
+		(save-buffer)
+		(kill-buffer)))))))))
 
 (defun todo-reset-highlight-item (symbol value)
   "The :set function for user option `todo-highlight-item'."
@@ -6435,20 +6483,20 @@ Added to `pre-command-hook' in Todo mode when user option
 `todo-show-current-file' is set to non-nil."
   (setq todo-global-current-todo-file todo-current-todo-file))
 
-(defun todo-display-as-todo-file ()
-  "Show todo files correctly when visited from outside of Todo mode.
-Added to `find-file-hook' in Todo mode and Todo Archive mode."
-  (and (member this-command todo-visit-files-commands)
-       (= (- (point-max) (point-min)) (buffer-size))
-       (member major-mode '(todo-mode todo-archive-mode))
-       (todo-category-select)))
+;; (defun todo-display-as-todo-file ()
+;;   "Show todo files correctly when visited from outside of Todo mode.
+;; Added to `find-file-hook' in Todo mode and Todo Archive mode."
+;;   (and (member this-command todo-visit-files-commands)
+;;        (= (- (point-max) (point-min)) (buffer-size))
+;;        (member major-mode '(todo-mode todo-archive-mode))
+;;        (todo-category-select)))
 
-(defun todo-add-to-buffer-list ()
-  "Add name of just visited todo file to `todo-file-buffers'.
-This function is added to `find-file-hook' in Todo mode."
-  (let ((filename (file-truename (buffer-file-name))))
-    (when (member filename todo-files)
-      (add-to-list 'todo-file-buffers filename))))
+;; (defun todo-add-to-buffer-list ()
+;;   "Add name of just visited todo file to `todo-file-buffers'.
+;; This function is added to `find-file-hook' in Todo mode."
+;;   (let ((filename (file-truename (buffer-file-name))))
+;;     (when (member filename todo-files)
+;;       (add-to-list 'todo-file-buffers filename))))
 
 (defun todo-update-buffer-list ()
   "Make current Todo mode buffer file car of `todo-file-buffers'.
@@ -6503,7 +6551,8 @@ Added to `window-configuration-change-hook' in Todo mode."
   "Make some settings that apply to multiple Todo modes."
   (setq-local todo-categories (todo-set-categories))
   (setq-local todo-category-number 1)
-  (add-hook 'find-file-hook 'todo-display-as-todo-file nil t))
+  ;; (add-hook 'find-file-hook 'todo-display-as-todo-file nil t)
+  )
 
 (put 'todo-mode 'mode-class 'special)
 
@@ -6522,7 +6571,7 @@ Added to `window-configuration-change-hook' in Todo mode."
     (setq-local todo-current-todo-file (file-truename (buffer-file-name))))
   (setq-local todo-show-done-only nil)
   (setq-local todo-categories-with-marks nil)
-  (add-hook 'find-file-hook 'todo-add-to-buffer-list nil t)
+  ;; (add-hook 'find-file-hook 'todo-add-to-buffer-list nil t)
   (add-hook 'post-command-hook 'todo-update-buffer-list nil t)
   (when todo-show-current-file
     (add-hook 'pre-command-hook 'todo-show-current-file nil t))
@@ -6590,13 +6639,6 @@ Added to `window-configuration-change-hook' in Todo mode."
 \\{todo-filtered-items-mode-map}"
   (todo-modes-set-1)
   (todo-modes-set-2))
-
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.todo\\'" . todo-mode))
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.toda\\'" . todo-archive-mode))
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.tod[tyr]\\'" . todo-filtered-items-mode))
 
 ;; -----------------------------------------------------------------------------
 (provide 'todo-mode)
