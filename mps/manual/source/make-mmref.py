@@ -88,19 +88,25 @@ def rewrite_links(src, src_base, url_filter, rewrite_base,
             if u and not url_filter(urljoin(src_base, u)):
                 rewritten = urljoin(rewrite_base, u)
                 if u != rewritten:
-                    print("  {} -> {}".format(u, rewritten))
                     e.setAttribute(attr, rewritten)
 
     tree_walker = html5lib.treewalkers.getTreeWalker('dom')
     html_serializer = html5lib.serializer.htmlserializer.HTMLSerializer()
     return u''.join(html_serializer.serialize(tree_walker(dom)))
 
+def newer(src, target):
+    """Return True if src is newer (that is, modified more recently) than
+    target, False otherwise.
+
+    """
+    return (not os.path.isfile(target)
+            or os.path.getmtime(target) < os.path.getmtime(src))
+
 def rewrite_file(src_dir, src_filename, target_path, rewrite_url):
     src_path = os.path.join(src_dir, src_filename)
-    if (os.path.exists(target_path)
-        and os.stat(src_path).st_mtime <= os.stat(target_path).st_mtime):
+    if not newer(src_path, target_path):
         return
-    print("Converting {} -> {}".format(src_path, target_path))
+    print("Rewriting links in {} -> {}".format(src_path, target_path))
     src = open(os.path.join(src_dir, src_filename), encoding='utf-8').read()
     src_base = '/{}/'.format(src_dir)
     url_filter = url_filter_re.search
@@ -108,19 +114,19 @@ def rewrite_file(src_dir, src_filename, target_path, rewrite_url):
     result = rewrite_links(src, src_base, url_filter, rewrite_base)
     open(target_path, 'w', encoding='utf-8').write(result)
 
-def main(argv):
+def main(target_root='mmref'):
     src_root = 'html'
-    target_root = 'mmref'
     for d in mmref_dirs:
         src_dir = os.path.join(src_root, d)
         target_dir = os.path.join(target_root, d)
         os.makedirs(target_dir, exist_ok=True)
         for f in os.listdir(src_dir):
+            src_path = os.path.join(src_dir, f)
             target_path = os.path.join(target_dir, f)
             if os.path.splitext(f)[1] == '.html':
                 rewrite_file(src_dir, f, target_path, rewrite_url)
-            else:
-                copyfile(os.path.join(src_dir, f), target_path)
+            elif os.path.isfile(src_path):
+                copyfile(src_path, target_path)
     for f in mmref_files:
         rewrite_file(src_root, 'mmref-{}.html'.format(f),
                      os.path.join(target_root, '{}.html'.format(f)),
@@ -128,7 +134,7 @@ def main(argv):
 
 
 if __name__ == '__main__':
-    main(sys.argv)
+    main(*sys.argv[1:])
 
 
 # B. DOCUMENT HISTORY
