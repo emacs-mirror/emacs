@@ -2,7 +2,7 @@
 
 @import url('scrolls.css');
 
-h2, h3, h4, h5, h6, dl.glossary dt {
+dl.glossary dt {
     font-family: {{ theme_headfont }};
 }
 
@@ -20,7 +20,7 @@ h1.heading {
 }
 
 h1.heading:hover {
-    background: #73626E;
+    background: {{ theme_headerhover }};
 }
 
 h1.heading a {
@@ -95,4 +95,34 @@ dl.glossary dt {
 p.glossary-alphabet {
     font-weight: bold;
     text-align: center;
+}
+
+
+div.admonition-ref-glossary, div.admonition-ref-bibliography, div.admonition-ref-mmref-intro, div.admonition-ref-mmref-faq {
+    width: 45%;
+    display: inline-block;
+    vertical-align: top;
+}
+
+div.admonition-ref-glossary, div.admonition-ref-bibliography {
+    margin-right: 1%;
+}
+
+div.admonition-ref-mmref-intro, div.admonition-ref-mmref-faq {
+    margin-left: 1%;
+}
+
+div.admonition a.image-reference img {
+    width: 90%;
+    margin-left: 5%;
+    margin-top: 5px;
+}
+
+div#home h1 {
+    display: none;
+}
+
+div#home h1 + p {
+    margin-top: 0;
+    padding-top: 15px;
 }

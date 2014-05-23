@@ -19,6 +19,12 @@ Memory Management Reference
 ###########################
 
 .. toctree::
+    :hidden:
+
+    mmref-index
+    mmref-copyright
+
+.. toctree::
     :maxdepth: 2
 
     mmref/index
