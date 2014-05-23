@@ -1,3 +1,8 @@
+2014-05-23  Glenn Morris  <rgm@gnu.org>
+
+	* hippie-exp.el (he-line-search-regexp):
+	Handle comint-prompt-regexp containing subgroups.  (Bug#17529)
+
 2014-05-23  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el: Remove dependence on auto-mode-alist,
