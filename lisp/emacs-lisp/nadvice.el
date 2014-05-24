@@ -232,11 +232,12 @@ different, but `function-equal' will hopefully ignore those differences.")
           ;; This function acts like the t special value in buffer-local hooks.
           (lambda (&rest args) (apply (default-value var) args)))))
 
-(defun advice--normalize-place (place)
-  (cond ((eq 'local (car-safe place)) `(advice--buffer-local ,@(cdr place)))
-        ((eq 'var (car-safe place))   (nth 1 place))
-        ((symbolp place)              `(default-value ',place))
-        (t place)))
+(eval-and-compile
+  (defun advice--normalize-place (place)
+    (cond ((eq 'local (car-safe place)) `(advice--buffer-local ,@(cdr place)))
+          ((eq 'var (car-safe place))   (nth 1 place))
+          ((symbolp place)              `(default-value ',place))
+          (t place))))
 
 ;;;###autoload
 (defmacro add-function (where place function &optional props)

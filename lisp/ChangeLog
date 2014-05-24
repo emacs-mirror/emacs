@@ -1,3 +1,8 @@
+2014-05-24  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/nadvice.el (defun): Write in eval-and-compile to avoid
+	breaking the build.
+
 2014-05-24  Leo Liu  <sdl.web@gmail.com>
 
 	* calc/calc.el (math-bignum): Handle most-negative-fixnum.  (Bug#17556)
