@@ -1,7 +1,3 @@
-.. Memory Pool System documentation master file, created by
-   sphinx-quickstart on Tue Oct  9 11:21:17 2012.
-
-
 Memory Pool System
 ##################
 
@@ -15,32 +11,26 @@ Memory Pool System
     design/old
 
 
-Memory Management Reference
-###########################
-
-.. toctree::
-    :hidden:
-
-    mmref-index
-    mmref-copyright
-
-.. toctree::
-    :maxdepth: 2
-
-    mmref/index
-    mmref/bib
-    mmref/credit
-
-
 Appendices
 ##########
 
 .. toctree::
     :maxdepth: 1
 
+    bib
     glossary/index
     copyright
     contact
     release
 
 * :ref:`genindex`
+
+
+.. toctree::
+    :hidden:
+
+    mmref/index
+    mmref-index
+    mmref/faq
+    mmref-copyright
+    mmref/credit
