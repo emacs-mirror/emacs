@@ -1,3 +1,7 @@
+2014-05-24  Leo Liu  <sdl.web@gmail.com>
+
+	* calc/calc.el (math-bignum): Handle most-negative-fixnum.  (Bug#17556)
+
 2014-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--sreverse): Remove.
