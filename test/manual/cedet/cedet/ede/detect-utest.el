@@ -47,7 +47,10 @@ Each entry is a cons cell:
 
 (defvar ede-detect-utest-project-dirmatch-list
   '(
+    ("src/dirmatch/MyDirmatch/sub/dmlib.cpp" . ede-detect-test-dirmatch-project-p)
     ("src/dirmatch/MyDirmatch/MyDirmatch.cpp" . ede-detect-test-dirmatch-project-p)
+    ("src/arduino/Blink/sub/lib.cpp" . ede-arduino-project-p)
+    ("src/arduino/Blink/Blink.ino" . ede-arduino-project-p)
     )
   "List of sources to load in projects detected via DIRMATCH feature.
 Each entry is a cons cell:
@@ -94,6 +97,12 @@ Each entry is a cons cell:
 	    (push "dirtest noload expected" errlog))
 	(semantic-ia-utest-log "** Successfully did not load DIRTEST project."))
 
+      (if (featurep 'ede/arduino)
+	  (progn
+	    (semantic-ia-utest-log  "!! Project type using Arduino loaded unexpectedly.")
+	    (push "arduino noload expected" errlog))
+	(semantic-ia-utest-log "** Successfully did not load Arduino project."))
+
       ;; Now make sure that DIRTEST is testing properly.
       (ede-detect-utest-loop ede-detect-utest-project-dirmatch-list)
 
@@ -104,6 +113,12 @@ Each entry is a cons cell:
 	    (semantic-ia-utest-log  "!! Project type using DIRTEST didn't load.")
 	    (push "dirtest load expected" errlog))
 	(semantic-ia-utest-log "** Successfully loaded DIRTEST project."))
+
+      (if (not (featurep 'ede/arduino))
+	  (progn
+	    (semantic-ia-utest-log  "!! Project type using Arduino didn't loaded.")
+	    (push "arduino load expected" errlog))
+	(semantic-ia-utest-log "** Successfully loaded Arduino project."))
 
       ;; Close out the test suite.
       (cedet-utest-log-shutdown
@@ -227,8 +242,15 @@ Each entry is a cons cell:
 		    temporary-file-directory)
   "A config file to use with DIRTEST.")
 
+(defvar ede-detect-utest-arduino-fname
+  (expand-file-name (concat (make-temp-name "utest-arduino-") ".txt")
+		    temporary-file-directory)
+  "A config file to use with detection of arduino.")
+
 (defun ede-detect-utest-init-dirmatch ()
   "Init the config file for for dirtesting."
+
+  ;; Setup the DIRMATCH project type.
   (let ((mypath (expand-file-name "dirmatch" (ede-detect-utest-basedir))))
     ;;(message "Dirmatch Location: %s" mypath)
     (save-excursion
@@ -236,7 +258,29 @@ Each entry is a cons cell:
       (erase-buffer)
       (insert "path=" mypath "\n")
       (save-buffer 0)
-      )))
+      ))
+
+  ;; Override some bits of the ARDUINO project type.
+  (setq ede-arduino-preferences-file ede-detect-utest-arduino-fname)
+
+  (let ((mypath (expand-file-name "arduino" (ede-detect-utest-basedir))))
+    ;;(message "Dirmatch Location: %s" mypath)
+    (save-excursion
+      (set-buffer (semantic-find-file-noselect ede-detect-utest-arduino-fname))
+      (erase-buffer)
+      (insert "sketchbook.path=" mypath "\n"
+	      "serial.port=tty00\n"
+	      "board=uno\n")
+      (save-buffer 0)
+      ) )
+  ;; Now we need to augment the existing autoloader for arduino.
+  (let* ((arduinoauto (object-assoc 'ede/arduino :file
+				    ede-project-class-files))
+	 (adm (oref arduinoauto proj-root-dirmatch)))
+    ;; Splice the new tmp pref file into the system.
+    (oset adm :fromconfig ede-arduino-preferences-file))
+
+  )
 
 (ede-add-project-autoload
  (ede-project-autoload "dirmatchtest"
