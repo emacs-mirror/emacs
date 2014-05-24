@@ -134,3 +134,8 @@ div#home h1 + p {
     margin-top: 0;
     padding-top: 15px;
 }
+
+div#memory-management-glossary em.xref.std-term {
+    white-space: no-wrap;
+    margin-right: 1em;
+}
