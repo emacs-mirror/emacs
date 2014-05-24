@@ -355,8 +355,10 @@ searching subwords in order to avoid unwanted reentrancy.")
         (save-restriction
           (if (< pos limit)
               (progn
+                (goto-char pos)
                 (narrow-to-region (point-min) limit)
                 (funcall subword-forward-function))
+            (goto-char (1+ pos))
             (narrow-to-region limit (point-max))
             (funcall subword-backward-function))
           (point))))))

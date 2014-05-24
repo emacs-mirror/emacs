@@ -1,5 +1,8 @@
 2014-05-24  Daniel Colascione  <dancol@dancol.org>
 
+	* progmodes/subword.el (subword-find-word-boundary): Move point to
+	correct spot before search. (Bug#17580)
+
 	* emacs-lisp/nadvice.el (defun): Write in eval-and-compile to avoid
 	breaking the build.
 
