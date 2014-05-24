@@ -4550,75 +4550,43 @@ FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
 }
 
 
-DEFUN ("x-window-property", Fx_window_property, Sx_window_property,
-       1, 6, 0,
-       doc: /* Value is the value of window property PROP on FRAME.
-If FRAME is nil or omitted, use the selected frame.
-
-On X Windows, the following optional arguments are also accepted:
-If TYPE is nil or omitted, get the property as a string.
-Otherwise TYPE is the name of the atom that denotes the type expected.
-If SOURCE is non-nil, get the property on that window instead of from
-FRAME.  The number 0 denotes the root window.
-If DELETE-P is non-nil, delete the property after retrieving it.
-If VECTOR-RET-P is non-nil, don't return a string but a vector of values.
-
-On MS Windows, this function accepts but ignores those optional arguments.
-
-Value is nil if FRAME hasn't a property with name PROP or if PROP has
-no value of TYPE (always string in the MS Windows case).  */)
-  (Lisp_Object prop, Lisp_Object frame, Lisp_Object type,
-   Lisp_Object source, Lisp_Object delete_p, Lisp_Object vector_ret_p)
+static Lisp_Object
+x_window_property_intern (struct frame *f,
+                          Window target_window,
+                          Atom prop_atom,
+                          Atom target_type,
+                          Lisp_Object delete_p,
+                          Lisp_Object vector_ret_p,
+                          bool *found)
 {
-  struct frame *f = decode_window_system_frame (frame);
-  Atom prop_atom;
-  int rc;
-  Lisp_Object prop_value = Qnil;
   unsigned char *tmp_data = NULL;
+  Lisp_Object prop_value = Qnil;
   Atom actual_type;
-  Atom target_type = XA_STRING;
   int actual_format;
   unsigned long actual_size, bytes_remaining;
-  Window target_window = FRAME_X_WINDOW (f);
+  int rc;
   struct gcpro gcpro1;
 
   GCPRO1 (prop_value);
-  CHECK_STRING (prop);
 
-  if (! NILP (source))
-    {
-      CONS_TO_INTEGER (source, Window, target_window);
-      if (! target_window)
-	target_window = FRAME_DISPLAY_INFO (f)->root_window;
-    }
-
-  block_input ();
-  if (STRINGP (type))
-    {
-      if (strcmp ("AnyPropertyType", SSDATA (type)) == 0)
-        target_type = AnyPropertyType;
-      else
-        target_type = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (type), False);
-    }
-
-  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (prop), False);
   rc = XGetWindowProperty (FRAME_X_DISPLAY (f), target_window,
 			   prop_atom, 0, 0, False, target_type,
 			   &actual_type, &actual_format, &actual_size,
 			   &bytes_remaining, &tmp_data);
-  if (rc == Success)
-    {
-      int size = bytes_remaining;
 
+  *found = actual_format != 0;
+
+  if (rc == Success && *found)
+    {
       XFree (tmp_data);
       tmp_data = NULL;
 
       rc = XGetWindowProperty (FRAME_X_DISPLAY (f), target_window,
-			       prop_atom, 0, bytes_remaining,
-			       ! NILP (delete_p), target_type,
-			       &actual_type, &actual_format,
-			       &actual_size, &bytes_remaining,
-			       &tmp_data);
+                               prop_atom, 0, bytes_remaining,
+                               ! NILP (delete_p), target_type,
+                               &actual_type, &actual_format,
+                               &actual_size, &bytes_remaining,
+                               &tmp_data);
       if (rc == Success && tmp_data)
         {
           /* The man page for XGetWindowProperty says:
@@ -4646,7 +4614,7 @@ no value of TYPE (always string in the MS Windows case).  */)
             }
 
           if (NILP (vector_ret_p))
-            prop_value = make_string ((char *) tmp_data, size);
+            prop_value = make_string ((char *) tmp_data, actual_size);
           else
             prop_value = x_property_data_to_lisp (f,
                                                   tmp_data,
@@ -4657,6 +4625,81 @@ no value of TYPE (always string in the MS Windows case).  */)
 
       if (tmp_data) XFree (tmp_data);
     }
+
+  UNGCPRO;
+  return prop_value;
+}
+
+DEFUN ("x-window-property", Fx_window_property, Sx_window_property,
+       1, 6, 0,
+       doc: /* Value is the value of window property PROP on FRAME.
+If FRAME is nil or omitted, use the selected frame.
+
+On X Windows, the following optional arguments are also accepted:
+If TYPE is nil or omitted, get the property as a string.
+Otherwise TYPE is the name of the atom that denotes the type expected.
+If SOURCE is non-nil, get the property on that window instead of from
+FRAME.  The number 0 denotes the root window.
+If DELETE-P is non-nil, delete the property after retrieving it.
+If VECTOR-RET-P is non-nil, don't return a string but a vector of values.
+
+On MS Windows, this function accepts but ignores those optional arguments.
+
+Value is nil if FRAME hasn't a property with name PROP or if PROP has
+no value of TYPE (always string in the MS Windows case).  */)
+  (Lisp_Object prop, Lisp_Object frame, Lisp_Object type,
+   Lisp_Object source, Lisp_Object delete_p, Lisp_Object vector_ret_p)
+{
+  struct frame *f = decode_window_system_frame (frame);
+  Atom prop_atom;
+  int rc;
+  Lisp_Object prop_value = Qnil;
+  Atom target_type = XA_STRING;
+  Window target_window = FRAME_X_WINDOW (f);
+  struct gcpro gcpro1;
+  bool found;
+
+  GCPRO1 (prop_value);
+  CHECK_STRING (prop);
+
+  if (! NILP (source))
+    {
+      CONS_TO_INTEGER (source, Window, target_window);
+      if (! target_window)
+	target_window = FRAME_DISPLAY_INFO (f)->root_window;
+    }
+
+  block_input ();
+  if (STRINGP (type))
+    {
+      if (strcmp ("AnyPropertyType", SSDATA (type)) == 0)
+        target_type = AnyPropertyType;
+      else
+        target_type = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (type), False);
+    }
+
+  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (prop), False);
+  prop_value = x_window_property_intern (f,
+                                         target_window,
+                                         prop_atom,
+                                         target_type,
+                                         delete_p,
+                                         vector_ret_p,
+                                         &found);
+  if (NILP (prop_value)
+      && ! found
+      && NILP (source)
+      && target_window != FRAME_OUTER_WINDOW (f))
+    {
+      prop_value = x_window_property_intern (f,
+                                             FRAME_OUTER_WINDOW (f),
+                                             prop_atom,
+                                             target_type,
+                                             delete_p,
+                                             vector_ret_p,
+                                             &found);
+    }
+  
 
   unblock_input ();
   UNGCPRO;

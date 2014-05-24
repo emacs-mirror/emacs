@@ -1,3 +1,11 @@
+2014-05-24  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_window_property_intern): New function (code from
+	x_window_property).
+	(Fx_window_property): Call x_window_property_intern.  If property
+	not found and NILP (source) and outer window != inner window,
+	check outer window for property (Bug#17537).
+
 2014-05-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Supply malloc and alloc_size attributes for extern allocators.
