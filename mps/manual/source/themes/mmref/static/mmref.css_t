@@ -136,6 +136,6 @@ div#home h1 + p {
 }
 
 div#memory-management-glossary em.xref.std-term {
-    white-space: no-wrap;
+    white-space: nowrap;
     margin-right: 1em;
 }
