@@ -32,7 +32,7 @@ Welcome to the **Memory Management Reference**!  This is a resource for programm
     .. image:: diagrams/copying.svg
         :target: bib_
 
-    .. _bib: mmref/bib.html#bibliography
+    .. _bib: bib.html#bibliography
 
 
 .. admonition:: :ref:`mmref-faq`
