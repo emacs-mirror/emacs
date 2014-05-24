@@ -1,3 +1,18 @@
+2014-05-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* alloc.c (garbage_collect_1): New function, with all of the guts
+	of Fgarbage_collect.
+	(mark_stack): Accept an argument END and don't mark Lisp objects
+	on the stack beyond the address given by END.  Calculation of END
+	was moved to Fgarbage_collect.
+	(Fgarbage_collect): Calculate the end address of the stack portion
+	that needs to be examined by mark_stack, and pass that address to
+	garbage_collect_1, which will pass it to mark_stack. See
+	http://lists.gnu.org/archive/html/emacs-devel/2014-05/msg00270.html
+	for more details about the underlying problems.  In particular,
+	this avoids dumping Emacs with the large hash-table whose value is
+	held in purify-flag for most of the time loadup.el runs.
+
 2014-05-24  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_window_property_intern): New function (code from

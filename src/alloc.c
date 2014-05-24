@@ -4876,61 +4876,8 @@ dump_zombies (void)
    from the stack start.  */
 
 static void
-mark_stack (void)
+mark_stack (void *end)
 {
-  void *end;
-
-#ifdef HAVE___BUILTIN_UNWIND_INIT
-  /* Force callee-saved registers and register windows onto the stack.
-     This is the preferred method if available, obviating the need for
-     machine dependent methods.  */
-  __builtin_unwind_init ();
-  end = &end;
-#else /* not HAVE___BUILTIN_UNWIND_INIT */
-#ifndef GC_SAVE_REGISTERS_ON_STACK
-  /* jmp_buf may not be aligned enough on darwin-ppc64 */
-  union aligned_jmpbuf {
-    Lisp_Object o;
-    sys_jmp_buf j;
-  } j;
-  volatile bool stack_grows_down_p = (char *) &j > (char *) stack_base;
-#endif
-  /* This trick flushes the register windows so that all the state of
-     the process is contained in the stack.  */
-  /* Fixme: Code in the Boehm GC suggests flushing (with `flushrs') is
-     needed on ia64 too.  See mach_dep.c, where it also says inline
-     assembler doesn't work with relevant proprietary compilers.  */
-#ifdef __sparc__
-#if defined (__sparc64__) && defined (__FreeBSD__)
-  /* FreeBSD does not have a ta 3 handler.  */
-  asm ("flushw");
-#else
-  asm ("ta 3");
-#endif
-#endif
-
-  /* Save registers that we need to see on the stack.  We need to see
-     registers used to hold register variables and registers used to
-     pass parameters.  */
-#ifdef GC_SAVE_REGISTERS_ON_STACK
-  GC_SAVE_REGISTERS_ON_STACK (end);
-#else /* not GC_SAVE_REGISTERS_ON_STACK */
-
-#ifndef GC_SETJMP_WORKS  /* If it hasn't been checked yet that
-			    setjmp will definitely work, test it
-			    and print a message with the result
-			    of the test.  */
-  if (!setjmp_tested_p)
-    {
-      setjmp_tested_p = 1;
-      test_setjmp ();
-    }
-#endif /* GC_SETJMP_WORKS */
-
-  sys_setjmp (j.j);
-  end = stack_grows_down_p ? (char *) &j + sizeof j : (char *) &j;
-#endif /* not GC_SAVE_REGISTERS_ON_STACK */
-#endif /* not HAVE___BUILTIN_UNWIND_INIT */
 
   /* This assumes that the stack is a contiguous region in memory.  If
      that's not the case, something has to be done here to iterate
@@ -5538,22 +5485,15 @@ mark_pinned_symbols (void)
     }
 }
 
-DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
-       doc: /* Reclaim storage for Lisp objects no longer needed.
-Garbage collection happens automatically if you cons more than
-`gc-cons-threshold' bytes of Lisp data since previous garbage collection.
-`garbage-collect' normally returns a list with info on amount of space in use,
-where each entry has the form (NAME SIZE USED FREE), where:
-- NAME is a symbol describing the kind of objects this entry represents,
-- SIZE is the number of bytes used by each one,
-- USED is the number of those objects that were found live in the heap,
-- FREE is the number of those objects that are not live but that Emacs
-  keeps around for future allocations (maybe because it does not know how
-  to return them to the OS).
-However, if there was overflow in pure space, `garbage-collect'
-returns nil, because real GC can't be done.
-See Info node `(elisp)Garbage Collection'.  */)
-  (void)
+/* Subroutine of Fgarbage_collect that does most of the work.  It is a
+   separate function so that we could limit mark_stack in searching
+   the stack frames below this function, thus avoiding the rare cases
+   where mark_stack finds values that look like live Lisp objects on
+   portions of stack that couldn't possibly contain such live objects.
+   For more details of this, see the discussion at
+   http://lists.gnu.org/archive/html/emacs-devel/2014-05/msg00270.html.  */
+static Lisp_Object
+garbage_collect_1 (void *end)
 {
   struct buffer *nextb;
   char stack_top_variable;
@@ -5651,7 +5591,7 @@ See Info node `(elisp)Garbage Collection'.  */)
 
 #if (GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS \
      || GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS)
-  mark_stack ();
+  mark_stack (end);
 #else
   {
     register struct gcpro *tail;
@@ -5674,7 +5614,7 @@ See Info node `(elisp)Garbage Collection'.  */)
 #endif
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
-  mark_stack ();
+  mark_stack (end);
 #endif
 
   /* Everything is now marked, except for the data in font caches
@@ -5834,6 +5774,82 @@ See Info node `(elisp)Garbage Collection'.  */)
   return retval;
 }
 
+DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
+       doc: /* Reclaim storage for Lisp objects no longer needed.
+Garbage collection happens automatically if you cons more than
+`gc-cons-threshold' bytes of Lisp data since previous garbage collection.
+`garbage-collect' normally returns a list with info on amount of space in use,
+where each entry has the form (NAME SIZE USED FREE), where:
+- NAME is a symbol describing the kind of objects this entry represents,
+- SIZE is the number of bytes used by each one,
+- USED is the number of those objects that were found live in the heap,
+- FREE is the number of those objects that are not live but that Emacs
+  keeps around for future allocations (maybe because it does not know how
+  to return them to the OS).
+However, if there was overflow in pure space, `garbage-collect'
+returns nil, because real GC can't be done.
+See Info node `(elisp)Garbage Collection'.  */)
+  (void)
+{
+#if (GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS		\
+     || GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS	\
+     || GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES)
+  void *end;
+
+#ifdef HAVE___BUILTIN_UNWIND_INIT
+  /* Force callee-saved registers and register windows onto the stack.
+     This is the preferred method if available, obviating the need for
+     machine dependent methods.  */
+  __builtin_unwind_init ();
+  end = &end;
+#else /* not HAVE___BUILTIN_UNWIND_INIT */
+#ifndef GC_SAVE_REGISTERS_ON_STACK
+  /* jmp_buf may not be aligned enough on darwin-ppc64 */
+  union aligned_jmpbuf {
+    Lisp_Object o;
+    sys_jmp_buf j;
+  } j;
+  volatile bool stack_grows_down_p = (char *) &j > (char *) stack_base;
+#endif
+  /* This trick flushes the register windows so that all the state of
+     the process is contained in the stack.  */
+  /* Fixme: Code in the Boehm GC suggests flushing (with `flushrs') is
+     needed on ia64 too.  See mach_dep.c, where it also says inline
+     assembler doesn't work with relevant proprietary compilers.  */
+#ifdef __sparc__
+#if defined (__sparc64__) && defined (__FreeBSD__)
+  /* FreeBSD does not have a ta 3 handler.  */
+  asm ("flushw");
+#else
+  asm ("ta 3");
+#endif
+#endif
+
+  /* Save registers that we need to see on the stack.  We need to see
+     registers used to hold register variables and registers used to
+     pass parameters.  */
+#ifdef GC_SAVE_REGISTERS_ON_STACK
+  GC_SAVE_REGISTERS_ON_STACK (end);
+#else /* not GC_SAVE_REGISTERS_ON_STACK */
+
+#ifndef GC_SETJMP_WORKS  /* If it hasn't been checked yet that
+			    setjmp will definitely work, test it
+			    and print a message with the result
+			    of the test.  */
+  if (!setjmp_tested_p)
+    {
+      setjmp_tested_p = 1;
+      test_setjmp ();
+    }
+#endif /* GC_SETJMP_WORKS */
+
+  sys_setjmp (j.j);
+  end = stack_grows_down_p ? (char *) &j + sizeof j : (char *) &j;
+#endif /* not GC_SAVE_REGISTERS_ON_STACK */
+#endif /* not HAVE___BUILTIN_UNWIND_INIT */
+#endif /* GC_MARK_STACK */
+  return garbage_collect_1 (end);
+}
 
 /* Mark Lisp objects in glyph matrix MATRIX.  Currently the
    only interesting objects referenced from glyphs are strings.  */
