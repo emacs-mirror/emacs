@@ -1,3 +1,11 @@
+2014-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c: Bind inhibit-quit during pre-redisplay-function.
+	(safe__call, safe__call1, safe__eval): New functions.
+	(safe_call): Use it.
+	(prepare_menu_bars): Use it for pre-redisplay-function (bug#17577).
+	(display_mode_element): Same for `:eval'.
+
 2014-05-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix port to 32-bit AIX (Bug#17540).
