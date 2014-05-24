@@ -1,3 +1,8 @@
+2014-05-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Specify coding if Latin-1 Emacs would misinterpret (Bug#17575).
+	* ETAGS.EBNF, NEWS, ORG-NEWS: Add "coding: utf-8".
+
 2014-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* refcards/cs-dired-ref.tex, refcards/cs-refcard.tex:

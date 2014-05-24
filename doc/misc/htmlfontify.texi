@@ -1589,3 +1589,7 @@ A copy of the @code{file} command.
 
 @setchapternewpage odd
 @bye
+
+@c Local Variables:
+@c coding: utf-8
+@c End:

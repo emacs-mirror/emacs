@@ -18208,6 +18208,7 @@ org-customize @key{RET}} and then click yourself through the tree.
 @bye
 
 @c Local variables:
+@c coding: utf-8
 @c fill-column: 77
 @c indent-tabs-mode: nil
 @c paragraph-start:    "\\|^@[a-zA-Z]*[ \n]\\|^@x?org\\(key\\|cmd\\)\\|\f\\|[ 	]*$"

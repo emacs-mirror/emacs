@@ -1,3 +1,8 @@
+2014-05-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Specify coding if Latin-1 Emacs would misinterpret (Bug#17575).
+	* htmlfontify.texi, org.texi: Add "coding: utf-8".
+
 2014-05-23  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todo-mode.texi: Update in light of changes due to bug#17482.

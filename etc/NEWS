@@ -4072,6 +4072,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 
 Local variables:
+coding: utf-8
 mode: outline
 paragraph-separate: "[ 	]*$"
 end:
