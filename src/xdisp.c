@@ -2646,7 +2646,7 @@ safe_call1 (Lisp_Object fn, Lisp_Object arg)
   return safe_call (2, fn, arg);
 }
 
-Lisp_Object
+static Lisp_Object
 safe__call1 (bool inhibit_quit, Lisp_Object fn, ...)
 {
   Lisp_Object retval;
@@ -2666,7 +2666,7 @@ safe_eval (Lisp_Object sexpr)
   return safe__call1 (false, Qeval, sexpr);
 }
 
-Lisp_Object
+static Lisp_Object
 safe__eval (bool inhibit_quit, Lisp_Object sexpr)
 {
   return safe__call1 (inhibit_quit, Qeval, sexpr);
