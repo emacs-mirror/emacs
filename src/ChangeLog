@@ -1,3 +1,9 @@
+2014-05-24  Ken Brown  <kbrown@cornell.edu>
+
+	* w32term.c (x_delete_display) [CYGWIN]: Don't free
+	dpyinfo->w32_id_name, to make sure it doesn't get freed more than
+	once.  (Bug#17510)
+
 2014-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c: Bind inhibit-quit during pre-redisplay-function.
