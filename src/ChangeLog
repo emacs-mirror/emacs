@@ -1,3 +1,9 @@
+2014-05-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (safe__call): Accept va_list argument instead of '...'.
+	(safe_call, safe__call1): Construct a va_list argument for safe_call.
+	(safe_call1): Call safe_call instead of safe__call directly.
+
 2014-05-24  Ken Brown  <kbrown@cornell.edu>
 
 	* w32term.c (x_delete_display) [CYGWIN]: Don't free

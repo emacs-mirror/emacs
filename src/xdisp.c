@@ -2592,7 +2592,7 @@ safe_eval_handler (Lisp_Object arg, ptrdiff_t nargs, Lisp_Object *args)
    wrong.  Prevent redisplay during the evaluation.  */
 
 static Lisp_Object
-safe__call (bool inhibit_quit, ptrdiff_t nargs, Lisp_Object func, ...)
+safe__call (bool inhibit_quit, ptrdiff_t nargs, Lisp_Object func, va_list ap)
 {
   Lisp_Object val;
 
@@ -2600,17 +2600,14 @@ safe__call (bool inhibit_quit, ptrdiff_t nargs, Lisp_Object func, ...)
     val = Qnil;
   else
     {
-      va_list ap;
       ptrdiff_t i;
       ptrdiff_t count = SPECPDL_INDEX ();
       struct gcpro gcpro1;
       Lisp_Object *args = alloca (nargs * word_size);
 
       args[0] = func;
-      va_start (ap, func);
       for (i = 1; i < nargs; i++)
 	args[i] = va_arg (ap, Lisp_Object);
-      va_end (ap);
 
       GCPRO1 (args[0]);
       gcpro1.nvars = nargs;
@@ -2631,7 +2628,13 @@ safe__call (bool inhibit_quit, ptrdiff_t nargs, Lisp_Object func, ...)
 Lisp_Object
 safe_call (ptrdiff_t nargs, Lisp_Object func, ...)
 {
-  return safe__call (false, nargs, func);
+  Lisp_Object retval;
+  va_list ap;
+
+  va_start (ap, func);
+  retval = safe__call (false, nargs, func, ap);
+  va_end (ap);
+  return retval;
 }
 
 /* Call function FN with one argument ARG.
@@ -2640,13 +2643,19 @@ safe_call (ptrdiff_t nargs, Lisp_Object func, ...)
 Lisp_Object
 safe_call1 (Lisp_Object fn, Lisp_Object arg)
 {
-  return safe__call (false, 2, fn, arg);
+  return safe_call (2, fn, arg);
 }
 
 Lisp_Object
-safe__call1 (bool inhibit_quit, Lisp_Object fn, Lisp_Object arg)
+safe__call1 (bool inhibit_quit, Lisp_Object fn, ...)
 {
-  return safe__call (inhibit_quit, 2, fn, arg);
+  Lisp_Object retval;
+  va_list ap;
+
+  va_start (ap, fn);
+  retval = safe__call (inhibit_quit, 2, fn, ap);
+  va_end (ap);
+  return retval;
 }
 
 static Lisp_Object Qeval;
