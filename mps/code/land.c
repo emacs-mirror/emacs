@@ -236,15 +236,15 @@ Res LandDelete(Range rangeReturn, Land land, Range range)
 
 Bool LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS)
 {
-  Bool res;
+  Bool b;
   AVERT(Land, land);
   AVER(FUNCHECK(visitor));
   landEnter(land);
 
-  res = (*land->class->iterate)(land, visitor, closureP, closureS);
+  b = (*land->class->iterate)(land, visitor, closureP, closureS);
 
   landLeave(land);
-  return res;
+  return b;
 }
 
 
@@ -256,15 +256,15 @@ Bool LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS)
 
 Bool LandIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closureP, Size closureS)
 {
-  Bool res;
+  Bool b;
   AVERT(Land, land);
   AVER(FUNCHECK(visitor));
   landEnter(land);
 
-  res = (*land->class->iterateAndDelete)(land, visitor, closureP, closureS);
+  b = (*land->class->iterateAndDelete)(land, visitor, closureP, closureS);
 
   landLeave(land);
-  return res;
+  return b;
 }
 
 
@@ -275,7 +275,7 @@ Bool LandIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closureP, 
 
 Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
-  Bool res;
+  Bool b;
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -284,11 +284,11 @@ Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size
   AVER(FindDeleteCheck(findDelete));
   landEnter(land);
 
-  res = (*land->class->findFirst)(rangeReturn, oldRangeReturn, land, size,
-                                  findDelete);
+  b = (*land->class->findFirst)(rangeReturn, oldRangeReturn, land, size,
+                                findDelete);
 
   landLeave(land);
-  return res;
+  return b;
 }
 
 
@@ -299,7 +299,7 @@ Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size
 
 Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
-  Bool res;
+  Bool b;
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -308,11 +308,11 @@ Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size,
   AVER(FindDeleteCheck(findDelete));
   landEnter(land);
 
-  res = (*land->class->findLast)(rangeReturn, oldRangeReturn, land, size,
-                                 findDelete);
+  b = (*land->class->findLast)(rangeReturn, oldRangeReturn, land, size,
+                               findDelete);
 
   landLeave(land);
-  return res;
+  return b;
 }
 
 
@@ -323,7 +323,7 @@ Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size,
 
 Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
-  Bool res;
+  Bool b;
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -332,11 +332,11 @@ Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size si
   AVER(FindDeleteCheck(findDelete));
   landEnter(land);
 
-  res = (*land->class->findLargest)(rangeReturn, oldRangeReturn, land, size,
-                                    findDelete);
+  b = (*land->class->findLargest)(rangeReturn, oldRangeReturn, land, size,
+                                  findDelete);
 
   landLeave(land);
-  return res;
+  return b;
 }
 
 
@@ -345,10 +345,11 @@ Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size si
  * See <design/land/#function.find.zones>
  */
 
-Res LandFindInZones(Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high)
+Res LandFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high)
 {
   Res res;
 
+  AVER(foundReturn != NULL);
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVERT(Land, land);
@@ -357,8 +358,8 @@ Res LandFindInZones(Range rangeReturn, Range oldRangeReturn, Land land, Size siz
   AVERT(Bool, high);
   landEnter(land);
 
-  res = (*land->class->findInZones)(rangeReturn, oldRangeReturn, land, size,
-                                    zoneSet, high);
+  res = (*land->class->findInZones)(foundReturn, rangeReturn, oldRangeReturn,
+                                    land, size, zoneSet, high);
 
   landLeave(land);
   return res;
@@ -432,12 +433,12 @@ static Bool landFlushVisitor(Bool *deleteReturn, Land land, Range range,
  * See <design/land/#function.flush>
  */
 
-void LandFlush(Land dest, Land src)
+Bool LandFlush(Land dest, Land src)
 {
   AVERT(Land, dest);
   AVERT(Land, src);
 
-  (void)LandIterateAndDelete(src, landFlushVisitor, dest, 0);
+  return LandIterateAndDelete(src, landFlushVisitor, dest, 0);
 }
 
 
@@ -504,7 +505,8 @@ static Bool landSizeVisitor(Land land, Range range,
 Size LandSlowSize(Land land)
 {
   Size size = 0;
-  (void)LandIterate(land, landSizeVisitor, &size, 0);
+  Bool b = LandIterate(land, landSizeVisitor, &size, 0);
+  AVER(b);
   return size;
 }
 
@@ -552,8 +554,9 @@ static Bool landNoFind(Range rangeReturn, Range oldRangeReturn, Land land, Size 
   return ResUNIMPL;
 }
 
-static Res landNoFindInZones(Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high)
+static Res landNoFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high)
 {
+  AVER(foundReturn != NULL);
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVERT(Land, land);

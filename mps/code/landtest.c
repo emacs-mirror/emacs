@@ -108,12 +108,14 @@ static Bool checkVisitor(Land land, Range range, void *closureP, Size closureS)
 static void check(TestState state)
 {
   CheckTestClosureStruct closure;
+  Bool b;
 
   closure.state = state;
   closure.limit = addrOfIndex(state, ArraySize);
   closure.oldLimit = state->block;
 
-  (void)LandIterate(state->land, checkVisitor, (void *)&closure, 0);
+  b = LandIterate(state->land, checkVisitor, (void *)&closure, 0);
+  Insist(b);
 
   if (closure.oldLimit == state->block)
     Insist(BTIsSetRange(state->allocTable, 0,

@@ -1239,7 +1239,8 @@ static void MVTRefillABQIfEmpty(MVT mvt, Size size)
   if (mvt->abqOverflow && ABQIsEmpty(MVTABQ(mvt))) {
     mvt->abqOverflow = FALSE;
     METER_ACC(mvt->refills, size);
-    (void)LandIterate(MVTFailover(mvt), &MVTRefillVisitor, mvt, 0);
+    /* The iteration stops if the ABQ overflows, so may finish or not. */
+    (void)LandIterate(MVTFailover(mvt), MVTRefillVisitor, mvt, 0);
   }
 }
  
