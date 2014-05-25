@@ -51,7 +51,7 @@ the block was allocated.
     to do the finalization. In such an implementation, the client
     program's finalization code may end up running concurrently with
     other code that accesses the underlying resource, and so access to
-    the resource need to be guarded with a lock, but then an unlucky
+    the resource needs to be guarded with a lock, but then an unlucky
     scheduling of finalization can result in deadlock. See :ref:`Boehm
     (2002) <BOEHM02>` for a detailed discussion of this issue.
 
@@ -170,8 +170,9 @@ Cautions
 
 #.  The MPS does not finalize objects in the context of
     :c:func:`mps_arena_destroy` or :c:func:`mps_pool_destroy`.
-    :c:func:`mps_pool_destroy` should therefore not be invoked on pools
-    containing objects registered for finalization.
+    Moreover, if you have pools containing objects registered for
+    finalization, you must destroy these pools by following the “safe
+    tear-down” procedure described under :c:func:`mps_pool_destroy`.
 
     .. note::
 
@@ -188,11 +189,6 @@ Cautions
         for a discussion of this problem.
 
     .. note::
-
-        You can safely destroy pools containing objects registered for
-        finalization if you follow the "safe tear-down" procedure
-        described under :c:func:`mps_pool_destroy`, but the objects do
-        not get finalized.
 
         The only reliable way to ensure that all finalizable objects
         are finalized is to maintain a table of :term:`weak
