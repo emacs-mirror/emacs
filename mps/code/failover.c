@@ -96,7 +96,7 @@ static Res failoverInsert(Range rangeReturn, Land land, Range range)
   /* Provide more opportunities for coalescence. See
    * <design/failover/#impl.assume.flush>.
    */
-  LandFlush(fo->primary, fo->secondary);
+  (void)LandFlush(fo->primary, fo->secondary);
 
   res = LandInsert(rangeReturn, fo->primary, range);
   if (res != ResOK && res != ResFAIL)
@@ -121,7 +121,7 @@ static Res failoverDelete(Range rangeReturn, Land land, Range range)
   /* Prefer efficient search in the primary. See
    * <design/failover/#impl.assume.flush>.
    */
-  LandFlush(fo->primary, fo->secondary);
+  (void)LandFlush(fo->primary, fo->secondary);
 
   res = LandDelete(&oldRange, fo->primary, range);
 
@@ -144,16 +144,22 @@ static Res failoverDelete(Range rangeReturn, Land land, Range range)
       /* Don't call LandInsert(..., land, ...) here: that would be
        * re-entrant and fail the landEnter check. */
       res = LandInsert(&dummyRange, fo->primary, &left);
-      if (res != ResOK && res != ResFAIL)
+      if (res != ResOK) {
+        /* The range was successful deleted from the primary above. */
+        AVER(res != ResFAIL);
         res = LandInsert(&dummyRange, fo->secondary, &left);
-      AVER(res == ResOK);
+        AVER(res == ResOK);
+      }
     }
     RangeInit(&right, RangeLimit(range), RangeLimit(&oldRange));
     if (!RangeIsEmpty(&right)) {
       res = LandInsert(&dummyRange, fo->primary, &right);
-      if (res != ResOK && res != ResFAIL)
+      if (res != ResOK) {
+        /* The range was successful deleted from the primary above. */
+        AVER(res != ResFAIL);
         res = LandInsert(&dummyRange, fo->secondary, &right);
-      AVER(res == ResOK);
+        AVER(res == ResOK);
+      }
     }
   }
   if (res == ResOK) {
@@ -190,7 +196,7 @@ static Bool failoverFindFirst(Range rangeReturn, Range oldRangeReturn, Land land
   AVERT(FindDelete, findDelete);
 
   /* See <design/failover/#impl.assume.flush>. */
-  LandFlush(fo->primary, fo->secondary);
+  (void)LandFlush(fo->primary, fo->secondary);
 
   return LandFindFirst(rangeReturn, oldRangeReturn, fo->primary, size, findDelete)
     || LandFindFirst(rangeReturn, oldRangeReturn, fo->secondary, size, findDelete);
@@ -209,7 +215,7 @@ static Bool failoverFindLast(Range rangeReturn, Range oldRangeReturn, Land land,
   AVERT(FindDelete, findDelete);
 
   /* See <design/failover/#impl.assume.flush>. */
-  LandFlush(fo->primary, fo->secondary);
+  (void)LandFlush(fo->primary, fo->secondary);
 
   return LandFindLast(rangeReturn, oldRangeReturn, fo->primary, size, findDelete)
     || LandFindLast(rangeReturn, oldRangeReturn, fo->secondary, size, findDelete);
@@ -228,17 +234,20 @@ static Bool failoverFindLargest(Range rangeReturn, Range oldRangeReturn, Land la
   AVERT(FindDelete, findDelete);
 
   /* See <design/failover/#impl.assume.flush>. */
-  LandFlush(fo->primary, fo->secondary);
+  (void)LandFlush(fo->primary, fo->secondary);
 
   return LandFindLargest(rangeReturn, oldRangeReturn, fo->primary, size, findDelete)
     || LandFindLargest(rangeReturn, oldRangeReturn, fo->secondary, size, findDelete);
 }
 
 
-static Bool failoverFindInZones(Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high)
+static Bool failoverFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high)
 {
   Failover fo;
+  Bool found = FALSE;
+  Res res;
 
+  AVER(foundReturn != NULL);
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVERT(Land, land);
@@ -248,10 +257,14 @@ static Bool failoverFindInZones(Range rangeReturn, Range oldRangeReturn, Land la
   AVERT(Bool, high);
 
   /* See <design/failover/#impl.assume.flush>. */
-  LandFlush(fo->primary, fo->secondary);
+  (void)LandFlush(fo->primary, fo->secondary);
 
-  return LandFindInZones(rangeReturn, oldRangeReturn, fo->primary, size, zoneSet, high)
-    || LandFindInZones(rangeReturn, oldRangeReturn, fo->secondary, size, zoneSet, high);
+  res = LandFindInZones(&found, rangeReturn, oldRangeReturn, fo->primary, size, zoneSet, high);
+  if (res != ResOK || !found)
+    res = LandFindInZones(&found, rangeReturn, oldRangeReturn, fo->secondary, size, zoneSet, high);
+
+  *foundReturn = found;
+  return res;
 }
 
 

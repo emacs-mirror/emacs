@@ -32,7 +32,7 @@ typedef union FreelistBlockUnion {
 /* freelistEND -- the end of a list
  *
  * The end of a list should not be represented with NULL, as this is
- * ambiguous. However, freelistEND in fact a null pointer for
+ * ambiguous. However, freelistEND is in fact a null pointer, for
  * performance. To check whether you have it right, try temporarily
  * defining freelistEND as ((FreelistBlock)2) or similar (it must be
  * an even number because of the use of a tag).
@@ -666,8 +666,8 @@ static Bool freelistFindLargest(Range rangeReturn, Range oldRangeReturn,
 }
 
 
-static Res freelistFindInZones(Range rangeReturn, Range oldRangeReturn,
-                               Land land, Size size,
+static Res freelistFindInZones(Bool *foundReturn, Range rangeReturn,
+                               Range oldRangeReturn, Land land, Size size,
                                ZoneSet zoneSet, Bool high)
 {
   Freelist fl;
@@ -691,16 +691,14 @@ static Res freelistFindInZones(Range rangeReturn, Range oldRangeReturn,
   search = high ? RangeInZoneSetLast : RangeInZoneSetFirst;
 
   if (zoneSet == ZoneSetEMPTY)
-    return ResFAIL;
+    goto fail;
   if (zoneSet == ZoneSetUNIV) {
     FindDelete fd = high ? FindDeleteHIGH : FindDeleteLOW;
-    if ((*landFind)(rangeReturn, oldRangeReturn, land, size, fd))
-      return ResOK;
-    else
-      return ResFAIL;
+    *foundReturn = (*landFind)(rangeReturn, oldRangeReturn, land, size, fd);
+    return ResOK;
   }
   if (ZoneSetIsSingle(zoneSet) && size > ArenaStripeSize(LandArena(land)))
-    return ResFAIL;
+    goto fail;
 
   prev = freelistEND;
   cur = fl->list;
@@ -723,10 +721,15 @@ static Res freelistFindInZones(Range rangeReturn, Range oldRangeReturn,
   }
 
   if (!found)
-    return ResFAIL;
+    goto fail;
 
   freelistDeleteFromBlock(oldRangeReturn, fl, &foundRange, foundPrev, foundCur);
   RangeCopy(rangeReturn, &foundRange);
+  *foundReturn = TRUE;
+  return ResOK;
+
+fail:
+  *foundReturn = FALSE;
   return ResOK;
 }
 
@@ -762,6 +765,7 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream)
 {
   Freelist fl;
   Res res;
+  Bool b;
 
   if (!TESTT(Land, land)) return ResFAIL;
   fl = freelistOfLand(land);
@@ -773,7 +777,8 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream)
                "  listSize = $U\n", (WriteFU)fl->listSize,
                NULL);
 
-  (void)LandIterate(land, freelistDescribeVisitor, stream, 0);
+  b = LandIterate(land, freelistDescribeVisitor, stream, 0);
+  if (!b) return ResFAIL;
 
   res = WriteF(stream, "}\n", NULL);
   return res;

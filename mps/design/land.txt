@@ -232,13 +232,14 @@ Like ``LandFindFirst()``, optionally delete the range (specifying
 range in which the range was found via the ``oldRangeReturn``
 argument.
 
-``Res LandFindInZones(Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high)``
+``Res LandFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high)``
 
 _`.function.find.zones`: Locate a block at least as big as ``size``
 that lies entirely within the ``zoneSet``, return its range via the
-``rangeReturn`` argument, and return ``ResOK``. (The first such block,
-if ``high`` is ``FALSE``, or the last, if ``high`` is ``TRUE``.) If
-there is no such block, return ``ResFAIL``.
+``rangeReturn`` argument, set ``*foundReturn`` to ``TRUE``, and return
+``ResOK``. (The first such block, if ``high`` is ``FALSE``, or the
+last, if ``high`` is ``TRUE``.) If there is no such block, set
+``*foundReturn`` to ``TRUE``, and return ``ResOK``.
 
 Delete the range as for ``LandFindFirst()`` and ``LastFindLast()``
 (with the effect of ``FindDeleteLOW`` if ``high`` is ``FALSE`` and the
@@ -248,7 +249,7 @@ the ``oldRangeReturn`` argument.
 
 _`.function.find.zones.fail`: It's possible that the range can't be
 deleted from the land because that would require allocation, in which
-case the result code will indicate the cause of the failure.
+case the result code indicates the cause of the failure.
 
 ``Res LandDescribe(Land land, mps_lib_FILE *stream)``
 
