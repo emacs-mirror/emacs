@@ -28,8 +28,9 @@ Bool FindDeleteCheck(FindDelete findDelete)
 
 /* landEnter, landLeave -- Avoid re-entrance
  *
- * .enter-leave: The visitor function passed to LandIterate is not
- * allowed to call methods of that land. These functions enforce this.
+ * .enter-leave: The visitor functions passed to LandIterate and
+ * LandIterateAndDelete are not allowed to call methods of that land.
+ * These functions enforce this.
  *
  * .enter-leave.simple: Some simple queries are fine to call from
  * visitor functions. These are marked with the tag of this comment.
@@ -247,6 +248,26 @@ Bool LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS)
 }
 
 
+/* LandIterateAndDelete -- iterate over isolated ranges of addresses
+ * in land, deleting some of them
+ *
+ * See <design/land/#function.iterate.and.delete>
+ */
+
+Bool LandIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closureP, Size closureS)
+{
+  Bool res;
+  AVERT(Land, land);
+  AVER(FUNCHECK(visitor));
+  landEnter(land);
+
+  res = (*land->class->iterateAndDelete)(land, visitor, closureP, closureS);
+
+  landLeave(land);
+  return res;
+}
+
+
 /* LandFindFirst -- find first range of given size
  *
  * See <design/land/#function.find.first>
@@ -416,7 +437,7 @@ void LandFlush(Land dest, Land src)
   AVERT(Land, dest);
   AVERT(Land, src);
 
-  (void)LandIterate(src, landFlushVisitor, dest, 0);
+  (void)LandIterateAndDelete(src, landFlushVisitor, dest, 0);
 }
 
 
@@ -464,12 +485,11 @@ static Size landNoSize(Land land)
 
 /* LandSlowSize -- generic size method but slow */
 
-static Bool landSizeVisitor(Bool *deleteReturn, Land land, Range range,
+static Bool landSizeVisitor(Land land, Range range,
                             void *closureP, Size closureS)
 {
   Size *size;
 
-  AVER(deleteReturn != NULL);
   AVERT(Land, land);
   AVERT(Range, range);
   AVER(closureP != NULL);
@@ -477,7 +497,6 @@ static Bool landSizeVisitor(Bool *deleteReturn, Land land, Range range,
 
   size = closureP;
   *size += RangeSize(range);
-  *deleteReturn = FALSE;
 
   return TRUE;
 }
@@ -506,6 +525,15 @@ static Res landNoDelete(Range rangeReturn, Land land, Range range)
 }
 
 static Bool landNoIterate(Land land, LandVisitor visitor, void *closureP, Size closureS)
+{
+  AVERT(Land, land);
+  AVER(visitor != NULL);
+  UNUSED(closureP);
+  UNUSED(closureS);
+  return FALSE;
+}
+
+static Bool landNoIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closureP, Size closureS)
 {
   AVERT(Land, land);
   AVER(visitor != NULL);
@@ -556,6 +584,7 @@ DEFINE_CLASS(LandClass, class)
   class->insert = landNoInsert;
   class->delete = landNoDelete;
   class->iterate = landNoIterate;
+  class->iterateAndDelete = landNoIterateAndDelete;
   class->findFirst = landNoFind;
   class->findLast = landNoFind;
   class->findLargest = landNoFind;

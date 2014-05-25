@@ -442,12 +442,37 @@ static Bool freelistIterate(Land land, LandVisitor visitor,
                             void *closureP, Size closureS)
 {
   Freelist fl;
+  FreelistBlock cur;
+
+  AVERT(Land, land);
+  fl = freelistOfLand(land);
+  AVERT(Freelist, fl);
+  AVER(FUNCHECK(visitor));
+  /* closureP and closureS are arbitrary */
+
+  for (cur = fl->list; cur != freelistEND; cur = FreelistBlockNext(cur)) {
+    RangeStruct range;
+    Bool cont;
+    RangeInit(&range, FreelistBlockBase(cur), FreelistBlockLimit(fl, cur));
+    cont = (*visitor)(land, &range, closureP, closureS);
+    if (!cont)
+      return FALSE;
+  }
+  return TRUE;
+}
+
+
+static Bool freelistIterateAndDelete(Land land, LandDeleteVisitor visitor,
+                                     void *closureP, Size closureS)
+{
+  Freelist fl;
   FreelistBlock prev, cur, next;
 
   AVERT(Land, land);
   fl = freelistOfLand(land);
   AVERT(Freelist, fl);
   AVER(FUNCHECK(visitor));
+  /* closureP and closureS are arbitrary */
 
   prev = freelistEND;
   cur = fl->list;
@@ -712,13 +737,12 @@ static Res freelistFindInZones(Range rangeReturn, Range oldRangeReturn,
  * closureP.
  */
 
-static Bool freelistDescribeVisitor(Bool *deleteReturn, Land land, Range range,
+static Bool freelistDescribeVisitor(Land land, Range range,
                                     void *closureP, Size closureS)
 {
   Res res;
   mps_lib_FILE *stream = closureP;
 
-  if (deleteReturn == NULL) return FALSE;
   if (!TESTT(Land, land)) return FALSE;
   if (!RangeCheck(range)) return FALSE;
   if (stream == NULL) return FALSE;
@@ -767,6 +791,7 @@ DEFINE_LAND_CLASS(FreelistLandClass, class)
   class->insert = freelistInsert;
   class->delete = freelistDelete;
   class->iterate = freelistIterate;
+  class->iterateAndDelete = freelistIterateAndDelete;
   class->findFirst = freelistFindFirst;
   class->findLast = freelistFindLast;
   class->findLargest = freelistFindLargest;
