@@ -1,3 +1,8 @@
+2014-05-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* term/xterm.el (xterm-function-map): Add mapping for shifted
+	keypad keys.
+
 2014-05-24  Daniel Colascione  <dancol@dancol.org>
 
 	* progmodes/subword.el (subword-find-word-boundary): Move point to
