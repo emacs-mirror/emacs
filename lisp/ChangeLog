@@ -1,3 +1,7 @@
+2014-05-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* cus-face.el (custom-face-attributes): Add :distant-foreground.
+
 2014-05-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window--dump-frame): Remove interactive
