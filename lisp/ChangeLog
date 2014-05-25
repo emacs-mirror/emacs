@@ -1,3 +1,8 @@
+2014-05-25  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-ref.el (reftex-format-special): Make it work
+	also for AMS Math's \eqref macro.
+
 2014-05-25  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	Arrange to never byte-compile the generated -pkg.el file.
