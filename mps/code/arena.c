@@ -843,7 +843,7 @@ static Res arenaAllocFromLand(Tract *tractReturn, ZoneSet zones, Bool high,
   Arena arena;
   RangeStruct range, oldRange;
   Chunk chunk;
-  Bool b;
+  Bool found, b;
   Index baseIndex;
   Count pages;
   Res res;
@@ -860,8 +860,8 @@ static Res arenaAllocFromLand(Tract *tractReturn, ZoneSet zones, Bool high,
 
   /* Step 1. Find a range of address space. */
   
-  res = LandFindInZones(&range, &oldRange, ArenaFreeLand(arena),
-                       size, zones, high);
+  res = LandFindInZones(&found, &range, &oldRange, ArenaFreeLand(arena),
+                        size, zones, high);
 
   if (res == ResLIMIT) { /* found block, but couldn't store info */
     RangeStruct pageRange;
@@ -869,17 +869,17 @@ static Res arenaAllocFromLand(Tract *tractReturn, ZoneSet zones, Bool high,
     if (res != ResOK) /* disastrously short on memory */
       return res;
     arenaExcludePage(arena, &pageRange);
-    res = LandFindInZones(&range, &oldRange, ArenaFreeLand(arena),
-                         size, zones, high);
+    res = LandFindInZones(&found, &range, &oldRange, ArenaFreeLand(arena),
+                          size, zones, high);
     AVER(res != ResLIMIT);
   }
-
-  if (res == ResFAIL) /* out of address space */
-    return ResRESOURCE;
 
   AVER(res == ResOK); /* unexpected error from ZoneCBS */
   if (res != ResOK) /* defensive return */
     return res;
+
+  if (!found) /* out of address space */
+    return ResRESOURCE;
   
   /* Step 2. Make memory available in the address space range. */
 

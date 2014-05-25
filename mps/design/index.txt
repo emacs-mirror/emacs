@@ -45,17 +45,17 @@ arena_                  The design of the MPS arena
 arenavm_                Virtual memory arena
 bt_                     Bit tables
 buffer_                 Allocation buffers and allocation points
-cbs_                    Coalescing Block Structure allocator
+cbs_                    Coalescing Block Structure land implementation
 check_                  Design of checking in MPS
 class-interface_        Design of the pool class interface
 collection_             The collection framework
 config_                 The design of MPS configuration
 critical-path_          The critical path through the MPS
 diag_                   The design of MPS diagnostic feedback
-failover_               Fail-over allocator
+failover_               Fail-over land implementation
 finalize_               Finalization
 fix_                    The Design of the Generic Fix Function
-freelist_               Free list allocator
+freelist_               Free list land implementation
 guide.hex.trans_        Guide to transliterating the alphabet into hexadecimal
 guide.impl.c.format_    Coding standard: conventions for the general format of C source code in the MPS
 interface-c_            The design of the Memory Pool System interface to C
