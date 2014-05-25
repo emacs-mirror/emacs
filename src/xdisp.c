@@ -8556,7 +8556,7 @@ move_it_in_display_line_to (struct it *it,
 	}
       else
 	{
-	  if (it->line_wrap == WORD_WRAP)
+	  if (it->line_wrap == WORD_WRAP && it->area == TEXT_AREA)
 	    {
 	      if (IT_DISPLAYING_WHITESPACE (it))
 		may_wrap = 1;

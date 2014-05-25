@@ -1,3 +1,9 @@
+2014-05-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): Don't record wrap position
+	if we are iterating over an object that generates glyphs for
+	marginal areas.  (Bug#17585)
+
 2014-05-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xdisp.c (safe__call1, safe__eval): Now static.
