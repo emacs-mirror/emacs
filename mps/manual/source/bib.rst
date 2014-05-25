@@ -949,7 +949,7 @@ Bibliography
 
   .. admonition:: Abstract
 
-    We describe a new method for determining when an objct can be
+    We describe a new method for determining when an object can be
     garbage collected. The method does not require marking live
     objects. Instead, each object *X* is *dynamically* associated with
     a stack frame *M*, such that *X* is collectable when *M* pops.
@@ -2155,10 +2155,10 @@ Bibliography
     application, extracted from the IBM Intelligent Miner, identifies
     groups of records that are mathematically similar based on a
     neural network model called self-organizing map. We examine and
-    compare in details two implementations of the application: (1)
-    temporal locality or working set sizes; (2) spatial locality and
-    memory block utilization; (3) communication characteristics and
-    scalability; and (4) TLB performance.
+    compare in details two implementations of the application:
+    (1) temporal locality or working set sizes; (2) spatial locality
+    and memory block utilization; (3) communication characteristics
+    and scalability; and (4) TLB performance.
 
     First, we find that the working set hierarchy of the application
     is governed by two parameters, namely the size of an input record
