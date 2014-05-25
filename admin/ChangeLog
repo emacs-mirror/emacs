@@ -1,3 +1,8 @@
+2014-05-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* mac/uvs.el: New file from Mac port.  src/macuvs.h is generated
+	by it.
+
 2014-05-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume C99 or later (Bug#17487).
