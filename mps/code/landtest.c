@@ -75,13 +75,11 @@ static void describe(TestState state) {
 }
 
 
-static Bool checkVisitor(Bool *deleteReturn, Land land, Range range,
-                         void *closureP, Size closureS)
+static Bool checkVisitor(Land land, Range range, void *closureP, Size closureS)
 {
   Addr base, limit;
   CheckTestClosure cl = closureP;
 
-  Insist(deleteReturn != NULL);
   testlib_unused(land);
   testlib_unused(closureS);
   Insist(cl != NULL);
