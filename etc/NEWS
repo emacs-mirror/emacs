@@ -88,6 +88,9 @@ to delete or undelete multiple messages.
 *** Calendar can list and mark diary entries with Chinese dates:
 `diary-chinese-list-entries' and `diary-chinese-mark-entries'.
 
+** In sh-mode, you can now use `sh-shell' as a file-local variable to
+specify the type of shell in use (bash, csh, etc).
+
 ** The URL package accepts now the protocols "ssh", "scp" and "rsync".
 When `url-handler-mode' is enabled, file operations for these
 protocols as well as for "telnet" and "ftp" are passed to Tramp.
