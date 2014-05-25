@@ -1,3 +1,8 @@
+2014-05-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--dump-frame): Remove interactive
+	specification.
+
 2014-05-23  Glenn Morris  <rgm@gnu.org>
 
 	* hippie-exp.el (he-line-search-regexp):

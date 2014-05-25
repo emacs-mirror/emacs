@@ -1079,7 +1079,6 @@ WINDOW-OR-FRAME can be a frame or a window and defaults to the
 selected frame.  When WINDOW-OR-FRAME is a window, dump that
 window's frame.  The buffer *window-frame-dump* is erased before
 dumping to it."
-  (interactive)
   (let* ((window
 	  (cond
 	   ((or (not window-or-frame)
