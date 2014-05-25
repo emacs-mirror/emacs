@@ -702,13 +702,24 @@ untar into a directory named DIR; otherwise, signal an error."
                            (list (car elt)
                                  (package-version-join (cadr elt))))
                          requires))))
-          (package--alist-to-plist
-           (package-desc-extras pkg-desc))))
+          (let ((alist (package-desc-extras pkg-desc))
+                flat)
+            (while alist
+              (let* ((pair (pop alist))
+                     (key (car pair))
+                     (val (cdr pair)))
+                ;; Don't bother ‘quote’ing ‘key’; it is always a keyword.
+                (push key flat)
+                (push (if (and (not (consp val))
+                               (or (keywordp val)
+                                   (not (symbolp val))
+                                   (memq val '(nil t))))
+                          val
+                        `',val)
+                      flat)))
+            (nreverse flat))))
         "\n")
        nil pkg-file nil 'silent))))
-
-(defun package--alist-to-plist (alist)
-  (apply #'nconc (mapcar (lambda (pair) (list (car pair) (cdr pair))) alist)))
 
 (defun package-unpack (pkg-desc)
   "Install the contents of the current buffer as a package."
