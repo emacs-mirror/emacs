@@ -706,16 +706,6 @@ static Res cbsZonedSplayNodeDescribe(Tree tree, mps_lib_FILE *stream)
 
 /* cbsIterate -- iterate over all blocks in CBS
  *
- * Applies a visitor to all isolated contiguous ranges in a CBS.
- * It receives a pointer, ``Size`` closure pair to pass on to the
- * visitor function, and an visitor function to invoke on every range
- * in address order. If the visitor returns ``FALSE``, then the iteration
- * is terminated.
- *
- * The visitor function may not modify the CBS during the iteration.
- * This is because CBSIterate uses TreeTraverse, which does not permit
- * modification, for speed and to avoid perturbing the splay tree balance.
- *
  * See <design/land/#function.iterate>.
  */
 
@@ -733,15 +723,13 @@ static Bool cbsIterateVisit(Tree tree, void *closureP, Size closureS)
   CBSBlock cbsBlock;
   Land land = closure->land;
   CBS cbs = cbsOfLand(land);
-  Bool delete = FALSE;
   Bool cont = TRUE;
 
   UNUSED(closureS);
 
   cbsBlock = cbsBlockOfTree(tree);
   RangeInit(&range, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock));
-  cont = (*closure->visitor)(&delete, land, &range, closure->closureP, closure->closureS);
-  AVER(!delete);                /* <design/cbs/#limit.iterate> */
+  cont = (*closure->visitor)(land, &range, closure->closureP, closure->closureS);
   if (!cont)
     return FALSE;
   METER_ACC(cbs->treeSearch, cbs->treeSize);

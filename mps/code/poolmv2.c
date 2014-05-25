@@ -1209,12 +1209,11 @@ static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena)
  * empty.
  */
 
-static Bool MVTRefillVisitor(Bool *deleteReturn, Land land, Range range,
+static Bool MVTRefillVisitor(Land land, Range range,
                              void *closureP, Size closureS)
 {
   MVT mvt;
 
-  AVER(deleteReturn != NULL);
   AVERT(Land, land);
   mvt = closureP;
   AVERT(MVT, mvt);
@@ -1258,7 +1257,7 @@ typedef struct MVTContigencyClosureStruct
   Count hardSteps;
 } MVTContigencyClosureStruct,  *MVTContigencyClosure;
 
-static Bool MVTContingencyVisitor(Bool *deleteReturn, Land land, Range range,
+static Bool MVTContingencyVisitor(Land land, Range range,
                                   void *closureP, Size closureS)
 {
   MVT mvt;
@@ -1266,7 +1265,6 @@ static Bool MVTContingencyVisitor(Bool *deleteReturn, Land land, Range range,
   Addr base, limit;
   MVTContigencyClosure cl;
 
-  AVER(deleteReturn != NULL);
   AVERT(Land, land);
   AVERT(Range, range);
   AVER(closureP != NULL);
