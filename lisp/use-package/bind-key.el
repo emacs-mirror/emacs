@@ -73,6 +73,14 @@
 ;; Additionally, :prefix-docstring can be specified to set
 ;; documentation of created :prefix-map variable.
 ;;
+;; To bind multiple keys in a `bind-key*' way (to be sure that your bindings
+;; will not be overridden by other modes), you may use `bind-keys*' macro:
+;;
+;;    (bind-keys*
+;;     ("C-o" . other-window)
+;;     ("C-M-n" . forward-page)
+;;     ("C-M-p" . backward-page))
+;;
 ;; After Emacs loads, you can see a summary of all your personal keybindings
 ;; currently in effect with this command:
 ;;
@@ -193,6 +201,10 @@ function symbol (unquoted)."
                    `(bind-key ,(car form) ',(cdr form)
                               ,(or prefix-map map)))
                  key-bindings))))
+
+(defmacro bind-keys* (&rest args)
+  `(bind-keys :map override-global-map
+              ,@args))
 
 (defun get-binding-description (elem)
   (cond
