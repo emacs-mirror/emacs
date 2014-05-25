@@ -1037,8 +1037,7 @@ nsfont_text_extents (struct font *font, unsigned int *code, int nglyphs,
 static int
 nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
              bool with_background)
-/* NOTE: focus and clip must be set
-     also, currently assumed (true in nsterm.m call) from ==0, to ==nchars */
+/* NOTE: focus and clip must be set */
 {
   static unsigned char cbuf[1024];
   unsigned char *c = cbuf;
@@ -1056,7 +1055,6 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
   unsigned short *t = s->char2b;
   int i, len, flags;
   char isComposite = s->first_glyph->type == COMPOSITE_GLYPH;
-  int end = isComposite ? s->cmp_to : s->nchars;
 
   block_input ();
 
@@ -1098,8 +1096,8 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     int cwidth, twidth = 0;
     int hi, lo;
     /* FIXME: composition: no vertical displacement is considered. */
-    t += s->cmp_from; /* advance into composition */
-    for (i = s->cmp_from; i < end; i++, t++)
+    t += from; /* advance into composition */
+    for (i = from; i < to; i++, t++)
       {
         hi = (*t & 0xFF00) >> 8;
         lo = *t & 0x00FF;
@@ -1193,7 +1191,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
 
   /* set up for character rendering */
-  r.origin.y = s->ybase;
+  r.origin.y = y;
 
   col = (NS_FACE_FOREGROUND (face) != 0
          ? ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f)
@@ -1275,13 +1273,13 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     [col set];
 
     CGContextSetTextPosition (gcontext, r.origin.x, r.origin.y);
-    CGContextShowGlyphsWithAdvances (gcontext, s->char2b + s->cmp_from,
+    CGContextShowGlyphsWithAdvances (gcontext, s->char2b + from,
                                      advances, len);
 
     if (face->overstrike)
       {
         CGContextSetTextPosition (gcontext, r.origin.x+0.5, r.origin.y);
-        CGContextShowGlyphsWithAdvances (gcontext, s->char2b + s->cmp_from,
+        CGContextShowGlyphsWithAdvances (gcontext, s->char2b + from,
                                          advances, len);
       }
 

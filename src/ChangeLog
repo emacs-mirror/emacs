@@ -1,3 +1,14 @@
+2014-05-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (nsfont_draw): Simplify as arguments are adjusted in
+	nsterm.m now.
+
+	* nsterm.m (ns_draw_glyph_string): Move isComposite and end from
+	macfont.m, call draw with adjusted arguments so font drivers
+	don't need to do that.
+
+	* macfont.m (macfont_draw): Merge changes from Macport.
+
 2014-05-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* alloc.c (garbage_collect_1): New function, with all of the guts

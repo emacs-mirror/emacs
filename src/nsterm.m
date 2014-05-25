@@ -3355,10 +3355,16 @@ ns_draw_glyph_string (struct glyph_string *s)
           NS_FACE_FOREGROUND (s->face) = tmp;
         }
 
-      font->driver->draw
-        (s, 0, s->nchars, s->x, s->y,
-         (flags == NS_DUMPGLYPH_NORMAL && !s->background_filled_p)
-         || flags == NS_DUMPGLYPH_MOUSEFACE);
+      {
+        BOOL isComposite = s->first_glyph->type == COMPOSITE_GLYPH;
+        int end = isComposite ? s->cmp_to : s->nchars;
+
+        font->driver->draw
+          (s, s->cmp_from, end, s->x, s->ybase,
+           (flags == NS_DUMPGLYPH_NORMAL && !s->background_filled_p)
+           || flags == NS_DUMPGLYPH_MOUSEFACE);
+
+      }
 
       {
         NSColor *col = (NS_FACE_FOREGROUND (s->face) != 0
