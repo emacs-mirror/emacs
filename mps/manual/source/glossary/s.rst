@@ -333,7 +333,7 @@ Memory Management Glossary: S
 
         By overloading certain operators it is possible for the class
         to present the illusion of being a pointer, so that
-        ``operator\*``, ``operator-\>``, etc. can be used as normal.
+        ``operator*``, ``operator->``, etc. can be used as normal.
         Reference counting allows the objects that are referred to
         using the smart pointer class to have their :term:`memory (1)`
         automatically :term:`reclaimed` when they are no longer
@@ -429,7 +429,7 @@ Memory Management Glossary: S
 
         .. link::
 
-            `Class java.lang.ref.SoftReference <http://download.java.net/jdk8/docs/api/java/lang/ref/SoftReference.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
+            `Class java.lang.ref.SoftReference <http://docs.oracle.com/javase/8/docs/api/java/lang/ref/SoftReference.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
 
     softly reachable
 
@@ -453,7 +453,7 @@ Memory Management Glossary: S
 
         .. link::
 
-            `Class java.lang.ref.SoftReference <http://download.java.net/jdk8/docs/api/java/lang/ref/SoftReference.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
+            `Class java.lang.ref.SoftReference <http://docs.oracle.com/javase/8/docs/api/java/lang/ref/SoftReference.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
 
     space leak
 
@@ -787,9 +787,9 @@ Memory Management Glossary: S
 
     stretchy vector
 
-        A data structure consisting of a vector that may grow or
-        shrink to accommodate adding or removing elements. Named after
-        the ``<stretchy-vector>`` abstract class in Dylan).
+        A :term:`vector <vector data type>` that may grow or shrink to
+        accommodate adding or removing elements. Named after the
+        ``<stretchy-vector>`` abstract class in Dylan.
 
         .. relevance::
 
