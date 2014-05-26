@@ -202,7 +202,11 @@ Memory Management Glossary: A
         .. mps:specific::
 
             An alignment is represented by the unsigned integral type
-            :c:type:`mps_align_t`. It must be a positive power of 2.
+            :c:type:`mps_align_t`. It must be a power of 2. The
+            alignment of objects allocated in a :term:`pool` may be
+            specified by passing the :c:macro:`MPS_KEY_ALIGN`
+            :term:`keyword argument` when calling
+            :c:func:`mps_pool_create`.
 
     alive
 
