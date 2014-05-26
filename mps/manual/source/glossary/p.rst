@@ -327,7 +327,7 @@ Memory Management Glossary: P
             specific :term:`generation` in its :term:`generation
             chain` by setting the :c:macro:`MPS_KEY_GEN`
             :term:`keyword argument` when calling
-            :c:func:`mps_pool_create`.
+            :c:func:`mps_pool_create_k`.
 
     pig in the snake
 

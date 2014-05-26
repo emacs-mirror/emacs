@@ -206,7 +206,7 @@ Memory Management Glossary: A
             alignment of objects allocated in a :term:`pool` may be
             specified by passing the :c:macro:`MPS_KEY_ALIGN`
             :term:`keyword argument` when calling
-            :c:func:`mps_pool_create`.
+            :c:func:`mps_pool_create_k`.
 
     alive
 

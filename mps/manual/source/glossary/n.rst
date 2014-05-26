@@ -123,4 +123,4 @@ Memory Management Glossary: N
             into the first :term:`generation` in its :term:`generation
             chain`, but this can be altered by setting the
             :c:macro:`MPS_KEY_GEN` :term:`keyword argument` when
-            calling :c:func:`mps_pool_create`.
+            calling :c:func:`mps_pool_create_k`.
