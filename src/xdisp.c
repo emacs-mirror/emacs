@@ -2591,8 +2591,8 @@ safe_eval_handler (Lisp_Object arg, ptrdiff_t nargs, Lisp_Object *args)
    following.  Return the result, or nil if something went
    wrong.  Prevent redisplay during the evaluation.  */
 
-Lisp_Object
-safe_call (ptrdiff_t nargs, Lisp_Object func, ...)
+static Lisp_Object
+safe__call (bool inhibit_quit, ptrdiff_t nargs, Lisp_Object func, va_list ap)
 {
   Lisp_Object val;
 
@@ -2600,21 +2600,20 @@ safe_call (ptrdiff_t nargs, Lisp_Object func, ...)
     val = Qnil;
   else
     {
-      va_list ap;
       ptrdiff_t i;
       ptrdiff_t count = SPECPDL_INDEX ();
       struct gcpro gcpro1;
       Lisp_Object *args = alloca (nargs * word_size);
 
       args[0] = func;
-      va_start (ap, func);
       for (i = 1; i < nargs; i++)
 	args[i] = va_arg (ap, Lisp_Object);
-      va_end (ap);
 
       GCPRO1 (args[0]);
       gcpro1.nvars = nargs;
       specbind (Qinhibit_redisplay, Qt);
+      if (inhibit_quit)
+	specbind (Qinhibit_quit, Qt);
       /* Use Qt to ensure debugger does not run,
 	 so there is no possibility of wanting to redisplay.  */
       val = internal_condition_case_n (Ffuncall, nargs, args, Qt,
@@ -2626,6 +2625,17 @@ safe_call (ptrdiff_t nargs, Lisp_Object func, ...)
   return val;
 }
 
+Lisp_Object
+safe_call (ptrdiff_t nargs, Lisp_Object func, ...)
+{
+  Lisp_Object retval;
+  va_list ap;
+
+  va_start (ap, func);
+  retval = safe__call (false, nargs, func, ap);
+  va_end (ap);
+  return retval;
+}
 
 /* Call function FN with one argument ARG.
    Return the result, or nil if something went wrong.  */
@@ -2636,12 +2646,30 @@ safe_call1 (Lisp_Object fn, Lisp_Object arg)
   return safe_call (2, fn, arg);
 }
 
+static Lisp_Object
+safe__call1 (bool inhibit_quit, Lisp_Object fn, ...)
+{
+  Lisp_Object retval;
+  va_list ap;
+
+  va_start (ap, fn);
+  retval = safe__call (inhibit_quit, 2, fn, ap);
+  va_end (ap);
+  return retval;
+}
+
 static Lisp_Object Qeval;
 
 Lisp_Object
 safe_eval (Lisp_Object sexpr)
 {
-  return safe_call1 (Qeval, sexpr);
+  return safe__call1 (false, Qeval, sexpr);
+}
+
+static Lisp_Object
+safe__eval (bool inhibit_quit, Lisp_Object sexpr)
+{
+  return safe__call1 (inhibit_quit, Qeval, sexpr);
 }
 
 /* Call function FN with two arguments ARG1 and ARG2.
@@ -8528,7 +8556,7 @@ move_it_in_display_line_to (struct it *it,
 	}
       else
 	{
-	  if (it->line_wrap == WORD_WRAP)
+	  if (it->line_wrap == WORD_WRAP && it->area == TEXT_AREA)
 	    {
 	      if (IT_DISPLAYING_WHITESPACE (it))
 		may_wrap = 1;
@@ -8812,8 +8840,11 @@ move_it_in_display_line_to (struct it *it,
 		  if (closest_pos < ZV)
 		    {
 		      RESTORE_IT (it, &ppos_it, ppos_data);
-		      move_it_in_display_line_to (it, closest_pos, -1,
-						  MOVE_TO_POS);
+		      /* Don't recurse if closest_pos is equal to
+			 to_charpos, since we have just tried that.  */
+		      if (closest_pos != to_charpos)
+			move_it_in_display_line_to (it, closest_pos, -1,
+						    MOVE_TO_POS);
 		      result = MOVE_POS_MATCH_OR_ZV;
 		    }
 		  else
@@ -8874,8 +8905,9 @@ move_it_in_display_line_to (struct it *it,
 		      && !at_eob_p && closest_pos < ZV)
 		    {
 		      RESTORE_IT (it, &ppos_it, ppos_data);
-		      move_it_in_display_line_to (it, closest_pos, -1,
-						  MOVE_TO_POS);
+		      if (closest_pos != to_charpos)
+			move_it_in_display_line_to (it, closest_pos, -1,
+						    MOVE_TO_POS);
 		    }
 		  result = MOVE_POS_MATCH_OR_ZV;
 		  break;
@@ -8893,7 +8925,9 @@ move_it_in_display_line_to (struct it *it,
 	      if (closest_pos < ZV)
 		{
 		  RESTORE_IT (it, &ppos_it, ppos_data);
-		  move_it_in_display_line_to (it, closest_pos, -1, MOVE_TO_POS);
+		  if (closest_pos != to_charpos)
+		    move_it_in_display_line_to (it, closest_pos, -1,
+						MOVE_TO_POS);
 		}
 	      result = MOVE_POS_MATCH_OR_ZV;
 	      break;
@@ -11543,7 +11577,7 @@ prepare_menu_bars (void)
 		}
 	    }
 	}
-      safe_call1 (Vpre_redisplay_function, windows);
+      safe__call1 (true, Vpre_redisplay_function, windows);
     }
 
   /* Update all frame titles based on their buffer names, etc.  We do
@@ -21857,7 +21891,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 	    if (CONSP (XCDR (elt)))
 	      {
 		Lisp_Object spec;
-		spec = safe_eval (XCAR (XCDR (elt)));
+		spec = safe__eval (true, XCAR (XCDR (elt)));
 		n += display_mode_element (it, depth, field_width - n,
 					   precision - n, spec, props,
 					   risky);

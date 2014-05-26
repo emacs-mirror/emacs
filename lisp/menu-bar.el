@@ -662,7 +662,7 @@ by \"Save Options\" in Custom buffers.")
 ;; Function for setting/saving default font.
 
 (defun menu-set-font ()
-  "Interactively select a font and make it the default."
+  "Interactively select a font and make it the default on all existing frames."
   (interactive)
   (set-frame-font (if (fboundp 'x-select-font)
 		      (x-select-font)

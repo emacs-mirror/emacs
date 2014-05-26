@@ -1,3 +1,16 @@
+2014-05-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Specify coding if Latin-1 Emacs would misinterpret (Bug#17575).
+	* htmlfontify.texi, org.texi: Add "coding: utf-8".
+
+2014-05-26  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todo-mode.texi: Update in light of changes due to bug#17482.
+	Replace numerous mistaken uses of literal quotes with proper
+	Texinfo markup.
+	(Todo Mode Entry Points): Comment out reference to using find-file
+	or Dired to visit Todo files, since this has been disabled (bug#17482).
+
 2014-05-20  Leo Liu  <sdl.web@gmail.com>
 
 	* cl.texi (List Functions, Efficiency Concerns): Update cl-endp.

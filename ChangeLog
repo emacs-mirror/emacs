@@ -1,3 +1,9 @@
+2014-05-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix port to 32-bit AIX (Bug#17540).
+	* configure.ac (opsys): On Power Architecture, treat release 7 of
+	AIX like releases 5 and 6.
+
 2014-05-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove dependencies on getdelim and getline.

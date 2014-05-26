@@ -218,6 +218,10 @@
      (color :tag "Foreground"
 	    :help-echo "Set foreground color (name or #RRGGBB hex spec)."))
 
+    (:distant-foreground
+     (color :tag "Distant Foreground"
+	    :help-echo "Set distant foreground color (name or #RRGGBB hex spec)."))
+
     (:background
      (color :tag "Background"
 	    :help-echo "Set background color (name or #RRGGBB hex spec)."))

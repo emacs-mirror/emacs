@@ -1,3 +1,145 @@
+2014-05-26  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* cus-face.el (custom-face-attributes): Add :distant-foreground.
+
+2014-05-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--dump-frame): Remove interactive specification.
+
+2014-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* hippie-exp.el (he-line-search-regexp):
+	Handle comint-prompt-regexp containing subgroups.  (Bug#17529)
+
+2014-05-26  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Remove dependence on auto-mode-alist,
+	to avoid errors when trying to create or visit a file foo.todo
+	located outside to todo-directory, and to allow having such files
+	without them being tied to Todo mode (bug#17482).
+	(todo-show, todo-move-category, todo-merge-category, todo-find-archive)
+	(todo-archive-done-item, todo-find-filtered-items-file)
+	(todo-filter-items, todo-find-item, todo-diary-goto-entry)
+	(todo-category-completions, todo-read-category): When visiting a
+	Todo file, make sure we're in the right mode and the buffer local
+	variables are set.
+	(todo-make-categories-list, todo-reset-nondiary-marker)
+	(todo-reset-done-string, todo-reset-comment-string): After
+	processing all Todo files, kill the buffers of those files that
+	weren't being visited before the processing.
+	(todo-display-as-todo-file, todo-add-to-buffer-list)
+	(todo-visit-files-commands): Comment out.
+	(todo-modes-set-3, todo-mode): Comment out additions to find-file-hook.
+	(auto-mode-alist): Remove add-to-list calls making Todo file
+	extensions unrestrictedly tied to Todo modes.
+
+2014-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el (advice--member-p): Change second arg.
+	(advice-function-member-p): Tell it to check both names and functions
+	(bug#17531).
+	(advice--add-function): Adjust call accordingly.
+
+2014-05-26  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Miscellaneous bug fixes.
+	(todo-delete-file): When deleting an archive but not its todo
+	file, make sure to update the todo file's category sexp.
+	(todo-move-category): Keep the moved category's name unless the
+	file moved to already has a category with that name.  If the
+	numerically last category of the source file was moved, make the
+	first category current to avoid selecting a nonexisting category.
+	(todo-merge-category): Fix implementation to make merging to a
+	category in another file work as documented.  Eliminate now
+	insufficient and unnecessary renaming of archive category, correct
+	document string accordingly, and clarify it.  If the numerically
+	last category of the source file was merged, make the first
+	category current to avoid selecting a nonexisting category.
+	(todo-archive-done-item): When there are marked items and point
+	happens to be on an unmarked item, ignore the latter.  Don't leave
+	point below last item after archiving marked items.
+	(todo-unarchive-items): Fix logic to ensure unarchiving an item
+	from an archive with only one category deletes the archive only
+	when the category is empty after unarchiving.  Make sure the todo
+	file's category sexp is updated.
+	(todo-read-file-name): Allow an existing file name even when it is
+	not required (todo-move-category needs this to work as documented).
+	(todo-add-file): Call todo-validate-name to reject the name of an
+	existing todo file (needed due to fix in todo-read-file-name).
+	(todo-reset-nondiary-marker): Also reset in filtered items files.
+	(todo-reset-done-string, todo-reset-comment-string): Also reset in
+	regexp filtered items files.
+	(todo-reset-highlight-item): Also reset in filtered items files.
+	Fix incorrect variable reference in document string.
+
+2014-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* window.el (window--dump-frame): Avoid error in --without-x builds.
+
+2014-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* nxml/nxml-mode.el (xml-mode): Only define this alias once.
+
+2014-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.el (set-frame-font): Doc fix.
+
+	* menu-bar.el (menu-set-font): Doc fix.  (Bug#17532)
+
+2014-05-26  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/package.el (package--download-one-archive): Use
+	`write-region' instead of `save-buffer' to avoid running various
+	hooks.  (Bug#17155)
+	(describe-package-1): Same.  Insert newline at the end of the
+	buffer if appropriate.
+
+2014-05-26  Juri Linkov  <juri@jurta.org>
+
+	* avoid.el (mouse-avoidance-set-mouse-position): Don't raise frame.
+	(mouse-avoidance-ignore-p): Remove `switch-frame', add `focus-out'.
+	Add more modifiers: meta, control, shift, hyper, super, alt.
+	(Bug#17439)
+
+	* avoid.el (mouse-avoidance-banish-position): Fix defcustom :options
+	to allow changing its value with `set-variable'.
+
+2014-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/scheme.el (scheme-mode-syntax-table): Remove hack for
+	#; comments.
+	(scheme-syntax-propertize, scheme-syntax-propertize-sexp-comment):
+	New functions.
+	(scheme-mode-variables): Set syntax-propertize-function instead of
+	font-lock-syntactic-face-function.
+	(scheme-font-lock-syntactic-face-function): Delete.
+
+	* emacs-lisp/lisp.el (end-of-defun): Ensure we move (bug#17274).
+
+	* emacs-lisp/timer.el (timer-event-handler): Don't run if canceled
+	(bug#17392).
+
+2014-05-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-find-inline-encoding): Do not match "%%t"
+	for a temporary file name.
+
+2014-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move-ignore-invisible): Doc fix.  (Bug#17511)
+
+2014-05-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-init-bus, dbus-call-method)
+	(dbus-call-method-asynchronously, dbus-send-signal)
+	(dbus-method-return-internal, dbus-method-error-internal):
+	Check, whether Emacs has been compiled with D-Bus support.  (Bug#17508)
+
+2014-05-26  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
+
+	* emacs-lisp/eieio-opt.el (eieio-help-class): Correctly deal with
+	methods which do not have a doc string.  (Bug#17490)
+
 2014-05-25  Tassilo Horn  <tsdh@gnu.org>
 
 	* textmodes/reftex-ref.el (reftex-format-special): Make it work

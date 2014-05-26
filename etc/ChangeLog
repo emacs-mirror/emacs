@@ -1,3 +1,8 @@
+2014-05-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Specify coding if Latin-1 Emacs would misinterpret (Bug#17575).
+	* ETAGS.EBNF, NEWS, ORG-NEWS: Add "coding: utf-8".
+
 2014-05-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* NEWS: Assume C99 or later (Bug#17487).

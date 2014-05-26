@@ -26,8 +26,6 @@
 ;; This package provides various useful commands (including help
 ;; system access) through the mouse.  All this code assumes that mouse
 ;; interpretation has been abstracted into Emacs input events.
-;;
-;; The code is rather X-dependent.
 
 ;;; Code:
 

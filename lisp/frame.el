@@ -1107,10 +1107,10 @@ number of lines and columns.
 
 If FRAMES is nil, apply the font to the selected frame only.
 If FRAMES is non-nil, it should be a list of frames to act upon,
-or t meaning all graphical frames.  Also, if FRAME is non-nil,
-alter the user's Customization settings as though the
-font-related attributes of the `default' face had been \"set in
-this session\", so that the font is applied to future frames."
+or t meaning all existing graphical frames.
+Also, if FRAMES is non-nil, alter the user's Customization settings
+as though the font-related attributes of the `default' face had been
+\"set in this session\", so that the font is applied to future frames."
   (interactive
    (let* ((completion-ignore-case t)
 	  (font (completing-read "Font name: "
@@ -1822,9 +1822,7 @@ terminals, cursor blinking is controlled by the terminal."
   :initialize 'custom-initialize-delay
   :group 'cursor
   :global t
-  (if blink-cursor-idle-timer (cancel-timer blink-cursor-idle-timer))
-  (setq blink-cursor-idle-timer nil)
-  (blink-cursor-end)
+  (blink-cursor-suspend)
   (remove-hook 'focus-in-hook #'blink-cursor-check)
   (remove-hook 'focus-out-hook #'blink-cursor-suspend)
   (when blink-cursor-mode

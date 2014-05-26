@@ -258,15 +258,15 @@ are @kbd{C-c t} for @code{todo-show}, @kbd{C-c j} for
 @code{todo-insert-item}, since these commands are bound to @kbd{t},
 @kbd{j} and @kbd{i}, respectively, in Todo mode.
 
-You can also visit a Todo file via @code{find-file} or Dired, like any
-other file, and since Emacs recognizes it, the buffer will automatically
-be in the appropriate Todo mode.  Moreover, as long as the command you
-use to visit the file is listed in the option
-@code{todo-visit-files-commands} (which by default contains
-@code{find-file} and @code{dired-find-file}), it will also correctly
-display the file's first category on first visiting the file (otherwise
-you have to use one of the commands for navigating between categories in
-order to get a proper display).
+@c You can also visit a Todo file via @code{find-file} or Dired, like any
+@c other file, and since Emacs recognizes it, the buffer will automatically
+@c be in the appropriate Todo mode.  Moreover, as long as the command you
+@c use to visit the file is listed in the option
+@c @code{todo-visit-files-commands} (which by default contains
+@c @code{find-file} and @code{dired-find-file}), it will also correctly
+@c display the file's first category on first visiting the file (otherwise
+@c you have to use one of the commands for navigating between categories in
+@c order to get a proper display).
 
 You can leave Todo mode by typing @kbd{q} (@code{todo-quit}), which
 buries the current todo file buffer.  Doing this also saves any changes
@@ -295,7 +295,7 @@ for the shift key for capitalization and the raw prefix argument
 number key.
 
 The predefined key bindings in Todo are more or less mnemonic.  As a
-rule, key sequences beginning with @kbd{C} (capital `C', not the
+rule, key sequences beginning with @kbd{C} (capital @samp{C}, not the
 control key) are bound to commands applying to categories, sequences
 beginning with @kbd{F} apply to (non-archive) file-level commands, and
 those beginning with @kbd{A} apply to archives (a special type of Todo
@@ -669,9 +669,9 @@ down, i.e., lowering their priority, by one.
 @samp{region} (@kbd{r}): Use the text of the selected region as the
 text of the new item, and insert this in accordance with the item
 insertion options and other parameters passed.  If the option
-`todo-use-only-highlighted-region' is non-nil, then use the region
-only when it is highlighted; otherwise, use the region regardless of
-highlighting.
+@code{todo-use-only-highlighted-region} is non-nil, then use the
+region only when it is highlighted; otherwise, use the region
+regardless of highlighting.
 @end enumerate
 
 Note that the parameters are divided into five numbered groups; within
@@ -715,9 +715,9 @@ Press a key (so far `i y'):  y=>diary:GO! @{ c=>calendar d=>date n=>dayname @} t
 @noindent Notice that the pair @samp{k=>nonmarking} is now absent, since it
 belongs to the same group as the selected pair @samp{y=>diary}, hence
 is no longer available for this sequence.  Since @kbd{y} is a
-continuation key, it is still available, but now the string ":GO!" is
-appended to the pair to remind you that pressing this key again will
-complete the sequence.
+continuation key, it is still available, but now the string
+@samp{:GO!} is appended to the pair to remind you that pressing this
+key again will complete the sequence.
 
 
 
@@ -821,10 +821,10 @@ otherwise it enters the empty string (i.e., no time string).
 
 @noindent
 Editing the text of a lengthy item in the minibuffer can be
-inconvenient; therefore, if you type `e e' or `e h' on an item whose
-text contains more than one logical line, the effect is the same as if
-you had typed `e m', that is, you switch a special buffer in Todo Edit
-mode.
+inconvenient; therefore, if you type @kbd{e e} or @kbd{e h} on an item
+whose text contains more than one logical line, the effect is the same
+as if you had typed @kbd{e m}, that is, you switch a special buffer in
+Todo Edit mode.
 
 When you pass any of the parameters of the preceding group, except for
 the @samp{date} parameter, this completes the item editing invocation
@@ -916,10 +916,10 @@ invocation:
 Press a key (so far `e d'): f=>full c=>calendar a=>today n=>dayname y=>year m=>month d=>daynum
 @end example
 
-In addition to the item-level invocations `e y', to change the current
-item's diary inclusion status, and `e k', to change the current item's
-calendar marking status, Todo mode also has two related category-level
-commands:
+In addition to the item-level invocations @kbd{e y}, to change the
+current item's diary inclusion status, and @kbd{e k}, to change the
+current item's calendar marking status, Todo mode also has two related
+category-level commands:
 
 @table @kbd
 
@@ -932,7 +932,7 @@ category.
 @end table
 
 @noindent
-Like `e k', `C e k' automatically removes @code{todo-nondiary-marker}
+Like @kbd{e k}, @kbd{C e k} automatically removes @code{todo-nondiary-marker}
 from all items it is present on, since only diary items can bear
 @code{diary-nonmarking-symbol}.
 
@@ -944,7 +944,7 @@ to be toggles, but to have the same effect on all items in the
 category, and take a prefix argument to reverse the effect.  (If you
 really want to toggle the diary-inclusion and calendar-marking status
 of all items in the category, you can do this by marking all the items
-and then invoking `e y' or `e k', @pxref{Marked Items}).
+and then invoking @kbd{e y} or @kbd{e k}, @pxref{Marked Items}).
 
 @node  Relocating and Removing Items,  , Editing Item Headers and Text, Item Editing
 @subsection Relocating and Removing Items
@@ -1050,14 +1050,15 @@ Archive Mode}).
 
 @anchor{todo-item-done}
 @item d
-This command (@code{todo-item-done}) removes the todo item at point from
-the todo list, appends to the original header a header consisting of
-@code{todo-done-string} (by default ``DONE '') and the current date, and
-if @code{todo-always-add-time-string} is enabled, also the current time,
-and adds the resulting done item to the top of the done items section of
-the category.  Invoked with a prefix argument, it also prompts you to
-enter a comment, which is appended to the end of the done item, prefixed
-with @code{todo-comment-string} (by default ``COMMENT: '').
+This command (@code{todo-item-done}) removes the todo item at point
+from the todo list, appends to the original header a header consisting
+of @code{todo-done-string} (by default @samp{DONE }) and the current
+date, and if @code{todo-always-add-time-string} is enabled, also the
+current time, and adds the resulting done item to the top of the done
+items section of the category.  Invoked with a prefix argument, it
+also prompts you to enter a comment, which is appended to the end of
+the done item, prefixed with @code{todo-comment-string} (by default
+@samp{COMMENT: }).
 @end table
 
 A category's done items section is located below the last todo (i.e.,
@@ -1255,7 +1256,7 @@ category in the archive, the archive file is also automatically deleted.
 
 Since it is natural to visit an archive from the corresponding todo
 file, it would be convenient to easily return to the todo file when you
-have finished browsing the archive.  If you type `q' to quit Todo
+have finished browsing the archive.  If you type @kbd{q} to quit Todo
 Archive mode, this switches to the corresponding todo file and shows the
 todo category corresponding to the archive category you were just
 visiting.
@@ -1396,13 +1397,13 @@ to sort by archived item counts.
 
 Each row of the table is also buttonized; pressing one of these exits
 the buffer (killing it), returns to the buffer of the file from which
-you had invoked `F c', and displays the category that was named in the
-row button you pressed (i.e., pressing this button jumps to that
-category).  However, if the category named in the row is in a todo file
-and all of its items have been archived, and you have enabled the option
-@code{todo-skip-archived-categories}, then pressing the button jumps to
-the archive category instead of the empty todo category.  You can
-recognize such categories by their items counts in the table---all
+you had invoked @kbd{F c}, and displays the category that was named in
+the row button you pressed (i.e., pressing this button jumps to that
+category).  However, if the category named in the row is in a todo
+file and all of its items have been archived, and you have enabled the
+option @code{todo-skip-archived-categories}, then pressing the button
+jumps to the archive category instead of the empty todo category.  You
+can recognize such categories by their items counts in the table---all
 columns but the archived one have counts of zero---and in addition,
 their lines in the table are also distinguished from the others by a
 different face (@pxref{Faces}).
@@ -1586,7 +1587,7 @@ todo file, and the latter sets the number of top priorities for the
 current category.  To exclude a category or file from filtering by @kbd{F t t}
 and @kbd{F t m}, set the number to @samp{0}.
 @item
-You can invoke `F t t' and `F t m' with a numeric prefix argument,
+You can invoke @kbd{F t t} and @kbd{F t m} with a numeric prefix argument,
 which specifies the number of top priorities in each category just for
 this invocation, overriding both @code{todo-top-priorities-overrides} and
 @code{todo-top-priorities}.
@@ -1681,7 +1682,7 @@ use the values of @code{todo-top-priorities-overrides} or
 Aside from explicitly invoking an item filtering command to display a
 saved list of items filtered by a given method from given todo files,
 there are two other ways to visit a saved file of filtered items.  You
-can invoke a command similar to `find-file':
+can invoke a command similar to @code{find-file}:
 
 @table @kbd
 @item F f

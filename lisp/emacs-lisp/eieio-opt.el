@@ -141,7 +141,7 @@ If CLASS is actually an object, then also display current values of that object.
 	      (insert " " (aref type counter) " "
 		      (prin1-to-string (car cur) (current-buffer))
 		      "\n"
-		      (cdr cur)))
+		      (or (cdr cur) "")))
 	    (setq counter (1+ counter))))
 	(insert "\n\n")
 	(setq methods (cdr methods))))))

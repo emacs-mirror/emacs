@@ -1476,7 +1476,6 @@ This is like the old `eval-after-load', but better behaved.
 *** `generic-make-keywords-list'
 *** `get-upcase-table' (use `case-table-get-table' instead).
 
-+++
 ** `with-wrapper-hook' is obsoleted by `add-function'.
 The few hooks that used with-wrapper-hook are replaced as follows:
 *** `abbrev-expand-function' obsoletes `abbrev-expand-functions'.
@@ -4187,6 +4186,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 
 Local variables:
+coding: utf-8
 mode: outline
 paragraph-separate: "[ 	]*$"
 end:

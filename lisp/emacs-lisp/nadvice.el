@@ -180,12 +180,16 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
         (advice--make-1 (nth 1 desc) (nth 2 desc)
                         function main props)))))
 
-(defun advice--member-p (function name definition)
+(defun advice--member-p (function use-name definition)
   (let ((found nil))
     (while (and (not found) (advice--p definition))
-      (if (if name
-              (equal name (cdr (assq 'name (advice--props definition))))
-            (equal function (advice--car definition)))
+      (if (if (eq use-name :use-both)
+	      (or (equal function
+			 (cdr (assq 'name (advice--props definition))))
+		  (equal function (advice--car definition)))
+	    (equal function (if use-name
+				(cdr (assq 'name (advice--props definition)))
+			      (advice--car definition))))
           (setq found definition)
         (setq definition (advice--cdr definition))))
     found))
@@ -292,7 +296,7 @@ is also interactive.  There are 3 cases:
 ;;;###autoload
 (defun advice--add-function (where ref function props)
   (let* ((name (cdr (assq 'name props)))
-         (a (advice--member-p function name (gv-deref ref))))
+         (a (advice--member-p (or name function) (if name t) (gv-deref ref))))
     (when a
       ;; The advice is already present.  Remove the old one, first.
       (setf (gv-deref ref)
@@ -324,7 +328,7 @@ properties alist that was specified when it was added."
   "Return non-nil if ADVICE is already in FUNCTION-DEF.
 Instead of ADVICE being the actual function, it can also be the `name'
 of the piece of advice."
-  (advice--member-p advice advice function-def))
+  (advice--member-p advice :use-both function-def))
 
 ;;;; Specific application of add-function to `symbol-function' for advice.
 

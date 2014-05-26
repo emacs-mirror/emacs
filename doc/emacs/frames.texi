@@ -494,13 +494,14 @@ the mouse cursor to the chosen frame.
 @cindex fonts
 
   By default, Emacs displays text on graphical displays using a
-12-point monospace font.  There are several different ways to specify
+10-point monospace font.  There are several different ways to specify
 a different font:
 
 @itemize
 @item
-Click on @samp{Set Default Font} in the @samp{Options} menu.  To save
-this for future sessions, click on @samp{Save Options} in the
+Click on @samp{Set Default Font} in the @samp{Options} menu.  This
+makes the selected font the default on all existing graphical frames.
+To save this for future sessions, click on @samp{Save Options} in the
 @samp{Options} menu.
 
 @item
@@ -512,6 +513,10 @@ Add a line to your init file, modifying the variable
 (add-to-list 'default-frame-alist
              '(font . "DejaVu Sans Mono-10"))
 @end example
+
+@noindent
+This makes the font the default on all graphical frames created after
+restarting Emacs with that init file.
 
 @cindex X defaults file
 @cindex X resources file

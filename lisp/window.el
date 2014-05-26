@@ -1079,7 +1079,6 @@ WINDOW-OR-FRAME can be a frame or a window and defaults to the
 selected frame.  When WINDOW-OR-FRAME is a window, dump that
 window's frame.  The buffer *window-frame-dump* is erased before
 dumping to it."
-  (interactive)
   (let* ((window
 	  (cond
 	   ((or (not window-or-frame)
@@ -1102,7 +1101,9 @@ dumping to it."
 	       (frame-text-width frame) (frame-text-height frame)
 	       (frame-text-cols frame) (frame-text-lines frame))
        (format "tool: %s  scroll: %s  fringe: %s  border: %s  right: %s  bottom: %s\n\n"
-	       (tool-bar-height frame t)
+	       (if (fboundp 'tool-bar-height)
+		   (tool-bar-height frame t)
+		 "0")
 	       (frame-scroll-bar-width frame)
 	       (frame-fringe-width frame)
 	       (frame-border-width frame)

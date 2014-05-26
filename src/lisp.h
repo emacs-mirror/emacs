@@ -1718,8 +1718,8 @@ struct Lisp_Hash_Table
      ratio, a float.  */
   Lisp_Object rehash_threshold;
 
-  /* Vector of hash codes.. If hash[I] is nil, this means that that
-     entry I is unused.  */
+  /* Vector of hash codes.  If hash[I] is nil, this means that the
+     I-th entry is unused.  */
   Lisp_Object hash;
 
   /* Vector used to chain entries.  If entry I is free, next[I] is the

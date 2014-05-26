@@ -1,3 +1,52 @@
+2014-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): Don't record wrap position
+	if we are iterating over an object that generates glyphs for
+	marginal areas.  (Bug#17585)
+
+2014-05-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (safe__call1, safe__eval): Now static.
+
+2014-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (safe__call): Accept va_list argument instead of '...'.
+	(safe_call, safe__call1): Construct a va_list argument for safe_call.
+	(safe_call1): Call safe_call instead of safe__call directly.
+
+2014-05-26  Ken Brown  <kbrown@cornell.edu>
+
+	* w32term.c (x_delete_display) [CYGWIN]: Don't free
+	dpyinfo->w32_id_name, to make sure it doesn't get freed more than
+	once.  (Bug#17510)
+
+2014-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c: Bind inhibit-quit during pre-redisplay-function.
+	(safe__call, safe__call1, safe__eval): New functions.
+	(safe_call): Use it.
+	(prepare_menu_bars): Use it for pre-redisplay-function (bug#17577).
+	(display_mode_element): Same for `:eval'.
+
+2014-05-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix port to 32-bit AIX (Bug#17540).
+	* unexaix.c (copy_text_and_data): Don't add text_scnptr to ptr
+	twice.  _text already includes this offset.
+	(unrelocate_symbols): Don't cast 64-bit integer to pointer.
+
+2014-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): Avoid infinite recursion:
+	when closest_pos is identical to to_charpos, don't recurse, since
+	we already tried that, and failed.  (Bug#17539)
+
+	* w32fns.c (unwind_create_frame) [GLYPH_DEBUG]: If we are
+	unwinding when frame's faces were not initialized yet, increment
+	the frame's image-cache reference count before calling
+	x_free_frame_resources.  Don't dereference
+	dpyinfo->terminal->image_cache if it is NULL.  (Bug#17524)
+
 2014-05-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfont.m (nsfont_draw): Simplify as arguments are adjusted in

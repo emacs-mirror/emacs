@@ -52,9 +52,6 @@
 ;;
 ;; - Using this code does slow Emacs down.  "banish" mode shouldn't
 ;;   be too bad, and on my workstation even "animate" is reasonable.
-;;
-;; - It ought to find out where any overlapping frames are and avoid them,
-;;   rather than always raising the frame.
 
 ;; Credits:
 ;; This code was helped by all those who contributed suggestions,
@@ -129,9 +126,9 @@ TOP-OR-BOTTOM: banish the mouse to top or bottom of frame or window.
 TOP-OR-BOTTOM-POS: Distance from top or bottom edge of frame or window."
   :group   'avoid
   :version "24.3"
-  :type    '(alist :key-type symbol :value-type symbol)
-  :options '(frame-or-window side (side-pos integer)
-             top-or-bottom (top-or-bottom-pos integer)))
+  :type    '(alist :key-type symbol :value-type (choice symbol integer))
+  :options '((frame-or-window symbol) (side symbol) (side-pos integer)
+             (top-or-bottom symbol) (top-or-bottom-pos integer)))
 
 ;; Internal variables
 (defvar mouse-avoidance-state nil)
@@ -172,12 +169,8 @@ Analogous to `mouse-position'."
 
 (defun mouse-avoidance-set-mouse-position (pos)
   ;; Carefully set mouse position to given position (X . Y)
-  ;; Ideally, should check if X,Y is in the current frame, and if not,
-  ;; leave the mouse where it was.  However, this is currently
-  ;; difficult to do, so we just raise the frame to avoid frame switches.
   ;; Returns t if it moved the mouse.
   (let ((f (selected-frame)))
-    (raise-frame f)
     (set-mouse-position f (car pos) (cdr pos))
     t))
 
@@ -342,12 +335,18 @@ redefine this function to suit your own tastes."
 	     (let ((modifiers (event-modifiers (car last-input-event))))
 	       (or (memq (car last-input-event)
 			 '(mouse-movement scroll-bar-movement
-			   select-window switch-frame))
+			   select-window focus-out))
 		   (memq 'click modifiers)
 		   (memq 'double modifiers)
 		   (memq 'triple modifiers)
 		   (memq 'drag modifiers)
-		   (memq 'down modifiers)))))))
+		   (memq 'down modifiers)
+		   (memq 'meta modifiers)
+		   (memq 'control modifiers)
+		   (memq 'shift modifiers)
+		   (memq 'hyper modifiers)
+		   (memq 'super modifiers)
+		   (memq 'alt modifiers)))))))
 
 (defun mouse-avoidance-banish ()
   (if (not (mouse-avoidance-ignore-p))
@@ -402,8 +401,6 @@ Effects of the different modes:
  * animate: As `jump', but shows steps along the way for illusion of motion.
  * cat-and-mouse: Same as `animate'.
  * proteus: As `animate', but changes the shape of the mouse pointer too.
-
-Whenever the mouse is moved, the frame is also raised.
 
 \(See `mouse-avoidance-threshold' for definition of \"too close\",
 and `mouse-avoidance-nudge-dist' and `mouse-avoidance-nudge-var' for
