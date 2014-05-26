@@ -2094,10 +2094,8 @@ ns_do_applescript (Lisp_Object script, Lisp_Object *result)
     [[NSAppleScript alloc] initWithSource:
 			     [NSString stringWithUTF8String: SSDATA (script)]];
 
-  ns_init_events ();
   returnDescriptor = [scriptObject executeAndReturnError: &errorDict];
   [scriptObject release];
-  ns_finish_events ();
   *result = Qnil;
 
   if (returnDescriptor != NULL)
@@ -2158,6 +2156,7 @@ In case the execution fails, an error is signaled. */)
   Lisp_Object result;
   int status;
   NSEvent *nxev;
+  struct input_event ev;
 
   CHECK_STRING (script);
   check_window_system (NULL);
@@ -2185,8 +2184,10 @@ In case the execution fails, an error is signaled. */)
 
   // If there are other events, the event loop may exit.  Keep running
   // until the script has been handled.  */
+  ns_init_events (&ev);
   while (! NILP (as_script))
     [NSApp run];
+  ns_finish_events ();
 
   status = as_status;
   as_status = 0;

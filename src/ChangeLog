@@ -1,5 +1,8 @@
 2014-05-26  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsfns.m (Fns_do_applescript): Surround NSApp run
+	with calls to ns_init_events, ns_finish_events (Bug#17424).
+
 	* nsterm.h (ns_init_events, ns_finish_events): Declare.
 
 	* nsterm.m (ns_init_events, ns_finish_events): New functions.
