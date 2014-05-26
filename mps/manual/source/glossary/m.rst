@@ -535,6 +535,11 @@ Memory Management Glossary: M
 
         .. bibref:: :ref:`Bartlett (1989) <BARTLETT89>`, :ref:`Yip (1991) <YIP91>`.
 
+        .. mps:specific::
+
+            The :ref:`pool-amc` pool class implements mostly-copying
+            garbage collection.
+
     mostly-exact garbage collection
 
         .. see:: :term:`semi-conservative garbage collection`.

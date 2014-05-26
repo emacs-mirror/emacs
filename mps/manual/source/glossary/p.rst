@@ -222,7 +222,7 @@ Memory Management Glossary: P
 
         .. link::
 
-            `Class java.lang.ref.PhantomReference <http://download.java.net/jdk8/docs/api/java/lang/ref/PhantomReference.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
+            `Class java.lang.ref.PhantomReference <http://docs.oracle.com/javase/8/docs/api/java/lang/ref/PhantomReference.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
 
     phantom reference
 
@@ -239,7 +239,7 @@ Memory Management Glossary: P
 
         .. link::
 
-            `Class java.lang.ref.PhantomReference <http://download.java.net/jdk8/docs/api/java/lang/ref/PhantomReference.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
+            `Class java.lang.ref.PhantomReference <http://docs.oracle.com/javase/8/docs/api/java/lang/ref/PhantomReference.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
 
     physical address
 
@@ -320,6 +320,14 @@ Memory Management Glossary: P
         by remapping, incremental copying, or not copying at all).
 
         .. seealso:: :term:`generational garbage collection`.
+
+        .. mps:specific::
+
+            A :term:`pool` can be configured to allocate into a
+            specific :term:`generation` in its :term:`generation
+            chain` by setting the :c:macro:`MPS_KEY_GEN`
+            :term:`keyword argument` when calling
+            :c:func:`mps_pool_create`.
 
     pig in the snake
 

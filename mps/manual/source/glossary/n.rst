@@ -117,4 +117,10 @@ Memory Management Glossary: N
         The size of the nursery space must be chosen carefully. Often
         it is related to the size of :term:`physical memory (1)`.
 
+        .. mps:specific::
 
+            By default, a garbage-collected :term:`pool` allocates
+            into the first :term:`generation` in its :term:`generation
+            chain`, but this can be altered by setting the
+            :c:macro:`MPS_KEY_GEN` :term:`keyword argument` when
+            calling :c:func:`mps_pool_create`.
