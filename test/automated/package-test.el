@@ -186,7 +186,8 @@ Must called from within a `tar-mode' buffer."
         (insert-file-contents (expand-file-name "simple-single-pkg.el"
                                                 simple-pkg-dir))
         (should (string= (buffer-string)
-                         (concat "(define-package \"simple-single\" \"1.3\" "
+                         (concat ";;; -*- no-byte-compile: t -*-\n"
+                                 "(define-package \"simple-single\" \"1.3\" "
                                  "\"A single-file package "
                                  "with no dependencies\" 'nil "
                                  ":url \"http://doodles.au\""

@@ -1,3 +1,8 @@
+2014-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* automated/package-test.el (package-test-install-single):
+	Update for changed output.
+
 2014-05-22  Glenn Morris  <rgm@gnu.org>
 
 	* automated/bytecomp-tests.el (test-byte-comp-compile-and-load):
