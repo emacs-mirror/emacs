@@ -515,6 +515,7 @@ Memory Management Glossary
 :term:`storage management <memory management>`
 :term:`store (1)`
 :term:`store (2) <memory (1)>`
+:term:`stretchy vector`
 :term:`strict segregated fit`
 :term:`strong reference`
 :term:`strong root`
