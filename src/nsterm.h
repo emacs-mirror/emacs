@@ -896,6 +896,9 @@ extern int ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 extern unsigned long ns_get_rgb_color (struct frame *f,
                                        float r, float g, float b, float a);
 
+extern void ns_init_events ();
+extern void ns_finish_events ();
+
 /* From nsterm.m, needed in nsfont.m. */
 #ifdef __OBJC__
 extern void

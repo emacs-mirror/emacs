@@ -1,3 +1,13 @@
+2014-05-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.h (ns_init_events, ns_finish_events): Declare.
+
+	* nsterm.m (ns_init_events, ns_finish_events): New functions.
+	(ns_read_socket, ns_select): Call ns_init_events, ns_finish_events.
+
+	* nsfns.m (ns_do_applescript): Surround executeAndReturnError
+	with calls to ns_init_events, ns_finish_events (Bug#17424).
+
 2014-05-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_in_display_line_to): Don't record wrap position

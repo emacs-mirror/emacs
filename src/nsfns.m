@@ -2094,9 +2094,10 @@ ns_do_applescript (Lisp_Object script, Lisp_Object *result)
     [[NSAppleScript alloc] initWithSource:
 			     [NSString stringWithUTF8String: SSDATA (script)]];
 
+  ns_init_events ();
   returnDescriptor = [scriptObject executeAndReturnError: &errorDict];
   [scriptObject release];
-
+  ns_finish_events ();
   *result = Qnil;
 
   if (returnDescriptor != NULL)

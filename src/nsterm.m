@@ -396,6 +396,19 @@ void x_set_frame_alpha (struct frame *f);
 
    ========================================================================== */
 
+void
+ns_init_events (struct input_event* ev)
+{
+  EVENT_INIT (*ev);
+  emacs_event = ev;
+}
+
+void
+ns_finish_events ()
+{
+  emacs_event = NULL;
+}
+
 static void
 hold_event (struct input_event *event)
 {
@@ -3606,8 +3619,7 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
   block_input ();
   n_emacs_events_pending = 0;
-  EVENT_INIT (ev);
-  emacs_event = &ev;
+  ns_init_events (&ev);
   q_event_ptr = hold_quit;
 
   /* we manage autorelease pools by allocate/reallocate each time around
@@ -3648,7 +3660,8 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
   nevents = n_emacs_events_pending;
   n_emacs_events_pending = 0;
-  emacs_event = q_event_ptr = NULL;
+  ns_finish_events ();
+  q_event_ptr = NULL;
   unblock_input ();
 
   return nevents;
@@ -3743,16 +3756,15 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
       ns_send_appdefined (-1);
     }
 
-  EVENT_INIT (event);
   block_input ();
-  emacs_event = &event;
+  ns_init_events (&event);
   if (++apploopnr != 1)
     {
       emacs_abort ();
     }
   [NSApp run];
   --apploopnr;
-  emacs_event = NULL;
+  ns_finish_events ();
   if (nr > 0 && readfds)
     {
       c = 's';
