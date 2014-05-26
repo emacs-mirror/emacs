@@ -90,7 +90,6 @@ int mkostemp (char * template, int flags);
 #define locking   _locking
 #define logb      _logb
 #define _longjmp  longjmp
-#define lseek     _lseek
 #define popen     _popen
 #define pclose    _pclose
 #define umask	  _umask

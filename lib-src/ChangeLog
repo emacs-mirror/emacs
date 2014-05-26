@@ -1,3 +1,7 @@
+2014-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* ntlib.h (lseek): Don't redirect to _lseek.
+
 2014-05-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix rcs2log problems with CVS.

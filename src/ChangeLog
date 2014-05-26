@@ -1,3 +1,8 @@
+2014-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (_ANONYMOUS_UNION, _ANONYMOUS_STRUCT): Define only if
+	undefined.
+
 2014-05-26  Ken Brown  <kbrown@cornell.edu>
 
 	* w32term.c (x_delete_display): Don't free dpyinfo->w32_id_name,

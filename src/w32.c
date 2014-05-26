@@ -73,9 +73,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <grp.h>
 
 /* MinGW64 (_W64) defines these in its _mingw.h.  */
-#if defined(__GNUC__) && !defined(_W64)
-#define _ANONYMOUS_UNION
-#define _ANONYMOUS_STRUCT
+#ifndef _ANONYMOUS_UNION
+# define _ANONYMOUS_UNION
+#endif
+#ifndef _ANONYMOUS_STRUCT
+# define _ANONYMOUS_STRUCT
 #endif
 #include <windows.h>
 /* Some versions of compiler define MEMORYSTATUSEX, some don't, so we
