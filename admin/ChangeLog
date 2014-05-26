@@ -1,3 +1,7 @@
+2014-05-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac/uvs.el: New file.  Generates ../src/macuvs.h.
+
 2014-05-11  Glenn Morris  <rgm@gnu.org>
 
 	* find-gc.el: Move here from ../lisp/emacs-lisp.
