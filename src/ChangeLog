@@ -1,3 +1,9 @@
+2014-05-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Include sources used to create macuvs.h.
+	* Makefile.in ($(srcdir)/macuvs.h): New rule.
+	* macuvs.h: Use automatically-generated header.
+
 2014-05-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_in_display_line_to): Don't record wrap position

@@ -1,3 +1,9 @@
+2014-05-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Include sources used to create macuvs.h.
+	* international/README: Refer to the Unicode Terms of Use rather
+	than copying it bodily here, as that simplifies maintenance.
+
 2014-05-25  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* cus-face.el (custom-face-attributes): Add :distant-foreground.
