@@ -6419,12 +6419,6 @@ x_delete_display (struct w32_display_info *dpyinfo)
     if (dpyinfo->palette)
       DeleteObject (dpyinfo->palette);
   }
-  /* Avoid freeing dpyinfo->w32_id_name more than once if emacs is
-     running as a daemon; see bug#17510. */
-#ifndef CYGWIN
-  xfree (dpyinfo->w32_id_name);
-#endif
-
   w32_reset_fringes ();
 }
 

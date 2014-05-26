@@ -1,3 +1,8 @@
+2014-05-26  Ken Brown  <kbrown@cornell.edu>
+
+	* w32term.c (x_delete_display): Don't free dpyinfo->w32_id_name,
+	even if !CYGWIN (see bug#17510).
+
 2014-05-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m (Fns_do_applescript): Surround NSApp run
