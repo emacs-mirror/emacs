@@ -480,6 +480,12 @@ Memory Management Glossary: A
 
         .. opposite:: :term:`manual memory management`.
 
+        .. mps:specific::
+
+            The MPS provides automatic memory management through
+            :term:`pool classes` such as :ref:`pool-amc`,
+            :ref:`pool-ams`, and :ref:`pool-awl`.
+
     automatic storage duration
 
         In :term:`C`, :term:`objects` that are declared with
