@@ -1,5 +1,8 @@
 2014-05-27  Glenn Morris  <rgm@gnu.org>
 
+	* minibuffer.el (completion-in-region-functions, completion-in-region)
+	(completion--in-region): Doc fixes.
+
 	* abbrev.el (abbrev-expand-functions, abbrev-expand-function)
 	(expand-abbrev, abbrev--default-expand): Doc fixes.
 
