@@ -1,5 +1,8 @@
 2014-05-27  Glenn Morris  <rgm@gnu.org>
 
+	* text.texi (Buffer Contents):
+	Update for filter-buffer-substring changes.
+
 	* abbrevs.texi (Abbrev Expansion): Update for expand-abbrev changes.
 	* functions.texi (Advising Functions): Standardize menu case.
 

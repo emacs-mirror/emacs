@@ -1,5 +1,9 @@
 2014-05-27  Glenn Morris  <rgm@gnu.org>
 
+	* simple.el (filter-buffer-substring-functions)
+	(filter-buffer-substring-function, buffer-substring-filters)
+	(filter-buffer-substring, buffer-substring--filter): Doc fixes.
+
 	* minibuffer.el (completion-in-region-functions, completion-in-region)
 	(completion--in-region): Doc fixes.
 

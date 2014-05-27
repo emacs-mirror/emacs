@@ -220,15 +220,17 @@ the current buffer, as a string.
 @end defun
 
 @defun filter-buffer-substring start end &optional delete
-This function passes the buffer text between @var{start} and @var{end}
-through the filter functions specified by the wrapper hook
-@code{filter-buffer-substring-functions}, and returns the result.  The
-obsolete variable @code{buffer-substring-filters} is also consulted.
-If both of these variables are @code{nil}, the value is the unaltered
-text from the buffer, i.e., what @code{buffer-substring} would
-return.
+This function filters the buffer text between @var{start} and @var{end}
+using a function specified by the variable
+@code{filter-buffer-substring-function}, and returns the result.
 
-If @var{delete} is non-@code{nil}, this function deletes the text
+The default filter function consults the obsolete wrapper hook
+@code{filter-buffer-substring-functions}, and the obsolete variable
+@code{buffer-substring-filters}.  If both of these are @code{nil}, it
+returns the unaltered text from the buffer, i.e., what
+@code{buffer-substring} would return.
+
+If @var{delete} is non-@code{nil}, the function deletes the text
 between @var{start} and @var{end} after copying it, like
 @code{delete-and-extract-region}.
 
@@ -236,20 +238,29 @@ Lisp code should use this function instead of @code{buffer-substring},
 @code{buffer-substring-no-properties},
 or @code{delete-and-extract-region} when copying into user-accessible
 data structures such as the kill-ring, X clipboard, and registers.
-Major and minor modes can add functions to
-@code{filter-buffer-substring-functions} to alter such text as it is
-copied out of the buffer.
+Major and minor modes can modify @code{filter-buffer-substring-function}
+to alter such text as it is copied out of the buffer.
 @end defun
 
-@c FIXME: `filter-buffer-substring-function' should be documented.
+@defvar filter-buffer-substring-function
+The value of this variable is a function that @code{filter-buffer-substring}
+will call to do the actual work.  The function receives three
+arguments, the same as those of @code{filter-buffer-substring},
+which it should treat as per the documentation of that function.  It
+should return the filtered text (and optionally delete the source text).
+@end defvar
+
+@noindent The following two variables are obsoleted by
+@code{filter-buffer-substring-function}, but are still supported for
+backward compatibility.
+
 @defvar filter-buffer-substring-functions
-This variable is a wrapper hook (@pxref{Running Hooks}), whose members
-should be functions that accept four arguments: @var{fun},
-@var{start}, @var{end}, and @var{delete}.  @var{fun} is a function
-that takes three arguments (@var{start}, @var{end}, and @var{delete}),
-and returns a string.  In both cases, the @var{start}, @var{end}, and
-@var{delete} arguments are the same as those of
-@code{filter-buffer-substring}.
+This obsolete variable is a wrapper hook, whose members should be functions
+that accept four arguments: @var{fun}, @var{start}, @var{end}, and
+@var{delete}.  @var{fun} is a function that takes three arguments
+(@var{start}, @var{end}, and @var{delete}), and returns a string.  In
+both cases, the @var{start}, @var{end}, and @var{delete} arguments are
+the same as those of @code{filter-buffer-substring}.
 
 The first hook function is passed a @var{fun} that is equivalent to
 the default operation of @code{filter-buffer-substring}, i.e., it
@@ -263,14 +274,12 @@ hook functions acting in sequence.
 @end defvar
 
 @defvar buffer-substring-filters
-This variable is obsoleted by
-@code{filter-buffer-substring-functions}, but is still supported for
-backward compatibility.  Its value should should be a list of
-functions which accept a single string argument and return another
-string.  @code{filter-buffer-substring} passes the buffer substring to
-the first function in this list, and the return value of each function
-is passed to the next function.  The return value of the last function
-is passed to @code{filter-buffer-substring-functions}.
+The value of this obsolete variable should be a list of functions
+that accept a single string argument and return another string.
+The default @code{filter-buffer-substring} function passes the buffer
+substring to the first function in this list, and the return value of
+each function is passed to the next function.  The return value of the
+last function is passed to @code{filter-buffer-substring-functions}.
 @end defvar
 
 @defun current-word &optional strict really-word
