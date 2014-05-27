@@ -1,5 +1,8 @@
 2014-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* register.el (register-read-with-preview): Don't burp on
+	frame switches (e.g. due to the frame we just popped).
+
 	* mouse.el (mouse-set-region): Handle spurious drag events (bug#17562).
 	(mouse-drag-track): Annotate `mouse-drag-start' so we know we moved.
 

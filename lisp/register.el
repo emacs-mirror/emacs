@@ -161,7 +161,7 @@ display such a window regardless."
 			      collect c)))
     (unwind-protect
 	(progn
-	  (while (memq (read-event (propertize prompt 'face 'minibuffer-prompt))
+	  (while (memq (read-key (propertize prompt 'face 'minibuffer-prompt))
 		       help-chars)
 	    (unless (get-buffer-window buffer)
 	      (register-preview buffer 'show-empty)))
