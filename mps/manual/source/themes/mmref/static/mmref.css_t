@@ -2,6 +2,11 @@
 
 @import url('scrolls.css');
 
+sup {
+    vertical-align: top;
+    font-size: 80%;
+}
+
 dl.glossary dt {
     font-family: {{ theme_headfont }};
 }
@@ -135,7 +140,22 @@ div#home h1 + p {
     padding-top: 15px;
 }
 
-div#memory-management-glossary em.xref.std-term {
-    white-space: nowrap;
-    margin-right: 1em;
+/* Format the glossary index in two columns. */
+
+div#memory-management-glossary div#all {
+    -webkit-columns: 2;
+    -moz-columns: 2;
+    -o-columns: 2;
+    -ms-columns: 2;
+    columns: 2;
+    padding-top: 1em;
+}
+
+div#memory-management-glossary div#all h2 {
+    display: none;
+}
+
+div#memory-management-glossary div#all a.reference.internal:after {
+    content: "\A";
+    white-space: pre;
 }
