@@ -4412,17 +4412,13 @@ run `deactivate-mark-hook'."
 	     (x-set-selection 'PRIMARY
                               (funcall region-extract-function nil)))))
     (when mark-active (force-mode-line-update)) ;Refresh toolbar (bug#16382).
-    (if (and (null force)
-	     (or (eq transient-mark-mode 'lambda)
-		 (and (eq (car-safe transient-mark-mode) 'only)
-		      (null (cdr transient-mark-mode)))))
-	;; When deactivating a temporary region, don't change
-	;; `mark-active' or run `deactivate-mark-hook'.
-	(setq transient-mark-mode nil)
-      (if (eq (car-safe transient-mark-mode) 'only)
-	  (setq transient-mark-mode (cdr transient-mark-mode)))
-      (setq mark-active nil)
-      (run-hooks 'deactivate-mark-hook))
+    (cond
+     ((eq (car-safe transient-mark-mode) 'only)
+      (setq transient-mark-mode (cdr transient-mark-mode)))
+     ((eq transient-mark-mode 'lambda)
+      (setq transient-mark-mode nil)))
+    (setq mark-active nil)
+    (run-hooks 'deactivate-mark-hook)
     (redisplay--update-region-highlight (selected-window))))
 
 (defun activate-mark (&optional no-tmm)
