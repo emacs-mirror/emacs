@@ -1,3 +1,8 @@
+2014-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* abbrev.el (abbrev-expand-functions, abbrev-expand-function)
+	(expand-abbrev, abbrev--default-expand): Doc fixes.
+
 2014-05-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Include sources used to create macuvs.h.

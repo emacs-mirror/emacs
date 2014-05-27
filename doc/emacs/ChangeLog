@@ -1,3 +1,7 @@
+2014-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi (Expanding Abbrevs): Update re abbrev-expand-function.
+
 2014-05-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* frames.texi (Fonts): Clarify which frames are affected by

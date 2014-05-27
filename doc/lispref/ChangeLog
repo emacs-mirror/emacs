@@ -1,3 +1,8 @@
+2014-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi (Abbrev Expansion): Update for expand-abbrev changes.
+	* functions.texi (Advising Functions): Standardize menu case.
+
 2014-05-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Invisible Text): Clarify the description of

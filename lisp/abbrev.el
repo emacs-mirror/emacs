@@ -824,23 +824,28 @@ see `define-abbrev' for details."
     value))
 
 (defvar abbrev-expand-functions nil
-  "Wrapper hook around `expand-abbrev'.")
+  "Wrapper hook around `abbrev--default-expand'.")
 (make-obsolete-variable 'abbrev-expand-functions 'abbrev-expand-function "24.4")
 
 (defvar abbrev-expand-function #'abbrev--default-expand
-  "Function to perform abbrev expansion.
+  "Function that `expand-abbrev' uses to perform abbrev expansion.
 Takes no argument and should return the abbrev symbol if expansion took place.")
 
 (defun expand-abbrev ()
   "Expand the abbrev before point, if there is an abbrev there.
 Effective when explicitly called even when `abbrev-mode' is nil.
-Returns the abbrev symbol, if expansion took place.  (The actual
-return value is that of `abbrev-insert'.)"
+Before doing anything else, runs `pre-abbrev-expand-hook'.
+Calls `abbrev-expand-function' with no argument to do the work,
+and returns whatever it does.  (This should be the abbrev symbol
+if expansion occurred, else nil.)"
   (interactive)
   (run-hooks 'pre-abbrev-expand-hook)
   (funcall abbrev-expand-function))
 
 (defun abbrev--default-expand ()
+  "Default function to use for `abbrev-expand-function'.
+This respects the wrapper hook `abbrev-expand-functions'.
+Calls `abbrev-insert' to insert any expansion, and returns what it does."
   (with-wrapper-hook abbrev-expand-functions ()
     (pcase-let ((`(,sym ,name ,wordstart ,wordend) (abbrev--before-point)))
       (when sym
