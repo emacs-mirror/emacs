@@ -1,3 +1,12 @@
+2014-05-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't kill already-reaped process (Bug#17561).
+	* process.c (process_send_signal): Fix race condition where a
+	subprocess was reaped by a signal handler between the check for
+	liveness and calling 'kill', which meant that Emacs could in
+	theory kill an innocent bystander process.  Do the fix by blocking
+	SIGCHLD in a critical section that checks liveness before killing.
+
 2014-05-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (_ANONYMOUS_UNION, _ANONYMOUS_STRUCT): Define only if

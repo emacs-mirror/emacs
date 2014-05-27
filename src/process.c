@@ -5833,30 +5833,25 @@ process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
     }
 #endif
 
+#ifdef TIOCSIGSEND
+  /* Work around a HP-UX 7.0 bug that mishandles signals to subjobs.
+     We don't know whether the bug is fixed in later HP-UX versions.  */
+  if (! NILP (current_group) && ioctl (p->infd, TIOCSIGSEND, signo) != -1)
+    return;
+#endif
+
   /* If we don't have process groups, send the signal to the immediate
      subprocess.  That isn't really right, but it's better than any
      obvious alternative.  */
-  if (no_pgrp)
-    {
-      kill (p->pid, signo);
-      return;
-    }
+  pid_t pid = no_pgrp ? gid : - gid;
 
-  /* gid may be a pid, or minus a pgrp's number */
-#ifdef TIOCSIGSEND
-  if (!NILP (current_group))
-    {
-      if (ioctl (p->infd, TIOCSIGSEND, signo) == -1)
-	kill (-gid, signo);
-    }
-  else
-    {
-      gid = - p->pid;
-      kill (gid, signo);
-    }
-#else /* ! defined (TIOCSIGSEND) */
-  kill (-gid, signo);
-#endif /* ! defined (TIOCSIGSEND) */
+  /* Do not kill an already-reaped process, as that could kill an
+     innocent bystander that happens to have the same process ID.  */
+  sigset_t oldset;
+  block_child_signal (&oldset);
+  if (p->alive)
+    kill (pid, signo);
+  unblock_child_signal (&oldset);
 }
 
 DEFUN ("interrupt-process", Finterrupt_process, Sinterrupt_process, 0, 2, 0,
