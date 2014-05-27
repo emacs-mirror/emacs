@@ -167,7 +167,7 @@ Memory Management Glossary: P
         mutator changing :term:`objects` while collection
         occurs. The problem is similar to that of :term:`incremental
         GC <incremental garbage collection>`, but harder. The solution
-        typically involves :term:`barrier (1)`.
+        typically involves :term:`barriers (1)`.
 
         .. similar:: :term:`incremental <incremental garbage collection>`.
 
