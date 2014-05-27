@@ -1,3 +1,14 @@
+2014-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/ruby.rb: Add one more test.
+
+	* indent/ps-mode.ps: New file.
+
+	* indent/octave.m: Add a few more tests.
+
+	* automated/core-elisp-tests.el
+	(core-elisp-test-window-configurations): New test.
+
 2014-05-26  Glenn Morris  <rgm@gnu.org>
 
 	* automated/package-test.el (package-test-install-single):

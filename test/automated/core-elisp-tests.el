@@ -36,5 +36,14 @@
                          c-e-x)
                    '(1 2)))))
 
+(ert-deftest core-elisp-test-window-configurations ()
+  "Test properties of window-configurations."
+  (let ((wc (current-window-configuration)))
+    (with-current-buffer (window-buffer (frame-selected-window))
+      (push-mark)
+      (activate-mark))
+    (set-window-configuration wc)
+    (should (or (not mark-active) (mark)))))
+
 (provide 'core-elisp-tests)
 ;;; core-elisp-tests.el ends here

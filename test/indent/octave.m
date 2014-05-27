@@ -14,7 +14,15 @@ function res = tcomp (fn)
   y = 'hello';
   z = y';
 
+  ## Bug#14399.
+  vec = [...
+          one;...
+          two;...
+          three];
+
   cnty = repmat(x(:,1)(:), 10, 1);
+  x = ...
+  12
 
   pop = x(:,1:10)(:);
     ## Here and below, we test if the indentation aligns with a previous

@@ -6,6 +6,10 @@ if something_wrong?             # ruby-move-to-block-skips-heredoc
   foo
 end
 
+def foo
+  %^bar^
+end
+
 # Percent literals.
 b = %Q{This is a "string"}
 c = %w!foo
