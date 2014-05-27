@@ -550,13 +550,20 @@ command alters the kill ring or not."
 	(end (posn-point (event-end click)))
         (click-count (event-click-count click)))
     (let ((drag-start (terminal-parameter nil 'mouse-drag-start)))
-      ;; Drag events don't come with a click count, sadly, so we hack
-      ;; our way around this problem by remembering the start-event in
-      ;; `mouse-drag-start' and fetching the click-count from there.
       (when drag-start
+        ;; Drag events don't come with a click count, sadly, so we hack
+        ;; our way around this problem by remembering the start-event in
+        ;; `mouse-drag-start' and fetching the click-count from there.
         (when (and (<= click-count 1)
                    (equal beg (posn-point (event-start drag-start))))
           (setq click-count (event-click-count drag-start)))
+        ;; Occasionally we get spurious drag events where the user hasn't
+        ;; dragged his mouse, but instead Emacs has dragged the text under the
+        ;; user's mouse.  Try to recover those cases (bug#17562).
+        (when (and (equal (posn-x-y (event-start click))
+                          (posn-x-y (event-end click)))
+                   (not (eq (car drag-start) 'mouse-movement)))
+          (setq end beg))
         (setf (terminal-parameter nil 'mouse-drag-start) nil)))
     (when (and (integerp beg) (integerp end))
       (let ((range (mouse-start-end beg end (1- click-count))))
@@ -820,22 +827,25 @@ The region will be defined with mark and point."
          (lambda (event) (interactive "e")
            (let* ((end (event-end event))
                   (end-point (posn-point end)))
-	  (unless (eq end-point start-point)
+             (unless (eq end-point start-point)
                ;; As soon as the user moves, we can re-enable auto-hscroll.
-               (setq auto-hscroll-mode auto-hscroll-mode-saved))
-	  (if (and (eq (posn-window end) start-window)
-		   (integer-or-marker-p end-point))
-	      (mouse--drag-set-mark-and-point start-point
-					      end-point click-count)
-	    (let ((mouse-row (cdr (cdr (mouse-position)))))
-	      (cond
-	       ((null mouse-row))
-	       ((< mouse-row top)
-		(mouse-scroll-subr start-window (- mouse-row top)
-				   nil start-point))
-	       ((>= mouse-row bottom)
-		(mouse-scroll-subr start-window (1+ (- mouse-row bottom))
-				   nil start-point))))))))
+               (setq auto-hscroll-mode auto-hscroll-mode-saved)
+               ;; And remember that we have moved, so mouse-set-region can know
+               ;; its event is really a drag event.
+               (setcar start-event 'mouse-movement))
+             (if (and (eq (posn-window end) start-window)
+                      (integer-or-marker-p end-point))
+                 (mouse--drag-set-mark-and-point start-point
+                                                 end-point click-count)
+               (let ((mouse-row (cdr (cdr (mouse-position)))))
+                 (cond
+                  ((null mouse-row))
+                  ((< mouse-row top)
+                   (mouse-scroll-subr start-window (- mouse-row top)
+                                      nil start-point))
+                  ((>= mouse-row bottom)
+                   (mouse-scroll-subr start-window (1+ (- mouse-row bottom))
+                                      nil start-point))))))))
        map)
      t (lambda ()
          (setq track-mouse nil)

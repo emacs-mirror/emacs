@@ -1,3 +1,8 @@
+2014-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-set-region): Handle spurious drag events (bug#17562).
+	(mouse-drag-track): Annotate `mouse-drag-start' so we know we moved.
+
 2014-05-26  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* cus-face.el (custom-face-attributes): Add :distant-foreground.
@@ -24,8 +29,8 @@
 	Todo file, make sure we're in the right mode and the buffer local
 	variables are set.
 	(todo-make-categories-list, todo-reset-nondiary-marker)
-	(todo-reset-done-string, todo-reset-comment-string): After
-	processing all Todo files, kill the buffers of those files that
+	(todo-reset-done-string, todo-reset-comment-string):
+	After processing all Todo files, kill the buffers of those files that
 	weren't being visited before the processing.
 	(todo-display-as-todo-file, todo-add-to-buffer-list)
 	(todo-visit-files-commands): Comment out.
@@ -88,8 +93,8 @@
 
 2014-05-26  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* emacs-lisp/package.el (package--download-one-archive): Use
-	`write-region' instead of `save-buffer' to avoid running various
+	* emacs-lisp/package.el (package--download-one-archive):
+	Use `write-region' instead of `save-buffer' to avoid running various
 	hooks.  (Bug#17155)
 	(describe-package-1): Same.  Insert newline at the end of the
 	buffer if appropriate.
