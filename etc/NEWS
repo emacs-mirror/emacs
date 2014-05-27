@@ -40,6 +40,11 @@ or by sticking with Emacs 24.4.
 ** The configure option `--with-pkg-config-prog' has been removed.
 Use './configure PKG_CONFIG=/full/name/of/pkg-config' if you need to.
 
+---
+** Building Emacs for MS-Windows requires at least Windows XP
+or Windows Server 2003.  The built binaries still run on all versions
+of Windows starting with Windows 9X.
+
 
 * Startup Changes in Emacs 24.5
 

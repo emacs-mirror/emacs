@@ -140,6 +140,7 @@ extern char *getenv ();
    in its system headers, and is not really compatible with values
    lower than 0x0500, so leave it alone.  */
 #ifndef _W64
+# undef _WIN32_WINNT
 # define _WIN32_WINNT 0x0400
 #endif
 
@@ -427,20 +428,36 @@ extern char *get_emacs_configuration_options (void);
 #define _WINSOCK_H
 
 /* Defines size_t and alloca ().  */
-#ifdef emacs
-#define malloc e_malloc
-#define free   e_free
-#define realloc e_realloc
-#define calloc e_calloc
-#endif
+#include <stdlib.h>
+#include <sys/stat.h>
 #ifdef _MSC_VER
 #define alloca _alloca
 #else
 #include <malloc.h>
 #endif
 
-#include <stdlib.h>
-#include <sys/stat.h>
+#ifdef emacs
+
+typedef void * (* malloc_fn)(size_t);
+typedef void * (* realloc_fn)(void *, size_t);
+typedef void (* free_fn)(void *);
+
+extern void *malloc_before_dump(size_t);
+extern void *realloc_before_dump(void *, size_t);
+extern void free_before_dump(void *);
+extern void *malloc_after_dump(size_t);
+extern void *realloc_after_dump(void *, size_t);
+extern void free_after_dump(void *);
+
+extern malloc_fn the_malloc_fn;
+extern realloc_fn the_realloc_fn;
+extern free_fn the_free_fn;
+
+#define malloc(size) (*the_malloc_fn)(size)
+#define free(ptr)   (*the_free_fn)(ptr)
+#define realloc(ptr, size) (*the_realloc_fn)(ptr, size)
+
+#endif
 
 /* Define for those source files that do not include enough NT system files.  */
 #ifndef NULL

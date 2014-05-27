@@ -27,15 +27,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 /*
  * Heap related stuff.
  */
-#define get_reserved_heap_size()	reserved_heap_size
-#define get_committed_heap_size()	(get_data_end () - get_data_start ())
-#define get_heap_start()		get_data_start ()
-#define get_heap_end()			get_data_end ()
+
+#define DUMPED_HEAP_SIZE (HEAPSIZE*1024*1024)
+
+extern unsigned char dumped_data[];
 
 extern unsigned char *get_data_start (void);
 extern unsigned char *get_data_end (void);
 extern size_t         reserved_heap_size;
-extern BOOL   	      using_dynamic_heap;
+extern BOOL           using_dynamic_heap;
+
+extern void *mmap_realloc (void **, size_t);
+extern void  mmap_free (void **);
+extern void *mmap_alloc (void **, size_t);
+
 
 /* Emulation of Unix sbrk().  */
 extern void *sbrk (ptrdiff_t size);
@@ -43,11 +48,8 @@ extern void *sbrk (ptrdiff_t size);
 /* Initialize heap structures for sbrk on startup.  */
 extern void init_heap (void);
 
-/* Round the heap to this size.  */
-extern void round_heap (size_t size);
-
 /* ----------------------------------------------------------------- */
-/* Useful routines for manipulating memory-mapped files. */
+/* Useful routines for manipulating memory-mapped files.  */
 
 typedef struct file_data {
     char          *name;
@@ -61,11 +63,11 @@ int open_input_file (file_data *p_file, char *name);
 int open_output_file (file_data *p_file, char *name, unsigned long size);
 void close_file_data (file_data *p_file);
 
-/* Return pointer to section header for named section. */
+/* Return pointer to section header for named section.  */
 IMAGE_SECTION_HEADER * find_section (char * name, IMAGE_NT_HEADERS * nt_header);
 
 /* Return pointer to section header for section containing the given
-   relative virtual address. */
+   relative virtual address.  */
 IMAGE_SECTION_HEADER * rva_to_section (DWORD_PTR rva, IMAGE_NT_HEADERS * nt_header);
 
 #endif /* NTHEAP_H_ */

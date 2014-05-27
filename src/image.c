@@ -998,6 +998,11 @@ free_image (struct frame *f, struct image *img)
 
       c->images[img->id] = NULL;
 
+      /* Windows NT redefines 'free', but in this file, we need to
+         avoid the redefinition.  */
+#ifdef WINDOWSNT
+#undef free
+#endif
       /* Free resources, then free IMG.  */
       img->type->free (f, img);
       xfree (img);
@@ -6452,7 +6457,6 @@ jpeg_file_src (j_decompress_ptr cinfo, FILE *fp)
   src->mgr.bytes_in_buffer = 0;
   src->mgr.next_input_byte = NULL;
 }
-
 
 /* Load image IMG for use on frame F.  Patterned after example.c
    from the JPEG lib.  */

@@ -5,9 +5,9 @@
   See the end of the file for license conditions.
 
 The MSYS/MinGW build described here is supported on versions of
-Windows starting with Windows 2000 and newer.  Windows 9X are not
-supported (but the Emacs binary produced by this build will run on
-Windows 9X as well).
+Windows starting with Windows XP and newer.  Building on Windows 2000
+and Windows 9X is not supported (but the Emacs binary produced by this
+build will run on Windows 9X and newer systems).
 
   Do not use this recipe with Cygwin.  For building on Cygwin, use the
   normal installation instructions, ../INSTALL.
@@ -389,9 +389,10 @@ Windows 9X as well).
 
        Where should the build process find the source code?    /path/to/emacs/sources
        What compiler should emacs be built with?               gcc  -std=gnu99 -O0 -g3
-       Should Emacs use the GNU version of malloc?             yes
-       Should Emacs use a relocating allocator for buffers?    yes
-       Should Emacs use mmap(2) for buffer allocation?         no
+       Should Emacs use the GNU version of malloc?             no
+	 (The GNU allocators don't work with this system configuration.)
+       Should Emacs use a relocating allocator for buffers?    no
+       Should Emacs use mmap(2) for buffer allocation?         yes
        What window system should Emacs use?                    w32
        What toolkit should Emacs use?                          none
        Where do we find X Windows header files?                NONE
@@ -401,13 +402,16 @@ Windows 9X as well).
        Does Emacs use -ljpeg?                                  yes
        Does Emacs use -ltiff?                                  yes
        Does Emacs use a gif library?                           yes
-       Does Emacs use -lpng?                                   yes
-       Does Emacs use -lrsvg-2?                                no
+       Does Emacs use a png library?                           yes
+       Does Emacs use -lrsvg-2?                                yes
        Does Emacs use imagemagick?                             no
+       Does Emacs support sound?                               no
        Does Emacs use -lgpm?                                   no
        Does Emacs use -ldbus?                                  no
        Does Emacs use -lgconf?                                 no
        Does Emacs use GSettings?                               no
+       Does Emacs use a file notification library?             yes (w32)
+       Does Emacs use access control lists?                    yes
        Does Emacs use -lselinux?                               no
        Does Emacs use -lgnutls?                                yes
        Does Emacs use -lxml2?                                  yes
@@ -415,6 +419,7 @@ Windows 9X as well).
        Does Emacs use -lm17n-flt?                              no
        Does Emacs use -lotf?                                   no
        Does Emacs use -lxft?                                   no
+       Does Emacs directly use zlib?                           yes
        Does Emacs use toolkit scroll bars?                     yes
 
   You are almost there, hang on.

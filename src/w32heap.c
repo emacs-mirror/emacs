@@ -1,256 +1,611 @@
-/* Heap management routines for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1994, 2001-2014 Free Software Foundation, Inc.
+/* Heap management routines for GNU Emacs on the Microsoft Windows
+   API.  Copyright (C) 1994, 2001-2014 Free Software Foundation, Inc.
 
-This file is part of GNU Emacs.
+   This file is part of GNU Emacs.
 
-GNU Emacs is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+   GNU Emacs is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
 
-GNU Emacs is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+   GNU Emacs is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+   You should have received a copy of the GNU General Public License
+   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>. */
 
 /*
-   Geoff Voelker (voelker@cs.washington.edu)			     7-29-94
+  Geoff Voelker (voelker@cs.washington.edu)                          7-29-94
 */
+
+/*
+  Heavily modified by Fabrice Popineau (fabrice.popineau@gmail.com) 28-02-2014
+*/
+
+/*
+  Memory allocation scheme for w32/w64:
+
+  - Buffers are mmap'ed using a very simple emulation of mmap/munmap
+  - During the temacs phase:
+    * we use a private heap declared to be stored into the `dumped_data'
+    * unfortunately, this heap cannot be made growable, so the size of
+      blocks it can allocate is limited to (0x80000 - pagesize)
+    * the blocks that are larger than this are allocated from the end
+      of the `dumped_data' array; there are not so many of them.
+      We use a very simple first-fit scheme to reuse those blocks.
+    * we check that the private heap does not cross the area used
+      by the bigger chunks.
+  - During the emacs phase:
+    * we create a private heap for new memory blocks
+    * we make sure that we never free a block that has been dumped.
+      Freeing a dumped block could work in principle, but may prove
+      unreliable if we distribute binaries of emacs.exe: MS does not
+      guarantee that the heap data structures are the same across all
+      versions of their OS, even though the API is available since XP.  */
 
 #include <config.h>
 #include <stdio.h>
 
+#include <sys/mman.h>
 #include "w32common.h"
 #include "w32heap.h"
 #include "lisp.h"  /* for VALMASK */
 
-#define RVA_TO_PTR(rva) ((unsigned char *)((DWORD_PTR)(rva) + (DWORD_PTR)GetModuleHandle (NULL)))
+/* We chose to leave those declarations here.  They are used only in
+   this file.  The RtlCreateHeap is available since XP.  It is located
+   in ntdll.dll and is available with the DDK.  People often
+   complained that HeapCreate doesn't offer the ability to create a
+   heap at a given place, which we need here, and which RtlCreateHeap
+   provides.  We reproduce here the definitions available with the
+   DDK.  */
 
-/* Emulate getpagesize.  */
-int
-getpagesize (void)
-{
-  return sysinfo_cache.dwPageSize;
-}
+typedef PVOID (WINAPI * RtlCreateHeap_Proc) (
+                                             /* _In_ */      ULONG Flags,
+                                             /* _In_opt_ */  PVOID HeapBase,
+                                             /* _In_opt_ */  SIZE_T ReserveSize,
+                                             /* _In_opt_ */  SIZE_T CommitSize,
+                                             /* _In_opt_ */  PVOID Lock,
+                                             /* _In_opt_ */  PVOID Parameters
+                                             );
+
+typedef LONG NTSTATUS;
+
+typedef NTSTATUS
+(NTAPI * PRTL_HEAP_COMMIT_ROUTINE)(
+                                   IN PVOID Base,
+                                   IN OUT PVOID *CommitAddress,
+                                   IN OUT PSIZE_T CommitSize
+                                   );
+
+typedef struct _RTL_HEAP_PARAMETERS {
+  ULONG Length;
+  SIZE_T SegmentReserve;
+  SIZE_T SegmentCommit;
+  SIZE_T DeCommitFreeBlockThreshold;
+  SIZE_T DeCommitTotalFreeThreshold;
+  SIZE_T MaximumAllocationSize;
+  SIZE_T VirtualMemoryThreshold;
+  SIZE_T InitialCommit;
+  SIZE_T InitialReserve;
+  PRTL_HEAP_COMMIT_ROUTINE CommitRoutine;
+  SIZE_T Reserved[ 2 ];
+} RTL_HEAP_PARAMETERS, *PRTL_HEAP_PARAMETERS;
+
+/* We reserve space for dumping emacs lisp byte-code inside a static
+   array.  By storing it in an array, the generic mechanism in
+   unexecw32.c will be able to dump it without the need to add a
+   special segment to the executable.  In order to be able to do this
+   without losing too much space, we need to create a Windows heap at
+   the specific address of the static array.  The RtlCreateHeap
+   available inside the NT kernel since XP will do this.  It allows to
+   create a non-growable heap at a specific address.  So before
+   dumping, we create a non-growable heap at the address of the
+   dumped_data[] array.  After dumping, we reuse memory allocated
+   there without being able to free it (but most of it is not meant to
+   be freed anyway), and we use a new private heap for all new
+   allocations.  */
+
+unsigned char dumped_data[DUMPED_HEAP_SIZE];
 
 /* Info for managing our preload heap, which is essentially a fixed size
-   data area in the executable.  */
-PIMAGE_SECTION_HEADER preload_heap_section;
-
-/* Info for keeping track of our heap.  */
+   data area in the executable. */
+/* Info for keeping track of our heap. */
 unsigned char *data_region_base = NULL;
 unsigned char *data_region_end = NULL;
-unsigned char *real_data_region_end = NULL;
-size_t  reserved_heap_size = 0;
+static DWORD_PTR committed = 0;
 
-/* The start of the data segment.  */
-unsigned char *
-get_data_start (void)
+/* The maximum block size that can be handled by a non-growable w32
+   heap is limited by the MaxBlockSize value below.
+
+   This point deserves and explanation.
+
+   The W32 heap allocator can be used for a growable
+   heap or a non-growable one.
+
+   A growable heap is not compatible with a fixed base address for the
+   heap.  Only a non-growable one is.  One drawback of non-growable
+   heaps is that they can hold only objects smaller than a certain
+   size (the one defined below).  Most of the largest blocks are GC'ed
+   before dumping.  In any case and to be safe, we implement a simple
+   first-fit allocation algorithm starting at the end of the
+   dumped_data[] array like depicted below:
+
+  ----------------------------------------------
+  |               |              |             |
+  | Private heap  |->          <-|  Big chunks |
+  |               |              |             |
+  ----------------------------------------------
+  ^               ^              ^
+  dumped_data     dumped_data    bc_limit
+                  + committed
+
+*/
+#define HEAP_ENTRY_SHIFT 3
+#define PAGE_SIZE 0x1000
+#define MaxBlockSize (0x80000 - PAGE_SIZE)
+
+#define MAX_BLOCKS 0x40
+
+static struct
 {
-  return data_region_base;
-}
+  unsigned char *address;
+  size_t size;
+  DWORD occupied;
+} blocks[MAX_BLOCKS];
 
-/* The end of the data segment.  */
-unsigned char *
-get_data_end (void)
+static DWORD          blocks_number = 0;
+static unsigned char *bc_limit;
+
+/* Handle for the private heap:
+    - inside the dumped_data[] array before dump,
+    - outside of it after dump.
+*/
+HANDLE heap = NULL;
+
+/* We redirect the standard allocation functions.  */
+malloc_fn the_malloc_fn;
+realloc_fn the_realloc_fn;
+free_fn the_free_fn;
+
+/* It doesn't seem to be useful to allocate from a file mapping.
+   It would be if the memory was shared.
+     http://stackoverflow.com/questions/307060/what-is-the-purpose-of-allocating-pages-in-the-pagefile-with-createfilemapping  */
+
+/* This is the function to commit memory when the heap allocator
+   claims for new memory.  Before dumping, we allocate space
+   from the fixed size dumped_data[] array.
+*/
+NTSTATUS NTAPI
+dumped_data_commit (PVOID Base, PVOID *CommitAddress, PSIZE_T CommitSize)
 {
-  return data_region_end;
-}
+  /* This is used before dumping.
 
-#if !USE_LSB_TAG
-static char *
-allocate_heap (void)
-{
-  /* Try to get as much as possible of the address range from the end of
-     the preload heap section up to the usable address limit.  Since GNU
-     malloc can handle gaps in the memory it gets from sbrk, we can
-     simply set the sbrk pointer to the base of the new heap region.  */
-  DWORD_PTR base =
-    ROUND_UP ((RVA_TO_PTR (preload_heap_section->VirtualAddress)
-	       + preload_heap_section->Misc.VirtualSize),
-	      get_allocation_unit ());
-  DWORD_PTR end  = ((unsigned __int64)1) << VALBITS; /* 256MB */
-  void *ptr = NULL;
-
-  while (!ptr && (base < end))
+     The private heap is stored at dumped_data[] address.
+     We commit contiguous areas of the dumped_data array
+     as requests arrive.  */
+  *CommitAddress = data_region_base + committed;
+  committed += *CommitSize;
+  if (((unsigned char *)(*CommitAddress)) + *CommitSize >= bc_limit)
     {
-#ifdef _WIN64
-      reserved_heap_size = min(end - base, 0x4000000000ull); /* Limit to 256Gb */
-#else
-      reserved_heap_size = end - base;
+      /* Check that the private heap area does not overlap the big
+	 chunks area.  */
+      fprintf(stderr,
+	      "dumped_data_commit: memory exhausted.\nEnlarge dumped_data[]!\n");
+      exit (-1);
+    }
+  return 0;
+}
+
+/* Heap creation.  */
+
+/* Under MinGW32, we want to turn on Low Fragmentation Heap for XP.
+   MinGW32 lacks those definitions.  */
+#ifndef _W64
+typedef enum _HEAP_INFORMATION_CLASS {
+  HeapCompatibilityInformation
+} HEAP_INFORMATION_CLASS;
+
+typedef WINBASEAPI BOOL (WINAPI * HeapSetInformation_Proc)(HANDLE,HEAP_INFORMATION_CLASS,PVOID,SIZE_T);
 #endif
-      ptr = VirtualAlloc ((void *) base,
-			  get_reserved_heap_size (),
-			  MEM_RESERVE,
-			  PAGE_NOACCESS);
-      base += 0x00100000;  /* 1MB increment */
-    }
 
-  return ptr;
-}
-#else  /* USE_LSB_TAG */
-static char *
-allocate_heap (void)
-{
-#ifdef _WIN64
-  size_t size = 0x4000000000ull; /* start by asking for 32GB */
-#else
-  /* We used to start with 2GB here, but on Windows 7 that would leave
-     too little room in the address space for threads started by
-     Windows on our behalf, e.g. when we pop up the file selection
-     dialog.  */
-  size_t size = 0x68000000; /* start by asking for 1.7GB */
-#endif
-  void *ptr = NULL;
-
-  while (!ptr && size > 0x00100000)
-    {
-      reserved_heap_size = size;
-      ptr = VirtualAlloc (NULL,
-			  get_reserved_heap_size (),
-			  MEM_RESERVE,
-			  PAGE_NOACCESS);
-      size -= 0x00800000; /* if failed, decrease request by 8MB */
-    }
-
-  return ptr;
-}
-#endif /* USE_LSB_TAG */
-
-
-/* Emulate Unix sbrk.  Note that ralloc.c expects the return value to
-   be the address of the _start_ (not end) of the new block in case of
-   success, and zero (not -1) in case of failure.  */
-void *
-sbrk (ptrdiff_t increment)
-{
-  void *result;
-  ptrdiff_t size = increment;
-
-  result = data_region_end;
-
-  /* If size is negative, shrink the heap by decommitting pages.  */
-  if (size < 0)
-    {
-      ptrdiff_t new_size;
-      unsigned char *new_data_region_end;
-
-      size = -size;
-
-      /* Sanity checks.  */
-      if ((data_region_end - size) < data_region_base)
-	return NULL;
-
-      /* We can only decommit full pages, so allow for
-	 partial deallocation [cga].  */
-      new_data_region_end = (data_region_end - size);
-      new_data_region_end = (unsigned char *)
-	((DWORD_PTR) (new_data_region_end + syspage_mask) & ~syspage_mask);
-      new_size = real_data_region_end - new_data_region_end;
-      real_data_region_end = new_data_region_end;
-      if (new_size > 0)
-	{
-	  /* Decommit size bytes from the end of the heap.  */
-	  if (using_dynamic_heap
-	      && !VirtualFree (real_data_region_end, new_size, MEM_DECOMMIT))
-	    return NULL;
- 	}
-
-      data_region_end -= size;
-    }
-  /* If size is positive, grow the heap by committing reserved pages.  */
-  else if (size > 0)
-    {
-      /* Sanity checks.  */
-      if ((data_region_end + size) >
-	  (data_region_base + get_reserved_heap_size ()))
-	return NULL;
-
-      /* Commit more of our heap. */
-      if (using_dynamic_heap
-	  && VirtualAlloc (data_region_end, size, MEM_COMMIT,
-			   PAGE_READWRITE) == NULL)
-	return NULL;
-      data_region_end += size;
-
-      /* We really only commit full pages, so record where
-	 the real end of committed memory is [cga].  */
-      real_data_region_end = (unsigned char *)
-	  ((DWORD_PTR) (data_region_end + syspage_mask) & ~syspage_mask);
-    }
-
-  return result;
-}
-
-/* Initialize the internal heap variables used by sbrk.  When running in
-   preload phase (ie. in the undumped executable), we rely entirely on a
-   fixed size heap section included in the .exe itself; this is
-   preserved during dumping, and truncated to the size actually used.
-
-   When running in the dumped executable, we reserve as much as possible
-   of the address range that is addressable by Lisp object pointers, to
-   supplement what is left of the preload heap.  Although we cannot rely
-   on the dynamically allocated arena being contiguous with the static
-   heap area, it is not a problem because sbrk can pretend that the gap
-   was allocated by something else; GNU malloc detects when there is a
-   jump in the sbrk values, and starts a new heap block.  */
 void
 init_heap (void)
 {
-  PIMAGE_DOS_HEADER dos_header;
-  PIMAGE_NT_HEADERS nt_header;
-
-  dos_header = (PIMAGE_DOS_HEADER) RVA_TO_PTR (0);
-  nt_header = (PIMAGE_NT_HEADERS) (((DWORD_PTR) dos_header) +
-				   dos_header->e_lfanew);
-  preload_heap_section = find_section ("EMHEAP", nt_header);
-
   if (using_dynamic_heap)
     {
-      data_region_base = allocate_heap ();
-      if (!data_region_base)
-	{
-	  printf ("Error: Could not reserve dynamic heap area.\n");
-	  exit (1);
-	}
+      unsigned long enable_lfh = 2;
 
-#if !USE_LSB_TAG
-      /* Ensure that the addresses don't use the upper tag bits since
-	 the Lisp type goes there.  */
-      if (((DWORD_PTR) data_region_base & ~VALMASK) != 0)
-	{
-	  printf ("Error: The heap was allocated in upper memory.\n");
-	  exit (1);
-	}
-#endif
+      /* After dumping, use a new private heap.  We explicitly enable
+         the low fragmentation heap here, for the sake of pre Vista
+         versions.  Note: this will harnlessly fail on Vista and
+         later, whyere the low fragmentation heap is enabled by
+         default.  It will also fail on pre-Vista versions when Emacs
+         is run under a debugger; set _NO_DEBUG_HEAP=1 in the
+         environment before starting GDB to get low fragmentation heap
+         on XP and older systems, for the price of losing "certain
+         heap debug options"; for the details see
+         http://msdn.microsoft.com/en-us/library/windows/desktop/aa366705%28v=vs.85%29.aspx.  */
       data_region_end = data_region_base;
-      real_data_region_end = data_region_end;
+
+      /* Create the private heap.  */
+      heap = HeapCreate(0, 0, 0);
+
+#ifndef _W64
+      /* Set the low-fragmentation heap for OS before XP and Windows
+	 Server 2003.  */
+      HMODULE hm_kernel32dll = LoadLibrary("kernel32.dll");
+      HeapSetInformation_Proc s_pfn_Heap_Set_Information = (HeapSetInformation_Proc) GetProcAddress(hm_kernel32dll, "HeapSetInformation");
+      if (s_pfn_Heap_Set_Information != NULL)
+        if (s_pfn_Heap_Set_Information ((PVOID) heap,
+                                        HeapCompatibilityInformation,
+                                        &enable_lfh, sizeof(enable_lfh)) == 0)
+          DebPrint (("Enabling Low Fragmentation Heap failed\n"));
+#endif
+
+      the_malloc_fn = malloc_after_dump;
+      the_realloc_fn = realloc_after_dump;
+      the_free_fn = free_after_dump;
     }
   else
     {
-      data_region_base = RVA_TO_PTR (preload_heap_section->VirtualAddress);
-      data_region_end = data_region_base;
-      real_data_region_end = data_region_end;
-      reserved_heap_size = preload_heap_section->Misc.VirtualSize;
+      /* Find the RtlCreateHeap function.  Headers for this function
+         are provided with the w32 ddk, but the function is available
+         in ntdll.dll since XP.  */
+      HMODULE hm_ntdll = LoadLibrary ("ntdll.dll");
+      RtlCreateHeap_Proc s_pfn_Rtl_Create_Heap
+	= (RtlCreateHeap_Proc) GetProcAddress (hm_ntdll, "RtlCreateHeap");
+      /* Specific parameters for the private heap.  */
+      RTL_HEAP_PARAMETERS params;
+      ZeroMemory(&params, sizeof(params));
+      params.Length = sizeof(RTL_HEAP_PARAMETERS);
+
+      data_region_base = (unsigned char *)ROUND_UP (dumped_data, 0x1000);
+      data_region_end = bc_limit = dumped_data + DUMPED_HEAP_SIZE;
+
+      params.InitialCommit = committed = 0x1000;
+      params.InitialReserve = sizeof(dumped_data);
+      /* Use our own routine to commit memory from the dumped_data
+         array.  */
+      params.CommitRoutine = &dumped_data_commit;
+
+      /* Create the private heap.  */
+      heap = s_pfn_Rtl_Create_Heap (0, data_region_base, 0, 0, NULL, &params);
+      the_malloc_fn = malloc_before_dump;
+      the_realloc_fn = realloc_before_dump;
+      the_free_fn = free_before_dump;
     }
 
   /* Update system version information to match current system.  */
   cache_system_info ();
 }
 
-/* Round the heap up to the given alignment.  */
-void
-round_heap (size_t align)
+#undef malloc
+#undef realloc
+#undef calloc
+#undef free
+
+/* FREEABLE_P checks if the block can be safely freed.  */
+#define FREEABLE_P(addr)                                        \
+    ((unsigned char *)(addr) < dumped_data                      \
+     || (unsigned char *)(addr) >= dumped_data + DUMPED_HEAP_SIZE)
+
+void *
+malloc_after_dump (size_t size)
 {
-  DWORD_PTR needs_to_be;
-  DWORD_PTR need_to_alloc;
+  /* Use the new private heap.  */
+  void *p = HeapAlloc (heap, 0, size);
 
-  needs_to_be = (DWORD_PTR) ROUND_UP (get_heap_end (), align);
-  need_to_alloc = needs_to_be - (DWORD_PTR) get_heap_end ();
+  /* After dump, keep track of the last allocated byte for sbrk(0).  */
+  data_region_end = p + size - 1;
+  return p;
+}
 
-  if (need_to_alloc)
-    sbrk (need_to_alloc);
+void *
+malloc_before_dump (size_t size)
+{
+  void *p;
+
+  /* Before dumping.  The private heap can handle only requests for
+     less than MaxBlockSize.  */
+  if (size < MaxBlockSize)
+    {
+      /* Use the private heap if possible.  */
+      p = HeapAlloc (heap, 0, size);
+    }
+  else
+    {
+      /* Find the first big chunk that can hold the requested size.  */
+      int i = 0;
+
+      for (i = 0; i < blocks_number; i++)
+	{
+	  if (blocks[i].occupied == 0 && blocks[i].size >= size)
+	    break;
+	}
+      if (i < blocks_number)
+	{
+	  /* If found, use it.  */
+	  p = blocks[i].address;
+	  blocks[i].occupied = TRUE;
+	}
+      else
+	{
+	  /* Allocate a new big chunk from the end of the dumped_data
+	     array.  */
+	  if (blocks_number >= MAX_BLOCKS)
+	    {
+	      fprintf(stderr,
+		      "malloc_before_dump: no more big chunks available.\nEnlarge MAX_BLOCKS!\n");
+	      exit (-1);
+	    }
+	  bc_limit -= size;
+	  bc_limit = (unsigned char *)ROUND_DOWN (bc_limit, 0x10);
+	  p = bc_limit;
+	  blocks[blocks_number].address = p;
+	  blocks[blocks_number].size = size;
+	  blocks[blocks_number].occupied = TRUE;
+	  blocks_number++;
+	  if (bc_limit < dumped_data + committed)
+	    {
+	      /* Check that areas do not overlap.  */
+	      fprintf(stderr,
+		      "malloc_before_dump: memory exhausted.\nEnlarge dumped_data[]!\n");
+	      exit (-1);
+	    }
+	}
+    }
+  return p;
+}
+
+/* Re-allocate the previously allocated block in ptr, making the new
+   block SIZE bytes long.  */
+void *
+realloc_after_dump (void *ptr, size_t size)
+{
+  void *p;
+
+  /* After dumping.  */
+  if (FREEABLE_P (ptr))
+    {
+      /* Reallocate the block since it lies in the new heap.  */
+      p = HeapReAlloc (heap, 0, ptr, size);
+    }
+  else
+    {
+      /* If the block lies in the dumped data, do not free it.  Only
+         allocate a new one.  */
+      p = HeapAlloc (heap, 0, size);
+      CopyMemory (p, ptr, size);
+    }
+  /* After dump, keep track of the last allocated byte for sbrk(0).  */
+  data_region_end = p + size - 1;
+  return p;
+}
+
+void *
+realloc_before_dump (void *ptr, size_t size)
+{
+  void *p;
+
+  /* Before dumping.  */
+  if (dumped_data < (unsigned char *)ptr
+      && (unsigned char *)ptr < bc_limit && size <= MaxBlockSize)
+    p = HeapReAlloc (heap, 0, ptr, size);
+  else
+    {
+      /* In this case, either the new block is too large for the heap,
+         or the old block was already too large.  In both cases,
+         malloc_before_dump() and free_before_dump() will take care of
+         reallocation.  */
+      p = malloc_before_dump (size);
+      CopyMemory (p, ptr, size);
+      free_before_dump (ptr);
+    }
+  return p;
+}
+
+/* Free a block allocated by `malloc', `realloc' or `calloc'.  */
+void
+free_after_dump (void *ptr)
+{
+  /* After dumping.  */
+  if (FREEABLE_P (ptr))
+    {
+      /* Free the block if it is in the new private heap.  */
+      HeapFree (heap, 0, ptr);
+    }
+}
+
+void
+free_before_dump (void *ptr)
+{
+  /* Before dumping.  */
+  if (dumped_data < (unsigned char *)ptr
+      && (unsigned char *)ptr < bc_limit)
+    {
+      /* Free the block if it is allocated in the private heap.  */
+      HeapFree (heap, 0, ptr);
+    }
+  else
+    {
+      /* Look for the big chunk.  */
+      int i;
+
+      for(i = 0; i < blocks_number; i++)
+	{
+	  if (blocks[i].address == ptr)
+	    {
+	      /* Reset block occupation if found.  */
+	      blocks[i].occupied = 0;
+	      break;
+	    }
+	  /* What if the block is not found?  We should trigger an
+	     error here.  */
+	  eassert (i < blocks_number);
+	}
+    }
+}
+
+/* Emulate getpagesize. */
+int
+getpagesize (void)
+{
+  return sysinfo_cache.dwPageSize;
+}
+
+void *
+sbrk (ptrdiff_t increment)
+{
+  /* The data_region_end address is the one of the last byte
+     allocated.  The sbrk() function is not emulated at all, except
+     for a 0 value of its parameter.  This is needed by the emacs lisp
+     function `memory-limit'.   */
+  return data_region_end;
+}
+
+#define MAX_BUFFER_SIZE (512 * 1024 * 1024)
+
+/* MMAP allocation for buffers.  */
+void *
+mmap_alloc (void **var, size_t nbytes)
+{
+  void *p = NULL;
+
+  /* We implement amortized allocation.  We start by reserving twice
+     the size requested and commit only the size requested.  Then
+     realloc could proceed and use the reserved pages, reallocating
+     only if needed.  Buffer shrink would happen only so that we stay
+     in the 2x range.  This is a big win when visiting compressed
+     files, where the final size of the buffer is not known in
+     advance, and the buffer is enlarged several times as the data is
+     decompressed on the fly.  */
+  if (nbytes < MAX_BUFFER_SIZE)
+    p = VirtualAlloc (NULL, (nbytes * 2), MEM_RESERVE, PAGE_READWRITE);
+
+  /* If it fails, or if the request is above 512MB, try with the
+     requested size.  */
+  if (p == NULL)
+    p = VirtualAlloc (NULL, nbytes, MEM_RESERVE, PAGE_READWRITE);
+
+  if (p != NULL)
+    {
+      /* Now, commit pages for NBYTES.  */
+      *var = VirtualAlloc (p, nbytes, MEM_COMMIT, PAGE_READWRITE);
+    }
+
+  if (!p && GetLastError () != ERROR_NOT_ENOUGH_MEMORY)
+    DebPrint (("mmap_alloc: error %ld\n", GetLastError()));
+
+  return *var = p;
+}
+
+void
+mmap_free (void **var)
+{
+  if (*var)
+    {
+      if (VirtualFree (*var, 0, MEM_RELEASE) == 0)
+        DebPrint (("mmap_free: error %ld\n", GetLastError()));
+      *var = NULL;
+    }
+}
+
+void *
+mmap_realloc (void **var, size_t nbytes)
+{
+  MEMORY_BASIC_INFORMATION memInfo, m2;
+
+  if (*var == NULL)
+    return mmap_alloc (var, nbytes);
+
+  /* This case happens in init_buffer().  */
+  if (nbytes == 0)
+    {
+      mmap_free (var);
+      return mmap_alloc (var, nbytes);
+    }
+
+  if (VirtualQuery (*var, &memInfo, sizeof (memInfo)) == 0)
+    DebPrint (("mmap_realloc: VirtualQuery error = %ld\n", GetLastError()));
+
+  /* We need to enlarge the block.  */
+  if (memInfo.RegionSize < nbytes)
+    {
+      if (VirtualQuery (*var + memInfo.RegionSize, &m2, sizeof(m2)) == 0)
+        DebPrint (("mmap_realloc: VirtualQuery error = %ld\n", GetLastError()));
+      /* If there is enough room in the current reserved area, then
+	 commit more pages as needed.  */
+      if (m2.State == MEM_RESERVE
+	  && nbytes <= memInfo.RegionSize + m2.RegionSize)
+	{
+	  void *p;
+
+	  p = VirtualAlloc (*var + memInfo.RegionSize,
+			    nbytes - memInfo.RegionSize,
+			    MEM_COMMIT, PAGE_READWRITE);
+	  if (!p /* && GetLastError() != ERROR_NOT_ENOUGH_MEMORY */)
+	    DebPrint (("realloc enlarge: VirtualAlloc error %ld\n",
+		       GetLastError()));
+	  return *var;
+	}
+      else
+	{
+	  /* Else we must actually enlarge the block by allocating a
+	     new one and copying previous contents from the old to the
+	     new one.  */
+	  void *old_ptr = *var;
+
+	  if (mmap_alloc (var, nbytes))
+	    {
+	      CopyMemory (*var, old_ptr, memInfo.RegionSize);
+	      mmap_free (&old_ptr);
+	      return *var;
+	    }
+	  else
+	    {
+	      /* We failed to enlarge the buffer.  */
+	      *var = old_ptr;
+	      return NULL;
+	    }
+	}
+    }
+
+  /* If we are shrinking by more than one page...  */
+  if (memInfo.RegionSize  > nbytes + getpagesize())
+    {
+      /* If we are shrinking a lot...  */
+      if ((memInfo.RegionSize / 2) > nbytes)
+        {
+          /* Let's give some memory back to the system and release
+	     some pages.  */
+          void *old_ptr = *var;
+
+	  if (mmap_alloc (var, nbytes))
+            {
+              CopyMemory (*var, old_ptr, nbytes);
+              mmap_free (&old_ptr);
+              return *var;
+            }
+          else
+	    {
+	      /* In case we fail to shrink, try to go on with the old block.
+		 But that means there is a lot of memory pressure.
+		 We could also decommit pages.  */
+	      *var = old_ptr;
+	      return *var;
+	    }
+        }
+
+      /* We still can decommit pages.  */
+      if (VirtualFree (*var + nbytes + get_page_size(),
+		       memInfo.RegionSize - nbytes - get_page_size(),
+		       MEM_DECOMMIT) == 0)
+        DebPrint (("mmap_realloc: VirtualFree error %ld\n", GetLastError()));
+      return *var;
+    }
+
+  /* Not enlarging, not shrinking by more than one page.  */
+  return *var;
 }

@@ -41,6 +41,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 #include "frame.h"
 
+#ifdef WINDOWSNT
+#include "w32heap.h"		/* for mmap_* */
+#endif
+
 struct buffer *current_buffer;		/* The current buffer.  */
 
 /* First buffer in chain of all buffers (in reverse order of creation).
@@ -4632,7 +4636,8 @@ evaporate_overlays (ptrdiff_t pos)
 			 Allocation with mmap
  ***********************************************************************/
 
-#ifdef USE_MMAP_FOR_BUFFERS
+/* Note: WINDOWSNT implements this stuff on w32heap.c.  */
+#if defined USE_MMAP_FOR_BUFFERS && !defined WINDOWSNT
 
 #include <sys/mman.h>
 
@@ -4774,36 +4779,6 @@ mmap_init (void)
   mmap_page_size = getpagesize ();
 }
 
-/* Return a region overlapping address range START...END, or null if
-   none.  END is not including, i.e. the last byte in the range
-   is at END - 1.  */
-
-static struct mmap_region *
-mmap_find (void *start, void *end)
-{
-  struct mmap_region *r;
-  char *s = start, *e = end;
-
-  for (r = mmap_regions; r; r = r->next)
-    {
-      char *rstart = (char *) r;
-      char *rend   = rstart + r->nbytes_mapped;
-
-      if (/* First byte of range, i.e. START, in this region?  */
-	  (s >= rstart && s < rend)
-	  /* Last byte of range, i.e. END - 1, in this region?  */
-	  || (e > rstart && e <= rend)
-	  /* First byte of this region in the range?  */
-	  || (rstart >= s && rstart < e)
-	  /* Last byte of this region in the range?  */
-	  || (rend > s && rend <= e))
-	break;
-    }
-
-  return r;
-}
-
-
 /* Unmap a region.  P is a pointer to the start of the user-araa of
    the region.  */
 
@@ -4877,38 +4852,6 @@ mmap_enlarge (struct mmap_region *r, int npages)
     }
 
   return success;
-}
-
-
-/* Set or reset variables holding references to mapped regions.
-   If not RESTORE_P, set all variables to null.  If RESTORE_P, set all
-   variables to the start of the user-areas of mapped regions.
-
-   This function is called from Fdump_emacs to ensure that the dumped
-   Emacs doesn't contain references to memory that won't be mapped
-   when Emacs starts.  */
-
-void
-mmap_set_vars (bool restore_p)
-{
-  struct mmap_region *r;
-
-  if (restore_p)
-    {
-      mmap_regions = mmap_regions_1;
-      mmap_fd = mmap_fd_1;
-      for (r = mmap_regions; r; r = r->next)
-	*r->var = MMAP_USER_AREA (r);
-    }
-  else
-    {
-      for (r = mmap_regions; r; r = r->next)
-	*r->var = NULL;
-      mmap_regions_1 = mmap_regions;
-      mmap_regions = NULL;
-      mmap_fd_1 = mmap_fd;
-      mmap_fd = -1;
-    }
 }
 
 

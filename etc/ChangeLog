@@ -1,3 +1,7 @@
+2014-05-27  Fabrice Popineau  <fabrice.popineau@gmail.com>
+
+	* NEWS: Mention build changes on MS-Windows.
+
 2014-05-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Specify coding if Latin-1 Emacs would misinterpret (Bug#17575).

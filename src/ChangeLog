@@ -1,3 +1,35 @@
+2014-05-27  Fabrice Popineau  <fabrice.popineau@gmail.com>
+
+	* Makefile.in (C_HEAP_SWITCH): Get the predefined heap size from
+	configure.
+	(ADDSECTION, MINGW_TEMACS_POST_LINK): Remove, no longer used.
+
+	* lisp.h (NONPOINTER_BITS): Modify the condition to define to zero
+	for MinGW, since it no longer uses gmalloc.
+
+	* buffer.c: Do not define mmap allocations functions for Windows.
+	Remove mmap_find which is unused. Remove mmap_set_vars which does
+	nothing useful.
+	[WINDOWSNT]: Include w32heap.h.
+	(init_buffer): Always allocate new memory for buffers.
+
+	* emacs.c: Remove mmap_set_vars calls.
+
+	* image.c (free_image): Undef free for Windows because it is
+	redirected to our private version.
+
+	* unexw32.c (COPY_PROC_CHUNK): Use %p format for 64bits
+	compatibility.
+	(copy_executable_and_dump_data): Remove dumping the heap section.
+	(unexec): Restore using_dynamic_heap after dumping.
+
+	* w32heap.c (dumped_data_commit, malloc_after_dump)
+	(malloc_before_dump, realloc_after_dump, realloc_before_dump)
+	(free_after_dump, free_before_dump, mmap_alloc, mmap_realloc)
+	(mmap_free): New functions.
+
+	* w32heap.h: Declare dumped_data and mmap_* function prototypes.
+
 2014-05-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* image.c (imagemagick_load_image): Use MagickRealType for local

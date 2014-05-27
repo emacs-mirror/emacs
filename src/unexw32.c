@@ -83,8 +83,6 @@ PCHAR  bss_start_static = 0;
 DWORD_PTR  bss_size_static = 0;
 DWORD_PTR  extra_bss_size_static = 0;
 
-PIMAGE_SECTION_HEADER heap_section;
-
 /* MinGW64 doesn't add a leading underscore to external symbols,
    whereas configure.ac sets up LD_SWITCH_SYSTEM_TEMACS to force the
    entry point at __start, with two underscores.  */
@@ -475,8 +473,6 @@ get_section_info (file_data *p_infile)
       bss_section_static = 0;
       extra_bss_size_static = 0;
     }
-
-  heap_section = rva_to_section (PTR_TO_RVA (get_heap_start ()), nt_header);
 }
 
 
@@ -518,9 +514,11 @@ copy_executable_and_dump_data (file_data *p_infile,
     if (verbose)								\
       {										\
 	printf ("%s\n", (message));						\
-	printf ("\t0x%08x Address in process.\n", s);				\
-	printf ("\t0x%08x Offset in output file.\n", dst - p_outfile->file_base); \
-	printf ("\t0x%08x Size in bytes.\n", count);				\
+	printf ("\t0x%p Address in process.\n", s);				\
+	printf ("\t0x%p Base       output file.\n", p_outfile->file_base); \
+	printf ("\t0x%p Offset  in output file.\n", dst - p_outfile->file_base); \
+	printf ("\t0x%p Address in output file.\n", dst); \
+	printf ("\t0x%p Size in bytes.\n", count);				\
       }										\
     memcpy (dst, s, count);							\
     dst += count;								\
@@ -626,34 +624,6 @@ copy_executable_and_dump_data (file_data *p_infile,
 	  /* Determine new size of raw data area.  */
 	  dst = max (dst, dst_save + dst_section->SizeOfRawData);
 	  dst_section->SizeOfRawData = dst - dst_save;
-	  dst_section->Characteristics &= ~IMAGE_SCN_CNT_UNINITIALIZED_DATA;
-	  dst_section->Characteristics |= IMAGE_SCN_CNT_INITIALIZED_DATA;
-	}
-      if (section == heap_section)
-	{
-	  DWORD_PTR heap_start = (DWORD_PTR) get_heap_start ();
-	  DWORD_PTR heap_size = get_committed_heap_size ();
-
-	  /* Dump the used portion of the predump heap, adjusting the
-             section's size to the appropriate size.  */
-	  dst = dst_save
-	    + RVA_TO_SECTION_OFFSET (PTR_TO_RVA (heap_start), dst_section);
-	  COPY_PROC_CHUNK ("Dumping heap...", heap_start, heap_size,
-			   be_verbose);
-	  ROUND_UP_DST (dst_nt_header->OptionalHeader.FileAlignment);
-	  dst_section->PointerToRawData = PTR_TO_OFFSET (dst_save, p_outfile);
-	  /* Determine new size of raw data area.  */
-	  dst = max (dst, dst_save + dst_section->SizeOfRawData);
-	  dst_section->SizeOfRawData = dst - dst_save;
-	  /* Reduce the size of the heap section to fit (must be last
-             section).  */
-	  dst_nt_header->OptionalHeader.SizeOfImage -=
-	    dst_section->Misc.VirtualSize
-	    - ROUND_UP (dst_section->SizeOfRawData,
-			dst_nt_header->OptionalHeader.SectionAlignment);
-	  dst_section->Misc.VirtualSize =
-	    ROUND_UP (dst_section->SizeOfRawData,
-		      dst_nt_header->OptionalHeader.SectionAlignment);
 	  dst_section->Characteristics &= ~IMAGE_SCN_CNT_UNINITIALIZED_DATA;
 	  dst_section->Characteristics |= IMAGE_SCN_CNT_INITIALIZED_DATA;
 	}
@@ -767,9 +737,6 @@ unexec (const char *new_name, const char *old_name)
   printf ("Dumping from %s\n", in_filename);
   printf ("          to %s\n", out_filename);
 
-  /* We need to round off our heap to NT's page size.  */
-  round_heap (get_page_size ());
-
   /* Open the undumped executable file.  */
   if (!open_input_file (&in_file, in_filename))
     {
@@ -784,7 +751,6 @@ unexec (const char *new_name, const char *old_name)
   /* The size of the dumped executable is the size of the original
      executable plus the size of the heap and the size of the .bss section.  */
   size = in_file.size +
-    get_committed_heap_size () +
     extra_bss_size +
     extra_bss_size_static;
   if (!open_output_file (&out_file, out_filename, size))
@@ -798,6 +764,10 @@ unexec (const char *new_name, const char *old_name)
   using_dynamic_heap = TRUE;
 
   copy_executable_and_dump_data (&in_file, &out_file);
+
+  /* Unset it because it is plain wrong to keep it after dumping.
+     Malloc can still occur!  */
+  using_dynamic_heap = FALSE;
 
   /* Patch up header fields; profiler is picky about this. */
   {
