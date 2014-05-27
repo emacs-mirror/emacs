@@ -32,14 +32,6 @@
 
 #include "intprops.h"
 
-/* The results of open() in this file are not used with fchdir,
-   and we do not leak fds to any single-threaded code that could use stdio,
-   therefore save some unnecessary work in fchdir.c.
-   FIXME - if the kernel ever adds support for multi-thread safety for
-   avoiding standard fds, then we should use open_safer.  */
-#undef open
-#undef close
-
 #define PROC_SELF_FD_FORMAT "/proc/self/fd/%d/%s"
 
 #define PROC_SELF_FD_NAME_SIZE_BOUND(len) \

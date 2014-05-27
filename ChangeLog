@@ -1,3 +1,9 @@
+2014-05-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2014-05-21 fchdir: port 'open' and 'close' redefinitions to AIX 7.1
+	* lib/openat-proc.c: Update from gnulib.
+
 2014-05-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix port to 32-bit AIX (Bug#17540).

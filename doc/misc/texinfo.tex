@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2014-05-05.10}
+\def\texinfoversion{2014-05-20.16}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -8856,20 +8856,20 @@ end
 {
   \catcode`\_ = \active
   \globaldefs=1
-\parseargdef\documentlanguage{\begingroup
-  \let_=\normalunderscore  % normal _ character for filenames
+\parseargdef\documentlanguage{%
   \tex % read txi-??.tex file in plain TeX.
     % Read the file by the name they passed if it exists.
+    \let_ = \normalunderscore  % normal _ character for filename test
     \openin 1 txi-#1.tex
     \ifeof 1
-      \documentlanguagetrywithoutunderscore{#1_\finish}%
+      \documentlanguagetrywithoutunderscore #1_\finish
     \else
       \globaldefs = 1  % everything in the txi-LL files needs to persist
       \input txi-#1.tex
     \fi
     \closein 1
   \endgroup % end raw TeX
-\endgroup}
+}
 %
 % If they passed de_DE, and txi-de_DE.tex doesn't exist,
 % try txi-de.tex.
