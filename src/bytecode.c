@@ -388,7 +388,11 @@ unmark_byte_stack (void)
 
 /* Fetch the next byte from the bytecode stream.  */
 
+#ifdef BYTE_CODE_SAFE
+#define FETCH (eassert (stack.byte_string_start == SDATA (stack.byte_string)), *stack.pc++)
+#else
 #define FETCH *stack.pc++
+#endif
 
 /* Fetch two bytes from the bytecode stream and make a 16-bit number
    out of them.  */

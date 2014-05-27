@@ -1,3 +1,8 @@
+2014-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bytecode.c (FETCH) [BYTE_CODE_SAFE]: Check the bytecode wasn't
+	relocated from under us.
+
 2014-05-27  Fabrice Popineau  <fabrice.popineau@gmail.com>
 
 	* Makefile.in (C_HEAP_SWITCH): Get the predefined heap size from
