@@ -4652,7 +4652,6 @@ no value of TYPE (always string in the MS Windows case).  */)
 {
   struct frame *f = decode_window_system_frame (frame);
   Atom prop_atom;
-  int rc;
   Lisp_Object prop_value = Qnil;
   Atom target_type = XA_STRING;
   Window target_window = FRAME_X_WINDOW (f);
@@ -4699,7 +4698,7 @@ no value of TYPE (always string in the MS Windows case).  */)
                                              vector_ret_p,
                                              &found);
     }
-  
+
 
   unblock_input ();
   UNGCPRO;

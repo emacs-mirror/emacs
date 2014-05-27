@@ -1,5 +1,7 @@
 2014-05-27  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xfns.c (Fx_window_property): Remove unused local.
+
 	Don't kill already-reaped process (Bug#17561).
 	* process.c (process_send_signal): Fix race condition where a
 	subprocess was reaped by a signal handler between the check for
