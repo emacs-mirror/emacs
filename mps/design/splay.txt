@@ -51,7 +51,7 @@ _`.def.splay-tree`: A *splay tree* is a self-adjusting binary tree as
 described in [ST85]_ and [Sleator96]_.
 
 _`.def.node`: A *node* is used in the typical data structure sense to
-mean an element of a tree (see also `.type.splay.node`_).
+mean an element of a tree (see also `.type.tree`_).
 
 _`.def.key`: A *key* is a value associated with each node; the keys
 are totally ordered by a client provided comparator.
@@ -442,8 +442,7 @@ right trees. For the left tree, we traverse the right child line,
 reversing pointers, until we reach the node that was the last node
 prior to the transplantation of the root's children. Then we update
 from that node back to the left tree's root, restoring pointers.
-Updating the right tree is the same, mutatis mutandis. (See
-`.future.reverse`_ for an alternative approach).
+Updating the right tree is the same, mutatis mutandis.
 
 
 Usage
