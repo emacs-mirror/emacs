@@ -1,5 +1,9 @@
 2014-05-27  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* image.c (imagemagick_load_image): Use MagickRealType for local
+	'color_scale', instead of double, to avoid a GCC warning about
+	double promotion.
+
 	* xfns.c (Fx_window_property): Remove unused local.
 
 	Don't kill already-reaped process (Bug#17561).
