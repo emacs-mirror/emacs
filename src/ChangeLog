@@ -8,7 +8,8 @@
 	* cmds.c (Fself_insert_command): Use SELECTED_FRAME.
 	* keyboard.c (gobble_input): If there is no terminal input error,
 	make sure the pointer is visible for all frames on this terminal.
-	* xterm.c (x_free_frame_resources): Always enable pointer visibility.
+	* xterm.c (x_free_frame_resources): Enable pointer visibility if
+	it was previously disabled.
 
 2014-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
