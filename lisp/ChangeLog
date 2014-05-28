@@ -1,3 +1,13 @@
+2014-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (internal--funcall-interactively): New.
+	(internal--call-interactively): Remove.
+	(called-interactively-p): Detect funcall-interactively instead of
+	call-interactively.
+
+	* simple.el (repeat-complex-command): Use funcall-interactively.
+	(repeat-complex-command--called-interactively-skip): Remove.
+
 2014-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* register.el (register-read-with-preview): Don't burp on

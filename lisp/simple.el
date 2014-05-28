@@ -1503,24 +1503,13 @@ to get different commands to edit and resubmit."
 	  ;; add it to the history.
 	  (or (equal newcmd (car command-history))
 	      (setq command-history (cons newcmd command-history)))
-          (unwind-protect
-              (progn
-                ;; Trick called-interactively-p into thinking that `newcmd' is
-                ;; an interactive call (bug#14136).
-                (add-hook 'called-interactively-p-functions
-                          #'repeat-complex-command--called-interactively-skip)
-                (eval newcmd))
-            (remove-hook 'called-interactively-p-functions
-                         #'repeat-complex-command--called-interactively-skip)))
+          (apply #'funcall-interactively
+		 (car newcmd)
+		 (mapcar (lambda (e) (eval e t)) (cdr newcmd))))
       (if command-history
 	  (error "Argument %d is beyond length of command history" arg)
 	(error "There are no previous complex commands to repeat")))))
 
-(defun repeat-complex-command--called-interactively-skip (i _frame1 frame2)
-  (and (eq 'eval (cadr frame2))
-       (eq 'repeat-complex-command
-           (cadr (backtrace-frame i #'called-interactively-p)))
-       1))
 
 (defvar extended-command-history nil)
 

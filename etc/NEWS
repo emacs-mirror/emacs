@@ -123,6 +123,10 @@ active region handling.
 
 * Lisp Changes in Emacs 24.5
 
+** New function `funcall-interactively', which works like `funcall'
+but makes `called-interactively-p' treat the function as (you guessed it)
+called interactively.
+
 ** New function `function-put' to use instead of `put' for function properties.
 
 +++

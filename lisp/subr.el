@@ -4162,7 +4162,8 @@ I is the index of the frame after FRAME2.  It should return nil
 if those frames don't seem special and otherwise, it should return
 the number of frames to skip (minus 1).")
 
-(defconst internal--call-interactively (symbol-function 'call-interactively))
+(defconst internal--funcall-interactively
+  (symbol-function 'funcall-interactively))
 
 (defun called-interactively-p (&optional kind)
   "Return t if the containing function was called by `call-interactively'.
@@ -4236,10 +4237,13 @@ command is called from a keyboard macro?"
       (pcase (cons frame nextframe)
         ;; No subr calls `interactive-p', so we can rule that out.
         (`((,_ ,(pred (lambda (f) (subrp (indirect-function f)))) . ,_) . ,_) nil)
-        ;; In case #<subr call-interactively> without going through the
-        ;; `call-interactively' symbol (bug#3984).
-        (`(,_ . (t ,(pred (eq internal--call-interactively)) . ,_)) t)
-        (`(,_ . (t call-interactively . ,_)) t)))))
+        ;; In case #<subr funcall-interactively> without going through the
+        ;; `funcall-interactively' symbol (bug#3984).
+        (`(,_ . (t ,(pred (lambda (f)
+                            (eq internal--funcall-interactively
+                                (indirect-function f))))
+                   . ,_))
+         t)))))
 
 (defun interactive-p ()
   "Return t if the containing function was run directly by user input.
