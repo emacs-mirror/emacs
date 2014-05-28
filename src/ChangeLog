@@ -1,5 +1,19 @@
 2014-05-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Refactor mouse positioning stuff to avoid code duplication.
+	* frame.h (frame_char_to_pixel_position): New function.
+	(x_set_mouse_position): Rename to...
+	(frame_set_mouse_position): ...new function.
+	(frame_set_mouse_pixel_position): Add prototype.
+	* nsterm.m, w32term.c, xterm.c (x_set_mouse_pixel_position):
+	Rename to frame_set_mouse_pixel_position.
+	* frame.c (Fset_mouse_pixel_position, Fset_mouse_position):
+	Adjust users.
+	* xterm.h, w32term.h ( x_set_mouse_position)
+	(x_set_mouse_pixel_position): Remove prototypes.
+
+2014-05-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	On X, always make pointer visible when deleting frame (Bug#17609).
 	* frame.c (frame_make_pointer_visible, frame_make_pointer_invisible):
 	Pass frame as arg.

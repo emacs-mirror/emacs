@@ -1313,8 +1313,7 @@ extern void set_frame_menubar (struct frame *f, bool first_time, bool deep_p);
 extern void x_set_window_size (struct frame *f, int change_grav,
 			       int width, int height, bool pixelwise);
 extern Lisp_Object x_get_focus_frame (struct frame *);
-extern void x_set_mouse_position (struct frame *f, int h, int v);
-extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
+extern void frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
 extern void x_make_frame_visible (struct frame *f);
 extern void x_make_frame_invisible (struct frame *f);
 extern void x_iconify_frame (struct frame *f);
@@ -1364,6 +1363,37 @@ flush_frame (struct frame *f)
 
   if (rif && rif->flush_display)
     rif->flush_display (f);
+}
+
+/* Convert character coordinates X and Y to pixel
+   coordinates PIX_X and PIX_Y on frame F.  */
+
+INLINE void
+frame_char_to_pixel_position (struct frame *f, int x, int y, int *pix_x, int *pix_y)
+{
+  *pix_x = FRAME_COL_TO_PIXEL_X (f, x) + FRAME_COLUMN_WIDTH (f) / 2;
+  *pix_y = FRAME_LINE_TO_PIXEL_Y (f, y) + FRAME_LINE_HEIGHT (f) / 2;
+
+  if (*pix_x < 0)
+    *pix_x = 0;
+  if (*pix_x > FRAME_PIXEL_WIDTH (f))
+    *pix_x = FRAME_PIXEL_WIDTH (f);
+
+  if (*pix_y < 0)
+    *pix_y = 0;
+  if (*pix_y > FRAME_PIXEL_HEIGHT (f))
+    *pix_y = FRAME_PIXEL_HEIGHT (f);
+}
+
+/* Reposition mouse pointer to character coordinates X and Y on frame F.  */
+
+INLINE
+void frame_set_mouse_position (struct frame *f, int x, int y)
+{
+  int pix_x, pix_y;
+
+  frame_char_to_pixel_position (f, x, y, &pix_x, &pix_y);
+  frame_set_mouse_pixel_position (f, pix_x, pix_y);
 }
 
 /***********************************************************************

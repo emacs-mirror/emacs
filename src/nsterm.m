@@ -1812,12 +1812,12 @@ x_set_frame_alpha (struct frame *f)
 
 
 void
-x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
+frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 /* --------------------------------------------------------------------------
      Programmatically reposition mouse pointer in pixel coordinates
    -------------------------------------------------------------------------- */
 {
-  NSTRACE (x_set_mouse_pixel_position);
+  NSTRACE (frame_set_mouse_pixel_position);
   ns_raise_frame (f);
 #if 0
   /* FIXME: this does not work, and what about GNUstep? */
@@ -1828,28 +1828,6 @@ x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 #endif
 #endif
 }
-
-
-void
-x_set_mouse_position (struct frame *f, int h, int v)
-/* --------------------------------------------------------------------------
-     Programmatically reposition mouse pointer in character coordinates
-   -------------------------------------------------------------------------- */
-{
-  int pix_x, pix_y;
-
-  pix_x = FRAME_COL_TO_PIXEL_X (f, h) + FRAME_COLUMN_WIDTH (f) / 2;
-  pix_y = FRAME_LINE_TO_PIXEL_Y (f, v) + FRAME_LINE_HEIGHT (f) / 2;
-
-  if (pix_x < 0) pix_x = 0;
-  if (pix_x > FRAME_PIXEL_WIDTH (f)) pix_x = FRAME_PIXEL_WIDTH (f);
-
-  if (pix_y < 0) pix_y = 0;
-  if (pix_y > FRAME_PIXEL_HEIGHT (f)) pix_y = FRAME_PIXEL_HEIGHT (f);
-
-  x_set_mouse_pixel_position (f, pix_x, pix_y);
-}
-
 
 static int
 note_mouse_movement (struct frame *frame, CGFloat x, CGFloat y)

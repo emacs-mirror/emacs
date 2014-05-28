@@ -931,8 +931,6 @@ extern bool x_had_errors_p (Display *);
 extern void x_uncatch_errors (void);
 extern void x_clear_errors (Display *);
 extern void x_set_window_size (struct frame *, int, int, int, bool);
-extern void x_set_mouse_position (struct frame *, int, int);
-extern void x_set_mouse_pixel_position (struct frame *, int, int);
 extern void xembed_request_focus (struct frame *);
 extern void x_ewmh_activate_frame (struct frame *);
 extern void x_delete_terminal (struct terminal *terminal);

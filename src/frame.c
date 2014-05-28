@@ -1617,7 +1617,7 @@ before calling this function on it, like this.
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (XFRAME (frame)))
     /* Warping the mouse will cause enternotify and focus events.  */
-    x_set_mouse_position (XFRAME (frame), XINT (x), XINT (y));
+    frame_set_mouse_position (XFRAME (frame), XINT (x), XINT (y));
 #else
 #if defined (MSDOS)
   if (FRAME_MSDOS_P (XFRAME (frame)))
@@ -1658,7 +1658,7 @@ before calling this function on it, like this.
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (XFRAME (frame)))
     /* Warping the mouse will cause enternotify and focus events.  */
-    x_set_mouse_pixel_position (XFRAME (frame), XINT (x), XINT (y));
+    frame_set_mouse_pixel_position (XFRAME (frame), XINT (x), XINT (y));
 #else
 #if defined (MSDOS)
   if (FRAME_MSDOS_P (XFRAME (frame)))
