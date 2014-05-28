@@ -1,3 +1,8 @@
+2014-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/hideshow.el (hs-hide-all): Call syntax-propertize
+	(bug#17608).
+
 2014-05-21  Michal Nazarewicz  <mina86@mina86.com>
 
 	* textmodes/tildify.el (tildify-buffer, tildify-region):

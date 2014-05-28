@@ -789,6 +789,7 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
      (unless hs-allow-nesting
        (hs-discard-overlays (point-min) (point-max)))
      (goto-char (point-min))
+     (syntax-propertize (point-max))
      (let ((spew (make-progress-reporter "Hiding all blocks..."
                                          (point-min) (point-max)))
            (re (concat "\\("
