@@ -386,7 +386,7 @@ void ArenaDestroy(Arena arena)
   LandFinish(ArenaFreeLand(arena));
 
   /* The CBS block pool can't free its own memory via ArenaFree because
-     that would use the CBSZoned. */
+     that would use the freeLand. */
   MFSFinishTracts(ArenaCBSBlockPool(arena),
                   arenaMFSPageFreeVisitor, NULL, 0);
   PoolFinish(ArenaCBSBlockPool(arena));
@@ -687,7 +687,7 @@ static Res arenaExtendCBSBlockPool(Range pageRangeReturn, Arena arena)
   return ResOK;
 }
 
-/* arenaExcludePage -- exclude CBS block pool's page from Land
+/* arenaExcludePage -- exclude CBS block pool's page from free land
  *
  * Exclude the page we specially allocated for the CBS block pool
  * so that it doesn't get reallocated.
