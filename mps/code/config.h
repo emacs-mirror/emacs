@@ -292,6 +292,11 @@
 
 /* Attribute for functions that may be unused in some build configurations.
  * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html>
+ *
+ * This attribute must be applied to all Check functions, otherwise
+ * the RASH variety fails to compile with -Wunused-function. (It
+ * should not be applied to functions that are unused in all build
+ * configurations: these functions should not be compiled.)
  */
 #if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
 #define ATTRIBUTE_UNUSED __attribute__((__unused__))
