@@ -1,3 +1,7 @@
+2014-05-21  Michal Nazarewicz  <mina86@mina86.com>
+
+	* automated/tildify-tests.el: New file.
+
 2014-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* indent/ruby.rb: Add one more test.

@@ -3,7 +3,7 @@
 ;; Copyright (C) 1997-2014 Free Software Foundation, Inc.
 
 ;; Author:     Milan Zamazal <pdm@zamazal.org>
-;; Version:    4.5
+;; Version:    4.5.1
 ;; Keywords:   text, TeX, SGML, wp
 
 ;; This file is part of GNU Emacs.
@@ -172,20 +172,22 @@ END-REGEX defines end of the corresponding text part and can be either:
 ;;; *** Interactive functions ***
 
 ;;;###autoload
-(defun tildify-region (beg end)
+(defun tildify-region (beg end &optional dont-ask)
   "Add hard spaces in the region between BEG and END.
 See variables `tildify-pattern-alist', `tildify-string-alist', and
 `tildify-ignored-environments-alist' for information about configuration
 parameters.
-This function performs no refilling of the changed text."
-  (interactive "*r")
+This function performs no refilling of the changed text.
+If DONT-ASK is set, or called interactively with prefix argument, user
+won't be prompted for confirmation of each substitution."
+  (interactive "*rP")
   (setq tildify-count 0)
   (let (a
 	z
 	(marker-end (copy-marker end))
 	end-env
 	finish
-	(ask t)
+	(ask (not dont-ask))
 	(case-fold-search nil)
 	(regexp (tildify-build-regexp))	; beginnings of environments
 	aux)
@@ -226,14 +228,16 @@ This function performs no refilling of the changed text."
   (message "%d spaces replaced." tildify-count))
 
 ;;;###autoload
-(defun tildify-buffer ()
+(defun tildify-buffer (&optional dont-ask)
   "Add hard spaces in the current buffer.
 See variables `tildify-pattern-alist', `tildify-string-alist', and
 `tildify-ignored-environments-alist' for information about configuration
 parameters.
-This function performs no refilling of the changed text."
-  (interactive  "*")
-  (tildify-region (point-min) (point-max)))
+This function performs no refilling of the changed text.
+If DONT-ASK is set, or called interactively with prefix argument, user
+won't be prompted for confirmation of each substitution."
+  (interactive  "*P")
+  (tildify-region (point-min) (point-max) dont-ask))
 
 
 ;;; *** Auxiliary functions ***
