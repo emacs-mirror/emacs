@@ -1,10 +1,12 @@
 2014-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (zerop): Move from C.  Add compiler-macro (bug#17475).
+	* emacs-lisp/byte-opt.el (byte-optimize-zerop): Remove.
+
 	* subr.el (internal--funcall-interactively): New.
 	(internal--call-interactively): Remove.
 	(called-interactively-p): Detect funcall-interactively instead of
 	call-interactively.
-
 	* simple.el (repeat-complex-command): Use funcall-interactively.
 	(repeat-complex-command--called-interactively-skip): Remove.
 

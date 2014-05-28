@@ -942,15 +942,6 @@
       form
     (nth 1 form)))
 
-(defun byte-optimize-zerop (form)
-  (cond ((numberp (nth 1 form))
-	 (eval form))
-	(byte-compile-delete-errors
-	 (list '= (nth 1 form) 0))
-	(form)))
-
-(put 'zerop 'byte-optimizer 'byte-optimize-zerop)
-
 (defun byte-optimize-and (form)
   ;; Simplify if less than 2 args.
   ;; if there is a literal nil in the args to `and', throw it and following

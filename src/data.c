@@ -2332,7 +2332,7 @@ arithcompare_driver (ptrdiff_t nargs, Lisp_Object *args,
   ptrdiff_t argnum;
   for (argnum = 1; argnum < nargs; ++argnum)
     {
-      if (EQ (Qnil, arithcompare (args[argnum-1], args[argnum], comparison)))
+      if (EQ (Qnil, arithcompare (args[argnum - 1], args[argnum], comparison)))
         return Qnil;
     }
   return Qt;
@@ -2385,24 +2385,6 @@ DEFUN ("/=", Fneq, Sneq, 2, 2, 0,
   (register Lisp_Object num1, Lisp_Object num2)
 {
   return arithcompare (num1, num2, ARITH_NOTEQUAL);
-}
-
-DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0,
-       doc: /* Return t if NUMBER is zero.  */)
-  (register Lisp_Object number)
-{
-  CHECK_NUMBER_OR_FLOAT (number);
-
-  if (FLOATP (number))
-    {
-      if (XFLOAT_DATA (number) == 0.0)
-	return Qt;
-      return Qnil;
-    }
-
-  if (!XINT (number))
-    return Qt;
-  return Qnil;
 }
 
 /* Convert the cons-of-integers, integer, or float value C to an
@@ -3650,7 +3632,6 @@ syms_of_data (void)
   defsubr (&Sleq);
   defsubr (&Sgeq);
   defsubr (&Sneq);
-  defsubr (&Szerop);
   defsubr (&Splus);
   defsubr (&Sminus);
   defsubr (&Stimes);

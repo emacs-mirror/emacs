@@ -334,6 +334,13 @@ Any list whose car is `frame-configuration' is assumed to be a frame
 configuration."
   (and (consp object)
        (eq (car object) 'frame-configuration)))
+
+(defun zerop (number)
+  "Return t if NUMBER is zero."
+  ;; Used to be in C, but it's pointless since (= 0 n) is faster anyway because
+  ;; = has a byte-code.
+  (declare (compiler-macro (lambda (_) `(= 0 ,number))))
+  (= 0 number))
 
 ;;;; List functions.
 
@@ -3845,7 +3852,8 @@ This function is called directly from the C code."
 	    (byte-compile-log-warning msg))
 	(run-with-timer 0 nil
 			(lambda (msg)
-			  (message "%s" msg)) msg))))
+			  (message "%s" msg))
+                        msg))))
 
   ;; Finally, run any other hook.
   (run-hook-with-args 'after-load-functions abs-file))

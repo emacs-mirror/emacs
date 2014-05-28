@@ -1,3 +1,16 @@
+2014-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (Fzerop): Move to Elisp.
+	(syms_of_data): Don't defsubr it.
+	* keyboard.c (echo_keystrokes_p): New function.
+	(read_char, record_menu_key, read_key_sequence): Use it.
+
+	* callint.c (Qfuncall_interactively): New var.
+	(Qcall_interactively): Remove.
+	(Ffuncall_interactively): New function.
+	(Fcall_interactively): Use it.
+	(syms_of_callint): Defsubr it.
+
 2014-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bytecode.c (FETCH) [BYTE_CODE_SAFE]: Check the bytecode wasn't
@@ -360,8 +373,8 @@
 
 	* term.c (tty_menu_display): Move the cursor to the active menu item.
 	(tty_menu_activate): Return the cursor to the active menu item
-	after displaying the menu and after displaying help-echo.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2014-04/msg00402.html
+	after displaying the menu and after displaying help-echo.
+	See http://lists.gnu.org/archive/html/emacs-devel/2014-04/msg00402.html
 	for the details of why this is needed by screen readers and
 	Braille displays.
 
@@ -480,8 +493,8 @@
 
 2014-04-17  Daniel Colascione  <dancol@dancol.org>
 
-	* term.c (Qtty_mode_set_strings, Qtty_mode_reset_strings): New
-	symbols.
+	* term.c (Qtty_mode_set_strings, Qtty_mode_reset_strings):
+	New symbols.
 	(tty_send_additional_strings): New function.
 	(tty_set_terminal_modes, tty_reset_terminal_modes): Use it.
 	(syms_of_term): Intern tty-mode-set-strings and

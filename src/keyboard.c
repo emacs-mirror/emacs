@@ -2376,6 +2376,13 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
     }
 }
 
+static bool
+echo_keystrokes_p (void)
+{
+  return (FLOATP (Vecho_keystrokes) ? XFLOAT_DATA (Vecho_keystrokes) > 0.0
+	  : INTEGERP (Vecho_keystrokes) ? XINT (Vecho_keystrokes) > 0 : false);
+}
+
 /* Read a character from the keyboard; call the redisplay if needed.  */
 /* commandflag 0 means do not autosave, but do redisplay.
    -1 means do not redisplay, but do autosave.
@@ -2711,8 +2718,7 @@ read_char (int commandflag, Lisp_Object map,
       && !current_kboard->immediate_echo
       && this_command_key_count > 0
       && ! noninteractive
-      && (FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
-      && NILP (Fzerop (Vecho_keystrokes))
+      && echo_keystrokes_p ()
       && (/* No message.  */
 	  NILP (echo_area_buffer[0])
 	  /* Or empty message.  */
@@ -3173,8 +3179,7 @@ read_char (int commandflag, Lisp_Object map,
     {
 
       /* Don't echo mouse motion events.  */
-      if ((FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
-	  && NILP (Fzerop (Vecho_keystrokes))
+      if (echo_keystrokes_p ()
 	  && ! (EVENT_HAS_PARAMETERS (c)
 		&& EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
 	{
@@ -3250,8 +3255,7 @@ record_menu_key (Lisp_Object c)
 #endif
 
   /* Don't echo mouse motion events.  */
-  if ((FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
-      && NILP (Fzerop (Vecho_keystrokes)))
+  if (echo_keystrokes_p ())
     {
       echo_char (c);
 
@@ -8931,8 +8935,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	  echo_now ();
 	}
       else if (cursor_in_echo_area
-	       && (FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
-	       && NILP (Fzerop (Vecho_keystrokes)))
+	       && echo_keystrokes_p ())
 	/* This doesn't put in a dash if the echo buffer is empty, so
 	   you don't always see a dash hanging out in the minibuffer.  */
 	echo_dash ();
@@ -9064,8 +9067,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	{
 	  key = keybuf[t];
 	  add_command_key (key);
-	  if ((FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
-	      && NILP (Fzerop (Vecho_keystrokes))
+	  if (echo_keystrokes_p ()
 	      && current_kboard->immediate_echo)
 	    {
 	      echo_add_key (key);
@@ -9729,8 +9731,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
      Better ideas?  */
   for (; t < mock_input; t++)
     {
-      if ((FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
-	  && NILP (Fzerop (Vecho_keystrokes)))
+      if (echo_keystrokes_p ())
 	echo_char (keybuf[t]);
       add_command_key (keybuf[t]);
     }
