@@ -204,7 +204,7 @@ formatting, and then moved afterward.")
        ;; size=3
        ((string-match "[^ ]=[^ ]" this)
 	(let ((attr  (nth 0 (split-string this "=")))
-	      (value (substring prev (1+ (string-match "=" this)))))
+	      (value (substring this (1+ (string-match "=" this)))))
 	  (setq attr-list (cons (list attr value) attr-list))))
        ;; size =3
        ((string-match "\\`=[^ ]" this)
