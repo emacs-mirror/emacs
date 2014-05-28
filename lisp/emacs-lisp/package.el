@@ -647,6 +647,7 @@ EXTRA-PROPERTIES is currently unused."
   (let* ((auto-name (format "%s-autoloads.el" name))
 	 ;;(ignore-name (concat name "-pkg.el"))
 	 (generated-autoload-file (expand-file-name auto-name pkg-dir))
+         (backup-inhibited t)
 	 (version-control 'never))
     (package-autoload-ensure-default-file generated-autoload-file)
     (update-directory-autoloads pkg-dir)
