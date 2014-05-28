@@ -1,8 +1,12 @@
+2014-05-28  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el: Fix some :version numbers.
+
 2014-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* simple.el (deactivate-mark): Set mark-active to nil even if deactivation
-	is done via setting transient-mark-mode to nil, since one is
-	buffer-local and the other is global.
+	* simple.el (deactivate-mark): Set mark-active to nil even if
+	deactivation is done via setting transient-mark-mode to nil,
+	since one is buffer-local and the other is global.
 
 	* emacs-lisp/byte-opt.el (byte-optimize-binary-predicate): Don't assume
 	there can't be more than 2 arguments (bug#17584).
