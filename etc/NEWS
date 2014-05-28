@@ -1599,19 +1599,21 @@ edited in another Emacs session or by another user.  See the node
 "Interlocking" in the Emacs User Manual for the details.  To disable
 file locking, customize `create-lockfiles' to nil.
 
++++
 ** New Core Text based font backend for Mac OS X 10.5 and newer.
+To use the old font backend, use the following on the command line:
+  % defaults write org.gnu.Emacs FontBackend ns
 GNUstep and Mac OS X 10.4 use the old font backend.
-To use the old backend by default, do on the command line:
-% defaults write org.gnu.Emacs FontBackend ns
 
-** Improved fullscreen support on Mac OS X.
-Emacs supports both native (Mac OS X 10.7 and newer) and "old style" fullscreen.
-Customize `ns-use-native-fullscreen' to change the style.
-For Mac OS X 10.7 and newer, native is the default.
++++
+** Improved fullscreen support on Mac OS X 10.7 and newer, where the
+default fullscreen method is now "native" fullscreen.  To use the
+old style fullscreen, customize `ns-use-native-fullscreen' to nil.
 
-** On Mac OS X 10.7 and newer, Emacs uses sRGB colorspace by default.
-Customize `ns-use-srgb-colorspace' to disable this.  Note that this
-does not apply to images.
++++
+** On Mac OS X 10.7 and newer, Emacs can use sRGB colorspace, and does so
+by default.  Customize `ns-use-srgb-colorspace' to go back to the old method.
+Note that this does not apply to images.
 
 
 * Installation Changes in Emacs 24.3

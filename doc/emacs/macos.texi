@@ -116,6 +116,15 @@ close the altered one.
 Useful in this context is the listing of all faces obtained by
 @kbd{M-x list-faces-display}.
 
+@cindex Core Text, on Mac OS X
+In Mac OS X 10.5 and later, Emacs uses a Core Text based font backend
+by default.  If you prefer the older font style, enter the following
+at the command-line before starting Emacs:
+
+@example
+% defaults write org.gnu.Emacs FontBackend ns
+@end example
+
 @subsection Customization options specific to Mac OS / GNUstep
 
 The following customization options are specific to the Nextstep port.
@@ -125,6 +134,16 @@ The following customization options are specific to the Nextstep port.
 Non-nil means the menu-bar is hidden by default, but appears if you
 move the mouse pointer over it.  (Requires Mac OS X 10.6 or later.)
 
+@item ns-use-native-fullscreen
+This only affects Mac OS X 10.7 or later, where it is non-@code{nil} by default,
+which means to use native fullscreen support.  Set it to @code{nil}
+to use the older style of fullscreen, which may work better with
+multiple monitors, but lacks the tool bar.
+
+@c FIXME what does this actually _do_?
+@item ns-use-srgb-colorspace
+This only affects Mac OS X 10.7 or later, where it is non-@code{nil} by default.
+Note that it does not apply to images, only to Emacs colors.
 @end table
 
 
