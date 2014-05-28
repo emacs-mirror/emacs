@@ -1354,17 +1354,6 @@ x_set_bitmap_icon (struct frame *f)
 
 #endif /* !HAVE_NS */
 
-#endif /* HAVE_WINDOW_SYSTEM */
-
-INLINE void
-flush_frame (struct frame *f)
-{
-  struct redisplay_interface *rif = FRAME_RIF (f);
-
-  if (rif && rif->flush_display)
-    rif->flush_display (f);
-}
-
 /* Convert character coordinates X and Y to pixel
    coordinates PIX_X and PIX_Y on frame F.  */
 
@@ -1394,6 +1383,17 @@ void frame_set_mouse_position (struct frame *f, int x, int y)
 
   frame_char_to_pixel_position (f, x, y, &pix_x, &pix_y);
   frame_set_mouse_pixel_position (f, pix_x, pix_y);
+}
+
+#endif /* HAVE_WINDOW_SYSTEM */
+
+INLINE void
+flush_frame (struct frame *f)
+{
+  struct redisplay_interface *rif = FRAME_RIF (f);
+
+  if (rif && rif->flush_display)
+    rif->flush_display (f);
 }
 
 /***********************************************************************
