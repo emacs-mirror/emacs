@@ -995,8 +995,8 @@ extern struct frame *make_frame_without_minibuffer (Lisp_Object,
 #endif /* HAVE_WINDOW_SYSTEM */
 extern bool window_system_available (struct frame *);
 extern void check_window_system (struct frame *);
-extern void frame_make_pointer_invisible (void);
-extern void frame_make_pointer_visible (void);
+extern void frame_make_pointer_invisible (struct frame *);
+extern void frame_make_pointer_visible (struct frame *);
 extern Lisp_Object delete_frame (Lisp_Object, Lisp_Object);
 
 extern Lisp_Object Vframe_list;

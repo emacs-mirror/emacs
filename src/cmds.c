@@ -315,7 +315,7 @@ At the end, it runs `post-self-insert-hook'.  */)
     int val = internal_self_insert (character, XFASTINT (n));
     if (val == 2)
       nonundocount = 0;
-    frame_make_pointer_invisible ();
+    frame_make_pointer_invisible (SELECTED_FRAME ());
   }
 
   return Qnil;

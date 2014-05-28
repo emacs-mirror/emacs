@@ -9233,6 +9233,10 @@ x_free_frame_resources (struct frame *f)
      commands to the X server.  */
   if (dpyinfo->display)
     {
+      /* Always exit with visible pointer to avoid weird issue
+	 with Xfixes (Bug#17609).  */
+      FRAME_DISPLAY_INFO (f)->toggle_visible_pointer (f, 0);
+
       /* We must free faces before destroying windows because some
 	 font-driver (e.g. xft) access a window while finishing a
 	 face.  */

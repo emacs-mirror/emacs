@@ -6877,6 +6877,20 @@ gobble_input (void)
 	      }
             }
 
+	  /* If there was no error, make sure the pointer
+	     is visible for all frames on this terminal.  */
+	  if (nr >= 0)
+	    {
+	      Lisp_Object tail, frame;
+
+	      FOR_EACH_FRAME (tail, frame)
+		{
+		  struct frame *f = XFRAME (frame);
+		  if (FRAME_TERMINAL (f) == t)
+		    frame_make_pointer_visible (f);
+		}
+	    }
+
           if (hold_quit.kind != NO_EVENT)
             kbd_buffer_store_event (&hold_quit);
         }
@@ -6886,8 +6900,6 @@ gobble_input (void)
 
   if (err && !nread)
     nread = -1;
-
-  frame_make_pointer_visible ();
 
   return nread;
 }

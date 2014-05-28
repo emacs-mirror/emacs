@@ -1,3 +1,15 @@
+2014-05-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	On X, always make pointer visible when deleting frame (Bug#17609).
+	* frame.c (frame_make_pointer_visible, frame_make_pointer_invisible):
+	Pass frame as arg.
+	* frame.h (frame_make_pointer_visible, frame_make_pointer_invisible):
+	Adjust prototypes.
+	* cmds.c (Fself_insert_command): Use SELECTED_FRAME.
+	* keyboard.c (gobble_input): If there is no terminal input error,
+	make sure the pointer is visible for all frames on this terminal.
+	* xterm.c (x_free_frame_resources): Always enable pointer visibility.
+
 2014-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* data.c (Fzerop): Move to Elisp.
