@@ -428,6 +428,8 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
 
 ** Save undo information in special temporary files, and reload it
   when needed for undoing.  This could extend undo capacity.
+  undo-tree, in ELPA, already does this; its saving code could be
+  integrated without requiring the use of undo-tree.
 
 ** Change the Windows NT menu code
   so that it handles the deep_p argument and avoids

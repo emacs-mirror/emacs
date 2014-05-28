@@ -1,3 +1,8 @@
+2014-05-28  Reuben Thomas  <rrt@sc3d.org>
+
+	* TODO: add a note that undo-tree could be used to save undo
+	information (Bug #17581).
+
 2014-05-27  Fabrice Popineau  <fabrice.popineau@gmail.com>
 
 	* NEWS: Mention build changes on MS-Windows.
