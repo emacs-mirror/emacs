@@ -247,6 +247,7 @@ static Bool failoverFindInZones(Bool *foundReturn, Range rangeReturn, Range oldR
   Bool found = FALSE;
   Res res;
 
+  AVER(FALSE); /* TODO: this code is completely untested! */
   AVER(foundReturn != NULL);
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
