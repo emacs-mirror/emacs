@@ -83,6 +83,7 @@
 
 2014-05-27  Fabrice Popineau  <fabrice.popineau@gmail.com>
 
+	Use mmap(2) emulation for allocating buffer text on MS-Windows.
 	* Makefile.in (C_HEAP_SWITCH): Get the predefined heap size from
 	configure.
 	(ADDSECTION, MINGW_TEMACS_POST_LINK): Remove, no longer used.
