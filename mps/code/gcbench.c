@@ -12,6 +12,7 @@
 #include "testthr.h"
 #include "fmtdy.h"
 #include "fmtdytst.h"
+#include "mpm.h"
 
 #include <stdio.h> /* fprintf, printf, putchars, sscanf, stderr, stdout */
 #include <stdlib.h> /* alloca, exit, EXIT_FAILURE, EXIT_SUCCESS, strtoul */
@@ -244,6 +245,7 @@ static void arena_setup(gcthread_fn_t fn,
   } MPS_ARGS_END(args);
   watch(fn, name);
   mps_arena_park(arena);
+  printf("%u chunks\n", (unsigned)RingLength(&arena->chunkRing));
   mps_pool_destroy(pool);
   mps_fmt_destroy(format);
   if (ngen > 0)

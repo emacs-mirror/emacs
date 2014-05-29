@@ -152,12 +152,6 @@ DEFINE_POOL_CLASS(MVTPoolClass, this)
 
 /* Macros */
 
-
-/* .trans.something: the C language sucks */
-#define unless(cond) if (!(cond))
-#define when(cond) if (cond)
-
-
 #define Pool2MVT(pool) PARENT(MVTStruct, poolStruct, pool)
 #define MVT2Pool(mvt) (&(mvt)->poolStruct)
 
