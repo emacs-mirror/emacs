@@ -103,7 +103,7 @@ Lisp_Object Qdebug_on_next_call, Qunsupported__w32_dialog;
 void set_frame_menubar (struct frame *, bool, bool);
 
 #ifdef HAVE_DIALOGS
-static Lisp_Object w32_dialog_show (struct frame *, int, Lisp_Object, char**);
+static Lisp_Object w32_dialog_show (struct frame *, Lisp_Object, Lisp_Object, char **);
 #else
 static int is_simple_dialog (Lisp_Object);
 static Lisp_Object simple_dialog_show (struct frame *, Lisp_Object, Lisp_Object);
@@ -141,7 +141,7 @@ w32_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
 
       /* Display them in a dialog box.  */
       block_input ();
-      selection = w32_dialog_show (f, 0, title, header, &error_name);
+      selection = w32_dialog_show (f, title, header, &error_name);
       unblock_input ();
 
       discard_menu_items ();
@@ -904,9 +904,8 @@ static char * button_names [] = {
   "button6", "button7", "button8", "button9", "button10" };
 
 static Lisp_Object
-w32_dialog_show (struct frame *f, int keymaps,
-		 Lisp_Object title, Lisp_Object header,
-		 char **error)
+w32_dialog_show (struct frame *f, Lisp_Object title,
+		 Lisp_Object header, char **error)
 {
   int i, nb_buttons = 0;
   char dialog_name[6];
@@ -930,16 +929,13 @@ w32_dialog_show (struct frame *f, int keymaps,
   /* Create a tree of widget_value objects
      representing the text label and buttons.  */
   {
-    Lisp_Object pane_name, prefix;
+    Lisp_Object pane_name;
     char *pane_string;
     pane_name = AREF (menu_items, MENU_ITEMS_PANE_NAME);
-    prefix = AREF (menu_items, MENU_ITEMS_PANE_PREFIX);
     pane_string = (NILP (pane_name)
 		   ? "" : SSDATA (pane_name));
     prev_wv = xmalloc_widget_value ();
     prev_wv->value = pane_string;
-    if (keymaps && !NILP (prefix))
-      prev_wv->name++;
     prev_wv->enabled = 1;
     prev_wv->name = "message";
     prev_wv->help = Qnil;
@@ -1052,32 +1048,18 @@ w32_dialog_show (struct frame *f, int keymaps,
      the proper value.  */
   if (menu_item_selection != 0)
     {
-      Lisp_Object prefix;
-
-      prefix = Qnil;
       i = 0;
       while (i < menu_items_used)
 	{
 	  Lisp_Object entry;
 
 	  if (EQ (AREF (menu_items, i), Qt))
-	    {
-	      prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
-	      i += MENU_ITEMS_PANE_LENGTH;
-	    }
+	    i += MENU_ITEMS_PANE_LENGTH;
 	  else
 	    {
-	      entry	= AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
+	      entry = AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
 	      if (menu_item_selection == i)
-		{
-		  if (keymaps != 0)
-		    {
-		      entry = Fcons (entry, Qnil);
-		      if (!NILP (prefix))
-			entry = Fcons (prefix, entry);
-		    }
-		  return entry;
-		}
+		return entry;
 	      i += MENU_ITEMS_ITEM_LENGTH;
 	    }
 	}

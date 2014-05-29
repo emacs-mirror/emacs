@@ -110,11 +110,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 static Lisp_Object Qdebug_on_next_call;
 
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
-static Lisp_Object xdialog_show (struct frame *, bool, Lisp_Object, Lisp_Object,
-                                 const char **);
-#endif
-
 /* Flag which when set indicates a dialog or menu has been posted by
    Xt on behalf of one of the widget sets.  */
 static int popup_activated_flag;
@@ -1839,11 +1834,8 @@ static const char * button_names [] = {
   "button6", "button7", "button8", "button9", "button10" };
 
 static Lisp_Object
-xdialog_show (struct frame *f,
-              bool keymaps,
-              Lisp_Object title,
-              Lisp_Object header,
-              const char **error_name)
+x_dialog_show (struct frame *f, Lisp_Object title,
+	       Lisp_Object header, const char **error_name)
 {
   int i, nb_buttons=0;
   char dialog_name[6];
@@ -1870,16 +1862,13 @@ xdialog_show (struct frame *f,
   /* Create a tree of widget_value objects
      representing the text label and buttons.  */
   {
-    Lisp_Object pane_name, prefix;
+    Lisp_Object pane_name;
     const char *pane_string;
     pane_name = AREF (menu_items, MENU_ITEMS_PANE_NAME);
-    prefix = AREF (menu_items, MENU_ITEMS_PANE_PREFIX);
     pane_string = (NILP (pane_name)
 		   ? "" : SSDATA (pane_name));
     prev_wv = xmalloc_widget_value ();
     prev_wv->value = (char *) pane_string;
-    if (keymaps && !NILP (prefix))
-      prev_wv->name++;
     prev_wv->enabled = 1;
     prev_wv->name = "message";
     prev_wv->help = Qnil;
@@ -1982,20 +1971,13 @@ xdialog_show (struct frame *f,
      the proper value.  */
   if (menu_item_selection != 0)
     {
-      Lisp_Object prefix;
-
-      prefix = Qnil;
       i = 0;
       while (i < menu_items_used)
 	{
 	  Lisp_Object entry;
 
 	  if (EQ (AREF (menu_items, i), Qt))
-	    {
-	      prefix
-		= AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
-	      i += MENU_ITEMS_PANE_LENGTH;
-	    }
+	    i += MENU_ITEMS_PANE_LENGTH;
 	  else if (EQ (AREF (menu_items, i), Qquote))
 	    {
 	      /* This is the boundary between left-side elts and
@@ -2007,15 +1989,7 @@ xdialog_show (struct frame *f,
 	      entry
 		= AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
 	      if (menu_item_selection == aref_addr (menu_items, i))
-		{
-		  if (keymaps != 0)
-		    {
-		      entry = list1 (entry);
-		      if (!NILP (prefix))
-			entry = Fcons (prefix, entry);
-		    }
-		  return entry;
-		}
+		return entry;
 	      i += MENU_ITEMS_ITEM_LENGTH;
 	    }
 	}
@@ -2052,7 +2026,7 @@ xw_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
 
   /* Display them in a dialog box.  */
   block_input ();
-  selection = xdialog_show (f, 0, title, header, &error_name);
+  selection = x_dialog_show (f, title, header, &error_name);
   unblock_input ();
 
   unbind_to (specpdl_count, Qnil);
