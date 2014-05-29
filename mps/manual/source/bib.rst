@@ -7,7 +7,7 @@ Bibliography
 
   Ole Agesen, David L. Detlefs. 1997.  "`Finding References in Java Stacks <http://www-plan.cs.colorado.edu/diwan/class-papers/finding-references-in-java.pdf>`_". Sun Labs. OOPSLA97 Workshop on Garbage Collection and Memory Management.
 
-  .. abstract: ad97.html
+  .. admonition:: Abstract
 
     Exact garbage collection for the strongly-typed Java language may
     seem straightforward. Unfortunately, a single pair of bytecodes in
@@ -22,7 +22,7 @@ Bibliography
 
   Ole Agesen, David L. Detlefs, J. Eliot B. Moss. 1998.  "`Garbage Collection and Local Variable Type-precision and Liveness in Java Virtual Machines  <http://pdf.aminer.org/000/542/332/garbage_collection_and_local_variable_type_precision_and_liveness_in.pdf>`_". ACM. Proceedings of the ACM SIGPLAN '98 conference on Programming language design and implementation, pp. 269--279.
 
-  .. abstract: adm98.html
+  .. admonition:: Abstract
 
     Full precision in garbage collection implies retaining only those
     heap allocated objects that will actually be used in the future.
@@ -55,7 +55,7 @@ Bibliography
 
   Andrew Appel, John R. Ellis, Kai Li. 1988.  "`Real-time Concurrent Collection on Stock Multiprocessors <http://apotheca.hpl.hp.com/ftp/pub/compaq/SRC/research-reports/SRC-025.pdf>`_". ACM, SIGPLAN. ACM PLDI 88, SIGPLAN Notices 23, 7 (July 88), pp. 11--20.
 
-  .. abstract: ael88.html
+  .. admonition:: Abstract
 
     We've designed and implemented a copying garbage-collection
     algorithm that is efficient, real-time, concurrent, runs on
@@ -73,9 +73,9 @@ Bibliography
 
   Apple Computer, Inc. 1994. *Inside Macintosh: Memory*. Addison-Wesley. ISBN 0-201-63240-3.
 
-  .. abstract: apple94.html
+  .. admonition:: Abstract
 
-    Inside Macintosh: Memory describes the parts of the Macintosh&reg;
+    Inside Macintosh: Memory describes the parts of the Macintosh®
     Operating System that allow you to directly allocate, release, or
     otherwise manipulate memory. Everyone who programs Macintosh
     computers should read this book.
@@ -90,7 +90,7 @@ Bibliography
 
   Giuseppe Attardi & Tito Flagella. 1994.  "`A Customisable Memory Management Framework <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.50.257&rep=rep1&type=pdf>`_". TR-94-010.
 
-  .. abstract: attardi94.html
+  .. admonition:: Abstract
 
     Memory management is a critical issue for many large
     object-oriented applications, but in C++ only explicit memory
@@ -114,7 +114,7 @@ Bibliography
 
   Giuseppe Attardi, Tito Flagella, Pietro Iglio. 1998.  "`A customisable memory management framework for C++ <ftp://ftp.di.unipi.it/pub/Papers/attardi/SPE.ps.gz>`_". Software -- Practice and Experience. 28(11), 1143--1183.
 
-  .. abstract: afi98.html
+  .. admonition:: Abstract
 
     Automatic garbage collection relieves programmers from the burden
     of managing memory themselves and several techniques have been
@@ -150,7 +150,7 @@ Bibliography
 
   Alain Azagury, Elliot K. Kolodner, Erez Petrank, Zvi Yehudai. 1998.  "`Combining Card Marking with Remembered Sets: How to Save Scanning Time <http://pdf.aminer.org/000/465/100/combining_card_marking_with_remembered_sets_how_to_save_scanning.pdf>`_". ACM. ISMM'98 pp. 10--19.
 
-  .. abstract: akpy98.html
+  .. admonition:: Abstract
 
     We consider the combination of card marking with remembered sets
     for generational garbage collection as suggested by Hosking and
@@ -167,7 +167,7 @@ Bibliography
 
   Henry G. Baker, Carl Hewitt. 1977.  "`The Incremental Garbage Collection of Processes <http://home.pipeline.com/~hbaker1/Futures.html>`_". ACM. SIGPLAN Notices 12, 8 (August 1977), pp. 55--59.
 
-  .. abstract: baker77.html
+  .. admonition:: Abstract
 
     This paper investigates some problems associated with an argument
     evaluation order that we call "future" order, which is different
@@ -201,7 +201,7 @@ Bibliography
 
   Henry G. Baker. 1978.  "`List Processing in Real Time on a Serial Computer <http://home.pipeline.com/~hbaker1/RealTimeGC.html>`_". ACM. Communications of the ACM 21, 4 (April 1978), pp. 280--294.
 
-  .. abstract: baker78.html
+  .. admonition:: Abstract
 
     A real-time list processing system is one in which the time
     required by the elementary list operations (e.g. CONS, CAR, CDR,
@@ -227,7 +227,7 @@ Bibliography
 
   Henry G. Baker. 1979.  "`Optimizing Allocation and Garbage Collection of Spaces <http://home.pipeline.com/~hbaker1/OptAlloc.html>`_". In Winston and Brown, eds. *Artificial Intelligence: An MIT Perspective.* MIT Press.
 
-  .. abstract: baker79.html
+  .. admonition:: Abstract
 
     MACLISP, unlike some other implementations of LISP, allocates
     storage for different types of objects in noncontiguous areas
@@ -258,7 +258,7 @@ Bibliography
 
   Henry G. Baker. 1991.  "`Cache-Conscious Copying Collectors <http://home.pipeline.com/~hbaker1/CacheCGC.html>`_". OOPSLA'91/GC'91 Workshop on Garbage Collection.
 
-  .. abstract: baker91.html
+  .. admonition:: Abstract
 
     Garbage collectors must minimize the scarce resources of cache
     space and off-chip communications bandwidth to optimize
@@ -272,7 +272,7 @@ Bibliography
 
   Henry G. Baker. 1992.  "`Lively Linear Lisp -- 'Look Ma, No Garbage!' <http://home.pipeline.com/~hbaker1/LinearLisp.html>`_". ACM. SIGPLAN Notices 27, 8 (August 1992), pp. 89--98.
 
-  .. abstract: baker92a.html
+  .. admonition:: Abstract
 
     Linear logic has been proposed as one solution to the problem of
     garbage collection and providing efficient "update-in-place"
@@ -297,7 +297,7 @@ Bibliography
 
   Henry G. Baker. 1992.  "`The Treadmill: Real-Time Garbage Collection Without Motion Sickness <http://home.pipeline.com/~hbaker1/NoMotionGC.html>`_". ACM. SIGPLAN Notices 27, 3 (March 1992), pp. 66--70.
 
-  .. abstract: baker92c.html
+  .. admonition:: Abstract
 
     A simple real-time garbage collection algorithm is presented which
     does not copy, thereby avoiding some of the problems caused by the
@@ -312,7 +312,7 @@ Bibliography
 
   Henry G. Baker. 1992.  "`CONS Should not CONS its Arguments, or, a Lazy Alloc is a Smart Alloc <http://home.pipeline.com/~hbaker1/LazyAlloc.html>`_". ACM. SIGPLAN Notices 27, 3 (March 1992), 24--34.
 
-  .. abstract: baker92.html
+  .. admonition:: Abstract
 
     "Lazy allocation" is a model for allocating objects on the
     execution stack of a high-level language which does not create
@@ -359,7 +359,7 @@ Bibliography
 
   Henry G. Baker. 1992.  "`NREVERSAL of Fortune -- The Thermodynamics of Garbage Collection <http://home.pipeline.com/~hbaker1/ReverseGC.html>`_". Springer-Verlag. LNCS Vol. 637.
 
-  .. abstract: baker92b.html
+  .. admonition:: Abstract
 
     The need to *reverse* a computation arises in many contexts --
     debugging, editor undoing, optimistic concurrency undoing,
@@ -407,7 +407,7 @@ Bibliography
 
   Henry G. Baker. 1993.  "`'Infant Mortality' and Generational Garbage Collection <http://home.pipeline.com/~hbaker1/YoungGen.html>`_". ACM. SIGPLAN Notices 28, 4 (April 1993), pp. 55--57.
 
-  .. abstract: baker93.html
+  .. admonition:: Abstract
 
     Generation-based garbage collection has been advocated by
     appealing to the intuitive but vague notion that "young objects
@@ -427,7 +427,7 @@ Bibliography
 
   Henry G. Baker. 1993.  "`Equal Rights for Functional Objects or, The More Things Change, The More They Are the Same <http://home.pipeline.com/~hbaker1/ObjectIdentity.html>`_". ACM. OOPS Messenger 4, 4 (October 1993), pp. 2--27.
 
-  .. abstract: baker93a.html
+  .. admonition:: Abstract
 
     We argue that intensional object identity in object-oriented
     programming languages and databases is best defined operationally
@@ -450,7 +450,7 @@ Bibliography
 
   Henry G. Baker. 1994.  "`Minimizing Reference Count Updating with Deferred and Anchored Pointers for Functional Data Structures <http://home.pipeline.com/~hbaker1/LRefCounts.html>`_". ACM. SIGPLAN Notices 29, 9 (September 1994), pp. 38--43.
 
-  .. abstract: baker94.html
+  .. admonition:: Abstract
 
     "Reference counting" can be an attractive form of dynamic storage
     management. It recovers storage promptly and (with a garbage stack
@@ -481,7 +481,7 @@ Bibliography
 
   Henry G. Baker. 1994.  "`Thermodynamics and Garbage Collection <http://home.pipeline.com/~hbaker1/ThermoGC.html>`_". ACM. SIGPLAN Notices 29, 4 (April 1994), pp. 58--63.
 
-  .. abstract: baker94a.html
+  .. admonition:: Abstract
 
     We discuss the principles of statistical thermodynamics and their
     application to storage management problems. We point out problems
@@ -492,7 +492,7 @@ Bibliography
 
   Henry G. Baker. 1995.  "`'Use-Once' Variables and Linear Objects -- Storage Management, Reflection and Multi-Threading <http://home.pipeline.com/~hbaker1/Use1Var.html>`_". ACM. SIGPLAN Notices 30, 1 (January 1995), pp. 45--52.
 
-  .. abstract: baker95a.html
+  .. admonition:: Abstract
 
     Programming languages should have 'use-once' variables in addition
     to the usual 'multiple-use' variables. 'Use-once' variables are
@@ -532,23 +532,44 @@ Bibliography
 
   Henry G. Baker. 1995. *Memory Management: International Workshop IWMM'95*. Springer-Verlag. ISBN 3-540-60368-9.
 
-  .. abstract: baker95.html
+  .. admonition:: From the Preface
 
-    [from the preface] The International Workshop on Memory Management
-    1995 (IWMM'95) is a continuation of the excellent series started
-    by Yves Bekkers and Jacques Cohen with IWMM'92. The present volume
-    assembles the refereed and invited technical papers which were
-    presented during this year's workshop.
+    The International Workshop on Memory Management 1995 (IWMM'95) is
+    a continuation of the excellent series started by Yves Bekkers and
+    Jacques Cohen with IWMM'92. The present volume assembles the
+    refereed and invited technical papers which were presented during
+    this year's workshop.
 
 * .. _BBW97:
 
-  Nick Barnes, Richard Brooksby, David Jones, Gavin Matthews, Pekka P. Pirinen, Nick Dalton, P. Tucker Withington. 1997. "`A Proposal for a Standard Memory Management Interface <ftp://ftp.dcs.gla.ac.uk/pub/drastic/gc/harlequin.ps>`_". OOPSLA97 Workshop on Garbage Collection and Memory Management.
+  Nick Barnes, Richard Brooksby, David Jones, Gavin Matthews, Pekka P. Pirinen, Nick Dalton, P. Tucker Withington. 1997. "`A Proposal for a Standard Memory Management Interface <http://www.cs.utexas.edu/ftp/garbage/GC97/withingt.ps>`_". OOPSLA97 Workshop on Garbage Collection and Memory Management.
+
+  .. admonition:: From the notes
+
+    There is no well-defined memory-management library API which would
+    allow programmers to easily choose the best memory management
+    implementation for their application.
+
+    Some languages allow replacement of their memory management
+    functions, but usually only the program API is specified, hence
+    replacement of the entire program interface is required.
+
+    Few languages support multiple memory management policies within a
+    single program. Those that do use proprietary memory management
+    policies.
+
+    We believe that the design of an abstract program API is a
+    prerequisite to the design of a “server” API and eventually an API
+    that would permit multiple cooperating memory “servers”. If the
+    interface is simple yet powerful enough to encompass most memory
+    management systems, it stands a good chance of being widely
+    adopted.
 
 * .. _ZORN93B:
 
   David A. Barrett, Benjamin Zorn. 1993. "`Using Lifetime Predictors to Improve Memory Allocation Performance <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.56.6712&rep=rep1&type=pdf>`_". ACM. SIGPLAN'93 Conference on Programming Language Design and Implementation, pp. 187--196.
 
-  .. abstract: zorn93b.html
+  .. admonition:: Abstract
 
     Dynamic storage allocation is used heavily in many application
     areas including interpreters, simulators, optimizers, and
@@ -556,9 +577,9 @@ Bibliography
     the performance of dynamic storage allocation by predicting the
     lifetimes of short-lived objects when they are allocated. Using
     five significant, allocation-intensive C programs, we show that a
-    great fraction of all bytes allocated are short-lived (&gt; 90% in
+    great fraction of all bytes allocated are short-lived (> 90% in
     all cases). Furthermore, we describe an algorithm for lifetime
-    prediction that accurately predicts the lifetimes of 42-99% of all
+    prediction that accurately predicts the lifetimes of 42--99% of all
     objects allocated. We describe and simulate a storage allocator
     that takes advantage of lifetime prediction of short-lived objects
     and show that it can significantly improve a program's memory
@@ -569,7 +590,7 @@ Bibliography
 
   David A. Barrett, Benjamin Zorn. 1995. "`Garbage Collection using a Dynamic Threatening Boundary <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.45.1835&rep=rep1&type=pdf>`_". ACM. SIGPLAN'95 Conference on Programming Language Design and Implementation, pp. 301--314.
 
-  .. abstract: barrett93.html
+  .. admonition:: Abstract
 
     Generational techniques have been very successful in reducing the
     impact of garbage collection algorithms upon the performance of
@@ -604,7 +625,7 @@ Bibliography
 
   Joel F. Bartlett. 1988. "`Compacting Garbage Collection with Ambiguous Roots <http://computer-refuge.org/classiccmp/ftp.digital.com-jun2004/pub/Compaq/WRL/research-reports/WRL-TR-88.2.pdf>`_". Digital Equipment Corporation.
 
-  .. abstract: bartlett88.html
+  .. admonition:: Abstract
 
     This paper introduces a copying garbage collection algorithm which
     is able to compact most of the accessible storage in the heap
@@ -644,7 +665,7 @@ Bibliography
 
   Joel F. Bartlett. 1989. "`Mostly-Copying Garbage Collection Picks Up Generations and C++ <http://www.hpl.hp.com/techreports/Compaq-DEC/WRL-TN-12.pdf>`_". Digital Equipment Corporation.
 
-  .. abstract: bartlett89.html
+  .. admonition:: Abstract
 
     The "mostly-copying" garbage collection algorithm provides a way
     to perform compacting garbage collection in spite of the presence
@@ -665,7 +686,7 @@ Bibliography
 
   Emery D. Berger, Robert D. Blumofe. 1999. "`Hoard: A Fast, Scalable, and Memory-Efficient Allocator for Shared-Memory Multiprocessors <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.81.5049&rep=rep1&type=pdf>`_". University of Texas at Austin. UTCS TR99-22.
 
-  .. abstract: bb99.html
+  .. admonition:: Abstract
 
     In this paper, we present Hoard, a memory allocator for
     shared-memory multiprocessors. We prove that its worst-case memory
@@ -677,11 +698,39 @@ Bibliography
 
   Emery D. Berger, Benjamin G. Zorn, Kathryn S. McKinley. 2001. "`Composing high-performance memory allocators <http://www.cs.utexas.edu/users/speedway/DaCapo/papers/pldi2001.pdf>`_" ACM SIGPLAN Conference on Programming Language Design and Implementation 2001, pp. 114--124.
 
+  .. admonition:: Abstract
+
+    Current general-purpose memory allocators do not provide
+    sufficient speed or flexibility for modern high-performance
+    applications. Highly-tuned general purpose allocators have
+    per-operation costs around one hundred cycles, while the cost of
+    an operation in a custom memory allocator can be just a handful of
+    cycles. To achieve high performance, programmers often write
+    custom memory allocators from scratch -- a difficult and
+    error-prone process.
+
+    In this paper, we present a flexible and efficient infrastructure
+    for building memory allocators that is based on C++ templates and
+    inheritance. This novel approach allows programmers to build
+    custom and general-purpose allocators as “heap layers” that can be
+    composed without incurring any additional runtime overhead or
+    additional programming cost. We show that this infrastructure
+    simplifies allocator construction and results in allocators that
+    either match or improve the performance of heavily-tuned
+    allocators written in C, including the Kingsley allocator and the
+    GNU obstack library. We further show this infrastructure can be
+    used to rapidly build a general-purpose allocator that has
+    performance comparable to the Lea allocator, one of the best
+    uniprocessor allocators available. We thus demonstrate a clean,
+    easy-to-use allocator interface that seamlessly combines the power
+    and efficiency of any number of general and custom allocators
+    within a single application.
+
 * .. _BW88:
 
   Hans-J. Boehm, Mark Weiser. 1988. "`Garbage collection in an uncooperative environment <http://hboehm.info/spe_gc_paper/preprint.pdf>`_". Software -- Practice and Experience. 18(9):807--820.
 
-  .. abstract: bw88.html
+  .. admonition:: Abstract
 
     We describe a technique for storage allocation and garbage
     collection in the absence of significant co-operation from the
@@ -699,7 +748,7 @@ Bibliography
 
   Hans-J. Boehm, Alan J. Demers, Scott Shenker. 1991. "`Mostly Parallel Garbage Collection <http://hboehm.info/gc/papers/pldi91.ps.Z>`_". Xerox PARC. ACM PLDI 91, SIGPLAN Notices 26, 6 (June 1991), pp. 157--164.
 
-  .. abstract: bds91.html
+  .. admonition:: Abstract
 
     We present a method for adapting garbage collectors designed to
     run sequentially with the client, so that they may run
@@ -712,13 +761,26 @@ Bibliography
 
 * .. _BC92A:
 
-  Hans-J. Boehm, David Chase. 1992. "A Proposal for Garbage-Collector-Safe C Compilation". *Journal of C Language Translation.* vol. 4, 2 (December 1992), pp. 126--141.
+  Hans-J. Boehm, David Chase. 1992. "`A Proposal for Garbage-Collector-Safe C Compilation <http://hboehm.info/gc/papers/boecha.ps.gz>`_". *Journal of C Language Translation.* vol. 4, 2 (December 1992), pp. 126--141.
+
+  .. admonition:: Abstract
+
+    Conservative garbage collectors are commonly used in combination
+    with conventional C programs. Empirically, this usually works
+    well. However, there are no guarantees that this is safe in the
+    presence of "improved" compiler optimization. We propose that C
+    compilers provide a facility to suppress optimizations that are
+    unsafe in the presence of conservative garbage collection. Such a
+    facility can be added to an existing compiler at very minimal
+    cost, provided the additional analysis is done in a
+    machine-independent source-to-source prepass. Such a prepass may
+    also check the source code for garbage-collector-safety.
 
 * .. _BOEHM93:
 
   Hans-J. Boehm. 1993. "`Space Efficient Conservative Garbage Collection <http://hboehm.info/gc/papers/pldi93.ps.Z>`_". ACM, SIGPLAN. Proceedings of the ACM SIGPLAN '91 Conference on Programming Language Design and Implementation, SIGPLAN Notices 28, 6, pp 197--206.
 
-  .. abstract: boehm93.html
+  .. admonition:: Abstract
 
     We call a garbage collector conservative if it has only partial
     information about the location of pointers, and is thus forced to
@@ -742,7 +804,7 @@ Bibliography
 
   Hans-J. Boehm. 2000. "`Reducing Garbage Collector Cache Misses <http://www.hpl.hp.com/techreports/2000/HPL-2000-99.html>`_". ACM. ISMM'00 pp. 59--64.
 
-  .. abstract: boehm00.html
+  .. admonition:: Abstract
 
     Cache misses are currently a major factor in the cost of garbage
     collection, and we expect them to dominate in the future.
@@ -769,9 +831,56 @@ Bibliography
 
   Hans-J. Boehm. 2002. "`Destructors, Finalizers, and Synchronization <http://www.hpl.hp.com/techreports/2002/HPL-2002-335.html>`_". HP Labs technical report HPL-2002-335.
 
+  .. admonition:: Abstract
+
+    We compare two different facilities for running cleanup actions
+    for objects that are about to reach the end of their life.
+    Destructors, such as we find in C++, are invoked synchronously
+    when an object goes out of scope. They make it easier to implement
+    cleanup actions for objects of well-known lifetime, especially in
+    the presence of exceptions. Languages like Java, Modula-3, and C#
+    provide a different kind of "finalization" facility: Cleanup
+    methods may be run when the garbage collector discovers a heap
+    object to be otherwise inaccessible. Unlike C++ destructors, such
+    methods run in a separate thread at some much less well-defined
+    time. We argue that these are fundamentally different, and
+    potentially complementary, language facilities. We also try to
+    resolve some common misunderstandings about finalization in the
+    process. In particular: 1. The asynchronous nature of finalizers
+    is not just an accident of implementation or a shortcoming of
+    tracing collectors; it is necessary for correctness of client
+    code, fundamentally affects how finalizers must be written, and
+    how finalization facilities should be presented to the user. 2. An
+    object may legitimately be finalized while one of its methods are
+    still running. This should and can be addressed by the language
+    specification and client code.
+
 * .. _BM77:
 
   Robert S. Boyer and J. Strother Moore. 1977. "`A Fast String Searching Algorithm <http://www.cs.utexas.edu/~moore/publications/fstrpos.pdf>`_". *Communications of the ACM* 20(10):762--772.
+
+  .. admonition:: Abstract
+
+    An algorithm is presented that searches for the location, "*i*,"
+    of the first occurrence of a character string, "*pat*," in another
+    string, "*string*." During the search operation, the characters of
+    *pat* are matched starting with the last character of *pat*. The
+    information gained by starting the match at the end of the pattern
+    often allows the algorithm to proceed in large jumps through the
+    text being searched. Thus the algorithm has the unusual property
+    that, in most cases, not all of the first *i* characters of
+    *string* are inspected. The number of characters actually
+    inspected (on the average) decreases as a function of the length
+    of *pat*. For a random English pattern of length 5, the algorithm
+    will typically inspect *i*/4 characters of string before finding a
+    match at *i*. Furthermore, the algorithm has been implemented so
+    that (on the average) fewer than *i* + *patlen* machine
+    instructions are executed. These conclusions are supported with
+    empirical evidence and a theoretical analysis of the average
+    behavior of the algorithm. The worst case behavior of the
+    algorithm is linear in *i* + *patlen*, assuming the availability
+    of array space for tables linear in *patlen* plus the size of the
+    alphabet.
 
 * .. _BL72:
 
@@ -780,6 +889,28 @@ Bibliography
 * .. _BROOKSBY02:
 
   Richard Brooksby. 2002. "`The Memory Pool System: Thirty person-years of memory management development goes Open Source <http://www.ravenbrook.com/project/mps/doc/2002-01-30/ismm2002-paper/>`_". ISMM'02.
+
+  .. admonition:: Abstract
+
+    The Memory Pool System (MPS) is a very general, adaptable,
+    flexible, reliable, and efficient memory management system. It
+    permits the flexible combination of memory management techniques,
+    supporting manual and automatic memory management, in-line
+    allocation, finalization, weakness, and multiple simultaneous
+    co-operating incremental generational garbage collections. It also
+    includes a library of memory pool classes implementing specialized
+    memory management policies.
+
+    Between 1994 and 2001, Harlequin (now part of Global Graphics)
+    invested about thirty person-years of effort developing the MPS.
+    The system contained many innovative techniques and abstractions
+    which were kept secret. In 1997 Richard Brooksby, the manager and
+    chief architect of the project, and Nicholas Barnes, a senior
+    developer, left Harlequin to form their own consultancy company,
+    Ravenbrook, and in 2001, Ravenbrook acquired the MPS technology
+    from Global Graphics. We are happy to announce that we are
+    publishing the source code and documentation under an open source
+    licence. This paper gives an overview of the system.
 
 * .. _C1990:
 
@@ -793,7 +924,7 @@ Bibliography
 
   Brad Calder, Dirk Grunwald, Benjamin Zorn. 1994. "`Quantifying Behavioral Differences Between C and C++ Programs <http://cseclassic.ucsd.edu/users/calder/papers/JplVersion.pdf>`_". *Journal of Programming Languages.* 2(4):313--351.
 
-  .. abstract: cgz94.html
+  .. admonition:: Abstract
 
     Improving the performance of C programs has been a topic of great
     interest for many years. Both hardware technology and compiler
@@ -816,23 +947,89 @@ Bibliography
 
   Dante J. Cannarozzi, Michael P. Plezbert, Ron K. Cytron. 2000. "`Contaminated garbage collection <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.58.9649&rep=rep1&type=pdf>`_". ACM. Proceedings of the ACM SIGPLAN '00 conference on on Programming language design and implementation, pp. 264--273.
 
+  .. admonition:: Abstract
+
+    We describe a new method for determining when an object can be
+    garbage collected. The method does not require marking live
+    objects. Instead, each object *X* is *dynamically* associated with
+    a stack frame *M*, such that *X* is collectable when *M* pops.
+    Because *X* could have been dead earlier, our method is
+    conservative. Our results demonstrate that the methos nonetheless
+    idenitifies a large percentage of collectable objects. The method
+    has been implemented in Sun's Java™ Virtual Machine interpreter,
+    and results are presented based on this implementation.
+
 * .. _CW86:
 
   Patrick J. Caudill, Allen Wirfs-Brock. 1986. "A Third-Generation Smalltalk-80 Implementation". ACM. SIGPLAN Notices. 21(11), OOPSLA'86 ACM Conference on Object-Oriented Systems, Languages and Applications.
 
+  .. admonition:: Abstract
+
+    A new, high performance Smalltalk-80™ implementation is described
+    which builds directly upon two previous implementation efforts.
+    This implementation supports a large object space while retaining
+    compatibility with previous Smalltalk-80™ images. The
+    implementation utilizes a interpreter which incorporates a
+    generation based garbage collector and which does not have an
+    object table. This paper describes the design decisions which lead
+    to this implementation and reports preliminary performance
+    results.
+
 * .. _CHENEY70:
 
-  C. J. Cheney. 1970. "A non-recursive list compacting algorithm". CACM. 13-11 pp. 677--678.
+  C. J. Cheney. 1970. "`A non-recursive list compacting algorithm <http://people.cs.umass.edu/~emery/classes/cmpsci691s-fall2004/papers/p677-cheney.pdf>`_". CACM. 13-11 pp. 677--678.
+
+  .. admonition:: Abstract
+
+    A simple nonrecursive list structure compacting scheme or garbage
+    collector suitable for both compact and LISP-like list structures
+    is presented. The algorithm avoids the need for recursion by using
+    the partial structure as it is built up to keep track of those
+    lists that have been copied.
 
 * .. _CHL98:
 
   Perry Cheng, Robert Harper, Peter Lee. 1998. "`Generational stack collection and profile-driven pretenuring <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.43.9229&rep=rep1&type=pdf>`_". ACM. Proceedings of SIGPLAN'98 Conference on Programming Language Design and Implementation, pp. 162--173.
 
+  .. admonition:: Abstract
+
+    This paper presents two techniques for improving garbage
+    collection performance: generational stack collection and
+    profile-driven pretenuring. The first is applicable to stack-based
+    implementations of functional languages while the second is useful
+    for any generational collector. We have implemented both
+    techniques in a generational collector used by the TIL compiler,
+    and have observed decreases in garbage collection times of as much
+    as 70% and 30%, respectively.
+
+    Functional languages encourage the use of recursion which can lead
+    to a long chain of activation records. When a collection occurs,
+    these activation records must be scanned for roots. We show that
+    scanning many activation records can take so long as to become the
+    dominant cost of garbage collection. However, most deep stacks
+    unwind very infrequently, so most of the root information obtained
+    from the stack remains unchanged across successive garbage
+    collections. *Generational stack collection* greatly reduces the
+    stack scan cost by reusing information from previous scans.
+
+    Generational techniques have been successful in reducing the cost
+    of garbage collection. Various complex heap arrangements and
+    tenuring policies have been proposed to increase the effectiveness
+    of generational techniques by reducing the cost and frequency of
+    scanning and copying. In contrast, we show that by using profile
+    information to make lifetime predictions, *pretenuring* can avoid
+    copying data altogether. In essence, this technique uses a
+    refinement of the generational hypothesis (most data die young)
+    with a locality principle concerning the age of data: most
+    allocations sites produce data that immediately dies, while a few
+    allocation sites consistently produce data that survives many
+    collections.
+
 * .. _CL98:
 
   Trishul M. Chilimbi, James R. Larus. 1998. "`Using Generational Garbage Collection To Implement Cache-Conscious Data Placement <http://ftp2.cs.wisc.edu/wwt/ismm98_cache_gc.pdf>`_". ACM. ISMM'98 pp. 37--48.
 
-  .. abstract: cl98.html
+  .. admonition:: Abstract
 
     Processor and memory technology trends show a continual increase
     in the cost of accessing main memory. Machine designers have tried
@@ -858,7 +1055,7 @@ Bibliography
 
   William D Clinger & Lars T Hansen. 1997. "`Generational Garbage Collection and the Radioactive Decay Model <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.164.370&rep=rep1&type=pdf>`_". ACM. Proceedings of PLDI 1997.
 
-  .. abstract: ch97.html
+  .. admonition:: Abstract
 
     If a fixed exponentially decreasing probability distribution
     function is used to model every object's lifetime, then the age of
@@ -882,7 +1079,7 @@ Bibliography
 
   Jacques Cohen. 1981. "Garbage collection of linked data structures". Computing Surveys. Vol. 13, no. 3.
 
-  .. abstract: cohen81.html
+  .. admonition:: Abstract
 
     A concise and unified view of the numerous existing algorithms for
     performing garbage collection of linked data structures is
@@ -904,7 +1101,7 @@ Bibliography
 
   Dominique Colnet, Philippe Coucaud, Olivier Zendra. 1998. "`Compiler Support to Customize the Mark and Sweep Algorithm <http://pdf.aminer.org/000/465/134/compiler_support_to_customize_the_mark_and_sweep_algorithm.pdf>`_". ACM. ISMM'98 pp. 154--165.
 
-  .. abstract: ccz98.html
+  .. admonition:: Abstract
 
     Mark and sweep garbage collectors (GC) are classical but still
     very efficient automatic memory management systems. Although
@@ -930,7 +1127,7 @@ Bibliography
 
   Jonathan E. Cook, Alexander L. Wolf, Benjamin Zorn. 1994. "`Partition Selection Policies in Object Database Garbage Collection <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.53.3656&rep=rep1&type=pdf>`_". ACM. SIGMOD. International Conference on the Management of Data (SIGMOD'94), pp. 371--382.
 
-  .. abstract: cwz93.html
+  .. admonition:: Abstract
 
     The automatic reclamation of storage for unreferenced objects is
     very important in object databases. Existing language system
@@ -954,11 +1151,31 @@ Bibliography
 
   Jonathan E. Cook, Artur Klauser, Alexander L. Wolf, Benjamin Zorn. 1996. "`Semi-automatic, Self-adaptive Control of Garbage Collection Rates in Object Databases <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.46.8140&rep=rep1&type=pdf>`_". ACM, SIGMOD. International Conference on the Management of Data (SIGMOD'96), pp. 377--388.
 
+  .. admonition:: Abstract
+
+    A fundamental problem in automating object database storage
+    reclamation is determining how often to perform garbage
+    collection. We show that the choice of collection rate can have a
+    significant impact on application performance and that the "best"
+    rate depends on the dynamic behavior of the application, tempered
+    by the particular performance goals of the user. We describe two
+    semi-automatic, self-adaptive policies for controlling collection
+    rate that we have developed to address the problem. Using
+    trace-driven simulations, we evaluate the performance of the
+    policies on a test database application that demonstrates two
+    distinct reclustering behaviors. Our results show that the
+    policies are effective at achieving user-specified levels of I/O
+    operations and database garbage percentage. We also investigate
+    the sensitivity of the policies over a range of object
+    connectivities. The evaluation demonstrates that semi-automatic,
+    self-adaptive policies are a practical means for flexibly
+    controlling garbage collection rate.
+
 * .. _CNS92:
 
   Eric Cooper, Scott Nettles, Indira Subramanian. 1992. "Improving the Performance of SML Garbage Collection using Application-Specific Virtual Memory Management". ACM Conference on LISP and Functional Programming, pp. 43--52.
 
-  .. abstract: cns92.html
+  .. admonition:: Abstract
 
     We improved the performance of garbage collection in the Standard ML of
     New Jersey system by using the virtual memory facilities provided by
@@ -974,19 +1191,19 @@ Bibliography
 
   Michael C. Daconta. 1995. *C++ Pointers and Dynamic Memory Management.* Wiley. ISBN 0-471-04998-0.
 
-  .. abstract: daconta95.html
+  .. admonition:: From the back cover
 
-    [from the back cover] Using techniques developed in the classroom
-    at America Online's Programmer's University, Michael Daconta
-    deftly pilots programmers through the intricacies of the two most
-    difficult aspects of C++ programming: pointers and dynamic memory
-    management. Written by a programmer for programmers, this
-    no-nonsense, nuts-and-bolts guide shows you how to fully exploit
-    advanced C++ programming features, such as creating class-specific
-    allocators, understanding references versus pointers, manipulating
-    multidimensional arrays with pointers, and how pointers and
-    dynamic memory are the core of object-oriented constructs like
-    inheritance, name-mangling, and virtual functions.
+    Using techniques developed in the classroom at America Online's
+    Programmer's University, Michael Daconta deftly pilots programmers
+    through the intricacies of the two most difficult aspects of C++
+    programming: pointers and dynamic memory management. Written by a
+    programmer for programmers, this no-nonsense, nuts-and-bolts guide
+    shows you how to fully exploit advanced C++ programming features,
+    such as creating class-specific allocators, understanding
+    references versus pointers, manipulating multidimensional arrays
+    with pointers, and how pointers and dynamic memory are the core of
+    object-oriented constructs like inheritance, name-mangling, and
+    virtual functions.
 
 * .. _DAHL63:
 
@@ -994,25 +1211,91 @@ Bibliography
 
 * .. _DENNING68:
 
-  P. J. Denning. 1968. "Thrashing: Its Causes and Prevention". Proceedings AFIPS,1968 Fall Joint Computer Conference, vol. 33, pp. 915--922.
+  P. J. Denning. 1968. "`Thrashing: Its Causes and Prevention <https://cs.uwaterloo.ca/~Brecht/courses/702/Possible-Readings/vm-and-gc/thrashing-denning-afips-1968.pdf>`_". Proceedings AFIPS,1968 Fall Joint Computer Conference, vol. 33, pp. 915--922.
+
+  .. admonition:: From the introduction
+
+    A particularly troublesome phenomenon, thrashing, may seriously
+    interfere with the performance of paged memory systems, reducing
+    computing giants (Multics, IBM System 360, and others not
+    necessarily excepted) to computing dwarfs. The term thrashing
+    denotes excessive overhead and severe performance degradation or
+    collapse caused by too much paging. Thrashing inevitably turns a
+    shortage of memory space into a surplus of processor time.
 
 * .. _DENNING70:
 
   P. J. Denning. 1970. "`Virtual Memory <http://denninginstitute.com/pjd/PUBS/VirtMem_1970.pdf>`_". ACM. ACM Computing Surveys, vol. 2, no. 3, pp. 153--190, Sept. 1970.
 
+  .. admonition:: Abstract
+
+    The need for automatic storage allocation arises from desires for
+    program modularity, machine independence, and resource sharing.
+    Virtual memory is an elegant way of achieving these objectives. In
+    a virtual memory, the addresses a program may use to identify
+    information are distinguished from the addresses the memory system
+    uses to identify physical storage sites, and program-generated
+    addresses are translated automatically to the corresponding
+    machine addresses. Two principal methods for implementing virtual
+    memory, segmentation and paging, are compared and contrasted. Many
+    contemporary implementations have experienced one or more of these
+    problems: poor utilization of storage, thrashing, and high costs
+    associated with loading information into memory. These and
+    subsidiary problems are studied from a theoretic view, and are
+    shown to be controllable by a proper combination of hardware and
+    memory management policies.
+
 * .. _DS72:
 
   P. J. Denning, S. C. Schwartz. 1972. "`Properties of the Working-set Model <http://denninginstitute.com/pjd/PUBS/WSProp_1972.pdf>`_". CACM. vol. 15, no. 3, pp. 191--198.
+
+  .. admonition:: Abstract
+
+    A program's working set *W*\ (*t*, *T*) at time *t* is the set of
+    distinct pages among the *T* most recently referenced pages.
+    Relations between the average working-set size, the missing-page
+    rate, and the interreference-interval distribution may be derived
+    both from time-average definitions and from ensemble-average
+    (statistical) definitions. An efficient algorithm for estimating
+    these quantities is given. The relation to LRU (least recently
+    used) paging is characterized. The independent-reference model, in
+    which page references are statistically independent, is used to
+    assess the effects of interpage dependencies on working-set size
+    observations. Under general assumptions, working-set size is shown
+    to be normally distributed.
 
 * .. _DETLEFS92:
 
   David L. Detlefs. 1992. "`Garbage collection and runtime typing as a C++ library <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.71.2755&rep=rep1&type=pdf>`_". USENIX C++ Conference.
 
+  .. admonition:: From the introduction
+
+    Automatic storage management, or *garbage collection*, is a
+    feature that can ease program development and enhance program
+    reliability. Many high-level languages other than C++ provide
+    garbage collection. This paper proposes the use of "smart pointer"
+    template classes as an interface for the use of garbage collection
+    in C++. Template classes and operator overloading are techniques
+    allowing language extension at the level of user code; I claim
+    that using these techniques to create smart pointer classes
+    provdes a syntax for manipulating garbage-collected storage safely
+    and conveniently. Further, the use of a smart-pointer template
+    class offers the possibility of implementing the collector at the
+    user-level, without requiring support from the compiler. If such a
+    compiler-independent implementation is possible with adequate
+    performance, then programmers can start to write code using
+    garbage collection without waiting for language and compiler
+    modifications. If the use of such a garbage collection interface
+    becomes widespread, then C++ compilation systems can be built to
+    specially support tht garbage collection interface, thereby
+    allowing the use of collection algorithms with enhanced
+    performance.
+
 * .. _ZORN93:
 
   David L. Detlefs, Al Dosser, Benjamin Zorn. 1994. "`Memory Allocation Costs in Large C and C++ Programs <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.30.3073&rep=rep1&type=pdf>`_". Software -- Practice and Experience. 24(6):527--542.
 
-  .. abstract: zorn93.html
+  .. admonition:: Abstract
 
     Dynamic storage allocation is an important part of a large class
     of computer programs written in C and C++. High-performance
@@ -1033,15 +1316,44 @@ Bibliography
 
   L. Peter Deutsch, Daniel G. Bobrow. 1976. "`An Efficient, Incremental, Automatic Garbage Collector <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.63.4603&rep=rep1&type=pdf>`_". CACM. vol. 19, no. 9, pp. 522--526.
 
+  .. admonition:: Abstract
+
+    This paper describes a new way of solving the storage reclamation
+    problem for a system such as Lisp that allocates storage
+    automatically from a heap, and does not require the programmer to
+    give any indication that particular items are no longer useful or
+    accessible. A reference count scheme for reclaiming
+    non-self-referential structures, and a linearizing, compacting,
+    copying scheme to reorganize all storage at the users discretion
+    are proposed. The algorithms are designed to work well in systems
+    which use multiple levels of storage, and large virtual address
+    space. They depend on the fact that most cells are referenced
+    exactly once, and that reference counts need only be accurate when
+    storage is about to be reclaimed. A transaction file stores
+    changes to reference counts, and a multiple reference table stores
+    the count for items which are referenced more than once.
+
 * .. _DLMSS76:
 
   E. W. Dijkstra, Leslie Lamport, A. J. Martin, C. S. Scholten, E. F. M. Steffens. 1976. "`On-the-fly Garbage Collection: An Exercise in Cooperation <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.63.4752&rep=rep1&type=pdf>`_". Springer-Verlag. Lecture Notes in Computer Science, Vol. 46.
+
+  .. admonition:: Abstract
+
+    As an example of cooperation between sequential processes with
+    very little mutual interference despite frequent manipulations of
+    a large shared data space, a technique is developed which allows
+    nearly all of the activity needed for garbage detection and
+    collection to be performed by an additional processor operating
+    con- currently with the processor devoted to the computation
+    proper. Exclusion and synchronization constraints have been kept
+    as weak as could be achieved; the severe complexities engendered
+    by doing so are illustrated.
 
 * .. _DMH92:
 
   Amer Diwan, Richard L. Hudson, J. Eliot B. Moss. 1992. "`Compiler Support for Garbage Collection in a Statically Typed Language <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.87.71&rep=rep1&type=pdf>`_". ACM. Proceedings of the 5th ACM SIGPLAN conference on Programming language design and implementation, pp. 273--282.
 
-  .. abstract: dmh92.html
+  .. admonition:: Abstract
 
     We consider the problem of supporting compacting garbage
     collection in the presence of modern compiler optimizations. Since
@@ -1064,7 +1376,7 @@ Bibliography
 
   Amer Diwan, David Tarditi, J. Eliot B. Moss. 1993. "`Memory Subsystem Performance of Programs with Intensive Heap Allocation <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.27.9220&rep=rep1&type=pdf>`_". Carnegie Mellon University. CMU-CS-93-227.
 
-  .. abstract: dtm93.html
+  .. admonition:: Abstract
 
     Heap allocation with copying garbage collection is a general
     storage management technique for modern programming languages. It
@@ -1089,7 +1401,7 @@ Bibliography
 
   Amer Diwan, David Tarditi, J. Eliot B. Moss. 1994. "`Memory Subsystem Performance of Programs Using Copying Garbage Collection <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.27.9220&rep=rep1&type=pdf>`_". ACM. CMU-CS-93-210, also in POPL '94.
 
-  .. abstract: dtm93a.html
+  .. admonition:: Abstract
 
     Heap allocation with copying garbage collection is believed to
     have poor memory subsystem performance. We conducted a study of
@@ -1103,7 +1415,7 @@ Bibliography
 
   Damien Doligez & Xavier Leroy. 1993. "`A concurrent, generational garbage collector for a multithreaded implementation of ML <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.52.9494&rep=rep1&type=pdf>`_". ACM. POPL '93, 113--123.
 
-  .. abstract: doligez93.html
+  .. admonition:: Abstract
 
     This paper presents the design and implementation of a "quasi
     real-time" garbage collector for Concurrent Caml Light, an
@@ -1117,7 +1429,7 @@ Bibliography
 
   Damien Doligez & Georges Gonthier. 1994. "`Portable, unobtrusive garbage collection for multiprocessor systems <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.52.4710&rep=rep1&type=pdf>`_". ACM. POPL '94, 70--83.
 
-  .. abstract: doligez94.html
+  .. admonition:: Abstract
 
     We describe and prove the correctness of a new concurrent
     mark-and-sweep garbage collection algorithm. This algorithm
@@ -1138,7 +1450,7 @@ Bibliography
 
   R. Kent Dybvig, Carl Bruggeman, David Eby. 1993. "`Guardians in a Generation-Based Garbage Collector <http://www.cs.indiana.edu/~dyb/pubs/guardians-pldi93.pdf>`_". SIGPLAN. Proceedings of the ACM SIGPLAN '93 Conference on Programming Language Design and Implementation, June 1993.
 
-  .. abstract: dbe93.html
+  .. admonition:: Abstract
 
     This paper describes a new language feature that allows
     dynamically allocated objects to be saved from deallocation by an
@@ -1155,15 +1467,49 @@ Bibliography
 
   Daniel R. Edelson. 1992. "`Smart pointers: They're smart, but they're not pointers <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.54.530&rep=rep1&type=pdf>`_". USENIX C++ Conference.
 
+  .. admonition:: From the introduction
+
+    This paper shows hhow the behaviour of smart pointers diverges
+    from that of pointers in certain common C++ constructs. Given
+    this, we conclude that the C++ programming language does not
+    support seamless smart pointers: smart pointers cannot
+    transparently replace raw pointers in all ways except declaration
+    syntax. We show that this conclusion also applies to *accessors*.
+
 * .. _EDELSON92:
 
-  Daniel R. Edelson. 1992. "Comparing Two Garbage Collectors for C++". University of California at Santa Cruz. Technical Report UCSC-CRL-93-20.
+  Daniel R. Edelson. 1992. "`Comparing Two Garbage Collectors for C++ <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.43.6011&rep=rep1&type=pdf>`_". University of California at Santa Cruz. Technical Report UCSC-CRL-93-20.
+
+  .. admonition:: Abstract
+
+    Our research is concerned with compiler- independent, tag-free
+    garbage collection for the C++ programming language. This paper
+    presents a mark-and-sweep collector, and explains how it
+    ameliorates shortcomings of a previous copy collector. The new
+    collector, like the old, uses C++'s facilities for creating
+    abstract data types to define a *tracked reference* type, called
+    *roots*, at the level of the application program. A programmer
+    wishing to utilize the garbage collection service uses these roots
+    in place of normal, raw pointers. We present a detailed study of
+    the cost of using roots, as compared to both normal pointers and
+    reference counted pointers, in terms of instruction counts. We
+    examine the efficiency of a small C++ application using roots,
+    reference counting, manual reclamation, and conservative
+    collection. Coding the application to use garbage collection, and
+    analyzing the resulting efficiency, helped us identify a number of
+    memory leaks and inefficiencies in the original, manually
+    reclaimed version. We find that for this program, garbage
+    collection using roots is much more efficient than reference
+    counting, though less efficient than manual reclamation. It is
+    hard to directly compare our collector to the conservative
+    collector because of the differing efficiencies of their
+    respective memory allocators.
 
 * .. _EDWARDS:
 
   Daniel J. Edwards. n.d. "`Lisp II Garbage Collector <ftp://publications.ai.mit.edu/ai-publications/0-499/AIM-019.ps>`_". MIT. AI Memo 19 (AIM-19).
 
-  .. abstract: edwards.html
+  .. admonition:: Our summary
 
     (This short memo doesn't have an abstract. Basically, it describes
     the plan for the LISP II Relocating Garbage Collector. It has four
@@ -1179,7 +1525,7 @@ Bibliography
 
   John R. Ellis, David L. Detlefs. 1993. "`Safe, Efficient Garbage Collection for C++ <http://www.hpl.hp.com/techreports/Compaq-DEC/SRC-RR-102.pdf>`_". Xerox PARC.
 
-  .. abstract: ellis93.html
+  .. admonition:: Abstract
 
     We propose adding safe, efficient garbage collection to C++,
     eliminating the possibility of storage-management bugs and making
@@ -1192,7 +1538,7 @@ Bibliography
 
   Paulo Ferreira. 1996. "`Larchant: garbage collection in a cached distributed shared store with persistence by reachability <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.31.8434&rep=rep1&type=pdf>`_". Université Paris VI. Thése de doctorat.
 
-  .. abstract: ferreira96.html
+  .. admonition:: Abstract
 
     The model of Larchant is that of a *Shared Address Space*
     (spanning every site in a network including secondary storage)
@@ -1229,15 +1575,53 @@ Bibliography
 
   Paulo Ferreira & Marc Shapiro. 1998. "`Modelling a Distributed Cached Store for Garbage Collection <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.45.6176&rep=rep1&type=pdf>`_". Springer-Verlag. Proceedings of 12th European Conference on Object-Oriented Programming, ECOOP98, LNCS 1445.
 
+  .. admonition:: Abstract
+
+    Caching and persistence support efficient, convenient and
+    transparent distributed data sharing. The most natural model of
+    persistence is persistence by reachability, managed automatically
+    by a garbage collector (GC). We propose a very general model of
+    such a system (based on distributed shared memory) and a scalable,
+    asynchronous distributed GC algorithm. Within this model, we show
+    sufficient and widely applicable correctness conditions for the
+    interactions between applications, store, memory, coherence, and
+    GC.
+
+    The GC runs as a set of processes (local to each participating
+    machine) communicating by asynchronous messages. Collection does
+    not interfere with applications by setting locks, polluting
+    caches, or causing I/O; this requirement raised some novel and
+    interesting challenges which we address in this article. The
+    algorithm is safe and live; it is not complete, i.e. it collects
+    some distributed cycles of garbage but not necessarily all.
+
 * .. _FW76:
 
   Daniel P Friedman, David S. Wise. 1976. "`Garbage collecting a heap which includes a scatter table <http://www.cs.indiana.edu/pub/techreports/TR34.pdf>`_". *Information Processing Letters.* 5, 6 (December 1976): 161--164.
+
+  .. admonition:: Abstract
+
+    A new algorithm is introduced for garbage collecting a heap which
+    contains shared data structures accessed from a scatter table. The
+    scheme provides for the purging of useless entries from the
+    scatter table with no traverslas beyond the two required by
+    classic collection schemes. For languages which use scatter tables
+    to sustain unique existence of complex structures, like natural
+    variables of SNOBOL, it indirectly allows liberal use of a single
+    scatter table by ensuring efficient deletion of useless entries.
+    Since the scatter table is completely restructured during the
+    course of execution, the hashing scheme itself is easily altered
+    during garbage collection whenever skewed loading of the scatter
+    table warrants abandonment of the old hashing. This procedure is
+    applicable to the maintenance of dynamic structures such as those
+    in information retrieval schemes or in languages like LISP and
+    SNOBOL.
 
 * .. _FW77:
 
   Daniel P Friedman, David S. Wise. 1977. "`The One Bit Reference Count <http://www.cs.indiana.edu/pub/techreports/TR57.pdf>`_". *BIT.* (17)3: 351--359.
 
-  .. abstract: fw77.html
+  .. admonition:: Abstract
 
     Deutsch and Bobrow propose a storage reclamation scheme for a heap
     which is a hybrid of garbage collection and reference counting.
@@ -1258,11 +1642,23 @@ Bibliography
 
   Daniel P Friedman, David S. Wise. 1979. "`Reference counting can manage the circular environments of mutual recursion <http://www.cs.indiana.edu/pub/techreports/TR73.pdf>`_". *Information Processing Letters.* 8, 1 (January 1979): 41--45.
 
+  .. admonition:: From the introduction
+
+    In this note we advance reference counting as a storage management
+    technique viable for implementing recursive languages like ISWIM
+    or pure LISP with the ``labels`` construct for implementing mutual
+    recursion from SCHEME. ``Labels`` is derived from ``letrec`` and
+    displaces the ``label`` operator, a version of the paradoxical
+    Y-combinator. The key observation is that the requisite circular
+    structure (which ordinarily cripples reference counts) occurs only
+    within the language--rather than the user--structure, and that the
+    references into this structure are well-controlled.
+
 * .. _GZH93:
 
   Dirk Grunwald, Benjamin Zorn, R. Henderson. 1993. "`Improving the Cache Locality of Memory Allocation <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.43.6621&rep=rep1&type=pdf>`_". SIGPLAN. SIGPLAN '93, Conference on PLDI, June 1993, Albuquerque, New Mexico.
 
-  .. abstract: gzh93.html
+  .. admonition:: Abstract
 
     The allocation and disposal of memory is a ubiquitous operation in
     most programs. Rarely do programmers concern themselves with
@@ -1289,7 +1685,7 @@ Bibliography
 
   Dirk Grunwald & Benjamin Zorn. 1993. "`CustoMalloc: Efficient Synthesized Memory Allocators <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.35.5260&rep=rep1&type=pdf>`_". Software -- Practice and Experience. 23(8):851--869.
 
-  .. abstract: grun92.html
+  .. admonition:: Abstract
 
     The allocation and disposal of memory is a ubiquitous operation in
     most programs. Rarely do programmers concern themselves with
@@ -1312,7 +1708,7 @@ Bibliography
 
   David Gudeman. 1993. "`Representing Type Information in Dynamically Typed Languages <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.39.4394&rep=rep1&type=pdf>`_". University of Arizona at Tucson. Technical Report TR 93-27.
 
-  .. abstract: gudeman93.html
+  .. admonition:: Abstract
 
     This report is a discussion of various techniques for representing
     type information in dynamically typed languages, as implemented on
@@ -1333,7 +1729,7 @@ Bibliography
 
   Timothy Harris. 1999. "`Early storage reclamation in a tracing garbage collector <http://www.timharris.co.uk/papers/1999-sigplan.pdf>`_". ACM. ACM SIG-PLAN Notices 34:4, pp. 46--53.
 
-  .. abstract: harris99.html
+  .. admonition:: Abstract
 
     This article presents a technique for allowing the early recovery
     of storage space occupied by garbage data. The idea is similar to
@@ -1347,7 +1743,7 @@ Bibliography
 
   Roger Henriksson. 1994. "Scheduling Real Time Garbage Collection". Department of Computer Science at Lund University. LU-CS-TR:94-129.
 
-  .. abstract: henrik94.html
+  .. admonition:: Abstract
 
     This paper presents a new model for scheduling the work of an
     incremental garbage collector in a system with hard real time
@@ -1366,7 +1762,7 @@ Bibliography
 
   Roger Henriksson. 1996. "`Adaptive Scheduling of Incremental Copying Garbage Collection for Interactive Applications <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.51.1554&rep=rep1&type=pdf>`_". NWPER96.
 
-  .. abstract: henrik96.html
+  .. admonition:: Abstract
 
     Incremental algorithms are often used to interleave the work of a
     garbage collector with the execution of an application program,
@@ -1382,7 +1778,7 @@ Bibliography
 
   Roger Henriksson. 1998. "`Scheduling Garbage Collection in Embedded Systems <http://lup.lub.lu.se/luur/download?func=downloadFile&recordOId=18921&fileOId=630830>`_". Department of Computer Science at Lund University. Ph.D. thesis.
 
-  .. abstract: henriksson98.html
+  .. admonition:: Abstract
 
     The complexity of systems for automatic control and other
     safety-critical applications grows rapidly. Computer software
@@ -1431,23 +1827,78 @@ Bibliography
 
   Antony L. Hosking. 1991. "`Main memory management for persistence <ftp://ftp.cs.purdue.edu/pub/hosking/papers/oopsla91gc-alh.pdf>`_". ACM. Proceedings of the ACM OOPSLA'91 Workshop on Garbage Collection.
 
+  .. admonition:: Abstract
+
+    Reachability-based persistence imposes new requirements for main
+    memory management in general, and garbage collection in
+    particular. After a brief introduction to the characteristics and
+    requirements of reachability-based persistence, we present the
+    design of a run-time storage manager for Persistent Smalltalk and
+    Persistent Modula-3, which allows the reclamation of storage from
+    both temporary objects and buffered persistent objects.
+
 * .. _HMS92:
 
   Antony L. Hosking, J. Eliot B. Moss, Darko Stefanovic. 1992. "`A comparative performance evaluation of write barrier implementations <ftp://ftp.cs.purdue.edu/pub/hosking/papers/oopsla92.pdf>`_". ACM. OOPSLA'92 Conference Proceedings, ACM SIGPLAN Notices 27(10), pp 92--109.
+
+  .. admonition:: Abstract
+
+    Generational garbage collectors are able to achieve very small
+    pause times by concentrating on the youngest (most recently
+    allocated) objects when collecting, since objects have been
+    observed to die young in many systems. Generational collectors
+    must keep track of all pointers from older to younger generations,
+    by “monitoring” all stores into the heap. This *write barrier* has
+    been implemented in a number of ways, varying essentially in the
+    granularity of the information observed and stored. Here we
+    examine a range of write barrier implementations and evaluate
+    their relative performance within a generation scavenging garbage
+    collector for Smalltalk.
 
 * .. _HH93:
 
   Antony L. Hosking, Richard L. Hudson. 1993. "`Remembered sets can also play cards <ftp://ftp.cs.purdue.edu/pub/hosking/papers/gc-workshop93c.pdf>`_". ACM. Proceedings of the ACM OOPSLA'93 Workshop on Memory Management and Garbage Collection.
 
+  .. admonition:: Abstract
+
+    Remembered sets and dirty bits have been proposed as alternative
+    implementations of the write barrier for garbage collection. There
+    are advantages to both approaches. Dirty bits can be efficiently
+    maintained with minimal, bounded overhead per store operation,
+    while remembered sets concisely, and accurately record the
+    necessary information. Here we present evidence to show that
+    hybrids can combine the virtues of both schemes and offer
+    competitive performance. Moreover, we argue that a hybrid can
+    better avoid the devils that are the downfall of the separate
+    alternatives.
+
 * .. _HM93:
 
   Antony L. Hosking, J. Eliot B. Moss. 1993. "`Protection traps and alternatives for memory management of an object-oriented language <ftp://ftp.cs.purdue.edu/pub/hosking/papers/sosp93.pdf>`_". ACM. Proceedings of the Fourteenth ACM Symposium on Operating Systems Principles, ACM Operating Systems Review 27(5), pp 106--119.
+
+  .. admonition:: Abstract
+
+    Many operating systems allow user programs to specify the
+    protection level (inaccessible, read-only, read-write) of pages in
+    their virtual memory address space, and to handle any protection
+    violations that may occur. Such page-protection techniques have
+    been exploited by several user-level algorithms for applications
+    including generational garbage collection and persistent stores.
+    Unfortunately, modern hardware has made efficient handling of page
+    protection faults more difficult. Moreover, page-sized granularity
+    may not match the natural granularity of a given application. In
+    light of these problems, we reevaluate the usefulness of
+    page-protection primitives in such applications, by comparing the
+    performance of implementations that make use of the primitives
+    with others that do not. Our results show that for certain
+    applications software solutions outperform solutions that rely on
+    page-protection or other related virtual memory primitives.
 
 * .. _HMDW91:
 
   Richard L. Hudson, J. Eliot B. Moss, Amer Diwan, Christopher F. Weight. 1991. "`A Language-Independent Garbage Collector Toolkit <http://scholarworks.umass.edu/cgi/viewcontent.cgi?article=1210&context=cs_faculty_pubs>`_". University of Massachusetts at Amherst. COINS Technical Report 91--47.
 
-  .. abstract: hmdw91.html
+  .. admonition:: Abstract
 
     We describe a memory management toolkit for language implementors.
     It offers efficient and flexible generation scavenging garbage
@@ -1465,7 +1916,7 @@ Bibliography
 
   Richard L. Hudson, J. Eliot B. Moss. 1992. "`Incremental Collection of Mature Objects <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.53.3883&rep=rep1&type=pdf>`_". Springer-Verlag. LNCS #637  International Workshop on Memory Management, St. Malo, France, Sept. 1992, pp. 388--403.
 
-  .. abstract: hm92.html
+  .. admonition:: Abstract
 
     We present a garbage collection algorithm that extends
     generational scavenging to collect large older generations (mature
@@ -1481,7 +1932,7 @@ Bibliography
 
   Richard L. Hudson, Ron Morrison, J. Eliot B. Moss, David S. Munro. 1997. "`Garbage Collecting the World: One Car at a Time <http://www.cs.umass.edu/~moss/papers/oopsla-1997-gc-world.pdf>`_". ACM. Proc. OOPSLA 97, pp. 162--175.
 
-  .. abstract: hmmm97.html
+  .. admonition:: Abstract
 
     A new garbage collection algorithm for distributed object systems,
     called DMOS (Distributed Mature Object Space), is presented. It is
@@ -1493,15 +1944,11 @@ Bibliography
     incrementality, and scalability. Furthermore, the DMOS collector
     is non-blocking and does not use global tracing.
 
-* .. _ISO90:
-
-  "International Standard ISO/IEC 9899:1990 Programming languages — C".
-
 * .. _JOHNSTONE97:
 
   Mark S. Johnstone. 1997. "`Non-Compacting Memory Allocation and Real-Time Garbage Collection <ftp://ftp.cs.utexas.edu/pub/garbage/johnstone-dissertation.ps.gz>`_". University of Texas at Austin.
 
-  .. abstract: johnstone97.html
+  .. admonition:: Abstract
 
     Dynamic memory use has been widely recognized to have profound
     effects on program performance, and has been the topic of many
@@ -1548,7 +1995,7 @@ Bibliography
 
   Mark S. Johnstone, Paul R. Wilson. 1998. "`The Memory Fragmentation Problem: Solved? <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.45.3382&rep=rep1&type=pdf>`_". ACM. ISMM'98 pp. 26--36.
 
-  .. abstract: jw98.html
+  .. admonition:: Abstract
 
     We show that for 8 real and varied C and C++ programs, several
     conventional dynamic storage allocators provide near-zero
@@ -1569,11 +2016,26 @@ Bibliography
 
   Richard E. Jones. 1992. "`Tail recursion without space leaks <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.45.5083&rep=rep1&type=pdf>`_". *Journal of Functional Programming.* 2(1):73--79.
 
+  .. admonition:: Abstract
+
+    The G-machine is a compiled graph reduction machine for lazy
+    functional languages. The G-machine compiler contains many
+    optimisations to improve performance. One set of such
+    optimisations is designed to improve the performance of tail
+    recursive functions. Unfortunately the abstract machine is subject
+    to a space leak--objects are unnecessarily preserved by the
+    garbage collector.
+
+    This paper analyses why a particular form of space leak occurs in
+    the G-machine, and presents some ideas for fixing this problem.
+    This phenomena in other abstract machines is also examined
+    briefly.
+
 * .. _JL92:
 
   Richard E. Jones, Rafael Lins. 1992. "`Cyclic weighted reference counting without delay <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.43.8499&rep=rep1&type=pdf>`_". Computing Laboratory, The University of Kent at Canterbury. Technical Report 28-92.
 
-  .. abstract: jl92.html
+  .. admonition:: Abstract
 
     Weighted Reference Counting is a low-communication distributed
     storage reclamation scheme for loosely-coupled multiprocessors.
@@ -1590,23 +2052,22 @@ Bibliography
 
   Richard E. Jones, Rafael Lins. 1996. "`Garbage Collection: Algorithms for Automatic Dynamic Memory Management <http://www.cs.ukc.ac.uk/people/staff/rej/gcbook/gcbook.html>`_". Wiley. ISBN 0-471-94148-4.
 
-  .. abstract: jones96.html
+  .. admonition:: From the back cover
 
-    [from the back cover] The memory storage requirements of complex
-    programs are extremely difficult to manage correctly by hand. A
-    single error may lead to indeterminate and inexplicable program
-    crashes. Worse still, failures are often unrepeatable and may
-    surface only long after the program has been delivered to the
-    customer. The eradication of memory errors typically consumes a
-    substantial amount of development time. And yet the answer is
-    relatively easy -- garbage collection; removing the clutter of
-    memory management from module interfaces, which then frees the
-    programmer to concentrate on the problem at hand rather than
-    low-level book-keeping details. For this reason, most modern
-    object-oriented languages such as Smalltalk, Eiffel, Java and
-    Dylan, are supported by garbage collection. Garbage collecting
-    libraries are even available for such uncooperative languages as C
-    and C++.
+    The memory storage requirements of complex programs are extremely
+    difficult to manage correctly by hand. A single error may lead to
+    indeterminate and inexplicable program crashes. Worse still,
+    failures are often unrepeatable and may surface only long after
+    the program has been delivered to the customer. The eradication of
+    memory errors typically consumes a substantial amount of
+    development time. And yet the answer is relatively easy -- garbage
+    collection; removing the clutter of memory management from module
+    interfaces, which then frees the programmer to concentrate on the
+    problem at hand rather than low-level book-keeping details. For
+    this reason, most modern object-oriented languages such as
+    Smalltalk, Eiffel, Java and Dylan, are supported by garbage
+    collection. Garbage collecting libraries are even available for
+    such uncooperative languages as C and C++.
 
     This book considers how dynamic memory can be recycled
     automatically to guarantee error-free memory management. There is
@@ -1631,20 +2092,19 @@ Bibliography
 
   Richard E. Jones. 1998. "`ISMM'98 International Symposium on Memory Management <http://www.acm.org/pubs/contents/proceedings/plan/286860/>`_". ACM. ISBN 1-58113-114-3.
 
-  .. abstract: acm98.html
+  .. admonition:: From the Preface
 
-    (From the preface:) The International Symposium on Memory
-    Management is a forum for research in several related areas of
-    memory management, especially garbage collectors and dynamic
-    storage allocators. [...] The nineteen papers selected for
-    publication in this volume cover a remarkably broad range of
-    memory management topics from explicit malloc-style allocation to
-    automatic memory management, from cache-conscious data layout to
-    efficient management of distributed references, from conservative
-    to type-accurate garbage collection, for applications ranging from
-    user application to long-running servers, supporting languages as
-    different as C, C++, Modula-3, Java, Eiffel, Erlang, Scheme, ML,
-    Haskell and Prolog.
+    The International Symposium on Memory Management is a forum for
+    research in several related areas of memory management, especially
+    garbage collectors and dynamic storage allocators. [...] The
+    nineteen papers selected for publication in this volume cover a
+    remarkably broad range of memory management topics from explicit
+    malloc-style allocation to automatic memory management, from
+    cache-conscious data layout to efficient management of distributed
+    references, from conservative to type-accurate garbage collection,
+    for applications ranging from user application to long-running
+    servers, supporting languages as different as C, C++, Modula-3,
+    Java, Eiffel, Erlang, Scheme, ML, Haskell and Prolog.
 
 * .. _JONES12:
 
@@ -1654,6 +2114,32 @@ Bibliography
 
   Ian Joyner. 1996. "`C++??: A Critique of C++ <http://www.emu.edu.tr/aelci/Courses/D-318/D-318-Files/cppcrit/index.htm>`_.".
 
+  .. admonition:: Abstract
+
+    The C++?? Critique is an analysis of some of the flaws of C++. It
+    is by no means exhaustive, nor does it attempt to document every
+    little niggle with C++, rather concentrating on main themes. The
+    critique uses Java and Eiffel as comparisons to C++ to give a more
+    concrete feel to the criticisms, viewing conceptual differences
+    rather than syntactic ones as being more important. Some C++
+    authors realising there are glaring deficiencies in C++ have
+    chosen to defend C++ by also being critical within their own work.
+    Most notable are Bjarne Stroustup's "Design and Evolution of C++,"
+    and Scott Meyers' "Effective" and "More Effective C++." These warn
+    of many traps and pitfalls, but reach the curious conclusion that
+    since "good" C++ programmers are aware of these problems and know
+    how to avoid them, C++ is alright.
+
+    The C++ critique makes many of the same criticisms, but comes to
+    the different conclusion that these pitfalls are not acceptable,
+    and should not be in a language used for modern large scale
+    software engineering. Clean design is more important than after
+    the fact warnings, and it is inconceivable that purchasers of end
+    user software would tolerate this tactic on the part of vendors.
+    The critique also takes a look at C, and concludes that many of
+    the features of C should be left out of modern languages, and that
+    C is a flawed base for a language.
+
 * .. _KANEFSKY89:
 
   Bob Kanefsky. 1989. "`Recursive Memory Allocation <http://www.songworm.com/db/songworm-parody/RecursiveMemoryAllocation.html>`_". Bob Kanefsky. Songworm 3, p.?.
@@ -1662,17 +2148,17 @@ Bibliography
 
   Jin-Soo Kim, Xiaohan Qin, Yarsun Hsu. 1998. "`Memory Characterization of a Parallel Data Mining Workload <http://csl.skku.edu/papers/wwc98.pdf>`_". IEEE. Proc. Workload Characterization: Methodology and Case Studies, pp. .
 
-  .. abstract: kqh98.html
+  .. admonition:: Abstract
 
     This paper studies a representative of an important class of
     emerging applications, a parallel data mining workload. The
     application, extracted from the IBM Intelligent Miner, identifies
     groups of records that are mathematically similar based on a
     neural network model called self-organizing map. We examine and
-    compare in details two implementations of the application: (1)
-    temporal locality or working set sizes; (2) spatial locality and
-    memory block utilization; (3) communication characteristics and
-    scalability; and (4) TLB performance.
+    compare in details two implementations of the application:
+    (1) temporal locality or working set sizes; (2) spatial locality
+    and memory block utilization; (3) communication characteristics
+    and scalability; and (4) TLB performance.
 
     First, we find that the working set hierarchy of the application
     is governed by two parameters, namely the size of an input record
@@ -1691,11 +2177,34 @@ Bibliography
 
   Jin-Soo Kim & Yarsun Hsu. 2000. "Memory system behavior of Java programs: methodology and analysis". ACM. Proc. International conference on measurements and modeling of computer systems, pp. 264--274.
 
+  .. admonition:: Abstract
+
+    This paper studies the memory system behavior of Java programs by
+    analyzing memory reference traces of several SPECjvm98
+    applications running with a Just-In-Time (JIT) compiler. Trace
+    information is collected by an exception-based tracing tool called
+    JTRACE, without any instrumentation to the Java programs or the
+    JIT compiler.First, we find that the overall cache miss ratio is
+    increased due to garbage collection, which suffers from higher
+    cache misses compared to the application. We also note that going
+    beyond 2-way cache associativity improves the cache miss ratio
+    marginally. Second, we observe that Java programs generate a
+    substantial amount of short-lived objects. However, the size of
+    frequently-referenced long-lived objects is more important to the
+    cache performance, because it tends to determine the application's
+    working set size. Finally, we note that the default heap
+    configuration which starts from a small initial heap size is very
+    inefficient since it invokes a garbage collector frequently.
+    Although the direct costs of garbage collection decrease as we
+    increase the available heap size, there exists an optimal heap
+    size which minimizes the total execution time due to the
+    interaction with the virtual memory performance.
+
 * .. _KOLODNER92:
 
   Elliot K. Kolodner. 1992. "Atomic Incremental Garbage Collection and Recovery for a Large Stable Heap". Laboratory for Computer Science at MIT. MIT-LCS-TR-534.
 
-  .. abstract: kolodner92.html
+  .. admonition:: Abstract
 
     A stable heap is a storage that is managed automatically using
     garbage collection, manipulated using atomic transactions, and
@@ -1723,7 +2232,7 @@ Bibliography
 
   Per-Åke Larson & Murali Krishnan. 1998. "`Memory Allocation for Long-Running Server Applications <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.45.1947&rep=rep1&type=pdf>`_". ACM. ISMM'98 pp. 176--185.
 
-  .. abstract: lk98.html
+  .. admonition:: Abstract
 
     Prior work on dynamic memory allocation has largely neglected
     long-running server applications, for example, web servers and
@@ -1748,46 +2257,69 @@ Bibliography
 
   Henry Lieberman & Carl Hewitt. 1983. "`A real-time garbage collector based on the lifetimes of objects <http://web.media.mit.edu/~lieber/Lieberary/GC/Realtime/Realtime.html>`_". ACM. 26(6):419--429.
 
+  .. admonition:: Abstract
+
+    In previous heap storage systems, the cost of creating objects and
+    garbage collection is independent of the lifetime of the object.
+    Since objects with short lifetimes account for a large portion of
+    storage use, it is worth optimizing a garbage collector to reclaim
+    storage for these objects more quickly. The garbage collector
+    should spend proportionately less effort reclaiming objects with
+    longer lifetimes. We present a garbage collection algorithm that
+    (1) makes storage for short-lived objects cheaper than storage for
+    long-lived objects, (2) that operates in real-time--object
+    creation and access times are bounded, (3) increases locality of
+    reference, for better virtual memory performance, (4) works well
+    with multiple processors and a large address space.
+
 * .. _MM59:
 
-  J. McCarthy, M. L. Minsky. 1959. "Artificial Intelligence, Quarterly Progress Report no. 53". Research Laboratory of Electronics at MIT.
+  J. McCarthy, M. L. Minsky. 1959. "`Artificial Intelligence, Quarterly Progress Report no. 53 <http://dspace.mit.edu/bitstream/handle/1721.1/52263/RLE_QPR_053_XIII.pdf>`_". Research Laboratory of Electronics at MIT.
 
 * .. _MCCARTHY60:
 
   J. McCarthy. 1960. "`Recursive Functions of Symbolic Expressions and Their Computation by Machine <http://www-formal.stanford.edu/jmc/recursive.html>`_". CACM.
 
-  .. abstract: mccarthy60.html
+  .. admonition:: Abstract
 
-     A programming system called LISP (for LISt Processor) has been
-     developed for the IBM 704 computer by the Artificial Intelligence
-     group at M.I.T. The system was designed to facilitate experiments
-     with a proposed system called the Advice Taker, whereby a machine
-     could be instructed to handle declarative as well as imperative
-     sentences and could exhibit "common sense" in carrying out its
-     instructions. The original proposal for the Advice Taker was made
-     in November 1958. The main requirement was a programming system
-     for manipulating expressions representing formalized declarative
-     and imperative sentences so that the Advice Taker could make
-     deductions.
+    A programming system called LISP (for LISt Processor) has been
+    developed for the IBM 704 computer by the Artificial Intelligence
+    group at M.I.T. The system was designed to facilitate experiments
+    with a proposed system called the Advice Taker, whereby a machine
+    could be instructed to handle declarative as well as imperative
+    sentences and could exhibit "common sense" in carrying out its
+    instructions. The original proposal for the Advice Taker was made
+    in November 1958. The main requirement was a programming system
+    for manipulating expressions representing formalized declarative
+    and imperative sentences so that the Advice Taker could make
+    deductions.
+
+    In the course of its development the LISP system went through
+    several stages of simplification and eventually came to be based
+    on a scheme for representing the partial recursive functions of a
+    certain class of symbolic expressions. This representation is
+    independent of the IBM 704 computer, or of any other electronic
+    computer, and it now seems expedient to expound the system by
+    starting with the class of expressions called S-expressions and
+    the functions called S-functions.
 
 * .. _MCCARTHY79:
 
-  John McCarthy. 1979. "`History of Lisp <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.16.4634&rep=rep1&type=pdf>`_". In *History of programming languages I*, pp. 173–185. ACM.
+  John McCarthy. 1979. "`History of Lisp <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.16.4634&rep=rep1&type=pdf>`_". In *History of programming languages I*, pp. 173--185. ACM.
 
 * .. _PTM98:
 
   Veljko Milutinovic, Jelica Protic, Milo Tomasevic. 1997. "`Distributed shared memory: concepts and systems <http://www.cs.umass.edu/~mcorner/courses/691J/papers/VM/protic_dsm/protic_dsm.pdf>`_". IEEE Computer Society Press. ISBN 0-8186-7737-6.
 
-  .. abstract: ptm98.html
+  .. admonition:: From the publisher's catalog
 
-    [introduction from the catalog] Presents a survey of both
-    distributed shared memory (DSM) efforts and commercial DSM
-    systems. The book discusses relevant issues that make the concept
-    of DSM one of the most attractive approaches for building
-    large-scale, high-performance multiprocessor systems. Its text
-    provides a general introduction to the DSM field as well as a
-    broad survey of the basic DSM concepts, mechanisms, design issues,
-    and systems.
+    Presents a survey of both distributed shared memory (DSM) efforts
+    and commercial DSM systems. The book discusses relevant issues
+    that make the concept of DSM one of the most attractive approaches
+    for building large-scale, high-performance multiprocessor systems.
+    Its text provides a general introduction to the DSM field as well
+    as a broad survey of the basic DSM concepts, mechanisms, design
+    issues, and systems.
 
     Distributed Shared Memory concentrates on basic DSM algorithms,
     their enhancements, and their performance evaluation. In addition,
@@ -1799,11 +2331,44 @@ Bibliography
 
 * .. _MINSKY63:
 
-  M. L. Minsky. 1963. "A LISP Garbage Collector Algorithm Using Serial Secondary Storage". MIT. Memorandum MAC-M-129, Artificial Intelligence Project, Memo 58 (revised).
+  M. L. Minsky. 1963. "`A LISP Garbage Collector Algorithm Using Serial Secondary Storage <http://dspace.mit.edu/bitstream/handle/1721.1/6080/AIM-058.pdf>`_". MIT. Memorandum MAC-M-129, Artificial Intelligence Project, Memo 58 (revised).
+
+  .. admonition:: Abstract
+
+    This paper presents an algorithm for reclaiming unused free
+    storage memory cells is LISP. It depends on availability of a fast
+    secondary storage device, or a large block of available temporary
+    storage. For this price, we get 1. Packing of free-storage into a
+    solidly packed block. 2. Smooth packing of arbitrary linear blocks
+    and arrays. 3. The collector will handle arbitrarily complex
+    re-entrant list structure with no introduction of spurious copies.
+    4. The algorithm is quite efficient; the marking pass visits words
+    at most twice and usually once, and the loading pass is linear.
+    5. The system is easily modified to allow for increase in size of
+    already fixed consecutive blocks, provide one can afford to
+    initiate a collection pass or use a modified array while waiting
+    for such a pass to occur.
 
 * .. _MOON84:
 
   David Moon. 1984. "`Garbage Collection in a Large Lisp System <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.125.2438&rep=rep1&type=pdf>`_". ACM. Symposium on Lisp and Functional Programming, August 1984.
+
+  .. admonition:: Abstract
+
+    This paper discusses garbage collection techniques used in a
+    high-performance Lisp implementation with a large virtual memory,
+    the Symbolics 3600. Particular attention is paid to practical
+    issues and experience. In a large system problems of scale appear
+    and the most straightforward garbage-collection techniques do not
+    work well. Many of these problems involve the interaction of the
+    garbage collector with demand-paged virtual memory. Some of the
+    solutions adopted in the 3600 are presented, including incremental
+    copying garbage collection, approximately depth-first copying,
+    ephemeral objects, tagged architecture, and hardware assists. We
+    discuss techniques for improving the efficiency of garbage
+    collection by recognizing that objects in the Lisp world have a
+    variety of lifetimes. The importance of designing the architecture
+    and the hardware to facilitate garbage collection is stressed.
 
 * .. _MOON85:
 
@@ -1825,11 +2390,30 @@ Bibliography
 
   Luc Moreau. 1998. "`Hierarchical Distributed Reference Counting <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.49.4593&rep=rep1&type=pdf>`_". ACM. ISMM'98 pp. 57--67.
 
+  .. admonition:: Abstract
+
+    Massively distributed computing is a challenging problem for
+    garbage collection algorithm designers as it raises the issue of
+    scalability. The high number of hosts involved in a computation
+    can require large tables for reference listing, whereas the lack
+    of information sharing between hosts in a same locality can entail
+    redundant GC traffic. In this paper, we argue that a conceptual
+    hierarchical organisation of massive distributed computations can
+    solve this problem. By conceptual hierarchical organisation, we
+    mean that processors are still able to communicate in a peer to
+    peer manner using their usual communication mechanism, but GC
+    messages will be routed as if processors were organised in
+    hierarchy. We present an extension of a distributed reference
+    counting algorithm that uses such a hierarchical organisation. It
+    allows us to bound table sizes by the number of hosts in a domain,
+    and it allows us to share GC information between hosts in a same
+    locality in order to reduce cross-network GC traffic.
+
 * .. _MFH95:
 
   Greg Morrisett, Matthias Felleisen, Robert Harper. 1995. "`Abstract Models of Memory Management <http://www.eecs.harvard.edu/~greg/papers/fpca_gc.ps>`_". Carnegie Mellon University. CMU-CS-FOX-95-01.
 
-  .. abstract: mfh95.html
+  .. admonition:: Abstract
 
     Most specifications of garbage collectors concentrate on the
     low-level algorithmic details of how to find and preserve
@@ -1864,7 +2448,7 @@ Bibliography
 
   David S. Munro, Alfred Brown, Ron Morrison, J. Eliot B. Moss. 1999. "`Incremental Garbage Collection of a Persistent Object Store using PMOS <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.36.3687&rep=rep1&type=pdf>`_". Morgan Kaufmann. in Advances in Persistent Object Systems, pp. 78--91.
 
-  .. abstract: mbmm99.html
+  .. admonition:: Abstract
 
     PMOS is an incremental garbage collector designed specifically to
     reclaim space in a persistent object store. It is complete in that
@@ -1889,7 +2473,7 @@ Bibliography
 
   Scott Nettles, James O'Toole, David Pierce, Nickolas Haines. 1992. "`Replication-Based Incremental Copying Collection <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.28.4233&rep=rep1&type=pdf>`_". IWMM'92.
 
-  .. abstract: noph92.html
+  .. admonition:: Abstract
 
     We introduce a new replication-based copying garbage collection
     technique. We have implemented one simple variation of this method
@@ -1916,7 +2500,7 @@ Bibliography
 
   Scott Nettles. 1992. "`A Larch Specification of Copying Garbage Collection <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.45.1498&rep=rep1&type=pdf>`_". Carnegie Mellon University. CMU-CS-92-219.
 
-  .. abstract: nettles92.html
+  .. admonition:: Abstract
 
     Garbage collection (GC) is an important part of many language
     implementations. One of the most important garbage collection
@@ -1934,7 +2518,7 @@ Bibliography
 
   Scott Nettles & James O'Toole. 1993. "Implementing Orthogonal Persistence: A Simple Optimization Using Replicating Collection". USENIX. IWOOOS'93.
 
-  .. abstract: no93a.html
+  .. admonition:: Abstract
 
     Orthogonal persistence provides a safe and convenient model of
     object persistence. We have implemented a transaction system which
@@ -1958,7 +2542,7 @@ Bibliography
 
   Scott Nettles & James O'Toole. 1993. "`Real-Time Replication Garbage Collection <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.69.1875&rep=rep1&type=pdf>`_". ACM. PLDI'93.
 
-  .. abstract: no93.html
+  .. admonition:: Abstract
 
     We have implemented the first copying garbage collector that
     permits continuous unimpeded mutator access to the original
@@ -1973,7 +2557,7 @@ Bibliography
 
   Norman R. Nielsen. 1977. "Dynamic Memory Allocation in Computer Simulation". ACM. CACM 20:11.
 
-  .. abstract: nielsen77.html
+  .. admonition:: Abstract
 
     This paper investigates the performance of 35 dynamic memory
     allocation algorithms when used to service simulation programs as
@@ -1992,7 +2576,7 @@ Bibliography
 
   James O'Toole. 1990. "Garbage Collecting Locally".
 
-  .. abstract: otoole90.html
+  .. admonition:: Abstract
 
     Generational garbage collection is a simple technique for
     automatic partial memory reclamation. In this paper, I present the
@@ -2013,7 +2597,7 @@ Bibliography
 
   James O'Toole & Scott Nettles. 1994. "`Concurrent Replicating Garbage Collection <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.49.5001&rep=rep1&type=pdf>`_". ACM. LFP'94.
 
-  .. abstract: on94.html
+  .. admonition:: Abstract
 
     We have implemented a concurrent copying garbage collector that
     uses replicating garbage collection. In our design, the client can
@@ -2031,7 +2615,7 @@ Bibliography
 
   Simon Peyton Jones, Norman Ramsey, Fermin Reig. 1999. "`C--: a portable assembly language that supports garbage collection <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.11.1815&rep=rep1&type=pdf>`_". Springer-Verlag. International Conference on Principles and Practice of Declarative Programming 1999, LNCS 1702, pp. 1--28.
 
-  .. abstract: jrr99.html
+  .. admonition:: Abstract
 
     For a compiler writer, generating good machine code for a variety
     of platforms is hard work. One might try to reuse a retargetable
@@ -2054,7 +2638,7 @@ Bibliography
 
   John S. Pieper. 1993. "Compiler Techniques for Managing Data Motion". Carnegie Mellon University. Technical report number CMU-CS-93-217.
 
-  .. abstract: pieper93.html
+  .. admonition:: Abstract
 
     Software caching, automatic algorithm blocking, and data overlays
     are different names for the same problem: compiler management of
@@ -2109,7 +2693,7 @@ Bibliography
 
   Pekka P. Pirinen. 1998. "Barrier techniques for incremental tracing". ACM. ISMM'98 pp. 20--25.
 
-  .. abstract: pirinen98.html
+  .. admonition:: Abstract
 
     This paper presents a classification of barrier techniques for
     interleaving tracing with mutator operation during an incremental
@@ -2126,7 +2710,7 @@ Bibliography
 
   Tony Printezis. 1996. "Disk Garbage Collection Strategies for Persistent Java". Proceedings of the First International Workshop on Persistence and Java.
 
-  .. abstract: printezis96.html
+  .. admonition:: Abstract
 
     This paper presents work currently in progress on Disk Garbage
     Collection issues for PJava, an orthogonally persistent version of
@@ -2151,7 +2735,7 @@ Bibliography
 
   M. B. Reinhold. 1993. "`Cache Performance of Garbage Collected Programming Languages <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.18.5454&rep=rep1&type=pdf>`_". Laboratory for Computer Science at MIT. MIT/LCS/TR-581.
 
-  .. abstract: reinhold93.html
+  .. admonition:: Abstract
 
     As processor speeds continue to improve relative to main-memory
     access times, cache performance is becoming an increasingly
@@ -2195,7 +2779,7 @@ Bibliography
 
   Gustavo Rodriguez-Rivera & Vince Russo. 1997. "Non-intrusive Cloning Garbage Collection with Stock Operating System Support". Software -- Practice and Experience. 27:8.
 
-  .. abstract: rr97.html
+  .. admonition:: Abstract
 
     It is well accepted that automatic garbage collection simplifies
     programming, promotes modularity, and reduces development effort.
@@ -2227,7 +2811,7 @@ Bibliography
 
   Niklas Röjemo. 1995. "Highlights from nhc -- a space-efficient Haskell compiler". Chalmers University of Technology.
 
-  .. abstract: rojemo95.html
+  .. admonition:: Abstract
 
     Self-compiling implementations of Haskell, i.e., those written in
     Haskell, have been and, except one, are still space consuming
@@ -2261,11 +2845,28 @@ Bibliography
 
   Niklas Röjemo. 1995. "Generational garbage collection for lazy functional languages without temporary space leaks". Chalmers University of Technology.
 
+  .. admonition:: Abstract
+
+    Generational garbage collection is an established method for
+    creating efficient garbage collectors. Even a simple
+    implementation where all nodes that survive one garbage collection
+    are *tenured*, i.e., moved to an old generation, works well in
+    strict languages. In lazy languages, however, such an
+    implementation can create severe *temporary space leaks*. The
+    temporary space leaks appear in programs that traverse large
+    lazily built data structures, e.g., a lazy list representing a
+    large file, where only a small part is needed at any time. A
+    simple generational garbage collector cannot reclaim the memory,
+    used by the lazily built list, at minor collections. The reason is
+    that at least one of the nodes in the list belongs to the old
+    generation, after the first minor collection, and will hold on to
+    the rest of the nodes in the list until the next major collection.
+
 * .. _RR96:
 
   Niklas Röjemo & Colin Runciman. 1996. "Lag, drag, void and use -- heap profiling and space-efficient compilation revisited". ACM, SIGPLAN. ICFP'96, ACM SIGPLAN Notices 31:6, ISBN 0-89791-770-7, pp. 34--41.
 
-  .. abstract: rr96.html
+  .. admonition:: Abstract
 
     The context for this paper is functional computation by graph
     reduction. Our overall aim is more efficient use of memory. The
@@ -2283,7 +2884,7 @@ Bibliography
 
   David J. Roth, David S. Wise. 1999. "`One-bit counts between unique and sticky <http://www.cs.indiana.edu/pub/techreports/TR516.pdf>`_". ACM. ISMM'98, pp. 49--56.
 
-  .. abstract: rw99.html
+  .. admonition:: Abstract
 
     Stoye's one-bit reference tagging scheme can be extended to local
     counts of two or more via two strategies. The first, suited to
@@ -2303,13 +2904,37 @@ Bibliography
 
 * .. _ROVNER85:
 
-  Paul Rovner. 1985. "`On Adding Garbage Collection and Runtime Types to a Strongly-Typed, Statically-Checked, Concurrent Language <http://e3k.computer-refuge.org/bitsavers/pdf/xerox/parc/techReports/CSL-84-7_On_Adding_Garbage_Collection_and_Runtime_Types_to_a_Strongly-Typed_Statically-Checked_Concurrent_Language.pdf>`_". Xerox PARC. TR CSL-84-7.
+  Paul Rovner. 1985. "`On Adding Garbage Collection and Runtime Types to a Strongly-Typed, Statically-Checked, Concurrent Language <https://archive.org/details/bitsavers_xeroxparctddingGarbageCollectionandRuntimeTypestoa_1765837>`_". Xerox PARC. TR CSL-84-7.
+
+  .. admonition:: Abstract
+
+    Enough is known now about garbage collection, runtime types,
+    strong-typing, static-checking and concurrency that it is possible
+    to explore what happens when they are combined in a real
+    programming system.
+
+    Storage management is one of a few central issues through which
+    one can get a good view of the design of an entire system.
+    Tensions between ease of integration and the need for protection;
+    between generality, simplicity, flexibility, extensibility and
+    efficiency are all manifest when assumptions and attitudes about
+    managing storage are studied. And deep understanding follows best
+    from the analysis of systems that people use to get real work
+    done.
+
+    This paper is not for those who seek arguments pro or con about
+    the need for these features in programming systems; such issues
+    are for other papers. This one assumes these features to be good
+    and describes how they combine and interact in Cedar, a
+    programming language and environment designed to help programmers
+    build moderate-sized experimental systems for moderate numbers of
+    people to test and use.
 
 * .. _RUNCIMAN92:
 
   Colin Runciman & David Wakeling. 1992. "`Heap Profiling of Lazy Functional Programs <ftp://ftp.cs.york.ac.uk/reports/YCS-92-172.ps.Z>`_". University of York.
 
-  .. abstract: runciman92.html
+  .. admonition:: Abstract
 
     We describe the design, implementation, and use of a new kind of
     profiling tool that yields valuable information about the memory
@@ -2327,7 +2952,7 @@ Bibliography
 
   Colin Runciman & Niklas Röjemo. 1994. "`New dimensions in heap profiling <http://www.cs.york.ac.uk/plasma/publications/pdf/RuncimanWakelingJFP93.pdf>`_". University of York.
 
-  .. abstract: rr94.html
+  .. admonition:: Abstract
 
     First-generation heap profilers for lazy functional languages have
     proved to be effective tools for locating some kinds of space
@@ -2349,11 +2974,45 @@ Bibliography
 
   Colin Runciman & Niklas Röjemo. 1996. "Two-pass heap profiling: a matter of life and death". Department of Computer Science, University of York.
 
+  .. admonition:: Abstract
+
+    A heap profile is a chart showing the contents of heap memory
+    throughout a computation. Contents are depicted abstractly by
+    showing how much space is occupied by memory cells in each of
+    several classes. A good heap profiler can use a variety of
+    attributes of memory cells to de-fine a classification. Effective
+    profiling usually involves a combination of attributes. The ideal
+    profiler gives full support for combination in two ways. First, a
+    section of the heap of interest to the programmer can be specified
+    by constraining the values of any combination of cell attributes.
+    Secondly, no matter what attributes are used to specify such a
+    section, a heap profile can be obtained for that section only, and
+    any other attribute can be used to define the classification.
+
+    Achieving this ideal is not simple For some combinations of
+    attributes. A heap profile is derived by interpolation of a series
+    of censuses of heap contents at different stages. The obvious way
+    to obtain census data is to traverse the live heap at intervals
+    throughout the computation. This is fine for static attributes
+    (e.g. What type of value does this memory cell represent?), and
+    for dynamic attributes that can be determined for each cell by
+    examining the heap at any given moment (e.g. From which function
+    closures can this cell be reached?). But some attributes of cells
+    can only be determined retrospectively by post-mortem inspection
+    asa cell is overwritten or garbage-collected (e.g. Is this cell
+    ever used again?). Now we see the problem: if a profiler supports
+    both live and pose-mortem attributes, how can we implement the
+    ideal of unrestricted combinations? That is the problem me solve
+    in this paper. We give techniques for profiling a. heap section
+    specified in terms of both live and post-mortem attributes. We
+    show how to generate live-attribute profiles of a section of the
+    heal, specified using post-mortem attributes, and vice versa.
+
 * .. _SG95:
 
   Jacob Seligmann & Steffen Grarup. 1995. "`Incremental Mature Garbage Collection Using the Train Algorithm <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.32.7307&rep=rep1&type=pdf>`_". Springer-Verlag. ECOOP'95, Lecture Notes in Computer Science, Vol. 952, pp. 235--252, ISBN 3-540-60160-0.
 
-  .. abstract: sg95.html
+  .. admonition:: Abstract
 
     We present an implementation of the Train Algorithm, an
     incremental collection scheme for reclamation of mature garbage in
@@ -2369,11 +3028,32 @@ Bibliography
 
   Manuel Serrano, Hans-J. Boehm. 2000. "`Understanding memory allocation of Scheme programs <http://www.hpl.hp.com/techreports/2000/HPL-2000-62.html>`_". ACM. Proceedings of International Conference on Functional Programming 2000.
 
+  .. admonition:: Abstract
+
+    Memory is the performance bottleneck of modern architectures.
+    Keeping memory consumption as low as possible enables fast and
+    unobtrusive applications. But it is not easy to estimate the
+    memory use of programs implemented in functional languages, due to
+    both the complex translations of some high level constructs, and
+    the use of automatic memory managers. To help understand memory
+    allocation behavior of Scheme programs, we have designed two
+    complementary tools. The first one reports on frequency of
+    allocation, heap configurations and on memory reclamation. The
+    second tracks down memory leaks. We have applied these tools to
+    our Scheme compiler, the largest Scheme program we have been
+    developing. This has allowed us to drastically reduce the amount
+    of memory consumed during its bootstrap process, without requiring
+    much development time. Development tools will be neglected unless
+    they are both conveniently accessible and easy to use. In order to
+    avoid this pitfall, we have carefully designed the user interface
+    of these two tools. Their integration into a real programming
+    environment for Scheme is detailed in the paper.
+
 * .. _SHAPIRO94:
 
   Marc Shapiro & Paulo Ferreira. 1994. "`Larchant-RDOSS: a distributed shared persistent memory and its garbage collector <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.52.8468&rep=rep1&type=pdf>`_". INRIA. INRIA Rapport de Recherche no. 2399; Cornell Computer Science TR94-1466.
 
-  .. abstract: shapiro94.html
+  .. admonition:: Abstract
 
     Larchant-RDOSS is a distributed shared memory that persists on
     reliable storage across process lifetimes. Memory management is
@@ -2403,7 +3083,7 @@ Bibliography
 
   Vivek Singhal, Sheetal V. Kakkad, Paul R. Wilson. 1992. "`Texas: An Efficient, Portable Persistent Store <ftp://ftp.cs.utexas.edu/pub/garbage/texaspstore.ps>`_". University of Texas at Austin.
 
-  .. abstract: singhal92.html
+  .. admonition:: Abstract
 
     Texas is a persistent storage system for C++, providing high
     performance while emphasizing simplicity, modularity and
@@ -2446,13 +3126,30 @@ Bibliography
 
   P. G. Sobalvarro. 1988. "`A Lifetime-based Garbage Collector for LISP Systems on General-Purpose Computers <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.57.2188&rep=rep1&type=pdf>`_". MIT. AITR-1417.
 
-  .. abstract: sobalvarro88.html
+  .. admonition:: Abstract
 
     Garbage collector performance in LISP systems on custom hardware has been substantially improved by the adoption of lifetime-based garbage collection techniques.  To date, however, successful lifetime-based garbage collectors have required special-purpose hardware, or at least privileged access to data structures maintained by the virtual memory system.  I present here a lifetime-based garbage collector requiring no special-purpose hardware or virtual memory system support, and discuss its performance.
 
 * .. _STEELE75:
 
-  Guy L. Steele. 1975. "`Multiprocessing Compactifying Garbage Collection <http://www.cs.utexas.edu/users/mckinley/395Tmm/talks/Mar-23-CMS.pdf>`_". CACM. 18:9 pp. 495--508.
+  Guy L. Steele. 1975. "Multiprocessing Compactifying Garbage Collection". CACM. 18:9 pp. 495--508.
+
+  .. admonition:: Abstract
+
+    Algorithms for a multiprocessing compactifying garbage collector
+    are presented and discussed. The simple case of two processors,
+    one performing LISP-like list operations and the other performing
+    garbage collection continuously, is thoroughly examined. The
+    necessary capabilities of each processor are defined, as well as
+    interprocessor communication and interlocks. Complete procedures
+    for garbage collection and for standard list processing primitives
+    are presented and thoroughly explained. Particular attention is
+    given to the problems of marking and relocating list cells while
+    another processor may be operating on them. The primary aim
+    throughout is to allow the list processor to run unimpeded while
+    the other processor reclaims list storage The more complex case
+    involving several list processors and one or more garbage
+    collection processors are also briefly discussed.
 
 * .. _STEELE76:
 
@@ -2460,21 +3157,68 @@ Bibliography
 
 * .. _STEELE77:
 
-  Guy L. Steele. 1977. "Data Representation in PDP-10 MACLISP". MIT. AI Memo 421.
+  Guy L. Steele. 1977. "`Data Representation in PDP-10 MACLISP <http://dspace.mit.edu/bitstream/handle/1721.1/6278/AIM-420.pdf>`_". MIT. AI Memo 420.
+
+  .. admonition:: Abstract
+
+    The internal representations of the various MacLISP data types are
+    presented and discussed. Certain implementation tradeoffs are
+    considered. The ultimate decisions on these tradeoffs are
+    discussed in the light of MacLISP's prime objective of being an
+    efficient high-level language for the implementation of large
+    systems such as MACSYMA. The basic strategy of garbage collection
+    is outlined, with reference to the specific representations
+    involved. Certain "clever tricks" are explained and justified. The
+    "address space crunch" is explained and some alternative solutions
+    explored.
 
 * .. _SLC99:
 
-  James M. Stichnoth, Guei-Yuan Lueh, Michal Cierniak. 1999. "`Support for Garbage Collection at Every Instruction in a Java Compiler <http://www.acm.org/pubs/citations/proceedings/pldi/301618/p118-stichnoth/>`_". SIGPLAN. Proceedings of the 1999 ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI). SIGPLAN Notices 34(5). pp. 118--127.
+  James M. Stichnoth, Guei-Yuan Lueh, Michal Cierniak. 1999. "`Support for Garbage Collection at Every Instruction in a Java Compiler <http://www.cs.tufts.edu/~nr/cs257/archive/james-stichnoth/p118-stichnoth.pdf>`_". SIGPLAN. Proceedings of the 1999 ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI). SIGPLAN Notices 34(5). pp. 118--127.
+
+  .. admonition:: Abstract
+
+    A high-performance implementation of a Java Virtual Machine
+    requires a compiler to translate Java bytecodes into native
+    instructions, as well as an advanced garbage collector (e.g.,
+    copying or generational). When the Java heap is exhausted and the
+    garbage collector executes, the compiler must report to the
+    garbage collector all live object references contained in physical
+    registers and stack locations. Typical compilers only allow
+    certain instructions (e.g., call instructions and backward
+    branches) to be GC-safe; if GC happens at some other instruction,
+    the compiler may need to advance execution to the next GC-safe
+    point. Until now, no one has ever attempted to make every
+    compiler-generated instruction GC-safe, due to the perception that
+    recording this information would require too much space. This kind
+    of support could improve the GC performance in multithreaded
+    applications. We show how to use simple compression techniques to
+    reduce the size of the GC map to about 20% of the generated code
+    size, a result that is competitive with the best previously
+    published results. In addition, we extend the work of Agesen,
+    Detlefs, and Moss, regarding the so-called “JSR Problem” (the
+    single exception to Java’s type safety property), in a way that
+    eliminates the need for extra runtime overhead in the generated
+    code.
 
 * .. _SCN84:
 
   Will R Stoye, T J W Clarke, Arthur C Norman. 1984. "Some Practical Methods for Rapid Combinator Reduction". In LFP 1984, 159--166.
 
+  .. admonition:: Abstract
+
+    The SKIM II processor is a microcoded hardware machine for the
+    rapid evaluation of functional languages. This paper gives details
+    of some of the more novel methods employed by SKIM II, and
+    resulting performance measurements. The authors conclude that
+    combinator reduction can still form the basis for the efficient
+    implementation of a functional language.
+
 * .. _TD95:
 
   David Tarditi & Amer Diwan. 1995. "`Measuring the Cost of Storage Management <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.45.4550&rep=rep1&type=pdf>`_". Carnegie Mellon University. CMU-CS-94-201.
 
-  .. abstract: td95.html
+  .. admonition:: Abstract
 
     We study the cost of storage management for garbage-collected
     programs compiled with the Standard ML of New Jersey compiler. We
@@ -2487,7 +3231,7 @@ Bibliography
 
   Stephen Thomas, Richard E. Jones. 1994. "Garbage Collection for Shared Environment Closure Reducers". Computing Laboratory, The University of Kent at Canterbury. Technical Report 31-94.
 
-  .. abstract: tj94.html
+  .. admonition:: Abstract
 
     Shared environment closure reducers such as Fairbairn and Wray's
     TIM incur a comparatively low cost when creating a suspension, and
@@ -2514,11 +3258,22 @@ Bibliography
 
   Stephen Thomas. 1995. "Garbage Collection in Shared-Environment Closure Reducers: Space-Efficient Depth First Copying using a Tailored Approach". *Information Processing Letters.* 56:1, pp. 1--7.
 
+  .. admonition:: Abstract
+
+    Implementations of abstract machines such as the OP-TIM and the
+    PG-TIM need to use a tailored garbage collector which seems to
+    require an auxiliary stack,with a potential maximum size that is
+    directly proportional to the amount of live data in the heap.
+    However, it turns out that it is possible to build a recursive
+    copying collector that does not require additional space by
+    reusing already-scavenged space. This paper is a description of
+    this technique.
+
 * .. _TT97:
 
   Mads Tofte & Jean-Pierre Talpin. 1997. "`Region-Based Memory Management <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.75.9105&rep=rep1&type=pdf>`_". Information and Computation 132(2), pp. 109--176.
 
-  .. abstract: tt97.html
+  .. admonition:: Abstract
 
     This paper describes a memory management discipline for programs
     that perform dynamic memory allocation and de-allocation. At
@@ -2547,11 +3302,22 @@ Bibliography
 
   Dave Ungar. 1984. "`Generation Scavenging: A Non-disruptive High Performance Storage Reclamation Algorithm <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.122.4295&rep=rep1&type=pdf>`_". ACM, SIGSOFT, SIGPLAN. Practical Programming Environments Conference.
 
+  .. admonition:: Abstract
+
+    Many interactive computing environments provide automatic storage
+    reclamation and virtual memory to ease the burden of managing
+    storage. Unfortunately, many storage reclamation algorithms impede
+    interaction with distracting pauses. *Generation Scavenging* is a
+    reclamation algorithm that has no noticeable pauses, eliminates
+    page faults for transient objects, compacts objects without
+    resorting to indirection, and reclaims circular structures, in one
+    third the time of traditional approaches.
+
 * .. _UNGAR88:
 
   Dave Ungar & Frank Jackson. 1988. "`Tenuring Policies for Generation-Based Storage Reclamation <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.115.2810&rep=rep1&type=pdf>`_". SIGPLAN. OOPSLA '88 Conference Proceedings, ACM SIGPLAN Notices, Vol. 23, No. 11, pp. 1--17.
 
-  .. abstract: ungar88.html
+  .. admonition:: Abstract
 
     One of the most promising automatic storage reclamation
     techniques, generation-based storage reclamation, suffers poor
@@ -2571,7 +3337,7 @@ Bibliography
 
   Kiem-Phong Vo. 1996. "Vmalloc: A General and Efficient Memory Allocator". Software -- Practice and Experience. 26(3): 357--374 (1996).
 
-  .. abstract: vo96.html
+  .. admonition:: Abstract
 
     On C/Unix systems, the malloc interface is standard for dynamic
     memory allocation. Despite its popularity, malloc's shortcomings
@@ -2598,11 +3364,24 @@ Bibliography
 
   Daniel C. Watson, David S. Wise. 1976. "Tuning Garwick's algorithm for repacking sequential storage". *BIT.* 16, 4 (December 1976): 442--450.
 
+  .. admonition:: Abstract
+
+    Garwick's algorithm, for repacking LIFO lists stored in a
+    contiguous block of memory, bases the allocation of remaining
+    space upon both sharing and previous stack growth. A system
+    whereby the weight applied to each method can be adjusted
+    according to the current behaviour of the stacks is discussed.
+
+    We also investigate the problem of determining during memory
+    repacking that the memory is used to saturation and the driving
+    program should therefore be aborted. The tuning parameters studied
+    here seem to offer no new grasp on this problem.
+
 * .. _WLM92:
 
   Paul R. Wilson, Michael S. Lam, Thomas G. Moher. 1992. "Caching Considerations for Generational Garbage Collection". ACM. L&FP 92.
 
-  .. abstract: wlm92.html
+  .. admonition:: Abstract
 
     GC systems allocate and reuse memory cyclically; this imposes a
     cyclic pattern on memory accesses that has its own distinctive
@@ -2633,7 +3412,7 @@ Bibliography
 
   Paul R. Wilson, Sheetal V. Kakkad. 1992. "`Pointer Swizzling at Page Fault Time <ftp://ftp.cs.utexas.edu/pub/garbage/swizz.ps>`_". University of Texas at Austin.
 
-  .. abstract: wil92a.html
+  .. admonition:: Abstract
 
     Pointer swizzling at page fault time is a novel address
     translation mechanism that exploits conventional address
@@ -2660,7 +3439,7 @@ Bibliography
 
   Paul R. Wilson. 1994. "`Uniprocessor Garbage Collection Techniques <ftp://ftp.cs.utexas.edu/pub/garbage/bigsurv.ps>`_". University of Texas.
 
-  .. abstract: wil94.html
+  .. admonition:: Abstract
 
     We survey basic garbage collection algorithms, and variations such
     as incremental and generational collection; we then discuss
@@ -2676,7 +3455,7 @@ Bibliography
 
   Paul R. Wilson, Mark S. Johnstone, Michael Neely, David Boles. 1995. "`Dynamic Storage Allocation: A Survey and Critical Review <ftp://ftp.cs.utexas.edu/pub/garbage/allocsrv.ps>`_". University of Texas at Austin.
 
-  .. abstract: wil95.html
+  .. admonition:: Abstract
 
     Dynamic memory allocation has been a fundamental part of most
     computer systems since roughly 1960, and memory allocation is
@@ -2700,15 +3479,61 @@ Bibliography
 
 * .. _WISE78:
 
-  David S. Wise. 1978. "`The double buddy system <http://www.cs.indiana.edu/ftp/techreports/>`_". Department of Computer Science at Indiana University. Technical Report 79.
+  David S. Wise. 1978. "`The double buddy system <http://www.cs.indiana.edu/ftp/techreports/TR79.pdf>`_". Department of Computer Science at Indiana University. Technical Report 79.
+
+  .. admonition:: Abstract
+
+    A new buddy system is described in which the region of storage
+    being managed is partitioned into two sub-regions, each managed by
+    a fairly standard "binary" buddy system. Like the weighted buddy
+    systems of Shen and Peterson, the block sizes are of sizes 2\
+    :superscript:`n+1` or 3·2\ :superscript:`n`, but unlike theirs
+    there is no extra overhead for typing information or for buddy
+    calculation, and an allocation which requires splitting an extant
+    available block only rarely creates a block smaller than the one
+    being allocated. Such smaller blocks are carved out only when the
+    boundary between the two subregions floats; the most interesting
+    property of this system is that the procedures for allocation and
+    deallocation are designed to keep blocks immediately adjacent to
+    the subregion boundary free, so that the boundary may be moved
+    within a range of unused space without disturbing blocks in use.
+    This option is attained with a minimum of extra computation beyond
+    that of a binary buddy system, and provides this scheme with a new
+    approach to the problem of external fragmentation.
 
 * .. _WISE79:
 
-  David S. Wise. 1979. "`Morris's garbage compaction algorithm restores reference counts <http://www.cs.indiana.edu/ftp/techreports/TR75.pdf>`_". TOPLAS. 1, 1 (July l979): 115--120.
+  David S. Wise. 1979. "`Morris's garbage compaction algorithm restores reference counts <http://www.cs.indiana.edu/ftp/techreports/TR75.pdf>`_". TOPLAS. 1, 1 (July 1979): 115--120.
+
+  .. admonition:: Abstract
+
+    The two-pass compaction algorithm of F.L. Morris, which follows
+    upon the mark phase in a garbage collector, may be modified to
+    recover reference counts for a hybrid storage management system.
+    By counting the executions of two loops in that algorithm where
+    upward and downward references, respectively, are forwarded to the
+    relocation address of one node, we can initialize a count of
+    active references and then update it but once. The reference count
+    may share space with the mark bit in each node, but it may not
+    share the additional space required in each pointer by Morris's
+    algorithm, space which remains unused outside the garbage
+    collector.
 
 * .. _WISE85:
 
   David S. Wise. 1985. "`Design for a multiprocessing heap with on-board reference counting <http://www.cs.indiana.edu/ftp/techreports/TR163.pdf>`_". Springer-Verlag. In J.-P. Jouannaud (ed.), Functional Programming Languages and Computer Architecture, Lecture Notes in Computer Science 201: 289--304.
+
+  .. admonition:: Abstract
+
+    A project to design a pair of memory chips with a modicum of
+    intelligence is described. Together, the two allow simple
+    fabrication of a small memory bank, a heap of binary (LISP-like)
+    nodes that offers the following features: 64-bit nodes; two
+    pointer fields per node up to 29 bits each; reference counts
+    implicitly maintained on writes; 2 bits per node for marking
+    (uncounted) circular references; 4 bits per node for
+    conditional-store testing at the memory; provision for
+    processor-driven, recounting garbage collection.
 
 * .. _WISE92:
 
@@ -2716,7 +3541,7 @@ Bibliography
 
   David S. Wise. 1993. "`Stop-and-copy and one-bit reference counting <http://www.cs.indiana.edu/ftp/techreports/TR360.pdf>`_". *Information Processing Letters.* 46, 5 (July 1993): 243--249.
 
-  .. abstract: wise92.html
+  .. admonition:: Abstract
 
     A stop-and-copy garbage collector updates one-bit reference
     counting with essentially no extra space and minimal memory cycles
@@ -2734,15 +3559,50 @@ Bibliography
 
   David S. Wise, Joshua Walgenbach. 1996. "`Static and Dynamic Partitioning of Pointers as Links and Threads <http://www.cs.indiana.edu/ftp/techreports/TR437.pdf>`_". SIGPLAN. Proc. 1996 ACM SIGPLAN Intl. Conf. on Functional Programming, SIGPLAN Not. 31, 6 (June 1996), pp. 42--49.
 
+  .. admonition:: Abstract
+
+    Identifying some pointers as invisible threads, for the purposes
+    of storage management, is a generalization from several widely
+    used programming conventions, like threaded trees. The necessary
+    invariant is that nodes that are accessible (without threads) emit
+    threads only to other accessible nodes. Dynamic tagging or static
+    typing of threads ameliorates storage recycling both in functional
+    and imperative languages.
+
+    We have seen the distinction between threads and links sharpen
+    both hardware- and software-supported storage management in
+    SCHEME, and also in C. Certainly, therefore, implementations of
+    languages that already have abstract management and concrete
+    typing, should detect and use this as a new static type.
+
 * .. _WHHHO94:
 
   David S. Wise, Brian Heck, Caleb Hess, Willie Hunt, Eric Ost. 1997. "`Uniprocessor Performance of a Reference-Counting Hardware Heap <http://www.cs.indiana.edu/ftp/techreports/TR401.pdf>`_". *LISP and Symbolic Computation.* 10, 2 (July 1997), pp. 159--181.
+
+  .. admonition:: Abstract
+
+    A hardware self-managing heap memory (RCM) for languages like
+    LISP, SMALLTALK, and JAVA has been designed, built, tested and
+    benchmarked. On every pointer write from the processor,
+    reference-counting transactions are performed in real time within
+    this memory, and garbage cells are reused without processor
+    cycles. A processor allocates new nodes simply by reading from a
+    distinguished location in its address space. The memory hardware
+    also incorporates support for off-line, multiprocessing,
+    mark-sweep garbage collection.
+
+    Performance statistics are presented from a partial implementation
+    of SCHEME over five different memory models and two garbage
+    collection strategies, from main memory (no access to RCM) to a
+    fully operational RCM installed on an external bus. The
+    performance of the RCM memory is more than competitive with main
+    memory.
 
 * .. _WITHINGTON91:
 
   P. Tucker Withington. 1991. "`How Real is 'Real-Time' Garbage Collection? <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.116.3169&rep=rep1&type=pdf>`_". ACM. OOPSLA/ECOOP '91 Workshop on Garbage Collection in Object-Oriented Systems.
 
-  .. abstract: withington91.html
+  .. admonition:: Abstract
 
     A group at Symbolics is developing a Lisp runtime kernel, derived
     from its Genera operating system, to support real-time control
@@ -2765,7 +3625,7 @@ Bibliography
 
   G. May Yip. 1991. "`Incremental, Generational Mostly-Copying Garbage Collection in Uncooperative Environments <http://www.hpl.hp.com/techreports/Compaq-DEC/WRL-91-8.pdf>`_". Digital Equipment Corporation.
 
-  .. abstract: yip91.html
+  .. admonition:: Abstract
 
     The thesis of this project is that incremental collection can be
     done feasibly and efficiently in an architecture and compiler
@@ -2793,11 +3653,27 @@ Bibliography
 
   Taiichi Yuasa. 1990. "Real-Time Garbage Collection on General-Purpose Machines". Journal of Software and Systems. 11:3 pp. 181--198.
 
+  .. admonition:: Abstract
+
+    An algorithm for real-time garbage collection is presented, proved
+    correct, and evaluated. This algorithm is intended for
+    list-processing systems on general-purpose machines, i.e., Von
+    Neumann style serial computers with a single processor. On these
+    machines, real-time garbage collection inevitably causes some
+    overhead on the overall execution of the list-processing system,
+    because some of the primitive list-processing operations must
+    check the status of garbage collection. By removing such overhead
+    from frequently used primitives such as pointer references (e.g.,
+    Lisp car and cdr) and stack manipulations, the presented algorithm
+    reduces the execution overhead to a great extent. Although the
+    algorithm does not support compaction of the whole data space, it
+    efficiently supports partial compaction such as array relocation.
+
 * .. _ZORN88:
 
   Benjamin Zorn & Paul Hilfinger. 1988. "`A Memory Allocation Profiler for C and Lisp Programs <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.6.1689&rep=rep1&type=pdf>`_". USENIX. Proceedings for the Summer 1988 USENIX Conference, pp. 223--237.
 
-  .. abstract: zorn88.html
+  .. admonition:: Abstract
 
     This paper describes inprof, a tool used to study the memory
     allocation behavior of programs. mprof records the amount of
@@ -2815,7 +3691,7 @@ Bibliography
 
   Benjamin Zorn. 1989. "`Comparative Performance Evaluation of Garbage Collection Algorithms <http://www.eecs.berkeley.edu/Pubs/TechRpts/1989/CSD-89-544.pdf>`_". Computer Science Division (EECS) of University of California at Berkeley. Technical Report UCB/CSD 89/544 and PhD thesis.
 
-  .. abstract: zorn89.html
+  .. admonition:: Abstract
 
     This thesis shows that object-level, trace-driven simulation can
     facilitate evaluation of language runtime systems and reaches new
@@ -2855,7 +3731,7 @@ Bibliography
 
   Benjamin Zorn. 1990. "Comparing Mark-and-sweep and Stop-and-copy Garbage Collection". ACM. Conference on Lisp and Functional Programming, pp. 87--98.
 
-  .. abstract: zorn90b.html
+  .. admonition:: Abstract
 
     Stop-and-copy garbage collection has been preferred to
     mark-and-sweep collection in the last decade because its
@@ -2873,7 +3749,7 @@ Bibliography
 
   Benjamin Zorn. 1990. "`Barrier Methods for Garbage Collection <http://www.cs.colorado.edu/department/publications/reports/docs/CU-CS-494-90.pdf>`_". University of Colorado at Boulder. Technical Report CU-CS-494-90.
 
-  .. abstract: zorn90.html
+  .. admonition:: Abstract
 
     Garbage collection algorithms have been enhanced in recent years
     with two methods: generation-based collection and Baker
@@ -2900,7 +3776,7 @@ Bibliography
 
   Benjamin Zorn. 1991. "`The Effect of Garbage Collection on Cache Performance <http://www.cs.colorado.edu/department/publications/reports/docs/CU-CS-528-91.pdf>`_". University of Colorado at Boulder. Technical Report CU-CS-528-91.
 
-  .. abstract: zorn91.html
+  .. admonition:: Abstract
 
     Cache performance is an important part of total performance in
     modern computer systems. This paper describes the use of
@@ -2926,7 +3802,7 @@ Bibliography
 
   Benjamin Zorn & Dirk Grunwald. 1992. "`Empirical Measurements of Six Allocation-intensive C Programs <http://www.cs.colorado.edu/department/publications/reports/docs/CU-CS-604-92.pdf>`_". ACM, SIGPLAN. SIGPLAN notices, 27(12):71--80.
 
-  .. abstract: zorn92b.html
+  .. admonition:: Abstract
 
     Dynamic memory management is an important part of a large class of
     computer programs and high-performance algorithms for dynamic
@@ -2950,7 +3826,7 @@ Bibliography
 
   Benjamin Zorn. 1993. "`The Measured Cost of Conservative Garbage Collection <http://www.cs.colorado.edu/department/publications/reports/docs/CU-CS-573-92.pdf>`_". Software -- Practice and Experience. 23(7):733--756.
 
-  .. abstract: zorn92.html
+  .. admonition:: Abstract
 
     Because dynamic memory management is an important part of a large
     class of computer programs, high-performance algorithms for
@@ -2979,7 +3855,7 @@ Bibliography
 
   Benjamin Zorn & Dirk Grunwald. 1994. "`Evaluating Models of Memory Allocation <http://www.cs.colorado.edu/department/publications/reports/docs/CU-CS-603-92.pdf>`_". ACM. Transactions on Modeling and Computer Simulation 4(1):107--131.
 
-  .. abstract: zorn92a.html
+  .. admonition:: Abstract
 
     Because dynamic memory management is an important part of a large
     class of computer programs, high-performance algorithms for

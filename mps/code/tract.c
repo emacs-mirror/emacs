@@ -210,25 +210,25 @@ Res ChunkInit(Chunk chunk, Arena arena,
 
   /* Add the chunk's free address space to the arena's freeCBS, so that
      we can allocate from it. */
-  if (arena->hasFreeCBS) {
-    res = ArenaFreeCBSInsert(arena,
-                             PageIndexBase(chunk, chunk->allocBase),
-                             chunk->limit);
+  if (arena->hasFreeLand) {
+    res = ArenaFreeLandInsert(arena,
+                              PageIndexBase(chunk, chunk->allocBase),
+                              chunk->limit);
     if (res != ResOK)
-        goto failCBSInsert;
+        goto failLandInsert;
   }
 
   chunk->sig = ChunkSig;
   AVERT(Chunk, chunk);
 
   /* As part of the bootstrap, the first created chunk becomes the primary
-     chunk.  This step allows AreaFreeCBSInsert to allocate pages. */
+     chunk.  This step allows AreaFreeLandInsert to allocate pages. */
   if (arena->primary == NULL)
     arena->primary = chunk;
 
   return ResOK;
 
-failCBSInsert:
+failLandInsert:
   (arena->class->chunkFinish)(chunk);
   /* .no-clean: No clean-ups needed past this point for boot, as we will
      discard the chunk. */
@@ -248,10 +248,10 @@ void ChunkFinish(Chunk chunk)
   chunk->sig = SigInvalid;
   RingRemove(&chunk->chunkRing);
 
-  if (ChunkArena(chunk)->hasFreeCBS)
-    ArenaFreeCBSDelete(ChunkArena(chunk),
-                       PageIndexBase(chunk, chunk->allocBase),
-                       chunk->limit);
+  if (ChunkArena(chunk)->hasFreeLand)
+    ArenaFreeLandDelete(ChunkArena(chunk),
+                        PageIndexBase(chunk, chunk->allocBase),
+                        chunk->limit);
 
   if (chunk->arena->primary == chunk)
     chunk->arena->primary = NULL;
