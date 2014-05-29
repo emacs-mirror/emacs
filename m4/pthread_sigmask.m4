@@ -1,4 +1,4 @@
-# pthread_sigmask.m4 serial 13
+# pthread_sigmask.m4 serial 14
 dnl Copyright (C) 2011-2014 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -97,39 +97,43 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
     dnl with -lpthread, the pthread_sigmask() function always returns 0 and has
     dnl no effect.
     if test -z "$LIB_PTHREAD_SIGMASK"; then
-      AC_CACHE_CHECK([whether pthread_sigmask works without -lpthread],
-        [gl_cv_func_pthread_sigmask_in_libc_works],
-        [
-          AC_RUN_IFELSE(
-            [AC_LANG_SOURCE([[
-#include <pthread.h>
-#include <signal.h>
-#include <stddef.h>
-int main ()
-{
-  sigset_t set;
-  sigemptyset (&set);
-  return pthread_sigmask (1729, &set, NULL) != 0;
-}]])],
-            [gl_cv_func_pthread_sigmask_in_libc_works=no],
-            [gl_cv_func_pthread_sigmask_in_libc_works=yes],
-            [
-changequote(,)dnl
-             case "$host_os" in
-               freebsd* | hpux* | solaris | solaris2.[2-9]*)
-                 gl_cv_func_pthread_sigmask_in_libc_works="guessing no";;
-               *)
-                 gl_cv_func_pthread_sigmask_in_libc_works="guessing yes";;
-             esac
-changequote([,])dnl
-            ])
-        ])
-      case "$gl_cv_func_pthread_sigmask_in_libc_works" in
-        *no)
-          REPLACE_PTHREAD_SIGMASK=1
-          AC_DEFINE([PTHREAD_SIGMASK_INEFFECTIVE], [1],
-            [Define to 1 if pthread_sigmask() may returns 0 and have no effect.])
-          ;;
+      case " $LIBS " in
+        *' -lpthread '*) ;;
+	*)
+	  AC_CACHE_CHECK([whether pthread_sigmask works without -lpthread],
+	    [gl_cv_func_pthread_sigmask_in_libc_works],
+	    [
+	      AC_RUN_IFELSE(
+		[AC_LANG_SOURCE([[
+		   #include <pthread.h>
+		   #include <signal.h>
+		   #include <stddef.h>
+		   int main ()
+		   {
+		     sigset_t set;
+		     sigemptyset (&set);
+		     return pthread_sigmask (1729, &set, NULL) != 0;
+		   }]])],
+		[gl_cv_func_pthread_sigmask_in_libc_works=no],
+		[gl_cv_func_pthread_sigmask_in_libc_works=yes],
+		[
+		 changequote(,)dnl
+		 case "$host_os" in
+		   freebsd* | hpux* | solaris | solaris2.[2-9]*)
+		     gl_cv_func_pthread_sigmask_in_libc_works="guessing no";;
+		   *)
+		     gl_cv_func_pthread_sigmask_in_libc_works="guessing yes";;
+		 esac
+		 changequote([,])dnl
+		])
+	    ])
+	  case "$gl_cv_func_pthread_sigmask_in_libc_works" in
+	    *no)
+	      REPLACE_PTHREAD_SIGMASK=1
+	      AC_DEFINE([PTHREAD_SIGMASK_INEFFECTIVE], [1],
+		[Define to 1 if pthread_sigmask may return 0 and have no effect.])
+	      ;;
+	  esac;;
       esac
     fi
 
@@ -184,11 +188,12 @@ int main ()
           *)
             gl_cv_func_pthread_sigmask_unblock_works="guessing yes";;
         esac
-        dnl Here we link against $LIBMULTITHREAD, not only $LIB_PTHREAD_SIGMASK,
-        dnl otherwise we get a false positive on those platforms where
-        dnl $gl_cv_func_pthread_sigmask_in_libc_works is "no".
-        gl_save_LIBS="$LIBS"
-        LIBS="$LIBS $LIBMULTITHREAD"
+        m4_ifdef([gl_][THREADLIB],
+          [dnl Link against $LIBMULTITHREAD, not only $LIB_PTHREAD_SIGMASK.
+           dnl Otherwise we get a false positive on those platforms where
+           dnl $gl_cv_func_pthread_sigmask_in_libc_works is "no".
+           gl_save_LIBS=$LIBS
+           LIBS="$LIBS $LIBMULTITHREAD"])
         AC_RUN_IFELSE(
           [AC_LANG_SOURCE([[
 #include <pthread.h>
@@ -227,7 +232,7 @@ int main ()
           [:],
           [gl_cv_func_pthread_sigmask_unblock_works=no],
           [:])
-        LIBS="$gl_save_LIBS"
+        m4_ifdef([gl_][THREADLIB], [LIBS=$gl_save_LIBS])
       ])
     case "$gl_cv_func_pthread_sigmask_unblock_works" in
       *no)

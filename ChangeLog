@@ -1,3 +1,12 @@
+2014-05-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't substitute sigprocmask for pthread_sigmask (Bug#17561).
+	sigprocmask isn't portable in a multithreaded process.
+	* configure.ac (gl_THREADLIB): Remove dummy.
+	Merge from gnulib, incorporating:
+	2014-05-28 pthread_sigmask, timer-time: use gl_THREADLIB only if needed
+	* m4/pthread_sigmask.m4, m4/timer_time.m4: Update from gnulib.
+
 2014-05-29  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac: Explicitly drop some ancient Solaris versions.

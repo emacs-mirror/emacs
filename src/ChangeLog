@@ -1,3 +1,8 @@
+2014-05-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't substitute sigprocmask for pthread_sigmask (Bug#17561).
+	* Makefile.in (LIB_PTHREAD_SIGMASK): Remove; all uses removed.
+
 2014-05-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* buffer.c (init_buffer): Accept an argument 'initialized'.
