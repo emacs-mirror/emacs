@@ -14,7 +14,7 @@ SRCID(freelist, "$Id$");
 
 
 #define freelistOfLand(land) PARENT(FreelistStruct, landStruct, land)
-#define freelistAlignment(fl) LandAlignment(&fl->landStruct)
+#define freelistAlignment(fl) LandAlignment(&(fl)->landStruct)
 
 
 typedef union FreelistBlockUnion {
@@ -246,6 +246,9 @@ static Size freelistSize(Land land)
  * Otherwise, if next is freelistEND, make prev the last block in the list.
  * Otherwise, make next follow prev in the list.
  * Update the count of blocks by 'delta'.
+ *
+ * TODO: Consider using a sentinel FreelistBlockUnion in the FreeListStruct
+ * as the end marker and see if that simplifies.
  */
 
 static void freelistBlockSetPrevNext(Freelist fl, FreelistBlock prev,
