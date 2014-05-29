@@ -233,6 +233,13 @@ cause), please :ref:`let us know <contact>` so that we can improve
 this documentation.
 
 
+``buffer.c: BufferIsReady(buffer)``
+
+    The client program called :c:func:`mps_reserve` twice on the same
+    :term:`allocation point` without calling :c:func:`mps_commit`. See
+    :ref:`topic-allocation-point-protocol`.
+
+
 ``dbgpool.c: fencepost check on free``
 
     The client program wrote to a location after the end, or before
