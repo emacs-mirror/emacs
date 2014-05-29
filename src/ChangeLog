@@ -1,3 +1,9 @@
+2014-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* xterm.c (x_update_window_end): Don't invalidate the entire
+	mouse-highlight info, just signal frame_up_to_date_hook that mouse
+	highlight needs to be redisplayed.  (Bug#17588)
+
 2014-05-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port the GDB-visible symbols to AIX.
