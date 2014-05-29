@@ -132,12 +132,8 @@ static Bool cbsTestTree(SplayTree splay, Tree tree,
 
   AVERT(SplayTree, splay);
   AVERT(Tree, tree);
-#if 0
   AVER(closureP == NULL);
   AVER(size > 0);
-#endif
-  UNUSED(closureP);
-  UNUSED(size);
   AVER(IsLandSubclass(cbsLand(cbsOfSplay(splay)), CBSFastLandClass));
 
   block = cbsFastBlockOfTree(tree);
@@ -397,7 +393,7 @@ static Res cbsBlockAlloc(CBSBlock *blockReturn, CBS cbs, Range range)
   block->base = RangeBase(range);
   block->limit = RangeLimit(range);
 
-  SplayNodeUpdate(cbsSplay(cbs), cbsBlockTree(block));
+  SplayNodeInit(cbsSplay(cbs), cbsBlockTree(block));
 
   AVERT(CBSBlock, block);
   *blockReturn = block;
