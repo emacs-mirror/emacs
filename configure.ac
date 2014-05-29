@@ -576,10 +576,13 @@ case "${canonical}" in
 		opsys=sol2-10
 		emacs_check_sunpro_c=yes
 		;;
+      *-sunos5.[1-5]* | *-solaris2.[1-5]* ) unported=yes ;;
+      ## Note that Emacs 23.1's NEWS said the following would be dropped.
       *-sunos5.6* | *-solaris2.6* )
 		opsys=sol2-6
 		RANLIB="ar -ts"
 		;;
+      ## 5.7 EOL Aug 2008, 5.8 EOL Mar 2012.
       *-sunos5.[7-9]* | *-solaris2.[7-9]* )
 		opsys=sol2-6
 		emacs_check_sunpro_c=yes
@@ -3824,14 +3827,6 @@ dnl Fixme: Not used.  Should this be HAVE_SOCKETS?
   AC_DEFINE(HAVE_INET_SOCKETS, 1,
 	    [Define to 1 if you have inet sockets.])
 fi
-
-dnl Check for a Solaris 2.4 vfork bug that Autoconf misses (through 2.69).
-dnl This can be removed once we assume Autoconf 2.70.
-case $canonical in
-  *-solaris2.4 | *-solaris2.4.*)
-    dnl Disable the Autoconf-generated vfork test.
-    : ${ac_cv_func_vfork_works=no};;
-esac
 
 AC_FUNC_FORK
 
