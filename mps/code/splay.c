@@ -1317,9 +1317,9 @@ void SplayNodeRefresh(SplayTree splay, Tree node)
 }
 
 
-/* SplayNodeUpdate -- update the client property without splaying */
+/* SplayNodeInit -- initialize client property without splaying */
 
-void SplayNodeUpdate(SplayTree splay, Tree node)
+void SplayNodeInit(SplayTree splay, Tree node)
 {
   AVERT(SplayTree, splay);
   AVERT(Tree, node);

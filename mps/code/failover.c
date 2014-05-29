@@ -129,10 +129,17 @@ static Res failoverDelete(Range rangeReturn, Land land, Range range)
     /* Range not found in primary: try secondary. */
     return LandDelete(rangeReturn, fo->secondary, range);
   } else if (res != ResOK) {
-    /* Range was found in primary, but couldn't be deleted, perhaps
-     * because the primary is out of memory. Delete the whole of
-     * oldRange, and re-insert the fragments (which might end up in
-     * the secondary). See <design/failover/#impl.assume.delete>.
+    /* Range was found in primary, but couldn't be deleted. The only
+     * case we expect to encounter here is the case where the primary
+     * is out of memory. (In particular, we don't handle the case of a
+     * CBS returning ResLIMIT because its block pool has been
+     * configured not to automatically extend itself.)
+     */
+    AVER(ResIsAllocFailure(res));
+
+    /* Delete the whole of oldRange, and re-insert the fragments
+     * (which might end up in the secondary). See
+     * <design/failover/#impl.assume.delete>.
      */
     res = LandDelete(&dummyRange, fo->primary, &oldRange);
     if (res != ResOK)
