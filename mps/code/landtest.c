@@ -81,7 +81,7 @@ static Bool checkVisitor(Land land, Range range, void *closureP, Size closureS)
   CheckTestClosure cl = closureP;
 
   testlib_unused(land);
-  testlib_unused(closureS);
+  Insist(closureS == UNUSED_SIZE);
   Insist(cl != NULL);
 
   base = RangeBase(range);
@@ -114,7 +114,7 @@ static void check(TestState state)
   closure.limit = addrOfIndex(state, ArraySize);
   closure.oldLimit = state->block;
 
-  b = LandIterate(state->land, checkVisitor, (void *)&closure, 0);
+  b = LandIterate(state->land, checkVisitor, &closure, UNUSED_SIZE);
   Insist(b);
 
   if (closure.oldLimit == state->block)

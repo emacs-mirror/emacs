@@ -754,6 +754,7 @@ static Bool MVTDeleteOverlapping(Bool *deleteReturn, void *element,
   AVER(deleteReturn != NULL);
   AVER(element != NULL);
   AVER(closureP != NULL);
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
 
   oldRange = element;
@@ -820,7 +821,7 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
      * with ranges on the ABQ, so ensure that the corresponding ranges
      * are coalesced on the ABQ.
      */
-    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &newRange, 0);
+    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &newRange, UNUSED_SIZE);
     (void)MVTReserve(mvt, &newRange);
   }
 
@@ -849,7 +850,7 @@ static Res MVTDelete(MVT mvt, Addr base, Addr limit)
    * might be on the ABQ, so ensure it is removed.
    */
   if (RangeSize(&rangeOld) >= mvt->reuseSize)
-    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &rangeOld, 0);
+    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &rangeOld, UNUSED_SIZE);
 
   /* There might be fragments at the left or the right of the deleted
    * range, and either might be big enough to go back on the ABQ.
@@ -1211,6 +1212,7 @@ static Bool MVTRefillVisitor(Land land, Range range,
   AVERT(Land, land);
   mvt = closureP;
   AVERT(MVT, mvt);
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
 
   if (RangeSize(range) < mvt->reuseSize)
@@ -1234,7 +1236,7 @@ static void MVTRefillABQIfEmpty(MVT mvt, Size size)
     mvt->abqOverflow = FALSE;
     METER_ACC(mvt->refills, size);
     /* The iteration stops if the ABQ overflows, so may finish or not. */
-    (void)LandIterate(MVTFailover(mvt), MVTRefillVisitor, mvt, 0);
+    (void)LandIterate(MVTFailover(mvt), MVTRefillVisitor, mvt, UNUSED_SIZE);
   }
 }
  
@@ -1266,6 +1268,7 @@ static Bool MVTContingencyVisitor(Land land, Range range,
   cl = closureP;
   mvt = cl->mvt;
   AVERT(MVT, mvt);
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
 
   base = RangeBase(range);
@@ -1304,7 +1307,7 @@ static Bool MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
   cls.steps = 0;
   cls.hardSteps = 0;
 
-  if (LandIterate(MVTFailover(mvt), MVTContingencyVisitor, (void *)&cls, 0))
+  if (LandIterate(MVTFailover(mvt), MVTContingencyVisitor, &cls, UNUSED_SIZE))
     return FALSE;
 
   AVER(RangeSize(&cls.range) >= min);

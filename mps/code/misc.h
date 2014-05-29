@@ -152,6 +152,15 @@ typedef const struct SrcIdStruct {
 #define UNUSED(param)   ((void)param)
 
 
+/* UNUSED_POINTER, UNUSED_SIZE -- values for unused arguments 
+ *
+ * Use these values for unused pointer, size closure arguments and
+ * check them in the callback or visitor.
+ */
+#define UNUSED_POINTER ((Pointer)0xB60405ED) /* PointeR UNUSED */
+#define UNUSED_SIZE ((Size)0x520405ED) /* SiZe UNUSED */
+
+
 /* PARENT -- parent structure
  *
  * Given a pointer to a field of a structure this returns a pointer to

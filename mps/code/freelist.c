@@ -755,7 +755,7 @@ static Bool freelistDescribeVisitor(Land land, Range range,
   if (!TESTT(Land, land)) return FALSE;
   if (!RangeCheck(range)) return FALSE;
   if (stream == NULL) return FALSE;
-  UNUSED(closureS);
+  if (closureS != UNUSED_SIZE) return FALSE;
 
   res = WriteF(stream,
                "  [$P,", (WriteFP)RangeBase(range),
@@ -783,7 +783,7 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream)
                "  listSize = $U\n", (WriteFU)fl->listSize,
                NULL);
 
-  b = LandIterate(land, freelistDescribeVisitor, stream, 0);
+  b = LandIterate(land, freelistDescribeVisitor, stream, UNUSED_SIZE);
   if (!b) return ResFAIL;
 
   res = WriteF(stream, "}\n", NULL);
