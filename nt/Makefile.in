@@ -120,7 +120,7 @@ INSTALLABLES = runemacs${EXEEXT} addpm${EXEEXT}
 UTILITIES = cmdproxy${EXEEXT} ddeclient${EXEEXT}
 
 # Things that Emacs runs during the build process.
-DONT_INSTALL = addsection${EXEEXT}
+DONT_INSTALL =
 
 # All files that are created by the linker, i.e., whose names end in ${EXEEXT}.
 EXE_FILES = ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}
@@ -208,9 +208,6 @@ TAGS: ${EXE_FILES:${EXEEXT}=.c}
 	../lib-src/etags *.[ch]
 
 ## Build the programs
-addsection${EXEEXT}: ${srcdir}/addsection.c
-	$(CC) ${ALL_CFLAGS} ${srcdir}/addsection.c -o addsection${EXEEXT}
-
 addpm${EXEEXT}: ${srcdir}/addpm.c ../src/epaths.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/addpm.c $(LIBS_ADDPM) -o addpm${EXEEXT}
 

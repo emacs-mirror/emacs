@@ -299,8 +299,7 @@ GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 
 RUN_TEMACS = ./temacs
 
-## Invoke ../nt/addsection for MinGW, ":" elsewhere.
-TEMACS_POST_LINK = @TEMACS_POST_LINK@
+## Static heap size for temacs on MinGW.
 EMACS_HEAPSIZE = @EMACS_HEAPSIZE@
 
 UNEXEC_OBJ = @UNEXEC_OBJ@
@@ -428,7 +427,7 @@ $(lispsource)/international/charprop.el: bootstrap-emacs$(EXEEXT)
 ## Strictly speaking, emacs does not depend directly on all of $lisp,
 ## since not all pieces are used on all platforms.  But DOC depends
 ## on all of $lisp, and emacs depends on DOC, so it is ok to use $lisp here.
-emacs$(EXEEXT): temacs$(EXEEXT) $(ADDSECTION) \
+emacs$(EXEEXT): temacs$(EXEEXT) \
                 $(etc)/DOC $(lisp) $(leimdir)/leim-list.el \
                 $(lispsource)/international/charprop.el
 	if test "$(CANNOT_DUMP)" = "yes"; then \
@@ -494,7 +493,6 @@ temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) \
 	$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
 	  -o temacs $(ALLOBJS) $(lib)/libgnu.a $(W32_RES_LINK) $(LIBES)
 	$(MKDIR_P) $(etc)
-	$(TEMACS_POST_LINK)
 	test "$(CANNOT_DUMP)" = "yes" || \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -r temacs$(EXEEXT)
 	test "$(CANNOT_DUMP)" = "yes" || test -z "$(SETFATTR)" || \

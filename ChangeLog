@@ -1,3 +1,8 @@
+2014-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.ac (ADDSECTION, TEMACS_POST_LINK): Don't compute,
+	unused.
+
 2014-05-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't substitute sigprocmask for pthread_sigmask (Bug#17561).

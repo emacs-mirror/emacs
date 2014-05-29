@@ -4835,13 +4835,9 @@ LD_SWITCH_SYSTEM_TEMACS="$LDFLAGS_NOCOMBRELOC $LD_SWITCH_SYSTEM_TEMACS"
 
 AC_SUBST(LD_SWITCH_SYSTEM_TEMACS)
 
-## MinGW-specific post-link processing of temacs.
-TEMACS_POST_LINK=":"
-ADDSECTION=
+## MinGW-specific compilation switch.
 C_HEAP_SWITCH=
 if test "${opsys}" = "mingw32"; then
-  TEMACS_POST_LINK="\$(MINGW_TEMACS_POST_LINK)"
-  ADDSECTION="../nt/addsection\$(EXEEXT)"
   ## Preload heap size of temacs.exe in MB.
   case "$canonical" in
     x86_64-*-*) C_HEAP_SWITCH="-DHEAPSIZE=18" ;;
@@ -4849,8 +4845,6 @@ if test "${opsys}" = "mingw32"; then
   esac
 fi
 
-AC_SUBST(ADDSECTION)
-AC_SUBST(TEMACS_POST_LINK)
 AC_SUBST(C_HEAP_SWITCH)
 
 ## Common for all window systems

@@ -1,3 +1,9 @@
+2014-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (TEMACS_POST_LINK): Remove target.
+	(emacs$(EXEEXT)): Remove $(ADDSECTION) from prerequisites.
+	(temacs$(EXEEXT)): Remove $(TEMACS_POST_LINK) from the recipe.
+
 2014-05-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xmenu.c (xdialog_show): Remove prototype, rename to
