@@ -1,5 +1,15 @@
 2014-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* whitespace.el: Use font-lock-flush.  Minimize refontifications.
+	Side benefit: it works without jit-lock.
+	(whitespace-point--used): New buffer-local var.
+	(whitespace-color-on): Initialize it and flush it.  Use font-lock-flush.
+	(whitespace-color-off): Use font-lock-flush.
+	(whitespace-point--used, whitespace-point--flush-used): New functions.
+	(whitespace-trailing-regexp, whitespace-empty-at-bob-regexp)
+	(whitespace-empty-at-eob-regexp): Use them.
+	(whitespace-post-command-hook): Rewrite.
+
 	* font-lock.el (font-lock-flush, font-lock-ensure): New functions.
 	(font-lock-fontify-buffer): Mark interactive-only.
 	(font-lock-multiline, font-lock-fontified, font-lock-set-defaults):
