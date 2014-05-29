@@ -6355,7 +6355,7 @@ needs to be inserted at a specific position in the font-lock sequence.")
     (insert s)
     (let ((org-odd-levels-only odd-levels))
       (org-mode)
-      (font-lock-fontify-buffer)
+      (org-font-lock-ensure)
       (buffer-string))))
 
 (defvar org-m nil)

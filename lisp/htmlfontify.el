@@ -1809,17 +1809,25 @@ fontified.  This is a simple convenience wrapper around
   (eval-and-compile (require 'font-lock))
   (if (boundp 'font-lock-cache-position)
       (or font-lock-cache-position
-          (set 'font-lock-cache-position (make-marker))))
-  (if (not noninteractive)
-      (progn
-        (message "hfy interactive mode (%S %S)" window-system major-mode)
-        (when (and font-lock-defaults
-                   font-lock-mode)
-          (font-lock-fontify-region (point-min) (point-max) nil)))
+          (setq font-lock-cache-position (make-marker))))
+  (cond
+   (noninteractive
     (message "hfy batch mode (%s:%S)"
              (or (buffer-file-name) (buffer-name)) major-mode)
-    (when font-lock-defaults
-      (font-lock-fontify-buffer)) ))
+    (if (fboundp 'font-lock-ensure)
+        (font-lock-ensure)
+      (when font-lock-defaults
+        (font-lock-fontify-buffer))))
+   ((fboundp #'jit-lock-fontify-now)
+    (message "hfy jit-lock mode (%S %S)" window-system major-mode)
+    (jit-lock-fontify-now))
+   (t
+    (message "hfy interactive mode (%S %S)" window-system major-mode)
+    ;; If jit-lock is not in use, then the buffer is already fontified!
+    ;; (when (and font-lock-defaults
+    ;;            font-lock-mode)
+    ;;   (font-lock-fontify-region (point-min) (point-max) nil))
+    )))
 
 ;;;###autoload
 (defun htmlfontify-buffer (&optional srcdir file)

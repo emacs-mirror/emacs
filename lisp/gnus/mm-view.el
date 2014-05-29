@@ -520,9 +520,11 @@ If MODE is not set, try to find mode automatically."
 	      (set-auto-mode)))
 	  ;; The mode function might have already turned on font-lock.
 	  ;; Do not fontify if the guess mode is fundamental.
-	  (unless (or (symbol-value 'font-lock-mode)
+	  (unless (or font-lock-mode
 		      (eq major-mode 'fundamental-mode))
-	    (font-lock-fontify-buffer))))
+            (if (fboundp 'font-lock-ensure)
+                (font-lock-ensure)
+              (font-lock-fontify-buffer)))))
       ;; By default, XEmacs font-lock uses non-duplicable text
       ;; properties.  This code forces all the text properties
       ;; to be copied along with the text.

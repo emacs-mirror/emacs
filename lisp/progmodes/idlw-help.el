@@ -1177,15 +1177,13 @@ Useful when source code is displayed as help.  See the option
   (if (featurep 'font-lock)
       (let ((major-mode 'idlwave-mode)
 	    (font-lock-verbose
-	     (if (called-interactively-p 'interactive) font-lock-verbose nil))
-	    (syntax-table (syntax-table)))
-	(unwind-protect
-	    (progn
-	      (set-syntax-table idlwave-mode-syntax-table)
-	      (set (make-local-variable 'font-lock-defaults)
-		   idlwave-font-lock-defaults)
-	      (font-lock-fontify-buffer))
-	  (set-syntax-table syntax-table)))))
+	     (if (called-interactively-p 'interactive) font-lock-verbose nil)))
+	(with-syntax-table idlwave-mode-syntax-table
+          (set (make-local-variable 'font-lock-defaults)
+               idlwave-font-lock-defaults)
+          (if (fboundp 'font-lock-ensure)
+              (font-lock-ensure)
+            (font-lock-fontify-buffer))))))
 
 
 (defun idlwave-help-error (name type class keyword)

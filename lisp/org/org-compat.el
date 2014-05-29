@@ -489,6 +489,11 @@ LIMIT."
 	      (looking-at (concat "\\(?:"  regexp "\\)\\'")))))
       (not (null pos)))))
 
+(defalias 'org-font-lock-ensure
+  (if (fboundp 'org-font-lock-ensure)
+      #'font-lock-ensure
+    (lambda (_beg _end) (font-lock-fontify-buffer))))
+
 (defun org-floor* (x &optional y)
   "Return a list of the floor of X and the fractional part of X.
 With two arguments, return floor and remainder of their quotient."

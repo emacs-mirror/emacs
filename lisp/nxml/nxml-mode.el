@@ -2567,7 +2567,7 @@ With a prefix argument, inserts the character directly."
 	       (> (prefix-numeric-value arg) 0))))
     (when (not (eq new nxml-char-ref-extra-display))
       (setq nxml-char-ref-extra-display new)
-      (font-lock-fontify-buffer))))
+      (font-lock-flush))))
 
 (put 'nxml-char-ref 'evaporate t)
 

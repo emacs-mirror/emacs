@@ -1,7 +1,12 @@
+2014-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mm-view.el (mm-display-inline-fontify): Use font-lock-ensure.
+	* gnus-cite.el (gnus-message-citation-mode): Use font-lock-flush.
+
 2014-05-15  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-art.el (gnus-mime-inline-part, gnus-mm-display-part): Don't
-	delete next part button; keep spacing between buttons.
+	* gnus-art.el (gnus-mime-inline-part, gnus-mm-display-part):
+	Don't delete next part button; keep spacing between buttons.
 
 2014-05-14  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -45,8 +50,8 @@
 	* mm-decode.el (mm-display-part): Don't insert a newline in the top.
 	(mm-shr): Make undisplayer unbreakable.
 
-	* mm-view.el (mm-inline-image-emacs, mm-inline-image-xemacs): Don't
-	insert excessive newline.
+	* mm-view.el (mm-inline-image-emacs, mm-inline-image-xemacs):
+	Don't insert excessive newline.
 	(mm-inline-text-html-render-with-w3m, mm-inline-text)
 	(mm-insert-inline): Make undisplayer unbreakable.
 
@@ -148,8 +153,8 @@
 
 2014-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-art.el (gnus-mime-buttonize-attachments-in-header): Display
-	buttons that are hidden in unselected alternative part as well.
+	* gnus-art.el (gnus-mime-buttonize-attachments-in-header):
+	Display buttons that are hidden in unselected alternative part as well.
 	(gnus-mime-display-alternative): Redraw attachment buttons in header.
 
 	* gmm-utils.el (gmm-labels): Add edebug spec.

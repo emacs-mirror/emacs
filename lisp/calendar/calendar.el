@@ -1475,16 +1475,16 @@ Optional integers MON and YR are used instead of today's date."
 	(set-window-vscroll nil 0))
       (sit-for 0))
     (and (bound-and-true-p font-lock-mode)
-         (font-lock-fontify-buffer))
+         (font-lock-fontify-buffer))    ;FIXME: Why?
     (and calendar-mark-holidays-flag
-;;;         (calendar-date-is-valid-p today) ; useful for BC dates
+         ;; (calendar-date-is-valid-p today) ; useful for BC dates
          (calendar-mark-holidays)
          (and in-calendar-window (sit-for 0)))
     (unwind-protect
         (if calendar-mark-diary-entries-flag (diary-mark-entries))
-      (if today-visible
-          (run-hooks 'calendar-today-visible-hook)
-        (run-hooks 'calendar-today-invisible-hook)))))
+      (run-hooks (if today-visible
+                     'calendar-today-visible-hook
+                   'calendar-today-invisible-hook)))))
 
 (defun calendar-generate (month year)
   "Generate a three-month Gregorian calendar centered around MONTH, YEAR."

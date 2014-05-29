@@ -2069,8 +2069,7 @@ Optional argument MINOR indicates this is called from
   (if minor
       (progn
 	(font-lock-add-keywords nil (compilation-mode-font-lock-keywords))
-	(if font-lock-mode
-            (font-lock-fontify-buffer)))
+        (font-lock-flush))
     (setq font-lock-defaults '(compilation-mode-font-lock-keywords t))))
 
 (defun compilation--unsetup ()
@@ -2079,8 +2078,7 @@ Optional argument MINOR indicates this is called from
   (remove-hook 'before-change-functions 'compilation--flush-parse t)
   (kill-local-variable 'compilation--parsed)
   (compilation--remove-properties)
-  (if font-lock-mode
-      (font-lock-fontify-buffer)))
+  (font-lock-flush))
 
 ;;;###autoload
 (define-minor-mode compilation-shell-minor-mode

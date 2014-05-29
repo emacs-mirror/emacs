@@ -3340,8 +3340,6 @@ PREFIX is the prefix of the search regexp."
     ["Mark clause" prolog-mark-clause t]
     ["Mark predicate" prolog-mark-predicate t]
     ["Mark paragraph" mark-paragraph t]
-    ;;"---"
-    ;;["Fontify buffer" font-lock-fontify-buffer t]
     ))
 
 (defun prolog-menu ()

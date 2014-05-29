@@ -1507,8 +1507,7 @@ If so restore the actual mbox message collection."
 	'(rmail-font-lock-keywords
 	  t t nil nil
 	  (font-lock-maximum-size . nil)
-	  (font-lock-fontify-buffer-function . rmail-fontify-buffer-function)
-	  (font-lock-unfontify-buffer-function . rmail-unfontify-buffer-function)
+          (font-lock-dont-widen . t)
 	  (font-lock-inhibit-thing-lock . (lazy-lock-mode fast-lock-mode))))
   (make-local-variable 'require-final-newline)
   (setq require-final-newline nil)
@@ -4314,31 +4313,21 @@ This has an effect only if a summary buffer exists."
 
 (defun rmail-unfontify-buffer-function ()
   ;; This function's symbol is bound to font-lock-fontify-unbuffer-function.
-  (let ((modified (buffer-modified-p))
-	(buffer-undo-list t) (inhibit-read-only t)
-	before-change-functions after-change-functions
-	buffer-file-name buffer-file-truename)
+  (with-silent-modifications
     (save-restriction
       (widen)
       (remove-hook 'rmail-show-message-hook 'rmail-fontify-message t)
       (remove-text-properties (point-min) (point-max) '(rmail-fontified nil))
-      (font-lock-default-unfontify-buffer)
-      (and (not modified) (buffer-modified-p)
-           (restore-buffer-modified-p nil)))))
+      (font-lock-default-unfontify-buffer))))
 
 (defun rmail-fontify-message ()
   ;; Fontify the current message if it is not already fontified.
   (if (text-property-any (point-min) (point-max) 'rmail-fontified nil)
-      (let ((modified (buffer-modified-p))
-	    (buffer-undo-list t) (inhibit-read-only t)
-	    before-change-functions after-change-functions
-	    buffer-file-name buffer-file-truename)
+      (with-silent-modifications
 	(save-excursion
 	  (save-match-data
 	    (add-text-properties (point-min) (point-max) '(rmail-fontified t))
-	    (font-lock-fontify-region (point-min) (point-max))
-	    (and (not modified) (buffer-modified-p)
-                 (restore-buffer-modified-p nil)))))))
+	    (font-lock-fontify-region (point-min) (point-max)))))))
 
 ;;; Speedbar support for RMAIL files.
 (defcustom rmail-speedbar-match-folder-regexp "^[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?$"

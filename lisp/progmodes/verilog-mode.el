@@ -5094,7 +5094,11 @@ FILENAME to find directory to run in, or defaults to `buffer-file-name`."
 	(verilog-mode)
 	;; Without this force, it takes a few idle seconds
 	;; to get the color, which is very jarring
-	(when fontlocked (font-lock-fontify-buffer))))))
+        (unless (fboundp 'font-lock-ensure)
+          ;; We should use font-lock-ensure in preference to
+          ;; font-lock-fontify-buffer, but IIUC the problem this is supposed to
+          ;; solve only appears in Emacsen older than font-lock-ensure anyway.
+          (when fontlocked (font-lock-fontify-buffer)))))))
 
 
 ;;

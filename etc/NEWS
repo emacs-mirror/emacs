@@ -77,6 +77,10 @@ performance improvements when pasting large amounts of text.
 
 * Changes in Specialized Modes and Packages in Emacs 24.5
 
+** font-lock
+*** New functions font-lock-ensure and font-lock-flush that should be used
+instead of font-lock-fontify-buffer when called from Elisp.
+
 ---
 ** The Rmail commands d, C-d and u now handle repeat counts
 to delete or undelete multiple messages.

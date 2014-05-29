@@ -1,3 +1,40 @@
+2014-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-flush, font-lock-ensure): New functions.
+	(font-lock-fontify-buffer): Mark interactive-only.
+	(font-lock-multiline, font-lock-fontified, font-lock-set-defaults):
+	Make buffer-local.
+	(font-lock-specified-p): Remove redundant boundp check.
+	(font-lock-flush-function, font-lock-ensure-function): New vars.
+	(font-lock-turn-on-thing-lock): Set them.
+	(font-lock-default-fontify-buffer): Obey font-lock-dont-widen.
+	(font-lock-after-change-function): Make `old-len' optional.
+	(font-lock-set-defaults): Remove redundant `set' of font-lock-defaults.
+	Call font-lock-flush, just in case.
+	* progmodes/verilog-mode.el (verilog-preprocess): Disable workaround in
+	recent Emacsen.
+	* progmodes/vera-mode.el (vera-fontify-buffer): Declare obsolete.
+	(vera-mode-map, vera-mode-menu): Remove bindings to it.
+	* progmodes/idlw-help.el (idlwave-help-fontify): Use font-lock-ensure
+	and with-syntax-table.
+	* textmodes/conf-mode.el (conf-quote-normal):
+	* progmodes/sh-script.el (sh-set-shell):
+	* progmodes/prog-mode.el (prettify-symbols-mode):
+	* progmodes/f90.el (f90-font-lock-n):
+	* progmodes/cwarn.el (cwarn-mode):
+	* nxml/nxml-mode.el (nxml-toggle-char-ref-extra-display):
+	* progmodes/compile.el (compilation-setup, compilation--unsetup):
+	* hi-lock.el (hi-lock-mode, hi-lock-unface-buffer)
+	(hi-lock-set-pattern, hi-lock-set-file-patterns): Use font-lock-flush.
+	* mail/rmail.el (rmail-variables): Set font-lock-dont-widen instead of
+	font-lock-fontify-buffer-function and
+	font-lock-unfontify-buffer-function.
+	(rmail-unfontify-buffer-function, rmail-fontify-message):
+	Use with-silent-modifications.
+	* htmlfontify.el (hfy-force-fontification): Use jit-lock-fontify-now
+	and font-lock-ensure.
+	* bs.el (bs-show-in-buffer): Use font-lock-ensure.
+
 2014-05-28  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/package.el (package-generate-autoloads):

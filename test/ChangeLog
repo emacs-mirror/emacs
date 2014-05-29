@@ -1,3 +1,8 @@
+2014-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/ruby-mode-tests.el (ruby-assert-face): Use font-lock-ensure.
+	(ruby-interpolation-keeps-non-quote-syntax): Use syntax-propertize.
+
 2014-05-21  Michal Nazarewicz  <mina86@mina86.com>
 
 	* automated/tildify-tests.el: New file.

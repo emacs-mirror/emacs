@@ -3127,7 +3127,7 @@ and prefix with \"OrgSrc\".  For example,
 		 (with-temp-buffer
 		   (insert code)
 		   (funcall lang-mode)
-		   (font-lock-fontify-buffer)
+		   (org-font-lock-ensure)
 		   (buffer-string))))
 	 (fontifier (if use-htmlfontify-p 'org-odt-htmlfontify-string
 		      'org-odt--encode-plain-text))

@@ -2323,7 +2323,7 @@ Calls the value of `sh-set-shell-hook' if set."
   (when font-lock-mode
     (setq font-lock-set-defaults nil)
     (font-lock-set-defaults)
-    (font-lock-fontify-buffer))
+    (font-lock-flush))
   (setq sh-shell-process nil)
   (run-hooks 'sh-set-shell-hook))
 

@@ -138,7 +138,6 @@ If nil, TAB always indents current line."
     (define-key map "\C-c\t"   'indent-according-to-mode)
     (define-key map "\M-\C-\\" 'vera-indent-region)
     (define-key map "\C-c\C-c" 'vera-comment-uncomment-region)
-    (define-key map "\C-c\C-f" 'vera-fontify-buffer)
     (define-key map "\C-c\C-v" 'vera-version)
     (define-key map "\M-\t"    'tab-to-tab-stop)
     ;; Electric key bindings.
@@ -171,8 +170,6 @@ If nil, TAB always indents current line."
     ["Indent Line"		indent-according-to-mode t]
     ["Indent Region"		vera-indent-region (mark)]
     ["Indent Buffer"		vera-indent-buffer t]
-    "--"
-    ["Fontify Buffer"		vera-fontify-buffer t]
     "--"
     ["Documentation"		describe-mode]
     ["Version"			vera-version t]
@@ -686,7 +683,8 @@ Adapted from `font-lock-match-c-style-declaration-item-and-skip-to-next'."
   "Font lock mode face used to highlight interface names."
   :group 'font-lock-highlighting-faces)
 
-(defalias 'vera-fontify-buffer 'font-lock-fontify-buffer)
+(define-obsolete-function-alias 'vera-fontify-buffer
+  'font-lock-fontify-buffer "24.5")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Indentation

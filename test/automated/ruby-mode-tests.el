@@ -61,7 +61,7 @@ VALUES-PLIST is a list with alternating index and value elements."
 
 (defun ruby-assert-face (content pos face)
   (ruby-with-temp-buffer content
-    (font-lock-fontify-buffer)
+    (font-lock-ensure nil nil 'force)
     (should (eq face (get-text-property pos 'face)))))
 
 (ert-deftest ruby-indent-after-symbol-made-from-string-interpolation ()
@@ -420,7 +420,7 @@ VALUES-PLIST is a list with alternating index and value elements."
     (ruby-with-temp-buffer s
       (goto-char (point-min))
       (ruby-mode)
-      (font-lock-fontify-buffer)
+      (syntax-propertize (point-max))
       (search-forward "tee")
       (should (string= (thing-at-point 'symbol) "tee")))))
 

@@ -116,7 +116,7 @@ support it."
         (font-lock-add-keywords nil prettify-symbols--keywords)
         (setq-local font-lock-extra-managed-props
                     (cons 'composition font-lock-extra-managed-props))
-        (font-lock-fontify-buffer))
+        (font-lock-flush))
     ;; Turn off
     (when prettify-symbols--keywords
       (font-lock-remove-keywords nil prettify-symbols--keywords)
