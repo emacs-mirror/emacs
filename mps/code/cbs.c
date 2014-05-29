@@ -721,6 +721,7 @@ static Bool cbsIterateVisit(Tree tree, void *closureP, Size closureS)
   CBS cbs = cbsOfLand(land);
   Bool cont = TRUE;
 
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
 
   cbsBlock = cbsBlockOfTree(tree);
@@ -754,7 +755,7 @@ static Bool cbsIterate(Land land, LandVisitor visitor,
   closure.closureP = closureP;
   closure.closureS = closureS;
   return TreeTraverse(SplayTreeRoot(splay), splay->compare, splay->nodeKey,
-                      cbsIterateVisit, &closure, 0);
+                      cbsIterateVisit, &closure, UNUSED_SIZE);
 }
 
 
@@ -871,15 +872,15 @@ typedef struct cbsTestNodeInZonesClosureStruct {
 } cbsTestNodeInZonesClosureStruct, *cbsTestNodeInZonesClosure;
 
 static Bool cbsTestNodeInZones(SplayTree splay, Tree tree,
-                               void *closureP, Size closureSize)
+                               void *closureP, Size closureS)
 {
   CBSBlock block = cbsBlockOfTree(tree);
   cbsTestNodeInZonesClosure closure = closureP;
   RangeInZoneSet search;
   
   UNUSED(splay);
-  AVER(closureSize == sizeof(cbsTestNodeInZonesClosureStruct));
-  UNUSED(closureSize);
+  AVER(closureS == UNUSED_SIZE);
+  UNUSED(closureS);
 
   search = closure->high ? RangeInZoneSetLast : RangeInZoneSetFirst;
 
@@ -889,15 +890,15 @@ static Bool cbsTestNodeInZones(SplayTree splay, Tree tree,
 }
 
 static Bool cbsTestTreeInZones(SplayTree splay, Tree tree,
-                               void *closureP, Size closureSize)
+                               void *closureP, Size closureS)
 {
   CBSFastBlock fastBlock = cbsFastBlockOfTree(tree);
   CBSZonedBlock zonedBlock = cbsZonedBlockOfTree(tree);
   cbsTestNodeInZonesClosure closure = closureP;
   
   UNUSED(splay);
-  AVER(closureSize == sizeof(cbsTestNodeInZonesClosureStruct));
-  UNUSED(closureSize);
+  AVER(closureS == UNUSED_SIZE);
+  UNUSED(closureS);
   
   return fastBlock->maxSize >= closure->size
     && ZoneSetInter(zonedBlock->zones, closure->zoneSet) != ZoneSetEMPTY;
@@ -1030,7 +1031,7 @@ static Res cbsFindInZones(Bool *foundReturn, Range rangeReturn,
   closure.high = high;
   if (!(*splayFind)(&tree, cbsSplay(cbs),
                     cbsTestNodeInZones, cbsTestTreeInZones,
-                    &closure, sizeof(closure)))
+                    &closure, UNUSED_SIZE))
     goto fail;
 
   block = cbsBlockOfTree(tree);
