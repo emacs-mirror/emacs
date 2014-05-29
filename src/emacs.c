@@ -1376,7 +1376,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   xputenv ("LANG=C");
 #endif
 
-  init_buffer ();	/* Init default directory of main buffer.  */
+  /* Init buffer storage and default directory of main buffer.  */
+  init_buffer (initialized);
 
   init_callproc_1 ();	/* Must precede init_cmdargs and init_sys_modes.  */
 

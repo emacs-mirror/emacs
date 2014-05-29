@@ -3951,7 +3951,7 @@ extern bool overlay_touches_p (ptrdiff_t);
 extern Lisp_Object other_buffer_safely (Lisp_Object);
 extern Lisp_Object get_truename_buffer (Lisp_Object);
 extern void init_buffer_once (void);
-extern void init_buffer (void);
+extern void init_buffer (int);
 extern void syms_of_buffer (void);
 extern void keys_of_buffer (void);
 

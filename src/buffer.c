@@ -4703,11 +4703,6 @@ static struct mmap_region *mmap_regions;
 
 static int mmap_fd;
 
-/* Temporary storage for mmap_set_vars, see there.  */
-
-static struct mmap_region *mmap_regions_1;
-static int mmap_fd_1;
-
 /* Page size on this system.  */
 
 static int mmap_page_size;
@@ -5272,24 +5267,57 @@ init_buffer_once (void)
 }
 
 void
-init_buffer (void)
+init_buffer (int initialized)
 {
   char *pwd;
   Lisp_Object temp;
   ptrdiff_t len;
 
 #ifdef USE_MMAP_FOR_BUFFERS
-  {
-    struct buffer *b;
+  if (initialized)
+    {
+      struct buffer *b;
 
-    /* We cannot dump buffers with meaningful addresses that can be
-       used by the dumped Emacs.  We map new memory for them here.  */
-    FOR_EACH_BUFFER (b)
-      {
-	b->text->beg = NULL;
-	enlarge_buffer_text (b, 0);
-      }
-  }
+#ifndef WINDOWSNT
+      /* These must be reset in the dumped Emacs, to avoid stale
+	 references to mmap'ed memory from before the dump.
+
+	 WINDOWSNT doesn't need this because it doesn't track mmap'ed
+	 regions by hand (see w32heap.c, which uses system APIs for
+	 that purpose), and thus doesn't use mmap_regions.  */
+      mmap_regions = NULL;
+      mmap_fd = -1;
+#endif
+
+      /* The dumped buffers reference addresses of buffer text
+	 recorded by temacs, that cannot be used by the dumped Emacs.
+	 We map new memory for their text here.
+
+	 Implementation note: the buffers we carry from temacs are:
+	 " prin1", "*scratch*", " *Minibuf-0*", "*Messages*", and
+	 " *code-conversion-work*".  They are created by
+	 init_buffer_once and init_window_once (which are not called
+	 in the dumped Emacs), and by the first call to coding.c routines.  */
+      FOR_EACH_BUFFER (b)
+        {
+	  b->text->beg = NULL;
+	  enlarge_buffer_text (b, 0);
+	}
+    }
+  else
+    {
+      struct buffer *b;
+
+      /* Only buffers with allocated buffer text should be present at
+	 this point in temacs.  */
+      FOR_EACH_BUFFER (b)
+        {
+	  eassert (b->text->beg != NULL);
+	}
+    }
+#else  /* not USE_MMAP_FOR_BUFFERS */
+  /* Avoid compiler warnings.  */
+  initialized = initialized;
 #endif /* USE_MMAP_FOR_BUFFERS */
 
   Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));

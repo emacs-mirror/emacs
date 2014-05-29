@@ -1,3 +1,16 @@
+2014-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.c (init_buffer): Accept an argument 'initialized'.
+	[USE_MMAP_FOR_BUFFERS]: If 'initialized' is non-zero, reset
+	mmap_regions and mmap_fd, to avoid referencing stale data from the
+	dump phase.  Add an assertion for buffer text of buffers created
+	in temacs before this function is called.  (Bug#17622)
+	(mmap_regions_1, mmap_fd_1): Remove unused variables.
+
+	* lisp.h (init_buffer): Update prototype.
+
+	* emacs.c (main): Pass 'initialized' as the argument to init_buffer.
+
 2014-05-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* alloc.c (Fgarbage_collect): Fix compilation with
