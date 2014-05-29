@@ -360,6 +360,8 @@ static void arenaMFSPageFreeVisitor(Pool pool, Addr base, Size size,
                                     void *closureP, Size closureS)
 {
   AVERT(Pool, pool);
+  AVER(closureP == UNUSED_POINTER);
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureP);
   UNUSED(closureS);
   UNUSED(size);
@@ -387,8 +389,8 @@ void ArenaDestroy(Arena arena)
 
   /* The CBS block pool can't free its own memory via ArenaFree because
      that would use the freeLand. */
-  MFSFinishTracts(ArenaCBSBlockPool(arena),
-                  arenaMFSPageFreeVisitor, NULL, 0);
+  MFSFinishTracts(ArenaCBSBlockPool(arena), arenaMFSPageFreeVisitor,
+                  UNUSED_POINTER, UNUSED_SIZE);
   PoolFinish(ArenaCBSBlockPool(arena));
 
   /* Call class-specific finishing.  This will call ArenaFinish. */

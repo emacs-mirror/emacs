@@ -414,6 +414,7 @@ static Bool landFlushVisitor(Bool *deleteReturn, Land land, Range range,
   AVERT(Land, land);
   AVERT(Range, range);
   AVER(closureP != NULL);
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
 
   dest = closureP;
@@ -438,7 +439,7 @@ Bool LandFlush(Land dest, Land src)
   AVERT(Land, dest);
   AVERT(Land, src);
 
-  return LandIterateAndDelete(src, landFlushVisitor, dest, 0);
+  return LandIterateAndDelete(src, landFlushVisitor, dest, UNUSED_SIZE);
 }
 
 
@@ -494,6 +495,7 @@ static Bool landSizeVisitor(Land land, Range range,
   AVERT(Land, land);
   AVERT(Range, range);
   AVER(closureP != NULL);
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
 
   size = closureP;
@@ -505,7 +507,7 @@ static Bool landSizeVisitor(Land land, Range range,
 Size LandSlowSize(Land land)
 {
   Size size = 0;
-  Bool b = LandIterate(land, landSizeVisitor, &size, 0);
+  Bool b = LandIterate(land, landSizeVisitor, &size, UNUSED_SIZE);
   AVER(b);
   return size;
 }
