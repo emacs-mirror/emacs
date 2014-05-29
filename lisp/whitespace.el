@@ -1719,36 +1719,7 @@ It is a cons of strings, where the car part is used when
 (defun whitespace-report (&optional force report-if-bogus)
   "Report some whitespace problems in buffer.
 
-Return nil if there is no whitespace problem; otherwise, return
-non-nil.
-
-If FORCE is non-nil or \\[universal-argument] was pressed just
-before calling `whitespace-report' interactively, it forces
-`whitespace-style' to have:
-
-   empty
-   trailing
-   indentation
-   space-before-tab
-   space-after-tab
-
-If REPORT-IF-BOGUS is non-nil, it reports only when there are any
-whitespace problems in buffer.
-
-Report if some of the following whitespace problems exist:
-
-   empty		1. empty lines at beginning of buffer.
-   empty		2. empty lines at end of buffer.
-   trailing		3. SPACEs or TABs at end of line.
-   space-before-tab	4. SPACEs before TAB.
-   space-after-tab	5. 8 or more SPACEs after TAB.
-   indentation		6. If `indent-tabs-mode':
-                           8 or more SPACEs at beginning of line
-                           else: TABS at beginning of line.
-
-See `whitespace-style' for documentation.
-See also `whitespace-cleanup' and `whitespace-cleanup-region' for
-cleaning up these problems."
+Perform `whitespace-report-region' on the current buffer."
   (interactive (list current-prefix-arg))
   (whitespace-report-region (point-min) (point-max)
 			    force report-if-bogus))

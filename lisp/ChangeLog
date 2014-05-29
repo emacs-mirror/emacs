@@ -1,6 +1,9 @@
 2014-05-29  Reuben Thomas  <rrt@sc3d.org>
 
-	* whitespace.el (whitespace-report): Simplify documentation.
+	* whitespace.el (whitespace-report-region): Simplify
+	documentation.
+	(whitespace-report): Refer to whitespace-report-region's
+	documentation.
 
 2014-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
