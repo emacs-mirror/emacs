@@ -1,3 +1,8 @@
+2014-05-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (Fgarbage_collect): Fix compilation with
+	GC_MARK_STACK == GC_USE_GCPROS_AS_BEFORE.
+
 2014-05-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* frame.c, frame.h (frame_char_to_pixel_position)

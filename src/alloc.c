@@ -5847,8 +5847,13 @@ See Info node `(elisp)Garbage Collection'.  */)
   end = stack_grows_down_p ? (char *) &j + sizeof j : (char *) &j;
 #endif /* not GC_SAVE_REGISTERS_ON_STACK */
 #endif /* not HAVE___BUILTIN_UNWIND_INIT */
-#endif /* GC_MARK_STACK */
   return garbage_collect_1 (end);
+#elif (GC_MARK_STACK == GC_USE_GCPROS_AS_BEFORE)
+  /* Old GCPROs-based method without stack marking.  */
+  return garbage_collect_1 (NULL);
+#else  
+  emacs_abort ();
+#endif /* GC_MARK_STACK */  
 }
 
 /* Mark Lisp objects in glyph matrix MATRIX.  Currently the
