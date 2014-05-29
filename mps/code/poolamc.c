@@ -877,7 +877,7 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
     if(res != ResOK)
       goto failGensAlloc;
     amc->gen = p;
-    for (i = 0; i <= genCount; ++i) {
+    for (i = 0; i < genCount; ++i) {
       res = amcGenCreate(&amc->gen[i], amc, ChainGen(chain, i));
       if (res != ResOK)
         goto failGenAlloc;
