@@ -1013,13 +1013,14 @@ extern void LandDestroy(Land land);
 extern void LandFinish(Land land);
 extern Res LandInsert(Range rangeReturn, Land land, Range range);
 extern Res LandDelete(Range rangeReturn, Land land, Range range);
-extern void LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS);
+extern Bool LandIterate(Land land, LandVisitor visitor, void *closureP, Size closureS);
+extern Bool LandIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closureP, Size closureS);
 extern Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
 extern Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
 extern Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
-extern Res LandFindInZones(Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
+extern Res LandFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
 extern Res LandDescribe(Land land, mps_lib_FILE *stream);
-extern void LandFlush(Land dest, Land src);
+extern Bool LandFlush(Land dest, Land src);
 
 extern Size LandSlowSize(Land land);
 extern Bool LandClassCheck(LandClass class);

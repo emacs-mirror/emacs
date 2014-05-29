@@ -122,16 +122,17 @@ MV interface
     takes four keyword arguments: :c:macro:`MPS_KEY_EXTEND_SIZE`,
     :c:macro:`MPS_KEY_MEAN_SIZE`, :c:macro:`MPS_KEY_MAX_SIZE` are as
     described above, and :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS`
-    specifies the debugging options. See :c:type:`mps_debug_option_s`.
+    specifies the debugging options. See
+    :c:type:`mps_pool_debug_option_s`.
 
     .. deprecated:: starting with version 1.112.
 
-        When using :c:func:`mps_pool_create`, pass the debugging
-        options, segment size, mean size, and maximum size like this::
+        When using :c:func:`mps_pool_create`, pass the arguments like
+        this::
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
                                       mps_class_t mps_class_mv_debug(),
-                                      mps_debug_option_s debug_option,
+                                      mps_pool_debug_option_s debug_option,
                                       mps_size_t extend_size,
                                       mps_size_t average_size,
                                       mps_size_t maximum_size)

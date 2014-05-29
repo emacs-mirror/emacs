@@ -1,0 +1,161 @@
+/* -*- css -*- */
+
+@import url('scrolls.css');
+
+sup {
+    vertical-align: top;
+    font-size: 80%;
+}
+
+dl.glossary dt {
+    font-family: {{ theme_headfont }};
+}
+
+div.header {
+    background-image: none;
+    background-color: {{ theme_headerbg }};
+    border-top: none;
+}
+
+h1.heading {
+    height: auto;
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+h1.heading:hover {
+    background: {{ theme_headerhover }};
+}
+
+h1.heading a {
+    background-image: none;
+    display: block;
+    width: 100%;
+    height: auto;
+    font-size: 150%;
+}
+
+h1.heading span {
+    display: block;
+    color: {{ theme_textcolor }};
+}
+
+a, a:visited, a.reference.internal {
+    text-decoration: none;
+}
+
+a.reference em {
+    font-style: normal;
+}
+
+a.reference.internal:hover {
+    text-decoration: none;
+    border-bottom: 1px solid {{ theme_underlinecolor }};
+}
+
+.xref.std-term {
+    font-style: normal;
+    color: {{ theme_textcolor }};
+    border-bottom: 1px dotted {{ theme_underlinecolor }};
+}
+
+div.seealso, div.admonition {
+    background: url(metal.png);
+    border: none;
+}
+
+p.admonition_title:after {
+    content: ":";
+}
+
+div.admonition p.admonition-title + p + p {
+    margin-top: 1em;
+}
+
+div.figure {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+div.figure img {
+    max-width: 100%;
+}
+
+.align-center {
+    text-align: center;
+}
+
+img.align-center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+dl.glossary dt {
+    font-size: 120%;
+    margin-top: 1em;
+}
+
+p.glossary-alphabet {
+    font-weight: bold;
+    text-align: center;
+}
+
+
+div.admonition-ref-glossary, div.admonition-ref-bibliography, div.admonition-ref-mmref-intro, div.admonition-ref-mmref-faq {
+    width: 45%;
+    display: inline-block;
+    vertical-align: top;
+}
+
+div.admonition-ref-glossary, div.admonition-ref-mmref-intro {
+    height:400px;
+}
+
+div.admonition-ref-bibliography, div.admonition-ref-mmref-faq {
+    height:230px;
+}
+
+div.admonition-ref-glossary, div.admonition-ref-bibliography {
+    margin-right: 1%;
+}
+
+div.admonition-ref-mmref-intro, div.admonition-ref-mmref-faq {
+    margin-left: 1%;
+}
+
+div.admonition a.image-reference img {
+    width: 90%;
+    margin-left: 5%;
+    margin-top: 5px;
+}
+
+div#home h1 {
+    display: none;
+}
+
+div#home h1 + p {
+    margin-top: 0;
+    padding-top: 15px;
+}
+
+/* Format the glossary index in two columns. */
+
+div#memory-management-glossary div#all {
+    -webkit-columns: 2;
+    -moz-columns: 2;
+    -o-columns: 2;
+    -ms-columns: 2;
+    columns: 2;
+    padding-top: 1em;
+}
+
+div#memory-management-glossary div#all h2 {
+    display: none;
+}
+
+div#memory-management-glossary div#all a.reference.internal:after {
+    content: "\A";
+    white-space: pre;
+}

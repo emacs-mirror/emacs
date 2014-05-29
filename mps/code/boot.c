@@ -30,7 +30,7 @@ Bool BootBlockCheck(BootBlock boot)
   CHECKL(boot->limit != NULL);
   CHECKL(boot->base <= boot->alloc);
   CHECKL(boot->alloc <= boot->limit);
-  CHECKL(boot->alloc < boot->limit);
+  CHECKL(boot->base < boot->limit);
 
   return TRUE;
 }

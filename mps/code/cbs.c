@@ -140,12 +140,8 @@ static Bool cbsTestTree(SplayTree splay, Tree tree,
 
   AVERT(SplayTree, splay);
   AVERT(Tree, tree);
-#if 0
   AVER(closureP == NULL);
   AVER(size > 0);
-#endif
-  UNUSED(closureP);
-  UNUSED(size);
   AVER(IsLandSubclass(cbsLand(cbsOfSplay(splay)), CBSFastLandClass));
 
   block = cbsFastBlockOfTree(tree);
@@ -405,7 +401,7 @@ static Res cbsBlockAlloc(CBSBlock *blockReturn, CBS cbs, Range range)
   block->base = RangeBase(range);
   block->limit = RangeLimit(range);
 
-  SplayNodeUpdate(cbsSplay(cbs), cbsBlockTree(block));
+  SplayNodeInit(cbsSplay(cbs), cbsBlockTree(block));
 
   AVERT(CBSBlock, block);
   *blockReturn = block;
@@ -714,16 +710,6 @@ static Res cbsZonedSplayNodeDescribe(Tree tree, mps_lib_FILE *stream)
 
 /* cbsIterate -- iterate over all blocks in CBS
  *
- * Applies a visitor to all isolated contiguous ranges in a CBS.
- * It receives a pointer, ``Size`` closure pair to pass on to the
- * visitor function, and an visitor function to invoke on every range
- * in address order. If the visitor returns ``FALSE``, then the iteration
- * is terminated.
- *
- * The visitor function may not modify the CBS during the iteration.
- * This is because CBSIterate uses TreeTraverse, which does not permit
- * modification, for speed and to avoid perturbing the splay tree balance.
- *
  * See <design/land/#function.iterate>.
  */
 
@@ -741,22 +727,21 @@ static Bool cbsIterateVisit(Tree tree, void *closureP, Size closureS)
   CBSBlock cbsBlock;
   Land land = closure->land;
   CBS cbs = cbsOfLand(land);
-  Bool delete = FALSE;
   Bool cont = TRUE;
 
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureS);
 
   cbsBlock = cbsBlockOfTree(tree);
   RangeInit(&range, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock));
-  cont = (*closure->visitor)(&delete, land, &range, closure->closureP, closure->closureS);
-  AVER(!delete);                /* <design/cbs/#limit.iterate> */
+  cont = (*closure->visitor)(land, &range, closure->closureP, closure->closureS);
   if (!cont)
     return FALSE;
   METER_ACC(cbs->treeSearch, cbs->treeSize);
   return TRUE;
 }
 
-static void cbsIterate(Land land, LandVisitor visitor,
+static Bool cbsIterate(Land land, LandVisitor visitor,
                        void *closureP, Size closureS)
 {
   CBS cbs;
@@ -777,8 +762,8 @@ static void cbsIterate(Land land, LandVisitor visitor,
   closure.visitor = visitor;
   closure.closureP = closureP;
   closure.closureS = closureS;
-  (void)TreeTraverse(SplayTreeRoot(splay), splay->compare, splay->nodeKey,
-                     cbsIterateVisit, &closure, 0);
+  return TreeTraverse(SplayTreeRoot(splay), splay->compare, splay->nodeKey,
+                      cbsIterateVisit, &closure, UNUSED_SIZE);
 }
 
 
@@ -895,15 +880,15 @@ typedef struct cbsTestNodeInZonesClosureStruct {
 } cbsTestNodeInZonesClosureStruct, *cbsTestNodeInZonesClosure;
 
 static Bool cbsTestNodeInZones(SplayTree splay, Tree tree,
-                               void *closureP, Size closureSize)
+                               void *closureP, Size closureS)
 {
   CBSBlock block = cbsBlockOfTree(tree);
   cbsTestNodeInZonesClosure closure = closureP;
   RangeInZoneSet search;
   
   UNUSED(splay);
-  AVER(closureSize == sizeof(cbsTestNodeInZonesClosureStruct));
-  UNUSED(closureSize);
+  AVER(closureS == UNUSED_SIZE);
+  UNUSED(closureS);
 
   search = closure->high ? RangeInZoneSetLast : RangeInZoneSetFirst;
 
@@ -913,15 +898,15 @@ static Bool cbsTestNodeInZones(SplayTree splay, Tree tree,
 }
 
 static Bool cbsTestTreeInZones(SplayTree splay, Tree tree,
-                               void *closureP, Size closureSize)
+                               void *closureP, Size closureS)
 {
   CBSFastBlock fastBlock = cbsFastBlockOfTree(tree);
   CBSZonedBlock zonedBlock = cbsZonedBlockOfTree(tree);
   cbsTestNodeInZonesClosure closure = closureP;
   
   UNUSED(splay);
-  AVER(closureSize == sizeof(cbsTestNodeInZonesClosureStruct));
-  UNUSED(closureSize);
+  AVER(closureS == UNUSED_SIZE);
+  UNUSED(closureS);
   
   return fastBlock->maxSize >= closure->size
     && ZoneSetInter(zonedBlock->zones, closure->zoneSet) != ZoneSetEMPTY;
@@ -1009,17 +994,20 @@ static Bool cbsFindLargest(Range rangeReturn, Range oldRangeReturn,
 }
 
 
-static Res cbsFindInZones(Range rangeReturn, Range oldRangeReturn,
-                          Land land, Size size,
+static Res cbsFindInZones(Bool *foundReturn, Range rangeReturn,
+                          Range oldRangeReturn, Land land, Size size,
                           ZoneSet zoneSet, Bool high)
 {
   CBS cbs;
+  CBSBlock block;
   Tree tree;
   cbsTestNodeInZonesClosureStruct closure;
   Res res;
   LandFindMethod landFind;
   SplayFindMethod splayFind;
+  RangeStruct rangeStruct, oldRangeStruct;
   
+  AVER(foundReturn != NULL);
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVERT(Land, land);
@@ -1033,16 +1021,14 @@ static Res cbsFindInZones(Range rangeReturn, Range oldRangeReturn,
   splayFind = high ? SplayFindLast : SplayFindFirst;
   
   if (zoneSet == ZoneSetEMPTY)
-    return ResFAIL;
+    goto fail;
   if (zoneSet == ZoneSetUNIV) {
     FindDelete fd = high ? FindDeleteHIGH : FindDeleteLOW;
-    if ((*landFind)(rangeReturn, oldRangeReturn, land, size, fd))
-      return ResOK;
-    else
-      return ResFAIL;
+    *foundReturn = (*landFind)(rangeReturn, oldRangeReturn, land, size, fd);
+    return ResOK;
   }
   if (ZoneSetIsSingle(zoneSet) && size > ArenaStripeSize(LandArena(land)))
-    return ResFAIL;
+    goto fail;
 
   /* It would be nice if there were a neat way to eliminate all runs of
      zones in zoneSet too small for size.*/
@@ -1051,31 +1037,34 @@ static Res cbsFindInZones(Range rangeReturn, Range oldRangeReturn,
   closure.zoneSet = zoneSet;
   closure.size = size;
   closure.high = high;
-  if (splayFind(&tree, cbsSplay(cbs),
-                cbsTestNodeInZones,
-                cbsTestTreeInZones,
-                &closure, sizeof(closure))) {
-    CBSBlock block = cbsBlockOfTree(tree);
-    RangeStruct rangeStruct, oldRangeStruct;
+  if (!(*splayFind)(&tree, cbsSplay(cbs),
+                    cbsTestNodeInZones, cbsTestTreeInZones,
+                    &closure, UNUSED_SIZE))
+    goto fail;
 
-    AVER(CBSBlockBase(block) <= closure.base);
-    AVER(AddrOffset(closure.base, closure.limit) >= size);
-    AVER(ZoneSetSub(ZoneSetOfRange(LandArena(land), closure.base, closure.limit), zoneSet));
-    AVER(closure.limit <= CBSBlockLimit(block));
+  block = cbsBlockOfTree(tree);
 
-    if (!high)
-      RangeInit(&rangeStruct, closure.base, AddrAdd(closure.base, size));
-    else
-      RangeInit(&rangeStruct, AddrSub(closure.limit, size), closure.limit);
-    res = cbsDelete(&oldRangeStruct, land, &rangeStruct);
-    if (res == ResOK) {  /* enough memory to split block */
-      RangeCopy(rangeReturn, &rangeStruct);
-      RangeCopy(oldRangeReturn, &oldRangeStruct);
-    }
-  } else
-    res = ResFAIL;
+  AVER(CBSBlockBase(block) <= closure.base);
+  AVER(AddrOffset(closure.base, closure.limit) >= size);
+  AVER(ZoneSetSub(ZoneSetOfRange(LandArena(land), closure.base, closure.limit), zoneSet));
+  AVER(closure.limit <= CBSBlockLimit(block));
 
-  return res;
+  if (!high)
+    RangeInit(&rangeStruct, closure.base, AddrAdd(closure.base, size));
+  else
+    RangeInit(&rangeStruct, AddrSub(closure.limit, size), closure.limit);
+  res = cbsDelete(&oldRangeStruct, land, &rangeStruct);
+  if (res != ResOK)
+    /* not enough memory to split block */
+    return res;
+  RangeCopy(rangeReturn, &rangeStruct);
+  RangeCopy(oldRangeReturn, &oldRangeStruct);
+  *foundReturn = TRUE;
+  return ResOK;
+
+fail:
+  *foundReturn = FALSE;
+  return ResOK;
 }
 
 

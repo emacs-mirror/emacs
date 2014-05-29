@@ -7,11 +7,8 @@ PFM = ananmv
 
 PFMDEFS = /DCONFIG_PF_ANSI /DCONFIG_THREAD_SINGLE
 
-!INCLUDE commpre.nmk
-!INCLUDE mv.nmk
-
-# MPM sources: core plus platform-specific.
-MPM = $(MPMCOMMON) \
+# MPM platform-specific sources.
+MPMPF = \
     <lockan> \
     <prmcan> \
     <protan> \
@@ -19,6 +16,9 @@ MPM = $(MPMCOMMON) \
     <ssan> \
     <than> \
     <vman>
+
+!INCLUDE commpre.nmk
+!INCLUDE mv.nmk
 
 
 # Source to object file mappings and CFLAGS amalgamation
@@ -38,14 +38,7 @@ CFLAGSSQL=$(CFLAGSSQLPRE) $(CFHOT) $(CFLAGSSQLPOST)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFHOT)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSHOT)
 MPMOBJ0 = $(MPM:<=ananmv\hot\)
-PLINTHOBJ0 = $(PLINTH:<=ananmv\hot\)
-AMSOBJ0 = $(AMS:<=ananmv\hot\)
-AMCOBJ0 = $(AMC:<=ananmv\hot\)
-AWLOBJ0 = $(AWL:<=ananmv\hot\)
-LOOBJ0 = $(LO:<=ananmv\hot\)
-SNCOBJ0 = $(SNC:<=ananmv\hot\)
-MVFFOBJ0 = $(MVFF:<=ananmv\hot\)
-DWOBJ0 = $(DW:<=ananmv\hot\)
+FMTDYOBJ0 = $(FMTDY:<=ananmv\hot\)
 FMTTESTOBJ0 = $(FMTTEST:<=ananmv\hot\)
 FMTSCHEMEOBJ0 = $(FMTSCHEME:<=ananmv\hot\)
 POOLNOBJ0 = $(POOLN:<=ananmv\hot\)
@@ -58,14 +51,7 @@ CFLAGSSQL=$(CFLAGSSQLPRE) $(CFCOOL) $(CFLAGSSQLPOST)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCOOL)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCOOL)
 MPMOBJ0 = $(MPM:<=ananmv\cool\)
-PLINTHOBJ0 = $(PLINTH:<=ananmv\cool\)
-AMSOBJ0 = $(AMS:<=ananmv\cool\)
-AMCOBJ0 = $(AMC:<=ananmv\cool\)
-AWLOBJ0 = $(AWL:<=ananmv\cool\)
-LOOBJ0 = $(LO:<=ananmv\cool\)
-SNCOBJ0 = $(SNC:<=ananmv\cool\)
-MVFFOBJ0 = $(MVFF:<=ananmv\cool\)
-DWOBJ0 = $(DW:<=ananmv\cool\)
+FMTDYOBJ0 = $(FMTDY:<=ananmv\cool\)
 FMTTESTOBJ0 = $(FMTTEST:<=ananmv\cool\)
 FMTSCHEMEOBJ0 = $(FMTSCHEME:<=ananmv\cool\)
 POOLNOBJ0 = $(POOLN:<=ananmv\cool\)
@@ -78,46 +64,12 @@ CFLAGSSQL=$(CFLAGSSQLPRE) $(CFRASH) $(CFLAGSSQLPOST)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFRASH)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSRASH)
 MPMOBJ0 = $(MPM:<=ananmv\rash\)
-PLINTHOBJ0 = $(PLINTH:<=ananmv\rash\)
-AMSOBJ0 = $(AMS:<=ananmv\rash\)
-AMCOBJ0 = $(AMC:<=ananmv\rash\)
-AWLOBJ0 = $(AWL:<=ananmv\rash\)
-LOOBJ0 = $(LO:<=ananmv\rash\)
-SNCOBJ0 = $(SNC:<=ananmv\rash\)
-MVFFOBJ0 = $(MVFF:<=ananmv\rash\)
-DWOBJ0 = $(DW:<=ananmv\rash\)
+FMTDYOBJ0 = $(FMTDY:<=ananmv\rash\)
 FMTTESTOBJ0 = $(FMTTEST:<=ananmv\rash\)
 FMTSCHEMEOBJ0 = $(FMTSCHEME:<=ananmv\rash\)
 POOLNOBJ0 = $(POOLN:<=ananmv\rash\)
 TESTLIBOBJ0 = $(TESTLIB:<=ananmv\rash\)
 TESTTHROBJ0 = $(TESTTHR:<=ananmv\rash\)
-
-#!ELSEIF "$(VARIETY)" == "cv"
-#CFLAGS=$(CFLAGSCOMMON) $(CFCV)
-#LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCV)
-#LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCV)
-#MPMOBJ0 = $(MPM:<=ananmv\cv\)
-#MPMOBJ = $(MPMOBJ0:>=.obj)
-#PLINTHOBJ0 = $(PLINTH:<=ananmv\cv\)
-#PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
-#AMSOBJ0 = $(AMS:<=ananmv\cv\)
-#AMSOBJ = $(AMSOBJ0:>=.obj)
-#AMCOBJ0 = $(AMC:<=ananmv\cv\)
-#AMCOBJ = $(AMCOBJ0:>=.obj)
-#AWLOBJ0 = $(AWL:<=ananmv\cv\)
-#AWLOBJ = $(AWLOBJ0:>=.obj)
-#LOOBJ0 = $(LO:<=ananmv\cv\)
-#LOOBJ = $(LOOBJ0:>=.obj)
-#SNCOBJ0 = $(SNC:<=ananmv\cv\)
-#SNCOBJ = $(SNCOBJ0:>=.obj)
-#DWOBJ0 = $(DW:<=ananmv\cv\)
-#DWOBJ = $(DWOBJ0:>=.obj)
-#POOLNOBJ0 = $(POOLN:<=ananmv\cv\)
-#POOLNOBJ = $(POOLNOBJ0:>=.obj)
-#TESTLIBOBJ0 = $(TESTLIB:<=ananmv\cv\)
-#TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
-#TESTTHROBJ0 = $(TESTTHR:<=ananmv\cv\)
-#TESTTHROBJ = $(TESTTHROBJ0:>=.obj)
 
 !ENDIF
 
@@ -125,14 +77,7 @@ TESTTHROBJ0 = $(TESTTHR:<=ananmv\rash\)
 # files included in the part
 
 MPMOBJ = $(MPMOBJ0:>=.obj)
-PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
-AMSOBJ = $(AMSOBJ0:>=.obj)
-AMCOBJ = $(AMCOBJ0:>=.obj)
-AWLOBJ = $(AWLOBJ0:>=.obj)
-LOOBJ = $(LOOBJ0:>=.obj)
-SNCOBJ = $(SNCOBJ0:>=.obj)
-MVFFOBJ = $(MVFFOBJ0:>=.obj)
-DWOBJ = $(DWOBJ0:>=.obj)
+FMTDYOBJ = $(FMTDYOBJ0:>=.obj)
 FMTTESTOBJ = $(FMTTESTOBJ0:>=.obj)
 FMTSCHEMEOBJ = $(FMTSCHEMEOBJ0:>=.obj)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
