@@ -47,6 +47,7 @@ static double pupdate = 0.1;      /* probability of update */
 static unsigned ngen = 0;         /* number of generations specified */
 static mps_gen_param_s gen[genLIMIT]; /* generation parameters */
 static size_t arenasize = 256ul * 1024 * 1024; /* arena size */
+static mps_align_t arena_align = 1; /* arena alignment */
 static unsigned pinleaf = FALSE;  /* are leaf objects pinned at start */
 static mps_bool_t zoned = TRUE;   /* arena allocates using zones */
 
@@ -228,6 +229,7 @@ static void arena_setup(gcthread_fn_t fn,
 {
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, arenasize);
+    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, arena_align);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, zoned);
     RESMUST(mps_arena_create_k(&arena, mps_arena_class_vm(), args));
   } MPS_ARGS_END(args);
@@ -263,6 +265,7 @@ static struct option longopts[] = {
   {"npass",     required_argument,  NULL,   'p'},
   {"gen",       required_argument,  NULL,   'g'},
   {"arena-size",required_argument,  NULL,   'm'},
+  {"arena-align",required_argument, NULL,   'a'},
   {"width",     required_argument,  NULL,   'w'},
   {"depth",     required_argument,  NULL,   'd'},
   {"preuse",    required_argument,  NULL,   'r'},
@@ -299,7 +302,7 @@ int main(int argc, char *argv[]) {
   }
   putchar('\n');
   
-  while ((ch = getopt_long(argc, argv, "ht:i:p:g:m:w:d:r:u:lx:z", longopts, NULL)) != -1)
+  while ((ch = getopt_long(argc, argv, "ht:i:p:g:m:a:w:d:r:u:lx:z", longopts, NULL)) != -1)
     switch (ch) {
     case 't':
       nthreads = (unsigned)strtoul(optarg, NULL, 10);
@@ -353,6 +356,20 @@ int main(int argc, char *argv[]) {
         }
       }
       break;
+    case 'a': {
+        char *p;
+        arena_align = (unsigned)strtoul(optarg, &p, 10);
+        switch(toupper(*p)) {
+        case 'G': arena_align <<= 30; break;
+        case 'M': arena_align <<= 20; break;
+        case 'K': arena_align <<= 10; break;
+        case '\0': break;
+        default:
+          fprintf(stderr, "Bad arena alignment %s\n", optarg);
+          return EXIT_FAILURE;
+        }
+      }
+      break;
     case 'w':
       width = (size_t)strtoul(optarg, NULL, 10);
       break;
@@ -389,6 +406,8 @@ int main(int argc, char *argv[]) {
               "    Use multiple times for multiple generations.\n"
               "  -m n, --arena-size=n[KMG]?\n"
               "    Initial size of arena (default %lu).\n"
+              "  -a n, --arena-align=n[KMG]?\n"
+              "    Alignment of arena (default %lu).\n"
               "  -w n, --width=n\n"
               "    Width of tree nodes made (default %lu)\n",
               argv[0],
@@ -396,6 +415,7 @@ int main(int argc, char *argv[]) {
               niter,
               npass,
               (unsigned long)arenasize,
+              (unsigned long)arena_align,
               (unsigned long)width);
       fprintf(stderr,
               "  -d n, --depth=n\n"

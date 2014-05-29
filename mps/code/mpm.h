@@ -98,6 +98,7 @@ extern Addr (AddrAlignDown)(Addr addr, Align align);
 #define IndexAlignUp(s, a)      ((Index)WordAlignUp((Word)(s), a))
 #define IndexAlignDown(s, a)    ((Index)WordAlignDown((Word)(s), a))
 
+#define AlignAlignUp(a1, a2) ((Align)WordAlignUp((Word)(a1), a2))
 #define AlignIsAligned(a1, a2)  WordIsAligned((Word)(a1), a2)
 
 
@@ -992,7 +993,7 @@ extern Res RootsIterate(Globals arena, RootIterateFn f, void *p);
 extern Align VMAlign(VM vm);
 extern Bool VMCheck(VM vm);
 extern Res VMParamFromArgs(void *params, size_t paramSize, ArgList args);
-extern Res VMCreate(VM *VMReturn, Size size, void *params);
+extern Res VMCreate(VM *VMReturn, Size size, Align align, void *params);
 extern void VMDestroy(VM vm);
 extern Addr VMBase(VM vm);
 extern Addr VMLimit(VM vm);

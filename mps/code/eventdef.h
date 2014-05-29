@@ -36,7 +36,7 @@
  */
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
-#define EVENT_VERSION_MEDIAN ((unsigned)2)
+#define EVENT_VERSION_MEDIAN ((unsigned)3)
 #define EVENT_VERSION_MINOR  ((unsigned)0)
 
 
@@ -370,8 +370,9 @@
 
 #define EVENT_VMCreate_PARAMS(PARAM, X) \
   PARAM(X,  0, P, vm) \
-  PARAM(X,  1, A, base) \
-  PARAM(X,  2, A, limit)
+  PARAM(X,  1, W, align) \
+  PARAM(X,  2, A, base) \
+  PARAM(X,  3, A, limit)
 
 #define EVENT_VMDestroy_PARAMS(PARAM, X) \
   PARAM(X,  0, P, vm)
