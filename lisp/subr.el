@@ -2168,7 +2168,12 @@ floating point support."
     ;; FIXME: we should not read-event here at all, because it's much too
     ;; difficult to reliably "undo" a read-event by pushing it onto
     ;; unread-command-events.
-    (let ((read (read-event nil t seconds)))
+    ;; For bug#14782, we need read-event to do the keyboard-coding-system
+    ;; decoding (hence non-nil as second arg under POSIX ttys).
+    ;; For bug#15614, we need read-event not to inherit-input-method.
+    ;; So we temporarily suspend input-method-function.
+    (let ((read (let ((input-method-function nil))
+                  (read-event nil t seconds))))
       (or (null read)
 	  (progn
 	    ;; If last command was a prefix arg, e.g. C-u, push this event onto
