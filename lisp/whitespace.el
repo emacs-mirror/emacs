@@ -1737,13 +1737,14 @@ before calling `whitespace-report-region' interactively, it
 forces `whitespace-style' to have:
 
    empty
+   trailing
    indentation
    space-before-tab
-   trailing
    space-after-tab
 
-If REPORT-IF-BOGUS is non-nil, it reports only when there are any
-whitespace problems in buffer.
+If REPORT-IF-BOGUS is t, it reports only when there are any
+whitespace problems in buffer; if it is `never', it does not
+report problems.
 
 Report if some of the following whitespace problems exist:
 
@@ -1798,7 +1799,7 @@ cleaning up these problems."
 		     (and (re-search-forward regexp rend t)
 			  (setq has-bogus t))))
 	       whitespace-report-list)))
-	(when (if report-if-bogus has-bogus t)
+	(when (pcase report-if-bogus (`nil t) (`never nil) (_ has-bogus))
 	  (whitespace-kill-buffer whitespace-report-buffer-name)
 	  ;; `whitespace-indent-tabs-mode' is local to current buffer
 	  ;; `whitespace-tab-width' is local to current buffer

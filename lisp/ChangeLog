@@ -2,6 +2,8 @@
 
 	* whitespace.el (whitespace-report-region): Simplify
 	documentation.
+	(whitespace-report-region): Allow report-if-bogus to take the
+	value `never', for non-interactive use.
 	(whitespace-report): Refer to whitespace-report-region's
 	documentation.
 
