@@ -124,9 +124,10 @@ _`.limit.zones`: ``CBSLandClass`` and ``CBSFastLandClass`` do not
 support the ``LandFindInZones()`` generic function (the subclass
 ``CBSZonedLandClass`` does support this operation).
 
-_`.limit.iterate`: CBS does not support visitors setting
-``deleteReturn`` to ``TRUE`` when iterating over ranges with
-``LandIterate()``.
+_`.limit.iterate`: CBS does not provide an implementation for the
+``LandIterateAndDelete()`` generic function. This is because
+``TreeTraverse()`` does not permit modification, for speed and to
+avoid perturbing the splay tree balance.
 
 _`.limit.flush`: CBS cannot be used as the source in a call to
 ``LandFlush()``. (Because of `.limit.iterate`_.)
@@ -220,6 +221,11 @@ might be used for block sizes less than a word-width of grains,
 converting them when they reach all free in the bit set. Note that
 this would make coalescence slightly less eager, by up to
 ``(word-width - 1)``.
+
+_`.future.iterate.and.delete`: It would be possible to provide an
+implementation for the ``LandIterateAndDelete()`` generic function by
+calling ``TreeToVine()`` first, and then iterating over the vine
+(where deletion is straightforward).
 
 
 Risks

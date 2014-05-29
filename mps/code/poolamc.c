@@ -454,7 +454,6 @@ typedef struct AMCStruct { /* <design/poolamc/#struct> */
   RankSet rankSet;         /* rankSet for entire pool */
   RingStruct genRing;      /* ring of generations */
   Bool gensBooted;         /* used during boot (init) */
-  Chain chain;             /* chain used by this pool */
   size_t gens;             /* number of generations */
   amcGen *gen;             /* (pointer to) array of generations */
   amcGen nursery;          /* the default mutator generation */
@@ -642,12 +641,12 @@ DEFINE_BUFFER_CLASS(amcBufClass, class)
 
 /* amcGenCreate -- create a generation */
 
-static Res amcGenCreate(amcGen *genReturn, AMC amc, Serial genNr)
+static Res amcGenCreate(amcGen *genReturn, AMC amc, GenDesc gen)
 {
   Arena arena;
   Buffer buffer;
   Pool pool;
-  amcGen gen;
+  amcGen amcgen;
   Res res;
   void *p;
 
@@ -657,25 +656,25 @@ static Res amcGenCreate(amcGen *genReturn, AMC amc, Serial genNr)
   res = ControlAlloc(&p, arena, sizeof(amcGenStruct), FALSE);
   if(res != ResOK)
     goto failControlAlloc;
-  gen = (amcGen)p;
+  amcgen = (amcGen)p;
 
   res = BufferCreate(&buffer, EnsureamcBufClass(), pool, FALSE, argsNone);
   if(res != ResOK)
     goto failBufferCreate;
 
-  res = PoolGenInit(&gen->pgen, amc->chain, genNr, pool);
+  res = PoolGenInit(&amcgen->pgen, gen, pool);
   if(res != ResOK)
     goto failGenInit;
-  RingInit(&gen->amcRing);
-  gen->segs = 0;
-  gen->forward = buffer;
-  gen->sig = amcGenSig;
+  RingInit(&amcgen->amcRing);
+  amcgen->segs = 0;
+  amcgen->forward = buffer;
+  amcgen->sig = amcGenSig;
 
-  AVERT(amcGen, gen);
+  AVERT(amcGen, amcgen);
 
-  RingAppend(&amc->genRing, &gen->amcRing);
-  EVENT2(AMCGenCreate, amc, gen);
-  *genReturn = gen;
+  RingAppend(&amc->genRing, &amcgen->amcRing);
+  EVENT2(AMCGenCreate, amc, amcgen);
+  *genReturn = amcgen;
   return ResOK;
 
 failGenInit:
@@ -718,8 +717,7 @@ static Res amcGenDescribe(amcGen gen, mps_lib_FILE *stream)
     return ResFAIL;
 
   res = WriteF(stream,
-               "  amcGen $P ($U) {\n",
-               (WriteFP)gen, (WriteFU)amcGenNr(gen),
+               "  amcGen $P {\n", (WriteFP)gen,
                "   buffer $P\n", gen->forward,
                "   segs $U, totalSize $U, newSize $U\n",
                (WriteFU)gen->segs,
@@ -801,6 +799,7 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   size_t genArraySize;
   size_t genCount;
   Bool interior = AMC_INTERIOR_DEFAULT;
+  Chain chain;
   ArgStruct arg;
   
   /* Suppress a warning about this structure not being used when there
@@ -821,14 +820,14 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   pool->format = arg.val.format;
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
-    amc->chain = arg.val.chain;
+    chain = arg.val.chain;
   else
-    amc->chain = ArenaGlobals(arena)->defaultChain;
+    chain = ArenaGlobals(arena)->defaultChain;
   if (ArgPick(&arg, args, MPS_KEY_INTERIOR))
     interior = arg.val.b;
   
   AVERT(Format, pool->format);
-  AVERT(Chain, amc->chain);
+  AVERT(Chain, chain);
   pool->alignment = pool->format->alignment;
   amc->rankSet = rankSet;
 
@@ -864,7 +863,7 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   AVERT(AMC, amc);
 
   /* Init generations. */
-  genCount = ChainGens(amc->chain);
+  genCount = ChainGens(chain);
   {
     void *p;
 
@@ -874,11 +873,10 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
     if(res != ResOK)
       goto failGensAlloc;
     amc->gen = p;
-    for(i = 0; i < genCount + 1; ++i) {
-      res = amcGenCreate(&amc->gen[i], amc, (Serial)i);
-      if(res != ResOK) {
+    for (i = 0; i <= genCount; ++i) {
+      res = amcGenCreate(&amc->gen[i], amc, ChainGen(chain, i));
+      if (res != ResOK)
         goto failGenAlloc;
-      }
     }
     /* Set up forwarding buffers. */
     for(i = 0; i < genCount; ++i) {
@@ -1020,8 +1018,8 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   alignedSize = SizeAlignUp(size, ArenaAlign(arena));
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, amcKeySegGen, p, gen);
-    res = ChainAlloc(&seg, amc->chain, PoolGenNr(pgen), amcSegClassGet(),
-                     alignedSize, pool, withReservoirPermit, args);
+    res = PoolGenAlloc(&seg, pgen, amcSegClassGet(), alignedSize,
+                       withReservoirPermit, args);
   } MPS_ARGS_END(args);
   if(res != ResOK)
     return res;

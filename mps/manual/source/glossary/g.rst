@@ -89,7 +89,7 @@ Memory Management Glossary: G
 
         This term is often used when referring to particular
         implementations or algorithms, for example, "the
-        Boehm-Demers-Weiser *collector*".
+        Boehm--Demers--Weiser *collector*".
 
     GB
 
@@ -132,16 +132,16 @@ Memory Management Glossary: G
         .. mps:specific::
 
             The :term:`client program` specifies the generational
-            structure of a :term:`pool` using a :term:`generation
-            chain`. See :ref:`topic-collection`.
+            structure of a :term:`pool` (or group of pools) using a
+            :term:`generation chain`. See :ref:`topic-collection`.
 
     generation chain
 
         .. mps:specific:: 
 
             A data structure that specifies the structure of the
-            :term:`generations` in a :term:`pool`. See
-            :ref:`topic-collection`.
+            :term:`generations` in a :term:`pool` (or group of pools).
+            See :ref:`topic-collection`.
 
     generation scavenging
 
@@ -173,6 +173,11 @@ Memory Management Glossary: G
         sets are unnecessary.
 
         .. seealso:: :term:`remembered set`.
+
+        .. mps:specific::
+
+            The :ref:`pool-amc` and :ref:`pool-amcz` pool classes
+            support generational garbage collection.
 
     generational hypothesis
 

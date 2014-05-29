@@ -52,13 +52,11 @@ static Res oomAlloc(Addr *pReturn, Pool pool, Size size,
   UNUSED(pool);
   UNUSED(size);
   UNUSED(withReservoirPermit);
-  switch (rnd() % 4) {
+  switch (rnd() % 3) {
   case 0:
     return ResRESOURCE;
   case 1:
     return ResMEMORY;
-  case 2:
-    return ResLIMIT;
   default:
     return ResCOMMIT_LIMIT;
   }

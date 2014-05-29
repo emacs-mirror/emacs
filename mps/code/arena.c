@@ -360,6 +360,8 @@ static void arenaMFSPageFreeVisitor(Pool pool, Addr base, Size size,
                                     void *closureP, Size closureS)
 {
   AVERT(Pool, pool);
+  AVER(closureP == UNUSED_POINTER);
+  AVER(closureS == UNUSED_SIZE);
   UNUSED(closureP);
   UNUSED(closureS);
   UNUSED(size);
@@ -386,9 +388,9 @@ void ArenaDestroy(Arena arena)
   LandFinish(ArenaFreeLand(arena));
 
   /* The CBS block pool can't free its own memory via ArenaFree because
-     that would use the CBSZoned. */
-  MFSFinishTracts(ArenaCBSBlockPool(arena),
-                  arenaMFSPageFreeVisitor, NULL, 0);
+     that would use the freeLand. */
+  MFSFinishTracts(ArenaCBSBlockPool(arena), arenaMFSPageFreeVisitor,
+                  UNUSED_POINTER, UNUSED_SIZE);
   PoolFinish(ArenaCBSBlockPool(arena));
 
   /* Call class-specific finishing.  This will call ArenaFinish. */
@@ -687,7 +689,7 @@ static Res arenaExtendCBSBlockPool(Range pageRangeReturn, Arena arena)
   return ResOK;
 }
 
-/* arenaExcludePage -- exclude CBS block pool's page from Land
+/* arenaExcludePage -- exclude CBS block pool's page from free land
  *
  * Exclude the page we specially allocated for the CBS block pool
  * so that it doesn't get reallocated.
@@ -843,7 +845,7 @@ static Res arenaAllocFromLand(Tract *tractReturn, ZoneSet zones, Bool high,
   Arena arena;
   RangeStruct range, oldRange;
   Chunk chunk;
-  Bool b;
+  Bool found, b;
   Index baseIndex;
   Count pages;
   Res res;
@@ -860,8 +862,8 @@ static Res arenaAllocFromLand(Tract *tractReturn, ZoneSet zones, Bool high,
 
   /* Step 1. Find a range of address space. */
   
-  res = LandFindInZones(&range, &oldRange, ArenaFreeLand(arena),
-                       size, zones, high);
+  res = LandFindInZones(&found, &range, &oldRange, ArenaFreeLand(arena),
+                        size, zones, high);
 
   if (res == ResLIMIT) { /* found block, but couldn't store info */
     RangeStruct pageRange;
@@ -869,17 +871,17 @@ static Res arenaAllocFromLand(Tract *tractReturn, ZoneSet zones, Bool high,
     if (res != ResOK) /* disastrously short on memory */
       return res;
     arenaExcludePage(arena, &pageRange);
-    res = LandFindInZones(&range, &oldRange, ArenaFreeLand(arena),
-                         size, zones, high);
+    res = LandFindInZones(&found, &range, &oldRange, ArenaFreeLand(arena),
+                          size, zones, high);
     AVER(res != ResLIMIT);
   }
-
-  if (res == ResFAIL) /* out of address space */
-    return ResRESOURCE;
 
   AVER(res == ResOK); /* unexpected error from ZoneCBS */
   if (res != ResOK) /* defensive return */
     return res;
+
+  if (!found) /* out of address space */
+    return ResRESOURCE;
   
   /* Step 2. Make memory available in the address space range. */
 

@@ -14,7 +14,7 @@ SRCID(freelist, "$Id$");
 
 
 #define freelistOfLand(land) PARENT(FreelistStruct, landStruct, land)
-#define freelistAlignment(fl) LandAlignment(&fl->landStruct)
+#define freelistAlignment(fl) LandAlignment(&(fl)->landStruct)
 
 
 typedef union FreelistBlockUnion {
@@ -32,7 +32,7 @@ typedef union FreelistBlockUnion {
 /* freelistEND -- the end of a list
  *
  * The end of a list should not be represented with NULL, as this is
- * ambiguous. However, freelistEND in fact a null pointer for
+ * ambiguous. However, freelistEND is in fact a null pointer, for
  * performance. To check whether you have it right, try temporarily
  * defining freelistEND as ((FreelistBlock)2) or similar (it must be
  * an even number because of the use of a tag).
@@ -246,6 +246,12 @@ static Size freelistSize(Land land)
  * Otherwise, if next is freelistEND, make prev the last block in the list.
  * Otherwise, make next follow prev in the list.
  * Update the count of blocks by 'delta'.
+
+ * It is tempting to try to simplify this code by putting a
+ * FreelistBlockUnion into the FreelistStruct and so avoiding the
+ * special case on prev. But the problem with that idea is that we
+ * can't guarantee that such a sentinel would respect the isolated
+ * range invariant, and so it would still have to be special-cases.
  */
 
 static void freelistBlockSetPrevNext(Freelist fl, FreelistBlock prev,
@@ -438,8 +444,32 @@ static Res freelistDelete(Range rangeReturn, Land land, Range range)
 }
 
 
-static void freelistIterate(Land land, LandVisitor visitor,
+static Bool freelistIterate(Land land, LandVisitor visitor,
                             void *closureP, Size closureS)
+{
+  Freelist fl;
+  FreelistBlock cur;
+
+  AVERT(Land, land);
+  fl = freelistOfLand(land);
+  AVERT(Freelist, fl);
+  AVER(FUNCHECK(visitor));
+  /* closureP and closureS are arbitrary */
+
+  for (cur = fl->list; cur != freelistEND; cur = FreelistBlockNext(cur)) {
+    RangeStruct range;
+    Bool cont;
+    RangeInit(&range, FreelistBlockBase(cur), FreelistBlockLimit(fl, cur));
+    cont = (*visitor)(land, &range, closureP, closureS);
+    if (!cont)
+      return FALSE;
+  }
+  return TRUE;
+}
+
+
+static Bool freelistIterateAndDelete(Land land, LandDeleteVisitor visitor,
+                                     void *closureP, Size closureS)
 {
   Freelist fl;
   FreelistBlock prev, cur, next;
@@ -448,6 +478,7 @@ static void freelistIterate(Land land, LandVisitor visitor,
   fl = freelistOfLand(land);
   AVERT(Freelist, fl);
   AVER(FUNCHECK(visitor));
+  /* closureP and closureS are arbitrary */
 
   prev = freelistEND;
   cur = fl->list;
@@ -468,8 +499,9 @@ static void freelistIterate(Land land, LandVisitor visitor,
     }
     cur = next;
     if (!cont)
-      break;
+      return FALSE;
   }
+  return TRUE;
 }
 
 
@@ -640,8 +672,8 @@ static Bool freelistFindLargest(Range rangeReturn, Range oldRangeReturn,
 }
 
 
-static Res freelistFindInZones(Range rangeReturn, Range oldRangeReturn,
-                               Land land, Size size,
+static Res freelistFindInZones(Bool *foundReturn, Range rangeReturn,
+                               Range oldRangeReturn, Land land, Size size,
                                ZoneSet zoneSet, Bool high)
 {
   Freelist fl;
@@ -665,16 +697,14 @@ static Res freelistFindInZones(Range rangeReturn, Range oldRangeReturn,
   search = high ? RangeInZoneSetLast : RangeInZoneSetFirst;
 
   if (zoneSet == ZoneSetEMPTY)
-    return ResFAIL;
+    goto fail;
   if (zoneSet == ZoneSetUNIV) {
     FindDelete fd = high ? FindDeleteHIGH : FindDeleteLOW;
-    if ((*landFind)(rangeReturn, oldRangeReturn, land, size, fd))
-      return ResOK;
-    else
-      return ResFAIL;
+    *foundReturn = (*landFind)(rangeReturn, oldRangeReturn, land, size, fd);
+    return ResOK;
   }
   if (ZoneSetIsSingle(zoneSet) && size > ArenaStripeSize(LandArena(land)))
-    return ResFAIL;
+    goto fail;
 
   prev = freelistEND;
   cur = fl->list;
@@ -697,10 +727,15 @@ static Res freelistFindInZones(Range rangeReturn, Range oldRangeReturn,
   }
 
   if (!found)
-    return ResFAIL;
+    goto fail;
 
   freelistDeleteFromBlock(oldRangeReturn, fl, &foundRange, foundPrev, foundCur);
   RangeCopy(rangeReturn, &foundRange);
+  *foundReturn = TRUE;
+  return ResOK;
+
+fail:
+  *foundReturn = FALSE;
   return ResOK;
 }
 
@@ -711,17 +746,16 @@ static Res freelistFindInZones(Range rangeReturn, Range oldRangeReturn,
  * closureP.
  */
 
-static Bool freelistDescribeVisitor(Bool *deleteReturn, Land land, Range range,
+static Bool freelistDescribeVisitor(Land land, Range range,
                                     void *closureP, Size closureS)
 {
   Res res;
   mps_lib_FILE *stream = closureP;
 
-  if (deleteReturn == NULL) return FALSE;
   if (!TESTT(Land, land)) return FALSE;
   if (!RangeCheck(range)) return FALSE;
   if (stream == NULL) return FALSE;
-  UNUSED(closureS);
+  if (closureS != UNUSED_SIZE) return FALSE;
 
   res = WriteF(stream,
                "  [$P,", (WriteFP)RangeBase(range),
@@ -737,6 +771,7 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream)
 {
   Freelist fl;
   Res res;
+  Bool b;
 
   if (!TESTT(Land, land)) return ResFAIL;
   fl = freelistOfLand(land);
@@ -748,7 +783,8 @@ static Res freelistDescribe(Land land, mps_lib_FILE *stream)
                "  listSize = $U\n", (WriteFU)fl->listSize,
                NULL);
 
-  LandIterate(land, freelistDescribeVisitor, stream, 0);
+  b = LandIterate(land, freelistDescribeVisitor, stream, UNUSED_SIZE);
+  if (!b) return ResFAIL;
 
   res = WriteF(stream, "}\n", NULL);
   return res;
@@ -766,6 +802,7 @@ DEFINE_LAND_CLASS(FreelistLandClass, class)
   class->insert = freelistInsert;
   class->delete = freelistDelete;
   class->iterate = freelistIterate;
+  class->iterateAndDelete = freelistIterateAndDelete;
   class->findFirst = freelistFindFirst;
   class->findLast = freelistFindLast;
   class->findLargest = freelistFindLargest;

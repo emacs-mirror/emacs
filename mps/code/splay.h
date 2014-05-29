@@ -69,7 +69,7 @@ extern Bool SplayFindLast(Tree *nodeReturn, SplayTree splay,
                           void *closureP, Size closureS);
 
 extern void SplayNodeRefresh(SplayTree splay, Tree node);
-extern void SplayNodeUpdate(SplayTree splay, Tree node);
+extern void SplayNodeInit(SplayTree splay, Tree node);
 
 extern Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream,
                              TreeDescribeMethod nodeDescribe);

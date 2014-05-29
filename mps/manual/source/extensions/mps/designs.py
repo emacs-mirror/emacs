@@ -20,12 +20,12 @@ TYPES = '''
 
     AccessSet Accumulation Addr Align AllocFrame AllocPattern AP Arg
     Arena Attr Bool BootBlock BT Buffer BufferMode Byte Chain Chunk
-    Clock Compare Count Epoch FindDelete Format FrameState Fun Globals
-    Index Land LD Lock Message MessageType MutatorFaultContext Page
-    Pointer Pool PThreadext Range Rank RankSet Ref RefSet Res
-    Reservoir Ring Root RootMode RootVar ScanState Seg SegBuf SegPref
-    SegPrefKind Serial Shift Sig Size Space SplayNode SplayTree
-    StackContext Thread Trace TraceId TraceSet TraceStartWhy
+    Clock Compare Count Epoch FindDelete Format FrameState Fun GenDesc
+    Globals Index Land LD Lock Message MessageType MutatorFaultContext
+    Page Pointer Pool PoolGen PThreadext Range Rank RankSet Ref RefSet
+    Res Reservoir Ring Root RootMode RootVar ScanState Seg SegBuf
+    SegPref SegPrefKind Serial Shift Sig Size Space SplayNode
+    SplayTree StackContext Thread Trace TraceId TraceSet TraceStartWhy
     TraceState ULongest VM Word ZoneSet
 
 '''
@@ -124,6 +124,15 @@ def convert_file(name, source, dest):
     with open(dest, 'wb') as out:
         out.write(s.encode('utf-8'))
 
+def newer(src, target):
+    """Return True if src is newer (that is, modified more recently) than
+    target, False otherwise.
+
+    """
+    return (not os.path.isfile(target)
+            or os.path.getmtime(target) < os.path.getmtime(src)
+            or os.path.getmtime(target) < os.path.getmtime(__file__))
+
 # Mini-make
 def convert_updated(app):
     app.info(bold('converting MPS design documents'))
@@ -131,11 +140,11 @@ def convert_updated(app):
         name = os.path.splitext(os.path.basename(design))[0]
         if name == 'index': continue
         converted = 'source/design/%s.rst' % name
-        if (not os.path.isfile(converted)
-            or os.path.getmtime(converted) < os.path.getmtime(design)
-            or os.path.getmtime(converted) < os.path.getmtime(__file__)):
+        if newer(design, converted):
             app.info('converting design %s' % name)
             convert_file(name, design, converted)
     for diagram in glob.iglob('../design/*.svg'):
-        shutil.copyfile(diagram, 'source/design/%s' % os.path.basename(diagram))
-        
+        target = os.path.join('source/design/', os.path.basename(diagram))
+        if newer(diagram, target):
+            shutil.copyfile(diagram, target)
+
