@@ -41,6 +41,7 @@ extern void *mmap_realloc (void **, size_t);
 extern void  mmap_free (void **);
 extern void *mmap_alloc (void **, size_t);
 
+extern void report_temacs_memory_usage (void);
 
 /* Emulation of Unix sbrk().  */
 extern void *sbrk (ptrdiff_t size);

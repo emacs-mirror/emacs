@@ -1,3 +1,12 @@
+2014-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32heap.c (report_temacs_memory_usage): New function.
+
+	* unexw32.c (unexec) [ENABLE_CHECKING]: Call
+	report_temacs_memory_usage.
+
+	* w32heap.h (report_temacs_memory_usage): Add prototype.
+
 2014-05-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't substitute sigprocmask for pthread_sigmask (Bug#17561).

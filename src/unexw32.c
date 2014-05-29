@@ -728,6 +728,10 @@ unexec (const char *new_name, const char *old_name)
     abort ();
   strcpy (p, q);
 
+#ifdef ENABLE_CHECKING
+  report_temacs_memory_usage ();
+#endif
+
   /* Make sure that the output filename has the ".exe" extension...patch
      it up if not.  */
   p = out_filename + strlen (out_filename) - 4;

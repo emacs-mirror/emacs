@@ -448,6 +448,19 @@ free_before_dump (void *ptr)
     }
 }
 
+#ifdef ENABLE_CHECKING
+void
+report_temacs_memory_usage (void)
+{
+  /* Emulate 'message', which writes to stderr in non-interactive
+     sessions.  */
+  fprintf (stderr,
+	   "Dump memory usage: Heap: %" PRIu64 "  Large blocks(%lu): %" PRIu64 "\n",
+	   (unsigned long long)committed, blocks_number,
+	   (unsigned long long)(dumped_data + DUMPED_HEAP_SIZE - bc_limit));
+}
+#endif
+
 /* Emulate getpagesize. */
 int
 getpagesize (void)
