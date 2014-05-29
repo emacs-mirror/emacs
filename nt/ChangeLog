@@ -3,6 +3,8 @@
 	* Makefile.in (DONT_INSTALL): Now empty.
 	(addsection${EXEEXT}): Remove target.
 
+	* addsection.c: File removed.
+
 2014-05-27  Fabrice Popineau  <fabrice.popineau@gmail.com>
 
 	* inc/ms-w32.h: Switch to the system heap allocation scheme
