@@ -1,3 +1,8 @@
+2014-05-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (pthread_sigmask): Look in LIB_PTHREAD too (Bug#17561).
+	Fixes configuration glitch found in <http://bugs.gnu.org/17561#59>.
+
 2014-05-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.ac (ADDSECTION, TEMACS_POST_LINK): Don't compute,

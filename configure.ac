@@ -3470,13 +3470,13 @@ esac
 AC_SUBST(BLESSMAIL_TARGET)
 
 OLD_LIBS=$LIBS
-LIBS="$LIB_MATH $LIBS"
+LIBS="$LIB_PTHREAD $LIB_MATH $LIBS"
 AC_CHECK_FUNCS(accept4 gethostname \
 getrusage get_current_dir_name \
 lrand48 random rint \
 select getpagesize setlocale \
 getrlimit setrlimit shutdown getaddrinfo \
-strsignal setitimer \
+pthread_sigmask strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
 gai_strerror sync \
 getpwent endpwent getgrent endgrent \
