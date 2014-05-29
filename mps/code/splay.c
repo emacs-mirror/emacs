@@ -945,13 +945,12 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
 
 /* SplayTreeFirst, SplayTreeNext -- iterators
  *
- * SplayTreeFirst receives a key that must precede all
- * nodes in the tree.  It returns TreeEMPTY if the tree is empty.
- * Otherwise, it splays the tree to the first node, and returns the
- * new root.
+ * SplayTreeFirst returns TreeEMPTY if the tree is empty. Otherwise,
+ * it splays the tree to the first node, and returns the new root.
  *
  * SplayTreeNext takes a tree and splays it to the successor of a key
- * and returns the new root.  Returns TreeEMPTY is there are no successors.
+ * and returns the new root. Returns TreeEMPTY is there are no
+ * successors.
  *
  * SplayTreeFirst and SplayTreeNext do not require the tree to remain
  * unmodified.
@@ -1006,7 +1005,7 @@ Tree SplayTreeNext(SplayTree splay, TreeKey oldKey) {
  */
 
 static Res SplayNodeDescribe(Tree node, mps_lib_FILE *stream,
-                             SplayNodeDescribeMethod nodeDescribe) {
+                             TreeDescribeMethod nodeDescribe) {
   Res res;
 
 #if defined(AVER_AND_CHECK)
@@ -1318,13 +1317,27 @@ void SplayNodeRefresh(SplayTree splay, Tree node)
 }
 
 
+/* SplayNodeInit -- initialize client property without splaying */
+
+void SplayNodeInit(SplayTree splay, Tree node)
+{
+  AVERT(SplayTree, splay);
+  AVERT(Tree, node);
+  AVER(!TreeHasLeft(node)); /* otherwise, call SplayNodeRefresh */
+  AVER(!TreeHasRight(node)); /* otherwise, call SplayNodeRefresh */
+  AVER(SplayHasUpdate(splay)); /* otherwise, why call? */
+
+  splay->updateNode(splay, node);
+}
+
+
 /* SplayTreeDescribe -- Describe a splay tree
  *
  * See <design/splay/#function.splay.tree.describe>.
  */
 
 Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream,
-                      SplayNodeDescribeMethod nodeDescribe) {
+                      TreeDescribeMethod nodeDescribe) {
   Res res;
 
 #if defined(AVER_AND_CHECK)
