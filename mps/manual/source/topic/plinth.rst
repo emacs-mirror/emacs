@@ -296,7 +296,7 @@ Library module
 
     This function is intended to have the same semantics as the
     :c:func:`fputc` function of the ANSI C Standard (:ref:`ISO/IEC
-    9899:1990 <ISO90>` §7.11.7.3).
+    9899:1990 <C1990>` §7.11.7.3).
 
     .. note::
 
@@ -314,7 +314,7 @@ Library module
 
     This function is intended to have the same semantics as the
     :c:func:`fputs` function of the ANSI C Standard (:ref:`ISO/IEC
-    9899:1990 <ISO90>` §7.11.7.4).
+    9899:1990 <C1990>` §7.11.7.4).
 
     Return a non-negative integer if successful, or
     :c:func:`mps_lib_get_EOF` if not.
@@ -383,7 +383,7 @@ Library module
 
     This function is intended to have the same semantics as the
     :c:func:`memcmp` function of the ANSI C Standard (:ref:`ISO/IEC
-    9899:1990 <ISO90>` §7.11.4.1).
+    9899:1990 <C1990>` §7.11.4.1).
 
     .. note::
 
@@ -406,7 +406,7 @@ Library module
 
     This function is intended to have the same semantics as the
     :c:func:`memcpy` function of the ANSI C Standard (:ref:`ISO/IEC
-    9899:1990 <ISO90>` §7.11.2.1).
+    9899:1990 <C1990>` §7.11.2.1).
 
     The MPS never passes overlapping blocks to
     :c:func:`mps_lib_memcpy`.
@@ -432,7 +432,7 @@ Library module
 
     This function is intended to have the same semantics as the
     :c:func:`memset` function of the ANSI C Standard (:ref:`ISO/IEC
-    9899:1990 <ISO90>` §7.11.6.1).
+    9899:1990 <C1990>` §7.11.6.1).
 
     .. note::
 

@@ -93,7 +93,7 @@ Memory Management Glossary: R
 
         .. link::
 
-            `Package java.lang.ref <http://download.java.net/jdk8/docs/api/java/lang/ref/package-summary.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
+            `Package java.lang.ref <http://docs.oracle.com/javase/8/docs/api/java/lang/ref/package-summary.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
 
     read barrier
 
@@ -317,7 +317,7 @@ Memory Management Glossary: R
 
         .. link::
 
-            `Package java.lang.ref <http://download.java.net/jdk8/docs/api/java/lang/ref/package-summary.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
+            `Package java.lang.ref <http://docs.oracle.com/javase/8/docs/api/java/lang/ref/package-summary.html>`_, `Reference Objects and Garbage Collection <http://pawlan.com/monica/articles/refobjs/>`_.
 
         .. bibref:: :ref:`Dybvig et al. (1993) <DBE93>`.
 
@@ -470,6 +470,11 @@ Memory Management Glossary: R
         ``mmap /dev/zero`` with no access.
 
         .. seealso:: :term:`mapping`, :term:`mmap`.
+
+        .. mps:specific::
+
+            The function :c:func:`mps_arena_reserved` returns the
+            total address space reserved by an arena.
 
     resident
 

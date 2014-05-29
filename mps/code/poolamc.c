@@ -673,7 +673,6 @@ static Res amcGenCreate(amcGen *genReturn, AMC amc, GenDesc gen)
   if(res != ResOK)
     goto failGenInit;
   RingInit(&amcgen->amcRing);
-  amcgen->segs = 0;
   amcgen->forward = buffer;
   amcgen->sig = amcGenSig;
 
@@ -714,11 +713,11 @@ static void amcGenDestroy(amcGen gen)
 
 /* amcGenDescribe -- describe an AMC generation */
 
-static Res amcGenDescribe(amcGen amcgen, mps_lib_FILE *stream)
+static Res amcGenDescribe(amcGen gen, mps_lib_FILE *stream)
 {
   Res res;
 
-  if(!TESTT(amcGen, amcgen))
+  if(!TESTT(amcGen, gen))
     return ResFAIL;
 
   res = WriteF(stream,

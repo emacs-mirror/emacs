@@ -194,7 +194,7 @@ out parameter, like this::
     res = mps_alloc((mps_addr_t *)&fp, pool, sizeof(struct foo));
 
 This is known as :term:`type punning`, and its behaviour is not
-defined in ANSI/ISO Standard C. See :ref:`ISO/IEC 9899:1990 <ISO90>`
+defined in ANSI/ISO Standard C. See :ref:`ISO/IEC 9899:1990 <C1990>`
 §6.3.2.3, which defines the conversion of a pointer from one type to
 another: the behaviour of this cast is not covered by any of the cases
 in the standard.
@@ -209,7 +209,7 @@ Instead, we recommend this approach::
 
 This has defined behaviour because conversion from ``void *`` to any
 other :term:`object pointer` type is defined by :ref:`ISO/IEC
-9899:1990 <ISO90>` §6.3.2.3.1.
+9899:1990 <C1990>` §6.3.2.3.1.
 
 
 .. index::
@@ -219,7 +219,7 @@ Macros
 ------
 
 #.  For function-like macros, the MPS follows the same convention as
-    the Standard C library. To quote :ref:`ISO/IEC 9899:1990 <ISO90>`
+    the Standard C library. To quote :ref:`ISO/IEC 9899:1990 <C1990>`
     §7.1.7:
 
         Any function declared in a header may additionally be

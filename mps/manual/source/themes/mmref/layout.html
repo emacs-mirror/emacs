@@ -17,15 +17,14 @@
 {% block content %}
     <div id="content">
       <div class="header">
-        <h1 class="heading"><a href="{{ pathto('index') }}"
-          title="Memory Management Reference"><span>Memory Management Reference</span></a></h1>
+        <h1 class="heading"><a href="{{ pathto('index') }}"><span>Memory Management Reference</span></a></h1>
       </div>
       <div class="relnav">
-        {%- if prev and '../' not in prev.link %}
+        {%- if prev and '/' not in prev.link and 'mmref-' not in prev.link %}
         <a href="{{ prev.link|e }}">&laquo; {{ prev.title }}</a> |
         {%- endif %}
         <a href="{{ pathto(current_page_name) if current_page_name else '#' }}">{{ title }}</a>
-        {%- if next and '../' not in next.link %}
+        {%- if next and '/' not in next.link and 'mmref-' not in next.link %}
         | <a href="{{ next.link|e }}">{{ next.title }} &raquo;</a>
         {%- endif %}
       </div>

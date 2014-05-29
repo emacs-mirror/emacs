@@ -19,7 +19,6 @@ typedef Bool (*SplayTestNodeMethod)(SplayTree splay, Tree node,
                                     void *closureP, Size closureS);
 typedef Bool (*SplayTestTreeMethod)(SplayTree splay, Tree node,
                                     void *closureP, Size closureS);
-typedef Res (*SplayNodeDescribeMethod)(Tree node, mps_lib_FILE *stream);
 
 typedef void (*SplayUpdateNodeMethod)(SplayTree splay, Tree node);
 extern void SplayTrivUpdate(SplayTree splay, Tree node);
@@ -70,9 +69,10 @@ extern Bool SplayFindLast(Tree *nodeReturn, SplayTree splay,
                           void *closureP, Size closureS);
 
 extern void SplayNodeRefresh(SplayTree splay, Tree node);
+extern void SplayNodeInit(SplayTree splay, Tree node);
 
 extern Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream,
-                             SplayNodeDescribeMethod nodeDescribe);
+                             TreeDescribeMethod nodeDescribe);
 
 extern void SplayDebugUpdate(SplayTree splay, Tree tree);
 
