@@ -1605,12 +1605,12 @@ To use the old font backend, use the following on the command line:
   % defaults write org.gnu.Emacs FontBackend ns
 GNUstep and Mac OS X 10.4 use the old font backend.
 
-+++
+---
 ** Improved fullscreen support on Mac OS X 10.7 and newer, where the
 default fullscreen method is now "native" fullscreen.  To use the
 old style fullscreen, customize `ns-use-native-fullscreen' to nil.
 
-+++
+---
 ** On Mac OS X 10.7 and newer, Emacs can use sRGB colorspace, and does so
 by default.  Customize `ns-use-srgb-colorspace' to go back to the old method.
 Note that this does not apply to images.
