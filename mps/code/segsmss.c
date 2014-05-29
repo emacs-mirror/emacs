@@ -40,7 +40,6 @@ extern PoolClass AMSTPoolClassGet(void);
 
 typedef struct AMSTStruct {
   AMSStruct amsStruct;      /* generic AMS structure */
-  Chain chain;              /* chain to use */
   Bool failSegs;            /* fail seg splits & merges when true */
   Count splits;             /* count of successful segment splits */
   Count merges;             /* count of successful segment merges */
@@ -335,25 +334,30 @@ static Res AMSTInit(Pool pool, ArgList args)
   Format format;
   Chain chain;
   Res res;
-  static GenParamStruct genParam = { 1024, 0.2 };
+  unsigned gen = AMS_GEN_DEFAULT;
   ArgStruct arg;
 
   AVERT(Pool, pool);
+  AVERT(ArgList, args);
   
+  if (ArgPick(&arg, args, MPS_KEY_CHAIN))
+    chain = arg.val.chain;
+  else {
+    chain = ArenaGlobals(PoolArena(pool))->defaultChain;
+    gen = 1; /* avoid the nursery of the default chain by default */
+  }
+  if (ArgPick(&arg, args, MPS_KEY_GEN))
+    gen = arg.val.u;
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
   
-  res = ChainCreate(&chain, pool->arena, 1, &genParam);
-  if (res != ResOK)
-    return res;
-  res = AMSInitInternal(Pool2AMS(pool), format, chain, 0, FALSE);
+  res = AMSInitInternal(Pool2AMS(pool), format, chain, gen, FALSE);
   if (res != ResOK)
     return res;
   amst = Pool2AMST(pool);
   ams = Pool2AMS(pool);
   ams->segSize = AMSTSegSizePolicy;
   ams->segClass = AMSTSegClassGet;
-  amst->chain = chain;
   amst->failSegs = TRUE;
   amst->splits = 0;
   amst->merges = 0;
@@ -388,7 +392,6 @@ static void AMSTFinish(Pool pool)
 
   AMSFinish(pool);
   amst->sig = SigInvalid;
-  ChainDestroy(amst->chain);
 }
 
 
@@ -758,14 +761,19 @@ static void *test(void *arg, size_t s)
   mps_ap_t busy_ap;
   mps_addr_t busy_init;
   const char *indent = "    ";
+  mps_chain_t chain;
+  static mps_gen_param_s genParam = {1024, 0.2};
 
   arena = (mps_arena_t)arg;
   (void)s; /* unused */
 
   die(mps_fmt_create_A(&format, arena, dylan_fmt_A()), "fmt_create");
+  die(mps_chain_create(&chain, arena, 1, &genParam), "chain_create");
 
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
+    MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
+    MPS_ARGS_ADD(args, MPS_KEY_GEN, 0);
     die(mps_pool_create_k(&pool, arena, mps_class_amst(), args),
         "pool_create(amst)");
   } MPS_ARGS_END(args);
@@ -843,6 +851,7 @@ static void *test(void *arg, size_t s)
   mps_root_destroy(exactRoot);
   mps_root_destroy(ambigRoot);
   mps_pool_destroy(pool);
+  mps_chain_destroy(chain);
   mps_fmt_destroy(format);
 
   return NULL;

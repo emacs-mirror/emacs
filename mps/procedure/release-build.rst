@@ -102,6 +102,10 @@ All relative paths are relative to
 
    On other platforms they are as shown above.
 
+#. Check that there are no performance regressions by comparing the
+   benchmarks (``djbench`` and ``gcbench``) for the last release and
+   this one.
+
 
 5. Making the release (automated procedure)
 -------------------------------------------

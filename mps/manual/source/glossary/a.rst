@@ -103,6 +103,26 @@ Memory Management Glossary: A
 
         .. seealso:: :term:`virtual address space`, :term:`physical address space`.
 
+    address space layout randomization
+
+        .. aka:: *ASLR*.
+
+        The random placement in :term:`address space` of the
+        :term:`stack`, data segment, :term:`heap`, and so on, of a
+        process.
+
+        The purpose of ASLR is to make it harder for an attacker to
+        exploit buffer overflow bugs, by making it harder to determine
+        the addresses of data structures.
+
+        .. mps:specific::
+
+            ASLR also makes it hard to prepare a repeatable test case
+            for a program that performs computation based on the
+            addresses of objects, for example, hashing objects by
+            their address. See :ref:`guide-debug-aslr` for techniques
+            to deal with this.
+
     address translation cache
 
         .. see:: :term:`translation lookaside buffer`.
@@ -182,7 +202,11 @@ Memory Management Glossary: A
         .. mps:specific::
 
             An alignment is represented by the unsigned integral type
-            :c:type:`mps_align_t`. It must be a positive power of 2.
+            :c:type:`mps_align_t`. It must be a power of 2. The
+            alignment of objects allocated in a :term:`pool` may be
+            specified by passing the :c:macro:`MPS_KEY_ALIGN`
+            :term:`keyword argument` when calling
+            :c:func:`mps_pool_create_k`.
 
     alive
 
@@ -389,6 +413,10 @@ Memory Management Glossary: A
             class of :term:`arenas`. Arena classes include
             :term:`client arenas` and :term:`virtual memory arenas`.
 
+    ASLR
+
+        .. see:: :term:`address space layout randomization`.
+
     assertion
 
         A declaration in a program of a condition that is expected
@@ -451,6 +479,12 @@ Memory Management Glossary: A
         .. similar:: :term:`garbage collection`.
 
         .. opposite:: :term:`manual memory management`.
+
+        .. mps:specific::
+
+            The MPS provides automatic memory management through
+            :term:`pool classes` such as :ref:`pool-amc`,
+            :ref:`pool-ams`, and :ref:`pool-awl`.
 
     automatic storage duration
 
