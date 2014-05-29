@@ -1,3 +1,7 @@
+2014-05-29  Reuben Thomas  <rrt@sc3d.org>
+
+	* whitespace.el (whitespace-report): Simplify documentation.
+
 2014-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* whitespace.el: Use font-lock-flush.  Minimize refontifications.

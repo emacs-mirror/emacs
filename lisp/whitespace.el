@@ -1737,21 +1737,14 @@ whitespace problems in buffer.
 
 Report if some of the following whitespace problems exist:
 
-* If `indent-tabs-mode' is non-nil:
    empty		1. empty lines at beginning of buffer.
    empty		2. empty lines at end of buffer.
    trailing		3. SPACEs or TABs at end of line.
-   indentation		4. 8 or more SPACEs at beginning of line.
-   space-before-tab	5. SPACEs before TAB.
-   space-after-tab	6. 8 or more SPACEs after TAB.
-
-* If `indent-tabs-mode' is nil:
-   empty		1. empty lines at beginning of buffer.
-   empty		2. empty lines at end of buffer.
-   trailing		3. SPACEs or TABs at end of line.
-   indentation		4. TABS at beginning of line.
-   space-before-tab	5. SPACEs before TAB.
-   space-after-tab	6. 8 or more SPACEs after TAB.
+   space-before-tab	4. SPACEs before TAB.
+   space-after-tab	5. 8 or more SPACEs after TAB.
+   indentation		6. If `indent-tabs-mode':
+                           8 or more SPACEs at beginning of line
+                           else: TABS at beginning of line.
 
 See `whitespace-style' for documentation.
 See also `whitespace-cleanup' and `whitespace-cleanup-region' for
