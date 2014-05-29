@@ -22,6 +22,7 @@ garbage collection>` for :term:`C` exist as add-on libraries.
 
 .. link::
 
+    `Memory Pool System <http://www.ravenbrook.com/project/mps/>`_,
     `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_.
 
 
@@ -130,6 +131,7 @@ semi-conservative garbage collectors for C++.
 
 .. link::
 
+    `Memory Pool System <http://www.ravenbrook.com/project/mps/>`_,
     `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_.
 
 
@@ -163,11 +165,11 @@ In :term:`C++`, it may be that class libraries expect you to call
 
 Failing this, if there is a genuine :term:`memory leak` in a class
 library for which you don't have the source, then the only thing you
-can try is to add a :term:`garbage collector`. The Boehm–Demers–Weiser
-collector will work with C++.
+can try is to add a :term:`garbage collector`.
 
 .. link::
 
+    `Memory Pool System <http://www.ravenbrook.com/project/mps/>`_,
     `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_.
 
 
@@ -400,7 +402,7 @@ Where can I find out more about garbage collection?
 Many modern languages have :term:`garbage collection` built in, and
 the language documentation should give details. For some other
 languages, garbage collection can be added, for example via the
-Boehm–Demers–Weiser collector.
+Memory Pool System, or the Boehm–Demers–Weiser collector.
 
 .. seealso:: :term:`garbage collection`
 
@@ -408,6 +410,7 @@ Boehm–Demers–Weiser collector.
 
 .. link::
 
+    `Memory Pool System <http://www.ravenbrook.com/project/mps/>`_,
     `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_,
     `GC-LIST FAQ <http://iecc.com/gclist/GC-faq.html>`_.
 
@@ -415,14 +418,16 @@ Boehm–Demers–Weiser collector.
 Where can I get a garbage collector?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The Boehm–Demers–Weiser collector is suitable for C or C++. The best way to
-get a garbage collector, however, is to program in a language that
-provides garbage collection.
+The Memory Pool System and the Boehm–Demers–Weiser collector are
+suitable for C or C++. The best way to get a garbage collector,
+however, is to program in a language that provides garbage collection
+natively.
 
 .. seealso:: :term:`garbage collection`
 
 .. link::
 
+    `Memory Pool System <http://www.ravenbrook.com/project/mps/>`_,
     `Boehm–Demers–Weiser collector <http://hboehm.info/gc/>`_.
 
 

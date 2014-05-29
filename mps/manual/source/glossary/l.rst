@@ -81,8 +81,13 @@ Memory Management Glossary: L
             If leaf objects can be identified, a :term:`garbage
             collector` can make certain optimizations: leaf objects do
             not have to be :term:`scanned <scan>` for references nor
-            are :term:`barrier (1)` needed to detect
+            are :term:`barriers (1)` needed to detect
             and maintain references in the object.
+
+        .. mps:specific::
+
+            The :ref:`pool-amcz` and :ref:`pool-lo` pool classes are
+            designed for the storage of leaf objects.
 
     leak
 

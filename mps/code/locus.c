@@ -643,6 +643,7 @@ void LocusInit(Arena arena)
   gen->mortality = 0.51;
   RingInit(&gen->locusRing);
   gen->sig = GenDescSig;
+  AVERT(GenDesc, gen);
 }
 
 

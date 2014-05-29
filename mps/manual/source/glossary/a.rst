@@ -202,7 +202,11 @@ Memory Management Glossary: A
         .. mps:specific::
 
             An alignment is represented by the unsigned integral type
-            :c:type:`mps_align_t`. It must be a positive power of 2.
+            :c:type:`mps_align_t`. It must be a power of 2. The
+            alignment of objects allocated in a :term:`pool` may be
+            specified by passing the :c:macro:`MPS_KEY_ALIGN`
+            :term:`keyword argument` when calling
+            :c:func:`mps_pool_create_k`.
 
     alive
 
@@ -475,6 +479,12 @@ Memory Management Glossary: A
         .. similar:: :term:`garbage collection`.
 
         .. opposite:: :term:`manual memory management`.
+
+        .. mps:specific::
+
+            The MPS provides automatic memory management through
+            :term:`pool classes` such as :ref:`pool-amc`,
+            :ref:`pool-ams`, and :ref:`pool-awl`.
 
     automatic storage duration
 
