@@ -95,7 +95,7 @@
   EVENT(X, PoolFinish         , 0x0016,  TRUE, Pool) \
   EVENT(X, PoolAlloc          , 0x0017,  TRUE, Object) \
   EVENT(X, PoolFree           , 0x0018,  TRUE, Object) \
-  EVENT(X, CBSInit            , 0x0019,  TRUE, Pool) \
+  EVENT(X, LandInit           , 0x0019,  TRUE, Pool) \
   EVENT(X, Intern             , 0x001a,  TRUE, User) \
   EVENT(X, Label              , 0x001b,  TRUE, User) \
   EVENT(X, TraceStart         , 0x001c,  TRUE, Trace) \
@@ -311,8 +311,8 @@
   PARAM(X,  1, A, old) \
   PARAM(X,  2, W, size)
 
-#define EVENT_CBSInit_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, cbs) \
+#define EVENT_LandInit_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, land) \
   PARAM(X,  1, P, owner)
 
 #define EVENT_Intern_PARAMS(PARAM, X) \
