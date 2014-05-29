@@ -82,9 +82,8 @@ typedef MVFFDebugStruct *MVFFDebug;
 
 /* MVFFInsert -- add given range to free lists
  *
- * Updates MVFF counters for additional free space. Returns maximally
- * coalesced range containing given range. Does not attempt to free
- * segments (see MVFFFreeSegs).
+ * Updates rangeIO to be maximally coalesced range containing given
+ * range. Does not attempt to free segments (see MVFFFreeSegs).
  */
 static Res MVFFInsert(Range rangeIO, MVFF mvff) {
   AVERT(Range, rangeIO);

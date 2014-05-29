@@ -246,9 +246,12 @@ static Size freelistSize(Land land)
  * Otherwise, if next is freelistEND, make prev the last block in the list.
  * Otherwise, make next follow prev in the list.
  * Update the count of blocks by 'delta'.
- *
- * TODO: Consider using a sentinel FreelistBlockUnion in the FreeListStruct
- * as the end marker and see if that simplifies.
+
+ * It is tempting to try to simplify this code by putting a
+ * FreelistBlockUnion into the FreelistStruct and so avoiding the
+ * special case on prev. But the problem with that idea is that we
+ * can't guarantee that such a sentinel would respect the isolated
+ * range invariant, and so it would still have to be special-cases.
  */
 
 static void freelistBlockSetPrevNext(Freelist fl, FreelistBlock prev,
