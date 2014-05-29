@@ -1,3 +1,9 @@
+2014-05-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* frame.c, frame.h (frame_char_to_pixel_position)
+	(frame_set_mouse_position): Now static, and made private in
+	frame.c rather than public in frame.h.
+
 2014-05-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Refactor mouse positioning stuff to avoid code duplication.

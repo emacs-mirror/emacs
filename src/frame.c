@@ -1593,6 +1593,42 @@ and nil for X and Y.  */)
   return Fcons (lispy_dummy, Fcons (x, y));
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
+
+/* On frame F, convert character coordinates X and Y to pixel
+   coordinates *PIX_X and *PIX_Y.  */
+
+static void
+frame_char_to_pixel_position (struct frame *f, int x, int y,
+			      int *pix_x, int *pix_y)
+{
+  *pix_x = FRAME_COL_TO_PIXEL_X (f, x) + FRAME_COLUMN_WIDTH (f) / 2;
+  *pix_y = FRAME_LINE_TO_PIXEL_Y (f, y) + FRAME_LINE_HEIGHT (f) / 2;
+
+  if (*pix_x < 0)
+    *pix_x = 0;
+  if (*pix_x > FRAME_PIXEL_WIDTH (f))
+    *pix_x = FRAME_PIXEL_WIDTH (f);
+
+  if (*pix_y < 0)
+    *pix_y = 0;
+  if (*pix_y > FRAME_PIXEL_HEIGHT (f))
+    *pix_y = FRAME_PIXEL_HEIGHT (f);
+}
+
+/* On frame F, reposition mouse pointer to character coordinates X and Y.  */
+
+static void
+frame_set_mouse_position (struct frame *f, int x, int y)
+{
+  int pix_x, pix_y;
+
+  frame_char_to_pixel_position (f, x, y, &pix_x, &pix_y);
+  frame_set_mouse_pixel_position (f, pix_x, pix_y);
+}
+
+#endif /* HAVE_WINDOW_SYSTEM */
+
 DEFUN ("set-mouse-position", Fset_mouse_position, Sset_mouse_position, 3, 3, 0,
        doc: /* Move the mouse pointer to the center of character cell (X,Y) in FRAME.
 Coordinates are relative to the frame, not a window,

@@ -1353,38 +1353,6 @@ x_set_bitmap_icon (struct frame *f)
 }
 
 #endif /* !HAVE_NS */
-
-/* Convert character coordinates X and Y to pixel
-   coordinates PIX_X and PIX_Y on frame F.  */
-
-INLINE void
-frame_char_to_pixel_position (struct frame *f, int x, int y, int *pix_x, int *pix_y)
-{
-  *pix_x = FRAME_COL_TO_PIXEL_X (f, x) + FRAME_COLUMN_WIDTH (f) / 2;
-  *pix_y = FRAME_LINE_TO_PIXEL_Y (f, y) + FRAME_LINE_HEIGHT (f) / 2;
-
-  if (*pix_x < 0)
-    *pix_x = 0;
-  if (*pix_x > FRAME_PIXEL_WIDTH (f))
-    *pix_x = FRAME_PIXEL_WIDTH (f);
-
-  if (*pix_y < 0)
-    *pix_y = 0;
-  if (*pix_y > FRAME_PIXEL_HEIGHT (f))
-    *pix_y = FRAME_PIXEL_HEIGHT (f);
-}
-
-/* Reposition mouse pointer to character coordinates X and Y on frame F.  */
-
-INLINE
-void frame_set_mouse_position (struct frame *f, int x, int y)
-{
-  int pix_x, pix_y;
-
-  frame_char_to_pixel_position (f, x, y, &pix_x, &pix_y);
-  frame_set_mouse_pixel_position (f, pix_x, pix_y);
-}
-
 #endif /* HAVE_WINDOW_SYSTEM */
 
 INLINE void
