@@ -2181,12 +2181,16 @@ floating point support."
     (let ((read (read-event nil t seconds)))
       (or (null read)
 	  (progn
-	    ;; If last command was a prefix arg, e.g. C-u, push this event onto
-	    ;; unread-command-events as (t . EVENT) so it will be added to
-	    ;; this-command-keys by read-key-sequence.
-	    (if (eq overriding-terminal-local-map universal-argument-map)
-		(setq read (cons t read)))
-	    (push read unread-command-events)
+            ;; https://lists.gnu.org/archive/html/emacs-devel/2006-10/msg00394.html
+            ;; We want `read' appear in the next command's this-command-event
+            ;; but not in the current one.
+            ;; By pushing (cons t read), we indicate that `read' has not
+            ;; yet been recorded in this-command-keys, so it will be recorded
+            ;; next time it's read.
+            ;; And indeed the `seconds' argument to read-event correctly
+            ;; prevented recording this event in the current command's
+            ;; this-command-keys.
+	    (push (cons t read) unread-command-events)
 	    nil))))))
 
 ;; Behind display-popup-menus-p test.
