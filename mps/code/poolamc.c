@@ -877,14 +877,11 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
     if(res != ResOK)
       goto failGensAlloc;
     amc->gen = p;
-    for (i = 0; i < genCount; ++i) {
+    for (i = 0; i <= genCount; ++i) {
       res = amcGenCreate(&amc->gen[i], amc, ChainGen(chain, i));
       if (res != ResOK)
         goto failGenAlloc;
     }
-    res = amcGenCreate(&amc->gen[genCount], amc, &arena->topGen);
-    if (res != ResOK)
-      goto failGenAlloc;
     /* Set up forwarding buffers. */
     for(i = 0; i < genCount; ++i) {
       amcBufSetGen(amc->gen[i]->forward, amc->gen[i+1]);
