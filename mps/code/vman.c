@@ -19,7 +19,8 @@ SRCID(vman, "$Id$");
 /* ANSI fake VM structure, see <design/vman/> */
 typedef struct VMStruct {
   Sig sig;                      /* <design/sig/> */
-  Addr base, limit;             /* boundaries of malloc'd memory */
+  Align align;                  /* page size */
+  Addr base, limit;             /* aligned boundaries of malloc'd memory */
   void *block;                  /* pointer to malloc'd block, for free() */
   Size reserved;                /* total reserved address space */
   Size mapped;                  /* total mapped memory */
@@ -31,11 +32,12 @@ typedef struct VMStruct {
 Bool VMCheck(VM vm)
 {
   CHECKS(VM, vm);
+  CHECKD_NOSIG(Align, vm->align);
   CHECKL(vm->base != (Addr)0);
   CHECKL(vm->limit != (Addr)0);
   CHECKL(vm->base < vm->limit);
-  CHECKL(AddrIsAligned(vm->base, VMANPageALIGNMENT));
-  CHECKL(AddrIsAligned(vm->limit, VMANPageALIGNMENT));
+  CHECKL(AddrIsAligned(vm->base, vm->align));
+  CHECKL(AddrIsAligned(vm->limit, vm->align));
   CHECKL(vm->block != NULL);
   CHECKL((Addr)vm->block <= vm->base);
   CHECKL(vm->mapped <= vm->reserved);
@@ -47,8 +49,8 @@ Bool VMCheck(VM vm)
 
 Align VMAlign(VM vm)
 {
-  UNUSED(vm);
-  return VMANPageALIGNMENT;
+  AVERT(VM, vm);
+  return vm->align;
 }
 
 
@@ -63,19 +65,22 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM *vmReturn, Size size, void *params)
+Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
 {
   VM vm;
 
   AVER(vmReturn != NULL);
+  AVER(size > 0);
+  AVERT(Align, align);
   AVER(params != NULL);
+  
+  align = AlignAlignUp(align, VMANPageALIGNMENT);
 
-  /* Note that because we add VMANPageALIGNMENT rather than */
-  /* VMANPageALIGNMENT-1 we are not in danger of overflowing */
-  /* vm->limit even if malloc were perverse enough to give us */
-  /* a block at the end of memory. */
-  size = SizeAlignUp(size, VMANPageALIGNMENT) + VMANPageALIGNMENT;
-  if ((size < VMANPageALIGNMENT) || (size > (Size)(size_t)-1))
+  /* Note that because we add align rather than align-1 we are not in
+   * danger of overflowing vm->limit even if malloc were perverse
+   * enough to give us a block at the end of memory. */
+  size = SizeAlignUp(size, align) + align;
+  if ((size < align) || (size > (Size)(size_t)-1))
     return ResRESOURCE;
 
   vm = (VM)malloc(sizeof(VMStruct));
@@ -88,22 +93,23 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
     return ResMEMORY;
   }
 
-  vm->base  = AddrAlignUp((Addr)vm->block, VMANPageALIGNMENT);
-  vm->limit = AddrAdd(vm->base, size - VMANPageALIGNMENT);
+  vm->align = align;
+  vm->base  = AddrAlignUp((Addr)vm->block, align);
+  vm->limit = AddrAdd(vm->base, size - align);
   AVER(vm->limit < AddrAdd((Addr)vm->block, size));
 
   memset((void *)vm->block, VMJunkBYTE, size);
  
   /* Lie about the reserved address space, to simulate real */
   /* virtual memory. */
-  vm->reserved = size - VMANPageALIGNMENT;
+  vm->reserved = size - align;
   vm->mapped = (Size)0;
  
   vm->sig = VMSig;
 
   AVERT(VM, vm);
  
-  EVENT3(VMCreate, vm, vm->base, vm->limit);
+  EVENT4(VMCreate, vm, vm->align, vm->base, vm->limit);
   *vmReturn = vm;
   return ResOK;
 }
@@ -178,8 +184,8 @@ Res VMMap(VM vm, Addr base, Addr limit)
   AVER(vm->base <= base);
   AVER(base < limit);
   AVER(limit <= vm->limit);
-  AVER(AddrIsAligned(base, VMANPageALIGNMENT));
-  AVER(AddrIsAligned(limit, VMANPageALIGNMENT));
+  AVER(AddrIsAligned(base, vm->align));
+  AVER(AddrIsAligned(limit, vm->align));
 
   size = AddrOffset(base, limit);
   memset((void *)base, (int)0, size);
@@ -201,8 +207,8 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(vm->base <= base);
   AVER(base < limit);
   AVER(limit <= vm->limit);
-  AVER(AddrIsAligned(base, VMANPageALIGNMENT));
-  AVER(AddrIsAligned(limit, VMANPageALIGNMENT));
+  AVER(AddrIsAligned(base, vm->align));
+  AVER(AddrIsAligned(limit, vm->align));
  
   size = AddrOffset(base, limit);
   memset((void *)base, 0xCD, size);

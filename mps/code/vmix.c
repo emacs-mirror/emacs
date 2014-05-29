@@ -65,7 +65,9 @@ SRCID(vmix, "$Id$");
 typedef struct VMStruct {
   Sig sig;                      /* <design/sig/> */
   Align align;                  /* page size */
-  Addr base, limit;             /* boundaries of reserved space */
+  void *mapped_base;            /* unaligned base of mmap'd memory */
+  size_t mapped_size;           /* size of mmap'd memory */
+  Addr base, limit;             /* aligned boundaries of reserved space */
   Size reserved;                /* total reserved address space */
   Size mapped;                  /* total mapped memory */
 } VMStruct;
@@ -106,11 +108,12 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM *vmReturn, Size size, void *params)
+Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
 {
-  Align align;
   VM vm;
   int pagesize;
+  size_t mapped_size;
+  Align pagealign;
   void *addr;
   Res res;
 
@@ -119,18 +122,21 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
 
   /* Find out the page size from the OS */
   pagesize = getpagesize();
-  /* check the actual returned pagesize will fit in an object of */
-  /* type Align. */
+
+  /* Check the actual returned pagesize will fit in an object of type
+   * Align, and that it is a valid alignment. */
   AVER(pagesize > 0);
   AVER((unsigned long)pagesize <= (unsigned long)(Align)-1);
-  align = (Align)pagesize;
-  AVER(SizeIsP2(align));
+  pagealign = (Align)pagesize;
+  AVERT(Align, pagealign);
+
+  align = AlignAlignUp(align, pagealign);
   size = SizeAlignUp(size, align);
   if((size == 0) || (size > (Size)(size_t)-1))
     return ResRESOURCE;
 
-  /* Map in a page to store the descriptor on. */
-  addr = mmap(0, (size_t)SizeAlignUp(sizeof(VMStruct), align),
+  /* Map in some pages to store the descriptor on. */
+  addr = mmap(0, (size_t)SizeAlignUp(sizeof(VMStruct), pagealign),
               PROT_READ | PROT_WRITE,
               MAP_ANON | MAP_PRIVATE,
               -1, 0);
@@ -147,7 +153,7 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
   vm->align = align;
 
   /* See .assume.not-last. */
-  addr = mmap(0, (size_t)size,
+  addr = mmap(0, (size_t)(size + align - pagealign),
               PROT_NONE, MAP_ANON | MAP_PRIVATE,
               -1, 0);
   if(addr == MAP_FAILED) {
@@ -157,7 +163,8 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
     goto failReserve;
   }
 
-  vm->base = (Addr)addr;
+  vm->mapped_base = addr;
+  vm->base = AddrAlignUp(addr, align);
   vm->limit = AddrAdd(vm->base, size);
   vm->reserved = size;
   vm->mapped = (Size)0;
@@ -166,7 +173,7 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
 
   AVERT(VM, vm);
 
-  EVENT3(VMCreate, vm, vm->base, vm->limit);
+  EVENT4(VMCreate, vm, vm->align, vm->base, vm->limit);
 
   *vmReturn = vm;
   return ResOK;

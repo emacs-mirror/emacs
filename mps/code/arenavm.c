@@ -272,8 +272,9 @@ static void vmArenaUnmap(VMArena vmArena, VM vm, Addr base, Addr limit)
  * chunkReturn, return parameter for the created chunk.
  * vmArena, the parent VMArena.
  * size, approximate amount of virtual address that the chunk should reserve.
+ * align, minimum acceptable tract size
  */
-static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
+static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size, Align align)
 {
   Res res;
   Addr base, limit, chunkStructLimit;
@@ -288,12 +289,12 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
   AVERT(VMArena, vmArena);
   AVER(size > 0);
 
-  res = VMCreate(&vm, size, vmArena->vmParams);
+  res = VMCreate(&vm, size, align, vmArena->vmParams);
   if (res != ResOK)
     goto failVMCreate;
 
+  /* The VM will have adjusted align and size; pick up the actual values. */
   pageSize = VMAlign(vm);
-  /* The VM will have aligned the userSize; pick up the actual size. */
   base = VMBase(vm);
   limit = VMLimit(vm);
 
@@ -483,6 +484,7 @@ ARG_DEFINE_KEY(arena_contracted, Fun);
 static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 {
   Size userSize = VM_ARENA_SIZE_DEFAULT; /* size requested by user */
+  Align userAlign = MPS_PF_ALIGN; /* alignment requested by user */
   Size chunkSize;       /* size actually created */
   Size vmArenaSize; /* aligned size of VMArenaStruct */
   Res res;
@@ -499,19 +501,22 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   if (ArgPick(&arg, args, MPS_KEY_ARENA_SIZE))
     userSize = arg.val.size;
+  if (ArgPick(&arg, args, MPS_KEY_ALIGN))
+    userAlign = AlignAlignUp(arg.val.align, userAlign);
 
   AVER(userSize > 0);
+  AVERT(Align, userAlign);
   
-  /* Parse the arguments into VM parameters, if any.  We must do this into
-     some stack-allocated memory for the moment, since we don't have anywhere
-     else to put it.  It gets copied later. */
+  /* Parse remaining arguments, if any, into VM parameters. We must do
+     this into some stack-allocated memory for the moment, since we
+     don't have anywhere else to put it. It gets copied later. */
   res = VMParamFromArgs(vmParams, sizeof(vmParams), args);
   if (res != ResOK)
     goto failVMCreate;
 
   /* Create a VM to hold the arena and map it. */
   vmArenaSize = SizeAlignUp(sizeof(VMArenaStruct), MPS_PF_ALIGN);
-  res = VMCreate(&arenaVM, vmArenaSize, vmParams);
+  res = VMCreate(&arenaVM, vmArenaSize, userAlign, vmParams);
   if (res != ResOK)
     goto failVMCreate;
   res = VMMap(arenaVM, VMBase(arenaVM), VMLimit(arenaVM));
@@ -548,7 +553,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   /* have to have a valid arena before calling ChunkCreate */
   vmArena->sig = VMArenaSig;
-  res = VMChunkCreate(&chunk, vmArena, userSize);
+  res = VMChunkCreate(&chunk, vmArena, userSize, userAlign);
   if (res != ResOK)
     goto failChunkCreate;
 
@@ -714,7 +719,8 @@ static Res VMArenaGrow(Arena arena, SegPref pref, Size size)
                  VMArenaReserved(VMArena2Arena(vmArena)));
           return res;
         }
-        res = VMChunkCreate(&newChunk, vmArena, chunkSize);
+        res = VMChunkCreate(&newChunk, vmArena, chunkSize,
+                            VMAlign(vmArena->vm));
         if(res == ResOK)
           goto vmArenaGrow_Done;
       }

@@ -116,7 +116,7 @@ Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
 
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM *vmReturn, Size size, void *params)
+Res VMCreate(VM *vmReturn, Size size, Align align, void *params)
 {
   LPVOID vbase;
   SYSTEM_INFO si;
@@ -133,9 +133,14 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
   AVER(COMPATTYPE(SIZE_T, Size));
 
   GetSystemInfo(&si);
-  align = (Align)si.dwPageSize;
-  AVER((DWORD)align == si.dwPageSize); /* check it didn't truncate */
-  AVER(SizeIsP2(align));    /* see .assume.sysalign */
+
+  /* Check that the page size will fit in an object of type Align, and
+   * that it is a valid alignment (see .assume.sysalign). */
+  AVER(si.dwPageSize > 0);
+  AVER(si.dwPageSize <= (DWORD)(Align)-1);
+  AVERT(Align, (Align)si.dwPageSize);
+
+  align = AlignAlignUp(align, (Align)si.dwPageSize);
   size = SizeAlignUp(size, align);
   if ((size == 0) || (size > (Size)(SIZE_T)-1))
     return ResRESOURCE;
@@ -171,7 +176,7 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
   vm->sig = VMSig;
   AVERT(VM, vm);
 
-  EVENT3(VMCreate, vm, vm->base, vm->limit);
+  EVENT4(VMCreate, vm, vm->align, vm->base, vm->limit);
   *vmReturn = vm;
   return ResOK;
 
