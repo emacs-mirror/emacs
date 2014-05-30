@@ -448,7 +448,7 @@ static Bool freelistIterate(Land land, LandVisitor visitor,
                             void *closureP, Size closureS)
 {
   Freelist fl;
-  FreelistBlock cur;
+  FreelistBlock cur, next;
 
   AVERT(Land, land);
   fl = freelistOfLand(land);
@@ -456,9 +456,12 @@ static Bool freelistIterate(Land land, LandVisitor visitor,
   AVER(FUNCHECK(visitor));
   /* closureP and closureS are arbitrary */
 
-  for (cur = fl->list; cur != freelistEND; cur = FreelistBlockNext(cur)) {
+  for (cur = fl->list; cur != freelistEND; cur = next) {
     RangeStruct range;
     Bool cont;
+    /* .next.first: Take next before calling the visitor, in case the
+     * visitor touches the block. */
+    next = FreelistBlockNext(cur);
     RangeInit(&range, FreelistBlockBase(cur), FreelistBlockLimit(fl, cur));
     cont = (*visitor)(land, &range, closureP, closureS);
     if (!cont)
@@ -486,20 +489,21 @@ static Bool freelistIterateAndDelete(Land land, LandDeleteVisitor visitor,
     Bool delete = FALSE;
     RangeStruct range;
     Bool cont;
+    Size size;
+    next = FreelistBlockNext(cur); /* See .next.first. */
+    size = FreelistBlockSize(fl, cur);
     RangeInit(&range, FreelistBlockBase(cur), FreelistBlockLimit(fl, cur));
     cont = (*visitor)(&delete, land, &range, closureP, closureS);
-    next = FreelistBlockNext(cur);
     if (delete) {
-      Size size = FreelistBlockSize(fl, cur);
       freelistBlockSetPrevNext(fl, prev, next, -1);
       AVER(fl->size >= size);
       fl->size -= size;
     } else {
       prev = cur;
     }
-    cur = next;
     if (!cont)
       return FALSE;
+    cur = next;
   }
   return TRUE;
 }
