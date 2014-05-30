@@ -1,3 +1,8 @@
+2014-05-30  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/package.el (package-check-signature)
+	(package-unsigned-archives): Fix :version.
+
 2014-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (sit-for): Don't run input-methods (bug#15614).
