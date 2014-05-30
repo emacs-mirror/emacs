@@ -290,7 +290,7 @@ contrast, `package-user-dir' contains packages for personal use."
 		 (const allow-unsigned :tag "Allow unsigned")
 		 (const t :tag "Check always"))
   :risky t
-  :group 'packagea
+  :group 'package
   :version "24.4")
 
 (defcustom package-unsigned-archives nil
