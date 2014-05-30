@@ -156,8 +156,12 @@ typedef const struct SrcIdStruct {
  *
  * Use these values for unused pointer, size closure arguments and
  * check them in the callback or visitor.
+ * 
+ * We use PointerAdd rather than a cast to avoid "warning C4306: 'type
+ * cast' : conversion from 'unsigned int' to 'Pointer' of greater
+ * size" on platform w3i6mv.
  */
-#define UNUSED_POINTER ((Pointer)0xB60405ED) /* PointeR UNUSED */
+#define UNUSED_POINTER PointerAdd(0, 0xB60405ED) /* PointeR UNUSED */
 #define UNUSED_SIZE ((Size)0x520405ED) /* SiZe UNUSED */
 
 
