@@ -627,7 +627,7 @@ void PoolGenSegMerge(PoolGen pgen)
 
 /* PoolGenFree -- free a segment and update accounting
  *
- * Call this when all the memory is the segment is accounted as free.
+ * Call this when all the memory in the segment is accounted as free.
  * (If not, call PoolGenAge and then PoolGenReclaim first.)
  *
  * See <design/strategy/#accounting.op.free>
