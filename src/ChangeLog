@@ -1,3 +1,16 @@
+2014-05-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't let SIGINT handling block SIGCHLD indefinitely (Bug#17561).
+	* atimer.c (block_atimers):
+	* callproc.c (block_child_signal): Block SIGINT too;
+	otherwise, its handler might now unblock signals that it shouldn't.
+	* keyboard.c (read_char): Clear signal mask, since we may
+	be in a SIGINT handler, and many signals may be masked.
+	* keyboard.c (handle_interrupt):
+	* sysdep.c (handle_arith_signal):
+	Clear signal mask instead of just unblocking the signal that
+	was received, since several signals may be blocked at this point.
+
 2014-05-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (TEMACS_POST_LINK): Remove target.

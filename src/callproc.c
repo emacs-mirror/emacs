@@ -115,6 +115,7 @@ block_child_signal (sigset_t *oldset)
   sigset_t blocked;
   sigemptyset (&blocked);
   sigaddset (&blocked, SIGCHLD);
+  sigaddset (&blocked, SIGINT);
   pthread_sigmask (SIG_BLOCK, &blocked, oldset);
 }
 

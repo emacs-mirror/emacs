@@ -55,6 +55,7 @@ block_atimers (sigset_t *oldset)
   sigset_t blocked;
   sigemptyset (&blocked);
   sigaddset (&blocked, SIGALRM);
+  sigaddset (&blocked, SIGINT);
   pthread_sigmask (SIG_BLOCK, &blocked, oldset);
 }
 static void
@@ -404,7 +405,6 @@ turn_on_atimers (bool on)
 void
 init_atimer (void)
 {
-  struct sigaction action;
 #ifdef HAVE_ITIMERSPEC
   struct sigevent sigev;
   sigev.sigev_notify = SIGEV_SIGNAL;
@@ -413,7 +413,9 @@ init_atimer (void)
   alarm_timer_ok = timer_create (CLOCK_REALTIME, &sigev, &alarm_timer) == 0;
 #endif
   free_atimers = stopped_atimers = atimers = NULL;
-  /* pending_signals is initialized in init_keyboard.*/
+
+  /* pending_signals is initialized in init_keyboard.  */
+  struct sigaction action;
   emacs_sigaction_init (&action, handle_alarm_signal);
   sigaction (SIGALRM, &action, 0);
 }

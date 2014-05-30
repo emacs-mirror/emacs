@@ -1645,10 +1645,7 @@ deliver_fatal_thread_signal (int sig)
 static _Noreturn void
 handle_arith_signal (int sig)
 {
-  sigset_t blocked;
-  sigemptyset (&blocked);
-  sigaddset (&blocked, sig);
-  pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
+  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
   xsignal0 (Qarith_error);
 }
 

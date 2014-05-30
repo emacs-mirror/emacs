@@ -2664,6 +2664,7 @@ read_char (int commandflag, Lisp_Object map,
       /* We must have saved the outer value of getcjmp here,
 	 so restore it now.  */
       restore_getcjmp (save_jump);
+      pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
       unbind_to (jmpcount, Qnil);
       XSETINT (c, quit_char);
       internal_last_event_frame = selected_frame;
@@ -10323,9 +10324,6 @@ static void
 handle_interrupt (bool in_signal_handler)
 {
   char c;
-  sigset_t blocked;
-  sigemptyset (&blocked);
-  sigaddset (&blocked, SIGINT);
 
   cancel_echoing ();
 
@@ -10337,6 +10335,9 @@ handle_interrupt (bool in_signal_handler)
 	  /* If SIGINT isn't blocked, don't let us be interrupted by
 	     a SIGINT.  It might be harmful due to non-reentrancy
 	     in I/O functions.  */
+	  sigset_t blocked;
+	  sigemptyset (&blocked);
+	  sigaddset (&blocked, SIGINT);
 	  pthread_sigmask (SIG_BLOCK, &blocked, 0);
 	}
 
@@ -10421,7 +10422,7 @@ handle_interrupt (bool in_signal_handler)
 	  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
 	  immediate_quit = 0;
-	  pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
+	  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
 	  saved = gl_state;
 	  GCPRO4 (saved.object, saved.global_code,
 		  saved.current_syntax_table, saved.old_prop);
@@ -10442,7 +10443,7 @@ handle_interrupt (bool in_signal_handler)
         }
     }
 
-  pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
+  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
 
 /* TODO: The longjmp in this call throws the NS event loop integration off,
          and it seems to do fine without this.  Probably some attention
