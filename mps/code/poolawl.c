@@ -609,10 +609,10 @@ static void AWLFinish(Pool pool)
   RING_FOR(node, ring, nextNode) {
     Seg seg = SegOfPoolRing(node);
     AWLSeg awlseg = Seg2AWLSeg(seg);
-    PoolGenAge(&awl->pgen, AWLGrainsSize(awl, awlseg->newGrains), FALSE);
+    PoolGenAccountForAge(&awl->pgen, AWLGrainsSize(awl, awlseg->newGrains), FALSE);
     awlseg->oldGrains += awlseg->newGrains;
     awlseg->newGrains = 0;
-    PoolGenReclaim(&awl->pgen, AWLGrainsSize(awl, awlseg->oldGrains), FALSE);
+    PoolGenAccountForReclaim(&awl->pgen, AWLGrainsSize(awl, awlseg->oldGrains), FALSE);
     awlseg->freeGrains += awlseg->oldGrains;
     awlseg->oldGrains = 0;
     AVER(awlseg->freeGrains == awlseg->grains);
@@ -686,7 +686,7 @@ found:
     AVER(awlseg->freeGrains >= j - i);
     awlseg->freeGrains -= j - i;
     awlseg->newGrains += j - i;
-    PoolGenFill(&awl->pgen, AddrOffset(base, limit), FALSE);
+    PoolGenAccountForFill(&awl->pgen, AddrOffset(base, limit), FALSE);
   }
   *baseReturn = base;
   *limitReturn = limit;
@@ -725,7 +725,7 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
     AVER(awlseg->newGrains >= j - i);
     awlseg->newGrains -= j - i;
     awlseg->freeGrains += j - i;
-    PoolGenEmpty(&awl->pgen, AddrOffset(init, limit), FALSE);
+    PoolGenAccountForEmpty(&awl->pgen, AddrOffset(init, limit), FALSE);
   }
 }
 
@@ -786,7 +786,7 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
     }
   }
 
-  PoolGenAge(&awl->pgen, AWLGrainsSize(awl, awlseg->newGrains - uncondemned), FALSE);
+  PoolGenAccountForAge(&awl->pgen, AWLGrainsSize(awl, awlseg->newGrains - uncondemned), FALSE);
   awlseg->oldGrains += awlseg->newGrains - uncondemned;
   awlseg->newGrains = uncondemned;
   trace->condemned += AWLGrainsSize(awl, awlseg->oldGrains);
@@ -1166,7 +1166,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AVER(awlseg->oldGrains >= reclaimedGrains);
   awlseg->oldGrains -= reclaimedGrains;
   awlseg->freeGrains += reclaimedGrains;
-  PoolGenReclaim(&awl->pgen, AWLGrainsSize(awl, reclaimedGrains), FALSE);
+  PoolGenAccountForReclaim(&awl->pgen, AWLGrainsSize(awl, reclaimedGrains), FALSE);
 
   trace->reclaimSize += AWLGrainsSize(awl, reclaimedGrains);
   trace->preservedInPlaceCount += preservedInPlaceCount;

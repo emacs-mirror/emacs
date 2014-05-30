@@ -955,10 +955,10 @@ static void AMCFinish(Pool pool)
     amcSeg amcseg = Seg2amcSeg(seg);
 
     if (!amcseg->old) {
-      PoolGenAge(&gen->pgen, SegSize(seg), amcseg->deferred);
+      PoolGenAccountForAge(&gen->pgen, SegSize(seg), amcseg->deferred);
       amcseg->old = TRUE;
     }
-    PoolGenReclaim(&gen->pgen, SegSize(seg), amcseg->deferred);
+    PoolGenAccountForReclaim(&gen->pgen, SegSize(seg), amcseg->deferred);
     PoolGenFree(&gen->pgen, seg);
   }
 
@@ -1066,7 +1066,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
     }
   }
 
-  PoolGenFill(pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
+  PoolGenAccountForFill(pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
   *baseReturn = base;
   *limitReturn = limit;
   return ResOK;
@@ -1114,7 +1114,7 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
   /* The unused part of the buffer is not reused by AMC, so we pass 0
    * for the unused argument. This call therefore has no effect on the
    * accounting, but we call it anyway for consistency. */
-  PoolGenEmpty(&amcSegGen(seg)->pgen, 0, Seg2amcSeg(seg)->deferred);
+  PoolGenAccountForEmpty(&amcSegGen(seg)->pgen, 0, Seg2amcSeg(seg)->deferred);
 }
 
 
@@ -1302,7 +1302,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
   gen = amcSegGen(seg);
   AVERT(amcGen, gen);
   if (!amcseg->old) {
-    PoolGenAge(&gen->pgen, SegSize(seg), amcseg->deferred);
+    PoolGenAccountForAge(&gen->pgen, SegSize(seg), amcseg->deferred);
     amcseg->old = TRUE;
   }
 
@@ -2004,7 +2004,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     /* We may not free a buffered seg. */
     AVER(SegBuffer(seg) == NULL);
 
-    PoolGenReclaim(&gen->pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
+    PoolGenAccountForReclaim(&gen->pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
     PoolGenFree(&gen->pgen, seg);
   } else {
     /* Seg retained */
@@ -2083,7 +2083,7 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 
   trace->reclaimSize += SegSize(seg);
 
-  PoolGenReclaim(&gen->pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
+  PoolGenAccountForReclaim(&gen->pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
   PoolGenFree(&gen->pgen, seg);
 }
 

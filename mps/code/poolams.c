@@ -399,7 +399,7 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
   amssegHi->sig = SigInvalid;
 
   AVERT(AMSSeg, amsseg);
-  PoolGenSegMerge(&ams->pgen);
+  PoolGenAccountForSegMerge(&ams->pgen);
   return ResOK;
 
 failSuper:
@@ -505,7 +505,7 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
   amssegHi->sig = AMSSegSig;
   AVERT(AMSSeg, amsseg);
   AVERT(AMSSeg, amssegHi);
-  PoolGenSegSplit(&ams->pgen);
+  PoolGenAccountForSegSplit(&ams->pgen);
   return ResOK;
 
 failSuper:
@@ -738,10 +738,10 @@ static void AMSSegsDestroy(AMS ams)
     AMSSeg amsseg = Seg2AMSSeg(seg);
     AVER(amsseg->ams == ams);
     AMSSegFreeCheck(amsseg);
-    PoolGenAge(&ams->pgen, AMSGrainsSize(ams, amsseg->newGrains), FALSE);
+    PoolGenAccountForAge(&ams->pgen, AMSGrainsSize(ams, amsseg->newGrains), FALSE);
     amsseg->oldGrains += amsseg->newGrains;
     amsseg->newGrains = 0;
-    PoolGenReclaim(&ams->pgen, AMSGrainsSize(ams, amsseg->oldGrains), FALSE);
+    PoolGenAccountForReclaim(&ams->pgen, AMSGrainsSize(ams, amsseg->oldGrains), FALSE);
     amsseg->freeGrains += amsseg->oldGrains;
     amsseg->oldGrains = 0;
     AVER(amsseg->freeGrains == amsseg->grains);
@@ -999,7 +999,7 @@ found:
   DebugPoolFreeCheck(pool, baseAddr, limitAddr);
   allocatedSize = AddrOffset(baseAddr, limitAddr);
 
-  PoolGenFill(&ams->pgen, allocatedSize, FALSE);
+  PoolGenAccountForFill(&ams->pgen, allocatedSize, FALSE);
   *baseReturn = baseAddr;
   *limitReturn = limitAddr;
   return ResOK;
@@ -1081,7 +1081,7 @@ static void AMSBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
   AVER(amsseg->newGrains >= limitIndex - initIndex);
   amsseg->newGrains -= limitIndex - initIndex;
   size = AddrOffset(init, limit);
-  PoolGenEmpty(&ams->pgen, size, FALSE);
+  PoolGenAccountForEmpty(&ams->pgen, size, FALSE);
 }
 
 
@@ -1165,7 +1165,7 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
   }
 
   /* The unused part of the buffer remains new: the rest becomes old. */
-  PoolGenAge(&ams->pgen, AMSGrainsSize(ams, amsseg->newGrains - uncondemned), FALSE);
+  PoolGenAccountForAge(&ams->pgen, AMSGrainsSize(ams, amsseg->newGrains - uncondemned), FALSE);
   amsseg->oldGrains += amsseg->newGrains - uncondemned;
   amsseg->newGrains = uncondemned;
   amsseg->marksChanged = FALSE; /* <design/poolams/#marked.condemn> */
@@ -1625,7 +1625,7 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
   AVER(amsseg->oldGrains >= reclaimedGrains);
   amsseg->oldGrains -= reclaimedGrains;
   amsseg->freeGrains += reclaimedGrains;
-  PoolGenReclaim(&ams->pgen, AMSGrainsSize(ams, reclaimedGrains), FALSE);
+  PoolGenAccountForReclaim(&ams->pgen, AMSGrainsSize(ams, reclaimedGrains), FALSE);
   trace->reclaimSize += AMSGrainsSize(ams, reclaimedGrains);
   /* preservedInPlaceCount is updated on fix */
   trace->preservedInPlaceSize += AMSGrainsSize(ams, amsseg->oldGrains);
