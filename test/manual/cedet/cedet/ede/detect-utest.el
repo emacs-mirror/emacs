@@ -34,6 +34,10 @@
     ;( "src/ant/build.xml" . ede-ant-project-p )
     ( "src/linux/Makefile" . ede-linux-project-p )
     ( "src/linux/scripts/ver_linux" . ede-linux-project-p )
+    ;; Generic project types just key of Makefile, SCons, etc.
+    ( "src/generic/gen_make/sub/test.cpp" . ede-detect-utest-generic-p )
+    ( "src/generic/gen_scons/sub/test.cpp" . ede-detect-utest-generic-p )
+    ( "src/generic/gen_cmake/sub/test.cpp" . ede-detect-utest-generic-p )
     ;; these ROOT projects are created by hand in a .emacs file.
     ;; These need to be defined in here to get this test to work.
     ( "src/cpproot/src/main.cpp" . ede-cpp-root-project-p )
@@ -81,6 +85,10 @@ Each entry is a cons cell:
     ;; loading in the project type.
     (ede-detect-utest-init-dirmatch)
 
+    ;; Enable the generic EDE project types so we can test them.
+    (ede-enable-generic-projects)
+
+    ;; Start Logging
     (cedet-utest-log-setup "EDE DETECT")
 
     (let ((errlog nil))
@@ -233,6 +241,18 @@ Each entry is a cons cell:
        (not (eq project (ede-current-project)))
        ))
 
+(defun ede-detect-utest-generic-p (project)
+  "Special predicate for testing that a generic project was loaded."
+  (and (ede-generic-project-child-p project)
+       ;; This part also validates that generic projects can load in their
+       ;; configuration, and that we get the correct value from that configuration.
+       (let ((config (oref project config)))
+	 (and config
+	      (oref config c-preprocessor-table)
+	      (string= "TEST" (car (car (oref config c-preprocessor-table))))
+	      ))
+       ))
+
 ;;; TEST PROJECT
 ;;
 ;; This project exists to test dirmatch.
@@ -278,7 +298,8 @@ Each entry is a cons cell:
 				    ede-project-class-files))
 	 (adm (oref arduinoauto proj-root-dirmatch)))
     ;; Splice the new tmp pref file into the system.
-    (oset adm :fromconfig ede-arduino-preferences-file))
+    (oset adm :fromconfig ede-arduino-preferences-file)
+    )
 
   )
 
