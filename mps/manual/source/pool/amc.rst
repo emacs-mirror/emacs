@@ -24,8 +24,8 @@ except for blocks that are :term:`pinned <pinning>` by
 
 It uses :term:`generational garbage collection`. That is, it exploits
 assumptions about object lifetimes and inter-connection variously
-referred to as "the generational hypothesis". In particular, the
-following tendencies will be efficiently exploited by an AMC pool:
+referred to as "the :term:`generational hypothesis`". In particular,
+the following tendencies will be efficiently exploited by an AMC pool:
 
 - most objects die young;
 
@@ -72,8 +72,10 @@ AMC properties
 
 * Blocks are :term:`scanned <scan>`.
 
-* Blocks may only be referenced by :term:`base pointers` (unless they
-  have :term:`in-band headers`).
+* Blocks may be referenced by :term:`interior pointers` (unless
+  :c:macro:`MPS_KEY_INTERIOR` is set to ``FALSE``, in which case only
+  :term:`base pointers`, or :term:`client pointers` if the blocks
+  have :term:`in-band headers`, are supported).
 
 * Blocks may be protected by :term:`barriers (1)`.
 
