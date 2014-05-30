@@ -1,3 +1,12 @@
+2014-05-30  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use common string allocation and freeing functions where applicable.
+	* lwlib.h (safe_strdup): Remove prototype.
+	* lwlib.c (safe_strdup, safe_free_str): Remove.
+	(copy_widget_value_tree, allocate_widget_info, free_widget_info):
+	(merge_widget_value): Prefer xstrdup, xfree and dupstring.
+	* lwlib-Xm.c (make_destroyed_instance, xm_update_one_value): Ditto.
+
 2013-12-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use bool for boolean, focusing on headers.

@@ -71,7 +71,6 @@ static widget_value *merge_widget_value (widget_value *,
                                          widget_value *,
                                          int, int *);
 static void instantiate_widget_instance (widget_instance *);
-static void safe_free_str (char *);
 static void free_widget_value_tree (widget_value *);
 static widget_value *copy_widget_value_tree (widget_value *,
                                              change_type);
@@ -99,18 +98,6 @@ static void destroy_one_instance (widget_instance *);
 static void lw_pop_all_widgets (LWLIB_ID, Boolean);
 static Boolean get_one_value (widget_instance *, widget_value *);
 static void show_one_widget_busy (Widget, Boolean);
-/* utility functions for widget_instance and widget_info */
-char *
-safe_strdup (const char *s)
-{
-  return s ? xstrdup (s) : 0;
-}
-
-static void
-safe_free_str (char *s)
-{
-  xfree (s);
-}
 
 static widget_value *widget_value_free_list = 0;
 static int malloc_cpt = 0;
@@ -199,9 +186,9 @@ copy_widget_value_tree (widget_value *val, change_type change)
     return val;
 
   copy = malloc_widget_value ();
-  copy->name = safe_strdup (val->name);
-  copy->value = safe_strdup (val->value);
-  copy->key = safe_strdup (val->key);
+  copy->name = xstrdup (val->name);
+  copy->value = val->value ? xstrdup (val->value) : NULL;
+  copy->key = val->key ? xstrdup (val->key) : NULL;
   copy->help = val->help;
   copy->enabled = val->enabled;
   copy->button_type = val->button_type;
@@ -228,8 +215,8 @@ allocate_widget_info (const char* type,
                       lw_callback highlight_cb)
 {
   widget_info* info = (widget_info*) xmalloc (sizeof (widget_info));
-  info->type = safe_strdup (type);
-  info->name = safe_strdup (name);
+  info->type = xstrdup (type);
+  info->name = xstrdup (name);
   info->id = id;
   info->val = copy_widget_value_tree (val, STRUCTURAL_CHANGE);
   info->busy = False;
@@ -248,8 +235,8 @@ allocate_widget_info (const char* type,
 static void
 free_widget_info (widget_info *info)
 {
-  safe_free_str (info->type);
-  safe_free_str (info->name);
+  xfree (info->type);
+  xfree (info->name);
   free_widget_value_tree (info->val);
   memset ((void*)info, 0xDEADBEEF, sizeof (widget_info));
   xfree (info);
@@ -431,24 +418,21 @@ merge_widget_value (widget_value *val1,
       EXPLAIN (val1->name, change, STRUCTURAL_CHANGE, "name change",
 	       val1->name, val2->name);
       change = max (change, STRUCTURAL_CHANGE);
-      safe_free_str (val1->name);
-      val1->name = safe_strdup (val2->name);
+      dupstring (&val1->name, val2->name);
     }
   if (safe_strcmp (val1->value, val2->value))
     {
       EXPLAIN (val1->name, change, VISIBLE_CHANGE, "value change",
 	       val1->value, val2->value);
       change = max (change, VISIBLE_CHANGE);
-      safe_free_str (val1->value);
-      val1->value = safe_strdup (val2->value);
+      dupstring (&val1->value, val2->value);
     }
   if (safe_strcmp (val1->key, val2->key))
     {
       EXPLAIN (val1->name, change, VISIBLE_CHANGE, "key change",
 	       val1->key, val2->key);
       change = max (change, VISIBLE_CHANGE);
-      safe_free_str (val1->key);
-      val1->key = safe_strdup (val2->key);
+      dupstring (&val1->key, val2->key);
     }
   if (! EQ (val1->help, val2->help))
     {
