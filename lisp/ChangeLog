@@ -1,3 +1,8 @@
+2014-05-30  Alan Mackenzie  <acm@muc.de>
+
+	Guard (looking-at "\\s!") from XEmacs.
+	* progmodes/cc-engine.el (c-state-pp-to-literal): add guard form.
+
 2014-05-30    Ken Olum  <kdo@cosmos.phy.tufts.edu>  (tiny change)
 
 	* mail/rmail.el (rmail-delete-forward, rmail-delete-backward): The
