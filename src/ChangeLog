@@ -1,3 +1,11 @@
+2014-05-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix port to 32-bit AIX with xlc (Bug#17598).
+	* alloc.c (gdb_make_enums_visible): Remove FLOAT_TO_STRING_BUFSIZE.
+	* conf_post.h (FLEXIBLE_ARRAY_MEMBER) [__IBMC__]: Don't define to empty.
+	* lisp.h (FLOAT_TO_STRING_BUFSIZE): Make it a macro, instead of an enum,
+	to work around a compiler bug in IBM xlc 12.1.
+
 2014-05-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* xterm.c (x_update_window_end): Don't invalidate the entire

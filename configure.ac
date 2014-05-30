@@ -4380,7 +4380,7 @@ if test x$GCC = xyes; then
 else
   case $opsys in
     dnl irix: Tested on Irix 6.5.  SCM worked on earlier versions.
-    dragonfly | freebsd | netbsd | openbsd | irix6-5 | sol2* )
+    aix* | dragonfly | freebsd | netbsd | openbsd | irix6-5 | sol2* )
       AC_DEFINE(GC_SETJMP_WORKS, 1)
       ;;
   esac

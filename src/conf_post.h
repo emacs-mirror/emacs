@@ -297,8 +297,9 @@ extern void _DebPrint (const char *fmt, ...);
 
 /* To use the struct hack with N elements, declare the struct like this:
      struct s { ...; t name[FLEXIBLE_ARRAY_MEMBER]; };
-   and allocate (offsetof (struct s, name) + N * sizeof (t)) bytes.  */
-#if 199901 <= __STDC_VERSION__
+   and allocate (offsetof (struct s, name) + N * sizeof (t)) bytes.
+   IBM xlc 12.1 claims to do C99 but mishandles flexible array members.  */
+#if 199901 <= __STDC_VERSION__ && !defined __IBMC__
 # define FLEXIBLE_ARRAY_MEMBER
 #elif __GNUC__ && !defined __STRICT_ANSI__
 # define FLEXIBLE_ARRAY_MEMBER 0

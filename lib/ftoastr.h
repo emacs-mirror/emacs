@@ -72,12 +72,13 @@ enum
 
 /* _GL_FLT_PREC_BOUND is an upper bound on the precision needed to
    represent a float value without losing information.  Likewise for
-   _GL_DBL_PREC_BOUND and double, and _GL_LDBL_PREC_BOUND and long double.  */
+   _GL_DBL_PREC_BOUND and double, and _GL_LDBL_PREC_BOUND and long double.
+   These are macros, not enums, to work around a bug in IBM xlc 12.1.  */
 
 #if FLT_RADIX == 10 /* decimal floating point */
- enum {  _GL_FLT_PREC_BOUND =  FLT_MANT_DIG };
- enum {  _GL_DBL_PREC_BOUND =  DBL_MANT_DIG };
- enum { _GL_LDBL_PREC_BOUND = LDBL_MANT_DIG };
+# define  _GL_FLT_PREC_BOUND  FLT_MANT_DIG
+# define  _GL_DBL_PREC_BOUND  DBL_MANT_DIG
+# define _GL_LDBL_PREC_BOUND LDBL_MANT_DIG
 #else
 
 /* An upper bound on the number of bits needed to represent a single
@@ -95,13 +96,13 @@ enum
    DIG digits.  For why the "+ 1" is needed, see "Binary to Decimal
    Conversion" in David Goldberg's paper "What Every Computer
    Scientist Should Know About Floating-Point Arithmetic"
-   <http://docs.sun.com/source/806-3568/ncg_goldberg.html>.  */
+   <http://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html>.  */
 # define _GL_FLOAT_PREC_BOUND(dig) \
    (INT_BITS_STRLEN_BOUND ((dig) * _GL_FLOAT_DIG_BITS_BOUND) + 1)
 
- enum {  _GL_FLT_PREC_BOUND = _GL_FLOAT_PREC_BOUND ( FLT_MANT_DIG) };
- enum {  _GL_DBL_PREC_BOUND = _GL_FLOAT_PREC_BOUND ( DBL_MANT_DIG) };
- enum { _GL_LDBL_PREC_BOUND = _GL_FLOAT_PREC_BOUND (LDBL_MANT_DIG) };
+# define  _GL_FLT_PREC_BOUND _GL_FLOAT_PREC_BOUND ( FLT_MANT_DIG)
+# define  _GL_DBL_PREC_BOUND _GL_FLOAT_PREC_BOUND ( DBL_MANT_DIG)
+# define _GL_LDBL_PREC_BOUND _GL_FLOAT_PREC_BOUND (LDBL_MANT_DIG)
 #endif
 
 
