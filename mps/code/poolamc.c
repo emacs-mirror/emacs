@@ -94,8 +94,8 @@ typedef struct amcSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   amcGen gen;               /* generation this segment belongs to */
   Nailboard board;          /* nailboard for this segment or NULL if none */
-  unsigned old : 1;         /* .seg.old */
-  unsigned deferred : 1;    /* .seg.deferred */
+  BOOLFIELD(old);           /* .seg.old */
+  BOOLFIELD(deferred);      /* .seg.deferred */
   Sig sig;                  /* <code/misc.h#sig> */
 } amcSegStruct;
 
@@ -1111,6 +1111,9 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
     ShieldCover(arena, seg);
   }
 
+  /* The unused part of the buffer is not reused by AMC, so we pass 0
+   * for the unused argument. This call therefore has no effect on the
+   * accounting, but we call it anyway for consistency. */
   PoolGenEmpty(&amcSegGen(seg)->pgen, 0, Seg2amcSeg(seg)->deferred);
 }
 

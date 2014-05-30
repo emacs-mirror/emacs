@@ -178,6 +178,19 @@ typedef const struct SrcIdStruct {
   ((type *)(void *)((char *)(p) - offsetof(type, field)))
 
 
+
+/* BOOLFIELD -- declare a Boolean bitfield
+ *
+ * A Boolean bitfield needs to be unsigned (not Bool), so that its
+ * values are 0 and 1 (not 0 and -1), in order to avoid a sign
+ * conversion (which would be a compiler error) when assigning TRUE to
+ * the field.
+ *
+ * See <design/type/#bool.bitfield>
+ */
+#define BOOLFIELD(name) unsigned name : 1
+
+
 /* BITFIELD -- coerce a value into a bitfield
  *
  * This coerces value to the given width and type in a way that avoids
